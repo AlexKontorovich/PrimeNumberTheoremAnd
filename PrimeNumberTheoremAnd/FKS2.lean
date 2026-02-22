@@ -900,36 +900,33 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     (hx₀ : 2 ≤ x₀) (hR : 0 < R) (hA : 0 ≤ A) (h : 0 ≤ √(log x₀) - C / (2 * √R)) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
-    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
+    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) := by
+  have log_t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, log t ≠ 0 := fun t ht ↦ (by simp; grind [Set.uIcc_of_le hx])
+  have t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, t ≠ 0 := fun t ht ↦ (by grind [Set.uIcc_of_le hx])
+  have t_pos : ∀ t ∈ Set.uIcc √(log x₀) √(log x), 0 < t := by
+    intro t ht
+    rw [Set.uIcc_of_le (by gcongr)] at ht
+    apply lt_of_lt_of_le _ ht.1
+    exact sqrt_pos.mpr (log_pos (by linarith))
   calc
   _ ≤ ∫ t in x₀..x, |admissible_bound A B C R t| / log t ^ 2 := by
     apply intervalIntegral.integral_mono_on hx
-    · apply IntervalIntegrable.mul_continuousOn
-      · unfold Eθ
-        apply IntervalIntegrable.abs
-        apply IntervalIntegrable.mul_continuousOn
-        · apply IntervalIntegrable.abs
-          apply IntervalIntegrable.sub
-          · apply intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mpr
-            conv => arg 1; ext x; rw [← one_mul (θ x), theta_eq_sum_Icc, Finset.sum_filter]
-            apply  integrableOn_mul_sum_Icc _ (by linarith)
-            apply ContinuousOn.integrableOn_Icc
-            fun_prop
-          · exact intervalIntegral.intervalIntegrable_id
-        · fun_prop (disch := grind [Set.uIcc_of_le hx])
-      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
-        rw [Set.uIcc_of_le hx] at ht
-        have : log t ^ 2 ≠ 0 := by simp; grind
-        fun_prop (disch := grind)
+    · refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      unfold Eθ
+      apply IntervalIntegrable.abs
+      refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      refine IntervalIntegrable.abs <| IntervalIntegrable.sub ?_ intervalIntegral.intervalIntegrable_id
+      apply intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mpr
+      conv => arg 1; ext x; rw [← one_mul (θ x), theta_eq_sum_Icc, Finset.sum_filter]
+      apply  integrableOn_mul_sum_Icc _ (by linarith)
+      apply ContinuousOn.integrableOn_Icc
+      fun_prop
     · apply IntervalIntegrable.mul_continuousOn
       · apply IntervalIntegrable.abs
         apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
         unfold admissible_bound
-        have : log t ≠ 0 := by simp; grind [Set.uIcc_of_le hx]
-        fun_prop (disch := grind[Set.uIcc_of_le hx])
+        fun_prop (disch := grind)
       · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
-        rw [Set.uIcc_of_le hx] at ht
-        have : log t ^ 2 ≠ 0 := by simp; grind
         fun_prop (disch := grind)
     · intro t ht
       specialize hEθ t ht.1
@@ -941,12 +938,9 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     apply intervalIntegral.integral_congr fun t ht ↦ ?_
     congr
     rw [abs_of_nonneg]
-    apply mul_nonneg
-    · apply mul_nonneg hA
-      apply rpow_nonneg
-      apply div_nonneg _ hR.le
-      apply log_nonneg (by grind [Set.uIcc_of_le hx])
-    positivity
+    refine mul_nonneg ?_ (by positivity)
+    refine mul_nonneg hA <| rpow_nonneg (div_nonneg ?_ hR.le) _
+    exact log_nonneg (by grind [Set.uIcc_of_le hx])
   _ = ∫ (t : ℝ) in x₀..x, A / R ^ B * (log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2))) := by
     apply intervalIntegral.integral_congr fun t ht ↦ ?_
     rw [div_rpow (log_nonneg (by grind[Set.uIcc_of_le hx])) hR.le, rpow_sub (log_pos (by grind[Set.uIcc_of_le hx])), rpow_ofNat]
@@ -974,10 +968,9 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
       rw [Set.uIcc_of_le (by gcongr)] at hy1
       have : log t ≠ 0 := by
         rw [← hy2, log_exp]
-        simp
+        simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff]
         have : √(log x₀) > 0 := by
-          apply sqrt_pos.mpr
-          apply log_pos (by linarith)
+          exact sqrt_pos.mpr <| log_pos (by linarith)
         linarith [hy1.1]
       have : t ≠ 0 := by
         rw [← hy2]
@@ -986,27 +979,17 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 4) * t * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * rexp (t ^ 2) := by
     congr 1
     refine intervalIntegral.integral_congr fun t ht ↦ ?_
-    rw [← rpow_ofNat, ← rpow_mul]
-    · ring_nf
-    · rw [Set.uIcc_of_le (by gcongr)] at ht
-      apply le_trans _ ht.1
-      exact sqrt_nonneg _
+    rw [← rpow_ofNat, ← rpow_mul (t_pos t ht).le]
+    ring_nf
   _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 3) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2) + t ^ 2) := by
     congr 1
     refine intervalIntegral.integral_congr fun t ht ↦ ?_
-    rw [exp_add, (by ring : 2 * B - 3 = (2 * B - 4)+ 1), rpow_add, rpow_one]
-    · ring
-    · rw [Set.uIcc_of_le (by gcongr)] at ht
-      apply lt_of_lt_of_le _ ht.1
-      exact sqrt_pos.mpr (log_pos (by linarith))
+    rw [exp_add, (by ring : 2 * B - 3 = (2 * B - 4)+ 1), rpow_add <| t_pos t ht, rpow_one]
+    ring
   _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * (t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R)) := by
     congr 1
     refine intervalIntegral.integral_congr fun t ht ↦ ?_
-    have t_nonneg : 0 ≤ t := by
-      rw [Set.uIcc_of_le (by gcongr)] at ht
-      apply le_trans _ ht.1
-      exact sqrt_nonneg _
-    rw [← sqrt_eq_rpow, sqrt_div (by positivity), sqrt_sq t_nonneg]
+    rw [← sqrt_eq_rpow, sqrt_div (by positivity), sqrt_sq (t_pos t ht).le]
     ring_nf
   _ = 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R) := by
     rw [intervalIntegral.integral_const_mul]
@@ -1015,11 +998,6 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     gcongr
     apply intervalIntegral.integral_mono_on (by gcongr)
     · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
-      have : t ≠ 0 := by
-        rw [Set.uIcc_of_le (by gcongr)] at ht
-        apply ne_of_gt
-        apply lt_of_lt_of_le _ ht.1
-        apply sqrt_pos.mpr (log_pos (by linarith))
       fun_prop (disch := grind)
     · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
       fun_prop
@@ -1074,7 +1052,6 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     have : x = exp (log x) := by rw [exp_log (by linarith)]
     nth_rw 1 [this]
     rw [← exp_add, ← exp_add, sqrt_div (log_nonneg (by linarith))]
-    congr
     ring_nf
 
 @[blueprint
