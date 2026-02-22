@@ -1178,6 +1178,27 @@ theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) :=
       deriv_fun_div differentiableAt_fun_id (differentiableAt_log (by linarith)) (hpos x hx)]
     simp [(hasDerivAt_Li hx).deriv, field, pow_two_pos_of_ne_zero, (hpos x hx), - sub_pos]
 
+private lemma Li_ibp {x : ℝ} (hx : x > 2) :
+    Li x - x / log x = -2 / log 2 + ∫ t in (2:ℝ)..x, 1 / (log t) ^ 2 := by
+  have h_parts : ∀ a b : ℝ, 2 ≤ a → a < b → ∫ t in a..b, (1 : ℝ) / Real.log t = (b / Real.log b) - (a / Real.log a) + ∫ t in a..b, (1 : ℝ) / Real.log t ^ 2 := by
+    intro a b _ _; rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+    rotate_right;
+    use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2;
+    · norm_num ; ring;
+    · intro x hx;
+      have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2) (1 / Real.log x ^ 2) x := by
+        apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
+        · apply_rules [ ContinuousOn.intervalIntegrable ];
+          exact continuousOn_of_forall_continuousAt fun y hy => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( by simpa [ le_of_lt, * ] using hx ) ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( by simpa [ le_of_lt, * ] using hx ) ] ) ) ) );
+        · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
+        · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) );
+      convert HasDerivAt.add ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) ) h_ftc using 1 ; ring;
+      by_cases hx' : x = 0 <;> simp +decide [ sq, mul_assoc, hx' ];
+      field_simp;
+    · apply_rules [ ContinuousOn.intervalIntegrable ];
+      exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp ht <;> linarith ) ) ( ne_of_gt ( Real.log_pos ( by cases Set.mem_uIcc.mp ht <;> linarith ) ) );
+  convert congr_arg ( fun y => y - x / Real.log x ) ( h_parts 2 x ( by norm_num ) hx ) using 1 ; ring!
+
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
   "fks2-lemma-20b"
@@ -1416,8 +1437,13 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
   (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) :
-  Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) :=
-  sorry
+  Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
+  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num x hx₁ le_top
+  suffices hsuff : μ_num b εθ_num x₀ x₁ (⊤ : EReal) = μ_num_2 b εθ_num x₀ x₁ by
+    have heq : επ_num b εθ_num x₀ x₁ ⊤ = εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
+      dsimp [επ_num]; rw [hsuff]
+    linarith
+  dsimp [μ_num]; rfl
 
 
 @[blueprint
