@@ -1041,6 +1041,19 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   _ = 2 * A * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (t ^ 2 - C * t / √R) := by
     rw [intervalIntegral.integral_const_mul]
     ring
+  _ = 2 * A * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2 + (-C ^ 2 / (4 * R))) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [sub_sq, div_pow, mul_pow, sq_sqrt hR.le]
+    ring_nf
+  _ = 2 * A * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (-C ^ 2 / (4 * R)) * rexp ((t - C / (2 * √R)) ^ 2) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add]
+    ring
+  _ = 2 * A * rexp (-C ^ 2 / (4 * R)) * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
   _ ≤ _ := by sorry
 
 @[blueprint
