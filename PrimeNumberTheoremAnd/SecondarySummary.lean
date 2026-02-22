@@ -201,26 +201,76 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
 theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
     HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
+/-! ### Kadiri-Lumley Prime Gaps
+
+We place the Kadiri-Lumley table and theorem here so that later results
+(Ramaré-Saouter 2003 (2), PrimeGaps2014, etc.) can be derived from it. -/
+
+namespace KadiriLumley
+
+noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ ) :=
+  [(log (4 * 10 ^ 18), 5, 3.580e-8, 272519712, 0.92, 0.2129, 36082898),
+   (43, 5, 3.349e-8, 291316980, 0.92, 0.2147, 38753947),
+   (44, 6, 2.330e-8, 488509984, 0.92, 0.2324, 61162616),
+   (45, 7, 1.628e-8, 797398875, 0.92, 0.2494, 95381241),
+   (46, 8, 1.134e-8, 1284120197, 0.92, 0.2651, 148306019),
+   (47, 9, 8.080e-9, 1996029891, 0.92, 0.2836, 227619375),
+   (48, 11, 6.000e-9, 3204848430, 0.93, 0.3050, 346582570),
+   (49, 15, 4.682e-9, 5415123831, 0.93, 0.3275, 518958776),
+   (50, 20, 3.889e-9, 8466793105, 0.93, 0.3543,753575355),
+   (51 ,28 ,3.625e-9 ,12399463961 ,0.93 ,0.3849 ,1037917449),
+   (52 ,39 ,3.803e-9 ,16139006408 ,0.93 ,0.4127 ,1313524036),
+   (53 ,48 ,4.088e-9 ,18290358817 ,0.93 ,0.4301 ,1524171138),
+   (54 ,54 ,4.311e-9 ,19412056863 ,0.93 ,0.4398 ,1670398039),
+   (55 ,56 ,4.386e-9 ,19757119193 ,0.93 ,0.4445 ,1770251249),
+   (56 ,59 ,4.508e-9 ,20210075547 ,0.93 ,0.4481 ,1838818070),
+   (57 ,59 ,4.506e-9 ,20219045843 ,0.93 ,0.4496 ,1886389443),
+   (58 ,61 ,4.590e-9 ,20495459359 ,0.93 ,0.4514 ,1920768795),
+   (59 ,61 ,4.589e-9 ,20499925573 ,0.93 ,0.4522 ,1946282821),
+   (60 ,61 ,4.588e-9 ,20504393735 ,0.93 ,0.4527 ,1966196911),
+   (150, 64, 4.685e-9, 21029543983, 0.96, 0.4641, 2442159714)]
+
+@[blueprint
+  "thm:prime_gaps_KL"
+  (title := "Kadiri-Lumley Prime Gaps")
+  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$, there is a prime between $x(1-\Delta^{-1})$ and $x$.
+  -/)
+  (latexEnv := "theorem")]
+theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
+    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
+
+end KadiriLumley
+
+/-- Helper: if there is a prime in a narrower backward interval `(x*(1-1/Δ₁), x]` with `Δ₁ ≥ Δ₂`,
+    then there is also one in the wider interval `(x*(1-1/Δ₂), x]`. -/
+private lemma HasPrimeInInterval_of_larger_delta {x Δ₁ Δ₂ : ℝ} (hΔ : Δ₁ ≥ Δ₂) (hΔ₂ : Δ₂ > 0) (hx : x > 0)
+    (hp : HasPrimeInInterval (x * (1 - 1 / Δ₁)) (x / Δ₁)) :
+    HasPrimeInInterval (x * (1 - 1 / Δ₂)) (x / Δ₂) := by
+  obtain ⟨p, hpp, hlo, hhi⟩ := hp
+  refine ⟨p, hpp, lt_of_le_of_lt ?_ hlo, ?_⟩
+  · apply mul_le_mul_of_nonneg_left _ hx.le
+    apply sub_le_sub_left
+    exact div_le_div_of_nonneg_left (by linarith) hΔ₂ hΔ
+  · have h1 : x * (1 - 1 / Δ₁) + x / Δ₁ = x := by ring
+    have h2 : x * (1 - 1 / Δ₂) + x / Δ₂ = x := by ring
+    linarith
+
 @[blueprint
   "thm:ramare_saouter2003-2"
   (title := "Ramaré-Saouter 2003 (2)")
   (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
   \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
   -/)
+  (proof := /-- Apply Kadiri-Lumley with the row at $\log x_0 = 53$, which gives
+  $\Delta = 1524171138 \geq 204879661$, then use monotonicity of the backward interval. -/)
   (latexEnv := "theorem")]
 theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by sorry
-
-@[blueprint
-  "thm:gourdon-demichel2004"
-  (title := "Gourdon-Demichel 2004")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
-
+    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by
+  have hx_pos : x > 0 := lt_trans (exp_pos 53) hx
+  have hKL := KadiriLumley.has_prime_in_interval (exp 53) x 48 (4.088e-9) 18290358817 0.93 0.4301 1524171138
+    hx.le (by rw [log_exp]; simp [KadiriLumley.Table_2])
+  exact HasPrimeInInterval_of_larger_delta (by norm_num : (1524171138 : ℝ) ≥ 204879661)
+    (by norm_num) hx_pos hKL
 
 @[blueprint
   "thm:prime_gaps_2014"
@@ -228,9 +278,13 @@ theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
   \[ \left( x\left(1 - \frac{1}{1966196911}\right), x \right]. \]
   -/)
+  (proof := /-- Apply Kadiri-Lumley with the row at $\log x_0 = 60$, which gives exactly
+  $\Delta = 1966196911$. -/)
   (latexEnv := "theorem")]
 theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by sorry
+    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
+  exact KadiriLumley.has_prime_in_interval (exp 60) x 61 (4.588e-9) 20504393735 0.93 0.4527 1966196911
+    hx.le (by rw [log_exp]; simp [KadiriLumley.Table_2])
 
 @[blueprint
   "thm:prime_gaps_2024"
@@ -241,6 +295,20 @@ theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   (latexEnv := "theorem")]
 theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
+
+@[blueprint
+  "thm:gourdon-demichel2004"
+  (title := "Gourdon-Demichel 2004")
+  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
+  -/)
+  (proof := /-- This follows from PrimeGaps2024 since $76900000000 \geq 14500755538$,
+  so the PrimeGaps2024 interval is contained in the Gourdon-Demichel interval. -/)
+  (latexEnv := "theorem")]
+theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+    HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) :=
+  HasPrimeInInterval_of_larger_delta (by norm_num : (76900000000 : ℝ) ≥ 14500755538)
+    (by norm_num) (lt_trans (exp_pos 60) hx) (PrimeGaps2024.has_prime_in_interval x hx)
 
 @[blueprint
   "thm:trudgian2016"
@@ -281,16 +349,6 @@ def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInter
 
 
 @[blueprint
-  "thm:dudek2014"
-  (title := "Dudek 2014")
-  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
-  \[ \left( x, x + 3x^{2/3} \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
-    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
-
-@[blueprint
   "thm:cully-hugill2021"
   (title := "Cully-Hugill 2021")
   (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
@@ -301,14 +359,18 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 @[blueprint
-  "thm:rh_prime_interval_2002"
-  (title := "RH Prime Interval 2002")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
+  "thm:dudek2014"
+  (title := "Dudek 2014")
+  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
+  \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
+  (proof := /-- This follows from Cully-Hugill 2021 since $\exp(\exp(34.32)) > \exp(\exp(33.99))$. -/)
   (latexEnv := "theorem")]
-theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by sorry
+theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) :=
+  CullyHugill2021.has_prime_in_interval x
+    (lt_trans (exp_lt_exp.mpr (exp_lt_exp.mpr (by norm_num))) hx)
+
 @[blueprint
   "thm:dudek2015_rh"
   (title := "Dudek 2015 under RH")
@@ -320,6 +382,27 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
     HasPrimeInInterval (x - (4 / π) * sqrt x * log x) ((4 / π) * sqrt x * log x) := by sorry
 
 @[blueprint
+  "thm:rh_prime_interval_2002"
+  (title := "RH Prime Interval 2002")
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
+  \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
+  -/)
+  (proof := /-- This follows from Dudek 2015 since $4/\pi < 8/5$, so the Dudek interval is
+  contained in the wider interval. -/)
+  (latexEnv := "theorem")]
+theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+    HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by
+  obtain ⟨p, hp, hlo, hhi⟩ := Dudek2015RH.has_prime_in_interval x hx RH
+  refine ⟨p, hp, lt_of_le_of_lt ?_ hlo, ?_⟩
+  · have h_coeff : (4 : ℝ) / π ≤ 8 / 5 := by
+      rw [div_le_div_iff₀ Real.pi_pos (by norm_num : (5 : ℝ) > 0)]
+      linarith [Real.pi_gt_three]
+    have h_nn : 0 ≤ sqrt x * log x :=
+      mul_nonneg (sqrt_nonneg x) (log_nonneg (by linarith))
+    nlinarith [mul_le_mul_of_nonneg_right h_coeff h_nn]
+  · linarith
+
+@[blueprint
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
@@ -328,38 +411,3 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   (latexEnv := "theorem")]
 theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
-
-namespace KadiriLumley
-
-noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ ) :=
-  [(log (4 * 10 ^ 18), 5, 3.580e-8, 272519712, 0.92, 0.2129, 36082898),
-   (43, 5, 3.349e-8, 291316980, 0.92, 0.2147, 38753947),
-   (44, 6, 2.330e-8, 488509984, 0.92, 0.2324, 61162616),
-   (45, 7, 1.628e-8, 797398875, 0.92, 0.2494, 95381241),
-   (46, 8, 1.134e-8, 1284120197, 0.92, 0.2651, 148306019),
-   (47, 9, 8.080e-9, 1996029891, 0.92, 0.2836, 227619375),
-   (48, 11, 6.000e-9, 3204848430, 0.93, 0.3050, 346582570),
-   (49, 15, 4.682e-9, 5415123831, 0.93, 0.3275, 518958776),
-   (50, 20, 3.889e-9, 8466793105, 0.93, 0.3543,753575355),
-   (51 ,28 ,3.625e-9 ,12399463961 ,0.93 ,0.3849 ,1037917449),
-   (52 ,39 ,3.803e-9 ,16139006408 ,0.93 ,0.4127 ,1313524036),
-   (53 ,48 ,4.088e-9 ,18290358817 ,0.93 ,0.4301 ,1524171138),
-   (54 ,54 ,4.311e-9 ,19412056863 ,0.93 ,0.4398 ,1670398039),
-   (55 ,56 ,4.386e-9 ,19757119193 ,0.93 ,0.4445 ,1770251249),
-   (56 ,59 ,4.508e-9 ,20210075547 ,0.93 ,0.4481 ,1838818070),
-   (57 ,59 ,4.506e-9 ,20219045843 ,0.93 ,0.4496 ,1886389443),
-   (58 ,61 ,4.590e-9 ,20495459359 ,0.93 ,0.4514 ,1920768795),
-   (59 ,61 ,4.589e-9 ,20499925573 ,0.93 ,0.4522 ,1946282821),
-   (60 ,61 ,4.588e-9 ,20504393735 ,0.93 ,0.4527 ,1966196911),
-   (150, 64, 4.685e-9, 21029543983, 0.96, 0.4641, 2442159714)]
-
-@[blueprint
-  "thm:prime_gaps_KL"
-  (title := "Kadiri-Lumley Prime Gaps")
-  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$, there is a prime between $x(1-\Delta^{-1})$ and $x$.
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
-    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
-
-end KadiriLumley
