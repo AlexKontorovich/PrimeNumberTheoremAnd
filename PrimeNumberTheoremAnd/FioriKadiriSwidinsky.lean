@@ -151,8 +151,8 @@ noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ}
 noncomputable def corollary_2_9_merged : zero_density_bound := {
   T₀ := 3e12
   σ_range := Set.Icc 0.6 1
-  c₁ σ := 17.4194
-  c₂ σ := 5.2954
+  c₁ σ := sorry
+  c₂ σ := sorry
   p σ := 8 / 3 * (1 - σ)
   q σ := 5 - 2 * σ
   bound := by sorry
