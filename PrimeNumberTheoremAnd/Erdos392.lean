@@ -890,6 +890,7 @@ structure Params where
   hL_pos : L > 0
   hL : n > L * L
   hL' : (n/L:ℕ) > Real.sqrt n  -- almost implied by hL, but not quite
+  hL'' : 2 ≤ L
 
 @[blueprint
   "initial-factorization-def"
@@ -2435,13 +2436,11 @@ theorem Params.initial.score_bound (P : Params) :
           have hx_ge1 : (1 : ℝ) ≤ x := by exact_mod_cast hx_prime.one_le
           have hlog_div_nn : 0 ≤ Real.log (↑n / ↑x) :=
             Real.log_nonneg (by
-              sorry
-              -- apply le_div_of_mul_le hx_pos
-              -- linarith [show (n : ℝ) ≥ x from by exact_mod_cast hx_le_n]
-              )
+              rw [le_div_iff₀ (by positivity)]
+              norm_num
+              exact hx_le_n)
           have hlog_div : Real.log (↑n / ↑x) ≤ Real.log ↑n :=
-            Real.log_le_log (by sorry --linarith
-              ) (div_le_self (by linarith) hx_ge1)
+            Real.log_le_log (by positivity) (div_le_self (by linarith) hx_ge1)
           have hlogx : Real.log x ≤ Real.log n :=
             Real.log_le_log (by linarith) (by exact_mod_cast hx_le_n)
           simp only [g]
@@ -2450,8 +2449,8 @@ theorem Params.initial.score_bound (P : Params) :
           · exfalso
             have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
               rw [Real.lt_sqrt (by positivity)]
-              have : L * L < n := hLbnd
-              sorry -- exact_mod_cast this
+              ring_nf at hLbnd
+              exact_mod_cast hLbnd
             exact absurd (by exact_mod_cast hle : (x : ℝ) ≤ L)
               (not_le.mpr (hL_lt_sqrt.trans hx_sqrt))
           · rw [show  -(↑(P.initial.balance x) * Real.log (↑n / ↑x))
@@ -2470,9 +2469,7 @@ theorem Params.initial.score_bound (P : Params) :
         have hlogn : Real.log ↑n ≤ ↑M * Real.log ↑n := by
           nlinarith [hlogn_nn, hM_ge1]
 
-        -- 2 ≤ L (from Params, assumed available as hL2 : 2 ≤ L)
-        have hL2 : 2 ≤ L := by
-          sorry
+        have hL2 : 2 ≤ L := P.hL''
 
         -- prime 2 is in NoverL_primes set and not in A3set
         have h2_le_NL : 2 ≤ n / L := le_trans hL2 hL_le_NL
@@ -2505,23 +2502,34 @@ theorem Params.initial.score_bound (P : Params) :
             have hNL_pos : (0 : ℝ) < n / L := by positivity
             have hbal_le : (P.initial.balance (n / L) : ℝ) ≤ 0 := by exact_mod_cast h2 le_rfl
             have hbal_ge : -(↑n / ↑(n / L)) ≤ (P.initial.balance (n / L) : ℝ) := by
-              sorry -- exact_mod_cast h3 le_rfl
+              convert h3_real (x := n / L) (by positivity) (by simp) using 1
+              ring
+            have hnLLlen := Nat.div_mul_le_self n L
+            have hnLLL :  n ≤ n * L + L - 1 := by
+              calc n ≤ n * 2 := by linarith
+                   _ ≤ n * L := by
+                    apply Nat.mul_le_mul (by simp) (by linarith)
+                   _ ≤ n * L + (L - 1) := by linarith
+                   _ ≤ _ := by omega
+            have hnLlen : (n / L) ≤ n := by
+              rw [Nat.div_le_iff_le_mul (by positivity)]
+              exact hnLLL
             have hnNL_le_L : (n : ℝ) / (n / L) ≤ L := by
               rw [div_le_iff₀ hNL_pos]
-              have := Nat.div_mul_le_self n L
-              sorry -- exact_mod_cast this
+              field_simp
+              simp
             have hneg_bal : -(P.initial.balance (n / L) : ℝ) ≤ M := by
+
               sorry -- nlinarith [hM_ge1, hL1]
-            have hNL_ge1 : (1 : ℝ) ≤ n / L := by sorry -- exact_mod_cast hnL_prime.one_le
+            have hNL_ge1 : (1 : ℝ) ≤ n / L := by
+              rw [le_div_iff₀ (by positivity)]
+              norm_num
+              linarith
             have hlog_div_nn : 0 ≤ Real.log (↑n / ↑(n / L)) := by
               apply Real.log_nonneg
               field_simp
               norm_num
-              rw [Nat.div_le_iff_le_mul (by positivity)]
-              calc n ≤ n * 2 := by linarith --sorry
-                   _ ≤ n * L := by sorry -- omega
-                   _ ≤ n * L + (L - 1) := by linarith
-                   _ = _ := by omega
+              exact hnLlen
             have hlog_div : Real.log (↑n / ↑(n / L)) ≤ Real.log ↑n := by
               apply Real.log_le_log (by positivity)
               field_simp
@@ -2568,27 +2576,25 @@ theorem Params.initial.score_bound (P : Params) :
               · intro heq
                 subst heq
                 exact absurd hx.2.2 (lt_irrefl _)
+            have hsub : {2, n / L} ⊆ {x ∈ Finset.Iic (n / L) | Nat.Prime x} := by
+              intro x hx
+              simp only [Finset.mem_insert, Finset.mem_singleton] at hx
+              rcases hx with rfl | rfl
+              · exact h2_in_NoverL
+              · exact hNL_in
+            have : ({2, n / L} : Finset ℕ).card = 2 := by
+              simp [Finset.card_pair h2_ne_NL]
             have hcard_sdiff : ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L}).card + 2 ≤
                 NoverL_primes := by
-              have : ({2, n / L} : Finset ℕ).card = 2 := by
-                simp [Finset.card_pair h2_ne_NL]
-              have hsub : {2, n / L} ⊆ {x ∈ Finset.Iic (n / L) | Nat.Prime x} := by
-                intro x hx
-                simp only [Finset.mem_insert, Finset.mem_singleton] at hx
-                rcases hx with rfl | rfl
-                · exact h2_in_NoverL
-                · exact hNL_in
               simp only [NoverL_primes]
               rw [← Finset.card_sdiff_add_card_eq_card hsub, this]
 
+            dsimp [A3prop, NoverL_primes]
             calc ((n + 1).primesBelow.filter (fun x => A3prop x)).card + 2
-                ≤ ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L}).card + 2 + 2 := by
+                ≤ ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L}).card + 2 := by
                   linarith [Finset.card_le_card hA3_sub]
                 _ = _ := by
-
-                  sorry -- omega
-            -- cleaner:
-            --linarith [Finset.card_le_card hA3_sub, hcard_sdiff]
+                  rw [← Finset.card_sdiff_add_card_eq_card hsub, this]
 
           calc Real.log ↑n + A3 + A3'
               ≤ ↑M * Real.log ↑n +
@@ -3118,7 +3124,8 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
     (initial.bound_score_2 (ε / 5) (by positivity) M).mono fun L hL ↦
       hL.mono fun n hn P hPL hPn hPM ↦ by linarith [hn P hPL hPn hPM]
   obtain ⟨L₀, hL₀⟩ := Filter.eventually_atTop.mp h_bound_score_2
-  let L := max L₀ 1
+  let L := max L₀ 2
+  have hL'' : 2 ≤ L := by omega
   have h_bound_score_3 : ∀ᶠ n in .atTop, ∀ P : Params,
       P.M = M → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
         P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n / 5 :=
@@ -3145,7 +3152,7 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
   filter_upwards [Filter.eventually_ge_atTop h_exists_n₀.choose, hL₀ L (le_max_left _ _),
     h_bound_score_3, h_bound_score_4, h_bound_score_5] with n hn hn2 hn3 hn4 hn5
   obtain ⟨hn_LL, hn_sqrt⟩ := h_exists_n₀.choose_spec n hn
-  let P : Params := ⟨n, M, L, hM.1, by positivity, hn_LL, hn_sqrt⟩
+  let P : Params := ⟨n, M, L, hM.1, by positivity, hn_LL, hn_sqrt, hL''⟩
   refine ⟨P, rfl, ?_⟩
   calc P.initial.score P.L ≤ _ := initial.score_bound P
     _ ≤ ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 := by
