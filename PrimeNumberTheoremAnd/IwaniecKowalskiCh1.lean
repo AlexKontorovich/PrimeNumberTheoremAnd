@@ -60,7 +60,29 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry
+  -- Existence
+  obtain ⟨d₁, d₂, h1, h2, h3⟩ := exists_dvd_and_dvd_of_dvd_mul hd
+  refine ⟨(d₁, d₂), ⟨h1, h2, h3.symm⟩, ?_⟩
+  -- Uniqueness
+  rintro ⟨q₁, q₂⟩ ⟨hq1, hq2, hq3⟩
+  have h_eq : d₁ * d₂ = q₁ * q₂ := by rw [← h3, ← hq3]
+  apply Prod.ext
+  -- d₁ = q₁
+  · apply dvd_antisymm
+    -- q₁ | d₁
+    · have : Coprime q₁ d₂ := (hab.coprime_dvd_left hq1).coprime_dvd_right h2
+      exact this.dvd_of_dvd_mul_right (by rw [h_eq]; apply dvd_mul_right)
+    -- d₁ | q₁
+    · have : Coprime d₁ q₂ := (hab.coprime_dvd_left h1).coprime_dvd_right hq2
+      exact this.dvd_of_dvd_mul_right (by rw [← h_eq]; apply dvd_mul_right)
+  -- d₂ = q₂
+  · apply dvd_antisymm
+    -- q₂ ∣ d₂
+    · have : Coprime q₂ d₁ := (hab.symm.coprime_dvd_left hq2).coprime_dvd_right h1
+      exact this.dvd_of_dvd_mul_left (by rw [h_eq]; apply dvd_mul_left)
+    -- d₂ ∣ q₂
+    · have : Coprime d₂ q₁ := (hab.symm.coprime_dvd_left h2).coprime_dvd_right hq1
+      exact this.dvd_of_dvd_mul_left (by rw [← h_eq]; apply dvd_mul_left)
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -74,7 +96,34 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry
+  let g : ℕ × ℕ → ℕ := fun p ↦ p.1 * p.2
+-- (ab).divisors = Image
+  have h_image : (a * b).divisors = (a.divisors ×ˢ b.divisors).image (g) := by
+    ext d
+    simp only [Finset.mem_image, Finset.mem_product, Nat.mem_divisors]
+    constructor
+    · rintro ⟨hd_dvd, _⟩
+      obtain ⟨p, ⟨hp1, hp2, rfl⟩, _⟩ := unique_divisor_decomposition hab hd_dvd
+      exact ⟨p, ⟨⟨hp1, ha⟩, ⟨hp2, hb⟩⟩, rfl⟩
+    · rintro ⟨p, ⟨⟨hp1, _⟩, ⟨hp2, _⟩⟩, rfl⟩
+      exact ⟨mul_dvd_mul hp1 hp2, mul_ne_zero ha hb⟩
+  -- Injectivity
+  have h_inj : Set.InjOn g (↑(a.divisors ×ˢ b.divisors)) := by
+    intro p1 hp1 p2 hp2 h_eq
+    simp only [Finset.mem_coe, Finset.mem_product] at hp1 hp2
+    have hd : p1.1 * p1.2 ∣ a * b :=
+      mul_dvd_mul (Nat.dvd_of_mem_divisors hp1.1) (Nat.dvd_of_mem_divisors hp1.2)
+    obtain ⟨p, _, h_unique_imp⟩ := unique_divisor_decomposition hab hd
+    rw [h_unique_imp p1 ⟨Nat.dvd_of_mem_divisors hp1.1, Nat.dvd_of_mem_divisors hp1.2, rfl⟩,
+        h_unique_imp p2 ⟨Nat.dvd_of_mem_divisors hp2.1, Nat.dvd_of_mem_divisors hp2.2, h_eq.symm⟩]
+  -- Change summation
+  rw [h_image, sum_image h_inj, Finset.sum_product,sum_mul_sum]
+  -- Prove equality of terms
+-- Prove equality of terms
+  refine Finset.sum_congr rfl fun x hx ↦ Finset.sum_congr rfl fun y hy ↦ ?_
+  exact hf.map_mul_of_coprime <|
+    Nat.Coprime.of_dvd_right (Nat.dvd_of_mem_divisors hy) <|
+      Nat.Coprime.of_dvd_left (Nat.dvd_of_mem_divisors hx) hab
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -260,7 +309,8 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   induction k with
   | zero => rw [d_zero]; exact isMultiplicative_one
   | succ k ih =>
-    sorry -- follows from IsMultiplicative.pow and isMultiplicative_zeta
+    rw [d_succ]
+    exact ih.mul isMultiplicative_zeta
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
