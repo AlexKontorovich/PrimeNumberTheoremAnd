@@ -167,6 +167,19 @@ theorem pi_error_identity (x : ℝ) (hx : 2 ≤ x) :
     exact primeCounting_eq_theta_div_log_add_integral hx
   rw [h_integral, h_pi, Li_eq_sub_add_integral x hx]; ring
 
+theorem integrable_theta (x : ℝ) :
+    IntegrableOn (fun t ↦ (θ t - t) / (t * log t ^ 2)) (Icc 2 x) volume := by
+  have l0 : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.Icc 2 x) := by
+    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
+    repeat simp_all; grind
+  have l1 : IntegrableOn (fun t ↦ θ t / (t * log t ^ 2)) (Icc 2 x) volume :=
+    (theta_mono.monotoneOn _).integrableOn_isCompact isCompact_Icc |>.mul_continuousOn l0
+    isCompact_Icc
+  have l2 : IntegrableOn (fun t ↦ t / (t * log t ^ 2)) (Icc 2 x) volume :=
+    monotoneOn_id.integrableOn_isCompact isCompact_Icc |>.mul_continuousOn l0 isCompact_Icc
+  simpa [div_sub_div_same] using l1.sub' l2
+
 @[blueprint
   "ramanujan-pi-upper"
   (title := "Upper bound for pi")
@@ -178,9 +191,36 @@ $$ (cf. \cite[\S 5]{PT2021})
   (proof := /-- Follows from Lemma \ref{pi-error-identity} and the triangle inequality. -/)
   (latexEnv := "sublemma")
   (discussion := 987)]
-theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x ^ 5 ≤ x * a x) (x : ℝ) (hx : 2 ≤ x) :
-    pi x ≤ x / log x + a x * x / log x ^ 6 + ∫ t in Set.Icc 2 x, 1 / log t ^ 2 + ∫ t in Set.Icc 2 x, a t / log t ^ 7 := by
-    sorry
+theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, |θ x - x| * log x ^ 5 ≤ x * a x) (x : ℝ)
+    (ha : IntegrableOn (fun t ↦ a t / log t ^ 7) (Icc 2 x) volume)
+    (hx : 2 ≤ x) :
+    pi x ≤ x / log x + a x * x / log x ^ 6 + (∫ t in Icc 2 x, 1 / log t ^ 2)
+    + ∫ t in Icc 2 x, a t / log t ^ 7 := calc
+  _ = pi x - Li x + Li x := by ring
+  _ = x / log x + (θ x - x) / log x + (∫ (t : ℝ) in Icc 2 x, 1 / log t ^ 2) +
+     ∫ (t : ℝ) in Icc 2 x, (θ t - t) / (t * log t ^ 2) := by
+     rw [pi_error_identity x hx, Li_eq_sub_add_integral x hx]; ring
+  _ ≤ _ := by
+    gcongr ?_ + ?_ + ?_ + ?_
+    · calc
+      _ = (θ x - x) * log x ^ 5 / log x ^ 6 := by field_simp
+      _ ≤ |θ x - x| * log x ^ 5 / log x ^ 6 := by
+        gcongr
+        · exact pow_nonneg (log_nonneg (by grind)) 5
+        · exact le_abs_self _
+      _ ≤ _ := by grw [htheta x hx, mul_comm]
+    · refine setIntegral_mono_on (integrable_theta x) ha measurableSet_Icc (fun t ht => ?_)
+      calc
+      _ = (θ t - t) * log t ^ 5 / (t * log t ^ 7) := by field_simp
+      _ ≤ |θ t - t| * log t ^ 5 / (t * log t ^ 7) := by
+        gcongr
+        · exact mul_nonneg (by grind) (pow_nonneg (log_nonneg (by grind)) 7)
+        · exact pow_nonneg (log_nonneg (by grind)) 5
+        · exact le_abs_self _
+      _ ≤ _ := by
+        grw [htheta t ht.1, mul_comm]
+        · field_simp (disch := grind); rfl
+        · exact mul_nonneg (by grind) (pow_nonneg (log_nonneg (by grind)) 7)
 
 @[blueprint
   "ramanujan-pi-lower"
@@ -193,9 +233,67 @@ $$ (cf. \cite[\S 5]{PT2021})
   (proof := /-- Follows from Lemma \ref{pi-error-identity} and the triangle inequality. -/)
   (latexEnv := "sublemma")
   (discussion := 989)]
-theorem pi_lower (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x ^ 5 ≤ x * a x) (x : ℝ) (hx : 2 ≤ x) :
-    pi x ≥ x / log x - a x * x / log x ^ 6 + ∫ t in Set.Icc 2 x, 1 / log t ^ 2 - ∫ t in Set.Icc 2 x, a t / log t ^ 7 := by
-    sorry
+theorem pi_lower (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, |θ x - x| * log x ^ 5 ≤ x * a x) (x : ℝ)
+    (ha : IntegrableOn (fun t ↦ a t / log t ^ 7) (Icc 2 x) volume)
+    (hx : 2 ≤ x) :
+    pi x ≥ x / log x - a x * x / log x ^ 6 + (∫ t in Icc 2 x, 1 / log t ^ 2) - ∫ t in Icc 2 x, a t / log t ^ 7 := by
+  have h1 : (θ x - x) / log x ≥ - (x * a x / log x ^ 6) := by
+    have hlog_pos : 0 < log x := log_pos (by linarith)
+    have h1a : (θ x - x) / log x ≥ - (|θ x - x| / log x) := by
+      have h1a1 : - |θ x - x| ≤ (θ x - x) := neg_abs_le (θ x - x)
+      have h : (- |θ x - x|) / log x ≤ (θ x - x) / log x := div_le_div_of_nonneg_right h1a1 hlog_pos.le
+      have h' : (- |θ x - x|) / log x = - (|θ x - x| / log x) := by field_simp [hlog_pos.ne']
+      rw [h'] at h; exact h.ge
+    have h1b : |θ x - x| * log x ^ 5 ≤ x * a x := htheta x hx
+    have h1c : |θ x - x| / log x ≤ (x * a x) / log x ^ 6 := by
+      have h1c1 : |θ x - x| ≤ (x * a x) / log x ^ 5 := by
+        have h1c2 : 0 < log x ^ 5 := by positivity
+        calc
+          |θ x - x| = (|θ x - x| * log x ^ 5) / log x ^ 5 := by field_simp [hlog_pos.ne']
+          _ ≤ (x * a x) / log x ^ 5 := by gcongr
+      calc
+        |θ x - x| / log x ≤ ((x * a x) / log x ^ 5) / log x := by gcongr
+        _ = (x * a x) / log x ^ 6 := by field_simp [pow_succ, hlog_pos.ne']
+    have h1d : - (|θ x - x| / log x) ≥ - ((x * a x) / log x ^ 6) := by gcongr
+    linarith
+  have h_int_abs : IntegrableOn (fun t : ℝ ↦ |(θ t - t) / (t * log t ^ 2)|) (Icc 2 x) volume := integrable_theta x |>.abs
+  have h_neg_abs_int : IntegrableOn (fun t : ℝ ↦ - |(θ t - t) / (t * log t ^ 2)|) (Icc 2 x) volume := h_int_abs.neg
+  have h2a : ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) ≥ - (∫ t in Icc 2 x, |(θ t - t) / (t * log t ^ 2)|) := by
+    have h2a1 : ∀ t ∈ Icc 2 x, - |(θ t - t) / (t * log t ^ 2)| ≤ (θ t - t) / (t * log t ^ 2) := fun t _ => neg_abs_le _
+    have h2a2 : ∫ t in Icc 2 x, (- |(θ t - t) / (t * log t ^ 2)|) ≤ ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) :=
+      MeasureTheory.setIntegral_mono_on h_neg_abs_int (integrable_theta x) measurableSet_Icc h2a1
+    have h2a3 : ∫ t in Icc 2 x, (- |(θ t - t) / (t * log t ^ 2)|) = - (∫ t in Icc 2 x, |(θ t - t) / (t * log t ^ 2)|) := by rw [MeasureTheory.integral_neg]
+    rw [h2a3] at h2a2; exact h2a2.ge
+  have h2b : ∫ t in Icc 2 x, |(θ t - t) / (t * log t ^ 2)| ≤ ∫ t in Icc 2 x, a t / log t ^ 7 :=
+    MeasureTheory.setIntegral_mono_on h_int_abs ha measurableSet_Icc (fun t ht => by
+      have ht2 : 2 ≤ t := ht.1
+      have hlog_t_pos : 0 < log t := log_pos (by linarith)
+      have h71 : |θ t - t| * log t ^ 5 ≤ t * a t := htheta t ht2
+      have h72 : |θ t - t| ≤ (t * a t) / log t ^ 5 := by
+        have h : 0 < log t ^ 5 := by positivity
+        calc
+          |θ t - t| = (|θ t - t| * log t ^ 5) / log t ^ 5 := by field_simp [hlog_t_pos.ne']
+          _ ≤ (t * a t) / log t ^ 5 := by gcongr
+      have h73 : |(θ t - t) / (t * log t ^ 2)| = |θ t - t| / (t * log t ^ 2) := by
+        have h_t_pos : 0 < t := by linarith
+        rw [abs_div, abs_of_pos (show 0 < t * log t ^ 2 from by positivity)]
+      rw [h73]
+      calc
+        |θ t - t| / (t * log t ^ 2) ≤ ((t * a t) / log t ^ 5) / (t * log t ^ 2) := by gcongr
+        _ = (t * a t) / (t * log t ^ 7) := by field_simp [pow_succ, hlog_t_pos.ne']
+        _ = a t / log t ^ 7 := by
+          have h_t_pos : 0 < t := by linarith
+          field_simp [h_t_pos.ne'])
+  have h2c : - (∫ t in Icc 2 x, |(θ t - t) / (t * log t ^ 2)|) ≥ - (∫ t in Icc 2 x, a t / log t ^ 7) := by gcongr
+  have h2 : ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) ≥ - (∫ t in Icc 2 x, a t / log t ^ 7) := by linarith [h2a, h2c]
+  calc
+    pi x = x / log x + (θ x - x) / log x + (∫ t in Icc 2 x, 1 / log t ^ 2) + ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) := by
+      have h_eq1 : pi x - Li x = (θ x - x) / log x + 2 / log 2 + ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) := pi_error_identity x hx
+      have h_eq2 : Li x = x / log x - 2 / log 2 + ∫ t in Icc 2 x, 1 / log t ^ 2 := Li_eq_sub_add_integral x hx
+      linarith
+    _ ≥ x / log x + (- (x * a x / log x ^ 6)) + (∫ t in Icc 2 x, 1 / log t ^ 2) + (- (∫ t in Icc 2 x, a t / log t ^ 7)) := by
+      gcongr
+    _ = x / log x - a x * x / log x ^ 6 + (∫ t in Icc 2 x, 1 / log t ^ 2) - ∫ t in Icc 2 x, a t / log t ^ 7 := by ring
 
 theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Icc 2 x, 1 / log t ^ 7 =
@@ -224,19 +322,13 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (pow_ne_zero _ <| ne_of_gt <| log_pos <|
           by cases Set.mem_uIcc.mp hx <;> linarith)
     · rw [Set.uIcc_of_le hab]
-      exact ContinuousOn.congr (by
-        exact ContinuousOn.sub
-          (continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1])
-        <| ContinuousOn.mul continuousOn_const <|
-          continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1]) h_deriv
+      have hlog_cont := continuousOn_log.mono fun y (hy : y ∈ Set.Icc a b) ↦
+        ne_of_gt <| by linarith [hy.1]
+      have hpow_ne : ∀ (n : ℕ), ∀ y ∈ Set.Icc a b, log y ^ n ≠ 0 :=
+        fun n y hy ↦ pow_ne_zero n <| ne_of_gt <| log_pos <| by linarith [hy.1]
+      exact ContinuousOn.congr (ContinuousOn.sub
+        (continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))
+        (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
   rw [intervalIntegral.integral_sub] <;> norm_num; ring

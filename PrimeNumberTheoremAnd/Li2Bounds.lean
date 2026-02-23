@@ -141,67 +141,41 @@ theorem li2_symmetric_bounds : (1039:ℚ)/1000 ≤ li2_symmetric ∧ li2_symmetr
 
 /-! ### Substitution Lemmas for Principal Value Connection -/
 
-/-- For ε > 0, ∫₀^{1-ε} dt/log(t) = ∫_ε^1 du/log(1-u) via t = 1 - u. -/
+/-- For ε > 0, ∫₀^{1-ε} dt/log(t) = ∫_ε^1 du/log(1-u) via t ↦ 1 - u. -/
 theorem integral_sub_left (ε : ℝ) (_hε : 0 < ε) (_hε1 : ε < 1) :
     ∫ t in (0:ℝ)..(1 - ε), 1 / log t = ∫ u in ε..1, 1 / log (1 - u) := by
-  have h := intervalIntegral.integral_comp_sub_left (fun x => 1 / log x) (1:ℝ) (a := ε) (b := 1)
-  have h1 : (1:ℝ) - 1 = 0 := by ring
-  rw [h1] at h
-  exact h.symm
+  simpa using (intervalIntegral.integral_comp_sub_left (fun x => 1 / log x) 1 (a := ε) (b := 1)).symm
 
-/-- For ε > 0, ∫_{1+ε}^2 dt/log(t) = ∫_ε^1 du/log(1+u) via t = 1 + u. -/
+/-- For ε > 0, ∫_{1+ε}^2 dt/log(t) = ∫_ε^1 du/log(1+u) via t ↦ 1 + u. -/
 theorem integral_sub_right (ε : ℝ) (_hε : 0 < ε) (_hε1 : ε < 1) :
     ∫ t in (1 + ε)..(2:ℝ), 1 / log t = ∫ u in ε..1, 1 / log (1 + u) := by
-  have h := intervalIntegral.integral_comp_add_right (fun x => 1 / log x) (1:ℝ) (a := ε) (b := 1)
-  have h1 : ε + (1:ℝ) = 1 + ε := by ring
-  have h2 : (1:ℝ) + 1 = 2 := by ring
-  rw [h1, h2] at h
-  have heq : ∀ u : ℝ, 1 / log (u + 1) = 1 / log (1 + u) := by intro u; ring_nf
-  simp_rw [heq] at h
-  exact h.symm
+  have h := intervalIntegral.integral_comp_add_right (fun x => 1 / log x) 1 (a := ε) (b := 1)
+  simp only [show ε + (1:ℝ) = 1 + ε from by ring, show (1:ℝ) + 1 = 2 from by ring] at h
+  simpa [show ∀ u : ℝ, 1 / log (u + 1) = 1 / log (1 + u) from fun u ↦ by ring_nf] using h.symm
 
 /-- The principal value integral for li(2) equals ∫_ε^1 g(u) du. -/
 theorem pv_integral_eq_symmetric (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
     (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..(2:ℝ), 1 / log t) =
     ∫ u in ε..1, g u := by
-  have h1 := integral_sub_left ε hε hε1
-  have h2 := integral_sub_right ε hε hε1
-  have hInt1 := log_one_minus_integrable ε hε hε1
-  have hInt2 := log_one_plus_integrable ε hε hε1
-  have hsum := intervalIntegral.integral_add hInt1 hInt2
-  have heq_g : ∀ u, (1 / log (1 - u) + 1 / log (1 + u)) = g u := by
-    intro u; simp only [g, symmetricLogCombination, add_comm]
-  simp_rw [heq_g] at hsum
-  have hstep : (∫ u in ε..1, 1 / log (1 - u)) + (∫ u in ε..1, 1 / log (1 + u)) =
-      ∫ u in ε..1, g u := hsum.symm
-  have hlhs : (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..(2:ℝ), 1 / log t) =
-      (∫ u in ε..1, 1 / log (1 - u)) + (∫ u in ε..1, 1 / log (1 + u)) :=
-    congrArg₂ (· + ·) h1 h2
-  exact Trans.trans hlhs hstep
+  rw [integral_sub_left ε hε hε1, integral_sub_right ε hε hε1,
+    ← intervalIntegral.integral_add (log_one_minus_integrable ε hε hε1)
+      (log_one_plus_integrable ε hε hε1)]
+  exact intervalIntegral.integral_congr fun u _ ↦ by simp [g, symmetricLogCombination, add_comm]
 
 /-- The limit as ε → 0⁺ of ∫_ε^1 g(u) du equals ∫_0^1 g(u) du. -/
 theorem limit_integral_g :
     Filter.Tendsto (fun ε => ∫ u in ε..1, g u) (nhdsWithin 0 (Ioi 0)) (nhds (∫ u in (0:ℝ)..1, g u)) := by
-  have h01 : (0:ℝ) ≤ 1 := by norm_num
-  have huIcc_eq : uIcc (0:ℝ) 1 = Icc 0 1 := Set.uIcc_of_le (by linarith)
-  have hcont : ContinuousOn (fun x => ∫ u in (1:ℝ)..x, g u) (Icc 0 1) := by
-    rw [← huIcc_eq]
-    apply intervalIntegral.continuousOn_primitive_interval' g_intervalIntegrable_full
-    simp
-  have heq : ∀ ε, ∫ u in ε..(1:ℝ), g u = -∫ u in (1:ℝ)..ε, g u := fun ε =>
-    intervalIntegral.integral_symm 1 ε
-  have heq' : (fun ε => ∫ u in ε..(1:ℝ), g u) = (fun ε => -∫ u in (1:ℝ)..ε, g u) := funext heq
-  rw [heq']
+  have heq' : (fun ε => ∫ u in ε..(1:ℝ), g u) = (fun ε => -∫ u in (1:ℝ)..ε, g u) :=
+    funext fun ε => intervalIntegral.integral_symm 1 ε
   have hval : -∫ u in (1:ℝ)..0, g u = ∫ u in (0:ℝ)..1, g u := by
     rw [intervalIntegral.integral_symm 0 1]; ring
-  rw [← hval]
-  have hcont_neg : ContinuousOn (fun x => -∫ u in (1:ℝ)..x, g u) (Icc 0 1) := hcont.neg
-  have h0mem : (0:ℝ) ∈ Icc 0 1 := Set.left_mem_Icc.2 h01
-  have hcwa := hcont_neg 0 h0mem
-  rw [ContinuousWithinAt] at hcwa
-  have hfilter : nhdsWithin (0:ℝ) (Ioo 0 1) = nhdsWithin 0 (Ioi 0) :=
-    nhdsWithin_Ioo_eq_nhdsGT (by norm_num : (0:ℝ) < 1)
-  exact (hcwa.mono_left (nhdsWithin_mono 0 Ioo_subset_Icc_self)).mono_left (le_of_eq hfilter.symm)
+  rw [heq', ← hval]
+  have hcont : ContinuousOn (fun x => ∫ u in (1:ℝ)..x, g u) (Icc 0 1) := by
+    rw [← Set.uIcc_of_le (by norm_num : (0:ℝ) ≤ 1)]
+    exact intervalIntegral.continuousOn_primitive_interval' g_intervalIntegrable_full (by simp)
+  exact ((hcont.neg 0 (Set.left_mem_Icc.2 (by norm_num))).mono_left
+    (nhdsWithin_mono 0 Ioo_subset_Icc_self)).mono_left
+    (le_of_eq (nhdsWithin_Ioo_eq_nhdsGT (by norm_num : (0:ℝ) < 1)).symm)
 
 /-! ### Connection to Principal Value li(2)
 
@@ -219,44 +193,26 @@ theorem setDiff_decompose (ε x : ℝ) (hε : 0 < ε) (hx : 2 ≤ x) :
 theorem setDiff_integral_eq_split (ε x : ℝ) (hε : 0 < ε) (hε1 : ε < 1) (hx : 2 ≤ x) :
     ∫ t in Set.Ioc 0 x \ Set.Ioo (1 - ε) (1 + ε), 1 / log t =
     (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..x, 1 / log t) := by
-  -- Step 1: Rewrite using set decomposition
   rw [setDiff_decompose ε x hε hx, setIntegral_union (by grind) measurableSet_Icc,
     intervalIntegral.integral_of_le (by linarith), integral_Icc_eq_integral_Ioc,
     intervalIntegral.integral_of_le (by linarith)]
-  · -- The function 1/log t is bounded on (0, 1-ε]: as t → 0⁺, 1/log t → 0
-    -- The bound is |1/log(1-ε)| = -1/log(1-ε) (since log(1-ε) < 0)
-    have hlog_neg : log (1 - ε) < 0 := Real.log_neg (by linarith) (by linarith)
-    refine IntegrableOn.of_bound (measure_Ioc_lt_top) ?_ (-1 / log (1 - ε)) ?_
-    -- AEStronglyMeasurable: function is continuous on Ioc
-    · have hcont : ContinuousOn (fun t => 1 / log t) (Set.Ioc 0 (1 - ε)) := by
-        apply ContinuousOn.div continuousOn_const
-        · exact Real.continuousOn_log.mono (fun x hx => ne_of_gt hx.1)
-        · intro x hx
-          apply Real.log_ne_zero_of_pos_of_ne_one hx.1
-          linarith [hx.2]
-      exact hcont.aestronglyMeasurable measurableSet_Ioc
-    -- Bound: |1/log t| ≤ -1/log(1-ε) for t ∈ (0, 1-ε]
-    · filter_upwards [ae_restrict_mem measurableSet_Ioc] with t ht
-      simp only [Set.mem_Ioc] at ht
-      have htpos : 0 < t := ht.1
-      have hlogt : log t < 0 := Real.log_neg htpos (by linarith [ht.2])
-      have hlog_mono : log t ≤ log (1 - ε) := Real.log_le_log htpos ht.2
-      -- ‖1/log t‖ = 1/(-log t) since log t < 0
-      rw [norm_div, norm_one, Real.norm_eq_abs, abs_of_neg hlogt]
-      -- Goal: 1/(-log t) ≤ -1/log(1-ε)
-      -- Both sides are positive; -1/log(1-ε) = 1/(-log(1-ε)) since log(1-ε) < 0
-      have heq : -1 / log (1 - ε) = 1 / (-log (1 - ε)) := by ring
-      rw [heq]
-      -- Goal: 1/(-log t) ≤ 1/(-log(1-ε))
-      -- Follows from -log(1-ε) ≤ -log t (since log t ≤ log(1-ε))
-      apply one_div_le_one_div_of_le (neg_pos.mpr hlog_neg)
-      linarith [hlog_mono]
-  · apply ContinuousOn.integrableOn_compact isCompact_Icc
-    apply ContinuousOn.div continuousOn_const
-    · exact Real.continuousOn_log.mono (fun x hx => ne_of_gt (by linarith [hx.1] : (0:ℝ) < x))
-    · intro x hx
-      apply Real.log_ne_zero_of_pos_of_ne_one (by linarith [hx.1] : 0 < x)
-      linarith [hx.1]
+  · have hlog_neg : log (1 - ε) < 0 := Real.log_neg (by linarith) (by linarith)
+    have hcont : ContinuousOn (fun t => 1 / log t) (Set.Ioc 0 (1 - ε)) :=
+      ContinuousOn.div continuousOn_const
+        (Real.continuousOn_log.mono fun x hx => ne_of_gt hx.1)
+        fun x hx => Real.log_ne_zero_of_pos_of_ne_one hx.1 (by linarith [hx.2])
+    refine IntegrableOn.of_bound measure_Ioc_lt_top
+      (hcont.aestronglyMeasurable measurableSet_Ioc) (-1 / log (1 - ε)) ?_
+    filter_upwards [ae_restrict_mem measurableSet_Ioc] with t ht
+    simp only [Set.mem_Ioc] at ht
+    rw [norm_div, norm_one, Real.norm_eq_abs, abs_of_neg (Real.log_neg ht.1 (by linarith [ht.2])),
+      show (-1 : ℝ) / log (1 - ε) = 1 / (-log (1 - ε)) from by ring]
+    exact one_div_le_one_div_of_le (neg_pos.mpr hlog_neg) (by linarith [Real.log_le_log ht.1 ht.2])
+  · exact ContinuousOn.integrableOn_compact isCompact_Icc
+      (ContinuousOn.div continuousOn_const
+        (Real.continuousOn_log.mono fun x hx => ne_of_gt (by linarith [hx.1] : (0:ℝ) < x))
+        fun x hx => Real.log_ne_zero_of_pos_of_ne_one (by linarith [hx.1] : 0 < x)
+          (by linarith [hx.1]))
 
 /-- The filter tendsto result for the principal value. -/
 theorem pv_tendsto_li2_symmetric :
@@ -280,13 +236,8 @@ theorem li2_bounds : (1039:ℚ)/1000 ≤ li 2 ∧ li 2 ≤ (106:ℚ)/100 := by
   exact li2_symmetric_bounds
 
 /-- Proof of li.two_approx_weak from SecondaryDefinitions.lean. -/
-theorem li_two_approx_weak_proof : li 2 ∈ Set.Icc 1.039 1.06 := by
-  constructor
-  · have h := li2_bounds.1
-    simp only [Rat.cast_ofNat] at h
-    linarith
-  · have h := li2_bounds.2
-    simp only [Rat.cast_ofNat] at h
-    linarith
+theorem li_two_approx_weak_proof : li 2 ∈ Set.Icc 1.039 1.06 :=
+  ⟨by have := li2_bounds.1; simp only [Rat.cast_ofNat] at this; linarith,
+   by have := li2_bounds.2; simp only [Rat.cast_ofNat] at this; linarith⟩
 
 end Li2Bounds
