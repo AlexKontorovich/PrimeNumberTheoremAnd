@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
+import PrimeNumberTheoremAnd.SecondarySummary
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
@@ -481,7 +482,16 @@ $$E_\theta(x) \leq 462.0\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 992)]
 theorem pi_bound_4 (x : ℝ) (hx : x ∈ Set.Ico (exp 1169) (exp 2000)) :
     Eθ x ≤ 462.0 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h3 : exp 1000 ≤ x := by
+    have h5 : exp 1000 ≤ exp 1169 := by
+      apply exp_le_exp.mpr
+      norm_num
+    have h6 : exp 1169 ≤ x := hx.1
+    linarith
+  have h7 : Eθ x ≤ admissible_bound (461.9 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 1000 0.98 461.9 1.52 1.89 1.20e-5 (by simp [PT.Table_1]) x h3
+  have h8 : 461.9 + 0.1 = (462.0 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
 
 @[blueprint
   "ramanujan-pibound-5"
