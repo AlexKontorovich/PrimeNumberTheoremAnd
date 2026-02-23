@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW_app_tables
 import PrimeNumberTheoremAnd.LogTables
+import PrimeNumberTheoremAnd.Buthe
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}
@@ -212,7 +213,8 @@ theorem thm_14 (I : Inputs) {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.7
   $$ | (x - \psi(x)) / \sqrt{x} | \leq 0.94. $$ -/)
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2a}. TODO: create a primary Buthe section to place this result -/)]
 theorem bklnw_eq_A_26 (x : ℝ) (hx1 : 100 ≤ x) (hx2 : x ≤ 1e19) :
-  Eψ x ≤ 0.94 / sqrt x := by sorry
+  Eψ x ≤ 0.94 / sqrt x :=
+  Buthe.theorem_2a (by linarith) (by linarith)
 
 
 @[blueprint
@@ -284,7 +286,27 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
 theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (ε : ℝ → ℝ)
   (hε : ∀ b₀ > 0, ∀ x ≥ exp b₀, Eψ x ≤ ε b₀) :
-  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) (ε (19 * log 10)) := by sorry
+  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) (ε (19 * log 10)) := by
+  have hlog11_pos : (0 : ℝ) < log 11 := by positivity
+  have hbpos : b > 0 := by linarith
+  have h10_19 : (10 : ℝ)^(19 : ℕ) > 0 := by positivity
+  have hlog_eq : log ((10 : ℝ)^(19 : ℕ)) = 19 * log 10 := by
+    rw [Real.log_pow]
+    ring
+  rw [← hlog_eq]
+  apply bklnw_lemma_15 0.94 11 ((10 : ℝ)^(19 : ℕ))
+  · intro x hx
+    exact Buthe.theorem_2a hx.1 hx.2
+  · exact hε
+  · constructor
+    · have : Real.exp (Real.log 11) < Real.exp b := Real.exp_lt_exp.mpr hb1
+      rwa [Real.exp_log (by norm_num : (11:ℝ) > 0)] at this
+    · rw [← hlog_eq] at hb2
+      rw [← Real.exp_log (by positivity : (10:ℝ)^(19:ℕ) > 0)]
+      exact Real.exp_le_exp.mpr hb2
+  · exact hbpos
+  · norm_num
+  · exact h10_19
 
 @[blueprint
   "logan-function"

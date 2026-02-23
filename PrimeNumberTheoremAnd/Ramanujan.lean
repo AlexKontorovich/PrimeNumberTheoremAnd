@@ -322,19 +322,13 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (pow_ne_zero _ <| ne_of_gt <| log_pos <|
           by cases Set.mem_uIcc.mp hx <;> linarith)
     · rw [Set.uIcc_of_le hab]
-      exact ContinuousOn.congr (by
-        exact ContinuousOn.sub
-          (continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1])
-        <| ContinuousOn.mul continuousOn_const <|
-          continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1]) h_deriv
+      have hlog_cont := continuousOn_log.mono fun y (hy : y ∈ Set.Icc a b) ↦
+        ne_of_gt <| by linarith [hy.1]
+      have hpow_ne : ∀ (n : ℕ), ∀ y ∈ Set.Icc a b, log y ^ n ≠ 0 :=
+        fun n y hy ↦ pow_ne_zero n <| ne_of_gt <| log_pos <| by linarith [hy.1]
+      exact ContinuousOn.congr (ContinuousOn.sub
+        (continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))
+        (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
   rw [intervalIntegral.integral_sub] <;> norm_num; ring
