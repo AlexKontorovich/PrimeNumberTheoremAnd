@@ -8,7 +8,7 @@
    "rev": "dace546394eb356d5f59c1767b8a62d285f0de14",
    "name": "leancert",
    "manifestFile": "lake-manifest.json",
-   "inputRev": "v4.28.0.1",
+   "inputRev": "v4.28.1",
    "inherited": false,
    "configFile": "lakefile.toml"},
   {"url": "https://github.com/PatrickMassot/checkdecls.git",
