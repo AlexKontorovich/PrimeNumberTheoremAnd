@@ -60,7 +60,27 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry
+  refine' ⟨(d.gcd a, d.gcd b), ⟨_, _, _⟩, _⟩
+  · exact Nat.gcd_dvd_right _ _
+  · exact Nat.gcd_dvd_right _ _
+  · exact?
+  · rintro ⟨x, y⟩ ⟨hx, hy, h⟩
+    refine' Prod.ext _ _ <;> subst h <;>
+      simp_all +decide [Nat.gcd_eq_left_iff_dvd, Nat.Coprime.gcd_mul]
+    · refine' Eq.symm (Nat.dvd_antisymm _ _)
+      · exact Nat.Coprime.dvd_of_dvd_mul_right
+          (show Nat.Coprime (Nat.gcd (x * y) a) y from
+            Nat.Coprime.coprime_dvd_left (Nat.gcd_dvd_right _ _) <|
+              Nat.Coprime.coprime_dvd_right hy <| by aesop) <|
+          Nat.gcd_dvd_left _ _
+      · exact Nat.dvd_gcd (dvd_mul_right _ _) hx
+    · refine' Eq.symm (Nat.dvd_antisymm _ _)
+      · refine' Nat.Coprime.dvd_of_dvd_mul_left _ _
+        exact x
+        · refine' Nat.Coprime.coprime_dvd_left (Nat.gcd_dvd_right _ _) _
+          exact hab.symm.coprime_dvd_right hx
+        · exact Nat.gcd_dvd_left _ _
+      · exact Nat.dvd_gcd (dvd_mul_left _ _) hy
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -74,7 +94,24 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry
+  have h_divisors : Nat.divisors (a * b) =
+      Finset.image (fun (p : ℕ × ℕ) => p.1 * p.2) (Nat.divisors a ×ˢ Nat.divisors b) :=
+    Nat.divisors_mul _ _
+  rw [h_divisors, Finset.sum_image, Finset.sum_product]
+  · rw [Finset.sum_mul]
+    exact Finset.sum_congr rfl fun i hi => by
+      rw [Finset.mul_sum _ _ _]; exact Finset.sum_congr rfl fun j hj =>
+        hf.map_mul_of_coprime (Nat.Coprime.gcd_eq_one <|
+          hab.coprime_dvd_left (Nat.dvd_of_mem_divisors hi) |>
+          Nat.Coprime.coprime_dvd_right (Nat.dvd_of_mem_divisors hj))
+  · intro p hp q hq h_eq; simp_all +decide [mul_eq_mul_left_iff, Nat.mem_divisors]
+    have h1 : p.1 = q.1 := by
+      exact Nat.dvd_antisymm
+        (by exact Nat.Coprime.dvd_of_dvd_mul_right (Nat.Coprime.coprime_dvd_left hp.1 <|
+          Nat.Coprime.coprime_dvd_right hq.2 hab) <| h_eq ▸ dvd_mul_right _ _)
+        (by exact Nat.Coprime.dvd_of_dvd_mul_right (Nat.Coprime.coprime_dvd_left hq.1 <|
+          Nat.Coprime.coprime_dvd_right hp.2 hab) <| h_eq.symm ▸ dvd_mul_right _ _)
+    aesop
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -212,7 +249,23 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
   Since $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$, and we know that the L-series of $\zeta$ converges for $\Re(s) > 1$, it follows that the L-series of $d_k$ also converges for $\Re(s) > 1$. This is because the convolution of functions with convergent L-series will also have a convergent L-series in the same region. Therefore, we can conclude that $L(d_k, s)$ is summable for $\Re(s) > 1$.
   -/)]
 theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable (↗(d k)) s := by
-  sorry
+  have h_d_k_mul : ∀ k : ℕ,
+      (d (k + 1) : ArithmeticFunction ℂ) = (d k : ArithmeticFunction ℂ) * zeta := by
+    intro k
+    exact (by
+      convert congr_arg ((↑) : ArithmeticFunction ℕ → ArithmeticFunction ℂ) (d_succ k) using 1
+      exact?)
+  induction' k with k ih
+  · refine' ⟨_, hasSum_single 1 _⟩
+    simp +contextual [LSeries.term]
+    unfold d; aesop
+  · have h_d_k_plus_1 :
+        (d (k + 1) : ArithmeticFunction ℂ) = (d k : ArithmeticFunction ℂ) * zeta :=
+      h_d_k_mul k
+    convert LSeriesSummable_mul _ _ using 1
+    convert congr_arg (fun f : ArithmeticFunction ℂ => fun n => f n) h_d_k_plus_1 using 1
+    · convert ih using 1
+    · convert LSeriesSummable_zeta_iff.mpr hs using 1
 
 /-- The L-series of `d k` equals `ζ(s)^k` for `Re(s) > 1`. -/
 @[blueprint
@@ -257,10 +310,12 @@ theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
   The function $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$. Since $\zeta$ is a multiplicative function, and the Dirichlet convolution of multiplicative functions is also multiplicative, it follows that $d_k$ is multiplicative for all $k$. This can be shown by induction on $k$, using the fact that the convolution of a multiplicative function with another multiplicative function remains multiplicative.
   -/)]
 theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
-  induction k with
-  | zero => rw [d_zero]; exact isMultiplicative_one
-  | succ k ih =>
-    sorry -- follows from IsMultiplicative.pow and isMultiplicative_zeta
+  rw [show d k = zeta ^ k from rfl]
+  induction' k with k ih
+  · simp +decide [ArithmeticFunction.IsMultiplicative]
+    simp +contextual [ArithmeticFunction.one_apply]
+    aesop
+  · convert ih.mul isMultiplicative_zeta using 1
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
@@ -271,9 +326,21 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   -/)]
 theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : ℕ) :
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
-  sorry
+  induction' k with k ih generalizing a <;> simp_all +decide [pow_succ, mul_assoc]
+  by_cases hk : 0 < k <;> simp_all +decide [d_succ]
+  · have h_hockey_stick :
+        ∑ j ∈ Finset.range (a + 1), Nat.choose (j + k - 1) (k - 1) = Nat.choose (a + k) k := by
+      exact Nat.recOn a (by simp +arith +decide) fun n ih => by
+        cases k <;> simp_all +decide [Nat.choose, add_comm, add_left_comm, Finset.sum_range_succ]
+    rw [← h_hockey_stick, Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else (d k) x]
+    rw [Nat.sum_divisors_prime_pow hp]
+    exact Finset.sum_congr rfl fun x hx => by
+      rw [if_neg (Nat.ne_of_gt (Nat.div_pos (pow_le_pow_right₀ hp.pos
+        (Finset.mem_range_succ_iff.mp hx)) (pow_pos hp.pos _))), ih]
+  · simp +decide [divisorsAntidiagonal, d]
+    rw [Finset.sum_eq_single (1, p ^ a)] <;> aesop
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`. -/
 @[blueprint
   "d_apply"
   (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d_k$ for all $n$. -/)
@@ -294,7 +361,13 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
   -/)]
 lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
     d k n = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
-  sorry
+  convert (ArithmeticFunction.IsMultiplicative.multiplicative_factorization _ _) using 1
+  any_goals exact d k
+  any_goals exact n
+  · simp +decide [hn, Finsupp.prod]
+    congr! 2
+    exact Eq.symm (d_apply_prime_pow hk (Nat.prime_of_mem_primeFactors ‹_›) _)
+  · exact?
 
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
@@ -319,6 +392,7 @@ lemma sigmaR_natCast (k n : ℕ) :
   unfold sigmaR sigma
   simp
 
+set_option maxHeartbeats 1600000 in
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
   "LSeries_sigma_eq_riemannZeta_mul"
@@ -328,7 +402,126 @@ lemma sigmaR_natCast (k n : ℕ) :
   -/)]
 theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (hsν : 1 < (s - ν).re) :
     LSeries (↗(σᴿ ν)) s = riemannZeta s * riemannZeta (s - ν) := by
-  sorry
+  have h_lseries_def : ∀ (f : ArithmeticFunction ℂ) (s : ℂ), 1 < s.re →
+      ∑' n : ℕ+, LSeries.term f s n = (∑' n : ℕ+, f n * (n : ℂ) ^ (-s)) := by
+    simp +decide [LSeries.term]
+    exact fun f s hs => tsum_congr fun n => by rw [div_eq_mul_inv, Complex.cpow_neg]
+  have h_fubini : ∑' (n : ℕ+), (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
+      ∑' (d : ℕ+), (d : ℂ) ^ ν * ∑' (m : ℕ+), (d * m : ℂ) ^ (-s) := by
+    have h_fubini :
+        Summable (fun p : ℕ+ × ℕ+ => (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s)) := by
+      have h_fubini :
+          Summable (fun p : ℕ+ × ℕ+ => (p.1 : ℂ) ^ (ν - s) * (p.2 : ℂ) ^ (-s)) := by
+        have h_fubini : Summable (fun p : ℕ+ => (p : ℂ) ^ (ν - s)) ∧
+            Summable (fun p : ℕ+ => (p : ℂ) ^ (-s)) := by
+          constructor
+          · have h_summable : Summable (fun p : ℕ => (p : ℂ) ^ (ν - s)) := by
+              refine' .of_norm _
+              have h_summable : Summable (fun p : ℕ => (p : ℝ) ^ (-(s - ν).re)) :=
+                Real.summable_nat_rpow.2 (by linarith)
+              convert h_summable using 1
+              ext; rw [← Complex.ofReal_natCast];
+              rw [Complex.norm_cpow_eq_rpow_re_of_nonneg] <;> norm_num; ring;
+              norm_num at *; linarith
+            exact h_summable.comp_injective Subtype.coe_injective
+          · have h_summable : Summable (fun p : ℕ => (p : ℂ) ^ (-s)) := by
+              refine' .of_norm _
+              have := Real.summable_nat_rpow_inv.mpr hs
+              convert this using 2
+              rw [← Complex.ofReal_natCast, Complex.norm_cpow_eq_rpow_re_of_nonneg] <;> norm_num
+              · rw [Real.rpow_neg (Nat.cast_nonneg _)]
+              · linarith
+            exact h_summable.comp_injective Subtype.coe_injective
+        exact .of_norm <| by simpa using Summable.mul_norm (h_fubini.1.norm) (h_fubini.2.norm)
+      convert h_fubini using 2; ring;
+      rw [Complex.cpow_add _ _] <;> norm_num; ring;
+      rw [mul_assoc, Complex.cpow_def_of_ne_zero, Complex.cpow_def_of_ne_zero,
+        Complex.cpow_def_of_ne_zero] <;> norm_num; ring;
+      rw [Complex.log_mul (by norm_num) (by norm_num)];
+      rw [Complex.cpow_def_of_ne_zero (by norm_num)]; ring;
+      · rw [← Complex.exp_add]; ring
+      · norm_num [Complex.arg]
+        exact ⟨Real.pi_pos, Real.pi_pos.le⟩
+    have h_fubini : ∑' (n : ℕ+), (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
+        ∑' (p : ℕ+ × ℕ+), (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s) := by
+      have h_fubini : ∀ n : ℕ+,
+          (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
+            ∑' (p : ℕ+ × ℕ+),
+              (if p.1 * p.2 = n then (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s) else 0) := by
+        intro n
+        have h_fubini : (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
+            ∑' (p : ℕ+ × ℕ+),
+              (if p.1 * p.2 = n then (p.1 : ℂ) ^ ν * (n : ℂ) ^ (-s) else 0) := by
+          rw [tsum_eq_sum]
+          any_goals exact Finset.filter (fun p => p.1 * p.2 = n) (Finset.Iic (n, n))
+          · simp +decide [Finset.sum_ite, Finset.sum_mul _ _ _]
+            refine' Finset.sum_bij
+              (fun x hx => (⟨x, Nat.pos_of_mem_divisors hx⟩,
+                ⟨n / x, Nat.div_pos (Nat.le_of_dvd n.pos (Nat.dvd_of_mem_divisors hx))
+                  (Nat.pos_of_mem_divisors hx)⟩))
+              _ _ _ _ <;>
+              simp +decide [Nat.div_mul_cancel (Nat.dvd_of_mem_divisors _)]
+            · exact fun a ha =>
+                ⟨⟨Nat.le_of_dvd n.pos ha, Nat.div_le_self _ _⟩,
+                  PNat.eq <| Nat.mul_div_cancel' ha⟩
+            · simp +contextual [← PNat.coe_inj]
+            · intro a b ha hb hab; use a; aesop
+          · aesop
+        convert h_fubini using 4; aesop
+      rw [tsum_congr h_fubini, ← Summable.tsum_comm]
+      · exact tsum_congr fun p => by rw [tsum_eq_single (p.1 * p.2)] <;> aesop
+      · rw [summable_iff_vanishing] at *
+        intro e he
+        rcases ‹∀ e ∈ nhds 0, ∃ s_1 : Finset (ℕ+ × ℕ+),
+          ∀ t : Finset (ℕ+ × ℕ+), Disjoint t s_1 →
+            ∑ b ∈ t, (b.1 : ℂ) ^ ν * (b.1 * b.2 : ℂ) ^ (-s) ∈ e› e he with ⟨s, hs⟩
+        use s.image fun p => (p.1 * p.2, p.1, p.2)
+        intro t ht
+        simp_all +decide [Finset.disjoint_left]
+        convert hs (Finset.image (fun p : ℕ+ × ℕ+ × ℕ+ => (p.2.1, p.2.2))
+          (t.filter fun p : ℕ+ × ℕ+ × ℕ+ => p.1 = p.2.1 * p.2.2)) _ using 1
+        · rw [Finset.sum_image]
+          · rw [Finset.sum_filter]; congr; ext; aesop
+          · simp +contextual [Set.InjOn]
+        · simp +zetaDelta at *
+          exact fun a b hab h => ht _ _ _ hab _ _ h rfl rfl rfl
+    rw [h_fubini, Summable.tsum_prod]
+    · simp +decide only [tsum_mul_left]
+    · assumption
+  convert h_fubini using 1
+  · convert h_lseries_def (sigmaR ν) s hs using 1
+    rw [← tsum_congr]
+    rw [← tsum_eq_tsum_of_ne_zero_bij]
+    convert rfl
+    use fun x => x.val
+    all_goals norm_num [LSeries.term]
+    any_goals intros; rfl
+    · aesop_cat
+    · intro x hx hx' hx''
+      use ⟨x, Nat.pos_of_ne_zero hx⟩; aesop
+  · have h_inner : ∀ d : ℕ+,
+        ∑' (m : ℕ+), (d * m : ℂ) ^ (-s) = (d : ℂ) ^ (-s) * riemannZeta s := by
+      intro d
+      rw [show riemannZeta s = ∑' m : ℕ+, (m : ℂ) ^ (-s) from ?_]
+      rw [← tsum_mul_left]; congr; ext m
+      rw [Complex.cpow_def_of_ne_zero, Complex.cpow_def_of_ne_zero] <;> norm_num; ring;
+      rw [Complex.log_mul (by norm_num) (by norm_num)];
+      rw [Complex.cpow_def_of_ne_zero (by norm_num)]; ring;
+      · rw [← Complex.exp_add, sub_eq_add_neg]
+      · norm_num [Complex.arg]
+        exact ⟨Real.pi_pos, Real.pi_pos.le⟩
+      · rw [zeta_eq_tsum_one_div_nat_add_one_cpow]
+        · rw [← Equiv.tsum_eq <| Equiv.pnatEquivNat]; norm_num [Complex.cpow_neg]
+          exact tsum_congr fun n => by erw [PNat.natPred]; aesop
+        · exact?
+    simp_all +decide [mul_assoc, mul_comm, mul_left_comm, tsum_mul_left]
+    have h_zeta : ∑' (x : ℕ+), (x : ℂ) ^ (ν - s) = riemannZeta (s - ν) := by
+      rw [zeta_eq_tsum_one_div_nat_add_one_cpow]
+      · rw [← Equiv.tsum_eq <| Equiv.pnatEquivNat]; norm_num
+        refine' tsum_congr fun n => _
+        rw [← Complex.cpow_neg, neg_sub]; norm_num [PNat.natPred]
+      · simpa using hsν
+    exact Or.inl <| h_zeta ▸ by congr; ext; rw [← Complex.cpow_add _ _]; ring; norm_num
 
 /-
 Serious conversation to be had over zulip:
