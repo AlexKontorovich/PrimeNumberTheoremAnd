@@ -574,7 +574,7 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     have hi := intervalIntegral.integral_congr_ae_restrict (hoc ▸ this)
     simp only [one_mul, sub_left_inj, add_right_inj, add_left_inj, hi]
     refine intervalIntegral.integral_add (ContinuousOn.intervalIntegrable_of_Icc hx ?_) ?_
-    · exact ContinuousOn.div₀ (by fun_prop) (continuousOn_log.mono (by grind))
+    · exact ContinuousOn.div₀ hf.continuousOn (continuousOn_log.mono (by grind))
         (fun x hx => by linarith [Real.log_pos (by simp_all; linarith)])
     · exact (hd.continuousOn_mul (by fun_prop)).congr_ae (hoc ▸ this)
   _ = _ := by ring

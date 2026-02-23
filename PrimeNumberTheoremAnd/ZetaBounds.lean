@@ -1599,11 +1599,6 @@ lemma le_trans₄ {α : Type*} [Preorder α] {a b c d : α} : a ≤ b → b ≤ 
 lemma lt_trans₄ {α : Type*} [Preorder α] {a b c d : α} : a < b → b < c → c < d → a < d :=
   fun hab hbc hcd ↦ lt_trans (lt_trans hab hbc) hcd
 
-lemma norm_add₄_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
-    ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
-  apply le_trans <| norm_add_le (a + b + c) d
-  simp only [add_le_add_iff_right]; apply norm_add₃_le
-
 lemma norm_add₅_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) :
     ‖a + b + c + d + e‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ := by
   apply le_trans <| norm_add_le (a + b + c + d) e
@@ -3601,11 +3596,11 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     by_cases h : ε₀ = ⊤ <;> simp [*]
 
   have metric_ball_around_1_is_in_U :
-    EMetric.ball (1 : ℂ) ε ⊆ U := by
+    Metric.eball (1 : ℂ) ε ⊆ U := by
       unfold ε
       by_cases h : ε₀ = ⊤
       · simp only [↓reduceIte, ENNReal.ofReal_one, h]
-        have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
+        have T : Metric.eball (1 : ℂ) 1 ⊆ Metric.eball 1 ε₀ := by
           simp [*]
         exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
 
@@ -3619,7 +3614,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     · simp only [↓reduceIte, ne_eq, h]
       exact pos_iff_ne_zero.mp ε_pos
 
-  let metric_ball_around_1 := EMetric.ball (1 : ℂ) ε
+  let metric_ball_around_1 := Metric.eball (1 : ℂ) ε
   let ε_div_two := ε / 2
   let boundary := ENNReal.toReal (1 + ε_div_two)
 
@@ -3659,7 +3654,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   by_cases h : σ₀ ≤ boundary
   · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
-      unfold EMetric.ball
+      unfold Metric.eball
       simp only [mem_setOf_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
@@ -3717,7 +3712,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
 
     have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
-      unfold EMetric.ball
+      unfold Metric.eball
       simp only [mem_setOf_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
