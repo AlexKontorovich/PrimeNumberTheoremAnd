@@ -319,6 +319,49 @@ lemma sigmaR_natCast (k n : ℕ) :
   unfold sigmaR sigma
   simp
 
+theorem sigmaR_apply {R : Type*} {k : R} [Semiring R] [HPow R R R] (n : ℕ) :
+  σᴿ k n = ∑ d ∈ n.divisors, (d : R) ^ k := by
+  rfl
+
+@[simp]
+theorem sigmaR_apply_zero {R : Type*} {k : R} [Semiring R] [HPow R R R] : σᴿ k 0 = 0 := by rfl
+
+/-- `n ↦ n ^ k` as an arithmetic function in `R`. -/
+noncomputable def powR {R : Type*} [Semiring R] [HPow R R R] (k : R)
+    (h : (0 : R) ^ k = 0) : ArithmeticFunction R where
+  toFun := fun n => (n : R) ^ k
+  map_zero' := by simp [h]
+
+@[simp]
+theorem powR_apply {R : Type*} [Semiring R] [HPow R R R] {k : R} {h : (0 : R) ^ k = 0} (n : ℕ) :
+    powR k h n = (n : R) ^ k := rfl
+
+theorem sigmaR_eq_sum_div {R : Type*} {k : R} [Semiring R] [HPow R R R] (n : ℕ) :
+    σᴿ k n = ∑ d ∈ n.divisors, ((n / d : ℕ) : R) ^ k := by
+  rw [sigmaR_apply, ← sum_div_divisors]
+
+theorem sigmaR_one {R : Type*} {k : R} [Semiring R] [HPow R R R]
+    (h : (1 : R) ^ k = 1) : σᴿ k 1 = 1 := by
+  simp [sigmaR_apply, divisors_one, sum_singleton, h]
+
+theorem zeta_mul_powR_eq_sigmaR {R : Type*} {k : R} [CommSemiring R] [HPow R R R]
+    (h : (0 : R) ^ k = 0) :
+    (ζ : ArithmeticFunction R) * powR k h = σᴿ k := by
+  ext
+  rw [sigmaR_apply, coe_zeta_mul_apply]
+  rfl
+
+@[arith_mult]
+theorem isMultiplicative_sigmaR {R : Type*} {k : R} [CommSemiring R] [HPow R R R]
+    (h0 : (0 : R) ^ k = 0) (h1 : (1 : R) ^ k = 1) (hmul : ∀ x y : R, (x * y) ^ k = x ^ k * y ^ k) :
+    (σᴿ k).IsMultiplicative := by
+  rw [← zeta_mul_powR_eq_sigmaR h0]
+  apply IsMultiplicative.mul isMultiplicative_zeta.natCast
+  constructor
+  · simp [h1]
+  · intro m n _
+    simp [Nat.cast_mul, hmul]
+
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
   "LSeries_sigma_eq_riemannZeta_mul"
