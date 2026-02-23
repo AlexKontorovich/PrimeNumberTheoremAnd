@@ -503,7 +503,10 @@ $$E_\theta(x) \leq 411.5\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 993)]
 theorem pi_bound_5 (x : ℝ) (hx : x ∈ Set.Ico (exp 2000) (exp 3000)) :
     Eθ x ≤ 411.5 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h7 : Eθ x ≤ admissible_bound (411.4 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 2000 0.98 411.4 1.52 1.89 8.35e-10 (by simp [PT.Table_1]) x hx.1
+  have h8 : 411.4 + 0.1 = (411.5 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
 
 noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   if x ∈ Set.Ico 2 599 then 1 - log 2 / 3
