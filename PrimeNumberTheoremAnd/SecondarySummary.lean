@@ -63,9 +63,9 @@ theorem theorem_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Tabl
   (title := "PT Corollary 1")
   (statement := /--
 Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
-\begin{equation}\label{marcellina}
+$$
 \left|\frac{\psi(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
-\end{equation}
+$$
 where $A_1 = A + 0.1$.
   -/)
   (proof := /-- This follows trivially (and wastefully) from the work of Dusart  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}.  It should also follow from the results of \cite{FKS2}. -/)
