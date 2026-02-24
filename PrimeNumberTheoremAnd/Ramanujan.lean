@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
+import LeanCert.Engine.ChebyshevTheta
 import PrimeNumberTheoremAnd.SecondarySummary
 
 blueprint_comment /--
@@ -460,17 +461,72 @@ theorem log_7_int_bound (x : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Icc 2 x, 1 / log t ^ 7 < x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8) := by
   rw [log_7_IBP x hx]; linarith [log_8_bound x hx, show 0 ≤ 2 / Real.log 2 ^ 7 by positivity]
 
+-- Native-decide lemma for the computational [3, 599) range
+set_option linter.style.nativeDecide false in
+open LeanCert.Engine.ChebyshevTheta in
+private theorem allThetaChecks_3_599 :
+    checkAllThetaRelErrorReal 3 599 (768 / 1000) 20 = true := by native_decide
+
 @[blueprint
   "ramanujan-pibound-1"
   (title := "Error estimate for theta, range 1")
-  (statement := /-- For $2 < x \leq 599$ we have
-$$E_\theta(x) \leq 1 - \frac{\log 3}{3}.$$-/)
-  (proof := /-- This can be verified by direct computation, perhaps breaking $x$ up into intervals.  In \cite{PT2021} the bound of $(2 - \log 2)/2$ is claimed, but this is actually false for $2 < x < 3$. -/)
+  (statement := /-- For $2 \leq x < 599$ we have
+$$E_\theta(x) \leq 1 - \frac{\log 2}{3}.$$-/)
+  (proof := /-- For $x \in [2, 3)$ we have $\theta(x) = \log 2$, so
+$E_\theta(x) = 1 - \log 2 / x < 1 - \log 2 / 3$ since $x < 3$.
+For $x \in [3, 599)$ we use the LeanCert ChebyshevTheta engine:
+\texttt{checkAllThetaRelErrorReal 3 599 (768/1000) 20} via \texttt{native\_decide}
+gives $|\theta(x) - x| \leq 0.768 x$, hence $E_\theta(x) \leq 0.768 \leq 1 - \log 2 / 3$. -/)
   (latexEnv := "sublemma")
   (discussion := 990)]
 theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
-    Eθ x ≤ 1 - log 3 / 3 := by
-    sorry
+    Eθ x ≤ 1 - log 2 / 3 := by
+  obtain ⟨hx2, hx599⟩ := hx
+  have hxpos : (0 : ℝ) < x := by linarith
+  have hnn : (0 : ℝ) ≤ x := by linarith
+  unfold Eθ
+  rw [div_le_iff₀ hxpos]
+  -- Goal: |θ x - x| ≤ (1 - log 2 / 3) * x
+  by_cases hx3 : x < 3
+  · -- Case x ∈ [2, 3): ⌊x⌋₊ = 2, θ(2) = log 2
+    rw [Chebyshev.theta_eq_theta_coe_floor x]
+    have hfloor : ⌊x⌋₊ = 2 := by
+      apply (Nat.floor_eq_iff hnn).mpr
+      exact ⟨by push_cast; linarith, by push_cast; linarith⟩
+    rw [hfloor]
+    -- Now goal involves θ ↑2, need to compute it
+    have htheta_two : θ (↑(2 : ℕ) : ℝ) = log 2 := by
+      simp [Chebyshev.theta, Finset.sum_filter, Finset.sum_Ioc_succ_top, Nat.prime_two]
+    rw [htheta_two]
+    -- Goal: |log 2 - x| ≤ (1 - log 2 / 3) * x
+    have hlog2_lt_x : log 2 < x := by linarith [log_two_lt_d9]
+    rw [abs_of_nonpos (by linarith), neg_sub]
+    -- Goal: x - log 2 ≤ (1 - log 2 / 3) * x
+    nlinarith [log_two_gt_d9]
+  · -- Case x ∈ [3, 599): use computational checker
+    push_neg at hx3
+    have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
+    have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
+    have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
+    have hfloor_le : ⌊x⌋₊ ≤ 599 := le_of_lt hfloor_lt
+    -- Extract pointwise check from the bulk checker
+    have hpointwise :=
+      LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
+        allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_le
+    rw [if_pos hfloor_lt] at hpointwise
+    -- Bridge to real-valued bound
+    have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
+    have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
+    have habs :=
+      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+        ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
+    -- Chain: |θ x - x| ≤ 0.768 * x ≤ (1 - log 2 / 3) * x
+    calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
+      _ ≤ (1 - log 2 / 3) * x := by
+          gcongr
+          have : (((768 : ℚ) / 1000 : ℚ) : ℝ) = 768 / 1000 := by push_cast; ring
+          rw [this]
+          linarith [log_two_lt_d9]
 
 @[blueprint
   "ramanujan-pibound-2"
