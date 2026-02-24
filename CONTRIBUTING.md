@@ -61,6 +61,6 @@ To add new Lean files to the project (for instance, to formalize a new paper not
 1. Make sure `Architect` is imported (via `import Architect`), either directly or indirectly, in the Lean file.
 2. Add the Lean file as an import to the top-level lean file [PrimeNumberTheoremAnd.lean](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/PrimeNumberTheoremAnd.lean)
 3. Also add the Lean file as an `\inputleanmodule{}` somewhere in [blueprint.tex](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/blueprint.tex).  The location of where this file is imported will determine the location of the blueprint component of this Lean file in the global blueprint document.
-4. Format the Lean and LaTeX using the `blueprint_comment` and `@blueprint[]` Lean functions (one can look at other Lean files in the repository for examples of how these are used).
+4. Format the Lean and LaTeX using the `blueprint_comment` and `@[blueprint]` Lean functions (one can look at other Lean files in the repository for examples of how these are used).
 5. If there are references to be added, update [references.bib](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/src/references.bib) in the blueprint directory accordingly.
 6. If new LaTeX macros are introduced, update the initial part of [blueprint.tex](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/blueprint.tex) accordingly.
