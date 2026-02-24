@@ -20,6 +20,12 @@ noncomputable def ε' (m x : ℝ) : ℝ := 206 + m + 364 / log x + 381 / (log x)
 
 noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
 
+lemma sq_algebra (M l : ℝ) :
+  ((Nat.factorial 0 : ℝ) / l ^ 1 + (Nat.factorial 1 : ℝ) / l ^ 2 + (Nat.factorial 2 : ℝ) / l ^ 3 + (Nat.factorial 3 : ℝ) / l ^ 4 + (Nat.factorial 4 : ℝ) / l ^ 5 + M / l ^ 6) ^ 2
+  = 1 / l ^ 2 + 2 / l ^ 3 + 5 / l ^ 4 + 16 / l ^ 5 + 64 / l ^ 6 + (72 + 2 * M + (2 * M + 132) / l + (4 * M + 288) / l ^ 2 + (12 * M + 576) / l ^ 3 + (48 * M) / l ^ 4 + M ^ 2 / l ^ 5) / l ^ 7 := by
+  norm_num
+  ring
+
 @[blueprint
   "ramanujan-criterion-1"
   (title := "Criterion for Ramanujan's inequality, substep 1")
@@ -37,9 +43,28 @@ $$\epsilon_{M_a} (x) = 72 + 2 M_a + \frac{2M_a+132}{\log x} + \frac{4M_a+288}{\l
   (proof := /-- Direct calculation -/)
   (latexEnv := "sublemma")
   (discussion := 983)]
-theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) (hM_a : M_a > 0) :
-    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) + ε M_a x / log x ^ 7) := by
-    sorry
+theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
+    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε M_a x / log x ^ 7) := by
+  intro x hx
+  have h_nonneg_pi : 0 ≤ pi x := by
+    unfold _root_.pi
+    exact_mod_cast Nat.zero_le (⌊x⌋₊.primeCounting)
+  have h_pos_rhs : 0 < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    linarith [h_nonneg_pi, hupper x hx]
+  have h_sum_eq : ∑ k ∈ Finset.range 5, (k.factorial / Real.log x ^ (k + 1)) = (Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 := by
+    simp [Finset.sum_range_succ, Nat.factorial]
+  have h_main1 : ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 = 1 / Real.log x ^ 2 + 2 / Real.log x ^ 3 + 5 / Real.log x ^ 4 + 16 / Real.log x ^ 5 + 64 / Real.log x ^ 6 + ε M_a x / Real.log x ^ 7 := by
+    simpa [ε] using sq_algebra M_a (Real.log x)
+  have h_eq : x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    rw [h_sum_eq]; ring
+  have h1'' : pi x < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using hupper x hx
+  have h_pos1 : 0 < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using h_pos_rhs
+  have h2 : pi x ^ 2 < (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 :=
+    sq_lt_sq.mpr (by simpa only [abs_of_nonneg h_nonneg_pi, abs_of_pos h_pos1] using h1'')
+  have h4 : (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 = x ^ 2 * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 := by ring
+  simpa only [h4, h_main1] using h2
 
 @[blueprint
   "ramanujan-criterion-2"
