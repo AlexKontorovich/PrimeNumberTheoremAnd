@@ -1,4 +1,6 @@
 import PrimeNumberTheoremAnd.Defs
+import LeanCert.Engine.ChebyshevTheta
+import PrimeNumberTheoremAnd.SecondarySummary
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
@@ -36,9 +38,32 @@ $$\epsilon_{M_a} (x) = 72 + 2 M_a + \frac{2M_a+132}{\log x} + \frac{4M_a+288}{\l
   (proof := /-- Direct calculation -/)
   (latexEnv := "sublemma")
   (discussion := 983)]
-theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) (hM_a : M_a > 0) :
-    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) + ε M_a x / log x ^ 7) := by
-    sorry
+theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
+    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε M_a x / log x ^ 7) := by
+  intro x hx
+  have sq_algebra (M l : ℝ) : ((Nat.factorial 0 : ℝ) / l ^ 1 + (Nat.factorial 1 : ℝ) / l ^ 2 + (Nat.factorial 2 : ℝ) / l ^ 3 + (Nat.factorial 3 : ℝ) / l ^ 4 + (Nat.factorial 4 : ℝ) / l ^ 5 + M / l ^ 6) ^ 2
+    = 1 / l ^ 2 + 2 / l ^ 3 + 5 / l ^ 4 + 16 / l ^ 5 + 64 / l ^ 6 + (72 + 2 * M + (2 * M + 132) / l + (4 * M + 288) / l ^ 2 + (12 * M + 576) / l ^ 3 + (48 * M) / l ^ 4 + M ^ 2 / l ^ 5) / l ^ 7 := by
+    norm_num
+    ring
+  have h_nonneg_pi : 0 ≤ pi x := by
+    unfold _root_.pi
+    exact_mod_cast Nat.zero_le (⌊x⌋₊.primeCounting)
+  have h_pos_rhs : 0 < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    linarith [h_nonneg_pi, hupper x hx]
+  have h_sum_eq : ∑ k ∈ Finset.range 5, (k.factorial / Real.log x ^ (k + 1)) = (Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 := by
+    simp [Finset.sum_range_succ, Nat.factorial]
+  have h_main1 : ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 = 1 / Real.log x ^ 2 + 2 / Real.log x ^ 3 + 5 / Real.log x ^ 4 + 16 / Real.log x ^ 5 + 64 / Real.log x ^ 6 + ε M_a x / Real.log x ^ 7 := by
+    simpa [ε] using sq_algebra M_a (Real.log x)
+  have h_eq : x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    rw [h_sum_eq]; ring
+  have h1'' : pi x < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using hupper x hx
+  have h_pos1 : 0 < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using h_pos_rhs
+  have h2 : pi x ^ 2 < (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 :=
+    sq_lt_sq.mpr (by simpa only [abs_of_nonneg h_nonneg_pi, abs_of_pos h_pos1] using h1'')
+  have h4 : (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 = x ^ 2 * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 := by ring
+  simpa only [h4, h_main1] using h2
 
 @[blueprint
   "ramanujan-criterion-2"
@@ -436,17 +461,72 @@ theorem log_7_int_bound (x : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Icc 2 x, 1 / log t ^ 7 < x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8) := by
   rw [log_7_IBP x hx]; linarith [log_8_bound x hx, show 0 ≤ 2 / Real.log 2 ^ 7 by positivity]
 
+-- Native-decide lemma for the computational [3, 599) range
+set_option linter.style.nativeDecide false in
+open LeanCert.Engine.ChebyshevTheta in
+private theorem allThetaChecks_3_599 :
+    checkAllThetaRelErrorReal 3 599 (768 / 1000) 20 = true := by native_decide
+
 @[blueprint
   "ramanujan-pibound-1"
   (title := "Error estimate for theta, range 1")
-  (statement := /-- For $2 < x \leq 599$ we have
-$$E_\theta(x) \leq 1 - \frac{\log 3}{3}.$$-/)
-  (proof := /-- This can be verified by direct computation, perhaps breaking $x$ up into intervals.  In \cite{PT2021} the bound of $(2 - \log 2)/2$ is claimed, but this is actually false for $2 < x < 3$. -/)
+  (statement := /-- For $2 \leq x < 599$ we have
+$$E_\theta(x) \leq 1 - \frac{\log 2}{3}.$$-/)
+  (proof := /-- For $x \in [2, 3)$ we have $\theta(x) = \log 2$, so
+$E_\theta(x) = 1 - \log 2 / x < 1 - \log 2 / 3$ since $x < 3$.
+For $x \in [3, 599)$ we use the LeanCert ChebyshevTheta engine:
+\texttt{checkAllThetaRelErrorReal 3 599 (768/1000) 20} via \texttt{native\_decide}
+gives $|\theta(x) - x| \leq 0.768 x$, hence $E_\theta(x) \leq 0.768 \leq 1 - \log 2 / 3$. -/)
   (latexEnv := "sublemma")
   (discussion := 990)]
 theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
-    Eθ x ≤ 1 - log 3 / 3 := by
-    sorry
+    Eθ x ≤ 1 - log 2 / 3 := by
+  obtain ⟨hx2, hx599⟩ := hx
+  have hxpos : (0 : ℝ) < x := by linarith
+  have hnn : (0 : ℝ) ≤ x := by linarith
+  unfold Eθ
+  rw [div_le_iff₀ hxpos]
+  -- Goal: |θ x - x| ≤ (1 - log 2 / 3) * x
+  by_cases hx3 : x < 3
+  · -- Case x ∈ [2, 3): ⌊x⌋₊ = 2, θ(2) = log 2
+    rw [Chebyshev.theta_eq_theta_coe_floor x]
+    have hfloor : ⌊x⌋₊ = 2 := by
+      apply (Nat.floor_eq_iff hnn).mpr
+      exact ⟨by push_cast; linarith, by push_cast; linarith⟩
+    rw [hfloor]
+    -- Now goal involves θ ↑2, need to compute it
+    have htheta_two : θ (↑(2 : ℕ) : ℝ) = log 2 := by
+      simp [Chebyshev.theta, Finset.sum_filter, Finset.sum_Ioc_succ_top, Nat.prime_two]
+    rw [htheta_two]
+    -- Goal: |log 2 - x| ≤ (1 - log 2 / 3) * x
+    have hlog2_lt_x : log 2 < x := by linarith [log_two_lt_d9]
+    rw [abs_of_nonpos (by linarith), neg_sub]
+    -- Goal: x - log 2 ≤ (1 - log 2 / 3) * x
+    nlinarith [log_two_gt_d9]
+  · -- Case x ∈ [3, 599): use computational checker
+    push_neg at hx3
+    have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
+    have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
+    have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
+    have hfloor_le : ⌊x⌋₊ ≤ 599 := le_of_lt hfloor_lt
+    -- Extract pointwise check from the bulk checker
+    have hpointwise :=
+      LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
+        allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_le
+    rw [if_pos hfloor_lt] at hpointwise
+    -- Bridge to real-valued bound
+    have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
+    have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
+    have habs :=
+      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+        ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
+    -- Chain: |θ x - x| ≤ 0.768 * x ≤ (1 - log 2 / 3) * x
+    calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
+      _ ≤ (1 - log 2 / 3) * x := by
+          gcongr
+          have : (((768 : ℚ) / 1000 : ℚ) : ℝ) = 768 / 1000 := by push_cast; ring
+          rw [this]
+          linarith [log_two_lt_d9]
 
 @[blueprint
   "ramanujan-pibound-2"
@@ -481,7 +561,16 @@ $$E_\theta(x) \leq 462.0\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 992)]
 theorem pi_bound_4 (x : ℝ) (hx : x ∈ Set.Ico (exp 1169) (exp 2000)) :
     Eθ x ≤ 462.0 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h3 : exp 1000 ≤ x := by
+    have h5 : exp 1000 ≤ exp 1169 := by
+      apply exp_le_exp.mpr
+      norm_num
+    have h6 : exp 1169 ≤ x := hx.1
+    linarith
+  have h7 : Eθ x ≤ admissible_bound (461.9 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 1000 0.98 461.9 1.52 1.89 1.20e-5 (by simp [PT.Table_1]) x h3
+  have h8 : 461.9 + 0.1 = (462.0 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
 
 @[blueprint
   "ramanujan-pibound-5"
@@ -493,7 +582,10 @@ $$E_\theta(x) \leq 411.5\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 993)]
 theorem pi_bound_5 (x : ℝ) (hx : x ∈ Set.Ico (exp 2000) (exp 3000)) :
     Eθ x ≤ 411.5 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h7 : Eθ x ≤ admissible_bound (411.4 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 2000 0.98 411.4 1.52 1.89 8.35e-10 (by simp [PT.Table_1]) x hx.1
+  have h8 : 411.4 + 0.1 = (411.5 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
 
 noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   if x ∈ Set.Ico 2 599 then 1 - log 2 / 3
@@ -611,7 +703,19 @@ theorem epsilon_bound : εMₐ - εmₐ < 0 := by
   (latexEnv := "theorem")
   (discussion := 999)]
 theorem ramanujan_final : ∀ x > exp 1 * xₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
-    sorry
+  intro x hx
+  apply criterion mₐ Mₐ xₐ pi_lower_specific pi_upper_specific x
+  simp only [gt_iff_lt] at hx ⊢
+  exact max_lt hx (calc
+    x' mₐ Mₐ xₐ < 1 := by
+      change rexp (ε Mₐ xₐ - ε' mₐ xₐ) < 1
+      rw [exp_lt_one_iff]
+      convert epsilon_bound using 1
+    _ ≤ rexp 1 * xₐ := by
+      have : (1 : ℝ) ≤ rexp 1 := one_le_exp (by norm_num : (0:ℝ) ≤ 1)
+      have : (1 : ℝ) ≤ xₐ := one_le_exp (show (0:ℝ) ≤ 3914 by norm_num)
+      nlinarith
+    _ < x := hx)
 
 
 
