@@ -287,9 +287,9 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) :
     intro x hx_pos
     have h_eq : ∫ t in Set.Ioi x, Real.exp (-t) * t ^ (s - 1) = ∫ u in Set.Ioi 0, Real.exp (-(x + u)) * (x + u) ^ (s - 1) := by
       rw [ ← MeasureTheory.integral_indicator ( measurableSet_Ioi ), ← MeasureTheory.integral_indicator ( measurableSet_Ioi ) ]
-      simp +decide [ Set.indicator ]
-      rw [ ← MeasureTheory.integral_add_right_eq_self _ x ] ; congr ; ext y ; split_ifs <;> ring <;> aesop
-    rw [ h_eq, ← MeasureTheory.integral_const_mul ] ; refine' MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun u hu => _ ; rw [ show x + u = x * ( 1 + u / x ) by rw [ mul_add, mul_div_cancel₀ _ hx_pos.ne' ] ; ring ] ; rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out, div_nonneg hu.out.le hx_pos.le ] ) ] ; ring
+      simp +decide only [Set.indicator, Set.mem_Ioi, neg_add_rev]
+      rw [ ← MeasureTheory.integral_add_right_eq_self _ x ] ; congr ; ext y ; split_ifs <;> ring_nf <;> aesop
+    rw [ h_eq, ← MeasureTheory.integral_const_mul ] ; refine' MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun u hu => _ ; rw [ show x + u = x * ( 1 + u / x ) by rw [ mul_add, mul_div_cancel₀ _ hx_pos.ne' ] ; ring ] ; rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out, div_nonneg hu.out.le hx_pos.le ] ) ] ; ring_nf
     norm_num [ sub_eq_add_neg, Real.exp_add, mul_assoc, mul_comm x, hx_pos.ne' ] ; ring
   have h_conv : Filter.Tendsto (fun x => ∫ u in Set.Ioi 0, Real.exp (-u) * (1 + u / x) ^ (s - 1)) Filter.atTop (nhds (∫ u in Set.Ioi 0, Real.exp (-u))) := by
     refine' MeasureTheory.tendsto_integral_filter_of_dominated_convergence _ _ _ _ _
