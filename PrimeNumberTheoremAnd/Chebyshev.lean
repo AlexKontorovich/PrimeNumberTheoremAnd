@@ -344,6 +344,65 @@ theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by
   constructor <;> nlinarith [LogTables.log_2_gt, LogTables.log_2_lt,
     LogTables.log_3_gt, LogTables.log_3_lt, LogTables.log_5_gt, LogTables.log_5_lt]
 
+noncomputable def e (x : ℝ) : ℝ :=
+  (T x - (x * log x - x + 1))
+
+lemma lemma_1 (x : ℝ) : T x = x * log x - x + 1 + (e x) := by
+  unfold e
+  ring
+
+lemma lemma_2 (x : ℝ) (hx : 1 ≤ x) : |e x| ≤ log x := by
+  rw [abs_le]
+  unfold e
+  constructor <;> linarith [T.ge x hx, T.le x hx]
+
+lemma lemma_3 (x : ℝ) :
+    U x = ν.sum (fun m w ↦ w * ((x / m) * (log (x / m))))
+          - ν.sum (fun m w ↦ w * (x / m))
+          + ν.sum (fun _m w ↦ w)
+          + ν.sum (fun m w ↦ w * e (x / m)) := by
+  unfold U
+  simp [Finsupp.sum, lemma_1, sub_eq_add_neg, add_mul, mul_comm, Finset.sum_add_distrib]
+
+lemma lemma_4 (x : ℝ) (hx : 0 < x) :
+    ν.sum (fun m w ↦ w * ((x / m) * log (x / m))) = a * x := by
+  have hx0 : x ≠ 0 := ne_of_gt hx
+  rw [ν,
+    Finsupp.sum_add_index (by simp) (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring)]
+  rw [a, ν,
+    Finsupp.sum_add_index (by simp) (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring)]
+  simp [sub_eq_add_neg,
+    Real.log_div hx0]
+  ring
+
+lemma lemma_5 (x : ℝ) :
+    ν.sum (fun m w ↦ w * (x / m)) = 0 := by
+  rw [ν,
+    Finsupp.sum_add_index (by simp) (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring),
+    Finsupp.sum_sub_index (by intros; ring)]
+  simp [div_eq_mul_inv, sub_eq_add_neg]
+  ring_nf
+
+lemma lemma_6 : ν.sum (fun _ w ↦ w) = (-1 : ℝ) := by
+  rw [ν,
+    Finsupp.sum_add_index (by simp) (by intros; ring),
+    Finsupp.sum_sub_index (by intros; simp),
+    Finsupp.sum_sub_index (by intros; simp),
+    Finsupp.sum_sub_index (by intros; simp)]
+  simp
+
+lemma Finsupp.abs_sum_le (A : Type*) (ν : A →₀ ℝ) (g : A → ℝ → ℝ) : |ν.sum g| ≤ ν.sum |g| := by
+  simp_rw [Finsupp.sum.eq_1]
+  exact Finset.abs_sum_le_sum_abs (fun i ↦ g i (ν i)) ν.support
+
 @[blueprint
   "U-bounds"
   (title := "Bounds for $U$")
@@ -351,7 +410,64 @@ theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by
   (proof := /-- Use Lemma \ref{cheby-T-upper}, Lemma \ref{cheby-T-lower}, the definition of $a$, and the triangle inequality, also using that $\log(2)+\log(3)+\log(5)+\log(30) \geq 6$. -/)
   (latexEnv := "lemma")
   (discussion := 840)]
-theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := by sorry
+theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := by
+  have hxpos : 0 < x := lt_of_lt_of_le (by norm_num) hx
+  rw [lemma_3, lemma_4 x hxpos]
+  ring_nf
+  have hlin : ν.sum (fun m w ↦ x * w * (↑m)⁻¹) = 0 :=
+    by simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using lemma_5 x
+  rw [hlin]; ring_nf; rw [lemma_6]
+  grw [abs_add_le]; simp only [abs_neg, abs_one]
+  grw [Finsupp.abs_sum_le]
+  have hsupp_eq : ν.support = {1, 2, 3, 5, 30} := by norm_num [ν, Finset.ext_iff]; grind
+  have hmem_of_supp : ∀ i ∈ ν.support, 0 < i ∧ i ≤ 30 := fun i hi ↦ by
+    have : i ∈ ({1, 2, 3, 5, 30} : Finset ℕ) := hsupp_eq ▸ hi
+    simp only [Finset.mem_insert, Finset.mem_singleton] at this
+    constructor <;> omega
+  have h : ν.sum |fun m w ↦ w * e (x * (↑m)⁻¹)| ≤ ν.sum (fun m w ↦ |w| * log (x * (↑m)⁻¹)) := by
+    apply Finsupp.sum_le_sum
+    intro i hi
+    simp only [Pi.abs_apply, abs_mul]
+    obtain ⟨hi_pos, hi_le⟩ := hmem_of_supp i hi
+    have hxi : 1 ≤ x * (↑i)⁻¹ := by
+      rw [le_mul_inv_iff₀ (by exact_mod_cast hi_pos)]
+      linarith [show (i : ℝ) ≤ 30 from by exact_mod_cast hi_le]
+    gcongr; exact lemma_2 _ hxi
+  grw [h]
+  have hlog_split : ν.sum (fun m w ↦ |w| * log (x * (↑m : ℝ)⁻¹)) =
+      log x * ν.sum (fun m w ↦ |w|) - ν.sum (fun m w ↦ |w| * log (↑m : ℝ)) := by
+    simp only [Finsupp.sum]
+    conv_rhs => rw [Finset.mul_sum, ← Finset.sum_sub_distrib]
+    apply Finset.sum_congr rfl
+    intro m hm
+    have hm_pos : (0 : ℝ) < m := by exact_mod_cast (hmem_of_supp m hm).1
+    rw [← div_eq_mul_inv, Real.log_div (ne_of_gt hxpos) (ne_of_gt hm_pos)]; ring
+  rw [hlog_split]
+  have habs : ν.sum (fun m w ↦ |w|) = 5 := by
+    rw [Finsupp.sum_of_support_subset _ hsupp_eq.le _ (fun x _ => abs_zero)]
+    simp only [Finset.sum_insert (by decide : (1:ℕ) ∉ ({2,3,5,30} : Finset ℕ)),
+               Finset.sum_insert (by decide : (2:ℕ) ∉ ({3,5,30} : Finset ℕ)),
+               Finset.sum_insert (by decide : (3:ℕ) ∉ ({5,30} : Finset ℕ)),
+               Finset.sum_insert (by decide : (5:ℕ) ∉ ({30} : Finset ℕ)),
+               Finset.sum_singleton, ν, Finsupp.sub_apply, Finsupp.add_apply, Finsupp.single_apply]
+    norm_num
+  have hgeq6 : ν.sum (fun m w ↦ |w| * log ↑m) ≥ 6 := by
+    have hsum_eq : ν.sum (fun m w ↦ |w| * log (↑m : ℝ)) = log 2 + log 3 + log 5 + log 30 := by
+      rw [Finsupp.sum, hsupp_eq]
+      simp only [Finset.sum_insert (by decide : (1 : ℕ) ∉ ({2, 3, 5, 30} : Finset ℕ)),
+                 Finset.sum_insert (by decide : (2 : ℕ) ∉ ({3, 5, 30} : Finset ℕ)),
+                 Finset.sum_insert (by decide : (3 : ℕ) ∉ ({5, 30} : Finset ℕ)),
+                 Finset.sum_insert (by decide : (5 : ℕ) ∉ ({30} : Finset ℕ)),
+                 Finset.sum_singleton, ν, Finsupp.sub_apply, Finsupp.add_apply, Finsupp.single_apply]
+      norm_num [Real.log_one]; ring
+    linarith [hsum_eq, Real.log_two_gt_d9,
+              show log 3 > 1.09 from by interval_decide,
+              show log 5 > 1.60 from by interval_decide,
+              show log 30 = log 2 + log 3 + log 5 from by
+                rw [show (30 : ℝ) = 2 * 3 * 5 by norm_num,
+                    Real.log_mul (by norm_num) (by norm_num),
+                    Real.log_mul (by norm_num) (by norm_num)]]
+  grw [hgeq6]; rw [habs]; linarith
 
 @[blueprint
   "psi-lower"
