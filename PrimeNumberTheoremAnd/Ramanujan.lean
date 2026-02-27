@@ -600,12 +600,12 @@ noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   "pt_eq_18"
   (title := "Equation (18) of Platt-Trudgian")
   (statement := /-- For $x \geq 2$ we have
-$$E_\theta(x) \leq a(x).$$-/)
+$$E_\theta(x) (\log x)^5 \leq a(x).$$-/)
   (proof := /-- This follows from the previous five sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 994)]
 theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
-    Eθ x ≤ a x := by
+    Eθ x * ( log x)^5 ≤ a x := by
     sorry
 
 noncomputable def xₐ : ℝ := exp 3914
