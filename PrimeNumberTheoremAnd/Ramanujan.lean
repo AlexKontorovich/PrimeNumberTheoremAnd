@@ -356,8 +356,9 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
-  rw [intervalIntegral.integral_sub] <;> norm_num; ring
-  · exact ContinuousOn.intervalIntegrable (by
+  rw [intervalIntegral.integral_sub] <;> norm_num
+  · ring_nf
+    exact ContinuousOn.intervalIntegrable (by
       exact continuousOn_of_forall_continuousAt fun x hx =>
         ContinuousAt.pow (ContinuousAt.inv₀
           (continuousAt_log (by linarith [Set.mem_Icc.mp (by simpa [hab] using hx)]))

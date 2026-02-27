@@ -1692,14 +1692,18 @@ theorem L_eq_prod (n : ℕ) :
             have h_vp_eq : Nat.factorization ((Finset.Icc 1 n).lcm (fun k => k)) p = Finset.sup (Finset.Icc 1 n) (fun k => Nat.factorization k p) := by
               have h_vp_eq : ∀ {S : Finset ℕ}, (∀ k ∈ S, k ≠ 0) → Nat.factorization (Finset.lcm S (fun k => k)) p = Finset.sup S (fun k => Nat.factorization k p) := by
                 intros S hS_nonzero
-                induction' S using Finset.induction with k S hkS ih;
-                · simp +decide [ Finset.lcm ];
-                · simp_all +decide [ Finset.lcm_insert ];
+                induction S using Finset.induction with
+                | empty =>
+                  simp +decide [ Finset.lcm ]
+                | insert _ _ _ _ =>
+                  simp_all +decide only [mem_filter, mem_range, Order.lt_add_one_iff, ne_eq,
+                  mem_insert, or_true, not_false_eq_true, implies_true, forall_const,
+                  forall_eq_or_imp, forall_mem_not_eq', lcm_insert, sup_insert];
                   erw [ Nat.factorization_lcm ] <;> simp_all +decide [ GCDMonoid.lcm ];
               exact h_vp_eq fun k hk => by linarith [ Finset.mem_Icc.mp hk ] ;
-            refine' le_antisymm _ _ <;> norm_num at *;
+            refine le_antisymm ?_ ?_ <;> norm_num at *;
             · exact h_vp_eq ▸ Finset.sup_le fun x hx => Nat.le_log_of_pow_le hp.2.one_lt <| by linarith [ Finset.mem_Icc.mp hx, Nat.le_of_dvd ( by linarith [ Finset.mem_Icc.mp hx ] ) ( Nat.ordProj_dvd x p ) ] ;
-            · refine' h_vp_eq.symm ▸ le_trans _ ( Finset.le_sup ( f := fun k => k.factorization p ) ( show p ^ Nat.log p n ∈ Finset.Icc 1 n from Finset.mem_Icc.mpr ⟨ Nat.one_le_pow _ _ hp.2.pos, Nat.pow_log_le_self _ <| by linarith [ Nat.Prime.one_lt hp.2 ] ⟩ ) );
+            · refine h_vp_eq.symm ▸ le_trans ?_ ( Finset.le_sup ( f := fun k => k.factorization p ) ( show p ^ Nat.log p n ∈ Finset.Icc 1 n from Finset.mem_Icc.mpr ⟨ Nat.one_le_pow _ _ hp.2.pos, Nat.pow_log_le_self _ <| by linarith [ Nat.Prime.one_lt hp.2 ] ⟩ ) );
               rw [ Nat.factorization_pow ] ; norm_num [ hp.2 ];
           exact h_def.trans ( Finset.prod_congr rfl fun p hp => by rw [ h_vp p hp ] );
         convert h_def using 3;
@@ -1721,11 +1725,13 @@ theorem psi_eq_prod (n : ℕ) :
           have h_vonMangoldt_sum : ∑ m ∈ Finset.Icc 1 n, ArithmeticFunction.vonMangoldt m = ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 n), ∑ k ∈ Finset.Icc 1 (Nat.log p n), Real.log p := by
             have h_sum_vonMangoldt : ∑ m ∈ Finset.Icc 1 n, ArithmeticFunction.vonMangoldt m = ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 n), ∑ k ∈ Finset.Icc 1 (Nat.log p n), ArithmeticFunction.vonMangoldt (p ^ k) := by
               have h_sum : Finset.filter (fun m => ArithmeticFunction.vonMangoldt m ≠ 0) (Finset.Icc 1 n) = Finset.biUnion (Finset.filter Nat.Prime (Finset.Icc 1 n)) (fun p => Finset.image (fun k => p ^ k) (Finset.Icc 1 (Nat.log p n))) := by
-                ext m; simp [ArithmeticFunction.vonMangoldt];
+                ext m; simp only [vonMangoldt, coe_mk, ne_eq, ite_eq_right_iff, log_eq_zero,
+                  cast_eq_zero, cast_eq_one, minFac_eq_one_iff, Classical.not_imp, not_or,
+                  mem_filter, mem_Icc, mem_biUnion, mem_image];
                 constructor <;> intro h;
                 · rw [ isPrimePow_nat_iff ] at h;
                   rcases h.2.1 with ⟨ p, k, hp, hk, rfl ⟩ ; exact ⟨ p, ⟨ ⟨ hp.pos, by linarith [ Nat.le_of_dvd ( by linarith ) ( dvd_pow_self p hk.ne' ) ] ⟩, hp ⟩, k, ⟨ hk, Nat.le_log_of_pow_le hp.one_lt ( by linarith ) ⟩, rfl ⟩ ;
-                · rcases h with ⟨ p, ⟨ ⟨ hp₁, hp₂ ⟩, hp₃ ⟩, k, ⟨ hk₁, hk₂ ⟩, rfl ⟩ ; refine' ⟨ ⟨ Nat.one_le_pow _ _ hp₃.pos, _ ⟩, _, _, _, _ ⟩ <;> norm_num [ hp₃.ne_zero, hp₃.ne_one ];
+                · rcases h with ⟨ p, ⟨ ⟨ hp₁, hp₂ ⟩, hp₃ ⟩, k, ⟨ hk₁, hk₂ ⟩, rfl ⟩ ; refine ⟨ ⟨ Nat.one_le_pow _ _ hp₃.pos, ?_ ⟩, ?_, ?_, ?_, ?_ ⟩ <;> norm_num [ hp₃.ne_zero, hp₃.ne_one ];
                   · exact Nat.pow_le_of_le_log ( by linarith ) ( by linarith );
                   · exact hp₃.isPrimePow.pow ( by linarith );
                   · exact Nat.ne_of_gt ( Nat.minFac_pos _ );
@@ -1734,11 +1740,14 @@ theorem psi_eq_prod (n : ℕ) :
               rw [ ← Finset.sum_subset ( show Finset.filter ( fun m => ArithmeticFunction.vonMangoldt m ≠ 0 ) ( Finset.Icc 1 n ) ⊆ Finset.Icc 1 n from Finset.filter_subset _ _ ) ];
               · rw [ h_sum, Finset.sum_biUnion ];
                 · exact Finset.sum_congr rfl fun p hp => by rw [ Finset.sum_image ( by intros a ha b hb hab; exact Nat.pow_right_injective ( Nat.Prime.one_lt ( by aesop ) ) hab ) ] ;
-                · intros p hp q hq hpq; simp_all +decide [ Finset.disjoint_left ];
+                · intros p hp q hq hpq; simp_all +decide only [ne_eq, coe_filter, mem_Icc,
+                  Set.mem_setOf_eq, disjoint_left, mem_image, not_exists, not_and, and_imp,
+                  forall_exists_index];
                   intro a x hx₁ hx₂ hx₃ y hy₁ hy₂ hy₃; subst_vars; have := Nat.Prime.dvd_of_dvd_pow hp.2 ( hy₃.symm ▸ dvd_pow_self _ ( by linarith ) ) ; simp_all +decide [ Nat.prime_dvd_prime_iff_eq ] ;
               · grind;
-            simp_all +decide [ ArithmeticFunction.vonMangoldt ];
-            refine' Finset.sum_congr rfl fun p hp => _;
+            simp_all +decide only [vonMangoldt, coe_mk, sum_const, card_Icc, add_tsub_cancel_right,
+              nsmul_eq_mul];
+            refine Finset.sum_congr rfl fun p hp => ?_;
             rw [ Finset.sum_congr rfl fun x hx => if_pos <| ?_ ];
             · rw [ Finset.sum_congr rfl fun x hx => by rw [ Nat.pow_minFac ] ; aesop ] ; aesop;
             · exact Nat.Prime.isPrimePow ( Finset.mem_filter.mp hp |>.2 ) |> fun h => h.pow ( by linarith [ Finset.mem_Icc.mp hx ] );
