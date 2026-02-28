@@ -268,7 +268,49 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   -/)]
 theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : ℕ) :
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
-  sorry
+  classical
+  cases k with
+  | zero =>
+      -- impossible: 0 < 0
+      cases (Nat.lt_irrefl 0 hk)
+  | succ k =>
+      -- After `k = succ k`, the goal is equivalent to:
+      --   d (k+1) (p^a) = (a+k).choose k
+      -- We'll prove that directly by induction on `k`.
+      have hk' : d (k + 1) (p ^ a) = (a + k).choose k := by
+        induction k generalizing a with
+        | zero =>
+            -- k = 0: d 1 = ζ and ζ(p^a)=1
+            have hn : p ^ a ≠ 0 := pow_ne_zero a hp.ne_zero
+            simp [d_one, ArithmeticFunction.zeta_apply_ne hn]
+        | succ k ih =>
+            -- k -> k+1: use the recurrence d(j+1)=d(j)*ζ, then sum over divisors of p^a
+            calc
+              d (k + 2) (p ^ a)
+                  = ((d (k + 1)) * zeta) (p ^ a) := by
+                      -- apply d_succ to j = k+1 and then evaluate at p^a
+                      simpa [Nat.add_assoc] using
+                        congrArg (fun f => f (p ^ a)) (d_succ (k + 1))
+              _ = ∑ x ∈ (p ^ a).divisors, d (k + 1) x := by
+                      -- (f*ζ)(n) = ∑_{d|n} f(d)
+                      simpa using
+                        (ArithmeticFunction.mul_zeta_apply (f := d (k + 1)) (x := p ^ a))
+              _ = ∑ x ∈ Finset.range (a + 1), d (k + 1) (p ^ x) := by
+                      -- divisors of p^a are exactly p^x, x=0..a
+                      simpa using
+                        (Nat.sum_divisors_prime_pow (k := a) (p := p)
+                          (f := fun x => d (k + 1) x) hp)
+              _ = ∑ x ∈ Finset.range (a + 1), (x + k).choose k := by
+                      -- rewrite with IH inside the sum
+                      simp [ih]
+              _ = (a + k + 1).choose (k + 1) := by
+                      -- hockey-stick identity
+                      simpa using (Nat.sum_range_add_choose a k)
+              _ = (a + (k + 1)).choose (k + 1) := by
+                      -- tidy arithmetic
+                      simp [Nat.add_assoc]
+      -- Now translate back to the original statement (undo the "k = succ k" rewrite)
+      simpa [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hk'
 
 /-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
 @[blueprint
@@ -291,7 +333,20 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
   -/)]
 lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
     d k n = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
-  sorry
+  have hmult : (d k).IsMultiplicative := d_isMultiplicative k
+
+  calc
+    d k n
+        = n.factorization.prod (fun (p a : ℕ) => d k (p ^ a)) := by
+            exact ArithmeticFunction.IsMultiplicative.multiplicative_factorization (d k) hmult hn
+    _   = ∏ p ∈ n.primeFactors, d k (p ^ n.factorization p) := by
+            exact Nat.prod_factorization_eq_prod_primeFactors (n := n)
+              (f := fun (p a : ℕ) => d k (p ^ a))
+    _   = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
+            refine Finset.prod_congr rfl ?_
+            intro p hp
+            have hp' : p.Prime := Nat.prime_of_mem_primeFactors hp
+            simpa using d_apply_prime_pow (k := k) hk hp' (n.factorization p)
 
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
