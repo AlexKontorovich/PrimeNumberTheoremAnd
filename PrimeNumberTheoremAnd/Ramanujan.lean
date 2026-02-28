@@ -356,8 +356,9 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
-  rw [intervalIntegral.integral_sub] <;> norm_num; ring
-  · exact ContinuousOn.intervalIntegrable (by
+  rw [intervalIntegral.integral_sub] <;> norm_num
+  · ring_nf
+    exact ContinuousOn.intervalIntegrable (by
       exact continuousOn_of_forall_continuousAt fun x hx =>
         ContinuousAt.pow (ContinuousAt.inv₀
           (continuousAt_log (by linarith [Set.mem_Icc.mp (by simpa [hab] using hx)]))
@@ -599,12 +600,12 @@ noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   "pt_eq_18"
   (title := "Equation (18) of Platt-Trudgian")
   (statement := /-- For $x \geq 2$ we have
-$$E_\theta(x) \leq a(x).$$-/)
+$$E_\theta(x) (\log x)^5 \leq a(x).$$-/)
   (proof := /-- This follows from the previous five sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 994)]
 theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
-    Eθ x ≤ a x := by
+    Eθ x * ( log x)^5 ≤ a x := by
     sorry
 
 noncomputable def xₐ : ℝ := exp 3914
