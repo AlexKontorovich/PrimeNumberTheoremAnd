@@ -497,10 +497,26 @@ theorem pre_413 {f : ℝ → ℝ} {x : ℝ} (hf : ContinuousOn f (Set.Icc 2 (x +
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 650)]
-theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn ℝ f (Set.Icc 2 x)) :
+theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Icc 2 x, DifferentiableAt ℝ f t)
+    (hd : IntervalIntegrable (fun t => deriv (fun s ↦ f s / log s) t) volume 2 x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
       ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
-  sorry
+  rw [sum_filter, Iic_eq_Icc, bot_eq_zero]
+  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n ↦ log n)
+  trans ∑ n ∈ Icc 0 ⌊x⌋₊, (f n / Real.log n) * a n
+  · refine sum_congr rfl fun n hn ↦ ?_
+    split_ifs with h
+    · have : Real.log n ≠ 0 := log_ne_zero_of_pos_of_ne_one (mod_cast h.pos) (mod_cast h.ne_one)
+      simp [a, h, field]
+    · simp [a, h]
+  rw [sum_mul_eq_sub_integral_mul₁ a (f := fun n ↦ (f n / log n)) (by simp [a]) (by simp [a]) _ _ (intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mp hd),
+    ← intervalIntegral.integral_of_le hx, theta_eq_sum_Icc]
+  · simp [a, Set.indicator_apply, sum_filter, theta_eq_sum_Icc]
+    field_simp
+    congr; ext; ring
+  · intro t ht
+    have : log t ≠ 0 := by simp; grind
+    fun_prop (disch := grind)
 
 @[blueprint
   "rs-414"
