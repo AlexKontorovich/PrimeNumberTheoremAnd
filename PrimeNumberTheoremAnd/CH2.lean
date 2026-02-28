@@ -667,8 +667,8 @@ $$\psi(x) - x \cdot \pi T \coth(\pi T) \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} 
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
-    |ψ x - x * π * T * (coth (π * T)).re| ≤
-      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * Real.sqrt x := by sorry
+    |ψ x - x * π * T⁻¹ * (coth (π * T⁻¹)).re| ≤
+      π * T⁻¹ * x + ((1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π))) * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-2-b"
