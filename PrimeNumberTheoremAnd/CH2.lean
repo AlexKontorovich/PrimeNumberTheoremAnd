@@ -411,20 +411,11 @@ noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
     Phi_circ ν ε (t : ℂ) + t.sign * Phi_star ν ε (t : ℂ)
   else 0
 
--- @[blueprint
---   "phi-def"
---   (title := "Definition of phi")
---   (statement := /--
---   $$\varphi_{\pm, \lambda}(t) := \varphi^{\pm}_\nu(\mathrm{sgn}(\lambda) t).$$
---   -/)]
--- noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
---   ϕ_pm (|lambda|) ε (lambda.sign * t)
-
 @[blueprint
   "phi-c2-left"
   (title := "phi is C2 on [-1,0]")
   (statement := /--
-  $\varphi$ is $C^2$ on $[-1,0]$$.
+  $\varphi$ is $C^2$ on $[-1,0]$.
   -/)
   (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = ∌u$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
@@ -434,12 +425,73 @@ theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν 
   "phi-c2-right"
   (title := "phi is C2 on [0,1]")
   (statement := /--
-  $\varphi$ is $C^2$ on $[0,1]$$.
+  $\varphi$ is $C^2$ on $[0,1]$.
   -/)
   (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by sorry
 
+@[blueprint
+  "phi-cts"
+  (title := "phi is continuous")
+  (statement := /--
+  $\varphi$ is continuous on $[0,1]$.
+  -/)
+  (proof := /-- By the preceding lemmas it suffices to verify continuity at $0, -1, 1$.  Continuity at $0$ is clear.  For $t = -1, 1$, by $\coth \frac{w(t)}{2} = \coth \frac{\nu}{2}$, we see that $B^{\pm}(w(t)) = \left(\frac{\nu}{2} - \pi i t\right)\left(\coth \frac{\nu}{2} \pm 1\right)$, and so
+\[
+\Phi^{\pm,\star}_{\nu}(t) = -t \cdot \frac{1}{2}\left(\coth \frac{\nu}{2} \pm 1\right) = -t\, \Phi^{\pm,\circ}_{\nu}(t);
+\]
+hence, by Definition \ref{phi-pm-def}, $\varphi^{\pm}_{\nu}(t) = 0$. Thus, $\varphi^{\pm}_{\nu}$ is continuous at $-1$ and at $1$.
+ -/)
+  (latexEnv := "lemma")]
+theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε) := by
+  sorry
+
+@[blueprint
+  "phi-circ-bound-right"
+  (title := "bound on phi-circ-right")
+  (statement := /--
+  Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
+  -/)
+  (proof := /-- The function $\coth w = 1 + \frac{2}{e^{2w}-1}$ is bounded away from the imaginary line $\Re w = 0$, that is, it is bounded on $\Re w \geq \kappa$ and $\Re w \leq -\kappa$ for any $\kappa > 0$. The map $w(z) = \nu - 2\pi i z$ sends the line $\Im z = -\frac{\nu}{2\pi}$ to the imaginary line, and the region $\Im z \geq c$ is sent to $\Re w \geq 2\pi c + \nu$.
+ -/)
+  (latexEnv := "lemma")]
+theorem ϕ_circ_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁ : ν₀ ≤ ν₁) (hc : c > -ν₀ / (2 * π)) :
+    ∃ C : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≥ c → ‖Phi_circ ν ε z‖ ≤ C := by sorry
+
+@[blueprint
+  "phi-circ-bound-left"
+  (title := "bound on phi-circ-left")
+  (statement := /--
+  Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
+  -/)
+  (proof := /-- Similar to previous lemma. -/)
+  (latexEnv := "lemma")]
+theorem ϕ_circ_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁ : ν₀ ≤ ν₁) (hc : c < -ν₁ / (2 * π)) :
+    ∃ C : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≤ c → ‖Phi_circ ν ε z‖ ≤ C := by sorry
+
+@[blueprint
+  "phi-star-bound-right"
+  (title := "bound on phi-star-right")
+  (statement := /--
+  Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
+  -/)
+  (proof := /-- The bound on $\Phi^{\pm,\star}_{\nu}$ follows from the bound on $\Phi^{\pm,\circ}_{\nu}$ by $\Phi^{\pm,\star}(z) = \frac{1}{2\pi i}\bigl(w\,\Phi^{\pm,\circ}(w) - \nu\,\Phi^{\pm,\circ}(\nu)\bigr)$.
+ -/)
+  (latexEnv := "lemma")]
+theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁ : ν₀ ≤ ν₁) (hc : c > -ν₀ / (2 * π)) :
+    ∃ C : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≥ c → ‖Phi_star ν ε z‖ ≤ C * (‖z‖ + 1) := by sorry
+
+@[blueprint
+  "phi-star-bound-left"
+  (title := "bound on phi-star-left")
+  (statement := /--
+  Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
+  -/)
+  (proof := /-- Similar to previous lemma. -/)
+  (latexEnv := "lemma")]
+theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁ : ν₀ ≤ ν₁) (hc : c < -ν₁ / (2 * π)) :
+    ∃ C : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≤ c → ‖Phi_star ν ε z‖ ≤ C * (‖z‖ + 1) := by sorry
 
 
 
@@ -449,335 +501,9 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
 
 
 
--- @[blueprint
---   "phi-l1"
---   (title := "phi is in L1")
---   (statement := /--
---   $\varphi_{\pm, \lambda}$ is absolutely integrable.
---   -/)
---   (proof := /-- Straightforward estimation -/)
---   (latexEnv := "lemma")
---   (discussion := 942)]
--- theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by
---   unfold ϕ; simp only [ϕ_pm, ofReal_mul]
---   have habs : -(|lambda| / 2) < |lambda| / 2 := by linarith [abs_pos.2 hlam]
---   have h_integrable : IntegrableOn (fun t : ℝ ↦
---       Phi_circ |lambda| ε (lambda.sign * t) +
---         (lambda.sign * t).sign * Phi_star |lambda| ε (lambda.sign * t)) (Set.Icc (-1) 1) := by
---     refine Integrable.add ?_ ?_
---     · refine ContinuousOn.integrableOn_Icc (ContinuousOn.mul continuousOn_const ?_)
---       refine (ContinuousOn.div continuousOn_const ?_ ?_).add continuousOn_const
---       · refine ContinuousOn.div (by fun_prop) (by fun_prop) ?_
---         norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
---         intro x hx₁ hx₂ hx₃ hx₄
---         nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
---           Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
---           sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
---           cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
---       · norm_num [Complex.tanh_eq_sinh_div_cosh, Complex.ext_iff, Complex.sinh, Complex.cosh,
---           Complex.exp_re, Complex.exp_im]
---         intro x hx₁ hx₂; constructor <;> intro h <;>
---           nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
---             Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
---             sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
---             cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
---     · refine Integrable.mono' (g := fun t ↦ ‖Phi_star |lambda| ε (lambda.sign * t)‖) ?_ ?_ ?_
---       · refine ContinuousOn.integrableOn_Icc (.norm (.mul continuousOn_const ?_))
---         refine ContinuousOn.add ?_ (Continuous.continuousOn (by continuity))
---         refine ContinuousOn.sub continuousOn_const ?_
---         refine ContinuousOn.mul (by fun_prop) (ContinuousOn.div continuousOn_const ?_ ?_)
---         · refine ContinuousOn.div (by fun_prop) (Continuous.continuousOn (by continuity)) ?_
---           · norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
---             intro x hx₁ hx₂ hx₃ hx₄
---             nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
---               Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
---               sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
---               cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
---         · norm_num [Complex.tanh_eq_sinh_div_cosh, Complex.ext_iff, Complex.sinh, Complex.cosh,
---             Complex.exp_re, Complex.exp_im]
---           intro x hx₁ hx₂; constructor <;> intro h <;>
---             nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
---               Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
---               sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
---               cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
---       · exact (Measurable.mul
---           (measurable_ofReal.comp ((show Measurable (fun x : ℝ ↦ Real.sign x) from
---             .ite measurableSet_Iio measurable_const
---               (.ite measurableSet_Ioi measurable_const measurable_const)).comp
---                 (measurable_const.mul measurable_id')))
---           (.mul measurable_const (.add
---             (.sub measurable_const (.mul (by fun_prop)
---               (.div measurable_const ((show Measurable fun x : ℂ ↦ Complex.tanh x from by
---                 simpa only [Complex.tanh_eq_sinh_div_cosh] using
---                   Complex.continuous_sinh.measurable.mul
---                     Complex.continuous_cosh.measurable.inv).comp (by measurability)))))
---             (by fun_prop)))).aestronglyMeasurable
---       · norm_num [Real.sign]
---         exact Filter.eventually_inf_principal.mpr (.of_forall fun x hx ↦
---           mul_le_of_le_one_left (norm_nonneg _) (by split_ifs <;> norm_num))
---   rw [← integrable_indicator_iff] at *
---   · convert h_integrable using 1
---     ext; simp only [Set.indicator, Set.mem_Icc]
---     rcases lt_or_gt_of_ne hlam with hlam | hlam <;> simp [*, Real.sign_of_pos, Real.sign_of_neg]
---     grind
---   · norm_num
-
--- @[blueprint
---   "phi-cts"
---   (title := "phi is absolutely continuous")
---   (statement := /--
---   $\varphi$ is absolutely continuous.
---   -/)
---   (proof := /-- Straightforward estimation -/)
---   (latexEnv := "lemma")
---   (discussion := 943)]
--- theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
-
--- @[blueprint
---   "phi-deriv-bv"
---   (title := "phi derivative is of bounded variation")
---   (statement := /--
---   $\varphi'$ is of bounded variation.
---   -/)
---   (proof := /-- Straightforward estimation -/)
---   (latexEnv := "lemma")
---   (discussion := 944)]
--- theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
-
--- @[blueprint
---   "F-def"
---   (title := "Definition of F")
---   (statement := /--
---   $F_{\pm, \lambda}$ is the Fourier transform of $\varphi_{\pm, \lambda}$.
---   -/)]
--- noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambda ε) y).re
-
--- @[blueprint
---   "F-l1"
---   (title := "F is in L1")
---   (statement := /--
---   $F$ is absolutely integrable.
---   -/)
---   (proof := /-- Use Lemma \ref{decay-alt}. -/)
---   (latexEnv := "lemma")
---   (discussion := 945)]
--- theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by
---   refine Integrable.mono' (g := fun y ↦ ‖𝓕 (ϕ lambda ε) y‖) ?_ ?_ ?_
---   · refine Integrable.mono' (g := fun u ↦ ((∫ t, ‖ϕ lambda ε t‖) +
---       (eVariationOn (deriv (ϕ lambda ε)) Set.univ).toReal / (2 * Real.pi) ^ 2) /
---         (1 + ‖u‖ ^ 2)) ?_ ?_ ?_
---     · have : ∫ u : ℝ, (1 + ‖u‖ ^ 2)⁻¹ = Real.pi := by norm_num +zetaDelta at *
---       exact Integrable.const_mul (by contrapose! this; rw [integral_undef this]; positivity) _
---     · refine AEStronglyMeasurable.norm ?_
---       have hf : AEStronglyMeasurable (fun (u : ℝ) ↦
---           ∫ t, ϕ lambda ε t * Complex.exp (-2 * Real.pi * I * u * t)) volume :=
---         (continuous_iff_continuousAt.mpr fun u ↦
---           tendsto_integral_filter_of_dominated_convergence (fun t ↦ ‖ϕ lambda ε t‖)
---             (.of_forall fun _ ↦ (ϕ_integrable _ _ hlam).aestronglyMeasurable.mul
---               (Continuous.aestronglyMeasurable (by continuity)))
---             (by norm_num [norm_exp]) (ϕ_integrable _ _ hlam).norm
---             (.of_forall fun x ↦ Continuous.tendsto (by continuity) _)).aestronglyMeasurable
---       exact hf.congr (.of_forall fun x ↦ by
---         simp only [Real.fourier_real_eq_integral_exp_smul]
---         congr 1; ext t; rw [smul_eq_mul, mul_comm]; congr 1; congr 1; push_cast; ring)
---     · filter_upwards using fun u ↦ by
---         simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_continuous _ _ hlam)
---           (ϕ_deriv_bv _ _ hlam) u
---   · have : Continuous (F lambda ε) := by
---       apply_rules [continuous_ofReal.comp, Continuous.comp]
---       all_goals try continuity
---       exact continuous_iff_continuousAt.mpr fun x ↦
---         tendsto_integral_filter_of_dominated_convergence (fun a ↦ ‖ϕ lambda ε a‖)
---           (.of_forall fun _ ↦ (Continuous.aestronglyMeasurable (by continuity)).smul
---             (ϕ_integrable _ _ hlam).aestronglyMeasurable)
---               (by norm_num [norm_smul, Circle.norm_smul]) (ϕ_integrable _ _ hlam).norm
---                 (.of_forall fun a ↦ Continuous.tendsto (by continuity) _)
---     exact this.aestronglyMeasurable
---   · exact .of_forall fun x ↦ abs_re_le_norm _
-
--- lemma Phi_circ_neg_conj (ν ε : ℝ) (s : ℝ) :
---     Phi_circ ν ε (-↑s : ℂ) = starRingEnd ℂ (Phi_circ ν ε (↑s : ℂ)) := by
---   rw [show (-↑s : ℂ) = ↑(-s) from by push_cast; ring]
---   simp [coth, ← Complex.tanh_conj, Phi_circ, map_ofNat]
-
--- lemma Phi_star_neg_conj (ν ε : ℝ) (s : ℝ) :
---     Phi_star ν ε (-↑s : ℂ) = -starRingEnd ℂ (Phi_star ν ε (↑s : ℂ)) := by
---   rw [show (-↑s : ℂ) = ↑(-s) from by push_cast; ring]
---   simp [Phi_star, map_ofNat, coth, ← Complex.tanh_conj]
---   ring_nf
-
--- @[blueprint
---   "F-real"
---   (title := "F real")
---   (statement := /--
---   $F_{\pm,\lambda}$ is real-valued.
---   -/)
---   (proof := /-- Follows from the symmetry of $\phi$. -/)
---   (latexEnv := "sublemma")
---   (discussion := 946)]
--- theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by
---   suffices h : ∀ f : ℝ → ℂ, (∀ t, f (-t) = starRingEnd ℂ (f t)) → ∀ y, (𝓕 f y).im = 0 by
---     apply h; intro t; simp only [ϕ, ϕ_pm, mul_neg, ofReal_neg, Real.sign_neg]
---     split_ifs with h1 h2 h3 <;> grind [conj_ofReal, Phi_circ_neg_conj, Phi_star_neg_conj]
---   intro f hf y
---   have h1 : 𝓕 f y = ∫ t, f t * Complex.exp (-2 * π * I * y * t) := by
---     simp only [Real.fourier_real_eq_integral_exp_smul, smul_eq_mul]
---     congr 1; ext t; rw [mul_comm]; congr 1; congr 1; push_cast; ring
---   have h2 : ∫ t, f t * Complex.exp (-2 * π * I * y * t) = ∫ t,
---       starRingEnd ℂ (f t) * Complex.exp (2 * π * I * y * t) := by
---     rw [← MeasureTheory.integral_neg_eq_self]; congr; ext; simp_all
---   have h3 : ∫ t, f t * Complex.exp (-2 * π * I * y * t) =
---       starRingEnd ℂ (∫ t, f t * Complex.exp (-2 * π * I * y * t)) := by
---     convert h2 using 1
---     rw [← integral_conj]; congr; ext; simp [Complex.ext_iff, Complex.exp_re, Complex.exp_im]
---   norm_num [Complex.ext_iff] at h1 h2 h3 ⊢; grind
-
--- @[blueprint
---   "F-maj"
---   (title := "F+ majorizes I")
---   (statement := /--
---   $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
---   -/)
---   (proof := /-- TODO. -/)
---   (latexEnv := "theorem")]
--- theorem F.plus_majorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
---     F lambda 1 y ≥ I' lambda y := by sorry
-
--- @[blueprint
---   "F-min"
---   (title := "F- minorizes I")
---   (statement := /--
---   $F_{-,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
---   -/)
---   (proof := /-- TODO. -/)
---   (latexEnv := "theorem")]
--- theorem F.minus_minorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
---     F lambda (-1) y ≤ I' lambda y := by sorry
-
--- lemma I_prime_integral (lambda : ℝ) (hlam : lambda ≠ 0) :
---     ∫ y, I' lambda y = 1 / |lambda| := by
---   by_cases hlambda_pos : 0 < lambda
---   · have h_split : ∫ y, I' lambda y = ∫ y in Set.Ici 0, Real.exp (-lambda * y) := by
---       rw [← MeasureTheory.integral_indicator] <;> norm_num [Set.indicator, I']
---       exact congr_arg _ (funext fun x ↦ by split_ifs <;> nlinarith)
---     rw [h_split, MeasureTheory.integral_Ici_eq_integral_Ioi]
---     convert integral_exp_neg_mul_rpow zero_lt_one hlambda_pos using 1 <;>
---       norm_num [Real.rpow_neg_one, abs_of_pos hlambda_pos]
---   · unfold I'
---     have h_integral_neg : ∫ y in Set.Iic 0, Real.exp (-lambda * y) = 1 / (-lambda) := by
---       convert integral_exp_neg_mul_rpow zero_lt_one (neg_pos.mpr (lt_of_le_of_ne
---         (le_of_not_gt hlambda_pos) hlam)) using 1 <;> norm_num [Real.rpow_neg_one]
---       rw [← neg_zero, ← integral_comp_neg_Iic]; norm_num
---     rw [← MeasureTheory.integral_indicator] at * <;> norm_num [Set.indicator] at *
---     cases eq_or_lt_of_le hlambda_pos <;> simp_all only [not_true_eq_false, abs_of_nonpos, inv_neg]
---     convert h_integral_neg using 3
---     split_ifs <;> nlinarith [inv_mul_cancel₀ hlam]
-
--- lemma phi_zero_val (lambda : ℝ) (hlam : lambda ≠ 0) :
---     (ϕ lambda 1 0).re = 1 / (1 - Real.exp (-|lambda|)) := by
---   norm_num [ϕ, ϕ_pm, Phi_circ, Phi_star, coth, Complex.tanh_eq_sinh_div_cosh, Complex.normSq,
---     Complex.div_re, Complex.div_im, Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im]
---   field_simp
---   rw [div_add', div_eq_div_iff] <;> ring_nf <;> norm_num [Real.exp_ne_zero, sub_eq_zero, hlam]
---   · rw [← Real.exp_add]; ring_nf
---   · linarith [abs_pos.mpr hlam]
---   · exact Ne.symm (by norm_num [hlam])
---   · linarith [abs_pos.mpr hlam]
-
--- lemma I_prime_integrable (lambda : ℝ) (hlam : lambda ≠ 0) :
---     MeasureTheory.Integrable (I' lambda) := by
---   have := I_prime_integral lambda hlam
---   exact by contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
-
--- lemma phi_continuous_lemma (lambda ε : ℝ) (hlam : lambda ≠ 0) :
---     Continuous (ϕ lambda ε) := by
---   obtain ⟨_, hg⟩ := ϕ_continuous lambda ε hlam
---   rw [show ϕ lambda ε = fun x => ϕ lambda ε 0 + ∫ t in (0 : ℝ)..x, deriv (ϕ lambda ε) t
---     by ext x; linear_combination hg 0 x]
---   apply continuous_const.add
---   apply_rules [intervalIntegral.continuous_primitive]
---   intro a b
---   apply_rules [MeasureTheory.IntegrableOn.intervalIntegrable]
---   have hbv := (ϕ_deriv_bv lambda ε hlam).mono (Set.subset_univ (Set.uIcc a b))
---   have h_bd : ∃ C, ∀ x ∈ Set.uIcc a b,
---       ‖deriv (ϕ lambda ε) x - deriv (ϕ lambda ε) a‖ ≤ C :=
---     ⟨_, fun x hx ↦ hbv.dist_le hx Set.left_mem_uIcc⟩
---   exact .mono' (g := fun _ ↦ h_bd.choose + ‖deriv (ϕ lambda ε) a‖)
---     continuous_const.integrableOn_Icc (aestronglyMeasurable_deriv _ _)
---     (by filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with x hx
---         have h1 := norm_add_le (deriv (ϕ lambda ε) x - deriv (ϕ lambda ε) a) (deriv (ϕ lambda ε) a)
---         simpa using h1.trans (add_le_add_left (h_bd.choose_spec x hx) _))
-
--- lemma integral_F_eq_phi_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
---     ∫ y, F lambda 1 y = (ϕ lambda 1 0).re := by
---   have h_fourier_int : Integrable (𝓕 (ϕ lambda 1)) volume := by
---     convert (F_integrable lambda 1 hlam).ofReal using 1; congr! 1; ext y
---     simp [F, Complex.ext_iff, F.real lambda 1 y]
---   have h_inv := congr_fun (Continuous.fourierInv_fourier_eq (phi_continuous_lemma lambda 1 hlam)
---     (ϕ_integrable lambda 1 hlam) h_fourier_int) 0
---   rw [← h_inv]
---   simp only [F, FourierTransformInv.fourierInv, VectorFourier.fourierIntegral,
---     LinearMap.neg_apply, innerₗ_apply_apply, RCLike.inner_apply, zero_mul, neg_zero,
---     AddChar.map_zero_eq_one, one_smul]
---   convert integral_re h_fourier_int
-
--- @[blueprint "F-plus-l1"
---   (title := "F+ L1 bound")
---   (statement := /--
---   $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$. (cf. \cite[(4.2)]{ch2})
---   -/)
---   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
---   (latexEnv := "theorem")
---   (discussion := 967)]
--- theorem F.plus_l1 (lambda : ℝ) (hlam : lambda ≠ 0) :
---     ∫ y : ℝ, F lambda 1 y - I' lambda y = 1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by
---   rw [MeasureTheory.integral_sub] <;> norm_num [integral_F_eq_phi_zero, I_prime_integral, hlam]
---   · rw [← one_div, phi_zero_val]; exact RCLike.ofReal_ne_zero.mp hlam
---   · exact F_integrable lambda 1 hlam
---   · exact I_prime_integrable lambda hlam
-
--- lemma phi_minus_zero_val (lambda : ℝ) (hlam : lambda ≠ 0) :
---     (ϕ lambda (-1) 0).re = 1 / (Real.exp (|lambda|) - 1) := by
---   unfold ϕ ϕ_pm Phi_circ Phi_star coth
---   simp only [mul_zero, Left.neg_nonpos_iff, zero_le_one, and_self, ↓reduceIte, one_div,
---     Complex.tanh, ofReal_zero, zero_add, sub_self, add_zero, mul_re, inv_re, neg_mul]
---   norm_cast; rw [cosh_eq, sinh_eq]; ring_nf
---   norm_num [Real.exp_neg, Real.exp_mul]; field_simp
---   rw [← Real.sqrt_eq_rpow, Real.sq_sqrt (by positivity), div_add', div_eq_div_iff] <;>
---     nlinarith [Real.add_one_le_exp |lambda|, abs_pos.mpr hlam]
-
--- lemma integral_F_minus_eq_phi_minus_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
---     ∫ y, F lambda (-1) y = (ϕ lambda (-1) 0).re := by
---   have h_fourier_int : Integrable (𝓕 (ϕ lambda (-1))) volume := by
---     convert (F_integrable lambda (-1) hlam).ofReal using 1; congr! 1; ext y
---     simp [F, Complex.ext_iff, F.real lambda (-1) y]
---   have h_inv := congr_fun (Continuous.fourierInv_fourier_eq (phi_continuous_lemma lambda (-1) hlam)
---     (ϕ_integrable lambda (-1) hlam) h_fourier_int) 0
---   rw [← h_inv]
---   simp only [F, FourierTransformInv.fourierInv, VectorFourier.fourierIntegral,
---     LinearMap.neg_apply, innerₗ_apply_apply, RCLike.inner_apply, zero_mul, neg_zero,
---     AddChar.map_zero_eq_one, one_smul]
---   convert integral_re h_fourier_int
-
--- @[blueprint
---   "F-minus-l1"
---   (title := "F- L1 bound")
---   (statement := /--
---   $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$. (cf. \cite[(4.3)]{ch2})
---   -/)
---   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
---   (latexEnv := "theorem")
---   (discussion := 968)]
--- theorem F.minus_l1 (lambda : ℝ) (hlam : lambda ≠ 0) :
---     ∫ y : ℝ, I' lambda y - F lambda (-1) y = 1 / |lambda| - 1 / (rexp (|lambda|) - 1) := by
---   rw [MeasureTheory.integral_sub]
---   · rw [integral_F_minus_eq_phi_minus_zero, I_prime_integral, phi_minus_zero_val] <;> assumption
---   · exact I_prime_integrable lambda hlam
---   · exact F_integrable lambda (-1) hlam
-
--- blueprint_comment /--
--- TODO: Lemmas 4.2, 4.3, 4.4
--- -/
+blueprint_comment /--
+TODO: Lemmas 4.2, 4.3, 4.4
+-/
 
 
 
