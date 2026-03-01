@@ -46,19 +46,15 @@ lemma summable_nterm_of_log_weight {a : ℕ → ℂ} {β sig : ℝ}
   have h_event : ∀ᶠ n : ℕ in Filter.atTop,
       ‖(if n = 0 then 0 else ‖a n‖ / (n : ℝ) ^ sig)‖ ≤ ‖a n‖ / ((n : ℝ) * Real.log n ^ β) := by
     filter_upwards [hlog_le, Filter.eventually_ge_atTop (2 : ℕ)] with n hlog hn
-    have hn0 : n ≠ 0 := by omega
-    have hn1 : (1 : ℕ) < n := by omega
     have hnpos : 0 < (n : ℝ) := by positivity
-    have hlogpos : 0 < Real.log (n : ℝ) := Real.log_pos (by exact_mod_cast hn1)
+    have hlogpos : 0 < Real.log (n : ℝ) := Real.log_pos (by exact_mod_cast hn)
     have hpowpos : 0 < Real.log (n : ℝ) ^ β := Real.rpow_pos_of_pos hlogpos _
-    have hn_rpow_nonneg : 0 ≤ (n : ℝ) ^ (sig - 1) := Real.rpow_nonneg hnpos.le _
     have hlog_le' : Real.log (n : ℝ) ^ β ≤ (n : ℝ) ^ (sig - 1) := by
-      rwa [Real.norm_of_nonneg hpowpos.le, Real.norm_of_nonneg hn_rpow_nonneg] at hlog
+      rwa [Real.norm_of_nonneg hpowpos.le, Real.norm_of_nonneg (Real.rpow_nonneg hnpos.le _)] at hlog
     have hpow_split : (n : ℝ) ^ sig = (n : ℝ) * (n : ℝ) ^ (sig - 1) := by
-      conv_lhs => rw [show sig = 1 + (sig - 1) by ring]
-      rw [Real.rpow_add hnpos, Real.rpow_one]
+      conv_lhs => rw [show sig = 1 + (sig - 1) by ring]; rw [Real.rpow_add hnpos, Real.rpow_one]
     rw [show (if n = 0 then 0 else ‖a n‖ / (n : ℝ) ^ sig) = ‖a n‖ / (n : ℝ) ^ sig from
-        by simp [hn0], Real.norm_of_nonneg (div_nonneg (norm_nonneg _)
+        by simp [show n ≠ 0 by omega], Real.norm_of_nonneg (div_nonneg (norm_nonneg _)
         (Real.rpow_nonneg hnpos.le _)), hpow_split]
     exact div_le_div_of_nonneg_left (norm_nonneg (a n)) (mul_pos hnpos hpowpos)
       (mul_le_mul_of_nonneg_left hlog_le' hnpos.le)
@@ -104,10 +100,9 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
           𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
   let phiScaled : ℝ → ℂ := fun t => φ (t / T)
   have hphiScaled_meas : Measurable phiScaled := by simp only [phiScaled]; fun_prop
-  have hphiScaled_int : Integrable phiScaled := by
-    have hcomp : Integrable (fun t : ℝ => φ (t * T⁻¹)) :=
-      (MeasureTheory.integrable_comp_mul_right_iff (g := φ) (R := T⁻¹) (inv_ne_zero hT.ne')).2 hφ_int
-    simpa [phiScaled, div_eq_mul_inv] using hcomp
+  have hphiScaled_int : Integrable phiScaled :=
+    (MeasureTheory.integrable_comp_mul_right_iff (g := φ) (inv_ne_zero hT.ne')).2 hφ_int |>.congr
+      (by simp [phiScaled, div_eq_mul_inv])
   have hsummable : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm a σ') :=
     fun σ' hσ' => summable_nterm_of_log_weight hσ' ha
   have hfirst := @first_fourier x sig phiScaled a hsummable hphiScaled_int hx hsig
@@ -120,36 +115,27 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
   have hLS_bound (t : ℝ) : ‖LSeries a (sig + t * I)‖ ≤ C0 := by
     have hs_term : Summable (fun n : ℕ => ‖LSeries.term a (sig + t * I) n‖) := by
       convert hsummable sig hsig with n; simp [norm_term_eq_nterm_re]
-    calc ‖LSeries a (sig + t * I)‖
-        _ ≤ ∑' n : ℕ, ‖LSeries.term a (sig + t * I) n‖ := norm_tsum_le_tsum_norm hs_term
-        _ = C0 := by simp [C0, norm_term_eq_nterm_re]
-  have hLS_aesm : AEStronglyMeasurable (fun t : ℝ ↦ LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) := by
-    have hcontLS : Continuous (fun t : ℝ => LSeries a (sig + t * I)) :=
-      continuous_LSeries_aux (hsummable sig hsig)
-    exact ((hcontLS.measurable.mul hphiScaled_meas).mul
+    exact (norm_tsum_le_tsum_norm hs_term).trans (by simp [C0, norm_term_eq_nterm_re])
+  have hLS_aesm : AEStronglyMeasurable (fun t : ℝ ↦ LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) :=
+    (((continuous_LSeries_aux (hsummable sig hsig)).measurable.mul hphiScaled_meas).mul
       (continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [hx])).measurable).aestronglyMeasurable
-  have hLS_int : Integrable (fun t : ℝ ↦ LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) := by
-    have hbound_int : Integrable (fun t : ℝ ↦ C0 * ‖phiScaled t‖) := hphiScaled_int.norm.const_mul C0
-    refine Integrable.mono' hbound_int hLS_aesm ?_
-    refine Filter.Eventually.of_forall (fun t => ?_)
-    simp only [norm_mul, mul_assoc, hxpow, mul_one]
-    exact mul_le_mul_of_nonneg_right (hLS_bound t) (norm_nonneg _)
+  have hLS_int : Integrable (fun t : ℝ ↦ LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) :=
+    .mono' (hphiScaled_int.norm.const_mul C0) hLS_aesm (.of_forall fun t => by
+      simp only [norm_mul, mul_assoc, hxpow, mul_one]
+      exact mul_le_mul_of_nonneg_right (hLS_bound t) (norm_nonneg _))
   have hPole_denom_ne (t : ℝ) : sig + t * I - 1 ≠ 0 := by
-    intro h
-    have hre := congrArg Complex.re h
-    simp at hre
-    linarith [hsig]
+    intro h; have := congrArg Complex.re h; simp at this; linarith
   have hPole_bound (t : ℝ) : ‖1 / (sig + t * I - 1)‖ ≤ (sig - 1)⁻¹ := by
     have hσpos : 0 < sig - 1 := sub_pos.mpr hsig
     simpa [norm_div, one_div] using one_div_le_one_div_of_le hσpos
       (by simpa [abs_of_pos hσpos] using Complex.abs_re_le_norm (sig + t * I - 1))
+  have hcontX : Continuous (fun t : ℝ => (x : ℂ) ^ (t * I)) :=
+    continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [hx])
   have hPole_aesm :
-      AEStronglyMeasurable (fun t : ℝ ↦ (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) := by
-    have hcontPole : Continuous (fun t : ℝ => (1 / (sig + t * I - 1) : ℂ)) := by
-      simpa [one_div] using Continuous.inv₀ (by fun_prop) (fun t => hPole_denom_ne t)
-    have hcontX : Continuous (fun t : ℝ => (x : ℂ) ^ (t * I)) :=
-      continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [hx])
-    exact ((hcontPole.measurable.mul hphiScaled_meas).mul hcontX.measurable).aestronglyMeasurable
+      AEStronglyMeasurable (fun t : ℝ ↦ (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) :=
+    (((by simpa [one_div] using Continuous.inv₀ (by fun_prop) (hPole_denom_ne) :
+      Continuous (fun t : ℝ => (1 / (sig + t * I - 1) : ℂ))).measurable.mul hphiScaled_meas).mul
+        hcontX.measurable).aestronglyMeasurable
   have hPole_int : Integrable (fun t : ℝ ↦ (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) :=
     .mono' (hphiScaled_int.norm.const_mul (sig - 1)⁻¹) hPole_aesm (.of_forall fun t => by
       simp only [norm_mul, mul_assoc, hxpow, mul_one]
@@ -158,11 +144,8 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       ∫ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I) =
         (∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
           ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-    simp_rw [show ∀ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I) =
-        LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) -
-          (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) from
-      fun t => by rw [hG' (by simp [hsig] : (sig + t * I).re > 1)]; ring]
-    simpa using integral_sub hLS_int hPole_int
+    rw [← integral_sub hLS_int hPole_int]; congr 1; ext t
+    rw [hG' (by simp [hsig] : (sig + t * I).re > 1)]; ring
   have hIcc_to_univ :
       ∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) =
         ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) := by
@@ -170,27 +153,21 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
     refine integral_congr_ae (.of_forall fun t => ?_)
     by_cases ht : t ∈ Set.Icc (-T) T
     · simp [ht]
-    · have : t / T ∉ Set.Icc (-1) 1 := by
-        intro ⟨h1, h2⟩
-        exact ht ⟨by linarith [(le_div_iff₀ hT).mp h1], by linarith [(div_le_iff₀ hT).mp h2]⟩
-      simp [ht, hφ_supp _ this]
+    · simp [ht, hφ_supp _ (show t / T ∉ Set.Icc (-1) 1 from by
+        intro ⟨h1, h2⟩; exact ht ⟨by linarith [(le_div_iff₀ hT).mp h1],
+          by linarith [(div_le_iff₀ hT).mp h2]⟩)]
   have hG_with_x :
       (1 / (2 * π * T)) *
           ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) =
         (x / (2 * π * T) : ℂ) *
           ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
             ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) := by
-    have : ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) =
-        (x : ℂ) * ∫ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I) := by
-      rw [show (fun t : ℝ => φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) =
-          fun t : ℝ => (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (t * I)) from
-        funext fun t => by
-          rw [show (x : ℂ) ^ (1 + t * I) = (x : ℂ) * x ^ (t * I) from by
-            rw [Complex.cpow_add (x := (x : ℂ)) (y := (1 : ℂ)) (z := t * I)
-              (by exact_mod_cast hx.ne')]; simp]
-          simp only [phiScaled]; ring
-      , integral_const_mul]
-    rw [this, hG_rewrite]; ring
+    have hcpow (t : ℝ) : (x : ℂ) ^ (1 + ↑t * I) = x * x ^ (↑t * I) := by
+      rw [Complex.cpow_add (x := (x : ℂ)) (y := (1 : ℂ)) (z := t * I)
+        (by exact_mod_cast hx.ne')]; simp
+    simp_rw [show ∀ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + ↑t * I) =
+        (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (↑t * I)) from
+      fun t => by rw [hcpow]; simp only [phiScaled]; ring, integral_const_mul, hG_rewrite]; ring
   have hPole_from_second :
       (x ^ (2 - sig) / (2 * π * T) : ℝ) * ∫ u in Set.Ici (-log x),
           Real.exp (-u * (sig - 1)) * 𝓕 phiScaled (u / (2 * π)) =
@@ -200,26 +177,28 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       rw [← Real.rpow_add hx]; norm_num
     calc (x ^ (2 - sig) / (2 * π * T) : ℝ) * ∫ u in Set.Ici (-log x),
             Real.exp (-u * (sig - 1)) * 𝓕 phiScaled (u / (2 * π))
-        _ = ((x / (2 * π * T) : ℝ) : ℂ) *
-              ∫ t, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-            rw [hsecond]; simp [div_mul_eq_mul_div, hpowx, mul_assoc]
+        _ = ((x ^ (2 - sig) / (2 * π * T) * x ^ (sig - 1) : ℝ) : ℂ) *
+              ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
+            rw [hsecond]; push_cast; ring
+        _ = _ := by rw [show (x ^ (2 - sig) / (2 * π * T) * x ^ (sig - 1) : ℝ) = x / (2 * π * T)
+              from by rw [div_mul_eq_mul_div, hpowx]]; simp
   have hleft_scale :
       (1 / (2 * π)) * ∑' n : ℕ, (x : ℂ) * LSeries.term a sig n * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
         (x / (2 * π * T) : ℂ) *
           ∑' n : ℕ, LSeries.term a sig n * 𝓕 phiScaled ((1 / (2 * π)) * log (n / x)) := by
     have hS : ∑' n : ℕ, LSeries.term a sig n * 𝓕 phiScaled ((1 / (2 * π)) * log (n / x)) =
-        (T : ℂ) * ∑' n, LSeries.term a sig n * 𝓕 φ (T * ((1 / (2 * π)) * log (n / x))) := by
+        (T : ℂ) * ∑' n : ℕ, LSeries.term a sig n * 𝓕 φ (T * ((1 / (2 * π)) * log (n / x))) := by
       rw [← tsum_mul_left]; congr with n
       simpa [phiScaled, mul_assoc, mul_left_comm, mul_comm] using
         congrArg (fun z : ℂ => LSeries.term a sig n * z)
-          (fourier_scale_div_noscalar φ T ((1 / (2 * π)) * log (n / x)) hT)
-    rw [show (1 / (2 * π)) * ∑' n, (x : ℂ) * LSeries.term a sig n *
-        𝓕 φ ((T / (2 * π)) * log (n / x)) = (1 / (2 * π)) * ((x : ℂ) *
-          ∑' n, LSeries.term a sig n * 𝓕 φ (T * ((1 / (2 * π)) * log (n / x)))) from by
-      simp only [← tsum_mul_left]; congr 2; ext n
-      rw [show T * ((1 / (2 * π)) * log (n / x)) = (T / (2 * π)) * log (n / x) by ring]; ring,
-      hS]; field_simp [hT.ne']
-  rw [hleft_scale, hfirst, mul_sub, sub_add_cancel]
+          (fourier_scale_div_noscalar φ T ((1 / (2 * π)) * log (↑n / x)) hT)
+    simp_rw [hS, ← tsum_mul_left]; field_simp [hT.ne']
+  rw [hleft_scale, hfirst]
+  rw [show (x / (2 * π * T) : ℂ) * ∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) =
+      (x / (2 * π * T) : ℂ) * ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
+        ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
+      (x / (2 * π * T) : ℂ) * ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) from
+    by rw [mul_sub, sub_add_cancel]]
   rw [← hG_with_x, ← hIcc_to_univ, ← hPole_from_second]
 
 @[blueprint
