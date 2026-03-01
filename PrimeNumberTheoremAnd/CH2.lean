@@ -221,18 +221,14 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       intro t
       have hGt : G (sig + t * I) = LSeries a (sig + t * I) - 1 / (sig + t * I - 1) := by
         exact hG' (by simp [hsig])
-      calc
-        phiScaled t * G (sig + t * I) * x ^ (t * I)
-            = phiScaled t * (LSeries a (sig + t * I) - 1 / (sig + t * I - 1)) * x ^ (t * I) := by
-                rw [hGt]
-        _ = LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) -
-              (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by ring
+      rw [hGt]
+      ring
     have hpoint : (fun t : ℝ => phiScaled t * G (sig + t * I) * x ^ (t * I)) =
         (fun t : ℝ => LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) -
           (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) := by
       funext t; exact hpointeq t
     rw [hpoint]
-    exact integral_sub hLS_int hPole_int
+    simpa using integral_sub hLS_int hPole_int
   have hIcc_to_univ :
       ∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) =
         ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) := by
@@ -262,29 +258,19 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       intro t
       rw [Complex.cpow_add (x := (x : ℂ)) (y := (1 : ℂ)) (z := t * I) (by exact_mod_cast hx.ne')]
       simp
+    have hpoint :
+        (fun t : ℝ => φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) =
+          (fun t : ℝ => (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (t * I))) := by
+      funext t
+      rw [hpow t]
+      simp only [phiScaled]
+      ring
     have hfactor :
         ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) =
           (x : ℂ) * ∫ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I) := by
-      have hpoint :
-          (fun t : ℝ => φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) =
-            (fun t : ℝ => (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (t * I))) := by
-        funext t
-        calc
-          φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)
-              = φ (t / T) * G (sig + t * I) * ((x : ℂ) * x ^ (t * I)) := by rw [hpow t]
-          _ = (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (t * I)) := by
-                simp only [phiScaled]
-                ring
       rw [hpoint, integral_const_mul]
-    calc
-      (1 / (2 * π * T)) * ∫ t : ℝ, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)
-          = (1 / (2 * π * T)) * ((x : ℂ) * ∫ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I)) := by
-              simp [hfactor]
-      _ = (x / (2 * π * T) : ℂ) * ∫ t : ℝ, phiScaled t * G (sig + t * I) * x ^ (t * I) := by ring
-      _ = (x / (2 * π * T) : ℂ) *
-            ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
-              ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) := by
-            rw [hG_rewrite]
+    rw [hfactor, hG_rewrite]
+    ring
   have hPole_from_second :
       (x ^ (2 - sig) / (2 * π * T) : ℝ) * ∫ u in Set.Ici (-log x),
           Real.exp (-u * (sig - 1)) * 𝓕 phiScaled (u / (2 * π)) =
@@ -304,17 +290,14 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
         ((x ^ (2 - sig) / (2 * π * T)) * (x ^ (sig - 1)) : ℝ)
             = (x ^ (2 - sig) * x ^ (sig - 1)) / (2 * π * T) := by ring
         _ = x / (2 * π * T) := by rw [hpowx]
-    calc
-      (x ^ (2 - sig) / (2 * π * T) : ℝ) * ∫ u in Set.Ici (-log x),
-          Real.exp (-u * (sig - 1)) * 𝓕 phiScaled (u / (2 * π))
-          = ((((x ^ (2 - sig) / (2 * π * T)) * (x ^ (sig - 1)) : ℝ) : ℂ) * J) := by
+    have hsecond_scaled :
+        (x ^ (2 - sig) / (2 * π * T) : ℝ) * ∫ u in Set.Ici (-log x),
+            Real.exp (-u * (sig - 1)) * 𝓕 phiScaled (u / (2 * π))
+            = ((((x ^ (2 - sig) / (2 * π * T)) * (x ^ (sig - 1)) : ℝ) : ℂ) * J) := by
               rw [hsecond]
               simp [J, mul_assoc]
-      _ = (x / (2 * π * T) : ℂ) * J := by
-              simp [hscalarR]
-      _ = (x / (2 * π * T) : ℂ) *
-            ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-              simp [J]
+    rw [hsecond_scaled, hscalarR]
+    simp [J]
   have hleft_scale :
       (1 / (2 * π)) * ∑' n : ℕ, (x : ℂ) * LSeries.term a sig n * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
         (x / (2 * π * T) : ℂ) *
@@ -340,33 +323,18 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       have harg : T * ((1 / (2 * π)) * log (n / x)) = (T / (2 * π)) * log (n / x) := by ring
       rw [harg]
       ring
-    calc
-      (1 / (2 * π)) * ∑' n : ℕ, (x : ℂ) * LSeries.term a sig n * 𝓕 φ ((T / (2 * π)) * log (n / x))
-          = (1 / (2 * π)) * ((x : ℂ) * R) := by
-              simpa using hRrewrite.symm
-      _ = (x / (2 * π * T) : ℂ) * ((T : ℂ) * R) := by
-              field_simp [hT.ne']
-      _ = (x / (2 * π * T) : ℂ) *
-            ∑' n : ℕ, LSeries.term a sig n * 𝓕 phiScaled ((1 / (2 * π)) * log (n / x)) := by
-              rw [hS]
-  calc
-    (1 / (2 * π)) * ∑' n : ℕ, (x : ℂ) * LSeries.term a sig n * 𝓕 φ ((T / (2 * π)) * log (n / x))
-        = (x / (2 * π * T) : ℂ) *
-            ∑' n : ℕ, LSeries.term a sig n * 𝓕 phiScaled ((1 / (2 * π)) * log (n / x)) := hleft_scale
-    _ = (x / (2 * π * T) : ℂ) * ∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) := by
-          rw [hfirst]
-    _ = (x / (2 * π * T) : ℂ) *
+    rw [hRrewrite.symm, hS]
+    field_simp [hT.ne']
+  rw [hleft_scale, hfirst]
+  have hsplit :
+      (x / (2 * π * T) : ℂ) * ∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) =
+        (x / (2 * π * T) : ℂ) *
           ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
             ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
-        (x / (2 * π * T) : ℂ) *
-          ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-          rw [mul_sub, sub_add_cancel]
-    _ = (1 / (2 * π * T)) *
-          (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
-        (x ^ (2 - sig) / (2 * π * T) : ℝ) *
-          (∫ u in Set.Ici (-log x), Real.exp (-u * (sig - 1)) *
-            𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
-          rw [← hG_with_x, ← hIcc_to_univ, ← hPole_from_second]
+          (x / (2 * π * T) : ℂ) *
+            ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
+    rw [mul_sub, sub_add_cancel]
+  rw [hsplit, ← hG_with_x, ← hIcc_to_univ, ← hPole_from_second]
 
 @[blueprint
   "ch2-prop-2-3"
