@@ -65,6 +65,148 @@ theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Fin
   have h4 : (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 = x ^ 2 * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 := by ring
   simpa only [h4, h_main1] using h2
 
+lemma helper_geo_eq (r : ℝ) (n : ℕ) :
+  (∑ i ∈ Finset.range n, r ^ i) * (1 - r) = 1 - r ^ n := by
+  induction n with
+  | zero => norm_num
+  | succ n ih =>
+    have h_sum : ∑ i ∈ Finset.range (n + 1), r ^ i = (∑ i ∈ Finset.range n, r ^ i) + r ^ n := by
+      simp [Finset.sum_range_succ]
+    calc
+      (∑ i ∈ Finset.range (n + 1), r ^ i) * (1 - r)
+        = ((∑ i ∈ Finset.range n, r ^ i) + r ^ n) * (1 - r) := by rw [h_sum]
+      _ = (∑ i ∈ Finset.range n, r ^ i) * (1 - r) + r ^ n * (1 - r) := by ring
+      _ = (1 - r ^ n) + r ^ n * (1 - r) := by rw [ih]
+      _ = 1 - r ^ (n + 1) := by ring
+
+lemma helper_geo (r : ℝ) (hr_pos : 0 < r) (hr_lt_one : r < 1) (n : ℕ) :
+  ∑ i ∈ Finset.range n, r ^ i < 1 / (1 - r) := by
+  have h1 : 0 < 1 - r := by linarith
+  have h_eq : (∑ i ∈ Finset.range n, r ^ i) * (1 - r) = 1 - r ^ n := helper_geo_eq r n
+  have h2 : 1 - r ^ n < 1 := by
+    have h3 : 0 < r ^ n := by positivity
+    linarith
+  have h4 : (∑ i ∈ Finset.range n, r ^ i) * (1 - r) < 1 := by linarith [h_eq]
+  have h5 : ∑ i ∈ Finset.range n, r ^ i < 1 / (1 - r) := by
+    calc
+      ∑ i ∈ Finset.range n, r ^ i
+        = ((∑ i ∈ Finset.range n, r ^ i) * (1 - r)) / (1 - r) := by
+          field_simp [h1.ne']
+      _ < 1 / (1 - r) := by gcongr <;> linarith
+  exact h5
+
+lemma geometric_series_ineq (l : ℝ) (hl_gt_one : 1 < l) (n : ℕ) :
+  ∑ i ∈ Finset.range n, (1 / l : ℝ) ^ i < l / (l - 1) := by
+  have hl_pos : 0 < l := by linarith
+  have h1 : 0 < l - 1 := by linarith
+  have h_r_pos : 0 < (1 / l : ℝ) := by positivity
+  have h_r_lt_one : (1 / l : ℝ) < 1 := by
+    apply (div_lt_one (by positivity)).mpr; linarith
+  have h4 : ∑ i ∈ Finset.range n, (1 / l : ℝ) ^ i < 1 / (1 - (1 / l : ℝ)) := helper_geo (1 / l : ℝ) h_r_pos h_r_lt_one n
+  have h5 : 1 - (1 / l : ℝ) ≠ 0 := by
+    have h6 : 1 - (1 / l : ℝ) = (l - 1) / l := by field_simp
+    rw [h6]; positivity
+  have h7 : 1 / (1 - (1 / l : ℝ)) = l / (l - 1) := by
+    field_simp [h5, hl_pos.ne']
+  rw [h7] at h4
+  exact h4
+
+lemma helper_pow (l : ℝ) (hl_pos : 0 < l) (hl1_pos : 0 < l - 1) (hl_ne : l ≠ 0) (hl1_ne : l - 1 ≠ 0) (t : ℕ) :
+  (l / (l - 1)) ^ t / l ^ t = 1 / (l - 1) ^ t := by
+  have h_main : ∀ t : ℕ, (l / (l - 1)) ^ t = l ^ t / (l - 1) ^ t := by
+    intro t
+    induction t with
+    | zero => norm_num
+    | succ t ih => simp [pow_succ, ih]; field_simp [hl_ne, hl1_ne]
+  have h8 : (l / (l - 1)) ^ t = l ^ t / (l - 1) ^ t := h_main t
+  rw [h8]
+  field_simp [hl_ne, hl1_ne]
+
+lemma lemma_ex_pi_gt (x : ℝ) (hx : exp 1 < x) (k : ℕ) (_h_k : k ≤ 5) :
+  let l := Real.log x
+  let n := 5 - k + 1
+  (∑ i ∈ Finset.range n, 1 / l ^ i) ^ (k + 1) / l ^ (k + 1) < 1 / (l - 1) ^ (k + 1) := by
+  have h1 : exp 1 < x := hx
+  have hl_gt_one : 1 < Real.log x := by
+    have h2 : Real.log (exp 1) = 1 := by simp
+    have h3 : Real.log (exp 1) < Real.log x := Real.log_lt_log (by positivity) h1
+    rw [h2] at h3
+    exact h3
+  dsimp only
+  let l := Real.log x
+  have hl1 : 1 < l := hl_gt_one
+  have hl_pos : 0 < l := by linarith
+  have hl_ne : l ≠ 0 := by linarith
+  have hl1_pos : 0 < l - 1 := by linarith
+  have hl1_ne : l - 1 ≠ 0 := by linarith
+  let n := 5 - k + 1
+  have h_geo : ∑ i ∈ Finset.range n, (1 / l : ℝ) ^ i < l / (l - 1) := geometric_series_ineq l hl1 n
+  have h11 : ∀ i ∈ Finset.range n, (1 / l : ℝ) ^ i = 1 / l ^ i := by
+    intro i _
+    simp
+  have h12 : (∑ i ∈ Finset.range n, (1 / l : ℝ) ^ i) = ∑ i ∈ Finset.range n, 1 / l ^ i := by
+    apply Finset.sum_congr rfl
+    intro i _
+    exact h11 i ‹_›
+  have h_pow_pos1 : 0 < ∑ i ∈ Finset.range n, 1 / l ^ i := by positivity
+  have h_pow_pos2 : 0 < l / (l - 1) := by positivity
+  have h_geo2 : ∑ i ∈ Finset.range n, 1 / l ^ i < l / (l - 1) := by
+    have h13 : ∑ i ∈ Finset.range n, 1 / l ^ i = ∑ i ∈ Finset.range n, (1 / l : ℝ) ^ i := h12.symm
+    rw [h13]
+    exact h_geo
+  have h_pow : (∑ i ∈ Finset.range n, 1 / l ^ i) ^ (k + 1) < (l / (l - 1)) ^ (k + 1) := by
+    gcongr
+  have h9 : (l / (l - 1)) ^ (k + 1) / l ^ (k + 1) = 1 / (l - 1) ^ (k + 1) :=
+    helper_pow l hl_pos hl1_pos hl_ne hl1_ne (k + 1)
+  have h10 : (∑ i ∈ Finset.range n, 1 / l ^ i) ^ (k + 1) / l ^ (k + 1) < (l / (l - 1)) ^ (k + 1) / l ^ (k + 1) := by
+    gcongr
+  rw [h9] at h10
+  simpa using h10
+
+lemma lemma2_ex_pi_gt (m_a x_a : ℝ)
+    (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x)
+    (hx_a_pos : 0 < x_a) :
+    ∀ x > exp 1 * x_a, (0 < x) → (1 < Real.log x) → exp 1 * x / log x * pi (x / exp 1) >
+      (x ^ 2 / log x) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1)) + (m_a * x ^ 2 / log x) / (log x - 1) ^ 6 := by
+  intro x hx hx_pos h_log_gt_one
+  have h1 : x / exp 1 > x_a := by
+    have h11 : x > exp 1 * x_a := hx
+    have h12 : x / exp 1 > x_a := by
+      calc
+        x / exp 1 = x / exp 1 := rfl
+        _ > (exp 1 * x_a) / exp 1 := by gcongr
+        _ = x_a := by field_simp
+    exact h12
+  have h2 : (x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / Real.log (x / exp 1) ^ (k + 1)) + (m_a * (x / exp 1) / Real.log (x / exp 1) ^ 6) < pi (x / exp 1) := hlower (x / exp 1) h1
+  have h3 : Real.log (x / exp 1) = Real.log x - 1 := by
+    have h31 : Real.log (x / exp 1) = Real.log x - Real.log (exp 1) := by
+      rw [Real.log_div (ne_of_gt hx_pos) (by positivity)]
+    have h32 : Real.log (exp 1) = 1 := by simp
+    rw [h31, h32]
+  rw [h3] at h2
+  have h4 : 0 < exp 1 * x / log x := by
+    have h41 : 0 < exp 1 := by positivity
+    have h42 : 0 < log x := by linarith
+    positivity
+  have h_main : exp 1 * x / log x * pi (x / exp 1) >
+      exp 1 * x / log x * (((x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1))) + (m_a * (x / exp 1) / (log x - 1) ^ 6)) := by
+    gcongr
+  have h_exp1_pos : 0 < exp 1 := by positivity
+  have h_logx_pos : 0 < log x := by linarith
+  have h_logx1_pos : 0 < log x - 1 := by linarith
+  have h_eq : exp 1 * x / log x * (((x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1))) + (m_a * (x / exp 1) / (log x - 1) ^ 6)) =
+      (x ^ 2 / log x) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1)) + (m_a * x ^ 2 / log x) / (log x - 1) ^ 6 := by
+    have h5 : exp 1 * x / log x * (((x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1))) + (m_a * (x / exp 1) / (log x - 1) ^ 6)) =
+        exp 1 * x / log x * ((x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1))) + exp 1 * x / log x * (m_a * (x / exp 1) / (log x - 1) ^ 6) := by ring
+    rw [h5]
+    have h6 : exp 1 * x / log x * ((x / exp 1) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1))) = (x ^ 2 / log x) * ∑ k ∈ Finset.range 5, (k.factorial / (log x - 1) ^ (k + 1)) := by
+      field_simp [h_exp1_pos.ne', h_logx_pos.ne']
+    have h7 : exp 1 * x / log x * (m_a * (x / exp 1) / (log x - 1) ^ 6) = (m_a * x ^ 2 / log x) / (log x - 1) ^ 6 := by
+      field_simp [h_exp1_pos.ne', h_logx_pos.ne', h_logx1_pos.ne']
+    rw [h6, h7]
+  rw [h_eq] at h_main
+  exact h_main
+
 @[blueprint
   "ramanujan-criterion-2"
   (title := "Criterion for Ramanujan's inequality, substep 2")
@@ -87,8 +229,9 @@ we obtain the claim.
   -/)
   (latexEnv := "sublemma")
   (discussion := 984)]
-theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
-    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) + ε' m_a x / log x ^ 7) := by
+theorem ex_pi_gt (m_a x_a : ℝ) (hx_a : exp 1 < x_a) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
+    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) >
+      x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε m_a x / log x ^ 7) := by
     sorry
 
 @[blueprint
