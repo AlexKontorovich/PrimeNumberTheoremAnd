@@ -1,6 +1,7 @@
 import Architect
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
@@ -394,7 +395,6 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
     (J_B 0 = 0) ∧
     (∀ z ∈ Metric.closedBall 0 r, (deriv J_B) z = (deriv B) z / (B z)) ∧
     (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
-    -- By `PathIntegral_deriv`, $J_B'(z) = f(z) = B'(z)/B(z)$ for all $z \in B(0, R)$.
     obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (deriv B z / B z) z)) ∧ J_B 0 = 0 ∧ (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
       set f : ℂ → ℂ := fun z => deriv B z / B z;
       have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) := by
@@ -404,8 +404,9 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
         · exact BanalyticOnNhdOfDR.mono <| Metric.ball_subset_closedBall;
         · exact fun z hz => Bnonzero z <| Metric.ball_subset_closedBall hz;
       obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (f z) z)) ∧ J_B 0 = 0 := by
-        use PathIntegral f;
-        exact ⟨ fun z hz => PathIntegral_deriv hf z hz, by unfold PathIntegral; norm_num ⟩;
+        obtain ⟨J, hJ⟩ :=  DifferentiableOn.isExactOn_ball hf.differentiableOn
+        refine ⟨(fun z ↦ J z - J 0), fun z hz ↦ ?_, (by simp)⟩
+        exact hJ z hz|>.sub_const _
       -- Let $H(z) = \exp(J_B(z)) / B(z)$.
       set H : ℂ → ℂ := fun z => Complex.exp (J_B z) / B z;
       have hH_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt H 0 z := by
