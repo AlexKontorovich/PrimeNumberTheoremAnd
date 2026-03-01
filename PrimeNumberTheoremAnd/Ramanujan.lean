@@ -88,7 +88,8 @@ we obtain the claim.
   (latexEnv := "sublemma")
   (discussion := 984)]
 theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
-    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) + ε' m_a x / log x ^ 7) := by
+    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 *
+      (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε' m_a x / log x ^ 7) := by
     sorry
 
 @[blueprint
@@ -112,7 +113,19 @@ theorem criterion (m_a M_a x_a : ℝ)
   (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x)
   (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
     ∀ x > max (exp 1 * x_a) (x' m_a M_a x_a), pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
-  sorry
+  intro x hx
+  rw [← sub_lt_zero]
+  calc
+  _ < x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε M_a x / log x ^ 7)
+    - x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε' m_a x / log x ^ 7) := by
+    gcongr ?_ - ?_
+    · refine sq_pi_lt M_a x_a hupper x ?_
+      sorry
+    · refine (ex_pi_gt m_a x_a hlower x ?_).lt
+      sorry
+  _ = x ^ 2 / log x ^ 6 * (-1 + (ε M_a x - ε' m_a x) / log x) := by
+    sorry
+  _ < 0 := by sorry
 
 /-- Integration by parts formula for `Li(x)`. -/
 lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
