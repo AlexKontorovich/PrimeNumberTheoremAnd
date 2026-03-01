@@ -597,16 +597,6 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
 
 @[blueprint
-  "Phi-star-poles-simple"
-  (title := "Phi-star poles simple")
-  (statement := /--
-  The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are all simple.
-  -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)]
-theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_star ν ε) z = -1 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
-
-@[blueprint
   "Phi-star-residues"
   (title := "Phi-star residues")
   (statement := /--
@@ -616,6 +606,43 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
     (nhds (n - I * ν / (2 * π))).Tendsto
       (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
+
+@[blueprint
+  "Phi-star-poles-simple"
+  (title := "Phi-star poles simple")
+  (statement := /--
+  The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are all simple.
+  -/)
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)]
+theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
+    meromorphicOrderAt (Phi_star ν ε) z = -1 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by
+  constructor
+  · exact fun h ↦ (Phi_star.poles ν ε hν z).mp (h ▸ by decide)
+  · rintro ⟨n, hn, rfl⟩
+    set z₀ := (n : ℂ) - I * ν / (2 * π)
+    have hsub : MeromorphicAt (· - z₀ : ℂ → ℂ) z₀ := by fun_prop
+    have hf : MeromorphicAt (Phi_star ν ε) z₀ := (Phi_star.meromorphic ν ε).meromorphicAt
+    have heq : (fun z ↦ (z - z₀) * Phi_star ν ε z) =ᶠ[nhdsWithin z₀ {z₀}ᶜ] ((· - z₀) * Phi_star ν ε) :=
+      Filter.Eventually.of_forall fun _ ↦ rfl
+    have hL : -I * ↑n / (2 * ↑(π : ℝ)) ≠ (0 : ℂ) := by
+      simp only [neg_mul, ne_eq, div_eq_zero_iff, neg_eq_zero, mul_eq_zero, I_ne_zero,
+        Int.cast_eq_zero, false_or, OfNat.ofNat_ne_zero, ofReal_eq_zero, pi_ne_zero, or_self,
+        or_false]
+      exact_mod_cast hn
+    have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_star ν ε) z₀ = 0 :=
+      (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
+        ⟨_, hL, (Phi_star.residue ν ε hν n hn |>.mono_left nhdsWithin_le_nhds).congr' heq⟩
+    have hord₁ : meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) := by
+      rw [meromorphicOrderAt_eq_int_iff hsub]
+      exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
+    rw [meromorphicOrderAt_mul hsub hf, hord₁] at hord₀
+    obtain ⟨m, hm⟩ := WithTop.ne_top_iff_exists.mp
+      (by rintro h; simp [h] at hord₀ : meromorphicOrderAt (Phi_star ν ε) z₀ ≠ ⊤)
+    rw [← hm] at hord₀ ⊢
+    have h1 : (↑(1 : ℤ) + ↑m : WithTop ℤ) = ↑(1 + m : ℤ) := by push_cast; ring_nf
+    rw [h1] at hord₀
+    have : 1 + m = 0 := by exact_mod_cast hord₀
+    change (↑m : WithTop ℤ) = ↑(-1 : ℤ); congr 1; omega
 
 @[blueprint
   "Phi-cancel"
