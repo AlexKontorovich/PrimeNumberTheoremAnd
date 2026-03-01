@@ -124,9 +124,8 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
     have hcomp : Integrable (fun t : ℝ => φ (t * T⁻¹)) :=
       (MeasureTheory.integrable_comp_mul_right_iff (g := φ) (R := T⁻¹) (inv_ne_zero hT.ne')).2 hφ_int
     simpa [phiScaled, div_eq_mul_inv] using hcomp
-  have hsummable : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm a σ') := by
-    intro σ' hσ'
-    exact summable_nterm_of_log_weight hσ' ha
+  have hsummable : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm a σ') :=
+    fun σ' hσ' => summable_nterm_of_log_weight hσ' ha
   have hfirst := @first_fourier x sig phiScaled a hsummable hphiScaled_int hx hsig
   have hsecond := @second_fourier phiScaled hphiScaled_meas hphiScaled_int x sig hx hsig
   have hxpow (t : ℝ) : ‖(x : ℂ) ^ (t * I)‖ = 1 := by
@@ -341,13 +340,12 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
       have harg : T * ((1 / (2 * π)) * log (n / x)) = (T / (2 * π)) * log (n / x) := by ring
       rw [harg]
       ring
-    have hT0 : (T : ℂ) ≠ 0 := by exact_mod_cast hT.ne'
     calc
       (1 / (2 * π)) * ∑' n : ℕ, (x : ℂ) * LSeries.term a sig n * 𝓕 φ ((T / (2 * π)) * log (n / x))
           = (1 / (2 * π)) * ((x : ℂ) * R) := by
-              exact hRrewrite.symm
+              simpa using hRrewrite.symm
       _ = (x / (2 * π * T) : ℂ) * ((T : ℂ) * R) := by
-              field_simp
+              field_simp [hT.ne']
       _ = (x / (2 * π * T) : ℂ) *
             ∑' n : ℕ, LSeries.term a sig n * 𝓕 phiScaled ((1 / (2 * π)) * log (n / x)) := by
               rw [hS]
@@ -362,77 +360,13 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
             ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
         (x / (2 * π * T) : ℂ) *
           ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-          have hsplit :
-              (x / (2 * π * T) : ℂ) * ∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I) =
-                (x / (2 * π * T) : ℂ) *
-                  ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
-                (x / (2 * π * T) : ℂ) *
-                  ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-                rw [mul_sub, sub_add_cancel]
-          exact hsplit
+          rw [mul_sub, sub_add_cancel]
     _ = (1 / (2 * π * T)) *
           (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
         (x ^ (2 - sig) / (2 * π * T) : ℝ) *
           (∫ u in Set.Ici (-log x), Real.exp (-u * (sig - 1)) *
             𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
-          have hpart1 :
-              (x / (2 * π * T) : ℂ) *
-                ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
-                  ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) =
-              (1 / (2 * π * T)) *
-                ∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I) := by
-            rw [← hG_with_x, ← hIcc_to_univ]
-          have hpart2 :
-              (x / (2 * π * T) : ℂ) *
-                ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) =
-              (x ^ (2 - sig) / (2 * π * T) : ℝ) *
-                ∫ u in Set.Ici (-log x), Real.exp (-u * (sig - 1)) *
-                  𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π)) := by
-            rw [← hPole_from_second]
-          have hsum :
-              (x / (2 * π * T) : ℂ) *
-                  ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
-                (x / (2 * π * T) : ℂ) *
-                  ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) =
-              (1 / (2 * π * T)) *
-                  (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
-                (x ^ (2 - sig) / (2 * π * T) : ℝ) *
-                  (∫ u in Set.Ici (-log x), Real.exp (-u * (sig - 1)) *
-                    𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
-            have hsum1 :
-                (x / (2 * π * T) : ℂ) *
-                    ((∫ t : ℝ, LSeries a (sig + t * I) * phiScaled t * x ^ (t * I)) -
-                      ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) +
-                  (x / (2 * π * T) : ℂ) *
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) =
-                (1 / (2 * π * T)) *
-                    (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
-                  (x / (2 * π * T) : ℂ) *
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) := by
-              exact congrArg
-                (fun z : ℂ =>
-                  z + (x / (2 * π * T) : ℂ) *
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I))
-                hpart1
-            have hsum2 :
-                (1 / (2 * π * T)) *
-                    (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
-                  (x / (2 * π * T) : ℂ) *
-                    ∫ t : ℝ, (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I) =
-                (1 / (2 * π * T)) *
-                    (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) +
-                  (x ^ (2 - sig) / (2 * π * T) : ℝ) *
-                    (∫ u in Set.Ici (-log x), Real.exp (-u * (sig - 1)) *
-                      𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
-              exact congrArg
-                (fun z : ℂ =>
-                  (1 / (2 * π * T)) *
-                    (∫ t in Set.Icc (-T) T, φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)) + z)
-                hpart2
-            exact hsum1.trans hsum2
-          exact hsum
+          rw [← hG_with_x, ← hIcc_to_univ, ← hPole_from_second]
 
 @[blueprint
   "ch2-prop-2-3"
