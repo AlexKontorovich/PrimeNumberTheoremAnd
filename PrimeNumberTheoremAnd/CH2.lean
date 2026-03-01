@@ -77,7 +77,7 @@ lemma summable_nterm_of_log_weight {a : ℕ → ℂ} {β sig : ℝ}
 
 lemma fourier_scale_div_noscalar (φ : ℝ → ℂ) (T u : ℝ) (hT : 0 < T) :
     𝓕 (fun t : ℝ ↦ φ (t / T)) u = (T : ℂ) * 𝓕 φ (T * u) := by
-  rw [Real.fourierIntegral_real_eq, Real.fourierIntegral_real_eq]
+  rw [Real.fourier_real_eq, Real.fourier_real_eq]
   have hcomp :
       (fun v : ℝ ↦ 𝐞 (-(v * u)) • φ (v / T)) =
         fun v : ℝ ↦ (fun z : ℝ ↦ 𝐞 (-(z * (T * u))) • φ z) (v / T) := by
@@ -101,13 +101,13 @@ lemma fourier_scale_div_noscalar (φ : ℝ → ℂ) (T u : ℝ) (hT : 0 < T) :
   -/)
   (latexEnv := "sublemma")
   (discussion := 879)]
-theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
+theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ}
     (hG' : Set.EqOn G (fun s ↦ LSeries a s - 1 / (s - 1)) { z | z.re > 1 })
     {φ : ℝ → ℂ} (hφ_mes : Measurable φ) (hφ_int : Integrable φ)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ x = 0) -- this hypothesis may be unnecessary
-    (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ y‖ ≤ C / |y| ^ β)
+    (_hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ y‖ ≤ C / |y| ^ β)
     (x sig : ℝ) (hx : 0 < x) (hsig : 1 < sig) :
     (1 / (2 * π)) * ∑' (n : ℕ), (x : ℂ) * LSeries.term a sig n *
       𝓕 φ ((T / (2 * π)) * log (n / x)) =
@@ -118,7 +118,7 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
           𝓕 (fun t : ℝ ↦ φ (t / T)) (u / (2 * π))) := by
   let phiScaled : ℝ → ℂ := fun t => φ (t / T)
   have hphiScaled_meas : Measurable phiScaled := by
-    simp [phiScaled]
+    simp only [phiScaled]
     fun_prop
   have hphiScaled_int : Integrable phiScaled := by
     have hcomp : Integrable (fun t : ℝ => φ (t * T⁻¹)) :=
@@ -274,7 +274,7 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
           φ (t / T) * G (sig + t * I) * x ^ (1 + t * I)
               = φ (t / T) * G (sig + t * I) * ((x : ℂ) * x ^ (t * I)) := by rw [hpow t]
           _ = (x : ℂ) * (phiScaled t * G (sig + t * I) * x ^ (t * I)) := by
-                simp [phiScaled]
+                simp only [phiScaled]
                 ring
       rw [hpoint, integral_const_mul]
     calc
