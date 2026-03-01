@@ -439,19 +439,11 @@ theorem Phi_circ.meromorphic (ν ε : ℝ) : Meromorphic (Phi_circ ν ε) := by
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z}$.
   -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)]
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)
+  (latexEnv := "lemma")
+  (discussion := 1069)]
 theorem Phi_circ.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_circ ν ε) z < 0 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by sorry
-
-@[blueprint
-  "Phi-circ-poles-simple"
-  (title := "Phi-circ poles simple")
-  (statement := /--
-  The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are all simple.
-  -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)]
-theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by sorry
 
 @[blueprint
   "Phi-circ-residues"
@@ -459,9 +451,23 @@ theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (statement := /--
   The residue of $$\Phi^{\pm,\circ}_\nu(z)$$ at $n - i \nu/2\pi$ is $i/2\pi$.
   -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)]
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)
+  (latexEnv := "lemma")
+  (discussion := 1071)]
 theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
     (nhds (n - I * ν / (2 * π))).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
+
+@[blueprint
+  "Phi-circ-poles-simple"
+  (title := "Phi-circ poles simple")
+  (statement := /--
+  The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are all simple.
+  -/)
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)
+  (latexEnv := "lemma")
+  (discussion := 1070)]
+theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
+    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by sorry
 
 @[blueprint
   "B-def"
@@ -477,7 +483,8 @@ noncomputable def B (ε : ℝ) (s : ℂ) : ℂ := if s = 0 then 1 else s * (coth
   (statement := /--
   $B^\pm$ is continuous at $0$.
   -/)
-  (proof := /-- L'H\^opital's rule can be applied to show the continuity at $0$. -/)]
+  (proof := /-- L'H\^opital's rule can be applied to show the continuity at $0$. -/)
+  (latexEnv := "lemma")]
 theorem B.continuous_zero (ε : ℝ) : ContinuousAt (B ε) 0 := by
   have h_lim : Filter.Tendsto (fun s : ℂ => s * (Complex.cosh (s / 2)) / (2 * Complex.sinh (s / 2)) + ε * s / 2) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
     have h_lim : Filter.Tendsto (fun s : ℂ => s / (2 * Complex.sinh (s / 2))) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
@@ -592,7 +599,9 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z} \backslash \{0\}$.
   -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)]
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)
+  (latexEnv := "lemma")
+  (discussion := 1072)]
 theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
 
@@ -602,7 +611,9 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (statement := /--
   The residue of $$\Phi^{\pm,\ast}_\nu(z)$$ at $n - i \nu/2\pi$ is $-in/2\pi$.
   -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)]
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)
+  (latexEnv := "lemma")
+  (discussion := 1073)]
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
     (nhds (n - I * ν / (2 * π))).Tendsto
       (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
@@ -613,7 +624,8 @@ theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are all simple.
   -/)
-  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)]
+  (proof := /-- This follows from the definition of $\Phi^{\pm,\ast}_\nu$ and the properties of the $B^\pm$ function. -/)
+  (latexEnv := "lemma")]
 theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_star ν ε) z = -1 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by
   constructor
@@ -650,7 +662,9 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (statement := /--
   $\Phi^{\sigma, \circ}_\nu(z) \pm \Phi^{\sigma, \ast}_\nu(z)$ is regular at $\pm 1 - i ν / 2 \pi$.
   -/)
-  (proof := /-- The residues cancel out. -/)]
+  (proof := /-- The residues cancel out. -/)
+  (latexEnv := "lemma")
+  (discussion := 1074)]
 theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hε : |ε| = 1) :
     meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ≥ 0 := by sorry
 
@@ -844,7 +858,8 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
 \]
 hence, by Definition \ref{phi-pm-def}, $\varphi^{\pm}_{\nu}(t) = 0$. Thus, $\varphi^{\pm}_{\nu}$ is continuous at $-1$ and at $1$.
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1075)]
 theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε) := by
   sorry
 
@@ -1136,10 +1151,218 @@ For all $t \neq 0$, by the identities $2\cosh\frac{t}{2}\sinh\frac{t}{2} = \sinh
 Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply this inequality with $u = t$ and $u = -t$ and obtain the conclusion for $t \neq 0$. Since $B^{\pm}(t)$ is continuous at $t = 0$, we are done.
 \end{proof} -/
 
+@[blueprint
+  "B-plus-mono"
+  (title := "B-plus is increasing")
+  (statement := /--
+  For real $t$, $B^+(t)$ is increasing.
+  -/)
+  (proof := /-- For all $t \neq 0$, by the identities $2\cosh\frac{t}{2}\sinh\frac{t}{2} = \sinh t$ and $2\sinh^2\frac{t}{2} = \cosh t - 1$,
+\[
+\frac{dB^{\pm}(t)}{dt} = \frac{\cosh\frac{t}{2}\sinh\frac{t}{2} - \frac{t}{2} \pm \sinh^2\frac{t}{2}}{2\sinh^2\frac{t}{2}} = \frac{\pm(e^{\pm t} - (1 \pm t))}{4\sinh^2\frac{t}{2}}.
+\]
+Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply this inequality with $u = t$ and $u = -t$ and obtain the conclusion for $t \neq 0$. Since $B^{\pm}(t)$ is continuous at $t = 0$, we are done.
+. -/)
+  (latexEnv := "lemma")]
+theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by sorry
 
+theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := by sorry
 
+@[blueprint
+  "B-minus-mono"
+  (title := "B-minus is decreasing")
+  (statement := /--
+  For real $t$, $B^-(t)$ is decreasing.
+  -/)
+  (proof := /-- Similar to previous.
+. -/)
+  (latexEnv := "lemma")]
+theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by sorry
 
+theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := by sorry
 
+noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
+
+@[blueprint
+  "varphi-fourier-ident"
+  (title := "Fourier transform of varphi")
+  (statement := /--
+\[
+\widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1}^{1} \varphi^{\pm}_{\nu}(t)\, e(-tx)\, dt = \int_{-1}^{0} \bigl(\Phi^{\pm,\circ}_{\nu}(t) - \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt + \int_0^1 \bigl(\Phi^{\pm,\circ}_{\nu}(t) + \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt.
+\]
+  -/)
+  (proof := /-- By the definition of the Fourier transform, and the fact that $\varphi^{\pm}_{\nu}$ is supported on $[-1,1]$. -/)
+  (latexEnv := "sublemma")]
+theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
+    𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
+    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
+    sorry
+
+@[blueprint
+  "shift-upwards"
+  (title := "Contour shifting upwards")
+  (statement := /-- If $x < 0$, then
+\begin{equation}\label{eq:1.5}
+\widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1+i\infty}^{-1} \bigl(\Phi^{\pm,\circ}_{\nu}(z) - \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz + \int_{1}^{1+i\infty} \bigl(\Phi^{\pm,\circ}_{\nu}(z) + \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz + 2\int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
+\end{equation}
+  -/)
+  (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
+  (latexEnv := "sublemma")]
+theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * ↑t) * x) - I *
+    ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * (E (-(1 + I * ↑t) * x))) +
+    2 * ∫ t in Set.Icc 0 T, (Phi_star ν ε (I * t) * E (-(I * ↑t) * x)))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+    sorry
+
+@[blueprint
+  "B-affine-periodic"
+  (title := "B affine periodic")
+  (statement := /-- For any integer $m$,
+$$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\circ}_{\nu}(z). $$
+    -/)
+  (proof := /-- This follows from the $\pi i$-periodicity of coth. -/)
+  (latexEnv := "sublemma")]
+theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
+    B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
+    sorry
+
+@[blueprint
+  "phi_star-affine-periodic"
+  (title := "Phi star affine periodic")
+  (statement := /-- For any integer $m$,
+$$ \Phi^{\pm,\star}_{\nu}(z-m) = \Phi^{\pm,\star}_{\nu}(z) + m\, \Phi^{\pm,\circ}_{\nu}(z). $$
+    -/)
+  (proof := /-- Follows from previous lemma. -/)
+  (latexEnv := "sublemma")]
+theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
+    Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
+    sorry
+
+@[blueprint
+  "shift-upwards-simplified"
+  (title := "Simplified formula for upward contour shift")
+  (statement := /-- If $x < 0$, then $\widehat{\varphi^{\pm}_{\nu}}(x)$ equals
+$$
+\frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu + y) - B^{\pm}(\nu))\, e^{xy}\, dy.
+$$
+  -/)
+  (proof := /-- We have $\Phi^{\pm,\circ}_{\nu}(z) - \Phi^{\pm,\star}_{\nu}(z) = -\Phi^{\pm,\star}_{\nu}(z+1)$ and $\Phi^{\pm,\circ}_{\nu}(z) + \Phi^{\pm,\star}_{\nu}(z) = \Phi^{\pm,\star}_{\nu}(z-1)$, and so the formula in the previous lemma simplifies to
+\begin{align*}
+&2\int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz - \int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-(z-1)x)\, dz - \int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-(z+1)x)\, dz\\
+&= (2 - e(x) - e(-x)) \int_0^{\infty} \Phi^{\pm,\star}_{\nu}\!\left(\frac{iy}{2\pi}\right) e\!\left(\frac{xy}{2\pi}\right)\, dy = \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu + y) - B^{\pm}(\nu))\, e^{xy}\, dy.
+\end{align*}
+  -/)
+  (latexEnv := "sublemma")]
+theorem shift_upwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+    sorry
+
+@[blueprint
+  "shift-downwards"
+  (title := "Contour shifting downwards")
+  (statement := /-- If $x > 0$, then
+\begin{align}\label{eq:1.6}
+\widehat{\varphi^{\pm}_{\nu}}(x) &= \left(\int_{-1}^{-1-i\infty} + \int_{-\frac{1}{2}-i\infty}^{-\frac{1}{2}}\right) \bigl(\Phi^{\pm,\circ}_{\nu}(z) - \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz \notag\\
+&\quad + \int_{-\frac{1}{2}}^{\frac{1}{2}} \Phi^{\pm,\circ}_{\nu}(z)\, e(-zx)\, dz - \int_{-\frac{1}{2}}^{0} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz + \int_0^{\frac{1}{2}} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz \notag\\
+&\quad + \left(\int_{\frac{1}{2}}^{\frac{1}{2}-i\infty} + \int_{1-i\infty}^{1}\right) \bigl(\Phi^{\pm,\circ}_{\nu}(z) + \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz.
+\end{align}
+  -/)
+  (proof := /-- We would like to integrate along $\Re z = 0$, but $\Phi^{\pm,\circ}_{\nu}(z)$ has a pole at $z = -\frac{i\nu}{2\pi}$; when dealing with this issue, we have to take care not to introduce poles on the lines $\Re z = -1$ and $\Re z = 1$ by separating $\Phi^{\pm,\circ}_{\nu}$ and $\Phi^{\pm,\star}_{\nu}$ prematurely. As $\Im z \to -\infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly. -/)
+  (latexEnv := "sublemma")]
+theorem shift_downwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 -  I * t)) * E (-(-1 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t) - Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) - ∫ t in Set.Icc (-1/2:ℝ) 0, (Phi_star ν ε t * E (-t * x)) + ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t) - Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t)) * E (- (1 - I * t) * x))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+    sorry
+
+@[blueprint
+  "first-contour-limit"
+  (title := "First contour limit")
+  (statement := /--
+\[
+\int_{-\frac{1}{2}-i\infty}^{-\frac{1}{2}} \Phi^{\pm,\circ}_{\nu}(z)\, e(-zx)\, dz + \int_{-\frac{1}{2}}^{\frac{1}{2}} \Phi^{\pm,\circ}_{\nu}(z)\, e(-zx)\, dz + \int_{\frac{1}{2}}^{\frac{1}{2}-i\infty} \Phi^{\pm,\circ}_{\nu}(z)\, e(-zx)\, dz = e\!\left(-\!\left(-\frac{i\nu}{2\pi}\right)x\right) = e^{-\nu x}
+\]
+  -/)
+  (proof := /-- since the pole is at $-\frac{i\nu}{2\pi}$, the residue of $\Phi^{\pm,\circ}_{\nu}(z)$ at the pole is $\frac{i}{2\pi}$, and our path goes clockwise.
+. -/)
+  (latexEnv := "sublemma")]
+theorem first_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds (Complex.exp (-ν * x))) := by
+    sorry
+
+@[blueprint
+  "second-contour-limit"
+  (title := "Second contour limit")
+  (statement := /--
+\[
+-\int_{-\frac{1}{2}-i\infty}^{-\frac{1}{2}} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz - \int_{-\frac{1}{2}}^{0} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz = \int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
+\]
+  -/)
+  (proof := /-- Again by Cauchy's theorem and decay as $\Im z \to -\infty$ -/)
+  (latexEnv := "sublemma")]
+theorem second_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)) - (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)))) (nhds 0) := by
+    sorry
+
+@[blueprint
+  "third-contour-limit"
+  (title := "Third contour limit")
+  (statement := /--
+\[
+\int_0^{\frac{1}{2}} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz + \int_{\frac{1}{2}}^{\frac{1}{2}-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz = -\int_{-i\infty}^{0} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
+\]
+  -/)
+  (proof := /-- Similar to previous. -/)
+  (latexEnv := "sublemma")]
+theorem third_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds 0) := by
+    sorry
+
+@[blueprint
+  "shift-downwards-simplified"
+  (title := "Simplified formula for downward contour shift")
+  (statement := /--
+If $x > 0$, then $\widehat{\varphi^{\pm}_{\nu}}(x) - e^{-\nu x}$ equals
+$$ - \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu) - B^{\pm}(\nu - y))\, e^{-xy}\, dy. $$
+  -/)
+  (proof := /-- \begin{align*}
+&2\int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz - \int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-(z-1)x)\, dz - \int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-(z+1)x)\, dz\\
+&= (2 - e(x) - e(-x)) \int_0^{\infty} \Phi^{\pm,\star}_{\nu}\!\left(-\frac{iy}{2\pi}\right) e\!\left(-\frac{yx}{2\pi i}\right) d\!\left(-\frac{iy}{2\pi}\right)\\
+&= -\frac{2i}{\pi}\sin^2 \pi x \int_0^{\infty} \Phi^{\pm,\star}_{\nu}\!\left(-\frac{iy}{2\pi}\right) e^{-xy}\, dy = -\frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu - y) - B^{\pm}(\nu))\, e^{-xy}\, dy.
+\end{align*}
+ -/)
+  (latexEnv := "sublemma")]
+theorem shift_downwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
+    sorry
+
+@[blueprint
+  "fourier-formula-neg"
+  (title := "Fourier formula for negative x")
+  (statement := /--
+Let $\nu > 0$, $x < 0$. Then
+$$
+\widehat{\varphi^{\pm}_{\nu}}(x) - I_{\nu}(x) = \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu + y) - B^{\pm}(\nu))\, e^{xy}\, dy.
+$$
+  -/)
+  (proof := /-- This follows from the previous lemma. -/)
+  (latexEnv := "lemma")]
+theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
+    sorry
+
+@[blueprint
+  "fourier-formula-pos"
+  (title := "Fourier formula for positive x")
+  (statement := /--
+Let $\nu > 0$, $x > 0$. Then
+$$
+\widehat{\varphi^{\pm}_{\nu}}(x) - e^{-\nu x} = - \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu) - B^{\pm}(\nu - y))\, e^{-xy}\, dy.
+$$
+  -/)
+  (proof := /-- This follows from the previous lemma. -/)
+  (latexEnv := "lemma")]
+theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
+    sorry
 
 
 
