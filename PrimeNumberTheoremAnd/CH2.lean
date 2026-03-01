@@ -647,7 +647,7 @@ theorem first_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 
   (title := "Second contour limit")
   (statement := /--
 \[
--\int_{-\frac{1}{2}-i\infty}^{-\frac{1}{2}} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz - \int_{-\frac{1}{2}}^{0} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz &= \int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
+-\int_{-\frac{1}{2}-i\infty}^{-\frac{1}{2}} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz - \int_{-\frac{1}{2}}^{0} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz = \int_0^{-i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
 \]
   -/)
   (proof := /-- Again by Cauchy's theorem and decay as $\Im z \to -\infty$ -/)
