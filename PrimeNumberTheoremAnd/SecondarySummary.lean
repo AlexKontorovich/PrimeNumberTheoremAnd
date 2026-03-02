@@ -59,6 +59,42 @@ for all $\log x \geq X$.
 theorem theorem_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
   Eψ.classicalBound A B C 5.573412 (exp X) ∧ Eψ.numericalBound (exp X) (fun _ ↦ ε₀) := by sorry
 
+lemma admissible_bound_weaken {A B C x : ℝ}
+    (hB : 3 / 2 ≤ B) (hB2 : B ≤ 2)
+    (_hC : 0 ≤ C) (hCR : C ^ 2 * 5.5666305 ≤ 4 * 5.573412)
+    (hA : 122 ≤ A)
+    (hlogx : 5.5666305 ≤ log x) :
+    admissible_bound 121.0961 (3 / 2) 2 5.5666305 x ≤ admissible_bound A B C 5.573412 x := by
+  refine mul_le_mul ?_ ?_ ?_ ?_ <;> try positivity
+  · have h_exp : (log x / 5.5666305) ^ (3 / 2 : ℝ) ≤
+        (log x / 5.573412) ^ B * ((5.573412 / 5.5666305) ^ B) := by
+      rw [← Real.mul_rpow (div_nonneg (by linarith) (by norm_num)) (by norm_num)]
+      ring_nf at *; norm_num at *
+      exact Real.rpow_le_rpow_of_exponent_le (by linarith) (by linarith)
+    have h_div : 121.0961 * ((5.573412 / 5.5666305) ^ B) ≤ A :=
+      le_trans (mul_le_mul_of_nonneg_left
+        (Real.rpow_le_rpow_of_exponent_le (by norm_num) hB2) (by norm_num))
+        (by norm_num; linarith)
+    nlinarith [Real.rpow_pos_of_pos
+      (show 0 < log x / 5.573412 from div_pos (lt_of_lt_of_le (by norm_num) hlogx) (by norm_num)) B]
+  · norm_num at *
+    rw [← Real.sqrt_eq_rpow, ← Real.sqrt_eq_rpow] at *
+    nlinarith [Real.sqrt_nonneg (log x / (11133261 / 2000000)),
+      Real.mul_self_sqrt (by linarith : 0 ≤ log x / (11133261 / 2000000)),
+      Real.sqrt_nonneg (log x / (1393353 / 250000)),
+      Real.mul_self_sqrt (by linarith : 0 ≤ log x / (1393353 / 250000))]
+
+lemma table_1_bounds (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
+    1000 ≤ X ∧ 3 / 2 ≤ B ∧ B ≤ 2 ∧ 0 ≤ C ∧ C ^ 2 * 5.5666305 ≤ 4 * 5.573412 ∧
+    122 ≤ A + 0.1 := by
+  simp only [Table_1, List.mem_cons, List.mem_nil_iff, or_false, Prod.mk.injEq] at h
+  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ <;>
+  constructor <;> norm_num
+
 @[blueprint "pt_cor_1"
   (title := "PT Corollary 1")
   (statement := /--
@@ -71,7 +107,16 @@ where $A_1 = A + 0.1$.
   (proof := /-- This follows trivially (and wastefully) from the work of Dusart  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}.  It should also follow from the results of \cite{FKS2}. -/)
   (latexEnv := "corollary")]
 theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
-  Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by sorry
+  Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by
+  obtain ⟨hX, hB, hB2, hC, hCR, hA⟩ := table_1_bounds X σ A B C ε₀ h
+  intro x hx
+  have hx2 : x ≥ 2 := by
+    have : (2 : ℝ) < exp 1 := lt_trans (by norm_num : (2:ℝ) < 2.7182818283) exp_one_gt_d9
+    linarith [exp_le_exp.mpr (show (1:ℝ) ≤ X by linarith)]
+  have hlogx : 5.5666305 ≤ log x := by
+    have : X ≤ log x := le_trans (le_of_eq (log_exp X).symm) (log_le_log (exp_pos X) hx)
+    linarith
+  exact le_trans (FKS2.corollary_14 x hx2) (admissible_bound_weaken hB hB2 hC hCR hA hlogx)
 
 @[blueprint "thm:pt_2"
   (title := "PT Corollary 2")
@@ -202,16 +247,6 @@ theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041)
     HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
 @[blueprint
-  "thm:ramare_saouter2003-2"
-  (title := "Ramaré-Saouter 2003 (2)")
-  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by sorry
-
-@[blueprint
   "thm:gourdon-demichel2004"
   (title := "Gourdon-Demichel 2004")
   (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
@@ -230,7 +265,9 @@ theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   -/)
   (latexEnv := "theorem")]
 theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by sorry
+    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
+  obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
+  exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
 
 @[blueprint
   "thm:prime_gaps_2024"
@@ -361,5 +398,24 @@ noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ 
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
     HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
+
+@[blueprint
+  "thm:ramare_saouter2003-2"
+  (title := "Ramaré-Saouter 2003 (2)")
+  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
+    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by
+  have hrow : (log (exp 53), (48:ℝ), (4.088e-9:ℝ), (18290358817:ℝ), (0.93:ℝ),
+      (0.4301:ℝ), (1524171138:ℝ)) ∈ KadiriLumley.Table_2 := by
+    rw [log_exp]; simp only [KadiriLumley.Table_2, List.mem_cons, Prod.mk.injEq,
+      List.mem_nil_iff, or_false]; norm_num
+  obtain ⟨p, hp, hlo, hhi⟩ := KadiriLumley.has_prime_in_interval (exp 53) x 48 4.088e-9
+    18290358817 0.93 0.4301 1524171138 hx.le hrow
+  exact ⟨p, hp, by nlinarith [exp_pos (53 : ℝ)],
+    by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
+      x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
 
 end KadiriLumley
