@@ -38,9 +38,32 @@ $$\epsilon_{M_a} (x) = 72 + 2 M_a + \frac{2M_a+132}{\log x} + \frac{4M_a+288}{\l
   (proof := /-- Direct calculation -/)
   (latexEnv := "sublemma")
   (discussion := 983)]
-theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) (hM_a : M_a > 0) :
-    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) + ε M_a x / log x ^ 7) := by
-    sorry
+theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
+    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε M_a x / log x ^ 7) := by
+  intro x hx
+  have sq_algebra (M l : ℝ) : ((Nat.factorial 0 : ℝ) / l ^ 1 + (Nat.factorial 1 : ℝ) / l ^ 2 + (Nat.factorial 2 : ℝ) / l ^ 3 + (Nat.factorial 3 : ℝ) / l ^ 4 + (Nat.factorial 4 : ℝ) / l ^ 5 + M / l ^ 6) ^ 2
+    = 1 / l ^ 2 + 2 / l ^ 3 + 5 / l ^ 4 + 16 / l ^ 5 + 64 / l ^ 6 + (72 + 2 * M + (2 * M + 132) / l + (4 * M + 288) / l ^ 2 + (12 * M + 576) / l ^ 3 + (48 * M) / l ^ 4 + M ^ 2 / l ^ 5) / l ^ 7 := by
+    norm_num
+    ring
+  have h_nonneg_pi : 0 ≤ pi x := by
+    unfold _root_.pi
+    exact_mod_cast Nat.zero_le (⌊x⌋₊.primeCounting)
+  have h_pos_rhs : 0 < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    linarith [h_nonneg_pi, hupper x hx]
+  have h_sum_eq : ∑ k ∈ Finset.range 5, (k.factorial / Real.log x ^ (k + 1)) = (Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 := by
+    simp [Finset.sum_range_succ, Nat.factorial]
+  have h_main1 : ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 = 1 / Real.log x ^ 2 + 2 / Real.log x ^ 3 + 5 / Real.log x ^ 4 + 16 / Real.log x ^ 5 + 64 / Real.log x ^ 6 + ε M_a x / Real.log x ^ 7 := by
+    simpa [ε] using sq_algebra M_a (Real.log x)
+  have h_eq : x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    rw [h_sum_eq]; ring
+  have h1'' : pi x < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using hupper x hx
+  have h_pos1 : 0 < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using h_pos_rhs
+  have h2 : pi x ^ 2 < (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 :=
+    sq_lt_sq.mpr (by simpa only [abs_of_nonneg h_nonneg_pi, abs_of_pos h_pos1] using h1'')
+  have h4 : (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 = x ^ 2 * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 := by ring
+  simpa only [h4, h_main1] using h2
 
 @[blueprint
   "ramanujan-criterion-2"
@@ -333,8 +356,9 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
-  rw [intervalIntegral.integral_sub] <;> norm_num; ring
-  · exact ContinuousOn.intervalIntegrable (by
+  rw [intervalIntegral.integral_sub] <;> norm_num
+  · ring_nf
+    exact ContinuousOn.intervalIntegrable (by
       exact continuousOn_of_forall_continuousAt fun x hx =>
         ContinuousAt.pow (ContinuousAt.inv₀
           (continuousAt_log (by linarith [Set.mem_Icc.mp (by simpa [hab] using hx)]))
@@ -576,12 +600,12 @@ noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   "pt_eq_18"
   (title := "Equation (18) of Platt-Trudgian")
   (statement := /-- For $x \geq 2$ we have
-$$E_\theta(x) \leq a(x).$$-/)
+$$E_\theta(x) (\log x)^5 \leq a(x).$$-/)
   (proof := /-- This follows from the previous five sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 994)]
 theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
-    Eθ x ≤ a x := by
+    Eθ x * ( log x)^5 ≤ a x := by
     sorry
 
 noncomputable def xₐ : ℝ := exp 3914
@@ -680,7 +704,19 @@ theorem epsilon_bound : εMₐ - εmₐ < 0 := by
   (latexEnv := "theorem")
   (discussion := 999)]
 theorem ramanujan_final : ∀ x > exp 1 * xₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
-    sorry
+  intro x hx
+  apply criterion mₐ Mₐ xₐ pi_lower_specific pi_upper_specific x
+  simp only [gt_iff_lt] at hx ⊢
+  exact max_lt hx (calc
+    x' mₐ Mₐ xₐ < 1 := by
+      change rexp (ε Mₐ xₐ - ε' mₐ xₐ) < 1
+      rw [exp_lt_one_iff]
+      convert epsilon_bound using 1
+    _ ≤ rexp 1 * xₐ := by
+      have : (1 : ℝ) ≤ rexp 1 := one_le_exp (by norm_num : (0:ℝ) ≤ 1)
+      have : (1 : ℝ) ≤ xₐ := one_le_exp (show (0:ℝ) ≤ 3914 by norm_num)
+      nlinarith
+    _ < x := hx)
 
 
 

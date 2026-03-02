@@ -2489,7 +2489,7 @@ lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
       intro n
       ring
     _ = (1 / w - 1 / z) + (∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) - ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
-      rw [Summable.tsum_sub (Summable_cotTerm hw) (Summable_cotTerm hz)]
+      rw [Summable.tsum_sub (summable_cotTerm hw) (summable_cotTerm hz)]
     _ = (1 / w + ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n))) - (1 / z + ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n))) := by
       have hw : ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) = ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n)) := by
         symm

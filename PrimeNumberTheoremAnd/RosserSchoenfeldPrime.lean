@@ -497,10 +497,26 @@ theorem pre_413 {f : ℝ → ℝ} {x : ℝ} (hf : ContinuousOn f (Set.Icc 2 (x +
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 650)]
-theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn ℝ f (Set.Icc 2 x)) :
+theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Icc 2 x, DifferentiableAt ℝ f t)
+    (hd : IntervalIntegrable (fun t => deriv (fun s ↦ f s / log s) t) volume 2 x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
       ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
-  sorry
+  rw [sum_filter, Iic_eq_Icc, bot_eq_zero]
+  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n ↦ log n)
+  trans ∑ n ∈ Icc 0 ⌊x⌋₊, (f n / Real.log n) * a n
+  · refine sum_congr rfl fun n hn ↦ ?_
+    split_ifs with h
+    · have : Real.log n ≠ 0 := log_ne_zero_of_pos_of_ne_one (mod_cast h.pos) (mod_cast h.ne_one)
+      simp [a, h, field]
+    · simp [a, h]
+  rw [sum_mul_eq_sub_integral_mul₁ a (f := fun n ↦ (f n / log n)) (by simp [a]) (by simp [a]) _ _ (intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mp hd),
+    ← intervalIntegral.integral_of_le hx, theta_eq_sum_Icc]
+  · simp [a, Set.indicator_apply, sum_filter, theta_eq_sum_Icc]
+    field_simp
+    congr; ext; ring
+  · intro t ht
+    have : log t ≠ 0 := by simp; grind
+    fun_prop (disch := grind)
 
 @[blueprint
   "rs-414"
@@ -511,7 +527,7 @@ theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
   (proof := /-- Follows from Sublemma \ref{rs-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 600)]
-theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn ℝ f (Set.Icc 2 x))
+theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Icc 2 x, DifferentiableAt ℝ f t)
     (hd : IntervalIntegrable (fun t => deriv (fun s ↦ f s / log s) t) volume 2 x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
     (∫ y in 2..x, f y / log y) + 2 * f 2 / Real.log 2 +
@@ -530,14 +546,14 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     have : Set.Icc 2 x ∈ 𝓝 y := mem_nhds_iff.2
       ⟨Set.Ioo 2 x, Set.Ioo_subset_Icc_self, ⟨isOpen_Ioo, hy⟩⟩
     refine (DifferentiableAt.derivWithin ?_ (uniqueDiffWithinAt_of_mem_nhds (hcc ▸ this))).symm
-    refine ((hf y (Set.Ioo_subset_Icc_self hy)).differentiableAt this).fun_div
+    refine (hf y (Set.Ioo_subset_Icc_self hy)).fun_div
       (differentiableAt_log (by simp_all; linarith)) ?_
     linarith [Real.log_pos (by simp_all; linarith)]
   calc
   _ = f x * (θ x - x) / log x + x * f x / log x -
     (∫ y in 2..x, (θ y - y) * deriv (fun t ↦ f t / log t) y) -
     ∫ y in 2..x, y * deriv (fun t ↦ f t / log t) y := by
-    rw [eq_413 hx hf, ← tsub_add_eq_tsub_tsub, ← intervalIntegral.integral_add _
+    rw [eq_413 hx hf hd, ← tsub_add_eq_tsub_tsub, ← intervalIntegral.integral_add _
       (hd.continuousOn_mul (by fun_prop))]
     · ring_nf
     · refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hx).2 ?_
@@ -557,8 +573,8 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     rw [← sub_add_cancel (x * f x / log x) (2 * f 2 / log (2 : ℝ)),
       intervalIntegral.integral_deriv_mul_eq_sub_of_hasDerivWithinAt, mul_div, mul_div]
     · intro y _; exact (hasDerivAt_id' y).hasDerivWithinAt
-    · refine fun y hy => (hcc ▸ (hf y (hcc ▸ hy)).fun_div ?_ ?_).hasDerivWithinAt
-      · exact (differentiableAt_log (by simp_all; linarith)).differentiableWithinAt
+    · refine fun y hy ↦ (hf y (hcc ▸ hy)|>.fun_div ?_ ?_).differentiableWithinAt.hasDerivWithinAt
+      · exact differentiableAt_log (by simp_all; linarith)
       · linarith [Real.log_pos (by simp_all; linarith)]
     · exact intervalIntegral.intervalIntegrable_const
     · exact hd.congr_ae (hoc ▸ hae)
@@ -574,8 +590,9 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     have hi := intervalIntegral.integral_congr_ae_restrict (hoc ▸ this)
     simp only [one_mul, sub_left_inj, add_right_inj, add_left_inj, hi]
     refine intervalIntegral.integral_add (ContinuousOn.intervalIntegrable_of_Icc hx ?_) ?_
-    · exact ContinuousOn.div₀ hf.continuousOn (continuousOn_log.mono (by grind))
+    · refine ContinuousOn.div₀ ?_ (continuousOn_log.mono (by grind))
         (fun x hx => by linarith [Real.log_pos (by simp_all; linarith)])
+      exact fun y hy ↦ (hf y hy).continuousAt.continuousWithinAt
     · exact (hd.continuousOn_mul (by fun_prop)).congr_ae (hoc ▸ this)
   _ = _ := by ring
 
@@ -693,12 +710,12 @@ theorem integrableOn_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.I
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
   (latexEnv := "sublemma")
   (discussion := 601)]
-theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
+theorem eq_415 {f : ℝ → ℝ} (hf : ∀ t ∈ Set.Ici 2, DifferentiableAt ℝ f t) {x : ℝ} (hx : 2 ≤ x)
     (hft : IntegrableOn (fun y ↦ (θ y - y) * deriv (fun t ↦ f t / log t) y) (Set.Ioi 2) volume)
     (hfi : IntervalIntegrable (fun t ↦ deriv (fun s ↦ f s / Real.log s) t) volume 2 x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = (∫ y in 2..x, f y / log y) + L f +
     f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by
-  rw [eq_414 hx (hf.mono Set.Icc_subset_Ici_self) hfi, L, ← intervalIntegral.interval_add_Ioi hft
+  rw [eq_414 hx (fun t ht ↦ hf t (by grind)) hfi, L, ← intervalIntegral.interval_add_Ioi hft
     (hft.mono_set (Set.Ioi_subset_Ioi hx))]
   ring
 
@@ -727,9 +744,21 @@ theorem eq_417 {x : ℝ} (hx : 2 ≤ x) :
 theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) = θ x / (x * log x) +
     ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
-  have : DifferentiableOn ℝ (fun y : ℝ ↦ 1 / y) (Set.Icc 2 x) :=
-    fun y hy => by simpa [one_div] using differentiableWithinAt_inv (by grind) (Set.Icc 2 x)
-  rw [eq_413 (f := fun x => 1 / x) hx this, mul_comm_div, one_mul, div_div, sub_eq_add_neg,
+  have : ∀ t ∈ Set.Icc 2 x, DifferentiableAt ℝ (fun y : ℝ ↦ 1 / y) t :=
+    fun y hy => (by fun_prop (disch := grind))
+  have integrable : IntervalIntegrable (fun t ↦ deriv (fun y ↦ 1 / y / Real.log y) t) volume 2 x := by
+    apply IntervalIntegrable.congr (f := (fun y ↦ -(1 + Real.log y) / (y ^ 2 * Real.log y ^ 2)))
+    · intro y hy
+      have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
+        (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
+      simp only [div_div, fun t : ℝ => one_div (t * log t), this,
+        deriv_mul_log (by grind : y ≠ 0)]
+      ring
+    · refine  ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      rw [Set.uIcc_of_le hx] at ht
+      apply ContinuousAt.div (by fun_prop (disch := grind)) (by fun_prop (disch := grind))
+      simp; grind
+  rw [eq_413 (f := fun x => 1 / x) hx this integrable, mul_comm_div, one_mul, div_div, sub_eq_add_neg,
     ← intervalIntegral.integral_neg, add_left_cancel_iff]
   refine intervalIntegral.integral_congr fun y hy => ?_
   have hy := Set.uIcc_of_le hx ▸ hy
@@ -905,7 +934,7 @@ theorem integrableOn_deriv_inv : IntegrableOn (fun y ↦ - ((θ y - y) / y ^ 2))
 theorem eq_420 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
     log x + mertensConstant + (θ x - x) / x - ∫ y in Set.Ioi x, (θ y - y) / (y ^ 2) := by
-  have diff_log_inv_id : DifferentiableOn ℝ (fun x => Real.log x / x) (Set.Ici 2) := by
+  have diff_log_inv_id : ∀ t ∈ Set.Ici 2, DifferentiableAt ℝ (fun x => Real.log x / x) t := by
     fun_prop (disch := grind)
   have ioiIntegral_eq : ∫ (y : ℝ) in Set.Ioi x, (θ y - y) * deriv (fun s ↦
     Real.log s / s / Real.log s) y = ∫ (y : ℝ) in Set.Ioi x, - ((θ y - y) / y ^ 2) := by

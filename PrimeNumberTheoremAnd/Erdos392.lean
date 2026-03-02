@@ -1802,26 +1802,8 @@ lemma Params.primeCounting_ge_log (n : ℕ) (hn : n ≥ 2) : (n.primeCounting : 
         norm_num at *; linarith
       · rw [show primeCounting 7 = 4 by rfl]; norm_num
         linarith [LogTables.log_7_lt]
-    · rcases hk with ⟨hk₁, hk₂⟩; interval_cases n <;> norm_num at *
-      all_goals rw [log_le_iff_le_exp (by norm_num)]; norm_num [primeCounting]
-      all_goals norm_num [primeCounting', count_eq_card_filter_range]
-      all_goals rw [show Finset.filter Nat.Prime (range _) = Finset.filter Nat.Prime (range _) by rfl]
-      all_goals norm_num [Finset.card]
-      all_goals rw [← log_le_log_iff (by positivity) (by positivity), log_exp]
-      all_goals rw [log_le_iff_le_exp (by norm_num)]
-      all_goals norm_num [exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-      all_goals refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _))
-      all_goals norm_num [Finset.sum_range_succ, factorial]
-    · have : n < 32 := by linarith
-      interval_cases n <;> norm_num [primeCounting] at *
-      all_goals
-        rw [Real.log_le_iff_le_exp (by norm_num)]
-        simp only [primeCounting', count_eq_card_filter_range,
-            Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-        refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 10)
-            (fun _ _ ↦ by positivity) (Real.summable_pow_div_factorial _))
-        simp only [Finset.sum_range_succ, factorial, card_filter]
-        norm_num
+    · grw [h_log_le, log_two_lt_d9, ← h_pi_ge_k]; norm_num
+    · grw [h_log_le, log_two_lt_d9, ← h_pi_ge_k]; norm_num
 
 /-- `π(n) * L * (L - logₚ L) ≥ log n * (1 / log 2 - 1)`. -/
 lemma Params.balance_inequality_aux (P : Params) (p : ℕ) (hp_prime : p.Prime) :

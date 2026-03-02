@@ -211,8 +211,16 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
   (proof := /--
   Since $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$, and we know that the L-series of $\zeta$ converges for $\Re(s) > 1$, it follows that the L-series of $d_k$ also converges for $\Re(s) > 1$. This is because the convolution of functions with convergent L-series will also have a convergent L-series in the same region. Therefore, we can conclude that $L(d_k, s)$ is summable for $\Re(s) > 1$.
   -/)]
-theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable (↗(d k)) s := by
-  sorry
+theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
+      LSeriesSummable (↗(d k : ArithmeticFunction ℂ)) s := by
+  induction k with
+  | zero =>
+    simp only [d_zero, natCoe_one, one_eq_delta]
+    exact (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable
+  | succ k ih =>
+    rw [(LSeriesSummable_congr s (fun {n} _ => show (d (k + 1) : ArithmeticFunction ℂ) n =
+      ((d k : ArithmeticFunction ℂ) * ζ) n by rw [d_succ, natCoe_mul]))]
+    exact LSeriesSummable_mul ih (LSeriesSummable_zeta_iff.mpr hs)
 
 /-- The L-series of `d k` equals `ζ(s)^k` for `Re(s) > 1`. -/
 @[blueprint
@@ -223,30 +231,19 @@ theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable
   -/)]
 theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(d k)) s = riemannZeta s ^ k := by
-  have natCoe_d_succ (j : ℕ) :
-    (d (j + 1) : ArithmeticFunction ℂ) = (d j : ArithmeticFunction ℂ) * ζ := by
-    rw [d_succ, natCoe_mul]
-  suffices ∀ j, LSeries (↗(d j : ArithmeticFunction ℂ)) s = riemannZeta s ^ j ∧
-      LSeriesSummable (↗(d j : ArithmeticFunction ℂ)) s from (this k).1
-  intro j
-  induction j with
+  change LSeries (↗(d k : ArithmeticFunction ℂ)) s = riemannZeta s ^ k
+  induction k with
   | zero =>
     simp only [d_zero, natCoe_one, pow_zero, one_eq_delta]
-    exact ⟨congr_fun LSeries_delta s,
-      (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable⟩
+    exact congr_fun LSeries_delta s
   | succ j ih =>
-    obtain ⟨ih_eq, ih_sum⟩ := ih
     have hζ : LSeriesSummable (↗(ζ : ArithmeticFunction ℂ)) s :=
       LSeriesSummable_zeta_iff.mpr hs
-    constructor
-    · rw [pow_succ, LSeries_congr (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
-        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]) s,
-        LSeries_mul' ih_sum hζ, ih_eq]
-      congr 1
-      exact LSeries_zeta_eq_riemannZeta hs
-    · rw [(LSeriesSummable_congr s (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
-        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]))]
-      exact LSeriesSummable_mul ih_sum hζ
+    rw [pow_succ, LSeries_congr (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
+        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [d_succ, natCoe_mul]) s,
+        LSeries_mul' (LSeries_d_summable j hs) hζ, ih]
+    congr 1
+    exact LSeries_zeta_eq_riemannZeta hs
 
 
 /-- `d k` is multiplicative for all `k`. -/

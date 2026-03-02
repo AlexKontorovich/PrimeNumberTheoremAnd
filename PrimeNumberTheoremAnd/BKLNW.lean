@@ -292,7 +292,7 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
           apply Finset.sum_congr rfl
           intro k _
           rw [mul_assoc, ← rpow_add hx_pos]
-          congr 1; ring
+          congr 1; ring_nf
   linarith
 
 @[blueprint

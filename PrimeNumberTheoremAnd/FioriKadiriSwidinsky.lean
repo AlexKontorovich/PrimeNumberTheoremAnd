@@ -287,13 +287,12 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) :
     intro x hx_pos
     have h_eq : ∫ t in Set.Ioi x, Real.exp (-t) * t ^ (s - 1) = ∫ u in Set.Ioi 0, Real.exp (-(x + u)) * (x + u) ^ (s - 1) := by
       rw [ ← MeasureTheory.integral_indicator ( measurableSet_Ioi ), ← MeasureTheory.integral_indicator ( measurableSet_Ioi ) ]
-      simp +decide [ Set.indicator ]
-      rw [ ← MeasureTheory.integral_add_right_eq_self _ x ] ; congr ; ext y ; split_ifs <;> ring <;> aesop
-    rw [ h_eq, ← MeasureTheory.integral_const_mul ] ; refine' MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun u hu => _ ; rw [ show x + u = x * ( 1 + u / x ) by rw [ mul_add, mul_div_cancel₀ _ hx_pos.ne' ] ; ring ] ; rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out, div_nonneg hu.out.le hx_pos.le ] ) ] ; ring
+      simp +decide only [Set.indicator, Set.mem_Ioi, neg_add_rev]
+      rw [ ← MeasureTheory.integral_add_right_eq_self _ x ] ; congr ; ext y ; split_ifs <;> ring_nf <;> aesop
+    rw [ h_eq, ← MeasureTheory.integral_const_mul ] ; refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun u hu => ?_ ; rw [ show x + u = x * ( 1 + u / x ) by rw [ mul_add, mul_div_cancel₀ _ hx_pos.ne' ] ; ring ] ; rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out, div_nonneg hu.out.le hx_pos.le ] ) ] ; ring_nf
     norm_num [ sub_eq_add_neg, Real.exp_add, mul_assoc, mul_comm x, hx_pos.ne' ] ; ring
   have h_conv : Filter.Tendsto (fun x => ∫ u in Set.Ioi 0, Real.exp (-u) * (1 + u / x) ^ (s - 1)) Filter.atTop (nhds (∫ u in Set.Ioi 0, Real.exp (-u))) := by
-    refine' MeasureTheory.tendsto_integral_filter_of_dominated_convergence _ _ _ _ _
-    refine' fun u => Real.exp ( -u ) * ( 1 + u ) ^ ( s - 1 )
+    refine MeasureTheory.tendsto_integral_filter_of_dominated_convergence (fun u => Real.exp ( -u ) * ( 1 + u ) ^ ( s - 1 )) ?_ ?_ ?_ ?_
     · filter_upwards [ Filter.eventually_gt_atTop 0 ] with x hx using Measurable.aestronglyMeasurable ( by exact Measurable.mul ( Real.continuous_exp.measurable.comp measurable_neg ) ( by exact Measurable.pow_const ( by exact measurable_const.add ( measurable_id'.div_const _ ) ) _ ) )
     · filter_upwards [ Filter.eventually_gt_atTop 1 ] with n hn
       filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with x hx using by rw [ Real.norm_of_nonneg ( mul_nonneg ( Real.exp_pos _ |> le_of_lt ) ( Real.rpow_nonneg ( by linarith [ hx.out, div_nonneg hx.out.le ( by linarith : 0 ≤ n ) ] ) _ ) ) ] ; exact mul_le_mul_of_nonneg_left ( Real.rpow_le_rpow ( by linarith [ hx.out, div_nonneg hx.out.le ( by linarith : 0 ≤ n ) ] ) ( by linarith [ hx.out, div_le_self hx.out.le ( by linarith : 1 ≤ n ) ] ) ( by linarith ) ) ( Real.exp_pos _ |> le_of_lt )
@@ -306,8 +305,8 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) :
               exact MeasureTheory.IntegrableOn.mono_set ( by exact ( by contrapose! h_conv; rw [ MeasureTheory.integral_undef h_conv ] ; positivity ) ) ( Set.Ioi_subset_Ioi zero_le_one )
             have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * u ^ (s - 1) * 2 ^ (s - 1)) (Set.Ioi 1) := by
               exact this.mul_const _
-            refine' this.congr_fun ( fun u hu => by rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out ] ) ] ; ring ) measurableSet_Ioi
-          refine' this.mono' _ _
+            exact this.congr_fun ( fun u hu => by rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out ] ) ] ; ring ) measurableSet_Ioi
+          refine this.mono' ?_ ?_
           · exact Measurable.aestronglyMeasurable ( by exact Measurable.mul ( Real.continuous_exp.measurable.comp measurable_neg ) ( by exact Measurable.pow_const ( measurable_const.add measurable_id' ) _ ) )
           · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with u hu using by rw [ Real.norm_of_nonneg ( mul_nonneg ( Real.exp_pos _ |> le_of_lt ) ( Real.rpow_nonneg ( by linarith [ hu.out ] ) _ ) ) ] ; exact mul_le_mul_of_nonneg_left ( Real.rpow_le_rpow ( by linarith [ hu.out ] ) ( by linarith [ hu.out ] ) ( by linarith [ hu.out ] ) ) ( Real.exp_pos _ |> le_of_lt )
         have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * (1 + u) ^ (s - 1)) (Set.Ioc 0 1) := by
