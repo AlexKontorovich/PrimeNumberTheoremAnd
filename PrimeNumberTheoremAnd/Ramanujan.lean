@@ -704,7 +704,7 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
   (proof := /-- This is a direct calculation. -/)
   (latexEnv := "lemma")
   (discussion := 998)]
-theorem epsilon_bound : εMₐ - εmₐ < log (exp 1 * xₐ) := by
+theorem epsilon_bound : εMₐ - εmₐ ≤ log (exp 1 * xₐ) := by
     sorry
 
 @[blueprint
@@ -719,14 +719,13 @@ theorem ramanujan_final : ∀ x > exp 1 * xₐ, pi x ^ 2 < exp 1 * x / log x * p
   apply criterion mₐ Mₐ xₐ pi_lower_specific pi_upper_specific x
   simp only [gt_iff_lt] at hx ⊢
   exact max_lt hx (calc
-    x' mₐ Mₐ xₐ < 1 := by
-      change rexp (ε Mₐ xₐ - ε' mₐ xₐ) < 1
-      rw [exp_lt_one_iff]
-      convert epsilon_bound using 1
-    _ ≤ rexp 1 * xₐ := by
-      have : (1 : ℝ) ≤ rexp 1 := one_le_exp (by norm_num : (0:ℝ) ≤ 1)
-      have : (1 : ℝ) ≤ xₐ := one_le_exp (show (0:ℝ) ≤ 3914 by norm_num)
-      nlinarith
+    _ = rexp (ε Mₐ xₐ - ε' mₐ xₐ) := rfl
+    _ ≤ rexp (log (exp 1 * xₐ)) := by
+      gcongr
+      exact epsilon_bound
+    _ = rexp 1 * xₐ := by
+      unfold xₐ
+      exact exp_log (by positivity)
     _ < x := hx)
 
 
