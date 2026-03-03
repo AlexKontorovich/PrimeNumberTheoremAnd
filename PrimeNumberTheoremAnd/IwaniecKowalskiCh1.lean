@@ -58,31 +58,24 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   (proof := /--
   Let $a$ and $b$ be coprime natural numbers, and let $d$ be a divisor of $ab$. Since $a$ and $b$ are coprime, we can use the fact that the divisors of $ab$ correspond to pairs of divisors of $a$ and $b$. Specifically, we can express $d$ as $d = d_a \cdot d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. The uniqueness of this decomposition follows from the coprimality of $a$ and $b$, which ensures that the divisors of $a$ and $b$ do not share any common factors. Therefore, there is a one-to-one correspondence between the divisors of $ab$ and the pairs of divisors of $a$ and $b$, which guarantees the uniqueness of the decomposition.
   -/)]
-lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
-    ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  -- Existence
+
+lemma unique_divisor_decomposition {α : Type*} [CommSemiring α] [GCDMonoid α]
+[DecompositionMonoid α] [ι : Subsingleton αˣ] {a b d : α} (hab : IsRelPrime a b) (hd : d ∣ a * b) :
+  ∃! p : α × α, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
   obtain ⟨d₁, d₂, h1, h2, h3⟩ := exists_dvd_and_dvd_of_dvd_mul hd
-  refine ⟨(d₁, d₂), ⟨h1, h2, h3.symm⟩, ?_⟩
-  -- Uniqueness
-  rintro ⟨q₁, q₂⟩ ⟨hq1, hq2, hq3⟩
+  refine ⟨(d₁, d₂), ⟨h1, h2, h3.symm⟩, fun ⟨q₁, q₂⟩ ⟨hq1, hq2, hq3⟩ ↦ ?_⟩
   have h_eq : d₁ * d₂ = q₁ * q₂ := by rw [← h3, ← hq3]
-  apply Prod.ext
-  -- d₁ = q₁
-  · apply dvd_antisymm
-    -- q₁ | d₁
-    · have : Coprime q₁ d₂ := (hab.coprime_dvd_left hq1).coprime_dvd_right h2
-      exact this.dvd_of_dvd_mul_right (by rw [h_eq]; apply dvd_mul_right)
-    -- d₁ | q₁
-    · have : Coprime d₁ q₂ := (hab.coprime_dvd_left h1).coprime_dvd_right hq2
-      exact this.dvd_of_dvd_mul_right (by rw [← h_eq]; apply dvd_mul_right)
-  -- d₂ = q₂
-  · apply dvd_antisymm
-    -- q₂ ∣ d₂
-    · have : Coprime q₂ d₁ := (hab.symm.coprime_dvd_left hq2).coprime_dvd_right h1
-      exact this.dvd_of_dvd_mul_left (by rw [h_eq]; apply dvd_mul_left)
-    -- d₂ ∣ q₂
-    · have : Coprime d₂ q₁ := (hab.symm.coprime_dvd_left h2).coprime_dvd_right hq1
-      exact this.dvd_of_dvd_mul_left (by rw [← h_eq]; apply dvd_mul_left)
+  have h_eq : d₁ * d₂ = q₁ * q₂ := by rw [← h3, ← hq3]
+  apply Prod.ext <;> apply dvd_antisymm
+  · have : IsRelPrime q₁ d₂ := (hab.of_dvd_left hq1).of_dvd_right h2
+    exact this.dvd_of_dvd_mul_right (by rw [h_eq]; apply dvd_mul_right)
+  · have : IsRelPrime d₁ q₂ := (hab.of_dvd_left h1).of_dvd_right hq2
+    exact this.dvd_of_dvd_mul_right (by rw [← h_eq]; apply dvd_mul_right)
+  · have : IsRelPrime q₂ d₁ := (hab.symm.of_dvd_left hq2).of_dvd_right h1
+    exact this.dvd_of_dvd_mul_left (by rw [h_eq]; apply dvd_mul_left)
+  · have : IsRelPrime d₂ q₁ := (hab.symm.of_dvd_left h2).of_dvd_right hq1
+    exact this.dvd_of_dvd_mul_left (by rw [← h_eq]; apply dvd_mul_left)
+
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -92,34 +85,33 @@ lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣
   (proof := /--
   Since $f$ is multiplicative, we can express the sum over divisors of $ab$ in terms of the sums over divisors of $a$ and $b$. The key idea is to use the fact that the divisors of $ab$ can be expressed as products of divisors of $a$ and divisors of $b$, due to the coprimality condition. Specifically, each divisor $d$ of $ab$ can be uniquely written as $d = d_a * d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. Therefore, we can rewrite the sum as a double sum over the divisors of $a$ and $b$, which factorizes into the product of the two separate sums.
   -/)]
+
 theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
   let g : ℕ × ℕ → ℕ := fun p ↦ p.1 * p.2
--- (ab).divisors = Image
+  have hab_rel : IsRelPrime a b := by
+    intro d hda hdb
+    exact isUnit_of_dvd_one (hab ▸ Nat.dvd_gcd hda hdb)
   have h_image : (a * b).divisors = (a.divisors ×ˢ b.divisors).image (g) := by
     ext d
     simp only [Finset.mem_image, Finset.mem_product, Nat.mem_divisors]
     constructor
     · rintro ⟨hd_dvd, _⟩
-      obtain ⟨p, ⟨hp1, hp2, rfl⟩, _⟩ := unique_divisor_decomposition hab hd_dvd
+      obtain ⟨p, ⟨hp1, hp2, rfl⟩, _⟩ := unique_divisor_decomposition hab_rel hd_dvd
       exact ⟨p, ⟨⟨hp1, ha⟩, ⟨hp2, hb⟩⟩, rfl⟩
     · rintro ⟨p, ⟨⟨hp1, _⟩, ⟨hp2, _⟩⟩, rfl⟩
       exact ⟨mul_dvd_mul hp1 hp2, mul_ne_zero ha hb⟩
-  -- Injectivity
   have h_inj : Set.InjOn g (↑(a.divisors ×ˢ b.divisors)) := by
     intro p1 hp1 p2 hp2 h_eq
     simp only [Finset.mem_coe, Finset.mem_product] at hp1 hp2
     have hd : p1.1 * p1.2 ∣ a * b :=
       mul_dvd_mul (Nat.dvd_of_mem_divisors hp1.1) (Nat.dvd_of_mem_divisors hp1.2)
-    obtain ⟨p, _, h_unique_imp⟩ := unique_divisor_decomposition hab hd
+    obtain ⟨p, _, h_unique_imp⟩ := unique_divisor_decomposition hab_rel hd
     rw [h_unique_imp p1 ⟨Nat.dvd_of_mem_divisors hp1.1, Nat.dvd_of_mem_divisors hp1.2, rfl⟩,
         h_unique_imp p2 ⟨Nat.dvd_of_mem_divisors hp2.1, Nat.dvd_of_mem_divisors hp2.2, h_eq.symm⟩]
-  -- Change summation
-  rw [h_image, sum_image h_inj, Finset.sum_product,sum_mul_sum]
-  -- Prove equality of terms
--- Prove equality of terms
+  rw [h_image, sum_image h_inj, Finset.sum_product, sum_mul_sum]
   refine Finset.sum_congr rfl fun x hx ↦ Finset.sum_congr rfl fun y hy ↦ ?_
   exact hf.map_mul_of_coprime <|
     Nat.Coprime.of_dvd_right (Nat.dvd_of_mem_divisors hy) <|
