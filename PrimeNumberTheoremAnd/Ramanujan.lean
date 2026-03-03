@@ -105,7 +105,7 @@ Then Ramanujan's inequality is true for $x > x_0$ if
 
 $$x_0 ≥ e x_{a}$$
 and
-$$ \epsilon_{M_a} (x_0) - \epsilon'_{m_a}(x_0) < \log x $.
+$$ \epsilon_{M_a} (x_0) - \epsilon'_{m_a}(x_0) < \log x.$$
  -/)
   (proof := /-- Combine the previous two sublemmas.
  -/)
