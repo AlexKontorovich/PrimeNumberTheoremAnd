@@ -1166,7 +1166,14 @@ Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply thi
   (latexEnv := "lemma")]
 theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by sorry
 
-theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := by sorry
+lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
+  unfold B; split
+  · rw [one_im]
+  · rw [coth, show (t : ℂ) / 2 = (t / 2 : ℝ) from by push_cast; ring,
+      show tanh ((t / 2 : ℝ) : ℂ) = ⟨tanh (t / 2), 0⟩ from ext (tanh_ofReal_re _) (tanh_ofReal_im _)]
+    simp [ofReal_im, ofReal_re]
+
+theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
 
 @[blueprint
   "B-minus-mono"
@@ -1179,7 +1186,7 @@ theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := by sorry
   (latexEnv := "lemma")]
 theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by sorry
 
-theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := by sorry
+theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
