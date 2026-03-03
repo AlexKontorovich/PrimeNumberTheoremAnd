@@ -702,7 +702,7 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
   "epsilon-bound"
   (title := "Bound for εMₐ - εmₐ")
   (statement := /-- We have $\epsilon_{M_a} - \epsilon'_{m_a} < \log (e x_a )$. -/)
-  (proof := /-- This is a direct calculation. -/)
+  (proof := /-- This is a direct calculation. An AI verification can be found at https://chatgpt.com/share/69a64f96-b1cc-800e-8f85-850168d23094 -/)
   (latexEnv := "lemma")
   (discussion := 998)]
 theorem epsilon_bound : εMₐ - εmₐ ≤ log (exp 1 * xₐ) := by
