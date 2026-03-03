@@ -594,7 +594,8 @@ theorem pi_bound_5 (x : ℝ) (hx : x ∈ Set.Ico (exp 2000) (exp 3000)) :
   (statement := /-- For $x > \exp(3000)$ we have
 $$E_\theta(x) \leq 379.7\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$-/)
   (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1094)]
 theorem pi_bound_6 (x : ℝ) (hx : exp 3000 ≤ x) :
     Eθ x ≤ 379.7 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
     sorry
