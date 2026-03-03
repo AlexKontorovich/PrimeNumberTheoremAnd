@@ -361,10 +361,8 @@ theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := b
   (latexEnv := "theorem")
   (discussion := 841)]
 theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := by
-  have h1 : ψ x ≥ U x := psi_ge_weighted x (by linarith)
-  have h2 := U_bound x hx
-  rw [abs_sub_le_iff] at h2
-  linarith [h2.1]
+  have h2 := abs_sub_le_iff.mp (U_bound x hx)
+  linarith [psi_ge_weighted x (by linarith), h2.1]
 
 @[blueprint
   "psi-diff-upper"
@@ -374,10 +372,8 @@ theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := 
   (latexEnv := "proposition")
   (discussion := 842)]
 theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * log x - 5 := by
-  have h1 : ψ x - ψ (x / 6) ≤ U x := psi_diff_le_weighted x (by linarith)
-  have h2 := U_bound x hx
-  rw [abs_sub_le_iff] at h2
-  linarith [h2.2]
+  have h2 := abs_sub_le_iff.mp (U_bound x hx)
+  linarith [psi_diff_le_weighted x (by linarith), h2.2]
 
 set_option maxHeartbeats 400000 in
 -- Proof splits into many cases
@@ -568,15 +564,12 @@ theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by
       · push_neg at hsmall
         let m : ℕ := ⌊(n : ℝ) / 6⌋₊
         have hm_lt_n : m < n := by
-          have : (m : ℝ) < n := calc
-            (m : ℝ) ≤ n / 6 := Nat.floor_le (by positivity)
-            _ < n := by nlinarith [show (0 : ℝ) < n from by exact_mod_cast hn]
-          exact_mod_cast this
+          exact_mod_cast show (m : ℝ) < n from
+            lt_of_le_of_lt (Nat.floor_le (by positivity)) (by nlinarith)
         have hpsi_div : ψ ((n : ℝ) / 6) ≤ 1.11 * ((n : ℝ) / 6) := calc
           ψ ((n : ℝ) / 6) = ψ (m : ℝ) := by simp [m, Chebyshev.psi_eq_psi_coe_floor]
           _ ≤ 1.11 * (m : ℝ) := ih m hm_lt_n
-          _ ≤ 1.11 * ((n : ℝ) / 6) := by
-              nlinarith [Nat.floor_le (show 0 ≤ (n : ℝ) / 6 by positivity)]
+          _ ≤ 1.11 * ((n : ℝ) / 6) := by nlinarith [Nat.floor_le (by positivity : 0 ≤ (n : ℝ) / 6)]
         calc ψ (n : ℝ)
             ≤ ψ ((n : ℝ) / 6) + a * n + 5 * log (n : ℝ) - 5 := by
                 linarith [psi_diff_upper (n : ℝ) (by linarith)]

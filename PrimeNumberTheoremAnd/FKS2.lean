@@ -718,13 +718,55 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
 
+theorem l0 {x y : ℝ} (hx : 2 ≤ x) (hy : x ≤ y) :
+    ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc x y) := by
+  refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+    continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
+  repeat simp_all; grind
+
+theorem Li_identity {x} (hx : 2 ≤ x) :
+    Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
+  have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
+  rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
+    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
+    intervalIntegrable_const]
+  · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
+      = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
+      rw [this, intervalIntegral.integral_neg]; ring
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    ring_nf
+    rw [mul_inv_cancel₀ (hnt ht), one_mul]
+  · intro t ht
+    simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
+  · simp only [neg_div, div_div]
+    simpa using (l0 (refl 2) hx).intervalIntegrable.neg
+
+theorem l1 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume x y := by
+  simpa [div_eq_mul_inv] using theta_mono.intervalIntegrable.mul_continuousOn (l0 hx hy)
+
+theorem l2 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume x y := by
+  simpa [div_eq_mul_inv] using intervalIntegral.intervalIntegrable_id.mul_continuousOn (l0 hx hy)
+
+theorem he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
+  + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
+  simp only [RS_prime.eq_417 hx, Li_identity hx, sub_div,
+    intervalIntegral.integral_sub (l1 (refl 2) hx) (l2 (refl 2) hx)]
+  rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
+  · ring_nf
+  · simp_all; grind
+
+theorem l3 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ (θ t - t) / (t * log t ^ 2)) volume x y := by
+  simpa [sub_div] using (l1 hx hy).sub (l2 hx hy)
 
 blueprint_comment /--
 \subsection{From asymptotic estimates on theta to asymptotic estimates on pi}
 
 To get from asymptotic estimates on $E_\theta$ to asymptotic estimates on $E_\pi$, one first needs a way to express the latter as an integral of the former.
 -/
-
 @[blueprint
   "fks2-eq-17"
   (title := "FKS2 equation (17)")
@@ -740,45 +782,13 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
     ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
   have px : 2 ≤ x := by linarith
-  have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
-    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
-      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
-    repeat simp_all; grind
-  have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      theta_mono.intervalIntegrable (l0 hx)
-  have l2 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      intervalIntegral.intervalIntegrable_id (l0 hx)
-  have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
-    have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
-    rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
-    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
-    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
-    intervalIntegrable_const]
-    · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
-        = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
-        rw [this, intervalIntegral.integral_neg]; ring
-      refine intervalIntegral.integral_congr fun t ht ↦ ?_
-      ring_nf
-      rw [mul_inv_cancel₀ (hnt ht), one_mul]
-    · intro t ht
-      simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
-    · simp only [neg_div, div_div]
-      simpa using (l0 hx).intervalIntegrable.neg
-  have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
-    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
-    simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
-    rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
-    · ring_nf
-    · simp_all; grind
   calc
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
     ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
     rw [intervalIntegral.integral_interval_sub_left]
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 px) (l2 px)
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 hx₀) (l2 hx₀)
+    · simpa [sub_div] using l3 (refl 2) px
+    · simpa [sub_div] using l3 (refl 2) hx₀
 
 blueprint_comment /--
 The following definition is only implicitly in FKS2, but will be convenient:
@@ -886,11 +896,163 @@ Now we have
 Combining the above completes the proof. -/)
   (latexEnv := "lemma")
   (discussion := 617)]
-theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
+theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀)
+    (hx₀ : 2 ≤ x₀) (hR : 0 < R) (hA : 0 ≤ A) (h : 0 ≤ √(log x₀) - C / (2 * √R)) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
-    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
-  sorry
+    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) := by
+  have log_t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, log t ≠ 0 := fun t ht ↦ (by simp; grind [Set.uIcc_of_le hx])
+  have t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, t ≠ 0 := fun t ht ↦ (by grind [Set.uIcc_of_le hx])
+  have t_pos : ∀ t ∈ Set.uIcc √(log x₀) √(log x), 0 < t := by
+    intro t ht
+    rw [Set.uIcc_of_le (by gcongr)] at ht
+    apply lt_of_lt_of_le _ ht.1
+    exact sqrt_pos.mpr (log_pos (by linarith))
+  calc
+  _ ≤ ∫ t in x₀..x, |admissible_bound A B C R t| / log t ^ 2 := by
+    apply intervalIntegral.integral_mono_on hx
+    · refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      unfold Eθ
+      apply IntervalIntegrable.abs
+      refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      refine IntervalIntegrable.abs <| IntervalIntegrable.sub ?_ intervalIntegral.intervalIntegrable_id
+      apply intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mpr
+      conv => arg 1; ext x; rw [← one_mul (θ x), theta_eq_sum_Icc, Finset.sum_filter]
+      apply  integrableOn_mul_sum_Icc _ (by linarith)
+      apply ContinuousOn.integrableOn_Icc
+      fun_prop
+    · apply IntervalIntegrable.mul_continuousOn
+      · apply IntervalIntegrable.abs
+        apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        unfold admissible_bound
+        fun_prop (disch := grind)
+      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        fun_prop (disch := grind)
+    · intro t ht
+      specialize hEθ t ht.1
+      gcongr
+      unfold Eθ
+      exact div_nonneg (by positivity) (by grind)
+  _ = ∫ (t : ℝ) in x₀..x, A * (log t / R) ^ B * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) / log t ^ 2 := by
+    unfold admissible_bound
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    congr
+    rw [abs_of_nonneg]
+    refine mul_nonneg ?_ (by positivity)
+    refine mul_nonneg hA <| rpow_nonneg (div_nonneg ?_ hR.le) _
+    exact log_nonneg (by grind [Set.uIcc_of_le hx])
+  _ = ∫ (t : ℝ) in x₀..x, A / R ^ B * (log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2))) := by
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [div_rpow (log_nonneg (by grind[Set.uIcc_of_le hx])) hR.le, rpow_sub (log_pos (by grind[Set.uIcc_of_le hx])), rpow_ofNat]
+    field
+  _ = A / R ^ B * ∫ (t : ℝ) in x₀..x, log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) := by
+    rw [intervalIntegral.integral_const_mul]
+  _ =  A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), (t ^ 2) ^ (B - 2) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * (2 * t * rexp (t ^ 2)) := by
+    have subst := intervalIntegral.integral_comp_mul_deriv' (f := (fun t ↦ rexp (t ^ 2))) (g := (fun t ↦ log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)))) (f' := (fun t ↦ 2 * t * rexp (t ^ 2))) (a := x₀.log.sqrt) (b := x.log.sqrt)
+    have left : rexp (x₀.log.sqrt ^ 2) = x₀ := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    have right : rexp (x.log.sqrt ^ 2) = x := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    simp_rw [left, right] at subst
+    simp only [Function.comp_apply, log_exp] at subst
+    rw [← subst]
+    · intro t ht
+      have := hasDerivAt_pow 2 t
+      simp only [Nat.cast_ofNat, Nat.add_one_sub_one, pow_one] at this
+      convert hasDerivAt_exp (t ^ 2) |>.comp t this using 1
+      ring
+    · fun_prop
+    · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      simp only [Set.mem_image] at ht
+      rcases ht with ⟨y, ⟨hy1, hy2⟩⟩
+      rw [Set.uIcc_of_le (by gcongr)] at hy1
+      have : log t ≠ 0 := by
+        rw [← hy2, log_exp]
+        simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff]
+        have : √(log x₀) > 0 := by
+          exact sqrt_pos.mpr <| log_pos (by linarith)
+        linarith [hy1.1]
+      have : t ≠ 0 := by
+        rw [← hy2]
+        exact exp_ne_zero _
+      fun_prop (disch := grind)
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 4) * t * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * rexp (t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [← rpow_ofNat, ← rpow_mul (t_pos t ht).le]
+    ring_nf
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 3) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2) + t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add, (by ring : 2 * B - 3 = (2 * B - 4)+ 1), rpow_add <| t_pos t ht, rpow_one]
+    ring
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * (t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R)) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [← sqrt_eq_rpow, sqrt_div (by positivity), sqrt_sq (t_pos t ht).le]
+    ring_nf
+  _ = 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ ≤ 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (t ^ 2 - C * t / √R) := by
+    gcongr
+    apply intervalIntegral.integral_mono_on (by gcongr)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      fun_prop (disch := grind)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      fun_prop
+    · intro t ht
+      gcongr
+      by_cases! h : 0 ≤ 2 * B - 3
+      · apply le_max_of_le_right
+        grw [ht.2, sqrt_eq_rpow, ← rpow_mul]
+        · field_simp; rfl
+        · apply log_nonneg (by linarith)
+        · exact le_trans (sqrt_nonneg _) ht.1
+      · apply le_max_of_le_left
+        trans (√(log x₀)) ^ (2 * B - 3)
+        · apply rpow_le_rpow_of_nonpos _ ht.1 h.le
+          exact sqrt_pos.mpr (log_pos (by linarith))
+        · rw [sqrt_eq_rpow, ← rpow_mul]
+          · field_simp; rfl
+          · exact log_nonneg (by linarith)
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2 + (-C ^ 2 / (4 * R))) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [sub_sq, div_pow, mul_pow, sq_sqrt hR.le]
+    ring_nf
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (-C ^ 2 / (4 * R)) * rexp ((t - C / (2 * √R)) ^ 2) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in (√(log x₀)  - C / (2 * √R))..(√(log x)  - C / (2 * √R)), rexp (t ^ 2) := by
+    rw [intervalIntegral.integral_comp_sub_right (f := (fun t ↦ rexp (t ^ 2)))]
+  _ ≤ 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in 0..(√(log x)  - C / (2 * √R)), rexp (t ^ 2) := by
+    gcongr
+    · bound
+    · apply intervalIntegral.integral_mono_interval h (by gcongr) (by rfl)
+      · filter_upwards [] with t using exp_nonneg (t ^ 2)
+      · apply Continuous.intervalIntegrable
+        fun_prop
+  _ = _ := by
+    unfold dawson
+    rw [sub_sq, sq_sqrt (log_nonneg (by linarith)), div_pow, mul_pow, sq_sqrt hR.le, ← mul_assoc]
+    congr 1
+    ac_change 2 * A / R ^ B * (max (log x₀ ^ ((2 * B - 3) / 2)) (log x ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R))) =
+      2 * A / R ^ B * (max (log x₀ ^ ((2 * B - 3) / 2)) (log x ^ ((2 * B - 3) / 2)) * (x * rexp (-C * √(log x / R)) *
+      rexp (-(log x - 2 * √(log x) * (C / (2 * √R)) + C ^ 2 / (2 ^ 2 * R)))))
+    congr 2
+    have : x = exp (log x) := by rw [exp_log (by linarith)]
+    nth_rw 1 [this]
+    rw [← exp_add, ← exp_add, sqrt_div (log_nonneg (by linarith))]
+    ring_nf
 
 @[blueprint
   "fks2-eq-9"
@@ -1108,12 +1270,27 @@ blueprint_comment /--
 Here we record a way to convert a numerical bound on $E_\theta$ to a numerical bound on $E_\pi$.  We first need some preliminary lemmas.
 -/
 
+theorem Li_identity' {a b : ℝ} (ha : 2 ≤ a) (hb : a ≤ b) :
+    ∫ t in a..b, 1 / log t ^ 2 = Li b - Li a - b / log b + a / log a :=
+  have {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ 1 / log t ^ 2) volume 2 x := by
+    simp only [one_div]
+    refine ((((continuousOn_id' _).log ?_).pow 2).inv₀ (fun t ht => ?_)).intervalIntegrable
+    · rw [Set.uIcc_of_le hx]; grind
+    · rw [Set.uIcc_of_le hx] at ht
+      positivity [log_pos (by grind : 1 < t)]
+  calc
+  _ = (∫ t in 2..b, 1 / log t ^ 2) - ∫ t in 2..a, 1 / log t ^ 2 :=
+    (intervalIntegral.integral_interval_sub_left (this (ha.trans hb)) (this ha)).symm
+  _ = b / log b - 2 / log 2 + (∫ t in 2..b, 1 / (log t ^ 2)) - b / log b -
+    (a / log a - 2 / log 2 + (∫ t in 2..a, 1 / (log t ^ 2)) - a / log a) := by ring
+  _ = _ := by rw [Li_identity ha, Li_identity (ha.trans hb)]; ring
+
 @[blueprint
   "fks2-lemma-19"
   (title := "FKS2 Lemma 19")
   (statement := /--
   Let $x_1 > x_0 \geq 2$, $N \in \N$, and let $(b_i)_{i=1}^N$ be a finite partition of
-  $[x_0,x_1]$.  Then
+  $[\log x_0, \log x_1]$.  Then
   $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt|
     \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i})
     ( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)
@@ -1130,18 +1307,60 @@ Here we record a way to convert a numerical bound on $E_\theta$ to a numerical b
     = \Li(b) - \frac{b}{\log b} - (\Li(a) - \frac{a}{\log a}). $$ -/)
   (latexEnv := "lemma")
   (discussion := 712)]
-theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
+theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₀ < x₁) (hx₀ : x₀ ≥ 2)
+  {N : ℕ} (b : ℕ → ℝ) (hmono : Monotone b)
+  (h_b_start : b 0 = log x₀) (hN : 0 ≤ N)
+  (h_b_end : b N = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) :
+  (h_εθ_num : ∀ i ∈ Finset.Ico 0 N, Eθ.numericalBound (exp (b i)) εθ_num) :
   |∫ t in x₀..x₁, (θ t - t) / (t * log t ^ 2)| ≤
-    ∑ i ∈ Finset.Iio (Fin.last N),
+    ∑ i ∈ Finset.Ico 0 N,
       εθ_num (exp (b i)) *
       (Li (exp (b (i + 1))) - Li (exp (b i)) +
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) :=
-  sorry
+  have h1 {i} : 2 ≤ exp (b i) := by
+    trans exp (b 0)
+    · rw [h_b_start, exp_log (by grind)]; exact hx₀
+    · exact exp_monotone (hmono (by linarith))
+  have h2 {i} : exp (b i) ≤ exp (b (i + 1)) := exp_monotone (hmono (by linarith))
+  have h3 {i} : IntervalIntegrable (fun t ↦ |θ t - t| / t / log t ^ 2) volume
+    (exp (b i)) (exp (b (i + 1))) := by
+    refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 h1 h2).abs
+    simp [abs_div, div_div, abs_of_nonneg (by grind : 0 ≤ t)]
+  calc
+  _ ≤ ∫ t in x₀..x₁, |(θ t - t) / (t * log t ^ 2)| :=
+    intervalIntegral.abs_integral_le_integral_abs hx₁.le
+  _ = ∫ t in x₀..x₁, |θ t - t| / t / log t ^ 2 := by
+    refine intervalIntegral.integral_congr fun t ht => ?_
+    rw [Set.uIcc_of_le hx₁.le] at ht
+    simp [abs_div, div_div, abs_of_nonneg (by grind : 0 ≤ t)]
+  _ = ∑ i ∈ Finset.Ico 0 N, ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)),
+    |θ t - t| / t / log t ^ 2 := by
+    rw [intervalIntegral.sum_integral_adjacent_intervals_Ico hN]
+    · rw [← exp_log (by grind : 0 < x₀), ← exp_log (by grind : 0 < x₁), h_b_end, h_b_start]
+    · exact fun i hi => h3
+  _ ≤ ∑ i ∈ Finset.Ico 0 N, ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)),
+    εθ_num (exp (b i)) / log t ^ 2 := by
+    gcongr with i hi
+    refine intervalIntegral.integral_mono_on h2 h3 ?_ fun t ht => ?_
+    · simp only [div_eq_mul_inv]
+      refine IntervalIntegrable.const_mul ((ContinuousOn.pow ?_ 2).inv₀ ?_).intervalIntegrable _
+      · refine (continuousOn_id' _).log fun t ht => ?_
+        rw [Set.uIcc_of_le h2] at ht
+        grind
+      · intro t ht
+        rw [Set.uIcc_of_le h2] at ht
+        positivity [log_pos (by grind : 1 < t)]
+    · gcongr
+      exact h_εθ_num i hi t ht.1
+  _ = ∑ i ∈ Finset.Ico 0 N, εθ_num (exp (b i)) *
+    ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)), 1 / log t ^ 2 := by
+    congr with i
+    simp [← intervalIntegral.integral_const_mul, div_eq_mul_inv]
+  _ = _ := by
+    congr with i
+    rw [Li_identity' h1 h2, log_exp, log_exp]
+    ring
 
 lemma hasDerivAt_Li {x : ℝ} (hx : x ∈ Set.Ioi 6.58) : HasDerivAt Li (1 / log x) x := by
   have hf (x) (hx : x ∈ Set.Ioi 6.58) : ContinuousAt (fun x ↦ 1 / log x) x := by
