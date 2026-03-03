@@ -19,7 +19,7 @@ noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (
 
 noncomputable def ε' (m x : ℝ) : ℝ := 206 + m + 364 / log x + 381 / (log x)^2 + 238 / (log x)^3 + 97 / (log x)^4 + 30 / (log x)^5 + 8 / (log x)^6
 
-noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
+-- noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
 
 @[blueprint
   "ramanujan-criterion-1"
@@ -96,22 +96,27 @@ theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.ran
   (title := "Criterion for Ramanujan's inequality")
   (statement := /-- \cite[Lemma 2.1]{dudek-platt}
 Let $m_a, M_a \in \mathbb{R}$  and suppose that for $x>x_a$ we have
+$$ x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+ \frac{m_a x}{\log^6 x} < \pi(x)$$
 
-$$ x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+ \frac{m_a x}{\log^6 x} < \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$
+and for $x > ex_a$ one has
+$$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$
 %
-Then Ramanujan's inequality is true if
+Then Ramanujan's inequality is true for $x > x_0$ if
 
-$$x > \max( e x_{a},x_{a}' )$$
-where $x'_a := \exp( \epsilon_{M_a} (x_{a}) - \epsilon'_{m_a} (x_{a}) )$.
+$$x_0 ≥ e x_{a}$$
+and
+$$ \epsilon_{M_a} (x_0) - \epsilon'_{m_a}(x_0) < \log x $.
  -/)
   (proof := /-- Combine the previous two sublemmas.
  -/)
   (latexEnv := "proposition")
   (discussion := 985)]
-theorem criterion (m_a M_a x_a : ℝ)
-  (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x)
-  (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
-    ∀ x > max (exp 1 * x_a) (x' m_a M_a x_a), pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
+theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
+  (hlower : ∀ x > xₐ, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (mₐ * x / log x ^ 6) < pi x)
+  (hupper : ∀ x > exp 1 * xₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (Mₐ * x / log x ^ 6))
+  (hx₀xₐ : x₀ ≥ exp 1 * xₐ)
+  (hcrit : ε Mₐ x₀ - ε' mₐ x₀ < log x₀) :
+    ∀ x > x₀, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
   sorry
 
 /-- Integration by parts formula for `Li(x)`. -/
@@ -670,42 +675,42 @@ noncomputable def C₂ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (
 
 noncomputable def C₃ : ℝ := 2 * log xₐ ^ 6 / xₐ * ∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)
 
-noncomputable def Mₐ : ℝ := 120 + a xₐ + C₁ + (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+noncomputable def Mₐ (x : ℝ) : ℝ := 120 + a x + C₁ + (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
 
-noncomputable def mₐ : ℝ := 120 - a xₐ - (C₂ + C₃) - a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+noncomputable def mₐ (x : ℝ) : ℝ := 120 - a x - (C₂ + C₃) - a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
 
-noncomputable def εMₐ : ℝ := 72 + 2 * Mₐ + (2 * Mₐ + 132) / log xₐ + (4 * Mₐ + 288) / log xₐ ^ 2 + (12 * Mₐ + 576) / log xₐ ^ 3 + (48 * Mₐ) / log xₐ ^ 4 + (Mₐ ^ 2) / log xₐ ^ 5
-
-noncomputable def εmₐ : ℝ := 206 + mₐ + 364 / log xₐ + 381 / log xₐ ^ 2 + 238 / log xₐ ^ 3 + 97 / log xₐ ^ 4 + 30 / log xₐ ^ 5 + 8 / log xₐ ^ 6
+noncomputable def exₐ : ℝ := exp 1 * xₐ
 
 @[blueprint
   "pi-upper-specific"
   (title := "Specific upper bound on pi")
-  (statement := /-- For $x \geq x_a$, $$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$. -/)
+  (statement := /-- For $x > ex_a$, $$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$. -/)
   (proof := /-- This follows from the previous lemmas and calculations, including Lemma \ref{log-7-int-bound}. -/)
   (latexEnv := "lemma")
   (discussion := 996)]
-theorem pi_upper_specific : ∀ x > xₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (Mₐ * x / log x ^ 6) := by
+theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((Mₐ exₐ) * x / log x ^ 6) := by
     sorry
 
 @[blueprint
   "pi-lower-specific"
   (title := "Specific lower bound on pi")
-  (statement := /-- For $x \geq x_a$, $$ \pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$. -/)
+  (statement := /-- For $x > x_a$, $$ \pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$. -/)
   (proof := /-- This follows from the previous lemmas and calculations, including Lemma \ref{log-7-int-bound}. -/)
   (latexEnv := "lemma")
   (discussion := 997)]
-theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (mₐ * x / log x ^ 6) := by
+theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((mₐ xₐ) * x / log x ^ 6) := by
     sorry
 
 @[blueprint
   "epsilon-bound"
   (title := "Bound for εMₐ - εmₐ")
   (statement := /-- We have $\epsilon_{M_a} - \epsilon'_{m_a} < \log (e x_a )$. -/)
-  (proof := /-- This is a direct calculation. An AI verification can be found at https://chatgpt.com/share/69a64f96-b1cc-800e-8f85-850168d23094 -/)
+  (proof := /-- This is a direct calculation. An AI verification can be found at https://chatgpt.com/share/69a64f96-b1cc-800e-8f85-850168d23094
+  -/)
   (latexEnv := "lemma")
   (discussion := 998)]
-theorem epsilon_bound : εMₐ - εmₐ ≤ log (exp 1 * xₐ) := by
+theorem epsilon_bound :
+  ε (Mₐ exₐ) exₐ - ε' (mₐ xₐ) exₐ < log exₐ := by
     sorry
 
 @[blueprint
@@ -715,20 +720,7 @@ theorem epsilon_bound : εMₐ - εmₐ ≤ log (exp 1 * xₐ) := by
   (proof := /-- \cite[Theorem 2]{PT2021} This follows from the previous lemmas and calculations, including the criterion for Ramanujan's inequality. -/)
   (latexEnv := "theorem")
   (discussion := 999)]
-theorem ramanujan_final : ∀ x > exp 1 * xₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
-  intro x hx
-  apply criterion mₐ Mₐ xₐ pi_lower_specific pi_upper_specific x
-  simp only [gt_iff_lt] at hx ⊢
-  exact max_lt hx (calc
-    _ = rexp (ε Mₐ xₐ - ε' mₐ xₐ) := rfl
-    _ ≤ rexp (log (exp 1 * xₐ)) := by
-      gcongr
-      exact epsilon_bound
-    _ = rexp 1 * xₐ := by
-      unfold xₐ
-      exact exp_log (by positivity)
-    _ < x := hx)
-
+theorem ramanujan_final : ∀ x > exₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := criterion (mₐ xₐ) (Mₐ exₐ) xₐ exₐ pi_lower_specific pi_upper_specific (le_refl _) epsilon_bound
 
 
 end Ramanujan
