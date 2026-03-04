@@ -77,6 +77,9 @@ lemma unique_divisor_decomposition {α : Type*} [CommSemiring α] [GCDMonoid α]
     exact this.dvd_of_dvd_mul_left (by rw [← h_eq]; apply dvd_mul_left)
 
 
+
+
+
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
   "sum_divisors_mul_of_coprime"
@@ -91,15 +94,12 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
   let g : ℕ × ℕ → ℕ := fun p ↦ p.1 * p.2
-  have hab_rel : IsRelPrime a b := by
-    intro d hda hdb
-    exact isUnit_of_dvd_one (hab ▸ Nat.dvd_gcd hda hdb)
   have h_image : (a * b).divisors = (a.divisors ×ˢ b.divisors).image (g) := by
     ext d
     simp only [Finset.mem_image, Finset.mem_product, Nat.mem_divisors]
     constructor
     · rintro ⟨hd_dvd, _⟩
-      obtain ⟨p, ⟨hp1, hp2, rfl⟩, _⟩ := unique_divisor_decomposition hab_rel hd_dvd
+      obtain ⟨p, ⟨hp1, hp2, rfl⟩, _⟩ := unique_divisor_decomposition (Nat.coprime_iff_isRelPrime.mp hab) hd_dvd
       exact ⟨p, ⟨⟨hp1, ha⟩, ⟨hp2, hb⟩⟩, rfl⟩
     · rintro ⟨p, ⟨⟨hp1, _⟩, ⟨hp2, _⟩⟩, rfl⟩
       exact ⟨mul_dvd_mul hp1 hp2, mul_ne_zero ha hb⟩
@@ -108,7 +108,7 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     simp only [Finset.mem_coe, Finset.mem_product] at hp1 hp2
     have hd : p1.1 * p1.2 ∣ a * b :=
       mul_dvd_mul (Nat.dvd_of_mem_divisors hp1.1) (Nat.dvd_of_mem_divisors hp1.2)
-    obtain ⟨p, _, h_unique_imp⟩ := unique_divisor_decomposition hab_rel hd
+    obtain ⟨p, _, h_unique_imp⟩ := unique_divisor_decomposition (Nat.coprime_iff_isRelPrime.mp hab) hd
     rw [h_unique_imp p1 ⟨Nat.dvd_of_mem_divisors hp1.1, Nat.dvd_of_mem_divisors hp1.2, rfl⟩,
         h_unique_imp p2 ⟨Nat.dvd_of_mem_divisors hp2.1, Nat.dvd_of_mem_divisors hp2.2, h_eq.symm⟩]
   rw [h_image, sum_image h_inj, Finset.sum_product, sum_mul_sum]
