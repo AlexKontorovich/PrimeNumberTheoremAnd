@@ -465,7 +465,7 @@ blueprint_comment /--
 @[blueprint "ZeroFactorization"
   (title := "ZeroFactorization")
   (statement := /--
-    Let $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}}$ with $f(0)\neq 0$.
+    Let $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$.
     For all $\rho\in\mathcal{K}_f(R)$ with $R<1$ there exists $h_\rho(z)$ such that
     $h_\rho(z)$ is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and
     $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$.
