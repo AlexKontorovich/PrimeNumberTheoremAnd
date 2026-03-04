@@ -453,9 +453,10 @@ def SetOfZeros (R : ℝ) (f : ℂ → ℂ) : Set ℂ := {ρ : ℂ | ‖ρ‖ ≤
 
 
 blueprint_comment /--
+\begin{definition}[ZeroOrder]\label{ZeroOrder}
   Let $f:\mathbb{C}\to\mathbb{C}$.
   We define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
-
+\end{definition}
   In LEAN, this corresponds exactly with analyticOrderAt/analyticOrderNatAt.
 -/
 
