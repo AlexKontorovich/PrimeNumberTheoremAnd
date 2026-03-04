@@ -442,36 +442,33 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
 
 
 
-blueprint_comment /--
-\begin{definition}[SetOfZeros]\label{SetOfZeros}
-    Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros
+@[blueprint "SetOfZeros"
+  (title := "SetOfZeros")
+  (statement := /--
+    Let $R>0$ and $f:\mathbb{C}\to\mathbb{C}$. Define the set of zeros
     $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$.
-\end{definition}
--/
+  -/)]
+def SetOfZeros (R : ℝ) (f : ℂ → ℂ) : Set ℂ := {ρ : ℂ | ‖ρ‖ ≤ R ∧ f ρ = 0}
 
 
 
 blueprint_comment /--
-\begin{definition}[ZeroOrder]\label{ZeroOrder}
-    Let $0 < R<1$ and $f:\mathbb{C}\to\mathbb{C}$ be analtyic on neighborhoods of points in
-    $\overline{\mathbb{D}_1}$. For any zero $\rho\in\mathcal{K}_f(R)$, we define $m_f(\rho)$
-    as the order of the zero $\rho$ w.r.t $f$.
-\end{definition}
+  Let $f:\mathbb{C}\to\mathbb{C}$.
+  We define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
+
+  In LEAN, this corresponds exactly with analyticOrderAt/analyticOrderNatAt.
 -/
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZeroFactorization]\label{ZeroFactorization}
-    Let $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in
-    $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For all $\rho\in\mathcal{K}_f(1)$ there
-    exists $h_\rho(z)$ that is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and
-    $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+@[blueprint "ZeroFactorization"
+  (title := "ZeroFactorization")
+  (statement := /--
+    Let $f:\mathbb{C}\to\mathbb{C}$ be analytic of neighborhoods of points in
+    $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For $ρ\in\mathcal{K}_f(R)$ with $R<1$ we define
+    $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
+  -/)
+  (proof := /--
     Since $f$ is analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ we know
     that there exists a series expansion about $\rho$:
     $$f(z)=\sum_{0\leq n}a_n\,(z-\rho)^n.$$
@@ -481,8 +478,35 @@ blueprint_comment /--
     Trivially, $h_\rho(z)$ is analytic at $\rho$ (we have written down the series
     expansion); now note that
     $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
-\end{proof}
--/
+  -/)]
+lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : ∀ z ∈ Metric.closedBall (0 : ℂ) 1, AnalyticAt ℂ f z)
+    (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) (ρ : ℂ) (hρ : ρ ∈ SetOfZeros R f) :
+    ∃ h_ρ : ℂ → ℂ, AnalyticAt ℂ h_ρ ρ ∧ h_ρ ρ ≠ 0 ∧
+    ∀ᶠ z in nhds ρ, f z = (z - ρ) ^ (analyticOrderNatAt f ρ) * h_ρ z := by
+    have ρ_mem_ball : ρ ∈ Metric.ball (0 : ℂ) 1 := by
+      rw[mem_ball_iff_norm, sub_zero]
+      linarith[hρ.1]
+    have f_analAt_ρ : AnalyticAt ℂ f ρ := by
+      apply hfAnalytic ρ
+      rw[mem_closedBall_iff_norm]
+      rw[mem_ball_iff_norm] at ρ_mem_ball
+      exact le_of_lt ρ_mem_ball
+    have finiteOrder : analyticOrderAt f ρ ≠ ⊤ := by
+      by_contra orderIsTop
+      have f_analOnNhd_ball : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 1) := by
+        intro z hz
+        apply hfAnalytic z
+        rw[mem_closedBall_iff_norm]
+        rw[mem_ball_iff_norm] at hz
+        exact le_of_lt hz
+      have f_eqZeroOn : Set.EqOn f 0 (Metric.ball (0 : ℂ) 1) := by
+        apply AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero f_analOnNhd_ball (Metric.isPreconnected_ball) ρ_mem_ball
+        simp only [analyticOrderAt, f_analAt_ρ, ↓reduceDIte, ne_eq, smul_eq_mul, dite_eq_left_iff,
+          not_eventually, ENat.coe_ne_top, imp_false, not_frequently, Decidable.not_not] at orderIsTop
+        exact orderIsTop
+      exact hf_neq_zero_at_zero (f_eqZeroOn (by simp only [Metric.mem_ball, dist_self, zero_lt_one]))
+    rcases (f_analAt_ρ.analyticOrderAt_ne_top).mp finiteOrder with ⟨h_ρ, h_ρ_analAt_ρ, h_ρ_neq_zero_at_zero, f_eq⟩
+    exact ⟨h_ρ, h_ρ_analAt_ρ, h_ρ_neq_zero_at_zero, f_eq⟩
 
 
 
