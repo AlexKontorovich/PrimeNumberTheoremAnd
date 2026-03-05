@@ -185,9 +185,7 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
 @[blueprint "PathIntegral"
   (title := "PathIntegral")
   (statement := /--
-    Let $0 < r < R<1$. Let $f:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_R}$. Define the functon
-    $I_f:\overline{\mathbb{D}_r}\to\mathbb{C}$ by
+    Let $f:\mathbb{C}\to\mathbb{C}$. Define the functon $I_f:\mathbb{C}\to\mathbb{C}$ by
     $$I_f(z)=z\int_0^1f(tz)\,dt.$$
   -/)
   (latexEnv := "definition")]
@@ -195,12 +193,175 @@ noncomputable def PathIntegral (f : ℂ → ℂ) :
     ℂ → ℂ := fun c ↦ let γ : ℝ → ℂ := fun s ↦ s * c
     ∫ t in 0..1, f (γ t) * (deriv γ) t
 
+/--
+Auxilary lemmas for LogOfAnalyticFunction
+-/
+lemma shiftedMulCont (z : ℂ) (y : ℂ) : Continuous (fun (t : ℝ) ↦ ↑t * (z + y)) := by
+  exact Continuous.mul (Complex.continuous_ofReal) (continuous_const)
+lemma mulContInterval (z : ℂ) : ContinuousOn (fun (x : ℝ) ↦ ↑x * z) (Set.uIcc (0 : ℝ) 1) := by
+  rw[← add_zero z]
+  exact (shiftedMulCont z 0).continuousOn
+lemma shiftedMulContInverval (z : ℂ) (y : ℂ) : ContinuousOn (fun t ↦ ↑t * (z + y)) (Set.uIcc (0 : ℝ) 1) := by
+  exact (shiftedMulCont z y).continuousOn
+
+lemma PathIntegral_IBP {f : ℂ → ℂ} {R : ℝ}
+    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) {z : ℂ} (hz : z ∈ Metric.ball 0 R) :
+    ∫ t in (0 : ℝ)..1, (t : ℂ) * z * deriv f (t * z) = f z - ∫ t in (0 : ℝ)..1, f (t * z) := by
+      rw[mem_ball_iff_norm, sub_zero] at hz;
+      have norm_thing : Set.MapsTo (fun x => ↑x * z) (Set.Icc (0 : ℝ) 1) (Metric.ball 0 R) := by
+        rw[Set.MapsTo];
+        intro x hx
+        rw[Set.mem_Icc] at hx;
+        simp only [mem_ball_iff_norm, sub_zero, Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
+        rw[abs_of_nonneg hx.1, ← one_mul R]
+        exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
+      rw [ eq_sub_iff_add_eq', ← intervalIntegral.integral_add ];
+      · rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+        rotate_right;
+        · use fun x => x * f ( x * z )
+        · norm_num
+        · intro x hx; convert HasDerivAt.mul ( HasDerivAt.ofReal_comp ( hasDerivAt_id x ) ) ( HasDerivAt.comp x ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.mul ( hasDerivAt_id _ |> HasDerivAt.ofReal_comp ) ( hasDerivAt_const _ _ ) ) ) using 1 <;> norm_num;
+          · ring_nf;
+          · rw[Set.uIcc_of_le zero_le_one, Set.mem_Icc] at hx
+            rw[abs_of_nonneg hx.1, ← one_mul R]
+            exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
+        · apply ContinuousOn.intervalIntegrable;
+          exact ContinuousOn.add (ContinuousOn.comp ( hf.continuousOn ) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem)))) (ContinuousOn.mul (mulContInterval z) ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn ) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem))) ));
+      · apply ContinuousOn.intervalIntegrable
+        exact ContinuousOn.comp (hf.continuousOn) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem)))
+      · apply ContinuousOn.intervalIntegrable
+        refine ContinuousOn.mul (mulContInterval _) ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn) (mulContInterval _) ?_ );
+        rw[Set.uIcc_of_lt Real.zero_lt_one]
+        exact norm_thing
+
+lemma deriv_integral_of_analytic {f : ℂ → ℂ} {R : ℝ}
+    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) {z : ℂ} (hz : z ∈ Metric.ball 0 R) :
+    HasDerivAt (fun z => ∫ t in (0 : ℝ)..1, f (t * z)) (∫ t in (0 : ℝ)..1, (t : ℂ) * deriv f (t * z)) z := by
+      rw[mem_ball_iff_norm, sub_zero] at hz;
+      have norm_thing' : ∀ y : ℂ, dist y 0 < R - ‖z‖ → Set.MapsTo (fun u ↦ ↑u * (z + y)) (Set.uIcc (0 : ℝ) 1) (Metric.ball 0 R) := by
+        intro y hy
+        rw[dist_eq_norm, sub_zero] at hy
+        simp only [Set.MapsTo, Metric.mem_ball, dist_zero_right, Complex.norm_mul, Complex.norm_real,
+          Real.norm_eq_abs]
+        intro x hx
+        rw[Set.uIcc_of_lt Real.zero_lt_one, Set.mem_Icc] at hx
+        rw[abs_of_nonneg hx.1, ← one_mul R]
+        exact mul_lt_mul' hx.2 (by nlinarith[norm_add_le z y]) (norm_nonneg _) Real.zero_lt_one
+      have norm_thing : Set.MapsTo (fun t ↦ ↑t * z) (Set.uIcc (0 : ℝ) 1) (Metric.ball 0 R) := by
+        have h := norm_thing' 0
+        rw[add_zero, dist_self, sub_pos] at h
+        exact h hz
+      rw [ hasDerivAt_iff_tendsto_slope_zero ];
+      have h_lim : Filter.Tendsto (fun t => ∫ u in (0 : ℝ)..1, (f ((u : ℂ) * (z + t)) - f ((u : ℂ) * z)) / t) (nhdsWithin 0 {0}ᶜ) (nhds (∫ u in (0 : ℝ)..1, (u : ℂ) * deriv f ((u : ℂ) * z))) := by
+        have h_dominate : ∃ M > 0, ∀ t : ℂ, ‖t‖ < (R - ‖z‖) / 2 → ∀ u ∈ Set.Icc (0 : ℝ) 1, ‖(f ((u : ℂ) * (z + t)) - f ((u : ℂ) * z)) / t‖ ≤ M := by
+          obtain ⟨M, hM⟩ : ∃ M > 0, ∀ w ∈ Metric.closedBall 0 (‖z‖ + (R - ‖z‖) / 2), ‖deriv f w‖ ≤ M := by
+            have h_deriv_bound : ContinuousOn (deriv f) (Metric.closedBall 0 (‖z‖ + (R - ‖z‖) / 2)) := by
+              exact (hf.deriv).continuousOn.mono ( Metric.closedBall_subset_ball <| by linarith );
+            obtain ⟨ M, hM ⟩ := IsCompact.exists_bound_of_continuousOn ( ProperSpace.isCompact_closedBall 0 ( ‖z‖ + ( R - ‖z‖ ) / 2 ) ) h_deriv_bound
+            use Max.max M 1
+            exact ⟨lt_max_of_lt_right one_pos, fun w hw => le_trans ( hM w hw ) ( le_max_left _ _ )⟩
+          use M, hM.1;
+          intro t ht u hu
+          have h_int : f (u * (z + t)) - f (u * z) = ∫ s in (0 : ℝ)..1, deriv f (u * z + s * u * t) * u * t := by
+            rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+            rotate_right;
+            · use fun x => f ( u * z + x * u * t );
+            · simp only [Complex.ofReal_one, one_mul, Complex.ofReal_zero, zero_mul, add_zero, mul_add];
+            · intro x hx; convert HasDerivAt.comp x ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.add ( hasDerivAt_const _ _ ) <| HasDerivAt.mul ( HasDerivAt.mul ( hasDerivAt_id _ |> HasDerivAt.ofReal_comp ) <| hasDerivAt_const _ _ ) <| hasDerivAt_const _ _ ) using 1 <;> norm_num ;
+              · ring;
+              · norm_num at *;
+                refine lt_of_le_of_lt ( norm_add_le _ _ ) ?_ ; norm_num [ abs_of_nonneg hu.1, abs_of_nonneg hx.1 ];
+                nlinarith [ mul_nonneg hu.1 hx.1, mul_le_mul_of_nonneg_left hu.2 hx.1, mul_le_mul_of_nonneg_left hx.2 hu.1, norm_nonneg z, norm_nonneg t ];
+            · apply ContinuousOn.intervalIntegrable;
+              refine ContinuousOn.mul ( ContinuousOn.mul ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn ) ?_ ?_ ) continuousOn_const ) continuousOn_const;
+              · exact ContinuousOn.add (continuousOn_const) (ContinuousOn.mul (ContinuousOn.mul (Complex.continuous_ofReal.continuousOn) (continuousOn_const)) (continuousOn_const))
+              · rw[ Set.MapsTo ];
+                intro x hx
+                simp only [Set.uIcc_of_le zero_le_one, Set.mem_Icc] at hx hu
+                rw[mem_ball_iff_norm, sub_zero]
+                calc ‖u * z + x * u * t‖ ≤ ‖u * z‖ + ‖x * u * t‖ := norm_add_le (u * z) (x * u * t)
+                  _ ≤ u * (‖z‖ + x * ‖t‖) := by
+                    simp only [Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
+                    rw [abs_of_nonneg hu.1, abs_of_nonneg hx.1, mul_add, mul_left_comm, mul_assoc];
+                  _ < R := by
+                    rw[← one_mul R]
+                    refine mul_lt_mul' hu.2 (by nlinarith[hx, ht]) ?_ Real.zero_lt_one
+                    exact add_nonneg (norm_nonneg z) (mul_nonneg hx.1 (norm_nonneg t))
+          by_cases ht' : t = 0
+          · simp only [ht', add_zero, div_zero, norm_zero]
+            linarith
+          · rw[h_int]
+            simp only [intervalIntegral.integral_mul_const, isUnit_iff_ne_zero, ne_eq, ht',
+              not_false_eq_true, IsUnit.mul_div_cancel_right, Complex.norm_mul, Complex.norm_real,
+              Real.norm_eq_abs, ge_iff_le]
+            rw[Set.mem_Icc] at hu
+            have : M = M * |1 - 0| := by simp only [sub_zero, abs_one, mul_one]
+            rw[abs_of_nonneg hu.1, ← mul_one M, this]
+            refine mul_le_mul ?_ hu.2 hu.1 (by linarith)
+            apply intervalIntegral.norm_integral_le_of_norm_le_const
+            intro x hx
+            apply hM.2
+            rw[mem_closedBall_iff_norm, sub_zero]
+            rw[Set.uIoc_of_le zero_le_one, Set.mem_Ioc] at hx
+            calc ‖u * z + x * u * t‖ ≤ ‖u * z‖ + ‖x * u * t‖ := norm_add_le (u * z) (x * u * t)
+              _ ≤ u * ‖z‖ + x * u * ‖t‖ := by
+                simp only [Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
+                rw[abs_of_nonneg hu.1, abs_of_pos hx.1];
+              _ ≤ ‖z‖ + (R - ‖z‖) / 2 := by
+                refine add_le_add (mul_le_of_le_one_left (norm_nonneg z) (hu.2)) ?_
+                rw[← one_mul ((R- ‖z‖) / 2), ← one_mul 1]
+                refine mul_le_mul (mul_le_mul hx.2 hu.2 hu.1 zero_le_one) (le_of_lt ht) (norm_nonneg t) ?_
+                rw[one_mul]
+                exact zero_le_one
+        apply intervalIntegral.tendsto_integral_filter_of_dominated_convergence _ _ _ _ _;
+        · use fun u => h_dominate.choose;
+        · rw [ eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
+          refine ⟨ ( R - ‖z‖ ) / 2, half_pos ( sub_pos.mpr <| by simpa using hz ), fun y hy hy' => ?_ ⟩;
+          refine ContinuousOn.aestronglyMeasurable (ContinuousOn.div_const (ContinuousOn.sub ?_ ?_) _) measurableSet_Ioc;
+          · exact ContinuousOn.mono (ContinuousOn.comp (hf.continuousOn) (shiftedMulContInverval z y) (norm_thing' y (by linarith))) (Set.uIoc_subset_uIcc);
+          · exact ContinuousOn.mono (ContinuousOn.comp (hf.continuousOn) (mulContInterval z) (norm_thing)) (Set.uIoc_subset_uIcc);
+        · rw [ eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
+          exact ⟨ ( R - ‖z‖ ) / 2, half_pos ( sub_pos.mpr <| by simpa using hz ), fun y hy hy' => Filter.Eventually.of_forall fun x hx => h_dominate.choose_spec.2 y ( by simpa using hy ) x <| by constructor <;> cases Set.mem_uIoc.mp hx <;> linarith ⟩;
+        · simp only [gt_iff_lt, Set.mem_Icc, Complex.norm_div, and_imp, ne_eq, enorm_ne_top,
+          not_false_eq_true, intervalIntegrable_const]
+        · refine Filter.Eventually.of_forall fun x hx => ?_;
+          rw[Set.uIoc_of_le zero_le_one, Set.mem_Ioc] at hx;
+          have h_deriv : HasDerivAt (fun n => f ((x : ℂ) * (z + n))) (x * deriv f ((x : ℂ) * z)) 0 := by
+            convert HasDerivAt.comp 0 ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.const_mul ( x : ℂ ) ( hasDerivAt_id 0 |> HasDerivAt.const_add z ) ) using 1
+            · simp only [id_eq, add_zero, mul_one, mul_comm]
+            · simp only [id_eq, add_zero, Metric.mem_ball, dist_zero_right, Complex.norm_mul,
+              Complex.norm_real, Real.norm_eq_abs]
+              rw[abs_of_pos hx.1, ← one_mul R]
+              exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
+          simpa [ div_eq_inv_mul ] using h_deriv.tendsto_slope_zero;
+      refine h_lim.congr' ?_;
+      rw [ Filter.EventuallyEq, eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
+      refine ⟨ R - ‖z‖, sub_pos.mpr hz, fun y hy hy' => ?_ ⟩;
+      rw [ ← intervalIntegral.integral_sub ];
+      · simp only [smul_eq_mul, div_eq_inv_mul, intervalIntegral.integral_const_mul]
+      all_goals apply ContinuousOn.intervalIntegrable;
+      · exact ContinuousOn.comp hf.continuousOn (shiftedMulContInverval _ _) (norm_thing' y hy);
+      · exact ContinuousOn.comp hf.continuousOn (mulContInterval _) (norm_thing);
+
+theorem PathIntegral_deriv {f : ℂ → ℂ} {R : ℝ}
+    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) :
+    ∀ z ∈ Metric.ball 0 R, HasDerivAt (PathIntegral f) (f z) z := by
+      intro z hz;
+      convert HasDerivAt.congr_of_eventuallyEq _ ?_ using 1;
+      · exact fun x => x * ( ∫ t in ( 0 : ℝ )..1, f ( t * x ) );
+      · convert HasDerivAt.mul ( hasDerivAt_id z ) ( deriv_integral_of_analytic hf hz ) using 1;
+        have := @PathIntegral_IBP f R hf z hz;
+        simp_all +decide [ mul_assoc, mul_comm, ← intervalIntegral.integral_const_mul ];
+      · filter_upwards [ IsOpen.mem_nhds ( Metric.isOpen_ball ) hz ] with x hx;
+        unfold PathIntegral;
+        norm_num [ mul_comm ];
+
 
 
 @[blueprint "LogOfAnalyticFunction"
   (title := "LogOfAnalyticFunction")
   (statement := /--
-    Let $0 < r < R<1$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on
+    Let $0 < r < R$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on
     neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all
     $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that
     is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
@@ -226,44 +387,58 @@ noncomputable def PathIntegral (f : ℂ → ℂ) :
     Taking the logarithm of both sides completes the proof.
   -/)
   (latexEnv := "theorem")]
-theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
+theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
     {B : ℂ → ℂ} (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R)) (Bnonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, B z ≠ 0) :
     ∃ (J_B : ℂ → ℂ),
     (AnalyticOnNhd ℂ J_B (Metric.closedBall 0 r)) ∧
     (J_B 0 = 0) ∧
     (∀ z ∈ Metric.closedBall 0 r, (deriv J_B) z = (deriv B) z / (B z)) ∧
     (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
-    let L : ℂ → ℂ := fun z ↦ deriv B z / B z
-    have LanalyticOnNhdOfDR : AnalyticOnNhd ℂ L (Metric.closedBall (0 : ℂ) R) := AnalyticOnNhd.div (AnalyticOnNhd.deriv BanalyticOnNhdOfDR) BanalyticOnNhdOfDR Bnonzero
-    let J_B : ℂ → ℂ := PathIntegral L
-    use J_B
-    have derivJ_BOnOpenR : ∀ z ∈ Metric.ball 0 R, deriv J_B z = L z := by
-        intro w hw
-        sorry
-    have derivJ_BOnClosedr : ∀ z ∈ Metric.closedBall 0 r, deriv J_B z = L z := by
-        intro w hw
-        apply derivJ_BOnOpenR
-        rw[mem_ball_zero_iff]
-        rw[mem_closedBall_zero_iff] at hw
-        linarith
-    have J_BAnalytic : AnalyticOnNhd ℂ J_B (Metric.closedBall 0 r) := by
-        unfold AnalyticOnNhd
+    -- By `PathIntegral_deriv`, $J_B'(z) = f(z) = B'(z)/B(z)$ for all $z \in B(0, R)$.
+    obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (deriv B z / B z) z)) ∧ J_B 0 = 0 ∧ (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
+      set f : ℂ → ℂ := fun z => deriv B z / B z;
+      have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) := by
+        apply_rules [ AnalyticOnNhd.div, BanalyticOnNhdOfDR.deriv ];
+        · apply_rules [ AnalyticOnNhd.deriv, BanalyticOnNhdOfDR ];
+          exact BanalyticOnNhdOfDR.mono <| Metric.ball_subset_closedBall;
+        · exact BanalyticOnNhdOfDR.mono <| Metric.ball_subset_closedBall;
+        · exact fun z hz => Bnonzero z <| Metric.ball_subset_closedBall hz;
+      obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (f z) z)) ∧ J_B 0 = 0 := by
+        use PathIntegral f;
+        exact ⟨ fun z hz => PathIntegral_deriv hf z hz, by unfold PathIntegral; norm_num ⟩;
+      -- Let $H(z) = \exp(J_B(z)) / B(z)$.
+      set H : ℂ → ℂ := fun z => Complex.exp (J_B z) / B z;
+      have hH_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt H 0 z := by
         intro z hz
-        have hd : DifferentiableOn ℂ J_B (Metric.ball 0 R) := by
-            sorry
-        have inNhds : Metric.ball 0 R ∈ nhds z := by
-            apply IsOpen.mem_nhds (Metric.isOpen_ball)
-            rw[mem_ball_zero_iff]
-            rw[mem_closedBall_zero_iff] at hz
-            linarith
-        exact DifferentiableOn.analyticAt hd inNhds
-    have J_BZeroAtZero : J_B 0 = 0 := by
-        unfold J_B PathIntegral
-        simp only [mul_zero, deriv_const', intervalIntegral.integral_zero]
-    have J_BLogDiff : ∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re := by
-        intro w hw
-        sorry
-    exact ⟨J_BAnalytic, J_BZeroAtZero, derivJ_BOnClosedr, J_BLogDiff⟩
+        have hH_deriv : HasDerivAt (fun z => Complex.exp (J_B z)) (Complex.exp (J_B z) * f z) z := by
+          exact HasDerivAt.comp z ( Complex.hasDerivAt_exp _ ) ( hJB.1 z hz );
+        convert HasDerivAt.div hH_deriv ( BanalyticOnNhdOfDR.differentiableOn.differentiableAt ( Metric.closedBall_mem_nhds_of_mem hz ) |> DifferentiableAt.hasDerivAt ) ( Bnonzero z <| Metric.ball_subset_closedBall hz ) using 1 ; ring_nf!;
+        grind;
+      -- Since $H'(z) = 0$, $H(z)$ is constant on $B(0, R)$.
+      have hH_const : ∀ z ∈ Metric.ball 0 R, H z = H 0 := by
+        intro z hz
+        have h_diffOn : DifferentiableOn ℂ H (Metric.ball 0 R) := by
+          intro z hz
+          apply DifferentiableAt.differentiableWithinAt
+          exact HasDerivAt.differentiableAt (hH_deriv z hz)
+        refine Convex.is_const_of_fderivWithin_eq_zero (convex_ball 0 R) h_diffOn ?_ hz (Metric.mem_ball_self (Metric.pos_of_mem_ball hz))
+        intro x hx
+        rw[fderivWithin_of_isOpen Metric.isOpen_ball hx, ← ContinuousLinearMap.toSpanSingleton_zero]
+        exact ((hH_deriv x hx).hasFDerivAt).fderiv
+      -- Taking norms: $\exp(\text{Re}(J_B(z))) = |B(z)|/|B(0)|$.
+      have h_exp_re : ∀ z ∈ Metric.ball 0 R, Real.exp (J_B z).re = ‖B z‖ / ‖B 0‖ := by
+        intro z hz; specialize hH_const z hz
+        simp only [H] at hH_const
+        rw[hJB.2, Complex.exp_zero, one_div, div_eq_iff (Bnonzero z (Metric.ball_subset_closedBall hz)), mul_comm] at hH_const
+        rw[← Complex.norm_exp, ← norm_div, div_eq_mul_inv]
+        exact enorm_eq_iff_norm_eq.mp (congrArg enorm hH_const)
+      exact ⟨ J_B, hJB.1, hJB.2, fun z hz => by rw [ ← Real.log_div ( by specialize Bnonzero z ( Metric.ball_subset_closedBall hz ) ; aesop ) ( by specialize Bnonzero 0 ( by norm_num; linarith ) ; aesop ), ← h_exp_re z hz, Real.log_exp ] ⟩;
+    refine ⟨ J_B, ?_, hJB.2.1, ?_, ?_ ⟩;
+    · intro z hz;
+      apply DifferentiableOn.analyticAt _ _
+      exacts [ Metric.ball 0 R, fun w hw => ( hJB.1 w hw |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt ), Metric.isOpen_ball.mem_nhds <| by simpa using by linarith [ mem_closedBall_zero_iff.mp hz ] ];
+    · exact fun z hz => HasDerivAt.deriv ( hJB.1 z <| Metric.mem_ball.mpr <| lt_of_le_of_lt ( Metric.mem_closedBall.mp hz ) r_lt_R );
+    · exact fun z hz => hJB.2.2 z <| Metric.mem_ball.mpr <| lt_of_le_of_lt ( Metric.mem_closedBall.mp hz ) r_lt_R
 
 
 

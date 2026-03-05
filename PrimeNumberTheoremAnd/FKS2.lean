@@ -718,13 +718,55 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
 
+theorem l0 {x y : ℝ} (hx : 2 ≤ x) (hy : x ≤ y) :
+    ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc x y) := by
+  refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+    continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
+  repeat simp_all; grind
+
+theorem Li_identity {x} (hx : 2 ≤ x) :
+    Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
+  have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
+  rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
+    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
+    intervalIntegrable_const]
+  · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
+      = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
+      rw [this, intervalIntegral.integral_neg]; ring
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    ring_nf
+    rw [mul_inv_cancel₀ (hnt ht), one_mul]
+  · intro t ht
+    simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
+  · simp only [neg_div, div_div]
+    simpa using (l0 (refl 2) hx).intervalIntegrable.neg
+
+theorem l1 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume x y := by
+  simpa [div_eq_mul_inv] using theta_mono.intervalIntegrable.mul_continuousOn (l0 hx hy)
+
+theorem l2 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume x y := by
+  simpa [div_eq_mul_inv] using intervalIntegral.intervalIntegrable_id.mul_continuousOn (l0 hx hy)
+
+theorem he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
+  + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
+  simp only [RS_prime.eq_417 hx, Li_identity hx, sub_div,
+    intervalIntegral.integral_sub (l1 (refl 2) hx) (l2 (refl 2) hx)]
+  rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
+  · ring_nf
+  · simp_all; grind
+
+theorem l3 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
+    IntervalIntegrable (fun t ↦ (θ t - t) / (t * log t ^ 2)) volume x y := by
+  simpa [sub_div] using (l1 hx hy).sub (l2 hx hy)
 
 blueprint_comment /--
 \subsection{From asymptotic estimates on theta to asymptotic estimates on pi}
 
 To get from asymptotic estimates on $E_\theta$ to asymptotic estimates on $E_\pi$, one first needs a way to express the latter as an integral of the former.
 -/
-
 @[blueprint
   "fks2-eq-17"
   (title := "FKS2 equation (17)")
@@ -740,45 +782,13 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
     ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
   have px : 2 ≤ x := by linarith
-  have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
-    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
-      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
-    repeat simp_all; grind
-  have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      theta_mono.intervalIntegrable (l0 hx)
-  have l2 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      intervalIntegral.intervalIntegrable_id (l0 hx)
-  have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
-    have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
-    rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
-    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
-    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
-    intervalIntegrable_const]
-    · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
-        = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
-        rw [this, intervalIntegral.integral_neg]; ring
-      refine intervalIntegral.integral_congr fun t ht ↦ ?_
-      ring_nf
-      rw [mul_inv_cancel₀ (hnt ht), one_mul]
-    · intro t ht
-      simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
-    · simp only [neg_div, div_div]
-      simpa using (l0 hx).intervalIntegrable.neg
-  have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
-    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
-    simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
-    rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
-    · ring_nf
-    · simp_all; grind
   calc
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
     ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
     rw [intervalIntegral.integral_interval_sub_left]
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 px) (l2 px)
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 hx₀) (l2 hx₀)
+    · simpa [sub_div] using l3 (refl 2) px
+    · simpa [sub_div] using l3 (refl 2) hx₀
 
 blueprint_comment /--
 The following definition is only implicitly in FKS2, but will be convenient:
@@ -866,7 +876,10 @@ Next, we bound the integral appearing in Sublemma \ref{fks2-eq-17}.
   where
   $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
   -/)
-  (proof := /-- Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
+  (proof := /--
+NOTE: in order for the proof to work, some lower bounds on $x_0$ were added to make various limits of integration non-negative.
+
+  Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
 \[
 \int_{x_0}^{x} \left| \frac{\theta(t) - t}{t(\log(t))^2} \right| dt \leq \int_{x_0}^{x} \frac{\varepsilon_{\theta,\mathrm{asymp}}(t)}{(\log(t))^2} = \frac{A_\theta}{R^B} \int_{x_0}^{x} (\log(t))^{B-2} \exp\left( -C\sqrt{\frac{\log(t)}{R}} \right) dt.
 \]
@@ -886,11 +899,163 @@ Now we have
 Combining the above completes the proof. -/)
   (latexEnv := "lemma")
   (discussion := 617)]
-theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
+theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀)
+    (hx₀ : 2 ≤ x₀) (hR : 0 < R) (hA : 0 ≤ A) (h : 0 ≤ √(log x₀) - C / (2 * √R)) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
-    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
-  sorry
+    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) := by
+  have log_t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, log t ≠ 0 := fun t ht ↦ (by simp; grind [Set.uIcc_of_le hx])
+  have t_ne_zero : ∀ t ∈ Set.uIcc x₀ x, t ≠ 0 := fun t ht ↦ (by grind [Set.uIcc_of_le hx])
+  have t_pos : ∀ t ∈ Set.uIcc √(log x₀) √(log x), 0 < t := by
+    intro t ht
+    rw [Set.uIcc_of_le (by gcongr)] at ht
+    apply lt_of_lt_of_le _ ht.1
+    exact sqrt_pos.mpr (log_pos (by linarith))
+  calc
+  _ ≤ ∫ t in x₀..x, |admissible_bound A B C R t| / log t ^ 2 := by
+    apply intervalIntegral.integral_mono_on hx
+    · refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      unfold Eθ
+      apply IntervalIntegrable.abs
+      refine IntervalIntegrable.mul_continuousOn ?_ (by fun_prop (disch := grind))
+      refine IntervalIntegrable.abs <| IntervalIntegrable.sub ?_ intervalIntegral.intervalIntegrable_id
+      apply intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mpr
+      conv => arg 1; ext x; rw [← one_mul (θ x), theta_eq_sum_Icc, Finset.sum_filter]
+      apply  integrableOn_mul_sum_Icc _ (by linarith)
+      apply ContinuousOn.integrableOn_Icc
+      fun_prop
+    · apply IntervalIntegrable.mul_continuousOn
+      · apply IntervalIntegrable.abs
+        apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        unfold admissible_bound
+        fun_prop (disch := grind)
+      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        fun_prop (disch := grind)
+    · intro t ht
+      specialize hEθ t ht.1
+      gcongr
+      unfold Eθ
+      exact div_nonneg (by positivity) (by grind)
+  _ = ∫ (t : ℝ) in x₀..x, A * (log t / R) ^ B * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) / log t ^ 2 := by
+    unfold admissible_bound
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    congr
+    rw [abs_of_nonneg]
+    refine mul_nonneg ?_ (by positivity)
+    refine mul_nonneg hA <| rpow_nonneg (div_nonneg ?_ hR.le) _
+    exact log_nonneg (by grind [Set.uIcc_of_le hx])
+  _ = ∫ (t : ℝ) in x₀..x, A / R ^ B * (log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2))) := by
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [div_rpow (log_nonneg (by grind[Set.uIcc_of_le hx])) hR.le, rpow_sub (log_pos (by grind[Set.uIcc_of_le hx])), rpow_ofNat]
+    field
+  _ = A / R ^ B * ∫ (t : ℝ) in x₀..x, log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) := by
+    rw [intervalIntegral.integral_const_mul]
+  _ =  A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), (t ^ 2) ^ (B - 2) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * (2 * t * rexp (t ^ 2)) := by
+    have subst := intervalIntegral.integral_comp_mul_deriv' (f := (fun t ↦ rexp (t ^ 2))) (g := (fun t ↦ log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)))) (f' := (fun t ↦ 2 * t * rexp (t ^ 2))) (a := x₀.log.sqrt) (b := x.log.sqrt)
+    have left : rexp (x₀.log.sqrt ^ 2) = x₀ := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    have right : rexp (x.log.sqrt ^ 2) = x := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    simp_rw [left, right] at subst
+    simp only [Function.comp_apply, log_exp] at subst
+    rw [← subst]
+    · intro t ht
+      have := hasDerivAt_pow 2 t
+      simp only [Nat.cast_ofNat, Nat.add_one_sub_one, pow_one] at this
+      convert hasDerivAt_exp (t ^ 2) |>.comp t this using 1
+      ring
+    · fun_prop
+    · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      simp only [Set.mem_image] at ht
+      rcases ht with ⟨y, ⟨hy1, hy2⟩⟩
+      rw [Set.uIcc_of_le (by gcongr)] at hy1
+      have : log t ≠ 0 := by
+        rw [← hy2, log_exp]
+        simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff]
+        have : √(log x₀) > 0 := by
+          exact sqrt_pos.mpr <| log_pos (by linarith)
+        linarith [hy1.1]
+      have : t ≠ 0 := by
+        rw [← hy2]
+        exact exp_ne_zero _
+      fun_prop (disch := grind)
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 4) * t * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * rexp (t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [← rpow_ofNat, ← rpow_mul (t_pos t ht).le]
+    ring_nf
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 3) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2) + t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add, (by ring : 2 * B - 3 = (2 * B - 4)+ 1), rpow_add <| t_pos t ht, rpow_one]
+    ring
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * (t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R)) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [← sqrt_eq_rpow, sqrt_div (by positivity), sqrt_sq (t_pos t ht).le]
+    ring_nf
+  _ = 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ ≤ 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (t ^ 2 - C * t / √R) := by
+    gcongr
+    apply intervalIntegral.integral_mono_on (by gcongr)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      fun_prop (disch := grind)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      fun_prop
+    · intro t ht
+      gcongr
+      by_cases! h : 0 ≤ 2 * B - 3
+      · apply le_max_of_le_right
+        grw [ht.2, sqrt_eq_rpow, ← rpow_mul]
+        · field_simp; rfl
+        · apply log_nonneg (by linarith)
+        · exact le_trans (sqrt_nonneg _) ht.1
+      · apply le_max_of_le_left
+        trans (√(log x₀)) ^ (2 * B - 3)
+        · apply rpow_le_rpow_of_nonpos _ ht.1 h.le
+          exact sqrt_pos.mpr (log_pos (by linarith))
+        · rw [sqrt_eq_rpow, ← rpow_mul]
+          · field_simp; rfl
+          · exact log_nonneg (by linarith)
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2 + (-C ^ 2 / (4 * R))) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [sub_sq, div_pow, mul_pow, sq_sqrt hR.le]
+    ring_nf
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (-C ^ 2 / (4 * R)) * rexp ((t - C / (2 * √R)) ^ 2) := by
+    congr 1
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp ((t - C / (2 * √R)) ^ 2) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
+  _ = 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in (√(log x₀)  - C / (2 * √R))..(√(log x)  - C / (2 * √R)), rexp (t ^ 2) := by
+    rw [intervalIntegral.integral_comp_sub_right (f := (fun t ↦ rexp (t ^ 2)))]
+  _ ≤ 2 * A / R ^ B * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R)) * ∫ (t : ℝ) in 0..(√(log x)  - C / (2 * √R)), rexp (t ^ 2) := by
+    gcongr
+    · bound
+    · apply intervalIntegral.integral_mono_interval h (by gcongr) (by rfl)
+      · filter_upwards [] with t using exp_nonneg (t ^ 2)
+      · apply Continuous.intervalIntegrable
+        fun_prop
+  _ = _ := by
+    unfold dawson
+    rw [sub_sq, sq_sqrt (log_nonneg (by linarith)), div_pow, mul_pow, sq_sqrt hR.le, ← mul_assoc]
+    congr 1
+    ac_change 2 * A / R ^ B * (max (log x₀ ^ ((2 * B - 3) / 2)) (log x ^ ((2 * B - 3) / 2)) * rexp (-C ^ 2 / (4 * R))) =
+      2 * A / R ^ B * (max (log x₀ ^ ((2 * B - 3) / 2)) (log x ^ ((2 * B - 3) / 2)) * (x * rexp (-C * √(log x / R)) *
+      rexp (-(log x - 2 * √(log x) * (C / (2 * √R)) + C ^ 2 / (2 ^ 2 * R)))))
+    congr 2
+    have : x = exp (log x) := by rw [exp_log (by linarith)]
+    nth_rw 1 [this]
+    rw [← exp_add, ← exp_add, sqrt_div (log_nonneg (by linarith))]
+    ring_nf
 
 @[blueprint
   "fks2-eq-9"
@@ -1108,12 +1273,27 @@ blueprint_comment /--
 Here we record a way to convert a numerical bound on $E_\theta$ to a numerical bound on $E_\pi$.  We first need some preliminary lemmas.
 -/
 
+theorem Li_identity' {a b : ℝ} (ha : 2 ≤ a) (hb : a ≤ b) :
+    ∫ t in a..b, 1 / log t ^ 2 = Li b - Li a - b / log b + a / log a :=
+  have {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ 1 / log t ^ 2) volume 2 x := by
+    simp only [one_div]
+    refine ((((continuousOn_id' _).log ?_).pow 2).inv₀ (fun t ht => ?_)).intervalIntegrable
+    · rw [Set.uIcc_of_le hx]; grind
+    · rw [Set.uIcc_of_le hx] at ht
+      positivity [log_pos (by grind : 1 < t)]
+  calc
+  _ = (∫ t in 2..b, 1 / log t ^ 2) - ∫ t in 2..a, 1 / log t ^ 2 :=
+    (intervalIntegral.integral_interval_sub_left (this (ha.trans hb)) (this ha)).symm
+  _ = b / log b - 2 / log 2 + (∫ t in 2..b, 1 / (log t ^ 2)) - b / log b -
+    (a / log a - 2 / log 2 + (∫ t in 2..a, 1 / (log t ^ 2)) - a / log a) := by ring
+  _ = _ := by rw [Li_identity ha, Li_identity (ha.trans hb)]; ring
+
 @[blueprint
   "fks2-lemma-19"
   (title := "FKS2 Lemma 19")
   (statement := /--
   Let $x_1 > x_0 \geq 2$, $N \in \N$, and let $(b_i)_{i=1}^N$ be a finite partition of
-  $[x_0,x_1]$.  Then
+  $[\log x_0, \log x_1]$.  Then
   $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt|
     \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i})
     ( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)
@@ -1130,18 +1310,60 @@ Here we record a way to convert a numerical bound on $E_\theta$ to a numerical b
     = \Li(b) - \frac{b}{\log b} - (\Li(a) - \frac{a}{\log a}). $$ -/)
   (latexEnv := "lemma")
   (discussion := 712)]
-theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
+theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₀ < x₁) (hx₀ : x₀ ≥ 2)
+  {N : ℕ} (b : ℕ → ℝ) (hmono : Monotone b)
+  (h_b_start : b 0 = log x₀) (hN : 0 ≤ N)
+  (h_b_end : b N = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) :
+  (h_εθ_num : ∀ i ∈ Finset.Ico 0 N, Eθ.numericalBound (exp (b i)) εθ_num) :
   |∫ t in x₀..x₁, (θ t - t) / (t * log t ^ 2)| ≤
-    ∑ i ∈ Finset.Iio (Fin.last N),
+    ∑ i ∈ Finset.Ico 0 N,
       εθ_num (exp (b i)) *
       (Li (exp (b (i + 1))) - Li (exp (b i)) +
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) :=
-  sorry
+  have h1 {i} : 2 ≤ exp (b i) := by
+    trans exp (b 0)
+    · rw [h_b_start, exp_log (by grind)]; exact hx₀
+    · exact exp_monotone (hmono (by linarith))
+  have h2 {i} : exp (b i) ≤ exp (b (i + 1)) := exp_monotone (hmono (by linarith))
+  have h3 {i} : IntervalIntegrable (fun t ↦ |θ t - t| / t / log t ^ 2) volume
+    (exp (b i)) (exp (b (i + 1))) := by
+    refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 h1 h2).abs
+    simp [abs_div, div_div, abs_of_nonneg (by grind : 0 ≤ t)]
+  calc
+  _ ≤ ∫ t in x₀..x₁, |(θ t - t) / (t * log t ^ 2)| :=
+    intervalIntegral.abs_integral_le_integral_abs hx₁.le
+  _ = ∫ t in x₀..x₁, |θ t - t| / t / log t ^ 2 := by
+    refine intervalIntegral.integral_congr fun t ht => ?_
+    rw [Set.uIcc_of_le hx₁.le] at ht
+    simp [abs_div, div_div, abs_of_nonneg (by grind : 0 ≤ t)]
+  _ = ∑ i ∈ Finset.Ico 0 N, ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)),
+    |θ t - t| / t / log t ^ 2 := by
+    rw [intervalIntegral.sum_integral_adjacent_intervals_Ico hN]
+    · rw [← exp_log (by grind : 0 < x₀), ← exp_log (by grind : 0 < x₁), h_b_end, h_b_start]
+    · exact fun i hi => h3
+  _ ≤ ∑ i ∈ Finset.Ico 0 N, ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)),
+    εθ_num (exp (b i)) / log t ^ 2 := by
+    gcongr with i hi
+    refine intervalIntegral.integral_mono_on h2 h3 ?_ fun t ht => ?_
+    · simp only [div_eq_mul_inv]
+      refine IntervalIntegrable.const_mul ((ContinuousOn.pow ?_ 2).inv₀ ?_).intervalIntegrable _
+      · refine (continuousOn_id' _).log fun t ht => ?_
+        rw [Set.uIcc_of_le h2] at ht
+        grind
+      · intro t ht
+        rw [Set.uIcc_of_le h2] at ht
+        positivity [log_pos (by grind : 1 < t)]
+    · gcongr
+      exact h_εθ_num i hi t ht.1
+  _ = ∑ i ∈ Finset.Ico 0 N, εθ_num (exp (b i)) *
+    ∫ (t : ℝ) in (exp (b i))..exp (b (i + 1)), 1 / log t ^ 2 := by
+    congr with i
+    simp [← intervalIntegral.integral_const_mul, div_eq_mul_inv]
+  _ = _ := by
+    congr with i
+    rw [Li_identity' h1 h2, log_exp, log_exp]
+    ring
 
 lemma hasDerivAt_Li {x : ℝ} (hx : x ∈ Set.Ioi 6.58) : HasDerivAt Li (1 / log x) x := by
   have hf (x) (hx : x ∈ Set.Ioi 6.58) : ContinuousAt (fun x ↦ 1 / log x) x := by
@@ -1177,6 +1399,53 @@ theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) :=
     rw [deriv_fun_sub (hasDerivAt_Li hx).differentiableAt (by fun_prop (disch := simp_all)),
       deriv_fun_div differentiableAt_fun_id (differentiableAt_log (by linarith)) (hpos x hx)]
     simp [(hasDerivAt_Li hx).deriv, field, pow_two_pos_of_ne_zero, (hpos x hx), - sub_pos]
+
+private lemma Li_ibp {x : ℝ} (hx : x > 2) :
+    Li x - x / log x = -2 / log 2 + ∫ t in (2:ℝ)..x, 1 / (log t) ^ 2 := by
+  have h_parts : ∀ a b : ℝ, 2 ≤ a → a < b →
+      ∫ t in a..b, (1 : ℝ) / Real.log t =
+        (b / Real.log b) - (a / Real.log a) + ∫ t in a..b, (1 : ℝ) / Real.log t ^ 2 := by
+    intro a b _ _
+    rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]
+    rotate_right
+    use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
+    · norm_num; ring
+    · intro x hx
+      have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2)
+          (1 / Real.log x ^ 2) x := by
+        apply_rules [intervalIntegral.integral_hasDerivAt_right]
+        · apply_rules [ContinuousOn.intervalIntegrable]
+          exact continuousOn_of_forall_continuousAt fun y hy =>
+            ContinuousAt.div continuousAt_const
+              (ContinuousAt.pow (Real.continuousAt_log (by
+                cases Set.mem_uIcc.mp hy <;>
+                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)])) _)
+              (ne_of_gt (sq_pos_of_pos (Real.log_pos (by
+                cases Set.mem_uIcc.mp hy <;>
+                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)]))))
+        · exact Measurable.stronglyMeasurable (by
+            exact Measurable.div measurable_const
+              (Measurable.pow_const Real.measurable_log _))
+            |> fun h => h.stronglyMeasurableAtFilter
+        · exact ContinuousAt.div continuousAt_const
+            (ContinuousAt.pow (Real.continuousAt_log
+              (by cases Set.mem_uIcc.mp hx <;> linarith)) _)
+            (ne_of_gt (sq_pos_of_pos (Real.log_pos
+              (by cases Set.mem_uIcc.mp hx <;> linarith))))
+      convert HasDerivAt.add (HasDerivAt.div (hasDerivAt_id x)
+        (Real.hasDerivAt_log (show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith))
+        (ne_of_gt (Real.log_pos (show x > 1 by
+          cases Set.mem_uIcc.mp hx <;> linarith)))) h_ftc using 1;
+      ring;
+      by_cases hx' : x = 0 <;> simp +decide [sq, mul_assoc, hx'];
+      field_simp
+    · apply_rules [ContinuousOn.intervalIntegrable]
+      exact continuousOn_of_forall_continuousAt fun t ht =>
+        ContinuousAt.div continuousAt_const
+          (Real.continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith))
+          (ne_of_gt (Real.log_pos (by cases Set.mem_uIcc.mp ht <;> linarith)))
+  convert congr_arg (fun y => y - x / Real.log x) (h_parts 2 x (by norm_num) hx) using 1
+  ring!
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
@@ -1248,6 +1517,130 @@ theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
   (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 < 1 / (log x₁ + log (log x₁) - 1) :=
   sorry
 
+/- The following 3 lemmas are used for theorem_6_3.
+-/
+lemma hasDerivAt_Li_sub_div_log {t : ℝ} (ht : 1 < t) :
+    HasDerivAt (fun t => Li t - t / log t) (1 / (log t) ^ 2) t := by
+  have h_deriv_Li : HasDerivAt Li (1 / Real.log t) t := by
+    apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
+    · apply_rules [ ContinuousOn.intervalIntegrable ];
+      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ( ne_of_gt ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) );
+    · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Real.measurable_log ) ) |> fun h => h.stronglyMeasurableAtFilter;
+    · exact ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) )
+  generalize_proofs at *; (
+  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring!;
+  grind)
+
+lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
+    ∫ t in a..b, 1 / (log t) ^ 2 = (Li b - b / log b) - (Li a - a / log a) := by
+  rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+  · exact fun x hx => hasDerivAt_Li_sub_div_log ( by cases Set.mem_uIcc.mp hx <;> linarith );
+  · apply_rules [ ContinuousOn.intervalIntegrable ];
+    exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) )
+
+
+lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
+    MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
+      (Set.Icc x₁ (x₁ * log x₁)) := by
+  -- Let $I(t) = \int_{x₁}^t 1 / (\log s)^2 \, ds$.
+  set I : ℝ → ℝ := fun t => ∫ s in x₁..t, 1 / (Real.log s) ^ 2;
+  -- We need to show that $u(t) = \frac{t}{\log t} - (\log t - 1)I(t)$ is non-negative on $[x₁, x₁ \log x₁]$.
+  have hu_nonneg : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), t / Real.log t - (Real.log t - 1) * I t ≥ 0 := by
+    -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral.
+    have h_integral_bound : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), ∫ s in x₁..t, I s / s ≤ (1 / (Real.log x₁) ^ 2) * ∫ s in x₁..t, (s - x₁) / s := by
+      intros t ht
+      have h_integral_bound : ∀ s ∈ Set.Icc x₁ t, I s ≤ (s - x₁) / (Real.log x₁) ^ 2 := by
+        intros s hs
+        have h_integral_bound : ∫ u in x₁..s, 1 / (Real.log u) ^ 2 ≤ ∫ u in x₁..s, 1 / (Real.log x₁) ^ 2 := by
+          apply_rules [ intervalIntegral.integral_mono_on ];
+          · linarith [ hs.1 ];
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            exact continuousOn_of_forall_continuousAt fun u hu => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hu <;> linarith [ hs.1, hs.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hu <;> linarith [ hs.1, hs.2 ] ) ) ) );
+          · norm_num;
+          · exact fun x hx => one_div_le_one_div_of_le ( sq_pos_of_pos <| Real.log_pos <| by linarith [ hx.1 ] ) <| pow_le_pow_left₀ ( Real.log_nonneg <| by linarith [ hx.1 ] ) ( Real.log_le_log ( by linarith [ hx.1 ] ) hx.1 ) _;
+        aesop;
+      rw [ ← intervalIntegral.integral_const_mul ];
+      refine' intervalIntegral.integral_mono_on _ _ _ _ <;> norm_num;
+      · linarith [ ht.1 ];
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
+          apply_rules [ ContinuousOn.intervalIntegrable ];
+          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.mul continuousAt_const <| ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id <| by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ;
+      · intro s hs₁ hs₂; convert mul_le_mul_of_nonneg_right ( h_integral_bound s ⟨ hs₁, hs₂ ⟩ ) ( inv_nonneg.mpr ( by linarith : 0 ≤ s ) ) using 1 ; ring;
+    -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{I(s)}{s} \, ds$.
+    have h_integral_bound : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), ∫ s in x₁..t, I s / s ≤ (1 / (Real.log x₁) ^ 2) * (t - x₁ - x₁ * Real.log (t / x₁)) := by
+      -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{s - x₁}{s} \, ds$.
+      have h_integral_bound : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), ∫ s in x₁..t, (s - x₁) / s = (t - x₁) - x₁ * Real.log (t / x₁) := by
+        intro t ht; rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+        rotate_right;
+        use fun x => x - x₁ * Real.log x;
+        · rw [ Real.log_div ] <;> linarith [ ht.1, ht.2 ];
+        · intro x hx; convert HasDerivAt.sub ( hasDerivAt_id x ) ( HasDerivAt.const_mul x₁ ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ) ) using 1 ; ring;
+          rw [ mul_inv_cancel₀ ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ];
+        · apply_rules [ ContinuousOn.intervalIntegrable ];
+          exact continuousOn_of_forall_continuousAt fun s hs => ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id ( by cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ] );
+      aesop;
+    -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{I(s)}{s} \, ds$ and show that $u(t) \geq 0$.
+    intros t ht
+    have h_u_nonneg : t / Real.log t - (Real.log t - 1) * I t = x₁ / Real.log x₁ - ∫ s in x₁..t, I s / s := by
+      rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
+      rotate_right;
+      use fun t => ( Real.log t - 1 ) * I t - t / Real.log t;
+      · aesop;
+      · intro x hx;
+        -- By definition of $I$, we know that its derivative is $1 / (\log x)^2$.
+        have hI_deriv : HasDerivAt I (1 / (Real.log x) ^ 2) x := by
+          apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            exact continuousOn_of_forall_continuousAt fun y hy => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) ) );
+          · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( by exact Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
+          · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) );
+        convert HasDerivAt.sub ( HasDerivAt.mul ( HasDerivAt.sub ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( hasDerivAt_const _ _ ) ) hI_deriv ) ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) ) using 1 ; ring;
+        by_cases h : x = 0 <;> simp? +decide [h, sq, mul_assoc, mul_comm, mul_left_comm];
+        ring;
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
+          apply_rules [ ContinuousOn.intervalIntegrable ];
+          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
+    -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{I(s)}{s} \, ds$ and show that $u(t) \geq 0$ by simplifying the expression.
+    have h_simplify : x₁ / Real.log x₁ - (1 / (Real.log x₁) ^ 2) * (t - x₁ - x₁ * Real.log (t / x₁)) ≥ 0 := by
+      field_simp;
+      rw [ le_div_iff₀ ( sq_pos_of_pos <| Real.log_pos <| by linarith ) ];
+      nlinarith [ ht.1, ht.2, Real.log_nonneg ( show 1 ≤ x₁ by linarith ), Real.log_le_log ( by linarith ) ht.1, Real.log_le_log ( by linarith [ ht.1 ] ) ht.2, Real.log_div ( show t ≠ 0 by linarith [ ht.1 ] ) ( show x₁ ≠ 0 by linarith ) ];
+    grind;
+  -- By definition of $h$, we know that its derivative is $h'(t) = \frac{u(t)}{t^2}$.
+  have h_deriv : ∀ t ∈ Set.Ioo x₁ (x₁ * Real.log x₁), HasDerivAt (fun t => (Real.log t / t) * I t) ((t / Real.log t - (Real.log t - 1) * I t) / t^2) t := by
+    intro t ht
+    have h_deriv_I : HasDerivAt I (1 / (Real.log t) ^ 2) t := by
+      apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) );
+      · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( by exact Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
+      · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by linarith [ ht.1 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by linarith [ ht.1 ] ) ) ) );
+    convert HasDerivAt.mul ( HasDerivAt.div ( Real.hasDerivAt_log ( show t ≠ 0 by linarith [ ht.1 ] ) ) ( hasDerivAt_id t ) ( show t ≠ 0 by linarith [ ht.1 ] ) ) h_deriv_I using 1 ; ring;
+    by_cases h : t = 0 <;> simp +decide [ sq, mul_assoc, mul_comm, mul_left_comm, h ] ; ring;
+    by_cases h' : Real.log t = 0 <;> simp +decide [sq, mul_assoc, h'];
+  intro a ha b hb hab; rcases eq_or_lt_of_le hab with rfl | hab' <;> norm_num at *;
+  -- Apply the mean value theorem to the interval $[a, b]$.
+  obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a b, deriv (fun t => (Real.log t / t) * I t) c = ((fun t => (Real.log t / t) * I t) b - (fun t => (Real.log t / t) * I t) a) / (b - a) := by
+    apply_rules [ exists_deriv_eq_slope ];
+    · refine' ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) _;
+      intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
+      apply_rules [ ContinuousOn.intervalIntegrable ];
+      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
+    · exact fun t ht => ( h_deriv t ( by linarith [ ht.1 ] ) ( by linarith [ ht.2 ] ) |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt );
+  simp +zetaDelta only [one_div, Set.mem_Ioo] at *
+  have := h_deriv c ( by linarith ) ( by linarith ) ; have := this.deriv; rw [ eq_div_iff ] at * <;> nlinarith [ hu_nonneg c ( by linarith ) ( by linarith ), show 0 < c ^ 2 by nlinarith ] ;
+
+
 @[blueprint
   "fks2-theorem-6-3"
   (title := "FKS2 Theorem 6, substep 3")
@@ -1257,10 +1650,21 @@ theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
   $$ f(x) \leq f(x_2) = \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right). $$ -/)
   (latexEnv := "sublemma")
   (discussion := 717)]
-theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ ≥ x₁) (x : ℝ) (hx : x ≥ x₁) (hx' : x ≤ x₂) :
+theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ ≥ x₁) (x : ℝ) (hx : x ≥ x₁) (hx' : x ≤ x₂) (hx₂' : x₂ ≤ x₁ * log x₁) :
   (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 ≤
-    (log x₂ / x₂) * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁) :=
-  sorry
+    (log x₂ / x₂) * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁) := by
+    have h_integral_le_integral : (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 ≤ (log x / x) * (Li x - x / log x - Li x₁ + x₁ / log x₁) := by
+      rw [ integral_one_div_log_sq ] <;> try linarith;
+    have h_monotone : MonotoneOn (fun t => (log t / t) * (Li t - t / log t - Li x₁ + x₁ / log x₁)) (Set.Icc x₁ (x₁ * log x₁)) := by
+      have h_monotone : MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (Set.Icc x₁ (x₁ * log x₁)) := by
+        apply_rules [ h_monotoneOn ];
+    -- Using the fact that the integral of 1/(log t)^2 from x₁ to t is equal to Li t - t / log t - Li x₁ + x₁ / log x₁, we can rewrite the function.
+      have h_integral_eq : ∀ t ∈ Set.Icc x₁ (x₁ * log x₁), ∫ s in x₁..t, 1 / (log s) ^ 2 = Li t - t / log t - Li x₁ + x₁ / log x₁ := by
+        intros t ht; rw [ integral_one_div_log_sq ] ; ring;
+        · linarith;
+        · linarith [ ht.1 ];
+      exact fun t ht u hu htu => by simpa only [ h_integral_eq t ht, h_integral_eq u hu ] using h_monotone ht hu htu;
+    exact h_integral_le_integral.trans ( h_monotone ⟨ by linarith, by linarith ⟩ ⟨ by linarith, by linarith ⟩ hx' )
 
 blueprint_comment /--
 We can merge these sublemmas together after making some definitions. -/
@@ -1416,8 +1820,13 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
   (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) :
-  Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) :=
-  sorry
+  Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
+  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num x hx₁ le_top
+  suffices hsuff : μ_num b εθ_num x₀ x₁ (⊤ : EReal) = μ_num_2 b εθ_num x₀ x₁ by
+    have heq : επ_num b εθ_num x₀ x₁ ⊤ = εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
+      dsimp [επ_num]; rw [hsuff]
+    linarith
+  dsimp [μ_num]; rfl
 
 
 @[blueprint
@@ -1632,6 +2041,41 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
 
+
+/-The following three lemmas are used in the proof of corollary_26.
+-/
+lemma table6_mem : [0.826, 0.25, 1.00, 1.000] ∈ table6 := by
+  simp [table6]
+
+lemma sqrt_exp_le_half (v : ℝ) (hv : v ≥ 0) : Real.sqrt v * Real.exp (-v) ≤ 1/2 := by
+  -- Let $u = \sqrt{v}$, then the inequality becomes $u e^{-u^2} \leq \frac{1}{2}$.
+  set u : ℝ := Real.sqrt v
+  have hu : u * Real.exp (-u^2) ≤ 1 / 2 := by
+    -- We'll use the fact that $u e^{-u^2} \leq \frac{1}{2}$ for all $u \geq 0$. This follows from the fact that the maximum of $u e^{-u^2}$ occurs at $u = \frac{1}{\sqrt{2}}$.
+    have h_max : ∀ u : ℝ, 0 ≤ u → u * Real.exp (-u ^ 2) ≤ 1 / 2 := by
+      intro u hu; rw [ Real.exp_neg ] ; ring_nf; norm_num; (
+      rw [ ← div_eq_mul_inv, div_le_iff₀ ( Real.exp_pos _ ) ] ; nlinarith [ sq_nonneg ( u - 1 ), Real.add_one_le_exp ( u ^ 2 ) ] ;);
+    exact h_max u <| Real.sqrt_nonneg v;
+  rwa [ Real.sq_sqrt hv ] at hu
+
+lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826 0.25 1.00 5.5666305 x ≤ 0.4298 := by
+  unfold admissible_bound;
+  -- Let $y = \sqrt{\log x / 5.5666305}$. Then the expression becomes $0.826 * y^{1/2} * \exp(-y)$.
+  set y : ℝ := Real.sqrt (Real.log x / 5.5666305)
+  have h_y : 0.826 * y^(1/2 : ℝ) * Real.exp (-y) ≤ 0.4298 := by
+    -- Apply the lemma sqrt_exp_le_half with v = y.
+    have h_sqrt_exp : y^(1/2 : ℝ) * Real.exp (-y) ≤ 1 / 2 := by
+      convert sqrt_exp_le_half y ( Real.sqrt_nonneg _ ) using 1 ; norm_num [ ← Real.sqrt_eq_rpow ];
+    linarith;
+  convert h_y using 1 ; norm_num [ Real.sqrt_eq_rpow, ← Real.rpow_mul ( div_nonneg ( Real.log_nonneg hx ) ( by norm_num : ( 0 :ℝ ) ≤ 5.5666305 ) ) ] ; ring_nf;
+  rw [ show ( log x * ( 2000000 / 11133261 ) ) = ( Real.sqrt ( log x / 5.5666305 ) ) ^ 2 by rw [ Real.sq_sqrt <| by exact div_nonneg ( Real.log_nonneg hx ) <| by norm_num ] ; ring ] ; rw [ ← Real.rpow_natCast, ← Real.rpow_mul ( by positivity ) ] ; norm_num;
+  norm_num +zetaDelta at *
+  left
+  have hnonneg: 0 ≤ (Real.sqrt (Real.log x)) / (Real.sqrt 11133261 / Real.sqrt 2000000) := by positivity
+  simpa [one_div] using (Real.pow_rpow_inv_natCast (x := √(Real.log x) / (√11133261 / √2000000)) (n := 2) hnonneg (by decide))
+
+
+
 @[blueprint
   "fks2-corollary-26"
   (title := "FKS2 Corollary 26")
@@ -1657,6 +2101,9 @@ theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
   -/)
   (latexEnv := "corollary")
   (discussion := 723)]
-theorem corollary_26 : Eπ.bound 0.4298 2 := sorry
+theorem corollary_26 : Eπ.bound 0.4298 2 := by
+  intro x hx
+  have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
+  exact le_trans (h1 x (by linarith)) (admissible_bound_le_0826 x (by linarith))
 
 end FKS2

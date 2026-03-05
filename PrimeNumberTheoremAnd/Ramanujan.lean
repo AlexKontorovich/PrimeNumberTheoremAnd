@@ -1,4 +1,6 @@
 import PrimeNumberTheoremAnd.Defs
+import LeanCert.Engine.ChebyshevTheta
+import PrimeNumberTheoremAnd.SecondarySummary
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
@@ -17,7 +19,7 @@ noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (
 
 noncomputable def ε' (m x : ℝ) : ℝ := 206 + m + 364 / log x + 381 / (log x)^2 + 238 / (log x)^3 + 97 / (log x)^4 + 30 / (log x)^5 + 8 / (log x)^6
 
-noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
+-- noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
 
 @[blueprint
   "ramanujan-criterion-1"
@@ -36,9 +38,32 @@ $$\epsilon_{M_a} (x) = 72 + 2 M_a + \frac{2M_a+132}{\log x} + \frac{4M_a+288}{\l
   (proof := /-- Direct calculation -/)
   (latexEnv := "sublemma")
   (discussion := 983)]
-theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) (hM_a : M_a > 0) :
-    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) + ε M_a x / log x ^ 7) := by
-    sorry
+theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
+    ∀ x > x_a, pi x ^ 2 < x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 64 / log x ^ 6 + ε M_a x / log x ^ 7) := by
+  intro x hx
+  have sq_algebra (M l : ℝ) : ((Nat.factorial 0 : ℝ) / l ^ 1 + (Nat.factorial 1 : ℝ) / l ^ 2 + (Nat.factorial 2 : ℝ) / l ^ 3 + (Nat.factorial 3 : ℝ) / l ^ 4 + (Nat.factorial 4 : ℝ) / l ^ 5 + M / l ^ 6) ^ 2
+    = 1 / l ^ 2 + 2 / l ^ 3 + 5 / l ^ 4 + 16 / l ^ 5 + 64 / l ^ 6 + (72 + 2 * M + (2 * M + 132) / l + (4 * M + 288) / l ^ 2 + (12 * M + 576) / l ^ 3 + (48 * M) / l ^ 4 + M ^ 2 / l ^ 5) / l ^ 7 := by
+    norm_num
+    ring
+  have h_nonneg_pi : 0 ≤ pi x := by
+    unfold _root_.pi
+    exact_mod_cast Nat.zero_le (⌊x⌋₊.primeCounting)
+  have h_pos_rhs : 0 < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    linarith [h_nonneg_pi, hupper x hx]
+  have h_sum_eq : ∑ k ∈ Finset.range 5, (k.factorial / Real.log x ^ (k + 1)) = (Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 := by
+    simp [Finset.sum_range_succ, Nat.factorial]
+  have h_main1 : ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 = 1 / Real.log x ^ 2 + 2 / Real.log x ^ 3 + 5 / Real.log x ^ 4 + 16 / Real.log x ^ 5 + 64 / Real.log x ^ 6 + ε M_a x / Real.log x ^ 7 := by
+    simpa [ε] using sq_algebra M_a (Real.log x)
+  have h_eq : x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6) := by
+    rw [h_sum_eq]; ring
+  have h1'' : pi x < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using hupper x hx
+  have h_pos1 : 0 < x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) := by
+    simpa only [h_eq] using h_pos_rhs
+  have h2 : pi x ^ 2 < (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 :=
+    sq_lt_sq.mpr (by simpa only [abs_of_nonneg h_nonneg_pi, abs_of_pos h_pos1] using h1'')
+  have h4 : (x * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6)) ^ 2 = x ^ 2 * ((Nat.factorial 0 : ℝ) / Real.log x ^ 1 + (Nat.factorial 1 : ℝ) / Real.log x ^ 2 + (Nat.factorial 2 : ℝ) / Real.log x ^ 3 + (Nat.factorial 3 : ℝ) / Real.log x ^ 4 + (Nat.factorial 4 : ℝ) / Real.log x ^ 5 + M_a / Real.log x ^ 6) ^ 2 := by ring
+  simpa only [h4, h_main1] using h2
 
 @[blueprint
   "ramanujan-criterion-2"
@@ -47,7 +72,7 @@ theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Fin
 Let $m_a \in \mathbb{R}$  and suppose that for $x>x_a$ we have
 $$\pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$
 Then for $x > e x_a$ we have
-$$\frac{ex}{\log x} \pi \Big(\frac{x}{e} \Big) > x^2 \Big\{ \frac{1}{\log^2 x}+ \frac{2}{\log^3 x}+ \frac{5}{\log^4 x}+ \frac{16}{\log^5 x}+ \frac{64}{\log^6 x} + \frac{\epsilon'_{m_a}(x)}{\log^7 x} \Big\},$$
+$$\frac{ex}{\log x} \pi \Big(\frac{x}{e} \Big) > x^2 \Big\{ \frac{1}{\log^2 x}+ \frac{2}{\log^3 x}+ \frac{5}{\log^4 x}+ \frac{16}{\log^5 x}+ \frac{65}{\log^6 x} + \frac{\epsilon'_{m_a}(x)}{\log^7 x} \Big\},$$
 where
 $$\epsilon'_{m_a}(x) = 206+m_a+\frac{364}{\log x} + \frac{381}{\log^2 x}+\frac{238}{\log^3 x} + \frac{97}{\log^4 x} + \frac{30}{\log^5 x} + \frac{8}{\log^6 x}.$$
 -/)
@@ -63,7 +88,7 @@ we obtain the claim.
   (latexEnv := "sublemma")
   (discussion := 984)]
 theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
-    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 * (∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) + ε' m_a x / log x ^ 7) := by
+    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 + ε' m_a x / log x ^ 7) := by
     sorry
 
 @[blueprint
@@ -71,22 +96,27 @@ theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.ran
   (title := "Criterion for Ramanujan's inequality")
   (statement := /-- \cite[Lemma 2.1]{dudek-platt}
 Let $m_a, M_a \in \mathbb{R}$  and suppose that for $x>x_a$ we have
+$$ x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+ \frac{m_a x}{\log^6 x} < \pi(x)$$
 
-$$ x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+ \frac{m_a x}{\log^6 x} < \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$
+and for $x > ex_a$ one has
+$$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$
 %
-Then Ramanujan's inequality is true if
+Then Ramanujan's inequality is true for $x > x_0$ if
 
-$$x > \max( e x_{a},x_{a}' )$$
-where $x'_a := \exp( \epsilon_{M_a} (x_{a}) - \epsilon'_{m_a} (x_{a}) )$.
+$$x_0 ≥ e x_{a}$$
+and
+$$ \epsilon_{M_a} (x_0) - \epsilon'_{m_a}(x_0) < \log x.$$
  -/)
   (proof := /-- Combine the previous two sublemmas.
  -/)
   (latexEnv := "proposition")
   (discussion := 985)]
-theorem criterion (m_a M_a x_a : ℝ)
-  (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x)
-  (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (M_a * x / log x ^ 6)) :
-    ∀ x > max (exp 1 * x_a) (x' m_a M_a x_a), pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
+theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
+  (hlower : ∀ x > xₐ, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (mₐ * x / log x ^ 6) < pi x)
+  (hupper : ∀ x > exp 1 * xₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (Mₐ * x / log x ^ 6))
+  (hx₀xₐ : x₀ ≥ exp 1 * xₐ)
+  (hcrit : ε Mₐ x₀ - ε' mₐ x₀ < log x₀) :
+    ∀ x > x₀, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
   sorry
 
 /-- Integration by parts formula for `Li(x)`. -/
@@ -322,23 +352,18 @@ theorem log_7_IBP (x : ℝ) (hx : 2 ≤ x) :
         (pow_ne_zero _ <| ne_of_gt <| log_pos <|
           by cases Set.mem_uIcc.mp hx <;> linarith)
     · rw [Set.uIcc_of_le hab]
-      exact ContinuousOn.congr (by
-        exact ContinuousOn.sub
-          (continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1])
-        <| ContinuousOn.mul continuousOn_const <|
-          continuousOn_const.div (ContinuousOn.pow
-            (continuousOn_log.mono <| by
-              intro x hx; exact ne_of_gt <| by linarith [hx.1]) _)
-            fun x hx ↦ pow_ne_zero _ <| ne_of_gt <| log_pos <|
-              by linarith [hx.1]) h_deriv
+      have hlog_cont := continuousOn_log.mono fun y (hy : y ∈ Set.Icc a b) ↦
+        ne_of_gt <| by linarith [hy.1]
+      have hpow_ne : ∀ (n : ℕ), ∀ y ∈ Set.Icc a b, log y ^ n ≠ 0 :=
+        fun n y hy ↦ pow_ne_zero n <| ne_of_gt <| log_pos <| by linarith [hy.1]
+      exact ContinuousOn.congr (ContinuousOn.sub
+        (continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))
+        (continuousOn_const.mul <| continuousOn_const.div (hlog_cont.pow _) (hpow_ne _))) h_deriv
   rw [← h_ftc, intervalIntegral.integral_congr fun t ht =>
     h_deriv t <| by simpa [hab] using ht]
-  rw [intervalIntegral.integral_sub] <;> norm_num; ring
-  · exact ContinuousOn.intervalIntegrable (by
+  rw [intervalIntegral.integral_sub] <;> norm_num
+  · ring_nf
+    exact ContinuousOn.intervalIntegrable (by
       exact continuousOn_of_forall_continuousAt fun x hx =>
         ContinuousAt.pow (ContinuousAt.inv₀
           (continuousAt_log (by linarith [Set.mem_Icc.mp (by simpa [hab] using hx)]))
@@ -442,17 +467,72 @@ theorem log_7_int_bound (x : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Icc 2 x, 1 / log t ^ 7 < x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8) := by
   rw [log_7_IBP x hx]; linarith [log_8_bound x hx, show 0 ≤ 2 / Real.log 2 ^ 7 by positivity]
 
+-- Native-decide lemma for the computational [3, 599) range
+set_option linter.style.nativeDecide false in
+open LeanCert.Engine.ChebyshevTheta in
+private theorem allThetaChecks_3_599 :
+    checkAllThetaRelErrorReal 3 599 (768 / 1000) 20 = true := by native_decide
+
 @[blueprint
   "ramanujan-pibound-1"
   (title := "Error estimate for theta, range 1")
-  (statement := /-- For $2 < x \leq 599$ we have
-$$E_\theta(x) \leq 1 - \frac{\log 3}{3}.$$-/)
-  (proof := /-- This can be verified by direct computation, perhaps breaking $x$ up into intervals.  In \cite{PT2021} the bound of $(2 - \log 2)/2$ is claimed, but this is actually false for $2 < x < 3$. -/)
+  (statement := /-- For $2 \leq x < 599$ we have
+$$E_\theta(x) \leq 1 - \frac{\log 2}{3}.$$-/)
+  (proof := /-- For $x \in [2, 3)$ we have $\theta(x) = \log 2$, so
+$E_\theta(x) = 1 - \log 2 / x < 1 - \log 2 / 3$ since $x < 3$.
+For $x \in [3, 599)$ we use the LeanCert ChebyshevTheta engine:
+\texttt{checkAllThetaRelErrorReal 3 599 (768/1000) 20} via \texttt{native\_decide}
+gives $|\theta(x) - x| \leq 0.768 x$, hence $E_\theta(x) \leq 0.768 \leq 1 - \log 2 / 3$. -/)
   (latexEnv := "sublemma")
   (discussion := 990)]
 theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
-    Eθ x ≤ 1 - log 3 / 3 := by
-    sorry
+    Eθ x ≤ 1 - log 2 / 3 := by
+  obtain ⟨hx2, hx599⟩ := hx
+  have hxpos : (0 : ℝ) < x := by linarith
+  have hnn : (0 : ℝ) ≤ x := by linarith
+  unfold Eθ
+  rw [div_le_iff₀ hxpos]
+  -- Goal: |θ x - x| ≤ (1 - log 2 / 3) * x
+  by_cases hx3 : x < 3
+  · -- Case x ∈ [2, 3): ⌊x⌋₊ = 2, θ(2) = log 2
+    rw [Chebyshev.theta_eq_theta_coe_floor x]
+    have hfloor : ⌊x⌋₊ = 2 := by
+      apply (Nat.floor_eq_iff hnn).mpr
+      exact ⟨by push_cast; linarith, by push_cast; linarith⟩
+    rw [hfloor]
+    -- Now goal involves θ ↑2, need to compute it
+    have htheta_two : θ (↑(2 : ℕ) : ℝ) = log 2 := by
+      simp [Chebyshev.theta, Finset.sum_filter, Finset.sum_Ioc_succ_top, Nat.prime_two]
+    rw [htheta_two]
+    -- Goal: |log 2 - x| ≤ (1 - log 2 / 3) * x
+    have hlog2_lt_x : log 2 < x := by linarith [log_two_lt_d9]
+    rw [abs_of_nonpos (by linarith), neg_sub]
+    -- Goal: x - log 2 ≤ (1 - log 2 / 3) * x
+    nlinarith [log_two_gt_d9]
+  · -- Case x ∈ [3, 599): use computational checker
+    push_neg at hx3
+    have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
+    have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
+    have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
+    have hfloor_le : ⌊x⌋₊ ≤ 599 := le_of_lt hfloor_lt
+    -- Extract pointwise check from the bulk checker
+    have hpointwise :=
+      LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
+        allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_le
+    rw [if_pos hfloor_lt] at hpointwise
+    -- Bridge to real-valued bound
+    have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
+    have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
+    have habs :=
+      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+        ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
+    -- Chain: |θ x - x| ≤ 0.768 * x ≤ (1 - log 2 / 3) * x
+    calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
+      _ ≤ (1 - log 2 / 3) * x := by
+          gcongr
+          have : (((768 : ℚ) / 1000 : ℚ) : ℝ) = 768 / 1000 := by push_cast; ring
+          rw [this]
+          linarith [log_two_lt_d9]
 
 @[blueprint
   "ramanujan-pibound-2"
@@ -487,7 +567,16 @@ $$E_\theta(x) \leq 462.0\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 992)]
 theorem pi_bound_4 (x : ℝ) (hx : x ∈ Set.Ico (exp 1169) (exp 2000)) :
     Eθ x ≤ 462.0 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h3 : exp 1000 ≤ x := by
+    have h5 : exp 1000 ≤ exp 1169 := by
+      apply exp_le_exp.mpr
+      norm_num
+    have h6 : exp 1169 ≤ x := hx.1
+    linarith
+  have h7 : Eθ x ≤ admissible_bound (461.9 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 1000 0.98 461.9 1.52 1.89 1.20e-5 (by simp [PT.Table_1]) x h3
+  have h8 : 461.9 + 0.1 = (462.0 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
 
 @[blueprint
   "ramanujan-pibound-5"
@@ -499,7 +588,26 @@ $$E_\theta(x) \leq 411.5\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.
   (discussion := 993)]
 theorem pi_bound_5 (x : ℝ) (hx : x ∈ Set.Ico (exp 2000) (exp 3000)) :
     Eθ x ≤ 411.5 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
-    sorry
+  have h7 : Eθ x ≤ admissible_bound (411.4 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 2000 0.98 411.4 1.52 1.89 8.35e-10 (by simp [PT.Table_1]) x hx.1
+  have h8 : 411.4 + 0.1 = (411.5 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
+
+@[blueprint
+  "ramanujan-pibound-6"
+  (title := "Error estimate for theta, range 6")
+  (statement := /-- For $x > \exp(3000)$ we have
+$$E_\theta(x) \leq 379.7\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$-/)
+  (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
+  (latexEnv := "sublemma")
+  (discussion := 1094)]
+theorem pi_bound_6 (x : ℝ) (hx : exp 3000 ≤ x) :
+    Eθ x ≤ 379.7 * (log x / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log x / 5.573412)) := by
+  have h7 : Eθ x ≤ admissible_bound (379.6 + 0.1) (1.52 : ℝ) (1.89 : ℝ) (5.573412 : ℝ) x :=
+    PT.corollary_1 3000 0.98 379.6 1.52 1.89 4.51e-13 (by simp [PT.Table_1]) x hx
+  have h8 : 379.6 + 0.1 = (379.7 : ℝ) := by norm_num
+  simpa [h8, admissible_bound, sqrt_eq_rpow] using h7
+
 
 noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   if x ∈ Set.Ico 2 599 then 1 - log 2 / 3
@@ -513,12 +621,12 @@ noncomputable def a (x : ℝ) : ℝ := (log x)^5 * (
   "pt_eq_18"
   (title := "Equation (18) of Platt-Trudgian")
   (statement := /-- For $x \geq 2$ we have
-$$E_\theta(x) \leq a(x).$$-/)
+$$E_\theta(x) (\log x)^5 \leq a(x).$$-/)
   (proof := /-- This follows from the previous five sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 994)]
 theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
-    Eθ x ≤ a x := by
+    Eθ x * ( log x)^5 ≤ a x := by
     sorry
 
 noncomputable def xₐ : ℝ := exp 3914
@@ -571,42 +679,42 @@ noncomputable def C₂ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (
 
 noncomputable def C₃ : ℝ := 2 * log xₐ ^ 6 / xₐ * ∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)
 
-noncomputable def Mₐ : ℝ := 120 + a xₐ + C₁ + (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+noncomputable def Mₐ (x : ℝ) : ℝ := 120 + a x + C₁ + (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
 
-noncomputable def mₐ : ℝ := 120 - a xₐ - (C₂ + C₃) - a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+noncomputable def mₐ (x : ℝ) : ℝ := 120 - a x - (C₂ + C₃) - a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
 
-noncomputable def εMₐ : ℝ := 72 + 2 * Mₐ + (2 * Mₐ + 132) / log xₐ + (4 * Mₐ + 288) / log xₐ ^ 2 + (12 * Mₐ + 576) / log xₐ ^ 3 + (48 * Mₐ) / log xₐ ^ 4 + (Mₐ ^ 2) / log xₐ ^ 5
-
-noncomputable def εmₐ : ℝ := 206 + mₐ + 364 / log xₐ + 381 / log xₐ ^ 2 + 238 / log xₐ ^ 3 + 97 / log xₐ ^ 4 + 30 / log xₐ ^ 5 + 8 / log xₐ ^ 6
+noncomputable def exₐ : ℝ := exp 1 * xₐ
 
 @[blueprint
   "pi-upper-specific"
   (title := "Specific upper bound on pi")
-  (statement := /-- For $x \geq x_a$, $$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$. -/)
+  (statement := /-- For $x > ex_a$, $$ \pi(x) < x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{M_a x}{\log^6 x}.$$. -/)
   (proof := /-- This follows from the previous lemmas and calculations, including Lemma \ref{log-7-int-bound}. -/)
   (latexEnv := "lemma")
   (discussion := 996)]
-theorem pi_upper_specific : ∀ x > xₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (Mₐ * x / log x ^ 6) := by
+theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((Mₐ exₐ) * x / log x ^ 6) := by
     sorry
 
 @[blueprint
   "pi-lower-specific"
   (title := "Specific lower bound on pi")
-  (statement := /-- For $x \geq x_a$, $$ \pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$. -/)
+  (statement := /-- For $x > x_a$, $$ \pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$. -/)
   (proof := /-- This follows from the previous lemmas and calculations, including Lemma \ref{log-7-int-bound}. -/)
   (latexEnv := "lemma")
   (discussion := 997)]
-theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (mₐ * x / log x ^ 6) := by
+theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((mₐ xₐ) * x / log x ^ 6) := by
     sorry
 
 @[blueprint
   "epsilon-bound"
   (title := "Bound for εMₐ - εmₐ")
-  (statement := /-- We have $\epsilon_{M_a} - \epsilon'_{m_a} < 0$. -/)
-  (proof := /-- This is a direct calculation. -/)
+  (statement := /-- We have $\epsilon_{M_a} - \epsilon'_{m_a} < \log (e x_a )$. -/)
+  (proof := /-- This is a direct calculation. An AI verification can be found at https://chatgpt.com/share/69a64f96-b1cc-800e-8f85-850168d23094
+  -/)
   (latexEnv := "lemma")
   (discussion := 998)]
-theorem epsilon_bound : εMₐ - εmₐ < 0 := by
+theorem epsilon_bound :
+  ε (Mₐ exₐ) exₐ - ε' (mₐ xₐ) exₐ < log exₐ := by
     sorry
 
 @[blueprint
@@ -616,9 +724,7 @@ theorem epsilon_bound : εMₐ - εmₐ < 0 := by
   (proof := /-- \cite[Theorem 2]{PT2021} This follows from the previous lemmas and calculations, including the criterion for Ramanujan's inequality. -/)
   (latexEnv := "theorem")
   (discussion := 999)]
-theorem ramanujan_final : ∀ x > exp 1 * xₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
-    sorry
-
+theorem ramanujan_final : ∀ x > exₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := criterion (mₐ xₐ) (Mₐ exₐ) xₐ exₐ pi_lower_specific pi_upper_specific (le_refl _) epsilon_bound
 
 
 end Ramanujan

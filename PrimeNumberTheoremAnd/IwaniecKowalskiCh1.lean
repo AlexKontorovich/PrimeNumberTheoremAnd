@@ -248,24 +248,16 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
   (proof := /--
   Since $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$, and we know that the L-series of $\zeta$ converges for $\Re(s) > 1$, it follows that the L-series of $d_k$ also converges for $\Re(s) > 1$. This is because the convolution of functions with convergent L-series will also have a convergent L-series in the same region. Therefore, we can conclude that $L(d_k, s)$ is summable for $\Re(s) > 1$.
   -/)]
-theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable (↗(d k)) s := by
-  have h_d_k_mul : ∀ k : ℕ,
-      (d (k + 1) : ArithmeticFunction ℂ) = (d k : ArithmeticFunction ℂ) * zeta := by
-    intro k
-    exact (by
-      convert congr_arg ((↑) : ArithmeticFunction ℕ → ArithmeticFunction ℂ) (d_succ k) using 1
-      exact?)
-  induction' k with k ih
-  · refine' ⟨_, hasSum_single 1 _⟩
-    simp +contextual [LSeries.term]
-    unfold d; aesop
-  · have h_d_k_plus_1 :
-        (d (k + 1) : ArithmeticFunction ℂ) = (d k : ArithmeticFunction ℂ) * zeta :=
-      h_d_k_mul k
-    convert LSeriesSummable_mul _ _ using 1
-    convert congr_arg (fun f : ArithmeticFunction ℂ => fun n => f n) h_d_k_plus_1 using 1
-    · convert ih using 1
-    · convert LSeriesSummable_zeta_iff.mpr hs using 1
+theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
+      LSeriesSummable (↗(d k : ArithmeticFunction ℂ)) s := by
+  induction k with
+  | zero =>
+    simp only [d_zero, natCoe_one, one_eq_delta]
+    exact (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable
+  | succ k ih =>
+    rw [(LSeriesSummable_congr s (fun {n} _ => show (d (k + 1) : ArithmeticFunction ℂ) n =
+      ((d k : ArithmeticFunction ℂ) * ζ) n by rw [d_succ, natCoe_mul]))]
+    exact LSeriesSummable_mul ih (LSeriesSummable_zeta_iff.mpr hs)
 
 /-- The L-series of `d k` equals `ζ(s)^k` for `Re(s) > 1`. -/
 @[blueprint
@@ -276,30 +268,19 @@ theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable
   -/)]
 theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(d k)) s = riemannZeta s ^ k := by
-  have natCoe_d_succ (j : ℕ) :
-    (d (j + 1) : ArithmeticFunction ℂ) = (d j : ArithmeticFunction ℂ) * ζ := by
-    rw [d_succ, natCoe_mul]
-  suffices ∀ j, LSeries (↗(d j : ArithmeticFunction ℂ)) s = riemannZeta s ^ j ∧
-      LSeriesSummable (↗(d j : ArithmeticFunction ℂ)) s from (this k).1
-  intro j
-  induction j with
+  change LSeries (↗(d k : ArithmeticFunction ℂ)) s = riemannZeta s ^ k
+  induction k with
   | zero =>
     simp only [d_zero, natCoe_one, pow_zero, one_eq_delta]
-    exact ⟨congr_fun LSeries_delta s,
-      (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable⟩
+    exact congr_fun LSeries_delta s
   | succ j ih =>
-    obtain ⟨ih_eq, ih_sum⟩ := ih
     have hζ : LSeriesSummable (↗(ζ : ArithmeticFunction ℂ)) s :=
       LSeriesSummable_zeta_iff.mpr hs
-    constructor
-    · rw [pow_succ, LSeries_congr (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
-        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]) s,
-        LSeries_mul' ih_sum hζ, ih_eq]
-      congr 1
-      exact LSeries_zeta_eq_riemannZeta hs
-    · rw [(LSeriesSummable_congr s (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
-        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]))]
-      exact LSeriesSummable_mul ih_sum hζ
+    rw [pow_succ, LSeries_congr (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
+        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [d_succ, natCoe_mul]) s,
+        LSeries_mul' (LSeries_d_summable j hs) hζ, ih]
+    congr 1
+    exact LSeries_zeta_eq_riemannZeta hs
 
 
 /-- `d k` is multiplicative for all `k`. -/
@@ -383,16 +364,70 @@ scoped[ArithmeticFunction] notation "σᴿ" => ArithmeticFunction.sigmaR
 /-- For natural exponents, sigmaR agrees with sigma. -/
 @[blueprint
   "sigmaR_natCast"
-  (statement := /-- For natural exponents, $\sigma_R$ agrees with $\sigma$. -/)
+  (statement := /-- For natural exponents, $\sigma^R$ agrees with $\sigma$. -/)
   (proof := /--
-  The function $\sigma_R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma k n$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma_R k n = \sigma k n$ when we view $\sigma k n$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
+  The function $\sigma^R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma_k(n)$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma^R_k(n) = \sigma_k(n)$ when we view $\sigma_k(n)$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
   -/)]
 lemma sigmaR_natCast (k n : ℕ) :
     σᴿ k n = σ k n := by
   unfold sigmaR sigma
   simp
 
-set_option maxHeartbeats 1600000 in
+@[blueprint
+  "powR"
+  (statement := /-- Arithmetic function with complex parameter $\nu$. Evaluates as $n\mapsto n^{\nu}$ for $n\neq 0$ and $0$ at $n=0$. -/)]
+noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
+  ⟨fun n ↦ if n = 0 then 0 else (n : ℂ) ^ ν, by grind⟩
+
+@[blueprint
+  "sigmaR_eq_zeta_mul_powR"
+  (statement := /-- $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$, where $\zeta$ is the constant function $1$. -/)
+  (proof := /--
+  The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
+  -/)]
+lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunction ℂ) * powR ν := by
+  ext n;
+  by_cases hn : n = 0 <;> simp only [ hn, ArithmeticFunction.sigmaR, ArithmeticFunction.powR,
+  ArithmeticFunction.zeta, map_zero, coe_mk, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero,
+  cast_one, mul_ite, mul_zero, ite_mul, zero_mul, one_mul]
+  rw [ Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if x = 0 then 0 else ( y : ℂ ) ^ ν, ← Nat.sum_div_divisors ];
+  exact Finset.sum_congr rfl fun x hx => by rw [ if_neg ( Nat.ne_of_gt ( Nat.div_pos ( Nat.le_of_dvd ( Nat.pos_of_ne_zero hn ) ( Nat.dvd_of_mem_divisors hx ) ) ( Nat.pos_of_mem_divisors hx ) ) ), if_neg ( Nat.ne_of_gt ( Nat.pos_of_mem_divisors hx ) ) ] ;
+
+@[blueprint
+  "LSeries_powR_eq"
+  (statement := /-- $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$. -/)
+  (proof := /--
+  The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The L-series of $\text{pow}^R(\nu)$ at $s$ is given by the sum $\sum_{n=1}^{\infty} n^{\nu - s}$. This series converges to the Riemann zeta function $\zeta(s - \nu)$ for $\Re(s - \nu) > 1$, since the zeta function is defined as $\zeta(s) = \sum_{n=1}^{\infty} n^{-s}$ for $\Re(s) > 1$. Therefore, we have $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ under the condition that $\Re(s - \nu) > 1$.
+  -/)]
+lemma LSeries_powR_eq (ν : ℂ) {s : ℂ} (hs : 1 < (s - ν).re) :
+    LSeries (powR ν) s = riemannZeta (s - ν) := by
+  convert ( LSeries_congr _ _ ) using 1;
+  · rw [ zeta_eq_tsum_one_div_nat_cpow hs ];
+    · refine tsum_congr fun n => ?_;
+      by_cases hn : n = 0
+      · simp only [LSeries.term, hn, one_div, CharP.cast_eq_zero, ↓reduceIte, inv_eq_zero, Complex.cpow_eq_zero_iff,
+          ne_eq, true_and]
+        exact sub_ne_zero_of_ne (by rintro rfl; norm_num at hs)
+      · simp only [one_div];
+        rw [← Complex.cpow_neg, neg_sub, Complex.cpow_sub];
+        · exact Eq.symm (LSeries.term_of_ne_zero hn (fun n ↦ ↑n ^ ν) s)
+        · exact cast_ne_zero.mpr hn
+  · unfold ArithmeticFunction.powR; aesop;
+
+@[blueprint
+  "abscissa_powR_le"
+  (statement := /-- The abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$. -/)
+  (proof := /--
+  We apply \ref{LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow} which states that if there exists a constant $C$ such that $\|f(n)\| \leq C \cdot n^r$ for all $n$ sufficiently large, then the abscissa of absolute convergence of $L(f, s)$ is at most $r + 1$. In our case, we can take $f(n) = n^\nu$ and observe that $\|n^\nu\| = n^{\Re(\nu)}$. Thus, we can choose $C = 1$ and $r = \Re(\nu)$, which gives us the desired result that the abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$.
+  -/)]
+lemma abscissa_powR_le (ν : ℂ) : LSeries.abscissaOfAbsConv (powR ν) ≤ ν.re + 1 := by
+  have h_abs_le : ∀ n : ℕ, n ≠ 0 → ‖(powR ν n : ℂ)‖ ≤ (n : ℝ) ^ ν.re := by
+    intros n hn_nonzero
+    simp only [ArithmeticFunction.powR, hn_nonzero, coe_mk, ↓reduceIte];
+    rw [ ← Complex.ofReal_natCast, Complex.norm_cpow_eq_rpow_re_of_pos ( Nat.cast_pos.mpr <| Nat.pos_of_ne_zero hn_nonzero ) ]
+  apply_rules [ LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow ];
+  exact ⟨ 1, fun n hn => by simpa using h_abs_le n hn ⟩
+
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
   "LSeries_sigma_eq_riemannZeta_mul"
@@ -402,126 +437,13 @@ set_option maxHeartbeats 1600000 in
   -/)]
 theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (hsν : 1 < (s - ν).re) :
     LSeries (↗(σᴿ ν)) s = riemannZeta s * riemannZeta (s - ν) := by
-  have h_lseries_def : ∀ (f : ArithmeticFunction ℂ) (s : ℂ), 1 < s.re →
-      ∑' n : ℕ+, LSeries.term f s n = (∑' n : ℕ+, f n * (n : ℂ) ^ (-s)) := by
-    simp +decide [LSeries.term]
-    exact fun f s hs => tsum_congr fun n => by rw [div_eq_mul_inv, Complex.cpow_neg]
-  have h_fubini : ∑' (n : ℕ+), (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
-      ∑' (d : ℕ+), (d : ℂ) ^ ν * ∑' (m : ℕ+), (d * m : ℂ) ^ (-s) := by
-    have h_fubini :
-        Summable (fun p : ℕ+ × ℕ+ => (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s)) := by
-      have h_fubini :
-          Summable (fun p : ℕ+ × ℕ+ => (p.1 : ℂ) ^ (ν - s) * (p.2 : ℂ) ^ (-s)) := by
-        have h_fubini : Summable (fun p : ℕ+ => (p : ℂ) ^ (ν - s)) ∧
-            Summable (fun p : ℕ+ => (p : ℂ) ^ (-s)) := by
-          constructor
-          · have h_summable : Summable (fun p : ℕ => (p : ℂ) ^ (ν - s)) := by
-              refine' .of_norm _
-              have h_summable : Summable (fun p : ℕ => (p : ℝ) ^ (-(s - ν).re)) :=
-                Real.summable_nat_rpow.2 (by linarith)
-              convert h_summable using 1
-              ext; rw [← Complex.ofReal_natCast];
-              rw [Complex.norm_cpow_eq_rpow_re_of_nonneg] <;> norm_num; ring;
-              norm_num at *; linarith
-            exact h_summable.comp_injective Subtype.coe_injective
-          · have h_summable : Summable (fun p : ℕ => (p : ℂ) ^ (-s)) := by
-              refine' .of_norm _
-              have := Real.summable_nat_rpow_inv.mpr hs
-              convert this using 2
-              rw [← Complex.ofReal_natCast, Complex.norm_cpow_eq_rpow_re_of_nonneg] <;> norm_num
-              · rw [Real.rpow_neg (Nat.cast_nonneg _)]
-              · linarith
-            exact h_summable.comp_injective Subtype.coe_injective
-        exact .of_norm <| by simpa using Summable.mul_norm (h_fubini.1.norm) (h_fubini.2.norm)
-      convert h_fubini using 2; ring;
-      rw [Complex.cpow_add _ _] <;> norm_num; ring;
-      rw [mul_assoc, Complex.cpow_def_of_ne_zero, Complex.cpow_def_of_ne_zero,
-        Complex.cpow_def_of_ne_zero] <;> norm_num; ring;
-      rw [Complex.log_mul (by norm_num) (by norm_num)];
-      rw [Complex.cpow_def_of_ne_zero (by norm_num)]; ring;
-      · rw [← Complex.exp_add]; ring
-      · norm_num [Complex.arg]
-        exact ⟨Real.pi_pos, Real.pi_pos.le⟩
-    have h_fubini : ∑' (n : ℕ+), (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
-        ∑' (p : ℕ+ × ℕ+), (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s) := by
-      have h_fubini : ∀ n : ℕ+,
-          (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
-            ∑' (p : ℕ+ × ℕ+),
-              (if p.1 * p.2 = n then (p.1 : ℂ) ^ ν * (p.1 * p.2 : ℂ) ^ (-s) else 0) := by
-        intro n
-        have h_fubini : (∑ d ∈ (n : ℕ).divisors, (d : ℂ) ^ ν) * (n : ℂ) ^ (-s) =
-            ∑' (p : ℕ+ × ℕ+),
-              (if p.1 * p.2 = n then (p.1 : ℂ) ^ ν * (n : ℂ) ^ (-s) else 0) := by
-          rw [tsum_eq_sum]
-          any_goals exact Finset.filter (fun p => p.1 * p.2 = n) (Finset.Iic (n, n))
-          · simp +decide [Finset.sum_ite, Finset.sum_mul _ _ _]
-            refine' Finset.sum_bij
-              (fun x hx => (⟨x, Nat.pos_of_mem_divisors hx⟩,
-                ⟨n / x, Nat.div_pos (Nat.le_of_dvd n.pos (Nat.dvd_of_mem_divisors hx))
-                  (Nat.pos_of_mem_divisors hx)⟩))
-              _ _ _ _ <;>
-              simp +decide [Nat.div_mul_cancel (Nat.dvd_of_mem_divisors _)]
-            · exact fun a ha =>
-                ⟨⟨Nat.le_of_dvd n.pos ha, Nat.div_le_self _ _⟩,
-                  PNat.eq <| Nat.mul_div_cancel' ha⟩
-            · simp +contextual [← PNat.coe_inj]
-            · intro a b ha hb hab; use a; aesop
-          · aesop
-        convert h_fubini using 4; aesop
-      rw [tsum_congr h_fubini, ← Summable.tsum_comm]
-      · exact tsum_congr fun p => by rw [tsum_eq_single (p.1 * p.2)] <;> aesop
-      · rw [summable_iff_vanishing] at *
-        intro e he
-        rcases ‹∀ e ∈ nhds 0, ∃ s_1 : Finset (ℕ+ × ℕ+),
-          ∀ t : Finset (ℕ+ × ℕ+), Disjoint t s_1 →
-            ∑ b ∈ t, (b.1 : ℂ) ^ ν * (b.1 * b.2 : ℂ) ^ (-s) ∈ e› e he with ⟨s, hs⟩
-        use s.image fun p => (p.1 * p.2, p.1, p.2)
-        intro t ht
-        simp_all +decide [Finset.disjoint_left]
-        convert hs (Finset.image (fun p : ℕ+ × ℕ+ × ℕ+ => (p.2.1, p.2.2))
-          (t.filter fun p : ℕ+ × ℕ+ × ℕ+ => p.1 = p.2.1 * p.2.2)) _ using 1
-        · rw [Finset.sum_image]
-          · rw [Finset.sum_filter]; congr; ext; aesop
-          · simp +contextual [Set.InjOn]
-        · simp +zetaDelta at *
-          exact fun a b hab h => ht _ _ _ hab _ _ h rfl rfl rfl
-    rw [h_fubini, Summable.tsum_prod]
-    · simp +decide only [tsum_mul_left]
-    · assumption
-  convert h_fubini using 1
-  · convert h_lseries_def (sigmaR ν) s hs using 1
-    rw [← tsum_congr]
-    rw [← tsum_eq_tsum_of_ne_zero_bij]
-    convert rfl
-    use fun x => x.val
-    all_goals norm_num [LSeries.term]
-    any_goals intros; rfl
-    · aesop_cat
-    · intro x hx hx' hx''
-      use ⟨x, Nat.pos_of_ne_zero hx⟩; aesop
-  · have h_inner : ∀ d : ℕ+,
-        ∑' (m : ℕ+), (d * m : ℂ) ^ (-s) = (d : ℂ) ^ (-s) * riemannZeta s := by
-      intro d
-      rw [show riemannZeta s = ∑' m : ℕ+, (m : ℂ) ^ (-s) from ?_]
-      rw [← tsum_mul_left]; congr; ext m
-      rw [Complex.cpow_def_of_ne_zero, Complex.cpow_def_of_ne_zero] <;> norm_num; ring;
-      rw [Complex.log_mul (by norm_num) (by norm_num)];
-      rw [Complex.cpow_def_of_ne_zero (by norm_num)]; ring;
-      · rw [← Complex.exp_add, sub_eq_add_neg]
-      · norm_num [Complex.arg]
-        exact ⟨Real.pi_pos, Real.pi_pos.le⟩
-      · rw [zeta_eq_tsum_one_div_nat_add_one_cpow]
-        · rw [← Equiv.tsum_eq <| Equiv.pnatEquivNat]; norm_num [Complex.cpow_neg]
-          exact tsum_congr fun n => by erw [PNat.natPred]; aesop
-        · exact?
-    simp_all +decide [mul_assoc, mul_comm, mul_left_comm, tsum_mul_left]
-    have h_zeta : ∑' (x : ℕ+), (x : ℂ) ^ (ν - s) = riemannZeta (s - ν) := by
-      rw [zeta_eq_tsum_one_div_nat_add_one_cpow]
-      · rw [← Equiv.tsum_eq <| Equiv.pnatEquivNat]; norm_num
-        refine' tsum_congr fun n => _
-        rw [← Complex.cpow_neg, neg_sub]; norm_num [PNat.natPred]
-      · simpa using hsν
-    exact Or.inl <| h_zeta ▸ by congr; ext; rw [← Complex.cpow_add _ _]; ring; norm_num
+  rw [← ArithmeticFunction.LSeries_zeta_eq_riemannZeta hs, ← LSeries_powR_eq ν hsν, sigmaR_eq_zeta_mul_powR];
+  apply ArithmeticFunction.LSeries_mul
+  · apply (ArithmeticFunction.abscissaOfAbsConv_zeta.trans_lt _)
+    exact_mod_cast hs
+  · apply lt_of_le_of_lt (abscissa_powR_le ν)
+    rw[Complex.sub_re] at hsν
+    exact_mod_cast (by linarith)
 
 /-
 Serious conversation to be had over zulip:
