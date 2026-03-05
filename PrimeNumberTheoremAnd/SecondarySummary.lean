@@ -100,7 +100,7 @@ lemma table_1_bounds (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ T
   (statement := /--
 Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
 $$
-\left|\frac{\psi(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\left|\frac{\theta(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
 $$
 where $A_1 = A + 0.1$.
   -/)
@@ -158,6 +158,87 @@ theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   linarith
 
 end PT
+
+namespace Trudgian2016
+
+blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: add the Section 3.3 material on the conjecture of Pomerance --/
+
+
+@[blueprint
+  "trudgian:eps_0-def"
+  (title := "Trudgian definition of eps_0")
+  (statement := /--
+  One has
+  \[
+\epsilon_{0}(x) = \sqrt{\frac{8}{17 \pi}} X^{1/2}e^{-X}, \quad X = \sqrt{(\log x)/R}, \quad R = 6.455.
+  \]
+  for all $x \geq 2$.
+  -/)]
+noncomputable def eps_0 (x : ℝ) : ℝ :=
+  sqrt (8 / (17 * π)) * (sqrt (log x / 6.455)) * exp (-sqrt (log x / 6.455))
+
+@[blueprint
+  "trudgian:theorem 1-theta"
+  (title := "Trudgian Theorem 1 for theta")
+  (statement := /--
+  For $x \geq 149$ one has $|\theta(x) - x| \leq x \epsilon_{0}(x)$.-/)
+  (latexEnv := "theorem")]
+theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
+    Eθ.numericalBound x eps_0 := by sorry
+
+@[blueprint
+  "trudgian:theorem 1-psi"
+  (title := "Trudgian Theorem 1 for psi")
+  (statement := /--
+  For $x \geq 23$ one has $|\psi(x) - x| \leq x \epsilon_0(x)$.
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
+    Eψ.numericalBound x eps_0 := by sorry
+
+
+@[blueprint
+  "trudgian:lemma 1"
+  (title := "Trudgian Lemma 1")
+  (statement := /--
+  For $x \geq \exp(35)$ we have
+  \[
+  |\theta(x) - x| \leq \frac{0.0045x}{\log^2 x}.
+  \]
+  -/)
+  (latexEnv := "lemma")]
+theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
+    Eθ.numericalBound x (fun x ↦ 0.0045 / log x ^ 2) := by sorry
+
+
+@[blueprint
+  "trudgian:theorem 2"
+  (title := "Trudgian Theorem 2")
+  (statement := /--
+  For $x \geq 229$ one has
+  \[
+  |\pi(x) - \mathrm{li}(x)| \leq 0.2795 \frac{x}{(\log x)^{3/4}} \exp\left(-\sqrt{\frac{\log x}{6.455}}\right).
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
+    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by sorry
+
+
+@[blueprint
+  "thm:trudgian2016"
+  (title := "Trudgian Corollary 2")
+  (statement := /-- If $x > 2,898,242$, then there
+  is a prime in the interval
+  \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+    HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
+
+
+
+end Trudgian2016
 
 @[blueprint
   "thm:jy_13"
@@ -279,16 +360,6 @@ theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
 theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
 
-@[blueprint
-  "thm:trudgian2016"
-  (title := "Trudgian 2016")
-  (statement := /-- If $x > 2,898,242$, then there
-  is a prime in the interval
-  \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
-    HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
 
 @[blueprint
   "thm:axler2018_1"
