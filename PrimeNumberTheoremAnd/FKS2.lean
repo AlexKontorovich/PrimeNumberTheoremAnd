@@ -1906,6 +1906,41 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
 
+
+/-The following three lemmas are used in the proof of corollary_26.
+-/
+lemma table6_mem : [0.826, 0.25, 1.00, 1.000] ∈ table6 := by
+  simp [table6]
+
+lemma sqrt_exp_le_half (v : ℝ) (hv : v ≥ 0) : Real.sqrt v * Real.exp (-v) ≤ 1/2 := by
+  -- Let $u = \sqrt{v}$, then the inequality becomes $u e^{-u^2} \leq \frac{1}{2}$.
+  set u : ℝ := Real.sqrt v
+  have hu : u * Real.exp (-u^2) ≤ 1 / 2 := by
+    -- We'll use the fact that $u e^{-u^2} \leq \frac{1}{2}$ for all $u \geq 0$. This follows from the fact that the maximum of $u e^{-u^2}$ occurs at $u = \frac{1}{\sqrt{2}}$.
+    have h_max : ∀ u : ℝ, 0 ≤ u → u * Real.exp (-u ^ 2) ≤ 1 / 2 := by
+      intro u hu; rw [ Real.exp_neg ] ; ring_nf; norm_num; (
+      rw [ ← div_eq_mul_inv, div_le_iff₀ ( Real.exp_pos _ ) ] ; nlinarith [ sq_nonneg ( u - 1 ), Real.add_one_le_exp ( u ^ 2 ) ] ;);
+    exact h_max u <| Real.sqrt_nonneg v;
+  rwa [ Real.sq_sqrt hv ] at hu
+
+lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826 0.25 1.00 5.5666305 x ≤ 0.4298 := by
+  unfold admissible_bound;
+  -- Let $y = \sqrt{\log x / 5.5666305}$. Then the expression becomes $0.826 * y^{1/2} * \exp(-y)$.
+  set y : ℝ := Real.sqrt (Real.log x / 5.5666305)
+  have h_y : 0.826 * y^(1/2 : ℝ) * Real.exp (-y) ≤ 0.4298 := by
+    -- Apply the lemma sqrt_exp_le_half with v = y.
+    have h_sqrt_exp : y^(1/2 : ℝ) * Real.exp (-y) ≤ 1 / 2 := by
+      convert sqrt_exp_le_half y ( Real.sqrt_nonneg _ ) using 1 ; norm_num [ ← Real.sqrt_eq_rpow ];
+    linarith;
+  convert h_y using 1 ; norm_num [ Real.sqrt_eq_rpow, ← Real.rpow_mul ( div_nonneg ( Real.log_nonneg hx ) ( by norm_num : ( 0 :ℝ ) ≤ 5.5666305 ) ) ] ; ring_nf;
+  rw [ show ( log x * ( 2000000 / 11133261 ) ) = ( Real.sqrt ( log x / 5.5666305 ) ) ^ 2 by rw [ Real.sq_sqrt <| by exact div_nonneg ( Real.log_nonneg hx ) <| by norm_num ] ; ring ] ; rw [ ← Real.rpow_natCast, ← Real.rpow_mul ( by positivity ) ] ; norm_num;
+  norm_num +zetaDelta at *
+  left
+  have hnonneg: 0 ≤ (Real.sqrt (Real.log x)) / (Real.sqrt 11133261 / Real.sqrt 2000000) := by positivity
+  simpa [one_div] using (Real.pow_rpow_inv_natCast (x := √(Real.log x) / (√11133261 / √2000000)) (n := 2) hnonneg (by decide))
+
+
+
 @[blueprint
   "fks2-corollary-26"
   (title := "FKS2 Corollary 26")
@@ -1931,6 +1966,9 @@ theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
   -/)
   (latexEnv := "corollary")
   (discussion := 723)]
-theorem corollary_26 : Eπ.bound 0.4298 2 := sorry
+theorem corollary_26 : Eπ.bound 0.4298 2 := by
+  intro x hx
+  have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
+  exact le_trans (h1 x (by linarith)) (admissible_bound_le_0826 x (by linarith))
 
 end FKS2
