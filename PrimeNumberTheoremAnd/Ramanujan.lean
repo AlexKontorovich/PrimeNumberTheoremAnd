@@ -34,6 +34,7 @@ Then for $x > x_a$ we have
 %
 where
 $$\epsilon_{M_a} (x) = 72 + 2 M_a + \frac{2M_a+132}{\log x} + \frac{4M_a+288}{\log^2 x} + \frac{12 M_a+576}{\log^3 x}+\frac{48M_a}{\log^4 x} + \frac{M_a^2}{\log^5 x}.$$
+(cf. \cite[Lemma 2.1]{dudek-platt})
 -/)
   (proof := /-- Direct calculation -/)
   (latexEnv := "sublemma")
@@ -67,7 +68,7 @@ theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Fin
 
 @[blueprint
   "ramanujan-criterion-2"
-  (title := "Criterion for Ramanujan's inequality, substep 2")
+  (title := "Criterion for Ramanujan's inequality, substep 2 ")
   (statement := /--
 Let $m_a \in \mathbb{R}$  and suppose that for $x>x_a$ we have
 $$\pi(x) > x \sum_{k=0}^{4} \frac{k!}{\log^{k+1}x}+\frac{m_a x}{\log^6 x}.$$
@@ -75,6 +76,7 @@ Then for $x > e x_a$ we have
 $$\frac{ex}{\log x} \pi \Big(\frac{x}{e} \Big) > x^2 \Big\{ \frac{1}{\log^2 x}+ \frac{2}{\log^3 x}+ \frac{5}{\log^4 x}+ \frac{16}{\log^5 x}+ \frac{65}{\log^6 x} + \frac{\epsilon'_{m_a}(x)}{\log^7 x} \Big\},$$
 where
 $$\epsilon'_{m_a}(x) = 206+m_a+\frac{364}{\log x} + \frac{381}{\log^2 x}+\frac{238}{\log^3 x} + \frac{97}{\log^4 x} + \frac{30}{\log^5 x} + \frac{8}{\log^6 x}.$$
+(cf. \cite[Lemma 2.1]{dudek-platt})
 -/)
   (proof := /-- We have
 $$\frac{ex}{\log x} \pi \Big(\frac{x}{e} \Big) > \frac{x^2}{\log x} \Big( \sum_{k=0}^{4} \frac{k!}{(\log x - 1)^{k+1}}\Big) + \frac{m_a x}{(\log x-1)^{6}}$$
@@ -459,7 +461,8 @@ theorem log_8_bound (x : ℝ) (hx : 2 ≤ x) :
   "log-7-int-bound"
   (title := "Bound for integral of an inverse power of log")
   (statement := /-- For $x \geq 2$ we have
-$$\int_2^x \frac{dt}{\log^7 t} < \frac{x}{\log^7 x} + 7 \Big( \frac{\sqrt{x}}{\log^8 2} + \frac{2^8 x}{\log^8 x} \Big).$$-/)
+$$\int_2^x \frac{dt}{\log^7 t} < \frac{x}{\log^7 x} + 7 \Big( \frac{\sqrt{x}}{\log^8 2} + \frac{2^8 x}{\log^8 x} \Big).$$
+(cf. \cite[Section 2.3]{dudek-platt})-/)
   (proof := /-- Integrate by parts to write the left-hand side as $\frac{x}{\log^7 x} - \frac{2}{\log^7 2} + 7 \int_2^x \frac{t}{\log^8 t} dt$.  Discard the middle term.  For the final term, split between $\int_2^{\sqrt{x}}$ and $\int_{\sqrt{x}}^x$.  For the first, use the bound $\int_2^{\sqrt{x}} \frac{t}{\log^8 t} dt < \int_2^{\sqrt{x}} \frac{t}{\log^8 2} dt$, and for the second, use the bound $\int_{\sqrt{x}}^x \frac{t}{\log^8 t} dt < \int_{\sqrt{x}}^x \frac{t}{\log^8 x} dt$.-/)
   (latexEnv := "lemma")
   (discussion := 988)]
@@ -475,9 +478,10 @@ private theorem allThetaChecks_3_599 :
 
 @[blueprint
   "ramanujan-pibound-1"
-  (title := "Error estimate for theta, range 1")
+  (title := "Error estimate for theta, range 1 ")
   (statement := /-- For $2 \leq x < 599$ we have
-$$E_\theta(x) \leq 1 - \frac{\log 2}{3}.$$-/)
+$$E_\theta(x) \leq 1 - \frac{\log 2}{3}.$$
+(cf. \cite[(18)]{PT2021})-/)
   (proof := /-- For $x \in [2, 3)$ we have $\theta(x) = \log 2$, so
 $E_\theta(x) = 1 - \log 2 / x < 1 - \log 2 / 3$ since $x < 3$.
 For $x \in [3, 599)$ we use the LeanCert ChebyshevTheta engine:
@@ -536,9 +540,10 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
 
 @[blueprint
   "ramanujan-pibound-2"
-  (title := "Error estimate for theta, range 2")
+  (title := "Error estimate for theta, range 2 ")
   (statement := /-- For $599 < x \leq \exp(58)$ we have
-$$E_\theta(x) \leq \frac{\log^2 x}{8\pi\sqrt{x}}.$$-/)
+$$E_\theta(x) \leq \frac{\log^2 x}{8\pi\sqrt{x}}.$$
+(cf. \cite[(18)]{PT2021})-/)
   (proof := /-- This is \cite[Lemma 6]{PT2021}. -/)
   (latexEnv := "sublemma")]
 theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
@@ -549,8 +554,9 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
   "ramanujan-pibound-3"
   (title := "Error estimate for theta, range 3")
   (statement := /-- For $\exp(58) < x < \exp(1169)$ we have
-$$E_\theta(x) \leq \sqrt\frac{8}{17\pi}\left(\frac{\log x}{6.455}\right)^{\frac{1}{4}}\exp\left(-\sqrt{\frac{\log x}{6.455}}\right).$$-/)
-  (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
+$$E_\theta(x) \leq \sqrt\frac{8}{17\pi}\left(\frac{\log x}{6.455}\right)^{\frac{1}{4}}\exp\left(-\sqrt{\frac{\log x}{6.455}}\right).$$
+(cf. \cite[(18)]{PT2021})-/)
+  (proof := /-- This follows from Theorem \ref{trudgian:theorem 1-theta}. -/)
   (latexEnv := "sublemma")
   (discussion := 991)]
 theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
@@ -561,7 +567,8 @@ theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
   "ramanujan-pibound-4"
   (title := "Error estimate for theta, range 4")
   (statement := /-- For $\exp(1169) \leq x < \exp(2000)$ we have
-$$E_\theta(x) \leq 462.0\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$-/)
+$$E_\theta(x) \leq 462.0\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$
+(cf. \cite[(18)]{PT2021})-/)
   (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
   (latexEnv := "sublemma")
   (discussion := 992)]
@@ -580,9 +587,10 @@ theorem pi_bound_4 (x : ℝ) (hx : x ∈ Set.Ico (exp 1169) (exp 2000)) :
 
 @[blueprint
   "ramanujan-pibound-5"
-  (title := "Error estimate for theta, range 5")
+  (title := "Error estimate for theta, range 5 ")
   (statement := /-- For $\exp(2000) \leq x < \exp(3000)$ we have
-$$E_\theta(x) \leq 411.5\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$-/)
+$$E_\theta(x) \leq 411.5\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$
+(cf. \cite[(18)]{PT2021})-/)
   (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
   (latexEnv := "sublemma")
   (discussion := 993)]
@@ -595,9 +603,10 @@ theorem pi_bound_5 (x : ℝ) (hx : x ∈ Set.Ico (exp 2000) (exp 3000)) :
 
 @[blueprint
   "ramanujan-pibound-6"
-  (title := "Error estimate for theta, range 6")
+  (title := "Error estimate for theta, range 6 ")
   (statement := /-- For $x > \exp(3000)$ we have
-$$E_\theta(x) \leq 379.7\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$-/)
+$$E_\theta(x) \leq 379.7\left(\frac{\log x}{5.573412}\right)^{1.52}\exp\left(-1.89\sqrt{\frac{\log x}{5.573412}}\right).$$
+(cf. \cite[(18)]{PT2021})-/)
   (proof := /-- This follows from Corollary \ref{pt_cor_1}. -/)
   (latexEnv := "sublemma")
   (discussion := 1094)]
