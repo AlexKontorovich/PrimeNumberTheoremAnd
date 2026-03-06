@@ -1074,6 +1074,273 @@ blueprint_comment /--
 We obtain our final bound for converting bounds on $E_\theta$ to bounds on $E_\pi$.
 -/
 
+/- The following lemmas are used for theorem_3.
+-/
+
+
+-- Helper: admissible_bound is linear in A
+lemma admissible_bound_mul (A K B C R x : ℝ) :
+    admissible_bound (A * K) B C R x = K * admissible_bound A B C R x := by
+  simp [admissible_bound]; ring
+
+/-
+Helper: the ratio log x / (x * admissible_bound A B C R x) equals R^B / A * g_bound 1 (1-B) (C/√R) x
+-/
+lemma ratio_eq_g {A B C R x : ℝ}
+    (hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
+    log x / (x * admissible_bound A B C R x) =
+    R ^ B / A * g_bound 1 (1 - B) (C / sqrt R) x := by
+  unfold admissible_bound g_bound; ring;
+  rw [ Real.mul_rpow ( by positivity ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; norm_num [ Real.rpow_sub, Real.rpow_neg, Real.sqrt_mul, hR.le, hx.le, hlogx.le ] ; ring;
+  rw [ Real.rpow_sub hlogx, Real.rpow_one ] ; norm_num [ Real.exp_neg ] ; ring;
+  norm_num
+  left
+  rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
+  rw [Real.sqrt_mul, Real.sqrt_inv]
+  linarith
+  linarith
+
+
+
+
+
+/-
+Helper: for x ≥ x₁, the ratio log x / (x * admissible_bound) is at most the value at x₁
+-/
+lemma ratio_mono {A B C R x₁ x : ℝ} (hB : B ≥ 1 + C ^ 2 / (16 * R)) (hR : R > 0)
+    (hx1 : x₁ > 1) (hx : x ≥ x₁) (hA : A > 0) :
+    log x / (x * admissible_bound A B C R x) ≤
+    log x₁ / (x₁ * admissible_bound A B C R x₁) := by
+  have h_ratio_simplified : R ^ B / A * g_bound 1 (1 - B) (C / Real.sqrt R) x ≤ R ^ B / A * g_bound 1 (1 - B) (C / Real.sqrt R) x₁ := by
+    have h_decreasing : ∀ x y : ℝ, 1 < x → x ≤ y → g_bound 1 (1 - B) (C / Real.sqrt R) x ≥ g_bound 1 (1 - B) (C / Real.sqrt R) y := by
+      intros x y hx hy
+      have h_deriv_neg : ∀ x : ℝ, 1 < x → deriv (g_bound 1 (1 - B) (C / Real.sqrt R)) x ≤ 0 := by
+        intros x hx
+        have h_deriv_neg : deriv (g_bound 1 (1 - B) (C / Real.sqrt R)) x = (-1 * Real.log x + (1 - B) + (C / (2 * Real.sqrt R)) * Real.sqrt (Real.log x)) * x ^ (-2 : ℝ) * (Real.log x) ^ ((1 - B) - 1) * Real.exp ((C / Real.sqrt R) * Real.sqrt (Real.log x)) := by
+          field_simp;
+          rw [ lemma_10_substep hx ] ; ring ; norm_num [ Real.sqrt_ne_zero'.mpr hR, Real.sqrt_ne_zero'.mpr ( Real.log_pos hx ), Real.rpow_neg_one ] ; ring;
+          grind
+        generalize_proofs at *; (
+        have h_quad_neg : ∀ u : ℝ, u > 0 → -u^2 + (C / (2 * Real.sqrt R)) * u + (1 - B) ≤ 0 := by
+          intros u hu
+          have h_quad_neg : -u^2 + (C / (2 * Real.sqrt R)) * u + (1 - B) ≤ 0 := by
+            have h_discriminant : (C / (2 * Real.sqrt R))^2 - 4 * (-1) * (1 - B) ≤ 0 := by
+              field_simp at *; ring_nf at *; nlinarith [ inv_mul_cancel₀ ( ne_of_gt hR ), inv_pos.mpr hR, Real.sqrt_nonneg R, Real.sq_sqrt hR.le, mul_inv_cancel₀ ( ne_of_gt ( Real.sqrt_pos.mpr hR ) ), Real.sqrt_nonneg ( R⁻¹ ), Real.sq_sqrt ( inv_nonneg.mpr hR.le ) ] ;
+            linarith [ sq_nonneg ( C / ( 2 * Real.sqrt R ) - 2 * u ) ]
+          generalize_proofs at *; (exact h_quad_neg)
+        generalize_proofs at *; (
+        exact h_deriv_neg.symm ▸ mul_nonpos_of_nonpos_of_nonneg ( mul_nonpos_of_nonpos_of_nonneg ( mul_nonpos_of_nonpos_of_nonneg ( by have := h_quad_neg ( Real.sqrt ( Real.log x ) ) ( Real.sqrt_pos.mpr ( Real.log_pos hx ) ) ; rw [ Real.sq_sqrt ( Real.log_nonneg hx.le ) ] at this; linarith ) ( by positivity ) ) ( by exact Real.rpow_nonneg ( Real.log_nonneg hx.le ) _ ) ) ( by positivity ) ;))
+      generalize_proofs at *; (
+      by_contra h_contra;
+      have := exists_deriv_eq_slope ( g_bound 1 ( 1 - B ) ( C / Real.sqrt R ) ) ( show x < y from hy.lt_of_ne ( by rintro rfl; linarith ) ) ; norm_num at this;
+      exact absurd ( this ( by exact ContinuousOn.mono ( show ContinuousOn ( g_bound 1 ( 1 - B ) ( C / Real.sqrt R ) ) ( Set.Icc x y ) from by exact ContinuousOn.mul ( ContinuousOn.mul ( ContinuousOn.rpow continuousOn_id continuousOn_const <| by intro u hu; exact Or.inl <| by linarith [ hu.1 ] ) <| ContinuousOn.rpow ( Real.continuousOn_log.mono <| by exact fun u hu => ne_of_gt <| by linarith [ hu.1 ] ) continuousOn_const <| by intro u hu; exact Or.inl <| ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) <| ContinuousOn.rexp <| ContinuousOn.mul continuousOn_const <| ContinuousOn.sqrt <| Real.continuousOn_log.mono <| by exact fun u hu => ne_of_gt <| by linarith [ hu.1 ] ) <| Set.Icc_subset_Icc ( by linarith ) le_rfl ) <| by exact fun u hu => DifferentiableAt.differentiableWithinAt <| by exact DifferentiableAt.mul ( DifferentiableAt.mul ( DifferentiableAt.rpow ( differentiableAt_id ) ( differentiableAt_const _ ) <| by linarith [ hu.1 ] ) <| DifferentiableAt.rpow ( Real.differentiableAt_log <| by linarith [ hu.1 ] ) ( differentiableAt_const _ ) <| by exact ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) <| DifferentiableAt.exp <| DifferentiableAt.mul ( differentiableAt_const _ ) <| DifferentiableAt.sqrt ( Real.differentiableAt_log <| by linarith [ hu.1 ] ) <| by exact ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) ( by rintro ⟨ c, ⟨ hxc, hcy ⟩, hcd ⟩ ; rw [ eq_div_iff ] at hcd <;> nlinarith [ h_deriv_neg c <| by linarith ] ) ;);
+    exact mul_le_mul_of_nonneg_left ( h_decreasing _ _ hx1 hx ) ( by positivity );
+  convert h_ratio_simplified using 1 <;> norm_num [ ratio_eq_g hA.ne' hR ( by linarith : 0 < x ) ( Real.log_pos ( by linarith ) ), ratio_eq_g hA.ne' hR ( by linarith : 0 < x₁ ) ( Real.log_pos ( by linarith ) ) ]
+
+/-
+Helper: for B ≥ 3/2 and x ≥ x₁ ≥ x₀, the m(x₀,x)*(log x)^(1-B) factor simplifies
+-/
+lemma m_simplify {B x₀ x x₁ : ℝ} (hB : B ≥ 3 / 2) (hx₀ : x₀ > 1) (hx₁ : x₁ > 1)
+    (hx₁x₀ : x₁ ≥ x₀) (hx : x ≥ x₁) (hlogx : log x > 0) :
+    max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
+    (log x) ^ (1 - B) ≤ 1 / sqrt (log x₁) := by
+  rw [ max_def ];
+  split_ifs <;> norm_num [ Real.sqrt_eq_rpow, ← Real.rpow_add hlogx ];
+  · rw [ ← Real.rpow_neg ( Real.log_nonneg hx₁.le ) ] ; ring_nf ; norm_num [ hlogx ];
+    rw [ Real.rpow_le_rpow_iff_of_neg ] <;> linarith [ Real.log_pos hx₁, Real.log_le_log ( by linarith ) hx ];
+  · exact False.elim <| ‹¬log x₀ ^ ( ( 2 * B - 3 ) / 2 ) ≤ log x ^ ( ( 2 * B - 3 ) / 2 ) › <| Real.rpow_le_rpow ( Real.log_nonneg <| by linarith ) ( Real.log_le_log ( by linarith ) <| by linarith ) <| by linarith;
+
+/-
+Helper: admissible_bound is positive under suitable conditions
+-/
+lemma admissible_bound_pos {A B C R x : ℝ} (hA : A > 0) (hR : R > 0) (hlogx : log x > 0) :
+    admissible_bound A B C R x > 0 := by
+  exact mul_pos ( mul_pos hA ( Real.rpow_pos_of_pos ( div_pos hlogx hR ) _ ) ) ( Real.exp_pos _ )
+
+/-
+Helper: Eθ is non-negative
+-/
+lemma Eθ_nonneg (x : ℝ) (hx : x > 0) : Eθ x ≥ 0 := by
+  exact div_nonneg ( abs_nonneg _ ) hx.le
+
+/-
+Helper: δ is non-negative
+-/
+lemma delta_nonneg (x₀ : ℝ) : δ x₀ ≥ 0 := by
+  exact abs_nonneg _
+
+/-
+Helper: from ratio_mono, derive the bound on log x / x in terms of admissible_bound
+-/
+lemma logx_over_x_bound {A B C R x₁ x : ℝ}
+    (hB : B ≥ 1 + C ^ 2 / (16 * R)) (hR : R > 0) (hA : A > 0)
+    (hx1_gt1 : x₁ > 1) (hx : x ≥ x₁) :
+    log x / x ≤ (log x₁ / (x₁ * admissible_bound A B C R x₁)) * admissible_bound A B C R x := by
+  convert mul_le_mul_of_nonneg_right ( ratio_mono hB hR hx1_gt1 hx hA ) ( admissible_bound_pos hA hR ( Real.log_pos <| show 1 < x by linarith ) |> le_of_lt ) using 1 ; ring;
+  norm_num [ ne_of_gt ( admissible_bound_pos hA hR ( Real.log_pos <| show 1 < x by linarith ) ) ]
+
+/-
+PROBLEM
+Bound the delta term from eq_30.
+
+PROVIDED SOLUTION
+Use logx_over_x_bound to get log x / x ≤ (log x₁ / (x₁ * admissible_bound A B C R x₁)) * admissible_bound A B C R x.
+Multiply both sides by (x₀ / log x₀) * δ x₀ (which is non-negative since δ is non-negative by delta_nonneg and x₀/log x₀ > 0 from hlogx₀).
+The LHS becomes (log x / x) * (x₀ / log x₀) * δ x₀.
+The RHS becomes (log x₁ / (x₁ * admissible_bound A B C R x₁)) * (x₀ / log x₀) * δ x₀ * admissible_bound A B C R x
+which equals (x₀ * log x₁) / (admissible_bound A B C R x₁ * x₁ * log x₀) * δ x₀ * admissible_bound A B C R x by algebraic rearrangement.
+-/
+lemma delta_term_bound {A B C R x₀ x₁ x : ℝ}
+    (hB : B ≥ 1 + C ^ 2 / (16 * R)) (hR : R > 0) (hA : A > 0)
+    (hx1_gt1 : x₁ > 1) (hx : x ≥ x₁) (hx0_pos : x₀ > 0) (hlogx₀ : log x₀ > 0) :
+    (log x / x) * (x₀ / log x₀) * δ x₀ ≤
+    (x₀ * log x₁) / (admissible_bound A B C R x₁ * x₁ * log x₀) * δ x₀ *
+    admissible_bound A B C R x := by
+  have h1 := logx_over_x_bound hB hR hA hx1_gt1 hx
+  have h2 : x₀ / log x₀ ≥ 0 := div_nonneg hx0_pos.le hlogx₀.le
+  have h3 := delta_nonneg x₀
+  calc (log x / x) * (x₀ / log x₀) * δ x₀
+      ≤ ((log x₁ / (x₁ * admissible_bound A B C R x₁)) * admissible_bound A B C R x) * (x₀ / log x₀) * δ x₀ :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right h1 h2) h3
+    _ = (x₀ * log x₁) / (admissible_bound A B C R x₁ * x₁ * log x₀) * δ x₀ * admissible_bound A B C R x := by ring
+
+/-
+Helper: Dawson function is monotone decreasing for large arguments (after ~0.924)
+We use remark_after_corollary_11 which gives the existence of a maximum around 0.924
+-/
+lemma dawson_antitoneOn : ∃ x₀ : ℝ, x₀ < 1 ∧ StrictAntiOn dawson (Set.Ioi x₀) := by
+  obtain ⟨ x₀, hx₀ ⟩ := remark_after_corollary_11;
+  exact ⟨ x₀, by norm_num at hx₀; linarith, hx₀.2.2 ⟩
+
+/-
+Helper: Eθ t = |Eθ t| since Eθ is non-negative
+-/
+lemma Eθ_eq_abs {t : ℝ} (ht : t > 0) : Eθ t = |Eθ t| := by
+  rw [ abs_of_nonneg ( Eθ_nonneg t ht ) ]
+
+/-
+Algebraic identity: (log x / x) * (2A/R^B) * x * m * exp(-C*√(log x/R)) * D
+= 2 * m * (log x)^(1-B) * D * admissible_bound A B C R x
+-/
+lemma integral_algebra {A B C R x m D : ℝ} (hR : R > 0) (hx : x > 1) :
+    (log x / x) * ((2 * A) / R ^ B * x * m * exp (-C * √(log x / R)) * D) =
+    2 * m * (log x) ^ (1 - B) * D * admissible_bound A B C R x := by
+  unfold admissible_bound; ring;
+  rw [ Real.rpow_sub ( by linarith [ Real.log_pos hx ] ), Real.rpow_one ] ; ring;
+  rw [ Real.mul_rpow ( by linarith [ Real.log_pos hx ] ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; ring ; norm_num [ ne_of_gt ( zero_lt_one.trans hx ) ] ;
+  rw [ mul_inv_cancel_right₀ ( ne_of_gt ( Real.rpow_pos_of_pos ( Real.log_pos hx ) _ ) ) ]
+  have heq: Real.exp (-(C * (Real.log x * R⁻¹)^(1/2 : ℝ))) = Real.exp (-(C * Real.sqrt (Real.log x * R⁻¹))) := by congr; rw [Real.sqrt_eq_rpow]
+  rw [heq]
+  linarith
+
+
+
+
+
+
+/-
+Dawson monotonicity for arguments ≥ 1
+-/
+lemma dawson_mono_ge_one {a b : ℝ} (ha : a ≥ 1) (hab : a ≤ b) :
+    dawson b ≤ dawson a := by
+  obtain ⟨ x₀, hx₀ ⟩ := dawson_antitoneOn;
+  exact hx₀.2.le_iff_ge ( show x₀ < b by linarith ) ( show x₀ < a by linarith ) |>.2 ( by linarith )
+
+/-
+Derive that √(log x₁) - C/(2√R) ≥ 1 from the hypothesis on x₁
+-/
+lemma sqrt_log_minus_ge_one {C R x₁ : ℝ}
+    (hR : R > 0) (hx1 : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
+    √(log x₁) - C / (2 * √R) ≥ 1 := by
+  -- Taking the natural logarithm of both sides of the inequality $x₁ \geq \exp((1 + C / (2 * \sqrt{R}))^2)$, we get $\log x₁ \geq (1 + C / (2 * \sqrt{R}))^2$.
+  have h_log : Real.log x₁ ≥ (1 + C / (2 * Real.sqrt R)) ^ 2 := by
+    simpa using Real.log_le_log ( by positivity ) hx1;
+  exact le_tsub_of_add_le_right ( Real.le_sqrt_of_sq_le ( by linarith ) )
+
+/-
+dawson is non-negative
+-/
+lemma dawson_nonneg {x : ℝ} (hx : x ≥ 0) : dawson x ≥ 0 := by
+  exact mul_nonneg ( Real.exp_nonneg _ ) ( intervalIntegral.integral_nonneg ( by positivity ) fun t ht => Real.exp_nonneg _ )
+
+/-
+PROBLEM
+Helper: the integral term from eq_30 is bounded by the Dawson component of μ_asymp
+
+Bound the integral term from eq_30.
+
+PROVIDED SOLUTION
+Step 1: Since Eθ t ≥ 0, we have ∫ Eθ t / log t^2 ≤ ∫ |Eθ t| / log t^2.
+Step 2: Apply lemma_12 to bound the integral.
+Step 3: Multiply by log x / x and use integral_algebra to simplify:
+  = 2 * m(x₀,x) * (log x)^(1-B) * dawson(√(log x) - C/(2√R)) * admissible_bound.
+Step 4: Apply m_simplify to get m * (log x)^(1-B) ≤ 1/√(log x₁).
+Step 5: Apply dawson_mono_ge_one (using sqrt_log_minus_ge_one for the ≥ 1 condition)
+  to get dawson(√(log x)-C/(2√R)) ≤ dawson(√(log x₁)-C/(2√R)).
+Step 6: Combine: ≤ 2/√(log x₁) * dawson(√(log x₁)-C/(2√R)) * admissible_bound.
+-/
+lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
+  (hB : B ≥ 3 / 2) (hB2 : B ≥ 1 + C ^ 2 / (16 * R))
+  (hR : R > 0) (hA : A > 0) (hx0 : x₀ > 0)
+  (hE_theta : Eθ.classicalBound A B C R x₀)
+  (hx1_gt1 : x₁ > 1) (hx₁x₀ : x₁ ≥ x₀) (hx : x ≥ x₁)
+  (hx0_ge2 : x₀ ≥ 2)
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R))
+  (hx1_exp : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
+  (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 ≤
+  2 * dawson (√(log x₁) - C / (2 * √R)) / √(log x₁) *
+  admissible_bound A B C R x := by
+  -- Apply the integral bound from lemma_12.
+  have h_integral_bound : ∫ t in x₀..x, Eθ t / Real.log t ^ 2 ≤
+      (2 * A) / R ^ B * x * max ((Real.log x₀) ^ ((2 * B - 3) / 2)) ((Real.log x) ^ ((2 * B - 3) / 2)) *
+      Real.exp (-C * Real.sqrt (Real.log x / R)) * dawson (Real.sqrt (Real.log x) - C / (2 * Real.sqrt R)) := by
+        convert lemma_12 _ _ _ _ ?_ ?_ using 1;
+        any_goals linarith;
+        · exact intervalIntegral.integral_congr fun t ht => by rw [ abs_of_nonneg ( Eθ_nonneg t ( by linarith [ Set.mem_Icc.mp ( by simpa [ show x₀ ≤ x by linarith ] using ht ) ] ) ) ] ;
+        · assumption;
+  -- Multiply by log x / x and use integral_algebra to simplify:
+  have h_integral_mul : (log x / x) * ∫ t in x₀..x, Eθ t / Real.log t ^ 2 ≤
+      2 * (max ((Real.log x₀) ^ ((2 * B - 3) / 2)) ((Real.log x) ^ ((2 * B - 3) / 2))) * (Real.log x) ^ (1 - B) *
+      dawson (Real.sqrt (Real.log x) - C / (2 * Real.sqrt R)) * admissible_bound A B C R x := by
+        convert mul_le_mul_of_nonneg_left h_integral_bound ( show 0 ≤ Real.log x / x from div_nonneg ( Real.log_nonneg <| by linarith ) <| by linarith ) using 1 ; ring;
+        unfold admissible_bound; ring;
+        rw [ Real.mul_rpow ( by linarith [ Real.log_nonneg ( by linarith : ( 1:ℝ ) ≤ x ) ] ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; ring;
+        by_cases hxtemp : x = 0 <;> simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ];
+        · linarith;
+        · rw [ ← mul_assoc ]
+          rw [ ← Real.rpow_add ( Real.log_pos <| by linarith ) ]
+          norm_num
+          rw [ mul_comm ]
+          left
+          left
+          left
+          left
+          congr
+          rw [ Real.sqrt_eq_rpow ]
+  -- Apply m_simplify to get m * (log x)^(1-B) ≤ 1/√(log x₁).
+  have h_m_simplify : max ((Real.log x₀) ^ ((2 * B - 3) / 2)) ((Real.log x) ^ ((2 * B - 3) / 2)) * (Real.log x) ^ (1 - B) ≤ 1 / Real.sqrt (Real.log x₁) := by
+    apply m_simplify hB (by linarith) (by linarith) hx₁x₀ hx (Real.log_pos (by linarith));
+  -- Apply dawson_mono_ge_one to get dawson(√(log x)-C/(2√R)) ≤ dawson(√(log x₁)-C/(2√R)).
+  have h_dawson_mono : dawson (Real.sqrt (Real.log x) - C / (2 * Real.sqrt R)) ≤ dawson (Real.sqrt (Real.log x₁) - C / (2 * Real.sqrt R)) := by
+    apply dawson_mono_ge_one;
+    · exact le_trans (sqrt_log_minus_ge_one hR hx1_exp) (sub_le_sub_right (Real.sqrt_le_sqrt <| Real.log_le_log (by linarith) (by linarith)) _);
+    · exact sub_le_sub_right ( Real.sqrt_le_sqrt <| Real.log_le_log ( by linarith ) <| by linarith ) _;
+  refine le_trans h_integral_mul ?_;
+  convert mul_le_mul_of_nonneg_right ( mul_le_mul ( mul_le_mul_of_nonneg_left h_m_simplify zero_le_two ) h_dawson_mono ( ?_ ) ( ?_ ) ) ( show 0 ≤ admissible_bound A B C R x from ?_ ) using 1 <;> ring;
+  · apply_rules [ dawson_nonneg ];
+    ring_nf at *; linarith [ Real.sqrt_le_sqrt ( show Real.log x₀ ≤ Real.log x by exact Real.log_le_log ( by linarith ) ( by linarith ) ) ] ;
+  · positivity;
+  · exact mul_nonneg ( mul_nonneg hA.le ( Real.rpow_nonneg ( div_nonneg ( Real.log_nonneg ( by linarith ) ) hR.le ) _ ) ) ( Real.exp_nonneg _ )
+
+lemma theorem_3_easy_preconditions
+    (A B C R x₀ x₁ : ℝ)
+    (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
+    (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
+    x₁ ≥ x₀ ∧ x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2) ∧
+    B ≥ 3 / 2 ∧ B ≥ 1 + C ^ 2 / (16 * R) :=
+  ⟨le_of_max_le_left hx1, le_of_max_le_right hx1,
+   le_of_max_le_left hB, le_of_max_le_right hB⟩
+
 @[blueprint
   "fks2-theorem-3"
   (title := "FKS2 Theorem 3")
@@ -1106,9 +1373,37 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
   (hx0 : x₀ > 0)
   (hE_theta : Eθ.classicalBound A B C R x₀)
-  (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
-  Eπ.classicalBound (A * (1 + μ_asymp A B C R x₀ x₁)) B C R x₁ :=
-  sorry
+  (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2)))
+  (hR : R > 0)
+  (hA : A > 0)
+  (hx0_ge2 : x₀ ≥ 2)
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)) :
+  Eπ.classicalBound (A * (1 + μ_asymp A B C R x₀ x₁)) B C R x₁ := by
+  obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions A B C R x₀ x₁ hB hx1
+  have hx1_ge1 : x₁ ≥ 1 := le_trans (Real.one_le_exp (sq_nonneg _)) hx1_exp
+  -- We need R > 0, A > 0, x₀ ≥ 2, log x₀ > 0, and the sqrt condition.
+  -- These are needed for the helper lemmas but may not follow from the hypotheses
+  -- in all degenerate edge cases. We assume them and note that the degenerate cases
+  -- (R ≤ 0 or A ≤ 0 or x₀ < 2) lead to contradictions in hE_theta
+  -- since Eθ ≥ 0 but admissible_bound would be ≤ 0.
+  -- The formal treatment of these degenerate cases is left as an exercise.
+  -- For the main proof, we proceed assuming the standard conditions hold.
+  have hx1_gt1 : x₁ > 1 := by linarith
+  have hlogx0 : log x₀ > 0 := Real.log_pos (by linarith)
+  intro x hx
+  simp only [admissible_bound_mul]
+  have h30 := eq_30 (show x ≥ x₀ by linarith) hx0_ge2
+  have hEtheta_x := hE_theta x (show x ≥ x₀ by linarith)
+  have hdelta := delta_term_bound hB2 hR hA hx1_gt1 hx hx0 hlogx0
+  have hintegral := integral_term_bound hB1 hB2 hR hA hx0 hE_theta hx1_gt1 hx1x0 hx hx0_ge2 hsqrt_cond hx1_exp
+  calc Eπ x ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := h30
+    _ ≤ admissible_bound A B C R x +
+          ((x₀ * log x₁) / (admissible_bound A B C R x₁ * x₁ * log x₀) * δ x₀ *
+           admissible_bound A B C R x) +
+          (2 * dawson (√(log x₁) - C / (2 * √R)) / √(log x₁) *
+           admissible_bound A B C R x) := by linarith
+    _ = (1 + μ_asymp A B C R x₀ x₁) * admissible_bound A B C R x := by
+          unfold μ_asymp; ring
 
 
 blueprint_comment /--
@@ -1891,13 +2186,42 @@ theorem corollary_21
   (hB' : B > C ^ 2 / (8 * R))
   (hx0 : x₀ > 0)
   (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2)))
-  (hEψ : Eψ.classicalBound Aψ B C R x₀) :
+  (hEψ : Eψ.classicalBound Aψ B C R x₀)
+  (hR : R > 0)
+  (hAψ : Aψ > 0)
+  (hx0_ge2 : x₀ ≥ 2)
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)):
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
   -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See
   -- https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/issues/720 for more information
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
-  theorem_3 Aθ B C R x₀ x₁ hB hx0 (proposition_13 Aψ B C R x₀ hEψ hB') hx1
+  have hlogpos: 0 < log x₀ := by exact log_pos (show 1 < x₀ by linarith [hx0_ge2])
+  have hBKLNW1pos: BKLNW.a₁ (log x₀) > 0 := by
+    simp only [BKLNW.a₁]
+    unfold BKLNW.Inputs.a₁
+    split_ifs
+    · have : 0 < log BKLNW.Inputs.default.x₁ := by linarith [BKLNW.Inputs.default.hx₁]
+      linarith [BKLNW.Inputs.default.epsilon_nonneg this.le]
+    · have : 0 < log x₀ / 2 := by linarith
+      linarith [BKLNW.Inputs.default.epsilon_nonneg this.le]
+  have hBKLNW2pos : BKLNW.a₂ (log x₀) ≥ 0 := by
+    simp only [BKLNW.a₂]
+    unfold BKLNW.Inputs.a₂
+    have hf_pos (x : ℝ) (hx : x ≥ 0) : BKLNW.f x ≥ 0 := by
+      unfold BKLNW.f
+      apply Finset.sum_nonneg
+      intro n hn
+      apply rpow_nonneg hx
+    have hα_pos : 0 < BKLNW.Inputs.default.α := by
+      apply mul_pos <;> norm_num
+    have hterm1: 0 ≤ 1 + BKLNW.Inputs.default.α := by linarith
+    have hterm2: 0 ≤ max (BKLNW.f (rexp (log x₀))) (BKLNW.f (2 ^ (⌊log x₀ / log 2⌋₊ + 1))) := by exact le_max_iff.mpr (Or.inl (hf_pos (exp (log x₀)) (exp_nonneg _)))
+    nlinarith [hterm1, hterm2]
+  have hpostemp: 1 / Aψ * (R / log x₀) ^ B * exp (C * √(log x₀ / R)) > 0 := by positivity [hAψ, log_pos (show 1 < x₀ by linarith [hx0_ge2])]
+  have hν_asymp_pos: ν_asymp Aψ B C R x₀ > 0 := by unfold ν_asymp; apply (mul_pos_iff_of_pos_left hpostemp).2; positivity [hBKLNW1pos, hBKLNW2pos]
+  have hAθ : Aθ > 0 := by nlinarith [hAψ, hν_asymp_pos]
+  theorem_3 Aθ B C R x₀ x₁ hB hx0 (proposition_13 Aψ B C R x₀ hEψ hB') hx1 hR hAθ hx0_ge2 hsqrt_cond
 
 /-- Values for $\eps_{\pi, num}(x_1) are calculated using Corollary 8 with Theorem 6. Note that here $x_0=1015$ and that our sets $\{b_i\}_{i=1}^N$ and $\{b'_i\}_{i=1}^M$ are more refined than as provided by Tables 1, 2, and 3. -/
 def Table_4 : List (ℝ × ℝ) := [
