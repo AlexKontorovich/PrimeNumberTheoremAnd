@@ -166,7 +166,7 @@ blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: a
 
 @[blueprint
   "trudgian:eps_0-def"
-  (title := "Trudgian definition of eps_0")
+  (title := "Trudgian definition of eps0")
   (statement := /--
   One has
   \[
