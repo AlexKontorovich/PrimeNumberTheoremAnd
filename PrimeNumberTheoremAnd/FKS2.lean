@@ -1381,13 +1381,6 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   Eπ.classicalBound (A * (1 + μ_asymp A B C R x₀ x₁)) B C R x₁ := by
   obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions A B C R x₀ x₁ hB hx1
   have hx1_ge1 : x₁ ≥ 1 := le_trans (Real.one_le_exp (sq_nonneg _)) hx1_exp
-  -- We need R > 0, A > 0, x₀ ≥ 2, log x₀ > 0, and the sqrt condition.
-  -- These are needed for the helper lemmas but may not follow from the hypotheses
-  -- in all degenerate edge cases. We assume them and note that the degenerate cases
-  -- (R ≤ 0 or A ≤ 0 or x₀ < 2) lead to contradictions in hE_theta
-  -- since Eθ ≥ 0 but admissible_bound would be ≤ 0.
-  -- The formal treatment of these degenerate cases is left as an exercise.
-  -- For the main proof, we proceed assuming the standard conditions hold.
   have hx1_gt1 : x₁ > 1 := by linarith
   have hlogx0 : log x₀ > 0 := Real.log_pos (by linarith)
   intro x hx
