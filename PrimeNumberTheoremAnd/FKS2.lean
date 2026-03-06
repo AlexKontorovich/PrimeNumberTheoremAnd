@@ -1379,6 +1379,9 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   (hx0_ge2 : x₀ ≥ 2)
   (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)) :
   Eπ.classicalBound (A * (1 + μ_asymp A B C R x₀ x₁)) B C R x₁ := by
+  /-NOTE: The conditions hx0_ge2 and hsqrt_cond are not present in the source material [FKS2]. They are added to
+  facilitate the application of lemma_12, which requires x₀ ≥ 2 and 0 ≤ √(log x₀) - C/(2√R).
+  -/
   obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions A B C R x₀ x₁ hB hx1
   have hx1_ge1 : x₁ ≥ 1 := le_trans (Real.one_le_exp (sq_nonneg _)) hx1_exp
   have hx1_gt1 : x₁ > 1 := by linarith
@@ -2188,6 +2191,8 @@ theorem corollary_21
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
   -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See
   -- https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/issues/720 for more information
+  -- NOTE: The hypotheses `hx0_ge2` and `hsqrt_cond` are also not present in [FKS2]. They are added
+  -- to facilitate theorem_3, which also had them added due to lemma_12.
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   have hlogpos: 0 < log x₀ := by exact log_pos (show 1 < x₀ by linarith [hx0_ge2])
   have hBKLNW1pos: BKLNW.a₁ (log x₀) > 0 := by
