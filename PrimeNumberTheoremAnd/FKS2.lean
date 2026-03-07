@@ -809,7 +809,7 @@ We can now obtain an upper bound on $E_\pi$ in terms of $E_\theta$:
 -/
 
 @[blueprint
-  "fks2-eq30"
+  "fks2-eq-30"
   (title := "FKS2 Equation (30)")
   (statement := /--
   For any $x \geq x_0 > 0$,
@@ -1353,7 +1353,7 @@ lemma theorem_3_easy_preconditions
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
   -/)
-  (proof := /-- The starting point is Sublemma \ref{fks2-eq30}.
+  (proof := /-- The starting point is Sublemma \ref{fks2-eq-30}.
   The assumption ($\varepsilon_{\theta,\mathrm{asymp}}(x)$ provides an admissible bound on $\theta(x)$ for all $x \geq x_0$) to bound $\frac{\theta(x) - x}{\log(x)}$ and Lemma \ref{fks2-lemma-12} to bound $\int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt$.  We obtain
   $$ |\pi(x) - \Li(x)| \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)} + \frac{2 A_\theta}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right).$$
   We recall that $x \geq x_1 \geq x_0$.  Note that, by Corollary \ref{fks2-corollary-11},
@@ -1763,7 +1763,7 @@ Now we can start estimating $E_\pi$.  We make the following running hypotheses. 
   "fks2-theorem-6-1"
   (title := "FKS2 Theorem 6, substep 1")
   (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
-  $$ E_\pi(x) \leq \varepsilon_{θ,num}(x_1) + \frac{\log x}{x} \frac{x_0}{\log x_0} (E_\pi(x_0) + E_\theta(x_0))$$
+  $$ E_\pi(x) \leq \varepsilon_{\theta,num}(x_1) + \frac{\log x}{x} \frac{x_0}{\log x_0} (E_\pi(x_0) + E_\theta(x_0))$$
   $$ + \frac{\log x}{x} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(e^{b_i}) \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) $$
   $$ + \varepsilon_{\theta,num}(x_1) \frac{\log x}{x} \int_{x_1}^{x} \frac{1}{(\log t)^2} \, dt. $$ -/)
   (proof := /-- This is obtained by combining Sublemma \ref{fks2-eq-30} with the admissibility of $\varepsilon_{\theta,num}$ and Lemma \ref{fks2-lemma-19}.
