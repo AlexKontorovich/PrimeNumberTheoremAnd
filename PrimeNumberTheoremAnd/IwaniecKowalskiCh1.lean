@@ -60,7 +60,27 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry
+  refine' ⟨(d.gcd a, d.gcd b), ⟨_, _, _⟩, _⟩
+  · exact Nat.gcd_dvd_right _ _
+  · exact Nat.gcd_dvd_right _ _
+  · exact?
+  · rintro ⟨x, y⟩ ⟨hx, hy, h⟩
+    refine' Prod.ext _ _ <;> subst h <;>
+      simp_all +decide [Nat.gcd_eq_left_iff_dvd, Nat.Coprime.gcd_mul]
+    · refine' Eq.symm (Nat.dvd_antisymm _ _)
+      · exact Nat.Coprime.dvd_of_dvd_mul_right
+          (show Nat.Coprime (Nat.gcd (x * y) a) y from
+            Nat.Coprime.coprime_dvd_left (Nat.gcd_dvd_right _ _) <|
+              Nat.Coprime.coprime_dvd_right hy <| by aesop) <|
+          Nat.gcd_dvd_left _ _
+      · exact Nat.dvd_gcd (dvd_mul_right _ _) hx
+    · refine' Eq.symm (Nat.dvd_antisymm _ _)
+      · refine' Nat.Coprime.dvd_of_dvd_mul_left _ _
+        exact x
+        · refine' Nat.Coprime.coprime_dvd_left (Nat.gcd_dvd_right _ _) _
+          exact hab.symm.coprime_dvd_right hx
+        · exact Nat.gcd_dvd_left _ _
+      · exact Nat.dvd_gcd (dvd_mul_left _ _) hy
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -74,7 +94,24 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry
+  have h_divisors : Nat.divisors (a * b) =
+      Finset.image (fun (p : ℕ × ℕ) => p.1 * p.2) (Nat.divisors a ×ˢ Nat.divisors b) :=
+    Nat.divisors_mul _ _
+  rw [h_divisors, Finset.sum_image, Finset.sum_product]
+  · rw [Finset.sum_mul]
+    exact Finset.sum_congr rfl fun i hi => by
+      rw [Finset.mul_sum _ _ _]; exact Finset.sum_congr rfl fun j hj =>
+        hf.map_mul_of_coprime (Nat.Coprime.gcd_eq_one <|
+          hab.coprime_dvd_left (Nat.dvd_of_mem_divisors hi) |>
+          Nat.Coprime.coprime_dvd_right (Nat.dvd_of_mem_divisors hj))
+  · intro p hp q hq h_eq; simp_all +decide [mul_eq_mul_left_iff, Nat.mem_divisors]
+    have h1 : p.1 = q.1 := by
+      exact Nat.dvd_antisymm
+        (by exact Nat.Coprime.dvd_of_dvd_mul_right (Nat.Coprime.coprime_dvd_left hp.1 <|
+          Nat.Coprime.coprime_dvd_right hq.2 hab) <| h_eq ▸ dvd_mul_right _ _)
+        (by exact Nat.Coprime.dvd_of_dvd_mul_right (Nat.Coprime.coprime_dvd_left hq.1 <|
+          Nat.Coprime.coprime_dvd_right hp.2 hab) <| h_eq.symm ▸ dvd_mul_right _ _)
+    aesop
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -254,10 +291,12 @@ theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
   The function $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$. Since $\zeta$ is a multiplicative function, and the Dirichlet convolution of multiplicative functions is also multiplicative, it follows that $d_k$ is multiplicative for all $k$. This can be shown by induction on $k$, using the fact that the convolution of a multiplicative function with another multiplicative function remains multiplicative.
   -/)]
 theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
-  induction k with
-  | zero => rw [d_zero]; exact isMultiplicative_one
-  | succ k ih =>
-    sorry -- follows from IsMultiplicative.pow and isMultiplicative_zeta
+  rw [show d k = zeta ^ k from rfl]
+  induction' k with k ih
+  · simp +decide [ArithmeticFunction.IsMultiplicative]
+    simp +contextual [ArithmeticFunction.one_apply]
+    aesop
+  · convert ih.mul isMultiplicative_zeta using 1
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
@@ -268,9 +307,21 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   -/)]
 theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : ℕ) :
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
-  sorry
+  induction' k with k ih generalizing a <;> simp_all +decide [pow_succ, mul_assoc]
+  by_cases hk : 0 < k <;> simp_all +decide [d_succ]
+  · have h_hockey_stick :
+        ∑ j ∈ Finset.range (a + 1), Nat.choose (j + k - 1) (k - 1) = Nat.choose (a + k) k := by
+      exact Nat.recOn a (by simp +arith +decide) fun n ih => by
+        cases k <;> simp_all +decide [Nat.choose, add_comm, add_left_comm, Finset.sum_range_succ]
+    rw [← h_hockey_stick, Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else (d k) x]
+    rw [Nat.sum_divisors_prime_pow hp]
+    exact Finset.sum_congr rfl fun x hx => by
+      rw [if_neg (Nat.ne_of_gt (Nat.div_pos (pow_le_pow_right₀ hp.pos
+        (Finset.mem_range_succ_iff.mp hx)) (pow_pos hp.pos _))), ih]
+  · simp +decide [divisorsAntidiagonal, d]
+    rw [Finset.sum_eq_single (1, p ^ a)] <;> aesop
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`. -/
 @[blueprint
   "d_apply"
   (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d_k$ for all $n$. -/)
@@ -291,7 +342,13 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
   -/)]
 lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
     d k n = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
-  sorry
+  convert (ArithmeticFunction.IsMultiplicative.multiplicative_factorization _ _) using 1
+  any_goals exact d k
+  any_goals exact n
+  · simp +decide [hn, Finsupp.prod]
+    congr! 2
+    exact Eq.symm (d_apply_prime_pow hk (Nat.prime_of_mem_primeFactors ‹_›) _)
+  · exact?
 
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
@@ -380,9 +437,9 @@ lemma abscissa_powR_le (ν : ℂ) : LSeries.abscissaOfAbsConv (powR ν) ≤ ν.r
   -/)]
 theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (hsν : 1 < (s - ν).re) :
     LSeries (↗(σᴿ ν)) s = riemannZeta s * riemannZeta (s - ν) := by
-  rw [ ← ArithmeticFunction.LSeries_zeta_eq_riemannZeta hs, ← LSeries_powR_eq ν hsν, sigmaR_eq_zeta_mul_powR];
+  rw [← ArithmeticFunction.LSeries_zeta_eq_riemannZeta hs, ← LSeries_powR_eq ν hsν, sigmaR_eq_zeta_mul_powR];
   apply ArithmeticFunction.LSeries_mul
-  · apply (ArithmeticFunction.abscissaOfAbsConv_zeta.trans_lt _ )
+  · apply (ArithmeticFunction.abscissaOfAbsConv_zeta.trans_lt _)
     exact_mod_cast hs
   · apply lt_of_le_of_lt (abscissa_powR_le ν)
     rw[Complex.sub_re] at hsν
