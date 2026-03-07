@@ -809,7 +809,7 @@ We can now obtain an upper bound on $E_\pi$ in terms of $E_\theta$:
 -/
 
 @[blueprint
-  "fks2-eq30"
+  "fks2-eq-30"
   (title := "FKS2 Equation (30)")
   (statement := /--
   For any $x \geq x_0 > 0$,
@@ -1086,7 +1086,7 @@ We obtain our final bound for converting bounds on $E_\theta$ to bounds on $E_\p
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
   -/)
-  (proof := /-- The starting point is Sublemma \ref{fks2-eq30}.
+  (proof := /-- The starting point is Sublemma \ref{fks2-eq-30}.
   The assumption ($\varepsilon_{\theta,\mathrm{asymp}}(x)$ provides an admissible bound on $\theta(x)$ for all $x \geq x_0$) to bound $\frac{\theta(x) - x}{\log(x)}$ and Lemma \ref{fks2-lemma-12} to bound $\int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt$.  We obtain
   $$ |\pi(x) - \Li(x)| \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)} + \frac{2 A_\theta}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right).$$
   We recall that $x \geq x_1 \geq x_0$.  Note that, by Corollary \ref{fks2-corollary-11},
