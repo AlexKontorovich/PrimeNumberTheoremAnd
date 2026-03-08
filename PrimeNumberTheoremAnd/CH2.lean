@@ -1139,17 +1139,6 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
             (mul_nonneg (inv_nonneg.2 Real.pi_pos.le)
               (mul_nonneg (norm_nonneg _) (by norm_num)))])⟩
 
-/- \begin{lemma}
-For real $t$, $B^+(t)$ is increasing and $B^-(t)$ is decreasing.
-\end{lemma}
-
-\begin{proof}
-For all $t \neq 0$, by the identities $2\cosh\frac{t}{2}\sinh\frac{t}{2} = \sinh t$ and $2\sinh^2\frac{t}{2} = \cosh t - 1$,
-\[
-\frac{dB^{\pm}(t)}{dt} = \frac{\cosh\frac{t}{2}\sinh\frac{t}{2} - \frac{t}{2} \pm \sinh^2\frac{t}{2}}{2\sinh^2\frac{t}{2}} = \frac{\pm(e^{\pm t} - (1 \pm t))}{4\sinh^2\frac{t}{2}}.
-\]
-Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply this inequality with $u = t$ and $u = -t$ and obtain the conclusion for $t \neq 0$. Since $B^{\pm}(t)$ is continuous at $t = 0$, we are done.
-\end{proof} -/
 
 @[blueprint
   "B-plus-mono"
@@ -1163,7 +1152,8 @@ Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply thi
 \]
 Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply this inequality with $u = t$ and $u = -t$ and obtain the conclusion for $t \neq 0$. Since $B^{\pm}(t)$ is continuous at $t = 0$, we are done.
 . -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1077)]
 theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by sorry
 
 lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
@@ -1183,7 +1173,8 @@ theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
   -/)
   (proof := /-- Similar to previous.
 . -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1078)]
 theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by sorry
 
 theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
@@ -1199,7 +1190,8 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 \]
   -/)
   (proof := /-- By the definition of the Fourier transform, and the fact that $\varphi^{\pm}_{\nu}$ is supported on $[-1,1]$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1079)]
 theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
     𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
     ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
@@ -1214,7 +1206,8 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
 \end{equation}
   -/)
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1080)]
 theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * ↑t) * x) - I *
     ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * (E (-(1 + I * ↑t) * x))) +
@@ -1228,7 +1221,8 @@ theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
 $$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
   (proof := /-- This follows from the $\pi i$-periodicity of coth. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1081)]
 theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
     B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
     sorry
@@ -1240,7 +1234,8 @@ theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
 $$ \Phi^{\pm,\star}_{\nu}(z-m) = \Phi^{\pm,\star}_{\nu}(z) + m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
   (proof := /-- Follows from previous lemma. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1082)]
 theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
     Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
     sorry
@@ -1259,7 +1254,8 @@ $$
 &= (2 - e(x) - e(-x)) \int_0^{\infty} \Phi^{\pm,\star}_{\nu}\!\left(\frac{iy}{2\pi}\right) e\!\left(\frac{xy}{2\pi}\right)\, dy = \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu + y) - B^{\pm}(\nu))\, e^{xy}\, dy.
 \end{align*}
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1083)]
 theorem shift_upwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
@@ -1275,7 +1271,8 @@ theorem shift_upwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx :
 \end{align}
   -/)
   (proof := /-- We would like to integrate along $\Re z = 0$, but $\Phi^{\pm,\circ}_{\nu}(z)$ has a pole at $z = -\frac{i\nu}{2\pi}$; when dealing with this issue, we have to take care not to introduce poles on the lines $\Re z = -1$ and $\Re z = 1$ by separating $\Phi^{\pm,\circ}_{\nu}$ and $\Phi^{\pm,\star}_{\nu}$ prematurely. As $\Im z \to -\infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1084)]
 theorem shift_downwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 -  I * t)) * E (-(-1 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t) - Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) - ∫ t in Set.Icc (-1/2:ℝ) 0, (Phi_star ν ε t * E (-t * x)) + ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t) - Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t)) * E (- (1 - I * t) * x))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
@@ -1290,7 +1287,8 @@ theorem shift_downwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
   -/)
   (proof := /-- since the pole is at $-\frac{i\nu}{2\pi}$, the residue of $\Phi^{\pm,\circ}_{\nu}(z)$ at the pole is $\frac{i}{2\pi}$, and our path goes clockwise.
 . -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1085)]
 theorem first_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds (Complex.exp (-ν * x))) := by
     sorry
@@ -1304,7 +1302,8 @@ theorem first_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 
 \]
   -/)
   (proof := /-- Again by Cauchy's theorem and decay as $\Im z \to -\infty$ -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1086)]
 theorem second_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)) - (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)))) (nhds 0) := by
     sorry
@@ -1318,7 +1317,8 @@ theorem second_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x >
 \]
   -/)
   (proof := /-- Similar to previous. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1087)]
 theorem third_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds 0) := by
     sorry
@@ -1336,7 +1336,8 @@ $$ - \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu) - B^{\pm}(\nu - y)
 &= -\frac{2i}{\pi}\sin^2 \pi x \int_0^{\infty} \Phi^{\pm,\star}_{\nu}\!\left(-\frac{iy}{2\pi}\right) e^{-xy}\, dy = -\frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu - y) - B^{\pm}(\nu))\, e^{-xy}\, dy.
 \end{align*}
  -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1088)]
 theorem shift_downwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     sorry
@@ -1351,7 +1352,8 @@ $$
 $$
   -/)
   (proof := /-- This follows from the previous lemma. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1089)]
 theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     sorry
@@ -1366,7 +1368,8 @@ $$
 $$
   -/)
   (proof := /-- This follows from the previous lemma. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1090)]
 theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     sorry
