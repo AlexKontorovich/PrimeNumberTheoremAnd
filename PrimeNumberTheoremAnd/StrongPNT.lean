@@ -481,33 +481,24 @@ blueprint_comment /--
     expansion); now note that
     $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
   -/)]
-lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : ∀ z ∈ Metric.closedBall (0 : ℂ) 1, AnalyticAt ℂ f z)
+lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
     (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) (ρ : ℂ) (hρ : ρ ∈ SetOfZeros R f) :
     ∃ h_ρ : ℂ → ℂ, AnalyticAt ℂ h_ρ ρ ∧ h_ρ ρ ≠ 0 ∧
-    ∀ᶠ z in nhds ρ, f z = (z - ρ) ^ (analyticOrderNatAt f ρ) * h_ρ z := by
-    have ρ_mem_ball : ρ ∈ Metric.ball (0 : ℂ) 1 := by
-      rw[mem_ball_iff_norm, sub_zero]
+    ∀ᶠ z in nhds ρ, f z = (z - ρ) ^ (analyticOrderAt f ρ).toNat * h_ρ z := by
+    have zero_mem_closedBall : 0 ∈ Metric.closedBall (0 : ℂ) 1 := by
+      rw[mem_closedBall_iff_norm, sub_zero, norm_zero]
+      exact zero_le_one
+    have ρ_mem_closedBall : ρ ∈ Metric.closedBall (0 : ℂ) 1 := by
+      rw[mem_closedBall_iff_norm, sub_zero]
       linarith[hρ.1]
-    have f_analAt_ρ : AnalyticAt ℂ f ρ := by
-      apply hfAnalytic ρ
-      rw[mem_closedBall_iff_norm]
-      rw[mem_ball_iff_norm] at ρ_mem_ball
-      exact le_of_lt ρ_mem_ball
+    have orderAtZeroIsZero : analyticOrderAt f 0 = 0 := by
+      rw[analyticOrderAt_eq_zero]
+      exact Or.symm (Decidable.not_or_of_imp fun a a_1 ↦ hf_neq_zero_at_zero a)
     have finiteOrder : analyticOrderAt f ρ ≠ ⊤ := by
-      by_contra orderIsTop
-      have f_analOnNhd_ball : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 1) := by
-        intro z hz
-        apply hfAnalytic z
-        rw[mem_closedBall_iff_norm]
-        rw[mem_ball_iff_norm] at hz
-        exact le_of_lt hz
-      have f_eqZeroOn : Set.EqOn f 0 (Metric.ball (0 : ℂ) 1) := by
-        apply AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero f_analOnNhd_ball (Metric.isPreconnected_ball) ρ_mem_ball
-        simp only [analyticOrderAt, f_analAt_ρ, ↓reduceDIte, ne_eq, smul_eq_mul, dite_eq_left_iff,
-          not_eventually, ENat.coe_ne_top, imp_false, not_frequently, Decidable.not_not] at orderIsTop
-        exact orderIsTop
-      exact hf_neq_zero_at_zero (f_eqZeroOn (by simp only [Metric.mem_ball, dist_self, zero_lt_one]))
-    rcases (f_analAt_ρ.analyticOrderAt_ne_top).mp finiteOrder with ⟨h_ρ, h_ρ_analAt_ρ, h_ρ_neq_zero_at_zero, f_eq⟩
+      refine AnalyticOnNhd.analyticOrderAt_ne_top_of_isPreconnected hfAnalytic (Metric.isPreconnected_closedBall) zero_mem_closedBall ρ_mem_closedBall (lt_top_iff_ne_top.mp ?_)
+      rw[orderAtZeroIsZero]
+      exact ENat.top_pos
+    rcases ((hfAnalytic ρ ρ_mem_closedBall).analyticOrderAt_ne_top).mp finiteOrder with ⟨h_ρ, h_ρ_analAt_ρ, h_ρ_neq_zero_at_zero, f_eq⟩
     exact ⟨h_ρ, h_ρ_analAt_ρ, h_ρ_neq_zero_at_zero, f_eq⟩
 
 
