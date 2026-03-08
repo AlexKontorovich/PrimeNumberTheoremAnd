@@ -482,7 +482,7 @@ blueprint_comment /--
     $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
   -/)]
 lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
-    (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) (ρ : ℂ) (hρ : ρ ∈ SetOfZeros R f) :
+    (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) {ρ : ℂ} (hρ : ρ ∈ SetOfZeros R f) :
     ∃ h_ρ : ℂ → ℂ, AnalyticAt ℂ h_ρ ρ ∧ h_ρ ρ ≠ 0 ∧
     ∀ᶠ z in nhds ρ, f z = (z - ρ) ^ (analyticOrderAt f ρ).toNat * h_ρ z := by
     have zero_mem_closedBall : 0 ∈ Metric.closedBall (0 : ℂ) 1 := by
@@ -503,11 +503,12 @@ lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Met
 
 
 
-blueprint_comment /--
-\begin{definition}[CFunction]\label{CFunction}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a
-    function $C_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows. This function is
+open Classical
+@[blueprint "CFunction"
+  (title := "CFunction")
+  (statement := /--
+    Let $0 < r < 1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. We define a function $C_f:\mathbb{C}\to\mathbb{C}$ as follows. This function is
     constructed by dividing $f(z)$ by a polynomial whose roots are the zeros of $f$ inside
     $\overline{\mathbb{D}_r}$.
     $$C_f(z)=\begin{cases}
@@ -517,42 +518,73 @@ blueprint_comment /--
           (z-\rho)^{m_f(\rho)}}\qquad\text{for }z\in\mathcal{K}_f(r)
     \end{cases}$$
     where $h_z(z)$ comes from Lemma \ref{ZeroFactorization}.
-\end{definition}
--/
+  -/)]
+noncomputable def Cf
+    {r : ℝ} (r_lt_one : r < 1)
+    {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+    (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+    (hf_neq_zero_at_zero : f 0 ≠ 0)
+    (z : ℂ) : ℂ :=
+  if z_zero : z ∈ SetOfZeros r f then
+    (ZeroFactorization hfAnalytic hf_neq_zero_at_zero r_lt_one z_zero).choose z
+  else
+    f z / ∏ ρ ∈ finiteZeros.toFinset, (z - ρ) ^ (analyticOrderAt f ρ).toNat
 
 
 
-blueprint_comment /--
-\begin{definition}[BlaschkeB]\label{BlaschkeB}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a
-    function $B_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows.
+@[blueprint "BlaschkeB"
+  (title := "BlaschkeB")
+  (statement := /--
+    Let $0 < r < R < 1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. We define a function $B_f:\mathbb{C}\to\mathbb{C}$ as follows.
     $$B_f(z)=C_f(z)\prod_{\rho\in\mathcal{K}_f(r)}
       \left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}$$
-\end{definition}
--/
+  -/)]
+noncomputable def BlaschkeB
+  {r R : ℝ} (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0)
+  (z : ℂ) : ℂ :=
+  (Cf (by linarith) finiteZeros hfAnalytic hf_neq_zero_at_zero) z *
+    (∏ ρ ∈ finiteZeros.toFinset, (R - z * (conj ρ) / R) ^ (analyticOrderAt f ρ).toNat)
 
 
 
-blueprint_comment /--
-\begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
+@[blueprint "BlaschkeOfZero"
+  (title := "BlaschkeOfZero")
+  (statement := /--
+    Let $0 < r < R<1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. Then
     $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}
       \left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
+  -/)
+  (proof := /--
     Since $f(0)\neq 0$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}
       =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{proof}
--/
+  -/)]
+lemma BlaschkeOfZero
+  {r R : ℝ} (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  ‖BlaschkeB r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero 0‖ =
+    ‖f 0‖ * (∏ ρ ∈ finiteZeros.toFinset, (R / ‖ρ‖) ^ (analyticOrderAt f ρ).toNat) := by
+  have zero_not_zero : ¬(0 ∈ SetOfZeros r f) := by
+    refine notMem_setOf_iff.mpr ?_
+    simp only [norm_zero, not_and]
+    intro r
+    exact mem_support.mp hf_neq_zero_at_zero
+  unfold BlaschkeB Cf
+  simp only [zero_not_zero, ↓reduceDIte, zero_sub, zero_mul, zero_div, sub_zero, Complex.norm_mul,
+    Complex.norm_div, norm_prod, norm_pow, norm_neg, norm_real, norm_eq_abs]
+  rw[div_eq_mul_inv, mul_assoc, abs_of_pos (by linarith)]
+  refine (mul_right_inj' (norm_ne_zero_iff.mpr hf_neq_zero_at_zero)).mpr ?_
+  rw[← smul_eq_mul, ← Finset.prod_inv_distrib, ← Finset.prod_smul]
+  simp only [smul_eq_mul, div_eq_inv_mul, mul_pow, inv_pow]
 
 
 
