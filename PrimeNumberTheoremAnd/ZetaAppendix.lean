@@ -2944,6 +2944,170 @@ theorem summable_alternating_theta (θ : ℝ) (hθ : |θ| < 1) :
     have h2 : (0 : ℝ) < 1 - θ ^ 2 := by linarith
     gcongr
 
+private theorem lemma_abadsumas_pnat_sum_eq_nat_sum (θ : ℝ) (hθ : (θ : ℂ) ∈ integerComplement) :
+    ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+        (1 / ((θ : ℂ) - ((n : ℕ) : ℂ)) + 1 / ((θ : ℂ) + ((n : ℕ) : ℂ))) =
+    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (θ : ℂ) /
+        (((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ)) := by
+  -- Step 1: reindex ℕ+ → ℕ, f must be ℕ+ → ℂ matching the LHS exactly
+  rw [← Equiv.pnatEquivNat.symm.tsum_eq
+        (fun m : ℕ+ => (-1 : ℂ) ^ (m : ℕ) *
+          (1 / ((θ : ℂ) - ((m : ℕ) : ℂ)) +
+           1 / ((θ : ℂ) + ((m : ℕ) : ℂ))))]
+  -- Step 2: prove termwise equality
+  apply tsum_congr
+  intro n
+  -- Step 3: resolve the ℕ+ → ℕ cast created by the reindexing
+  have hval : (Equiv.pnatEquivNat.symm n : ℕ+).val = n + 1 := by
+    simp [Equiv.pnatEquivNat]
+  simp only [hval]
+  -- Step 4: resolve ℕ → ℂ cast: (↑(n+1) : ℂ) = (↑n : ℂ) + 1
+  have hcast : ((n + 1 : ℕ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
+  rw [hcast]
+  -- Step 5: denominators are nonzero because θ ∈ integerComplement
+  have hd1 : (θ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
+    have : ((↑(n + 1) : ℤ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
+    rw [← this, sub_ne_zero]
+    exact fun h => hθ (h ▸ ⟨↑(n + 1), by push_cast; ring⟩)
+  have hd2 : (θ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by
+    have : ((↑(-(n + 1 : ℤ)) : ℤ) : ℂ) = -((n : ℂ) + 1) := by push_cast; ring
+    rw [show (θ : ℂ) + ((n : ℂ) + 1) = (θ : ℂ) - (-((n : ℂ) + 1)) from by ring]
+    rw [sub_ne_zero]
+    exact fun h => hθ (h ▸ ⟨-(↑(n + 1) : ℤ), by push_cast; ring⟩)
+  -- Step 6: pure algebra
+  have hd3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) ≠ 0 := by
+    have factored : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) =
+        ((n : ℂ) + 1 - (θ : ℂ)) * ((n : ℂ) + 1 + (θ : ℂ)) := by ring
+    rw [factored]
+    apply mul_ne_zero
+    · have : ((n : ℂ) + 1 - (θ : ℂ)) = -((θ : ℂ) - ((n : ℂ) + 1)) := by ring
+      rw [this]
+      exact neg_ne_zero.mpr hd1
+    · have : ((n : ℂ) + 1 + (θ : ℂ)) = (θ : ℂ) + ((n : ℂ) + 1) := by ring
+      rw [this]
+      exact hd2
+  field_simp [hd1, hd2, hd3]
+  ring
+
+private theorem lemma_abadsumas_sum_main_term_a (ϑ : ℝ) (hϑ_lt : |ϑ| < 1)
+    (hpos_minus : ∀ n : ℕ, 0 < (n : ℝ) + 1 - ϑ)
+    (hpos_plus : ∀ n : ℕ, 0 < (n : ℝ) + 1 + ϑ) :
+    let g : ℝ → ℂ := fun t ↦
+      if t ≠ 0 then (1 / Complex.sin (π * t) : ℂ) - (1 / (π * t : ℂ)) else 0
+    ∑' (n : ℕ), ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))) =
+    ↑π * g ϑ := by
+  intro g
+  by_cases hϑ : ϑ = 0
+  · -- Case ϑ = 0: every term vanishes and g 0 = 0
+    have h_left : ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
+        (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ)) = 0 := by
+      rw [hϑ]; simp
+    have h_right : ↑π * g ϑ = 0 := by
+      rw [hϑ]; dsimp [g]; simp
+    rw [h_left, h_right]
+  · -- Case ϑ ≠ 0
+    -- Step 1: ϑ is not an integer
+    -- Since |ϑ| < 1 and ϑ ≠ 0, any integer equal to ϑ would have |n| < 1 hence n = 0,
+    -- contradicting ϑ ≠ 0
+    have h_not_int : (ϑ : ℂ) ∈ integerComplement := by
+      simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+      intro n hn
+      have hϑ_eq : ϑ = (n : ℝ) := by exact_mod_cast hn.symm
+      have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_lt
+      have hn_zero : n = 0 := by
+        have : |n| < 1 := by exact_mod_cast hn_abs
+        rw [abs_lt] at this; omega
+      exact hϑ (hϑ_eq.trans (by norm_cast))
+    -- Step 2: Partial-fraction rewrite + sign identity, then reindex ℕ → ℕ+
+    have h_sum_shift :
+        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
+            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ)) =
+        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+            (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) :=
+      calc ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
+              (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))
+          -- Step A: partial-fraction identity + sign flip
+          _ = ∑' (n : ℕ), (-1 : ℂ) ^ (n + 1) *
+                  (1 / ((ϑ : ℂ) - ((n : ℂ) + 1)) + 1 / ((ϑ : ℂ) + ((n : ℂ) + 1))) := by
+                congr 1; ext n
+                have hne1 : ((n : ℂ) + 1 - (ϑ : ℂ)) ≠ 0 := by
+                  exact_mod_cast (hpos_minus n).ne'
+                have hne2 : ((n : ℂ) + 1 + (ϑ : ℂ)) ≠ 0 := by
+                  exact_mod_cast (hpos_plus n).ne'
+                have h1 : (ϑ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
+                  rwa [← neg_sub, neg_ne_zero]
+                have h2 : (ϑ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by rwa [add_comm]
+                have hne3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) ≠ 0 := by
+                  have : ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) =
+                      ((n : ℂ) + 1 - ϑ) * ((n : ℂ) + 1 + ϑ) := by ring
+                  rw [this]; exact mul_ne_zero hne1 hne2
+                field_simp [h1, h2, hne3]; ring
+          -- Step B: reindex ℕ-shifted sum back to ℕ+ sum
+          _ = ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+                  (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) := by
+                rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm
+                      (fun n : ℕ+ => (-1 : ℂ) ^ (n : ℕ) *
+                        (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)))]
+                congr 1; ext n
+                simp only [one_div, Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe,
+                  Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one]
+    -- Step 3: Apply the partial-fraction expansion of π/sin(πϑ)
+    rw [h_sum_shift]
+    have h_eul := lemma_abadeuleulmit1 h_not_int
+    -- Step 4: Unfold g and simplify algebraically
+    have h_g_def : g ϑ = 1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ) := by
+      dsimp [g]; rw [if_pos hϑ]
+    have h_alg : ↑π * (1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ)) =
+        ↑π / Complex.sin (↑π * ↑ϑ) - 1 / ↑ϑ := by field_simp
+    rw [h_g_def, h_alg, h_eul]
+    ring_nf
+
+private theorem lemma_abadsumas_sum_main_term_b (ϑ_minus : ℝ)
+    (hϑ_minus_lt : |ϑ_minus| < 1) :
+    let g : ℝ → ℂ := fun t ↦ if t ≠ 0 then 1 / Complex.sin (↑π * ↑t) - 1 / (↑π * ↑t) else 0
+    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ_minus : ℂ) /
+        (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) = ↑π * g ϑ_minus := by
+  intro g
+  by_cases hθ : ϑ_minus = 0
+  · -- Every term vanishes and g 0 = 0
+    simp only [hθ, Complex.ofReal_zero]
+    dsimp [g]
+    simp only [mul_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, sub_zero,
+      zero_div, tsum_zero, not_true_eq_false, ↓reduceIte]
+  · -- Step 1: ϑ_minus avoids all integers because |ϑ_minus| < 1 and ϑ_minus ≠ 0
+    have hϑ_minus_mem : (ϑ_minus : ℂ) ∈ integerComplement := by
+      simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+      intro n hn
+      have hϑ_eq : ϑ_minus = (n : ℝ) := by exact_mod_cast hn.symm
+      have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_minus_lt
+      have hn_zero : n = 0 := by
+        have : |n| < 1 := by exact_mod_cast hn_abs
+        rw [abs_lt] at this; omega
+      exact hθ (hϑ_eq.trans (by exact_mod_cast hn_zero))
+    -- Step 2: Partial-fraction expansion of π / sin(π * ϑ_minus)
+    have hcsc := lemma_abadeuleulmit1 hϑ_minus_mem
+    -- Step 3: Unfold g and rewrite π * g ϑ_minus in closed form
+    have hg : (π : ℂ) * g ϑ_minus =
+        ↑π / Complex.sin (↑π * ↑ϑ_minus) - 1 / (ϑ_minus : ℂ) := by
+      dsimp [g]
+      rw [if_pos hθ]
+      have hπ : (π : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+      have hϑ : (ϑ_minus : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hθ
+      rw [mul_sub, mul_one_div, mul_one_div]
+      congr 1
+      field_simp [hπ, hϑ]
+    -- Step 4: Convert the ℕ+ sum in hcsc to a ℕ sum via our reindexing lemma
+    have hsum_eq :
+        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+            (1 / ((ϑ_minus : ℂ) - ((n : ℕ) : ℂ)) +
+             1 / ((ϑ_minus : ℂ) + ((n : ℕ) : ℂ))) =
+        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (ϑ_minus : ℂ) /
+            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) :=
+      lemma_abadsumas_pnat_sum_eq_nat_sum ϑ_minus hϑ_minus_mem
+    -- Step 5: Chain the equalities to close the goal
+    rw [hg, ← hsum_eq, eq_sub_iff_add_eq, add_comm]
+    exact hcsc.symm
+
 theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : 0 < a)
     (hab : a < b) (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
@@ -3028,7 +3192,7 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
       push_cast at this ⊢; exact this
     have h2 : FourierTransform.fourier f (-↑(n + 1 : ℤ)) =
         ∫ y in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑(n + 1 : ℤ) * y) := by
-      have key := fourier_as_integral (-(↑(n + 1 : ℤ) : ℤ))
+      have key := fourier_as_integral (-↑((n + 1) : ℤ))
       simp only [Int.cast_neg, neg_neg] at key
       exact key
     rw [h1]
@@ -3388,129 +3552,20 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
 
 
   have sum_main_term_a : ∑' n : ℕ,
-    ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2)) = π * g ϑ := by
+    ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2)) = π * g ϑ := lemma_abadsumas_sum_main_term_a ϑ hϑ_lt hpos_minus hpos_plus
 
-    -- Step 2: Handle the cases for the piecewise definition of g
-    by_cases hϑ : ϑ = 0
-    · -- Case ϑ = 0
-      have h_left : (∑' (n : ℕ), (-1) ^ (n + 2) * 2 * (ϑ : ℂ) / ((n + 1) ^ 2 - ϑ ^ 2)) = 0 := by
-        -- Every term in the sum is 0 because ϑ = 0
-        rw [hϑ]
-        simp
-      have h_right : ↑π * g ϑ = 0 := by
-        rw [hϑ]
-        dsimp [g]
-        simp
-      rw [h_left, h_right]
-    · -- Case ϑ ≠ 0
-      -- Goal: ⊢ ∑' (n : ℕ), (-1) ^ (n + 2) * 2 * ↑ϑ / ((↑n + 1) ^ 2 - ↑ϑ ^ 2) = ↑π * g ϑ
-      -- Step 3: Establish that ϑ is not an integer (required for Lemma 8.4.11)
-      -- Step 3: Establish that ϑ is not an integer (required for Lemma 8.4.11)
-      -- Since |ϑ| < 1 and ϑ ≠ 0, ϑ is a non-zero real with |ϑ| < 1, so it cannot be
-      -- any integer (an integer n with |n| < 1 must be 0, but ϑ ≠ 0).
-      have h_not_int : (ϑ : ℂ) ∈ integerComplement := by
-        simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-        intro n hn
-        -- hn : (n : ℂ) = (ϑ : ℂ), so ϑ = n as reals
-        have hϑ_eq : ϑ = (n : ℝ) := by exact_mod_cast hn.symm
-        -- |ϑ| < 1 implies |n| < 1, so n = 0 as an integer; but ϑ ≠ 0, contradiction
-        have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_lt
-        have hn_zero : n = 0 := by
-          have : |n| < 1 := by exact_mod_cast hn_abs
-          rw [abs_lt] at this; omega
-        exact hϑ (hϑ_eq.trans (by norm_cast))
-
-      -- Step 4: Show the series is summable to allow manipulation of tsum
-      have h_summable : Summable (fun n : ℕ => (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) / ((n + 1) ^ 2 - ϑ ^ 2)) :=
-        summable_alternating_theta ϑ hϑ_lt
-
-      -- Step 5: Relate the sum over ℕ to a sum over ℕ+ (Positive Integers)
-      -- Strategy:
-      --   (a) Use tsum_pnat_eq_tsum_succ to convert ∑ n:ℕ+, f(n) = ∑ n:ℕ, f(n+1)
-      --   (b) Show pointwise equality: (-1)^(n+2) * 2ϑ / ((n+1)² - ϑ²)
-      --                              = (-1)^(n+1) * (1/(ϑ-(n+1)) + 1/(ϑ+(n+1)))
-      --       using the partial fraction identity 2ϑ/(m²-ϑ²) = 1/(m+ϑ) + 1/(ϑ-m)·(-1)
-      --       and the sign flip (-1)^(n+2) = -(-1)^(n+1), 1/(ϑ-m) = -1/(m-ϑ)
-      have h_sum_shift : (∑' (n : ℕ), (-1) ^ (n + 2) * 2 * (ϑ : ℂ) / ((n + 1) ^ 2 - ϑ ^ 2)) =
-          ∑' (n : ℕ+), (-1) ^ (n : ℕ) * ((1 / (ϑ - n)) + (1 / (ϑ + n) : ℂ)) :=
-        calc (∑' (n : ℕ), (-1) ^ (n + 2) * 2 * (ϑ : ℂ) / ((n + 1) ^ 2 - ϑ ^ 2))
-
-            -- Step A: pointwise partial-fraction identity + sign flip
-            -- (-1)^(n+2) · 2ϑ/((n+1)²-ϑ²)  =  (-1)^(n+1) · (1/(ϑ-(n+1)) + 1/(ϑ+(n+1)))
-            _ = ∑' (n : ℕ), (-1 : ℂ) ^ (n + 1) *
-                    (1 / ((ϑ : ℂ) - (↑n + 1)) + 1 / ((ϑ : ℂ) + (↑n + 1))) := by
-                  congr 1; ext n
-                  have hne1 : ((n : ℂ) + 1 - (ϑ : ℂ)) ≠ 0 := by
-                    have h := hpos_minus n; exact_mod_cast h.ne'
-                  have hne2 : ((n : ℂ) + 1 + (ϑ : ℂ)) ≠ 0 := by
-                    have h := hpos_plus n; exact_mod_cast h.ne'
-                  have hne3 : ((n : ℂ) + 1) ^ 2 - (ϑ : ℂ) ^ 2 ≠ 0 := by
-                    have : ((n : ℂ) + 1) ^ 2 - (ϑ : ℂ) ^ 2 =
-                          ((n : ℂ) + 1 - ϑ) * ((n : ℂ) + 1 + ϑ) := by ring
-                    rw [this]; exact mul_ne_zero hne1 hne2
-                  -- ↑ϑ - (↑n+1)  is the negation of  (↑n+1) - ↑ϑ
-                  have h1 : (↑ϑ : ℂ) - (↑n + 1) ≠ 0 := by
-                    have := neg_ne_zero.mpr hne1
-                    rwa [neg_sub] at this
-                  -- ↑ϑ + (↑n+1)  is just  (↑n+1) + ↑ϑ  reordered
-                  have h2 : (↑ϑ : ℂ) + (↑n + 1) ≠ 0 := by
-                    rwa [add_comm]
-                  field_simp [h1, h2]
-                  ring
-
-            -- Step B: re-index ℕ-sum-shifted-by-1 back to ℕ+-sum
-            -- using (tsum_pnat_eq_tsum_succ).symm with f explicitly supplied
-            _ = ∑' (n : ℕ+), (-1) ^ (n : ℕ) *
-                    (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) := by
-                  -- The bijection ℕ ≃ ℕ+ sending n ↦ ⟨n+1, _⟩
-                  rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm
-                    (fun n : ℕ+ => (-1 : ℂ) ^ (n : ℕ) *
-                      (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)))]
-                  congr 1
-                  ext n
-                  simp only [one_div, Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe,
-                    Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one]
-
-      rw [h_sum_shift]
-      have h_eul := lemma_abadeuleulmit1 h_not_int
-
-      -- Step 7: Final algebraic cleanup
-      have h_g_def : g ϑ = 1 / Complex.sin (π * ϑ) - 1 / (π * ϑ) := by
-        dsimp [g]
-        rw [if_pos hϑ]
-      have h_alg : π * (1 / Complex.sin (π * ϑ) - 1 / (π * ϑ)) = π / Complex.sin (π * ϑ) - 1 / ϑ := by
-        field_simp
-
-      rw [h_g_def, h_alg, h_eul]
-      ring_nf
-
-
+  have hϑ_minus_lt : |ϑ_minus| < 1 := by sorry
   have sum_main_term_b : ∑' n : ℕ,
-    ((-1 : ℂ) ^ (n + 2) * 2 * ϑ_minus / ((n + 1 : ℂ) ^ 2 - ϑ_minus ^ 2)) = π * g ϑ_minus := by
-    by_cases hθ : ϑ_minus = 0
-    · simp [hθ] --, g]
-      dsimp [g]
-      simp only [not_true_eq_false, ↓reduceIte]
-    -- Step 3: ϑ_minus ∈ (−1, 0) ∪ (0, 1) avoids all integers
-    · have hϑ_minus_mem : (ϑ_minus : ℂ) ∈ integerComplement := by
-        sorry
-      have hcsc := lemma_abadeuleulmit1 hϑ_minus_mem
-      -- Step 4: reindex ℕ → ℕ⁺ and apply partial-fraction identity
-      --   (-1)^(n+2) · 2z / ((n+1)² - z²)  =  (-1)^(n+1) · (1/(z-(n+1)) + 1/(z+(n+1)))
-      have reindex : ∑' n : ℕ,
-          ((-1 : ℂ) ^ (n + 2) * 2 * ϑ_minus / ((↑n + 1) ^ 2 - ↑ϑ_minus ^ 2)) =
-          ∑' m : ℕ+,
-          ((-1 : ℂ) ^ (m : ℕ) * (1 / (ϑ_minus - m) + 1 / (ϑ_minus + m))) := by
-        sorry
-      -- Step 5: π · g ϑ_minus = π / sin(π · ϑ_minus) − 1 / ϑ_minus
-      have hg : π * g ϑ_minus = π / Complex.sin (π * ϑ_minus) - 1 / ϑ_minus := by
-        sorry
-      -- Step 6: close by linear arithmetic from hcsc
-      rw [reindex, hg]
-      linear_combination -hcsc
+    ((-1 : ℂ) ^ (n + 2) * 2 * ϑ_minus / ((n + 1 : ℂ) ^ 2 - ϑ_minus ^ 2)) = π * g ϑ_minus := lemma_abadsumas_sum_main_term_b ϑ_minus hϑ_minus_lt
 
   -- Step 4: Establish summability of error terms
+  let bound : ℕ → ℝ := fun n =>
+    a ^ (-(s.re + 1)) / (2 * π ^ 2) *
+      (s.re / (n + 1 - ϑ) ^ 2 + s.re / (n + 1 + ϑ) ^ 2 +
+      |ϑ| / |n + 1 - ϑ| ^ 3 + |ϑ| / |n + 1 + ϑ| ^ 3)
   have error_summable : Summable error_term := by
+
+
     sorry
 
   -- Prove summability of Fourier terms
