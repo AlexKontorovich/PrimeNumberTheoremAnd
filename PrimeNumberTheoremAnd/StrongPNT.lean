@@ -452,6 +452,16 @@ def SetOfZeros (R : ℝ) (f : ℂ → ℂ) : Set ℂ := {ρ : ℂ | ‖ρ‖ ≤
 
 
 
+lemma finiteSetOfZeros_mono {r : ℝ} (r_lt_one : r < 1) {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite) :
+  (SetOfZeros r f).Finite := by
+  apply Set.Finite.subset finiteZeros
+  unfold SetOfZeros
+  refine setOf_subset_setOf.mpr ?_
+  intro z hz
+  exact ⟨by linarith, hz.2⟩
+
+
+
 blueprint_comment /--
 \begin{definition}[ZeroOrder]\label{ZeroOrder}
   Let $f:\mathbb{C}\to\mathbb{C}$.
@@ -521,14 +531,32 @@ open Classical
   -/)]
 noncomputable def Cf
     {r : ℝ} (r_lt_one : r < 1)
-    {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+    {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
     (hf_neq_zero_at_zero : f 0 ≠ 0)
     (z : ℂ) : ℂ :=
   if z_zero : z ∈ SetOfZeros r f then
-    (ZeroFactorization hfAnalytic hf_neq_zero_at_zero r_lt_one z_zero).choose z
+    (ZeroFactorization hfAnalytic hf_neq_zero_at_zero r_lt_one z_zero).choose z / ∏ ρ ∈ ((finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset \ {z}), (z - ρ) ^ (analyticOrderAt f ρ).toNat
   else
-    f z / ∏ ρ ∈ finiteZeros.toFinset, (z - ρ) ^ (analyticOrderAt f ρ).toNat
+    f z / ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (z - ρ) ^ (analyticOrderAt f ρ).toNat
+
+
+
+@[blueprint "CfAnalytic"
+  (title := "CfAnalytic")
+  (statement := /--
+    If $f:\mathbb{C}\to\mathbb{C}$ is analytic on $\overline{\mathbb{D}_1}$ then so too is $C_f$.
+  -/)
+  (proof := /--
+    Look at the definition of $C_f$ and apply ZeroFactorization.
+  -/)]
+lemma CfAnalytic
+  {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  AnalyticOnNhd ℂ (Cf r_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero) (Metric.closedBall (0 : ℂ) R) := by
+  sorry
 
 
 
@@ -541,13 +569,36 @@ noncomputable def Cf
       \left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}$$
   -/)]
 noncomputable def BlaschkeB
-  {r R : ℝ} (r_lt_R : r < R) (R_lt_one : R < 1)
-  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+  {r : ℝ} (r_lt_one : r < 1) (R : ℝ)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
   (hf_neq_zero_at_zero : f 0 ≠ 0)
   (z : ℂ) : ℂ :=
-  (Cf (by linarith) finiteZeros hfAnalytic hf_neq_zero_at_zero) z *
-    (∏ ρ ∈ finiteZeros.toFinset, (R - z * (conj ρ) / R) ^ (analyticOrderAt f ρ).toNat)
+  (Cf r_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero) z *
+    (∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R - z * (conj ρ) / R) ^ (analyticOrderAt f ρ).toNat)
+
+
+
+@[blueprint "BlaschkeAnalytic"
+  (title := "BlaschkeAnalytic")
+  (statement := /--
+    If $f:\mathbb{C}\to\mathbb{C}$ is analytic on $\overline{\mathbb{D}_R}$ then so too is $B_f$.
+  -/)
+  (proof := /--
+    Expand out $B_f$ as a product, and observe that each part is analytic on $\overline{\mathbb{D}_R}$.
+  -/)]
+lemma BlaschkeAnalytic
+  {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  AnalyticOnNhd ℂ (BlaschkeB r_lt_one R finiteZeros hfAnalytic hf_neq_zero_at_zero) (Metric.closedBall (0 : ℂ) R) := by
+  unfold BlaschkeB
+  refine AnalyticOnNhd.mul (CfAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero) (Finset.analyticOnNhd_fun_prod (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset ?_)
+  intro w hw
+  refine AnalyticOnNhd.fun_pow (AnalyticOnNhd.sub (analyticOnNhd_const) (AnalyticOnNhd.div (AnalyticOnNhd.mul (analyticOnNhd_id) (analyticOnNhd_const)) (analyticOnNhd_const) ?_)) (analyticOrderAt f w).toNat
+  intro w' hw'
+  exact_mod_cast ne_of_gt R_pos
 
 
 
@@ -567,14 +618,14 @@ noncomputable def BlaschkeB
       =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
   -/)]
 lemma BlaschkeOfZero
-  {r R : ℝ} (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
-  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros r f).Finite)
+  {r R : ℝ} (r_lt_one : r < 1) (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
   (hf_neq_zero_at_zero : f 0 ≠ 0) :
-  ‖BlaschkeB r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero 0‖ =
-    ‖f 0‖ * (∏ ρ ∈ finiteZeros.toFinset, (R / ‖ρ‖) ^ (analyticOrderAt f ρ).toNat) := by
+  ‖BlaschkeB r_lt_one R finiteZeros hfAnalytic hf_neq_zero_at_zero 0‖ =
+    ‖f 0‖ * (∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ (analyticOrderAt f ρ).toNat) := by
   have zero_not_zero : ¬(0 ∈ SetOfZeros r f) := by
-    refine notMem_setOf_iff.mpr ?_
+    apply notMem_setOf_iff.mpr
     simp only [norm_zero, not_and]
     intro r
     exact mem_support.mp hf_neq_zero_at_zero
@@ -583,22 +634,19 @@ lemma BlaschkeOfZero
     Complex.norm_div, norm_prod, norm_pow, norm_neg, norm_real, norm_eq_abs]
   rw[div_eq_mul_inv, mul_assoc, abs_of_pos (by linarith)]
   refine (mul_right_inj' (norm_ne_zero_iff.mpr hf_neq_zero_at_zero)).mpr ?_
-  rw[← smul_eq_mul, ← Finset.prod_inv_distrib, ← Finset.prod_smul]
-  simp only [smul_eq_mul, div_eq_inv_mul, mul_pow, inv_pow]
+  rw[← Finset.prod_inv_distrib, ← Finset.prod_mul_distrib]
+  simp only [div_eq_inv_mul, mul_pow, inv_pow]
 
 
 
-blueprint_comment /--
-\begin{lemma}[DiskBound]\label{DiskBound}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for
-    $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
+@[blueprint "DiskBound"
+  (title := "DiskBound")
+  (statement := /--
+    Let $B>1$ and $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
+    $\overline{\mathbb{D}_1}$ with $f(0)\neq0$ such that $|f(z)|\leq B$ for $|z|\leq R$,
+    then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
+  -/)
+  (proof := /--
     For $|z|=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
@@ -611,8 +659,41 @@ blueprint_comment /--
     So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus
     principle, we know that the maximum of $|B_f|$ must occur on the boundary where
     $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$.
-\end{proof}
--/
+  -/)]
+lemma DiskBound {B r R : ℝ} (one_lt_B : 1 < B) (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) (fz_bound : ∀ (z : ℂ), ‖z‖ ≤ R → ‖f z‖ ≤ B) :
+  ∀ z ∈ Metric.closedBall (0 : ℂ) R,
+    ‖BlaschkeB r_lt_one R finiteZeros hfAnalytic hf_neq_zero_at_zero z‖ ≤ B := by
+  intro z hz
+  refine AnalyticOn.norm_le_of_norm_le_on_sphere (AnalyticOnNhd.analyticOn (BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one _ _ _)) (Std.IsPreorder.le_refl R) ?_ z hz
+  intro w hw
+  rw[mem_sphere_iff_norm, sub_zero] at hw
+  have hw_not_in : ¬(w ∈ SetOfZeros r f) := by
+    apply notMem_setOf_iff.mpr
+    intro le_r
+    linarith
+  have Bf_eq_f_at_w : ‖BlaschkeB r_lt_one R finiteZeros hfAnalytic hf_neq_zero_at_zero w‖ = ‖f w‖ := by
+    unfold BlaschkeB Cf
+    simp only [hw_not_in, ↓reduceDIte, Complex.norm_mul, Complex.norm_div, norm_prod, norm_pow]
+    rw[div_eq_mul_inv, mul_assoc, mul_right_eq_self₀]
+    by_cases fw_normZero : ‖f w‖ = 0
+    · exact Or.inr fw_normZero
+    · apply Or.inl
+      rw[← Finset.prod_inv_distrib, ← Finset.prod_mul_distrib]
+      apply Finset.prod_eq_one
+      intro w' hw'_in
+      have hfact : (R : ℂ) - w * starRingEnd ℂ w' / R = (conj w - conj w') * w / R := by
+        rw[sub_mul, ← Complex.normSq_eq_conj_mul_self, Complex.normSq_eq_norm_sq, hw, ofReal_pow]
+        field_simp
+      rw [hfact, norm_div, norm_mul, ← map_sub, norm_conj, Complex.norm_real, hw, Real.norm_of_nonneg (le_of_lt R_pos)]
+      field_simp
+      rw[← div_pow, div_self, one_pow]
+      rw[Set.Finite.mem_toFinset] at hw'_in
+      exact norm_ne_zero_iff.mpr (sub_ne_zero.mpr (fun h => hw_not_in (h ▸ hw'_in)))
+  rw[Bf_eq_f_at_w]
+  exact fz_bound w (le_of_eq hw)
 
 
 
