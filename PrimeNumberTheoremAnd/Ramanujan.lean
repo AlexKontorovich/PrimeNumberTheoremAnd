@@ -560,8 +560,25 @@ $$E_\theta(x) \leq \sqrt\frac{8}{17\pi}\left(\frac{\log x}{6.455}\right)^{\frac{
   (latexEnv := "sublemma")
   (discussion := 991)]
 theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
-    Eθ x ≤ sqrt (8 / (17 * π)) * (log x / 6.455) ^ (1 / 4) * exp (-sqrt (log x / 6.455)) := by
-    sorry
+    Eθ x ≤ sqrt (8 / (17 * π)) * (log x / 6.455) ^ (1 / 4 : ℝ) * exp (-sqrt (log x / 6.455)) := by
+  have hxlo : exp 58 ≤ x := hx.1
+  have h149 : x ≥ 149 := by
+    have hexp6 : (149 : ℝ) ≤ exp 6 := by
+      have h := Real.sum_le_exp_of_nonneg (show (0:ℝ) ≤ 6 by norm_num) 6
+      simp only [Finset.sum_range_succ, Finset.sum_range_zero, Nat.factorial] at h
+      norm_num at h; linarith
+    linarith [exp_le_exp.mpr (show (6:ℝ) ≤ 58 by norm_num)]
+  have hT  := Trudgian2016.theorem_1_theta x h149
+  have hEθ : Eθ x ≤ Trudgian2016.eps_0 x := hT x le_rfl
+  have hlogpos : 0 ≤ log x / 6.455 := by
+    apply div_nonneg _ (by norm_num)
+    exact le_of_lt (Real.log_pos (by linarith [Real.exp_pos (58:ℝ)]))
+  rw [show Trudgian2016.eps_0 x =
+      sqrt (8 / (17 * π)) * (log x / 6.455) ^ ((1 : ℝ) / 4) * exp (-sqrt (log x / 6.455)) from by
+    simp only [Trudgian2016.eps_0, Real.sqrt_eq_rpow]
+    rw [← Real.rpow_mul hlogpos]
+    norm_num] at hEθ
+  exact hEθ
 
 @[blueprint
   "ramanujan-pibound-4"
