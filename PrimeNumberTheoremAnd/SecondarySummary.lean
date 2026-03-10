@@ -175,7 +175,7 @@ blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: a
   for all $x \geq 2$.
   -/)]
 noncomputable def eps_0 (x : ℝ) : ℝ :=
-  sqrt (8 / (17 * π)) * (sqrt (log x / 6.455)) * exp (-sqrt (log x / 6.455))
+  sqrt (8 / (17 * π)) * sqrt (sqrt (log x / 6.455)) * exp (-sqrt (log x / 6.455))
 
 @[blueprint
   "trudgian:theorem 1-theta"
