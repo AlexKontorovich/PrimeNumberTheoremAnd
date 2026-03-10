@@ -7,6 +7,7 @@ import Mathlib.Analysis.Real.Pi.Bounds
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Cotangent
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
+import Mathlib.NumberTheory.ZetaValues
 import PrimeNumberTheoremAnd.ZetaBounds
 
 blueprint_comment /--
@@ -2831,6 +2832,487 @@ lemma lemma_abadimpseri (ϑ : ℝ) (hϑ : |ϑ| < 1) :
           (show (n : ℝ) + 1 + |ϑ| ≥ n + 1 by linarith [abs_nonneg ϑ]) 3))
             (summable_nat_add_iff 1 |>.2 <| summable_one_div_nat_pow.2 <| by omega)
 
+private lemma ofReal_div_re (x y : ℝ) :
+    (1 / ((x : ℂ) * (y : ℂ)) ^ 2).re = 1 / (x * y) ^ 2 := by
+  have : (1 / ((x : ℂ) * y) ^ 2) = ((1 / (x * y) ^ 2 : ℝ) : ℂ) := by push_cast; ring
+  rw [this]; exact Complex.ofReal_re _
+
+lemma lemma_abadsumas_integrable_explog {s : ℂ} {a b : ℝ} (ha : 0 < a) (hab : a < b) (k : ℤ) :
+    IntervalIntegrable
+      (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑k * y))
+      MeasureTheory.volume a b := by
+  apply ContinuousOn.intervalIntegrable_of_Icc (le_of_lt hab)
+  apply ContinuousOn.mul
+  · apply ContinuousOn.mul
+    · apply continuous_ofReal.comp_continuousOn
+      apply ContinuousOn.rpow continuousOn_id continuousOn_const
+      exact fun _ hx => Or.inl (ne_of_gt (lt_of_lt_of_le ha hx.1))
+    · apply continuousOn_e_comp
+      apply ContinuousOn.mul continuousOn_const
+      apply Real.continuousOn_log.mono
+      exact fun _ hx => ne_of_gt (lt_of_lt_of_le ha hx.1)
+  · dsimp [e]; fun_prop
+
+lemma lemma_abadsumas_sum_fourier (s : ℂ) {a b : ℝ} (ha : 0 < a)
+    (hab : a < b) :
+    let f : ℝ → ℂ := fun y ↦
+      if a ≤ y ∧ y ≤ b then (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) else 0
+    ∀ n : ℕ,
+    FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ)) =
+    2 * ∫ y in a..b, (y : ℂ) ^ (-s) * Real.cos (2 * π * (n + 1) * y) := by
+  intro f n
+  have fourier_as_integral : ∀ n : ℤ, FourierTransform.fourier f n =
+    ∫ y in a..b, (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) * e (-n * y) := by
+    intro n
+    have h_fourier : FourierTransform.fourier f ↑n = ∫ (y : ℝ), Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y :=
+      fourier_real_eq_integral_exp_smul f ↑n
+    have h_integral_split : ∫ (y : ℝ), Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y = ∫ (y : ℝ) in a..b, Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y := by
+      rw [intervalIntegral.integral_of_le (le_of_lt hab), ← integral_indicator measurableSet_Ioc]
+      apply MeasureTheory.integral_congr_ae
+      filter_upwards [MeasureTheory.Measure.ae_ne volume a] with y hy_ne
+      by_cases hy : y ∈ Set.Ioc a b
+      · rw [Set.indicator_of_mem hy]
+      · rw [Set.indicator_of_notMem hy]
+        have h_f_zero : f y = 0 := by
+          dsimp [f]
+          split_ifs with h_bounds
+          · exact (hy ⟨lt_of_le_of_ne h_bounds.1 hy_ne.symm, h_bounds.2⟩).elim
+          · rfl
+        rw [h_f_zero, smul_zero]
+    have h_integrand_eq : ∫ (y : ℝ) in a..b, Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y =
+        ∫ (y : ℝ) in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-↑n * y) := by
+      apply intervalIntegral.integral_congr
+      intro y hy
+      have h_bounds : a ≤ y ∧ y ≤ b := by
+        rw [Set.uIcc_of_le hab.le] at hy
+        exact ⟨hy.1, hy.2⟩
+      have h_f_val : f y = (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) := by
+        dsimp [f]
+        rw [if_pos h_bounds]
+      dsimp only
+      rw [h_f_val, e]
+      calc cexp (↑(-2 * π * y * ↑n) * I) • (↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y)))
+          = ↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y))
+              * cexp (↑(-2 * π * y * ↑n) * I) := by
+                rw [smul_eq_mul]; ring
+        _ = ↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y))
+              * e (-↑n * y) := by
+                rw [e]
+                congr 1
+                congr 1
+                push_cast
+                ring
+    rw [h_fourier, h_integral_split, h_integrand_eq]
+  have sum_fourier_as_cosine : ∀ n : ℕ,
+    FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ)) =
+    2 * ∫ y in a..b, (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) *
+      Real.cos (2 * π * (n + 1) * y) := by
+    intro n
+    have h1 : FourierTransform.fourier f (↑n + 1) =
+        ∫ y in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-(↑n + 1 : ℤ) * y) := by
+      have := fourier_as_integral (↑n + 1 : ℤ)
+      push_cast at this ⊢; exact this
+    have h2 : FourierTransform.fourier f (-↑(n + 1 : ℤ)) =
+        ∫ y in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑(n + 1 : ℤ) * y) := by
+      have key := fourier_as_integral (-↑((n + 1) : ℤ))
+      simpa only [Int.cast_neg, neg_neg] using key
+    rw [h1, h2]
+    have hint1 : IntervalIntegrable
+        (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-(↑n + 1 : ℤ) * y))
+        MeasureTheory.volume a b := by
+      have := lemma_abadsumas_integrable_explog (s := s) ha hab (-(n + 1) : ℤ)
+      simpa only [Int.cast_neg] using this
+    have hint2 : IntervalIntegrable
+        (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑(n + 1 : ℤ) * y))
+        MeasureTheory.volume a b := lemma_abadsumas_integrable_explog ha hab (n + 1 : ℤ)
+    rw [← intervalIntegral.integral_add hint1 hint2, ← intervalIntegral.integral_const_mul]
+    congr 1
+    ext y
+    have heuler : e (-↑(n + 1 : ℤ) * y) + e (↑(n + 1 : ℤ) * y) =
+    2 * ↑(Real.cos (2 * π * (↑n + 1) * y)) := by
+      have hpos : e (↑(n + 1 : ℤ) * y) =
+          Complex.exp (↑(2 * π * (↑n + 1) * y) * Complex.I) := by
+        simp only [e]; push_cast; ring_nf
+      have hneg : e (-↑(n + 1 : ℤ) * y) =
+          Complex.exp (-(↑(2 * π * (↑n + 1) * y)) * Complex.I) := by
+        simp only [e]; push_cast; ring_nf
+      rw [hneg, hpos, add_comm, Complex.ofReal_cos, ← Complex.two_cos]
+    linear_combination ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * heuler
+  rw [sum_fourier_as_cosine n]
+  congr 1
+  apply intervalIntegral.integral_congr
+  intro y hy
+  simp only [neg_mul, ofReal_cos, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
+  mul_eq_mul_right_iff]
+  have hy_pos : 0 < y := by
+    rw [Set.uIcc_of_le hab.le] at hy
+    exact ha.trans_le hy.1
+  have key : (y : ℂ) ^ (-s) =
+      ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) := by
+    have hyne : (y : ℂ) ≠ 0 := by exact_mod_cast hy_pos.ne'
+    rw [Complex.cpow_def_of_ne_zero hyne]
+    rw [← Complex.ofReal_log hy_pos.le]
+    have hexp_split : (↑(Real.log y) : ℂ) * -s =
+        ↑(-s.re * Real.log y) + ↑(-s.im * Real.log y) * Complex.I := by
+      rw [← Complex.re_add_im s]
+      push_cast
+      ring_nf
+      field_simp
+      congr 1
+      simp only [re_add_im]
+      ring_nf
+    rw [hexp_split, Complex.exp_add_mul_I]
+    have hrpow : (y ^ (-s.re) : ℝ) = Real.exp (-s.re * Real.log y) := by
+      rw [mul_comm, ← Real.rpow_def_of_pos hy_pos]
+    have he_expand : e (-(s.im / (2 * π)) * Real.log y) =
+        ↑(Real.cos (-s.im * Real.log y)) + ↑(Real.sin (-s.im * Real.log y)) * Complex.I := by
+      rw [show ↑(Real.cos (-s.im * Real.log y)) + ↑(Real.sin (-s.im * Real.log y)) * I =
+          Complex.exp (↑(-s.im * Real.log y) * I) from by
+            rw [exp_mul_I]
+            simp only [Complex.ofReal_cos, Complex.ofReal_sin]]
+      simp [e]
+      congr 1
+      ring_nf; field_simp
+    rw [hrpow, he_expand]
+    push_cast
+    ring
+  simp [key]
+
+lemma lemma_abadsumas_summable_alternating_theta (θ : ℝ) (hθ : |θ| < 1) :
+    Summable (fun n : ℕ ↦ ((-1) ^ (n + 2) * 2 * θ / ((n + 1) ^ 2 - θ ^ 2) : ℂ)) := by
+  have hθ_sq_lt : θ ^ 2 < 1 := by nlinarith [sq_abs θ, abs_nonneg θ]
+  apply Summable.of_norm_bounded (g := fun n : ℕ => 2 * |θ| / ((1 - θ ^ 2) * ((n : ℝ) + 1) ^ 2))
+  · apply Summable.mul_left
+    have hpos : (0 : ℝ) < 1 - θ ^ 2 := by nlinarith [sq_abs θ, abs_nonneg θ]
+    simp_rw [mul_inv]
+    apply Summable.mul_left
+    have hbase : Summable (fun n : ℕ => (n ^ 2 : ℝ)⁻¹) := by
+      simp_rw [inv_eq_one_div]
+      norm_cast
+      simp_rw [Nat.cast_pow] at ⊢
+      apply Real.summable_one_div_nat_pow.mpr (by norm_num)
+    exact (summable_nat_add_iff 1).mpr hbase |>.congr
+      (fun n => by push_cast; ring_nf)
+  · intro n
+    have hdenom_pos : (0 : ℝ) < (n + 1) ^ 2 - θ ^ 2 := by
+      have : (0 : ℝ) ≤ (↑n : ℝ) := Nat.cast_nonneg n
+      nlinarith [sq_nonneg (n : ℝ)]
+    have hnorm_eq : ‖(-1 : ℂ) ^ (n + 2) * 2 * θ / ((n + 1) ^ 2 - θ ^ 2)‖ =
+        2 * |θ| / (((n : ℝ) + 1) ^ 2 - θ ^ 2) := by
+      have h1 : ‖(-1 : ℂ) ^ (n + 2)‖ = 1 := by
+        rw [norm_pow, norm_neg, norm_one, one_pow]
+      have h2 : ‖(2 : ℂ)‖ = 2 := by norm_num
+      rw [norm_div, norm_mul, norm_mul, h1, h2,
+          one_mul, Complex.norm_real θ]
+      simp only [norm_eq_abs]
+      congr 1
+      have h1 : (↑n + 1 : ℂ) ^ 2 - (↑θ : ℂ) ^ 2 = ↑((↑n + 1 : ℝ) ^ 2 - θ ^ 2) := by
+        norm_cast
+      rw [h1, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hdenom_pos]
+    rw [hnorm_eq]
+    have hdenom_ineq : (1 - θ ^ 2) * (n + 1) ^ 2 ≤ (n + 1) ^ 2 - θ ^ 2 := by
+      have h_cast : (0 : ℝ) ≤ (↑n : ℝ) := Nat.cast_nonneg n
+      have h_ge_one : (1 : ℝ) ≤ ↑n + 1 := by linarith
+      have h_sq_ge : (1 : ℝ) ≤ (↑n + 1) ^ 2 := by nlinarith
+      nlinarith [sq_nonneg θ]
+    have h2 : (0 : ℝ) < 1 - θ ^ 2 := by linarith
+    gcongr
+
+private lemma lemma_abadsumas_pnat_sum_eq_nat_sum (θ : ℝ) (hθ : (θ : ℂ) ∈ integerComplement) :
+    ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+        (1 / ((θ : ℂ) - ((n : ℕ) : ℂ)) + 1 / ((θ : ℂ) + ((n : ℕ) : ℂ))) =
+    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (θ : ℂ) /
+        (((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ)) := by
+  rw [← Equiv.pnatEquivNat.symm.tsum_eq
+        (fun m : ℕ+ => (-1 : ℂ) ^ (m : ℕ) *
+          (1 / ((θ : ℂ) - ((m : ℕ) : ℂ)) +
+           1 / ((θ : ℂ) + ((m : ℕ) : ℂ))))]
+  apply tsum_congr
+  intro n
+  have hval : (Equiv.pnatEquivNat.symm n : ℕ+).val = n + 1 := by
+    simp [Equiv.pnatEquivNat]
+  have hcast : ((n + 1 : ℕ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
+  simp only [hval, hcast]
+  have hd1 : (θ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
+    have : ((↑(n + 1) : ℤ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
+    rw [← this, sub_ne_zero]
+    exact fun h => hθ (h ▸ ⟨↑(n + 1), by push_cast; ring⟩)
+  have hd2 : (θ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by
+    have : ((↑(-(n + 1 : ℤ)) : ℤ) : ℂ) = -((n : ℂ) + 1) := by push_cast; ring
+    rw [show (θ : ℂ) + ((n : ℂ) + 1) = (θ : ℂ) - (-((n : ℂ) + 1)) from by ring]
+    rw [sub_ne_zero]
+    exact fun h => hθ (h ▸ ⟨-(↑(n + 1) : ℤ), by push_cast; ring⟩)
+  have hd3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) ≠ 0 := by
+    have factored : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) =
+        ((n : ℂ) + 1 - (θ : ℂ)) * ((n : ℂ) + 1 + (θ : ℂ)) := by ring
+    rw [factored]
+    apply mul_ne_zero
+    · have : ((n : ℂ) + 1 - (θ : ℂ)) = -((θ : ℂ) - ((n : ℂ) + 1)) := by ring
+      rw [this]
+      exact neg_ne_zero.mpr hd1
+    · have : ((n : ℂ) + 1 + (θ : ℂ)) = (θ : ℂ) + ((n : ℂ) + 1) := by ring
+      rw [this]
+      exact hd2
+  field_simp [hd1, hd2, hd3]
+  ring
+
+private lemma lemma_abadsumas_not_in_integerComplement {ϑ : ℝ} (hϑ_lt : |ϑ| < 1) (hϑ : ϑ ≠ 0) :
+    (ϑ : ℂ) ∈ integerComplement := by
+  simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+  intro n hn
+  have hϑ_eq : ϑ = (n : ℝ) := by exact_mod_cast hn.symm
+  have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_lt
+  have hn_zero : n = 0 := by
+    have : |n| < 1 := by exact_mod_cast hn_abs
+    rw [abs_lt] at this; omega
+  exact hϑ (hϑ_eq.trans (by exact_mod_cast hn_zero))
+
+private lemma lemma_abadsumas_sum_main_term_a (ϑ : ℝ) (hϑ_lt : |ϑ| < 1)
+    (hpos_minus : ∀ n : ℕ, 0 < (n : ℝ) + 1 - ϑ)
+    (hpos_plus : ∀ n : ℕ, 0 < (n : ℝ) + 1 + ϑ) :
+    let g : ℝ → ℂ := fun t ↦
+      if t ≠ 0 then (1 / Complex.sin (π * t) : ℂ) - (1 / (π * t : ℂ)) else 0
+    ∑' (n : ℕ), ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))) =
+    ↑π * g ϑ := by
+  intro g
+  by_cases hϑ : ϑ = 0
+  · simp [hϑ, g]
+  · have h_not_int : (ϑ : ℂ) ∈ integerComplement := lemma_abadsumas_not_in_integerComplement hϑ_lt hϑ
+    have h_sum_shift :
+        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
+            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ)) =
+        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+            (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) :=
+      calc ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
+              (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))
+          _ = ∑' (n : ℕ), (-1 : ℂ) ^ (n + 1) *
+                  (1 / ((ϑ : ℂ) - ((n : ℂ) + 1)) + 1 / ((ϑ : ℂ) + ((n : ℂ) + 1))) := by
+                congr 1; ext n
+                have hne1 : ((n : ℂ) + 1 - (ϑ : ℂ)) ≠ 0 := by
+                  exact_mod_cast (hpos_minus n).ne'
+                have hne2 : ((n : ℂ) + 1 + (ϑ : ℂ)) ≠ 0 := by
+                  exact_mod_cast (hpos_plus n).ne'
+                have h1 : (ϑ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
+                  rwa [← neg_sub, neg_ne_zero]
+                have h2 : (ϑ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by rwa [add_comm]
+                have hne3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) ≠ 0 := by
+                  rw [show ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) =
+                      ((n : ℂ) + 1 - ϑ) * ((n : ℂ) + 1 + ϑ) by ring]
+                  exact mul_ne_zero hne1 hne2
+                field_simp [h1, h2, hne3]; ring
+          _ = ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+                  (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) := by
+                rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm
+                      (fun n : ℕ+ => (-1 : ℂ) ^ (n : ℕ) *
+                        (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)))]
+                congr 1; ext n
+                simp only [one_div, Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe,
+                  Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one]
+    rw [h_sum_shift]
+    have h_eul := lemma_abadeuleulmit1 h_not_int
+    have h_g_def : g ϑ = 1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ) := by
+      dsimp [g]; rw [if_pos hϑ]
+    have h_alg : ↑π * (1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ)) =
+        ↑π / Complex.sin (↑π * ↑ϑ) - 1 / ↑ϑ := by field_simp
+    rw [h_g_def, h_alg, h_eul]
+    ring_nf
+
+private lemma lemma_abadsumas_sum_main_term_b (ϑ_minus : ℝ)
+    (hϑ_minus_lt : |ϑ_minus| < 1) :
+    let g : ℝ → ℂ := fun t ↦ if t ≠ 0 then 1 / Complex.sin (↑π * ↑t) - 1 / (↑π * ↑t) else 0
+    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ_minus : ℂ) /
+        (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) = ↑π * g ϑ_minus := by
+  intro g
+  by_cases hθ : ϑ_minus = 0
+  · -- Every term vanishes and g 0 = 0
+    simp only [hθ, Complex.ofReal_zero]
+    dsimp [g]
+    simp only [mul_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, sub_zero,
+      zero_div, tsum_zero, not_true_eq_false, ↓reduceIte]
+  · -- Step 1: ϑ_minus avoids all integers because |ϑ_minus| < 1 and ϑ_minus ≠ 0
+    have hϑ_minus_mem : (ϑ_minus : ℂ) ∈ integerComplement :=
+      lemma_abadsumas_not_in_integerComplement hϑ_minus_lt hθ
+    -- Step 2: Partial-fraction expansion of π / sin(π * ϑ_minus)
+    have hcsc := lemma_abadeuleulmit1 hϑ_minus_mem
+    -- Step 3: Unfold g and rewrite π * g ϑ_minus in closed form
+    have hg : (π : ℂ) * g ϑ_minus =
+        ↑π / Complex.sin (↑π * ↑ϑ_minus) - 1 / (ϑ_minus : ℂ) := by
+      dsimp [g]
+      rw [if_pos hθ]
+      have hπ : (π : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+      have hϑ : (ϑ_minus : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hθ
+      rw [mul_sub, mul_one_div, mul_one_div]
+      congr 1
+      field_simp [hπ, hϑ]
+    -- Step 4: Convert the ℕ+ sum in hcsc to a ℕ sum via our reindexing lemma
+    have hsum_eq :
+        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
+            (1 / ((ϑ_minus : ℂ) - ((n : ℕ) : ℂ)) +
+             1 / ((ϑ_minus : ℂ) + ((n : ℕ) : ℂ))) =
+        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (ϑ_minus : ℂ) /
+            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) :=
+      lemma_abadsumas_pnat_sum_eq_nat_sum ϑ_minus hϑ_minus_mem
+    -- Step 5: Chain the equalities to close the goal
+    rw [hg, ← hsum_eq, eq_sub_iff_add_eq, add_comm]
+    exact hcsc.symm
+
+lemma lemma_abadsumas_quad {s : ℂ} {a : ℝ} (ha : 0 < a)
+    (haτ : a > |s.im| / (2 * π)) :
+    let ϑ : ℝ := s.im / (2 * π * a)
+    ∑' n : ℕ, (1 / (n + 1 - ϑ)^2 + 1/(n + 1 + ϑ)^2) =
+    if ϑ = 0 then π^2/3
+    else π^2 / Real.sin (π * ϑ)^2 - 1/ϑ^2 := by
+  -- Uses lemma_abadeulmit2 with z = ↑ϑ, then tsum_int_eq_tsum_nat_add_tsum_nat
+  intro ϑ
+  split_ifs with hϑ
+  · -- ϑ = 0: sum collapses to 2·Basel = π²/3
+    simp only [hϑ, sub_zero, add_zero]
+    have hbasel : ∑' n : ℕ, (1 : ℝ) / ((n : ℝ) + 1) ^ 2 = π ^ 2 / 6 := by
+      have h := HasSum.tsum_eq hasSum_zeta_two
+      rw [Summable.tsum_eq_zero_add hasSum_zeta_two.summable] at h
+      simpa using h
+    simp_rw [show ∀ n : ℕ, (1 : ℝ) / ((↑n + 1) ^ 2) + 1 / ((↑n + 1) ^ 2) =
+        2 * (1 / ((↑n + 1) ^ 2)) from fun _ => by ring,
+      tsum_mul_left, hbasel]
+    ring
+  · -- ϑ ≠ 0: Weierstrass partial-fraction decomposition
+    -- (i) ϑ lies outside ℤ since 0 < |ϑ| < 1
+    have hϑ_lt : |ϑ| < 1 := by
+      simp only [ϑ]
+      rw [abs_div, abs_of_pos (by positivity : (0:ℝ) < 2 * π * a),
+          div_lt_one (by positivity : (0:ℝ) < 2 * π * a)]
+      have h2π : (0:ℝ) < 2 * π := by positivity
+      have := haτ
+      rw [gt_iff_lt, div_lt_iff₀ h2π] at this
+      linarith [abs_nonneg s.im]
+    have hmem : (ϑ : ℂ) ∈ Complex.integerComplement := by
+      simp only [Complex.integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+      intro n heq
+      have heqR : (n : ℝ) = ϑ := by
+        have h := congr_arg Complex.re heq
+        simp only [Complex.ofReal_re] at h
+        exact_mod_cast h
+      rcases eq_or_ne n 0 with rfl | hn
+      · exact hϑ (by exact_mod_cast heqR.symm)
+      · have hge : (1 : ℝ) ≤ |(n : ℝ)| := by exact_mod_cast Int.one_le_abs hn
+        rw [heqR] at hge; linarith [hϑ_lt]
+    -- (ii) Weierstrass: π²/sin²(πϑ) = ∑_{n:ℤ} 1/(ϑ−n)²  over ℂ
+    have hweier := lemma_abadeulmit2 hmem
+    -- (iii) ℤ-summability for the split lemma
+    have hZ_summable : Summable (fun n : ℤ => (1 : ℂ) / ((ϑ : ℂ) - ↑n) ^ 2) := by
+      have h_nat : Summable (fun n : ℕ => (1 : ℂ) / ((ϑ : ℂ) - ↑n) ^ 2) := by
+        have h_nat_shift : Summable (fun n : ℕ => (1 : ℂ) / ((ϑ : ℂ) - ↑(n + 1)) ^ 2) := by
+          apply Summable.of_norm_bounded_eventually (g := fun n : ℕ => 1 / (n : ℝ) ^ 2)
+          · exact Real.summable_one_div_nat_pow.mpr (by norm_num)
+          · rw [Nat.cofinite_eq_atTop]
+            filter_upwards [eventually_ge_atTop 1] with n hn
+            rw [norm_div, norm_one, norm_pow]
+            have h_eq : ‖(ϑ : ℂ) - ↑(n + 1)‖ = (n : ℝ) + 1 - ϑ := by
+              rw [show (ϑ : ℂ) - ↑(n + 1) = -↑((n : ℝ) + 1 - ϑ) by push_cast; ring]
+              rw [norm_neg, Complex.norm_real, Real.norm_eq_abs]
+              apply abs_of_pos
+              have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+              have : (1 : ℝ) ≤ n := by exact_mod_cast hn
+              linarith
+            rw [h_eq]
+            apply div_le_div_of_nonneg_left (by norm_num) (by positivity)
+            apply pow_le_pow_left₀
+            · have : (1 : ℝ) ≤ n := by exact_mod_cast hn
+              have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+              linarith
+            · have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+              linarith
+        exact (summable_nat_add_iff 1).mp h_nat_shift
+      have h_neg : Summable (fun n : ℕ => (1 : ℂ) / ((ϑ : ℂ) - ↑(-(n + 1 : ℤ))) ^ 2) := by
+        apply Summable.of_norm_bounded_eventually (f := fun n : ℕ => 1 / ((ϑ : ℂ) - ↑(-(n + 1 : ℤ))) ^ 2) (g := fun n : ℕ => 1 / (n : ℝ) ^ 2)
+        · exact Real.summable_one_div_nat_pow.mpr (by norm_num)
+        · rw [Nat.cofinite_eq_atTop]
+          filter_upwards [eventually_ge_atTop 1] with n hn
+          rw [norm_div, norm_one, norm_pow]
+          have h_eq : ‖(ϑ : ℂ) - ↑(-(n + 1 : ℤ))‖ = (n : ℝ) + 1 + ϑ := by
+            rw [show (ϑ : ℂ) - ↑(-(n + 1 : ℤ)) = ↑((n : ℝ) + 1 + ϑ) by push_cast; ring]
+            rw [Complex.norm_real, Real.norm_eq_abs]
+            apply abs_of_pos
+            have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+            have : (1 : ℝ) ≤ n := by exact_mod_cast hn
+            linarith
+          rw [h_eq]
+          apply div_le_div_of_nonneg_left (by norm_num) (by positivity)
+          apply pow_le_pow_left₀
+          · have : (1 : ℝ) ≤ n := by exact_mod_cast hn
+            have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+            linarith
+          · have : -1 < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
+            linarith
+      exact Summable.of_nat_of_neg_add_one h_nat h_neg
+    -- (iv) Split ℤ-sum via tsum_int_eq_zero_add_tsum_pnat, reindex ℕ+ → ℕ
+    have hC : (↑π : ℂ) ^ 2 / Complex.sin (↑π * ↑ϑ) ^ 2 =
+        1 / (↑ϑ : ℂ) ^ 2 +
+        ∑' n : ℕ, (1 / ((↑n + 1 - (↑ϑ : ℂ)) ^ 2) + 1 / ((↑n + 1 + (↑ϑ : ℂ)) ^ 2)) := by
+      rw [hweier, tsum_int_eq_zero_add_tsum_pnat hZ_summable]
+      simp only [Int.cast_zero, sub_zero]
+      rw [add_assoc, add_left_cancel_iff]
+
+      -- Step 1: reindex positive ℕ+-sum to ℕ (ϑ − n)² = (n+1−ϑ)² by squaring
+      have hpos : ∑' (n : ℕ+), (1 : ℂ) / ((ϑ : ℂ) - ↑(↑↑n : ℤ)) ^ 2 =
+          ∑' (n : ℕ), 1 / ((↑n + 1 - (ϑ : ℂ)) ^ 2) := by
+        rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm]
+        congr 1; ext n
+        simp only [Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe, Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, Int.cast_add,
+          Int.cast_natCast, Int.cast_one, one_div, inv_inj]
+        ring
+
+      -- Step 2: reindex negative ℕ+-sum to ℕ  (ϑ − (−n))² = (n+1+ϑ)² by squaring
+      have hneg : ∑' (n : ℕ+), (1 : ℂ) / ((ϑ : ℂ) - ↑(-(↑↑n : ℤ))) ^ 2 =
+          ∑' (n : ℕ), 1 / ((↑n + 1 + (ϑ : ℂ)) ^ 2) := by
+        rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm]
+        congr 1; ext n
+        simp only [Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe, Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, neg_add_rev,
+          Int.reduceNeg, Int.cast_add, Int.cast_neg, Int.cast_one, Int.cast_natCast, one_div,
+          inv_inj]
+        ring
+
+      -- Step 3: summability of each ℕ-indexed piece (extracted from hZ_summable)
+      have hsum1 : Summable (fun n : ℕ => (1 : ℂ) / ((↑n + 1 - (ϑ : ℂ)) ^ 2)) := by
+        have h := hZ_summable.comp_injective
+          (i := fun n : ℕ => (↑n + 1 : ℤ))
+          (fun a b hab => by simpa using hab)
+        refine h.congr (fun n => ?_)
+        simp only [Function.comp]
+        push_cast; ring
+      have hsum2 : Summable (fun n : ℕ => (1 : ℂ) / ((↑n + 1 + (ϑ : ℂ)) ^ 2)) := by
+        have h := hZ_summable.comp_injective
+          (i := fun n : ℕ => -(↑n + 1 : ℤ))
+          (fun a b hab => by simpa using hab)
+        refine h.congr (fun n => ?_)
+        simp only [Function.comp]
+        push_cast; ring
+      -- Step 4: assemble
+      rw [hpos, hneg, ← Summable.tsum_add hsum1 hsum2]
+
+    -- (v) Cast ℂ identity back to ℝ via ofReal_inj
+    have hR : π ^ 2 / Real.sin (π * ϑ) ^ 2 - 1 / ϑ ^ 2 =
+        ∑' n : ℕ, (1 / (n + 1 - ϑ) ^ 2 + 1 / (n + 1 + ϑ) ^ 2) := by
+
+
+
+      have h_eq : ((π ^ 2 / Real.sin (π * ϑ) ^ 2 - 1 / ϑ ^ 2 : ℝ) : ℂ) =
+          (↑(∑' n : ℕ, (1 / (n + 1 - ϑ) ^ 2 + 1 / (n + 1 + ϑ) ^ 2 : ℝ)) : ℂ) := by
+        calc ((π ^ 2 / Real.sin (π * ϑ) ^ 2 - 1 / ϑ ^ 2 : ℝ) : ℂ)
+          _ = (π : ℂ) ^ 2 / Complex.sin (π * ϑ) ^ 2 - 1 / (ϑ : ℂ) ^ 2 := by
+            push_cast
+            rfl
+          _ = 1 / (ϑ : ℂ) ^ 2 + ∑' (n : ℕ), (1 / ((n : ℂ) + 1 - (ϑ : ℂ)) ^ 2 + 1 / ((n : ℂ) + 1 + (ϑ : ℂ)) ^ 2) - 1 / (ϑ : ℂ) ^ 2 := by
+            rw [hC]
+          _ = ∑' (n : ℕ), (1 / ((n : ℂ) + 1 - (ϑ : ℂ)) ^ 2 + 1 / ((n : ℂ) + 1 + (ϑ : ℂ)) ^ 2) := by
+            ring
+          _ = (↑(∑' n : ℕ, (1 / (n + 1 - ϑ) ^ 2 + 1 / (n + 1 + ϑ) ^ 2 : ℝ)) : ℂ) := by
+            rw [Complex.ofReal_tsum]
+            push_cast
+            rfl
+      exact Complex.ofReal_inj.mp h_eq
+    exact hR.symm
+
 @[blueprint
   "lem:abadsumas"
   (title := "Estimate for a Fourier sum")
@@ -2876,239 +3358,7 @@ $\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\ri
 -/)
   (latexEnv := "lemma")
   (discussion := 572)]
-private lemma ofReal_div_re (x y : ℝ) :
-    (1 / ((x : ℂ) * (y : ℂ)) ^ 2).re = 1 / (x * y) ^ 2 := by
-  have : (1 / ((x : ℂ) * y) ^ 2) = ((1 / (x * y) ^ 2 : ℝ) : ℂ) := by push_cast; ring
-  rw [this]; exact Complex.ofReal_re _
-
-
-lemma integrable_explog_abadsumas {s : ℂ} {a b : ℝ} (ha : 0 < a) (hab : a < b) (k : ℤ) :
-    IntervalIntegrable
-      (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑k * y))
-      MeasureTheory.volume a b := by
-  apply ContinuousOn.intervalIntegrable_of_Icc (le_of_lt hab)
-  apply ContinuousOn.mul
-  · apply ContinuousOn.mul
-    · apply continuous_ofReal.comp_continuousOn
-      apply ContinuousOn.rpow continuousOn_id continuousOn_const
-      intro x hx
-      left
-      exact ne_of_gt (lt_of_lt_of_le ha hx.1)
-    · apply continuousOn_e_comp
-      apply ContinuousOn.mul continuousOn_const
-      apply Real.continuousOn_log.mono
-      intro x hx
-      exact ne_of_gt (lt_of_lt_of_le ha hx.1)
-  · dsimp [e]; fun_prop
-
-/-- For any real θ with |θ| < 1, the series ∑ (-1)^(n+2) · 2θ / ((n+1)² - θ²) is summable in ℂ. -/
-theorem summable_alternating_theta (θ : ℝ) (hθ : |θ| < 1) :
-    Summable (fun n : ℕ ↦ ((-1) ^ (n + 2) * 2 * θ / ((n + 1) ^ 2 - θ ^ 2) : ℂ)) := by
-  have hθ_sq_lt : θ ^ 2 < 1 := by nlinarith [sq_abs θ, abs_nonneg θ]
-  apply Summable.of_norm_bounded (g := fun n : ℕ => 2 * |θ| / ((1 - θ ^ 2) * ((n : ℝ) + 1) ^ 2))
-  · -- The bounding series ∑ 2|θ| / ((1 - θ²)(n+1)²) is summable
-    apply Summable.mul_left
-    have hpos : (0 : ℝ) < 1 - θ ^ 2 := by nlinarith [sq_abs θ, abs_nonneg θ]
-    simp_rw [mul_inv]
-    apply Summable.mul_left
-    have hbase : Summable (fun n : ℕ => (n ^ 2 : ℝ)⁻¹) := by
-      simp_rw [inv_eq_one_div]
-      norm_cast
-      simp_rw [Nat.cast_pow] at ⊢
-      apply Real.summable_one_div_nat_pow.mpr (by norm_num)
-    exact (summable_nat_add_iff 1).mpr hbase |>.congr
-      (fun n => by push_cast; ring_nf)
-  · -- Each term is norm-bounded by the corresponding term of the bounding series
-    intro n
-    have hdenom_pos : (0 : ℝ) < (n + 1) ^ 2 - θ ^ 2 := by
-      have : (0 : ℝ) ≤ (↑n : ℝ) := Nat.cast_nonneg n
-      nlinarith [sq_nonneg (n : ℝ)]
-    have hnorm_eq : ‖(-1 : ℂ) ^ (n + 2) * 2 * θ / ((n + 1) ^ 2 - θ ^ 2)‖ =
-        2 * |θ| / (((n : ℝ) + 1) ^ 2 - θ ^ 2) := by
-      have h1 : ‖(-1 : ℂ) ^ (n + 2)‖ = 1 := by
-        rw [norm_pow, norm_neg, norm_one, one_pow]
-      have h2 : ‖(2 : ℂ)‖ = 2 := by norm_num
-      rw [norm_div, norm_mul, norm_mul, h1, h2,
-          one_mul, Complex.norm_real θ]
-      simp only [norm_eq_abs]
-      congr 1
-      have h1 : (↑n + 1 : ℂ) ^ 2 - (↑θ : ℂ) ^ 2 = ↑((↑n + 1 : ℝ) ^ 2 - θ ^ 2) := by
-        norm_cast
-      rw [h1, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hdenom_pos]
-    rw [hnorm_eq]
-    have hdenom_ineq : (1 - θ ^ 2) * (n + 1) ^ 2 ≤ (n + 1) ^ 2 - θ ^ 2 := by
-      have h_cast : (0 : ℝ) ≤ (↑n : ℝ) := Nat.cast_nonneg n
-      have h_ge_one : (1 : ℝ) ≤ ↑n + 1 := by linarith
-      have h_sq_ge : (1 : ℝ) ≤ (↑n + 1) ^ 2 := by nlinarith
-      nlinarith [sq_nonneg θ]
-    have h2 : (0 : ℝ) < 1 - θ ^ 2 := by linarith
-    gcongr
-
-private theorem lemma_abadsumas_pnat_sum_eq_nat_sum (θ : ℝ) (hθ : (θ : ℂ) ∈ integerComplement) :
-    ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
-        (1 / ((θ : ℂ) - ((n : ℕ) : ℂ)) + 1 / ((θ : ℂ) + ((n : ℕ) : ℂ))) =
-    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (θ : ℂ) /
-        (((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ)) := by
-  -- Step 1: reindex ℕ+ → ℕ, f must be ℕ+ → ℂ matching the LHS exactly
-  rw [← Equiv.pnatEquivNat.symm.tsum_eq
-        (fun m : ℕ+ => (-1 : ℂ) ^ (m : ℕ) *
-          (1 / ((θ : ℂ) - ((m : ℕ) : ℂ)) +
-           1 / ((θ : ℂ) + ((m : ℕ) : ℂ))))]
-  -- Step 2: prove termwise equality
-  apply tsum_congr
-  intro n
-  -- Step 3: resolve the ℕ+ → ℕ cast created by the reindexing
-  have hval : (Equiv.pnatEquivNat.symm n : ℕ+).val = n + 1 := by
-    simp [Equiv.pnatEquivNat]
-  simp only [hval]
-  -- Step 4: resolve ℕ → ℂ cast: (↑(n+1) : ℂ) = (↑n : ℂ) + 1
-  have hcast : ((n + 1 : ℕ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
-  rw [hcast]
-  -- Step 5: denominators are nonzero because θ ∈ integerComplement
-  have hd1 : (θ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
-    have : ((↑(n + 1) : ℤ) : ℂ) = (n : ℂ) + 1 := by push_cast; ring
-    rw [← this, sub_ne_zero]
-    exact fun h => hθ (h ▸ ⟨↑(n + 1), by push_cast; ring⟩)
-  have hd2 : (θ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by
-    have : ((↑(-(n + 1 : ℤ)) : ℤ) : ℂ) = -((n : ℂ) + 1) := by push_cast; ring
-    rw [show (θ : ℂ) + ((n : ℂ) + 1) = (θ : ℂ) - (-((n : ℂ) + 1)) from by ring]
-    rw [sub_ne_zero]
-    exact fun h => hθ (h ▸ ⟨-(↑(n + 1) : ℤ), by push_cast; ring⟩)
-  -- Step 6: pure algebra
-  have hd3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) ≠ 0 := by
-    have factored : ((n : ℂ) + 1) ^ (2 : ℕ) - (θ : ℂ) ^ (2 : ℕ) =
-        ((n : ℂ) + 1 - (θ : ℂ)) * ((n : ℂ) + 1 + (θ : ℂ)) := by ring
-    rw [factored]
-    apply mul_ne_zero
-    · have : ((n : ℂ) + 1 - (θ : ℂ)) = -((θ : ℂ) - ((n : ℂ) + 1)) := by ring
-      rw [this]
-      exact neg_ne_zero.mpr hd1
-    · have : ((n : ℂ) + 1 + (θ : ℂ)) = (θ : ℂ) + ((n : ℂ) + 1) := by ring
-      rw [this]
-      exact hd2
-  field_simp [hd1, hd2, hd3]
-  ring
-
-private theorem lemma_abadsumas_sum_main_term_a (ϑ : ℝ) (hϑ_lt : |ϑ| < 1)
-    (hpos_minus : ∀ n : ℕ, 0 < (n : ℝ) + 1 - ϑ)
-    (hpos_plus : ∀ n : ℕ, 0 < (n : ℝ) + 1 + ϑ) :
-    let g : ℝ → ℂ := fun t ↦
-      if t ≠ 0 then (1 / Complex.sin (π * t) : ℂ) - (1 / (π * t : ℂ)) else 0
-    ∑' (n : ℕ), ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))) =
-    ↑π * g ϑ := by
-  intro g
-  by_cases hϑ : ϑ = 0
-  · -- Case ϑ = 0: every term vanishes and g 0 = 0
-    have h_left : ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
-        (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ)) = 0 := by
-      rw [hϑ]; simp
-    have h_right : ↑π * g ϑ = 0 := by
-      rw [hϑ]; dsimp [g]; simp
-    rw [h_left, h_right]
-  · -- Case ϑ ≠ 0
-    -- Step 1: ϑ is not an integer
-    -- Since |ϑ| < 1 and ϑ ≠ 0, any integer equal to ϑ would have |n| < 1 hence n = 0,
-    -- contradicting ϑ ≠ 0
-    have h_not_int : (ϑ : ℂ) ∈ integerComplement := by
-      simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-      intro n hn
-      have hϑ_eq : ϑ = (n : ℝ) := by exact_mod_cast hn.symm
-      have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_lt
-      have hn_zero : n = 0 := by
-        have : |n| < 1 := by exact_mod_cast hn_abs
-        rw [abs_lt] at this; omega
-      exact hϑ (hϑ_eq.trans (by norm_cast))
-    -- Step 2: Partial-fraction rewrite + sign identity, then reindex ℕ → ℕ+
-    have h_sum_shift :
-        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
-            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ)) =
-        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
-            (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) :=
-      calc ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ : ℂ) /
-              (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ))
-          -- Step A: partial-fraction identity + sign flip
-          _ = ∑' (n : ℕ), (-1 : ℂ) ^ (n + 1) *
-                  (1 / ((ϑ : ℂ) - ((n : ℂ) + 1)) + 1 / ((ϑ : ℂ) + ((n : ℂ) + 1))) := by
-                congr 1; ext n
-                have hne1 : ((n : ℂ) + 1 - (ϑ : ℂ)) ≠ 0 := by
-                  exact_mod_cast (hpos_minus n).ne'
-                have hne2 : ((n : ℂ) + 1 + (ϑ : ℂ)) ≠ 0 := by
-                  exact_mod_cast (hpos_plus n).ne'
-                have h1 : (ϑ : ℂ) - ((n : ℂ) + 1) ≠ 0 := by
-                  rwa [← neg_sub, neg_ne_zero]
-                have h2 : (ϑ : ℂ) + ((n : ℂ) + 1) ≠ 0 := by rwa [add_comm]
-                have hne3 : ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) ≠ 0 := by
-                  have : ((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ : ℂ) ^ (2 : ℕ) =
-                      ((n : ℂ) + 1 - ϑ) * ((n : ℂ) + 1 + ϑ) := by ring
-                  rw [this]; exact mul_ne_zero hne1 hne2
-                field_simp [h1, h2, hne3]; ring
-          -- Step B: reindex ℕ-shifted sum back to ℕ+ sum
-          _ = ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
-                  (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)) := by
-                rw [← Equiv.tsum_eq Equiv.pnatEquivNat.symm
-                      (fun n : ℕ+ => (-1 : ℂ) ^ (n : ℕ) *
-                        (1 / ((ϑ : ℂ) - ↑↑n) + 1 / ((ϑ : ℂ) + ↑↑n)))]
-                congr 1; ext n
-                simp only [one_div, Equiv.pnatEquivNat_symm_apply, Nat.succPNat_coe,
-                  Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one]
-    -- Step 3: Apply the partial-fraction expansion of π/sin(πϑ)
-    rw [h_sum_shift]
-    have h_eul := lemma_abadeuleulmit1 h_not_int
-    -- Step 4: Unfold g and simplify algebraically
-    have h_g_def : g ϑ = 1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ) := by
-      dsimp [g]; rw [if_pos hϑ]
-    have h_alg : ↑π * (1 / Complex.sin (↑π * ↑ϑ) - 1 / (↑π * ↑ϑ)) =
-        ↑π / Complex.sin (↑π * ↑ϑ) - 1 / ↑ϑ := by field_simp
-    rw [h_g_def, h_alg, h_eul]
-    ring_nf
-
-private theorem lemma_abadsumas_sum_main_term_b (ϑ_minus : ℝ)
-    (hϑ_minus_lt : |ϑ_minus| < 1) :
-    let g : ℝ → ℂ := fun t ↦ if t ≠ 0 then 1 / Complex.sin (↑π * ↑t) - 1 / (↑π * ↑t) else 0
-    ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * 2 * (ϑ_minus : ℂ) /
-        (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) = ↑π * g ϑ_minus := by
-  intro g
-  by_cases hθ : ϑ_minus = 0
-  · -- Every term vanishes and g 0 = 0
-    simp only [hθ, Complex.ofReal_zero]
-    dsimp [g]
-    simp only [mul_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, sub_zero,
-      zero_div, tsum_zero, not_true_eq_false, ↓reduceIte]
-  · -- Step 1: ϑ_minus avoids all integers because |ϑ_minus| < 1 and ϑ_minus ≠ 0
-    have hϑ_minus_mem : (ϑ_minus : ℂ) ∈ integerComplement := by
-      simp only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-      intro n hn
-      have hϑ_eq : ϑ_minus = (n : ℝ) := by exact_mod_cast hn.symm
-      have hn_abs : |(n : ℝ)| < 1 := hϑ_eq ▸ hϑ_minus_lt
-      have hn_zero : n = 0 := by
-        have : |n| < 1 := by exact_mod_cast hn_abs
-        rw [abs_lt] at this; omega
-      exact hθ (hϑ_eq.trans (by exact_mod_cast hn_zero))
-    -- Step 2: Partial-fraction expansion of π / sin(π * ϑ_minus)
-    have hcsc := lemma_abadeuleulmit1 hϑ_minus_mem
-    -- Step 3: Unfold g and rewrite π * g ϑ_minus in closed form
-    have hg : (π : ℂ) * g ϑ_minus =
-        ↑π / Complex.sin (↑π * ↑ϑ_minus) - 1 / (ϑ_minus : ℂ) := by
-      dsimp [g]
-      rw [if_pos hθ]
-      have hπ : (π : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
-      have hϑ : (ϑ_minus : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hθ
-      rw [mul_sub, mul_one_div, mul_one_div]
-      congr 1
-      field_simp [hπ, hϑ]
-    -- Step 4: Convert the ℕ+ sum in hcsc to a ℕ sum via our reindexing lemma
-    have hsum_eq :
-        ∑' (n : ℕ+), (-1 : ℂ) ^ (n : ℕ) *
-            (1 / ((ϑ_minus : ℂ) - ((n : ℕ) : ℂ)) +
-             1 / ((ϑ_minus : ℂ) + ((n : ℕ) : ℂ))) =
-        ∑' (n : ℕ), (-1 : ℂ) ^ (n + 2) * (2 : ℂ) * (ϑ_minus : ℂ) /
-            (((n : ℂ) + 1) ^ (2 : ℕ) - (ϑ_minus : ℂ) ^ (2 : ℕ)) :=
-      lemma_abadsumas_pnat_sum_eq_nat_sum ϑ_minus hϑ_minus_mem
-    -- Step 5: Chain the equalities to close the goal
-    rw [hg, ← hsum_eq, eq_sub_iff_add_eq, add_comm]
-    exact hcsc.symm
-
-theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : 0 < a)
+theorem lemma_abadsumas {s : ℂ} (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : 0 < a)
     (hab : a < b) (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
     let ϑ_minus : ℝ := s.im / (2 * π * b)
@@ -3127,182 +3377,19 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
       ((a ^ (-s) : ℂ) * g ϑ) / (2 * I) - ((b ^ (-s) : ℂ) * g ϑ_minus) / (2 * I) + E ∧
       ‖E‖ ≤ C / a ^ (s.re + 1) := by
   intro ϑ ϑ_minus f g C
-  -- Step 1: Express Fourier transforms as integrals
-  have fourier_as_integral : ∀ n : ℤ, FourierTransform.fourier f n =
-    ∫ y in a..b, (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) * e (-n * y) := by
-    intro n
-    have h_fourier : FourierTransform.fourier f ↑n = ∫ (y : ℝ), Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y := by
-      exact fourier_real_eq_integral_exp_smul f ↑n
-    have h_integral_split : ∫ (y : ℝ), Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y = ∫ (y : ℝ) in a..b, Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y := by
-      rw [intervalIntegral.integral_of_le (le_of_lt hab), ← integral_indicator measurableSet_Ioc]
-      apply MeasureTheory.integral_congr_ae
-      -- We ignore the single point y=a because it constitutes a set of measure 0
-      filter_upwards [MeasureTheory.Measure.ae_ne volume a] with y hy_ne
-      by_cases hy : y ∈ Set.Ioc a b
-      · rw [Set.indicator_of_mem hy]
-      · rw [Set.indicator_of_notMem hy]
-        have h_f_zero : f y = 0 := by
-          dsimp [f]
-          split_ifs with h_bounds
-          · exfalso
-            apply hy
-            -- Now we can use our new hypothesis `hy_ne` to show y ∈ (a, b]
-            exact ⟨lt_of_le_of_ne h_bounds.1 hy_ne.symm, h_bounds.2⟩
-          · rfl
-        rw [h_f_zero, smul_zero]
-    have h_integrand_eq : ∫ (y : ℝ) in a..b, Complex.exp (↑(-2 * π * y * ↑n) * Complex.I) • f y =
-        ∫ (y : ℝ) in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-↑n * y) := by
-      apply intervalIntegral.integral_congr
-      intro y hy
-      have h_bounds : a ≤ y ∧ y ≤ b := by
-        rw [Set.uIcc_of_le hab.le] at hy
-        exact ⟨hy.1, hy.2⟩
-      have h_f_val : f y = (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) := by
-        dsimp [f]
-        rw [if_pos h_bounds]
-      dsimp only
-      rw [h_f_val, e]
-      calc cexp (↑(-2 * π * y * ↑n) * I) • (↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y)))
-          = ↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y))
-              * cexp (↑(-2 * π * y * ↑n) * I) := by
-                rw [smul_eq_mul]; ring
-        _ = ↑(y ^ (-s.re)) * cexp (2 * ↑π * I * ↑(-(s.im / (2 * π)) * Real.log y))
-              * e (-↑n * y) := by
-                rw [e]
-                congr 1
-                congr 1
-                push_cast
-                ring
 
-    rw [h_fourier, h_integral_split, h_integrand_eq]
+  have h_im_bound : |s.im| < 2 * π * a := by
+    have hpos : 0 < 2 * π := by positivity
+    rw [gt_iff_lt, div_lt_iff₀ hpos] at haτ
+    linarith [mul_comm a (2 * π)]
 
 
-  -- Step 1.1: Combine positive and negative Fourier transforms
-  have sum_fourier_as_cosine : ∀ n : ℕ,
-    FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ)) =
-    2 * ∫ y in a..b, (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) *
-      Real.cos (2 * π * (n + 1) * y) := by
-
-    intro n
-    -- ① Rewrite both Fourier coefficients as interval integrals via hypothesis
-    -- Cast n : ℕ to ℤ explicitly so the coercion structure matches fourier_as_integral
-    have h1 : FourierTransform.fourier f (↑n + 1) =
-        ∫ y in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-(↑n + 1 : ℤ) * y) := by
-      have := fourier_as_integral (↑n + 1 : ℤ)
-      push_cast at this ⊢; exact this
-    have h2 : FourierTransform.fourier f (-↑(n + 1 : ℤ)) =
-        ∫ y in a..b, ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑(n + 1 : ℤ) * y) := by
-      have key := fourier_as_integral (-↑((n + 1) : ℤ))
-      simp only [Int.cast_neg, neg_neg] at key
-      exact key
-    rw [h1]
-    -- norm_cast normalizes the trivial ℕ→ℕ coercion in (-↑(↑n+1)) → (-↑(n+1))
-    -- so that h2 can then match
-
-    rw [h2]
-
-    have hint1 : IntervalIntegrable
-        (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (-(↑n + 1 : ℤ) * y))
-        MeasureTheory.volume a b := by
-      have := integrable_explog_abadsumas (s := s) ha hab (-(n + 1) : ℤ)
-      simp only [Int.cast_neg] at this
-      exact this
-
-
-    have hint2 : IntervalIntegrable
-        (fun y => ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * e (↑(n + 1 : ℤ) * y))
-        MeasureTheory.volume a b := integrable_explog_abadsumas ha hab (n + 1 : ℤ)
-    rw [← intervalIntegral.integral_add hint1 hint2]
-    -- ③ Pull the scalar 2 inside the RHS integral   2 * ∫ h = ∫ (2 * h)
-    rw [← intervalIntegral.integral_const_mul]
-    -- ④ The integrands are now equal pointwise; close by Euler's identity
-    congr 1
-    ext y
-    -- Step 1: Key sub-identity — Euler's formula for the Fourier character e
-    have heuler : e (-↑(n + 1 : ℤ) * y) + e (↑(n + 1 : ℤ) * y) =
-    2 * ↑(Real.cos (2 * π * (↑n + 1) * y)) := by
-      have hpos : e (↑(n + 1 : ℤ) * y) =
-          Complex.exp (↑(2 * π * (↑n + 1) * y) * Complex.I) := by
-        simp only [e]; push_cast; ring_nf
-      have hneg : e (-↑(n + 1 : ℤ) * y) =
-          Complex.exp (-(↑(2 * π * (↑n + 1) * y)) * Complex.I) := by
-        simp only [e]; push_cast; ring_nf
-      rw [hneg, hpos, add_comm, Complex.ofReal_cos, ← Complex.two_cos]
-
-    -- Step 2: The goal follows by multiplying heuler by the common prefactor
-    -- and rearranging, which is a pure ring identity
-    linear_combination ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) * heuler
-    -- e(-ξy) + e(ξy) = 2 * ↑(Real.cos (2π * ξ * y))  follows from Complex.cos_eq / ofReal_cos
 
 
   -- Step 1.2: Simplify to y^(-s) * cos form
   have sum_fourier_simplified : ∀ n : ℕ,
     FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ)) =
-    2 * ∫ y in a..b, (y : ℂ) ^ (-s) * Real.cos (2 * π * (n + 1) * y) := by
-    intro n
-    -- Step 1: Apply the existing hypothesis to rewrite the LHS
-    rw [sum_fourier_as_cosine n]
-    -- Goal: 2 * ∫ y in a..b, ↑(y^(-s.re)) * e(…) * ↑cos(…)
-    --     = 2 * ∫ y in a..b, ↑y^(-s) * ↑cos(…)
-    -- Step 2: Strip the scalar 2 and reduce to integral equality
-    congr 1
-    apply intervalIntegral.integral_congr
-    intro y hy
-    simp only [neg_mul, ofReal_cos, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
-    mul_eq_mul_right_iff]
-    have hy_pos : 0 < y := by
-      rw [Set.uIcc_of_le hab.le] at hy
-      exact ha.trans_le hy.1
-    -- Step 3b: Core identity — complex power of a positive real decomposes
--- as real power times Fourier character
-    -- Step 4: Core identity — decompose complex power into real power × Fourier character
-    have key : (y : ℂ) ^ (-s) =
-        ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) := by
-      have hyne : (y : ℂ) ≠ 0 := by exact_mod_cast hy_pos.ne'
-      rw [Complex.cpow_def_of_ne_zero hyne]
-
-      rw [← Complex.ofReal_log hy_pos.le]
-
-      -- Step A: Split exponent into real + imaginary parts
-      have hexp_split : (↑(Real.log y) : ℂ) * -s =
-          ↑(-s.re * Real.log y) + ↑(-s.im * Real.log y) * Complex.I := by
-        rw [← Complex.re_add_im s]
-        push_cast
-        ring_nf
-        field_simp
-        congr 1
-        simp only [re_add_im]
-        ring_nf
-
-
-      -- Step B: Apply exp_add_mul_I to separate the two factors
-      rw [hexp_split, Complex.exp_add_mul_I]
-      -- LHS is now: cexp(↑(-s.re * log y)) * (cos(-s.im * log y) + sin(-s.im * log y)*I)
-
-      -- Step C: Identify the real factor ↑(y^(-s.re))
-      have hrpow : (y ^ (-s.re) : ℝ) = Real.exp (-s.re * Real.log y) := by
-        rw [mul_comm, ← Real.rpow_def_of_pos hy_pos]
-
-      -- Step D: Identify the imaginary factor e(...)
-      have he_expand : e (-(s.im / (2 * π)) * Real.log y) =
-          ↑(Real.cos (-s.im * Real.log y)) + ↑(Real.sin (-s.im * Real.log y)) * Complex.I := by
-        -- Rewrite e as Complex.exp via its definition, then collapse the 2π
-        rw [show ↑(Real.cos (-s.im * Real.log y)) + ↑(Real.sin (-s.im * Real.log y)) * I =
-            Complex.exp (↑(-s.im * Real.log y) * I) from by
-              rw [exp_mul_I]
-              simp only [Complex.ofReal_cos, Complex.ofReal_sin]]
-        -- Now both sides are Complex.exp (something * I), unfold e
-        simp [e]
-        -- Goal: exp (↑(2π * (-(s.im/(2π)) * log y)) * I) = exp (↑(-s.im * log y) * I)
-        congr 1
-        ring_nf; field_simp
-
-      rw [hrpow, he_expand]
-      push_cast
-      ring
-
-    -- Step 5: Substitute key and close by ring
-    simp [key]
+    2 * ∫ y in a..b, (y : ℂ) ^ (-s) * Real.cos (2 * π * (n + 1) * y) := lemma_abadsumas_sum_fourier s ha hab
 
 
   -- Step 2: Apply the assumed proposition (applem) to each term
@@ -3361,27 +3448,6 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
   -- Step 2.1: Extract error terms as a function
   -- let error_term : ℕ → ℂ := fun n ↦ Classical.choose (apply_applem n)
   choose error_term error_term_eq error_term_bound using apply_applem
-  -- have error_term_eq : ∀ n : ℕ,
-  --   FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ)) =
-  --   (a ^ (-s) / (2 * π * I)) * ((-1) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2)) -
-  --   (b ^ (-s) / (2 * π * I)) * ((-1) ^ (n + 2) * 2 * ϑ_minus / ((n + 1) ^ 2 - ϑ_minus ^ 2)) +
-  --   error_term n := by
-  --   intro n
-  --   rw [show error_term n = Classical.choose (apply_applem n) by rfl]
-  --   exact (Classical.choose_spec (apply_applem n)).1
-
-
-  --   -- exact (Classical.choose_spec (apply_applem n)).1
-
-  -- have error_term_bound : ∀ n : ℕ, ‖error_term n‖ ≤
-  --   (a ^ (-(s.re + 1))) / (2 * π ^ 2) *
-  --   (s.re / ((n + 1) - ϑ) ^ 2 + s.re / ((n + 1) + ϑ) ^ 2 +
-  --    |ϑ| / |(n + 1) - ϑ| ^ 3 + |ϑ| / |(n + 1) + ϑ| ^ 3) := by
-  --   intro n
-  --   rw [show error_term n = Classical.choose (apply_applem n) by rfl]
-  --   exact (Classical.choose_spec (apply_applem n)).2
-
-  -- Step 3: Sum the main terms using the summation lemma
   -- Step 1: |ϑ| < 1, needed for both lemmas
   have hϑ_lt : |ϑ| < 1 := by
     simp only [ϑ]
@@ -3448,21 +3514,17 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
 
   -- Step 5: Apply the summation lemma
   have main_summable_a : Summable (fun n : ℕ ↦
-    ((-1) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2) : ℂ)) := summable_alternating_theta ϑ hϑ_lt
+    ((-1) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2) : ℂ)) := lemma_abadsumas_summable_alternating_theta ϑ hϑ_lt
 
   have main_summable_b : Summable (fun n : ℕ ↦
     ((-1) ^ (n + 2) * 2 * ϑ_minus / ((n + 1) ^ 2 - ϑ_minus ^ 2) : ℂ)) := by
-    apply summable_alternating_theta
+    apply lemma_abadsumas_summable_alternating_theta
     -- |ϑ_minus| < |ϑ| < 1  because b > a > 0
     dsimp [ϑ_minus, ϑ] at hϑ_lt ⊢
     rw [abs_div]
     have hb_pos : 0 < b := lt_trans ha hab
     rw [abs_of_pos (by positivity : (0 : ℝ) < 2 * π * b),
         div_lt_one (by positivity)]
-    have h1 : |s.im| < 2 * π * a := by
-      have hpos : 0 < 2 * π := by positivity
-      rw [gt_iff_lt, div_lt_iff₀ hpos] at haτ
-      linarith [mul_comm a (2 * π)]
     nlinarith [Real.pi_pos, hab]
 
   -- Show summability of the first main term (with constant factor)
@@ -3554,7 +3616,13 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
   have sum_main_term_a : ∑' n : ℕ,
     ((-1 : ℂ) ^ (n + 2) * 2 * ϑ / ((n + 1) ^ 2 - ϑ ^ 2)) = π * g ϑ := lemma_abadsumas_sum_main_term_a ϑ hϑ_lt hpos_minus hpos_plus
 
-  have hϑ_minus_lt : |ϑ_minus| < 1 := by sorry
+  have hϑ_minus_lt : |ϑ_minus| < 1 := by
+    dsimp [ϑ_minus]
+    rw [abs_div]
+    have hb_pos : 0 < b := lt_trans ha hab
+    rw [abs_of_pos (by positivity : (0 : ℝ) < 2 * π * b),
+        div_lt_one (by positivity)]
+    nlinarith [Real.pi_pos, hab]
   have sum_main_term_b : ∑' n : ℕ,
     ((-1 : ℂ) ^ (n + 2) * 2 * ϑ_minus / ((n + 1 : ℂ) ^ 2 - ϑ_minus ^ 2)) = π * g ϑ_minus := lemma_abadsumas_sum_main_term_b ϑ_minus hϑ_minus_lt
 
@@ -3563,10 +3631,20 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
     a ^ (-(s.re + 1)) / (2 * π ^ 2) *
       (s.re / (n + 1 - ϑ) ^ 2 + s.re / (n + 1 + ϑ) ^ 2 +
       |ϑ| / |n + 1 - ϑ| ^ 3 + |ϑ| / |n + 1 + ϑ| ^ 3)
-  have error_summable : Summable error_term := by
+    -- -- Subgoal 1: summability of the pointwise bound
+  have hbound_summable : Summable bound := by
+    -- Unfold the definition of bound and factor the constant K out
+    simp_rw [bound, habs_minus, habs_plus]
+    apply Summable.mul_left
+    apply ((hsumm_q.mul_left s.re).add (hsumm_c.mul_left |ϑ|)).congr
+    intro n
+    ring
+  have error_summable : Summable error_term := Summable.of_norm_bounded hbound_summable error_term_bound
 
 
-    sorry
+
+
+
 
   -- Prove summability of Fourier terms
   -- Rewrite using error_term_eq to decompose into summable parts
@@ -3638,41 +3716,12 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
       -- ℤ-sum: π²/sin²(πϑ) = ∑_{n:ℤ} 1/(ϑ-n)² = 1/ϑ² + ∑_{n:ℕ}(1/(n+1-ϑ)² + 1/(n+1+ϑ)²)
       have hquad : ∑' n : ℕ, (1 / (n + 1 - ϑ)^2 + 1/(n + 1 + ϑ)^2) =
           if ϑ = 0 then π^2/3
-          else π^2 / Real.sin (π * ϑ)^2 - 1/ϑ^2 := by
-        -- Uses lemma_abadeulmit2 with z = ↑ϑ, then tsum_int_eq_tsum_nat_add_tsum_nat
-        -- have := lemma_abadeulmit2
-        sorry
-
-
+          else π^2 / Real.sin (π * ϑ)^2 - 1/ϑ^2 := lemma_abadsumas_quad ha haτ
 
       -- Step 2b: Cubic series inequality directly from 8.4.13
       have hcubic : ∑' n : ℕ, (1/(n + 1 - ϑ)^3 + 1/(n + 1 + ϑ)^3) ≤
           1/(1-|ϑ|)^3 + 2*(riemannZeta 3).re - 1 :=
         lemma_abadimpseri ϑ hϑ_lt
-
-      --  Step 4.1: Bound the total error
-      have total_error_bound : ‖∑' n : ℕ, error_term n‖ ≤ C / a ^ (s.re + 1) := by
-
-        sorry
-
-      -- The bound function for each n
-      let bound : ℕ → ℝ := fun n =>
-        a ^ (-(s.re + 1)) / (2 * π ^ 2) *
-          (s.re / (n + 1 - ϑ) ^ 2 + s.re / (n + 1 + ϑ) ^ 2 +
-          |ϑ| / |n + 1 - ϑ| ^ 3 + |ϑ| / |n + 1 + ϑ| ^ 3)
-
-      -- Subgoal 1: summability of the pointwise bound
-      have hbound_summable : Summable bound := by
-        -- Unfold the definition of bound and factor the constant K out
-        simp_rw [bound, habs_minus, habs_plus]
-        apply Summable.mul_left
-        apply ((hsumm_q.mul_left s.re).add (hsumm_c.mul_left |ϑ|)).congr
-        intro n
-        ring
-
-
-
-
 
       -- Step 3: bound sum ≤ (1/2) * C / a^(σ+1)
       -- Factor a^(-(σ+1))/(4π²), split tsum, apply hquad and hcubic, compare with C definition
@@ -3807,78 +3856,19 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
 
           -- Conclude: LHS = quad + cubic ≤ quad_rhs + cubic_rhs = RHS
           linarith [hgoal_expand, hS3_le, hquad_cancel, hrhs_eq]
-      -- Step 4: C / a^(σ+1) ≥ 0
-      -- For ϑ = 0: C = σ/6 ≥ 0 by hsigma
-      -- For ϑ ≠ 0: first term ≥ 0 by |sin x| ≤ |x|, second term ≥ 0 by ζ(3) > 1/2
-      have hC_nn : 0 ≤ C / a ^ (s.re + 1) := by
-        apply div_nonneg _ (by positivity)
-        simp only [C]
-        split_ifs with hϑ0
-        · -- ϑ ≠ 0: both summands non-negative
-          calc (0 : ℝ) = 0 + 0 := by ring
-            _ ≤ s.re / 2 * ((1 / Complex.sin (π * ϑ) ^ 2).re - (1 / (π * ϑ) ^ 2)) +
-                |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1) := by
-              apply add_le_add
-              · -- First summand: σ/2 ≥ 0 and 1/sin²(πϑ) ≥ 1/(πϑ)² since |sin x| ≤ |x|
-                apply mul_nonneg (by linarith [hsigma])
-                have hsin_sq : Real.sin (π * ϑ) ^ 2 ≤ (π * ϑ) ^ 2 := by
-                  have h : |Real.sin (π * ϑ)| ≤ |π * ϑ| := Real.abs_sin_le_abs
-                  nlinarith [sq_abs (Real.sin (π * ϑ)), sq_abs (π * ϑ),
-           mul_self_le_mul_self (abs_nonneg (Real.sin (π * ϑ))) h]
-                -- Step 2: rewrite and reduce to hsin_sq / hsin_pos
-                rw [hre hϑ0]
-                have hpiϑ_pos : (0 : ℝ) < (π * ϑ) ^ 2 := by
-                  apply sq_pos_of_ne_zero
-                  simp [Real.pi_ne_zero, hϑ0]
-                -- goal: 0 ≤ 1/sin²(πϑ) - 1/(πϑ)²
-                rw [sub_nonneg, one_div_le_one_div hpiϑ_pos (hsin_pos hϑ0)]
-                -- goal: sin²(πϑ) ≤ (πϑ)²
-                exact hsin_sq
-
-              · -- Second summand: |ϑ|/(2π²) ≥ 0 and the bracket ≥ 0
-                apply mul_nonneg
-                · exact div_nonneg (abs_nonneg ϑ) (by positivity)
-                · -- need: 0 ≤ 1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1
-                  -- use hcubic : ∑' n, (...) ≤ 1/(1-|ϑ|)^3 + 2*(riemannZeta 3).re - 1
-                  -- and the fact that ∑' n, (nonneg terms) ≥ 0
-                  have h_pos_den : ∀ n : ℕ, 0 < (n : ℝ) + 1 - ϑ ∧ 0 < (n : ℝ) + 1 + ϑ := by
-                    intro n
-                    have hϑ : - (1 : ℝ) < ϑ ∧ ϑ < 1 := abs_lt.mp hϑ_lt
-                    constructor
-                    · -- Goal: ⊢ 0 < (n : ℝ) + 1 - ϑ
-                      linarith [hϑ.2, (Nat.cast_nonneg n : (0 : ℝ) ≤ n)]
-                    · -- Goal: ⊢ 0 < (n : ℝ) + 1 + ϑ
-                      linarith [hϑ.1, (Nat.cast_nonneg n : (0 : ℝ) ≤ n)]
-                  -- Subgoal 2: Show the sum is non-negative
-                  have h1 : 0 ≤ ∑' (n : ℕ), (1 / (↑n + 1 - ϑ) ^ 3 + 1 / (↑n + 1 + ϑ) ^ 3) := by
-                    apply tsum_nonneg
-                    intro n
-                    obtain ⟨h_minus, h_plus⟩ := h_pos_den n
-                    -- Now positivity can "see" h_minus and h_plus independently
-                    positivity
-                  linarith [hcubic, h1]
-                  -- Subgoal 3: Prove the cubic bracket is non-negative
-
-            _ = _ := by
-              congr 1
-              congr 1
-              linarith [ofReal_div_re π ϑ]
-        · -- ϑ = 0: C = σ/6
-          linarith [hsigma]
 
       -- Conclude: x ≤ (1/2)*y and 0 ≤ y implies x ≤ y
-
       -- Subgoal 2: the tsum of bound equals C / a^(σ+1)
+      have error_abs_summable : Summable (fun n ↦ ‖error_term n‖) :=
+        Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) error_term_bound hbound_summable
       have hsum_eq : ∑' n : ℕ, bound n ≤ C / a ^ (s.re + 1) := by
-        linarith
-
+        exact hbound_le_half
       -- Subgoal 3: ‖∑' n, error_term n‖ ≤ ∑' n, ‖error_term n‖
       have htriang : ‖∑' n, error_term n‖ ≤ ∑' n, ‖error_term n‖ :=
-        norm_tsum_le_tsum_norm error_summable.norm
-
+        norm_tsum_le_tsum_norm error_abs_summable
       -- Subgoal 4: ∑' n, ‖error_term n‖ ≤ ∑' n, bound n
       have hpointwise : ∑' n, ‖error_term n‖ ≤ ∑' n, bound n :=
-        Summable.tsum_le_tsum error_term_bound error_summable.norm hbound_summable
+        Summable.tsum_le_tsum error_term_bound error_abs_summable hbound_summable
 
       -- Conclude
       linarith [htriang, hpointwise]
@@ -4036,6 +4026,7 @@ lemma proposition_dadaro_b_tendsto_zero_atTop {s : ℂ} (hsigma : 0 < s.re) : Te
   have h_prod := h_pow_vanishes.mul h_trig_vanishes
   rw [mul_zero] at h_prod
   exact h_prod
+
 lemma proposition_dadaro_zero_lt {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {a : ℝ} (ha : 0 < a)
     (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
@@ -4087,7 +4078,7 @@ lemma proposition_dadaro_zero_lt {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {
       · have h_fourier_ioc_bound :
             ‖L - (a : ℂ)^(-s) * g ϑ + (b : ℂ)^(-s) * g (s.im / (2 * π * b))‖
             ≤ C / a ^ (s.re + 1) := by
-          obtain ⟨h_sum, E, h_E_eq, h_E_bd⟩ := lemma_abadsumas hs1 hsigma.le ha hb_gt ha' hb_half haτ
+          obtain ⟨h_sum, E, h_E_eq, h_E_bd⟩ := lemma_abadsumas hsigma.le ha hb_gt ha' hb_half haτ
           have hL_eq : L = (a : ℂ)^(-s) * g ϑ - (b : ℂ)^(-s) * g (s.im / (2 * π * b)) + E := by
             let f : ℝ → ℂ := fun y ↦ if a ≤ y ∧ y ≤ b then ↑(y ^ (-s.re)) * e (-(s.im / (2 * π)) * Real.log y) else 0
             have hL_tsum : L = ∑' n : ℕ, (FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ))) := by
