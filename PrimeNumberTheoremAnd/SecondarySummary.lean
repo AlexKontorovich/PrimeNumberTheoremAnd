@@ -572,7 +572,7 @@ Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, 
  \]
   -/)
   (latexEnv := "theorem")]
-theorem Buthe2.theorem_2a (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
+theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
   |ψ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
 
@@ -584,7 +584,7 @@ theorem Buthe2.theorem_2a (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
  \]
   -/)
   (latexEnv := "theorem")]
-theorem Buthe2.theorem_2b (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
+theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
   |θ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
 
@@ -596,7 +596,7 @@ theorem Buthe2.theorem_2b (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
   \]
   -/)
   (latexEnv := "theorem")]
-theorem Buthe2.theorem_2c (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
+theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
   |π_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
 
@@ -608,7 +608,7 @@ theorem Buthe2.theorem_2c (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
   \]
   -/)
   (latexEnv := "theorem")]
-theorem Buthe2.theorem_2d (x T : ℝ) (hRH : RiemannHypothesisUpTo T)
+theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
   |π x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
 
