@@ -2119,6 +2119,191 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
     linarith
   dsimp [μ_num]; rfl
 
+/-The following lemmas are used for `corollary_8`.
+-/
+
+/-
+PROBLEM
+Helper: In a monotone EReal sequence with first element finite and last element ⊤,
+    for any real value v ≥ b'(0), we can find a bin index i < last such that
+    b'(i) ≤ v and v < b'(i+1).
+
+PROVIDED SOLUTION
+By strong induction on M. When M = 0, Fin 0 is empty so we can't form a Fin M, but b'(0) = b'(Fin.last 0) = ⊤ and hv says v ≥ ⊤ which is impossible for real v — contradiction.
+
+For M+1: If v < b'⟨1, _⟩, then i = ⟨0, _⟩ works since b'⟨0,_⟩ ≤ v (from hv) and v < b'⟨1,_⟩. Otherwise v ≥ b'⟨1,_⟩, and we can apply the result to the shifted sequence b'' = b' ∘ Fin.succ (which has M+1 elements, is monotone, ends at ⊤, and b''(0) = b'(1) ≤ v). This gives i' : Fin M with the bounds, and we take i = ⟨i'.val + 1, _⟩.
+-/
+lemma find_ereal_bin {M : ℕ} (b' : Fin (M + 1) → EReal)
+(hmono : Monotone b')
+    (h_end : b' (Fin.last M) = ⊤) (v : ℝ) (hv : (v : EReal) ≥ b' 0) :
+    ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ (v : EReal) ∧
+      (v : EReal) < b' ⟨i.val + 1, by omega⟩ := by
+  by_contra! h_contra;
+  -- By induction on $i$, we can show that $b' i \leq v$ for all $i$.
+  have h_ind : ∀ i : Fin (M + 1), b' i ≤ v := by
+    intro i; induction i using Fin.inductionOn <;> aesop;
+  exact absurd ( h_ind ( Fin.last M ) ) ( by simp +decide [ h_end ] )
+
+/-
+PROBLEM
+Helper: Given a monotone EReal sequence b' and an index i such that b'(i) ≤ v (finite),
+    the sub-partition (toReal of b' restricted to first i+1 elements) is monotone,
+    provided all values b'(j) for j ≤ i are between b'(0) and v.
+
+PROVIDED SOLUTION
+For j₁ ≤ j₂ in Fin (i.val + 1), we have ⟨j₁.val, _⟩ ≤ ⟨j₂.val, _⟩ as Fin (M+1), so b'(j₁) ≤ b'(j₂) by monotonicity of b'. Both values are finite: they are ≥ b'(0) ≠ ⊥ (by monotonicity, since j₁ ≥ 0), and ≤ b'(i) ≤ v (finite) so ≠ ⊤. Since both are finite EReal values with b'(j₁) ≤ b'(j₂), we get toReal(b'(j₁)) ≤ toReal(b'(j₂)) by EReal.toReal_le_toReal (for finite values, toReal preserves order).
+-/
+lemma ereal_toReal_sub_mono {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
+    (i : Fin M) (v : ℝ) (hv : b' ⟨i.val, by omega⟩ ≤ (v : EReal))
+    (h_bot : b' 0 ≠ ⊥) :
+    Monotone (fun j : Fin (i.val + 1) ↦ (b' ⟨j.val, by omega⟩).toReal) := by
+  intro j k hjk
+  generalize_proofs at *;
+  apply EReal.toReal_le_toReal
+  all_goals generalize_proofs at *;
+  · exact hmono hjk;
+  · exact ne_of_gt ( lt_of_lt_of_le ( lt_of_le_of_ne ( bot_le ) ( Ne.symm h_bot ) ) ( hmono ( Nat.zero_le _ ) ) );
+  · have := hmono ( show ⟨ k, by linarith ⟩ ≤ ⟨ i, by linarith ⟩ from Nat.le_of_lt_succ <| by linarith [ Fin.is_lt k, Fin.is_lt i ] ) ; aesop;
+
+/-
+PROBLEM
+Helper: EReal.toReal of a real cast is the original value
+
+PROVIDED SOLUTION
+Since h_b_start : b' 0 = ↑(log x₁), we have (b' 0).toReal = (↑(log x₁)).toReal = log x₁ by EReal.toReal_coe.
+-/
+lemma ereal_toReal_coe_log {x₁ : ℝ} {M : ℕ} (b' : Fin (M + 1) → EReal)
+    (h_b_start : b' 0 = ↑(log x₁)) :
+    (b' 0).toReal = log x₁ := by
+  aesop
+
+/-
+PROBLEM
+Helper: for a real v, if b'(i) ≤ v and b'(0) is a finite real cast, then
+    exp(b'(i).toReal) ≤ exp v
+
+PROVIDED SOLUTION
+Since b'(0) ≠ ⊥ and b' is monotone, b'(i) ≥ b'(0) > ⊥, so b'(i) ≠ ⊥. Also b'(i) ≤ ↑v, so b'(i) ≠ ⊤ (since ↑v < ⊤). Therefore b'(i) is a finite EReal value with b'(i) ≤ ↑v, which means b'(i).toReal ≤ v by EReal.toReal_le_toReal (or similar). Then exp is monotone, so exp(b'(i).toReal) ≤ exp(v).
+-/
+lemma ereal_exp_toReal_le {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
+    (i : Fin M) (v : ℝ) (hv : b' ⟨i.val, by omega⟩ ≤ (v : EReal))
+    (h_bot : b' 0 ≠ ⊥) :
+    exp (b' ⟨i.val, by omega⟩).toReal ≤ exp v := by
+  by_cases hi : b' ⟨i, by omega⟩ = ⊥ <;> by_cases hi' : b' ⟨i, by omega⟩ = ⊤;
+  · aesop;
+  · have := hmono ( show 0 ≤ ⟨ i, by linarith [ Fin.is_lt i ] ⟩ from Nat.zero_le _ ) ; aesop;
+  · aesop;
+  · cases h : b' ⟨ i, by linarith [ Fin.is_lt i ] ⟩ ; aesop;
+    · aesop;
+    · contradiction
+
+/-
+PROBLEM
+Helper: if b'(i) is finite (≠ ⊤) and b' is monotone with b'(0) = log x₁ where x₁ ≥ 14,
+    then exp(b'(i).toReal) ≥ max x₁ 14
+
+PROVIDED SOLUTION
+Since b' is monotone and i.val ≥ 0, b'(i) ≥ b'(0) = ↑(log x₁). Since b'(i) ≠ ⊤ and b'(i) ≥ ↑(log x₁) (which is finite, so b'(i) ≠ ⊥ too), b'(i) is a finite EReal. Therefore b'(i).toReal ≥ (b'(0)).toReal = log x₁ (using EReal.toReal_le_toReal with the ≠ ⊤ and ≠ ⊥ conditions). Since exp is monotone, exp(b'(i).toReal) ≥ exp(log x₁) = x₁ (using Real.exp_log, noting x₁ > 0 since x₁ ≥ 14). Also x₁ ≥ 14, so max x₁ 14 = x₁. Therefore exp(b'(i).toReal) ≥ max x₁ 14.
+-/
+lemma ereal_exp_ge_max {x₁ : ℝ} (hx₁ : x₁ ≥ 14) {M : ℕ}
+    (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
+    (h_b_start : b' 0 = ↑(log x₁))
+    (i : Fin M) (h_ne_top : b' ⟨i.val, by omega⟩ ≠ ⊤) :
+    exp (b' ⟨i.val, by omega⟩).toReal ≥ max x₁ 14 := by
+  -- Since $b'$ is monotone and $i.val \geq 0$, we have $b' ⟨i.val, by omega⟩ \geq b' 0 = ↑(log x₁)$.
+  have h_ge_log_x₁ : b' ⟨i.val, by omega⟩ ≥ ↑(log x₁) := by
+    exact h_b_start ▸ hmono ( Nat.zero_le _ );
+  have h_toReal_ge_log_x₁ : (b' ⟨i.val, by omega⟩).toReal ≥ Real.log x₁ := by
+    cases h : b' ⟨ i, by omega ⟩ ; aesop;
+    · aesop;
+    · contradiction;
+  exact le_trans ( by rw [ max_eq_left ( by linarith ) ] ; exact Real.le_exp_log x₁ |> le_trans <| Real.exp_le_exp.mpr h_toReal_ge_log_x₁ ) le_rfl;
+
+/-
+PROBLEM
+Helper: for a given bin index i from find_ereal_bin, the bound from theorem_6 applies
+
+PROVIDED SOLUTION
+Apply theorem_6 with parameters:
+- x₀ := x₁
+- x₁ (theorem_6's) := exp(b'⟨i.val, _⟩.toReal)
+- x₂ := if ⟨i.val+1, _⟩ = Fin.last M then ⊤ else ↑(exp(b'⟨i.val+1,_⟩.toReal))
+- N := i.val
+- b := fun j : Fin (i.val+1) ↦ (b' ⟨j.val, _⟩).toReal
+
+Key facts for the hypotheses:
+1. b'(i) ≠ ⊤: from h_finite, since i.val < M so ⟨i.val, _⟩ ≠ Fin.last M.
+2. b' 0 ≠ ⊥: b' 0 = ↑(log x₁) which is a real cast, not ⊥.
+3. exp(b'(i).toReal) ≥ max x₁ 14: use ereal_exp_ge_max with h_ne_top from (1).
+4. Sub-partition is monotone: use ereal_toReal_sub_mono with v = log x (since b'(i) ≤ ↑(log x)) and h_bot (from (2)).
+5. Sub-partition starts at log x₁: (b' ⟨0, _⟩).toReal = log x₁ by ereal_toReal_coe_log.
+6. Sub-partition ends at b'(i).toReal = log(exp(b'(i).toReal)): by Real.log_exp.
+7. h_εθ_num for sub-partition: for j, h_εθ_num ⟨j.val, _⟩.
+8. exp(b'(i).toReal) ≤ x: use ereal_exp_toReal_le with v = log x, then exp(log x) = x by Real.exp_log (x > 0 since x ≥ 14).
+9. x.toEReal ≤ x₂: split on if:
+   - If ⟨i.val+1,_⟩ = Fin.last M: x₂ = ⊤, trivially x.toEReal ≤ ⊤.
+   - Otherwise: b'(i+1) ≠ ⊤ (by h_finite, since ⟨i.val+1,_⟩ ≠ Fin.last M). Also b'(i+1) ≠ ⊥ (since b'(i+1) > ↑(log x) ≥ ↑(log 14) > ⊥). So b'(i+1) is finite and b'(i+1).toReal > log x (by EReal.toReal preserving strict inequality for finite values). Then exp(b'(i+1).toReal) > exp(log x) = x, so x ≤ exp(b'(i+1).toReal), giving x.toEReal ≤ ↑(exp(b'(i+1).toReal)).
+-/
+lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
+    {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
+    (h_b_start : b' 0 = ↑(log x₁))
+    (h_b_end : b' (Fin.last M) = ⊤)
+    (h_finite : ∀ j : Fin (M+1), b' j = ⊤ → j = Fin.last M)
+    (εθ_num : ℝ → ℝ)
+    (h_εθ_num : ∀ i : Fin (M+1), Eθ.numericalBound (exp (b' i).toReal) εθ_num)
+    (x : ℝ) (hx : x ≥ x₁)
+    (i : Fin M)
+    (hi_le : b' ⟨i.val, by omega⟩ ≤ ↑(log x))
+    (hi_lt : ↑(log x) < b' ⟨i.val + 1, by omega⟩) :
+    Eπ x ≤ επ_num (fun j : Fin (i.val+1) ↦ (b' ⟨j.val, by omega⟩).toReal)
+        εθ_num x₁ (exp (b' ⟨i.val, by omega⟩).toReal)
+        (if ⟨i.val + 1, by omega⟩ = Fin.last M then ⊤
+         else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
+  split_ifs <;> simp_all +decide [ Fin.ext_iff ];
+  · convert theorem_6_alt _ _ _ _ _ _ _ _ _ using 1;
+    any_goals tauto
+    all_goals generalize_proofs at *;
+    · convert ereal_exp_ge_max hx₁ b' hmono h_b_start ⟨ i, by linarith ⟩ _ using 1 ; aesop;
+    · intro j k hjk; exact (by
+      apply_rules [ EReal.toReal_le_toReal ];
+      · exact ne_of_gt ( lt_of_lt_of_le ( by aesop ) ( hmono ( show 0 ≤ _ from Nat.zero_le _ ) ) );
+      · exact fun h => by have := h_finite _ h; exact absurd this ( by linarith [ Fin.is_lt k ] ) ;);
+    · aesop;
+    · aesop;
+    · -- Apply the lemma that states if $b' i \leq \log x$, then $\exp(b' i).toReal \leq \exp(\log x)$.
+      have h_exp_le : Real.exp (b' ⟨i.val, by omega⟩).toReal ≤ Real.exp (Real.log x) := by
+        apply_rules [ ereal_exp_toReal_le ];
+        aesop
+      generalize_proofs at *; (
+      rwa [ Real.exp_log ( by linarith ) ] at h_exp_le);
+  · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ using 1
+    all_goals generalize_proofs at *;
+    convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
+    generalize_proofs at *;
+    rotate_left;
+    exact fun j => b' ⟨ j, by linarith [ Fin.is_lt j ] ⟩
+    generalize_proofs at *; (
+    exact fun j k hjk => hmono <| by simpa using hjk;);
+    apply_rules [ ereal_toReal_coe_log ];
+    exact i
+    generalize_proofs at *; (
+    convert ereal_toReal_sub_mono b' hmono i ( Real.log x ) hi_le _ using 1
+    generalize_proofs at *; aesop;);
+    all_goals norm_num [ EReal.toReal_coe ] at *;
+    · aesop;
+    · exact fun j => h_εθ_num _;
+    · have := @ereal_exp_toReal_le;
+      exact le_trans ( this b' hmono i ( Real.log x ) hi_le ( by aesop ) ) ( by rw [ Real.exp_log ( by linarith ) ] ) |> le_trans <| by linarith;
+    · have h_exp : Real.log x < (b' ⟨i.val + 1, by omega⟩).toReal := by
+        have h_exp : b' ⟨i.val + 1, by omega⟩ ≠ ⊤ := by
+          exact fun h => ‹¬ ( i : ℕ ) + 1 = M› <| by have := h_finite _ h; aesop;
+        generalize_proofs at *; (
+        cases h : b' ⟨ i + 1, by linarith ⟩ <;> aesop)
+      generalize_proofs at *; (
+      rw [ ← Real.log_le_iff_le_exp ( by linarith ) ] ; linarith [ Real.log_le_log ( by linarith ) hx ] ;);
+    · exact Or.inl fun h => by have := h_finite _ h; aesop;
+
+
 
 @[blueprint
   "fks2-corollary-8"
@@ -2138,13 +2323,22 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
     (h_b_start : b' 0 = log x₁)
     (h_b_end : b' (Fin.last M) = ⊤)
+    (h_finite : ∀ j : Fin (M+1), b' j = ⊤ → j = Fin.last M)
     (εθ_num : ℝ → ℝ)
     (h_εθ_num : ∀ i : Fin (M+1), Eθ.numericalBound (exp (b' i).toReal) εθ_num) (x : ℝ) (hx : x ≥ x₁) :
     Eπ x ≤ iSup (fun i : Finset.Iio (Fin.last M) ↦
       επ_num (fun j : Fin (i.val.val+1) ↦ (b' ⟨ j.val, by grind ⟩).toReal)
         εθ_num x₁ (exp (b' i.val).toReal)
-        (if (i+1) = Fin.last M then ⊤ else exp (b' (i+1)).toReal)) :=
-  sorry
+        (if (i+1) = Fin.last M then ⊤ else exp (b' (i+1)).toReal)) := by
+    obtain ⟨i, hi⟩ : ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ ↑(log x) ∧ ↑(log x) < b' ⟨i.val + 1, by omega⟩ := by
+      apply find_ereal_bin b' hmono h_b_end (log x) (by
+      exact h_b_start.symm ▸ EReal.coe_le_coe_iff.mpr ( Real.log_le_log ( by linarith ) ( by linarith ) ));
+    convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
+    refine' le_csSup _ _;
+    · exact Set.finite_range _ |> Set.Finite.bddAbove;
+    · simp +zetaDelta only [ge_iff_le, Set.mem_range, Subtype.exists, Fin.Iio_last_eq_map, Finset.mem_map, Finset.mem_univ,
+    Fin.coe_castSuccEmb, true_and] at *;
+      refine' ⟨ _, ⟨ ⟨ i, by linarith [ Fin.is_lt i ] ⟩, rfl ⟩, _ ⟩ ; aesop
 
 blueprint_comment /--
 \subsection{Putting everything together}
