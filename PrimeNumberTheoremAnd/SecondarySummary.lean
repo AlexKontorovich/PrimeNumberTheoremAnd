@@ -163,7 +163,6 @@ namespace Trudgian2016
 
 blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: add the Section 3.3 material on the conjecture of Pomerance --/
 
-
 @[blueprint
   "trudgian:eps_0-def"
   (title := "Trudgian definition of eps0")
@@ -240,6 +239,8 @@ theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
 
 end Trudgian2016
 
+namespace JY
+
 @[blueprint
   "thm:jy_13"
   (title := "JY Corollary 1.3")
@@ -251,7 +252,7 @@ end Trudgian2016
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
+theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   have := FKS2.corollary_22
   intro x hx
   have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
@@ -285,7 +286,6 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
   norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
 
-
 @[blueprint
   "thm:jy_14"
   (title := "JY Theorem 1.4")
@@ -298,11 +298,15 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+theorem theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+
+end JY
 
 blueprint_comment /-- TODO: input other results from JY -/
 
 blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
+
+namespace Schoenfeld1976
 
 @[blueprint
   "thm:schoenfeld1976"
@@ -314,8 +318,12 @@ blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitl
   \]
   -/)
   (latexEnv := "theorem")]
-theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
     HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
+
+end Schoenfeld1976
+
+namespace RamareSaouter2003
 
 @[blueprint
   "thm:ramare-saouter2003"
@@ -324,8 +332,12 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
   If $x > 10,726,905,041$, then there is a prime in the interval $(x(1-1/28314000), x]$.
   -/)
   (latexEnv := "theorem")]
-theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
     HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
+
+end RamareSaouter2003
+
+namespace GourdonDemichel2004
 
 @[blueprint
   "thm:gourdon-demichel2004"
@@ -334,9 +346,12 @@ theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041)
   \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
+end GourdonDemichel2004
+
+namespace PrimeGaps2014
 
 @[blueprint
   "thm:prime_gaps_2014"
@@ -345,10 +360,14 @@ theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   \[ \left( x\left(1 - \frac{1}{1966196911}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
   obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
   exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
+
+end PrimeGaps2014
+
+namespace PrimeGaps2024
 
 @[blueprint
   "thm:prime_gaps_2024"
@@ -357,9 +376,12 @@ theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   \[ \left( x\left(1 - \frac{1}{76900000000}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
 
+end PrimeGaps2024
+
+namespace Axler2018
 
 @[blueprint
   "thm:axler2018_1"
@@ -369,7 +391,7 @@ theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   \[ \left( x, x\left(1 + \frac{0.087}{\log^3 x}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Axler2018.has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
+theorem has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
     HasPrimeInInterval x (x * (0.087 / (log x) ^ 3)) := by sorry
 
 @[blueprint
@@ -380,13 +402,22 @@ theorem Axler2018.has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
   \[ \left( x, x\left(1 + \frac{198.2}{\log^4 x}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Axler2018.has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
+theorem has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
     HasPrimeInInterval x (x * (198.2 / (log x) ^ 4)) := by sorry
 
-def Dusart.proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := Dusart.proposition_5_4
+end Axler2018
 
-def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := Dusart.corollary_5_5 hx
+namespace Dusart
 
+def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
+
+def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
+    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
+  _root_.Dusart.corollary_5_5 hx
+
+end Dusart
+
+namespace Dudek2014
 
 @[blueprint
   "thm:dudek2014"
@@ -395,8 +426,12 @@ def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInter
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
+
+end Dudek2014
+
+namespace CullyHugill2021
 
 @[blueprint
   "thm:cully-hugill2021"
@@ -405,8 +440,12 @@ theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
+
+end CullyHugill2021
+
+namespace RHPrimeInterval2002
 
 @[blueprint
   "thm:rh_prime_interval_2002"
@@ -415,8 +454,13 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
   \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by sorry
+
+end RHPrimeInterval2002
+
+namespace Dudek2015RH
+
 @[blueprint
   "thm:dudek2015_rh"
   (title := "Dudek 2015 under RH")
@@ -424,8 +468,12 @@ theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH :
   \[ \left( x - \frac{4}{\pi}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (4 / π) * sqrt x * log x) ((4 / π) * sqrt x * log x) := by sorry
+
+end Dudek2015RH
+
+namespace CarneiroEtAl2019RH
 
 @[blueprint
   "thm:carneiroetal_2019_rh"
@@ -434,8 +482,10 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+
+end CarneiroEtAl2019RH
 
 namespace KadiriLumley
 
@@ -470,6 +520,10 @@ noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ 
 theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
     HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
 
+end KadiriLumley
+
+namespace RamareSaouter2003
+
 @[blueprint
   "thm:ramare_saouter2003-2"
   (title := "Ramaré-Saouter 2003 (2)")
@@ -477,7 +531,7 @@ theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x�
   \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
+theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
     HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by
   have hrow : (log (exp 53), (48:ℝ), (4.088e-9:ℝ), (18290358817:ℝ), (0.93:ℝ),
       (0.4301:ℝ), (1524171138:ℝ)) ∈ KadiriLumley.Table_2 := by
@@ -489,7 +543,7 @@ theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
     by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
       x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
 
-end KadiriLumley
+end RamareSaouter2003
 
 
 namespace Buthe2
