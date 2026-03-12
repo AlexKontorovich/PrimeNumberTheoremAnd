@@ -19,15 +19,17 @@ noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (
 
 noncomputable def ε' (m x : ℝ) : ℝ := 206 + m + 364 / log x + 381 / (log x)^2 + 238 / (log x)^3 + 97 / (log x)^4 + 30 / (log x)^5 + 8 / (log x)^6
 
+noncomputable def εneg (m xₐ x : ℝ) : ℝ :=
+  206 + (1 + 1 / log xₐ)^6 * m
+    + 364 / log x
+    + 381 / (log x)^2
+    + 238 / (log x)^3
+    + 97 / (log x)^4
+    + 30 / (log x)^5
+    + 8 / (log x)^6
+
 noncomputable def εlower (m xₐ x : ℝ) : ℝ :=
-  if 0 ≤ m then ε' m x else
-    206 + (1 + 1 / log xₐ)^6 * m
-      + 364 / log x
-      + 381 / (log x)^2
-      + 238 / (log x)^3
-      + 97 / (log x)^4
-      + 30 / (log x)^5
-      + 8 / (log x)^6
+  if 0 ≤ m then ε' m x else εneg m xₐ x
 
 -- noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
 
