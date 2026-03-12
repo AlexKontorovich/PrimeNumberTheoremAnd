@@ -598,7 +598,7 @@ theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (latexEnv := "theorem")]
 theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |π_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+  |pi_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
 
 @[blueprint
   "thm:buthe-2d"
@@ -610,6 +610,6 @@ theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (latexEnv := "theorem")]
 theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
-  |π x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+  |pi x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
 
 end Buthe2
