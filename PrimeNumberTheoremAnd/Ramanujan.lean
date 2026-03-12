@@ -7,7 +7,7 @@ blueprint_comment /--
 
 Use of prime number theorems to establish Ramanujan's inequality
 $$\pi(x)^2 < \frac{e x}{\log x} \pi\Big(\frac{x}{e}\Big)$$
-for sufficiently large $x$, following \cite{dudek-platt}.
+for sufficiently large $x$, following \cite{dudek-platt}.  Some errors in the original paper (particularly to do with the case when $m$ is negative) are corrected here.  Thanks to Hyunsik Chae, Adrian Dudek, David Platt, and Tom Trudgian for their help in clarifying the details of the argument.
 -/
 
 namespace Ramanujan
