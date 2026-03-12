@@ -544,3 +544,55 @@ theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
       x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
 
 end RamareSaouter2003
+
+
+namespace Buthe2
+
+blueprint_comment /--
+Some results from \cite{Buthe2}-/
+
+@[blueprint
+  "thm:buthe-2a"
+  (title := "Buthe Theorem 2, part a")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
+  |ψ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+
+@[blueprint
+  "thm:buthe-2b"
+  (title := "Buthe Theorem 2, part b")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
+  |θ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+
+@[blueprint
+  "thm:buthe-2c"
+  (title := "Buthe Theorem 2, part c")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
+  |pi_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+
+@[blueprint
+  "thm:buthe-2d"
+  (title := "Buthe Theorem 2, part d")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
+  |pi x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+
+end Buthe2
