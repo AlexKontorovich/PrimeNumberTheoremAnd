@@ -551,24 +551,11 @@ namespace Buthe2
 blueprint_comment /--
 Some results from \cite{buthe2}-/
 
-/-
-\begin{thm}\label{t:partial-prime}
-Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, the following estimates hold:
-\begin{align}
-\abs{\psi(x) - x} &\leq \frac{\sqrt{x}}{8\pi}\log(x)^2 &\text{for $x>59$,} \notag \\%\label{e:pp-psi}
-\abs{\vartheta(x) - x} &\leq \frac{\sqrt{x}}{8\pi}\log(x)^2 &\text{for $x>599$,} \notag \\%\label{e:pp-theta}
-\abs{\pi^*(x) - \li(x)} &\leq \frac{\sqrt{x}}{8\pi}\log(x) &\text{for $x>59$,}\label{e:pp-pi-star} \\
-\intertext{and}
-\abs{\pi(x) - \li(x)} &\leq \frac{\sqrt{x}}{8\pi}\log(x) &\text{for $x>2657$.}\label{e:pp-pi}
-\end{align}
-\end{thm}
--/
-
 @[blueprint
   "thm:buthe-2a"
   (title := "Buthe Theorem 2, part a")
   (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$\abs{\psi(x) - x} \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
+  $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
  \]
   -/)
   (latexEnv := "theorem")]
@@ -580,7 +567,7 @@ theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   "thm:buthe-2b"
   (title := "Buthe Theorem 2, part b")
   (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$\abs{\vartheta(x) - x} \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
+  $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
  \]
   -/)
   (latexEnv := "theorem")]
@@ -592,7 +579,7 @@ theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   "thm:buthe-2c"
   (title := "Buthe Theorem 2, part c")
   (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$\abs{\pi^*(x) - \li(x)} \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
+  $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
   \]
   -/)
   (latexEnv := "theorem")]
@@ -604,7 +591,7 @@ theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   "thm:buthe-2d"
   (title := "Buthe Theorem 2, part d")
   (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$\abs{\pi(x) - \li(x)} \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
+  $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
   \]
   -/)
   (latexEnv := "theorem")]
