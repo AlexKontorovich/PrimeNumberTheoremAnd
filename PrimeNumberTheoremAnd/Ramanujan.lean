@@ -544,7 +544,7 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
   (statement := /-- For $599 < x \leq \exp(58)$ we have
 $$E_\theta(x) \leq \frac{\log^2 x}{8\pi\sqrt{x}}.$$
 (cf. \cite[(18)]{PT2021})-/)
-  (proof := /-- This is \cite[Lemma 6]{PT2021}. -/)
+  (proof := /-- Use Theorem \ref{thm:buthe-2b} and Theorem \ref{platt_RH}. -/)
   (latexEnv := "sublemma")]
 theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
     Eθ x ≤ log x ^ 2 / (8 * π * sqrt x) := by
