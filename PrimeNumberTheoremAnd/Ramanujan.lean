@@ -19,6 +19,18 @@ noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (
 
 noncomputable def ε' (m x : ℝ) : ℝ := 206 + m + 364 / log x + 381 / (log x)^2 + 238 / (log x)^3 + 97 / (log x)^4 + 30 / (log x)^5 + 8 / (log x)^6
 
+noncomputable def εneg (m xₐ x : ℝ) : ℝ :=
+  206 + (1 + 1 / log xₐ)^6 * m
+    + 364 / log x
+    + 381 / (log x)^2
+    + 238 / (log x)^3
+    + 97 / (log x)^4
+    + 30 / (log x)^5
+    + 8 / (log x)^6
+
+noncomputable def εlower (m xₐ x : ℝ) : ℝ :=
+  if 0 ≤ m then ε' m x else εneg m xₐ x
+
 -- noncomputable def x' (m M x : ℝ) : ℝ := exp (ε M x - ε' m x)
 
 @[blueprint
@@ -89,8 +101,13 @@ we obtain the claim.
   -/)
   (latexEnv := "sublemma")
   (discussion := 984)]
-theorem ex_pi_gt (m_a x_a : ℝ) (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
-    ∀ x > exp 1 * x_a, exp 1 * x / log x * pi (x / exp 1) > x ^ 2 * (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 + ε' m_a x / log x ^ 7) := by
+theorem ex_pi_gt (m_a x_a : ℝ) (hx_a : 1 < x_a)
+    (hlower : ∀ x > x_a, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (m_a * x / log x ^ 6) < pi x) :
+    ∀ x > exp 1 * x_a,
+      exp 1 * x / log x * pi (x / exp 1) >
+        x ^ 2 *
+          (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
+            εlower m_a x_a x / log x ^ 7) := by
     sorry
 
 @[blueprint
@@ -114,10 +131,11 @@ $$ \epsilon_{M_a} (x_0) - \epsilon'_{m_a}(x_0) < \log x.$$
   (latexEnv := "proposition")
   (discussion := 985)]
 theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
+  (hxₐ : 1 < xₐ)
   (hlower : ∀ x > xₐ, x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (mₐ * x / log x ^ 6) < pi x)
   (hupper : ∀ x > exp 1 * xₐ, pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + (Mₐ * x / log x ^ 6))
   (hx₀xₐ : x₀ ≥ exp 1 * xₐ)
-  (hcrit : ε Mₐ x₀ - ε' mₐ x₀ < log x₀) :
+  (hcrit : ∀ ⦃x : ℝ⦄, x > x₀ → ε Mₐ x - εlower mₐ xₐ x < log x) :
     ∀ x > x₀, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
   sorry
 
@@ -741,7 +759,7 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
   (latexEnv := "lemma")
   (discussion := 998)]
 theorem epsilon_bound :
-  ε (Mₐ exₐ) exₐ - ε' (mₐ xₐ) exₐ < log exₐ := by
+  ∀ x > exₐ, ε (Mₐ exₐ) x - εlower (mₐ xₐ) xₐ x < log x := by
     sorry
 
 @[blueprint
@@ -751,7 +769,15 @@ theorem epsilon_bound :
   (proof := /-- \cite[Theorem 2]{PT2021} This follows from the previous lemmas and calculations, including the criterion for Ramanujan's inequality. -/)
   (latexEnv := "theorem")
   (discussion := 999)]
-theorem ramanujan_final : ∀ x > exₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := criterion (mₐ xₐ) (Mₐ exₐ) xₐ exₐ pi_lower_specific pi_upper_specific (le_refl _) epsilon_bound
+theorem ramanujan_final : ∀ x > exₐ, pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) :=
+  criterion (mₐ xₐ) (Mₐ exₐ) xₐ exₐ
+    (by
+      unfold xₐ
+      exact (Real.one_lt_exp_iff).2 (by norm_num))
+    pi_lower_specific
+    pi_upper_specific
+    (le_refl _)
+    epsilon_bound
 
 
 end Ramanujan
