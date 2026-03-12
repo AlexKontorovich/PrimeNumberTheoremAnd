@@ -549,7 +549,7 @@ end RamareSaouter2003
 namespace Buthe2
 
 blueprint_comment /--
-Some results from \cite{buthe2}-/
+Some results from \cite{Buthe2}-/
 
 @[blueprint
   "thm:buthe-2a"
