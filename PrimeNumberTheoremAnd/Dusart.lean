@@ -69,7 +69,11 @@ def Table1 : List (ℝ × ℝ × ℕ × ℝ × ℝ × ℝ) := [
   For $x \geq e^{b}$ we have $\psi(x) - x| \leq \varepsilon$, where $b, \varepsilon$ are given by \cite[Table 1]{Dusart2018}.-/)
   (latexEnv := "proposition")]
 theorem proposition_3_2 {b σ₀ : ℝ} {m : ℕ} {δ T₁ ε : ℝ} (h : (b, σ₀, m, δ, T₁, ε) ∈ Table1)
-{x : ℝ} (hx : x ≥ exp b) : Eψ x ≤ ε := by sorry
+{x : ℝ} (hx : x ≥ exp b) : Eψ x ≤ ε := by
+  have hbe : (b, ε) ∈ Eψ_dusart_table := by
+    change (b, ε) ∈ Table1.map (fun (t : ℝ × ℝ × ℕ × ℝ × ℝ × ℝ) => (t.1, t.2.2.2.2.2))
+    exact List.mem_map.mpr ⟨(b, σ₀, m, δ, T₁, ε), h, rfl⟩
+  exact Eψ_dusart_bound hbe x hx
 
 def Table_3_3 : List (ℕ × ℝ) := [
    (0, 0.77),
