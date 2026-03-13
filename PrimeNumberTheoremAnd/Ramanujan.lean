@@ -975,7 +975,100 @@ $$E_\theta(x) \leq \frac{\log^2 x}{8\pi\sqrt{x}}.$$
   (discussion := 1109)]
 theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
     Eθ x ≤ log x ^ 2 / (8 * π * sqrt x) := by
-  sorry
+  obtain ⟨hx_lo, hx_hi⟩ := hx
+  have hx_pos : (0 : ℝ) < x := by linarith
+  by_cases hx_gt : x > 599
+  · have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith : (1 : ℝ) < x)
+    have hlog_ge1 : (1 : ℝ) ≤ log x := by
+      rw [show (1 : ℝ) = log (exp 1) from by rw [log_exp]]
+      exact Real.log_le_log (exp_pos 1) (by linarith [exp_one_lt_d9.le])
+    have hlog_x_ge : 6 < log x := by
+      have hexp6_lt : exp (6 : ℝ) < x := by
+        have : exp (6 : ℝ) = exp (1 : ℝ) ^ (6 : ℕ) := by rw [← exp_nat_mul]; ring_nf
+        rw [this]
+        calc (exp 1 : ℝ) ^ 6 < (2.7182818286 : ℝ) ^ 6 := by gcongr; exact exp_one_lt_d9
+          _ < 599 := by norm_num
+          _ < x := hx_gt
+      exact (Real.lt_log_iff_exp_lt hx_pos).mpr hexp6_lt
+    have hrh : 4.92 * sqrt (x / log x) ≤ 3e12 := by
+      suffices h : 4.92 ^ 2 * x ≤ (3e12) ^ 2 * log x by
+        have h1 : 4.92 ^ 2 * (x / log x) ≤ (3e12) ^ 2 := by
+          rw [show 4.92 ^ 2 * (x / log x) = 4.92 ^ 2 * x / log x from by ring]
+          exact div_le_of_le_mul₀ hlog_pos.le (by positivity) h
+        have h2 := Real.sqrt_le_sqrt h1
+        rw [Real.sqrt_sq (by positivity : (0:ℝ) ≤ 3e12)] at h2
+        calc 4.92 * sqrt (x / log x) = sqrt (4.92 ^ 2 * (x / log x)) := by
+              rw [Real.sqrt_mul (by positivity : (0:ℝ) ≤ 4.92 ^ 2), Real.sqrt_sq (by positivity : (0:ℝ) ≤ 4.92)]
+          _ ≤ 3e12 := h2
+      by_cases hx45 : x ≤ exp 45
+      · have hexp45 : exp (45 : ℝ) < 2 * 10^20 := by
+          have : exp (45 : ℝ) = exp (1 : ℝ) ^ (45 : ℕ) := by rw [← exp_nat_mul]; ring_nf
+          rw [this]; calc (exp 1 : ℝ) ^ 45 < (2.7182818286 : ℝ) ^ 45 := by gcongr; exact exp_one_lt_d9
+            _ < 2 * 10^20 := by norm_num
+        have : 4.92 ^ 2 * x ≤ 4.92 ^ 2 * exp 45 := by gcongr
+        have : 4.92 ^ 2 * exp 45 < 4.92 ^ 2 * (2 * 10^20) := by gcongr
+        have : 4.92 ^ 2 * (2 * (10:ℝ)^20) ≤ (3e12) ^ 2 * 6 := by norm_num
+        have : (3e12) ^ 2 * 6 < (3e12 : ℝ) ^ 2 * log x := by gcongr
+        linarith
+      · push_neg at hx45
+        have hlog45 : 45 < log x := by
+          rwa [show (45 : ℝ) = log (exp 45) from by rw [log_exp],
+               log_lt_log_iff (exp_pos 45) hx_pos]
+        have hexp58 : exp (58 : ℝ) < 16 * 10^24 := by
+          have h29 : exp (29 : ℝ) < 4 * 10^12 := by
+            have : exp (29 : ℝ) = exp (1 : ℝ) ^ (29 : ℕ) := by rw [← exp_nat_mul]; ring_nf
+            rw [this]; calc (exp 1 : ℝ) ^ 29 < (2.7182818286 : ℝ) ^ 29 := by gcongr; exact exp_one_lt_d9
+              _ < 4 * 10^12 := by norm_num
+          have : exp (58 : ℝ) = exp (29 : ℝ) * exp (29 : ℝ) := by rw [← exp_add]; norm_num
+          rw [this]; nlinarith [exp_pos (29 : ℝ)]
+        have : 4.92 ^ 2 * x < 4.92 ^ 2 * exp 58 := by gcongr
+        have : 4.92 ^ 2 * exp 58 < 4.92 ^ 2 * (16 * 10^24) := by gcongr
+        have : 4.92 ^ 2 * (16 * (10:ℝ)^24) ≤ (3e12) ^ 2 * 45 := by norm_num
+        have : (3e12) ^ 2 * 45 < (3e12 : ℝ) ^ 2 * log x := by gcongr
+        linarith
+    have hbuthe := Buthe2.theorem_2b x (3e12) PT_theorem_1 hrh hx_gt
+    unfold Eθ
+    have h8pisqrt : (0 : ℝ) < 8 * π * sqrt x := by positivity
+    rw [div_le_div_iff₀ hx_pos h8pisqrt]
+    have step1 : |θ x - x| * (8 * π * sqrt x) ≤ x / log x ^ 2 := by
+      have h1 : |θ x - x| * (8 * π * sqrt x) ≤ sqrt x / (8 * π * log x ^ 2) * (8 * π * sqrt x) := by gcongr
+      have h2 : sqrt x / (8 * π * log x ^ 2) * (8 * π * sqrt x) = x / log x ^ 2 := by
+        have : sqrt x * sqrt x = x := Real.mul_self_sqrt hx_pos.le
+        field_simp; nlinarith
+      linarith
+    have hlog_sq_ge1 : 1 ≤ log x ^ 2 := by nlinarith
+    linarith [div_le_self hx_pos.le hlog_sq_ge1, le_mul_of_one_le_left hx_pos.le hlog_sq_ge1]
+  · push_neg at hx_gt
+    have hx_eq : x = 599 := le_antisymm hx_gt hx_lo
+    subst hx_eq
+    unfold Eθ
+    have hcheck : LeanCert.Engine.ChebyshevTheta.checkThetaRelErrorReal 599 (65/1000) 20 = true := by native_decide
+    have habs := LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+      599 20 (65/1000) (by norm_num) (by norm_num) hcheck (599 : ℝ) (by norm_num) (by push_cast; norm_num)
+    have hEθ : |θ (599 : ℝ) - 599| / 599 ≤ 65 / 1000 := by
+      rw [div_le_iff₀ (by norm_num : (0:ℝ) < 599)]; push_cast at habs; exact habs
+    suffices h_bound : (65 : ℝ) / 1000 ≤ log (599 : ℝ) ^ 2 / (8 * π * sqrt 599) by linarith
+    rw [le_div_iff₀ (by positivity : (0:ℝ) < 8 * π * sqrt 599)]
+    have hpi : π < 3.1416 := pi_lt_d4
+    have hsqrt : sqrt (599 : ℝ) < 24.5 := by
+      rw [show (24.5 : ℝ) = sqrt (24.5 ^ 2) from by rw [Real.sqrt_sq (by norm_num : (0:ℝ) ≤ 24.5)]]
+      exact Real.sqrt_lt_sqrt (by norm_num) (by norm_num)
+    have hlog : (6.39 : ℝ) < log 599 := by
+      rw [show (6.39 : ℝ) = log (exp 6.39) from by rw [log_exp]]
+      exact log_lt_log (exp_pos 6.39) (by
+        have h1 : exp (6.39 : ℝ) = exp 6 * exp (39/100 : ℝ) := by rw [← exp_add]; norm_num
+        rw [h1]
+        have h2 : exp (6 : ℝ) < 403.5 := by
+          have : exp (6 : ℝ) = exp (1 : ℝ) ^ (6 : ℕ) := by rw [← exp_nat_mul]; ring_nf
+          rw [this]; calc (exp 1 : ℝ) ^ 6 < (2.7182818286 : ℝ) ^ 6 := by gcongr; exact exp_one_lt_d9
+            _ < 403.5 := by norm_num
+        have h3 : exp (39/100 : ℝ) < 1.48 := by
+          have hx : |((39 : ℝ)/100)| ≤ 1 := by norm_num
+          have hbound := Real.exp_bound hx (n := 5) (by norm_num)
+          simp only [Finset.sum_range_succ, Finset.sum_range_zero, Nat.factorial] at hbound
+          push_cast at hbound; rw [abs_le] at hbound; linarith [hbound.2]
+        nlinarith [exp_pos (6 : ℝ), exp_pos (39/100 : ℝ)])
+    nlinarith [Real.pi_pos, Real.sqrt_nonneg (599:ℝ), sq_nonneg (log (599:ℝ) - 6.39)]
 
 @[blueprint
   "ramanujan-pibound-3"
