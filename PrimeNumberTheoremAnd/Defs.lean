@@ -220,3 +220,28 @@ lemma Eπ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A
   fun x hx ↦ le_trans (hEπ x (le_trans (le_max_left ..) (le_trans hx₁ hx)))
     (admissible_bound.mono A B C R hA hB hC hR (Set.mem_Ici.mpr (le_trans (le_max_right ..) hx₁))
         (Set.mem_Ici.mpr (le_trans (le_max_right ..) (le_trans hx₁ hx))) hx)
+
+/-- Pairs (b, ε) for which |ψ(x) - x| / x ≤ ε for all x ≥ exp(b).
+    These bounds follow from the explicit formula for ψ(x) combined with
+    numerical verification of the Riemann Hypothesis up to specified heights,
+    as computed in Dusart (2018), Proposition 3.2. -/
+def Eψ_dusart_table : List (ℝ × ℝ) := [
+  (20, 1.067e-3), (21, 6.498e-4), (22, 3.968e-4), (23, 2.431e-4),
+  (24, 1.496e-4), (25, 9.250e-5), (30, 9.647e-6), (35, 1.078e-6),
+  (40, 1.161e-7), (45, 1.225e-8), (50, 1.275e-9), (55, 1.388e-10),
+  (60, 2.978e-11), (65, 2.039e-11), (70, 1.940e-11), (75, 1.913e-11),
+  (80, 1.893e-11), (85, 1.868e-11), (90, 1.847e-11), (95, 1.830e-11),
+  (100, 1.815e-11), (200, 1.557e-11), (300, 1.404e-11), (400, 1.288e-11),
+  (500, 1.215e-11), (600, 1.115e-11), (700, 1.039e-11), (800, 9.826e-12),
+  (900, 9.281e-12), (1000, 8.743e-12), (1500, 5.311e-12), (2000, 2.536e-12),
+  (2500, 8.941e-13), (3000, 3.156e-13), (3500, 1.116e-13), (4000, 3.946e-14),
+  (4500, 1.274e-14), (5000, 3.956e-15), (6000, 4.893e-16), (7000, 6.393e-17),
+  (8000, 8.969e-18), (9000, 2.427e-18), (10000, 8.144e-18), (13900, 2.358e-20)
+]
+
+/-- The Chebyshev function ψ satisfies |ψ(x) - x| / x ≤ ε for x ≥ exp(b),
+    for each pair (b, ε) in `Eψ_dusart_table`.
+    This follows from the explicit formula for ψ combined with zero-free region
+    verification, as established in Dusart (2018), Proposition 3.2. -/
+theorem Eψ_dusart_bound {b ε : ℝ} (h : (b, ε) ∈ Eψ_dusart_table) :
+    Eψ.bound ε (Real.exp b) := by sorry
