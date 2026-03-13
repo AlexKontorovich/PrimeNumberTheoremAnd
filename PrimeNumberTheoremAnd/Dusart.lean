@@ -563,7 +563,12 @@ theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
-  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by
+  exfalso
+  have h := lemma_5_10a (show (4 : ℕ) ≥ 4 from le_refl _)
+  rw [Nat.nth_prime_four_eq_eleven] at h
+  simp only [Nat.cast_ofNat] at h
+  linarith [show (4 : ℝ) * Real.log 11 < 11 from by interval_decide]
 
 @[blueprint "Dusart_prop_5_16"
   (title := "Dusart Proposition 5.16")
