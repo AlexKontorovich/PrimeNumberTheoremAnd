@@ -861,7 +861,75 @@ hence, by Definition \ref{phi-pm-def}, $\varphi^{\pm}_{\nu}(t) = 0$. Thus, $\var
   (latexEnv := "lemma")
   (discussion := 1075)]
 theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε) := by
-  sorry
+  have tanh_add_pi : ∀ z : ℂ, Complex.tanh (z + ↑Real.pi * I) = Complex.tanh z := by
+    intro z
+    simp only [Complex.tanh_eq_sinh_div_cosh]
+    have h1 : Complex.sinh (z + ↑Real.pi * I) = -Complex.sinh z := by
+      simp only [Complex.sinh, Complex.exp_add, Complex.exp_neg]; rw [exp_pi_mul_I]; simp; ring
+    have h2 : Complex.cosh (z + ↑Real.pi * I) = -Complex.cosh z := by
+      simp only [Complex.cosh, Complex.exp_add, Complex.exp_neg]; rw [exp_pi_mul_I]; simp; ring
+    rw [h1, h2, neg_div_neg_eq]
+  have tanh_sub_pi : ∀ z : ℂ, Complex.tanh (z - ↑Real.pi * I) = Complex.tanh z := by
+    intro z
+    have h := tanh_add_pi (z - ↑Real.pi * I)
+    rw [sub_add_cancel] at h; exact h.symm
+  unfold ϕ_pm
+  apply continuous_if
+  · intro a ha
+    have hfr : frontier {x : ℝ | -1 ≤ x ∧ x ≤ 1} = {-1, 1} := by
+      have : {x : ℝ | -1 ≤ x ∧ x ≤ 1} = Set.Icc (-1) 1 := by ext; simp
+      rw [this, frontier_Icc (by norm_num : (-1 : ℝ) ≤ 1)]
+    rw [hfr] at ha
+    rcases ha with rfl | rfl
+    · unfold Phi_circ Phi_star B coth
+      dsimp only []; push_cast; simp only [Real.sign_neg, Real.sign_one, ofReal_neg, ofReal_one]
+      have hw_ne : -2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν ≠ 0 := by
+        intro h; have := congr_arg Complex.im h; simp at this
+      have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
+      simp only [ne_eq, hw_ne, not_false_eq_true, hν_ne, ↓reduceIte, ite_false]
+      have hw2 : (-2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν) / 2 = ↑ν / 2 + ↑Real.pi * I := by ring
+      rw [hw2, tanh_add_pi]
+      have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
+        apply mul_ne_zero (by exact_mod_cast Real.pi_ne_zero) I_ne_zero
+      field_simp
+      ring
+    · unfold Phi_circ Phi_star B coth
+      dsimp only []; push_cast; simp only [Real.sign_one, ofReal_one]
+      have hw_ne : -2 * ↑Real.pi * I * (1 : ℂ) + ↑ν ≠ 0 := by
+        intro h; have := congr_arg Complex.im h; simp at this
+      have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
+      simp only [ne_eq, hw_ne, not_false_eq_true, hν_ne, ↓reduceIte]
+      have hw2 : (-2 * ↑Real.pi * I * (1 : ℂ) + ↑ν) / 2 = ↑ν / 2 - ↑Real.pi * I := by ring
+      rw [hw2, tanh_sub_pi]
+      have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
+        apply mul_ne_zero (by exact_mod_cast Real.pi_ne_zero) I_ne_zero
+      field_simp
+      ring
+  · have hcl : closure {x : ℝ | -1 ≤ x ∧ x ≤ 1} = Set.Icc (-1) 1 := by
+      have : {x : ℝ | -1 ≤ x ∧ x ≤ 1} = Set.Icc (-1) 1 := by ext; simp
+      rw [this, closure_Icc]
+    rw [hcl]
+    have hl := (ϕ_c2_left ν ε hlam).continuousOn
+    have hr := (ϕ_c2_right ν ε hlam).continuousOn
+    have hunion : Set.Icc (-1 : ℝ) 1 = Set.Icc (-1) 0 ∪ Set.Icc 0 1 := by
+      ext x; simp
+    rw [hunion]
+    intro x hx
+    rw [continuousWithinAt_union]
+    constructor
+    · by_cases hxs : x ∈ Set.Icc (-1 : ℝ) 0
+      · exact (hl.congr (fun t ht => by simp [ϕ_pm, show -1 ≤ t from ht.1,
+            show t ≤ 1 from le_trans ht.2 (by norm_num : (0 : ℝ) ≤ 1)])) x hxs
+      · have : ¬ (nhdsWithin x (Set.Icc (-1 : ℝ) 0)).NeBot := by
+          rwa [← mem_closure_iff_nhdsWithin_neBot, closure_Icc]
+        rw [Filter.not_neBot] at this; simp [ContinuousWithinAt, this]
+    · by_cases hxt : x ∈ Set.Icc (0 : ℝ) 1
+      · exact (hr.congr (fun t ht => by simp [ϕ_pm, show -1 ≤ t from le_trans (by norm_num : (-1 : ℝ) ≤ 0) ht.1,
+            show t ≤ 1 from ht.2])) x hxt
+      · have : ¬ (nhdsWithin x (Set.Icc (0 : ℝ) 1)).NeBot := by
+          rwa [← mem_closure_iff_nhdsWithin_neBot, closure_Icc]
+        rw [Filter.not_neBot] at this; simp [ContinuousWithinAt, this]
+  · exact continuousOn_const
 
 @[blueprint
   "phi-circ-bound-right"
