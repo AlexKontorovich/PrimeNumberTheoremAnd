@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.SecondarySummary
+import PrimeNumberTheoremAnd.PrimeTables
 
 blueprint_comment /--
 \section{Numerical verification of Goldbach}\label{goldbach-sec}
@@ -183,7 +184,17 @@ blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv
   The even Goldbach conjecture is verified up to $4 \times 10^{18} + 4$. -/)
   (proof := /-- If $N = 4 \times 10^{18}$, use the fact that $211, 313, N-209, N-309$ are all prime. -/)
   (latexEnv := "proposition")]
-theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4) := by sorry
+theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4) := by
+  intro n hn he
+  simp only [Finset.mem_Icc] at hn
+  by_cases h1 : n ≤ 4 * 10 ^ 18
+  · exact e_silva_herzog_piranian_goldbach n (Finset.mem_Icc.mpr ⟨hn.1, h1⟩) he
+  · push_neg at h1
+    obtain ⟨k, hk⟩ := he
+    have : n = 4000000000000000002 ∨ n = 4000000000000000004 := by omega
+    rcases this with rfl | rfl
+    · exact ⟨211, 3999999999999999791, by decide, prime_3999999999999999791, by norm_num⟩
+    · exact ⟨313, 3999999999999999691, by decide, prime_3999999999999999691, by norm_num⟩
 
 @[blueprint
   "kl-odd-goldbach-finite"
