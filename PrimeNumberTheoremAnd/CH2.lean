@@ -1154,7 +1154,57 @@ Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply thi
 . -/)
   (latexEnv := "lemma")
   (discussion := 1077)]
-theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by sorry
+theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
+  have B_plus_re_eq : ∀ t : ℝ, t ≠ 0 → (B 1 (t : ℂ)).re = t * Real.exp t / (Real.exp t - 1) := by
+    intro t ht
+    unfold B
+    unfold coth; norm_num [ Complex.tanh, Complex.exp_re, Complex.exp_im ] ; ring;
+    norm_num [ Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht ] ; ring;
+    norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im ] ; ring;
+    field_simp;
+    rw [ one_add_div, ← add_div, div_eq_div_iff ] <;> ring <;> norm_num [ sub_ne_zero, ht, Real.exp_ne_zero ];
+    · simpa [ ← Real.exp_add ] using by ring;
+    · cases lt_or_gt_of_ne ht <;> linarith;
+    · exact fun h => ht <| by rw [ add_eq_zero_iff_eq_neg ] at h; replace h := congr_arg Real.log h; norm_num at h; linarith;
+    · cases lt_or_gt_of_ne ht <;> linarith
+  have f_le_one_neg : ∀ t : ℝ, t < 0 → t * Real.exp t / (Real.exp t - 1) ≤ 1 := by
+    intro t ht
+    rw [ div_le_iff_of_neg ] <;> nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
+  have f_ge_one_pos : ∀ t : ℝ, 0 < t → 1 ≤ t * Real.exp t / (Real.exp t - 1) := by
+    intro t ht
+    rw [ le_div_iff₀ ] <;> try linarith [ Real.add_one_le_exp t ];
+    nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
+  have f_mono_pos : MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Ioi 0) := by
+    have h_deriv_pos : ∀ t > 0, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t ≥ 0 := by
+      intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_gt, ht, ne_of_gt, Real.exp_pos t, ne_of_gt, sub_pos, Real.exp_pos, ht, sub_ne_zero.mpr, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t ];
+      exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ )
+    intro a ha b hb hab
+    have h_mean_val : ∀ a b : ℝ, 0 < a → a < b → ∃ c ∈ Set.Ioo a b, deriv (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) c = ( (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) b - (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) a ) / (b - a) := by
+      intros a b ha hb; apply_rules [ exists_deriv_eq_slope ];
+      · exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by linarith [ Real.add_one_le_exp t, ht.1 ] ) );
+      · exact DifferentiableOn.div ( DifferentiableOn.mul differentiableOn_id ( Real.differentiable_exp.differentiableOn ) ) ( DifferentiableOn.sub ( Real.differentiable_exp.differentiableOn ) ( differentiableOn_const _ ) ) fun x hx => ne_of_gt ( by norm_num; linarith [ hx.1 ] );
+    cases eq_or_lt_of_le hab <;> [ aesop; obtain ⟨ c, hc₁, hc₂ ⟩ := h_mean_val a b ha ‹_› <;> have := h_deriv_pos c ( lt_trans ha.out hc₁.1 ) <;> rw [ hc₂, ge_iff_le ] at this <;> rw [ le_div_iff₀ ] at this <;> linarith ] ;
+  have f_mono_neg : MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Iio 0) := by
+    have h_deriv_nonneg : ∀ t : ℝ, t < 0 → 0 ≤ deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t := by
+      intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_lt, ht, sub_ne_zero ];
+      exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ );
+    intros t ht u hu htu;
+    by_contra h_contra; push_neg at h_contra; (
+    obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
+      apply_rules [ exists_deriv_eq_slope ];
+      · exact htu.lt_of_ne ( by rintro rfl; linarith );
+      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) );
+      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) );
+    rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
+  intro t₁ t₂ ht;
+  by_cases h₁ : t₁ = 0 <;> by_cases h₂ : t₂ = 0 <;> simp_all +decide [ B ]
+  · exact f_ge_one_pos t₂ ( lt_of_le_of_ne ht ( Ne.symm h₂ ) )
+  · exact f_le_one_neg t₁ ( lt_of_le_of_ne ht h₁ )
+  · by_cases h₃ : t₁ < 0 <;> by_cases h₄ : t₂ < 0
+    · exact f_mono_neg h₃ h₄ ht
+    · exact le_trans ( f_le_one_neg t₁ h₃ ) ( f_ge_one_pos t₂ ( lt_of_le_of_ne (not_lt.mp h₄) (Ne.symm h₂) ) )
+    · linarith [ show t₁ > 0 from lt_of_le_of_ne (not_lt.mp h₃) (Ne.symm h₁) ]
+    · exact f_mono_pos ( show 0 < t₁ from lt_of_le_of_ne (not_lt.mp h₃) (Ne.symm h₁) ) ( show 0 < t₂ from lt_of_le_of_ne (not_lt.mp h₄) (Ne.symm h₂) ) ht
 
 lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
   unfold B; split
