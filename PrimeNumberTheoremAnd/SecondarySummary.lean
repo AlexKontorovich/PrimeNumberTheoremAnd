@@ -59,19 +59,64 @@ for all $\log x \geq X$.
 theorem theorem_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
   Eψ.classicalBound A B C 5.573412 (exp X) ∧ Eψ.numericalBound (exp X) (fun _ ↦ ε₀) := by sorry
 
+lemma admissible_bound_weaken {A B C x : ℝ}
+    (hB : 3 / 2 ≤ B) (hB2 : B ≤ 2)
+    (_hC : 0 ≤ C) (hCR : C ^ 2 * 5.5666305 ≤ 4 * 5.573412)
+    (hA : 122 ≤ A)
+    (hlogx : 5.5666305 ≤ log x) :
+    admissible_bound 121.0961 (3 / 2) 2 5.5666305 x ≤ admissible_bound A B C 5.573412 x := by
+  refine mul_le_mul ?_ ?_ ?_ ?_ <;> try positivity
+  · have h_exp : (log x / 5.5666305) ^ (3 / 2 : ℝ) ≤
+        (log x / 5.573412) ^ B * ((5.573412 / 5.5666305) ^ B) := by
+      rw [← Real.mul_rpow (div_nonneg (by linarith) (by norm_num)) (by norm_num)]
+      ring_nf at *; norm_num at *
+      exact Real.rpow_le_rpow_of_exponent_le (by linarith) (by linarith)
+    have h_div : 121.0961 * ((5.573412 / 5.5666305) ^ B) ≤ A :=
+      le_trans (mul_le_mul_of_nonneg_left
+        (Real.rpow_le_rpow_of_exponent_le (by norm_num) hB2) (by norm_num))
+        (by norm_num; linarith)
+    nlinarith [Real.rpow_pos_of_pos
+      (show 0 < log x / 5.573412 from div_pos (lt_of_lt_of_le (by norm_num) hlogx) (by norm_num)) B]
+  · norm_num at *
+    rw [← Real.sqrt_eq_rpow, ← Real.sqrt_eq_rpow] at *
+    nlinarith [Real.sqrt_nonneg (log x / (11133261 / 2000000)),
+      Real.mul_self_sqrt (by linarith : 0 ≤ log x / (11133261 / 2000000)),
+      Real.sqrt_nonneg (log x / (1393353 / 250000)),
+      Real.mul_self_sqrt (by linarith : 0 ≤ log x / (1393353 / 250000))]
+
+lemma table_1_bounds (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
+    1000 ≤ X ∧ 3 / 2 ≤ B ∧ B ≤ 2 ∧ 0 ≤ C ∧ C ^ 2 * 5.5666305 ≤ 4 * 5.573412 ∧
+    122 ≤ A + 0.1 := by
+  simp only [Table_1, List.mem_cons, List.mem_nil_iff, or_false, Prod.mk.injEq] at h
+  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ <;>
+  constructor <;> norm_num
+
 @[blueprint "pt_cor_1"
   (title := "PT Corollary 1")
   (statement := /--
 Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
 $$
-\left|\frac{\psi(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\left|\frac{\theta(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
 $$
 where $A_1 = A + 0.1$.
   -/)
   (proof := /-- This follows trivially (and wastefully) from the work of Dusart  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}.  It should also follow from the results of \cite{FKS2}. -/)
   (latexEnv := "corollary")]
 theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
-  Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by sorry
+  Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by
+  obtain ⟨hX, hB, hB2, hC, hCR, hA⟩ := table_1_bounds X σ A B C ε₀ h
+  intro x hx
+  have hx2 : x ≥ 2 := by
+    have : (2 : ℝ) < exp 1 := lt_trans (by norm_num : (2:ℝ) < 2.7182818283) exp_one_gt_d9
+    linarith [exp_le_exp.mpr (show (1:ℝ) ≤ X by linarith)]
+  have hlogx : 5.5666305 ≤ log x := by
+    have : X ≤ log x := le_trans (le_of_eq (log_exp X).symm) (log_le_log (exp_pos X) hx)
+    linarith
+  exact le_trans (FKS2.corollary_14 x hx2) (admissible_bound_weaken hB hB2 hC hCR hA hlogx)
 
 @[blueprint "thm:pt_2"
   (title := "PT Corollary 2")
@@ -114,6 +159,88 @@ theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
 
 end PT
 
+namespace Trudgian2016
+
+blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: add the Section 3.3 material on the conjecture of Pomerance --/
+
+@[blueprint
+  "trudgian:eps_0-def"
+  (title := "Trudgian definition of eps0")
+  (statement := /--
+  One has
+  \[
+\epsilon_{0}(x) = \sqrt{\frac{8}{17 \pi}} X^{1/2}e^{-X}, \quad X = \sqrt{(\log x)/R}, \quad R = 6.455.
+  \]
+  for all $x \geq 2$.
+  -/)]
+noncomputable def eps_0 (x : ℝ) : ℝ :=
+  sqrt (8 / (17 * π)) * sqrt (sqrt (log x / 6.455)) * exp (-sqrt (log x / 6.455))
+
+@[blueprint
+  "trudgian:theorem 1-theta"
+  (title := "Trudgian Theorem 1 for theta")
+  (statement := /--
+  For $x \geq 149$ one has $|\theta(x) - x| \leq x \epsilon_{0}(x)$.-/)
+  (latexEnv := "theorem")]
+theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
+    Eθ.numericalBound x eps_0 := by sorry
+
+@[blueprint
+  "trudgian:theorem 1-psi"
+  (title := "Trudgian Theorem 1 for psi")
+  (statement := /--
+  For $x \geq 23$ one has $|\psi(x) - x| \leq x \epsilon_0(x)$.
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
+    Eψ.numericalBound x eps_0 := by sorry
+
+
+@[blueprint
+  "trudgian:lemma 1"
+  (title := "Trudgian Lemma 1")
+  (statement := /--
+  For $x \geq \exp(35)$ we have
+  \[
+  |\theta(x) - x| \leq \frac{0.0045x}{\log^2 x}.
+  \]
+  -/)
+  (latexEnv := "lemma")]
+theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
+    Eθ.numericalBound x (fun x ↦ 0.0045 / log x ^ 2) := by sorry
+
+
+@[blueprint
+  "trudgian:theorem 2"
+  (title := "Trudgian Theorem 2")
+  (statement := /--
+  For $x \geq 229$ one has
+  \[
+  |\pi(x) - \mathrm{li}(x)| \leq 0.2795 \frac{x}{(\log x)^{3/4}} \exp\left(-\sqrt{\frac{\log x}{6.455}}\right).
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
+    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by sorry
+
+
+@[blueprint
+  "thm:trudgian2016"
+  (title := "Trudgian Corollary 2")
+  (statement := /-- If $x > 2,898,242$, then there
+  is a prime in the interval
+  \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+    HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
+
+
+
+end Trudgian2016
+
+namespace JY
+
 @[blueprint
   "thm:jy_13"
   (title := "JY Corollary 1.3")
@@ -125,7 +252,7 @@ end PT
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
+theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   have := FKS2.corollary_22
   intro x hx
   have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
@@ -159,7 +286,6 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
   norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
 
-
 @[blueprint
   "thm:jy_14"
   (title := "JY Theorem 1.4")
@@ -172,11 +298,15 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+theorem theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+
+end JY
 
 blueprint_comment /-- TODO: input other results from JY -/
 
 blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
+
+namespace Schoenfeld1976
 
 @[blueprint
   "thm:schoenfeld1976"
@@ -188,8 +318,12 @@ blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitl
   \]
   -/)
   (latexEnv := "theorem")]
-theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
     HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
+
+end Schoenfeld1976
+
+namespace RamareSaouter2003
 
 @[blueprint
   "thm:ramare-saouter2003"
@@ -198,18 +332,12 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
   If $x > 10,726,905,041$, then there is a prime in the interval $(x(1-1/28314000), x]$.
   -/)
   (latexEnv := "theorem")]
-theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
     HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
-@[blueprint
-  "thm:ramare_saouter2003-2"
-  (title := "Ramaré-Saouter 2003 (2)")
-  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by sorry
+end RamareSaouter2003
+
+namespace GourdonDemichel2004
 
 @[blueprint
   "thm:gourdon-demichel2004"
@@ -218,9 +346,12 @@ theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
   \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
+end GourdonDemichel2004
+
+namespace PrimeGaps2014
 
 @[blueprint
   "thm:prime_gaps_2014"
@@ -229,8 +360,14 @@ theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   \[ \left( x\left(1 - \frac{1}{1966196911}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by sorry
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
+  obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
+  exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
+
+end PrimeGaps2014
+
+namespace PrimeGaps2024
 
 @[blueprint
   "thm:prime_gaps_2024"
@@ -239,19 +376,12 @@ theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   \[ \left( x\left(1 - \frac{1}{76900000000}\right), x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
 
-@[blueprint
-  "thm:trudgian2016"
-  (title := "Trudgian 2016")
-  (statement := /-- If $x > 2,898,242$, then there
-  is a prime in the interval
-  \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
-    HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
+end PrimeGaps2024
+
+namespace Axler2018
 
 @[blueprint
   "thm:axler2018_1"
@@ -261,7 +391,7 @@ theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
   \[ \left( x, x\left(1 + \frac{0.087}{\log^3 x}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Axler2018.has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
+theorem has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
     HasPrimeInInterval x (x * (0.087 / (log x) ^ 3)) := by sorry
 
 @[blueprint
@@ -272,13 +402,22 @@ theorem Axler2018.has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
   \[ \left( x, x\left(1 + \frac{198.2}{\log^4 x}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Axler2018.has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
+theorem has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
     HasPrimeInInterval x (x * (198.2 / (log x) ^ 4)) := by sorry
 
-def Dusart.proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := Dusart.proposition_5_4
+end Axler2018
 
-def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := Dusart.corollary_5_5 hx
+namespace Dusart
 
+def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
+
+def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
+    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
+  _root_.Dusart.corollary_5_5 hx
+
+end Dusart
+
+namespace Dudek2014
 
 @[blueprint
   "thm:dudek2014"
@@ -287,8 +426,12 @@ def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInter
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
+
+end Dudek2014
+
+namespace CullyHugill2021
 
 @[blueprint
   "thm:cully-hugill2021"
@@ -297,8 +440,12 @@ theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
+
+end CullyHugill2021
+
+namespace RHPrimeInterval2002
 
 @[blueprint
   "thm:rh_prime_interval_2002"
@@ -307,8 +454,13 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
   \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by sorry
+
+end RHPrimeInterval2002
+
+namespace Dudek2015RH
+
 @[blueprint
   "thm:dudek2015_rh"
   (title := "Dudek 2015 under RH")
@@ -316,8 +468,12 @@ theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH :
   \[ \left( x - \frac{4}{\pi}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (4 / π) * sqrt x * log x) ((4 / π) * sqrt x * log x) := by sorry
+
+end Dudek2015RH
+
+namespace CarneiroEtAl2019RH
 
 @[blueprint
   "thm:carneiroetal_2019_rh"
@@ -326,8 +482,10 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+
+end CarneiroEtAl2019RH
 
 namespace KadiriLumley
 
@@ -363,3 +521,78 @@ theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x�
     HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
 
 end KadiriLumley
+
+namespace RamareSaouter2003
+
+@[blueprint
+  "thm:ramare_saouter2003-2"
+  (title := "Ramaré-Saouter 2003 (2)")
+  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
+    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by
+  have hrow : (log (exp 53), (48:ℝ), (4.088e-9:ℝ), (18290358817:ℝ), (0.93:ℝ),
+      (0.4301:ℝ), (1524171138:ℝ)) ∈ KadiriLumley.Table_2 := by
+    rw [log_exp]; simp only [KadiriLumley.Table_2, List.mem_cons, Prod.mk.injEq,
+      List.mem_nil_iff, or_false]; norm_num
+  obtain ⟨p, hp, hlo, hhi⟩ := KadiriLumley.has_prime_in_interval (exp 53) x 48 4.088e-9
+    18290358817 0.93 0.4301 1524171138 hx.le hrow
+  exact ⟨p, hp, by nlinarith [exp_pos (53 : ℝ)],
+    by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
+      x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
+
+end RamareSaouter2003
+
+
+namespace Buthe2
+
+blueprint_comment /--
+Some results from \cite{Buthe2}-/
+
+@[blueprint
+  "thm:buthe-2a"
+  (title := "Buthe Theorem 2, part a")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
+  |ψ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+
+@[blueprint
+  "thm:buthe-2b"
+  (title := "Buthe Theorem 2, part b")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
+  |θ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+
+@[blueprint
+  "thm:buthe-2c"
+  (title := "Buthe Theorem 2, part c")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
+  |pi_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+
+@[blueprint
+  "thm:buthe-2d"
+  (title := "Buthe Theorem 2, part d")
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
+  |pi x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+
+end Buthe2

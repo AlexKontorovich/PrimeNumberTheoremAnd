@@ -48,6 +48,12 @@ def HasPrimeInInterval.log_thm (X₀ : ℝ) (k : ℝ) :=
   (statement := /-- $\pi(x)$ is the number of primes less than or equal to $x$. -/)]
 noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
 
+@[blueprint
+  "pi-star-def"
+  (title := "pi")
+  (statement := /-- $\pi^*(x)$ is the sum of $\Lambda(n)/n$ for $n$ up to $x$. -/)]
+noncomputable def pi_star (x : ℝ) : ℝ := ∑ n ∈ Finset.Ioc 1 ⌊x⌋₊, (Λ n : ℝ) / n
+
 
 @[blueprint
   "li-def"
@@ -89,6 +95,8 @@ def Eψ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eψ.bound (ε x
   (statement := /-- $E_\pi(x) = |\pi(x) - \mathrm{Li}(x)| / \mathrm{Li}(x)$. -/)]
 noncomputable def Eπ (x : ℝ) : ℝ := |pi x - Li x| / (x / log x)
 
+noncomputable def Eπ_star (x : ℝ) : ℝ := |pi_star x - Li x| / (x / log x)
+
 
 @[blueprint
   "Etheta-def"
@@ -125,6 +133,14 @@ def Eπ.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ ε
 def Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eπ.bound (ε x₀) x₀
 
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
+
+def Eπ_star.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ_star x ≤ admissible_bound A B C R x
+
+def Eπ_star.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ_star x ≤ ε
+
+def Eπ_star.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eπ_star.bound (ε x₀) x₀
+
+def Eπ_star.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ_star x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
 
 
 @[blueprint
