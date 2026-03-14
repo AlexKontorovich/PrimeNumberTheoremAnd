@@ -142,7 +142,7 @@ Some results from \cite{Dusart1999}-/
 
 @[blueprint
   "thm:dusart1999-pi"
-  (title := "Dusart 1999, π inequality")
+  (title := "Dusart 1999, $\\pi$ inequality")
   (statement := /-- For $x \geq 17$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 17) :
@@ -188,7 +188,7 @@ blueprint_comment /-- Some results from \cite{Dusart2018}-/
 
 @[blueprint
   "thm:dusart2018-theta-improv-1"
-  (title := "Dusart 2018, θ improvement 1")
+  (title := "Dusart 2018, $\\vartheta$ improvement 1")
   (statement := /-- For $x > 1$, we have $|\vartheta(x) - x| \leq \frac{20.83\, x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
@@ -196,7 +196,7 @@ theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
 
 @[blueprint
   "thm:dusart2018-theta-improv-2"
-  (title := "Dusart 2018, θ improvement 2")
+  (title := "Dusart 2018, $\\vartheta$ improvement 2")
   (statement := /-- For $x \geq 89{,}967{,}803$, we have $|\vartheta(x) - x| \leq \frac{x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
@@ -210,7 +210,7 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
 
 @[blueprint
   "thm:faber-kadiri-psi"
-  (title := "Faber-Kadiri ψ bound")
+  (title := "Faber-Kadiri $\\psi$ bound")
   (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
@@ -224,7 +224,7 @@ blueprint_comment /-- Some results from \cite{johnston-yang}-/
 
 @[blueprint
   "thm:jy-psi-1"
-  (title := "Johnston-Yang ψ bound 1")
+  (title := "Johnston-Yang $\\psi$ bound 1")
   (statement := /-- For $x \geq 5000$, we have $|\psi(x) - x| \leq 8.14 \cdot 10^{-20}\, x$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_1 (x : ℝ) (hx : x ≥ 5000) :
@@ -232,7 +232,7 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ 5000) :
 
 @[blueprint
   "thm:jy-psi-2"
-  (title := "Johnston-Yang ψ bound 2")
+  (title := "Johnston-Yang $\\psi$ bound 2")
   (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
@@ -240,7 +240,7 @@ theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
 
 @[blueprint
   "thm:jy-psi-3"
-  (title := "Johnston-Yang ψ bound 3")
+  (title := "Johnston-Yang $\\psi$ bound 3")
   (statement := /-- For $x \geq 23$, we have $|\psi(x) - x| \leq x \cdot 0.026\, (\log x)^{1.801} \exp\!\left(-0.1853\, \frac{(\log x)^{3/5}}{(\log\log x)^{1/5}}\right)$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_3 (x : ℝ) (hx : x ≥ 23) :
@@ -255,7 +255,7 @@ blueprint_comment /-- Some results from \cite{PT2021}-/
 
 @[blueprint
   "thm:pt2021-psi"
-  (title := "Platt-Trudgian 2021 ψ bound")
+  (title := "Platt-Trudgian 2021 $\\psi$ bound")
   (statement := /-- For $x \geq e^{2000}$, we have $|\psi(x) - x| \leq x \cdot 235\, (\log x)^{0.52} \exp\!\left(-\sqrt{\frac{\log x}{5.573412}}\right)$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ exp 2000) :
@@ -269,7 +269,7 @@ blueprint_comment /-- Some results from \cite{FKS}-/
 
 @[blueprint
   "thm:fks-psi"
-  (title := "Fiori-Kadiri-Swidinsky ψ bound")
+  (title := "Fiori-Kadiri-Swidinsky $\\psi$ bound")
   (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.22022\, (\log x)^{1.5} \exp(-0.8476836\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 2) :
@@ -396,7 +396,7 @@ def lemma_3_2_bound (ε c P₀ : ℝ) : Prop :=
 
 @[blueprint
   "thm:ramare2016-3-2-a"
-  (title := "Ramaré 2016 Lemma 3.2a")
+  (title := "Ramar\\'e 2016 Lemma 3.2a")
   (statement := /-- For $P \geq 3{,}600{,}000$ with $\varepsilon = 1/914$ and last-term constant $1/5$:
   for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
   $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{914})\int_P^\infty f + \frac{Pf(P)}{914} + \frac{Pf(P)}{5\log^2 P}$. -/)
@@ -405,7 +405,7 @@ theorem lemma_3_2_a : lemma_3_2_bound (1/914) (1/5) 3600000 := by sorry
 
 @[blueprint
   "thm:ramare2016-3-2-b"
-  (title := "Ramaré 2016 Lemma 3.2b")
+  (title := "Ramar\\'e 2016 Lemma 3.2b")
   (statement := /-- For $P \geq 2$ with $\varepsilon = 1/914$ and last-term constant $4$:
   for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
   $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{914})\int_P^\infty f + \frac{Pf(P)}{914} + \frac{4Pf(P)}{\log^2 P}$. -/)
@@ -414,7 +414,7 @@ theorem lemma_3_2_b : lemma_3_2_bound (1/914) 4 2 := by sorry
 
 @[blueprint
   "thm:ramare2016-3-2-c"
-  (title := "Ramaré 2016 Lemma 3.2c (via Dusart 2016)")
+  (title := "Ramar\\'e 2016 Lemma 3.2c (via Dusart 2016)")
   (statement := /-- For $P \geq 3{,}600{,}000$ using Dusart 2016, with $\varepsilon = 1/36260$ and last-term constant $1/5$:
   for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
   $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{36260})\int_P^\infty f + \frac{Pf(P)}{36260} + \frac{Pf(P)}{5\log^2 P}$. -/)
@@ -440,7 +440,7 @@ def Table_1 : List (ℝ × ℝ × ℝ) :=
 
 @[blueprint
   "thm:trevino-sum-prime"
-  (title := "Treviño 2012, sum of primes")
+  (title := "Trevi\\~no 2012, sum of primes")
   (statement := /-- For each row $(x_0, c_1, c_2)$ from Table 1, for all $x \geq x_0$:
   $$\frac{x^2}{2\log x} + \frac{c_1 x^2}{\log^2 x} \leq \sum_{p \leq x} p \leq
     \frac{x^2}{2\log x} + \frac{c_2 x^2}{\log^2 x}.$$ -/)
@@ -464,7 +464,7 @@ noncomputable def pi_r (r : ℕ) (x : ℝ) : ℝ :=
 
 @[blueprint
   "thm:dn-pi1-lower"
-  (title := "Deléglise-Nicolas 2019, π₁ lower bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_1$ lower bound")
   (statement := /-- For $x \geq 905{,}238{,}547$,
   $\frac{3x^2}{20\log^4 x} \leq \pi_1(x) - \left(\frac{x^2}{2\log x} + \frac{x^2}{4\log^2 x} + \frac{x^2}{4\log^3 x}\right)$. -/)
   (latexEnv := "theorem")]
@@ -475,7 +475,7 @@ theorem theorem_a (x : ℝ) (hx : x ≥ 905238547) :
 
 @[blueprint
   "thm:dn-pi1-upper"
-  (title := "Deléglise-Nicolas 2019, π₁ upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_1$ upper bound")
   (statement := /-- For $x \geq 110{,}117{,}910$,
   $\pi_1(x) - \left(\frac{x^2}{2\log x} + \frac{x^2}{4\log^2 x} + \frac{x^2}{4\log^3 x}\right) \leq \frac{107 x^2}{160\log^4 x}$. -/)
   (latexEnv := "theorem")]
@@ -486,7 +486,7 @@ theorem theorem_b (x : ℝ) (hx : x ≥ 110117910) :
 
 @[blueprint
   "thm:dn-pi2-lower"
-  (title := "Deléglise-Nicolas 2019, π₂ lower bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ lower bound")
   (statement := /-- For $x \geq 1{,}091{,}239$,
   $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right)$. -/)
   (latexEnv := "theorem")]
@@ -497,7 +497,7 @@ theorem theorem_c (x : ℝ) (hx : x ≥ 1091239) :
 
 @[blueprint
   "thm:dn-pi2-upper"
-  (title := "Deléglise-Nicolas 2019, π₂ upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ upper bound")
   (statement := /-- For $x \geq 60{,}173$,
   $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right) \leq \frac{11181\, x^3}{648\log^4 x}$. -/)
   (latexEnv := "theorem")]
@@ -508,7 +508,7 @@ theorem theorem_d (x : ℝ) (hx : x ≥ 60173) :
 
 @[blueprint
   "thm:dn-pi3-upper"
-  (title := "Deléglise-Nicolas 2019, π₃ upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_3$ upper bound")
   (statement := /-- For $x \geq 664$, $\pi_3(x) \leq 0.271\, x^4 / \log x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_e (x : ℝ) (hx : x ≥ 664) :
@@ -516,7 +516,7 @@ theorem theorem_e (x : ℝ) (hx : x ≥ 664) :
 
 @[blueprint
   "thm:dn-pi4-upper"
-  (title := "Deléglise-Nicolas 2019, π₄ upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_4$ upper bound")
   (statement := /-- For $x \geq 200$, $\pi_4(x) \leq 0.237\, x^5 / \log x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
@@ -524,7 +524,7 @@ theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
 
 @[blueprint
   "thm:dn-pi5-upper"
-  (title := "Deléglise-Nicolas 2019, π₅ upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, $\\pi_5$ upper bound")
   (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$.
   (Note: the wiki page lists $x^5$ here, but the consistent pattern $x^{r+1}$ and the general bound require $x^6$.) -/)
   (latexEnv := "theorem")]
@@ -533,7 +533,7 @@ theorem theorem_g (x : ℝ) (hx : x ≥ 44) :
 
 @[blueprint
   "thm:dn-pir-general"
-  (title := "Deléglise-Nicolas 2019, general π_r upper bound")
+  (title := "Del\\'eglise-Nicolas 2019, general $\\pi_r$ upper bound")
   (statement := /-- For $x \geq 1$ and $r \geq 5$,
   $\pi_r(x) \leq \frac{\log 3}{3} \cdot \left(1 + \left(\frac{2}{3}\right)^r\right) \cdot \frac{x^{r+1}}{\log x}$. -/)
   (latexEnv := "theorem")]
@@ -550,7 +550,7 @@ blueprint_comment /-- Some results from \cite{rosser1938} -/
 
 @[blueprint
   "thm:rosser1938-pn-gt-nlogn"
-  (title := "Rosser 1938, p_n > n log n")
+  (title := "Rosser 1938, $p_n > n \\log n$")
   (statement := /-- For $n \geq 2$, we have $p_n > n \log n$. -/)
   (latexEnv := "theorem")]
 theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
@@ -558,7 +558,7 @@ theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
 
 @[blueprint
   "thm:rosser1938-pn-lower"
-  (title := "Rosser 1938, lower bound on p_n")
+  (title := "Rosser 1938, lower bound on $p_n$")
   (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 10)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_gt_2 (n : ℕ) (hn : n > 1) :
@@ -566,7 +566,7 @@ theorem p_n_gt_2 (n : ℕ) (hn : n > 1) :
 
 @[blueprint
   "thm:rosser1938-pn-upper"
-  (title := "Rosser 1938, upper bound on p_n")
+  (title := "Rosser 1938, upper bound on $p_n$")
   (statement := /-- For $n > 1$, we have $p_n < n(\log n + \log\log n + 8)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lt_2 (n : ℕ) (hn : n > 1) :
@@ -580,7 +580,7 @@ blueprint_comment /-- Some results from \cite{cippola} -/
 
 @[blueprint
   "thm:cipolla-pn-asym"
-  (title := "Cipolla asymptotic expansion for p_n")
+  (title := "Cipolla asymptotic expansion for $p_n$")
   (statement := /-- The $n$-th prime satisfies
   $p_n = n\!\left(\log n + \log\log n - 1 + \frac{\log\log n - 2}{\log n} -
   \frac{(\log\log n)^2 - 6\log\log n + 11}{2\log^2 n} + \cdots\right)$;
@@ -603,7 +603,7 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
 
 @[blueprint
   "thm:rosser1941-pn-lower"
-  (title := "Rosser 1941, lower bound on p_n")
+  (title := "Rosser 1941, lower bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
@@ -611,7 +611,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
 
 @[blueprint
   "thm:rosser1941-pn-upper"
-  (title := "Rosser 1941, upper bound on p_n")
+  (title := "Rosser 1941, upper bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_upper (n : ℕ) (hn : n ≥ 1) :
@@ -626,7 +626,7 @@ blueprint_comment /-- Some results from \cite{rs-prime} -/
 
 @[blueprint
   "thm:rs-1962-pn-lower"
-  (title := "Rosser-Schoenfeld 1962, lower bound on p_n")
+  (title := "Rosser-Schoenfeld 1962, lower bound on $p_n$")
   (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 3/2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n > 1) :
@@ -634,7 +634,7 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 
 @[blueprint
   "thm:rs-1962-pn-upper"
-  (title := "Rosser-Schoenfeld 1962, upper bound on p_n")
+  (title := "Rosser-Schoenfeld 1962, upper bound on $p_n$")
   (statement := /-- For $n > 19$, we have $p_n < n(\log n + \log\log n - 1/2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_upper (n : ℕ) (hn : n > 19) :
@@ -648,7 +648,7 @@ blueprint_comment /-- Some results from \cite{robin} -/
 
 @[blueprint
   "thm:robin1983-pn-lower"
-  (title := "Robin 1983, lower bound on p_n")
+  (title := "Robin 1983, lower bound on $p_n$")
   (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 1.0072629)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n > 1) :
@@ -656,7 +656,7 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 
 @[blueprint
   "thm:robin1983-pn-lower-const1"
-  (title := "Robin 1983, lower bound on p_n with constant 1 for small primes")
+  (title := "Robin 1983, lower bound on $p_n$ with constant 1 for small primes")
   (statement := /-- For $p_n \leq 10^{11}$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower_const1 (n : ℕ) (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
@@ -670,7 +670,7 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
 
 @[blueprint
   "thm:massias-robin1996-pn-lower"
-  (title := "Massias-Robin 1996, lower bound on p_n with constant 1")
+  (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
   (statement := /-- If $p_n < e^{598}$ or $p_n > e^{1800}$, then
   $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
@@ -686,7 +686,7 @@ blueprint_comment /-- Some results from \cite{Dusart1999} -/
 
 @[blueprint
   "thm:dusart1999-pn-lower"
-  (title := "Dusart 1999, lower bound on p_n")
+  (title := "Dusart 1999, lower bound on $p_n$")
   (statement := /-- For all $n > 1$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n > 1) :
@@ -694,7 +694,7 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 
 @[blueprint
   "thm:dusart1999-pn-upper"
-  (title := "Dusart 1999, upper bound on p_n")
+  (title := "Dusart 1999, upper bound on $p_n$")
   (statement := /-- For $n > 39017$ (i.e., $p_n > 467473$), we have
   $p_n < n(\log n + \log\log n - 0.9484)$. -/)
   (latexEnv := "theorem")]
@@ -756,7 +756,7 @@ blueprint_comment /-- Some results from \cite{DeKoninckLetendre} -/
 
 @[blueprint
   "thm:dekoninck-letendre2020-sum-log-prime"
-  (title := "DeKoninck-Letendre 2020, upper bound for sum of log p_i")
+  (title := "DeKoninck-Letendre 2020, upper bound for sum of $\\log p_i$")
   (statement := /-- For $k \geq 5$, we have
   $\sum_{i \leq k} \log p_i \leq k(\log k + \log\log k - 1/2)$. -/)
   (latexEnv := "theorem")]
@@ -766,7 +766,7 @@ theorem sum_log_prime (k : ℕ) (hk : k ≥ 5) :
 
 @[blueprint
   "thm:dekoninck-letendre2020-sum-loglog-prime"
-  (title := "DeKoninck-Letendre 2020, lower bound for sum of log log p_i")
+  (title := "DeKoninck-Letendre 2020, lower bound for sum of $\\log \\log p_i$")
   (statement := /-- For $k \geq 6$, we have
   $\sum_{i \leq k} \log\log p_i \geq k\!\left(\log\log k +
   \frac{\log\log k - 3/2}{\log k}\right)$. -/)
@@ -802,7 +802,7 @@ namespace RamareSaouter2003
 
 @[blueprint
   "thm:ramare-saouter2003"
-  (title := "Ramaré-Saouter 2003")
+  (title := "Ramar\\'e-Saouter 2003")
   (statement := /--
   If $x > 10,726,905,041$, then there is a prime in the interval $(x(1-1/28314000), x]$.
   -/)
@@ -1001,7 +1001,7 @@ namespace RamareSaouter2003
 
 @[blueprint
   "thm:ramare_saouter2003-2"
-  (title := "Ramaré-Saouter 2003 (2)")
+  (title := "Ramar\\'e-Saouter 2003 (2)")
   (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
   \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
   -/)
