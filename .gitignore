@@ -51,6 +51,9 @@
 ## Editor
 *.swp
 
+## Claude Code (local settings, not for sharing)
+.claude/
+
 ## Python
 __pycache__/
 *.pyc
