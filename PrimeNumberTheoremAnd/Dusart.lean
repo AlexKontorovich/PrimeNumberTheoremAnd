@@ -532,7 +532,27 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
   (latexEnv := "corollary")
   (proof := /-- Unfortunately, Proposition \ref{Dusart_prop_5_4} only covers the range $x \geq \exp(5000)$.  According to the author, the complete verification of this corollary requires several additional unpublished computations to cover the intermediate range, so this corollary will require significant effort to formalize. -/)
   ]
-theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
+theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by
+  have hx89 : x ≥ (89693 : ℝ) := by linarith
+  obtain ⟨p, hp, hxp, hpxh⟩ := proposition_5_4 x hx89
+  refine ⟨p, hp, hxp, hpxh.trans ?_⟩
+  have hx_pos : (0:ℝ) < x := by linarith
+  have hexp1_lt : exp 1 < x := by linarith [Real.exp_one_lt_d9]
+  have hlog_gt1 : (1:ℝ) < log x := by
+    rwa [show (1:ℝ) = log (exp 1) from (Real.log_exp 1).symm, Real.log_lt_log_iff (exp_pos 1) hx_pos]
+  have hlog_pos : (0:ℝ) < log x := by linarith
+  have hlog2_pos : (0:ℝ) < (log x) ^ 2 := by positivity
+  have hlog3_pos : (0:ℝ) < (log x) ^ (3:ℝ) := by positivity
+  have h1 : (1:ℝ) ≤ (log x) ^ (3:ℝ) := by
+    calc (1:ℝ) = 1 ^ (3:ℝ) := by simp
+    _ ≤ (log x) ^ (3:ℝ) := Real.rpow_le_rpow (by linarith) hlog_gt1.le (by norm_num)
+  have hdiv_le_x : x / (log x) ^ (3:ℝ) ≤ x := by
+    rw [div_le_iff₀ hlog3_pos]
+    nlinarith
+  have hx_le_mul : x ≤ x * (1 + 1 / (5000 * (log x) ^ 2)) := by
+    have : 0 ≤ 1 / (5000 * (log x) ^ 2) := by positivity
+    nlinarith
+  linarith
 
 @[blueprint "Dusart_thm_5_6"
   (title := "Dusart Theorem 5.6")
