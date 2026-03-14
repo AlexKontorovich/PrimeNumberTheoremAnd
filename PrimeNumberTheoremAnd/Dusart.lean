@@ -423,8 +423,8 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
   \]
   -/)
   (latexEnv := "corollary")
-  (proof := /-- Use Proposition \ref{Dusart_prop_5_4} and the fact that $1/\log^3 x < 1/(5000 \log^2 x)$ for $x \geq 468991632$. -/)
-  (discussion := 913)]
+  (proof := /-- Unfortunately, Proposition \ref{Dusart_prop_5_4} only covers the range $x \geq \exp(5000)$.  According to the author, the complete verification of this corollary requires several additional unpublished computations to cover the intermediate range, so this corollary will require significant effort to formalize. -/)
+  ]
 theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
 
 @[blueprint "Dusart_thm_5_6"

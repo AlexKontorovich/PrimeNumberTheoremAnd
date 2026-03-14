@@ -53,7 +53,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 7 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
@@ -63,10 +63,13 @@ lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : 
   (title := "Even Goldbach implies odd Goldbach")
   (statement := /--
   If the even Goldbach conjecture is verified up to height $H$, then the odd Goldbach conjecture is verified up to height $H+3$. -/)
-  (proof := /-- If $n$ is an odd integer between $5$ and $H+3$, then $n-3$ is an even integer between $4$ and $H$, so we can write $n-3 = p + q$ for some primes $p$ and $q$, and hence $n = p + q + 3$. -/)
+  (proof := /-- If $n$ is an odd integer between $7$ and $H+3$, then $n-3$ is an even integer between $4$ and $H$, so we can write $n-3 = p + q$ for some primes $p$ and $q$, and hence $n = p + q + 3$. -/)
   (latexEnv := "proposition")
   (discussion := 960)]
-theorem even_to_odd_goldbach_triv (H : ℕ) (h : even_conjecture H) : odd_conjecture (H + 3) := by sorry
+theorem even_to_odd_goldbach_triv (H : ℕ) (h : even_conjecture H) : odd_conjecture (H + 3) := by
+  intro n hn ⟨k, hk⟩; simp only [Finset.mem_Icc] at hn
+  obtain ⟨p, q, hp, hq, hpq⟩ := h (n - 3) (by simp only [Finset.mem_Icc]; omega) ⟨k - 1, by omega⟩
+  exact ⟨p, q, 3, hp, hq, by norm_num, by omega⟩
 
 theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 even_goldbach_test
 
@@ -90,9 +93,9 @@ theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
     · simp_all [odd_conjecture_mono (H + 3) H (even_to_odd_goldbach_triv H heven) (by linarith)]
   · intro n h ho
     by_cases! hn33 : n ≤ 8
-    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 5 33) ho
+    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 7 33) ho
     by_cases! hn : n ≤ x₀ + 4
-    · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
+    · exact hodd n (by grind : n ∈ Finset.Icc 7 (x₀ + 4)) ho
     · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
       have hnpe : Even (n - p) :=
         have h2p : 2 < p := by
@@ -187,10 +190,34 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (title := "Kadiri--Lumley's verification of odd Goldbach for small $n$")
   (statement := /-- \cite[Corollary 1.2]{kadiri-lumley}
   The odd Goldbach conjecture is verified up to $1966196911 \times 4 \times 10^{18}$. -/)
-  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x_0 = e^{60}$ and $\Delta = 1966090061$. -/)
+  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x_0 = e^{60}$ and $\Delta = 1966090061$.  (Actually, if one is only allowed to use the previous results listed here, one first needs to use the values $x_0 = e^{59}$ and $\Delta = 1946282821$ to cover an intermediate range of values.)-/)
   (latexEnv := "proposition")
   (discussion := 970)]
-theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
-
+theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by
+  have h1 (x) (hx : x ≥ Real.exp 59) := KadiriLumley.has_prime_in_interval (Real.exp 59) x
+    61 4.589e-9 20499925573 0.93 0.4522 1946282821 hx
+  simp only [ge_iff_le, KadiriLumley.Table_2, Real.log_exp, List.mem_cons, Prod.mk.injEq,
+    OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff, and_false, and_self, Nat.succ_ne_self, List.not_mem_nil,
+    or_self, or_false, or_true, forall_const] at h1
+  have h2 := even_to_odd_goldbach (⌈Real.exp 59⌉₊) (4 * 10 ^ 18 + 4) 1946282821
+    (fun x hx => h1 x (Nat.le_of_ceil_le hx)) e_silva_herzog_piranian_goldbach_ext
+  have h3 : ⌈Real.exp 59⌉₊ + 4 ≤ 11325 * 10 ^ 22 := by
+    have : Real.exp 59 + 4 + 1 ≤ 11325 * 10 ^ 22 := by interval_decide
+    grw [← Nat.cast_le (α := ℝ), Nat.cast_add, Nat.ceil_lt_add_one (Real.exp_nonneg _)]
+    grind
+  have h4 := h2 (odd_conjecture_mono _ (⌈Real.exp 59⌉₊ + 4) helfgott_odd_goldbach_finite h3)
+  have p1 (x) (hx : x ≥ Real.exp 60) := KadiriLumley.has_prime_in_interval (Real.exp 60) x
+    61 4.588e-9 20504393735 0.93 0.4527 1966196911 hx
+  simp only [ge_iff_le, KadiriLumley.Table_2, Real.log_exp, List.mem_cons, Prod.mk.injEq,
+    OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff, and_false, and_self, Nat.succ_ne_self, List.not_mem_nil,
+    or_self, or_false, or_true, forall_const] at p1
+  have p2 := even_to_odd_goldbach (⌈Real.exp 60⌉₊) (4 * 10 ^ 18 + 4) 1966196911
+    (fun x hx => p1 x (Nat.le_of_ceil_le hx)) e_silva_herzog_piranian_goldbach_ext
+  norm_num at *
+  have p3 : ⌈Real.exp 60⌉₊ + 4 ≤ 7785131284000000000000000004 := by
+    have : Real.exp 60 + 4 + 1 ≤ 7785131284000000000000000004 := by interval_decide
+    grw [← Nat.cast_le (α := ℝ), Nat.cast_add, Nat.ceil_lt_add_one (Real.exp_nonneg _)]
+    grind
+  exact odd_conjecture_mono _ _ (p2 (odd_conjecture_mono _ (⌈Real.exp 60⌉₊ + 4) h4 p3)) (by grind)
 
 end Goldbach

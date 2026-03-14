@@ -37,7 +37,7 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=
   \frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
   Thus,
-  \begin{equation}\label{pickupPoint1}
+  \begin{equation}\label{pickupPoint0}
       |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|
       \leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
   \end{equation}
@@ -45,7 +45,7 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   we have that
   $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
   \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
-  Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the
+  Substituting this into Equation (\ref{pickupPoint0}) and evaluating the integral completes the
   proof.
   -/)
   (proofUses := ["borelCaratheodory-closedBall"])]
