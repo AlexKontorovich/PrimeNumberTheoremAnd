@@ -377,20 +377,170 @@ namespace Ramare2016
 
 blueprint_comment /-- Some results from \cite{ramare2016} -/
 
-/-NOTE: Here one should make a predicate for this sort of estimate holding for specific thresholds of P and specific choices of epsilon, and then have different versions of `lemma_3_2` for the different numerical choices involved.
+/-- Predicate for Ramaré 2016 Lemma 3.2: the weighted prime sum bound holds with threshold
+    $P_0$, error $\varepsilon$, and last-term constant $c$. For any $P \geq P_0$ and
+    $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
+    $\sum_{p \geq P} f(p)\log p \leq (1+\varepsilon)\int_P^\infty f\,dt
+    + \varepsilon P f(P) + c P f(P)/\log^2 P$. -/
+def lemma_3_2_bound (ε c P₀ : ℝ) : Prop :=
+  ∀ (P : ℝ) (f : ℝ → ℝ),
+    P₀ ≤ P →
+    (∀ t, P ≤ t → 0 ≤ f t) →
+    AntitoneOn f (Set.Ici P) →
+    ContDiffOn ℝ 1 f (Set.Ici P) →
+    Filter.Tendsto (fun t ↦ t * f t) Filter.atTop (nhds 0) →
+    ∑' p : ℕ, (if Nat.Prime p ∧ P ≤ (p : ℝ) then f p * Real.log p else 0) ≤
+      (1 + ε) * ∫ t in Set.Ici P, f t +
+      ε * P * f P +
+      c * P * f P / (Real.log P) ^ 2
 
-Let 𝑓 be a 𝐶1 non-negative, non-increasing function over [𝑃,∞), where 𝑃 ≥3 600 000 is a real number and such that lim𝑡→∞⁡𝑡⁢𝑓⁡(𝑡) =0. We have
+@[blueprint
+  "thm:ramare2016-3-2-a"
+  (title := "Ramaré 2016 Lemma 3.2a")
+  (statement := /-- For $P \geq 3{,}600{,}000$ with $\varepsilon = 1/914$ and last-term constant $1/5$:
+  for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
+  $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{914})\int_P^\infty f + \frac{Pf(P)}{914} + \frac{Pf(P)}{5\log^2 P}$. -/)
+  (latexEnv := "theorem")]
+theorem lemma_3_2_a : lemma_3_2_bound (1/914) (1/5) 3600000 := by sorry
 
-∑𝑝≥𝑃𝑓⁡(𝑝)⁢log⁡𝑝 ≤(1 +𝜖)⁢∫∞
-𝑃𝑓⁡(𝑡)𝑑𝑡 +𝜖⁢𝑃⁢𝑓⁡(𝑃) +𝑃⁢𝑓⁡(𝑃)/(5⁢log2⁡𝑃)
+@[blueprint
+  "thm:ramare2016-3-2-b"
+  (title := "Ramaré 2016 Lemma 3.2b")
+  (statement := /-- For $P \geq 2$ with $\varepsilon = 1/914$ and last-term constant $4$:
+  for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
+  $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{914})\int_P^\infty f + \frac{Pf(P)}{914} + \frac{4Pf(P)}{\log^2 P}$. -/)
+  (latexEnv := "theorem")]
+theorem lemma_3_2_b : lemma_3_2_bound (1/914) 4 2 := by sorry
 
-with 𝜖 =1/914. When we can only ensure 𝑃 ≥2, then a similar inequality holds, simply replacing the last 1/5 by 4.
-
-The above result relies on (5.1*) of [Schoenfeld, 1976] because it is easily accessible. However on using Proposition 5.1 of [Dusart, 2016], one has access to 𝜖 =1/36260.
--/
-
+@[blueprint
+  "thm:ramare2016-3-2-c"
+  (title := "Ramaré 2016 Lemma 3.2c (via Dusart 2016)")
+  (statement := /-- For $P \geq 3{,}600{,}000$ using Dusart 2016, with $\varepsilon = 1/36260$ and last-term constant $1/5$:
+  for any $C^1$ non-negative non-increasing $f$ on $[P,\infty)$ with $\lim_{t	\to \infty} tf(t)=0$,
+  $\sum_{p \geq P} f(p)\log p \leq (1+\frac{1}{36260})\int_P^\infty f + \frac{Pf(P)}{36260} + \frac{Pf(P)}{5\log^2 P}$. -/)
+  (latexEnv := "theorem")]
+theorem lemma_3_2_c : lemma_3_2_bound (1/36260) (1/5) 3600000 := by sorry
 
 end Ramare2016
+
+namespace Trevino
+
+blueprint_comment /-- Some results from \cite{trevino} -/
+
+/-- Table of threshold $x_0$ and constants $c_1$, $c_2$ for the sum-of-primes bounds. -/
+def Table_1 : List (ℝ × ℝ × ℝ) :=
+  [ (315437,   0.205448, 0.330479),
+    (468577,   0.211359, 0.32593),
+    (486377,   0.212904, 0.325537),
+    (644123,   0.21429,  0.322609),
+    (678407,   0.214931, 0.322326),
+    (758231,   0.215541, 0.321504),
+    (758711,   0.215939, 0.321489),
+    (10544111, 0.239818, 0.29251) ]
+
+@[blueprint
+  "thm:trevino-sum-prime"
+  (title := "Treviño 2012, sum of primes")
+  (statement := /-- For each row $(x_0, c_1, c_2)$ from Table 1, for all $x \geq x_0$:
+  $$\frac{x^2}{2\log x} + \frac{c_1 x^2}{\log^2 x} \leq \sum_{p \leq x} p \leq
+    \frac{x^2}{2\log x} + \frac{c_2 x^2}{\log^2 x}.$$ -/)
+  (latexEnv := "theorem")]
+theorem sum_prime_bound (x₀ c₁ c₂ : ℝ) (hrow : (x₀, c₁, c₂) ∈ Table_1)
+    (x : ℝ) (hx : x ≥ x₀) :
+    x ^ 2 / (2 * log x) + c₁ * x ^ 2 / (log x) ^ 2 ≤
+      ∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (p : ℝ) ∧
+    ∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (p : ℝ) ≤
+      x ^ 2 / (2 * log x) + c₂ * x ^ 2 / (log x) ^ 2 := by sorry
+
+end Trevino
+
+namespace DelegliseNicolas
+
+blueprint_comment /-- Some results from \cite{deleglise-nicolas} -/
+
+/-- The sum of $r$-th powers of primes up to $x$. -/
+noncomputable def pi_r (r : ℕ) (x : ℝ) : ℝ :=
+  ∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (p : ℝ) ^ r
+
+@[blueprint
+  "thm:dn-pi1-lower"
+  (title := "Deléglise-Nicolas 2019, π₁ lower bound")
+  (statement := /-- For $x \geq 905{,}238{,}547$,
+  $\frac{3x^2}{20\log^4 x} \leq \pi_1(x) - \left(\frac{x^2}{2\log x} + \frac{x^2}{4\log^2 x} + \frac{x^2}{4\log^3 x}\right)$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_a (x : ℝ) (hx : x ≥ 905238547) :
+    3 * x ^ 2 / (20 * (log x) ^ 4) ≤
+      pi_r 1 x - (x ^ 2 / (2 * log x) + x ^ 2 / (4 * (log x) ^ 2) +
+        x ^ 2 / (4 * (log x) ^ 3)) := by sorry
+
+@[blueprint
+  "thm:dn-pi1-upper"
+  (title := "Deléglise-Nicolas 2019, π₁ upper bound")
+  (statement := /-- For $x \geq 110{,}117{,}910$,
+  $\pi_1(x) - \left(\frac{x^2}{2\log x} + \frac{x^2}{4\log^2 x} + \frac{x^2}{4\log^3 x}\right) \leq \frac{107 x^2}{160\log^4 x}$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_b (x : ℝ) (hx : x ≥ 110117910) :
+    pi_r 1 x - (x ^ 2 / (2 * log x) + x ^ 2 / (4 * (log x) ^ 2) +
+        x ^ 2 / (4 * (log x) ^ 3)) ≤
+      107 * x ^ 2 / (160 * (log x) ^ 4) := by sorry
+
+@[blueprint
+  "thm:dn-pi2-lower"
+  (title := "Deléglise-Nicolas 2019, π₂ lower bound")
+  (statement := /-- For $x \geq 1{,}091{,}239$,
+  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right)$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_c (x : ℝ) (hx : x ≥ 1091239) :
+    -(1069 * x ^ 3 / (648 * (log x) ^ 4)) ≤
+      pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
+        x ^ 3 / (27 * (log x) ^ 3)) := by sorry
+
+@[blueprint
+  "thm:dn-pi2-upper"
+  (title := "Deléglise-Nicolas 2019, π₂ upper bound")
+  (statement := /-- For $x \geq 60{,}173$,
+  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right) \leq \frac{11181\, x^3}{648\log^4 x}$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_d (x : ℝ) (hx : x ≥ 60173) :
+    pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
+        x ^ 3 / (27 * (log x) ^ 3)) ≤
+      11181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
+
+@[blueprint
+  "thm:dn-pi3-upper"
+  (title := "Deléglise-Nicolas 2019, π₃ upper bound")
+  (statement := /-- For $x \geq 664$, $\pi_3(x) \leq 0.271\, x^4 / \log x$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_e (x : ℝ) (hx : x ≥ 664) :
+    pi_r 3 x ≤ 0.271 * x ^ 4 / log x := by sorry
+
+@[blueprint
+  "thm:dn-pi4-upper"
+  (title := "Deléglise-Nicolas 2019, π₄ upper bound")
+  (statement := /-- For $x \geq 200$, $\pi_4(x) \leq 0.237\, x^5 / \log x$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
+    pi_r 4 x ≤ 0.237 * x ^ 5 / log x := by sorry
+
+@[blueprint
+  "thm:dn-pi5-upper"
+  (title := "Deléglise-Nicolas 2019, π₅ upper bound")
+  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$.
+  (Note: the wiki page lists $x^5$ here, but the consistent pattern $x^{r+1}$ and the general bound require $x^6$.) -/)
+  (latexEnv := "theorem")]
+theorem theorem_g (x : ℝ) (hx : x ≥ 44) :
+    pi_r 5 x ≤ 0.226 * x ^ 6 / log x := by sorry
+
+@[blueprint
+  "thm:dn-pir-general"
+  (title := "Deléglise-Nicolas 2019, general π_r upper bound")
+  (statement := /-- For $x \geq 1$ and $r \geq 5$,
+  $\pi_r(x) \leq \frac{\log 3}{3} \cdot \left(1 + \left(\frac{2}{3}\right)^r\right) \cdot \frac{x^{r+1}}{\log x}$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_h (r : ℕ) (hr : r ≥ 5) (x : ℝ) (hx : x ≥ 1) :
+    pi_r r x ≤ log 3 / 3 * (1 + (2 / 3 : ℝ) ^ r) * x ^ (r + 1) / log x := by sorry
+
+end DelegliseNicolas
 
 blueprint_comment /--
 \subsection{Short intervals containing primes}
