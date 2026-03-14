@@ -923,7 +923,7 @@ lemma tendsto_nth_prime_atTop : Tendsto nth_prime atTop atTop :=
 lemma pi_nth_prime_asymp :
     (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
   trans (fun (n : ℕ) ↦ ( n + 1 : ℝ))
-  · have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+  · have : Tendsto (fun n ↦ ((nth_prime n) : ℝ)) atTop atTop := by
       apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
     convert pi_alt'.comp_tendsto this |>.symm
     simp only [Function.comp_apply, floor_natCast]
@@ -945,7 +945,7 @@ lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ lo
     symm
     apply IsEquivalent.sub_isLittleO (by rfl)
     apply IsLittleO.comp_tendsto isLittleO_log_id_atTop
-    have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+    have : Tendsto (fun n ↦ ((nth_prime n) : ℝ)) atTop atTop := by
       apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
     apply tendsto_log_atTop.comp this
 
@@ -973,8 +973,8 @@ lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n 
   -/)
   (latexEnv := "proposition")]
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
-    ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
-  let c : ℕ → ℝ := fun n ↦ (Nat.nth Nat.Prime n) / (n * log n) - 1
+    ∀ n : ℕ, n > 1 → nth_prime n = (1 + c n) * n * log n := by
+  let c : ℕ → ℝ := fun n ↦ (nth_prime n) / (n * log n) - 1
   refine ⟨c, ?_, ?_⟩
   swap
   · intro n hn
@@ -1004,8 +1004,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   (proof := /-- Easy consequence of preceding proposition. -/)
   (latexEnv := "corollary")]
 theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
-    ∀ n : ℕ, Nat.nth Nat.Prime (n + 1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
-  use (fun n => (Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n) / Nat.nth Nat.Prime n)
+    ∀ n : ℕ, nth_prime (n + 1) - nth_prime n = (c n) * nth_prime n := by
+  use (fun n => (nth_prime (n+1) - nth_prime n) / nth_prime n)
   refine ⟨?_, ?_⟩
   · obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
     simp only [isLittleO_one_iff]
@@ -1167,7 +1167,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
         rw [div_self (denom_nonzero n)]
       simp
   · intro n
-    have nth_nonzero: Nat.nth Nat.Prime n ≠ 0 := by
+    have nth_nonzero: nth_prime n ≠ 0 := by
       exact Nat.Prime.ne_zero (prime_nth_prime n)
     simp [nth_nonzero]
 

@@ -9,11 +9,12 @@ open BigOperators Filter Real Classical Asymptotics MeasureTheory intervalIntegr
 open scoped ArithmeticFunction.Moebius ArithmeticFunction.Omega Chebyshev
 
 blueprint_comment /--
-Let $p_n$ denote the $n^{th}$ prime.
+Let $p_n$ denote the $n^{th}$ prime.  (Note: Lean by default indexes this from zero, but in many literature results the primes are indexed from one.)
 -/
 
 noncomputable abbrev nth_prime (n : ℕ) : ℕ := Nat.nth Nat.Prime n
 
+noncomputable abbrev nth_prime' (n : ℕ) : ℕ := Nat.nth Nat.Prime (n-1)
 
 noncomputable abbrev Psi (x : ℝ) : ℝ := ψ x
 
