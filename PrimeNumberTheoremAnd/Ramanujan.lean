@@ -1172,8 +1172,106 @@ $$E_\theta(x) (\log x)^5 \leq a(x).$$-/)
   (latexEnv := "proposition")
   (discussion := 994)]
 theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
-    Eθ x * ( log x)^5 ≤ a x := by
-    sorry
+    Eθ x * (log x)^5 ≤ a x := by
+    have hlog_pos : 0 < log x := log_pos (by linarith : 1 < x)
+    have hlog_pow_nonneg : 0 ≤ (log x) ^ 5 := pow_nonneg (le_of_lt hlog_pos) 5
+    unfold a
+    rw [show Eθ x * (log x) ^ 5 = (log x) ^ 5 * Eθ x from mul_comm _ _]
+    apply mul_le_mul_of_nonneg_left _ hlog_pow_nonneg
+    by_cases h1 : x ∈ Set.Ico 2 599
+    · simp only [h1, ite_true]
+      exact pi_bound_1 x h1
+    · simp only [h1, ite_false]
+      by_cases h2 : x ∈ Set.Ico 599 (exp 58)
+      · simp only [h2, ite_true]
+        exact pi_bound_2 x h2
+      · simp only [h2, ite_false]
+        by_cases h3 : x ∈ Set.Ico (exp 58) (exp 1169)
+        · simp only [h3, ite_true]
+          rw [show (1 : ℕ) / 4 = 0 from by norm_num, pow_zero, mul_one]
+          have hx58 := h3.1; have hx1169 := h3.2
+          have hx_gt_1 : 1 < x := by linarith [add_one_le_exp (58:ℝ)]
+          have hx_pos : 0 < x := by linarith
+          have hlog_ge_58 : 58 ≤ log x := by
+            rwa [← log_exp (58:ℝ), log_le_log_iff (exp_pos 58) hx_pos]
+          have hlog_lt_1169 : log x < 1169 := by
+            rwa [← log_exp (1169:ℝ), log_lt_log_iff hx_pos (exp_pos 1169)]
+          have h_trudgian := Trudgian2016.lemma_1 x
+            (le_trans (exp_le_exp.mpr (by norm_num : (35:ℝ) ≤ 58)) hx58) x le_rfl
+          have h_sqrt_bound : sqrt (8 / (17 * π)) ≥ 0.38 := by
+            rw [ge_iff_le, ← sqrt_sq (by norm_num : (0.38 : ℝ) ≥ 0)]
+            apply sqrt_le_sqrt; rw [sq]
+            rw [le_div_iff₀ (by positivity : 0 < 17 * π)]; nlinarith [pi_lt_d2]
+          have he1 := exp_one_lt_d9
+          have he2 : exp 2 ≤ 7.39 := by
+            have h2 : exp 2 = exp 1 * exp 1 := by rw [← exp_add]; ring_nf
+            rw [h2]
+            nlinarith [mul_self_nonneg (exp 1 - 2.7182818286),
+                       mul_lt_mul_of_pos_right he1 (exp_pos 1)]
+          have h_num : 0.0045 * exp (sqrt (log x / 6.455)) ≤ 0.38 * (log x) ^ 2 := by
+            by_cases hlt200 : log x < 200
+            · have hsqrt_bound : sqrt (log x / 6.455) ≤ 6 := by
+                rw [← sqrt_sq (by norm_num : (6:ℝ) ≥ 0)]; apply sqrt_le_sqrt; rw [sq]
+                linarith [div_le_div_of_nonneg_right (le_of_lt hlt200)
+                  (le_of_lt (show (0:ℝ) < 6.455 from by norm_num)),
+                  show (200 : ℝ) / 6.455 ≤ 36 from by norm_num]
+              have he6 : exp 6 ≤ 404 := by
+                have h2 : exp 6 = exp 2 * exp 2 * exp 2 := by rw [← exp_add, ← exp_add]; ring_nf
+                rw [h2]; nlinarith [exp_pos (2:ℝ), mul_self_nonneg (exp 2 - 7.39)]
+              nlinarith [exp_le_exp.mpr hsqrt_bound, sq_nonneg (log x - 58)]
+            · push_neg at hlt200
+              have hsqrt_bound : sqrt (log x / 6.455) ≤ 14 := by
+                rw [← sqrt_sq (by norm_num : (14:ℝ) ≥ 0)]; apply sqrt_le_sqrt; rw [sq]
+                linarith [div_le_div_of_nonneg_right (le_of_lt hlog_lt_1169)
+                  (le_of_lt (show (0:ℝ) < 6.455 from by norm_num)),
+                  show (1169 : ℝ) / 6.455 ≤ 196 from by norm_num]
+              have he4 : exp 4 ≤ 54.62 := by
+                have h2 : exp 4 = exp 2 * exp 2 := by rw [← exp_add]; ring_nf
+                rw [h2]; nlinarith [exp_pos (2:ℝ), mul_self_nonneg (exp 2 - 7.39)]
+              have he8 : exp 8 ≤ 2984 := by
+                have h2 : exp 8 = exp 4 * exp 4 := by rw [← exp_add]; ring_nf
+                rw [h2]; nlinarith [exp_pos (4:ℝ), mul_self_nonneg (exp 4 - 54.62)]
+              have he14 : exp 14 ≤ 1209000 := by
+                have h2 : exp 14 = exp 8 * exp 4 * exp 2 := by rw [← exp_add, ← exp_add]; ring_nf
+                rw [h2]; nlinarith [exp_pos (8:ℝ), exp_pos (4:ℝ), exp_pos (2:ℝ),
+                  show exp 8 * exp 4 ≤ 163000 from by
+                    nlinarith [exp_pos (8:ℝ), exp_pos (4:ℝ)]]
+              nlinarith [exp_le_exp.mpr hsqrt_bound, sq_nonneg (log x - 200)]
+          have hexp_sqrt := exp_pos (sqrt (log x / 6.455))
+          calc Eθ x ≤ 0.0045 / (log x) ^ 2 := h_trudgian
+            _ ≤ 0.38 * exp (-sqrt (log x / 6.455)) := by
+                rw [exp_neg, div_le_iff₀ (by positivity : (0:ℝ) < (log x)^2)]
+                calc (0.0045 : ℝ)
+                    = 0.0045 * exp (sqrt (log x / 6.455)) *
+                      (exp (sqrt (log x / 6.455)))⁻¹ := by
+                      rw [mul_inv_cancel_right₀ (ne_of_gt hexp_sqrt)]
+                  _ ≤ 0.38 * (log x) ^ 2 * (exp (sqrt (log x / 6.455)))⁻¹ := by
+                      nlinarith [inv_pos.mpr hexp_sqrt]
+                  _ = 0.38 * (exp (sqrt (log x / 6.455)))⁻¹ * (log x) ^ 2 := by ring
+            _ ≤ sqrt (8 / (17 * π)) * exp (-sqrt (log x / 6.455)) :=
+                mul_le_mul_of_nonneg_right h_sqrt_bound (le_of_lt (exp_pos _))
+        · simp only [h3, ite_false]
+          by_cases h4 : x ∈ Set.Ico (exp 1169) (exp 2000)
+          · simp only [h4, ite_true]
+            exact pi_bound_4 x h4
+          · simp only [h4, ite_false]
+            by_cases h5 : x ∈ Set.Ico (exp 2000) (exp 3000)
+            · simp only [h5, ite_true]
+              exact pi_bound_5 x h5
+            · simp only [h5, ite_false]
+              apply pi_bound_6
+              simp only [Set.mem_Ico, not_and_or, not_le, not_lt] at h1 h2 h3 h4 h5
+              rcases h5 with h5 | h5
+              · rcases h4 with h4 | h4
+                · rcases h3 with h3 | h3
+                  · rcases h2 with h2 | h2
+                    · rcases h1 with h1 | h1
+                      · linarith
+                      · linarith
+                    · linarith
+                  · linarith
+                · linarith
+              · exact h5
 
 noncomputable def xₐ : ℝ := exp 3914
 
