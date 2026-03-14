@@ -542,11 +542,245 @@ theorem theorem_h (r : ℕ) (hr : r ≥ 5) (x : ℝ) (hx : x ≥ 1) :
 
 end DelegliseNicolas
 
+namespace Rosser1938
+
+/- NOTE FOR CLAUDE: use `nth_prime'` rather than `nth_prime` to have the primes indexed from 1 -/
+
+blueprint_comment /-- Some results from \cite{rosser1938} -/
+
+@[blueprint
+  "thm:rosser1938-pn-gt-nlogn"
+  (title := "Rosser 1938, p_n > n log n")
+  (statement := /-- For $n \geq 2$, we have $p_n > n \log n$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
+    nth_prime' n > n * log n := by sorry
+
+@[blueprint
+  "thm:rosser1938-pn-lower"
+  (title := "Rosser 1938, lower bound on p_n")
+  (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 10)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_gt_2 (n : ℕ) (hn : n > 1) :
+    nth_prime' n > n * (log n + log (log n) - 10) := by sorry
+
+@[blueprint
+  "thm:rosser1938-pn-upper"
+  (title := "Rosser 1938, upper bound on p_n")
+  (statement := /-- For $n > 1$, we have $p_n < n(\log n + \log\log n + 8)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lt_2 (n : ℕ) (hn : n > 1) :
+    nth_prime' n < n * (log n + log (log n) + 8) := by sorry
+
+end Rosser1938
+
+namespace Cipolla
+
+blueprint_comment /-- Some results from \cite{cippola} -/
+
+@[blueprint
+  "thm:cipolla-pn-asym"
+  (title := "Cipolla asymptotic expansion for p_n")
+  (statement := /-- The $n$-th prime satisfies
+  $p_n = n\!\left(\log n + \log\log n - 1 + \frac{\log\log n - 2}{\log n} -
+  \frac{(\log\log n)^2 - 6\log\log n + 11}{2\log^2 n} + \cdots\right)$;
+  more precisely, the error
+  $p_n - n\!\left(\log n + \log\log n - 1 + \frac{\log\log n - 2}{\log n} -
+  \frac{(\log\log n)^2 - 6\log\log n + 11}{2\log^2 n}\right)$
+  is $o(n / \log^2 n)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_asym :
+    (fun n : ℕ => (nth_prime' n : ℝ) - n * (log n + log (log n) - 1 +
+        (log (log n) - 2) / log n -
+        ((log (log n)) ^ 2 - 6 * log (log n) + 11) / (2 * (log n) ^ 2))) =o[Filter.atTop]
+    (fun n : ℕ => (n : ℝ) / (log n) ^ 2) := by sorry
+
+end Cipolla
+
+namespace Rosser1941
+
+blueprint_comment /-- Some results from \cite{rosser1941} -/
+
+@[blueprint
+  "thm:rosser1941-pn-lower"
+  (title := "Rosser 1941, lower bound on p_n")
+  (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
+    nth_prime' n > n * (log n + log (log n) - 4) := by sorry
+
+@[blueprint
+  "thm:rosser1941-pn-upper"
+  (title := "Rosser 1941, upper bound on p_n")
+  (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_upper (n : ℕ) (hn : n ≥ 1) :
+    nth_prime' n < n * (log n + log (log n) + 2) := by sorry
+
+end Rosser1941
+
+
+namespace RS_prime
+
+blueprint_comment /-- Some results from \cite{rs-prime} -/
+
+@[blueprint
+  "thm:rs-1962-pn-lower"
+  (title := "Rosser-Schoenfeld 1962, lower bound on p_n")
+  (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 3/2)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower (n : ℕ) (hn : n > 1) :
+    nth_prime' n > n * (log n + log (log n) - 3 / 2) := by sorry
+
+@[blueprint
+  "thm:rs-1962-pn-upper"
+  (title := "Rosser-Schoenfeld 1962, upper bound on p_n")
+  (statement := /-- For $n > 19$, we have $p_n < n(\log n + \log\log n - 1/2)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_upper (n : ℕ) (hn : n > 19) :
+    nth_prime' n < n * (log n + log (log n) - 1 / 2) := by sorry
+
+end RS_prime
+
+namespace Robin
+
+blueprint_comment /-- Some results from \cite{robin} -/
+
+@[blueprint
+  "thm:robin1983-pn-lower"
+  (title := "Robin 1983, lower bound on p_n")
+  (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 1.0072629)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower (n : ℕ) (hn : n > 1) :
+    nth_prime' n > n * (log n + log (log n) - 1.0072629) := by sorry
+
+@[blueprint
+  "thm:robin1983-pn-lower-const1"
+  (title := "Robin 1983, lower bound on p_n with constant 1 for small primes")
+  (statement := /-- For $p_n \leq 10^{11}$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower_const1 (n : ℕ) (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
+    nth_prime' n > n * (log n + log (log n) - 1) := by sorry
+
+end Robin
+
+namespace MassiasRobin
+
+blueprint_comment /-- Some results from \cite{massias-robin} -/
+
+@[blueprint
+  "thm:massias-robin1996-pn-lower"
+  (title := "Massias-Robin 1996, lower bound on p_n with constant 1")
+  (statement := /-- If $p_n < e^{598}$ or $p_n > e^{1800}$, then
+  $p_n > n(\log n + \log\log n - 1)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower (n : ℕ)
+    (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
+    nth_prime' n > n * (log n + log (log n) - 1) := by sorry
+
+end MassiasRobin
+
+namespace Dusart1999
+
+blueprint_comment /-- Some results from \cite{Dusart1999} -/
+
+@[blueprint
+  "thm:dusart1999-pn-lower"
+  (title := "Dusart 1999, lower bound on p_n")
+  (statement := /-- For all $n > 1$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_lower (n : ℕ) (hn : n > 1) :
+    nth_prime' n > n * (log n + log (log n) - 1) := by sorry
+
+@[blueprint
+  "thm:dusart1999-pn-upper"
+  (title := "Dusart 1999, upper bound on p_n")
+  (statement := /-- For $n > 39017$ (i.e., $p_n > 467473$), we have
+  $p_n < n(\log n + \log\log n - 0.9484)$. -/)
+  (latexEnv := "theorem")]
+theorem p_n_upper (n : ℕ) (hn : n > 39017) :
+    nth_prime' n < n * (log n + log (log n) - 0.9484) := by sorry
+
+end Dusart1999
+
+namespace CMS
+
+blueprint_comment  /-- Some results from \cite{CMS2019} -/
+
+@[blueprint
+  "thm:cms2019-prime-gap"
+  (title := "Carneiro-Milinovich-Soundararajan 2019, prime gap under RH")
+  (statement := /-- Under the Riemann Hypothesis, for all $n \geq 3$, we have
+  $p_{n+1} - p_n \leq \frac{22}{25}\sqrt{p_n}\log p_n$. -/)
+  (latexEnv := "theorem")]
+theorem prime_gap (n : ℕ) (hn : n ≥ 3) (RH : RiemannHypothesis) :
+    (nth_prime' (n + 1) : ℝ) - nth_prime' n ≤
+      22 / 25 * sqrt (nth_prime' n) * log (nth_prime' n) := by sorry
+
+end CMS
+
+
+namespace Axler
+
+blueprint_comment /-- Some results from \cite{Axler} -/
+
+@[blueprint
+  "thm:axler2019-sum-prime-lower"
+  (title := "Axler 2019, lower bound for sum of first k primes")
+  (statement := /-- For $k \geq 6{,}309{,}751$, we have
+  $\sum_{i \leq k} p_i \geq \frac{k^2}{4} + \frac{k^2}{4\log k} -
+  \frac{k^2(\log\log k - 2.9)}{4(\log k)^2}$. -/)
+  (latexEnv := "theorem")]
+theorem sum_prime_lower (k : ℕ) (hk : k ≥ 6309751) :
+    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≥
+      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
+      (k : ℝ) ^ 2 * (log (log k) - 2.9) / (4 * (log k) ^ 2) := by sorry
+
+@[blueprint
+  "thm:axler2019-sum-prime-upper"
+  (title := "Axler 2019, upper bound for sum of first k primes")
+  (statement := /-- For $k \geq 256{,}376$, we have
+  $\sum_{i \leq k} p_i \leq \frac{k^2}{4} + \frac{k^2}{4\log k} -
+  \frac{k^2(\log\log k - 4.42)}{4(\log k)^2}$. -/)
+  (latexEnv := "theorem")]
+theorem sum_prime_upper (k : ℕ) (hk : k ≥ 256376) :
+    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≤
+      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
+      (k : ℝ) ^ 2 * (log (log k) - 4.42) / (4 * (log k) ^ 2) := by sorry
+
+end Axler
+
+namespace DeKoninckLetendre
+
+blueprint_comment /-- Some results from \cite{DeKoninckLetendre} -/
+
+@[blueprint
+  "thm:dekoninck-letendre2020-sum-log-prime"
+  (title := "DeKoninck-Letendre 2020, upper bound for sum of log p_i")
+  (statement := /-- For $k \geq 5$, we have
+  $\sum_{i \leq k} \log p_i \leq k(\log k + \log\log k - 1/2)$. -/)
+  (latexEnv := "theorem")]
+theorem sum_log_prime (k : ℕ) (hk : k ≥ 5) :
+    ∑ i ∈ Finset.Icc 1 k, log (nth_prime' i : ℝ) ≤
+      k * (log k + log (log k) - 1 / 2) := by sorry
+
+@[blueprint
+  "thm:dekoninck-letendre2020-sum-loglog-prime"
+  (title := "DeKoninck-Letendre 2020, lower bound for sum of log log p_i")
+  (statement := /-- For $k \geq 6$, we have
+  $\sum_{i \leq k} \log\log p_i \geq k\!\left(\log\log k +
+  \frac{\log\log k - 3/2}{\log k}\right)$. -/)
+  (latexEnv := "theorem")]
+theorem sum_loglog_prime (k : ℕ) (hk : k ≥ 6) :
+    ∑ i ∈ Finset.Icc 1 k, log (log (nth_prime' i : ℝ)) ≥
+      k * (log (log k) + (log (log k) - 3 / 2) / log k) := by sorry
+
+end DeKoninckLetendre
+
 blueprint_comment /--
 \subsection{Short intervals containing primes}
 
 The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
-
 namespace Schoenfeld1976
 
 @[blueprint

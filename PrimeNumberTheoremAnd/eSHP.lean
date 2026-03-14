@@ -44,7 +44,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8) (htest : p <
     refine ⟨1, by simp [nth_prime], by simp [nth_prime_gap, nth_prime], ?_⟩
     intro k hk
     have hk' : k < 1 := by
-      have hkn : Nat.nth Nat.Prime k < Nat.nth Nat.Prime 1 := by
+      have hkn : nth_prime k < nth_prime 1 := by
         simpa [nth_prime] using hk
       exact (Nat.nth_lt_nth (p := Nat.Prime) Nat.infinite_setOf_prime).1 hkn
     have hk0 : k = 0 := Nat.lt_one_iff.mp hk'
@@ -54,7 +54,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8) (htest : p <
     refine ⟨3, by simp [nth_prime], by simp [nth_prime_gap, nth_prime], ?_⟩
     intro k hk
     have hk' : k < 3 := by
-      have hkn : Nat.nth Nat.Prime k < Nat.nth Nat.Prime 3 := by
+      have hkn : nth_prime k < nth_prime 3 := by
         simpa [nth_prime] using hk
       exact (Nat.nth_lt_nth (p := Nat.Prime) Nat.infinite_setOf_prime).1 hkn
     interval_cases k <;> simp [nth_prime_gap, nth_prime]
@@ -67,7 +67,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8) (htest : p <
     refine ⟨8, h23', by simp [nth_prime_gap, h23', h29], ?_⟩
     intro k hk
     have hk' : k < 8 := by
-      have hkn : Nat.nth Nat.Prime k < Nat.nth Nat.Prime 8 := by
+      have hkn : nth_prime k < nth_prime 8 := by
         simpa [nth_prime, h23'] using hk
       exact (Nat.nth_lt_nth (p := Nat.Prime) Nat.infinite_setOf_prime).1 hkn
     interval_cases k <;>
@@ -318,18 +318,18 @@ lemma nth_prime_vals :
         use count Nat.Prime b
         interval_cases b <;> simp +arith +decide at hb ⊢
     · exact Nat.sInf_le ⟨by norm_num, fun k hk ↦ by interval_cases k <;> norm_num [*]⟩
-  · have h_nth_prime_6 : nth Nat.Prime 6 = 17 := by
+  · have h_nth_prime_6 : nth_prime 6 = 17 := by
       have : count Nat.Prime 17 = 6 := by decide
-      rw [← this, nth_count]
+      rw [← this, nth_prime, nth_count]
       norm_num
     exact h_nth_prime_6
-  · have h_prime_7 : nth Nat.Prime 7 = 19 := by
-      have : nth Nat.Prime 7 = nth Nat.Prime (count Nat.Prime 19) := by congr
+  · have h_prime_7 : nth_prime 7 = 19 := by
+      have : nth_prime 7 = nth_prime (count Nat.Prime 19) := by congr
       exact this.trans (nth_count <| by norm_num)
     exact h_prime_7
-  · have h_prime_8 : nth Nat.Prime 8 = 23 := by
+  · have h_prime_8 : nth_prime 8 = 23 := by
       have : count Nat.Prime 23 = 8 := by decide
-      rw [← this, nth_count]
+      rw [← this, nth_prime, nth_count]
       norm_num
     exact h_prime_8
 
@@ -402,9 +402,9 @@ lemma first_gap_6 : first_gap 6 = 23 := by
     all_goals simp_all [nth_prime_gap, nth_prime_vals]
   · contrapose! h
     use 8
-    norm_num [nth_prime_gap, nth_prime_vals, nth_prime]
-    have h_prime_10 : nth Nat.Prime 9 = 29 := by
-      have : nth Nat.Prime 9 = nth Nat.Prime (count Nat.Prime 29) := by congr
+    norm_num [nth_prime_gap, nth_prime_vals]
+    have h_prime_10 : nth_prime 9 = 29 := by
+      have : nth_prime 9 = nth_prime (count Nat.Prime 29) := by congr
       exact this.trans (nth_count <| by norm_num)
     exact h_prime_10.symm ▸ rfl
 
