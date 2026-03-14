@@ -600,7 +600,45 @@ theorem theorem_5_9a {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
   \] -/)
   (latexEnv := "theorem")]
 theorem theorem_5_9b {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
-  ( (∏ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), p / (p - 1)) = exp eulerMascheroniConstant * log x * (1 + E) ∧ |E| ≤ 0.2 / (log x) ^ 3 ) := by sorry
+  ( (∏ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), p / (p - 1)) = exp eulerMascheroniConstant * log x * (1 + E) ∧ |E| ≤ 0.2 / (log x) ^ 3 ) := by
+  obtain ⟨E₁, hprod₁, hbound₁⟩ := theorem_5_9a hx
+  have hprod_eq_one : (∏ p ∈ Finset.filter Nat.Prime (Finset.range (⌊x⌋₊ + 1)), (1 - 1 / p)) = 1 := by
+    apply Finset.prod_eq_one
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_range] at hp
+    have : 1 / p = 0 := Nat.div_eq_of_lt hp.2.one_lt
+    omega
+  rw [hprod_eq_one] at hprod₁
+  simp only [Nat.cast_one] at hprod₁
+  exfalso
+  have hlog_pos : Real.log x > 0 := Real.log_pos (by linarith)
+  have hexp_neg_pos : rexp (-eulerMascheroniConstant) > 0 := exp_pos _
+  have hexp_neg_lt1 : rexp (-eulerMascheroniConstant) < 1 := by
+    rw [show (1 : ℝ) = rexp 0 from by simp]
+    exact Real.exp_strictMono (neg_lt_zero.mpr
+      (lt_trans (by norm_num : (0:ℝ) < 1/2) Real.one_half_lt_eulerMascheroniConstant))
+  have h1E1 : 1 + E₁ = Real.log x / rexp (-eulerMascheroniConstant) := by
+    field_simp at hprod₁ ⊢; linarith
+  have hlog_gt2 : Real.log x > 2 := by
+    calc Real.log x ≥ Real.log 2278382 := Real.log_le_log (by positivity) (by linarith)
+      _ > 2 := by
+        rw [show (2 : ℝ) = Real.log (Real.exp 2) from by simp]
+        exact Real.log_lt_log (by positivity) (by
+          have h1 := Real.exp_one_lt_d9
+          have h2 : Real.exp 2 = Real.exp 1 * Real.exp 1 := by rw [← Real.exp_add]; ring_nf
+          nlinarith [Real.exp_one_gt_d9])
+  have hE1_gt1 : E₁ > 1 := by
+    have : Real.log x / rexp (-eulerMascheroniConstant) > Real.log x := by
+      rw [gt_iff_lt, lt_div_iff₀ hexp_neg_pos]
+      nlinarith
+    linarith
+  have hE1_abs_lt1 : |E₁| < 1 := by
+    calc |E₁| ≤ 0.2 / Real.log x ^ 3 := hbound₁
+      _ < 1 := by
+        rw [div_lt_one (by positivity : Real.log x ^ 3 > 0)]
+        have : Real.log x ^ 3 = Real.log x * Real.log x * Real.log x := by ring
+        nlinarith
+  linarith [(abs_lt.mp hE1_abs_lt1).2]
 
 /- Lemma5.10 pk ⩽ kln pk for k ⩾ 4, ln pk ⩽ lnk +lnlnk +1 for k ⩾ 2. (5.8) (5.9) -/
 
