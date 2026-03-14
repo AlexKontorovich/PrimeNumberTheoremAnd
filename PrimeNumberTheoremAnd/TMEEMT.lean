@@ -1,4 +1,5 @@
 import Architect
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.Dusart
 
@@ -12,6 +13,8 @@ Some of these results are already stated elsewhere.  In such cases, we can fill 
 -/
 
 open Real Chebyshev
+open ArithmeticFunction hiding log
+
 
 blueprint_comment /--
 \subsection{Explicit bounds on primes}
@@ -274,6 +277,120 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 2) :
 
 end FKS
 
+
+namespace Ramare2013
+
+blueprint_comment /-- Some results from \cite{ramare2013} -/
+
+@[blueprint
+  "thm:ramare2013-vms-1a"
+  (title := "Ramare 2013, von Mangoldt sum 1a")
+  (statement := /-- For $x > 1$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 1.833 / \log^2 x$. -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1a (x : ℝ) (hx : x > 1) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      1.833 / (log x) ^ 2 := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1b"
+  (title := "Ramare 2013, von Mangoldt sum 1b")
+  (statement := /-- For $x \geq 1520000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$. -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      0.0067 / log x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1c"
+  (title := "Ramare 2013, von Mangoldt sum 1c")
+  (statement := /-- For $x \geq 468000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$. -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1c (x : ℝ) (hx : x ≥ 468000) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      0.01 / log x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1d"
+  (title := "Ramare 2013, von Mangoldt sum 1d")
+  (statement := /-- For $1 \leq x \leq 10^{10}$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 1.31 / \sqrt{x}$. -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1d (x : ℝ) (hx1 : x ≥ 1) (hx2 : x ≤ (10 : ℝ) ^ 10) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      1.31 / sqrt x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-2"
+  (title := "Ramare 2013, von Mangoldt sum 2")
+  (statement := /-- For $x \geq 8950$, there exists $E$ with $\sum_{n \leq x} \Lambda(n)/n = \log x - \gamma + (\psi(x) - x)/x + E$ and $|E| \leq 1/(2\sqrt{x}) + 1.75 \cdot 10^{-12}$. -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_2 (x : ℝ) (hx : x ≥ 8950) :
+    ∃ E, ∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n =
+        log x - eulerMascheroniConstant + (ψ x - x) / x + E ∧
+      |E| ≤ 1 / (2 * sqrt x) + 1.75e-12 := by sorry
+
+end Ramare2013
+
+namespace Mawia
+
+blueprint_comment /-- Some results from \cite{mawia} -/
+
+@[blueprint
+  "thm:mawia-spi-a"
+  (title := "Mawia 2017, prime reciprocal sum a")
+  (statement := /-- For $x \geq 2$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 4 / \log^3 x$, where $B$ is the Meissel-Mertens constant. -/)
+  (latexEnv := "theorem")]
+theorem sum_p_inv_a (x : ℝ) (hx : x ≥ 2) :
+    |∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (1 / (p : ℝ)) -
+        log (log x) - meisselMertensConstant| ≤ 4 / (log x) ^ 3 := by sorry
+
+@[blueprint
+  "thm:mawia-spi-b"
+  (title := "Mawia 2017, prime reciprocal sum b")
+  (statement := /-- For $x \geq 1000$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 2.3 / \log^3 x$. -/)
+  (latexEnv := "theorem")]
+theorem sum_p_inv_b (x : ℝ) (hx : x ≥ 1000) :
+    |∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (1 / (p : ℝ)) -
+        log (log x) - meisselMertensConstant| ≤ 2.3 / (log x) ^ 3 := by sorry
+
+@[blueprint
+  "thm:mawia-spi-c"
+  (title := "Mawia 2017, prime reciprocal sum c")
+  (statement := /-- For $x \geq 24284$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 1 / \log^3 x$. -/)
+  (latexEnv := "theorem")]
+theorem sum_p_inv_c (x : ℝ) (hx : x ≥ 24284) :
+    |∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (1 / (p : ℝ)) -
+        log (log x) - meisselMertensConstant| ≤ 1 / (log x) ^ 3 := by sorry
+
+@[blueprint
+  "thm:mawia-spi-d"
+  (title := "Mawia 2017, prime reciprocal sum d")
+  (statement := /-- For $\log x \geq 4635$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 1.1 \exp(-\sqrt{0.175 \log x}) / (\log x)^{3/4}$. -/)
+  (latexEnv := "theorem")]
+theorem sum_p_inv_d (x : ℝ) (hx : log x ≥ 4635) :
+    |∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (1 / (p : ℝ)) -
+        log (log x) - meisselMertensConstant| ≤
+      1.1 * exp (-sqrt (0.175 * log x)) / (log x) ^ ((3 : ℝ) / 4) := by sorry
+
+end Mawia
+
+namespace Ramare2016
+
+blueprint_comment /-- Some results from \cite{ramare2016} -/
+
+/-NOTE: Here one should make a predicate for this sort of estimate holding for specific thresholds of P and specific choices of epsilon, and then have different versions of `lemma_3_2` for the different numerical choices involved.
+
+Let 𝑓 be a 𝐶1 non-negative, non-increasing function over [𝑃,∞), where 𝑃 ≥3 600 000 is a real number and such that lim𝑡→∞⁡𝑡⁢𝑓⁡(𝑡) =0. We have
+
+∑𝑝≥𝑃𝑓⁡(𝑝)⁢log⁡𝑝 ≤(1 +𝜖)⁢∫∞
+𝑃𝑓⁡(𝑡)𝑑𝑡 +𝜖⁢𝑃⁢𝑓⁡(𝑃) +𝑃⁢𝑓⁡(𝑃)/(5⁢log2⁡𝑃)
+
+with 𝜖 =1/914. When we can only ensure 𝑃 ≥2, then a similar inequality holds, simply replacing the last 1/5 by 4.
+
+The above result relies on (5.1*) of [Schoenfeld, 1976] because it is easily accessible. However on using Proposition 5.1 of [Dusart, 2016], one has access to 𝜖 =1/36260.
+-/
+
+
+end Ramare2016
 
 blueprint_comment /--
 \subsection{Short intervals containing primes}
