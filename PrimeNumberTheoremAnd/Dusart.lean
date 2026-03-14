@@ -480,10 +480,10 @@ theorem theorem_5_9b {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
 @[blueprint "Dusart_lemma_5_10a"
   (title := "Dusart Lemma 5.10")
   (statement := /--
-  We have for $k \geq 4$, $p_k \leq k \log p_k$.
+  We have for $k \geq 4$, $p_k \leq k \log p_k$.  (Note: in Lean primes are indexed from $0$, so we have to subtract $1$ from the index.)
   -/)
   (latexEnv := "lemma")]
-theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth Nat.Prime k ≤ k * Real.log (nth Nat.Prime k) := by sorry
+theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth Nat.Prime (k - 1) ≤ k * Real.log (nth Nat.Prime (k - 1)) := by sorry
 
 @[blueprint "Dusart_lemma_5_10b"
   (title := "Dusart Lemma 5.10")
@@ -503,7 +503,7 @@ theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth Nat.Prime k) ≤ Re
   -/)
   (latexEnv := "theorem")]
 theorem massias_robin_thm_Bv {k : ℕ} (hk : k ≥ 198) :
-  θ (nth Nat.Prime k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  θ (nth Nat.Prime (k-1)) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
 
 @[blueprint "Dusart_prop_5_11a"
   (title := "Dusart Proposition 5.11")
@@ -514,8 +514,8 @@ theorem massias_robin_thm_Bv {k : ℕ} (hk : k ≥ 198) :
   \]
   -/)
   (latexEnv := "proposition")]
-theorem proposition_5_11a {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 11) :
-  θ (nth Nat.Prime k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k) := by sorry
+theorem proposition_5_11a {k : ℕ} (hk : nth Nat.Prime (k-1) ≥ 10 ^ 11) :
+  θ (nth Nat.Prime (k-1)) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k) := by sorry
 
 @[blueprint "Dusart_prop_5_11b"
   (title := "Dusart Proposition 5.11")
@@ -526,8 +526,8 @@ theorem proposition_5_11a {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 11) :
   \]
   -/)
   (latexEnv := "proposition")]
-theorem proposition_5_11b {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 15) :
-  θ (nth Nat.Prime k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k) := by sorry
+theorem proposition_5_11b {k : ℕ} (hk : nth Nat.Prime (k-1) ≥ 10 ^ 15) :
+  θ (nth Nat.Prime (k-1)) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k) := by sorry
 
 @[blueprint "Dusart_prop_5_12"
   (title := "Dusart Proposition 5.12")
@@ -539,7 +539,7 @@ theorem proposition_5_11b {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 15) :
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_12 {k : ℕ} (hk : k ≥ 781) :
-  θ (nth Nat.Prime k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2 := by sorry
+  θ (nth Nat.Prime (k-1)) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2 := by sorry
 
 @[blueprint "Dusart_lemma_5_14"
   (title := "Dusart Lemma 5.14")
@@ -551,7 +551,7 @@ theorem proposition_5_12 {k : ℕ} (hk : k ≥ 781) :
   -/)
   (latexEnv := "lemma")]
 theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
-  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k) := by sorry
+  nth Nat.Prime (k-1) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k) := by sorry
 
 @[blueprint "Dusart_prop_5_15"
   (title := "Dusart Proposition 5.15")
@@ -563,7 +563,7 @@ theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
-  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  nth Nat.Prime (k-1) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
 
 @[blueprint "Dusart_prop_5_16"
   (title := "Dusart Proposition 5.16")
@@ -575,6 +575,6 @@ theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_16 {k : ℕ} (hk : k ≥ 3) :
-  nth Nat.Prime k ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k) := by sorry
+  nth Nat.Prime (k-1) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k) := by sorry
 
 end Dusart
