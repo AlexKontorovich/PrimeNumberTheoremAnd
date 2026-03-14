@@ -4,6 +4,7 @@ import Mathlib.NumberTheory.Bertrand
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.Dusart
+import PrimeNumberTheoremAnd.TMEEMT
 
 blueprint_comment /--
 \section{Summary of results}
@@ -17,9 +18,6 @@ References to add:
 
 Dusart \cite{Dusart2018}
 
-PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem,
-Math. Comp. 90 (2021), no. 328, 871–881.
-
 JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number
 theorem, arXiv:2204.01980.
 -/
@@ -28,6 +26,7 @@ open Finset Real Chebyshev
 
 namespace PT
 
+blueprint_comment /-- results from \cite{PT2021}-/
 
 def Table_1 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) :=
  [ (1000, 0.98, 461.9, 1.52, 1.89, 1.20e-5),
@@ -241,6 +240,8 @@ end Trudgian2016
 
 namespace JY
 
+blueprint_comment /-- results from \cite{johnston-yang}-/
+
 @[blueprint
   "thm:jy_13"
   (title := "JY Corollary 1.3")
@@ -300,299 +301,9 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   (latexEnv := "theorem")]
 theorem theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
 
-end JY
-
 blueprint_comment /-- TODO: input other results from JY -/
 
-blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
-
-namespace Schoenfeld1976
-
-@[blueprint
-  "thm:schoenfeld1976"
-  (title := "Schoenfeld 1976")
-  (statement := /--
-  If $x > 2010760$, then there is a prime in the interval
-  \[
-  \left( x\left(1 - \frac{1}{15697}\right), x \right].
-  \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
-
-end Schoenfeld1976
-
-namespace RamareSaouter2003
-
-@[blueprint
-  "thm:ramare-saouter2003"
-  (title := "Ramaré-Saouter 2003")
-  (statement := /--
-  If $x > 10,726,905,041$, then there is a prime in the interval $(x(1-1/28314000), x]$.
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
-    HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
-
-end RamareSaouter2003
-
-namespace GourdonDemichel2004
-
-@[blueprint
-  "thm:gourdon-demichel2004"
-  (title := "Gourdon-Demichel 2004")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
-
-end GourdonDemichel2004
-
-namespace PrimeGaps2014
-
-@[blueprint
-  "thm:prime_gaps_2014"
-  (title := "Prime Gaps 2014")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{1966196911}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
-  obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
-  exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
-
-end PrimeGaps2014
-
-namespace PrimeGaps2024
-
-@[blueprint
-  "thm:prime_gaps_2024"
-  (title := "Prime Gaps 2024")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{76900000000}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
-
-end PrimeGaps2024
-
-namespace Axler2018
-
-@[blueprint
-  "thm:axler2018_1"
-  (title := "Axler 2018 Theorem 1.4(1)")
-  (statement := /-- If $x ≥ 6034256$, then there
-  is a prime in the interval
-  \[ \left( x, x\left(1 + \frac{0.087}{\log^3 x}\right) \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
-    HasPrimeInInterval x (x * (0.087 / (log x) ^ 3)) := by sorry
-
-@[blueprint
-  "thm:axler2018_2"
-  (title := "Axler 2018 Theorem 1.4(2)")
-  (statement := /-- If $x >1$, then there
-  is a prime in the interval
-  \[ \left( x, x\left(1 + \frac{198.2}{\log^4 x}\right) \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
-    HasPrimeInInterval x (x * (198.2 / (log x) ^ 4)) := by sorry
-
-end Axler2018
-
-namespace Dusart
-
-def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
-
-def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
-    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
-  _root_.Dusart.corollary_5_5 hx
-
-end Dusart
-
-namespace Dudek2014
-
-@[blueprint
-  "thm:dudek2014"
-  (title := "Dudek 2014")
-  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
-  \[ \left( x, x + 3x^{2/3} \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
-    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
-
-end Dudek2014
-
-namespace CullyHugill2021
-
-@[blueprint
-  "thm:cully-hugill2021"
-  (title := "Cully-Hugill 2021")
-  (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
-  \[ \left( x, x + 3x^{2/3} \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
-    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
-
-end CullyHugill2021
-
-namespace RHPrimeInterval2002
-
-@[blueprint
-  "thm:rh_prime_interval_2002"
-  (title := "RH Prime Interval 2002")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by sorry
-
-end RHPrimeInterval2002
-
-namespace Dudek2015RH
-
-@[blueprint
-  "thm:dudek2015_rh"
-  (title := "Dudek 2015 under RH")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{4}{\pi}\sqrt{x} \log x, x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (4 / π) * sqrt x * log x) ((4 / π) * sqrt x * log x) := by sorry
-
-end Dudek2015RH
-
-namespace CarneiroEtAl2019RH
-
-@[blueprint
-  "thm:carneiroetal_2019_rh"
-  (title := "Carneiro et al. 2019 under RH")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
-
-end CarneiroEtAl2019RH
-
-namespace KadiriLumley
-
-noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ ) :=
-  [(log (4 * 10 ^ 18), 5, 3.580e-8, 272519712, 0.92, 0.2129, 36082898),
-   (43, 5, 3.349e-8, 291316980, 0.92, 0.2147, 38753947),
-   (44, 6, 2.330e-8, 488509984, 0.92, 0.2324, 61162616),
-   (45, 7, 1.628e-8, 797398875, 0.92, 0.2494, 95381241),
-   (46, 8, 1.134e-8, 1284120197, 0.92, 0.2651, 148306019),
-   (47, 9, 8.080e-9, 1996029891, 0.92, 0.2836, 227619375),
-   (48, 11, 6.000e-9, 3204848430, 0.93, 0.3050, 346582570),
-   (49, 15, 4.682e-9, 5415123831, 0.93, 0.3275, 518958776),
-   (50, 20, 3.889e-9, 8466793105, 0.93, 0.3543,753575355),
-   (51 ,28 ,3.625e-9 ,12399463961 ,0.93 ,0.3849 ,1037917449),
-   (52 ,39 ,3.803e-9 ,16139006408 ,0.93 ,0.4127 ,1313524036),
-   (53 ,48 ,4.088e-9 ,18290358817 ,0.93 ,0.4301 ,1524171138),
-   (54 ,54 ,4.311e-9 ,19412056863 ,0.93 ,0.4398 ,1670398039),
-   (55 ,56 ,4.386e-9 ,19757119193 ,0.93 ,0.4445 ,1770251249),
-   (56 ,59 ,4.508e-9 ,20210075547 ,0.93 ,0.4481 ,1838818070),
-   (57 ,59 ,4.506e-9 ,20219045843 ,0.93 ,0.4496 ,1886389443),
-   (58 ,61 ,4.590e-9 ,20495459359 ,0.93 ,0.4514 ,1920768795),
-   (59 ,61 ,4.589e-9 ,20499925573 ,0.93 ,0.4522 ,1946282821),
-   (60 ,61 ,4.588e-9 ,20504393735 ,0.93 ,0.4527 ,1966196911),
-   (150, 64, 4.685e-9, 21029543983, 0.96, 0.4641, 2442159714)]
-
-@[blueprint
-  "thm:prime_gaps_KL"
-  (title := "Kadiri-Lumley Prime Gaps")
-  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$, there is a prime between $x(1-\Delta^{-1})$ and $x$.
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
-    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
-
-end KadiriLumley
-
-namespace RamareSaouter2003
-
-@[blueprint
-  "thm:ramare_saouter2003-2"
-  (title := "Ramaré-Saouter 2003 (2)")
-  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
-  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
-  -/)
-  (latexEnv := "theorem")]
-theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by
-  have hrow : (log (exp 53), (48:ℝ), (4.088e-9:ℝ), (18290358817:ℝ), (0.93:ℝ),
-      (0.4301:ℝ), (1524171138:ℝ)) ∈ KadiriLumley.Table_2 := by
-    rw [log_exp]; simp only [KadiriLumley.Table_2, List.mem_cons, Prod.mk.injEq,
-      List.mem_nil_iff, or_false]; norm_num
-  obtain ⟨p, hp, hlo, hhi⟩ := KadiriLumley.has_prime_in_interval (exp 53) x 48 4.088e-9
-    18290358817 0.93 0.4301 1524171138 hx.le hrow
-  exact ⟨p, hp, by nlinarith [exp_pos (53 : ℝ)],
-    by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
-      x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
-
-end RamareSaouter2003
+end JY
 
 
-namespace Buthe2
 
-blueprint_comment /--
-Some results from \cite{Buthe2}-/
-
-@[blueprint
-  "thm:buthe-2a"
-  (title := "Buthe Theorem 2, part a")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
-  -/)
-  (latexEnv := "theorem")]
-theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
-  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |ψ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
-
-@[blueprint
-  "thm:buthe-2b"
-  (title := "Buthe Theorem 2, part b")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
-  -/)
-  (latexEnv := "theorem")]
-theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
-  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
-  |θ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
-
-@[blueprint
-  "thm:buthe-2c"
-  (title := "Buthe Theorem 2, part c")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
-  -/)
-  (latexEnv := "theorem")]
-theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
-  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |pi_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
-
-@[blueprint
-  "thm:buthe-2d"
-  (title := "Buthe Theorem 2, part d")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
-  $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
-  -/)
-  (latexEnv := "theorem")]
-theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
-  (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
-  |pi x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
-
-end Buthe2
