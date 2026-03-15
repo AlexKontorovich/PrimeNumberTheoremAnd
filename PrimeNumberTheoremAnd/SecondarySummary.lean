@@ -44,9 +44,11 @@ def Table_1 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) :=
 @[blueprint "pt_thm_1"
   (title := "PT Theorem 1")
   (statement := /--
-Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
+Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021}
+we have
 \begin{equation}\label{marcellina}
-\left|\frac{\psi(x) - x}{x}\right| \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\left|\frac{\psi(x) - x}{x}\right| \leq A \left(\frac{\log x}{R}\right)^B
+  \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
 \end{equation}
 and
 \begin{equation*}
@@ -56,7 +58,8 @@ for all $\log x \geq X$.
   -/)
   (latexEnv := "theorem")]
 theorem theorem_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
-  Eψ.classicalBound A B C 5.573412 (exp X) ∧ Eψ.numericalBound (exp X) (fun _ ↦ ε₀) := by sorry
+    Eψ.classicalBound A B C 5.573412 (exp X) ∧
+      Eψ.numericalBound (exp X) (fun _ ↦ ε₀) := by sorry
 
 lemma admissible_bound_weaken {A B C x : ℝ}
     (hB : 3 / 2 ≤ B) (hB2 : B ≤ 2)
@@ -97,13 +100,17 @@ lemma table_1_bounds (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ T
 @[blueprint "pt_cor_1"
   (title := "PT Corollary 1")
   (statement := /--
-Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
+Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021}
+we have
 $$
-\left|\frac{\theta(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\left|\frac{\theta(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B
+  \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
 $$
 where $A_1 = A + 0.1$.
   -/)
-  (proof := /-- This follows trivially (and wastefully) from the work of Dusart  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}.  It should also follow from the results of \cite{FKS2}. -/)
+  (proof := /-- This follows trivially (and wastefully) from the work of Dusart
+  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}. It should also follow from
+  the results of \cite{FKS2}. -/)
   (latexEnv := "corollary")]
 theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
   Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by
@@ -133,26 +140,36 @@ theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
   refine (this x hx2).trans ?_
   simp only [admissible_bound]; norm_num
-  suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
-    exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤ 235 * log x ^ (38 / 25 : ℝ) by
+  suffices h_div :
+      92211 / 10000 * log x ^ (3 / 2 : ℝ) *
+        exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
+        235 * log x ^ (38 / 25 : ℝ)
+    by
     convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4 / 5 * log x^(1 / 2 : ℝ))) using 1
     · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4 / 5 * log x^(1 / 2 : ℝ))]; ring_nf
       norm_num [mul_assoc, ← exp_add]
-    simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, false_or]
+    simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero,
+      OfNat.ofNat_ne_zero, false_or]
     left
     linarith
-  suffices h_div : 92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
-      235 * log x ^ (38 / 25 - 3 / 2 : ℝ) by
-    convert mul_le_mul_of_nonneg_right h_div (rpow_nonneg (log_nonneg
-      (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
+  suffices h_div :
+      92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
+        235 * log x ^ (38 / 25 - 3 / 2 : ℝ)
+    by
+    convert mul_le_mul_of_nonneg_right h_div
+        (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
-  have hsqrtlogpos: 0 < log x ^ (1/2:ℝ) := by exact rpow_pos_of_pos (log_pos (by linarith: x > 1)) (1/2:ℝ)
-  have hneg: -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ) < 0 := by linarith
-  have hexpone: exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) < 1 := by exact exp_lt_one_iff.mpr hneg
-  have hcompare: 0 ≤ (38 / 25 - 3 / 2 : ℝ) := by linarith
-  have hlogone: log x ≥ 1 := by nlinarith [log_exp 2000, log_le_log (by positivity) hx]
-  have hlogone2:  (log x)^(0:ℝ) ≤ (log x)^(38 / 25 - 3 / 2 : ℝ) := by exact rpow_le_rpow_of_exponent_le hlogone hcompare
+  have hsqrtlogpos : 0 < log x ^ (1/2:ℝ) :=
+    by exact rpow_pos_of_pos (log_pos (by linarith : x > 1)) (1/2:ℝ)
+  have hneg : -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ) < 0 := by linarith
+  have hexpone :
+      exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) < 1 := by
+    exact exp_lt_one_iff.mpr hneg
+  have hcompare : 0 ≤ (38 / 25 - 3 / 2 : ℝ) := by linarith
+  have hlogone : log x ≥ 1 := by nlinarith [log_exp 2000, log_le_log (by positivity) hx]
+  have hlogone2 : (log x)^(0:ℝ) ≤ (log x)^(38 / 25 - 3 / 2 : ℝ) :=
+    by exact rpow_le_rpow_of_exponent_le hlogone hcompare
   rw [rpow_zero (log x)] at hlogone2
   linarith
 
@@ -160,7 +177,8 @@ end PT
 
 namespace Trudgian2016
 
-blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: add the Section 3.3 material on the conjecture of Pomerance --/
+blueprint_comment /-- Here we record some results from \cite{trudgian}. TODO: add the Section 3.3
+  material on the conjecture of Pomerance --/
 
 @[blueprint
   "trudgian:eps_0-def"
@@ -168,7 +186,8 @@ blueprint_comment /-- Here we record some results from \cite{trudgian}.  TODO: a
   (statement := /--
   One has
   \[
-\epsilon_{0}(x) = \sqrt{\frac{8}{17 \pi}} X^{1/2}e^{-X}, \quad X = \sqrt{(\log x)/R}, \quad R = 6.455.
+\epsilon_{0}(x) = \sqrt{\frac{8}{17 \pi}} X^{1/2}e^{-X}, \quad X = \sqrt{(\log x)/R},
+  \quad R = 6.455.
   \]
   for all $x \geq 2$.
   -/)]
@@ -215,12 +234,14 @@ theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
   (statement := /--
   For $x \geq 229$ one has
   \[
-  |\pi(x) - \mathrm{li}(x)| \leq 0.2795 \frac{x}{(\log x)^{3/4}} \exp\left(-\sqrt{\frac{\log x}{6.455}}\right).
+  |\pi(x) - \mathrm{li}(x)| \leq 0.2795 \frac{x}{(\log x)^{3/4}}
+    \exp\left(-\sqrt{\frac{\log x}{6.455}}\right).
   \]
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
-    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by sorry
+    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by
+  sorry
 
 
 @[blueprint
@@ -259,33 +280,47 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
   refine (this x hx2).trans ?_
   simp only [admissible_bound]; norm_num
-  suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
-    exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤ 959 / 100 * log x ^ (303 / 200 : ℝ) by
-    convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4137 / 5000 * log x^(1 / 2 : ℝ))) using 1
+  suffices h_div :
+      92211 / 10000 * log x ^ (3 / 2 : ℝ) *
+        exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
+        959 / 100 * log x ^ (303 / 200 : ℝ)
+    by
+    convert mul_le_mul_of_nonneg_right h_div
+        (exp_nonneg (-4137 / 5000 * log x^(1 / 2 : ℝ))) using 1
     · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4137 / 5000 * log x^(1 / 2 : ℝ))]
       ring_nf
       norm_num [mul_assoc, ← exp_add]
     simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero]
     left
     linarith
-  suffices h_div : 92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
-    959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ) by
-    convert mul_le_mul_of_nonneg_right h_div (rpow_nonneg (log_nonneg
-      (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
+  suffices h_div :
+      92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) +
+        4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
+        959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ)
+    by
+    convert mul_le_mul_of_nonneg_right h_div
+        (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;>
+      ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
-  have hsqrtlogpos: 0 < log x ^ (1/2:ℝ) := by exact rpow_pos_of_pos (log_pos (by linarith: x > 1)) (1/2:ℝ)
-  have hneg: -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ) < 0 := by linarith
-  have hexpone: exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) < 1 := by exact exp_lt_one_iff.mpr hneg
+  have hsqrtlogpos : 0 < log x ^ (1/2:ℝ) :=
+    by exact rpow_pos_of_pos (log_pos (by linarith : x > 1)) (1/2:ℝ)
+  have hneg :
+      -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ) < 0 :=
+    by linarith
+  have hexpone :
+      exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) < 1 := by
+    exact exp_lt_one_iff.mpr hneg
 
-  suffices h_calc: 92211/10000 ≤ 959/100 * log x ^(303 / 200 - 3/2 : ℝ) by linarith
-  refine le_trans ?_ <| mul_le_mul_of_nonneg_left (rpow_le_rpow (by grind)
-  (log_two_gt_d9.le.trans (log_le_log (by grind) hx)) (by grind)) (by grind)
+  suffices h_calc : 92211/10000 ≤ 959/100 * log x ^(303 / 200 - 3/2 : ℝ) by linarith
+  refine le_trans ?_ <| mul_le_mul_of_nonneg_left
+    (rpow_le_rpow (by grind) (log_two_gt_d9.le.trans (log_le_log (by grind) hx)) (by grind))
+    (by grind)
   norm_num
   rw [← log_le_log_iff (by positivity) (by positivity),
-  log_mul (by positivity) (by positivity), log_rpow (by positivity),
-  div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
-  norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
+    log_mul (by positivity) (by positivity), log_rpow (by positivity),
+    div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
+    norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
 
 @[blueprint
   "thm:jy_14"
