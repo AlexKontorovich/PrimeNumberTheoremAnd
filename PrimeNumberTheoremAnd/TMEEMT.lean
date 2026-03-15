@@ -178,7 +178,32 @@ theorem theorem_c (x : ℝ) (hx : x ≥ 3594641) :
   (statement := /-- For $x > 1$, we have $|\vartheta(x) - x| \leq \frac{515\, x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x > 1) :
-    |θ x - x| ≤ 515 * x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ 515 * x / (log x) ^ 3 := by
+  by_cases h2 : x ≥ 2
+  · have hmem : (3, (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2 := by
+      unfold Dusart.Table_4_2; simp [List.mem_cons]
+    have hEθ := Dusart.theorem_4_2 hmem (show x ≥ 2 from h2)
+    unfold Eθ at hEθ
+    have hx_pos : (0 : ℝ) < x := by linarith
+    have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos (Real.log_pos (by linarith)) 3
+    rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+    calc |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by
+            rw [le_div_iff₀ hlog3_pos]; linarith
+      _ ≤ 515 * x / (log x) ^ 3 := by
+          apply div_le_div_of_nonneg_right _ hlog3_pos.le; nlinarith
+  · push_neg at h2
+    rw [Chebyshev.theta_eq_zero_of_lt_two h2, zero_sub, abs_neg, abs_of_pos (by linarith)]
+    have hlog_pos : (0 : ℝ) < log x := Real.log_pos hx
+    rw [le_div_iff₀ (pow_pos hlog_pos 3)]
+    have : (log x) ^ 3 ≤ 1 := by
+      calc (log x) ^ 3 ≤ (log x) ^ 1 :=
+              pow_le_pow_of_le_one hlog_pos.le
+                ((Real.log_lt_iff_lt_exp (by linarith)).mpr (by nlinarith [Real.exp_one_gt_d9])).le
+                (by omega)
+        _ = log x := pow_one _
+        _ ≤ 1 := ((Real.log_lt_iff_lt_exp (by linarith)).mpr
+            (by nlinarith [Real.exp_one_gt_d9])).le
+    nlinarith
 
 end Dusart1999
 
