@@ -1,5 +1,5 @@
 import Architect
-import Mathlib
+import Mathlib.NumberTheory.LSeries.Dirichlet
 
 open ArithmeticFunction hiding log
 
