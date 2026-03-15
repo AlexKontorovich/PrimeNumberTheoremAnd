@@ -19,8 +19,7 @@ open MeasureTheory Real Chebyshev
   (title := "Buthe Equation (1.4)")
   (statement := /--
     $\pi^*(x) = \sum_{k \geq 1} \pi(x^{1/k}) / k$. -/)]
-noncomputable def pi_star (x : ℝ) : ℝ :=
-  ∑' (k : ℕ), pi (x ^ (1 / (k:ℝ))) / (k:ℝ)
+noncomputable def pi_star (x : ℝ) : ℝ := ∑' (k : ℕ), pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
 
 @[blueprint
   "buthe-theorem-2a"
@@ -29,8 +28,7 @@ noncomputable def pi_star (x : ℝ) : ℝ :=
     If $11 < x \leq 10^{19}$, then
     $|x - \psi(x)| \leq 0.94\sqrt{x}$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2a {x : ℝ} (hx1 : 11 < x)
-    (hx2 : x ≤ 10 ^ 19) :
+theorem theorem_2a {x : ℝ} (hx1 : 11 < x) (hx2 : x ≤ 10 ^ 19) :
     Eψ x ≤ 0.94 / sqrt x := by sorry
 
 @[blueprint
@@ -40,8 +38,7 @@ theorem theorem_2a {x : ℝ} (hx1 : 11 < x)
     If $1423 \leq x \leq 10^{19}$, then
     $x - \vartheta(x) \leq 1.95\sqrt{x}$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2b {x : ℝ} (hx1 : 1423 ≤ x)
-    (hx2 : x ≤ 10 ^ 19) :
+theorem theorem_2b {x : ℝ} (hx1 : 1423 ≤ x) (hx2 : x ≤ 10 ^ 19) :
     x - θ x ≤ 1.95 * sqrt x := by sorry
 
 @[blueprint
@@ -51,8 +48,7 @@ theorem theorem_2b {x : ℝ} (hx1 : 1423 ≤ x)
     If $1 \leq x \leq 10^{19}$, then
     $x - \vartheta(x) > 0.05\sqrt{x}$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2c {x : ℝ} (hx1 : 1 ≤ x)
-    (hx2 : x ≤ 10 ^ 19) :
+theorem theorem_2c {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) :
     x - θ x ≥ 0.05 * sqrt x := by sorry
 
 @[blueprint
@@ -62,8 +58,7 @@ theorem theorem_2c {x : ℝ} (hx1 : 1 ≤ x)
     If $2 \leq x \leq 10^{19}$, then
     $|\li(x) - \pi^*(x)| < \frac{\sqrt{x}}{\log x}$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2d {x : ℝ} (hx1 : 2 ≤ x)
-    (hx2 : x ≤ 10 ^ 19) :
+theorem theorem_2d {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
     abs (li x - pi_star x) < sqrt x / log x := by sorry
 
 @[blueprint
@@ -75,12 +70,8 @@ theorem theorem_2d {x : ℝ} (hx1 : 2 ≤ x)
     \left(1.95 + \frac{3.9}{\log x}
     + \frac{19.5}{\log(x)^2}\right)$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2e {x : ℝ} (hx1 : 2 ≤ x)
-    (hx2 : x ≤ 10 ^ 19) :
-    li x - pi x ≤
-      (sqrt x / log x) *
-        (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by
-  sorry
+theorem theorem_2e {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
+    li x - pi x ≤ (sqrt x / log x) * (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by sorry
 
 @[blueprint
   "buthe-theorem-2f"
@@ -89,8 +80,6 @@ theorem theorem_2e {x : ℝ} (hx1 : 2 ≤ x)
     If $2 \leq x \leq 10^{19}$, then
     $\mathrm{li}(x) - \pi(x) > 0$. -/)
   (latexEnv := "theorem")]
-theorem theorem_2f {x : ℝ} (hx1 : 2 ≤ x)
-    (hx2 : x ≤ 10 ^ 19) :
-    li x - pi x > 0 := by sorry
+theorem theorem_2f {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) : li x - pi x > 0 := by sorry
 
 end Buthe
