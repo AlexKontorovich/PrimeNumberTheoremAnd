@@ -49,7 +49,7 @@ noncomputable def g (t : ℝ) : ℝ := symmetricLogCombination t
     This equals the principal value integral ∫₀² dt/log(t). -/
 noncomputable def li2_symmetric : ℝ := ∫ t in (0 : ℝ)..1, g t
 
-/-- Our li2_symmetric equals LeanCert's Li2.li2. -/
+/-- Our li2_symmetric equals LeanCert's Li2.li2 (both are ∫₀¹ symmetricLogCombination). -/
 theorem li2_symmetric_eq_Li2_li2 : li2_symmetric = Li2.li2 := rfl
 
 /-! ### Integrability Lemmas -/
@@ -88,7 +88,7 @@ theorem log_one_plus_integrable (ε : ℝ) (hε : 0 < ε)
 
 /-! ### Integrability of g on [0, 1] -/
 
-/-- g is integrable on [0, 1]. -/
+/-- g is integrable on [0, 1]. Uses boundedness by 2 from Li2Bounds. -/
 theorem g_intervalIntegrable_full :
     IntervalIntegrable g volume 0 1 := by
   apply (intervalIntegrable_iff_integrableOn_Ioo_of_le
@@ -150,7 +150,7 @@ theorem li2_symmetric_bounds :
 
 /-! ### Substitution Lemmas for Principal Value Connection -/
 
-/-- For ε > 0, ∫₀^{1-ε} dt/log(t) = ∫_ε^1 du/log(1-u). -/
+/-- For ε > 0, ∫₀^{1-ε} dt/log(t) = ∫_ε^1 du/log(1-u) via t ↦ 1 - u. -/
 theorem integral_sub_left (ε : ℝ) (_hε : 0 < ε)
     (_hε1 : ε < 1) :
     ∫ t in (0 : ℝ)..(1 - ε), 1 / log t =
@@ -158,7 +158,7 @@ theorem integral_sub_left (ε : ℝ) (_hε : 0 < ε)
   simpa using (intervalIntegral.integral_comp_sub_left
     (fun x => 1 / log x) 1 (a := ε) (b := 1)).symm
 
-/-- For ε > 0, ∫_{1+ε}^2 dt/log(t) = ∫_ε^1 du/log(1+u). -/
+/-- For ε > 0, ∫_{1+ε}^2 dt/log(t) = ∫_ε^1 du/log(1+u) via t ↦ 1 + u. -/
 theorem integral_sub_right (ε : ℝ) (_hε : 0 < ε)
     (_hε1 : ε < 1) :
     ∫ t in (1 + ε)..(2 : ℝ), 1 / log t =
@@ -216,7 +216,7 @@ which transform the principal value integral into the absolutely
 convergent symmetric form.
 -/
 
-/-- The set difference Ioc 0 x \ Ioo (1-ε) (1+ε). -/
+/-- The set difference Ioc 0 x \ Ioo (1-ε) (1+ε) for small ε > 0. -/
 theorem setDiff_decompose (ε x : ℝ) (hε : 0 < ε)
     (hx : 2 ≤ x) :
     Set.Ioc 0 x \ Set.Ioo (1 - ε) (1 + ε) =
