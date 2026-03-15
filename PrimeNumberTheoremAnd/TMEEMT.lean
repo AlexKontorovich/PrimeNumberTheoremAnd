@@ -145,8 +145,9 @@ Some results from \cite{Dusart1999}-/
   (title := "Dusart 1999, $\\pi$ inequality")
   (statement := /-- For $x \geq 17$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
-theorem pi_inequality (x : ℝ) (hx : x ≥ 17) :
-    pi x > x / (log x - 1) := by sorry
+theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
+    pi x ≥ x / (log x - 1) :=
+  Dusart.corollary_5_3_a hx
 
 @[blueprint
   "thm:dusart1999-a"
@@ -606,7 +607,7 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
   (title := "Rosser 1941, lower bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n > n * (log n + log (log n) - 4) := by sorry
 
 @[blueprint
@@ -614,7 +615,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
   (title := "Rosser 1941, upper bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_upper (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n < n * (log n + log (log n) + 2) := by sorry
 
 end Rosser1941
