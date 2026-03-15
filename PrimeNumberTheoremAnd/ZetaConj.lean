@@ -47,15 +47,18 @@ Submitted to Mathlib:
   -/)]
 theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
     deriv (fun z ↦ conj (f (conj z))) (conj p) = conj (deriv f p) := by
+  -- Case analysis on whether f is differentiable at p
   set g := fun z ↦ conj (f (conj z))
   by_cases hf : DifferentiableAt ℂ f p
   · exact (hasDerivAt_conj_conj hf.hasDerivAt).deriv
   · by_cases hg : DifferentiableAt ℂ g (conj p)
-    · have : DifferentiableAt ℂ f p := by
+    · -- If the conjugated function were differentiable, then f would be differentiable
+      have : DifferentiableAt ℂ f p := by
         convert (hasDerivAt_conj_conj hg.hasDerivAt).differentiableAt
           using 2 <;> simp [g]
       contradiction
-    · rw [deriv_zero_of_not_differentiableAt hg,
+    · -- Both derivatives are zero when the functions are not differentiable
+      rw [deriv_zero_of_not_differentiableAt hg,
           deriv_zero_of_not_differentiableAt hf, map_zero]
 
 @[blueprint
