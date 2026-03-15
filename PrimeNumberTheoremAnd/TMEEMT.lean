@@ -606,7 +606,7 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
   (title := "Rosser 1941, lower bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n > n * (log n + log (log n) - 4) := by sorry
 
 @[blueprint
@@ -614,7 +614,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
   (title := "Rosser 1941, upper bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_upper (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n < n * (log n + log (log n) + 2) := by sorry
 
 end Rosser1941
