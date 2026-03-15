@@ -16,8 +16,8 @@ blueprint_comment /--
     often restrict the zeroes $\rho$ to a rectangle $\{ \Re \rho \in I, \Im \rho \in J \}$, for
     instance through sums of the form $\sum_{\Re \rho \in  I, \Im \rho \in J} f(\rho)$.
   -/)]
--- Note that the junk value of zeta at s=1 is known to be nonzero
-noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | riemannZeta s = 0}
+noncomputable def riemannZeta.zeroes : Set ℂ :=
+  {s : ℂ | riemannZeta s = 0}
 
 @[blueprint
   "zeroes-of-riemann-zeta"]
@@ -73,7 +73,8 @@ noncomputable def riemannZeta.N' (σ T : ℝ) : ℝ := zeroes_sum (Set.Ioo σ 1)
 
 @[blueprint
   "Riemann-von-Mangoldt-estimate"]
-noncomputable def riemannZeta.RvM (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T + b₂ * log (log T) + b₃
+noncomputable def riemannZeta.RvM (b₁ b₂ b₃ T : ℝ) : ℝ :=
+  b₁ * log T + b₂ * log (log T) + b₃
 
 @[blueprint
   "Riemann-von-Mangoldt-estimate"
