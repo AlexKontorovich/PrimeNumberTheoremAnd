@@ -844,6 +844,7 @@ end PrimeGaps2014
 
 namespace PrimeGaps2024
 
+set_option maxHeartbeats 800000 in
 @[blueprint
   "thm:prime_gaps_2024"
   (title := "Prime Gaps 2024")
@@ -852,7 +853,40 @@ namespace PrimeGaps2024
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
+    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by
+  set y := x * (1 - 1 / 76900000000) with hy_def
+  have hx_pos : x > 0 := lt_trans (exp_pos 60) hx
+  have hx_ge1 : x ≥ 1 := by linarith [one_le_exp (show (0:ℝ) ≤ 60 by norm_num)]
+  have hsqrt_bound : √x > exp 30 := by
+    rw [sqrt_eq_rpow, show exp 30 = (exp 60) ^ ((1:ℝ)/2) from by rw [← exp_mul]; norm_num]
+    exact rpow_lt_rpow (le_of_lt (exp_pos 60)) hx (by norm_num)
+  have hexp30 : exp 30 > 230700000000 := by
+    rw [show (30:ℝ) = ↑(30:ℕ) * 1 from by norm_num, exp_nat_mul]
+    linarith [show (2.718:ℝ) ^ 30 > 230700000000 from by norm_num,
+      show (2.718:ℝ) ^ 30 ≤ (exp 1) ^ 30 from by gcongr; linarith [exp_one_gt_d9]]
+  have hsqx : √x * √x = x := mul_self_sqrt (le_of_lt hx_pos)
+  have h3sqrt : 3 * √x < x / 76900000000 := by nlinarith
+  have hcbrt : x ^ (1/3 : ℝ) ≤ √x := by
+    rw [sqrt_eq_rpow]; exact rpow_le_rpow_of_exponent_le hx_ge1 (by norm_num)
+  have hy_pos : y > 0 := by rw [hy_def]; nlinarith
+  have hy_lt_x : y < x := by rw [hy_def]; nlinarith
+  have hy_ge5000 : y ≥ 5000 := by
+    rw [hy_def]
+    have : exp 60 ≥ 5001 := by
+      rw [show (60:ℝ) = ↑(60:ℕ) * 1 from by norm_num, exp_nat_mul]
+      linarith [show (2.718:ℝ) ^ 60 > 5001 from by norm_num,
+        show (2.718:ℝ) ^ 60 ≤ (exp 1) ^ 60 from by gcongr; linarith [exp_one_gt_d9]]
+    nlinarith
+  have hθy : θ y ≤ y + 8.14e-20 * y := by
+    linarith [theta_le_psi y,
+      show ψ y ≤ y + 8.14e-20 * y from by
+        have h := JY.psi_bound_1 y hy_ge5000; rw [abs_le] at h; linarith]
+  have hψx : ψ x ≥ x - 8.14e-20 * x := by
+    have h := JY.psi_bound_1 x (by linarith : x ≥ 5000); rw [abs_le] at h; linarith
+  have hψθ := Dusart.corollary_4_5 hx_pos
+  have key : x / 76900000000 = x - y := by rw [hy_def]; ring
+  rw [key]
+  exact theta_pos_implies_prime_in_interval hy_lt_x (by nlinarith [show √x > 0 from by positivity])
 
 end PrimeGaps2024
 
