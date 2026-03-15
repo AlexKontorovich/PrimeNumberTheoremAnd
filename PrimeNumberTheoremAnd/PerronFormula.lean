@@ -76,10 +76,12 @@ lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
   exact integral_boundary_rect_eq_zero_of_differentiableOn f _ _
     (hf.mono fun z hrect ↦ ⟨by simpa using hrect.1, trivial⟩)
 
-lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f : ℂ → ℂ} {p : ℂ}
-    (hσ : σ < p.re ∧ p.re < σ') (hf : HolomorphicOn f (Icc σ σ' ×ℂ univ \ {p}))
+lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral
+    {σ σ' : ℝ} {f : ℂ → ℂ} {p : ℂ} (hσ : σ < p.re ∧ p.re < σ')
+    (hf : HolomorphicOn f (Icc σ σ' ×ℂ univ \ {p}))
     (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
-    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (htop :
+      Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     ∀ᶠ (c : ℝ) in 𝓝[>] 0, VerticalIntegral f σ' - VerticalIntegral f σ =
@@ -155,7 +157,8 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
       (𝓝 (- LowerUIntegral f σ σ' T)) := by
   have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
-  have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
+  have hbot' :
+      Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
     convert (hbot.comp tendsto_neg_atTop_atBot) using 1
     ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
   have htop : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop
@@ -170,10 +173,12 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
   simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul,
     neg_add_rev, neg_sub]
   have final :
-      (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
-        I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) =
+      (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) +
+          I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+          I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) =
       (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
-        ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
+        ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+          ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
     congr
     ext
@@ -317,7 +322,8 @@ lemma isHolomorphicOn (xpos : 0 < x) : HolomorphicOn (f x) {0, -1}ᶜ := by
 
 
 
-lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : ℝ), 1 / (c + t ^ 2) := by
+lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) :
+    0 < ∫ (t : ℝ), 1 / (c + t ^ 2) := by
   have hfun_eq (t : ℝ) : 1 / (c + t ^ 2) = c⁻¹ * (1 + (c.sqrt⁻¹ * t) ^ 2)⁻¹ := by
     field_simp [hc.ne.symm]
     simp [hc.le]
@@ -334,12 +340,14 @@ lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) :
 lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ ≤ c₂) :
     0 < ∫ (t : ℝ), 1 / ((c₁ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt) := by
   have c₂_pos : 0 < c₂ := by linarith
-  have hlower (t : ℝ) : 1 / (c₂ + t ^ 2) ≤ 1 / ((c₁ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt) := by
+  have hlower (t : ℝ) :
+      1 / (c₂ + t ^ 2) ≤ 1 / ((c₁ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt) := by
     gcongr
     calc
       _ ≤ (c₂ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt := by gcongr
       _ ≤ c₂ + t ^ 2 := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
-  have hupper (t : ℝ) : 1 / ((c₁ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt) ≤ 1 / (c₁ + t ^ 2)  := by
+  have hupper (t : ℝ) :
+      1 / ((c₁ + t ^ 2).sqrt * (c₂ + t ^ 2).sqrt) ≤ 1 / (c₁ + t ^ 2) := by
       gcongr
       calc
         _ ≥ (c₁ + t ^ 2).sqrt * (c₁ + t ^ 2).sqrt := by gcongr
@@ -437,7 +445,8 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     ∃ C, ∀ (σ : ℝ) (_ : σ < -3 / 2), ‖VerticalIntegral' (f x) σ‖ ≤ C * x ^ σ := by
 
   /- This proof is adapted from `vertIntBound` -/
-  use 1 / (2 * π) *  ‖(∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt : ℂ))‖
+  use 1 / (2 * π) *
+    ‖(∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt : ℂ))‖
   intro σ hσ
   simp only [VerticalIntegral', smul_eq_mul, norm_mul]
   rw [(by simp [pi_nonneg] : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
@@ -472,7 +481,8 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
         normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
   · rw [mul_comm]
     gcongr
-    · have : 0 ≤ ∫ (t : ℝ), 1 / (sqrt (4⁻¹ + t ^ 2) * sqrt (4⁻¹ + t ^ 2)) := by positivity
+    · have : 0 ≤ ∫ (t : ℝ), 1 / (sqrt (4⁻¹ + t ^ 2) * sqrt (4⁻¹ + t ^ 2)) :=
+        by positivity
       rw [← norm_of_nonneg this, ← Complex.norm_real]
       apply le_of_eq; congr; norm_cast; exact integral_ofReal.symm
 
@@ -600,7 +610,8 @@ lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
   refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
     |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
 
-lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ [[σ', σ'']]) (hσ1 : -1 ∉ [[σ', σ'']]) :
+lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ [[σ', σ'']])
+    (hσ1 : -1 ∉ [[σ', σ'']]) :
     VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' := by
   refine verticalIntegral_eq_verticalIntegral ((isHolomorphicOn xpos).mono ?_)
     (tendsto_zero_Lower xpos σ' σ'') (tendsto_zero_Upper xpos σ' σ'')
@@ -644,7 +655,8 @@ lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
     let C := ∫ (t : ℝ), 1 / ((1 + t ^ 2).sqrt * (2 + t ^ 2).sqrt)
     exact ⟨C, integralPosAux, fun _ ↦ vertIntBound xpos⟩
   /-- Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$. -/
-  have AbsVertIntTendsto : Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral (f x))) atTop (𝓝 0) := by
+  have AbsVertIntTendsto :
+      Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral (f x))) atTop (𝓝 0) := by
     obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
@@ -709,8 +721,8 @@ lemma keyIdentity (x : ℝ) {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s �
     field_simp [sPlusOneNeZero, mul_ne_zero]; ring_nf
 
 
-variable {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β] [ClosedIciTopology β]
-  {y : β} {l : Filter α}
+variable {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β]
+  [ClosedIciTopology β] {y : β} {l : Filter α}
 
 lemma _root_.Filter.Tendsto.eventually_bddAbove {f : α → β} (hf : Tendsto f l (𝓝 y)) :
     ∀ᶠ s in l.smallSets, BddAbove (f '' s) := by
@@ -721,7 +733,8 @@ lemma _root_.Filter.Tendsto.eventually_bddAbove {f : α → β} (hf : Tendsto f 
   obtain ⟨x, hxt, hxy⟩ := hy
   exact hxy ▸ hs x (ht hxt)
 
-lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ} (hf : Tendsto f (𝓝[≠] x) (𝓝 y)) :
+lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ}
+    (hf : Tendsto f (𝓝[≠] x) (𝓝 y)) :
     ∀ᶠ (c : ℝ) in 𝓝[>] 0, BddAbove (f '' (Square x c \ {x})) := by
   obtain ⟨t, htf, ht⟩ := eventually_smallSets.mp hf.eventually_bddAbove
   obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square x) {x}ᶜ |>.1 t |>.mp htf
@@ -747,15 +760,23 @@ lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ} (hf : Tendsto f (�
   -/)
   (latexEnv := "lemma")]
 lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
-    (Square 0 c \ {0})) := by
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+      BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
+        (Square 0 c \ {0})) := by
 
   apply bddAbove_square_of_tendsto
-  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - ↑x ^ (0 : ℂ) / s - ↑x ^ s / (1 + s)))
-      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - x ^ (0 : ℂ) / (1 + 0)‖)) by
+  suffices
+      Tendsto
+        (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - ↑x ^ (0 : ℂ) / s - ↑x ^ s / (1 + s)))
+        (𝓝[≠] 0)
+        (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) -
+          x ^ (0 : ℂ) / (1 + 0)‖))
+    by
     apply this.congr'
-    filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
-      (Set.mem_compl_singleton_iff.mpr (by norm_num : (0 : ℂ) ≠ -1))) {0}] with s hs
+    filter_upwards
+      [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+        (Set.mem_compl_singleton_iff.mpr (by norm_num : (0 : ℂ) ≠ -1))) {0}]
+    with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.2 hs.1, cpow_zero]; ring_nf
   have hx0 : (x : ℂ) ≠ 0 := slitPlane_ne_zero (.inl xpos)
   refine (Tendsto.sub ?_ (tendsto_nhdsWithin_of_tendsto_nhds ?_)).norm
@@ -786,15 +807,20 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
   (latexEnv := "lemma")]
 lemma diffBddAtNegOne {x : ℝ} (xpos : 0 < x) :
     ∀ᶠ (c : ℝ) in 𝓝[>] 0,
-    BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1))) ''
-      (Square (-1) c \ {-1})) := by
+      BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) -
+          (-x⁻¹) / (s + 1))) '' (Square (-1) c \ {-1})) := by
 
   apply bddAbove_square_of_tendsto
-  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - (↑x ^ s / (s + 1) - x⁻¹ / (s + 1))))
-      (𝓝[≠] (-1)) (𝓝 (‖x ^ (-1 : ℂ) / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
+  suffices
+      Tendsto (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - (↑x ^ s / (s + 1) - x⁻¹ / (s + 1))))
+        (𝓝[≠] (-1))
+        (𝓝 (‖x ^ (-1 : ℂ) / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖))
+    by
     apply this.congr'
-    filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
-      (Set.mem_compl_singleton_iff.mpr (by norm_num : (-1 : ℂ) ≠ 0))) {-1}] with s hs
+    filter_upwards
+      [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+        (Set.mem_compl_singleton_iff.mpr (by norm_num : (-1 : ℂ) ≠ 0))) {-1}]
+    with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.1 hs.2]
     ring_nf
   have hx0 : (x : ℂ) ≠ 0 := slitPlane_ne_zero (.inl xpos)
@@ -819,7 +845,8 @@ lemma diffBddAtNegOne {x : ℝ} (xpos : 0 < x) :
 lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (f x) (-c - c * I) (c + c * I) = 1 := by
   /-- For $c>0$ sufficiently small, -/
-  filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
+  filter_upwards
+    [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
   intro c hc bddAbove
   obtain ⟨cpos, _⟩ := hc
   have RectSub : Square 0 c \ {0} ⊆ {0, -1}ᶜ := by
@@ -836,7 +863,8 @@ lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
   $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
   holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
   -/
-  obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+  obtain ⟨g, gHolo, g_eq_fDiff⟩ :=
+    existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
   simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds
   /-- Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}. -/
   refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
@@ -876,7 +904,8 @@ lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
       fun x hx ↦ sPlusOneNeZero hx.2
     exact differentiableOn_id.add (differentiableOn_const 1)
   have RectMemNhds : Square (-1) c ∈ 𝓝 (-1) := square_mem_nhds (-1) (ne_of_gt cpos)
-  obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+  obtain ⟨g, gHolo, g_eq_fDiff⟩ :=
+    existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
   simp_rw [Square] at fHolo gHolo RectMemNhds
   refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
   · simpa using cpos.le
@@ -954,7 +983,8 @@ lemma residuePull2 (x_gt_one : 1 < x) :
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
   replace hε := hc (ε/2)
     (hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos, hε]), half_pos hε⟩)
-  rw [VerticalIntegral', ← smul_sub, hε.2, ← RectangleIntegral', neg_div, one_div, ← ofReal_inv]
+  rw [VerticalIntegral', ← smul_sub, hε.2, ← RectangleIntegral', neg_div, one_div,
+    ← ofReal_inv]
   exact hε.1
 
 
@@ -1011,7 +1041,8 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
   have VertIntBound : ∃ C, ∀ σ' < -3/2, ‖VerticalIntegral' f σ'‖ ≤ C * x ^ σ' :=
     vertIntBoundLeft (by linarith : 0 < x)
   /-- Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$. -/
-  have AbsVertIntTendsto : Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
+  have AbsVertIntTendsto :
+      Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
     obtain ⟨C, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
