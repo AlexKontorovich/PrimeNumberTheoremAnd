@@ -16,13 +16,12 @@ blueprint_comment /--
     often restrict the zeroes $\rho$ to a rectangle $\{ \Re \rho \in I, \Im \rho \in J \}$, for
     instance through sums of the form $\sum_{\Re \rho \in  I, \Im \rho \in J} f(\rho)$.
   -/)]
-noncomputable def riemannZeta.zeroes : Set ℂ :=
-  {s : ℂ | riemannZeta s = 0}
+noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | riemannZeta s = 0}
 
 @[blueprint
   "zeroes-of-riemann-zeta"]
 noncomputable def riemannZeta.zeroes_rect (I J : Set ℝ) : Set ℂ :=
-    {s : ℂ | s.re ∈ I ∧ s.im ∈ J ∧ s ∈ zeroes}
+  {s : ℂ | s.re ∈ I ∧ s.im ∈ J ∧ s ∈ zeroes}
 
 @[blueprint
   "zeroes-of-riemann-zeta"]
@@ -32,7 +31,7 @@ noncomputable def riemannZeta.order (s : ℂ) : ℤ := (meromorphicOrderAt (riem
   "zeroes-of-riemann-zeta"]
 noncomputable def riemannZeta.zeroes_sum {α : Type*} [RCLike α]
     (I J : Set ℝ) (f : ℂ → α) : α :=
-    ∑' ρ : riemannZeta.zeroes_rect I J, (f ρ) * (riemannZeta.order ρ)
+  ∑' ρ : riemannZeta.zeroes_rect I J, (f ρ) * (riemannZeta.order ρ)
 
 @[blueprint
   "RH-up-to"
@@ -41,7 +40,7 @@ noncomputable def riemannZeta.zeroes_sum {α : Type*} [RCLike α]
     in the rectangle $\{ \Re \rho \in (0.5, 1), \Im \rho \in [0,T] \}$.
   -/)]
 noncomputable def riemannZeta.RH_up_to (T : ℝ) : Prop :=
-    IsEmpty (riemannZeta.zeroes_rect (Set.Ioo 0.5 1) (Set.Icc 0 T))
+  IsEmpty (riemannZeta.zeroes_rect (Set.Ioo 0.5 1) (Set.Icc 0 T))
 
 @[blueprint
   "classical-zero-free-region"
@@ -51,8 +50,8 @@ noncomputable def riemannZeta.RH_up_to (T : ℝ) : Prop :=
     in the region $Re(s) \geq 1 - 1 / R * \log |\Im s|$ for $\Im(s) > 3$.
   -/)]
 noncomputable def riemannZeta.classicalZeroFree (R : ℝ) :=
-    ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 - 1 / (R * log t) →
-    riemannZeta (σ + t * Complex.I) ≠ 0
+  ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 - 1 / (R * log t) →
+  riemannZeta (σ + t * Complex.I) ≠ 0
 
 @[blueprint
   "zero-counting-function"
@@ -85,8 +84,8 @@ noncomputable def riemannZeta.RvM (b₁ b₂ b₃ T : ℝ) : ℝ :=
     + b_3$ for $T \geq 2$.
   -/)]
 def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
-    ∀ T ≥ 2, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
-      RvM b₁ b₂ b₃ T
+  ∀ T ≥ 2, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+    RvM b₁ b₂ b₃ T
 
 @[blueprint
   "zero-density-bound"
@@ -109,4 +108,4 @@ structure zero_density_bound where
 @[blueprint
   "zero-density-bound"]
 noncomputable def zero_density_bound.N {ZDB : zero_density_bound} (σ T : ℝ) : ℝ :=
-    (ZDB.c₁ σ) * T ^ (ZDB.p σ) * (log T) ^ (ZDB.q σ) + (ZDB.c₂ σ) * (log T) ^ 2
+  (ZDB.c₁ σ) * T ^ (ZDB.p σ) * (log T) ^ (ZDB.q σ) + (ZDB.c₂ σ) * (log T) ^ 2
