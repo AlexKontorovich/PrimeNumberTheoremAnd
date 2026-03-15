@@ -604,7 +604,7 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
 @[blueprint
   "thm:rosser1941-pn-lower"
   (title := "Rosser 1941, lower bound on $p_n$")
-  (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
+  (statement := /-- For $n \geq 55$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
     nth_prime' n > n * (log n + log (log n) - 4) := by sorry
@@ -789,12 +789,12 @@ namespace Schoenfeld1976
   (statement := /--
   If $x > 2010760$, then there is a prime in the interval
   \[
-  \left( x\left(1 - \frac{1}{15697}\right), x \right].
+  \left( x, x\left(1 + \frac{1}{15697}\right) \right].
   \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
+    HasPrimeInInterval x (x * (1 / 15697)) := by sorry
 
 end Schoenfeld1976
 
