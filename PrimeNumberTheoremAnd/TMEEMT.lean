@@ -844,7 +844,6 @@ end PrimeGaps2014
 
 namespace PrimeGaps2024
 
-set_option maxHeartbeats 800000 in
 @[blueprint
   "thm:prime_gaps_2024"
   (title := "Prime Gaps 2024")
