@@ -7,7 +7,12 @@ import PrimeNumberTheoremAnd.Buthe
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}
-In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
+In this file we record the results from Appendix A of \cite{BKLNW}.
+In this appendix, the authors derive explicit estimates on the error term in the prime number
+theorem for the Chebyshev function $\psi$
+assuming various inputs on the zeros of the Riemann zeta function,
+including a zero-density estimate, a classical zero-free region,
+and numerical verification of RH up to some height.
 -/
 
 namespace BKLNW_app
@@ -435,34 +440,25 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   intro x hx
   by_cases hcases : x ≤ B
   · have hlb : B₀ < x := by linarith [hx, hb.1]
-    simp only [Set.Ioc, Set.mem_setOf_eq,
-      and_imp] at hbound
+    simp only [Set.Ioc, Set.mem_setOf_eq, and_imp] at hbound
     have hb : Eψ x ≤ c / sqrt x :=
       hbound x hlb hcases
     have hsqrtcomp : sqrt (exp b) ≤ sqrt x :=
       Real.sqrt_monotone hx
-    have hidentity1 : exp (2 * (b / 2)) =
-        exp (b / 2) ^ 2 :=
-      Real.exp_nat_mul (b / 2) 2
+    have hidentity1 : exp (2 * (b / 2)) = exp (b / 2) ^ 2 := Real.exp_nat_mul (b / 2) 2
     have hidentity2 : 2 * (b / 2) = b := by ring
     simp only [hidentity2] at hidentity1
     have hnonneg : 0 ≤ exp (b / 2) := by
       positivity
-    have hidentity3 :
-        sqrt (exp b) = sqrt (exp (b / 2) ^ 2) :=
-      by simpa using congrArg Real.sqrt hidentity1
+    have hidentity3 : sqrt (exp b) = sqrt (exp (b / 2) ^ 2) := by
+      simpa using congrArg Real.sqrt hidentity1
     simp only [Real.sqrt_sq hnonneg] at hidentity3
     have hsqrtcomp2 : exp (b / 2) ≤ sqrt x := by
       linarith
     have hsqrtpos : sqrt x > 0 := by
       linarith [exp_pos (b / 2)]
-    have hsqrtcomp3 :
-        c / sqrt x ≤ c / exp (b / 2) := by
-      gcongr
-    have hubcomp :
-        c / exp (b / 2) ≤
-          max (c / exp (b / 2)) (ε (log B)) :=
-      le_max_left ..
+    have hsqrtcomp3 : c / sqrt x ≤ c / exp (b / 2) := by gcongr
+    have hubcomp : c / exp (b / 2) ≤ max (c / exp (b / 2)) (ε (log B)) := le_max_left ..
     linarith
   · push_neg at hcases
     have hidentity : exp (log B) = B :=
@@ -474,10 +470,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
     specialize hε (log B) hlogBpos
     have hlb : x ≥ exp (log B) := by linarith
     specialize hε x hlb
-    have hubcomp :
-        ε (log B) ≤
-          max (c / exp (b / 2)) (ε (log B)) :=
-      le_max_right ..
+    have hubcomp : ε (log B) ≤ max (c / exp (b / 2)) (ε (log B)) := le_max_right ..
     linarith
 
 @[blueprint
@@ -516,9 +509,7 @@ theorem bklnw_cor_15_1 (b : ℝ)
   have hbpos : b > 0 := by linarith
   have h10_19 : (10 : ℝ) ^ (19 : ℕ) > 0 := by
     positivity
-  have hlog_eq :
-      log ((10 : ℝ) ^ (19 : ℕ)) =
-        19 * log 10 := by
+  have hlog_eq : log ((10 : ℝ) ^ (19 : ℕ)) = 19 * log 10 := by
     rw [Real.log_pow]
     ring
   rw [← hlog_eq]
@@ -528,13 +519,10 @@ theorem bklnw_cor_15_1 (b : ℝ)
     exact Buthe.theorem_2a hx.1 hx.2
   · exact hε
   · constructor
-    · have : Real.exp (Real.log 11) < Real.exp b :=
-        Real.exp_lt_exp.mpr hb1
-      rwa [Real.exp_log
-        (by norm_num : (11 : ℝ) > 0)] at this
+    · have : Real.exp (Real.log 11) < Real.exp b := Real.exp_lt_exp.mpr hb1
+      rwa [Real.exp_log (by norm_num : (11 : ℝ) > 0)] at this
     · rw [← hlog_eq] at hb2
-      rw [← Real.exp_log
-        (by positivity : (10 : ℝ) ^ (19 : ℕ) > 0)]
+      rw [← Real.exp_log (by positivity : (10 : ℝ) ^ (19 : ℕ) > 0)]
       exact Real.exp_le_exp.mpr hb2
   · exact hbpos
   · norm_num
@@ -677,7 +665,8 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   sorry
 
 blueprint_comment /--
-Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource when formalizing this result.
+Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource
+when formalizing this result.
 -/
 
 @[blueprint
