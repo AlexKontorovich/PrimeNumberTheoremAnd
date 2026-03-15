@@ -26,13 +26,14 @@ PR_SYMBOL = '<svg class="octicon octicon-git-pull-request open color-fg-open mr-
 def main():
     pr_file = subprocess.run(["curl", "-f", QUEUEBOARD], capture_output=True, text=True)
     if pr_file.returncode != 0:
-        print("Warning: could not fetch queueboard data, skipping dashboard generation")
-        return
-    try:
-        pr_json = json.loads(pr_file.stdout)["pr_statusses"]
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"Warning: could not parse queueboard JSON ({e}), skipping dashboard generation")
-        return
+        print("Warning: could not fetch queueboard data, falling back to empty PR list")
+        pr_json = []
+    else:
+        try:
+            pr_json = json.loads(pr_file.stdout)["pr_statusses"]
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Warning: could not parse queueboard JSON ({e}), falling back to empty PR list")
+            pr_json = []
     pr_dict = {pr["number"]: pr for pr in pr_json}
 
     file_touched_pr: dict[str, list[Any]] = {}
