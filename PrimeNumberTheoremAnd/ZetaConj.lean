@@ -54,12 +54,10 @@ theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
   · by_cases hg : DifferentiableAt ℂ g (conj p)
     · -- If the conjugated function were differentiable, then f would be differentiable
       have : DifferentiableAt ℂ f p := by
-        convert (hasDerivAt_conj_conj hg.hasDerivAt).differentiableAt
-          using 2 <;> simp [g]
+        convert (hasDerivAt_conj_conj hg.hasDerivAt).differentiableAt using 2 <;> simp [g]
       contradiction
     · -- Both derivatives are zero when the functions are not differentiable
-      rw [deriv_zero_of_not_differentiableAt hg,
-          deriv_zero_of_not_differentiableAt hf, map_zero]
+      rw [deriv_zero_of_not_differentiableAt hg, deriv_zero_of_not_differentiableAt hf, map_zero]
 
 @[blueprint
   (title := "conj-riemannZeta-conj-aux1")
@@ -80,12 +78,11 @@ lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) :
   ext n
   have h1 : n + 1 ≠ 0 := by linarith
   have h2 : (n : ℂ) + 1 ≠ 0 := by exact_mod_cast h1
-  rw [Complex.cpow_def_of_ne_zero h2, Complex.cpow_def_of_ne_zero h2,
-      RCLike.conj_div, map_one, ← Complex.exp_conj, map_mul,
-      Complex.conj_conj]
+  rw [Complex.cpow_def_of_ne_zero h2, Complex.cpow_def_of_ne_zero h2, RCLike.conj_div, map_one,
+    ← Complex.exp_conj, map_mul, Complex.conj_conj]
   congr 2
   rw [show (↑n + 1 : ℂ) = ↑((n + 1 : ℕ) : ℕ) from by push_cast; ring,
-      ← Complex.natCast_log, Complex.conj_ofReal]
+    ← Complex.natCast_log, Complex.conj_ofReal]
 
 blueprint_comment /--
 % TODO: Submit this and the following corollaries to Mathlib.
@@ -101,51 +98,42 @@ blueprint_comment /--
     $\{s \in \mathbb{C} : \Re(s) > 1\}$. Then, by analytic continuation, they are equal on the
     whole complex plane.
   -/)]
-theorem conj_riemannZeta_conj (s : ℂ) :
-    conj (riemannZeta (conj s)) = riemannZeta s := by
+theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZeta s := by
   by_cases hs1 : s = 1
   · subst hs1
     rw [map_one, Complex.conj_eq_iff_real, riemannZeta_one]
-    use (Real.eulerMascheroniConstant -
-        Real.log (4 * Real.pi)) / 2
-    rw [show (4 * ↑Real.pi : ℂ) = ↑(4 * Real.pi) from
-        by push_cast; ring,
-        ← Complex.ofReal_log (by positivity :
-          (0 : ℝ) ≤ 4 * Real.pi)]
-    push_cast; ring
+    use (Real.eulerMascheroniConstant - Real.log (4 * Real.pi)) / 2
+    rw [show (4 * ↑Real.pi : ℂ) = ↑(4 * Real.pi) from by push_cast; ring,
+      ← Complex.ofReal_log (by positivity : (0 : ℝ) ≤ 4 * Real.pi)]
+    push_cast
+    ring
   · let U : Set ℂ := {1}ᶜ
     let g := fun s ↦ conj (riemannZeta (conj s))
     suffices Set.EqOn g riemannZeta U by
       apply this
       rwa [Set.mem_compl_singleton_iff]
-    apply AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq
-      (𝕜 := ℂ) (z₀ := 2)
+    apply AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq (𝕜 := ℂ) (z₀ := 2)
     · simp [U]
     · rw [Filter.eventuallyEq_iff_exists_mem]
       set V := Complex.re ⁻¹' (Set.Ioi 1)
       use V
       constructor
-      · have Vopen : IsOpen V :=
-            Complex.continuous_re.isOpen_preimage _ isOpen_Ioi
+      · have Vopen : IsOpen V := Complex.continuous_re.isOpen_preimage _ isOpen_Ioi
         exact Vopen.mem_nhds (by simp [V])
       · intro s hs
         exact conj_riemannZeta_conj_aux1 s hs
-    · refine DifferentiableOn.analyticOnNhd ?_
-          isOpen_compl_singleton
+    · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
       intro s₁ hs₁
       have hs₁' : conj s₁ ≠ 1 :=
-        (map_ne_one_iff (starRingEnd ℂ)
-          (RingHom.injective (starRingEnd ℂ))).mpr hs₁
-      convert (hasDerivAt_conj_conj (differentiableAt_riemannZeta
-        hs₁').hasDerivAt).differentiableAt.differentiableWithinAt
+        (map_ne_one_iff (starRingEnd ℂ) (RingHom.injective (starRingEnd ℂ))).mpr hs₁
+      convert (hasDerivAt_conj_conj
+        (differentiableAt_riemannZeta hs₁').hasDerivAt).differentiableAt.differentiableWithinAt
         (s := U)
       rw [Complex.conj_conj]
-    · refine DifferentiableOn.analyticOnNhd ?_
-          isOpen_compl_singleton
+    · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
       intro s₁ hs₁
       exact (differentiableAt_riemannZeta hs₁).differentiableWithinAt
-    · exact (isConnected_compl_singleton_of_one_lt_rank
-        (by simp) 1).isPreconnected
+    · exact (isConnected_compl_singleton_of_one_lt_rank (by simp) 1).isPreconnected
 
 @[blueprint
   (title := "riemannZeta-conj")
@@ -156,8 +144,7 @@ theorem conj_riemannZeta_conj (s : ℂ) :
   (proof := /--
     This follows as an immediate corollary of Theorem \ref{conj_riemannZeta_conj}.
   -/)]
-theorem riemannZeta_conj (s : ℂ) :
-    riemannZeta (conj s) = conj (riemannZeta s) := by
+theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
   rw [← conj_riemannZeta_conj, Complex.conj_conj]
 
 @[blueprint
@@ -171,19 +158,15 @@ theorem riemannZeta_conj (s : ℂ) :
     conjugation symmetry of the Riemann zeta function itself.
   -/)]
 theorem deriv_riemannZeta_conj (s : ℂ) :
-    deriv riemannZeta (conj s) =
-    conj (deriv riemannZeta s) := by
+    deriv riemannZeta (conj s) = conj (deriv riemannZeta s) := by
   simp [← deriv_conj_conj, conj_riemannZeta_conj]
 
 theorem logDerivZeta_conj (s : ℂ) :
-    (deriv riemannZeta / riemannZeta) (conj s) =
-    conj ((deriv riemannZeta / riemannZeta) s) := by
+    (deriv riemannZeta / riemannZeta) (conj s) = conj ((deriv riemannZeta / riemannZeta) s) := by
   simp [deriv_riemannZeta_conj, riemannZeta_conj]
 
 theorem logDerivZeta_conj' (s : ℂ) :
-    (logDeriv riemannZeta) (conj s) =
-    conj (logDeriv riemannZeta s) :=
-  logDerivZeta_conj s
+    (logDeriv riemannZeta) (conj s) = conj (logDeriv riemannZeta s) := logDerivZeta_conj s
 
 blueprint_comment /--
 % TODO: Submit this to Mathlib.
@@ -200,9 +183,6 @@ blueprint_comment /--
     of integrals.
   -/)]
 theorem intervalIntegral_conj {f : ℝ → ℂ} {a b : ℝ} :
-    ∫ (x : ℝ) in a..b, conj (f x) =
-    conj (∫ (x : ℝ) in a..b, f x) := by
-  rw [intervalIntegral.intervalIntegral_eq_integral_uIoc,
-      integral_conj,
-      ← RCLike.conj_smul,
-      ← intervalIntegral.intervalIntegral_eq_integral_uIoc]
+    ∫ (x : ℝ) in a..b, conj (f x) = conj (∫ (x : ℝ) in a..b, f x) := by
+  rw [intervalIntegral.intervalIntegral_eq_integral_uIoc, integral_conj, ← RCLike.conj_smul,
+    ← intervalIntegral.intervalIntegral_eq_integral_uIoc]
