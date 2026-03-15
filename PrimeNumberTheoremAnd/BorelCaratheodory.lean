@@ -63,8 +63,7 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     (analytic : AnalyticOn ℂ f s) :
     AnalyticOn ℂ (divRemovable_zero f) s := by
   rw [Complex.analyticOn_iff_differentiableOn o,
-    ← Complex.differentiableOn_compl_singleton_and_continuousAt_iff
-      sInNhds0]
+    ← Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0]
   constructor
   · rw [differentiableOn_congr (fun x hyp_x => by
       apply Function.update_of_ne
@@ -86,7 +85,8 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
           sInNhds0)
     have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) =
         (fun (x : ℂ) ↦ f x / x) := by
-      funext x; rw [sub_zero, sub_zero]
+      funext x
+      rw [sub_zero, sub_zero]
     rwa [zero, T] at U
 
 @[blueprint
@@ -123,23 +123,23 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
   by_cases h : ‖x‖ = R
   · use Metric.ball x (R / 2)
     refine ⟨Metric.isOpen_ball, ?_, ?_⟩
-    · simp only [Metric.mem_ball, dist_self,
-        Nat.ofNat_pos, div_pos_iff_of_pos_right]
+    · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]
       positivity
     · have Z :
           ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2),
           divRemovable_zero f w = f w / w := by
         intro x₂ hyp_x₂
         apply divRemovable_zero_of_ne_zero
-        rw [ball_eq, Set.mem_inter_iff,
-          Metric.mem_closedBall, dist_zero_right,
+        rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
           Set.mem_setOf_eq] at hyp_x₂
         rw [← norm_pos_iff]
         calc 0
           _ < R - ‖x₂ - x‖ := by
-            obtain ⟨u, v⟩ := hyp_x₂; linarith
+            obtain ⟨u, v⟩ := hyp_x₂
+            linarith
           _ = ‖x‖ - ‖x - x₂‖ := by
-            rw [h]; simp only [sub_right_inj]
+            rw [h]
+            simp only [sub_right_inj]
             exact norm_sub_rev ..
           _ ≤ ‖x - (x - x₂)‖ := norm_sub_norm_le ..
           _ ≤ ‖x₂‖ := by
@@ -149,21 +149,20 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
           (AnalyticOn.mono analytic Set.inter_subset_left)
           analyticOn_id
         intro x₁ hyp_x₁
-        rw [ball_eq, Set.mem_inter_iff,
-          Metric.mem_closedBall, dist_zero_right,
+        rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
           Set.mem_setOf_eq] at hyp_x₁
         rw [← norm_pos_iff]
         calc 0
           _ < R - ‖x₁ - x‖ := by
-            obtain ⟨u, v⟩ := hyp_x₁; linarith
+            obtain ⟨u, v⟩ := hyp_x₁
+            linarith
           _ = ‖x‖ - ‖-(x₁ - x)‖ := by
             rw [h, neg_sub, sub_right_inj]
             exact norm_sub_rev ..
           _ ≤ ‖x - (-(x₁ - x))‖ := norm_sub_norm_le ..
           _ = ‖x₁‖ := by rw [neg_sub, sub_sub_cancel]
-      · simp only [Set.EqOn.eq_1, Set.mem_inter_iff,
-          Metric.mem_closedBall, dist_zero_right,
-          Metric.mem_ball, and_imp]
+      · simp only [Set.EqOn.eq_1, Set.mem_inter_iff, Metric.mem_closedBall,
+          dist_zero_right, Metric.mem_ball, and_imp]
         intro x₃ hyp_x₃ dist_hyp
         have : x₃ ∈
             Metric.closedBall 0 R ∩ Metric.ball x (R / 2) :=
@@ -175,13 +174,10 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
   · use Metric.ball 0 R
     refine ⟨Metric.isOpen_ball, ?_, ?_⟩
     · simp only [ball_eq, sub_zero, Set.mem_setOf_eq]
-      simp only [Metric.mem_closedBall, dist_zero_right]
-        at x_hyp
+      simp only [Metric.mem_closedBall, dist_zero_right] at x_hyp
       exact lt_of_le_of_ne x_hyp h
-    · have si :
-          Metric.closedBall (0 : ℂ) R ∩
-            Metric.ball (0 : ℂ) R =
-          Metric.ball (0 : ℂ) R := by
+    · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R =
+        Metric.ball (0 : ℂ) R := by
         apply Set.inter_eq_self_of_subset_right
         exact Metric.ball_subset_closedBall
       rw [si]
@@ -267,8 +263,10 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere
     exact AnalyticOn.differentiableOn
       (AnalyticOn.mono analytic
         (Metric.closedBall_subset_closedBall (by linarith)))
-  · rw [frontier_closedBall']; exact cond
-  · rw [Metric.closure_closedBall]; exact wInS
+  · rw [frontier_closedBall']
+    exact cond
+  · rw [Metric.closure_closedBall]
+    exact wInS
 
 @[blueprint "borelCaratheodory-closedBall"
   (title := "borelCaratheodory-closedBall")
@@ -322,10 +320,8 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
       ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0 := by
     intro z zInS
     exact Complex.ne_zero_of_re_pos (by
-      rw [Complex.sub_re, Complex.mul_re,
-        Complex.re_ofNat, Complex.ofReal_re,
-        Complex.im_ofNat, Complex.ofReal_im,
-        mul_zero, sub_zero, sub_pos]
+      rw [Complex.sub_re, Complex.mul_re, Complex.re_ofNat, Complex.ofReal_re,
+        Complex.im_ofNat, Complex.ofReal_im, mul_zero, sub_zero, sub_pos]
       linarith [realPartBounded z zInS])
   have schwartzQuotientBounded :
       ∀ z ∈ Metric.sphere 0 R,
@@ -339,8 +335,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
     rw [mem_sphere_iff_norm, sub_zero] at hyp_z
     calc ‖schwartzQuotient f M z‖
       _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by
-        simp only [Complex.norm_div,
-          divRemovable_zero_of_ne_zero f zNe0]
+        simp only [Complex.norm_div, divRemovable_zero_of_ne_zero f zNe0]
       _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
         by_cases h : ‖f z‖ = 0
         · simp only [h, zero_div, div_zero, le_refl]
@@ -350,8 +345,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
               Mpos (realPartBounded z zInS))
       _ ≤ 1 / ‖z‖ := by
         by_cases h : ‖f z‖ = 0
-        · rw [h, zero_div, div_zero, one_div,
-            inv_nonneg]
+        · rw [h, zero_div, div_zero, one_div, inv_nonneg]
           exact norm_nonneg _
         · rw [div_div, mul_comm, ← div_div, div_self h]
       _ = 1 / R := by rw [hyp_z]
@@ -372,12 +366,13 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
     rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z zInS
     unfold schwartzQuotient at this
-    have U : z ≠ 0 := by rw [← norm_pos_iff]; linarith
+    have U : z ≠ 0 := by
+      rw [← norm_pos_iff]
+      linarith
     rw [divRemovable_zero_of_ne_zero f U] at this
     simp only [Complex.norm_div, one_div] at this
     have U : 0 < r * ‖2 * M - f z‖ := by
-      simp only [r_pos, mul_pos_iff_of_pos_left,
-        norm_pos_iff, ne_eq, fPosAll z zInS,
+      simp only [r_pos, mul_pos_iff_of_pos_left, norm_pos_iff, ne_eq, fPosAll z zInS,
         not_false_eq_true]
     rw [zOnR, div_div, div_le_iff₀' U] at this
     have U0 :
@@ -402,22 +397,17 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
         ‖f z‖ * (1 - r * R⁻¹) := by ring
     have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by
       have : r * R⁻¹ < 1 := by
-        simp only [← div_lt_one₀ (by linarith : 0 < R)]
-          at hyp_r
+        simp only [← div_lt_one₀ (by linarith : 0 < R)] at hyp_r
         exact hyp_r
       linarith
     have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) =
         2 * M * r / (R - r) := by
       have hR : R ≠ 0 := by linarith
-      rw [← mul_div_mul_left
-        (r * R⁻¹ * M * (2 : ℝ))
-        ((1 : ℝ) - r * R⁻¹) hR]
+      rw [← mul_div_mul_left (r * R⁻¹ * M * (2 : ℝ)) ((1 : ℝ) - r * R⁻¹) hR]
       ring_nf
       have U : R * r * R⁻¹ = r := by
-        rw [mul_comm, ← mul_assoc,
-          ← mul_comm R R⁻¹,
-          CommGroupWithZero.mul_inv_cancel R hR,
-          one_mul]
+        rw [mul_comm, ← mul_assoc, ← mul_comm R R⁻¹,
+          CommGroupWithZero.mul_inv_cancel R hR, one_mul]
       rw [U]
     rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0
     ring_nf at U0
@@ -432,11 +422,9 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
       (by linarith) (boundForF r hyp_r pos_r)
   by_cases pos_r : r = 0
   · have U : z = 0 := by
-      rw [pos_r, Metric.closedBall_zero,
-        Set.mem_singleton_iff] at hyp_z
+      rw [pos_r, Metric.closedBall_zero, Set.mem_singleton_iff] at hyp_z
       exact hyp_z
-    rw [U, pos_r, mul_zero, sub_zero, zero_div,
-      norm_le_zero_iff]
+    rw [U, pos_r, mul_zero, sub_zero, zero_div, norm_le_zero_iff]
     exact zeroAtZero
   · have U : 0 ≤ r := by
       rw [mem_closedBall_iff_norm, sub_zero] at hyp_z

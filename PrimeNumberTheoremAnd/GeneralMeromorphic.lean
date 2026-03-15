@@ -9,14 +9,12 @@ open scoped Interval
 /-- A function is `MeromorphicOnRectangle` if it's holomorphic off of a
   finite set of `poles`, none of which is on the boundary of the rectangle
   (so the function is continuous there). -/
-@[blueprint
-  (statement := /--
-    A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$
-    if it is holomorphic off a (finite) set of poles, none of which are on
-    the boundary of the rectangle.
+@[blueprint (statement := /--
+  A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$
+  if it is holomorphic off a (finite) set of poles, none of which are on
+  the boundary of the rectangle.
   -/)]
-class MeromorphicOnRectangle
-    (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) : Prop where
+class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) : Prop where
   holomorphicOn : HolomorphicOn f ((Rectangle z w) ∩ polesᶜ)
   hasPoleAt : ∀ p ∈ poles, MeromorphicAt f p
   continuousOn : ContinuousOn f (RectangleBorder z w)
@@ -29,12 +27,9 @@ class MeromorphicOnRectangle
 --   sufficiently small rectangle integrals around each pole.
 --   -/)]
 -- theorem RectangleIntegralEqSumOfRectangles
---     (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ)
---     [MeromorphicOnRectangle f poles z w] :
---     ∀ᶠ c in 𝓝[>](0:ℝ),
---     RectangleIntegral f z w =
---       ∑ p in poles,
---         RectangleIntegral f (p-(c+c*I)) (p+c+c*I) := by
+--     (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) [MeromorphicOnRectangle f poles z w] :
+--     ∀ᶠ c in 𝓝[>](0:ℝ), RectangleIntegral f z w =
+--       ∑ p in poles, RectangleIntegral f (p-(c+c*I)) (p+c+c*I) := by
 --   sorry_using [MeromorphicOnRectangle, RectangleIntegral]
 
 blueprint_comment /--
@@ -46,7 +41,6 @@ $$
 $$
 \end{definition}
 -/
-
 
 blueprint_comment /--
 If a meromorphic function $f$ has a pole at $z_0$, then the residue of
@@ -73,8 +67,7 @@ We can evaluate a small integral around a pole by taking the residue.
 -- theorem ResidueTheoremOnRectangle
 --     (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
 --     ∀ᶠ c in 𝓝[>](0:ℝ),
---     RectangleIntegral f (z-(c+c*I)) (z+c+c*I) =
---       2*π*I* Res f z₀ := by
+--     RectangleIntegral f (z-(c+c*I)) (z+c+c*I) = 2*π*I* Res f z₀ := by
 --   /--
 --   The key is being able to integrate $1/z$ around a rectangle
 --   with corners, say, $-1-i$ and $1+i$. The bottom is:
@@ -123,8 +116,7 @@ We can evaluate a small integral around a pole by taking the residue.
 --   (Each of the vertical/horizontal sides contributes
 --   half of the winding.)
 --   -/
---   sorry_using [PoleOrder, Residue, RectangleIntegral,
---     RectangleIntegralEqSumOfRectangles]
+--   sorry_using [PoleOrder, Residue, RectangleIntegral, RectangleIntegralEqSumOfRectangles]
 
 blueprint_comment /--
 If a function $f$ is meromorphic at $z_0$ with a pole of order $n$, then
@@ -136,8 +128,7 @@ the residue at $z_0$ of the logarithmic derivative is $-n$ exactly.
 --   $$
 --   Res_{z_0} \frac{f'}f = -n.
 --   -/)]
--- theorem ResidueOfLogDerivative
---     (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
+-- theorem ResidueOfLogDerivative (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
 --     Res (f'/f) z₀ = -orderOfPole f z₀ := by
 --   /--
 --   We can write $f(z) = (z-z_0)^{-n} g(z)$, where $g$ is

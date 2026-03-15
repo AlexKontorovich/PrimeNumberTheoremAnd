@@ -32,9 +32,7 @@ zeta-function, arXiv:2212.06867.
     One has a Riemann von Mangoldt estimate with parameters
     0.1038, 0.2573, and 9.3675.
   --/)]
-theorem HSW.main_theorem :
-    riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 :=
-  sorry
+theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
 
 @[blueprint
   "mt_theorem_1"
@@ -47,8 +45,7 @@ theorem HSW.main_theorem :
   -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
-theorem MT_theorem_1 :
-    riemannZeta.classicalZeroFree 5.5666305 := sorry
+theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
 
 @[blueprint
   "mty_theorem"
@@ -58,8 +55,7 @@ theorem MT_theorem_1 :
   -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
-theorem MTY_theorem :
-    riemannZeta.classicalZeroFree 5.558691 := sorry
+theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 @[blueprint
   "platt_RH"
@@ -69,8 +65,7 @@ theorem MTY_theorem :
     $H_0 = 3.061 \times 10^{10}$.
   -/)
   (latexEnv := "theorem")]
-theorem Platt_theorem :
-    riemannZeta.RH_up_to 30610000000 := sorry
+theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
 
 @[blueprint
   "gourdon_wedeniwski"
@@ -80,8 +75,7 @@ theorem Platt_theorem :
     $H_0 = 2445999556030$.
   -/)
   (latexEnv := "theorem")]
-theorem GW_theorem :
-    riemannZeta.RH_up_to 2445999556030 := sorry
+theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
 
 @[blueprint
   "pt_theorem_1"
@@ -91,5 +85,4 @@ theorem GW_theorem :
     $H_0 = 3 \times 10^{12}$.
   -/)
   (latexEnv := "theorem")]
-theorem PT_theorem_1 :
-    riemannZeta.RH_up_to 3e12 := sorry
+theorem PT_theorem_1 : riemannZeta.RH_up_to 3e12 := sorry
