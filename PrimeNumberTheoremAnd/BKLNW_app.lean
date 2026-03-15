@@ -24,9 +24,9 @@ structure Inputs where
 noncomputable def Inputs.default : Inputs where
   H := 2445999556030
   hH := GW_theorem
-  R := 5.5666305
+  R := 5.5666305  -- a slightly more conservative value of 5.573412 was used in the paper
   hR := MT_theorem_1
-  ZDB := FKS.corollary_2_9_merged
+  ZDB := FKS.corollary_2_9_merged -- stronger than the Kadiri-Lumley-Ng input used here
 
 @[blueprint
   "bklnw-eq_A_7"
