@@ -673,8 +673,10 @@ theorem a2_300_mem_Icc :
 theorem cor_5_1_rem' (b a₂b : ℝ) (m : ℕ)
     (hb : (b, a₂b, m) ∈ table_cor_5_1) :
     a₂ b ∈ Set.Icc a₂b (a₂b + 10 ^ (-m : ℝ)) := by
+  -- Unfold a₂ to (1+α) * max(f(exp b), f(2^(⌊b/log2⌋₊+1)))
   unfold a₂ Inputs.a₂
   rw [alpha_eq]
+  -- Case split on table membership
   simp only [table_cor_5_1, List.mem_cons, Prod.mk.injEq,
     List.mem_nil_iff, or_false] at hb
   rcases hb with
