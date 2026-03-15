@@ -7,8 +7,6 @@ blueprint_comment /--
 
 blueprint_comment /--
 In this section we formalize the zeta function bounds of Rosser and Schoenfeld.
-
-TODO: Add more results and proofs here, and reorganize the blueprint
 -/
 
 namespace RS
