@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.Dusart
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}
 
-Here we record the results from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/index.html
+Here we record the results from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/index.html
 
 Some of these results are already stated elsewhere.  In such cases, we can fill in the sorrys with the already stated results.
 
@@ -19,7 +19,7 @@ open ArithmeticFunction hiding log
 blueprint_comment /--
 \subsection{Explicit bounds on primes}
 
-The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art01.html -/
+The results below are taken from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art01.html -/
 
 namespace Buthe2
 
@@ -780,7 +780,7 @@ end DeKoninckLetendre
 blueprint_comment /--
 \subsection{Short intervals containing primes}
 
-The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
+The results below are taken from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art09.html -/
 namespace Schoenfeld1976
 
 @[blueprint
