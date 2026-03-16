@@ -1229,13 +1229,6 @@ lemma deriv_e {φ : ℝ → ℝ} {t : ℝ} (hφ : DifferentiableAt ℝ φ t) :
   convert (Complex.hasDerivAt_exp _).comp t (hφ.hasDerivAt.ofReal_comp.const_mul (2 * π * I)) using 1
   ring
 
-lemma deriv_e {φ : ℝ → ℝ} {t : ℝ} (hφ : DifferentiableAt ℝ φ t) :
-    deriv (fun t ↦ e (φ t)) t = 2 * π * I * deriv φ t * e (φ t) := by
-  simp only [e]
-  apply HasDerivAt.deriv
-  convert (Complex.hasDerivAt_exp _).comp t (hφ.hasDerivAt.ofReal_comp.const_mul (2 * π * I)) using 1
-  ring
-
 theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
     (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
     let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
