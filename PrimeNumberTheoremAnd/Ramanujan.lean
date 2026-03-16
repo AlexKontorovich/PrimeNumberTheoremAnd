@@ -1028,16 +1028,15 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
         linarith
     have hbuthe := Buthe2.theorem_2b x (3e12) PT_theorem_1 hrh hx_gt
     unfold Eθ
-    have h8pisqrt : (0 : ℝ) < 8 * π * sqrt x := by positivity
-    rw [div_le_div_iff₀ hx_pos h8pisqrt]
-    have step1 : |θ x - x| * (8 * π * sqrt x) ≤ x / log x ^ 2 := by
-      have h1 : |θ x - x| * (8 * π * sqrt x) ≤ sqrt x / (8 * π * log x ^ 2) * (8 * π * sqrt x) := by gcongr
-      have h2 : sqrt x / (8 * π * log x ^ 2) * (8 * π * sqrt x) = x / log x ^ 2 := by
-        have : sqrt x * sqrt x = x := Real.mul_self_sqrt hx_pos.le
-        field_simp; nlinarith
-      linarith
-    have hlog_sq_ge1 : 1 ≤ log x ^ 2 := by nlinarith
-    linarith [div_le_self hx_pos.le hlog_sq_ge1, le_mul_of_one_le_left hx_pos.le hlog_sq_ge1]
+    have hsqrt_pos : (0 : ℝ) < sqrt x := Real.sqrt_pos.mpr hx_pos
+    have hsqx : sqrt x * sqrt x = x := Real.mul_self_sqrt hx_pos.le
+    rw [div_le_div_iff₀ hx_pos (by positivity : (0 : ℝ) < 8 * π * sqrt x)]
+    have h1 : |θ x - x| * (8 * π * sqrt x) ≤
+        sqrt x * (log x) ^ 2 / (8 * π) * (8 * π * sqrt x) :=
+      mul_le_mul_of_nonneg_right hbuthe (by positivity)
+    have h2 : sqrt x * (log x) ^ 2 / (8 * π) * (8 * π * sqrt x) = log x ^ 2 * x := by
+      field_simp; nlinarith
+    linarith
   · push_neg at hx_gt
     have hx_eq : x = 599 := le_antisymm hx_gt hx_lo
     subst hx_eq
