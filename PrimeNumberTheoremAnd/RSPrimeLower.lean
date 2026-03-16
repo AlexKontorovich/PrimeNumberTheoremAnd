@@ -96,7 +96,7 @@ lemma p_n_lower_large (n : ℕ) (hn : n ≥ 32) :
           refine le_trans ?_ h_step5
           generalize_proofs at *; (
           gcongr;
-          refine' Nat.le_induction _ _ n ( show n ≥ 1 from by linarith ) <;> intros <;> simp_all +decide [ Nat.nth_zero ] ; (
+          refine' Nat.le_induction _ _ n ( show n ≥ 1 from by linarith ) <;> intros <;> simp_all +decide ; (
                                             exact Nat.Prime.pos ( Nat.prime_nth_prime 0 ) |> Nat.one_le_of_lt;);
           exact Nat.nth_strictMono ( Nat.infinite_setOf_prime ) ( by omega ) |> lt_of_le_of_lt ( by omega ) ;)
         have h_step7 : Real.log (nth_prime' n) ≥ Real.log (n * (Real.log n - 1.112)) := by
