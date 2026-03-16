@@ -1,7 +1,4 @@
-import Mathlib
-import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.Dusart
-import LeanCert.Tactic.IntervalAuto
 
 open Real Chebyshev Nat
 
