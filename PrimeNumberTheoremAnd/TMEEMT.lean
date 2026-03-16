@@ -250,7 +250,20 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
   (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
-    |ψ x - x| ≤ 0.00053699 * x := by sorry
+    |ψ x - x| ≤ 0.00053699 * x := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hmem : (4, (59.18 : ℝ)) ∈ Dusart.Table_3_3 := by simp [Dusart.Table_3_3]
+  have hEpsi := Dusart.theorem_3_3 hmem (show x ≥ 2 by linarith)
+  rw [show Eψ x = |ψ x - x| / x from rfl] at hEpsi
+  rw [div_le_iff₀ hx_pos] at hEpsi
+  apply hEpsi.trans (mul_le_mul_of_nonneg_right _ hx_pos.le)
+  have hlog : (20 : ℝ) ≤ log x := by
+    rw [Real.le_log_iff_exp_le hx_pos]
+    exact (show Real.exp 20 ≤ 485165196 from by interval_auto).trans hx
+  calc (59.18 : ℝ) / (log x) ^ 4
+      ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
+          (pow_le_pow_left₀ (by linarith) hlog 4)
+      _ ≤ 0.00053699 := by norm_num
 
 end FaberKadiri
 
