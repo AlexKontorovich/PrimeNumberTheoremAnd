@@ -107,7 +107,8 @@ Some results from \cite{rs-prime}-/
   (statement := /-- For $x > 0$, we have $\psi(x) \leq 1.03883\, x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_a (x : ℝ) (hx : x > 0) :
-    ψ x ≤ 1.03883 * x := by sorry
+    ψ x ≤ 1.03883 * x :=
+  le_of_lt (by rw [show (1.03883 : ℝ) = RS_prime.c₀ from rfl]; exact theorem_12 hx)
 
 @[blueprint
   "thm:rs-1962-b"
