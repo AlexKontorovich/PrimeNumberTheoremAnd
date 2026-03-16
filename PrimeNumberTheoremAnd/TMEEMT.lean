@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.Dusart
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}
 
-Here we record the results from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/index.html
+Here we record the results from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/index.html
 
 Some of these results are already stated elsewhere.  In such cases, we can fill in the sorrys with the already stated results.
 
@@ -19,7 +19,7 @@ open ArithmeticFunction hiding log
 blueprint_comment /--
 \subsection{Explicit bounds on primes}
 
-The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art01.html -/
+The results below are taken from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art01.html -/
 
 namespace Buthe2
 
@@ -145,8 +145,9 @@ Some results from \cite{Dusart1999}-/
   (title := "Dusart 1999, $\\pi$ inequality")
   (statement := /-- For $x \geq 17$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
-theorem pi_inequality (x : ℝ) (hx : x ≥ 17) :
-    pi x > x / (log x - 1) := by sorry
+theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
+    pi x ≥ x / (log x - 1) :=
+  Dusart.corollary_5_3_a hx
 
 @[blueprint
   "thm:dusart1999-a"
@@ -604,9 +605,9 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
 @[blueprint
   "thm:rosser1941-pn-lower"
   (title := "Rosser 1941, lower bound on $p_n$")
-  (statement := /-- For $n \geq 1$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
+  (statement := /-- For $n \geq 55$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n > n * (log n + log (log n) - 4) := by sorry
 
 @[blueprint
@@ -614,7 +615,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 1) :
   (title := "Rosser 1941, upper bound on $p_n$")
   (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n ≥ 1) :
+theorem p_n_upper (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n < n * (log n + log (log n) + 2) := by sorry
 
 end Rosser1941
@@ -780,7 +781,7 @@ end DeKoninckLetendre
 blueprint_comment /--
 \subsection{Short intervals containing primes}
 
-The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
+The results below are taken from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art09.html -/
 namespace Schoenfeld1976
 
 @[blueprint
@@ -789,12 +790,12 @@ namespace Schoenfeld1976
   (statement := /--
   If $x > 2010760$, then there is a prime in the interval
   \[
-  \left( x\left(1 - \frac{1}{15697}\right), x \right].
+  \left( x, x\left(1 + \frac{1}{15697}\right) \right].
   \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
+    HasPrimeInInterval x (x * (1 / 15697)) := by sorry
 
 end Schoenfeld1976
 
