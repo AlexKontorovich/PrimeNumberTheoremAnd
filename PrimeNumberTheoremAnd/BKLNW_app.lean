@@ -126,6 +126,37 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ :=
     (1 / (2 * π) * (log (T / (2 * π))) ^ 2 +
       1.8642)
 
+lemma log_div_pow (T lambda : ℝ) (k : ℕ) (hT : 0 < T) (hlambda : 0 < lambda) :
+  Real.log (T / lambda ^ k) = Real.log T - (k : ℝ) * Real.log lambda := by
+  have h1 : 0 < lambda ^ k := pow_pos hlambda k
+  have h3 : (lambda ^ k : ℝ) ≠ 0 := by positivity
+  rw [Real.log_div hT.ne' h3]
+  rw [Real.log_pow]
+
+lemma exp_eq_pow_rpow (lambda x R logTk : ℝ) (k : ℕ)
+    (hlambda_pos : 0 < lambda) (hx_pos : 0 < x) :
+  Real.exp ((k : ℝ) * Real.log lambda - Real.log x / (R * logTk)) =
+    lambda ^ k * x ^ (-(1 / (R * logTk))) := by
+  have h1 : Real.exp ((k : ℝ) * Real.log lambda - Real.log x / (R * logTk)) =
+      Real.exp ((k : ℝ) * Real.log lambda) * Real.exp (-(Real.log x / (R * logTk))) := by
+    rw [show (k : ℝ) * Real.log lambda - Real.log x / (R * logTk) =
+        (k : ℝ) * Real.log lambda + (-(Real.log x / (R * logTk))) by ring]
+    rw [Real.exp_add]
+  rw [h1]
+  have h2 : Real.exp ((k : ℝ) * Real.log lambda) = lambda ^ k := by
+    have h3 : Real.exp ((k : ℝ) * Real.log lambda) = (Real.exp (Real.log lambda)) ^ k := by
+      rw [Real.exp_nat_mul]
+    rw [h3]
+    rw [Real.exp_log hlambda_pos]
+  rw [h2]
+  have h4 : x ^ (-(1 / (R * logTk))) = Real.exp (Real.log x * (-(1 / (R * logTk)))) := by
+    rw [Real.rpow_def_of_pos hx_pos]
+  rw [h4]
+  have h5 : Real.exp (-(Real.log x / (R * logTk))) = Real.exp (Real.log x * (-(1 / (R * logTk)))) := by
+    have h6 : -(Real.log x / (R * logTk)) = Real.log x * (-(1 / (R * logTk))) := by ring
+    rw [h6]
+  rw [h5]
+
 @[blueprint
   "bklnw-eq_A_12"
   (title := "Equation (A.12)")
@@ -146,12 +177,14 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ :=
   $\Re \rho$. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_12 (I : Inputs)
-    (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
+    (x T δ lambda : ℝ) (hlambda : 1 < lambda)
+    (hx : 1 < x) (hT : 0 < T) (hTH : I.H < T)
+    (hσ : 1 - δ ∈ I.ZDB.σ_range) (hT₀ : I.ZDB.T₀ ≤ I.H) :
     let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
     ‖Sigma₂ x T δ‖ ≤
       2 * ∑ k ∈ Finset.range K,
         (lambda ^ (k + 1) *
-          x ^ (-(1 / I.R * log (T / lambda ^ k))) /
+          x ^ (-(1 / (I.R * log (T / lambda ^ k)))) /
           T) *
         I.ZDB.N (1 - δ) (T / lambda ^ k) := by
   sorry
@@ -172,7 +205,9 @@ theorem bklnw_eq_A_12 (I : Inputs)
   (latexEnv := "sublemma")
   (discussion := 751)]
 theorem bklnw_eq_A_13 (I : Inputs)
-    (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
+    (x T δ lambda : ℝ) (hlambda : 1 < lambda)
+    (hx : 1 < x) (hT : 0 < T) (hTH : I.H < T)
+    (hσ : 1 - δ ∈ I.ZDB.σ_range) (hT₀ : I.ZDB.T₀ ≤ I.H) :
     let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
     ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
       ∑ k ∈ Finset.range K,
@@ -180,11 +215,59 @@ theorem bklnw_eq_A_13 (I : Inputs)
           (log x) / (I.R * (log T -
             k * log lambda))) *
         (I.ZDB.c₁ (1 - δ) *
-          (T / lambda ^ k) ^ (8 * δ / 3) *
-          (log (T / lambda ^ k)) ^ (3 + 2 * δ) +
+          (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+          (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
         I.ZDB.c₂ (1 - δ) *
           (log (T / lambda ^ k)) ^ 2) := by
-  sorry
+  dsimp only
+  let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
+  have h12 := bklnw_eq_A_12 I x T δ lambda hlambda hx hT hTH hσ hT₀
+  dsimp only at h12
+  have h_main_ineq : ‖Sigma₂ x T δ‖ ≤
+      2 * ∑ k ∈ Finset.range K,
+        (lambda ^ (k + 1) * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) / T) *
+        I.ZDB.N (1 - δ) (T / lambda ^ k) := h12
+  let f2 (k : ℕ) := (lambda ^ (k + 1) * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) / T) *
+      (I.ZDB.c₁ (1 - δ) * (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) * (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
+      I.ZDB.c₂ (1 - δ) * (log (T / lambda ^ k)) ^ 2)
+  let f3 (k : ℕ) := exp (k * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) *
+      (I.ZDB.c₁ (1 - δ) * (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) * (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
+      I.ZDB.c₂ (1 - δ) * (log (T / lambda ^ k)) ^ 2)
+  have h_expand_sum : (2 * ∑ k ∈ Finset.range K,
+        (lambda ^ (k + 1) * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) / T) *
+        I.ZDB.N (1 - δ) (T / lambda ^ k)) =
+      2 * ∑ k ∈ Finset.range K, f2 k := by
+    rfl
+  have h_step1 : (2 * ∑ k ∈ Finset.range K, f2 k) =
+      ∑ k ∈ Finset.range K, (2 * f2 k) := by
+    rw [Finset.mul_sum]
+  have h_step2 : ((2 * lambda / T) * ∑ k ∈ Finset.range K, f3 k) =
+      ∑ k ∈ Finset.range K, ((2 * lambda / T) * f3 k) := by
+    rw [Finset.mul_sum]
+  have hlambda_pos : 0 < lambda := by linarith
+  have hx_pos : 0 < x := by linarith
+  have h_term_eq : ∀ (k : ℕ), k ∈ Finset.range K →
+      (2 * f2 k) = ((2 * lambda / T) * f3 k) := by
+    intro k _
+    have h3 : log T - (k : ℝ) * log lambda = log (T / lambda ^ k) := by
+      exact (log_div_pow T lambda k hT hlambda_pos).symm
+    have h4 : exp ((k : ℝ) * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) =
+        lambda ^ k * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) := by
+      rw [h3]
+      exact exp_eq_pow_rpow lambda x I.R (log (T / lambda ^ k)) k hlambda_pos hx_pos
+    have h5 : lambda ^ (k + 1) = lambda * lambda ^ k := by
+      rw [pow_succ, mul_comm]
+    simp only [f2, f3, h4, h5]
+    <;> ring
+  have h_sum_eq : (∑ k ∈ Finset.range K, (2 * f2 k)) =
+      (∑ k ∈ Finset.range K, ((2 * lambda / T) * f3 k)) := by
+    apply Finset.sum_congr rfl
+    intro k hk
+    exact h_term_eq k hk
+  have h_goal_eq : (2 * ∑ k ∈ Finset.range K, f2 k) = (2 * lambda / T) * ∑ k ∈ Finset.range K, f3 k := by
+    rw [h_step1, h_step2, h_sum_eq]
+  rw [h_expand_sum, h_goal_eq] at h_main_ineq
+  exact h_main_ineq
 
 @[blueprint
   "bklnw-eq_A_14"
@@ -211,8 +294,8 @@ noncomputable def Inputs.s₂ (I : Inputs)
         b / (I.R * (log T -
           k * log lambda))) *
       (I.ZDB.c₁ (1 - δ) *
-        (T / lambda ^ k) ^ (8 * δ / 3) *
-        (log (T / lambda ^ k)) ^ (3 + 2 * δ) +
+        (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+        (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
       I.ZDB.c₂ (1 - δ) *
         (log (T / lambda ^ k)) ^ 2)
 
