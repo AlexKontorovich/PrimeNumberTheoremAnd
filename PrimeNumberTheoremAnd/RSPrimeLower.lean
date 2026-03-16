@@ -56,105 +56,143 @@ lemma p_n_lower_small (n : ℕ) (hn1 : n > 1) (hn2 : n ≤ 31) :
 
 lemma pi_nth_prime' (n : ℕ) (hn : n ≥ 1) :
     pi (nth_prime' n) = n := by
-      have h_pi_eq : pi (nth_prime' n) = Nat.primeCounting (nth_prime' n) := by
-        unfold pi; norm_num;
-      have h_prime_counting : Nat.primeCounting (nth_prime' n) = Nat.count Nat.Prime (nth_prime' n + 1) :=
-        add_zero (List.countP.go (fun b ↦ decide (Nat.Prime b)) (List.range (nth_prime' n + 1)) 0)
-      have h_count : Nat.count Nat.Prime (nth_prime' n) = n - 1 := by
-        convert Nat.count_nth_of_infinite ( Nat.infinite_setOf_prime ) ( n - 1 ) using 1;
-      rcases n <;> simp_all +decide [ Nat.count_succ ]
+  have h_pi_eq : pi (nth_prime' n) = Nat.primeCounting (nth_prime' n) := by norm_num [pi]
+  have h_prime_counting : primeCounting (nth_prime' n) = count Nat.Prime (nth_prime' n + 1) :=
+    add_zero (List.countP.go (fun b ↦ decide (Nat.Prime b)) (List.range (nth_prime' n + 1)) 0)
+  have h_count : count Nat.Prime (nth_prime' n) = n - 1 := by
+    convert count_nth_of_infinite (infinite_setOf_prime) (n - 1) using 1
+  rcases n <;> simp_all [count_succ]
 
 lemma p_n_lower_large (n : ℕ) (hn : n ≥ 32) :
     (nth_prime' n : ℝ) > n * (Real.log n + Real.log (Real.log n) - 3 / 2) := by
-      have h_step5 : (nth_prime' n : ℝ) ≥ n * (Real.log (nth_prime' n) - 1.112) := by
-        have h_pi_le : (n : ℝ) ≤ (nth_prime' n) / (Real.log (nth_prime' n) - 1.112) := by
-          have h_pi_le : pi (nth_prime' n) ≤ (nth_prime' n : ℝ) / (Real.log (nth_prime' n) - 1.112) := by
-            convert Dusart.corollary_5_3_b _ using 1;
-            have h_step1 : (nth_prime' n : ℝ) ≥ n + 1 := by
-              norm_cast
-              have h_step1 : ∀ n ≥ 1, nth_prime' n ≥ n + 1 := by
-                intro n hn
-                induction' n, hn using Nat.le_induction with n ih
-                generalize_proofs at *; (
-                exact Nat.Prime.two_le ( Nat.prime_nth_prime 0 ) |> Nat.succ_le_of_lt |> Nat.le_trans <| Nat.le_refl _;);
-                exact Nat.succ_le_of_lt ( lt_of_le_of_lt ‹_› ( Nat.nth_strictMono ( Nat.infinite_setOf_prime ) ( Nat.pred_lt ( ne_bot_of_gt ih ) ) ) )
-              exact h_step1 n (by linarith)
-            generalize_proofs at *; (
-            have h_exp_approx : Real.exp 1.112 < 33 := by
-              rw [ ← Real.log_lt_log_iff ( by positivity ) ] <;> norm_num [ Real.log_exp ];
-              rw [ div_lt_iff₀' ] <;> norm_num [ ← Real.log_rpow, Real.lt_log_iff_exp_lt ];
-              have := Real.exp_one_lt_d9.le ; norm_num1 at * ; rw [ show Real.exp 139 = ( Real.exp 1 ) ^ 139 by rw [ ← Real.exp_nat_mul ] ; norm_num ] ; exact lt_of_le_of_lt ( pow_le_pow_left₀ ( by positivity ) this _ ) ( by norm_num ) ;
-            generalize_proofs at *; (
-            linarith [ show ( n : ℝ ) ≥ 32 by norm_cast ]));
-          convert h_pi_le using 1;
-          exact_mod_cast Eq.symm ( pi_nth_prime' n ( by linarith ) );
-        rwa [ le_div_iff₀ ( sub_pos.mpr <| by
-          contrapose! h_pi_le;
-          exact lt_of_le_of_lt ( div_nonpos_of_nonneg_of_nonpos ( Nat.cast_nonneg _ ) ( sub_nonpos.mpr h_pi_le ) ) ( by positivity ) ) ] at h_pi_le
-      have h_step6 : Real.log (nth_prime' n) ≥ Real.log n + Real.log (Real.log n - 1.112) := by
-        have h_step6 : (nth_prime' n : ℝ) ≥ n * (Real.log n - 1.112) := by
-          refine le_trans ?_ h_step5
-          generalize_proofs at *; (
-          gcongr;
-          refine' Nat.le_induction _ _ n ( show n ≥ 1 from by linarith ) <;> intros <;> simp_all +decide ; (
-                                            exact Nat.Prime.pos ( Nat.prime_nth_prime 0 ) |> Nat.one_le_of_lt;);
-          exact Nat.nth_strictMono ( Nat.infinite_setOf_prime ) ( by omega ) |> lt_of_le_of_lt ( by omega ) ;)
-        have h_step7 : Real.log (nth_prime' n) ≥ Real.log (n * (Real.log n - 1.112)) := by
-          apply Real.log_le_log; exact (by
-          have h_step7 : Real.log n > 1.112 := by
-            have h_step7 : Real.log 32 > 1.112 := by
-              rw [ show ( 32 : ℝ ) = 2 ^ 5 by norm_num, Real.log_pow ] ; norm_num ; have := Real.log_two_gt_d9 ; norm_num at * ; linarith [ Real.log_le_log ( by norm_num ) ( by norm_num : ( 2 : ℝ ) ≤ 32 ) ] ;
-            exact h_step7.trans_le ( Real.log_le_log ( by norm_num ) ( mod_cast hn ) ) |> lt_of_lt_of_le <| le_rfl;
-          exact mul_pos (by positivity) (sub_pos.mpr h_step7)); exact h_step6;
-        have h_step8 : Real.log (n * (Real.log n - 1.112)) = Real.log n + Real.log (Real.log n - 1.112) := by
-          rw [ Real.log_mul ] <;> norm_num ; aesop;
-          have h_log_n_ge_log_32 : Real.log n ≥ Real.log 32 := by
-            exact Real.log_le_log ( by norm_num ) ( by norm_cast );
-          rw [ show ( 32 : ℝ ) = 2 ^ 5 by norm_num, Real.log_pow ] at h_log_n_ge_log_32 ; norm_num at * ; linarith [ Real.log_two_gt_d9 ] ;
-        linarith [h_step7, h_step8]
-      have h_step7 : Real.log (Real.log n - 1.112) > 0.85 := by
-        have h_log_n_ge_log_32 : Real.log n ≥ Real.log 32 := by
-          exact Real.log_le_log ( by norm_num ) ( by norm_cast )
-        have h_log_32_gt_3_465 : Real.log 32 > 3.465 := by
-          rw [ show ( 32 : ℝ ) = 2 ^ 5 by norm_num, Real.log_pow ] ; norm_num ; have := Real.log_two_gt_d9 ; norm_num at this ; linarith;
-        have h_log_32_minus_1_112_gt_2_353 : Real.log 32 - 1.112 > 2.353 := by
-          linarith [ show ( 3.465 : ℝ ) = 3.465 by norm_num ] ;
-        have h_log_2_353_gt_0_85 : Real.log 2.353 > 0.85 := by
-          norm_num [ Real.lt_log_iff_exp_lt ] at *;
-          have h_exp : Real.exp 17 < (2353 / 1000) ^ 20 := by
-            have := Real.exp_one_lt_d9.le ; norm_num1 at * ; rw [ show Real.exp 17 = ( Real.exp 1 ) ^ 17 by rw [ ← Real.exp_nat_mul ] ; norm_num ] ; exact lt_of_le_of_lt ( pow_le_pow_left₀ ( by positivity ) this _ ) ( by norm_num ) ;
-          contrapose! h_exp; rw [ show Real.exp 17 = ( Real.exp ( 17 / 20 ) ) ^ 20 by rw [ ← Real.exp_nat_mul ] ; norm_num ] ; exact pow_le_pow_left₀ ( by positivity ) h_exp 20;
-        have h_log_log_n_minus_1_112_gt_0_85 : Real.log (Real.log n - 1.112) > 0.85 := by
-          exact h_log_2_353_gt_0_85.trans_le ( Real.log_le_log ( by norm_num ) ( by linarith ) ) ;
-        exact h_log_log_n_minus_1_112_gt_0_85.trans_le' (by norm_num)
-      have h_step8 : (nth_prime' n : ℝ) ≥ n * (Real.log n + 0.85 - 1.112) := by
-        exact le_trans ( mul_le_mul_of_nonneg_left ( by linarith ) ( Nat.cast_nonneg _ ) ) h_step5
-      have h_step9 : Real.log n - 0.262 ≥ Real.log 32 - 0.262 := by
-        exact sub_le_sub_right ( Real.log_le_log ( by norm_num ) ( by norm_cast ) ) _
-      have h_step10 : Real.log 32 - 0.262 > 3.2 := by
-        rw [ show ( 32 : ℝ ) = 2 ^ 5 by norm_num, Real.log_pow ] ; norm_num ; have := Real.log_two_gt_d9 ; norm_num at this ; linarith;
-      have h_step11 : (nth_prime' n : ℝ) ≥ n * 3.2 := by
-        exact le_trans ( mul_le_mul_of_nonneg_left ( by linarith ) ( Nat.cast_nonneg _ ) ) h_step8
-      have h_step12 : Real.log (nth_prime' n) > Real.log n + Real.log (Real.log n) := by
-        have h_step12 : (nth_prime' n : ℝ) > n * Real.log n := by
-          have h_step12 : Real.log (nth_prime' n) > Real.log n + 1.16 := by
-            have h_step12 : Real.log (nth_prime' n) ≥ Real.log n + Real.log (3.2) := by
-              rw [ ← Real.log_mul ( by positivity ) ( by positivity ) ] ; exact Real.log_le_log ( by positivity ) ( by linarith ) ;
-            have h_step13 : Real.log (3.2) > 1.16 := by
-              norm_num [ Real.lt_log_iff_exp_lt ] at *;
-              have h_exp : Real.exp 29 < (16 / 5) ^ 25 := by
-                have := Real.exp_one_lt_d9.le ; norm_num1 at * ; rw [ show Real.exp 29 = ( Real.exp 1 ) ^ 29 by rw [ ← Real.exp_nat_mul ] ; norm_num ] ; exact lt_of_le_of_lt ( pow_le_pow_left₀ ( by positivity ) this _ ) ( by norm_num ) ;
-              generalize_proofs at *; (
-              contrapose! h_exp; rw [ show Real.exp 29 = ( Real.exp ( 29 / 25 ) ) ^ 25 by rw [ ← Real.exp_nat_mul ] ; norm_num ] ; exact pow_le_pow_left₀ ( by positivity ) h_exp 25;) -- This contradicts our assumption that $Real.exp (29 / 25) \geq 16 / 5$. Hence, $Real.exp (29 / 25) < 16 / 5$.
-            linarith [h_step12, h_step13]
-          have h_step13 : (nth_prime' n : ℝ) ≥ n * (Real.log n + 1.16 - 1.112) := by
-            exact le_trans ( mul_le_mul_of_nonneg_left ( by linarith ) ( Nat.cast_nonneg _ ) ) h_step5 |> le_trans <| by norm_num;
-          have h_step14 : (nth_prime' n : ℝ) > n * Real.log n := by
-            linarith [ show ( n : ℝ ) ≥ 32 by norm_cast ]
-          exact h_step14;
-        rw [ ← Real.log_mul ( by positivity ) ( by exact ne_of_gt <| Real.log_pos <| by norm_cast; linarith ) ] ; exact Real.log_lt_log ( by exact mul_pos ( by positivity ) <| Real.log_pos <| by norm_cast; linarith ) h_step12;
-      have h_step13 : (nth_prime' n : ℝ) > n * (Real.log n + Real.log (Real.log n) - 3 / 2) := by
-        nlinarith [ show ( n : ℝ ) ≥ 32 by norm_cast ] ;
-      exact h_step13
+  -- Step 1: p_n ≥ n * (log p_n - 1.112) via Dusart corollary 5.3(b)
+  have h_dusart : (nth_prime' n : ℝ) ≥ n * (Real.log (nth_prime' n) - 1.112) := by
+    have h_pi_le : (n : ℝ) ≤ (nth_prime' n) / (Real.log (nth_prime' n) - 1.112) := by
+      have h_pi_le :
+          pi (nth_prime' n) ≤ (nth_prime' n : ℝ) / (Real.log (nth_prime' n) - 1.112) := by
+        convert Dusart.corollary_5_3_b _ using 1
+        have h_step1 : (nth_prime' n : ℝ) ≥ n + 1 := by
+          norm_cast
+          have h_step1 : ∀ n ≥ 1, nth_prime' n ≥ n + 1 := by
+            intro n hn
+            induction' n, hn using Nat.le_induction with n ih
+            · generalize_proofs at *
+              exact Nat.Prime.two_le (Nat.prime_nth_prime 0) |>
+                Nat.succ_le_of_lt |> Nat.le_trans <| Nat.le_refl _
+            · exact Nat.succ_le_of_lt (lt_of_le_of_lt ‹_›
+                (Nat.nth_strictMono (Nat.infinite_setOf_prime)
+                  (Nat.pred_lt (ne_bot_of_gt ih))))
+          exact h_step1 n (by linarith)
+        generalize_proofs at *
+        have h_exp_approx : Real.exp 1.112 < 33 := by
+          rw [← Real.log_lt_log_iff (by positivity)] <;>
+            norm_num [Real.log_exp]
+          rw [div_lt_iff₀'] <;>
+            norm_num [← Real.log_rpow, Real.lt_log_iff_exp_lt]
+          have := Real.exp_one_lt_d9.le; norm_num1 at *
+          rw [show Real.exp 139 = (Real.exp 1) ^ 139 by
+            rw [← Real.exp_nat_mul]; norm_num]
+          exact lt_of_le_of_lt
+            (pow_le_pow_left₀ (by positivity) this _) (by norm_num)
+        linarith [show (n : ℝ) ≥ 32 by norm_cast]
+      convert h_pi_le using 1
+      exact_mod_cast Eq.symm (pi_nth_prime' n (by linarith))
+    rwa [le_div_iff₀ (sub_pos.mpr <| by
+      contrapose! h_pi_le
+      exact lt_of_le_of_lt
+        (div_nonpos_of_nonneg_of_nonpos (Nat.cast_nonneg _) (sub_nonpos.mpr h_pi_le))
+        (by positivity))] at h_pi_le
+  -- Step 2: log p_n ≥ log n + log(log n - 1.112)
+  have h_log_pn :
+      Real.log (nth_prime' n) ≥ Real.log n + Real.log (Real.log n - 1.112) := by
+    have h_pn_ge : (nth_prime' n : ℝ) ≥ n * (Real.log n - 1.112) := by
+      refine le_trans ?_ h_dusart
+      generalize_proofs at *; (
+      gcongr;
+      refine' Nat.le_induction _ _ n (show n ≥ 1 from by linarith) <;>
+        intros <;> simp_all +decide; (
+        exact Nat.Prime.pos (Nat.prime_nth_prime 0) |> Nat.one_le_of_lt;);
+      exact Nat.nth_strictMono (Nat.infinite_setOf_prime) (by omega) |>
+        lt_of_le_of_lt (by omega);)
+    have h_log_gt : Real.log n > 1.112 := by
+      have : Real.log 32 > 1.112 := by
+        rw [show (32 : ℝ) = 2 ^ 5 by norm_num, Real.log_pow]
+        nlinarith [Real.log_two_gt_d9]
+      exact this.trans_le (Real.log_le_log (by norm_num) (mod_cast hn)) |>
+        lt_of_lt_of_le <| le_rfl
+    have h_log_pn_ge :
+        Real.log (nth_prime' n) ≥ Real.log (n * (Real.log n - 1.112)) :=
+      Real.log_le_log (mul_pos (by positivity) (sub_pos.mpr h_log_gt)) h_pn_ge
+    have h_log_split :
+        Real.log (n * (Real.log n - 1.112)) =
+          Real.log n + Real.log (Real.log n - 1.112) := by
+      rw [Real.log_mul] <;> norm_num; aesop
+      have h_log_n_ge_log_32 : Real.log n ≥ Real.log 32 :=
+        Real.log_le_log (by norm_num) (by norm_cast)
+      rw [show (32 : ℝ) = 2 ^ 5 by norm_num, Real.log_pow] at h_log_n_ge_log_32
+      nlinarith [Real.log_two_gt_d9]
+    linarith [h_log_pn_ge, h_log_split]
+  -- Step 3: log(log n - 1.112) > 0.85
+  have h_loglog : Real.log (Real.log n - 1.112) > 0.85 := by
+    have h_log_n_ge : Real.log n ≥ Real.log 32 :=
+      Real.log_le_log (by norm_num) (by norm_cast)
+    have h_log_32 : Real.log 32 > 3.465 := by
+      rw [show (32 : ℝ) = 2 ^ 5 by norm_num, Real.log_pow]
+      nlinarith [Real.log_two_gt_d9]
+    have h_log_2_353 : Real.log 2.353 > 0.85 := by
+      norm_num [Real.lt_log_iff_exp_lt] at *
+      have h_exp : Real.exp 17 < (2353 / 1000) ^ 20 := by
+        have := Real.exp_one_lt_d9.le; norm_num1 at *
+        rw [show Real.exp 17 = (Real.exp 1) ^ 17 by
+          rw [← Real.exp_nat_mul]; norm_num]
+        exact lt_of_le_of_lt
+          (pow_le_pow_left₀ (by positivity) this _) (by norm_num)
+      contrapose! h_exp
+      rw [show Real.exp 17 = (Real.exp (17 / 20)) ^ 20 by
+        rw [← Real.exp_nat_mul]; norm_num]
+      exact pow_le_pow_left₀ (by positivity) h_exp 20
+    exact (h_log_2_353.trans_le
+      (Real.log_le_log (by norm_num) (by linarith))).trans_le' (by norm_num)
+  -- Step 4: p_n ≥ n * (log n - 0.262), then p_n ≥ 3.2n
+  have h_pn_ge2 : (nth_prime' n : ℝ) ≥ n * (Real.log n + 0.85 - 1.112) :=
+    le_trans (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_dusart
+  have h_log_32_bound : Real.log 32 - 0.262 > 3.2 := by
+    rw [show (32 : ℝ) = 2 ^ 5 by norm_num, Real.log_pow]
+    nlinarith [Real.log_two_gt_d9]
+  have h_pn_ge3 : (nth_prime' n : ℝ) ≥ n * 3.2 := by
+    have : Real.log n - 0.262 ≥ Real.log 32 - 0.262 :=
+      sub_le_sub_right (Real.log_le_log (by norm_num) (by norm_cast)) _
+    exact le_trans
+      (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_pn_ge2
+  -- Step 5: p_n > n * log n (iterate the Dusart bound)
+  have h_pn_gt_nlogn : (nth_prime' n : ℝ) > n * Real.log n := by
+    have h_log_pn_gt : Real.log (nth_prime' n) > Real.log n + 1.16 := by
+      have : Real.log (nth_prime' n) ≥ Real.log n + Real.log (3.2) := by
+        rw [← Real.log_mul (by positivity) (by positivity)]
+        exact Real.log_le_log (by positivity) (by linarith)
+      have : Real.log (3.2) > 1.16 := by
+        norm_num [Real.lt_log_iff_exp_lt] at *
+        have h_exp : Real.exp 29 < (16 / 5) ^ 25 := by
+          have := Real.exp_one_lt_d9.le; norm_num1 at *
+          rw [show Real.exp 29 = (Real.exp 1) ^ 29 by
+            rw [← Real.exp_nat_mul]; norm_num]
+          exact lt_of_le_of_lt
+            (pow_le_pow_left₀ (by positivity) this _) (by norm_num)
+        contrapose! h_exp
+        rw [show Real.exp 29 = (Real.exp (29 / 25)) ^ 25 by
+          rw [← Real.exp_nat_mul]; norm_num]
+        exact pow_le_pow_left₀ (by positivity) h_exp 25
+      linarith
+    have : (nth_prime' n : ℝ) ≥ n * (Real.log n + 1.16 - 1.112) :=
+      le_trans (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_dusart
+    linarith [show (n : ℝ) ≥ 32 by norm_cast]
+  -- Step 6: log p_n > log n + log(log n), then conclude
+  have h_log_sum : Real.log (nth_prime' n) > Real.log n + Real.log (Real.log n) := by
+    rw [← Real.log_mul (by positivity)
+      (by exact ne_of_gt <| Real.log_pos <| by norm_cast; linarith)]
+    exact Real.log_lt_log
+      (by exact mul_pos (by positivity) <| Real.log_pos <| by norm_cast; linarith)
+      h_pn_gt_nlogn
+  nlinarith [show (n : ℝ) ≥ 32 by norm_cast]
 
 end RS_prime_helper
