@@ -2,6 +2,7 @@ import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.Dusart
+import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}
@@ -236,7 +237,36 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ 5000) :
   (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by sorry
+    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
+  have h_exp : (log x) ^ (0.01 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
+    by_cases h₂ : log x ≤ 1 <;> by_cases h₃ : log x ≥ 1
+    · norm_num [show log x = 1 by grind] at *
+    · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
+      rw [← exp_add]; norm_num; ring_nf; norm_num
+      have h_log_log : log (log x) ≥ log (log 2) := log_le_log (log_pos (by norm_num)) (log_le_log (by norm_num) hx)
+      have h_log_log_pos : log (log 2) > -1 / 2 := by
+        rw [gt_iff_lt, div_lt_iff₀'] <;> norm_num [← log_rpow, log_lt_log]
+        rw [← log_rpow, lt_log_iff_exp_lt] <;> norm_num
+        · exact lt_of_le_of_lt (exp_neg_one_lt_d9.le) (by norm_num at *; nlinarith [log_two_gt_d9])
+        · positivity
+        · positivity
+      nlinarith [sqrt_nonneg (log x), mul_self_sqrt (log_nonneg (by grind : (1 : ℝ) ≤ x)),
+        log_le_sub_one_of_pos (show 0 < log x from log_pos (by grind))]
+    · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
+      rw [← exp_add]
+      exact one_le_exp (by nlinarith [log_pos h₂, sqrt_nonneg (log x), mul_self_sqrt (log_nonneg (by linarith))])
+    · grind
+  have h_ineq : |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+    have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+      have := FKS.FKS_corollary_1_4
+      convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+      norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+    rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
+  refine le_trans h_ineq ?_
+  norm_num [rpow_def_of_pos (log_pos (by grind : 1 < x))] at *
+  norm_num [mul_assoc, ← exp_add] at *; ring_nf at *; norm_num at *
+  exact mul_le_mul (mul_le_mul_of_nonneg_left (exp_le_exp.mpr <| by grind) <| by grind)
+    (by norm_num) (by positivity) <| by positivity
 
 @[blueprint
   "thm:jy-psi-3"
