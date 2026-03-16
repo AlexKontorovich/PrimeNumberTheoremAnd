@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.Dusart
 import PrimeNumberTheoremAnd.RSPrimeLower
+import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}
@@ -36,7 +37,7 @@ Some results from \cite{Buthe2}-/
   (latexEnv := "theorem")]
 theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |ψ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+  |ψ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2b"
@@ -47,7 +48,7 @@ theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (latexEnv := "theorem")]
 theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
-  |θ x - x| ≤ (sqrt x) / ((8 * π) * log x ^ 2) := by sorry
+  |θ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2c"
@@ -58,7 +59,7 @@ theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (latexEnv := "theorem")]
 theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |pi_star x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+  |pi_star x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2d"
@@ -69,7 +70,7 @@ theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (latexEnv := "theorem")]
 theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
-  |pi x - li x| ≤ (sqrt x) / ((8 * π) * log x) := by sorry
+  |pi x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 end Buthe2
 
@@ -108,7 +109,8 @@ Some results from \cite{rs-prime}-/
   (statement := /-- For $x > 0$, we have $\psi(x) \leq 1.03883\, x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_a (x : ℝ) (hx : x > 0) :
-    ψ x ≤ 1.03883 * x := by sorry
+    ψ x ≤ 1.03883 * x :=
+  le_of_lt (by rw [show (1.03883 : ℝ) = RS_prime.c₀ from rfl]; exact theorem_12 hx)
 
 @[blueprint
   "thm:rs-1962-b"
@@ -180,7 +182,32 @@ theorem theorem_c (x : ℝ) (hx : x ≥ 3594641) :
   (statement := /-- For $x > 1$, we have $|\vartheta(x) - x| \leq \frac{515\, x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x > 1) :
-    |θ x - x| ≤ 515 * x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ 515 * x / (log x) ^ 3 := by
+  by_cases h2 : x ≥ 2
+  · have hmem : (3, (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2 := by
+      unfold Dusart.Table_4_2; simp [List.mem_cons]
+    have hEθ := Dusart.theorem_4_2 hmem (show x ≥ 2 from h2)
+    unfold Eθ at hEθ
+    have hx_pos : (0 : ℝ) < x := by linarith
+    have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos (Real.log_pos (by linarith)) 3
+    rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+    calc |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by
+            rw [le_div_iff₀ hlog3_pos]; linarith
+      _ ≤ 515 * x / (log x) ^ 3 := by
+          apply div_le_div_of_nonneg_right _ hlog3_pos.le; nlinarith
+  · push_neg at h2
+    rw [Chebyshev.theta_eq_zero_of_lt_two h2, zero_sub, abs_neg, abs_of_pos (by linarith)]
+    have hlog_pos : (0 : ℝ) < log x := Real.log_pos hx
+    rw [le_div_iff₀ (pow_pos hlog_pos 3)]
+    have : (log x) ^ 3 ≤ 1 := by
+      calc (log x) ^ 3 ≤ (log x) ^ 1 :=
+              pow_le_pow_of_le_one hlog_pos.le
+                ((Real.log_lt_iff_lt_exp (by linarith)).mpr (by nlinarith [Real.exp_one_gt_d9])).le
+                (by omega)
+        _ = log x := pow_one _
+        _ ≤ 1 := ((Real.log_lt_iff_lt_exp (by linarith)).mpr
+            (by nlinarith [Real.exp_one_gt_d9])).le
+    nlinarith
 
 end Dusart1999
 
@@ -194,7 +221,33 @@ blueprint_comment /-- Some results from \cite{Dusart2018}-/
   (statement := /-- For $x > 1$, we have $|\vartheta(x) - x| \leq \frac{20.83\, x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
-    |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by
+  have hx_pos : x > 0 := by linarith
+  have hlog_pos : log x > 0 := Real.log_pos hx
+  by_cases hx2 : x ≥ 2
+  · have hEθ := Dusart.theorem_4_2
+      (by simp [Dusart.Table_4_2] : ((3 : ℕ), (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2) hx2
+    simp only [Eθ] at hEθ
+    rw [div_le_div_iff₀ hx_pos (pow_pos hlog_pos 3)] at hEθ
+    rwa [le_div_iff₀ (pow_pos hlog_pos 3)]
+  · push_neg at hx2
+    have hlog2 : log 2 < 1 := by
+      linarith [Real.log_lt_sub_one_of_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (2:ℝ) ≠ 1)]
+    have hlog_lt1 : log x < 1 := lt_trans (Real.log_lt_log hx_pos hx2) hlog2
+    have hlog3_lt1 : (log x) ^ 3 < 1 := by
+      calc (log x) ^ 3 ≤ log x := by
+            nlinarith [sq_nonneg (log x), sq_nonneg (1 - log x)]
+        _ < 1 := hlog_lt1
+    rw [le_div_iff₀ (pow_pos hlog_pos 3)]
+    have habs : |θ x - x| ≤ x := by
+      rw [abs_le]; constructor
+      · linarith [theta_nonneg x]
+      · have : θ x ≤ log 4 * x := theta_le_log4_mul_x hx_pos.le
+        have : log 4 = 2 * log 2 := by
+          rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]; ring
+        nlinarith
+    exact le_trans (mul_le_mul habs hlog3_lt1.le (pow_pos hlog_pos 3).le (by linarith))
+      (by linarith)
 
 @[blueprint
   "thm:dusart2018-theta-improv-2"
@@ -202,7 +255,16 @@ theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
   (statement := /-- For $x \geq 89{,}967{,}803$, we have $|\vartheta(x) - x| \leq \frac{x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
-    |θ x - x| ≤ x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ x / (log x) ^ 3 := by
+  have hx_pos : (0:ℝ) < x := by linarith
+  have hlog_pos : (0:ℝ) < log x := Real.log_pos (by linarith)
+  have hlog3_pos : (0:ℝ) < (log x) ^ 3 := by positivity
+  have hmem : (3, (1:ℝ), (89967803:ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
+  rwa [le_div_iff₀' hlog3_pos, mul_comm]
 
 end Dusart
 
@@ -216,7 +278,20 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
   (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
-    |ψ x - x| ≤ 0.00053699 * x := by sorry
+    |ψ x - x| ≤ 0.00053699 * x := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hmem : (4, (59.18 : ℝ)) ∈ Dusart.Table_3_3 := by simp [Dusart.Table_3_3]
+  have hEpsi := Dusart.theorem_3_3 hmem (show x ≥ 2 by linarith)
+  rw [show Eψ x = |ψ x - x| / x from rfl] at hEpsi
+  rw [div_le_iff₀ hx_pos] at hEpsi
+  apply hEpsi.trans (mul_le_mul_of_nonneg_right _ hx_pos.le)
+  have hlog : (20 : ℝ) ≤ log x := by
+    rw [Real.le_log_iff_exp_le hx_pos]
+    exact (show Real.exp 20 ≤ 485165196 from by interval_auto).trans hx
+  calc (59.18 : ℝ) / (log x) ^ 4
+      ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
+          (pow_le_pow_left₀ (by linarith) hlog 4)
+      _ ≤ 0.00053699 := by norm_num
 
 end FaberKadiri
 
@@ -238,7 +313,36 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ 5000) :
   (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by sorry
+    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
+  have h_exp : (log x) ^ (0.01 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
+    by_cases h₂ : log x ≤ 1 <;> by_cases h₃ : log x ≥ 1
+    · norm_num [show log x = 1 by grind] at *
+    · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
+      rw [← exp_add]; norm_num; ring_nf; norm_num
+      have h_log_log : log (log x) ≥ log (log 2) := log_le_log (log_pos (by norm_num)) (log_le_log (by norm_num) hx)
+      have h_log_log_pos : log (log 2) > -1 / 2 := by
+        rw [gt_iff_lt, div_lt_iff₀'] <;> norm_num [← log_rpow, log_lt_log]
+        rw [← log_rpow, lt_log_iff_exp_lt] <;> norm_num
+        · exact lt_of_le_of_lt (exp_neg_one_lt_d9.le) (by norm_num at *; nlinarith [log_two_gt_d9])
+        · positivity
+        · positivity
+      nlinarith [sqrt_nonneg (log x), mul_self_sqrt (log_nonneg (by grind : (1 : ℝ) ≤ x)),
+        log_le_sub_one_of_pos (show 0 < log x from log_pos (by grind))]
+    · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
+      rw [← exp_add]
+      exact one_le_exp (by nlinarith [log_pos h₂, sqrt_nonneg (log x), mul_self_sqrt (log_nonneg (by linarith))])
+    · grind
+  have h_ineq : |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+    have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+      have := FKS.FKS_corollary_1_4
+      convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+      norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+    rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
+  refine le_trans h_ineq ?_
+  norm_num [rpow_def_of_pos (log_pos (by grind : 1 < x))] at *
+  norm_num [mul_assoc, ← exp_add] at *; ring_nf at *; norm_num at *
+  exact mul_le_mul (mul_le_mul_of_nonneg_left (exp_le_exp.mpr <| by grind) <| by grind)
+    (by norm_num) (by positivity) <| by positivity
 
 @[blueprint
   "thm:jy-psi-3"
@@ -857,7 +961,40 @@ namespace PrimeGaps2024
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
+    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by
+  set y := x * (1 - 1 / 76900000000) with hy_def
+  have hx_pos : x > 0 := lt_trans (exp_pos 60) hx
+  have hx_ge1 : x ≥ 1 := by linarith [one_le_exp (show (0:ℝ) ≤ 60 by norm_num)]
+  have hsqrt_bound : √x > exp 30 := by
+    rw [sqrt_eq_rpow, show exp 30 = (exp 60) ^ ((1:ℝ)/2) from by rw [← exp_mul]; norm_num]
+    exact rpow_lt_rpow (le_of_lt (exp_pos 60)) hx (by norm_num)
+  have hexp30 : exp 30 > 230700000000 := by
+    rw [show (30:ℝ) = ↑(30:ℕ) * 1 from by norm_num, exp_nat_mul]
+    linarith [show (2.718:ℝ) ^ 30 > 230700000000 from by norm_num,
+      show (2.718:ℝ) ^ 30 ≤ (exp 1) ^ 30 from by gcongr; linarith [exp_one_gt_d9]]
+  have hsqx : √x * √x = x := mul_self_sqrt (le_of_lt hx_pos)
+  have h3sqrt : 3 * √x < x / 76900000000 := by nlinarith
+  have hcbrt : x ^ (1/3 : ℝ) ≤ √x := by
+    rw [sqrt_eq_rpow]; exact rpow_le_rpow_of_exponent_le hx_ge1 (by norm_num)
+  have hy_pos : y > 0 := by rw [hy_def]; nlinarith
+  have hy_lt_x : y < x := by rw [hy_def]; nlinarith
+  have hy_ge5000 : y ≥ 5000 := by
+    rw [hy_def]
+    have : exp 60 ≥ 5001 := by
+      rw [show (60:ℝ) = ↑(60:ℕ) * 1 from by norm_num, exp_nat_mul]
+      linarith [show (2.718:ℝ) ^ 60 > 5001 from by norm_num,
+        show (2.718:ℝ) ^ 60 ≤ (exp 1) ^ 60 from by gcongr; linarith [exp_one_gt_d9]]
+    nlinarith
+  have hθy : θ y ≤ y + 8.14e-20 * y := by
+    linarith [theta_le_psi y,
+      show ψ y ≤ y + 8.14e-20 * y from by
+        have h := JY.psi_bound_1 y hy_ge5000; rw [abs_le] at h; linarith]
+  have hψx : ψ x ≥ x - 8.14e-20 * x := by
+    have h := JY.psi_bound_1 x (by linarith : x ≥ 5000); rw [abs_le] at h; linarith
+  have hψθ := Dusart.corollary_4_5 hx_pos
+  have key : x / 76900000000 = x - y := by rw [hy_def]; ring
+  rw [key]
+  exact theta_pos_implies_prime_in_interval hy_lt_x (by nlinarith [show √x > 0 from by positivity])
 
 end PrimeGaps2024
 
