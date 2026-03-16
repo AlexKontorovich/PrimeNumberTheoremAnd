@@ -2,6 +2,7 @@ import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.Dusart
+import PrimeNumberTheoremAnd.RSPrimeLower
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
@@ -815,7 +816,10 @@ blueprint_comment /-- Some results from \cite{rs-prime} -/
   (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 3/2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n > 1) :
-    nth_prime' n > n * (log n + log (log n) - 3 / 2) := by sorry
+    nth_prime' n > n * (log n + log (log n) - 3 / 2) := by
+  by_cases h : n ≤ 31
+  · exact RS_prime_helper.p_n_lower_small n hn h
+  · exact RS_prime_helper.p_n_lower_large n (by omega)
 
 @[blueprint
   "thm:rs-1962-pn-upper"
