@@ -192,7 +192,33 @@ blueprint_comment /-- Some results from \cite{Dusart2018}-/
   (statement := /-- For $x > 1$, we have $|\vartheta(x) - x| \leq \frac{20.83\, x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
-    |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by
+  have hx_pos : x > 0 := by linarith
+  have hlog_pos : log x > 0 := Real.log_pos hx
+  by_cases hx2 : x ≥ 2
+  · have hEθ := Dusart.theorem_4_2
+      (by simp [Dusart.Table_4_2] : ((3 : ℕ), (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2) hx2
+    simp only [Eθ] at hEθ
+    rw [div_le_div_iff₀ hx_pos (pow_pos hlog_pos 3)] at hEθ
+    rwa [le_div_iff₀ (pow_pos hlog_pos 3)]
+  · push_neg at hx2
+    have hlog2 : log 2 < 1 := by
+      linarith [Real.log_lt_sub_one_of_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (2:ℝ) ≠ 1)]
+    have hlog_lt1 : log x < 1 := lt_trans (Real.log_lt_log hx_pos hx2) hlog2
+    have hlog3_lt1 : (log x) ^ 3 < 1 := by
+      calc (log x) ^ 3 ≤ log x := by
+            nlinarith [sq_nonneg (log x), sq_nonneg (1 - log x)]
+        _ < 1 := hlog_lt1
+    rw [le_div_iff₀ (pow_pos hlog_pos 3)]
+    have habs : |θ x - x| ≤ x := by
+      rw [abs_le]; constructor
+      · linarith [theta_nonneg x]
+      · have : θ x ≤ log 4 * x := theta_le_log4_mul_x hx_pos.le
+        have : log 4 = 2 * log 2 := by
+          rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]; ring
+        nlinarith
+    exact le_trans (mul_le_mul habs hlog3_lt1.le (pow_pos hlog_pos 3).le (by linarith))
+      (by linarith)
 
 @[blueprint
   "thm:dusart2018-theta-improv-2"
