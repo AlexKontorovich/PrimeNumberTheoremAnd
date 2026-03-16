@@ -200,7 +200,16 @@ theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
   (statement := /-- For $x \geq 89{,}967{,}803$, we have $|\vartheta(x) - x| \leq \frac{x}{\log^3 x}$. -/)
   (latexEnv := "theorem")]
 theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
-    |θ x - x| ≤ x / (log x) ^ 3 := by sorry
+    |θ x - x| ≤ x / (log x) ^ 3 := by
+  have hx_pos : (0:ℝ) < x := by linarith
+  have hlog_pos : (0:ℝ) < log x := Real.log_pos (by linarith)
+  have hlog3_pos : (0:ℝ) < (log x) ^ 3 := by positivity
+  have hmem : (3, (1:ℝ), (89967803:ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
+  rwa [le_div_iff₀' hlog3_pos, mul_comm]
 
 end Dusart
 
