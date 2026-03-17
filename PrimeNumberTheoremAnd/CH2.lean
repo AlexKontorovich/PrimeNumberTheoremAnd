@@ -456,7 +456,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (latexEnv := "lemma")
   (discussion := 1071)]
 theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
-    (nhds (n - I * ν / (2 * π))).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
 
 @[blueprint
   "Phi-circ-poles-simple"
@@ -616,7 +616,7 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (latexEnv := "lemma")
   (discussion := 1073)]
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
-    (nhds (n - I * ν / (2 * π))).Tendsto
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto
       (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
 
 @[blueprint
@@ -644,7 +644,7 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
       exact_mod_cast hn
     have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_star ν ε) z₀ = 0 :=
       (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
-        ⟨_, hL, (Phi_star.residue ν ε hν n hn |>.mono_left nhdsWithin_le_nhds).congr' heq⟩
+        ⟨_, hL, (Phi_star.residue ν ε hν n hn).congr' heq⟩
     have hord₁ : meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) := by
       rw [meromorphicOrderAt_eq_int_iff hsub]
       exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
@@ -1428,7 +1428,9 @@ $$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\
   (proof := /-- This follows from the $\pi i$-periodicity of coth. -/)
   (latexEnv := "sublemma")
   (discussion := 1081)]
-theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
+theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ)
+    (hw : -2 * π * I * z + ν ≠ 0)
+    (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
     sorry
 
@@ -1441,7 +1443,9 @@ $$ \Phi^{\pm,\star}_{\nu}(z-m) = \Phi^{\pm,\star}_{\nu}(z) + m\, \Phi^{\pm,\circ
   (proof := /-- Follows from previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 1082)]
-theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
+theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ)
+    (hw : -2 * π * I * z + ν ≠ 0)
+    (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
     sorry
 
