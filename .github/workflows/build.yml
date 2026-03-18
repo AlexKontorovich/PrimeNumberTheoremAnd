@@ -51,7 +51,7 @@ jobs:
           build-args: :blueprint
 
       - name: Generate upstreaming dashboard
-        uses: leanprover-community/upstreaming-dashboard-action/blob/main/action.yml@main
+        uses: leanprover-community/upstreaming-dashboard-action@main
         with:
           website-directory: ./home_page
           project-name: PrimeNumberTheoremAnd
