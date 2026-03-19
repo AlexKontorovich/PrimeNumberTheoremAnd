@@ -1,5 +1,6 @@
 import Mathlib.Data.Nat.Count
 import Mathlib.Data.Nat.Prime.Defs
+import PrimeCert
 
 set_option linter.style.nativeDecide false
 
@@ -14,13 +15,21 @@ is edited.
 
 /-! ## Primality certificates for large numbers -/
 
-theorem prime_211 : Nat.Prime 211 := by native_decide
+theorem prime_211 : Nat.Prime 211 := PrimeCert.prime_211
 
-theorem prime_313 : Nat.Prime 313 := by native_decide
+theorem prime_313 : Nat.Prime 313 := PrimeCert.prime_313
 
-theorem prime_3999999999999999791 : Nat.Prime 3999999999999999791 := by native_decide
+theorem prime_3999999999999999791 : Nat.Prime 3999999999999999791 := prime_cert%
+  [small {3; 5; 23; 211},
+   pock3 (239851, 3, 1, 0, 2 * 3 ^ 2 * 5 ^ 2),
+   pock3 (399999999999999979, 2, 1, 0, 2 * 3 ^ 3 * 23 * 211 * 239851),
+   pock3 (3999999999999999791, 11, 1, 0, 2 * 5 * 399999999999999979)]
 
-theorem prime_3999999999999999691 : Nat.Prime 3999999999999999691 := by native_decide
+theorem prime_3999999999999999691 : Nat.Prime 3999999999999999691 := prime_cert%
+  [small {3; 5; 11; 29; 41; 389},
+   pock3 (18913, 7, 1, 3, 2 ^ 5 * 3),
+   pock3 (37379684141669, 2, 1, 0, 2 ^ 2 * 11 * 389 * 18913),
+   pock3 (3999999999999999691, 3, 1, 0, 2 * 3 ^ 2 * 5 * 29 * 41 * 37379684141669)]
 
 /-! ## Prime-counting bounds
 
