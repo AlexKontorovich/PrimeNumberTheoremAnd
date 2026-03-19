@@ -456,7 +456,39 @@ theorem Phi_circ.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (latexEnv := "lemma")
   (discussion := 1071)]
 theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
-    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by
+  set w := fun z : ℂ => -2 * Real.pi * I * z + ν
+  set w_div : ℂ → ℂ := fun z => w z / 2
+  have h_tanh : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) / Complex.tanh (w_div z)) (nhdsWithin (n - I * ν / (2 * Real.pi)) { (n - I * ν / (2 * Real.pi)) }ᶜ) (nhds (1 / (-Real.pi * I))) := by
+    have h_tanh_approx : Filter.Tendsto (fun z => Complex.tanh (w_div z) / (z - (n - I * ν / (2 * Real.pi)))) (nhdsWithin (n - I * ν / (2 * Real.pi)) { (n - I * ν / (2 * Real.pi)) }ᶜ) (nhds (-Real.pi * I)) := by
+      have h_deriv : HasDerivAt (fun z => Complex.tanh (w_div z)) (-Real.pi * I) (n - I * ν / (2 * Real.pi)) := by
+        have h_tanh_deriv : HasDerivAt (fun u => Complex.tanh u) (1 - Complex.tanh (w_div (n - I * ν / (2 * Real.pi))) ^ 2) (w_div (n - I * ν / (2 * Real.pi))) := by
+          convert HasDerivAt.div ( Complex.hasDerivAt_sinh _ ) ( Complex.hasDerivAt_cosh _ ) _ using 1 <;> norm_num [ Complex.tanh_eq_sinh_div_cosh ]
+          · by_cases h : Complex.cosh ( -2 * Real.pi * I * ( n - I * ν / ( 2 * Real.pi ) ) / 2 + ν / 2 ) = 0 <;> simp_all +decide [ sq, mul_div_mul_left ]
+            · rw [ Complex.cosh ] at h ; ring_nf at h ; norm_num [ Complex.ext_iff, Complex.exp_re, Complex.exp_im, neg_div, mul_div_cancel₀, Real.pi_ne_zero ] at h
+              norm_num [ mul_comm Real.pi _, Real.pi_ne_zero ] at h
+              exact absurd ( Real.cos_sq' ( n * Real.pi ) ) ( by norm_num [ h ] )
+            · grind
+          · norm_num +zetaDelta at *
+            ring_nf; norm_num [ Complex.ext_iff, Complex.exp_re, Complex.exp_im, Complex.cosh ]
+            norm_num [ mul_assoc, mul_comm Real.pi _, Real.pi_ne_zero ]
+            exact fun h => absurd ( Real.sin_sq_add_cos_sq ( n * Real.pi ) ) ( by norm_num [ h ] )
+        convert h_tanh_deriv.comp ( ( n : ℂ ) - I * ν / ( 2 * Real.pi ) ) ( HasDerivAt.div_const ( HasDerivAt.add ( HasDerivAt.const_mul ( -2 * Real.pi * I ) ( hasDerivAt_id _ ) ) ( hasDerivAt_const _ _ ) ) _ ) using 1 ; norm_num ; ring
+        norm_num +zetaDelta at *
+        ring_nf; norm_num [ Complex.ext_iff, Real.pi_ne_zero ]
+        norm_num [ Complex.tanh_eq_sinh_div_cosh, Complex.sinh, Complex.cosh, Complex.exp_re, Complex.exp_im, mul_assoc, mul_comm Real.pi _, Real.pi_ne_zero ] ; ring_nf ; norm_num [ Real.pi_ne_zero ]
+        norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im, mul_assoc, mul_comm Real.pi _, Real.pi_ne_zero ] ; ring_nf ; norm_num [ Real.pi_ne_zero ]
+      rw [ hasDerivAt_iff_tendsto_slope ] at h_deriv
+      convert h_deriv using 2 ; norm_num [ div_eq_mul_inv, slope_def_field ]
+      simp +zetaDelta at *
+      ring_nf; norm_num [ Real.pi_ne_zero ]
+      norm_num [ mul_assoc, mul_comm, mul_left_comm, Real.pi_ne_zero ]
+      norm_num [ Complex.tanh_eq_sinh_div_cosh, Complex.sinh, Complex.cosh ]
+      norm_num [ Complex.ext_iff, Complex.exp_re, Complex.exp_im, mul_comm Real.pi ]
+    simpa using h_tanh_approx.inv₀ ( by norm_num [ Complex.ext_iff, Real.pi_ne_zero ] )
+  have h_rewrite : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) * (1 / 2 * (1 / Complex.tanh (w_div z) + ε))) (nhdsWithin (n - I * ν / (2 * Real.pi)) { (n - I * ν / (2 * Real.pi)) }ᶜ) (nhds ((1 / 2) * (1 / (-Real.pi * I)) + 0)) := by
+    convert h_tanh.const_mul ( 1 / 2 : ℂ ) |> Filter.Tendsto.add <| Filter.Tendsto.const_mul ( ε / 2 : ℂ ) <| Filter.Tendsto.mono_left ( Continuous.tendsto ( show Continuous fun z : ℂ => ( z - ( n - I * ν / ( 2 * Real.pi ) ) ) from by continuity ) _ ) nhdsWithin_le_nhds using 2 <;> ring!
+  convert h_rewrite using 2 ; norm_num [ Complex.tanh_eq_sinh_div_cosh ] ; ring
 
 @[blueprint
   "Phi-circ-poles-simple"
@@ -468,7 +500,33 @@ theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
   (latexEnv := "lemma")
   (discussion := 1070)]
 theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by sorry
+    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by
+  constructor
+  · exact fun h ↦ (Phi_circ.poles ν ε hν z).mp (h ▸ by decide)
+  · rintro ⟨n, rfl⟩
+    set z₀ := (n : ℂ) - I * ν / (2 * π)
+    have hsub : MeromorphicAt (· - z₀ : ℂ → ℂ) z₀ := by fun_prop
+    have hf : MeromorphicAt (Phi_circ ν ε) z₀ := (Phi_circ.meromorphic ν ε).meromorphicAt
+    have heq : (fun z ↦ (z - z₀) * Phi_circ ν ε z) =ᶠ[nhdsWithin z₀ {z₀}ᶜ] ((· - z₀) * Phi_circ ν ε) :=
+      Filter.Eventually.of_forall fun _ ↦ rfl
+    have hL : I / (2 * ↑(π : ℝ)) ≠ (0 : ℂ) := by
+      simp only [ne_eq, div_eq_zero_iff, mul_eq_zero, OfNat.ofNat_ne_zero, ofReal_eq_zero,
+        pi_ne_zero, or_self, or_false]
+      exact I_ne_zero
+    have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_circ ν ε) z₀ = 0 :=
+      (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
+        ⟨_, hL, (Phi_circ.residue ν ε hν n).congr' heq⟩
+    have hord₁ : meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) := by
+      rw [meromorphicOrderAt_eq_int_iff hsub]
+      exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
+    rw [meromorphicOrderAt_mul hsub hf, hord₁] at hord₀
+    obtain ⟨m, hm⟩ := WithTop.ne_top_iff_exists.mp
+      (by rintro h; simp [h] at hord₀ : meromorphicOrderAt (Phi_circ ν ε) z₀ ≠ ⊤)
+    rw [← hm] at hord₀ ⊢
+    have h1 : (↑(1 : ℤ) + ↑m : WithTop ℤ) = ↑(1 + m : ℤ) := by push_cast; ring_nf
+    rw [h1] at hord₀
+    have : 1 + m = 0 := by exact_mod_cast hord₀
+    change (↑m : WithTop ℤ) = ↑(-1 : ℤ); congr 1; omega
 
 @[blueprint
   "B-def"
@@ -606,6 +664,7 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
 theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
 
+set_option maxHeartbeats 400000 in
 @[blueprint
   "Phi-star-residues"
   (title := "Phi-star residues")
@@ -617,7 +676,45 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (discussion := 1073)]
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
     (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto
-      (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
+      (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by
+  unfold Phi_star B coth
+  suffices h_simp : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) * ((-2 * Real.pi * I * z + ν) * (1 / Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) + ε) / 2 - (ν * (1 / Complex.tanh (ν / 2) + ε) / 2)) / (2 * Real.pi * I)) (nhdsWithin (n - I * ν / (2 * Real.pi)) {n - I * ν / (2 * Real.pi)}ᶜ) (nhds (-I * n / (2 * Real.pi))) by
+    refine' h_simp.congr' _
+    refine' eventuallyEq_nhdsWithin_iff.mpr _
+    rw [ Metric.eventually_nhds_iff ]
+    refine' ⟨ 1 / 2, by norm_num, fun y hy hy' => _ ⟩ ; by_cases hy'' : -2 * Real.pi * I * y + ν = 0 <;> simp_all +decide [ Complex.tanh_eq_sinh_div_cosh ] ; ring
+    · norm_num [ Complex.ext_iff ] at *
+      norm_num [ Complex.dist_eq, Complex.normSq, Complex.norm_def, hy'' ] at hy
+      norm_num [ Complex.normSq, Complex.div_re, Complex.div_im, Real.pi_ne_zero ] at hy
+      rw [ Real.sqrt_lt' ] at hy <;> norm_num at *
+      norm_num [ show y.im = -ν / ( 2 * Real.pi ) by rw [ eq_div_iff ( by positivity ) ] ; linarith ] at *
+      ring_nf at hy ; norm_num [ Real.pi_ne_zero ] at hy
+      nlinarith [ show ( n : ℝ ) ^ 2 ≥ 1 by exact_mod_cast sq_pos_of_ne_zero hn, show 0 < ν ^ 2 * Real.pi * ( Real.pi ^ 3 ) ⁻¹ by positivity, show 0 < ν ^ 2 * Real.pi ^ 2 * ( Real.pi ^ 4 ) ⁻¹ by positivity, show 0 < ν ^ 2 * ( Real.pi ^ 2 ) ⁻¹ by positivity, mul_inv_cancel₀ ( by positivity : ( Real.pi ^ 3 ) ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( Real.pi ^ 4 ) ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( Real.pi ^ 2 ) ≠ 0 ) ]
+    · rw [ if_neg hν.ne' ] ; ring
+  have h_tanh_pole : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) * (1 / Complex.tanh ((-2 * Real.pi * I * z + ν) / 2))) (nhdsWithin (n - I * ν / (2 * Real.pi)) {n - I * ν / (2 * Real.pi)}ᶜ) (nhds (1 / (-Real.pi * I))) := by
+    have h_tanh_pole : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) * (Complex.sinh ((-2 * Real.pi * I * z + ν) / 2) / Complex.cosh ((-2 * Real.pi * I * z + ν) / 2))⁻¹) (nhdsWithin (n - I * ν / (2 * Real.pi)) {n - I * ν / (2 * Real.pi)}ᶜ) (nhds (1 / (-Real.pi * I))) := by
+      have h_sinh_zero : HasDerivAt (fun z => Complex.sinh ((-2 * Real.pi * I * z + ν) / 2)) (Complex.cosh ((-2 * Real.pi * I * (n - I * ν / (2 * Real.pi)) + ν) / 2) * (-Real.pi * I)) (n - I * ν / (2 * Real.pi)) := by
+        convert HasDerivAt.comp _ ( Complex.hasDerivAt_sinh _ ) ( HasDerivAt.div_const ( HasDerivAt.add ( HasDerivAt.const_mul _ ( hasDerivAt_id _ ) ) ( hasDerivAt_const _ _ ) ) _ ) using 1 ; norm_num ; ring
+      have h_sinh_zero' : Filter.Tendsto (fun z => (Complex.sinh ((-2 * Real.pi * I * z + ν) / 2)) / (z - (n - I * ν / (2 * Real.pi)))) (nhdsWithin (n - I * ν / (2 * Real.pi)) {n - I * ν / (2 * Real.pi)}ᶜ) (nhds (Complex.cosh ((-2 * Real.pi * I * (n - I * ν / (2 * Real.pi)) + ν) / 2) * (-Real.pi * I))) := by
+        rw [ hasDerivAt_iff_tendsto_slope ] at h_sinh_zero
+        refine' h_sinh_zero.congr' _
+        filter_upwards [ self_mem_nhdsWithin ] with z hz ; simp +decide [ div_eq_inv_mul, slope_def_field, hz ]
+        ring_nf; norm_num [ Complex.ext_iff, Real.pi_ne_zero ]
+        norm_num [ Complex.sinh, Complex.exp_re, Complex.exp_im ]
+        exact Or.inl ( Real.sin_eq_zero_iff.mpr ⟨ n, by ring ⟩ )
+      have h_cosh_nonzero : Complex.cosh ((-2 * Real.pi * I * (n - I * ν / (2 * Real.pi)) + ν) / 2) ≠ 0 := by
+        norm_num [ Complex.ext_iff, Complex.exp_re, Complex.exp_im, Complex.cosh ]
+        norm_num [ Complex.normSq, Complex.div_re, Complex.div_im, mul_div_cancel₀, Real.pi_ne_zero ] ; ring_nf ; norm_num [ Real.pi_pos.ne' ]
+        norm_num [ mul_assoc, mul_comm, mul_left_comm, Real.pi_ne_zero ]
+        exact ne_of_apply_ne ( fun x => x ^ 2 ) ( by norm_num [ mul_comm Real.pi, Real.cos_sq' ] )
+      convert h_sinh_zero'.inv₀ ( mul_ne_zero h_cosh_nonzero <| mul_ne_zero ( neg_ne_zero.mpr <| Complex.ofReal_ne_zero.mpr Real.pi_ne_zero ) I_ne_zero ) |> Filter.Tendsto.mul <| ContinuousAt.continuousWithinAt <| show ContinuousAt ( fun z => Complex.cosh ( ( -2 * Real.pi * I * z + ν ) / 2 ) ) ( n - I * ν / ( 2 * Real.pi ) ) from Complex.continuous_cosh.continuousAt.comp <| Continuous.continuousAt <| by continuity using 2 ; norm_num ; ring
+      grind
+    simpa [ Complex.tanh_eq_sinh_div_cosh ] using h_tanh_pole
+  suffices h_simp' : Filter.Tendsto (fun z => (z - (n - I * ν / (2 * Real.pi))) * ((-2 * Real.pi * I * z + ν) * (1 / Complex.tanh ((-2 * Real.pi * I * z + ν) / 2))) / (2 * Real.pi * I * 2)) (nhdsWithin (n - I * ν / (2 * Real.pi)) {n - I * ν / (2 * Real.pi)}ᶜ) (nhds (-I * n / (2 * Real.pi))) by
+    convert h_simp'.add ( ContinuousAt.continuousWithinAt ( show ContinuousAt ( fun z : ℂ => ( z - ( n - I * ν / ( 2 * Real.pi ) ) ) * ( ( -2 * Real.pi * I * z + ν ) * ε / 2 - ν * ( 1 / Complex.tanh ( ν / 2 ) + ε ) / 2 ) / ( 2 * Real.pi * I ) ) ( n - I * ν / ( 2 * Real.pi ) ) from ContinuousAt.div ( ContinuousAt.mul ( continuousAt_id.sub continuousAt_const ) <| ContinuousAt.sub ( ContinuousAt.div_const ( ContinuousAt.mul ( ContinuousAt.add ( ContinuousAt.mul ( continuousAt_const.mul continuousAt_const ) continuousAt_id ) continuousAt_const ) continuousAt_const ) _ ) <| ContinuousAt.div_const ( ContinuousAt.mul continuousAt_const <| ContinuousAt.add ( continuousAt_const.div_const _ ) continuousAt_const ) _ ) continuousAt_const <| by norm_num [ Complex.ext_iff, Real.pi_ne_zero ] ) ) using 2 <;> ring
+  convert h_tanh_pole.mul ( Continuous.continuousWithinAt ( show Continuous fun z : ℂ => ( -2 * Real.pi * I * z + ν ) / ( 2 * Real.pi * I * 2 ) by continuity ) ) using 2 <;> ring
+  norm_num [ sq, mul_assoc, Real.pi_ne_zero ] ; ring
+  grind
 
 @[blueprint
   "Phi-star-poles-simple"
@@ -1432,7 +1529,15 @@ theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ)
     (hw : -2 * π * I * z + ν ≠ 0)
     (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
-    sorry
+  unfold B Phi_circ coth
+  have h_tanh_periodic : Complex.tanh ((-2 * Real.pi * I * (z - m) + ν) / 2) = Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) := by
+    rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh]
+    ring_nf; norm_num [Complex.sinh, Complex.cosh]; ring
+    norm_num [Complex.exp_add, Complex.exp_sub]; ring
+    norm_num [show Complex.exp (Real.pi * I * m) = (-1) ^ m by rw [← Complex.exp_pi_mul_I]; rw [← Complex.exp_int_mul]; ring]; ring
+    rcases Int.even_or_odd' m with ⟨k, rfl | rfl⟩ <;> norm_num [zpow_add₀, zpow_mul]; ring_nf; norm_num [Complex.exp_ne_zero] at *
+    rw [show (-( Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2))) - Complex.exp (Real.pi * I * z) * Complex.exp (-(ν * (1 / 2)))) = -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2)) + Complex.exp (Real.pi * I * z) * Complex.exp (-(ν * (1 / 2)))) by ring, inv_neg]; ring
+  grind
 
 @[blueprint
   "phi_star-affine-periodic"
@@ -1447,7 +1552,14 @@ theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ
     (hw : -2 * π * I * z + ν ≠ 0)
     (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
-    sorry
+  have hB := B_affine_periodic ν ε hν z m hw hwm
+  have h_sub : Phi_star ν ε (z - m) = (B ε (-2 * Real.pi * I * z + ν) + 2 * Real.pi * I * m * Phi_circ ν ε z - B ε ν) / (2 * Real.pi * I) := by
+    rw [Phi_star, hB]
+  have h_def : Phi_star ν ε z = (B ε (-2 * Real.pi * I * z + ν) - B ε ν) / (2 * Real.pi * I) := by
+    simp [Phi_star]
+  rw [h_sub, h_def]
+  field_simp
+  ring
 
 @[blueprint
   "shift-upwards-simplified"

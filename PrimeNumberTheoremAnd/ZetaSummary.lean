@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.ZetaDefinitions
 import PrimeNumberTheoremAnd.KLN
 import PrimeNumberTheoremAnd.RosserSchoenfeldZeta
 import PrimeNumberTheoremAnd.ZetaAppendix
+import PrimeNumberTheoremAnd.ZetaSummaryProofs
 
 blueprint_comment /--
 \section{Summary of results}
@@ -35,19 +36,6 @@ zeta-function, arXiv:2212.06867.
 theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
 
 @[blueprint
-  "mt_theorem_1"
-  (title := "MT Theorem 1")
-  (statement := /--
-    One has a classical zero-free region with $R = 5.5666305$.
-    (A more conservative value of $R = 5.573412$ was announced in
-    the paper using weaker numerical verification of the Riemann
-    hypothesis.)
-  -/)
-  (uses := ["classical-zero-free-region"])
-  (latexEnv := "theorem")]
-theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
-
-@[blueprint
   "mty_theorem"
   (title := "MTY")
   (statement := /--
@@ -58,24 +46,18 @@ theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
 theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 @[blueprint
-  "platt_RH"
-  (title := "Platt's numerical verification of RH")
+  "mt_theorem_1"
+  (title := "MT Theorem 1")
   (statement := /--
-    The Riemann hypothesis is verified up to
-    $H_0 = 3.061 \times 10^{10}$.
+    One has a classical zero-free region with $R = 5.5666305$.
+    (A more conservative value of $R = 5.573412$ was announced in
+    the paper using weaker numerical verification of the Riemann
+    hypothesis.)
   -/)
+  (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
-theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
-
-@[blueprint
-  "gourdon_wedeniwski"
-  (title := "Gourdon-Wedeniwski")
-  (statement := /--
-    The Riemann hypothesis is verified up to
-    $H_0 = 2445999556030$.
-  -/)
-  (latexEnv := "theorem")]
-theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
+theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 :=
+  classicalZeroFree_mono (by positivity) (by norm_num) MTY_theorem
 
 @[blueprint
   "pt_theorem_1"
@@ -86,3 +68,25 @@ theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
   -/)
   (latexEnv := "theorem")]
 theorem PT_theorem_1 : riemannZeta.RH_up_to 3e12 := sorry
+
+@[blueprint
+  "gourdon_wedeniwski"
+  (title := "Gourdon-Wedeniwski")
+  (statement := /--
+    The Riemann hypothesis is verified up to
+    $H_0 = 2445999556030$.
+  -/)
+  (latexEnv := "theorem")]
+theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 :=
+  RH_up_to_mono (by norm_num) PT_theorem_1
+
+@[blueprint
+  "platt_RH"
+  (title := "Platt's numerical verification of RH")
+  (statement := /--
+    The Riemann hypothesis is verified up to
+    $H_0 = 3.061 \times 10^{10}$.
+  -/)
+  (latexEnv := "theorem")]
+theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 :=
+  RH_up_to_mono (by norm_num) GW_theorem
