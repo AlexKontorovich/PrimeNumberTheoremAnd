@@ -4,6 +4,8 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.Dusart
 import PrimeNumberTheoremAnd.RSPrimeLower
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
+import PrimeNumberTheoremAnd.LogTables
+import PrimeNumberTheoremAnd.PrimeTables
 
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}
@@ -459,7 +461,12 @@ blueprint_comment /-- Some results from \cite{FKS}-/
   (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.22022\, (\log x)^{1.5} \exp(-0.8476836\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by sorry
+    |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+  have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
+    have := FKS.FKS_corollary_1_4
+    convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+    norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+  rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
 
 end FKS
 
@@ -740,7 +747,94 @@ blueprint_comment /-- Some results from \cite{rosser1938} -/
   (statement := /-- For $n \geq 2$, we have $p_n > n \log n$. -/)
   (latexEnv := "theorem")]
 theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
-    nth_prime' n > n * log n := by sorry
+    nth_prime' n > n * log n := by
+  by_cases h : n ≤ 31
+  · have key : ∀ (n₀ m : ℕ), Nat.count Nat.Prime m ≤ n₀ - 1 → (n₀ : ℝ) * log n₀ < m →
+        (nth_prime' n₀ : ℝ) > n₀ * log n₀ :=
+      fun n₀ m hc hb => hb.trans_le (by exact_mod_cast RS_prime_helper.count_prime_le_imp_le_nth m (n₀ - 1) hc)
+    interval_cases n
+    · exact key 2 3 count_prime_3_le_1 (by interval_auto)
+    · exact key 3 5 count_prime_5_le_2 (by interval_auto)
+    · exact key 4 7 count_prime_7_le_3 (by interval_auto)
+    · exact key 5 11 count_prime_11_le_4 (by interval_auto)
+    · exact key 6 13 count_prime_13_le_5 (by interval_auto)
+    · exact key 7 17 count_prime_17_le_6 (by interval_auto)
+    · exact key 8 19 count_prime_19_le_7 (by interval_auto)
+    · exact key 9 23 count_prime_23_le_8 (by interval_auto)
+    · exact key 10 29 count_prime_29_le_9 (by interval_auto)
+    · exact key 11 31 count_prime_31_le_10 (by interval_auto)
+    · exact key 12 37 count_prime_37_le_11 (by interval_auto)
+    · exact key 13 41 count_prime_41_le_12 (by interval_auto)
+    · exact key 14 43 count_prime_43_le_13 (by interval_auto)
+    · exact key 15 47 count_prime_47_le_14 (by interval_auto)
+    · exact key 16 53 count_prime_53_le_15 (by interval_auto)
+    · exact key 17 59 count_prime_59_le_16 (by interval_auto)
+    · exact key 18 61 count_prime_61_le_17 (by interval_auto)
+    · exact key 19 67 count_prime_67_le_18 (by interval_auto)
+    · exact key 20 71 count_prime_71_le_19 (by interval_auto)
+    · exact key 21 73 count_prime_73_le_20 (by interval_auto)
+    · exact key 22 79 count_prime_79_le_21 (by interval_auto)
+    · exact key 23 83 count_prime_83_le_22 (by interval_auto)
+    · exact key 24 89 count_prime_89_le_23 (by interval_auto)
+    · exact key 25 97 count_prime_97_le_24 (by interval_auto)
+    · exact key 26 101 count_prime_101_le_25 (by interval_auto)
+    · exact key 27 103 count_prime_103_le_26 (by interval_auto)
+    · exact key 28 107 count_prime_107_le_27 (by interval_auto)
+    · exact key 29 109 count_prime_109_le_28 (by interval_auto)
+    · exact key 30 113 count_prime_113_le_29 (by interval_auto)
+    · exact key 31 127 count_prime_127_le_30 (by interval_auto)
+  · push_neg at h
+    have h_pn_ge_succ : nth_prime' n ≥ n + 1 := by
+      have : ∀ n ≥ 1, nth_prime' n ≥ n + 1 := by
+        intro n hn
+        induction n, hn using Nat.le_induction with
+        | base => exact Nat.Prime.two_le (Nat.prime_nth_prime 0) |> Nat.succ_le_of_lt
+        | succ n _ ih => exact Nat.succ_le_of_lt (lt_of_le_of_lt ih (Nat.nth_strictMono Nat.infinite_setOf_prime (Nat.pred_lt (by positivity))))
+      exact this n (by omega)
+    have h_dusart : (nth_prime' n : ℝ) ≥ n * (log (nth_prime' n) - 1.112) := by
+      have h_pi_le : (n : ℝ) ≤ (nth_prime' n : ℝ) / (log (nth_prime' n) - 1.112) := by
+        have h_pi_le' : pi (nth_prime' n) ≤ (nth_prime' n : ℝ) / (log (nth_prime' n) - 1.112) := by
+          convert Dusart.corollary_5_3_b _ using 1
+          linarith [show (n : ℝ) ≥ 32 by norm_cast, show exp 1.112 < 3.041 from LogTables.exp_1_112_lt,
+            show (nth_prime' n : ℝ) ≥ n + 1 by norm_cast]
+        convert h_pi_le' using 1
+        exact_mod_cast Eq.symm (RS_prime_helper.pi_nth_prime' n (by omega))
+      rwa [le_div_iff₀ (sub_pos.mpr <| by
+        contrapose! h_pi_le
+        exact lt_of_le_of_lt
+          (div_nonpos_of_nonneg_of_nonpos (Nat.cast_nonneg _) (sub_nonpos.mpr h_pi_le))
+          (by positivity))] at h_pi_le
+    have h_pn_ge_n : (nth_prime' n : ℝ) ≥ n := by linarith [show (nth_prime' n : ℝ) ≥ n + 1 by norm_cast]
+    have h_log_pn_ge : log (nth_prime' n) ≥ log n :=
+      log_le_log (by positivity) h_pn_ge_n
+    have h_pn_ge1 : (nth_prime' n : ℝ) ≥ n * (log n - 1.112) :=
+      le_trans (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_dusart
+    have h_log_diff : log (log n - 1.112) > 0.855 := by
+      have : log n ≥ log 32 := log_le_log (by norm_num) (by norm_cast)
+      have : log n > 3.465 := by linarith [LogTables.log_32_gt]
+      exact lt_of_lt_of_le LogTables.log_2_353_gt (log_le_log (by norm_num) (by linarith))
+    have h_log_n_minus_pos : log n - 1.112 > 0 := by
+      have : log n ≥ log 32 := log_le_log (by norm_num) (by norm_cast)
+      linarith [LogTables.log_32_gt]
+    have h_log_pn2 : log (nth_prime' n) ≥ log n + log (log n - 1.112) := by
+      rw [← log_mul (ne_of_gt (by positivity : (0 : ℝ) < n)) (ne_of_gt h_log_n_minus_pos)]
+      exact log_le_log (by positivity) h_pn_ge1
+    have h_pn_ge2 : (nth_prime' n : ℝ) ≥ n * (log n - 0.262) := by
+      have : (nth_prime' n : ℝ) ≥ n * (log n + 0.855 - 1.112) :=
+        le_trans (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_dusart
+      linarith
+    have h_pn_ge3 : (nth_prime' n : ℝ) ≥ n * 3.2 := by
+      have : log n ≥ log 32 := log_le_log (by norm_num) (by norm_cast)
+      nlinarith [LogTables.log_32_gt]
+    have h_log_pn3 : log (nth_prime' n) > log n + 1.16 := by
+      have : log (nth_prime' n) ≥ log (n * 3.2) :=
+        log_le_log (by positivity) h_pn_ge3
+      have : log (n * 3.2) = log n + log 3.2 :=
+        log_mul (ne_of_gt (by positivity)) (by norm_num)
+      linarith [LogTables.log_3_2_gt]
+    have : (nth_prime' n : ℝ) ≥ n * (log n + 1.16 - 1.112) :=
+      le_trans (mul_le_mul_of_nonneg_left (by linarith) (Nat.cast_nonneg _)) h_dusart
+    nlinarith [show (n : ℝ) > 0 from by positivity]
 
 @[blueprint
   "thm:rosser1938-pn-lower"
@@ -748,7 +842,12 @@ theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
   (statement := /-- For $n > 1$, we have $p_n > n(\log n + \log\log n - 10)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_gt_2 (n : ℕ) (hn : n > 1) :
-    nth_prime' n > n * (log n + log (log n) - 10) := by sorry
+    nth_prime' n > n * (log n + log (log n) - 10) := by
+  have h_rs : (nth_prime' n : ℝ) > n * (log n + log (log n) - 3 / 2) := by
+    by_cases h : n ≤ 31
+    · exact RS_prime_helper.p_n_lower_small n hn h
+    · exact RS_prime_helper.p_n_lower_large n (by omega)
+  nlinarith [show (n : ℝ) > 0 from by positivity]
 
 @[blueprint
   "thm:rosser1938-pn-upper"
@@ -793,7 +892,12 @@ blueprint_comment /-- Some results from \cite{rosser1941} -/
   (statement := /-- For $n \geq 55$, we have $p_n > n(\log n + \log\log n - 4)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
-    nth_prime' n > n * (log n + log (log n) - 4) := by sorry
+    nth_prime' n > n * (log n + log (log n) - 4) := by
+  have h_rs : (nth_prime' n : ℝ) > n * (log n + log (log n) - 3 / 2) := by
+    by_cases h : n ≤ 31
+    · exact RS_prime_helper.p_n_lower_small n (by omega) h
+    · exact RS_prime_helper.p_n_lower_large n (by omega)
+  nlinarith [show (n : ℝ) > 0 from by positivity]
 
 @[blueprint
   "thm:rosser1941-pn-upper"
