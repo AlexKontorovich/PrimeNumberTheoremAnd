@@ -1781,7 +1781,12 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
       εθ_num (exp (b i)) *
       (Li (exp (b (i + 1))) - Li (exp (b i)) +
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) +
-    εθ_num x₁ * (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 :=
+    εθ_num x₁ * (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 := by
+  have hx₀_le_x₁ : x₀ ≤ x₁ := le_trans (le_max_left _ _) h
+  have hx₀_le_x : x₀ ≤ x := le_trans hx₀_le_x₁ hx
+  have h30 := eq_30 hx₀_le_x hx₀
+  have hEθ_x_le : Eθ x ≤ εθ_num x₁ := h_εθ_num x hx
+  have hδ_le : δ x₀ ≤ Eπ x₀ + Eθ x₀ := sorry
   sorry
 
 @[blueprint
