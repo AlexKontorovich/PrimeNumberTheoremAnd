@@ -1428,11 +1428,32 @@ $$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\
   (proof := /-- This follows from the $\pi i$-periodicity of coth. -/)
   (latexEnv := "sublemma")
   (discussion := 1081)]
-theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ)
+theorem B_affine_periodic (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) (m : ℤ)
     (hw : -2 * π * I * z + ν ≠ 0)
     (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
-    B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
-    sorry
+    B ε (-2 * π * I * (z - m) + ν) =
+      B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
+  unfold B Phi_circ coth
+  have h_tanh_periodic :
+      Complex.tanh ((-2 * Real.pi * I * (z - m) + ν) / 2) =
+        Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) := by
+    rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh]
+    ring_nf; norm_num [Complex.sinh, Complex.cosh]; ring_nf
+    norm_num [Complex.exp_add, Complex.exp_sub]; ring_nf
+    have hexp : Complex.exp (Real.pi * I * m) = (-1) ^ m := by
+      rw [← Complex.exp_pi_mul_I, ← Complex.exp_int_mul]; ring
+    norm_num [hexp]; ring
+    rcases Int.even_or_odd' m with ⟨k, rfl | rfl⟩ <;>
+      norm_num [zpow_add₀, zpow_mul]
+    ring_nf; norm_num [Complex.exp_ne_zero] at *
+    rw [show -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2))) -
+          Complex.exp (Real.pi * I * z) * Complex.exp (-(ν * (1 / 2))) =
+        -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2)) +
+          Complex.exp (Real.pi * I * z) *
+            Complex.exp (-(ν * (1 / 2)))) from by ring,
+      inv_neg]
+    ring
+  grind
 
 @[blueprint
   "phi_star-affine-periodic"
@@ -1447,7 +1468,19 @@ theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ
     (hw : -2 * π * I * z + ν ≠ 0)
     (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
-    sorry
+  have hB := B_affine_periodic ν ε hν z m hw hwm
+  have h_sub : Phi_star ν ε (z - m) =
+      (B ε (-2 * Real.pi * I * z + ν) +
+        2 * Real.pi * I * m * Phi_circ ν ε z - B ε ν) /
+      (2 * Real.pi * I) := by
+    rw [Phi_star, hB]
+  have h_def : Phi_star ν ε z =
+      (B ε (-2 * Real.pi * I * z + ν) - B ε ν) /
+      (2 * Real.pi * I) := by
+    simp [Phi_star]
+  rw [h_sub, h_def]
+  field_simp
+  ring
 
 @[blueprint
   "shift-upwards-simplified"
