@@ -92,52 +92,25 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) *
-        (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) *
-          ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
-        rw [cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
-        unfold circleIntegral circleMap
-        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
-            inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
-            I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero,
-            or_self, or_false]
-        congr 1; funext θ
-        rw [deriv_cexp, deriv_mul_const]
-        · simp only [_root_.deriv_ofReal, one_mul]; ring_nf
-        · exact differentiableAt_ofReal θ
-        · exact (differentiableAt_ofReal θ).mul_const I
-    rw [cauchy_param]
-    calc ‖1 / (2 * ↑π * I) * ∫ (θ : ℝ) in 0..2 * π,
-          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖
-        = (2 * π)⁻¹ * ‖∫ (θ : ℝ) in 0..2 * π,
-          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖ := by
-            simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul,
-                norm_I, norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul]
-            rw [abs_of_pos pi_pos]
-        _ ≤ (2 * π)⁻¹ * (r' * ((r' - r) ^ 2)⁻¹ * (2 * M * r' / (R - r'))) * |2 * π - 0| := by
-            rw [mul_assoc]
-            refine mul_le_mul (by rfl) ?_ (by grind) (inv_nonneg.mpr two_pi_pos.le)
-            apply intervalIntegral.norm_integral_le_of_norm_le_const
-            intro θ hθ
-            simp only [inv_pow, Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul,
-                norm_exp_I_mul_ofReal, mul_one, norm_inv, norm_pow]
-            rw [abs_of_pos (pos_r.trans r_lt_r')]
-            refine mul_le_mul₃ rfl.le ?_ ?_ (inv_nonneg.mpr (sq_nonneg _))
-              (pos_r.trans r_lt_r').le (norm_nonneg _)
-            · have hz_norm : ‖z‖ ≤ r := mem_closedBall_zero_iff.mp z_in_r
-              refine inv_anti₀ (sq_pos_of_pos (by grind)) (sq_le_sq' ?_ ?_)
-              · linarith [norm_nonneg ((r' : ℂ) * cexp (I * θ) - z)]
-              · calc r' - r ≤ |r'| - ‖z‖ := sub_le_sub (le_abs_self _) hz_norm
-                  _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by
-                    simp [abs_of_pos <| pos_r.trans r_lt_r']
-                  _ ≤ ‖r' * cexp (I * θ) - z‖ := norm_sub_norm_le _ _
-            · exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero
-                  Mpos re_f_le_M r'_lt_R
-                  (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
-        _ = 2 * M * r' ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-            rw [sub_zero, abs_of_pos two_pi_pos]; field_simp
-
-
+  rw [cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, one_div]
+  grw [circleIntegral.norm_two_pi_i_inv_smul_integral_le_of_norm_le_const (by linarith) (C := 2 * M * r' / ((R - r') * (r' - r) ^ 2))]
+  · exact le_of_eq (by ring)
+  · intro z' hz'
+    rw [smul_eq_mul, norm_mul]
+    grw[borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
+      (Metric.sphere_subset_closedBall hz')]
+    suffices ‖(z' - z)⁻¹ ^ 2‖ ≤ 1 / (r' - r) ^ 2 by
+      grw [this]
+      · exact le_of_eq (by field)
+      · refine mul_nonneg (mul_nonneg ?_ ?_) (inv_nonneg.mpr ?_) <;> linarith
+    rw [norm_pow, norm_inv, one_div, inv_pow]
+    gcongr
+    · exact pow_pos (by linarith) _
+    · linarith
+    · simp only [mem_sphere_iff_norm, sub_zero, Metric.mem_closedBall,
+      dist_zero_right] at hz' z_in_r
+      rw [← hz']
+      exact le_trans (by linarith) (norm_sub_norm_le z' z)
 
 @[blueprint "BorelCaratheodoryDeriv"
   (title := "BorelCaratheodoryDeriv")
