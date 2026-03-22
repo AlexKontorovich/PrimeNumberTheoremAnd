@@ -43,14 +43,11 @@ blueprint_comment /--
   -/)
   (latexEnv := "lemma")]
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R))
     (r_lt_r' : r < r') (r'_lt_R : r' < R) {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
     deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r'), (w - z)⁻¹ ^ 2 • f w := by
-  obtain ⟨_, _, h_subset, hf_diff⟩ := hf_domain
   have hz_in_ball : z ∈ Metric.ball 0 r' :=
     Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_r'
-  have hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R) :=
-    hf_diff.mono <| Metric.ball_subset_closedBall.trans h_subset
   simp [← Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
       Metric.isOpen_ball (Metric.closedBall_subset_ball r'_lt_R) hf_on_ball hz_in_ball]
 
@@ -87,12 +84,11 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
     (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
     (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-  rw [cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, one_div]
+  rw [cauchy_formula_deriv (analytic_f.mono Metric.ball_subset_closedBall).differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
   grw [circleIntegral.norm_two_pi_i_inv_smul_integral_le_of_norm_le_const (by linarith) (C := 2 * M * r' / ((R - r') * (r' - r) ^ 2))]
   · exact le_of_eq (by ring)
   · intro z' hz'
@@ -130,19 +126,17 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
     (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
-    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U) :
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
     have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
         4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by field_simp; ring
     calc ‖deriv f z‖
         _ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := hr' ▸
-            DerivativeBound Mpos analytic_f zeroAtZero hf_domain realPartBounded rpos hyp_z
+            DerivativeBound Mpos analytic_f zeroAtZero realPartBounded rpos hyp_z
               (by linarith) (by linarith)
         _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
             have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
             rw [this]; bound
-
 
 
 @[blueprint "LogOfAnalyticFunction"
