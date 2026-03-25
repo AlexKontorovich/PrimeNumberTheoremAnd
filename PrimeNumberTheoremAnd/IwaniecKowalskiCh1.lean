@@ -259,6 +259,11 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   | succ k ih =>
     sorry -- follows from IsMultiplicative.pow and isMultiplicative_zeta
 
+/- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
+theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
+∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
+  sorry
+
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
   "d_apply_prime_pow"
@@ -268,7 +273,13 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   -/)]
 theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : ℕ) :
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
-  sorry
+  obtain ⟨k', rfl⟩ := exists_eq_succ_of_ne_zero (Nat.ne_of_gt hk)
+  induction k' generalizing a with
+  | zero => simp [d_one, hp.ne_zero]
+  | succ k' ih =>
+      rw [d_succ, mul_zeta_apply, sum_divisors_prime_pow hp]
+      simp_rw [fun i ↦ ih i (succ_pos _)]
+      simpa [add_assoc, add_left_comm, add_comm] using sum_range_add_choose a k'
 
 /-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
 @[blueprint
@@ -291,7 +302,10 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
   -/)]
 lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
     d k n = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
-  sorry
+  have hmult : (d k).IsMultiplicative := d_isMultiplicative k
+  rw [hmult.multiplicative_factorization (d k) hn, prod_factorization_eq_prod_primeFactors]
+  apply prod_congr rfl (fun p hp => ?_)
+  simpa using d_apply_prime_pow hk (prime_of_mem_primeFactors hp) _
 
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
