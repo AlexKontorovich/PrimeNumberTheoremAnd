@@ -440,6 +440,12 @@ theorem Phi_circ.meromorphic (ν ε : ℝ) : Meromorphic (Phi_circ ν ε) := by
     meromorphicOrderAt (f / g) x = meromorphicOrderAt f x - meromorphicOrderAt g x := by
   rw [div_eq_mul_inv, meromorphicOrderAt_mul hf hg.inv, meromorphicOrderAt_inv, sub_eq_add_neg]
 
+lemma sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) := by
+  rw [← mul_left_inj' I_ne_zero, ← Complex.sin_mul_I, zero_mul, Complex.sin_eq_zero_iff]
+  constructor
+  · rintro ⟨k, hk⟩; use -k; apply (mul_left_inj' I_ne_zero).mp; rw [hk]; ring_nf; simp; ring
+  · rintro ⟨k, hk⟩; use -k; rw [hk]; ring_nf; simp; ring
+
 @[blueprint
   "Phi-circ-poles"
   (title := "Phi-circ poles")
@@ -619,13 +625,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
       lift meromorphicOrderAt Complex.tanh (w z / 2) to ℤ using hne_top_tanh with a
       norm_cast; omega
     rw [h_finish, h_pos]
-  rw [h_pole_iff]
-  have h_sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) := by
-    rw [← mul_left_inj' I_ne_zero, ← Complex.sin_mul_I, zero_mul, Complex.sin_eq_zero_iff]
-    constructor
-    · rintro ⟨k, hk⟩; use -k; apply (mul_left_inj' I_ne_zero).mp; rw [hk]; ring_nf; simp; ring
-    · rintro ⟨k, hk⟩; use -k; rw [hk]; ring_nf; simp; ring
-  rw [h_sinh_zero_iff]
+  rw [h_pole_iff, sinh_zero_iff]
   constructor
   · rintro ⟨k, hk⟩
     use -k
