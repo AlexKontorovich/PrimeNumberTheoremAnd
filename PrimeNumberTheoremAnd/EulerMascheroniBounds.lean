@@ -107,7 +107,7 @@ lemma eulerMascheroniSeq_400_lb :
     ring
   unfold eulerMascheroniSeq
   linarith [r400_gt_log_401]
-/-- **Main result**: `0.577215 ≤ γ`. -/
+
 lemma hγ_lo : (0.577215 : ℝ) ≤ Real.eulerMascheroniConstant := by
   calc (0.577215 : ℝ) = 577215 / 1000000 := by norm_num
     _ ≤ eulerMascheroniSeq 400 + 1 / (2 * ((400 : ℝ) + 1)) := eulerMascheroniSeq_400_lb

@@ -1,12 +1,36 @@
 import Mathlib
 
 /-!
-Upper and lower bounds on the series ∑' n : ℕ, (Real.log 2) ^ (n + 1) / (((n + 1) : ℝ) * (n + 1).factorial).
+Upper and lower bounds on the series S = Σₙ (log 2)^(n+1) / ((n+1) · (n+1)!)
 
 # Key theorems
 
 - hs_lo : (0.834438 : ℝ) ≤ ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)
 - hs_hi : ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) ≤ 0.834462
+
+# Notes
+
+Lower bound (hs_lo): 0.834438 ≤ S
+
+  Strategy: partial sum underestimates the series.
+
+  Since every term is non-negative, the partial sum of the first 8 terms is ≤ the full series (Summable.sum_le_tsum). Then norm_num evaluates the finite sum symbolically in
+  terms of powers of log 2, and nlinarith closes the gap using log 2 > 0.6931471803 (from mathlib's Real.log_two_gt_d9) together with positivity of (log 2)^k for k = 2..6.
+
+Upper bound (hs_hi): S ≤ 0.834462
+
+  Strategy: partial sum + geometric tail bound.
+
+  This is harder because you need to bound the series from above. The proof splits the series into two pieces:
+
+  1. First 10 terms: a computable finite sum.
+  2. Tail from n = 11 onward: bounded in two steps:
+    - Drop the (n+11) factor in the denominator (since 1/(n·n!) ≤ 1/n!), loosening the tail to Σₙ (log 2)^(n+11) / (n+11)!.
+    - Factor out (log 2)^11 / 11! and bound the remaining sum Σₙ (log 2)^n / n! by recognizing it equals exp(log 2) = 2 (the full exponential series).
+
+  So the tail is bounded by (log 2)^11 / 11! · 2, which is tiny (~3.5 × 10⁻⁹). The finite sum plus this tail is then shown to be ≤ 0.834462 via nlinarith using log 2 <
+  0.6931471806 (Real.log_two_lt_d9) and powers of log 2.
+
 -/
 open Real Finset BigOperators
 noncomputable def seriesTerm (n : ℕ) : ℝ :=
@@ -33,13 +57,7 @@ lemma hs_lo : (0.834438 : ℝ) ≤
       convert summable_seriesTerm using 1;
       exact funext fun n => by unfold seriesTerm; norm_cast; );
   norm_num [ Finset.sum_range_succ, Nat.factorial ] at * ; have := Real.log_two_gt_d9 ; norm_num at * ; nlinarith [ pow_pos ( Real.log_pos one_lt_two ) 2, pow_pos ( Real.log_pos one_lt_two ) 3, pow_pos ( Real.log_pos one_lt_two ) 4, pow_pos ( Real.log_pos one_lt_two ) 5, pow_pos ( Real.log_pos one_lt_two ) 6 ] ;
-/- The original upper bound `hs_hi` as stated by the user is false:
-   the series sums to approximately 0.834461, which is greater than 0.834440.
-   lemma hs_hi_original :
-     ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) ≤
-       0.834440 := sorry
--/
--- Corrected upper bound: the series is at most 0.834462.
+
 set_option maxHeartbeats 800000 in
 lemma hs_hi :
   ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) ≤
