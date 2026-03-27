@@ -4,6 +4,10 @@ import Mathlib.NumberTheory.PrimeCounting
 import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Li2Bounds
+import PrimeNumberTheoremAnd.LiSeries
+import LeanCert.Tactic.IntervalAuto
+import PrimeNumberTheoremAnd.EulerMascheroniBounds
+import PrimeNumberTheoremAnd.LnFactorialSeries
 
 
 blueprint_comment /--
@@ -200,8 +204,14 @@ theorem li.sub_Li (x : ℝ) (h2x : 2 ≤ x) : li x - Li x = li 2 := by
     numerical integration. -/)
   (latexEnv := "lemma")
   (discussion := 759)]
+
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
-  sorry
+  have hli2 := li_eq_eulerMascheroni_add_log_log_add_tsum (show (1 : ℝ) < 2 by norm_num)
+  rw [hli2]
+  have hll_lo : (-0.366513 : ℝ) ≤ Real.log (Real.log 2) := by interval_decide
+  have hll_hi : Real.log (Real.log 2) ≤ -0.366512 := by interval_decide
+
+  constructor <;> linarith [hs_lo, hs_hi, hγ_lo, hγ_hi]
 
 /-- The local li definition matches Li2Bounds.li
 (they are definitionally equal). -/
