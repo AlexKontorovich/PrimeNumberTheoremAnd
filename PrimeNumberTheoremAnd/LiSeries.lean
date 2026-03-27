@@ -9,6 +9,9 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 
 set_option linter.style.setOption false
 set_option linter.style.maxHeartbeats false
+set_option linter.style.show false
+set_option linter.unusedVariables false
+set_option linter.flexible false
 
 /-!
 # Series expansion for the logarithmic integral

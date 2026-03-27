@@ -1,5 +1,10 @@
 import Mathlib
 
+set_option linter.style.refine false
+set_option linter.style.setOption false
+set_option linter.style.maxHeartbeats false
+set_option linter.style.multiGoal false
+
 /-!
 Upper and lower bounds on the series S = Σₙ (log 2)^(n+1) / ((n+1) · (n+1)!)
 
