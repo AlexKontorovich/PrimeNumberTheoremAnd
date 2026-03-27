@@ -19,6 +19,12 @@ $$\mathrm{li}(x) = \gamma + \ln(\ln x) + \sum_{n=1}^{\infty} \frac{(\ln x)^n}{n 
 
 for $x > 1$, where $\gamma$ is the Euler–Mascheroni constant.
 
+# Key theorems
+
+- li_eq_eulerMascheroni_add_log_log_add_tsum : li x = eulerMascheroniConstant + log (log x) + ∑' n : ℕ, (log x) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)
+
+# Strategy
+
 This follows from the substitution $t = e^u$ in the definition
 $\mathrm{li}(x) = \mathrm{PV}\int_0^x \frac{dt}{\log t}$
 which gives $\mathrm{li}(x) = \mathrm{PV}\int_{-\infty}^{\ln x} \frac{e^u}{u}\,du = \mathrm{Ei}(\ln x)$,

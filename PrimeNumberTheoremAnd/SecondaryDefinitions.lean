@@ -206,8 +206,7 @@ theorem li.sub_Li (x : ℝ) (h2x : 2 ≤ x) : li x - Li x = li 2 := by
   (discussion := 759)]
 
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
-  have hli2 := li_eq_eulerMascheroni_add_log_log_add_tsum (show (1 : ℝ) < 2 by norm_num)
-  rw [hli2]
+  rw [li_eq_eulerMascheroni_add_log_log_add_tsum (show (1 : ℝ) < 2 by norm_num)]
   have hll_lo : (-0.366513 : ℝ) ≤ Real.log (Real.log 2) := by interval_decide
   have hll_hi : Real.log (Real.log 2) ≤ -0.366512 := by interval_decide
 
