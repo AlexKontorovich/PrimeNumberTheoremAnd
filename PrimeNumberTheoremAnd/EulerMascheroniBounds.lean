@@ -1,5 +1,10 @@
 import Mathlib
 
+set_option linter.style.induction false
+set_option linter.style.nativeDecide false
+set_option linter.style.setOption false
+set_option linter.flexible false
+
 open Real Finset
 
 /-!
