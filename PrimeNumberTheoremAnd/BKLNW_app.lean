@@ -99,7 +99,7 @@ theorem bklnw_eq_A_9 (x T δ : ℝ) (hδ1 : 0 ≤ δ) (hδ2 : δ ≤ 1) :
   set I₁ : Set ℝ := Set.Ico 0 (1 - δ)
   set I₂ : Set ℝ := Set.Icc (1 - δ) 1
   set J  : Set ℝ := Set.Ioo (-T) T
-  set g : ℂ → ℂ := fun ρ ↦ (x ^ (ρ - 1) / ρ) * (riemannZeta.order ρ)
+  set g  : ℂ → ℂ := fun ρ ↦ (x ^ (ρ - 1) / ρ) * (riemannZeta.order ρ)
   change ∑' ρ : riemannZeta.zeroes_rect (Set.Icc 0 1) J, g ρ = _
   have hI : Set.Icc 0 1 = I₁ ∪ I₂ := (Set.Ico_union_Icc_eq_Icc
     (sub_nonneg_of_le hδ2) (sub_le_self 1 hδ1)).symm

@@ -52,7 +52,7 @@ lemma riemannZeta.zeroes_codiscreteWithin_compl_one :
     zeroesᶜ ∈ Filter.codiscreteWithin ({1} : Set ℂ)ᶜ := by
   refine riemannZeta_analyticOn_compl_one.preimage_zero_mem_codiscreteWithin
     ?_ ?_ ?_ (x := 2)
-  · exact @riemannZeta_ne_zero_of_one_le_re 2 Nat.one_le_ofNat
+  · exact riemannZeta_ne_zero_of_one_le_re Nat.one_le_ofNat
   · exact Set.mem_compl_singleton_iff.2 (OfNat.one_ne_ofNat 2).symm
   · refine isConnected_compl_singleton_of_one_lt_rank ?_ 1
     rw [Complex.rank_real_complex]
@@ -78,14 +78,13 @@ lemma riemannZeta_eventually_ne_zero :
   rw [hzero, mul_zero] at hmul
   exact false_of_ne hmul
 
-lemma riemannZeta_no_zeroes_near_one : ∃ (ε : ℝ), ε > 0 ∧ ∀ (s : ℂ),
-    s ∈ Metric.ball (1 : ℂ) ε → riemannZeta s ≠ 0 := by
+lemma riemannZeta_no_zeroes_near_one : ∃ ε, ε > 0 ∧ ∀ s,
+    s ∈ Metric.ball 1 ε → riemannZeta s ≠ 0 := by
   obtain ⟨ε, hε_pos, hball⟩ := Metric.eventually_nhds_iff.1 <|
       eventually_nhdsWithin_iff.1 riemannZeta_eventually_ne_zero
   refine ⟨ε, hε_pos, fun s hs hzero ↦ ?_⟩
   by_cases h : s = 1
-  · rw [h] at hzero
-    exact riemannZeta_one_ne_zero hzero
+  · exact riemannZeta_one_ne_zero (h ▸ hzero)
   · exact hball (Metric.mem_ball.1 hs) (Set.mem_compl_singleton_iff.2 h) hzero
 
 lemma riemannZeta.zeroes_on_Compact_finite' {S : Set ℂ} (hS1 : IsCompact S) :
