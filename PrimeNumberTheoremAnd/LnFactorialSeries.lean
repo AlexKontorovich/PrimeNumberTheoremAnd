@@ -1,6 +1,5 @@
 import Mathlib
 
-set_option linter.style.setOption false
 
 /-!
 Upper and lower bounds on the series S = Σₙ (log 2)^(n+1) / ((n+1) · (n+1)!)
