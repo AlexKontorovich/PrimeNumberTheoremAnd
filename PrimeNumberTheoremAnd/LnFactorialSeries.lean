@@ -1,7 +1,6 @@
 import Mathlib
 
 set_option linter.style.setOption false
-set_option linter.style.maxHeartbeats false
 
 /-!
 Upper and lower bounds on the series S = Σₙ (log 2)^(n+1) / ((n+1) · (n+1)!)
@@ -61,30 +60,59 @@ lemma hs_lo : (0.834438 : ℝ) ≤
       exact funext fun n => by unfold seriesTerm; norm_cast; );
   norm_num [ Finset.sum_range_succ, Nat.factorial ] at * ; have := Real.log_two_gt_d9 ; norm_num at * ; nlinarith [ pow_pos ( Real.log_pos one_lt_two ) 2, pow_pos ( Real.log_pos one_lt_two ) 3, pow_pos ( Real.log_pos one_lt_two ) 4, pow_pos ( Real.log_pos one_lt_two ) 5, pow_pos ( Real.log_pos one_lt_two ) 6 ] ;
 
-set_option maxHeartbeats 800000 in
+private lemma tail_drop_factor :
+    (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) ≤
+    (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) := by
+  refine Summable.tsum_le_tsum ?_ ?_ ?_
+  · exact fun n => by gcongr ; norm_cast ; nlinarith [ Nat.factorial_pos ( n + 11 ) ]
+  · exact Summable.of_nonneg_of_le ( fun n => by positivity )
+      ( fun n => by exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) <|
+        le_mul_of_one_le_left ( by positivity ) <| mod_cast Nat.le_add_left _ _ ) <|
+      by simpa using summable_nat_add_iff 11 |>.2 <| Real.summable_pow_div_factorial _
+  · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _
+
+private lemma tail_factor_bound :
+    (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) ≤
+    (Real.log 2) ^ 11 / (↑(11).factorial) * (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) := by
+  rw [ ← tsum_mul_left ]
+  refine Summable.tsum_le_tsum ?_ ?_ ?_
+  · intro n
+    norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ]
+    ring_nf ; norm_num
+    field_simp
+    norm_cast; nlinarith only [ sq ( n ^ 5 ), sq ( n ^ 4 ), sq ( n ^ 3 ), sq ( n ^ 2 ) ]
+  · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _
+  · exact Summable.mul_left _ <| Real.summable_pow_div_factorial _
+
+private lemma exp_series_eq :
+    (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) = Real.exp (Real.log 2) := by
+  simp +decide [ Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div ]
+
+private lemma hs_hi_contradiction
+    (h_contra : ¬∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) ≤ 0.834462)
+    (h_simp : (∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+      (∑ n ∈ Finset.range 10, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) +
+      (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial))) : False := by
+  have h_tail := tail_drop_factor
+  have h_tail_further := tail_factor_bound
+  have h_exp_series := exp_series_eq
+  norm_num [ Finset.sum_range_succ, Nat.factorial_succ ] at *
+  have := Real.log_two_lt_d9 ; norm_num at *
+  nlinarith [ Real.log_nonneg one_le_two,
+    pow_pos ( Real.log_pos one_lt_two ) 2, pow_pos ( Real.log_pos one_lt_two ) 3,
+    pow_pos ( Real.log_pos one_lt_two ) 4, pow_pos ( Real.log_pos one_lt_two ) 5,
+    pow_pos ( Real.log_pos one_lt_two ) 6, pow_pos ( Real.log_pos one_lt_two ) 7,
+    pow_pos ( Real.log_pos one_lt_two ) 8, pow_pos ( Real.log_pos one_lt_two ) 9,
+    pow_pos ( Real.log_pos one_lt_two ) 10, pow_pos ( Real.log_pos one_lt_two ) 11,
+    Real.exp_log zero_lt_two ]
+
 lemma hs_hi :
   ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) ≤
     0.834462 := by
-  by_contra h_contra;
-  suffices h_simp : (∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤ (∑ n ∈ Finset.range 10, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) + (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) by
-    have h_tail : (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) ≤ (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) := by
-      refine Summable.tsum_le_tsum ?_ ?_ ?_;
-      · exact fun n => by gcongr ; norm_cast ; nlinarith [ Nat.factorial_pos ( n + 11 ) ] ;
-      · exact Summable.of_nonneg_of_le ( fun n => by positivity ) ( fun n => by exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) <| le_mul_of_one_le_left ( by positivity ) <| mod_cast Nat.le_add_left _ _ ) <| by simpa using summable_nat_add_iff 11 |>.2 <| Real.summable_pow_div_factorial _;
-      · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _;
-    have h_tail_further : (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) ≤ (Real.log 2) ^ 11 / (↑(11).factorial) * (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) := by
-      rw [ ← tsum_mul_left ]
-      refine Summable.tsum_le_tsum ?_ ?_ ?_
-      · intro n
-        norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ]
-        ring_nf ; norm_num
-        field_simp
-        norm_cast; nlinarith only [ sq ( n ^ 5 ), sq ( n ^ 4 ), sq ( n ^ 3 ), sq ( n ^ 2 ) ]
-      · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _
-      · exact Summable.mul_left _ <| Real.summable_pow_div_factorial _
-    have h_exp_series : (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) = Real.exp (Real.log 2) := by
-      simp +decide [ Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div ];
-    norm_num [ Finset.sum_range_succ, Nat.factorial_succ ] at *;
-    have := Real.log_two_lt_d9 ; norm_num at * ; nlinarith [ Real.log_nonneg one_le_two, pow_pos ( Real.log_pos one_lt_two ) 2, pow_pos ( Real.log_pos one_lt_two ) 3, pow_pos ( Real.log_pos one_lt_two ) 4, pow_pos ( Real.log_pos one_lt_two ) 5, pow_pos ( Real.log_pos one_lt_two ) 6, pow_pos ( Real.log_pos one_lt_two ) 7, pow_pos ( Real.log_pos one_lt_two ) 8, pow_pos ( Real.log_pos one_lt_two ) 9, pow_pos ( Real.log_pos one_lt_two ) 10, pow_pos ( Real.log_pos one_lt_two ) 11, Real.exp_log zero_lt_two ] ;
-  rw [ ← Summable.sum_add_tsum_nat_add ];
+  by_contra h_contra
+  suffices h_simp : (∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+      (∑ n ∈ Finset.range 10, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) +
+      (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) by
+    exact hs_hi_contradiction h_contra h_simp
+  rw [ ← Summable.sum_add_tsum_nat_add ]
   exact ( by contrapose! h_contra; erw [ tsum_eq_zero_of_not_summable h_contra ] ; norm_num )
