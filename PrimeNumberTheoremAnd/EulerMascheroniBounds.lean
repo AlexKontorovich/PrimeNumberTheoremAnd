@@ -44,7 +44,7 @@ lemma log_one_add_le_quadratic {x : ℝ} (hx : 0 ≤ x) :
       fun y a => quadratic_le_exp_of_nonneg a
     exact le_trans ( by nlinarith [ mul_div_cancel₀ ( x * ( 2 + x ) ) ( by linarith : ( 2 * ( 1 + x ) ) ≠ 0 ) ] ) ( h_exp_bound _ ( by positivity ) );
   have := Real.log_le_log ( by positivity ) h_exp;
-  rw [ Real.log_exp ] at this ; rw [ le_div_iff₀ ] at this <;> linarith
+  rw [ Real.log_exp ] at this ; rw [ le_div_iff₀ ] at this <;> grind
 /-- Each step of the Euler-Mascheroni sequence is bounded below. -/
 lemma eulerMascheroniSeq_step_lb (k : ℕ) :
     1 / (2 * ((k : ℝ) + 1) * ((k : ℝ) + 2)) ≤
@@ -54,7 +54,7 @@ lemma eulerMascheroniSeq_step_lb (k : ℕ) :
     fun x a => log_one_add_le_quadratic a
   have := h_log_bound ( 1 / ( k + 1 ) ) ( by positivity ) ; norm_num at *;
   field_simp at *;
-  rw [ Real.log_div ( by positivity ) ( by positivity ) ] at this ; nlinarith [ sq ( k : ℝ ) ]
+  rw [ Real.log_div ( by positivity ) ( by positivity ) ] at this ; grind
 /-- For `m ≥ n`, the difference of Euler-Mascheroni sequence values is bounded below
     by a telescoping sum. -/
 lemma eulerMascheroniSeq_diff_lb (n m : ℕ) (h : n ≤ m) :
@@ -75,7 +75,7 @@ lemma eulerMascheroniConstant_lb (n : ℕ) :
   have h_lim_bound : Filter.Tendsto (fun m => 1 / (2 * (n + 1) : ℝ) - 1 / (2 * (m + 1) : ℝ)) Filter.atTop (nhds (1 / (2 * (n + 1) : ℝ))) := by
     exact le_trans ( tendsto_const_nhds.sub <| tendsto_const_nhds.div_atTop <| Filter.Tendsto.const_mul_atTop zero_lt_two <| Filter.tendsto_id.atTop_add tendsto_const_nhds ) <| by norm_num;
   have := h_lim_bound.comp tendsto_natCast_atTop_atTop;
-  exact le_of_tendsto_of_tendsto this h_lim ( Filter.eventually_atTop.mpr ⟨ n, by intros m hm; simpa using eulerMascheroniSeq_diff_lb n m hm ⟩ ) |> fun h => by norm_num at * ; linarith;
+  exact le_of_tendsto_of_tendsto this h_lim ( Filter.eventually_atTop.mpr ⟨ n, by intros m hm; simpa using eulerMascheroniSeq_diff_lb n m hm ⟩ ) |> fun h => by norm_num at * ; grind;
 /-- The ℚ-valued Taylor sum used in the computational verification. -/
 def taylorSumQ (x : ℚ) (K : ℕ) : ℚ :=
   (Finset.range K).sum (fun i => x ^ i / (Nat.factorial i : ℚ))
@@ -203,7 +203,7 @@ lemma euler_maclaurin_bound (n : ℕ) (hn : 1 ≤ n) :
   have h_strict_anti : StrictAnti (fun n : ℕ => (harmonic (n + 1) : ℝ) - Real.log (n + 1) -
       1 / (2 * (n + 1)) + 1 / (12 * (n + 1) ^ 2)) := by
     refine strictAnti_nat_of_succ_lt ?_
-    intro n; have := euler_maclaurin_decreasing (n + 1) (by linarith); aesop
+    intro n; have := euler_maclaurin_decreasing (n + 1) (by linarith); grind
   have h_tendsto : Filter.Tendsto (fun n : ℕ => (harmonic (n + 1) : ℝ) - Real.log (n + 1) -
       1 / (2 * (n + 1)) + 1 / (12 * (n + 1) ^ 2))
       Filter.atTop (nhds eulerMascheroniConstant) := by
@@ -215,13 +215,13 @@ lemma euler_maclaurin_bound (n : ℕ) (hn : 1 ≤ n) :
       (le_of_tendsto h_tendsto <| Filter.eventually_atTop.mpr
         ⟨n + 1, fun m hm => h_strict_anti.antitone hm⟩)
       (h_strict_anti <| Nat.lt_succ_self _)
-  cases n <;> aesop
+  cases n <;> grind
 open Real in
 /-- Numerical verification: t(16) ≤ 0.577216, using log 2 > 0.6931471803. -/
 lemma euler_maclaurin_numerical :
     (harmonic 16 : ℝ) - Real.log 16 - 1 / (2 * 16) + 1 / (12 * 16 ^ 2) ≤ 0.577216 := by
   rw [show (16 : ℝ) = 2 ^ 4 by norm_num, Real.log_pow]
   norm_num at *; ring_nf at *; norm_num at *
-  have := Real.log_two_gt_d9; norm_num at this; linarith
+  have := Real.log_two_gt_d9; norm_num at this; grind
 lemma hγ_hi : Real.eulerMascheroniConstant ≤ 0.577216 :=
   le_of_lt (lt_of_lt_of_le (euler_maclaurin_bound 16 (by norm_num)) euler_maclaurin_numerical)
