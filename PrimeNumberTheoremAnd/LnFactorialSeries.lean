@@ -35,30 +35,26 @@ Upper bound (hs_hi): S ≤ 0.834462
 
 -/
 open Real Finset BigOperators
-noncomputable def seriesTerm (n : ℕ) : ℝ :=
-  (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)
-lemma log_two_pos : (0 : ℝ) < Real.log 2 :=
-  Real.log_pos (by norm_num : (1 : ℝ) < 2)
-lemma log_two_nonneg : (0 : ℝ) ≤ Real.log 2 := le_of_lt log_two_pos
-lemma seriesTerm_nonneg (n : ℕ) : 0 ≤ seriesTerm n := by
-  unfold seriesTerm
-  apply div_nonneg
-  · exact pow_nonneg log_two_nonneg _
-  · apply mul_nonneg
-    · positivity
-    · positivity
-lemma summable_seriesTerm : Summable seriesTerm := by
-  refine .of_nonneg_of_le ( fun n => ?_) ( fun n => ?_ ) ( summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| Real.log 2 );
-  · exact div_nonneg ( pow_nonneg ( Real.log_nonneg one_le_two ) _ ) ( mul_nonneg ( Nat.cast_nonneg _ ) ( Nat.cast_nonneg _ ) );
-  · exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) ( mod_cast Nat.le_mul_of_pos_left _ ( Nat.succ_pos _ ) )
+
+private lemma summable_series :
+    Summable fun n : ℕ => (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+  refine .of_nonneg_of_le (fun n => ?_) (fun n => ?_)
+    (summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| Real.log 2)
+  · exact div_nonneg (pow_nonneg (Real.log_nonneg one_le_two) _)
+      (mul_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _))
+  · exact div_le_div_of_nonneg_left (by positivity) (by positivity)
+      (mod_cast Nat.le_mul_of_pos_left _ (Nat.succ_pos _))
 
 lemma hs_lo : (0.834438 : ℝ) ≤
     ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
-  have h_sum_le_tsum : (∑ n ∈ Finset.range 8, (Real.log 2) ^ (n + 1) / ((n + 1) * (n + 1).factorial)) ≤ ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((n + 1) * (n + 1).factorial) := by
-    exact Summable.sum_le_tsum ( Finset.range 8 ) ( fun _ _ => div_nonneg ( by positivity ) ( by positivity ) ) ( by
-      convert summable_seriesTerm using 1;
-      exact funext fun n => by unfold seriesTerm; norm_cast; );
-  norm_num [ Finset.sum_range_succ, Nat.factorial ] at * ; have := Real.log_two_gt_d9 ; norm_num at * ; nlinarith [ pow_pos ( Real.log_pos one_lt_two ) 2, pow_pos ( Real.log_pos one_lt_two ) 3, pow_pos ( Real.log_pos one_lt_two ) 4, pow_pos ( Real.log_pos one_lt_two ) 5, pow_pos ( Real.log_pos one_lt_two ) 6 ] ;
+  have h_sum_le_tsum : (∑ n ∈ Finset.range 8, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+      ∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) :=
+    Summable.sum_le_tsum _ (fun _ _ => div_nonneg (by positivity) (by positivity)) summable_series
+  norm_num [Finset.sum_range_succ, Nat.factorial] at *
+  have := Real.log_two_gt_d9; norm_num at *
+  nlinarith [pow_pos (Real.log_pos one_lt_two) 2, pow_pos (Real.log_pos one_lt_two) 3,
+    pow_pos (Real.log_pos one_lt_two) 4, pow_pos (Real.log_pos one_lt_two) 5,
+    pow_pos (Real.log_pos one_lt_two) 6]
 
 private lemma tail_drop_factor :
     (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) ≤
