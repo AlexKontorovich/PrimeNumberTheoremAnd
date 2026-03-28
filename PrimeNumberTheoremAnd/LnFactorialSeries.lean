@@ -2,7 +2,6 @@ import Mathlib
 
 set_option linter.style.setOption false
 set_option linter.style.maxHeartbeats false
-set_option linter.style.multiGoal false
 
 /-!
 Upper and lower bounds on the series S = Σₙ (log 2)^(n+1) / ((n+1) · (n+1)!)
@@ -74,11 +73,15 @@ lemma hs_hi :
       · exact Summable.of_nonneg_of_le ( fun n => by positivity ) ( fun n => by exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) <| le_mul_of_one_le_left ( by positivity ) <| mod_cast Nat.le_add_left _ _ ) <| by simpa using summable_nat_add_iff 11 |>.2 <| Real.summable_pow_div_factorial _;
       · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _;
     have h_tail_further : (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) ≤ (Real.log 2) ^ 11 / (↑(11).factorial) * (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) := by
-      rw [ ← tsum_mul_left ] ; refine Summable.tsum_le_tsum ?_ ?_ ?_ ; norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ] ; ring_nf ; norm_num;
-      · field_simp;
-        exact fun n => by norm_cast; nlinarith only [ sq ( n ^ 5 ), sq ( n ^ 4 ), sq ( n ^ 3 ), sq ( n ^ 2 ) ] ;
-      · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _;
-      · exact Summable.mul_left _ <| Real.summable_pow_div_factorial _;
+      rw [ ← tsum_mul_left ]
+      refine Summable.tsum_le_tsum ?_ ?_ ?_
+      · intro n
+        norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ]
+        ring_nf ; norm_num
+        field_simp
+        norm_cast; nlinarith only [ sq ( n ^ 5 ), sq ( n ^ 4 ), sq ( n ^ 3 ), sq ( n ^ 2 ) ]
+      · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _
+      · exact Summable.mul_left _ <| Real.summable_pow_div_factorial _
     have h_exp_series : (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) = Real.exp (Real.log 2) := by
       simp +decide [ Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div ];
     norm_num [ Finset.sum_range_succ, Nat.factorial_succ ] at *;
