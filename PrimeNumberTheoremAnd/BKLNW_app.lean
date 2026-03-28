@@ -410,27 +410,27 @@ theorem bklnw_eq_A_26 (x : ℝ)
   (title := "Lemma 15")
   (statement := /-- Let $B_0$, $B$, and $c$ be
   positive constants such that
-\begin{equation}\tag{A.27}
+\begin{equation}\tag{A.27}\label{bklnw:A.27}
 |(x-\psi(x))/\sqrt{x}| \leq c
 \hbox{ for all } B_0 < x \leq B
 \end{equation}
   is known.  Furthermore, assume for every
   $b_0 > 0$ there exists $\varepsilon(b_0) > 0$
   such that
-\begin{equation}\tag{A.28}
+\begin{equation}\tag{A.28}\label{bklnw:A.28}
 |\psi(x) - x| \leq \varepsilon(b_0) x
 \quad \text{for all } x \geq e^{b_0}.
 \end{equation}
 Let $b$ be positive such that
 $e^b \in (B_0, B]$. Then, for all
 $x \geq e^b$ we have
-\begin{equation}\tag{A.29}
+\begin{equation}\tag{A.29}\label{bklnw:A.29}
 \left|\frac{\psi(x) - x}{x}\right|
 \leq \max (\frac{c}{e^{\frac{b}{2}}},
 \varepsilon(\log B)).
 \end{equation} -/)
   (proof := /-- Multiplying both sides of
-  \eqref{A.27} by $\frac{1}{\sqrt{x}}$ gives
+  \eqref{bklnw:A.27} by $\frac{1}{\sqrt{x}}$ gives
 \[
 \left|\frac{\psi(x) - x}{x}\right|
 \leq \frac{c}{e^{\frac{b}{2}}}
@@ -438,10 +438,10 @@ $x \geq e^b$ we have
 \]
 as $\frac{1}{\sqrt{x}}
 \leq \frac{1}{e^{\frac{b}{2}}}$.
-Then, for $x \geq B$ we apply \eqref{A.28}
+Then, for $x \geq B$ we apply \eqref{bklnw:A.28}
 with $b_0 = \log B$.
 Combining these bounds,
-we derive \eqref{A.29}. -/)
+we derive \eqref{bklnw:A.29}. -/)
   (latexEnv := "lemma")
   (discussion := 753)]
 theorem bklnw_lemma_15 (c B₀ B : ℝ)
