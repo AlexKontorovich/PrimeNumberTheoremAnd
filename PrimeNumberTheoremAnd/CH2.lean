@@ -1467,22 +1467,18 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
     intros t ht u hu htu;
     by_contra h_contra; push_neg at h_contra; (
     obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
-      apply_rules [ exists_deriv_eq_slope ];
-      · exact htu.lt_of_ne ( by rintro rfl; linarith );
-      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) );
-      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) );
+      apply_rules [ exists_deriv_eq_slope ]
+      · exact htu.lt_of_ne ( by rintro rfl; linarith )
+      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) )
+      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) )
     rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
   intro t₁ t₂ ht;
   by_cases h₁ : t₁ = 0 <;> by_cases h₂ : t₂ = 0
-  · simp_all [ B ]
-  · subst h₁
-    simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
-    grind [one_re]
-  · subst h₂
-    simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
-    grind [one_re]
-  · simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
-    simp only [h₁, h₂, ite_false, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im, one_im]
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at B_plus_re_eq
+    simp only [B, ofReal_eq_zero, ofReal_one, h₁, h₂, ite_false, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im, one_im]
     simp_all
     grind [MonotoneOn]
 
