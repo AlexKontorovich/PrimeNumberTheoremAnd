@@ -1,9 +1,7 @@
 import Mathlib
 
-set_option linter.style.induction false
 set_option linter.style.nativeDecide false
 set_option linter.style.setOption false
-set_option linter.flexible false
 
 open Real Finset
 
@@ -63,9 +61,10 @@ lemma eulerMascheroniSeq_step_lb (k : ℕ) :
 lemma eulerMascheroniSeq_diff_lb (n m : ℕ) (h : n ≤ m) :
     (1 : ℝ) / (2 * (↑n + 1)) - 1 / (2 * (↑m + 1)) ≤
     eulerMascheroniSeq m - eulerMascheroniSeq n := by
-  induction' h with k hk;
-  · norm_num;
-  · have h_step : eulerMascheroniSeq (k + 1) - eulerMascheroniSeq k ≥ 1 / (2 * (k + 1) * (k + 2) : ℝ) :=
+  induction h with
+  | refl => norm_num;
+  | @step k _ hk =>
+    have h_step : eulerMascheroniSeq (k + 1) - eulerMascheroniSeq k ≥ 1 / (2 * (k + 1) * (k + 2) : ℝ) :=
       eulerMascheroniSeq_step_lb k
     norm_num [ Nat.cast_add_one_ne_zero ] at *;
     nlinarith [ inv_pos.mpr ( by positivity : 0 < ( k : ℝ ) + 1 ), inv_pos.mpr ( by positivity : 0 < ( k : ℝ ) + 2 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 1 ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 2 ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 1 + 1 ≠ 0 ) ]
@@ -118,51 +117,48 @@ lemma hγ_lo : (0.577215 : ℝ) ≤ Real.eulerMascheroniConstant := by
     _ ≤ eulerMascheroniSeq 400 + 1 / (2 * ((400 : ℝ) + 1)) := eulerMascheroniSeq_400_lb
     _ ≤ eulerMascheroniConstant := eulerMascheroniConstant_lb 400
 
+/-- If `f` is continuous on `[0, u]`, differentiable on `(0, u)`, `f 0 = 0`, and
+    `deriv f` is positive for all positive inputs, then `f u > 0`.
+    This is the common MVT argument used in `log_ineq_1`, `log_ineq_2`, and `log_ineq_3`. -/
+lemma pos_of_mvt {f : ℝ → ℝ} {u : ℝ} (hu : 0 < u) (hf0 : f 0 = 0)
+    (hcont : ContinuousOn f (Set.Icc 0 u))
+    (hdiff : ∀ x ∈ Set.Ioo 0 u, DifferentiableAt ℝ f x)
+    (hderiv : ∀ x > 0, 0 < deriv f x) : 0 < f u := by
+  obtain ⟨c, hc⟩ := exists_deriv_eq_slope f hu hcont
+    (fun x hx => (hdiff x hx).differentiableWithinAt)
+  have := hderiv c hc.1.1; rw [hc.2, hf0, lt_div_iff₀] at this <;> nlinarith
 open Real in
 /-- For u > 0: u²/2 - u + log(1+u) > 0. This is the base case of our chain of
     positivity lemmas, proved by the mean value theorem since the derivative
     u²/(1+u) is positive. -/
 lemma log_ineq_1 (u : ℝ) (hu : 0 < u) : 0 < u ^ 2 / 2 - u + Real.log (1 + u) := by
-  set f : ℝ → ℝ := fun u => u^2 / 2 - u + Real.log (1 + u)
-  have h_deriv_pos : ∀ u > 0, 0 < deriv f u := by
-    intro u hu; norm_num [f, add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
+  apply pos_of_mvt hu (by simp [Real.log_one])
+  · exact continuousOn_of_forall_continuousAt fun x hx => by
+      exact ContinuousAt.add (ContinuousAt.sub (ContinuousAt.div_const (continuousAt_id.pow 2) _)
+        continuousAt_id) (ContinuousAt.log (continuousAt_const.add continuousAt_id)
+        (by linarith [hx.1]))
+  · exact fun x hx => DifferentiableAt.add (DifferentiableAt.sub (by norm_num) differentiableAt_id)
+      (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))
+  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0)]
-  obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo 0 u, deriv f c = (f u - f 0) / (u - 0) := by
-    apply_rules [exists_deriv_eq_slope]
-    · exact continuousOn_of_forall_continuousAt fun x hx => by
-        exact ContinuousAt.add (ContinuousAt.sub (ContinuousAt.div_const (continuousAt_id.pow 2) _)
-          continuousAt_id) (ContinuousAt.log (continuousAt_const.add continuousAt_id)
-          (by linarith [hx.1]))
-    · exact fun x hx => DifferentiableAt.differentiableWithinAt (by
-        exact DifferentiableAt.add (DifferentiableAt.sub (by norm_num) differentiableAt_id)
-          (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1])))
-  have := h_deriv_pos c hc.1.1; rw [hc.2, lt_div_iff₀] at this <;> aesop
 open Real in
 /-- For u > 0: u³/6 - u²/2 + (1+u)·log(1+u) - u > 0. The derivative of this
     function is u²/2 - u + log(1+u), which is positive by `log_ineq_1`. -/
 lemma log_ineq_2 (u : ℝ) (hu : 0 < u) :
     0 < u ^ 3 / 6 - u ^ 2 / 2 + (1 + u) * Real.log (1 + u) - u := by
-  set g : ℝ → ℝ := fun u => u^3 / 6 - u^2 / 2 + (1 + u) * Real.log (1 + u) - u
-  have hg_deriv_pos : ∀ u > 0, 0 < deriv g u := by
-    simp +zetaDelta at *
-    intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
+  apply pos_of_mvt hu (by simp [Real.log_one])
+  · exact ContinuousOn.sub (ContinuousOn.add (ContinuousOn.sub
+      (continuousOn_id.pow 3 |> ContinuousOn.div_const <| 6)
+      (continuousOn_id.pow 2 |> ContinuousOn.div_const <| 2))
+      (ContinuousOn.mul (continuousOn_const.add continuousOn_id)
+      (ContinuousOn.log (continuousOn_const.add continuousOn_id)
+      fun x hx => by linarith [hx.1]))) continuousOn_id
+  · exact fun x hx => DifferentiableAt.sub (DifferentiableAt.add (DifferentiableAt.sub (by norm_num)
+      (by norm_num)) (DifferentiableAt.mul (differentiableAt_id.const_add _)
+      (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))))
+      differentiableAt_id
+  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0), log_ineq_1 u hu]
-  have h_mvt : ∃ c ∈ Set.Ioo 0 u, deriv g c = (g u - g 0) / (u - 0) := by
-    apply_rules [exists_deriv_eq_slope]
-    · exact ContinuousOn.sub (ContinuousOn.add (ContinuousOn.sub
-        (continuousOn_id.pow 3 |> ContinuousOn.div_const <| 6)
-        (continuousOn_id.pow 2 |> ContinuousOn.div_const <| 2))
-        (ContinuousOn.mul (continuousOn_const.add continuousOn_id)
-        (ContinuousOn.log (continuousOn_const.add continuousOn_id)
-        fun x hx => by linarith [hx.1]))) continuousOn_id
-    · exact fun x hx => DifferentiableAt.differentiableWithinAt (by
-        exact DifferentiableAt.sub (DifferentiableAt.add (DifferentiableAt.sub (by norm_num)
-          (by norm_num)) (DifferentiableAt.mul (differentiableAt_id.const_add _)
-          (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))))
-          differentiableAt_id)
-  simp +zetaDelta at *
-  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
-  have := hg_deriv_pos c hc₁; rw [hc, lt_div_iff₀] at this <;> nlinarith
 open Real in
 /-- For u > 0: 12(1+u)²·log(1+u) > 12u + 18u² + 4u³ - u⁴. The derivative of the
     difference is 24·[(1+u)·log(1+u) - u - u²/2 + u³/6], positive by `log_ineq_2`. -/
