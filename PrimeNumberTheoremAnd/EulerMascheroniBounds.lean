@@ -1,7 +1,6 @@
 import Mathlib
 
 set_option linter.style.nativeDecide false
-set_option linter.style.setOption false
 
 open Real Finset
 
@@ -133,12 +132,8 @@ open Real in
     u²/(1+u) is positive. -/
 lemma log_ineq_1 (u : ℝ) (hu : 0 < u) : 0 < u ^ 2 / 2 - u + Real.log (1 + u) := by
   apply pos_of_mvt hu (by simp [Real.log_one])
-  · exact continuousOn_of_forall_continuousAt fun x hx => by
-      exact ContinuousAt.add (ContinuousAt.sub (ContinuousAt.div_const (continuousAt_id.pow 2) _)
-        continuousAt_id) (ContinuousAt.log (continuousAt_const.add continuousAt_id)
-        (by linarith [hx.1]))
-  · exact fun x hx => DifferentiableAt.add (DifferentiableAt.sub (by norm_num) differentiableAt_id)
-      (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))
+  · fun_prop (disch := intro x hx; linarith [hx.1])
+  · intro x hx; fun_prop (disch := linarith [hx.1])
   · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0)]
 open Real in
@@ -147,16 +142,8 @@ open Real in
 lemma log_ineq_2 (u : ℝ) (hu : 0 < u) :
     0 < u ^ 3 / 6 - u ^ 2 / 2 + (1 + u) * Real.log (1 + u) - u := by
   apply pos_of_mvt hu (by simp [Real.log_one])
-  · exact ContinuousOn.sub (ContinuousOn.add (ContinuousOn.sub
-      (continuousOn_id.pow 3 |> ContinuousOn.div_const <| 6)
-      (continuousOn_id.pow 2 |> ContinuousOn.div_const <| 2))
-      (ContinuousOn.mul (continuousOn_const.add continuousOn_id)
-      (ContinuousOn.log (continuousOn_const.add continuousOn_id)
-      fun x hx => by linarith [hx.1]))) continuousOn_id
-  · exact fun x hx => DifferentiableAt.sub (DifferentiableAt.add (DifferentiableAt.sub (by norm_num)
-      (by norm_num)) (DifferentiableAt.mul (differentiableAt_id.const_add _)
-      (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))))
-      differentiableAt_id
+  · fun_prop (disch := intro x hx; linarith [hx.1])
+  · intro x hx; fun_prop (disch := linarith [hx.1])
   · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0), log_ineq_1 u hu]
 open Real in
@@ -174,23 +161,8 @@ lemma log_ineq_3 (u : ℝ) (hu : 0 < u) :
       (12 * (1 + 0) ^ 2 * Real.log (1 + 0) - 12 * 0 - 18 * 0 ^ 2 - 4 * 0 ^ 3 + 0 ^ 4)) /
       (u - 0) := by
     apply_rules [exists_deriv_eq_slope]
-    · exact ContinuousOn.add (ContinuousOn.sub (ContinuousOn.sub (ContinuousOn.sub
-        (ContinuousOn.mul (continuousOn_const.mul
-        (ContinuousOn.pow (continuousOn_const.add continuousOn_id) 2))
-        (ContinuousOn.log (continuousOn_const.add continuousOn_id)
-        fun x hx => by linarith [hx.1]))
-        (continuousOn_const.mul continuousOn_id))
-        (continuousOn_const.mul (continuousOn_id.pow 2)))
-        (continuousOn_const.mul (continuousOn_id.pow 3))) (continuousOn_id.pow 4)
-    · exact DifferentiableOn.add (DifferentiableOn.sub (DifferentiableOn.sub
-        (DifferentiableOn.sub (DifferentiableOn.mul (DifferentiableOn.mul (differentiableOn_const _)
-        (DifferentiableOn.pow (differentiableOn_id.const_add _) _))
-        (DifferentiableOn.log (differentiableOn_id.const_add _)
-        (by intro x hx; linarith [hx.1])))
-        (DifferentiableOn.mul (differentiableOn_const _) differentiableOn_id))
-        (DifferentiableOn.mul (differentiableOn_const _) (differentiableOn_id.pow 2)))
-        (DifferentiableOn.mul (differentiableOn_const _) (differentiableOn_id.pow 3)))
-        (differentiableOn_id.pow 4)
+    · fun_prop (disch := intro x hx; linarith [hx.1])
+    · intro x hx; exact (by fun_prop (disch := linarith [hx.1]) : DifferentiableAt ℝ _ x).differentiableWithinAt
   norm_num [add_comm, mul_comm] at *
   norm_num [show c + 1 ≠ 0 by linarith] at hc
   rw [eq_div_iff] at hc <;>
