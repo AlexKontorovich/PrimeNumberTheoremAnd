@@ -1,6 +1,5 @@
 import Mathlib
 
-set_option linter.style.refine false
 set_option linter.style.setOption false
 set_option linter.style.maxHeartbeats false
 set_option linter.style.multiGoal false
@@ -51,7 +50,7 @@ lemma seriesTerm_nonneg (n : ℕ) : 0 ≤ seriesTerm n := by
     · positivity
     · positivity
 lemma summable_seriesTerm : Summable seriesTerm := by
-  refine' .of_nonneg_of_le ( fun n => _) ( fun n => _ ) ( summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| Real.log 2 );
+  refine .of_nonneg_of_le ( fun n => ?_) ( fun n => ?_ ) ( summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| Real.log 2 );
   · exact div_nonneg ( pow_nonneg ( Real.log_nonneg one_le_two ) _ ) ( mul_nonneg ( Nat.cast_nonneg _ ) ( Nat.cast_nonneg _ ) );
   · exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) ( mod_cast Nat.le_mul_of_pos_left _ ( Nat.succ_pos _ ) )
 
@@ -70,12 +69,12 @@ lemma hs_hi :
   by_contra h_contra;
   suffices h_simp : (∑' n : ℕ, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤ (∑ n ∈ Finset.range 10, (Real.log 2) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) + (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) by
     have h_tail : (∑' n : ℕ, (Real.log 2) ^ (n + 11) / ((↑(n + 11) : ℝ) * ↑(n + 11).factorial)) ≤ (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) := by
-      refine' Summable.tsum_le_tsum _ _ _;
+      refine Summable.tsum_le_tsum ?_ ?_ ?_;
       · exact fun n => by gcongr ; norm_cast ; nlinarith [ Nat.factorial_pos ( n + 11 ) ] ;
       · exact Summable.of_nonneg_of_le ( fun n => by positivity ) ( fun n => by exact div_le_div_of_nonneg_left ( by positivity ) ( by positivity ) <| le_mul_of_one_le_left ( by positivity ) <| mod_cast Nat.le_add_left _ _ ) <| by simpa using summable_nat_add_iff 11 |>.2 <| Real.summable_pow_div_factorial _;
       · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _;
     have h_tail_further : (∑' n : ℕ, (Real.log 2) ^ (n + 11) / (↑(n + 11).factorial)) ≤ (Real.log 2) ^ 11 / (↑(11).factorial) * (∑' n : ℕ, (Real.log 2) ^ n / (↑(n).factorial)) := by
-      rw [ ← tsum_mul_left ] ; refine' Summable.tsum_le_tsum _ _ _ ; norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ] ; ring_nf ; norm_num;
+      rw [ ← tsum_mul_left ] ; refine Summable.tsum_le_tsum ?_ ?_ ?_ ; norm_num [ pow_add, div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm, Nat.factorial_succ ] ; ring_nf ; norm_num;
       · field_simp;
         exact fun n => by norm_cast; nlinarith only [ sq ( n ^ 5 ), sq ( n ^ 4 ), sq ( n ^ 3 ), sq ( n ^ 2 ) ] ;
       · exact Real.summable_pow_div_factorial _ |> Summable.comp_injective <| add_left_injective _;
