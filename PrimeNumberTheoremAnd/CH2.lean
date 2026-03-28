@@ -971,7 +971,7 @@ lemma h_entire : ContDiffOn ℂ 2
   apply ContDiffOn.div
   · fun_prop
   · fun_prop
-  · norm_num [Complex.cosh, Complex.sinh]
+  · grind
 
 lemma h_no_zero {ν : ℝ} (hlam : ν ≠ 0) : ∀ t ∈ Set.Icc (0 : ℝ) 1,
     Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
@@ -1346,10 +1346,7 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
     have hB_def : ∀ ν : ℝ, ν ≠ 0 →
         B ε ν = ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
       intros ν hν_nonzero
-      simp only [B, ofReal_eq_zero, hν_nonzero, ↓reduceIte, coth, one_div, ne_eq, OfNat.ofNat_ne_zero,
-        not_false_eq_true, div_left_inj', mul_eq_mul_left_iff, add_left_inj, ofReal_eq_zero,
-        or_false]
-      rw [Complex.tanh_eq_sinh_div_cosh, inv_div]
+      simp [B, ofReal_eq_zero, hν_nonzero, coth, Complex.tanh_eq_sinh_div_cosh]
     have hB_cont : ContinuousOn
         (fun ν : ℝ => ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2)
         (Set.Icc ν₀ ν₁) := by
@@ -1357,18 +1354,19 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
       refine ContinuousOn.mul (Complex.continuous_ofReal.continuousOn)
         (ContinuousOn.add ?_ continuousOn_const)
       refine ContinuousOn.div ?_ ?_ ?_
-      · exact Continuous.continuousOn (by continuity)
-      · exact Continuous.continuousOn (by continuity)
+      · fun_prop
+      · fun_prop
       · norm_num [Complex.sinh]
-        exact fun x hx₁ hx₂ => sub_ne_zero_of_ne <| ne_of_apply_ne Complex.re <|
-          by norm_num [Complex.exp_re]; linarith [Real.exp_pos (x / 2),
-            Real.exp_lt_exp.2 (show -(x / 2) < x / 2 by linarith)]
+        intro x hx₁ hx₂
+        apply sub_ne_zero_of_ne
+        apply ne_of_apply_ne Complex.re
+        norm_num [Complex.exp_re]
+        grind
     obtain ⟨M, hM⟩ := IsCompact.exists_bound_of_continuousOn
       CompactIccSpace.isCompact_Icc hB_cont
     refine ⟨M, fun ν hν => ?_⟩
     specialize hB_def ν (by linarith [hν.1])
-    rw [hB_def]
-    exact hM ν hν
+    grind
   have hB : ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≤ c →
       ‖B ε (-2 * Real.pi * I * z + ν)‖ ≤ (2 * Real.pi * ‖z‖ + ν₁) * C₁ := by
     intro ν hν z hz
@@ -1400,17 +1398,17 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
     le_trans (hPhi_star_bound ν hν z hz) (by
       ring_nf; norm_num [Real.pi_pos.ne']
       norm_num [mul_assoc, mul_comm, mul_left_comm, Real.pi_ne_zero]
-      nlinarith [
+      linarith [
         show 0 ≤ C₁ from le_trans (norm_nonneg _) (hC₁ ν hν z hz),
         show 0 ≤ M from le_trans (norm_nonneg _) (hM ν hν),
         show 0 ≤ C₁ * (ν₁ * (Real.pi⁻¹ * (‖z‖ * (1 / 2)))) from
           mul_nonneg (le_trans (norm_nonneg _) (hC₁ ν hν z hz))
             (mul_nonneg (by linarith) (mul_nonneg (inv_nonneg.2 Real.pi_pos.le)
               (mul_nonneg (norm_nonneg _) (by norm_num)))),
-        show 0 ≤ M * (Real.pi⁻¹ * (‖z‖ * (1 / 2))) from
-          mul_nonneg (le_trans (norm_nonneg _) (hM ν hν))
-            (mul_nonneg (inv_nonneg.2 Real.pi_pos.le)
-              (mul_nonneg (norm_nonneg _) (by norm_num)))])⟩
+        show 0 ≤ M * (Real.pi⁻¹ * (‖z‖ * (1 / 2))) from by
+          apply mul_nonneg (le_trans (norm_nonneg _) (hM ν hν))
+          positivity
+      ])⟩
 
 
 @[blueprint
@@ -1479,10 +1477,10 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
   · simp_all [ B ]
   · subst h₁
     simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
-    grind [lt_of_le_of_ne ht, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im]
-  · simp_all only [ne_eq, B, ofReal_eq_zero, ↓reduceIte, ofReal_one, div_ofNat_re, mul_re,
-    ofReal_re, add_re, one_re, ofReal_im, add_im, one_im, add_zero, zero_mul, sub_zero,
-    not_false_eq_true, ofReal_zero]; exact f_le_one_neg t₁ ( lt_of_le_of_ne ht h₁ )
+    grind [one_re]
+  · subst h₂
+    simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
+    grind [one_re]
   · simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at *
     simp only [h₁, h₂, ite_false, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im, one_im]
     simp_all
