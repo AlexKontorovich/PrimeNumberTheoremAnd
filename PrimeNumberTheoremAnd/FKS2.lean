@@ -1851,10 +1851,10 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
           · exact fun x hx => one_div_le_one_div_of_le ( sq_pos_of_pos <| Real.log_pos <| by linarith [ hx.1 ] ) <| pow_le_pow_left₀ ( Real.log_nonneg <| by linarith [ hx.1 ] ) ( Real.log_le_log ( by linarith [ hx.1 ] ) hx.1 ) _;
         aesop;
       rw [ ← intervalIntegral.integral_const_mul ];
-      refine' intervalIntegral.integral_mono_on _ _ _ _ <;> norm_num;
+      refine intervalIntegral.integral_mono_on ?_ ?_ ?_ ?_ <;> norm_num;
       · linarith [ ht.1 ];
       · apply_rules [ ContinuousOn.intervalIntegrable ];
-        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
+        refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
         · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
           apply_rules [ ContinuousOn.intervalIntegrable ];
           simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
@@ -1895,7 +1895,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
         by_cases h : x = 0 <;> simp? +decide [h, sq, mul_assoc, mul_comm, mul_left_comm];
         ring;
       · apply_rules [ ContinuousOn.intervalIntegrable ];
-        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
+        refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
         · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
           apply_rules [ ContinuousOn.intervalIntegrable ];
           simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
@@ -1923,7 +1923,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
   -- Apply the mean value theorem to the interval $[a, b]$.
   obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a b, deriv (fun t => (Real.log t / t) * I t) c = ((fun t => (Real.log t / t) * I t) b - (fun t => (Real.log t / t) * I t) a) / (b - a) := by
     apply_rules [ exists_deriv_eq_slope ];
-    · refine' ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) _;
+    · refine ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) ?_;
       intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
       apply_rules [ ContinuousOn.intervalIntegrable ];
       exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
@@ -2334,11 +2334,11 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
       apply find_ereal_bin b' hmono h_b_end (log x) (by
       exact h_b_start.symm ▸ EReal.coe_le_coe_iff.mpr ( Real.log_le_log ( by linarith ) ( by linarith ) ));
     convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
-    refine' le_csSup _ _;
+    refine le_csSup ?_ ?_;
     · exact Set.finite_range _ |> Set.Finite.bddAbove;
     · simp +zetaDelta only [ge_iff_le, Set.mem_range, Subtype.exists, Fin.Iio_last_eq_map, Finset.mem_map, Finset.mem_univ,
     Fin.coe_castSuccEmb, true_and] at *;
-      refine' ⟨ _, ⟨ ⟨ i, by linarith [ Fin.is_lt i ] ⟩, rfl ⟩, _ ⟩ ; aesop
+      refine ⟨ _, ⟨ ⟨ i, by linarith [ Fin.is_lt i ] ⟩, rfl ⟩, ?_ ⟩ ; aesop
 
 blueprint_comment /--
 \subsection{Putting everything together}
