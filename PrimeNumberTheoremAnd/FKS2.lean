@@ -1828,9 +1828,9 @@ lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) )
 
+set_option maxHeartbeats 800000 in
 -- The proof involves multiple nested integration-by-parts steps with continuity side goals,
 -- each requiring detailed pointwise analysis of logarithmic functions.
-set_option maxHeartbeats 800000 in
 lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
       (Set.Icc x₁ (x₁ * log x₁)) := by
@@ -2266,7 +2266,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         εθ_num x₁ (exp (b' ⟨i.val, by omega⟩).toReal)
         (if ⟨i.val + 1, by omega⟩ = Fin.last M then ⊤
          else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
-  split_ifs <;> simp_all +decide [ Fin.ext_iff ];
+  split_ifs <;> simp_all +decide only [Fin.ext_iff];
   · convert theorem_6_alt _ _ _ _ _ _ _ _ _ using 1;
     any_goals tauto
     all_goals generalize_proofs at *;
