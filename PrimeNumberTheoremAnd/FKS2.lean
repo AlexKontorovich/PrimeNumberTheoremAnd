@@ -1093,12 +1093,11 @@ lemma ratio_eq_g {A B C R x : ℝ}
   unfold admissible_bound g_bound; ring;
   rw [ Real.mul_rpow ( by positivity ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; norm_num [ Real.rpow_sub, Real.rpow_neg, Real.sqrt_mul, hR.le, hx.le, hlogx.le ] ; ring;
   rw [ Real.rpow_sub hlogx, Real.rpow_one ] ; norm_num [ Real.exp_neg ] ; ring;
-  all_goals norm_num
-  left
-  rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
-  rw [Real.sqrt_mul, Real.sqrt_inv]
-  linarith
-  linarith
+  next =>
+    norm_num
+    left
+    rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
+    rw [Real.sqrt_mul, Real.sqrt_inv] <;> linarith
 
 
 
@@ -1699,7 +1698,7 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
     intro a b _ _
     rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]
     rotate_right
-    use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
+    next => use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
     · norm_num; ring
     · intro x hx
       have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2)
@@ -1857,10 +1856,11 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
       · linarith [ ht.1 ];
       · apply_rules [ ContinuousOn.intervalIntegrable ];
         refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
-        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-          apply_rules [ ContinuousOn.intervalIntegrable ];
-          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
-          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+          · aesop
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+            exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
         · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
       · apply_rules [ ContinuousOn.intervalIntegrable ];
         exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.mul continuousAt_const <| ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id <| by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ;
@@ -1871,7 +1871,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
       have h_integral_bound : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), ∫ s in x₁..t, (s - x₁) / s = (t - x₁) - x₁ * Real.log (t / x₁) := by
         intro t ht; rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
         rotate_right;
-        use fun x => x - x₁ * Real.log x;
+        next => use fun x => x - x₁ * Real.log x;
         · rw [ Real.log_div ] <;> linarith [ ht.1, ht.2 ];
         · intro x hx; convert HasDerivAt.sub ( hasDerivAt_id x ) ( HasDerivAt.const_mul x₁ ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ) ) using 1 ; ring;
           rw [ mul_inv_cancel₀ ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ];
@@ -1883,7 +1883,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     have h_u_nonneg : t / Real.log t - (Real.log t - 1) * I t = x₁ / Real.log x₁ - ∫ s in x₁..t, I s / s := by
       rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
       rotate_right;
-      use fun t => ( Real.log t - 1 ) * I t - t / Real.log t;
+      next => use fun t => ( Real.log t - 1 ) * I t - t / Real.log t;
       · aesop;
       · intro x hx;
         -- By definition of $I$, we know that its derivative is $1 / (\log x)^2$.
@@ -1898,10 +1898,11 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
         ring;
       · apply_rules [ ContinuousOn.intervalIntegrable ];
         refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
-        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-          apply_rules [ ContinuousOn.intervalIntegrable ];
-          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
-          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+          · aesop
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+            exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
         · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
     -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{I(s)}{s} \, ds$ and show that $u(t) \geq 0$ by simplifying the expression.
     have h_simplify : x₁ / Real.log x₁ - (1 / (Real.log x₁) ^ 2) * (t - x₁ - x₁ * Real.log (t / x₁)) ≥ 0 := by
@@ -1926,9 +1927,10 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
   obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a b, deriv (fun t => (Real.log t / t) * I t) c = ((fun t => (Real.log t / t) * I t) b - (fun t => (Real.log t / t) * I t) a) / (b - a) := by
     apply_rules [ exists_deriv_eq_slope ];
     · refine ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) ?_;
-      intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-      apply_rules [ ContinuousOn.intervalIntegrable ];
-      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
+      intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+      · aesop
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
     · exact fun t ht => ( h_deriv t ( by linarith [ ht.1 ] ) ( by linarith [ ht.2 ] ) |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt );
   simp +zetaDelta only [one_div, Set.mem_Ioo] at *
   have := h_deriv c ( by linarith ) ( by linarith ) ; have := this.deriv; rw [ eq_div_iff ] at * <;> nlinarith [ hu_nonneg c ( by linarith ) ( by linarith ), show 0 < c ^ 2 by nlinarith ] ;
@@ -1953,9 +1955,10 @@ theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ �
         apply_rules [ h_monotoneOn ];
     -- Using the fact that the integral of 1/(log t)^2 from x₁ to t is equal to Li t - t / log t - Li x₁ + x₁ / log x₁, we can rewrite the function.
       have h_integral_eq : ∀ t ∈ Set.Icc x₁ (x₁ * log x₁), ∫ s in x₁..t, 1 / (log s) ^ 2 = Li t - t / log t - Li x₁ + x₁ / log x₁ := by
-        intros t ht; rw [ integral_one_div_log_sq ] ; ring;
-        · linarith;
-        · linarith [ ht.1 ];
+        intros t ht; rw [ integral_one_div_log_sq ]
+        · ring
+        · linarith
+        · linarith [ ht.1 ]
       exact fun t ht u hu htu => by simpa only [ h_integral_eq t ht, h_integral_eq u hu ] using h_monotone ht hu htu;
     exact h_integral_le_integral.trans ( h_monotone ⟨ by linarith, by linarith ⟩ ⟨ by linarith, by linarith ⟩ hx' )
 
@@ -2195,8 +2198,9 @@ lemma ereal_exp_toReal_le {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monoto
   · aesop;
   · have := hmono ( show 0 ≤ ⟨ i, by linarith [ Fin.is_lt i ] ⟩ from Nat.zero_le _ ) ; aesop;
   · aesop;
-  · cases h : b' ⟨ i, by linarith [ Fin.is_lt i ] ⟩ ; aesop;
-    · aesop;
+  · cases h : b' ⟨ i, by linarith [ Fin.is_lt i ] ⟩
+    · aesop
+    · aesop
     · contradiction
 
 /-
@@ -2216,9 +2220,10 @@ lemma ereal_exp_ge_max {x₁ : ℝ} (hx₁ : x₁ ≥ 14) {M : ℕ}
   have h_ge_log_x₁ : b' ⟨i.val, by omega⟩ ≥ ↑(log x₁) := by
     exact h_b_start ▸ hmono ( Nat.zero_le _ );
   have h_toReal_ge_log_x₁ : (b' ⟨i.val, by omega⟩).toReal ≥ Real.log x₁ := by
-    cases h : b' ⟨ i, by omega ⟩ ; aesop;
-    · aesop;
-    · contradiction;
+    cases h : b' ⟨ i, by omega ⟩
+    · aesop
+    · aesop
+    · contradiction
   exact le_trans ( by rw [ max_eq_left ( by linarith ) ] ; exact Real.le_exp_log x₁ |> le_trans <| Real.exp_le_exp.mpr h_toReal_ge_log_x₁ ) le_rfl;
 
 /-
