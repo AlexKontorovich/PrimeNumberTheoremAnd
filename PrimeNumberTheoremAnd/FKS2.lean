@@ -1087,13 +1087,13 @@ lemma admissible_bound_mul (A K B C R x : ℝ) :
 Helper: the ratio log x / (x * admissible_bound A B C R x) equals R^B / A * g_bound 1 (1-B) (C/√R) x
 -/
 lemma ratio_eq_g {A B C R x : ℝ}
-    (hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
+    (_hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
     log x / (x * admissible_bound A B C R x) =
     R ^ B / A * g_bound 1 (1 - B) (C / sqrt R) x := by
   unfold admissible_bound g_bound; ring;
   rw [ Real.mul_rpow ( by positivity ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; norm_num [ Real.rpow_sub, Real.rpow_neg, Real.sqrt_mul, hR.le, hx.le, hlogx.le ] ; ring;
   rw [ Real.rpow_sub hlogx, Real.rpow_one ] ; norm_num [ Real.exp_neg ] ; ring;
-  norm_num
+  all_goals norm_num
   left
   rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
   rw [Real.sqrt_mul, Real.sqrt_inv]
@@ -1250,7 +1250,7 @@ lemma dawson_mono_ge_one {a b : ℝ} (ha : a ≥ 1) (hab : a ≤ b) :
 Derive that √(log x₁) - C/(2√R) ≥ 1 from the hypothesis on x₁
 -/
 lemma sqrt_log_minus_ge_one {C R x₁ : ℝ}
-    (hR : R > 0) (hx1 : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
+    (_hR : R > 0) (hx1 : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
     √(log x₁) - C / (2 * √R) ≥ 1 := by
   -- Taking the natural logarithm of both sides of the inequality $x₁ \geq \exp((1 + C / (2 * \sqrt{R}))^2)$, we get $\log x₁ \geq (1 + C / (2 * \sqrt{R}))^2$.
   have h_log : Real.log x₁ ≥ (1 + C / (2 * Real.sqrt R)) ^ 2 := by
@@ -1280,8 +1280,8 @@ Step 5: Apply dawson_mono_ge_one (using sqrt_log_minus_ge_one for the ≥ 1 cond
 Step 6: Combine: ≤ 2/√(log x₁) * dawson(√(log x₁)-C/(2√R)) * admissible_bound.
 -/
 lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
-  (hB : B ≥ 3 / 2) (hB2 : B ≥ 1 + C ^ 2 / (16 * R))
-  (hR : R > 0) (hA : A > 0) (hx0 : x₀ > 0)
+  (hB : B ≥ 3 / 2) (_hB2 : B ≥ 1 + C ^ 2 / (16 * R))
+  (hR : R > 0) (hA : A > 0) (_hx0 : x₀ > 0)
   (hE_theta : Eθ.classicalBound A B C R x₀)
   (hx1_gt1 : x₁ > 1) (hx₁x₀ : x₁ ≥ x₀) (hx : x ≥ x₁)
   (hx0_ge2 : x₀ ≥ 2)
@@ -1333,7 +1333,7 @@ lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
   · exact mul_nonneg ( mul_nonneg hA.le ( Real.rpow_nonneg ( div_nonneg ( Real.log_nonneg ( by linarith ) ) hR.le ) _ ) ) ( Real.exp_nonneg _ )
 
 lemma theorem_3_easy_preconditions
-    (A B C R x₀ x₁ : ℝ)
+    (_A B C R x₀ x₁ : ℝ)
     (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
     (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
     x₁ ≥ x₀ ∧ x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2) ∧
@@ -1829,6 +1829,8 @@ lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) )
 
+-- The proof involves multiple nested integration-by-parts steps with continuity side goals,
+-- each requiring detailed pointwise analysis of logarithmic functions.
 set_option maxHeartbeats 800000 in
 lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
@@ -2134,7 +2136,7 @@ By strong induction on M. When M = 0, Fin 0 is empty so we can't form a Fin M, b
 For M+1: If v < b'⟨1, _⟩, then i = ⟨0, _⟩ works since b'⟨0,_⟩ ≤ v (from hv) and v < b'⟨1,_⟩. Otherwise v ≥ b'⟨1,_⟩, and we can apply the result to the shifted sequence b'' = b' ∘ Fin.succ (which has M+1 elements, is monotone, ends at ⊤, and b''(0) = b'(1) ≤ v). This gives i' : Fin M with the bounds, and we take i = ⟨i'.val + 1, _⟩.
 -/
 lemma find_ereal_bin {M : ℕ} (b' : Fin (M + 1) → EReal)
-(hmono : Monotone b')
+(_hmono : Monotone b')
     (h_end : b' (Fin.last M) = ⊤) (v : ℝ) (hv : (v : EReal) ≥ b' 0) :
     ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ (v : EReal) ∧
       (v : EReal) < b' ⟨i.val + 1, by omega⟩ := by
@@ -2380,7 +2382,7 @@ theorem corollary_21
   (hR : R > 0)
   (hAψ : Aψ > 0)
   (hx0_ge2 : x₀ ≥ 2)
-  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)):
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)) :
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
   -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See
