@@ -27,7 +27,7 @@ blueprint_comment /--
 Some material from \cite[Section 2]{ch2}, slightly rearranged to take advantage of existing results in the repository.
 -/
 
-open Real  MeasureTheory FourierTransform Chebyshev
+open Real MeasureTheory FourierTransform Chebyshev Asymptotics
 open ArithmeticFunction hiding log
 open Complex hiding log
 
@@ -1823,12 +1823,129 @@ theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     sorry
 
+@[blueprint
+  "fourier-real"
+  (title := "Fourier transform of varphi real")
+  (statement := /--
+$\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
+  -/)
+  (proof := /-- This follows from the symmetries of $\varphi^{\pm}_{\nu}$. -/)
+  (latexEnv := "lemma")]
+theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν ε) x).im = 0 := by
+    sorry
+
+@[blueprint
+  "Inu_def"
+  (title := "Definition of I_nu")
+  (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}. -/)]
+noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
+
+@[blueprint
+  "Inu_bounds"
+  (title := "Bound for I nu")
+  (statement := /--
+For all $x \in \mathbb{R}$,
+$$
+    \widehat{\varphi_\nu^-}(x) \leq I_\nu(x) \leq \widehat{\varphi_\nu^+}(x).
+$$-/)
+  (proof := /-- By Lemmas \ref{B-plus-mono}, \ref{B-minus-mono}, the integrands in Lemmas \ref{fourier-formula-neg}, \ref{fourier-formula-pos} are non-negative. Hence, the bound holds for all $x \neq 0$. By definition, $I_\nu$ is right-continuous. Since $\varphi_\nu^\pm \in L^1(\mathbb{R})$, $\widehat{\varphi_\nu^\pm}$ is continuous on $\mathbb{R}$. Thus, letting $x \to 0^+$, we see that the bound holds for $x = 0$ as well.  -/)
+  (latexEnv := "corollary")]
+theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+    sorry
+
+@[blueprint
+  "varphi-abs"
+  (title := "varphi absolutely continuous")
+  (statement := /-- The function $\varphi_\nu^\pm$ is absolutely continuous. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is absolutely continuous because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")]
+theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm ν ε) := by
+    sorry
+
+@[blueprint
+  "varphi-integ"
+  (title := "varphi integrable")
+  (statement := /-- The function $\varphi_\nu^\pm$ is integrable. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")]
+theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) := by
+    sorry
+
+@[blueprint
+  "varphi-deriv-integ"
+  (title := "varphi' integrable")
+  (statement := /-- The function $(\varphi_\nu^\pm)'$ is integrable. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $(\varphi_\nu^\pm)'$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")]
+theorem varphi_deriv_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (deriv (ϕ_pm ν ε)) := by
+    sorry
+
+@[blueprint
+  "varphi-deriv-tv"
+  (title := "varphi' total variation")
+  (statement := /-- The function $(\varphi_\nu^\pm)'$ has finite total variation. -/)
+  (proof := /-- Since $(\varphi_\nu^\pm)'$ is $C^1$ on $[-1, 0]$ and on $[0, 1]$, the $L^1$ norm of $(\varphi_\nu^\pm)''$ on each of these intervals is finite, and so $(\varphi_\nu^\pm)'$ has finite total variation on each of them. As $(\varphi_\nu^\pm)'$ has right and left limits at $-1$, $0$ and $1$, the jumps at those points are finite, and so their contribution to $\|(\varphi_\nu^\pm)'\|_{\mathrm{TV}}$ is finite.
+/
+-/)
+  (latexEnv := "lemma")]
+theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-decay"
+  (title := "varphi Fourier decay")
+  (statement := /-- For $|x| \to \infty$, $\widehat{\varphi_\nu^\pm}(x) = O(1/x^2)$. -/)
+  (proof := /-- For $f$ absolutely continuous with $f, f' \in L^1(\mathbb{R})$, integration by parts gives us that $\hat{f}(x) = \widehat{f'}(x)/(2\pi i x)$. If $f' \in L^1(\mathbb{R})$ with $\|f'\|_{\mathrm{TV}} < \infty$, then, again by integration by parts, $|\widehat{f'}(x)| \leq |f'|_{\mathrm{TV}}/(2\pi x)$. We are done by the preceding lemmas. -/)
+  (latexEnv := "corollary")]
+theorem varphi_fourier_decay (ν ε : ℝ) (hlam : ν ≠ 0) : IsBigO Filter.atTop (fun x:ℝ ↦ (𝓕 (ϕ_pm ν ε) x).re) (fun x:ℝ ↦ 1 / x ^ 2)  := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-minus-error"
+  (title := "L1 error bound for Fourier transform of varphi minus")
+  (statement := /--
+\[
+\int_{-\infty}^{\infty} (I_\nu(x) - \hat{\varphi_\nu^-}(x))\, dx = \frac{1}{\nu} - \frac{1}{e^\nu - 1}.
+\]
+  -/)
+  (proof := /--
+  We know that $\varphi_\nu^\pm$ is continuous and in $L^1(\mathbb{R})$; by Corollary \ref{varphi-fourier-decay}, $\widehat{\varphi_\nu^\pm}$ is in $L^1(\mathbb{R})$. Hence, Fourier inversion holds everywhere, and in particular for $t = 0$:
+\[
+\varphi_\nu^\pm(0) = \int_{-\infty}^{\infty} \widehat{\varphi_\nu^\pm}(x)\, dx.
+\]
+By definition, $\varphi_\nu^\pm(0) = \Phi_\nu^{\pm,\circ}(0)$, and, by \eqref{eq:defPhi}, $\Phi_\nu^{-,\circ}(0) = \frac{1}{e^\nu - 1}$ and $\Phi_\nu^{+,\circ}(0) = \frac{1}{1 - e^{-\nu}}$. Thus,
+\[
+\int_{-\infty}^{\infty} (I_\nu(x) - \widehat{\varphi_\nu^-}(x))\, dx = \frac{1}{\nu} - \frac{1}{e^\nu - 1},
+\]
+\[
+\int_{-\infty}^{\infty} (\widehat{\varphi_\nu^+}(x) - I_\nu(x))\, dx = \frac{1}{1 - e^{-\nu}} - \frac{1}{\nu},
+\]
+since $\int_{-\infty}^{\infty} I_\nu(x)\, dx = 1/\nu$. We are done by Corollary \ref{Inu-bounds}.
+-/)
+  (latexEnv := "proposition")]
+theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
+    ∫ x in Set.univ, (I ν x - (𝓕 (ϕ_pm ν (-1)) x).re) = 1 / ν - 1 / (Real.exp ν - 1) := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-plus-error"
+  (title := "L1 error bound for Fourier transform of varphi plus")
+  (statement := /--
+\[
+\int_{-\infty}^{\infty} (\hat{\varphi_\nu^+}(x) - I_\nu(x))\, dx = \frac{1}{1 - e^{-\nu}} - \frac{1}{\nu}.
+\]
+  -/)
+  (proof := /-- See previous. -/)
+  (latexEnv := "proposition")]
+theorem varphi_fourier_plus_error (ν : ℝ) (hν : ν > 0) :
+    ∫ x in Set.univ, ((𝓕 (ϕ_pm ν 1) x).re - I ν x) = 1 / (1 - Real.exp (-ν)) - 1 / ν := by
+    sorry
 
 
-
-blueprint_comment /--
-TODO: Lemmas 4.2, 4.3, 4.4
--/
 
 
 
