@@ -1093,12 +1093,11 @@ lemma ratio_eq_g {A B C R x : ℝ}
   unfold admissible_bound g_bound; ring;
   rw [ Real.mul_rpow ( by positivity ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; norm_num [ Real.rpow_sub, Real.rpow_neg, Real.sqrt_mul, hR.le, hx.le, hlogx.le ] ; ring;
   rw [ Real.rpow_sub hlogx, Real.rpow_one ] ; norm_num [ Real.exp_neg ] ; ring;
-  norm_num
-  left
-  rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
-  rw [Real.sqrt_mul, Real.sqrt_inv]
-  linarith
-  linarith
+  next =>
+    norm_num
+    left
+    rw [show (log x * R⁻¹) ^ (1 / 2 : ℝ) = Real.sqrt (log x * R⁻¹) by rw [Real.sqrt_eq_rpow]]
+    rw [Real.sqrt_mul, Real.sqrt_inv] <;> linarith
 
 
 
@@ -1699,7 +1698,7 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
     intro a b _ _
     rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]
     rotate_right
-    use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
+    next => use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
     · norm_num; ring
     · intro x hx
       have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2)
@@ -1830,6 +1829,8 @@ lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
     exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) )
 
 set_option maxHeartbeats 800000 in
+-- The proof involves multiple nested integration-by-parts steps with continuity side goals,
+-- each requiring detailed pointwise analysis of logarithmic functions.
 lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
       (Set.Icc x₁ (x₁ * log x₁)) := by
@@ -1851,14 +1852,15 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
           · exact fun x hx => one_div_le_one_div_of_le ( sq_pos_of_pos <| Real.log_pos <| by linarith [ hx.1 ] ) <| pow_le_pow_left₀ ( Real.log_nonneg <| by linarith [ hx.1 ] ) ( Real.log_le_log ( by linarith [ hx.1 ] ) hx.1 ) _;
         aesop;
       rw [ ← intervalIntegral.integral_const_mul ];
-      refine' intervalIntegral.integral_mono_on _ _ _ _ <;> norm_num;
+      refine intervalIntegral.integral_mono_on ?_ ?_ ?_ ?_ <;> norm_num;
       · linarith [ ht.1 ];
       · apply_rules [ ContinuousOn.intervalIntegrable ];
-        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
-        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-          apply_rules [ ContinuousOn.intervalIntegrable ];
-          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
-          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+          · aesop
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+            exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
         · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
       · apply_rules [ ContinuousOn.intervalIntegrable ];
         exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.mul continuousAt_const <| ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id <| by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ;
@@ -1869,7 +1871,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
       have h_integral_bound : ∀ t ∈ Set.Icc x₁ (x₁ * Real.log x₁), ∫ s in x₁..t, (s - x₁) / s = (t - x₁) - x₁ * Real.log (t / x₁) := by
         intro t ht; rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
         rotate_right;
-        use fun x => x - x₁ * Real.log x;
+        next => use fun x => x - x₁ * Real.log x;
         · rw [ Real.log_div ] <;> linarith [ ht.1, ht.2 ];
         · intro x hx; convert HasDerivAt.sub ( hasDerivAt_id x ) ( HasDerivAt.const_mul x₁ ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ) ) using 1 ; ring;
           rw [ mul_inv_cancel₀ ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1 ] ) ];
@@ -1881,7 +1883,7 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     have h_u_nonneg : t / Real.log t - (Real.log t - 1) * I t = x₁ / Real.log x₁ - ∫ s in x₁..t, I s / s := by
       rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
       rotate_right;
-      use fun t => ( Real.log t - 1 ) * I t - t / Real.log t;
+      next => use fun t => ( Real.log t - 1 ) * I t - t / Real.log t;
       · aesop;
       · intro x hx;
         -- By definition of $I$, we know that its derivative is $1 / (\log x)^2$.
@@ -1895,11 +1897,12 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
         by_cases h : x = 0 <;> simp? +decide [h, sq, mul_assoc, mul_comm, mul_left_comm];
         ring;
       · apply_rules [ ContinuousOn.intervalIntegrable ];
-        refine' ContinuousOn.div _ continuousOn_id fun s hs => _;
-        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-          apply_rules [ ContinuousOn.intervalIntegrable ];
-          simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
-          exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
+        refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
+        · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+          · aesop
+          · apply_rules [ ContinuousOn.intervalIntegrable ];
+            simp +zetaDelta only [ge_iff_le, Set.mem_Icc, one_div, and_imp, inf_le_left, inf_of_le_right, le_sup_left, sup_of_le_right, le_sup_iff, inf_le_right, or_self, Set.uIcc_of_le] at *;
+            exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.inv₀ ( ContinuousAt.pow ( Real.continuousAt_log ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases min_cases x₁ t <;> cases max_cases x₁ t <;> linarith [ hx.1, hx.2 ] ) ) ) );
         · cases Set.mem_uIcc.mp hs <;> linarith [ ht.1, ht.2 ];
     -- Using the inequality $I(s) \leq \frac{s - x₁}{(\log x₁)^2}$ for $s \geq x₁$, we can bound the integral $\int_{x₁}^t \frac{I(s)}{s} \, ds$ and show that $u(t) \geq 0$ by simplifying the expression.
     have h_simplify : x₁ / Real.log x₁ - (1 / (Real.log x₁) ^ 2) * (t - x₁ - x₁ * Real.log (t / x₁)) ≥ 0 := by
@@ -1923,10 +1926,11 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
   -- Apply the mean value theorem to the interval $[a, b]$.
   obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a b, deriv (fun t => (Real.log t / t) * I t) c = ((fun t => (Real.log t / t) * I t) b - (fun t => (Real.log t / t) * I t) a) / (b - a) := by
     apply_rules [ exists_deriv_eq_slope ];
-    · refine' ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) _;
-      intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
-      apply_rules [ ContinuousOn.intervalIntegrable ];
-      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
+    · refine ContinuousOn.mul ( ContinuousOn.div ( Real.continuousOn_log.mono <| by intro t ht; exact ne_of_gt <| by linarith [ ht.1 ] ) continuousOn_id <| by intro t ht; linarith [ ht.1 ] ) ?_;
+      intro t ht; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
+      · aesop
+      · apply_rules [ ContinuousOn.intervalIntegrable ];
+        exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
     · exact fun t ht => ( h_deriv t ( by linarith [ ht.1 ] ) ( by linarith [ ht.2 ] ) |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt );
   simp +zetaDelta only [one_div, Set.mem_Ioo] at *
   have := h_deriv c ( by linarith ) ( by linarith ) ; have := this.deriv; rw [ eq_div_iff ] at * <;> nlinarith [ hu_nonneg c ( by linarith ) ( by linarith ), show 0 < c ^ 2 by nlinarith ] ;
@@ -1951,9 +1955,10 @@ theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ �
         apply_rules [ h_monotoneOn ];
     -- Using the fact that the integral of 1/(log t)^2 from x₁ to t is equal to Li t - t / log t - Li x₁ + x₁ / log x₁, we can rewrite the function.
       have h_integral_eq : ∀ t ∈ Set.Icc x₁ (x₁ * log x₁), ∫ s in x₁..t, 1 / (log s) ^ 2 = Li t - t / log t - Li x₁ + x₁ / log x₁ := by
-        intros t ht; rw [ integral_one_div_log_sq ] ; ring;
-        · linarith;
-        · linarith [ ht.1 ];
+        intros t ht; rw [ integral_one_div_log_sq ]
+        · ring
+        · linarith
+        · linarith [ ht.1 ]
       exact fun t ht u hu htu => by simpa only [ h_integral_eq t ht, h_integral_eq u hu ] using h_monotone ht hu htu;
     exact h_integral_le_integral.trans ( h_monotone ⟨ by linarith, by linarith ⟩ ⟨ by linarith, by linarith ⟩ hx' )
 
@@ -2193,8 +2198,9 @@ lemma ereal_exp_toReal_le {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monoto
   · aesop;
   · have := hmono ( show 0 ≤ ⟨ i, by linarith [ Fin.is_lt i ] ⟩ from Nat.zero_le _ ) ; aesop;
   · aesop;
-  · cases h : b' ⟨ i, by linarith [ Fin.is_lt i ] ⟩ ; aesop;
-    · aesop;
+  · cases h : b' ⟨ i, by linarith [ Fin.is_lt i ] ⟩
+    · aesop
+    · aesop
     · contradiction
 
 /-
@@ -2214,9 +2220,10 @@ lemma ereal_exp_ge_max {x₁ : ℝ} (hx₁ : x₁ ≥ 14) {M : ℕ}
   have h_ge_log_x₁ : b' ⟨i.val, by omega⟩ ≥ ↑(log x₁) := by
     exact h_b_start ▸ hmono ( Nat.zero_le _ );
   have h_toReal_ge_log_x₁ : (b' ⟨i.val, by omega⟩).toReal ≥ Real.log x₁ := by
-    cases h : b' ⟨ i, by omega ⟩ ; aesop;
-    · aesop;
-    · contradiction;
+    cases h : b' ⟨ i, by omega ⟩
+    · aesop
+    · aesop
+    · contradiction
   exact le_trans ( by rw [ max_eq_left ( by linarith ) ] ; exact Real.le_exp_log x₁ |> le_trans <| Real.exp_le_exp.mpr h_toReal_ge_log_x₁ ) le_rfl;
 
 /-
@@ -2259,7 +2266,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         εθ_num x₁ (exp (b' ⟨i.val, by omega⟩).toReal)
         (if ⟨i.val + 1, by omega⟩ = Fin.last M then ⊤
          else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
-  split_ifs <;> simp_all +decide [ Fin.ext_iff ];
+  split_ifs <;> simp_all +decide only [Fin.ext_iff];
   · convert theorem_6_alt _ _ _ _ _ _ _ _ _ using 1;
     any_goals tauto
     all_goals generalize_proofs at *;
@@ -2334,11 +2341,11 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
       apply find_ereal_bin b' hmono h_b_end (log x) (by
       exact h_b_start.symm ▸ EReal.coe_le_coe_iff.mpr ( Real.log_le_log ( by linarith ) ( by linarith ) ));
     convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
-    refine' le_csSup _ _;
+    refine le_csSup ?_ ?_;
     · exact Set.finite_range _ |> Set.Finite.bddAbove;
     · simp +zetaDelta only [ge_iff_le, Set.mem_range, Subtype.exists, Fin.Iio_last_eq_map, Finset.mem_map, Finset.mem_univ,
     Fin.coe_castSuccEmb, true_and] at *;
-      refine' ⟨ _, ⟨ ⟨ i, by linarith [ Fin.is_lt i ] ⟩, rfl ⟩, _ ⟩ ; aesop
+      refine ⟨ _, ⟨ ⟨ i, by linarith [ Fin.is_lt i ] ⟩, rfl ⟩, ?_ ⟩ ; aesop
 
 blueprint_comment /--
 \subsection{Putting everything together}
@@ -2380,7 +2387,7 @@ theorem corollary_21
   (hR : R > 0)
   (hAψ : Aψ > 0)
   (hx0_ge2 : x₀ ≥ 2)
-  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)):
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)) :
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
   -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See

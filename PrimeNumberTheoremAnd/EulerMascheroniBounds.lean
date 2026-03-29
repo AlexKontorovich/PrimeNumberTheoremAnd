@@ -1,9 +1,6 @@
 import Mathlib
 
-set_option linter.style.induction false
 set_option linter.style.nativeDecide false
-set_option linter.style.setOption false
-set_option linter.flexible false
 
 open Real Finset
 
@@ -47,7 +44,7 @@ lemma log_one_add_le_quadratic {x : ℝ} (hx : 0 ≤ x) :
       fun y a => quadratic_le_exp_of_nonneg a
     exact le_trans ( by nlinarith [ mul_div_cancel₀ ( x * ( 2 + x ) ) ( by linarith : ( 2 * ( 1 + x ) ) ≠ 0 ) ] ) ( h_exp_bound _ ( by positivity ) );
   have := Real.log_le_log ( by positivity ) h_exp;
-  rw [ Real.log_exp ] at this ; rw [ le_div_iff₀ ] at this <;> linarith
+  rw [ Real.log_exp ] at this ; rw [ le_div_iff₀ ] at this <;> grind
 /-- Each step of the Euler-Mascheroni sequence is bounded below. -/
 lemma eulerMascheroniSeq_step_lb (k : ℕ) :
     1 / (2 * ((k : ℝ) + 1) * ((k : ℝ) + 2)) ≤
@@ -57,15 +54,16 @@ lemma eulerMascheroniSeq_step_lb (k : ℕ) :
     fun x a => log_one_add_le_quadratic a
   have := h_log_bound ( 1 / ( k + 1 ) ) ( by positivity ) ; norm_num at *;
   field_simp at *;
-  rw [ Real.log_div ( by positivity ) ( by positivity ) ] at this ; nlinarith [ sq ( k : ℝ ) ]
+  rw [ Real.log_div ( by positivity ) ( by positivity ) ] at this ; grind
 /-- For `m ≥ n`, the difference of Euler-Mascheroni sequence values is bounded below
     by a telescoping sum. -/
 lemma eulerMascheroniSeq_diff_lb (n m : ℕ) (h : n ≤ m) :
     (1 : ℝ) / (2 * (↑n + 1)) - 1 / (2 * (↑m + 1)) ≤
     eulerMascheroniSeq m - eulerMascheroniSeq n := by
-  induction' h with k hk;
-  · norm_num;
-  · have h_step : eulerMascheroniSeq (k + 1) - eulerMascheroniSeq k ≥ 1 / (2 * (k + 1) * (k + 2) : ℝ) :=
+  induction h with
+  | refl => norm_num;
+  | @step k _ hk =>
+    have h_step : eulerMascheroniSeq (k + 1) - eulerMascheroniSeq k ≥ 1 / (2 * (k + 1) * (k + 2) : ℝ) :=
       eulerMascheroniSeq_step_lb k
     norm_num [ Nat.cast_add_one_ne_zero ] at *;
     nlinarith [ inv_pos.mpr ( by positivity : 0 < ( k : ℝ ) + 1 ), inv_pos.mpr ( by positivity : 0 < ( k : ℝ ) + 2 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 1 ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 2 ≠ 0 ), mul_inv_cancel₀ ( by positivity : ( k : ℝ ) + 1 + 1 ≠ 0 ) ]
@@ -77,7 +75,7 @@ lemma eulerMascheroniConstant_lb (n : ℕ) :
   have h_lim_bound : Filter.Tendsto (fun m => 1 / (2 * (n + 1) : ℝ) - 1 / (2 * (m + 1) : ℝ)) Filter.atTop (nhds (1 / (2 * (n + 1) : ℝ))) := by
     exact le_trans ( tendsto_const_nhds.sub <| tendsto_const_nhds.div_atTop <| Filter.Tendsto.const_mul_atTop zero_lt_two <| Filter.tendsto_id.atTop_add tendsto_const_nhds ) <| by norm_num;
   have := h_lim_bound.comp tendsto_natCast_atTop_atTop;
-  exact le_of_tendsto_of_tendsto this h_lim ( Filter.eventually_atTop.mpr ⟨ n, by intros m hm; simpa using eulerMascheroniSeq_diff_lb n m hm ⟩ ) |> fun h => by norm_num at * ; linarith;
+  exact le_of_tendsto_of_tendsto this h_lim ( Filter.eventually_atTop.mpr ⟨ n, by intros m hm; simpa using eulerMascheroniSeq_diff_lb n m hm ⟩ ) |> fun h => by norm_num at * ; grind;
 /-- The ℚ-valued Taylor sum used in the computational verification. -/
 def taylorSumQ (x : ℚ) (K : ℕ) : ℚ :=
   (Finset.range K).sum (fun i => x ^ i / (Nat.factorial i : ℚ))
@@ -118,51 +116,36 @@ lemma hγ_lo : (0.577215 : ℝ) ≤ Real.eulerMascheroniConstant := by
     _ ≤ eulerMascheroniSeq 400 + 1 / (2 * ((400 : ℝ) + 1)) := eulerMascheroniSeq_400_lb
     _ ≤ eulerMascheroniConstant := eulerMascheroniConstant_lb 400
 
+/-- If `f` is continuous on `[0, u]`, differentiable on `(0, u)`, `f 0 = 0`, and
+    `deriv f` is positive for all positive inputs, then `f u > 0`.
+    This is the common MVT argument used in `log_ineq_1`, `log_ineq_2`, and `log_ineq_3`. -/
+lemma pos_of_mvt {f : ℝ → ℝ} {u : ℝ} (hu : 0 < u) (hf0 : f 0 = 0)
+    (hcont : ContinuousOn f (Set.Icc 0 u))
+    (hdiff : ∀ x ∈ Set.Ioo 0 u, DifferentiableAt ℝ f x)
+    (hderiv : ∀ x > 0, 0 < deriv f x) : 0 < f u := by
+  obtain ⟨c, hc⟩ := exists_deriv_eq_slope f hu hcont
+    (fun x hx => (hdiff x hx).differentiableWithinAt)
+  have := hderiv c hc.1.1; rw [hc.2, hf0, lt_div_iff₀] at this <;> nlinarith
 open Real in
 /-- For u > 0: u²/2 - u + log(1+u) > 0. This is the base case of our chain of
     positivity lemmas, proved by the mean value theorem since the derivative
     u²/(1+u) is positive. -/
 lemma log_ineq_1 (u : ℝ) (hu : 0 < u) : 0 < u ^ 2 / 2 - u + Real.log (1 + u) := by
-  set f : ℝ → ℝ := fun u => u^2 / 2 - u + Real.log (1 + u)
-  have h_deriv_pos : ∀ u > 0, 0 < deriv f u := by
-    intro u hu; norm_num [f, add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
+  apply pos_of_mvt hu (by simp [Real.log_one])
+  · fun_prop (disch := intro x hx; linarith [hx.1])
+  · intro x hx; fun_prop (disch := linarith [hx.1])
+  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0)]
-  obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo 0 u, deriv f c = (f u - f 0) / (u - 0) := by
-    apply_rules [exists_deriv_eq_slope]
-    · exact continuousOn_of_forall_continuousAt fun x hx => by
-        exact ContinuousAt.add (ContinuousAt.sub (ContinuousAt.div_const (continuousAt_id.pow 2) _)
-          continuousAt_id) (ContinuousAt.log (continuousAt_const.add continuousAt_id)
-          (by linarith [hx.1]))
-    · exact fun x hx => DifferentiableAt.differentiableWithinAt (by
-        exact DifferentiableAt.add (DifferentiableAt.sub (by norm_num) differentiableAt_id)
-          (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1])))
-  have := h_deriv_pos c hc.1.1; rw [hc.2, lt_div_iff₀] at this <;> aesop
 open Real in
 /-- For u > 0: u³/6 - u²/2 + (1+u)·log(1+u) - u > 0. The derivative of this
     function is u²/2 - u + log(1+u), which is positive by `log_ineq_1`. -/
 lemma log_ineq_2 (u : ℝ) (hu : 0 < u) :
     0 < u ^ 3 / 6 - u ^ 2 / 2 + (1 + u) * Real.log (1 + u) - u := by
-  set g : ℝ → ℝ := fun u => u^3 / 6 - u^2 / 2 + (1 + u) * Real.log (1 + u) - u
-  have hg_deriv_pos : ∀ u > 0, 0 < deriv g u := by
-    simp +zetaDelta at *
-    intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
+  apply pos_of_mvt hu (by simp [Real.log_one])
+  · fun_prop (disch := intro x hx; linarith [hx.1])
+  · intro x hx; fun_prop (disch := linarith [hx.1])
+  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
     nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0), log_ineq_1 u hu]
-  have h_mvt : ∃ c ∈ Set.Ioo 0 u, deriv g c = (g u - g 0) / (u - 0) := by
-    apply_rules [exists_deriv_eq_slope]
-    · exact ContinuousOn.sub (ContinuousOn.add (ContinuousOn.sub
-        (continuousOn_id.pow 3 |> ContinuousOn.div_const <| 6)
-        (continuousOn_id.pow 2 |> ContinuousOn.div_const <| 2))
-        (ContinuousOn.mul (continuousOn_const.add continuousOn_id)
-        (ContinuousOn.log (continuousOn_const.add continuousOn_id)
-        fun x hx => by linarith [hx.1]))) continuousOn_id
-    · exact fun x hx => DifferentiableAt.differentiableWithinAt (by
-        exact DifferentiableAt.sub (DifferentiableAt.add (DifferentiableAt.sub (by norm_num)
-          (by norm_num)) (DifferentiableAt.mul (differentiableAt_id.const_add _)
-          (DifferentiableAt.log (differentiableAt_id.const_add _) (by linarith [hx.1]))))
-          differentiableAt_id)
-  simp +zetaDelta at *
-  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
-  have := hg_deriv_pos c hc₁; rw [hc, lt_div_iff₀] at this <;> nlinarith
 open Real in
 /-- For u > 0: 12(1+u)²·log(1+u) > 12u + 18u² + 4u³ - u⁴. The derivative of the
     difference is 24·[(1+u)·log(1+u) - u - u²/2 + u³/6], positive by `log_ineq_2`. -/
@@ -178,23 +161,8 @@ lemma log_ineq_3 (u : ℝ) (hu : 0 < u) :
       (12 * (1 + 0) ^ 2 * Real.log (1 + 0) - 12 * 0 - 18 * 0 ^ 2 - 4 * 0 ^ 3 + 0 ^ 4)) /
       (u - 0) := by
     apply_rules [exists_deriv_eq_slope]
-    · exact ContinuousOn.add (ContinuousOn.sub (ContinuousOn.sub (ContinuousOn.sub
-        (ContinuousOn.mul (continuousOn_const.mul
-        (ContinuousOn.pow (continuousOn_const.add continuousOn_id) 2))
-        (ContinuousOn.log (continuousOn_const.add continuousOn_id)
-        fun x hx => by linarith [hx.1]))
-        (continuousOn_const.mul continuousOn_id))
-        (continuousOn_const.mul (continuousOn_id.pow 2)))
-        (continuousOn_const.mul (continuousOn_id.pow 3))) (continuousOn_id.pow 4)
-    · exact DifferentiableOn.add (DifferentiableOn.sub (DifferentiableOn.sub
-        (DifferentiableOn.sub (DifferentiableOn.mul (DifferentiableOn.mul (differentiableOn_const _)
-        (DifferentiableOn.pow (differentiableOn_id.const_add _) _))
-        (DifferentiableOn.log (differentiableOn_id.const_add _)
-        (by intro x hx; linarith [hx.1])))
-        (DifferentiableOn.mul (differentiableOn_const _) differentiableOn_id))
-        (DifferentiableOn.mul (differentiableOn_const _) (differentiableOn_id.pow 2)))
-        (DifferentiableOn.mul (differentiableOn_const _) (differentiableOn_id.pow 3)))
-        (differentiableOn_id.pow 4)
+    · fun_prop (disch := intro x hx; linarith [hx.1])
+    · intro x hx; exact (by fun_prop (disch := linarith [hx.1]) : DifferentiableAt ℝ _ x).differentiableWithinAt
   norm_num [add_comm, mul_comm] at *
   norm_num [show c + 1 ≠ 0 by linarith] at hc
   rw [eq_div_iff] at hc <;>
@@ -235,7 +203,7 @@ lemma euler_maclaurin_bound (n : ℕ) (hn : 1 ≤ n) :
   have h_strict_anti : StrictAnti (fun n : ℕ => (harmonic (n + 1) : ℝ) - Real.log (n + 1) -
       1 / (2 * (n + 1)) + 1 / (12 * (n + 1) ^ 2)) := by
     refine strictAnti_nat_of_succ_lt ?_
-    intro n; have := euler_maclaurin_decreasing (n + 1) (by linarith); aesop
+    intro n; have := euler_maclaurin_decreasing (n + 1) (by linarith); grind
   have h_tendsto : Filter.Tendsto (fun n : ℕ => (harmonic (n + 1) : ℝ) - Real.log (n + 1) -
       1 / (2 * (n + 1)) + 1 / (12 * (n + 1) ^ 2))
       Filter.atTop (nhds eulerMascheroniConstant) := by
@@ -247,13 +215,13 @@ lemma euler_maclaurin_bound (n : ℕ) (hn : 1 ≤ n) :
       (le_of_tendsto h_tendsto <| Filter.eventually_atTop.mpr
         ⟨n + 1, fun m hm => h_strict_anti.antitone hm⟩)
       (h_strict_anti <| Nat.lt_succ_self _)
-  cases n <;> aesop
+  cases n <;> grind
 open Real in
 /-- Numerical verification: t(16) ≤ 0.577216, using log 2 > 0.6931471803. -/
 lemma euler_maclaurin_numerical :
     (harmonic 16 : ℝ) - Real.log 16 - 1 / (2 * 16) + 1 / (12 * 16 ^ 2) ≤ 0.577216 := by
   rw [show (16 : ℝ) = 2 ^ 4 by norm_num, Real.log_pow]
   norm_num at *; ring_nf at *; norm_num at *
-  have := Real.log_two_gt_d9; norm_num at this; linarith
+  have := Real.log_two_gt_d9; norm_num at this; grind
 lemma hγ_hi : Real.eulerMascheroniConstant ≤ 0.577216 :=
   le_of_lt (lt_of_lt_of_le (euler_maclaurin_bound 16 (by norm_num)) euler_maclaurin_numerical)
