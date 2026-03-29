@@ -1829,7 +1829,7 @@ lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) )
 
-
+set_option maxHeartbeats 800000 in
 lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
       (Set.Icc x₁ (x₁ * log x₁)) := by
