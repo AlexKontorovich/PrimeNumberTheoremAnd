@@ -1167,18 +1167,8 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   -/)
   (latexEnv := "theorem")]
 theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
-    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
-  have hx_pos : x > 0 := by linarith
-  have hx_gt1 : x > 1 := by linarith
-  have hlog_pos : 0 < log x := log_pos hx_gt1
-  have hlogk_pos : 0 < (log x) ^ k := pow_pos hlog_pos k
-  have hlogk_ne : (log x) ^ k ≠ 0 := hlogk_pos.ne'
-  set α := 193378e-13 * BKLNW_app.table_8_margin
-  refine ⟨(log x) ^ k, α * (log x) ^ k, ?_, ?_⟩
-  · rw [div_self hlogk_ne, sub_self, mul_zero]
-    exact Chebyshev.theta_nonneg x
-  · rw [mul_div_cancel_right₀ α hlogk_ne, mul_comm]
-    exact cor_2_1 x hx_pos
+    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+  sorry
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
