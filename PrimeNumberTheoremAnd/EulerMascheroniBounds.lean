@@ -14,8 +14,8 @@ open Real Finset
 
 The Euler-Maclaurin formula gives the asymptotic expansion
   `H_n = log(n) + γ + 1/(2n) - 1/(12n²) + 1/(120n⁴) - 1/(252n⁶) + ⋯`
-where the coefficients of the higher-order terms are `B_{2k}/(2k·n^{2k})` for Bernoulli
-numbers `B_{2k}`. This leads to the natural definitions:
+as an exact equality, where the coefficients of the higher-order terms are `B_{2k}/(2k·n^{2k})` for
+Bernoulli numbers `B_{2k}`. This naturally leads us to the following definitions:
 
 - `γ₁(n) = H_n - log n - 1/(2n)`
 - `γ₂(n) = H_n - log n - 1/(2n) + 1/(12n²)`
