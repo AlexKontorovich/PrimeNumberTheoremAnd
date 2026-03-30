@@ -1836,13 +1836,13 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
 
 @[blueprint
   "Inu_def"
-  (title := "Definition of $I\\nu$")
-  (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}. -/)]
+  (title := "Definition of $I_\\nu$")
+  (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}$. -/)]
 noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
 
 @[blueprint
   "Inu_bounds"
-  (title := "Bound for $I\\nu$")
+  (title := "Bound for $I_\\nu$")
   (statement := /--
 For all $x \in \mathbb{R}$,
 $$
