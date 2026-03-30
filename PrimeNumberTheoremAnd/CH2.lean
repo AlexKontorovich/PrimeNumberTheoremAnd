@@ -1014,7 +1014,7 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
 
 @[blueprint
   "phi-c2-right"
-  (title := "$\\varphi$ is $C^2$ on $[0,1]$")
+  (title := "$\\varphi$ is $C^2$ on [0,1]")
   (statement := /--
   $\varphi$ is $C^2$ on $[0,1]$.
   -/)
