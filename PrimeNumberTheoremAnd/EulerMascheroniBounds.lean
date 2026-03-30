@@ -27,8 +27,9 @@ Because the expansion alternates, we have
 
 `γ₃(n) < γ < γ₂(n)`
 
-We prove the above bounds directly, then evaluate both at `n = 16` using
-`log 16 = 4 * log 2` and known bounds on `log 2`.
+Instead of using the expansion, we prove that γ₃ is a strictly increasing sequence that converges to
+γ, hence γ₃(n) < γ, and similarly that γ₂ is a strictly decreasing sequence that converges to γ,
+hence γ < γ₂(n). Then, we evaluate both at `n = 16` to obtain the desired bounds.
 -/
 
 /-- The Euler-Mascheroni sequence with linear correction: `H_n - log(n) - 1/(2n)`. -/
