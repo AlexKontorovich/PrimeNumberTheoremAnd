@@ -27,7 +27,7 @@ blueprint_comment /--
 Some material from \cite[Section 2]{ch2}, slightly rearranged to take advantage of existing results in the repository.
 -/
 
-open Real  MeasureTheory FourierTransform Chebyshev
+open Real MeasureTheory FourierTransform Chebyshev Asymptotics
 open ArithmeticFunction hiding log
 open Complex hiding log
 
@@ -409,7 +409,7 @@ noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
 
 @[blueprint
   "Phi-circ-def"
-  (title := "Definition of Phi-circ")
+  (title := "Definition of $\\Phi^{\\pm,\\circ}_\\nu$")
   (statement := /--
   $$\Phi^{\pm,\circ}_\nu(z) := \frac{1}{2} (\coth\frac{w}{2} \pm 1)$$
   where $$w = -2\pi i z + \nu.$$
@@ -420,20 +420,31 @@ noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
 
 @[blueprint
   "Phi-circ-mero"
-  (title := "Phi-circ meromorphic")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ meromorphic")
   (statement := /--
   $$\Phi^{\pm,\circ}_\nu(z)$$ is meromorphic.
   -/)
   (proof := /-- This follows from the definition of $\Phi^{\pm,\circ}_\nu$ and the properties of the $\coth$ function. -/)]
 theorem Phi_circ.meromorphic (ν ε : ℝ) : Meromorphic (Phi_circ ν ε) := by
   intro z
-  unfold Phi_circ coth Complex.tanh
-  have hw : AnalyticAt ℂ (fun z => (-2 * ↑π * I * z + ↑ν) / 2) z :=
-    (by fun_prop : AnalyticAt ℂ _ z).div analyticAt_const two_ne_zero
+  have hw : AnalyticAt ℂ (fun z => (-2 * π * I * z + ν) / 2) z := by fun_prop
   apply MeromorphicAt.fun_mul (MeromorphicAt.const ..)
   apply MeromorphicAt.fun_add _ (MeromorphicAt.const ..)
   apply MeromorphicAt.fun_div (MeromorphicAt.const ..)
-  exact (analyticAt_sinh.comp hw).meromorphicAt.fun_div (analyticAt_cosh.comp hw).meromorphicAt
+  apply (analyticAt_sinh.comp hw).meromorphicAt.fun_div
+  apply AnalyticAt.meromorphicAt
+  fun_prop
+
+@[to_fun] theorem meromorphicOrderAt_div {𝕜 : Type*} [NontriviallyNormedField 𝕜] {x : 𝕜}
+    {f g : 𝕜 → 𝕜} (hf : MeromorphicAt f x) (hg : MeromorphicAt g x) :
+    meromorphicOrderAt (f / g) x = meromorphicOrderAt f x - meromorphicOrderAt g x := by
+  rw [div_eq_mul_inv, meromorphicOrderAt_mul hf hg.inv, meromorphicOrderAt_inv, sub_eq_add_neg]
+
+lemma sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) := by
+  rw [← mul_left_inj' I_ne_zero, ← Complex.sin_mul_I, zero_mul, Complex.sin_eq_zero_iff]
+  constructor
+  · rintro ⟨k, hk⟩; use -k; apply (mul_left_inj' I_ne_zero).mp; rw [hk]; ring_nf; simp; ring
+  · rintro ⟨k, hk⟩; use -k; rw [hk]; ring_nf; simp; ring
 
 @[to_fun] theorem meromorphicOrderAt_div {𝕜 : Type*} [NontriviallyNormedField 𝕜] {x : 𝕜}
     {f g : 𝕜 → 𝕜} (hf : MeromorphicAt f x) (hg : MeromorphicAt g x) :
@@ -448,7 +459,7 @@ lemma sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) 
 
 @[blueprint
   "Phi-circ-poles"
-  (title := "Phi-circ poles")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles")
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z}$.
   -/)
@@ -646,7 +657,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-circ-residues"
-  (title := "Phi-circ residues")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ residues")
   (statement := /--
   The residue of $$\Phi^{\pm,\circ}_\nu(z)$$ at $n - i \nu/2\pi$ is $i/2\pi$.
   -/)
@@ -654,11 +665,11 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
   (latexEnv := "lemma")
   (discussion := 1071)]
 theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
-    (nhds (n - I * ν / (2 * π))).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by sorry
 
 @[blueprint
   "Phi-circ-poles-simple"
-  (title := "Phi-circ poles simple")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles simple")
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are all simple.
   -/)
@@ -670,7 +681,7 @@ theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "B-def"
-  (title := "Definition of B")
+  (title := "Definition of $B^\\pm$")
   (statement := /--
   $B^\pm(s) = s/2 (\coth(s/2) \pm 1)$ with the convention $B^\pm(0) = 1$.
   -/)]
@@ -678,7 +689,7 @@ noncomputable def B (ε : ℝ) (s : ℂ) : ℂ := if s = 0 then 1 else s * (coth
 
 @[blueprint
   "B-cts"
-  (title := "Continuity of $B$ at 0")
+  (title := "Continuity of $B^\\pm$ at $0$")
   (statement := /--
   $B^\pm$ is continuous at $0$.
   -/)
@@ -700,13 +711,16 @@ theorem B.continuous_zero (ε : ℝ) : ContinuousAt (B ε) 0 := by
   rw [Metric.tendsto_nhdsWithin_nhds] at h_lim
   rw [Metric.continuousAt_iff]
   intro ε hε; rcases h_lim ε hε with ⟨δ, hδ, H⟩; use δ, hδ; intro x hx
-  by_cases hx' : x = 0 <;> simp_all [B]
+  by_cases hx' : x = 0
+  · simp_all [B]
+  simp_all only [gt_iff_lt, Set.mem_compl_iff, Set.mem_singleton_iff, dist_zero_right, B,
+    ↓reduceIte]
   convert H hx' hx using 1; norm_num [coth]
   norm_num [Complex.tanh_eq_sinh_div_cosh]; ring_nf
 
 @[blueprint
   "Phi-star-def"
-  (title := "Definition of Phi-star")
+  (title := "Definition of $\\Phi^{\\pm,\\ast}_\\nu$")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(z) := (B^\pm(w) - B^\pm(v)) / (2\pi i)$$
   where $$w = -2\pi i z + \nu.$$
@@ -717,47 +731,50 @@ noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
 
 @[blueprint
   "Phi-star-zero"
-  (title := "Phi-star at zero")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ at zero")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(0) = 0.$$
   -/)
   (proof := /-- This follows from the definition of $B^\pm$ and the fact that $B^\pm(0) = 1$. -/)]
 theorem Phi_star_zero (ν ε : ℝ) : Phi_star ν ε 0 = 0 := by simp [Phi_star]
 
+@[fun_prop]
+lemma meromorphic_tanh : Meromorphic Complex.tanh := by
+  intro z
+  apply MeromorphicAt.div <;> fun_prop
+
 lemma meromorphic_coth : Meromorphic coth := by
   intro z
-  have : MeromorphicAt (fun z => Complex.cosh z / Complex.sinh z) z := by
-    have : MeromorphicAt (fun z => Complex.sinh z) z ∧
-        MeromorphicAt (fun z => Complex.cosh z) z := by
-      constructor <;> refine ⟨0, ?_⟩ <;> norm_num [Complex.sinh, Complex.cosh] <;> fun_prop
-    exact this.2.div this.1
-  convert this using 1
-  ext; simp [Complex.tanh_eq_sinh_div_cosh, coth]
+  apply MeromorphicAt.div <;> fun_prop
+
+lemma meromorphic_coth' : Meromorphic (fun s : ℂ => Complex.cosh s / Complex.sinh s) := by
+  have : Meromorphic (fun s : ℂ => 1 / Complex.tanh s) := by
+    convert meromorphic_coth using 1
+  simpa [Complex.tanh_eq_sinh_div_cosh] using this
+
+lemma meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
+  intro s
+  obtain ⟨n, hn⟩ := meromorphic_coth' (s / 2)
+  refine ⟨n, ?_⟩
+  have h_comp : AnalyticAt ℂ
+      (fun z => (z / 2 - s / 2) ^ n •
+        (fun s => Complex.cosh s / Complex.sinh s) (z / 2)) s := by
+    apply_rules [ContDiffAt.analyticAt]
+    have : ContDiffAt ℂ ⊤
+        (fun z => (z - s / 2) ^ n •
+          (fun s => Complex.cosh s / Complex.sinh s) z) (s / 2) :=
+      hn.contDiffAt
+    convert this.comp s (contDiffAt_id.div_const 2) using 1
+  convert h_comp.mul (show AnalyticAt ℂ (fun _ => 2 ^ n) s from analyticAt_const)
+    using 2; norm_num
+  rw [show ((_ : ℂ) - s) = 2 * ((_ : ℂ) * (1 / 2) + s * (-1 / 2)) by ring]
+  rw [mul_pow]; ring
 
 lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
   have h_comp : ∀ z, MeromorphicAt
       (fun s => s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) z := by
-    have h_coth : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
-      have h_coth : Meromorphic (fun s : ℂ => Complex.cosh s / Complex.sinh s) := by
-        have : Meromorphic (fun s : ℂ => 1 / Complex.tanh s) := by
-          convert meromorphic_coth using 1
-        simpa [Complex.tanh_eq_sinh_div_cosh] using this
-      intro s
-      obtain ⟨n, hn⟩ := h_coth (s / 2)
-      refine ⟨n, ?_⟩
-      have h_comp : AnalyticAt ℂ
-          (fun z => (z / 2 - s / 2) ^ n •
-            (fun s => Complex.cosh s / Complex.sinh s) (z / 2)) s := by
-        apply_rules [ContDiffAt.analyticAt]
-        have : ContDiffAt ℂ ⊤
-            (fun z => (z - s / 2) ^ n •
-              (fun s => Complex.cosh s / Complex.sinh s) z) (s / 2) :=
-          hn.contDiffAt
-        convert this.comp s (contDiffAt_id.div_const 2) using 1
-      convert h_comp.mul (show AnalyticAt ℂ (fun _ => 2 ^ n) s from analyticAt_const)
-        using 2; norm_num
-      rw [show ((_ : ℂ) - s) = 2 * ((_ : ℂ) * (1 / 2) + s * (-1 / 2)) by ring]
-      rw [mul_pow]; ring
+    have meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
+      exact meromorphic_coth''
     intro z
     exact (by apply_rules [MeromorphicAt.div, MeromorphicAt.add, MeromorphicAt.mul,
       MeromorphicAt.id, MeromorphicAt.const])
@@ -778,7 +795,7 @@ lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
 
 @[blueprint
   "Phi-star-mero"
-  (title := "Phi-star meromorphic")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ meromorphic")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(z)$$ is meromorphic.
   -/)
@@ -794,7 +811,7 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
 
 @[blueprint
   "Phi-star-poles"
-  (title := "Phi-star poles")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ poles")
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z} \backslash \{0\}$.
   -/)
@@ -806,7 +823,7 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-star-residues"
-  (title := "Phi-star residues")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ residues")
   (statement := /--
   The residue of $$\Phi^{\pm,\ast}_\nu(z)$$ at $n - i \nu/2\pi$ is $-in/2\pi$.
   -/)
@@ -814,12 +831,12 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (latexEnv := "lemma")
   (discussion := 1073)]
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
-    (nhds (n - I * ν / (2 * π))).Tendsto
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto
       (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
 
 @[blueprint
   "Phi-star-poles-simple"
-  (title := "Phi-star poles simple")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ poles simple")
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are all simple.
   -/)
@@ -842,7 +859,7 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
       exact_mod_cast hn
     have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_star ν ε) z₀ = 0 :=
       (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
-        ⟨_, hL, (Phi_star.residue ν ε hν n hn |>.mono_left nhdsWithin_le_nhds).congr' heq⟩
+        ⟨_, hL, (Phi_star.residue ν ε hν n hn).congr' heq⟩
     have hord₁ : meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) := by
       rw [meromorphicOrderAt_eq_int_iff hsub]
       exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
@@ -857,9 +874,9 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-cancel"
-  (title := "Phi pole cancellation")
+  (title := "$\\Phi^{\\circ}_\\nu \\pm \\Phi^{\\ast}_\\nu$ pole cancellation")
   (statement := /--
-  $\Phi^{\sigma, \circ}_\nu(z) \pm \Phi^{\sigma, \ast}_\nu(z)$ is regular at $\pm 1 - i ν / 2 \pi$.
+  $\Phi^{\sigma, \circ}_\nu(z) \pm \Phi^{\sigma, \ast}_\nu(z)$ is regular at $\pm 1 - i \nu / 2 \pi$.
   -/)
   (proof := /-- The residues cancel out. -/)
   (latexEnv := "lemma")
@@ -870,7 +887,7 @@ theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hε : |ε| = 1) :
 
 @[blueprint
   "phi-pm-def"
-  (title := "Definition of phi-pm")
+  (title := "Definition of $\\varphi^{\\pm}$")
   (statement := /--
   $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \mathrm{sgn}(t) \Phi^{\pm,\ast}_\nu(t) ).$$
   -/)]
@@ -881,120 +898,142 @@ noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
 
 @[blueprint
   "phi-c2-left"
-  (title := "phi is C2 on [-1,0]")
+  (title := "$\\varphi$ is $C^2$ on [-1,0]")
   (statement := /--
   $\varphi$ is $C^2$ on $[-1,0]$.
   -/)
-  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = ∌u$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
+  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc (-1) 0) := by
-      have h_diff_circ : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
-        have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
-          simp only [Complex.tanh_eq_sinh_div_cosh]
-          have h_sinh_cosh_diff : ContDiff ℝ 2 (fun t : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ∀ t : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-            refine ⟨?_, ?_, ?_⟩
-            · have h_sinh_entire : ContDiff ℂ 2 Complex.sinh := by
-                unfold Complex.sinh
-                exact ContDiff.div_const (Complex.contDiff_exp.sub (Complex.contDiff_exp.comp contDiff_neg)) _
-              exact h_sinh_entire.restrict_scalars ℝ |> ContDiff.comp <| ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff) contDiff_const) _
-            · have h_cosh_entire : ContDiff ℝ 2 (fun t : ℂ => Complex.cosh t) := by
-                have : ContDiff ℂ 2 Complex.cosh := by
-                  unfold Complex.cosh
-                  exact ContDiff.div_const (Complex.contDiff_exp.add (Complex.contDiff_exp.comp contDiff_neg)) _
-                exact this.restrict_scalars ℝ
-              exact h_cosh_entire.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-            · norm_num [Complex.sinh, Complex.exp_ne_zero]
-              norm_num [sub_eq_zero, Complex.exp_ne_zero]
-              intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
-              obtain ⟨k, hk⟩ := ht; norm_num [Complex.ext_iff] at hk
-              rcases k with ⟨_ | k⟩ <;> norm_num at hk <;> ring_nf at hk <;> norm_num at hk <;>
-                cases lt_or_gt_of_ne hlam <;> nlinarith [Real.pi_pos]
-          simp_all only [ne_eq, neg_mul, division_def, mul_inv_rev, inv_inv, one_mul]
-          exact ContDiff.mul h_sinh_cosh_diff.2.1 (ContDiff.inv h_sinh_cosh_diff.1 fun t => h_sinh_cosh_diff.2.2 t)
-        exact ContDiff.mul contDiff_const (h_diff.add contDiff_const)
-      have h_diff_star : ContDiff ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) := by
-        have h_diff_B : ContDiff ℝ 2 (fun t : ℝ => B ε (-2 * Real.pi * Complex.I * t + ν)) := by
-          have h_B_rational : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
-            unfold B; unfold coth
-            simp +contextual [Complex.tanh_eq_sinh_div_cosh]
-          have h_comp : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
-            apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id]
-            · exact Complex.ofRealCLM.contDiff
-            · exact Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-            · exact Complex.contDiff_exp.comp (ContDiff.neg (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _))
-            · have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by
-                have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.exp ((-2 * Real.pi * Complex.I * x + ν) / 2)) :=
-                  Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-                simp_all only [ne_eq, Complex.sinh, neg_mul]
-                exact ContDiff.div_const (h_conj.sub (Complex.contDiff_exp.comp (by exact ContDiff.neg (by exact ContDiff.div_const (by exact ContDiff.add (ContDiff.neg (by exact ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff)) contDiff_const) _)))) _
-              rw [contDiff_iff_contDiffAt] at *
-              intro x; specialize h_conj x; exact (by
-              convert Complex.conjCLE.contDiff.contDiffAt.comp x h_conj using 1)
-            · refine Complex.ofRealCLM.contDiff.comp ?_
-              refine ContDiff.inv ?_ ?_
-              · norm_num [Complex.normSq, Complex.sinh]
-                norm_num [Complex.exp_re, Complex.exp_im]
-                exact ContDiff.div_const (ContDiff.add (ContDiff.mul (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))))) (ContDiff.mul (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))))) _
-              · norm_num [Complex.sinh, Complex.exp_re, Complex.exp_im, Complex.normSq]
-                intro x; ring_nf; norm_num [Real.exp_ne_zero, hlam]
-                norm_num [Real.sin_sq, Real.cos_sq, mul_assoc, mul_left_comm, ← Real.exp_add, ← Real.exp_nat_mul]; ring_nf
-                cases lt_or_gt_of_ne hlam <;> nlinarith [Real.cos_le_one (Real.pi * x * 2), Real.exp_pos ν, Real.exp_pos (-ν), Real.exp_neg ν, mul_inv_cancel₀ (ne_of_gt (Real.exp_pos ν)), Real.add_one_le_exp ν, Real.add_one_le_exp (-ν)]
-          convert h_comp using 1
-          ext t; by_cases h : (-(2 * Real.pi * Complex.I * t) + ν : ℂ) = 0 <;> simp_all [Complex.sinh, Complex.cosh]; ring_nf
-          norm_num [Complex.ext_iff] at h; aesop
-        convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
-      have h_eq : ∀ t ∈ Set.Icc (-1 : ℝ) 0, ϕ_pm ν ε t = Phi_circ ν ε (t : ℂ) - (if t = 0 then 0 else Phi_star ν ε (t : ℂ)) := by
-        unfold ϕ_pm
-        intro t ht; split_ifs <;> norm_num; grind
-        · rw [Real.sign_of_neg (lt_of_le_of_ne ht.2 ‹_›)]; ring_nf
-          norm_num [sub_eq_add_neg]
-        · exact False.elim <| ‹¬(-1 ≤ t ∧ t ≤ 1)› ⟨ht.1, by linarith [ht.2]⟩
-        · exact False.elim <| ‹¬(-1 ≤ t ∧ t ≤ 1)› ⟨ht.1, ht.2.trans zero_le_one⟩
-      refine ContDiffOn.congr ?_ h_eq
-      apply_rules [ContDiffOn.sub, h_diff_circ.contDiffOn, h_diff_star.contDiffOn]
-      refine h_diff_star.contDiffOn.congr fun x hx => ?_
-      unfold Phi_star; aesop
+  have h_diff_circ : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
+    have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
+      simp only [Complex.tanh_eq_sinh_div_cosh]
+      have h_sinh_cosh_diff : ContDiff ℝ 2 (fun t : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ∀ t : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
+        refine ⟨?_, ?_, ?_⟩
+        · have h_sinh_entire : ContDiff ℂ 2 Complex.sinh := by
+            unfold Complex.sinh
+            exact ContDiff.div_const (Complex.contDiff_exp.sub (Complex.contDiff_exp.comp contDiff_neg)) _
+          exact h_sinh_entire.restrict_scalars ℝ |> ContDiff.comp <| ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff) contDiff_const) _
+        · have h_cosh_entire : ContDiff ℝ 2 (fun t : ℂ => Complex.cosh t) := by
+            have : ContDiff ℂ 2 Complex.cosh := by
+              unfold Complex.cosh
+              exact ContDiff.div_const (Complex.contDiff_exp.add (Complex.contDiff_exp.comp contDiff_neg)) _
+            exact this.restrict_scalars ℝ
+          exact h_cosh_entire.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+        · norm_num [Complex.sinh, Complex.exp_ne_zero]
+          norm_num [sub_eq_zero, Complex.exp_ne_zero]
+          intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
+          obtain ⟨k, hk⟩ := ht; norm_num [Complex.ext_iff] at hk
+          rcases k with ⟨_ | k⟩ <;> norm_num at hk <;> ring_nf at hk <;> norm_num at hk <;>
+            cases lt_or_gt_of_ne hlam <;> nlinarith [Real.pi_pos]
+      simp_all only [ne_eq, neg_mul, division_def, mul_inv_rev, inv_inv, one_mul]
+      exact ContDiff.mul h_sinh_cosh_diff.2.1 (ContDiff.inv h_sinh_cosh_diff.1 fun t => h_sinh_cosh_diff.2.2 t)
+    exact ContDiff.mul contDiff_const (h_diff.add contDiff_const)
+  have h_diff_star : ContDiff ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) := by
+    have h_diff_B : ContDiff ℝ 2 (fun t : ℝ => B ε (-2 * Real.pi * Complex.I * t + ν)) := by
+      have h_B_rational : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
+        unfold B; unfold coth
+        simp +contextual [Complex.tanh_eq_sinh_div_cosh]
+      have h_comp : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
+        apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id]
+        · exact Complex.ofRealCLM.contDiff
+        · exact Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+        · exact Complex.contDiff_exp.comp (ContDiff.neg (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _))
+        · have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by
+            have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.exp ((-2 * Real.pi * Complex.I * x + ν) / 2)) :=
+              Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+            simp_all only [ne_eq, Complex.sinh, neg_mul]
+            exact ContDiff.div_const (h_conj.sub (Complex.contDiff_exp.comp (by exact ContDiff.neg (by exact ContDiff.div_const (by exact ContDiff.add (ContDiff.neg (by exact ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff)) contDiff_const) _)))) _
+          rw [contDiff_iff_contDiffAt] at *
+          intro x; specialize h_conj x; exact (by
+          convert Complex.conjCLE.contDiff.contDiffAt.comp x h_conj using 1)
+        · refine Complex.ofRealCLM.contDiff.comp ?_
+          refine ContDiff.inv ?_ ?_
+          · norm_num [Complex.normSq, Complex.sinh]
+            norm_num [Complex.exp_re, Complex.exp_im]
+            exact ContDiff.div_const (ContDiff.add (ContDiff.mul (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))))) (ContDiff.mul (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))))) _
+          · norm_num [Complex.sinh, Complex.exp_re, Complex.exp_im, Complex.normSq]
+            intro x; ring_nf; norm_num [Real.exp_ne_zero, hlam]
+            norm_num [Real.sin_sq, Real.cos_sq, mul_assoc, mul_left_comm, ← Real.exp_add, ← Real.exp_nat_mul]; ring_nf
+            cases lt_or_gt_of_ne hlam <;> nlinarith [Real.cos_le_one (Real.pi * x * 2), Real.exp_pos ν, Real.exp_pos (-ν), Real.exp_neg ν, mul_inv_cancel₀ (ne_of_gt (Real.exp_pos ν)), Real.add_one_le_exp ν, Real.add_one_le_exp (-ν)]
+      convert h_comp using 1
+      ext t; by_cases h : (-(2 * Real.pi * Complex.I * t) + ν : ℂ) = 0 <;> simp_all [Complex.sinh, Complex.cosh]; ring_nf
+      norm_num [Complex.ext_iff] at h; aesop
+    convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
+  have h_eq : ∀ t ∈ Set.Icc (-1 : ℝ) 0, ϕ_pm ν ε t = Phi_circ ν ε (t : ℂ) - (if t = 0 then 0 else Phi_star ν ε (t : ℂ)) := by
+    unfold ϕ_pm
+    intro t ht
+    split_ifs
+    · norm_num
+      grind
+    · rw [Real.sign_of_neg (lt_of_le_of_ne ht.2 ‹_›)]
+      norm_num [sub_eq_add_neg]
+    · grind
+    · grind
+  refine ContDiffOn.congr ?_ h_eq
+  apply_rules [ContDiffOn.sub, h_diff_circ.contDiffOn, h_diff_star.contDiffOn]
+  refine h_diff_star.contDiffOn.congr fun x hx => ?_
+  grind [Phi_star, neg_mul, ofReal_zero, mul_zero, neg_zero, zero_add,
+    sub_self, zero_div]
+
+lemma h_entire : ContDiffOn ℂ 2
+    (fun z => Complex.cosh (z / 2) / Complex.sinh (z / 2))
+    (Set.univ \ {z : ℂ | Complex.sinh (z / 2) = 0}) := by
+  apply ContDiffOn.div
+  · fun_prop
+  · fun_prop
+  · grind
+
+lemma h_no_zero {ν : ℝ} (hlam : ν ≠ 0) : ∀ t ∈ Set.Icc (0 : ℝ) 1,
+    Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
+  norm_num [Complex.sinh, Complex.exp_ne_zero]
+  intro t ht₁ ht₂
+  rw [sub_eq_zero, Complex.exp_eq_exp_iff_exists_int]
+  rintro ⟨⟨_ | k⟩, hk⟩
+  <;> norm_num [Complex.ext_iff] at hk <;> ring_nf at hk <;> norm_num at hk
+  <;> grind
+
+lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
+  refine ContDiff.contDiffOn ?_
+  suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
+      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
+    convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
+    swap; · exact ↑ε
+    unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
+    unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
+  refine contDiff_iff_contDiffAt.2 fun t => ?_
+  have h_sinh_ne_zero : ∀ t : ℝ,
+      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
+    norm_num [Complex.sinh, Complex.ext_iff]
+    norm_num [Complex.exp_re, Complex.exp_im, neg_div]
+    intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
+      mul_eq_mul_right_iff, exp_eq_exp]
+    by_cases h : Real.sin (2 * Real.pi * t / 2) = 0
+    · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
+    · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
+  have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
+      ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
+    apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
+    · fun_prop (disch := solve_by_elim)
+    · norm_num
+    · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
+        (Complex.differentiable_exp.comp (differentiable_id.neg))) _
+    · norm_num
+  exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
+    ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
+    Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
 
 @[blueprint
   "phi-c2-right"
-  (title := "phi is C2 on [0,1]")
+  (title := "$\\varphi$ is $C^2$ on [0,1]")
   (statement := /--
   $\varphi$ is $C^2$ on $[0,1]$.
   -/)
-  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
+  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by
   /- Since `Phi_circ` and `Phi_star` have no poles on ℝ (when ν ≠ 0), they are holomorphic on a
      neighborhood of any real point, hence C^∞ when restricted to ℝ. -/
-  have hc : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
-    refine ContDiff.contDiffOn ?_
-    suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
-      convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
-      swap; · exact ↑ε
-      unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
-      unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
-    refine contDiff_iff_contDiffAt.2 fun t => ?_
-    have h_sinh_ne_zero : ∀ t : ℝ,
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-      norm_num [Complex.sinh, Complex.ext_iff]
-      norm_num [Complex.exp_re, Complex.exp_im, neg_div]
-      intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
-        mul_eq_mul_right_iff, exp_eq_exp]
-      by_cases h : Real.sin (2 * Real.pi * t / 2) = 0 <;> simp_all only [mul_zero, neg_zero, neg_eq_iff_add_eq_zero]
-      · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
-      · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
-    have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
-        ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
-      apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
-      · fun_prop (disch := solve_by_elim)
-      · norm_num
-      · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
-          (Complex.differentiable_exp.comp (differentiable_id.neg))) _
-      · norm_num
-    exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
-      ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
-      Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
   have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) := by
     refine ContDiffOn.div_const ?_ _
     refine ContDiffOn.sub ?_ contDiffOn_const
@@ -1005,27 +1044,6 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
       unfold B; unfold coth
       norm_num [Complex.tanh_eq_sinh_div_cosh]
       norm_num [Complex.ext_iff] at *; aesop
-    have h_entire : ContDiffOn ℂ 2
-        (fun z => Complex.cosh (z / 2) / Complex.sinh (z / 2))
-        (Set.univ \ {z : ℂ | Complex.sinh (z / 2) = 0}) := by
-      refine ContDiffOn.div ?_ ?_ ?_ <;> norm_num [Complex.cosh, Complex.sinh]
-      · exact ContDiffOn.div_const (ContDiffOn.add
-          (Complex.contDiff_exp.comp_contDiffOn (contDiffOn_id.div_const _))
-          (Complex.contDiff_exp.comp_contDiffOn
-          (contDiffOn_id.div_const _ |>.neg))) _
-      · exact ContDiffOn.div_const (ContDiffOn.sub
-          (Complex.contDiff_exp.comp_contDiffOn (contDiffOn_id.div_const _))
-          (Complex.contDiff_exp.comp_contDiffOn
-          (contDiffOn_id.div_const _ |>.neg))) _
-    have h_no_zero : ∀ t ∈ Set.Icc (0 : ℝ) 1,
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-      norm_num [Complex.sinh, Complex.exp_ne_zero]
-      intro t ht₁ ht₂; rw [sub_eq_zero, Complex.exp_eq_exp_iff_exists_int]
-      rintro ⟨k, hk⟩; rcases k with ⟨_ | k⟩ <;>
-        norm_num [Complex.ext_iff] at hk <;> ring_nf at hk <;> norm_num at hk
-      · exact hlam (by linarith)
-      · exact hlam (by linarith)
-      · exact hlam (by linarith)
     have h_cont_diff : ContDiffOn ℝ 2 (fun t : ℝ =>
         Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
         Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2))
@@ -1033,12 +1051,12 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
       exact h_entire.restrict_scalars ℝ |>.comp
         (ContDiff.contDiffOn (ContDiff.add (ContDiff.mul contDiff_const
         (contDiff_id.comp Complex.ofRealCLM.contDiff)) contDiff_const))
-        fun x hx => ⟨Set.mem_univ _, h_no_zero x hx⟩
-    simp_all only [ne_eq, neg_mul, div_eq_mul_inv, Set.mem_Icc, and_imp]
+        fun x hx => ⟨Set.mem_univ _, h_no_zero hlam x hx⟩
+    simp_all only [ne_eq, neg_mul, div_eq_mul_inv]
     exact ContDiffOn.mul (ContDiffOn.mul (ContDiffOn.add (ContDiffOn.neg
       (ContDiffOn.mul contDiffOn_const Complex.ofRealCLM.contDiff.contDiffOn))
       contDiffOn_const) (h_cont_diff.add contDiffOn_const)) contDiffOn_const
-  exact (hc.add hs).congr fun t ht => by
+  exact ((hc ν ε hlam).add hs).congr fun t ht => by
     simp only [ϕ_pm]
     rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
     rcases eq_or_lt_of_le ht.1 with rfl | hpos
@@ -1047,7 +1065,7 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
 
 @[blueprint
   "phi-cts"
-  (title := "phi is continuous")
+  (title := "$\\varphi$ is continuous")
   (statement := /--
   $\varphi$ is continuous on $[0,1]$.
   -/)
@@ -1085,19 +1103,18 @@ theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε)
       have hw_ne : -2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν ≠ 0 := by
         intro h; have := congr_arg Complex.im h; simp at this
       have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
-      simp only [ne_eq, hw_ne, not_false_eq_true, hν_ne, ↓reduceIte, ite_false]
+      simp only [hw_ne, hν_ne, ↓reduceIte]
       have hw2 : (-2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν) / 2 = ↑ν / 2 + ↑Real.pi * I := by ring
       rw [hw2, tanh_add_pi]
       have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
         apply mul_ne_zero (by exact_mod_cast Real.pi_ne_zero) I_ne_zero
-      field_simp
-      ring
+      grind
     · unfold Phi_circ Phi_star B coth
       dsimp only []; push_cast; simp only [Real.sign_one, ofReal_one]
       have hw_ne : -2 * ↑Real.pi * I * (1 : ℂ) + ↑ν ≠ 0 := by
         intro h; have := congr_arg Complex.im h; simp at this
       have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
-      simp only [ne_eq, hw_ne, not_false_eq_true, hν_ne, ↓reduceIte]
+      simp only [hw_ne, hν_ne, ↓reduceIte]
       have hw2 : (-2 * ↑Real.pi * I * (1 : ℂ) + ↑ν) / 2 = ↑ν / 2 - ↑Real.pi * I := by ring
       rw [hw2, tanh_sub_pi]
       have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
@@ -1132,7 +1149,7 @@ theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε)
 
 @[blueprint
   "phi-circ-bound-right"
-  (title := "bound on phi-circ-right")
+  (title := "Bound on $\\Phi^{\\pm,\\circ}_\\nu$ from above")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
   -/)
@@ -1202,7 +1219,7 @@ theorem ϕ_circ_bound_right (ν₀ ν₁ ε c : ℝ) (hc : c > -ν₀ / (2 * π)
 
 @[blueprint
   "phi-circ-bound-left"
-  (title := "bound on phi-circ-left")
+  (title := "Bound on $\\Phi^{\\pm,\\circ}_\\nu$ from below")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
   -/)
@@ -1257,7 +1274,7 @@ theorem ϕ_circ_bound_left (ν₀ ν₁ ε c : ℝ) (hc : c < -ν₁ / (2 * π))
 
 @[blueprint
   "phi-star-bound-right"
-  (title := "bound on phi-star-right")
+  (title := "Bound on $\\Phi^{\\pm,\\ast}_\\nu$ from above")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
   -/)
@@ -1327,7 +1344,7 @@ theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν�
 
 @[blueprint
   "phi-star-bound-left"
-  (title := "bound on phi-star-left")
+  (title := "Bound on $\\Phi^{\\pm,\\ast}_\\nu$ from below")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
   -/)
@@ -1340,10 +1357,7 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
     have hB_def : ∀ ν : ℝ, ν ≠ 0 →
         B ε ν = ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
       intros ν hν_nonzero
-      simp only [B, ofReal_eq_zero, hν_nonzero, ↓reduceIte, coth, one_div, ne_eq, OfNat.ofNat_ne_zero,
-        not_false_eq_true, div_left_inj', mul_eq_mul_left_iff, add_left_inj, ofReal_eq_zero,
-        or_false]
-      rw [Complex.tanh_eq_sinh_div_cosh, inv_div]
+      simp [B, ofReal_eq_zero, hν_nonzero, coth, Complex.tanh_eq_sinh_div_cosh]
     have hB_cont : ContinuousOn
         (fun ν : ℝ => ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2)
         (Set.Icc ν₀ ν₁) := by
@@ -1351,18 +1365,19 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
       refine ContinuousOn.mul (Complex.continuous_ofReal.continuousOn)
         (ContinuousOn.add ?_ continuousOn_const)
       refine ContinuousOn.div ?_ ?_ ?_
-      · exact Continuous.continuousOn (by continuity)
-      · exact Continuous.continuousOn (by continuity)
+      · fun_prop
+      · fun_prop
       · norm_num [Complex.sinh]
-        exact fun x hx₁ hx₂ => sub_ne_zero_of_ne <| ne_of_apply_ne Complex.re <|
-          by norm_num [Complex.exp_re]; linarith [Real.exp_pos (x / 2),
-            Real.exp_lt_exp.2 (show -(x / 2) < x / 2 by linarith)]
+        intro x hx₁ hx₂
+        apply sub_ne_zero_of_ne
+        apply ne_of_apply_ne Complex.re
+        norm_num [Complex.exp_re]
+        grind
     obtain ⟨M, hM⟩ := IsCompact.exists_bound_of_continuousOn
       CompactIccSpace.isCompact_Icc hB_cont
     refine ⟨M, fun ν hν => ?_⟩
     specialize hB_def ν (by linarith [hν.1])
-    rw [hB_def]
-    exact hM ν hν
+    grind
   have hB : ∀ ν ∈ Set.Icc ν₀ ν₁, ∀ z : ℂ, z.im ≤ c →
       ‖B ε (-2 * Real.pi * I * z + ν)‖ ≤ (2 * Real.pi * ‖z‖ + ν₁) * C₁ := by
     intro ν hν z hz
@@ -1394,22 +1409,22 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
     le_trans (hPhi_star_bound ν hν z hz) (by
       ring_nf; norm_num [Real.pi_pos.ne']
       norm_num [mul_assoc, mul_comm, mul_left_comm, Real.pi_ne_zero]
-      nlinarith [
+      linarith [
         show 0 ≤ C₁ from le_trans (norm_nonneg _) (hC₁ ν hν z hz),
         show 0 ≤ M from le_trans (norm_nonneg _) (hM ν hν),
         show 0 ≤ C₁ * (ν₁ * (Real.pi⁻¹ * (‖z‖ * (1 / 2)))) from
           mul_nonneg (le_trans (norm_nonneg _) (hC₁ ν hν z hz))
             (mul_nonneg (by linarith) (mul_nonneg (inv_nonneg.2 Real.pi_pos.le)
               (mul_nonneg (norm_nonneg _) (by norm_num)))),
-        show 0 ≤ M * (Real.pi⁻¹ * (‖z‖ * (1 / 2))) from
-          mul_nonneg (le_trans (norm_nonneg _) (hM ν hν))
-            (mul_nonneg (inv_nonneg.2 Real.pi_pos.le)
-              (mul_nonneg (norm_nonneg _) (by norm_num)))])⟩
+        show 0 ≤ M * (Real.pi⁻¹ * (‖z‖ * (1 / 2))) from by
+          apply mul_nonneg (le_trans (norm_nonneg _) (hM ν hν))
+          positivity
+      ])⟩
 
 
 @[blueprint
   "B-plus-mono"
-  (title := "B-plus is increasing")
+  (title := "$B^+$ is increasing")
   (statement := /--
   For real $t$, $B^+(t)$ is increasing.
   -/)
@@ -1425,12 +1440,12 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
   have B_plus_re_eq : ∀ t : ℝ, t ≠ 0 → (B 1 (t : ℂ)).re = t * Real.exp t / (Real.exp t - 1) := by
     intro t ht
     unfold B
-    unfold coth; norm_num [ Complex.tanh, Complex.exp_re, Complex.exp_im ] ; ring;
-    norm_num [ Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht ] ; ring;
-    norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im ] ; ring;
+    unfold coth; norm_num [ Complex.tanh, Complex.exp_re, Complex.exp_im ] ; ring_nf;
+    norm_num [ Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht ] ; ring_nf;
+    norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im ] ; ring_nf;
     field_simp;
-    rw [ one_add_div, ← add_div, div_eq_div_iff ] <;> ring <;> norm_num [ sub_ne_zero, ht, Real.exp_ne_zero ];
-    · simpa [ ← Real.exp_add ] using by ring;
+    rw [ one_add_div, ← add_div, div_eq_div_iff ] <;> ring_nf <;> norm_num [ sub_ne_zero, ht, Real.exp_ne_zero ];
+    · simpa [ ← Real.exp_add ] using by ring_nf;
     · cases lt_or_gt_of_ne ht <;> linarith;
     · exact fun h => ht <| by rw [ add_eq_zero_iff_eq_neg ] at h; replace h := congr_arg Real.log h; norm_num at h; linarith;
     · cases lt_or_gt_of_ne ht <;> linarith
@@ -1450,7 +1465,12 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
       intros a b ha hb; apply_rules [ exists_deriv_eq_slope ];
       · exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by linarith [ Real.add_one_le_exp t, ht.1 ] ) );
       · exact DifferentiableOn.div ( DifferentiableOn.mul differentiableOn_id ( Real.differentiable_exp.differentiableOn ) ) ( DifferentiableOn.sub ( Real.differentiable_exp.differentiableOn ) ( differentiableOn_const _ ) ) fun x hx => ne_of_gt ( by norm_num; linarith [ hx.1 ] );
-    cases eq_or_lt_of_le hab <;> [ aesop; obtain ⟨ c, hc₁, hc₂ ⟩ := h_mean_val a b ha ‹_› <;> have := h_deriv_pos c ( lt_trans ha.out hc₁.1 ) <;> rw [ hc₂, ge_iff_le ] at this <;> rw [ le_div_iff₀ ] at this <;> linarith ] ;
+    cases eq_or_lt_of_le hab
+    · aesop
+    obtain ⟨ c, hc₁, hc₂ ⟩ := h_mean_val a b ha ‹_›
+    have := h_deriv_pos c ( lt_trans ha.out hc₁.1 )
+    rw [ hc₂, ge_iff_le, le_div_iff₀ (by lia) ] at this
+    linarith
   have f_mono_neg : MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Iio 0) := by
     have h_deriv_nonneg : ∀ t : ℝ, t < 0 → 0 ≤ deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t := by
       intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_lt, ht, sub_ne_zero ];
@@ -1458,20 +1478,20 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
     intros t ht u hu htu;
     by_contra h_contra; push_neg at h_contra; (
     obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
-      apply_rules [ exists_deriv_eq_slope ];
-      · exact htu.lt_of_ne ( by rintro rfl; linarith );
-      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) );
-      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) );
+      apply_rules [ exists_deriv_eq_slope ]
+      · exact htu.lt_of_ne ( by rintro rfl; linarith )
+      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) )
+      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) )
     rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
   intro t₁ t₂ ht;
-  by_cases h₁ : t₁ = 0 <;> by_cases h₂ : t₂ = 0 <;> simp_all +decide [ B ]
-  · exact f_ge_one_pos t₂ ( lt_of_le_of_ne ht ( Ne.symm h₂ ) )
-  · exact f_le_one_neg t₁ ( lt_of_le_of_ne ht h₁ )
-  · by_cases h₃ : t₁ < 0 <;> by_cases h₄ : t₂ < 0
-    · exact f_mono_neg h₃ h₄ ht
-    · exact le_trans ( f_le_one_neg t₁ h₃ ) ( f_ge_one_pos t₂ ( lt_of_le_of_ne (not_lt.mp h₄) (Ne.symm h₂) ) )
-    · linarith [ show t₁ > 0 from lt_of_le_of_ne (not_lt.mp h₃) (Ne.symm h₁) ]
-    · exact f_mono_pos ( show 0 < t₁ from lt_of_le_of_ne (not_lt.mp h₃) (Ne.symm h₁) ) ( show 0 < t₂ from lt_of_le_of_ne (not_lt.mp h₄) (Ne.symm h₂) ) ht
+  by_cases h₁ : t₁ = 0 <;> by_cases h₂ : t₂ = 0
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
+  · simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at B_plus_re_eq
+    simp only [B, ofReal_eq_zero, ofReal_one, h₁, h₂, ite_false, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im, one_im]
+    simp_all
+    grind [MonotoneOn]
 
 lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
   unfold B; split
@@ -1484,7 +1504,7 @@ theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
 
 @[blueprint
   "B-minus-mono"
-  (title := "B-minus is decreasing")
+  (title := "$B^-$ is decreasing")
   (statement := /--
   For real $t$, $B^-(t)$ is decreasing.
   -/)
@@ -1586,7 +1606,7 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
 @[blueprint
   "varphi-fourier-ident"
-  (title := "Fourier transform of varphi")
+  (title := "Fourier transform of $\\varphi$")
   (statement := /--
 \[
 \widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1}^{1} \varphi^{\pm}_{\nu}(t)\, e(-tx)\, dt = \int_{-1}^{0} \bigl(\Phi^{\pm,\circ}_{\nu}(t) - \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt + \int_0^1 \bigl(\Phi^{\pm,\circ}_{\nu}(t) + \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt.
@@ -1619,29 +1639,66 @@ theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
 
 @[blueprint
   "B-affine-periodic"
-  (title := "B affine periodic")
+  (title := "$B^\\pm$ affine periodic")
   (statement := /-- For any integer $m$,
 $$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
   (proof := /-- This follows from the $\pi i$-periodicity of coth. -/)
   (latexEnv := "sublemma")
   (discussion := 1081)]
-theorem B_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
-    B ε (-2 * π * I * (z - m) + ν) = B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
-    sorry
+theorem B_affine_periodic (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) (m : ℤ)
+    (hw : -2 * π * I * z + ν ≠ 0)
+    (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
+    B ε (-2 * π * I * (z - m) + ν) =
+      B ε (-2 * π * I * z + ν) + 2 * π * I * m * Phi_circ ν ε z := by
+  unfold B Phi_circ coth
+  have h_tanh_periodic :
+      Complex.tanh ((-2 * Real.pi * I * (z - m) + ν) / 2) =
+        Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) := by
+    rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh]
+    ring_nf; norm_num [Complex.sinh, Complex.cosh]; ring_nf
+    norm_num [Complex.exp_add, Complex.exp_sub]; ring_nf
+    have hexp : Complex.exp (Real.pi * I * m) = (-1) ^ m := by
+      rw [← Complex.exp_pi_mul_I, ← Complex.exp_int_mul]; ring_nf
+    norm_num [hexp]; ring_nf
+    rcases Int.even_or_odd' m with ⟨k, rfl | rfl⟩ <;>
+      norm_num [zpow_add₀, zpow_mul]
+    ring_nf; norm_num [Complex.exp_ne_zero] at *
+    rw [show -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2))) -
+          Complex.exp (Real.pi * I * z) * Complex.exp (-(ν * (1 / 2))) =
+        -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2)) +
+          Complex.exp (Real.pi * I * z) *
+            Complex.exp (-(ν * (1 / 2)))) from by ring,
+      inv_neg]
+    ring
+  grind
 
 @[blueprint
   "phi_star-affine-periodic"
-  (title := "Phi star affine periodic")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ affine periodic")
   (statement := /-- For any integer $m$,
 $$ \Phi^{\pm,\star}_{\nu}(z-m) = \Phi^{\pm,\star}_{\nu}(z) + m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
   (proof := /-- Follows from previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 1082)]
-theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ) :
+theorem phi_star_affine_periodic (ν ε : ℝ) (hν : ν > 0) (z : ℂ) (m : ℤ)
+    (hw : -2 * π * I * z + ν ≠ 0)
+    (hwm : -2 * π * I * (z - m) + ν ≠ 0) :
     Phi_star ν ε (z - m) = Phi_star ν ε z + m * Phi_circ ν ε z := by
-    sorry
+  have hB := B_affine_periodic ν ε hν z m hw hwm
+  have h_sub : Phi_star ν ε (z - m) =
+      (B ε (-2 * Real.pi * I * z + ν) +
+        2 * Real.pi * I * m * Phi_circ ν ε z - B ε ν) /
+      (2 * Real.pi * I) := by
+    rw [Phi_star, hB]
+  have h_def : Phi_star ν ε z =
+      (B ε (-2 * Real.pi * I * z + ν) - B ε ν) /
+      (2 * Real.pi * I) := by
+    simp [Phi_star]
+  rw [h_sub, h_def]
+  field_simp
+  ring
 
 @[blueprint
   "shift-upwards-simplified"
@@ -1747,7 +1804,7 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx
 
 @[blueprint
   "fourier-formula-neg"
-  (title := "Fourier formula for negative x")
+  (title := "Fourier formula for negative $x$")
   (statement := /--
 Let $\nu > 0$, $x < 0$. Then
 $$
@@ -1763,7 +1820,7 @@ theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 
 
 @[blueprint
   "fourier-formula-pos"
-  (title := "Fourier formula for positive x")
+  (title := "Fourier formula for positive $x$")
   (statement := /--
 Let $\nu > 0$, $x > 0$. Then
 $$
@@ -1777,11 +1834,247 @@ theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     sorry
 
+@[blueprint
+  "fourier-real"
+  (title := "Fourier transform of $\\varphi$ real")
+  (statement := /--
+$\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
+  -/)
+  (proof := /-- This follows from the symmetries of $\varphi^{\pm}_{\nu}$. -/)
+  (latexEnv := "lemma")
+  (discussion := 1225)]
+theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν ε) x).im = 0 := by
+    sorry
+
+@[blueprint
+  "Inu_def"
+  (title := "Definition of $I_\\nu$")
+  (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}$. -/)]
+noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
+
+@[blueprint
+  "Inu_bounds"
+  (title := "Bound for $I_\\nu$")
+  (statement := /--
+For all $x \in \mathbb{R}$,
+$$
+    \widehat{\varphi_\nu^-}(x) \leq I_\nu(x) \leq \widehat{\varphi_\nu^+}(x).
+$$-/)
+  (proof := /-- By Lemmas \ref{B-plus-mono}, \ref{B-minus-mono}, the integrands in Lemmas \ref{fourier-formula-neg}, \ref{fourier-formula-pos} are non-negative. Hence, the bound holds for all $x \neq 0$. By definition, $I_\nu$ is right-continuous. Since $\varphi_\nu^\pm \in L^1(\mathbb{R})$, $\widehat{\varphi_\nu^\pm}$ is continuous on $\mathbb{R}$. Thus, letting $x \to 0^+$, we see that the bound holds for $x = 0$ as well.  -/)
+  (latexEnv := "corollary")
+  (discussion := 1224)]
+theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+    sorry
+
+@[blueprint
+  "varphi-abs"
+  (title := "$\\varphi$ absolutely continuous")
+  (statement := /-- The function $\varphi_\nu^\pm$ is absolutely continuous. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is absolutely continuous because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1226)]
+theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm ν ε) := by
+    sorry
+
+@[blueprint
+  "varphi-integ"
+  (title := "$\\varphi$ integrable")
+  (statement := /-- The function $\varphi_\nu^\pm$ is integrable. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1227)]
+theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) := by
+    sorry
+
+@[blueprint
+  "varphi-deriv-integ"
+  (title := "$\\varphi'$ integrable")
+  (statement := /-- The function $(\varphi_\nu^\pm)'$ is integrable. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $(\varphi_\nu^\pm)'$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1228)]
+theorem varphi_deriv_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (deriv (ϕ_pm ν ε)) := by
+    sorry
+
+@[blueprint
+  "varphi-deriv-tv"
+  (title := "$\\varphi'$ total variation")
+  (statement := /-- The function $(\varphi_\nu^\pm)'$ has finite total variation. -/)
+  (proof := /-- Since $(\varphi_\nu^\pm)'$ is $C^1$ on $[-1, 0]$ and on $[0, 1]$, the $L^1$ norm of $(\varphi_\nu^\pm)''$ on each of these intervals is finite, and so $(\varphi_\nu^\pm)'$ has finite total variation on each of them. As $(\varphi_\nu^\pm)'$ has right and left limits at $-1$, $0$ and $1$, the jumps at those points are finite, and so their contribution to $\|(\varphi_\nu^\pm)'\|_{\mathrm{TV}}$ is finite.
+/
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1229)]
+theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-decay"
+  (title := "$\\varphi$ Fourier decay")
+  (statement := /-- For $|x| \to \infty$, $\widehat{\varphi_\nu^\pm}(x) = O(1/x^2)$. -/)
+  (proof := /-- For $f$ absolutely continuous with $f, f' \in L^1(\mathbb{R})$, integration by parts gives us that $\hat{f}(x) = \widehat{f'}(x)/(2\pi i x)$. If $f' \in L^1(\mathbb{R})$ with $\|f'\|_{\mathrm{TV}} < \infty$, then, again by integration by parts, $|\widehat{f'}(x)| \leq |f'|_{\mathrm{TV}}/(2\pi x)$. We are done by the preceding lemmas. -/)
+  (latexEnv := "corollary")
+  (discussion := 1230)]
+theorem varphi_fourier_decay (ν ε : ℝ) (hlam : ν ≠ 0) : IsBigO Filter.atTop (fun x:ℝ ↦ (𝓕 (ϕ_pm ν ε) x).re) (fun x:ℝ ↦ 1 / x ^ 2)  := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-minus-error"
+  (title := "$L^1$ error bound for Fourier transform of $\\varphi^-$")
+  (statement := /--
+\[
+\int_{-\infty}^{\infty} (I_\nu(x) - \hat{\varphi_\nu^-}(x))\, dx = \frac{1}{\nu} - \frac{1}{e^\nu - 1}.
+\]
+  -/)
+  (proof := /--
+  We know that $\varphi_\nu^\pm$ is continuous and in $L^1(\mathbb{R})$; by Corollary \ref{varphi-fourier-decay}, $\widehat{\varphi_\nu^\pm}$ is in $L^1(\mathbb{R})$. Hence, Fourier inversion holds everywhere, and in particular for $t = 0$:
+\[
+\varphi_\nu^\pm(0) = \int_{-\infty}^{\infty} \widehat{\varphi_\nu^\pm}(x)\, dx.
+\]
+By definition, $\varphi_\nu^\pm(0) = \Phi_\nu^{\pm,\circ}(0)$, and, by definition, $\Phi_\nu^{-,\circ}(0) = \frac{1}{e^\nu - 1}$ and $\Phi_\nu^{+,\circ}(0) = \frac{1}{1 - e^{-\nu}}$. Thus,
+\[
+\int_{-\infty}^{\infty} (I_\nu(x) - \widehat{\varphi_\nu^-}(x))\, dx = \frac{1}{\nu} - \frac{1}{e^\nu - 1},
+\]
+\[
+\int_{-\infty}^{\infty} (\widehat{\varphi_\nu^+}(x) - I_\nu(x))\, dx = \frac{1}{1 - e^{-\nu}} - \frac{1}{\nu},
+\]
+since $\int_{-\infty}^{\infty} I_\nu(x)\, dx = 1/\nu$. We are done by Corollary \ref{Inu_bounds}.
+-/)
+  (latexEnv := "proposition")
+  (discussion := 1231)]
+theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
+    ∫ x in Set.univ, (I ν x - (𝓕 (ϕ_pm ν (-1)) x).re) = 1 / ν - 1 / (Real.exp ν - 1) := by
+    sorry
+
+@[blueprint
+  "varphi-fourier-plus-error"
+  (title := "$L^1$ error bound for Fourier transform of $\\varphi^+$")
+  (statement := /--
+\[
+\int_{-\infty}^{\infty} (\hat{\varphi_\nu^+}(x) - I_\nu(x))\, dx = \frac{1}{1 - e^{-\nu}} - \frac{1}{\nu}.
+\]
+  -/)
+  (proof := /-- See previous. -/)
+  (latexEnv := "proposition")
+  (discussion := 1232)]
+theorem varphi_fourier_plus_error (ν : ℝ) (hν : ν > 0) :
+    ∫ x in Set.univ, ((𝓕 (ϕ_pm ν 1) x).re - I ν x) = 1 / (1 - Real.exp (-ν)) - 1 / ν := by
+    sorry
+
+@[blueprint
+  "CH2-lemma-4-2a"
+  (title := "CH2 Lemma 4.2(a)")
+  (statement := /--
+If $|\Im z| \leq \frac{\pi}{4}$, then $|(z \coth z)'| < 1$.  -/)
+  (proof := /-- Since $z\coth(z)$ is regular at $0$ and an even function, we see that $f(z) := (z \coth z)'$ and $f(z)/z$ are regular at $0$, and hence analytic on the strip $|\Im z| \leq \frac{\pi}{2}$. We see from $f(z) = \coth z - z\operatorname{csch}^2 z$ that $f(z)$ has at most exponential growth as $\Re z \to \pm\infty$ within the strip. Hence, by Phragm\'{e}n--Lindel\"{o}f, it is enough to verify the inequalities $|f(z)/z| \leq 1$ for $\Im z = \pm\frac{\pi}{2}$ and $|f(z)| \leq 1$ for $\Im z = \pm\frac{\pi}{4}$; by complex conjugation, it suffices to check them for $\Im z = \frac{\pi}{2}$ and $\Im z = \frac{\pi}{4}$.
+
+By the above, $f(z) = \frac{(\sinh 2z)/2 - z}{\sinh^2 z}$. Now, for $z = x + i\frac{\pi}{4}$ with $x \in \mathbb{R}$, we have $\sinh 2z = i\cosh 2x$ and $\sinh^2 z = -\frac{1}{2} + \frac{i}{2}\sinh 2x$, and so $|f(z)|^2 = \frac{(\cosh 2x - \pi/2)^2 + 4x^2}{1 + \sinh^2 2x}$. By $1 + \sinh^2 2x = \cosh^2 2x$,
+\[
+|f(z)|^2 = 1 - \frac{\pi \cosh 2x - \pi^2/4 - 4x^2}{\cosh^2 2x}.
+\]
+Since $\cosh 2x = 1 + 2\sinh^2 x \geq 1 + 2x^2$, $\pi > \frac{\pi^2}{4}$ and $2\pi > 4$, the numerator here is positive. We conclude that $|f(z)|^2 < 1$ for $z = x + i\frac{\pi}{4}$, as was desired.
+
+For $z = x + i\frac{\pi}{2}$ with $x \in \mathbb{R}$, we have $\coth z = \tanh x$ and $\operatorname{csch}^2 z = -\operatorname{sech}^2 x$. Then $|f(z)|^2 = (\tanh x + x\operatorname{sech}^2 x)^2 + \left(\frac{\pi}{2}\operatorname{sech}^2 x\right)^2$. Since $\operatorname{sech}^2 x - 1 = -\tanh^2 x$, this is equal to
+\[
+\tanh^2 x \operatorname{sech} x\!\left(\cosh x + 2x\operatorname{csch} x - |z|^2(\operatorname{sech} x + \cosh x)\right) + |z|^2.
+\]
+Since $|z|^2 \geq \frac{\pi^2}{4} > 2$, it suffices to show that $2x\operatorname{csch} x - 2\operatorname{sech} x - \cosh x \leq 0$ for all $x \in \mathbb{R}$; by parity, it is enough to check all $x \geq 0$. The statement is then equivalent to $g(x) = 2x - 2\tanh x - \sinh x \cosh x \leq 0$, since $\sinh x \geq 0$. That follows from $g'(x) = 2\tanh^2 x - \cosh^2 x - \sinh^2 x = -2\sinh^2 x \tanh^2 x - 1 \leq 0$ (by $1 - \cosh^2 x = -\sinh^2 x$) and $g(0) = 0$.
+-/)
+  (latexEnv := "sublemma")
+  (discussion := 1233)]
+theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ ↦ z * coth z) z‖ < 1 := by
+    sorry
+
+@[blueprint
+  "CH2-lemma-4-2b"
+  (title := "CH2 Lemma 4.2(b)")
+  (statement := /--
+If $|\Im z| \leq \frac{\pi}{2}$, then $|(z \coth z)'| \leq |z|$. -/)
+  (proof := /-- See previous. -/)
+  (latexEnv := "sublemma")
+  (discussion := 1234)]
+theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ ↦ z * coth z) z‖ ≤ ‖z‖ := by
+    sorry
 
 
 
-blueprint_comment /--
-TODO: Lemmas 4.2, 4.3, 4.4
+/-
+\begin{lemma}
+Let $\Phi^{\pm,\circ}_\nu(z)$ and $\Phi^{\pm,\star}_\nu(z)$ be as in \eqref{eq:defPhi} for $\nu > 0$. Then:
+\begin{itemize}
+    \item $\Phi^{\pm,\circ}_\nu(z)$ is a meromorphic function whose poles, all of them simple, are at $n - \frac{i\nu}{2\pi}$, $n \in \mathbb{Z}$; the residue at every pole is $\frac{i}{2\pi}$. Moreover, $\Phi^{\pm,\circ}_\nu(z) = \overline{\Phi^{\pm,\circ}_\nu(-\bar{z})}$.
+    \item $\Phi^{\pm,\star}_\nu(z)$ is a meromorphic function whose poles, all of them simple, are at $n - \frac{i\nu}{2\pi}$, $n \in \mathbb{Z} \setminus \{0\}$; the residue at $n - \frac{i\nu}{2\pi}$ is $-\frac{in}{2\pi}$. Moreover, $\Phi^{\pm,\star}_\nu(z) = -\overline{\Phi^{\pm,\star}_\nu(-\bar{z})}$.
+\end{itemize}
+On every region $\{z : \Im z \geq c\}$, $c > -\frac{\nu}{2\pi}$, or $\{z : \Im z \leq c\}$, $c < -\frac{\nu}{2\pi}$, the function $\Phi^{\pm,\circ}_\nu(z)$ is bounded and $\Phi^{\pm,\star}_\nu(z) = O(|z| + 1)$. Moreover, these bounds hold uniformly for all $\nu$ in an interval $[\nu_0, \nu_1]$, with conditions $c > -\frac{\nu_0}{2\pi}$, $c < -\frac{\nu_1}{2\pi}$, respectively.
+
+We have $\Phi^{\sigma,\star}_\nu(0) = 0$. For $z$ with $0 \leq \Re z \leq \frac{1}{4}$, and for either sign $\sigma = \pm$,
+\[
+\left|(\Phi^{\pm,\star}_\nu)'(z)\right| \leq 1, \quad |\Phi^{\sigma,\star}_\nu(\pm z)| \leq |z|, \quad |(\Phi^{\sigma,\circ}_\nu \pm \Phi^{\sigma,\star}_\nu)(\pm 1 \mp z)| \leq |z|.
+\]
+Moreover, for $z$ purely imaginary, $(\Phi^{\sigma,\star}_\nu)'(\pm z)$, which is purely real, is of constant sign.
+
+Note that $\Phi^{\sigma,\circ}_\nu(z) \pm \Phi^{\sigma,\star}_\nu(z)$ is regular at $\pm 1 - \frac{i\nu}{2\pi}$, since the residues cancel out.
+
+Our convention is that all signs denoted by $\pm$ in the same equation are the same, $\mp$ is the opposite sign, and $\sigma$ denotes a sign that may or may not be the same.
+\end{lemma}
+
+\begin{proof}
+The statements on poles and residues follow directly from \eqref{eq:defPhi}; so do the statements on $\overline{\Phi^{\pm,\circ}_\nu(z)}$ and $\overline{\Phi^{\pm,\star}_\nu(z)}$. The statements on the boundedness of $\Phi^{\sigma,\circ}_\nu(z)$ and the growth of $\Phi^{\sigma,\star}_\nu(z)$ follow from \eqref{eq:defPhi} and the fact that $\coth(w)$ is bounded on $\Re w \geq c$ for $c > 0$ arbitrary and on $\Re w \leq c$ for $c < 0$ arbitrary. Since $|\Phi^{\sigma,\star}_\nu(-z)| = |\Phi^{\sigma,\star}_\nu(z)|$ and $|(\Phi^{\sigma,\circ}_\nu - \Phi^{\sigma,\star}_\nu)(-1 + z)| = |(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)|$, it is left to check that $|\Phi^{\sigma,\star}_\nu(z)| \leq |z|$ and $|(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)| \leq |z|$.
+
+By \eqref{eq:defPhi}, $\Phi^{\pm,\star}_\nu(0) = 0$ and $(\Phi^{\pm,\star}_\nu)'(z) = -\frac{d}{dw}\!\left(\frac{w}{2}\coth\frac{w}{2}\right) \mp \frac{1}{2}$ at $w = -2\pi iz + \nu$. Hence, for $0 \leq \Re z \leq \frac{1}{4}$, by Lemma~4.2, $|(\Phi^{\pm,\star}_\nu)'(z)| \leq 1$, and so $|(\Phi^{\pm,\star}_\nu)(z)| \leq |z|$; moreover, $(\Phi^{\pm,\star}_\nu)'(z)$ does not change sign for $z$ purely imaginary, as $\tanh w$ is real, and the term $\mp\frac{1}{2}$ always dominates. By \eqref{eq:comb}, $(\Phi^{\pm,\circ}_\nu + \Phi^{\pm,\star}_\nu)(1) = 0$ and $(\Phi^{\pm,\circ}_\nu + \Phi^{\pm,\star}_\nu)'(z) = -\frac{d}{dw}\!\left(\frac{w}{2}\coth\frac{w}{2}\right) \mp \frac{1}{2}$ at $w = -2\pi i(z-1) + \nu$. Hence, again by Lemma~4.2, for $0 \leq \Re z \leq \frac{1}{4}$, $|(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)| \leq |z|$.
+\end{proof}
+
+\begin{lemma}
+For $z \in \mathbb{C}$, $\lambda \in \mathbb{R} \setminus \{0\}$, define
+\[
+\Phi^\pm_\lambda(z) = \Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z) + \operatorname{sgn}(\lambda)\operatorname{sgn}(\Re z)\,\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z),
+\]
+where $\Phi^{\pm,\circ}_{|\lambda|}$, $\Phi^{\pm,\star}_{|\lambda|}$ are as in \eqref{eq:defPhi}, and $\operatorname{sgn}(0) = 0$. Let $T > 0$, and let $z(s) = \frac{s-1}{iT}$.
+
+Then, for $s \in \mathbb{C}$,
+\begin{equation}
+\Phi^\pm_\lambda(z(s)) = \overline{\Phi^\pm_\lambda(z(\bar{s}))}. \label{eq:conjsym}
+\end{equation}
+Let $\sigma \in \mathbb{R} \setminus \{1\}$. Let $\lambda = \frac{2\pi}{T}(\sigma - 1)$ and write $\theta(s) = 1 - \frac{s - \sigma}{iT}$. If $\Im s > 0$,
+\begin{equation}
+\Phi^\pm_\lambda(z(s)) = i\operatorname{sgn}(\lambda)\left(-\frac{\theta(s)}{2}\cot(\pi\theta(s)) + \frac{\theta(1+iT)}{2}\cot(\pi\theta(1+iT)) \pm \frac{1 - z(s)}{2}\right). \label{eq:Phieval}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+When we evaluate $\Phi^\pm_\lambda$ at $z(s)$, we evaluate $\Phi^{\pm,\circ}_{|\lambda|}$ and $\Phi^{\pm,\star}_{|\lambda|}$ at $\operatorname{sgn}(\lambda)z(s)$, and so the variable $w$ in \eqref{eq:defPhi} is given by
+\begin{equation}
+w = -2\pi i\operatorname{sgn}(\lambda)\frac{s-1}{iT} + |\lambda| = \operatorname{sgn}(\lambda)\!\left(-\frac{2\pi}{T}(s-1) + \lambda\right) = -\operatorname{sgn}(\lambda)\frac{2\pi}{T}(s - \sigma). \label{eq:wform}
+\end{equation}
+In particular, when we conjugate $s$, we conjugate $w$. We thus see from \eqref{eq:defPhi} that
+\[
+\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) = \overline{\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(\bar{s}))}, \quad \Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) = -\overline{\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(\bar{s}))},
+\]
+and thus, since $\operatorname{sgn}(\Re z(s)) = -\operatorname{sgn}(\Re z(\bar{s}))$, \eqref{eq:conjsym} holds.
+
+If $\Im s > 0$,
+\begin{equation}
+\Phi^\pm_\lambda(z(s)) = \Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) + \operatorname{sgn}(\lambda)\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) \label{eq:Phipos}
+\end{equation}
+because $\Im s > 0$ implies $\Re z(s) > 0$. Since $\coth$ is an odd function, \eqref{eq:defPhi} and \eqref{eq:wform} give us
+\begin{align*}
+\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) &= \frac{1}{2}\!\left(-\operatorname{sgn}(\lambda)\coth\frac{\pi(s-\sigma)}{T} \pm 1\right), \\
+\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) &= \frac{i}{2\pi}\!\left(\frac{\lambda}{2}\coth\frac{\lambda}{2} - \frac{\pi(s-\sigma)}{T}\coth\frac{\pi(s-\sigma)}{T} \pm \operatorname{sgn}(\lambda)\pi i z(s)\right).
+\end{align*}
+Thus, for $\Im s > 0$, \eqref{eq:Phipos} gives us
+\[
+\Phi^\pm_\lambda(z(s)) = -\operatorname{sgn}(\lambda)\frac{i(s-\sigma)}{2T} + \frac{1}{2}\!\left(\coth\frac{\pi(s-\sigma)}{T} - \frac{i\lambda}{4\pi}\coth\frac{\lambda}{2}\right) \pm \frac{1 - z(s)}{2}.
+\]
+So, by $\coth u = -i\cot(u/i)$, $\coth(-u) = -\coth u$, $\cot(\pi - u) = -\cot u$ and $\theta(s) = 1 - \frac{s - \sigma}{iT}$,
+\[
+\Phi^\pm_\lambda(z(s)) = i\operatorname{sgn}(\lambda)\!\left(-\frac{\theta(s)}{2}\cot(\pi\theta(s)) - \frac{i\lambda}{4\pi}\cot\frac{\lambda}{2i}\right) \pm \frac{1 - z(s)}{2}.
+\]
+Since $\theta(1 + iT) = \frac{\sigma - 1}{iT} = \frac{\lambda}{2\pi i}$, we have $\cot\frac{\lambda}{2i} = \cot(\pi\theta(1 + iT))$.
+\end{proof}
 -/
 
 

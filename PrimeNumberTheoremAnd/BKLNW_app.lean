@@ -79,7 +79,7 @@ noncomputable def Sigma₁ (x T δ : ℝ) : ℂ :=
   \beta \geq 1 - \delta} \frac{x^{\rho - 1}}{\rho} $$
   -/)]
 noncomputable def Sigma₂ (x T δ : ℝ) : ℂ :=
-  riemannZeta.zeroes_sum (Set.Ioc (1 - δ) 1)
+  riemannZeta.zeroes_sum (Set.Icc (1 - δ) 1)
     (Set.Ioo (-T) T) (fun ρ ↦ x ^ (ρ - 1) / ρ)
 
 @[blueprint
@@ -92,11 +92,31 @@ noncomputable def Sigma₂ (x T δ : ℝ) : ℂ :=
   of Σ₁ and Σ₂. -/)
   (latexEnv := "sublemma")
   (discussion := 750)]
-theorem bklnw_eq_A_9 (x T δ : ℝ) :
+theorem bklnw_eq_A_9 (x T δ : ℝ) (hδ1 : 0 ≤ δ) (hδ2 : δ ≤ 1) :
     riemannZeta.zeroes_sum (Set.Icc 0 1)
       (Set.Ioo (-T) T) (fun ρ ↦ x ^ (ρ - 1) / ρ) =
     Sigma₁ x T δ + Sigma₂ x T δ := by
-  sorry
+  set I₁ : Set ℝ := Set.Ico 0 (1 - δ)
+  set I₂ : Set ℝ := Set.Icc (1 - δ) 1
+  set J  : Set ℝ := Set.Ioo (-T) T
+  set g  : ℂ → ℂ := fun ρ ↦ (x ^ (ρ - 1) / ρ) * (riemannZeta.order ρ)
+  change ∑' ρ : riemannZeta.zeroes_rect (Set.Icc 0 1) J, g ρ = _
+  have hI : Set.Icc 0 1 = I₁ ∪ I₂ := (Set.Ico_union_Icc_eq_Icc
+    (sub_nonneg_of_le hδ2) (sub_le_self 1 hδ1)).symm
+  have hdisj : Disjoint (riemannZeta.zeroes_rect I₁ J) (riemannZeta.zeroes_rect I₂ J) :=
+    riemannZeta.zeroes_rect_disjoint₁ I₁ I₂ J
+      (Set.disjoint_left.2 fun _ hx1 hx2 ↦ not_le.2 hx1.2 hx2.1)
+  have hfin : (riemannZeta.zeroes_rect (Set.Icc 0 1) J).Finite := by
+    rw [riemannZeta.zeroes_rect_eq]
+    refine (riemannZeta.zeroes_on_Compact_finite' ?_).subset
+      (Set.inter_subset_inter (Set.inter_subset_inter_right _
+        (Set.preimage_mono Set.Ioo_subset_Icc_self)) le_rfl)
+    exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+      (isCompact_Icc.prod isCompact_Icc)
+  rw [hI, ← riemannZeta.zeroes_rect_union] at hfin ⊢
+  refine Summable.tsum_union_disjoint hdisj ?_ ?_
+  · exact (hfin.subset Set.subset_union_left).summable g
+  · exact (hfin.subset Set.subset_union_right).summable g
 
 @[blueprint
   "bklnw-eq_A_10"
@@ -390,27 +410,27 @@ theorem bklnw_eq_A_26 (x : ℝ)
   (title := "Lemma 15")
   (statement := /-- Let $B_0$, $B$, and $c$ be
   positive constants such that
-\begin{equation}\tag{A.27}
+\begin{equation}\tag{A.27}\label{bklnw:A.27}
 |(x-\psi(x))/\sqrt{x}| \leq c
 \hbox{ for all } B_0 < x \leq B
 \end{equation}
   is known.  Furthermore, assume for every
   $b_0 > 0$ there exists $\varepsilon(b_0) > 0$
   such that
-\begin{equation}\tag{A.28}
+\begin{equation}\tag{A.28}\label{bklnw:A.28}
 |\psi(x) - x| \leq \varepsilon(b_0) x
 \quad \text{for all } x \geq e^{b_0}.
 \end{equation}
 Let $b$ be positive such that
 $e^b \in (B_0, B]$. Then, for all
 $x \geq e^b$ we have
-\begin{equation}\tag{A.29}
+\begin{equation}\tag{A.29}\label{bklnw:A.29}
 \left|\frac{\psi(x) - x}{x}\right|
 \leq \max (\frac{c}{e^{\frac{b}{2}}},
 \varepsilon(\log B)).
 \end{equation} -/)
   (proof := /-- Multiplying both sides of
-  \eqref{A.27} by $\frac{1}{\sqrt{x}}$ gives
+  \eqref{bklnw:A.27} by $\frac{1}{\sqrt{x}}$ gives
 \[
 \left|\frac{\psi(x) - x}{x}\right|
 \leq \frac{c}{e^{\frac{b}{2}}}
@@ -418,10 +438,10 @@ $x \geq e^b$ we have
 \]
 as $\frac{1}{\sqrt{x}}
 \leq \frac{1}{e^{\frac{b}{2}}}$.
-Then, for $x \geq B$ we apply \eqref{A.28}
+Then, for $x \geq B$ we apply \eqref{bklnw:A.28}
 with $b_0 = \log B$.
 Combining these bounds,
-we derive \eqref{A.29}. -/)
+we derive \eqref{bklnw:A.29}. -/)
   (latexEnv := "lemma")
   (discussion := 753)]
 theorem bklnw_lemma_15 (c B₀ B : ℝ)

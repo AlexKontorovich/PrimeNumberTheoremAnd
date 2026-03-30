@@ -401,10 +401,9 @@ noncomputable def Hn (H₀ R σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := Hσ H₀ R 
 @[blueprint
   "fks-remark-3-7"
   (title := "FKS Remark 3.7")
-  (statement := /-- If $\sigma < 1 - 1/R \log H_0$ then $H_σ = H_0$. -/)]
-theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by sorry
-
-theorem remark_3_7' {H₀ R σ : ℝ} (hH₀ : H₀ > 1) (hR : R > 0)
+  (statement := /-- If $H_0 > 1$, $R > 0$, and
+  $\sigma < 1 - 1/(R \log H_0)$, then $H_σ = H_0$. -/)]
+theorem remark_3_7 {H₀ R σ : ℝ} (hH₀ : H₀ > 1) (hR : R > 0)
     (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by
   unfold Hσ; rw [max_eq_left]
   have hlog := log_pos hH₀
@@ -415,9 +414,11 @@ theorem remark_3_7' {H₀ R σ : ℝ} (hH₀ : H₀ > 1) (hR : R > 0)
     calc log H₀ * (R * (1 - σ))
         = R * (1 - σ) * log H₀ := by ring
       _ > R * (1 / (R * log H₀)) * log H₀ :=
-          mul_lt_mul_of_pos_right (mul_lt_mul_of_pos_left (by linarith) hR) hlog
+          mul_lt_mul_of_pos_right
+            (mul_lt_mul_of_pos_left (by linarith) hR) hlog
       _ = 1 := by field_simp
-  linarith [exp_strictMono key, exp_log (show H₀ > 0 by linarith)]
+  linarith [exp_strictMono key,
+    exp_log (show H₀ > 0 by linarith)]
 
 noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) : ℝ :=
     2 * x ^ (-(1 - σ₁) + (σ₂ - σ₁) / N) * (I.B₀ σ₁ (Hσ I.H₀ I.R σ₁) T) +
