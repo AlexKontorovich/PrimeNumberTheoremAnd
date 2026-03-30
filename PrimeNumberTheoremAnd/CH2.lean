@@ -644,7 +644,6 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
     ring_nf
     simp
 
-open Topology in
 @[blueprint
   "Phi-circ-residues"
   (title := "$\\Phi^{\\pm,\\circ}_\\nu$ residues")
@@ -655,7 +654,7 @@ open Topology in
   (latexEnv := "lemma")
   (discussion := 1071)]
 theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
-    (𝓝[≠] (n - I * ν / (2 * π))).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by
+    (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_circ ν ε z) (nhds (I / (2 * π))) := by
   set z₀ : ℂ := n - I * ν / (2 * π)
   set w : ℂ → ℂ := fun z ↦ -2 * π * I * z + ν
   set s : ℂ → ℂ := fun z ↦ w z / 2
@@ -680,23 +679,23 @@ theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
     convert h using 1; simp only [mul_one, add_zero]; ring
   have h_sinh_deriv : HasDerivAt (fun z ↦ Complex.sinh (s z)) (-↑π * I * Complex.cosh (s z₀)) z₀ := by
     convert (Complex.hasDerivAt_sinh (s z₀)).comp z₀ h_s_deriv using 1; ring
-  have h_slope2 : Filter.Tendsto (fun z => Complex.sinh (s z) / (z - z₀)) (𝓝[≠] z₀) (nhds (-π * I * Complex.cosh (s z₀))) := by
+  have h_slope2 : Filter.Tendsto (fun z => Complex.sinh (s z) / (z - z₀)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (-π * I * Complex.cosh (s z₀))) := by
     have h_eq : slope (fun z => Complex.sinh (s z)) z₀ = fun z => Complex.sinh (s z) / (z - z₀) := by
       ext z; simp [slope, h_sinh_z₀, div_eq_inv_mul]
     have h_slope := h_sinh_deriv.tendsto_slope
     rwa [h_eq] at h_slope
-  have h_lim_sinh : Filter.Tendsto (fun z ↦ (z - z₀) / Complex.sinh (s z)) (𝓝[≠] z₀) (nhds (-π * I * Complex.cosh (s z₀))⁻¹) := by
+  have h_lim_sinh : Filter.Tendsto (fun z ↦ (z - z₀) / Complex.sinh (s z)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (-π * I * Complex.cosh (s z₀))⁻¹) := by
     simpa [inv_div] using h_slope2.inv₀ (by
       rw [h_cosh_z₀]
       exact mul_ne_zero (by simp [pi_ne_zero, I_ne_zero]) (zpow_ne_zero n (by norm_num)))
-  have h_lim_eps : Filter.Tendsto (fun z ↦ (1 / 2 : ℂ) * ε * (z - z₀)) (𝓝[≠] z₀) (nhds 0) := by
+  have h_lim_eps : Filter.Tendsto (fun z ↦ (1 / 2 : ℂ) * ε * (z - z₀)) (nhdsWithin z₀ {z₀}ᶜ) (nhds 0) := by
     have h : Filter.Tendsto (fun z => z - z₀) (nhds z₀) (nhds (z₀ - z₀)) :=
       Filter.Tendsto.sub Filter.tendsto_id tendsto_const_nhds
     rw [sub_self] at h
     have h2 := Filter.Tendsto.const_mul ((1 / 2 : ℂ) * ε) h
     rw [mul_zero] at h2
     exact h2.mono_left nhdsWithin_le_nhds
-  have h_lim_cosh : Filter.Tendsto (fun z ↦ Complex.cosh (s z)) (𝓝[≠] z₀) (nhds (Complex.cosh (s z₀))) :=
+  have h_lim_cosh : Filter.Tendsto (fun z ↦ Complex.cosh (s z)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (Complex.cosh (s z₀))) :=
     (by dsimp [s, w]; fun_prop : Continuous (fun z ↦ Complex.cosh (s z))).continuousAt.tendsto.mono_left nhdsWithin_le_nhds
   rw [show (I / (2 * π) : ℂ) = (1 / 2 : ℂ) * (-π * I * Complex.cosh (s z₀))⁻¹ * Complex.cosh (s z₀) + 0 by
     rw [add_zero, mul_inv]
