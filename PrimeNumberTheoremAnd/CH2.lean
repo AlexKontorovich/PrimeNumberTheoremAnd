@@ -409,7 +409,7 @@ noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
 
 @[blueprint
   "Phi-circ-def"
-  (title := "Definition of Phi-circ")
+  (title := "Definition of $\\Phi^{\\pm,\\circ}_\\nu$")
   (statement := /--
   $$\Phi^{\pm,\circ}_\nu(z) := \frac{1}{2} (\coth\frac{w}{2} \pm 1)$$
   where $$w = -2\pi i z + \nu.$$
@@ -420,7 +420,7 @@ noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
 
 @[blueprint
   "Phi-circ-mero"
-  (title := "Phi-circ meromorphic")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ meromorphic")
   (statement := /--
   $$\Phi^{\pm,\circ}_\nu(z)$$ is meromorphic.
   -/)
@@ -448,7 +448,7 @@ lemma sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) 
 
 @[blueprint
   "Phi-circ-poles"
-  (title := "Phi-circ poles")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles")
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z}$.
   -/)
@@ -646,7 +646,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-circ-residues"
-  (title := "Phi-circ residues")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ residues")
   (statement := /--
   The residue of $$\Phi^{\pm,\circ}_\nu(z)$$ at $n - i \nu/2\pi$ is $i/2\pi$.
   -/)
@@ -658,7 +658,7 @@ theorem Phi_circ.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) :
 
 @[blueprint
   "Phi-circ-poles-simple"
-  (title := "Phi-circ poles simple")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles simple")
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are all simple.
   -/)
@@ -670,7 +670,7 @@ theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "B-def"
-  (title := "Definition of B")
+  (title := "Definition of $B^\\pm$")
   (statement := /--
   $B^\pm(s) = s/2 (\coth(s/2) \pm 1)$ with the convention $B^\pm(0) = 1$.
   -/)]
@@ -678,7 +678,7 @@ noncomputable def B (ε : ℝ) (s : ℂ) : ℂ := if s = 0 then 1 else s * (coth
 
 @[blueprint
   "B-cts"
-  (title := "Continuity of $B$ at 0")
+  (title := "Continuity of $B^\\pm$ at $0$")
   (statement := /--
   $B^\pm$ is continuous at $0$.
   -/)
@@ -709,7 +709,7 @@ theorem B.continuous_zero (ε : ℝ) : ContinuousAt (B ε) 0 := by
 
 @[blueprint
   "Phi-star-def"
-  (title := "Definition of Phi-star")
+  (title := "Definition of $\\Phi^{\\pm,\\ast}_\\nu$")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(z) := (B^\pm(w) - B^\pm(v)) / (2\pi i)$$
   where $$w = -2\pi i z + \nu.$$
@@ -720,7 +720,7 @@ noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
 
 @[blueprint
   "Phi-star-zero"
-  (title := "Phi-star at zero")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ at zero")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(0) = 0.$$
   -/)
@@ -784,7 +784,7 @@ lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
 
 @[blueprint
   "Phi-star-mero"
-  (title := "Phi-star meromorphic")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ meromorphic")
   (statement := /--
   $$\Phi^{\pm,\ast}_\nu(z)$$ is meromorphic.
   -/)
@@ -800,7 +800,7 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
 
 @[blueprint
   "Phi-star-poles"
-  (title := "Phi-star poles")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ poles")
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are of the form $n - i \nu/2\pi$ for $n \in \mathbb{Z} \backslash \{0\}$.
   -/)
@@ -812,7 +812,7 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-star-residues"
-  (title := "Phi-star residues")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ residues")
   (statement := /--
   The residue of $$\Phi^{\pm,\ast}_\nu(z)$$ at $n - i \nu/2\pi$ is $-in/2\pi$.
   -/)
@@ -825,7 +825,7 @@ theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
 
 @[blueprint
   "Phi-star-poles-simple"
-  (title := "Phi-star poles simple")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ poles simple")
   (statement := /--
   The poles of $$\Phi^{\pm,\ast}_\nu(z)$$ are all simple.
   -/)
@@ -863,9 +863,9 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
 
 @[blueprint
   "Phi-cancel"
-  (title := "Phi pole cancellation")
+  (title := "$\\Phi^{\\circ}_\\nu \\pm \\Phi^{\\ast}_\\nu$ pole cancellation")
   (statement := /--
-  $\Phi^{\sigma, \circ}_\nu(z) \pm \Phi^{\sigma, \ast}_\nu(z)$ is regular at $\pm 1 - i ν / 2 \pi$.
+  $\Phi^{\sigma, \circ}_\nu(z) \pm \Phi^{\sigma, \ast}_\nu(z)$ is regular at $\pm 1 - i \nu / 2 \pi$.
   -/)
   (proof := /-- The residues cancel out. -/)
   (latexEnv := "lemma")
@@ -876,7 +876,7 @@ theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hε : |ε| = 1) :
 
 @[blueprint
   "phi-pm-def"
-  (title := "Definition of phi-pm")
+  (title := "Definition of $\\varphi^{\\pm}$")
   (statement := /--
   $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \mathrm{sgn}(t) \Phi^{\pm,\ast}_\nu(t) ).$$
   -/)]
@@ -887,11 +887,11 @@ noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
 
 @[blueprint
   "phi-c2-left"
-  (title := "phi is C2 on [-1,0]")
+  (title := "$\\varphi$ is $C^2$ on $[-1,0]$")
   (statement := /--
   $\varphi$ is $C^2$ on $[-1,0]$.
   -/)
-  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = ∌u$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
+  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc (-1) 0) := by
   have h_diff_circ : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
@@ -1014,11 +1014,11 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
 
 @[blueprint
   "phi-c2-right"
-  (title := "phi is C2 on [0,1]")
+  (title := "$\\phi$ is $C^2$ on $[0,1]$")
   (statement := /--
   $\varphi$ is $C^2$ on $[0,1]$.
   -/)
-  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\R$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
+  (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by
   /- Since `Phi_circ` and `Phi_star` have no poles on ℝ (when ν ≠ 0), they are holomorphic on a
@@ -1054,7 +1054,7 @@ theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν
 
 @[blueprint
   "phi-cts"
-  (title := "phi is continuous")
+  (title := "$\\varphi$ is continuous")
   (statement := /--
   $\varphi$ is continuous on $[0,1]$.
   -/)
@@ -1138,7 +1138,7 @@ theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε)
 
 @[blueprint
   "phi-circ-bound-right"
-  (title := "bound on phi-circ-right")
+  (title := "Bound on $\\Phi^{\\pm,\\circ}_\\nu$ from above")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
   -/)
@@ -1208,7 +1208,7 @@ theorem ϕ_circ_bound_right (ν₀ ν₁ ε c : ℝ) (hc : c > -ν₀ / (2 * π)
 
 @[blueprint
   "phi-circ-bound-left"
-  (title := "bound on phi-circ-left")
+  (title := "Bound on $\\Phi^{\\pm,\\circ}_\\nu$ from below")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\circ}_{\nu}(z)| \leq C$.
   -/)
@@ -1263,7 +1263,7 @@ theorem ϕ_circ_bound_left (ν₀ ν₁ ε c : ℝ) (hc : c < -ν₁ / (2 * π))
 
 @[blueprint
   "phi-star-bound-right"
-  (title := "bound on phi-star-right")
+  (title := "Bound on $\\Phi^{\\pm,\\ast}_\\nu$ from above")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c > - \nu_0/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \geq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
   -/)
@@ -1333,7 +1333,7 @@ theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν�
 
 @[blueprint
   "phi-star-bound-left"
-  (title := "bound on phi-star-left")
+  (title := "Bound on $\\Phi^{\\pm,\\ast}_\\nu$ from below")
   (statement := /--
   Let $0 < \nu_0 \leq \nu_1$ and $c < - \nu_1/2\pi$, then there exists $C$ such that for all $\nu \in [\nu_0, \nu_1]$, $\Im z \leq c$ one has $|\Phi^{\pm,\star}_{\nu}(z)| \leq C (|z|+1)$.
   -/)
@@ -1413,7 +1413,7 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
 
 @[blueprint
   "B-plus-mono"
-  (title := "B-plus is increasing")
+  (title := "$B^+$ is increasing")
   (statement := /--
   For real $t$, $B^+(t)$ is increasing.
   -/)
@@ -1493,7 +1493,7 @@ theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
 
 @[blueprint
   "B-minus-mono"
-  (title := "B-minus is decreasing")
+  (title := "$B^-$ is decreasing")
   (statement := /--
   For real $t$, $B^-(t)$ is decreasing.
   -/)
@@ -1595,7 +1595,7 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
 @[blueprint
   "varphi-fourier-ident"
-  (title := "Fourier transform of varphi")
+  (title := "Fourier transform of $\\varphi$")
   (statement := /--
 \[
 \widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1}^{1} \varphi^{\pm}_{\nu}(t)\, e(-tx)\, dt = \int_{-1}^{0} \bigl(\Phi^{\pm,\circ}_{\nu}(t) - \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt + \int_0^1 \bigl(\Phi^{\pm,\circ}_{\nu}(t) + \Phi^{\pm,\star}_{\nu}(t)\bigr) e(-tx)\, dt.
@@ -1628,7 +1628,7 @@ theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
 
 @[blueprint
   "B-affine-periodic"
-  (title := "B affine periodic")
+  (title := "$B^\\pm$ affine periodic")
   (statement := /-- For any integer $m$,
 $$ B^\pm(w(z-m)) = B^\pm(w(z) + 2\pi i m) = B^\pm(w(z)) + 2\pi i m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
@@ -1664,7 +1664,7 @@ theorem B_affine_periodic (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) (m : ℤ)
 
 @[blueprint
   "phi_star-affine-periodic"
-  (title := "Phi star affine periodic")
+  (title := "$\\Phi^{\\pm,\\ast}_\\nu$ affine periodic")
   (statement := /-- For any integer $m$,
 $$ \Phi^{\pm,\star}_{\nu}(z-m) = \Phi^{\pm,\star}_{\nu}(z) + m\, \Phi^{\pm,\circ}_{\nu}(z). $$
     -/)
@@ -1793,7 +1793,7 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx
 
 @[blueprint
   "fourier-formula-neg"
-  (title := "Fourier formula for negative x")
+  (title := "Fourier formula for negative $x$")
   (statement := /--
 Let $\nu > 0$, $x < 0$. Then
 $$
@@ -1809,7 +1809,7 @@ theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 
 
 @[blueprint
   "fourier-formula-pos"
-  (title := "Fourier formula for positive x")
+  (title := "Fourier formula for positive $x$")
   (statement := /--
 Let $\nu > 0$, $x > 0$. Then
 $$
@@ -1825,7 +1825,7 @@ theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 
 
 @[blueprint
   "fourier-real"
-  (title := "Fourier transform of varphi real")
+  (title := "Fourier transform of $\\varphi$ real")
   (statement := /--
 $\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
   -/)
@@ -1836,13 +1836,13 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
 
 @[blueprint
   "Inu_def"
-  (title := "Definition of I_nu")
+  (title := "Definition of $I_\\nu$")
   (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}. -/)]
 noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
 
 @[blueprint
   "Inu_bounds"
-  (title := "Bound for I nu")
+  (title := "Bound for $I_\\nu$")
   (statement := /--
 For all $x \in \mathbb{R}$,
 $$
@@ -1856,7 +1856,7 @@ theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
 
 @[blueprint
   "varphi-abs"
-  (title := "varphi absolutely continuous")
+  (title := "$\\varphi$ absolutely continuous")
   (statement := /-- The function $\varphi_\nu^\pm$ is absolutely continuous. -/)
   (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is absolutely continuous because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
 -/)
@@ -1866,7 +1866,7 @@ theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm
 
 @[blueprint
   "varphi-integ"
-  (title := "varphi integrable")
+  (title := "$\\varphi$ integrable")
   (statement := /-- The function $\varphi_\nu^\pm$ is integrable. -/)
   (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
 -/)
@@ -1876,7 +1876,7 @@ theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) 
 
 @[blueprint
   "varphi-deriv-integ"
-  (title := "varphi' integrable")
+  (title := "$\\varphi'$ integrable")
   (statement := /-- The function $(\varphi_\nu^\pm)'$ is integrable. -/)
   (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $(\varphi_\nu^\pm)'$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
 -/)
@@ -1886,7 +1886,7 @@ theorem varphi_deriv_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (deriv (
 
 @[blueprint
   "varphi-deriv-tv"
-  (title := "varphi' total variation")
+  (title := "$\\varphi'$ total variation")
   (statement := /-- The function $(\varphi_\nu^\pm)'$ has finite total variation. -/)
   (proof := /-- Since $(\varphi_\nu^\pm)'$ is $C^1$ on $[-1, 0]$ and on $[0, 1]$, the $L^1$ norm of $(\varphi_\nu^\pm)''$ on each of these intervals is finite, and so $(\varphi_\nu^\pm)'$ has finite total variation on each of them. As $(\varphi_\nu^\pm)'$ has right and left limits at $-1$, $0$ and $1$, the jumps at those points are finite, and so their contribution to $\|(\varphi_\nu^\pm)'\|_{\mathrm{TV}}$ is finite.
 /
@@ -1897,7 +1897,7 @@ theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (de
 
 @[blueprint
   "varphi-fourier-decay"
-  (title := "varphi Fourier decay")
+  (title := "$\\varphi$ Fourier decay")
   (statement := /-- For $|x| \to \infty$, $\widehat{\varphi_\nu^\pm}(x) = O(1/x^2)$. -/)
   (proof := /-- For $f$ absolutely continuous with $f, f' \in L^1(\mathbb{R})$, integration by parts gives us that $\hat{f}(x) = \widehat{f'}(x)/(2\pi i x)$. If $f' \in L^1(\mathbb{R})$ with $\|f'\|_{\mathrm{TV}} < \infty$, then, again by integration by parts, $|\widehat{f'}(x)| \leq |f'|_{\mathrm{TV}}/(2\pi x)$. We are done by the preceding lemmas. -/)
   (latexEnv := "corollary")]
@@ -1906,7 +1906,7 @@ theorem varphi_fourier_decay (ν ε : ℝ) (hlam : ν ≠ 0) : IsBigO Filter.atT
 
 @[blueprint
   "varphi-fourier-minus-error"
-  (title := "L1 error bound for Fourier transform of varphi minus")
+  (title := "$L^1$ error bound for Fourier transform of $\\varphi^-$")
   (statement := /--
 \[
 \int_{-\infty}^{\infty} (I_\nu(x) - \hat{\varphi_\nu^-}(x))\, dx = \frac{1}{\nu} - \frac{1}{e^\nu - 1}.
@@ -1933,7 +1933,7 @@ theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
 
 @[blueprint
   "varphi-fourier-plus-error"
-  (title := "L1 error bound for Fourier transform of varphi plus")
+  (title := "$L^1$ error bound for Fourier transform of $\\varphi^+$")
   (statement := /--
 \[
 \int_{-\infty}^{\infty} (\hat{\varphi_\nu^+}(x) - I_\nu(x))\, dx = \frac{1}{1 - e^{-\nu}} - \frac{1}{\nu}.
