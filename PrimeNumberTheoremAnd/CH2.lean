@@ -899,7 +899,48 @@ theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (discussion := 1073)]
 theorem Phi_star.residue (ν ε : ℝ) (hν : ν > 0) (n : ℤ) (hn : n ≠ 0) :
     (nhdsWithin (n - I * ν / (2 * π)) {n - I * ν / (2 * π)}ᶜ).Tendsto
-      (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by sorry
+      (fun z ↦ (z - (n - I * ν / (2 * π))) * Phi_star ν ε z) (nhds (-I * n / (2 * π))) := by
+  set z₀ : ℂ := n - I * ν / (2 * π)
+  set w : ℂ → ℂ := fun z ↦ -2 * π * I * z + ν
+  have hw_z₀ : w z₀ = -2 * π * I * n := by
+    dsimp [w, z₀]
+    field_simp [pi_ne_zero]
+    ring_nf
+    simp [I_sq]
+  have h_circ_res := Phi_circ.residue ν ε hν n
+  have h_w_lim : Filter.Tendsto w (nhdsWithin z₀ {z₀}ᶜ) (nhds (w z₀)) := by
+    apply ContinuousAt.continuousWithinAt
+    unfold w
+    fun_prop
+  have h_const_lim : Filter.Tendsto (fun z ↦ (z - z₀) * B ε ν) (nhdsWithin z₀ {z₀}ᶜ) (nhds 0) := by
+    have h : Filter.Tendsto (fun z => z - z₀) (nhds z₀) (nhds (z₀ - z₀)) :=
+      Filter.Tendsto.sub Filter.tendsto_id tendsto_const_nhds
+    rw [sub_self] at h
+    have h2 := Filter.Tendsto.mul_const (B ε ν) h
+    rw [zero_mul] at h2
+    exact h2.mono_left nhdsWithin_le_nhds
+  rw [show (-I * n / (2 * π) : ℂ) = (1 / (2 * π * I)) * (w z₀ * (I / (2 * π)) - 0) by
+    rw [hw_z₀]
+    have hpi : (π : ℂ) ≠ 0 := by simp [pi_ne_zero]
+    field_simp [hpi, I_ne_zero]
+    ring_nf]
+  refine Filter.Tendsto.congr' ?_ (((h_w_lim.mul h_circ_res).sub h_const_lim).const_mul (1 / (2 * π * I)))
+  have hw_cont : ContinuousAt w z₀ := by fun_prop
+  have hw_z₀_ne_zero_local : w z₀ ≠ 0 := by
+    rw [hw_z₀]
+    have hpi : (π : ℂ) ≠ 0 := by simp [pi_ne_zero]
+    intro hc
+    apply hn
+    apply_fun (fun x => x / (-2 * π * I)) at hc
+    simpa [hpi, I_ne_zero] using hc
+  filter_upwards [nhdsWithin_le_nhds (hw_cont.eventually_ne hw_z₀_ne_zero_local)] with z hz
+  have hB : B ε (w z) = w z * (coth (w z / 2) + ε) / 2 := by
+    unfold B; split_ifs with h_branch
+    · exact False.elim (hz h_branch)
+    · rfl
+  dsimp only [Phi_star, Phi_circ]
+  rw [hB]
+  ring
 
 @[blueprint
   "Phi-star-poles-simple"
