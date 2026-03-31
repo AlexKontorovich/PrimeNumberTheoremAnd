@@ -719,7 +719,32 @@ theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
   (latexEnv := "lemma")
   (discussion := 1070)]
 theorem Phi_circ.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by sorry
+    meromorphicOrderAt (Phi_circ ν ε) z = -1 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by
+  constructor
+  · exact fun h ↦ (Phi_circ.poles ν ε hν z).mp (h ▸ by decide)
+  · rintro ⟨n, rfl⟩
+    set z₀ := (n : ℂ) - I * ν / (2 * π)
+    have hsub : MeromorphicAt (· - z₀ : ℂ → ℂ) z₀ := by fun_prop
+    have hf : MeromorphicAt (Phi_circ ν ε) z₀ := (Phi_circ.meromorphic ν ε).meromorphicAt
+    have heq : (fun z ↦ (z - z₀) * Phi_circ ν ε z) =ᶠ[nhdsWithin z₀ {z₀}ᶜ] ((· - z₀) * Phi_circ ν ε) :=
+      Filter.Eventually.of_forall fun _ ↦ rfl
+    have hL : (I : ℂ) / (2 * ↑π) ≠ 0 := by
+      apply div_ne_zero I_ne_zero
+      exact mul_ne_zero two_ne_zero (ofReal_ne_zero.mpr pi_ne_zero)
+    have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_circ ν ε) z₀ = 0 :=
+      (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
+        ⟨_, hL, (Phi_circ.residue ν ε hν n).congr' heq⟩
+    have hord₁ : meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) := by
+      rw [meromorphicOrderAt_eq_int_iff hsub]
+      exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
+    rw [meromorphicOrderAt_mul hsub hf, hord₁] at hord₀
+    obtain ⟨m, hm⟩ := WithTop.ne_top_iff_exists.mp
+      (by rintro h; simp [h] at hord₀ : meromorphicOrderAt (Phi_circ ν ε) z₀ ≠ ⊤)
+    rw [← hm] at hord₀ ⊢
+    have h1 : (↑(1 : ℤ) + ↑m : WithTop ℤ) = ↑(1 + m : ℤ) := by push_cast; ring_nf
+    rw [h1] at hord₀
+    have : 1 + m = 0 := by exact_mod_cast hord₀
+    change (↑m : WithTop ℤ) = ↑(-1 : ℤ); congr 1; omega
 
 @[blueprint
   "B-def"
