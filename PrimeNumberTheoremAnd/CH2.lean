@@ -711,7 +711,7 @@ theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
 
 @[blueprint
   "Phi-circ-poles-simple"
-  (title := "Phi-circ poles simple")
+  (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles simple")
   (statement := /--
   The poles of $$\Phi^{\pm,\circ}_\nu(z)$$ are all simple.
   -/)
