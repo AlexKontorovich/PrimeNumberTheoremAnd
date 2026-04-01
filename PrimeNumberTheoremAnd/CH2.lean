@@ -1684,8 +1684,73 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
   (discussion := 1079)]
 theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
     𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
-    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
-    sorry
+    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) :=
+  calc 𝓕 (ϕ_pm ν ε) x
+    _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
+      -- Expand the Fourier transform definition and relate `fourierChar` to our `E`
+      sorry
+    _ = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
+      -- The function `ϕ_pm` is supported on `[-1, 1]`, so we restrict the integration domain
+      sorry
+    _ = (∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x)) +
+        (∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x)) := by
+      -- Split the integral exactly at zero, dividing `[-1, 1]` into `[-1, 0]` and `[0, 1]`
+      sorry
+    _ = (∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
+        (∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
+      -- Split the goal into solving for the left integral and right integral separately
+      congr 1
+      · -- On `[-1, 0]`, almost everywhere (except at `0`), `t < 0` implies `t.sign = -1`
+        -- Thus `ϕ_pm` simplifies to `Phi_circ - Phi_star`.
+        -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = -1`
+        sorry
+      · -- On `[0, 1]`, almost everywhere (except at `0`), `t > 0` implies `t.sign = 1`
+        -- Thus `ϕ_pm` simplifies to `Phi_circ + Phi_star`.
+        -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = 1`
+        sorry
+    _ = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
+        ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
+      -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
+      -- containing the second integral as a constant term. One would need to pull the
+      -- second integral out, which works since `Set.Icc (-1) 0` has measure 1.
+      sorry
+  -- -- `𝓕` corresponds to `fourierIntegral` which, for real functions, is the integral of `f(t) * e(-2πi * t * x)`
+  -- have h_fourier : 𝓕 (ϕ_pm ν ε) x = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
+  --   -- Unfold the Fourier transform definition and relate `fourierChar` to our `E`
+  --   sorry
+
+  -- -- The function `ϕ_pm` is supported on `[-1, 1]`, so we can restrict the integration domain
+  -- have h_support : ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
+  --   -- Use the fact that `ϕ_pm ν ε t = 0` for `t ∉ [-1, 1]` to discard the complement of `[-1, 1]`
+  --   sorry
+
+  -- -- Split the integral exactly at zero, dividing `[-1, 1]` into `[-1, 0]` and `[0, 1]`
+  -- have h_split : ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) =
+  --     (∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x)) +
+  --     (∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x)) := by
+  --   -- Use `integral_add_adjacent_intervals` on the intervals `[-1, 0]` and `[0, 1]`
+  --   sorry
+
+  -- -- On `[-1, 0]`, almost everywhere (except at `0`), `t < 0` implies `t.sign = -1`
+  -- -- Thus `ϕ_pm` simplifies to `Phi_circ - Phi_star`
+  -- have h_left : ∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x) =
+  --     ∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x) := by
+  --   -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = -1`
+  --   sorry
+
+  -- -- On `[0, 1]`, almost everywhere (except at `0`), `t > 0` implies `t.sign = 1`
+  -- -- Thus `ϕ_pm` simplifies to `Phi_circ + Phi_star`
+  -- have h_right : ∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x) =
+  --     ∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x) := by
+  --   -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = 1`
+  --   sorry
+
+  -- -- Combine everything to complete the proof
+  -- rw [h_fourier, h_support, h_split, h_left, h_right]
+  -- -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
+  -- -- containing the second integral as a constant term. One would need to pull the
+  -- -- second integral out, which works since `Set.Icc (-1) 0` has measure 1.
+  -- sorry
 
 @[blueprint
   "shift-upwards"
