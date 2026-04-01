@@ -1101,6 +1101,16 @@ lemma h_no_zero {ν : ℝ} (hlam : ν ≠ 0) : ∀ t ∈ Set.Icc (0 : ℝ) 1,
   <;> norm_num [Complex.ext_iff] at hk <;> ring_nf at hk <;> norm_num at hk
   <;> grind
 
+lemma h_sinh_ne_zero (ν : ℝ) (hlam : ν ≠ 0) : ∀ t : ℝ,
+      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
+  norm_num [Complex.sinh, Complex.ext_iff]
+  norm_num [Complex.exp_re, Complex.exp_im, neg_div]
+  intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
+    mul_eq_mul_right_iff, exp_eq_exp]
+  by_cases h : Real.sin (2 * Real.pi * t / 2) = 0
+  · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
+  · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
+
 lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
   refine ContDiff.contDiffOn ?_
   suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
@@ -1110,15 +1120,6 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
     unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
     unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
   refine contDiff_iff_contDiffAt.2 fun t => ?_
-  have h_sinh_ne_zero : ∀ t : ℝ,
-      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-    norm_num [Complex.sinh, Complex.ext_iff]
-    norm_num [Complex.exp_re, Complex.exp_im, neg_div]
-    intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
-      mul_eq_mul_right_iff, exp_eq_exp]
-    by_cases h : Real.sin (2 * Real.pi * t / 2) = 0
-    · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
-    · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
   have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
       ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
     apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
@@ -1127,6 +1128,7 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
     · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
         (Complex.differentiable_exp.comp (differentiable_id.neg))) _
     · norm_num
+    apply h_sinh_ne_zero ν hlam
   exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
     ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
     Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
@@ -1689,28 +1691,31 @@ theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by
   · next h => subst h; unfold B; simp
   · next ht =>
     unfold B coth
-    have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht
-    simp only [ht', ↓reduceIte, one_div]
-    rw [show ((-1 : ℝ) : ℂ) = -1 from by push_cast; ring]
-    conv_lhs => rw [show (t : ℂ) / 2 = ((t / 2 : ℝ) : ℂ) from by push_cast; ring]
-    rw [show Complex.tanh ((t / 2 : ℝ) : ℂ) = ((Real.tanh (t / 2) : ℝ) : ℂ) from by
-        apply Complex.ext <;> simp,
-      show ((Real.tanh (t / 2) : ℝ) : ℂ)⁻¹ = ((Real.tanh (t / 2))⁻¹ : ℝ) from by push_cast; ring,
-      show (↑t * (↑(Real.tanh (t / 2))⁻¹ + (-1 : ℂ)) / 2 : ℂ) =
-        ((t * ((Real.tanh (t / 2))⁻¹ + (-1 : ℝ)) / 2 : ℝ) : ℂ) from by push_cast; ring]
-    simp only [Complex.ofReal_re]; rw [Real.tanh_eq]
-    have h2 : rexp (t / 2) - rexp (-(t / 2)) ≠ 0 := by
-      intro h; exact ht (by linarith [Real.exp_injective (show rexp (t/2) = rexp (-(t/2)) by linarith)])
-    have h3 : rexp t - 1 ≠ 0 := by
-      intro h; exact ht ((Real.exp_eq_one_iff t).mp (by linarith))
-    rw [inv_div]; field_simp
-    nlinarith [show rexp t = rexp (t / 2) * rexp (t / 2) by rw [← Real.exp_add]; ring_nf,
-      show rexp (t / 2) * rexp (-(t / 2)) = 1 by rw [← Real.exp_add]; simp,
+    have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht        have h_cont_E : ContinuousOn (fun t:ℝ ↦ E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
+          apply Continuous.continuousOn
+          unfold E
+          fun_prop
+        have h_eq : Set.EqOn (fun t:ℝ ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (fun t:ℝ ↦ ϕ_pm ν ε t * E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
+          intro t ht
+          dsimp [ϕ_pm]
+          have h_bounds : ¬ (t < -1 ∨ 1 < t) := by push_neg; constructor <;> linarith [ht.1, ht.2]
+          rw [if_neg h_bounds]
+          rcases lt_or_eq_of_le ht.2 with h_neg | rfl
+          · rw [Real.sign_of_neg h_neg]
+            push_cast
+            ring
+          · simp [Real.sign_zero, Phi_star_zero, sub_zero, zero_mul, add_zero]
+        have h_cont_A : ContinuousOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
+          ContinuousOn.congr (((ϕ_continuous ν ε hlam).continuousOn).mul h_cont_E) h_eq.symm
       Real.exp_pos (t/2), Real.exp_pos (-(t/2))]
 
 theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
+
+lemma ContDiff.div_real_complex {f g : ℝ → ℂ} {n} (hf : ContDiff ℝ n f) (hg : ContDiff ℝ n g) (h0 : ∀ x, g x ≠ 0) :
+    ContDiff ℝ n (fun x => f x / g x) :=
+  hf.mul (hg.inv h0)
 
 @[blueprint
   "varphi-fourier-ident"
@@ -1754,7 +1759,118 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
       -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
       -- containing the second integral as a constant term. One would need to pull the
       -- second integral out, which works since `Set.Icc (-1) 0` has measure 1.
-      sorry
+      have h_int_A : IntegrableOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
+        -- Proof that the left term `A(t)` is integrable over `[-1, 0]`.
+        -- Since `ν ≠ 0`, the poles of `Phi_circ` and `Phi_star` are off the real axis.
+        -- Thus the integrand is continuous on the compact set `[-1, 0]`, hence `IntegrableOn`.
+        have hc_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := by
+          -- The non-vanishing of the denominator sinh function on the real line.
+          -- have h_sinh_ne_zero : ∀ t : ℝ, Complex.sinh ((-2 * π * I * t + ν) / 2) ≠ 0 := by
+          --   intro t h
+          --   rw [sinh_zero_iff] at h
+          --   obtain ⟨k, hk⟩ := h
+          --   have hk_re := congr_arg Complex.re hk
+          --   simp only [Complex.add_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+          --             Complex.I_re, Complex.I_im, Complex.int_cast_re, Complex.int_cast_im,
+          --             mul_zero, zero_mul, sub_zero, add_zero] at hk_re
+          --   -- hk_re should now be: ν / 2 = 0
+          --   linarith [hlam]
+          --   simp [Complex.re_div, Complex.re_mul, Complex.re_I, Complex.im_I, Complex.im_ofReal] at hk_re
+          --   exact hlam (by linarith)
+          -- The function `Phi_circ` is smooth everywhere on the real axis due to the non-vanishing denominator.
+          have h_diff_circ : ContDiff ℝ 2 (fun t:ℝ ↦ Phi_circ ν ε t) := by
+            unfold Phi_circ coth
+            simp only [Complex.tanh_eq_sinh_div_cosh]
+            apply ContDiff.mul contDiff_const
+            apply ContDiff.add _ contDiff_const
+            apply ContDiff.div_real_complex contDiff_const
+            · apply ContDiff.div_real_complex
+              · exact (Complex.contDiff_sinh.restrict_scalars ℝ).comp
+                  (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) 2)
+              · exact (Complex.contDiff_cosh.restrict_scalars ℝ).comp
+                  (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) 2)
+              · intro t
+                -- cosh is never zero on the real axis
+                have h_cosh_re : ((-2 * π * I * t + ν) / 2).re = ν / 2 := by
+                  simp [Complex.add_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im]
+                have h_cosh_zero_iff (ζ : ℂ) : Complex.cosh ζ = 0 ↔ (∃ k : ℤ, ζ = ((k : ℂ) + 1 / 2) * π * I) := by
+                  rw [Complex.cosh, div_eq_zero_iff, add_eq_zero_iff_eq_neg]
+                  · constructor
+                    · intro h
+                      rw [← Complex.exp_I_pi, ← Complex.exp_add, Complex.exp_eq_exp_iff_exists_int] at h
+                      obtain ⟨k, hk⟩ := h
+                      use k
+                      have : ζ = (-ζ + I * π) + ↑k * (2 * π * I) := hk
+                      linear_combination hk / 2
+                    · rintro ⟨k, hk⟩
+                      rw [hk, ← Complex.exp_I_pi, ← Complex.exp_add, Complex.exp_eq_exp_iff_exists_int]
+                      use k; ring
+                intro h_zero
+                rcases (h_cosh_zero_iff.mp h_zero) with ⟨k, hk⟩
+                have hk_re := congr_arg Complex.re hk
+                simp [Complex.re_div, Complex.re_mul, Complex.re_I, Complex.im_I, Complex.ofReal_re, Complex.im_ofReal] at hk_re
+                rw [h_cosh_re] at hk_re
+                exact hlam (by linarith)
+            · -- tanh is non-zero
+              intro t
+              rw [Complex.tanh_eq_sinh_div_cosh, div_ne_zero_iff]
+              refine ⟨h_sinh_ne_zero ν hlam t, ?_⟩
+              -- cosh non-zero
+              intro h_zero
+              have h_arg_re : ((-2 * π * I * t + ν) / 2).re = ν / 2 := by
+                simp [Complex.add_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im]
+                ring
+              have h_zero' := h_cosh_zero_iff.mp h_zero
+              rcases h_zero' with ⟨k, hk⟩
+              have hk_re := congr_arg Complex.re hk
+              simp [h_arg_re, Complex.re_div, Complex.re_mul, Complex.re_I, Complex.im_I, Complex.ofReal_re, Complex.im_ofReal] at hk_re
+              exact hlam (by linarith)
+          exact h_diff_circ.contDiffOn
+
+          -- Sketch: Deconstruct Phi_circ into coth(w/2) where w is linear.
+          -- Using `contDiff_iff_contDiffAt` and composition rules, the proof hinges on h_sinh_ne_zero.
+        have h_cont_circ : ContinuousOn (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) :=
+          hc_left.continuousOn
+        have hs_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := by
+          -- `Phi_star` is built from the entire function `B` (shifted and unweighted).
+          -- Smoothness follows from the analyticity of the underlying meromorphic components on the real line.
+          have h_diff_star : ContDiff ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) := by
+            -- Sketch: Mirror the global smoothness proof of `Phi_circ`.
+            -- Show that the shifted B function is $C^2$ by using the smoothness of its meromorphic pieces away from poles.
+            -- This involves unfolding `Phi_star` and `B`, and applying the same composition rules as in `h_diff_circ`.
+            sorry
+          exact h_diff_star.contDiffOn
+        have h_cont_star : ContinuousOn (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) :=
+          hs_left.continuousOn
+        have h_cont_E : ContinuousOn (fun t:ℝ ↦ E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
+          -- Sketch: Combine continuity of scalar multiplication and the complex exponential.
+          -- Use `fun_prop` or `Continuous.continuousOn` to handle the composition.
+          sorry
+        have h_cont_A : ContinuousOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
+          -- Structurally applies the topological equivalencies exactly bridging previous continuous bounds.
+          (h_cont_circ.sub h_cont_star).mul h_cont_E
+        -- Convert unified structural continuity over the compact closure onto direct integration boundaries
+        -- Built effectively upon `ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A`
+        exact ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A
+      have h_int_B : IntegrableOn (fun (t:ℝ) ↦ ∫ s in Set.Icc 0 (1:ℝ), (Phi_circ ν ε s + Phi_star ν ε s) * E (-s * x)) (Set.Icc (-1:ℝ) 0) := by
+        -- Proof that the right nested integral (which is a constant with respect to `t`) is integrable.
+        -- Constant mappings uniformly integrate successfully bounded across structurally finite measures (e.g., intervals).
+        exact integrableOn_const measure_Icc_lt_top.ne
+      -- Distribute the integral over the addition on the RHS using the two integrability proofs.
+      rw [integral_add h_int_A h_int_B]
+      -- The goal is now `A + B = A + ∫ B`. Match the addition to reduce the goal to `B = ∫ B`.
+      congr 1
+      -- Focus on proving `B = ∫ B`.
+      symm
+      have h_meas : volume.real (Set.Icc (-1:ℝ) 0) = 1 := by
+        -- The Lebesgue measure of the interval `[-1, 0]` is `0 - (-1) = 1`.
+        -- Often manageable directly via `norm_num`.
+        simp
+      -- Evaluate the integral of the constant term over `[-1, 0]` natively.
+      -- This evaluates to `meas • B`, which is `1 • B = B`.
+      -- rw [set_integral_const, h_meas, one_smul]
+
+      rw [setIntegral_const, h_meas, one_smul]
   -- -- `𝓕` corresponds to `fourierIntegral` which, for real functions, is the integral of `f(t) * e(-2πi * t * x)`
   -- have h_fourier : 𝓕 (ϕ_pm ν ε) x = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
   --   -- Unfold the Fourier transform definition and relate `fourierChar` to our `E`
