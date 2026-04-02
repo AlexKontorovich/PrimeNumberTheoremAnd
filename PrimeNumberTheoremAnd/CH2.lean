@@ -1696,22 +1696,23 @@ theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by
   · next h => subst h; unfold B; simp
   · next ht =>
     unfold B coth
-    have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht        have h_cont_E : ContinuousOn (fun t:ℝ ↦ E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
-          apply Continuous.continuousOn
-          unfold E
-          fun_prop
-        have h_eq : Set.EqOn (fun t:ℝ ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (fun t:ℝ ↦ ϕ_pm ν ε t * E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
-          intro t ht
-          dsimp [ϕ_pm]
-          have h_bounds : ¬ (t < -1 ∨ 1 < t) := by push_neg; constructor <;> linarith [ht.1, ht.2]
-          rw [if_neg h_bounds]
-          rcases lt_or_eq_of_le ht.2 with h_neg | rfl
-          · rw [Real.sign_of_neg h_neg]
-            push_cast
-            ring
-          · simp [Real.sign_zero, Phi_star_zero, sub_zero, zero_mul, add_zero]
-        have h_cont_A : ContinuousOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
-          ContinuousOn.congr (((ϕ_continuous ν ε hlam).continuousOn).mul h_cont_E) h_eq.symm
+    have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht
+    simp only [ht', ↓reduceIte, one_div]
+    rw [show ((-1 : ℝ) : ℂ) = -1 from by push_cast; ring]
+    conv_lhs => rw [show (t : ℂ) / 2 = ((t / 2 : ℝ) : ℂ) from by push_cast; ring]
+    rw [show Complex.tanh ((t / 2 : ℝ) : ℂ) = ((Real.tanh (t / 2) : ℝ) : ℂ) from by
+        apply Complex.ext <;> simp,
+      show ((Real.tanh (t / 2) : ℝ) : ℂ)⁻¹ = ((Real.tanh (t / 2))⁻¹ : ℝ) from by push_cast; ring,
+      show (↑t * (↑(Real.tanh (t / 2))⁻¹ + (-1 : ℂ)) / 2 : ℂ) =
+        ((t * ((Real.tanh (t / 2))⁻¹ + (-1 : ℝ)) / 2 : ℝ) : ℂ) from by push_cast; ring]
+    simp only [Complex.ofReal_re]; rw [Real.tanh_eq]
+    have h2 : rexp (t / 2) - rexp (-(t / 2)) ≠ 0 := by
+      intro h; exact ht (by linarith [Real.exp_injective (show rexp (t/2) = rexp (-(t/2)) by linarith)])
+    have h3 : rexp t - 1 ≠ 0 := by
+      intro h; exact ht ((Real.exp_eq_one_iff t).mp (by linarith))
+    rw [inv_div]; field_simp
+    nlinarith [show rexp t = rexp (t / 2) * rexp (t / 2) by rw [← Real.exp_add]; ring_nf,
+      show rexp (t / 2) * rexp (-(t / 2)) = 1 by rw [← Real.exp_add]; simp,
       Real.exp_pos (t/2), Real.exp_pos (-(t/2))]
 
 theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
@@ -1738,144 +1739,66 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
     ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
   calc 𝓕 (ϕ_pm ν ε) x
     _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
-      -- Expand the Fourier transform definition and relate `fourierChar` to our `E`
       dsimp [FourierTransform.fourier, VectorFourier.fourierIntegral]
-      -- dsimp [fourierChar]
-      -- Reduce to pointwise equality: both sides are integrals over ℝ of a.e. equal functions.
-      -- integral_congr_ae : f =ᵐ[μ] g → ∫ x, f x ∂μ = ∫ x, g x ∂μ
       apply MeasureTheory.integral_congr_ae
       filter_upwards [] with v
-      -- ⊢ 𝐞 (-(x * (starRingEnd ℝ) v)) • ϕ_pm ν ε v = ϕ_pm ν ε v * E (-↑v * ↑x)
-
-      -- (starRingEnd ℝ) v = v : ℝ has TrivialStar, so star = id.
-      -- ⚠ uncertain name: `starRingEnd_apply` unfolds to `star`, then `star_trivial` closes.
       simp only [starRingEnd_apply, star_trivial, E, Real.fourierChar, AddChar.coe_mk,
            Circle.smul_def, smul_eq_mul,
            Circle.coe_exp]
-        -- ⊢ cexp (↑(2 * π * -(x * v)) * I) * ϕ_pm ν ε v
-        --   = cexp (2 * ↑π * I * ↑(-(x * v))) * ϕ_pm ν ε v
-        -- The ϕ factors agree; the exp arguments are equal in ℂ after pushing casts through
-        -- ℝ→ℂ and rearranging by commutativity/associativity.
       push_cast
       ring_nf
     _ = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
-      -- The function `ϕ_pm` is supported on `[-1, 1]`, so we restrict the integration domain
-
       apply (setIntegral_eq_integral_of_forall_compl_eq_zero ?_).symm
       intro t ht
       unfold ϕ_pm
       split_ifs with h
       · exact (ht (Set.mem_Icc.mpr h)).elim
       · rw [zero_mul]
-
     _ = (∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x)) +
         (∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x)) := by
-      -- Split the integral exactly at zero, dividing `[-1, 1]` into `[-1, 0]` and `[0, 1]`
-      -- Rewrite the LHS domain: Icc(-1,1) = Icc(-1,0) ∪ Icc(0,1)
-      -- `Set.Icc_union_Icc_eq_Icc` (h₁ : a ≤ b) (h₂ : b ≤ c) : Icc a b ∪ Icc b c = Icc a c ✓
-      -- Rewrite Icc(-1,1) = Icc(-1,0) ∪ Icc(0,1)
       conv_lhs =>
         rw [show Set.Icc (-1 : ℝ) 1 = Set.Icc (-1) 0 ∪ Set.Icc 0 1 from
           (Set.Icc_union_Icc_eq_Icc (by norm_num) (by norm_num)).symm]
-
-      -- Split the integral over the ae-disjoint union
       refine MeasureTheory.integral_union_ae ?_ nullMeasurableSet_Icc ?_ ?_
-
-      · -- ⊢ AEDisjoint volume (Icc (-1) 0) (Icc 0 1)
-        -- Intersection is the singleton {0}, which has measure zero
-        have hcap : Set.Icc (-1 : ℝ) 0 ∩ Set.Icc 0 1 = {0} := by
+      · have hcap : Set.Icc (-1 : ℝ) 0 ∩ Set.Icc 0 1 = {0} := by
           ext t; simp only [Set.mem_inter_iff, Set.mem_Icc, Set.mem_singleton_iff]
           constructor
           · rintro ⟨⟨-, h1⟩, h2, -⟩; linarith
           · rintro rfl; norm_num
         simp [AEDisjoint, hcap]
-
-      · -- ⊢ IntegrableOn (fun t => ϕ_pm ν ε t * E (-↑t * ↑x)) (Icc (-1) 0)
-        apply ContinuousOn.integrableOn_compact isCompact_Icc
-        apply ContinuousOn.mul
-        · exact (ϕ_continuous ν ε hlam).continuousOn
-        · exact (cont_E x).continuousOn
-
-      · -- ⊢ IntegrableOn (fun t => ϕ_pm ν ε t * E (-↑t * ↑x)) (Icc 0 1)
-        apply ContinuousOn.integrableOn_compact isCompact_Icc
-        apply ContinuousOn.mul
-        · exact (ϕ_continuous ν ε hlam).continuousOn
-        · exact (cont_E x).continuousOn
+      · exact ContinuousOn.integrableOn_compact isCompact_Icc
+          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
+      · exact ContinuousOn.integrableOn_compact isCompact_Icc
+          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
     _ = (∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
         (∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
-      -- Split the goal into solving for the left integral and right integral separately
       congr 1
-      · -- On `[-1, 0]`, almost everywhere (except at `0`), `t < 0` implies `t.sign = -1`
-        -- Thus `ϕ_pm` simplifies to `Phi_circ - Phi_star`.
-        -- Apply `setIntegral_congr_fun` and use the definition of `ϕ_pm` with `t.sign = -1`
-        have h_eq : Set.EqOn (fun t => ϕ_pm ν ε t * E (-t * x))
-            (fun t => (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1) 0) := by
-          -- To be proven via case analysis on t ∈ (-1, 0) vs t = 0, using Phi_star_zero
-          intro t ht
-          dsimp [ϕ_pm]
-          have h_supp : -1 ≤ t ∧ t ≤ 1 := ⟨ht.1, by linarith [ht.2]⟩
-          rw [if_pos h_supp]
-          rcases ht.2.lt_or_eq with h_neg | rfl
-          · rw [Real.sign_of_neg h_neg]
-            push_cast
-            ring
-          · simp [Real.sign_zero, Phi_star_zero ν ε]
-        exact setIntegral_congr_fun measurableSet_Icc h_eq
-      · -- On `[0, 1]`, almost everywhere (except at `0`), `t > 0` implies `t.sign = 1`
-        -- Thus `ϕ_pm` simplifies to `Phi_circ + Phi_star`.
-        -- Apply `setIntegral_congr_fun` and use the definition of `ϕ_pm` with `t.sign = 1`
-        have h_eq : Set.EqOn (fun t => ϕ_pm ν ε t * E (-t * x))
-            (fun t => (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) (Set.Icc 0 1) := by
-          -- To be proven via case analysis on t ∈ (0, 1) vs t = 0, using Phi_star_zero
-          intro t ht
-          dsimp [ϕ_pm]
-          have h_supp : -1 ≤ t ∧ t ≤ 1 := ⟨by linarith [ht.1], ht.2⟩
-          rw [if_pos h_supp]
-          rcases ht.1.lt_or_eq with h_pos | rfl
-          · rw [Real.sign_of_pos h_pos]
-            push_cast
-            ring
-          · simp [Real.sign_zero, Phi_star_zero ν ε]
-        exact setIntegral_congr_fun measurableSet_Icc h_eq
+      · apply setIntegral_congr_fun measurableSet_Icc
+        intro t ht
+        dsimp [ϕ_pm]
+        rw [if_pos ⟨ht.1, by linarith [ht.2]⟩]
+        rcases ht.2.lt_or_eq with h_neg | rfl
+        · rw [Real.sign_of_neg h_neg]; push_cast; ring
+        · simp [Real.sign_zero, Phi_star_zero ν ε]
+      · apply setIntegral_congr_fun measurableSet_Icc
+        intro t ht
+        dsimp [ϕ_pm]
+        rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
+        rcases ht.1.lt_or_eq with h_pos | rfl
+        · rw [Real.sign_of_pos h_pos]; push_cast; ring
+        · simp [Real.sign_zero, Phi_star_zero ν ε]
     _ = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
         ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
-      -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
-      -- containing the second integral as a constant term. One would need to pull the
-      -- second integral out, which works since `Set.Icc (-1) 0` has measure 1.
-      have h_int_A : IntegrableOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
-        -- Proof that the left term `A(t)` is integrable over `[-1, 0]`.
-        -- Since `ν ≠ 0`, the poles of `Phi_circ` and `Phi_star` are off the real axis.
-        -- Thus the integrand is continuous on the compact set `[-1, 0]`, hence `IntegrableOn`.
-        have hc_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := (Phi_circ.contDiff_real ν ε hlam).contDiffOn
-        have h_cont_circ : ContinuousOn (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := hc_left.continuousOn
-        have hs_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := (Phi_star.contDiff_real ν ε hlam).contDiffOn
-        have h_cont_star : ContinuousOn (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := hs_left.continuousOn
-
-        have h_cont_A : ContinuousOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
-          -- Structurally applies the topological equivalencies exactly bridging previous continuous bounds.
-          (h_cont_circ.sub h_cont_star).mul (cont_E x).continuousOn
-        -- Convert unified structural continuity over the compact closure onto direct integration boundaries
-        -- Built effectively upon `ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A`
-        exact ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A
-      have h_int_B : IntegrableOn (fun (t:ℝ) ↦ ∫ s in Set.Icc 0 (1:ℝ), (Phi_circ ν ε s + Phi_star ν ε s) * E (-s * x)) (Set.Icc (-1:ℝ) 0) := by
-        -- Proof that the right nested integral (which is a constant with respect to `t`) is integrable.
-        -- Constant mappings uniformly integrate successfully bounded across structurally finite measures (e.g., intervals).
-        exact integrableOn_const measure_Icc_lt_top.ne
-      -- Distribute the integral over the addition on the RHS using the two integrability proofs.
+      have h_int_A : IntegrableOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
+        ContinuousOn.integrableOn_compact isCompact_Icc
+          (((Phi_circ.contDiff_real ν ε hlam).contDiffOn.continuousOn.sub
+            (Phi_star.contDiff_real ν ε hlam).contDiffOn.continuousOn).mul (cont_E x).continuousOn)
+      have h_int_B : IntegrableOn (fun (t:ℝ) ↦ ∫ s in Set.Icc 0 (1:ℝ), (Phi_circ ν ε s + Phi_star ν ε s) * E (-s * x)) (Set.Icc (-1:ℝ) 0) :=
+        integrableOn_const measure_Icc_lt_top.ne
       rw [integral_add h_int_A h_int_B]
-      -- The goal is now `A + B = A + ∫ B`. Match the addition to reduce the goal to `B = ∫ B`.
       congr 1
-      -- Focus on proving `B = ∫ B`.
       symm
-      have h_meas : volume.real (Set.Icc (-1:ℝ) 0) = 1 := by
-        -- The Lebesgue measure of the interval `[-1, 0]` is `0 - (-1) = 1`.
-        -- Often manageable directly via `norm_num`.
-        simp
-      -- Evaluate the integral of the constant term over `[-1, 0]` natively.
-      -- This evaluates to `meas • B`, which is `1 • B = B`.
-      -- rw [set_integral_const, h_meas, one_smul]
-
-      rw [setIntegral_const, h_meas, one_smul]
+      rw [setIntegral_const, show volume.real (Set.Icc (-1:ℝ) 0) = 1 from by simp, one_smul]
 
 @[blueprint
   "shift-upwards"
