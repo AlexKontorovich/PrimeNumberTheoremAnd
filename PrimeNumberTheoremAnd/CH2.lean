@@ -1791,14 +1791,9 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
   (discussion := 1080)]
 theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto
-      (fun T : ℝ ↦
-        I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x)
-        - I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x)
-        + 2 * I * ∫ t in Set.Icc 0 T,
-          Phi_star ν ε (I * t) * E (-(I * t) * x))
-      (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+      (fun T : ℝ ↦ I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x)
+        - I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x)
+        + 2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
 
 @[blueprint
