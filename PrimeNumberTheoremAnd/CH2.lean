@@ -1118,34 +1118,7 @@ theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν 
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by
   have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) :=
     (Phi_star.contDiff_real ν ε hlam).contDiffOn
-  have hcirc : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
-    refine ContDiff.contDiffOn ?_
-    suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
-      convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
-      swap; · exact ↑ε
-      unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
-      unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
-    refine contDiff_iff_contDiffAt.2 fun t => ?_
-    have sinh_ne_zero : ∀ s : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * s + ν) / 2) ≠ 0 := by
-      norm_num [Complex.sinh, Complex.ext_iff]
-      norm_num [Complex.exp_re, Complex.exp_im, neg_div]
-      intro s hs; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
-        mul_eq_mul_right_iff, exp_eq_exp]
-      by_cases h : Real.sin (2 * Real.pi * s / 2) = 0
-      · cases hs <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * s / 2)]
-      · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
-    have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
-        ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
-      apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
-      · fun_prop (disch := solve_by_elim)
-      · norm_num
-      · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
-          (Complex.differentiable_exp.comp (differentiable_id.neg))) _
-      · norm_num
-    exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
-      ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
-      Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
+  have hcirc : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := (Phi_circ.contDiff_real ν ε hlam).contDiffOn
   exact (hcirc.add hs).congr fun t ht => by
     simp only [ϕ_pm]
     rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
