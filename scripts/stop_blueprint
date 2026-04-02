@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="/Users/alexkontorovich/Library/CloudStorage/Dropbox/sasha/Math/InProgress/Lean/PrimeNumberTheoremAnd"
+# shellcheck source=/Users/alexkontorovich/Library/CloudStorage/Dropbox/sasha/Math/InProgress/Lean/PrimeNumberTheoremAnd/scripts/blueprint_server_common.sh
+source "$REPO_ROOT/scripts/blueprint_server_common.sh"
+
+ensure_blueprint_dependencies
+
+if port="$(tracked_blueprint_port 2>/dev/null)"; then
+  stop_blueprint_server
+  printf 'Stopped blueprint server on http://localhost:%s\n' "$port"
+  exit 0
+fi
+
+cleanup_blueprint_state
+printf 'No tracked blueprint server is currently running.\n'
