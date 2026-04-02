@@ -1718,7 +1718,9 @@ theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
-
+lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
+  simp only [E]
+  fun_prop
 
 @[blueprint
   "varphi-fourier-ident"
@@ -1733,7 +1735,7 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
   (discussion := 1079)]
 theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
     𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
-    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) :=
+    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
   calc 𝓕 (ϕ_pm ν ε) x
     _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
       -- Expand the Fourier transform definition and relate `fourierChar` to our `E`
@@ -1792,32 +1794,49 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
         apply ContinuousOn.integrableOn_compact isCompact_Icc
         apply ContinuousOn.mul
         · exact (ϕ_continuous ν ε hlam).continuousOn
-        · -- E(-↑t * ↑x) is continuous: composition of cexp with a linear map
-          apply Continuous.continuousOn
-          simp only [E]
-          -- Goal is now: Continuous (fun t => Complex.exp (2 * π * I * (-↑t * ↑x)))
-          fun_prop
+        · exact (cont_E x).continuousOn
 
       · -- ⊢ IntegrableOn (fun t => ϕ_pm ν ε t * E (-↑t * ↑x)) (Icc 0 1)
         apply ContinuousOn.integrableOn_compact isCompact_Icc
         apply ContinuousOn.mul
         · exact (ϕ_continuous ν ε hlam).continuousOn
-        · apply Continuous.continuousOn
-          simp only [E]
-          -- Goal is now: Continuous (fun t => Complex.exp (2 * π * I * (-↑t * ↑x)))
-          fun_prop
+        · exact (cont_E x).continuousOn
     _ = (∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
         (∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
       -- Split the goal into solving for the left integral and right integral separately
       congr 1
       · -- On `[-1, 0]`, almost everywhere (except at `0`), `t < 0` implies `t.sign = -1`
         -- Thus `ϕ_pm` simplifies to `Phi_circ - Phi_star`.
-        -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = -1`
-        sorry
+        -- Apply `setIntegral_congr_fun` and use the definition of `ϕ_pm` with `t.sign = -1`
+        have h_eq : Set.EqOn (fun t => ϕ_pm ν ε t * E (-t * x))
+            (fun t => (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1) 0) := by
+          -- To be proven via case analysis on t ∈ (-1, 0) vs t = 0, using Phi_star_zero
+          intro t ht
+          dsimp [ϕ_pm]
+          have h_supp : -1 ≤ t ∧ t ≤ 1 := ⟨ht.1, by linarith [ht.2]⟩
+          rw [if_pos h_supp]
+          rcases ht.2.lt_or_eq with h_neg | rfl
+          · rw [Real.sign_of_neg h_neg]
+            push_cast
+            ring
+          · simp [Real.sign_zero, Phi_star_zero ν ε]
+        exact setIntegral_congr_fun measurableSet_Icc h_eq
       · -- On `[0, 1]`, almost everywhere (except at `0`), `t > 0` implies `t.sign = 1`
         -- Thus `ϕ_pm` simplifies to `Phi_circ + Phi_star`.
-        -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = 1`
-        sorry
+        -- Apply `setIntegral_congr_fun` and use the definition of `ϕ_pm` with `t.sign = 1`
+        have h_eq : Set.EqOn (fun t => ϕ_pm ν ε t * E (-t * x))
+            (fun t => (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) (Set.Icc 0 1) := by
+          -- To be proven via case analysis on t ∈ (0, 1) vs t = 0, using Phi_star_zero
+          intro t ht
+          dsimp [ϕ_pm]
+          have h_supp : -1 ≤ t ∧ t ≤ 1 := ⟨by linarith [ht.1], ht.2⟩
+          rw [if_pos h_supp]
+          rcases ht.1.lt_or_eq with h_pos | rfl
+          · rw [Real.sign_of_pos h_pos]
+            push_cast
+            ring
+          · simp [Real.sign_zero, Phi_star_zero ν ε]
+        exact setIntegral_congr_fun measurableSet_Icc h_eq
     _ = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
         ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
       -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
@@ -1827,42 +1846,14 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
         -- Proof that the left term `A(t)` is integrable over `[-1, 0]`.
         -- Since `ν ≠ 0`, the poles of `Phi_circ` and `Phi_star` are off the real axis.
         -- Thus the integrand is continuous on the compact set `[-1, 0]`, hence `IntegrableOn`.
-        have hc_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := by
-          -- The non-vanishing of the denominator sinh function on the real line.
-          -- have h_sinh_ne_zero : ∀ t : ℝ, Complex.sinh ((-2 * π * I * t + ν) / 2) ≠ 0 := by
-          --   intro t h
-          --   rw [sinh_zero_iff] at h
-          --   obtain ⟨k, hk⟩ := h
-          --   have hk_re := congr_arg Complex.re hk
-          --   simp only [Complex.add_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
-          --             Complex.I_re, Complex.I_im, Complex.int_cast_re, Complex.int_cast_im,
-          --             mul_zero, zero_mul, sub_zero, add_zero] at hk_re
-          --   -- hk_re should now be: ν / 2 = 0
-          --   linarith [hlam]
-          --   simp [Complex.re_div, Complex.re_mul, Complex.re_I, Complex.im_I, Complex.im_ofReal] at hk_re
-          --   exact hlam (by linarith)
-          -- The function `Phi_circ` is smooth everywhere on the real axis due to the non-vanishing denominator.
+        have hc_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := (Phi_circ.contDiff_real ν ε hlam).contDiffOn
+        have h_cont_circ : ContinuousOn (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) := hc_left.continuousOn
+        have hs_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := (Phi_star.contDiff_real ν ε hlam).contDiffOn
+        have h_cont_star : ContinuousOn (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := hs_left.continuousOn
 
-          exact (Phi_circ.contDiff_real ν ε hlam).contDiffOn
-
-          -- Sketch: Deconstruct Phi_circ into coth(w/2) where w is linear.
-          -- Using `contDiff_iff_contDiffAt` and composition rules, the proof hinges on h_sinh_ne_zero.
-        have h_cont_circ : ContinuousOn (fun t:ℝ ↦ Phi_circ ν ε t) (Set.Icc (-1:ℝ) 0) :=
-          hc_left.continuousOn
-        have hs_left : ContDiffOn ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) := by
-          -- `Phi_star` is built from the entire function `B` (shifted and unweighted).
-          -- Smoothness follows from the analyticity of the underlying meromorphic components on the real line.
-          have h_diff_star : ContDiff ℝ 2 (fun t:ℝ ↦ Phi_star ν ε t) := Phi_star.contDiff_real ν ε hlam
-          exact h_diff_star.contDiffOn
-        have h_cont_star : ContinuousOn (fun t:ℝ ↦ Phi_star ν ε t) (Set.Icc (-1:ℝ) 0) :=
-          hs_left.continuousOn
-        have h_cont_E : ContinuousOn (fun t:ℝ ↦ E (-t * x)) (Set.Icc (-1:ℝ) 0) := by
-          -- Sketch: Combine continuity of scalar multiplication and the complex exponential.
-          -- Use `fun_prop` or `Continuous.continuousOn` to handle the composition.
-          sorry
         have h_cont_A : ContinuousOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
           -- Structurally applies the topological equivalencies exactly bridging previous continuous bounds.
-          (h_cont_circ.sub h_cont_star).mul h_cont_E
+          (h_cont_circ.sub h_cont_star).mul (cont_E x).continuousOn
         -- Convert unified structural continuity over the compact closure onto direct integration boundaries
         -- Built effectively upon `ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A`
         exact ContinuousOn.integrableOn_compact isCompact_Icc h_cont_A
@@ -1885,43 +1876,6 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
       -- rw [set_integral_const, h_meas, one_smul]
 
       rw [setIntegral_const, h_meas, one_smul]
-  -- -- `𝓕` corresponds to `fourierIntegral` which, for real functions, is the integral of `f(t) * e(-2πi * t * x)`
-  -- have h_fourier : 𝓕 (ϕ_pm ν ε) x = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
-  --   -- Unfold the Fourier transform definition and relate `fourierChar` to our `E`
-  --   sorry
-
-  -- -- The function `ϕ_pm` is supported on `[-1, 1]`, so we can restrict the integration domain
-  -- have h_support : ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
-  --   -- Use the fact that `ϕ_pm ν ε t = 0` for `t ∉ [-1, 1]` to discard the complement of `[-1, 1]`
-  --   sorry
-
-  -- -- Split the integral exactly at zero, dividing `[-1, 1]` into `[-1, 0]` and `[0, 1]`
-  -- have h_split : ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) =
-  --     (∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x)) +
-  --     (∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x)) := by
-  --   -- Use `integral_add_adjacent_intervals` on the intervals `[-1, 0]` and `[0, 1]`
-  --   sorry
-
-  -- -- On `[-1, 0]`, almost everywhere (except at `0`), `t < 0` implies `t.sign = -1`
-  -- -- Thus `ϕ_pm` simplifies to `Phi_circ - Phi_star`
-  -- have h_left : ∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x) =
-  --     ∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x) := by
-  --   -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = -1`
-  --   sorry
-
-  -- -- On `[0, 1]`, almost everywhere (except at `0`), `t > 0` implies `t.sign = 1`
-  -- -- Thus `ϕ_pm` simplifies to `Phi_circ + Phi_star`
-  -- have h_right : ∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x) =
-  --     ∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x) := by
-  --   -- Apply `set_integral_congr_ae` and use the definition of `ϕ_pm` with `t.sign = 1`
-  --   sorry
-
-  -- -- Combine everything to complete the proof
-  -- rw [h_fourier, h_support, h_split, h_left, h_right]
-  -- -- The RHS of the theorem statement is parsed as a single integral over `[-1, 0]`
-  -- -- containing the second integral as a constant term. One would need to pull the
-  -- -- second integral out, which works since `Set.Icc (-1) 0` has measure 1.
-  -- sorry
 
 @[blueprint
   "shift-upwards"
