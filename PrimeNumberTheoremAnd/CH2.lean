@@ -948,7 +948,7 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (proof := /-- The residues cancel out. -/)
   (latexEnv := "lemma")
   (discussion := 1074)]
-theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (_hε : |ε| = 1) (hσ : |σ| = 1) :
+theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hσ : |σ| = 1) :
     meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ((σ : ℂ) - I * ν / (2 * π)) ≥ 0 := by
   obtain ⟨n, rfl, hn_cases⟩ : ∃ n : ℤ, σ = n ∧ n ≠ 0 := by
     rcases (abs_eq (by norm_num : (0 : ℝ) ≤ 1)).mp hσ with h | h
