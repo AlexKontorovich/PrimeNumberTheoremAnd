@@ -1023,34 +1023,6 @@ lemma ContDiff.div_real_complex {f g : ℝ → ℂ} {n} (hf : ContDiff ℝ n f) 
     ContDiff ℝ n (fun x => f x / g x) :=
   hf.mul (hg.inv h0)
 
-lemma h_entire : ContDiffOn ℂ 2
-    (fun z => Complex.cosh (z / 2) / Complex.sinh (z / 2))
-    (Set.univ \ {z : ℂ | Complex.sinh (z / 2) = 0}) := by
-  apply ContDiffOn.div
-  · fun_prop
-  · fun_prop
-  · grind
-
-lemma h_no_zero {ν : ℝ} (hlam : ν ≠ 0) : ∀ t ∈ Set.Icc (0 : ℝ) 1,
-    Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-  norm_num [Complex.sinh, Complex.exp_ne_zero]
-  intro t ht₁ ht₂
-  rw [sub_eq_zero, Complex.exp_eq_exp_iff_exists_int]
-  rintro ⟨⟨_ | k⟩, hk⟩
-  <;> norm_num [Complex.ext_iff] at hk <;> ring_nf at hk <;> norm_num at hk
-  <;> grind
-
-lemma h_sinh_ne_zero (ν : ℝ) (hlam : ν ≠ 0) : ∀ t : ℝ,
-      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-  norm_num [Complex.sinh, Complex.ext_iff]
-  norm_num [Complex.exp_re, Complex.exp_im, neg_div]
-  intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
-    mul_eq_mul_right_iff, exp_eq_exp]
-  by_cases h : Real.sin (2 * Real.pi * t / 2) = 0
-  · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
-  · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
-
-
 theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
     ContDiff ℝ 2 (fun (t : ℝ) ↦ Phi_star ν ε (t : ℂ)) := by
   have h_diff_B : ContDiff ℝ 2 (fun t : ℝ => B ε (-2 * Real.pi * Complex.I * t + ν)) := by
@@ -1135,30 +1107,6 @@ theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν 
   grind [Phi_star, neg_mul, ofReal_zero, mul_zero, neg_zero, zero_add,
     sub_self, zero_div]
 
-
-
-lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
-  refine ContDiff.contDiffOn ?_
-  suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
-    convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
-    swap; · exact ↑ε
-    unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
-    unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
-  refine contDiff_iff_contDiffAt.2 fun t => ?_
-  have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
-      ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
-    apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
-    · fun_prop (disch := solve_by_elim)
-    · norm_num
-    · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
-        (Complex.differentiable_exp.comp (differentiable_id.neg))) _
-    · norm_num
-    apply h_sinh_ne_zero ν hlam
-  exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
-    ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
-    Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
-
 @[blueprint
   "phi-c2-right"
   (title := "$\\varphi$ is $C^2$ on [0,1]")
@@ -1168,10 +1116,37 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
   (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by
-  /- Since `Phi_circ` and `Phi_star` have no poles on ℝ (when ν ≠ 0), they are holomorphic on a
-     neighborhood of any real point, hence C^∞ when restricted to ℝ. -/
-  have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) := (Phi_star.contDiff_real ν ε hlam).contDiffOn
-  exact ((hc ν ε hlam).add hs).congr fun t ht => by
+  have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) :=
+    (Phi_star.contDiff_real ν ε hlam).contDiffOn
+  have hcirc : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
+    refine ContDiff.contDiffOn ?_
+    suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
+        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
+      convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
+      swap; · exact ↑ε
+      unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
+      unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
+    refine contDiff_iff_contDiffAt.2 fun t => ?_
+    have sinh_ne_zero : ∀ s : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * s + ν) / 2) ≠ 0 := by
+      norm_num [Complex.sinh, Complex.ext_iff]
+      norm_num [Complex.exp_re, Complex.exp_im, neg_div]
+      intro s hs; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
+        mul_eq_mul_right_iff, exp_eq_exp]
+      by_cases h : Real.sin (2 * Real.pi * s / 2) = 0
+      · cases hs <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * s / 2)]
+      · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
+    have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
+        ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
+      apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
+      · fun_prop (disch := solve_by_elim)
+      · norm_num
+      · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
+          (Complex.differentiable_exp.comp (differentiable_id.neg))) _
+      · norm_num
+    exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
+      ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
+      Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
+  exact (hcirc.add hs).congr fun t ht => by
     simp only [ϕ_pm]
     rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
     rcases eq_or_lt_of_le ht.1 with rfl | hpos
