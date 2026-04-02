@@ -1789,10 +1789,16 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
   (latexEnv := "sublemma")
   (discussion := 1080)]
-theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * ↑t) * x) - I *
-    ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * (E (-(1 + I * ↑t) * x))) +
-    2 * ∫ t in Set.Icc 0 T, (Phi_star ν ε (I * t) * E (-(I * ↑t) * x)))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto
+      (fun T : ℝ ↦
+        I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x)
+        - I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x)
+        + 2 * I * ∫ t in Set.Icc 0 T,
+          Phi_star ν ε (I * t) * E (-(I * t) * x))
+      (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
 
 @[blueprint
