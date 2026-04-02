@@ -989,8 +989,38 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (proof := /-- The residues cancel out. -/)
   (latexEnv := "lemma")
   (discussion := 1074)]
-theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hε : |ε| = 1) :
-    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ≥ 0 := by sorry
+theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hσ : |σ| = 1) :
+    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ((σ : ℂ) - I * ν / (2 * π)) ≥ 0 := by
+  obtain ⟨n, rfl, hn_cases⟩ : ∃ n : ℤ, σ = n ∧ n ≠ 0 := by
+    rcases (abs_eq (by norm_num : (0 : ℝ) ≤ 1)).mp hσ with h | h
+    · exact ⟨1, by exact_mod_cast h, one_ne_zero⟩
+    · exact ⟨-1, by exact_mod_cast h, by norm_num⟩
+  set z₀ : ℂ := ↑n - I * ν / (2 * π)
+  set f : ℂ → ℂ := fun z ↦ Phi_circ ν ε z + (n : ℂ) * Phi_star ν ε z
+  have h_mero_f : MeromorphicAt f z₀ :=
+    (Phi_circ.meromorphic ν ε z₀).add <|
+      (MeromorphicAt.const (↑n : ℂ) z₀).mul (Phi_star.meromorphic ν ε z₀)
+  have h_tendsto_zero : (nhdsWithin z₀ {z₀}ᶜ).Tendsto (fun z ↦ (z - z₀) * f z) (nhds 0) := by
+    convert Filter.Tendsto.add (Phi_circ.residue ν ε hν n)
+      (Filter.Tendsto.const_mul (n : ℂ) (Phi_star.residue ν ε hν n hn_cases)) using 1
+    · ext z; ring
+    · ring_nf
+      suffices h : (0 : ℂ) = I * (↑π)⁻¹ * (1 / 2) + I * (↑π)⁻¹ * (↑n) ^ 2 * (-1 / 2) by exact congr_arg nhds h
+      have hn_sq : (n : ℂ) ^ 2 = 1 := by
+        exact_mod_cast sq_eq_one_iff.mpr ((abs_eq (by norm_num : (0 : ℝ) ≤ 1)).mp hσ)
+      simp only [hn_sq]
+      ring
+  have h_mero_mul : MeromorphicAt (fun z ↦ (z - z₀) * f z) z₀ :=
+    (by fun_prop : MeromorphicAt (fun z ↦ z - z₀) z₀).mul h_mero_f
+  rw [tendsto_zero_iff_meromorphicOrderAt_pos h_mero_mul] at h_tendsto_zero
+  change 0 < meromorphicOrderAt ((· - z₀ : ℂ → ℂ) * f) z₀ at h_tendsto_zero
+  rw [meromorphicOrderAt_mul (by fun_prop) h_mero_f] at h_tendsto_zero
+  rw [show meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) from
+    (meromorphicOrderAt_eq_int_iff (by fun_prop)).mpr ⟨1, analyticAt_const, one_ne_zero, by simp⟩] at h_tendsto_zero
+  change (0 : WithTop ℤ) ≤ meromorphicOrderAt f z₀
+  cases h_ord : meromorphicOrderAt f z₀ <;> simp_all
+  norm_cast at h_tendsto_zero
+  omega
 
 
 @[blueprint
