@@ -54,7 +54,11 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
 
 @[blueprint
   "unique_divisor_decomposition"
-  (statement := /-- If $a$ and $b$ are coprime, then any divisor $d$ of $ab$ can be uniquely expressed as a product of a divisor of $a$ and a divisor of $b$. -/)
+  (statement := /-- If $a$ and $b$ are coprime, then any divisor $d$ of $ab$ can be uniquely expressed as a product of a divisor of $a$ and a divisor of $b$.
+    \begin{verbatim}
+  This has been upstreamed #36495.
+  \end{verbatim}
+-/)
   (proof := /--
   Let $a$ and $b$ be coprime natural numbers, and let $d$ be a divisor of $ab$. Since $a$ and $b$ are coprime, we can use the fact that the divisors of $ab$ correspond to pairs of divisors of $a$ and $b$. Specifically, we can express $d$ as $d = d_a \cdot d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. The uniqueness of this decomposition follows from the coprimality of $a$ and $b$, which ensures that the divisors of $a$ and $b$ do not share any common factors. Therefore, there is a one-to-one correspondence between the divisors of $ab$ and the pairs of divisors of $a$ and $b$, which guarantees the uniqueness of the decomposition.
   -/)]
@@ -66,7 +70,11 @@ lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣
 @[blueprint
   "sum_divisors_mul_of_coprime"
   (statement := /-- If $f$ is a multiplicative arithmetic function, then for coprime, nonzero $a$ and $b$, we have that
-  $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/)
+  $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$.
+  \begin{verbatim}
+  This has been upstreamed #36495.
+  \end{verbatim}
+  -/)
   (proof := /--
   Since $f$ is multiplicative, we can express the sum over divisors of $ab$ in terms of the sums over divisors of $a$ and $b$. The key idea is to use the fact that the divisors of $ab$ can be expressed as products of divisors of $a$ and divisors of $b$, due to the coprimality condition. Specifically, each divisor $d$ of $ab$ can be uniquely written as $d = d_a * d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. Therefore, we can rewrite the sum as a double sum over the divisors of $a$ and $b$, which factorizes into the product of the two separate sums.
   -/)]
@@ -81,7 +89,12 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
 @[blueprint
   "sum_moebius_pmul_eq_prod_one_sub"
   (statement := /-- If $g$ is a multiplicative arithmetic function, then for any $n \neq 0$,
-    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/)
+    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$.
+      \begin{verbatim}
+  Upstream issue has been created #1240.
+  \end{verbatim}
+
+    -/)
   (proof := /--
   Multiply out and collect terms.
   -/)]
@@ -353,7 +366,11 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
 
 @[blueprint
   "LSeries_powR_eq"
-  (statement := /-- $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$. -/)
+  (statement := /-- $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$.
+  \begin{verbatim}
+  This is IK (1.27).
+  \end{verbatim}
+  -/)
   (proof := /--
   The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The L-series of $\text{pow}^R(\nu)$ at $s$ is given by the sum $\sum_{n=1}^{\infty} n^{\nu - s}$. This series converges to the Riemann zeta function $\zeta(s - \nu)$ for $\Re(s - \nu) > 1$, since the zeta function is defined as $\zeta(s) = \sum_{n=1}^{\infty} n^{-s}$ for $\Re(s) > 1$. Therefore, we have $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ under the condition that $\Re(s - \nu) > 1$.
   -/)]
@@ -403,18 +420,94 @@ theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (h
     rw[Complex.sub_re] at hsν
     exact_mod_cast (by linarith)
 
-/-
-Serious conversation to be had over zulip:
+/--
+Ramanujan formula:
+`ζ(s)ζ(s-α)ζ(s-β)ζ(s-α-β)=ζ(2s-α-β) ∑ σ_α(n)σ_β(n)n^(-s)`. -/
+@[blueprint
+  "zeta_mul_zeta_mul_zeta_mul_zeta_eq"
+  (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$.
+  \begin{verbatim}
+  This is IK (1.28).
+  \end{verbatim}
+   -/)
+  (proof := /--
+  This is a direct consequence of the multiplicative properties of the functions involved and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to the functions $\zeta$, $n \mapsto n^{-\alpha}$, and $n \mapsto n^{-\beta}$. The right-hand side involves the L-series of the convolution of $\sigma_\alpha$ and $\sigma_\beta$, which can be expressed in terms of the L-series of $\zeta$ and the power functions. By carefully applying the properties of Dirichlet convolutions and the definitions of the L-series, we can derive the stated formula.
+  -/)]
+theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) :
+    riemannZeta s * riemannZeta (s - α) * riemannZeta (s - β) * riemannZeta (s - α - β) =
+      riemannZeta (2 * s - α - β) *
+      LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
+  sorry
 
-Do we want to change the `σ` function in Mathlib (NumberTheory.ArithmeticFunction.Misc) to take values in `ℕ` or `ℚ` or `ℝ` or `ℂ`, (like `[RorCLike]` for functions elsewhere) so that we can do the general theory. Alternative: define a second `σ` that plays this
-more general role, and have the current `σ` be a special case of it.
+/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)`-/
+@[blueprint
+  "zeta_pow_four_eq"
+  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$.
+  \begin{verbatim}
+  This is IK (1.29).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
+  -/)]
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
+    (h4 : 1 < (s - 0 - 0).re) :
+    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
+  sorry
 
-Answer: make `σ[R] k` and prove all existing API for it, then derive original `σ k` as `σ[ℕ] k` as a
-special case.
+/--
+Baby Rankin-Selberg:
+`ζ(s)∑τ(n^2)n^-s = ∑τ(n)^2 n^-s`. -/
+@[blueprint
+  "zeta_mul_tau_square_eq"
+  (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$.
+  \begin{verbatim}
+  Precursor to IK (1.30).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
+  -/)]
+lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
+  sorry
 
-Next time: Make `σᴿ` versions of all existing `σ` API.
--/
+/--
+Zeta cubed:
+`ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
+@[blueprint
+  "zeta_pow_three_eq"
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
+  \begin{verbatim}
+  This is IK (1.30).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
+  -/) ]
+lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
+  sorry
 
-
+/--
+Zeta cubed alt:
+`ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
+@[blueprint
+  "zeta_pow_three_eq_alt"
+  (statement := /-- symmetric square $L$-function for $\zeta^2$:
+  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}.$$
+  \begin{verbatim}
+  Alternative expression for `ζ^3`, in IK between (1.30) and (1.31).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This is an alternative expression for $\zeta(s)^3$ that can be derived from the previous results. By expressing $\zeta(s)^3$ in terms of the L-series of $\tau(n^2)$ and using the properties of Dirichlet convolutions, we can rewrite the sum in a way that involves summing over divisors $d$ and corresponding $m$ such that $d^2 m = n$. This rearrangement of the series allows us to express $\zeta(s)^3$ in the desired form.
+  -/)]
+lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 =
+    LSeries (fun n ↦
+      ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
+  sorry
 
 end ArithmeticFunction
