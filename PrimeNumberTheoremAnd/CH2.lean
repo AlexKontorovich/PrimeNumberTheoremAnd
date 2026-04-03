@@ -9,6 +9,8 @@ import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
+import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import PrimeNumberTheoremAnd.PerronFormula
 
 open Real
 
@@ -1713,8 +1715,9 @@ lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
   (latexEnv := "sublemma")
   (discussion := 1079)]
 theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
-    𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
-    ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
+    𝓕 (ϕ_pm ν ε) x =
+      (∫ t in Set.Icc (-1 : ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
+      (∫ t in Set.Icc 0 (1 : ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
   calc 𝓕 (ϕ_pm ν ε) x
     _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
       dsimp [FourierTransform.fourier, VectorFourier.fourierIntegral]
@@ -1765,18 +1768,6 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
         rcases ht.1.lt_or_eq with h_pos | rfl
         · rw [Real.sign_of_pos h_pos]; push_cast; ring
         · simp [Real.sign_zero, Phi_star_zero ν ε]
-    _ = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
-        ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
-      have h_int_A : IntegrableOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
-        ContinuousOn.integrableOn_compact isCompact_Icc
-          (((Phi_circ.contDiff_real ν ε hlam).contDiffOn.continuousOn.sub
-            (Phi_star.contDiff_real ν ε hlam).contDiffOn.continuousOn).mul (cont_E x).continuousOn)
-      have h_int_B : IntegrableOn (fun (t:ℝ) ↦ ∫ s in Set.Icc 0 (1:ℝ), (Phi_circ ν ε s + Phi_star ν ε s) * E (-s * x)) (Set.Icc (-1:ℝ) 0) :=
-        integrableOn_const measure_Icc_lt_top.ne
-      rw [integral_add h_int_A h_int_B]
-      congr 1
-      symm
-      rw [setIntegral_const, show volume.real (Set.Icc (-1:ℝ) 0) = 1 from by simp, one_smul]
 
 @[blueprint
   "shift-upwards"
@@ -1791,10 +1782,150 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
   (discussion := 1080)]
 theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto
-      (fun T : ℝ ↦ I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x)
-        - I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x)
-        + 2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+      (fun T : ℝ ↦
+        (I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+        - (I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+        + (2 * I * ∫ t in Set.Icc 0 T,
+          Phi_star ν ε (I * t) * E (-(I * t) * x)))
+      (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+  have hlam : ν ≠ 0 := by linarith
+  set A : ℂ :=
+    ∫ t in Set.Icc (-1 : ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)
+  set B : ℂ :=
+    ∫ t in Set.Icc 0 (1 : ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)
+  have hfourier : 𝓕 (ϕ_pm ν ε) x = A + B := by
+    simpa [A, B] using varphi_fourier_ident ν ε hlam x
+  have hAshift :
+      Filter.atTop.Tendsto
+        (fun T : ℝ ↦
+          (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+          - (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (I * t) - Phi_star ν ε (I * t)) * E (-(I * t) * x)))
+        (nhds A) := by
+    /-
+    Shift the real integral `A` from `[-1,0]` to the upper strip bounded by `Re z = -1`
+    and `Re z = 0`. The function
+      `(Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)`
+    is holomorphic there because `hν : ν > 0` places all poles below the real axis.
+    The horizontal top edge tends to `0` since `x < 0` gives exponential decay in `Im z`.
+    -/
+    let f : ℂ → ℂ := fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
+    -- Hierarchical Subgoal 1: f is holomorphic in the upper rectangle
+    have h_anal (T : ℝ) (hT : 0 ≤ T) : HolomorphicOn f (Rectangle (-1) (I * T)) := by
+      sorry /- Integral of f around a rectangle is zero in the upper half-plane since ν > 0 -/
+    -- Hierarchical Subgoal 2: The integral along the top edge tends to zero as T -> infinity
+    have h_top_vanish : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1 : ℝ)..0, f (t + I * T)) Filter.atTop (nhds 0) := by
+      sorry /- x < 0 gives exponential decay exp(2πxT) at infinity. -/
+    -- Hierarchical Subgoal 3: RectangleIntegral tends to UpperUIntegral
+    have h_Rectangle_UpperU : Filter.Tendsto (fun T : ℝ ↦ RectangleIntegral f (-1) (I * T)) Filter.atTop (nhds (UpperUIntegral f (-1) 0 0)) := by
+      sorry /- Use RectangleIntegral_tendsTo_UpperU with σ = -1, σ' = 0, and T = 0. -/
+    -- Hierarchical Subgoal 4: UpperUIntegral is zero
+    have h_UpperU_zero : UpperUIntegral f (-1) 0 0 = 0 := by
+      sorry /- Follows from Cauchy's theorem (h_anal) and the limit of RectangleIntegrals (h_Rectangle_UpperU) -/
+    -- Final Step: Use the algebraic identity for RectangleIntegral and the limit results
+    have h_rect_eq (T : ℝ) :
+        A - (∫ t in (-1 : ℝ)..0, f (t + I * T)) - RectangleIntegral f (-1) (I * T) =
+        (I * ∫ t in Set.Icc 0 T, f (-1 + I * t)) - (I * ∫ t in Set.Icc 0 T, f (I * t)) := by
+      rw [RectangleIntegral, HIntegral, HIntegral, VIntegral, VIntegral]
+      simp only [Complex.ofReal_re, Complex.I_re, Complex.ofReal_im, Complex.I_im,
+        one_re, one_im, neg_re, neg_im, zero_re, zero_im, mul_zero, add_zero, zero_mul, zero_add,
+        show (I * T).re = 0 by simp, show (I * T).im = T by simp,
+        show (-1 : ℂ).re = -1 by simp, show (-1 : ℂ).im = 0 by simp]
+      have hA : A = ∫ (t : ℝ) in (-1 : ℝ)..0, f t := by
+        rw [intervalIntegral.integral_of_le (by linarith)]
+        exact MeasureTheory.integral_Icc_eq_integral_Ioc
+      rw [hA]
+      ring_nf
+      sorry /- Use algebraic identity and Set.Icc vs intervalIntegral (T ≥ 0) -/
+    have h_limit : Filter.Tendsto (fun T : ℝ ↦ A - (∫ t in (-1 : ℝ)..0, f (t + I * T)) - RectangleIntegral f (-1) (I * T)) Filter.atTop (nhds A) := by
+      have := (tendsto_const_nhds (x := A)).sub h_top_vanish |>.sub (h_UpperU_zero ▸ h_Rectangle_UpperU)
+      simpa using this
+    exact h_limit.congr h_rect_eq
+  have hBshift :
+      Filter.atTop.Tendsto
+        (fun T : ℝ ↦
+          (- I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+          + (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (I * t) + Phi_star ν ε (I * t)) * E (-(I * t) * x)))
+        (nhds B) := by
+    /-
+    Shift the real integral `B` from `[0,1]` to the upper strip bounded by `Re z = 0`
+    and `Re z = 1`. As above, the integrand is holomorphic in this strip and the top edge
+    -/
+    let f : ℂ → ℂ := fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
+    -- Hierarchical Subgoal 1: f is holomorphic in the upper rectangle
+    have h_anal (T : ℝ) (hT : 0 ≤ T) : HolomorphicOn f (Rectangle 0 (1 + I * T)) := by
+      sorry /- Holomorphic in the upper half-plane since ν > 0. -/
+    -- Hierarchical Subgoal 2: The integral along the top edge vanishes as T -> infinity
+    have h_top_vanish : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (0 : ℝ)..1, f (t + I * T)) Filter.atTop (nhds 0) := by
+      sorry /- x < 0 gives exponential decay at infinity. -/
+    -- Hierarchical Subgoal 3: RectangleIntegral tends to UpperUIntegral
+    have h_Rectangle_UpperU : Filter.Tendsto (fun T : ℝ ↦ RectangleIntegral f 0 (1 + I * T)) Filter.atTop (nhds (UpperUIntegral f 0 1 0)) := by
+      sorry /- Use RectangleIntegral_tendsTo_UpperU with σ = 0, σ' = 1, and T = 0. -/
+    -- Hierarchical Subgoal 4: UpperUIntegral is zero
+    have h_UpperU_zero : UpperUIntegral f 0 1 0 = 0 := by
+      sorry /- From Cauchy and limit. -/
+    -- Final Step: Use the algebraic identity for RectangleIntegral and the limit results
+    have h_rect_eq (T : ℝ) :
+        B - (∫ t in (0 : ℝ)..1, f (t + I * T)) - RectangleIntegral f 0 (1 + I * T) =
+        (- I * ∫ t in Set.Icc 0 T, f (1 + I * t)) + (I * ∫ t in Set.Icc 0 T, f (I * t)) := by
+      unfold RectangleIntegral HIntegral VIntegral
+      simp only [Complex.re_add, Complex.im_add, Complex.re_mul, Complex.im_mul,
+        Complex.re_I, Complex.im_I, Complex.re_ofReal, Complex.im_ofReal,
+        re_zero, im_zero, re_one, im_one, neg_re, neg_im, mul_zero, add_zero, zero_mul, zero_add, mul_one]
+      have hB : B = ∫ (t : ℝ) in (0 : ℝ)..1, f t := by
+        rw [intervalIntegral.integral_of_le (by linarith)]
+        exact MeasureTheory.integral_Icc_eq_integral_Ioc
+      rw [hB]
+      ring_nf
+      sorry /- Valid for T ≥ 0 via Set.Icc 0 T = 0..T -/
+    have h_limit : Filter.Tendsto (fun T : ℝ ↦ B - (∫ t in (0 : ℝ)..1, f (t + I * T)) - RectangleIntegral f (0) (1 + I * T)) Filter.atTop (nhds B) := by
+      have := (tendsto_const_nhds (x := B)).sub h_top_vanish |>.sub (h_UpperU_zero ▸ h_Rectangle_UpperU)
+      simpa using this
+    exact h_limit.congr h_rect_eq
+  have hcombine :
+      (fun T : ℝ ↦
+        (I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+        - (I * ∫ t in Set.Icc 0 T,
+          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+        + (2 * I * ∫ t in Set.Icc 0 T,
+          Phi_star ν ε (I * t) * E (-(I * t) * x))) =
+      (fun T : ℝ ↦
+        ((I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+          - (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (I * t) - Phi_star ν ε (I * t)) * E (-(I * t) * x)))
+        +
+        ((- I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+          + (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (I * t) + Phi_star ν ε (I * t)) * E (-(I * t) * x)))) := by
+    /-
+    Rearrange the two contour-shift identities: on `Re z = 0`, the `Phi_circ` terms cancel,
+    while the two `Phi_star` terms add up to the middle contribution in the statement.
+    -/
+    funext T
+    ring_nf
     sorry
+  have hcontour :
+      Filter.atTop.Tendsto
+        (fun T : ℝ ↦
+          (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+          - (I * ∫ t in Set.Icc 0 T,
+            (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+          + (2 * I * ∫ t in Set.Icc 0 T,
+            Phi_star ν ε (I * t) * E (-(I * t) * x)))
+        (nhds (A + B)) := by
+
+    rw [hcombine]
+    exact hAshift.add hBshift
+  simpa [hfourier] using hcontour
 
 @[blueprint
   "B-affine-periodic"
