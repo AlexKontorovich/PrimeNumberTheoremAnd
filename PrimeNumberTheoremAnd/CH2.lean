@@ -446,6 +446,21 @@ lemma sinh_zero_iff (ζ : ℂ) : sinh ζ = 0 ↔ (∃ k : ℤ, ζ = k * π * I) 
   · rintro ⟨k, hk⟩; use -k; apply (mul_left_inj' I_ne_zero).mp; rw [hk]; ring_nf; simp; ring
   · rintro ⟨k, hk⟩; use -k; rw [hk]; ring_nf; simp; ring
 
+lemma cosh_zero_iff (ζ : ℂ) : Complex.cosh ζ = 0 ↔ (∃ k : ℤ, ζ = ((k : ℂ) + 1 / 2) * π * I) := by
+  rw [← Complex.cos_mul_I, Complex.cos_eq_zero_iff]
+  constructor
+  · rintro ⟨k, hk⟩
+    use -k - 1
+    apply (mul_left_inj' I_ne_zero).mp
+    rw [hk]
+    field_simp [I_sq]
+    simp; ring
+  · rintro ⟨k, hk⟩
+    use -k - 1
+    rw [hk]
+    field_simp [I_sq]
+    simp; ring
+
 @[blueprint
   "Phi-circ-poles"
   (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles")
@@ -989,8 +1004,38 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   (proof := /-- The residues cancel out. -/)
   (latexEnv := "lemma")
   (discussion := 1074)]
-theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hε : |ε| = 1) :
-    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ≥ 0 := by sorry
+theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hσ : |σ| = 1) :
+    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + σ * Phi_star ν ε z) ((σ : ℂ) - I * ν / (2 * π)) ≥ 0 := by
+  obtain ⟨n, rfl, hn_cases⟩ : ∃ n : ℤ, σ = n ∧ n ≠ 0 := by
+    rcases (abs_eq (by norm_num : (0 : ℝ) ≤ 1)).mp hσ with h | h
+    · exact ⟨1, by exact_mod_cast h, one_ne_zero⟩
+    · exact ⟨-1, by exact_mod_cast h, by norm_num⟩
+  set z₀ : ℂ := ↑n - I * ν / (2 * π)
+  set f : ℂ → ℂ := fun z ↦ Phi_circ ν ε z + (n : ℂ) * Phi_star ν ε z
+  have h_mero_f : MeromorphicAt f z₀ :=
+    (Phi_circ.meromorphic ν ε z₀).add <|
+      (MeromorphicAt.const (↑n : ℂ) z₀).mul (Phi_star.meromorphic ν ε z₀)
+  have h_tendsto_zero : (nhdsWithin z₀ {z₀}ᶜ).Tendsto (fun z ↦ (z - z₀) * f z) (nhds 0) := by
+    convert Filter.Tendsto.add (Phi_circ.residue ν ε hν n)
+      (Filter.Tendsto.const_mul (n : ℂ) (Phi_star.residue ν ε hν n hn_cases)) using 1
+    · ext z; ring
+    · ring_nf
+      suffices h : (0 : ℂ) = I * (↑π)⁻¹ * (1 / 2) + I * (↑π)⁻¹ * (↑n) ^ 2 * (-1 / 2) by exact congr_arg nhds h
+      have hn_sq : (n : ℂ) ^ 2 = 1 := by
+        exact_mod_cast sq_eq_one_iff.mpr ((abs_eq (by norm_num : (0 : ℝ) ≤ 1)).mp hσ)
+      simp only [hn_sq]
+      ring
+  have h_mero_mul : MeromorphicAt (fun z ↦ (z - z₀) * f z) z₀ :=
+    (by fun_prop : MeromorphicAt (fun z ↦ z - z₀) z₀).mul h_mero_f
+  rw [tendsto_zero_iff_meromorphicOrderAt_pos h_mero_mul] at h_tendsto_zero
+  change 0 < meromorphicOrderAt ((· - z₀ : ℂ → ℂ) * f) z₀ at h_tendsto_zero
+  rw [meromorphicOrderAt_mul (by fun_prop) h_mero_f] at h_tendsto_zero
+  rw [show meromorphicOrderAt (· - z₀ : ℂ → ℂ) z₀ = (1 : ℤ) from
+    (meromorphicOrderAt_eq_int_iff (by fun_prop)).mpr ⟨1, analyticAt_const, one_ne_zero, by simp⟩] at h_tendsto_zero
+  change (0 : WithTop ℤ) ≤ meromorphicOrderAt f z₀
+  cases h_ord : meromorphicOrderAt f z₀ <;> simp_all
+  norm_cast at h_tendsto_zero
+  omega
 
 
 @[blueprint
@@ -1004,6 +1049,68 @@ noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
     Phi_circ ν ε (t : ℂ) + t.sign * Phi_star ν ε (t : ℂ)
   else 0
 
+lemma ContDiff.div_real_complex {f g : ℝ → ℂ} {n} (hf : ContDiff ℝ n f) (hg : ContDiff ℝ n g) (h0 : ∀ x, g x ≠ 0) :
+    ContDiff ℝ n (fun x => f x / g x) :=
+  hf.mul (hg.inv h0)
+
+theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
+    ContDiff ℝ 2 (fun (t : ℝ) ↦ Phi_star ν ε (t : ℂ)) := by
+  have h_diff_B : ContDiff ℝ 2 (fun t : ℝ => B ε (-2 * Real.pi * Complex.I * t + ν)) := by
+    have h_B_rational : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
+      unfold B; unfold coth
+      simp +contextual [Complex.tanh_eq_sinh_div_cosh]
+    have h_comp : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
+      apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id]
+      · exact Complex.ofRealCLM.contDiff
+      · exact Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+      · exact Complex.contDiff_exp.comp (ContDiff.neg (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _))
+      · have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by
+          have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.exp ((-2 * Real.pi * Complex.I * x + ν) / 2)) :=
+            Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+          simp_all only [ne_eq, Complex.sinh, neg_mul]
+          exact ContDiff.div_const (h_conj.sub (Complex.contDiff_exp.comp (by exact ContDiff.neg (by exact ContDiff.div_const (by exact ContDiff.add (ContDiff.neg (by exact ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff)) contDiff_const) _)))) _
+        rw [contDiff_iff_contDiffAt] at *
+        intro x; specialize h_conj x; exact (by
+        convert Complex.conjCLE.contDiff.contDiffAt.comp x h_conj using 1)
+      · refine Complex.ofRealCLM.contDiff.comp ?_
+        refine ContDiff.inv ?_ ?_
+        · norm_num [Complex.normSq, Complex.sinh]
+          norm_num [Complex.exp_re, Complex.exp_im]
+          exact ContDiff.div_const (ContDiff.add (ContDiff.mul (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))))) (ContDiff.mul (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))))) _
+        · norm_num [Complex.sinh, Complex.exp_re, Complex.exp_im, Complex.normSq]
+          intro x; ring_nf; norm_num [Real.exp_ne_zero, hlam]
+          norm_num [Real.sin_sq, Real.cos_sq, mul_assoc, mul_left_comm, ← Real.exp_add, ← Real.exp_nat_mul]; ring_nf
+          cases lt_or_gt_of_ne hlam <;> nlinarith [Real.cos_le_one (Real.pi * x * 2), Real.exp_pos ν, Real.exp_pos (-ν), Real.exp_neg ν, mul_inv_cancel₀ (ne_of_gt (Real.exp_pos ν)), Real.add_one_le_exp ν, Real.add_one_le_exp (-ν)]
+    convert h_comp using 1
+    ext t; by_cases h : (-(2 * Real.pi * Complex.I * t) + ν : ℂ) = 0 <;> simp_all [Complex.sinh, Complex.cosh]; ring_nf
+    norm_num [Complex.ext_iff] at h; aesop
+  convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
+
+theorem Phi_circ.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
+  have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
+    simp only [Complex.tanh_eq_sinh_div_cosh]
+    have h_sinh_cosh_diff : ContDiff ℝ 2 (fun t : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ∀ t : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
+      refine ⟨?_, ?_, ?_⟩
+      · have h_sinh_entire : ContDiff ℂ 2 Complex.sinh := by
+          unfold Complex.sinh
+          exact ContDiff.div_const (Complex.contDiff_exp.sub (Complex.contDiff_exp.comp contDiff_neg)) _
+        exact h_sinh_entire.restrict_scalars ℝ |> ContDiff.comp <| ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff) contDiff_const) _
+      · have h_cosh_entire : ContDiff ℝ 2 (fun t : ℂ => Complex.cosh t) := by
+          have : ContDiff ℂ 2 Complex.cosh := by
+            unfold Complex.cosh
+            exact ContDiff.div_const (Complex.contDiff_exp.add (Complex.contDiff_exp.comp contDiff_neg)) _
+          exact this.restrict_scalars ℝ
+        exact h_cosh_entire.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+      · norm_num [Complex.sinh, Complex.exp_ne_zero]
+        norm_num [sub_eq_zero, Complex.exp_ne_zero]
+        intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
+        obtain ⟨k, hk⟩ := ht; norm_num [Complex.ext_iff] at hk
+        rcases k with ⟨_ | k⟩ <;> norm_num at hk <;> ring_nf at hk <;> norm_num at hk <;>
+          cases lt_or_gt_of_ne hlam <;> nlinarith [Real.pi_pos]
+    simp_all only [ne_eq, neg_mul, division_def, mul_inv_rev, inv_inv, one_mul]
+    exact ContDiff.mul h_sinh_cosh_diff.2.1 (ContDiff.inv h_sinh_cosh_diff.1 fun t => h_sinh_cosh_diff.2.2 t)
+  exact ContDiff.mul contDiff_const (h_diff.add contDiff_const)
+
 @[blueprint
   "phi-c2-left"
   (title := "$\\varphi$ is $C^2$ on [-1,0]")
@@ -1013,61 +1120,7 @@ noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
   (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc (-1) 0) := by
-  have h_diff_circ : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
-    have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
-      simp only [Complex.tanh_eq_sinh_div_cosh]
-      have h_sinh_cosh_diff : ContDiff ℝ 2 (fun t : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ∀ t : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-        refine ⟨?_, ?_, ?_⟩
-        · have h_sinh_entire : ContDiff ℂ 2 Complex.sinh := by
-            unfold Complex.sinh
-            exact ContDiff.div_const (Complex.contDiff_exp.sub (Complex.contDiff_exp.comp contDiff_neg)) _
-          exact h_sinh_entire.restrict_scalars ℝ |> ContDiff.comp <| ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff) contDiff_const) _
-        · have h_cosh_entire : ContDiff ℝ 2 (fun t : ℂ => Complex.cosh t) := by
-            have : ContDiff ℂ 2 Complex.cosh := by
-              unfold Complex.cosh
-              exact ContDiff.div_const (Complex.contDiff_exp.add (Complex.contDiff_exp.comp contDiff_neg)) _
-            exact this.restrict_scalars ℝ
-          exact h_cosh_entire.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-        · norm_num [Complex.sinh, Complex.exp_ne_zero]
-          norm_num [sub_eq_zero, Complex.exp_ne_zero]
-          intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
-          obtain ⟨k, hk⟩ := ht; norm_num [Complex.ext_iff] at hk
-          rcases k with ⟨_ | k⟩ <;> norm_num at hk <;> ring_nf at hk <;> norm_num at hk <;>
-            cases lt_or_gt_of_ne hlam <;> nlinarith [Real.pi_pos]
-      simp_all only [ne_eq, neg_mul, division_def, mul_inv_rev, inv_inv, one_mul]
-      exact ContDiff.mul h_sinh_cosh_diff.2.1 (ContDiff.inv h_sinh_cosh_diff.1 fun t => h_sinh_cosh_diff.2.2 t)
-    exact ContDiff.mul contDiff_const (h_diff.add contDiff_const)
-  have h_diff_star : ContDiff ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) := by
-    have h_diff_B : ContDiff ℝ 2 (fun t : ℝ => B ε (-2 * Real.pi * Complex.I * t + ν)) := by
-      have h_B_rational : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
-        unfold B; unfold coth
-        simp +contextual [Complex.tanh_eq_sinh_div_cosh]
-      have h_comp : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
-        apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id]
-        · exact Complex.ofRealCLM.contDiff
-        · exact Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-        · exact Complex.contDiff_exp.comp (ContDiff.neg (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _))
-        · have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by
-            have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.exp ((-2 * Real.pi * Complex.I * x + ν) / 2)) :=
-              Complex.contDiff_exp.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
-            simp_all only [ne_eq, Complex.sinh, neg_mul]
-            exact ContDiff.div_const (h_conj.sub (Complex.contDiff_exp.comp (by exact ContDiff.neg (by exact ContDiff.div_const (by exact ContDiff.add (ContDiff.neg (by exact ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff)) contDiff_const) _)))) _
-          rw [contDiff_iff_contDiffAt] at *
-          intro x; specialize h_conj x; exact (by
-          convert Complex.conjCLE.contDiff.contDiffAt.comp x h_conj using 1)
-        · refine Complex.ofRealCLM.contDiff.comp ?_
-          refine ContDiff.inv ?_ ?_
-          · norm_num [Complex.normSq, Complex.sinh]
-            norm_num [Complex.exp_re, Complex.exp_im]
-            exact ContDiff.div_const (ContDiff.add (ContDiff.mul (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.sub (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_cos.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))))) (ContDiff.mul (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))) (ContDiff.add (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _))) (ContDiff.mul contDiff_const (Real.contDiff_sin.comp (by exact ContDiff.div_const (ContDiff.neg (contDiff_const.mul contDiff_id)) _)))))) _
-          · norm_num [Complex.sinh, Complex.exp_re, Complex.exp_im, Complex.normSq]
-            intro x; ring_nf; norm_num [Real.exp_ne_zero, hlam]
-            norm_num [Real.sin_sq, Real.cos_sq, mul_assoc, mul_left_comm, ← Real.exp_add, ← Real.exp_nat_mul]; ring_nf
-            cases lt_or_gt_of_ne hlam <;> nlinarith [Real.cos_le_one (Real.pi * x * 2), Real.exp_pos ν, Real.exp_pos (-ν), Real.exp_neg ν, mul_inv_cancel₀ (ne_of_gt (Real.exp_pos ν)), Real.add_one_le_exp ν, Real.add_one_le_exp (-ν)]
-      convert h_comp using 1
-      ext t; by_cases h : (-(2 * Real.pi * Complex.I * t) + ν : ℂ) = 0 <;> simp_all [Complex.sinh, Complex.cosh]; ring_nf
-      norm_num [Complex.ext_iff] at h; aesop
-    convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
+  have h_diff_star : ContDiff ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) := Phi_star.contDiff_real ν ε hlam
   have h_eq : ∀ t ∈ Set.Icc (-1 : ℝ) 0, ϕ_pm ν ε t = Phi_circ ν ε (t : ℂ) - (if t = 0 then 0 else Phi_star ν ε (t : ℂ)) := by
     unfold ϕ_pm
     intro t ht
@@ -1079,57 +1132,10 @@ theorem ϕ_c2_left (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν 
     · grind
     · grind
   refine ContDiffOn.congr ?_ h_eq
-  apply_rules [ContDiffOn.sub, h_diff_circ.contDiffOn, h_diff_star.contDiffOn]
+  apply_rules [ContDiffOn.sub, (Phi_circ.contDiff_real ν ε hlam).contDiffOn, h_diff_star.contDiffOn]
   refine h_diff_star.contDiffOn.congr fun x hx => ?_
   grind [Phi_star, neg_mul, ofReal_zero, mul_zero, neg_zero, zero_add,
     sub_self, zero_div]
-
-lemma h_entire : ContDiffOn ℂ 2
-    (fun z => Complex.cosh (z / 2) / Complex.sinh (z / 2))
-    (Set.univ \ {z : ℂ | Complex.sinh (z / 2) = 0}) := by
-  apply ContDiffOn.div
-  · fun_prop
-  · fun_prop
-  · grind
-
-lemma h_no_zero {ν : ℝ} (hlam : ν ≠ 0) : ∀ t ∈ Set.Icc (0 : ℝ) 1,
-    Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-  norm_num [Complex.sinh, Complex.exp_ne_zero]
-  intro t ht₁ ht₂
-  rw [sub_eq_zero, Complex.exp_eq_exp_iff_exists_int]
-  rintro ⟨⟨_ | k⟩, hk⟩
-  <;> norm_num [Complex.ext_iff] at hk <;> ring_nf at hk <;> norm_num at hk
-  <;> grind
-
-lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := by
-  refine ContDiff.contDiffOn ?_
-  suffices h : ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) by
-    convert h.div_const 2 |> ContDiff.add <| contDiff_const.div_const 2 using 1
-    swap; · exact ↑ε
-    unfold Phi_circ; ext; norm_num [Complex.tanh_eq_sinh_div_cosh, div_div]; ring_nf
-    unfold coth; norm_num [Complex.tanh_eq_sinh_div_cosh]; ring
-  refine contDiff_iff_contDiffAt.2 fun t => ?_
-  have h_sinh_ne_zero : ∀ t : ℝ,
-      Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-    norm_num [Complex.sinh, Complex.ext_iff]
-    norm_num [Complex.exp_re, Complex.exp_im, neg_div]
-    intro t ht; contrapose! hlam; simp_all only [sub_eq_iff_eq_add, zero_add,
-      mul_eq_mul_right_iff, exp_eq_exp]
-    by_cases h : Real.sin (2 * Real.pi * t / 2) = 0
-    · cases ht <;> nlinarith [Real.sin_sq_add_cos_sq (2 * Real.pi * t / 2)]
-    · exact False.elim <| h <| by nlinarith [Real.exp_pos (ν / 2), Real.exp_pos (-(ν / 2))]
-  have h_analytic : AnalyticAt ℂ (fun z : ℂ => Complex.cosh z / Complex.sinh z)
-      ((-2 * Real.pi * Complex.I * t + ν) / 2) := by
-    apply_rules [AnalyticAt.div, AnalyticAt.mul, analyticAt_id, analyticAt_const]
-    · fun_prop (disch := solve_by_elim)
-    · norm_num
-    · exact Differentiable.analyticAt (Complex.differentiable_exp.sub
-        (Complex.differentiable_exp.comp (differentiable_id.neg))) _
-    · norm_num
-  exact h_analytic.contDiffAt.restrict_scalars ℝ |>.comp t <|
-    ContDiffAt.div_const (ContDiffAt.add (ContDiffAt.mul contDiffAt_const <|
-    Complex.ofRealCLM.contDiff.contDiffAt) contDiffAt_const) _
 
 @[blueprint
   "phi-c2-right"
@@ -1140,31 +1146,10 @@ lemma hc (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (fun t : ℝ => Phi_
   (proof := /-- Since $\Phi^{\pm, \circ}_\nu(z)$ and $\Phi^{\pm, \circ}_\nu(z)$ have no poles on $\mathbb{R}$, they have no poles on some open neighborhood of $[-1,1]$. Hence they are $C^2$ on this interval.  Since $w(0) = \nu$, we see that $\Phi^{\pm, \ast}_\nu(0)=0$, giving the claim. -/)
   (latexEnv := "lemma")]
 theorem ϕ_c2_right (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := by
-  /- Since `Phi_circ` and `Phi_star` have no poles on ℝ (when ν ≠ 0), they are holomorphic on a
-     neighborhood of any real point, hence C^∞ when restricted to ℝ. -/
-  have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) := by
-    refine ContDiffOn.div_const ?_ _
-    refine ContDiffOn.sub ?_ contDiffOn_const
-    have h_simp : ∀ t : ℝ, B ε (-2 * Real.pi * Complex.I * t + ν) =
-        (-2 * Real.pi * Complex.I * t + ν) *
-        (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2 := by
-      unfold B; unfold coth
-      norm_num [Complex.tanh_eq_sinh_div_cosh]
-      norm_num [Complex.ext_iff] at *; aesop
-    have h_cont_diff : ContDiffOn ℝ 2 (fun t : ℝ =>
-        Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) /
-        Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2))
-        (Set.Icc (0 : ℝ) 1) := by
-      exact h_entire.restrict_scalars ℝ |>.comp
-        (ContDiff.contDiffOn (ContDiff.add (ContDiff.mul contDiff_const
-        (contDiff_id.comp Complex.ofRealCLM.contDiff)) contDiff_const))
-        fun x hx => ⟨Set.mem_univ _, h_no_zero hlam x hx⟩
-    simp_all only [ne_eq, neg_mul, div_eq_mul_inv]
-    exact ContDiffOn.mul (ContDiffOn.mul (ContDiffOn.add (ContDiffOn.neg
-      (ContDiffOn.mul contDiffOn_const Complex.ofRealCLM.contDiff.contDiffOn))
-      contDiffOn_const) (h_cont_diff.add contDiffOn_const)) contDiffOn_const
-  exact ((hc ν ε hlam).add hs).congr fun t ht => by
+  have hs : ContDiffOn ℝ 2 (fun t : ℝ => Phi_star ν ε (t : ℂ)) (Set.Icc 0 1) :=
+    (Phi_star.contDiff_real ν ε hlam).contDiffOn
+  have hcirc : ContDiffOn ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) (Set.Icc 0 1) := (Phi_circ.contDiff_real ν ε hlam).contDiffOn
+  exact (hcirc.add hs).congr fun t ht => by
     simp only [ϕ_pm]
     rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
     rcases eq_or_lt_of_le ht.1 with rfl | hpos
@@ -1712,6 +1697,10 @@ theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
+lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
+  simp only [E]
+  fun_prop
+
 @[blueprint
   "varphi-fourier-ident"
   (title := "Fourier transform of $\\varphi$")
@@ -1726,7 +1715,68 @@ noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
     𝓕 (ϕ_pm ν ε) x = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
     ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
-    sorry
+  calc 𝓕 (ϕ_pm ν ε) x
+    _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
+      dsimp [FourierTransform.fourier, VectorFourier.fourierIntegral]
+      apply MeasureTheory.integral_congr_ae
+      filter_upwards [] with v
+      simp only [starRingEnd_apply, star_trivial, E, Real.fourierChar, AddChar.coe_mk,
+           Circle.smul_def, smul_eq_mul,
+           Circle.coe_exp]
+      push_cast
+      ring_nf
+    _ = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
+      apply (setIntegral_eq_integral_of_forall_compl_eq_zero ?_).symm
+      intro t ht
+      unfold ϕ_pm
+      split_ifs with h
+      · exact (ht (Set.mem_Icc.mpr h)).elim
+      · rw [zero_mul]
+    _ = (∫ t in Set.Icc (-1:ℝ) 0, ϕ_pm ν ε t * E (-t * x)) +
+        (∫ t in Set.Icc 0 (1:ℝ), ϕ_pm ν ε t * E (-t * x)) := by
+      conv_lhs =>
+        rw [show Set.Icc (-1 : ℝ) 1 = Set.Icc (-1) 0 ∪ Set.Icc 0 1 from
+          (Set.Icc_union_Icc_eq_Icc (by norm_num) (by norm_num)).symm]
+      refine MeasureTheory.integral_union_ae ?_ nullMeasurableSet_Icc ?_ ?_
+      · have hcap : Set.Icc (-1 : ℝ) 0 ∩ Set.Icc 0 1 = {0} := by
+          ext t; simp only [Set.mem_inter_iff, Set.mem_Icc, Set.mem_singleton_iff]
+          constructor
+          · rintro ⟨⟨-, h1⟩, h2, -⟩; linarith
+          · rintro rfl; norm_num
+        simp [AEDisjoint, hcap]
+      · exact ContinuousOn.integrableOn_compact isCompact_Icc
+          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
+      · exact ContinuousOn.integrableOn_compact isCompact_Icc
+          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
+    _ = (∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
+        (∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
+      congr 1
+      · apply setIntegral_congr_fun measurableSet_Icc
+        intro t ht
+        dsimp [ϕ_pm]
+        rw [if_pos ⟨ht.1, by linarith [ht.2]⟩]
+        rcases ht.2.lt_or_eq with h_neg | rfl
+        · rw [Real.sign_of_neg h_neg]; push_cast; ring
+        · simp [Real.sign_zero, Phi_star_zero ν ε]
+      · apply setIntegral_congr_fun measurableSet_Icc
+        intro t ht
+        dsimp [ϕ_pm]
+        rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
+        rcases ht.1.lt_or_eq with h_pos | rfl
+        · rw [Real.sign_of_pos h_pos]; push_cast; ring
+        · simp [Real.sign_zero, Phi_star_zero ν ε]
+    _ = ∫ t in Set.Icc (-1:ℝ) 0, ((Phi_circ ν ε t - Phi_star ν ε t) * (E (-t * x))) +
+        ∫ t in Set.Icc 0 (1:ℝ), ((Phi_circ ν ε t + Phi_star ν ε t) * (E (-t * x))) := by
+      have h_int_A : IntegrableOn (fun (t:ℝ) ↦ (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) (Set.Icc (-1:ℝ) 0) :=
+        ContinuousOn.integrableOn_compact isCompact_Icc
+          (((Phi_circ.contDiff_real ν ε hlam).contDiffOn.continuousOn.sub
+            (Phi_star.contDiff_real ν ε hlam).contDiffOn.continuousOn).mul (cont_E x).continuousOn)
+      have h_int_B : IntegrableOn (fun (t:ℝ) ↦ ∫ s in Set.Icc 0 (1:ℝ), (Phi_circ ν ε s + Phi_star ν ε s) * E (-s * x)) (Set.Icc (-1:ℝ) 0) :=
+        integrableOn_const measure_Icc_lt_top.ne
+      rw [integral_add h_int_A h_int_B]
+      congr 1
+      symm
+      rw [setIntegral_const, show volume.real (Set.Icc (-1:ℝ) 0) = 1 from by simp, one_smul]
 
 @[blueprint
   "shift-upwards"
@@ -1739,10 +1789,11 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
   (latexEnv := "sublemma")
   (discussion := 1080)]
-theorem shift_upwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * ↑t) * x) - I *
-    ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * (E (-(1 + I * ↑t) * x))) +
-    2 * ∫ t in Set.Icc 0 T, (Phi_star ν ε (I * t) * E (-(I * ↑t) * x)))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto
+      (fun T : ℝ ↦ I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x)
+        - I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x)
+        + 2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
 
 @[blueprint
