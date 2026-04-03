@@ -208,26 +208,13 @@ theorem bklnw_eq_A_13 (I : Inputs)
           (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
         I.ZDB.c₂ (1 - δ) *
           (log (T / lambda ^ k)) ^ 2) := by
-  let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
-  let f2 (k : ℕ) := (lambda ^ (k + 1) * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) / T) *
-    (I.ZDB.c₁ (1 - δ) * (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) * (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
-    I.ZDB.c₂ (1 - δ) * (log (T / lambda ^ k)) ^ 2)
-  let f3 (k : ℕ) := exp (k * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) *
-    (I.ZDB.c₁ (1 - δ) * (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) * (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
-    I.ZDB.c₂ (1 - δ) * (log (T / lambda ^ k)) ^ 2)
-  have h_main_ineq : ‖Sigma₂ x T δ‖ ≤ 2 * ∑ k ∈ Finset.range K, f2 k :=
-    bklnw_eq_A_12 I x T δ lambda hlambda hx hT hTH hσ hT₀
-  have h_term_eq (k : ℕ) (hk : k ∈ Finset.range K) :
-      (2 * f2 k) = ((2 * lambda / T) * f3 k) := by
-    have h4 : exp ((k : ℝ) * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) =
-        lambda ^ k * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) := by
-      rw [Real.log_div hT.ne' (by positivity), Real.log_pow, sub_eq_add_neg,
-        Real.exp_add, Real.exp_nat_mul, Real.exp_log (by positivity),
-        Real.rpow_def_of_pos (by positivity), mul_neg, mul_one_div]
-    simp only [f3, h4]; ring
-  have h_goal_eq : (2 * ∑ k ∈ Finset.range K, f2 k) = (2 * lambda / T) * ∑ k ∈ Finset.range K, f3 k := by
-    rw [Finset.mul_sum, Finset.mul_sum, Finset.sum_congr rfl (fun k hk ↦ h_term_eq k hk)]
-  rwa [h_goal_eq] at h_main_ineq
+  have h4 (k : ℕ) : exp ((k : ℝ) * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) =
+      lambda ^ k * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) := by
+    rw [Real.log_div hT.ne' (by positivity), Real.log_pow, sub_eq_add_neg,
+      Real.exp_add, Real.exp_nat_mul, Real.exp_log (by positivity),
+      Real.rpow_def_of_pos (by positivity), mul_neg, mul_one_div]
+  refine (bklnw_eq_A_12 I x T δ lambda hlambda hx hT hTH hσ hT₀).trans (le_of_eq ?_)
+  simp_rw [zero_density_bound.N, Finset.mul_sum, h4]; congr 1; ext k; ring
 
 @[blueprint
   "bklnw-eq_A_14"
