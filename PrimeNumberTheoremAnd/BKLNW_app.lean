@@ -186,9 +186,11 @@ theorem bklnw_eq_A_12 (I : Inputs)
   \sum_{k=0}^{K-1} \lambda^k
   x^{-\frac{1}{R \log(T/\lambda^k)}}
   \left(c_1 \left(\frac{T}{\lambda^k}
-  \right)^{\frac{8\delta}{3}}
-  (\log(T/\lambda^k))^{3+2\delta}
-  + c_2 (\log(T/\lambda^k))^2\right). $$ -/)
+  \right)^{p(1-\delta)}
+  (\log(T/\lambda^k))^{q(1-\delta)}
+  + c_2 (\log(T/\lambda^k))^2\right) $$
+  where $p$, $q$, $c_1$, $c_2$ are the
+  parameters of the zero density bound. -/)
   (proof := /-- Inserting (A.6) into the result
   of (A.12). -/)
   (latexEnv := "sublemma")
@@ -228,11 +230,13 @@ theorem bklnw_eq_A_13 (I : Inputs)
   - k \log \lambda)}\right) \\
   &\quad \times \left(c_1
   \left(\frac{T}{\lambda^k}
-  \right)^{\frac{8\delta}{3}}
-  (\log(T/\lambda^k))^{3+2\delta}
+  \right)^{p(1-\delta)}
+  (\log(T/\lambda^k))^{q(1-\delta)}
   + c_2
-  (\log(T/\lambda^k))^2\right). \notag
-  \end{align} -/)]
+  (\log(T/\lambda^k))^2\right) \notag
+  \end{align}
+  where $p$, $q$, $c_1$, $c_2$ are the
+  parameters of the zero density bound. -/)]
 noncomputable def Inputs.s₂ (I : Inputs)
     (δ b : ℝ) (K : ℕ) (lambda T : ℝ) : ℝ :=
   (2 * lambda / T) *
