@@ -1233,7 +1233,7 @@ TODO: Lemma 9, Corollary 9.1
   "bklnw-eq-3-17"
   (title := "BKLNW Equation 3.17")
   (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } x \le 10^{19}.$ -/)
-  (proof := /-- This follows from Theorem \reff{buthe-theorem-2c}.  -/)
+  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
   (latexEnv := "lemma")]
 theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
   sorry
