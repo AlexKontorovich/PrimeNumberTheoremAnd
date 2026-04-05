@@ -1271,7 +1271,7 @@ If $u^2 < v$, then
  \]
  Together with \eqref{defn1:c0}, it follows
  \[
-  \psi(x) - \theta(x) \le \psi(x^{\frac12}) +  c_0 x^{\frac13} +c_0 x^{\frac15}  \text{ for all } x \in [u,v]. -/)
+  \psi(x) - \theta(x) \le \psi(x^{\frac12}) +  c_0 x^{\frac13} +c_0 x^{\frac15}  \text{ for all } x \in [u,v].\] -/)
   (latexEnv := "lemma")]
 theorem bklnw_lemma_9 (u v : ℝ) (c C c₀ : ℝ)
   (huv : 1 ≤ u ∧ u < v)
@@ -1346,7 +1346,7 @@ theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, 
   "bklnw-corollary-9-1-explicit"
   (title := "BKLNW Corollary 9.1 explicit version")
   (statement := /--  We have $\theta(x) - x > - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
-  (proof := /-- Inser the above table into the previous corollary. -/)
+  (proof := /-- Insert the above table into the previous corollary. -/)
   (latexEnv := "corollary")]
 theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
   ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x > - Cb k * x / (log x)^k := by
