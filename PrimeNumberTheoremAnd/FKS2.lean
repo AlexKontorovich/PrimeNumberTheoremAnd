@@ -1087,7 +1087,7 @@ lemma admissible_bound_mul (A K B C R x : ℝ) :
 Helper: the ratio log x / (x * admissible_bound A B C R x) equals R^B / A * g_bound 1 (1-B) (C/√R) x
 -/
 lemma ratio_eq_g {A B C R x : ℝ}
-    (_hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
+    (hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
     log x / (x * admissible_bound A B C R x) =
     R ^ B / A * g_bound 1 (1 - B) (C / sqrt R) x := by
   unfold admissible_bound g_bound; ring_nf;
@@ -1279,8 +1279,8 @@ Step 5: Apply dawson_mono_ge_one (using sqrt_log_minus_ge_one for the ≥ 1 cond
 Step 6: Combine: ≤ 2/√(log x₁) * dawson(√(log x₁)-C/(2√R)) * admissible_bound.
 -/
 lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
-  (hB : B ≥ 3 / 2) (_hB2 : B ≥ 1 + C ^ 2 / (16 * R))
-  (hR : R > 0) (hA : A > 0) (_hx0 : x₀ > 0)
+  (hB : B ≥ 3 / 2) (hB2 : B ≥ 1 + C ^ 2 / (16 * R))
+  (hR : R > 0) (hA : A > 0) (hx0 : x₀ > 0)
   (hE_theta : Eθ.classicalBound A B C R x₀)
   (hx1_gt1 : x₁ > 1) (hx₁x₀ : x₁ ≥ x₀) (hx : x ≥ x₁)
   (hx0_ge2 : x₀ ≥ 2)
@@ -1332,7 +1332,7 @@ lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
   · exact mul_nonneg ( mul_nonneg hA.le ( Real.rpow_nonneg ( div_nonneg ( Real.log_nonneg ( by linarith ) ) hR.le ) _ ) ) ( Real.exp_nonneg _ )
 
 lemma theorem_3_easy_preconditions
-    (B C R x₀ x₁ : ℝ)
+    (A B C R x₀ x₁ : ℝ)
     (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
     (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
     x₁ ≥ x₀ ∧ x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2) ∧
@@ -1381,7 +1381,7 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   /-NOTE: The conditions hx0_ge2 and hsqrt_cond are not present in the source material [FKS2]. They are added to
   facilitate the application of lemma_12, which requires x₀ ≥ 2 and 0 ≤ √(log x₀) - C/(2√R).
   -/
-  obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions B C R x₀ x₁ hB hx1
+  obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions A B C R x₀ x₁ hB hx1
   have hx1_ge1 : x₁ ≥ 1 := le_trans (Real.one_le_exp (sq_nonneg _)) hx1_exp
   have hx1_gt1 : x₁ > 1 := by linarith
   have hlogx0 : log x₀ > 0 := Real.log_pos (by linarith)
@@ -1818,7 +1818,7 @@ lemma hasDerivAt_Li_sub_div_log {t : ℝ} (ht : 1 < t) :
     · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Real.measurable_log ) ) |> fun h => h.stronglyMeasurableAtFilter;
     · exact ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) )
   generalize_proofs at *; (
-  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring!;
+  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring_nf! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring_nf!;
   grind)
 
 lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
@@ -1893,10 +1893,10 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
             exact continuousOn_of_forall_continuousAt fun y hy => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) ) );
           · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( by exact Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
           · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) );
-        convert HasDerivAt.sub ( HasDerivAt.mul ( HasDerivAt.sub ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( hasDerivAt_const _ _ ) ) hI_deriv ) ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) ) using 1 ; ring;
-        by_cases h : x = 0 <;> simp +decide only [h, inv_zero, mul_comm, zero_mul, log_zero, sq,
-          mul_zero, id_eq, add_zero, Pi.sub_apply, zero_sub, mul_neg, mul_one, neg_zero, sub_self];
-        ring;
+        convert HasDerivAt.sub ( HasDerivAt.mul ( HasDerivAt.sub ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( hasDerivAt_const _ _ ) ) hI_deriv ) ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) ) using 1 ; ring_nf;
+        by_cases h : x = 0
+        · simp [h]
+        simp +decide [h, sq, mul_comm]; ring;
       · apply_rules [ ContinuousOn.intervalIntegrable ];
         refine ContinuousOn.div ?_ continuousOn_id fun s hs => ?_;
         · intro u hu; apply_rules [ intervalIntegral.continuousWithinAt_primitive ]
@@ -2286,17 +2286,20 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
       rwa [ Real.exp_log ( by linarith ) ] at h_exp_le);
   · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ using 1
     all_goals generalize_proofs at *;
-    convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
-    generalize_proofs at *;
-    rotate_left;
-    exact fun j => b' ⟨ j, by linarith [ Fin.is_lt j ] ⟩
-    generalize_proofs at *; (
-    exact fun j k hjk => hmono <| by simpa using hjk;);
-    apply_rules [ ereal_toReal_coe_log ];
-    exact i
-    generalize_proofs at *; (
-    convert ereal_toReal_sub_mono b' hmono i ( Real.log x ) hi_le _ using 1
-    generalize_proofs at *; aesop;);
+    · convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
+      all_goals generalize_proofs at *;
+      rotate_left
+      · exact fun j => b' ⟨ j, by linarith [ Fin.is_lt j ] ⟩
+      · generalize_proofs at *
+        exact fun j k hjk => hmono <| by simpa using hjk
+      · apply_rules [ ereal_toReal_coe_log ]
+      · exact i
+      norm_num [ EReal.toReal_coe ] at *
+      exact Or.inl fun h => by have := h_finite _ h; aesop;
+    · generalize_proofs at *
+      convert ereal_toReal_sub_mono b' hmono i ( Real.log x ) hi_le _ using 1
+      generalize_proofs at *
+      aesop
     all_goals norm_num [ EReal.toReal_coe ] at *;
     · aesop;
     · exact fun j => h_εθ_num _;
@@ -2309,7 +2312,6 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         cases h : b' ⟨ i + 1, by linarith ⟩ <;> aesop)
       generalize_proofs at *; (
       rw [ ← Real.log_le_iff_le_exp ( by linarith ) ] ; linarith [ Real.log_le_log ( by linarith ) hx ] ;);
-    · exact Or.inl fun h => by have := h_finite _ h; aesop;
 
 
 
