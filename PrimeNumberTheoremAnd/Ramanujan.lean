@@ -1,7 +1,7 @@
 import PrimeNumberTheoremAnd.Defs
 import LeanCert.Engine.ChebyshevTheta
-import LeanCert.Tactic.IntervalAuto
 import PrimeNumberTheoremAnd.SecondarySummary
+import PrimeNumberTheoremAnd.RamanujanCalculations
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
@@ -1356,9 +1356,12 @@ noncomputable def C₂ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (
 
 noncomputable def C₃ : ℝ := 2 * log xₐ ^ 6 / xₐ * ∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)
 
-noncomputable def Mₐ (x : ℝ) : ℝ := 120 + a x + C₁ + (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+private noncomputable def B : ℝ :=
+  1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)
 
-noncomputable def mₐ (x : ℝ) : ℝ := 120 - a x - (C₂ + C₃) - a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
+noncomputable def Mₐ (x : ℝ) : ℝ := 120 + a x + C₁ + (720 + a xₐ) * B
+
+noncomputable def mₐ (x : ℝ) : ℝ := 120 - a x - (C₂ + C₃) - a xₐ * B
 
 noncomputable def exₐ : ℝ := exp 1 * xₐ
 
@@ -2359,7 +2362,7 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
 
   have hB :
       x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8)
-        ≤ x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
+        ≤ x / log x ^ 6 * B := by
     have hterm2' : 7 * 2 ^ 8 * x / log x ^ 8 ≤ x / log x ^ 6 * (7 * 2 ^ 8 / log xₐ ^ 2) := by
       have hmul := mul_le_mul_of_nonneg_left hterm2 (by positivity : 0 ≤ (7 : ℝ))
       ring_nf at hmul ⊢
@@ -2378,7 +2381,8 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
         ring
       _ ≤ x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2) + x / log x ^ 6 * (7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
         gcongr
-      _ = x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
+      _ = x / log x ^ 6 * B := by
+        unfold B
         ring
 
   have hC1_nonneg : 0 ≤ C₁ := by
@@ -2405,17 +2409,17 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
 
   have htail_B_lt :
       ∫ t in Set.Icc xₐ x, (720 + a t) / log t ^ 7 <
-        (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))) := by
+        (720 + a xₐ) * (x / log x ^ 6 * B) := by
     have htmp :
         (720 + a xₐ) * (x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8))
-          ≤ (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))) := by
+          ≤ (720 + a xₐ) * (x / log x ^ 6 * B) := by
       exact mul_le_mul_of_nonneg_left hB h720axa_nonneg
     exact lt_of_lt_of_le htail_lt htmp
 
   have hG_lt :
       ∫ t in Set.Icc 2 x, (720 + a t) / log t ^ 7 <
         C₁ * x / log x ^ 6 +
-        (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))) := by
+        (720 + a xₐ) * (x / log x ^ 6 * B) := by
     rw [hsplitG]
     exact add_lt_add_of_le_of_lt hI0_le htail_B_lt
 
@@ -2429,22 +2433,20 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
       pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
         + (120 + a exₐ) * x / log x ^ 6
         + (C₁ * x / log x ^ 6
-        + (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)))) := by
+        + (720 + a xₐ) * (x / log x ^ 6 * B)) := by
     have hmain_lt :
         x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
           + ((120 + a exₐ) * x / log x ^ 6)
           + (∫ t in Set.Icc 2 x, (720 + a t) / log t ^ 7)
         < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
           + ((120 + a exₐ) * x / log x ^ 6)
-          + (C₁ * x / log x ^ 6
-          + (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)))) := by
+          + (C₁ * x / log x ^ 6 + (720 + a xₐ) * (x / log x ^ 6 * B)) := by
       gcongr
     exact lt_of_le_of_lt hmain_le hmain_lt
 
   have hMa_eq :
       (120 + a exₐ) * x / log x ^ 6
-        + (C₁ * x / log x ^ 6
-        + (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))))
+        + (C₁ * x / log x ^ 6 + (720 + a xₐ) * (x / log x ^ 6 * B))
       = Mₐ exₐ * x / log x ^ 6 := by
     unfold Mₐ
     ring
@@ -2452,68 +2454,10 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
   calc
     pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
       + ((120 + a exₐ) * x / log x ^ 6
-      + (C₁ * x / log x ^ 6
-      + (720 + a xₐ) * (x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))))) := by
+      + (C₁ * x / log x ^ 6 + (720 + a xₐ) * (x / log x ^ 6 * B))) := by
       linarith [hfinal_lt]
     _ = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((Mₐ exₐ) * x / log x ^ 6) := by
       rw [hMa_eq]
-
-private theorem style_eq (y : ℝ) (hy : 0 < y) :
-    y ^ 5 * ((379.7 : ℝ) * (y / 5.573412) ^ (1.52 : ℝ) *
-      Real.exp (-(1.89 : ℝ) * (Real.sqrt y / Real.sqrt (5.573412 : ℝ))))
-    =
-    y * (y * (y * (y * y))) *
-      ((3797 / 10 : ℝ) *
-        Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) *
-        Real.exp ((-189 / 100 : ℝ) * Real.sqrt (y * (250000 / 1393353 : ℝ)))) := by
-  have hpow5 : y ^ 5 = y * (y * (y * (y * y))) := by ring
-  rw [hpow5]
-  have hconst1 : (379.7 : ℝ) = (3797 / 10 : ℝ) := by norm_num
-  rw [hconst1]
-  have hconst2 : (5.573412 : ℝ) = (1393353 / 250000 : ℝ) := by norm_num
-  rw [hconst2]
-  have hdiv : y / (1393353 / 250000 : ℝ) = y * (250000 / 1393353 : ℝ) := by
-    field_simp
-  rw [hdiv]
-  have hposbase : 0 < y * (250000 / 1393353 : ℝ) := by positivity
-  have hrpow : (y * (250000 / 1393353 : ℝ)) ^ (1.52 : ℝ) =
-      Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) := by
-    rw [Real.rpow_def_of_pos hposbase]
-    congr 1
-    norm_num
-  rw [hrpow]
-  have hsqrt : Real.sqrt y / Real.sqrt (1393353 / 250000 : ℝ) = Real.sqrt (y * (250000 / 1393353 : ℝ)) := by
-    have hs : Real.sqrt (y / (1393353 / 250000 : ℝ)) = Real.sqrt y / Real.sqrt (1393353 / 250000 : ℝ) := by
-      rw [Real.sqrt_div (le_of_lt hy)]
-    rw [← hs, hdiv]
-  rw [hsqrt]
-  have hconst3 : (1.89 : ℝ) = (189 / 100 : ℝ) := by norm_num
-  rw [hconst3]
-  ring
-
-private lemma rpow_652_split {y : ℝ} (hy : 0 < y) :
-    y ^ (6.52 : ℝ) = y ^ (5 : ℕ) * y ^ (1.52 : ℝ) := by
-  have hdecomp : (6.52 : ℝ) = (5 : ℝ) + (1.52 : ℝ) := by
-    norm_num
-  rw [hdecomp]
-  calc
-    y ^ ((5 : ℝ) + (1.52 : ℝ)) = y ^ (5 : ℝ) * y ^ (1.52 : ℝ) := by
-      simpa using (Real.rpow_add hy (5 : ℝ) (1.52 : ℝ))
-    _ = y ^ (5 : ℕ) * y ^ (1.52 : ℝ) := by
-      simp
-
-private lemma sqrt_ratio_5573412 {y : ℝ} (hy : 0 ≤ y) :
-    (y / 5.573412) ^ ((1 : ℝ) / 2) = Real.sqrt y / Real.sqrt (5.573412 : ℝ) := by
-  rw [show ((1 : ℝ) / 2) = (1 / 2 : ℝ) by norm_num, ← Real.sqrt_eq_rpow]
-  rw [Real.sqrt_div hy]
-
-private theorem not_mem_Ico_of_ge_exp3000
-    {z lo hi : ℝ}
-    (hz : z ≥ exp 3000)
-    (hhi : hi ≤ exp 3000) :
-    ¬ z ∈ Set.Ico lo hi := by
-  intro hzmem
-  exact (not_lt_of_ge (le_trans hhi hz)) hzmem.2
 
 private theorem a_eq_admissible_ge_3000 {z : ℝ} (hz : z ≥ exp 3000) :
     a z = admissible_bound (379.7 * 5.573412 ^ 5) 6.52 1.89 5.573412 z := by
@@ -2541,130 +2485,36 @@ private theorem a_eq_admissible_ge_3000 {z : ℝ} (hz : z ≥ exp 3000) :
       intro u v w r s; ring]
   rw [← rpow_652_split hdiv]
 
-private theorem a_xa_upper : a xₐ ≤ (1311 : ℝ) := by
-  have hxage : xₐ ≥ exp 3000 := by
-    unfold xₐ
-    exact exp_le_exp.mpr (by norm_num)
-  rw [a_eq_admissible_ge_3000 hxage]
-  unfold admissible_bound
-  rw [show log xₐ = (3914 : ℝ) by simp [xₐ]]
-  have hpos : 0 < ((3914 : ℝ) / 5.573412) := by positivity
-  rw [rpow_652_split hpos]
-  have hpow5 : (5.573412 : ℝ) ^ (5 : ℕ) * (((3914 : ℝ) / 5.573412) ^ (5 : ℕ)) = (3914 : ℝ) ^ (5 : ℕ) := by
-    norm_num
-  rw [sqrt_ratio_5573412 (y := (3914 : ℝ)) (by positivity)]
-  have hrewrite :
-      (379.7 * 5.573412 ^ 5) * (((3914 : ℝ) / 5.573412) ^ 5 * ((3914 : ℝ) / 5.573412) ^ (1.52 : ℝ))
-          * Real.exp (-(1.89 : ℝ) * (Real.sqrt (3914 : ℝ) / Real.sqrt (5.573412 : ℝ)))
-      = (3914 : ℝ) ^ 5 * ((379.7 : ℝ) * ((3914 : ℝ) / 5.573412) ^ (1.52 : ℝ) *
-          Real.exp (-(1.89 : ℝ) * (Real.sqrt (3914 : ℝ) / Real.sqrt (5.573412 : ℝ)))) := by
-    nlinarith [hpow5]
-  rw [hrewrite, style_eq 3914 (by positivity)]
-  have haux : ∀ y ∈ Set.Icc (3914 : ℝ) 3914,
-      y * (y * (y * (y * y))) *
-          ((3797 / 10 : ℝ) *
-            Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) *
-            Real.exp ((-189 / 100 : ℝ) * Real.sqrt (y * (250000 / 1393353 : ℝ)))) ≤ (1311 : ℝ) := by
-    interval_bound 20
-  exact haux 3914 (by constructor <;> norm_num)
+private theorem a_exp_upper {L C : ℝ}
+    (hL : 3000 ≤ L)
+    (hpow5 : (5.573412 : ℝ) ^ (5 : ℕ) * ((L / 5.573412) ^ (5 : ℕ)) = L ^ (5 : ℕ))
+    (haux : ∀ y ∈ Set.Icc L L, styleVal y ≤ C) :
+    a (Real.exp L) ≤ C := by
+  exact
+    Ramanujan.Calculations.a_exp_upper_of (a := a)
+      (ha_eq_admissible_ge_3000 := by
+        intro z hz
+        exact a_eq_admissible_ge_3000 hz)
+      hL hpow5 haux
 
-private theorem a_exa_upper : a exₐ ≤ (1305 : ℝ) := by
-  have hexa : exₐ = exp 3915 := exₐ_eq
-  have hge : exₐ ≥ exp 3000 := by
-    rw [hexa]
-    exact exp_le_exp.mpr (by norm_num)
-  rw [a_eq_admissible_ge_3000 hge]
-  unfold admissible_bound
-  rw [hexa, log_exp]
-  have hpos : 0 < ((3915 : ℝ) / 5.573412) := by positivity
-  rw [rpow_652_split hpos]
-  have hpow5 : (5.573412 : ℝ) ^ (5 : ℕ) * (((3915 : ℝ) / 5.573412) ^ (5 : ℕ)) = (3915 : ℝ) ^ (5 : ℕ) := by
-    norm_num
-  rw [sqrt_ratio_5573412 (y := (3915 : ℝ)) (by positivity)]
-  have hrewrite :
-      (379.7 * 5.573412 ^ 5) * (((3915 : ℝ) / 5.573412) ^ 5 * ((3915 : ℝ) / 5.573412) ^ (1.52 : ℝ))
-          * Real.exp (-(1.89 : ℝ) * (Real.sqrt (3915 : ℝ) / Real.sqrt (5.573412 : ℝ)))
-      = (3915 : ℝ) ^ 5 * ((379.7 : ℝ) * ((3915 : ℝ) / 5.573412) ^ (1.52 : ℝ) *
-          Real.exp (-(1.89 : ℝ) * (Real.sqrt (3915 : ℝ) / Real.sqrt (5.573412 : ℝ)))) := by
-    nlinarith [hpow5]
-  rw [hrewrite, style_eq 3915 (by positivity)]
-  have haux : ∀ y ∈ Set.Icc (3915 : ℝ) 3915,
-      y * (y * (y * (y * y))) *
-          ((3797 / 10 : ℝ) *
-            Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) *
-            Real.exp ((-189 / 100 : ℝ) * Real.sqrt (y * (250000 / 1393353 : ℝ)))) ≤ (1305 : ℝ) := by
-    interval_bound 20
-  exact haux 3915 (by constructor <;> norm_num)
+private theorem a_xa_upper : a xₐ ≤ (1311 : ℝ) := by
+  simpa [xₐ] using
+    (a_exp_upper (L := (3914 : ℝ)) (C := (1311 : ℝ)) (by norm_num) (by norm_num)
+      styleVal_bound_3914_1311)
 
 private theorem a_3870_upper : a (exp 3870) ≤ (1800 : ℝ) := by
-  have hge : exp 3870 ≥ exp 3000 := by exact exp_le_exp.mpr (by norm_num)
-  rw [a_eq_admissible_ge_3000 hge]
-  unfold admissible_bound
-  rw [log_exp]
-  have hpos : 0 < ((3870 : ℝ) / 5.573412) := by positivity
-  rw [rpow_652_split hpos]
-  have hpow5 : (5.573412 : ℝ) ^ (5 : ℕ) * (((3870 : ℝ) / 5.573412) ^ (5 : ℕ)) = (3870 : ℝ) ^ (5 : ℕ) := by
-    norm_num
-  rw [sqrt_ratio_5573412 (y := (3870 : ℝ)) (by positivity)]
-  have hrewrite :
-      (379.7 * 5.573412 ^ 5) * (((3870 : ℝ) / 5.573412) ^ 5 * ((3870 : ℝ) / 5.573412) ^ (1.52 : ℝ))
-          * Real.exp (-(1.89 : ℝ) * (Real.sqrt (3870 : ℝ) / Real.sqrt (5.573412 : ℝ)))
-      = (3870 : ℝ) ^ 5 * ((379.7 : ℝ) * ((3870 : ℝ) / 5.573412) ^ (1.52 : ℝ) *
-          Real.exp (-(1.89 : ℝ) * (Real.sqrt (3870 : ℝ) / Real.sqrt (5.573412 : ℝ)))) := by
-    nlinarith [hpow5]
-  rw [hrewrite, style_eq 3870 (by positivity)]
-  have haux : ∀ y ∈ Set.Icc (3870 : ℝ) 3870,
-      y * (y * (y * (y * y))) *
-          ((3797 / 10 : ℝ) *
-            Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) *
-            Real.exp ((-189 / 100 : ℝ) * Real.sqrt (y * (250000 / 1393353 : ℝ)))) ≤ (1800 : ℝ) := by
-    interval_bound 20
-  exact haux 3870 (by constructor <;> norm_num)
-
-private noncomputable def B : ℝ :=
-  1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)
+  simpa using
+    (a_exp_upper (L := (3870 : ℝ)) (C := (1800 : ℝ)) (by norm_num) (by norm_num)
+      styleVal_bound_3870_1800)
 
 private theorem B_nonneg : 0 ≤ B := by
   unfold B
   rw [log_xₐ_val]
   positivity
 
-private theorem tail_small :
-    7 * (3914 : ℝ) ^ 6 * Real.exp (-(1957 : ℝ)) / (Real.log 2) ^ 8 ≤ (1 : ℝ) / 1000000 := by
-  have haux : ∀ y ∈ Set.Icc (3914 : ℝ) 3914,
-      7 * y ^ 6 * Real.exp (-y / 2) / (Real.log 2) ^ 8 ≤ (1 : ℝ) / 1000000 := by
-    interval_bound 20
-  have h := haux 3914 (by constructor <;> norm_num)
-  have hy : (-(3914 : ℝ) / 2) = (-(1957 : ℝ)) := by ring
-  simpa [hy] using h
-
 private theorem B_le_small : B ≤ (3 : ℝ) / 8000 := by
   unfold B
-  rw [log_xₐ_val]
-  have hsqrt : sqrt xₐ = Real.exp (1957 : ℝ) := by
-    unfold xₐ
-    have h : (3914 : ℝ) = (1957 : ℝ) + (1957 : ℝ) := by norm_num
-    rw [h, Real.exp_add, Real.sqrt_mul]
-    · have hs : (Real.sqrt (Real.exp (1957 : ℝ))) ^ 2 = Real.exp (1957 : ℝ) := by
-        simpa [pow_two] using (Real.sq_sqrt (show 0 ≤ Real.exp (1957 : ℝ) by positivity))
-      nlinarith [hs]
-    · positivity
-  rw [hsqrt]
-  have htail : 7 * (3914 : ℝ) ^ 6 / (Real.exp (1957 : ℝ) * (Real.log 2) ^ 8) ≤ (1 : ℝ) / 1000000 := by
-    have ht0 : 0 < (Real.exp (1957 : ℝ)) := by positivity
-    have : 7 * (3914 : ℝ) ^ 6 / (Real.exp (1957 : ℝ) * (Real.log 2) ^ 8) =
-      7 * (3914 : ℝ) ^ 6 * Real.exp (-(1957 : ℝ)) / (Real.log 2) ^ 8 := by
-      field_simp [ht0.ne']
-      rw [show (1 : ℝ) = Real.exp (1957 : ℝ) * Real.exp (-(1957 : ℝ)) by
-        rw [← Real.exp_add]; norm_num]
-    rw [this]
-    exact tail_small
-  have hmain : (1 / (3914 : ℝ) + 7 * 2 ^ 8 / (3914 : ℝ) ^ 2 + (1 : ℝ) / 1000000) ≤ (3 : ℝ) / 8000 := by
-    norm_num
-  have hle : 1 / (3914 : ℝ) + 7 * 2 ^ 8 / (3914 : ℝ) ^ 2 + 7 * (3914 : ℝ) ^ 6 / (Real.exp (1957 : ℝ) * (Real.log 2) ^ 8)
-      ≤ 1 / (3914 : ℝ) + 7 * 2 ^ 8 / (3914 : ℝ) ^ 2 + (1 : ℝ) / 1000000 := by
-    linarith [htail]
-  linarith [hle, hmain]
+  exact Ramanujan.Calculations.B_le_small_of (xₐ := xₐ) rfl log_xₐ_val
 
 private theorem a_nonneg {z : ℝ} (hz : 2 ≤ z) : 0 ≤ a z := by
   unfold a
@@ -2810,160 +2660,8 @@ private theorem C₃_nonneg : 0 ≤ C₃ := by
   positivity
 
 private theorem C₃_le_one : C₃ ≤ (1 : ℝ) := by
-  unfold C₃ xₐ
-  simp [Finset.sum_Icc_succ_top, Nat.factorial]
-  have hAaux : ∀ y ∈ Set.Icc (3914 : ℝ) 3914,
-      2 * y ^ 6 * Real.exp (-y) ≤ (1 : ℝ) / 1000000 := by
-    interval_bound 20
-  have hA : 2 * (3914 : ℝ) ^ 6 * Real.exp (-(3914 : ℝ)) ≤ (1 : ℝ) / 1000000 := by
-    exact hAaux 3914 (by constructor <;> norm_num)
-  let u : ℝ := (log 2)⁻¹
-  have hu_nonneg : 0 ≤ u := by
-    dsimp [u]
-    positivity
-  have hu_le : u ≤ (2 : ℝ) := by
-    dsimp [u]
-    have hhalf : (1 / 2 : ℝ) ≤ log 2 := by linarith [log_two_gt_d9]
-    have h := one_div_le_one_div_of_le (by norm_num : (0 : ℝ) < 1 / 2) hhalf
-    simpa [one_div] using h
-  have hBaux :
-      (u ^ 2 + 2 * u ^ 3 + 6 * u ^ 4 + 24 * u ^ 5 + 120 * u ^ 6)
-        ≤ ((2 : ℝ) ^ 2 + 2 * (2 : ℝ) ^ 3 + 6 * (2 : ℝ) ^ 4 + 24 * (2 : ℝ) ^ 5 + 120 * (2 : ℝ) ^ 6) := by
-    gcongr
-  have hB :
-      ((log 2 ^ 2)⁻¹ + 2 / log 2 ^ 3 + 6 / log 2 ^ 4 + 24 / log 2 ^ 5 + 120 / log 2 ^ 6) ≤ (9000 : ℝ) := by
-    have huform :
-        ((log 2 ^ 2)⁻¹ + 2 / log 2 ^ 3 + 6 / log 2 ^ 4 + 24 / log 2 ^ 5 + 120 / log 2 ^ 6)
-          = u ^ 2 + 2 * u ^ 3 + 6 * u ^ 4 + 24 * u ^ 5 + 120 * u ^ 6 := by
-      dsimp [u]
-      ring_nf
-    rw [huform]
-    have hnum : ((2 : ℝ) ^ 2 + 2 * (2 : ℝ) ^ 3 + 6 * (2 : ℝ) ^ 4 + 24 * (2 : ℝ) ^ 5 + 120 * (2 : ℝ) ^ 6) ≤ (9000 : ℝ) := by
-      norm_num
-    exact le_trans hBaux hnum
-  have hdiv :
-      2 * (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ)
-      = 2 * (3914 : ℝ) ^ 6 * Real.exp (-(3914 : ℝ)) := by
-    have he : (1 : ℝ) = Real.exp (3914 : ℝ) * Real.exp (-(3914 : ℝ)) := by
-      rw [← Real.exp_add]
-      norm_num
-    field_simp
-    rw [he]
-  rw [hdiv]
-  have hmul :
-      2 * (3914 : ℝ) ^ 6 * Real.exp (-(3914 : ℝ)) *
-        ((log 2 ^ 2)⁻¹ + 2 / log 2 ^ 3 + 6 / log 2 ^ 4 + 24 / log 2 ^ 5 + 120 / log 2 ^ 6)
-      ≤ ((1 : ℝ) / 1000000) * (9000 : ℝ) := by
-    exact mul_le_mul hA hB (by positivity) (by positivity)
-  have hnum : ((1 : ℝ) / 1000000) * (9000 : ℝ) ≤ (1 : ℝ) := by norm_num
-  exact le_trans hmul hnum
-
-private theorem exp_1169_small :
-    Real.exp (-(1.89 : ℝ) * Real.sqrt ((1169 : ℝ) / 5.573412)) ≤ (1 : ℝ) / 10000000 := by
-  have haux : ∀ z ∈ Set.Icc (1169 : ℝ) 1169,
-      Real.exp (-(1.89 : ℝ) * Real.sqrt (z / 5.573412)) ≤ (1 : ℝ) / 10000000 := by
-    interval_bound 20
-  exact haux 1169 (by constructor <;> norm_num)
-
-private theorem high_branch_aux {t c : ℝ}
-    (ht : t ∈ Set.Icc (Real.exp 1169) (Real.exp 3870))
-    (hc : c ≤ 462) :
-    (Real.log t) ^ 5 *
-      (c * (Real.log t / 5.573412) ^ (1.52 : ℝ) *
-        Real.exp (-(1.89 : ℝ) * Real.sqrt (Real.log t / 5.573412)))
-      ≤ (100000000000000000000 : ℝ) := by
-  have htpos : 0 < t := lt_of_lt_of_le (by positivity : (0 : ℝ) < Real.exp 1169) ht.1
-  have hlog_ge : (1169 : ℝ) ≤ Real.log t := by
-    have h := Real.log_le_log (by positivity : (0 : ℝ) < Real.exp 1169) ht.1
-    simpa [Real.log_exp] using h
-  have hlog_le : Real.log t ≤ (3870 : ℝ) := by
-    have h := Real.log_le_log htpos ht.2
-    simpa [Real.log_exp] using h
-  have hlog_nonneg : 0 ≤ Real.log t := by linarith [hlog_ge]
-  have hratio_ge_one : (1 : ℝ) ≤ Real.log t / 5.573412 := by
-    have htmp : (5.573412 : ℝ) ≤ Real.log t := by linarith [hlog_ge]
-    exact (one_le_div (by positivity)).2 htmp
-  have hratio_le : Real.log t / 5.573412 ≤ (3870 : ℝ) / 5.573412 := by
-    gcongr
-  have hrpow_le_sq : (Real.log t / 5.573412) ^ (1.52 : ℝ) ≤ (Real.log t / 5.573412) ^ (2 : ℝ) := by
-    exact Real.rpow_le_rpow_of_exponent_le hratio_ge_one (by norm_num : (1.52 : ℝ) ≤ 2)
-  have hratio_sq_le : (Real.log t / 5.573412) ^ (2 : ℝ) ≤ ((3870 : ℝ) / 5.573412) ^ (2 : ℝ) := by
-    exact Real.rpow_le_rpow (by positivity) hratio_le (by positivity)
-  have hexp_le_1169 :
-      Real.exp (-(1.89 : ℝ) * Real.sqrt (Real.log t / 5.573412)) ≤
-      Real.exp (-(1.89 : ℝ) * Real.sqrt ((1169 : ℝ) / 5.573412)) := by
-    have hsqrt_le : Real.sqrt ((1169 : ℝ) / 5.573412) ≤ Real.sqrt (Real.log t / 5.573412) := by
-      apply Real.sqrt_le_sqrt
-      have : (1169 : ℝ) / 5.573412 ≤ Real.log t / 5.573412 := by gcongr
-      exact this
-    have hneg_mul :
-        (-(1.89 : ℝ)) * Real.sqrt (Real.log t / 5.573412) ≤
-          (-(1.89 : ℝ)) * Real.sqrt ((1169 : ℝ) / 5.573412) := by
-      nlinarith
-    simpa [mul_comm, mul_left_comm, mul_assoc] using Real.exp_le_exp.mpr hneg_mul
-  have hexp_le :
-      Real.exp (-(1.89 : ℝ) * Real.sqrt (Real.log t / 5.573412)) ≤ (1 : ℝ) / 10000000 :=
-    le_trans hexp_le_1169 exp_1169_small
-  have hlog5_le : (Real.log t) ^ 5 ≤ (3870 : ℝ) ^ 5 := by
-    exact pow_le_pow_left₀ hlog_nonneg hlog_le 5
-  calc
-    (Real.log t) ^ 5 *
-      (c * (Real.log t / 5.573412) ^ (1.52 : ℝ) *
-        Real.exp (-(1.89 : ℝ) * Real.sqrt (Real.log t / 5.573412)))
-      ≤ (Real.log t) ^ 5 * (462 * (Real.log t / 5.573412) ^ (2 : ℝ) * ((1 : ℝ) / 10000000)) := by
-      gcongr
-    _ ≤ (3870 : ℝ) ^ 5 * (462 * (((3870 : ℝ) / 5.573412) ^ (2 : ℝ)) * ((1 : ℝ) / 10000000)) := by
-      gcongr
-    _ ≤ (100000000000000000000 : ℝ) := by
-      norm_num
-
-private theorem branch3_aux {t : ℝ} (ht : t ∈ Set.Ico (Real.exp 58) (Real.exp 1169)) :
-    (Real.log t) ^ 5 *
-      (Real.sqrt (8 / (17 * Real.pi)) * (Real.log t / 6.455) ^ ((1 : ℝ) / 4) *
-        Real.exp (-Real.sqrt (Real.log t / 6.455)))
-      ≤ (100000000000000000000 : ℝ) := by
-  have htpos : 0 < t := lt_of_lt_of_le (by positivity : (0 : ℝ) < Real.exp 58) ht.1
-  have hlog_ge : (58 : ℝ) ≤ Real.log t := by
-    have h := Real.log_le_log (by positivity : (0 : ℝ) < Real.exp 58) ht.1
-    simpa [Real.log_exp] using h
-  have hlog_le : Real.log t ≤ (1169 : ℝ) := by
-    have h := Real.log_le_log htpos (le_of_lt ht.2)
-    simpa [Real.log_exp] using h
-  have hlog_nonneg : 0 ≤ Real.log t := by linarith [hlog_ge]
-  have hsqrt_le_one : Real.sqrt (8 / (17 * Real.pi)) ≤ (1 : ℝ) := by
-    apply (Real.sqrt_le_iff).2
-    constructor
-    · norm_num
-    · have hden : (8 : ℝ) ≤ 17 * Real.pi := by nlinarith [Real.pi_gt_three]
-      have hden_pos : 0 < 17 * Real.pi := by positivity
-      have hmul : (8 : ℝ) ≤ (1 : ℝ) ^ 2 * (17 * Real.pi) := by simpa using hden
-      exact (div_le_iff₀ hden_pos).2 hmul
-  have hbase_ge_one : (1 : ℝ) ≤ Real.log t / 6.455 := by
-    have : (6.455 : ℝ) ≤ Real.log t := by linarith [hlog_ge]
-    exact (one_le_div (by positivity)).2 this
-  have hrpow_le_base :
-      (Real.log t / 6.455) ^ ((1 : ℝ) / 4) ≤ (Real.log t / 6.455) ^ (1 : ℝ) := by
-    exact Real.rpow_le_rpow_of_exponent_le hbase_ge_one (by norm_num)
-  have hrpow_le : (Real.log t / 6.455) ^ ((1 : ℝ) / 4) ≤ Real.log t / 6.455 := by
-    simpa using hrpow_le_base
-  have hexp_le_one : Real.exp (-Real.sqrt (Real.log t / 6.455)) ≤ 1 := by
-    have harg : -Real.sqrt (Real.log t / 6.455) ≤ 0 := by
-      nlinarith [Real.sqrt_nonneg (Real.log t / 6.455)]
-    exact Real.exp_le_one_iff.mpr harg
-  have hlog5_le : (Real.log t) ^ 5 ≤ (1169 : ℝ) ^ 5 := by
-    exact pow_le_pow_left₀ hlog_nonneg hlog_le 5
-  have hratio_le : Real.log t / 6.455 ≤ (1169 : ℝ) / 6.455 := by
-    gcongr
-  calc
-    (Real.log t) ^ 5 *
-      (Real.sqrt (8 / (17 * Real.pi)) * (Real.log t / 6.455) ^ ((1 : ℝ) / 4) *
-        Real.exp (-Real.sqrt (Real.log t / 6.455)))
-      ≤ (Real.log t) ^ 5 * (1 * (Real.log t / 6.455) * 1) := by
-      gcongr
-    _ ≤ (1169 : ℝ) ^ 5 * (1 * ((1169 : ℝ) / 6.455) * 1) := by
-      gcongr
-    _ ≤ (100000000000000000000 : ℝ) := by
-      norm_num
+  simpa [C₃] using
+    (Ramanujan.Calculations.C3_le_one_of (xₐ := xₐ) rfl log_xₐ_val)
 
 private theorem a_le_low_huge {t : ℝ} (ht : t ∈ Set.Icc 2 (Real.exp 3870)) :
     a t ≤ (100000000000000000000 : ℝ) := by
@@ -3040,414 +2738,30 @@ private theorem a_le_low_huge {t : ℝ} (ht : t ∈ Set.Icc 2 (Real.exp 3870)) :
             simpa [h1, h2b, h3, h4, h5] using
               (high_branch_aux (t := t) (c := (379.7 : ℝ)) ht6 (by norm_num))
 
-private lemma integral_Icc_split
-    (f : ℝ → ℝ) {a b c : ℝ}
-    (hab : a ≤ b) (hbc : b ≤ c)
-    (hInt : IntegrableOn f (Set.Icc a c) volume) :
-    ∫ t in Set.Icc a c, f t = (∫ t in Set.Icc a b, f t) + (∫ t in Set.Icc b c, f t) := by
-  have h_int_left : IntegrableOn f (Set.Icc a b) volume :=
-    hInt.mono_set (by intro t ht; exact ⟨ht.1, le_trans ht.2 hbc⟩)
-  have h_int_right : IntegrableOn f (Set.Icc b c) volume :=
-    hInt.mono_set (by intro t ht; exact ⟨le_trans hab ht.1, ht.2⟩)
-  have h_int_left_u : IntegrableOn f (Set.uIcc a b) volume := by
-    simpa [Set.uIcc_of_le hab] using h_int_left
-  have h_int_right_u : IntegrableOn f (Set.uIcc b c) volume := by
-    simpa [Set.uIcc_of_le hbc] using h_int_right
-  have h_split_interval :
-      ∫ t in a..c, f t = (∫ t in a..b, f t) + (∫ t in b..c, f t) := by
-    exact (intervalIntegral.integral_add_adjacent_intervals
-      (MeasureTheory.IntegrableOn.intervalIntegrable h_int_left_u)
-      (MeasureTheory.IntegrableOn.intervalIntegrable h_int_right_u)).symm
-  simpa [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      intervalIntegral.integral_of_le (le_trans hab hbc),
-      intervalIntegral.integral_of_le hab,
-      intervalIntegral.integral_of_le hbc] using h_split_interval
-
-private theorem exp_neg44_small : Real.exp (-(44 : ℝ)) ≤ (1 : ℝ) / 1000000000000000000 := by
-  have haux : ∀ z ∈ Set.Icc (44 : ℝ) 44,
-      Real.exp (-z) ≤ (1 : ℝ) / 1000000000000000000 := by
-    interval_bound 20
-  exact haux 44 (by constructor <;> norm_num)
-
-private theorem exp_neg1979_small :
-    Real.exp (-(1979 : ℝ))
-      ≤ (1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000 := by
-  have haux : ∀ z ∈ Set.Icc (1979 : ℝ) 1979,
-      Real.exp (-z)
-        ≤ (1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000 := by
-    interval_bound 20
-  exact haux 1979 (by constructor <;> norm_num)
-
-private theorem inv_log2_pow8_le_1000 : 1 / (Real.log 2) ^ 8 ≤ (1000 : ℝ) := by
-  have hhalf_aux : ∀ z ∈ Set.Icc (2 : ℝ) 2, (1 / 2 : ℝ) ≤ Real.log z := by
-    interval_bound 20
-  have hhalf : (1 / 2 : ℝ) ≤ Real.log 2 := hhalf_aux 2 (by constructor <;> norm_num)
-  have hpow : (1 / 2 : ℝ) ^ 8 ≤ (Real.log 2) ^ 8 :=
-    pow_le_pow_left₀ (by norm_num : 0 ≤ (1 / 2 : ℝ)) hhalf 8
-  have hdiv : 1 / (Real.log 2) ^ 8 ≤ 1 / (1 / 2 : ℝ) ^ 8 :=
-    one_div_le_one_div_of_le (by positivity : 0 < (1 / 2 : ℝ) ^ 8) hpow
-  have hnum : (1 / (1 / 2 : ℝ) ^ 8) ≤ (1000 : ℝ) := by norm_num
-  exact le_trans hdiv hnum
-
-private theorem low_contrib_le_three_tenths :
-    (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-      (Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7
-        + 7 * (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8
-          + (2 : ℝ) ^ 8 * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8))
-      ≤ (3 : ℝ) / 10 := by
-  have hAcoeff :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) / (3870 : ℝ) ^ 7 ≤ (30000000000000000 : ℝ) := by
-    norm_num
-  have hCcoeff :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * (7 * (2 : ℝ) ^ 8) / (3870 : ℝ) ^ 8
-        ≤ (20000000000000000 : ℝ) := by
-    norm_num
-  have hBcoeff0 :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 ≤
-        (30000000000000000000000000000000000000000000 : ℝ) := by
-    norm_num
-  have hA :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7 ≤ (1 : ℝ) / 20 := by
-    have hnum : (30000000000000000 : ℝ) * ((1 : ℝ) / 1000000000000000000) ≤ (1 : ℝ) / 20 := by norm_num
-    have htmp1 :
-        (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7
-          = ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) / (3870 : ℝ) ^ 7) * Real.exp (-(44 : ℝ)) := by
-      ring
-    rw [htmp1]
-    have hstep :
-        ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) / (3870 : ℝ) ^ 7) * Real.exp (-(44 : ℝ))
-          ≤ (30000000000000000 : ℝ) * ((1 : ℝ) / 1000000000000000000) := by
-      exact mul_le_mul hAcoeff exp_neg44_small (by positivity) (by positivity)
-    exact le_trans hstep hnum
-  have hC :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-        (7 * (2 : ℝ) ^ 8) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8 ≤ (1 : ℝ) / 20 := by
-    have hnum : (20000000000000000 : ℝ) * ((1 : ℝ) / 1000000000000000000) ≤ (1 : ℝ) / 20 := by norm_num
-    have htmp1 :
-        (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-            (7 * (2 : ℝ) ^ 8) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8
-          = ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * (7 * (2 : ℝ) ^ 8) / (3870 : ℝ) ^ 8)
-              * Real.exp (-(44 : ℝ)) := by
-      ring
-    rw [htmp1]
-    have hstep :
-        ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * (7 * (2 : ℝ) ^ 8) / (3870 : ℝ) ^ 8)
-            * Real.exp (-(44 : ℝ))
-          ≤ (20000000000000000 : ℝ) * ((1 : ℝ) / 1000000000000000000) := by
-      exact mul_le_mul hCcoeff exp_neg44_small (by positivity) (by positivity)
-    exact le_trans hstep hnum
-  have hB :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 *
-        (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8) ≤ (1 : ℝ) / 20 := by
-    have hBcoeff :
-        (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 / (Real.log 2) ^ 8
-          ≤ (30000000000000000000000000000000000000000000 : ℝ) * 1000 := by
-      have hrewrite :
-          (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 / (Real.log 2) ^ 8
-            = ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7) * (1 / (Real.log 2) ^ 8) := by
-        ring
-      rw [hrewrite]
-      have hstep1 :
-          ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7) * (1 / (Real.log 2) ^ 8)
-            ≤ ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7) * 1000 := by
-        exact mul_le_mul_of_nonneg_left inv_log2_pow8_le_1000 (by positivity)
-      have hstep2 :
-          ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7) * 1000
-            ≤ (30000000000000000000000000000000000000000000 : ℝ) * 1000 := by
-        exact mul_le_mul_of_nonneg_right hBcoeff0 (by positivity)
-      exact le_trans hstep1 hstep2
-    have hnum :
-        ((30000000000000000000000000000000000000000000 : ℝ) * 1000) *
-            ((1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000)
-          ≤ (1 : ℝ) / 20 := by
-      norm_num
-    have hrewrite :
-        (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 *
-            (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8)
-          = ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 / (Real.log 2) ^ 8) * Real.exp (-(1979 : ℝ)) := by
-      ring
-    rw [hrewrite]
-    have hstep :
-        ((3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 / (Real.log 2) ^ 8) * Real.exp (-(1979 : ℝ))
-          ≤ ((30000000000000000000000000000000000000000000 : ℝ) * 1000) *
-              ((1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000) := by
-      exact mul_le_mul hBcoeff exp_neg1979_small (by positivity) (by positivity)
-    exact le_trans hstep hnum
-  have hrewrite_main :
-      (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-        (Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7
-          + 7 * (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8
-            + (2 : ℝ) ^ 8 * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8))
-      = (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7
-        + (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) * 7 *
-            (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8)
-        + (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-            (7 * (2 : ℝ) ^ 8) * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8 := by
-    ring
-  rw [hrewrite_main]
-  nlinarith [hA, hB, hC]
-
-private theorem sqrt_exp_3870 : Real.sqrt (Real.exp (3870 : ℝ)) = Real.exp (1935 : ℝ) := by
-  have h : (3870 : ℝ) = (1935 : ℝ) + (1935 : ℝ) := by norm_num
-  rw [h, Real.exp_add, Real.sqrt_mul]
-  · have hs : (Real.sqrt (Real.exp (1935 : ℝ))) ^ 2 = Real.exp (1935 : ℝ) := by
-      simpa [pow_two] using (Real.sq_sqrt (show 0 ≤ Real.exp (1935 : ℝ) by positivity))
-    nlinarith [hs]
-  · positivity
-
-private theorem low_contrib_raw_le_three_tenths :
-    (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-      ((100000000000000000720 : ℝ) *
-        (Real.exp (3870 : ℝ) / (3870 : ℝ) ^ 7
-          + 7 *
-            (Real.sqrt (Real.exp (3870 : ℝ)) / (Real.log 2) ^ 8
-              + (2 : ℝ) ^ 8 * Real.exp (3870 : ℝ) / (3870 : ℝ) ^ 8)))
-      ≤ (3 : ℝ) / 10 := by
-  have h44 : Real.exp (3870 : ℝ) / Real.exp (3914 : ℝ) = Real.exp (-(44 : ℝ)) := by
-    have h := (Real.exp_sub (3870 : ℝ) (3914 : ℝ)).symm
-    simpa [show (3870 : ℝ) - 3914 = (-(44 : ℝ)) by norm_num] using h
-  have h1979 : Real.exp (1935 : ℝ) / Real.exp (3914 : ℝ) = Real.exp (-(1979 : ℝ)) := by
-    have h := (Real.exp_sub (1935 : ℝ) (3914 : ℝ)).symm
-    simpa [show (1935 : ℝ) - 3914 = (-(1979 : ℝ)) by norm_num] using h
-  rw [sqrt_exp_3870]
-  have hrewrite :
-      (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          ((100000000000000000720 : ℝ) *
-            (Real.exp (3870 : ℝ) / (3870 : ℝ) ^ 7
-              + 7 *
-                (Real.exp (1935 : ℝ) / (Real.log 2) ^ 8
-                  + (2 : ℝ) ^ 8 * Real.exp (3870 : ℝ) / (3870 : ℝ) ^ 8)))
-        = (3914 : ℝ) ^ 6 * (100000000000000000720 : ℝ) *
-            (Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 7
-              + 7 * (Real.exp (-(1979 : ℝ)) / (Real.log 2) ^ 8
-                + (2 : ℝ) ^ 8 * Real.exp (-(44 : ℝ)) / (3870 : ℝ) ^ 8)) := by
-    rw [← h44, ← h1979]
-    field_simp
-  rw [hrewrite]
-  exact low_contrib_le_three_tenths
-
 private theorem C₁_le_one : C₁ ≤ (1 : ℝ) := by
-  let K : ℝ := (100000000000000000720 : ℝ)
-  have hK_nonneg : 0 ≤ K := by
-    dsimp [K]
-    positivity
   have h2xa : 2 ≤ xₐ := by
     unfold xₐ
     linarith [add_one_le_exp (3914 : ℝ)]
   have h3870le : Real.exp 3870 ≤ xₐ := by
     unfold xₐ
     exact Real.exp_le_exp.mpr (by norm_num)
-  let f : ℝ → ℝ := fun t ↦ (720 + a t) / Real.log t ^ 7
   have ha_int : IntegrableOn (fun t ↦ a t / Real.log t ^ 7) (Set.Icc 2 xₐ) volume :=
     integrable_a_over_log7_piecewise xₐ h2xa
-  have hJ_int : IntegrableOn (fun t : ℝ ↦ 1 / Real.log t ^ 7) (Set.Icc 2 xₐ) volume :=
-    ContinuousOn.integrableOn_Icc (continuousOn_const.div (ContinuousOn.pow
-      (continuousOn_log.mono <| by
-        intro t ht
-        exact ne_of_gt (lt_of_lt_of_le (by norm_num) ht.1)) _) (by
-      intro t ht
-      exact pow_ne_zero _ <| ne_of_gt <| log_pos <| by linarith [ht.1]))
-  have hconst_int : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) / Real.log t ^ 7) (Set.Icc 2 xₐ) volume := by
-    have htmp : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) * (1 / Real.log t ^ 7)) (Set.Icc 2 xₐ) volume :=
-      hJ_int.const_mul 720
-    refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 htmp
-    intro t ht
-    ring
-  have hadd_int : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) / Real.log t ^ 7 + a t / Real.log t ^ 7) (Set.Icc 2 xₐ) volume :=
-    hconst_int.add ha_int
-  have hf_int : IntegrableOn f (Set.Icc 2 xₐ) volume := by
-    refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 hadd_int
-    intro t ht
-    dsimp [f]
-    ring
-  have hsplit :
-      ∫ t in Set.Icc 2 xₐ, f t
-        = (∫ t in Set.Icc 2 (Real.exp 3870), f t)
-          + (∫ t in Set.Icc (Real.exp 3870) xₐ, f t) :=
-    integral_Icc_split (f := f) (a := 2) (b := Real.exp 3870) (c := xₐ) (by linarith [add_one_le_exp (3870 : ℝ)]) h3870le hf_int
-
-  have hf_int_low : IntegrableOn f (Set.Icc 2 (Real.exp 3870)) volume :=
-    hf_int.mono_set (by intro t ht; exact ⟨ht.1, le_trans ht.2 h3870le⟩)
-  have hlow_rhs_int : IntegrableOn (fun t : ℝ ↦ K / Real.log t ^ 7) (Set.Icc 2 (Real.exp 3870)) volume := by
-    have htmp : IntegrableOn (fun t : ℝ ↦ K * (1 / Real.log t ^ 7)) (Set.Icc 2 (Real.exp 3870)) volume :=
-      (ContinuousOn.integrableOn_Icc (continuousOn_const.div (ContinuousOn.pow
-        (continuousOn_log.mono <| by
-          intro t ht
-          exact ne_of_gt (lt_of_lt_of_le (by norm_num) ht.1)) _) (by
-        intro t ht
-        exact pow_ne_zero _ <| ne_of_gt <| log_pos <| by linarith [ht.1]))).const_mul K
-    refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 htmp
-    intro t ht
-    ring
-  have hlow_pt : ∀ t ∈ Set.Icc 2 (Real.exp 3870), f t ≤ K / Real.log t ^ 7 := by
-    intro t ht
-    have ha_le : a t ≤ (100000000000000000000 : ℝ) := a_le_low_huge ⟨ht.1, ht.2⟩
-    have hnum_le : 720 + a t ≤ K := by
-      dsimp [K]
-      linarith
-    have hlog_nonneg : 0 ≤ Real.log t := Real.log_nonneg (by linarith [ht.1])
-    dsimp [f]
-    exact div_le_div_of_nonneg_right hnum_le (pow_nonneg hlog_nonneg 7)
-  have hlow_le_rhs :
-      ∫ t in Set.Icc 2 (Real.exp 3870), f t
-        ≤ ∫ t in Set.Icc 2 (Real.exp 3870), K / Real.log t ^ 7 :=
-    MeasureTheory.setIntegral_mono_on hf_int_low hlow_rhs_int measurableSet_Icc hlow_pt
-  have hlow_factor :
-      ∫ t in Set.Icc 2 (Real.exp 3870), K / Real.log t ^ 7
-        = K * ∫ t in Set.Icc 2 (Real.exp 3870), 1 / Real.log t ^ 7 := by
-    rw [← MeasureTheory.integral_const_mul]
-    refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc ?_
-    intro t ht
-    ring
   have hJ3870 :
       ∫ t in Set.Icc 2 (Real.exp 3870), 1 / Real.log t ^ 7
         ≤ Real.exp 3870 / Real.log (Real.exp 3870) ^ 7
           + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / Real.log (Real.exp 3870) ^ 8) := by
     exact le_of_lt (log_7_int_bound (Real.exp 3870) (by linarith [add_one_le_exp (3870 : ℝ)]))
-  have hlow_le :
-      ∫ t in Set.Icc 2 (Real.exp 3870), f t
-        ≤ K * (Real.exp 3870 / Real.log (Real.exp 3870) ^ 7
-          + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / Real.log (Real.exp 3870) ^ 8)) := by
-    rw [hlow_factor] at hlow_le_rhs
-    exact le_trans hlow_le_rhs (mul_le_mul_of_nonneg_left hJ3870 hK_nonneg)
-
-  have hf_int_high : IntegrableOn f (Set.Icc (Real.exp 3870) xₐ) volume :=
-    hf_int.mono_set (by intro t ht; exact ⟨le_trans (by linarith [add_one_le_exp (3870 : ℝ)]) ht.1, ht.2⟩)
-  have hconst_high_int : IntegrableOn (fun _ : ℝ ↦ (2520 : ℝ) / (3870 : ℝ) ^ 7) (Set.Icc (Real.exp 3870) xₐ) volume := by
-    exact ContinuousOn.integrableOn_Icc continuousOn_const
-  have hhigh_pt : ∀ t ∈ Set.Icc (Real.exp 3870) xₐ, f t ≤ (2520 : ℝ) / (3870 : ℝ) ^ 7 := by
-    intro t ht
-    have h2t : 2 ≤ t := by linarith [ht.1, add_one_le_exp (3870 : ℝ)]
-    have ht3000 : Real.exp 3000 ≤ t := le_trans (Real.exp_le_exp.mpr (by norm_num : (3000 : ℝ) ≤ 3870)) ht.1
-    have hat3870 : a t ≤ a (Real.exp 3870) :=
-      a_mono_3000 (Real.exp_le_exp.mpr (by norm_num : (3000 : ℝ) ≤ 3870)) ht3000 ht.1
-    have hat : a t ≤ 1800 := le_trans hat3870 a_3870_upper
-    have hnum_le : 720 + a t ≤ 2520 := by linarith
-    have hlog_ge : (3870 : ℝ) ≤ Real.log t := by
-      have h := Real.log_le_log (by positivity : (0 : ℝ) < Real.exp 3870) ht.1
-      simpa [Real.log_exp] using h
-    have hpow : (3870 : ℝ) ^ 7 ≤ Real.log t ^ 7 := pow_le_pow_left₀ (by norm_num) hlog_ge 7
-    have hlog_nonneg : 0 ≤ Real.log t := by linarith [hlog_ge]
-    calc
-      f t = (720 + a t) / Real.log t ^ 7 := rfl
-      _ ≤ (2520 : ℝ) / Real.log t ^ 7 := by
-        exact div_le_div_of_nonneg_right hnum_le (pow_nonneg hlog_nonneg 7)
-      _ ≤ (2520 : ℝ) / (3870 : ℝ) ^ 7 := by
-        exact div_le_div_of_nonneg_left (by norm_num : 0 ≤ (2520 : ℝ)) (by positivity) hpow
-  have hhigh_le_const :
-      ∫ t in Set.Icc (Real.exp 3870) xₐ, f t
-        ≤ ∫ t in Set.Icc (Real.exp 3870) xₐ, (2520 : ℝ) / (3870 : ℝ) ^ 7 :=
-    MeasureTheory.setIntegral_mono_on hf_int_high hconst_high_int measurableSet_Icc hhigh_pt
-  have hhigh_const_eval :
-      ∫ t in Set.Icc (Real.exp 3870) xₐ, (2520 : ℝ) / (3870 : ℝ) ^ 7
-        = (2520 : ℝ) / (3870 : ℝ) ^ 7 * (xₐ - Real.exp 3870) := by
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      ← intervalIntegral.integral_of_le h3870le,
-      intervalIntegral.integral_const]
-    simp [smul_eq_mul, mul_comm]
-  have hhigh_le :
-      ∫ t in Set.Icc (Real.exp 3870) xₐ, f t
-        ≤ (2520 : ℝ) / (3870 : ℝ) ^ 7 * xₐ := by
-    have htmp : ∫ t in Set.Icc (Real.exp 3870) xₐ, f t
-        ≤ (2520 : ℝ) / (3870 : ℝ) ^ 7 * (xₐ - Real.exp 3870) := by
-      simpa [hhigh_const_eval] using hhigh_le_const
-    have hsub : xₐ - Real.exp 3870 ≤ xₐ := by
-      have : 0 ≤ Real.exp 3870 := by positivity
-      linarith
-    have hcoeff_nonneg : 0 ≤ (2520 : ℝ) / (3870 : ℝ) ^ 7 := by positivity
-    exact le_trans htmp (mul_le_mul_of_nonneg_left hsub hcoeff_nonneg)
-
-  unfold C₁
-  rw [hsplit]
-  have hsum :
-      (∫ t in Set.Icc 2 (Real.exp 3870), f t) + (∫ t in Set.Icc (Real.exp 3870) xₐ, f t)
-        ≤ K * (Real.exp 3870 / Real.log (Real.exp 3870) ^ 7
-          + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / Real.log (Real.exp 3870) ^ 8))
-          + (2520 : ℝ) / (3870 : ℝ) ^ 7 * xₐ := by
-    linarith [hlow_le, hhigh_le]
-  have hcoef_nonneg : 0 ≤ Real.log xₐ ^ 6 / xₐ := by
-    positivity
-  have hmain :
-      Real.log xₐ ^ 6 / xₐ *
-          ((∫ t in Set.Icc 2 (Real.exp 3870), f t) + (∫ t in Set.Icc (Real.exp 3870) xₐ, f t))
-        ≤ Real.log xₐ ^ 6 / xₐ *
-            (K * (Real.exp 3870 / Real.log (Real.exp 3870) ^ 7
-              + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / Real.log (Real.exp 3870) ^ 8))
-              + (2520 : ℝ) / (3870 : ℝ) ^ 7 * xₐ) := by
-    exact mul_le_mul_of_nonneg_left hsum hcoef_nonneg
-  rw [log_xₐ_val, show xₐ = Real.exp (3914 : ℝ) by rfl] at hmain
-  have hmain' :
-      (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          ((∫ t in Set.Icc 2 (Real.exp 3870), f t) + (∫ t in Set.Icc (Real.exp 3870) (Real.exp (3914 : ℝ)), f t))
-        ≤ (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          (K * (Real.exp 3870 / (3870 : ℝ) ^ 7
-            + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / (3870 : ℝ) ^ 8))
-            + (2520 : ℝ) / (3870 : ℝ) ^ 7 * Real.exp (3914 : ℝ)) := by
-    simpa [Real.log_exp] using hmain
-  have hdecomp :
-      (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          (K * (Real.exp 3870 / (3870 : ℝ) ^ 7
-            + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / (3870 : ℝ) ^ 8))
-            + (2520 : ℝ) / (3870 : ℝ) ^ 7 * Real.exp (3914 : ℝ))
-        = (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-            (K * (Real.exp 3870 / (3870 : ℝ) ^ 7
-              + 7 * (Real.sqrt (Real.exp 3870) / Real.log 2 ^ 8 + 2 ^ 8 * Real.exp 3870 / (3870 : ℝ) ^ 8)))
-          + (2520 : ℝ) * (3914 : ℝ) ^ 6 / (3870 : ℝ) ^ 7 := by
-    field_simp
-  rw [hdecomp] at hmain'
-  dsimp [K] at hmain'
-  have hlow_num :
-      (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          ((100000000000000000720 : ℝ) *
-            (Real.exp 3870 / (3870 : ℝ) ^ 7
-              + 7 *
-                (Real.sqrt (Real.exp 3870) / (Real.log 2) ^ 8
-                  + (2 : ℝ) ^ 8 * Real.exp 3870 / (3870 : ℝ) ^ 8)))
-        ≤ (3 : ℝ) / 10 := low_contrib_raw_le_three_tenths
-  have hhigh_num : (2520 : ℝ) * (3914 : ℝ) ^ 6 / (3870 : ℝ) ^ 7 ≤ (7 : ℝ) / 10 := by
-    norm_num
-  have hfin :
-      (3914 : ℝ) ^ 6 / Real.exp (3914 : ℝ) *
-          ((100000000000000000720 : ℝ) *
-            (Real.exp 3870 / (3870 : ℝ) ^ 7
-              + 7 *
-                (Real.sqrt (Real.exp 3870) / (Real.log 2) ^ 8
-                  + (2 : ℝ) ^ 8 * Real.exp 3870 / (3870 : ℝ) ^ 8)))
-          + (2520 : ℝ) * (3914 : ℝ) ^ 6 / (3870 : ℝ) ^ 7 ≤ 1 := by
-    nlinarith [hlow_num, hhigh_num]
-  rw [log_xₐ_val, show xₐ = Real.exp (3914 : ℝ) by rfl]
-  exact le_trans hmain' hfin
+  simpa [C₁] using
+    (Ramanujan.Calculations.C1_le_one_of (a := a) (xₐ := xₐ) rfl h2xa h3870le ha_int
+      (by intro t ht; exact a_le_low_huge ht)
+      a_mono_3000 a_3870_upper hJ3870)
 
 private theorem a_exa_upper_tight : a exₐ ≤ (13042 / 10 : ℝ) := by
-  have hge : exₐ ≥ Real.exp 3000 := by
-    rw [exₐ_eq]
-    exact Real.exp_le_exp.mpr (by norm_num)
-  rw [a_eq_admissible_ge_3000 hge]
-  unfold admissible_bound
-  have hlog : Real.log exₐ = (3915 : ℝ) := by
-    rw [exₐ_eq, Real.log_exp]
-  rw [hlog]
-  have hpos : 0 < ((3915 : ℝ) / 5.573412) := by positivity
-  rw [rpow_652_split hpos]
-  have hpow5 :
-      (5.573412 : ℝ) ^ (5 : ℕ) * (((3915 : ℝ) / 5.573412) ^ (5 : ℕ))
-        = (3915 : ℝ) ^ (5 : ℕ) := by
-    norm_num
-  rw [sqrt_ratio_5573412 (y := (3915 : ℝ)) (by positivity)]
-  have hrewrite :
-      (379.7 * 5.573412 ^ 5) * (((3915 : ℝ) / 5.573412) ^ 5 * ((3915 : ℝ) / 5.573412) ^ (1.52 : ℝ))
-          * Real.exp (-(1.89 : ℝ) * (Real.sqrt (3915 : ℝ) / Real.sqrt (5.573412 : ℝ)))
-      = (3915 : ℝ) ^ 5 * ((379.7 : ℝ) * ((3915 : ℝ) / 5.573412) ^ (1.52 : ℝ) *
-          Real.exp (-(1.89 : ℝ) * (Real.sqrt (3915 : ℝ) / Real.sqrt (5.573412 : ℝ)))) := by
-    nlinarith [hpow5]
-  rw [hrewrite, style_eq 3915 (by positivity)]
-  have haux : ∀ y ∈ Set.Icc (3915 : ℝ) 3915,
-      y * (y * (y * (y * y))) *
-          ((3797 / 10 : ℝ) *
-            Real.exp (Real.log (y * (250000 / 1393353 : ℝ)) * (38 / 25 : ℝ)) *
-            Real.exp ((-189 / 100 : ℝ) * Real.sqrt (y * (250000 / 1393353 : ℝ)))) ≤ (13042 / 10 : ℝ) := by
-    interval_bound 20
-  exact haux 3915 (by constructor <;> norm_num)
+  rw [exₐ_eq]
+  exact
+    a_exp_upper (L := (3915 : ℝ)) (C := (13042 / 10 : ℝ)) (by norm_num) (by norm_num)
+      styleVal_bound_3915_13042_div_10
 
 private theorem mₐ_xₐ_le_121 : mₐ xₐ ≤ (121 : ℝ) := by
   have h2xa : 2 ≤ xₐ := two_le_xₐ
@@ -3456,23 +2770,8 @@ private theorem mₐ_xₐ_le_121 : mₐ xₐ ≤ (121 : ℝ) := by
   have hB0 : 0 ≤ B := B_nonneg
   have hC2abs : |C₂| ≤ C₁ := C₂_abs_le_C₁
   have hC1 : C₁ ≤ 1 := C₁_le_one
-  have hB0' :
-      0 ≤ 1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) := by
-    simpa [B] using hB0
   unfold mₐ
-  have hC2C3 : -(C₂ + C₃) ≤ |C₂| := by
-    have h1 : -(C₂ + C₃) ≤ -C₂ := by linarith
-    have h2 : -C₂ ≤ |C₂| := by nlinarith [neg_abs_le C₂]
-    exact le_trans h1 h2
-  have hmain :
-      120 - a xₐ - (C₂ + C₃) -
-          a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
-        ≤ 120 + |C₂| := by
-    nlinarith [hax0, hC3, hB0', hC2C3]
-  have hmain2 :
-      120 + |C₂| ≤ (121 : ℝ) := by
-    nlinarith [hC2abs, hC1]
-  exact le_trans hmain hmain2
+  exact Ramanujan.Calculations.m_upper_from_bounds hax0 hC3 hB0 hC2abs hC1
 
 private theorem Mₐ_exₐ_nonneg : 0 ≤ Mₐ exₐ := by
   have h2xa : 2 ≤ xₐ := two_le_xₐ
@@ -3481,11 +2780,8 @@ private theorem Mₐ_exₐ_nonneg : 0 ≤ Mₐ exₐ := by
   have haex0 : 0 ≤ a exₐ := a_nonneg h2exa
   have hC10 : 0 ≤ C₁ := C₁_nonneg
   have hB0 : 0 ≤ B := B_nonneg
-  have hB0' :
-      0 ≤ 1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) := by
-    simpa [B] using hB0
   unfold Mₐ
-  nlinarith [hax0, haex0, hC10, hB0']
+  exact Ramanujan.Calculations.M_nonneg_from_bounds hax0 haex0 hC10 hB0
 
 private theorem Mₐ_exₐ_le_1426 : Mₐ exₐ ≤ (1426 : ℝ) := by
   have h2xa : 2 ≤ xₐ := two_le_xₐ
@@ -3494,27 +2790,8 @@ private theorem Mₐ_exₐ_le_1426 : Mₐ exₐ ≤ (1426 : ℝ) := by
   have hax : a xₐ ≤ (1311 : ℝ) := a_xa_upper
   have haex : a exₐ ≤ (13042 / 10 : ℝ) := a_exa_upper_tight
   have hB : B ≤ (3 : ℝ) / 8000 := B_le_small
-  have hB0 : 0 ≤ B := B_nonneg
-  have hB' :
-      1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) ≤ (3 : ℝ) / 8000 := by
-    simpa [B] using hB
-  have hB0' :
-      0 ≤ 1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) := by
-    simpa [B] using hB0
-  have h720a : 720 + a xₐ ≤ (2031 : ℝ) := by linarith
-  have hterm_le :
-      (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
-        ≤ (2031 : ℝ) * ((3 : ℝ) / 8000) := by
-    have h1 :
-        (720 + a xₐ) * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
-          ≤ (720 + a xₐ) * ((3 : ℝ) / 8000) := by
-      exact mul_le_mul_of_nonneg_left hB' (by linarith [hax0])
-    have h2 :
-        (720 + a xₐ) * ((3 : ℝ) / 8000) ≤ (2031 : ℝ) * ((3 : ℝ) / 8000) := by
-      exact mul_le_mul_of_nonneg_right h720a (by positivity)
-    exact le_trans h1 h2
   unfold Mₐ
-  nlinarith [hC1, haex, hterm_le]
+  exact Ramanujan.Calculations.M_upper_from_bounds hax0 hC1 hax haex hB
 
 private theorem mₐ_xₐ_ge_neg1194 : (-1194 : ℝ) ≤ mₐ xₐ := by
   have h2xa : 2 ≤ xₐ := two_le_xₐ
@@ -3523,35 +2800,9 @@ private theorem mₐ_xₐ_ge_neg1194 : (-1194 : ℝ) ≤ mₐ xₐ := by
   have hC1 : C₁ ≤ 1 := C₁_le_one
   have hC2abs : |C₂| ≤ C₁ := C₂_abs_le_C₁
   have hC3 : C₃ ≤ 1 := C₃_le_one
-  have hB0 : 0 ≤ B := B_nonneg
   have hB : B ≤ (3 : ℝ) / 8000 := B_le_small
-  have hB0' :
-      0 ≤ 1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) := by
-    simpa [B] using hB0
-  have hB' :
-      1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8) ≤ (3 : ℝ) / 8000 := by
-    simpa [B] using hB
   unfold mₐ
-  have hC2abs1 : |C₂| ≤ (1 : ℝ) := le_trans hC2abs hC1
-  have hC2le : C₂ ≤ (1 : ℝ) := (abs_le.mp hC2abs1).2
-  have hC2C3_lower : (-2 : ℝ) ≤ -(C₂ + C₃) := by
-    nlinarith [hC2le, hC3]
-  have hprod_le :
-      a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
-        ≤ (1311 : ℝ) * ((3 : ℝ) / 8000) := by
-    have h1 :
-        a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8))
-          ≤ a xₐ * ((3 : ℝ) / 8000) := by
-      exact mul_le_mul_of_nonneg_left hB' hax0
-    have h2 : a xₐ * ((3 : ℝ) / 8000) ≤ (1311 : ℝ) * ((3 : ℝ) / 8000) := by
-      exact mul_le_mul_of_nonneg_right hax (by positivity)
-    exact le_trans h1 h2
-  have hnegprod :
-      -((1311 : ℝ) * ((3 : ℝ) / 8000))
-        ≤ -a xₐ * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2 + 7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
-    nlinarith [hprod_le]
-  have hnega : (-(1311 : ℝ)) ≤ -a xₐ := by nlinarith [hax]
-  nlinarith [hnega, hC2C3_lower, hnegprod]
+  exact Ramanujan.Calculations.m_lower_from_bounds hax0 hax hC1 hC2abs hC3 hB
 
 
 @[blueprint
@@ -3569,16 +2820,16 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
     have hlog := Real.log_lt_log hxapos hx
     simpa [xₐ, Real.log_exp] using hlog
   have hlogx_pos : 0 < log x := by linarith
-  have h4e9_le_xa : (4e9 : ℝ) ≤ xₐ := by
+  have h4e9_le_xa : (4000000000 : ℝ) ≤ xₐ := by
     unfold xₐ
-    have haux : ∀ y ∈ Set.Icc (23 : ℝ) 23, (4e9 : ℝ) < Real.exp y := by
-      interval_bound 20
-    have h4e9_exp23 : (4e9 : ℝ) < Real.exp (23 : ℝ) :=
-      haux 23 (by constructor <;> norm_num)
+    have h4e9_exp23 : (4000000000 : ℝ) < Real.exp (23 : ℝ) := exp_23_gt_4e9
     have hexp23 : Real.exp (23 : ℝ) < Real.exp (3914 : ℝ) := by
       exact Real.exp_lt_exp.mpr (by norm_num)
     exact le_of_lt (lt_trans h4e9_exp23 hexp23)
-  have hx_ge_4e9 : x ≥ 4e9 := le_trans h4e9_le_xa (le_of_lt hx)
+  have hx_ge_4e9 : x ≥ 4e9 := by
+    have hx_ge : x ≥ (4000000000 : ℝ) := le_trans h4e9_le_xa (le_of_lt hx)
+    norm_num at hx_ge ⊢
+    exact hx_ge
   rcases Dusart.theorem_5_1 hx_ge_4e9 with ⟨E, hEeq, hEabs⟩
 
   have hsumx :
@@ -3604,10 +2855,7 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
       field_simp [hlogx_pos.ne']
     linarith [hmterm, halg]
 
-  have h_exp8_lt_3914 : Real.exp (8 : ℝ) < (3914 : ℝ) := by
-    have haux : ∀ y ∈ Set.Icc (8 : ℝ) 8, Real.exp y < (3914 : ℝ) := by
-      interval_bound 20
-    exact haux 8 (by constructor <;> norm_num)
+  have h_exp8_lt_3914 : Real.exp (8 : ℝ) < (3914 : ℝ) := exp_8_lt_3914
   have hloglog_gt8 : (8 : ℝ) < log (log x) := by
     have hexp8_lt_logx : Real.exp (8 : ℝ) < log x := lt_trans h_exp8_lt_3914 hlogx_gt
     exact (Real.lt_log_iff_exp_lt hlogx_pos).2 hexp8_lt_logx
