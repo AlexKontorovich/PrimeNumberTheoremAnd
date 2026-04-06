@@ -90,9 +90,11 @@ lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.sc
   ext v ; by_cases hR : R = 0
   · simp [hR, scale, deriv]
   · simp only [scale, hR, ↓reduceDIte, smul_apply]
-    exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
+    exact ((f.hasDerivAt (R⁻¹ • v)).scomp v
+      (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
 
-lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
+lemma deriv_scale' {f : CS (n + 1) E} :
+    (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
   rw [deriv_scale, smul_apply]
   by_cases hR : R = 0 <;> simp [hR, scale, funscale]
 
@@ -119,7 +121,8 @@ instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
 
 lemma nonneg (g : trunc) (x : ℝ) : 0 ≤ g x := (Set.indicator_nonneg (by simp) x).trans (g.h3 x)
 
-lemma le_one (g : trunc) (x : ℝ) : g x ≤ 1 := (g.h4 x).trans <| Set.indicator_le_self' (by simp) x
+lemma le_one (g : trunc) (x : ℝ) : g x ≤ 1 :=
+  (g.h4 x).trans <| Set.indicator_le_self' (by simp) x
 
 lemma zero (g : trunc) : g =ᶠ[𝓝 0] 1 := by
   have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
@@ -206,7 +209,8 @@ def ofCS2 (f : CS 2 ℂ) : W21 := by
 
 instance : Coe (CS 2 ℂ) W21 where coe := ofCS2
 
-instance : HMul (CS 2 ℂ) W21 (CS 2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.smooth, g.h2.mul_right⟩
+instance : HMul (CS 2 ℂ) W21 (CS 2 ℂ) where
+  hMul g f := ⟨g * f, g.h1.mul f.smooth, g.h2.mul_right⟩
 
 instance : HMul (CS 2 ℝ) W21 (CS 2 ℂ) where hMul g f := (g : CS 2 ℂ) * f
 
@@ -233,7 +237,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
   let h'' R := - (g.scale R).deriv.deriv
 
   -- Properties of h
-  have ch {R} : Continuous (fun v => (h R v : ℂ)) := continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
+  have ch {R} : Continuous (fun v => (h R v : ℂ)) :=
+    continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
   have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp (CS.continuous _)
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) := continuous_ofReal.comp (CS.continuous _)
   have dh R v : HasDerivAt (h R) (h' R v) v := by
@@ -242,11 +247,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := ((g.scale R).deriv.hasDerivAt v).neg
   have hh1 R v : |h R v| ≤ 1 := by
     by_cases hR : R = 0 <;>
-      simp only [CS.scale, funscale, smul_eq_mul, hR, ↓reduceDIte, Pi.zero_apply, sub_zero, abs_one,
-        le_refl, h]
+      simp only [CS.scale, funscale, smul_eq_mul, hR, ↓reduceDIte, Pi.zero_apply, sub_zero,
+        abs_one, le_refl, h]
     rw [abs_le] ; constructor <;>
     linarith [g.le_one (R⁻¹ * v), g.nonneg (R⁻¹ * v)]
-  have vR v : Tendsto (fun R : ℝ => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
+  have vR v : Tendsto (fun R : ℝ => v * R⁻¹) atTop (𝓝 0) := by
+    simpa using tendsto_inv_atTop_zero.const_mul v
 
   -- Proof
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0)
@@ -272,7 +278,9 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   · let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
     convert_to Tendsto (fun R ↦ ∫ (v : ℝ), F R v) atTop (𝓝 0)
-    · have this R v : deriv (deriv (fun v => h R v * f v)) v = h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v := by
+    · have this R v :
+        deriv (deriv (fun v => h R v * f v)) v =
+          h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v := by
         have df v : HasDerivAt f (f' v) v := f.hasDerivAt v
         have df' v : HasDerivAt f' (f'' v) v := f'.hasDerivAt v
         have l3 v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v :=
@@ -304,7 +312,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
         convert_to _ ≤ c1 * 1
         · simp
         · rw [mul_comm]
-          apply mul_le_mul (mg' _) (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
+          apply mul_le_mul (mg' _)
+            (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
           exact (abs_nonneg _).trans (mg' 0)
       have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
         filter_upwards [eventually_ge_atTop 1] with R hR v
@@ -325,7 +334,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp only [Complex.norm_mul,
         Complex.norm_ofNat, norm_real, norm_eq_abs] <;> gcongr
       · simpa using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
-    have e3 : Integrable bound volume := (((f.hf.norm).const_mul _).add ((f.hf'.norm).const_mul _)).add f.hf''.norm
+    have e3 : Integrable bound volume :=
+      (((f.hf.norm).const_mul _).add ((f.hf'.norm).const_mul _)).add f.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
       apply Eventually.of_forall ; intro v
       have evg' : g' =ᶠ[𝓝 0] 0 := by convert ← g.zero.deriv ; exact deriv_const' _

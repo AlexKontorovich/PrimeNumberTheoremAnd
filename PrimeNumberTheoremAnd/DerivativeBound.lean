@@ -9,7 +9,6 @@ import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction.Defs
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
-import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction.Zeta
 import Mathlib.Topology.EMetricSpace.Defs
 import Mathlib.Analysis.Analytic.Basic
@@ -38,7 +37,8 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   \frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
   Thus,
   \begin{equation}\label{pickupPoint0}
-      |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|
+      |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}
+      \frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|
       \leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
   \end{equation}
   Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$,
@@ -50,9 +50,7 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   -/)
   (proofUses := ["borelCaratheodory-closedBall"])]
 theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
-  (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
-  (f_zero_at_zero : f 0 = 0)
-  (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
-  (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
-  (r_le_r' : r < r') (r'_le_R : r' < R) :
-  ‖(deriv f) z‖ ≤ 2 * M * (r')^2 / ((R - r') * (r' - r)^2) := by sorry
+    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R)) (f_zero_at_zero : f 0 = 0)
+    (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M) (pos_r : 0 < r)
+    (z_in_r : z ∈ Metric.closedBall 0 r) (r_le_r' : r < r') (r'_le_R : r' < R) :
+    ‖(deriv f) z‖ ≤ 2 * M * (r')^2 / ((R - r') * (r' - r)^2) := by sorry

@@ -51,6 +51,9 @@
 ## Editor
 *.swp
 
+## Claude Code (local settings, not for sharing)
+.claude/
+
 ## Python
 __pycache__/
 *.pyc
@@ -62,3 +65,6 @@ __pycache__/
 ## Generated upstreaming dashboard files
 home_page/_include/ready_to_upstream.md
 home_page/_include/easy_to_unlock.md
+
+## Scripts
+scripts/*
