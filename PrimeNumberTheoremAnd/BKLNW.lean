@@ -1151,7 +1151,7 @@ noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b
   "bklnw-table-10-verification"
   (title := "BKLNW Table 10 verification")
   (statement := /--  Verification of the entries of Table 10. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 10.  Any lengthy numerical calculations should be moved  to `BKLNW_tables.lean` -/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 10.  Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
   (latexEnv := "proposition")
   (discussion := 1255)]
 theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
@@ -1183,7 +1183,7 @@ theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hb₀K : b₀ < K) :
   "bklnw-table-11-verification"
   (title := "BKLNW Table 11 verification")
   (statement := /--  Verification of the entries of Table 11. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 11. Any lengthy numerical calculations should be moved  to `BKLNW_tables.lean`-/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 11. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean`-/)
   (latexEnv := "proposition")
   (discussion := 1257)]
 theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ) (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) : ∀ k ∈ Finset.Icc 1 5, B_8_1' k b₀ ≤ B k := by
@@ -1310,7 +1310,7 @@ theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈
   "bklnw-table-12-verification"
   (title := "BKLNW Table 12 verification")
   (statement := /--  Verification of the entries of Table 12. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 12. Any lengthy numerical calculations should be moved  to `BKLNW_tables.lean` -/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 12. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
   (latexEnv := "proposition")
   (discussion := 1263)]
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
