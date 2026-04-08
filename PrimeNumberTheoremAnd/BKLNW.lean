@@ -1032,17 +1032,325 @@ blueprint_comment /--
 \subsection{Bounding theta(x)-x with a logarithmic decay, II: medium x}
 
 In this section we tackle medium $x$.
-
-TODO: formalize Lemma 8 and Corollary 8.1
 -/
+
+
+noncomputable def B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ) : ℝ :=
+  iSup (ι := Set.Icc (exp b) (exp b')) (fun x ↦ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)) + ε b * (log x) ^ k))
+
+noncomputable def Btilde (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ) : ℝ :=
+  b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) + ε b * b' ^ k
+
+@[blueprint
+  "bklnw-lemma-8"
+  (title := "Lemma 8")
+  (statement := /--  Let $k=1,\ldots,5$. Assume there exist a positive integer $n$, real numbers $a_{\ell} \ge 0$ for every $\ell \in \{1, 2, \ldots, n \}$. and $x_0 > 0$ such that
+ \begin{equation}
+  \label{psithetadiff}
+  \psi (x) - \theta (x) \le \sum_{\ell=1}^n a_{\ell} x^{\frac{1}{\ell+1}} \qquad \text{ for all } x \ge x_0.
+ \end{equation}
+ Let $b' > b \ge 2k$, $e^b \le x_0$, and assume that there exists $\varepsilon(b)>0$ such that
+  \begin{equation}
+  \label{psixdiff}
+  |\psi (x) - x| \le \varepsilon(b)x \qquad \text{for all }x \ge e^{b}.
+ \end{equation}
+Then we have
+ \begin{equation}
+  \label{thetakBbd}
+   |\theta(x)-x| \le   \frac{B_k x}{(\log x)^k} \qquad  \text{for all }x \in [e^{b}, e^{b'}]
+ \end{equation}
+where
+\begin{equation}
+  \label{defn:B}
+  B_k = B_k(b,b') =
+  \max_{x \in [e^b, e^{b'}]}
+   \Big(  \sum_{\ell=1}^n a_{\ell} (\log x)^k x^{-\frac{\ell}{\ell+1}} +  \varepsilon(b) (\log x)^k  \Big).
+\end{equation}
+   -/)
+  (proof := /--
+  By the triangle inequality and the non-negativity of $\psi(x)-\theta(x)$, we have
+ \begin{align*}
+  |\theta (x) - x|
+  & \le  \psi (x) - \theta (x) + |\psi(x) - x|.
+ \end{align*}
+ Bounding these terms by (\ref{psithetadiff}) and (\ref{psixdiff}), we have for $x \ge e^b$,
+ \begin{align*}
+  |\theta(x) - x| &\le
+   \frac{x}{(\log x)^k} \Big(  \sum_{\ell=1}^n a_{\ell} (\log x)^k x^{-\frac{\ell}{\ell+1}} +  \varepsilon(b) (\log x)^k  \Big).
+ \end{align*}
+This immediately implies \eqref{thetakBbd} holds with \eqref{defn:B}.
+-/)
+  (latexEnv := "sublemma")]
+theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x₀ : ℝ)
+  (hk : 1 ≤ k ∧ k ≤ 5)
+  (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
+  (hbb : b < b') (hbk : b ≥ 2 * k) (hbx₀ : exp b ≤ x₀)
+  (hx : ∀ x ≥ x₀, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)))
+  (hε : ∀ x ≥ exp b, abs (ψ x - x) ≤ ε b * x)
+  :
+  ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k n a ε b b' * x / (log x)^k := by
+  sorry
+
+@[blueprint
+  "bklnw-eq-3-11"
+  (title := "BKLNW Equation (3.11)")
+  (statement := /--  Let $k=1,\ldots,5$. Assume there exist a positive integer $n$, real numbers $a_{\ell} \ge 0$ for every $\ell \in \{1, 2, \ldots, n \}$.  Let $b' > b \geq 2k$. Then $B_k \leq \tilde B_k$ where
+  $$ \tilde B_k := b^{k} \sum_{\ell=1}^n a_{\ell} \exp\left(-\frac{\ell b}{\ell+1}\right) + \varepsilon(b) (b')^k. $$
+  . -/)
+  (proof := /-- Observe that since $x\ge e^b > e^{2k} \ge e^{\frac{k(\ell+1)}{\ell}}$, then each $a_\ell (\log x)^k x^{-\frac{\ell}{\ell + 1}}$ decreases with $x$.  The claim follows since $\varepsilon(b) (\log x)^k$ increases with $x$.
+ -/)
+  (latexEnv := "sublemma")]
+theorem bklnw_eq_3_11 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ)
+  (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
+  (hbb : b < b') (hbk : b ≥ 2 * k) :
+  B k n a ε b b' ≤ Btilde k n a ε b b' := by
+  sorry
+
+/- \begin{corollary}\label{Cor:Bk}
+Let $k \in \{ 1,\ldots,5 \}$, and let $b$ and $b'$ be any consecutive entries of column 1 of Table \ref{Wedpsixvals} such that $b < b'$. i.e.
+we assume that there exists $\varepsilon(b)>0$
+such that
+\[
+ |\psi(x) - x| \le \varepsilon(b)x \qquad \text{for all }x \in [ e^{b} , e^{b'} ] .
+\]
+Thus
+\begin{equation}
+ \label{B:ExpSubinterval}
+ |\theta(x)-x| \le  \frac{B_k(b,b') x}{(\log x)^k} \qquad   \text{for all }x \in [e^{b}, e^{b'}],
+\end{equation}
+where
+\begin{equation}
+ \label{Bbbprime2}
+ B_k(b,b') = a_1(b) b^k e^{-\frac{b}{2}} + a_2(b) b^k e^{-\frac{2b}{3}}+  (b')^k \varepsilon(b),
+\end{equation}
+and $a_1,a_2$ are defined in \cref{psi-theta:ExplicitCor}.
+\\ In addition, let $b_0$ be any entry in column 1 of \cref{BkiTableWedeniwski}. Then,
+\begin{equation}
+ \label{bound:mathcalB}
+ |\theta (x) - x| \le \frac{\mathcal{B}_k(b_0) x}{(\log x)^k}  \qquad \text{for all }x \in [e^{b_0}, e^K]
+\end{equation}
+where $K$ is the last entry in Column $1$ of \cref{BkiTableWedeniwski}, and
+\begin{equation}
+\label{MathcalBbbprime2}
+\mathcal{B}_k(b_0) = \max_{b,b' \atop b_0 \le b < b'}   B_k(b,b').
+\end{equation}
+Values for $B_k(b,b')$ and $\mathcal{B}_k(b_0)$ are respectively displayed in Tables \ref{BkiTableWedeniwski} and \ref{BkMaxTableWedeniwski}.
+\end{corollary}
+\begin{proof} %(i)
+We apply Lemma \ref{lemma2} with $k \in \{1,2,3,4,5\}$, $b_0 = b$, and $n=2$ and obtain \eqref{Bbbprime2}. For we take
+$B_k(b,b') = \widetilde{B}_k(b,b',2) $ with $a_1=a_1(b)$ and $a_2=a_2(b)$ as defined in \eqref{def-a1} and \eqref{def-a2} respectively.
+\\ %(ii)
+The inequality \eqref{bound:mathcalB} follows from \eqref{B:ExpSubinterval} together with the fact that
+$[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
+\end{proof}
+-/
+
+noncomputable def B_8_1 (k : ℕ) (b b' : ℝ) : ℝ :=
+  Inputs.default.a₁ b * b^k * exp (-b / 2) + Inputs.default.a₂ b * b^k * exp (-2 * b / 3) + (b')^k * Inputs.default.ε b
+
+noncomputable def B_8_1' (k : ℕ) (b₀ : ℝ) : ℝ :=
+  iSup (ι := { b : ℝ × ℝ // b₀ ≤ b.1 ∧ b.1 < b.2 }) (fun b => B_8_1 k b.val.1 b.val.2)
+
+@[blueprint
+  "bklnw-cor-8-1a"
+  (title := "BKLNW Corollary 8.1a")
+  (statement := /--  Let $k=1,\ldots,5$. Let $b,b'$ be entries of Table 8 with $b < b'$.  Then
+\begin{equation}
+ \label{B:ExpSubinterval}
+ |\theta(x)-x| \le  \frac{B_k(b,b') x}{(\log x)^k} \qquad   \text{for all }x \in [e^{b}, e^{b'}],
+\end{equation}
+where
+\begin{equation}
+ \label{Bbbprime2}
+ B_k(b,b') = a_1(b) b^k e^{-\frac{b}{2}} + a_2(b) b^k e^{-\frac{2b}{3}}+  (b')^k \varepsilon(b),
+\end{equation}
+and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-8-1a}.
+-/)
+  (proof := /-- We apply Lemma \ref{bklnw-lemma-8} with $k \in \{1,2,3,4,5\}$, $b_0 = b$, and $n=2$ and obtain \eqref{Bbbprime2}. For we take
+$B_k(b,b') = \widetilde{B}_k(b,b',2)$.
+ -/)
+  (latexEnv := "sublemma")]
+theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hb : b < b') :
+  ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
+  sorry
+
+abbrev K := 25000
+
+noncomputable def table_10_bs : Finset ℝ := BKLNW.table_10.toFinset.image (fun p ↦ p.1) ∪ { (K:ℝ) }
+
+noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
+
+@[blueprint
+  "bklnw-table-10-verification"
+  (title := "BKLNW Table 10 verification")
+  (statement := /--  Verification of the entries of Table 10. -/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 10. -/)
+  (latexEnv := "proposition")]
+theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
+  sorry
+
+@[blueprint
+  "bklnw-cor-8-1b"
+  (title := "BKLNW Corollary 8.1b")
+  (statement := /-- let $b_0$ be any entry in column 1 of BKLNW Table 11. Then,
+\begin{equation}
+ \label{bound:mathcalB}
+ |\theta (x) - x| \le \frac{\mathcal{B}_k(b_0) x}{(\log x)^k}  \qquad \text{for all }x \in [e^{b_0}, e^K]
+\end{equation}
+where $K = 25000$, and
+\begin{equation}
+\label{MathcalBbbprime2}
+\mathcal{B}_k(b_0) = \max_{b,b' \atop b_0 \le b < b'}   B_k(b,b').
+\end{equation} -/)
+  (proof := /-- The inequality \eqref{bound:mathcalB} follows from \eqref{B:ExpSubinterval} together with the fact that
+$[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
+ -/)
+  (latexEnv := "sublemma")]
+theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hb₀K : b₀ < K) :
+  ∀ x ∈ Set.Icc (exp b₀) (exp K), |θ x - x| ≤ (B_8_1' k b₀) * x / (log x)^k := by
+  sorry
+
+@[blueprint
+  "bklnw-table-11-verification"
+  (title := "BKLNW Table 11 verification")
+  (statement := /--  Verification of the entries of Table 11. -/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 11. -/)
+  (latexEnv := "proposition")]
+theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ) (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) : ∀ k ∈ Finset.Icc 1 5, B_8_1' k b₀ ≤ B k := by
+  sorry
+
 
 blueprint_comment /--
 \subsection{Bounding theta(x)-x with a logarithmic decay, III: small x}
 
 In this section we tackle small $x$.
 
-TODO: formalize (3.17), (3.18), Lemma 9, Corollary 9.1
+TODO: Lemma 9, Corollary 9.1
 -/
+
+
+@[blueprint
+  "bklnw-eq-3-17"
+  (title := "BKLNW Equation 3.17")
+  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } x \le 10^{19}.$ -/)
+  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
+  (latexEnv := "lemma")]
+theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
+  sorry
+
+@[blueprint
+  "bklnw-eq-3-18"
+  (title := "BKLNW Equation 3.18")
+  (statement := /-- It follows that $\theta(x) - x \le M_k \ \text{for all } x \le e^{J_0}, \ \text{with } M_k = 0 \ \text{ and }  J=19\log10.$ -/)
+  (proof := /-- This follows from Lemma \ref{bklnw-eq-3-17} and the fact that $x - 0.05 \sqrt{x} \le x$ for all $x$. -/)
+  (latexEnv := "corollary")]
+theorem bklnw_eq_3_18 : ∀ x ≤ exp (19 * log 10), θ x - x ≤ 0 := by
+  sorry
+
+@[blueprint
+  "bklnw-lemma-9"
+  (title := "BKLNW Lemma 9")
+  (statement := /-- Let $1 \le u < v$. Assume there exist $c = c_{u,v} > 0$ and $C= C_{u,v} > 0$ such that
+ \begin{equation}
+ \label{equ:c-Psi-C}
+  -c \le \frac{x - \psi(x)}{\sqrt{x}} \le C \qquad \text{for every }x \in [u,v].
+  \end{equation}
+Assume that there exists $c_0>0$ such that
+ \begin{equation}\label{defn1:c0}
+  \psi(x) < c_0 x \text{ for all } x > 0.
+  \end{equation}
+If $u^2 < v$, then
+  \begin{equation}
+  \label{eqn:C-Section-Post-Lemma}
+  \theta(x) \ge x - (C + 1)x^{\frac12} - c_0 x^\frac13 - c x^{\frac14} - c_0 x^\frac15 \  \text{ for all } x \in [u^2,v].
+  \end{equation}
+-/)
+  (proof := /-- From Theorem \ref{costa-pereira-theorem-1a} we have
+ \[
+  \psi(x) - \theta(x) \le \psi(x^{\frac12}) + \psi(x^{\frac13}) + \psi(x^{\frac15})\  \text{ for all } x >0.
+ \]
+ Together with \eqref{defn1:c0}, it follows
+ \[
+  \psi(x) - \theta(x) \le \psi(x^{\frac12}) +  c_0 x^{\frac13} +c_0 x^{\frac15}  \text{ for all } x \in [u,v].\] -/)
+  (latexEnv := "lemma")]
+theorem bklnw_lemma_9 (u v : ℝ) (c C c₀ : ℝ)
+  (huv : 1 ≤ u ∧ u < v)
+  (hψ_bound : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C)
+  (hψ_linear : ∀ x > 0, ψ x < c₀ * x)
+  (huv : u ^ 2 < v) :
+  ∀ x ∈ Set.Icc (u ^ 2) v, θ x ≥ x - (C + 1) * x ^ (1 / 2) - c₀ * x ^ (1 / 3) - c * x ^ (1 / 4) - c₀ * x ^ (1 / 5) := by
+  sorry
+
+
+def table_from_buthe : List (ℝ × ℝ × ℝ × ℝ) := [
+  (100, 5 * 10 ^ 10, 0.8, 0.81),
+  (100, 32 * 10 ^ 12, 0.88, 0.86),
+  (100, 10 ^ 19, 0.94, 0.94)
+]
+
+@[blueprint
+  "bklnw-table_from_buthe"
+  (title := "BKLNW table from Buthe")
+  (statement := /--  One has  \eqref{equ:c-Psi-C} for ($u$, $v$, $c$, $C$) as from the table extracted from Equation (6.2), Table 1 of Buthe. -/)
+  (proof := /-- This follows from Lemma \ref{buthe-eq-6-2}.-/)
+  (latexEnv := "lemma")]
+theorem bklnw_table_from_buthe (u v c C : ℝ) (h : (u, v, c, C) ∈ table_from_buthe) : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C := by
+  sorry
+
+noncomputable def C_bk (b c C c₀ : ℝ) (k : ℕ) : ℝ :=
+  b ^ k * ((C + 1) * exp (-b / 2) + c₀ * exp (-2 * b / 3) + c * exp (-3 * b / 4) + c₀ * exp (-4 * b / 5))
+
+@[blueprint
+  "bklnw-corollary-9-1"
+  (title := "BKLNW Corollary 9.1")
+  (statement := /--  Let $(v,c,C) \in \{(5 \cdot 10^{10}, 0.8, 0.81), (32 \cdot 10^{12}, 0.88, 0.86), (10^{19}, 0.94, 0.94) \}$. Let $k \ge 0$ and let $b$ satisfy
+ $\max(10^4, e^{2k}) \le e^{b} \le v$. Then
+ \begin{equation}
+  \label{eqn:C-Section-Post-Corollary}
+  \theta(x) \ge x - \frac{\mathcal{C}_{b,k}x}{(\log x)^k} \qquad  \text{for all } x \in [e^b,v] \end{equation}
+ where
+  \begin{equation}
+    \label{defn:mathcalCbk}
+    \mathcal{C}_{b,k} = b^k ( (C+1)e^{-b/2} + c_0e^{-2b/3}+ c e^{-3b/4}+ c_0 e^{-4b/5}  ),
+  \end{equation}
+and where $c_0$ is defined in \eqref{defn:c0}.-/)
+  (proof := /-- We apply \eqref{eqn:C-Section-Post-Lemma} with $u=e^{\frac{b}{2}} $:
+ \[
+   \theta(x) \ge x-(C +1)x^{\frac12} - cx^{\frac14}  - c_0 x^{\frac13} - c_0 x^{\frac15} \ \text{for all}\ x \in [e^b,v].
+ \]
+We now set
+ \begin{equation}
+  \label{eqn:C-Section-prebound}
+   \mathcal{C}_{b,k} = \max_{x \in [e^b,v]  } \Big\{
+  (C+1)\frac{(\log x)^k}{x^\frac12} + c_0\frac{(\log x)^k}{x^\frac23} + c\frac{(\log x)^k}{x^\frac34} + c_0\frac{(\log x)^k}{x^\frac45}
+  \Big\}.
+ \end{equation}
+We find that this equals the expression in \eqref{defn:mathcalCbk} by observing that
+for  $a \in \{ \frac12, \frac23, \frac34, \frac45 \}$, $\frac{(\log x)^k}{ x^{a}}$ is decreasing for  $x \ge e^b$ as long as $e^{b} \ge e^{k/a}$.
+This last inequality leads to the condition $b \ge 2k$.  -/)
+  (latexEnv := "corollary")]
+theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈ table_from_buthe) (hb : max (10000 : ℝ) (exp (2 * k)) ≤ exp b ∧ exp b ≤ v) :
+  ∀ x ∈ Set.Icc (exp b) v, θ x ≥ x - C_bk b c C RS_prime.c₀ k * x / (log x)^k := by
+  sorry
+
+@[blueprint
+  "bklnw-table-12-verification"
+  (title := "BKLNW Table 12 verification")
+  (statement := /--  Verification of the entries of Table 12. -/)
+  (proof := /-- TODO: Implement a margin and verify the entries of Table 12. -/)
+  (latexEnv := "proposition")]
+theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
+  sorry
+
+@[blueprint
+  "bklnw-corollary-9-1-explicit"
+  (title := "BKLNW Corollary 9.1 explicit version")
+  (statement := /--  We have $\theta(x) - x > - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
+  (proof := /-- Insert the above table into the previous corollary. -/)
+  (latexEnv := "corollary")]
+theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
+  ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x > - Cb k * x / (log x)^k := by
+  sorry
 
 
 blueprint_comment /--
@@ -1167,18 +1475,8 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   -/)
   (latexEnv := "theorem")]
 theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
-    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
-  have hx_pos : x > 0 := by linarith
-  have hx_gt1 : x > 1 := by linarith
-  have hlog_pos : 0 < log x := log_pos hx_gt1
-  have hlogk_pos : 0 < (log x) ^ k := pow_pos hlog_pos k
-  have hlogk_ne : (log x) ^ k ≠ 0 := hlogk_pos.ne'
-  set α := 193378e-13 * BKLNW_app.table_8_margin
-  refine ⟨(log x) ^ k, α * (log x) ^ k, ?_, ?_⟩
-  · rw [div_self hlogk_ne, sub_self, mul_zero]
-    exact Chebyshev.theta_nonneg x
-  · rw [mul_div_cancel_right₀ α hlogk_ne, mul_comm]
-    exact cor_2_1 x hx_pos
+    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+  sorry
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint

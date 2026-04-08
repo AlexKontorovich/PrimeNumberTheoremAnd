@@ -31,5 +31,10 @@ name = "leancert"
 git = "https://github.com/alerad/leancert"
 rev = "v4.28.1"
 
+[[require]]
+name = "PrimeCert"
+git = "https://github.com/b-mehta/PrimeCert"
+rev = "v4.28.0"
+
 [[lean_lib]]
 name = "PrimeNumberTheoremAnd"
