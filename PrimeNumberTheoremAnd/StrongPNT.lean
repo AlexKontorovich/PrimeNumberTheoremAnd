@@ -559,6 +559,21 @@ noncomputable def Cf
   else 1
 
 
+
+lemma analyticAt_finset_prod_sub_pow (s : Finset ℂ) (g : ℂ → ℕ) (w : ℂ) :
+    AnalyticAt ℂ (fun z => ∏ ρ ∈ s, (z - ρ) ^ g ρ) w := by
+  induction s using Finset.induction with
+  | empty =>
+    simp only [Finset.prod_empty]
+    exact analyticAt_const
+  | @insert a s' hne ih =>
+    have : (fun z => ∏ ρ ∈ insert a s', (z - ρ) ^ g ρ) = fun z => (z - a) ^ g a * ∏ ρ ∈ s', (z - ρ) ^ g ρ :=
+      funext fun z => Finset.prod_insert hne
+    rw [this]
+    exact ((analyticAt_id.sub analyticAt_const).pow _).mul ih
+
+
+
 @[blueprint "CfAnalytic"
   (title := "CfAnalytic")
   (statement := /--
@@ -568,17 +583,56 @@ noncomputable def Cf
     Look at the definition of $C_f$ and apply ZeroFactorization.
   -/)]
 lemma CfAnalytic
-  {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
-  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
-  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  {r R : ℝ} (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
   (hf_neq_zero_at_zero : f 0 ≠ 0) :
   AnalyticOnNhd ℂ (Cf r f) (Metric.closedBall (0 : ℂ) R) := by
+  intro w hw
   unfold Cf
   by_cases finite_zeros_mono : (SetOfZeros r f).Finite
   · simp only [finite_zeros_mono, ↓reduceDIte]
-    sorry
+    by_cases w_in_zeros : w ∈ SetOfZeros r f
+    · obtain ⟨h_w, hh_w_analytic, hh_w_w_ne_zero, hh_w_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) w_in_zeros;
+      have h_eq : ∀ᶠ z in nhds w, (if h : z ∈ SetOfZeros r f then ZeroFactor f z / ∏ ρ ∈ finite_zeros_mono.toFinset \ {z}, (z - ρ) ^ analyticOrderNatAt f ρ else f z / ∏ ρ ∈ finite_zeros_mono.toFinset, (z - ρ) ^ analyticOrderNatAt f ρ) = h_w z / ∏ ρ ∈ finite_zeros_mono.toFinset \ {w}, (z - ρ) ^ analyticOrderNatAt f ρ := by
+        filter_upwards [ hh_w_eq.2, hh_w_analytic.continuousAt.eventually_ne hh_w_w_ne_zero ] with z hz hz';
+        by_cases h : z = w
+        · subst h
+          rw [dif_pos w_in_zeros]
+          congr 1
+          exact hh_w_eq.1
+        · have z_not_in : z ∉ SetOfZeros r f := by
+            intro hmem
+            have hfz : f z = 0 := hmem.2
+            rw [hz] at hfz
+            exact absurd hfz (mul_ne_zero (pow_ne_zero _ (sub_ne_zero_of_ne h)) hz')
+          rw [dif_neg z_not_in, hz]
+          have hw_mem : w ∈ finite_zeros_mono.toFinset := finite_zeros_mono.mem_toFinset.mpr w_in_zeros
+          rw [Finset.prod_eq_prod_diff_singleton_mul hw_mem (fun ρ => (z - ρ) ^ analyticOrderNatAt f ρ)]
+          rw [mul_comm ((z - w) ^ analyticOrderNatAt f w) (h_w z)]
+          rw [mul_div_mul_right _ _ (pow_ne_zero _ (sub_ne_zero_of_ne h))]
+      apply hh_w_analytic.div _ _ |> fun h => h.congr _;
+      · use fun z => ∏ ρ ∈ finite_zeros_mono.toFinset \ { w }, ( z - ρ ) ^ analyticOrderNatAt f ρ;
+      · exact analyticAt_finset_prod_sub_pow _ _ _
+      -- · fun_prop (disch := solve_by_elim);
+      · simp only [Finset.prod_eq_zero_iff, ne_eq, pow_eq_zero_iff', Finset.mem_sdiff, Finite.mem_toFinset, Finset.mem_singleton, not_exists, not_and,
+          Decidable.not_not, and_imp]
+        intro x _ h_ne_w
+        exact fun h_eq_w => absurd (sub_eq_zero.mp h_eq_w).symm h_ne_w
+      · filter_upwards [ h_eq ] with z hz using hz.symm
+    · apply AnalyticAt.congr _ _
+      · exact fun z => f z / ∏ ρ ∈ finite_zeros_mono.toFinset, ( z - ρ ) ^ analyticOrderNatAt f ρ
+      · refine AnalyticAt.div ?_ ?_ ?_
+        · exact hfAnalytic w ( Metric.mem_closedBall.mpr <| le_trans hw.out <| by linarith )
+        · exact analyticAt_finset_prod_sub_pow _ _ _
+        · simp only [ ne_eq, Finset.prod_eq_zero_iff, Finite.mem_toFinset, pow_eq_zero_iff',
+          sub_eq_zero, ↓existsAndEq, true_and, not_and, Decidable.not_not]
+          exact fun h => absurd h w_in_zeros
+      · filter_upwards [ IsOpen.mem_nhds ( isOpen_compl_iff.mpr finite_zeros_mono.isClosed ) w_in_zeros ] with z hz
+        split_ifs with h
+        · exact absurd h hz
+        · rfl
   · simp only [finite_zeros_mono, ↓reduceDIte]
-    exact analyticOnNhd_const
+    exact analyticAt_const
 
 
 
@@ -616,7 +670,7 @@ lemma BlaschkeAnalytic
   unfold BlaschkeB
   by_cases finite_zeros_mono : (SetOfZeros r f).Finite
   · simp only [finite_zeros_mono, ↓reduceDIte]
-    refine AnalyticOnNhd.mul (CfAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero) (Finset.analyticOnNhd_fun_prod (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset ?_)
+    refine AnalyticOnNhd.mul (CfAnalytic r_lt_R R_lt_one hfAnalytic hf_neq_zero_at_zero) (Finset.analyticOnNhd_fun_prod (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset ?_)
     intro w hw
     refine AnalyticOnNhd.fun_pow (AnalyticOnNhd.sub (analyticOnNhd_const) (AnalyticOnNhd.div (AnalyticOnNhd.mul (analyticOnNhd_id) (analyticOnNhd_const)) (analyticOnNhd_const) ?_)) (analyticOrderAt f w).toNat
     intro w' hw'
