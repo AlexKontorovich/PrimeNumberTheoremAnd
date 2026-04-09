@@ -583,28 +583,28 @@ lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R
   {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
   (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B) :
   ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ ≤ 1 / Real.log (R / r) * Real.log B := by
-  have hf0_ne_zero : f 0 ≠ 0 := by
-    rw [hf0_eq_one]; exact one_ne_zero
-  have blaschke_bound := DiskBound r_lt_one R_pos r_lt_R R_lt_1 finiteZeros hfAnalytic
-        hf0_ne_zero fz_bound 0 (Metric.mem_closedBall_self (le_of_lt R_pos))
+  have hf0_ne_zero : f 0 ≠ 0 := by rw [hf0_eq_one]; exact one_ne_zero
   have blaschke_eq := BlaschkeOfZero r_lt_one R_pos finiteZeros hf0_ne_zero
-  rw [blaschke_eq, hf0_eq_one, norm_one, one_mul] at blaschke_bound
+  rw[hf0_eq_one, norm_one, one_mul] at blaschke_eq
   rw [one_div, inv_mul_eq_div, le_div_iff₀ (Real.log_pos (by simp only [lt_div_iff₀ r_pos, one_mul, r_lt_R])), ← Real.log_pow]
-  · refine Real.log_le_log (pow_pos (div_pos R_pos r_pos) _) ?_
-    calc (R / r) ^ ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ
-        = ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / r) ^ analyticOrderNatAt f ρ := by
-          rw [Finset.prod_pow_eq_pow_sum]
-      _ ≤ ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ analyticOrderNatAt f ρ := by
-        apply Finset.prod_le_prod
-        · intro ρ _
-          exact pow_nonneg (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) _
-        · intro ρ hρ
-          have hρ_mem := (finiteSetOfZeros_mono r_lt_one finiteZeros).mem_toFinset.mp hρ
-          refine pow_le_pow_left₀ (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) ?_ _
-          refine div_le_div_of_nonneg_left (le_of_lt R_pos) (norm_pos_iff.mpr ?_) (hρ_mem.1)
-          rintro rfl
-          exact hf0_ne_zero hρ_mem.2
-      _ ≤ B := blaschke_bound
+  refine Real.log_le_log (pow_pos (div_pos R_pos r_pos) _) ?_
+  calc (R / r) ^ ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ
+      = ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / r) ^ analyticOrderNatAt f ρ := by
+        rw [Finset.prod_pow_eq_pow_sum]
+    _ ≤ ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ analyticOrderNatAt f ρ := by
+      apply Finset.prod_le_prod
+      · intro ρ _
+        exact pow_nonneg (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) _
+      · intro ρ hρ
+        have hρ_mem := (finiteSetOfZeros_mono r_lt_one finiteZeros).mem_toFinset.mp hρ
+        refine pow_le_pow_left₀ (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) ?_ _
+        refine div_le_div_of_nonneg_left (le_of_lt R_pos) (norm_pos_iff.mpr ?_) (hρ_mem.1)
+        rintro rfl
+        exact hf0_ne_zero hρ_mem.2
+    _ ≤ B := by
+      rw[← blaschke_eq]
+      exact DiskBound r_lt_one R_pos r_lt_R R_lt_1 finiteZeros hfAnalytic
+        hf0_ne_zero fz_bound 0 (Metric.mem_closedBall_self (le_of_lt R_pos))
 
 
 
