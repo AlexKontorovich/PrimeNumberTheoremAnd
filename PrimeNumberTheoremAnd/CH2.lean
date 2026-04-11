@@ -2162,23 +2162,23 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
       -- We establish the integrability of f on the two vertical rays forming the Upper U contour.
       -- Since x < 0, the exponential factor E(-zx) provides sufficient decay against the polynomial growth of Φ.
       -- Subgoal 1: The integrand is continuous along the ray Re z = -1.
-      have h_cont : Continuous (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) := by
-        refine continuous_iff_continuousAt.mpr (fun y ↦ ?_)
+      have h_cont : ContinuousOn (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) (Set.Ici 0) := by
+        intro y hy
         let z := ↑(-1 : ℝ) + ↑y * I
-        have hy : 0 ≤ z.im := by sorry
+        have hy_im : 0 ≤ z.im := by dsimp [z]; simpa using hy
         have h_anal_at_z : AnalyticAt ℂ f z := by
           -- f is (Phi_circ - Phi_star) * E
           apply AnalyticAt.mul
           · apply AnalyticAt.sub
-            · exact Phi_circ.analytic ν ε z hν hy
-            · exact Phi_star.analytic ν ε z hν hy
+            · exact Phi_circ.analytic ν ε z hν hy_im
+            · exact Phi_star.analytic ν ε z hν hy_im
           · apply AnalyticAt.cexp
             fun_prop
         -- Bridge the real-to-complex continuity using composition.
         have h_ray : ContinuousAt (fun (y' : ℝ) => ↑(-1 : ℝ) + ↑y' * I) y := by
           refine continuousAt_const.add (ContinuousAt.mul ?_ continuousAt_const)
           exact Complex.continuous_ofReal.continuousAt
-        exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl
+        exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl |>.continuousWithinAt
       -- Subgoal 2: Growth bound – the linear growth of Φ is dominated by the exponential decay of E.
       -- We specify (y : ℝ) and (π * x * y : ℝ) to avoid ambiguous complex coercions.
       have h_bound : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (-1 + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
@@ -2234,72 +2234,229 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
             apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
             nlinarith
       -- Subgoal 3: The dominating exponential is integrable on the tail [1, ∞).
-      -- have h_int_decay : IntegrableOn (fun (y : ℝ) ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ioi 1) := by
-      --   apply integrableOn_Ioi_pow_mul_exp_neg 1
-      --   nlinarith [pi_pos, hx]
+      have h_int_decay : IntegrableOn (fun (y : ℝ) ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
+        -- Step 1: Establish λ := 2 * π * x < 0
+        have htlam : 2 * π * x < 0 := by
+          have : π > 0 := Real.pi_pos
+          nlinarith [hx]
+
+        -- Step 2: Extract integrability of the pure exponential on [1, ∞).
+        -- mathlib's `integrableOn_exp_mul_Ioi` provides this for Ioi 1, which transfers to Ici 1.
+        have h_exp_int : IntegrableOn (fun y => rexp (2 * π * x * y)) (Set.Ici 1) := by
+          have h_Ioi : IntegrableOn (fun y => rexp (2 * π * x * y)) (Set.Ioi 1) :=
+            integrableOn_exp_mul_Ioi htlam 1
+          rwa [← integrableOn_Ici_iff_integrableOn_Ioi] at h_Ioi
+
+        -- Step 3: Extract integrability of y ↦ y * exp(2πxy) on [1, ∞).
+        -- mathlib contains `integrableOn_rpow_mul_exp_neg_rpow` in `GaussianIntegral`
+        -- which handles x^s * exp(-b * x^p). Restricting from (0, ∞) to [1, ∞) works.
+        have h_y_exp_int : IntegrableOn (fun y => y * rexp (2 * π * x * y)) (Set.Ici 1) := by
+          have hb : 0 < -(2 * π * x) := by
+            have : 0 < π := Real.pi_pos
+            nlinarith [hx]
+          have h_int_Ioi0 : IntegrableOn (fun (y : ℝ) => y ^ (1:ℝ) * rexp (-(-(2 * π * x)) * y ^ (1:ℝ))) (Set.Ioi 0) :=
+            integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num) (by norm_num) hb
+          have h_eq : (fun (y : ℝ) => y ^ (1:ℝ) * rexp (-(-(2 * π * x)) * y ^ (1:ℝ))) = (fun y => y * rexp (2 * π * x * y)) := by
+            ext y
+            rw [Real.rpow_one, neg_neg]
+          rw [h_eq] at h_int_Ioi0
+          exact h_int_Ioi0.mono_set (fun y hy => Set.mem_Ioi.mpr (by
+            have := Set.mem_Ici.mp hy
+            linarith))
+
+        -- Step 4: Combine via Integrable.add and rewrite the integrand.
+        have h_add := Integrable.add h_y_exp_int h_exp_int
+        simp_rw [add_mul, one_mul]
+        exact h_add
       have h_int_left : IntegrableOn (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) (Set.Ici 0) := by
-        sorry
-      --   -- We outline the integrability proof using continuity and exponential decay.
-      --   -- Subgoal 4: Synthesis – combine local continuity and the tail bound.
-      --   obtain ⟨C, hC⟩ := h_bound
-      --   let g : ℝ → ℝ := fun y ↦ if y < 1 then (if y < 0 then 0 else (‖f (-1 + y * I)‖ + 1)) else C * (y + 1) * rexp (2 * π * x * y)
-      --   have hg : IntegrableOn g (Set.Ici 0) volume := by
-      --     refine IntegrableOn.union (s := Set.Icc 0 1) (t := Set.Ici 1) ?_ ?_
-      --     · refine ContinuousOn.integrableOn_Icc ?_
-      --       refine ContinuousOn.if_pos ?_ continuousOn_const (fun t ht => by simp; linarith [ht.1])
-      --       refine (ContinuousOn.norm ?_ |>.add continuousOn_const)
-      --       refine h_cont.mono ?_
-      --       intro t ht; simp; linarith [ht.1]
-      --     · refine IntegrableOn.mono (g := fun y ↦ C * (y + 1) * rexp (2 * π * x * y)) ?_ ?_ ?_
-      --       · exact h_int_decay.const_mul C
-      --       · refine (measurable_id.add measurable_const |>.mul (measurable_id.const_mul (2 * π * x)).exp).const_mul C |>.aestronglyMeasurable
-      --       · intro y hy; simp; split_ifs with h1 h2 <;> simp
-      --   -- Use the comparison theorem (Integrable.mono') on the restricted measure.
-      --   refine hg.mono' ?_ ?_
-      --   · exact h_cont.aestronglyMeasurable
-      --   · --
-      --     sorry
+        -- We outline the integrability proof using continuity and exponential decay.
+        -- Subgoal 4: Synthesis – combine local continuity and the tail bound.
+        obtain ⟨C, hC⟩ := h_bound
+        let g : ℝ → ℝ := fun y ↦ if y < 1 then (if y < 0 then 0 else ‖f (-1 + y * I)‖) else C * (y + 1) * rexp (2 * π * x * y)
+        have hg : IntegrableOn g (Set.Ici 0) volume := by
+          have H : Set.Ici (0 : ℝ) = Set.Icc 0 1 ∪ Set.Ici 1 := by
+            ext x; simp
+          rw [H]
+          refine IntegrableOn.union ?_ ?_
+          · -- Step 1 & 2: y ↦ ‖f(-1 + iy)‖ is continuous, hence integrable on compact [0,1].
+            apply Integrable.congr (hf := (h_cont.norm.mono (Set.Icc_subset_Ici_self)).integrableOn_compact isCompact_Icc)
+            -- Step 3 & 4: The a.e. equality transfers this integrability to g.
+
+            -- Subgoal 3a: The defining branches of `g` perfectly match `‖f(-1+iy)‖` everywhere on `[0, 1)`.
+            have h_eq_on : Set.EqOn (fun y : ℝ ↦ ‖f (↑(-1) + ↑y * I)‖) g (Set.Ico 0 1) := by
+              intro y hy
+              dsimp [g]
+              rw [if_pos hy.2]
+              split_ifs with h
+              · linarith [hy.1]
+              · congr 2
+            -- Subgoal 3b: The interval `[0, 1]` differs from `[0, 1)` only by the singleton `{1}`.
+            -- Since Lebesgue measure of a point is zero, pointwise equality on `[0, 1)` gives a.e. equality on `[0, 1]`.
+            have h1 : ∀ᵐ y ∂(volume.restrict (Set.Icc (0:ℝ) 1)), y ∈ Set.Ico (0:ℝ) 1 := by
+              rw [ae_restrict_iff' measurableSet_Icc]
+              rw [MeasureTheory.ae_iff]
+              have h_diff : {a | ¬(a ∈ Set.Icc (0:ℝ) 1 → a ∈ Set.Ico (0:ℝ) 1)} ⊆ {1} := by
+                intro y
+                simp only [Set.mem_Icc, Set.mem_Ico, and_imp, Classical.not_imp, not_and, not_lt,
+                  Set.mem_setOf_eq, Set.mem_singleton_iff]
+                intro h1 h2 h3
+                have h4 : 1 ≤ y := h3 h1
+                linarith
+              apply measure_mono_null h_diff
+              exact measure_singleton 1
+            have h_ae := h_eq_on.eventuallyEq_of_mem h1
+            have h_coe : (fun x : ℝ ↦ ‖f (↑(-1 : ℝ) + ↑x * I)‖) = (fun y : ℝ ↦ ‖f (-1 + ↑y * I)‖) := by
+              ext x; push_cast; rfl
+            rw [h_coe]
+            exact h_ae
+          · -- Goal: IntegrableOn g (Set.Ici 1) volume
+
+            -- Step 1: g agrees pointwise with the explicit function on Ici 1.
+            -- Proof: for y ≥ 1, ¬(y < 1), so the outer if-branch collapses by simp.
+            have h_eq : Set.EqOn g (fun y => C * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
+              intro y hy
+              simp only [g, show ¬ y < 1 from not_lt.mpr (Set.mem_Ici.mp hy), ite_false]
+
+            -- Step 2: The explicit function is integrable on Ici 1.
+            -- Proof: h_int_decay gives (y+1)*rexp(...); scale by C via IntegrableOn.const_mul,
+            -- then fix associativity by ring.
+            have h_scaled : IntegrableOn
+                (fun y => C * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) volume := by
+              have h := h_int_decay.const_mul C
+              simp_rw [← mul_assoc] at h
+              exact h
+
+            -- Step 3: Transfer integrability to g.
+            -- eventuallyEq_of_mem takes (hl : s ∈ l) and returns (f =ᶠ[l] g) with no further args.
+            -- ae_restrict_mem : MeasurableSet s → s ∈ ae (volume.restrict s)
+            -- so the full term h_eq.eventuallyEq_of_mem (ae_restrict_mem measurableSet_Ici)
+            -- has type g =ᶠ[ae (volume.restrict (Ici 1))] fun y => C*(y+1)*rexp(...).
+            exact h_scaled.congr (h_eq.symm.eventuallyEq_of_mem (ae_restrict_mem measurableSet_Ici))
+        -- Use the comparison theorem (Integrable.mono') on the restricted measure.
+        refine hg.mono' ?_ ?_
+        · exact h_cont.aestronglyMeasurable measurableSet_Ici
+        · -- Show that the function's norm is pointwise bounded by our piecewise function `g` everywhere on [0, ∞)
+          apply (ae_restrict_iff' measurableSet_Ici).mpr
+          apply ae_of_all
+          intro a ha
+          have h_eq : (↑(-1 : ℝ) + ↑a * I : ℂ) = -1 + ↑a * I := by push_cast; rfl
+          rw [h_eq]
+          by_cases ha1 : a < 1
+          · simp only [g, if_pos ha1]
+            have ha0 : 0 ≤ a := ha
+            simp only [if_neg (not_lt.mpr ha0)]
+            exact le_rfl
+          · have ha1' : 1 ≤ a := not_lt.mp ha1
+            simp only [g, if_neg ha1]
+            exact hC a ha1'
 
       -- -- Specifically defining the right integral at σ' = 0
       have h_int_right : IntegrableOn (fun (y : ℝ) ↦ f ((0 : ℝ) + y * I)) (Set.Ici 0) := by
-      --   -- Step 1: Magnitude bound on the imaginary axis (same C as h_bound)
-      --   have h_boundR : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (0 + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
-      --     obtain ⟨C, hC_gen⟩ := h_bound
-      --     refine ⟨C, fun y hy => ?_⟩
-      --     specialize hC_gen y hy
-      --     calc ‖f (0 + y * I)‖
-      --       _ ≤ ‖f (-1 + y * I)‖ := by
-      --         -- Sketch: magnitude of f is symmetric or non-increasing in Re z for large Im z
-      --         -- Actually, we can just use a similar bound proof for Re z = 0.
-      --         sorry
-      --       _ ≤ C * (y + 1) * rexp (2 * π * x * y) := hC_gen
-      --   obtain ⟨CR, hCR⟩ := h_boundR
-      --   let gR : ℝ → ℝ := fun y ↦ if y < 1 then (if y < 0 then 0 else (‖f (0 + y * I)‖ + 1)) else CR * (y + 1) * rexp (2 * π * x * y)
-      --   have hgR : IntegrableOn gR (Set.Ici 0) volume := by
-      --     refine IntegrableOn.union (s := Set.Icc 0 1) (t := Set.Ici 1) ?_ ?_
-      --     · refine ContinuousOn.integrableOn_Icc ?_
-      --       refine ContinuousOn.if_pos ?_ continuousOn_const (fun t ht => by simp; linarith [ht.1])
-      --       refine (ContinuousOn.norm ?_ |>.add continuousOn_const)
-      --       refine h_contR.mono ?_
-      --       intro t ht; simp; linarith [ht.1]
-      --     · refine IntegrableOn.mono (g := fun y ↦ CR * (y + 1) * rexp (2 * π * x * y)) ?_ ?_ ?_
-      --       · exact h_int_decay.const_mul CR
-      --       · refine (measurable_id.add measurable_const |>.mul (measurable_id.const_mul (2 * π * x)).exp).const_mul CR |>.aestronglyMeasurable
-      --       · intro y hy; simp; split_ifs with h1 h2 <;> simp
-      --   -- Step 2: Continuity on the imaginary axis.
-      --   have h_contR : ContinuousOn (fun y ↦ f (0 + y * I)) (Set.Ici 0) := by
-      --     intro y hy
-      --     have h_anal_0 := h_anal (y + 1) (by linarith)
-      --     refine (h_anal_0.continuousOn.comp (continuous_ofReal.add (continuous_const.mul continuous_I)).continuousOn ?_).continuousAt (Set.mem_nhdsWithin_Ici hy)
-      --     intro t ht; simp; rw [mem_Rect]
-      --     · simp; linarith [ht.1, ht.2]
-      --     · simp; norm_num
-      --     · simp; linarith
-        -- Step 3: Synthesis.
-        sorry
-        -- refine hgR.mono' h_contR.aestronglyMeasurable ?_
-        -- filter_upwards [self_mem_ae_restrict (measurableSet_Ici 0)] with y hy
-        -- simp only [gR]; split_ifs <;> [linarith; exact hCR y (by linarith)]
+        -- Step 1: Continuity on the imaginary axis.
+        have h_contR : ContinuousOn (fun (y : ℝ) ↦ f (0 + y * I)) (Set.Ici 0) := by
+          intro y hy
+          let z := (0 : ℂ) + ↑y * I
+          have hy_im : 0 ≤ z.im := by dsimp [z]; simpa using hy
+          have h_anal_at_z : AnalyticAt ℂ f z := by
+            apply AnalyticAt.mul
+            · apply AnalyticAt.sub
+              · exact Phi_circ.analytic ν ε z hν hy_im
+              · exact Phi_star.analytic ν ε z hν hy_im
+            · apply AnalyticAt.cexp
+              fun_prop
+          have h_ray : ContinuousAt (fun (y' : ℝ) => (0 : ℂ) + ↑y' * I) y := by
+            refine continuousAt_const.add (ContinuousAt.mul ?_ continuousAt_const)
+            exact Complex.continuous_ofReal.continuousAt
+          exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl |>.continuousWithinAt
+
+        -- Step 2: Growth bound on the imaginary axis.
+        have h_boundR : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (0 + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
+          have h_hc : 1 > -ν / (2 * π) := by
+            rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
+          obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
+          obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
+          refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
+          simp only [f, norm_mul]
+          have h_eq : -(↑0 + ↑y * I) * ↑x = -(↑(0 : ℝ) + I * ↑y) * ↑x := by
+            push_cast; rw [zero_add, mul_comm ↑y I]
+          rw [h_eq, h_exp_decay y 0]
+          have h_z : ‖(0 : ℂ) + y * I‖ ≤ y + 1 := by
+            simp; linarith
+          calc ‖Phi_circ ν ε (0 + y * I) - Phi_star ν ε (0 + y * I)‖ * rexp (2 * π * x * y)
+            _ ≤ (‖Phi_circ ν ε (0 + y * I)‖ + ‖Phi_star ν ε (0 + y * I)‖) * rexp (2 * π * x * y) := by
+              gcongr; exact norm_sub_le _ _
+            _ ≤ (C₁ + C₂ * (‖(0 : ℂ) + y * I‖ + 1)) * rexp (2 * π * x * y) := by
+              gcongr
+              · refine hC₁ ν (by simp) (0 + y * I) ?_
+                simp only [add_im, zero_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
+                  mul_zero, add_zero, zero_add, ge_iff_le]
+                exact hy
+              · refine hC₂ ν (by simp) (0 + y * I) ?_
+                simp only [add_im, zero_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
+                  mul_zero, add_zero, zero_add, ge_iff_le]
+                exact hy
+            _ ≤ (C₁ + C₂ * (y + 1)) * rexp (2 * π * x * y) := by
+              simp only [add_re, zero_re, ofReal_re, Complex.I_re, Complex.I_im, ofReal_im,
+                mul_re, mul_zero, zero_mul, sub_zero, add_im, zero_im, mul_im, mul_one, zero_add,
+                Complex.norm_I, mul_one, Complex.norm_zero, add_zero]
+              gcongr
+              simp
+            _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
+              apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
+              have hC₂_nonneg : 0 ≤ C₂ := by
+                have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
+                have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
+                have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
+                nlinarith
+              nlinarith
+            _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
+              apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
+              nlinarith
+
+        -- Step 3: Synthesis using the comparison theorem.
+        obtain ⟨CR, hCR⟩ := h_boundR
+        let gR : ℝ → ℝ := fun y ↦ if y < 1 then (if y < 0 then 0 else ‖f (0 + y * I)‖) else CR * (y + 1) * rexp (2 * π * x * y)
+        have hgR : IntegrableOn gR (Set.Ici 0) volume := by
+          have H : Set.Ici (0 : ℝ) = Set.Icc 0 1 ∪ Set.Ici 1 := by
+            ext x; simp
+          rw [H]
+          refine IntegrableOn.union ?_ ?_
+          · apply Integrable.congr (hf := (h_contR.norm.mono (Set.Icc_subset_Ici_self)).integrableOn_compact isCompact_Icc)
+            have h_eq_on : Set.EqOn (fun y : ℝ ↦ ‖f (↑0 + ↑y * I)‖) gR (Set.Ico 0 1) := by
+              intro y hy
+              dsimp [gR]
+              rw [if_pos hy.2]
+              split_ifs with h
+              · linarith [hy.1]
+              · congr 1
+            have h1 : ∀ᵐ y ∂(volume.restrict (Set.Icc (0:ℝ) 1)), y ∈ Set.Ico (0:ℝ) 1 := by
+              rw [ae_restrict_iff' measurableSet_Icc, MeasureTheory.ae_iff]
+              have h_diff : {a | ¬(a ∈ Set.Icc (0:ℝ) 1 → a ∈ Set.Ico (0:ℝ) 1)} ⊆ {1} := by
+                intro y; simp only [Set.mem_Icc, Set.mem_Ico, and_imp, Classical.not_imp, not_and, not_lt,
+                  Set.mem_setOf_eq, Set.mem_singleton_iff]; intro h1 h2 h3; linarith
+              apply measure_mono_null h_diff
+              exact measure_singleton 1
+            exact h_eq_on.eventuallyEq_of_mem h1
+          · have h_eq : Set.EqOn gR (fun y => CR * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
+              intro y hy; simp only [gR, show ¬ y < 1 from not_lt.mpr (Set.mem_Ici.mp hy), ite_false]
+            have h_scaled : IntegrableOn (fun y => CR * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) volume := by
+              have h := h_int_decay.const_mul CR; simp_rw [← mul_assoc] at h; exact h
+            exact h_scaled.congr (h_eq.symm.eventuallyEq_of_mem (ae_restrict_mem measurableSet_Ici))
+
+        refine hgR.mono' ?_ ?_
+        · exact h_contR.aestronglyMeasurable measurableSet_Ici
+        · apply (ae_restrict_iff' measurableSet_Ici).mpr
+          apply ae_of_all
+          intro a ha
+          by_cases ha1 : a < 1
+          · simp only [gR, if_pos ha1]
+            have ha0 : 0 ≤ a := ha
+            simp only [if_neg (not_lt.mpr ha0)]
+            exact le_rfl
+          · have ha1' : 1 ≤ a := not_lt.mp ha1
+            simp only [gR, if_neg ha1]
+            exact hCR a ha1'
+
       -- Apply the general relation between RectangleIntegals and UpperUIntegrals.
       let htop : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1 : ℝ)..0, f (t + T * I)) Filter.atTop (nhds 0) := (by
         simpa [mul_comm I] using h_top_vanish)
