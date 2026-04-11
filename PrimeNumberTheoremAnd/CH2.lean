@@ -2375,43 +2375,44 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
             rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
           obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
           obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
+          have hC₁_nonneg : 0 ≤ C₁ := by
+            have h : ‖Phi_circ ν ε I‖ ≤ C₁ := hC₁ ν (by simp) I (by simp)
+            have hz : (0 : ℝ) ≤ ‖Phi_circ ν ε I‖ := norm_nonneg _
+            linarith
+          have hC₂_nonneg : 0 ≤ C₂ := by
+            have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
+            have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
+            have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
+            nlinarith
           refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
           simp only [f, norm_mul]
           have h_eq : -(↑0 + ↑y * I) * ↑x = -(↑(0 : ℝ) + I * ↑y) * ↑x := by
-            push_cast; rw [zero_add, mul_comm ↑y I]
+            push_cast; rw [zero_add, mul_comm ↑y I]; simp
           rw [h_eq, h_exp_decay y 0]
-          have h_z : ‖(0 : ℂ) + y * I‖ ≤ y + 1 := by
-            simp; linarith
+          have h_z : ‖(0 : ℂ) + y * I‖ ≤ y := by
+            simp; rw [abs_of_pos (by linarith)]
           calc ‖Phi_circ ν ε (0 + y * I) - Phi_star ν ε (0 + y * I)‖ * rexp (2 * π * x * y)
             _ ≤ (‖Phi_circ ν ε (0 + y * I)‖ + ‖Phi_star ν ε (0 + y * I)‖) * rexp (2 * π * x * y) := by
               gcongr; exact norm_sub_le _ _
             _ ≤ (C₁ + C₂ * (‖(0 : ℂ) + y * I‖ + 1)) * rexp (2 * π * x * y) := by
               gcongr
               · refine hC₁ ν (by simp) (0 + y * I) ?_
-                simp only [add_im, zero_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
+                simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
                   mul_zero, add_zero, zero_add, ge_iff_le]
                 exact hy
               · refine hC₂ ν (by simp) (0 + y * I) ?_
-                simp only [add_im, zero_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
+                simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
                   mul_zero, add_zero, zero_add, ge_iff_le]
                 exact hy
             _ ≤ (C₁ + C₂ * (y + 1)) * rexp (2 * π * x * y) := by
-              simp only [add_re, zero_re, ofReal_re, Complex.I_re, Complex.I_im, ofReal_im,
-                mul_re, mul_zero, zero_mul, sub_zero, add_im, zero_im, mul_im, mul_one, zero_add,
-                Complex.norm_I, mul_one, Complex.norm_zero, add_zero]
               gcongr
-              simp
             _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
               apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
-              have hC₂_nonneg : 0 ≤ C₂ := by
-                have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
-                have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
-                have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
-                nlinarith
               nlinarith
             _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
               apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
               nlinarith
+
 
         -- Step 3: Synthesis using the comparison theorem.
         obtain ⟨CR, hCR⟩ := h_boundR
@@ -2433,7 +2434,8 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
               rw [ae_restrict_iff' measurableSet_Icc, MeasureTheory.ae_iff]
               have h_diff : {a | ¬(a ∈ Set.Icc (0:ℝ) 1 → a ∈ Set.Ico (0:ℝ) 1)} ⊆ {1} := by
                 intro y; simp only [Set.mem_Icc, Set.mem_Ico, and_imp, Classical.not_imp, not_and, not_lt,
-                  Set.mem_setOf_eq, Set.mem_singleton_iff]; intro h1 h2 h3; linarith
+                  Set.mem_setOf_eq, Set.mem_singleton_iff]; intro h1 h2 h3
+
               apply measure_mono_null h_diff
               exact measure_singleton 1
             exact h_eq_on.eventuallyEq_of_mem h1
