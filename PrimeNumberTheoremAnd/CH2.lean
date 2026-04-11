@@ -1929,236 +1929,7 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
         rcases ht.1.lt_or_eq with h_pos | rfl
         · rw [Real.sign_of_pos h_pos]; push_cast; ring
         · simp [Real.sign_zero, Phi_star_zero ν ε]
-/--
 
-### Local Context (Hypotheses)
-
-**`ν` and `ε`**
-* **Type:** `ℝ`
-* **Definition:** Real-valued parameters representing the frequency shift ($\nu$) and a constant offset ($\varepsilon \in \{-1, 1\}$).
-
-**`x`**
-* **Type:** `ℝ`
-* **Definition:** The real variable representing the frequency domain parameter for the Fourier transform.
-
-***
-
-### Goal Expression Components
-
-**`𝓕` (Fourier Transform notation)**
-* **Type:** `(ℝ → ℂ) → ℝ → ℂ`
-* **Definition:** The mathematical operator mapping a function to its Fourier transform, defined via the Lebesgue integral over $\mathbb{R}$:
-$$
-\widehat{f}(x) = \int_{-\infty}^{\infty} f(t) e^{-2\pi i t x} \,dt
-$$
-
-**`ϕ_pm` ($\varphi^{\pm}_{\nu}$)**
-* **Type:** `ℝ → ℝ → ℝ → ℂ` (Specifically applied as `ℝ → ℂ` under `ν` and `ε`)
-* **Definition:** The compactly supported scaling function on $\mathbb{R}$:
-$$
-\varphi^{\pm}_{\nu}(t) = \begin{cases}
-\Phi^{\circ}_{\nu}(t) + \operatorname{sgn}(t) \Phi^{\star}_{\nu}(t) & \text{if } t \in [-1, 1] \\
-0 & \text{otherwise}
-\end{cases}
-$$
-
-**`∫ ... in ... ` (Set Integral)**
-* **Type:** `Set ℝ → (ℝ → ℂ) → ℂ`
-* **Definition:** The standard Lebesgue integral `set_integral` over a measurable subset $S \subseteq \mathbb{R}$:
-$$
-\int_S f(t) \,dt
-$$
-
-**`Set.Icc a b`**
-* **Type:** `ℝ → ℝ → Set ℝ`
-* **Definition:** The closed interval $[a, b]$ including both endpoints:
-$$
-[a, b] = \{t \in \mathbb{R} \mid a \leq t \leq b\}
-$$
-
-**`t`**
-* **Type:** `ℝ`
-* **Definition:** A bound dummy variable introduced by the integral binder, representing the continuous time-domain variable restricting over $[-1, 0]$ and $[0, 1]$.
-
-**`↑` (Coercion)**
-* **Type:** `ℝ → ℂ`
-* **Definition:** Because `t` and `x` are of type real (`ℝ`) but both `Phi_circ` and `E` consume complexes (`ℂ`), the upwards arrow denotes the canonical injection of the reals into the complex plane:
-$$
-t \mapsto t + 0i
-$$
-
-**`Phi_circ` ($\Phi^{\circ}_{\nu}$)**
-* **Type:** `ℝ → ℝ → ℂ → ℂ`
-* **Definition:** The unweighted complex pole constituent defined utilizing the hyperbolic cotangent:
-$$
-\Phi^{\circ}_{\nu}(z) = \frac{1}{2}\left(\coth\left(\frac{w(z)}{2}\right) + \varepsilon\right) \quad \text{where } w(z) = -2\pi i z + \nu
-$$
-
-**`Phi_star` ($\Phi^{\star}_{\nu}$)**
-* **Type:** `ℝ → ℝ → ℂ → ℂ`
-* **Definition:** The scaled meromorphic component removing the singularity at $z=0$:
-$$
-\Phi^{\star}_{\nu}(z) = \frac{B^{\pm}(w(z)) - B^{\pm}(\nu)}{2\pi i} \quad \text{where } B^{\pm}(s) = \frac{s}{2} \left(\coth\left(\frac{s}{2}\right) + \varepsilon\right)
-$$
-
-**`E`**
-* **Type:** `ℂ → ℂ`
-* **Definition:** The complex exponential formulation used uniformly across the codebase:
-$$
-E(z) = e^{2 \pi i z}
-$$
-*(When applied to `-↑t * ↑x`, it evaluates directly to $e^{-2\pi i t x}$).*
-
-The intended goal in natural language is this:
-
-For a negative frequency $x<0$, the Fourier transform of the compactly supported function $\varphi_\nu^\pm$ can be computed by pushing the two real integrals on $[-1,0]$ and $[0,1]$ upward into the upper half-plane. After the contour shift, the answer is the sum of three vertical contour contributions: one on the line $\Re z=-1$, one on the line $\Re z=1$, and one on the imaginary axis.
-
-The intended equation is
-
-$$
-\widehat{\varphi^{\pm}_{\nu}}(x)
-=
-\int_{-1+i\infty}^{-1}
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)-\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx)\,dz
-+
-\int_{1}^{1+i\infty}
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)+\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx)\,dz
-+
-2\int_{0}^{i\infty}
-\Phi^{\pm,\ast}_{\nu}(z)e(-zx)\,dz.
-$$
-
-Equivalently, after parametrizing $z=-1+it$, $z=1+it$, $z=it$, this is
-
-$$
-\widehat{\varphi^{\pm}_{\nu}}(x)
-=
-i\int_0^\infty
-\bigl(\Phi^{\pm,\circ}_{\nu}(-1+it)-\Phi^{\pm,\ast}_{\nu}(-1+it)\bigr)
-e\bigl(-(-1+it)x\bigr)\,dt
--
-i\int_0^\infty
-\bigl(\Phi^{\pm,\circ}_{\nu}(1+it)+\Phi^{\pm,\ast}_{\nu}(1+it)\bigr)
-e\bigl(-(1+it)x\bigr)\,dt
-+
-2i\int_0^\infty
-\Phi^{\pm,\ast}_{\nu}(it)e(-itx)\,dt.
-$$
-## Proof of the corrected statement
-
-Assume now that $\nu>0$ and $x<0$, and interpret the theorem in its intended form above.
-
-Start from the earlier real-line identity
-
-$$
-\widehat{\varphi^{\pm}_{\nu}}(x)
-=
-\int_{-1}^{0}
-\bigl(\Phi^{\pm,\circ}_{\nu}(t)-\Phi^{\pm,\ast}_{\nu}(t)\bigr)e(-tx)\,dt
-+
-\int_{0}^{1}
-\bigl(\Phi^{\pm,\circ}_{\nu}(t)+\Phi^{\pm,\ast}_{\nu}(t)\bigr)e(-tx)\,dt.
-$$
-
-Define
-
-$$
-f_-(z):=
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)-\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx),
-\qquad
-f_+(z):=
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)+\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx).
-$$
-
-Because the poles lie at $n-\frac{i\nu}{2\pi}$, and $\nu>0$, every pole lies strictly below the real axis. Hence $f_-$ is holomorphic in the closed upper strip $-1\le \Re z\le 0$, $\Im z\ge 0$, and $f_+$ is holomorphic in the closed upper strip $0\le \Re z\le 1$, $\Im z\ge 0$.
-
-Now apply Cauchy's theorem to the rectangle with vertices $-1,0,iT,-1+iT$. Since the boundary integral is $0$, we obtain
-
-$$
-\int_{-1}^{0} f_-(t)\,dt
-=
-i\int_0^T f_-(-1+it)\,dt
--
-i\int_0^T f_-(it)\,dt
-+
-\int_{-1}^{0} f_-(u+iT)\,du.
-$$
-
-Likewise, applying Cauchy's theorem to the rectangle with vertices $0,1,1+iT,iT$ gives
-
-$$
-\int_{0}^{1} f_+(t)\,dt
-=
--
-i\int_0^T f_+(1+it)\,dt
-+
-i\int_0^T f_+(it)\,dt
-+
-\int_{0}^{1} f_+(u+iT)\,du.
-$$
-
-Add these two identities. The vertical integrals on the line $\Re z=0$ combine as
-
-$$
--i\int_0^T f_-(it)\,dt + i\int_0^T f_+(it)\,dt
-=
-2i\int_0^T \Phi^{\pm,\ast}_{\nu}(it)e(-itx)\,dt,
-$$
-
-because the $\Phi_\nu^{\pm,\circ}$-terms cancel and the $\Phi_\nu^{\pm,\ast}$-terms add.
-
-So we get
-
-$$
-\widehat{\varphi^{\pm}_{\nu}}(x)
-=
-i\int_0^T
-\bigl(\Phi^{\pm,\circ}_{\nu}(-1+it)-\Phi^{\pm,\ast}_{\nu}(-1+it)\bigr)e\bigl(-(-1+it)x\bigr)\,dt
--
-i\int_0^T
-\bigl(\Phi^{\pm,\circ}_{\nu}(1+it)+\Phi^{\pm,\ast}_{\nu}(1+it)\bigr)e\bigl(-(1+it)x\bigr)\,dt
-+
-2i\int_0^T \Phi^{\pm,\ast}_{\nu}(it)e(-itx)\,dt
-+
-\int_{-1}^{0} f_-(u+iT)\,du
-+
-\int_{0}^{1} f_+(u+iT)\,du.
-$$
-
-It remains to show that the two horizontal integrals tend to $0$ as $T\to\infty$. Write $z=u+iT$. Then
-
-$$
-|e(-zx)|
-=
-\left|e^{-2\pi i z x}\right|
-=
-e^{2\pi xT}.
-$$
-
-Since $x<0$, this decays exponentially as $T\to\infty$. On the other hand, the blueprint states that $\Phi_\nu^{\pm,\circ}(z)\pm\Phi_\nu^{\pm,\ast}(z)$ grow at most linearly in $\Im z$. Therefore each horizontal integrand is at most polynomially large times the exponentially small factor $e^{2\pi xT}$, hence tends uniformly to $0$ on the bounded intervals $[-1,0]$ and $[0,1]$. Thus
-
-$$
-\int_{-1}^{0} f_-(u+iT)\,du \to 0,
-\qquad
-\int_{0}^{1} f_+(u+iT)\,du \to 0.
-$$
-
-Passing to the limit $T\to\infty$ gives exactly
-
-$$
-\widehat{\varphi^{\pm}_{\nu}}(x)
-=
-\int_{-1+i\infty}^{-1}
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)-\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx)\,dz
-+
-\int_{1}^{1+i\infty}
-\bigl(\Phi^{\pm,\circ}_{\nu}(z)+\Phi^{\pm,\ast}_{\nu}(z)\bigr)e(-zx)\,dz
-+
-2\int_{0}^{i\infty}\Phi^{\pm,\ast}_{\nu}(z)e(-zx)\,dz.
-$$
-
-That proves the corrected theorem.
--/
 lemma RectangleIntegral_tendsTo_UpperU' {σ σ' T : ℝ} {f : ℂ → ℂ}
     (htop : Filter.Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) Filter.atTop (nhds 0))
     (hleft : IntegrableOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici T))
@@ -2209,7 +1980,7 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
   have h_exp_decay (T : ℝ) (t : ℝ) : ‖E (-(t + I * T) * x)‖ = Real.exp (2 * π * x * T) := by
     dsimp [E]
     rw [Complex.norm_exp]
-    ring_nf
+    simp; ring_nf
   have hAshift :
       Filter.atTop.Tendsto
         (fun T : ℝ ↦
@@ -2415,33 +2186,59 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
         obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
         obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
+        have hC₁_nonneg : 0 ≤ C₁ := by
+          have h : ‖Phi_circ ν ε I‖ ≤ C₁ := hC₁ ν (by simp) I (by simp)
+          have hz : (0 : ℝ) ≤ ‖Phi_circ ν ε I‖ := norm_nonneg _
+          linarith
+        have hC₂_nonneg : 0 ≤ C₂ := by
+          have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
+          have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
+          have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
+          nlinarith
         refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
         simp only [f, norm_mul]
-        rw [h_exp_decay y (-1)]
+        have h_eq : -(-1 + ↑y * I) * ↑x = -(↑(-1 : ℝ) + I * ↑y) * ↑x := by
+          push_cast
+          rw [mul_comm ↑y I]
+        rw [h_eq, h_exp_decay y (-1)]
         have h_z : ‖(-1 : ℂ) + y * I‖ ≤ y + 1 := by
           calc ‖(-1 : ℂ) + y * I‖
             _ ≤ ‖(-1 : ℂ)‖ + ‖(y : ℂ) * I‖ := norm_add_le _ _
-            _ = 1 + y := by simp
+            _ = 1 + y := by simp; linarith
             _ = y + 1 := by ring
         calc ‖Phi_circ ν ε (-1 + y * I) - Phi_star ν ε (-1 + y * I)‖ * rexp (2 * π * x * y)
           _ ≤ (‖Phi_circ ν ε (-1 + y * I)‖ + ‖Phi_star ν ε (-1 + y * I)‖) * rexp (2 * π * x * y) := by
             gcongr; exact norm_sub_le _ _
           _ ≤ (C₁ + C₂ * (‖(-1 : ℂ) + y * I‖ + 1)) * rexp (2 * π * x * y) := by
             gcongr
-            · refine hC₁ (-1 + y * I) ?_; simp; exact hy
-            · refine hC₂ (-1 + y * I) ?_; simp; exact hy
-          _ ≤ (C₁ + C₂ * (y + 1 + 1)) * rexp (2 * π * x * y) := by gcongr
-          _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
-            gcongr; linarith
-          _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
+            · refine hC₁ ν (by simp) (-1 + y * I) ?_
+              simp only [add_im, neg_im, one_im, neg_zero, mul_im, ofReal_re, I_im, mul_one,
+                ofReal_im, I_re, mul_zero, add_zero, zero_add, ge_iff_le]
+              exact hy
+            · refine hC₂ ν (by simp) (-1 + y * I) ?_
+              simp only [add_im, neg_im, one_im, neg_zero, mul_im, ofReal_re, I_im, mul_one,
+                ofReal_im, I_re, mul_zero, add_zero, zero_add, ge_iff_le]
+              exact hy
+          _ ≤ (C₁ + C₂ * (y + 1 + 1)) * rexp (2 * π * x * y) := by
+            have hC₂_nonneg : 0 ≤ C₂ := by
+              have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
+              have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
+              have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
+              nlinarith
             gcongr
-            · linarith
-            · apply one_le_add_of_nonneg y (by linarith)
+          _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
+            apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
+            nlinarith
+
+          _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
+            apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
+            nlinarith
       -- Subgoal 3: The dominating exponential is integrable on the tail [1, ∞).
       -- have h_int_decay : IntegrableOn (fun (y : ℝ) ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ioi 1) := by
       --   apply integrableOn_Ioi_pow_mul_exp_neg 1
       --   nlinarith [pi_pos, hx]
-      have h_int_left : IntegrableOn (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) (Set.Ici 0) := by sorry
+      have h_int_left : IntegrableOn (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) (Set.Ici 0) := by
+        sorry
       --   -- We outline the integrability proof using continuity and exponential decay.
       --   -- Subgoal 4: Synthesis – combine local continuity and the tail bound.
       --   obtain ⟨C, hC⟩ := h_bound
