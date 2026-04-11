@@ -173,6 +173,45 @@ open Finsupp in
   (statement := /-- $\nu = e_1 - e_2 - e_3 - e_5 + e_{30}$, where $e_n$ is the Kronecker delta at $n$. -/)]
 noncomputable def ν : ℕ →₀ ℝ := single 1 1 - single 2 1 - single 3 1 - single 5 1 + single 30 1
 
+/-- The support of `ν` is `{1, 2, 3, 5, 30}`. Used whenever we need to unfold `ν.sum`. -/
+private lemma ν_support : ν.support = {1, 2, 3, 5, 30} := by
+  norm_num [ν, Finset.ext_iff]; grind
+
+/-- Unfold `ν.sum (fun m w ↦ w * f m)` into its five-term expansion.
+This avoids repeating the `sum_add_index` / `sum_sub_index` chain every time
+we need to compute a `ν`-weighted sum. -/
+private lemma ν_sum_mul (f : ℕ → ℝ) :
+    ν.sum (fun m w ↦ w * f m) = f 1 - f 2 - f 3 - f 5 + f 30 := by
+  rw [ν, sum_add_index (by simp) (by intros; ring),
+    sum_sub_index (by intros; ring),
+    sum_sub_index (by intros; ring),
+    sum_sub_index (by intros; ring)]
+  simp
+
+/-- Unfold `E ν y` into an explicit expression in terms of floors of `y / k`.
+This is the key formula repeatedly used to analyse `E ν`. -/
+private lemma E_nu_expand (y : ℝ) :
+    E ν y = ⌊y⌋₊ - ⌊y / 2⌋₊ - ⌊y / 3⌋₊ - ⌊y / 5⌋₊ + ⌊y / 30⌋₊ := by
+  rw [E, ν, sum_add_index' (by grind) (by grind), sum_sub_index (by grind),
+    sum_sub_index (by grind), sum_sub_index (by grind)]; simp
+
+/-- The classical sandwich `k * ⌊y/k⌋₊ ≤ ⌊y⌋₊ < k * ⌊y/k⌋₊ + k` for `k ≥ 1` and `y ≥ 0`. -/
+private lemma floor_div_bounds {y : ℝ} (hy : 0 ≤ y) {k : ℕ} (hk : 1 ≤ k) :
+    k * ⌊y / k⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < k * ⌊y / k⌋₊ + k := by
+  have hk' : (0 : ℝ) < k := by exact_mod_cast hk
+  have hdivnn : 0 ≤ y / k := div_nonneg hy hk'.le
+  refine ⟨Nat.le_floor ?_, ?_⟩
+  · push_cast
+    have := Nat.floor_le hdivnn
+    calc ((k : ℝ) * ⌊y / k⌋₊) = k * (y / k) - k * (y / k - ⌊y / k⌋₊) := by ring
+      _ ≤ k * (y / k) := by nlinarith [Nat.floor_le hdivnn]
+      _ = y := mul_div_cancel₀ _ hk'.ne'
+  · have hlt : y / k < ⌊y / k⌋₊ + 1 := Nat.lt_floor_add_one (y / k)
+    have hy_lt : y < (k : ℝ) * (⌊y / k⌋₊ + 1) := by
+      have := (div_lt_iff₀ hk').mp hlt; linarith
+    have : (⌊y⌋₊ : ℝ) < (k : ℝ) * (⌊y / k⌋₊ + 1) := (Nat.floor_le hy).trans_lt hy_lt
+    exact_mod_cast this
+
 @[blueprint
   "cheby-nu-cancel"
   (title := "Cancellation property of $\nu$")
@@ -190,26 +229,15 @@ theorem nu_sum_div_eq_zero : ν.sum (fun n w ↦ w / n) = 0 := by
   (latexEnv := "lemma")
   (discussion := 835)]
 theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Ico 1 6) : E ν x = 1 := by
-  have : E ν x = ⌊x⌋₊ - ⌊x / 2⌋₊ - ⌊x / 3⌋₊ - ⌊x / 5⌋₊ + ⌊x / 30⌋₊ := by
-    rw [E, ν, sum_add_index' (by grind) (by grind), sum_sub_index (by grind),
-      sum_sub_index (by grind), sum_sub_index (by grind)]; simp
   obtain ⟨h1, h6⟩ := hx
-  simp only [this, Nat.floor_eq_zero.mpr (by linarith : x / 30 < 1)]
-  have : 1 ≤ ⌊x⌋₊ := by rwa [Nat.one_le_floor_iff]
-  have : ⌊x⌋₊ ≤ 5 := Nat.lt_succ_iff.mp (Nat.floor_lt' (by grind) |>.mpr h6)
-  have : 2 * ⌊x / 2⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 2 * ⌊x / 2⌋₊ + 1 := by
-    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 2)]), ?_⟩
-    have : ⌊x⌋₊ < 2 * ⌊x / 2⌋₊ + 2 := Nat.floor_lt' (by omega) |>.mpr (by grind [Nat.lt_floor_add_one (x / 2)])
-    omega
-  have : 3 * ⌊x / 3⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 3 * ⌊x / 3⌋₊ + 2 := by
-    have := Nat.lt_floor_add_one (x / 3)
-    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 3)]), ?_⟩
-    have : ⌊x⌋₊ < 3 * ⌊x / 3⌋₊ + 3 := Nat.floor_lt' (by omega) |>.mpr (by grind)
-    omega
-  have : 5 * ⌊x / 5⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 5 * ⌊x / 5⌋₊ + 4 := by
-    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 5)]), ?_⟩
-    have : ⌊x⌋₊ < 5 * ⌊x / 5⌋₊ + 5 := Nat.floor_lt' (by grind) |>.mpr (by grind [Nat.lt_floor_add_one (x / 5)])
-    omega
+  have hx0 : (0 : ℝ) ≤ x := by linarith
+  simp only [E_nu_expand, Nat.floor_eq_zero.mpr (by linarith : x / 30 < 1)]
+  have hflb : 1 ≤ ⌊x⌋₊ := by rwa [Nat.one_le_floor_iff]
+  have hfub : ⌊x⌋₊ ≤ 5 := Nat.lt_succ_iff.mp (Nat.floor_lt' (by grind) |>.mpr h6)
+  have h2 := floor_div_bounds hx0 (k := 2) (by norm_num)
+  have h3 := floor_div_bounds hx0 (k := 3) (by norm_num)
+  have h5 := floor_div_bounds hx0 (k := 5) (by norm_num)
+  push_cast at h2 h3 h5
   simp only [show ⌊x⌋₊ = ⌊x / 2⌋₊ + ⌊x / 3⌋₊ + ⌊x / 5⌋₊ + 1 by omega, Nat.cast_add]
   ring
 
@@ -220,11 +248,7 @@ theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Ico 1 6) : E ν x = 1 := by
   (proof := /-- This follows from direct computation. -/)
   (latexEnv := "lemma")]
 theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by
-  have : ∀ y, E ν y = ⌊y⌋₊ - ⌊y / 2⌋₊ - ⌊y / 3⌋₊ - ⌊y / 5⌋₊ + ⌊y / 30⌋₊ := fun _ ↦ by
-    rw [E, ν, sum_add_index' (by simp) (by intros; ring), sum_sub_index
-      (by intros; ring), sum_sub_index (by intros; ring), sum_sub_index
-      (by intros; ring)]; simp
-  simp only [this, show ⌊x + 30⌋₊ = ⌊x⌋₊ + 30 from Nat.floor_add_natCast hx 30, Nat.cast_add,
+  simp only [E_nu_expand, show ⌊x + 30⌋₊ = ⌊x⌋₊ + 30 from Nat.floor_add_natCast hx 30, Nat.cast_add,
     show ⌊(x + 30) / 2⌋₊ = ⌊x / 2⌋₊ + 15 by
       rw [show (x + 30) / 2 = x / 2 + (15 : ℕ) by ring, Nat.floor_add_natCast (by positivity)],
     show ⌊(x + 30) / 3⌋₊ = ⌊x / 3⌋₊ + 10 by
@@ -245,23 +269,18 @@ theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by
   (discussion := 836)]
 theorem E_nu_bound (x : ℝ) (hx : x ≥ 0) : 0 ≤ E ν x ∧ E ν x ≤ 1 := by
   have : ∀ y, 0 ≤ y → y < 30 → 0 ≤ E ν y ∧ E ν y ≤ 1 := fun y hy0 hy30 ↦ by
-    have expand : E ν y = ⌊y⌋₊ - ⌊y / 2⌋₊ - ⌊y / 3⌋₊ - ⌊y / 5⌋₊ + ⌊y / 30⌋₊ := by
-      rw [E, ν, sum_add_index' (by grind) (by grind), sum_sub_index (by grind),
-        sum_sub_index (by grind), sum_sub_index (by grind)]; simp
-    simp only [expand, Nat.floor_eq_zero.mpr (by linarith : y / 30 < 1), Nat.cast_zero, add_zero]
-    have := Nat.floor_le hy0; have := Nat.lt_floor_add_one y
-    have := Nat.floor_le (by positivity : 0 ≤ y/2); have := Nat.lt_floor_add_one (y/2)
-    have := Nat.floor_le (by positivity : 0 ≤ y/3); have := Nat.lt_floor_add_one (y/3)
-    have := Nat.floor_le (by positivity : 0 ≤ y/5); have := Nat.lt_floor_add_one (y/5)
-    have : 2 * ⌊y/2⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 2 * ⌊y/2⌋₊ + 2 :=
-      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 2*⌊y/2⌋₊ + 2)⟩
-    have : 3 * ⌊y/3⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 3 * ⌊y/3⌋₊ + 3 :=
-      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 3*⌊y/3⌋₊ + 3)⟩
-    have : 5 * ⌊y/5⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 5 * ⌊y/5⌋₊ + 5 :=
-      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 5*⌊y/5⌋₊ + 5)⟩
-    have : ⌊y⌋₊ < 30 := by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 30)
-    exact ⟨by linarith [show (⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ : ℝ) ≤ ⌊y⌋₊ from by exact_mod_cast (by omega)],
-      by linarith [show (⌊y⌋₊ : ℝ) ≤ ⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ + 1 from by exact_mod_cast (by omega)]⟩
+    simp only [E_nu_expand, Nat.floor_eq_zero.mpr (by linarith : y / 30 < 1), Nat.cast_zero, add_zero]
+    have h2 := floor_div_bounds hy0 (k := 2) (by norm_num)
+    have h3 := floor_div_bounds hy0 (k := 3) (by norm_num)
+    have h5 := floor_div_bounds hy0 (k := 5) (by norm_num)
+    push_cast at h2 h3 h5
+    have hfy : ⌊y⌋₊ < 30 := Nat.floor_lt' (by norm_num) |>.mpr (by exact_mod_cast hy30)
+    have hlb : ⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ ≤ ⌊y⌋₊ := by omega
+    have hub : ⌊y⌋₊ ≤ ⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ + 1 := by omega
+    have hlb' : ((⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ : ℕ) : ℝ) ≤ (⌊y⌋₊ : ℝ) := by exact_mod_cast hlb
+    have hub' : ((⌊y⌋₊ : ℕ) : ℝ) ≤ ((⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ + 1 : ℕ) : ℝ) := by exact_mod_cast hub
+    push_cast at hlb' hub'
+    refine ⟨by linarith, by linarith⟩
   let y := x - ⌊x / 30⌋₊ * 30
   have hy : 0 ≤ y ∧ y < 30 := ⟨by linarith [Nat.floor_le (by positivity : 0 ≤ x/30)], by
     linarith [Nat.lt_floor_add_one (x/30)]⟩
@@ -320,7 +339,6 @@ theorem psi_diff_le_weighted (x : ℝ) (hx : x > 0) : ψ x - ψ (x / 6) ≤ U x 
     rwa [mul_comm] at this
   · exact E_nu_bound _ (div_nonneg hx.le (by simp))|>.1
 
-
 @[blueprint
   "a-def"
   (title := "The constant $a$")
@@ -328,11 +346,9 @@ theorem psi_diff_le_weighted (x : ℝ) (hx : x > 0) : ψ x - ψ (x / 6) ≤ U x 
 noncomputable def a : ℝ := - ν.sum (fun m w ↦ w * log m / m)
 
 lemma a_simpl : a = (7/15) * Real.log 2 + (3/10) * Real.log 3 + (1/6) * Real.log 5 := by
-  norm_num [a, Finsupp.sum, single_apply]
-  rw [show ν.support = { 1, 2, 3, 5, 30 } from ?_]
-  · norm_num [Finset.sum, ν]
-    grind [show (30 : ℝ) = 2 * 3 * 5 by ring, log_mul, log_mul]
-  · norm_num [ν, Finset.ext_iff]; grind
+  norm_num [a, Finsupp.sum, single_apply, ν_support]
+  norm_num [Finset.sum, ν]
+  grind [show (30 : ℝ) = 2 * 3 * 5 by ring, log_mul, log_mul]
 
 @[blueprint
   "a-val"
@@ -367,36 +383,17 @@ lemma U_bound.lemma_3 (x : ℝ) :
 lemma U_bound.lemma_4 (x : ℝ) (hx : 0 < x) :
     ν.sum (fun m w ↦ w * ((x / m) * log (x / m))) = a * x := by
   have hx0 : x ≠ 0 := ne_of_gt hx
-  rw [ν,
-    sum_add_index (by simp) (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring)]
-  rw [a, ν,
-    sum_add_index (by simp) (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring)]
-  simp [sub_eq_add_neg, Real.log_div hx0]
+  have ha : a = -(log 1 / 1 - log 2 / 2 - log 3 / 3 - log 5 / 5 + log 30 / 30) := by
+    simp_rw [a, mul_div_assoc]; rw [ν_sum_mul (fun m ↦ log m / m)]; push_cast; rfl
+  rw [ν_sum_mul (fun m ↦ (x / m) * log (x / m)), ha]
+  simp [Real.log_div hx0]
   ring
 
-lemma U_bound.lemma_5 (x : ℝ) :
-    ν.sum (fun m w ↦ w * (x / m)) = 0 := by
-  rw [ν,
-    sum_add_index (by simp) (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring),
-    sum_sub_index (by intros; ring)]
-  simp [div_eq_mul_inv, sub_eq_add_neg]
-  ring_nf
+lemma U_bound.lemma_5 (x : ℝ) : ν.sum (fun m w ↦ w * (x / m)) = 0 := by
+  rw [ν_sum_mul (fun m ↦ x / m)]; push_cast; ring
 
 lemma U_bound.lemma_6 : ν.sum (fun _ w ↦ w) = (-1 : ℝ) := by
-  rw [ν,
-    sum_add_index (by simp) (by intros; ring),
-    sum_sub_index (by intros; simp),
-    sum_sub_index (by intros; simp),
-    sum_sub_index (by intros; simp)]
-  simp
+  have := ν_sum_mul (fun _ ↦ (1 : ℝ)); simp at this; linarith
 
 lemma Finsupp.abs_sum_le (A : Type*) (ν : A →₀ ℝ) (g : A → ℝ → ℝ) : |ν.sum g| ≤ ν.sum |g| := by
   simp_rw [Finsupp.sum.eq_1]
@@ -418,7 +415,7 @@ theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := b
   rw [hlin]; ring_nf; rw [U_bound.lemma_6]
   grw [abs_add_le]; simp only [abs_neg, abs_one]
   grw [Finsupp.abs_sum_le]
-  have hsupp_eq : ν.support = {1, 2, 3, 5, 30} := by norm_num [ν, Finset.ext_iff]; grind
+  have hsupp_eq : ν.support = {1, 2, 3, 5, 30} := ν_support
   have hmem_of_supp : ∀ i ∈ ν.support, 0 < i ∧ i ≤ 30 := fun i hi ↦ by
     have : i ∈ ({1, 2, 3, 5, 30} : Finset ℕ) := hsupp_eq ▸ hi
     simp only [mem_insert, mem_singleton] at this
@@ -442,23 +439,25 @@ theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := b
     have hm_pos : (0 : ℝ) < m := by exact_mod_cast (hmem_of_supp m hm).1
     rw [← div_eq_mul_inv, Real.log_div (ne_of_gt hxpos) (ne_of_gt hm_pos)]; ring
   rw [hlog_split]
-  have habs : ν.sum (fun m w ↦ |w|) = 5 := by
-    rw [Finsupp.sum_of_support_subset _ hsupp_eq.le _ (fun x _ => abs_zero)]
+  -- Once the support of `ν` is known explicitly, both `habs` and `hsum_eq`
+  -- reduce to concrete arithmetic over a five-element finset.
+  have expand_sum : ∀ f : ℕ → ℝ → ℝ, (∀ n, f n 0 = 0) →
+      ν.sum f = f 1 1 + f 2 (-1) + f 3 (-1) + f 5 (-1) + f 30 1 := by
+    intro f hf
+    rw [Finsupp.sum_of_support_subset _ hsupp_eq.le _ (by intros; simp [hf])]
     simp only [sum_insert (by decide : (1:ℕ) ∉ ({2,3,5,30} : Finset ℕ)),
                sum_insert (by decide : (2:ℕ) ∉ ({3,5,30} : Finset ℕ)),
                sum_insert (by decide : (3:ℕ) ∉ ({5,30} : Finset ℕ)),
                sum_insert (by decide : (5:ℕ) ∉ ({30} : Finset ℕ)),
                sum_singleton, ν, sub_apply, Finsupp.add_apply, single_apply]
     norm_num
+    ring
+  have habs : ν.sum (fun m w ↦ |w|) = 5 := by
+    rw [expand_sum _ (by intros; simp)]; norm_num
   have hgeq6 : ν.sum (fun m w ↦ |w| * log ↑m) ≥ 6 := by
     have hsum_eq : ν.sum (fun m w ↦ |w| * log (↑m : ℝ)) = log 2 + log 3 + log 5 + log 30 := by
-      rw [Finsupp.sum, hsupp_eq]
-      simp only [sum_insert (by decide : (1 : ℕ) ∉ ({2, 3, 5, 30} : Finset ℕ)),
-                 sum_insert (by decide : (2 : ℕ) ∉ ({3, 5, 30} : Finset ℕ)),
-                 sum_insert (by decide : (3 : ℕ) ∉ ({5, 30} : Finset ℕ)),
-                 sum_insert (by decide : (5 : ℕ) ∉ ({30} : Finset ℕ)),
-                 sum_singleton, ν, sub_apply, Finsupp.add_apply, single_apply]
-      norm_num [log_one]; ring
+      rw [expand_sum _ (by intros; simp)]
+      simp [log_one]
     linarith [log_2_gt, log_3_gt, log_5_gt, log_30_gt]
   grw [hgeq6]; rw [habs]; linarith
 
@@ -527,6 +526,11 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
   (latexEnv := "theorem")
   (discussion := 843)]
 theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by
+  -- Compute `6 ^ (log (x/5) / log 6 - 1) = x / 30` (used twice below).
+  have rpow_key : (30 : ℝ) * 6 ^ (log (x / 5) / log 6 - 1) = x := by
+    rw [rpow_def_of_pos (by norm_num)]
+    field_simp
+    rw [exp_sub, exp_log, exp_log] <;> linarith
   have telescope (n : ℕ) : ψ x - ψ (x / 6 ^ n) = ∑ i ∈ Ico 0 n, (ψ (x / 6 ^ i) - ψ (x / 6 ^ (i + 1))) := by
     induction n with
     | zero => simp
@@ -562,9 +566,7 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
           rw [one_mul]
           gcongr
           linarith
-      · rw [rpow_def_of_pos (by norm_num)]
-        field_simp
-        rw [exp_sub, exp_log, exp_log] <;> linarith
+      · exact rpow_key.le
   simp_rw [← add_sub, sum_add_distrib, sum_const, Nat.Ico_zero_eq_range, Finset.card_range, nsmul_eq_mul, tsub_le_iff_right] at bound
   apply bound.trans
   conv => lhs; arg 1; arg 1; arg 2; ext i; rw [← mul_one_div, ←one_div_pow]
@@ -573,9 +575,7 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
   have : x / 6 ^ n ≤ 30 := by
     apply div_le_iff₀ (by simp)|>.mpr
     trans 30 * 6 ^ (log (x / 5) / log 6 - 1)
-    · rw [rpow_def_of_pos (by norm_num)]
-      field_simp
-      rw [exp_sub, exp_log, exp_log] <;> linarith
+    · exact rpow_key.ge
     · rw [← rpow_natCast]
       gcongr
       · norm_num
@@ -585,7 +585,7 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
   _ = 6 * a * x / 5 - x * (1 / 6) ^ n * (a * 1 / (5 / 6) - 1.015) + ↑n * (5 * log x - 5) := by
     ring_nf
     congr
-    field
+    norm_num
   _ ≤6 * a * x / 5 + n * (5 * log x - 5) := by
     gcongr
     simp only [one_div, inv_pow, mul_one, tsub_le_iff_right, le_add_iff_nonneg_right]
