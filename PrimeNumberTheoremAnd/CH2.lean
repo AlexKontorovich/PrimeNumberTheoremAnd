@@ -1949,6 +1949,70 @@ lemma RectangleIntegral_tendsTo_UpperU' {σ σ' T : ℝ} {f : ℂ → ℂ}
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero,
     ← integral_Ici_eq_integral_Ioi]
 
+theorem phi_bound (ν ε : ℝ) (hν : ν > 0) :
+    ∃ C, ∀ (z : ℂ), z.im ≥ 1 → z.re ∈ Set.Icc (-1 : ℝ) 1 →
+      ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (z.im + 1) := by
+  have h_hc : 1 > -ν / (2 * π) := by
+    rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
+  obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
+  obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
+  have hC₁_nonneg : 0 ≤ C₁ := by
+    have hI : (I:ℂ).im ≥ 1 := by norm_num
+    exact (norm_nonneg _).trans (hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI)
+  have hC₂_nonneg : 0 ≤ C₂ := by
+    have hI : (I:ℂ).im ≥ 1 := by norm_num
+    have h := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI
+    rw [Complex.norm_I] at h
+    nlinarith [norm_nonneg (Phi_star ν ε I)]
+  refine ⟨C₁ + 2 * C₂, fun z hz_im hz_re => ?_⟩
+  have h_norm : ‖z‖ ≤ z.im + 1 := by
+    calc ‖z‖
+      _ = ‖(z.re : ℂ) + (z.im : ℂ) * I‖ := by rw [Complex.re_add_im]
+      _ ≤ ‖(z.re : ℂ)‖ + ‖(z.im : ℂ) * I‖ := norm_add_le _ _
+      _ = |z.re| + |z.im| := by
+          rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real]
+          simp only [norm_eq_abs, mul_one]
+      _ ≤ 1 + z.im        := by
+          have h_re : |z.re| ≤ 1 := abs_le.mpr ⟨hz_re.1, hz_re.2⟩
+          have h_im : |z.im| = z.im := abs_of_nonneg (by linarith)
+          linarith
+      _ = z.im + 1        := add_comm 1 z.im
+  have h_circ_le := hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) z hz_im
+  have h_star_le := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) z hz_im
+  calc ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖
+    _ ≤ C₁ + C₂ * (‖z‖ + 1) := add_le_add h_circ_le h_star_le
+    _ ≤ C₁ + C₂ * (z.im + 1 + 1) := by nlinarith [h_norm]
+    _ ≤ C₁ + 2 * C₂ * (z.im + 1) := by
+        have : z.im + 1 + 1 ≤ 2 * (z.im + 1) := by linarith
+        nlinarith [this]
+    _ ≤ (C₁ + 2 * C₂) * (z.im + 1) := by
+        have : 1 ≤ z.im + 1 := by linarith
+        nlinarith [hC₁_nonneg]
+
+theorem phi_diff_fourier_ray_bound (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : σ ∈ Set.Icc (-1 : ℝ) 1) :
+    ∃ C, ∀ (y : ℝ), y ≥ 1 →
+      ‖(Phi_circ ν ε (σ + y * I) - Phi_star ν ε (σ + y * I)) * E (-(σ + y * I) * x)‖ ≤
+        C * (y + 1) * rexp (2 * π * x * y) := by
+  obtain ⟨Core, hCore⟩ := phi_bound ν ε hν
+  refine ⟨Core, fun y hy => ?_⟩
+  rw [norm_mul]
+  have h_zim : (↑σ + ↑y * I : ℂ).im ≥ 1 := by simpa using hy
+  have h_zre : (↑σ + ↑y * I : ℂ).re ∈ Set.Icc (-1 : ℝ) 1 := by simpa using hsigma
+  have h_exp_eq : ‖E (-(σ + y * I) * x)‖ = rexp (2 * π * x * y) := by
+    rw [E, Complex.norm_exp]
+    simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.add_im, Complex.neg_im, Complex.mul_im,
+      Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im, Complex.re_ofNat, Complex.im_ofNat,
+      mul_zero, sub_zero, zero_mul, add_zero, mul_one]
+    norm_num
+    ring
+  rw [h_exp_eq]
+  have h_sum_le := norm_sub_le (Phi_circ ν ε (σ + y * I)) (Phi_star ν ε (σ + y * I))
+  have h_bound := hCore (σ + y * I) h_zim h_zre
+  have h_im_eq : (↑σ + ↑y * I : ℂ).im = y := by simp
+  rw [h_im_eq] at h_bound
+  apply (mul_le_mul_of_nonneg_right h_sum_le (Real.exp_nonneg _)).trans
+  exact mul_le_mul_of_nonneg_right h_bound (Real.exp_nonneg _)
+
 @[blueprint
   "shift-upwards"
   (title := "Contour shifting upwards")
@@ -1960,6 +2024,7 @@ lemma RectangleIntegral_tendsTo_UpperU' {σ σ' T : ℝ} {f : ℂ → ℂ}
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
   (latexEnv := "sublemma")
   (discussion := 1080)]
+
 theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto
       (fun T : ℝ ↦
@@ -2182,57 +2247,11 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
       -- Subgoal 2: Growth bound – the linear growth of Φ is dominated by the exponential decay of E.
       -- We specify (y : ℝ) and (π * x * y : ℝ) to avoid ambiguous complex coercions.
       have h_bound : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (-1 + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
-        have h_hc : 1 > -ν / (2 * π) := by
-          rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
-        obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
-        obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
-        have hC₁_nonneg : 0 ≤ C₁ := by
-          have h : ‖Phi_circ ν ε I‖ ≤ C₁ := hC₁ ν (by simp) I (by simp)
-          have hz : (0 : ℝ) ≤ ‖Phi_circ ν ε I‖ := norm_nonneg _
-          linarith
-        have hC₂_nonneg : 0 ≤ C₂ := by
-          have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
-          have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
-          have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
-          nlinarith
-        refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
-        simp only [f, norm_mul]
-        have h_eq : -(-1 + ↑y * I) * ↑x = -(↑(-1 : ℝ) + I * ↑y) * ↑x := by
-          push_cast
-          rw [mul_comm ↑y I]
-        rw [h_eq, h_exp_decay y (-1)]
-        have h_z : ‖(-1 : ℂ) + y * I‖ ≤ y + 1 := by
-          calc ‖(-1 : ℂ) + y * I‖
-            _ ≤ ‖(-1 : ℂ)‖ + ‖(y : ℂ) * I‖ := norm_add_le _ _
-            _ = 1 + y := by simp; linarith
-            _ = y + 1 := by ring
-        calc ‖Phi_circ ν ε (-1 + y * I) - Phi_star ν ε (-1 + y * I)‖ * rexp (2 * π * x * y)
-          _ ≤ (‖Phi_circ ν ε (-1 + y * I)‖ + ‖Phi_star ν ε (-1 + y * I)‖) * rexp (2 * π * x * y) := by
-            gcongr; exact norm_sub_le _ _
-          _ ≤ (C₁ + C₂ * (‖(-1 : ℂ) + y * I‖ + 1)) * rexp (2 * π * x * y) := by
-            gcongr
-            · refine hC₁ ν (by simp) (-1 + y * I) ?_
-              simp only [add_im, neg_im, one_im, neg_zero, mul_im, ofReal_re, I_im, mul_one,
-                ofReal_im, I_re, mul_zero, add_zero, zero_add, ge_iff_le]
-              exact hy
-            · refine hC₂ ν (by simp) (-1 + y * I) ?_
-              simp only [add_im, neg_im, one_im, neg_zero, mul_im, ofReal_re, I_im, mul_one,
-                ofReal_im, I_re, mul_zero, add_zero, zero_add, ge_iff_le]
-              exact hy
-          _ ≤ (C₁ + C₂ * (y + 1 + 1)) * rexp (2 * π * x * y) := by
-            have hC₂_nonneg : 0 ≤ C₂ := by
-              have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
-              have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
-              have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
-              nlinarith
-            gcongr
-          _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
-            apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
-            nlinarith
-
-          _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
-            apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
-            nlinarith
+        obtain ⟨C, hC⟩ := phi_diff_fourier_ray_bound ν ε (-1) x hν (Set.left_mem_Icc.mpr (by norm_num))
+        refine ⟨C, fun y hy => ?_⟩
+        specialize hC y hy
+        unfold f
+        exact_mod_cast hC
       -- Subgoal 3: The dominating exponential is integrable on the tail [1, ∞).
       have h_int_decay : IntegrableOn (fun (y : ℝ) ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
         -- Step 1: Establish λ := 2 * π * x < 0
@@ -2371,39 +2390,11 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
 
         -- Step 2: Growth bound on the imaginary axis.
         have h_boundR : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (0 + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
-          have h_hc : 1 > -ν / (2 * π) := by
-            rewrite [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
-          obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
-          obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
-          have hC₁_nonneg : 0 ≤ C₁ := by
-            have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]
-            exact (norm_nonneg _).trans (hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI)
-          have hC₂_nonneg : 0 ≤ C₂ := by
-            have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]
-            have h := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI
-            rw [Complex.norm_I] at h
-            have : ‖Phi_star ν ε I‖ ≤ C₂ * 2 := by rw [← one_add_one]; exact h
-            nlinarith [norm_nonneg (Phi_star ν ε I)]
-          refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
-          rw [f, norm_mul]
-          have h_im_y : (↑(0 : ℝ) + ↑y * I).im ≥ 1 := by
-            rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im, Complex.ofReal_re]
-            simp only [zero_add, zero_mul, one_mul, mul_zero, add_zero]
-            exact hy
-          have h_exp_eq : ‖E (-(0 + y * I) * x)‖ = rexp (2 * π * x * y) := by
-            rw [h_exp_decay y 0]
-          rw [h_exp_eq]
-          have h_z_norm : ‖(0 : ℂ) + y * I‖ ≤ y := by
-            rw [zero_add, Complex.norm_mul, Complex.norm_I, Complex.norm_real, one_mul]
-            rw [abs_of_nonneg (by linarith)]
-          have h_sum_le := norm_sub_le (Phi_circ ν ε (0 + y * I)) (Phi_star ν ε (0 + y * I))
-          have h_circ_le := hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) (0 + y * I) h_im_y
-          have h_star_le := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) (0 + y * I) h_im_y
-          have h_lin_bound : C₁ + C₂ * (‖(0 : ℂ) + y * I‖ + 1) ≤ (C₁ + 2 * C₂) * (y + 1) := by
-            nlinarith [hy, h_z_norm, hC₁_nonneg, hC₂_nonneg]
-          apply (mul_le_mul_of_nonneg_right h_sum_le (Real.exp_nonneg _)).trans
-          apply (mul_le_mul_of_nonneg_right (add_le_add h_circ_le h_star_le) (Real.exp_nonneg _)).trans
-          exact mul_le_mul_of_nonneg_right h_lin_bound (Real.exp_nonneg _)
+          obtain ⟨C, hC⟩ := phi_diff_fourier_ray_bound ν ε 0 x hν (Set.mem_Icc.mpr (by norm_num))
+          refine ⟨C, fun y hy => ?_⟩
+          specialize hC y hy
+          unfold f
+          exact_mod_cast hC
 
 
         -- Step 3: Synthesis using the comparison theorem.
@@ -2529,49 +2520,14 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
       -- Subgoal 1: Bound for (Phi_circ + Phi_star) in the upper half-plane.
       -- Since ν > 0, the poles are in the lower half-plane, and for large Im z, both terms are at most linear.
       obtain ⟨(C : ℝ), _hC_bound⟩ : ∃ (C : ℝ), ∀ (T : ℝ), T ≥ 1 → ∀ t ∈ Set.Icc (0 : ℝ) 1, ‖Phi_circ ν ε (t + I * T) + Phi_star ν ε (t + I * T)‖ ≤ C * (T + 1) := by
-        -- Adaptation of the previous bound proof for the interval [0, 1]
-        have h_hc : 1 > -ν / (2 * π) := by
-          have : ν / (2 * π) > 0 := div_pos hν (mul_pos two_pos Real.pi_pos)
-          apply lt_trans _ zero_lt_one
-          rw [neg_div]
-          exact neg_neg_of_pos this
-
-
-        obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
-        obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
-        refine ⟨C₁ + 2 * C₂, fun T hT t ht => ?_⟩
-        -- Subgoal 1: Im(z) >= 1 to satisfy bound conditions
-        have h_zim : (t + I * T).im ≥ 1 := by
-          rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im, Complex.ofReal_re]
-          simp only [zero_add, zero_mul, one_mul, mul_zero, add_zero]
-          exact hT
-
-        -- Subgoal 2: z is bounded in the strip
-        have h_znorm : ‖(t : ℂ) + (I * T : ℂ)‖ ≤ T + 1 := by
-          have h_add := norm_add_le (t : ℂ) (I * T : ℂ)
-          rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real, one_mul] at h_add
-          have h_bound : |t| + |T| ≤ T + 1 := by
-            rw [abs_of_nonneg ht.1, abs_of_nonneg (by linarith [hT])]
-            exact add_le_add ht.2 (le_refl T)
-          exact h_add.trans h_bound
-
-        -- Subgoal 3: Combine individual bounds for Phi_circ and Phi_star
-        have hC₁_nonneg : 0 ≤ C₁ := (norm_nonneg _).trans (hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) I (by rw [Complex.I_im]; apply le_refl))
-        have hC₂_nonneg : 0 ≤ C₂ := by
-          have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]; apply le_refl
-          have h := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI
-          rw [Complex.norm_I] at h
-          have : ‖Phi_star ν ε I‖ ≤ C₂ * 2 := by rw [← one_add_one]; exact h
-          nlinarith [norm_nonneg (Phi_star ν ε I)]
-
-        have h_circ_le := hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) (t + I * T) h_zim
-        have h_star_le := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) (t + I * T) h_zim
-        have h_sum_le := norm_add_le (Phi_circ ν ε (t + I * T)) (Phi_star ν ε (t + I * T))
-
-        have h_bound_le : C₁ + C₂ * (‖(t:ℂ) + (I * T : ℂ)‖ + 1) ≤ (C₁ + 2 * C₂) * (T + 1) := by
-          nlinarith [hT, h_znorm, hC₁_nonneg, hC₂_nonneg]
-
-        exact h_sum_le.trans ((add_le_add h_circ_le h_star_le).trans h_bound_le)
+        obtain ⟨Core, hCore⟩ := phi_bound ν ε hν
+        refine ⟨Core, fun T hT t ht => ?_⟩
+        have h_zim : (↑t + I * T : ℂ).im ≥ 1 := by simpa using hT
+        have h_zre : (↑t + I * T : ℂ).re ∈ Set.Icc (-1 : ℝ) 1 := by
+          simpa using Set.Icc_subset_Icc (by norm_num) (le_refl _) ht
+        have h_bound := hCore (↑t + I * T) h_zim h_zre
+        apply (norm_add_le _ _).trans
+        simpa using h_bound
 
 
 
