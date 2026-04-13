@@ -1775,7 +1775,7 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   (h_b_start : b 0 = log x₀)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx : x ≥ x₁) (hx₀ : x₀ ≥ 2) :
+  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx : x ≥ x₁) (hx₀ : x₀ ≥ 2) :
   Eπ x ≤ εθ_num x₁ + (log x / x) * (x₀ / log x₀) * (Eπ x₀ + Eθ x₀) +
     (log x / x) * ∑ i ∈ Finset.Iio (Fin.last N),
       εθ_num (exp (b i)) *
@@ -1785,8 +1785,27 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   have hx₀_le_x₁ : x₀ ≤ x₁ := le_trans (le_max_left _ _) h
   have hx₀_le_x : x₀ ≤ x := le_trans hx₀_le_x₁ hx
   have h30 := eq_30 hx₀_le_x hx₀
-  have hEθ_x_le : Eθ x ≤ εθ_num x₁ := h_εθ_num x hx
-  have hδ_le : δ x₀ ≤ Eπ x₀ + Eθ x₀ := sorry
+  have hEθ_x_le : Eθ x ≤ εθ_num x₁ := by
+    have h_bound_at_x₁ := h_εθ_num (Fin.last N)
+    rw [h_b_end, exp_log (by linarith [h])] at h_bound_at_x₁
+    exact h_bound_at_x₁ x hx
+  have hδ_le : δ x₀ ≤ Eπ x₀ + Eθ x₀ := by
+    rw [δ, Eπ, Eθ]
+    have hx₀_pos : 0 < x₀ := by linarith
+    have hlog_pos : 0 < log x₀ := log_pos (by linarith)
+    have hden_pos : 0 < x₀ / log x₀ := div_pos hx₀_pos hlog_pos
+    apply le_trans (abs_sub_le _ (0 : ℝ) _)
+    simp [abs_div, abs_of_pos hden_pos, abs_of_pos hx₀_pos]
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hlogx₀_pos : 0 < log x₀ := log_pos (by linarith)
+  have hx₀_logx₀_pos : 0 < x₀ / log x₀ :=
+    div_pos hx₀_pos hlogx₀_pos
+  have hx_pos : 0 < x := by linarith [hx, h]
+  have hx_gt_1 : 1 < x := by linarith [hx, h]
+  have hlogx_pos : 0 < log x :=
+    log_pos hx_gt_1
+  have hlogx_x_pos : 0 < log x / x :=
+    div_pos hlogx_pos hx_pos
   sorry
 
 @[blueprint
