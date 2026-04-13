@@ -1806,7 +1806,89 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
     log_pos hx_gt_1
   have hlogx_x_pos : 0 < log x / x :=
     div_pos hlogx_pos hx_pos
-  sorry
+  have h_int_x₀_x :
+      IntervalIntegrable (fun t ↦ Eθ t / log t ^ 2) volume x₀ x := by
+    unfold Eθ
+    refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 hx₀ hx₀_le_x).abs
+    rw [Set.uIoc_of_le hx₀_le_x, Set.mem_Ioc] at ht
+    have ht_pos : 0 < t := lt_trans (by linarith [hx₀_pos]) ht.1
+    have ht_gt_1 : 1 < t := by linarith [hx₀, ht.1]
+    have hlogt_pos : 0 < log t := log_pos ht_gt_1
+    calc
+      |θ t - t| / t / log t ^ 2 = |θ t - t| / (t * log t ^ 2) := by
+        field_simp [ht_pos.ne', hlogt_pos.ne']
+      _ = |(θ t - t) / (t * log t ^ 2)| := by
+        have hden : 0 ≤ t * log t ^ 2 := by
+          exact mul_nonneg (le_of_lt ht_pos) (pow_two_nonneg _)
+        rw [abs_div, abs_of_nonneg hden]
+  have h_int_x₀_x₁ :
+      IntervalIntegrable (fun t ↦ Eθ t / log t ^ 2) volume x₀ x₁ := by
+    unfold Eθ
+    refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 hx₀ hx₀_le_x₁).abs
+    rw [Set.uIoc_of_le hx₀_le_x₁, Set.mem_Ioc] at ht
+    have ht_pos : 0 < t := lt_trans (by linarith [hx₀_pos]) ht.1
+    have ht_gt_1 : 1 < t := by linarith [hx₀, ht.1]
+    have hlogt_pos : 0 < log t := log_pos ht_gt_1
+    calc
+      |θ t - t| / t / log t ^ 2 = |θ t - t| / (t * log t ^ 2) := by
+        field_simp [ht_pos.ne', hlogt_pos.ne']
+      _ = |(θ t - t) / (t * log t ^ 2)| := by
+        have hden : 0 ≤ t * log t ^ 2 := by
+          exact mul_nonneg (le_of_lt ht_pos) (pow_two_nonneg _)
+        rw [abs_div, abs_of_nonneg hden]
+  have hx₁_ge2 : x₁ ≥ 2 := by linarith [h]
+  have h_int_x₁_x :
+      IntervalIntegrable (fun t ↦ Eθ t / log t ^ 2) volume x₁ x := by
+    unfold Eθ
+    refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 hx₁_ge2 hx).abs
+    rw [Set.uIoc_of_le hx] at ht
+    have ht_pos : 0 < t := lt_trans (by linarith [hx₁_ge2]) ht.1
+    have ht_gt_1 : 1 < t := by linarith [hx₁_ge2, ht.1]
+    have hlogt_pos : 0 < log t := log_pos ht_gt_1
+    calc
+      |θ t - t| / t / log t ^ 2 = |θ t - t| / (t * log t ^ 2) := by
+        field_simp [ht_pos.ne', hlogt_pos.ne']
+      _ = |(θ t - t) / (t * log t ^ 2)| := by
+        have hden : 0 ≤ t * log t ^ 2 := by
+          exact mul_nonneg (le_of_lt ht_pos) (pow_two_nonneg _)
+        rw [abs_div, abs_of_nonneg hden]
+  have hsplit := intervalIntegral.integral_add_adjacent_intervals h_int_x₀_x₁ h_int_x₁_x
+  calc
+    Eπ x ≤
+        Eθ x
+        + (log x / x) * (x₀ / log x₀) * δ x₀
+        + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 :=
+      h30
+    _ ≤ εθ_num x₁
+        + (log x / x) * (x₀ / log x₀) * (Eπ x₀ + Eθ x₀)
+        + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := by
+      gcongr
+    _ ≤ εθ_num x₁
+        + (log x / x) * (x₀ / log x₀) * (Eπ x₀ + Eθ x₀)
+        + (log x / x) *
+          (∫ t in x₀..x₁, Eθ t / log t ^ 2
+          + ∫ t in x₁..x, Eθ t / log t ^ 2) := by
+      have hsplit_eq :
+          ∫ t in x₀..x, Eθ t / log t ^ 2 =
+            ∫ t in x₀..x₁, Eθ t / log t ^ 2 + ∫ t in x₁..x, Eθ t / log t ^ 2 := by
+        sorry
+      have hsplit_le :
+          ∫ t in x₀..x, Eθ t / log t ^ 2 ≤
+            ∫ t in x₀..x₁, Eθ t / log t ^ 2 + ∫ t in x₁..x, Eθ t / log t ^ 2 := by
+        exact le_of_eq hsplit_eq
+      have hmul_le :
+          (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 ≤
+            (log x / x) *
+              (∫ t in x₀..x₁, Eθ t / log t ^ 2 + ∫ t in x₁..x, Eθ t / log t ^ 2) := by
+        exact mul_le_mul_of_nonneg_left hsplit_le (le_of_lt hlogx_x_pos)
+      linarith
+    _ ≤ εθ_num x₁ + (log x / x) * (x₀ / log x₀) * (Eπ x₀ + Eθ x₀) +
+      (log x / x) * ∑ i ∈ Finset.Iio (Fin.last N),
+        εθ_num (exp (b i)) *
+          (Li (exp (b (i + 1))) - Li (exp (b i)) +
+          exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) +
+      εθ_num x₁ * (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 := by
+      sorry
 
 @[blueprint
   "fks2-theorem-6-2"
