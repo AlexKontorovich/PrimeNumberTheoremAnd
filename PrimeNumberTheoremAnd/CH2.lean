@@ -2351,7 +2351,7 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
             exact hC a ha1'
 
       -- -- Specifically defining the right integral at σ' = 0
-      have h_int_right : IntegrableOn (fun (y : ℝ) ↦ f ((0 : ℝ) + y * I)) (Set.Ici 0) := by
+      have h_int_right : IntegrableOn (fun (y : ℝ) ↦ f (0 + y * I)) (Set.Ici 0) := by
         -- Step 1: Continuity on the imaginary axis.
         have h_contR : ContinuousOn (fun (y : ℝ) ↦ f (0 + y * I)) (Set.Ici 0) := by
           intro y hy
@@ -2376,42 +2376,34 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
           obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
           have hC₁_nonneg : 0 ≤ C₁ := by
-            have h : ‖Phi_circ ν ε I‖ ≤ C₁ := hC₁ ν (by simp) I (by simp)
-            have hz : (0 : ℝ) ≤ ‖Phi_circ ν ε I‖ := norm_nonneg _
-            linarith
+            have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]
+            exact (norm_nonneg _).trans (hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI)
           have hC₂_nonneg : 0 ≤ C₂ := by
-            have h : ‖Phi_star ν ε I‖ ≤ C₂ * (‖(I : ℂ)‖ + 1) := hC₂ ν (by simp) I (by simp)
-            have hz : (0 : ℝ) ≤ ‖Phi_star ν ε I‖ := norm_nonneg _
-            have h2 : ‖(I : ℂ)‖ + 1 = 2 := by simp; norm_num
-            nlinarith
+            have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]
+            have h := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI
+            rw [Complex.norm_I] at h
+            have : ‖Phi_star ν ε I‖ ≤ C₂ * 2 := by rw [← one_add_one]; exact h
+            nlinarith [norm_nonneg (Phi_star ν ε I)]
           refine ⟨C₁ + 2 * C₂, fun y hy => ?_⟩
-          simp only [f, norm_mul]
-          have h_eq : -(↑0 + ↑y * I) * ↑x = -(↑(0 : ℝ) + I * ↑y) * ↑x := by
-            push_cast; rw [zero_add, mul_comm ↑y I]; simp
-          rw [h_eq, h_exp_decay y 0]
-          have h_z : ‖(0 : ℂ) + y * I‖ ≤ y := by
-            simp; rw [abs_of_pos (by linarith)]
-          calc ‖Phi_circ ν ε (0 + y * I) - Phi_star ν ε (0 + y * I)‖ * rexp (2 * π * x * y)
-            _ ≤ (‖Phi_circ ν ε (0 + y * I)‖ + ‖Phi_star ν ε (0 + y * I)‖) * rexp (2 * π * x * y) := by
-              gcongr; exact norm_sub_le _ _
-            _ ≤ (C₁ + C₂ * (‖(0 : ℂ) + y * I‖ + 1)) * rexp (2 * π * x * y) := by
-              gcongr
-              · refine hC₁ ν (by simp) (0 + y * I) ?_
-                simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
-                  mul_zero, add_zero, zero_add, ge_iff_le]
-                exact hy
-              · refine hC₂ ν (by simp) (0 + y * I) ?_
-                simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
-                  mul_zero, add_zero, zero_add, ge_iff_le]
-                exact hy
-            _ ≤ (C₁ + C₂ * (y + 1)) * rexp (2 * π * x * y) := by
-              gcongr
-            _ ≤ (C₁ + 2 * C₂ * (y + 1)) * rexp (2 * π * x * y) := by
-              apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
-              nlinarith
-            _ ≤ (C₁ + 2 * C₂) * (y + 1) * rexp (2 * π * x * y) := by
-              apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
-              nlinarith
+          rw [f, norm_mul]
+          have h_im_y : (↑(0 : ℝ) + ↑y * I).im ≥ 1 := by
+            rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im, Complex.ofReal_re]
+            simp only [zero_add, zero_mul, one_mul, mul_zero, add_zero]
+            exact hy
+          have h_exp_eq : ‖E (-(0 + y * I) * x)‖ = rexp (2 * π * x * y) := by
+            rw [h_exp_decay y 0]
+          rw [h_exp_eq]
+          have h_z_norm : ‖(0 : ℂ) + y * I‖ ≤ y := by
+            rw [zero_add, Complex.norm_mul, Complex.norm_I, Complex.norm_real, one_mul]
+            rw [abs_of_nonneg (by linarith)]
+          have h_sum_le := norm_sub_le (Phi_circ ν ε (0 + y * I)) (Phi_star ν ε (0 + y * I))
+          have h_circ_le := hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) (0 + y * I) h_im_y
+          have h_star_le := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) (0 + y * I) h_im_y
+          have h_lin_bound : C₁ + C₂ * (‖(0 : ℂ) + y * I‖ + 1) ≤ (C₁ + 2 * C₂) * (y + 1) := by
+            nlinarith [hy, h_z_norm, hC₁_nonneg, hC₂_nonneg]
+          apply (mul_le_mul_of_nonneg_right h_sum_le (Real.exp_nonneg _)).trans
+          apply (mul_le_mul_of_nonneg_right (add_le_add h_circ_le h_star_le) (Real.exp_nonneg _)).trans
+          exact mul_le_mul_of_nonneg_right h_lin_bound (Real.exp_nonneg _)
 
 
         -- Step 3: Synthesis using the comparison theorem.
@@ -2423,23 +2415,27 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           rw [H]
           refine IntegrableOn.union ?_ ?_
           · apply Integrable.congr (hf := (h_contR.norm.mono (Set.Icc_subset_Ici_self)).integrableOn_compact isCompact_Icc)
-            have h_eq_on : Set.EqOn (fun y : ℝ ↦ ‖f (↑0 + ↑y * I)‖) gR (Set.Ico 0 1) := by
+            have h_eq_on : Set.EqOn (fun y : ℝ ↦ ‖f (0 + y * I)‖) gR (Set.Ico 0 1) := by
               intro y hy
               dsimp [gR]
               rw [if_pos hy.2]
               split_ifs with h
               · linarith [hy.1]
-              · congr 1
+              · rfl
             have h1 : ∀ᵐ y ∂(volume.restrict (Set.Icc (0:ℝ) 1)), y ∈ Set.Ico (0:ℝ) 1 := by
               rw [ae_restrict_iff' measurableSet_Icc, MeasureTheory.ae_iff]
               have h_diff : {a | ¬(a ∈ Set.Icc (0:ℝ) 1 → a ∈ Set.Ico (0:ℝ) 1)} ⊆ {1} := by
                 intro y; simp only [Set.mem_Icc, Set.mem_Ico, and_imp, Classical.not_imp, not_and, not_lt,
                   Set.mem_setOf_eq, Set.mem_singleton_iff]; intro h1 h2 h3
+                exact antisymm h2 (h3 h1)
+
 
               apply measure_mono_null h_diff
               exact measure_singleton 1
-            exact h_eq_on.eventuallyEq_of_mem h1
-          · have h_eq : Set.EqOn gR (fun y => CR * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
+            have := h_eq_on.eventuallyEq_of_mem h1
+            exact this
+          ·
+            have h_eq : Set.EqOn gR (fun y => CR * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
               intro y hy; simp only [gR, show ¬ y < 1 from not_lt.mpr (Set.mem_Ici.mp hy), ite_false]
             have h_scaled : IntegrableOn (fun y => CR * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) volume := by
               have h := h_int_decay.const_mul CR; simp_rw [← mul_assoc] at h; exact h
@@ -2458,6 +2454,7 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           · have ha1' : 1 ≤ a := not_lt.mp ha1
             simp only [gR, if_neg ha1]
             exact hCR a ha1'
+
 
       -- Apply the general relation between RectangleIntegals and UpperUIntegrals.
       let htop : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1 : ℝ)..0, f (t + T * I)) Filter.atTop (nhds 0) := (by
@@ -2544,14 +2541,40 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
         obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν (le_refl ν) h_hc
         refine ⟨C₁ + 2 * C₂, fun T hT t ht => ?_⟩
         -- Subgoal 1: Im(z) >= 1 to satisfy bound conditions
-        have h_zim : (↑t + I * T).im ≥ 1 := by sorry -- Im z = T >= 1
+        have h_zim : (t + I * T).im ≥ 1 := by
+          rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im, Complex.ofReal_re]
+          simp only [zero_add, zero_mul, one_mul, mul_zero, add_zero]
+          exact hT
+
         -- Subgoal 2: z is bounded in the strip
-        have h_znorm : ‖(t : ℂ) + I * T‖ ≤ T + 1 := by sorry -- |t+iT| <= |t| + T <= 1 + T (for t in [0, 1])
+        have h_znorm : ‖(t : ℂ) + (I * T : ℂ)‖ ≤ T + 1 := by
+          have h_add := norm_add_le (t : ℂ) (I * T : ℂ)
+          rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real, one_mul] at h_add
+          have h_bound : |t| + |T| ≤ T + 1 := by
+            rw [abs_of_nonneg ht.1, abs_of_nonneg (by linarith [hT])]
+            exact add_le_add ht.2 (le_refl T)
+          exact h_add.trans h_bound
+
         -- Subgoal 3: Combine individual bounds for Phi_circ and Phi_star
-        calc ‖Phi_circ ν ε (t + I * T) + Phi_star ν ε (t + I * T)‖
-          _ ≤ ‖Phi_circ ν ε (t + I * T)‖ + ‖Phi_star ν ε (t + I * T)‖ := norm_add_le _ _
-          _ ≤ C₁ + C₂ * (‖(t:ℂ) + I * T‖ + 1) := by sorry -- Application of hC₁, hC₂
-          _ ≤ (C₁ + 2 * C₂) * (T + 1) := by sorry -- Arithmetic for T >= 1
+        have hC₁_nonneg : 0 ≤ C₁ := (norm_nonneg _).trans (hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) I (by rw [Complex.I_im]; apply le_refl))
+        have hC₂_nonneg : 0 ≤ C₂ := by
+          have hI : (I:ℂ).im ≥ 1 := by rw [Complex.I_im]; apply le_refl
+          have h := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) I hI
+          rw [Complex.norm_I] at h
+          have : ‖Phi_star ν ε I‖ ≤ C₂ * 2 := by rw [← one_add_one]; exact h
+          nlinarith [norm_nonneg (Phi_star ν ε I)]
+
+        have h_circ_le := hC₁ ν (Set.left_mem_Icc.mpr (le_refl ν)) (t + I * T) h_zim
+        have h_star_le := hC₂ ν (Set.left_mem_Icc.mpr (le_refl ν)) (t + I * T) h_zim
+        have h_sum_le := norm_add_le (Phi_circ ν ε (t + I * T)) (Phi_star ν ε (t + I * T))
+
+        have h_bound_le : C₁ + C₂ * (‖(t:ℂ) + (I * T : ℂ)‖ + 1) ≤ (C₁ + 2 * C₂) * (T + 1) := by
+          nlinarith [hT, h_znorm, hC₁_nonneg, hC₂_nonneg]
+
+        exact h_sum_le.trans ((add_le_add h_circ_le h_star_le).trans h_bound_le)
+
+
+
 
 
       -- Subgoal 3: Dominate the integral by its length (1) times the supremum of the integrand.
