@@ -20,6 +20,8 @@ open Real Finsupp Finset
 open ArithmeticFunction hiding log
 open LogTables
 
+attribute [local fun_prop] DifferentiableAt.differentiableWithinAt
+
 @[blueprint
   "cheby-def-T"
   (title := "The function $T$")
@@ -47,22 +49,25 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
           Nat.one_le_iff_ne_zero.mpr (Nat.floor_pos.mpr hx).ne'
       _ = ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 := by simp
   have h1 : (1 : ℝ) ≤ ⌊x⌋₊ := by simp_all
+  have h3 : ∀ t ∈ interior (Set.Ici 1), DifferentiableWithinAt ℝ (_root_.id * log - _root_.id) (interior (Set.Ici 1)) t := by
+    intro t ht
+    simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+    fun_prop ( disch := positivity )
+  have h4 : ∀ t ∈ interior (Set.Ici 1), 0 ≤ deriv (fun t ↦ t * log t - t) t := by
+    intro t ht
+    simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+    have : DifferentiableAt ℝ (fun t ↦ t * log t) t := by
+      fun_prop ( disch := positivity )
+    have hderiv : deriv (fun t ↦ t * log t - t) t = log t := by
+      simp [show (fun t ↦ t * log t - t) = (fun t ↦ t * log t) - _root_.id by rfl,
+        deriv_sub this differentiableAt_id, deriv_mul_log (by linarith)]
+    exact hderiv ▸ log_nonneg (le_of_lt ht)
+  have h5 : ContinuousOn (fun t ↦ t * log t - t) (Set.Ici 1) := by
+    fun_prop
+  have h2 : MonotoneOn (fun t ↦ t * log t - t) (Set.Ici 1) :=
+    monotoneOn_of_deriv_nonneg (convex_Ici 1) h5 h3 h4
   have : (⌊x⌋₊ : ℝ) * log ⌊x⌋₊ - ⌊x⌋₊ ≤ x * log x - x := by
-    have : MonotoneOn (fun t ↦ t * log t - t) (Set.Ici 1) :=
-      monotoneOn_of_deriv_nonneg (convex_Ici 1) (continuous_mul_log.sub continuous_id).continuousOn
-        (fun t ht ↦ by
-          simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
-          exact ((differentiableAt_id.mul (differentiableAt_log (by grind))).sub
-            differentiableAt_id).differentiableWithinAt)
-        (fun t ht ↦ by
-          simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
-          have : DifferentiableAt ℝ (fun t ↦ t * log t) t :=
-            differentiableAt_id.mul (differentiableAt_log <| by grind)
-          have hderiv : deriv (fun t ↦ t * log t - t) t = log t := by
-            simp [show (fun t ↦ t * log t - t) = (fun t ↦ t * log t) - _root_.id by rfl,
-              deriv_sub this differentiableAt_id, deriv_mul_log (by linarith)]
-          exact hderiv ▸ log_nonneg (le_of_lt ht))
-    exact this (Set.mem_Ici.mpr h1) (Set.mem_Ici.mpr hx) <| Nat.floor_le (by grind)
+    exact h2 (Set.mem_Ici.mpr h1) (Set.mem_Ici.mpr hx) <| Nat.floor_le (by grind)
   linarith [log_le_log (by positivity) <| Nat.floor_le (by linarith)]
 
 @[blueprint
