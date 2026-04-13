@@ -56,14 +56,12 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
   have h4 : ∀ t ∈ interior (Set.Ici 1), 0 ≤ deriv (fun t ↦ t * log t - t) t := by
     intro t ht
     simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
-    have : DifferentiableAt ℝ (fun t ↦ t * log t) t := by
-      fun_prop ( disch := positivity )
+    have : DifferentiableAt ℝ (fun t ↦ t * log t) t := by fun_prop ( disch := positivity )
     have hderiv : deriv (fun t ↦ t * log t - t) t = log t := by
       simp [show (fun t ↦ t * log t - t) = (fun t ↦ t * log t) - _root_.id by rfl,
         deriv_sub this differentiableAt_id, deriv_mul_log (by linarith)]
     exact hderiv ▸ log_nonneg (le_of_lt ht)
-  have h5 : ContinuousOn (fun t ↦ t * log t - t) (Set.Ici 1) := by
-    fun_prop
+  have h5 : ContinuousOn (fun t ↦ t * log t - t) (Set.Ici 1) := by fun_prop
   have h2 : MonotoneOn (fun t ↦ t * log t - t) (Set.Ici 1) :=
     monotoneOn_of_deriv_nonneg (convex_Ici 1) h5 h3 h4
   have : (⌊x⌋₊ : ℝ) * log ⌊x⌋₊ - ⌊x⌋₊ ≤ x * log x - x := by
