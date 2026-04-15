@@ -2021,11 +2021,11 @@ theorem integrable_phi_fourier_ray (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : �
     rw [show Set.Ici (0 : ℝ) = Set.Ico 0 1 ∪ Set.Ici 1 from
       (Set.Ico_union_Ici_eq_Ici zero_le_one).symm]
     refine IntegrableOn.union ?_ ?_
-    · exact IntegrableOn.congr_fun
-        ((h_cont.norm.mono Set.Icc_subset_Ici_self |>.integrableOn_compact isCompact_Icc)
-          .mono_set Set.Ico_subset_Icc_self)
-        (fun y hy ↦ by simp [g, hy.2, not_lt.mpr hy.1])
-        measurableSet_Ico
+    · have h_int_Icc : IntegrableOn (fun y : ℝ ↦ ‖f (↑σ + ↑y * I)‖) (Set.Icc 0 1) := by
+        apply ContinuousOn.integrableOn_compact isCompact_Icc
+        exact h_cont.norm.mono Set.Icc_subset_Ici_self
+      exact IntegrableOn.congr_fun (h_int_Icc.mono_set Set.Ico_subset_Icc_self)
+        (fun y hy ↦ by simp [g, hy.2, not_lt.mpr hy.1]) measurableSet_Ico
     · exact IntegrableOn.congr_fun (h_int_decay.const_mul C)
         (fun y hy ↦ by simp [g, not_lt.mpr (Set.mem_Ici.mp hy)]; ring)
         measurableSet_Ici
