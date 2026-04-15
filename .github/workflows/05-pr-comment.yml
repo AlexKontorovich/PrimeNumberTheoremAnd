@@ -12,7 +12,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Add 'awaiting-author; and remove any 'awaiting-review'
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Add 'awaiting-review; and remove any 'awaiting-author'
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |

@@ -166,12 +166,14 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ :=
   $\Re \rho$. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_12 (I : Inputs)
-    (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
+    (x T δ lambda : ℝ) (hlambda : 1 < lambda)
+    (hx : 1 < x) (hT : 0 < T) (hTH : I.H < T)
+    (hσ : 1 - δ ∈ I.ZDB.σ_range) (hT₀ : I.ZDB.T₀ ≤ I.H) :
     let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
     ‖Sigma₂ x T δ‖ ≤
       2 * ∑ k ∈ Finset.range K,
         (lambda ^ (k + 1) *
-          x ^ (-(1 / I.R * log (T / lambda ^ k))) /
+          x ^ (-(1 / (I.R * log (T / lambda ^ k)))) /
           T) *
         I.ZDB.N (1 - δ) (T / lambda ^ k) := by
   sorry
@@ -184,15 +186,19 @@ theorem bklnw_eq_A_12 (I : Inputs)
   \sum_{k=0}^{K-1} \lambda^k
   x^{-\frac{1}{R \log(T/\lambda^k)}}
   \left(c_1 \left(\frac{T}{\lambda^k}
-  \right)^{\frac{8\delta}{3}}
-  (\log(T/\lambda^k))^{3+2\delta}
-  + c_2 (\log(T/\lambda^k))^2\right). $$ -/)
+  \right)^{p(1-\delta)}
+  (\log(T/\lambda^k))^{q(1-\delta)}
+  + c_2 (\log(T/\lambda^k))^2\right) $$
+  where $p$, $q$, $c_1$, $c_2$ are the
+  parameters of the zero density bound. -/)
   (proof := /-- Inserting (A.6) into the result
   of (A.12). -/)
   (latexEnv := "sublemma")
   (discussion := 751)]
 theorem bklnw_eq_A_13 (I : Inputs)
-    (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
+    (x T δ lambda : ℝ) (hlambda : 1 < lambda)
+    (hx : 1 < x) (hT : 0 < T) (hTH : I.H < T)
+    (hσ : 1 - δ ∈ I.ZDB.σ_range) (hT₀ : I.ZDB.T₀ ≤ I.H) :
     let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
     ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
       ∑ k ∈ Finset.range K,
@@ -200,11 +206,17 @@ theorem bklnw_eq_A_13 (I : Inputs)
           (log x) / (I.R * (log T -
             k * log lambda))) *
         (I.ZDB.c₁ (1 - δ) *
-          (T / lambda ^ k) ^ (8 * δ / 3) *
-          (log (T / lambda ^ k)) ^ (3 + 2 * δ) +
+          (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+          (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
         I.ZDB.c₂ (1 - δ) *
           (log (T / lambda ^ k)) ^ 2) := by
-  sorry
+  have h4 (k : ℕ) : exp ((k : ℝ) * log lambda - (log x) / (I.R * (log T - (k : ℝ) * log lambda))) =
+      lambda ^ k * x ^ (-(1 / (I.R * log (T / lambda ^ k)))) := by
+    rw [Real.log_div hT.ne' (by positivity), Real.log_pow, sub_eq_add_neg,
+      Real.exp_add, Real.exp_nat_mul, Real.exp_log (by positivity),
+      Real.rpow_def_of_pos (by positivity), mul_neg, mul_one_div]
+  refine (bklnw_eq_A_12 I x T δ lambda hlambda hx hT hTH hσ hT₀).trans (le_of_eq ?_)
+  simp_rw [zero_density_bound.N, Finset.mul_sum, h4]; congr 1; ext k; ring
 
 @[blueprint
   "bklnw-eq_A_14"
@@ -218,11 +230,13 @@ theorem bklnw_eq_A_13 (I : Inputs)
   - k \log \lambda)}\right) \\
   &\quad \times \left(c_1
   \left(\frac{T}{\lambda^k}
-  \right)^{\frac{8\delta}{3}}
-  (\log(T/\lambda^k))^{3+2\delta}
+  \right)^{p(1-\delta)}
+  (\log(T/\lambda^k))^{q(1-\delta)}
   + c_2
-  (\log(T/\lambda^k))^2\right). \notag
-  \end{align} -/)]
+  (\log(T/\lambda^k))^2\right) \notag
+  \end{align}
+  where $p$, $q$, $c_1$, $c_2$ are the
+  parameters of the zero density bound. -/)]
 noncomputable def Inputs.s₂ (I : Inputs)
     (δ b : ℝ) (K : ℕ) (lambda T : ℝ) : ℝ :=
   (2 * lambda / T) *
@@ -231,8 +245,8 @@ noncomputable def Inputs.s₂ (I : Inputs)
         b / (I.R * (log T -
           k * log lambda))) *
       (I.ZDB.c₁ (1 - δ) *
-        (T / lambda ^ k) ^ (8 * δ / 3) *
-        (log (T / lambda ^ k)) ^ (3 + 2 * δ) +
+        (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+        (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
       I.ZDB.c₂ (1 - δ) *
         (log (T / lambda ^ k)) ^ 2)
 
