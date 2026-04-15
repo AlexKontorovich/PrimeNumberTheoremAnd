@@ -454,7 +454,11 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
 theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
     (h4 : 1 < (s - 0 - 0).re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs h2 h3 h4) using 1
+  · ring_nf
+  · congr
+    · ring_nf
+    · simp [tau, sigma, sigmaR, pow_two]
 
 /--
 Baby Rankin-Selberg:
