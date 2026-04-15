@@ -9,6 +9,8 @@ open scoped zeta sigma
 
 open scoped ArithmeticFunction.omega
 
+open scoped ArithmeticFunction.Moebius
+
 open scoped LSeries.notation
 
 namespace ArithmeticFunction
@@ -552,6 +554,7 @@ Zeta squared:
 where omega is the number of distinct prime factors.-/
 @[blueprint
   "zeta_pow_two"
+  (title := "zeta_pow_two")
   (statement := /--
   $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}.$$
   \begin{verbatim}
@@ -565,5 +568,32 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
     riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
   sorry
+
+-- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
+-- of `n` being squarefree.
+
+/--
+Zeta alt:
+`ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
+where omega is the number of distinct prime factors.-/
+@[blueprint
+  "zeta_alt"
+  (title := "zeta_alt")
+  (statement := /--
+  $$\zeta(s) =\zeta(2s) \sum_{n=1}^{\infty} |\mu(n)| n^{-s}.$$
+  \begin{verbatim}
+    An expression for `ζ`, in IK (1.32).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  The series $\sum_{n=1}^{\infty} |\mu(n)| n^{-s}$ has Euler product $\prod_{p} (1 + p^{-s})$. On the other hand, $\zeta(2s)=\prod_p (1 - p^{-2s})^{-1}$. The product of these two Euler products is $\prod_p (1 - p^{-s})^{-1} = \zeta(s)$, which gives the desired formula.
+  -/)]
+lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s =
+    riemannZeta (2 * s) * LSeries (fun (n : ℕ) ↦ (μ n : ℂ) ^ 2) s := by
+  sorry
+
+-- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
+
 
 end ArithmeticFunction
