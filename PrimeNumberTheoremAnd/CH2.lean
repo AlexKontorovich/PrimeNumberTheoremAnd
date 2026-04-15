@@ -1870,6 +1870,56 @@ lemma RectangleIntegral_tendsTo_UpperU' {σ σ' T : ℝ} {f : ℂ → ℂ}
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero,
     ← integral_Ici_eq_integral_Ioi]
 
+lemma tendsto_contour_shift {σ σ' : ℝ} {f : ℂ → ℂ}
+    (h_anal : ∀ (U : ℝ), U ≥ 0 → HolomorphicOn f (Rectangle σ (σ' + I * U)))
+    (htop : Filter.Tendsto (fun (y : ℝ) ↦ ∫ x in σ..σ', f (x + y * I)) Filter.atTop (nhds 0))
+    (hleft : IntegrableOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici 0))
+    (hright : IntegrableOn (fun (y : ℝ) ↦ f (σ' + y * I)) (Set.Ici 0)) :
+    Filter.Tendsto (fun (U : ℝ) ↦ (I * ∫ t in Set.Icc 0 U, f (σ + I * t)) - (I * ∫ t in Set.Icc 0 U, f (σ' + I * t)))
+      Filter.atTop (nhds (∫ x in σ..σ', f x)) := by
+  have h_rect (U : ℝ) (hU : 0 ≤ U) :
+      RectangleIntegral f σ (σ' + I * U) =
+      (∫ x in σ..σ', f x) - (∫ x in σ..σ', f (x + U * I)) + (I * ∫ y in Set.Icc 0 U, f (σ' + I * y)) - (I * ∫ y in Set.Icc 0 U, f (σ + I * y)) := by
+    dsimp [RectangleIntegral, HIntegral, VIntegral]
+    have h1 : ∫ (x : ℝ) in σ..σ' + (0 * U - 1 * 0), f (↑x + 0 * I) = ∫ x in σ..σ', f ↑x := by
+      rw [show σ' + (0 * U - 1 * 0) = σ' by ring]; apply intervalIntegral.integral_congr; intro x _; simp
+    have h2 : ∫ (x : ℝ) in σ..σ' + (0 * U - 1 * 0), f (↑x + ↑(0 + (0 * 0 + 1 * U)) * I) = ∫ x in σ..σ', f (↑x + ↑U * I) := by
+      rw [show σ' + (0 * U - 1 * 0) = σ' by ring]; apply intervalIntegral.integral_congr; intro x _; ring_nf
+    have h3 : ∫ (y : ℝ) in 0..0 + (0 * 0 + 1 * U), f (↑(σ' + (0 * U - 1 * 0)) + ↑y * I) =
+        ∫ y in Set.Icc 0 U, f (↑σ' + I * ↑y) := by
+      rw [show 0 + (0 * 0 + 1 * U) = U by ring, show σ' + (0 * U - 1 * 0) = σ' by ring]
+      rw [intervalIntegral.integral_of_le hU, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      congr 1; funext y; congr 1; ring
+    have h4 : ∫ (y : ℝ) in 0..0 + (0 * 0 + 1 * U), f (↑σ + ↑y * I) = ∫ y in Set.Icc 0 U, f (↑σ + I * ↑y) := by
+      rw [show 0 + (0 * 0 + 1 * U) = U by ring]
+      rw [intervalIntegral.integral_of_le hU, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      congr 1; funext y; congr 1; ring
+    rw [h1, h2, h3, h4]
+
+  have h_UpperU_zero : UpperUIntegral f σ σ' 0 = 0 := by
+    have h1 := RectangleIntegral_tendsTo_UpperU' htop hleft hright
+    have e : (↑σ + I * ↑(0:ℝ) : ℂ) = ↑σ := by simp
+    simp_rw [e] at h1
+    have h2 : Filter.Tendsto (fun (U : ℝ) ↦ RectangleIntegral f σ (σ' + I * U)) Filter.atTop (nhds 0) := by
+      apply tendsto_const_nhds.congr'
+      filter_upwards [Filter.eventually_ge_atTop 0] with U hU
+      exact (HolomorphicOn.vanishesOnRectangle (h_anal U hU) subset_rfl).symm
+    exact tendsto_nhds_unique h1 h2
+
+  have h_zero : Filter.Tendsto (fun (U : ℝ) ↦ RectangleIntegral f σ (σ' + I * U)) Filter.atTop (nhds 0) := by
+    have h1 := RectangleIntegral_tendsTo_UpperU' htop hleft hright
+    have e : (↑σ + I * ↑(0:ℝ) : ℂ) = ↑σ := by simp
+    simp_rw [e, h_UpperU_zero] at h1
+    exact h1
+
+  have h_lim := (tendsto_const_nhds (x := ∫ x in σ..σ', f x)).sub htop
+  have h_all := h_lim.sub h_zero
+  simp only [sub_zero] at h_all
+  refine Filter.Tendsto.congr' ?_ h_all
+  filter_upwards [Filter.eventually_ge_atTop 0] with U hU
+  rw [h_rect U hU]
+  ring
+
 theorem phi_bound (ν ε : ℝ) (hν : ν > 0) :
     ∃ C, ∀ (z : ℂ), z.im ≥ 1 → z.re ∈ Set.Icc (-1 : ℝ) 1 →
       ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (z.im + 1) := by
@@ -1927,101 +1977,64 @@ theorem integrable_phi_fourier_ray (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : �
     (f : ℂ → ℂ)
     (hf_formula : f = (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) ∨
                   f = (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x))) :
-    IntegrableOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici 0) := by
-  have h_cont : ContinuousOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici 0) := by
-    intro y hy
+    IntegrableOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici (0 : ℝ)) := by
+  have h_cont : ContinuousOn (fun (y : ℝ) ↦ f (σ + y * I)) (Set.Ici (0 : ℝ)) := fun y hy ↦ by
     let z := ↑σ + ↑y * I
     have hy_im : 0 ≤ z.im := by dsimp [z]; simpa using hy
     have h_anal_at_z : AnalyticAt ℂ f z := by
+      have hE : AnalyticAt ℂ (fun z : ℂ ↦ E (-z * x)) z := by
+        simpa [E] using analyticAt_cexp.comp
+          (by fun_prop : AnalyticAt ℂ (fun z : ℂ ↦ 2 * π * I * (-z * x)) z)
       rcases hf_formula with h_eq | h_eq <;> rw [h_eq]
-      · apply AnalyticAt.mul
-        · exact AnalyticAt.add (Phi_circ.analytic ν ε z hν hy_im) (Phi_star.analytic ν ε z hν hy_im)
-        · dsimp [E]
-          fun_prop
-      · apply AnalyticAt.mul
-        · exact AnalyticAt.sub (Phi_circ.analytic ν ε z hν hy_im) (Phi_star.analytic ν ε z hν hy_im)
-        · dsimp [E]
-          fun_prop
-    have h_ray : ContinuousAt (fun (y' : ℝ) => ↑σ + ↑y' * I) y := by
-      refine continuousAt_const.add (ContinuousAt.mul ?_ continuousAt_const)
-      exact Complex.continuous_ofReal.continuousAt
+      · exact ((Phi_circ.analytic ν ε z hν hy_im).add (Phi_star.analytic ν ε z hν hy_im)).mul hE
+      · exact ((Phi_circ.analytic ν ε z hν hy_im).sub (Phi_star.analytic ν ε z hν hy_im)).mul hE
+    have h_ray : ContinuousAt (fun (y' : ℝ) => ↑σ + ↑y' * I) y :=
+      continuousAt_const.add (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
     exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl |>.continuousWithinAt
 
-  have h_bound : ∃ C, ∀ (y : ℝ), y ≥ 1 → ‖f (σ + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
+  obtain ⟨C, hC⟩ : ∃ C, ∀ y : ℝ, y ≥ 1 → ‖f (σ + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
+
     apply phi_fourier_ray_bound ν ε σ x hν hsigma
     intro z
-    rcases hf_formula with h_eq | h_eq <;> rw [h_eq] <;> simp only [norm_mul]
-    · apply mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
-    · apply mul_le_mul_of_nonneg_right (norm_sub_le _ _) (norm_nonneg _)
+    rcases hf_formula with rfl | rfl <;> simp only [norm_mul]
+    · exact mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
+    · exact mul_le_mul_of_nonneg_right (norm_sub_le _ _) (norm_nonneg _)
 
-  obtain ⟨C, hC⟩ := h_bound
-  let g : ℝ → ℝ := fun y ↦ if y < 1 then (if y < 0 then 0 else ‖f (σ + y * I)‖) else C * (y + 1) * rexp (2 * π * x * y)
+  let g (y : ℝ) := if y < 1 then (if y < 0 then 0 else ‖f (σ + y * I)‖) else C * (y + 1) * rexp (2 * π * x * y)
 
-  have h_int_decay : IntegrableOn (fun (y : ℝ) ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
-    have htlam : 2 * π * x < 0 := by
-      have : π > 0 := Real.pi_pos
-      nlinarith [hx]
-    have h_exp_int : IntegrableOn (fun y => rexp (2 * π * x * y)) (Set.Ici 1) := by
-      have h_Ioi : IntegrableOn (fun y => rexp (2 * π * x * y)) (Set.Ioi 1) :=
-        integrableOn_exp_mul_Ioi htlam 1
-      rwa [← integrableOn_Ici_iff_integrableOn_Ioi] at h_Ioi
-    have h_y_exp_int : IntegrableOn (fun y => y * rexp (2 * π * x * y)) (Set.Ici 1) := by
-      have hb : 0 < -(2 * π * x) := by
-        have : 0 < π := Real.pi_pos
-        nlinarith [hx]
-      have h_int_Ioi0 : IntegrableOn (fun (y : ℝ) => y ^ (1:ℝ) * rexp (-(-(2 * π * x)) * y ^ (1:ℝ))) (Set.Ioi 0) :=
-        integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num) (by norm_num) hb
-      have h_eq : (fun (y : ℝ) => y ^ (1:ℝ) * rexp (-(-(2 * π * x)) * y ^ (1:ℝ))) = (fun y => y * rexp (2 * π * x * y)) := by
-        ext y; rw [Real.rpow_one, neg_neg]
-      rw [h_eq] at h_int_Ioi0
-      exact h_int_Ioi0.mono_set (fun y hy => Set.mem_Ioi.mpr (by
-        have := Set.mem_Ici.mp hy; linarith))
-    have h_add := Integrable.add h_y_exp_int h_exp_int
-    simp_rw [add_mul, one_mul]
-    exact h_add
+  have h_int_decay : IntegrableOn (fun y ↦ (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
+    have htlam : 2 * π * x < 0 := by nlinarith [hx, Real.pi_pos]
+    have h1 : IntegrableOn (fun (y : ℝ) ↦ rexp (2 * π * x * y)) (Set.Ici 1) := by
+      rw [integrableOn_Ici_iff_integrableOn_Ioi]
+      exact integrableOn_exp_mul_Ioi htlam 1
+    have h2 : IntegrableOn (fun y ↦ y * rexp (2 * π * x * y)) (Set.Ici 1) := by
+      have hb : 0 < -(2 * π * x) := by nlinarith [hx, Real.pi_pos]
+      have h_int := integrableOn_rpow_mul_exp_neg_mul_rpow (s := 1) (p := 1) (by norm_num) (by norm_num) hb
+      refine IntegrableOn.congr_fun (f := fun (y : ℝ) ↦ y ^ (1 : ℝ) * rexp (- -(2 * π * x) * y ^ (1 : ℝ))) ?_ ?_ measurableSet_Ici
+      · apply h_int.mono_set
+        intro y hy; exact Set.mem_Ioi.mpr (by linarith [Set.mem_Ici.mp hy])
+      · intro y _; dsimp; simp only [Real.rpow_one, neg_neg]
 
-  have hg : IntegrableOn g (Set.Ici 0) volume := by
-    have H : Set.Ici (0 : ℝ) = Set.Icc 0 1 ∪ Set.Ici 1 := by ext x; simp
-    rw [H]
+    simpa [add_mul] using h2.add h1
+
+  have hg : IntegrableOn g (Set.Ici 0) := by
+    rw [show Set.Ici (0 : ℝ) = Set.Ico 0 1 ∪ Set.Ici 1 from
+      (Set.Ico_union_Ici_eq_Ici zero_le_one).symm]
     refine IntegrableOn.union ?_ ?_
-    · apply Integrable.congr (hf := (h_cont.norm.mono (Set.Icc_subset_Ici_self)).integrableOn_compact isCompact_Icc)
-      have h_eq_on : Set.EqOn (fun y : ℝ ↦ ‖f (↑σ + ↑y * I)‖) g (Set.Ico 0 1) := by
-        intro y hy; dsimp [g]; rw [if_pos hy.2]; split_ifs with h
-        · linarith [hy.1]
-        · congr 2
-      have h1 : ∀ᵐ y ∂(volume.restrict (Set.Icc (0:ℝ) 1)), y ∈ Set.Ico (0:ℝ) 1 := by
-        rw [ae_restrict_iff' measurableSet_Icc, MeasureTheory.ae_iff]
-        have h_diff : {a | ¬(a ∈ Set.Icc (0:ℝ) 1 → a ∈ Set.Ico (0:ℝ) 1)} ⊆ {1} := by
-          intro y h_not
-          rw [Set.mem_setOf_eq, Classical.not_imp] at h_not
-          rcases h_not with ⟨h_icc, h_not_ico⟩
-          simp only [Set.mem_Icc, Set.mem_Ico, not_and, not_lt] at h_icc h_not_ico
-          have h_ge : 1 ≤ y := h_not_ico (by linarith)
-          have h_le : y ≤ 1 := by linarith
-          simp only [Set.mem_singleton_iff]
-          linarith
-        apply measure_mono_null h_diff
-        exact measure_singleton 1
-      exact h_eq_on.eventuallyEq_of_mem h1
-    · have h_eq : Set.EqOn g (fun y => C * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) := by
-        intro y hy; simp only [g, show ¬ y < 1 from not_lt.mpr (Set.mem_Ici.mp hy), ite_false]
-      have h_scaled : IntegrableOn (fun y => C * (y + 1) * rexp (2 * π * x * y)) (Set.Ici 1) volume := by
-        have h := h_int_decay.const_mul C; simp_rw [← mul_assoc] at h; exact h
-      exact h_scaled.congr (h_eq.symm.eventuallyEq_of_mem (ae_restrict_mem measurableSet_Ici))
+    · exact IntegrableOn.congr_fun
+        ((h_cont.norm.mono Set.Icc_subset_Ici_self |>.integrableOn_compact isCompact_Icc)
+          .mono_set Set.Ico_subset_Icc_self)
+        (fun y hy ↦ by simp [g, hy.2, not_lt.mpr hy.1])
+        measurableSet_Ico
+    · exact IntegrableOn.congr_fun (h_int_decay.const_mul C)
+        (fun y hy ↦ by simp [g, not_lt.mpr (Set.mem_Ici.mp hy)]; ring)
+        measurableSet_Ici
 
-  refine hg.mono' ?_ ?_
-  · exact h_cont.aestronglyMeasurable measurableSet_Ici
-  · apply (ae_restrict_iff' measurableSet_Ici).mpr
-    apply ae_of_all
-    intro a ha
-    by_cases ha1 : a < 1
-    · simp only [g, if_pos ha1]
-      have ha0 : 0 ≤ a := ha
-      simp only [if_neg (not_lt.mpr ha0)]
-      exact le_rfl
-    · have ha1' : 1 ≤ a := not_lt.mp ha1
-      simp only [g, if_neg ha1]
-      exact hC a ha1'
+  refine hg.mono' (h_cont.aestronglyMeasurable measurableSet_Ici) <| (ae_restrict_iff' measurableSet_Ici).mpr <| ae_of_all _ (fun y hy ↦ ?_)
+  by_cases h : y < 1
+  · simp [g, h, not_lt.mpr (Set.mem_Ici.mp hy)]
+  · simpa [g, h] using hC y (not_lt.mp h)
+
 
 lemma tendsto_T_plus_one_mul_exp_atTop_nhds_zero {k : ℝ} (hk : k < 0) (C : ℝ) :
     Filter.Tendsto (fun (T : ℝ) ↦ C * (T + 1) * Real.exp (k * T)) Filter.atTop (nhds 0) := by
@@ -2048,8 +2061,7 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
     (hf_anal : ∀ T : ℝ, T ≥ 1 → ContinuousOn f (Rectangle (↑a) (↑b + I * ↑T)))
     (hf_bound : ∀ T : ℝ, T ≥ 1 → ∀ t ∈ Set.Icc a b, ‖f (t + I * T)‖ ≤ (‖Phi_circ ν ε (t + I * T)‖ + ‖Phi_star ν ε (t + I * T)‖) * ‖E (-(t + I * T) * x)‖) :
     Filter.Tendsto (fun T : ℝ ↦ ∫ t in a..b, f (t + I * T)) Filter.atTop (nhds 0) := by
-  obtain ⟨C₁, hC₁⟩ := phi_bound ν ε hν
-  let C := C₁
+  obtain ⟨C, hC⟩ := phi_bound ν ε hν
   have h_int_bound (T : ℝ) (hT : T ≥ 1) : ‖∫ t in a..b, f (t + I * T)‖ ≤ (b - a) * C * (T + 1) * Real.exp (2 * π * x * T) := by
     calc ‖∫ t in a..b, f (↑t + I * ↑T)‖
       _ ≤ ∫ t in a..b, ‖f (↑t + I * ↑T)‖ := intervalIntegral.norm_integral_le_integral_norm hab
@@ -2058,19 +2070,11 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
           · refine ContinuousOn.intervalIntegrable ?_
             refine ContinuousOn.norm ?_
             rw [Set.uIcc_of_le hab]
-            let g : ℝ → ℂ := fun t ↦ ↑t + I * ↑T
-            have hg : Continuous g := by continuity
+            have hg : Continuous (fun t : ℝ ↦ (↑t : ℂ) + I * ↑T) := by continuity
             have h_seg_in : (fun t ↦ ↑t + I * ↑T) '' Set.Icc a b ⊆ Rectangle a (b + I * T) := by
               intro z ⟨t, ht, hz⟩
               subst hz
-              -- Top-level subgoal 1: Verify the complex rectangle's corners are ordered.
-              -- This proves the identified goal: Im(a) ≤ Im(b + iT).
-              have h_order : (↑a : ℂ).re ≤ (↑b + I * ↑T).re ∧ (a : ℂ).im ≤ (↑b + I * ↑T).im := by
-                constructor
-                · simpa using hab
-                · simpa using hT.trans' (by norm_num : (0 : ℝ) ≤ 1)
-              rw [mem_Rect h_order.1 h_order.2]
-              -- Top-level subgoal 2: Verify membership by showing coordinate bounds.
+              rw [mem_Rect (by simpa using hab) (by simpa using hT.trans' (by norm_num : (0 : ℝ) ≤ 1))]
               simp only [Complex.add_re, Complex.ofReal_re, Complex.mul_re, Complex.I_re, Complex.I_im,
                 Complex.ofReal_im, Complex.add_im, Complex.mul_im, mul_zero, zero_mul, sub_zero, add_zero, zero_add]
               exact ⟨ht.1, ht.2, by linarith, le_refl _⟩
@@ -2078,12 +2082,11 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
           · exact intervalIntegrable_const
           · intro t ht
             specialize hf_bound T hT t ht
-            have h_phi := hC₁ (↑t + I * T) (by simpa using hT) (hab_in (by simpa using ht))
-            have hE : ‖E (-(↑t + I * T) * x)‖ = Real.exp (2 * π * x * T) := by
-              dsimp [E]; rw [Complex.norm_exp]; simp; ring_nf
+            have h_phi := hC (↑t + I * T) (by simpa using hT) (hab_in (by simpa using ht))
             calc ‖f (↑t + I * ↑T)‖
               _ ≤ (‖Phi_circ ν ε (↑t + I * ↑T)‖ + ‖Phi_star ν ε (↑t + I * ↑T)‖) * ‖E (-(↑t + I * ↑T) * ↑x)‖ := hf_bound
-              _ = (‖Phi_circ ν ε (↑t + I * ↑T)‖ + ‖Phi_star ν ε (↑t + I * ↑T)‖) * Real.exp (2 * π * x * T) := by rw [hE]
+              _ = (‖Phi_circ ν ε (↑t + I * ↑T)‖ + ‖Phi_star ν ε (↑t + I * ↑T)‖) * Real.exp (2 * π * x * T) := by
+                  congr 1; dsimp [E]; rw [Complex.norm_exp]; simp; ring_nf
               _ ≤ C * (T + 1) * Real.exp (2 * π * x * T) := by
                   rw [Complex.add_im ↑t (I * ↑T)] at h_phi
                   simpa using mul_le_mul_of_nonneg_right h_phi (Real.exp_nonneg _)
@@ -2097,16 +2100,6 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
   · filter_upwards [Filter.eventually_ge_atTop 1] with T' hT
     exact h_int_bound T' hT
 
-
-
-
-
-
-
-
-
-
-
 @[blueprint
   "shift-upwards"
   (title := "Contour shifting upwards")
@@ -2118,7 +2111,6 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
   (latexEnv := "sublemma")
   (discussion := 1080)]
-
 theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto
       (fun T : ℝ ↦
@@ -2148,120 +2140,34 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           - (I * ∫ t in Set.Icc 0 T,
             (Phi_circ ν ε (I * t) - Phi_star ν ε (I * t)) * E (-(I * t) * x)))
         (nhds A) := by
-    /-
-    Shift the real integral `A` from `[-1,0]` to the upper strip bounded by `Re z = -1`
-    and `Re z = 0`. The function
-      `(Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)`
-    is holomorphic there because `hν : ν > 0` places all poles below the real axis.
-    The horizontal top edge tends to `0` since `x < 0` gives exponential decay in `Im z`.
-    -/
     let f : ℂ → ℂ := fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
-    -- Subgoal 1: f is holomorphic in the upper rectangle
-    have h_anal (T : ℝ) (hT : 0 ≤ T) : HolomorphicOn f (Rectangle (-1) (I * T)) := by
-      /-
-      f is holomorphic in the upper half-plane because its poles (from the coth term)
-      lie at points -k - I * (ν / (2 * π)). Since ν > 0, these poles all have
-      strictly negative imaginary parts. Thus f is holomorphic on any rectangle
-      in the upper half-plane.
-      -/
-            -- Show holomorphy factor-by-factor on the rectangle, then combine by subtraction
-      -- and multiplication.
-      have hPhi_circ :
-          HolomorphicOn (Phi_circ ν ε) (Rectangle (-1) (I * T)) := by
-        intro z hz
-        have hz_im : 0 ≤ z.im := by
-          -- `Rectangle (-1) (I * T)` is the box `-1 ≤ Re z ≤ 0`, `0 ≤ Im z ≤ T`.
-          -- Unfold `Rectangle` and read off the imaginary-coordinate bounds.
-          rw [mem_Rect (by norm_num) (by simpa using hT)] at hz
-          simpa using hz.2.2.1
-        have h_circ_analytic : AnalyticAt ℂ (Phi_circ ν ε) z := Phi_circ.analytic ν ε z hν hz_im
-        exact h_circ_analytic.differentiableAt.differentiableWithinAt
-      have hPhi_star :
-          HolomorphicOn (Phi_star ν ε) (Rectangle (-1) (I * T)) := by
-        intro z hz
-        have hz_im : 0 ≤ z.im := by
-          -- Same rectangle-membership extraction as above.
-          rw [mem_Rect (by norm_num) (by simpa using hT)] at hz
-          simpa using hz.2.2.1
-        have h_star_analytic : AnalyticAt ℂ (Phi_star ν ε) z := Phi_star.analytic ν ε z hν hz_im
-        exact h_star_analytic.differentiableAt.differentiableWithinAt
-      have hE :
-          HolomorphicOn (fun z : ℂ ↦ E (-z * x)) (Rectangle (-1) (I * T)) := by
-        intro z hz
-        have h_exp_analytic : AnalyticAt ℂ (fun z : ℂ ↦ E (-z * x)) z := by
-          -- `E` is the complex exponential composed with an affine map.
-          simpa [E] using
-            (analyticAt_cexp.comp (by
-              fun_prop : AnalyticAt ℂ (fun z : ℂ ↦ 2 * π * I * (-z * x)) z))
-        exact h_exp_analytic.differentiableAt.differentiableWithinAt
-      simpa [f] using DifferentiableOn.mul (DifferentiableOn.sub hPhi_circ hPhi_star) hE
-
-
-
-    -- Hierarchical Subgoal 2: The integral along the top edge tends to zero as T -> infinity
-    have h_top_vanish : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1 : ℝ)..0, f (t + I * T)) Filter.atTop (nhds 0) := by
-      apply horizontal_integral_phi_fourier_vanish ν ε x (-1) 0 hν hx (by gcongr; norm_num) (by linarith) f
-      · intro T hT; convert (h_anal T (by linarith)).continuousOn using 2 <;> simp
-
-      · intro T hT t ht
-        simp only [f, norm_mul]
-        apply mul_le_mul_of_nonneg_right (norm_sub_le _ _) (norm_nonneg _)
-
-
-
-    -- Hierarchical Subgoal 3: RectangleIntegral tends to UpperUIntegral
-    have h_Rectangle_UpperU : Filter.Tendsto (fun T : ℝ ↦ RectangleIntegral f (-1) (I * T)) Filter.atTop (nhds (UpperUIntegral f (-1) 0 0)) := by
-      -- We establish the integrability of f on the two vertical rays forming the Upper U contour.
-      -- Since x < 0, the exponential factor E(-zx) provides sufficient decay against the polynomial growth of Φ.
-      -- Subgoal 1: The integrand is continuous along the ray Re z = -1.
-      have h_int_left : IntegrableOn (fun (y : ℝ) ↦ f ((-1 : ℝ) + y * I)) (Set.Ici 0) := by
-        apply integrable_phi_fourier_ray ν ε (-1) x hν (by norm_num) hx f (Or.inr rfl)
-      have h_int_right : IntegrableOn (fun (y : ℝ) ↦ f (0 + y * I)) (Set.Ici 0) := by
-        apply integrable_phi_fourier_ray ν ε 0 x hν (by norm_num) hx f (Or.inr rfl)
-
-
-      -- Apply the general relation between RectangleIntegals and UpperUIntegrals.
-      let htop : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1 : ℝ)..0, f (t + T * I)) Filter.atTop (nhds 0) := (by
-        simpa [mul_comm I] using h_top_vanish)
-      -- Capture the result of the contour shift lemma explicitly to avoid elaboration loops.
-      have hlim := RectangleIntegral_tendsTo_UpperU' (σ := -1) (σ' := 0) (T := 0) (f := f) htop h_int_left h_int_right
-      convert hlim using 1
-      ext T; simp
-
-    -- Hierarchical Subgoal 4: UpperUIntegral is zero
-    -- Final Step: Use the algebraic identity for RectangleIntegral and the limit results
-    have h_UpperU_zero : UpperUIntegral f (-1) 0 0 = 0 := by
-      /- The goal is to show the UpperUIntegral is zero. This follows from equating the
-      limit of the rectangle integral (which is identically zero by Cauchy's Theorem)
-      with the definition of the UpperUIntegral. -/
-      refine tendsto_nhds_unique h_Rectangle_UpperU ?_
-      apply tendsto_const_nhds.congr'
-      filter_upwards [Filter.eventually_ge_atTop 0] with T hT
-      exact (HolomorphicOn.vanishesOnRectangle (h_anal T hT) subset_rfl).symm
-    have h_rect_eq (T : ℝ) (hT : 0 ≤ T) :
-        A - (∫ t in (-1 : ℝ)..0, f (t + I * T)) - RectangleIntegral f (-1) (I * T) =
-        (I * ∫ t in Set.Icc 0 T, f (-1 + I * t)) - (I * ∫ t in Set.Icc 0 T, f (I * t)) := by
-      unfold RectangleIntegral HIntegral VIntegral
-      simp only [Complex.mul_re, Complex.mul_im,
-        Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im,
-        Complex.one_re, Complex.one_im, mul_zero, zero_mul, zero_add,
-        neg_re, neg_im, one_re, one_im, neg_zero]
-      ring_nf
-      have h_int {a b : ℝ} (h : a ≤ b) (g : ℝ → ℂ) : ∫ t in a..b, g t = ∫ t in Set.Icc a b, g t := by
-        rw [intervalIntegral.integral_of_le h, MeasureTheory.integral_Icc_eq_integral_Ioc]
-      have : (-1 : ℝ) ≤ 0 := by linarith
-      rw [h_int this, h_int this, h_int this, h_int hT, h_int hT]
-      simp only [ofReal_zero, ofReal_one, mul_comm I, add_comm, smul_eq_mul, ofReal_neg]
-      ring_nf
-      have hA : A = ∫ (t : ℝ) in Set.Icc (-1) 0, f ↑t := rfl
-      rw [hA]
-      ring_nf
-    have h_limit : Filter.Tendsto (fun T : ℝ ↦ A - (∫ t in (-1 : ℝ)..0, f (t + I * T)) - RectangleIntegral f (-1) (I * T)) Filter.atTop (nhds A) := by
-      have := (tendsto_const_nhds (x := A)).sub h_top_vanish |>.sub (h_UpperU_zero ▸ h_Rectangle_UpperU)
-      simpa using this
-    refine Filter.Tendsto.congr' ?_ h_limit
-    filter_upwards [Filter.eventually_ge_atTop (0 : ℝ)] with T hT
-    exact h_rect_eq T hT
+    have h_anal (U : ℝ) (hU : 0 ≤ U) : HolomorphicOn f (Rectangle (↑(-1:ℝ)) (↑(0:ℝ) + I * U)) := by
+      intro z hz; have hi : 0 ≤ z.im := by
+        have hz_im : z.im ∈ Set.uIcc 0 U := by simpa [Rectangle] using hz.2
+        rw [Set.uIcc_of_le hU] at hz_im
+        exact hz_im.1
+      exact (AnalyticAt.sub (Phi_circ.analytic ν ε z hν hi) (Phi_star.analytic ν ε z hν hi)).differentiableAt.mul
+        (by dsimp [E]; fun_prop)
+        |>.differentiableWithinAt
+    have h_shift := tendsto_contour_shift (σ := -1) (σ' := 0) (f := f) h_anal ?_ ?_ ?_
+    · have hA_eq : ∫ x in (-1:ℝ)..0, f x = A := by
+        dsimp [A]
+        rw [intervalIntegral.integral_of_le (by norm_num), MeasureTheory.integral_Icc_eq_integral_Ioc]
+      have h_final : (fun (T : ℝ) ↦ (I * ∫ (t : ℝ) in Set.Icc 0 T, f (-1 + I * ↑t)) - (I * ∫ (t : ℝ) in Set.Icc 0 T, f (I * ↑t))) =
+          (fun (U : ℝ) ↦ (I * ∫ (t : ℝ) in Set.Icc 0 U, f (↑(-1 : ℝ) + I * ↑t)) - (I * ∫ (t : ℝ) in Set.Icc 0 U, f (↑(0 : ℝ) + I * ↑t))) := by
+        ext U
+        have h1 : ∫ (t : ℝ) in Set.Icc 0 U, f (-1 + I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 U, f (↑(-1 : ℝ) + I * ↑t) := by congr 1; ext t; simp
+        have h2 : ∫ (t : ℝ) in Set.Icc 0 U, f (I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 U, f (↑(0 : ℝ) + I * ↑t) := by congr 1; ext t; simp
+        rw [h1, h2]
+      rw [hA_eq, ← h_final] at h_shift
+      exact h_shift
+    · simp_rw [mul_comm _ I]
+      apply horizontal_integral_phi_fourier_vanish ν ε x (-1) 0 hν hx (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) f
+      · intro T hT; convert (h_anal T (by linarith)).continuousOn using 2
+      · intro T hT t ht; dsimp [f]; rw [norm_mul]
+        exact mul_le_mul_of_nonneg_right (norm_sub_le _ _) (norm_nonneg _)
+    · apply integrable_phi_fourier_ray ν ε (-1) x hν (by norm_num) hx f (Or.inr rfl)
+    · apply integrable_phi_fourier_ray ν ε 0 x hν (by norm_num) hx f (Or.inr rfl)
   have hBshift :
       Filter.atTop.Tendsto
         (fun T : ℝ ↦
@@ -2270,102 +2176,33 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
           + (I * ∫ t in Set.Icc 0 T,
             (Phi_circ ν ε (I * t) + Phi_star ν ε (I * t)) * E (-(I * t) * x)))
         (nhds B) := by
-    /-
-    Shift the real integral `B` from `[0,1]` to the upper strip bounded by `Re z = 0`
-    and `Re z = 1`. As above, the integrand is holomorphic in this strip and the top edge
-    -/
     let f : ℂ → ℂ := fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
-    -- Hierarchical Subgoal 1: f is holomorphic in the upper rectangle
-    have h_anal (T : ℝ) (hT : 0 ≤ T) : HolomorphicOn f (Rectangle 0 (1 + I * T)) := by
-      intro z hz
-      have hz_im : 0 ≤ z.im := by
-        rw [mem_Rect (by norm_num) (by simpa using hT)] at hz
-        simpa using hz.2.2.1
-      have hPhi_circ : AnalyticAt ℂ (Phi_circ ν ε) z := Phi_circ.analytic ν ε z hν hz_im
-      have hPhi_star : AnalyticAt ℂ (Phi_star ν ε) z := Phi_star.analytic ν ε z hν hz_im
-      have hE : AnalyticAt ℂ (fun z : ℂ ↦ E (-z * x)) z := by
-        simpa [E] using
-          (analyticAt_cexp.comp (by
-            fun_prop : AnalyticAt ℂ (fun z : ℂ ↦ 2 * π * I * (-z * x)) z))
-      exact (DifferentiableAt.mul (hPhi_circ.differentiableAt.add hPhi_star.differentiableAt) hE.differentiableAt).differentiableWithinAt
-    -- Hierarchical Subgoal 2: The integral along the top edge vanishes as T -> infinity
-    have h_top_vanish : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (0 : ℝ)..1, f (t + I * T)) Filter.atTop (nhds 0) := by
-      apply horizontal_integral_phi_fourier_vanish ν ε x 0 1 hν hx (by gcongr; norm_num) (by linarith) f
+    have h_anal (U : ℝ) (hU : 0 ≤ U) : HolomorphicOn f (Rectangle (↑(0:ℝ)) (↑(1:ℝ) + I * U)) := by
+      intro z hz; have hi : 0 ≤ z.im := by
+        have hz_im : z.im ∈ Set.uIcc 0 U := by simpa [Rectangle] using hz.2
+        rw [Set.uIcc_of_le hU] at hz_im
+        exact hz_im.1
+      exact (AnalyticAt.add (Phi_circ.analytic ν ε z hν hi) (Phi_star.analytic ν ε z hν hi)).differentiableAt.mul
+        (by dsimp [E]; fun_prop) |>.differentiableWithinAt
+    have h_shift := tendsto_contour_shift (σ := 0) (σ' := 1) (f := f) h_anal ?_ ?_ ?_
+    · have hB_eq : ∫ x in (0:ℝ)..1, f x = B := by
+        dsimp [B]
+        rw [intervalIntegral.integral_of_le zero_le_one, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      have h_final : (fun (T : ℝ) ↦ (-I * ∫ (t : ℝ) in Set.Icc 0 T, f (1 + I * ↑t)) + (I * ∫ (t : ℝ) in Set.Icc 0 T, f (I * ↑t))) =
+          (fun (U : ℝ) ↦ (I * ∫ (t : ℝ) in Set.Icc 0 U, f (↑(0 : ℝ) + I * ↑t)) - (I * ∫ (t : ℝ) in Set.Icc 0 U, f (↑(1 : ℝ) + I * ↑t))) := by
+        ext U
+        have h1 : ∫ (t : ℝ) in Set.Icc 0 U, f (1 + I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 U, f (↑(1 : ℝ) + I * ↑t) := by congr 1
+        have h2 : ∫ (t : ℝ) in Set.Icc 0 U, f (I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 U, f (↑(0 : ℝ) + I * ↑t) := by congr 1; ext t; simp
+        rw [h1, h2]; ring
+      rw [hB_eq, ← h_final] at h_shift
+      exact h_shift
+    · simp_rw [mul_comm _ I]
+      apply horizontal_integral_phi_fourier_vanish ν ε x 0 1 hν hx (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) f
       · intro T hT; convert (h_anal T (by linarith)).continuousOn using 2
-      · intro T hT t ht
-        simp only [f, norm_mul]
-        apply mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
-    -- Hierarchical Subgoal 3: RectangleIntegral tends to UpperUIntegral
-    -- Hierarchical Subgoal 3: RectangleIntegral tends to UpperUIntegral
-    have h_Rectangle_UpperU : Filter.Tendsto (fun T : ℝ ↦ RectangleIntegral f 0 (1 + I * T)) Filter.atTop (nhds (UpperUIntegral f 0 1 0)) := by
-      -- Specifically defining the left integral at σ = 0
-      have h_int_left : IntegrableOn (fun (y : ℝ) ↦ f (0 + y * I)) (Set.Ici 0) := by
-        apply integrable_phi_fourier_ray ν ε 0 x hν (by norm_num) hx f (Or.inl rfl)
-      -- Specifically defining the right integral at σ' = 1
-      have h_int_right : IntegrableOn (fun (y : ℝ) ↦ f (1 + y * I)) (Set.Ici 0) := by
-        apply integrable_phi_fourier_ray ν ε 1 x hν (by norm_num) hx f (Or.inl rfl)
-      -- Apply the general relation between RectangleIntegals and UpperUIntegrals.
-      let htop : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (0 : ℝ)..1, f (t + T * I)) Filter.atTop (nhds 0) := (by
-        simpa [mul_comm I] using h_top_vanish)
-      -- Capture the result of the contour shift lemma explicitly to avoid elaboration loops.
-      have hlim := RectangleIntegral_tendsTo_UpperU' (σ := 0) (σ' := 1) (T := 0) (f := f) htop h_int_left h_int_right
-      convert hlim using 1
-      ext T; simp
-    -- Hierarchical Subgoal 4: UpperUIntegral is zero
-    have h_UpperU_zero : UpperUIntegral f 0 1 0 = 0 := by
-      /-
-      The goal is to show the UpperUIntegral is zero. This follows from equating the
-      limit of the rectangle integral (which is identically zero by Cauchy's Theorem)
-      with the definition of the UpperUIntegral.
-      -/
-      refine tendsto_nhds_unique h_Rectangle_UpperU ?_
-      apply tendsto_const_nhds.congr'
-      filter_upwards [Filter.eventually_ge_atTop 0] with T hT
-      exact (HolomorphicOn.vanishesOnRectangle (h_anal T hT) subset_rfl).symm
-    -- Final Step: Use the algebraic identity for RectangleIntegral and the limit results
-    have h_rect_eq (T : ℝ) (hT : 0 ≤ T) :
-        B - (∫ t in (0 : ℝ)..1, f (t + I * T)) - RectangleIntegral f 0 (1 + I * T) =
-        (- I * ∫ t in Set.Icc 0 T, f (1 + I * t)) + (I * ∫ t in Set.Icc 0 T, f (I * t)) := by
-      unfold RectangleIntegral HIntegral VIntegral
-      simp only [Complex.add_re, Complex.add_im, Complex.mul_re, Complex.mul_im,
-        Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im,
-        Complex.zero_re, Complex.zero_im, Complex.one_re, Complex.one_im, mul_zero, zero_mul, zero_add]
-      ring_nf
-      have h_int {a b : ℝ} (h : a ≤ b) (g : ℝ → ℂ) : ∫ t in a..b, g t = ∫ t in Set.Icc a b, g t := by
-        rw [intervalIntegral.integral_of_le h, MeasureTheory.integral_Icc_eq_integral_Ioc]
-      -- Convert interval integrals to set integrals to match B and RHS
-      -- simp_rw [h_int (by linarith), h_int hT]
-      have : (0 : ℝ) ≤ 1 := zero_le_one
-      rw [h_int this, h_int this, h_int this, h_int hT, h_int hT]
-      simp only [ofReal_zero, ofReal_one, mul_comm I, add_comm, smul_eq_mul]
-      ring_nf
-      -- Step 1: B is definitionally the integral of f over [0,1].
-      -- Proof: unfold f; the integrand of B matches f(↑t) exactly by definition.
-      have hB : B = ∫ (t : ℝ) in Set.Icc 0 1, f ↑t := by
-        simp only [f]; rfl
-
-      -- Step 2: The two integrals of f(t · I) and f(I · t) coincide,
-      -- since mul_comm gives t · I = I · t in ℂ for all t : ℝ.
-      -- Proof: apply MeasureTheory.set_integral_congr on measurableSet_Icc;
-      -- for each t in the set, congr 1 reduces to showing ↑t * I = I * ↑t, closed by ring.
-      have hint_eq : ∫ (t : ℝ) in Set.Icc 0 T, f (↑t * I) =
-               ∫ (t : ℝ) in Set.Icc 0 T, f (I * ↑t) := by
-        apply setIntegral_congr_fun measurableSet_Icc
-        intro t _
-        simp; ring_nf
-
-      -- Step 3: Rewrite B and the commuted integral; the remaining goal is
-      -- (I * ∫f(I·t)) + (∫f(t)) + (-(∫f(t)) - I*∫f(1+it)) = I*∫f(I·t) - I*∫f(1+it)
-      -- which is immediate by ring (the ∫f(t) terms cancel).
-      rw [hB, hint_eq]
-      ring
-
-    have h_limit : Filter.Tendsto (fun T : ℝ ↦ B - (∫ t in (0 : ℝ)..1, f (t + I * T)) - RectangleIntegral f 0 (1 + I * T)) Filter.atTop (nhds B) := by
-      have := (tendsto_const_nhds (x := B)).sub h_top_vanish |>.sub (h_UpperU_zero ▸ h_Rectangle_UpperU)
-      simpa using this
-    refine Filter.Tendsto.congr' ?_ h_limit
-    filter_upwards [Filter.eventually_ge_atTop (0 : ℝ)] with T hT
-    exact h_rect_eq T hT
+      · intro T hT t ht; dsimp [f]; rw [norm_mul]
+        exact mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
+    · apply integrable_phi_fourier_ray ν ε 0 x hν (by norm_num) hx f (Or.inl rfl)
+    · apply integrable_phi_fourier_ray ν ε 1 x hν (by norm_num) hx f (Or.inl rfl)
 
   have h_integrable_imag
       (T : ℝ)
@@ -2381,42 +2218,22 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     · dsimp [E]
       fun_prop
 
-  have hcombine :
-      (fun T : ℝ ↦
-        (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
-        - (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
-        + (2 * I * ∫ t in Set.Icc 0 T,
-          Phi_star ν ε (I * t) * E (-(I * t) * x))) =
-      (fun T : ℝ ↦
-        ((I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
-          - (I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (I * t) - Phi_star ν ε (I * t)) * E (-(I * t) * x)))
-        +
-        ((- I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
-          + (I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (I * t) + Phi_star ν ε (I * t)) * E (-(I * t) * x)))) := by
-    /-
-    Rearrange the two contour-shift identities: on `Re z = 0`, the `Phi_circ` terms cancel,
-    while the two `Phi_star` terms add up to the middle contribution in the statement.
-    -/
-    funext T
-    -- Linearise the two imaginary-axis compound integrands via simp_rw + integral_sub/add
+  have hcombine (T : ℝ) :
+      (I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+      - (I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+      + (2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) =
+      ((I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+        - (I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (I * t) - Phi_star ν ε (I * t)) * E (-(I * t) * x))) +
+      ((- I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+        + (I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (I * t) + Phi_star ν ε (I * t)) * E (-(I * t) * x))) := by
     have hsub : ∫ t in Set.Icc 0 T,
         (Phi_circ ν ε (I * ↑t) - Phi_star ν ε (I * ↑t)) * E (-(I * ↑t) * ↑x) =
         (∫ t in Set.Icc 0 T, Phi_circ ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)) -
         (∫ t in Set.Icc 0 T, Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)) := by
       simp_rw [sub_mul]
       refine integral_sub ?_ ?_
-      · exact h_integrable_imag T (Phi_circ ν ε) (by
-          intro t ht
-          exact Phi_circ.continuousAt_imag ν ε t ht.1 hν)
-      · exact h_integrable_imag T (Phi_star ν ε) (by
-          intro t ht
-          exact Phi_star.continuousAt_imag ν ε t ht.1 hν)
+      · exact h_integrable_imag T (Phi_circ ν ε) (by intro t ht; exact Phi_circ.continuousAt_imag ν ε t ht.1 hν)
+      · exact h_integrable_imag T (Phi_star ν ε) (by intro t ht; exact Phi_star.continuousAt_imag ν ε t ht.1 hν)
 
     have hadd : ∫ t in Set.Icc 0 T,
         (Phi_circ ν ε (I * ↑t) + Phi_star ν ε (I * ↑t)) * E (-(I * ↑t) * ↑x) =
@@ -2424,29 +2241,11 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
         (∫ t in Set.Icc 0 T, Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)) := by
       simp_rw [add_mul]
       refine integral_add ?_ ?_
-      · exact h_integrable_imag T (Phi_circ ν ε) (by
-          intro t ht
-          exact Phi_circ.continuousAt_imag ν ε t ht.1 hν)
-      · exact h_integrable_imag T (Phi_star ν ε) (by
-          intro t ht
-          exact Phi_star.continuousAt_imag ν ε t ht.1 hν)
+      · exact h_integrable_imag T (Phi_circ ν ε) (by intro t ht; exact Phi_circ.continuousAt_imag ν ε t ht.1 hν)
+      · exact h_integrable_imag T (Phi_star ν ε) (by intro t ht; exact Phi_star.continuousAt_imag ν ε t ht.1 hν)
 
-    -- The Phi_circ-on-imaginary-axis terms cancel; ring verifies the residual 2I∫Phi_star
     linear_combination I * hsub - I * hadd
-
-  have hcontour :
-      Filter.atTop.Tendsto
-        (fun T : ℝ ↦
-          (I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
-          - (I * ∫ t in Set.Icc 0 T,
-            (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
-          + (2 * I * ∫ t in Set.Icc 0 T,
-            Phi_star ν ε (I * t) * E (-(I * t) * x)))
-        (nhds (A + B)) := by
-
-    rw [hcombine]
-    exact hAshift.add hBshift
+  have hcontour := (hAshift.add hBshift).congr' (Filter.Eventually.of_forall (fun T ↦ (hcombine T).symm))
   simpa [hfourier] using hcontour
 
 @[blueprint
