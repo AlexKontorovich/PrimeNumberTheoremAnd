@@ -7,6 +7,8 @@ open Finset Nat Real
 
 open scoped zeta sigma
 
+open scoped ArithmeticFunction.omega
+
 open scoped LSeries.notation
 
 namespace ArithmeticFunction
@@ -542,6 +544,26 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 =
     LSeries (fun n ↦
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
+  sorry
+
+/--
+Zeta squared:
+`ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
+where omega is the number of distinct prime factors.-/
+@[blueprint
+  "zeta_pow_two"
+  (statement := /--
+  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}.$$
+  \begin{verbatim}
+    An expression for `ζ^2`, in IK (1.31).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  Follows from previous arguments.
+  -/)]
+lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 2 =
+    riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
   sorry
 
 end ArithmeticFunction
