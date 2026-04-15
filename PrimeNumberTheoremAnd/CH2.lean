@@ -17,7 +17,7 @@ open Real
 blueprint_comment /--
 \section{Chirre-Helfgott's estimates for sums of nonnegative arithmetic functions}\label{ch2-sec}
 
-We record some estimates from \cite{ch2} for summing non-negative functions, with a particular interest in estimating $\psi$.
+We record some estimates from \cite{CH2} for summing non-negative functions, with a particular interest in estimating $\psi$.
 -/
 
 
@@ -26,7 +26,7 @@ namespace CH2
 blueprint_comment /--
 \subsection{Fourier-analytic considerations}\label{ch2-fourier-sec}
 
-Some material from \cite[Section 2]{ch2}, slightly rearranged to take advantage of existing results in the repository.
+Some material from \cite[Section 2]{CH2}, slightly rearranged to take advantage of existing results in the repository.
 -/
 
 open Real MeasureTheory FourierTransform Chebyshev Asymptotics
@@ -378,7 +378,7 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : �
   Let $a_n$ be a non-negative sequence with $\sum_{n>1} \frac{|a_n|}{n \log^\beta n} < \infty$ for some $\beta > 1$.  Assume that $\sum_n a_n n^{-s} - \frac{1}{s-1}$ extends continuously to a function $G$ defined on $1 + i[-T,T]$.  Let $\varphi_-$ be absolutely integrable, supported on $[-1,1]$, and has Fourier decay $\hat \varphi_-(y) = O(1/|y|^\beta)$.  Let $\sigma \neq 1$ and write $\lambda = 2\pi(\sigma-1)/T$.  Assume $\hat \varphi_-(y) \leq I_\lambda(y)$ for all $y$. Then for any $x\geq 1$ and $\sigma \neq 1$,
   $$ S_\sigma(x) \geq \frac{2\pi x^{1-\sigma}}{T} \varphi_-(0) + \frac{x^{-\sigma}}{T} \int_{-T}^T \varphi_-(t/T) G(1+it) x^{1+it}\ dt - \frac{1_{(-\infty,1)}(\sigma)}{1-\sigma}.$$
   -/)
-  (proof := /-- Similar to the proof of Proposition \ref{ch2-prop-2-4-plus}; see \cite[Proposition 2.4]{ch2} for details.
+  (proof := /-- Similar to the proof of Proposition \ref{ch2-prop-2-4-plus}; see \cite[Proposition 2.4]{CH2} for details.
   -/)
   (latexEnv := "proposition")
   (discussion := 883)]
@@ -404,7 +404,7 @@ theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : 
 blueprint_comment /--
 \subsection{Extremal approximants to the truncated exponential}\label{ch2-trunc-sec}
 
-In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.  As such, the material here is organized rather differently from that in the paper.
+In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{CH2}, although we skip the proof of their extremality.  As such, the material here is organized rather differently from that in the paper.
 -/
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
@@ -2089,9 +2089,10 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
   "shift-upwards"
   (title := "Contour shifting upwards")
   (statement := /-- If $x < 0$, then
-\begin{equation}\label{eq:1.5}
-\widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1+i\infty}^{-1} \bigl(\Phi^{\pm,\circ}_{\nu}(z) - \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz + \int_{1}^{1+i\infty} \bigl(\Phi^{\pm,\circ}_{\nu}(z) + \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz + 2\int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
-\end{equation}
+\begin{multline}\label{eq:1.5}
+\widehat{\varphi^{\pm}_{\nu}}(x) = \int_{-1+i\infty}^{-1} \bigl(\Phi^{\pm,\circ}_{\nu}(z) - \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz \\
++ \int_{1}^{1+i\infty} \bigl(\Phi^{\pm,\circ}_{\nu}(z) + \Phi^{\pm,\star}_{\nu}(z)\bigr) e(-zx)\, dz + 2\int_0^{i\infty} \Phi^{\pm,\star}_{\nu}(z)\, e(-zx)\, dz.
+\end{multline}
   -/)
   (proof := /-- Since $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ has no poles in the upper half plane, we can shift contours upwards, as we may: for $\Im z \to \infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly, and so the contribution of a moving horizontal segment goes to $0$ as $\Im z \to \infty$. -/)
   (latexEnv := "sublemma")
@@ -2677,19 +2678,19 @@ Since $\theta(1 + iT) = \frac{\sigma - 1}{iT} = \frac{\lambda}{2\pi i}$, we have
 blueprint_comment /--
 \subsection{Contour shifting}\label{ch2-contour-sec}
 
-TODO: incorporate material from \cite[Section 5]{ch2}.
+TODO: incorporate material from \cite[Section 5]{CH2}.
 -/
 
 blueprint_comment /--
 \subsection{The main theorem}\label{ch2-main-thm-sec}
 
-TODO: incorporate material from \cite[Section 6]{ch2}.
+TODO: incorporate material from \cite[Section 6]{CH2}.
 -/
 
 blueprint_comment /--
 \subsection{Applications to psi}\label{ch2-psi-sec}
 
-TODO: incorporate material from \cite[Section 7]{ch2} onwards.
+TODO: incorporate material from \cite[Section 7]{CH2} onwards.
 -/
 
 
