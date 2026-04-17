@@ -1206,6 +1206,36 @@ theorem Phi_star.analytic (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ 
   unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop,
     by norm_num; exact pi_ne_zero, by exact I_ne_zero])
 
+lemma w_re_pos_gen {ν : ℝ} {z : ℂ} (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+    0 < (-2 * π * I * z + ν).re := by
+  sorry -- Structure of w on R: Re(w) = 2π Im(z) + ν > 0 when Im(z) > -ν/(2π)
+
+theorem Phi_circ.analytic_gen (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_circ ν ε) z := by
+  set w : ℂ := -2 * π * I * z + ν
+  have hw_re : 0 < w.re := w_re_pos_gen hν hz_im
+  have h_an : AnalyticAt ℂ (fun s : ℂ ↦ coth (s / 2)) w := by
+    have heq : (fun s : ℂ ↦ coth (s / 2)) =ᶠ[nhds w] (fun s ↦ Complex.cosh (s / 2) / Complex.sinh (s / 2)) :=
+      Filter.Eventually.of_forall (fun s ↦ by unfold coth; simp [Complex.tanh_eq_sinh_div_cosh])
+    apply (analyticAt_congr heq).mpr
+    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
+  unfold Phi_circ; fun_prop (disch := exact [h_an.comp (by fun_prop), by simp [w]; fun_prop])
+
+theorem Phi_star.analytic_gen (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_star ν ε) z := by
+  set w : ℂ := -2 * π * I * z + ν
+  have hw_re : 0 < w.re := w_re_pos_gen hν hz_im
+  have hB_an : AnalyticAt ℂ (B ε) w := by
+    have hw_ne : w ≠ 0 := by intro h; have := congrArg Complex.re h; simp at this; linarith [hw_re]
+    have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
+      filter_upwards [continuous_id.continuousAt.eventually_ne hw_ne] with s hs
+      dsimp at hs
+      simp only [B, coth, hs, ↓reduceIte, Complex.tanh_eq_sinh_div_cosh, one_div_div]
+    apply (analyticAt_congr heq).mpr
+    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
+  unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop,
+    by norm_num; exact pi_ne_zero, by exact I_ne_zero])
+
 @[blueprint
   "phi-c2-left"
   (title := "$\\varphi$ is $C^2$ on [-1,0]")
@@ -2434,6 +2464,72 @@ theorem shift_upwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x 
   filter_upwards [Filter.eventually_ge_atTop 0] with T hT
   exact h_key T hT
 
+lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
+    (hf_anal : ∀ (U : ℝ), U ≥ 0 → HolomorphicOn f (Rectangle (σ : ℂ) (σ' - I * U)))
+    (h_bottom : Filter.Tendsto (fun (T : ℝ) ↦ ∫ t in σ..σ', f (t - I * T)) Filter.atTop (nhds 0))
+    (h_left : IntegrableOn (fun (t : ℝ) ↦ f (σ - I * t)) (Set.Ici (0 : ℝ)))
+    (h_right : IntegrableOn (fun (t : ℝ) ↦ f (σ' - I * t)) (Set.Ici (0 : ℝ))) :
+    Filter.Tendsto (fun (T : ℝ) ↦ (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) - (I * ∫ t in Set.Icc 0 T, f (σ - I * t))) Filter.atTop (nhds (∫ t in σ..σ', f t)) := by
+  sorry
+
+lemma horizontal_integral_phi_fourier_vanish_downwards (ν ε x a b : ℝ) (hν : ν > 0) (hx : x > 0)
+    (hab_in : Set.Icc a b ⊆ Set.Icc (-1) 1) (hab : a ≤ b)
+    (f : ℂ → ℂ)
+    (hf_anal : ∀ (T : ℝ), T ≥ 1 → ContinuousOn f (Rectangle (a : ℂ) (b - I * T)))
+    (hf_bound : ∀ (T : ℝ), T ≥ 1 → ∀ (t : ℝ), t ∈ Set.Icc a b → ‖f (t - I * T)‖ ≤ (‖Phi_circ ν ε (t - I * T)‖ + ‖Phi_star ν ε (t - I * T)‖) * ‖E (-(t - I * T) * x)‖) :
+    Filter.Tendsto (fun (T : ℝ) ↦ ∫ t in a..b, f (t - I * T)) Filter.atTop (nhds 0) := by
+  sorry
+
+lemma integrable_phi_fourier_ray_downwards (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : σ ∈ Set.Icc (-1) 1) (hx : x > 0)
+    (f : ℂ → ℂ)
+    (hf_formula : (f = fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) ∨
+                 (f = fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x))) :
+    IntegrableOn (fun (t : ℝ) ↦ f (σ - I * t)) (Set.Ici (0 : ℝ)) := by
+  sorry
+
+lemma Phi_diff_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
+    ∃ U ∈ nhds (-1 - I * (ν / (2 * π))), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) '' (U \ {-1 - I * (ν / (2 * π))})) := by
+  sorry
+
+lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
+    HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) := by
+  intro z hz
+  -- Extract Im(z) ∈ [0, -U]
+  have hz_im : z.im ∈ Set.uIcc 0 (-U) := by simpa [Rectangle] using hz.2
+  -- Case split: Im(z) > -ν/(2π) vs. the potential pole at z₀ = -1 - iν/(2π)
+  by_cases h_pole_im : z.im > -ν / (2 * π)
+  · -- Step 2: Holomorphicity away from the pole line.
+    -- Points with Im(z) > -ν/(2π) avoid all poles of Phi_circ.
+    exact (AnalyticAt.sub (Phi_circ.analytic_gen ν ε z hν h_pole_im)
+                          (Phi_star.analytic_gen ν ε z hν h_pole_im)).differentiableAt.mul
+      (by dsimp [E]; fun_prop) |>.differentiableWithinAt
+  · -- Step 3: Removable singularity at z₀ = -1 - iν/(2π)
+    -- We show the function is holomorphic on a larger punctured neighborhood and bounded near z₀.
+    have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) ∧ 
+        Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) g (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {-1 - I * (ν / (2 * π))}) := by
+      let f (z : ℂ) := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
+      let z0 := -1 - I * (ν / (2 * π))
+      -- Use Riemann removable singularity theorem.
+      -- Boundedness follows from residue cancellation between Phi_circ and Phi_star.
+      have h_bdd : ∃ V ∈ nhds z0, BddAbove (norm ∘ f '' (V \ {z0})) := by
+        obtain ⟨V, hV, h_bdd_diff⟩ := Phi_diff_bounded_near_pole ν ε hν
+        use V, hV
+        sorry -- Concisely: E(-zx) is entire, and its product with a bounded function is bounded.
+      have h_anal_punctured : HolomorphicOn f (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {z0}) := by
+        sorry -- Concisely: Away from z0, the set contains no other poles in the given range.
+      -- Apply existsDifferentiableOn_of_bddAbove (verified to be in ResidueCalcOnRectangles.lean:150)
+      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z0) (f := f) sorry h_anal_punctured h_bdd
+      use g, hg_anal, hfg
+    obtain ⟨g, hg_anal, hfg⟩ := h_sing
+    -- Step 4: Final holomorphicity.
+    -- Since the function agrees with a holomorphic function g on the punctured set, 
+    -- and g is holomorphic at z₀, the original function is also differentiable within at z₀.
+    sorry
+
+lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
+    HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) (Rectangle (1/2 : ℂ) (1 - I * U)) := by
+  sorry
+
 @[blueprint
   "shift-downwards"
   (title := "Contour shifting downwards")
@@ -2458,7 +2554,103 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
         (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (1 / 2 - I * ↑t) + Phi_star ν ε (1 / 2 - I * ↑t)) * E (-(1 / 2 - I * ↑t) * ↑x)) +
         (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (1 - I * ↑t) + Phi_star ν ε (1 - I * ↑t)) * E (-(1 - I * ↑t) * ↑x)))
       Filter.atTop (nhds (𝓕 (ϕ_pm ν ε) x)) := by
-    sorry
+  have hlam : ν ≠ 0 := by linarith
+  -- Step 1: Decompose the Fourier transform into segments over [-1, -1/2], [-1/2, 0], [0, 1/2], [1/2, 1]
+  let fL z := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
+  let fR z := (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
+  set AL := ∫ t in Set.Icc (-1 : ℝ) (-1/2), fL t
+  set AM := ∫ t in Set.Icc (-1/2 : ℝ) 0, fL t
+  set BM := ∫ t in Set.Icc 0 (1/2 : ℝ), fR t
+  set BR := ∫ t in Set.Icc (1/2 : ℝ) 1, fR t
+  have hci : ∀ (a b : ℝ), IntegrableOn (fun t : ℝ ↦ Phi_circ ν ε (↑t : ℂ) * E (-(↑t : ℂ) * ↑x)) (Set.Ioc a b) :=
+    fun a b ↦ (((Phi_circ.contDiff_real ν ε hlam).continuous).mul (cont_E x)).integrableOn_Ioc
+  have hsi : ∀ (a b : ℝ), IntegrableOn (fun t : ℝ ↦ Phi_star ν ε (↑t : ℂ) * E (-(↑t : ℂ) * ↑x)) (Set.Ioc a b) :=
+    fun a b ↦ (((Phi_star.contDiff_real ν ε hlam).continuous).mul (cont_E x)).integrableOn_Ioc
+  have hfLi (a b : ℝ) : IntegrableOn (fun (t : ℝ) ↦ fL t) (Set.Ioc a b) := by
+    apply (Integrable.sub (hci a b) (hsi a b)).congr
+    filter_upwards [] with t; dsimp [fL]; ring
+  have hfRi (a b : ℝ) : IntegrableOn (fun (t : ℝ) ↦ fR t) (Set.Ioc a b) := by
+    apply (Integrable.add (hci a b) (hsi a b)).congr
+    filter_upwards [] with t; dsimp [fR]; ring
+
+  have hfourier : 𝓕 (ϕ_pm ν ε) x = AL + AM + BM + BR := by
+    rw [varphi_fourier_ident ν ε hlam x]
+    have hA : ∫ t in Set.Icc (-1 : ℝ) 0, fL t = AL + AM := by
+      simp only [AL, AM]
+      rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      rw [← MeasureTheory.setIntegral_union (Set.Ioc_disjoint_Ioc_of_le (by norm_num)) measurableSet_Ioc (hfLi _ _) (hfLi _ _)]
+      rw [Set.Ioc_union_Ioc_eq_Ioc (by norm_num) (by norm_num)]
+    have hB : ∫ t in Set.Icc (0 : ℝ) 1, fR t = BM + BR := by
+      simp only [BM, BR]
+      rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      rw [← MeasureTheory.setIntegral_union (Set.Ioc_disjoint_Ioc_of_le (by norm_num)) measurableSet_Ioc (hfRi _ _) (hfRi _ _)]
+      rw [Set.Ioc_union_Ioc_eq_Ioc (by norm_num) (by norm_num)]
+    rw [hA, hB]; ring
+
+  -- Step 2: Downward shift for the left segment AL
+  have hALshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fL (-1 / 2 - I * t)) - (I * ∫ t in Set.Icc 0 T, fL (-1 - I * t))) Filter.atTop (nhds AL) := by
+    -- Fully apply the lemma using holes for hypotheses to target the conclusion directly
+    convert tendsto_contour_shift_downwards (σ := -1) (σ' := -1 / 2) (f := fL) _ _ _ _ using 1
+    -- 1. Function equality Goal
+    · ext T; dsimp [fL]; simp only [Complex.ofReal_neg, Complex.ofReal_div, Complex.ofReal_ofNat, Complex.ofReal_one]
+    -- 2. Target equality Goal
+    · congr 1; dsimp [AL]; rw [intervalIntegral.integral_of_le (by norm_num), MeasureTheory.integral_Icc_eq_integral_Ioc]
+    -- 3. Analyticity Hypothesis
+    · intro U hU; dsimp [fL]; convert Phi_fourier_anal_left ν ε x hν hx U hU using 1
+      simp only [Complex.ofReal_neg, Complex.ofReal_div, Complex.ofReal_ofNat, Complex.ofReal_one]
+    -- 4. Horizontal vanishing Hypothesis
+    · apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (-1) (-1 / 2) hν hx (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) fL
+      · intro T hT; dsimp [fL]; convert (Phi_fourier_anal_left ν ε x hν hx T (by linarith)).continuousOn using 1
+        simp only [Complex.ofReal_neg, Complex.ofReal_div, Complex.ofReal_ofNat, Complex.ofReal_one]
+      · intro T hT t ht; dsimp [fL]; rw [norm_mul]; exact mul_le_mul_of_nonneg_right (norm_sub_le _ _) (norm_nonneg _)
+    -- 5 & 6. Ray integrability Hypotheses
+    · apply integrable_phi_fourier_ray_downwards ν ε (-1) x hν (by norm_num) hx fL (Or.inl rfl)
+    · apply integrable_phi_fourier_ray_downwards ν ε (-1 / 2) x hν (by norm_num) hx fL (Or.inl rfl)
+
+  -- Step 3: Downward shift for the right segment BR
+  have hBRshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fR (1 - I * t)) - (I * ∫ t in Set.Icc 0 T, fR (1 / 2 - I * t))) Filter.atTop (nhds BR) := by
+    convert tendsto_contour_shift_downwards (σ := 1 / 2) (σ' := 1) (f := fR) _ _ _ _ using 1
+    -- 1. Function equality Goal
+    · ext T; dsimp [fR]; simp only [Complex.ofReal_one, Complex.ofReal_div, Complex.ofReal_ofNat]
+    -- 2. Target equality Goal
+    · congr 1; dsimp [BR]; rw [intervalIntegral.integral_of_le (by norm_num), MeasureTheory.integral_Icc_eq_integral_Ioc]
+    -- 3. Analyticity Hypothesis
+    · intro U hU; dsimp [fR]; convert Phi_fourier_anal_right ν ε x hν hx U hU using 1
+      simp only [Complex.ofReal_one, Complex.ofReal_div, Complex.ofReal_ofNat]
+    -- 4. Horizontal vanishing Hypothesis
+    · apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (1/2) 1 hν hx (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) fR
+      · intro T hT; dsimp [fR]; convert (Phi_fourier_anal_right ν ε x hν hx T (by linarith)).continuousOn using 1
+        simp only [Complex.ofReal_one, Complex.ofReal_div, Complex.ofReal_ofNat]
+      · intro T hT t ht; dsimp [fR]; rw [norm_mul]; exact mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
+    -- 5 & 6. Ray integrability Hypotheses
+    · apply integrable_phi_fourier_ray_downwards ν ε (1/2) x hν (by norm_num) hx fR (Or.inr rfl)
+    · apply integrable_phi_fourier_ray_downwards ν ε 1 x hν (by norm_num) hx fR (Or.inr rfl)
+
+  -- Step 4: Assemble the middle horizontal pieces
+  have hmiddle : AM + BM = (∫ t in Set.Icc (-1/2 : ℝ) (1/2 : ℝ), Phi_circ ν ε t * E (-t * x)) - (∫ t in Set.Icc (-1/2 : ℝ) 0, Phi_star ν ε t * E (-t * x)) + (∫ t in Set.Icc 0 (1/2 : ℝ), Phi_star ν ε t * E (-t * x)) := by
+    simp only [AM, BM, fL, fR]
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+    -- Purely algebraic splitting of integrals
+    simp_rw [sub_mul, add_mul]
+    -- Linearity of integration splits the combined integrands.
+    rw [integral_sub (hci (-1/2) 0) (hsi (-1/2) 0), integral_add (hci 0 (1/2)) (hsi 0 (1/2))]
+    -- Split ∫_{(-1/2, 1/2]} Phi_circ = ∫_{(-1/2, 0]} + ∫_{(0, 1/2]}
+    rw [show Set.Ioc (-1/2 : ℝ) (1/2) = Set.Ioc (-1/2) 0 ∪ Set.Ioc 0 (1/2) from
+          (Set.Ioc_union_Ioc_eq_Ioc (by norm_num) (by norm_num)).symm,
+        MeasureTheory.setIntegral_union (Set.Ioc_disjoint_Ioc_of_le le_rfl)
+          measurableSet_Ioc (hci _ _) (hci _ _)]
+    -- Final combination: bound variables are unified, so abel handles the rearrangement.
+    abel
+
+  -- Step 5: Final combination using Filter.Tendsto.add
+  have h_combined_lim := (hALshift.add hBRshift).add_const (AM + BM)
+  rw [hmiddle] at h_combined_lim
+  simp only [fL, fR] at h_combined_lim
+  convert h_combined_lim using 1
+  · ext T; ring
+  · rw [hfourier]
+    congr 1
+    linear_combination hmiddle
 
 @[blueprint
   "first-contour-limit"
