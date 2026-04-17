@@ -2447,8 +2447,17 @@ theorem shift_upwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x 
   (proof := /-- We would like to integrate along $\Re z = 0$, but $\Phi^{\pm,\circ}_{\nu}(z)$ has a pole at $z = -\frac{i\nu}{2\pi}$; when dealing with this issue, we have to take care not to introduce poles on the lines $\Re z = -1$ and $\Re z = 1$ by separating $\Phi^{\pm,\circ}_{\nu}$ and $\Phi^{\pm,\star}_{\nu}$ prematurely. As $\Im z \to -\infty$, $e(-zx) = e^{-2\pi i z x}$ decays exponentially on $\Im z$, while, by Lemma~1.3, $\Phi^{\pm,\circ}_{\nu}(z) \pm \Phi^{\pm,\star}_{\nu}(z)$ grows at most linearly. -/)
   (latexEnv := "sublemma")
   (discussion := 1084)]
-theorem shift_downwards (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 -  I * t)) * E (-(-1 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t) - Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) - ∫ t in Set.Icc (-1/2:ℝ) 0, (Phi_star ν ε t * E (-t * x)) + ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t) - Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * t) * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t)) * E (- (1 - I * t) * x))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
+    Filter.Tendsto
+      (fun T ↦
+        (-I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (-1 - I * ↑t) - Phi_star ν ε (-1 - I * ↑t)) * E (-(-1 - I * ↑t) * ↑x)) +
+        (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (-1 / 2 - I * ↑t) - Phi_star ν ε (-1 / 2 - I * ↑t)) * E (-(-1 / 2 - I * ↑t) * ↑x)) +
+        (∫ (t : ℝ) in Set.Icc (-1 / 2 : ℝ) (1 / 2 : ℝ), Phi_circ ν ε ↑t * E (-↑t * ↑x)) -
+        (∫ (t : ℝ) in Set.Icc (-1 / 2 : ℝ) 0, Phi_star ν ε ↑t * E (-↑t * ↑x)) +
+        (∫ (t : ℝ) in Set.Icc 0 (1 / 2 : ℝ), Phi_star ν ε ↑t * E (-↑t * ↑x)) -
+        (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (1 / 2 - I * ↑t) + Phi_star ν ε (1 / 2 - I * ↑t)) * E (-(1 / 2 - I * ↑t) * ↑x)) +
+        (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (1 - I * ↑t) + Phi_star ν ε (1 - I * ↑t)) * E (-(1 - I * ↑t) * ↑x)))
+      Filter.atTop (nhds (𝓕 (ϕ_pm ν ε) x)) := by
     sorry
 
 @[blueprint
