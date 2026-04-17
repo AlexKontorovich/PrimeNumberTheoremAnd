@@ -249,8 +249,15 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
         (x.im * x.im + 4 * M * (M - x.re)) := by ring]
   bound
 
-lemma AnalyticOn.norm_le_of_norm_le_on_sphere
-    {f : ℂ → ℂ} {C R r : ℝ}
+@[blueprint
+  (statement := /--
+    An application of the Maximum modulus principle.
+  -/)
+  (proof := /--
+    This is standard in the literature.
+  -/)
+  (latexEnv := "lemma")]
+lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
     (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (hyp_r : r ≤ R)
     (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
