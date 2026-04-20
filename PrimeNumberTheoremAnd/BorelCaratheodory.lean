@@ -8,7 +8,8 @@ import Architect
 import Mathlib.Analysis.Complex.AbsMax
 import Mathlib.Analysis.Complex.RemovableSingularity
 
-@[blueprint
+
+@[blueprint "divRemovable_zero"
   (title := "divRemovable_zero")
   (statement := /--
     Given a complex function $f$, we define the function
@@ -20,7 +21,7 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ f z / z) 0 (deriv f 0)
 
-@[blueprint
+@[blueprint "divRemovable_zero_of_ne_zero"
   (title := "divRemovable_zero_of_ne_zero")
   (statement := /--
     Let $f$ be a complex function and let $z\neq 0$. Then, with
@@ -36,7 +37,7 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ)
     divRemovable_zero f z = f z / z := by
   apply Function.update_of_ne z_ne_0
 
-@[blueprint
+@[blueprint "AnalyticOn_divRemovable_zero"
   (title := "AnalyticOn_divRemovable_zero")
   (statement := /--
     Let $f$ be a complex function analytic on an open set $s$
@@ -92,7 +93,7 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
       rw [sub_zero, sub_zero]
     rwa [zero, T] at U
 
-@[blueprint
+@[blueprint "AnalyticOn_divRemovable_zero_closedBall"
   (title := "AnalyticOn_divRemovable_zero_closedBall")
   (statement := /--
     Let $f$ be a complex function analytic on the closed ball
@@ -191,7 +192,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
         (AnalyticOn.mono analytic
           Metric.ball_subset_closedBall)
 
-@[blueprint
+@[blueprint "schwartzQuotient"
   (title := "schwartzQuotient")
   (statement := /--
     Given a complex function $f$ and a real number $M$, we define
@@ -203,7 +204,7 @@ noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) :
     ℂ → ℂ :=
   fun z ↦ divRemovable_zero f z / (2 * M - f z)
 
-@[blueprint
+@[blueprint "AnalyticOn.schwartzQuotient"
   (title := "AnalyticOn.schwartzQuotient")
   (statement := /--
     Let $M>0$. Let $f$ be analytic on the closed ball $|z|\leq R$
@@ -230,7 +231,7 @@ lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ}
     (AnalyticOn_divRemovable_zero_closedBall Rpos analytic zero)
     (AnalyticOn.sub analyticOn_const analytic) nonzero
 
-@[blueprint
+@[blueprint "Complex.norm_le_norm_two_mul_sub_of_re_le"
   (title := "Complex.norm_le_norm_two_mul_sub_of_re_le")
   (statement := /--
     Let $M>0$ and let $x$ be a complex number such that
@@ -256,7 +257,7 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
         (x.im * x.im + 4 * M * (M - x.re)) := by ring]
   bound
 
-@[blueprint
+@[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
   (title := "AnalyticOn.norm_le_of_norm_le_on_sphere")
   (statement := /--
     An application of the Maximum modulus principle.
