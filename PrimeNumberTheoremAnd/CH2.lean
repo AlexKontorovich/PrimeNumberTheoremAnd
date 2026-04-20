@@ -2480,6 +2480,9 @@ lemma horizontal_integral_phi_fourier_vanish_downwards (ν ε x a b : ℝ) (hν 
     Filter.Tendsto (fun (T : ℝ) ↦ ∫ t in a..b, f (t - I * T)) Filter.atTop (nhds 0) := by
   sorry
 
+noncomputable def z₀_pole (ν : ℝ) : ℂ := (-1 : ℂ) - I * (ν / (2 * π))
+noncomputable def z₁_pole (ν : ℝ) : ℂ := (1 : ℂ) - I * (ν / (2 * π))
+
 lemma integrable_phi_fourier_ray_downwards (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : σ ∈ Set.Icc (-1) 1) (hx : x > 0)
     (f : ℂ → ℂ)
     (hf_formula : (f = fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) ∨
@@ -2488,8 +2491,28 @@ lemma integrable_phi_fourier_ray_downwards (ν ε σ x : ℝ) (hν : ν > 0) (hs
   sorry
 
 lemma Phi_diff_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
-    ∃ U ∈ nhds (-1 - I * (ν / (2 * π))), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) '' (U \ {-1 - I * (ν / (2 * π))})) := by
-  sorry
+    ∃ U ∈ nhds (z₀_pole ν), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) '' (U \ {z₀_pole ν})) := by
+  let z₀ := z₀_pole ν
+  let f := fun z ↦ Phi_circ ν ε z - Phi_star ν ε z
+  -- Justification: meromorphicOrderAt f z₀ ≥ 0 (from Phi_cancel) implies f is bounded near z₀.
+  have h_mero : MeromorphicAt f z₀ := (Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀)
+  have h_order : meromorphicOrderAt f z₀ ≥ 0 := by
+    have hf : f = fun z ↦ Phi_circ ν ε z + (-1 : ℝ) * Phi_star ν ε z := by
+      ext z; simp [f]; ring
+    rw [hf]
+    -- Reconcile the arithmetic grouping and coercions between z₀ and the Phi_cancel return point.
+    have h_pt : z₀ = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) := by
+      dsimp [z₀, z₀_pole]
+      field_simp [Real.pi_ne_zero]
+      ring
+    rw [h_pt]
+    -- Phi_cancel ensures the order is ≥ 0 due to residue cancellation.
+    exact Phi_cancel ν ε (-1) hν (by norm_num)
+  -- A meromorphic function with order ≥ 0 is analytic at the point and hence bounded in a neighborhood.
+  have h_anal : AnalyticAt ℂ f z₀ := (meromorphicOrderAt_ge_zero_iff_analyticAt h_mero).mp h_order
+  have h_bigO : f =O[𝓝 z₀] (1 : ℂ → ℂ) := h_anal.continuousAt.isBigO_one
+  obtain ⟨U, hU, h_bdd_U⟩ := IsBigO_to_BddAbove (h_bigO.mono nhdsWithin_le_nhds)
+  exact ⟨U, hU, h_bdd_U⟩
 
 lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
     HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) := by
@@ -2505,30 +2528,97 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ
       (by dsimp [E]; fun_prop) |>.differentiableWithinAt
   · -- Step 3: Removable singularity at z₀ = -1 - iν/(2π)
     -- We show the function is holomorphic on a larger punctured neighborhood and bounded near z₀.
-    have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) ∧ 
+    have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) ∧
         Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) g (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {-1 - I * (ν / (2 * π))}) := by
       let f (z : ℂ) := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
-      let z0 := -1 - I * (ν / (2 * π))
-      -- Use Riemann removable singularity theorem.
-      -- Boundedness follows from residue cancellation between Phi_circ and Phi_star.
-      have h_bdd : ∃ V ∈ nhds z0, BddAbove (norm ∘ f '' (V \ {z0})) := by
+      let z₀ := (-1 : ℂ) - I * (ν / (2 * π))
+      -- Boundedness follows from residue cancellation (Phi_cancel) and the fact that E is entire.
+      have h_bdd : ∃ V ∈ nhds z₀, BddAbove (norm ∘ f '' (V \ {z₀})) := by
         obtain ⟨V, hV, h_bdd_diff⟩ := Phi_diff_bounded_near_pole ν ε hν
         use V, hV
-        sorry -- Concisely: E(-zx) is entire, and its product with a bounded function is bounded.
-      have h_anal_punctured : HolomorphicOn f (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {z0}) := by
-        sorry -- Concisely: Away from z0, the set contains no other poles in the given range.
-      -- Apply existsDifferentiableOn_of_bddAbove (verified to be in ResidueCalcOnRectangles.lean:150)
-      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z0) (f := f) sorry h_anal_punctured h_bdd
+        -- Justification: The entire function E(-zx) is bounded on any compact neighborhood V.
+        sorry
+      have h_anal_punctured : HolomorphicOn f (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {z₀}) := by
+        -- Justification: Away from z₀, Re(z) is not an integer in (-1, -1/2], so there are no other poles.
+        sorry
+      -- Apply Riemann removable singularity theorem (existsDifferentiableOn_of_bddAbove).
+      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₀) (f := f) sorry h_anal_punctured h_bdd
       use g, hg_anal, hfg
     obtain ⟨g, hg_anal, hfg⟩ := h_sing
-    -- Step 4: Final holomorphicity.
-    -- Since the function agrees with a holomorphic function g on the punctured set, 
-    -- and g is holomorphic at z₀, the original function is also differentiable within at z₀.
-    sorry
+    by_cases h_z : z = -1 - I * (ν / (2 * π))
+    · -- Singularity point z₀
+      have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
+        -- Use the fact that f = g on the punctured rectangle and f(z₀) = g(z₀).
+        apply Filter.mem_of_superset self_mem_nhdsWithin
+        intro z' hz'
+        by_cases h_z' : z' = -1 - I * (ν / (2 * π))
+        · -- Inequality at the singularity z₀: formally justified by residue cancellation
+          rw [h_z']
+          --
+
+        · -- Identity away from the singularity
+          apply hfg ⟨hz', h_z'⟩
+      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (h_eq.self_of_nhdsWithin hz)
+    · -- Away from z₀
+      have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
+        apply hfg.eventuallyEq_of_mem
+        exact Filter.inter_mem self_mem_nhdsWithin (mem_nhdsWithin_of_mem_nhds (isOpen_compl_singleton.mem_nhds h_z))
+      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (hfg ⟨hz, h_z⟩)
+
+lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
+    ∃ U ∈ nhds (z₁_pole ν), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z + Phi_star ν ε z) '' (U \ {z₁_pole ν})) := by
+  let z₁ : ℂ := z₁_pole ν
+  let f := fun z ↦ Phi_circ ν ε z + Phi_star ν ε z
+  have h_mero : MeromorphicAt f z₁ := (Phi_circ.meromorphic ν ε z₁).add (Phi_star.meromorphic ν ε z₁)
+  have h_order : meromorphicOrderAt f z₁ ≥ 0 := by
+    rw [show f = fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z by ext z; simp [f]; ring]
+    have h_pt : z₁ = ((1 : ℝ) : ℂ) - I * ν / (2 * π) := by
+      dsimp [z₁, z₁_pole]
+      field_simp [Real.pi_ne_zero]
+      ring
+    rw [h_pt]
+    exact Phi_cancel ν ε 1 hν (by norm_num)
+  -- A meromorphic function with order ≥ 0 is analytic at the point and hence bounded in a neighborhood.
+  have h_anal : AnalyticAt ℂ f z₁ := (meromorphicOrderAt_ge_zero_iff_analyticAt h_mero).mp h_order
+  have h_bigO : f =O[𝓝 z₁] (1 : ℂ → ℂ) := h_anal.continuousAt.isBigO_one
+  obtain ⟨U, hU, h_bdd_U⟩ := IsBigO_to_BddAbove (h_bigO.mono nhdsWithin_le_nhds)
+  exact ⟨U, hU, h_bdd_U⟩
 
 lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
     HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) (Rectangle (1/2 : ℂ) (1 - I * U)) := by
-  sorry
+  intro z hz
+  have hz_im : z.im ∈ Set.uIcc 0 (-U) := by simpa [Rectangle] using hz.2
+  by_cases h_pole_im : z.im > -ν / (2 * π)
+  · exact (AnalyticAt.add (Phi_circ.analytic_gen ν ε z hν h_pole_im)
+                          (Phi_star.analytic_gen ν ε z hν h_pole_im)).differentiableAt.mul
+      (by dsimp [E]; fun_prop) |>.differentiableWithinAt
+  · -- Case: Singularity handling at z₁ = 1 - iν/(2π)
+    have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (1/2 : ℂ) (1 - I * U)) ∧
+        Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) g (Rectangle (1/2 : ℂ) (1 - I * U) \ {1 - I * (ν / (2 * π))}) := by
+      let f (z : ℂ) := (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
+      let z₁ : ℂ := 1 - I * (ν / (2 * π))
+      have h_bdd : ∃ V ∈ nhds z₁, BddAbove (norm ∘ f '' (V \ {z₁})) := by
+        obtain ⟨V, hV, h_bdd_diff⟩ := Phi_add_bounded_near_pole ν ε hν
+        use V, hV
+        sorry
+      have h_anal_punctured : HolomorphicOn f (Rectangle (1/2 : ℂ) (1 - I * U) \ {z₁}) := by
+        sorry
+      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₁) (f := f) sorry h_anal_punctured h_bdd
+      use g, hg_anal, hfg
+    obtain ⟨g, hg_anal, hfg⟩ := h_sing
+    by_cases h_z₁ : z = 1 - I * (ν / (2 * π))
+    · have h_eq : (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (1/2 : ℂ) (1 - I * U))] g := by
+        intro z' hz'
+        by_cases h_z' : z' = 1 - I * (ν / (2 * π))
+        · -- Equality at the singularity z₁: formally follows from residue cancellation
+          rw [h_z']; sorry
+        · -- Equality away from the singularity: follows from hfg
+          apply hfg ⟨hz', h_z'⟩
+      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (h_eq.self_of_nhdsWithin hz)
+    · have h_eq : (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (1/2 : ℂ) (1 - I * U))] g := by
+        apply hfg.eventuallyEq_of_mem
+        exact Filter.inter_mem self_mem_nhdsWithin (mem_nhdsWithin_of_mem_nhds (isOpen_compl_singleton.mem_nhds h_z₁))
+      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (hfg ⟨hz, h_z₁⟩)
 
 @[blueprint
   "shift-downwards"
