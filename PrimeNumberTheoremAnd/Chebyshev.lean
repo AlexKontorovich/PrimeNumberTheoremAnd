@@ -237,14 +237,10 @@ theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Ico 1 6) : E ν x = 1 := by
 theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by
   have h (k : ℝ) : (x + 30) / k = x / k + (30 / k) := by ring
   simp_rw [E_nu_expand, h 2, h 3, h 5, h 30]
-  norm_num -- the next few lines norm_num the "wrong way" so we can apply `floor_add_natCast`
-  rw [show (30 : ℝ) = (30 : ℕ) by norm_num]
-  rw [show (15 : ℝ) = (15 : ℕ) by norm_num]
-  rw [show (10 : ℝ) = (10 : ℕ) by norm_num]
-  rw [show (6 : ℝ) = (6 : ℕ) by norm_num]
-  rw [show (1: ℝ) = (1 : ℕ) by norm_num]
-  repeat rw [Nat.floor_add_natCast (by positivity)]
-  grind [ Nat.cast_add, Nat.cast_one]
+  norm_num
+  repeat rw [Nat.floor_add_ofNat (by positivity)]
+  rw [Nat.floor_add_one (by positivity)]
+  grind
 
 @[blueprint
   "cheby-E-val"
