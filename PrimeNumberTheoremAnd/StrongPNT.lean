@@ -260,8 +260,10 @@ open Classical
 @[blueprint "ZeroFactor"
   (title := "ZeroFactor")
   (statement := /--
-    Let $f:\mathbb{C}\to\mathbb{C}$.
-    We define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
+    Let $f:\mathbb{C}\to\mathbb{C}$ and $\rho\in\mathbb{C}$. Then there exists $h_\rho$ such that
+    $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z).$$
+    In LEAN, this corresponds exactly with (_.analyticOrderAt_ne_top.mp _).choose,
+    but this serves as a wrapper of that with the necessary conditions.
   -/)]
 noncomputable def ZeroFactor (f : ℂ → ℂ) (z : ℂ) : ℂ :=
   if h1 : AnalyticAt ℂ f z then
@@ -397,7 +399,6 @@ lemma CfAnalytic
       apply hh_w_analytic.div _ _ |> fun h => h.congr _;
       · use fun z => ∏ ρ ∈ finite_zeros_mono.toFinset \ { w }, ( z - ρ ) ^ analyticOrderNatAt f ρ;
       · exact analyticAt_finset_prod_sub_pow _ _ _
-      -- · fun_prop (disch := solve_by_elim);
       · simp only [Finset.prod_eq_zero_iff, ne_eq, pow_eq_zero_iff', Finset.mem_sdiff, Finite.mem_toFinset, Finset.mem_singleton, not_exists, not_and,
           Decidable.not_not, and_imp]
         intro x _ h_ne_w
@@ -524,10 +525,9 @@ lemma BlaschkeOfZero
 lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
   {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
-  (hf_neq_zero_at_zero : f 0 ≠ 0) (fz_bound : ∀ (z : ℂ), ‖z‖ ≤ R → ‖f z‖ ≤ B) :
-  ∀ z ∈ Metric.closedBall (0 : ℂ) R,
+  (hf_neq_zero_at_zero : f 0 ≠ 0) (fz_bound : ∀ (z : ℂ), ‖z‖ ≤ R → ‖f z‖ ≤ B)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) R) :
     ‖BlaschkeB r R f z‖ ≤ B := by
-  intro z hz
   refine AnalyticOn.norm_le_of_norm_le_on_sphere (AnalyticOnNhd.analyticOn (BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero)) (Std.IsPreorder.le_refl R) ?_ z hz
   intro w hw
   rw[mem_sphere_iff_norm, sub_zero] at hw
@@ -604,7 +604,7 @@ lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R
     _ ≤ B := by
       rw[← blaschke_eq]
       exact DiskBound r_lt_one R_pos r_lt_R R_lt_1 finiteZeros hfAnalytic
-        hf0_ne_zero fz_bound 0 (Metric.mem_closedBall_self (le_of_lt R_pos))
+        hf0_ne_zero fz_bound (Metric.mem_closedBall_self (le_of_lt R_pos))
 
 
 

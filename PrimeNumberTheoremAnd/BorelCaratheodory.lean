@@ -9,6 +9,7 @@ import Mathlib.Analysis.Complex.AbsMax
 import Mathlib.Analysis.Complex.RemovableSingularity
 
 @[blueprint
+  (title := "divRemovable_zero")
   (statement := /--
     Given a complex function $f$, we define the function
     $$g(z):=\begin{cases}
@@ -20,6 +21,7 @@ noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ f z / z) 0 (deriv f 0)
 
 @[blueprint
+  (title := "divRemovable_zero_of_ne_zero")
   (statement := /--
     Let $f$ be a complex function and let $z\neq 0$. Then, with
     $g$ defined as in Definition~\ref{divRemovable_zero},
@@ -35,6 +37,7 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ)
   apply Function.update_of_ne z_ne_0
 
 @[blueprint
+  (title := "AnalyticOn_divRemovable_zero")
   (statement := /--
     Let $f$ be a complex function analytic on an open set $s$
     containing $0$ such that $f(0)=0$.
@@ -90,6 +93,7 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     rwa [zero, T] at U
 
 @[blueprint
+  (title := "AnalyticOn_divRemovable_zero_closedBall")
   (statement := /--
     Let $f$ be a complex function analytic on the closed ball
     $|z|\leq R$ such that $f(0)=0$.
@@ -188,6 +192,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
           Metric.ball_subset_closedBall)
 
 @[blueprint
+  (title := "schwartzQuotient")
   (statement := /--
     Given a complex function $f$ and a real number $M$, we define
     the function
@@ -199,6 +204,7 @@ noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) :
   fun z ↦ divRemovable_zero f z / (2 * M - f z)
 
 @[blueprint
+  (title := "AnalyticOn.schwartzQuotient")
   (statement := /--
     Let $M>0$. Let $f$ be analytic on the closed ball $|z|\leq R$
     such that $f(0)=0$ and suppose that $2M - f(z)\neq 0$ for all
@@ -225,6 +231,7 @@ lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ}
     (AnalyticOn.sub analyticOn_const analytic) nonzero
 
 @[blueprint
+  (title := "Complex.norm_le_norm_two_mul_sub_of_re_le")
   (statement := /--
     Let $M>0$ and let $x$ be a complex number such that
     $\Re x\leq M$. Then, $|x|\leq|2M - x|$.
@@ -250,6 +257,7 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
   bound
 
 @[blueprint
+  (title := "AnalyticOn.norm_le_of_norm_le_on_sphere")
   (statement := /--
     An application of the Maximum modulus principle.
   -/)
