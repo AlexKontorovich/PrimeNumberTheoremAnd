@@ -10,7 +10,7 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 
 
 @[blueprint "divRemovable_zero"
-  (title := "divRemovable_zero")
+  (title := "divRemovable-zero")
   (statement := /--
     Given a complex function $f$, we define the function
     $$g(z):=\begin{cases}
@@ -22,7 +22,7 @@ noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ f z / z) 0 (deriv f 0)
 
 @[blueprint "divRemovable_zero_of_ne_zero"
-  (title := "divRemovable_zero_of_ne_zero")
+  (title := "divRemovalbe-zero-of-ne-zero")
   (statement := /--
     Let $f$ be a complex function and let $z\neq 0$. Then, with
     $g$ defined as in Definition~\ref{divRemovable_zero},
@@ -38,7 +38,7 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ)
   apply Function.update_of_ne z_ne_0
 
 @[blueprint "AnalyticOn_divRemovable_zero"
-  (title := "AnalyticOn_divRemovable_zero")
+  (title := "AnalyticOn-divRemovable-zero")
   (statement := /--
     Let $f$ be a complex function analytic on an open set $s$
     containing $0$ such that $f(0)=0$.
@@ -94,7 +94,7 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     rwa [zero, T] at U
 
 @[blueprint "AnalyticOn_divRemovable_zero_closedBall"
-  (title := "AnalyticOn_divRemovable_zero_closedBall")
+  (title := "AnalyticOn-divRemovable-zero-closedBall")
   (statement := /--
     Let $f$ be a complex function analytic on the closed ball
     $|z|\leq R$ such that $f(0)=0$.
@@ -232,7 +232,7 @@ lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ}
     (AnalyticOn.sub analyticOn_const analytic) nonzero
 
 @[blueprint "Complex.norm_le_norm_two_mul_sub_of_re_le"
-  (title := "Complex.norm_le_norm_two_mul_sub_of_re_le")
+  (title := "Complex.norm-le-norm-two-mul-sub-of-re-le")
   (statement := /--
     Let $M>0$ and let $x$ be a complex number such that
     $\Re x\leq M$. Then, $|x|\leq|2M - x|$.
@@ -258,7 +258,7 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
   bound
 
 @[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
-  (title := "AnalyticOn.norm_le_of_norm_le_on_sphere")
+  (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
   (statement := /--
     An application of the Maximum modulus principle.
   -/)
@@ -284,7 +284,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
   · rw [Metric.closure_closedBall]
     exact wInS
 
-@[blueprint "borelCaratheodory-closedBall"
+@[blueprint "borelCaratheodory_closedBall"
   (title := "borelCaratheodory-closedBall")
   (statement := /--
     Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that
