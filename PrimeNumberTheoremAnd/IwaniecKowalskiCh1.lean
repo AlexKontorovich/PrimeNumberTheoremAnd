@@ -7,6 +7,10 @@ open Finset Nat Real
 
 open scoped zeta sigma
 
+open scoped ArithmeticFunction.omega
+
+open scoped ArithmeticFunction.Moebius
+
 open scoped LSeries.notation
 
 namespace ArithmeticFunction
@@ -33,18 +37,21 @@ An arithmetic function `IsAdditive` if it satisfies the property that for any tw
 -/
 @[blueprint
   "IsAdditive"
+  (title := "IsAdditive")
   (statement := /-- Additive arithmetic function: satisfies $f(mn) = f(m) + f(n)$ for coprime $m$, $n$. -/)]
 def IsAdditive [AddZeroClass R] (f : ArithmeticFunction R) : Prop :=
   ∀ {m n : ℕ}, m ≠ 0 → n ≠ 0 → Coprime m n → f (m * n) = f m + f n
 
 @[blueprint
   "IsCompletelyAdditive"
+  (title := "IsCompletelyAdditive")
   (statement := /-- Completely additive arithmetic function: satisfies $f(mn) = f(m) + f(n)$ for all $m, n \ne 0$. -/)]
 def IsCompletelyAdditive [AddZeroClass R] (f : ArithmeticFunction R) : Prop :=
   ∀ {m n}, m ≠ 0 → n ≠ 0 → f (m * n) = f m + f n
 
 @[blueprint
   "IsCompletelyAdditive.isAdditive"
+  (title := "IsCompletelyAdditive.isAdditive")
   (statement := /-- A completely additive function is additive. -/)]
 lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R}
     (hf : IsCompletelyAdditive f) : IsAdditive f :=
@@ -54,6 +61,7 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
 
 @[blueprint
   "unique_divisor_decomposition"
+  (title := "unique divisor decomposition")
   (statement := /-- If $a$ and $b$ are coprime, then any divisor $d$ of $ab$ can be uniquely expressed as a product of a divisor of $a$ and a divisor of $b$.
     \begin{verbatim}
   This has been upstreamed #36495.
@@ -69,6 +77,7 @@ lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
   "sum_divisors_mul_of_coprime"
+  (title := "sum divisors mul of coprime")
   (statement := /-- If $f$ is a multiplicative arithmetic function, then for coprime, nonzero $a$ and $b$, we have that
   $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$.
   \begin{verbatim}
@@ -88,6 +97,7 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
 @[blueprint
   "sum_moebius_pmul_eq_prod_one_sub"
+  (title := "sum moebius pmul eq prod one sub")
   (statement := /-- If $g$ is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$.
       \begin{verbatim}
@@ -136,6 +146,7 @@ theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
 /-- The Dirichlet convolution of $\zeta$ with itself is $\tau$ (the divisor count function). -/
 @[blueprint
   "zeta_mul_zeta"
+  (title := "zeta mul zeta")
   (statement := /-- The Dirichlet convolution of $\zeta$ with itself is $\tau$ (the divisor count function). -/)
   (proof := /--
   By definition of $\zeta$, we have $\zeta(n) = 1$ for all $n \geq 1$. Thus, the Dirichlet convolution
@@ -156,6 +167,7 @@ theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
 /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/
 @[blueprint
   "LSeries_tau_eq_riemannZeta_sq"
+  (title := "LSeries tau eq riemannZeta sq")
   (statement := /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/)
   (proof := /--
   From the previous theorem, we have that the Dirichlet convolution of $\zeta$ with itself is $\tau$.
@@ -176,6 +188,7 @@ theorem LSeries_tau_eq_riemannZeta_sq {s : ℂ} (hs : 1 < s.re) :
     itself k times. We have `d 0 = 1` (identity), `d 1 = ζ`, `d 2 = σ 0`. -/
 @[blueprint
   "d"
+  (title := "d")
   (statement := /-- $d_k$ is the $k$-fold divisor function: the number of ways to write $n$ as an ordered
     product of $k$ natural numbers. Equivalently, the Dirichlet convolution of $\zeta$ with
     itself $k$ times.-/)]
@@ -184,6 +197,7 @@ def d (k : ℕ) : ArithmeticFunction ℕ := zeta ^ k
 /-- `d 0` is the multiplicative identity (indicator at 1). -/
 @[blueprint
   "d_zero"
+  (title := "d zero")
   (statement := /-- $d_0$ is the multiplicative identity (indicator at 1). -/)
   (proof := /--
   By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 0$, this corresponds to the empty convolution, which is defined to be the multiplicative identity in the algebra of arithmetic functions. The multiplicative identity is the function that takes the value $1$ at $n=1$ and $0$ elsewhere, which can be expressed as $\zeta^0$.
@@ -193,6 +207,7 @@ theorem d_zero : d 0 = 1 := pow_zero zeta
 /-- `d 1` is `ζ`. -/
 @[blueprint
   "d_one"
+  (title := "d one")
   (statement := /-- $d_1$ is $\zeta$. -/)
   (proof := /--
   By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 1$, this means we are taking the convolution of $\zeta$ with itself once, which simply gives us $\zeta$. Therefore, $d_1 = \zeta^1 = \zeta$.
@@ -202,6 +217,7 @@ theorem d_one : d 1 = zeta := pow_one zeta
 /-- `d 2` is the classical divisor count function `τ`. -/
 @[blueprint
   "d_two"
+  (title := "d two")
   (statement := /-- $d_2$ is the classical divisor count function $\tau$. -/)
   (proof := /--
   By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 2$, this means we are taking the convolution of $\zeta$ with itself twice, which gives us $\zeta * \zeta$. From the earlier theorem, we know that $\zeta * \zeta = \tau$, where $\tau$ is the divisor count function. Therefore, $d_2 = \zeta^2 = \tau$.
@@ -211,6 +227,7 @@ theorem d_two : d 2 = τ := by simp [d, sq, zeta_mul_zeta]
 /-- Recurrence: `d_(k+1) = d_k * ζ`. -/
 @[blueprint
   "d_succ"
+  (title := "d succ")
   (statement := /-- Recurrence: $d_{k+1} = d_k * \zeta$. -/)
   (proof := /--
   By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. Therefore, $d_{k + 1}$ is the $(k + 1)$-fold convolution of $\zeta$, which can be expressed as the convolution of $d_k$ (the $k$-fold convolution) with $\zeta$. Thus, we have $d_{k + 1} = d_k * \zeta$.
@@ -220,6 +237,7 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
 /-- The L-series for `d k` is summable -/
 @[blueprint
   "LSeries_d_summable"
+  (title := "LSeries d summable")
   (statement := /-- The L-series for $d_k$ is summable for $\Re(s) > 1$. -/)
   (proof := /--
   Since $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$, and we know that the L-series of $\zeta$ converges for $\Re(s) > 1$, it follows that the L-series of $d_k$ also converges for $\Re(s) > 1$. This is because the convolution of functions with convergent L-series will also have a convergent L-series in the same region. Therefore, we can conclude that $L(d_k, s)$ is summable for $\Re(s) > 1$.
@@ -238,6 +256,7 @@ theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
 /-- The L-series of `d k` equals `ζ(s)^k` for `Re(s) > 1`. -/
 @[blueprint
   "LSeries_d_eq_riemannZeta_pow"
+  (title := "LSeries d eq riemannZeta pow")
   (statement := /-- The $L$-series of $d_k$ equals $\zeta(s)^k$ for $\Re(s) > 1$. -/)
   (proof := /--
   From the definition of $d_k$ as the $k$-fold Dirichlet convolution of $\zeta$, we can express $d_k$ as $\zeta^k$. The L-series of a Dirichlet convolution corresponds to the product of the L-series of the individual functions. Since $L(\zeta, s)$ is the Riemann zeta function $\zeta(s)$, it follows that $L(d_k, s) = L(\zeta^k, s) = (L(\zeta, s))^k = \zeta(s)^k$ for $\Re(s) > 1$ where the series converges.
@@ -262,6 +281,7 @@ theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
 /-- `d k` is multiplicative for all `k`. -/
 @[blueprint
   "d_isMultiplicative"
+  (title := "d isMultiplicative")
   (statement := /-- $d_k$ is multiplicative for all $k$. -/)
   (proof := /--
   The function $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$. Since $\zeta$ is a multiplicative function, and the Dirichlet convolution of multiplicative functions is also multiplicative, it follows that $d_k$ is multiplicative for all $k$. This can be shown by induction on $k$, using the fact that the convolution of a multiplicative function with another multiplicative function remains multiplicative.
@@ -281,6 +301,7 @@ theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
   "d_apply_prime_pow"
+  (title := "d apply prime pow")
   (statement := /-- Explicit formula: $d_k (p^a) = (a + k - 1).choose (k - 1)$ for prime $p$ and $k \geq 1$. -/)
   (proof := /--
   The function $d_k$ counts the number of ways to write a natural number as an ordered product of $k$ natural numbers. For a prime power $p^a$, the number of ways to factor it into $k$ factors corresponds to the number of non-negative integer solutions to the equation $x_1 + x_2 + ... + x_k = a$, where each $x_i$ represents the exponent of $p$ in the factorization of the corresponding factor. This is a classic combinatorial problem, and the number of solutions is given by the formula $(a + k - 1).choose (k - 1)$, which counts the ways to distribute $a$ indistinguishable items (the prime factors) into $k$ distinguishable boxes (the factors).
@@ -298,6 +319,7 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
 /-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
 @[blueprint
   "d_apply"
+  (title := "d apply")
   (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d_k$ for all $n$. -/)
   (proof := /--
   The function $d_k$ is multiplicative, so to compute $d_k(n)$ for a general natural number $n$, we can factor $n$ into its prime power decomposition: $n = p_1^{a_1} p_2^{a_2} ... p_m^{a_m}$. Since $d_k$ is multiplicative, we have:
@@ -324,6 +346,7 @@ lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
   "sigmaR"
+  (title := "sigmaR")
   (statement := /-- Divisor power sum with complex exponent. -/)]
 noncomputable def sigmaR {R : Type*} [Semiring R] [HPow R R R] (s : R) : ArithmeticFunction R where
   toFun := fun n ↦ ∑ d ∈ n.divisors, (d : R) ^ s
@@ -335,6 +358,7 @@ scoped[ArithmeticFunction] notation "σᴿ" => ArithmeticFunction.sigmaR
 /-- For natural exponents, sigmaR agrees with sigma. -/
 @[blueprint
   "sigmaR_natCast"
+  (title := "sigmaR natCast")
   (statement := /-- For natural exponents, $\sigma^R$ agrees with $\sigma$. -/)
   (proof := /--
   The function $\sigma^R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma_k(n)$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma^R_k(n) = \sigma_k(n)$ when we view $\sigma_k(n)$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
@@ -346,12 +370,14 @@ lemma sigmaR_natCast (k n : ℕ) :
 
 @[blueprint
   "powR"
+  (title := "powR")
   (statement := /-- Arithmetic function with complex parameter $\nu$. Evaluates as $n\mapsto n^{\nu}$ for $n\neq 0$ and $0$ at $n=0$. -/)]
 noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
   ⟨fun n ↦ if n = 0 then 0 else (n : ℂ) ^ ν, by grind⟩
 
 @[blueprint
   "sigmaR_eq_zeta_mul_powR"
+  (title := "sigmaR eq zeta mul powR")
   (statement := /-- $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$, where $\zeta$ is the constant function $1$. -/)
   (proof := /--
   The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
@@ -366,6 +392,7 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
 
 @[blueprint
   "LSeries_powR_eq"
+  (title := "LSeries powR eq")
   (statement := /-- $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$.
   \begin{verbatim}
   This is IK (1.27).
@@ -391,6 +418,7 @@ lemma LSeries_powR_eq (ν : ℂ) {s : ℂ} (hs : 1 < (s - ν).re) :
 
 @[blueprint
   "abscissa_powR_le"
+  (title := "abscissa powR le")
   (statement := /-- The abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$. -/)
   (proof := /--
   We apply \ref{LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow} which states that if there exists a constant $C$ such that $\|f(n)\| \leq C \cdot n^r$ for all $n$ sufficiently large, then the abscissa of absolute convergence of $L(f, s)$ is at most $r + 1$. In our case, we can take $f(n) = n^\nu$ and observe that $\|n^\nu\| = n^{\Re(\nu)}$. Thus, we can choose $C = 1$ and $r = \Re(\nu)$, which gives us the desired result that the abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$.
@@ -406,6 +434,7 @@ lemma abscissa_powR_le (ν : ℂ) : LSeries.abscissaOfAbsConv (powR ν) ≤ ν.r
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
   "LSeries_sigma_eq_riemannZeta_mul"
+  (title := "LSeries sigma eq riemannZeta mul")
   (statement := /-- $\zeta(s)\zeta(s - \nu) = \sum_{n=1}^{\infty} \sigma_\nu(n) n^{-s}$ for $\Re(s) > 1$ and $\Re(s - \nu) > 1$. -/)
   (proof := /--
   The divisor power sum function $\sigma_\nu$ is the Dirichlet convolution of the constant function $1$ (i.e., $\zeta$) and the power function $n \mapsto n^\nu$. The L-series of a Dirichlet convolution is the product of the L-series of the individual functions. Since $L(1, s) = \zeta(s)$ and $L(n \mapsto n^\nu, s) = \zeta(s - \nu)$, we have $L(\sigma_\nu, s) = \zeta(s) \cdot \zeta(s - \nu)$ for $\Re(s) > 1$ and $\Re(s - \nu) > 1$.
@@ -425,6 +454,7 @@ Ramanujan formula:
 `ζ(s)ζ(s-α)ζ(s-β)ζ(s-α-β)=ζ(2s-α-β) ∑ σ_α(n)σ_β(n)n^(-s)`. -/
 @[blueprint
   "zeta_mul_zeta_mul_zeta_mul_zeta_eq"
+  (title := "zeta mul zeta mul zeta mul zeta eq")
   (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$.
   \begin{verbatim}
   This is IK (1.28).
@@ -443,6 +473,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
 /-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)`-/
 @[blueprint
   "zeta_pow_four_eq"
+  (title := "zeta pow four eq")
   (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$.
   \begin{verbatim}
   This is IK (1.29).
@@ -454,13 +485,18 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
 theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
     (h4 : 1 < (s - 0 - 0).re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs h2 h3 h4) using 1
+  · ring_nf
+  · congr
+    · ring_nf
+    · simp [tau, sigma, sigmaR, pow_two]
 
 /--
 Baby Rankin-Selberg:
 `ζ(s)∑τ(n^2)n^-s = ∑τ(n)^2 n^-s`. -/
 @[blueprint
   "zeta_mul_tau_square_eq"
+  (title := "zeta mul tau square eq")
   (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$.
   \begin{verbatim}
   Precursor to IK (1.30).
@@ -478,6 +514,7 @@ Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
 @[blueprint
   "zeta_pow_three_eq"
+  (title := "zeta pow three eq")
   (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
   \begin{verbatim}
   This is IK (1.30).
@@ -495,6 +532,7 @@ Zeta cubed alt:
 `ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
 @[blueprint
   "zeta_pow_three_eq_alt"
+  (title := "zeta pow three eq alt")
   (statement := /-- symmetric square $L$-function for $\zeta^2$:
   $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}.$$
   \begin{verbatim}
@@ -509,5 +547,53 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
   sorry
+
+/--
+Zeta squared:
+`ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
+where omega is the number of distinct prime factors.-/
+@[blueprint
+  "zeta_pow_two"
+  (title := "zeta pow two")
+  (statement := /--
+  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}.$$
+  \begin{verbatim}
+    An expression for `ζ^2`, in IK (1.31).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  Follows from previous arguments.
+  -/)]
+lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 2 =
+    riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
+  sorry
+
+-- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
+-- of `n` being squarefree.
+
+/--
+Zeta alt:
+`ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
+where omega is the number of distinct prime factors.-/
+@[blueprint
+  "zeta_alt"
+  (title := "zeta alt")
+  (statement := /--
+  $$\zeta(s) =\zeta(2s) \sum_{n=1}^{\infty} |\mu(n)| n^{-s}.$$
+  \begin{verbatim}
+    An expression for `ζ`, in IK (1.32).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  The series $\sum_{n=1}^{\infty} |\mu(n)| n^{-s}$ has Euler product $\prod_{p} (1 + p^{-s})$. On the other hand, $\zeta(2s)=\prod_p (1 - p^{-2s})^{-1}$. The product of these two Euler products is $\prod_p (1 - p^{-s})^{-1} = \zeta(s)$, which gives the desired formula.
+  -/)]
+lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s =
+    riemannZeta (2 * s) * LSeries (fun (n : ℕ) ↦ (μ n : ℂ) ^ 2) s := by
+  sorry
+
+-- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
+
 
 end ArithmeticFunction
