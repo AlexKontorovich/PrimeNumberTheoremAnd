@@ -261,7 +261,7 @@ open Classical
   (title := "ZeroFactor")
   (statement := /--
     Let $f:\mathbb{C}\to\mathbb{C}$ and $\rho\in\mathbb{C}$. Then there exists $h_\rho$ such that
-    $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z).$$
+    $$f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z).$$
     In LEAN, this corresponds exactly with (_.analyticOrderAt_ne_top.mp _).choose,
     but this serves as a wrapper of that with the necessary conditions.
   -/)]
