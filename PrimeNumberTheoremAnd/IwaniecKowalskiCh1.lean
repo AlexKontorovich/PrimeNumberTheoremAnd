@@ -316,7 +316,7 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
       simp_rw [fun i ↦ ih i (succ_pos _)]
       simpa [add_assoc, add_left_comm, add_comm] using sum_range_add_choose a k'
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`. -/
 @[blueprint
   "d_apply"
   (title := "d apply")
@@ -697,7 +697,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
   sorry
 
-/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)`-/
+/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
 @[blueprint
   "zeta_pow_four_eq"
   (title := "zeta pow four eq")
@@ -749,7 +749,7 @@ Zeta cubed:
   -/)
   (proof := /--
   This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
-  -/) ]
+  -/)]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
   sorry
@@ -778,7 +778,7 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
 /--
 Zeta squared:
 `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
-where omega is the number of distinct prime factors.-/
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_pow_two"
   (title := "zeta pow two")
@@ -802,7 +802,7 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
 /--
 Zeta alt:
 `ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
-where omega is the number of distinct prime factors.-/
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_alt"
   (title := "zeta alt")
