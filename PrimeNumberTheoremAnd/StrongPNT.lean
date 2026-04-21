@@ -262,7 +262,7 @@ open Classical
   (statement := /--
     Let $f:\mathbb{C}\to\mathbb{C}$ and $\rho\in\mathbb{C}$. Then there exists $h_\rho$ such that
     $$f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z).$$
-    In LEAN, this corresponds exactly with (_.analyticOrderAt_ne_top.mp _).choose,
+    In LEAN, this corresponds exactly with (-.analyticOrderAt-ne-top.mp -).choose,
     but this serves as a wrapper of that with the necessary conditions.
   -/)]
 noncomputable def ZeroFactor (f : ℂ → ℂ) (z : ℂ) : ℂ :=
