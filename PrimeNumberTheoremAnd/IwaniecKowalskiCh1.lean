@@ -466,7 +466,7 @@ lemma sigmaR_one_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
   (proof := /--
     Note that $d\ mapsto n/d$ forms a one-to-one mapping between the divisors of $n$. Using this in
     combination with the definiton we have that
-    $$\sigma^R_s(n)=\sum_{d\mid n}d^s=\sum_{d\mid n}(n/d)^s.
+    $$\sigma^R_s(n)=\sum_{d\mid n}d^s=\sum_{d\mid n}(n/d)^s.$$
   -/)]
 lemma sigmaR_eq_sum_div {n : ℕ} {s : ℂ} :
     σᴿ s n = ∑ d ∈ divisors n, ((n / d) : ℂ) ^ s := by
