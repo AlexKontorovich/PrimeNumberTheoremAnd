@@ -1202,18 +1202,94 @@ lemma w_re_ne {ν : ℝ} {z : ℂ} (h_not_pole : z.im ≠ -ν / (2 * π)) :
   replace h : 2 * π * z.im = -ν := by linarith
   have : (2 * π) * z.im / (2 * π) = -ν / (2 * π) := by rw [h]
   rwa [mul_div_cancel_left₀ _ hpi.ne'] at this
+lemma sinh_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
+    Complex.sinh ((-2 * π * I * z + ν) / 2) ≠ 0 := by
+  intro h
+  have h_exp : Complex.exp ((-2 * π * I * z + ν) / 2) =
+               Complex.exp (-((-2 * π * I * z + ν) / 2)) := by
+    have h1 : Complex.sinh ((-2 * π * I * z + ν) / 2) =
+      (Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))) / 2 := rfl
+    rw [h1] at h
+    have h2 : Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2)) = 0 := by
+      calc Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))
+        _ = (Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))) / 2 * 2 := by ring
+        _ = 0 * 2 := by rw [h]
+        _ = 0 := by ring
+    exact sub_eq_zero.mp h2
+  rw [Complex.exp_eq_exp_iff_exists_int] at h_exp
+  obtain ⟨k, hk⟩ := h_exp
+  have h_z : z = ↑(-k) - I * ν / (2 * π) := by
+    have h2 : -2 * π * I * z + ν = k * (2 * π * I) := by linear_combination hk
+    have hpi : (2 * (π : ℂ) * I) ≠ 0 := by
+      apply mul_ne_zero
+      · apply mul_ne_zero (by norm_num) (by exact_mod_cast Real.pi_pos.ne')
+      · exact I_ne_zero
+    calc z
+      _ = (- (k * (2 * π * I)) + ν) / (2 * π * I) := by
+        apply mul_right_cancel₀ hpi
+        rw [div_mul_cancel₀ _ hpi]
+        linear_combination -h2
+      _ = ↑(-k) - I * ν / (2 * π) := by
+        push_cast
+        have hpi2 : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
+        have h_div1 : (- (k * (2 * π * I))) / (2 * π * I) = -k := by
+          rw [neg_div, mul_div_cancel_right₀ _ hpi]
+        have h_div2 : (ν : ℂ) / (2 * π * I) = - I * ν / (2 * π) := by
+          field_simp [hpi2, I_ne_zero]
+          ring_nf
+          simp [I_sq]
+        rw [add_div, h_div1, h_div2]
+        ring
+  exact h_not_pole (-k) h_z
 
-/-- Phi_circ is analytic whenever we are away from the horizontal line containing the poles. -/
-theorem Phi_circ.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
+lemma w_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
+    -2 * π * I * z + ν ≠ 0 := by
+  intro h
+  have hz : z = ↑(0 : ℤ) - I * ν / (2 * π) := by
+    have hpi : (2 * (π : ℂ) * I) ≠ 0 := by
+      apply mul_ne_zero
+      · apply mul_ne_zero (by norm_num) (by exact_mod_cast Real.pi_pos.ne')
+      · exact I_ne_zero
+    calc z
+      _ = (-0 + ν) / (2 * π * I) := by
+        apply mul_right_cancel₀ hpi
+        rw [div_mul_cancel₀ _ hpi]
+        linear_combination -h
+      _ = ↑(0 : ℤ) - I * ν / (2 * π) := by
+        push_cast
+        have hpi2 : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
+        have h_div1 : (- (0 : ℂ)) / (2 * π * I) = 0 := by ring
+        have h_div2 : (ν : ℂ) / (2 * π * I) = - I * ν / (2 * π) := by
+          field_simp [hpi2, I_ne_zero]
+          ring_nf
+          simp [I_sq]
+        rw [add_div, h_div1, h_div2]
+        ring
+  exact h_not_pole 0 hz
+
+/-- Phi_circ is analytic whenever we are away from the poles. -/
+theorem Phi_circ.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
     AnalyticAt ℂ (Phi_circ ν ε) z := by
   set w : ℂ := -2 * π * I * z + ν
-  have hw_re_ne : w.re ≠ 0 := w_re_ne h_not_pole
   have h_an : AnalyticAt ℂ (fun s : ℂ ↦ coth (s / 2)) w := by
     have heq : (fun s : ℂ ↦ coth (s / 2)) =ᶠ[nhds w] (fun s ↦ Complex.cosh (s / 2) / Complex.sinh (s / 2)) :=
       Filter.Eventually.of_forall (fun s ↦ by unfold coth; simp [Complex.tanh_eq_sinh_div_cosh])
     apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simpa using hw_re_ne))
+    fun_prop (disch := exact sinh_ne_zero_of_not_pole h_not_pole)
   unfold Phi_circ; fun_prop (disch := exact [h_an.comp (by fun_prop), by simp [w]; fun_prop])
+
+/-- Phi_circ is analytic whenever we are away from the horizontal line containing the poles. -/
+theorem Phi_circ.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_circ ν ε) z :=
+  Phi_circ.analyticAt_of_not_pole ν ε z (by
+    intro n hn
+    apply h_not_pole
+    have h_im : (↑n - I * ↑ν / (2 * ↑π)).im = -ν / (2 * π) := by
+      simp [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_im, Complex.I_re, Complex.ofReal_re, Complex.div_im]
+      have hpi : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
+      field_simp [hpi]
+    rw [hn]
+    exact h_im)
 
 theorem Phi_circ.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) :
     AnalyticAt ℂ (Phi_circ ν ε) z :=
@@ -1229,19 +1305,30 @@ theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im 
   Phi_circ.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
 
 
-theorem Phi_star.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
+theorem Phi_star.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z := by
   set w : ℂ := -2 * π * I * z + ν
-  have hw_re_ne : w.re ≠ 0 := w_re_ne h_not_pole
-  have hw_ne : w ≠ 0 := by intro h; apply hw_re_ne; simp [h]
+  have hw_ne : w ≠ 0 := w_ne_zero_of_not_pole h_not_pole
   have hB_an : AnalyticAt ℂ (B ε) w := by
     have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
       filter_upwards [continuous_id.continuousAt.eventually_ne hw_ne] with s hs
       have : s ≠ 0 := hs
       simp [B, this, coth, Complex.tanh_eq_sinh_div_cosh]
     apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simpa using hw_re_ne))
+    fun_prop (disch := exact sinh_ne_zero_of_not_pole h_not_pole)
   unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop])
+
+theorem Phi_star.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_star ν ε) z :=
+  Phi_star.analyticAt_of_not_pole ν ε z (by
+    intro n hn
+    apply h_not_pole
+    have h_im : (↑n - I * ↑ν / (2 * ↑π)).im = -ν / (2 * π) := by
+      simp [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_im, Complex.I_re, Complex.ofReal_re, Complex.div_im]
+      have hpi : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
+      field_simp [hpi]
+    rw [hn]
+    exact h_im)
 
 theorem Phi_star.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im > -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z :=
@@ -2495,9 +2582,42 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
       RectangleIntegral f σ (σ' - I * T) =
       (∫ t in σ..σ', f t) - (∫ t in σ..σ', f (t - I * T)) - (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) + (I * ∫ t in Set.Icc 0 T, f (σ - I * t)) := by
     dsimp [RectangleIntegral, HIntegral, VIntegral]
-    -- The signs for the horizontal segments follow from the top (y=0) and bottom (y=-T) integrals.
-    -- The vertical segments use the parameterization y = -t to match the goal's Icc 0 T rays.
-    sorry
+    -- h1: Simplify the top horizontal segment: ∫ x in σ..σ', f(x + 0*I) = ∫ x in σ..σ', f(x).
+    have h1 : ∫ (x : ℝ) in σ..σ' - (0 * T - 1 * 0), f (↑x + 0 * I) = ∫ x in σ..σ', f ↑x := by
+      rw [show σ' - (0 * T - 1 * 0) = σ' by ring]
+      apply intervalIntegral.integral_congr
+      intro x _; push_cast; ring_nf
+    -- h2: Simplify the bottom horizontal segment: ∫ x in σ..σ', f(x + (0 - (0*0 + 1*T)) * I) = ∫ x in σ..σ', f(x - I*T).
+    have h2 : ∫ (x : ℝ) in σ..σ' - (0 * T - 1 * 0), f (↑x + ↑(0 - (0 * 0 + 1 * T)) * I) = ∫ x in σ..σ', f (↑x - I * ↑T) := by
+      rw [show σ' - (0 * T - 1 * 0) = σ' by ring]
+      apply intervalIntegral.integral_congr
+      intro x _; push_cast; ring_nf
+    -- h3: Parameterize the right vertical segment y ∈ [0, -T] using y = -t to get -∫ t ∈ [0, T], f(σ' - i*t).
+    -- Sketch: Use intervalIntegral.integral_comp_neg with substitution u = -t.
+    -- This reflects the interval [0, -T] to [0, T] and introduces a negative sign from the differential.
+    -- Then we use integral_of_le hT and Icc_eq_Ioc to match the Set.Icc integral in the goal.
+    have h3 : ∫ (y : ℝ) in 0..0 - (0 * 0 + 1 * T), f (↑(σ' - (0 * T - 1 * 0)) + ↑y * I) =
+        - ∫ t in Set.Icc 0 T, f (↑σ' - I * ↑t) := by
+      rw [show 0 - (0 * 0 + 1 * T) = -T by ring, show σ' - (0 * T - 1 * 0) = σ' by ring]
+      rw [show (0 : ℝ) = -0 by simp]
+      rw [← intervalIntegral.integral_comp_neg (f := fun y ↦ f (↑σ' + ↑y * I)) (a := T) (b := 0)]
+      -- simp only [neg_neg]
+      rw [intervalIntegral.integral_symm, intervalIntegral.integral_of_le hT, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      simp only [neg_zero]
+      congr 1; apply integral_congr_ae; apply Filter.Eventually.of_forall; intro y
+      push_cast; ring_nf
+    -- h4: Parameterize the left vertical segment y ∈ [0, -T] using y = -t to get -∫ t ∈ [0, T], f(σ - i*t).
+    -- Sketch: Analogous to h3, reflecting the left vertical edge using y = -t.
+    have h4 : ∫ (y : ℝ) in 0..0 - (0 * 0 + 1 * T), f (↑σ + ↑y * I) = - ∫ t in Set.Icc 0 T, f (↑σ - I * ↑t) := by
+      rw [show 0 - (0 * 0 + 1 * T) = -T by ring]
+      rw [show (0 : ℝ) = -0 by simp]
+      rw [← intervalIntegral.integral_comp_neg (f := fun y ↦ f (↑σ + ↑y * I)) (a := T) (b := 0)]
+      rw [intervalIntegral.integral_symm, intervalIntegral.integral_of_le hT, MeasureTheory.integral_Icc_eq_integral_Ioc]
+      simp only [neg_zero]
+      congr 1; apply integral_congr_ae; apply Filter.Eventually.of_forall; intro y
+      push_cast; ring_nf
+    rw [h1, h2, h3, h4]
+    ring
 
   -- Step 2: Show that for a holomorphic function, the integral over any rectangle is zero.
   have h_zero : Filter.Tendsto (fun (T : ℝ) ↦ RectangleIntegral f σ (σ' - I * T)) Filter.atTop (nhds 0) := by
@@ -2702,7 +2822,9 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ
           rw [hn]; simp [Complex.sub_re, Complex.ofReal_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_im, Complex.div_re]
         have h_hz := hz
         rw [Rectangle, Complex.mem_reProdIm] at h_hz
-        simp [Complex.sub_re, Complex.ofReal_re, Complex.I_re, Complex.I_im, Complex.mul_re, Complex.ofReal_im] at h_hz
+        simp only [neg_re, one_re, sub_re, div_ofNat_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
+          ofReal_im, mul_zero, sub_self, sub_zero, neg_im, one_im, neg_zero, sub_im, div_ofNat_im,
+          zero_div, mul_im, one_mul, zero_add, zero_sub] at h_hz
         have h_n_re : (n : ℝ) ∈ Set.Icc (-1) (-1 / 2) := by
           rw [Set.uIcc_of_le (by norm_num)] at h_hz
           rw [← h_z_re]
@@ -2725,7 +2847,7 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ
             push_cast; simp; norm_cast
           · dsimp [z₀]
             rw [h_z_im]
-            push_cast; norm_cast; simp; ring
+            norm_cast; simp; ring
         exact hz₀ h_z₀
 
         -- sketch: from hz (z ∈ Rectangle), z.re ∈ [-1, -1/2];
@@ -2734,11 +2856,8 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ
       -- Step 2: Analyticity of Phi_circ - Phi_star at z (not a pole)
       have h_anal_z : AnalyticAt ℂ (fun w ↦ Phi_circ ν ε w - Phi_star ν ε w) z := by
         apply AnalyticAt.sub
-        · rw [← meromorphicOrderAt_nonneg_iff_analyticAt (Phi_circ.meromorphic ν ε z), ← not_lt]
-          exact (Phi_circ.poles ν ε hν z).not.mpr h_not_pole
-        · rw [← meromorphicOrderAt_nonneg_iff_analyticAt (Phi_star.meromorphic ν ε z), ← not_lt]
-          exact (Phi_star.poles ν ε hν z).not.mpr h_not_pole
-
+        · exact Phi_circ.analyticAt_of_not_pole ν ε z h_not_pole
+        · exact Phi_star.analyticAt_of_not_pole ν ε z h_not_pole
       -- Step 3: E(-z*x) is entire
       have h_anal_E_z : AnalyticAt ℂ (fun w ↦ E (-w * ↑x)) z := by
         simpa [E] using analyticAt_cexp.comp
