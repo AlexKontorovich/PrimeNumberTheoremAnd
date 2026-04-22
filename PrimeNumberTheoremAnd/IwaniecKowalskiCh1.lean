@@ -413,19 +413,6 @@ lemma sigmaR_apply_prime_pow {p i : ℕ} {s : ℂ} (hp : p.Prime) :
   exact Eq.symm (Complex.natCast_cpow_natCast_mul p x s)
 
 @[blueprint
-  "sigmaR_natOne_apply"
-  (title := "sigmaR-natOne-apply")
-  (statement := /--
-    We have that $\sigma^R_1(n)=\sum_{d\mid n}d$.
-  -/)
-  (proof := /--
-    Applying the definition we have
-    $$\sigma^R_1(n)=\sum_{d\mid n}d^1=\sum_{d\mid n}d.$$
-  -/)]
-lemma sigmaR_natOne_apply (n : ℕ) : σᴿ 1 n = ∑ d ∈ divisors n, d := by
-  simp only [sigmaR_natCast, sigma_apply, pow_one]
-
-@[blueprint
   "sigmaR_one_apply"
   (title := "sigmaR-one-apply")
   (statement := /--
@@ -433,19 +420,6 @@ lemma sigmaR_natOne_apply (n : ℕ) : σᴿ 1 n = ∑ d ∈ divisors n, d := by
   -/)]
 lemma sigmaR_one_apply (n : ℕ) : σᴿ (1 : ℂ) n = ∑ d ∈ divisors n, d := by
   simp only [sigmaR_apply, Complex.cpow_one, cast_sum]
-
-@[blueprint
-  "sigmaR_natOne_apply_prime_pow"
-  (title := "sigmaR-natOne-apply-prime-pow")
-  (statement := /--
-    For a prime power, we have that $\sigma^R_1(p^i)=\sum_{j=0}^ip^j$.
-  -/)
-  (proof := /--
-    Apply Lemma \ref{sigmaR_apply_prime_pow}.
-  -/)]
-lemma sigmaR_natOne_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
-    σᴿ 1 (p ^ i) = ∑ k ∈ .range (i + 1), p ^ k := by
-  simp only [sigmaR_natCast, sigma_one_apply_prime_pow hp]
 
 @[blueprint
   "sigmaR_one_apply_prime_pow"
@@ -476,20 +450,6 @@ lemma sigmaR_eq_sum_div {n : ℕ} {s : ℂ} :
   rw[Nat.cast_div (dvd_of_mem_divisors hd) (Nat.cast_ne_zero.mpr (Nat.pos_of_mem_divisors hd).ne')]
 
 @[blueprint
-  "sigmaR_natZero_apply"
-  (title := "sigmaR-natZero-apply")
-  (statement := /--
-    We have that $\sigma^R_0(n)=|\{d\in\mathbb{N}: d\mid n\}|$.
-  -/)
-  (proof := /--
-    By definition we have that
-    $$\sigma^R_0(n)=\sum_{d\mid n}d^0=|\{d\in\mathbb{N}: d\mid n\}|.$$
-  -/)]
-lemma sigmaR_natZero_apply (n : ℕ) :
-    σᴿ 0 n = #n.divisors := by
-  simp only [sigmaR_natCast, sigma_zero_apply]
-
-@[blueprint
   "sigmaR_zero_apply"
   (title := "sigmaR-zero-apply")
   (statement := /--
@@ -498,20 +458,6 @@ lemma sigmaR_natZero_apply (n : ℕ) :
 lemma sigmaR_zero_apply (n : ℕ) :
     σᴿ (0 : ℂ) n = #n.divisors := by
   simp only [sigmaR_apply, Complex.cpow_zero, sum_const, nsmul_eq_mul, mul_one]
-
-@[blueprint
-  "sigmaR_natZero_apply_prime_pow"
-  (title := "sigmaR-natZero-apply-prime-pow")
-  (statement := /--
-    If $p$ is prime, we have that $\sigma^R_0(p^i)=i+1$.
-  -/)
-  (proof := /--
-    Note that $p^i$ has exactly $i+1$ divisors, namely $p^0,p^1,\ldots ,p^i$.
-    Apply Lemma \ref{sigmaR_zero_apply}.
-  -/)]
-lemma sigmaR_natZero_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
-    σᴿ 0 (p ^ i) = i + 1 := by
-  rw[sigmaR_natCast, sigma_zero_apply_prime_pow hp]
 
 @[blueprint
   "sigmaR_zero_apply_prime_pow"
@@ -555,18 +501,16 @@ noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
     This immediately follows from the fact that exponentiation with a fixed power is a homomorphism.
   -/)]
 theorem isMultiplicative_powR {ν : ℂ} : IsMultiplicative (powR ν) := by
-  constructor
-  · simp only [powR, coe_mk, one_ne_zero, ↓reduceIte, cast_one, Complex.one_cpow]
-  · intro m n mCn
-    simp only [powR, ArithmeticFunction.coe_mk]
-    rcases Nat.eq_zero_or_pos m with rfl | hm
-    · simp only [zero_mul, ↓reduceIte, mul_ite, mul_zero, ite_self]
-    rcases Nat.eq_zero_or_pos n with rfl | hn
-    · simp only [mul_zero, ↓reduceIte]
-    have hmn_pos : m * n ≠ 0 := Nat.mul_ne_zero hm.ne' hn.ne'
-    simp only [hm.ne', hn.ne', hmn_pos, if_false]
-    push_cast
-    exact Complex.natCast_mul_natCast_cpow m n ν
+  refine ⟨by simp [powR], fun {m n : ℕ} mCn => ?_⟩
+  simp only [powR, ArithmeticFunction.coe_mk]
+  rcases Nat.eq_zero_or_pos m with rfl | hm
+  · simp only [zero_mul, ↓reduceIte, mul_ite, mul_zero, ite_self]
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simp only [mul_zero, ↓reduceIte]
+  have hmn_pos : m * n ≠ 0 := Nat.mul_ne_zero hm.ne' hn.ne'
+  simp only [hm.ne', hn.ne', hmn_pos, if_false]
+  push_cast
+  exact Complex.natCast_mul_natCast_cpow m n ν
 
 @[blueprint
   "sigmaR_eq_zeta_mul_powR"
@@ -596,8 +540,8 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
   -/)]
 lemma isMultiplicative_sigmaR {s : ℂ} :
     IsMultiplicative (σᴿ s) := by
-  rw[sigmaR_eq_zeta_mul_powR]
-  exact IsMultiplicative.mul (IsMultiplicative.natCast isMultiplicative_zeta) isMultiplicative_powR
+  rw [sigmaR_eq_zeta_mul_powR]
+  exact isMultiplicative_zeta.natCast.mul  isMultiplicative_powR
 
 @[blueprint
   "sigmaR_eq_prod_primeFactors_sum_range_factorization_pow_mul"
