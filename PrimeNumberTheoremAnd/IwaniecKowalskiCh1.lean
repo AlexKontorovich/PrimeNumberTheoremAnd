@@ -482,10 +482,10 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
   (proof := /--
   This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
   -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
-    (h4 : 1 < (s - 0 - 0).re) :
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs h2 h3 h4) using 1
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
+      (by simpa using hs)) using 1
   · ring_nf
   · congr
     · ring_nf
@@ -525,7 +525,8 @@ Zeta cubed:
   -/) ]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  sorry
+  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
+  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
 /--
 Zeta cubed alt:
