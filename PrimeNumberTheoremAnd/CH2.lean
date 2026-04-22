@@ -10,6 +10,7 @@ import Mathlib.RingTheory.SimpleRing.Principal
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import Mathlib.Analysis.Meromorphic.NormalForm
 import PrimeNumberTheoremAnd.PerronFormula
 
 open Real
@@ -1178,63 +1179,82 @@ theorem Phi_star.continuousAt_imag (ν ε t : ℝ) (ht : 0 ≤ t) (hν : ν > 0)
     exact hg.comp hf
   · exact continuousAt_const
 
+lemma w_re (ν : ℝ) (z : ℂ) : (-2 * π * I * z + ν).re = 2 * π * z.im + ν := by
+  simp [neg_mul, add_re, neg_re, mul_re, I_re, I_im, re_ofNat, im_ofNat, ofReal_re, ofReal_im]
+
 lemma w_re_pos {ν : ℝ} {z : ℂ} (hν : ν > 0) (hz_im : 0 ≤ z.im) :
     0 < (-2 * π * I * z + ν).re := by
-  dsimp; simp; nlinarith [hν, hz_im, Real.pi_pos]
+  rw [w_re]; nlinarith [Real.pi_pos]
 
-theorem Phi_circ.analytic (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) : AnalyticAt ℂ (Phi_circ ν ε) z := by
-  set w : ℂ := -2 * π * I * z + ν
-  have hw_re : 0 < w.re := w_re_pos hν hz_im
-  have h_an : AnalyticAt ℂ (fun s : ℂ ↦ coth (s / 2)) w := by
-    have heq : (fun s : ℂ ↦ coth (s / 2)) =ᶠ[nhds w] (fun s ↦ Complex.cosh (s / 2) / Complex.sinh (s / 2)) :=
-      Filter.Eventually.of_forall (fun s ↦ by unfold coth; simp [Complex.tanh_eq_sinh_div_cosh])
-    apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
-  unfold Phi_circ; fun_prop (disch := exact [h_an.comp (by fun_prop), by simp [w]; fun_prop])
-
-theorem Phi_star.analytic (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) : AnalyticAt ℂ (Phi_star ν ε) z := by
-  set w : ℂ := -2 * π * I * z + ν
-  have hw_re : 0 < w.re := w_re_pos hν hz_im
-  have hB_an : AnalyticAt ℂ (B ε) w := by
-    have hw_ne : w ≠ 0 := by intro h; have := congrArg Complex.re h; simp at this; linarith [hw_re]
-    have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
-      filter_upwards [continuous_id.continuousAt.eventually_ne hw_ne] with s hs
-      dsimp at hs
-      simp only [B, coth, hs, ↓reduceIte, Complex.tanh_eq_sinh_div_cosh, one_div_div]
-    apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
-  unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop,
-    by norm_num; exact pi_ne_zero, by exact I_ne_zero])
-
-lemma w_re_pos_gen {ν : ℝ} {z : ℂ} (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+lemma w_re_pos_gen {ν : ℝ} {z : ℂ} (hz_im : z.im > -ν / (2 * π)) :
     0 < (-2 * π * I * z + ν).re := by
-  sorry -- Structure of w on R: Re(w) = 2π Im(z) + ν > 0 when Im(z) > -ν/(2π)
+  rw [w_re]
+  have hpi : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+  rw [gt_iff_lt] at hz_im
+  have := (div_lt_iff₀ hpi).mp hz_im
+  linarith
 
-theorem Phi_circ.analytic_gen (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+lemma w_re_ne {ν : ℝ} {z : ℂ} (h_not_pole : z.im ≠ -ν / (2 * π)) :
+    (-2 * π * I * z + ν).re ≠ 0 := by
+  rw [w_re]
+  have hpi : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+  intro h; apply h_not_pole
+  replace h : 2 * π * z.im = -ν := by linarith
+  have : (2 * π) * z.im / (2 * π) = -ν / (2 * π) := by rw [h]
+  rwa [mul_div_cancel_left₀ _ hpi.ne'] at this
+
+/-- Phi_circ is analytic whenever we are away from the horizontal line containing the poles. -/
+theorem Phi_circ.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_circ ν ε) z := by
   set w : ℂ := -2 * π * I * z + ν
-  have hw_re : 0 < w.re := w_re_pos_gen hν hz_im
+  have hw_re_ne : w.re ≠ 0 := w_re_ne h_not_pole
   have h_an : AnalyticAt ℂ (fun s : ℂ ↦ coth (s / 2)) w := by
     have heq : (fun s : ℂ ↦ coth (s / 2)) =ᶠ[nhds w] (fun s ↦ Complex.cosh (s / 2) / Complex.sinh (s / 2)) :=
       Filter.Eventually.of_forall (fun s ↦ by unfold coth; simp [Complex.tanh_eq_sinh_div_cosh])
     apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
+    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simpa using hw_re_ne))
   unfold Phi_circ; fun_prop (disch := exact [h_an.comp (by fun_prop), by simp [w]; fun_prop])
 
-theorem Phi_star.analytic_gen (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : z.im > -ν / (2 * π)) :
+theorem Phi_circ.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) :
+    AnalyticAt ℂ (Phi_circ ν ε) z :=
+  Phi_circ.analyticAt_of_im_ne_pole ν ε z (by
+    have h1 : -ν < 0 := neg_lt_zero.mpr hν
+    have h2 : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+    have h3 : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos h1 h2
+    have h4 : -ν / (2 * π) < z.im := h3.trans_le hz_im
+    symm; exact h4.ne)
+
+theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im > -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_circ ν ε) z :=
+  Phi_circ.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
+
+
+theorem Phi_star.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z := by
   set w : ℂ := -2 * π * I * z + ν
-  have hw_re : 0 < w.re := w_re_pos_gen hν hz_im
+  have hw_re_ne : w.re ≠ 0 := w_re_ne h_not_pole
+  have hw_ne : w ≠ 0 := by intro h; apply hw_re_ne; simp [h]
   have hB_an : AnalyticAt ℂ (B ε) w := by
-    have hw_ne : w ≠ 0 := by intro h; have := congrArg Complex.re h; simp at this; linarith [hw_re]
     have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
       filter_upwards [continuous_id.continuousAt.eventually_ne hw_ne] with s hs
-      dsimp at hs
-      simp only [B, coth, hs, ↓reduceIte, Complex.tanh_eq_sinh_div_cosh, one_div_div]
+      have : s ≠ 0 := hs
+      simp [B, this, coth, Complex.tanh_eq_sinh_div_cosh]
     apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simp; linarith))
-  unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop,
-    by norm_num; exact pi_ne_zero, by exact I_ne_zero])
+    fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by simpa using hw_re_ne))
+  unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop])
+
+theorem Phi_star.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im > -ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_star ν ε) z :=
+  Phi_star.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
+
+theorem Phi_star.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) :
+    AnalyticAt ℂ (Phi_star ν ε) z :=
+  Phi_star.analyticAt_of_im_ne_pole ν ε z (by
+    have h1 : -ν < 0 := neg_lt_zero.mpr hν
+    have h2 : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+    have h3 : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos h1 h2
+    have h4 : -ν / (2 * π) < z.im := h3.trans_le hz_im
+    symm; exact h4.ne)
 
 @[blueprint
   "phi-c2-left"
@@ -2024,8 +2044,8 @@ theorem integrable_phi_fourier_ray (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : �
         simpa [E] using analyticAt_cexp.comp
           (by fun_prop : AnalyticAt ℂ (fun z : ℂ ↦ 2 * π * I * (-z * x)) z)
       rcases hf_formula with h_eq | h_eq <;> rw [h_eq]
-      · exact ((Phi_circ.analytic ν ε z hν hy_im).add (Phi_star.analytic ν ε z hν hy_im)).mul hE
-      · exact ((Phi_circ.analytic ν ε z hν hy_im).sub (Phi_star.analytic ν ε z hν hy_im)).mul hE
+      · exact ((Phi_circ.analyticAt_of_im_nonneg ν ε z hν hy_im).add (Phi_star.analyticAt_of_im_nonneg ν ε z hν hy_im)).mul hE
+      · exact ((Phi_circ.analyticAt_of_im_nonneg ν ε z hν hy_im).sub (Phi_star.analyticAt_of_im_nonneg ν ε z hν hy_im)).mul hE
     have h_ray : ContinuousAt (fun (y' : ℝ) => ↑σ + ↑y' * I) y :=
       continuousAt_const.add (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
     exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl |>.continuousWithinAt
@@ -2177,7 +2197,7 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
         have hz_im : z.im ∈ Set.uIcc 0 U := by simpa [Rectangle] using hz.2
         rw [Set.uIcc_of_le hU] at hz_im
         exact hz_im.1
-      exact (AnalyticAt.sub (Phi_circ.analytic ν ε z hν hi) (Phi_star.analytic ν ε z hν hi)).differentiableAt.mul
+      exact (AnalyticAt.sub (Phi_circ.analyticAt_of_im_nonneg ν ε z hν hi) (Phi_star.analyticAt_of_im_nonneg ν ε z hν hi)).differentiableAt.mul
         (by dsimp [E]; fun_prop)
         |>.differentiableWithinAt
     have h_shift := tendsto_contour_shift (σ := -1) (σ' := 0) (f := f) h_anal ?_ ?_ ?_
@@ -2213,7 +2233,7 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
         have hz_im : z.im ∈ Set.uIcc 0 U := by simpa [Rectangle] using hz.2
         rw [Set.uIcc_of_le hU] at hz_im
         exact hz_im.1
-      exact (AnalyticAt.add (Phi_circ.analytic ν ε z hν hi) (Phi_star.analytic ν ε z hν hi)).differentiableAt.mul
+      exact (AnalyticAt.add (Phi_circ.analyticAt_of_im_nonneg ν ε z hν hi) (Phi_star.analyticAt_of_im_nonneg ν ε z hν hi)).differentiableAt.mul
         (by dsimp [E]; fun_prop) |>.differentiableWithinAt
     have h_shift := tendsto_contour_shift (σ := 0) (σ' := 1) (f := f) h_anal ?_ ?_ ?_
     · have hB_eq : ∫ x in (0:ℝ)..1, f x = B := by
@@ -2470,7 +2490,31 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
     (h_left : IntegrableOn (fun (t : ℝ) ↦ f (σ - I * t)) (Set.Ici (0 : ℝ)))
     (h_right : IntegrableOn (fun (t : ℝ) ↦ f (σ' - I * t)) (Set.Ici (0 : ℝ))) :
     Filter.Tendsto (fun (T : ℝ) ↦ (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) - (I * ∫ t in Set.Icc 0 T, f (σ - I * t))) Filter.atTop (nhds (∫ t in σ..σ', f t)) := by
-  sorry
+  -- Step 1: Decompose the rectangle integral into horizontal and vertical segments.
+  have h_rect (T : ℝ) (hT : 0 ≤ T) :
+      RectangleIntegral f σ (σ' - I * T) =
+      (∫ t in σ..σ', f t) - (∫ t in σ..σ', f (t - I * T)) - (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) + (I * ∫ t in Set.Icc 0 T, f (σ - I * t)) := by
+    dsimp [RectangleIntegral, HIntegral, VIntegral]
+    -- The signs for the horizontal segments follow from the top (y=0) and bottom (y=-T) integrals.
+    -- The vertical segments use the parameterization y = -t to match the goal's Icc 0 T rays.
+    sorry
+
+  -- Step 2: Show that for a holomorphic function, the integral over any rectangle is zero.
+  have h_zero : Filter.Tendsto (fun (T : ℝ) ↦ RectangleIntegral f σ (σ' - I * T)) Filter.atTop (nhds 0) := by
+    apply tendsto_const_nhds.congr'
+    filter_upwards [Filter.eventually_ge_atTop 0] with T hT
+    exact (HolomorphicOn.vanishesOnRectangle (hf_anal T hT) subset_rfl).symm
+
+  -- Step 3: Use the hypotheses and filter arithmetic to show the limit of the rays matches the real-axis integral.
+  have h_lim := (tendsto_const_nhds (x := ∫ t in σ..σ', f t)).sub h_bottom
+  -- Since RectangleIntegral = top - bottom - I * right + I * left,
+  -- we have I * right - I * left = top - bottom - RectangleIntegral.
+  have h_total_lim : Filter.Tendsto (fun (T : ℝ) ↦ (∫ t in σ..σ', f t) - (∫ t in σ..σ', f (t - I * T)) - RectangleIntegral f σ (σ' - I * T)) Filter.atTop (nhds (∫ t in σ..σ', f t)) := by
+    simpa only [sub_zero] using h_lim.sub h_zero
+  refine Filter.Tendsto.congr' ?_ h_total_lim
+  filter_upwards [Filter.eventually_ge_atTop 0] with T hT
+  rw [h_rect T hT]
+  ring
 
 lemma horizontal_integral_phi_fourier_vanish_downwards (ν ε x a b : ℝ) (hν : ν > 0) (hx : x > 0)
     (hab_in : Set.Icc a b ⊆ Set.Icc (-1) 1) (hab : a ≤ b)
@@ -2504,15 +2548,17 @@ lemma Phi_diff_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
     have h_pt : z₀ = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) := by
       dsimp [z₀, z₀_pole]
       field_simp [Real.pi_ne_zero]
-      ring
+      push_cast; ring
     rw [h_pt]
     -- Phi_cancel ensures the order is ≥ 0 due to residue cancellation.
     exact Phi_cancel ν ε (-1) hν (by norm_num)
-  -- A meromorphic function with order ≥ 0 is analytic at the point and hence bounded in a neighborhood.
-  have h_anal : AnalyticAt ℂ f z₀ := (meromorphicOrderAt_ge_zero_iff_analyticAt h_mero).mp h_order
-  have h_bigO : f =O[𝓝 z₀] (1 : ℂ → ℂ) := h_anal.continuousAt.isBigO_one
-  obtain ⟨U, hU, h_bdd_U⟩ := IsBigO_to_BddAbove (h_bigO.mono nhdsWithin_le_nhds)
-  exact ⟨U, hU, h_bdd_U⟩
+  -- A meromorphic function with order ≥ 0 has a finite limit in the punctured neighborhood.
+  obtain ⟨c, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
+  -- This limit implies the function is O(1) near the point.
+  -- We use nhdsWithin explicitly as requested.
+  have h_bigO : f =O[nhdsWithin z₀ {z₀}ᶜ] (1 : ℂ → ℂ) := h_tendsto.isBigO_one (F := ℂ)
+  -- IsBigO_to_BddAbove converts this Big-O statement into the explicit boundedness required.
+  exact IsBigO_to_BddAbove h_bigO
 
 lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
     HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) := by
@@ -2523,47 +2569,371 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ
   by_cases h_pole_im : z.im > -ν / (2 * π)
   · -- Step 2: Holomorphicity away from the pole line.
     -- Points with Im(z) > -ν/(2π) avoid all poles of Phi_circ.
-    exact (AnalyticAt.sub (Phi_circ.analytic_gen ν ε z hν h_pole_im)
-                          (Phi_star.analytic_gen ν ε z hν h_pole_im)).differentiableAt.mul
+    exact (AnalyticAt.sub (Phi_circ.analyticAt_of_im_gt_pole ν ε z h_pole_im)
+                          (Phi_star.analyticAt_of_im_gt_pole ν ε z h_pole_im)).differentiableAt.mul
       (by dsimp [E]; fun_prop) |>.differentiableWithinAt
   · -- Step 3: Removable singularity at z₀ = -1 - iν/(2π)
     -- We show the function is holomorphic on a larger punctured neighborhood and bounded near z₀.
-    have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) ∧
-        Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) g (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {-1 - I * (ν / (2 * π))}) := by
-      let f (z : ℂ) := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
-      let z₀ := (-1 : ℂ) - I * (ν / (2 * π))
-      -- Boundedness follows from residue cancellation (Phi_cancel) and the fact that E is entire.
-      have h_bdd : ∃ V ∈ nhds z₀, BddAbove (norm ∘ f '' (V \ {z₀})) := by
-        obtain ⟨V, hV, h_bdd_diff⟩ := Phi_diff_bounded_near_pole ν ε hν
-        use V, hV
-        -- Justification: The entire function E(-zx) is bounded on any compact neighborhood V.
-        sorry
-      have h_anal_punctured : HolomorphicOn f (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {z₀}) := by
-        -- Justification: Away from z₀, Re(z) is not an integer in (-1, -1/2], so there are no other poles.
-        sorry
-      -- Apply Riemann removable singularity theorem (existsDifferentiableOn_of_bddAbove).
-      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₀) (f := f) sorry h_anal_punctured h_bdd
-      use g, hg_anal, hfg
-    obtain ⟨g, hg_anal, hfg⟩ := h_sing
-    by_cases h_z : z = -1 - I * (ν / (2 * π))
-    · -- Singularity point z₀
-      have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
-        -- Use the fact that f = g on the punctured rectangle and f(z₀) = g(z₀).
-        apply Filter.mem_of_superset self_mem_nhdsWithin
-        intro z' hz'
-        by_cases h_z' : z' = -1 - I * (ν / (2 * π))
-        · -- Inequality at the singularity z₀: formally justified by residue cancellation
-          rw [h_z']
-          --
+    let f (z : ℂ) := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
+    let z₀ := (-1 : ℂ) - I * (ν / (2 * π))
+    let RectLarge := Rectangle (↑(-1.1 : ℝ) + 0.1 * I) (↑(-0.4 : ℝ) - I * (↑U + 0.1))
+    have h_anal_phi : AnalyticAt ℂ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) z₀ := by
+      -- Phi_diff_bounded_near_pole already gives exactly the bounded punctured nhds
+      obtain ⟨V, hV_nhds, hV_bdd⟩ := Phi_diff_bounded_near_pole ν ε hν
+      -- Need: holomorphic on punctured V to apply removable singularity
+      have h_holo_V : HolomorphicOn (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) (V \ {z₀}) := by
+        sorry -- from Phi_circ.holomorphicOn, Phi_star.holomorphicOn on punctured nhd of z₀
+      -- Riemann removable singularity: bounded + holomorphic on punctured nhd → analytic
 
-        · -- Identity away from the singularity
-          apply hfg ⟨hz', h_z'⟩
-      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (h_eq.self_of_nhdsWithin hz)
-    · -- Away from z₀
-      have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
-        apply hfg.eventuallyEq_of_mem
-        exact Filter.inter_mem self_mem_nhdsWithin (mem_nhdsWithin_of_mem_nhds (isOpen_compl_singleton.mem_nhds h_z))
-      exact (hg_anal z hz).congr_of_eventuallyEq h_eq (hfg ⟨hz, h_z⟩)
+      -- Step 0: Identify z₀ with z₀_pole ν (they should be definitionally equal)
+      have hz₀_eq : z₀ = z₀_pole ν := by
+        simp [z₀, z₀_pole]  -- ⚠️ depends on your def of z₀_pole
+
+      -- Step 1: Get DifferentiableAt on punctured nhd from h_holo_V
+      have h_diff_nhd : ∀ᶠ w in nhdsWithin z₀ {z₀}ᶜ,
+          DifferentiableAt ℂ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) w := by
+        -- Step 1: Use hV_nhds to show that V \ {z₀} is a neighborhood in the punctured filter
+        have h_nhd : V \ {z₀} ∈ nhdsWithin z₀ {z₀}ᶜ := by
+          rw [nhdsWithin, Filter.mem_inf_principal]
+          refine Filter.mem_of_superset ?_ (fun x hx hne ↦ ⟨hx, hne⟩)
+          rw [hz₀_eq]
+          exact hV_nhds
+        -- Since V is a neighborhood of z₀, it contains an open set U containing z₀.
+        have hz₀_V : V ∈ nhds z₀ := by rw [hz₀_eq]; exact hV_nhds
+        rcases mem_nhds_iff.mp hz₀_V with ⟨U, hUV, hU_open, hz₀_U⟩
+        -- U \ {z₀} is an open set containing the punctured neighborhood around z₀
+        have h_U_nhd : U \ {z₀} ∈ nhdsWithin z₀ {z₀}ᶜ := by
+          rw [nhdsWithin, Filter.mem_inf_principal]
+          refine Filter.mem_of_superset (hU_open.mem_nhds hz₀_U) ?_
+          intro x hx h_ne
+          exact ⟨hx, h_ne⟩
+
+        filter_upwards [h_U_nhd] with w hw
+        have h_w_nhd : V \ {z₀} ∈ nhds w := by
+          have h_open : IsOpen (U \ {z₀}) := hU_open.sdiff isClosed_singleton
+          apply Filter.mem_of_superset (h_open.mem_nhds hw)
+          exact Set.diff_subset_diff_left hUV
+        exact (h_holo_V w ⟨hUV hw.1, hw.2⟩).differentiableAt h_w_nhd
+
+
+
+      -- Step 2: ContinuousAt from meromorphic order ≥ 0
+      -- Re-derive order ≥ 0 (same as in Phi_diff_bounded_near_pole internally)
+      have h_mero : MeromorphicAt (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) z₀ :=
+        (Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀)
+      have h_order : meromorphicOrderAt (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) z₀ ≥ 0 := by
+        rw [show (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) =
+            (fun z ↦ Phi_circ ν ε z + (-1 : ℝ) * Phi_star ν ε z) by ext; push_cast; ring]
+        have h_pt : z₀ = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) := by
+          simp [z₀]; push_cast; ring
+        rw [h_pt]
+        exact Phi_cancel ν ε (-1) hν (by norm_num)
+      -- tendsto gives us the limit value, hence ContinuousAt
+      obtain ⟨c, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
+      -- Step 1: Define the analytic continuation (repaired function)
+      -- This matches the original difference on the punctured neighborhood and takes the limit value c at z₀.
+      let f_tilde (z : ℂ) : ℂ := if z = z₀ then c else (Phi_circ ν ε z - Phi_star ν ε z)
+
+      -- Subgoal: f_tilde is continuous at z₀ (by construction and h_tendsto)
+      have h_f_tilde_cont : ContinuousAt f_tilde z₀ := by
+        rw [continuousAt_iff_punctured_nhds]
+        dsimp [f_tilde]
+        simp
+        refine h_tendsto.congr' ?_
+        filter_upwards [self_mem_nhdsWithin] with z (hz : z ≠ z₀)
+        simp [hz]
+
+      -- Subgoal: f_tilde is differentiable on the punctured neighborhood
+      have h_f_tilde_diff : ∀ᶠ w in nhdsWithin z₀ {z₀}ᶜ, DifferentiableAt ℂ f_tilde w := by
+        filter_upwards [h_diff_nhd, self_mem_nhdsWithin] with w h_diff (hw : w ≠ z₀)
+        refine h_diff.congr_of_eventuallyEq ?_
+        filter_upwards [isOpen_compl_singleton.mem_nhds hw] with z (hz : z ≠ z₀)
+        dsimp [f_tilde]
+        split_ifs with h_singular
+        · exact (hz h_singular).elim
+        · rfl
+
+      -- Subgoal: f_tilde is analytic at z₀ (via Riemann Removable Singularity)
+      have h_f_tilde_anal : AnalyticAt ℂ f_tilde z₀ :=
+        analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt h_f_tilde_diff h_f_tilde_cont
+
+      -- Final Step: Reconcile f_tilde with the goal
+      -- This requires the crucial (and potentially sorry'd) hypothesis that
+      -- the evaluated value equals the limit c.
+
+      have h_reconcile : (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) = f_tilde := by
+        ext z
+        by_cases hz : z = z₀
+        · subst hz; simp [f_tilde]
+          sorry -- This is the crucial identity c = f(z₀)
+        · simp [f_tilde, hz]
+
+      rw [h_reconcile]
+      exact h_f_tilde_anal
+
+
+
+    have h_anal_E : AnalyticAt ℂ (fun z ↦ E (-z * ↑x)) z₀ := by
+      simpa [E] using analyticAt_cexp.comp
+        (by fun_prop : AnalyticAt ℂ (fun z : ℂ ↦ 2 * π * I * (-z * ↑x)) z₀)
+
+
+    -- Case split: is z the pole z₀, or somewhere else?
+    by_cases hz₀ : z = z₀
+    · -- Case z = z₀: use h_anal_phi directly
+      subst hz₀
+      -- Product of analytic functions is analytic, hence differentiable
+
+      exact (h_anal_phi.mul h_anal_E).differentiableAt.differentiableWithinAt
+
+    · -- Case z ≠ z₀: Phi_circ - Phi_star is holomorphic at z (no pole here)
+      -- since z.im ≤ -ν/(2π) but z ≠ z₀, z is not a pole in the rectangle
+      -- The key missing lemma (search your codebase):
+      -- Phi_circ.analytic_at_nonpole : ∀ z, (∀ n : ℤ, z ≠ n - I*ν/(2*π)) →
+      --     AnalyticAt ℂ (Phi_circ ν ε) z
+      -- Similarly for Phi_star.
+
+      -- Step 1: Show z is not any pole of Phi_circ in the rectangle
+      -- Poles have form n - I*ν/(2π). In the rect, Re(z) ∈ [-1, -1/2],
+      -- so only n = -1 is possible, giving z₀. But hz₀ : z ≠ z₀.
+      have h_not_pole : ∀ n : ℤ, z ≠ ↑n - I * ↑ν / (2 * ↑π) := by
+        intro n hn
+        have h_z_re : z.re = n := by
+          rw [hn]; simp [Complex.sub_re, Complex.ofReal_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_im, Complex.div_re]
+        have h_hz := hz
+        rw [Rectangle, Complex.mem_reProdIm] at h_hz
+        simp [Complex.sub_re, Complex.ofReal_re, Complex.I_re, Complex.I_im, Complex.mul_re, Complex.ofReal_im] at h_hz
+        have h_n_re : (n : ℝ) ∈ Set.Icc (-1) (-1 / 2) := by
+          rw [Set.uIcc_of_le (by norm_num)] at h_hz
+          rw [← h_z_re]
+          exact h_hz.1
+        have h_n : n = -1 := by
+          rw [Set.mem_Icc] at h_n_re
+          have h1 : -1 ≤ n := by norm_cast at h_n_re; exact h_n_re.1
+          have h2 : n ≤ -1 := by
+            have : (n : ℝ) < 0 := by linarith [h_n_re.2]
+            norm_cast at this; omega
+          omega
+        subst h_n
+        have h_z_im : z.im = -ν / (2 * π) := by
+          rw [hn]; simp [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_im, Complex.I_re, Complex.ofReal_re, Complex.div_im]
+          field_simp [Real.pi_pos.ne']
+        have h_z₀ : z = z₀ := by
+          apply Complex.ext
+          · dsimp [z₀]
+            rw [h_z_re]
+            push_cast; simp; norm_cast
+          · dsimp [z₀]
+            rw [h_z_im]
+            push_cast; norm_cast; simp; ring
+        exact hz₀ h_z₀
+
+        -- sketch: from hz (z ∈ Rectangle), z.re ∈ [-1, -1/2];
+        -- poles at integer n, only n = -1 gives z₀; but z ≠ z₀.
+
+      -- Step 2: Analyticity of Phi_circ - Phi_star at z (not a pole)
+      have h_anal_z : AnalyticAt ℂ (fun w ↦ Phi_circ ν ε w - Phi_star ν ε w) z := by
+        apply AnalyticAt.sub
+        · rw [← meromorphicOrderAt_nonneg_iff_analyticAt (Phi_circ.meromorphic ν ε z), ← not_lt]
+          exact (Phi_circ.poles ν ε hν z).not.mpr h_not_pole
+        · rw [← meromorphicOrderAt_nonneg_iff_analyticAt (Phi_star.meromorphic ν ε z), ← not_lt]
+          exact (Phi_star.poles ν ε hν z).not.mpr h_not_pole
+
+      -- Step 3: E(-z*x) is entire
+      have h_anal_E_z : AnalyticAt ℂ (fun w ↦ E (-w * ↑x)) z := by
+        simpa [E] using analyticAt_cexp.comp
+          (by fun_prop : AnalyticAt ℂ (fun w : ℂ ↦ 2 * π * I * (-w * ↑x)) z)
+
+      -- Step 4: Product → DifferentiableWithinAt
+      exact (h_anal_z.mul h_anal_E_z).differentiableAt.differentiableWithinAt
+
+    -- Boundedness follows from residue cancellation (Phi_cancel) and the fact that E is entire.
+    -- have h_bdd : ∃ V ∈ nhds z₀, BddAbove (norm ∘ f '' (V \ {z₀})) := by
+    --   let g := fun z ↦ Phi_circ ν ε z - Phi_star ν ε z
+    --   let h' := fun z ↦ E (-z * x)
+
+    --   have h_g_O : g =O[nhdsWithin z₀ {z₀}ᶜ] (1 : ℂ → ℂ) := by
+    --       obtain ⟨V, hV, h_bdd_g⟩ := Phi_diff_bounded_near_pole ν ε hν
+    --       obtain ⟨C, hC⟩ := h_bdd_g
+    --       refine (Asymptotics.isBigO_one_iff (F := ℂ)).mpr ⟨C, ?_⟩
+    --       dsimp [z₀, z₀_pole] at hV
+    --       rw [Filter.eventually_map, eventually_nhdsWithin_iff]
+    --       filter_upwards [hV] with y hy hne
+    --       exact hC ⟨y, ⟨hy, hne⟩, rfl⟩
+    --   have h_h_O : h' =O[nhdsWithin z₀ {z₀}ᶜ] (1 : ℂ → ℂ) := by
+    --       have h_cont : ContinuousAt h' z₀ := by dsimp [h', E]; fun_prop
+    --       exact h_cont.isBigO_one (F := ℂ) |>.mono nhdsWithin_le_nhds
+    --   have h_f_O : f =O[nhdsWithin z₀ {z₀}ᶜ] (1 : ℂ → ℂ) := by
+    --       rw [show f = fun z ↦ g z * h' z by ext z; rfl]
+    --       exact (h_g_O.mul h_h_O).congr (fun _ ↦ rfl) (fun _ ↦ mul_one 1)
+    --   exact IsBigO_to_BddAbove h_f_O
+    -- have h_RectLarge_nhds : RectLarge ∈ nhds z₀ := by
+    --   rw [rectangle_mem_nhds_iff]
+    --   refine ⟨?_, ?_⟩
+    --   · simp only [Set.mem_preimage, Complex.add_re, Complex.ofReal_re,
+    --        Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_im,
+    --        Complex.sub_re]
+    --     norm_num
+    --     have hz₀_re : z₀.re = -1 := by
+    --       simp [z₀, Complex.add_re, Complex.mul_re, Complex.ofReal_re,
+    --             Complex.ofReal_im, Complex.I_re, Complex.I_im]
+    --     rw [hz₀_re]
+    --     norm_num
+    --   · rw [uIoo, min_eq_left (by linarith), max_eq_right (by linarith)]
+    --     simp only [z₀]; constructor <;> linarith [hν]
+    -- have h_anal_large : HolomorphicOn f (RectLarge \ {z₀}) := by
+    --   intro ζ hζ; obtain ⟨hζ_rect, hζ_not_z₀⟩ := hζ
+    --   have hζ_not_pole : ∀ n : ℤ, ζ ≠ n - I * ν / (2 * π) := by
+    --     intro n hn
+    --     have h_re : ζ.re = n := by
+    --       rw [hn, mul_div_assoc]; push_cast; field_simp
+    --       -- The expression (↑n * 2 * ↑π - I * ↑ν) / (2 * ↑π) is a complex number
+    --       -- built from real coercions. We just need to unfold `.re` and simplify.
+
+    --       -- Step 1: Push all ℤ/ℝ coercions into ℂ uniformly, then
+    --       -- unfold Complex.re on +, *, /, I, ofReal.
+    --       -- Step 2: The resulting real arithmetic goal is just n * (2π) / (2π) = n,
+    --       -- which ring/field_simp closes given 2π ≠ 0.
+
+    --       simp only [Complex.sub_re, Complex.mul_re, Complex.div_re,
+    --                 Complex.ofReal_re, Complex.ofReal_im,
+    --                 Complex.I_re, Complex.I_im]  -- unfold all .re projections
+    --       ring_nf                   -- normalize the resulting real arithmetic
+    --       simp [mul_comm]
+    --       field_simp
+    --       -- two_pi_pos : 0 < 2 * π  -- this exists in Mathlib as Real.two_pi_pos
+    --       -- two_pi_pos.ne' : 2 * π ≠ 0
+    --     have h_rect_re : ζ.re ∈ Set.uIcc (-1.1) (-0.4) := by
+    --       unfold RectLarge Rectangle at hζ_rect
+    --       norm_num at hζ_rect ⊢
+    --       exact hζ_rect.1
+    --     rw [h_re, Set.uIcc_of_le (by linarith)] at h_rect_re
+    --     have h_n : n = -1 := by
+    --       rw [Set.mem_Icc] at h_rect_re
+    --       obtain ⟨h_lo, h_hi⟩ := h_rect_re
+    --       have : -2 < n ∧ n < 0 := by
+    --         constructor
+    --         · exact_mod_cast (by linarith : (-2 : ℝ) < n)
+    --         · exact_mod_cast (by linarith : (n : ℝ) < 0)
+    --       omega
+    --     subst h_n
+    --     exact hζ_not_z₀ (by push_cast; simpa [z₀, mul_div_assoc] using hn)
+    --   have h_sinh_ne : Complex.sinh ((-2 * π * I * ζ + ν) / 2) ≠ 0 := by
+    --     by_cases h_re_ne : ((-2 * π * I * ζ + ν) / 2).re ≠ 0
+    --     · exact sinh_ne_zero_of_re_ne_zero h_re_ne
+    --     · rw [not_not] at h_re_ne
+    --       have h_ζ_im_val : ζ.im = -ν / (2 * π) := by
+    --         have : (((-2 : ℂ) * (π : ℂ) * I * ζ + (ν : ℂ)) / 2).re = (ν + 2 * π * ζ.im) / 2 := by
+    --           rw [show ((-2 : ℂ) * (π : ℂ) * I * ζ + (ν : ℂ)) / 2 = (-π * I * ζ + ν / 2) by ring]
+    --           push_cast; simp; ring
+    --         rw [this] at h_re_ne; field_simp [pi_ne_zero] at h_re_ne ⊢; linarith
+    --       intro h_sinh_zero; rw [sinh_zero_iff] at h_sinh_zero; obtain ⟨n, hn⟩ := h_sinh_zero
+    --       have h_re_val : ζ.re = -↑n := by
+    --         have : (((-2 : ℂ) * (π : ℂ) * I * ζ + (ν : ℂ)) / 2).im = -π * ζ.re := by
+    --           rw [show ((-2 : ℂ) * (π : ℂ) * I * ζ + (ν : ℂ)) / 2 = (-π * I * ζ + ν / 2) by ring]
+    --           push_cast; simp
+    --         have h_n_pi : ((-2 * ↑π * I * ζ + ↑ν) / 2).im = n * π := by
+    --           rw [hn]
+    --           push_cast; dsimp; simp
+    --         rw [h_n_pi] at this; field_simp [pi_ne_zero] at this; linarith
+    --       have h_rect_re : ζ.re ∈ Set.uIcc (-1.1) (-0.4) := by
+    --         unfold RectLarge Rectangle at hζ_rect
+    --         norm_num at hζ_rect ⊢
+    --         exact hζ_rect.1
+    --       rw [h_re_val, Set.uIcc_of_le (by linarith)] at h_rect_re
+    --       have h_n_one : n = 1 := by
+    --         have : (0 : ℝ) < n ∧ (n : ℝ) < 2 := by
+    --           rw [Set.mem_Icc] at h_rect_re
+    --           constructor <;> linarith
+    --         have : 0 < n ∧ n < 2 := by exact_mod_cast this
+    --         omega
+    --       subst h_n_one; rw [Int.cast_one] at h_re_val
+    --       apply hζ_not_z₀; apply Complex.ext
+    --       · -- Step 1: Rewrite ζ.re using h_re_val : ζ.re = -1
+    --         rw [h_re_val]
+    --         -- Goal becomes: (-1 : ℝ) = z₀.re
+
+    --         -- Step 2: Unfold z₀ and compute its real part
+    --         -- z₀ = -1 - I * (↑ν / (2 * ↑π)), so z₀.re = (-1 : ℝ) by simp
+    --         simp only [sub_re, neg_re, one_re, mul_re, I_re, zero_mul, I_im, one_mul, zero_sub,
+    --           sub_neg_eq_add, left_eq_add, z₀]
+    --         norm_cast
+    --       · rw [h_ζ_im_val]
+    --         simp [z₀]
+    --         norm_cast; ring
+    --   have h_circ_an : AnalyticAt ℂ (Phi_circ ν ε) ζ := by
+    --     unfold Phi_circ; refine AnalyticAt.mul analyticAt_const (AnalyticAt.add ?_ analyticAt_const)
+    --     rw [show (fun z ↦ coth ((-2 * ↑π * I * z + ↑ν) / 2)) = (fun z ↦ Complex.cosh ((-2 * ↑π * I * z + ↑ν) / 2) / Complex.sinh ((-2 * ↑π * I * z + ↑ν) / 2)) by
+    --       ext z'; unfold coth; rw [Complex.tanh_eq_sinh_div_cosh, one_div_div]]
+    --     refine AnalyticAt.div (analyticAt_cosh.comp (by fun_prop)) (analyticAt_sinh.comp (by fun_prop)) h_sinh_ne
+    --   have h_star_an : AnalyticAt ℂ (Phi_star ν ε) ζ := by
+    --     set w := -2 * π * I * ζ + ν
+    --     have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
+    --       have hw_ne : w ≠ 0 := by intro h; rw [h] at h_sinh_ne; simp at h_sinh_ne
+    --       filter_upwards [eventually_ne_nhds hw_ne] with s hs
+    --       unfold B coth
+    --       simp only [if_neg hs, Complex.tanh_eq_sinh_div_cosh, one_div_div]
+    --     have hB_an : AnalyticAt ℂ (B ε) w := by
+    --       apply (analyticAt_congr heq).mpr
+    --       fun_prop (disch := exact h_sinh_ne)
+    --     unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), pi_ne_zero, I_ne_zero])
+    --   exact (h_circ_an.sub h_star_an).differentiableAt.mul (by dsimp [E]; fun_prop) |>.differentiableWithinAt
+
+    -- have h_Rect_bdd : BddAbove (norm ∘ f '' (RectLarge \ {z₀})) := by
+    --   obtain ⟨V, hV_nhds, hV_bdd⟩ := h_bdd
+    --   have h_f_cont : ContinuousOn f (RectLarge \ {z₀}) := h_anal_large.continuousOn
+    --   let S := RectLarge \ {z₀}
+    --   have h_S_bdd : BddAbove (norm ∘ f '' (V \ {z₀})) := hV_bdd
+    --   -- Choose ε small enough such that the ball is inside both V and RectLarge
+    --   obtain ⟨ε, hε, h_ball_in⟩ := Metric.nhds_basis_ball.mem_iff.mp (Filter.inter_mem hV_nhds h_RectLarge_nhds)
+    --   let K := RectLarge \ Metric.ball z₀ (ε / 2)
+    --   have hK_compact : IsCompact K := by
+    --     have hRect_compact : IsCompact RectLarge := by
+    --       simp only [RectLarge, Rectangle]
+    --       exact _root_.IsCompact.reProdIm isCompact_uIcc isCompact_uIcc
+    --     exact hRect_compact.diff Metric.isOpen_ball
+    --   have hK_sub : K ⊆ RectLarge \ {z₀} := fun x hx ↦ ⟨hx.1, fun h ↦ by
+    --     subst h
+    --     exact hx.2 (Metric.mem_ball_self (by positivity))⟩
+    --   have hK_bdd_max : BddAbove (norm ∘ f '' K) :=
+    --     hK_compact.bddAbove_image (h_f_cont.mono hK_sub).norm
+    --   let C_K := Classical.choose hK_bdd_max
+    --   refine ⟨max C_K (Classical.choose hV_bdd), ?_⟩
+    --   rintro y ⟨x, hx, rfl⟩
+    --   by_cases hxV : x ∈ V
+    --   · exact (le_max_right _ _).trans' (Classical.choose_spec hV_bdd ⟨x, ⟨hxV, hx.2⟩, rfl⟩)
+    --   · have : x ∈ K := ⟨hx.1, fun h_in ↦ hxV (h_ball_in (Metric.ball_subset_ball (by linarith [hε]) h_in)).1⟩
+    --     exact (le_max_left _ _).trans' (Classical.choose_spec hK_bdd_max ⟨x, this, rfl⟩)
+
+    -- have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U)) ∧
+    --     Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) g (Rectangle (-1 : ℂ) (-1 / 2 - I * U) \ {-1 - I * (ν / (2 * π))}) := by
+
+
+    --   have h_Rect_subset : Rectangle (-1 : ℂ) (-1 / 2 - I * U) ⊆ RectLarge := by
+    --     apply RectSubRect' <;> (simp [RectLarge]; try linarith)
+
+    --   obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₀) (f := f) h_RectLarge_nhds h_anal_large h_Rect_bdd
+    --   use g, hg_anal.mono h_Rect_subset, hfg.mono (Set.diff_subset_diff_left h_Rect_subset)
+    -- obtain ⟨g, hg_anal, hfg⟩ := h_sing
+    -- by_cases h_z : z = -1 - I * (ν / (2 * π))
+    -- · -- Singularity point z₀
+    --   have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
+    --     -- Use the fact that f = g on the punctured rectangle and f(z₀) = g(z₀).
+    --     apply Filter.mem_of_superset self_mem_nhdsWithin
+    --     intro z' hz'
+    --     by_cases h_z' : z' = -1 - I * (ν / (2 * π))
+    --     · -- Inequality at the singularity z₀: formally justified by residue cancellation
+    --       rw [h_z']
+    --       --
+
+    --     · -- Identity away from the singularity
+    --       apply hfg ⟨hz', h_z'⟩
+    --   exact (hg_anal z hz).congr_of_eventuallyEq h_eq (h_eq.self_of_nhdsWithin hz)
+    -- · -- Away from z₀
+    --   have h_eq : (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (-1 : ℂ) (-1 / 2 - I * U))] g := by
+    --     apply hfg.eventuallyEq_of_mem
+    --     exact Filter.inter_mem self_mem_nhdsWithin (mem_nhdsWithin_of_mem_nhds (isOpen_compl_singleton.mem_nhds h_z))
+    --   exact (hg_anal z hz).congr_of_eventuallyEq h_eq (hfg ⟨hz, h_z⟩)
 
 lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
     ∃ U ∈ nhds (z₁_pole ν), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z + Phi_star ν ε z) '' (U \ {z₁_pole ν})) := by
@@ -2571,26 +2941,23 @@ lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
   let f := fun z ↦ Phi_circ ν ε z + Phi_star ν ε z
   have h_mero : MeromorphicAt f z₁ := (Phi_circ.meromorphic ν ε z₁).add (Phi_star.meromorphic ν ε z₁)
   have h_order : meromorphicOrderAt f z₁ ≥ 0 := by
-    rw [show f = fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z by ext z; simp [f]; ring]
+    rw [show f = fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z by ext z; simp [f]]
     have h_pt : z₁ = ((1 : ℝ) : ℂ) - I * ν / (2 * π) := by
       dsimp [z₁, z₁_pole]
       field_simp [Real.pi_ne_zero]
-      ring
     rw [h_pt]
     exact Phi_cancel ν ε 1 hν (by norm_num)
-  -- A meromorphic function with order ≥ 0 is analytic at the point and hence bounded in a neighborhood.
-  have h_anal : AnalyticAt ℂ f z₁ := (meromorphicOrderAt_ge_zero_iff_analyticAt h_mero).mp h_order
-  have h_bigO : f =O[𝓝 z₁] (1 : ℂ → ℂ) := h_anal.continuousAt.isBigO_one
-  obtain ⟨U, hU, h_bdd_U⟩ := IsBigO_to_BddAbove (h_bigO.mono nhdsWithin_le_nhds)
-  exact ⟨U, hU, h_bdd_U⟩
+  obtain ⟨c, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
+  have h_bigO : f =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := h_tendsto.isBigO_one (F := ℂ)
+  exact IsBigO_to_BddAbove h_bigO
 
 lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : ℝ) (hU : 0 ≤ U) :
     HolomorphicOn (fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) (Rectangle (1/2 : ℂ) (1 - I * U)) := by
   intro z hz
   have hz_im : z.im ∈ Set.uIcc 0 (-U) := by simpa [Rectangle] using hz.2
   by_cases h_pole_im : z.im > -ν / (2 * π)
-  · exact (AnalyticAt.add (Phi_circ.analytic_gen ν ε z hν h_pole_im)
-                          (Phi_star.analytic_gen ν ε z hν h_pole_im)).differentiableAt.mul
+  · exact (AnalyticAt.add (Phi_circ.analyticAt_of_im_gt_pole ν ε z h_pole_im)
+                          (Phi_star.analyticAt_of_im_gt_pole ν ε z h_pole_im)).differentiableAt.mul
       (by dsimp [E]; fun_prop) |>.differentiableWithinAt
   · -- Case: Singularity handling at z₁ = 1 - iν/(2π)
     have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (1/2 : ℂ) (1 - I * U)) ∧
@@ -2598,12 +2965,108 @@ lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) (hx : x > 0) (U : �
       let f (z : ℂ) := (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
       let z₁ : ℂ := 1 - I * (ν / (2 * π))
       have h_bdd : ∃ V ∈ nhds z₁, BddAbove (norm ∘ f '' (V \ {z₁})) := by
-        obtain ⟨V, hV, h_bdd_diff⟩ := Phi_add_bounded_near_pole ν ε hν
-        use V, hV
-        sorry
-      have h_anal_punctured : HolomorphicOn f (Rectangle (1/2 : ℂ) (1 - I * U) \ {z₁}) := by
-        sorry
-      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₁) (f := f) sorry h_anal_punctured h_bdd
+        let g' := fun z ↦ Phi_circ ν ε z + Phi_star ν ε z
+        let h' := fun z ↦ E (-z * x)
+        have h_g_O : g' =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
+           obtain ⟨V, hV, h_bdd_g⟩ := Phi_add_bounded_near_pole ν ε hν
+           obtain ⟨C, hC⟩ := h_bdd_g
+           exact (Asymptotics.isBigO_one_iff (F := ℂ)).mpr ⟨C, eventually_nhdsWithin_iff.mpr <|
+             eventually_nhds_iff.mpr ⟨V, hV, fun _ hz hne ↦ hC ⟨_, ⟨hz, hne⟩, rfl⟩⟩⟩
+        have h_h_O : h' =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
+           have h_cont : ContinuousAt h' z₁ := by dsimp [h', E]; fun_prop
+           exact h_cont.isBigO_one (F := ℂ) |>.mono nhdsWithin_le_nhds
+        have h_f_O : f =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
+           rw [show f = fun z ↦ g' z * h' z by ext z; rfl]
+           exact (h_g_O.mul h_h_O).congr (fun _ ↦ rfl) (fun _ ↦ mul_one 1)
+        exact IsBigO_to_BddAbove h_f_O
+      let RectLarge := Rectangle (↑(0.4 : ℝ) + 0.1 * I) (↑(1.1 : ℝ) - I * (↑U + 0.1))
+      have h_Rect_subset : Rectangle (1/2 : ℂ) (1 - I * U) ⊆ RectLarge := by
+        apply RectSubRect' <;> (simp [RectLarge]; linarith)
+      have h_RectLarge_nhds : RectLarge ∈ nhds z₁ := by
+        rw [rectangle_mem_nhds_iff]
+        refine ⟨?_, ?_⟩
+        · rw [uIoo, min_eq_left (by linarith), max_eq_right (by linarith)]
+          simp only [z₁, Complex.one_re]; constructor <;> linarith
+        · rw [uIoo, min_eq_left (by linarith), max_eq_right (by linarith)]
+          simp only [z₁, Complex.one_im]; constructor <;> linarith [hν]
+      have h_anal_large : HolomorphicOn f (RectLarge \ {z₁}) := by
+        intro ζ hζ; obtain ⟨hζ_rect, hζ_not_z₁⟩ := hζ
+        have hζ_not_pole : ∀ n : ℤ, ζ ≠ n - I * ν / (2 * π) := by
+          intro n hn
+          have h_re : ζ.re = n := by simpa using congr_arg Complex.re hn
+          have h_rect_re : ζ.re ∈ Set.uIcc (0.4) (1.1) := by simpa [RectLarge] using hζ_rect.1
+          rw [h_re, Set.uIcc_of_le (by linarith)] at h_rect_re
+          have h_n : n = 1 := by linarith [h_rect_re.1, h_rect_re.2]
+          subst h_n
+          exact hζ_not_z₁ (by simpa [z₁] using hn)
+        have h_sinh_ne : Complex.sinh ((-2 * π * I * ζ + ν) / 2) ≠ 0 := by
+          by_cases h_re_ne : ((-2 * π * I * ζ + ν) / 2).re ≠ 0
+          · exact sinh_ne_zero_of_re_ne_zero h_re_ne
+          · rw [not_not] at h_re_ne
+            have h_ζ_im_val : ζ.im = -ν / (2 * π) := by
+               have : ((-2 * ↑π * I * ζ + ↑ν) / 2) = -↑π * I * ζ + ↑ν / 2 := by ring
+               rw [this, Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.mul_re]
+               simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, neg_re, mul_one]
+               rw [this] at h_re_ne; field_simp [pi_ne_zero] at h_re_ne ⊢; linarith
+            intro h_sinh_zero; rw [sinh_zero_iff] at h_sinh_zero; obtain ⟨n, hn⟩ := h_sinh_zero
+            have h_re_val : ζ.re = -↑n := by
+               have : ((-2 * ↑π * I * ζ + ↑ν) / 2) = -↑π * I * ζ + ↑ν / 2 := by ring
+               rw [this, Complex.add_im, Complex.mul_im, Complex.neg_im, Complex.mul_im]
+               simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, neg_re, mul_one]
+               ring_nf
+               have h_n_pi : ((-2 * ↑π * I * ζ + ↑ν) / 2).im = n * π := by
+                 rw [hn]; simp only [Complex.mul_im, Complex.ofReal_re, Complex.I_re,
+                   Complex.ofReal_im, Complex.I_im, mul_zero, zero_mul, sub_zero, add_zero, mul_one]
+               rw [h_n_pi] at this; field_simp [pi_ne_zero] at this; linarith
+            have h_rect_re : ζ.re ∈ Set.uIcc (0.4) (1.1) := by simpa [RectLarge] using hζ_rect.1
+            rw [h_re_val, Set.uIcc_of_le (by linarith)] at h_rect_re
+            have h_n_one : n = -1 := by linarith [h_rect_re.1, h_rect_re.2]
+            subst h_n_one; rw [Int.cast_neg, Int.cast_one, neg_neg] at h_re_val
+            exact hζ_not_z₁ (Complex.ext (by simpa [z₁]) (by simpa [z₁]))
+        have h_circ_an : AnalyticAt ℂ (Phi_circ ν ε) ζ := by
+          unfold Phi_circ; refine AnalyticAt.mul analyticAt_const (AnalyticAt.add ?_ analyticAt_const)
+          unfold coth; refine AnalyticAt.div (analyticAt_cosh.comp ?_) (analyticAt_sinh.comp ?_) h_sinh_ne
+          · fun_prop
+          · fun_prop
+        have h_star_an : AnalyticAt ℂ (Phi_star ν ε) ζ := by
+          unfold Phi_star; refine AnalyticAt.div (AnalyticAt.sub ?_ analyticAt_const) analyticAt_const (by simp [pi_ne_zero, I_ne_zero])
+          dsimp [B, coth]
+          refine AnalyticAt.mul (by fun_prop) (AnalyticAt.div ?_ ?_ (by simpa using h_sinh_ne))
+          · fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by
+              show ((-π * I * ζ + ν / 2)).re ≠ 0
+              rw [Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im]
+              simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, mul_one, neg_re]
+              by_cases h : ν + 2 * π * ζ.im = 0 <;> simp [h]
+              intro h_zero; field_simp [pi_ne_zero] at h_zero; linarith))
+          · exact (analyticAt_sinh.comp (by fun_prop)).add (by fun_prop)
+        exact (h_circ_an.add h_star_an).differentiableAt.mul (by dsimp [E]; fun_prop) |>.differentiableWithinAt
+      have h_Rect_bdd : BddAbove (norm ∘ f '' (RectLarge \ {z₁})) := by
+        obtain ⟨V, hV_nhds, hV_bdd⟩ := h_bdd
+        have h_f_cont : ContinuousOn f (RectLarge \ {z₁}) := h_anal_large.continuousOn
+        let S := RectLarge \ {z₁}
+        have h_S_bdd : BddAbove (norm ∘ f '' V \ {z₁}) := hV_bdd.mono (Set.image_subset _ (Set.inter_subset_right _ _))
+        obtain ⟨ε, hε, h_ball⟩ := Metric.nhds_basis_ball.mem_iff.mp hV_nhds
+        let K := RectLarge \ Metric.ball z₁ (ε / 2)
+        have hK_compact : IsCompact K := (isCompact_Icc.prod isCompact_Icc).reProdIm.diff (Metric.isOpen_ball.preimage continuous_id)
+        have hK_sub : K ⊆ RectLarge \ {z₁} := fun x hx ↦ ⟨hx.1, fun h ↦ by
+          subst h; have := Metric.mem_ball_self (by linarith : 0 < ε / 2); exact hx.2 this⟩
+        let z_large_se : ℂ := ↑(1.1 : ℝ) - I * (U + 0.1)
+        obtain ⟨C_K, hC_K⟩ := (h_f_cont.mono hK_sub).continuousOn_norm.isMaxOn hK_compact ⟨z_large_se, by
+          simp [K, RectLarge, z_large_se]
+          constructor <;> (try constructor)
+          · linarith
+          · linarith
+          · linarith
+          · linarith
+          · -- Far from z1
+            simp [z₁]; linarith [hε] ⟩
+        refine ⟨max C_K (Classical.choose hV_bdd), ?_⟩
+        rintro y ⟨x, hx, rfl⟩
+        by_cases hxV : x ∈ V
+        · exact (le_max_right _ _).trans' (Classical.choose_spec hV_bdd ⟨x, ⟨hxV, hx.2⟩, rfl⟩)
+        · have : x ∈ K := ⟨hx.1, fun h_in ↦ hxV (h_ball h_in)⟩
+          exact (le_max_left _ _).trans' (hC_K x this)
+      obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₁) (f := f) h_RectLarge_nhds h_anal_large h_Rect_bdd
       use g, hg_anal, hfg
     obtain ⟨g, hg_anal, hfg⟩ := h_sing
     by_cases h_z₁ : z = 1 - I * (ν / (2 * π))
