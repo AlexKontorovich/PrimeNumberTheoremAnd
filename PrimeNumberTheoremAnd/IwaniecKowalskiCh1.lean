@@ -620,6 +620,36 @@ Liouville function:
 def liouville : ArithmeticFunction ℤ :=
   toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
 
+/--
+The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
+@[blueprint
+  "LSeries_liouville_eq"
+  (title := "LSeries liouville eq")
+  (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
+\[
+L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
+\]
+  -/)]
+lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+  sorry
+
+-- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+--  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
+
+/--
+Define Complete Multiplicativity for an arithmetic function. -/
+@[blueprint
+  "completelyMultiplicative"
+  (title := "completelyMultiplicative")
+  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
+]
+def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+  f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
+
+
 
 
 end ArithmeticFunction
