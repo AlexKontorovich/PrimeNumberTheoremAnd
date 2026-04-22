@@ -595,5 +595,19 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
 
+/--
+I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
+@[blueprint
+  "moebius_sq"
+  (title := "moebius sq")
+  (statement := /-- I-K (1.33): $\mu^2(n) = \sum_{d^2|n} \mu(d)$. -/)
+  (proof := /--
+  The function $\mu^2(n)$ is the indicator function for squarefree numbers, meaning it is $1$ if $n$ is squarefree and $0$ otherwise. The sum $\sum_{d^2|n} \mu(d)$ counts the contributions from divisors $d$ such that $d^2$ divides $n$. If $n$ is squarefree, then the only divisor $d$ such that $d^2 | n$ is $d=1$, which contributes $\mu(1) = 1$. If $n$ is not squarefree, then there exists a prime $p$ such that $p^2 | n$, and the corresponding divisor $d=p$ will contribute $\mu(p) = -1$, which will cancel out the contribution from $d=1$. Therefore, we have $\mu^2(n) = \sum_{d^2|n} \mu(d)$.
+  -/)]
+lemma moebius_sq_eq (n : ℕ) : (μ n : ℂ) ^ 2 = ∑ d ∈ n.divisorsAntidiagonal.filter (fun x => x.1 ^ 2 ∣ n), μ d.1 := by
+  sorry
+
+
+
 
 end ArithmeticFunction
