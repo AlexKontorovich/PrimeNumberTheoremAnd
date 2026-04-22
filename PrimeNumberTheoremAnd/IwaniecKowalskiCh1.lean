@@ -617,7 +617,8 @@ Liouville function:
   (proof := /--
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ is the total number of prime factors of $n$ counted with multiplicity. This means that for each prime factor of $n$, we contribute a factor of $-1$ to the product, and the overall sign of $\lambda(n)$ depends on whether the total number of prime factors is even or odd. Thus, we have $\lambda(n) = (-1)^{\Omega(n)}$ by definition.
   -/)]
-def liouville (n : ℕ) : ℤ := (-1) ^ (Ω n)
+def liouville : ArithmeticFunction ℤ :=
+  toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
 
 
 
