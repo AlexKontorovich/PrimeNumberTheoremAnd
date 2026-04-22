@@ -26,3 +26,6 @@ vscode window, where you can edit the code, and submit PR's.
 
 ## License
 This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.
+
+
+<!-- Fix #1286 -->
