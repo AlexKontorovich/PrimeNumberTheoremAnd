@@ -7,7 +7,7 @@ open Finset Nat Real
 
 open scoped zeta sigma
 
-open scoped ArithmeticFunction.omega
+open scoped ArithmeticFunction.omega ArithmeticFunction.Omega
 
 open scoped ArithmeticFunction.Moebius
 
@@ -653,10 +653,10 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
   (proof := /--
   This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
   -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
-    (h4 : 1 < (s - 0 - 0).re) :
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs h2 h3 h4) using 1
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
+      (by simpa using hs)) using 1
   · ring_nf
   · congr
     · ring_nf
@@ -696,7 +696,8 @@ Zeta cubed:
   -/)]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  sorry
+  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
+  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
 /--
 Zeta cubed alt:
@@ -765,6 +766,123 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
   sorry
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
+
+/--
+I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
+@[blueprint
+  "moebius_sq_eq"
+  (title := "moebius sq eq")
+  (statement := /-- I-K (1.33): $\mu^2(n) = \sum_{d^2|n} \mu(d)$. -/)
+  (proof := /--
+  The function $\mu^2(n)$ is the indicator function for squarefree numbers, meaning it is $1$ if $n$ is squarefree and $0$ otherwise. The sum $\sum_{d^2|n} \mu(d)$ counts the contributions from divisors $d$ such that $d^2$ divides $n$. If $n$ is squarefree, then the only divisor $d$ such that $d^2 | n$ is $d=1$, which contributes $\mu(1) = 1$. If $n$ is not squarefree, then there exists a prime $p$ such that $p^2 | n$, and the corresponding divisor $d=p$ will contribute $\mu(p) = -1$, which will cancel out the contribution from $d=1$. Therefore, we have $\mu^2(n) = \sum_{d^2|n} \mu(d)$.
+  -/)]
+lemma moebius_sq_eq (n : ℕ) : (μ n : ℂ) ^ 2 = ∑ d ∈ n.divisorsAntidiagonal.filter (fun x => x.1 ^ 2 ∣ n), μ d.1 := by
+  sorry
+
+/--
+Liouville function:
+`λ(n) = (-1)^Ω(n)`. -/
+@[blueprint
+  "liouville"
+  (title := "liouville")
+  (statement := /-- Liouville function: $\lambda(n) = (-1)^{\Omega(n)}$. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ is the total number of prime factors of $n$ counted with multiplicity. This means that for each prime factor of $n$, we contribute a factor of $-1$ to the product, and the overall sign of $\lambda(n)$ depends on whether the total number of prime factors is even or odd. Thus, we have $\lambda(n) = (-1)^{\Omega(n)}$ by definition.
+  -/)]
+def liouville : ArithmeticFunction ℤ :=
+  toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
+
+-- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+--  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
+
+/--
+Define Complete Multiplicativity for an arithmetic function. -/
+@[blueprint
+  "IsCompletelyMultiplicative"
+  (title := "IsCompletelyMultiplicative")
+  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
+]
+def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+  f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
+
+@[blueprint
+  "IsCompletelyMultiplicative_mul"
+  (title := "IsCompletelyMultiplicative mul")
+  (statement := /-- If $f$ and $g$ are completely multiplicative, then so is their Dirichlet convolution $f * g$. -/)
+  (proof := /--
+  Let $f$ and $g$ be completely multiplicative functions. We want to show that their Dirichlet convolution $h = f * g$ is also completely multiplicative.-/)]
+lemma IsCompletelyMultiplicative.mul {f g : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f)
+    (hg : IsCompletelyMultiplicative g) : IsCompletelyMultiplicative (f * g) := by
+  sorry
+
+/-- A function that is completely multiplicative is also multiplicative. -/
+@[blueprint
+  "IsCompletelyMultiplicative_isMultiplicative"
+  (title := "IsCompletelyMultiplicative isMultiplicative")
+  (statement := /-- A function that is completely multiplicative is also multiplicative. -/)
+  (proof := /--
+  Let $f$ be a completely multiplicative function. To show that $f$ is multiplicative, we need to verify that $f(1) = 1$ and that $f(ab) = f(a)f(b)$ for all coprime natural numbers $a$ and $b$. Since $f$ is completely multiplicative, we have $f(1) = 1$ by definition. For coprime $a$ and $b$, we can write $ab$ as a product of prime factors, and since $f$ is completely multiplicative, it will factor as the product of the values of $f$ at those prime factors. This means that $f(ab) = f(a)f(b)$ for coprime $a$ and $b$, which shows that $f$ is multiplicative.
+  -/)]
+lemma IsCompletelyMultiplicative.isMultiplicative {f : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f) : f.IsMultiplicative := by
+  sorry
+
+/--
+The Liouville function is completely multiplicative. -/
+@[blueprint
+  "isCompletelyMultiplicative_liouville"
+  (title := "isCompletelyMultiplicative liouville")
+  (statement := /-- The Liouville function is completely multiplicative. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
+  -/)]
+lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
+  sorry
+
+/--
+The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
+@[blueprint
+  "LSeries_liouville_eq"
+  (title := "LSeries liouville eq")
+  (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
+\[
+L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
+\]
+  -/)]
+lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+  sorry
+
+/-- `liouville` agrees with `moebius` on square-free numbers -/
+@[blueprint
+  "liouville_eq_moebius_on_squarefree"
+  (title := "liouville eq moebius on squarefree")
+  (statement := /-- The Liouville function agrees with the Möbius function on square-free numbers. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
+  -/)]
+lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
+  sorry
+
+/-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
+@[blueprint
+  "LSeries_totient_eq"
+  (title := "LSeries totient eq")
+  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
+  \begin{verbatim}
+  This is IK (1.35).
+  \end{verbatim}
+   -/)
+  (proof := /--
+  The Euler totient function $\varphi(n)$ counts the positive integers up to $n$ that are relatively prime to $n$. It is a multiplicative function, and its value at prime powers is given by $\varphi(p^k) = p^k - p^{k-1}$. The Dirichlet series of $\varphi$ can be expressed as an Euler product over primes:
+\[
+L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
+\ ]
+  -/)]
+lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
+  sorry
 
 
 end ArithmeticFunction
