@@ -620,6 +620,52 @@ Liouville function:
 def liouville : ArithmeticFunction ℤ :=
   toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
 
+-- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+--  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
+
+/--
+Define Complete Multiplicativity for an arithmetic function. -/
+@[blueprint
+  "completelyMultiplicative"
+  (title := "completelyMultiplicative")
+  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
+]
+def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+  f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
+
+@[blueprint
+  "completelyMultiplicative_mul"
+  (title := "completelyMultiplicative mul")
+  (statement := /-- If $f$ and $g$ are completely multiplicative, then so is their Dirichlet convolution $f * g$. -/)
+  (proof := /--
+  Let $f$ and $g$ be completely multiplicative functions. We want to show that their Dirichlet convolution $h = f * g$ is also completely multiplicative.-/)]
+lemma IsCompletelyMultiplicative.mul {f g : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f)
+    (hg : IsCompletelyMultiplicative g) : IsCompletelyMultiplicative (f * g) := by
+  sorry
+
+/-- A function that is completely multiplicative is also multiplicative. -/
+@[blueprint
+  "completelyMultiplicative_isMultiplicative"
+  (title := "completelyMultiplicative isMultiplicative")
+  (statement := /-- A function that is completely multiplicative is also multiplicative. -/)
+  (proof := /--
+  Let $f$ be a completely multiplicative function. To show that $f$ is multiplicative, we need to verify that $f(1) = 1$ and that $f(ab) = f(a)f(b)$ for all coprime natural numbers $a$ and $b$. Since $f$ is completely multiplicative, we have $f(1) = 1$ by definition. For coprime $a$ and $b$, we can write $ab$ as a product of prime factors, and since $f$ is completely multiplicative, it will factor as the product of the values of $f$ at those prime factors. This means that $f(ab) = f(a)f(b)$ for coprime $a$ and $b$, which shows that $f$ is multiplicative.
+  -/)]
+lemma IsCompletelyMultiplicative.isMultiplicative {f : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f) : f.IsMultiplicative := by
+  sorry
+
+/--
+The Liouville function is completely multiplicative. -/
+@[blueprint
+  "liouville_completelyMultiplicative"
+  (title := "liouville completelyMultiplicative")
+  (statement := /-- The Liouville function is completely multiplicative. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
+  -/)]
+lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
+  sorry
+
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
 @[blueprint
@@ -635,20 +681,6 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
   sorry
-
--- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
---  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
-
-/--
-Define Complete Multiplicativity for an arithmetic function. -/
-@[blueprint
-  "completelyMultiplicative"
-  (title := "completelyMultiplicative")
-  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
-]
-def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
-  f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
-
 
 
 
