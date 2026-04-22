@@ -682,6 +682,35 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
   sorry
 
+/-- `liouville` agrees with `moebius` on square-free numbers -/
+@[blueprint
+  "liouville_eq_moebius_on_squarefree"
+  (title := "liouville eq moebius on squarefree")
+  (statement := /-- The Liouville function agrees with the Möbius function on square-free numbers. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
+  -/)]
+lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
+  sorry
+
+/-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
+@[blueprint
+  "LSeries_totient_eq"
+  (title := "LSeries totient eq")
+  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
+  \begin{verbatim}
+  This is IK (1.35).
+  \end{verbatim}
+   -/)
+  (proof := /--
+  The Euler totient function $\varphi(n)$ counts the positive integers up to $n$ that are relatively prime to $n$. It is a multiplicative function, and its value at prime powers is given by $\varphi(p^k) = p^k - p^{k-1}$. The Dirichlet series of $\varphi$ can be expressed as an Euler product over primes:
+\[
+L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
+\ ]
+  -/)]
+lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
+  sorry
 
 
 end ArithmeticFunction
