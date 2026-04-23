@@ -1074,7 +1074,7 @@ lemma ContDiff.div_real_complex {f g : ℝ → ℂ} {n} (hf : ContDiff ℝ n f) 
     ContDiff ℝ n (fun x => f x / g x) :=
   hf.mul (hg.inv h0)
 
-@[fun_prop]
+@[fun_prop] -- a bit of a hack to specialize Complex.ofRealCLM.contDiff to n=2
 lemma Complex.ofRealCLM.contDiff2 : ContDiff ℝ 2 ofReal := Complex.ofRealCLM.contDiff
 
 @[fun_prop]
@@ -1099,10 +1099,9 @@ lemma h_comp (ε ν : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => (-
   apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id] <;> try fun_prop
   · exact Complex.conjCLE.contDiff.comp (by fun_prop)
   · refine Complex.ofRealCLM.contDiff.comp ?_
-    refine ContDiff.inv ?_ ?_
-    · fun_prop
-    · intro x; rw [ne_eq, Complex.normSq_eq_zero]
-      exact sinh_ne_zero_of_re_ne_zero (by simp [hlam])
+    refine ContDiff.inv (by fun_prop) ?_
+    intro x; rw [ne_eq, Complex.normSq_eq_zero]
+    exact sinh_ne_zero_of_re_ne_zero (by simp [hlam])
 
 theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
     ContDiff ℝ 2 (fun (t : ℝ) ↦ Phi_star ν ε (t : ℂ)) := by
