@@ -688,14 +688,14 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
   constructor
   · rintro ⟨k, hk⟩
     use -k
-    apply (mul_left_inj' (show (2 * ↑π * I : ℂ) ≠ 0 by simp [pi_ne_zero])).mp
+    apply (mul_left_inj' (show (2 * π * I : ℂ) ≠ 0 by simp [pi_ne_zero])).mp
     field_simp [pi_ne_zero, I_ne_zero] at hk ⊢
-    have h1 : 2 * ↑π * I * z = ↑ν - 2 * ↑k * ↑π * I := by rw [← hk]; dsimp [w]; ring
+    have h1 : 2 * π * I * z = ν - 2 * k * π * I := by rw [← hk]; dsimp [w]; ring
     calc
-      (2 * ↑π * z : ℂ) = (2 * ↑π * I * z) * (-I) := by ring_nf; simp
-      _ = (↑ν - 2 * ↑k * ↑π * I) * (-I) := by rw [h1]
-      _ = 2 * ↑k * ↑π * Complex.I^2 - I * ν := by ring
-      _ = 2 * ↑π * ↑(-k) - I * ↑ν := by simp; ring
+      (2 * π * z : ℂ) = (2 * π * I * z) * (-I) := by ring_nf; simp
+      _ = (ν - 2 * k * π * I) * (-I) := by rw [h1]
+      _ = 2 * k * π * Complex.I^2 - I * ν := by ring
+      _ = 2 * π * ↑(-k) - I * ν := by simp; ring
   · rintro ⟨n, rfl⟩
     use -n
     dsimp [w]
@@ -731,12 +731,12 @@ theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
     rw [h_s_z₀, show -n * π * I = -(n * π * I) by ring, Complex.sinh_neg,
         Complex.sinh_mul_I, Complex.sin_int_mul_pi]
     simp
-  have h_s_deriv : HasDerivAt s (-↑π * I) z₀ := by
+  have h_s_deriv : HasDerivAt s (-π * I) z₀ := by
     dsimp [s, w]
-    have h := (((hasDerivAt_id z₀).const_mul (-2 * ↑π * I)).add
-                (hasDerivAt_const z₀ (↑ν : ℂ))).div_const 2
+    have h := (((hasDerivAt_id z₀).const_mul (-2 * π * I)).add
+                (hasDerivAt_const z₀ (ν : ℂ))).div_const 2
     convert h using 1; simp only [mul_one, add_zero]; ring
-  have h_sinh_deriv : HasDerivAt (fun z ↦ Complex.sinh (s z)) (-↑π * I * Complex.cosh (s z₀)) z₀ := by
+  have h_sinh_deriv : HasDerivAt (fun z ↦ Complex.sinh (s z)) (-π * I * Complex.cosh (s z₀)) z₀ := by
     convert (Complex.hasDerivAt_sinh (s z₀)).comp z₀ h_s_deriv using 1; ring
   have h_slope2 : Filter.Tendsto (fun z => Complex.sinh (s z) / (z - z₀)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (-π * I * Complex.cosh (s z₀))) := by
     have h_eq : slope (fun z => Complex.sinh (s z)) z₀ = fun z => Complex.sinh (s z) / (z - z₀) := by
@@ -759,7 +759,7 @@ theorem Phi_circ.residue (ν ε : ℝ) (_hν : ν > 0) (n : ℤ) :
   rw [show (I / (2 * π) : ℂ) = (1 / 2 : ℂ) * (-π * I * Complex.cosh (s z₀))⁻¹ * Complex.cosh (s z₀) + 0 by
     rw [add_zero, mul_inv]
     field_simp [show Complex.cosh (s z₀) ≠ 0 by rw [h_cosh_z₀]; exact zpow_ne_zero n (by norm_num),
-      show (-↑π * I : ℂ) ≠ 0 by simp [pi_ne_zero, I_ne_zero]]
+      show (-π * I : ℂ) ≠ 0 by simp [pi_ne_zero, I_ne_zero]]
     ring_nf; simp]
   refine Filter.Tendsto.congr (fun z => ?_) ((h_lim_sinh.const_mul (1 / 2 : ℂ)).mul h_lim_cosh |>.add h_lim_eps)
   rw [Phi_circ, coth]
@@ -917,7 +917,7 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
       MeromorphicAt (fun _ => B ε ν) z₀ := by
     constructor
     · exact (meromorphicAt_B ε _).comp_analyticAt (by fun_prop)
-    · exact MeromorphicAt.const (B ε ↑ν) z₀
+    · exact MeromorphicAt.const (B ε ν) z₀
   exact (h_comp.1.sub h_comp.2).div (MeromorphicAt.const _ z₀)
 
 @[blueprint
@@ -1043,7 +1043,7 @@ theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hσ : |σ| = 1) :
       (Filter.Tendsto.const_mul (n : ℂ) (Phi_star.residue ν ε hν n hn_cases)) using 1
     · ext z; ring
     · ring_nf
-      suffices h : (0 : ℂ) = I * (↑π)⁻¹ * (1 / 2) + I * (↑π)⁻¹ * (↑n) ^ 2 * (-1 / 2) by exact congr_arg nhds h
+      suffices h : (0 : ℂ) = I * (↑π)⁻¹ * (1 / 2) + I * (↑π)⁻¹ * (n : ℂ) ^ 2 * (-1 / 2) by exact congr_arg nhds h
       have hn_sq : (n : ℂ) ^ 2 = 1 := by
         exact_mod_cast sq_eq_one_iff.mpr hσ
       simp only [hn_sq]
@@ -1145,7 +1145,7 @@ theorem Phi_circ.continuousAt_imag (ν ε t : ℝ) (ht : 0 ≤ t) (hν : ν > 0)
 theorem Phi_star.continuousAt_imag (ν ε t : ℝ) (ht : 0 ≤ t) (hν : ν > 0) :
     ContinuousAt (fun s : ℝ ↦ Phi_star ν ε (I * ↑s)) t := by
   simp only [Phi_star]
-  have h_eq (s : ℝ) : -2 * ↑π * I * (I * ↑s) + ↑ν = ↑(2 * π * s + ν) := by
+  have h_eq (s : ℝ) : -2 * π * I * (I * s) + ν = ↑(2 * π * s + ν) := by
     ring_nf; simp
   simp_rw [h_eq]
   apply ContinuousAt.div_const
@@ -1245,9 +1245,9 @@ hence, by Definition \ref{phi-pm-def}, $\varphi^{\pm}_{\nu}(t) = 0$. Thus, $\var
   (latexEnv := "lemma")
   (discussion := 1075)]
 theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε) := by
-  have tanh_add_pi (z : ℂ) : Complex.tanh (z + ↑Real.pi * I) = Complex.tanh z := by simp
-  have tanh_sub_pi (z : ℂ) : Complex.tanh (z - ↑Real.pi * I) = Complex.tanh z := by
-    have h := tanh_add_pi (z - ↑Real.pi * I); rw [sub_add_cancel] at h; exact h.symm
+  have tanh_add_pi (z : ℂ) : Complex.tanh (z + Real.pi * I) = Complex.tanh z := by simp
+  have tanh_sub_pi (z : ℂ) : Complex.tanh (z - Real.pi * I) = Complex.tanh z := by
+    have h := tanh_add_pi (z - Real.pi * I); rw [sub_add_cancel] at h; exact h.symm
   unfold ϕ_pm
   apply continuous_if
   · intro a ha
@@ -1258,24 +1258,24 @@ theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε)
     rcases ha with rfl | rfl
     · unfold Phi_circ Phi_star B coth
       dsimp only []; push_cast; simp only [Real.sign_neg, Real.sign_one, ofReal_neg, ofReal_one]
-      have hw_ne : -2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν ≠ 0 := by
+      have hw_ne : -2 * Real.pi * I * (-1 : ℂ) + ν ≠ 0 := by
         intro h; have := congr_arg Complex.im h; simp at this
       have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
       simp only [hw_ne, hν_ne, ↓reduceIte]
-      have hw2 : (-2 * ↑Real.pi * I * (-1 : ℂ) + ↑ν) / 2 = ↑ν / 2 + ↑Real.pi * I := by ring
+      have hw2 : (-2 * Real.pi * I * (-1 : ℂ) + ν) / 2 = ν / 2 + Real.pi * I := by ring
       rw [hw2, tanh_add_pi]
-      have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
+      have hpi : (Real.pi : ℂ) * I ≠ 0 := by
         apply mul_ne_zero (by exact_mod_cast Real.pi_ne_zero) I_ne_zero
       grind
     · unfold Phi_circ Phi_star B coth
       dsimp only []; push_cast; simp only [Real.sign_one, ofReal_one]
-      have hw_ne : -2 * ↑Real.pi * I * (1 : ℂ) + ↑ν ≠ 0 := by
+      have hw_ne : -2 * Real.pi * I * (1 : ℂ) + ν ≠ 0 := by
         intro h; have := congr_arg Complex.im h; simp at this
       have hν_ne : (ν : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hlam
       simp only [hw_ne, hν_ne, ↓reduceIte]
-      have hw2 : (-2 * ↑Real.pi * I * (1 : ℂ) + ↑ν) / 2 = ↑ν / 2 - ↑Real.pi * I := by ring
+      have hw2 : (-2 * Real.pi * I * (1 : ℂ) + ν) / 2 = ν / 2 - Real.pi * I := by ring
       rw [hw2, tanh_sub_pi]
-      have hpi : (↑Real.pi : ℂ) * I ≠ 0 := by
+      have hpi : (Real.pi : ℂ) * I ≠ 0 := by
         apply mul_ne_zero (by exact_mod_cast Real.pi_ne_zero) I_ne_zero
       field_simp
       ring
@@ -2234,8 +2234,8 @@ theorem B_affine_periodic (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) (m : ℤ)
   have h_tanh_periodic :
       Complex.tanh ((-2 * Real.pi * I * (z - m) + ν) / 2) =
         Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) := by
-    rw [show (-2 * ↑π * I * (z - ↑m) + ↑ν) / 2 =
-      (-2 * ↑π * I * z + ↑ν) / 2 + ↑π * I * ↑m by ring]
+    rw [show (-2 * π * I * (z - m) + ν) / 2 =
+      (-2 * π * I * z + ν) / 2 + π * I * m by ring]
     exact tanh_add_int_mul_pi_I _ m
   grind
 
