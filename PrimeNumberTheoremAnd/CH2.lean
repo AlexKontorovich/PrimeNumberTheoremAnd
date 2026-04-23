@@ -417,26 +417,27 @@ theorem sinh_add_pi_I (z : ℂ) : sinh (z + π * I) = -sinh z := by
 theorem cosh_add_pi_I (z : ℂ) : cosh (z + π * I) = -cosh z := by
     simp [Complex.cosh_add, cosh_mul_I, sinh_mul_I]
 
-@[simp]
-public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
-  rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh,
-    sinh_add_pi_I, cosh_add_pi_I]; field_simp
-
-lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
-  simp [coth]
-
 theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh z := by
+  have step (w : ℂ) : tanh (w + π * I) = tanh w := by
+    rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh,
+      sinh_add_pi_I, cosh_add_pi_I]; field_simp
   induction m using Int.induction_on with
   | zero => simp
   | succ n ih =>
     push_cast at ih ⊢
-    rw [show z + ↑π * I * (↑n + 1) = (z + ↑π * I * ↑n) + ↑π * I from by ring]
-    rw [tanh_add_pi_I]; exact ih
+    rw [show z + π * I * (n + 1) = (z + π * I * n) + π * I from by ring, step]; exact ih
   | pred n ih =>
     push_cast at ih ⊢
-    have h := tanh_add_pi_I (z + ↑π * I * (-(↑n : ℂ) - 1))
-    rw [show z + ↑π * I * (-↑n - 1) + ↑π * I = z + ↑π * I * -↑n from by ring] at h
+    have h := step (z + π * I * (-n - 1))
+    rw [show z + π * I * (-n - 1) + π * I = z + π * I * -n from by ring] at h
     rw [← h]; exact ih
+
+@[simp]
+public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
+  have := tanh_add_int_mul_pi_I z 1; simp at this; exact this
+
+lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
+  simp [coth]
 
 @[blueprint
   "Phi-circ-def"
