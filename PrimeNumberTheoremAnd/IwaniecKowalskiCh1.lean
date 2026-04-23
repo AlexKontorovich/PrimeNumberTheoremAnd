@@ -707,7 +707,7 @@ lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouvil
   The Euler totient function $\varphi(n)$ counts the positive integers up to $n$ that are relatively prime to $n$. It is a multiplicative function, and its value at prime powers is given by $\varphi(p^k) = p^k - p^{k-1}$. The Dirichlet series of $\varphi$ can be expressed as an Euler product over primes:
 \[
 L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
-\ ]
+\]
   -/)]
 lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
