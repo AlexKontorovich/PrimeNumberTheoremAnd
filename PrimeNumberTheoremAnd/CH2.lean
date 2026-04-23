@@ -434,7 +434,7 @@ theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh
 
 @[simp]
 public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
-  have := tanh_add_int_mul_pi_I z 1; simp at this; exact this
+  simpa using tanh_add_int_mul_pi_I z 1
 
 lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   simp [coth]
@@ -1077,17 +1077,30 @@ lemma ContDiff.div_real_complex {f g : ℝ → ℂ} {n} (hf : ContDiff ℝ n f) 
 @[fun_prop]
 lemma Complex.ofRealCLM.contDiff2 : ContDiff ℝ 2 ofReal := Complex.ofRealCLM.contDiff
 
+@[fun_prop]
+lemma Complex.contDiff_normSq {n : ℕ∞} : ContDiff ℝ n (normSq : ℂ → ℝ) := by
+  have hre : ContDiff ℝ n (Complex.reCLM : ℂ → ℝ) := Complex.reCLM.contDiff
+  have him : ContDiff ℝ n (Complex.imCLM : ℂ → ℝ) := Complex.imCLM.contDiff
+  change ContDiff ℝ n (fun z : ℂ => z.re * z.re + z.im * z.im)
+  exact (hre.mul hre).add (him.mul him)
+
+@[fun_prop]
+lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) :=
+  Complex.contDiff_sinh.restrict_scalars ℝ
+
+@[fun_prop]
+lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) :=
+  Complex.contDiff_cosh.restrict_scalars ℝ
+
 lemma h_B_rational (ε : ℝ) : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
   simp +contextual [Complex.tanh_eq_sinh_div_cosh, B, coth]
 
 lemma h_comp (ε ν : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
   apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id] <;> try fun_prop
-  · exact Complex.conjCLE.contDiff.comp (by simp only [Complex.sinh, neg_mul]; fun_prop)
+  · exact Complex.conjCLE.contDiff.comp (by fun_prop)
   · refine Complex.ofRealCLM.contDiff.comp ?_
     refine ContDiff.inv ?_ ?_
-    · norm_num [Complex.normSq, Complex.sinh]
-      norm_num [Complex.exp_re, Complex.exp_im]
-      exact ContDiff.div_const (by fun_prop) _
+    · fun_prop
     · intro x; rw [ne_eq, Complex.normSq_eq_zero]
       exact sinh_ne_zero_of_re_ne_zero (by simp [hlam])
 
