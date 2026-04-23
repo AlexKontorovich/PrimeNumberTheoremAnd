@@ -1574,64 +1574,139 @@ Since $e^u$ is convex, $e^u \geq 1 + u$ for all $u \in \mathbb{R}$. We apply thi
 . -/)
   (latexEnv := "lemma")
   (discussion := 1077)]
+private lemma rexp_sub_one_pos_of_pos {t : ℝ} (ht : 0 < t) : rexp t - 1 > 0 :=
+  by linarith [Real.add_one_le_exp t]
+
+private lemma rexp_sub_one_neg_of_neg {t : ℝ} (ht : t < 0) : rexp t - 1 < 0 := by
+  nlinarith [Real.exp_pos t, Real.exp_neg t,
+    mul_inv_cancel₀ (ne_of_gt (Real.exp_pos t)), Real.add_one_le_exp (-t)]
+
+/-- The derivative numerator `(exp t - 1) - t * exp t` is nonpositive, since `exp t ≥ 1 + t`. -/
+private lemma deriv_num_nonpos (c : ℝ) :
+    1 * (rexp c - 1) - c * rexp c ≤ 0 := by
+  nlinarith [Real.exp_pos c, Real.exp_neg c,
+    mul_inv_cancel₀ (ne_of_gt (Real.exp_pos c)),
+    Real.add_one_le_exp c, Real.add_one_le_exp (-c)]
+
+/-- `HasDerivAt` for `t / (exp t - 1)`. -/
+private lemma hasDerivAt_div_exp (c : ℝ) (hne : rexp c - 1 ≠ 0) :
+    HasDerivAt (fun s => s / (rexp s - 1))
+      ((1 * (rexp c - 1) - c * rexp c) / (rexp c - 1) ^ 2) c :=
+  (hasDerivAt_id c).div (show HasDerivAt (fun s => rexp s - 1) (rexp c) c by
+    have := (Real.hasDerivAt_exp c).sub (hasDerivAt_const c (1 : ℝ))
+    simp only [sub_zero] at this; exact this) hne
+
+/-- `t / (exp t - 1)` is antitone on any interval where `exp t - 1 ≠ 0`, by MVT. -/
+private lemma div_exp_sub_one_anti (t1 t2 : ℝ)
+    (hall : ∀ x, t1 ≤ x → x ≤ t2 → rexp x - 1 ≠ 0) (hlt : t1 < t2) :
+    t2 / (rexp t2 - 1) ≤ t1 / (rexp t1 - 1) := by
+  obtain ⟨c, hc, hc_eq⟩ : ∃ c ∈ Set.Ioo t1 t2,
+      deriv (fun s => s / (rexp s - 1)) c =
+        ((fun s => s / (rexp s - 1)) t2 - (fun s => s / (rexp s - 1)) t1) / (t2 - t1) := by
+    rw [show (fun s => s / (rexp s - 1)) = (_root_.id / fun x => rexp x - 1) from by
+      ext x; simp [_root_.id]]
+    exact exists_deriv_eq_slope _ hlt
+      (ContinuousOn.div continuousOn_id
+        (ContinuousOn.sub Real.continuous_exp.continuousOn continuousOn_const)
+        (fun x hx => hall x hx.1 hx.2))
+      (DifferentiableOn.div differentiableOn_id
+        (DifferentiableOn.sub Real.differentiable_exp.differentiableOn (differentiableOn_const _))
+        (fun x hx => hall x (le_of_lt hx.1) (le_of_lt hx.2)))
+  have hne := hall c (le_of_lt hc.1) (le_of_lt hc.2)
+  rw [(hasDerivAt_div_exp c hne).deriv] at hc_eq
+  have := div_nonpos_of_nonpos_of_nonneg (deriv_num_nonpos c) (sq_nonneg (rexp c - 1))
+  rw [hc_eq] at this
+  cases div_nonpos_iff.mp this with
+  | inl h => linarith [h.1] | inr h => linarith [h.2]
+
+/-- For `t ≠ 0`, `(B 1 t).re = t * exp t / (exp t - 1)`. -/
+lemma B_plus_re_eq {t : ℝ} (ht : t ≠ 0) :
+    (B 1 (t : ℂ)).re = t * Real.exp t / (Real.exp t - 1) := by
+  unfold B
+  unfold coth; norm_num [ Complex.tanh, Complex.exp_re, Complex.exp_im ] ; ring_nf;
+  norm_num [ Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht ] ; ring_nf;
+  norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im ] ; ring_nf;
+  field_simp;
+  rw [ one_add_div, ← add_div, div_eq_div_iff ] <;> ring_nf <;> norm_num [ sub_ne_zero, ht, Real.exp_ne_zero ];
+  · simpa [ ← Real.exp_add ] using by ring_nf;
+  · cases lt_or_gt_of_ne ht <;> linarith;
+  · exact fun h => ht <| by rw [ add_eq_zero_iff_eq_neg ] at h; replace h := congr_arg Real.log h; norm_num at h; linarith;
+  · cases lt_or_gt_of_ne ht <;> linarith
+
+/-- `t * exp t / (exp t - 1) ≤ 1` for `t < 0`. -/
+private lemma mul_exp_div_exp_sub_one_le_one {t : ℝ} (ht : t < 0) :
+    t * Real.exp t / (Real.exp t - 1) ≤ 1 := by
+  rw [ div_le_iff_of_neg ] <;> nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
+
+/-- `1 ≤ t * exp t / (exp t - 1)` for `t > 0`. -/
+private lemma one_le_mul_exp_div_exp_sub_one {t : ℝ} (ht : 0 < t) :
+    1 ≤ t * Real.exp t / (Real.exp t - 1) := by
+  rw [ le_div_iff₀ ] <;> try linarith [ Real.add_one_le_exp t ];
+  nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
+
+/-- `t * exp t / (exp t - 1)` is monotone on `(0, ∞)`. -/
+private lemma monotoneOn_mul_exp_div_Ioi :
+    MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Ioi 0) := by
+  have h_deriv_pos : ∀ t > 0, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t ≥ 0 := by
+    intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_gt, ht, ne_of_gt, Real.exp_pos t, ne_of_gt, sub_pos, Real.exp_pos, ht, sub_ne_zero.mpr, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t ];
+    exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ )
+  intro a ha b hb hab
+  have h_mean_val : ∀ a b : ℝ, 0 < a → a < b → ∃ c ∈ Set.Ioo a b, deriv (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) c = ( (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) b - (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) a ) / (b - a) := by
+    intros a b ha hb; apply_rules [ exists_deriv_eq_slope ];
+    · exact continuousOn_of_forall_continuousAt fun t ht => by
+        fun_prop (disch := exact sub_ne_zero_of_ne (by linarith [Real.add_one_le_exp t, ht.1]))
+    · exact DifferentiableOn.div ( DifferentiableOn.mul differentiableOn_id ( Real.differentiable_exp.differentiableOn ) ) ( DifferentiableOn.sub ( Real.differentiable_exp.differentiableOn ) ( differentiableOn_const _ ) ) fun x hx => ne_of_gt ( by norm_num; linarith [ hx.1 ] );
+  cases eq_or_lt_of_le hab
+  · aesop
+  obtain ⟨ c, hc₁, hc₂ ⟩ := h_mean_val a b ha ‹_›
+  have := h_deriv_pos c ( lt_trans ha.out hc₁.1 )
+  rw [ hc₂, ge_iff_le, le_div_iff₀ (by lia) ] at this
+  linarith
+
+/-- `t * exp t / (exp t - 1)` is monotone on `(-∞, 0)`. -/
+private lemma monotoneOn_mul_exp_div_Iio :
+    MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Iio 0) := by
+  have h_deriv_nonneg : ∀ t : ℝ, t < 0 → 0 ≤ deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t := by
+    intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_lt, ht, sub_ne_zero ];
+    exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ );
+  intros t ht u hu htu;
+  by_contra h_contra; push_neg at h_contra; (
+  obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
+    apply_rules [ exists_deriv_eq_slope ]
+    · exact htu.lt_of_ne ( by rintro rfl; linarith )
+    · exact continuousOn_of_forall_continuousAt fun x hx => by
+        fun_prop (disch := exact sub_ne_zero_of_ne (by norm_num; linarith [hx.1, hx.2, ht.out, hu.out]))
+    · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) )
+  rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
+
 theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
-  have B_plus_re_eq : ∀ t : ℝ, t ≠ 0 → (B 1 (t : ℂ)).re = t * Real.exp t / (Real.exp t - 1) := by
-    intro t ht
-    unfold B
-    unfold coth; norm_num [ Complex.tanh, Complex.exp_re, Complex.exp_im ] ; ring_nf;
-    norm_num [ Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht ] ; ring_nf;
-    norm_num [ Complex.normSq, Complex.exp_re, Complex.exp_im ] ; ring_nf;
-    field_simp;
-    rw [ one_add_div, ← add_div, div_eq_div_iff ] <;> ring_nf <;> norm_num [ sub_ne_zero, ht, Real.exp_ne_zero ];
-    · simpa [ ← Real.exp_add ] using by ring_nf;
-    · cases lt_or_gt_of_ne ht <;> linarith;
-    · exact fun h => ht <| by rw [ add_eq_zero_iff_eq_neg ] at h; replace h := congr_arg Real.log h; norm_num at h; linarith;
-    · cases lt_or_gt_of_ne ht <;> linarith
-  have f_le_one_neg : ∀ t : ℝ, t < 0 → t * Real.exp t / (Real.exp t - 1) ≤ 1 := by
-    intro t ht
-    rw [ div_le_iff_of_neg ] <;> nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
-  have f_ge_one_pos : ∀ t : ℝ, 0 < t → 1 ≤ t * Real.exp t / (Real.exp t - 1) := by
-    intro t ht
-    rw [ le_div_iff₀ ] <;> try linarith [ Real.add_one_le_exp t ];
-    nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ]
-  have f_mono_pos : MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Ioi 0) := by
-    have h_deriv_pos : ∀ t > 0, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t ≥ 0 := by
-      intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_gt, ht, ne_of_gt, Real.exp_pos t, ne_of_gt, sub_pos, Real.exp_pos, ht, sub_ne_zero.mpr, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t, ne_of_gt, ht, Real.exp_pos t ];
-      exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ )
-    intro a ha b hb hab
-    have h_mean_val : ∀ a b : ℝ, 0 < a → a < b → ∃ c ∈ Set.Ioo a b, deriv (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) c = ( (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) b - (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) a ) / (b - a) := by
-      intros a b ha hb; apply_rules [ exists_deriv_eq_slope ];
-      · exact continuousOn_of_forall_continuousAt fun t ht => by
-          fun_prop (disch := exact sub_ne_zero_of_ne (by linarith [Real.add_one_le_exp t, ht.1]))
-      · exact DifferentiableOn.div ( DifferentiableOn.mul differentiableOn_id ( Real.differentiable_exp.differentiableOn ) ) ( DifferentiableOn.sub ( Real.differentiable_exp.differentiableOn ) ( differentiableOn_const _ ) ) fun x hx => ne_of_gt ( by norm_num; linarith [ hx.1 ] );
-    cases eq_or_lt_of_le hab
-    · aesop
-    obtain ⟨ c, hc₁, hc₂ ⟩ := h_mean_val a b ha ‹_›
-    have := h_deriv_pos c ( lt_trans ha.out hc₁.1 )
-    rw [ hc₂, ge_iff_le, le_div_iff₀ (by lia) ] at this
-    linarith
-  have f_mono_neg : MonotoneOn (fun t : ℝ ↦ t * Real.exp t / (Real.exp t - 1)) (Set.Iio 0) := by
-    have h_deriv_nonneg : ∀ t : ℝ, t < 0 → 0 ≤ deriv (fun t => t * Real.exp t / (Real.exp t - 1)) t := by
-      intro t ht; norm_num [ Real.differentiableAt_exp, ne_of_lt, ht, sub_ne_zero ];
-      exact div_nonneg ( by nlinarith [ Real.exp_pos t, Real.exp_neg t, mul_inv_cancel₀ ( ne_of_gt ( Real.exp_pos t ) ), Real.add_one_le_exp t, Real.add_one_le_exp ( -t ) ] ) ( sq_nonneg _ );
-    intros t ht u hu htu;
-    by_contra h_contra; push_neg at h_contra; (
-    obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
-      apply_rules [ exists_deriv_eq_slope ]
-      · exact htu.lt_of_ne ( by rintro rfl; linarith )
-      · exact continuousOn_of_forall_continuousAt fun x hx => by
-          fun_prop (disch := exact sub_ne_zero_of_ne (by norm_num; linarith [hx.1, hx.2, ht.out, hu.out]))
-      · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) )
-    rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
-  intro t₁ t₂ ht;
-  by_cases h₁ : t₁ = 0 <;> by_cases h₂ : t₂ = 0
-  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
-  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
-  · grind [one_re, B, ofReal_eq_zero, ofReal_one]
-  · simp only [ne_eq, B, ofReal_eq_zero, ofReal_one] at B_plus_re_eq
-    simp only [B, ofReal_eq_zero, ofReal_one, h₁, h₂, ite_false, div_ofNat_re, mul_re, ofReal_re, add_re, one_re, ofReal_im, add_im, one_im]
-    simp_all
-    grind [MonotoneOn]
+  intro t₁ t₂ ht
+  simp only
+  by_cases h₁ : t₁ = 0
+  · subst h₁; simp only [ofReal_zero]; by_cases h₂ : t₂ = 0
+    · subst h₂; exact le_refl _
+    · have hB0 : (B 1 (0 : ℂ)).re = 1 := by simp [B]
+      rw [hB0, B_plus_re_eq h₂]
+      exact one_le_mul_exp_div_exp_sub_one (lt_of_le_of_ne (by linarith) (Ne.symm h₂))
+  · by_cases h₂ : t₂ = 0
+    · subst h₂; simp only [ofReal_zero]
+      have hB0 : (B 1 (0 : ℂ)).re = 1 := by simp [B]
+      rw [hB0, B_plus_re_eq h₁]
+      exact mul_exp_div_exp_sub_one_le_one (lt_of_le_of_ne (by linarith) h₁)
+    · rw [show (t₁ : ℂ) = ((t₁ : ℝ) : ℂ) from rfl, show (t₂ : ℂ) = ((t₂ : ℝ) : ℂ) from rfl,
+        B_plus_re_eq h₁, B_plus_re_eq h₂]
+      by_cases hpos : 0 < t₁
+      · exact monotoneOn_mul_exp_div_Ioi (Set.mem_Ioi.mpr hpos)
+          (Set.mem_Ioi.mpr (lt_of_lt_of_le hpos ht)) ht
+      · push_neg at hpos
+        have ht₁_neg : t₁ < 0 := lt_of_le_of_ne hpos h₁
+        by_cases hneg : t₂ < 0
+        · exact monotoneOn_mul_exp_div_Iio (Set.mem_Iio.mpr ht₁_neg)
+            (Set.mem_Iio.mpr hneg) ht
+        · push_neg at hneg
+          have ht₂_pos : 0 < t₂ := lt_of_le_of_ne hneg (Ne.symm h₂)
+          linarith [mul_exp_div_exp_sub_one_le_one ht₁_neg,
+            one_le_mul_exp_div_exp_sub_one ht₂_pos]
 
 lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
   unfold B; split
@@ -1641,6 +1716,42 @@ lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
     simp [ofReal_im, ofReal_re]
 
 theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
+
+/-- For `t ≠ 0`, `(B (-1) t).re = t / (exp t - 1)`. -/
+lemma B_minus_re_eq {t : ℝ} (ht : t ≠ 0) :
+    (B (-1) (t : ℂ)).re = t / (rexp t - 1) := by
+  unfold B coth
+  have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht
+  simp only [ht', ↓reduceIte, one_div]
+  rw [show ((-1 : ℝ) : ℂ) = -1 from by push_cast; ring]
+  conv_lhs => rw [show (t : ℂ) / 2 = ((t / 2 : ℝ) : ℂ) from by push_cast; ring]
+  rw [show Complex.tanh ((t / 2 : ℝ) : ℂ) = ((Real.tanh (t / 2) : ℝ) : ℂ) from by
+      apply Complex.ext <;> simp,
+    show ((Real.tanh (t / 2) : ℝ) : ℂ)⁻¹ = ((Real.tanh (t / 2))⁻¹ : ℝ) from by push_cast; ring,
+    show (↑t * (↑(Real.tanh (t / 2))⁻¹ + (-1 : ℂ)) / 2 : ℂ) =
+      ((t * ((Real.tanh (t / 2))⁻¹ + (-1 : ℝ)) / 2 : ℝ) : ℂ) from by push_cast; ring]
+  simp only [Complex.ofReal_re]; rw [Real.tanh_eq]
+  have h2 : rexp (t / 2) - rexp (-(t / 2)) ≠ 0 := by
+    intro h; exact ht (by linarith [Real.exp_injective (show rexp (t/2) = rexp (-(t/2)) by linarith)])
+  have h3 : rexp t - 1 ≠ 0 := by
+    intro h; exact ht ((Real.exp_eq_one_iff t).mp (by linarith))
+  rw [inv_div]; field_simp
+  nlinarith [show rexp t = rexp (t / 2) * rexp (t / 2) by rw [← Real.exp_add]; ring_nf,
+    show rexp (t / 2) * rexp (-(t / 2)) = 1 by rw [← Real.exp_add]; simp,
+    Real.exp_pos (t/2), Real.exp_pos (-(t/2))]
+
+/-- `t / (exp t - 1) ≤ 1` for `t > 0`. -/
+private lemma div_exp_sub_one_le_one {t : ℝ} (ht : 0 < t) :
+    t / (rexp t - 1) ≤ 1 := by
+  rw [div_le_iff₀ (rexp_sub_one_pos_of_pos ht)]; linarith [Real.add_one_le_exp t]
+
+/-- `1 ≤ t / (exp t - 1)` for `t < 0`. -/
+private lemma one_le_div_exp_sub_one {t : ℝ} (ht : t < 0) :
+    1 ≤ t / (rexp t - 1) := by
+  rw [le_div_iff_of_neg (rexp_sub_one_neg_of_neg ht)]
+  nlinarith [Real.exp_pos t, Real.exp_neg t,
+    mul_inv_cancel₀ (ne_of_gt (Real.exp_pos t)),
+    Real.add_one_le_exp t, Real.add_one_le_exp (-t)]
 
 @[blueprint
   "B-minus-mono"
@@ -1653,49 +1764,6 @@ theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
   (latexEnv := "lemma")
   (discussion := 1078)]
 theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by
-  have hasDerivAt_div_exp (c : ℝ) (hne : rexp c - 1 ≠ 0) :
-      HasDerivAt (fun s => s / (rexp s - 1))
-        ((1 * (rexp c - 1) - c * rexp c) / (rexp c - 1) ^ 2) c :=
-    (hasDerivAt_id c).div (show HasDerivAt (fun s => rexp s - 1) (rexp c) c by
-      have := (Real.hasDerivAt_exp c).sub (hasDerivAt_const c (1 : ℝ))
-      simp only [sub_zero] at this; exact this) hne
-  have deriv_nonpos (c : ℝ) (hne : rexp c - 1 ≠ 0) :
-      (1 * (rexp c - 1) - c * rexp c) / (rexp c - 1) ^ 2 ≤ 0 :=
-    div_nonpos_of_nonpos_of_nonneg
-      (by nlinarith [Real.exp_pos c, Real.exp_neg c,
-        mul_inv_cancel₀ (ne_of_gt (Real.exp_pos c)),
-        Real.add_one_le_exp c, Real.add_one_le_exp (-c)])
-      (sq_nonneg _)
-  have mvt_anti (t1 t2 : ℝ) (hall : ∀ x, t1 ≤ x → x ≤ t2 → rexp x - 1 ≠ 0) (hlt : t1 < t2) :
-      t2 / (rexp t2 - 1) ≤ t1 / (rexp t1 - 1) := by
-    obtain ⟨c, hc, hc_eq⟩ : ∃ c ∈ Set.Ioo t1 t2,
-        deriv (fun s => s / (rexp s - 1)) c =
-          ((fun s => s / (rexp s - 1)) t2 - (fun s => s / (rexp s - 1)) t1) / (t2 - t1) := by
-      rw [show (fun s => s / (rexp s - 1)) = (_root_.id / fun x => rexp x - 1) from by
-        ext x; simp [_root_.id]]
-      exact exists_deriv_eq_slope _ hlt
-        (ContinuousOn.div continuousOn_id
-          (ContinuousOn.sub Real.continuous_exp.continuousOn continuousOn_const)
-          (fun x hx => hall x hx.1 hx.2))
-        (DifferentiableOn.div differentiableOn_id
-          (DifferentiableOn.sub Real.differentiable_exp.differentiableOn (differentiableOn_const _))
-          (fun x hx => hall x (le_of_lt hx.1) (le_of_lt hx.2)))
-    have hne := hall c (le_of_lt hc.1) (le_of_lt hc.2)
-    rw [(hasDerivAt_div_exp c hne).deriv] at hc_eq
-    have := deriv_nonpos c hne; rw [hc_eq] at this
-    cases div_nonpos_iff.mp this with
-    | inl h => linarith [h.1] | inr h => linarith [h.2]
-  have exp_sub_pos (x : ℝ) (hx : 0 < x) : rexp x - 1 > 0 := by linarith [Real.add_one_le_exp x]
-  have exp_sub_neg (x : ℝ) (hx : x < 0) : rexp x - 1 < 0 := by
-    nlinarith [Real.exp_pos x, Real.exp_neg x,
-      mul_inv_cancel₀ (ne_of_gt (Real.exp_pos x)), Real.add_one_le_exp (-x)]
-  have div_exp_le_one (t : ℝ) (ht : 0 < t) : t / (rexp t - 1) ≤ 1 := by
-    rw [div_le_iff₀ (exp_sub_pos t ht)]; linarith [Real.add_one_le_exp t]
-  have div_exp_ge_one (t : ℝ) (ht : t < 0) : 1 ≤ t / (rexp t - 1) := by
-    rw [le_div_iff_of_neg (exp_sub_neg t ht)]
-    nlinarith [Real.exp_pos t, Real.exp_neg t,
-      mul_inv_cancel₀ (ne_of_gt (Real.exp_pos t)),
-      Real.add_one_le_exp t, Real.add_one_le_exp (-t)]
   suffices heq : (fun t:ℝ ↦ (B (-1) t).re) =
       fun t : ℝ => if t = 0 then (1 : ℝ) else t / (rexp t - 1) by
     rw [heq]; intro a b hab
@@ -1703,42 +1771,25 @@ theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by
     simp only
     by_cases ha0 : a = 0
     · subst ha0; simp only [ite_true, show ¬b = 0 from by linarith, ite_false]
-      exact div_exp_le_one b (by linarith)
+      exact div_exp_sub_one_le_one (by linarith)
     · by_cases hb0 : b = 0
       · subst hb0; simp only [ite_true, ha0, ite_false]
-        exact div_exp_ge_one a (lt_of_le_of_ne (not_lt.mp (fun h => ha0 (by linarith))) ha0)
+        exact one_le_div_exp_sub_one (lt_of_le_of_ne (not_lt.mp (fun h => ha0 (by linarith))) ha0)
       · simp only [ha0, hb0, ite_false]
         by_cases hpos : 0 < a
-        · exact mvt_anti a b (fun x hxa hxb => ne_of_gt (exp_sub_pos x (by linarith))) hlt
+        · exact div_exp_sub_one_anti a b
+            (fun x hxa hxb => ne_of_gt (rexp_sub_one_pos_of_pos (by linarith))) hlt
         · push_neg at hpos
           have ha_neg : a < 0 := lt_of_le_of_ne hpos ha0
           by_cases hneg : b < 0
-          · exact mvt_anti a b (fun x hxa hxb => ne_of_lt (exp_sub_neg x (by linarith))) hlt
+          · exact div_exp_sub_one_anti a b
+              (fun x hxa hxb => ne_of_lt (rexp_sub_one_neg_of_neg (by linarith))) hlt
           · push_neg at hneg
             have hb_pos : 0 < b := lt_of_le_of_ne hneg (Ne.symm hb0)
-            linarith [div_exp_le_one b hb_pos, div_exp_ge_one a ha_neg]
+            linarith [div_exp_sub_one_le_one hb_pos, one_le_div_exp_sub_one ha_neg]
   funext t; split
   · next h => subst h; unfold B; simp
-  · next ht =>
-    unfold B coth
-    have ht' : (t : ℂ) ≠ 0 := by exact_mod_cast ht
-    simp only [ht', ↓reduceIte, one_div]
-    rw [show ((-1 : ℝ) : ℂ) = -1 from by push_cast; ring]
-    conv_lhs => rw [show (t : ℂ) / 2 = ((t / 2 : ℝ) : ℂ) from by push_cast; ring]
-    rw [show Complex.tanh ((t / 2 : ℝ) : ℂ) = ((Real.tanh (t / 2) : ℝ) : ℂ) from by
-        apply Complex.ext <;> simp,
-      show ((Real.tanh (t / 2) : ℝ) : ℂ)⁻¹ = ((Real.tanh (t / 2))⁻¹ : ℝ) from by push_cast; ring,
-      show (↑t * (↑(Real.tanh (t / 2))⁻¹ + (-1 : ℂ)) / 2 : ℂ) =
-        ((t * ((Real.tanh (t / 2))⁻¹ + (-1 : ℝ)) / 2 : ℝ) : ℂ) from by push_cast; ring]
-    simp only [Complex.ofReal_re]; rw [Real.tanh_eq]
-    have h2 : rexp (t / 2) - rexp (-(t / 2)) ≠ 0 := by
-      intro h; exact ht (by linarith [Real.exp_injective (show rexp (t/2) = rexp (-(t/2)) by linarith)])
-    have h3 : rexp t - 1 ≠ 0 := by
-      intro h; exact ht ((Real.exp_eq_one_iff t).mp (by linarith))
-    rw [inv_div]; field_simp
-    nlinarith [show rexp t = rexp (t / 2) * rexp (t / 2) by rw [← Real.exp_add]; ring_nf,
-      show rexp (t / 2) * rexp (-(t / 2)) = 1 by rw [← Real.exp_add]; simp,
-      Real.exp_pos (t/2), Real.exp_pos (-(t/2))]
+  · next ht => exact B_minus_re_eq ht
 
 theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
