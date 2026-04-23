@@ -1048,8 +1048,7 @@ theorem Phi_cancel (ν ε σ : ℝ) (hν : ν > 0) (hσ : |σ| = 1) :
         exact_mod_cast sq_eq_one_iff.mpr hσ
       simp only [hn_sq]
       ring
-  have h_mero_mul : MeromorphicAt (fun z ↦ (z - z₀) * f z) z₀ := by fun_prop
-  rw [tendsto_zero_iff_meromorphicOrderAt_pos h_mero_mul] at h_tendsto_zero
+  rw [tendsto_zero_iff_meromorphicOrderAt_pos (by fun_prop)] at h_tendsto_zero
   change 0 < meromorphicOrderAt ((· - z₀) * f) z₀ at h_tendsto_zero
   rw [meromorphicOrderAt_mul (by fun_prop) h_mero_f] at h_tendsto_zero
   rw [show meromorphicOrderAt (· - z₀) z₀ = (1 : ℤ) from
@@ -1082,26 +1081,15 @@ lemma h_B_rational (ε : ℝ) : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.c
   simp +contextual [Complex.tanh_eq_sinh_div_cosh, B, coth]
 
 lemma h_comp (ε ν : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) * (Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2) / Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) + ε) / 2) := by
-  apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id]
-  · fun_prop
-  · fun_prop
-  · fun_prop
-  · have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by
-      have h_conj : ContDiff ℝ 2 (fun x : ℝ => Complex.exp ((-2 * Real.pi * Complex.I * x + ν) / 2)) := by fun_prop
-      simp_all only [ne_eq, Complex.sinh, neg_mul]
-      fun_prop
-    rw [contDiff_iff_contDiffAt] at *
-    intro x; specialize h_conj x; exact (by
-    convert Complex.conjCLE.contDiff.contDiffAt.comp x h_conj using 1)
+  apply_rules [ContDiff.div, ContDiff.mul, ContDiff.add, contDiff_const, contDiff_id] <;> try fun_prop
+  · exact Complex.conjCLE.contDiff.comp (by simp only [Complex.sinh, neg_mul]; fun_prop)
   · refine Complex.ofRealCLM.contDiff.comp ?_
     refine ContDiff.inv ?_ ?_
     · norm_num [Complex.normSq, Complex.sinh]
       norm_num [Complex.exp_re, Complex.exp_im]
       exact ContDiff.div_const (by fun_prop) _
-    · norm_num [Complex.sinh, Complex.exp_re, Complex.exp_im, Complex.normSq]
-      intro x; ring_nf; norm_num [Real.exp_ne_zero, hlam]
-      norm_num [Real.sin_sq, Real.cos_sq, mul_assoc, mul_left_comm, ← Real.exp_add, ← Real.exp_nat_mul]; ring_nf
-      cases lt_or_gt_of_ne hlam <;> nlinarith [Real.cos_le_one (Real.pi * x * 2), Real.exp_pos ν, Real.exp_pos (-ν), Real.exp_neg ν, mul_inv_cancel₀ (ne_of_gt (Real.exp_pos ν)), Real.add_one_le_exp ν, Real.add_one_le_exp (-ν)]
+    · intro x; rw [ne_eq, Complex.normSq_eq_zero]
+      exact sinh_ne_zero_of_re_ne_zero (by simp [hlam])
 
 theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
     ContDiff ℝ 2 (fun (t : ℝ) ↦ Phi_star ν ε (t : ℂ)) := by
