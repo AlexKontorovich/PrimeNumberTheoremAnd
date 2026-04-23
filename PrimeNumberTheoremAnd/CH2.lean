@@ -1455,8 +1455,8 @@ theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν�
       refine ContinuousOn.mul Complex.continuous_ofReal.continuousOn
         (ContinuousOn.add ?_ continuousOn_const)
       refine ContinuousOn.div ?_ ?_ ?_
-      · exact Continuous.continuousOn (by continuity)
-      · exact Continuous.continuousOn (by continuity)
+      · fun_prop
+      · fun_prop
       · intro x hx
         have h3 : (↑x / 2 : ℂ) = ↑(x / 2) := by push_cast; ring
         rw [h3]
@@ -1621,7 +1621,8 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
     intro a ha b hb hab
     have h_mean_val : ∀ a b : ℝ, 0 < a → a < b → ∃ c ∈ Set.Ioo a b, deriv (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) c = ( (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) b - (fun t : ℝ => t * Real.exp t / (Real.exp t - 1)) a ) / (b - a) := by
       intros a b ha hb; apply_rules [ exists_deriv_eq_slope ];
-      · exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by linarith [ Real.add_one_le_exp t, ht.1 ] ) );
+      · exact continuousOn_of_forall_continuousAt fun t ht => by
+          fun_prop (disch := exact sub_ne_zero_of_ne (by linarith [Real.add_one_le_exp t, ht.1]))
       · exact DifferentiableOn.div ( DifferentiableOn.mul differentiableOn_id ( Real.differentiable_exp.differentiableOn ) ) ( DifferentiableOn.sub ( Real.differentiable_exp.differentiableOn ) ( differentiableOn_const _ ) ) fun x hx => ne_of_gt ( by norm_num; linarith [ hx.1 ] );
     cases eq_or_lt_of_le hab
     · aesop
@@ -1638,7 +1639,8 @@ theorem B_plus_mono : Monotone (fun t:ℝ ↦ (B 1 t).re) := by
     obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo t u, deriv (fun t => t * Real.exp t / (Real.exp t - 1)) c = (u * Real.exp u / (Real.exp u - 1) - t * Real.exp t / (Real.exp t - 1)) / (u - t) := by
       apply_rules [ exists_deriv_eq_slope ]
       · exact htu.lt_of_ne ( by rintro rfl; linarith )
-      · exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div ( ContinuousAt.mul continuousAt_id ( Real.continuous_exp.continuousAt ) ) ( ContinuousAt.sub ( Real.continuous_exp.continuousAt ) continuousAt_const ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, ht.out, hu.out ] ) )
+      · exact continuousOn_of_forall_continuousAt fun x hx => by
+          fun_prop (disch := exact sub_ne_zero_of_ne (by norm_num; linarith [hx.1, hx.2, ht.out, hu.out]))
       · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.div ( differentiableAt_id.mul ( Real.differentiableAt_exp ) ) ( Real.differentiableAt_exp.sub_const _ ) ( sub_ne_zero_of_ne ( by norm_num; linarith [ hx.1, hx.2, hu.out, ht.out ] ) ) )
     rw [ eq_div_iff ] at hc <;> nlinarith [ hc.1.1, hc.1.2, h_deriv_nonneg c ( by linarith [ hc.1.1, hc.1.2, hu.out ] ) ]);
   intro t₁ t₂ ht;
@@ -1966,8 +1968,8 @@ theorem integrable_phi_fourier_ray (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : �
       rcases hf_formula with h_eq | h_eq <;> rw [h_eq]
       · exact ((Phi_circ.analytic ν ε z hν hy_im).add (Phi_star.analytic ν ε z hν hy_im)).mul hE
       · exact ((Phi_circ.analytic ν ε z hν hy_im).sub (Phi_star.analytic ν ε z hν hy_im)).mul hE
-    have h_ray : ContinuousAt (fun (y' : ℝ) => ↑σ + ↑y' * I) y :=
-      continuousAt_const.add (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
+    have h_ray : ContinuousAt (fun (y' : ℝ) => ↑σ + ↑y' * I) y := by
+      fun_prop
     exact ContinuousAt.comp_of_eq h_anal_at_z.continuousAt h_ray rfl |>.continuousWithinAt
   obtain ⟨C, hC⟩ : ∃ C, ∀ y : ℝ, y ≥ 1 → ‖f (σ + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
     apply phi_fourier_ray_bound ν ε σ x hν hsigma
@@ -2040,7 +2042,7 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
           · refine ContinuousOn.intervalIntegrable ?_
             refine ContinuousOn.norm ?_
             rw [Set.uIcc_of_le hab]
-            have hg : Continuous (fun t : ℝ ↦ (↑t : ℂ) + I * ↑T) := by continuity
+            have hg : Continuous (fun t : ℝ ↦ (↑t : ℂ) + I * ↑T) := by fun_prop
             have h_seg_in : (fun t ↦ ↑t + I * ↑T) '' Set.Icc a b ⊆ Rectangle a (b + I * T) := by
               intro z ⟨t, ht, hz⟩
               subst hz
