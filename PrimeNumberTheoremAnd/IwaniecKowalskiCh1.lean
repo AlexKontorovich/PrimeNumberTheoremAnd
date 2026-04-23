@@ -514,7 +514,7 @@ theorem isMultiplicative_powR {ν : ℂ} : IsMultiplicative (powR ν) := by
 
 @[blueprint
   "sigmaR_eq_zeta_mul_powR"
-  (title := "sigmaR eq zeta mul powR")
+  (title := "sigmaR-eq-zeta-mul-powR")
   (statement := /-- $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$, where $\zeta$ is the constant function $1$. -/)
   (proof := /--
   The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
@@ -534,7 +534,7 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
     For fixed $s$ function $n\mapsto\sigma^R_s(n)$ is multiplicative.
   -/)
   (proof := /--
-    Recall from Lemma \ref{sigmaR_eq_zeta_mul_powR} that $\sigma^R$ is $\zeta$ convolved with
+    Recall from Lemma \ref{sigmaR-eq-zeta-mul-powR} that $\sigma^R$ is $\zeta$ convolved with
     Definition \ref{powR}. Since both of these are multiplicative functions, their convolution is
     also multiplicative.
   -/)]
@@ -553,7 +553,7 @@ lemma isMultiplicative_sigmaR {s : ℂ} :
   (proof := /--
     Since $\sigma^R_s$ is multiplicative, it suffices to understand it at primes powers.
     $$\sigma^R_s(n)=\prod_{p\mid n}\sigma^R_s(p^{v_p(n)}).$$
-    Applying Lemma \ref{sigmaR_apply_prime_pow}.
+    Applying Lemma \ref{sigmaR-apply-prime-pow}.
   -/)]
 lemma sigmaR_eq_prod_primeFactors_sum_range_factorization_pow_mul {n : ℕ} {s : ℂ} (hn : n ≠ 0) :
     σᴿ s n = ∏ p ∈ n.primeFactors, ∑ i ∈ .range (n.factorization p + 1), (p : ℂ) ^ (i * s) := by
@@ -878,7 +878,7 @@ lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouvil
   The Euler totient function $\varphi(n)$ counts the positive integers up to $n$ that are relatively prime to $n$. It is a multiplicative function, and its value at prime powers is given by $\varphi(p^k) = p^k - p^{k-1}$. The Dirichlet series of $\varphi$ can be expressed as an Euler product over primes:
 \[
 L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
-\ ]
+\]
   -/)]
 lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
