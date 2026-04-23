@@ -453,6 +453,16 @@ noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
 attribute [fun_prop] MeromorphicAt.comp_analyticAt
 
 @[fun_prop]
+theorem analyticAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : AnalyticAt ℂ Complex.tanh z := by
+  simpa [Complex.tanh_eq_sinh_div_cosh] using
+    (Complex.analyticAt_sinh.div Complex.analyticAt_cosh hz :
+      AnalyticAt ℂ (fun z => Complex.sinh z / Complex.cosh z) z)
+
+@[fun_prop]
+theorem continuousAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : ContinuousAt Complex.tanh z := by
+  exact (analyticAt_tanh z hz).continuousAt
+
+@[fun_prop]
 theorem meromorphicAt_tanh (z : ℂ) : MeromorphicAt Complex.tanh z := by fun_prop [Complex.tanh]
 
 @[fun_prop]
@@ -659,8 +669,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
             omega
           exact absurd hord_neg (not_lt.mpr ((tendsto_zero_iff_meromorphicOrderAt_pos h_mero_tanh).mp h).le)
         · have hcts : ContinuousAt Complex.tanh (w z / 2) := by
-            change ContinuousAt (fun z => Complex.sinh z / Complex.cosh z) _
-            exact Complex.analyticAt_sinh.continuousAt.div Complex.analyticAt_cosh.continuousAt hc
+            fun_prop (disch := exact hc)
           have hval : Complex.tanh (w z / 2) = 0 :=
             tendsto_nhds_unique (hcts.tendsto.mono_left nhdsWithin_le_nhds) h
           rw [Complex.tanh_eq_sinh_div_cosh, div_eq_zero_iff] at hval
@@ -672,8 +681,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
           rw [heq, h, zero_add] at hsum
           exact absurd hsum.symm (Complex.exp_ne_zero _)
         have hcts : ContinuousAt Complex.tanh (w z / 2) := by
-          change ContinuousAt (fun z => Complex.sinh z / Complex.cosh z) _
-          exact Complex.analyticAt_sinh.continuousAt.div Complex.analyticAt_cosh.continuousAt hc
+          fun_prop (disch := exact hc)
         have hval : Complex.tanh (w z / 2) = 0 := by
           rw [Complex.tanh_eq_sinh_div_cosh, h, zero_div]
         convert hcts.tendsto.mono_left nhdsWithin_le_nhds using 1
@@ -841,15 +849,22 @@ theorem B.continuous_zero (ε : ℝ) : ContinuousAt (B ε) 0 := by
   convert H hx' hx using 1; norm_num [coth]
   norm_num [Complex.tanh_eq_sinh_div_cosh]; ring_nf
 
+lemma sinh_ofReal_half_ne_zero {x : ℝ} (hx : x ≠ 0) : Complex.sinh ((x : ℂ) / 2) ≠ 0 := by
+  apply sinh_ne_zero_of_re_ne_zero
+  simpa using (div_ne_zero hx (by norm_num : (2 : ℝ) ≠ 0))
+
+lemma B_ofReal_eq (ε ν : ℝ) (hν : ν ≠ 0) :
+    B ε ν = ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
+  simp [B, ofReal_eq_zero, hν, coth, Complex.tanh_eq_sinh_div_cosh]
+
 theorem B.continuousAt_ofReal_pos (ε s : ℝ) (hs : 0 < s) :
     ContinuousAt (fun t : ℝ ↦ B ε (t : ℂ)) s := by
   have h_eq : (fun t : ℝ ↦ (t : ℂ) * (coth ((t : ℂ) / 2) + ε) / 2) =ᶠ[nhds s] (fun t : ℝ ↦ B ε (t : ℂ)) := by
     filter_upwards [eventually_ne_nhds hs.ne'] with t ht
     simp [B, ht]
   refine ContinuousAt.congr ?_ h_eq
-  have h_re : ((s : ℂ) / 2).re ≠ 0 := by simp [hs.ne']
   refine ContinuousAt.div_const (ContinuousAt.mul (by fun_prop) (ContinuousAt.add ?_ continuousAt_const)) 2
-  exact ContinuousAt.coth (by fun_prop) (sinh_ne_zero_of_re_ne_zero h_re)
+  exact ContinuousAt.coth (by fun_prop) (by simpa using sinh_ofReal_half_ne_zero hs.ne')
 
 @[blueprint
   "Phi-star-def"
@@ -1445,9 +1460,8 @@ theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν�
   obtain ⟨C₂, hC₂⟩ : ∃ C₂ : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ‖B ε ν‖ ≤ C₂ := by
     have hB_def : ∀ ν ∈ Set.Icc ν₀ ν₁, B ε ν =
         ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
-      unfold B coth
-      norm_num [Complex.tanh_eq_sinh_div_cosh]
-      intros; linarith
+      intro ν hν
+      exact B_ofReal_eq ε ν (by linarith [hν.1])
     have h_cont : ContinuousOn
         (fun ν : ℝ => ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2)
         (Set.Icc ν₀ ν₁) := by
@@ -1458,9 +1472,7 @@ theorem ϕ_star_bound_right (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν�
       · fun_prop
       · fun_prop
       · intro x hx
-        have h3 : (↑x / 2 : ℂ) = ↑(x / 2) := by push_cast; ring
-        rw [h3]
-        exact_mod_cast ne_of_gt (by rw [Real.sinh_eq]; nlinarith [Real.exp_lt_exp.mpr (show -(x/2) < x/2 by linarith [hx.1])])
+        simpa using sinh_ofReal_half_ne_zero (by linarith [hx.1])
     obtain ⟨C₂, hC₂⟩ := IsCompact.exists_bound_of_continuousOn
       CompactIccSpace.isCompact_Icc h_cont
     exact ⟨C₂, fun ν hν => by aesop⟩
@@ -1514,8 +1526,7 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
   obtain ⟨M, hM⟩ : ∃ M : ℝ, ∀ ν ∈ Set.Icc ν₀ ν₁, ‖B ε ν‖ ≤ M := by
     have hB_def : ∀ ν : ℝ, ν ≠ 0 →
         B ε ν = ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
-      intros ν hν_nonzero
-      simp [B, ofReal_eq_zero, hν_nonzero, coth, Complex.tanh_eq_sinh_div_cosh]
+      exact B_ofReal_eq ε
     have hB_cont : ContinuousOn
         (fun ν : ℝ => ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2)
         (Set.Icc ν₀ ν₁) := by
@@ -1525,12 +1536,9 @@ theorem ϕ_star_bound_left (ν₀ ν₁ ε c : ℝ) (hν₀ : 0 < ν₀) (hν₁
       refine ContinuousOn.div ?_ ?_ ?_
       · fun_prop
       · fun_prop
-      · norm_num [Complex.sinh]
-        intro x hx₁ hx₂
-        apply sub_ne_zero_of_ne
-        apply ne_of_apply_ne Complex.re
-        norm_num [Complex.exp_re]
-        grind
+      · intro x hx₁ hx₂
+        have hx_ne : x ≠ 0 := ne_of_gt (lt_of_lt_of_le hν₀ hx₁.1)
+        exact sinh_ofReal_half_ne_zero hx_ne hx₂
     obtain ⟨M, hM⟩ := IsCompact.exists_bound_of_continuousOn
       CompactIccSpace.isCompact_Icc hB_cont
     refine ⟨M, fun ν hν => ?_⟩
