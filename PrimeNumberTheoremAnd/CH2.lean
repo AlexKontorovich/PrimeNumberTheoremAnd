@@ -531,10 +531,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
       rw [show (fun z ↦ coth (w z / 2) + ε) = (fun z ↦ coth (w z / 2)) + (fun _ ↦ (ε : ℂ)) from rfl]
       rw [meromorphicOrderAt_add_of_ne h_coth_mero (by fun_prop) h_ne]
       simp [h]
-  have h_mero_tanh : MeromorphicAt Complex.tanh (w z / 2) := by
-    rw [show Complex.tanh = fun x => Complex.sinh x / Complex.cosh x from
-      funext Complex.tanh_eq_sinh_div_cosh]
-    exact Complex.analyticAt_sinh.meromorphicAt.fun_div Complex.analyticAt_cosh.meromorphicAt
+  have h_mero_tanh : MeromorphicAt Complex.tanh (w z / 2) := by fun_prop
   have h_cosh_eventually_ne : ∀ᶠ (x : ℂ) in nhdsWithin (w z / 2) {w z / 2}ᶜ, Complex.cosh x ≠ 0 := by
     apply (meromorphicOrderAt_ne_top_iff_eventually_ne_zero Complex.analyticAt_cosh.meromorphicAt).mp
     intro h_top
@@ -895,8 +892,7 @@ lemma meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Co
 lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
   have h_comp : ∀ z, MeromorphicAt
       (fun s => s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) z := by
-    have meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
-      exact meromorphic_coth''
+    have meromorphic_coth'' := meromorphic_coth''
     intro z
     exact (by apply_rules [MeromorphicAt.div, MeromorphicAt.add, MeromorphicAt.mul,
       MeromorphicAt.id, MeromorphicAt.const])
@@ -1011,18 +1007,13 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
   · exact fun h ↦ (Phi_star.poles ν ε hν z).mp (h ▸ by decide)
   · rintro ⟨n, hn, rfl⟩
     set z₀ := (n : ℂ) - I * ν / (2 * π)
-    have hsub : MeromorphicAt (· - z₀ : ℂ → ℂ) z₀ := by fun_prop
+    have hsub : MeromorphicAt (· - z₀) z₀ := by fun_prop
     have hf : MeromorphicAt (Phi_star ν ε) z₀ := by fun_prop
     have heq : (fun z ↦ (z - z₀) * Phi_star ν ε z) =ᶠ[nhdsWithin z₀ {z₀}ᶜ] ((· - z₀) * Phi_star ν ε) :=
       Filter.Eventually.of_forall fun _ ↦ rfl
-    have hL : -I * ↑n / (2 * ↑(π : ℝ)) ≠ (0 : ℂ) := by
-      simp only [neg_mul, ne_eq, div_eq_zero_iff, neg_eq_zero, mul_eq_zero, I_ne_zero,
-        Int.cast_eq_zero, false_or, OfNat.ofNat_ne_zero, ofReal_eq_zero, pi_ne_zero, or_self,
-        or_false]
-      exact_mod_cast hn
-    have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_star ν ε) z₀ = 0 :=
-      (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)).mp
-        ⟨_, hL, (Phi_star.residue ν ε hν n hn).congr' heq⟩
+    have hord₀ : meromorphicOrderAt ((· - z₀) * Phi_star ν ε) z₀ = 0 := by
+      rw [← tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (hsub.mul hf)]
+      exact ⟨_, by simp [hn, pi_ne_zero], (Phi_star.residue ν ε hν n hn).congr' heq⟩
     have hord₁ : meromorphicOrderAt (· - z₀) z₀ = (1 : ℤ) := by
       rw [meromorphicOrderAt_eq_int_iff hsub]
       exact ⟨1, analyticAt_const, one_ne_zero, by simp⟩
@@ -1030,10 +1021,10 @@ theorem Phi_star.poles_simple (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
     obtain ⟨m, hm⟩ := WithTop.ne_top_iff_exists.mp
       (by rintro h; simp [h] at hord₀ : meromorphicOrderAt (Phi_star ν ε) z₀ ≠ ⊤)
     rw [← hm] at hord₀ ⊢
-    have h1 : (↑(1 : ℤ) + ↑m : WithTop ℤ) = ↑(1 + m : ℤ) := by push_cast; ring_nf
+    have h1 : ((1 : ℤ) + m : WithTop ℤ) = (1 + m : ℤ) := by push_cast; ring_nf
     rw [h1] at hord₀
     have : 1 + m = 0 := by exact_mod_cast hord₀
-    change (↑m : WithTop ℤ) = ↑(-1 : ℤ); congr 1; omega
+    change (m : WithTop ℤ) = (-1 : ℤ); congr 1; omega
 
 @[blueprint
   "Phi-cancel"
@@ -1140,12 +1131,8 @@ theorem Phi_circ.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 
         refine ContDiff.div_const ?_ _
         refine (ContDiff.add ?_ contDiff_const)
         exact (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff)
-      · have h_cosh_entire : ContDiff ℝ 2 (fun t : ℂ => Complex.cosh t) := by
-          have : ContDiff ℂ 2 Complex.cosh := by
-            unfold Complex.cosh
-            exact ContDiff.div_const (Complex.contDiff_exp.add (Complex.contDiff_exp.comp contDiff_neg)) _
-          exact this.restrict_scalars ℝ
-        exact h_cosh_entire.comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+      · have h_cosh_entire : ContDiff ℂ 2 Complex.cosh := by fun_prop
+        exact (h_cosh_entire.restrict_scalars ℝ).comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
       · norm_num [Complex.sinh, Complex.exp_ne_zero]
         norm_num [sub_eq_zero, Complex.exp_ne_zero]
         intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
@@ -1265,18 +1252,9 @@ hence, by Definition \ref{phi-pm-def}, $\varphi^{\pm}_{\nu}(t) = 0$. Thus, $\var
   (latexEnv := "lemma")
   (discussion := 1075)]
 theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε) := by
-  have tanh_add_pi : ∀ z : ℂ, Complex.tanh (z + ↑Real.pi * I) = Complex.tanh z := by
-    intro z
-    simp only [Complex.tanh_eq_sinh_div_cosh]
-    have h1 : Complex.sinh (z + ↑Real.pi * I) = -Complex.sinh z := by
-      simp only [Complex.sinh, Complex.exp_add, Complex.exp_neg]; rw [exp_pi_mul_I]; simp; ring
-    have h2 : Complex.cosh (z + ↑Real.pi * I) = -Complex.cosh z := by
-      simp only [Complex.cosh, Complex.exp_add, Complex.exp_neg]; rw [exp_pi_mul_I]; simp; ring
-    rw [h1, h2, neg_div_neg_eq]
-  have tanh_sub_pi : ∀ z : ℂ, Complex.tanh (z - ↑Real.pi * I) = Complex.tanh z := by
-    intro z
-    have h := tanh_add_pi (z - ↑Real.pi * I)
-    rw [sub_add_cancel] at h; exact h.symm
+  have tanh_add_pi (z : ℂ) : Complex.tanh (z + ↑Real.pi * I) = Complex.tanh z := by simp
+  have tanh_sub_pi (z : ℂ) : Complex.tanh (z - ↑Real.pi * I) = Complex.tanh z := by
+    have h := tanh_add_pi (z - ↑Real.pi * I); rw [sub_add_cancel] at h; exact h.symm
   unfold ϕ_pm
   apply continuous_if
   · intro a ha
