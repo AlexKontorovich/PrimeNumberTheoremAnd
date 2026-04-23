@@ -524,6 +524,102 @@ lemma _root_.ContinuousAt.coth {f : ℝ → ℂ} {s : ℝ} (hf : ContinuousAt f 
   rw [this]
   exact (Complex.continuous_cosh.continuousAt.comp hf).div (Complex.continuous_sinh.continuousAt.comp hf) h_sinh
 
+/-- If `cosh z = 0` then `sinh z ≠ 0`, since `cosh² z - sinh² z = 1`. -/
+lemma _root_.Complex.sinh_ne_zero_of_cosh_zero {z : ℂ} (h : Complex.cosh z = 0) :
+    Complex.sinh z ≠ 0 := by
+  intro hs; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hs] at this
+
+/-- If `sinh z = 0` then `cosh z ≠ 0`, since `cosh² z - sinh² z = 1`. -/
+lemma _root_.Complex.cosh_ne_zero_of_sinh_zero {z : ℂ} (h : Complex.sinh z = 0) :
+    Complex.cosh z ≠ 0 := by
+  intro hc; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hc] at this
+
+/-- `Complex.cosh` is not identically zero near any point, so its `meromorphicOrderAt` is finite. -/
+lemma meromorphicOrderAt_cosh_ne_top (z : ℂ) : meromorphicOrderAt Complex.cosh z ≠ ⊤ := by
+  intro h_top
+  have h_p : ∀ᶠ x in nhdsWithin z {z}ᶜ, Complex.cosh x = 0 :=
+    meromorphicOrderAt_eq_top_iff.mp h_top
+  have h_val : Complex.cosh z = 0 := tendsto_nhds_unique
+    (Complex.continuous_cosh.continuousAt.tendsto.mono_left nhdsWithin_le_nhds)
+    (Filter.EventuallyEq.tendsto h_p)
+  have h_nhds : (fun x => Complex.cosh x) =ᶠ[nhds z] (fun _ => (0 : ℂ)) := by
+    rw [eventually_nhdsWithin_iff] at h_p
+    filter_upwards [h_p] with x hx
+    exact if hxz : x = z then hxz ▸ h_val else hx hxz
+  have h_sinh : Complex.sinh z = 0 := by
+    simpa [deriv_const, (Complex.hasDerivAt_cosh z).deriv] using h_nhds.deriv_eq
+  exact absurd h_sinh (Complex.sinh_ne_zero_of_cosh_zero h_val)
+
+/-- `Complex.sinh` is not identically zero near any point, so its `meromorphicOrderAt` is finite. -/
+lemma meromorphicOrderAt_sinh_ne_top (z : ℂ) : meromorphicOrderAt Complex.sinh z ≠ ⊤ := by
+  intro h_top
+  have h_p : ∀ᶠ x in nhdsWithin z {z}ᶜ, Complex.sinh x = 0 :=
+    meromorphicOrderAt_eq_top_iff.mp h_top
+  have h_val : Complex.sinh z = 0 := tendsto_nhds_unique
+    (Complex.continuous_sinh.continuousAt.tendsto.mono_left nhdsWithin_le_nhds)
+    (Filter.EventuallyEq.tendsto h_p)
+  have h_nhds : (fun x => Complex.sinh x) =ᶠ[nhds z] (fun _ => (0 : ℂ)) := by
+    rw [eventually_nhdsWithin_iff] at h_p
+    filter_upwards [h_p] with x hx
+    exact if hxz : x = z then hxz ▸ h_val else hx hxz
+  have h_cosh : Complex.cosh z = 0 := by
+    simpa [deriv_const, (Complex.hasDerivAt_sinh z).deriv] using h_nhds.deriv_eq
+  exact absurd h_val (Complex.sinh_ne_zero_of_cosh_zero h_cosh)
+
+/-- `coth` has a pole at `z` if and only if `sinh z = 0`. -/
+lemma meromorphicOrderAt_coth_lt_zero_iff (z : ℂ) :
+    meromorphicOrderAt coth z < 0 ↔ Complex.sinh z = 0 := by
+  have h_coth_eq : coth = Complex.tanh⁻¹ := funext fun z => by unfold coth; simp [one_div]
+  have h_mero_tanh : MeromorphicAt Complex.tanh z := by fun_prop
+  have hne_top_tanh : meromorphicOrderAt Complex.tanh z ≠ ⊤ := by
+    apply (meromorphicOrderAt_ne_top_iff_eventually_ne_zero h_mero_tanh).mpr
+    have h_sinh_ne : ∀ᶠ x in nhdsWithin z {z}ᶜ, Complex.sinh x ≠ 0 :=
+      (meromorphicOrderAt_ne_top_iff_eventually_ne_zero Complex.analyticAt_sinh.meromorphicAt).mp
+        (meromorphicOrderAt_sinh_ne_top z)
+    have h_cosh_ne : ∀ᶠ x in nhdsWithin z {z}ᶜ, Complex.cosh x ≠ 0 :=
+      (meromorphicOrderAt_ne_top_iff_eventually_ne_zero Complex.analyticAt_cosh.meromorphicAt).mp
+        (meromorphicOrderAt_cosh_ne_top z)
+    filter_upwards [h_sinh_ne, h_cosh_ne] with x hs hc
+    rw [Complex.tanh_eq_sinh_div_cosh, div_ne_zero_iff]
+    exact ⟨hs, hc⟩
+  rw [h_coth_eq, meromorphicOrderAt_inv]
+  have h_neg_lt : -meromorphicOrderAt Complex.tanh z < 0 ↔
+      0 < meromorphicOrderAt Complex.tanh z := by
+    lift meromorphicOrderAt Complex.tanh z to ℤ using hne_top_tanh with a
+    norm_cast; omega
+  rw [h_neg_lt]
+  constructor
+  · intro h
+    by_cases hc : Complex.cosh z = 0
+    · exfalso
+      have hsinh_ne := Complex.sinh_ne_zero_of_cosh_zero hc
+      have hsinh_ord : meromorphicOrderAt Complex.sinh z = 0 := by
+        rw [← tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (by fun_prop)]
+        exact ⟨_, hsinh_ne, Complex.analyticAt_sinh.continuousAt.continuousWithinAt⟩
+      have hcosh_ord : 0 < meromorphicOrderAt Complex.cosh z := by
+        rw [← tendsto_zero_iff_meromorphicOrderAt_pos (by fun_prop)]
+        exact hc ▸ Complex.analyticAt_cosh.continuousAt.continuousWithinAt
+      have hord_neg : meromorphicOrderAt Complex.tanh z < 0 := by
+        rw [show Complex.tanh = fun x => Complex.sinh x / Complex.cosh x from
+              funext Complex.tanh_eq_sinh_div_cosh]
+        push (disch := fun_prop) meromorphicOrderAt
+        rw [hsinh_ord]
+        lift meromorphicOrderAt Complex.cosh z to ℤ using meromorphicOrderAt_cosh_ne_top z with m hm
+        norm_cast at hcosh_ord ⊢; omega
+      exact absurd hord_neg (not_lt.mpr h.le)
+    · have hcts : ContinuousAt Complex.tanh z := by fun_prop (disch := exact hc)
+      have h_tendsto := (tendsto_zero_iff_meromorphicOrderAt_pos h_mero_tanh).mpr h
+      have hval : Complex.tanh z = 0 :=
+        tendsto_nhds_unique (hcts.tendsto.mono_left nhdsWithin_le_nhds) h_tendsto
+      rw [Complex.tanh_eq_sinh_div_cosh, div_eq_zero_iff] at hval
+      exact hval.resolve_right hc
+  · intro h
+    have hc : Complex.cosh z ≠ 0 := Complex.cosh_ne_zero_of_sinh_zero h
+    have hcts : ContinuousAt Complex.tanh z := by fun_prop (disch := exact hc)
+    have hval : Complex.tanh z = 0 := by rw [Complex.tanh_eq_sinh_div_cosh, h, zero_div]
+    rw [← tendsto_zero_iff_meromorphicOrderAt_pos h_mero_tanh]
+    convert hcts.tendsto.mono_left nhdsWithin_le_nhds using 1; simp [hval]
+
 @[blueprint
   "Phi-circ-poles"
   (title := "$\\Phi^{\\pm,\\circ}_\\nu$ poles")
@@ -535,12 +631,12 @@ lemma _root_.ContinuousAt.coth {f : ℝ → ℂ} {s : ℝ} (hf : ContinuousAt f 
   (discussion := 1069)]
 theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
     meromorphicOrderAt (Phi_circ ν ε) z < 0 ↔ ∃ n : ℤ, z = n - I * ν / (2 * π) := by
+  -- Step 1: Reduce Phi_circ to coth (w/2)
   let w : ℂ → ℂ := fun z ↦ -2 * π * I * z + ν
   have h_ord_eq : meromorphicOrderAt (Phi_circ ν ε) z < 0 ↔ meromorphicOrderAt (fun z ↦ coth (w z / 2)) z < 0 := by
     rw [show Phi_circ ν ε = (fun _ ↦ (1 / 2 : ℂ)) * (fun z ↦ coth (w z / 2) + ε) from rfl]
     rw [meromorphicOrderAt_mul_of_ne_zero (analyticAt_const (v := (1/2 : ℂ)) (x := z)) (by norm_num : (1/2 : ℂ) ≠ 0)]
-    have h_coth_mero : MeromorphicAt (fun z ↦ coth (w z / 2)) z := by
-      fun_prop
+    have h_coth_mero : MeromorphicAt (fun z ↦ coth (w z / 2)) z := by fun_prop
     constructor
     · intro h
       contrapose! h
@@ -555,58 +651,7 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
       rw [show (fun z ↦ coth (w z / 2) + ε) = (fun z ↦ coth (w z / 2)) + (fun _ ↦ (ε : ℂ)) from rfl]
       rw [meromorphicOrderAt_add_of_ne h_coth_mero (by fun_prop) h_ne]
       simp [h]
-  have h_mero_tanh : MeromorphicAt Complex.tanh (w z / 2) := by fun_prop
-  have h_cosh_eventually_ne : ∀ᶠ (x : ℂ) in nhdsWithin (w z / 2) {w z / 2}ᶜ, Complex.cosh x ≠ 0 := by
-    apply (meromorphicOrderAt_ne_top_iff_eventually_ne_zero Complex.analyticAt_cosh.meromorphicAt).mp
-    intro h_top
-    have h_zero_nhds : ∀ᶠ x in nhds (w z / 2), Complex.cosh x = 0 := by
-      have h_p : ∀ᶠ x in nhdsWithin (w z / 2) {w z / 2}ᶜ, Complex.cosh x = 0 :=
-        meromorphicOrderAt_eq_top_iff.mp h_top
-      have h_eval : Complex.cosh (w z / 2) = 0 := tendsto_nhds_unique
-        (Complex.continuous_cosh.continuousAt.tendsto.mono_left nhdsWithin_le_nhds)
-        (Filter.EventuallyEq.tendsto h_p)
-      rw [eventually_nhdsWithin_iff] at h_p
-      filter_upwards [h_p] with x hx
-      obtain rfl | hne := eq_or_ne x (w z / 2)
-      · exact h_eval
-      · exact hx hne
-    have h_eq : (fun x => Complex.cosh x) =ᶠ[nhds (w z / 2)] (fun x => 0) := h_zero_nhds
-    have h_cosh_c : Complex.cosh (w z / 2) = 0 := h_eq.eq_of_nhds
-    have h_deriv_eq : Complex.sinh (w z / 2) = 0 := by
-      simpa [deriv_const, (Complex.hasDerivAt_cosh (w z / 2)).deriv] using h_eq.deriv_eq
-    have key := Complex.cosh_sq_sub_sinh_sq (w z / 2)
-    simp [h_cosh_c, h_deriv_eq] at key
-  have hne_top_tanh : meromorphicOrderAt Complex.tanh (w z / 2) ≠ ⊤ := by
-    apply (meromorphicOrderAt_ne_top_iff_eventually_ne_zero h_mero_tanh).mpr
-    have h_tanh_eq : ∀ x : ℂ, Complex.tanh x = 0 ↔ Complex.sinh x = 0 ∨ Complex.cosh x = 0 := by
-      intro x
-      rw [Complex.tanh_eq_sinh_div_cosh, div_eq_zero_iff]
-    have h_sinh_eventually_ne : ∀ᶠ (x : ℂ) in nhdsWithin (w z / 2) {w z / 2}ᶜ, Complex.sinh x ≠ 0 := by
-      apply (meromorphicOrderAt_ne_top_iff_eventually_ne_zero Complex.analyticAt_sinh.meromorphicAt).mp
-      intro h_top
-      have h_zero_nhds : ∀ᶠ x in nhds (w z / 2), Complex.sinh x = 0 := by
-        have h_p : ∀ᶠ x in nhdsWithin (w z / 2) {w z / 2}ᶜ, Complex.sinh x = 0 :=
-          meromorphicOrderAt_eq_top_iff.mp h_top
-        have h_eval : Complex.sinh (w z / 2) = 0 := tendsto_nhds_unique
-          (Complex.continuous_sinh.continuousAt.tendsto.mono_left nhdsWithin_le_nhds)
-          (Filter.EventuallyEq.tendsto h_p)
-        rw [eventually_nhdsWithin_iff] at h_p
-        filter_upwards [h_p] with x hx
-        obtain rfl | hne := eq_or_ne x (w z / 2)
-        · exact h_eval
-        · exact hx hne
-      have h_eq : (fun x => Complex.sinh x) =ᶠ[nhds (w z / 2)] (fun x => 0) := h_zero_nhds
-      have h_sinh_c : Complex.sinh (w z / 2) = 0 := h_eq.eq_of_nhds
-      have h_deriv_eq : Complex.cosh (w z / 2) = 0 := by
-        simpa [deriv_const, (Complex.hasDerivAt_sinh (w z / 2)).deriv] using h_eq.deriv_eq
-      have key := Complex.cosh_sq_sub_sinh_sq (w z / 2)
-      simp [h_sinh_c, h_deriv_eq] at key
-    filter_upwards [h_sinh_eventually_ne, h_cosh_eventually_ne] with x hx1 hx2
-    intro h
-    rcases (h_tanh_eq x).mp h with h1 | h2
-    · exact hx1 h1
-    · exact hx2 h2
-  rw [h_ord_eq]
+  -- Step 2: Apply "pole of coth iff zero of sinh" via composition
   have h_pole_iff : meromorphicOrderAt (fun z ↦ coth (w z / 2)) z < 0 ↔ (Complex.sinh (w z / 2) = 0) := by
     have h_mero_w : AnalyticAt ℂ (fun z => w z / 2) z := by dsimp [w]; fun_prop
     have h_deriv_w : deriv (fun z => w z / 2) z ≠ 0 := by
@@ -616,83 +661,10 @@ theorem Phi_circ.poles (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) :
       rw [hd.deriv]; simp [pi_ne_zero, I_ne_zero]
     have h_comp : meromorphicOrderAt (fun z ↦ coth (w z / 2)) z = meromorphicOrderAt coth (w z / 2) :=
       meromorphicOrderAt_comp_of_deriv_ne_zero (f := coth) h_mero_w h_deriv_w
-    have h_inv : meromorphicOrderAt coth (w z / 2) = -meromorphicOrderAt Complex.tanh (w z / 2) := by
-      have hcoth_eq : coth = Complex.tanh⁻¹ := funext fun z => by unfold coth; simp [one_div]
-      rw [hcoth_eq]
-      exact meromorphicOrderAt_inv
-    have h_mero_tanh : MeromorphicAt Complex.tanh (w z / 2) := by
-      fun_prop
-    have h_pos : (0 < meromorphicOrderAt Complex.tanh (w z / 2)) ↔ (Complex.sinh (w z / 2) = 0) := by
-      rw [← tendsto_zero_iff_meromorphicOrderAt_pos h_mero_tanh]
-      constructor
-      · intro h
-        by_cases hc : Complex.cosh (w z / 2) = 0
-        · exfalso
-          have hsinh_ne : Complex.sinh (w z / 2) ≠ 0 := by
-            intro hs
-            have key := Complex.cosh_sq_sub_sinh_sq (w z / 2)
-            rw [hc, hs] at key
-            norm_num at key
-          have hord_neg : meromorphicOrderAt Complex.tanh (w z / 2) < 0 := by
-            rw [show Complex.tanh = fun x => Complex.sinh x / Complex.cosh x from
-                  funext Complex.tanh_eq_sinh_div_cosh]
-            have hsinh_mero : MeromorphicAt Complex.sinh (w z / 2) := by fun_prop
-            have hcosh_mero : MeromorphicAt Complex.cosh (w z / 2) := by fun_prop
-            have hsinh_ord : meromorphicOrderAt Complex.sinh (w z / 2) = 0 := by
-              rw [← tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero hsinh_mero]
-              exact ⟨Complex.sinh (w z / 2), hsinh_ne,
-                     Complex.analyticAt_sinh.continuousAt.continuousWithinAt⟩
-            have hcosh_ord : 0 < meromorphicOrderAt Complex.cosh (w z / 2) := by
-              rw [← tendsto_zero_iff_meromorphicOrderAt_pos hcosh_mero]
-              have hana : AnalyticAt ℂ Complex.cosh (w z / 2) := Complex.analyticAt_cosh
-              exact hc ▸ hana.continuousAt.continuousWithinAt
-            push (disch := fun_prop) meromorphicOrderAt
-            rw [hsinh_ord]
-            have hne_top_cosh : meromorphicOrderAt Complex.cosh (w z / 2) ≠ ⊤ := by
-              rw [ne_eq, meromorphicOrderAt_eq_top_iff]
-              intro h_cosh_zero
-              have h_eq_pw : (fun x => Complex.cosh x) =ᶠ[nhdsWithin (w z / 2) {w z / 2}ᶜ]
-                  (fun _ => (0 : ℂ)) := h_cosh_zero
-              have h_eval : Complex.cosh (w z / 2) = 0 := -- simpler proof here?
-                tendsto_nhds_unique
-                  (Complex.continuous_cosh.continuousAt.tendsto.mono_left nhdsWithin_le_nhds)
-                  h_eq_pw.tendsto
-              have h_nhds : (fun x => Complex.cosh x) =ᶠ[nhds (w z / 2)] (fun _ => (0 : ℂ)) := by
-                rw [eventually_nhdsWithin_iff] at h_cosh_zero
-                filter_upwards [h_cosh_zero] with x hx
-                exact if h : x = w z / 2 then h ▸ h_eval else hx h
-              have h_deriv := h_nhds.deriv_eq
-              rw [deriv_const, (Complex.hasDerivAt_cosh (w z / 2)).deriv] at h_deriv
-              exact hsinh_ne h_deriv
-            lift meromorphicOrderAt Complex.cosh (w z / 2) to ℤ using hne_top_cosh with m hm
-            norm_cast at hcosh_ord ⊢
-            omega
-          exact absurd hord_neg (not_lt.mpr ((tendsto_zero_iff_meromorphicOrderAt_pos h_mero_tanh).mp h).le)
-        · have hcts : ContinuousAt Complex.tanh (w z / 2) := by
-            fun_prop (disch := exact hc)
-          have hval : Complex.tanh (w z / 2) = 0 :=
-            tendsto_nhds_unique (hcts.tendsto.mono_left nhdsWithin_le_nhds) h
-          rw [Complex.tanh_eq_sinh_div_cosh, div_eq_zero_iff] at hval
-          exact hval.resolve_right hc
-      · intro h
-        have hc : Complex.cosh (w z / 2) ≠ 0 := by
-          intro heq
-          have hsum := Complex.cosh_add_sinh (w z / 2)
-          rw [heq, h, zero_add] at hsum
-          exact absurd hsum.symm (Complex.exp_ne_zero _)
-        have hcts : ContinuousAt Complex.tanh (w z / 2) := by
-          fun_prop (disch := exact hc)
-        have hval : Complex.tanh (w z / 2) = 0 := by
-          rw [Complex.tanh_eq_sinh_div_cosh, h, zero_div]
-        convert hcts.tendsto.mono_left nhdsWithin_le_nhds using 1
-        simp [hval]
-    rw [h_comp, h_inv]
-    have h_finish : -meromorphicOrderAt Complex.tanh (w z / 2) < 0 ↔
-        0 < meromorphicOrderAt Complex.tanh (w z / 2) := by
-      lift meromorphicOrderAt Complex.tanh (w z / 2) to ℤ using hne_top_tanh with a
-      norm_cast; omega
-    rw [h_finish, h_pos]
-  rw [h_pole_iff, sinh_zero_iff]
+    rw [h_comp]
+    exact meromorphicOrderAt_coth_lt_zero_iff _
+  -- Step 3: Rewrite with sinh_zero_iff and solve the linear equation
+  rw [h_ord_eq, h_pole_iff, sinh_zero_iff]
   constructor
   · rintro ⟨k, hk⟩
     use -k
