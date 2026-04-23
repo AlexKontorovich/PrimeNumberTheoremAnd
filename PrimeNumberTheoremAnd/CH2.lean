@@ -425,6 +425,19 @@ public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
 lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   simp [coth]
 
+theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh z := by
+  induction m using Int.induction_on with
+  | zero => simp
+  | succ n ih =>
+    push_cast at ih ⊢
+    rw [show z + ↑π * I * (↑n + 1) = (z + ↑π * I * ↑n) + ↑π * I from by ring]
+    rw [tanh_add_pi_I]; exact ih
+  | pred n ih =>
+    push_cast at ih ⊢
+    have h := tanh_add_pi_I (z + ↑π * I * (-(↑n : ℂ) - 1))
+    rw [show z + ↑π * I * (-↑n - 1) + ↑π * I = z + ↑π * I * -↑n from by ring] at h
+    rw [← h]; exact ih
+
 @[blueprint
   "Phi-circ-def"
   (title := "Definition of $\\Phi^{\\pm,\\circ}_\\nu$")
@@ -858,36 +871,15 @@ noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
 theorem Phi_star_zero (ν ε : ℝ) : Phi_star ν ε 0 = 0 := by simp [Phi_star]
 
 @[fun_prop]
-lemma meromorphic_tanh : Meromorphic Complex.tanh := by
-  intro z
-  apply MeromorphicAt.div <;> fun_prop
+lemma meromorphic_tanh : Meromorphic Complex.tanh := fun z => meromorphicAt_tanh z
 
-lemma meromorphic_coth : Meromorphic coth := by
-  intro z
-  apply MeromorphicAt.div <;> fun_prop
+lemma meromorphic_coth : Meromorphic coth := fun z => meromorphicAt_coth z
 
 lemma meromorphic_coth' : Meromorphic (fun s : ℂ => Complex.cosh s / Complex.sinh s) := by
-  have : Meromorphic (fun s : ℂ => 1 / Complex.tanh s) := by
-    convert meromorphic_coth using 1
-  simpa [Complex.tanh_eq_sinh_div_cosh] using this
+  intro z; apply MeromorphicAt.div <;> fun_prop
 
 lemma meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
-  intro s
-  obtain ⟨n, hn⟩ := meromorphic_coth' (s / 2)
-  refine ⟨n, ?_⟩
-  have h_comp : AnalyticAt ℂ
-      (fun z => (z / 2 - s / 2) ^ n •
-        (fun s => Complex.cosh s / Complex.sinh s) (z / 2)) s := by
-    apply_rules [ContDiffAt.analyticAt]
-    have : ContDiffAt ℂ ⊤
-        (fun z => (z - s / 2) ^ n •
-          (fun s => Complex.cosh s / Complex.sinh s) z) (s / 2) :=
-      hn.contDiffAt
-    convert this.comp s (contDiffAt_id.div_const 2) using 1
-  convert h_comp.mul (show AnalyticAt ℂ (fun _ => 2 ^ n) s from analyticAt_const)
-    using 2; norm_num
-  rw [show ((_ : ℂ) - s) = 2 * ((_ : ℂ) * (1 / 2) + s * (-1 / 2)) by ring]
-  rw [mul_pow]; ring
+  intro z; apply MeromorphicAt.div <;> fun_prop
 
 lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
   have h_comp : ∀ z, MeromorphicAt
@@ -2241,22 +2233,9 @@ theorem B_affine_periodic (ν ε : ℝ) (_hν : ν > 0) (z : ℂ) (m : ℤ)
   have h_tanh_periodic :
       Complex.tanh ((-2 * Real.pi * I * (z - m) + ν) / 2) =
         Complex.tanh ((-2 * Real.pi * I * z + ν) / 2) := by
-    rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh]
-    ring_nf; norm_num [Complex.sinh, Complex.cosh]; ring_nf
-    norm_num [Complex.exp_add, Complex.exp_sub]; ring_nf
-    have hexp : Complex.exp (Real.pi * I * m) = (-1) ^ m := by
-      rw [← Complex.exp_pi_mul_I, ← Complex.exp_int_mul]; ring_nf
-    norm_num [hexp]; ring_nf
-    rcases Int.even_or_odd' m with ⟨k, rfl | rfl⟩ <;>
-      norm_num [zpow_add₀, zpow_mul]
-    ring_nf; norm_num [Complex.exp_ne_zero] at *
-    rw [show -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2))) -
-          Complex.exp (Real.pi * I * z) * Complex.exp (-(ν * (1 / 2))) =
-        -(Complex.exp (-(Real.pi * I * z)) * Complex.exp (ν * (1 / 2)) +
-          Complex.exp (Real.pi * I * z) *
-            Complex.exp (-(ν * (1 / 2)))) from by ring,
-      inv_neg]
-    ring
+    rw [show (-2 * ↑π * I * (z - ↑m) + ↑ν) / 2 =
+      (-2 * ↑π * I * z + ↑ν) / 2 + ↑π * I * ↑m by ring]
+    exact tanh_add_int_mul_pi_I _ m
   grind
 
 @[blueprint
