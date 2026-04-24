@@ -2706,12 +2706,10 @@ lemma Phi_fourier_holo_left (ν ε x : ℝ) (hν : ν > 0) :
       exact (hz₀ ▸ h_anal_z₀).differentiableAt.differentiableWithinAt
     · have h_not_pole : ∀ n : ℤ, z ≠ ↑n - I * ↑ν / (2 * ↑π) := by
         intro n hn; have h_re : z.re = n := by
-          rw [hn, Complex.sub_re, Complex.intCast_re]; simp; rw [mul_div_assoc]
-          rw [Complex.I_mul_re]; field_simp; norm_cast; rw [neg_zero]
+          rw [hn, Complex.sub_re, Complex.intCast_re, mul_div_assoc, Complex.I_mul_re]
+          simp; field_simp; norm_cast
         have h_im : z.im = -ν / (2 * π) := by
-          rw [hn, Complex.sub_im, Complex.intCast_im]; simp
-          rw [mul_div_assoc]
-          rw [Complex.I_mul_im]
+          rw [hn, Complex.sub_im, Complex.intCast_im, mul_div_assoc, Complex.I_mul_im]
           norm_cast; ring
         have h_rect := hz; rw [Rectangle, Complex.mem_reProdIm] at h_rect
         simp only [neg_re, one_re, sub_re, div_ofNat_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
@@ -2861,7 +2859,6 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
         (I * ∫ (t : ℝ) in Set.Icc 0 T, (Phi_circ ν ε (1 - I * ↑t) + Phi_star ν ε (1 - I * ↑t)) * E (-(1 - I * ↑t) * ↑x)))
       Filter.atTop (nhds (𝓕 (ϕ_pm ν ε) x)) := by
   have hlam : ν ≠ 0 := by linarith
-  -- Step 1: Decompose the Fourier transform into segments over [-1, -1/2], [-1/2, 0], [0, 1/2], [1/2, 1]
   let fL z := (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)
   let fR z := (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
   set AL := ∫ t in Set.Icc (-1 : ℝ) (-1/2), fL t
@@ -2878,7 +2875,6 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
   have hfRi (a b : ℝ) : IntegrableOn (fun (t : ℝ) ↦ fR t) (Set.Ioc a b) := by
     apply (Integrable.add (hci a b) (hsi a b)).congr
     filter_upwards [] with t; dsimp [fR]; ring
-
   have hfourier : 𝓕 (ϕ_pm ν ε) x = AL + AM + BM + BR := by
     rw [varphi_fourier_ident ν ε hlam x]
     have hA : ∫ t in Set.Icc (-1 : ℝ) 0, fL t = AL + AM := by
@@ -2892,11 +2888,8 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
       rw [← MeasureTheory.setIntegral_union (Set.Ioc_disjoint_Ioc_of_le (by norm_num)) measurableSet_Ioc (hfRi _ _) (hfRi _ _)]
       rw [Set.Ioc_union_Ioc_eq_Ioc (by norm_num) (by norm_num)]
     rw [hA, hB]; ring
-
-  -- Step 2: Downward shift for the left segment AL
   have hALshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fL (-1 / 2 - I * t)) - (I * ∫ t in Set.Icc 0 T, fL (-1 - I * t))) Filter.atTop (nhds AL) := by
     obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_holo_left ν ε x hν
-    -- Step 1: Real-axis integral of g is AL
     have h_g_AL : (∫ t in (-1 : ℝ)..(-1 / 2), g t) = AL := by
       dsimp [AL]
       rw [intervalIntegral.integral_of_le (by norm_num), MeasureTheory.integral_Icc_eq_integral_Ioc]
@@ -2914,64 +2907,39 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
         norm_cast at h_im
         field_simp [Real.pi_ne_zero] at h_im
         linarith [hν]
-    -- Step 2: Intermediate Tendsto for g
     have h_g_lim : Filter.Tendsto (fun T : ℝ  ↦ (I * ∫ t in Set.Icc 0 T, g (-(1 / 2 : ℝ) - I * t)) - (I * ∫ t in Set.Icc 0 T, g (-1 - I * t))) Filter.atTop (nhds (∫ t in (-1)..(-1 / 2 : ℝ), g t)) := by
       convert tendsto_contour_shift_downwards (σ := -1) (σ' := -1/2) (f := g) ?_ ?_ using 1
-      · -- Subgoal 1: Function Equality
-        ext T; congr 1
+      · ext T; congr 1
         · congr 1; apply MeasureTheory.setIntegral_congr_ae
           · exact measurableSet_Icc
           · filter_upwards [] with t ht; congr 1; push_cast; ring
         · congr 1; apply MeasureTheory.setIntegral_congr_ae
           · exact measurableSet_Icc
           · filter_upwards [] with t ht; congr 1; push_cast; ring
-      · -- Subgoal 2: Target Equality (nhds argument)
-        push_cast; ring_nf
+      · push_cast; ring_nf
         intro U hU
         convert hg_anal U hU
-      · -- Subgoal 3: Hypothesis hf_anal (Holomorphicity)
-        -- refine (Filter.Tendsto.congr' (Filter.Eventually.of_forall fun T ↦ ?_) ?_)
-        -- intro T; congr 1; apply MeasureTheory.setIntegral_congr_ae; exact measurableSet_Icc
-        -- filter_upwards with t ht; apply hg_eq; simp [z₀_pole]; intro h;
-        apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (-1) (-1 / 2) hν hx
+      · apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (-1) (-1 / 2) hν hx
           (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) g
-        · -- 1. Continuity of g follows from its holomorphicity
-          intro T hT
+        · intro T hT
           exact_mod_cast (hg_anal T (by linarith)).continuousOn
-        · -- 2. Growth bound for g
-          obtain ⟨C, T₀, hT₀_bound, hC⟩ := phi_bound_downwards ν ε hν
+        · obtain ⟨C, T₀, hT₀_bound, hC⟩ := phi_bound_downwards ν ε hν
           apply Filter.eventually_atTop.mpr
           use T₀
           intro T hT t ht
-          -- For T ≥ T₀, the segment avoids the pole line entirely because T₀ > ν/(2π).
           have h_not_pole : (↑t - I * ↑T) ≠ z₀_pole ν := by
             intro h_pole
-            -- Link T to the imaginary part of the pole via the equality h_pole
             have h_T_val : T = ν / (2 * π) := by
               replace h_pole := (Complex.ext_iff.mp h_pole).2
               simp [z₀_pole, Complex.I_im, Complex.I_re, Complex.sub_im, Complex.mul_im, Complex.ofReal_im, Complex.ofReal_re] at h_pole
               norm_cast at h_pole
-            -- Use the definition of T₀ (the lower bound for valid bounds) to show it exceeds the pole
-            have h_T0_bound : T₀ ≥ T + 1 := by
-              rw [h_T_val]; exact hT₀_bound
-            -- Combine T ≥ T₀ and T₀ ≥ T + 1 to reach the contradiction T ≥ T + 1
-            linarith [hT, h_T0_bound]
+            linarith [hT, h_T_val ▸ hT₀_bound]
           rw [hg_eq h_not_pole]
           dsimp [fL]
           rw [norm_mul]
           refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
           exact norm_sub_le _ _
-      -- · -- Left ray integrability for g
-      -- --   apply (integrable_phi_fourier_ray_downwards ν ε (-1) x hν (by norm_num) hx fL (Or.inl rfl)).congr
-      -- --   intro t; apply hg_eq; simp [z₀_pole]; intro h; exact (Complex.ext_iff.mp h).1.ne (by norm_num)
-      --   sorry
-      -- · -- Right ray integrability for g
-      -- --   apply (integrable_phi_fourier_ray_downwards ν ε (-1 / 2) x hν (by norm_num) hx fL (Or.inl rfl)).congr
-      -- --   intro t; apply hg_eq; simp [z₀_pole]; intro h; exact (Complex.ext_iff.mp h).1.ne (by norm_num)
-      --   sorry
-    -- Step 3: Link fL rays to g rays and conclude
     refine h_g_AL ▸ (h_g_lim.congr' (Filter.Eventually.of_forall fun T ↦ ?_))
-
     · congr 1
       · congr 1
         apply MeasureTheory.setIntegral_congr_ae
@@ -2983,31 +2951,21 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
       · congr 1
         apply MeasureTheory.setIntegral_congr_ae
         · exact measurableSet_Icc
-        · have h_null : volume {t | t = ν / (2 * π)} = 0 := (Set.subsingleton_singleton (a := ν / (2 * π))).measure_zero volume
-          filter_upwards [ae_iff.mpr (show volume {t | ¬ t ≠ ν / (2 * π)} = 0 from (by simp))] with t hne
+        · filter_upwards [ae_iff.mpr (show volume {t | ¬ t ≠ ν / (2 * π)} = 0 from (by simp))] with t hne
           intro ht; apply hg_eq; dsimp [fL];
           simp only [z₀_pole, sub_right_inj, mul_eq_mul_left_iff,
             I_ne_zero, or_false]
           intro h_eq
           have h_im := (Complex.ext_iff.mp h_eq).2
           exact hne (by simp at h_im; exact_mod_cast h_eq)
-
-
-
-
-
-
-  -- Step 3: Downward shift for the right segment BR
   have hBRshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fR (1 - I * t)) - (I * ∫ t in Set.Icc 0 T, fR (1 / 2 - I * t))) Filter.atTop (nhds BR) := by
     obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_holo_right ν ε x hν
     convert tendsto_contour_shift_downwards (σ := 1 / 2) (σ' := 1) (f := g) ?_ ?_ using 1
-    · -- Subgoal 1: Function Equality
-      ext T; congr 1
+    · ext T; congr 1
       · congr 1
         apply MeasureTheory.setIntegral_congr_ae
         · exact measurableSet_Icc
-        · have h_null : volume {t | t = ν / (2 * π)} = 0 := MeasureTheory.measure_singleton _
-          filter_upwards [ae_iff.mpr (show volume {t | ¬ t ≠ ν / (2 * π)} = 0 by simp)] with t hne
+        · filter_upwards [ae_iff.mpr (show volume {t | ¬ t ≠ ν / (2 * π)} = 0 by simp)] with t hne
           intro ht; dsimp [fR]; symm; apply hg_eq;
           simp only [z₁_pole, ne_eq, Set.mem_setOf_eq,
             sub_right_inj, mul_eq_mul_left_iff, I_ne_zero, or_false]
@@ -3022,8 +2980,7 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
           · norm_num
           · intro h; have h_re := congr_arg Complex.re h
             simp [z₁_pole] at h_re; norm_cast at h_re; norm_num at h_re
-    · -- Subgoal 2: Target Equality (nhds argument)
-      congr 1
+    · congr 1
       dsimp [BR]
       rw [intervalIntegral.integral_of_le (by norm_num), MeasureTheory.integral_Icc_eq_integral_Ioc]
       apply MeasureTheory.setIntegral_congr_ae
@@ -3034,13 +2991,10 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
         simp only [ofReal_im, sub_im, one_im, mul_im, I_re, zero_mul, I_im, one_mul, zero_add,
           zero_sub, zero_eq_neg] at h_im; norm_cast at h_im
         field_simp [Real.pi_ne_zero] at h_im; linarith [hν]
-    · -- Subgoal 3: Hypothesis hf_anal (Holomorphicity)
-      intro U hU
+    · intro U hU
       convert hg_anal U hU
       push_cast; ring
-    -- Hypotheses for the contour shift
-    · -- 1. Horizontal Vanishing
-      apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (1 / 2) 1 hν hx
+    · apply horizontal_integral_phi_fourier_vanish_downwards ν ε x (1 / 2) 1 hν hx
         (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) g
       · intro T hT
         convert (hg_anal T (by linarith)).continuousOn using 1
@@ -3056,46 +3010,21 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
             simp only [sub_im, ofReal_im, mul_im, I_re, mul_zero, I_im, ofReal_re, one_mul,
               zero_add, zero_sub, z₁_pole, one_im, zero_mul, neg_inj] at h_pole
             exact_mod_cast h_pole
-          have h_T0_bound : T₀ ≥ T + 1 := by
-            rw [h_T_val]; exact hT₀_bound
-          linarith [hT, h_T0_bound]
+          linarith [hT, h_T_val ▸ hT₀_bound]
         rw [hg_eq h_not_pole]
         dsimp [fR]
         rw [norm_mul]
         refine mul_le_mul_of_nonneg_right (norm_add_le _ _) (norm_nonneg _)
-    -- · -- 2. Left Ray Integrability
-    --   -- apply MeasureTheory.Integrable.congr (integrable_phi_fourier_ray_downwards ν ε (1 / 2) x hν (by norm_num) hx fR (Or.inr rfl))
-    --   -- filter_upwards with t
-    --   -- dsimp [fR]; symm; apply hg_eq; simp [z₁_pole]
-    --   -- intro h; have h_re := (Complex.ext_iff.mp h).1; simp at h_re; norm_num at h_re
-    --   sorry
-    -- · -- 3. Right Ray Integrability
-    --   -- apply MeasureTheory.Integrable.congr (integrable_phi_fourier_ray_downwards ν ε 1 x hν (by norm_num) hx fR (Or.inr rfl))
-    --   -- have h_ae : ∀ᵐ (t : ℝ) ∂(volume.restrict (Set.Ici 0)), t ≠ ν / (2 * π) := by
-    --   --   refine ae_mono (Measure.restrict_le_self) ?_
-    --   --   exact ae_iff.mpr (MeasureTheory.measure_singleton (ν / (2 * π)))
-    --   -- filter_upwards [h_ae] with t ht
-    --   -- dsimp [fR]; symm; apply hg_eq; simp [z₁_pole]
-    --   -- intro h; exact ht (by replace h := (Complex.ext_iff.mp h).2; simp [z₁_pole] at h; norm_cast at h; field_simp [Real.pi_ne_zero] at h; exact h)
-    --   sorry
-
-  -- Step 4: Assemble the middle horizontal pieces
   have hmiddle : AM + BM = (∫ t in Set.Icc (-1/2 : ℝ) (1/2 : ℝ), Phi_circ ν ε t * E (-t * x)) - (∫ t in Set.Icc (-1/2 : ℝ) 0, Phi_star ν ε t * E (-t * x)) + (∫ t in Set.Icc 0 (1/2 : ℝ), Phi_star ν ε t * E (-t * x)) := by
     simp only [AM, BM, fL, fR]
     rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
-    -- Purely algebraic splitting of integrals
     simp_rw [sub_mul, add_mul]
-    -- Linearity of integration splits the combined integrands.
     rw [integral_sub (hci (-1/2) 0) (hsi (-1/2) 0), integral_add (hci 0 (1/2)) (hsi 0 (1/2))]
-    -- Split ∫_{(-1/2, 1/2]} Phi_circ = ∫_{(-1/2, 0]} + ∫_{(0, 1/2]}
     rw [show Set.Ioc (-1/2 : ℝ) (1/2) = Set.Ioc (-1/2) 0 ∪ Set.Ioc 0 (1/2) from
           (Set.Ioc_union_Ioc_eq_Ioc (by norm_num) (by norm_num)).symm,
         MeasureTheory.setIntegral_union (Set.Ioc_disjoint_Ioc_of_le le_rfl)
           measurableSet_Ioc (hci _ _) (hci _ _)]
-    -- Final combination: bound variables are unified, so abel handles the rearrangement.
     abel
-
-  -- Step 5: Final combination using Filter.Tendsto.add
   have h_combined_lim := (hALshift.add hBRshift).add_const (AM + BM)
   rw [hmiddle] at h_combined_lim
   simp only [fL, fR] at h_combined_lim
