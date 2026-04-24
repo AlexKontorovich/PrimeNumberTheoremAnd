@@ -1966,7 +1966,7 @@ lemma Complex.norm_le_abs_im_add_one {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : �
         linarith
     _ = |z.im| + 1     := add_comm 1 _
 
-lemma phi_bound_logic {ν ε : ℝ} {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : ℝ) 1)
+lemma phi_sum_norm_le_of_component_bounds {ν ε : ℝ} {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : ℝ) 1)
     {C₁ C₂ : ℝ} (hC₁ : ‖Phi_circ ν ε z‖ ≤ C₁) (hC₂ : ‖Phi_star ν ε z‖ ≤ C₂ * (‖z‖ + 1))
     (y : ℝ) (hy : y = |z.im|) (hy_ge : y ≥ 1) :
     ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ (max 0 C₁ + 2 * max 0 C₂) * (y + 1) := by
@@ -1985,7 +1985,7 @@ lemma phi_bound_logic {ν ε : ℝ} {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : �
         have h_y_bound : y + 2 ≤ 2 * (y + 1) := by linarith [hy_ge]
         nlinarith [h_y_bound, C₁', C₂', hC₁', hC₂']
 
-theorem phi_bound_gen (ν ε : ℝ) (hν : ν > 0) (T : ℝ) (hT : T ≥ 1) (up : Bool)
+theorem phi_sum_norm_le_linear_halfplane (ν ε : ℝ) (hν : ν > 0) (T : ℝ) (hT : T ≥ 1) (up : Bool)
     (hsafe : if up then T > -ν / (2 * π) else -T < -ν / (2 * π)) :
     ∃ C, ∀ (z : ℂ), (if up then z.im ≥ T else z.im ≤ -T) → z.re ∈ Set.Icc (-1 : ℝ) 1 →
       ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (|z.im| + 1) := by
@@ -1996,7 +1996,7 @@ theorem phi_bound_gen (ν ε : ℝ) (hν : ν > 0) (T : ℝ) (hT : T ≥ 1) (up 
     use (max 0 C₁ + 2 * max 0 C₂)
     intro z hz_im hz_re
     have hz_im' : z.im ≤ -T := by simpa using hz_im
-    apply phi_bound_logic hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
+    apply phi_sum_norm_le_of_component_bounds hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
       (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im') |z.im| rfl (by linarith [abs_of_nonpos (show z.im ≤ 0 by linarith)])
   · have hsafe' : T > -ν / (2 * π) := by simpa using hsafe
     obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε T hsafe'
@@ -2004,7 +2004,7 @@ theorem phi_bound_gen (ν ε : ℝ) (hν : ν > 0) (T : ℝ) (hT : T ≥ 1) (up 
     use (max 0 C₁ + 2 * max 0 C₂)
     intro z hz_im hz_re
     have hz_im' : z.im ≥ T := by simpa using hz_im
-    apply phi_bound_logic hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
+    apply phi_sum_norm_le_of_component_bounds hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
       (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im') |z.im| rfl (by linarith [abs_of_nonneg (show 0 ≤ z.im by linarith)])
 
 theorem phi_bound_upwards (ν ε : ℝ) (hν : ν > 0) :
@@ -2012,7 +2012,7 @@ theorem phi_bound_upwards (ν ε : ℝ) (hν : ν > 0) :
       ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (z.im + 1) := by
   have h_safe : 1 > -ν / (2 * π) := by
     rw [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
-  obtain ⟨C, hC⟩ := phi_bound_gen ν ε hν 1 le_rfl true h_safe
+  obtain ⟨C, hC⟩ := phi_sum_norm_le_linear_halfplane ν ε hν 1 le_rfl true h_safe
   exact ⟨C, fun z hz hz_re ↦ by simpa [abs_of_pos (by linarith : 0 < z.im)] using hC z hz hz_re⟩
 
 theorem phi_bound_downwards (ν ε : ℝ) (hν : ν > 0) :
@@ -2026,7 +2026,7 @@ theorem phi_bound_downwards (ν ε : ℝ) (hν : ν > 0) :
     have h := neg_lt_neg this
     field_simp at h ⊢
     exact h
-  obtain ⟨C, hC⟩ := phi_bound_gen ν ε hν T₀ (le_max_left _ _) false h_safe
+  obtain ⟨C, hC⟩ := phi_sum_norm_le_linear_halfplane ν ε hν T₀ (le_max_left _ _) false h_safe
   refine ⟨C, T₀, le_max_right _ _, fun z hz hz_re ↦ ?_⟩
   specialize hC z (by simpa using hz) hz_re
   have h_abs : |z.im| = -z.im := abs_of_nonpos (by
@@ -2496,20 +2496,16 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
     (hf_anal : ∀ (U : ℝ), U ≥ 0 → HolomorphicOn f (Rectangle (σ : ℂ) (σ' - I * U)))
     (h_bottom : Filter.Tendsto (fun (T : ℝ) ↦ ∫ t in σ..σ', f (t - I * T)) Filter.atTop (nhds 0)) :
     Filter.Tendsto (fun (T : ℝ) ↦ (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) - (I * ∫ t in Set.Icc 0 T, f (σ - I * t))) Filter.atTop (nhds (∫ t in σ..σ', f t)) := by
-  -- Step 1: Decompose the rectangle integral into horizontal and vertical segments.
   have h_rect (T : ℝ) (hT : 0 ≤ T) :
       RectangleIntegral f σ (σ' - I * T) =
       (∫ t in σ..σ', f t) - (∫ t in σ..σ', f (t - I * T)) - (I * ∫ t in Set.Icc 0 T, f (σ' - I * t)) + (I * ∫ t in Set.Icc 0 T, f (σ - I * t)) := by
     dsimp [RectangleIntegral, HIntegral, VIntegral]
-    -- h1: Simplify the top horizontal segment: ∫ x in σ..σ', f(x + 0*I) = ∫ x in σ..σ', f(x).
     have h1 : ∫ (x : ℝ) in σ..σ' - (0 * T - 1 * 0), f (↑x + 0 * I) = ∫ x in σ..σ', f ↑x := by
       simp only [show σ' - (0 * T - 1 * 0) = σ' from by ring]
       exact intervalIntegral.integral_congr fun x _ ↦ by ring_nf
-    -- h2: Simplify the bottom horizontal segment: ∫ x in σ..σ', f(x + (0 - (0*0 + 1*T)) * I) = ∫ x in σ..σ', f(x - I*T).
     have h2 : ∫ (x : ℝ) in σ..σ' - (0 * T - 1 * 0), f (↑x + ↑(0 - (0 * 0 + 1 * T)) * I) = ∫ x in σ..σ', f (↑x - I * ↑T) := by
       simp only [show σ' - (0 * T - 1 * 0) = σ' from by ring]
       exact intervalIntegral.integral_congr fun x _ ↦ by norm_cast; simp; ring_nf
-    -- h3: Parameterize the right vertical segment y ∈ [0, -T] using y = -t to get -∫ t ∈ [0, T], f(σ' - i*t).
     have h3 : ∫ (y : ℝ) in 0..0 - (0 * 0 + 1 * T), f (↑(σ' - (0 * T - 1 * 0)) + ↑y * I) = - ∫ t in Set.Icc 0 T, f (↑σ' - I * ↑t) := by
       rw [show (0 : ℝ) - (0 * 0 + 1 * T) = -T from by ring,
           show σ' - (0 * T - 1 * 0) = σ' from by ring, neg_zero.symm]
@@ -2517,7 +2513,6 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
       rw [intervalIntegral.integral_symm, intervalIntegral.integral_of_le hT, MeasureTheory.integral_Icc_eq_integral_Ioc]
       simp only [neg_zero]
       exact congr_arg Neg.neg (integral_congr_ae (Filter.Eventually.of_forall fun y ↦ by push_cast; ring_nf))
-    -- h4: Parameterize the left vertical segment y ∈ [0, -T] using y = -t to get -∫ t ∈ [0, T], f(σ - i*t).
     have h4 : ∫ (y : ℝ) in 0..0 - (0 * 0 + 1 * T), f (↑σ + ↑y * I) = - ∫ t in Set.Icc 0 T, f (↑σ - I * ↑t) := by
       rw [show (0 : ℝ) - (0 * 0 + 1 * T) = -T from by ring, neg_zero.symm]
       rw [← intervalIntegral.integral_comp_neg (f := fun y ↦ f (↑σ + ↑y * I)) (a := T) (b := 0)]
@@ -2578,7 +2573,7 @@ lemma horizontal_integral_phi_fourier_vanish_downwards (ν ε x a b : ℝ) (hν 
                   apply mul_le_mul_of_nonneg_right _ (by positivity)
                   norm_cast
                   rw [show 1 - (↑t - I * ↑T).im = -(↑t - I * ↑T).im + 1 by ring]
-                  apply hC -- (↑t - I * ↑T) h_im h_re
+                  apply hC
                   · simp
                     linarith [hT, le_max_left (max 1 T₀) T_bound, le_max_right 1 T₀]
                   · simp only [sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
