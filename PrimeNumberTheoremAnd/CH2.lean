@@ -1188,84 +1188,34 @@ lemma w_re_pos {ν : ℝ} {z : ℂ} (hν : ν > 0) (hz_im : 0 ≤ z.im) :
 
 lemma w_re_pos_gen {ν : ℝ} {z : ℂ} (hz_im : z.im > -ν / (2 * π)) :
     0 < (-2 * π * I * z + ν).re := by
-  rw [w_re]
-  have hpi : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
-  rw [gt_iff_lt] at hz_im
-  have := (div_lt_iff₀ hpi).mp hz_im
-  linarith
+  rw [w_re]; have := Real.pi_pos; field_simp at *; linarith
 
 lemma w_re_ne {ν : ℝ} {z : ℂ} (h_not_pole : z.im ≠ -ν / (2 * π)) :
     (-2 * π * I * z + ν).re ≠ 0 := by
-  rw [w_re]
-  have hpi : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
-  intro h; apply h_not_pole
-  replace h : 2 * π * z.im = -ν := by linarith
-  have : (2 * π) * z.im / (2 * π) = -ν / (2 * π) := by rw [h]
-  rwa [mul_div_cancel_left₀ _ hpi.ne'] at this
+  rw [w_re]; contrapose! h_not_pole; have := Real.pi_pos; field_simp at *; linarith
+
 lemma sinh_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
     Complex.sinh ((-2 * π * I * z + ν) / 2) ≠ 0 := by
   intro h
-  have h_exp : Complex.exp ((-2 * π * I * z + ν) / 2) =
-               Complex.exp (-((-2 * π * I * z + ν) / 2)) := by
-    have h1 : Complex.sinh ((-2 * π * I * z + ν) / 2) =
-      (Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))) / 2 := rfl
-    rw [h1] at h
-    have h2 : Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2)) = 0 := by
-      calc Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))
-        _ = (Complex.exp ((-2 * π * I * z + ν) / 2) - Complex.exp (-((-2 * π * I * z + ν) / 2))) / 2 * 2 := by ring
-        _ = 0 * 2 := by rw [h]
-        _ = 0 := by ring
-    exact sub_eq_zero.mp h2
-  rw [Complex.exp_eq_exp_iff_exists_int] at h_exp
-  obtain ⟨k, hk⟩ := h_exp
+  obtain ⟨k, hk⟩ := (sinh_zero_iff _).mp h
   have h_z : z = ↑(-k) - I * ν / (2 * π) := by
-    have h2 : -2 * π * I * z + ν = k * (2 * π * I) := by linear_combination hk
-    have hpi : (2 * (π : ℂ) * I) ≠ 0 := by
-      apply mul_ne_zero
-      · apply mul_ne_zero (by norm_num) (by exact_mod_cast Real.pi_pos.ne')
-      · exact I_ne_zero
-    calc z
-      _ = (- (k * (2 * π * I)) + ν) / (2 * π * I) := by
-        apply mul_right_cancel₀ hpi
-        rw [div_mul_cancel₀ _ hpi]
-        linear_combination -h2
-      _ = ↑(-k) - I * ν / (2 * π) := by
-        push_cast
-        have hpi2 : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
-        have h_div1 : (- (k * (2 * π * I))) / (2 * π * I) = -k := by
-          rw [neg_div, mul_div_cancel_right₀ _ hpi]
-        have h_div2 : (ν : ℂ) / (2 * π * I) = - I * ν / (2 * π) := by
-          field_simp [hpi2, I_ne_zero]
-          ring_nf
-          simp [I_sq]
-        rw [add_div, h_div1, h_div2]
-        ring
+    calc z = (2 * π * I * z) / (2 * π * I) := by field_simp [pi_ne_zero, I_ne_zero]
+      _ = (ν - (-2 * π * I * z + ν)) / (2 * π * I) := by ring
+      _ = (ν - 2 * ((-2 * π * I * z + ν) / 2)) / (2 * π * I) := by ring
+      _ = (ν - 2 * (k * π * I)) / (2 * π * I) := by rw [hk]
+      _ = ν / (2 * π * I) - (2 * k * π * I) / (2 * π * I) := by field_simp [pi_ne_zero, I_ne_zero]; ring
+      _ = -I * ν / (2 * π) - k := by field_simp [pi_ne_zero, I_ne_zero]; simp [I_sq]; ring
+      _ = ↑(-k) - I * ν / (2 * π) := by simp; ring
   exact h_not_pole (-k) h_z
 
 lemma w_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
     -2 * π * I * z + ν ≠ 0 := by
-  intro h
-  have hz : z = ↑(0 : ℤ) - I * ν / (2 * π) := by
-    have hpi : (2 * (π : ℂ) * I) ≠ 0 := by
-      apply mul_ne_zero
-      · apply mul_ne_zero (by norm_num) (by exact_mod_cast Real.pi_pos.ne')
-      · exact I_ne_zero
-    calc z
-      _ = (-0 + ν) / (2 * π * I) := by
-        apply mul_right_cancel₀ hpi
-        rw [div_mul_cancel₀ _ hpi]
-        linear_combination -h
-      _ = ↑(0 : ℤ) - I * ν / (2 * π) := by
-        push_cast
-        have hpi2 : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
-        have h_div1 : (- (0 : ℂ)) / (2 * π * I) = 0 := by ring
-        have h_div2 : (ν : ℂ) / (2 * π * I) = - I * ν / (2 * π) := by
-          field_simp [hpi2, I_ne_zero]
-          ring_nf
-          simp [I_sq]
-        rw [add_div, h_div1, h_div2]
-        ring
-  exact h_not_pole 0 hz
+  intro h; specialize h_not_pole 0; apply h_not_pole
+  calc z = (2 * π * I * z) / (2 * π * I) := by field_simp [pi_ne_zero, I_ne_zero]
+    _ = ν / (2 * π * I) := by
+      have : 2 * π * I * z = ν := by rw [← add_zero (2 * π * I * z), ← h]; ring
+      rw [this]
+    _ = _ := by ring; field_simp; simp
 
 /-- Phi_circ is analytic whenever we are away from the poles. -/
 theorem Phi_circ.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
@@ -1282,23 +1232,17 @@ theorem Phi_circ.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : �
 theorem Phi_circ.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_circ ν ε) z :=
   Phi_circ.analyticAt_of_not_pole ν ε z (by
-    intro n hn
-    apply h_not_pole
+    intro n hn; apply h_not_pole
     have h_im : (↑n - I * ↑ν / (2 * ↑π)).im = -ν / (2 * π) := by
       simp [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_im, Complex.I_re, Complex.ofReal_re, Complex.div_im]
-      have hpi : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
-      field_simp [hpi]
-    rw [hn]
-    exact h_im)
+      field_simp [pi_ne_zero]
+    rw [hn, h_im])
 
 theorem Phi_circ.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) :
     AnalyticAt ℂ (Phi_circ ν ε) z :=
   Phi_circ.analyticAt_of_im_ne_pole ν ε z (by
-    have h1 : -ν < 0 := neg_lt_zero.mpr hν
-    have h2 : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
-    have h3 : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos h1 h2
-    have h4 : -ν / (2 * π) < z.im := h3.trans_le hz_im
-    symm; exact h4.ne)
+    have : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos (neg_lt_zero.mpr hν) (mul_pos (by norm_num) Real.pi_pos)
+    linarith)
 
 theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im > -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_circ ν ε) z :=
@@ -1320,15 +1264,11 @@ theorem Phi_star.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : �
 
 theorem Phi_star.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z :=
-  Phi_star.analyticAt_of_not_pole ν ε z (by
-    intro n hn
-    apply h_not_pole
+  Phi_star.analyticAt_of_not_pole ν ε z (fun n hn => h_not_pole (by
     have h_im : (↑n - I * ↑ν / (2 * ↑π)).im = -ν / (2 * π) := by
       simp [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_im, Complex.I_re, Complex.ofReal_re, Complex.div_im]
-      have hpi : (π : ℂ) ≠ 0 := by exact_mod_cast Real.pi_pos.ne'
-      field_simp [hpi]
-    rw [hn]
-    exact h_im)
+      field_simp [pi_ne_zero]
+    rw [hn, h_im]))
 
 theorem Phi_star.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im > -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z :=
@@ -1337,11 +1277,8 @@ theorem Phi_star.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im 
 theorem Phi_star.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) (hz_im : 0 ≤ z.im) :
     AnalyticAt ℂ (Phi_star ν ε) z :=
   Phi_star.analyticAt_of_im_ne_pole ν ε z (by
-    have h1 : -ν < 0 := neg_lt_zero.mpr hν
-    have h2 : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
-    have h3 : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos h1 h2
-    have h4 : -ν / (2 * π) < z.im := h3.trans_le hz_im
-    symm; exact h4.ne)
+    have : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos (neg_lt_zero.mpr hν) (mul_pos (by norm_num) Real.pi_pos)
+    linarith)
 
 @[blueprint
   "phi-c2-left"
@@ -2065,97 +2002,93 @@ lemma tendsto_contour_shift {σ σ' : ℝ} {f : ℂ → ℂ}
   rw [h_rect U hU]
   ring
 
-theorem phi_bound (ν ε : ℝ) (hν : ν > 0) :
+lemma Complex.norm_le_abs_im_add_one {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : ℝ) 1) :
+    ‖z‖ ≤ |z.im| + 1 := by
+  calc ‖z‖
+    _ = ‖(z.re : ℂ) + (z.im : ℂ) * I‖ := by rw [Complex.re_add_im]
+    _ ≤ ‖(z.re : ℂ)‖ + ‖(z.im : ℂ) * I‖ := norm_add_le _ _
+    _ = |z.re| + |z.im| := by
+        rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real]
+        simp only [norm_eq_abs, mul_one]
+    _ ≤ 1 + |z.im|     := by
+        have : |z.re| ≤ 1 := abs_le.mpr hz_re
+        linarith
+    _ = |z.im| + 1     := add_comm 1 _
+
+lemma phi_bound_logic {ν ε : ℝ} {z : ℂ} (hz_re : z.re ∈ Set.Icc (-1 : ℝ) 1)
+    {C₁ C₂ : ℝ} (hC₁ : ‖Phi_circ ν ε z‖ ≤ C₁) (hC₂ : ‖Phi_star ν ε z‖ ≤ C₂ * (‖z‖ + 1))
+    (y : ℝ) (hy : y = |z.im|) (hy_ge : y ≥ 1) :
+    ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ (max 0 C₁ + 2 * max 0 C₂) * (y + 1) := by
+  have h_norm : ‖z‖ ≤ y + 1 := by rw [hy]; exact Complex.norm_le_abs_im_add_one hz_re
+  set C₁' := max 0 C₁
+  set C₂' := max 0 C₂
+  have hC₁' : 0 ≤ C₁' := le_max_left 0 C₁
+  have hC₂' : 0 ≤ C₂' := le_max_left 0 C₂
+  have h1 : ‖Phi_circ ν ε z‖ ≤ C₁' := hC₁.trans (le_max_right 0 C₁)
+  have h2 : ‖Phi_star ν ε z‖ ≤ C₂' * (‖z‖ + 1) := hC₂.trans (mul_le_mul_of_nonneg_right (le_max_right 0 C₂) (by positivity))
+  calc ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖
+    _ ≤ C₁' + C₂' * (y + 2) := by
+        have h_z_bound : ‖z‖ + 1 ≤ y + 2 := by linarith [h_norm]
+        nlinarith [h1, h2, h_z_bound, hC₂']
+    _ ≤ (C₁' + 2 * C₂') * (y + 1) := by
+        have h_y_bound : y + 2 ≤ 2 * (y + 1) := by linarith [hy_ge]
+        nlinarith [h_y_bound, C₁', C₂', hC₁', hC₂']
+
+theorem phi_bound_gen (ν ε : ℝ) (hν : ν > 0) (T : ℝ) (hT : T ≥ 1) (up : Bool)
+    (hsafe : if up then T > -ν / (2 * π) else -T < -ν / (2 * π)) :
+    ∃ C, ∀ (z : ℂ), (if up then z.im ≥ T else z.im ≤ -T) → z.re ∈ Set.Icc (-1 : ℝ) 1 →
+      ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (|z.im| + 1) := by
+  cases up
+  · have hsafe' : -T < -ν / (2 * π) := by simpa using hsafe
+    obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_left ν ν ε (-T) hsafe'
+    obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_left ν ν ε (-T) hν le_rfl hsafe'
+    use (max 0 C₁ + 2 * max 0 C₂)
+    intro z hz_im hz_re
+    have hz_im' : z.im ≤ -T := by simpa using hz_im
+    apply phi_bound_logic hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
+      (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im') |z.im| rfl (by linarith [abs_of_nonpos (show z.im ≤ 0 by linarith)])
+  · have hsafe' : T > -ν / (2 * π) := by simpa using hsafe
+    obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε T hsafe'
+    obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε T hν le_rfl hsafe'
+    use (max 0 C₁ + 2 * max 0 C₂)
+    intro z hz_im hz_re
+    have hz_im' : z.im ≥ T := by simpa using hz_im
+    apply phi_bound_logic hz_re (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im')
+      (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im') |z.im| rfl (by linarith [abs_of_nonneg (show 0 ≤ z.im by linarith)])
+
+theorem phi_bound_upwards (ν ε : ℝ) (hν : ν > 0) :
     ∃ C, ∀ (z : ℂ), z.im ≥ 1 → z.re ∈ Set.Icc (-1 : ℝ) 1 →
       ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (z.im + 1) := by
-  have h_hc : 1 > -ν / (2 * π) := by
+  have h_safe : 1 > -ν / (2 * π) := by
     rw [neg_div]; apply lt_trans (neg_neg_of_pos (by positivity)) zero_lt_one
-  obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right ν ν ε 1 h_hc
-  obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right ν ν ε 1 hν le_rfl h_hc
-  have hC₁_nonneg : 0 ≤ C₁ := by
-    have hI : (I : ℂ).im ≥ 1 := by norm_num
-    linarith [hC₁ ν (Set.left_mem_Icc.mpr le_rfl) I hI, norm_nonneg (Phi_circ ν ε I)]
-  have hC₂_nonneg : 0 ≤ C₂ := by
-    have hI : (I : ℂ).im ≥ 1 := by norm_num
-    have := hC₂ ν (Set.left_mem_Icc.mpr le_rfl) I hI
-    have : 0 < ‖I‖ + 1 := by norm_num
-    nlinarith [norm_nonneg (Phi_star ν ε I)]
-  refine ⟨C₁ + 2 * C₂, fun z hz_im hz_re => ?_⟩
-  have h_norm : ‖z‖ ≤ z.im + 1 := by
-    calc ‖z‖
-      _ = ‖(z.re : ℂ) + (z.im : ℂ) * I‖ := by rw [Complex.re_add_im]
-      _ ≤ ‖(z.re : ℂ)‖ + ‖(z.im : ℂ) * I‖ := norm_add_le _ _
-      _ = |z.re| + |z.im| := by
-          rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real]
-          simp only [norm_eq_abs, mul_one]
-      _ ≤ 1 + z.im        := by
-          have h_re : |z.re| ≤ 1 := abs_le.mpr ⟨hz_re.1, hz_re.2⟩
-          have h_im : |z.im| = z.im := abs_of_nonneg (by linarith)
-          linarith
-      _ = z.im + 1        := add_comm 1 z.im
-  have h_sum_le := add_le_add (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im) (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im)
-  calc ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖
-    _ ≤ C₁ + C₂ * (‖z‖ + 1) := h_sum_le
-    _ ≤ C₁ + C₂ * (z.im + 2) := by nlinarith [h_norm, hC₂_nonneg]
-    _ ≤ (C₁ + 2 * C₂) * (z.im + 1) := by
-      have : z.im + 2 ≤ 2 * (z.im + 1) := by linarith
-      nlinarith [hC₁_nonneg, hC₂_nonneg, this]
+  obtain ⟨C, hC⟩ := phi_bound_gen ν ε hν 1 le_rfl true h_safe
+  exact ⟨C, fun z hz hz_re ↦ by simpa [abs_of_pos (by linarith : 0 < z.im)] using hC z hz hz_re⟩
 
 theorem phi_bound_downwards (ν ε : ℝ) (hν : ν > 0) :
     ∃ C T₀, T₀ ≥ ν / (2 * π) + 1 ∧ ∀ (z : ℂ), z.im ≤ -T₀ → z.re ∈ Set.Icc (-1 : ℝ) 1 →
       ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖ ≤ C * (-z.im + 1) := by
-  let T₀ := max 1 (ν / (2 * π) + 1)
-  have h_hc : -T₀ < -ν / (2 * π) := by
-    have : T₀ > ν / (2 * π) := by
-      calc T₀
-        _ ≥ ν / (2 * π) + 1 := le_max_right _ _
-        _ > ν / (2 * π)     := by linarith
-    rw [neg_div]
-    exact neg_lt_neg this
-  obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_left ν ν ε (-T₀) h_hc
-  obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_left ν ν ε (-T₀) hν le_rfl h_hc
-  have hC₁_nonneg : 0 ≤ C₁ := by
-    let z := - (T₀ : ℂ) * I
-    have hz_im : z.im ≤ -T₀ := by simp [z]
-    linarith [hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im, norm_nonneg (Phi_circ ν ε z)]
-  have hC₂_nonneg : 0 ≤ C₂ := by
-    let z := - (T₀ : ℂ) * I
-    have hz_im : z.im ≤ -T₀ := by simp [z]
-    have := hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im
-    have : 0 < ‖z‖ + 1 := by positivity
-    nlinarith [norm_nonneg (Phi_star ν ε z)]
-  use C₁ + 2 * C₂, T₀
-  constructor
-  · exact le_max_right _ _
-  · intro z hz_im hz_re
-    have hT₀ : 1 ≤ T₀ := le_max_left _ _
-    have h_norm : ‖z‖ ≤ 1 - z.im := by
-      calc ‖z‖
-        _ = ‖(z.re : ℂ) + (z.im : ℂ) * I‖ := by rw [Complex.re_add_im]
-        _ ≤ ‖(z.re : ℂ)‖ + ‖(z.im : ℂ) * I‖ := norm_add_le _ _
-        _ = |z.re| + |z.im| := by
-            rw [Complex.norm_real, norm_mul, Complex.norm_I, Complex.norm_real]
-            simp only [norm_eq_abs, mul_one]
-        _ ≤ 1 + -z.im     := by
-            have h_re : |z.re| ≤ 1 := abs_le.mpr (Set.mem_Icc.mp hz_re)
-            have h_im : |z.im| = -z.im := by
-              apply abs_of_nonpos
-              linarith [hz_im, hT₀]
-            linarith
-        _ = 1 - z.im        := by ring
-    have h_sum_le := add_le_add (hC₁ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im) (hC₂ ν (Set.left_mem_Icc.mpr le_rfl) z hz_im)
-    calc ‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖
-      _ ≤ C₁ + C₂ * (‖z‖ + 1) := h_sum_le
-      _ ≤ C₁ + C₂ * (2 - z.im) := by nlinarith [h_norm, hC₂_nonneg]
-      _ ≤ (C₁ + 2 * C₂) * (-z.im + 1) := by
-        have h1 : 1 - z.im ≥ 1 := by linarith [hz_im, hT₀]
-        nlinarith [hC₁_nonneg, hC₂_nonneg, h1]
+  set T₀ := max 1 (ν / (2 * π) + 1) with hT₀_def
+  have h_safe : -T₀ < -ν / (2 * π) := by
+    have : ν / (2 * π) < T₀ := by
+      rw [hT₀_def]
+      exact (lt_add_one _).trans_le (le_max_right 1 (ν / (2 * π) + 1))
+    have h := neg_lt_neg this
+    field_simp at h ⊢
+    exact h
+  obtain ⟨C, hC⟩ := phi_bound_gen ν ε hν T₀ (le_max_left _ _) false h_safe
+  refine ⟨C, T₀, le_max_right _ _, fun z hz hz_re ↦ ?_⟩
+  specialize hC z (by simpa using hz) hz_re
+  have h_abs : |z.im| = -z.im := abs_of_nonpos (by
+    have : T₀ ≥ 1 := le_max_left 1 (ν / (2 * π) + 1)
+    linarith [hz])
+  rwa [h_abs] at hC
+
 
 theorem phi_fourier_ray_bound (ν ε σ x : ℝ) (hν : ν > 0) (hsigma : σ ∈ Set.Icc (-1 : ℝ) 1)
     (f : ℂ → ℂ) (hf : ∀ z, ‖f z‖ ≤ (‖Phi_circ ν ε z‖ + ‖Phi_star ν ε z‖) * ‖E (-z * x)‖) :
     ∃ C, ∀ (y : ℝ), y ≥ 1 →
       ‖f (σ + y * I)‖ ≤ C * (y + 1) * rexp (2 * π * x * y) := by
-  obtain ⟨Core, hCore⟩ := phi_bound ν ε hν
+  obtain ⟨Core, hCore⟩ := phi_bound_upwards ν ε hν
   refine ⟨Core, fun y hy => ?_⟩
   have h_exp_eq : ‖E (-(σ + y * I) * x)‖ = rexp (2 * π * x * y) := by
     rw [E, Complex.norm_exp]
