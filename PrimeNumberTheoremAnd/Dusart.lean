@@ -2,6 +2,7 @@ import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.PrimeInInterval
 import PrimeNumberTheoremAnd.eSHP
+import PrimeNumberTheoremAnd.BKLNW
 import LeanCert.Tactic.IntervalAuto
 
 blueprint_comment /--
@@ -148,16 +149,16 @@ theorem lemma_4_1 {x ϑx ψϑx : ℝ} (h : (x, ϑx, ψϑx) ∈ Table2) : θ x �
 def Table_4_2 : List (ℕ × ℝ × ℝ) := [
   (0, 1, 1),
   (1, 1.2323, 2),
-  (2, 0.001, 908994923),
-  (2, 3.965, 3594641),
-  (2, 0.2, 122568683),
-  (2, 0.05, 7713133853),
+  (1, 0.001, 908994923),
+  (2, 3.965, 2),
+  (2, 0.2, 3594641),
+  (2, 0.05, 122568683),
+  (2, 0.01, 7713133853),
   (3, 20.83, 2),
   (3, 10, 32321),
   (3, 1, 89967803),
   (3, 0.78, 158822621),
   (3, 0.5, 767135587),
-  (3, 0.499, 4e18),  -- added to make Corollary 5.5 work
   (4, 151.3, 2)
 ]
 
@@ -297,12 +298,12 @@ theorem corollary_4_5 {x : ℝ} (hx : x > 0) :
   (statement := /--
   For $x \geq 4 \times 10^9$, we have
   \[
-  \pi(x) = \frac{x}{\log x} \Biggl(1 + \frac{1}{\log x} + \frac{2 \log \log x}{\log^2 x} + O^*\Bigl(\frac{7.32}{\log^3 x}\Bigr)\Biggr).
+  \pi(x) = \frac{x}{\log x} \Biggl(1 + \frac{1}{\log x} + \frac{2}{\log^2 x} + O^*\Bigl(\frac{7.32}{\log^3 x}\Bigr)\Biggr).
   \]
   -/)
   (latexEnv := "theorem")]
 theorem theorem_5_1 {x : ℝ} (hx : x ≥ 4e9) : ∃ E,
-  (pi x = x / log x * (1 + 1 / log x + 2 * log (log x) / (log x) ^ 2 + E) ∧ |E| ≤ 7.32 / (log x) ^ 3) := by sorry
+  (pi x = x / log x * (1 + 1 / log x + 2 / (log x) ^ 2 + E) ∧ |E| ≤ 7.32 / (log x) ^ 3) := by sorry
 
 @[blueprint "Dusart_cor_5_2_a"
   (title := "Dusart Corollary 5.2 (a)")
@@ -431,30 +432,71 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   have hx_pos : 0 < x := by linarith
   have hlog_pos : 0 < log x := Real.log_pos (by linarith)
   have hpow_pos : 0 < (log x) ^ 3 := by positivity
-  have htab : (3, (0.499 : ℝ), (4e18 : ℝ)) ∈ Table_4_2 := by simp [Table_4_2]
-  have hE1 : Eθ x ≤ 0.499 / (log x) ^ 3 := theorem_4_2 htab hx
+  -- Use BKLNW Table_15 row (29, M₂₉) which gives θ bounds with M 2 = 2.4334e-2.
+  -- This row applies for x ≥ 29, trivially satisfied for x ≥ 4e18.
+  set M₂₉ : Fin 5 → ℝ := ![2.7336e-5, 7.9272e-4, 2.4334e-2, 5.7184e1, 1.3441e5]
+  have htab : ((29 : ℝ), M₂₉) ∈ BKLNW.Table_15 := by
+    simp [BKLNW.Table_15, M₂₉]
+  have hM : M₂₉ ⟨2, by norm_num⟩ = 2.4334e-2 := rfl
+  have hfin_val : (⟨2, by norm_num⟩ : Fin 5).val + 1 = 3 := rfl
+  have hx_ge_29 : x ≥ (29 : ℝ) := by linarith
+  obtain ⟨hlb_x, hub_x⟩ :=
+    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 1) htab ⟨2, by norm_num⟩ hx_ge_29
+  rw [hM, hfin_val] at hlb_x hub_x
+  -- Derive Eθ x ≤ 2.4334e-2 / (log x)^3 from the θ bounds
+  have hEθ_x : Eθ x ≤ 2.4334e-2 / (log x) ^ 3 := by
+    unfold Eθ
+    rw [div_le_div_iff₀ hx_pos hpow_pos]
+    have h1 : θ x - x ≤ 2.4334e-2 / (log x) ^ 3 * x := by nlinarith
+    have h2 : x - θ x ≤ 2.4334e-2 / (log x) ^ 3 * x := by nlinarith
+    calc |θ x - x| * (log x) ^ 3
+        ≤ 2.4334e-2 / (log x) ^ 3 * x * (log x) ^ 3 := by
+            apply mul_le_mul_of_nonneg_right _ (le_of_lt hpow_pos)
+            rw [abs_le]; exact ⟨by linarith, h1⟩
+        _ = 2.4334e-2 * x := by field_simp [hpow_pos.ne']
   set h := x / (log x) ^ 3 with hh_def
   have hh_pos : 0 < h := by positivity
-  have hE2 : Eθ (x + h) ≤ 0.499 / (log x) ^ 3 :=
-    (theorem_4_2 htab (show x + h ≥ 4e18 by linarith)).trans
-      (div_le_div_of_nonneg_left (by norm_num) hpow_pos
-        (pow_le_pow_left₀ hlog_pos.le (Real.log_le_log hx_pos (by linarith)) 3))
-  have hmain : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (0.499 / (log x) ^ 3) := by
-    nlinarith [mul_le_mul_of_nonneg_left hE1 hx_pos.le,
-               mul_le_mul_of_nonneg_left hE2 (show (0:ℝ) ≤ x + h by linarith)]
+  obtain ⟨hlb_xh, hub_xh⟩ :=
+    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 1) htab ⟨2, by norm_num⟩
+      (show x + h ≥ (29 : ℝ) by linarith)
+  rw [hM, hfin_val] at hlb_xh hub_xh
+  have hEθ_xh : Eθ (x + h) ≤ 2.4334e-2 / (log x) ^ 3 := by
+    have hxh_pos : 0 < x + h := by linarith
+    have hlog_le : log x ≤ log (x + h) :=
+      Real.log_le_log hx_pos (by linarith)
+    have hpow_le : (log x) ^ 3 ≤ (log (x + h)) ^ 3 :=
+      pow_le_pow_left₀ hlog_pos.le hlog_le 3
+    have hlog_xh_pos : 0 < log (x + h) := Real.log_pos (by linarith)
+    have hpow_xh_pos : 0 < (log (x + h)) ^ 3 := pow_pos hlog_xh_pos 3
+    have h1 : θ (x + h) - (x + h) ≤ 2.4334e-2 / (log (x + h)) ^ 3 * (x + h) := by nlinarith
+    have h2 : (x + h) - θ (x + h) ≤ 2.4334e-2 / (log (x + h)) ^ 3 * (x + h) := by nlinarith
+    have hEθ_xh_tight : Eθ (x + h) ≤ 2.4334e-2 / (log (x + h)) ^ 3 := by
+      unfold Eθ
+      rw [div_le_div_iff₀ hxh_pos hpow_xh_pos]
+      calc |θ (x + h) - (x + h)| * (log (x + h)) ^ 3
+          ≤ 2.4334e-2 / (log (x + h)) ^ 3 * (x + h) * (log (x + h)) ^ 3 := by
+              apply mul_le_mul_of_nonneg_right _ (le_of_lt hpow_xh_pos)
+              rw [abs_le]; exact ⟨by linarith, h1⟩
+          _ = 2.4334e-2 * (x + h) := by field_simp [hpow_xh_pos.ne']
+    exact hEθ_xh_tight.trans (div_le_div_of_nonneg_left (by norm_num) hpow_pos hpow_le)
+  have hmain : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (2.4334e-2 / (log x) ^ 3) := by
+    nlinarith [mul_le_mul_of_nonneg_left hEθ_x hx_pos.le,
+               mul_le_mul_of_nonneg_left hEθ_xh (by linarith : (0:ℝ) ≤ x + h)]
   have hlog_gt10 : (10 : ℝ) < log x :=
     (lt_log_iff_exp_lt hx_pos).mpr (lt_of_lt_of_le (by interval_decide) hx)
   have hlog3_gt : (249.5 : ℝ) < (log x) ^ 3 := by
     have : (log x) ^ 3 = log x * log x * log x := by ring
     nlinarith
-  have hcoeff : (2 * x + h) * (0.499 / (log x) ^ 3) < h := by
-    have : (2 * x + h) * (0.499 / (log x) ^ 3) =
-        h * (0.499 * (2 + 1 / (log x) ^ 3)) := by
+  have hcoeff : (2 * x + h) * (2.4334e-2 / (log x) ^ 3) < h := by
+    have : (2 * x + h) * (2.4334e-2 / (log x) ^ 3) =
+        h * (2.4334e-2 * (2 + 1 / (log x) ^ 3)) := by
       simp only [hh_def]; field_simp [hpow_pos.ne']
     rw [this]
-    have : 0.499 * (2 + 1 / (log x) ^ 3) < 1 := by
-      nlinarith [one_div_lt_one_div_of_lt (show (0:ℝ) < 249.5 by positivity) hlog3_gt]
-    linarith [mul_lt_mul_of_pos_left this hh_pos]
+    have hlt : 2.4334e-2 * (2 + 1 / (log x) ^ 3) < 1 := by
+      have : 1 / (log x) ^ 3 < 1 / 249.5 :=
+        one_div_lt_one_div_of_lt (by norm_num) hlog3_gt
+      nlinarith
+    linarith [mul_lt_mul_of_pos_left hlt hh_pos]
   simpa [h] using Eθ.hasPrimeInInterval x h hx_pos hh_pos (lt_of_le_of_lt hmain hcoeff)
 
 @[blueprint "Dusart_prop_5_4b"

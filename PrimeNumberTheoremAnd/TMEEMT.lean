@@ -159,12 +159,12 @@ private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
     _ ≤ log x := log_le_log (exp_pos _) hx
 
 private lemma theta_err {x : ℝ} (hx : x ≥ exp 22) :
-    |θ x - x| ≤ 0.001 * x / (log x) ^ 2 := by
-  have hmem : (2, (0.001 : ℝ), (908994923 : ℝ)) ∈ Dusart.Table_4_2 := by simp [Dusart.Table_4_2]
-  have hlog2 : (0 : ℝ) < (log x) ^ 2 := pow_pos (log_pos (by linarith [add_one_le_exp (22 : ℝ)])) 2
+    |θ x - x| ≤ 0.001 * x / log x := by
+  have hmem : (1, (0.001 : ℝ), (908994923 : ℝ)) ∈ Dusart.Table_4_2 := by simp [Dusart.Table_4_2]
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith [add_one_le_exp (22 : ℝ)])
   have := Dusart.theorem_4_2 hmem (le_trans (le_of_lt (by interval_auto)) hx)
-  simp only [Eθ, div_le_div_iff₀ (lt_of_lt_of_le (exp_pos _) hx) hlog2] at this
-  grind [le_div_iff₀ hlog2]
+  simp only [Eθ, pow_one, div_le_div_iff₀ (lt_of_lt_of_le (exp_pos _) hx) hlog_pos] at this
+  grind [le_div_iff₀ hlog_pos]
 
 private lemma psi_theta_err {x : ℝ} (hx : x > 0) :
     ψ x - θ x ≤ 1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ) := by
@@ -226,21 +226,17 @@ private lemma cbrt_err {x : ℝ} (hx : x ≥ exp 22) :
 @[blueprint
   "thm:dusart1999-a"
   (title := "Dusart 1999, part a")
-  (statement := /-- For $x \geq e^{22}$, we have $|\psi(x) - x| \leq \frac{0.006409\, x}{\log x}$. -/)
+  (statement := /-- For $x \geq e^{22}$, we have $|\psi(x) - x| \leq \frac{0.007\, x}{\log x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_a (x : ℝ) (hx : x ≥ exp 22) :
-    |ψ x - x| ≤ 0.006409 * x / log x := by
+    |ψ x - x| ≤ 0.007 * x / log x := by
   calc |ψ x - x|
       ≤ |θ x - x| + (ψ x - θ x) := psi_triangle x
-    _ ≤ 0.001 * x / (log x) ^ 2 + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
+    _ ≤ 0.001 * x / log x + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
         linarith [theta_err hx, psi_theta_err <| lt_of_lt_of_le (exp_pos _) hx]
-    _ ≤ 0.001 / 22 * x / log x + (0.005 * x / log x + 0.001 * x / log x) := by
-        linarith [theta_err_simpl hx, sqrt_err hx, cbrt_err hx]
-    _ = (0.001 / 22 + 0.005 + 0.001) * x / log x := by ring
-    _ ≤ 0.006409 * x / log x := by
-        apply div_le_div_of_nonneg_right _ (le_of_lt <| by linarith [log_ge_22 hx])
-        apply mul_le_mul_of_nonneg_right _ (le_of_lt <| lt_of_lt_of_le (exp_pos _) hx)
-        norm_num
+    _ ≤ 0.001 * x / log x + (0.005 * x / log x + 0.001 * x / log x) := by
+        linarith [sqrt_err hx, cbrt_err hx]
+    _ = 0.007 * x / log x := by ring
 
 @[blueprint
   "thm:dusart1999-b"
