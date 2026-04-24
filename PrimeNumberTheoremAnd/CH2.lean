@@ -1203,8 +1203,8 @@ lemma sinh_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z
       _ = (ν - (-2 * π * I * z + ν)) / (2 * π * I) := by ring
       _ = (ν - 2 * ((-2 * π * I * z + ν) / 2)) / (2 * π * I) := by ring
       _ = (ν - 2 * (k * π * I)) / (2 * π * I) := by rw [hk]
-      _ = ν / (2 * π * I) - (2 * k * π * I) / (2 * π * I) := by field_simp [pi_ne_zero, I_ne_zero]; ring
-      _ = -I * ν / (2 * π) - k := by field_simp [pi_ne_zero, I_ne_zero]; simp [I_sq]; ring
+      _ = ν / (2 * π * I) - (2 * k * π * I) / (2 * π * I) := by field_simp [pi_ne_zero, I_ne_zero]
+      _ = -I * ν / (2 * π) - k := by field_simp [pi_ne_zero, I_ne_zero]; ring_nf; simp [I_sq]
       _ = ↑(-k) - I * ν / (2 * π) := by simp; ring
   exact h_not_pole (-k) h_z
 
@@ -1215,7 +1215,7 @@ lemma w_ne_zero_of_not_pole {ν : ℝ} {z : ℂ} (h_not_pole : ∀ n : ℤ, z �
     _ = ν / (2 * π * I) := by
       have : 2 * π * I * z = ν := by rw [← add_zero (2 * π * I * z), ← h]; ring
       rw [this]
-    _ = _ := by ring; field_simp; simp
+    _ = _ := by ring_nf; field_simp; simp
 
 /-- Phi_circ is analytic whenever we are away from the poles. -/
 theorem Phi_circ.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
@@ -2181,7 +2181,7 @@ lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) 
     (hf_anal : ∀ T : ℝ, T ≥ 1 → ContinuousOn f (Rectangle (↑a) (↑b + I * ↑T)))
     (hf_bound : ∀ T : ℝ, T ≥ 1 → ∀ t ∈ Set.Icc a b, ‖f (t + I * T)‖ ≤ (‖Phi_circ ν ε (t + I * T)‖ + ‖Phi_star ν ε (t + I * T)‖) * ‖E (-(t + I * T) * x)‖) :
     Filter.Tendsto (fun T : ℝ ↦ ∫ t in a..b, f (t + I * T)) Filter.atTop (nhds 0) := by
-  obtain ⟨C, hC⟩ := phi_bound ν ε hν
+  obtain ⟨C, hC⟩ := phi_bound_upwards ν ε hν
   have h_int_bound (T : ℝ) (hT : T ≥ 1) : ‖∫ t in a..b, f (t + I * T)‖ ≤ (b - a) * C * (T + 1) * Real.exp (2 * π * x * T) := by
     calc ‖∫ t in a..b, f (↑t + I * ↑T)‖
       _ ≤ ∫ t in a..b, ‖f (↑t + I * ↑T)‖ := intervalIntegral.norm_integral_le_integral_norm hab
