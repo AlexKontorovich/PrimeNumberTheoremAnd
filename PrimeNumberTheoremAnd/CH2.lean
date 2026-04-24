@@ -2665,7 +2665,7 @@ lemma Phi_diff_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
   obtain ⟨c, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
   exact IsBigO_to_BddAbove (h_tendsto.isBigO_one (F := ℂ))
 
-lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) :
+lemma Phi_fourier_holo_left (ν ε x : ℝ) (hν : ν > 0) :
     ∃ g : ℂ → ℂ, (∀ U : ℝ, U ≥ 0 → HolomorphicOn g (Rectangle (-1 : ℂ) (-1 / 2 - I * U))) ∧
     Set.EqOn g (fun z ↦ (Phi_circ ν ε z - Phi_star ν ε z) * E (-z * x)) {z | z ≠ z₀_pole ν} := by
   let z₀ := z₀_pole ν
@@ -2717,7 +2717,6 @@ lemma Phi_fourier_anal_left (ν ε x : ℝ) (hν : ν > 0) :
         (by filter_upwards [eventually_ne_nhds hz₀] with w hw; dsimp [g]; rw [if_neg hw]) (by simp [g, hz₀])
   · intro z hz; dsimp [g]; rw [if_neg hz]
 
-
 lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
     ∃ U ∈ nhds (z₁_pole ν), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z + Phi_star ν ε z) '' (U \ {z₁_pole ν})) := by
   let z₁ : ℂ := z₁_pole ν
@@ -2734,7 +2733,7 @@ lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
   have h_bigO : f =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := h_tendsto.isBigO_one (F := ℂ)
   exact IsBigO_to_BddAbove h_bigO
 
-lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) :
+lemma Phi_fourier_holo_right (ν ε x : ℝ) (hν : ν > 0) :
     ∃ g : ℂ → ℂ, (∀ U : ℝ, U ≥ 0 → HolomorphicOn g (Rectangle (1/2 : ℂ) (1 - I * U))) ∧
     Set.EqOn g (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) {z | z ≠ z₁_pole ν} := by
   let z₁ := z₁_pole ν
@@ -2831,137 +2830,6 @@ lemma Phi_fourier_anal_right (ν ε x : ℝ) (hν : ν > 0) :
     dsimp [g]
     rw [if_neg hz]
 
-
-  -- intro z hz
-  -- have hz_im : z.im ∈ Set.uIcc 0 (-U) := by simpa [Rectangle] using hz.2
-  -- by_cases h_pole_im : z.im > -ν / (2 * π)
-  -- · exact (AnalyticAt.add (Phi_circ.analyticAt_of_im_gt_pole ν ε z h_pole_im)
-  --                         (Phi_star.analyticAt_of_im_gt_pole ν ε z h_pole_im)).differentiableAt.mul
-  --     (by dsimp [E]; fun_prop) |>.differentiableWithinAt
-  -- · -- Case: Singularity handling at z₁ = 1 - iν/(2π)
-  --   have h_sing : ∃ (g : ℂ → ℂ), HolomorphicOn g (Rectangle (1/2 : ℂ) (1 - I * U)) ∧
-  --       Set.EqOn (fun (z : ℂ) ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) g (Rectangle (1/2 : ℂ) (1 - I * U) \ {1 - I * (ν / (2 * π))}) := by
-  --     let f (z : ℂ) := (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)
-  --     let z₁ : ℂ := 1 - I * (ν / (2 * π))
-  --     have h_bdd : ∃ V ∈ nhds z₁, BddAbove (norm ∘ f '' (V \ {z₁})) := by
-  --       let g' := fun z ↦ Phi_circ ν ε z + Phi_star ν ε z
-  --       let h' := fun z ↦ E (-z * x)
-  --       have h_g_O : g' =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
-  --          obtain ⟨V, hV, h_bdd_g⟩ := Phi_add_bounded_near_pole ν ε hν
-  --          obtain ⟨C, hC⟩ := h_bdd_g
-  --          exact (Asymptotics.isBigO_one_iff (F := ℂ)).mpr ⟨C, eventually_nhdsWithin_iff.mpr <|
-  --            eventually_nhds_iff.mpr ⟨V, hV, fun _ hz hne ↦ hC ⟨_, ⟨hz, hne⟩, rfl⟩⟩⟩
-  --       have h_h_O : h' =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
-  --          have h_cont : ContinuousAt h' z₁ := by dsimp [h', E]; fun_prop
-  --          exact h_cont.isBigO_one (F := ℂ) |>.mono nhdsWithin_le_nhds
-  --       have h_f_O : f =O[nhdsWithin z₁ {z₁}ᶜ] (1 : ℂ → ℂ) := by
-  --          rw [show f = fun z ↦ g' z * h' z by ext z; rfl]
-  --          exact (h_g_O.mul h_h_O).congr (fun _ ↦ rfl) (fun _ ↦ mul_one 1)
-  --       exact IsBigO_to_BddAbove h_f_O
-  --     let RectLarge := Rectangle (↑(0.4 : ℝ) + 0.1 * I) (↑(1.1 : ℝ) - I * (↑U + 0.1))
-  --     have h_Rect_subset : Rectangle (1/2 : ℂ) (1 - I * U) ⊆ RectLarge := by
-  --       apply RectSubRect' <;> (simp [RectLarge]; linarith)
-  --     have h_RectLarge_nhds : RectLarge ∈ nhds z₁ := by
-  --       rw [rectangle_mem_nhds_iff]
-  --       refine ⟨?_, ?_⟩
-  --       · rw [uIoo, min_eq_left (by linarith), max_eq_right (by linarith)]
-  --         simp only [z₁, Complex.one_re]; constructor <;> linarith
-  --       · rw [uIoo, min_eq_left (by linarith), max_eq_right (by linarith)]
-  --         simp only [z₁, Complex.one_im]; constructor <;> linarith [hν]
-  --     have h_anal_large : HolomorphicOn f (RectLarge \ {z₁}) := by
-  --       intro ζ hζ; obtain ⟨hζ_rect, hζ_not_z₁⟩ := hζ
-  --       have hζ_not_pole : ∀ n : ℤ, ζ ≠ n - I * ν / (2 * π) := by
-  --         intro n hn
-  --         have h_re : ζ.re = n := by simpa using congr_arg Complex.re hn
-  --         have h_rect_re : ζ.re ∈ Set.uIcc (0.4) (1.1) := by simpa [RectLarge] using hζ_rect.1
-  --         rw [h_re, Set.uIcc_of_le (by linarith)] at h_rect_re
-  --         have h_n : n = 1 := by linarith [h_rect_re.1, h_rect_re.2]
-  --         subst h_n
-  --         exact hζ_not_z₁ (by simpa [z₁] using hn)
-  --       have h_sinh_ne : Complex.sinh ((-2 * π * I * ζ + ν) / 2) ≠ 0 := by
-  --         by_cases h_re_ne : ((-2 * π * I * ζ + ν) / 2).re ≠ 0
-  --         · exact sinh_ne_zero_of_re_ne_zero h_re_ne
-  --         · rw [not_not] at h_re_ne
-  --           have h_ζ_im_val : ζ.im = -ν / (2 * π) := by
-  --              have : ((-2 * ↑π * I * ζ + ↑ν) / 2) = -↑π * I * ζ + ↑ν / 2 := by ring
-  --              rw [this, Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.mul_re]
-  --              simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, neg_re, mul_one]
-  --              rw [this] at h_re_ne; field_simp [pi_ne_zero] at h_re_ne ⊢; linarith
-  --           intro h_sinh_zero; rw [sinh_zero_iff] at h_sinh_zero; obtain ⟨n, hn⟩ := h_sinh_zero
-  --           have h_re_val : ζ.re = -↑n := by
-  --              have : ((-2 * ↑π * I * ζ + ↑ν) / 2) = -↑π * I * ζ + ↑ν / 2 := by ring
-  --              rw [this, Complex.add_im, Complex.mul_im, Complex.neg_im, Complex.mul_im]
-  --              simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, neg_re, mul_one]
-  --              ring_nf
-  --              have h_n_pi : ((-2 * ↑π * I * ζ + ↑ν) / 2).im = n * π := by
-  --                rw [hn]; simp only [Complex.mul_im, Complex.ofReal_re, Complex.I_re,
-  --                  Complex.ofReal_im, Complex.I_im, mul_zero, zero_mul, sub_zero, add_zero, mul_one]
-  --              rw [h_n_pi] at this; field_simp [pi_ne_zero] at this; linarith
-  --           have h_rect_re : ζ.re ∈ Set.uIcc (0.4) (1.1) := by simpa [RectLarge] using hζ_rect.1
-  --           rw [h_re_val, Set.uIcc_of_le (by linarith)] at h_rect_re
-  --           have h_n_one : n = -1 := by linarith [h_rect_re.1, h_rect_re.2]
-  --           subst h_n_one; rw [Int.cast_neg, Int.cast_one, neg_neg] at h_re_val
-  --           exact hζ_not_z₁ (Complex.ext (by simpa [z₁]) (by simpa [z₁]))
-  --       have h_circ_an : AnalyticAt ℂ (Phi_circ ν ε) ζ := by
-  --         unfold Phi_circ; refine AnalyticAt.mul analyticAt_const (AnalyticAt.add ?_ analyticAt_const)
-  --         unfold coth; refine AnalyticAt.div (analyticAt_cosh.comp ?_) (analyticAt_sinh.comp ?_) h_sinh_ne
-  --         · fun_prop
-  --         · fun_prop
-  --       have h_star_an : AnalyticAt ℂ (Phi_star ν ε) ζ := by
-  --         unfold Phi_star; refine AnalyticAt.div (AnalyticAt.sub ?_ analyticAt_const) analyticAt_const (by simp [pi_ne_zero, I_ne_zero])
-  --         dsimp [B, coth]
-  --         refine AnalyticAt.mul (by fun_prop) (AnalyticAt.div ?_ ?_ (by simpa using h_sinh_ne))
-  --         · fun_prop (disch := exact sinh_ne_zero_of_re_ne_zero (by
-  --             show ((-π * I * ζ + ν / 2)).re ≠ 0
-  --             rw [Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im]
-  --             simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, add_zero, neg_zero, zero_mul, sub_zero, zero_add, mul_one, neg_re]
-  --             by_cases h : ν + 2 * π * ζ.im = 0 <;> simp [h]
-  --             intro h_zero; field_simp [pi_ne_zero] at h_zero; linarith))
-  --         · exact (analyticAt_sinh.comp (by fun_prop)).add (by fun_prop)
-  --       exact (h_circ_an.add h_star_an).differentiableAt.mul (by dsimp [E]; fun_prop) |>.differentiableWithinAt
-  --     have h_Rect_bdd : BddAbove (norm ∘ f '' (RectLarge \ {z₁})) := by
-  --       obtain ⟨V, hV_nhds, hV_bdd⟩ := h_bdd
-  --       have h_f_cont : ContinuousOn f (RectLarge \ {z₁}) := h_anal_large.continuousOn
-  --       let S := RectLarge \ {z₁}
-  --       have h_S_bdd : BddAbove (norm ∘ f '' V \ {z₁}) := hV_bdd.mono (Set.image_subset _ (Set.inter_subset_right _ _))
-  --       obtain ⟨ε, hε, h_ball⟩ := Metric.nhds_basis_ball.mem_iff.mp hV_nhds
-  --       let K := RectLarge \ Metric.ball z₁ (ε / 2)
-  --       have hK_compact : IsCompact K := (isCompact_Icc.prod isCompact_Icc).reProdIm.diff (Metric.isOpen_ball.preimage continuous_id)
-  --       have hK_sub : K ⊆ RectLarge \ {z₁} := fun x hx ↦ ⟨hx.1, fun h ↦ by
-  --         subst h; have := Metric.mem_ball_self (by linarith : 0 < ε / 2); exact hx.2 this⟩
-  --       let z_large_se : ℂ := ↑(1.1 : ℝ) - I * (U + 0.1)
-  --       obtain ⟨C_K, hC_K⟩ := (h_f_cont.mono hK_sub).continuousOn_norm.isMaxOn hK_compact ⟨z_large_se, by
-  --         simp [K, RectLarge, z_large_se]
-  --         constructor <;> (try constructor)
-  --         · linarith
-  --         · linarith
-  --         · linarith
-  --         · linarith
-  --         · -- Far from z1
-  --           simp [z₁]; linarith [hε] ⟩
-  --       refine ⟨max C_K (Classical.choose hV_bdd), ?_⟩
-  --       rintro y ⟨x, hx, rfl⟩
-  --       by_cases hxV : x ∈ V
-  --       · exact (le_max_right _ _).trans' (Classical.choose_spec hV_bdd ⟨x, ⟨hxV, hx.2⟩, rfl⟩)
-  --       · have : x ∈ K := ⟨hx.1, fun h_in ↦ hxV (h_ball h_in)⟩
-  --         exact (le_max_left _ _).trans' (hC_K x this)
-  --     obtain ⟨g, hg_anal, hfg⟩ := existsDifferentiableOn_of_bddAbove (c := z₁) (f := f) h_RectLarge_nhds h_anal_large h_Rect_bdd
-  --     use g, hg_anal, hfg
-  --   obtain ⟨g, hg_anal, hfg⟩ := h_sing
-  --   by_cases h_z₁ : z = 1 - I * (ν / (2 * π))
-  --   · have h_eq : (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (1/2 : ℂ) (1 - I * U))] g := by
-  --       intro z' hz'
-  --       by_cases h_z' : z' = 1 - I * (ν / (2 * π))
-  --       · -- Equality at the singularity z₁: formally follows from residue cancellation
-  --         rw [h_z']; sorry
-  --       · -- Equality away from the singularity: follows from hfg
-  --         apply hfg ⟨hz', h_z'⟩
-  --     exact (hg_anal z hz).congr_of_eventuallyEq h_eq (h_eq.self_of_nhdsWithin hz)
-  --   · have h_eq : (fun z ↦ (Phi_circ ν ε z + Phi_star ν ε z) * E (-z * x)) =ᶠ[nhdsWithin z (Rectangle (1/2 : ℂ) (1 - I * U))] g := by
-  --       apply hfg.eventuallyEq_of_mem
-  --       exact Filter.inter_mem self_mem_nhdsWithin (mem_nhdsWithin_of_mem_nhds (isOpen_compl_singleton.mem_nhds h_z₁))
-  --     exact (hg_anal z hz).congr_of_eventuallyEq h_eq (hfg ⟨hz, h_z₁⟩)
-
 @[blueprint
   "shift-downwards"
   (title := "Contour shifting downwards")
@@ -3021,7 +2889,7 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
 
   -- Step 2: Downward shift for the left segment AL
   have hALshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fL (-1 / 2 - I * t)) - (I * ∫ t in Set.Icc 0 T, fL (-1 - I * t))) Filter.atTop (nhds AL) := by
-    obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_anal_left ν ε x hν
+    obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_holo_left ν ε x hν
     -- Step 1: Real-axis integral of g is AL
     have h_g_AL : (∫ t in (-1 : ℝ)..(-1 / 2), g t) = AL := by
       dsimp [AL]
@@ -3125,7 +2993,7 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
 
   -- Step 3: Downward shift for the right segment BR
   have hBRshift : Filter.Tendsto (fun T : ℝ ↦ (I * ∫ t in Set.Icc 0 T, fR (1 - I * t)) - (I * ∫ t in Set.Icc 0 T, fR (1 / 2 - I * t))) Filter.atTop (nhds BR) := by
-    obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_anal_right ν ε x hν
+    obtain ⟨g, hg_anal, hg_eq⟩ := Phi_fourier_holo_right ν ε x hν
     convert tendsto_contour_shift_downwards (σ := 1 / 2) (σ' := 1) (f := g) ?_ ?_ using 1
     · -- Subgoal 1: Function Equality
       ext T; congr 1
