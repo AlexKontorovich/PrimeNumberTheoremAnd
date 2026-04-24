@@ -159,12 +159,25 @@ private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
     _ ≤ log x := log_le_log (exp_pos _) hx
 
 private lemma theta_err {x : ℝ} (hx : x ≥ exp 22) :
-    |θ x - x| ≤ 0.001 * x / log x := by
-  have hmem : (1, (0.001 : ℝ), (908994923 : ℝ)) ∈ Dusart.Table_4_2 := by simp [Dusart.Table_4_2]
-  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith [add_one_le_exp (22 : ℝ)])
-  have := Dusart.theorem_4_2 hmem (le_trans (le_of_lt (by interval_auto)) hx)
-  simp only [Eθ, pow_one, div_le_div_iff₀ (lt_of_lt_of_le (exp_pos _) hx) hlog_pos] at this
-  grind [le_div_iff₀ hlog_pos]
+    |θ x - x| ≤ 3.7979e-5 * x / (log x) ^ 2 := by
+  -- BKLNW Table_15 row (43, M₄₃), k=⟨1,_⟩ → Eθ x ≤ 3.7979e-5 / (log x)²
+  set M₄₃ : Fin 5 → ℝ := ![8.6315e-7, 3.7979e-5, 2.4334e-2, 5.7184e1, 1.3441e5]
+  have htab : ((43 : ℝ), M₄₃) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₄₃]
+  have hM : M₄₃ ⟨1, by norm_num⟩ = 3.7979e-5 := rfl
+  have hfin_val : (⟨1, by norm_num⟩ : Fin 5).val + 1 = 2 := rfl
+  have hxpos : 0 < x := lt_of_lt_of_le (exp_pos _) hx
+  have hlog_pos : 0 < log x := log_pos (by linarith [add_one_le_exp (22:ℝ)])
+  have hpow_pos : 0 < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hx_ge43 : x ≥ (43 : ℝ) := by
+    have : (43 : ℝ) ≤ exp 22 := by interval_decide
+    linarith
+  obtain ⟨hlb, hub⟩ :=
+    BKLNW.thm_1b_table (by norm_num : (43:ℝ) > 1) htab ⟨1, by norm_num⟩ hx_ge43
+  rw [hM, hfin_val] at hlb hub
+  have h1 : θ x - x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
+  have h2 : x - θ x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
+  calc |θ x - x| ≤ 3.7979e-5 / (log x) ^ 2 * x := abs_le.mpr ⟨by linarith, h1⟩
+    _ = 3.7979e-5 * x / (log x) ^ 2 := by ring
 
 private lemma psi_theta_err {x : ℝ} (hx : x > 0) :
     ψ x - θ x ≤ 1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ) := by
@@ -177,7 +190,7 @@ private lemma psi_triangle (x : ℝ) :
   · rw [abs_of_nonneg (sub_nonneg_of_le <| Chebyshev.theta_le_psi x)]
 
 private lemma theta_err_simpl {x : ℝ} (hx : x ≥ exp 22) :
-    0.001 * x / (log x) ^ 2 ≤ 0.001 / 22 * x / log x := by
+    3.7979e-5 * x / (log x) ^ 2 ≤ 3.7979e-5 / 22 * x / log x := by
   have hlog_pos : (0 : ℝ) < log x := by linarith [log_ge_22 hx]
   rw [div_le_div_iff₀ (pow_pos hlog_pos 2) hlog_pos]
   nlinarith [mul_le_mul_of_nonneg_right (log_ge_22 hx) hlog_pos.le, sq (log x),
@@ -226,17 +239,24 @@ private lemma cbrt_err {x : ℝ} (hx : x ≥ exp 22) :
 @[blueprint
   "thm:dusart1999-a"
   (title := "Dusart 1999, part a")
-  (statement := /-- For $x \geq e^{22}$, we have $|\psi(x) - x| \leq \frac{0.007\, x}{\log x}$. -/)
+  (statement := /-- For $x \geq e^{22}$, we have $|\psi(x) - x| \leq \frac{0.006409\, x}{\log x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_a (x : ℝ) (hx : x ≥ exp 22) :
-    |ψ x - x| ≤ 0.007 * x / log x := by
+    |ψ x - x| ≤ 0.006409 * x / log x := by
   calc |ψ x - x|
       ≤ |θ x - x| + (ψ x - θ x) := psi_triangle x
-    _ ≤ 0.001 * x / log x + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
+    _ ≤ 3.7979e-5 * x / (log x) ^ 2 + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
         linarith [theta_err hx, psi_theta_err <| lt_of_lt_of_le (exp_pos _) hx]
-    _ ≤ 0.001 * x / log x + (0.005 * x / log x + 0.001 * x / log x) := by
-        linarith [sqrt_err hx, cbrt_err hx]
-    _ = 0.007 * x / log x := by ring
+    _ ≤ 3.7979e-5 / 22 * x / log x + (0.005 * x / log x + 0.001 * x / log x) := by
+        linarith [theta_err_simpl hx, sqrt_err hx, cbrt_err hx]
+    _ ≤ 0.006409 * x / log x := by
+        have hxlog : 0 ≤ x / log x :=
+          div_nonneg (le_of_lt (lt_of_lt_of_le (exp_pos _) hx)) (le_of_lt (by linarith [log_ge_22 hx]))
+        have : 3.7979e-5 / 22 * x / log x + (0.005 * x / log x + 0.001 * x / log x) =
+               (3.7979e-5 / 22 + 0.005 + 0.001) * (x / log x) := by ring
+        rw [this, show 0.006409 * x / log x = 0.006409 * (x / log x) from by ring]
+        apply mul_le_mul_of_nonneg_right _ hxlog
+        norm_num
 
 @[blueprint
   "thm:dusart1999-b"
