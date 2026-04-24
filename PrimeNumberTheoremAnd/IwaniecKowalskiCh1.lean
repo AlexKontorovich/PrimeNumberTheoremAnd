@@ -7,7 +7,7 @@ open Finset Nat Real
 
 open scoped zeta sigma
 
-open scoped ArithmeticFunction.omega
+open scoped ArithmeticFunction.omega ArithmeticFunction.Omega
 
 open scoped ArithmeticFunction.Moebius
 
@@ -316,7 +316,7 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
       simp_rw [fun i ↦ ih i (succ_pos _)]
       simpa [add_assoc, add_left_comm, add_comm] using sum_range_add_choose a k'
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`. -/
 @[blueprint
   "d_apply"
   (title := "d apply")
@@ -358,15 +358,131 @@ scoped[ArithmeticFunction] notation "σᴿ" => ArithmeticFunction.sigmaR
 /-- For natural exponents, sigmaR agrees with sigma. -/
 @[blueprint
   "sigmaR_natCast"
-  (title := "sigmaR natCast")
+  (title := "sigmaR-natCast")
   (statement := /-- For natural exponents, $\sigma^R$ agrees with $\sigma$. -/)
   (proof := /--
-  The function $\sigma^R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma_k(n)$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma^R_k(n) = \sigma_k(n)$ when we view $\sigma_k(n)$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
+  The function $\sigma^R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When
+  $s$ is a natural number $k$, this definition coincides with the classical divisor power sum
+  function $\sigma_k(n)$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for
+  natural exponents, we have $\sigma^R_k(n) = \sigma_k(n)$ when we view $\sigma_k(n)$ as a complex
+  number. This can be shown by directly comparing the definitions and noting that both functions sum
+  over the same set of divisors with the same exponentiation.
   -/)]
 lemma sigmaR_natCast (k n : ℕ) :
     σᴿ k n = σ k n := by
   unfold sigmaR sigma
-  simp
+  simp only [cast_id, coe_mk]
+
+@[blueprint
+  "sigmaR_apply"
+  (title := "sigmaR-apply")
+  (statement := /--
+    We have that $\sigma^R_s(n)=\sum_{d\mid n}d^s.$
+  -/)
+  (proof := /--
+    This follows immediately from the definition.
+  -/)]
+lemma sigmaR_apply {n : ℕ} {s : ℂ} : σᴿ s n = ∑ d ∈ divisors n, (d : ℂ) ^ s := by
+  rfl
+
+@[blueprint
+  "sigmaR_natCast'"
+  (title := "sigmaR-natCast'")
+  (statement := /--
+    A casting lemma for $\sigma^R$.
+  -/)]
+lemma sigmaR_natCast' (k n : ℕ) :
+    σᴿ (k : ℂ) n = σᴿ k n := by
+  simp only [sigmaR_apply, Complex.cpow_natCast, sigmaR_natCast, sigma_apply, cast_sum, cast_pow]
+
+@[blueprint
+  "sigmaR_apply_prime_pow"
+  (title := "sigmaR-apply-prime-pow")
+  (statement := /--
+    For a prime power, we have that $\sigma^R_s(p^i)=\sum_{j=0}^ip^{js}$.
+  -/)
+  (proof := /--
+    Note that $d\mid p^i$ implies that $d=p^j$ with $0\leq j\leq i$. Thus,
+    $$\sigma^R_s(p^i)=\sum_{d\mid p^i}d^s=\sum_{j=0}^i(p^j)^s=\sum_{j=0}^ip^{js}.$$
+  -/)]
+lemma sigmaR_apply_prime_pow {p i : ℕ} {s : ℂ} (hp : p.Prime) :
+    σᴿ s (p ^ i) = ∑ j ∈ .range (i + 1), (p : ℂ) ^ (j * s) := by
+  simp only [sigmaR_apply, divisors_prime_pow hp, sum_map, Function.Embedding.coeFn_mk, cast_pow]
+  congr 1
+  funext x
+  exact Eq.symm (Complex.natCast_cpow_natCast_mul p x s)
+
+@[blueprint
+  "sigmaR_one_apply"
+  (title := "sigmaR-one-apply")
+  (statement := /--
+    Same as the previous lemma, but with a different casting structure.
+  -/)]
+lemma sigmaR_one_apply (n : ℕ) : σᴿ (1 : ℂ) n = ∑ d ∈ divisors n, d := by
+  simp only [sigmaR_apply, Complex.cpow_one, cast_sum]
+
+@[blueprint
+  "sigmaR_one_apply_prime_pow"
+  (title := "sigmaR-one-apply-prime-pow")
+  (statement := /--
+    Same as the previous lemma, but with a different casting structure.
+  -/)]
+lemma sigmaR_one_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
+    σᴿ (1 : ℂ) (p ^ i) = ∑ k ∈ .range (i + 1), p ^ k := by
+  simp only [sigmaR_apply_prime_pow hp, mul_one, Complex.cpow_natCast, cast_sum, cast_pow]
+
+@[blueprint
+  "sigmaR_eq_sum_div"
+  (title := "sigmaR-eq-sum-div")
+  (statement := /--
+    We have that $\sigma^R_s(n)=\sum_{d\mid n}(n/d)^s$.
+  -/)
+  (proof := /--
+    Note that $d\ mapsto n/d$ forms a one-to-one mapping between the divisors of $n$. Using this in
+    combination with the definiton we have that
+    $$\sigma^R_s(n)=\sum_{d\mid n}d^s=\sum_{d\mid n}(n/d)^s.$$
+  -/)]
+lemma sigmaR_eq_sum_div {n : ℕ} {s : ℂ} :
+    σᴿ s n = ∑ d ∈ divisors n, ((n / d) : ℂ) ^ s := by
+  rw[sigmaR_apply, ← sum_div_divisors]
+  refine Finset.sum_congr rfl ?_
+  intro d hd
+  rw[Nat.cast_div (dvd_of_mem_divisors hd) (Nat.cast_ne_zero.mpr (Nat.pos_of_mem_divisors hd).ne')]
+
+@[blueprint
+  "sigmaR_zero_apply"
+  (title := "sigmaR-zero-apply")
+  (statement := /--
+    Same as the previous lemma, but with a different casting structure.
+  -/)]
+lemma sigmaR_zero_apply (n : ℕ) :
+    σᴿ (0 : ℂ) n = #n.divisors := by
+  simp only [sigmaR_apply, Complex.cpow_zero, sum_const, nsmul_eq_mul, mul_one]
+
+@[blueprint
+  "sigmaR_zero_apply_prime_pow"
+  (title := "sigmaR-zero-apply-prime-pow")
+  (statement := /--
+    Same as the previous lemma, but with a different casting structure.
+  -/)]
+lemma sigmaR_zero_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
+    σᴿ (0 : ℂ) (p ^ i) = i + 1 := by
+  simp only [sigmaR_apply_prime_pow hp, mul_zero, Complex.cpow_zero, sum_const, card_range,
+    nsmul_eq_mul, cast_add, cast_one, mul_one]
+
+@[blueprint
+  "sigmaR_one"
+  (title := "sigmaR-one")
+  (statement := /--
+    We have that $\sigma^R_s(1)=1$.
+  -/)
+  (proof := /--
+    By definition we have that
+    $$\sigma^R_s(1)=\sum_{d\ mid 1}d^s=1^s=1.$$
+  -/)]
+lemma sigmaR_one (s : ℂ) :
+    σᴿ s 1 = 1 := by
+  simp only [sigmaR_apply, divisors_one, sum_singleton, cast_one, Complex.one_cpow]
 
 @[blueprint
   "powR"
@@ -376,8 +492,29 @@ noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
   ⟨fun n ↦ if n = 0 then 0 else (n : ℂ) ^ ν, by grind⟩
 
 @[blueprint
+  "isMultiplicative_powR"
+  (title := "isMultiplicative-powR")
+  (statement := /--
+    For fixed $\nu$ the function $n\mapsto n^\nu$ is multiplicative.
+  -/)
+  (proof := /--
+    This immediately follows from the fact that exponentiation with a fixed power is a homomorphism.
+  -/)]
+theorem isMultiplicative_powR {ν : ℂ} : IsMultiplicative (powR ν) := by
+  refine ⟨by simp [powR], fun {m n : ℕ} mCn => ?_⟩
+  simp only [powR, ArithmeticFunction.coe_mk]
+  rcases Nat.eq_zero_or_pos m with rfl | hm
+  · simp only [zero_mul, ↓reduceIte, mul_ite, mul_zero, ite_self]
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simp only [mul_zero, ↓reduceIte]
+  have hmn_pos : m * n ≠ 0 := Nat.mul_ne_zero hm.ne' hn.ne'
+  simp only [hm.ne', hn.ne', hmn_pos, if_false]
+  push_cast
+  exact Complex.natCast_mul_natCast_cpow m n ν
+
+@[blueprint
   "sigmaR_eq_zeta_mul_powR"
-  (title := "sigmaR eq zeta mul powR")
+  (title := "sigmaR-eq-zeta-mul-powR")
   (statement := /-- $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$, where $\zeta$ is the constant function $1$. -/)
   (proof := /--
   The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
@@ -389,6 +526,40 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
   cast_one, mul_ite, mul_zero, ite_mul, zero_mul, one_mul]
   rw [ Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if x = 0 then 0 else ( y : ℂ ) ^ ν, ← Nat.sum_div_divisors ];
   exact Finset.sum_congr rfl fun x hx => by rw [ if_neg ( Nat.ne_of_gt ( Nat.div_pos ( Nat.le_of_dvd ( Nat.pos_of_ne_zero hn ) ( Nat.dvd_of_mem_divisors hx ) ) ( Nat.pos_of_mem_divisors hx ) ) ), if_neg ( Nat.ne_of_gt ( Nat.pos_of_mem_divisors hx ) ) ] ;
+
+@[blueprint
+  "isMultiplicative_sigmaR"
+  (title := "isMultiplicative-sigmaR")
+  (statement := /--
+    For fixed $s$ function $n\mapsto\sigma^R_s(n)$ is multiplicative.
+  -/)
+  (proof := /--
+    Recall from Lemma \ref{sigmaR-eq-zeta-mul-powR} that $\sigma^R$ is $\zeta$ convolved with
+    Definition \ref{powR}. Since both of these are multiplicative functions, their convolution is
+    also multiplicative.
+  -/)]
+lemma isMultiplicative_sigmaR {s : ℂ} :
+    IsMultiplicative (σᴿ s) := by
+  rw [sigmaR_eq_zeta_mul_powR]
+  exact isMultiplicative_zeta.natCast.mul  isMultiplicative_powR
+
+@[blueprint
+  "sigmaR_eq_prod_primeFactors_sum_range_factorization_pow_mul"
+  (title := "sigmaR-eq-prod-primeFactors-sum-range-factorization-pow-mul")
+  (statement := /--
+    We have that
+    $$\sigma^R_s(n)=\prod_{p\mid n}\sum_{j=0}^{v_p(n)}p^{js}.$$
+  -/)
+  (proof := /--
+    Since $\sigma^R_s$ is multiplicative, it suffices to understand it at primes powers.
+    $$\sigma^R_s(n)=\prod_{p\mid n}\sigma^R_s(p^{v_p(n)}).$$
+    Applying Lemma \ref{sigmaR-apply-prime-pow}.
+  -/)]
+lemma sigmaR_eq_prod_primeFactors_sum_range_factorization_pow_mul {n : ℕ} {s : ℂ} (hn : n ≠ 0) :
+    σᴿ s n = ∏ p ∈ n.primeFactors, ∑ i ∈ .range (n.factorization p + 1), (p : ℂ) ^ (i * s) := by
+  rw [isMultiplicative_sigmaR.multiplicative_factorization _ hn]
+  exact prod_congr n.support_factorization fun _ h ↦
+    sigmaR_apply_prime_pow <| prime_of_mem_primeFactors h
 
 @[blueprint
   "LSeries_powR_eq"
@@ -470,7 +641,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
   sorry
 
-/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)`-/
+/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
 @[blueprint
   "zeta_pow_four_eq"
   (title := "zeta pow four eq")
@@ -482,10 +653,10 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
   (proof := /--
   This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
   -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) (h2 : 1 < (s - 0).re) (h3 : 1 < (s - 0).re)
-    (h4 : 1 < (s - 0 - 0).re) :
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs h2 h3 h4) using 1
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
+      (by simpa using hs)) using 1
   · ring_nf
   · congr
     · ring_nf
@@ -522,10 +693,11 @@ Zeta cubed:
   -/)
   (proof := /--
   This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
-  -/) ]
+  -/)]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  sorry
+  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
+  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
 /--
 Zeta cubed alt:
@@ -551,7 +723,7 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
 /--
 Zeta squared:
 `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
-where omega is the number of distinct prime factors.-/
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_pow_two"
   (title := "zeta pow two")
@@ -575,7 +747,7 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
 /--
 Zeta alt:
 `ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
-where omega is the number of distinct prime factors.-/
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_alt"
   (title := "zeta alt")
@@ -594,6 +766,123 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
   sorry
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
+
+/--
+I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
+@[blueprint
+  "moebius_sq_eq"
+  (title := "moebius sq eq")
+  (statement := /-- I-K (1.33): $\mu^2(n) = \sum_{d^2|n} \mu(d)$. -/)
+  (proof := /--
+  The function $\mu^2(n)$ is the indicator function for squarefree numbers, meaning it is $1$ if $n$ is squarefree and $0$ otherwise. The sum $\sum_{d^2|n} \mu(d)$ counts the contributions from divisors $d$ such that $d^2$ divides $n$. If $n$ is squarefree, then the only divisor $d$ such that $d^2 | n$ is $d=1$, which contributes $\mu(1) = 1$. If $n$ is not squarefree, then there exists a prime $p$ such that $p^2 | n$, and the corresponding divisor $d=p$ will contribute $\mu(p) = -1$, which will cancel out the contribution from $d=1$. Therefore, we have $\mu^2(n) = \sum_{d^2|n} \mu(d)$.
+  -/)]
+lemma moebius_sq_eq (n : ℕ) : (μ n : ℂ) ^ 2 = ∑ d ∈ n.divisorsAntidiagonal.filter (fun x => x.1 ^ 2 ∣ n), μ d.1 := by
+  sorry
+
+/--
+Liouville function:
+`λ(n) = (-1)^Ω(n)`. -/
+@[blueprint
+  "liouville"
+  (title := "liouville")
+  (statement := /-- Liouville function: $\lambda(n) = (-1)^{\Omega(n)}$. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ is the total number of prime factors of $n$ counted with multiplicity. This means that for each prime factor of $n$, we contribute a factor of $-1$ to the product, and the overall sign of $\lambda(n)$ depends on whether the total number of prime factors is even or odd. Thus, we have $\lambda(n) = (-1)^{\Omega(n)}$ by definition.
+  -/)]
+def liouville : ArithmeticFunction ℤ :=
+  toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
+
+-- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+--  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
+
+/--
+Define Complete Multiplicativity for an arithmetic function. -/
+@[blueprint
+  "IsCompletelyMultiplicative"
+  (title := "IsCompletelyMultiplicative")
+  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
+]
+def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
+  f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
+
+@[blueprint
+  "IsCompletelyMultiplicative_mul"
+  (title := "IsCompletelyMultiplicative mul")
+  (statement := /-- If $f$ and $g$ are completely multiplicative, then so is their Dirichlet convolution $f * g$. -/)
+  (proof := /--
+  Let $f$ and $g$ be completely multiplicative functions. We want to show that their Dirichlet convolution $h = f * g$ is also completely multiplicative.-/)]
+lemma IsCompletelyMultiplicative.mul {f g : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f)
+    (hg : IsCompletelyMultiplicative g) : IsCompletelyMultiplicative (f * g) := by
+  sorry
+
+/-- A function that is completely multiplicative is also multiplicative. -/
+@[blueprint
+  "IsCompletelyMultiplicative_isMultiplicative"
+  (title := "IsCompletelyMultiplicative isMultiplicative")
+  (statement := /-- A function that is completely multiplicative is also multiplicative. -/)
+  (proof := /--
+  Let $f$ be a completely multiplicative function. To show that $f$ is multiplicative, we need to verify that $f(1) = 1$ and that $f(ab) = f(a)f(b)$ for all coprime natural numbers $a$ and $b$. Since $f$ is completely multiplicative, we have $f(1) = 1$ by definition. For coprime $a$ and $b$, we can write $ab$ as a product of prime factors, and since $f$ is completely multiplicative, it will factor as the product of the values of $f$ at those prime factors. This means that $f(ab) = f(a)f(b)$ for coprime $a$ and $b$, which shows that $f$ is multiplicative.
+  -/)]
+lemma IsCompletelyMultiplicative.isMultiplicative {f : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f) : f.IsMultiplicative := by
+  sorry
+
+/--
+The Liouville function is completely multiplicative. -/
+@[blueprint
+  "isCompletelyMultiplicative_liouville"
+  (title := "isCompletelyMultiplicative liouville")
+  (statement := /-- The Liouville function is completely multiplicative. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
+  -/)]
+lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
+  sorry
+
+/--
+The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
+@[blueprint
+  "LSeries_liouville_eq"
+  (title := "LSeries liouville eq")
+  (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
+\[
+L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
+\]
+  -/)]
+lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+  sorry
+
+/-- `liouville` agrees with `moebius` on square-free numbers -/
+@[blueprint
+  "liouville_eq_moebius_on_squarefree"
+  (title := "liouville eq moebius on squarefree")
+  (statement := /-- The Liouville function agrees with the Möbius function on square-free numbers. -/)
+  (proof := /--
+  The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
+  -/)]
+lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
+  sorry
+
+/-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
+@[blueprint
+  "LSeries_totient_eq"
+  (title := "LSeries totient eq")
+  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
+  \begin{verbatim}
+  This is IK (1.35).
+  \end{verbatim}
+   -/)
+  (proof := /--
+  The Euler totient function $\varphi(n)$ counts the positive integers up to $n$ that are relatively prime to $n$. It is a multiplicative function, and its value at prime powers is given by $\varphi(p^k) = p^k - p^{k-1}$. The Dirichlet series of $\varphi$ can be expressed as an Euler product over primes:
+\[
+L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
+\]
+  -/)]
+lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
+    LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
+  sorry
 
 
 end ArithmeticFunction
