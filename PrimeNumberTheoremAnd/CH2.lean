@@ -10,7 +10,6 @@ import Mathlib.RingTheory.SimpleRing.Principal
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import Mathlib.Analysis.Meromorphic.NormalForm
 import PrimeNumberTheoremAnd.PerronFormula
 
 open Real
