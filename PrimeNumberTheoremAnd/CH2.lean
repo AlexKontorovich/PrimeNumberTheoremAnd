@@ -1817,6 +1817,10 @@ theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
+@[fun_prop]
+theorem continuous_E : Continuous E := by
+  unfold E; fun_prop
+
 lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
   simp only [E]
   fun_prop
@@ -2126,6 +2130,15 @@ lemma tendsto_T_plus_one_mul_exp_atTop_nhds_zero {k : ℝ} (hk : k < 0) (C : ℝ
   · ext T; ring
   · simp
 
+/-- A utility lemma for integrability of Fourier-like components along a compact path. -/
+theorem integrable_fourier_path (a b x : ℝ) (f : ℝ → ℂ) (p : ℝ → ℂ)
+    (hf : ContinuousOn f (Set.Icc a b)) (hp : ContinuousOn p (Set.Icc a b)) :
+    Integrable (fun t ↦ f t * E (-p t * x)) (volume.restrict (Set.Icc a b)) := by
+  apply ContinuousOn.integrableOn_compact isCompact_Icc
+  apply ContinuousOn.mul hf
+  dsimp [E]
+  fun_prop
+
 lemma horizontal_integral_phi_fourier_vanish (ν ε x a b : ℝ) (hν : ν > 0) (hx : x < 0)
     (hab_in : Set.Icc a b ⊆ Set.Icc (-1) 1) (hab : a ≤ b)
     (f : ℂ → ℂ)
@@ -2312,7 +2325,6 @@ theorem shift_upwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
       refine integral_add ?_ ?_
       · exact h_integrable_imag T (Phi_circ ν ε) (by intro t ht; exact Phi_circ.continuousAt_imag ν ε t ht.1 hν)
       · exact h_integrable_imag T (Phi_star ν ε) (by intro t ht; exact Phi_star.continuousAt_imag ν ε t ht.1 hν)
-
     linear_combination I * hsub - I * hadd
   have hcontour := (hAshift.add hBshift).congr' (Filter.Eventually.of_forall (fun T ↦ (hcombine T).symm))
   simpa [hfourier] using hcontour
@@ -2592,15 +2604,65 @@ lemma horizontal_integral_phi_fourier_vanish_downwards (ν ε x a b : ℝ) (hν 
 noncomputable def z₀_pole (ν : ℝ) : ℂ := (-1 : ℂ) - I * (ν / (2 * π))
 noncomputable def z₁_pole (ν : ℝ) : ℂ := (1 : ℂ) - I * (ν / (2 * π))
 
+-- If (n : ℝ) ∈ [a, b] and k is the unique integer in (a−1, b+1), then n = k.
+private lemma unique_int_in_Icc (n k : ℤ) {a b : ℝ}
+    (h_mem : (n : ℝ) ∈ Set.Icc a b)
+    (h_lo : (k : ℝ) - 1 < a)
+    (h_hi : b < (k : ℝ) + 1) :
+    n = k := by
+  have h1 : k - 1 < n := by exact_mod_cast h_lo.trans_le h_mem.1
+  have h2 : n < k + 1 := by exact_mod_cast h_mem.2.trans_lt h_hi
+  omega
+
+-- Phi_circ − Phi_star has nonneg meromorphicOrderAt at z₀_pole ν.
+private lemma meromorphicOrderAt_phi_diff_nonneg (ν ε : ℝ) (hν : ν > 0) :
+    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) (z₀_pole ν) ≥ 0 := by
+  rw [show (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) =
+          fun z ↦ Phi_circ ν ε z + (-1 : ℝ) * Phi_star ν ε z by ext; simp [sub_eq_add_neg],
+      show z₀_pole ν = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) by simp [z₀_pole]; ring]
+  exact Phi_cancel ν ε (-1) hν (by norm_num)
+
+-- Phi_circ + Phi_star has nonneg meromorphicOrderAt at z₁_pole ν.
+private lemma meromorphicOrderAt_phi_add_nonneg (ν ε : ℝ) (hν : ν > 0) :
+    meromorphicOrderAt (fun z ↦ Phi_circ ν ε z + Phi_star ν ε z) (z₁_pole ν) ≥ 0 := by
+  rw [show (fun z ↦ Phi_circ ν ε z + Phi_star ν ε z) =
+          fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z by ext; simp,
+      show z₁_pole ν = ((1 : ℝ) : ℂ) - I * ν / (2 * π) by simp [z₁_pole]; ring]
+  exact Phi_cancel ν ε 1 hν (by norm_num)
+
+-- Removable-singularity extension: if f_base is meromorphic at z_pole with removable singularity
+-- witnessed by h_tendsto, then the patched function (using the limit value at z_pole) is analytic.
+private lemma analyticAt_removable_sing_mul_E (x : ℝ) {f_base : ℂ → ℂ} {z_pole : ℂ}
+    {c_base : ℂ}
+    (h_mero : MeromorphicAt f_base z_pole)
+    (h_tendsto : Filter.Tendsto f_base (nhdsWithin z_pole {z_pole}ᶜ) (nhds c_base)) :
+    AnalyticAt ℂ (fun z ↦ if z = z_pole then c_base * E (-z_pole * x)
+                            else f_base z * E (-z * x)) z_pole := by
+  apply analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+  · obtain ⟨V, hV_nhds, hV_anal⟩ := h_mero.eventually_analyticAt
+    filter_upwards [nhdsWithin_le_nhds hV_nhds, self_mem_nhdsWithin] with w hwV hw_ne
+    have h_eq : (fun z ↦ if z = z_pole then c_base * E (-z_pole * x) else f_base z * E (-z * x)) =ᶠ[nhds w]
+                (fun z ↦ f_base z * E (-z * x)) :=
+      (eventually_ne_nhds hw_ne).mono (fun z hz ↦ by simp [if_neg hz])
+    refine DifferentiableAt.congr_of_eventuallyEq ?_ h_eq
+    rcases hV_anal with ⟨b, hb, h_set_eq⟩
+    have hw_f_anal : AnalyticAt ℂ f_base w := by
+      have : w ∈ V ∩ b := ⟨hwV, hb hw_ne⟩
+      rwa [← h_set_eq] at this
+    exact (hw_f_anal.mul (by unfold E; fun_prop)).differentiableAt
+  · rw [continuousAt_iff_punctured_nhds]
+    simp only [↓reduceIte]
+    have h_cont_E : ContinuousAt (fun z ↦ E (-z * x)) z_pole := by unfold E; fun_prop
+    refine (h_tendsto.mul (h_cont_E.tendsto.mono_left nhdsWithin_le_nhds)).congr' ?_
+    filter_upwards [self_mem_nhdsWithin] with w (hw : w ≠ z_pole)
+    simp [if_neg hw]
+
 lemma Phi_diff_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
     ∃ U ∈ nhds (z₀_pole ν), BddAbove (norm ∘ (fun z ↦ Phi_circ ν ε z - Phi_star ν ε z) '' (U \ {z₀_pole ν})) := by
   let z₀ := z₀_pole ν
   let f := fun z ↦ Phi_circ ν ε z - Phi_star ν ε z
   have h_mero : MeromorphicAt f z₀ := (Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀)
-  have h_order : meromorphicOrderAt f z₀ ≥ 0 := by
-    rw [show f = fun z ↦ Phi_circ ν ε z + (-1 : ℝ) * Phi_star ν ε z by ext z; simp [f]; ring,
-        show z₀ = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) by simp [z₀, z₀_pole]; field_simp [Real.pi_ne_zero]]
-    exact Phi_cancel ν ε (-1) hν (by norm_num)
+  have h_order : meromorphicOrderAt f z₀ ≥ 0 := meromorphicOrderAt_phi_diff_nonneg ν ε hν
   obtain ⟨c, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
   exact IsBigO_to_BddAbove (h_tendsto.isBigO_one (F := ℂ))
 
@@ -2612,30 +2674,17 @@ lemma Phi_fourier_holo_left (ν ε x : ℝ) (hν : ν > 0) :
   let f (z : ℂ) := f_base z * E (-z * x)
   obtain ⟨c_base, h_tendsto_base⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg
     ((Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀))
-    (by have hf : (Phi_circ ν ε - Phi_star ν ε) = fun z ↦ Phi_circ ν ε z + (-1 : ℝ) * Phi_star ν ε z := by ext; simp; ring
-        have hz₀ : z₀ = ((-1 : ℝ) : ℂ) - I * ν / (2 * π) := by simp [z₀, z₀_pole]; ring
-        rw [hf, hz₀]
-        exact Phi_cancel ν ε (-1) hν (by norm_num))
+    (meromorphicOrderAt_phi_diff_nonneg ν ε hν)
   let c := c_base * E (-z₀ * x)
   let g (z : ℂ) := if z = z₀ then c else f z
   use g
   constructor
   · intro U hU z hz
     by_cases hz₀ : z = z₀
-    · have h_anal_z₀ : AnalyticAt ℂ g z₀ := by
-        apply analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
-        · obtain ⟨V, hV_nhds, hV_anal⟩ := ((Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀)).eventually_analyticAt
-          filter_upwards [nhdsWithin_le_nhds hV_nhds, self_mem_nhdsWithin] with w hwV hw_ne
-          have h_eq : g =ᶠ[nhds w] f := (eventually_ne_nhds hw_ne).mono (fun z hz ↦ by dsimp [g]; rw [if_neg hz])
-          refine DifferentiableAt.congr_of_eventuallyEq ?_ h_eq
-          rcases hV_anal with ⟨b, hb, h_set_eq⟩
-          have h_anal_w : AnalyticAt ℂ f_base w := by
-            dsimp [f_base]; exact (Set.ext_iff.mp h_set_eq w).mpr ⟨hwV, hb hw_ne⟩
-          exact (h_anal_w.mul (by dsimp [E]; fun_prop)).differentiableAt
-        · rw [continuousAt_iff_punctured_nhds]; dsimp [g]; simp only [↓reduceIte]
-          have h_cont_E : ContinuousAt (fun z ↦ E (-z * x)) z₀ := by dsimp [E]; fun_prop
-          refine (h_tendsto_base.mul (h_cont_E.tendsto.mono_left nhdsWithin_le_nhds)).congr' ?_
-          filter_upwards [self_mem_nhdsWithin] with w (hw : w ≠ z₀); simp [f, f_base, hw]
+    · have h_anal_z₀ : AnalyticAt ℂ g z₀ :=
+        analyticAt_removable_sing_mul_E x
+          ((Phi_circ.meromorphic ν ε z₀).sub (Phi_star.meromorphic ν ε z₀))
+          h_tendsto_base
       exact (hz₀ ▸ h_anal_z₀).differentiableAt.differentiableWithinAt
     · have h_not_pole : ∀ n : ℤ, z ≠ ↑n - I * ↑ν / (2 * ↑π) := by
         intro n hn; have h_re : z.re = n := by
@@ -2649,15 +2698,7 @@ lemma Phi_fourier_holo_left (ν ε x : ℝ) (hν : ν > 0) :
           ofReal_im, mul_zero, sub_self, sub_zero, neg_im, one_im, neg_zero, sub_im, div_ofNat_im,
           zero_div, mul_im, one_mul, zero_add, zero_sub] at h_rect
         rw [Set.uIcc_of_le (by norm_num), Set.uIcc_of_ge (by linarith)] at h_rect
-        have h_n : n = -1 := by
-          have h_re_mem := h_rect.1
-          rw [h_re, Set.mem_Icc] at h_re_mem
-          norm_cast at h_re_mem
-          obtain ⟨h_low, h_high⟩ := h_re_mem
-          have : (n : ℝ) < 0 := by simp at h_high; linarith [h_high]
-          have h_up : n < 0 := by exact_mod_cast this
-          simp at h_low h_up
-          interval_cases n; rfl
+        have h_n : n = -1 := unique_int_in_Icc n (-1) (h_re ▸ h_rect.1) (by norm_num) (by norm_num)
         subst h_n
         exact hz₀ (Complex.ext
           (by
@@ -2683,11 +2724,7 @@ lemma Phi_add_bounded_near_pole (ν ε : ℝ) (hν : ν > 0) :
   let z₁ : ℂ := z₁_pole ν
   let f := fun z ↦ Phi_circ ν ε z + Phi_star ν ε z
   have h_mero : MeromorphicAt f z₁ := (Phi_circ.meromorphic ν ε z₁).add (Phi_star.meromorphic ν ε z₁)
-  have h_order : meromorphicOrderAt f z₁ ≥ 0 := by
-    rw [show f = fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z by ext z; simp [f]]
-    have h_pt : z₁ = ((1 : ℝ) : ℂ) - I * ν / (2 * π) := by simp [z₁, z₁_pole]; ring
-    rw [h_pt]
-    exact Phi_cancel ν ε 1 hν (by norm_num)
+  have h_order : meromorphicOrderAt f z₁ ≥ 0 := meromorphicOrderAt_phi_add_nonneg ν ε hν
   obtain ⟨_, h_tendsto⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
   exact IsBigO_to_BddAbove (h_tendsto.isBigO_one (F := ℂ))
 
@@ -2698,10 +2735,7 @@ lemma Phi_fourier_holo_right (ν ε x : ℝ) (hν : ν > 0) :
   let f_base (z : ℂ) := (Phi_circ ν ε z + Phi_star ν ε z)
   let f (z : ℂ) := f_base z * E (-z * x)
   have h_mero : MeromorphicAt f_base z₁ := (Phi_circ.meromorphic ν ε z₁).add (Phi_star.meromorphic ν ε z₁)
-  have h_order : meromorphicOrderAt f_base z₁ ≥ 0 := by
-    rw [show f_base = (fun z ↦ Phi_circ ν ε z + (1 : ℝ) * Phi_star ν ε z) by ext; simp [f_base]]
-    have h_pt : z₁ = ((1 : ℝ) : ℂ) - I * ν / (2 * π) := by simp [z₁, z₁_pole]; ring
-    rw [h_pt]; exact Phi_cancel ν ε 1 hν (by norm_num)
+  have h_order : meromorphicOrderAt f_base z₁ ≥ 0 := meromorphicOrderAt_phi_add_nonneg ν ε hν
   obtain ⟨c_base, h_tendsto_base⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg h_mero h_order
   let c := c_base * E (-z₁ * x)
   let g (z : ℂ) := if z = z₁ then c else f z
@@ -2709,23 +2743,8 @@ lemma Phi_fourier_holo_right (ν ε x : ℝ) (hν : ν > 0) :
   constructor
   · intro U hU z hz
     by_cases hz₁ : z = z₁
-    · have h_anal_z₁ : AnalyticAt ℂ g z₁ := by
-        apply analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
-        · obtain ⟨V, hV_nhds, hV_anal⟩ := h_mero.eventually_analyticAt
-          filter_upwards [nhdsWithin_le_nhds hV_nhds, self_mem_nhdsWithin] with w hwV hw_ne
-          have h_eq : g =ᶠ[nhds w] f := (eventually_ne_nhds hw_ne).mono (fun z hz ↦ by dsimp [g]; rw [if_neg hz])
-          refine DifferentiableAt.congr_of_eventuallyEq ?_ h_eq
-          rcases hV_anal with ⟨b, hb, h_set_eq⟩
-          have hw_f_anal : AnalyticAt ℂ f_base w := by
-            have : w ∈ V ∩ b := ⟨hwV, hb hw_ne⟩
-            rwa [← h_set_eq] at this
-          exact (hw_f_anal.mul (by unfold E; fun_prop)).differentiableAt
-        · rw [continuousAt_iff_punctured_nhds]
-          dsimp [g]; simp only [↓reduceIte]
-          have h_cont_E : ContinuousAt (fun z ↦ E (-z * x)) z₁ := by unfold E; fun_prop
-          refine (h_tendsto_base.mul (h_cont_E.tendsto.mono_left nhdsWithin_le_nhds)).congr' ?_
-          filter_upwards [self_mem_nhdsWithin] with w (hw : w ≠ z₁)
-          simp [f, hw]
+    · have h_anal_z₁ : AnalyticAt ℂ g z₁ :=
+        analyticAt_removable_sing_mul_E x h_mero h_tendsto_base
       rw [hz₁]
       exact h_anal_z₁.differentiableAt.differentiableWithinAt
     · have h_not_pole : ∀ n : ℤ, z ≠ ↑n - I * ↑ν / (2 * ↑π) := by
@@ -2743,14 +2762,7 @@ lemma Phi_fourier_holo_right (ν ε x : ℝ) (hν : ν > 0) :
           ofReal_im, mul_zero, sub_self, sub_zero, sub_im, div_ofNat_im,
           mul_im, one_mul, zero_add] at h_rect
         rw [Set.uIcc_of_le (by norm_num), Set.uIcc_of_ge (by simp; linarith)] at h_rect
-        have h_n : n = 1 := by
-          have h_re_mem := h_rect.1
-          rw [h_re, Set.mem_Icc] at h_re_mem
-          have h1 : 0 < n := by
-            have : (0 : ℝ) < (n : ℝ) := by linarith [h_re_mem.1]
-            exact_mod_cast this
-          have h2 : n ≤ 1 := by exact_mod_cast h_re_mem.2
-          omega
+        have h_n : n = 1 := unique_int_in_Icc n 1 (h_re ▸ h_rect.1) (by norm_num) (by norm_num)
         subst h_n
         have : z = z₁ := by
           apply Complex.ext <;> dsimp [z₁, z₁_pole]
@@ -2967,6 +2979,105 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
     congr 1
     linear_combination hmiddle
 
+-- (I * ν / (2 * π)).re = 0 for any ν
+lemma pole_re (ν : ℝ) : (I * ν / (2 * π)).re = 0 := by
+  simp [Complex.mul_re, Complex.div_re, Complex.I_re, Complex.I_im,
+        Complex.ofReal_re, Complex.ofReal_im]
+
+-- (-(I * ν) / (2 * π)).im = -ν / (2 * π) for any ν
+lemma pole_im (ν : ℝ) : (-(I * ν) / (2 * π)).im = -ν / (2 * π) := by
+  simp [Complex.neg_im, Complex.mul_im, Complex.div_im, Complex.I_im, Complex.I_re,
+        Complex.ofReal_im, Complex.ofReal_re]
+  field_simp
+
+lemma first_contour_bottom_vanishes (ν ε : ℝ) (x : ℝ) (hx : x > 0) :
+    Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1/2 : ℝ)..1/2, (fun z ↦ Phi_circ ν ε z * E (-z * x)) (t - I * T))
+      Filter.atTop (nhds 0) := by
+  let f : ℂ → ℂ := fun z ↦ Phi_circ ν ε z * E (-z * x)
+  have h_f_bound : ∃ C : ℝ, ∃ T₀ : ℝ, T₀ ≥ ν / (2 * π) + 1 ∧ ∀ T : ℝ, T ≥ T₀ → ∀ t ∈ Set.Icc (-1/2 : ℝ) (1/2 : ℝ), ‖f (↑t - I * ↑T)‖ ≤ C * Real.exp (-2 * π * x * T) := by
+    obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_left ν ν ε (-(ν / (2 * π) + 1)) (by ring_nf; linarith)
+    refine ⟨C₁, ν / (2 * π) + 1, le_refl _, fun T hT t ht => ?_⟩
+    have h_phi : ‖Phi_circ ν ε (↑t - I * ↑T)‖ ≤ C₁ :=
+      hC₁ ν (Set.left_mem_Icc.mpr (le_refl _)) _ (by
+        simp only [Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im,
+                    Complex.ofReal_re, mul_zero, zero_sub, zero_add]
+        linarith)
+    have h_E : ‖E (-(↑t - I * ↑T) * ↑x)‖ = rexp (-2 * π * x * T) := by
+      rw [E, Complex.norm_exp]
+      simp only [Complex.mul_re, Complex.neg_re, Complex.sub_re, Complex.sub_im, Complex.neg_im,
+                  Complex.mul_im, Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im,
+                  Complex.re_ofNat, Complex.im_ofNat, mul_zero, sub_zero, zero_mul, add_zero,
+                  mul_one, zero_sub, zero_add]
+      congr 1; ring
+    change ‖Phi_circ ν ε (↑t - I * ↑T) * E (-(↑t - I * ↑T) * ↑x)‖ ≤ C₁ * rexp (-2 * π * x * T)
+    rw [norm_mul, h_E]
+    exact mul_le_mul_of_nonneg_right h_phi (Real.exp_nonneg _)
+  obtain ⟨C, T₀, hT₀_ge, hC⟩ := h_f_bound
+  have h_int_le (T : ℝ) (hT : T > ν / (2 * π)) (hT_T₀ : T ≥ T₀) : ‖∫ t in -1 / 2..1 / 2, f (t - I * T)‖ ≤ C * Real.exp (-2 * π * x * T) := by
+    calc ‖∫ (t : ℝ) in -1 / 2..1 / 2, f (↑t - I * ↑T)‖
+      _ ≤ ∫ (t : ℝ) in -1 / 2..1 / 2, ‖f (↑t - I * ↑T)‖ :=
+          intervalIntegral.norm_integral_le_integral_norm (by norm_num)
+      _ ≤ ∫ (t : ℝ) in -1 / 2..1 / 2, C * Real.exp (-2 * π * x * T) := by
+          apply intervalIntegral.integral_mono_on (by norm_num)
+          · apply IntervalIntegrable.norm
+            rw [intervalIntegrable_iff_integrableOn_Icc_of_le (by norm_num)]
+            apply integrable_fourier_path (f := fun t ↦ Phi_circ ν ε (↑t - I * ↑T)) (p := fun t ↦ ↑t - I * ↑T)
+            · intro t _
+              have h_anal : AnalyticAt ℂ (Phi_circ ν ε) (↑t - I * ↑T) := by
+                apply Phi_circ.analyticAt_of_im_ne_pole
+                simp only [sub_im, ofReal_im, mul_im, I_re,
+                  mul_zero, I_im, ofReal_re, one_mul, zero_add, zero_sub, ne_eq]
+                intro h
+                rw [gt_iff_lt, ← neg_lt_neg_iff, h] at hT
+                ring_nf at hT
+                exact lt_irrefl _ hT
+              have key : ContinuousAt (fun s : ℝ ↦ Phi_circ ν ε ((s : ℂ) - I * ↑T)) t := by
+                rw [show (fun s : ℝ ↦ Phi_circ ν ε ((s : ℂ) - I * ↑T)) =
+                      Phi_circ ν ε ∘ (fun s : ℝ ↦ (s : ℂ) - I * ↑T) from rfl]
+                apply ContinuousAt.comp
+                · exact h_anal.continuousAt
+                · exact continuous_ofReal.continuousAt.sub continuousAt_const
+              exact key.continuousWithinAt
+            · fun_prop
+          · exact intervalIntegrable_const
+          · intro t ht; exact hC T hT_T₀ t ht
+      _ = C * Real.exp (-2 * π * x * T) := by
+          simp only [intervalIntegral.integral_const]; norm_num
+  have h_lim : Filter.Tendsto (fun T ↦ C * Real.exp (-2 * π * x * T)) Filter.atTop (nhds 0) := by
+    have hk : -2 * π * x < 0 := by nlinarith [hx, Real.pi_pos]
+    have h_vanish : Filter.Tendsto (fun T ↦ Real.exp ((-2 * π * x) * T)) Filter.atTop (nhds 0) := by
+      have hu : Filter.Tendsto (fun T ↦ (2 * π * x) * T) Filter.atTop Filter.atTop :=
+        Filter.tendsto_id.const_mul_atTop (by nlinarith [hx, Real.pi_pos])
+      have h0 := Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero 0
+      simpa [Function.comp_def, pow_zero, neg_mul] using h0.comp hu
+    simpa only [mul_zero] using Filter.Tendsto.const_mul C h_vanish
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  apply squeeze_zero' (Filter.Eventually.of_forall (fun T ↦ norm_nonneg _))
+  · filter_upwards [Filter.eventually_ge_atTop T₀] with T hT_T₀
+    have hT_pole : T > ν / (2 * π) := by linarith [hT₀_ge]
+    exact h_int_le T hT_pole hT_T₀
+  · exact h_lim
+
+lemma first_contour_integrand_holomorphicOn (ν ε x : ℝ) (z' w' z₀ : ℂ)
+    (hz₀ : z₀ = -(I * ν) / (2 * π))
+    (h_rect_re : Set.uIcc z'.re w'.re = Set.Icc (-1 / 2 : ℝ) (1 / 2)) :
+    HolomorphicOn (fun z ↦ Phi_circ ν ε z * E (-z * x)) (Rectangle z' w' \ {z₀}) := by
+  intro z hz
+  apply DifferentiableAt.differentiableWithinAt
+  apply DifferentiableAt.mul
+  · apply AnalyticAt.differentiableAt
+    apply Phi_circ.analyticAt_of_not_pole ν ε z
+    intro n hn
+    by_cases hn0 : n = 0
+    · subst hn0; have : z = z₀ := by rw [hn, hz₀]; ring
+      exact hz.2 this
+    · have hz_re : z.re ∈ Set.Icc (-1 / 2 : ℝ) (1 / 2) := h_rect_re ▸ hz.1.1
+      rw [hn, Complex.sub_re, pole_re ν, sub_zero, Complex.intCast_re] at hz_re
+      exact hn0 (unique_int_in_Icc n 0 hz_re (by norm_num) (by norm_num))
+  · apply DifferentiableAt.comp
+    · exact analyticAt_cexp.differentiableAt
+    · fun_prop
+
 @[blueprint
   "first-contour-limit"
   (title := "First contour limit")
@@ -2979,9 +3090,182 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
 . -/)
   (latexEnv := "sublemma")
   (discussion := 1085)]
-theorem first_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) + ∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds (Complex.exp (-ν * x))) := by
-    sorry
+theorem first_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦
+      (I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)))
+        + (∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), (Phi_circ ν ε t * E (-t * x)))
+        - (I * ∫ t in Set.Icc 0 T, ((Phi_circ ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))))
+      (nhds (Complex.exp (-ν * x))) := by
+  let f : ℂ → ℂ := fun z ↦ Phi_circ ν ε z * E (-z * x)
+  have h_pole : ∃ z₀ : ℂ, z₀ = - (I * ν) / (2 * π) ∧ z₀.im < 0 ∧ -1/2 < z₀.re ∧ z₀.re < 1/2 := by
+    refine ⟨- (I * ν) / (2 * π), rfl, ?_, ?_, ?_⟩
+    · rw [pole_im ν]
+      apply div_neg_of_neg_of_pos
+      · exact neg_lt_zero.mpr hν
+      · exact mul_pos (by norm_num) Real.pi_pos
+    · rw [neg_div, neg_div, Complex.neg_re, pole_re]
+      norm_num
+    · rw [neg_div, Complex.neg_re, pole_re]
+      norm_num
+  have h_res : ∀ z₀, z₀ = - (I * ν) / (2 * π) →
+      Filter.Tendsto (fun z ↦ (z - z₀) * f z) (nhdsWithin z₀ {z₀}ᶜ) (nhds ((I / (2 * π)) * Complex.exp (-ν * x))) := by
+    intro z₀ hz₀
+    have h_prod : Filter.Tendsto (fun z ↦ ((z - z₀) * Phi_circ ν ε z) * E (-z * x))
+        (nhdsWithin z₀ {z₀}ᶜ) (nhds (I / (2 * π) * Complex.exp (-ν * x))) := by
+      have h_lim_circ : Filter.Tendsto (fun z ↦ (z - z₀) * Phi_circ ν ε z) (nhdsWithin z₀ {z₀}ᶜ) (nhds (I / (2 * π))) := by
+        rw [hz₀, show -(I * ↑ν) / (2 * ↑π) = 0 - I * ↑ν / (2 * ↑π) by ring]
+        exact_mod_cast Phi_circ.residue ν ε hν 0
+      have h_lim_E : Filter.Tendsto (fun z ↦ E (-z * x)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (Complex.exp (-ν * x))) := by
+        have h_E_val : E (-z₀ * x) = Complex.exp (-ν * x) := by
+          rw [hz₀, E]
+          field_simp [Real.pi_ne_zero]; ring_nf; simp [Complex.I_sq]
+        rw [← h_E_val]
+        refine (ContinuousAt.tendsto ?_).mono_left nhdsWithin_le_nhds
+        fun_prop
+      exact h_lim_circ.mul h_lim_E
+    simpa [f, mul_assoc] using h_prod
+  have h_cauchy (T : ℝ) (hT : T > ν / (2 * π)) :
+      RectangleIntegral f (-1/2) (1/2 - I * T) = Complex.exp (-ν * x) := by
+    obtain ⟨z₀, hz₀, hz₀_im, hz₀_re_neg, hz₀_re_pos⟩ := h_pole
+    set z' : ℂ := -1/2 - I * T
+    set w' : ℂ := 1/2
+    have h_symm : RectangleIntegral f (-1/2) (1/2 - I * T) = - RectangleIntegral f z' w' := by
+      rw [rectangleIntegral_symm f z' w']
+      have : RectangleIntegral f w' z' = - RectangleIntegral f (-1/2) (1/2 - I * T) := by
+        convert rectangleIntegral_symm_re f (-1/2 : ℂ) (1/2 - I * T : ℂ) using 1
+        · simp [w', z', Complex.ext_iff]; ring_nf; simp
+      rw [this, neg_neg]
+    have h_p_in_interior : Rectangle z' w' ∈ nhds z₀ := by
+      rw [rectangle_mem_nhds_iff]
+      simp only [sub_re, div_ofNat_re, neg_re, one_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
+        ofReal_im, mul_zero, sub_self, sub_zero, one_div, inv_re, re_ofNat, normSq_ofNat,
+        div_self_mul_self', sub_im, div_ofNat_im, neg_im, one_im, neg_zero, zero_div, mul_im,
+        one_mul, zero_add, zero_sub, inv_im, im_ofNat, z', w']
+      rw [hz₀]
+      constructor
+      · simp only [neg_div, one_div, neg_le_self_iff, inv_nonneg, Nat.ofNat_nonneg, Set.uIoo_of_le,
+        Set.mem_preimage, neg_re, Set.mem_Ioo, neg_lt_neg_iff]
+        rw [pole_re ν, neg_zero]
+        simp only [inv_pos, Nat.ofNat_pos, and_self]
+      · have : (-(I * ν) / (2 * π)).im = -ν / (2 * π) := pole_im ν
+        rw [Set.mem_preimage, this]
+        rw [Set.uIoo_of_lt (by linarith [div_pos hν (by positivity : (0 : ℝ) < 2 * π)]), Set.mem_Ioo]
+        constructor
+        · field_simp at hT ⊢
+          exact neg_lt_neg_iff.mpr hT
+        · apply div_neg_of_neg_of_pos
+          · linarith
+          · linarith [Real.pi_pos]
+    have h_f_holo : HolomorphicOn f (Rectangle z' w' \ {z₀}) := by
+      apply first_contour_integrand_holomorphicOn ν ε x z' w' z₀ hz₀
+      simp only [sub_re, div_ofNat_re, neg_re, one_re, mul_re, I_re, ofReal_re, zero_mul,
+        I_im, ofReal_im, mul_zero, sub_self, sub_zero, one_div, inv_re, re_ofNat,
+        normSq_ofNat, div_self_mul_self', z', w']
+      exact Set.uIcc_of_le (by norm_num)
+    set A : ℂ := (I / (2 * π)) * Complex.exp (-ν * x)
+    have h_rect' : RectangleIntegral' f z' w' = A := by
+      apply ResidueTheoremOnRectangleWithSimplePole'
+      · simp [z', w']; field_simp; linarith -- z'.re ≤ w'.re
+      · simp only [sub_im, div_ofNat_im, neg_im, one_im, neg_zero, zero_div, mul_im, I_re,
+        ofReal_im, mul_zero, I_im, ofReal_re, one_mul, zero_add, zero_sub, one_div, inv_im,
+        im_ofNat, normSq_ofNat, Left.neg_nonpos_iff, z', w']
+        have h_denom : 0 < 2 * π := by linarith [Real.pi_pos]
+        have h_bound : 0 < ν / (2 * π) := div_pos hν h_denom
+        linarith [hT, h_bound]
+      · exact h_p_in_interior
+      · exact h_f_holo
+      · let g : ℂ → ℂ := fun z ↦ if z = z₀ then A else (z - z₀) * f z
+        have h_g_an : AnalyticAt ℂ g z₀ := by
+          apply analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+          · have h_f_mero : MeromorphicAt f z₀ :=
+              (Phi_circ.meromorphic ν ε).meromorphicAt.mul (by unfold E; fun_prop)
+            obtain ⟨V, hV_nhds, hV_anal⟩ := h_f_mero.eventually_analyticAt
+            filter_upwards [nhdsWithin_le_nhds hV_nhds, self_mem_nhdsWithin] with w hwV hw_ne
+            have h_eq : g =ᶠ[nhds w] (fun z ↦ (z - z₀) * f z) :=
+              (eventually_ne_nhds hw_ne).mono (fun z hz ↦ by simp [g, hz])
+            refine DifferentiableAt.congr_of_eventuallyEq ?_ h_eq
+            obtain ⟨b, hb, h_set_eq⟩ := hV_anal
+            have hw_f_anal : AnalyticAt ℂ f w := by
+              have : w ∈ V ∩ b := ⟨hwV, hb hw_ne⟩
+              rwa [← h_set_eq] at this
+            exact ((analyticAt_id.sub analyticAt_const).mul hw_f_anal).differentiableAt
+          · rw [continuousAt_iff_punctured_nhds]
+            convert (h_res z₀ hz₀).congr' ?_
+            · exact (by simp [g])
+            · filter_upwards [self_mem_nhdsWithin] with z (hz : z ≠ z₀)
+              simp only [g, if_neg hz]
+        have h_g_val : g z₀ = A := by simp [g]
+        have h_lim : Filter.Tendsto (fun z ↦ f z - A / (z - z₀)) (nhdsWithin z₀ {z₀}ᶜ) (nhds (deriv g z₀)) := by
+          have h_g_deriv : HasDerivAt g (deriv g z₀) z₀ := (AnalyticAt.differentiableAt h_g_an).hasDerivAt
+          rw [hasDerivAt_iff_tendsto_slope] at h_g_deriv
+          refine h_g_deriv.congr' ?_
+          filter_upwards [self_mem_nhdsWithin] with z h_ne
+          simp only [slope, smul_eq_mul, vsub_eq_sub, h_g_val]
+          have hne : z ≠ z₀ := h_ne
+          simp only [g, if_neg hne]
+          have : z - z₀ ≠ 0 := sub_ne_zero.mpr h_ne
+          field_simp
+        exact h_lim.isBigO_one ℂ
+    rw [h_symm]
+    have h_rel : RectangleIntegral f z' w' = (2 * π * I) * RectangleIntegral' f z' w' := by
+      simp [RectangleIntegral', smul_eq_mul]
+      field_simp [Real.pi_ne_zero, I_ne_zero]
+      simp
+    rw [h_rel, h_rect']
+    simp only [A]
+    field_simp [Real.pi_ne_zero, I_ne_zero]
+    ring_nf; simp [Complex.I_sq]
+  have h_bottom := first_contour_bottom_vanishes ν ε x hx
+  have h_vertical : Filter.atTop.Tendsto (fun T : ℝ ↦
+      (I * ∫ t in Set.Icc 0 T, f (-1/2 - I * t)) +
+      (∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), f t) -
+      (I * ∫ t in Set.Icc 0 T, f (1/2 - I * t)))
+    (nhds (Complex.exp (-ν * x))) := by
+    have h_decomp (T : ℝ) : RectangleIntegral f (-1/2) (1/2 - I * T) =
+        (∫ t in (-1/2:ℝ)..1/2, f t) - (∫ t in (-1/2:ℝ)..1/2, f (t - I * T)) +
+        (I * ∫ t in 0..-T, f ((1/2 : ℝ) + I * t)) - (I * ∫ t in 0..-T, f ((-1/2 : ℝ) + I * t)) := by
+      simp only [RectangleIntegral, HIntegral, div_ofNat_im, neg_im, one_im, neg_zero, zero_div,
+        ofReal_zero, zero_mul, add_zero, div_ofNat_re, neg_re, one_re, one_div, sub_re, inv_re,
+        re_ofNat, normSq_ofNat, div_self_mul_self', mul_re, I_re, ofReal_re, I_im, ofReal_im,
+        mul_zero, sub_self, sub_zero, sub_im, inv_im, im_ofNat, mul_im, one_mul, zero_add, zero_sub,
+        ofReal_neg, neg_mul, VIntegral, ofReal_inv, ofReal_ofNat, smul_eq_mul, ofReal_div,
+        ofReal_one]
+      ring_nf
+      simp only [one_div, add_right_inj, sub_right_inj]
+      congr 1; ext t; congr; ring
+    have h_reparam (T : ℝ) (σ : ℝ) (hT : 0 ≤ T) : (I * ∫ t in 0..-T, f (σ + I * t)) = - I * ∫ t in Set.Icc 0 T, f (σ - I * t) := by
+      let g (t : ℝ) : ℂ := f (σ + I * t)
+      have : (∫ t in 0..-T, g t) = ∫ t in T..0, g (-t) := by
+        conv => lhs; rw [← neg_neg (0 : ℝ), ← neg_neg (-T)]
+        rw [← intervalIntegral.integral_comp_neg]
+        simp
+      rw [this, intervalIntegral.integral_symm, MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
+      simp only [g]; field_simp
+      congr; ext t; congr;
+      push_cast; ring
+    have h_sum (T : ℝ) (hT : 0 ≤ T) : (I * ∫ t in Set.Icc 0 T, f (-1/2 - I * t)) +
+        (∫ t in Set.Icc (-1/2:ℝ) (1/2:ℝ), f t) -
+        (I * ∫ t in Set.Icc 0 T, f (1/2 - I * t)) =
+        RectangleIntegral f (-1/2) (1/2 - I * T) + (∫ t in (-1/2:ℝ)..1/2, f (t - I * T)) := by
+      rw [h_decomp T]
+      rw [h_reparam T (1/2) hT, h_reparam T (-1/2) hT]
+      rw [intervalIntegral.integral_of_le (by norm_num)]
+      have hTop : ∫ (t : ℝ) in Set.Icc (-1 / 2) (1 / 2), f t = ∫ (x : ℝ) in Set.Ioc (-1 / 2) (1 / 2), f ↑x := by
+        rw [MeasureTheory.integral_Icc_eq_integral_Ioc]
+      have h1 : ∫ (t : ℝ) in Set.Icc 0 T, f (-1 / 2 - I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 T, f (-(I * ↑t) + ↑(-1 / 2)) := by
+        congr 1; ext t; congr 1; ring
+      have h2 : ∫ (t : ℝ) in Set.Icc 0 T, f (1 / 2 - I * ↑t) = ∫ (t : ℝ) in Set.Icc 0 T, f (-(I * ↑t) + ↑(1 / 2)) := by
+        congr 1; ext t; congr 1; ring
+      rw [hTop, h1, h2]
+      push_cast; ring_nf
+    refine Filter.Tendsto.congr' ((Filter.eventually_ge_atTop 0).mono (fun T hT ↦ (h_sum T hT).symm)) ?_
+    · rw [show Complex.exp (-ν * x) = Complex.exp (-ν * x) + 0 by simp]
+      apply Filter.Tendsto.add
+      · refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+        filter_upwards [Filter.eventually_gt_atTop (ν / (2 * π))] with T hT
+        symm; exact h_cauchy T hT
+      · exact h_bottom
+  simpa only [f] using h_vertical
 
 @[blueprint
   "second-contour-limit"
