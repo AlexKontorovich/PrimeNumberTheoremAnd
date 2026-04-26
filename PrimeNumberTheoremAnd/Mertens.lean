@@ -28,6 +28,7 @@ $$ \sum_{n \leq x} \log n = x \log x - \{ x \} \log x - x + 1 + \int_1^x \{ t \}
 \sum_{n \leq x} \log n &= \int_1^x \log t \, d\lfloor t \rfloor \\
 &= \log x \cdot \lfloor x \rfloor - \int_1^x \frac{\lfloor t \rfloor}{t} dt \\
 &= x \log x - \{ x \} \log x - \int_1^x \frac{t}{t} dt + \int_1^x \{ t \} \frac{dt}{t}.
+\end{align*}
  -/)
   (latexEnv := "lemma")]
 theorem sum_log_eq (x : ℝ) (hx : 1 ≤ x) :
