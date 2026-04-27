@@ -443,8 +443,8 @@ lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   "Phi-circ-def"
   (title := "Definition of $\\Phi^{\\pm,\\circ}_\\nu$")
   (statement := /--
-  $$\Phi^{\\pm,\\circ}_\\nu(z) := \\frac{1}{2} (\\coth\\frac{w}{2} \\pm 1)$$
-  where $$w = -2\\pi i z + \\nu.$$
+  $$\Phi^{\pm,\circ}_\nu(z) := \frac{1}{2} (\coth\frac{w}{2} \pm 1)$$
+  where $$w = -2\pi i z + \nu.$$
   -/)]
 noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
   let w := -2 * π * I * z + (ν : ℂ)
