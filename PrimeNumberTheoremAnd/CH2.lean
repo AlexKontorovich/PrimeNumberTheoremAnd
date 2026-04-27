@@ -462,6 +462,12 @@ theorem analyticAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : AnalyticAt ℂ C
 theorem continuousAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : ContinuousAt Complex.tanh z := by
   exact (analyticAt_tanh z hz).continuousAt
 
+lemma _root_.Complex.cosh_ne_zero_of_sinh_zero {z : ℂ} (h : Complex.sinh z = 0) : Complex.cosh z ≠ 0 := by
+  intro hc; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hc] at this
+
+
+
+
 @[fun_prop]
 theorem meromorphicAt_tanh (z : ℂ) : MeromorphicAt Complex.tanh z := by fun_prop [Complex.tanh]
 
@@ -517,7 +523,9 @@ lemma cosh_ne_zero_of_re_ne_zero {z : ℂ} (hz : z.re ≠ 0) : Complex.cosh z �
   apply hz
   simpa using congr_arg Complex.re hk
 
-lemma _root_.ContinuousAt.coth {f : ℝ → ℂ} {s : ℝ} (hf : ContinuousAt f s) (h_sinh : Complex.sinh (f s) ≠ 0) :
+@[fun_prop]
+lemma _root_.ContinuousAt.coth {α : Type*} [TopologicalSpace α] {f : α → ℂ} {s : α}
+    (hf : ContinuousAt f s) (h_sinh : Complex.sinh (f s) ≠ 0) :
     ContinuousAt (fun t ↦ CH2.coth (f t)) s := by
   have : CH2.coth = fun z ↦ Complex.cosh z / Complex.sinh z := by
     ext z; simp [CH2.coth, Complex.tanh, div_eq_mul_inv, mul_inv_rev]
@@ -528,11 +536,6 @@ lemma _root_.ContinuousAt.coth {f : ℝ → ℂ} {s : ℝ} (hf : ContinuousAt f 
 lemma _root_.Complex.sinh_ne_zero_of_cosh_zero {z : ℂ} (h : Complex.cosh z = 0) :
     Complex.sinh z ≠ 0 := by
   intro hs; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hs] at this
-
-/-- If `sinh z = 0` then `cosh z ≠ 0`, since `cosh² z - sinh² z = 1`. -/
-lemma _root_.Complex.cosh_ne_zero_of_sinh_zero {z : ℂ} (h : Complex.sinh z = 0) :
-    Complex.cosh z ≠ 0 := by
-  intro hc; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hc] at this
 
 /-- `Complex.cosh` is not identically zero near any point, so its `meromorphicOrderAt` is finite. -/
 lemma meromorphicOrderAt_cosh_ne_top (z : ℂ) : meromorphicOrderAt Complex.cosh z ≠ ⊤ := by
@@ -891,6 +894,75 @@ lemma meromorphicAt_B (ε : ℝ) (z₀ : ℂ) : MeromorphicAt (B ε) z₀ := by
     exact ⟨‖z₀‖, norm_pos_iff.mpr h, fun y hy hy' => by
       rw [Complex.tanh_eq_sinh_div_cosh]; aesop⟩
 
+theorem analyticAt_B (ε : ℝ) (z₀ : ℂ) (h_not_pole : ∀ n : ℤ, n ≠ 0 → z₀ ≠ 2 * π * I * n) :
+    AnalyticAt ℂ (B ε) z₀ := by
+  apply analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+  · obtain ⟨V, hV_nhds, b, hb, hV_anal⟩ := (meromorphicAt_B ε z₀).eventually_analyticAt
+    filter_upwards [nhdsWithin_le_nhds hV_nhds, self_mem_nhdsWithin] with w hw hne
+    have : w ∈ V ∩ b := ⟨hw, hb hne⟩
+    have h_an : AnalyticAt ℂ (B ε) w := by rwa [← hV_anal] at this
+    exact h_an.differentiableAt
+  · unfold B
+    by_cases h0 : z₀ = 0
+    · subst h0
+      have h_lim : Filter.Tendsto (fun s ↦ s * (coth (s / 2) + ε) / 2) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
+        have h1 : Filter.Tendsto (fun s ↦ (s / 2) / Complex.sinh (s / 2)) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
+          have h_deriv : HasDerivAt (fun s ↦ Complex.sinh (s / 2)) (1 / 2) 0 := by
+            have h := (Complex.hasDerivAt_sinh (0 / 2)).comp 0 ((hasDerivAt_id (0 : ℂ)).div_const 2)
+            simp only [zero_div, Complex.cosh_zero, id_eq] at h
+            convert h using 1; ring
+          rw [hasDerivAt_iff_tendsto_slope] at h_deriv
+          rw [slope_fun_def_field] at h_deriv
+          simp only [Complex.sinh_zero, sub_zero, zero_div] at h_deriv
+          have h_inv := h_deriv.inv₀ (by norm_num)
+          field_simp [mul_comm] at h_inv
+          convert h_inv.div_const 2 using 1
+          · ext s; field_simp
+          · simp
+        have h_lim' : Filter.Tendsto (fun s ↦ ((s / 2) / Complex.sinh (s / 2)) * Complex.cosh (s / 2) + s * ε / 2) (nhdsWithin 0 {0}ᶜ) (nhds (1 * 1 + 0 * ε / 2)) := by
+          apply Filter.Tendsto.add
+          · apply Filter.Tendsto.mul h1
+            have : Filter.Tendsto (fun s ↦ Complex.cosh (s / 2)) (nhds 0) (nhds (Complex.cosh (0 / 2))) := by
+              apply (Complex.continuous_cosh.continuousAt.comp (continuous_id.div_const 2).continuousAt).tendsto
+            simp only [zero_div, Complex.cosh_zero] at this
+            exact this.mono_left nhdsWithin_le_nhds
+          · apply Filter.Tendsto.div_const
+            apply Filter.Tendsto.mul (Filter.tendsto_id.mono_left nhdsWithin_le_nhds) tendsto_const_nhds
+        simp only [mul_one, zero_mul, zero_div, add_zero] at h_lim'
+        refine h_lim'.congr' ?_
+        filter_upwards [self_mem_nhdsWithin] with s hs
+        rw [coth, Complex.tanh_eq_sinh_div_cosh]
+        field_simp
+      rw [continuousAt_iff_punctured_nhds]
+      simp only [↓reduceIte]
+      apply h_lim.congr'
+      · filter_upwards [self_mem_nhdsWithin] with s hs
+        split_ifs with h
+        · contradiction
+        · rfl
+    · have h_eq : (fun s ↦ if s = 0 then 1 else s * (coth (s / 2) + ε) / 2) =ᶠ[nhds z₀]
+          (fun s ↦ s * (coth (s / 2) + ε) / 2) := by
+        filter_upwards [continuous_id.continuousAt.eventually_ne h0] with s hs
+        split_ifs with h_s0
+        · contradiction
+        · rfl
+      apply ContinuousAt.congr_of_eventuallyEq _ h_eq
+      apply ContinuousAt.div_const
+      apply ContinuousAt.mul continuousAt_id
+      apply ContinuousAt.add _ continuousAt_const
+      apply ContinuousAt.coth (continuousAt_id.div_const 2)
+      intro hc
+      rw [sinh_zero_iff] at hc
+      obtain ⟨n, hn⟩ := hc
+      have : z₀ = 2 * π * I * n := by
+        simp only [id_eq] at hn
+        field_simp [hn]
+        linear_combination 2 * hn
+      by_cases hn0 : n = 0
+      · subst hn0; simp at this; contradiction
+      · exact h_not_pole n hn0 this
+
+
 @[blueprint
   "Phi-star-mero"
   (title := "$\\Phi^{\\pm,\\ast}_\\nu$ meromorphic")
@@ -1214,18 +1286,29 @@ theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im 
   Phi_circ.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
 
 
-theorem Phi_star.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
+theorem Phi_star.analyticAt_of_not_pole_nz (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, n ≠ 0 → z ≠ n - I * ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z := by
   set w : ℂ := -2 * π * I * z + ν
-  have hw_ne : w ≠ 0 := w_ne_zero_of_not_pole h_not_pole
   have hB_an : AnalyticAt ℂ (B ε) w := by
-    have heq : B ε =ᶠ[nhds w] (fun s ↦ s * (Complex.cosh (s / 2) / Complex.sinh (s / 2) + ε) / 2) := by
-      filter_upwards [continuous_id.continuousAt.eventually_ne hw_ne] with s hs
-      dsimp at hs
-      simp [B, coth, hs, Complex.tanh_eq_sinh_div_cosh]
-    apply (analyticAt_congr heq).mpr
-    fun_prop (disch := exact sinh_ne_zero_of_not_pole h_not_pole)
+    apply analyticAt_B
+    intro n hn hw
+    apply h_not_pole (-n) (by simp [hn])
+    have : z = ↑(-n) - I * ν / (2 * π) := by
+      have h1 : -2 * π * I * z = 2 * π * I * n - ν := by linear_combination hw
+      replace h1 := congr_arg (fun x ↦ x / (-2 * π * I)) h1
+      dsimp at h1
+      rw [mul_div_cancel_left₀ _ (by simp [pi_ne_zero, I_ne_zero] : -2 * π * I ≠ 0)] at h1
+      rw [h1]
+      field_simp [pi_ne_zero, I_ne_zero]
+      ring_nf
+      simp [I_sq]
+    exact this
   unfold Phi_star; fun_prop (disch := exact [hB_an.comp (by fun_prop), by simp [w]; fun_prop])
+
+theorem Phi_star.analyticAt_of_not_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, z ≠ n - I * ν / (2 * π)) :
+    AnalyticAt ℂ (Phi_star ν ε) z :=
+  Phi_star.analyticAt_of_not_pole_nz ν ε z (fun n _ ↦ h_not_pole n)
+
 
 theorem Phi_star.analyticAt_of_im_ne_pole (ν ε : ℝ) (z : ℂ) (h_not_pole : z.im ≠ -ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z :=
@@ -3267,6 +3350,27 @@ theorem first_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
       · exact h_bottom
   simpa only [f] using h_vertical
 
+lemma second_contour_integrand_holomorphicOn (ν ε x : ℝ) (T : ℝ) (_hT : T ≥ 0) :
+    HolomorphicOn (fun z ↦ Phi_star ν ε z * E (-z * x))
+      (Rectangle (↑(-1/2 : ℝ)) (↑(0 : ℝ) - I * ↑T)) := by
+  intro z hz
+  apply DifferentiableWithinAt.mul
+  · apply AnalyticAt.differentiableWithinAt
+    apply Phi_star.analyticAt_of_not_pole_nz
+    intro n hn h_eq
+    have h_z_re : z.re = n := by
+      replace h_eq := congr_arg Complex.re h_eq
+      simp only [sub_re, intCast_re] at h_eq
+      rw [pole_re] at h_eq
+      simp only [sub_zero] at h_eq
+      exact h_eq
+    have h_re := hz.1
+    simp only [Set.mem_preimage, ofReal_re, sub_re, mul_re, I_re, I_im, ofReal_im,
+      zero_mul, mul_zero, sub_zero] at h_re
+    rw [Set.uIcc_of_le (by norm_num), Set.mem_Icc, h_z_re] at h_re
+    exact hn (unique_int_in_Icc n 0 h_re (by norm_num) (by norm_num))
+  · dsimp [E]; fun_prop
+
 @[blueprint
   "second-contour-limit"
   (title := "Second contour limit")
@@ -3278,9 +3382,97 @@ theorem first_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
   (proof := /-- Again by Cauchy's theorem and decay as $\Im z \to -\infty$ -/)
   (latexEnv := "sublemma")
   (discussion := 1086)]
-theorem second_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x)) - I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)) - (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (I * t)) * E (-(I * ↑t) * x)))) (nhds 0) := by
-    sorry
+theorem second_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T : ℝ ↦
+      (-(I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * ↑t) * x))))
+        - (∫ t in Set.Icc (-1/2 : ℝ) 0, (Phi_star ν ε t * E (-t * x)))
+        + (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-I * t)) * E (-(-I * ↑t) * x))))
+      (nhds 0) := by
+  let f : ℂ → ℂ := fun z ↦ Phi_star ν ε z * E (-z * x)
+  have h_anal (T : ℝ) (hT : T ≥ 0) : HolomorphicOn f (Rectangle (↑(-1/2 : ℝ)) (↑(0 : ℝ) - I * ↑T)) := by
+    simpa only [f] using second_contour_integrand_holomorphicOn ν ε x T hT
+  have h_rect_zero (T : ℝ) (hT : T ≥ 0) : RectangleIntegral f (↑(-1/2 : ℝ)) (↑(0 : ℝ) - I * ↑T) = 0 :=
+    HolomorphicOn.vanishesOnRectangle (h_anal T hT) subset_rfl
+  have h_goal_eq_bottom (T : ℝ) (hT : 0 ≤ T) :
+      (-(I * ∫ t in Set.Icc 0 T, f (-1/2 - I * t)))
+        - (∫ t in Set.Icc (-1/2 : ℝ) 0, f t)
+        + (I * ∫ t in Set.Icc 0 T, f (-I * t)) =
+      - ∫ t in (-1/2 : ℝ)..0, f (t - I * T) := by
+    have := h_rect_zero T hT
+    simp only [RectangleIntegral, HIntegral, VIntegral, smul_eq_mul] at this
+    push_cast at this
+    simp only [neg_re, neg_im, mul_re, mul_im, I_re, I_im, ofReal_re, ofReal_im,
+      ofReal_neg, mul_zero, mul_one, add_zero,
+      sub_zero, zero_sub, neg_zero, mul_comm I] at this
+    have h1 : ∫ t in Set.Icc (0 : ℝ) T, f (-1 / 2 - I * t) = - ∫ y in 0..-T, f (-1 / 2 + I * y) := by
+      rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
+      ring_nf
+      simp_rw [show ∀ x : ℝ, f (-1/2 - I * ↑x) = f (-1/2 + I * ↑(-x)) from
+        fun x => by congr 1; push_cast; ring]
+      rw [intervalIntegral.integral_comp_neg (fun y => f (-1/2 + I * ↑y))]
+      rw [intervalIntegral.integral_symm, neg_zero]
+    have h2 : ∫ t in Set.Icc (0 : ℝ) T, f (- I * t) = - ∫ y in 0..-T, f (I * y) := by
+      rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
+      simp_rw [show ∀ t : ℝ, f (-I * ↑t) = f (I * ↑(-t)) from
+        fun t => by congr 1; push_cast; ring]
+      rw [intervalIntegral.integral_comp_neg (fun y => f (I * ↑y)),
+          intervalIntegral.integral_symm, neg_zero]
+    have h3 : ∫ t in Set.Icc (-1 / 2 : ℝ) (0 : ℝ), f t = ∫ x in (-1 / 2 : ℝ)..0, f x := by
+      rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by norm_num)]
+    calc
+      (-(I * ∫ t in Set.Icc 0 T, f (-1 / 2 - I * ↑t)) - ∫ (t : ℝ) in Set.Icc (-1 / 2) 0, f ↑t) +
+          I * ∫ (t : ℝ) in Set.Icc 0 T, f (-I * ↑t)
+        = (I * ∫ y in 0..-T, f (-1 / 2 + I * y)) - (∫ x in -1 / 2..0, f x) - (I * ∫ y in 0..-T, f (I * y)) := by
+          rw [h1, h2, h3]; ring
+      _ = - ∫ x in -1 / 2..0, f (x - I * T) := by
+          simp only [show ((-1 / 2 : ℂ)).re = -1 / 2 from by norm_num,
+                    show ((-1 / 2 : ℂ)).im = 0 from by norm_num,
+                    zero_mul, add_zero, zero_add, ofReal_zero] at this
+          have hI1 : ∫ (y : ℝ) in 0..-T, f ((y : ℂ) * I) =
+                    ∫ (y : ℝ) in 0..-T, f (I * (y : ℂ)) := by
+            congr 1; ext (y : ℝ); ring_nf
+          have hI2 : ∫ (y : ℝ) in 0..-T, f ((-1 / 2 : ℂ) + (y : ℂ) * I) =
+                    ∫ (y : ℝ) in 0..-T, f ((-1 / 2 : ℂ) + I * (y : ℂ)) := by
+            congr 1; ext (y : ℝ); ring_nf
+          have hI3 : ∫ (x : ℝ) in -1 / 2..0, f ((x : ℂ) + -(T : ℂ) * I) =
+                    ∫ (x : ℝ) in -1 / 2..0, f ((x : ℂ) - I * (T : ℂ)) := by
+            congr 1; ext (x : ℝ); ring_nf
+          rw [hI1] at this
+          push_cast at this
+          rw [hI2, hI3] at this
+          linear_combination -this
+  have h_bottom : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (-1/2 : ℝ)..0, f (t - I * T))
+      Filter.atTop (nhds 0) :=
+    horizontal_integral_phi_fourier_vanish_downwards ν ε x (-1/2) 0 hν hx
+      (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) f
+      (fun T hT ↦ (h_anal T (by linarith)).continuousOn)
+      (Filter.Eventually.of_forall fun T t _ ↦ by
+        simp only [f]; rw [norm_mul]
+        exact mul_le_mul_of_nonneg_right (le_add_of_nonneg_left (norm_nonneg _)) (norm_nonneg _))
+  refine Filter.Tendsto.congr'
+    (f₁ := fun (T : ℝ) ↦ - ∫ t in (-1/2 : ℝ)..0, f (↑t - I * ↑T)) ?_
+    (by simpa using h_bottom.neg)
+  filter_upwards [Filter.eventually_ge_atTop 0] with T hT
+  simp only [f] at h_goal_eq_bottom ⊢
+  exact (h_goal_eq_bottom T hT).symm
+
+lemma third_contour_integrand_holomorphicOn (ν ε x : ℝ) (U : ℝ) (_hU : U ≥ 0) :
+    HolomorphicOn (fun z ↦ Phi_star ν ε z * E (-z * x)) (Rectangle (0 : ℂ) (1/2 - I * U)) := by
+  intro z hz
+  apply DifferentiableWithinAt.mul
+  · apply AnalyticAt.differentiableWithinAt
+    apply Phi_star.analyticAt_of_not_pole_nz
+    intro n hn h_eq
+    have h_z_re : z.re = n := by
+      replace h_eq := congr_arg Complex.re h_eq
+      simp only [sub_re, intCast_re, pole_re, sub_zero] at h_eq
+      exact h_eq
+    have h_re := hz.1
+    simp only [Set.mem_preimage, Complex.zero_re, Complex.sub_re, Complex.mul_re,
+      Complex.I_re, Complex.I_im, Complex.ofReal_re, Complex.ofReal_im] at h_re
+    rw [h_z_re] at h_re
+    exact hn (unique_int_in_Icc n 0 h_re (by norm_num) (by norm_num))
+  · dsimp [E]; fun_prop
 
 @[blueprint
   "third-contour-limit"
@@ -3293,9 +3485,64 @@ theorem second_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x >
   (proof := /-- Similar to previous. -/)
   (latexEnv := "sublemma")
   (discussion := 1087)]
-theorem third_contour_limit (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ ∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)) + I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x))) (nhds 0) := by
-    sorry
+theorem third_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦
+      (∫ t in Set.Icc 0 (1/2:ℝ), (Phi_star ν ε t * E (-t * x)))
+        - (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (1/2 - I * t)) * E (- (1/2 - I * ↑t) * x)))
+        + (I * ∫ t in Set.Icc 0 T, ((Phi_star ν ε (-I * t)) * E (-(-I * ↑t) * x))))
+      (nhds 0) := by
+  let f : ℂ → ℂ := fun z ↦ Phi_star ν ε z * E (-z * x)
+  have hf_anal : ∀ (U : ℝ), U ≥ 0 → HolomorphicOn f (Rectangle (0 : ℂ) (1/2 - I * U)) := by
+    intro U hU; exact third_contour_integrand_holomorphicOn ν ε x U hU
+  have h_bottom : Filter.Tendsto (fun T : ℝ ↦ ∫ t in (0:ℝ)..(1/2:ℝ), f (↑t - I * ↑T))
+      Filter.atTop (nhds 0) := by
+    apply horizontal_integral_phi_fourier_vanish_downwards ν ε x 0 (1/2) hν hx
+      (Set.Icc_subset_Icc (by norm_num) (by norm_num)) (by norm_num) f
+    · intro T hT
+      convert (hf_anal T (by linarith)).continuousOn using 2
+      push_cast; rfl
+    · filter_upwards with T; intro t ht
+      simp only [f, norm_mul]
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg _)
+      linarith [norm_nonneg (Phi_circ ν ε (↑t - I * ↑T))]
+  have h_shift : Filter.Tendsto (fun (T : ℝ) ↦ (I * ∫ t in Set.Icc 0 T, f (1/2 - I * t)) - (I * ∫ t in Set.Icc 0 T, f (0 - I * t)))
+      Filter.atTop (nhds (∫ t in (0:ℝ)..(1/2:ℝ), f t)) := by
+    let σ : ℝ := 0
+    let σ' : ℝ := 1/2
+    have hf_anal_rect : ∀ (U : ℝ), U ≥ 0 → HolomorphicOn f (Rectangle (σ : ℂ) (σ' - I * U)) := by
+      intro U hU; convert third_contour_integrand_holomorphicOn ν ε x U hU; simp [σ']
+    convert tendsto_contour_shift_downwards (σ := σ) (σ' := σ') hf_anal_rect h_bottom
+    simp [σ']
+  convert ((tendsto_const_nhds (x := ∫ t in (0:ℝ)..(1/2:ℝ), f t)).sub h_shift).congr' ?_ using 1
+  · simp
+  · filter_upwards [] with T
+    rw [intervalIntegral.integral_of_le (by norm_num : (0:ℝ) ≤ 1/2),
+        ← MeasureTheory.integral_Icc_eq_integral_Ioc]
+    calc
+      (∫ (t : ℝ) in Set.Icc 0 (1 / 2), f t) - ((I * ∫ t in Set.Icc 0 T, f (1 / 2 - I * t)) - (I * ∫ t in Set.Icc 0 T, f (0 - I * t)))
+      _ = (∫ (t : ℝ) in Set.Icc 0 (1 / 2), Phi_star ν ε t * E (-t * x)) -
+          ((I * ∫ t in Set.Icc 0 T, Phi_star ν ε (1 / 2 - I * t) * E (-(1 / 2 - I * t) * x)) -
+          (I * ∫ t in Set.Icc 0 T, Phi_star ν ε (-I * t) * E (-(-I * t) * x))) := by
+        simp only [f]; simp only [zero_sub, neg_neg]
+        have hC : ∫ t in Set.Icc 0 T, Phi_star ν ε (-(I * ↑t)) * E (I * ↑t * ↑x) =
+            ∫ t in Set.Icc 0 T, Phi_star ν ε (-I * ↑t) * E (-(-I * ↑t) * ↑x) := by
+            congr 1; ext t; simp only [neg_mul, neg_neg]
+        rw [hC]
+      _ = (∫ (t : ℝ) in Set.Icc 0 (1 / 2), Phi_star ν ε t * E (-(x * t))) -
+          ((I * ∫ t in Set.Icc 0 T, Phi_star ν ε (1 / 2 - I * t) * E (x * (-1 / 2) + x * I * t)) -
+          (I * ∫ t in Set.Icc 0 T, Phi_star ν ε (-I * t) * E (x * I * t))) := by
+        congr 1
+        · apply MeasureTheory.integral_congr_ae; refine Filter.Eventually.of_forall (fun t ↦ ?_)
+          ring_nf
+        · congr 1
+          · apply congr_arg (fun z ↦ I * z)
+            apply MeasureTheory.integral_congr_ae; refine Filter.Eventually.of_forall (fun t ↦ ?_)
+            ring_nf
+          · apply congr_arg (fun z ↦ I * z)
+            apply MeasureTheory.integral_congr_ae; refine Filter.Eventually.of_forall (fun t ↦ ?_)
+            ring_nf
+      _ = _ := by
+        ring_nf
 
 @[blueprint
   "shift-downwards-simplified"
