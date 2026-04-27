@@ -177,7 +177,8 @@ $$ E_{1,p}(x) \leq E_{1,\Lambda}(x). $$
 -/)
   (proof := /-- Drop all terms in Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} arising from prime powers.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1311)]
 theorem E₁p.le_E₁Λ {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≤ E₁Λ x := by
     sorry
@@ -198,6 +199,15 @@ theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
 noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
 @[blueprint
+  "E1_bound"
+  (title := "Upper bound on $E_1$")
+  (statement := /-- One has $E_1 \leq frac{5 \log 2 + 3}{4}$-/)
+  (proof := /-- We can bound $E_1 \leq \sum_{n=2}^\infty \frac{\log n}{n(n-1)} \leq \frac{\log 2}{2} + \frac{3}{2} \sum_{n=3}^\nfty \frac{\log n}{n^2}$.  Calculus shows that $\log x / x^2$ is decreasing for $x \geq 2 > e^{1/2}$, so we can bound $\sum_{n=3}^\infty \frac{\log n}{n^2} \leq \int_2^\infty \frac{\log t}{t^2}\ dt = \frac{\log 2+1}{2}$.-/)
+  (latexEnv := "proposition")]
+theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
+    sorry
+
+@[blueprint
   "Mertens-first-error-prime-ge"
   (title := "Partial sum of $\\frac{\\log p}{p}$ lower bound")
   (statement := /-- For any $x \geq 1$, one has
@@ -207,8 +217,9 @@ $$ E_1 := \sum_{p} \frac{\log p}{p(p-1)}. $$
 -/)
   (proof := /-- Use the triangle inequality and the geometric series formula to estimate in Lemma \ref{Mertens-sum-mangoldt-div-le} arising from prime powers.
   -/)
-  (latexEnv := "corollary")]
-theorem E₁p.ge (x : ℝ) (hx : 1 ≤ x) :
+  (latexEnv := "corollary")
+  (discussion := 1312)]
+theorem E₁p.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≥ -2 - E₁ := by
     sorry
 
@@ -219,9 +230,10 @@ theorem E₁p.ge (x : ℝ) (hx : 1 ≤ x) :
 $$ \sum_{p \leq x} \frac{\log p}{p} = \log x + O(1). $$
 -/)
   (proof := /-- Immediate from previous two corollaries.
-  -/)]
-theorem sum_log_prime_div_eq_log : ∃ C, ∀ x, 1 ≤ x →
-    |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ C := by
+  -/)
+  (discussion := 1313)]
+theorem sum_log_prime_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
+    |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ log 4 + 4 := by
     sorry
 
 @[blueprint
@@ -233,8 +245,6 @@ theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p) ~[atTop] (fun x ↦ log x) := by
     sorry
-
-blueprint_comment /-- TODO: find some explicit upper bound on $E_1$ that is easy to prove -/
 
 @[blueprint
   "Euler-Mascheroni-const-alt"
