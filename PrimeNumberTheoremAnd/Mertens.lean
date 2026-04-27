@@ -33,7 +33,8 @@ $$ \sum_{n \leq x} \log n = x \log x - \{ x \} \log x - x + 1 + \int_1^x \{ t \}
 &= x \log x - \{ x \} \log x - \int_1^x \frac{t}{t} dt + \int_1^x \{ t \} \frac{dt}{t}.
 \end{align*}
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1303)]
 theorem sum_log_eq (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n =
       x * log x - (x - Nat.floor x) * log x - x + 1 + ∫ t in 1..x, (t - Nat.floor t) / t := by
@@ -47,7 +48,8 @@ $$ \sum_{n \leq x} \log n \leq x \log x.$$
  -/)
   (proof := /-- Trivial since $\log n \leq \log x$.
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1304)]
 theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≤ x * log x := by
   sorry
@@ -62,10 +64,13 @@ $$ \sum_{n \leq x} \log n \geq x \log x - 2 x.$$
  -/)
   (proof := /-- Follows from the previous lemma and a crude bound $\log x \leq x$.
  -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1305)]
 theorem sum_log_ge (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≥ x * log x - 2 * x := by
   sorry
+
+#check ArithmeticFunction.vonMangoldt_sum
 
 @[blueprint
   "Mertens-sum-log-eq-sum-mangoldt"
@@ -81,7 +86,8 @@ $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rflo
 = \sum_{d \leq x} \Lambda(d) \left\lfloor \frac{x}{d} \right\rfloor.
 \end{align*}
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1306)]
 theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) * (Nat.floor (x / d)) := by
     sorry
@@ -104,7 +110,8 @@ $$ E_{1,\Lambda}(x) \geq - 2.$$
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} into Lemma \ref{Mertens-sum-log-ge} and lower bound $x/d$ by $\lfloor x/d \rfloor$.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1307)]
 theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x  ≥ -2 := by
     sorry
@@ -119,7 +126,8 @@ $$ E_{1,\Lambda}(x) \leq \log 4 + 4.$$
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} into Lemma \ref{Mertens-sum-log-le} and upper bound $x/d$ by $\lfloor x/d \rfloor + 1$, and use the Mathlib bound $\psi(x) \leq (\log 4 + 4) x$.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1308)]
 theorem E₁Λ.le {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x ≤ log 4 + 4 := by
     sorry
@@ -132,18 +140,21 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1). $$
 -/)
   (proof := /-- Immediate from previous two corollaries.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1309)]
 theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
     sorry
 
 @[blueprint
-  "Mertens-first-error-mangoldt"]
+  "Mertens-first-error-mangoldt"
+  (discussion := 1309)]
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
     sorry
 
 @[blueprint
-  "Mertens-first-error-mangoldt"]
+  "Mertens-first-error-mangoldt"
+  (discussion := 1309)]
 theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
     (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d) ~[atTop] (fun x ↦ log x) := by
     sorry
