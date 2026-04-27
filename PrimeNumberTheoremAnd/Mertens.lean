@@ -1,5 +1,7 @@
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Architect
 
 
@@ -191,24 +193,18 @@ theorem sum_log_prime_div_eq_log : ∃ C, ∀ x, 1 ≤ x →
 blueprint_comment /-- TODO: find some explicit upper bound on $E_1$ that is easy to prove -/
 
 @[blueprint
-  "Euler-Mascheroni formula"
-  (title := "Formula for Euler-Mascheroni constant")
+  "Euler-Mascheroni-const-alt"
+  (title := "Alternate Formula for Euler-Mascheroni constant")
   (statement := /-- We have $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
--/)
-  (proof := /-- TBA -/)
-  (latexEnv := "theorem")]
-theorem _root_.Real.eulerMascheroniConstant.eq : Real.eulerMascheroniConstant = ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) := by
-  sorry
+-/)]
+noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) :=
 
 @[blueprint
   "Mertens-second-error-mangoldt"
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
   (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - \gamma$.
 -/)]
-noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - Real.eulerMascheroniConstant
-
-theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
-    unfold E₂Λ; ring
+noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
 
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
@@ -244,6 +240,39 @@ $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
 theorem E₂Λ.abs_le (x : ℝ) (hx : 2 ≤ x) :
     abs (E₂Λ x) ≤ (log 4 + 6) / log x := by
     sorry
+
+@[blueprint
+  "log-zeta-eq"
+  (title := "An asymptotic for $\\log \\zeta(s)$")
+  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E₂Λ(x) x^{-s}\ ds$.
+-/)
+  (proof := /-- First write
+$$ \log \zeta(s) = \sum_n \frac{\Lambda(n)}{n^s \log n}$$
+and integrate by parts to write this as
+$$ (s-1) \int_0^\infty (\log \log x + \gamma + E_{2,\Lambda}(x)) x^{-s}\ dx.$$
+Standard calculations give
+$$ (s-1) \int_0^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$$
+and
+$$ (s-1) \int_0^\infty \gamma \cdot x^{-s}\ dx = \gamma$$
+giving the claim.-/)
+  (latexEnv := "theorem")]
+private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
+    log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
+    sorry
+
+#check Real.eulerMascheroniConstant_eq_neg_deriv
+
+@[blueprint
+  "Euler-Mascheroni-eq"
+  (title := "Compatibility with Mathlib Euler-Mascheroni constant")
+  (statement := /-- $\gamma$ is the Euler--Mascheroni constant.
+-/)
+  (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
+  (latexEnv := "theorem")]
+theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
+
+theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
+    unfold E₂Λ; linarith [γ.eq_eulerMascheroni]
 
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"
