@@ -14,11 +14,11 @@ In this section we give explicit versions of Mertens' theorems, with an aim to u
 
 The arguments here are drawn from Leo Goldmakher's ``A quick proof of Mertens' theorem'' from https://web.williams.edu/Mathematics/lg5/mertens.pdf
 
+The unfinished formalization of Mertens' theorems by Arend Mellendijk in https://github.com/FLDutchmann/Analytic/blob/main/Analytic/Mertens.lean may also be relevant here.
 -/
 
-open Real
+open Real Finset Filter Asymptotics
 open ArithmeticFunction hiding log
-open Finset
 
 @[blueprint
   "Mertens-sum-log"
@@ -49,7 +49,7 @@ $$ \sum_{n \leq x} \log n \leq x \log x.$$
  -/)
   (latexEnv := "lemma")]
 theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
-    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≤ x * log x - x + 1 + log x := by
+    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≤ x * log x := by
   sorry
 
 #check Real.log_le_self
@@ -82,7 +82,7 @@ $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rflo
 \end{align*}
  -/)
   (latexEnv := "lemma")]
-theorem sum_log_eq_sum_mangoldt (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) * (Nat.floor (x / d)) := by
     sorry
 
@@ -105,7 +105,7 @@ $$ E_{1,\Lambda}(x) \geq - 2.$$
   (proof := /-- Insert Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} into Lemma \ref{Mertens-sum-log-ge} and lower bound $x/d$ by $\lfloor x/d \rfloor$.
   -/)
   (latexEnv := "corollary")]
-theorem E₁Λ.ge (x : ℝ) (hx : 1 ≤ x) :
+theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x  ≥ -2 := by
     sorry
 
@@ -120,7 +120,7 @@ $$ E_{1,\Lambda}(x) \leq \log 4 + 4.$$
   (proof := /-- Insert Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} into Lemma \ref{Mertens-sum-log-le} and upper bound $x/d$ by $\lfloor x/d \rfloor + 1$, and use the Mathlib bound $\psi(x) \leq (\log 4 + 4) x$.
   -/)
   (latexEnv := "corollary")]
-theorem E₁Λ.le (x : ℝ) (hx : 1 ≤ x) :
+theorem E₁Λ.le {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x ≤ log 4 + 4 := by
     sorry
 
@@ -133,8 +133,19 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1). $$
   (proof := /-- Immediate from previous two corollaries.
   -/)
   (latexEnv := "corollary")]
-theorem sum_mangoldt_div_eq_log (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
+    sorry
+
+@[blueprint
+  "Mertens-first-error-mangoldt"]
+theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
+    sorry
+
+@[blueprint
+  "Mertens-first-error-mangoldt"]
+theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
+    (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d) ~[atTop] (fun x ↦ log x) := by
     sorry
 
 @[blueprint
@@ -148,6 +159,19 @@ theorem sum_log_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Pri
     unfold E₁p; ring
 
 @[blueprint
+  "Mertens-first-error-prime-le-mangoldt"
+  (title := "Prime error for Mertens first theorem bounded by von Mangoldt error")
+  (statement := /-- For any $x \geq 1$, one has
+$$ E_{1,p}(x) \leq E_{1,\Lambda}(x). $$
+-/)
+  (proof := /-- Drop all terms in Lemma \ref{Mertens-sum-log-eq-sum-mangoldt} arising from prime powers.
+  -/)
+  (latexEnv := "corollary")]
+theorem E₁p.le_E₁Λ {x : ℝ} (hx : 1 ≤ x) :
+    E₁p x ≤ E₁Λ x := by
+    sorry
+
+@[blueprint
   "Mertens-first-error-prime-le"
   (title := "Partial sum of $\\frac{\\log p}{p}$ upper bound")
   (statement := /-- For any $x \geq 1$, one has
@@ -156,9 +180,9 @@ $$ E_{1,p}(x) \leq \log 4 + 4.$$
   (proof := /-- Drop all terms in Lemma \ref{Mertens-sum-mangoldt-div-le} arising from prime powers.
   -/)
   (latexEnv := "corollary")]
-theorem E₁p.le (x : ℝ) (hx : 1 ≤ x) :
+theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≤ log 4 + 4 := by
-    sorry
+    linarith [E₁Λ.le hx, E₁p.le_E₁Λ hx]
 
 noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
@@ -178,8 +202,8 @@ theorem E₁p.ge (x : ℝ) (hx : 1 ≤ x) :
     sorry
 
 @[blueprint
-  "Mertens-first-theorem-prime"
-  (title := "Mertens' first theorem (prime form)")
+  "Mertens-first-theorem-prime-bounded"
+  (title := "Error term in Mertens' first theorem bounded (prime form)")
   (statement := /-- For any $x \geq 1$, one has
 $$ \sum_{p \leq x} \frac{\log p}{p} = \log x + O(1). $$
 -/)
@@ -189,15 +213,24 @@ theorem sum_log_prime_div_eq_log : ∃ C, ∀ x, 1 ≤ x →
     |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ C := by
     sorry
 
+@[blueprint
+  "Mertens-first-theorem-prime-bounded"]
+theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
+    sorry
+
+@[blueprint
+  "Mertens-first-theorem-prime-bounded"]
+theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p) ~[atTop] (fun x ↦ log x) := by
+    sorry
 
 blueprint_comment /-- TODO: find some explicit upper bound on $E_1$ that is easy to prove -/
 
 @[blueprint
   "Euler-Mascheroni-const-alt"
   (title := "Alternate Formula for Euler-Mascheroni constant")
-  (statement := /-- We have $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
+  (statement := /-- We set $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
 -/)]
-noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) 
+noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2)
 
 @[blueprint
   "Mertens-second-error-mangoldt"
@@ -223,13 +256,13 @@ $$ E_{2,\Lambda}(x) = \frac{E_{1,\Lambda}(x)}{\log x} - \int_x^\infty \frac{E_{1
 \end{align*}
   -/)
   (latexEnv := "corollary")]
-theorem E₂Λ.eq (x : ℝ) (hx : 2 ≤ x) :
+theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
     sorry
 
 @[blueprint
-  "Mertens-second-error-mangoldt-eq"
-  (title := "Integral form for second error (von Mangoldt form)")
+  "Mertens-second-error-mangoldt-bound"
+  (title := "Bound for second Mertens error (von Mangoldt form)")
   (statement := /-- For any $x \geq 2$, one has
 $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
 -/)
@@ -237,8 +270,18 @@ $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
   Insert Lemma \ref{mertens-first-error-mangoldt-le} and Lemma \ref{mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
   -/)
   (latexEnv := "corollary")]
-theorem E₂Λ.abs_le (x : ℝ) (hx : 2 ≤ x) :
+theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
     abs (E₂Λ x) ≤ (log 4 + 6) / log x := by
+    sorry
+
+@[blueprint
+  "Mertens-second-error-mangoldt-bound"]
+theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
+    sorry
+
+@[blueprint
+  "Mertens-second-error-mangoldt-bound"]
+theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
     sorry
 
 @[blueprint
@@ -287,6 +330,16 @@ theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
     sorry
 
 @[blueprint
+  "Mertens-second-theorem-mangoldt-weak"]
+theorem sum_mangoldt_div_log_eq_log_log' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)) =O[atTop] (fun _ ↦ (1:ℝ)) := by
+    sorry
+
+@[blueprint
+  "Mertens-second-theorem-mangoldt-weak"]
+theorem sum_mangoldt_div_log_eq_log_log'' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d)) ~[atTop] (fun x ↦ log (log x)) := by
+    sorry
+
+@[blueprint
   "Meissel-Mertens-constant"
   (title := "The Meissel-Mertens constant")
   (statement := /-- We define $M := \int_2^\infty \frac{E_{1,p}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.-/)]
@@ -319,9 +372,9 @@ theorem M.ge : M ≥ -(2 + E₁) / log 2 + 1 - log (log 2) := by
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
   (statement := /-- We define $E_{2,p}(x) := \sum_{p \leq x} \frac{1}{p} - \log \log x - M$.
 -/)]
-noncomputable def E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 1 / p - log (log x) - M
+noncomputable def E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1:ℝ) / p - log (log x) - M
 
-theorem sum_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 1 / p = log (log x) + M + E₂p x := by
+theorem sum_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1:ℝ) / p = log (log x) + M + E₂p x := by
     unfold E₂p; ring
 
 @[blueprint
@@ -334,7 +387,7 @@ $$ E_{2,p}(x) = \frac{E_{1,p}(x)}{\log x} - \int_x^\infty \frac{E_{1,p}(t)}{t \l
   Similar to Lemma \ref{Mertens-second-error-mangoldt-eq}.  (One may wish to unify these using some abstract lemma.)
   -/)
   (latexEnv := "corollary")]
-theorem E₂p.eq (x : ℝ) (hx : 2 ≤ x) :
+theorem E₂p.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂p x = E₁p x / log x - ∫ t in Set.Ioi x, E₁p t / (t * log t^2) := by
     sorry
 
@@ -347,8 +400,18 @@ $$ |E_{2,p}(x)| \leq \frac{\log 4 + 6 + E_1}{\log x}.$$
   (proof := /-- Similar to Lemma \ref{Mertens-second-error-prime-eq}.
   -/)
   (latexEnv := "corollary")]
-theorem E₂p.abs_le (x : ℝ) (hx : 2 ≤ x) :
+theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
     abs (E₂p x) ≤ (log 4 + 6 + E₁) / log x := by
+    sorry
+
+@[blueprint
+  "Mertens-second-error-prime-abs-le"]
+theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
+    sorry
+
+@[blueprint
+  "Mertens-second-error-prime-abs-le"]
+theorem E₂p.bound' : E₂p =o[atTop] (fun x ↦ (1:ℝ)) := by
     sorry
 
 @[blueprint
@@ -360,7 +423,26 @@ $$ \sum_{p \leq x} \frac{1}{p} = \log \log x + O(1). $$
   (proof := /-- Immediate from previous two corollaries.
   -/)]
 theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
-    |∑ p ∈ Ioc 0 ⌊ x⌋₊ with p.Prime, 1 / p - log (log x)| ≤ C := by
+    |∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)| ≤ C := by
+    sorry
+
+@[blueprint
+  "Mertens-second-theorem-prime-weak"]
+theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)) =O[atTop] (fun x ↦ (1:ℝ)) := by
+    sorry
+
+@[blueprint
+  "Mertens-second-theorem-prime-weak"]
+theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p) ~[atTop] (fun x ↦ log (log x)) := by
+    sorry
+
+@[blueprint
+  "Meissel-Mertens-eq"
+  (title := "Formula for Meissel-Mertens constant")
+  (statement := /-- One has $M = \gamma + \sum_p \log(1-\frac{1}{p}) + \frac{1}{p}$.
+-/)
+  (proof := /-- The RHS can be Taylor expanded as $\sum_{j=2}^\infty \sum_p \frac{1}{jp^j}$.  Meanwhile, the difference between $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n}$ and $\sum_{p \leq x} \frac{1}{p}$ is equal to $\sum_{j=2}^\infty \sum_{p: p^j \leq x} \frac{1}{j p^j}$.  Applying the monotone convergence theorem, Lemma \ref{Mertens-second-error-prime-abs-le}, and Lemma \ref{Mertens-second-error-mangoldt-bound} gives the claim.  -/)]
+theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by
     sorry
 
 @[blueprint
@@ -387,11 +469,24 @@ theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊
   (statement := /-- For any $x \geq 2$, one has
 $$ E_3(x) = O(1/\log x)$$
 -/)
-  (proof := /-- Follows from Lemma \ref{Mertens-second-error-prime-abs-le} and Taylor expansion.  TODO: find explicit constant.
+  (proof := /-- Using the Taylor expansion
+  $$ \log (1 - \frac{1}{p}) = \sum_{j=1}^\infty \frac{1}{jp^j} = \sum_{j=1}^\infty \frac{\Lambda(p^j)}{p^j \log p^j}$$
+  one can write
+  $$ E_3(x) = E_{2,\Lambda}(x) + \sum_{p \leq x} \sum_{j \geq 2: p^j > x} \frac{j}{p^j}.$$
+One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \sqrt{x}$ and by $O(1/x)$ when $p \leq \sqrt{x}$, so the second error here is $O(1/\sqrt{x})$, giving the claim.
   -/)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → abs (E₃ x) ≤ C / log x := by
     sorry
 
+@[blueprint
+  "Mertens-third-theorem-error-le"]
+theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
+    sorry
+
+@[blueprint
+  "Mertens-third-theorem-error-le"]
+theorem E₃.bound' : E₃ =o[atTop] (fun x ↦ (1:ℝ)) := by
+    sorry
 
 
 end Mertens
