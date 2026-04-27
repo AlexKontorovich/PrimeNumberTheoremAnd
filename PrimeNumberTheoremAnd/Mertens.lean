@@ -1,11 +1,14 @@
 import Mathlib.NumberTheory.Chebyshev
+import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Architect
 
 
 namespace Mertens
 
 blueprint_comment /--
-\section{Mertens' theorem}
+\section{Mertens' theorems}
 
 In this section we give explicit versions of Mertens' theorems, with an aim to upstreaming these results to Mathlib.  In particular, the arguments here should be self-contained and written for efficiency, coherency, and clarity.  As such, extensive use of AI tools is \emph{strongly discouraged} in this section.
 
@@ -55,7 +58,7 @@ theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
   "Mertens-sum-log-ge"
   (title := "Partial sum of logarithm lower bound")
   (statement := /-- For any $x \geq 1$, one has
-$$ \sum_{n \leq x} \log n \geq x \log x - 2 * x.$$
+$$ \sum_{n \leq x} \log n \geq x \log x - 2 x.$$
  -/)
   (proof := /-- Follows from the previous lemma and a crude bound $\log x \leq x$.
  -/)
@@ -90,6 +93,9 @@ theorem sum_log_eq_sum_mangoldt (x : ℝ) (hx : 1 ≤ x) :
 -/)]
 noncomputable def E₁Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x
 
+theorem sum_mangoldt_div_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d = log x + E₁Λ x := by
+    unfold E₁Λ; ring
+
 @[blueprint
   "Mertens-first-error-mangoldt-ge"
   (title := "Partial sum of $\\Lambda(d)/d$ lower bound")
@@ -119,11 +125,27 @@ theorem E₁Λ.le (x : ℝ) (hx : 1 ≤ x) :
     sorry
 
 @[blueprint
+  "Mertens-first-theorem-mangoldt"
+  (title := "Mertens' first theorem (von Mangoldt form)")
+  (statement := /-- For any $x \geq 1$, one has
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1). $$
+-/)
+  (proof := /-- Immediate from previous two corollaries.
+  -/)
+  (latexEnv := "corollary")]
+theorem sum_mangoldt_div_eq_log (x : ℝ) (hx : 1 ≤ x) :
+    |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
+    sorry
+
+@[blueprint
   "Mertens-first-error-prime"
   (title := "The remainder term in Mertens first theorem (prime form)")
   (statement := /-- We define $E_{1,p}(x) := \sum_{p \leq x} \frac{\log p}{p} - \log x$.
 -/)]
 noncomputable def E₁p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x
+
+theorem sum_log_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p = log x + E₁p x := by
+    unfold E₁p; ring
 
 @[blueprint
   "Mertens-first-error-prime-le"
@@ -155,46 +177,34 @@ theorem E₁p.ge (x : ℝ) (hx : 1 ≤ x) :
     E₁p x ≥ -2 - E₁ := by
     sorry
 
-blueprint_comment /-- TODO: find some explicit bound on $E_1$ that is easy to prove -/
+@[blueprint
+  "Mertens-first-theorem-prime"
+  (title := "Mertens' first theorem (prime form)")
+  (statement := /-- For any $x \geq 1$, one has
+$$ \sum_{p \leq x} \frac{\log p}{p} = \log x + O(1). $$
+-/)
+  (proof := /-- Immediate from previous two corollaries.
+  -/)]
+theorem sum_log_prime_div_eq_log : ∃ C, ∀ x, 1 ≤ x →
+    |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ C := by
+    sorry
+
+
+blueprint_comment /-- TODO: find some explicit upper bound on $E_1$ that is easy to prove -/
 
 @[blueprint
-  "Mertens-second-constant-mangoldt"
-  (title := "The constant term in Mertens second theorem (von Mangoldt form)")
-  (statement := /-- We define $M_\Lambda := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
+  "Euler-Mascheroni-const-alt"
+  (title := "Alternate Formula for Euler-Mascheroni constant")
+  (statement := /-- We have $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
 -/)]
-noncomputable def MΛ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2)
-
-@[blueprint
-  "Mertens-second-constant-mangoldt-ge"
-  (title := "Upper bound for $M_\\Lambda$")
-  (statement := /-- One has $M_\Lambda \leq \frac{\log 4 + 4}{\log 2} + 1 - \log \log 2$.
--/)
-  (proof := /-- Insert Lemma \ref{Mertens-first-error-mangoldt-le} into the definition of $M_\Lambda$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
-  -/)
-  (latexEnv := "corollary")]
-theorem MΛ.ge : MΛ ≤ (log 4 + 4) / log 2 + 1 - log (log 2) := by
-    sorry
-
-@[blueprint
-  "Mertens-second-constant-mangoldt-le"
-  (title := "Lower bound for $M_\\Lambda$")
-  (statement := /-- One has $M_\Lambda \geq -\frac{2}{\log 2} + 1 - \log \log 2$.
--/)
-  (proof := /-- Insert Lemma \ref{Mertens-first-error-mangoldt-ge} into the definition of $M_\Lambda$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
-  -/)
-  (latexEnv := "corollary")]
-theorem MΛ.le : MΛ ≥ -2 / log 2 + 1 - log (log 2) := by
-    sorry
-
-blueprint_comment /-- TODO: Show that $M_\Lambda = \gamma$ -/
+noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) 
 
 @[blueprint
   "Mertens-second-error-mangoldt"
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
-  (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - M_\Lambda$.
+  (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - \gamma$.
 -/)]
-noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - MΛ
-
+noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
 
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
@@ -209,7 +219,7 @@ $$ E_{2,\Lambda}(x) = \frac{E_{1,\Lambda}(x)}{\log x} - \int_x^\infty \frac{E_{1
 &= \frac{\log x + E_{1,\Lambda}(x)}{\log x}
  + \int_{2}^{x} \frac{dt}{t\log t}
  + \int_{2}^{x} \frac{E_{1,\Lambda}(t)}{t\log^{2} t}\, dt \\
-&= C + \frac{E_{1,\Lambda}(x)}{\log x} + \log \log x - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt.
+&= \gamma + \frac{E_{1,\Lambda}(x)}{\log x} + \log \log x - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt.
 \end{align*}
   -/)
   (latexEnv := "corollary")]
@@ -232,40 +242,87 @@ theorem E₂Λ.abs_le (x : ℝ) (hx : 2 ≤ x) :
     sorry
 
 @[blueprint
-  "Mertens-second-constant-prime"
-  (title := "The constant term in Mertens second theorem (prime form)")
-  (statement := /-- We define $M_p := \int_2^\infty \frac{E_{1,p}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.  This constant is also known as the Meissel-Mertens constant. -/)]
-noncomputable def M_p : ℝ := ∫ t in Set.Ioi 2, E₁p t / (t * log t^2) + 1 - log (log 2)
+  "log-zeta-eq"
+  (title := "An asymptotic for $\\log \\zeta(s)$")
+  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E₂Λ(x) x^{-s}\ ds$.
+-/)
+  (proof := /-- First write
+$$ \log \zeta(s) = \sum_n \frac{\Lambda(n)}{n^s \log n}$$
+and integrate by parts to write this as
+$$ (s-1) \int_0^\infty (\log \log x + \gamma + E_{2,\Lambda}(x)) x^{-s}\ dx.$$
+Standard calculations give
+$$ (s-1) \int_0^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$$
+and
+$$ (s-1) \int_0^\infty \gamma \cdot x^{-s}\ dx = \gamma$$
+giving the claim.-/)
+  (latexEnv := "theorem")]
+private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
+    log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
+    sorry
+
+#check Real.eulerMascheroniConstant_eq_neg_deriv
 
 @[blueprint
-  "Mertens-second-constant-prime-ge"
-  (title := "Upper bound for $M_p$")
-  (statement := /-- One has $M_p \leq \frac{\log 4 + 4}{\log 2} + 1 - \log \log 2$.
+  "Euler-Mascheroni-eq"
+  (title := "Compatibility with Mathlib Euler-Mascheroni constant")
+  (statement := /-- $\gamma$ is the Euler--Mascheroni constant.
+-/)
+  (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
+  (latexEnv := "theorem")]
+theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
+
+theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
+    unfold E₂Λ; linarith [γ.eq_eulerMascheroni]
+
+@[blueprint
+  "Mertens-second-theorem-mangoldt-weak"
+  (title := "Mertens' second theorem (weak von Mangoldt form)")
+  (statement := /-- For any $x \geq 2$, one has
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + O(1). $$
+-/)
+  (proof := /-- Immediate from previous two corollaries.
+  -/)]
+theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
+    |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)| ≤ C := by
+    sorry
+
+@[blueprint
+  "Meissel-Mertens-constant"
+  (title := "The Meissel-Mertens constant")
+  (statement := /-- We define $M := \int_2^\infty \frac{E_{1,p}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.-/)]
+noncomputable def M : ℝ := ∫ t in Set.Ioi 2, E₁p t / (t * log t^2) + 1 - log (log 2)
+
+@[blueprint
+  "Mertens-second-constant-prime-le"
+  (title := "Upper bound for $M$")
+  (statement := /-- One has $M \leq \frac{\log 4 + 4}{\log 2} + 1 - \log \log 2$.
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-first-error-prime-le} into the definition of $M_p$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
   -/)
   (latexEnv := "corollary")]
-theorem M_p.ge : M_p ≤ (log 4 + 4) / log 2 + 1 - log (log 2) := by
+theorem M.le : M ≤ (log 4 + 4) / log 2 + 1 - log (log 2) := by
     sorry
 
 @[blueprint
-  "Mertens-second-constant-prime-le"
-  (title := "Lower bound for $M_p$")
-  (statement := /-- One has $M_p \geq -\frac{2 + E_1}{\log 2} + 1 - \log \log 2$.
+  "Mertens-second-constant-prime-ge"
+  (title := "Lower bound for $M$")
+  (statement := /-- One has $M \geq -\frac{2 + E_1}{\log 2} + 1 - \log \log 2$.
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-first-error-prime-ge} into the definition of $M_p$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
   -/)
   (latexEnv := "corollary")]
-theorem M_p.le : M_p ≥ -(2 + E₁) / log 2 + 1 - log (log 2) := by
+theorem M.ge : M ≥ -(2 + E₁) / log 2 + 1 - log (log 2) := by
     sorry
 
 @[blueprint
   "Mertens-second-error-mangoldt"
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
-  (statement := /-- We define $E_{2,p}(x) := \sum_{p \leq x} \frac{1}{p} - \log \log x - M_p$.
+  (statement := /-- We define $E_{2,p}(x) := \sum_{p \leq x} \frac{1}{p} - \log \log x - M$.
 -/)]
-noncomputable def E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 1 / p - log (log x) - M_p
+noncomputable def E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 1 / p - log (log x) - M
 
+theorem sum_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 1 / p = log (log x) + M + E₂p x := by
+    unfold E₂p; ring
 
 @[blueprint
   "Mertens-second-error-prime-eq"
@@ -282,8 +339,8 @@ theorem E₂p.eq (x : ℝ) (hx : 2 ≤ x) :
     sorry
 
 @[blueprint
-  "Mertens-second-error-prime-eq"
-  (title := "Integral form for second error (prime form)")
+  "Mertens-second-error-prime-abs-le"
+  (title := "Bound for second error (prime form)")
   (statement := /-- For any $x \geq 2$, one has
 $$ |E_{2,p}(x)| \leq \frac{\log 4 + 6 + E_1}{\log x}.$$
 -/)
@@ -294,7 +351,47 @@ theorem E₂p.abs_le (x : ℝ) (hx : 2 ≤ x) :
     abs (E₂p x) ≤ (log 4 + 6 + E₁) / log x := by
     sorry
 
+@[blueprint
+  "Mertens-second-theorem-prime-weak"
+  (title := "Mertens' second theorem (weak prime form)")
+  (statement := /-- For any $x \geq 2$, one has
+$$ \sum_{p \leq x} \frac{1}{p} = \log \log x + O(1). $$
+-/)
+  (proof := /-- Immediate from previous two corollaries.
+  -/)]
+theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
+    |∑ p ∈ Ioc 0 ⌊ x⌋₊ with p.Prime, 1 / p - log (log x)| ≤ C := by
+    sorry
 
-blueprint_comment /-- TODO: Mertens' third theorem -/
+@[blueprint
+  "Mertens-third-error"
+  (title := "The remainder term in Mertens third theorem ")
+  (statement := /-- We define $E_3(x) := \sum_{p \leq x} (1 - \frac{1}{p}) + \log\log x + \gamma$.
+-/)]
+noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - 1 / p) + log (log x) + Real.eulerMascheroniConstant
+
+@[blueprint
+  "Mertens-third-theorem-error"
+  (title := "Mertens' third theorem error term")
+  (statement := /-- For any $x \geq 2$, one has
+$$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \exp(E_3(x)). $$
+-/)
+  (proof := /-- Immediate from definition
+  -/)]
+theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - 1 / p) = exp (-Real.eulerMascheroniConstant) * exp (E₃ x) / log x := by
+    sorry
+
+@[blueprint
+  "Mertens-third-theorem-error-le"
+  (title := "Mertens' third theorem error bound")
+  (statement := /-- For any $x \geq 2$, one has
+$$ E_3(x) = O(1/\log x)$$
+-/)
+  (proof := /-- Follows from Lemma \ref{Mertens-second-error-prime-abs-le} and Taylor expansion.  TODO: find explicit constant.
+  -/)]
+theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → abs (E₃ x) ≤ C / log x := by
+    sorry
+
+
 
 end Mertens
