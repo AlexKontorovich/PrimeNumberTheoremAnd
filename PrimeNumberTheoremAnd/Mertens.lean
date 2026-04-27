@@ -197,7 +197,7 @@ blueprint_comment /-- TODO: find some explicit upper bound on $E_1$ that is easy
   (title := "Alternate Formula for Euler-Mascheroni constant")
   (statement := /-- We have $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
 -/)]
-noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) :=
+noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2) 
 
 @[blueprint
   "Mertens-second-error-mangoldt"
