@@ -78,7 +78,8 @@ $$ \sum_{n \leq x} \log n = \log(\lfloor x \rfloor!). $$
  -/)
   (proof := /-- Follows from the definition of the factorial function.  Is not needed for the Mertens theorems, but is a natural fact to have.
  -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 1315)]
 theorem sum_log_eq_log_factorial (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.factorial (Nat.floor x)) := by
     sorry
@@ -214,9 +215,10 @@ noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)
 @[blueprint
   "E1_bound"
   (title := "Upper bound on $E_1$")
-  (statement := /-- One has $E_1 \leq frac{5 \log 2 + 3}{4}$-/)
+  (statement := /-- One has $E_1 \leq \frac{5 \log 2 + 3}{4}$-/)
   (proof := /-- We can bound $E_1 \leq \sum_{n=2}^\infty \frac{\log n}{n(n-1)} \leq \frac{\log 2}{2} + \frac{3}{2} \sum_{n=3}^\infty \frac{\log n}{n^2}$.  Calculus shows that $\log x / x^2$ is decreasing for $x \geq 2 > e^{1/2}$, so we can bound $\sum_{n=3}^\infty \frac{\log n}{n^2} \leq \int_2^\infty \frac{\log t}{t^2}\ dt = \frac{\log 2+1}{2}$.-/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
 
@@ -289,7 +291,8 @@ $$ E_{2,\Lambda}(x) = \frac{E_{1,\Lambda}(x)}{\log x} - \int_x^\infty \frac{E_{1
 &= \gamma + \frac{E_{1,\Lambda}(x)}{\log x} + \log \log x - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt.
 \end{align*}
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1317)]
 theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
     sorry
@@ -301,9 +304,10 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
 $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
 -/)
   (proof := /--
-  Insert Lemma \ref{mertens-first-error-mangoldt-le} and Lemma \ref{mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
+  Insert Lemma \ref{Mertens-first-error-mangoldt-le} and Lemma \ref{Mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1318)]
 theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
     abs (E₂Λ x) ≤ (log 4 + 6) / log x := by
     sorry
@@ -320,7 +324,7 @@ theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
 
 @[blueprint
   "log-zeta-eq"
-  (title := "An asymptotic for $\\log \\zeta(s)$")
+  (title := "An identity for $\\log \\zeta(s)$")
   (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E₂Λ(x) x^{-s}\ ds$.
 -/)
   (proof := /-- First write
@@ -332,7 +336,8 @@ $$ (s-1) \int_0^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$$
 and
 $$ (s-1) \int_0^\infty \gamma \cdot x^{-s}\ dx = \gamma$$
 giving the claim.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 1319)]
 private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
     sorry
@@ -345,7 +350,8 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   (statement := /-- $\gamma$ is the Euler--Mascheroni constant.
 -/)
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 1320)]
 theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
 
 theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
