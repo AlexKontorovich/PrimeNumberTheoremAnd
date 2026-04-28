@@ -10,7 +10,15 @@ namespace Mertens
 blueprint_comment /--
 \section{Mertens' theorems}
 
-In this section we give explicit versions of Mertens' theorems, with an aim to upstreaming these results to Mathlib.  In particular, the arguments here should be self-contained and written for efficiency, coherency, and clarity.  As such, extensive use of AI tools is \emph{strongly discouraged} in this section.
+In this section we give explicit versions of Mertens' theorems:
+\begin{itemize}
+\item Mertens' first theorem (von Mangoldt form): $\sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1)$.
+\item Mertens' first theorem (prime form): $\sum_{p \leq x} \frac{\log p}{p} = \log x + O(1)$.
+\item Mertens' second theorem (von Mangoldt form): $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + \gamma + O(1/\log x)$.
+\item Mertens' second theorem (prime form): $\sum_{p \leq x} \frac{1}{p} = \log \log x + M + O(1/\log x)$, where $M$ is the Meissel-Mertens constant.
+\item Mertens' third theorem: $\prod_{p \leq x} (1 - \frac{1}{p}) = e^{-\gamma}/\log x + O(1/\log^2 x)$.
+\end{itemize}
+We aim to upstreaming these results to Mathlib.  In particular, the arguments here should be self-contained and written for efficiency, coherency, and clarity.  As such, extensive use of AI tools is \emph{strongly discouraged} in this section.
 
 The arguments here are drawn from Leo Goldmakher's ``A quick proof of Mertens' theorem'' from https://web.williams.edu/Mathematics/lg5/mertens.pdf
 
@@ -264,7 +272,9 @@ theorem sum_log_prime_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
-    sorry
+    simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
+      eventually_atTop, ge_iff_le, E₁p]
+    exact ⟨ log 4 + 4, 1, fun _ ↦ sum_log_prime_div_eq_log ⟩
 
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
@@ -330,13 +340,18 @@ $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
   (latexEnv := "corollary")
   (discussion := 1318)]
 theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
-    abs (E₂Λ x) ≤ (log 4 + 6) / log x := by
+    |E₂Λ x| ≤ (log 4 + 6) / log x := by
     sorry
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
 theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
-    sorry
+    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop, ge_iff_le]
+    use log 4 + 6, 2
+    intro x hx
+    convert E₂Λ.abs_le hx using 1
+    have : 0 < log x := by apply log_pos; linarith
+    grind [abs_of_pos this]
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
@@ -346,7 +361,7 @@ theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
 @[blueprint
   "log-zeta-eq"
   (title := "An identity for $\\log \\zeta(s)$")
-  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E₂Λ(x) x^{-s}\ ds$.
+  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E_{2,\Lambda}(x) x^{-s}\ ds$.
 -/)
   (proof := /-- First write
 $$ \log \zeta(s) = \sum_n \frac{\Lambda(n)}{n^s \log n}$$
@@ -394,7 +409,10 @@ theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"]
 theorem sum_mangoldt_div_log_eq_log_log' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)) =O[atTop] (fun _ ↦ (1:ℝ)) := by
-    sorry
+    simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
+      eventually_atTop, ge_iff_le]
+    obtain ⟨ C, _ ⟩ := sum_mangoldt_div_log_eq_log_log
+    use C, 2
 
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"]
@@ -469,13 +487,18 @@ $$ |E_{2,p}(x)| \leq \frac{\log 4 + 6 + E_1}{\log x}.$$
   (latexEnv := "corollary")
   (discussion := 1326)]
 theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
-    abs (E₂p x) ≤ (log 4 + 6 + E₁) / log x := by
+    |E₂p x| ≤ (log 4 + 6 + E₁) / log x := by
     sorry
 
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
 theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
-    sorry
+    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop, ge_iff_le]
+    use log 4 + 6 + E₁, 2
+    intro x hx
+    convert E₂p.abs_le hx using 1
+    have : 0 < log x := by apply log_pos; linarith
+    grind [abs_of_pos this]
 
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
@@ -497,8 +520,11 @@ theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
 
 @[blueprint
   "Mertens-second-theorem-prime-weak"]
-theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)) =O[atTop] (fun x ↦ (1:ℝ)) := by
-    sorry
+theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)) =O[atTop] (fun _ ↦ (1:ℝ)) := by
+    simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
+      eventually_atTop, ge_iff_le]
+    obtain ⟨ C, hC ⟩ := sum_prime_div_eq_log_log
+    use C, 2
 
 @[blueprint
   "Mertens-second-theorem-prime-weak"]
@@ -538,7 +564,7 @@ theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊
   "Mertens-third-theorem-error-le"
   (title := "Mertens' third theorem error bound")
   (statement := /-- For any $x \geq 2$, one has
-$$ E_3(x) = O(1/\log x)$$
+$$ E_3(x) = O\left(\frac{1}{\log x}\right) $$
 -/)
   (proof := /-- Using the Taylor expansion
   $$ \log (1 - \frac{1}{p}) = \sum_{j=1}^\infty \frac{1}{jp^j} = \sum_{j=1}^\infty \frac{\Lambda(p^j)}{p^j \log p^j}$$
@@ -547,13 +573,19 @@ $$ E_3(x) = O(1/\log x)$$
 One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \sqrt{x}$ and by $O(1/x)$ when $p \leq \sqrt{x}$, so the second error here is $O(1/\sqrt{x})$, giving the claim.
   -/)
   (discussion := 1330)]
-theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → abs (E₃ x) ≤ C / log x := by
+theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
     sorry
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
-    sorry
+    simp only [isBigO_iff, norm_eq_abs, eventually_atTop, ge_iff_le]
+    obtain ⟨ C, hC ⟩ := E₃.abs_le
+    use C, 2
+    convert hC using 3 with x hx
+    have : 0 < log x := by apply log_pos; linarith
+    have : 0 < 1 / log x := by positivity
+    grind [abs_of_pos this]
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
@@ -565,5 +597,9 @@ theorem E₃.bound' : E₃ =o[atTop] (fun x ↦ (1:ℝ)) := by
 theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p)) ~[atTop] (fun x ↦ exp (-Real.eulerMascheroniConstant) / log x) := by
     sorry
 
+@[blueprint
+  "Mertens-third-theorem-error-le"]
+theorem E₃.bound''' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) - exp (-Real.eulerMascheroniConstant) / log x) =O[atTop] (fun x ↦ 1 / (log x)^2) := by
+    sorry
 
 end Mertens
