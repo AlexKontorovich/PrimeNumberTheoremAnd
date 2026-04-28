@@ -70,6 +70,19 @@ theorem sum_log_ge (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≥ x * log x - 2 * x := by
   sorry
 
+@[blueprint
+  "Mertens-sum-log-eq-log-factorial"
+  (title := "Partial sum of logarithm as logarithm of factorial")
+  (statement := /-- For any $x \geq 1$, one has
+$$ \sum_{n \leq x} \log n = \log(\lfloor x \rfloor!). $$
+ -/)
+  (proof := /-- Follows from the definition of the factorial function.  Is not needed for the Mertens theorems, but is a natural fact to have.
+ -/)
+  (latexEnv := "proposition")]
+theorem sum_log_eq_log_factorial (x : ℝ) (hx : 1 ≤ x) :
+    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.factorial (Nat.floor x)) := by
+    sorry
+
 #check ArithmeticFunction.vonMangoldt_sum
 
 @[blueprint
@@ -100,7 +113,7 @@ theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
 noncomputable def E₁Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x
 
 theorem sum_mangoldt_div_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d = log x + E₁Λ x := by
-    unfold E₁Λ; ring
+    grind [E₁Λ]
 
 @[blueprint
   "Mertens-first-error-mangoldt-ge"
@@ -167,7 +180,7 @@ theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
 noncomputable def E₁p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x
 
 theorem sum_log_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p = log x + E₁p x := by
-    unfold E₁p; ring
+    grind [E₁p]
 
 @[blueprint
   "Mertens-first-error-prime-le-mangoldt"
@@ -202,7 +215,7 @@ noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)
   "E1_bound"
   (title := "Upper bound on $E_1$")
   (statement := /-- One has $E_1 \leq frac{5 \log 2 + 3}{4}$-/)
-  (proof := /-- We can bound $E_1 \leq \sum_{n=2}^\infty \frac{\log n}{n(n-1)} \leq \frac{\log 2}{2} + \frac{3}{2} \sum_{n=3}^\nfty \frac{\log n}{n^2}$.  Calculus shows that $\log x / x^2$ is decreasing for $x \geq 2 > e^{1/2}$, so we can bound $\sum_{n=3}^\infty \frac{\log n}{n^2} \leq \int_2^\infty \frac{\log t}{t^2}\ dt = \frac{\log 2+1}{2}$.-/)
+  (proof := /-- We can bound $E_1 \leq \sum_{n=2}^\infty \frac{\log n}{n(n-1)} \leq \frac{\log 2}{2} + \frac{3}{2} \sum_{n=3}^\infty \frac{\log n}{n^2}$.  Calculus shows that $\log x / x^2$ is decreasing for $x \geq 2 > e^{1/2}$, so we can bound $\sum_{n=3}^\infty \frac{\log n}{n^2} \leq \int_2^\infty \frac{\log t}{t^2}\ dt = \frac{\log 2+1}{2}$.-/)
   (latexEnv := "proposition")]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
@@ -336,7 +349,7 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
 theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
 
 theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
-    unfold E₂Λ; linarith [γ.eq_eulerMascheroni]
+    grind [E₂Λ, γ.eq_eulerMascheroni]
 
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"
@@ -471,7 +484,7 @@ theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p el
   (title := "The remainder term in Mertens third theorem ")
   (statement := /-- We define $E_3(x) := \sum_{p \leq x} (1 - \frac{1}{p}) + \log\log x + \gamma$.
 -/)]
-noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - 1 / p) + log (log x) + Real.eulerMascheroniConstant
+noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) + log (log x) + Real.eulerMascheroniConstant
 
 @[blueprint
   "Mertens-third-theorem-error"
@@ -481,7 +494,7 @@ $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \e
 -/)
   (proof := /-- Immediate from definition
   -/)]
-theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - 1 / p) = exp (-Real.eulerMascheroniConstant) * exp (E₃ x) / log x := by
+theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-Real.eulerMascheroniConstant) * exp (E₃ x) / log x := by
     sorry
 
 @[blueprint
@@ -507,6 +520,11 @@ theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound' : E₃ =o[atTop] (fun x ↦ (1:ℝ)) := by
+    sorry
+
+@[blueprint
+  "Mertens-third-theorem-error-le"]
+theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p)) ~[atTop] (fun x ↦ exp (-Real.eulerMascheroniConstant) / log x) := by
     sorry
 
 
