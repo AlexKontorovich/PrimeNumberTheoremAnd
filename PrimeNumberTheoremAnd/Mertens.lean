@@ -129,10 +129,10 @@ theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
   (title := "The remainder term in Mertens first theorem (von Mangoldt form)")
   (statement := /-- We define $E_{1,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d} - \log x$.
 -/)]
-noncomputable def E₁Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x
+noncomputable abbrev E₁Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x
 
 theorem sum_mangoldt_div_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d = log x + E₁Λ x := by
-    grind [E₁Λ]
+    grind
 
 @[blueprint
   "Mertens-first-error-mangoldt-ge"
@@ -196,10 +196,10 @@ theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
   (title := "The remainder term in Mertens first theorem (prime form)")
   (statement := /-- We define $E_{1,p}(x) := \sum_{p \leq x} \frac{\log p}{p} - \log x$.
 -/)]
-noncomputable def E₁p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x
+noncomputable abbrev E₁p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x
 
 theorem sum_log_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p = log x + E₁p x := by
-    grind [E₁p]
+    grind
 
 @[blueprint
   "Mertens-first-error-prime-le-mangoldt"
@@ -228,7 +228,7 @@ theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≤ log 4 + 4 := by
     linarith [E₁Λ.le hx, E₁p.le_E₁Λ hx]
 
-noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
+noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
 @[blueprint
   "E1_bound"
@@ -239,6 +239,15 @@ noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)
   (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
+
+theorem E₁.nonneg : E₁ ≥ 0 := by
+  apply tsum_nonneg
+  intro p; split_ifs with hp
+  · have : (p:ℝ) ≥ 2 := by norm_num; exact Nat.Prime.two_le hp
+    have : 0 ≤ log p := by grind [log_nonneg]
+    have : (p:ℝ) - 1 > 0 := by grind
+    positivity
+  order
 
 @[blueprint
   "Mertens-first-error-prime-ge"
@@ -267,7 +276,7 @@ $$ \sum_{p \leq x} \frac{\log p}{p} = \log x + O(1). $$
   (discussion := 1313)]
 theorem sum_log_prime_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ log 4 + 4 := by
-    rw [←E₁p, abs_le']
+    rw [abs_le']
     refine ⟨ E₁p.le hx, ?_ ⟩
     have : log 2 > 0 := by apply log_pos; norm_num
     have : log 4 = 2 * log 2 := by rw [←Real.log_rpow (by norm_num)]; norm_num
@@ -290,14 +299,14 @@ theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ wit
   (title := "Alternate Formula for Euler-Mascheroni constant")
   (statement := /-- We set $\gamma := \int_2^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t} \, dt + 1 - \log \log 2$.
 -/)]
-noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2)
+noncomputable abbrev γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 - log (log 2)
 
 @[blueprint
   "Mertens-second-error-mangoldt"
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
   (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - \gamma$.
 -/)]
-noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
+noncomputable abbrev E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
 
 @[blueprint
   "Mertens-integral-ident"
@@ -357,11 +366,14 @@ theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
     have : 0 < log x := by apply log_pos; linarith
     grind [abs_of_pos this]
 
+theorem inv_log_eq_o_one : (fun x ↦ 1 / log x) =o[atTop] (fun _ ↦ (1:ℝ)) := by
+    rw [isLittleO_one_iff]
+    convert tendsto_log_atTop.inv_tendsto_atTop using 1
+    ext; simp
+
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
-theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
-    apply IsBigO.trans_isLittleO E₂Λ.bound
-    sorry
+theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun _ ↦ (1:ℝ)) := E₂Λ.bound.trans_isLittleO inv_log_eq_o_one
 
 @[blueprint
   "log-zeta-eq"
@@ -393,10 +405,10 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
   (latexEnv := "theorem")
   (discussion := 1320)]
-theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
+theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by sorry
 
-theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
-    grind [E₂Λ, γ.eq_eulerMascheroni]
+theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + eulerMascheroniConstant + E₂Λ x := by
+    grind [γ.eq_eulerMascheroni]
 
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"
@@ -459,10 +471,10 @@ theorem M.ge : M ≥ -(2 + E₁) / log 2 + 1 - log (log 2) := by
   (title := "The remainder term in Mertens second theorem (von Mangoldt form)")
   (statement := /-- We define $E_{2,p}(x) := \sum_{p \leq x} \frac{1}{p} - \log \log x - M$.
 -/)]
-noncomputable def E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1:ℝ) / p - log (log x) - M
+noncomputable abbrev E₂p (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1:ℝ) / p - log (log x) - M
 
 theorem sum_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1:ℝ) / p = log (log x) + M + E₂p x := by
-    unfold E₂p; ring
+    ring
 
 @[blueprint
   "Mertens-second-error-prime-eq"
@@ -507,8 +519,7 @@ theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
 
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
-theorem E₂p.bound' : E₂p =o[atTop] (fun x ↦ (1:ℝ)) := by
-    sorry
+theorem E₂p.bound' : E₂p =o[atTop] (fun _ ↦ (1:ℝ)) := E₂p.bound.trans_isLittleO inv_log_eq_o_one
 
 @[blueprint
   "Mertens-second-theorem-prime-weak"
@@ -521,7 +532,16 @@ $$ \sum_{p \leq x} \frac{1}{p} = \log \log x + O(1). $$
   (discussion := 1327)]
 theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
     |∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)| ≤ C := by
-    sorry
+    use |M| + (log 4 + 6 + E₁) / log 2
+    intro x hx
+    rw [sum_prime_div_eq]
+    calc
+      _ = |M + E₂p x| := by ring_nf
+      _ ≤ |M| + (log 4 + 6 + E₁) / log x := by grw [abs_add_le, E₂p.abs_le hx]
+      _ ≤ _ := by
+        gcongr
+        have : 0 < log 4 := by apply log_pos; norm_num
+        linarith [E₁.nonneg]
 
 @[blueprint
   "Mertens-second-theorem-prime-weak"]
@@ -551,7 +571,7 @@ theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p el
   (title := "The remainder term in Mertens third theorem ")
   (statement := /-- We define $E_3(x) := \sum_{p \leq x} \log (1 - \frac{1}{p}) + \log\log x + \gamma$.
 -/)]
-noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, log (1 - (1:ℝ) / p) + log (log x) + Real.eulerMascheroniConstant
+noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, log (1 - (1:ℝ) / p) + log (log x) + eulerMascheroniConstant
 
 @[blueprint
   "Mertens-third-theorem-error"
@@ -562,7 +582,7 @@ $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \e
   (proof := /-- Immediate from definition
   -/)
   (discussion := 1329)]
-theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-Real.eulerMascheroniConstant) * exp (E₃ x) / log x := by
+theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
     sorry
 
 @[blueprint
@@ -594,18 +614,16 @@ theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
-theorem E₃.bound' : E₃ =o[atTop] (fun x ↦ (1:ℝ)) := by
-    apply IsBigO.trans_isLittleO E₃.bound
+theorem E₃.bound' : E₃ =o[atTop] (fun _ ↦ (1:ℝ)) := E₃.bound.trans_isLittleO inv_log_eq_o_one
+
+@[blueprint
+  "Mertens-third-theorem-error-le"]
+theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p)) ~[atTop] (fun x ↦ exp (-eulerMascheroniConstant) / log x) := by
     sorry
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
-theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p)) ~[atTop] (fun x ↦ exp (-Real.eulerMascheroniConstant) / log x) := by
-    sorry
-
-@[blueprint
-  "Mertens-third-theorem-error-le"]
-theorem E₃.bound''' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) - exp (-Real.eulerMascheroniConstant) / log x) =O[atTop] (fun x ↦ 1 / (log x)^2) := by
+theorem E₃.bound''' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) - exp (-eulerMascheroniConstant) / log x) =O[atTop] (fun x ↦ 1 / (log x)^2) := by
     sorry
 
 end Mertens
