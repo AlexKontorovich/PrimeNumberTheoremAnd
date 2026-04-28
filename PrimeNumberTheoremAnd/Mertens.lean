@@ -72,7 +72,7 @@ $$ \sum_{n \leq x} \log n \geq x \log x - 2 x.$$
  &= x \log x - x - \log x \\
  &\geq x \log x - 2 x.
 \end{align*}
-Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the crude bound $\log x \leq x$.
+Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the crude bound $\log x \leq x$. Note: the tools at Mathlib.Analysis.SumIntegralComparisons may be useful.
  -/)
   (latexEnv := "corollary")
   (discussion := 1305)]
