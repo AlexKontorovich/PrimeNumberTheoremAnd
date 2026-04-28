@@ -25,6 +25,7 @@ open ArithmeticFunction hiding log
   (title := "Partial sum of logarithm identity")
   (statement := /-- For any $x \geq 1$, one has
 $$ \sum_{n \leq x} \log n = x \log x - \{ x \} \log x - x + 1 + \int_1^x \{ t \} \frac{dt}{t} $$
+(NOTE: this identity is not actually needed in the proof of Mertens' theorems, but may be worth recording nevertheless.)
  -/)
   (proof := /-- We have
 \begin{align*}
@@ -62,7 +63,16 @@ theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
   (statement := /-- For any $x \geq 1$, one has
 $$ \sum_{n \leq x} \log n \geq x \log x - 2 x.$$
  -/)
-  (proof := /-- Follows from the previous lemma and a crude bound $\log x \leq x$.
+  (proof := /-- We have
+ \begin{align*}
+ \sum_{n \leq x} \log n &= \sum_{2 \leq n \leq \lfloor x \rfloor} \log n \\
+ &\geq \sum_{2 \leq n \leq \lfloor x \rfloor} \int_{n-1}^n \log t \, dt \\
+ &= \int_1^{\lfloor x \rfloor} \log t \, dt \\
+ &\geq \int_1^x \log t\ dt - \log x \\
+ &= x \log x - x - \log x \\
+ &\geq x \log x - 2 x.
+\end{align*}
+Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the crude bound $\log x \leq x$.
  -/)
   (latexEnv := "corollary")
   (discussion := 1305)]
@@ -274,20 +284,31 @@ noncomputable def γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 1 -
 noncomputable def E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
 
 @[blueprint
+  "Mertens-integral-ident"
+  (title := "Integral identity involving inverse log weight")
+  (statement := /-- For any $x \geq 2$ and any $f : {\mathbb N} \mapsto {\mathbb R}$, one has
+$$ \sum_{2 \leq n \leq x} \frac{f(n)}{\log n} = \frac{1}{\log x} \sum_{2 \leq n \leq x} f(n) + \int_2^x \frac{1}{t \log^2 t} \sum_{2 \leq n \leq t} f(n) \, dt$$-/)
+  (proof := /-- Establish the identity
+  $$ \frac{1}{\log n} = \frac{1}{\log x} + \int_2^x \frac{1}{t \log^2 t} 1_{t \geq n}\ dt$$
+  for $2 \leq n \leq x$,multiply by $f(n)$, then sum.
+
+  -/)
+  (latexEnv := "sublemma")]
+private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
+    ∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n / log n =
+      (∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n) / log x + ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊ t ⌋₊, f n) / (t * log t^2) := by
+    sorry
+
+@[blueprint
   "Mertens-second-error-mangoldt-eq"
   (title := "Integral form for second error (von Mangoldt form)")
   (statement := /-- For any $x \geq 2$, one has
 $$ E_{2,\Lambda}(x) = \frac{E_{1,\Lambda}(x)}{\log x} - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt$$
 -/)
   (proof := /--
-\begin{align*}
-\sum_{d \leq x} \frac{\Lambda(d)}{d \log d}
-&= \int_{2^{-}}^{x} \frac{1}{\log t}\, d\bigl(\log t + E_{1,\Lambda}(t)\bigr) \\
-&= \frac{\log x + E_{1,\Lambda}(x)}{\log x}
- + \int_{2}^{x} \frac{dt}{t\log t}
- + \int_{2}^{x} \frac{E_{1,\Lambda}(t)}{t\log^{2} t}\, dt \\
-&= \gamma + \frac{E_{1,\Lambda}(x)}{\log x} + \log \log x - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt.
-\end{align*}
+From Lemma \ref{Mertens-integral-ident} one has
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \frac{1}{\log x} \sum_{n \leq x} \frac{\Lambda(n)}{n} + \int_2^x \frac{1}{t \log^2 t} \sum_{n \leq t} \frac{\Lambda(n)}{n} \, dt.$$
+Now substitute the definitions of $E_{1,\Lambda}$, $E_{2,\Lambda}$, $\gamma$ and simplify.
   -/)
   (latexEnv := "corollary")]
 theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
@@ -418,7 +439,9 @@ theorem sum_prime_div_eq (x : ℝ) : ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, 
 $$ E_{2,p}(x) = \frac{E_{1,p}(x)}{\log x} - \int_x^\infty \frac{E_{1,p}(t)}{t \log^2 t}\ dt$$
 -/)
   (proof := /--
-  Similar to Lemma \ref{Mertens-second-error-mangoldt-eq}.  (One may wish to unify these using some abstract lemma.)
+From Lemma \ref{Mertens-integral-ident} one has
+$$ \sum_{p \leq x} \frac{1}{p} = \frac{1}{\log x} \sum_{p \leq x} \frac{\log p}{p} + \int_2^x \frac{1}{t \log^2 t} \sum_{p \leq t} \frac{\log p}{p} \, dt.$$
+Now substitute the definitions of $E_{1,p}$, $E_{2,p}$, $M$ and simplify.
   -/)
   (latexEnv := "corollary")]
 theorem E₂p.eq {x : ℝ} (hx : 2 ≤ x) :
