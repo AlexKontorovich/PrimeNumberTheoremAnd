@@ -78,7 +78,8 @@ $$ \sum_{n \leq x} \log n = \log(\lfloor x \rfloor!). $$
  -/)
   (proof := /-- Follows from the definition of the factorial function.  Is not needed for the Mertens theorems, but is a natural fact to have.
  -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 1315)]
 theorem sum_log_eq_log_factorial (x : ℝ) (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.factorial (Nat.floor x)) := by
     sorry
@@ -214,9 +215,10 @@ noncomputable def E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)
 @[blueprint
   "E1_bound"
   (title := "Upper bound on $E_1$")
-  (statement := /-- One has $E_1 \leq frac{5 \log 2 + 3}{4}$-/)
+  (statement := /-- One has $E_1 \leq \frac{5 \log 2 + 3}{4}$-/)
   (proof := /-- We can bound $E_1 \leq \sum_{n=2}^\infty \frac{\log n}{n(n-1)} \leq \frac{\log 2}{2} + \frac{3}{2} \sum_{n=3}^\infty \frac{\log n}{n^2}$.  Calculus shows that $\log x / x^2$ is decreasing for $x \geq 2 > e^{1/2}$, so we can bound $\sum_{n=3}^\infty \frac{\log n}{n^2} \leq \int_2^\infty \frac{\log t}{t^2}\ dt = \frac{\log 2+1}{2}$.-/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
 
@@ -289,7 +291,8 @@ $$ E_{2,\Lambda}(x) = \frac{E_{1,\Lambda}(x)}{\log x} - \int_x^\infty \frac{E_{1
 &= \gamma + \frac{E_{1,\Lambda}(x)}{\log x} + \log \log x - \int_x^\infty \frac{E_{1,\Lambda}(t)}{t \log^2 t}\ dt.
 \end{align*}
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1317)]
 theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
     sorry
@@ -301,9 +304,10 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
 $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
 -/)
   (proof := /--
-  Insert Lemma \ref{mertens-first-error-mangoldt-le} and Lemma \ref{mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
+  Insert Lemma \ref{Mertens-first-error-mangoldt-le} and Lemma \ref{Mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1318)]
 theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
     abs (E₂Λ x) ≤ (log 4 + 6) / log x := by
     sorry
@@ -320,7 +324,7 @@ theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
 
 @[blueprint
   "log-zeta-eq"
-  (title := "An asymptotic for $\\log \\zeta(s)$")
+  (title := "An identity for $\\log \\zeta(s)$")
   (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E₂Λ(x) x^{-s}\ ds$.
 -/)
   (proof := /-- First write
@@ -332,7 +336,8 @@ $$ (s-1) \int_0^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$$
 and
 $$ (s-1) \int_0^\infty \gamma \cdot x^{-s}\ dx = \gamma$$
 giving the claim.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 1319)]
 private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
     sorry
@@ -345,7 +350,8 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   (statement := /-- $\gamma$ is the Euler--Mascheroni constant.
 -/)
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 1320)]
 theorem γ.eq_eulerMascheroni : γ = Real.eulerMascheroniConstant := by sorry
 
 theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + Real.eulerMascheroniConstant + E₂Λ x := by
@@ -358,7 +364,8 @@ theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d)
 $$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + O(1). $$
 -/)
   (proof := /-- Immediate from previous two corollaries.
-  -/)]
+  -/)
+  (discussion := 1321)]
 theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)| ≤ C := by
     sorry
@@ -386,7 +393,8 @@ noncomputable def M : ℝ := ∫ t in Set.Ioi 2, E₁p t / (t * log t^2) + 1 - l
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-first-error-prime-le} into the definition of $M_p$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1323)]
 theorem M.le : M ≤ (log 4 + 4) / log 2 + 1 - log (log 2) := by
     sorry
 
@@ -397,7 +405,8 @@ theorem M.le : M ≤ (log 4 + 4) / log 2 + 1 - log (log 2) := by
 -/)
   (proof := /-- Insert Lemma \ref{Mertens-first-error-prime-ge} into the definition of $M_p$ and use the fact that $\int_2^\infty \frac{dt}{t \log^2 t} = 1/\log 2$.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1324)]
 theorem M.ge : M ≥ -(2 + E₁) / log 2 + 1 - log (log 2) := by
     sorry
 
@@ -420,7 +429,8 @@ $$ E_{2,p}(x) = \frac{E_{1,p}(x)}{\log x} - \int_x^\infty \frac{E_{1,p}(t)}{t \l
   (proof := /--
   Similar to Lemma \ref{Mertens-second-error-mangoldt-eq}.  (One may wish to unify these using some abstract lemma.)
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1325)]
 theorem E₂p.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂p x = E₁p x / log x - ∫ t in Set.Ioi x, E₁p t / (t * log t^2) := by
     sorry
@@ -433,7 +443,8 @@ $$ |E_{2,p}(x)| \leq \frac{\log 4 + 6 + E_1}{\log x}.$$
 -/)
   (proof := /-- Similar to Lemma \ref{Mertens-second-error-prime-eq}.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1326)]
 theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
     abs (E₂p x) ≤ (log 4 + 6 + E₁) / log x := by
     sorry
@@ -455,7 +466,8 @@ theorem E₂p.bound' : E₂p =o[atTop] (fun x ↦ (1:ℝ)) := by
 $$ \sum_{p \leq x} \frac{1}{p} = \log \log x + O(1). $$
 -/)
   (proof := /-- Immediate from previous two corollaries.
-  -/)]
+  -/)
+  (discussion := 1327)]
 theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
     |∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)| ≤ C := by
     sorry
@@ -475,16 +487,17 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
   (title := "Formula for Meissel-Mertens constant")
   (statement := /-- One has $M = \gamma + \sum_p \log(1-\frac{1}{p}) + \frac{1}{p}$.
 -/)
-  (proof := /-- The RHS can be Taylor expanded as $\sum_{j=2}^\infty \sum_p \frac{1}{jp^j}$.  Meanwhile, the difference between $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n}$ and $\sum_{p \leq x} \frac{1}{p}$ is equal to $\sum_{j=2}^\infty \sum_{p: p^j \leq x} \frac{1}{j p^j}$.  Applying the monotone convergence theorem, Lemma \ref{Mertens-second-error-prime-abs-le}, and Lemma \ref{Mertens-second-error-mangoldt-bound} gives the claim.  -/)]
+  (proof := /-- The RHS can be Taylor expanded as $\sum_{j=2}^\infty \sum_p \frac{1}{jp^j}$.  Meanwhile, the difference between $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n}$ and $\sum_{p \leq x} \frac{1}{p}$ is equal to $\sum_{j=2}^\infty \sum_{p: p^j \leq x} \frac{1}{j p^j}$.  Applying the monotone convergence theorem, Lemma \ref{Mertens-second-error-prime-abs-le}, and Lemma \ref{Mertens-second-error-mangoldt-bound} gives the claim.  -/)
+  (discussion := 1328)]
 theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by
     sorry
 
 @[blueprint
   "Mertens-third-error"
   (title := "The remainder term in Mertens third theorem ")
-  (statement := /-- We define $E_3(x) := \sum_{p \leq x} (1 - \frac{1}{p}) + \log\log x + \gamma$.
+  (statement := /-- We define $E_3(x) := \sum_{p \leq x} \log (1 - \frac{1}{p}) + \log\log x + \gamma$.
 -/)]
-noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) + log (log x) + Real.eulerMascheroniConstant
+noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, log (1 - (1:ℝ) / p) + log (log x) + Real.eulerMascheroniConstant
 
 @[blueprint
   "Mertens-third-theorem-error"
@@ -493,7 +506,8 @@ noncomputable def E₃ (x : ℝ) : ℝ := ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Pr
 $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \exp(E_3(x)). $$
 -/)
   (proof := /-- Immediate from definition
-  -/)]
+  -/)
+  (discussion := 1329)]
 theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-Real.eulerMascheroniConstant) * exp (E₃ x) / log x := by
     sorry
 
@@ -508,7 +522,8 @@ $$ E_3(x) = O(1/\log x)$$
   one can write
   $$ E_3(x) = E_{2,\Lambda}(x) + \sum_{p \leq x} \sum_{j \geq 2: p^j > x} \frac{j}{p^j}.$$
 One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \sqrt{x}$ and by $O(1/x)$ when $p \leq \sqrt{x}$, so the second error here is $O(1/\sqrt{x})$, giving the claim.
-  -/)]
+  -/)
+  (discussion := 1330)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → abs (E₃ x) ≤ C / log x := by
     sorry
 
