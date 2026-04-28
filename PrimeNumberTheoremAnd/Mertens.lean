@@ -267,7 +267,11 @@ $$ \sum_{p \leq x} \frac{\log p}{p} = \log x + O(1). $$
   (discussion := 1313)]
 theorem sum_log_prime_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p - log x| ≤ log 4 + 4 := by
-    sorry
+    rw [←E₁p, abs_le']
+    refine ⟨ E₁p.le hx, ?_ ⟩
+    have : log 2 > 0 := by apply log_pos; norm_num
+    have : log 4 = 2 * log 2 := by rw [←Real.log_rpow (by norm_num)]; norm_num
+    grind [E₁p.ge hx, E₁.le]
 
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
@@ -356,6 +360,7 @@ theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
 theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun x ↦ (1:ℝ)) := by
+    apply IsBigO.trans_isLittleO E₂Λ.bound
     sorry
 
 @[blueprint
@@ -590,6 +595,7 @@ theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound' : E₃ =o[atTop] (fun x ↦ (1:ℝ)) := by
+    apply IsBigO.trans_isLittleO E₃.bound
     sorry
 
 @[blueprint
