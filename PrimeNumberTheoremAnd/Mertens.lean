@@ -565,7 +565,8 @@ theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p
 @[blueprint
   "Mertens-second-theorem-prime-weak"]
 theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p) ~[atTop] (fun x ↦ log (log x)) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log_log)
+    convert sum_prime_div_eq_log_log' using 1
 
 @[blueprint
   "Meissel-Mertens-eq"
