@@ -421,7 +421,13 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + O(1). $$
   (discussion := 1321)]
 theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)| ≤ C := by
-    sorry
+    use (log 4 + 6)/log 2 + |eulerMascheroniConstant|
+    intro x hx
+    rw [sum_mangoldt_div_log_eq]
+    calc
+      _ = |E₂Λ x + eulerMascheroniConstant| := by ring_nf
+      _ ≤ (log 4 + 6)/log x + |eulerMascheroniConstant| := by grw [abs_add_le, E₂Λ.abs_le hx]
+      _ ≤ _ := by gcongr
 
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"]
@@ -431,10 +437,15 @@ theorem sum_mangoldt_div_log_eq_log_log' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋�
     obtain ⟨ C, _ ⟩ := sum_mangoldt_div_log_eq_log_log
     use C, 2
 
+theorem one_eq_o_log_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log (log x)) := by
+    simp only [isLittleO_one_left_iff, norm_eq_abs]
+    exact tendsto_abs_atTop_atTop.comp (tendsto_log_atTop.comp tendsto_log_atTop)
+
 @[blueprint
   "Mertens-second-theorem-mangoldt-weak"]
 theorem sum_mangoldt_div_log_eq_log_log'' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d)) ~[atTop] (fun x ↦ log (log x)) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log_log)
+    convert sum_mangoldt_div_log_eq_log_log' using 1
 
 @[blueprint
   "Meissel-Mertens-constant"
