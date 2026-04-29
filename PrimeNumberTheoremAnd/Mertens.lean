@@ -3,6 +3,7 @@ import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
+import Mathlib.Algebra.Group.Submonoid.BigOperators
 import Architect
 
 theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
@@ -100,9 +101,12 @@ $$ \sum_{n \leq x} \log n = \log(\lfloor x \rfloor!). $$
  -/)
   (latexEnv := "proposition")
   (discussion := 1315)]
-theorem sum_log_eq_log_factorial (x : ℝ) (hx : 1 ≤ x) :
-    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.factorial (Nat.floor x)) := by
-    sorry
+theorem sum_log_eq_log_factorial (x : ℝ) :
+    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.floor x).factorial := by
+    rw [←prod_Ico_id_eq_factorial, ←log_prod, prod_natCast]
+    · congr
+    intro x hx
+    simp at hx ⊢; grind
 
 #check ArithmeticFunction.vonMangoldt_sum
 
