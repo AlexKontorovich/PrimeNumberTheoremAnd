@@ -1288,6 +1288,16 @@ theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im 
     AnalyticAt ℂ (Phi_circ ν ε) z :=
   Phi_circ.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
 
+-- Hermitian symmetry: Φ∘(−t) = conj(Φ∘(t))
+private lemma Phi_circ_conj_symm (ν ε t : ℝ) :
+    Phi_circ ν ε (-(↑t : ℂ)) = starRingEnd ℂ (Phi_circ ν ε (↑t : ℂ)) := by
+  unfold Phi_circ
+  rw [starRingEnd_apply, Complex.star_def]
+  simp only [map_mul, map_add, map_div₀, conj_ofReal]
+  simp only [one_div, neg_mul, mul_neg, neg_neg, map_one, coth_conj]
+  congr
+  · simp [map_ofNat]
+  · simp [map_div₀, map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
 
 theorem Phi_star.analyticAt_of_not_pole_nz (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, n ≠ 0 → z ≠ n - I * ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z := by
@@ -1330,6 +1340,28 @@ theorem Phi_star.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) 
   Phi_star.analyticAt_of_im_ne_pole ν ε z (by
     have : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos (neg_lt_zero.mpr hν) (mul_pos (by norm_num) Real.pi_pos)
     linarith)
+
+lemma B_conj (ε : ℝ) (z : ℂ) : (starRingEnd ℂ) (B ε z) = B ε ((starRingEnd ℂ) z) := by
+  simp only [B]
+  rw [apply_ite (starRingEnd ℂ)]
+  have hcond : z = 0 ↔ (starRingEnd ℂ) z = 0 := by
+    simp [map_eq_zero]
+  simp only [hcond, map_one, map_div₀, map_mul, map_add,
+             Complex.conj_ofReal, coth_conj, map_ofNat]
+
+-- Anti-Hermitian symmetry: Φ∗(−t) = −conj(Φ∗(t))
+private lemma Phi_star_conj_symm (ν ε t : ℝ) :
+    Phi_star ν ε (-(↑t : ℂ)) = -(starRingEnd ℂ (Phi_star ν ε (↑t : ℂ))) := by
+  dsimp [Phi_star]
+  -- Step 1: Simplify -2πI * -↑t = 2πI * ↑t on LHS
+  simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
+  -- Step 3: Apply B_conj to B ε (-2πIt + ν)
+  rw [B_conj]
+  -- Step 5: Simplify starRingEnd of the argument of B
+  simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
+  -- Step 6: Close — both sides are now identical up to ring arithmetic
+  rw [B_conj]
+  simp [Complex.conj_ofReal]; field_simp
 
 @[blueprint
   "phi-c2-left"
@@ -1801,13 +1833,6 @@ lemma B_im_eq_zero (ε : ℝ) (t : ℝ) : (B ε t).im = 0 := by
 
 theorem B_plus_real (t : ℝ) : (B 1 t).im = 0 := B_im_eq_zero 1 t
 
-lemma B_conj (ε : ℝ) (z : ℂ) : (starRingEnd ℂ) (B ε z) = B ε ((starRingEnd ℂ) z) := by
-  simp only [B]
-  rw [apply_ite (starRingEnd ℂ)]
-  have hcond : z = 0 ↔ (starRingEnd ℂ) z = 0 := by
-    simp [map_eq_zero]
-  simp only [hcond, map_one, map_div₀, map_mul, map_add,
-             Complex.conj_ofReal, coth_conj, map_ofNat]
 @[blueprint
   "B-minus-mono"
   (title := "$B^-$ is decreasing")
@@ -1917,6 +1942,12 @@ theorem continuous_E : Continuous E := by
 lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
   simp only [E]
   fun_prop
+
+-- Conjugate of E: E(tx) = conj(E(−tx)) for real t, x
+private lemma E_conj_symm (t x : ℝ) :
+    E ((↑t : ℂ) * ↑x) = starRingEnd ℂ (E (-(↑t : ℂ) * ↑x)) := by
+  dsimp [E]; rw [← Complex.exp_conj]; simp only [starRingEnd_apply]
+  ring_nf; simp
 
 @[blueprint
   "varphi-fourier-ident"
@@ -3801,107 +3832,28 @@ $\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
   (proof := /-- This follows from the symmetries of $\varphi^{\pm}_{\nu}$. -/)
   (latexEnv := "lemma")
   (discussion := 1225)]
+-- Substitute t ↦ −t in the integral
+private lemma integral_neg_one_zero_eq_zero_one (f : ℝ → ℂ) :
+    ∫ t in Set.Icc (-1 : ℝ) 0, f t = ∫ t in Set.Icc 0 1, f (-t) := by
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+  rw [← intervalIntegral.integral_of_le (by norm_num), ← intervalIntegral.integral_of_le (by norm_num)]
+  rw [intervalIntegral.integral_comp_neg]
+  simp
+
 theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν ε) x).im = 0 := by
-  -- Decompose 𝓕 into the [-1,0] piece (call it I₋) and the [0,1] piece (call it I₊)
   rw [varphi_fourier_ident ν ε hlam]
   set I_pos := ∫ t in Set.Icc 0 (1 : ℝ),
       (Phi_circ ν ε (↑t : ℂ) + Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x)
-  -- Key claim: I₋ = conj(I₊), so (I₋ + I₊).im = (conj I₊ + I₊).im = 0
   have h_conj : ∫ t in Set.Icc (-1 : ℝ) 0,
       (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) =
       starRingEnd ℂ I_pos := by
-    -- Pull starRingEnd through the I₊ integral (MeasureTheory.integral_conj)
-    simp only [I_pos]
-    -- Substitute t ↦ −t in I₋: since neg maps [−1,0] to [0,1] and Lebesgue measure is neg-invariant
-    -- (MeasurableEmbedding.setIntegral_map + Measure.map_neg_eq_self + neg⁻¹([−1,0]) = [0,1])
-    have h_subst : ∫ t in Set.Icc (-1 : ℝ) 0,
-        (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) =
-        ∫ t in Set.Icc 0 (1 : ℝ),
-        (Phi_circ ν ε (-(↑t : ℂ)) - Phi_star ν ε (-(↑t : ℂ))) * E ((↑t : ℂ) * ↑x) := by
-      -- Use (Homeomorph.neg ℝ).measurableEmbedding and setIntegral_map
-      -- After rw [Measure.map_neg_eq_self], the preimage (fun t => -t)⁻¹' Icc(-1,0) = Icc(0,1)
-      have h_LHS : ∫ t in Set.Icc (-1 : ℝ) 0,
-          (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) =
-          ∫ t in (-1:ℝ)..0, (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) := by
-        rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by norm_num)]
-      have h_RHS : ∫ t in Set.Icc 0 (1 : ℝ),
-          (Phi_circ ν ε (-(↑t : ℂ)) - Phi_star ν ε (-(↑t : ℂ))) * E ((↑t : ℂ) * ↑x) =
-          ∫ t in (0:ℝ)..1, (Phi_circ ν ε (-(↑t : ℂ)) - Phi_star ν ε (-(↑t : ℂ))) * E ((↑t : ℂ) * ↑x) := by
-        rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by norm_num)]
-      rw [h_LHS, h_RHS]
-      let f : ℝ → ℂ := fun (t:ℝ) ↦ (Phi_circ ν ε (-(↑t : ℂ)) - Phi_star ν ε (-(↑t : ℂ))) * E ((↑t : ℂ) * ↑x)
-      have h_LHS_f : ∫ t in (-1:ℝ)..0, (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) = ∫ t in (-1:ℝ)..0, f (-t) := by
-        apply intervalIntegral.integral_congr
-        intro t _
-        dsimp [f]
-        congr 1
-        · congr 1
-          · apply congr_arg (Phi_circ ν ε); push_cast; ring_nf
-          · apply congr_arg (Phi_star ν ε); push_cast; ring_nf
-        · apply congr_arg E; push_cast; ring_nf
-      rw [h_LHS_f, intervalIntegral.integral_comp_neg (f := f)]
-      norm_num
-      rfl
-    rw [h_subst]; rw [← integral_conj]
-    -- Pointwise: show (Φ∘(−t) − Φ∗(−t)) ⋅ E(tx) = conj((Φ∘(t) + Φ∗(t)) ⋅ E(−tx))
+    rw [integral_neg_one_zero_eq_zero_one, ← integral_conj]
     apply MeasureTheory.setIntegral_congr_fun measurableSet_Icc
-    intro t _ht
-    -- Hermitian symmetry: Φ∘(−t) = conj(Φ∘(t))
-    -- Proof: Phi_circ ν ε z = ½(coth(w/2) + ε) where w = −2πiz + ν.
-    -- For t : ℝ, conj(w_t) = w_{−t}, and coth(conj z) = conj(coth z) via tanh_conj
-    -- (Complex.tanh_conj : tanh(conj z) = conj(tanh z)) + coth = 1/tanh + map_div₀
-    have h_circ : Phi_circ ν ε (-(↑t : ℂ)) = starRingEnd ℂ (Phi_circ ν ε (↑t : ℂ)) := by
-      unfold Phi_circ
-      rw [starRingEnd_apply, Complex.star_def]
-      simp only [map_mul, map_add, map_div₀, conj_ofReal]
-      -- have : Complex.conj (coth ((-2 * π * I * ↑t + ↑ν) / 2)) = coth (Complex.conj ((-2 * π * I * ↑t + ↑ν) / 2)) := by
-      --   unfold coth; simp only [map_inv, Complex.tanh_conj]
-      -- rw [this]
-      simp only [one_div, neg_mul, mul_neg, neg_neg, map_one, coth_conj]
-      -- simp only [conj_ofReal, conj_I]
-      -- field_simp [I_ne_zero, pi_ne_zero]; ring_nf; simp
-      congr
-      · simp [map_ofNat]
-
-      · simp [map_div₀, map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
-    -- Anti-Hermitian symmetry: Φ∗(−t) = −conj(Φ∗(t))
-    -- Proof: Phi_star ν ε z = (B ε w − B ε ν)/(2πi).
-    -- B ε ν is real (B_im_eq_zero), conj(B ε w_t) = B ε (conj w_t) = B ε w_{−t},
-    -- and conj(2πi) = −2πi, so the whole fraction negates
-    have h_star : Phi_star ν ε (-(↑t : ℂ)) = -(starRingEnd ℂ (Phi_star ν ε (↑t : ℂ))) := by
-      dsimp [Phi_star]
-
-
-
-      -- Step 1: Simplify -2πI * -↑t = 2πI * ↑t on LHS
-      simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
-
-      -- Step 3: Apply B_conj to B ε (-2πIt + ν)
-      rw [B_conj]
-
-
-      -- Step 5: Simplify starRingEnd of the argument of B
-      -- conj(-2πIt + ν) = 2πIt + ν  since conj(I) = -I
-      simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
-
-      -- Step 6: Close — both sides are now identical up to ring arithmetic
-      rw [B_conj]
-      simp [Complex.conj_ofReal]; field_simp
-    -- Conjugate of E: E(tx) = conj(E(−tx)) for real t, x
-    -- Proof: E(−tx) = exp(−2πitx); conj(exp(z)) = exp(conj(z)) by exp_conj;
-    -- conj(−2πi·t·x) = 2πi·t·x since conj(2πi) = −2πi and t, x are real
-    have h_E : E ((↑t : ℂ) * ↑x) = starRingEnd ℂ (E (-(↑t : ℂ) * ↑x)) := by
-      dsimp [E]; rw [← Complex.exp_conj]; simp only [starRingEnd_apply]
-      ring_nf; simp
-    -- Combine: (conj A − (−conj B)) · conj C = conj((A + B) · C)
-    -- rw [h_star, h_circ, h_E]
-    simp only [neg_mul, map_mul, map_add]
-    rw [h_star, h_circ, h_E]
-    ring_nf
-  -- Conclude: (starRingEnd ℂ I₊ + I₊).im = 0 since (conj z + z).im = −z.im + z.im = 0
+    intro t _
+    simp only [Phi_star_conj_symm, Phi_circ_conj_symm, E_conj_symm, push_cast,
+           map_mul, map_add, neg_mul, neg_neg, sub_neg_eq_add]
   simp only [Complex.add_im]
-  have hstar_im : (starRingEnd ℂ I_pos).im = -I_pos.im := by
-    rw [Complex.conj_im]
+  have hstar_im : (starRingEnd ℂ I_pos).im = -I_pos.im := by rw [Complex.conj_im]
   linarith [h_conj ▸ hstar_im]
 
 @[blueprint
