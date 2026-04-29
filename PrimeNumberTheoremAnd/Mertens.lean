@@ -640,7 +640,8 @@ theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 
      rw [prod_one_minus_div_prime_eq (by linarith)]
      have : 0 < log x := by apply log_pos; linarith
      field_simp
-   simp only [ne_eq, exp_ne_zero, log_eq_zero, eventually_atTop]; use 2; grind
+   simp only [ne_eq, div_eq_zero_iff, exp_ne_zero, log_eq_zero, eventually_atTop]; use 2
+   grind
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
