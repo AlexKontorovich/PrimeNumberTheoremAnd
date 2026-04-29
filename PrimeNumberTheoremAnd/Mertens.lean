@@ -7,7 +7,6 @@ import Mathlib.Algebra.Group.Submonoid.BigOperators
 import Architect
 
 theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
-theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
 namespace Mertens
 
 blueprint_comment /--
@@ -369,6 +368,10 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
     sorry
 
+private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
+    ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
+    sorry
+
 @[blueprint
   "Mertens-second-error-mangoldt-bound"
   (title := "Bound for second Mertens error (von Mangoldt form)")
@@ -382,7 +385,36 @@ $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
   (discussion := 1318)]
 theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
     |E₂Λ x| ≤ (log 4 + 6) / log x := by
-    sorry
+    have : 0 < log x := by apply log_pos; linarith
+    rw [E₂Λ.eq hx, abs_le']
+    have hmes : MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+    have hmes' (c:ℝ) : MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+    constructor
+    · grw [E₁Λ.le (by linarith)]
+      have : ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) ≥ - 2 / log x := calc
+        _ ≥ ∫ t in Set.Ioi x, (-2) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on (hmes' (-2)) hmes (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁Λ.ge (by linarith)
+        _ = _ := integ_div_mul_log_sq (-2) hx
+      grw [this]
+      grind
+    grw [E₁Λ.ge (by linarith)]
+    have : ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) ≤ (log 4 + 4) / log x := calc
+        _ ≤ ∫ t in Set.Ioi x, (log 4 + 4) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on hmes (hmes' (log 4 + 4)) (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁Λ.le (by linarith)
+        _ = _ := integ_div_mul_log_sq (log 4 + 4) hx
+    grw [this]
+    grind
+
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
