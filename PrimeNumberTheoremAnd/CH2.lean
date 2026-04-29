@@ -3730,11 +3730,8 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
     push_cast; field_simp [Real.pi_ne_zero]; ring
   have h_combined_limit : Filter.atTop.Tendsto combined_expr
       (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-↑ν * ↑x))) := by
-    have h1 := shift_downwards ν ε hν x hx
-    have h2 := first_contour_limit ν ε hν x hx
-    have h3 := second_contour_limit ν ε hν x hx
-    have h4 := third_contour_limit ν ε hν x hx
-    have h_arith := ((h1.sub h2).sub h3).sub h4
+    have h_arith := (((shift_downwards ν ε hν x hx).sub (first_contour_limit ν ε hν x hx)).sub
+        (second_contour_limit ν ε hν x hx)).sub (third_contour_limit ν ε hν x hx)
     have h_lim_ident : (𝓕 (ϕ_pm ν ε) x - Complex.exp (-↑ν * ↑x) - 0 - 0) = (𝓕 (ϕ_pm ν ε) x - cexp (-(↑ν * ↑x))) := by
       simp only [sub_zero]; congr; ring
     rw [h_lim_ident] at h_arith
@@ -3742,12 +3739,8 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
     filter_upwards [Filter.eventually_ge_atTop 0] with T hT
     simp only [combined_expr, E]
     simp_rw [sub_mul, add_mul]
-    have h_int_circ_m12 := integrableOn_Phi_circ_m12 ν ε x T
-    have h_int_star_m12 := integrableOn_Phi_star_m12 ν ε x T
-    have h_int_circ_p12 := integrableOn_Phi_circ_p12 ν ε x T
-    have h_int_star_p12 := integrableOn_Phi_star_p12 ν ε x T
-    rw [integral_sub h_int_circ_m12 h_int_star_m12]
-    rw [integral_add h_int_circ_p12 h_int_star_p12]
+    rw [integral_sub (integrableOn_Phi_circ_m12 ν ε x T) (integrableOn_Phi_star_m12 ν ε x T),
+        integral_add (integrableOn_Phi_circ_p12 ν ε x T) (integrableOn_Phi_star_p12 ν ε x T)]
     ring
   apply (h_combined_limit.comp tendsto_div_two_pi).congr'
   filter_upwards [Filter.eventually_ge_atTop 0] with T hT
