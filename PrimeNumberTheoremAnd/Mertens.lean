@@ -2,9 +2,10 @@ import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
+import Mathlib.Analysis.Asymptotics.Lemmas
 import Architect
 
-
+theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
 namespace Mertens
 
 blueprint_comment /--
@@ -24,6 +25,7 @@ The arguments here are drawn from Leo Goldmakher's ``A quick proof of Mertens' t
 
 The unfinished formalization of Mertens' theorems by Arend Mellendijk in https://github.com/FLDutchmann/Analytic/blob/main/Analytic/Mertens.lean may also be relevant here.
 -/
+
 
 open Real Finset Filter Asymptotics
 open ArithmeticFunction hiding log
@@ -594,7 +596,7 @@ $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \e
   (proof := /-- Immediate from definition
   -/)
   (discussion := 1329)]
-theorem prod_one_minus_div_prime_eq (x : ℝ) (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
+theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
     sorry
 
 @[blueprint
@@ -631,7 +633,14 @@ theorem E₃.bound' : E₃ =o[atTop] (fun _ ↦ (1:ℝ)) := E₃.bound.trans_isL
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p)) ~[atTop] (fun x ↦ exp (-eulerMascheroniConstant) / log x) := by
-    sorry
+   rw [isEquivalent_iff_tendsto_one]
+   · convert Tendsto.congr' ?_ (Tendsto.rexp ((isLittleO_one_iff ℝ).mp E₃.bound')) using 2 with x
+     · simp
+     simp only [EventuallyEq.iff_eventually, Pi.div_apply, eventually_atTop, ge_iff_le]; use 2; intro x hx
+     rw [prod_one_minus_div_prime_eq (by linarith)]
+     have : 0 < log x := by apply log_pos; linarith
+     field_simp
+   simp only [ne_eq, exp_ne_zero, log_eq_zero, eventually_atTop]; use 2; grind
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
