@@ -3602,7 +3602,6 @@ theorem third_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
       _ = _ := by
         ring_nf
 
-
 @[blueprint
   "shift-downwards-simplified"
   (title := "Simplified formula for downward contour shift")
@@ -3623,9 +3622,11 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
   have hlam : ν ≠ 0 := by linarith
   -- Step 1: Periodicity of Phi_circ: Phi_circ(z+1) = Phi_circ(z).
   -- The argument shifts by -2πI, so w/2 shifts by -πI. Use coth_add_pi_mul_I (period πI).
-  have h_circ_periodic (z : ℂ) : Phi_circ ν ε (z - 1) = Phi_circ ν ε z := by
+  have h_circ_periodic (z : ℂ) : Phi_circ ν ε (z + 1) = Phi_circ ν ε z := by
     simp only [Phi_circ]; congr 1
-    rw [show (-2 * ↑π * I * (z - 1) + ↑ν) / 2 = (-2 * ↑π * I * z + ↑ν) / 2 + ↑π * I by ring, coth_add_pi_mul_I]
+    rw [show (-2 * ↑π * I * (z + 1) + ↑ν) / 2 = (-2 * ↑π * I * z + ↑ν) / 2 - ↑π * I by ring]
+    rw [← coth_add_pi_mul_I ((-2 * ↑π * I * z + ↑ν) / 2 - ↑π * I)]
+    ring_nf
   -- Step 2: Non-vanishing condition on the imaginary axis (for Phi_star periodicity)
   -- At z = -I*t, the argument w = -2πI*(-It) + ν = -2πt + ν. Non-zero when t ≠ ν/(2π).
   -- These are needed to invoke phi_star_affine_periodic.
