@@ -3618,13 +3618,9 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
       (-I * ∫ t in Set.Icc 0 T,
           (Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 - I * t)) * E (-(-1 - I * t) * x)) +
       (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (-1/2 - I * t) - Phi_star ν ε (-1/2 - I * t)) * E (-(-1/2 - I * t) * x)) -
-      (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (1/2 - I * t) + Phi_star ν ε (1/2 - I * t)) * E (-(1/2 - I * t) * x)) +
-      (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t)) * E (-(1 - I * t) * x))
-      -- plus the second/third contour limit terms = (2 - E(-x) - E(x)) * (imag axis integral)
-      -- TODO: exact linear combination once we know which shift_downwards terms survive.
+          (Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t)) * E (-(1 - I * t) * x)) -
+      (2 * I * ∫ t in Set.Icc 0 T,
+          Phi_star ν ε (-I * t) * E (-(-I * t) * x))
       = (2 - E (-↑x) - E ↑x) * (-I * ∫ t in Set.Icc 0 T, Phi_star ν ε (-I * t) * E (-(-I * t) * x)) := by
     -- h_sub and h_add collapse Phi_circ; E-shifts factor out as E(-x) or E(x).
     -- Analogous computation to h_factor in shift_upwards_simplified with I → -I.
@@ -3712,7 +3708,6 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
     --                   + second_contour_expr(T) + third_contour_expr(T)  (pointwise)
     -- Each finite integral appears twice with opposite signs and cancels.
     -- refine (h1.sub h2).congr' ?_ -- adjust signs for h3 h4 contributions
-    ring_nf
     -- Step 1: Combine the limits of the four contour components using Tendsto arithmetic.
     -- We use 'convert' to simplify the limit point (Fourier - exp - 0 - 0) to (Fourier - exp).
     have h_arith := ((h1.sub h2).sub h3).sub h4
@@ -3722,22 +3717,66 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
     rw [h_lim_ident] at h_arith
     -- Step 2: Use congr' to transition from the arithmetic combination to combined_expr.
     -- This will now unify correctly because the limit points are syntactically identical.
-    apply h_arith.congr'
+    ring_nf; apply h_arith.congr'
     -- Step 3: Pointwise cancellation of horizontal and vertical segments.
     filter_upwards [Filter.eventually_ge_atTop 0] with T hT
-    simp only [combined_expr]
-    -- Pointwise identity: combined_expr T = (h1 - h2 - h3 - h4)(T).
-    -- Step 3: Pointwise cancellation of horizontal and vertical segments.
-    -- Combine the integrals on the LHS to match the RHS structure.
-    -- We use 'integral_sub' and 'integral_add' to group terms at each vertical arm.
-    -- Note: most finite horizontal integrals and intermediate vertical arm components cancel.
-    simp_rw [← MeasureTheory.integral_sub, ← MeasureTheory.integral_add]
-    -- Final algebraic simplification: terms like (Phi_circ - Phi_star - Phi_circ + Phi_star) at ±1/2 cancel.
-    ring_nf
-    -- At this point, the goal should be simplified enough for 'ring' or 'congr' to handle.
-    -- If not, a few explicit 'rw' calls with 'h_sub' or 'h_add' may be needed.
+    simp only [combined_expr, E]
+    push_cast
+    -- Step 3: Targeted cancellation of horizontal and vertical segments.
+    -- We expand the integrands algebraically first, then split the integrals.
+    simp_rw [sub_mul, add_mul]
 
-    sorry -- exact arithmetic: show combined_expr = (SD - FCL + SCL + TCL) pointwise
+    have h_not_pole_m12 (a : ℝ) (n : ℤ) : (-1 / 2 : ℂ) - I * ↑a ≠ ↑n - I * ↑ν / (2 * ↑π) := by
+      -- Proof sketch: Taking Complex.re of both sides yields -1/2 = n, which contradicts n : ℤ.
+      sorry
+
+    have h_not_pole_p12 (a : ℝ) (n : ℤ) : (1 / 2 : ℂ) - I * ↑a ≠ ↑n - I * ↑ν / (2 * ↑π) := by
+      -- Proof sketch: Taking Complex.re of both sides yields 1/2 = n, which contradicts n : ℤ.
+      sorry
+
+    have h_int_circ_m12 : IntegrableOn (fun a : ℝ ↦ Phi_circ ν ε (-1 / 2 - I * ↑a) * cexp (2 * ↑π * I * (-(-1 / 2 - I * ↑a) * ↑x))) (Set.Icc 0 T) := by
+      -- Sketch: A continuous function on a compact interval `Set.Icc 0 T` is integrable.
+      apply ContinuousOn.integrableOn_Icc
+      apply ContinuousOn.mul
+      · intro a _
+        apply ContinuousAt.continuousWithinAt
+        have h_ana := Phi_circ.analyticAt_of_not_pole ν ε (-1 / 2 - I * ↑a) (fun n ↦ h_not_pole_m12 a n)
+        exact ContinuousAt.comp (f := fun a : ℝ ↦ (-1 / 2 : ℂ) - I * ↑a) h_ana.continuousAt (by fun_prop)
+      · exact Continuous.continuousOn (by fun_prop)
+
+    have h_int_star_m12 : IntegrableOn (fun a : ℝ ↦ Phi_star ν ε (-1 / 2 - I * ↑a) * cexp (2 * ↑π * I * (-(-1 / 2 - I * ↑a) * ↑x))) (Set.Icc 0 T) := by
+      -- Sketch: Same as above but using Phi_star.analyticAt_of_not_pole
+      apply ContinuousOn.integrableOn_Icc
+      apply ContinuousOn.mul
+      · intro a _
+        apply ContinuousAt.continuousWithinAt
+        have h_ana := Phi_star.analyticAt_of_not_pole ν ε (-1 / 2 - I * ↑a) (fun n ↦ h_not_pole_m12 a n)
+        exact ContinuousAt.comp (f := fun a : ℝ ↦ (-1 / 2 : ℂ) - I * ↑a) h_ana.continuousAt (by fun_prop)
+      · exact Continuous.continuousOn (by fun_prop)
+
+    have h_int_circ_p12 : IntegrableOn (fun a : ℝ ↦ Phi_circ ν ε (1 / 2 - I * ↑a) * cexp (2 * ↑π * I * (-(1 / 2 - I * ↑a) * ↑x))) (Set.Icc 0 T) := by
+      -- Sketch: Same as above but for +1/2
+      apply ContinuousOn.integrableOn_Icc
+      apply ContinuousOn.mul
+      · intro a _
+        apply ContinuousAt.continuousWithinAt
+        have h_ana := Phi_circ.analyticAt_of_not_pole ν ε (1 / 2 - I * ↑a) (fun n ↦ h_not_pole_p12 a n)
+        exact ContinuousAt.comp (f := fun a : ℝ ↦ (1 / 2 : ℂ) - I * ↑a) h_ana.continuousAt (by fun_prop)
+      · exact Continuous.continuousOn (by fun_prop)
+
+    have h_int_star_p12 : IntegrableOn (fun a : ℝ ↦ Phi_star ν ε (1 / 2 - I * ↑a) * cexp (2 * ↑π * I * (-(1 / 2 - I * ↑a) * ↑x))) (Set.Icc 0 T) := by
+      -- Sketch: Same as above but for +1/2
+      apply ContinuousOn.integrableOn_Icc
+      apply ContinuousOn.mul
+      · intro a _
+        apply ContinuousAt.continuousWithinAt
+        have h_ana := Phi_star.analyticAt_of_not_pole ν ε (1 / 2 - I * ↑a) (fun n ↦ h_not_pole_p12 a n)
+        exact ContinuousAt.comp (f := fun a : ℝ ↦ (1 / 2 : ℂ) - I * ↑a) h_ana.continuousAt (by fun_prop)
+      · exact Continuous.continuousOn (by fun_prop)
+
+    rw [integral_sub h_int_circ_m12 h_int_star_m12]
+    rw [integral_add h_int_circ_p12 h_int_star_p12]
+    ring
   -- Final: compose combined_expr with T ↦ T/(2π) and use h_key
   have h_scale : Filter.Tendsto (fun T : ℝ ↦ T / (2 * π)) Filter.atTop Filter.atTop :=
     Filter.tendsto_atTop_atTop_of_monotone
