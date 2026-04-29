@@ -1349,17 +1349,12 @@ lemma B_conj (ε : ℝ) (z : ℂ) : (starRingEnd ℂ) (B ε z) = B ε ((starRing
   simp only [hcond, map_one, map_div₀, map_mul, map_add,
              Complex.conj_ofReal, coth_conj, map_ofNat]
 
--- Anti-Hermitian symmetry: Φ∗(−t) = −conj(Φ∗(t))
 private lemma Phi_star_conj_symm (ν ε t : ℝ) :
     Phi_star ν ε (-(↑t : ℂ)) = -(starRingEnd ℂ (Phi_star ν ε (↑t : ℂ))) := by
   dsimp [Phi_star]
-  -- Step 1: Simplify -2πI * -↑t = 2πI * ↑t on LHS
   simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
-  -- Step 3: Apply B_conj to B ε (-2πIt + ν)
   rw [B_conj]
-  -- Step 5: Simplify starRingEnd of the argument of B
   simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
-  -- Step 6: Close — both sides are now identical up to ring arithmetic
   rw [B_conj]
   simp [Complex.conj_ofReal]; field_simp
 
