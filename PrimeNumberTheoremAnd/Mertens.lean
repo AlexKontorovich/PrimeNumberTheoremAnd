@@ -228,9 +228,14 @@ $$ E_{1,p}(x) \leq E_{1,\Lambda}(x). $$
   -/)
   (latexEnv := "corollary")
   (discussion := 1311)]
-theorem E₁p.le_E₁Λ {x : ℝ} (hx : 1 ≤ x) :
+theorem E₁p.le_E₁Λ (x : ℝ) :
     E₁p x ≤ E₁Λ x := by
-    sorry
+    unfold E₁p E₁Λ; rw [sum_filter]
+    gcongr with p _
+    split_ifs with hp
+    · simp [vonMangoldt_apply_prime hp]
+    have : 0 ≤ Λ p := vonMangoldt_nonneg
+    positivity
 
 @[blueprint
   "Mertens-first-error-prime-le"
