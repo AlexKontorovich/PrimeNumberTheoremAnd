@@ -3,6 +3,7 @@ import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
+import Mathlib.Algebra.Group.Submonoid.BigOperators
 import Architect
 
 theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
@@ -20,11 +21,21 @@ In this section we give explicit versions of Mertens' theorems:
 \item Mertens' third theorem: $\prod_{p \leq x} (1 - \frac{1}{p}) = e^{-\gamma}/\log x + O(1/\log^2 x)$.
 \end{itemize}
 We aim to upstreaming these results to Mathlib.  In particular, the arguments here should be self-contained and written for efficiency, coherency, and clarity.  As such, extensive use of AI tools is \emph{strongly discouraged} in this section.
+In this section we give explicit versions of Mertens' theorems:
+\begin{itemize}
+\item Mertens' first theorem (von Mangoldt form): $\sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1)$.
+\item Mertens' first theorem (prime form): $\sum_{p \leq x} \frac{\log p}{p} = \log x + O(1)$.
+\item Mertens' second theorem (von Mangoldt form): $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + \gamma + O(1/\log x)$.
+\item Mertens' second theorem (prime form): $\sum_{p \leq x} \frac{1}{p} = \log \log x + M + O(1/\log x)$, where $M$ is the Meissel-Mertens constant.
+\item Mertens' third theorem: $\prod_{p \leq x} (1 - \frac{1}{p}) = e^{-\gamma}/\log x + O(1/\log^2 x)$.
+\end{itemize}
+We aim to upstreaming these results to Mathlib.  In particular, the arguments here should be self-contained and written for efficiency, coherency, and clarity.  As such, extensive use of AI tools is \emph{strongly discouraged} in this section.
 
 The arguments here are drawn from Leo Goldmakher's ``A quick proof of Mertens' theorem'' from https://web.williams.edu/Mathematics/lg5/mertens.pdf
 
 The unfinished formalization of Mertens' theorems by Arend Mellendijk in https://github.com/FLDutchmann/Analytic/blob/main/Analytic/Mertens.lean may also be relevant here.
 -/
+
 
 
 open Real Finset Filter Asymptotics
@@ -100,9 +111,12 @@ $$ \sum_{n \leq x} \log n = \log(\lfloor x \rfloor!). $$
  -/)
   (latexEnv := "proposition")
   (discussion := 1315)]
-theorem sum_log_eq_log_factorial (x : ℝ) (hx : 1 ≤ x) :
-    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.factorial (Nat.floor x)) := by
-    sorry
+theorem sum_log_eq_log_factorial (x : ℝ) :
+    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = log (Nat.floor x).factorial := by
+    rw [←prod_Ico_id_eq_factorial, ←log_prod, prod_natCast]
+    · congr
+    intro x hx
+    simp at hx ⊢; grind
 
 #check ArithmeticFunction.vonMangoldt_sum
 
@@ -186,12 +200,17 @@ theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
     sorry
 
+theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
+    simp only [isLittleO_one_left_iff, norm_eq_abs]
+    exact tendsto_abs_atTop_atTop.comp tendsto_log_atTop
+
 @[blueprint
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
-theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
+theorem sum_mangoldt_div_eq_log' :
     (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d) ~[atTop] (fun x ↦ log x) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
+    convert E₁Λ.bounded using 1
 
 @[blueprint
   "Mertens-first-error-prime"
@@ -213,9 +232,14 @@ $$ E_{1,p}(x) \leq E_{1,\Lambda}(x). $$
   -/)
   (latexEnv := "corollary")
   (discussion := 1311)]
-theorem E₁p.le_E₁Λ {x : ℝ} (hx : 1 ≤ x) :
+theorem E₁p.le_E₁Λ (x : ℝ) :
     E₁p x ≤ E₁Λ x := by
-    sorry
+    unfold E₁p E₁Λ; rw [sum_filter]
+    gcongr with p _
+    split_ifs with hp
+    · simp [vonMangoldt_apply_prime hp]
+    have : 0 ≤ Λ p := vonMangoldt_nonneg
+    positivity
 
 @[blueprint
   "Mertens-first-error-prime-le"
@@ -228,7 +252,7 @@ $$ E_{1,p}(x) \leq \log 4 + 4.$$
   (latexEnv := "corollary")]
 theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≤ log 4 + 4 := by
-    linarith [E₁Λ.le hx, E₁p.le_E₁Λ hx]
+    linarith [E₁Λ.le hx, E₁p.le_E₁Λ x]
 
 noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
@@ -294,7 +318,8 @@ theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p) ~[atTop] (fun x ↦ log x) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
+    convert sum_log_prime_div_eq_log' using 1
 
 @[blueprint
   "Euler-Mascheroni-const-alt"
@@ -343,6 +368,10 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
     sorry
 
+private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
+    ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
+    sorry
+
 @[blueprint
   "Mertens-second-error-mangoldt-bound"
   (title := "Bound for second Mertens error (von Mangoldt form)")
@@ -356,7 +385,36 @@ $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
   (discussion := 1318)]
 theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
     |E₂Λ x| ≤ (log 4 + 6) / log x := by
-    sorry
+    have : 0 < log x := by apply log_pos; linarith
+    rw [E₂Λ.eq hx, abs_le']
+    have hmes : MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+    have hmes' (c:ℝ) : MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+    constructor
+    · grw [E₁Λ.le (by linarith)]
+      have : ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) ≥ - 2 / log x := calc
+        _ ≥ ∫ t in Set.Ioi x, (-2) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on (hmes' (-2)) hmes (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁Λ.ge (by linarith)
+        _ = _ := integ_div_mul_log_sq (-2) hx
+      grw [this]
+      grind
+    grw [E₁Λ.ge (by linarith)]
+    have : ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) ≤ (log 4 + 4) / log x := calc
+        _ ≤ ∫ t in Set.Ioi x, (log 4 + 4) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on hmes (hmes' (log 4 + 4)) (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁Λ.le (by linarith)
+        _ = _ := integ_div_mul_log_sq (log 4 + 4) hx
+    grw [this]
+    grind
+
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
