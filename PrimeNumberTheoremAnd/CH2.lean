@@ -3754,7 +3754,7 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
   "fourier-formula-neg"
   (title := "Fourier formula for negative $x$")
   (statement := /--
-Let $\nu > 0$, $x < 0$. Then
+Let $\nu > 0$, $x < 0$. Since $x < 0$, $I_{\nu}(x) = 0$, and
 $$
 \widehat{\varphi^{\pm}_{\nu}}(x) - I_{\nu}(x) = \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu + y) - B^{\pm}(\nu))\, e^{xy}\, dy.
 $$
@@ -3762,9 +3762,9 @@ $$
   (proof := /-- This follows from the previous lemma. -/)
   (latexEnv := "lemma")
   (discussion := 1089)]
-theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 0) :
-    Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
-    sorry
+theorem fourier_formula_neg (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
+    Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
+    exact shift_upwards_simplified ν ε hν x hx
 
 @[blueprint
   "fourier-formula-pos"
@@ -3772,15 +3772,15 @@ theorem fourier_formula_neg (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x < 
   (statement := /--
 Let $\nu > 0$, $x > 0$. Then
 $$
-\widehat{\varphi^{\pm}_{\nu}}(x) - e^{-\nu x} = - \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu) - B^{\pm}(\nu - y))\, e^{-xy}\, dy.
+\widehat{\varphi^{\pm}_{\nu}}(x) - e^{-\nu x} = - \frac{\sin^2 \pi x}{\pi^2} \int_0^{\infty} (B^{\pm}(\nu - y) - B^{\pm}(\nu))\, e^{-xy}\, dy.
 $$
   -/)
   (proof := /-- This follows from the previous lemma. -/)
   (latexEnv := "lemma")
   (discussion := 1090)]
-theorem fourier_formula_pos (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) (hx : x > 0) :
+theorem fourier_formula_pos (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
-    sorry
+    exact shift_downwards_simplified ν ε hν x hx
 
 @[blueprint
   "fourier-real"
