@@ -3818,6 +3818,13 @@ theorem fourier_formula_pos (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     exact shift_downwards_simplified ν ε hν x hx
 
+private lemma integral_neg_one_zero_eq_zero_one (f : ℝ → ℂ) :
+    ∫ t in Set.Icc (-1 : ℝ) 0, f t = ∫ t in Set.Icc 0 1, f (-t) := by
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+  rw [← intervalIntegral.integral_of_le (by norm_num), ← intervalIntegral.integral_of_le (by norm_num)]
+  rw [intervalIntegral.integral_comp_neg]
+  simp
+
 @[blueprint
   "fourier-real"
   (title := "Fourier transform of $\\varphi$ real")
@@ -3827,14 +3834,6 @@ $\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
   (proof := /-- This follows from the symmetries of $\varphi^{\pm}_{\nu}$. -/)
   (latexEnv := "lemma")
   (discussion := 1225)]
--- Substitute t ↦ −t in the integral
-private lemma integral_neg_one_zero_eq_zero_one (f : ℝ → ℂ) :
-    ∫ t in Set.Icc (-1 : ℝ) 0, f t = ∫ t in Set.Icc 0 1, f (-t) := by
-  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
-  rw [← intervalIntegral.integral_of_le (by norm_num), ← intervalIntegral.integral_of_le (by norm_num)]
-  rw [intervalIntegral.integral_comp_neg]
-  simp
-
 theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν ε) x).im = 0 := by
   rw [varphi_fourier_ident ν ε hlam]
   set I_pos := ∫ t in Set.Icc 0 (1 : ℝ),
