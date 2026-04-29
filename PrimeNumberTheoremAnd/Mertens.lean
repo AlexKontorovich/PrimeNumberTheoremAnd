@@ -201,12 +201,17 @@ theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
     sorry
 
+theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
+    simp only [isLittleO_one_left_iff, norm_eq_abs]
+    exact tendsto_abs_atTop_atTop.comp tendsto_log_atTop
+
 @[blueprint
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
-theorem sum_mangoldt_div_eq_log' {x : ℝ} (hx : 1 ≤ x) :
+theorem sum_mangoldt_div_eq_log' :
     (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d) ~[atTop] (fun x ↦ log x) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
+    convert E₁Λ.bounded using 1
 
 @[blueprint
   "Mertens-first-error-prime"
@@ -314,7 +319,8 @@ theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p) ~[atTop] (fun x ↦ log x) := by
-    sorry
+    apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
+    convert sum_log_prime_div_eq_log' using 1
 
 @[blueprint
   "Euler-Mascheroni-const-alt"
