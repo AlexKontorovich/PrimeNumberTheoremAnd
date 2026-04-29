@@ -248,7 +248,7 @@ $$ E_{1,p}(x) \leq \log 4 + 4.$$
   (latexEnv := "corollary")]
 theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≤ log 4 + 4 := by
-    linarith [E₁Λ.le hx, E₁p.le_E₁Λ hx]
+    linarith [E₁Λ.le hx, E₁p.le_E₁Λ x]
 
 noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
