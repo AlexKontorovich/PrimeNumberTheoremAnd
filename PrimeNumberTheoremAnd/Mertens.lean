@@ -607,8 +607,34 @@ $$ |E_{2,p}(x)| \leq \frac{\log 4 + 6 + E_1}{\log x}.$$
   (discussion := 1326)]
 theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
     |E₂p x| ≤ (log 4 + 6 + E₁) / log x := by
-    sorry
-
+    have : 0 < log x := by apply log_pos; linarith
+    rw [E₂p.eq hx, abs_le']
+    constructor
+    · grw [E₁p.le (by linarith)]
+      have : ∫ t in Set.Ioi x, E₁p t / (t * log t^2) ≥ (- 2 - E₁) / log x := calc
+        _ ≥ ∫ t in Set.Ioi x, (-2 - E₁) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on (integrable_const_div_mul_log_sq (-2 - E₁) hx)
+            (integrable_E₁p_div_mul_log_sq hx) (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁p.ge (by linarith)
+        _ = _ := integ_div_mul_log_sq (-2 - E₁) hx
+      grw [this]
+      grind
+    grw [E₁p.ge (by linarith)]
+    have : ∫ t in Set.Ioi x, E₁p t / (t * log t^2) ≤ (log 4 + 4) / log x := calc
+        _ ≤ ∫ t in Set.Ioi x, (log 4 + 4) / (t * log t^2) := by
+          apply MeasureTheory.setIntegral_mono_on (integrable_E₁p_div_mul_log_sq hx)
+            (integrable_const_div_mul_log_sq (log 4 + 4) hx) (by measurability)
+          intro y hy; simp at hy
+          have : 1 < y := by linarith
+          have : 0 < log y := log_pos this
+          gcongr; exact E₁p.le (by linarith)
+        _ = _ := integ_div_mul_log_sq (log 4 + 4) hx
+    grw [this]
+    grind
+    
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
 theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
