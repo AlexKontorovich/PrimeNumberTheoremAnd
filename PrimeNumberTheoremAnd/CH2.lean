@@ -3856,6 +3856,111 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
   (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}$. -/)]
 noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
 
+-- Case x < 0: I ν x = 0, and the Fourier transforms straddle 0 by the sign of the B-integral.
+-- Key ingredients: fourier_formula_neg + B_plus_mono/B_minus_mono.
+private lemma Inu_bounds_neg (ν x : ℝ) (hν : ν > 0) (hx : x < 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+  -- Step 1: I ν x = 0 since x < 0.
+  have hI : I ν x = 0 := if_neg (not_le.mpr hx)
+  rw [hI]
+  -- Step 2: Take the real-part Tendsto from fourier_formula_neg.
+  -- (continuous_re.tendsto v).comp h : Tendsto (re ∘ partial_sums) atTop (nhds (𝓕 ε x).re)
+  refine ⟨?_, ?_⟩
+  · -- Goal: (𝓕 (ϕ_pm ν (-1)) x).re ≤ 0
+    -- fourier_formula_neg (ε = -1) gives lim_{T→∞} partial_sum_minus T = 𝓕 ϕ- x.
+    -- Each partial_sum_minus T has .re ≤ 0:
+    --   (sin πx)^2/π^2 ≥ 0, and for t ∈ [0,T]:
+    --   B_minus_mono: (B (-1) (ν+t)).re ≤ (B (-1) ν).re  (since ν ≤ ν+t, antitone)
+    --   → integrand .re = ((B (-1) (ν+t) - B (-1) ν) * exp(xt)).re ≤ 0
+    --   → integral .re ≤ 0  → (sin πx)^2/π^2 * integral ≤ 0.
+    apply le_of_tendsto
+      ((continuous_re.tendsto _).comp (fourier_formula_neg ν (-1) hν x hx))
+    apply Filter.Eventually.of_forall
+    intro T
+    sorry -- sign: B_minus_mono + nonnegativity of (sin πx)^2/π^2 and exp(xt)
+  · -- Goal: 0 ≤ (𝓕 (ϕ_pm ν 1) x).re
+    -- fourier_formula_neg (ε = 1): each partial sum has .re ≥ 0:
+    --   B_plus_mono: (B 1 (ν+t)).re ≥ (B 1 ν).re for t ≥ 0
+    --   → integrand .re ≥ 0 → integral ≥ 0 → (sin πx)^2/π^2 * integral ≥ 0.
+    apply ge_of_tendsto
+      ((continuous_re.tendsto _).comp (fourier_formula_neg ν 1 hν x hx))
+    apply Filter.Eventually.of_forall
+    intro T
+    sorry -- sign: B_plus_mono + nonnegativity of (sin πx)^2/π^2 and exp(xt)
+
+-- Case x > 0: I ν x = exp(-νx), and the residue formula from fourier_formula_pos gives the bound.
+-- Key ingredients: fourier_formula_pos + B_plus_mono/B_minus_mono.
+private lemma Inu_bounds_pos (ν x : ℝ) (hν : ν > 0) (hx : x > 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+  -- Step 1: I ν x = exp(-ν * x) since x > 0.
+  have hI : I ν x = Real.exp (-ν * x) := if_pos (le_of_lt hx)
+  -- Step 2: fourier_formula_pos gives: lim_{T→∞} -(sin πx)^2/π^2 * ∫_0^T (B ε(ν-t)-B ε ν)*exp(-xt) dt
+  --         = 𝓕(ϕ_pm ν ε)(x) - Complex.exp(-ν*x).
+  -- Taking real parts: limit of partial_sums.re = (𝓕 ε x).re - Real.exp(-ν*x).
+  have h_tendsto_plus := (continuous_re.tendsto _).comp (fourier_formula_pos ν 1 hν x hx)
+  have h_tendsto_minus := (continuous_re.tendsto _).comp (fourier_formula_pos ν (-1) hν x hx)
+  -- Step 3: Simplify the limit targets: (𝓕 ε x - exp(-νx)).re = (𝓕 ε x).re - I ν x.
+  have h_re_eq : ∀ ε : ℝ, (𝓕 (ϕ_pm ν ε) x - Complex.exp (-(↑ν * ↑x))).re =
+      (𝓕 (ϕ_pm ν ε) x).re - I ν x := by
+    intro ε
+    -- (A - B).re = A.re - B.re, and (Complex.exp ↑r).re = Real.exp r
+    rw [hI, Complex.sub_re]
+    simp [Complex.exp_ofReal_re]
+  rw [h_re_eq 1] at h_tendsto_plus h_tendsto_minus
+  -- Step 4: For ε = 1 (B+ increasing): -(sin πx)^2/π^2 ≤ 0 and integral ≤ 0
+  --   (B+(ν-t).re ≤ B+(ν).re since ν-t ≤ ν and B+ is monotone)
+  --   so partial sum ≥ 0, limit ≥ 0: (𝓕 ϕ+ x).re - I ν x ≥ 0.
+  have hpos : 0 ≤ (𝓕 (ϕ_pm ν 1) x).re - I ν x := by
+    apply ge_of_tendsto h_tendsto_plus
+    apply Filter.Eventually.of_forall
+    intro T
+    sorry -- sign: B_plus_mono gives B+(ν-t).re ≤ B+(ν).re; -(sin πx)^2/π^2 ≤ 0; integral ≤ 0; product ≥ 0
+  -- Step 5: For ε = -1 (B- decreasing): -(sin πx)^2/π^2 ≤ 0 and integral ≥ 0
+  --   (B-(ν-t).re ≥ B-(ν).re since ν-t ≤ ν and B- is antitone)
+  --   so partial sum ≤ 0, limit ≤ 0: (𝓕 ϕ- x).re - I ν x ≤ 0.
+  have hneg : (𝓕 (ϕ_pm ν (-1)) x).re - I ν x ≤ 0 := by
+    apply le_of_tendsto h_tendsto_minus
+    apply Filter.Eventually.of_forall
+    intro T
+    sorry -- sign: B_minus_mono gives B-(ν-t).re ≥ B-(ν).re; -(sin πx)^2/π^2 ≤ 0; integral ≥ 0; product ≤ 0
+  exact ⟨by linarith, by linarith⟩
+
+-- Case x = 0: take the right limit from Inu_bounds_pos, using continuity of 𝓕(ϕ_pm ν ε).
+-- Key ingredients: Inu_bounds_pos + continuity of Fourier transform (varphi_integ + VectorFourier.fourierIntegral_continuous).
+private lemma Inu_bounds_zero (ν : ℝ) (hν : ν > 0) :
+    (𝓕 (ϕ_pm ν (-1)) 0).re ≤ I ν 0 ∧ I ν 0 ≤ (𝓕 (ϕ_pm ν 1) 0).re := by
+  -- Step 1: I ν 0 = exp(0) = 1.
+  have hI : I ν 0 = 1 := by simp [I]
+  rw [hI]
+  -- Step 2: 𝓕(ϕ_pm ν ε) is continuous.
+  -- Proof: ϕ_pm ν ε ∈ L^1 (by varphi_integ, which uses hlam : ν ≠ 0 ← hν.ne')
+  --        + VectorFourier.fourierIntegral_continuous + continuous_re.
+  have h_cont : ∀ ε : ℝ, Continuous (fun x : ℝ ↦ (𝓕 (ϕ_pm ν ε) x).re) := fun ε ↦ by
+    apply Continuous.comp continuous_re
+    exact VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+      (by fun_prop) (varphi_integ ν ε hν.ne')
+  -- Step 3: nhdsWithin 0 (Ioi 0) is NeBot (since ℝ is densely ordered, no maximum).
+  haveI hbot : Filter.NeBot (𝓝[Set.Ioi (0 : ℝ)] 0) := nhdsWithin_Ioi_neBot le_rfl
+  -- Step 4: Right limit of I ν at 0 is 1.
+  -- On Ioi 0, I ν x = exp(-ν*x); as x → 0+, exp(-ν*x) → exp(0) = 1 = I ν 0.
+  have h_I_rcts : Filter.Tendsto (fun x : ℝ ↦ I ν x) (𝓝[Set.Ioi 0] 0) (𝓝 1) := by
+    -- I ν = exp(-ν·) on [0,∞), and exp(-ν·) is continuous, so this is ContinuousWithinAt.
+    sorry -- ContinuousWithinAt (I ν) (Ioi 0) 0: use that I ν = exp(-ν*·) on Ioi 0
+  constructor
+  · -- (𝓕 (ϕ_pm ν (-1)) 0).re ≤ 1
+    -- Tendsto of (𝓕 ϕ- x).re as x → 0+ is (𝓕 ϕ- 0).re by continuity.
+    -- For all x > 0: (𝓕 ϕ- x).re ≤ I ν x (Inu_bounds_pos).
+    -- So by le_of_tendsto_of_tendsto: (𝓕 ϕ- 0).re ≤ 1.
+    exact le_of_tendsto_of_tendsto
+      (hf := (h_cont (-1)).continuousAt.continuousWithinAt)
+      (hg := h_I_rcts)
+      (eventually_nhdsWithin_of_forall (fun x hx ↦ (Inu_bounds_pos ν x hν hx).1))
+  · -- 1 ≤ (𝓕 (ϕ_pm ν 1) 0).re
+    exact le_of_tendsto_of_tendsto
+      (hf := h_I_rcts)
+      (hg := (h_cont 1).continuousAt.continuousWithinAt)
+      (eventually_nhdsWithin_of_forall (fun x hx ↦ (Inu_bounds_pos ν x hν hx).2))
+
 @[blueprint
   "Inu_bounds"
   (title := "Bound for $I_\\nu$")
@@ -3869,7 +3974,10 @@ $$-/)
   (discussion := 1224)]
 theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
     (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
-    sorry
+  rcases lt_trichotomy x 0 with hx | rfl | hx
+  · exact Inu_bounds_neg ν x hν hx
+  · exact Inu_bounds_zero ν hν
+  · exact Inu_bounds_pos ν x hν hx
 
 @[blueprint
   "varphi-abs"
