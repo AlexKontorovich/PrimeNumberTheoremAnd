@@ -439,6 +439,9 @@ public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
 lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   simp [coth]
 
+lemma coth_conj (z : ℂ) : (starRingEnd ℂ) (coth z) = coth ((starRingEnd ℂ) z) := by
+  simp [coth, Complex.tanh_conj]
+
 @[blueprint
   "Phi-circ-def"
   (title := "Definition of $\\Phi^{\\pm,\\circ}_\\nu$")
@@ -1285,6 +1288,16 @@ theorem Phi_circ.analyticAt_of_im_gt_pole (ν ε : ℝ) (z : ℂ) (hz_im : z.im 
     AnalyticAt ℂ (Phi_circ ν ε) z :=
   Phi_circ.analyticAt_of_im_ne_pole ν ε z hz_im.ne'
 
+-- Hermitian symmetry: Φ∘(−t) = conj(Φ∘(t))
+private lemma Phi_circ_conj_symm (ν ε t : ℝ) :
+    Phi_circ ν ε (-(↑t : ℂ)) = starRingEnd ℂ (Phi_circ ν ε (↑t : ℂ)) := by
+  unfold Phi_circ
+  rw [starRingEnd_apply, Complex.star_def]
+  simp only [map_mul, map_add, map_div₀, conj_ofReal]
+  simp only [one_div, neg_mul, mul_neg, neg_neg, map_one, coth_conj]
+  congr
+  · simp [map_ofNat]
+  · simp [map_div₀, map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
 
 theorem Phi_star.analyticAt_of_not_pole_nz (ν ε : ℝ) (z : ℂ) (h_not_pole : ∀ n : ℤ, n ≠ 0 → z ≠ n - I * ν / (2 * π)) :
     AnalyticAt ℂ (Phi_star ν ε) z := by
@@ -1327,6 +1340,23 @@ theorem Phi_star.analyticAt_of_im_nonneg (ν ε : ℝ) (z : ℂ) (hν : ν > 0) 
   Phi_star.analyticAt_of_im_ne_pole ν ε z (by
     have : -ν / (2 * π) < 0 := div_neg_of_neg_of_pos (neg_lt_zero.mpr hν) (mul_pos (by norm_num) Real.pi_pos)
     linarith)
+
+lemma B_conj (ε : ℝ) (z : ℂ) : (starRingEnd ℂ) (B ε z) = B ε ((starRingEnd ℂ) z) := by
+  simp only [B]
+  rw [apply_ite (starRingEnd ℂ)]
+  have hcond : z = 0 ↔ (starRingEnd ℂ) z = 0 := by
+    simp [map_eq_zero]
+  simp only [hcond, map_one, map_div₀, map_mul, map_add,
+             Complex.conj_ofReal, coth_conj, map_ofNat]
+
+private lemma Phi_star_conj_symm (ν ε t : ℝ) :
+    Phi_star ν ε (-(↑t : ℂ)) = -(starRingEnd ℂ (Phi_star ν ε (↑t : ℂ))) := by
+  dsimp [Phi_star]
+  simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
+  rw [B_conj]
+  simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
+  rw [B_conj]
+  simp [Complex.conj_ofReal]; field_simp
 
 @[blueprint
   "phi-c2-left"
@@ -1907,6 +1937,12 @@ theorem continuous_E : Continuous E := by
 lemma cont_E (x : ℝ) : Continuous (fun t:ℝ ↦ E (-t * x)) := by
   simp only [E]
   fun_prop
+
+-- Conjugate of E: E(tx) = conj(E(−tx)) for real t, x
+private lemma E_conj_symm (t x : ℝ) :
+    E ((↑t : ℂ) * ↑x) = starRingEnd ℂ (E (-(↑t : ℂ) * ↑x)) := by
+  dsimp [E]; rw [← Complex.exp_conj]; simp only [starRingEnd_apply]
+  ring_nf; simp
 
 @[blueprint
   "varphi-fourier-ident"
@@ -3782,6 +3818,13 @@ theorem fourier_formula_pos (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
     Filter.atTop.Tendsto (fun T:ℝ ↦ - (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν - t) - B ε ν) * Real.exp (-x * t))) (nhds (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x))) := by
     exact shift_downwards_simplified ν ε hν x hx
 
+private lemma integral_neg_one_zero_eq_zero_one (f : ℝ → ℂ) :
+    ∫ t in Set.Icc (-1 : ℝ) 0, f t = ∫ t in Set.Icc 0 1, f (-t) := by
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+  rw [← intervalIntegral.integral_of_le (by norm_num), ← intervalIntegral.integral_of_le (by norm_num)]
+  rw [intervalIntegral.integral_comp_neg]
+  simp
+
 @[blueprint
   "fourier-real"
   (title := "Fourier transform of $\\varphi$ real")
@@ -3792,7 +3835,20 @@ $\widehat{\varphi^{\pm}_{\nu}}(x)$ is real.
   (latexEnv := "lemma")
   (discussion := 1225)]
 theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν ε) x).im = 0 := by
-    sorry
+  rw [varphi_fourier_ident ν ε hlam]
+  set I_pos := ∫ t in Set.Icc 0 (1 : ℝ),
+      (Phi_circ ν ε (↑t : ℂ) + Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x)
+  have h_conj : ∫ t in Set.Icc (-1 : ℝ) 0,
+      (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) =
+      starRingEnd ℂ I_pos := by
+    rw [integral_neg_one_zero_eq_zero_one, ← integral_conj]
+    apply MeasureTheory.setIntegral_congr_fun measurableSet_Icc
+    intro t _
+    simp only [Phi_star_conj_symm, Phi_circ_conj_symm, E_conj_symm, push_cast,
+           map_mul, map_add, neg_mul, neg_neg, sub_neg_eq_add]
+  simp only [Complex.add_im]
+  have hstar_im : (starRingEnd ℂ I_pos).im = -I_pos.im := by rw [Complex.conj_im]
+  linarith [h_conj ▸ hstar_im]
 
 @[blueprint
   "Inu_def"
