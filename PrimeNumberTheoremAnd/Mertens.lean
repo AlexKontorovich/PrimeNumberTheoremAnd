@@ -361,10 +361,22 @@ $$ \sum_{2 \leq n \leq x} \frac{f(n)}{\log n} = \frac{1}{\log x} \sum_{2 \leq n 
 
   -/)
   (latexEnv := "sublemma")]
-private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
+private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) : -- will meed an integrability hypothesis
     ∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n / log n =
       (∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n) / log x + ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊ t ⌋₊, f n) / (t * log t^2) := by
     sorry
+
+private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+
+private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+
+private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
 
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
@@ -385,19 +397,15 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
 
 private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
-    sorry
-
-private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
-
-private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
-
-private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
+    convert MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' (m := 0) (f := fun x ↦ - c / log x) ?_
+      (integrable_const_div_mul_log_sq c hx) ?_ using 1
+    · grind
+    · intro t ht; simp at ht
+      convert HasDerivAt.fun_div (hasDerivAt_const _ (-c)) (hasDerivAt_log (by linarith)) ?_ using 1
+      · grind
+      simp; grind
+    convert tendsto_log_atTop.inv_tendsto_atTop.const_mul (-c) using 1
+    simp
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"
@@ -634,7 +642,7 @@ theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
         _ = _ := integ_div_mul_log_sq (log 4 + 4) hx
     grw [this]
     grind
-    
+
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
 theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
