@@ -69,7 +69,7 @@ theorem lcmUpto_dvd_factorial (n : ℕ) : lcmUpto n ∣ n ! := by
   simp +contextual [lcmUpto, dvd_factorial, Order.one_le_iff_pos]
 
 theorem lcmUpto_eq_prod (n : ℕ) : lcmUpto n = ∏ p ∈ primesLE n, p ^ ((lcmUpto n).factorization p) := by
--- note: this method is deprecated and should be cfix leanhanged to prod_factorization_pow_eq_self when Mathlib bumps
+-- note: this method is deprecated and should be changed to prod_factorization_pow_eq_self when Mathlib bumps
   symm; convert factorization_prod_pow_eq_self (lcmUpto_ne_zero n)
   rw [Finsupp.prod_of_support_subset _ _ _ (by simp)]
   simp +contextual only [support_factorization, subset_iff, mem_primeFactors, ne_eq,
@@ -128,6 +128,19 @@ theorem psi_eq_sum_mul_log_prime (n : ℕ) : psi n = ∑ p ∈ primesLE n, p.log
     rw [vonMangoldt_apply_pow (by linarith), vonMangoldt_apply_prime hp.2]
   _ = _ := by simp
 
+theorem psi_le_primeCounting_mul_log (n : ℕ) : psi n ≤ (primeCounting n) * log n := calc
+  _ ≤ ∑ p ∈ primesLE n, log n := by
+    rw [psi_eq_sum_mul_log_prime n]
+    apply sum_le_sum; intro p hp; simp only [mem_filter, mem_range, Order.lt_add_one_iff] at hp
+    rw [← natFloor_logb_natCast, ← log_div_log]
+    grw [floor_le]
+    · have := hp.2.one_lt
+      have : log p ≠ 0 := log_ne_zero_of_pos_of_ne_one (by positivity) (mod_cast (Nat.ne_of_gt this))
+      field_simp; simp
+    positivity
+  _ = _ := by
+    simp [card_primesLE]
+
 /-- $\psi(n) = \log(\mathrm{lcm}(1, \dots, n))$. -/
 theorem psi_eq_log_lcmUpto (n : ℕ) : psi n = log (lcmUpto n) := by
   rw [lcmUpto_eq_prod_pow_log, Nat.cast_prod, log_prod]
@@ -176,12 +189,7 @@ theorem theta_ge (n : ℕ) : n * log 2 - log (n + 1) - 2 * √n * log n ≤ thet
 theorem theta_eq_sum_log (n : ℕ) : theta n = ∑ p ∈ primesLE n, log p := by
   rw [theta_eq_sum_Icc, floor_natCast, primesLE_eq_filter_Icc_zero]
 
-theorem theta_le_primeCounting_mul_log (n : ℕ) : theta n ≤ (primeCounting n) * log n := calc
-  _ ≤ ∑ p ∈ primesLE n, log n := by
-    rw [theta_eq_sum_log n]
-    apply sum_le_sum; intro p hp; simp only [mem_filter, mem_range, Order.lt_add_one_iff] at hp
-    exact log_le_log (mod_cast hp.2.pos) (mod_cast hp.1)
-  _ = _ := by
-    simp [card_primesLE]
+theorem theta_le_primeCounting_mul_log (n : ℕ) : theta n ≤ (primeCounting n) * log n :=
+  (theta_le_psi n).trans (psi_le_primeCounting_mul_log n)
 
 end Chebyshev
