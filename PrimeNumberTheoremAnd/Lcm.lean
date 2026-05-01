@@ -1703,7 +1703,7 @@ theorem psi_eq_prod (n : ℕ) :
   (proof := /-- Combine the previous results. -/)
   (latexEnv := "proposition")]
 theorem log_L_eq_psi (n : ℕ) : Real.log (L n) = Chebyshev.psi n := by
-  rw [Chebyshev.log_lcm_upto_eq_psi n]
+  rw [Chebyshev.psi_eq_log_lcm_upto n]
   rfl
 
 

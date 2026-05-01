@@ -131,7 +131,7 @@ theorem psi_eq_sum_mul_log_prime (n : ℕ) : psi n = ∑ p ∈ primes_le n, p.lo
     rw [vonMangoldt_apply_pow (by linarith), vonMangoldt_apply_prime hp.2]
   _ = _ := by aesop
 
-theorem log_lcm_upto_eq_psi (n : ℕ) : psi n = log (lcm_upto n) := by
+theorem psi_eq_log_lcm_upto (n : ℕ) : psi n = log (lcm_upto n) := by
   rw [ lcm_eq_prod' ];
   rw [ Nat.cast_prod, log_prod ] <;> norm_num;
   · rw [ psi_eq_sum_mul_log_prime ];
@@ -157,7 +157,7 @@ theorem psi_ge (n : ℕ) : psi n ≥ n * log 2 - log (n+1) := by
     apply log_le_log (by positivity)
     have : (2:ℝ)^n = (2^n:ℕ) := by norm_num
     rw [this]; grw [two_pow_le_lcm_upto_mul n]; grind
-  rw [Real.log_pow, Real.log_mul (by positivity) (by simp), ←log_lcm_upto_eq_psi] at this
+  rw [Real.log_pow, Real.log_mul (by positivity) (by simp), ←psi_eq_log_lcm_upto] at this
   linarith
 
 theorem theta_ge (n : ℕ) : theta n ≥ n * log 2 - log (n+1) - 2 * √n * log n := by
