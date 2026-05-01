@@ -3869,7 +3869,9 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
   (latexEnv := "lemma")
   (discussion := 1227)]
 theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) := by
-    sorry
+  rw [← integrableOn_univ, ← Set.union_compl_self (Set.Icc (-1 : ℝ) 1)]
+  refine IntegrableOn.union ((ϕ_continuous ν ε hlam).continuousOn.integrableOn_compact isCompact_Icc) ?_
+  exact (integrable_zero ℝ ℂ volume).integrableOn.congr_fun (fun t ht ↦ (if_neg ht).symm) measurableSet_Icc.compl
 
 @[blueprint
   "Inu_def"
