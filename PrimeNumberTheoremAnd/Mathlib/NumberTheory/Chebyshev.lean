@@ -24,7 +24,7 @@ theorem log_eq_log_div_log (a b : ℕ) : a.log b = ⌊ Real.log b / Real.log a �
   · simp
   · simp
   rcases eq_zero_or_pos b with rfl | hb
-  · simp 
+  · simp
   symm; rw [floor_eq_iff (by positivity)]
   have : 0 < Real.log a := Real.log_pos (by norm_cast)
   constructor
@@ -151,6 +151,7 @@ theorem two_pow_le_lcm_upto_mul (n : ℕ) : 2 ^ n ≤ (n+1) * lcm_upto n := calc
     exact Nat.le_of_dvd (lcm_upto_pos n) (choose_dvd_lcm_upto hk)
   _ ≤ _ := by simp
 
+/-- The Chebyshev lower bound for $\psi$. -/
 theorem psi_ge (n : ℕ) : psi n ≥ n * log 2 - log (n+1) := by
   have : log (2 ^ n) ≤ log ((n+1) * lcm_upto n) := by
     apply log_le_log (by positivity)
