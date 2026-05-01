@@ -806,11 +806,11 @@ noncomputable def B (ε : ℝ) (s : ℂ) : ℂ := if s = 0 then 1 else s * (coth
   (latexEnv := "lemma")]
 theorem B.continuous_zero (ε : ℝ) : ContinuousAt (B ε) 0 := by
   have h_lim : Filter.Tendsto (fun s : ℂ => s * (Complex.cosh (s / 2)) / (2 * Complex.sinh (s / 2)) + ε * s / 2) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
-    have h_lim : Filter.Tendsto (fun s : ℂ => s / (2 * Complex.sinh (s / 2))) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
-      have h_sinh : Filter.Tendsto (fun s : ℂ => Complex.sinh (s / 2) / s) (nhdsWithin 0 {0}ᶜ) (nhds (1 / 2)) := by
+    have h_sinh : Filter.Tendsto (fun s : ℂ => Complex.sinh (s / 2) / s) (nhdsWithin 0 {0}ᶜ) (nhds (1 / 2)) := by
         simpa [div_eq_inv_mul] using HasDerivAt.tendsto_slope_zero
           (HasDerivAt.comp 0 (Complex.hasDerivAt_sinh _)
             (hasDerivAt_id 0 |> HasDerivAt.div_const <| 2))
+    have h_lim : Filter.Tendsto (fun s : ℂ => s / (2 * Complex.sinh (s / 2))) (nhdsWithin 0 {0}ᶜ) (nhds 1) := by
       convert h_sinh.inv₀ (by norm_num : (1 / 2 : ℂ) ≠ 0) |>
         Filter.Tendsto.const_mul 2⁻¹ using 2 <;> norm_num; ring
     simpa [mul_div_right_comm] using Filter.Tendsto.add
@@ -835,14 +835,23 @@ lemma B_ofReal_eq (ε ν : ℝ) (hν : ν ≠ 0) :
     B ε ν = ν * (Complex.cosh (ν / 2) / Complex.sinh (ν / 2) + ε) / 2 := by
   simp [B, ofReal_eq_zero, hν, coth, Complex.tanh_eq_sinh_div_cosh]
 
-theorem B.continuousAt_ofReal_pos (ε s : ℝ) (hs : 0 < s) :
+theorem B.continuousAt_ofReal_ne_zero (ε s : ℝ) (hs : s ≠ 0) :
     ContinuousAt (fun t : ℝ ↦ B ε (t : ℂ)) s := by
   have h_eq : (fun t : ℝ ↦ (t : ℂ) * (coth ((t : ℂ) / 2) + ε) / 2) =ᶠ[nhds s] (fun t : ℝ ↦ B ε (t : ℂ)) := by
-    filter_upwards [eventually_ne_nhds hs.ne'] with t ht
+    filter_upwards [eventually_ne_nhds hs] with t ht
     simp [B, ht]
   refine ContinuousAt.congr ?_ h_eq
   refine ContinuousAt.div_const (ContinuousAt.mul (by fun_prop) (ContinuousAt.add ?_ continuousAt_const)) 2
-  exact ContinuousAt.coth (by fun_prop) (by simpa using sinh_ofReal_half_ne_zero hs.ne')
+  exact ContinuousAt.coth (by fun_prop) (by simpa using sinh_ofReal_half_ne_zero hs)
+
+@[fun_prop]
+theorem B.continuous_ofReal (ε : ℝ) : Continuous (fun t : ℝ ↦ B ε (t : ℂ)) := by
+  apply continuous_iff_continuousAt.mpr
+  intro s
+  by_cases hs : s = 0
+  · subst hs
+    exact (B.continuous_zero ε).tendsto.comp Complex.continuous_ofReal.continuousAt
+  · exact B.continuousAt_ofReal_ne_zero ε s hs
 
 @[blueprint
   "Phi-star-def"
@@ -1215,7 +1224,7 @@ theorem Phi_star.continuousAt_imag (ν ε t : ℝ) (ht : 0 ≤ t) (hν : ν > 0)
   · let f : ℝ → ℝ := fun x ↦ 2 * π * x + ν
     have hf : ContinuousAt f t := by fun_prop
     have hg : ContinuousAt (fun x : ℝ ↦ B ε ↑x) (f t) :=
-      B.continuousAt_ofReal_pos ε (f t) (by nlinarith [Real.pi_pos])
+      B.continuousAt_ofReal_ne_zero ε (f t) (by nlinarith [Real.pi_pos])
     exact hg.comp hf
   · exact continuousAt_const
 
@@ -3850,11 +3859,143 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
   have hstar_im : (starRingEnd ℂ I_pos).im = -I_pos.im := by rw [Complex.conj_im]
   linarith [h_conj ▸ hstar_im]
 
+
+@[blueprint
+  "varphi-integ"
+  (title := "$\\varphi$ integrable")
+  (statement := /-- The function $\varphi_\nu^\pm$ is integrable. -/)
+  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1227)]
+theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) := by
+    sorry
+
 @[blueprint
   "Inu_def"
   (title := "Definition of $I_\\nu$")
   (statement := /-- For $\nu > 0$, define $I_\nu(x) := 1_{[0,\infty)}(x) e^{-\nu x}$. -/)]
-noncomputable def I (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
+noncomputable def Inu (ν : ℝ) (x : ℝ) : ℝ := if 0 ≤ x then Real.exp (-ν * x) else 0
+
+private lemma integral_re_B_mul_exp_add (ν T ε u : ℝ) :
+    (∫ t in Set.Icc 0 T, (B ε (↑ν + ↑t) - B ε ↑ν) * (Real.exp (u * t) : ℂ)).re =
+    ∫ t in Set.Icc 0 T, ((B ε (↑ν + ↑t)).re - (B ε ↑ν).re) * Real.exp (u * t) := by
+  set φ := fun t : ℝ ↦ (B ε (↑ν + ↑t) - B ε ↑ν) * (Real.exp (u * t) : ℂ)
+  have hf_integ : IntegrableOn φ (Set.Icc 0 T) := by
+    apply Continuous.integrableOn_Icc
+    apply Continuous.mul
+    · apply Continuous.sub
+      · apply Continuous.congr (h := (B.continuous_ofReal ε).comp (continuous_add_left ν))
+        intro t; simp [Complex.ofReal_add]
+      · exact continuous_const
+    · exact Complex.continuous_ofReal.comp (Real.continuous_exp.comp (continuous_mul_left u))
+  rw [← Complex.reCLM_apply, ← Complex.reCLM.integral_comp_comm hf_integ]
+  apply MeasureTheory.integral_congr_ae
+  filter_upwards with t
+  simp only [φ, Complex.reCLM_apply, Complex.mul_re, Complex.sub_re, Complex.ofReal_re, Complex.ofReal_im, mul_zero, sub_zero]
+
+private lemma integral_re_B_mul_exp_sub (ν T ε u : ℝ) :
+    (∫ t in Set.Icc 0 T, (B ε (↑ν - ↑t) - B ε ↑ν) * (Real.exp (u * t) : ℂ)).re =
+    ∫ t in Set.Icc 0 T, ((B ε (↑ν - ↑t)).re - (B ε ↑ν).re) * Real.exp (u * t) := by
+  set φ := fun t : ℝ ↦ (B ε (↑ν - ↑t) - B ε ↑ν) * (Real.exp (u * t) : ℂ)
+  have hf_integ : IntegrableOn φ (Set.Icc 0 T) := by
+    apply Continuous.integrableOn_Icc
+    apply Continuous.mul
+    · apply Continuous.sub
+      · apply Continuous.congr (h := (B.continuous_ofReal ε).comp (continuous_sub_left ν))
+        intro t; simp [Complex.ofReal_sub]
+      · exact continuous_const
+    · exact Complex.continuous_ofReal.comp (Real.continuous_exp.comp (continuous_mul_left u))
+  rw [← Complex.reCLM_apply, ← Complex.reCLM.integral_comp_comm hf_integ]
+  apply MeasureTheory.integral_congr_ae
+  filter_upwards with t
+  simp only [φ, Complex.reCLM_apply, Complex.mul_re, Complex.sub_re, Complex.ofReal_re, Complex.ofReal_im, mul_zero, sub_zero]
+
+private lemma integral_B_diff_mul_exp_nonneg {T ε ν u : ℝ} (f : ℝ → ℂ) (hf : ∀ t ∈ Set.Icc 0 T, (B ε ↑ν).re ≤ (B ε (f t)).re) :
+    0 ≤ ∫ t in Set.Icc 0 T, ((B ε (f t)).re - (B ε ↑ν).re) * Real.exp (u * t) := by
+  apply integral_nonneg_of_ae
+  filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht
+  apply mul_nonneg (sub_nonneg.mpr (hf t ht)) (Real.exp_nonneg _)
+
+private lemma integral_B_diff_mul_exp_nonpos {T ε ν u : ℝ} (f : ℝ → ℂ) (hf : ∀ t ∈ Set.Icc 0 T, (B ε (f t)).re ≤ (B ε ↑ν).re) :
+    ∫ t in Set.Icc 0 T, ((B ε (f t)).re - (B ε ↑ν).re) * Real.exp (u * t) ≤ 0 := by
+  apply integral_nonpos_of_ae
+  filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht
+  apply mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr (hf t ht)) (Real.exp_nonneg _)
+
+lemma Inu_bounds_neg (ν x : ℝ) (hν : ν > 0) (hx : x < 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ Inu ν x ∧ Inu ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+  have hI : Inu ν x = 0 := if_neg (not_le.mpr hx)
+  rw [hI]
+  refine ⟨?_, ?_⟩
+  · apply le_of_tendsto ((continuous_re.tendsto _).comp (fourier_formula_neg ν (-1) hν x hx))
+    apply Filter.Eventually.of_forall; intro T
+    simp only [Function.comp_apply]
+    rw [show (↑(Real.sin (π * x)) ^ 2 / ↑π ^ 2 : ℂ) = ↑((Real.sin (π * x)) ^ 2 / π ^ 2) by push_cast; ring]
+    rw [Complex.re_ofReal_mul, integral_re_B_mul_exp_add]
+    apply mul_nonpos_of_nonneg_of_nonpos (by positivity)
+    apply integral_B_diff_mul_exp_nonpos (fun t ↦ ↑ν + ↑t); intro t ht
+    have h_mono := B_minus_mono (show ν ≤ ν + t by simp only [Set.mem_Icc] at ht; linarith)
+    push_cast at h_mono; exact h_mono
+  · apply ge_of_tendsto ((continuous_re.tendsto _).comp (fourier_formula_neg ν 1 hν x hx))
+    apply Filter.Eventually.of_forall; intro T
+    simp only [Function.comp_apply]
+    rw [show (↑(Real.sin (π * x)) ^ 2 / ↑π ^ 2 : ℂ) = ↑((Real.sin (π * x)) ^ 2 / π ^ 2) by push_cast; ring]
+    rw [Complex.re_ofReal_mul, integral_re_B_mul_exp_add]
+    apply mul_nonneg (by positivity)
+    apply integral_B_diff_mul_exp_nonneg (fun t ↦ ↑ν + ↑t); intro t ht
+    have h_mono := B_plus_mono (show ν ≤ ν + t by simp only [Set.mem_Icc] at ht; linarith)
+    push_cast at h_mono; exact h_mono
+
+lemma Inu_bounds_pos (ν x : ℝ) (hν : ν > 0) (hx : x > 0) :
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ Inu ν x ∧ Inu ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+  have hI : Inu ν x = Real.exp (-ν * x) := if_pos (le_of_lt hx)
+  have h_tendsto_plus := (continuous_re.tendsto _).comp (fourier_formula_pos ν 1 hν x hx)
+  have h_tendsto_minus := (continuous_re.tendsto _).comp (fourier_formula_pos ν (-1) hν x hx)
+  have h_re_eq (ε : ℝ) : (𝓕 (ϕ_pm ν ε) x - Complex.exp (-ν * x)).re = (𝓕 (ϕ_pm ν ε) x).re - Inu ν x := by
+    rw [hI, Complex.sub_re]; simp only [neg_mul, sub_right_inj]; norm_cast
+  rw [h_re_eq] at h_tendsto_plus h_tendsto_minus
+  have hpos : 0 ≤ (𝓕 (ϕ_pm ν 1) x).re - Inu ν x := by
+    apply ge_of_tendsto h_tendsto_plus
+    apply Filter.Eventually.of_forall; intro T
+    simp only [Function.comp_apply]
+    rw [show (-↑(Real.sin (π * x)) ^ 2 / ↑π ^ 2 : ℂ) = ↑(-(Real.sin (π * x)) ^ 2 / π ^ 2) by push_cast; ring]
+    rw [Complex.re_ofReal_mul, integral_re_B_mul_exp_sub]
+    apply mul_nonneg_of_nonpos_of_nonpos
+    · exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos_of_nonneg (pow_two_nonneg _)) (pow_two_nonneg _)
+    · apply integral_B_diff_mul_exp_nonpos (fun t ↦ ↑ν - ↑t); intro t ht
+      have h_mono := B_plus_mono (show ν - t ≤ ν by simp only [Set.mem_Icc] at ht; linarith)
+      push_cast at h_mono; exact h_mono
+  have hneg : (𝓕 (ϕ_pm ν (-1)) x).re - Inu ν x ≤ 0 := by
+    apply le_of_tendsto h_tendsto_minus
+    apply Filter.Eventually.of_forall; intro T
+    simp only [Function.comp_apply]
+    rw [show (-↑(Real.sin (π * x)) ^ 2 / ↑π ^ 2 : ℂ) = ↑(-(Real.sin (π * x)) ^ 2 / π ^ 2) by push_cast; ring]
+    rw [Complex.re_ofReal_mul, integral_re_B_mul_exp_sub]
+    apply mul_nonpos_of_nonpos_of_nonneg
+    · exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos_of_nonneg (pow_two_nonneg _)) (pow_two_nonneg _)
+    · apply integral_B_diff_mul_exp_nonneg (fun t ↦ ↑ν - ↑t); intro t ht
+      have h_mono := B_minus_mono (show ν - t ≤ ν by simp only [Set.mem_Icc] at ht; linarith)
+      push_cast at h_mono; exact h_mono
+  exact ⟨by linarith, by linarith⟩
+
+lemma Inu_bounds_zero (ν : ℝ) (hν : ν > 0) :
+    (𝓕 (ϕ_pm ν (-1)) 0).re ≤ Inu ν 0 ∧ Inu ν 0 ≤ (𝓕 (ϕ_pm ν 1) 0).re := by
+  rw [show Inu ν 0 = 1 by simp [Inu]]
+  have h_cont : ∀ ε : ℝ, Continuous (fun x : ℝ ↦ (𝓕 (ϕ_pm ν ε) x).re) := fun ε ↦
+    continuous_re.comp <| VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+      (by fun_prop) (varphi_integ ν ε hν.ne')
+  haveI hbot : Filter.NeBot (nhdsWithin 0 (Set.Ioi (0 : ℝ))) := nhdsWithin_Ioi_neBot le_rfl
+  have h_I_rcts : Filter.Tendsto (fun x : ℝ ↦ Inu ν x) (nhdsWithin 0 (Set.Ioi (0 : ℝ))) (nhds 1) := by
+    have h_eq : (fun x : ℝ ↦ Inu ν x) =ᶠ[nhdsWithin 0 (Set.Ioi (0 : ℝ))] (fun x ↦ Real.exp (-ν * x)) :=
+      eventually_nhdsWithin_of_forall fun _ hx ↦ if_pos (le_of_lt hx)
+    have h_tendsto_exp : Filter.Tendsto (fun x ↦ Real.exp (-ν * x)) (nhds 0) (nhds 1) := by
+      simpa using Continuous.tendsto (by fun_prop : Continuous fun x ↦ Real.exp (-ν * x)) 0
+    exact Filter.Tendsto.congr' h_eq.symm (Filter.Tendsto.mono_left h_tendsto_exp nhdsWithin_le_nhds)
+  exact ⟨le_of_tendsto_of_tendsto (hf := (h_cont (-1)).continuousAt.continuousWithinAt) (hg := h_I_rcts)
+      (eventually_nhdsWithin_of_forall fun x hx ↦ (Inu_bounds_pos ν x hν hx).1),
+    le_of_tendsto_of_tendsto (hf := h_I_rcts) (hg := (h_cont 1).continuousAt.continuousWithinAt)
+      (eventually_nhdsWithin_of_forall fun x hx ↦ (Inu_bounds_pos ν x hν hx).2)⟩
 
 @[blueprint
   "Inu_bounds"
@@ -3868,8 +4009,11 @@ $$-/)
   (latexEnv := "corollary")
   (discussion := 1224)]
 theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
-    (𝓕 (ϕ_pm ν (-1)) x).re ≤ I ν x ∧ I ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
-    sorry
+    (𝓕 (ϕ_pm ν (-1)) x).re ≤ Inu ν x ∧ Inu ν x ≤ (𝓕 (ϕ_pm ν 1) x).re := by
+  rcases lt_trichotomy x 0 with hx | rfl | hx
+  · exact Inu_bounds_neg ν x hν hx
+  · exact Inu_bounds_zero ν hν
+  · exact Inu_bounds_pos ν x hν hx
 
 @[blueprint
   "varphi-abs"
@@ -3882,16 +4026,6 @@ theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
 theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm ν ε) := by
     sorry
 
-@[blueprint
-  "varphi-integ"
-  (title := "$\\varphi$ integrable")
-  (statement := /-- The function $\varphi_\nu^\pm$ is integrable. -/)
-  (proof := /-- Apply Lemmas \ref{phi-c2-left}, \ref{phi-c2-right}, \ref{phi-cts} We know $\varphi_\nu^\pm$ is integrable because it is $C^1$ on $[-1, 0]$ and $[0, 1]$, and identically $0$ outside $[-1, 1]$./
--/)
-  (latexEnv := "lemma")
-  (discussion := 1227)]
-theorem varphi_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (ϕ_pm ν ε) := by
-    sorry
 
 @[blueprint
   "varphi-deriv-integ"
@@ -3951,7 +4085,7 @@ since $\int_{-\infty}^{\infty} I_\nu(x)\, dx = 1/\nu$. We are done by Corollary 
   (latexEnv := "proposition")
   (discussion := 1231)]
 theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
-    ∫ x in Set.univ, (I ν x - (𝓕 (ϕ_pm ν (-1)) x).re) = 1 / ν - 1 / (Real.exp ν - 1) := by
+    ∫ x in Set.univ, (Inu ν x - (𝓕 (ϕ_pm ν (-1)) x).re) = 1 / ν - 1 / (Real.exp ν - 1) := by
     sorry
 
 @[blueprint
@@ -3966,7 +4100,7 @@ theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
   (latexEnv := "proposition")
   (discussion := 1232)]
 theorem varphi_fourier_plus_error (ν : ℝ) (hν : ν > 0) :
-    ∫ x in Set.univ, ((𝓕 (ϕ_pm ν 1) x).re - I ν x) = 1 / (1 - Real.exp (-ν)) - 1 / ν := by
+    ∫ x in Set.univ, ((𝓕 (ϕ_pm ν 1) x).re - Inu ν x) = 1 / (1 - Real.exp (-ν)) - 1 / ν := by
     sorry
 
 @[blueprint
