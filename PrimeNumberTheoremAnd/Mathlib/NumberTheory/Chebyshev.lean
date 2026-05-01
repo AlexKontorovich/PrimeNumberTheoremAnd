@@ -68,9 +68,9 @@ theorem factorization_lcmUpto (n : ℕ) {p : ℕ} (hp : p.Prime) : (lcmUpto n).f
 theorem lcmUpto_dvd_factorial (n : ℕ) : lcmUpto n ∣ n ! := by
   simp +contextual [lcmUpto, dvd_factorial, Order.one_le_iff_pos]
 
--- None of the following three theorems are about plain `lcm`
 theorem lcmUpto_eq_prod (n : ℕ) : lcmUpto n = ∏ p ∈ primesLE n, p ^ ((lcmUpto n).factorization p) := by
-  symm; convert prod_factorization_pow_eq_self (lcmUpto_ne_zero n)
+-- note: this method is deprecated and should be cfix leanhanged to prod_factorization_pow_eq_self when Mathlib bumps
+  symm; convert factorization_prod_pow_eq_self (lcmUpto_ne_zero n)
   rw [Finsupp.prod_of_support_subset _ _ _ (by simp)]
   simp +contextual only [support_factorization, subset_iff, mem_primeFactors, ne_eq,
     Finset.lcm_eq_zero_iff, mem_Icc, id_eq, exists_eq_right, nonpos_iff_eq_zero, one_ne_zero,
