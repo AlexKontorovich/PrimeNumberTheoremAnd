@@ -1694,7 +1694,7 @@ theorem psi_eq_prod (n : ℕ) :
     Chebyshev.psi n = ∑ p ∈ Finset.filter Nat.Prime (Finset.range (n + 1)),
       ⌊Real.log n / Real.log p⌋₊ * Real.log p := by
       convert Chebyshev.psi_eq_sum_mul_log_prime n
-      rw [log_eq_log_div_log]
+      rw [←natFloor_logb_natCast, ←log_div_log]
 
 @[blueprint
   "thm:lcm-psi"
