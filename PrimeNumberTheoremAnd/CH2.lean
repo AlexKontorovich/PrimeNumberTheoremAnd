@@ -4128,16 +4128,29 @@ lemma varphi_ftc_out (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
   change ∫ t in x..y, deriv f t = f y - f x
   have hf_const {t : ℝ} (ht : t ≤ -1 ∨ t ≥ 1) : f t = 0 := by
     unfold f ϕ_pm; split_ifs with h_mem
-    · have h_bound : t = -1 ∨ t = 1 := by linarith
-      rcases h_bound with rfl | rfl
-      · have h_lim : Tendsto (ϕ_pm ν ε) (nhdsWithin (-1) (Set.Iio (-1))) (nhds 0) := by
-          apply tendsto_nhdsWithin_congr (fun _ hx ↦ by unfold ϕ_pm; split_ifs <;> linarith)
-          exact tendsto_nhdsWithin_of_tendsto_nhds tendsto_const_nhds
-        exact tendsto_nhds_unique (ϕ_continuous ν ε hlam).continuousAt.tendsto_nhdsWithin h_lim
-      · have h_lim : Tendsto (ϕ_pm ν ε) (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
-          apply tendsto_nhdsWithin_congr (fun _ hx ↦ by unfold ϕ_pm; split_ifs <;> linarith)
-          exact tendsto_nhdsWithin_of_tendsto_nhds tendsto_const_nhds
-        exact tendsto_nhds_unique (ϕ_continuous ν ε hlam).continuousAt.tendsto_nhdsWithin h_lim
+    · rcases ht with h_le | h_ge
+      · have : t = -1 := by linarith [h_le, h_mem.1]
+        subst this
+        have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1) (Set.Iio (-1))] 0 := by
+          filter_upwards [self_mem_nhdsWithin] with z hz
+          unfold ϕ_pm; split_ifs with hz_mem <;> try rfl
+          exfalso; linarith [Set.mem_Iio.mp hz]
+        have h_lim : Filter.Tendsto (ϕ_pm ν ε) (nhdsWithin (-1) (Set.Iio (-1))) (nhds 0) :=
+          tendsto_const_nhds.congr' h_eq.symm
+        have h_zero : ϕ_pm ν ε (-1) = 0 :=
+          tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds (ϕ_continuous ν ε hlam).continuousAt) h_lim
+        simpa [ϕ_pm] using h_zero
+      · have : t = 1 := by linarith [h_ge, h_mem.2]
+        subst this
+        have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin 1 (Set.Ioi 1)] 0 := by
+          filter_upwards [self_mem_nhdsWithin] with z hz
+          unfold ϕ_pm; split_ifs with hz_mem <;> try rfl
+          exfalso; linarith [Set.mem_Ioi.mp hz]
+        have h_lim : Filter.Tendsto (ϕ_pm ν ε) (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) :=
+          tendsto_const_nhds.congr' h_eq.symm
+        have h_zero : ϕ_pm ν ε 1 = 0 :=
+          tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds (ϕ_continuous ν ε hlam).continuousAt) h_lim
+        simpa [ϕ_pm] using h_zero
     · rfl
   have hf_deriv (t : ℝ) (ht : t < -1 ∨ t > 1) : deriv f t = 0 := by
     have h_eq : f =ᶠ[nhds t] 0 := by
@@ -4245,23 +4258,214 @@ theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm
     let f := ϕ_pm ν ε
     have h_int : Integrable (deriv f) := varphi_deriv_integ ν ε hlam
     have h_int_all (x y : ℝ) : IntervalIntegrable (deriv f) volume x y := h_int.intervalIntegrable
-    rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all a 1) (h_int_all 1 b),
-        ← intervalIntegral.integral_add_adjacent_intervals (h_int_all a 0) (h_int_all 0 1),
-        ← intervalIntegral.integral_add_adjacent_intervals (h_int_all a (-1)) (h_int_all (-1) 0)]
     have h_ftc_left : ∀ x ∈ Set.Icc (-1 : ℝ) 0, ∀ y ∈ Set.Icc (-1 : ℝ) 0, ∫ t in x..y, deriv f t = f y - f x :=
       fun x hx y hy => varphi_ftc_left ν ε hlam hx hy
     have h_ftc_right : ∀ x ∈ Set.Icc (0 : ℝ) 1, ∀ y ∈ Set.Icc (0 : ℝ) 1, ∫ t in x..y, deriv f t = f y - f x :=
       fun x hx y hy => varphi_ftc_right ν ε hlam hx hy
     have h_ftc_out : ∀ x y : ℝ, (x ≤ -1 ∧ y ≤ -1) ∨ (x ≥ 1 ∧ y ≥ 1) → ∫ t in x..y, deriv f t = f y - f x :=
-      fun x y h => varphi_ftc_out ν ε h
+      fun x y h => varphi_ftc_out ν ε hlam h
     -- Final bridging and telescoping using ϕ_continuous
     have h_AC (x y : ℝ) : ∫ t in x..y, deriv f t = f y - f x := by
-      -- This lemma bridges the segments using intervalIntegral.integral_add_adjacent_intervals
-      -- and the piecewise FTC results above.
-      sorry
-    rw [h_AC a (-1), h_AC (-1) 0, h_AC 0 1, h_AC 1 b]
-    ring
+      wlog hxy : x ≤ y generalizing x y
+      · rw [intervalIntegral.integral_symm, this y x (by linarith)]; ring
 
+      rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all x (-1)) (h_int_all (-1) y),
+          ← intervalIntegral.integral_add_adjacent_intervals (h_int_all (-1) 0) (h_int_all 0 y),
+          ← intervalIntegral.integral_add_adjacent_intervals (h_int_all 0 1) (h_int_all 1 y)]
+
+      have h1 : ∫ t in (-1 : ℝ)..0, deriv f t = f 0 - f (-1) :=
+        h_ftc_left (-1) ⟨le_refl _, by norm_num⟩ 0 ⟨by norm_num, le_refl _⟩
+      have h2 : ∫ t in (0 : ℝ)..1, deriv f t = f 1 - f 0 :=
+        h_ftc_right 0 ⟨le_refl _, by norm_num⟩ 1 ⟨by norm_num, le_refl _⟩
+      rw [h1, h2]
+
+      have h_out_left (p : ℝ) : ∫ t in p..(-1), deriv f t = f (-1) - f p := by
+        rcases le_or_gt p (-1) with h_le | h_gt
+        · exact h_ftc_out p (-1) (Or.inl ⟨h_le, le_refl _⟩)
+        · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all p 0) (h_int_all 0 (-1))]
+          rcases le_or_gt p 0 with hp0 | hp0
+          · rw [h_ftc_left p ⟨h_gt.le, hp0⟩ 0 ⟨by norm_num, le_refl _⟩,
+                h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
+            ring
+          · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all p 1) (h_int_all 1 0)]
+            rcases le_or_gt p 1 with hp1 | hp1
+            · rw [h_ftc_right p ⟨hp0.le, hp1⟩ 1 ⟨by norm_num, le_refl _⟩,
+                  h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
+                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
+              ring
+            · rw [h_ftc_out p 1 (Or.inr ⟨hp1.le, le_refl _⟩),
+                  h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
+                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
+              ring
+
+      have h_out_right (p : ℝ) : ∫ t in 1..p, deriv f t = f p - f 1 := by
+        rcases le_or_gt p 1 with h_le | h_gt
+        · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all 1 0) (h_int_all 0 p)]
+          rcases le_or_gt p 0 with hp0 | hp0
+          · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all 0 (-1)) (h_int_all (-1) p)]
+            rcases le_or_gt p (-1) with hp_1 | hp_1
+            · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
+                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩,
+                  h_ftc_out (-1) p (Or.inl ⟨le_refl _, hp_1⟩)]
+              ring
+            · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
+                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩,
+                  h_ftc_left (-1) ⟨le_refl _, by norm_num⟩ p ⟨hp_1.le, hp0⟩]
+              ring
+          · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
+                h_ftc_right 0 ⟨le_refl _, by norm_num⟩ p ⟨hp0.le, h_le⟩]
+            ring
+        · exact h_ftc_out 1 p (Or.inr ⟨le_refl _, h_gt.le⟩)
+
+      rw [h_out_left x, h_out_right y]
+      ring
+    exact (h_AC a b).symm
+
+lemma ϕ_pm_deriv_zero_outside (ν ε : ℝ) {t : ℝ} (ht : t < -1 ∨ t > 1) :
+    deriv (ϕ_pm ν ε) t = 0 := by
+  have h_nhds : (Set.Icc (-1 : ℝ) 1)ᶜ ∈ nhds t :=
+    isClosed_Icc.isOpen_compl.mem_nhds (by
+      simp only [Set.mem_compl_iff, Set.mem_Icc, not_and, not_le]
+      rcases ht with h | h <;> (intro; linarith))
+  have h_eq : ϕ_pm ν ε =ᶠ[nhds t] (fun _ ↦ (0 : ℂ)) := by
+    filter_upwards [h_nhds] with x hx; unfold ϕ_pm; exact if_neg hx
+  rw [h_eq.deriv_eq, deriv_const]
+
+lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
+    eVariationOn (deriv (ϕ_pm ν ε)) (Set.Iic (-1 : ℝ)) ≠ ⊤ := by
+  set g := deriv (ϕ_pm ν ε)
+  have hg_zero : ∀ t < -1, g t = 0 := fun t ht ↦ ϕ_pm_deriv_zero_outside ν ε (Or.inl ht)
+  apply ne_top_of_le_ne_top (edist_lt_top (g (-1)) 0).ne
+  apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩
+  by_cases h_any : ∃ i ∈ Finset.range (n + 1), u i = -1
+  · let S := (Finset.range (n + 1)).filter (fun i ↦ u i = -1)
+    have hS : S.Nonempty := by
+      obtain ⟨i, hi_mem, hi_eq⟩ := h_any
+      exact ⟨i, Finset.mem_filter.mpr ⟨hi_mem, hi_eq⟩⟩
+    let k := S.min' hS
+    have hk_mem : k ∈ S := Finset.min'_mem S hS
+    have hu_k : u k = -1 := (Finset.mem_filter.mp hk_mem).2
+    have hu_lt : ∀ i < k, u i < -1 := by
+      intro i hi
+      apply lt_of_le_of_ne (hu_mem i)
+      intro h_eq
+      have hi_S : i ∈ S := Finset.mem_filter.mpr ⟨by
+        have hk_range := (Finset.mem_filter.mp hk_mem).1
+        apply Finset.mem_range.mpr
+        exact lt_trans hi (Finset.mem_range.mp hk_range), h_eq⟩
+      have : k ≤ i := S.min'_le i hi_S
+      omega
+    have hk_range : k < n + 1 := Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1
+    have hk_n : k ≤ n := Nat.le_of_lt_succ hk_range
+    have hu_eq : ∀ i ≥ k, i ≤ n → u i = -1 := fun i hi h_in ↦
+      le_antisymm (hu_mem i) (hu_k ▸ hu hi)
+    calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
+      _ = ∑ i ∈ Finset.range n, if i + 1 = k then edist (g (-1)) 0 else 0 := by
+        apply Finset.sum_congr rfl; intro i hi
+        have hi_n : i < n := Finset.mem_range.mp hi
+        split_ifs with h_eq_k
+        · have : u (i + 1) = -1 := by rw [h_eq_k, hu_k]
+          have : u i < -1 := hu_lt _ (by omega)
+          rw [‹u (i + 1) = -1›, hg_zero _ ‹u i < -1›]
+        · by_cases h_lt_k : i + 1 < k
+          · have : u (i + 1) < -1 := hu_lt _ h_lt_k
+            have : u i < -1 := hu_lt _ (by omega)
+            rw [hg_zero _ ‹u (i + 1) < -1›, hg_zero _ ‹u i < -1›, edist_self]
+          · have : i ≥ k := by omega
+            have : u (i + 1) = -1 := hu_eq _ (by omega) (by omega)
+            have : u i = -1 := hu_eq _ (by omega) (by omega)
+            rw [‹u (i + 1) = -1›, ‹u i = -1›, edist_self]
+      _ ≤ edist (g (-1)) 0 := by
+        rw [Finset.sum_ite]; simp only [Finset.sum_const_zero, add_zero]
+        let fS := (Finset.range n).filter (fun i ↦ i + 1 = k)
+        have h_card : fS.card ≤ 1 := by
+          apply Finset.card_le_one_iff.mpr
+          intro x y hx hy
+          have hx' := Finset.mem_filter.mp hx
+          have hy' := Finset.mem_filter.mp hy
+          omega
+        calc (fS.sum (fun _ ↦ edist (g (-1)) 0))
+          _ = fS.card • edist (g (-1)) 0 := Finset.sum_const _
+          _ ≤ 1 • edist (g (-1)) 0 := by gcongr
+          _ = edist (g (-1)) 0 := by simp
+  · have h_lt : ∀ i ≤ n, u i < -1 := by
+      intro i hi
+      apply lt_of_le_of_ne (hu_mem i)
+      intro h_eq
+      apply h_any; exact ⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq⟩
+    calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
+      _ = ∑ i ∈ Finset.range n, 0 := by
+        apply Finset.sum_congr rfl; intro i hi
+        have hi_n : i < n := Finset.mem_range.mp hi
+        rw [hg_zero _ (h_lt (i + 1) hi_n), hg_zero _ (h_lt i hi_n.le), edist_self]
+      _ = 0 := by simp
+      _ ≤ edist (g (-1)) 0 := zero_le _
+
+lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
+    eVariationOn (deriv (ϕ_pm ν ε)) (Set.Ici (1 : ℝ)) ≠ ⊤ := by
+  set g := deriv (ϕ_pm ν ε)
+  have hg_zero : ∀ t > 1, g t = 0 := fun t ht ↦ ϕ_pm_deriv_zero_outside ν ε (Or.inr ht)
+  apply ne_top_of_le_ne_top (edist_lt_top (g 1) 0).ne
+  apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩
+  by_cases h_any : ∃ i ∈ Finset.range (n + 1), u i = 1
+  · let S := (Finset.range (n + 1)).filter (fun i ↦ u i = 1)
+    have hS : S.Nonempty := by
+      obtain ⟨i, hi_mem, hi_eq⟩ := h_any
+      exact ⟨i, Finset.mem_filter.mpr ⟨hi_mem, hi_eq⟩⟩
+    let k := S.max' hS
+    have hk_mem : k ∈ S := Finset.max'_mem S hS
+    have hk_range : k < n + 1 := Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1
+    have hu_k : u k = 1 := (Finset.mem_filter.mp hk_mem).2
+    have hu_gt : ∀ i > k, i ≤ n → u i > 1 := by
+      intro i hi hi_n
+      apply lt_of_le_of_ne (hu_mem i)
+      intro h_eq
+      have hi_S : i ∈ S := Finset.mem_filter.mpr ⟨Finset.mem_range.mpr (Nat.lt_succ_of_le hi_n), h_eq.symm⟩
+      have : i ≤ k := S.le_max' i hi_S
+      omega
+    have hu_eq : ∀ i ≤ k, u i = 1 := fun i hi ↦
+      le_antisymm (hu_k ▸ hu hi) (hu_mem i)
+    calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
+      _ = ∑ i ∈ Finset.range n, if i = k then edist (g 1) 0 else 0 := by
+        apply Finset.sum_congr rfl; intro i hi
+        have hi_n : i < n := Finset.mem_range.mp hi
+        split_ifs with h_eq_k
+        · have : u i = 1 := by rw [h_eq_k, hu_k]
+          have : u (i + 1) > 1 := hu_gt _ (by omega) (by omega)
+          rw [‹u i = 1›, hg_zero _ ‹u (i + 1) > 1›, edist_comm]
+        · by_cases h_lt_k : i < k
+          · have : u (i + 1) = 1 := hu_eq _ (by omega)
+            have : u i = 1 := hu_eq _ (by omega)
+            rw [‹u (i + 1) = 1›, ‹u i = 1›, edist_self]
+          · have : i > k := by omega
+            have : u (i + 1) > 1 := hu_gt _ (by omega) (by omega)
+            have : u i > 1 := hu_gt _ (by omega) (by omega)
+            rw [hg_zero _ ‹u (i + 1) > 1›, hg_zero _ ‹u i > 1›, edist_self]
+      _ ≤ edist (g 1) 0 := by
+        rw [Finset.sum_ite]; simp only [Finset.sum_const_zero, add_zero]
+        let fS := (Finset.range n).filter (fun i ↦ i = k)
+        have h_card : fS.card ≤ 1 := by
+          apply Finset.card_le_one_iff.mpr
+          intro x y hx hy
+          have hx' := Finset.mem_filter.mp hx
+          have hy' := Finset.mem_filter.mp hy
+          exact hx'.2.trans hy'.2.symm
+        calc (fS.sum (fun _ ↦ edist (g 1) 0))
+          _ = fS.card • edist (g 1) 0 := Finset.sum_const _
+          _ ≤ 1 • edist (g 1) 0 := by gcongr
+          _ = edist (g 1) 0 := by simp
+  · have h_gt : ∀ i ≤ n, u i > 1 := by
+      intro i hi
+      apply lt_of_le_of_ne (hu_mem i)
+      intro h_eq
+      apply h_any; exact ⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq.symm⟩
+    calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
+      _ = ∑ i ∈ Finset.range n, 0 := by
+        apply Finset.sum_congr rfl; intro i hi
+        have hi_n : i < n := Finset.mem_range.mp hi
+        rw [hg_zero _ (h_gt (i + 1) hi_n), hg_zero _ (h_gt i hi_n.le), edist_self]
+      _ = 0 := by simp
+      _ ≤ edist (g 1) 0 := zero_le _
 
 
 
@@ -4275,7 +4479,92 @@ theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm
   (latexEnv := "lemma")
   (discussion := 1229)]
 theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
+  -- Abbreviate the derivative function.
+  set g := deriv (ϕ_pm ν ε)
+  -- Step 1: The derivative is C¹ on [-1,0] because ϕ is C² there (ϕ_c2_left).
+  -- From ContDiffOn ℝ 2 on [-1,0], we get ContDiffOn ℝ 1 on the derivative.
+  -- Since [-1,0] is compact and convex, ContDiffOn ℝ 1 → LipschitzOnWith (via
+  --   ContDiffOn.exists_lipschitzOnWith, which requires convexity + compactness).
+  -- LipschitzOnWith → LocallyBoundedVariationOn → BoundedVariationOn on Icc.
+  have hBV_left : BoundedVariationOn g (Set.Icc (-1 : ℝ) 0) := by
+    -- ϕ is C² on [-1,0], so its derivative is C¹ there.
+    -- Obtain Lipschitz constant on the compact convex interval [-1,0].
+    -- Then use LipschitzOnWith.locallyBoundedVariationOn and then .mono on Icc.
+    have h_c2 : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc (-1) 0) := ϕ_c2_left ν ε hlam
+    -- g = derivWithin (ϕ_pm ν ε) (Icc -1 0) on Ioo -1 0 (and g agrees ae)
+    -- ContDiffOn ℝ 2 implies ContDiffOn ℝ 1 on the derivative:
+    --   (h_c2.continuousOn_derivWithin) gives that derivWithin ϕ (Icc -1 0)
+    --   is continuous, and the iterated derivative is still ContDiff.
+    -- Strategy: obtain K s.t. LipschitzOnWith K g (Icc -1 0), then apply
+    --   LipschitzOnWith.locallyBoundedVariationOn restricted to Icc.
+    -- The key Mathlib lemma is ContDiffOn.exists_lipschitzOnWith:
+    --   ContDiffOn ℝ n f s (n ≠ 0) (hs : Convex ℝ s) (hs' : IsCompact s)
+    --   → ∃ K, LipschitzOnWith K f s
+    -- We apply this to the derivative of ϕ (which is C¹ on [-1,0]).
+    -- Since the derivative is the derivWithin on the open interior and agrees
+    -- with deriv on Ioo (-1) 0, we need a detour through derivWithin.
+    -- For the sketch we leave this as sorry.
     sorry
+  -- Step 2: Similarly on [0,1].
+  have hBV_right : BoundedVariationOn g (Set.Icc (0 : ℝ) 1) := by
+    -- Mirror of Step 1, using ϕ_c2_right.
+    sorry
+  -- Step 3: Combine BV on [-1,0] and [0,1] to get BV on [-1,1] via
+  --   eVariationOn.Icc_add_Icc, which states:
+  --   eVariationOn f (s ∩ Icc a b) + eVariationOn f (s ∩ Icc b c)
+  --     = eVariationOn f (s ∩ Icc a c)   (for a ≤ b ≤ c, b ∈ s)
+  --   With s = univ (i.e., Icc), this gives BV on Icc (-1) 1.
+  have hBV_Icc : BoundedVariationOn g (Set.Icc (-1 : ℝ) 1) := by
+    -- BoundedVariationOn is eVariationOn ≠ ⊤.
+    -- eVariationOn g (Icc -1 1)
+    --   = eVariationOn g (Icc -1 0) + eVariationOn g (Icc 0 1)
+    --   (by eVariationOn.Icc_add_Icc with b = 0 ∈ s = univ)
+    -- Both summands are finite by hBV_left, hBV_right.
+    -- Concretely we can rewrite with Icc_add_Icc and use ENNReal.add_ne_top.
+    simp only [BoundedVariationOn] at hBV_left hBV_right ⊢
+    have h_split :
+        eVariationOn g (Set.Icc (-1 : ℝ) 0) + eVariationOn g (Set.Icc (0 : ℝ) 1) =
+        eVariationOn g (Set.Icc (-1 : ℝ) 1) := by
+      -- Use eVariationOn.Icc_add_Icc:
+      -- eVariationOn f (s ∩ Icc a b) + eVariationOn f (s ∩ Icc b c)
+      --   = eVariationOn f (s ∩ Icc a c) (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s)
+      -- Here s = univ, so s ∩ Icc x y = Icc x y.
+      have key := eVariationOn.Icc_add_Icc g (a := (-1 : ℝ)) (b := 0) (c := 1)
+        (by norm_num) (by norm_num) (Set.mem_univ _)
+      simp only [Set.univ_inter] at key
+      exact key
+    rw [← h_split]
+    exact ENNReal.add_ne_top.mpr ⟨hBV_left, hBV_right⟩
+  -- Step 4: Lift BV on [-1,1] to BV on Set.univ.
+  -- We split ℝ = Iic(-1) ∪ Icc(-1,1) ∪ Ici(1) using eVariationOn.union twice.
+  -- The two outer pieces contribute finite variation (only one boundary jump each
+  -- since g = 0 on Iio(-1) and Ioi(1)), so the total is finite.
+  simp only [BoundedVariationOn] at hBV_Icc ⊢
+  -- Splitting step 1: univ = Iic(-1) ∪ Ici(-1)
+  -- (Set.Iic_union_Ici : Iic a ∪ Ici a = univ)
+  -- isGreatest_Iic : IsGreatest (Iic a) a
+  -- isLeast_Ici    : IsLeast (Ici a) a
+  have h_split1 : eVariationOn g Set.univ =
+      eVariationOn g (Set.Iic (-1 : ℝ)) + eVariationOn g (Set.Ici (-1 : ℝ)) := by
+    conv_lhs => rw [← Set.Iic_union_Ici (a := (-1 : ℝ))]
+    exact eVariationOn.union g isGreatest_Iic isLeast_Ici
+  -- Splitting step 2: Ici(-1) = Icc(-1,1) ∪ Ici(1)
+  -- (Set.Icc_union_Ici_eq_Ici : Icc a b ∪ Ici b = Ici a when a ≤ b)
+  -- isGreatest_Icc (h : a ≤ b) : IsGreatest (Icc a b) b
+  have h_split2 : eVariationOn g (Set.Ici (-1 : ℝ)) =
+      eVariationOn g (Set.Icc (-1 : ℝ) 1) + eVariationOn g (Set.Ici (1 : ℝ)) := by
+    conv_lhs => rw [← Set.Icc_union_Ici_eq_Ici (by norm_num : (-1 : ℝ) ≤ 1)]
+    exact eVariationOn.union g (isGreatest_Icc (by norm_num)) isLeast_Ici
+  -- Left outer piece: g = 0 on Iio(-1) (from hf_deriv in varphi_ftc_out),
+  -- so any monotone sequence in Iic(-1) maps g to {0, g(-1)}.  The variation
+  -- is at most edist(g(-1)) 0, which is < ⊤ by ENNReal.edist_lt_top.
+  -- Proof: apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩; bound each edist term.
+  have hIic := ϕ_pm_deriv_Iic_finite ν ε
+  have hIci := ϕ_pm_deriv_Ici_finite ν ε
+  -- Combine all three finite pieces.
+  rw [h_split1, h_split2]
+  exact ENNReal.add_ne_top.mpr
+    ⟨hIic, ENNReal.add_ne_top.mpr ⟨hBV_Icc, hIci⟩⟩
 
 @[blueprint
   "varphi-fourier-decay"
