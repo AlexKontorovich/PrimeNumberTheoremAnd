@@ -767,6 +767,47 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
 
+noncomputable def sum_moebius_sq_divisors : ArithmeticFunction ℤ where
+  toFun := fun n ↦ ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d
+  map_zero' := by simp
+
+lemma sum_moebius_sq_divisors_apply (n : ℕ) :
+  sum_moebius_sq_divisors n = ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d := by rfl
+
+lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMultiplicative := by
+  unfold sum_moebius_sq_divisors
+  refine ⟨by simp [sum_filter], ?_⟩
+  intro m n mCn
+  simp only [coe_mk]
+  sorry
+
+lemma sum_moebius_sq_divisors_apply_prime_pow {p k : ℕ} (hp : Nat.Prime p) :
+  sum_moebius_sq_divisors (p ^ k) = (μ (p ^ k)) ^ 2 := by
+  have h_filter : ((Nat.divisors (p ^ k)).filter (fun x => x ^ 2 ∣ p ^ k)) = Finset.image (fun j => p ^ j) (Finset.range (k / 2 + 1)) := by
+    ext; simp only [Nat.divisors_prime_pow hp, mem_filter, mem_map, mem_range, Order.lt_add_one_iff, Function.Embedding.coeFn_mk, mem_image]
+    constructor
+    · rintro ⟨⟨a, ha, rfl⟩, h⟩
+      exact ⟨a, Nat.le_div_iff_mul_le zero_lt_two |>.2 <| by
+        rw [← pow_mul] at h
+        exact Nat.le_of_not_lt fun ha' => absurd (Nat.le_of_dvd (pow_pos hp.pos _) h)
+          (not_le_of_gt (pow_lt_pow_right₀ hp.one_lt ha')), rfl⟩
+    · rintro ⟨a, ha, rfl⟩
+      refine ⟨⟨a, by omega, rfl⟩, by rw [← pow_mul]; exact pow_dvd_pow _ (by omega)⟩
+  simp only [moebius_sq, sum_moebius_sq_divisors_apply, h_filter]
+  rw [Finset.sum_image <| by intros a ha b hb hab; exact Nat.pow_right_injective hp.two_le hab, Finset.sum_range_succ']
+  split_ifs with h
+  · have hk : k / 2 = 0 := by
+      rw[Nat.div_eq_zero_iff, or_iff_right (two_ne_zero)]
+      by_contra hk
+      exact absurd h (by rw [Nat.squarefree_pow_iff hp.ne_one (by omega)]; exact not_and_of_not_right _ (by linarith))
+    simp [hk]
+  · simp only [pow_zero, isUnit_iff_eq_one, IsUnit.squarefree, moebius_apply_of_squarefree,
+      Int.reduceNeg, cardFactors_one]
+    rcases k with (_ | _ | _)
+    · simp at ⊢ h
+    · simp [hp.squarefree] at ⊢ h
+    · simp_all +decide [ArithmeticFunction.moebius_apply_prime_pow]
+
 /--
 I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
 @[blueprint
@@ -776,8 +817,16 @@ I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
   (proof := /--
   The function $\mu^2(n)$ is the indicator function for squarefree numbers, meaning it is $1$ if $n$ is squarefree and $0$ otherwise. The sum $\sum_{d^2|n} \mu(d)$ counts the contributions from divisors $d$ such that $d^2$ divides $n$. If $n$ is squarefree, then the only divisor $d$ such that $d^2 | n$ is $d=1$, which contributes $\mu(1) = 1$. If $n$ is not squarefree, then there exists a prime $p$ such that $p^2 | n$, and the corresponding divisor $d=p$ will contribute $\mu(p) = -1$, which will cancel out the contribution from $d=1$. Therefore, we have $\mu^2(n) = \sum_{d^2|n} \mu(d)$.
   -/)]
-lemma moebius_sq_eq (n : ℕ) : (μ n : ℂ) ^ 2 = ∑ d ∈ n.divisorsAntidiagonal.filter (fun x => x.1 ^ 2 ∣ n), μ d.1 := by
-  sorry
+lemma moebius_sq_eq (n : ℕ) : (μ n) ^ 2 = ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d := by
+  by_cases n_zero : n = 0
+  · simp [n_zero]
+  · rw[← sum_moebius_sq_divisors_apply, IsMultiplicative.multiplicative_factorization sum_moebius_sq_divisors sum_moebius_sq_divisors_IsMultiplicative n_zero]
+    have hpf : ∀ p ∈ n.factorization.support, Nat.Prime p :=
+      fun p hp => Nat.prime_of_mem_primeFactors (Nat.support_factorization n ▸ hp)
+    simp only [Finset.prod_pow, Finsupp.prod, Nat.support_factorization, Finset.prod_congr rfl (fun x hx =>
+      sum_moebius_sq_divisors_apply_prime_pow ((Nat.support_factorization n ▸ hpf) x hx))]
+    congr
+    exact IsMultiplicative.multiplicative_factorization μ isMultiplicative_moebius n_zero
 
 /--
 Liouville function:
@@ -805,16 +854,6 @@ Define Complete Multiplicativity for an arithmetic function. -/
 def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
   f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
 
-@[blueprint
-  "IsCompletelyMultiplicative_mul"
-  (title := "IsCompletelyMultiplicative mul")
-  (statement := /-- If $f$ and $g$ are completely multiplicative, then so is their Dirichlet convolution $f * g$. -/)
-  (proof := /--
-  Let $f$ and $g$ be completely multiplicative functions. We want to show that their Dirichlet convolution $h = f * g$ is also completely multiplicative.-/)]
-lemma IsCompletelyMultiplicative.mul {f g : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f)
-    (hg : IsCompletelyMultiplicative g) : IsCompletelyMultiplicative (f * g) := by
-  sorry
-
 /-- A function that is completely multiplicative is also multiplicative. -/
 @[blueprint
   "IsCompletelyMultiplicative_isMultiplicative"
@@ -824,7 +863,7 @@ lemma IsCompletelyMultiplicative.mul {f g : ArithmeticFunction ℝ} (hf : IsComp
   Let $f$ be a completely multiplicative function. To show that $f$ is multiplicative, we need to verify that $f(1) = 1$ and that $f(ab) = f(a)f(b)$ for all coprime natural numbers $a$ and $b$. Since $f$ is completely multiplicative, we have $f(1) = 1$ by definition. For coprime $a$ and $b$, we can write $ab$ as a product of prime factors, and since $f$ is completely multiplicative, it will factor as the product of the values of $f$ at those prime factors. This means that $f(ab) = f(a)f(b)$ for coprime $a$ and $b$, which shows that $f$ is multiplicative.
   -/)]
 lemma IsCompletelyMultiplicative.isMultiplicative {f : ArithmeticFunction ℝ} (hf : IsCompletelyMultiplicative f) : f.IsMultiplicative := by
-  sorry
+  exact ⟨hf.1, fun {m n} _ => hf.2 m n⟩
 
 /--
 The Liouville function is completely multiplicative. -/
