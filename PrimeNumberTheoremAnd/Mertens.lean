@@ -131,7 +131,7 @@ theorem sum_log_eq_log_factorial (x : ℝ) :
 @[blueprint
   "Mertens-sum-log-eq-sum-mangoldt"
   (title := "Partial sum of logarithm as sum of $\\Lambda(d)/d$")
-  (statement := /-- For any $x \geq 1$, one has
+  (statement := /-- For any real $x$, one has
 $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rfloor.$$
 -/)
   (proof := /-- We have
@@ -144,9 +144,10 @@ $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rflo
  -/)
   (latexEnv := "lemma")
   (discussion := 1306)]
-theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
-    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) * (Nat.floor (x / d)) := by
-    sorry
+theorem sum_log_eq_sum_mangoldt {x : ℝ} :
+    ∑ n ∈ Ioc 0 ⌊x⌋₊, log n = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ := by
+  have : ∀ n : ℕ, log n = (Λ * zeta) n := by simp [vonMangoldt_mul_zeta]
+  simp_rw [this, sum_Ioc_mul_zeta_eq_sum, ← Nat.floor_div_natCast]
 
 @[blueprint
   "Mertens-first-error-mangoldt"
