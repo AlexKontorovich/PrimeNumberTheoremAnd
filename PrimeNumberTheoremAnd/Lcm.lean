@@ -1682,7 +1682,7 @@ The following result is not needed for this application, but is worth recording 
   (latexEnv := "sublemma")]
 theorem L_eq_prod (n : ℕ) :
     L n = ∏ p ∈ Finset.filter Nat.Prime (Finset.range (n + 1)),
-      p ^ ⌊Real.log n / Real.log p⌋₊ := Chebyshev.lcm_eq_prod'' n
+      p ^ ⌊Real.log n / Real.log p⌋₊ := Chebyshev.lcmUpto_eq_prod_pow_floor n
 
 @[blueprint
   "thm:psi-eq"
@@ -1703,7 +1703,7 @@ theorem psi_eq_prod (n : ℕ) :
   (proof := /-- Combine the previous results. -/)
   (latexEnv := "proposition")]
 theorem log_L_eq_psi (n : ℕ) : Real.log (L n) = Chebyshev.psi n := by
-  rw [Chebyshev.psi_eq_log_lcm_upto n]
+  rw [Chebyshev.psi_eq_log_lcmUpto n]
   rfl
 
 
