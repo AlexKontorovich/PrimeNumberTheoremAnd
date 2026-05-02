@@ -409,7 +409,33 @@ In this section we construct extremal approximants to the truncated exponential 
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
 
+theorem hasDerivAt_coth {z : ℂ} (hz : Complex.sinh z ≠ 0) :
+    HasDerivAt coth (-(1 / Complex.sinh z ^ 2)) z := by
+  unfold coth
+  have h_tanh : Complex.tanh z ≠ 0 := by
+    rw [Complex.tanh_ne_zero_iff]
+    exact hz
+  have h_deriv := Complex.hasDerivAt_tanh z
+  convert h_deriv.inv h_tanh using 1
+  rw [Complex.cosh_sq_sub_sinh_sq, ← div_eq_mul_inv, Complex.tanh, div_pow]
+  field_simp [Complex.cosh_ne_zero_iff_tanh_ne_one h_tanh]
+  ring
+
 @[simp]
+theorem hasDerivAt_Phi_circ (ν ε : ℝ) (z : ℂ) (hz : Complex.sinh (-I * π * z + ν / 2) ≠ 0) :
+    HasDerivAt (Phi_circ ν ε) (I * π / (2 * Complex.sinh (-I * π * z + ν / 2) ^ 2)) z := by
+  unfold Phi_circ
+  have h_const : HasDerivAt (fun _ ↦ (1 / 2 : ℂ)) 0 z := hasDerivAt_const z (1 / 2)
+  have h_linear : HasDerivAt (fun z ↦ -I * π * z + ν / 2) (-I * π) z := by
+    have := hasDerivAt_id z
+    have := this.mul_const (-I * π)
+    exact this.add_const (ν / 2)
+  have h_coth := hasDerivAt_coth hz
+  have h_comp := h_coth.comp z h_linear
+  have h_sum := h_comp.add_const ε
+  convert h_const.mul h_sum using 1
+  field_simp; ring
+
 theorem sinh_add_pi_I (z : ℂ) : sinh (z + π * I) = -sinh z := by
     simp [Complex.sinh_add, sinh_mul_I, cosh_mul_I]
 
@@ -1539,24 +1565,46 @@ lemma ϕ_pm_hasDerivWithinAt_neg_one_left (ν ε : ℝ) (hlam : ν ≠ 0) :
   · -- Prove the value at the point -1 is indeed 0
     exact (ϕ_pm_zero_boundary ν ε hlam).1
 
--- 2. Lemma for the interior derivative at -1
 lemma ϕ_pm_hasDerivWithinAt_neg_one_right (ν ε : ℝ) (hlam : ν ≠ 0) :
     HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Icc (-1) 0) (-1) := by
-  -- Subgoal: Show ϕ_pm equals (Phi_circ - Phi_star) on [-1, 0]
-  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1 : ℝ) (Set.Icc (-1) 0)] (fun t => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) := sorry
-  -- Subgoal: Use the complex derivatives of Phi_circ and Phi_star to show their difference's derivative is 0 at -1
-  -- Reasoning: At t = -1, the periodicity of coth makes Phi_circ' = Phi_star'.
-  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) 0 (-1) := sorry
+  -- Subgoal 1: Neighborhood equality
+  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1 : ℝ) (Set.Icc (-1) 0)] (fun t => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) := by
+    filter_upwards [self_mem_nhdsWithin, eventually_lt_nhds (show (-1 : ℝ) < 0 by norm_num)] with t ht h_neg
+    unfold ϕ_pm; split_ifs with h_mem
+    · rw [Real.sign_of_neg h_neg]; simp
+    · exfalso; linarith [Set.mem_Icc.mp ht]
+
+  -- Subgoal 2: Complex derivative cancellation
+  have h_deriv_complex : HasDerivAt (fun z : ℂ => Phi_circ ν ε z - Phi_star ν ε z) 0 (-1) := by
+    -- Periodicity of coth and sinh² ensures derivatives cancel at z = -1
+    sorry
+
+  -- Subgoal 3: Restrict complex derivative to the real line
+  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) 0 (-1) := by
+    exact h_deriv_complex.comp_ofReal
+
   refine HasDerivWithinAt.congr_of_eventuallyEq h_deriv.hasDerivWithinAt h_eq ?_
   simp [ϕ_pm, sign_of_neg (show (-1 : ℝ) < 0 by norm_num)]; ring_nf
 
 -- 3. Lemma for the interior derivative at 1
 lemma ϕ_pm_hasDerivWithinAt_one_left (ν ε : ℝ) (hlam : ν ≠ 0) :
     HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Icc 0 1) 1 := by
-  -- Subgoal: Show ϕ_pm equals (Phi_circ + Phi_star) on [0, 1]
-  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (1 : ℝ) (Set.Icc 0 1)] (fun t => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) := sorry
-  -- Subgoal: Show the sum's derivative is 0 at t = 1
-  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) 0 1 := sorry
+  -- Subgoal 1: Neighborhood equality
+  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (1 : ℝ) (Set.Icc 0 1)] (fun t => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) := by
+    filter_upwards [self_mem_nhdsWithin, eventually_gt_nhds (show (0 : ℝ) < 1 by norm_num)] with t ht h_pos
+    unfold ϕ_pm; split_ifs with h_mem
+    · rw [Real.sign_of_pos h_pos]; simp
+    · exfalso; linarith [Set.mem_Icc.mp ht]
+
+  -- Subgoal 2: Complex derivative cancellation
+  have h_deriv_complex : HasDerivAt (fun z : ℂ => Phi_circ ν ε z + Phi_star ν ε z) 0 1 := by
+    -- Periodicity at z = 1 ensures derivatives cancel
+    sorry
+
+  -- Subgoal 3: Restrict complex derivative to the real line
+  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) 0 1 := by
+    exact h_deriv_complex.comp_ofReal
+
   refine HasDerivWithinAt.congr_of_eventuallyEq h_deriv.hasDerivWithinAt h_eq ?_
   -- exact (ϕ_pm_zero_boundary ν ε hlam).2.symm
   simp [ϕ_pm]
