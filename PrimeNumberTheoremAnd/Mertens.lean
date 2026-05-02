@@ -182,18 +182,20 @@ $$ E_{1,\Lambda}(x) \geq - 2.$$
 theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x  ≥ -2 := by
   unfold E₁Λ
-  have h1 := sum_log_eq_sum_mangoldt ▸ sum_log_ge hx
-  have : ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ ≤ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * x / d := by
-    gcongr
-    rw [mul_div_assoc]
+  suffices x * ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / d  ≥ x * (log x - 2) by
+    linarith [le_of_mul_le_mul_left this (by linarith)]
+  calc
+  _ = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (x / d) := by
+    rw [Finset.mul_sum]
+    ring_nf
+  _ ≥ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ := by
     gcongr
     · exact vonMangoldt_nonneg
     · exact Nat.floor_le <| div_nonneg (by linarith) (by linarith)
-  grw [this] at h1
-  conv at h1 => lhs; arg 2; ext; rw [mul_comm, mul_div_assoc]
-  rw [← Finset.mul_sum] at h1
-  rw [(by ring : x * log x - 2 * x = x * (log x - 2))] at h1
-  linarith [le_of_mul_le_mul_left h1 (by linarith)]
+  _ ≥ x * log x - 2 * x :=
+    sum_log_eq_sum_mangoldt ▸ sum_log_ge hx
+  _ = _ := by ring
+
 
 #check Chebyshev.psi_le_const_mul_self
 
