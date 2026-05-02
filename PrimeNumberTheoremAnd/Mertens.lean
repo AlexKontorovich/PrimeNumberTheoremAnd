@@ -115,7 +115,7 @@ Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the cr
  -/)
   (latexEnv := "corollary")
   (discussion := 1305)]
-theorem sum_log_ge (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_ge {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≥ x * log x - 2 * x := by
   sorry
 
@@ -181,7 +181,19 @@ $$ E_{1,\Lambda}(x) \geq - 2.$$
   (discussion := 1307)]
 theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x  ≥ -2 := by
-    sorry
+  unfold E₁Λ
+  have h1 := sum_log_eq_sum_mangoldt ▸ sum_log_ge hx
+  have : ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ ≤ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * x / d := by
+    gcongr
+    rw [mul_div_assoc]
+    gcongr
+    · exact vonMangoldt_nonneg
+    · exact Nat.floor_le <| div_nonneg (by linarith) (by linarith)
+  grw [this] at h1
+  conv at h1 => lhs; arg 2; ext; rw [mul_comm, mul_div_assoc]
+  rw [← Finset.mul_sum] at h1
+  rw [(by ring : x * log x - 2 * x = x * (log x - 2))] at h1
+  linarith [le_of_mul_le_mul_left h1 (by linarith)]
 
 #check Chebyshev.psi_le_const_mul_self
 
