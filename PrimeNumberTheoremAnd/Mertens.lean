@@ -80,9 +80,19 @@ $$ \sum_{n \leq x} \log n \leq x \log x.$$
  -/)
   (latexEnv := "lemma")
   (discussion := 1304)]
-theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_le {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≤ x * log x := by
-  sorry
+  calc
+  _ ≤ ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log x := by
+    refine sum_le_sum fun n hn ↦ ?_
+    simp only [mem_Ioc] at hn
+    exact log_le_log (by exact_mod_cast hn.1) (Nat.le_floor_iff (by linarith)|>.mp hn.2)
+  _ = ⌊x⌋₊ * log x := by simp
+  _ ≤ _ := by
+    gcongr
+    · exact log_nonneg hx
+    · exact Nat.floor_le (by linarith)
+
 
 #check Real.log_le_self
 
