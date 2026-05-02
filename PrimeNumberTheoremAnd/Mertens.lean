@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -94,7 +95,16 @@ theorem sum_log_le {x : ℝ} (hx : 1 ≤ x) :
     · exact Nat.floor_le (by linarith)
 
 
-#check Real.log_le_self
+lemma integral_log_le {a b : ℝ} (ha : 1 ≤ a) (hab : a ≤ b) :
+    ∫ t in a..b, log t ≤ log b * (b - a) := by
+  apply le_of_abs_le
+  have : ∀ t ∈ Set.uIoc a b, ‖log t‖ ≤ log b := by
+    intro t ht
+    rw [Set.uIoc_of_le hab, Set.mem_Ioc] at ht
+    rw [norm_of_nonneg <| log_nonneg (by linarith)]
+    gcongr <;> linarith
+  grw [← norm_eq_abs, intervalIntegral.norm_integral_le_of_norm_le_const this,
+    abs_of_nonneg (by linarith)]
 
 @[blueprint
   "Mertens-sum-log-ge"
@@ -115,9 +125,33 @@ Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the cr
  -/)
   (latexEnv := "corollary")
   (discussion := 1305)]
-theorem sum_log_ge (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_ge {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≥ x * log x - 2 * x := by
-  sorry
+  have one_le_floor : 1 ≤ ⌊x⌋₊ := by simpa
+  calc
+  _ = ∑ n ∈ Icc 1 ⌊ x ⌋₊, log n := by rfl
+  _ = ∑ n ∈ Ico (1 + 1) (⌊ x ⌋₊ + 1), log n := by
+    rw [← add_sum_Ioc_eq_sum_Icc one_le_floor]
+    simp
+    rfl
+  _ = ∑ n ∈ Ico 1 ⌊ x ⌋₊, log ((n + 1 : ℕ)) := by
+    rw [← Finset.sum_Ico_add']
+  _ ≥ ∫ t in 1..⌊x⌋₊, log t := by
+    convert MonotoneOn.integral_le_sum_Ico one_le_floor ?_|>.ge
+    · norm_cast
+    · exact StrictMonoOn.monotoneOn (strictMonoOn_log.mono fun y hy ↦ (by simp_all; linarith))
+  _ = (∫ t in 1..x, log t) - ∫ t in ⌊x⌋₊..x, log t := by
+    nth_rw 3 [intervalIntegral.integral_symm]
+    rw [sub_neg_eq_add, intervalIntegral.integral_add_adjacent_intervals] <;> exact intervalIntegral.intervalIntegrable_log'
+  _ ≥ (∫ t in 1..x, log t) - log x := by
+    gcongr
+    grw [integral_log_le (by simpa) (Nat.floor_le (by linarith))]
+    nth_rw 2 [← mul_one (log x)]
+    gcongr
+    · exact log_nonneg hx
+    · linarith [Nat.lt_floor_add_one x]
+  _ ≥ x * log x - x - log x := by simp
+  _ ≥ _ := by linarith [log_le_self (by linarith : 0 ≤ x)]
 
 @[blueprint
   "Mertens-sum-log-eq-log-factorial"
