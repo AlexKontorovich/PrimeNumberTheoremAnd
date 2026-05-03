@@ -4054,6 +4054,20 @@ theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
   · exact Inu_bounds_pos ν x hν hx
 
 
+-- Derivative of a C² function on a compact interval Icc a b is integrable on that interval.
+private lemma contDiffOn_Icc_deriv_integrableOn {a b : ℝ} (hab : a < b)
+    {f : ℝ → ℂ} (h_c2 : ContDiffOn ℝ 2 f (Set.Icc a b)) :
+    IntegrableOn (deriv f) (Set.Icc a b) := by
+  have h_int_within : IntegrableOn (derivWithin f (Set.Icc a b)) (Set.Icc a b) :=
+    ContinuousOn.integrableOn_compact isCompact_Icc
+      (h_c2.continuousOn_derivWithin (uniqueDiffOn_Icc hab) (by norm_num))
+  rw [integrableOn_Icc_iff_integrableOn_Ioo] at h_int_within ⊢
+  refine IntegrableOn.congr_fun h_int_within ?_ measurableSet_Ioo
+  intro x hx
+  exact (derivWithin_subset Set.Ioo_subset_Icc_self (isOpen_Ioo.uniqueDiffWithinAt hx)
+    (h_c2.differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx))).symm.trans
+    (derivWithin_of_isOpen isOpen_Ioo hx)
+
 @[blueprint
   "varphi-deriv-integ"
   (title := "$\\varphi'$ integrable")
@@ -4065,43 +4079,14 @@ theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
 theorem varphi_deriv_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (deriv (ϕ_pm ν ε)) := by
   rw [← integrableOn_univ, ← Set.union_compl_self (Set.Icc (-1 : ℝ) 1)]
   refine IntegrableOn.union ?_ ?_
-  · have h_Icc : (Set.Icc (-1 : ℝ) 1) = Set.Icc (-1) 0 ∪ Set.Icc 0 1 :=
-      (Set.Icc_union_Icc_eq_Icc (by norm_num : (-1:ℝ) ≤ 0) (by norm_num : (0:ℝ) ≤ 1)).symm
-    rw [h_Icc]
-    refine IntegrableOn.union ?_ ?_
-    · have h_cont : ContinuousOn (derivWithin (ϕ_pm ν ε) (Set.Icc (-1) 0)) (Set.Icc (-1) 0) :=
-        (ϕ_c2_left ν ε hlam).continuousOn_derivWithin (uniqueDiffOn_Icc (by norm_num)) (by norm_num)
-      have h_int_within : IntegrableOn (derivWithin (ϕ_pm ν ε) (Set.Icc (-1) 0)) (Set.Icc (-1) 0) :=
-        h_cont.integrableOn_compact isCompact_Icc
-      rw [integrableOn_Icc_iff_integrableOn_Ioo] at h_int_within ⊢
-      refine IntegrableOn.congr_fun h_int_within ?_ measurableSet_Ioo
-      intro x hx
-      have h1 : derivWithin (ϕ_pm ν ε) (Set.Ioo (-1) 0) x = deriv (ϕ_pm ν ε) x :=
-        derivWithin_of_isOpen isOpen_Ioo hx
-      have h2 : derivWithin (ϕ_pm ν ε) (Set.Ioo (-1) 0) x = derivWithin (ϕ_pm ν ε) (Set.Icc (-1) 0) x :=
-        derivWithin_subset Set.Ioo_subset_Icc_self (isOpen_Ioo.uniqueDiffWithinAt hx)
-          ((ϕ_c2_left ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx))
-      rw [← h2, h1]
-    · have h_cont : ContinuousOn (derivWithin (ϕ_pm ν ε) (Set.Icc 0 1)) (Set.Icc 0 1) :=
-        (ϕ_c2_right ν ε hlam).continuousOn_derivWithin (uniqueDiffOn_Icc (by norm_num)) (by norm_num)
-      have h_int_within : IntegrableOn (derivWithin (ϕ_pm ν ε) (Set.Icc 0 1)) (Set.Icc 0 1) :=
-        h_cont.integrableOn_compact isCompact_Icc
-      rw [integrableOn_Icc_iff_integrableOn_Ioo] at h_int_within ⊢
-      refine IntegrableOn.congr_fun h_int_within ?_ measurableSet_Ioo
-      intro x hx
-      have h1 : derivWithin (ϕ_pm ν ε) (Set.Ioo 0 1) x = deriv (ϕ_pm ν ε) x :=
-        derivWithin_of_isOpen isOpen_Ioo hx
-      have h2 : derivWithin (ϕ_pm ν ε) (Set.Ioo 0 1) x = derivWithin (ϕ_pm ν ε) (Set.Icc 0 1) x :=
-        derivWithin_subset Set.Ioo_subset_Icc_self (isOpen_Ioo.uniqueDiffWithinAt hx)
-          ((ϕ_c2_right ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx))
-      rw [← h2, h1]
+  · rw [(Set.Icc_union_Icc_eq_Icc (by norm_num : (-1:ℝ) ≤ 0) (by norm_num : (0:ℝ) ≤ 1)).symm]
+    exact (contDiffOn_Icc_deriv_integrableOn (by norm_num) (ϕ_c2_left ν ε hlam)).union
+      (contDiffOn_Icc_deriv_integrableOn (by norm_num) (ϕ_c2_right ν ε hlam))
   · exact (integrable_zero ℝ ℂ volume).integrableOn.congr_fun (by
       intro t ht
-      have h_nhds : (Set.Icc (-1 : ℝ) 1)ᶜ ∈ nhds t := isClosed_Icc.isOpen_compl.mem_nhds ht
       have h_eq : ϕ_pm ν ε =ᶠ[nhds t] (fun _ ↦ (0 : ℂ)) := by
-        filter_upwards [h_nhds] with x hx
-        unfold ϕ_pm
-        exact if_neg hx
+        filter_upwards [isClosed_Icc.isOpen_compl.mem_nhds ht] with x hx
+        unfold ϕ_pm; exact if_neg hx
       rw [h_eq.deriv_eq, deriv_const]) measurableSet_Icc.compl
 
 lemma varphi_ftc_left (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
