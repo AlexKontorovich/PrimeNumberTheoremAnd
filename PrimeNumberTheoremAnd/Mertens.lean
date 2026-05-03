@@ -231,7 +231,6 @@ theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
   _ = _ := by ring
 
 
-#check Chebyshev.psi_le_const_mul_self
 
 @[blueprint
   "Mertens-first-error-mangoldt-le"
@@ -245,7 +244,25 @@ $$ E_{1,\Lambda}(x) \leq \log 4 + 4.$$
   (discussion := 1308)]
 theorem E₁Λ.le {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x ≤ log 4 + 4 := by
-    sorry
+  unfold E₁Λ
+  suffices x * ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / d ≤ x * (log x + log 4 + 4) by
+    linarith [le_of_mul_le_mul_left this (by linarith)]
+  calc
+  _ = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (x / d) := by
+    rw [Finset.mul_sum]
+    ring_nf
+  _ ≤ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (⌊x / d⌋₊ + 1) := by
+    gcongr
+    · exact vonMangoldt_nonneg
+    · exact Nat.lt_floor_add_one _|>.le
+  _ = (∑ d ∈ Ioc 0 ⌊x⌋₊, log d) + ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d := by
+    simp_rw [mul_add, mul_one]
+    rw [Finset.sum_add_distrib, sum_log_eq_sum_mangoldt]
+  _ ≤ x * log x + (log 4 + 4) * x := by
+    gcongr
+    · exact sum_log_le hx
+    · exact Chebyshev.psi_le_const_mul_self (by linarith)
+  _ = _ := by ring
 
 @[blueprint
   "Mertens-first-theorem-mangoldt"
