@@ -409,33 +409,6 @@ In this section we construct extremal approximants to the truncated exponential 
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
 
-theorem hasDerivAt_coth {z : ℂ} (hz : Complex.sinh z ≠ 0) :
-    HasDerivAt coth (-(1 / Complex.sinh z ^ 2)) z := by
-  unfold coth
-  have h_tanh : Complex.tanh z ≠ 0 := by
-    rw [Complex.tanh_ne_zero_iff]
-    exact hz
-  have h_deriv := Complex.hasDerivAt_tanh z
-  convert h_deriv.inv h_tanh using 1
-  rw [Complex.cosh_sq_sub_sinh_sq, ← div_eq_mul_inv, Complex.tanh, div_pow]
-  field_simp [Complex.cosh_ne_zero_iff_tanh_ne_one h_tanh]
-  ring
-
-@[simp]
-theorem hasDerivAt_Phi_circ (ν ε : ℝ) (z : ℂ) (hz : Complex.sinh (-I * π * z + ν / 2) ≠ 0) :
-    HasDerivAt (Phi_circ ν ε) (I * π / (2 * Complex.sinh (-I * π * z + ν / 2) ^ 2)) z := by
-  unfold Phi_circ
-  have h_const : HasDerivAt (fun _ ↦ (1 / 2 : ℂ)) 0 z := hasDerivAt_const z (1 / 2)
-  have h_linear : HasDerivAt (fun z ↦ -I * π * z + ν / 2) (-I * π) z := by
-    have := hasDerivAt_id z
-    have := this.mul_const (-I * π)
-    exact this.add_const (ν / 2)
-  have h_coth := hasDerivAt_coth hz
-  have h_comp := h_coth.comp z h_linear
-  have h_sum := h_comp.add_const ε
-  convert h_const.mul h_sum using 1
-  field_simp; ring
-
 theorem sinh_add_pi_I (z : ℂ) : sinh (z + π * I) = -sinh z := by
     simp [Complex.sinh_add, sinh_mul_I, cosh_mul_I]
 
@@ -1565,50 +1538,6 @@ lemma ϕ_pm_hasDerivWithinAt_neg_one_left (ν ε : ℝ) (hlam : ν ≠ 0) :
   · -- Prove the value at the point -1 is indeed 0
     exact (ϕ_pm_zero_boundary ν ε hlam).1
 
-lemma ϕ_pm_hasDerivWithinAt_neg_one_right (ν ε : ℝ) (hlam : ν ≠ 0) :
-    HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Icc (-1) 0) (-1) := by
-  -- Subgoal 1: Neighborhood equality
-  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1 : ℝ) (Set.Icc (-1) 0)] (fun t => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) := by
-    filter_upwards [self_mem_nhdsWithin, eventually_lt_nhds (show (-1 : ℝ) < 0 by norm_num)] with t ht h_neg
-    unfold ϕ_pm; split_ifs with h_mem
-    · rw [Real.sign_of_neg h_neg]; simp
-    · exfalso; linarith [Set.mem_Icc.mp ht]
-
-  -- Subgoal 2: Complex derivative cancellation
-  have h_deriv_complex : HasDerivAt (fun z : ℂ => Phi_circ ν ε z - Phi_star ν ε z) 0 (-1) := by
-    -- Periodicity of coth and sinh² ensures derivatives cancel at z = -1
-    sorry
-
-  -- Subgoal 3: Restrict complex derivative to the real line
-  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) - Phi_star ν ε (t : ℂ)) 0 (-1) := by
-    exact h_deriv_complex.comp_ofReal
-
-  refine HasDerivWithinAt.congr_of_eventuallyEq h_deriv.hasDerivWithinAt h_eq ?_
-  simp [ϕ_pm, sign_of_neg (show (-1 : ℝ) < 0 by norm_num)]; ring_nf
-
--- 3. Lemma for the interior derivative at 1
-lemma ϕ_pm_hasDerivWithinAt_one_left (ν ε : ℝ) (hlam : ν ≠ 0) :
-    HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Icc 0 1) 1 := by
-  -- Subgoal 1: Neighborhood equality
-  have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (1 : ℝ) (Set.Icc 0 1)] (fun t => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) := by
-    filter_upwards [self_mem_nhdsWithin, eventually_gt_nhds (show (0 : ℝ) < 1 by norm_num)] with t ht h_pos
-    unfold ϕ_pm; split_ifs with h_mem
-    · rw [Real.sign_of_pos h_pos]; simp
-    · exfalso; linarith [Set.mem_Icc.mp ht]
-
-  -- Subgoal 2: Complex derivative cancellation
-  have h_deriv_complex : HasDerivAt (fun z : ℂ => Phi_circ ν ε z + Phi_star ν ε z) 0 1 := by
-    -- Periodicity at z = 1 ensures derivatives cancel
-    sorry
-
-  -- Subgoal 3: Restrict complex derivative to the real line
-  have h_deriv : HasDerivAt (fun (t : ℝ) => Phi_circ ν ε (t : ℂ) + Phi_star ν ε (t : ℂ)) 0 1 := by
-    exact h_deriv_complex.comp_ofReal
-
-  refine HasDerivWithinAt.congr_of_eventuallyEq h_deriv.hasDerivWithinAt h_eq ?_
-  -- exact (ϕ_pm_zero_boundary ν ε hlam).2.symm
-  simp [ϕ_pm]
-
 lemma ϕ_pm_hasDerivWithinAt_one_right (ν ε : ℝ) (hlam : ν ≠ 0) :
     HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Ici 1) 1 := by
   refine HasDerivWithinAt.congr_of_eventuallyEq (hasDerivWithinAt_const (1 : ℝ) (Set.Ici 1) (0 : ℂ)) ?_ ?_
@@ -1622,52 +1551,52 @@ lemma ϕ_pm_hasDerivWithinAt_one_right (ν ε : ℝ) (hlam : ν ≠ 0) :
     · rfl
   · exact (ϕ_pm_zero_boundary ν ε hlam).2
 
-lemma ϕ_pm_differentiableAt_neg_one (ν ε : ℝ) (hlam : ν ≠ 0) :
-    DifferentiableAt ℝ (ϕ_pm ν ε) (-1) := by
-  have h_left := ϕ_pm_hasDerivWithinAt_neg_one_left ν ε hlam
-  have h_right := ϕ_pm_hasDerivWithinAt_neg_one_right ν ε hlam
-  have h_union : HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Iic 0) (-1) := by
-    refine (h_left.union h_right).congr_set (Filter.EventuallyEq.of_eq ?_)
-    ext t; simp
-  exact h_union.hasDerivAt (Iic_mem_nhds (by norm_num)) |>.differentiableAt
+-- lemma ϕ_pm_differentiableAt_neg_one (ν ε : ℝ) (hlam : ν ≠ 0) :
+--     DifferentiableAt ℝ (ϕ_pm ν ε) (-1) := by
+--   have h_left := ϕ_pm_hasDerivWithinAt_neg_one_left ν ε hlam
+--   have h_right := ϕ_pm_hasDerivWithinAt_neg_one_right ν ε hlam
+--   have h_union : HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Iic 0) (-1) := by
+--     refine (h_left.union h_right).congr_set (Filter.EventuallyEq.of_eq ?_)
+--     ext t; simp
+--   exact h_union.hasDerivAt (Iic_mem_nhds (by norm_num)) |>.differentiableAt
 
-lemma ϕ_pm_differentiableAt_one (ν ε : ℝ) (hlam : ν ≠ 0) :
-    DifferentiableAt ℝ (ϕ_pm ν ε) 1 := by
-  have h_left := ϕ_pm_hasDerivWithinAt_one_left ν ε hlam
-  have h_right := ϕ_pm_hasDerivWithinAt_one_right ν ε hlam
-  have h_union : HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Ici 0) 1 := by
-    refine (h_left.union h_right).congr_set (Filter.EventuallyEq.of_eq ?_)
-    ext t; simp
-  exact h_union.hasDerivAt (Ici_mem_nhds (by norm_num)) |>.differentiableAt
+-- lemma ϕ_pm_differentiableAt_one (ν ε : ℝ) (hlam : ν ≠ 0) :
+--     DifferentiableAt ℝ (ϕ_pm ν ε) 1 := by
+--   have h_left := ϕ_pm_hasDerivWithinAt_one_left ν ε hlam
+--   have h_right := ϕ_pm_hasDerivWithinAt_one_right ν ε hlam
+--   have h_union : HasDerivWithinAt (ϕ_pm ν ε) 0 (Set.Ici 0) 1 := by
+--     refine (h_left.union h_right).congr_set (Filter.EventuallyEq.of_eq ?_)
+--     ext t; simp
+--   exact h_union.hasDerivAt (Ici_mem_nhds (by norm_num)) |>.differentiableAt
 
 
--- differentiable varphi except at 0
-theorem varphi_differentiableAt (ν ε : ℝ) (hlam : ν ≠ 0) {x : ℝ} (hx_nz : x ≠ 0) :
-    DifferentiableAt ℝ (ϕ_pm ν ε) x := by
-  by_cases h_left : x ∈ Set.Ioo (-1 : ℝ) 0
-  · exact varphi_differentiableAt_left ν ε hlam h_left
-  by_cases h_right : x ∈ Set.Ioo (0 : ℝ) 1
-  · exact varphi_differentiableAt_right ν ε hlam h_right
-  by_cases h_out : x ∈ (Set.Icc (-1 : ℝ) 1)ᶜ
-  · exact varphi_differentiableAt_out ν ε h_out
-  -- Remaining points: {-1, 1} (since x ≠ 0 and we've checked the open segments)
-  have h_bound : x = -1 ∨ x = 1 := by
-    have h_in : x ∈ Set.Icc (-1 : ℝ) 1 := Set.notMem_compl_iff.mp h_out
-    simp only [Set.Icc, Set.mem_setOf_eq, Set.Ioo, not_and, not_lt] at h_in h_left h_right
-    rcases h_in with ⟨h1, h2⟩
-    by_cases hx : x = -1; · left; exact hx
-    -- by_cases hx' : x = 0; · right; exact hx'
-    by_cases hx'' : x = 1; · right; exact hx''
-    exfalso
-    if h_neg : x < 0 then
-      have : 0 ≤ x := h_left (lt_of_le_of_ne h1 (Ne.symm hx))
-      exact absurd h_neg (not_lt.mpr this)
-    else
-      have : 1 ≤ x := h_right (lt_of_le_of_ne (not_lt.mp h_neg) hx_nz.symm)
-      exact absurd (lt_of_le_of_ne this (Ne.symm hx'')) (not_lt.mpr h2)
-  rcases h_bound with rfl | rfl
-  · exact ϕ_pm_differentiableAt_neg_one ν ε hlam
-  · exact ϕ_pm_differentiableAt_one ν ε hlam
+-- -- differentiable varphi except at 0
+-- theorem varphi_differentiableAt (ν ε : ℝ) (hlam : ν ≠ 0) {x : ℝ} (hx_nz : x ≠ 0) :
+--     DifferentiableAt ℝ (ϕ_pm ν ε) x := by
+--   by_cases h_left : x ∈ Set.Ioo (-1 : ℝ) 0
+--   · exact varphi_differentiableAt_left ν ε hlam h_left
+--   by_cases h_right : x ∈ Set.Ioo (0 : ℝ) 1
+--   · exact varphi_differentiableAt_right ν ε hlam h_right
+--   by_cases h_out : x ∈ (Set.Icc (-1 : ℝ) 1)ᶜ
+--   · exact varphi_differentiableAt_out ν ε h_out
+--   -- Remaining points: {-1, 1} (since x ≠ 0 and we've checked the open segments)
+--   have h_bound : x = -1 ∨ x = 1 := by
+--     have h_in : x ∈ Set.Icc (-1 : ℝ) 1 := Set.notMem_compl_iff.mp h_out
+--     simp only [Set.Icc, Set.mem_setOf_eq, Set.Ioo, not_and, not_lt] at h_in h_left h_right
+--     rcases h_in with ⟨h1, h2⟩
+--     by_cases hx : x = -1; · left; exact hx
+--     -- by_cases hx' : x = 0; · right; exact hx'
+--     by_cases hx'' : x = 1; · right; exact hx''
+--     exfalso
+--     if h_neg : x < 0 then
+--       have : 0 ≤ x := h_left (lt_of_le_of_ne h1 (Ne.symm hx))
+--       exact absurd h_neg (not_lt.mpr this)
+--     else
+--       have : 1 ≤ x := h_right (lt_of_le_of_ne (not_lt.mp h_neg) hx_nz.symm)
+--       exact absurd (lt_of_le_of_ne this (Ne.symm hx'')) (not_lt.mpr h2)
+--   rcases h_bound with rfl | rfl
+--   · exact ϕ_pm_differentiableAt_neg_one ν ε hlam
+--   · exact ϕ_pm_differentiableAt_one ν ε hlam
 
 
 @[blueprint
@@ -4737,26 +4666,48 @@ theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (de
     -- Apply at a=-1, b=0; then strip the self-intersection by .mono inter_subset_left.
     have hBV_dw : BoundedVariationOn dw (Set.Icc (-1 : ℝ) 0) := by
       simpa using hK.locallyBoundedVariationOn (-1) 0 (Set.left_mem_Icc.mpr (by norm_num)) (Set.right_mem_Icc.mpr (by norm_num))
-    -- E: Relate global deriv g and within-deriv dw.
-    -- They are equal on [-1, 0), but may differ at the "corner" x = 0.
-    have h_eq_on : Set.EqOn g dw (Set.Icc (-1 : ℝ) 0 \ {0}) := by
+
+    -- Relate g and dw on Ioo (-1) 0.
+    have h_eq_ioo : Set.EqOn g dw (Set.Ioo (-1 : ℝ) 0) := by
       intro x hx
-      have hx_ico : x ∈ Set.Ico (-1 : ℝ) 0 := ⟨hx.1.1, hx.1.2.lt_of_ne hx.2⟩
       simp only [g, hdw_def]
-      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x := by
-        by_cases hxe : x = -1
-        · subst hxe
-          exact varphi_differentiableAt ν ε hlam (by norm_num)
-        · exact (ϕ_c2_left ν ε hlam).differentiableOn (by norm_num) x (Set.Ico_subset_Icc_self hx_ico)
-            |>.differentiableAt (Icc_mem_nhds (hx_ico.1.lt_of_ne (Ne.symm hxe)) hx_ico.2)
-      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ico_subset_Icc_self hx_ico)) |>.symm
+      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x :=
+        (ϕ_c2_left ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx)
+        |>.differentiableAt (Icc_mem_nhds hx.1 hx.2)
+      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ioo_subset_Icc_self hx)) |>.symm
 
-    -- F: Transfer BoundedVariation from dw to g.
-    have h_bound : eVariationOn g (Set.Icc (-1) 0) ≤ eVariationOn dw (Set.Icc (-1) 0) + edist (g 0) (dw 0) :=
-      eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc (by norm_num))) h_eq_on.symm
+    -- Split interval at -1/2 to isolate endpoints.
+    have h_split : eVariationOn g (Set.Icc (-1) 0) =
+        eVariationOn g (Set.Icc (-1) (-1/2)) + eVariationOn g (Set.Icc (-1/2) 0) := by
+      have := eVariationOn.Icc_add_Icc g (by norm_num : (-1 : ℝ) ≤ -1/2) (by norm_num : (-1/2 : ℝ) ≤ 0) (Set.mem_univ (-1/2 : ℝ))
+      simp only [Set.univ_inter] at this
+      exact this.symm
 
-    rw [BoundedVariationOn, ← lt_top_iff_ne_top] at hBV_dw ⊢
-    exact lt_of_le_of_lt h_bound (ENNReal.add_lt_top.mpr ⟨hBV_dw, edist_lt_top (g 0) (dw 0)⟩)
+    -- Left half BV: Handle jump at -1.
+    have hBV_L : BoundedVariationOn g (Set.Icc (-1) (-1/2)) := by
+      have h_eq : Set.EqOn dw g (Set.Icc (-1 : ℝ) (-1 / 2) \ {-1}) := by
+        intro x hx
+        have : x ∈ Set.Ioo (-1) 0 := ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2.trans_lt (by norm_num)⟩
+        exact (h_eq_ioo this).symm
+      have h_bound := eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc (by norm_num))) h_eq
+      apply ne_top_of_le_ne_top _ h_bound
+      apply ENNReal.add_ne_top.mpr
+      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (le_refl _) (by norm_num)), edist_lt_top _ _ |>.ne⟩
+
+    -- Right half BV: Handle jump at 0.
+    have hBV_R : BoundedVariationOn g (Set.Icc (-1/2) 0) := by
+      have h_eq : Set.EqOn dw g (Set.Icc (-1 / 2) 0 \ {0}) := by
+        intro x hx
+        have : x ∈ Set.Ioo (-1) 0 := ⟨(by norm_num : (-1 : ℝ) < -1/2).trans_le hx.1.1, hx.1.2.lt_of_ne hx.2⟩
+        exact (h_eq_ioo this).symm
+      have h_bound := eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc (by norm_num))) h_eq
+      apply ne_top_of_le_ne_top _ h_bound
+      apply ENNReal.add_ne_top.mpr
+      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (by norm_num) (le_refl _)), edist_lt_top _ _ |>.ne⟩
+
+    rw [BoundedVariationOn, h_split]
+    exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
+
 
   -- Step 2: Mirror of Step 1 using ϕ_c2_right instead of ϕ_c2_left.
   have hBV_right : BoundedVariationOn g (Set.Icc (0 : ℝ) 1) := by
@@ -4767,25 +4718,48 @@ theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (de
     obtain ⟨K, hK⟩ := h_dw_c1.exists_lipschitzOnWith (by norm_num) (convex_Icc _ _) isCompact_Icc
     have hBV_dw : BoundedVariationOn dw (Set.Icc (0 : ℝ) 1) := by
       simpa using hK.locallyBoundedVariationOn 0 1 (Set.left_mem_Icc.mpr (by norm_num)) (Set.right_mem_Icc.mpr (by norm_num))
-    -- Step 2E: Relate g and dw on (0, 1].
-    have h_eq_on : Set.EqOn g dw (Set.Icc (0 : ℝ) 1 \ {0}) := by
+
+    -- Relate g and dw on Ioo 0 1.
+    have h_eq_ioo : Set.EqOn g dw (Set.Ioo (0 : ℝ) 1) := by
       intro x hx
-      have hx_ioc : x ∈ Set.Ioc (0 : ℝ) 1 := ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2⟩
       simp only [g, hdw_def]
-      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x := by
-        by_cases hxe : x = 1
-        · subst hxe; exact varphi_differentiableAt ν ε hlam (by norm_num)
-        · have hxe : x ≠ 1 := by intro h; subst h; simp at hx; trivial
-          exact (ϕ_c2_right ν ε hlam).differentiableOn (by norm_num) x (Set.Ioc_subset_Icc_self hx_ioc)
-            |>.differentiableAt (Icc_mem_nhds hx_ioc.1 (hx_ioc.2.lt_of_ne hxe))
-      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ioc_subset_Icc_self hx_ioc)) |>.symm
+      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x :=
+        (ϕ_c2_right ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx)
+        |>.differentiableAt (Icc_mem_nhds hx.1 hx.2)
+      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ioo_subset_Icc_self hx)) |>.symm
 
-    -- Step 2F: g has BV on [0, 1] due to finite jump at 0.
-    have h_bound : eVariationOn g (Set.Icc 0 1) ≤ eVariationOn dw (Set.Icc 0 1) + edist (g 0) (dw 0) :=
-      eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc (by norm_num))) h_eq_on.symm
+    -- Split interval at 1/2 to isolate endpoints.
+    have h_split : eVariationOn g (Set.Icc 0 1) =
+        eVariationOn g (Set.Icc 0 (1/2)) + eVariationOn g (Set.Icc (1/2) 1) := by
+      have := eVariationOn.Icc_add_Icc g (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (1/2 : ℝ) ≤ 1) (Set.mem_univ (1/2 : ℝ))
+      simp only [Set.univ_inter] at this
+      exact this.symm
 
-    rw [BoundedVariationOn, ← lt_top_iff_ne_top] at hBV_dw ⊢
-    exact lt_of_le_of_lt h_bound (ENNReal.add_lt_top.mpr ⟨hBV_dw, edist_lt_top (g 0) (dw 0)⟩)
+    -- Left half BV: Handle jump at 0.
+    have hBV_L : BoundedVariationOn g (Set.Icc 0 (1/2)) := by
+      have h_eq : Set.EqOn dw g (Set.Icc 0 (1/2) \ {0}) := by
+        intro x hx
+        have : x ∈ Set.Ioo 0 1 := ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2.trans_lt (by norm_num)⟩
+        exact (h_eq_ioo this).symm
+      have h_bound := eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc (by norm_num))) h_eq
+      apply ne_top_of_le_ne_top _ h_bound
+      apply ENNReal.add_ne_top.mpr
+      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (le_refl _) (by norm_num)), edist_lt_top _ _ |>.ne⟩
+
+    -- Right half BV: Handle jump at 1.
+    have hBV_R : BoundedVariationOn g (Set.Icc (1/2) 1) := by
+      have h_eq : Set.EqOn dw g (Set.Icc (1 / 2) 1 \ {1}) := by
+        intro x hx
+        have : x ∈ Set.Ioo 0 1 := ⟨(by norm_num : (0 : ℝ) < 1/2).trans_le hx.1.1, hx.1.2.lt_of_ne hx.2⟩
+        exact (h_eq_ioo this).symm
+      have h_bound := eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc (by norm_num))) h_eq
+      apply ne_top_of_le_ne_top _ h_bound
+      apply ENNReal.add_ne_top.mpr
+      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (by norm_num) (le_refl _)), edist_lt_top _ _ |>.ne⟩
+
+    rw [BoundedVariationOn, h_split]
+    exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
+
   -- Step 3: Combine BV on [-1,0] and [0,1] to get BV on [-1,1] via
   --   eVariationOn.Icc_add_Icc, which states:
   --   eVariationOn f (s ∩ Icc a b) + eVariationOn f (s ∩ Icc b c)
