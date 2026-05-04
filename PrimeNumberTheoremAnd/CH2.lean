@@ -4053,7 +4053,6 @@ theorem Inu_bounds (ν x : ℝ) (hν : ν > 0) :
   · exact Inu_bounds_zero ν hν
   · exact Inu_bounds_pos ν x hν hx
 
-
 -- Derivative of a C² function on a compact interval Icc a b is integrable on that interval.
 private lemma contDiffOn_Icc_deriv_integrableOn {a b : ℝ} (hab : a < b)
     {f : ℝ → ℂ} (h_c2 : ContDiffOn ℝ 2 f (Set.Icc a b)) :
@@ -4089,40 +4088,26 @@ theorem varphi_deriv_integ (ν ε : ℝ) (hlam : ν ≠ 0) : Integrable (deriv (
         unfold ϕ_pm; exact if_neg hx
       rw [h_eq.deriv_eq, deriv_const]) measurableSet_Icc.compl
 
-lemma varphi_ftc_left (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
-    (hx : x ∈ Set.Icc (-1 : ℝ) 0) (hy : y ∈ Set.Icc (-1 : ℝ) 0) :
+-- FTC for ϕ_pm on any subinterval [a,b], given differentiability in the interior.
+private lemma varphi_ftc_aux (ν ε : ℝ) (hlam : ν ≠ 0) {a b x y : ℝ}
+    (hx : x ∈ Set.Icc a b) (hy : y ∈ Set.Icc a b)
+    (h_diff : ∀ t ∈ Set.Ioo a b, DifferentiableAt ℝ (ϕ_pm ν ε) t) :
     ∫ t in x..y, deriv (ϕ_pm ν ε) t = (ϕ_pm ν ε) y - (ϕ_pm ν ε) x := by
   apply intervalIntegral.integral_deriv_eq_sub_uIoo
-  -- Subgoal 1: Continuity
-  · apply (ϕ_continuous ν ε hlam).continuousOn.mono
-    exact Set.uIcc_subset_Icc hx hy
-  -- Subgoal 2: Differentiability on uIoo
+  · exact (ϕ_continuous ν ε hlam).continuousOn.mono (Set.uIcc_subset_Icc hx hy)
   · intro t ht
-    have ht' : t ∈ Set.Ioo (-1 : ℝ) 0 := by
-      constructor
-      · linarith [hx.1, hy.1, ht.1, le_min hx.1 hy.1] -- ht.1 is min x y < t
-      · linarith [hx.2, hy.2, ht.2, max_le hx.2 hy.2] -- ht.2 is t < max x y
-    exact varphi_differentiableAt_left ν ε hlam ht'
-  -- Subgoal 3: Integrability
+    exact h_diff t (Set.Ioo_subset_Ioo (le_min hx.1 hy.1) (max_le hx.2 hy.2) ht)
   · exact (varphi_deriv_integ ν ε hlam).intervalIntegrable
 
+lemma varphi_ftc_left (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
+    (hx : x ∈ Set.Icc (-1 : ℝ) 0) (hy : y ∈ Set.Icc (-1 : ℝ) 0) :
+    ∫ t in x..y, deriv (ϕ_pm ν ε) t = (ϕ_pm ν ε) y - (ϕ_pm ν ε) x :=
+  varphi_ftc_aux ν ε hlam hx hy fun _ ht => varphi_differentiableAt_left ν ε hlam ht
 
 lemma varphi_ftc_right (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
     (hx : x ∈ Set.Icc (0 : ℝ) 1) (hy : y ∈ Set.Icc (0 : ℝ) 1) :
-    ∫ t in x..y, deriv (ϕ_pm ν ε) t = (ϕ_pm ν ε) y - (ϕ_pm ν ε) x := by
-  apply intervalIntegral.integral_deriv_eq_sub_uIoo
-  -- Subgoal 1: Continuity
-  · apply (ϕ_continuous ν ε hlam).continuousOn.mono
-    exact Set.uIcc_subset_Icc hx hy
-  -- Subgoal 2: Differentiability on uIoo
-  · intro t ht
-    have ht' : t ∈ Set.Ioo 0 1 := by
-      constructor
-      · linarith [hx.1, hy.1, ht.1, le_min hx.1 hy.1]
-      · linarith [hx.2, hy.2, ht.2, max_le hx.2 hy.2]
-    exact varphi_differentiableAt_right ν ε hlam ht'
-  -- Subgoal 3: Integrability
-  · exact (varphi_deriv_integ ν ε hlam).intervalIntegrable
+    ∫ t in x..y, deriv (ϕ_pm ν ε) t = (ϕ_pm ν ε) y - (ϕ_pm ν ε) x :=
+  varphi_ftc_aux ν ε hlam hx hy fun _ ht => varphi_differentiableAt_right ν ε hlam ht
 
 lemma varphi_ftc_out (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
     (h : (x ≤ -1 ∧ y ≤ -1) ∨ (x ≥ 1 ∧ y ≥ 1)) :
@@ -4132,75 +4117,74 @@ lemma varphi_ftc_out (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
   have hf_const {t : ℝ} (ht : t ≤ -1 ∨ t ≥ 1) : f t = 0 := by
     unfold f ϕ_pm; split_ifs with h_mem
     · rcases ht with h_le | h_ge
-      · have : t = -1 := by linarith [h_le, h_mem.1]
-        subst this
+      · obtain rfl : t = -1 := by linarith [h_le, h_mem.1]
         simpa [ϕ_pm] using (ϕ_pm_zero_boundary ν ε hlam).1
-      · have : t = 1 := by linarith [h_ge, h_mem.2]
-        subst this
+      · obtain rfl : t = 1 := by linarith [h_ge, h_mem.2]
         simpa [ϕ_pm] using (ϕ_pm_zero_boundary ν ε hlam).2
     · rfl
   have hf_deriv (t : ℝ) (ht : t < -1 ∨ t > 1) : deriv f t = 0 := by
     have h_eq : f =ᶠ[nhds t] 0 := by
-      have : t ∈ (Set.Icc (-1) 1)ᶜ := by
-        simp only [Set.mem_compl_iff, Set.mem_Icc, not_and, not_le]
-        intro; rcases ht with h | h <;> linarith
-      filter_upwards [isClosed_Icc.isOpen_compl.mem_nhds this] with z hz
+      filter_upwards [isClosed_Icc.isOpen_compl.mem_nhds (show t ∉ Set.Icc (-1 : ℝ) 1 by
+        simp only [Set.mem_Icc, not_and, not_le]; intro h1; rcases ht with h | h <;> linarith)] with z hz
       unfold f ϕ_pm; exact if_neg hz
-    rw [h_eq.deriv_eq]
-    simp
+    rw [h_eq.deriv_eq]; rw [show (0 : ℝ → ℂ) = fun _ ↦ 0 from rfl, deriv_const]
   rw [hf_const (h.elim (fun h' ↦ Or.inl h'.2) (fun h' ↦ Or.inr h'.2)),
       hf_const (h.elim (fun h' ↦ Or.inl h'.1) (fun h' ↦ Or.inr h'.1)), sub_zero]
   apply intervalIntegral.integral_zero_ae
-  -- Top-level case split on the hypothesis h
   rcases h with ⟨hx, hy⟩ | ⟨hx, hy⟩
-
-  · -- ══ CASE 1: x ≤ -1, y ≤ -1 ══
-    -- The interval uIoc x y lies in (-∞, -1].
-    -- The only point where hf_deriv is silent is {-1}, which is Lebesgue-null.
-
-    -- A: Bound all points in the interval above by -1
-    have hmax : max x y ≤ -1 := max_le hx hy
-    have hbound : ∀ x_1 ∈ Set.uIoc x y, x_1 ≤ -1 := by
-      intro x_1 hx1
-      simp only [Set.uIoc, Set.mem_Ioc] at hx1
-      -- hx1 : min x y < x_1 ∧ x_1 ≤ max x y
-      -- Proof: x_1 ≤ max x y ≤ -1 by transitivity with hmax
-      exact le_trans hx1.2 hmax
-
-    -- B: Lebesgue-almost every real is ≠ -1, since {-1} is a null set
-    have hne_ae : ∀ᵐ (x_1 : ℝ), x_1 ≠ (-1 : ℝ) := by
-      rw [MeasureTheory.ae_iff]
-      -- Goal becomes: volume {x_1 | ¬(x_1 ≠ -1)} = 0
-      -- Proof: simplify the set to {-1}, then apply Real.volume_singleton
-      have hset : {x_1 : ℝ | ¬(x_1 ≠ -1)} = {-1} := by ext; simp
-      rw [hset]
-      -- (derivable from MeasureTheory.measure_singleton_eq_zero + NoAtoms instance for ℝ)
-      apply Real.volume_singleton
-
-    -- C: Combine A and B via filter_upwards
+  · have hne_ae : ∀ᵐ (x_1 : ℝ), x_1 ≠ (-1 : ℝ) := by
+      rw [MeasureTheory.ae_iff, show {x_1 : ℝ | ¬(x_1 ≠ -1)} = {-1} from by ext; simp]
+      exact Real.volume_singleton
     filter_upwards [hne_ae] with x_1 hne
     intro hx1
-    -- hne : x_1 ≠ -1
-    -- hbound x_1 hx1 : x_1 ≤ -1
-    -- Together: x_1 < -1, so hf_deriv applies (left disjunct)
-    exact hf_deriv x_1 (Or.inl (lt_of_le_of_ne (hbound x_1 hx1) hne))
-
-  · -- ══ CASE 2: x ≥ 1, y ≥ 1 ══
-    -- uIoc x y = (min x y, max x y] ⊆ (1, ∞).
-    -- hf_deriv applies at EVERY point, so ∀ᵐ follows trivially from ∀.
-
-    have hmin : 1 ≤ min x y := le_min hx hy
-
-    -- Since the claim holds pointwise, ae is immediate
-    apply Filter.Eventually.of_forall
+    simp only [Set.uIoc, Set.mem_Ioc] at hx1
+    exact hf_deriv x_1 (Or.inl (lt_of_le_of_ne (le_trans hx1.2 (max_le hx hy)) hne))
+  · apply Filter.Eventually.of_forall
     intro x_1 hx1
     simp only [Set.uIoc, Set.mem_Ioc] at hx1
-    -- hx1 : min x y < x_1 ∧ x_1 ≤ max x y
-    apply hf_deriv
-    right
-    -- 1 ≤ min x y < x_1, so 1 < x_1 by transitivity
-    exact lt_of_le_of_lt hmin hx1.1
+    exact hf_deriv x_1 (Or.inr (lt_of_le_of_lt (le_min hx hy) hx1.1))
 
+lemma varphi_ftc (ν ε : ℝ) (hlam : ν ≠ 0) (a b : ℝ) :
+    ∫ t in a..b, deriv (ϕ_pm ν ε) t = (ϕ_pm ν ε) b - (ϕ_pm ν ε) a := by
+  let f := ϕ_pm ν ε
+  have h_int x y : IntervalIntegrable (deriv f) volume x y := (varphi_deriv_integ ν ε hlam).intervalIntegrable
+  wlog h : a ≤ b generalizing a b; · rw [intervalIntegral.integral_symm, this b a (by linarith)]; ring
+  rw [← intervalIntegral.integral_add_adjacent_intervals (h_int a (-1)) (h_int (-1) b),
+      ← intervalIntegral.integral_add_adjacent_intervals (h_int (-1) 0) (h_int 0 b),
+      ← intervalIntegral.integral_add_adjacent_intervals (h_int 0 1) (h_int 1 b),
+      varphi_ftc_left ν ε hlam ⟨le_refl _, by norm_num⟩ ⟨by norm_num, le_refl _⟩,
+      varphi_ftc_right ν ε hlam ⟨le_refl _, by norm_num⟩ ⟨by norm_num, le_refl _⟩]
+  have hL p : ∫ t in p..(-1), deriv f t = f (-1) - f p := by
+    rcases le_or_gt p (-1) with h_le | h_gt
+    · exact varphi_ftc_out ν ε hlam (Or.inl ⟨h_le, le_refl _⟩)
+    · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int p 0) (h_int 0 (-1))]
+      rcases le_or_gt p 0 with hp0 | hp0
+      · rw [varphi_ftc_left ν ε hlam ⟨h_gt.le, hp0⟩ ⟨by norm_num, le_refl _⟩,
+            varphi_ftc_left ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩]; ring
+      · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int p 1) (h_int 1 0)]
+        rcases le_or_gt p 1 with hp1 | hp1
+        · rw [varphi_ftc_right ν ε hlam ⟨hp0.le, hp1⟩ ⟨by norm_num, le_refl _⟩,
+              varphi_ftc_right ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_left ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩]; ring
+        · rw [varphi_ftc_out ν ε hlam (Or.inr ⟨hp1.le, le_refl _⟩),
+              varphi_ftc_right ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_left ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩]; ring
+  have hR p : ∫ t in 1..p, deriv f t = f p - f 1 := by
+    rcases le_or_gt p 1 with h_le | h_gt
+    · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int 1 0) (h_int 0 p)]
+      rcases le_or_gt p 0 with hp0 | hp0
+      · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int 0 (-1)) (h_int (-1) p)]
+        rcases le_or_gt p (-1) with hp_1 | hp_1
+        · rw [varphi_ftc_right ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_left ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_out ν ε hlam (Or.inl ⟨le_refl _, hp_1⟩)]; ring
+        · rw [varphi_ftc_right ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_left ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+              varphi_ftc_left ν ε hlam ⟨le_refl _, by norm_num⟩ ⟨hp_1.le, hp0⟩]; ring
+      · rw [varphi_ftc_right ν ε hlam ⟨by norm_num, le_refl _⟩ ⟨le_refl _, by norm_num⟩,
+            varphi_ftc_right ν ε hlam ⟨le_refl _, by norm_num⟩ ⟨hp0.le, h_le⟩]; ring
+    · exact varphi_ftc_out ν ε hlam (Or.inr ⟨le_refl _, h_gt.le⟩)
+  rw [hL a, hR b]; ring
 
 @[blueprint
   "varphi-abs"
@@ -4212,109 +4196,30 @@ lemma varphi_ftc_out (ν ε : ℝ) (hlam : ν ≠ 0) {x y : ℝ}
   (discussion := 1226)]
 theorem varphi_abs (ν ε : ℝ) (hlam : ν ≠ 0) : AbsolutelyContinuous (ϕ_pm ν ε) := by
   constructor
-  · -- Prove differentiable almost everywhere
-    have h_diff_left : ∀ x ∈ Set.Ioo (-1 : ℝ) 0, DifferentiableAt ℝ (ϕ_pm ν ε) x :=
-      fun x hx => varphi_differentiableAt_left ν ε hlam hx
-    have h_diff_right : ∀ x ∈ Set.Ioo (0 : ℝ) 1, DifferentiableAt ℝ (ϕ_pm ν ε) x :=
-      fun x hx => varphi_differentiableAt_right ν ε hlam hx
-    have h_diff_out : ∀ x ∈ (Set.Icc (-1 : ℝ) 1)ᶜ, DifferentiableAt ℝ (ϕ_pm ν ε) x :=
-      fun x hx => varphi_differentiableAt_out ν ε hx
-    -- Step 1: Differentiable almost everywhere
-    rw [ae_iff]
+  · rw [ae_iff]
     apply MeasureTheory.measure_mono_null (t := {-1, 0, 1})
-    · -- Differentiability on the open intervals implies differentiability almost everywhere
-      intro x hx
+    · intro x hx
       contrapose! hx
-      simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or, Set.mem_setOf_eq,
-        not_not] at hx ⊢
+      simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or, Set.mem_setOf_eq, not_not] at hx ⊢
       rcases lt_trichotomy x (-1) with h | rfl | h
-      · apply h_diff_out; simp only [Set.mem_compl_iff, Set.mem_Icc, not_and, not_le]; intro; linarith
+      · exact varphi_differentiableAt_out ν ε (fun hx ↦ (not_le.mpr h) hx.1)
       · exfalso; exact hx.1 rfl
       · rcases lt_trichotomy x 0 with h' | rfl | h'
-        · exact h_diff_left x ⟨h, h'⟩
+        · exact varphi_differentiableAt_left ν ε hlam ⟨h, h'⟩
         · exfalso; exact hx.2.1 rfl
         · rcases lt_trichotomy x 1 with h'' | rfl | h''
-          · exact h_diff_right x ⟨h', h''⟩
+          · exact varphi_differentiableAt_right ν ε hlam ⟨h', h''⟩
           · exfalso; exact hx.2.2 rfl
-          · apply h_diff_out; simp only [Set.mem_compl_iff, Set.mem_Icc, not_and, not_le]; intro; linarith
-    · -- The measure of a finite set is zero
-      apply Set.Finite.measure_zero (by simp)
-  · -- Prove FTC for all a, b
-    intro a b
-    let f := ϕ_pm ν ε
-    have h_int : Integrable (deriv f) := varphi_deriv_integ ν ε hlam
-    have h_int_all (x y : ℝ) : IntervalIntegrable (deriv f) volume x y := h_int.intervalIntegrable
-    have h_ftc_left : ∀ x ∈ Set.Icc (-1 : ℝ) 0, ∀ y ∈ Set.Icc (-1 : ℝ) 0, ∫ t in x..y, deriv f t = f y - f x :=
-      fun x hx y hy => varphi_ftc_left ν ε hlam hx hy
-    have h_ftc_right : ∀ x ∈ Set.Icc (0 : ℝ) 1, ∀ y ∈ Set.Icc (0 : ℝ) 1, ∫ t in x..y, deriv f t = f y - f x :=
-      fun x hx y hy => varphi_ftc_right ν ε hlam hx hy
-    have h_ftc_out : ∀ x y : ℝ, (x ≤ -1 ∧ y ≤ -1) ∨ (x ≥ 1 ∧ y ≥ 1) → ∫ t in x..y, deriv f t = f y - f x :=
-      fun x y h => varphi_ftc_out ν ε hlam h
-    -- Final bridging and telescoping using ϕ_continuous
-    have h_AC (x y : ℝ) : ∫ t in x..y, deriv f t = f y - f x := by
-      wlog hxy : x ≤ y generalizing x y
-      · rw [intervalIntegral.integral_symm, this y x (by linarith)]; ring
-
-      rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all x (-1)) (h_int_all (-1) y),
-          ← intervalIntegral.integral_add_adjacent_intervals (h_int_all (-1) 0) (h_int_all 0 y),
-          ← intervalIntegral.integral_add_adjacent_intervals (h_int_all 0 1) (h_int_all 1 y)]
-
-      have h1 : ∫ t in (-1 : ℝ)..0, deriv f t = f 0 - f (-1) :=
-        h_ftc_left (-1) ⟨le_refl _, by norm_num⟩ 0 ⟨by norm_num, le_refl _⟩
-      have h2 : ∫ t in (0 : ℝ)..1, deriv f t = f 1 - f 0 :=
-        h_ftc_right 0 ⟨le_refl _, by norm_num⟩ 1 ⟨by norm_num, le_refl _⟩
-      rw [h1, h2]
-
-      have h_out_left (p : ℝ) : ∫ t in p..(-1), deriv f t = f (-1) - f p := by
-        rcases le_or_gt p (-1) with h_le | h_gt
-        · exact h_ftc_out p (-1) (Or.inl ⟨h_le, le_refl _⟩)
-        · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all p 0) (h_int_all 0 (-1))]
-          rcases le_or_gt p 0 with hp0 | hp0
-          · rw [h_ftc_left p ⟨h_gt.le, hp0⟩ 0 ⟨by norm_num, le_refl _⟩,
-                h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
-            ring
-          · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all p 1) (h_int_all 1 0)]
-            rcases le_or_gt p 1 with hp1 | hp1
-            · rw [h_ftc_right p ⟨hp0.le, hp1⟩ 1 ⟨by norm_num, le_refl _⟩,
-                  h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
-                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
-              ring
-            · rw [h_ftc_out p 1 (Or.inr ⟨hp1.le, le_refl _⟩),
-                  h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
-                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩]
-              ring
-
-      have h_out_right (p : ℝ) : ∫ t in 1..p, deriv f t = f p - f 1 := by
-        rcases le_or_gt p 1 with h_le | h_gt
-        · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all 1 0) (h_int_all 0 p)]
-          rcases le_or_gt p 0 with hp0 | hp0
-          · rw [← intervalIntegral.integral_add_adjacent_intervals (h_int_all 0 (-1)) (h_int_all (-1) p)]
-            rcases le_or_gt p (-1) with hp_1 | hp_1
-            · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
-                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩,
-                  h_ftc_out (-1) p (Or.inl ⟨le_refl _, hp_1⟩)]
-              ring
-            · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
-                  h_ftc_left 0 ⟨by norm_num, le_refl _⟩ (-1) ⟨le_refl _, by norm_num⟩,
-                  h_ftc_left (-1) ⟨le_refl _, by norm_num⟩ p ⟨hp_1.le, hp0⟩]
-              ring
-          · rw [h_ftc_right 1 ⟨by norm_num, le_refl _⟩ 0 ⟨le_refl _, by norm_num⟩,
-                h_ftc_right 0 ⟨le_refl _, by norm_num⟩ p ⟨hp0.le, h_le⟩]
-            ring
-        · exact h_ftc_out 1 p (Or.inr ⟨le_refl _, h_gt.le⟩)
-
-      rw [h_out_left x, h_out_right y]
-      ring
-    exact (h_AC a b).symm
+          · exact varphi_differentiableAt_out ν ε (fun hx ↦ (not_le.mpr h'') hx.2)
+    · apply Set.Finite.measure_zero (by simp)
+  · intro a b; exact (varphi_ftc ν ε hlam a b).symm
 
 lemma ϕ_pm_deriv_zero_outside (ν ε : ℝ) {t : ℝ} (ht : t < -1 ∨ t > 1) :
     deriv (ϕ_pm ν ε) t = 0 := by
-  have h_nhds : (Set.Icc (-1 : ℝ) 1)ᶜ ∈ nhds t :=
-    isClosed_Icc.isOpen_compl.mem_nhds (by
-      simp only [Set.mem_compl_iff, Set.mem_Icc, not_and, not_le]
-      rcases ht with h | h <;> (intro; linarith))
   have h_eq : ϕ_pm ν ε =ᶠ[nhds t] (fun _ ↦ (0 : ℂ)) := by
-    filter_upwards [h_nhds] with x hx; unfold ϕ_pm; exact if_neg hx
+    filter_upwards [isClosed_Icc.isOpen_compl.mem_nhds (show t ∉ Set.Icc (-1) 1 from by
+      intro h; simp only [Set.mem_Icc] at h; rcases ht with ht | ht <;> linarith)] with x hx
+    unfold ϕ_pm; exact if_neg hx
   rw [h_eq.deriv_eq, deriv_const]
 
 lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
@@ -4325,9 +4230,8 @@ lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
   apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩
   by_cases h_any : ∃ i ∈ Finset.range (n + 1), u i = -1
   · let S := (Finset.range (n + 1)).filter (fun i ↦ u i = -1)
-    have hS : S.Nonempty := by
-      obtain ⟨i, hi_mem, hi_eq⟩ := h_any
-      exact ⟨i, Finset.mem_filter.mpr ⟨hi_mem, hi_eq⟩⟩
+    have hS : S.Nonempty :=
+      h_any.elim fun i ⟨hi, eq⟩ => ⟨i, Finset.mem_filter.mpr ⟨hi, eq⟩⟩
     let k := S.min' hS
     have hk_mem : k ∈ S := Finset.min'_mem S hS
     have hu_k : u k = -1 := (Finset.mem_filter.mp hk_mem).2
@@ -4335,14 +4239,10 @@ lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
       intro i hi
       apply lt_of_le_of_ne (hu_mem i)
       intro h_eq
-      have hi_S : i ∈ S := Finset.mem_filter.mpr ⟨by
-        have hk_range := (Finset.mem_filter.mp hk_mem).1
-        apply Finset.mem_range.mpr
-        exact lt_trans hi (Finset.mem_range.mp hk_range), h_eq⟩
-      have : k ≤ i := S.min'_le i hi_S
-      omega
-    have hk_range : k < n + 1 := Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1
-    have hk_n : k ≤ n := Nat.le_of_lt_succ hk_range
+      have hi_S : i ∈ S := Finset.mem_filter.mpr
+        ⟨Finset.mem_range.mpr (lt_trans hi (Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1)), h_eq⟩
+      linarith [S.min'_le i hi_S]
+    have hk_n : k ≤ n := Nat.le_of_lt_succ (Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1)
     have hu_eq : ∀ i ≥ k, i ≤ n → u i = -1 := fun i hi h_in ↦
       le_antisymm (hu_mem i) (hu_k ▸ hu hi)
     calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
@@ -4350,35 +4250,26 @@ lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
         apply Finset.sum_congr rfl; intro i hi
         have hi_n : i < n := Finset.mem_range.mp hi
         split_ifs with h_eq_k
-        · have : u (i + 1) = -1 := by rw [h_eq_k, hu_k]
-          have : u i < -1 := hu_lt _ (by omega)
-          rw [‹u (i + 1) = -1›, hg_zero _ ‹u i < -1›]
+        · rw [show u (i + 1) = -1 from by rw [h_eq_k, hu_k], hg_zero _ (hu_lt _ (by omega))]
         · by_cases h_lt_k : i + 1 < k
-          · have : u (i + 1) < -1 := hu_lt _ h_lt_k
-            have : u i < -1 := hu_lt _ (by omega)
-            rw [hg_zero _ ‹u (i + 1) < -1›, hg_zero _ ‹u i < -1›, edist_self]
-          · have : i ≥ k := by omega
-            have : u (i + 1) = -1 := hu_eq _ (by omega) (by omega)
-            have : u i = -1 := hu_eq _ (by omega) (by omega)
-            rw [‹u (i + 1) = -1›, ‹u i = -1›, edist_self]
+          · rw [hg_zero _ (hu_lt _ h_lt_k), hg_zero _ (hu_lt _ (by omega)), edist_self]
+          · rw [show u (i + 1) = -1 from hu_eq _ (by omega) (by omega),
+                show u i = -1 from hu_eq _ (by omega) (by omega), edist_self]
       _ ≤ edist (g (-1)) 0 := by
         rw [Finset.sum_ite]; simp only [Finset.sum_const_zero, add_zero]
         let fS := (Finset.range n).filter (fun i ↦ i + 1 = k)
-        have h_card : fS.card ≤ 1 := by
-          apply Finset.card_le_one_iff.mpr
-          intro x y hx hy
-          have hx' := Finset.mem_filter.mp hx
-          have hy' := Finset.mem_filter.mp hy
-          omega
+        have h_card : fS.card ≤ 1 :=
+          Finset.card_le_one_iff.mpr fun hx hy => by
+            have hx := (Finset.mem_filter.mp hx).2
+            have hy := (Finset.mem_filter.mp hy).2
+            omega
         calc (fS.sum (fun _ ↦ edist (g (-1)) 0))
           _ = fS.card • edist (g (-1)) 0 := Finset.sum_const _
           _ ≤ 1 • edist (g (-1)) 0 := by gcongr
           _ = edist (g (-1)) 0 := by simp
-  · have h_lt : ∀ i ≤ n, u i < -1 := by
-      intro i hi
-      apply lt_of_le_of_ne (hu_mem i)
-      intro h_eq
-      apply h_any; exact ⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq⟩
+  · have h_lt : ∀ i ≤ n, u i < -1 := fun i hi =>
+      lt_of_le_of_ne (hu_mem i) fun h_eq =>
+        absurd (⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq⟩ : ∃ i ∈ Finset.range (n + 1), u i = -1) h_any
     calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
       _ = ∑ i ∈ Finset.range n, 0 := by
         apply Finset.sum_congr rfl; intro i hi
@@ -4395,20 +4286,17 @@ lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
   apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩
   by_cases h_any : ∃ i ∈ Finset.range (n + 1), u i = 1
   · let S := (Finset.range (n + 1)).filter (fun i ↦ u i = 1)
-    have hS : S.Nonempty := by
-      obtain ⟨i, hi_mem, hi_eq⟩ := h_any
-      exact ⟨i, Finset.mem_filter.mpr ⟨hi_mem, hi_eq⟩⟩
+    have hS : S.Nonempty :=
+      h_any.elim fun i ⟨hi, eq⟩ => ⟨i, Finset.mem_filter.mpr ⟨hi, eq⟩⟩
     let k := S.max' hS
     have hk_mem : k ∈ S := Finset.max'_mem S hS
-    have hk_range : k < n + 1 := Finset.mem_range.mp (Finset.mem_filter.mp hk_mem).1
     have hu_k : u k = 1 := (Finset.mem_filter.mp hk_mem).2
     have hu_gt : ∀ i > k, i ≤ n → u i > 1 := by
       intro i hi hi_n
       apply lt_of_le_of_ne (hu_mem i)
       intro h_eq
       have hi_S : i ∈ S := Finset.mem_filter.mpr ⟨Finset.mem_range.mpr (Nat.lt_succ_of_le hi_n), h_eq.symm⟩
-      have : i ≤ k := S.le_max' i hi_S
-      omega
+      linarith [S.le_max' i hi_S]
     have hu_eq : ∀ i ≤ k, u i = 1 := fun i hi ↦
       le_antisymm (hu_k ▸ hu hi) (hu_mem i)
     calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
@@ -4416,35 +4304,25 @@ lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
         apply Finset.sum_congr rfl; intro i hi
         have hi_n : i < n := Finset.mem_range.mp hi
         split_ifs with h_eq_k
-        · have : u i = 1 := by rw [h_eq_k, hu_k]
-          have : u (i + 1) > 1 := hu_gt _ (by omega) (by omega)
-          rw [‹u i = 1›, hg_zero _ ‹u (i + 1) > 1›, edist_comm]
+        · rw [show u i = 1 from by rw [h_eq_k, hu_k], hg_zero _ (hu_gt _ (by omega) (by omega)), edist_comm]
         · by_cases h_lt_k : i < k
-          · have : u (i + 1) = 1 := hu_eq _ (by omega)
-            have : u i = 1 := hu_eq _ (by omega)
-            rw [‹u (i + 1) = 1›, ‹u i = 1›, edist_self]
-          · have : i > k := by omega
-            have : u (i + 1) > 1 := hu_gt _ (by omega) (by omega)
-            have : u i > 1 := hu_gt _ (by omega) (by omega)
-            rw [hg_zero _ ‹u (i + 1) > 1›, hg_zero _ ‹u i > 1›, edist_self]
+          · rw [show u (i + 1) = 1 from hu_eq _ (by omega), show u i = 1 from hu_eq _ (by omega), edist_self]
+          · rw [hg_zero _ (hu_gt _ (by omega) (by omega)), hg_zero _ (hu_gt _ (by omega) (by omega)), edist_self]
       _ ≤ edist (g 1) 0 := by
         rw [Finset.sum_ite]; simp only [Finset.sum_const_zero, add_zero]
         let fS := (Finset.range n).filter (fun i ↦ i = k)
-        have h_card : fS.card ≤ 1 := by
-          apply Finset.card_le_one_iff.mpr
-          intro x y hx hy
-          have hx' := Finset.mem_filter.mp hx
-          have hy' := Finset.mem_filter.mp hy
-          exact hx'.2.trans hy'.2.symm
+        have h_card : fS.card ≤ 1 :=
+          Finset.card_le_one_iff.mpr fun hx hy => by
+            have hx := (Finset.mem_filter.mp hx).2
+            have hy := (Finset.mem_filter.mp hy).2
+            exact hx.trans hy.symm
         calc (fS.sum (fun _ ↦ edist (g 1) 0))
           _ = fS.card • edist (g 1) 0 := Finset.sum_const _
           _ ≤ 1 • edist (g 1) 0 := by gcongr
           _ = edist (g 1) 0 := by simp
-  · have h_gt : ∀ i ≤ n, u i > 1 := by
-      intro i hi
-      apply lt_of_le_of_ne (hu_mem i)
-      intro h_eq
-      apply h_any; exact ⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq.symm⟩
+  · have h_gt : ∀ i ≤ n, u i > 1 := fun i hi =>
+      lt_of_le_of_ne (hu_mem i) fun h_eq =>
+        absurd (⟨i, Finset.mem_range.mpr (Nat.lt_succ_of_le hi), h_eq.symm⟩ : ∃ i ∈ Finset.range (n + 1), u i = 1) h_any
     calc ∑ i ∈ Finset.range n, edist (g (u (i + 1))) (g (u i))
       _ = ∑ i ∈ Finset.range n, 0 := by
         apply Finset.sum_congr rfl; intro i hi
@@ -4452,8 +4330,6 @@ lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
         rw [hg_zero _ (h_gt (i + 1) hi_n), hg_zero _ (h_gt i hi_n.le), edist_self]
       _ = 0 := by simp
       _ ≤ edist (g 1) 0 := zero_le _
-
-
 
 private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [PseudoEMetricSpace E]
     {f f' : α → E} {s : Set α} {x : α} (hs : IsGreatest s x) (heq : Set.EqOn f f' (s \ {x})) :
