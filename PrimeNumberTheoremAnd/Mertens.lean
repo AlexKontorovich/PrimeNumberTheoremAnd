@@ -341,6 +341,13 @@ theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
 
 noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
+lemma E₁.summand_nonneg (p : ℕ) : 0 ≤ if p.Prime then (log p) / (p*(p-1)) else 0 := by
+  split_ifs with h
+  · refine div_nonneg (log_natCast_nonneg _) (mul_nonneg (Nat.cast_nonneg _) ?_)
+    suffices 1 ≤ (p : ℝ) by linarith
+    exact_mod_cast h.one_le
+  · rfl
+
 @[blueprint
   "E1_summable"
   (title := "$E_1$ summable")
@@ -360,14 +367,8 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
 
-theorem E₁.nonneg : E₁ ≥ 0 := by
-  apply tsum_nonneg
-  intro p; split_ifs with hp
-  · have : (p:ℝ) ≥ 2 := by norm_num; exact Nat.Prime.two_le hp
-    have : 0 ≤ log p := by grind [log_nonneg]
-    have : (p:ℝ) - 1 > 0 := by grind
-    positivity
-  order
+theorem E₁.nonneg : E₁ ≥ 0 :=
+  tsum_nonneg E₁.summand_nonneg
 
 @[blueprint
   "Mertens-first-error-prime-ge"
@@ -424,12 +425,7 @@ theorem E₁Λ.le_E₁p_add_E₁ {x : ℝ} (hx : 1 ≤ x) :
       · simpa using inv_lt_one_of_one_lt₀ (mod_cast hp.2.one_lt)
     _ ≤ _ := by
       rw [sum_filter]
-      refine E₁.summable.sum_le_tsum _ fun p hp ↦ ?_
-      split_ifs with h
-      · refine div_nonneg (log_natCast_nonneg _) (mul_nonneg (Nat.cast_nonneg _) ?_)
-        suffices 1 ≤ (p : ℝ) by linarith
-        exact_mod_cast h.one_le
-      · rfl
+      exact E₁.summable.sum_le_tsum _ fun p hp ↦ E₁.summand_nonneg p
 
 theorem E₁p.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≥ -2 - E₁ := by
