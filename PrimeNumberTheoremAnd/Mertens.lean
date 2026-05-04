@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -80,11 +81,30 @@ $$ \sum_{n \leq x} \log n \leq x \log x.$$
  -/)
   (latexEnv := "lemma")
   (discussion := 1304)]
-theorem sum_log_le (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_le {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≤ x * log x := by
-  sorry
+  calc
+  _ ≤ ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log x := by
+    refine sum_le_sum fun n hn ↦ ?_
+    simp only [mem_Ioc] at hn
+    exact log_le_log (by exact_mod_cast hn.1) (Nat.le_floor_iff (by linarith)|>.mp hn.2)
+  _ = ⌊x⌋₊ * log x := by simp
+  _ ≤ _ := by
+    gcongr
+    · exact log_nonneg hx
+    · exact Nat.floor_le (by linarith)
 
-#check Real.log_le_self
+
+lemma integral_log_le {a b : ℝ} (ha : 1 ≤ a) (hab : a ≤ b) :
+    ∫ t in a..b, log t ≤ log b * (b - a) := by
+  apply le_of_abs_le
+  have : ∀ t ∈ Set.uIoc a b, ‖log t‖ ≤ log b := by
+    intro t ht
+    rw [Set.uIoc_of_le hab, Set.mem_Ioc] at ht
+    rw [norm_of_nonneg <| log_nonneg (by linarith)]
+    gcongr <;> linarith
+  grw [← norm_eq_abs, intervalIntegral.norm_integral_le_of_norm_le_const this,
+    abs_of_nonneg (by linarith)]
 
 @[blueprint
   "Mertens-sum-log-ge"
@@ -105,9 +125,33 @@ Here we use the monotonicity of $\log n$ (and its vanishing at $n=1$) and the cr
  -/)
   (latexEnv := "corollary")
   (discussion := 1305)]
-theorem sum_log_ge (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_ge {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n ≥ x * log x - 2 * x := by
-  sorry
+  have one_le_floor : 1 ≤ ⌊x⌋₊ := by simpa
+  calc
+  _ = ∑ n ∈ Icc 1 ⌊ x ⌋₊, log n := by rfl
+  _ = ∑ n ∈ Ico (1 + 1) (⌊ x ⌋₊ + 1), log n := by
+    rw [← add_sum_Ioc_eq_sum_Icc one_le_floor]
+    simp
+    rfl
+  _ = ∑ n ∈ Ico 1 ⌊ x ⌋₊, log ((n + 1 : ℕ)) := by
+    rw [← Finset.sum_Ico_add']
+  _ ≥ ∫ t in 1..⌊x⌋₊, log t := by
+    convert MonotoneOn.integral_le_sum_Ico one_le_floor ?_|>.ge
+    · norm_cast
+    · exact StrictMonoOn.monotoneOn (strictMonoOn_log.mono fun y hy ↦ (by simp_all; linarith))
+  _ = (∫ t in 1..x, log t) - ∫ t in ⌊x⌋₊..x, log t := by
+    nth_rw 3 [intervalIntegral.integral_symm]
+    rw [sub_neg_eq_add, intervalIntegral.integral_add_adjacent_intervals] <;> exact intervalIntegral.intervalIntegrable_log'
+  _ ≥ (∫ t in 1..x, log t) - log x := by
+    gcongr
+    grw [integral_log_le (by simpa) (Nat.floor_le (by linarith))]
+    nth_rw 2 [← mul_one (log x)]
+    gcongr
+    · exact log_nonneg hx
+    · linarith [Nat.lt_floor_add_one x]
+  _ ≥ x * log x - x - log x := by simp
+  _ ≥ _ := by linarith [log_le_self (by linarith : 0 ≤ x)]
 
 @[blueprint
   "Mertens-sum-log-eq-log-factorial"
@@ -131,7 +175,7 @@ theorem sum_log_eq_log_factorial (x : ℝ) :
 @[blueprint
   "Mertens-sum-log-eq-sum-mangoldt"
   (title := "Partial sum of logarithm as sum of $\\Lambda(d)/d$")
-  (statement := /-- For any $x \geq 1$, one has
+  (statement := /-- For any real $x$, one has
 $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rfloor.$$
 -/)
   (proof := /-- We have
@@ -144,9 +188,10 @@ $$ \sum_{n \leq x} \log n = \sum_{d \leq x} \Lambda(d) \lfloor \frac{x}{d} \rflo
  -/)
   (latexEnv := "lemma")
   (discussion := 1306)]
-theorem sum_log_eq_sum_mangoldt {x : ℝ} (hx : 1 ≤ x) :
-    ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n = ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) * (Nat.floor (x / d)) := by
-    sorry
+theorem sum_log_eq_sum_mangoldt {x : ℝ} :
+    ∑ n ∈ Ioc 0 ⌊x⌋₊, log n = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ := by
+  have : ∀ n : ℕ, log n = (Λ * zeta) n := by simp [vonMangoldt_mul_zeta]
+  simp_rw [this, sum_Ioc_mul_zeta_eq_sum, ← Nat.floor_div_natCast]
 
 @[blueprint
   "Mertens-first-error-mangoldt"
@@ -170,9 +215,22 @@ $$ E_{1,\Lambda}(x) \geq - 2.$$
   (discussion := 1307)]
 theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x  ≥ -2 := by
-    sorry
+  unfold E₁Λ
+  suffices x * ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / d  ≥ x * (log x - 2) by
+    linarith [le_of_mul_le_mul_left this (by linarith)]
+  calc
+  _ = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (x / d) := by
+    rw [Finset.mul_sum]
+    ring_nf
+  _ ≥ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ := by
+    gcongr
+    · exact vonMangoldt_nonneg
+    · exact Nat.floor_le <| div_nonneg (by linarith) (by linarith)
+  _ ≥ x * log x - 2 * x :=
+    sum_log_eq_sum_mangoldt ▸ sum_log_ge hx
+  _ = _ := by ring
 
-#check Chebyshev.psi_le_const_mul_self
+
 
 @[blueprint
   "Mertens-first-error-mangoldt-le"
@@ -186,7 +244,25 @@ $$ E_{1,\Lambda}(x) \leq \log 4 + 4.$$
   (discussion := 1308)]
 theorem E₁Λ.le {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x ≤ log 4 + 4 := by
-    sorry
+  unfold E₁Λ
+  suffices x * ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / d ≤ x * (log x + log 4 + 4) by
+    linarith [le_of_mul_le_mul_left this (by linarith)]
+  calc
+  _ = ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (x / d) := by
+    rw [Finset.mul_sum]
+    ring_nf
+  _ ≤ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (⌊x / d⌋₊ + 1) := by
+    gcongr
+    · exact vonMangoldt_nonneg
+    · exact Nat.lt_floor_add_one _|>.le
+  _ = (∑ d ∈ Ioc 0 ⌊x⌋₊, log d) + ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d := by
+    simp_rw [mul_add, mul_one]
+    rw [Finset.sum_add_distrib, sum_log_eq_sum_mangoldt]
+  _ ≤ x * log x + (log 4 + 4) * x := by
+    gcongr
+    · exact sum_log_le hx
+    · exact Chebyshev.psi_le_const_mul_self (by linarith)
+  _ = _ := by ring
 
 @[blueprint
   "Mertens-first-theorem-mangoldt"
@@ -361,10 +437,22 @@ $$ \sum_{2 \leq n \leq x} \frac{f(n)}{\log n} = \frac{1}{\log x} \sum_{2 \leq n 
 
   -/)
   (latexEnv := "sublemma")]
-private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
+private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) : -- will meed an integrability hypothesis
     ∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n / log n =
       (∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n) / log x + ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊ t ⌋₊, f n) / (t * log t^2) := by
     sorry
+
+private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+
+private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
+
+private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
+    MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
+      sorry
 
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
@@ -385,19 +473,15 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
 
 private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
-    sorry
-
-private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
-
-private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
-
-private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
-    MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
+    convert MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' (m := 0) (f := fun x ↦ - c / log x) ?_
+      (integrable_const_div_mul_log_sq c hx) ?_ using 1
+    · grind
+    · intro t ht; simp at ht
+      convert HasDerivAt.fun_div (hasDerivAt_const _ (-c)) (hasDerivAt_log (by linarith)) ?_ using 1
+      · grind
+      simp; grind
+    convert tendsto_log_atTop.inv_tendsto_atTop.const_mul (-c) using 1
+    simp
 
 @[blueprint
   "Mertens-second-error-mangoldt-bound"
@@ -634,7 +718,7 @@ theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
         _ = _ := integ_div_mul_log_sq (log 4 + 4) hx
     grw [this]
     grind
-    
+
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
 theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
