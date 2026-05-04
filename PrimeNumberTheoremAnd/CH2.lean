@@ -1428,7 +1428,6 @@ lemma varphi_differentiableAt_out (ν ε : ℝ) {x : ℝ} (hx : x ∈ (Set.Icc (
     unfold ϕ_pm; exact if_neg hy
   exact Filter.EventuallyEq.differentiableAt_iff h_zero |>.mpr (differentiableAt_const 0)
 
-
 @[blueprint
   "phi-cts"
   (title := "$\\varphi$ is continuous")
@@ -1506,16 +1505,14 @@ theorem ϕ_continuous (ν ε : ℝ) (hlam : ν ≠ 0) : Continuous (ϕ_pm ν ε)
 
 theorem ϕ_pm_zero_boundary (ν ε : ℝ) (hlam : ν ≠ 0) : ϕ_pm ν ε (-1) = 0 ∧ ϕ_pm ν ε 1 = 0 := by
   constructor
-  · -- Prove for -1 using continuity and the zero-value for t < -1
-    have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1) (Set.Iio (-1))] 0 := by
+  · have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin (-1) (Set.Iio (-1))] 0 := by
       filter_upwards [self_mem_nhdsWithin] with z hz
       unfold ϕ_pm; split_ifs with hz_mem <;> try rfl
       exfalso; linarith [Set.mem_Iio.mp hz]
     exact tendsto_nhds_unique
       (tendsto_nhdsWithin_of_tendsto_nhds (ϕ_continuous ν ε hlam).continuousAt)
       (tendsto_const_nhds.congr' h_eq.symm)
-  · -- Prove for 1 using continuity and the zero-value for t > 1
-    have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin 1 (Set.Ioi 1)] 0 := by
+  · have h_eq : ϕ_pm ν ε =ᶠ[nhdsWithin 1 (Set.Ioi 1)] 0 := by
       filter_upwards [self_mem_nhdsWithin] with z hz
       unfold ϕ_pm; split_ifs with hz_mem <;> try rfl
       exfalso; linarith [Set.mem_Ioi.mp hz]
@@ -4353,7 +4350,6 @@ private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [Ps
           have : u (i + 1) = x := le_antisymm (hs.2 (us (i + 1))) (this ▸ hu (Nat.le_succ i))
           simp [*]
         _ = (∑ i ∈ Finset.range (k - 1), edist (f (u (i + 1))) (f (u i))) + edist (f' x) (f' (u (k - 1))) := by
-          -- Handle empty sum if k = 0
           rcases k with - | k
           · simp [hk]
           · simp only [Finset.sum_range_succ, Nat.add_sub_cancel, hk]
@@ -4362,7 +4358,6 @@ private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [Ps
             rw [h_eq_k i (Nat.lt_succ_of_lt (Finset.mem_range.mp hi)),
                 h_eq_k (i + 1) (Nat.add_lt_add_right (Finset.mem_range.mp hi) 1)]
         _ ≤ (∑ i ∈ Finset.range (k - 1), edist (f (u (i + 1))) (f (u i))) + (edist (f' x) (f x) + edist (f x) (f (u (k - 1)))) := by
-          -- if k > 0
           apply add_le_add_right
           by_cases hk0 : k = 0
           · simp only [hk0, zero_tsub]; rw [hk0] at hk; rw [hk, edist_self, edist_self]; simp
