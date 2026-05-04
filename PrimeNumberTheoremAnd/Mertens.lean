@@ -344,7 +344,9 @@ noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p
   "E1_summable"
   (title := "$E_1$ summable")
   (statement := /-- The series $E_1 := \sum_p \frac{\log p}{p(p-1)}$ converges. -/)
-  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{\log n}{n^2}$, which converges by the integral test.  Since $\frac{\log p}{p(p-1)} \leq \frac{\log p}{p(p-1)} + \sum_{k=2}^\infty \frac{\log p}{p^k} = \frac{\log p}{p}$, we can apply comparison test to conclude that $E_1$ converges as well.-/)
+  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{2\log n}{n^2}$, which converges by the integral test.  By a further application of comparison test we can conclude that $E_1$ converges as well.-/)
+  (latexEnv := "proposition")
+  (discussion := 1352)
 ]
 theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(p-1)) else 0) := by
   sorry
