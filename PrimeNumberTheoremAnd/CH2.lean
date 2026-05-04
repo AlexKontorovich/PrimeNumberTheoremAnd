@@ -4359,17 +4359,8 @@ private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [Ps
           · simp only [Finset.sum_range_succ, Nat.add_sub_cancel, hk]
             congr 1
             apply Finset.sum_congr rfl; intro i hi
-            have hi_k : i + 1 < k + 1 := Nat.add_lt_add_right (Finset.mem_range.mp hi) 1
-            -- use h_eq_k
-            -- Step 1: Establish that f' and f agree at index i
-            -- Since i < k (from hi) and k < k + 1, i satisfies the condition in h_eq_k.
-            have h_i : f' (u i) = f (u i) := h_eq_k i (Nat.lt_succ_of_lt (Finset.mem_range.mp hi))
-            -- Step 2: Establish that f' and f agree at index i + 1
-            -- This follows directly from the hypothesis hi_k : i + 1 < k + 1 and h_eq_k.
-            have h_next : f' (u (i + 1)) = f (u (i + 1)) := h_eq_k (i + 1) hi_k
-            -- Step 3: Rewrite the distance equality using the established pointwise equalities
-            -- Once the arguments are identical, the edist values must be identical.
-            rw [h_i, h_next]
+            rw [h_eq_k i (Nat.lt_succ_of_lt (Finset.mem_range.mp hi)),
+                h_eq_k (i + 1) (Nat.add_lt_add_right (Finset.mem_range.mp hi) 1)]
         _ ≤ (∑ i ∈ Finset.range (k - 1), edist (f (u (i + 1))) (f (u i))) + (edist (f' x) (f x) + edist (f x) (f (u (k - 1)))) := by
           -- if k > 0
           apply add_le_add_right
@@ -4389,8 +4380,8 @@ private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [Ps
             nth_rw 2 [h_k]
             rw [← Finset.sum_range_succ, ← h_k]
             exact eVariationOn.sum_le f k hu us
-  · have h_un : u n < x := lt_of_le_of_ne (hs.2 (us n)) hx
-    have h_in : ∀ i ≤ n, u i ∈ s \ {x} := fun i hi ↦ ⟨us i, ((hu hi).trans_lt h_un).ne⟩
+  · have h_in : ∀ i ≤ n, u i ∈ s \ {x} := fun i hi ↦
+      ⟨us i, ((hu hi).trans_lt (lt_of_le_of_ne (hs.2 (us n)) hx)).ne⟩
     calc
       ∑ i ∈ Finset.range n, edist (f' (u (i + 1))) (f' (u i))
           = ∑ i ∈ Finset.range n, edist (f (u (i + 1))) (f (u i)) := by
@@ -4404,14 +4395,12 @@ private lemma eVariationOn_add_jump_endpoint {α E : Type*} [LinearOrder α] [Ps
     (heq : Set.EqOn f f' (s \ {x})) :
     eVariationOn f' s ≤ eVariationOn f s + edist (f' x) (f x) := by
   rcases h_end with h | h
-  · -- IsLeast
-    let s' := OrderDual.ofDual ⁻¹' s
+  · let s' := OrderDual.ofDual ⁻¹' s
     have h_gr : IsGreatest s' (OrderDual.toDual x) := ⟨h.1, fun y hy ↦ h.2 hy⟩
     have h_eq_d : Set.EqOn (f ∘ OrderDual.ofDual) (f' ∘ OrderDual.ofDual) (s' \ {OrderDual.toDual x}) := fun y hy ↦ heq hy
     rw [← eVariationOn.comp_ofDual f s, ← eVariationOn.comp_ofDual f' s]
     exact eVariationOn_add_jump_greatest h_gr h_eq_d
-  · -- IsGreatest
-    exact eVariationOn_add_jump_greatest h heq
+  · exact eVariationOn_add_jump_greatest h heq
 
 @[blueprint
   "varphi-deriv-tv"
@@ -4422,185 +4411,66 @@ private lemma eVariationOn_add_jump_endpoint {α E : Type*} [LinearOrder α] [Ps
 -/)
   (latexEnv := "lemma")
   (discussion := 1229)]
-theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
-  -- Abbreviate the derivative function.
+-- BV of deriv(ϕ_pm) on any C²-subinterval [a,b], with an interior split at m.
+private lemma varphi_deriv_bv_on_Icc (ν ε : ℝ) {a b m : ℝ}
+    (hab : a < b) (ham : a < m) (hmb : m < b)
+    (h_c2 : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc a b)) :
+    BoundedVariationOn (deriv (ϕ_pm ν ε)) (Set.Icc a b) := by
   set g := deriv (ϕ_pm ν ε)
-  -- Step 1: The derivative is C¹ on [-1,0] because ϕ is C² there (ϕ_c2_left).
-  -- From ContDiffOn ℝ 2 on [-1,0], we get ContDiffOn ℝ 1 on the derivative.
-  -- Since [-1,0] is compact and convex, ContDiffOn ℝ 1 → LipschitzOnWith (via
-  --   ContDiffOn.exists_lipschitzOnWith, which requires convexity + compactness).
-  -- LipschitzOnWith → LocallyBoundedVariationOn → BoundedVariationOn on Icc.
-  have hBV_left : BoundedVariationOn g (Set.Icc (-1 : ℝ) 0) := by
-    have h_c2 : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc (-1) 0) := ϕ_c2_left ν ε hlam
-    -- Work with the within-derivative on [-1,0], which is what ContDiffOn sees.
-    set dw := derivWithin (ϕ_pm ν ε) (Set.Icc (-1 : ℝ) 0) with hdw_def
-    -- A: dw is C¹ on [-1,0].
-    -- ContDiffOn.derivWithin : ContDiffOn ℝ n f s → UniqueDiffOn ℝ s → m+1 ≤ n
-    --   → ContDiffOn ℝ m (derivWithin f s) s
-    -- Apply with n=2, m=1 (so 1+1=2≤2), using uniqueDiffOn_Icc (already in the file at L4037).
-    have h_dw_c1 : ContDiffOn ℝ 1 dw (Set.Icc (-1 : ℝ) 0) :=
-      h_c2.derivWithin (uniqueDiffOn_Icc (by norm_num)) (by norm_num)
-    -- B: C¹ on convex compact → LipschitzOnWith.
-    -- ContDiffOn.exists_lipschitzOnWith (n≠0, convex, compact) → ∃ K, LipschitzOnWith K dw s.
-    obtain ⟨K, hK⟩ := h_dw_c1.exists_lipschitzOnWith (by norm_num) (convex_Icc _ _) isCompact_Icc
-    -- C: Lipschitz → locally BV on Icc ⊆ ℝ.
-    -- LipschitzOnWith.locallyBoundedVariationOn :
-    --   LipschitzOnWith C (f : ℝ → E) s → LocallyBoundedVariationOn f s
-    -- D: Locally BV at endpoints (-1, 0 ∈ Icc -1 0) → BV on Icc.
-    -- LocallyBoundedVariationOn f s = ∀ a b ∈ s, BoundedVariationOn f (s ∩ Icc a b).
-    -- Apply at a=-1, b=0; then strip the self-intersection by .mono inter_subset_left.
-    have hBV_dw : BoundedVariationOn dw (Set.Icc (-1 : ℝ) 0) := by
-      simpa using hK.locallyBoundedVariationOn (-1) 0 (Set.left_mem_Icc.mpr (by norm_num)) (Set.right_mem_Icc.mpr (by norm_num))
+  set dw := derivWithin (ϕ_pm ν ε) (Set.Icc a b) with hdw_def
+  have h_dw_c1 : ContDiffOn ℝ 1 dw (Set.Icc a b) :=
+    h_c2.derivWithin (uniqueDiffOn_Icc hab) (by norm_num)
+  obtain ⟨K, hK⟩ := h_dw_c1.exists_lipschitzOnWith (by norm_num) (convex_Icc _ _) isCompact_Icc
+  have hBV_dw : BoundedVariationOn dw (Set.Icc a b) := by
+    simpa using hK.locallyBoundedVariationOn a b
+      (Set.left_mem_Icc.mpr hab.le) (Set.right_mem_Icc.mpr hab.le)
+  have h_eq_ioo : Set.EqOn g dw (Set.Ioo a b) := fun x hx => by
+    simp only [g, hdw_def]
+    exact ((h_c2.differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx))
+      |>.differentiableAt (Icc_mem_nhds hx.1 hx.2))
+      |>.derivWithin (uniqueDiffOn_Icc hab x (Set.Ioo_subset_Icc_self hx)) |>.symm
+  have h_split : eVariationOn g (Set.Icc a b) =
+      eVariationOn g (Set.Icc a m) + eVariationOn g (Set.Icc m b) := by
+    simpa only [Set.univ_inter] using
+      (eVariationOn.Icc_add_Icc g ham.le hmb.le (Set.mem_univ m)).symm
+  have hBV_L : BoundedVariationOn g (Set.Icc a m) :=
+    ne_top_of_le_ne_top (ENNReal.add_ne_top.mpr
+      ⟨hBV_dw.mono (Set.Icc_subset_Icc le_rfl hmb.le), (edist_lt_top _ _).ne⟩)
+      (eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc ham.le)) fun x hx =>
+        (h_eq_ioo ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2.trans_lt hmb⟩).symm)
+  have hBV_R : BoundedVariationOn g (Set.Icc m b) :=
+    ne_top_of_le_ne_top (ENNReal.add_ne_top.mpr
+      ⟨hBV_dw.mono (Set.Icc_subset_Icc ham.le le_rfl), (edist_lt_top _ _).ne⟩)
+      (eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc hmb.le)) fun x hx =>
+        (h_eq_ioo ⟨ham.trans_le hx.1.1, hx.1.2.lt_of_ne hx.2⟩).symm)
+  rw [BoundedVariationOn, h_split]
+  exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
 
-    -- Relate g and dw on Ioo (-1) 0.
-    have h_eq_ioo : Set.EqOn g dw (Set.Ioo (-1 : ℝ) 0) := by
-      intro x hx
-      simp only [g, hdw_def]
-      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x :=
-        (ϕ_c2_left ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx)
-        |>.differentiableAt (Icc_mem_nhds hx.1 hx.2)
-      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ioo_subset_Icc_self hx)) |>.symm
-
-    -- Split interval at -1/2 to isolate endpoints.
-    have h_split : eVariationOn g (Set.Icc (-1) 0) =
-        eVariationOn g (Set.Icc (-1) (-1/2)) + eVariationOn g (Set.Icc (-1/2) 0) := by
-      have := eVariationOn.Icc_add_Icc g (by norm_num : (-1 : ℝ) ≤ -1/2) (by norm_num : (-1/2 : ℝ) ≤ 0) (Set.mem_univ (-1/2 : ℝ))
-      simp only [Set.univ_inter] at this
-      exact this.symm
-
-    -- Left half BV: Handle jump at -1.
-    have hBV_L : BoundedVariationOn g (Set.Icc (-1) (-1/2)) := by
-      have h_eq : Set.EqOn dw g (Set.Icc (-1 : ℝ) (-1 / 2) \ {-1}) := by
-        intro x hx
-        have : x ∈ Set.Ioo (-1) 0 := ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2.trans_lt (by norm_num)⟩
-        exact (h_eq_ioo this).symm
-      have h_bound := eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc (by norm_num))) h_eq
-      apply ne_top_of_le_ne_top _ h_bound
-      apply ENNReal.add_ne_top.mpr
-      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (le_refl _) (by norm_num)), edist_lt_top _ _ |>.ne⟩
-
-    -- Right half BV: Handle jump at 0.
-    have hBV_R : BoundedVariationOn g (Set.Icc (-1/2) 0) := by
-      have h_eq : Set.EqOn dw g (Set.Icc (-1 / 2) 0 \ {0}) := by
-        intro x hx
-        have : x ∈ Set.Ioo (-1) 0 := ⟨(by norm_num : (-1 : ℝ) < -1/2).trans_le hx.1.1, hx.1.2.lt_of_ne hx.2⟩
-        exact (h_eq_ioo this).symm
-      have h_bound := eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc (by norm_num))) h_eq
-      apply ne_top_of_le_ne_top _ h_bound
-      apply ENNReal.add_ne_top.mpr
-      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (by norm_num) (le_refl _)), edist_lt_top _ _ |>.ne⟩
-
-    rw [BoundedVariationOn, h_split]
-    exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
-
-
-  -- Step 2: Mirror of Step 1 using ϕ_c2_right instead of ϕ_c2_left.
-  have hBV_right : BoundedVariationOn g (Set.Icc (0 : ℝ) 1) := by
-    have h_c2 : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc 0 1) := ϕ_c2_right ν ε hlam
-    set dw := derivWithin (ϕ_pm ν ε) (Set.Icc (0 : ℝ) 1) with hdw_def
-    have h_dw_c1 : ContDiffOn ℝ 1 dw (Set.Icc (0 : ℝ) 1) :=
-      h_c2.derivWithin (uniqueDiffOn_Icc (by norm_num)) (by norm_num)
-    obtain ⟨K, hK⟩ := h_dw_c1.exists_lipschitzOnWith (by norm_num) (convex_Icc _ _) isCompact_Icc
-    have hBV_dw : BoundedVariationOn dw (Set.Icc (0 : ℝ) 1) := by
-      simpa using hK.locallyBoundedVariationOn 0 1 (Set.left_mem_Icc.mpr (by norm_num)) (Set.right_mem_Icc.mpr (by norm_num))
-
-    -- Relate g and dw on Ioo 0 1.
-    have h_eq_ioo : Set.EqOn g dw (Set.Ioo (0 : ℝ) 1) := by
-      intro x hx
-      simp only [g, hdw_def]
-      have h_diff : DifferentiableAt ℝ (ϕ_pm ν ε) x :=
-        (ϕ_c2_right ν ε hlam).differentiableOn (by norm_num) x (Set.Ioo_subset_Icc_self hx)
-        |>.differentiableAt (Icc_mem_nhds hx.1 hx.2)
-      exact h_diff.derivWithin (uniqueDiffOn_Icc (by norm_num) x (Set.Ioo_subset_Icc_self hx)) |>.symm
-
-    -- Split interval at 1/2 to isolate endpoints.
-    have h_split : eVariationOn g (Set.Icc 0 1) =
-        eVariationOn g (Set.Icc 0 (1/2)) + eVariationOn g (Set.Icc (1/2) 1) := by
-      have := eVariationOn.Icc_add_Icc g (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (1/2 : ℝ) ≤ 1) (Set.mem_univ (1/2 : ℝ))
-      simp only [Set.univ_inter] at this
-      exact this.symm
-
-    -- Left half BV: Handle jump at 0.
-    have hBV_L : BoundedVariationOn g (Set.Icc 0 (1/2)) := by
-      have h_eq : Set.EqOn dw g (Set.Icc 0 (1/2) \ {0}) := by
-        intro x hx
-        have : x ∈ Set.Ioo 0 1 := ⟨hx.1.1.lt_of_ne (Ne.symm hx.2), hx.1.2.trans_lt (by norm_num)⟩
-        exact (h_eq_ioo this).symm
-      have h_bound := eVariationOn_add_jump_endpoint (Or.inl (isLeast_Icc (by norm_num))) h_eq
-      apply ne_top_of_le_ne_top _ h_bound
-      apply ENNReal.add_ne_top.mpr
-      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (le_refl _) (by norm_num)), edist_lt_top _ _ |>.ne⟩
-
-    -- Right half BV: Handle jump at 1.
-    have hBV_R : BoundedVariationOn g (Set.Icc (1/2) 1) := by
-      have h_eq : Set.EqOn dw g (Set.Icc (1 / 2) 1 \ {1}) := by
-        intro x hx
-        have : x ∈ Set.Ioo 0 1 := ⟨(by norm_num : (0 : ℝ) < 1/2).trans_le hx.1.1, hx.1.2.lt_of_ne hx.2⟩
-        exact (h_eq_ioo this).symm
-      have h_bound := eVariationOn_add_jump_endpoint (Or.inr (isGreatest_Icc (by norm_num))) h_eq
-      apply ne_top_of_le_ne_top _ h_bound
-      apply ENNReal.add_ne_top.mpr
-      exact ⟨hBV_dw.mono (Set.Icc_subset_Icc (by norm_num) (le_refl _)), edist_lt_top _ _ |>.ne⟩
-
-    rw [BoundedVariationOn, h_split]
-    exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
-
-  -- Step 3: Combine BV on [-1,0] and [0,1] to get BV on [-1,1] via
-  --   eVariationOn.Icc_add_Icc, which states:
-  --   eVariationOn f (s ∩ Icc a b) + eVariationOn f (s ∩ Icc b c)
-  --     = eVariationOn f (s ∩ Icc a c)   (for a ≤ b ≤ c, b ∈ s)
-  --   With s = univ (i.e., Icc), this gives BV on Icc (-1) 1.
+theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
+  set g := deriv (ϕ_pm ν ε)
+  have hBV_left := varphi_deriv_bv_on_Icc ν ε (a := -1) (b := 0) (m := -1/2)
+    (by norm_num) (by norm_num) (by norm_num) (ϕ_c2_left ν ε hlam)
+  have hBV_right := varphi_deriv_bv_on_Icc ν ε (a := 0) (b := 1) (m := 1/2)
+    (by norm_num) (by norm_num) (by norm_num) (ϕ_c2_right ν ε hlam)
   have hBV_Icc : BoundedVariationOn g (Set.Icc (-1 : ℝ) 1) := by
-    -- BoundedVariationOn is eVariationOn ≠ ⊤.
-    -- eVariationOn g (Icc -1 1)
-    --   = eVariationOn g (Icc -1 0) + eVariationOn g (Icc 0 1)
-    --   (by eVariationOn.Icc_add_Icc with b = 0 ∈ s = univ)
-    -- Both summands are finite by hBV_left, hBV_right.
-    -- Concretely we can rewrite with Icc_add_Icc and use ENNReal.add_ne_top.
     simp only [BoundedVariationOn] at hBV_left hBV_right ⊢
-    have h_split :
-        eVariationOn g (Set.Icc (-1 : ℝ) 0) + eVariationOn g (Set.Icc (0 : ℝ) 1) =
+    have h_split : eVariationOn g (Set.Icc (-1 : ℝ) 0) + eVariationOn g (Set.Icc 0 1) =
         eVariationOn g (Set.Icc (-1 : ℝ) 1) := by
-      -- Use eVariationOn.Icc_add_Icc:
-      -- eVariationOn f (s ∩ Icc a b) + eVariationOn f (s ∩ Icc b c)
-      --   = eVariationOn f (s ∩ Icc a c) (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s)
-      -- Here s = univ, so s ∩ Icc x y = Icc x y.
-      have key := eVariationOn.Icc_add_Icc g (a := (-1 : ℝ)) (b := 0) (c := 1)
-        (by norm_num) (by norm_num) (Set.mem_univ _)
-      simp only [Set.univ_inter] at key
-      exact key
+      simpa only [Set.univ_inter] using eVariationOn.Icc_add_Icc g (by norm_num) (by norm_num) (Set.mem_univ _)
     rw [← h_split]
     exact ENNReal.add_ne_top.mpr ⟨hBV_left, hBV_right⟩
-  -- Step 4: Lift BV on [-1,1] to BV on Set.univ.
-  -- We split ℝ = Iic(-1) ∪ Icc(-1,1) ∪ Ici(1) using eVariationOn.union twice.
-  -- The two outer pieces contribute finite variation (only one boundary jump each
-  -- since g = 0 on Iio(-1) and Ioi(1)), so the total is finite.
   simp only [BoundedVariationOn] at hBV_Icc ⊢
-  -- Splitting step 1: univ = Iic(-1) ∪ Ici(-1)
-  -- (Set.Iic_union_Ici : Iic a ∪ Ici a = univ)
-  -- isGreatest_Iic : IsGreatest (Iic a) a
-  -- isLeast_Ici    : IsLeast (Ici a) a
   have h_split1 : eVariationOn g Set.univ =
       eVariationOn g (Set.Iic (-1 : ℝ)) + eVariationOn g (Set.Ici (-1 : ℝ)) := by
     conv_lhs => rw [← Set.Iic_union_Ici (a := (-1 : ℝ))]
     exact eVariationOn.union g isGreatest_Iic isLeast_Ici
-  -- Splitting step 2: Ici(-1) = Icc(-1,1) ∪ Ici(1)
-  -- (Set.Icc_union_Ici_eq_Ici : Icc a b ∪ Ici b = Ici a when a ≤ b)
-  -- isGreatest_Icc (h : a ≤ b) : IsGreatest (Icc a b) b
   have h_split2 : eVariationOn g (Set.Ici (-1 : ℝ)) =
       eVariationOn g (Set.Icc (-1 : ℝ) 1) + eVariationOn g (Set.Ici (1 : ℝ)) := by
     conv_lhs => rw [← Set.Icc_union_Ici_eq_Ici (by norm_num : (-1 : ℝ) ≤ 1)]
     exact eVariationOn.union g (isGreatest_Icc (by norm_num)) isLeast_Ici
-  -- Left outer piece: g = 0 on Iio(-1) (from hf_deriv in varphi_ftc_out),
-  -- so any monotone sequence in Iic(-1) maps g to {0, g(-1)}.  The variation
-  -- is at most edist(g(-1)) 0, which is < ⊤ by ENNReal.edist_lt_top.
-  -- Proof: apply iSup_le; rintro ⟨n, u, hu, hu_mem⟩; bound each edist term.
-  have hIic := ϕ_pm_deriv_Iic_finite ν ε
-  have hIci := ϕ_pm_deriv_Ici_finite ν ε
-  -- Combine all three finite pieces.
   rw [h_split1, h_split2]
   exact ENNReal.add_ne_top.mpr
-    ⟨hIic, ENNReal.add_ne_top.mpr ⟨hBV_Icc, hIci⟩⟩
+    ⟨ϕ_pm_deriv_Iic_finite ν ε, ENNReal.add_ne_top.mpr ⟨hBV_Icc, ϕ_pm_deriv_Ici_finite ν ε⟩⟩
 
 @[blueprint
   "varphi-fourier-decay"
