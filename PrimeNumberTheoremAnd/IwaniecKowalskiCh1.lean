@@ -892,7 +892,7 @@ lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMulti
 @[blueprint
   "sum_moebius_sq_divisors_apply_prime_pow"
   (title := "sum-moebius-sq-divisors-apply-prime-pow")
-  (statement := /-- Applied at prime powers, sum_moebius_sq_divisors coincides with $\mu^2$. -/)
+  (statement := /-- Applied at prime powers, sum-moebius-sq-divisors coincides with $\mu^2$. -/)
   (proof := /--
     For a prime power $p^k$, note that if $k\leq 1$ then the only square divisor is $1$, so the sum
     evaluates as $\mu(1)=1$. If $k\geq 2$, then $1$ and $p^2$ are square divisors of $p^k$. Thus,
