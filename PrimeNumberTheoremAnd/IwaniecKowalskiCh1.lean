@@ -438,7 +438,7 @@ lemma sigmaR_one_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
     We have that $\sigma^R_s(n)=\sum_{d\mid n}(n/d)^s$.
   -/)
   (proof := /--
-    Note that $d\ mapsto n/d$ forms a one-to-one mapping between the divisors of $n$. Using this in
+    Note that $d \mapsto n/d$ forms a one-to-one mapping between the divisors of $n$. Using this in
     combination with the definiton we have that
     $$\sigma^R_s(n)=\sum_{d\mid n}d^s=\sum_{d\mid n}(n/d)^s.$$
   -/)]
@@ -478,7 +478,7 @@ lemma sigmaR_zero_apply_prime_pow {p i : ℕ} (hp : p.Prime) :
   -/)
   (proof := /--
     By definition we have that
-    $$\sigma^R_s(1)=\sum_{d\ mid 1}d^s=1^s=1.$$
+    $$\sigma^R_s(1)=\sum_{d \mid 1}d^s=1^s=1.$$
   -/)]
 lemma sigmaR_one (s : ℂ) :
     σᴿ s 1 = 1 := by
@@ -892,11 +892,11 @@ lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMulti
 @[blueprint
   "sum_moebius_sq_divisors_apply_prime_pow"
   (title := "sum-moebius-sq-divisors-apply-prime-pow")
-  (statement := /-- Applied at prime powers, sum_moebius_sq_divisors coincides with μ^2. -/)
+  (statement := /-- Applied at prime powers, sum_moebius_sq_divisors coincides with $\mu^2$. -/)
   (proof := /--
     For a prime power $p^k$, note that if $k\leq 1$ then the only square divisor is $1$, so the sum
     evaluates as $\mu(1)=1$. If $k\geq 2$, then $1$ and $p^2$ are square divisors of $p^k$. Thus,
-    the sum evalutes as $\mu(1)+\mu(p)+\ldots$ where the remaining terms are moebius of higher
+    the sum evaluates as $\mu(1)+\mu(p)+\ldots$ where the remaining terms are moebius of higher
     powers (if necessary). Since $\mu(p)=-1$ and $\mu$ of higher powers of $p$ is zero, this is
     $0$. This agrees with $\mu(p^k)^2$, which is simply an indicator function for $k\leq 1$ (i.e.
     $p^k$ is squarefree).
