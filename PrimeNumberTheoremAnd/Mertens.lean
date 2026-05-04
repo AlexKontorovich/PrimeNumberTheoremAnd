@@ -341,6 +341,15 @@ theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
 noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
 @[blueprint
+  "E1_summable"
+  (title := "$E_1$ summable")
+  (statement := /-- The series $E_1 := \sum_p \frac{\log p}{p(p-1)}$ converges. -/)
+  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{\log n}{n^2}$, which converges by the integral test.  Since $\frac{\log p}{p(p-1)} \leq \frac{\log p}{p(p-1)} + \sum_{k=2}^\infty \frac{\log p}{p^k} = \frac{\log p}{p}$, we can apply comparison test to conclude that $E_1$ converges as well.-/)
+]
+theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(p-1)) else 0) := by
+  sorry
+
+@[blueprint
   "E1_bound"
   (title := "Upper bound on $E_1$")
   (statement := /-- One has $E_1 \leq \frac{5 \log 2 + 3}{4}$-/)
