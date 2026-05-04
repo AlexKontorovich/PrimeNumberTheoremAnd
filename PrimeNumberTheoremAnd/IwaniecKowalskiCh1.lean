@@ -765,22 +765,142 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta (2 * s) * LSeries (fun (n : ℕ) ↦ (μ n : ℂ) ^ 2) s := by
   sorry
 
--- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone theorem? Near `moebius_sq` and `abs_moebius`?
+@[blueprint
+  "coprime_prod_divisors_pow_filter_eq"
+  (title := "coprime-prod-divisors-pow-filter-eq")
+  (statement := /--
+    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The divisors of $mn$ that
+    can be expressed as perfect $k$-powers are exactly the product of the divisors of $m$ and $n$
+    that can be expressed as perfect $k$-powers.
+  -/)
+  (proof := /--
+    Since $m$ and $n$ are coprime, they share no common prime factors. Therefore, any divisor of
+    $mn$ can be uniquely expressed as a product of a divisor of $m$ and a divisor of $n$. The
+    condition that a divisor is a perfect $k$-power can be checked separately for the divisors of
+    $m$ and $n$. Thus, the divisors of $mn$ that are perfect $k$-powers correspond exactly to the
+    products of divisors of $m$ and $n$ that are perfect $k$-powers.
+  -/)]
+lemma coprime_prod_divisors_pow_filter_eq {m n k : ℕ} (hmn : Nat.Coprime m n) :
+    (m * n).divisors.filter (fun x => x ^ k ∣ m * n) =
+    (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)).image
+      (fun p => p.1 * p.2) := by
+  ext x
+  simp only [mem_image, mem_product, mem_filter, mem_divisors, ne_eq, Prod.exists]
+  constructor
+  · intro hx
+    obtain ⟨a, b, ha, hb, hab⟩ : ∃ a b : ℕ, a ∣ m ∧ b ∣ n ∧ a * b = x := Nat.dvd_mul.mp hx.1.1
+    simp only [mul_eq_zero, not_or, ← hab, mul_pow] at hx
+    exact ⟨a, b, ⟨⟨⟨⟨ha, hx.1.2.1⟩, (hmn.coprime_dvd_left ha).pow_left k |>.dvd_of_dvd_mul_right (dvd_trans (dvd_mul_right _ _) hx.2)⟩,
+      ⟨⟨hb, hx.1.2.2⟩, (hmn.symm.coprime_dvd_left hb).pow_left k |>.dvd_of_dvd_mul_left (dvd_trans (dvd_mul_left _ _) hx.2)⟩⟩, hab⟩⟩
+  · intro ⟨a, b, hab⟩
+    rw[← hab.2, mul_pow]
+    exact ⟨⟨Nat.mul_dvd_mul hab.1.1.1.1 hab.1.2.1.1, Nat.mul_ne_zero_iff.mpr ⟨hab.1.1.1.2, hab.1.2.1.2⟩⟩, mul_dvd_mul hab.1.1.2 hab.1.2.2⟩
 
+@[blueprint
+  "coprime_divisors_injOn"
+  (title := "coprime-divisors-injOn")
+  (statement := /--
+    Let $m$ and $n$ be coprime natural numbers. The function $(a,b) \mapsto ab$ is injective on the
+    product of the divisors of $m$ and $n$.
+  -/)
+  (proof := /--
+    Since $m$ and $n$ are coprime, any element in the product of their divisors can be uniquely
+    expressed as a product of an element from each set. The injectivity follows from the uniqueness
+    of this decomposition.
+  -/)]
+lemma coprime_divisors_injOn {m n : ℕ} (hmn : Nat.Coprime m n) :
+    Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2)
+      ↑(m.divisors ×ˢ n.divisors) := by
+  simp only [coe_product]
+  intro a ⟨ha1, ha2⟩ b ⟨hb1, hb2⟩ hab
+  have h1 : a.1 = b.1 := by
+    exact Nat.dvd_antisymm
+      ((hmn.coprime_dvd_left (Nat.mem_divisors.mp ha1).1
+        |>.coprime_dvd_right (Nat.mem_divisors.mp hb2).1).dvd_of_dvd_mul_right <| by
+          simpa [hab] using dvd_mul_right a.1 a.2)
+      ((hmn.coprime_dvd_left (Nat.mem_divisors.mp hb1).1
+        |>.coprime_dvd_right (Nat.mem_divisors.mp ha2).1).dvd_of_dvd_mul_right <| by
+          simp only [hab, dvd_mul_right b.1 b.2])
+  refine Prod.ext h1 ?_
+  simp only [h1] at hab
+  exact Nat.eq_of_mul_eq_mul_left (Nat.pos_of_mem_divisors hb1) hab
+
+@[blueprint
+  "coprime_divisors_pow_filter_injOn"
+  (title := "coprime-divisors-pow-filter-injOn")
+  (statement := /--
+    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The function
+    $(a,b) \mapsto ab$ is injective on the product of the divisors of $m$ and $n$ that can be
+    expressed as perfect $k$-powers.
+  -/)
+  (proof := /--
+    This follows from the injectivity of the function on the product of all divisors, as shown in
+    the previous lemma. Since we are restricting to a subset of the divisors, the injectivity still
+    holds.
+  -/)]
+lemma coprime_divisors_pow_filter_injOn {m n k : ℕ} (hmn : Nat.Coprime m n) :
+    Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2)
+      ↑(m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
+  apply Set.InjOn.mono _ (coprime_divisors_injOn hmn)
+  intro ⟨_, _⟩ hab
+  simp only [Finset.coe_product, Finset.coe_filter, Set.mem_prod, Set.mem_setOf_eq, Finset.mem_coe] at hab ⊢
+  exact ⟨hab.1.1, hab.2.1⟩
+
+@[blueprint
+  "sum_moebius_sq_divisors"
+  (title := "sum-moebius-sq-divisors")
+  (statement := /-- The function $n \mapsto \sum_{d^2|n} \mu(d)$. -/)]
 noncomputable def sum_moebius_sq_divisors : ArithmeticFunction ℤ where
   toFun := fun n ↦ ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d
   map_zero' := by simp
 
+@[blueprint
+  "sum_moebius_sq_divisors_apply"
+  (title := "sum-moebius-sq-divisors-apply")
+  (statement := /-- A simple helper lemma for the above definition. -/)]
 lemma sum_moebius_sq_divisors_apply (n : ℕ) :
   sum_moebius_sq_divisors n = ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d := by rfl
 
+@[blueprint
+  "sum_moebius_sq_divisors_IsMultiplicative"
+  (title := "sum-moebius-sq-divisors-is-multiplicative")
+  (statement := /-- The function $n \mapsto \sum_{d^2|n} \mu(d)$ is multiplicative. -/)
+  (proof := /--
+    We will show that for coprime $m$ and $n$, we have
+    $\sum_{d^2|mn} \mu(d) = \sum_{d^2|m} \mu(d) \cdot \sum_{d^2|n} \mu(d)$. This follows from the
+    fact that the divisors of $mn$ that are perfect squares correspond to the products of divisors
+    of $m$ and $n$ that are perfect squares, as shown in the previous lemmas. The multiplicativity
+    of the Möbius function then allows us to factor the sum accordingly.
+  -/)]
 lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMultiplicative := by
   unfold sum_moebius_sq_divisors
-  refine ⟨by simp [sum_filter], ?_⟩
+  refine ⟨by simp only [sum_filter, coe_mk, divisors_one, dvd_one, pow_eq_one_iff,
+    OfNat.ofNat_ne_zero, or_false, sum_ite_eq', mem_singleton, ↓reduceIte, isUnit_iff_eq_one,
+    IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero], ?_⟩
   intro m n mCn
-  simp only [coe_mk]
-  sorry
+  simp only [coe_mk, coprime_prod_divisors_pow_filter_eq mCn, Finset.sum_image (coprime_divisors_pow_filter_injOn mCn), Finset.sum_product]
+  trans (∑ i ∈ m.divisors.filter (fun x => x ^ 2 ∣ m), ∑ j ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ i * μ j)
+  · apply Finset.sum_congr rfl
+    intro _ hi
+    apply Finset.sum_congr rfl
+    intro _ hj
+    exact isMultiplicative_moebius.map_mul_of_coprime
+      (mCn.coprime_dvd_left (Nat.dvd_of_mem_divisors (Finset.filter_subset _ _ hi))
+        |>.coprime_dvd_right (Nat.dvd_of_mem_divisors (Finset.filter_subset _ _ hj)))
+  · rw [← Finset.sum_mul_sum]
 
+@[blueprint
+  "sum_moebius_sq_divisors_apply_prime_pow"
+  (title := "sum-moebius-sq-divisors-apply-prime-pow")
+  (statement := /-- Applied at prime powers, sum_moebius_sq_divisors coincides with μ^2. -/)
+  (proof := /--
+    For a prime power $p^k$, note that if $k\leq 1$ then the only square divisor is $1$, so the sum
+    evaluates as $\mu(1)=1$. If $k\geq 2$, then $1$ and $p^2$ are square divisors of $p^k$. Thus,
+    the sum evalutes as $\mu(1)+\mu(p)+\ldots$ where the remaining terms are moebius of higher
+    powers (if necessary). Since $\mu(p)=-1$ and $\mu$ of higher powers of $p$ is zero, this is
+    $0$. This agrees with $\mu(p^k)^2$, which is simply an indicator function for $k\leq 1$ (i.e.
+    $p^k$ is squarefree).
+  -/)]
 lemma sum_moebius_sq_divisors_apply_prime_pow {p k : ℕ} (hp : Nat.Prime p) :
   sum_moebius_sq_divisors (p ^ k) = (μ (p ^ k)) ^ 2 := by
   have h_filter : ((Nat.divisors (p ^ k)).filter (fun x => x ^ 2 ∣ p ^ k)) = Finset.image (fun j => p ^ j) (Finset.range (k / 2 + 1)) := by
@@ -792,31 +912,27 @@ lemma sum_moebius_sq_divisors_apply_prime_pow {p k : ℕ} (hp : Nat.Prime p) :
         exact Nat.le_of_not_lt fun ha' => absurd (Nat.le_of_dvd (pow_pos hp.pos _) h)
           (not_le_of_gt (pow_lt_pow_right₀ hp.one_lt ha')), rfl⟩
     · rintro ⟨a, ha, rfl⟩
-      refine ⟨⟨a, by omega, rfl⟩, by rw [← pow_mul]; exact pow_dvd_pow _ (by omega)⟩
+      exact ⟨⟨a, by omega, rfl⟩, by rw [← pow_mul]; exact pow_dvd_pow _ (by omega)⟩
   simp only [moebius_sq, sum_moebius_sq_divisors_apply, h_filter]
   rw [Finset.sum_image <| by intros a ha b hb hab; exact Nat.pow_right_injective hp.two_le hab, Finset.sum_range_succ']
   split_ifs with h
   · have hk : k / 2 = 0 := by
-      rw[Nat.div_eq_zero_iff, or_iff_right (two_ne_zero)]
+      rw [Nat.div_eq_zero_iff, or_iff_right (two_ne_zero)]
       by_contra hk
       exact absurd h (by rw [Nat.squarefree_pow_iff hp.ne_one (by omega)]; exact not_and_of_not_right _ (by linarith))
     simp [hk]
-  · simp only [pow_zero, isUnit_iff_eq_one, IsUnit.squarefree, moebius_apply_of_squarefree,
-      Int.reduceNeg, cardFactors_one]
-    rcases k with (_ | _ | _)
+  · simp only [pow_zero, isUnit_iff_eq_one, IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one]
+    rcases k with _ | _ | _
     · simp at ⊢ h
     · simp [hp.squarefree] at ⊢ h
     · simp_all +decide [ArithmeticFunction.moebius_apply_prime_pow]
 
-/--
-I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
+/-- I-K (1.33): `μ^2(n) = ∑ d^2|n μ(d)`. -/
 @[blueprint
   "moebius_sq_eq"
-  (title := "moebius sq eq")
+  (title := "moebius-sq-eq")
   (statement := /-- I-K (1.33): $\mu^2(n) = \sum_{d^2|n} \mu(d)$. -/)
-  (proof := /--
-  The function $\mu^2(n)$ is the indicator function for squarefree numbers, meaning it is $1$ if $n$ is squarefree and $0$ otherwise. The sum $\sum_{d^2|n} \mu(d)$ counts the contributions from divisors $d$ such that $d^2$ divides $n$. If $n$ is squarefree, then the only divisor $d$ such that $d^2 | n$ is $d=1$, which contributes $\mu(1) = 1$. If $n$ is not squarefree, then there exists a prime $p$ such that $p^2 | n$, and the corresponding divisor $d=p$ will contribute $\mu(p) = -1$, which will cancel out the contribution from $d=1$. Therefore, we have $\mu^2(n) = \sum_{d^2|n} \mu(d)$.
-  -/)]
+  (proof := /-- Apply the previous two lemmas. -/)]
 lemma moebius_sq_eq (n : ℕ) : (μ n) ^ 2 = ∑ d ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ d := by
   by_cases n_zero : n = 0
   · simp [n_zero]
@@ -825,8 +941,7 @@ lemma moebius_sq_eq (n : ℕ) : (μ n) ^ 2 = ∑ d ∈ n.divisors.filter (fun x 
       fun p hp => Nat.prime_of_mem_primeFactors (Nat.support_factorization n ▸ hp)
     simp only [Finset.prod_pow, Finsupp.prod, Nat.support_factorization, Finset.prod_congr rfl (fun x hx =>
       sum_moebius_sq_divisors_apply_prime_pow ((Nat.support_factorization n ▸ hpf) x hx))]
-    congr
-    exact IsMultiplicative.multiplicative_factorization μ isMultiplicative_moebius n_zero
+    congr; exact IsMultiplicative.multiplicative_factorization μ isMultiplicative_moebius n_zero
 
 /--
 Liouville function:
@@ -849,15 +964,14 @@ Define Complete Multiplicativity for an arithmetic function. -/
 @[blueprint
   "IsCompletelyMultiplicative"
   (title := "IsCompletelyMultiplicative")
-  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)
-]
+  (statement := /-- Define Complete Multiplicativity for an arithmetic function. -/)]
 def IsCompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
   f 1 = 1 ∧ ∀ a b, f (a * b) = f a * f b
 
 /-- A function that is completely multiplicative is also multiplicative. -/
 @[blueprint
-  "IsCompletelyMultiplicative_isMultiplicative"
-  (title := "IsCompletelyMultiplicative isMultiplicative")
+  "IsCompletelyMultiplicative.isMultiplicative"
+  (title := "IsCompletelyMultiplicative.isMultiplicative")
   (statement := /-- A function that is completely multiplicative is also multiplicative. -/)
   (proof := /--
   Let $f$ be a completely multiplicative function. To show that $f$ is multiplicative, we need to verify that $f(1) = 1$ and that $f(ab) = f(a)f(b)$ for all coprime natural numbers $a$ and $b$. Since $f$ is completely multiplicative, we have $f(1) = 1$ by definition. For coprime $a$ and $b$, we can write $ab$ as a product of prime factors, and since $f$ is completely multiplicative, it will factor as the product of the values of $f$ at those prime factors. This means that $f(ab) = f(a)f(b)$ for coprime $a$ and $b$, which shows that $f$ is multiplicative.
