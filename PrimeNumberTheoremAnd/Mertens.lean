@@ -352,8 +352,10 @@ lemma E₁.summand_nonneg (p : ℕ) : 0 ≤ if p.Prime then (log p) / (p*(p-1)) 
   "E1_summable"
   (title := "$E_1$ summable")
   (statement := /-- The series $E_1 := \sum_p \frac{\log p}{p(p-1)}$ converges. -/)
-  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{\log n}{n^2}$, which converges by the integral test.  Since $\frac{\log p}{p(p-1)} \leq \frac{\log p}{p(p-1)} + \sum_{k=2}^\infty \frac{\log p}{p^k} = \frac{\log p}{p}$, we can apply comparison test to conclude that $E_1$ converges as well.
-  Alternatively bound $\log n$ by $2\sqrt n$ and use the existing Mathlib API for $\sum n^{-3/2}$.-/)]
+  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{2\log n}{n^2}$, which converges by the integral test.  By a further application of comparison test we can conclude that $E_1$ converges as well.
+  Alternatively bound $\log n$ by $2\sqrt n$ and use the existing Mathlib API for $\sum n^{-3/2}$.-/)
+  (latexEnv := "proposition")
+  (discussion := 1352)]
 theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(p-1)) else 0) := by
   refine (Real.summable_one_div_nat_rpow.mpr (by norm_num: 1 < (3 : ℝ) / 2)|>.const_div
     4).of_nonneg_of_le E₁.summand_nonneg fun n ↦ ?_
