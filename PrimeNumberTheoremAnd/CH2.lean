@@ -4397,16 +4397,6 @@ private lemma eVariationOn_add_jump_endpoint {α E : Type*} [LinearOrder α] [Ps
     exact eVariationOn_add_jump_greatest h_gr h_eq_d
   · exact eVariationOn_add_jump_greatest h heq
 
-@[blueprint
-  "varphi-deriv-tv"
-  (title := "$\\varphi'$ total variation")
-  (statement := /-- The function $(\varphi_\nu^\pm)'$ has finite total variation. -/)
-  (proof := /-- Since $(\varphi_\nu^\pm)'$ is $C^1$ on $[-1, 0]$ and on $[0, 1]$, the $L^1$ norm of $(\varphi_\nu^\pm)''$ on each of these intervals is finite, and so $(\varphi_\nu^\pm)'$ has finite total variation on each of them. As $(\varphi_\nu^\pm)'$ has right and left limits at $-1$, $0$ and $1$, the jumps at those points are finite, and so their contribution to $\|(\varphi_\nu^\pm)'\|_{\mathrm{TV}}$ is finite.
-/
--/)
-  (latexEnv := "lemma")
-  (discussion := 1229)]
--- BV of deriv(ϕ_pm) on any C²-subinterval [a,b], with an interior split at m.
 private lemma varphi_deriv_bv_on_Icc (ν ε : ℝ) {a b m : ℝ}
     (hab : a < b) (ham : a < m) (hmb : m < b)
     (h_c2 : ContDiffOn ℝ 2 (ϕ_pm ν ε) (Set.Icc a b)) :
@@ -4441,6 +4431,15 @@ private lemma varphi_deriv_bv_on_Icc (ν ε : ℝ) {a b m : ℝ}
   rw [BoundedVariationOn, h_split]
   exact ENNReal.add_ne_top.mpr ⟨hBV_L, hBV_R⟩
 
+@[blueprint
+  "varphi-deriv-tv"
+  (title := "$\\varphi'$ total variation")
+  (statement := /-- The function $(\varphi_\nu^\pm)'$ has finite total variation. -/)
+  (proof := /-- Since $(\varphi_\nu^\pm)'$ is $C^1$ on $[-1, 0]$ and on $[0, 1]$, the $L^1$ norm of $(\varphi_\nu^\pm)''$ on each of these intervals is finite, and so $(\varphi_\nu^\pm)'$ has finite total variation on each of them. As $(\varphi_\nu^\pm)'$ has right and left limits at $-1$, $0$ and $1$, the jumps at those points are finite, and so their contribution to $\|(\varphi_\nu^\pm)'\|_{\mathrm{TV}}$ is finite.
+/
+-/)
+  (latexEnv := "lemma")
+  (discussion := 1229)]
 theorem varphi_deriv_tv (ν ε : ℝ) (hlam : ν ≠ 0) : BoundedVariationOn (deriv (ϕ_pm ν ε)) Set.univ := by
   set g := deriv (ϕ_pm ν ε)
   have hBV_left := varphi_deriv_bv_on_Icc ν ε (a := -1) (b := 0) (m := -1/2)
