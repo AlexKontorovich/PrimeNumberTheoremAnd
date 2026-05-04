@@ -1,3 +1,4 @@
+import Mathlib.Algebra.Order.Field.GeomSum
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
@@ -340,12 +341,18 @@ theorem E₁p.le {x : ℝ} (hx : 1 ≤ x) :
 
 noncomputable abbrev E₁ : ℝ := ∑' p : ℕ, if p.Prime then (log p) / (p*(p-1)) else 0
 
+lemma E₁.summand_nonneg (p : ℕ) : 0 ≤ if p.Prime then (log p) / (p*(p-1)) else 0 := by
+  split_ifs with h
+  · refine div_nonneg (log_natCast_nonneg _) (mul_nonneg (Nat.cast_nonneg _) ?_)
+    suffices 1 ≤ (p : ℝ) by linarith
+    exact_mod_cast h.one_le
+  · rfl
+
 @[blueprint
   "E1_summable"
   (title := "$E_1$ summable")
   (statement := /-- The series $E_1 := \sum_p \frac{\log p}{p(p-1)}$ converges. -/)
-  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{\log n}{n^2}$, which converges by the integral test.  Since $\frac{\log p}{p(p-1)} \leq \frac{\log p}{p(p-1)} + \sum_{k=2}^\infty \frac{\log p}{p^k} = \frac{\log p}{p}$, we can apply comparison test to conclude that $E_1$ converges as well.-/)
-]
+  (proof := /-- We have $\sum_{n=2}^\infty \frac{\log n}{n(n-1)}$ converges by comparison with $\sum_{n=2}^\infty \frac{\log n}{n^2}$, which converges by the integral test.  Since $\frac{\log p}{p(p-1)} \leq \frac{\log p}{p(p-1)} + \sum_{k=2}^\infty \frac{\log p}{p^k} = \frac{\log p}{p}$, we can apply comparison test to conclude that $E_1$ converges as well.-/)]
 theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(p-1)) else 0) := by
   sorry
 
@@ -359,14 +366,8 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     sorry
 
-theorem E₁.nonneg : E₁ ≥ 0 := by
-  apply tsum_nonneg
-  intro p; split_ifs with hp
-  · have : (p:ℝ) ≥ 2 := by norm_num; exact Nat.Prime.two_le hp
-    have : 0 ≤ log p := by grind [log_nonneg]
-    have : (p:ℝ) - 1 > 0 := by grind
-    positivity
-  order
+theorem E₁.nonneg : E₁ ≥ 0 :=
+  tsum_nonneg E₁.summand_nonneg
 
 @[blueprint
   "Mertens-first-error-prime-ge"
@@ -384,7 +385,46 @@ $$ E_1 := \sum_{p} \frac{\log p}{p(p-1)}. $$
   (discussion := 1312)]
 theorem E₁Λ.le_E₁p_add_E₁ {x : ℝ} (hx : 1 ≤ x) :
     E₁Λ x ≤ E₁p x + E₁ := by
-    sorry
+  unfold E₁Λ E₁p
+  suffices ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / d ≤ ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, log p / p + E₁ by linarith
+  simp_rw [vonMangoldt_apply, ite_div, zero_div, ← sum_filter, Chebyshev.sum_PrimePow_eq_sum_sum _ (by linarith)]
+  calc
+  _ = ∑ k ∈ Icc 1 ⌊log x / log 2⌋₊, ∑ p ∈ Ioc 0 ⌊x ^ (1 / (k : ℝ))⌋₊ with Nat.Prime p, log p / (p ^ k : ℕ) := by
+    refine sum_congr rfl fun k hk ↦ sum_congr rfl fun p hp ↦ ?_
+    rw [Nat.Prime.pow_minFac (by simp_all) (by simp_all; linarith)]
+  _ ≤ ∑ k ∈ Icc 1 ⌊log x / log 2⌋₊, ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, log p / (p ^ k : ℕ) := by
+    gcongr with k hk
+    apply rpow_le_self_of_one_le hx
+    simp only [mem_Icc] at hk
+    exact div_le_one₀ (by norm_cast; linarith)|>.mpr (mod_cast hk.1)
+  _ ≤ ∑ k ∈ Icc 1 (max 1 ⌊log x / log 2⌋₊), ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, log p / (p ^ k : ℕ) := by
+    apply sum_le_sum_of_subset_of_nonneg
+    · gcongr
+      exact le_max_right ..
+    · exact fun _ _ _ ↦ sum_nonneg fun _ _ ↦ (by positivity)
+  _ = ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, (log p / p) + ∑ k ∈ Ioc 1 (max 1 ⌊log x / log 2⌋₊), ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, log p / (p ^ k : ℕ) := by
+    rw [← add_sum_Ioc_eq_sum_Icc (le_max_left ..)]
+    simp
+  _ ≤ _ := by
+    gcongr
+    rw [sum_comm]
+    conv => lhs; arg 2; ext p; arg 2; ext k; rw [← mul_one_div, Nat.cast_pow, ← one_div_pow]
+    simp_rw [← mul_sum]
+    calc
+    _ ≤ ∑ p ∈ Ioc 0 ⌊x⌋₊ with Nat.Prime p, log p / (p * (p - 1)) := by
+      gcongr with p hp
+      simp only [mem_filter, mem_Ioc] at hp
+      conv => rhs; rw [← mul_one_div]
+      gcongr
+      rw [(by rfl : Ioc 1 (max 1 ⌊log x / log 2⌋₊) = Ico 2 (max 1 ⌊log x / log 2⌋₊  + 1))]
+      grw [geom_sum_Ico_le_of_lt_one (by simp)]
+      · apply le_of_eq
+        have : (p : ℝ) ≠ 0 := by exact_mod_cast hp.1.1.ne.symm
+        field
+      · simpa using inv_lt_one_of_one_lt₀ (mod_cast hp.2.one_lt)
+    _ ≤ _ := by
+      rw [sum_filter]
+      exact E₁.summable.sum_le_tsum _ fun p hp ↦ E₁.summand_nonneg p
 
 theorem E₁p.ge {x : ℝ} (hx : 1 ≤ x) :
     E₁p x ≥ -2 - E₁ := by
