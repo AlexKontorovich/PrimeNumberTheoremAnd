@@ -4486,6 +4486,47 @@ theorem varphi_fourier_decay (ν ε : ℝ) (hlam : ν ≠ 0) : IsBigO Filter.atT
   have h_re_le_norm : ‖(𝓕 (ϕ_pm ν ε) x).re‖ ≤ ‖𝓕 (ϕ_pm ν ε) x‖ := Complex.abs_re_le_norm _
   exact h_re_le_norm.trans (h_bound x hx)
 
+-- ∫ I_ν dx = 1/ν for ν > 0; both error theorems use this.
+private lemma Inu_integral (ν : ℝ) (hν : ν > 0) : ∫ x : ℝ, Inu ν x = 1 / ν := by
+  unfold Inu
+  have h_indicator : (fun x ↦ if 0 ≤ x then rexp (-ν * x) else 0) =
+      Set.indicator (Set.Ici 0) (fun x ↦ rexp (-ν * x)) := by
+    ext x; unfold Set.indicator; rfl
+  rw [h_indicator, integral_indicator measurableSet_Ici,
+      integral_Ici_eq_integral_Ioi, integral_exp_mul_Ioi (neg_lt_zero.mpr hν) 0]
+  simp
+
+-- Inu is integrable on ℝ for ν > 0.
+private lemma Inu_integrable (ν : ℝ) (hν : ν > 0) : Integrable (Inu ν) := by
+  unfold Inu
+  rw [show (fun x ↦ if 0 ≤ x then rexp (-ν * x) else 0) =
+      Set.indicator (Set.Ici 0) (fun x ↦ rexp (-ν * x)) by ext x; rfl]
+  rw [integrable_indicator_iff measurableSet_Ici, integrableOn_Ici_iff_integrableOn_Ioi]
+  apply exp_neg_integrableOn_Ioi 0 hν
+
+-- 𝓕(ϕ_pm ν ε) is integrable for ν ≠ 0; used in both error theorems.
+private lemma varphi_hat_integrable (ν ε : ℝ) (hlam : ν ≠ 0) :
+    Integrable (𝓕 (ϕ_pm ν ε)) := by
+  set f := ϕ_pm ν ε
+  have hf : Integrable f := varphi_integ ν ε hlam
+  have h_decay := decay_alt f hf (varphi_abs ν ε hlam) (varphi_deriv_tv ν ε hlam)
+  let C := (∫ t, ‖f t‖) + (eVariationOn (deriv f) Set.univ).toReal / (2 * π) ^ 2
+  apply Integrable.mono' (integrable_inv_one_add_sq.const_mul C)
+  · exact VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+      (by fun_prop) hf |>.aestronglyMeasurable
+  · filter_upwards with x
+    refine (h_decay x).trans_eq ?_
+    rw [div_eq_mul_inv, Real.norm_eq_abs, sq_abs]
+
+-- Fourier inversion at 0: ∫ 𝓕(ϕ_pm ν ε)(x) dx = Re(ϕ_pm ν ε 0)
+private lemma varphi_fourier_inversion_re (ν ε : ℝ) (hlam : ν ≠ 0)
+    (hf_hat_int : Integrable (𝓕 (ϕ_pm ν ε))) :
+    ∫ x : ℝ, (𝓕 (ϕ_pm ν ε) x).re = (ϕ_pm ν ε 0).re := by
+  have h_inv := (varphi_integ ν ε hlam).fourierInv_fourier_eq hf_hat_int (ϕ_continuous ν ε hlam).continuousAt (v := 0)
+  erw [integral_re hf_hat_int, show ∫ x, 𝓕 (ϕ_pm ν ε) x = 𝓕⁻ (𝓕 (ϕ_pm ν ε)) 0 by rw [fourierInv_eq]; simp, h_inv]
+  rfl
+
+
 @[blueprint
   "varphi-fourier-minus-error"
   (title := "$L^1$ error bound for Fourier transform of $\\varphi^-$")
@@ -4512,7 +4553,19 @@ since $\int_{-\infty}^{\infty} I_\nu(x)\, dx = 1/\nu$. We are done by Corollary 
   (discussion := 1231)]
 theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
     ∫ x in Set.univ, (Inu ν x - (𝓕 (ϕ_pm ν (-1)) x).re) = 1 / ν - 1 / (Real.exp ν - 1) := by
-    sorry
+  let hf_hat_int := varphi_hat_integrable ν (-1) hν.ne'
+  have h_phi_zero : (ϕ_pm ν (-1) 0).re = 1 / (rexp ν - 1) := by
+    simp only [ϕ_pm, Real.sign_zero, ofReal_zero, zero_mul, add_zero, Phi_circ]
+    norm_num [coth, Complex.tanh_eq_sinh_div_cosh, Complex.sinh, Complex.cosh]
+    simp only [← ofReal_div, ← ofReal_neg, ← ofReal_ofNat, ← ofReal_sub, ← ofReal_add, ← ofReal_exp, ofReal_re]
+    rw [Real.exp_neg]
+    field_simp [Real.exp_ne_zero, (Real.exp_eq_one_iff ν).not.mpr hν.ne']
+    rw [pow_two, ← Real.exp_add]; ring_nf
+    field_simp [show -1 + rexp ν ≠ 0 by rw [add_comm]; exact sub_ne_zero.mpr ((Real.exp_eq_one_iff ν).not.mpr hν.ne')]
+    ring
+  simp only [MeasureTheory.setIntegral_univ]
+  erw [integral_sub (Inu_integrable ν hν) hf_hat_int.re, Inu_integral ν hν,
+    varphi_fourier_inversion_re ν (-1) hν.ne' hf_hat_int, h_phi_zero]
 
 @[blueprint
   "varphi-fourier-plus-error"
@@ -4527,7 +4580,25 @@ theorem varphi_fourier_minus_error (ν : ℝ) (hν : ν > 0) :
   (discussion := 1232)]
 theorem varphi_fourier_plus_error (ν : ℝ) (hν : ν > 0) :
     ∫ x in Set.univ, ((𝓕 (ϕ_pm ν 1) x).re - Inu ν x) = 1 / (1 - Real.exp (-ν)) - 1 / ν := by
-    sorry
+  let hf_hat_int := varphi_hat_integrable ν 1 hν.ne'
+  have h_phi_zero : (ϕ_pm ν 1 0).re = 1 / (1 - Real.exp (-ν)) := by
+    simp only [ϕ_pm, Real.sign_zero, ofReal_zero, zero_mul, add_zero, Phi_circ]
+    norm_num [coth, Complex.tanh_eq_sinh_div_cosh, Complex.sinh, Complex.cosh]
+    simp only [← ofReal_div, ← ofReal_neg, ← ofReal_ofNat, ← ofReal_sub, ← ofReal_add, ← ofReal_exp, ofReal_re]
+    rw [Real.exp_neg]
+    have h_sinh_nz : rexp (ν / 2) - rexp (- (ν / 2)) ≠ 0 := by
+      refine sub_ne_zero.mpr (Real.exp_lt_exp.mpr ?_).ne'; linarith
+    field_simp [Real.exp_ne_zero, h_sinh_nz]
+    ring_nf; simp only [pow_two, ← Real.exp_add]
+    rw [show ν * (1 / 2) + ν * (1 / 2) = ν by ring]; simp only [Real.exp_neg]
+    field_simp [Real.exp_ne_zero, h_sinh_nz,
+      show rexp ν - 1 ≠ 0 from sub_ne_zero.mpr ((Real.exp_eq_one_iff ν).not.mpr hν.ne'),
+      show -1 + rexp ν ≠ 0 by rw [add_comm]; exact sub_ne_zero.mpr ((Real.exp_eq_one_iff ν).not.mpr hν.ne'),
+      show 1 - rexp (-ν) ≠ 0 from sub_ne_zero.mpr (Real.exp_lt_one_iff.mpr (neg_lt_zero.mpr hν)).ne.symm]
+    ring
+  simp only [MeasureTheory.setIntegral_univ]
+  erw [integral_sub hf_hat_int.re (Inu_integrable ν hν), Inu_integral ν hν,
+    varphi_fourier_inversion_re ν 1 hν.ne' hf_hat_int, h_phi_zero]
 
 @[blueprint
   "CH2-lemma-4-2a"
