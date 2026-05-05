@@ -766,8 +766,8 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
   sorry
 
 @[blueprint
-  "coprime_prod_divisors_pow_filter_eq"
-  (title := "coprime-prod-divisors-pow-filter-eq")
+  "pow_divisors_mul"
+  (title := "pow-divisors-mul")
   (statement := /--
     Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The divisors of $mn$ that
     can be expressed as perfect $k$-powers are exactly the product of the divisors of $m$ and $n$
@@ -780,7 +780,7 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
     $m$ and $n$. Thus, the divisors of $mn$ that are perfect $k$-powers correspond exactly to the
     products of divisors of $m$ and $n$ that are perfect $k$-powers.
   -/)]
-lemma coprime_prod_divisors_pow_filter_eq {m n k : ℕ} (hmn : Nat.Coprime m n) :
+lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
     (m * n).divisors.filter (fun x => x ^ k ∣ m * n) =
     (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)).image
       (fun p => p.1 * p.2) := by
@@ -797,37 +797,27 @@ lemma coprime_prod_divisors_pow_filter_eq {m n k : ℕ} (hmn : Nat.Coprime m n) 
     exact ⟨⟨Nat.mul_dvd_mul hab.1.1.1.1 hab.1.2.1.1, Nat.mul_ne_zero_iff.mpr ⟨hab.1.1.1.2, hab.1.2.1.2⟩⟩, mul_dvd_mul hab.1.1.2 hab.1.2.2⟩
 
 @[blueprint
-  "coprime_divisors_injOn"
-  (title := "coprime-divisors-injOn")
+  "divisors_mul_injective"
+  (title := "divisors-mul-injective")
   (statement := /--
     Let $m$ and $n$ be coprime natural numbers. The function $(a,b) \mapsto ab$ is injective on the
     product of the divisors of $m$ and $n$.
+
+    Upstreamed to mathlib via PR #36495.
   -/)
   (proof := /--
     Since $m$ and $n$ are coprime, any element in the product of their divisors can be uniquely
     expressed as a product of an element from each set. The injectivity follows from the uniqueness
     of this decomposition.
   -/)]
-lemma coprime_divisors_injOn {m n : ℕ} (hmn : Nat.Coprime m n) :
-    Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2)
-      ↑(m.divisors ×ˢ n.divisors) := by
-  simp only [coe_product]
-  intro a ⟨ha1, ha2⟩ b ⟨hb1, hb2⟩ hab
-  have h1 : a.1 = b.1 := by
-    exact Nat.dvd_antisymm
-      ((hmn.coprime_dvd_left (Nat.mem_divisors.mp ha1).1
-        |>.coprime_dvd_right (Nat.mem_divisors.mp hb2).1).dvd_of_dvd_mul_right <| by
-          simpa [hab] using dvd_mul_right a.1 a.2)
-      ((hmn.coprime_dvd_left (Nat.mem_divisors.mp hb1).1
-        |>.coprime_dvd_right (Nat.mem_divisors.mp ha2).1).dvd_of_dvd_mul_right <| by
-          simp only [hab, dvd_mul_right b.1 b.2])
-  refine Prod.ext h1 ?_
-  simp only [h1] at hab
-  exact Nat.eq_of_mul_eq_mul_left (Nat.pos_of_mem_divisors hb1) hab
+lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
+    Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
+  /-- comes from mathlib PR #36495 -/
+  sorry
 
 @[blueprint
-  "coprime_divisors_pow_filter_injOn"
-  (title := "coprime-divisors-pow-filter-injOn")
+  "pow_divisors_mul_injective"
+  (title := "pow-divisors-mul-injective")
   (statement := /--
     Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The function
     $(a,b) \mapsto ab$ is injective on the product of the divisors of $m$ and $n$ that can be
@@ -838,12 +828,11 @@ lemma coprime_divisors_injOn {m n : ℕ} (hmn : Nat.Coprime m n) :
     the previous lemma. Since we are restricting to a subset of the divisors, the injectivity still
     holds.
   -/)]
-lemma coprime_divisors_pow_filter_injOn {m n k : ℕ} (hmn : Nat.Coprime m n) :
-    Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2)
-      ↑(m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
-  apply Set.InjOn.mono _ (coprime_divisors_injOn hmn)
+lemma pow_divisors_mul_injective {m n k : ℕ} (hmn : Nat.Coprime m n) :
+    Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2) (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
+  apply Set.InjOn.mono _ (divisors_mul_injective hmn)
   intro ⟨_, _⟩ hab
-  simp only [Finset.coe_product, Finset.coe_filter, Set.mem_prod, Set.mem_setOf_eq, Finset.mem_coe] at hab ⊢
+  simp only [Finset.coe_filter, Set.mem_prod, Set.mem_setOf_eq, Finset.mem_coe] at hab ⊢
   exact ⟨hab.1.1, hab.2.1⟩
 
 @[blueprint
@@ -878,7 +867,10 @@ lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMulti
     OfNat.ofNat_ne_zero, or_false, sum_ite_eq', mem_singleton, ↓reduceIte, isUnit_iff_eq_one,
     IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero], ?_⟩
   intro m n mCn
-  simp only [coe_mk, coprime_prod_divisors_pow_filter_eq mCn, Finset.sum_image (coprime_divisors_pow_filter_injOn mCn), Finset.sum_product]
+  simp only [coe_mk, pow_divisors_mul mCn, Finset.sum_product,
+    Finset.sum_image (fun x hx y hy => pow_divisors_mul_injective (k := 2) mCn
+      (Finset.coe_product _ _ ▸ Finset.mem_coe.mpr hx)
+      (Finset.coe_product _ _ ▸ Finset.mem_coe.mpr hy))]
   trans (∑ i ∈ m.divisors.filter (fun x => x ^ 2 ∣ m), ∑ j ∈ n.divisors.filter (fun x => x ^ 2 ∣ n), μ i * μ j)
   · apply Finset.sum_congr rfl
     intro _ hi
