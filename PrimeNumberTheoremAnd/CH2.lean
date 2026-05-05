@@ -1,4 +1,7 @@
 import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Analysis.Complex.PhragmenLindelof
+import Mathlib.Topology.MetricSpace.Bounded
+import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
@@ -4621,8 +4624,281 @@ Since $|z|^2 \geq \frac{\pi^2}{4} > 2$, it suffices to show that $2x\operatornam
 -/)
   (latexEnv := "sublemma")
   (discussion := 1233)]
-theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ ↦ z * coth z) z‖ < 1 := by
+lemma deriv_z_coth_z_odd (w : ℂ) :
+    deriv (fun z ↦ z * coth z) (-w) = -deriv (fun z ↦ z * coth z) w := by
+  let g := fun z : ℂ ↦ z * coth z
+  have h_even : ∀ z, g (-z) = g z := by
+    intro z; dsimp [g]; simp [coth, Complex.tanh_neg]
+  have h_comp : (fun z ↦ g (-z)) = g := by
+    ext z; exact h_even z
+  have h_deriv_comp := deriv_comp_neg g w
+  rw [h_comp] at h_deriv_comp
+  rw [h_deriv_comp, neg_neg]
+
+lemma deriv_z_coth_z_bound_boundary (x : ℝ) :
+    ‖deriv (fun z : ℂ ↦ z * coth z) (↑x + ↑(π / 4) * Complex.I)‖ < 1 := by
+  set z₀ := (↑x + ↑(π / 4) * Complex.I)
+  set f := fun z : ℂ ↦ z * coth z
+  have h_diff : DifferentiableAt ℂ f z₀ := by
+    -- z * coth z is differentiable where sinh z ≠ 0.
+    -- On the boundary Im z = π/4, sinh z cannot be zero because its zeros are k*π*I.
     sorry
+  have h_deriv_eq : deriv f z₀ = (Complex.sinh (2 * z₀) / 2 - z₀) / (Complex.sinh z₀ ^ 2) := by
+    -- Calculus derivation: (z coth z)' = coth z - z / sinh² z = (sinh z cosh z - z) / sinh² z.
+    -- Then use sinh z cosh z = sinh(2z)/2.
+    sorry
+  have h_normSq : ‖deriv f z₀‖^2 = 1 - (π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2) / (Real.cosh (2 * x) ^ 2) := by
+    -- Evaluation on the boundary strip Im z = π/4:
+    -- 1. |sinh(x + iπ/4)|^2 = (cosh(2x) - cos(π/2))/2 = cosh(2x)/2.
+    -- 2. sinh(2z₀) = sinh(2x + iπ/2) = i*cosh(2x).
+    -- 3. Substitute into h_deriv_eq and simplify the norm-squared.
+    sorry
+  have h_pos : 0 < (π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2) := by
+    -- Estimate: π * cosh(2x) - π²/4 - 4x² ≥ π(1 + 2x²) - π²/4 - 4x²
+    -- = (π - π²/4) + (2π - 4)x² > 0 since π > 3.14 > 2.47 > π²/4.
+    sorry
+  have h_normSq_lt : ‖deriv f z₀‖^2 < 1 := by
+    rw [h_normSq]
+    have h_denom : 0 < Real.cosh (2 * x) ^ 2 := by positivity
+    have h_frac_pos : 0 < (π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2) / (Real.cosh (2 * x) ^ 2) :=
+      div_pos h_pos h_denom
+    linarith
+  nlinarith [norm_nonneg (deriv f z₀), sq_nonneg (‖deriv f z₀‖)]
+
+
+
+private lemma deriv_z_coth_z_at_zero :
+    deriv (fun z : ℂ ↦ z * coth z) 0 = 0 := by
+  have h_odd := deriv_z_coth_z_odd 0
+  simp only [neg_zero] at h_odd
+  exact CharZero.eq_neg_self_iff.mp h_odd
+
+private lemma deriv_z_coth_z_eq_deriv_B :
+    (fun w ↦ deriv (fun z ↦ z * coth z) w) = (fun w ↦ deriv (fun z ↦ B 0 (2 * z)) w) := by
+  ext w
+  by_cases hw : w = 0
+  · rw [hw, deriv_z_coth_z_at_zero]
+    have h_even : ∀ z, B 0 (2 * -z) = B 0 (2 * z) := fun z ↦ by
+      simp only [B, neg_eq_zero, mul_eq_zero, OfNat.ofNat_ne_zero, false_or]
+      split_ifs with h_s
+      · rfl
+      · ring_nf; simp [coth, Complex.tanh_neg]
+    have h_deriv_even := deriv_comp_neg (fun z ↦ B 0 (2 * z)) 0
+    simp only [neg_zero, h_even] at h_deriv_even
+    exact (CharZero.eq_neg_self_iff.mp h_deriv_even).symm
+  · have h_eq : (fun z ↦ z * coth z) =ᶠ[nhds w] (fun z ↦ B 0 (2 * z)) := by
+      filter_upwards [isClosed_singleton.isOpen_compl.mem_nhds hw] with z hz
+      have h2z : 2 * z ≠ 0 := mul_ne_zero (by norm_num) hz
+      simp [B, h2z]; ring
+    rw [h_eq.deriv_eq]
+
+private lemma analyticOn_deriv_z_coth_z {s : Set ℂ} (hs : s ⊆ {z | |z.im| < π}) :
+    AnalyticOn ℂ (fun w ↦ deriv (fun z ↦ z * coth z) w) s := by
+  rw [deriv_z_coth_z_eq_deriv_B]
+  intro w hw
+  have h_not_pole : ∀ (n : ℤ), n ≠ 0 → 2 * w ≠ 2 * ↑π * Complex.I * ↑n := by
+    intro n hn h
+    replace h : w = ↑n * ↑π * Complex.I := by
+      have h2 : (2 : ℂ) ≠ 0 := by norm_num
+      exact (mul_right_inj' h2).mp (by simp [h]; ring_nf)
+    have h_im : w.im = n * π := by
+      rw [h]; simp
+    have h_abs : |w.im| = |(n : ℝ)| * π := by
+      rw [h_im, abs_mul, abs_of_nonneg Real.pi_pos.le]
+    have h_n_ge_1 : 1 ≤ |(n : ℝ)| := by
+      norm_cast
+      exact Int.one_le_abs hn
+    have : π ≤ |w.im| := by
+      rw [h_abs]
+      nth_rw 1 [← one_mul π]
+      exact mul_le_mul h_n_ge_1 (le_refl _) Real.pi_pos.le (abs_nonneg _)
+    have hw_im : |w.im| < π := by
+      specialize hs hw; dsimp at hs; exact hs
+    linarith
+  exact (analyticAt_B 0 (2 * w) h_not_pole).comp (AnalyticAt.const_smul (c := (2 : ℂ)) analyticAt_id) |>.deriv.analyticWithinAt
+
+private lemma deriv_z_coth_z_growth_bound :
+    ∃ c < π / (π / 4 - -π / 4), ∃ B,
+      Asymptotics.IsBigO (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-π / 4) (π / 4)))
+        (fun z ↦ deriv (fun w ↦ w * coth w) z) (fun z ↦ rexp (B * rexp (c * |z.re|))) := by
+  use 1
+  constructor
+  · field_simp; linarith [Real.pi_pos]
+  · use 1
+    have h_f_bounded : ∃ C, ∀ z, |z.im| ≤ π / 4 → ‖deriv (fun w ↦ w * coth w) z‖ ≤ C := by
+      -- Subgoal A: f is analytic (and thus continuous) on the closed strip
+      have h_anal : AnalyticOn ℂ (fun w ↦ deriv (fun z ↦ z * coth z) w) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
+        apply analyticOn_deriv_z_coth_z
+        intro w hw; simp only [Set.mem_preimage, Set.mem_Icc] at hw
+        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
+      -- Subgoal B: f tends to ±1 as |Re z| → ∞ within the strip
+      have h_limit : Filter.Tendsto (fun z ↦ ‖deriv (fun w ↦ w * coth w) z‖)
+        (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-π / 4) (π / 4))) (nhds 1) := by
+        -- 1. Use (z coth z)' = coth z - z * csch² z.
+        -- 2. As |Re z| → ∞, ‖coth z‖ → 1 and ‖z * csch² z‖ → 0.
+        -- 3. Combine limits using Filter.Tendsto.add and Filter.Tendsto.norm.
+        sorry
+      -- Subgoal C: Continuous function with finite limits at infinity is bounded
+      -- Step 1: Use h_limit to find a bounded 'tail' region at infinity
+      obtain ⟨S_tail, hS_tail_mem, hS_tail_bounded⟩ := Metric.exists_isBounded_image_of_tendsto h_limit
+      
+      -- Find a rectangle basis for the filter to define a clean core/tail split
+      obtain ⟨R, _, hR_subset⟩ : ∃ R, (fun _ : ℝ ↦ True) R ∧ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4} ⊆ S_tail := by
+        have h_basis : (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-π / 4) (π / 4))).HasBasis (fun _ ↦ True) (fun R ↦ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4}) := by
+          have h_strip : im ⁻¹' Set.Icc (-π / 4) (π / 4) = {z : ℂ | |z.im| ≤ π / 4} := by
+            ext z; rw [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_le]; constructor <;> intro h <;> constructor <;> linarith
+          rw [h_strip]
+          apply Filter.HasBasis.inf_principal
+          apply Filter.HasBasis.comap (abs ∘ re)
+          apply Filter.atTop_basis
+        exact h_basis.mem_iff.mp hS_tail_mem
+      let R' := max R 1
+      have hR_pos : R' > 0 := by linarith [le_max_right R 1]
+      have hR_subset' : {z : ℂ | R' ≤ |z.re| ∧ |z.im| ≤ π / 4} ⊆ S_tail := by
+        intro z hz; apply hR_subset; exact ⟨(le_max_left R 1).trans hz.1, hz.2⟩
+      
+      let f := fun z : ℂ ↦ ‖deriv (fun w ↦ w * coth w) z‖
+      let S := im ⁻¹' Set.Icc (-π / 4 : ℝ) (π / 4)
+      let S_tail' := {z : ℂ | R' ≤ |z.re| ∧ |z.im| ≤ π / 4}
+      let S_core' := {z : ℂ | |z.re| ≤ R' ∧ |z.im| ≤ π / 4}
+
+      have hS_core_compact : IsCompact S_core' := by
+        -- Represent the core as a product of real intervals
+        have : S_core' = Set.reProdIm (Set.Icc (-R') R') (Set.Icc (-π / 4) (π / 4)) := by
+          ext z; simp [S_core', Set.reProdIm, abs_le]; constructor <;> intro h <;> constructor <;> linarith
+        rw [this]
+        exact isCompact_Icc.reProdIm isCompact_Icc
+
+      have hS_core_bounded : Bornology.IsBounded (f '' S_core') := by
+        -- Continuous image of compact set is compact (and thus bounded)
+        apply IsCompact.isBounded
+        apply IsCompact.image_of_continuousOn hS_core_compact
+        apply ContinuousOn.norm
+        apply h_anal.continuousOn.mono
+        intro z hz; simp [S, S_core', abs_le] at hz ⊢; constructor <;> linarith
+
+      have hS_tail_bounded' : Bornology.IsBounded (f '' S_tail') := by
+        -- Image of a subset of a bounded image is bounded
+        apply hS_tail_bounded.subset (Set.image_mono hR_subset')
+      
+      have h_is_bounded : Bornology.IsBounded (Set.range (fun (z : S) ↦ f z)) := by
+        -- Range is the union of image of core and image of tail
+        have h_range : Set.range (fun (z : S) ↦ f z) = f '' (S : Set ℂ) := by
+          ext w; simp; constructor <;> intro ⟨z, hz⟩ <;> use z
+        rw [h_range]
+        have h_union : (S : Set ℂ) = S_core' ∪ S_tail' := by
+          ext z; simp [S, S_core', S_tail', abs_le] at *
+          constructor
+          · intro h; cases le_total |z.re| R' with
+            | inl h1 => left; rw [abs_le] at h1; repeat constructor <;> linarith
+            | inr h1 => right; repeat constructor <;> linarith
+          · intro h; cases h with
+            | inl h1 => repeat constructor <;> linarith
+            | inr h1 => repeat constructor <;> linarith
+        rw [h_union, Set.image_union]
+        exact hS_core_bounded.union hS_tail_bounded'
+      obtain ⟨C, _, hC⟩ := h_is_bounded.exists_pos_norm_le
+      use C; intro z hz; simpa using hC ‖deriv (fun w ↦ w * coth w) z‖ ⟨(⟨z, by rw [abs_le] at hz; constructor; linarith; linarith⟩ : im ⁻¹' Set.Icc (-π / 4) (π / 4)), rfl⟩
+    obtain ⟨C, h_C⟩ := h_f_bounded
+    apply Asymptotics.IsBigO.of_bound (max C 1)
+    filter_upwards [Filter.mem_inf_of_right (Filter.mem_principal_self _)] with z hz
+    simp only [Set.mem_preimage, Set.mem_Ioo] at hz
+    calc ‖deriv (fun w ↦ w * coth w) z‖
+      _ ≤ C := h_C z (by rw [abs_le]; constructor <;> linarith)
+      _ ≤ max C 1 := le_max_left _ _
+      _ ≤ max C 1 * 1 := by simp
+      _ ≤ max C 1 * ‖rexp (1 * rexp (1 * |z.re|))‖ := by
+        simp only [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        apply mul_le_mul_of_nonneg_left
+        · apply Real.one_le_exp
+          apply mul_nonneg (by norm_num)
+          exact (Real.exp_pos _).le
+        · exact le_trans zero_le_one (le_max_right _ _)
+
+
+-- Establish the global bound ≤ 1 on the entire strip using Phragmén–Lindelöf.
+-- This consolidates the repeated logic from the boundary and interior cases.
+private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
+    ‖deriv (fun z ↦ z * coth z) w‖ ≤ 1 := by
+  set f := fun z : ℂ ↦ deriv (fun w : ℂ ↦ w * coth w) z
+  apply PhragmenLindelof.horizontal_strip (a := -π / 4) (b := π / 4) (C := 1)
+  · -- DiffContOnCl requirement
+    refine ⟨?_, ?_⟩
+    · apply (analyticOn_deriv_z_coth_z (s := im ⁻¹' Set.Ioo (-π / 4) (π / 4)) (by
+        intro v hv; simp only [Set.mem_preimage, Set.mem_Ioo] at hv
+        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos])).differentiableOn
+    · have h_cl : closure (im ⁻¹' Set.Ioo (-π / 4) (π / 4)) = im ⁻¹' Set.Icc (-π / 4) (π / 4) := by
+        rw [Complex.closure_preimage_im, closure_Ioo]; linarith [Real.pi_pos]
+      rw [h_cl]
+      apply (analyticOn_deriv_z_coth_z (s := im ⁻¹' Set.Icc (-π / 4) (π / 4)) (by
+        intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
+        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos])).continuousOn
+  · exact deriv_z_coth_z_growth_bound
+  · -- Lower boundary bound (Im = -π/4)
+    intro v hv; dsimp [f]
+    rw [← neg_neg v, deriv_z_coth_z_odd, norm_neg]
+    have : v = v.re + ↑(-π/4) * Complex.I := by apply Complex.ext <;> simp [hv]
+    have h_neg : -v = ↑(-v.re) + ↑(π/4) * Complex.I := by rw [this]; apply Complex.ext <;> simp; ring
+    rw [h_neg]; exact le_of_lt (deriv_z_coth_z_bound_boundary (-v.re))
+  · -- Upper boundary bound (Im = π/4)
+    intro v hv; dsimp [f]
+    have : v = v.re + ↑(π/4) * Complex.I := by apply Complex.ext <;> simp [hv]
+    rw [this]; exact le_of_lt (deriv_z_coth_z_bound_boundary v.re)
+  · rw [abs_le] at hw; linarith
+  · rw [abs_le] at hw; linarith
+
+theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ ↦ z * coth z) z‖ < 1 := by
+  set f := fun w : ℂ ↦ deriv (fun z : ℂ ↦ z * coth z) w
+  have h_at_zero : f 0 = 0 := deriv_z_coth_z_at_zero
+
+  -- Step 1: Establish global weak inequality
+  have h_le_one : ‖f z‖ ≤ 1 := deriv_z_coth_z_le_one z hz
+
+  -- Step 2: Establish strict inequality by contradiction
+  have h_ne_one : ‖f z‖ ≠ 1 := by
+    intro h_eq
+    by_cases h_bdy : |z.im| = π / 4
+    · -- Case: Boundary point. Direct contradiction with boundary lemma.
+      rcases abs_cases z.im with ⟨h_pos, _⟩ | ⟨h_neg, _⟩
+      · have : z = z.re + ↑(π/4) * Complex.I := by apply Complex.ext <;> simp <;> linarith [h_pos, h_bdy]
+        rw [this] at h_eq; linarith [deriv_z_coth_z_bound_boundary z.re]
+      · have : z = z.re + ↑(-π/4) * Complex.I := by apply Complex.ext <;> simp <;> ring_nf <;> linarith [h_neg, h_bdy]
+        have h_z_neg : z = -(-z.re + ↑(π/4) * Complex.I) := by rw [this]; apply Complex.ext <;> simp; ring
+        unfold f at h_eq
+        rw [h_z_neg, deriv_z_coth_z_odd, norm_neg] at h_eq
+        have h_bound := deriv_z_coth_z_bound_boundary (-z.re)
+        rw [Complex.ofReal_neg] at h_bound
+        linarith
+    · -- Case: Interior point. Maximum Modulus Principle implies constantness.
+      have h_int : |z.im| < π / 4 := lt_of_le_of_ne hz h_bdy
+      let U := Complex.im ⁻¹' Set.Ioo (-π / 4) (π / 4)
+      have hU_conn : IsPreconnected U := by
+        apply Convex.isPreconnected
+        change Convex ℝ ({c : ℂ | -π / 4 < c.im} ∩ {c : ℂ | c.im < π / 4})
+        apply Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
+      have hU_open : IsOpen U := isOpen_Ioo.preimage Complex.continuous_im
+      have hf_diff : DifferentiableOn ℂ f U := by
+        apply (analyticOn_deriv_z_coth_z (s := U) (by
+          intro w hw; simp only [U, Set.mem_preimage, Set.mem_Ioo, Set.mem_setOf_eq] at hw ⊢
+          rw [abs_lt]; constructor <;> linarith)).differentiableOn
+      have hzU : z ∈ U := by
+        simp only [U, Set.mem_preimage, Set.mem_Ioo]
+        convert abs_lt.mp h_int using 1
+        ring_nf
+      have hf_max : IsMaxOn (norm ∘ f) U z := by
+        intro w hw; dsimp [Function.comp]; rw [h_eq]
+        apply deriv_z_coth_z_le_one w
+        simp only [U, Set.mem_preimage, Set.mem_Ioo] at hw
+        rw [abs_le]; constructor <;> linarith
+      have hf_const : Set.EqOn f (fun _ ↦ f z) U :=
+        eqOn_of_isPreconnected_of_isMaxOn_norm hU_conn hU_open hf_diff hzU hf_max
+
+      -- Conclusion: If constant, f(0) = f(z), so 0 = ‖f z‖ = 1.
+      have h_0_in_U : (0 : ℂ) ∈ U := by simp [U]; constructor <;> linarith [Real.pi_pos]
+      have h_norm_zero : ‖f 0‖ = 1 := by rw [hf_const h_0_in_U, h_eq]
+      rw [h_at_zero, norm_zero] at h_norm_zero; norm_num at h_norm_zero
+
+  exact lt_of_le_of_ne h_le_one h_ne_one
 
 @[blueprint
   "CH2-lemma-4-2b"
