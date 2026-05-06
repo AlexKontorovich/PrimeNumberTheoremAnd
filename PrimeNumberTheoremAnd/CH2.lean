@@ -1,7 +1,5 @@
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.Complex.PhragmenLindelof
-import Mathlib.Topology.MetricSpace.Bounded
-import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
@@ -10,7 +8,6 @@ import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
-import Mathlib.Analysis.Complex.ReImTopology
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
