@@ -428,7 +428,7 @@ theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
   -/)
   (proof := /--
    From two integration by parts we obtain the identity
-  $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
+  $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{1}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
   Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to
   obtain the claim with $C = \pi + 1 / 4 \pi$.
   -/)
