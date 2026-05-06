@@ -802,8 +802,9 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   (statement := /--
     Let $m$ and $n$ be coprime natural numbers. The function $(a,b) \mapsto ab$ is injective on the
     product of the divisors of $m$ and $n$.
-
+    \begin{verbatim}
     Upstreamed to mathlib via PR #36495.
+    \end{verbatim}
   -/)
   (proof := /--
     Since $m$ and $n$ are coprime, any element in the product of their divisors can be uniquely
