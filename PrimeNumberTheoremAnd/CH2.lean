@@ -4635,23 +4635,25 @@ Since $|z|^2 \geq \frac{\pi^2}{4} > 2$, it suffices to show that $2x\operatornam
 private lemma differentiableAt_coth (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
     DifferentiableAt ℂ (fun w ↦ coth w) z := by
   unfold coth; simp only [Complex.tanh_eq_sinh_div_cosh, one_div, inv_div]
-  apply DifferentiableAt.div (by fun_prop) (by fun_prop) hz_sn
+  fun_prop (disch := assumption)
 
 private lemma differentiableAt_z_coth_z (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
-    DifferentiableAt ℂ (fun w ↦ w * coth w) z := by
-  apply DifferentiableAt.mul (by fun_prop) (differentiableAt_coth z hz_sn)
+    DifferentiableAt ℂ (fun w ↦ w * coth w) z :=
+  differentiableAt_id.mul (differentiableAt_coth z hz_sn)
 
 private lemma deriv_z_coth_z_eq (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
     deriv (fun w ↦ w * coth w) z = coth z - z / Complex.sinh z ^ 2 := by
-  have h_mul : (fun w ↦ w * coth w) = (fun w ↦ w) * (fun w ↦ coth w) := by ext w; rfl
-  rw [h_mul, deriv_mul (by fun_prop) (differentiableAt_coth z hz_sn), deriv_id'', one_mul]
-  have h_dc : deriv (fun w ↦ coth w) z = - 1 / (Complex.sinh z) ^ 2 := by
-    unfold coth; simp only [Complex.tanh_eq_sinh_div_cosh, one_div, inv_div]
-    change deriv (Complex.cosh / Complex.sinh) z = _
-    rw [deriv_div (Differentiable.differentiableAt Complex.differentiable_cosh)
-      (Differentiable.differentiableAt Complex.differentiable_sinh) hz_sn]
-    simp [sq, ← Complex.cosh_sq_sub_sinh_sq z]
-  rw [h_dc]; ring
+  rw [show (fun w ↦ w * coth w) = (fun w ↦ w) * (fun w ↦ coth w) from rfl,
+      deriv_mul (by fun_prop) (differentiableAt_coth z hz_sn), deriv_id'', one_mul]
+  unfold coth; simp only [Complex.tanh_eq_sinh_div_cosh, one_div, inv_div]
+  change Complex.cosh z / Complex.sinh z + z * deriv (Complex.cosh / Complex.sinh) z = _
+  rw [deriv_div (Differentiable.differentiableAt Complex.differentiable_cosh)
+    (Differentiable.differentiableAt Complex.differentiable_sinh) hz_sn]
+  simp [sq, Complex.deriv_sinh, Complex.deriv_cosh]
+  field_simp [hz_sn]
+  have : Complex.sinh z ^ 2 - Complex.cosh z ^ 2 = -1 := by
+    rw [← neg_sub, Complex.cosh_sq_sub_sinh_sq z]
+  rw [this]; ring
 
 private lemma deriv_z_coth_z_eq_alt (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
     deriv (fun w ↦ w * coth w) z = (Complex.sinh (2 * z) / 2 - z) / Complex.sinh z ^ 2 := by
@@ -4671,17 +4673,9 @@ private lemma normSq_sinh (z : ℂ) : ‖Complex.sinh z‖ ^ 2 = Real.sinh z.re 
     _ = Complex.normSq (Complex.sinh z) := by rw [Complex.sq_norm]
     _ = Complex.normSq (↑(Real.sinh z.re * Real.cos z.im) + ↑(Real.cosh z.re * Real.sin z.im) * Complex.I) := by rw [h_eq]
     _ = (Real.sinh z.re * Real.cos z.im) ^ 2 + (Real.cosh z.re * Real.sin z.im) ^ 2 := by
-      -- Evaluate the squared norm of a complex number x + iy using the symbolic structure
       rw [Complex.normSq_add_mul_I]
-    _ = Real.sinh z.re ^ 2 * Real.cos z.im ^ 2 + Real.cosh z.re ^ 2 * Real.sin z.im ^ 2 := by
-      -- Distribute the squares over the products
-      ring
-    _ = Real.sinh z.re ^ 2 * (1 - Real.sin z.im ^ 2) + (1 + Real.sinh z.re ^ 2) * Real.sin z.im ^ 2 := by
-      -- Substitute cos²(y) = 1 - sin²(y) and cosh²(x) = 1 + sinh²(x)
-      rw [Real.cos_sq' z.im, Real.cosh_sq' z.re]
     _ = Real.sinh z.re ^ 2 + Real.sin z.im ^ 2 := by
-      -- Simplify the resulting algebraic expression
-      ring
+      ring_nf; rw [Real.cos_sq' z.im, Real.cosh_sq' z.re]; ring
 
 private lemma normSq_cosh (z : ℂ) : ‖Complex.cosh z‖ ^ 2 = Real.sinh z.re ^ 2 + Real.cos z.im ^ 2 := by
   have h_eq : Complex.cosh z = ↑(Real.cosh z.re * Real.cos z.im) + ↑(Real.sinh z.re * Real.sin z.im) * Complex.I := by
@@ -4695,17 +4689,9 @@ private lemma normSq_cosh (z : ℂ) : ‖Complex.cosh z‖ ^ 2 = Real.sinh z.re 
     _ = Complex.normSq (Complex.cosh z) := by rw [Complex.sq_norm]
     _ = Complex.normSq (↑(Real.cosh z.re * Real.cos z.im) + ↑(Real.sinh z.re * Real.sin z.im) * Complex.I) := by rw [h_eq]
     _ = (Real.cosh z.re * Real.cos z.im) ^ 2 + (Real.sinh z.re * Real.sin z.im) ^ 2 := by
-      -- Evaluate the squared norm of a complex number x + iy using the symbolic structure
       rw [Complex.normSq_add_mul_I]
-    _ = Real.cosh z.re ^ 2 * Real.cos z.im ^ 2 + Real.sinh z.re ^ 2 * Real.sin z.im ^ 2 := by
-      -- Distribute the squares over the products
-      ring
-    _ = (1 + Real.sinh z.re ^ 2) * Real.cos z.im ^ 2 + Real.sinh z.re ^ 2 * (1 - Real.cos z.im ^ 2) := by
-      -- Substitute cosh²(x) = 1 + sinh²(x) and sin²(y) = 1 - cos²(y)
-      rw [Real.cosh_sq' z.re, Real.sin_sq z.im]
     _ = Real.sinh z.re ^ 2 + Real.cos z.im ^ 2 := by
-      -- Simplify the resulting algebraic expression
-      ring
+      ring_nf; rw [Real.cosh_sq' z.re, Real.sin_sq z.im]; ring
 
 private lemma normSq_coth_eq (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
     ‖coth z‖ ^ 2 = 1 + Real.cos (2 * z.im) / (Real.sinh z.re ^ 2 + Real.sin z.im ^ 2) := by
@@ -4721,12 +4707,9 @@ private lemma normSq_coth_eq (z : ℂ) (hz_sn : Complex.sinh z ≠ 0) :
 lemma deriv_z_coth_z_odd (w : ℂ) :
     deriv (fun z ↦ z * coth z) (-w) = -deriv (fun z ↦ z * coth z) w := by
   let g := fun z : ℂ ↦ z * coth z
-  have h_even : ∀ z, g (-z) = g z := by
-    intro z; dsimp [g]; simp [coth, Complex.tanh_neg]
-  have h_comp : (fun z ↦ g (-z)) = g := by
-    ext z; exact h_even z
+  have h_even : ∀ z, g (-z) = g z := fun z ↦ by dsimp [g]; simp [coth, Complex.tanh_neg]
   have h_deriv_comp := deriv_comp_neg g w
-  rw [h_comp] at h_deriv_comp
+  rw [funext h_even] at h_deriv_comp
   rw [h_deriv_comp, neg_neg]
 
 -- Proves the positivity of the denominator and related terms for the norm-squared reduction.
@@ -4739,18 +4722,13 @@ private lemma pi_cosh_two_mul_sub_bounds (x : ℝ) :
       rw [← sq_abs x, ← sq_abs (Real.sinh x), Real.abs_sinh]
       exact pow_le_pow_left₀ (abs_nonneg x) hx_le 2
     linarith [Real.cosh_two_mul x, Real.sinh_sq x]
-  have h_pi_bounds : 3 < π ∧ π ≤ 4 := ⟨Real.pi_gt_three, Real.pi_le_four⟩
   calc 0 < π * (1 - π / 4) := by
         apply mul_pos Real.pi_pos
-        have : π < 4 := Real.pi_lt_four
-        linarith
+        linarith [Real.pi_lt_four]
     _ = π - π ^ 2 / 4 := by ring
     _ ≤ (π - π ^ 2 / 4) + (2 * π - 4) * x ^ 2 := by
-      have : 0 ≤ (2 * π - 4) * x ^ 2 := by
-        apply mul_nonneg
-        · linarith [h_pi_bounds.1]
-        · exact sq_nonneg x
-      linarith
+      have : 0 ≤ 2 * π - 4 := by linarith [Real.pi_gt_three]
+      linarith [mul_nonneg this (sq_nonneg x)]
     _ = π * (1 + 2 * x ^ 2) - π ^ 2 / 4 - 4 * x ^ 2 := by ring
     _ ≤ π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2 := by
       apply sub_le_sub_right; apply sub_le_sub_right
@@ -4777,8 +4755,6 @@ lemma deriv_z_coth_z_bound_boundary (x : ℝ) :
       ring_nf at h
       exact_mod_cast h.symm
     omega
-
-  have h_diff : DifferentiableAt ℂ f z₀ := differentiableAt_z_coth_z z₀ h_snz
 
   -- 2. Formula
   have h_deriv_eq : deriv f z₀ = (Complex.sinh (2 * z₀) / 2 - z₀) / (Complex.sinh z₀ ^ 2) :=
@@ -4815,11 +4791,7 @@ lemma deriv_z_coth_z_bound_boundary (x : ℝ) :
   -- 4. Inequality
   have h_pos : 0 < (π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2) := pi_cosh_two_mul_sub_bounds x
   have h_normSq_lt : ‖deriv f z₀‖^2 < 1 := by
-    rw [h_normSq]
-    have h_denom : 0 < Real.cosh (2 * x) ^ 2 := by positivity
-    have h_frac_pos : 0 < (π * Real.cosh (2 * x) - π ^ 2 / 4 - 4 * x ^ 2) / (Real.cosh (2 * x) ^ 2) :=
-      div_pos h_pos h_denom
-    linarith
+    rw [h_normSq]; linarith [div_pos h_pos (by positivity : 0 < Real.cosh (2 * x) ^ 2)]
   nlinarith [norm_nonneg (deriv f z₀), sq_nonneg (‖deriv f z₀‖)]
 
 
@@ -4853,7 +4825,6 @@ private lemma deriv_z_coth_z_eq_deriv_B :
 private lemma strip_filter_basis :
     (Filter.comap (abs ∘ Complex.re) Filter.atTop ⊓ Filter.principal (Complex.im ⁻¹' Set.Icc (-π / 4) (π / 4))).HasBasis
       (fun _ ↦ True) (fun R ↦ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4}) := by
-  let F := Filter.comap (abs ∘ Complex.re) Filter.atTop ⊓ Filter.principal (Complex.im ⁻¹' Set.Icc (-π / 4) (π / 4))
   have h_strip : Complex.im ⁻¹' Set.Icc (-π / 4) (π / 4) = {z : ℂ | |z.im| ≤ π / 4} := by
     ext z; rw [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_le]
     constructor <;> intro h <;> constructor <;> linarith
@@ -4866,19 +4837,14 @@ private lemma tendsto_sinh_atTop : Filter.Tendsto Real.sinh Filter.atTop Filter.
   have h_le : ∀ x : ℝ, 0 ≤ x → (Real.exp x - 1) / 2 ≤ Real.sinh x := by
     intro x hx
     rw [Real.sinh_eq]
-    -- e^(-x) ≤ 1 is equivalent to -x ≤ 0
     have h_exp_neg : Real.exp (-x) ≤ 1 := Real.exp_le_one_iff.mpr (neg_nonpos.mpr hx)
     linarith
 
   have h_tendsto_exp : Filter.Tendsto (fun x ↦ (Real.exp x - 1) / 2) Filter.atTop Filter.atTop := by
-    -- (e^x - 1) tends to infinity by shifting e^x
     have h1 : Filter.Tendsto (fun x ↦ Real.exp x - 1) Filter.atTop Filter.atTop := by
       simpa [sub_eq_add_neg] using Filter.tendsto_atTop_add_const_right Filter.atTop (-1 : ℝ) Real.tendsto_exp_atTop
-    -- dividing by 2 preserves the limit
     exact h1.atTop_div_const (by norm_num : (0 : ℝ) < 2)
 
-  -- Sketch: Conclude using the comparison theorem for limits at infinity.
-  -- `tendsto_atTop_mono'` pushes the limit from the lower bound to `Real.sinh`.
   exact Filter.tendsto_atTop_mono' Filter.atTop (Filter.eventually_ge_atTop 0 |>.mono h_le) h_tendsto_exp
 
 private lemma tendsto_linear_div_sinh_sq (c : ℝ) :
