@@ -10,6 +10,7 @@ import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
+import Mathlib.Analysis.Complex.ReImTopology
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
@@ -5035,13 +5036,20 @@ private lemma analyticOn_deriv_z_coth_z {s : Set ℂ} (hs : s ⊆ {z | |z.im| < 
   intro w hw
   have h_not_pole : ∀ (n : ℤ), n ≠ 0 → 2 * w ≠ 2 * ↑π * Complex.I * ↑n := by
     intro n hn h
-    rw [mul_right_inj' (by norm_num : (2 : ℂ) ≠ 0)] at h
+    replace h : w = ↑π * Complex.I * ↑n := by
+      simpa [mul_assoc] using h
     have h_im : w.im = n * π := by
-      rw [h]; simp
+      rw [h]; simp [mul_comm]
     have : π ≤ |w.im| := by
       rw [h_im, abs_mul, abs_of_pos Real.pi_pos]
-      exact (mul_le_mul_right Real.pi_pos).mpr (by exact_mod_cast Int.one_le_abs hn)
-    linarith [(hs hw : |w.im| < π)]
+      nth_rw 1 [← one_mul π]
+      apply mul_le_mul_of_nonneg_right
+      · exact_mod_cast Int.one_le_abs hn
+      · exact Real.pi_pos.le
+    replace hw := hs hw
+    simp only [Set.mem_setOf_eq] at hw
+    rcases abs_cases w.im with ⟨h_abs, _⟩ | ⟨h_abs, _⟩ <;> linarith
+
   exact (analyticAt_B 0 (2 * w) h_not_pole).comp (AnalyticAt.const_smul (c := (2 : ℂ)) analyticAt_id) |>.deriv.analyticWithinAt
 
 private lemma tendsto_deriv_z_coth_z_norm_atTop_strip :
@@ -5144,258 +5152,48 @@ private lemma deriv_z_coth_z_growth_bound :
   constructor
   · field_simp; linarith [Real.pi_pos]
   · use 1
-    have h_f_bounded : ∃ C, ∀ z, |z.im| ≤ π / 4 → ‖deriv (fun w ↦ w * coth w) z‖ ≤ C := by
-      -- Subgoal A: f is analytic (and thus continuous) on the closed strip
-      have h_anal : AnalyticOn ℂ (fun w ↦ deriv (fun z ↦ z * coth z) w) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
-        apply analyticOn_deriv_z_coth_z
-        intro w hw; simp only [Set.mem_preimage, Set.mem_Icc] at hw
-        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
-      -- Subgoal B: f tends to 1 as |Re z| → ∞ within the strip
-      have h_limit : Filter.Tendsto (fun z ↦ ‖deriv (fun w ↦ w * coth w) z‖)
-        (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-π / 4) (π / 4))) (nhds 1) := by
-        let F := Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-π / 4) (π / 4))
-        have h_basis : F.HasBasis (fun _ ↦ True) (fun R ↦ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4}) := by
-          have h_strip : im ⁻¹' Set.Icc (-π / 4) (π / 4) = {z : ℂ | |z.im| ≤ π / 4} := by
-            ext z; rw [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_le]
-            constructor <;> intro h <;> constructor <;> linarith
-          dsimp [F]; rw [h_strip]
-          apply Filter.HasBasis.inf_principal
-          apply Filter.HasBasis.comap (abs ∘ re)
-          apply Filter.atTop_basis
-        -- 1. Differentiability witness.
-        have h_diff : ∀ᶠ z in F, DifferentiableAt ℂ (fun w ↦ w * coth w) z := by
-          refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
-          simp only [Set.mem_setOf_eq] at hz
-          have h_snz : Complex.sinh z ≠ 0 := sinh_ne_zero_of_re_ne_zero (abs_pos.mp (by linarith [hz.1]))
-          exact differentiableAt_z_coth_z z h_snz
-        -- 2. Derivative identity on the strip.
-        have h_deriv_id : ∀ᶠ z in F, deriv (fun w ↦ w * coth w) z = coth z - z / (Complex.sinh z) ^ 2 := by
-          refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
-          simp only [Set.mem_setOf_eq] at hz
-          have h_snz : Complex.sinh z ≠ 0 := sinh_ne_zero_of_re_ne_zero (abs_pos.mp (by linarith [hz.1]))
-          exact deriv_z_coth_z_eq z h_snz
-        -- 3. Limit of ‖coth z‖ is 1.
-        have h_lim_coth : Filter.Tendsto (fun z ↦ ‖coth z‖) F (nhds 1) := by
-          have h_lim_coth_sq : Filter.Tendsto (fun z ↦ ‖coth z‖ ^ 2) F (nhds 1) := by
-            have h_eq : (fun z ↦ ‖coth z‖ ^ 2) =ᶠ[F] (fun z ↦ 1 + (Real.cos (2 * z.im)) / (Real.sinh z.re ^ 2 + Real.sin z.im ^ 2)) := by
-              refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
-              simp only [Set.mem_setOf_eq] at hz
-              have h_snz : Complex.sinh z ≠ 0 := sinh_ne_zero_of_re_ne_zero (abs_pos.mp (by linarith [hz.1]))
-              exact normSq_coth_eq z h_snz
-            refine Filter.Tendsto.congr' h_eq.symm ?_
-            have h_lim_frac : Filter.Tendsto (fun z ↦ (Real.cos (2 * z.im)) / (Real.sinh z.re ^ 2 + Real.sin z.im ^ 2)) F (nhds 0) := by
-              rw [tendsto_zero_iff_norm_tendsto_zero]
-              have h_lim_upper : Filter.Tendsto (fun z : ℂ ↦ 1 / Real.sinh z.re ^ 2) F (nhds 0) := by
-                have h_re : Filter.Tendsto (fun z : ℂ ↦ |z.re|) F Filter.atTop := by
-                  apply Filter.tendsto_inf_left; exact Filter.tendsto_comap
-                have h_sinh : Filter.Tendsto (fun x : ℝ ↦ Real.sinh x ^ 2) Filter.atTop Filter.atTop := by
-                  apply (Filter.tendsto_pow_atTop (by norm_num)).comp tendsto_sinh_atTop
-                convert tendsto_inv_atTop_zero.comp (h_sinh.comp h_re) using 1
-                ext z
-                simp [← Real.abs_sinh]
-
-              refine Filter.Tendsto.squeeze' tendsto_const_nhds h_lim_upper ?_ ?_
-              · filter_upwards with z; apply norm_nonneg
-              · refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
-                simp only [Set.mem_setOf_eq] at hz
-                simp only [Real.norm_eq_abs, abs_div]
-                have h_den_pos : 0 < Real.sinh z.re ^ 2 + Real.sin z.im ^ 2 := by
-                  have h_snz : Real.sinh z.re ≠ 0 := Real.sinh_ne_zero.mpr (abs_pos.mp (by linarith [hz.1]))
-                  apply add_pos_of_pos_of_nonneg (sq_pos_of_ne_zero h_snz) (sq_nonneg (Real.sin z.im))
-                have h_sinh_pos : 0 < Real.sinh z.re ^ 2 := by
-                  have h_snz : Real.sinh z.re ≠ 0 := Real.sinh_ne_zero.mpr (abs_pos.mp (by linarith [hz.1]))
-                  exact sq_pos_of_ne_zero h_snz
-                rw [abs_of_pos h_den_pos]
-                apply div_le_div₀ (by norm_num) (Real.abs_cos_le_one _) h_sinh_pos
-                apply le_add_of_nonneg_right (sq_nonneg (Real.sin z.im))
-            convert Filter.Tendsto.add (tendsto_const_nhds (x := 1)) h_lim_frac; simp
-          convert (Filter.Tendsto.sqrt h_lim_coth_sq) using 1
-          · ext z; exact (Real.sqrt_sq (norm_nonneg _)).symm
-          · simp [Real.sqrt_one]
-        -- 4. Limit of tail term is 0.
-        have h_lim_tail : Filter.Tendsto (fun z ↦ z / (Complex.sinh z) ^ 2) F (nhds 0) := by
-          rw [tendsto_zero_iff_norm_tendsto_zero]
-          have h_le : ∀ᶠ z in F, ‖z / Complex.sinh z ^ 2‖ ≤ (|z.re| + π / 4) / Real.sinh z.re ^ 2 := by
-            refine h_basis.eventually_iff.mpr ⟨1, True.intro, ?_⟩
-            intro z hz
-            rw [norm_div, norm_pow, normSq_sinh]
-            have h_snz_re : Real.sinh z.re ≠ 0 := Real.sinh_ne_zero.mpr (abs_pos.mp (by linarith [hz.1]))
-            have h_sinh_pos : 0 < Real.sinh z.re ^ 2 := sq_pos_of_ne_zero h_snz_re
-            have h_num_pos : 0 ≤ |z.re| + π / 4 := by positivity
-            apply div_le_div₀ h_num_pos
-            · exact (norm_le_abs_re_add_abs_im z).trans (add_le_add (le_refl |z.re|) hz.2)
-            · exact h_sinh_pos
-            · exact le_add_of_nonneg_right (sq_nonneg _)
-          refine Filter.Tendsto.squeeze' tendsto_const_nhds ?_ ?_ h_le
-          · -- Upper limit subgoal: (|z.re| + π / 4) / Real.sinh z.re ^ 2 → 0
-            have h_re_abs : Filter.Tendsto (fun z : ℂ ↦ |z.re|) F Filter.atTop := by
-              apply Filter.tendsto_inf_left; exact Filter.tendsto_comap
-            have h_atTop : Filter.Tendsto (fun x : ℝ ↦ (x + π / 4) / Real.sinh x ^ 2) Filter.atTop (nhds 0) := by
-              rw [tendsto_zero_iff_norm_tendsto_zero]
-              let h_upper := fun (x : ℝ) ↦ (x + π / 4) * (16 / rexp (2 * x))
-              have h_lim_upper : Filter.Tendsto h_upper Filter.atTop (nhds 0) := by
-                refine Filter.Tendsto.congr' (f₁ := fun x ↦ 16 * (x * rexp (-2 * x)) + 4 * π * rexp (-2 * x)) ?_ ?_
-                · filter_upwards with x; unfold h_upper; field_simp [Real.exp_pos (2 * x)]; ring_nf; simp only [Real.exp_neg]; field_simp
-                · have h1 : Filter.Tendsto (fun x ↦ 16 * (x * rexp (-2 * x))) Filter.atTop (nhds 0) := by
-                    have h_lim := Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero 1
-                    simp only [pow_one] at h_lim
-                    have h_comp := h_lim.comp (Filter.tendsto_id.const_mul_atTop (by norm_num : (0 : ℝ) < 2))
-                    convert h_comp.const_mul (8 : ℝ) using 1
-                    · ext x; simp; ring
-                    · simp
-                  have h2 : Filter.Tendsto (fun x ↦ 4 * π * rexp (-2 * x)) Filter.atTop (nhds 0) := by
-                    have h_lim := Real.tendsto_exp_neg_atTop_nhds_zero
-                    have h_comp := h_lim.comp (Filter.tendsto_id.const_mul_atTop (by norm_num : (0 : ℝ) < 2))
-                    convert h_comp.const_mul (4 * π) using 1
-                    · ext x; simp
-                    · simp
-                  convert Filter.Tendsto.add h1 h2; simp
-              refine Filter.Tendsto.squeeze' tendsto_const_nhds h_lim_upper ?_ ?_
-              · filter_upwards with x; apply norm_nonneg
-              · filter_upwards [Filter.eventually_ge_atTop 1] with x hx
-                rw [Real.norm_eq_abs, abs_of_pos (by positivity), Real.sinh_eq]
-                unfold h_upper
-                have h_pos_num : 0 ≤ x + π / 4 := by linarith [hx, Real.pi_pos]
-                apply mul_le_mul_of_nonneg_left _ h_pos_num
-                have h_sinh_pos : 0 < (rexp x - rexp (-x)) ^ 2 := by
-                  apply pow_pos; rw [sub_pos, Real.exp_lt_exp]; linarith [hx]
-                field_simp [Real.exp_pos x]
-                apply (div_le_iff₀ h_sinh_pos).mpr
-                have h_exp_sq : rexp (x * 2) = (rexp x) ^ 2 := by
-                  rw [Real.exp_mul, Real.rpow_two, sq]
-                rw [h_exp_sq]
-                have h_16 : (16 : ℝ) = 4 ^ 2 := by norm_num
-                rw [h_16, ← mul_pow, ← mul_pow]
-                apply pow_le_pow_left₀ (by positivity)
-                rw [mul_sub]
-                rw [Real.exp_neg]
-                field_simp [Real.exp_pos x]
-                rw [← h_exp_sq]
-                linarith [hx, Real.add_one_le_exp (x * 2)]
-            convert h_atTop.comp h_re_abs using 1
-            · ext z; simp [← sq_abs, Real.abs_sinh]
-          · -- Lower inequality subgoal: 0 ≤ ‖z / Complex.sinh z ^ 2‖
-            filter_upwards with z; apply norm_nonneg
-        -- 5. Combine limits.
-        have h_deriv_norm : (fun z ↦ ‖deriv (fun w ↦ w * coth w) z‖) =ᶠ[F] (fun z ↦ ‖coth z - z / Complex.sinh z ^ 2‖) :=
-          Filter.EventuallyEq.fun_comp h_deriv_id norm
-        refine Filter.Tendsto.congr' h_deriv_norm.symm ?_
-        have h_lim_diff : Filter.Tendsto (fun z ↦ ‖coth z - z / Complex.sinh z ^ 2‖ - ‖coth z‖) F (nhds 0) := by
-          rw [tendsto_zero_iff_norm_tendsto_zero]
-          have h_norm_tail : Filter.Tendsto (fun z ↦ ‖z / Complex.sinh z ^ 2‖) F (nhds 0) := by
-            convert Filter.Tendsto.norm h_lim_tail; simp
-          refine Filter.Tendsto.squeeze' tendsto_const_nhds h_norm_tail ?_ ?_
-          · filter_upwards with z; apply norm_nonneg
-          · filter_upwards with z
-            exact (abs_norm_sub_norm_le (coth z - z / Complex.sinh z ^ 2) (coth z)).trans_eq (by simp)
-        convert Filter.Tendsto.add h_lim_diff h_lim_coth using 1
-        · ext z; simp
-        · simp
-      -- Subgoal C: Continuous function with finite limits at infinity is bounded
-      -- Step 1: Use h_limit to find a bounded 'tail' region at infinity
-      obtain ⟨S_tail, hS_tail_mem, hS_tail_bounded⟩ := Metric.exists_isBounded_image_of_tendsto h_limit
-
-      -- Find a rectangle basis for the filter to define a clean core/tail split
-      obtain ⟨R, _, hR_subset⟩ : ∃ R, (fun _ : ℝ ↦ True) R ∧ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4} ⊆ S_tail := by
-        have h_basis : (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-π / 4) (π / 4))).HasBasis (fun _ ↦ True) (fun R ↦ {z : ℂ | R ≤ |z.re| ∧ |z.im| ≤ π / 4}) := by
-          have h_strip : im ⁻¹' Set.Icc (-π / 4) (π / 4) = {z : ℂ | |z.im| ≤ π / 4} := by
-            ext z; rw [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_le]; constructor <;> intro h <;> constructor <;> linarith
-          rw [h_strip]
-          apply Filter.HasBasis.inf_principal
-          apply Filter.HasBasis.comap (abs ∘ re)
-          apply Filter.atTop_basis
-        exact h_basis.mem_iff.mp hS_tail_mem
-      let R' := max R 1
-      have hR_pos : R' > 0 := by linarith [le_max_right R 1]
-      have hR_subset' : {z : ℂ | R' ≤ |z.re| ∧ |z.im| ≤ π / 4} ⊆ S_tail := by
-        intro z hz; apply hR_subset; exact ⟨(le_max_left R 1).trans hz.1, hz.2⟩
-
-      let f := fun z : ℂ ↦ ‖deriv (fun w ↦ w * coth w) z‖
-      let S := im ⁻¹' Set.Icc (-π / 4 : ℝ) (π / 4)
-      let S_tail' := {z : ℂ | R' ≤ |z.re| ∧ |z.im| ≤ π / 4}
-      let S_core' := {z : ℂ | |z.re| ≤ R' ∧ |z.im| ≤ π / 4}
-
-      have hS_core_compact : IsCompact S_core' := by
-        have : S_core' = reProdIm (Set.Icc (-R') R') (Set.Icc (-π / 4) (π / 4)) := by
-          ext z; simp [S_core', reProdIm, abs_le, Set.mem_Icc, neg_div]
-        rw [this]
-        exact IsCompact.reProdIm isCompact_Icc isCompact_Icc
-
-      have hS_core_bounded : Bornology.IsBounded (f '' S_core') := by
-        -- Continuous image of compact set is compact (and thus bounded)
-        apply IsCompact.isBounded
-        apply IsCompact.image_of_continuousOn hS_core_compact
-        apply ContinuousOn.norm
-        apply h_anal.continuousOn.mono
-        intro z hz
-        simp only [abs_le, Set.mem_setOf_eq, neg_div, Set.mem_preimage, Set.mem_Icc,
-          S_core'] at hz ⊢
-        rcases hz with ⟨_, h_im⟩; exact h_im
-
-      have hS_tail_bounded' : Bornology.IsBounded (f '' S_tail') := by
-        -- Image of a subset of a bounded image is bounded
-        apply hS_tail_bounded.subset (Set.image_mono hR_subset')
-
-      have h_is_bounded : Bornology.IsBounded (Set.range (fun (z : S) ↦ f z)) := by
-        -- Range is the union of image of core and image of tail
-        have h_range : Set.range (fun (z : S) ↦ f z) = f '' (S : Set ℂ) := by
-          ext w; simp
-        rw [h_range]
-        have h_union : (S : Set ℂ) = S_core' ∪ S_tail' := by
-          ext z; simp only [neg_div, abs_le, gt_iff_lt, Set.mem_preimage, Set.mem_Icc,
-            Set.mem_union, Set.mem_setOf_eq, S_core', S_tail', S] at *
-          constructor <;> intro h
-          · cases le_total |z.re| R' with
-            | inl h1 => left; exact ⟨abs_le.mp h1, h⟩
-            | inr h1 => right; exact ⟨h1, h⟩
-          · cases h with
-            | inl h1 => exact h1.2
-            | inr h1 => exact h1.2
-        rw [h_union, Set.image_union]
-        exact hS_core_bounded.union hS_tail_bounded'
-      obtain ⟨C, _, hC⟩ := h_is_bounded.exists_pos_norm_le
-      use C; intro z hz; simpa using hC ‖deriv (fun w ↦ w * coth w) z‖ ⟨(⟨z, by rw [abs_le] at hz; constructor <;> linarith⟩ : im ⁻¹' Set.Icc (-π / 4) (π / 4)), rfl⟩
-    obtain ⟨C, h_C⟩ := h_f_bounded
-    apply Asymptotics.IsBigO.of_bound (max C 1)
+    obtain ⟨C, hC_pos, hC⟩ := deriv_z_coth_z_bounded
+    apply Asymptotics.IsBigO.of_bound C
     filter_upwards [Filter.mem_inf_of_right (Filter.mem_principal_self _)] with z hz
     simp only [Set.mem_preimage, Set.mem_Ioo] at hz
-    calc ‖deriv (fun w ↦ w * coth w) z‖
-      _ ≤ C := h_C z (by rw [abs_le]; constructor <;> linarith)
-      _ ≤ max C 1 := le_max_left _ _
-      _ ≤ max C 1 * 1 := by simp
-      _ ≤ max C 1 * ‖rexp (1 * rexp (1 * |z.re|))‖ := by
-        simp only [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
-        apply mul_le_mul_of_nonneg_left
-        · apply Real.one_le_exp
-          apply mul_nonneg (by norm_num)
-          exact (Real.exp_pos _).le
-        · exact le_trans zero_le_one (le_max_right _ _)
+    have h_bound : |z.im| ≤ π / 4 := by
+      rw [abs_le]; constructor <;> linarith
+    refine (hC z h_bound).trans ?_
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    calc C
+      _ = C * 1 := (mul_one C).symm
+      _ ≤ C * rexp (1 * rexp (1 * |z.re|)) := by
+          apply mul_le_mul_of_nonneg_left
+          · apply Real.one_le_exp_iff.mpr
+            positivity
+          · exact hC_pos.le
 
+
+private lemma analyticOn_deriv_z_coth_z_strip :
+    AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
+  apply analyticOn_deriv_z_coth_z
+  intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
+  simp_rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
 
 -- Establish the global bound ≤ 1 on the entire strip using Phragmén–Lindelöf.
--- This consolidates the repeated logic from the boundary and interior cases.
 private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
     ‖deriv (fun z ↦ z * coth z) w‖ ≤ 1 := by
   set f := fun z : ℂ ↦ deriv (fun w : ℂ ↦ w * coth w) z
   apply PhragmenLindelof.horizontal_strip (a := -π / 4) (b := π / 4) (C := 1)
   · -- DiffContOnCl requirement
-    refine ⟨?_, ?_⟩
-    · apply (analyticOn_deriv_z_coth_z (s := im ⁻¹' Set.Ioo (-π / 4) (π / 4)) (by
-        intro v hv; simp only [Set.mem_preimage, Set.mem_Ioo] at hv
-        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos])).differentiableOn
-    · have h_cl : closure (im ⁻¹' Set.Ioo (-π / 4) (π / 4)) = im ⁻¹' Set.Icc (-π / 4) (π / 4) := by
-        rw [Complex.closure_preimage_im, closure_Ioo]; linarith [Real.pi_pos]
-      rw [h_cl]
-      apply (analyticOn_deriv_z_coth_z (s := im ⁻¹' Set.Icc (-π / 4) (π / 4)) (by
-        intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
-        dsimp; rw [abs_lt]; constructor <;> linarith [Real.pi_pos])).continuousOn
+    constructor
+    · exact (analyticOn_deriv_z_coth_z_strip.mono (Set.preimage_mono Set.Ioo_subset_Icc_self)).differentiableOn
+    · rw [Complex.closure_preimage_im, closure_Ioo]
+      · exact analyticOn_deriv_z_coth_z_strip.continuousOn
+      · linarith [Real.pi_pos]
   · exact deriv_z_coth_z_growth_bound
   · -- Lower boundary bound (Im = -π/4)
     intro v hv; dsimp [f]
     rw [← neg_neg v, deriv_z_coth_z_odd, norm_neg]
     have : v = v.re + ↑(-π/4) * Complex.I := by apply Complex.ext <;> simp [hv]
-    have h_neg : -v = ↑(-v.re) + ↑(π/4) * Complex.I := by rw [this]; apply Complex.ext <;> simp; ring
-    rw [h_neg]; exact le_of_lt (deriv_z_coth_z_bound_boundary (-v.re))
+    have h_arg : -(↑v.re + ↑(-π / 4) * Complex.I) = ↑(-v.re) + ↑(π / 4) * Complex.I := by
+      apply Complex.ext <;> simp; ring
+    rw [this, h_arg]; exact le_of_lt (deriv_z_coth_z_bound_boundary (-v.re))
   · -- Upper boundary bound (Im = π/4)
     intro v hv; dsimp [f]
     have : v = v.re + ↑(π/4) * Complex.I := by apply Complex.ext <;> simp [hv]
@@ -5434,9 +5232,7 @@ theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ 
         apply Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
       have hU_open : IsOpen U := isOpen_Ioo.preimage Complex.continuous_im
       have hf_diff : DifferentiableOn ℂ f U := by
-        apply (analyticOn_deriv_z_coth_z (s := U) (by
-          intro w hw; simp only [U, Set.mem_preimage, Set.mem_Ioo, Set.mem_setOf_eq] at hw ⊢
-          rw [abs_lt]; constructor <;> linarith)).differentiableOn
+        apply (analyticOn_deriv_z_coth_z_strip.mono (Set.preimage_mono Set.Ioo_subset_Icc_self)).differentiableOn
       have hzU : z ∈ U := by
         simp only [U, Set.mem_preimage, Set.mem_Ioo]
         convert abs_lt.mp h_int using 1
