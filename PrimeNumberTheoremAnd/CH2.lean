@@ -5020,8 +5020,8 @@ private lemma HorizontalStrip.exists_norm_deriv_z_coth_z_le (c : ℝ) (hc_lt : c
 
 
 private lemma deriv_z_coth_z_growth_bound :
-    ∃ c < π / (π / 4 - -π / 4), ∃ B,
-      Asymptotics.IsBigO (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-π / 4) (π / 4)))
+    ∃ c < π / (π / 4 - -(π / 4)), ∃ B,
+      Asymptotics.IsBigO (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-(π / 4)) (π / 4)))
         (fun z ↦ deriv (fun w ↦ w * coth w) z) (fun z ↦ rexp (B * rexp (c * |z.re|))) := by
   use 1
   constructor
@@ -5039,11 +5039,11 @@ private lemma deriv_z_coth_z_growth_bound :
 private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
     ‖deriv (fun z ↦ z * coth z) w‖ ≤ 1 := by
   set f := fun z : ℂ ↦ deriv (fun w : ℂ ↦ w * coth w) z
-  have h_anal : AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
+  have h_anal : AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z) (im ⁻¹' Set.Icc (-(π / 4)) (π / 4)) := by
     apply analyticOn_deriv_z_coth_z
     intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
     simp_rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
-  apply PhragmenLindelof.horizontal_strip (a := -π / 4) (b := π / 4) (C := 1)
+  apply PhragmenLindelof.horizontal_strip (a := -(π / 4)) (b := π / 4) (C := 1)
   · constructor
     · exact (h_anal.mono (Set.preimage_mono Set.Ioo_subset_Icc_self)).differentiableOn
     · rw [Complex.closure_preimage_im, closure_Ioo (by linarith [Real.pi_pos])]
@@ -5051,8 +5051,8 @@ private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
   · exact deriv_z_coth_z_growth_bound
   · intro v hv; dsimp [f]
     rw [← neg_neg v, deriv_z_coth_z_odd, norm_neg]
-    rw [show v = v.re + ↑(-π/4) * Complex.I by apply Complex.ext <;> simp [hv],
-        show -(↑v.re + ↑(-π / 4) * Complex.I) = ↑(-v.re) + ↑(π / 4) * Complex.I by apply Complex.ext <;> simp; ring]
+    rw [show v = v.re + ↑(-(π / 4)) * Complex.I by apply Complex.ext <;> simp [hv],
+        show -(↑v.re + ↑(-(π / 4)) * Complex.I) = ↑(-v.re) + ↑(π / 4) * Complex.I by apply Complex.ext <;> simp]
     exact le_of_lt (deriv_z_coth_z_bound_boundary (-v.re))
   · intro v hv; dsimp [f]
     rw [show v = v.re + ↑(π/4) * Complex.I by apply Complex.ext <;> simp [hv]]
@@ -5091,8 +5091,8 @@ theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ 
     · rcases abs_cases z.im with ⟨h_pos, _⟩ | ⟨h_neg, _⟩
       · have : z = z.re + ↑(π/4) * Complex.I := by apply Complex.ext <;> simp; linarith [h_pos, h_bdy]
         rw [this] at h_eq; linarith [deriv_z_coth_z_bound_boundary z.re]
-      · have : z = z.re + ↑(-π/4) * Complex.I := by apply Complex.ext <;> simp; ring_nf; linarith [h_neg, h_bdy]
-        have h_z_neg : z = -(-z.re + ↑(π/4) * Complex.I) := by rw [this]; apply Complex.ext <;> simp; ring
+      · have : z = z.re + ↑(-(π / 4)) * Complex.I := by apply Complex.ext <;> simp; ring_nf; linarith [h_neg, h_bdy]
+        have h_z_neg : z = -(-z.re + ↑(π/4) * Complex.I) := by rw [this]; apply Complex.ext <;> simp
         unfold f at h_eq
         rw [h_z_neg, deriv_z_coth_z_odd, norm_neg] at h_eq
         have h_bound := deriv_z_coth_z_bound_boundary (-z.re)
@@ -5149,20 +5149,16 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi_real_ineq (x : ℝ) :
   rw [Real.cosh_sq]
   ring_nf
   have ha2 : 2 ≤ a := by
-    unfold a; have : 3 < π := Real.pi_gt_three
-    nlinarith [this]
+    unfold a; nlinarith [Real.pi_gt_three]
   have ha3 : 3 ≤ 2 * a := by linarith
   calc
     x * Real.sinh x * Real.cosh x * 2 + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a
       ≤ x * Real.sinh x * (1 + Real.sinh x ^ 2 / 2) * 2 + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a := by
         gcongr
-        have h : 0 ≤ (Real.cosh x - 1) ^ 2 := sq_nonneg _
-        nlinarith [h_cosh_sq]
+        nlinarith [sq_nonneg (Real.cosh x - 1), h_cosh_sq]
     _ = (2 * x * Real.sinh x + x * Real.sinh x ^ 3) + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a := by ring
     _ ≤ (2 * Real.sinh x * Real.sinh x + Real.sinh x * Real.sinh x ^ 3) + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a := by
-        gcongr
-        · exact Real.self_le_sinh_iff.mpr hx
-        · exact Real.self_le_sinh_iff.mpr hx
+        gcongr <;> exact Real.self_le_sinh_iff.mpr hx
     _ = 3 * Real.sinh x ^ 2 + 2 * Real.sinh x ^ 4 + x ^ 2 + a := by ring
     _ ≤ (2 * a) * Real.sinh x ^ 2 + a * Real.sinh x ^ 4 + x ^ 2 + a := by gcongr
     _ ≤ (2 * x ^ 2 + 2 * a) * Real.sinh x ^ 2 + (x ^ 2 + a) * Real.sinh x ^ 4 + x ^ 2 + a := by
@@ -5178,15 +5174,13 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi (x : ℝ) :
     apply sinh_ne_zero_of_im; intro k h_pi
     have : π / 2 = (k : ℝ) * π := by simpa [z₀] using h_pi
     have : (1 : ℝ) = 2 * k := by
-      have hπ : π ≠ 0 := Real.pi_pos.ne.symm
-      field_simp [hπ] at this
+      field_simp [Real.pi_pos.ne.symm] at this
       linarith
     norm_cast at this; omega
   have h_deriv_eq : deriv (fun z ↦ z * coth z) z₀ = (Complex.sinh (2 * z₀) / 2 - z₀) / Complex.sinh z₀ ^ 2 :=
     deriv_z_coth_z_eq_alt z₀ h_snz
   rw [h_deriv_eq, norm_div, norm_pow]
-  have h_snz_norm_pos : 0 < ‖Complex.sinh z₀‖ := by
-    rw [norm_pos_iff]; exact h_snz
+  have h_snz_norm_pos : 0 < ‖Complex.sinh z₀‖ := norm_pos_iff.mpr h_snz
   rw [div_le_iff₀ (pow_pos h_snz_norm_pos 2)]
   apply (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) (by norm_num : 2 ≠ 0)).mp
   rw [mul_pow, ← pow_mul]
@@ -5200,10 +5194,10 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi (x : ℝ) :
 
   have h_normSq_rhs : normSq z₀ * ‖Complex.sinh z₀‖ ^ (2 * 2) = (x ^ 2 + (π / 2) ^ 2) * Real.cosh x ^ 4 := by
     rw [pow_mul, normSq_sinh z₀]
-    have h_z₀ : z₀ = ↑x + ↑(π / 2) * I := by simp [z₀]
-    rw [h_z₀, Complex.normSq_add_mul_I]
-    simp only [Complex.add_re, Complex.add_im, Complex.ofReal_re, Complex.ofReal_im, Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im]
-    simp only [add_zero, sub_zero, mul_zero, mul_one, zero_add]
+    rw [show z₀ = ↑x + ↑(π / 2) * I from by simp [z₀], Complex.normSq_add_mul_I]
+    simp only [Complex.add_re, Complex.add_im, Complex.ofReal_re, Complex.ofReal_im,
+      Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
+      add_zero, sub_zero, mul_zero, mul_one, zero_add]
     rw [Real.sin_pi_div_two]
     norm_num; rw [← Real.cosh_sq]
     ring_nf; simp
@@ -5211,8 +5205,8 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi (x : ℝ) :
   exact deriv_z_coth_z_bound_boundary_half_pi_real_ineq x
 
 private lemma deriv_z_coth_z_growth_bound_half_pi :
-    ∃ c < π / (π / 2 - -π / 2), ∃ B,
-      Asymptotics.IsBigO (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-π / 2) (π / 2)))
+    ∃ c < π / (π / 2 - -(π / 2)), ∃ B,
+      Asymptotics.IsBigO (Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-(π / 2)) (π / 2)))
         (fun z ↦ deriv (fun w ↦ w * coth w) z / z) (fun z ↦ rexp (B * rexp (c * |z.re|))) := by
   use 1 / 2
   constructor; · field_simp; linarith [Real.pi_pos]
@@ -5220,28 +5214,24 @@ private lemma deriv_z_coth_z_growth_bound_half_pi :
   use 1
   apply Asymptotics.IsBigO.of_bound C
   let F_closed := Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Icc (-(π / 2)) (π / 2))
-  let F_open := Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-π / 2) (π / 2))
-  have h_le : F_open ≤ F_closed := by
-    apply inf_le_inf_left
-    apply Filter.principal_mono.mpr
-    apply Set.preimage_mono
-    intro y hy; simp only [Set.mem_Ioo] at hy; simp only [Set.mem_Icc]
-    constructor <;> linarith
-  apply h_le
-  have h_basis := HorizontalStrip.hasBasis_atTop (π / 2)
-  refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
-  simp only [Set.mem_setOf_eq] at hz
-  have h_norm_z : 1 ≤ ‖z‖ := (Complex.abs_re_le_norm z).trans' hz.1
-  have h_fz_le : ‖deriv (fun w ↦ w * coth w) z‖ ≤ C := by
-    apply hC; rw [abs_le]; exact abs_le.mp hz.2
-  rw [norm_div, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
-  have h_nz : ‖z‖ ≠ 0 := by linarith
-  calc ‖deriv (fun w ↦ w * coth w) z‖ / ‖z‖
-      ≤ C / ‖z‖ := by gcongr
-    _ ≤ C     := by exact div_le_self hC_pos.le h_norm_z
-    _ ≤ C * rexp (1 * rexp (1 / 2 * |z.re|)) :=
-        le_mul_of_one_le_right hC_pos.le
-          (Real.one_le_exp_iff.mpr (mul_nonneg (by norm_num) (Real.exp_pos _ |>.le)))
+  let F_open := Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-(π / 2)) (π / 2))
+  apply Filter.Eventually.filter_mono
+  · apply inf_le_inf_left
+    exact Filter.principal_mono.mpr (Set.preimage_mono Set.Ioo_subset_Icc_self)
+  · have h_basis := HorizontalStrip.hasBasis_atTop (π / 2)
+    refine h_basis.eventually_iff.mpr ⟨1, True.intro, fun z hz ↦ ?_⟩
+    simp only [Set.mem_setOf_eq] at hz
+    have h_norm_z : 1 ≤ ‖z‖ := (Complex.abs_re_le_norm z).trans' hz.1
+    have h_fz_le : ‖deriv (fun w ↦ w * coth w) z‖ ≤ C := by
+      apply hC; rw [abs_le]; exact abs_le.mp hz.2
+    rw [norm_div, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    have h_nz : ‖z‖ ≠ 0 := by linarith
+    calc ‖deriv (fun w ↦ w * coth w) z‖ / ‖z‖
+        ≤ C / ‖z‖ := by gcongr
+      _ ≤ C     := div_le_self hC_pos.le h_norm_z
+      _ ≤ C * rexp (1 * rexp (1 / 2 * |z.re|)) :=
+          le_mul_of_one_le_right hC_pos.le
+            (Real.one_le_exp_iff.mpr (mul_nonneg (by norm_num) (Real.exp_pos _ |>.le)))
 
 private lemma norm_dslope_deriv_z_coth_z_le_one (w : ℂ) (h_nz : w ≠ 0)
     (h_bound : ‖deriv (fun z ↦ z * coth z) w‖ ≤ ‖w‖) :
@@ -5266,14 +5256,13 @@ theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ 
   · simp [deriv_z_coth_z_at_zero]
   · let g := dslope f 0
     have hg_bound : ‖g z‖ ≤ 1 := by
-      apply PhragmenLindelof.horizontal_strip (a := -π / 2) (b := π / 2) (C := 1) (f := g) (z := z)
-      · -- DiffContOnCl of g on the strip
-        have h_f_anal : AnalyticOn ℂ f {w | |w.im| < π} := by
-          apply analyticOn_deriv_z_coth_z (Set.Subset.refl _)
+      apply PhragmenLindelof.horizontal_strip (a := -(π / 2)) (b := π / 2) (C := 1) (f := g) (z := z) (hza := (abs_le.mp hz).1) (hzb := (abs_le.mp hz).2)
+      · have h_f_anal : AnalyticOn ℂ f {w | |w.im| < π} :=
+          analyticOn_deriv_z_coth_z (Set.Subset.refl _)
         have h_g_anal : AnalyticOn ℂ g {w | |w.im| < π} := by
           have h_diff : DifferentiableOn ℂ g {w | |w.im| < π} := by
-            have h_S_open : IsOpen {w : ℂ | |w.im| < π} := isOpen_lt continuous_im.abs continuous_const
-            rw [differentiableOn_dslope (h_S_open.mem_nhds (by simpa using Real.pi_pos))]
+            rw [differentiableOn_dslope ((isOpen_lt continuous_im.abs continuous_const).mem_nhds
+              (by simpa using Real.pi_pos))]
             exact h_f_anal.differentiableOn
           exact h_diff.analyticOn (isOpen_lt (continuous_im.abs) continuous_const)
         constructor
@@ -5281,54 +5270,36 @@ theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ 
           intro w hw; simp only [Set.mem_preimage, Set.mem_Ioo, Set.mem_setOf_eq, abs_lt] at hw ⊢; constructor <;> linarith [Real.pi_pos]
         · rw [Complex.closure_preimage_im, closure_Ioo (by linarith [Real.pi_pos])]
           apply h_g_anal.continuousOn.mono
-          intro w hw; simp only [Set.mem_preimage, Set.mem_Icc] at hw
-          simp only [Set.mem_setOf_eq, abs_lt]  at hw ⊢; constructor <;> linarith [Real.pi_pos]
-      · -- IsBigO growth bound
-        rcases deriv_z_coth_z_growth_bound_half_pi with ⟨c, hc, B, hO⟩
+          intro w hw; simp only [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_lt] at hw ⊢
+          constructor <;> linarith [Real.pi_pos]
+      · rcases deriv_z_coth_z_growth_bound_half_pi with ⟨c, hc, B, hO⟩
         refine ⟨c, hc, B, hO.congr' ?_ (Filter.EventuallyEq.refl _ _)⟩
-        have h_nz : ∀ᶠ w : ℂ in Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-π / 2) (π / 2)), w ≠ 0 := by
+        have h_nz : ∀ᶠ w : ℂ in Filter.comap (abs ∘ re) Filter.atTop ⊓ Filter.principal (im ⁻¹' Set.Ioo (-(π / 2)) (π / 2)), w ≠ 0 := by
           rw [Filter.eventually_inf_principal]
-          have : ∀ᶠ w : ℂ in Filter.comap (abs ∘ re) Filter.atTop, 1 ≤ |w.re| :=
-            Filter.tendsto_comap.eventually (Filter.eventually_ge_atTop 1)
-          filter_upwards [this] with w hw _
+          filter_upwards [Filter.tendsto_comap.eventually (Filter.eventually_ge_atTop 1)] with w hw _
           intro h; simp [h] at hw; linarith
         filter_upwards [h_nz] with w hw
         simp only [f, g, dslope_of_ne f hw, slope, deriv_z_coth_z_at_zero]
         simp; ring_nf
-      · -- Boundary bound at im z = -π / 2
-        intro w hw
+      · intro w hw
         have h_bound : ‖f w‖ ≤ ‖w‖ := by
-          have h_refl : -w = ↑(-re w) + ↑(π / 2) * Complex.I := by
-            apply Complex.ext <;> simp [hw]; ring_nf
-          rw [← norm_neg w, ← norm_neg (f w), ← deriv_z_coth_z_odd, h_refl]
+          rw [← norm_neg w, ← norm_neg (f w), ← deriv_z_coth_z_odd,
+              show -w = ↑(-re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw]]
           exact deriv_z_coth_z_bound_boundary_half_pi (-re w)
-        have h_nz_w : w ≠ 0 := by
-          intro h; simp [h] at hw; exact Real.pi_pos.ne.symm (by linarith)
-        exact norm_dslope_deriv_z_coth_z_le_one w h_nz_w h_bound
-
-      · -- Boundary bound at im z = π / 2
-        intro w hw
+        exact norm_dslope_deriv_z_coth_z_le_one w
+          (by intro h; simp [h] at hw) h_bound
+      · intro w hw
         have h_bound : ‖f w‖ ≤ ‖w‖ := by
-          have : w = ↑(re w) + ↑(π / 2) * Complex.I := by
-            apply Complex.ext <;> simp [hw]
-          rw [this]
+          rw [show w = ↑(re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw]]
           exact deriv_z_coth_z_bound_boundary_half_pi (re w)
-        have h_nz_w : w ≠ 0 := by
-          intro h; simp [h] at hw; exact Real.pi_pos.ne.symm (by linarith)
-        exact norm_dslope_deriv_z_coth_z_le_one w h_nz_w h_bound
-      · -- z in strip lower bound
-        rw [abs_le] at hz; linarith
-      · -- z in strip upper bound
-        rw [abs_le] at hz; linarith
-    -- Deduce ‖f z‖ ≤ ‖z‖ from ‖g z‖ ≤ 1
-    have h_norm : ‖f z‖ / ‖z‖ ≤ 1 := by
-      have hg_eq : ‖g z‖ = ‖f z‖ / ‖z‖ := by
-        unfold g dslope; rw [Function.update_of_ne hz_nz]
-        unfold slope f
-        simp only [sub_zero, vsub_eq_sub, smul_eq_mul, deriv_z_coth_z_at_zero]
-        rw [← div_eq_inv_mul, norm_div]
-      rwa [hg_eq] at hg_bound
-    simpa using (div_le_iff₀ (norm_pos_iff.mpr hz_nz)).mp h_norm
+        exact norm_dslope_deriv_z_coth_z_le_one w
+          (by intro h; simp [h] at hw; exact Real.pi_pos.ne.symm (by linarith)) h_bound
+    have hg_eq : ‖g z‖ = ‖f z‖ / ‖z‖ := by
+      unfold g dslope; rw [Function.update_of_ne hz_nz]
+      unfold slope f
+      simp only [sub_zero, vsub_eq_sub, smul_eq_mul, deriv_z_coth_z_at_zero]
+      rw [← div_eq_inv_mul, norm_div]
+    simpa [f] using (div_le_one (norm_pos_iff.mpr hz_nz)).mp (hg_eq ▸ hg_bound)
 
 
 
