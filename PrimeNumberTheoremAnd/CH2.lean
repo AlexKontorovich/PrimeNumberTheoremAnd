@@ -5145,12 +5145,10 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi_real_ineq (x : ℝ) :
   have h_lhs : (x + Real.sinh x * Real.cosh x) ^ 2 + a = x ^ 2 + 2 * x * Real.sinh x * Real.cosh x + Real.sinh x ^ 2 * Real.cosh x ^ 2 + a := by ring
   have h_rhs : (x ^ 2 + a) * Real.cosh x ^ 4 = x ^ 2 + 2 * x ^ 2 * Real.sinh x ^ 2 + x ^ 2 * Real.sinh x ^ 4 + a + 2 * a * Real.sinh x ^ 2 + a * Real.sinh x ^ 4 := by
     rw [h_cosh_pow_4]; ring
-  rw [h_lhs, h_rhs]
-  rw [Real.cosh_sq]
-  ring_nf
   have ha2 : 2 ≤ a := by
     unfold a; nlinarith [Real.pi_gt_three]
   have ha3 : 3 ≤ 2 * a := by linarith
+  rw [h_lhs, h_rhs, Real.cosh_sq]; ring_nf
   calc
     x * Real.sinh x * Real.cosh x * 2 + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a
       ≤ x * Real.sinh x * (1 + Real.sinh x ^ 2 / 2) * 2 + x ^ 2 + Real.sinh x ^ 2 + Real.sinh x ^ 4 + a := by
@@ -5191,7 +5189,6 @@ private lemma deriv_z_coth_z_bound_boundary_half_pi (x : ℝ) :
       zero_add, z₀]
     rw [show 2 * (π / 2) = π by ring, Real.cos_pi, Real.sin_pi, Real.sinh_two_mul]
     ring
-
   have h_normSq_rhs : normSq z₀ * ‖Complex.sinh z₀‖ ^ (2 * 2) = (x ^ 2 + (π / 2) ^ 2) * Real.cosh x ^ 4 := by
     rw [pow_mul, normSq_sinh z₀]
     rw [show z₀ = ↑x + ↑(π / 2) * I from by simp [z₀], Complex.normSq_add_mul_I]
