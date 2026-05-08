@@ -501,6 +501,16 @@ noncomputable abbrev γ : ℝ := ∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2) + 
 -/)]
 noncomputable abbrev E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
 
+lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
+    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Ioc 0 x, f n := by
+  rw [(by rfl : Ioc 0 x = Icc 1 x), ← add_sum_Ioc_eq_sum_Icc hx]
+  simpa
+
+lemma sum_Ioc_one_eq_sum_Icc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf1 : f 1 = 0) (hf0 : f 0 = 0) :
+    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Icc 0 x, f n := by
+  rw [sum_Ioc_one_eq_sum_Ioc_zero hx hf1, ← add_sum_Ioc_eq_sum_Icc (by linarith)]
+  simpa 
+
 @[blueprint
   "Mertens-integral-ident"
   (title := "Integral identity involving inverse log weight")
@@ -515,7 +525,45 @@ $$ \sum_{2 \leq n \leq x} \frac{f(n)}{\log n} = \frac{1}{\log x} \sum_{2 \leq n 
 private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) : -- will meed an integrability hypothesis
     ∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n / log n =
       (∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n) / log x + ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊ t ⌋₊, f n) / (t * log t^2) := by
-    sorry
+  let g : ℕ → ℝ := (fun n ↦ if n < 2 then 0 else f n)
+  trans ∑ n ∈ Icc 0 ⌊ x ⌋₊, (log n)⁻¹ * g n
+  · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp) (by simp)]
+    refine sum_congr rfl fun n hn ↦ ?_
+    have : ¬(n < 2) := by simp_all; linarith
+    simp [g, this]
+    field
+  rw [sum_mul_eq_sub_integral_mul₁ g (f := (fun n ↦ (log n)⁻¹)) (by simp [g]) (by simp [g])]
+  · rw [intervalIntegral.integral_of_le hx, mul_comm, ← div_eq_mul_inv, ← sub_neg_eq_add]
+    simp_rw [deriv_inv_log]
+    congr 1
+    · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp [g]) (by simp [g])]
+      congr 1
+      refine sum_congr rfl fun n hn ↦ ?_
+      simp only [mem_Ioc] at hn
+      have : ¬(n < 2) := by linarith
+      simp [g, this]
+    · rw [← MeasureTheory.integral_neg]
+      refine  MeasureTheory.setIntegral_congr_fun (by measurability) fun t ht ↦ ?_
+      simp only [Set.mem_Ioc] at ht
+      rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp [g]) (by simp [g])]
+      field_simp
+      congr 2
+      refine sum_congr rfl fun n hn ↦ ?_
+      simp only [mem_Ioc] at hn
+      have : ¬(n < 2) := by linarith
+      simp [g, this]
+  · intro t ht
+    simp only [Set.mem_Icc] at ht
+    have : t ≠ 0 := by linarith
+    have : log t ≠ 0 := by simp; grind
+    fun_prop (disch := assumption)
+  · refine ContinuousOn.integrableOn_Icc fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+    simp only [Set.mem_Icc] at ht
+    conv => arg 1; ext x; rw [deriv_inv_log]
+    have : t ≠ 0 := by linarith
+    have : log t ^2 ≠ 0 := by simp; grind
+    fun_prop (disch := assumption)
+
 
 private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
