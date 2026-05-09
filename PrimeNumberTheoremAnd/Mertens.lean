@@ -635,6 +635,13 @@ lemma integral_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
       rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
       exact deriv_log_log (by linarith)
 
+lemma intervalIntegrable_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
+    IntervalIntegrable (fun t ↦ 1 / (t * log t)) MeasureTheory.volume 2 x := by
+  refine ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+  rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+  have : log t ≠ 0 := by simp; grind
+  fun_prop (disch := grind)
+
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
   (title := "Integral form for second error (von Mangoldt form)")
@@ -669,10 +676,7 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     _ = _ := by
       rw [← intervalIntegral.integral_interval_add_Ioi (integrable_E₁Λ_div_mul_log_sq (by rfl)) (integrable_E₁Λ_div_mul_log_sq hx)]
       ring
-  · refine ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
-    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
-    have : log t ≠ 0 := by simp; grind
-    fun_prop (disch := grind)
+  · exact intervalIntegrable_one_div_mul_log hx
   · rw [intervalIntegrable_iff, Set.uIoc_of_le hx]
     exact integrable_E₁Λ_div_mul_log_sq (x := 2) (by rfl)|>.mono (by grind) (by rfl)
 
@@ -906,10 +910,7 @@ theorem E₂p.eq {x : ℝ} (hx : 2 ≤ x) :
     _ = _ := by
       rw [← intervalIntegral.integral_interval_add_Ioi (integrable_E₁p_div_mul_log_sq (by rfl)) (integrable_E₁p_div_mul_log_sq hx)]
       ring
-  · refine ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
-    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
-    have : log t ≠ 0 := by simp; grind
-    fun_prop (disch := grind)
+  · exact intervalIntegrable_one_div_mul_log hx
   · rw [intervalIntegrable_iff, Set.uIoc_of_le hx]
     exact integrable_E₁p_div_mul_log_sq (x := 2) (by rfl)|>.mono (by grind) (by rfl)
 
