@@ -567,7 +567,20 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) : -- w
 
 private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
+  conv => arg 1; ext t; rw [← mul_one_div]
+  apply MeasureTheory.Integrable.const_mul
+  refine MeasureTheory.integrableOn_Ioi_deriv_of_nonneg' ?_ ?_ tendsto_log_atTop.inv_tendsto_atTop.neg
+  · intro t ht
+    simp only [Set.mem_Ici] at ht
+    have : log t ≠ 0 := by simp; grind
+    have : DifferentiableAt ℝ (fun t ↦ -(log t)⁻¹) t := by
+      fun_prop (disch := grind)
+    convert this.hasDerivAt using 1
+    simp [deriv_inv_log]
+    field
+  · intro t ht
+    simp only [Set.mem_Ioi] at ht
+    exact one_div_nonneg.mpr <| mul_nonneg (by linarith) (sq_nonneg _)
 
 private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
