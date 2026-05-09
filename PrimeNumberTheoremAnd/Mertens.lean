@@ -584,7 +584,16 @@ private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ 
 
 private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
+  apply MeasureTheory.Integrable.mono (integrable_const_div_mul_log_sq (max 2 (log 4 + 4)) hx)
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · filter_upwards [MeasureTheory.ae_restrict_mem (by measurability)] with t ht
+    simp only [Set.mem_Ioi] at ht
+    simp only [norm_div, norm_eq_abs, norm_mul, norm_pow, sq_abs]
+    nth_rw 3 [abs_of_nonneg (by grind)]
+    gcongr
+    refine  abs_le.mpr ⟨?_, le_max_of_le_right (E₁Λ.le (by linarith))⟩
+    exact le_trans (by grind) (E₁Λ.ge (by linarith : 1 ≤ t))
+
 
 private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
