@@ -679,6 +679,19 @@ Baby Rankin-Selberg:
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
   sorry
+    have hid : (ζ : ArithmeticFunction ℕ) * (fun n ↦ τ (n ^ 2)) = (fun n ↦ (τ n) ^ 2) :=
+    IsMultiplicative.eq_iff_eq_on_prime_pow.mpr
+    ⟨isMultiplicative_zeta.mul ⟨by simp [tau], fun m n hmn _ ↦ by
+        simp [show (m * n) ^ 2 = m ^ 2 * n ^ 2 by ring,
+              isMultiplicative_sigma.right (hmn.pow_left 2)]⟩,
+     isMultiplicative_sigma.mul isMultiplicative_sigma, fun p k hp ↦ by
+       simp only [mul_zeta_apply, sum_divisors_prime_pow hp, sigma_zero_apply,
+                  show ∀ j : ℕ, τ (p ^ (2 * j)) = 2 * j + 1 from
+                    fun j ↦ by simp [tau, sigma, Nat.divisors_prime_pow hp]]
+       induction k with
+       | zero => simp
+       | succ k ih => rw [Finset.sum_range_succ, ih]; ring⟩
+sorry
 
 /--
 Zeta cubed:
