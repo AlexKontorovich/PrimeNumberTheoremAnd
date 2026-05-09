@@ -535,7 +535,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       (∑ n ∈ Ioc 1 ⌊ x ⌋₊, f n) / log x + ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊ t ⌋₊, f n) / (t * log t^2) := by
   let g : ℕ → ℝ := (fun n ↦ if n < 2 then 0 else f n)
   trans ∑ n ∈ Icc 0 ⌊ x ⌋₊, (log n)⁻¹ * g n
-  · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp) (by simp)]
+  · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp) (by simp)]
     refine sum_congr rfl fun n hn ↦ ?_
     have : ¬(n < 2) := by simp_all; linarith
     simp [g, this]
@@ -544,7 +544,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
   · rw [intervalIntegral.integral_of_le hx, mul_comm, ← div_eq_mul_inv, ← sub_neg_eq_add]
     simp_rw [deriv_inv_log]
     congr 1
-    · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp [g]) (by simp [g])]
+    · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp [g]) (by simp [g])]
       congr 1
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
@@ -553,7 +553,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
     · rw [← MeasureTheory.integral_neg]
       refine  MeasureTheory.setIntegral_congr_fun (by measurability) fun t ht ↦ ?_
       simp only [Set.mem_Ioc] at ht
-      rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp [g]) (by simp [g])]
+      rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp [g]) (by simp [g])]
       field_simp
       congr 2
       refine sum_congr rfl fun n hn ↦ ?_
@@ -651,14 +651,14 @@ Now substitute the definitions of $E_{1,\Lambda}$, $E_{2,\Lambda}$, $\gamma$ and
 theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
   unfold E₂Λ
-  rw [← sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp)]
+  rw [← sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by grind)) (by simp)]
   conv => lhs; arg 1; arg 1; arg 2; ext n; rw [(by field : Λ n / (n * log n) = (Λ n / n) / log n)]
   rw [sum_div_log_eq hx]
-  rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp), sum_mangoldt_div_eq]
+  rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by grind)) (by simp), sum_mangoldt_div_eq]
   have : ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊t⌋₊, Λ n / n) / (t * log t ^ 2) = ∫ t in 2..x, (1 / (t * log t) + E₁Λ t / (t * log t ^ 2)) := by
     refine intervalIntegral.integral_congr fun t ht ↦ ?_
     rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
-    rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp), sum_mangoldt_div_eq]
+    rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by grind)) (by simp), sum_mangoldt_div_eq]
     field
   rw [this, intervalIntegral.integral_add]
   · rw [integral_one_div_mul_log hx, add_div, div_self (by simp; grind)]
