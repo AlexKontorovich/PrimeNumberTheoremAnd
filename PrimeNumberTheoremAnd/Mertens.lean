@@ -617,7 +617,31 @@ Now substitute the definitions of $E_{1,\Lambda}$, $E_{2,\Lambda}$, $\gamma$ and
   (discussion := 1317)]
 theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
     E₂Λ x = E₁Λ x / log x - ∫ t in Set.Ioi x, E₁Λ t / (t * log t^2) := by
-    sorry
+  unfold E₂Λ
+  rw [← sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp)]
+  conv => lhs; arg 1; arg 1; arg 2; ext n; rw [(by field : Λ n / (n * log n) = (Λ n / n) / log n)]
+  rw [sum_div_log_eq hx]
+  rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp), sum_mangoldt_div_eq]
+  have : ∫ t in 2..x, (∑ n ∈ Ioc 1 ⌊t⌋₊, Λ n / n) / (t * log t ^ 2) = ∫ t in 2..x, (1 / (t * log t) + E₁Λ t / (t * log t ^ 2)) := by
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+    rw [sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by norm_cast; linarith)) (by simp), sum_mangoldt_div_eq]
+    field
+  rw [this, intervalIntegral.integral_add]
+  · rw [integral_one_div_mul_log hx, add_div, div_self (by simp; grind)]
+    unfold γ
+    calc
+    _ = E₁Λ x / log x + (∫ (x : ℝ) in 2..x, E₁Λ x / (x * log x ^ 2)) -
+      ((∫ (t : ℝ) in Set.Ioi 2, E₁Λ t / (t * log t ^ 2))) := by ring
+    _ = _ := by
+      rw [← intervalIntegral.integral_interval_add_Ioi (integrable_E₁Λ_div_mul_log_sq (by rfl)) (integrable_E₁Λ_div_mul_log_sq hx)]
+      ring
+  · refine ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+    have : log t ≠ 0 := by simp; grind
+    fun_prop (disch := grind)
+  · rw [intervalIntegrable_iff, Set.uIoc_of_le hx]
+    exact integrable_E₁Λ_div_mul_log_sq (x := 2) (by rfl)|>.mono (by grind) (by rfl)
 
 private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
