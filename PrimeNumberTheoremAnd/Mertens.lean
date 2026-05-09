@@ -559,16 +559,13 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) : -- w
       simp [g, this]
   · intro t ht
     simp only [Set.mem_Icc] at ht
-    have : t ≠ 0 := by linarith
     have : log t ≠ 0 := by simp; grind
-    fun_prop (disch := assumption)
+    fun_prop (disch := grind)
   · refine ContinuousOn.integrableOn_Icc fun t ht ↦ ContinuousAt.continuousWithinAt ?_
     simp only [Set.mem_Icc] at ht
     conv => arg 1; ext x; rw [deriv_inv_log]
-    have : t ≠ 0 := by linarith
     have : log t ^2 ≠ 0 := by simp; grind
-    fun_prop (disch := assumption)
-
+    fun_prop (disch := grind)
 
 private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ c / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
