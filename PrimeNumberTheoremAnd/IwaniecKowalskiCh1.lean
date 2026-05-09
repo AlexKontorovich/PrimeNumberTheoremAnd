@@ -680,9 +680,9 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
   sorry
     have hid : (ζ : ArithmeticFunction ℕ) * (fun n ↦ τ (n ^ 2)) = (fun n ↦ (τ n) ^ 2) :=
-    IsMultiplicative.eq_iff_eq_on_prime_pow.mpr
-    ⟨isMultiplicative_zeta.mul ⟨by simp [tau], fun m n hmn _ ↦ by
-        simp [show (m * n) ^ 2 = m ^ 2 * n ^ 2 by ring,
+      IsMultiplicative.eq_iff_eq_on_prime_pow.mpr
+        ⟨isMultiplicative_zeta.mul ⟨by simp [tau], fun m n hmn _ ↦ by
+          simp [show (m * n) ^ 2 = m ^ 2 * n ^ 2 by ring,
               isMultiplicative_sigma.right (hmn.pow_left 2)]⟩,
      isMultiplicative_sigma.mul isMultiplicative_sigma, fun p k hp ↦ by
        simp only [mul_zeta_apply, sum_divisors_prime_pow hp, sigma_zero_apply,
@@ -691,6 +691,12 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
        induction k with
        | zero => simp
        | succ k ih => rw [Finset.sum_range_succ, ih]; ring⟩
+    have hτsq : LSeriesSummable (↗(fun n : ℕ ↦ τ (n ^ 2) : ArithmeticFunction ℕ)) s := by
+      rw [LSeriesSummable_congr s (fun {n} _ ↦ show
+      (↗(fun n : ℕ ↦ τ (n ^ 2) : ArithmeticFunction ℕ) : ℕ → ℂ) n =
+      (↗(ζ * (fun n ↦ τ (n ^ 2)) : ArithmeticFunction ℕ) : ℕ → ℂ) n by
+    simp [mul_zeta_apply, natCoe_apply])]
+  simpa [← natCoe_mul, hid] using LSeries_d_summable 2 hs
 sorry
 
 /--
