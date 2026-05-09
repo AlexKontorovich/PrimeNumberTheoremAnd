@@ -279,7 +279,7 @@ theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
     sorry
 
-theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| <= c := by
+theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   exact ⟨log 4 + 4, (by positivity), fun x hx ↦ sum_mangoldt_div_eq_log hx⟩
 
 
@@ -479,6 +479,9 @@ theorem sum_log_prime_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     have : log 4 = 2 * log 2 := by rw [←Real.log_rpow (by norm_num)]; norm_num
     grind [E₁p.ge hx, E₁.le]
 
+theorem E₁p.bounded : ∃ c > 0, ∀ x ≥ 1, |E₁p x| ≤ c := by
+  exact ⟨log 4 + 4, (by positivity), fun _ hx ↦ sum_log_prime_div_eq_log  hx⟩
+
 @[blueprint
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
@@ -597,7 +600,14 @@ private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
 
 private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-      sorry
+  obtain ⟨c, hc1, hc2⟩ := E₁p.bounded
+  apply MeasureTheory.Integrable.mono (integrable_const_div_mul_log_sq c hx)
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · filter_upwards [MeasureTheory.ae_restrict_mem (by measurability)] with t ht
+    simp only [Set.mem_Ioi] at ht
+    simp only [norm_div, norm_eq_abs, norm_mul, norm_pow, sq_abs, abs_of_pos hc1]
+    gcongr
+    exact hc2 t (by linarith)
 
 lemma deriv_log_log {x : ℝ} (hx : 1 < x) :
     deriv (fun t ↦ log (log t)) x = 1 / (x * log x) := by
