@@ -577,6 +577,31 @@ private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
       sorry
 
+lemma integral_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
+    ∫ t in 2..x, 1 / (t * log t) = log (log x) - log (log 2) := by
+  have {x : ℝ} (hx : 1 < x) : deriv (fun t ↦ log (log t)) x = 1 / (x * log x) := by
+    rw [deriv.log (differentiableAt_log (by linarith)) (by simp; grind), deriv_log]
+    field
+  trans ∫ t in 2..x, deriv (fun y ↦ log (log y)) t
+  · refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [this]
+    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+    linarith
+  · rw [intervalIntegral.integral_deriv_eq_sub]
+    · intro t ht
+      rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+      have : log t ≠ 0 := by simp; grind
+      fun_prop (disch := grind)
+    · refine ContinuousOn.intervalIntegrable ?_
+      apply ContinuousOn.congr (f := (fun t ↦ 1 / (t * log t)))
+      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+        have : log t ≠ 0 := by simp; grind
+        fun_prop (disch := grind)
+      · intro t ht
+        rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+        exact this (by linarith)
+
 @[blueprint
   "Mertens-second-error-mangoldt-eq"
   (title := "Integral form for second error (von Mangoldt form)")
