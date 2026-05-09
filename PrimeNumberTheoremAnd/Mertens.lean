@@ -279,6 +279,11 @@ theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
     sorry
 
+theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| <= c := by
+  exact ⟨log 4 + 4, (by positivity), fun x hx ↦ sum_mangoldt_div_eq_log hx⟩
+
+
+
 @[blueprint
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
@@ -584,16 +589,14 @@ private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ 
 
 private theorem integrable_E₁Λ_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁Λ x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
-  apply MeasureTheory.Integrable.mono (integrable_const_div_mul_log_sq (max 2 (log 4 + 4)) hx)
+  obtain ⟨c, hc1, hc2⟩ := E₁Λ.bounded'
+  apply MeasureTheory.Integrable.mono (integrable_const_div_mul_log_sq c hx)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · filter_upwards [MeasureTheory.ae_restrict_mem (by measurability)] with t ht
     simp only [Set.mem_Ioi] at ht
-    simp only [norm_div, norm_eq_abs, norm_mul, norm_pow, sq_abs]
-    nth_rw 3 [abs_of_nonneg (by grind)]
+    simp only [norm_div, norm_eq_abs, norm_mul, norm_pow, sq_abs, abs_of_pos hc1]
     gcongr
-    refine  abs_le.mpr ⟨?_, le_max_of_le_right (E₁Λ.le (by linarith))⟩
-    exact le_trans (by grind) (E₁Λ.ge (by linarith : 1 ≤ t))
-
+    exact hc2 t (by linarith)
 
 private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     MeasureTheory.IntegrableOn (fun x ↦ E₁p x / (x * log x ^ 2)) (Set.Ioi x) MeasureTheory.volume := by
