@@ -27,6 +27,82 @@ theorem one_eq_o_log_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log (log x))
 
 end Real
 
+section EulerMaclaurin
+open Finset Interval MeasureTheory
+
+/-! We prove the 1st order Euler-Maclaurin formula by specialising Abel summation and manipulating integrals. -/
+
+variable {𝕜 : Type*} [RCLike 𝕜] {f : ℝ → 𝕜} {a b : ℝ}
+
+/-- The 1st Bernoulli function. -/
+noncomputable def B1 (x : ℝ) : ℝ := x - ⌊x⌋₊ - 1 / 2
+
+@[fun_prop]
+lemma aestronglyMeasurable_B1 : AEStronglyMeasurable B1 := by
+  unfold B1
+  fun_prop
+
+lemma abs_B1_le_half {x : ℝ} (hx : 0 ≤ x) : |B1 x| ≤ 1 / 2 := by
+  unfold B1
+  refine abs_le.mpr ⟨?_, ?_⟩
+  · grind [Nat.floor_le hx]
+  · grind [Nat.lt_succ_floor x]
+
+lemma integral_deriv_mul_add_const (c : 𝕜) (hab : a ≤ b) (h_int : IntervalIntegrable (deriv f) volume a b)
+    (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t) :
+    ∫ t in a..b, (t + c) * deriv f t = (b + c) * f b - (a + c) * f a - ∫ t in a..b, f t := by
+  rw [← Set.uIcc_of_le hab] at hf_diff
+  have : ∀ t ∈ [[a, b]], HasDerivAt (fun (t : ℝ) ↦ t + c) 1 t := by
+    intro t ht
+    simp only [hasDerivAt_add_const_iff]
+    convert ContinuousLinearMap.hasDerivAt (RCLike.ofRealCLM (K := 𝕜)) using 1
+    simp
+  replace hf_diff := fun t ht ↦ (hf_diff t ht).hasDerivAt
+  rw [intervalIntegral.integral_mul_deriv_eq_deriv_mul this hf_diff (by simp) h_int]
+  simp
+
+lemma intervalIntegrable_deriv_mul_B1 (ha : 0 ≤ a) (hab : a ≤ b) (h_cont : ContinuousOn (deriv f) [[a, b]]) :
+    IntervalIntegrable (fun t ↦ deriv f t * B1 t) volume a b := by
+  refine IntervalIntegrable.continuousOn_mul ?_ h_cont
+  rw [intervalIntegrable_iff']
+  apply MeasureTheory.Measure.integrableOn_of_bounded (by simp) (by fun_prop) (M := 1 / 2)
+  filter_upwards [self_mem_ae_restrict (by measurability)] with x hx
+  rw [Set.uIcc_of_le hab, Set.mem_Icc] at hx
+  norm_cast
+  exact abs_B1_le_half (by linarith)
+
+lemma integral_deriv_mul_floor_add_one (ha : 0 ≤ a) (hab : a ≤ b)
+    (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t) (h_cont : ContinuousOn (deriv f) [[a, b]]) :
+    ∫ t in a..b, deriv f t * (⌊t⌋₊ + 1) = (b + 1 / 2) * f b - (a + 1 / 2) * f a - (∫ t in a..b, f t) - ∫ t in a..b, deriv f t * B1 t := by
+  calc
+  _ = ∫ t in a..b, (deriv f t * (t + 1 / 2) -deriv f t * B1 t) := by
+    congr
+    ext
+    simp only [B1]
+    push_cast
+    ring
+  _ = (∫ t in a..b, deriv f t * (t + 1 / 2)) - ∫ t in a..b, deriv f t * B1 t := by
+    exact intervalIntegral.integral_sub (ContinuousOn.intervalIntegrable (by fun_prop)) (intervalIntegrable_deriv_mul_B1 ha hab h_cont)
+  _ = _ := by
+    conv => lhs; arg 1; arg 1; ext; rw [mul_comm]
+    rw [integral_deriv_mul_add_const _ hab h_cont.intervalIntegrable hf_diff]
+
+theorem sum_eq_integral_add_integral_deriv (ha : 0 ≤ a) (hab : a ≤ b)
+    (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t)
+    (h_cont : ContinuousOn (deriv f) [[a, b]]) :
+    ∑ k ∈ Ioc ⌊a⌋₊ ⌊b⌋₊, f k =
+      f a * B1 a - f b * B1 b + (∫ t in a..b, f t) + ∫ t in a..b, deriv f t * B1 t  := by
+  have := sum_mul_eq_sub_sub_integral_mul (fun _ ↦ 1) ha hab hf_diff (Set.uIcc_of_le hab ▸ h_cont).integrableOn_Icc
+  simp only [mul_one, sum_const, Nat.card_Icc, tsub_zero, nsmul_eq_mul, Nat.cast_add,
+    Nat.cast_one] at this
+  rw [this, ← intervalIntegral.integral_of_le hab]
+  rw [integral_deriv_mul_floor_add_one ha hab hf_diff h_cont]
+  unfold B1
+  push_cast
+  ring
+
+end EulerMaclaurin
+
 namespace Mertens
 
 blueprint_comment /--
@@ -51,26 +127,38 @@ The unfinished formalization of Mertens' theorems by Arend Mellendijk in https:/
 open Real Finset Filter Asymptotics
 open ArithmeticFunction hiding log
 
+lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
+    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Ioc 0 x, f n := by
+  rw [(by rfl : Ioc 0 x = Icc 1 x), ← add_sum_Ioc_eq_sum_Icc hx]
+  simpa
+
 @[blueprint
   "Mertens-sum-log"
   (title := "Partial sum of logarithm identity")
   (statement := /-- For any $x \geq 1$, one has
-$$ \sum_{n \leq x} \log n = x \log x - \{ x \} \log x - x + 1 + \int_1^x \{ t \} \frac{dt}{t} $$
+$$ \sum_{n \leq x} \log n = x \log x - (\{ x \}-1/2) \log x - x + 1 + \int_1^x (\{ t \}-1/2) \frac{dt}{t} $$
 (NOTE: this identity is not actually needed in the proof of Mertens' theorems, but may be worth recording nevertheless.)
  -/)
-  (proof := /-- We have
-\begin{align*}
-\sum_{n \leq x} \log n &= \int_1^x \log t \, d\lfloor t \rfloor \\
-&= \log x \cdot \lfloor x \rfloor - \int_1^x \frac{\lfloor t \rfloor}{t} dt \\
-&= x \log x - \{ x \} \log x - \int_1^x \frac{t}{t} dt + \int_1^x \{ t \} \frac{dt}{t}.
-\end{align*}
+  (proof := /-- Apply the Euler-Maclaurin formula.
  -/)
   (latexEnv := "lemma")
   (discussion := 1303)]
-theorem sum_log_eq (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_eq {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n =
-      x * log x - (x - Nat.floor x) * log x - x + 1 + ∫ t in 1..x, (t - Nat.floor t) / t := by
-  sorry
+      x * log x - (x - ⌊x⌋₊ - 1 / 2) * log x - x + 1 + ∫ t in 1..x, (t - ⌊t⌋₊ - 1 / 2) / t := by
+  rw [← sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by grind)) (by simp)]
+  have : 1 = ⌊(1 : ℝ)⌋₊ := by simp
+  nth_rw 1 [this]
+  rw [sum_eq_integral_add_integral_deriv (by norm_num) hx (fun _ _ ↦ (by fun_prop (disch := grind)))]
+  · simp only [log_one, B1, Nat.floor_one, Nat.cast_one, sub_self, zero_sub,
+    RCLike.ofReal_real_eq_id, id_eq, mul_neg, zero_mul, neg_zero, integral_log, mul_zero, sub_zero,
+    deriv_log']
+    ring_nf
+    congr
+    ext
+    ring
+  · simp only [deriv_log', Set.uIcc_of_le hx]
+    fun_prop (disch := grind)
 
 @[blueprint
   "Mertens-sum-log-le"
@@ -508,11 +596,6 @@ noncomputable abbrev γ : ℝ := (∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2)) 
   (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - \gamma$.
 -/)]
 noncomputable abbrev E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
-
-lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
-    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Ioc 0 x, f n := by
-  rw [(by rfl : Ioc 0 x = Icc 1 x), ← add_sum_Ioc_eq_sum_Icc hx]
-  simpa
 
 lemma sum_Ioc_one_eq_sum_Icc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf1 : f 1 = 0) (hf0 : f 0 = 0) :
     ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Icc 0 x, f n := by
