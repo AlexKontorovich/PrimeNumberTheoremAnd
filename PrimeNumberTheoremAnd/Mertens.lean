@@ -30,8 +30,11 @@ end Real
 section EulerMaclaurin
 open Finset Interval MeasureTheory
 
+/-! We prove the 1st order Euler-Maclaurin formula by specialising Abel summation and manipulating integrals. -/
+
 variable {𝕜 : Type*} [RCLike 𝕜] {f : ℝ → 𝕜} {a b : ℝ}
 
+/-- The 1st Bernoulli function. -/
 noncomputable def B1 (x : ℝ) : ℝ := x - ⌊x⌋₊ - 1 / 2
 
 @[fun_prop]
@@ -45,11 +48,11 @@ lemma abs_B1_le_half {x : ℝ} (hx : 0 ≤ x) : |B1 x| ≤ 1 / 2 := by
   · grind [Nat.floor_le hx]
   · grind [Nat.lt_succ_floor x]
 
-lemma integral_deriv_mul_add_half (hab : a ≤ b) (h_int : IntervalIntegrable (deriv f) volume a b)
+lemma integral_deriv_mul_add_const (c : 𝕜) (hab : a ≤ b) (h_int : IntervalIntegrable (deriv f) volume a b)
     (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t) :
-    ∫ t in a..b, (t + 1 / 2) * deriv f t = (b + 1 / 2) * f b - (a + 1 / 2) * f a - ∫ t in a..b, f t := by
+    ∫ t in a..b, (t + c) * deriv f t = (b + c) * f b - (a + c) * f a - ∫ t in a..b, f t := by
   rw [← Set.uIcc_of_le hab] at hf_diff
-  have : ∀ t ∈ [[a, b]], HasDerivAt (fun (t : ℝ) ↦ ((t + 1 / 2) : 𝕜)) 1 t := by
+  have : ∀ t ∈ [[a, b]], HasDerivAt (fun (t : ℝ) ↦ t + c) 1 t := by
     intro t ht
     simp only [hasDerivAt_add_const_iff]
     convert ContinuousLinearMap.hasDerivAt (RCLike.ofRealCLM (K := 𝕜)) using 1
@@ -57,6 +60,16 @@ lemma integral_deriv_mul_add_half (hab : a ≤ b) (h_int : IntervalIntegrable (d
   replace hf_diff := fun t ht ↦ (hf_diff t ht).hasDerivAt
   rw [intervalIntegral.integral_mul_deriv_eq_deriv_mul this hf_diff (by simp) h_int]
   simp
+
+lemma intervalIntegrable_deriv_mul_B1 (ha : 0 ≤ a) (hab : a ≤ b) (h_cont : ContinuousOn (deriv f) [[a, b]]) :
+    IntervalIntegrable (fun t ↦ deriv f t * B1 t) volume a b := by
+  refine IntervalIntegrable.continuousOn_mul ?_ h_cont
+  rw [intervalIntegrable_iff']
+  apply MeasureTheory.Measure.integrableOn_of_bounded (by simp) (by fun_prop) (M := 1 / 2)
+  filter_upwards [self_mem_ae_restrict (by measurability)] with x hx
+  rw [Set.uIcc_of_le hab, Set.mem_Icc] at hx
+  norm_cast
+  exact abs_B1_le_half (by linarith)
 
 lemma integral_deriv_mul_floor_add_one (ha : 0 ≤ a) (hab : a ≤ b)
     (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t) (h_cont : ContinuousOn (deriv f) [[a, b]]) :
@@ -69,18 +82,10 @@ lemma integral_deriv_mul_floor_add_one (ha : 0 ≤ a) (hab : a ≤ b)
     push_cast
     ring
   _ = (∫ t in a..b, deriv f t * (t + 1 / 2)) - ∫ t in a..b, deriv f t * B1 t := by
-    apply intervalIntegral.integral_sub
-    · exact ContinuousOn.intervalIntegrable (by fun_prop)
-    · refine IntervalIntegrable.continuousOn_mul ?_ h_cont
-      rw [intervalIntegrable_iff']
-      apply MeasureTheory.Measure.integrableOn_of_bounded (by simp) (by fun_prop) (M := 1 / 2)
-      filter_upwards [self_mem_ae_restrict (by measurability)] with x hx
-      rw [Set.uIcc_of_le hab, Set.mem_Icc] at hx
-      norm_cast
-      exact abs_B1_le_half (by linarith)
+    exact intervalIntegral.integral_sub (ContinuousOn.intervalIntegrable (by fun_prop)) (intervalIntegrable_deriv_mul_B1 ha hab h_cont)
   _ = _ := by
     conv => lhs; arg 1; arg 1; ext; rw [mul_comm]
-    rw [integral_deriv_mul_add_half hab h_cont.intervalIntegrable hf_diff]
+    rw [integral_deriv_mul_add_const _ hab h_cont.intervalIntegrable hf_diff]
 
 theorem sum_eq_integral_add_integral_deriv (ha : 0 ≤ a) (hab : a ≤ b)
     (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ f t)
