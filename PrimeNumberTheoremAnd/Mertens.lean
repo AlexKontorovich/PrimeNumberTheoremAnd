@@ -122,26 +122,38 @@ The unfinished formalization of Mertens' theorems by Arend Mellendijk in https:/
 open Real Finset Filter Asymptotics
 open ArithmeticFunction hiding log
 
+lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
+    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Ioc 0 x, f n := by
+  rw [(by rfl : Ioc 0 x = Icc 1 x), ← add_sum_Ioc_eq_sum_Icc hx]
+  simpa
+
 @[blueprint
   "Mertens-sum-log"
   (title := "Partial sum of logarithm identity")
   (statement := /-- For any $x \geq 1$, one has
-$$ \sum_{n \leq x} \log n = x \log x - \{ x \} \log x - x + 1 + \int_1^x \{ t \} \frac{dt}{t} $$
+$$ \sum_{n \leq x} \log n = x \log x - (\{ x \}-1/2) \log x - x + 1 + \int_1^x (\{ t \}-1/2) \frac{dt}{t} $$
 (NOTE: this identity is not actually needed in the proof of Mertens' theorems, but may be worth recording nevertheless.)
  -/)
-  (proof := /-- We have
-\begin{align*}
-\sum_{n \leq x} \log n &= \int_1^x \log t \, d\lfloor t \rfloor \\
-&= \log x \cdot \lfloor x \rfloor - \int_1^x \frac{\lfloor t \rfloor}{t} dt \\
-&= x \log x - \{ x \} \log x - \int_1^x \frac{t}{t} dt + \int_1^x \{ t \} \frac{dt}{t}.
-\end{align*}
+  (proof := /-- Apply the Euler-Maclaurin formula.
  -/)
   (latexEnv := "lemma")
   (discussion := 1303)]
-theorem sum_log_eq (x : ℝ) (hx : 1 ≤ x) :
+theorem sum_log_eq {x : ℝ} (hx : 1 ≤ x) :
     ∑ n ∈ Ioc 0 ⌊ x ⌋₊, log n =
-      x * log x - (x - Nat.floor x) * log x - x + 1 + ∫ t in 1..x, (t - Nat.floor t) / t := by
-  sorry
+      x * log x - (x - ⌊x⌋₊ - 1 / 2) * log x - x + 1 + ∫ t in 1..x, (t - ⌊t⌋₊ - 1 / 2) / t := by
+  rw [← sum_Ioc_one_eq_sum_Ioc_zero (Nat.le_floor (by grind)) (by simp)]
+  have : 1 = ⌊(1 : ℝ)⌋₊ := by simp
+  nth_rw 1 [this]
+  rw [sum_eq_integral_add_integral_deriv (by norm_num) hx (fun _ _ ↦ (by fun_prop (disch := grind)))]
+  · simp only [log_one, B1, Nat.floor_one, Nat.cast_one, sub_self, zero_sub,
+    RCLike.ofReal_real_eq_id, id_eq, mul_neg, zero_mul, neg_zero, integral_log, mul_zero, sub_zero,
+    deriv_log']
+    ring_nf
+    congr
+    ext
+    ring
+  · simp only [deriv_log', Set.uIcc_of_le hx]
+    fun_prop (disch := grind)
 
 @[blueprint
   "Mertens-sum-log-le"
@@ -579,11 +591,6 @@ noncomputable abbrev γ : ℝ := (∫ t in Set.Ioi 2, E₁Λ t / (t * log t^2)) 
   (statement := /-- We define $E_{2,\Lambda}(x) := \sum_{d \leq x} \frac{\Lambda(d)}{d \log d} - \log \log x - \gamma$.
 -/)]
 noncomputable abbrev E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ
-
-lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
-    ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Ioc 0 x, f n := by
-  rw [(by rfl : Ioc 0 x = Icc 1 x), ← add_sum_Ioc_eq_sum_Icc hx]
-  simpa
 
 lemma sum_Ioc_one_eq_sum_Icc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf1 : f 1 = 0) (hf0 : f 0 = 0) :
     ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Icc 0 x, f n := by
