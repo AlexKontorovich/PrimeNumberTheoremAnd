@@ -697,7 +697,9 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
       (↗(ζ * (fun n ↦ τ (n ^ 2)) : ArithmeticFunction ℕ) : ℕ → ℂ) n by
     simp [mul_zeta_apply, natCoe_apply])]
   simpa [← natCoe_mul, hid] using LSeries_d_summable 2 hs
-sorry
+  rw [← LSeries_zeta_eq_riemannZeta hs, ← LSeries_mul'
+    (LSeriesSummable_zeta_iff.mpr hs) hτsq]
+  exact LSeries_congr fun {n} _ ↦ by simp [← natCoe_apply, ← natCoe_mul, hid]
 
 /--
 Zeta cubed:
