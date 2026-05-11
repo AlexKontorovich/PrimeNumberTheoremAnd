@@ -610,8 +610,6 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
     We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
     $z\not\in\mathcal{K}_f(r)$, so the result follows.
   -/)]
--- lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
---     (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) {ρ : ℂ} (hρ : ρ ∈ SetOfZeros R f)
 lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
   {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
