@@ -608,14 +608,19 @@ lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R
 
 
 
-blueprint_comment /--
-\begin{definition}[JBlaschke]\label{JBlaschke}
+@[blueprint "JBlaschke"
+  (title := "JBlaschke")
+  (statement := /--
     Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define
     $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$
     is from Definition \ref{BlaschkeB}.
-\end{definition}
--/
+  -/)]
+noncomputable def JBlaschke
+  {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
+  {f : ℂ → ℂ} (blaschke_analytic : AnalyticOnNhd ℂ (BlaschkeB r R f) (Metric.closedBall (0 : ℂ) R))
+  (blaschke_nonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, BlaschkeB r R f z ≠ 0) (z : ℂ) : ℂ :=
+  (LogOfAnalyticFunction zero_lt_r r_lt_R blaschke_analytic blaschke_nonzero).choose z
 
 
 
