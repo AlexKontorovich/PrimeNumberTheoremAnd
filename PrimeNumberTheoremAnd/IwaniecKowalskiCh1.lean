@@ -1,5 +1,7 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.NumberTheory.LSeries.Nonvanishing
+import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
 
 open ArithmeticFunction hiding log
 
@@ -720,6 +722,14 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
   sorry
 
+lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
+    LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
+  sorry
+
+lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
+    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ 2 ^ ω n) s) := by
+  sorry
+
 /--
 Zeta squared:
 `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
@@ -739,7 +749,30 @@ where omega is the number of distinct prime factors. -/
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
     riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
-  sorry
+  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; exact_mod_cast (by linarith)
+  have mulable : Multipliable fun (p : Primes) ↦ (1 - (p : ℂ) ^ (-s))⁻¹ := by exact ⟨riemannZeta s, riemannZeta_eulerProduct_hasProd hs⟩
+  rw [pow_two, ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulable mulable, mul_comm, ← riemannZeta_eulerProduct_tprod hs', two_pow_omega_LSeries_eulerProduct_tprod s hs, ← Multipliable.tprod_mul, tprod_congr]
+  · intro b
+    have : (1 - (↑↑b ^ (-s)) ^ 2) = (1 - (b : ℂ) ^ (-s)) * (1 + (b : ℂ) ^ (-s)) := by ring_nf
+    rw [div_eq_mul_inv, ← mul_inv, inv_eq_iff_eq_inv]
+    field_simp
+    rw [← neg_mul, Complex.cpow_mul_ofNat, pow_two, this, mul_div_assoc, mul_div_assoc, div_self, mul_one]
+    by_contra
+    rw [add_eq_zero_iff_neg_eq] at this
+    have h := congrArg norm this
+    simp only [norm_neg, one_mem, CStarRing.norm_of_mem_unitary] at h
+    rw[Complex.norm_natCast_cpow_of_re_ne_zero] at h
+    · have : 1 > (b : ℝ) ^ (-s).re := by
+        refine rpow_lt_one_of_one_lt_of_neg ?_ ?_
+        · rw[one_lt_cast]
+          apply Nat.Prime.one_lt b.2
+        · rw[Complex.neg_re]
+          linarith
+      linarith
+    · simp only [Complex.neg_re, ne_eq, neg_eq_zero]
+      linarith
+  · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
+  · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.
@@ -997,7 +1030,7 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
 \]
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
-    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+    LSeries (↗(liouville : ArithmeticFunction ℤ)) s =  (2 * s) / riemannZeta s := by
   sorry
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
