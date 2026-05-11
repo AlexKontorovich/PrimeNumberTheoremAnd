@@ -558,6 +558,150 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
 
 
 
+@[blueprint "BlaschkeNonZero"
+  (title := "BlaschkeNonZero")
+  (statement := /--
+    Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
+    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then $B_f(z)\neq 0$
+    for all $z\in\overline{\mathbb{D}_r}$.
+  -/)
+  (proof := /--
+    Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
+    $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
+      (z-\rho)^{m_f(\rho)}}.$$
+    where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting
+    this into Definition \ref{BlaschkeB},
+    \begin{equation}\label{pickupPoint2}
+        |B_f(z)|=|h_z(z)|\cdot\left|R-\frac{|z|^2}{R}\right|^{m_f(z)}
+          \prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
+          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
+    \end{equation}
+    Trivially, $|h_z(z)|\neq 0$. Now note that
+    $$\left|R-\frac{|z|^2}{R}\right|=0\implies|z|=R.$$
+    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. Similarly, note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
+    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. So, we know that
+    $$\left|R-\frac{|z|^2}{R}\right|\neq 0\qquad\text{and}\qquad
+      \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
+      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
+    Applying this to Equation (\ref{pickupPoint2}) we have that $|B_f(z)|\neq 0$.
+    So, $B_f(z)\neq 0$.
+
+    Now suppose that $z\not\in\mathcal{K}_f(r)$. Then we have that
+    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
+    Thus, substituting this into Definition \ref{BlaschkeB},
+    \begin{equation}\label{pickupPoint3}
+        |B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}
+          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
+    \end{equation}
+    We know that $|f(z)|\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
+    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. So, we know that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
+      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
+    Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$.
+    So, $B_f(z)\neq 0$.
+
+    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
+    $z\not\in\mathcal{K}_f(r)$, so the result follows.
+  -/)]
+-- lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+--     (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) {ρ : ℂ} (hρ : ρ ∈ SetOfZeros R f)
+lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r) :
+    BlaschkeB r R f z ≠ 0 := by
+  unfold BlaschkeB Cf
+  by_cases z_in_zeros : z ∈ SetOfZeros r f
+  · simp only [finiteSetOfZeros_mono r_lt_one finiteZeros, z_in_zeros, ↓reduceDIte]
+    obtain ⟨h_z, hh_z_analytic, hh_z_z_ne_zero, hh_z_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) z_in_zeros;
+    rw[hh_z_eq.1]
+    refine mul_ne_zero (div_ne_zero hh_z_z_ne_zero ?_) ?_
+    · rw [Finset.prod_ne_zero_iff]
+      intro ρ hρ
+      rw [pow_ne_zero_iff]
+      · apply sub_ne_zero.mpr
+        simp only [Finset.mem_sdiff, Finset.mem_singleton, ← ne_eq] at hρ
+        exact hρ.2.symm
+      · unfold analyticOrderNatAt
+        simp only [ne_eq, ENat.toNat_eq_zero, not_or]
+        simp only [← ne_eq, analyticOrderAt_ne_zero]
+        have : AnalyticAt ℂ f ρ := by sorry
+        refine ⟨⟨this, ?_⟩, ?_⟩
+        · unfold SetOfZeros at hρ
+          rw [Finset.mem_sdiff, Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
+          exact hρ.1.2
+        · rw [AnalyticAt.analyticOrderAt_ne_top this]
+          have : ρ ∈ SetOfZeros R f := by sorry
+          obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
+          exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
+    · rw [Finset.prod_ne_zero_iff]
+      intro ρ hρ
+      by_contra h
+      rw[pow_eq_zero_iff] at h
+      · sorry
+      · unfold analyticOrderNatAt
+        simp only [ne_eq, ENat.toNat_eq_zero, not_or]
+        simp only [← ne_eq, analyticOrderAt_ne_zero]
+        have : AnalyticAt ℂ f ρ := by sorry
+        refine ⟨⟨this, ?_⟩, ?_⟩
+        · unfold SetOfZeros at hρ
+          rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
+          exact hρ.2
+        · rw [AnalyticAt.analyticOrderAt_ne_top this]
+          have : ρ ∈ SetOfZeros R f := by sorry
+          obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
+          exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
+  · simp only [finiteSetOfZeros_mono r_lt_one finiteZeros, z_in_zeros, ↓reduceDIte]
+    refine mul_ne_zero (div_ne_zero ?_ ?_) ?_
+    · unfold SetOfZeros at z_in_zeros
+      rw [Set.mem_setOf_eq, not_and_or] at z_in_zeros
+      apply z_in_zeros.resolve_left
+      rw [mem_closedBall_iff_norm, sub_zero] at hz
+      simp [hz]
+    · rw[Finset.prod_ne_zero_iff]
+      intro ρ hρ
+      have hρ_mem := (finiteSetOfZeros_mono r_lt_one finiteZeros).mem_toFinset.mp hρ
+      rw[pow_ne_zero_iff]
+      · exact sub_ne_zero.mpr (fun h => z_in_zeros (h ▸ hρ_mem))
+      · unfold analyticOrderNatAt
+        simp only [ne_eq, ENat.toNat_eq_zero, not_or]
+        simp only [← ne_eq, analyticOrderAt_ne_zero]
+        have : AnalyticAt ℂ f ρ := by sorry
+        refine ⟨⟨this, ?_⟩, ?_⟩
+        · unfold SetOfZeros at hρ
+          rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
+          exact hρ.2
+        · rw [AnalyticAt.analyticOrderAt_ne_top this]
+          have : ρ ∈ SetOfZeros R f := by sorry
+          obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
+          exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
+    · rw [Finset.prod_ne_zero_iff]
+      intro ρ hρ
+      by_contra h
+      rw[pow_eq_zero_iff] at h
+      · sorry
+      · unfold analyticOrderNatAt
+        simp only [ne_eq, ENat.toNat_eq_zero, not_or]
+        simp only [← ne_eq, analyticOrderAt_ne_zero]
+        have : AnalyticAt ℂ f ρ := by sorry
+        refine ⟨⟨this, ?_⟩, ?_⟩
+        · unfold SetOfZeros at hρ
+          rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
+          exact hρ.2
+        · rw [AnalyticAt.analyticOrderAt_ne_top this]
+          have : ρ ∈ SetOfZeros R f := by sorry
+          obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
+          exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
+
+
 @[blueprint "ZerosBound"
   (title := "ZerosBound")
   (statement := /--
@@ -621,65 +765,6 @@ noncomputable def JBlaschke
   {f : ℂ → ℂ} (blaschke_analytic : AnalyticOnNhd ℂ (BlaschkeB r R f) (Metric.closedBall (0 : ℂ) R))
   (blaschke_nonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, BlaschkeB r R f z ≠ 0) (z : ℂ) : ℂ :=
   (LogOfAnalyticFunction zero_lt_r r_lt_R blaschke_analytic blaschke_nonzero).choose z
-
-
-
-blueprint_comment /--
-\begin{lemma}[BlaschkeNonZero]\label{BlaschkeNonZero}
-    Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$. Then $B_f(z)\neq 0$ for all
-    $z\in\overline{\mathbb{D}_r}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroFactorization, BlaschkeB}
-    Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
-    $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
-      (z-\rho)^{m_f(\rho)}}.$$
-    where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting
-    this into Definition \ref{BlaschkeB},
-    \begin{equation}\label{pickupPoint2}
-        |B_f(z)|=|h_z(z)|\cdot\left|R-\frac{|z|^2}{R}\right|^{m_f(z)}
-          \prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
-          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
-    \end{equation}
-    Trivially, $|h_z(z)|\neq 0$. Now note that
-    $$\left|R-\frac{|z|^2}{R}\right|=0\implies|z|=R.$$
-    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. Similarly, note that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
-    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
-    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. So, we know that
-    $$\left|R-\frac{|z|^2}{R}\right|\neq 0\qquad\text{and}\qquad
-      \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
-      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
-    Applying this to Equation (\ref{pickupPoint2}) we have that $|B_f(z)|\neq 0$.
-    So, $B_f(z)\neq 0$.
-
-    Now suppose that $z\not\in\mathcal{K}_f(r)$. Then we have that
-    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
-    Thus, substituting this into Definition \ref{BlaschkeB},
-    \begin{equation}\label{pickupPoint3}
-        |B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}
-          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
-    \end{equation}
-    We know that $|f(z)|\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
-    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
-    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. So, we know that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
-      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
-    Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$.
-    So, $B_f(z)\neq 0$.
-
-    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
-    $z\not\in\mathcal{K}_f(r)$, so the result follows.
-\end{proof}
--/
 
 
 
