@@ -679,37 +679,31 @@ Baby Rankin-Selberg:
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s =
       LSeries (fun n ↦ (τ n) ^ 2) s := by
-  have hid :
-      (ζ : ArithmeticFunction ℕ) * (fun n ↦ τ (n ^ 2)) =
-        (fun n ↦ (τ n) ^ 2) := by
-    refine IsMultiplicative.eq_iff_eq_on_prime_pow.mpr ?_
-    refine ⟨isMultiplicative_zeta.mul
-      ⟨by simp [tau],
-       fun m n hmn ↦ by
-         simp [show (m * n)^2 = m^2 * n^2 by ring,
-           isMultiplicative_sigma.right (hmn.pow_left 2)]⟩,
-      isMultiplicative_sigma.mul isMultiplicative_sigma,
-      ?_⟩
-    intro p k hp
-    simp only [mul_zeta_apply, sum_divisors_prime_pow hp]
-    have hτ : ∀ j : ℕ, τ (p ^ (2 * j)) = 2 * j + 1 := by
-      intro j
-      simp [tau, sigma, Nat.divisors_prime_pow hp]
-    induction' k with k ih
-    · simp [hτ]
-    · rw [Finset.sum_range_succ, ih]
-      ring_nf
-      simp [hτ]
-  have hτsq :
+  have hzeta :
+      riemannZeta s = LSeries (fun _ : ℕ ↦ (1 : ℂ)) s := by
+    simpa using LSeries_zeta_eq_riemannZeta hs
+  have h1 :
+      LSeriesSummable (fun _ : ℕ ↦ (1 : ℂ)) s := by
+    simpa using LSeriesSummable_zeta_iff.mpr hs
+  have hτ :
       LSeriesSummable (fun n ↦ τ (n ^ 2)) s := by
-    apply LSeriesSummable.of_le_norm (LSeries_d_summable 2 hs)
-    intro n hn
-    simp only [norm_natCast]
-    exact_mod_cast Nat.sigma_zero_sq_le n
-  rw [← LSeries_zeta_eq_riemannZeta hs]
-  rw [← LSeries_mul' (LSeriesSummable_zeta_iff.mpr hs) hτsq]
-  exact LSeries_congr (fun n ↦ by simp [hid])
-
+    have hbound : ∀ n, τ (n ^ 2) ≤ (n : ℝ) := by
+      intro n
+      have : τ (n ^ 2) ≤ n := Nat.tau_le_self_pow_two n
+      exact_mod_cast this
+    simpa using
+      LSeriesSummable_of_le
+        (f := fun n ↦ τ (n ^ 2))
+        (g := fun n ↦ (n : ℂ))
+        hbound
+        (by simpa using LSeriesSummable_zeta_iff.mpr hs)
+  have hmul :
+      LSeries (fun _ : ℕ ↦ (1 : ℂ)) s *
+        LSeries (fun n ↦ τ (n ^ 2)) s =
+      LSeries (fun n ↦ (τ n) ^ 2) s := by
+    simpa using
+      (LSeries_mul' h1 hτ)
+  simpa [hzeta] using hmul
 /--
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
