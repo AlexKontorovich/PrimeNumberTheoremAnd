@@ -16,6 +16,99 @@ $$ \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/7})
 
 namespace CostaPereira
 
+theorem sum_PrimePow_eq_sum_sum' {R : Type*} [AddCommMonoid R] (f : ℕ → R) {x : ℝ} (hx : 0 ≤ x)
+ {N : ℕ} (hN : ⌊log x / log 2⌋₊ ≤ N) :
+    ∑ n ∈ Ioc 0 ⌊x⌋₊ with IsPrimePow n, f n
+      = ∑ k ∈ Icc 1 N, ∑ p ∈ Ioc 0 ⌊x ^ ((1 : ℝ) / k)⌋₊ with p.Prime, f (p ^ k) := by
+  trans ∑ ⟨k, p⟩ ∈ Icc 1 N ×ˢ (Ioc 0 ⌊x⌋₊).filter Nat.Prime
+    with p ≤ ⌊x ^ (k : ℝ)⁻¹⌋₊, f (p ^ k)
+  · refine (sum_bij (i := fun ⟨k, p⟩ _ ↦ p ^ k) ?_ ?_ ?_ ?_).symm
+    · simp +contextual [hx, rpow_nonneg, le_floor_iff, ← Nat.pos_iff_ne_zero, Prime.isPrimePow,
+        one_le_iff_ne_zero, le_rpow_inv_iff_of_pos, isPrimePow_pow_iff, Nat.prime_iff]
+    · simp +contextual only [hx, rpow_nonneg, le_floor_iff, mem_filter, mem_product, mem_Icc,
+        one_le_iff_ne_zero, Nat.pos_iff_ne_zero, mem_Ioc, and_imp, Prod.forall, Prod.mk.injEq]
+      intro k₁ p₁ hk₁ _ _ _ hp₁ _ k₂ p₂ hk₂ _ _ _ hp₂ _ H
+      exact (Nat.Prime.pow_inj' hp₁ hp₂ hk₁ hk₂ H).symm
+    · simp +contextual only [mem_filter, mem_Ioc, hx, le_floor_iff, and_assoc, rpow_nonneg,
+        mem_product, mem_Icc, succ_le_iff, exists_prop, Prod.exists, exists_and_left, and_imp]
+      rintro b hb₀ hbx ⟨p, k, hp, hk₀, rfl⟩
+      rw [cast_pow] at hbx
+      refine ⟨k, hk₀, le_floor ?_, p, hp.nat_prime.pos, ?_, hp.nat_prime, ?_, rfl⟩
+      · rw [le_div_iff₀ (log_pos (by norm_num)), ← Real.log_pow]
+        refine Real.log_le_log (by simp) (.trans ?_ hbx)
+        exact pow_le_pow_left₀ (by norm_num) (mod_cast hp.nat_prime.two_le) _
+      · exact (le_self_pow₀ (mod_cast hp.nat_prime.one_le) hk₀.ne').trans hbx
+      · simp_all [le_rpow_inv_iff_of_pos]
+    · simp
+  · rw [sum_filter, sum_product]
+    refine sum_congr rfl fun k hk ↦ ?_
+    simp only [sum_ite, not_le, sum_const_zero, add_zero]
+    congr 1
+    ext p
+    simp only [mem_filter, mem_Ioc]
+    refine ⟨fun _ ↦ (by simp_all), fun h ↦ ?_⟩
+    simp_all only [mem_Icc, one_div, true_and, and_true]
+    grw [h.1.2, floor_le_floor]
+    apply rpow_le_self_of_one_le _ (by bound)
+    have := one_le_floor_iff _ |>.mp <| le_trans (one_le_cast.mp h.2.one_le) h.1.2
+    contrapose! this
+    apply rpow_lt_one hx this (by bound)
+
+theorem psi_eq_sum_theta' {x : ℝ} (hx : 0 ≤ x) {N : ℕ} (hN : ⌊log x / log 2⌋₊ ≤ N) :
+    ψ x = ∑ n ∈ Icc 1 N, θ (x ^ ((1 : ℝ) / n)) := by
+  simp_rw [psi, vonMangoldt_apply, ← sum_filter, sum_PrimePow_eq_sum_sum' _ hx hN]
+  apply sum_congr rfl fun _ hk ↦ sum_congr rfl fun _ _ ↦ ?_
+  rw [Nat.Prime.pow_minFac _ (by linarith [mem_Icc.mp hk])]
+  simp_all
+
+/-- A version of `psi_eq_sum_theta` removing the explicit upper limit on the summation.-/
+theorem psi_eq_sum_theta_eventually {x : ℝ} (hx : 0 ≤ x) :
+    ∀ᶠ N in atTop, ψ x = ∑ n ∈ Icc 1 N, θ (x ^ ((1 : ℝ) / n)) := by
+  sorry
+
+namespace CP
+
+variable {x : ℝ} (hx : 0 ≤ x)
+
+private abbrev a (n : ℕ) := θ (x ^ ((1 : ℝ) / n))
+
+private abbrev b (n : ℕ) := ψ (x ^ ((1 : ℝ) / n))
+
+private theorem a_antitone : Antitone a := by sorry
+
+private theorem b_eq_sum_a (m : ℕ) :
+    ∀ᶠ N in atTop, b m = ∑ n ∈ Icc 1 N, a n * (if m | n then 1 else 0) := by
+  sorry
+
+private abbrev c (n : ℕ) := a (6 * n - 1) - a (6 * n) + a (6 * n + 1)
+
+private theorem b_sub_b_sub_b_eq_sum_a : ∀ᶠ N in atTop, b 1 - b 2 - b 3 = a 1 +
+      ∑ n ∈ Icc 1 N, c n := by
+  sorry
+
+private theorem c_ge {n : ℕ} (hn : 1 ≤ n) : a (7 * n) ≤ c n := by
+  sorry
+
+private theorem c_le {n : ℕ} (hn : 1 ≤ n) : a (5 * n) ≤ c n := by
+  sorry
+
+private theorem b_sub_b_sub_b_ge : a 1 + b 7 ≤ b 1 - b 2 - b 3 := by
+  sorry
+
+private theorem b_sub_b_sub_b_le : b 1 - b 2 - b 3 ≤ a 1 + b 5 := by
+  sorry
+
+end CP
+
+theorem psi_sub_theta_ge_sum_psi {x : ℝ} (hx : 0 < x) :
+    ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 7 : ℝ)) ≤ ψ x - θ x := by
+
+theorem psi_sub_theta_le_sum_psi {x : ℝ} (hx : 0 < x) :
+    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
+  sorry
+
+
+
 @[blueprint
   "costa-pereira-sublemma-1-1"
   (title := "Costa-Pereira Sublemma 1.1")

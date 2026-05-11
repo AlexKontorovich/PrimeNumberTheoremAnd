@@ -563,6 +563,9 @@ private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
   (title := "Bound for second Mertens error (von Mangoldt form)")
   (statement := /-- For any $x \geq 2$, one has
 $$ |E_{2,\Lambda}(x)| \leq \frac{\log 4 + 6}{\log x}.$$
+
+In particular,
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + \gamma + O\left(\frac{1}{\log x}\right).$$
 -/)
   (proof := /--
   Insert Lemma \ref{Mertens-first-error-mangoldt-le} and Lemma \ref{Mertens-first-error-mangoldt-ge} into Lemma \ref{Mertens-second-error-mangoldt-eq} and use the triangle inequality to obtain the required upper and lower bounds.
@@ -581,8 +584,8 @@ theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
             (integrable_E₁Λ_div_mul_log_sq hx) (by measurability)
           intro y hy; simp at hy
           have : 1 < y := by linarith
-          have : 0 < log y := log_pos this
-          gcongr; exact E₁Λ.ge (by linarith)
+          have h : 0 < log y := log_pos this
+          gcongr; exact E₁Λ.ge (le_of_lt this)
         _ = _ := integ_div_mul_log_sq (-2) hx
       grw [this]
       grind
@@ -655,7 +658,7 @@ theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d)
   (statement := /-- For any $x \geq 2$, one has
 $$ \sum_{n \leq x} \frac{\Lambda(n)}{n \log n} = \log \log x + O(1). $$
 -/)
-  (proof := /-- Immediate from previous two corollaries.
+  (proof := /-- Immediate from previous two bounds.
   -/)
   (discussion := 1321)]
 theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
