@@ -677,29 +677,38 @@ Baby Rankin-Selberg:
   This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
   -/)]
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
-    have hid : (ζ : ArithmeticFunction ℕ) * (fun n ↦ τ (n ^ 2)) = (fun n ↦ (τ n) ^ 2) :=
-      IsMultiplicative.eq_iff_eq_on_prime_pow.mpr
-        ⟨isMultiplicative_zeta.mul ⟨by simp [tau], fun m n hmn _ ↦ by
-          simp [show (m * n) ^ 2 = m ^ 2 * n ^ 2 by ring,
-              isMultiplicative_sigma.right (hmn.pow_left 2)]⟩,
-     isMultiplicative_sigma.mul isMultiplicative_sigma, fun p k hp ↦ by
-       simp only [mul_zeta_apply, sum_divisors_prime_pow hp, sigma_zero_apply,
-                  show ∀ j : ℕ, τ (p ^ (2 * j)) = 2 * j + 1 from
-                    fun j ↦ by simp [tau, sigma, Nat.divisors_prime_pow hp]]
-       induction k with
-       | zero => simp
-       | succ k ih => rw [Finset.sum_range_succ, ih]; ring⟩
-    have hτsq : LSeriesSummable (↗(fun n : ℕ ↦ τ (n ^ 2) : ArithmeticFunction ℕ)) s := by
-      rw [LSeriesSummable_congr s (fun {n} _ ↦ show
-      (↗(fun n : ℕ ↦ τ (n ^ 2) : ArithmeticFunction ℕ) : ℕ → ℂ) n =
-      (↗(ζ * (fun n ↦ τ (n ^ 2)) : ArithmeticFunction ℕ) : ℕ → ℂ) n by
-    simp [mul_zeta_apply, natCoe_apply])]
-  simpa [← natCoe_mul, hid] using LSeries_d_summable 2 hs
-  rw [← LSeries_zeta_eq_riemannZeta hs, ← LSeries_mul'
-    (LSeriesSummable_zeta_iff.mpr hs) hτsq]
-  exact LSeries_congr fun {n} _ ↦ by simp [← natCoe_apply, ← natCoe_mul, hid]
+    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s =
+      LSeries (fun n ↦ (τ n) ^ 2) s := by
+  have hid :
+      (ζ : ArithmeticFunction ℕ) * (fun n ↦ τ (n ^ 2)) =
+        (fun n ↦ (τ n) ^ 2) := by
+    refine IsMultiplicative.eq_iff_eq_on_prime_pow.mpr ?_
+    refine ⟨isMultiplicative_zeta.mul
+      ⟨by simp [tau],
+       fun m n hmn ↦ by
+         simp [show (m * n)^2 = m^2 * n^2 by ring,
+           isMultiplicative_sigma.right (hmn.pow_left 2)]⟩,
+      isMultiplicative_sigma.mul isMultiplicative_sigma,
+      ?_⟩
+    intro p k hp
+    simp only [mul_zeta_apply, sum_divisors_prime_pow hp]
+    have hτ : ∀ j : ℕ, τ (p ^ (2 * j)) = 2 * j + 1 := by
+      intro j
+      simp [tau, sigma, Nat.divisors_prime_pow hp]
+    induction' k with k ih
+    · simp [hτ]
+    · rw [Finset.sum_range_succ, ih]
+      ring_nf
+      simp [hτ]
+  have hτsq :
+      LSeriesSummable (fun n ↦ τ (n ^ 2)) s := by
+    apply LSeriesSummable.of_le_norm (LSeries_d_summable 2 hs)
+    intro n hn
+    simp only [norm_natCast]
+    exact_mod_cast Nat.sigma_zero_sq_le n
+  rw [← LSeries_zeta_eq_riemannZeta hs]
+  rw [← LSeries_mul' (LSeriesSummable_zeta_iff.mpr hs) hτsq]
+  exact LSeries_congr (fun n ↦ by simp [hid])
 
 /--
 Zeta cubed:
