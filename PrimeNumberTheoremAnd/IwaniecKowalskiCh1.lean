@@ -759,7 +759,13 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
         apply pow_nonneg zero_le_two
 
 lemma two_pow_omega_IsMultiplicative : two_pow_omega.IsMultiplicative := by
-  sorry
+  unfold two_pow_omega
+  refine ⟨by simp only [coe_mk, one_ne_zero, ↓reduceIte, cardDistinctFactors_one, pow_zero], ?_⟩
+  intro m n mCn
+  simp only [coe_mk, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul]
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte, ← pow_add, cardDistinctFactors_mul mCn]
 
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
