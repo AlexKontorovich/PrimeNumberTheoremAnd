@@ -631,13 +631,21 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
-        have : AnalyticAt ℂ f ρ := by sorry
+        have : AnalyticAt ℂ f ρ := by
+          apply hfAnalytic
+          rw [Metric.mem_closedBall, dist_zero_right]
+          unfold SetOfZeros at hρ
+          simp only [Finset.mem_sdiff, Finite.mem_toFinset, mem_setOf_eq] at hρ
+          linarith
         refine ⟨⟨this, ?_⟩, ?_⟩
         · unfold SetOfZeros at hρ
           rw [Finset.mem_sdiff, Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
           exact hρ.1.2
         · rw [AnalyticAt.analyticOrderAt_ne_top this]
-          have : ρ ∈ SetOfZeros R f := by sorry
+          have : ρ ∈ SetOfZeros R f := by
+            unfold SetOfZeros at hρ ⊢
+            simp only [Finset.mem_sdiff, Finite.mem_toFinset, mem_setOf_eq] at hρ ⊢
+            exact ⟨by linarith, hρ.1.2⟩
           obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
           exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
     · rw [Finset.prod_ne_zero_iff]
@@ -648,13 +656,21 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
-        have : AnalyticAt ℂ f ρ := by sorry
+        have : AnalyticAt ℂ f ρ := by
+          apply hfAnalytic
+          rw [Metric.mem_closedBall, dist_zero_right]
+          unfold SetOfZeros at hρ
+          simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ
+          linarith
         refine ⟨⟨this, ?_⟩, ?_⟩
         · unfold SetOfZeros at hρ
           rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
           exact hρ.2
         · rw [AnalyticAt.analyticOrderAt_ne_top this]
-          have : ρ ∈ SetOfZeros R f := by sorry
+          have : ρ ∈ SetOfZeros R f := by
+            unfold SetOfZeros at hρ ⊢
+            simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ ⊢
+            exact ⟨by linarith, hρ.2⟩
           obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
           exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
   · simp only [finiteSetOfZeros_mono r_lt_one finiteZeros, z_in_zeros, ↓reduceDIte]
@@ -672,13 +688,21 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
-        have : AnalyticAt ℂ f ρ := by sorry
+        have : AnalyticAt ℂ f ρ := by
+          apply hfAnalytic
+          rw [Metric.mem_closedBall, dist_zero_right]
+          unfold SetOfZeros at hρ
+          simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ
+          linarith
         refine ⟨⟨this, ?_⟩, ?_⟩
         · unfold SetOfZeros at hρ
           rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
           exact hρ.2
         · rw [AnalyticAt.analyticOrderAt_ne_top this]
-          have : ρ ∈ SetOfZeros R f := by sorry
+          have : ρ ∈ SetOfZeros R f := by
+            unfold SetOfZeros at hρ ⊢
+            simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ ⊢
+            exact ⟨by linarith, hρ.2⟩
           obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
           exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
     · rw [Finset.prod_ne_zero_iff]
@@ -689,13 +713,21 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
-        have : AnalyticAt ℂ f ρ := by sorry
+        have : AnalyticAt ℂ f ρ := by
+          apply hfAnalytic
+          rw [Metric.mem_closedBall, dist_zero_right]
+          unfold SetOfZeros at hρ
+          simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ
+          linarith
         refine ⟨⟨this, ?_⟩, ?_⟩
         · unfold SetOfZeros at hρ
           rw [Finite.mem_toFinset, Set.mem_setOf_eq] at hρ
           exact hρ.2
         · rw [AnalyticAt.analyticOrderAt_ne_top this]
-          have : ρ ∈ SetOfZeros R f := by sorry
+          have : ρ ∈ SetOfZeros R f := by
+            unfold SetOfZeros at hρ ⊢
+            simp only [Finite.mem_toFinset, mem_setOf_eq] at hρ ⊢
+            exact ⟨by linarith, hρ.2⟩
           obtain ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) this
           exact ⟨h_ρ, hh_ρ_analytic, hh_ρ_z_ne_zero, hh_ρ_eq.2⟩
 
