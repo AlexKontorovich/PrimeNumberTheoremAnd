@@ -722,6 +722,45 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
   sorry
 
+noncomputable def two_pow_omega : ArithmeticFunction ℤ where
+  toFun := fun n ↦ if n = 0 then 0 else 2 ^ (ω n)
+  map_zero' := by simp
+
+lemma two_pow_omega_apply {n : ℕ} (hn : n ≠ 0) :
+    two_pow_omega n = 2 ^ (ω n) := by
+  simp [two_pow_omega, hn]
+
+lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
+    two_pow_omega n ≤ σ 0 n := by
+  -- By definition of ω, we know that ω n = (Nat.primeFactors n).card.
+  have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
+  rw [two_pow_omega_apply hn, h_prime_factors, ArithmeticFunction.sigma_zero_apply];
+  sorry
+
+lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
+    LSeriesSummable (fun n ↦ two_pow_omega n) s := by
+  -- By comparison, it suffices to show that the L-series of $σ_0$ is summable for $Re(s) > 1$.
+  have h_sigma0_summable : LSeriesSummable (fun n => (σ 0 n : ℂ)) s := by
+    convert LSeries_d_summable 2 hs using 1;
+    exact funext fun n => by rw [d_two] ; rfl;
+  rw [LSeriesSummable, ← summable_norm_iff] at *;
+  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) h_sigma0_summable
+  intro n
+  simp only [LSeries.term]
+  by_cases hn : n = 0
+  · simp only [hn, ↓reduceIte, norm_zero, le_refl]
+  · simp only [hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
+    refine (div_le_div_iff_of_pos_right ?_).mpr ?_
+    · rw [norm_pos_iff]
+      simp [hn]
+    · rw [Complex.norm_intCast, abs_of_nonneg]
+      · exact_mod_cast two_pow_omega_le_sigma_zero hn
+      · rw [two_pow_omega_apply hn, Int.cast_pow, Int.cast_ofNat]
+        apply pow_nonneg zero_le_two
+
+lemma two_pow_omega_IsMultiplicative : two_pow_omega.IsMultiplicative := by
+  sorry
+
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
   sorry
