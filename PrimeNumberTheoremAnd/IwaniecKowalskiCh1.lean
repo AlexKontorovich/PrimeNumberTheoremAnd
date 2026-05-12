@@ -734,8 +734,13 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     two_pow_omega n ≤ σ 0 n := by
   -- By definition of ω, we know that ω n = (Nat.primeFactors n).card.
   have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
-  rw [two_pow_omega_apply hn, h_prime_factors, ArithmeticFunction.sigma_zero_apply];
-  sorry
+  rw [two_pow_omega_apply hn, h_prime_factors, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
+  norm_cast
+  apply Finset.prod_le_prod'
+  intro p hp
+  simpa [two_mul] using
+  (Nat.Prime.dvd_iff_one_le_factorization (prime_of_mem_primeFactors hp) hn).mp
+    (dvd_of_mem_primeFactors hp)
 
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ two_pow_omega n) s := by
