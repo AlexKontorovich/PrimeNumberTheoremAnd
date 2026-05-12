@@ -570,7 +570,7 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
     that $R^2/|\overline{\rho}| > R$, but since $z\in\overline{\mathbb{D}_r}$, we have that
     $|z|\leq r < R$. This is a contradiction. So, $R-z\overline{\rho}/R\neq 0$.
   -/)]
-private lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
+lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
     {z : ℂ} (hz : ‖z‖ ≤ r)
     {ρ : ℂ} (hρ : ‖ρ‖ ≤ r) :
     (↑R : ℂ) - z * (starRingEnd ℂ) ρ / (↑R : ℂ) ≠ 0 := by
@@ -676,7 +676,12 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       intro ρ hρ
       by_contra h
       rw[pow_eq_zero_iff] at h
-      · sorry
+      · refine blaschkeFactorNonzero R_pos r_lt_R (z := z) (ρ := ρ) ?_ ?_ h
+        · rw [mem_closedBall_iff_norm, sub_zero] at hz
+          exact hz
+        · unfold SetOfZeros at hρ
+          rw [Finite.mem_toFinset, mem_setOf_eq] at hρ
+          exact hρ.1
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
@@ -733,7 +738,12 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       intro ρ hρ
       by_contra h
       rw[pow_eq_zero_iff] at h
-      · sorry
+      · refine blaschkeFactorNonzero R_pos r_lt_R (z := z) (ρ := ρ) ?_ ?_ h
+        · rw [mem_closedBall_iff_norm, sub_zero] at hz
+          exact hz
+        · unfold SetOfZeros at hρ
+          rw [Finite.mem_toFinset, mem_setOf_eq] at hρ
+          exact hρ.1
       · unfold analyticOrderNatAt
         simp only [ne_eq, ENat.toNat_eq_zero, not_or]
         simp only [← ne_eq, analyticOrderAt_ne_zero]
