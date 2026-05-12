@@ -557,6 +557,30 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
   exact fz_bound w (le_of_eq hw)
 
 
+@[blueprint "blaschkeFactorNonzero"
+  (title := "blaschkeFactorNonzero")
+  (statement := /--
+    Let $0 < r < R$ and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. Then for all $z\in\overline{\mathbb{D}_r}$ and $\rho\in\mathcal{K}_f(r)$, the
+    factor $\displaystyle R-\frac{z\overline{\rho}}{R}$ is nonzero.
+  -/)
+  (proof := /--
+    Suppose that $R-z\overline{\rho}/R=0$. Then we have that $|z|=R^2/|\overline{\rho}|$. However,
+    since $\rho\in\mathcal{K}_f(r)$, we have that $|\overline{\rho}|\leq r < R$. Thus, we have
+    that $R^2/|\overline{\rho}| > R$, but since $z\in\overline{\mathbb{D}_r}$, we have that
+    $|z|\leq r < R$. This is a contradiction. So, $R-z\overline{\rho}/R\neq 0$.
+  -/)]
+private lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
+    {z : ℂ} (hz : ‖z‖ ≤ r)
+    {ρ : ℂ} (hρ : ‖ρ‖ ≤ r) :
+    (↑R : ℂ) - z * (starRingEnd ℂ) ρ / (↑R : ℂ) ≠ 0 := by
+  norm_num [ sub_eq_zero, Complex.ext_iff ];
+  rw [ eq_div_iff ] <;> norm_num [ Complex.normSq, Complex.norm_def ] at *;
+  · rw [ Real.sqrt_le_iff ] at hz hρ;
+    exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] );
+  · linarith
+
+
 
 @[blueprint "BlaschkeNonZero"
   (title := "BlaschkeNonZero")
