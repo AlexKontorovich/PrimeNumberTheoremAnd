@@ -749,28 +749,26 @@ where omega is the number of distinct prime factors. -/
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
     riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
-  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; exact_mod_cast (by linarith)
-  have mulable : Multipliable fun (p : Primes) ↦ (1 - (p : ℂ) ^ (-s))⁻¹ := by exact ⟨riemannZeta s, riemannZeta_eulerProduct_hasProd hs⟩
-  rw [pow_two, ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulable mulable, mul_comm, ← riemannZeta_eulerProduct_tprod hs', two_pow_omega_LSeries_eulerProduct_tprod s hs, ← Multipliable.tprod_mul, tprod_congr]
-  · intro b
-    have : (1 - (↑↑b ^ (-s)) ^ 2) = (1 - (b : ℂ) ^ (-s)) * (1 + (b : ℂ) ^ (-s)) := by ring_nf
-    rw [div_eq_mul_inv, ← mul_inv, inv_eq_iff_eq_inv]
+  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have mulable := (riemannZeta_eulerProduct_hasProd hs).multipliable
+  rw [sq, ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulable mulable,
+    mul_comm, ← riemannZeta_eulerProduct_tprod hs',
+    two_pow_omega_LSeries_eulerProduct_tprod s hs, ← Multipliable.tprod_mul, tprod_congr]
+  · intro p
+    have hsub := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+    have hne : (p : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr p.2.ne_zero
+    rw [show (-(2 * s) : ℂ) = -s + -s from by ring, Complex.cpow_add _ _ hne]
+    have hsq : 1 - ((p : ℂ) ^ (-s)) ^ 2 ≠ 0 := by
+      rw [show 1 - ((p : ℂ) ^ (-s)) ^ 2 = (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) from by ring]
+      refine mul_ne_zero hsub ?_
+      intro h
+      have one_add_prime_cpow_h : ‖(p : ℂ) ^ (-s)‖ = 1 := by
+        have := congr_arg norm (neg_eq_of_add_eq_zero_left h)
+        simp [norm_neg] at this
+        linarith
+      linarith [Complex.norm_prime_cpow_le_one_half p hs]
     field_simp
-    rw [← neg_mul, Complex.cpow_mul_ofNat, pow_two, this, mul_div_assoc, mul_div_assoc, div_self, mul_one]
-    by_contra
-    rw [add_eq_zero_iff_neg_eq] at this
-    have h := congrArg norm this
-    simp only [norm_neg, one_mem, CStarRing.norm_of_mem_unitary] at h
-    rw[Complex.norm_natCast_cpow_of_re_ne_zero] at h
-    · have : 1 > (b : ℝ) ^ (-s).re := by
-        refine rpow_lt_one_of_one_lt_of_neg ?_ ?_
-        · rw[one_lt_cast]
-          apply Nat.Prime.one_lt b.2
-        · rw[Complex.neg_re]
-          linarith
-      linarith
-    · simp only [Complex.neg_re, ne_eq, neg_eq_zero]
-      linarith
+    ring
   · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
