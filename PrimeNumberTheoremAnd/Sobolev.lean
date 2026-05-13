@@ -178,7 +178,7 @@ lemma integrable_iteratedDeriv_Schwarz {f : 𝓢(ℝ, ℂ)} : Integrable (iterat
   | zero => exact f.integrable
   | succ n ih => simpa [iteratedDeriv_succ'] using ih (f := SchwartzMap.derivCLM ℝ ℂ f)
 
-def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W1 n ℂ where
+noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W1 n ℂ where
   toFun := f
   smooth := f.smooth n
   integrable _ _ := integrable_iteratedDeriv_Schwarz

@@ -353,6 +353,7 @@ lemma support_MellinConvolution (f g : ℝ → 𝕂) :
 blueprint_comment /--
 The Mellin transform of a convolution is the product of the Mellin transforms.
 -/
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "MellinConvolutionTransform")
   (statement := /--
@@ -437,6 +438,7 @@ lemma mem_within_strip (σ₁ σ₂ : ℝ) :
       𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} :=
   mem_principal_self _
 
+set_option backward.isDefEq.respectTransparency false in
 lemma MellinOfPsi_aux {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     {s : ℂ} (hs : s ≠ 0) :
@@ -622,7 +624,7 @@ lemma DeltaSpikeSupport_aux {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε)
   unfold DeltaSpike
   simp only [one_div, Function.support_subset_iff, ne_eq, ite_eq_left_iff, not_lt, div_eq_zero_iff,
     not_forall, exists_prop, mem_Icc, and_imp]
-  intro x hx h; push_neg at h
+  intro x hx h; push Not at h
   have := suppν <| Function.mem_support.mpr h.1
   simp only [one_div, mem_Icc] at this
   have hl := (le_rpow_inv_iff_of_pos (by norm_num) hx εpos).mp this.1
@@ -657,6 +659,7 @@ lemma DeltaSpikeOfRealContinuous {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε)
 blueprint_comment /--
 The Mellin transform of the delta spike is easy to compute.
 -/
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "MellinOfDeltaSpike")
   (statement := /--
@@ -819,7 +822,7 @@ lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
   simp +contextual only [mem_Ioi, true_and, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id,
     id_eq, mul_ite, mul_zero]
   intro y ypos
-  rw [eq_comm, if_neg (by push_neg; positivity)]
+  rw [eq_comm, if_neg (by push Not; positivity)]
 
 /-% ** Wrong delimiters on purpose, no need to include this in blueprint
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -1422,9 +1425,8 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
   · filter_upwards [lt_mem_nhds ypos] with x hx
     filter_upwards [ae_restrict_mem (by measurability)] with t ht
     simp only [mul_ite, mul_one, mul_zero, RCLike.ofReal_real_eq_id, id_eq, norm_div, norm_eq_abs]
-    by_cases h : DeltaSpike SmoothingF ε t = 0
+    by_cases! h : DeltaSpike SmoothingF ε t = 0
     · simp [h]
-    push_neg at h
     have := DeltaSpikeSupport' εpos ht.le suppSmoothingF h
     have dsnonneg : 0 ≤ DeltaSpike SmoothingF ε t := by
       apply DeltaSpikeNonNeg_of_NonNeg <;> assumption

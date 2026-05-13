@@ -1731,6 +1731,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
       · rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
     · ring
 
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "I5NewBound")
   (statement := /--

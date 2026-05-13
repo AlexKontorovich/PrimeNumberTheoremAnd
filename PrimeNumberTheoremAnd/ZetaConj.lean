@@ -171,6 +171,7 @@ theorem logDerivZeta_conj' (s : ℂ) :
 blueprint_comment /--
 % TODO: Submit this to Mathlib.
 -/
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "intervalIntegral-conj")
   (statement := /--

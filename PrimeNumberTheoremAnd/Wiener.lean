@@ -105,7 +105,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
       ring
     _ = _ := by simp ; group
 
-
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint "first-fourier"
   (title := "first-fourier")
   (statement := /--
@@ -214,6 +214,7 @@ lemma second_fourier_aux (hx : 0 < x) :
       rw [Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt hx))]
     _ = _ := by rw [ofReal_cpow hx.le]; push_cast; ring
 
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint "second-fourier"
   (title := "second-fourier")
   (statement := /--
@@ -451,6 +452,7 @@ lemma decay_bounds_cor (ψ : W21) :
     ∃ C : ℝ, ∀ u, ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ C / (1 + u ^ 2) := by
   simpa only [div_eq_mul_inv] using ⟨_, decay_bounds_key ψ⟩
 
+set_option backward.isDefEq.respectTransparency false in
 @[continuity, fun_prop] lemma continuous_FourierIntegral (ψ : W21) : Continuous (𝓕 (ψ : ℝ → ℂ)) :=
   VectorFourier.fourierIntegral_continuous continuous_fourierChar
     (by simp only [innerₗ_apply_apply, RCLike.inner_apply', conj_trivial, continuous_mul])
@@ -486,6 +488,7 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
 -- Here compact support is used but perhaps it is not necessary
+set_option backward.isDefEq.respectTransparency false in
 lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 1 ≤ x) (σ' : ℝ)
     (hσ' : 1 < σ') :
@@ -963,9 +966,8 @@ lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 
     have : (x : ℝ) ≠ 0 := by simp ; linarith
     have : Real.log x ≠ 0 := by
       have ll : 2 ≤ (x : ℝ) := by simp [hx]
-      simp only [ne_eq, log_eq_zero]
-      push_neg
-      refine ⟨this, ?_, ?_⟩ <;> linarith
+      simp
+      grind
     field_simp
 
 theorem limiting_fourier_lim1 (hcheby : cheby f) (ψ : W21) (hx : 0 < x) :
@@ -1139,7 +1141,7 @@ lemma limiting_fourier (hcheby : cheby f)
 
 
 
-
+set_option backward.isDefEq.respectTransparency false in
 lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t * x ^ (t * I)) atTop (𝓝 0) := by
 
   have l1 : ∀ᶠ x : ℝ in atTop, ∀ t : ℝ, x ^ (t * I) = exp (log x * t * I) := by
@@ -1712,7 +1714,7 @@ lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : W21)
   convert _root_.add_le_add l1 l2 using 1 ; ring
 
 
-
+set_option backward.isDefEq.respectTransparency false in
 lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
@@ -1876,6 +1878,7 @@ theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ)
     cocompact_eq_atBot_atTop]
   exact ⟨comp_exp_support1 hplus, comp_exp_support2 hsupp⟩
 
+set_option backward.isDefEq.respectTransparency false in
 lemma wiener_ikehara_smooth_aux (l0 : Continuous Ψ) (hsupp : HasCompactSupport Ψ)
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
     ∫ (u : ℝ) in Ioi (-Real.log x), ↑(rexp u) * Ψ (rexp u) = ∫ (y : ℝ) in Ioi (1 / x), Ψ y := by
@@ -1891,7 +1894,7 @@ lemma wiener_ikehara_smooth_aux (l0 : Continuous Ψ) (hsupp : HasCompactSupport 
     refine (Continuous.integrable_of_hasCompactSupport (by fun_prop) ?_).integrableOn
     change HasCompactSupport (rexp • (Ψ ∘ rexp))
     exact (comp_exp_support hsupp hplus).smul_left
-  have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
+  have := MeasureTheory.integral_deriv_smul_comp_Ioi l1 l2 l3 l4 l5 l6
   simpa [Real.exp_neg, Real.exp_log hx] using this
 
 theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ)
@@ -2110,7 +2113,8 @@ lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
 lemma WI_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
     Summable (fun n => f n * g (n / x)) := by
   obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
+  unfold Function.HasFiniteSupport
   simp only [Function.support_mul] ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
   exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff₀ hx).mp (hM hi))⟩
 
@@ -2463,6 +2467,7 @@ lemma norm_x_cpow_it (x t : ℝ) (hx : 0 < x) : ‖(x : ℂ) ^ (t * I)‖ = 1 :=
   convert norm_exp_ofReal_mul_I (t * x.log) using 2
   push_cast; ring_nf
 
+set_option backward.isDefEq.respectTransparency false in
 lemma limiting_fourier_aux_gt_zero (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 0 < x) (σ' : ℝ) (hσ' : 1 < σ') :
     ∑' n, term f σ' n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x)) -
@@ -3522,6 +3527,7 @@ lemma crude_upper_bound
             add_le_add hRHS_bound hA_bound
   exact hbound
 
+set_option backward.isDefEq.respectTransparency false in
 lemma Real.fourierIntegral_convolution {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) :
     𝓕 (convolution f g (ContinuousLinearMap.mul ℂ ℂ) volume) = 𝓕 f * 𝓕 g := by
   ext y
@@ -3765,7 +3771,7 @@ lemma auto_cheby_short_interval_bound (hpos : 0 ≤ f)
           _ = f n / n * (𝓕 ψ y).re := by ring
       · rw [Set.indicator_of_notMem hn, mul_zero, mul_zero]
         exact mul_nonneg (div_nonneg (hpos n) (Nat.cast_nonneg n)) (hψpos _).1
-    · refine summable_of_finite_support <| (Set.finite_le_nat ⌊x⌋₊).subset fun n hn ↦ ?_
+    · refine summable_of_hasFiniteSupport <| (Set.finite_le_nat ⌊x⌋₊).subset fun n hn ↦ ?_
       simp only [Function.mem_support, ne_eq, mul_eq_zero, not_or, Set.indicator_apply_ne_zero] at hn
       exact Nat.le_floor hn.2.2.1.2
     · rw [← Complex.summable_ofReal]; convert h_summable using 1; ext n
@@ -3839,7 +3845,7 @@ lemma auto_cheby_bootstrap_induction (hpos : 0 ≤ f)
           simp only [Set.indicator_of_mem (Set.mem_Ioc.mpr ⟨hk_gt, hk_le⟩), Pi.one_apply, mul_one]
       _ ≤ ∑' k, f k * Set.indicator (Set.Ioc ((1 - ε) * x) x) 1 (k : ℝ) := by
           refine Summable.sum_le_tsum _ (fun k _ ↦ mul_nonneg (hpos k) (Set.indicator_nonneg (by simp) _)) ?_
-          refine summable_of_finite_support <| (Set.finite_le_nat ⌊x⌋₊).subset fun k hk ↦ ?_
+          refine summable_of_hasFiniteSupport <| (Set.finite_le_nat ⌊x⌋₊).subset fun k hk ↦ ?_
           simp only [Function.mem_support, ne_eq, mul_eq_zero, not_or, Set.indicator_apply_ne_zero] at hk
           exact Nat.le_floor hk.2.1.2
       _ ≤ C₀ * x := h_bound x hx

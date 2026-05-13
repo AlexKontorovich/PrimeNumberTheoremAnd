@@ -484,7 +484,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     · have : 0 ≤ ∫ (t : ℝ), 1 / (sqrt (4⁻¹ + t ^ 2) * sqrt (4⁻¹ + t ^ 2)) :=
         by positivity
       rw [← norm_of_nonneg this, ← Complex.norm_real]
-      apply le_of_eq; congr; norm_cast; exact integral_ofReal.symm
+      apply le_of_eq; congr; norm_cast
 
 
 lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
