@@ -1171,20 +1171,17 @@ lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ table_10_entries) : (20 : ℝ
   · linarith [LogTables.log_10_gt]
   · exact hp.elim
 
-lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b := by
-  let S_finset := table_10_bs.filter (b < ·)
-  have h2 : (K : ℝ) ∈ S_finset := by
-    simpa [S_finset, table_10_bs]
-  have h3 : S_finset.Nonempty := ⟨(K : ℝ), h2⟩
-  let m := S_finset.min' h3
-  have h4 : m ∈ S_finset := Finset.min'_mem S_finset h3
-  have h8 : table_10_next b = m := by
-    simpa [table_10_next, S_finset] using h3.csInf_eq_min'
-  exact h8 ▸ And.right (by simpa [S_finset] using h4)
+lemma table_10_next_eq_min' (b : ℝ) (h : (table_10_bs.filter (b < ·)).Nonempty) :
+    table_10_next b = (table_10_bs.filter (b < ·)).min' h := by
+  simpa [table_10_next] using h.csInf_eq_min'
 
-lemma twenty_in_table_10_entries : (20 : ℝ) ∈ table_10_entries := by
-  simp only [List.mem_toFinset, table_10, List.map_cons, List.map_nil, List.mem_cons,
-    OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff, List.not_mem_nil, or_self, or_false, false_or, true_or]
+lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b := by
+  have h2 : (K : ℝ) ∈ table_10_bs.filter (b < ·) := by
+    simpa only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_filter, mem_insert,
+      List.mem_toFinset, List.mem_map, Prod.exists, exists_and_right, exists_eq_right, true_or,
+      true_and]
+  rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
+  simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
 
 lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ) := by
   simp only [List.mem_toFinset, List.mem_map] at hb
@@ -1194,9 +1191,6 @@ lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ
   <;> try (subst hp; norm_num)
   · linarith [LogTables.log_10_lt]
   · exact hp.elim
-
-lemma log_19_times_10 : 25000 ≠ 19 * log 10 := by
-  linarith [LogTables.log_10_lt]
 
 lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 : b₀ ≤ y) (hy2 : y ≤ (K : ℝ)) :
   ∃ b ∈ table_10_entries, b₀ ≤ b ∧ b ≤ y ∧ y ≤ table_10_next b := by
@@ -1208,7 +1202,7 @@ lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 
   rcases (by simpa [S] using h3 : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y)
     with ⟨h5, h6, h7⟩
   refine ⟨b, h5, h6, h7, ?_⟩
-  let S_finset := table_10_bs.filter (fun b' => b < b')
+  let S_finset := table_10_bs.filter (b < ·)
   have h12 : (K : ℝ) ∈ S_finset := by
     simpa [S_finset, table_10_bs] using table_10_entry_lt_K b h5
   have h13 : S_finset.Nonempty := ⟨(K : ℝ), h12⟩
@@ -1216,14 +1210,12 @@ lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 
   have h14 : m ∈ S_finset := Finset.min'_mem S_finset h13
   have h16 : m ∈ table_10_bs ∧ b < m := by
     simpa [S_finset] using h14
-  have h17 : table_10_next b = m := by
-    simpa [table_10_next, S_finset] using h13.csInf_eq_min'
-  rw [h17]
+  rw [show table_10_next b = m from table_10_next_eq_min' b ⟨(K : ℝ), h12⟩]
   by_contra h19
   obtain (h22 | h22) : m ∈ table_10_entries ∨ m = (K : ℝ) :=
     Or.comm.1 (by simpa [table_10_bs, table_10_entries, K] using h16.1)
   · have h28 : m ∈ S := by
-      simp [S, h22, le_trans h6 h16.2.le, (Std.not_le.mp h19).le]
+      simp only [mem_filter, h22, le_trans h6 h16.2.le, (Std.not_le.mp h19).le, and_self, S]
     linarith [Finset.le_max' S m h28, h16.2]
   · linarith [hy2]
 
