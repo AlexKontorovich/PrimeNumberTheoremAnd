@@ -1226,7 +1226,7 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
 \]
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
-    LSeries (↗(liouville : ArithmeticFunction ℤ)) s =  (2 * s) / riemannZeta s := by
+    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
   sorry
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
