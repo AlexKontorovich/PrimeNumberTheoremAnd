@@ -1108,12 +1108,22 @@ theorem bklnw_eq_3_11 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : �
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
   sorry
 
+abbrev K := 25000
+
+/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
+noncomputable def table_10_bs : Finset ℝ := BKLNW.table_10.toFinset.image (fun p ↦ p.1) ∪ { (K:ℝ) }
+
+/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
+noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
+
 /-- An explicit formula for the quantity $B_k(b,b')$ appearing in Corollary 8.1 -/
 noncomputable def B_8_1 (k : ℕ) (b b' : ℝ) : ℝ :=
   Inputs.default.a₁ b * b^k * exp (-b / 2) + Inputs.default.a₂ b * b^k * exp (-2 * b / 3) + (b')^k * Inputs.default.ε b
 
 noncomputable def B_8_1' (k : ℕ) (b₀ : ℝ) : ℝ :=
-  iSup (ι := { b : ℝ × ℝ // b₀ ≤ b.1 ∧ b.1 < b.2 }) (fun b => B_8_1 k b.val.1 b.val.2)
+  let table_10_entries := (BKLNW.table_10.map (·.1)).toFinset
+  let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image (fun b ↦ B_8_1 k b (table_10_next b))
+  if h : S.Nonempty then S.sup' h id else 0
 
 @[blueprint
   "bklnw-cor-8-1a"
@@ -1135,17 +1145,9 @@ $B_k(b,b') = \widetilde{B}_k(b,b',2)$.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1254)]
-theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hb : b < b') :
+theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b') (hbk : b ≥ max 7 (2 * (k : ℝ))) :
   ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
   sorry
-
-abbrev K := 25000
-
-/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
-noncomputable def table_10_bs : Finset ℝ := BKLNW.table_10.toFinset.image (fun p ↦ p.1) ∪ { (K:ℝ) }
-
-/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
-noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
 
 @[blueprint
   "bklnw-table-10-verification"
@@ -1156,6 +1158,132 @@ noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b
   (discussion := 1255)]
 theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
   sorry
+
+lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset) : (20 : ℝ) ≤ b := by
+  classical
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_gt]
+  · exact hp.elim
+
+lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b := by
+  let S_finset := table_10_bs.filter (fun b' => b < b')
+  have h1 : (K : ℝ) ∈ table_10_bs := by
+    simp [table_10_bs]
+  have h2 : (K : ℝ) ∈ S_finset := by
+    simp [S_finset]; tauto
+  have h3 : S_finset.Nonempty := ⟨(K : ℝ), h2⟩
+  let m := S_finset.min' h3
+  have h4 : m ∈ S_finset := Finset.min'_mem S_finset h3
+  have h5 : ∀ x ∈ S_finset, m ≤ x := Finset.min'_le S_finset
+  have h6 : m ∈ table_10_bs ∧ b < m := by
+    simpa [S_finset] using h4
+  have h7 : b < m := h6.2
+  have h8 : table_10_next b = m := by
+    have h9 : sInf (↑S_finset : Set ℝ) = m := by
+      exact Finset.Nonempty.csInf_eq_min' h3
+    simpa [table_10_next, S_finset] using h9
+  rw [h8]
+  exact h7
+
+lemma twenty_in_table_10_entries : (20 : ℝ) ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset := by
+  simp [BKLNW.table_10]
+
+lemma table_10_entry_le_K (b : ℝ) (hb : b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset) : b ≤ (K : ℝ) := by
+  classical
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_lt]
+  · exact hp.elim
+
+lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset) : b < (K : ℝ) := by
+  classical
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_lt]
+  · exact hp.elim
+
+lemma log_19_times_10 : 25000 ≠ 19 * log 10 := by
+  refine Ne.symm (ne_of_lt ?_)
+  linarith [LogTables.log_10_lt]
+
+lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset) (hy1 : b₀ ≤ y) (hy2 : y ≤ (K : ℝ)) :
+  ∃ b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset, b₀ ≤ b ∧ b ≤ y ∧ y ≤ table_10_next b := by
+  let table_10_entries := (BKLNW.table_10.map (fun p => p.1)).toFinset
+  let S := table_10_entries.filter (fun b => b₀ ≤ b ∧ b ≤ y)
+  have h1 : b₀ ∈ S := by
+    simp [S, hb₀, hy1]
+    <;> tauto
+  have h2 : S.Nonempty := ⟨b₀, h1⟩
+  let b := S.max' h2
+  have h3 : b ∈ S := Finset.max'_mem S h2
+  have h4 : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y := by
+    simpa [S] using h3
+  have h5 : b ∈ table_10_entries := h4.1
+  have h6 : b₀ ≤ b := h4.2.1
+  have h7 : b ≤ y := h4.2.2
+  have h8 : ∀ x ∈ S, x ≤ b := Finset.le_max' S
+  have h9 : b ≤ (K : ℝ) := table_10_entry_le_K b h5
+  have h10 : y ≤ table_10_next b := by
+    let S_finset := table_10_bs.filter (fun b' => b < b')
+    have h11 : (K : ℝ) ∈ table_10_bs := by
+      simp [table_10_bs]
+    have h12 : (K : ℝ) ∈ S_finset := by
+      have h13 : b < (K : ℝ) := by
+        by_contra h14
+        have h15 : b = (K : ℝ) := by linarith
+        have h16 : b ∈ table_10_entries := h5
+        rw [h15] at h16
+        have h17 : (K : ℝ) ∈ table_10_entries := h16
+        simp only [table_10, List.map_cons, List.map_nil, List.toFinset_cons, List.toFinset_nil,
+          insert_empty_eq, Nat.cast_ofNat, mem_insert, OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff,
+          mem_singleton, or_self, or_false, false_or, table_10_entries] at h17
+        exact log_19_times_10 h17
+      simp only [Nat.cast_ofNat, mem_filter, S_finset]
+      exact ⟨h11, h13⟩
+    have h13 : S_finset.Nonempty := ⟨(K : ℝ), h12⟩
+    let m := S_finset.min' h13
+    have h14 : m ∈ S_finset := Finset.min'_mem S_finset h13
+    have h15 : ∀ x ∈ S_finset, m ≤ x := Finset.min'_le S_finset
+    have h16 : m ∈ table_10_bs ∧ b < m := by
+      simpa [S_finset] using h14
+    have h17 : table_10_next b = m := by
+      have h18 : sInf (↑S_finset : Set ℝ) = m := by
+        exact Finset.Nonempty.csInf_eq_min' h13
+      simpa [table_10_next, S_finset] using h18
+    rw [h17]
+    by_contra h19
+    have h20 : m < y := by linarith
+    have h21 : m ∈ table_10_bs := h16.1
+    have h22 : m ∈ table_10_entries ∨ m = (K : ℝ) := by
+      simp only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_insert, mem_image,
+        List.mem_toFinset, Prod.exists, exists_and_right, exists_eq_right] at h21
+      convert Or.comm.1 h21
+      simp [table_10_entries]
+    rcases h22 with (h22 | h22)
+    · have h23 : m ∈ table_10_entries := h22
+      have h24 : b₀ ≤ m := by
+        have h25 : b₀ ≤ b := h6
+        have h26 : b < m := h16.2
+        linarith
+      have h27 : m ≤ y := by linarith
+      have h28 : m ∈ S := by
+        simp [S, h23, h24, h27]
+      have h29 : m ≤ b := h8 m h28
+      have h30 : b < m := h16.2
+      linarith
+    · rw [h22] at h20
+      linarith [hy2]
+  exact ⟨b, h5, h6, h7, h10⟩
 
 @[blueprint
   "bklnw-cor-8-1b"
@@ -1175,9 +1303,128 @@ $[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1256)]
-theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hb₀K : b₀ < K) :
+
+theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
+  (hb₀ : b₀ ∈ (BKLNW.table_10.map (·.1)).toFinset) :
   ∀ x ∈ Set.Icc (exp b₀) (exp K), |θ x - x| ≤ (B_8_1' k b₀) * x / (log x)^k := by
-  sorry
+  intro x hx
+  have h1 : exp b₀ ≤ x := hx.1
+  have h2 : x ≤ exp K := hx.2
+  have h3 : b₀ ≤ Real.log x := by
+    have h4 : 0 < exp b₀ := Real.exp_pos b₀
+    have h5 : exp b₀ ≤ x := h1
+    have h6 : Real.log (exp b₀) ≤ Real.log x := Real.log_le_log (by positivity) h5
+    simpa using h6
+  have h4 : Real.log x ≤ K := by
+    have h5 : 0 < x := by
+      have h6 : 0 < exp b₀ := Real.exp_pos b₀
+      linarith
+    have h7 : Real.log x ≤ Real.log (exp K) := Real.log_le_log (by positivity) h2
+    simpa using h7
+  have h5 : b₀ ≤ Real.log x ∧ Real.log x ≤ K := ⟨h3, h4⟩
+  have h6 : ∃ b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset, b₀ ≤ b ∧ b ≤ Real.log x ∧ Real.log x ≤ table_10_next b :=
+    table_10_coverage b₀ (Real.log x) hb₀ h3 (by exact_mod_cast h4)
+  rcases h6 with ⟨b, hb_in, hb₀_le, hb_le_logx, hlogx_le_next⟩
+  have hb_lt_K : b < K := by
+    have h1 : b ≤ Real.log x := hb_le_logx
+    have h2 : Real.log x ≤ K := h4
+    have h3 : b ≤ K := by linarith
+    by_contra h4
+    have h5 : b = K := by linarith
+    have h6 : b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset := hb_in
+    rw [h5] at h6
+    simp only [table_10, List.map_cons, List.map_nil, List.toFinset_cons, List.toFinset_nil,
+      insert_empty_eq, Nat.cast_ofNat, mem_insert, OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff,
+      mem_singleton, or_self, or_false, false_or] at h6
+    exact log_19_times_10 h6
+  have h7 : exp b ≤ x := by
+    have h8 : b ≤ Real.log x := hb_le_logx
+    have h9 : exp b ≤ exp (Real.log x) := Real.exp_le_exp.mpr h8
+    have h10 : 0 < x := by
+      have h11 : 0 < exp b₀ := Real.exp_pos b₀
+      linarith
+    have h12 : exp (Real.log x) = x := Real.exp_log h10
+    rw [h12] at h9
+    exact h9
+  have h8 : x ≤ exp (table_10_next b) := by
+    have h9 : Real.log x ≤ table_10_next b := hlogx_le_next
+    have h10 : exp (Real.log x) ≤ exp (table_10_next b) := Real.exp_le_exp.mpr h9
+    have h11 : 0 < x := by
+      have h12 : 0 < exp b₀ := Real.exp_pos b₀
+      linarith
+    have h13 : exp (Real.log x) = x := Real.exp_log h11
+    rw [h13] at h10
+    exact h10
+  have h6' : ∃ b ∈ (BKLNW.table_10.map (fun p => p.1)).toFinset, b₀ ≤ b ∧ b < K ∧ exp b ≤ x ∧ x ≤ exp (table_10_next b) :=
+    ⟨b, hb_in, hb₀_le, hb_lt_K, h7, h8⟩
+  rcases h6' with ⟨b, hb_in, hb₀_le, hb_lt_K, h7, h8⟩
+  have h9 : b < table_10_next b := table_10_next_gt b (by exact_mod_cast hb_lt_K)
+  have h10 : b ≥ max 7 (2 * (k : ℝ)) := by
+    have h10a : (20 : ℝ) ≤ b := table_10_entries_ge_20 b hb_in
+    have h10b : (k : ℝ) ≤ 5 := by exact_mod_cast hk.2
+    have h10c : 2 * (k : ℝ) ≤ 10 := by linarith
+    have h10d : max 7 (2 * (k : ℝ)) ≤ 10 := by
+      have h10e : 7 ≤ (10 : ℝ) := by norm_num
+      have h10f : 2 * (k : ℝ) ≤ (10 : ℝ) := h10c
+      exact max_le h10e h10f
+    have h10g : (10 : ℝ) ≤ (20 : ℝ) := by norm_num
+    have h10h : (10 : ℝ) ≤ b := by linarith
+    have h10i : max 7 (2 * (k : ℝ)) ≤ b := by linarith
+    exact h10i
+  have h11 : ∀ y ∈ Set.Icc (exp b) (exp (table_10_next b)), |θ y - y| ≤ (B_8_1 k b (table_10_next b)) * y / (log y)^k :=
+    bklnw_cor_8_1a k b (table_10_next b) hk h9 h10
+  have h12 : x ∈ Set.Icc (exp b) (exp (table_10_next b)) := ⟨h7, h8⟩
+  have h13 : |θ x - x| ≤ (B_8_1 k b (table_10_next b)) * x / (log x)^k := h11 x h12
+  have h14 : B_8_1 k b (table_10_next b) ≤ B_8_1' k b₀ := by
+    let table_10_entries := (BKLNW.table_10.map (fun p => p.1)).toFinset
+    let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image (fun b => B_8_1 k b (table_10_next b))
+    have h14a : b ∈ table_10_entries := hb_in
+    have h14b : b ∈ table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K) := by
+      simp [h14a, hb₀_le]
+      ; tauto
+    have h14c : B_8_1 k b (table_10_next b) ∈ S := by
+      apply Finset.mem_image.mpr
+      refine ⟨b, h14b, rfl⟩
+    have h14d : S.Nonempty := ⟨B_8_1 k b (table_10_next b), h14c⟩
+    have h14e : B_8_1' k b₀ = (if h : S.Nonempty then S.sup' h id else 0) := by
+      rfl
+    rw [h14e]
+    rw [dif_pos h14d]
+    exact Finset.le_sup' id h14c
+  have h15 : 0 < (log x)^k := by
+    have h16 : 0 < log x := by
+      have h17 : 1 < x := by
+        have h18 : 20 ≤ b := table_10_entries_ge_20 b hb_in
+        have h19 : exp 20 ≤ exp b := Real.exp_le_exp.mpr h18
+        have h20 : 1 < exp 20 := by
+          have h21 : (0 : ℝ) < 20 := by norm_num
+          have h22 : exp 0 < exp 20 := Real.exp_strictMono h21
+          have h23 : exp 0 = 1 := by simp
+          rw [h23] at h22
+          exact h22
+        have h23 : exp b ≤ x := h7
+        linarith
+      have h24 : log 1 < log x := Real.log_lt_log (by norm_num) h17
+      simpa using h24
+    positivity
+  have h16 : 0 ≤ x := by
+    have h17 : 0 < exp b₀ := Real.exp_pos b₀
+    have h18 : exp b₀ ≤ x := h1
+    linarith
+  have h17 : 0 ≤ x := by
+    have h18 : 0 < exp b₀ := Real.exp_pos b₀
+    have h19 : exp b₀ ≤ x := h1
+    linarith
+  have h18 : 0 < (log x)^k := h15
+  calc
+    |θ x - x| ≤ (B_8_1 k b (table_10_next b)) * x / (log x)^k := h13
+    _ ≤ (B_8_1' k b₀) * x / (log x)^k := by
+      have h19 : B_8_1 k b (table_10_next b) ≤ B_8_1' k b₀ := h14
+      have h20 : 0 ≤ x := h17
+      have h21 : 0 < (log x)^k := h18
+      have h22 : (B_8_1 k b (table_10_next b)) * x / (log x)^k ≤ (B_8_1' k b₀) * x / (log x)^k := by
+        apply div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_right h19 h20) (by positivity)
+      exact h22
 
 @[blueprint
   "bklnw-table-11-verification"
