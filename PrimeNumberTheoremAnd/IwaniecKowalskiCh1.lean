@@ -722,14 +722,41 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
   sorry
 
+@[blueprint
+  "two_pow_omega"
+  (title := "two-pow-omega")
+  (statement := /--
+    A function which sends $n\mapsto 2^{\omega(n)}$ where $\omega(n)$ is
+    the number of distinct prime factors of $n$.
+  -/)]
 noncomputable def two_pow_omega : ArithmeticFunction ℤ where
   toFun := fun n ↦ if n = 0 then 0 else 2 ^ (ω n)
   map_zero' := by simp
 
+@[blueprint
+  "two_pow_omega_apply"
+  (title := "two-pow-omega-apply")
+  (statement := /--
+    A helper lemma which rewrites instances of two-pow-omega.
+  -/)]
 lemma two_pow_omega_apply {n : ℕ} (hn : n ≠ 0) :
     two_pow_omega n = 2 ^ (ω n) := by
   simp [two_pow_omega, hn]
 
+@[blueprint
+  "two_pow_omega_le_sigma_zero"
+  (title := "two-pow-omega-le-sigma-zero")
+  (statement := /--
+    We have the inequality $2^{\omega(n)}\leq\sigma_0(n)$ when $n\neq 0$.
+  -/)
+  (proof := /--
+    Recall that $\omega(n)$ is the number of distinct prime factors of $n$. Thus,
+    $$2^{\omega(n)}=\prod_{p|n}2.$$
+    Likewise, $\sigma_0(n)$ is the number of divisors of $n$. We can write this as
+    $$\prod_{p|n}(1+v_p(n))=\sigma_0(n)$$
+    where $v_p(n)$ denotes the $p$-adic valuation of $n$. For $p|n$ we have that $2\leq 1+v_p(n)$.
+    Thus the result immediately follows.
+  -/)]
 lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     two_pow_omega n ≤ σ 0 n := by
   have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
@@ -741,6 +768,15 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
   (Nat.Prime.dvd_iff_one_le_factorization (prime_of_mem_primeFactors hp) hn).mp
     (dvd_of_mem_primeFactors hp)
 
+@[blueprint
+  "LSeriesSummable_two_pow_omega"
+  (title := "LSeriesSummable-two-pow-omega")
+  (statement := /--
+    The $L$-series with coefficients given by $2^{\omega(n)}$ converges on the region $1<\Re(s)$.
+  -/)
+  (proof := /--
+    This follows by comparison test against the $L$-series with coefficients given by $\sigma_0(n)$.
+  -/)]
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ two_pow_omega n) s := by
   have h_sigma0_summable : LSeriesSummable (fun n => (σ 0 n : ℂ)) s := by
@@ -761,6 +797,16 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
       · rw [two_pow_omega_apply hn, Int.cast_pow, Int.cast_ofNat]
         apply pow_nonneg zero_le_two
 
+@[blueprint
+  "two_pow_omega_LSeries.term_IsMultiplicative"
+  (title := "two-pow-omega-LSeries.term-IsMultiplicative")
+  (statement := /--
+    We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
+  -/)
+  (proof := /--
+    This immediately follows from the fact that $\omega(mn)=\omega(m)+\omega(n)$
+    for $m$ and $n$ coprime. This fact should be obvious from the definition of $\omega$.
+  -/)]
 lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ ↑(two_pow_omega n)) s (m * n) =
   LSeries.term (fun n ↦ ↑(two_pow_omega n)) s m * LSeries.term (fun n ↦ ↑(two_pow_omega n)) s n := by
@@ -772,6 +818,19 @@ lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m
   congr 1
   exact pow_add 2 (ω m) (ω n)
 
+@[blueprint
+  "two_pow_omega_tsum_prime_pow"
+  (title := "two-pow-omega-tsum-prime-pow")
+  (statement := /--
+    For $1<\Re(s)$ and $p$ prime, we have that
+    $$\sum_{0\leq k}2^{\omega(p^k)}p^{-ks}=\frac{1+p^{-s}}{1-p^{-s}}.$$
+  -/)
+  (proof := /--
+    Note that $\omega(p^0)=0$ and $\omega(p^k)=1$ whenever $0<k$. Thus,
+    $$\sum_{0\leq k}2^{\omega(p^k)}p^{-ks}=1+2p^{-s}+2p^{-2s}+\ldots.$$
+    Now apply a geometric sum to the non-constant terms and simplify. We have the necessary
+    convergence as $1<\Re(s)$.
+  -/)]
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     (p : Nat.Primes) :
     ∑' e, LSeries.term (fun n ↦ two_pow_omega n) s (p ^ e) =
@@ -799,6 +858,18 @@ lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
   · ring_nf
   all_goals (exact Complex.one_sub_prime_cpow_ne_zero p.2 hs)
 
+@[blueprint
+  "Complex.one_add_prime_cpow_ne_zero"
+  (title := "Complex.one-add-prime-cpow-ne-zero")
+  (statement := /--
+    For $1<\Re(s)$ and $p$ prime, we have that $1+p^{-s}\neq 0$.
+  -/)
+  (proof := /--
+    Suppose for contradiction $1+p^{-s}=0$, then $|p^{-s}|=1$. However, this can not happen per
+    \begin{verbatim}
+      Complex.norm_prime_cpow_le_one_half
+    \end{verbatim}
+  -/)]
 lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} (hs : 1 < s.re) :
     1 + (p : ℂ) ^ (-s) ≠ 0 := by
   intro h
@@ -808,6 +879,16 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
     exact this
   linarith [Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs]
 
+@[blueprint
+  "two_pow_omega_LSeries_eulerProduct_tprod"
+  (title := "two-pow-omega-LSeries-eulerProduct-tprod")
+  (statement := /--
+    For $1<\Re(s)$ we have that
+    $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
+  -/)
+  (proof := /--
+    Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
+  -/)]
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ two_pow_omega n) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
   have h_euler_product : LSeriesSummable (fun n => two_pow_omega n) s
@@ -826,6 +907,16 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   · convert h_euler_product.1.norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
+@[blueprint
+  "two_pow_omega_LSeries_eulerProduct_hasProd"
+  (title := "two-pow-omega-LSeries-eulerProduct-hasProd")
+  (statement := /--
+    For $1<\Re(s)$ we have that
+    $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
+  -/)
+  (proof := /--
+    Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
+  -/)]
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ two_pow_omega n) s) := by
   convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ ↑(two_pow_omega n)) s) using 1;
@@ -850,7 +941,15 @@ where omega is the number of distinct prime factors. -/
   \end{verbatim}
   -/)
   (proof := /--
-  Follows from previous arguments.
+    Note that
+    $$\zeta(s)^2=\prod_p\frac{1}{(1-p^{-s})^2}.$$
+    Similarly
+    $$\zeta(2s)=\prod_p\frac{1}{(1-p^{-2s})}.$$
+    Applying two-pow-omega-LSeries-eulerProduct-tprod and two-pow-omega-LSeries-eulerProduct-hasProd we have
+    $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
+    Thus
+    $$\zeta(2s)\left(\sum_{1\leq n}2^{\omega(n)}n^{-s}\right)=\prod_p\frac{1+p^{-s}}{(1-p^{-s})(1-p^{-2s})}=\prod_p\frac{1}{(1-p^{-s})^2}$$
+    by the difference of squares. This is exactly the Euler product for $\zeta(s)^2$ mentioned earlier.
   -/)]
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
