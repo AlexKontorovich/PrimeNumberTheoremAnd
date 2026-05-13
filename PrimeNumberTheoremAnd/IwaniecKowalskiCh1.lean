@@ -732,7 +732,6 @@ lemma two_pow_omega_apply {n : ℕ} (hn : n ≠ 0) :
 
 lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     two_pow_omega n ≤ σ 0 n := by
-  -- By definition of ω, we know that ω n = (Nat.primeFactors n).card.
   have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
   rw [two_pow_omega_apply hn, h_prime_factors, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
   norm_cast
@@ -744,7 +743,6 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
 
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ two_pow_omega n) s := by
-  -- By comparison, it suffices to show that the L-series of $σ_0$ is summable for $Re(s) > 1$.
   have h_sigma0_summable : LSeriesSummable (fun n => (σ 0 n : ℂ)) s := by
     convert LSeries_d_summable 2 hs using 1;
     exact funext fun n => by rw [d_two] ; rfl;
@@ -772,12 +770,48 @@ lemma two_pow_omega_IsMultiplicative : two_pow_omega.IsMultiplicative := by
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
   simp only [or_self, ↓reduceIte, ← pow_add, cardDistinctFactors_mul mCn]
 
+lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
+    (p : Nat.Primes) :
+    ∑' e, LSeries.term (fun n ↦ two_pow_omega n) s (p ^ e) =
+    (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
+  have h_rw : ∑' e : ℕ, LSeries.term (fun n : ℕ => two_pow_omega n) s (p.val ^ e) = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => (2 : ℂ) ^ (ω n)) s (p.val ^ (e + 1)) := by
+    rw [Summable.tsum_eq_zero_add];
+    · unfold two_pow_omega LSeries.term
+      simp [Nat.Prime.ne_zero p.prop]
+    · have := LSeriesSummable_two_pow_omega hs;
+      convert this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
+  have h_term_eval : ∀ e : ℕ, LSeries.term (fun n : ℕ => 2 ^ ω n) s (p.val ^ (e + 1)) = 2 * (p.val : ℂ) ^ (-(e + 1) * s) := by
+    intro e
+    simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
+    rw [ArithmeticFunction.cardDistinctFactors_apply_prime_pow p.prop, pow_one]
+    · simp only [Complex.cpow_neg, div_eq_mul_inv, ← Complex.natCast_cpow_natCast_mul, cast_add, cast_one]
+    · linarith
+  have geo_series_rw : ∑' e : ℕ, (p.val : ℂ) ^ (-(e + 1) * s) = (p.val : ℂ) ^ (-s) / (1 - (p.val : ℂ) ^ (-s)) := by
+    rw [div_eq_mul_inv, ← tsum_geometric_of_norm_lt_one]
+    · rw [← tsum_mul_left]; congr; ext n; rw [← Complex.cpow_nat_mul]; ring_nf
+      rw [← Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.prop.ne_zero)]; ring_nf
+    · rw [Complex.norm_cpow_of_ne_zero] <;> norm_num [p.2.ne_zero]
+      exact lt_of_lt_of_le (Real.rpow_lt_rpow_of_exponent_lt (mod_cast p.2.one_lt) (neg_lt_zero.mpr (by linarith))) (by norm_num)
+  simp only [h_rw, h_term_eval, geo_series_rw, tsum_mul_left]
+  rw [eq_div_iff, add_mul, one_mul, ← mul_div_assoc, div_mul_cancel₀]
+  · ring_nf
+  all_goals (exact Complex.one_sub_prime_cpow_ne_zero p.2 hs)
+
+lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} (hs : 1 < s.re) :
+    1 + (p : ℂ) ^ (-s) ≠ 0 := by
+  intro h
+  have one_add_prime_cpow_h : ‖(p : ℂ) ^ (-s)‖ = 1 := by
+    have := congr_arg norm (neg_eq_of_add_eq_zero_left h)
+    simp only [norm_neg, one_mem, CStarRing.norm_of_mem_unitary] at this
+    exact this
+  linarith [Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs]
+
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
-    LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
+    LSeries (fun n ↦ two_pow_omega n) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
   sorry
 
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
-    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ 2 ^ ω n) s) := by
+    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ two_pow_omega n) s) := by
   sorry
 
 /--
@@ -798,7 +832,7 @@ where omega is the number of distinct prime factors. -/
   -/)]
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
-    riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
+    riemannZeta (2 * s) * LSeries (fun n ↦ two_pow_omega n) s := by
   have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
   have mulable := (riemannZeta_eulerProduct_hasProd hs).multipliable
   rw [sq, ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulable mulable,
@@ -806,20 +840,13 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     two_pow_omega_LSeries_eulerProduct_tprod s hs, ← Multipliable.tprod_mul, tprod_congr]
   · intro p
     have hsub := Complex.one_sub_prime_cpow_ne_zero p.2 hs
-    have hne : (p : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr p.2.ne_zero
-    rw [show (-(2 * s) : ℂ) = -s + -s from by ring, Complex.cpow_add _ _ hne]
     have hsq : 1 - ((p : ℂ) ^ (-s)) ^ 2 ≠ 0 := by
       rw [show 1 - ((p : ℂ) ^ (-s)) ^ 2 = (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) from by ring]
-      refine mul_ne_zero hsub ?_
-      intro h
-      have one_add_prime_cpow_h : ‖(p : ℂ) ^ (-s)‖ = 1 := by
-        have := congr_arg norm (neg_eq_of_add_eq_zero_left h)
-        simp [norm_neg] at this
-        linarith
-      linarith [Complex.norm_prime_cpow_le_one_half p hs]
+      exact mul_ne_zero hsub (Complex.one_add_prime_cpow_ne_zero p.2 hs)
+    rw [show (-(2 * s) : ℂ) = -s + -s from by ring, Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
     field_simp
     ring
-  · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
+  · exact ⟨LSeries (fun n ↦ two_pow_omega n) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
