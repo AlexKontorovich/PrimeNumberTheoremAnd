@@ -1131,7 +1131,8 @@ noncomputable def B_8_1' (k : ℕ) (b₀ : ℝ) : ℝ :=
 @[blueprint
   "bklnw-cor-8-1a"
   (title := "BKLNW Corollary 8.1a")
-  (statement := /--  Let $k=1,\ldots,5$. Let $b,b'$ be entries of Table 8 with $b < b'$.  Then
+  (statement := /--  Let $k \in \{1,\ldots,5\}$ and let $b<b'$ with
+$b \geq \max(7,2k)$.  Then
 \begin{equation}
  \label{B:ExpSubinterval}
  |\theta(x)-x| \le  \frac{B_k(b,b') x}{(\log x)^k} \qquad   \text{for all }x \in [e^{b}, e^{b'}],
@@ -1141,10 +1142,14 @@ where
  \label{Bbbprime2}
  B_k(b,b') = a_1(b) b^k e^{-\frac{b}{2}} + a_2(b) b^k e^{-\frac{2b}{3}}+  (b')^k \varepsilon(b),
 \end{equation}
-and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-8-1a}.
+and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-5-1}.
 -/)
-  (proof := /-- We apply Lemma \ref{bklnw-lemma-8} with $k \in \{1,2,3,4,5\}$, $b_0 = b$, and $n=2$ and obtain \eqref{Bbbprime2}. For we take
-$B_k(b,b') = \widetilde{B}_k(b,b',2)$.
+  (proof := /-- Apply Lemma \ref{bklnw-lemma-8} with $n=2$, using Corollary
+\ref{bklnw-cor-5-1} for the bound on $\psi(x)-\theta(x)$ and the default
+$\varepsilon(b)$ bound for $\psi(x)-x$. The assumption $b \geq 7$ supplies the
+hypothesis of Corollary \ref{bklnw-cor-5-1}, while $b \geq 2k$ is the monotonicity
+hypothesis used in \eqref{bklnw-eq-3-11}. Taking
+$B_k(b,b') = \widetilde{B}_k(b,b',2)$ gives \eqref{Bbbprime2}.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1254)]
@@ -1198,21 +1203,18 @@ lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 
   have h1 : b₀ ∈ S := by
     simp only [mem_filter, hb₀, le_refl, hy1, and_self, S]
   let b := S.max' ⟨b₀, h1⟩
-  have h3 : b ∈ S := Finset.max'_mem S ⟨b₀, h1⟩
-  rcases (by simpa [S] using h3 : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y)
-    with ⟨h5, h6, h7⟩
+  obtain ⟨h5, h6, h7⟩ : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y := by
+    simpa [S] using show b ∈ S from Finset.max'_mem S ⟨b₀, h1⟩
   refine ⟨b, h5, h6, h7, ?_⟩
   let S_finset := table_10_bs.filter (b < ·)
   have h12 : (K : ℝ) ∈ S_finset := by
     simpa [S_finset, table_10_bs] using table_10_entry_lt_K b h5
-  have h13 : S_finset.Nonempty := ⟨(K : ℝ), h12⟩
-  let m := S_finset.min' h13
-  have h14 : m ∈ S_finset := Finset.min'_mem S_finset h13
+  let m := S_finset.min' ⟨K, h12⟩
   have h16 : m ∈ table_10_bs ∧ b < m := by
-    simpa [S_finset] using h14
-  rw [show table_10_next b = m from table_10_next_eq_min' b ⟨(K : ℝ), h12⟩]
+    simpa [S_finset] using (show m ∈ S_finset from Finset.min'_mem S_finset ⟨K, h12⟩)
+  rw [show table_10_next b = m from table_10_next_eq_min' b ⟨K, h12⟩]
   by_contra h19
-  obtain (h22 | h22) : m ∈ table_10_entries ∨ m = (K : ℝ) :=
+  obtain (h22 | h22) : m ∈ table_10_entries ∨ m = K :=
     Or.comm.1 (by simpa [table_10_bs, table_10_entries, K] using h16.1)
   · have h28 : m ∈ S := by
       simp only [mem_filter, h22, le_trans h6 h16.2.le, (Std.not_le.mp h19).le, and_self, S]
@@ -1222,7 +1224,8 @@ lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 
 @[blueprint
   "bklnw-cor-8-1b"
   (title := "BKLNW Corollary 8.1b")
-  (statement := /-- let $b_0$ be any entry in column 1 of BKLNW Table 11. Then,
+  (statement := /-- Let $k \in \{1,\ldots,5\}$ and let $b_0$ be any entry in
+column 1 of BKLNW Table 10. Then,
 \begin{equation}
  \label{bound:mathcalB}
  |\theta (x) - x| \le \frac{\mathcal{B}_k(b_0) x}{(\log x)^k}  \qquad \text{for all }x \in [e^{b_0}, e^K]
@@ -1230,10 +1233,15 @@ lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 
 where $K = 25000$, and
 \begin{equation}
 \label{MathcalBbbprime2}
-\mathcal{B}_k(b_0) = \max_{b,b' \atop b_0 \le b < b'}   B_k(b,b').
+\mathcal{B}_k(b_0) =
+\max_{\substack{b \in \mathrm{Table10}\\ b_0 \le b < K}}
+  B_k(b,\operatorname{next}(b)).
 \end{equation} -/)
-  (proof := /-- The inequality \eqref{bound:mathcalB} follows from \eqref{B:ExpSubinterval} together with the fact that
-$[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
+  (proof := /-- For $x \in [e^{b_0},e^K]$, choose the largest Table 10 entry
+$b$ with $b_0 \le b \le \log x$. Then
+$x \in [e^b,e^{\operatorname{next}(b)}]$, so \eqref{B:ExpSubinterval} applies to
+this subinterval. The definition of $\mathcal{B}_k(b_0)$ as a finite maximum over
+the Table 10 grid then bounds the chosen subinterval constant.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1256)]
