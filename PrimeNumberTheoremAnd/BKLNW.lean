@@ -1245,7 +1245,6 @@ the Table 10 grid then bounds the chosen subinterval constant.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1256)]
-
 theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
   (hb₀ : b₀ ∈ table_10_entries) :
   ∀ x ∈ Set.Icc (exp b₀) (exp K), |θ x - x| ≤ (B_8_1' k b₀) * x / (log x)^k := by
