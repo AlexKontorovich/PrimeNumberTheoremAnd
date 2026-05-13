@@ -761,23 +761,16 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
       · rw [two_pow_omega_apply hn, Int.cast_pow, Int.cast_ofNat]
         apply pow_nonneg zero_le_two
 
-lemma two_pow_omega_IsMultiplicative : two_pow_omega.IsMultiplicative := by
-  unfold two_pow_omega
-  refine ⟨by simp only [coe_mk, one_ne_zero, ↓reduceIte, cardDistinctFactors_one, pow_zero], ?_⟩
-  intro m n mCn
-  simp only [coe_mk, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul]
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte, ← pow_add, cardDistinctFactors_mul mCn]
-
 lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ ↑(two_pow_omega n)) s (m * n) =
   LSeries.term (fun n ↦ ↑(two_pow_omega n)) s m * LSeries.term (fun n ↦ ↑(two_pow_omega n)) s n := by
-  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul, two_pow_omega]
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
-    Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+  rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
+  simp only [or_self, ↓reduceIte, coe_mk, _root_.mul_eq_zero, m_eq_zero, n_eq_zero, Int.cast_pow, Int.cast_ofNat, cardDistinctFactors_mul mCn]
+  congr 1
+  exact pow_add 2 (ω m) (ω n)
 
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     (p : Nat.Primes) :
