@@ -770,6 +770,15 @@ lemma two_pow_omega_IsMultiplicative : two_pow_omega.IsMultiplicative := by
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
   simp only [or_self, ↓reduceIte, ← pow_add, cardDistinctFactors_mul mCn]
 
+lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+    LSeries.term (fun n ↦ ↑(two_pow_omega n)) s (m * n) =
+  LSeries.term (fun n ↦ ↑(two_pow_omega n)) s m * LSeries.term (fun n ↦ ↑(two_pow_omega n)) s n := by
+  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
+    Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     (p : Nat.Primes) :
     ∑' e, LSeries.term (fun n ↦ two_pow_omega n) s (p ^ e) =
@@ -814,12 +823,7 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
       LSeries.term (fun n ↦ two_pow_omega n) s n)
     ∧ LSeries.term (fun n ↦ two_pow_omega n) s 1 = 1 := by
     refine ⟨LSeriesSummable_two_pow_omega hs, ?_, ?_⟩;
-    · intro m n mCn
-      simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
-      by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-      by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-      simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
-        Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+    · intro m n mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
     · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, cast_one, pow_zero,
         Complex.one_cpow, div_one, Int.cast_eq_one, two_pow_omega_apply, cardDistinctFactors_one]
   have := @EulerProduct.eulerProduct_hasProd;
@@ -836,12 +840,7 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · simp only [two_pow_omega, coe_mk, Int.cast_ite, Int.cast_zero, Int.cast_pow, Int.cast_ofNat,
       ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, ↓reduceIte,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
-  · intro m n mCn
-    simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
-    by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-    by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-    simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
-      Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+  · intro _ _ mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
   · convert (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
