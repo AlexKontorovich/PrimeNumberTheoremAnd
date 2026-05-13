@@ -818,7 +818,8 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
       simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
       by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
       by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-      simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul, Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+      simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
+        Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
     · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, cast_one, pow_zero,
         Complex.one_cpow, div_one, Int.cast_eq_one, two_pow_omega_apply, cardDistinctFactors_one]
   have := @EulerProduct.eulerProduct_hasProd;
@@ -830,7 +831,18 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
 
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ two_pow_omega n) s) := by
-  sorry
+  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ ↑(two_pow_omega n)) s) using 1;
+  · funext p; exact Eq.symm (two_pow_omega_tsum_prime_pow hs p)
+  · simp only [two_pow_omega, coe_mk, Int.cast_ite, Int.cast_zero, Int.cast_pow, Int.cast_ofNat,
+      ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, ↓reduceIte,
+      cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
+  · intro m n mCn
+    simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+    by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+    by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+    simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul,
+      Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
 Zeta squared:
