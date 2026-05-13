@@ -808,7 +808,25 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
 
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ two_pow_omega n) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  sorry
+  have h_euler_product : LSeriesSummable (fun n => two_pow_omega n) s
+    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ two_pow_omega n) s (m * n) =
+      LSeries.term (fun n ↦ two_pow_omega n) s m *
+      LSeries.term (fun n ↦ two_pow_omega n) s n)
+    ∧ LSeries.term (fun n ↦ two_pow_omega n) s 1 = 1 := by
+    refine ⟨LSeriesSummable_two_pow_omega hs, ?_, ?_⟩;
+    · intro m n mCn
+      simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+      by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+      by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+      simp only [or_self, ↓reduceIte, two_pow_omega_IsMultiplicative.2 mCn, Int.cast_mul, Complex.natCast_mul_natCast_cpow, mul_div_mul_comm]
+    · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, cast_one, pow_zero,
+        Complex.one_cpow, div_one, Int.cast_eq_one, two_pow_omega_apply, cardDistinctFactors_one]
+  have := @EulerProduct.eulerProduct_hasProd;
+  convert HasProd.tprod_eq ( this h_euler_product.2.2 h_euler_product.2.1 _ _ ) |> Eq.symm using 1
+  · apply tprod_congr
+    simp only [two_pow_omega_tsum_prime_pow hs, implies_true]
+  · convert h_euler_product.1.norm using 1
+  · unfold LSeries.term; simp only [↓reduceIte]
 
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ two_pow_omega n) s) := by
