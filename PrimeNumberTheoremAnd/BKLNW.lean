@@ -1204,9 +1204,8 @@ In this section we tackle small $x$.
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
   (latexEnv := "lemma")
   (discussion := 1258)]
-theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x - 0.05 * sqrt x := by
-  have hineq : x - θ x > 0.05 * sqrt x := Buthe.theorem_2c hx1 hx2
-  linarith
+theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x - 0.05 * sqrt x :=
+  lt_tsub_comm.1 (Buthe.theorem_2c hx1 hx2)
 
 @[blueprint
   "bklnw-eq-3-18"
