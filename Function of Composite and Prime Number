@@ -7,8 +7,8 @@
 
 MAIN EQUATION
 
-    x = 2(phi(x,a) + a + n - 1) - 3
-
+    x = 2(phi(x,a) + a - 1 + n) - 3
+    pi(x) = phi(x,a) + a - 1
 WHERE
 
     a = pi(sqrt(x))
