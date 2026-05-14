@@ -56,7 +56,7 @@ theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by
     have htheta: theta x = 0 := by apply Chebyshev.theta_eq_zero_of_lt_two hworse
     linarith
   · have hnewlb : x≥ 1 := by simpa using h
-    have hineq : x - θ x ≥ 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
+    have hineq : x - θ x > 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
     have hsqrtpos: 0 < sqrt x := by exact Real.sqrt_pos.mpr hlb
     linarith
 
@@ -1307,12 +1307,12 @@ In this section we tackle small $x$.
 @[blueprint
   "bklnw-eq-3-17"
   (title := "BKLNW Equation 3.17")
-  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } x \le 10^{19}.$ -/)
+  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } 1 \le x \le 10^{19}.$ -/)
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
   (latexEnv := "lemma")
   (discussion := 1258)]
-theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
-  sorry
+theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x - 0.05 * sqrt x :=
+  lt_tsub_comm.1 (Buthe.theorem_2c hx1 hx2)
 
 @[blueprint
   "bklnw-eq-3-18"
