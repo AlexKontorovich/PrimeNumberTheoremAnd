@@ -9,6 +9,7 @@ MAIN EQUATION
 
     x = 2(phi(x,a) + a - 1 + n) - 3
     pi(x) = phi(x,a) + a - 1
+    pi(x) = (x+3)/2 - n
 WHERE
 
     a = pi(sqrt(x))
