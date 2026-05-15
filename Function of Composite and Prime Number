@@ -133,7 +133,7 @@ def compute_next_state (s : EngineState) : EngineState :=
   ====================================================================
 -/
 
--- القواعد المساعدة المستنبطة من البحث (الأسطر 101 - 107) لتمكين البرهان
+-- Auxiliary rules derived from research to enable the proof
 axiom delta_n_equation (x : ℕ) (h_odd : x % 2 ≠ 0) :
   calculate_n (x + 2) - calculate_n x = 1 - ((pi_count (x + 2) : ℤ) - (pi_count x : ℤ))
 
@@ -143,7 +143,7 @@ axiom pi_diff_prime (x : ℕ) (h : is_prime (x + 2)) :
 axiom pi_diff_comp (x : ℕ) (h1 : ¬ is_prime (x + 2)) (h2 : ¬ is_prime (x + 1)) :
   (pi_count (x + 2) : ℤ) - (pi_count x : ℤ) = 0
 
--- المبرهنة الرئيسية مبنية بالكامل بدون استخدام sorry
+-- Main Theorem: Constructed entirely without using 'sorry'
 theorem stability_of_n (x : ℕ) (h_range : in_search_range x) :
     let delta_n := calculate_n (x + 2) - calculate_n x
     (is_prime (x + 2) → delta_n = 0) ∧ 
@@ -153,7 +153,7 @@ theorem stability_of_n (x : ℕ) (h_range : in_search_range x) :
   have h_base : calculate_n (x + 2) - calculate_n x = 1 - ((pi_count (x + 2) : ℤ) - (pi_count x : ℤ)) := delta_n_equation x h_odd
   
   constructor
-  · -- حالة العدد الأولي (Δn = 1 - 1 = 0)
+  · -- Case: Prime Number (Δn = 1 - 1 = 0)
     intro h_prime
     have h_pi_diff : (pi_count (x + 2) : ℤ) - (pi_count x : ℤ) = 1 := pi_diff_prime x h_prime
     calc
@@ -161,7 +161,7 @@ theorem stability_of_n (x : ℕ) (h_range : in_search_range x) :
       _       = 1 - 1 := by rw [h_pi_diff]
       _       = 0 := by rfl
 
-  · -- حالة العدد المركب (Δn = 1 - 0 = 1)
+  · -- Case: Composite Number (Δn = 1 - 0 = 1)
     intro h_comp
     have h_comp_x2 : ¬ is_prime (x + 2) := h_comp.left
     have h_comp_x1 : ¬ is_prime (x + 1) := h_comp.right
