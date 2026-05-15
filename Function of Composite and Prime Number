@@ -209,6 +209,3 @@ axiom matrix_completeness :
   ∃ n col, is_balanced n p ∧ satisfies_matrix_policy n p col
 
 end PrimeMatrixEngine
-  ∃ n col, is_balanced n p ∧ satisfies_matrix_policy n p col
-
-end PrimeMatrixEngine
