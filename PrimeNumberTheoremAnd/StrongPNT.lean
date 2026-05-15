@@ -6,7 +6,6 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
-import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
@@ -25,6 +24,46 @@ local notation "ψ" => ChebyshevPsi
 
 --open scoped ArithmeticFunction
 
+
+
+@[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
+  (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
+  (statement := /--
+    An application of the Maximum modulus principle.
+  -/)
+  (proof := /--
+    This is standard in the literature.
+  -/)
+  (latexEnv := "lemma")]
+lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
+    (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (hyp_r : r ≤ R)
+    (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
+    (w : ℂ) (wInS : w ∈ Metric.closedBall 0 r) :
+    ‖f w‖ ≤ C := by
+  apply Complex.norm_le_of_forall_mem_frontier_norm_le
+    (U := Metric.closedBall 0 r) Metric.isBounded_closedBall
+  · apply DifferentiableOn.diffContOnCl
+    rw [Metric.closure_closedBall]
+    exact AnalyticOn.differentiableOn
+      (AnalyticOn.mono analytic
+        (Metric.closedBall_subset_closedBall (by linarith)))
+  · rw [frontier_closedBall']
+    exact cond
+  · rw [Metric.closure_closedBall]
+    exact wInS
+
+
+
+@[blueprint "borelCaratheodory'"
+  (title := "borelCaratheodory'")
+  (statement := /--
+    An application of Complex.borelCaratheodory_zero.
+  -/)
+  (proof := /--
+    This is standard in the literature.
+  -/)
+  (latexEnv := "lemma")]
 theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
     {f : ℂ → ℂ} (Rpos : 0 < R)
     (analytic : AnalyticOn ℂ f (Metric.ball 0 R))
@@ -46,6 +85,7 @@ theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
   gcongr
   · exact mul_nonneg (mul_nonneg (zero_le_two) (le_of_lt Mpos)) (le_trans (norm_nonneg z) hyp_z)
   · linarith
+
 
 
 blueprint_comment /--
@@ -130,6 +170,8 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
       rw [← hz']
       exact le_trans (by linarith) (norm_sub_norm_le z' z)
 
+
+
 @[blueprint "BorelCaratheodoryDeriv"
   (title := "BorelCaratheodoryDeriv")
   (statement := /--
@@ -159,6 +201,7 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
         _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
             have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
             rw [this]; bound
+
 
 
 @[blueprint "LogOfAnalyticFunction"
