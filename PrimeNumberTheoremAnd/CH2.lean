@@ -780,6 +780,66 @@ private lemma integral_Iic_I'_of_neg {lambda u0 : ℝ} (hlambda : lambda < 0) (h
   rw [MeasureTheory.setIntegral_congr_fun measurableSet_Iic (I'_eq_exp_of_neg hlambda hu0)]
   exact integral_exp_mul_Iic (a := -lambda) (neg_pos.mpr hlambda) u0
 
+private lemma complex_residual_algebraic_identity {x σ T : ℝ} (hx : 0 < x) (hT : T ≠ 0) (A B C : ℂ) :
+    ((x ^ (-σ) : ℝ) : ℂ) * (2 * π * ((1 / (2 * π * T)) * B + (A - C) * (x / T))) =
+    ((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * A +
+    ((x ^ (-σ) / T : ℝ) : ℂ) * B -
+    ((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * C := by
+  push_cast
+  rw [show ((x ^ (1 - σ) : ℝ) : ℂ) = ((x ^ (-σ) : ℝ) : ℂ) * (x : ℂ) by
+    norm_cast; rw [sub_eq_add_neg, Real.rpow_add hx, Real.rpow_one, mul_comm]]
+  field_simp [hT, Real.pi_pos.ne']
+  ring
+
+private lemma integral_Iic_I'_eq {T σ : ℝ} (hT : 0 < T) (hσ : σ ≠ 1) (x : ℝ) (hx : 1 ≤ x) :
+    (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y =
+      if σ < 1 then 1 / (1 - σ) else 0 := by
+  let lambda := (2 * π * (σ - 1)) / T
+  let u0 := -T * log x / (2 * π)
+  have hu0 : u0 ≤ 0 := by
+    dsimp [u0]; rw [neg_mul, neg_div]
+    exact neg_nonpos.mpr (div_nonneg (mul_nonneg hT.le (log_nonneg hx)) (by positivity))
+  by_cases hσ_lt : σ < 1
+  · simp only [hσ_lt, ite_true]
+    have hlambda_neg : lambda < 0 :=
+      div_neg_of_neg_of_pos (mul_neg_of_pos_of_neg (by positivity) (sub_neg_of_lt hσ_lt)) hT
+    rw [integral_Iic_I'_of_neg hlambda_neg hu0]
+    have h_exp_val : Real.exp (-lambda * u0) = x ^ (σ - 1) := by
+      rw [Real.rpow_def_of_pos (by linarith [hx])]
+      congr 1; dsimp [lambda, u0]; field_simp [hT.ne', Real.pi_pos.ne']
+    rw [h_exp_val]
+    have h_final : (2 * π * x ^ (1 - σ) / T) * (x ^ (σ - 1) / (-lambda)) = 1 / (1 - σ) := by
+      dsimp [lambda]; field_simp [hT.ne', Real.pi_pos.ne', (sub_pos.mpr hσ_lt).ne']
+      rw [mul_assoc, ← Real.rpow_add (by linarith [hx])]
+      ring_nf; rw [Real.rpow_zero, add_comm, ← sub_eq_add_neg]
+      field_simp [sub_ne_zero.mpr hσ]
+    exact h_final
+  · have hσ_gt : 1 < σ := lt_of_le_of_ne (not_lt.mp hσ_lt) hσ.symm
+    have hlambda_pos : 0 < lambda :=
+      div_pos (mul_pos (by positivity) (sub_pos.mpr (by linarith [hσ_gt]))) hT
+    rw [MeasureTheory.integral_eq_zero_of_ae (I'_ae_zero_of_pos hlambda_pos hu0)]
+    simp only [hσ_lt, ite_false, mul_zero]
+
+private lemma I'_mul_le_rpow_of_one_lt {a_n x T σ : ℝ} (ha_pos : 0 ≤ a_n)
+    (hT : 0 < T) (hx : 1 ≤ x) (n : ℕ+) :
+    a_n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x)) ≤ a_n * (x ^ σ) * (1 / (n : ℝ) ^ σ) := by
+  unfold I'
+  split_ifs with h_cond
+  · rcases eq_or_lt_of_le ha_pos with rfl | ha_pos'
+    · simp
+    · have h_arg : -(2 * π * (σ - 1) / T) * (T / (2 * π) * log (n / x)) = -((σ - 1) * log (n / x)) := by
+        field_simp [Real.pi_pos.ne', hT.ne']
+      convert le_refl (a_n * x ^ σ * (1 / (n : ℝ) ^ σ)) using 1
+      rw [h_arg, ← neg_mul, ← Real.log_rpow (by positivity), Real.exp_log (by positivity),
+        Real.rpow_neg (by positivity), Real.div_rpow (by positivity) (by positivity)]
+      field_simp
+      simp_rw [mul_comm (n : ℝ), mul_comm x]
+      rw [← Real.rpow_add_one (by positivity), ← Real.rpow_add_one (by positivity)]
+      ring_nf
+  · simp only [mul_zero, one_div]
+    have : 0 < x := zero_lt_one.trans_le hx
+    positivity
+
 private lemma prop_2_4_plus_fourier_bound {T β σ : ℝ} (hT : 0 < T) (hβ : 1 < β) (hσ : σ ≠ 1)
   {φ_plus : ℝ → ℂ} (hφ_int : Integrable φ_plus)
   (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_plus y‖ ≤ C / |y| ^ β)
@@ -809,31 +869,8 @@ private lemma prop_2_4_plus_fourier_bound {T β σ : ℝ} (hT : 0 < T) (hβ : 1 
     · exact measurableSet_Iic.nullMeasurableSet
     · exact fun y _ ↦ hI_le_Fourier y
   have h_I_int : (if σ < 1 then 1 / (1 - σ) else 0) ≤
-      (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y := by
-    by_cases hσ_lt : σ < 1
-    · simp only [hσ_lt, ite_true]
-      have hlambda_neg : lambda < 0 := by
-        dsimp [lambda]; apply div_neg_of_neg_of_pos
-        · exact mul_neg_of_pos_of_neg (by positivity) (sub_neg_of_lt hσ_lt)
-        · exact hT
-      rw [integral_Iic_I'_of_neg hlambda_neg hu0]
-      have h_exp_val : Real.exp (-lambda * u0) = x ^ (σ - 1) := by
-        rw [Real.rpow_def_of_pos (by linarith [hx])]
-        congr 1; dsimp [lambda, u0]; field_simp [hT.ne', Real.pi_pos.ne']
-      rw [h_exp_val]
-      have h_final : (2 * π * x ^ (1 - σ) / T) * (x ^ (σ - 1) / (-lambda)) = 1 / (1 - σ) := by
-        dsimp [lambda]; field_simp [hT.ne', Real.pi_pos.ne', (sub_pos.mpr hσ_lt).ne']
-        rw [mul_assoc, ← Real.rpow_add (by linarith [hx])]
-        ring_nf; rw [Real.rpow_zero, add_comm, ← sub_eq_add_neg]
-        field_simp [sub_ne_zero.mpr hσ]
-      exact h_final.ge
-    · have hσ_gt : 1 < σ := lt_of_le_of_ne (not_lt.mp hσ_lt) hσ.symm
-      have hlambda_pos : 0 < lambda := by
-        dsimp [lambda]; apply div_pos
-        · exact mul_pos (by positivity) (sub_pos.mpr (by linarith [hσ_gt]))
-        · exact hT
-      rw [MeasureTheory.integral_eq_zero_of_ae (I'_ae_zero_of_pos hlambda_pos hu0)]
-      simp only [hσ_lt, ite_false, mul_zero, le_refl]
+      (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y :=
+    (integral_Iic_I'_eq hT hσ x hx).ge
   calc (if σ < 1 then 1 / (1 - σ) else 0)
     _ ≤ (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y := h_I_int
     _ ≤ (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), (𝓕 φ_plus y).re := by
@@ -906,16 +943,6 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : �
     field_simp [Real.pi_pos.ne']
     congr 1
     ext x; ring_nf
-  have h_algebra : ((x ^ (-σ) : ℝ) : ℂ) * (2 * π * ((1 / (2 * π * T)) * (∫ t in Set.Icc (-T) T, φ_plus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) +
-      (φ_plus 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_plus y) * (x / T))) =
-    ((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * φ_plus 0 +
-    ((x ^ (-σ) / T : ℝ) : ℂ) * (∫ t in Set.Icc (-T) T, φ_plus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) -
-    ((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_plus y) := by
-    push_cast
-    rw [show ((x ^ (1 - σ) : ℝ) : ℂ) = ((x ^ (-σ) : ℝ) : ℂ) * (x : ℂ) by
-      norm_cast; rw [sub_eq_add_neg, Real.rpow_add (by positivity), Real.rpow_one, mul_comm]]
-    field_simp [hT.ne', Real.pi_pos.ne']
-    simp_rw [mul_comm I]; ring
   calc S a σ x
     _ ≤ (x ^ (-σ) : ℝ) * ∑' (n : ℕ+), a n * (x / n) * (𝓕 φ_plus ((T / (2 * π)) * log (n / x))).re := by
       rw [S_eq_I a σ x T hσ hT (by linarith [hx])]
@@ -933,7 +960,7 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : �
     _ = (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * φ_plus 0).re +
         (((x ^ (-σ) / T : ℝ) : ℂ) * (∫ t in Set.Icc (-T) T, φ_plus (t / T) * G (1 + t * I) * x ^ (1 + t * I))).re -
         (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_plus y)).re := by
-      rw [h_algebra]
+      rw [complex_residual_algebraic_identity (zero_lt_one.trans_le hx) hT.ne']
       simp only [Complex.add_re, Complex.sub_re]
     _ ≤ (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * φ_plus 0).re +
         (((x ^ (-σ) / T : ℝ) : ℂ) * (∫ t in Set.Icc (-T) T, φ_plus (t / T) * G (1 + t * I) * x ^ (1 + t * I))).re -
@@ -943,6 +970,80 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : �
     _ ≤ _ := by
       gcongr; norm_cast
       rw [Complex.re_ofReal_mul]
+
+private lemma prop_2_4_minus_fourier_bound {T β σ : ℝ} (hT : 0 < T) (hβ : 1 < β) (hσ : σ ≠ 1)
+  {φ_minus : ℝ → ℂ} (hφ_int : Integrable φ_minus)
+  (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_minus y‖ ≤ C / |y| ^ β)
+  (hFourier_le_I : ∀ y : ℝ, (𝓕 φ_minus y).re ≤ I' ((2 * π * (σ - 1)) / T) y)
+  (x : ℝ) (hx : 1 ≤ x) :
+  (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y)).re ≤
+    if σ < 1 then 1 / (1 - σ) else 0 := by
+  have h_int_Fphi : Integrable (𝓕 φ_minus) := fourier_integrable_of_rpow_decay hβ hφ_int hφ_Fourier
+  let lambda := (2 * π * (σ - 1)) / T
+  let u0 := -T * log x / (2 * π)
+  have hu0 : u0 ≤ 0 := by
+    dsimp [u0]; rw [neg_mul, neg_div]; apply neg_nonpos.mpr
+    apply div_nonneg (mul_nonneg hT.le (log_nonneg hx)) (by positivity)
+  have h_re_mul : (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y)).re =
+      (2 * π * (x ^ (1 - σ) : ℝ) / T) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y).re := by
+    simp
+  have h_re_int : (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y).re =
+      ∫ y in Set.Iic (-T * log x / (2 * π)), (𝓕 φ_minus y).re := (integral_re h_int_Fphi.integrableOn).symm
+  rw [h_re_mul, h_re_int]
+  have h_int_le : ∫ y in Set.Iic (-T * log x / (2 * π)), (𝓕 φ_minus y).re ≤
+      ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y :=
+    MeasureTheory.setIntegral_mono_on₀ h_int_Fphi.re.integrableOn
+      (integrableOn_I'_Iic (div_ne_zero (mul_ne_zero (by positivity) (sub_ne_zero.mpr hσ)) hT.ne') hu0)
+      measurableSet_Iic.nullMeasurableSet (fun y _ ↦ hFourier_le_I y)
+  have h_I_int : (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y ≤
+      (if σ < 1 then 1 / (1 - σ) else 0) :=
+    (integral_Iic_I'_eq hT hσ x hx).le
+  calc (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), (𝓕 φ_minus y).re
+    _ ≤ (2 * π * (x ^ (1 - σ) : ℝ) / T) * ∫ y in Set.Iic (-T * log x / (2 * π)), I' ((2 * π * (σ - 1)) / T) y :=
+      mul_le_mul_of_nonneg_left h_int_le (by positivity)
+    _ ≤ (if σ < 1 then 1 / (1 - σ) else 0) := h_I_int
+
+private lemma summable_I'_residual {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0)
+    {T β σ : ℝ} (hT : 0 < T) (hσ : σ ≠ 1)
+    (ha : Summable (fun n ↦ ‖(a n : ℂ)‖ / (n * log n ^ β)))
+    {x : ℝ} (hx : 1 ≤ x) :
+    Summable (fun (n : ℕ+) ↦ a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x))) := by
+  by_cases hσ_lt : σ < 1
+  · apply summable_of_finite_support
+    have h_support : Function.support (fun (n : ℕ+) ↦ a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x))) ⊆ Set.Iic (⟨⌊x⌋₊, Nat.floor_pos.mpr hx⟩ : ℕ+) := by
+      intro n hn
+      rw [Function.mem_support] at hn
+      have hI : I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x)) ≠ 0 := by
+        contrapose! hn; simp [hn]
+      unfold I' at hI
+      split_ifs at hI with h_cond
+      · have h_const : (2 * π * (σ - 1) / T) * (T / (2 * π) * log (n / x)) = (σ - 1) * log (n / x) := by
+          field_simp [Real.pi_pos.ne', hT.ne']
+        rw [h_const] at h_cond
+        have h_log : log (n / x) ≤ 0 :=
+          nonpos_of_mul_nonneg_right h_cond (sub_neg_of_lt hσ_lt)
+        exact Nat.le_floor ((div_le_one (zero_lt_one.trans_le hx)).mp
+          ((log_le_log_iff (div_pos (Nat.cast_pos.mpr n.pos) (zero_lt_one.trans_le hx)) zero_lt_one).mp (h_log.trans_eq Real.log_one.symm)))
+      · exact absurd rfl hI
+    exact (Set.finite_Iic _).subset h_support
+  · have hσ_gt : 1 < σ := lt_of_le_of_ne (not_lt.mp hσ_lt) hσ.symm
+    have h_bound : ∀ (n : ℕ+), a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x)) ≤ a n * (x ^ σ) * (1 / (n : ℝ) ^ σ) :=
+      fun n ↦ I'_mul_le_rpow_of_one_lt (ha_pos n) hT hx n
+    apply Summable.of_nonneg_of_le
+    · intro n
+      unfold I'
+      split_ifs
+      · exact mul_nonneg (mul_nonneg (ha_pos n) (div_nonneg (zero_lt_one.trans_le hx).le (by positivity))) (by positivity)
+      · simp
+    · exact h_bound
+    · have h_summable_nterm : Summable (fun n : ℕ+ ↦ (a n : ℝ) / (n : ℝ) ^ σ) := by
+        convert (summable_pnat_iff_summable_nat (f := nterm (fun n ↦ ↑(a n)) σ)).mpr ?_ using 1
+        · ext n ; simp only [nterm, PNat.ne_zero, ↓reduceIte, norm_real, norm_eq_abs]
+          rw [abs_of_nonneg (ha_pos _)]
+        · exact summable_nterm_of_log_weight hσ_gt ha
+      convert h_summable_nterm.mul_left (x ^ σ) using 1
+      ext n
+      ring
 
 @[blueprint
   "ch2-prop-2-4-minus"
@@ -956,22 +1057,68 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : �
   (latexEnv := "proposition")
   (discussion := 883)]
 theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β σ : ℝ} (hT : 0 < T) (hβ : 1 < β) (hσ : σ ≠ 1)
-    (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
+    (ha : Summable (fun n ↦ ‖(a n : ℂ)‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' (n : ℕ+), a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
     {φ_minus : ℝ → ℂ} (hφ_mes : Measurable φ_minus) (hφ_int : Integrable φ_minus)
+    (hφ_cont : ContinuousAt φ_minus 0)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ_minus x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_minus y‖ ≤ C / |y| ^ β)
     (hFourier_le_I : ∀ y : ℝ,
       let lambda := (2 * π * (σ - 1)) / T
-      ‖𝓕 φ_minus y‖ ≤ I' lambda y)
+      (𝓕 φ_minus y).re ≤ I' lambda y)
     {x : ℝ} (hx : 1 ≤ x) :
     S a σ x ≥
       ((2 * π * (x ^ (1 - σ) : ℝ) / T) * φ_minus 0).re +
       (x ^ (-σ) : ℝ) / T *
         (∫ t in Set.Icc (-T) T, φ_minus (t/T) * G (1 + t * I) * (x ^ (1 + t * I))).re -
       if σ < 1 then 1 / (1 - σ) else 0 := by
-  sorry
+  have h_summable : Summable (fun n : ℕ+ ↦ (a n : ℂ) * (x / n) * 𝓕 φ_minus ((T / (2 * π)) * log (n / x))) :=
+    summable_dirichlet_fourier_complex hT hβ ha hφ_Fourier x (zero_lt_one.trans_le hx)
+  have h_sum_eq : (1 / (2 * π) : ℂ) * ∑' (n : ℕ+), a n * (x / n) * 𝓕 φ_minus ((T / (2 * π)) * log (n / x)) =
+      (1 / (2 * π * T)) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) +
+      (φ_minus 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y) * (x / T) :=
+    prop_2_3 hT hβ ha hG hG' hφ_mes hφ_int hφ_cont hφ_supp hφ_Fourier x (zero_lt_one.trans_le hx)
+  have h_sum_total : ∑' (n : ℕ+), (a n : ℂ) * (x / n) * 𝓕 φ_minus ((T / (2 * π)) * log (n / x)) =
+      2 * π * ((1 / (2 * π * T)) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) +
+      (φ_minus 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y) * (x / T)) := by
+    rw [← h_sum_eq]
+    field_simp [Real.pi_pos.ne']
+    congr 1; ext x; ring_nf
+  have h_sum_LHS : Summable (fun n : ℕ+ ↦ a n * (x / n) * (𝓕 φ_minus ((T / (2 * π)) * log (n / x))).re) := by
+    convert h_summable.map Complex.reCLM Complex.reCLM.continuous using 1
+    ext n; simp
+  have h_sum_RHS : Summable (fun (n : ℕ+) ↦ a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x))) :=
+    summable_I'_residual ha_pos hT hσ ha hx
+  have h_pointwise : ∀ (n : ℕ+), a n * (x / n) * (𝓕 φ_minus ((T / (2 * π)) * log (n / x))).re ≤
+      a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x)) :=
+    fun n ↦ mul_le_mul_of_nonneg_left (hFourier_le_I ((T / (2 * π)) * log (n / x)))
+      (mul_nonneg (ha_pos n) (div_nonneg (zero_lt_one.trans_le hx).le (by positivity)))
+  calc S a σ x
+    _ = (x ^ (-σ) : ℝ) * ∑' (n : ℕ+), a n * (x / n) * I' ((2 * π * (σ - 1)) / T) ((T / (2 * π)) * log (n / x)) := S_eq_I a σ x T hσ hT (zero_lt_one.trans_le hx)
+    _ ≥ (x ^ (-σ) : ℝ) * ∑' (n : ℕ+), a n * (x / n) * (𝓕 φ_minus ((T / (2 * π)) * log (n / x))).re :=
+      ge_iff_le.mpr (mul_le_mul_of_nonneg_left (Summable.tsum_le_tsum h_pointwise h_sum_LHS h_sum_RHS) (by positivity))
+    _ = (x ^ (-σ) : ℝ) * (∑' (n : ℕ+), (a n : ℂ) * (x / n) * 𝓕 φ_minus ((T / (2 * π)) * log (n / x))).re := by
+      rw [Complex.re_tsum h_summable]
+      congr with n
+      ring_nf; simp
+    _ = (x ^ (-σ) : ℝ) * (2 * π * ((1 / (2 * π * T)) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) +
+        (φ_minus 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y) * (x / T))).re := by rw [h_sum_total]
+    _ = (((x ^ (-σ) : ℝ) : ℂ) * (2 * π * ((1 / (2 * π * T)) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I)) +
+        (φ_minus 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y) * (x / T)))).re := by rw [← Complex.re_ofReal_mul]
+    _ = (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * φ_minus 0).re +
+        (((x ^ (-σ) / T : ℝ) : ℂ) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I))).re -
+        (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * (∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ_minus y)).re := by
+      rw [complex_residual_algebraic_identity (zero_lt_one.trans_le hx) hT.ne']
+      simp only [Complex.add_re, Complex.sub_re]
+    _ ≥ (((2 * π * (x ^ (1 - σ) : ℝ) / T) : ℂ) * φ_minus 0).re +
+        (((x ^ (-σ) / T : ℝ) : ℂ) * (∫ t in Set.Icc (-T) T, φ_minus (t / T) * G (1 + t * I) * x ^ (1 + t * I))).re -
+        (if σ < 1 then 1 / (1 - σ) else 0) := by
+      gcongr
+      exact prop_2_4_minus_fourier_bound hT hβ hσ hφ_int hφ_Fourier (fun y ↦ hFourier_le_I y) x hx
+    _ ≥ _ := by
+      gcongr; norm_cast
+      rw [Complex.re_ofReal_mul]
 
 
 blueprint_comment /--
