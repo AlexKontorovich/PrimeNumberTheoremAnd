@@ -5,6 +5,7 @@ import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
+import Mathlib.Analysis.Complex.BorelCaratheodory
 import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
 
@@ -31,7 +32,21 @@ theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
     (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖f z‖ ≤ (2 * M * r) / (R - r) := by
-  sorry
+  have h_borelCaratheodory : ∀ ε > 0, ‖f z‖ ≤ (2 * (M + ε) * ‖z‖) / (R - ‖z‖) := by
+    intro ε εpos;
+    apply Complex.borelCaratheodory_zero;
+    exacts [ by linarith, analytic.differentiableOn, fun z hz => lt_of_le_of_lt ( realPartBounded z hz ) ( by linarith ), Rpos, by exact Metric.mem_ball.mpr ( lt_of_le_of_lt ( Metric.mem_closedBall.mp hyp_z ) hyp_r ), zeroAtZero ];
+  have h_limit : ‖f z‖ ≤ (2 * M * ‖z‖) / (R - ‖z‖) := by
+    have h_limit : Filter.Tendsto (fun ε => (2 * (M + ε) * ‖z‖) / (R - ‖z‖)) (nhdsWithin 0 (Set.Ioi 0)) (nhds ((2 * M * ‖z‖) / (R - ‖z‖))) := by
+      refine tendsto_nhdsWithin_of_tendsto_nhds (Continuous.tendsto' ?_ _ _ (by ring_nf))
+      exact ((continuous_const.mul (continuous_const.add continuous_id)).mul continuous_const).div_const _
+    exact le_of_tendsto_of_tendsto tendsto_const_nhds h_limit ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_borelCaratheodory ε hε );
+  rw [mem_closedBall_iff_norm, sub_zero] at hyp_z
+  refine le_trans h_limit ?_;
+  gcongr
+  · exact mul_nonneg (mul_nonneg (zero_le_two) (le_of_lt Mpos)) (le_trans (norm_nonneg z) hyp_z)
+  · linarith
+
 
 blueprint_comment /--
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
