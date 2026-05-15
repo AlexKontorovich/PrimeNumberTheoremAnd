@@ -24,11 +24,18 @@ local notation "ψ" => ChebyshevPsi
 
 --open scoped ArithmeticFunction
 
+theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
+    {f : ℂ → ℂ} (Rpos : 0 < R)
+    (analytic : AnalyticOn ℂ f (Metric.ball 0 R))
+    (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
+    (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
+    ‖f z‖ ≤ (2 * M * r) / (R - r) := by
+  sorry
+
 blueprint_comment /--
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
 -/
-
-
 
 @[blueprint "cauchy_formula_deriv"
   (title := "cauchy-formula-deriv")
@@ -82,18 +89,18 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
   (latexEnv := "lemma")]
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
-    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (analytic_f : AnalyticOn ℂ f (Metric.ball 0 R))
     (f_zero_at_zero : f 0 = 0)
-    (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (re_f_le_M : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-  rw [cauchy_formula_deriv (analytic_f.mono Metric.ball_subset_closedBall).differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
+  rw [cauchy_formula_deriv analytic_f.differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
   grw [circleIntegral.norm_two_pi_i_inv_smul_integral_le_of_norm_le_const (by linarith) (C := 2 * M * r' / ((R - r') * (r' - r) ^ 2))]
   · exact le_of_eq (by ring)
   · intro z' hz'
     rw [smul_eq_mul, norm_mul]
-    grw[borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
+    grw[borelCaratheodory' (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
       (Metric.sphere_subset_closedBall hz')]
     suffices ‖(z' - z)⁻¹ ^ 2‖ ≤ 1 / (r' - r) ^ 2 by
       grw [this]
@@ -123,9 +130,9 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
   -/)
   (latexEnv := "theorem")]
 theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
-    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.ball 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
-    (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
     have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
@@ -171,10 +178,10 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
 theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
     {B : ℂ → ℂ} (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R)) (Bnonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, B z ≠ 0) :
     ∃ (J_B : ℂ → ℂ),
-    (AnalyticOnNhd ℂ J_B (Metric.closedBall 0 r)) ∧
+    (AnalyticOnNhd ℂ J_B (Metric.ball 0 R)) ∧
     (J_B 0 = 0) ∧
     (∀ z ∈ Metric.closedBall 0 r, (deriv J_B) z = (deriv B) z / (B z)) ∧
-    (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
+    (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
     obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (deriv B z / B z) z)) ∧ J_B 0 = 0 ∧ (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
       set f : ℂ → ℂ := fun z => deriv B z / B z;
       have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) :=
@@ -215,14 +222,38 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
       have hB0 := Bnonzero 0 (by norm_num; linarith)
       rw [← Real.log_div (norm_ne_zero_iff.mpr hBz) (norm_ne_zero_iff.mpr hB0),
         ← h_exp_re z hz, Real.log_exp]
-    have hmem : ∀ z, z ∈ Metric.closedBall (0 : ℂ) r → z ∈ Metric.ball (0 : ℂ) R :=
-      fun z hz ↦ Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_R
-    refine ⟨J_B, ?_, hJB.2.1, fun z hz ↦ (hJB.1 z (hmem z hz)).deriv,
-      fun z hz ↦ hJB.2.2 z (hmem z hz)⟩
-    intro z hz
-    exact DifferentiableOn.analyticAt
-      (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt)
-      (Metric.isOpen_ball.mem_nhds <| by simpa using by linarith [mem_closedBall_zero_iff.mp hz])
+    have hmem : ∀ z, z ∈ Metric.ball (0 : ℂ) r → z ∈ Metric.closedBall (0 : ℂ) R := by
+      intro z hz
+      apply Metric.mem_closedBall.mpr
+      rw [Metric.mem_ball] at hz
+      linarith
+    refine ⟨J_B, ?_, hJB.2.1, ?_, hJB.2.2⟩
+    · intro z hz
+      apply DifferentiableOn.analyticAt
+        (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt) (IsOpen.mem_nhds Metric.isOpen_ball hz)
+    · intro z hz
+      have hz' : z ∈ Metric.ball 0 R := Metric.closedBall_subset_ball r_lt_R hz
+      exact (hJB.1 z hz').deriv
+
+
+
+@[blueprint "LogOfAnalyticFunction'"
+  (title := "LogOfAnalyticFunction'")
+  (statement := /--
+    A wrapper of the above theorem that will be useful later on.
+  -/)
+  (proof := /--
+    See above.
+  -/)]
+theorem LogOfAnalyticFunction' {r' r R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_R : r < R)
+    {B : ℂ → ℂ} (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R)) (Bnonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) r, B z ≠ 0) :
+    ∃ (J_B : ℂ → ℂ),
+    (AnalyticOnNhd ℂ J_B (Metric.ball 0 r)) ∧
+    (J_B 0 = 0) ∧
+    (∀ z ∈ Metric.closedBall 0 r', (deriv J_B) z = (deriv B) z / (B z)) ∧
+    (∀ z ∈ Metric.ball 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
+  have BanalyticOnNhdOfDr : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) r) := BanalyticOnNhdOfDR.mono (Metric.closedBall_subset_closedBall r_lt_R.le)
+  exact LogOfAnalyticFunction r'_pos r'_lt_r BanalyticOnNhdOfDr Bnonzero
 
 
 
@@ -572,13 +603,14 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
     $|z|\leq r < R$. This is a contradiction. So, $R-z\overline{\rho}/R\neq 0$.
   -/)]
 lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
-    {z : ℂ} (hz : ‖z‖ ≤ r)
+    {z : ℂ} (hz : ‖z‖ < R)
     {ρ : ℂ} (hρ : ‖ρ‖ ≤ r) :
     (↑R : ℂ) - z * (starRingEnd ℂ) ρ / (↑R : ℂ) ≠ 0 := by
   norm_num [ sub_eq_zero, Complex.ext_iff ];
   rw [ eq_div_iff ] <;> norm_num [ Complex.normSq, Complex.norm_def ] at *;
-  · rw [ Real.sqrt_le_iff ] at hz hρ;
-    exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] );
+  · rw [ Real.sqrt_lt' (by linarith) ] at hz
+    rw [ Real.sqrt_le_iff ] at hρ
+    exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] )
   · linarith
 
 
@@ -638,15 +670,16 @@ lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
 lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
   {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
-  (hf_neq_zero_at_zero : f 0 ≠ 0)
-  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r) :
-    BlaschkeB r R f z ≠ 0 := by
-  have hz_norm : ‖z‖ ≤ r := by rwa [mem_closedBall_iff_norm, sub_zero] at hz
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  ∀ z ∈ Metric.closedBall (0 : ℂ) r, BlaschkeB r R f z ≠ 0 := by
+  intro z hz
+  have hz_norm_le_r : ‖z‖ ≤ r := by rwa [mem_closedBall_iff_norm, sub_zero] at hz
+  have hz_norm_lt_R : ‖z‖ < R := by linarith
   have hFin := finiteSetOfZeros_mono r_lt_one finiteZeros
   have hBProd : ∏ ρ ∈ hFin.toFinset,
       (↑R - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 :=
     Finset.prod_ne_zero_iff.mpr fun ρ hρ =>
-      pow_ne_zero _ (blaschkeFactorNonzero R_pos r_lt_R hz_norm (hFin.mem_toFinset.mp hρ).1)
+      pow_ne_zero _ (blaschkeFactorNonzero R_pos r_lt_R hz_norm_lt_R (hFin.mem_toFinset.mp hρ).1)
   unfold BlaschkeB Cf
   by_cases z_in_zeros : z ∈ SetOfZeros r f
   · simp only [hFin, z_in_zeros, ↓reduceDIte]
@@ -658,7 +691,7 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
       pow_ne_zero _ (sub_ne_zero.mpr fun h =>
         (Finset.mem_sdiff.mp hρ).2 (Finset.mem_singleton.mpr h.symm)))) hBProd
   · simp only [hFin, z_in_zeros, ↓reduceDIte]
-    refine mul_ne_zero (div_ne_zero (fun hfz => z_in_zeros ⟨hz_norm, hfz⟩)
+    refine mul_ne_zero (div_ne_zero (fun hfz => z_in_zeros ⟨hz_norm_le_r, hfz⟩)
       (Finset.prod_ne_zero_iff.mpr fun ρ hρ =>
         pow_ne_zero _ (sub_ne_zero.mpr fun h => z_in_zeros (h ▸ hFin.mem_toFinset.mp hρ)))) hBProd
 
@@ -723,10 +756,13 @@ lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R
     is from Definition \ref{BlaschkeB}.
   -/)]
 noncomputable def JBlaschke
-  {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
-  {f : ℂ → ℂ} (blaschke_analytic : AnalyticOnNhd ℂ (BlaschkeB r R f) (Metric.closedBall (0 : ℂ) R))
-  (blaschke_nonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, BlaschkeB r R f z ≠ 0) (z : ℂ) : ℂ :=
-  (LogOfAnalyticFunction zero_lt_r r_lt_R blaschke_analytic blaschke_nonzero).choose z
+  {r' r R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite)
+  (z : ℂ) : ℂ :=
+  (LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R
+    (BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero))
+    (BlaschkeNonzero r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero))).choose z
 
 
 
@@ -738,6 +774,36 @@ blueprint_comment /--
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
 \end{theorem}
 -/
+lemma JBlaschkeDerivBound
+  {B r' r R : ℝ} (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)  (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r') :
+  ‖deriv (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) z‖
+    ≤ 16 * Real.log (B) * r ^ 2 / (r - r') ^ 3 := by
+  let blaschkeAnalytic := BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+  let blaschkeNonzero := BlaschkeNonzero r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+  let logOfAnalytic := LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R blaschkeAnalytic blaschkeNonzero
+  set JB := logOfAnalytic.choose with JB_def
+  obtain ⟨JB_Analytic, JB_0_eq_0, deriv_JB_eq, JB_re⟩ := logOfAnalytic.choose_spec
+  rw [← JB_def] at JB_Analytic JB_0_eq_0 deriv_JB_eq JB_re
+  have JB_def' : JB = (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) := by
+    unfold JBlaschke
+    rw [← JB_def]
+  rw[← JB_def']
+  refine BorelCaratheodoryDeriv r'_pos (JB_Analytic.analyticOn) JB_0_eq_0 (Real.log_pos one_lt_B) ?_ r'_lt_r hz
+  intro w hw
+  rw[← JB_re w hw]
+  have hwr : w ∈ Metric.closedBall (0 : ℂ) r := by exact Metric.ball_subset_closedBall hw
+  have hwR : w ∈ Metric.closedBall (0 : ℂ) R := by exact Metric.closedBall_subset_closedBall r_lt_R.le hwr
+  let blaschkeBound := DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound hwR
+  have hlog : 0 ≤ Real.log ‖BlaschkeB r R f 0‖ := by
+    sorry
+  suffices h : Real.log ‖BlaschkeB r R f w‖ ≤ Real.log B by linarith
+  exact Real.log_le_log (norm_pos_iff.mpr (blaschkeNonzero w hwr))
+    (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound hwR)
+
+
 
 blueprint_comment /--
 \begin{proof}
