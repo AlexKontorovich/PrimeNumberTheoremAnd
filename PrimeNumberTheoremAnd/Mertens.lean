@@ -365,8 +365,7 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1). $$
   (discussion := 1309)]
 theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
-  refine abs_by_cases (P := fun a ↦ a ≤ log 4 + 4) (by linarith [E₁Λ.le hx]) (neg_le.mp ?_)
-  linarith [E₁Λ.ge hx, (by linarith [log_nonneg (4).one_le_ofNat] : -(log 4 + 4) ≤ -2)]
+  grind [E₁Λ.le hx, E₁Λ.ge hx, log_nonneg]
 
 theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   exact ⟨log 4 + 4, (by positivity), fun x hx ↦ sum_mangoldt_div_eq_log hx⟩
