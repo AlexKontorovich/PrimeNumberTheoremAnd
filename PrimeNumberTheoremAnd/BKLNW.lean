@@ -1156,98 +1156,56 @@ $B_k(b,b') = \widetilde{B}_k(b,b',2)$ gives \eqref{Bbbprime2}.
 theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b') (hbk : b ≥ max 7 (2 * (k : ℝ))) :
   ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
   let a : ℕ → ℝ := fun ℓ => if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
-  have hb_ge_7 : b ≥ 7 := by
-    have h : b ≥ max 7 (2 * (k : ℝ)) := hbk
-    have h' : max 7 (2 * (k : ℝ)) ≥ 7 := le_max_left 7 (2 * (k : ℝ))
-    linarith
-  have hb_ge_2k : b ≥ 2 * (k : ℝ) := by
-    have h : b ≥ max 7 (2 * (k : ℝ)) := hbk
-    have h' : max 7 (2 * (k : ℝ)) ≥ 2 * (k : ℝ) := le_max_right 7 (2 * (k : ℝ))
-    linarith
-  have hb_ge_2k' : b ≥ 2 * k := by
-    exact_mod_cast hb_ge_2k
-  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ := by
-    have h' : (0 : ℝ) ≤ 7 := by norm_num
-    have h'' : (1 : ℝ) ≤ exp 7 := one_le_exp h'
-    have h''' : exp 7 ≤ Inputs.default.x₁ := Inputs.default.hx₁
-    linarith
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
+    (one_le_exp (by positivity)).trans Inputs.default.hx₁
   have hlog_x₁_nonneg : 0 ≤ log Inputs.default.x₁ := log_nonneg hx₁_ge_one
   have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
     Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs hlog_x₁_nonneg
-  have hb_half_nonneg : 0 ≤ b / 2 := by linarith [hb_ge_7]
+  have hb_half_nonneg : 0 ≤ b / 2 := by positivity
   have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
     Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs hb_half_nonneg
-  have hα_nonneg : 0 ≤ Inputs.default.α := by
-    simp only [Inputs.default]
-    ; norm_num
   have hα_pos : 0 < 1 + Inputs.default.α := by
-    linarith
-  have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) := by
-    apply le_max_iff.mpr
-    left
-    have hf_nonneg : 0 ≤ f (exp b) := by
-      unfold f
-      apply Finset.sum_nonneg
-      intro i _
-      positivity
-    exact hf_nonneg
+    unfold Inputs.default; positivity
+  have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) :=
+    le_max_iff.2 (Or.inl (Finset.sum_nonneg (by intros; positivity)))
   have ha₁_nonneg : 0 ≤ Inputs.default.a₁ b := by
     unfold Inputs.a₁
-    split_ifs <;> linarith
-  have ha₂_nonneg : 0 ≤ Inputs.default.a₂ b := by
-    unfold Inputs.a₂
-    exact mul_nonneg hα_pos.le hmax_nonneg
+    split_ifs <;> positivity
+  have ha₂_nonneg : 0 ≤ Inputs.default.a₂ b :=
+    mul_nonneg hα_pos.le hmax_nonneg
   have ha_nonneg : ∀ ℓ ∈ Finset.Icc 1 2, 0 ≤ a ℓ := by
     intro ℓ hℓ
-    simp only [Finset.mem_Icc] at hℓ
-    rcases hℓ with ⟨h1, h2⟩
-    interval_cases ℓ <;> simp [a, ha₁_nonneg, ha₂_nonneg]
-  have hx₀ : exp b ≤ exp b := by rfl
+    obtain ⟨h1, h2⟩ := Finset.mem_Icc.1 hℓ
+    interval_cases ℓ <;> simp only [OfNat.ofNat_ne_one, ↓reduceIte, ha₂_nonneg, ha₁_nonneg, a]
   have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
     intro x hx
-    have h_main : ψ x - θ x ≤ Inputs.default.a₁ b * x ^ (1 / 2 : ℝ) + Inputs.default.a₂ b * x ^ (1 / 3 : ℝ) :=
-      cor_5_1 hb_ge_7 hx
     have h_sum : ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) = Inputs.default.a₁ b * x ^ (1 / 2 : ℝ) + Inputs.default.a₂ b * x ^ (1 / 3 : ℝ) := by
-      simp [Finset.sum_Icc_succ_top, a]
-      ; ring_nf
-    rw [h_sum]
-    exact h_main
-  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x := by
-    intro x hx
-    have h_b_nonneg : 0 ≤ b := by linarith [hb_ge_7]
-    exact Inputs.default.hε b h_b_nonneg x hx
+      simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat, sum_Icc_succ_top,
+        Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, OfNat.ofNat_ne_one, Nat.cast_ofNat,
+        two_add_one_eq_three, a]
+    exact h_sum ▸ cor_5_1 hb_ge_7 hx
+  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
+    fun x hx ↦ Inputs.default.hε b (by positivity) x hx
   have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
-    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk ha_nonneg hb hb_ge_2k' hx₀ hψ_θ_bound hε_bound
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk ha_nonneg hb hb_ge_2k le_rfl hψ_θ_bound hε_bound
   have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
-    bklnw_eq_3_11 k 2 a Inputs.default.ε b b' ha_nonneg hb hb_ge_2k'
+    bklnw_eq_3_11 k 2 a Inputs.default.ε b b' ha_nonneg hb hb_ge_2k
   have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
-    simp [Btilde, B_8_1, a, Finset.sum_Icc_succ_top]
-    ; ring_nf
+    simp only [Btilde, neg_mul, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, one_mul,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, mul_add, B_8_1, a]
+    ac_rfl
   intro x hx
-  have h1 : abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k := h_main1 x hx
-  have h2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' := h_main2
-  have h3 : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := h_Btilde_eq
-  have hx_pos : 0 < x := by
-    have h4 : exp b ≤ x := hx.1
-    have h5 : 0 < exp b := exp_pos b
-    linarith
-  have hlog_x_pos : 0 < log x := by
-    have h4 : exp b ≤ x := hx.1
-    have h5 : 1 < exp b := by
-      have h6 : 0 < b := by linarith [hb_ge_7]
-      have h7 : exp 0 < exp b := exp_strictMono h6
-      simpa using h7
-    have h7 : 1 < x := by linarith
-    exact log_pos h7
+  have hlog_x_pos : 0 < log x :=
+    log_pos (Std.lt_of_lt_of_le (one_lt_exp_iff.2 (by positivity)) hx.1)
   have h4 : B k 2 a Inputs.default.ε b b' * x / (log x)^k ≤ B_8_1 k b b' * x / (log x)^k := by
-    have h5 : B k 2 a Inputs.default.ε b b' ≤ B_8_1 k b b' := by
-      calc
-        B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' := h2
-        _ = B_8_1 k b b' := h3
-    apply div_le_div_of_nonneg_right
-    · apply mul_le_mul_of_nonneg_right h5 hx_pos.le
+    refine div_le_div_of_nonneg_right ?_ ?_
+    · refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
+      exact h_Btilde_eq ▸ h_main2
     · exact pow_nonneg hlog_x_pos.le k
-  exact h1.trans h4
+  exact (h_main1 x hx).trans h4
 
 @[blueprint
   "bklnw-table-10-verification"
