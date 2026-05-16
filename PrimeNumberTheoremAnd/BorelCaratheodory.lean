@@ -7,6 +7,7 @@ Authors : Maksym Radziwill
 import Architect
 import Mathlib.Analysis.Complex.AbsMax
 import Mathlib.Analysis.Complex.RemovableSingularity
+import PrimeNumberTheoremAnd.StrongPNT
 
 
 @[blueprint "divRemovable_zero"
@@ -258,7 +259,7 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
   bound
 
 -- MIGRATED TO STRONGPNT.LEAN
--- @[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
+-- @[blueprint "AnalyticOn.nor m_le_of_norm_le_on_sphere"
 --   (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
 --   (statement := /--
 --     An application of the Maximum modulus principle.
