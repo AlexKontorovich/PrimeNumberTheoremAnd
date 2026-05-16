@@ -257,32 +257,33 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
         (x.im * x.im + 4 * M * (M - x.re)) := by ring]
   bound
 
-@[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
-  (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
-  (statement := /--
-    An application of the Maximum modulus principle.
-  -/)
-  (proof := /--
-    This is standard in the literature.
-  -/)
-  (latexEnv := "lemma")]
-lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
-    (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
-    (hyp_r : r ≤ R)
-    (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
-    (w : ℂ) (wInS : w ∈ Metric.closedBall 0 r) :
-    ‖f w‖ ≤ C := by
-  apply Complex.norm_le_of_forall_mem_frontier_norm_le
-    (U := Metric.closedBall 0 r) Metric.isBounded_closedBall
-  · apply DifferentiableOn.diffContOnCl
-    rw [Metric.closure_closedBall]
-    exact AnalyticOn.differentiableOn
-      (AnalyticOn.mono analytic
-        (Metric.closedBall_subset_closedBall (by linarith)))
-  · rw [frontier_closedBall']
-    exact cond
-  · rw [Metric.closure_closedBall]
-    exact wInS
+-- MIGRATED TO STRONGPNT.LEAN
+-- @[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
+--   (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
+--   (statement := /--
+--     An application of the Maximum modulus principle.
+--   -/)
+--   (proof := /--
+--     This is standard in the literature.
+--   -/)
+--   (latexEnv := "lemma")]
+-- lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
+--     (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
+--     (hyp_r : r ≤ R)
+--     (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
+--     (w : ℂ) (wInS : w ∈ Metric.closedBall 0 r) :
+--     ‖f w‖ ≤ C := by
+--   apply Complex.norm_le_of_forall_mem_frontier_norm_le
+--     (U := Metric.closedBall 0 r) Metric.isBounded_closedBall
+--   · apply DifferentiableOn.diffContOnCl
+--     rw [Metric.closure_closedBall]
+--     exact AnalyticOn.differentiableOn
+--       (AnalyticOn.mono analytic
+--         (Metric.closedBall_subset_closedBall (by linarith)))
+--   · rw [frontier_closedBall']
+--     exact cond
+--   · rw [Metric.closure_closedBall]
+--     exact wInS
 
 @[blueprint "borelCaratheodory_closedBall"
   (title := "borelCaratheodory-closedBall")
