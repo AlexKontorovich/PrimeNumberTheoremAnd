@@ -595,23 +595,22 @@ lemma norm_fOfZero_le_norm_BlaschkeOfZero
   {r R : ℝ} (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)
   {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
   (hf_neq_zero_at_zero : f 0 ≠ 0) :
-  ‖f 0‖ ≤ ‖BlaschkeB r R f 0‖ := by
+    ‖f 0‖ ≤ ‖BlaschkeB r R f 0‖ := by
   rw [BlaschkeOfZero r_lt_one R_pos finiteZeros hf_neq_zero_at_zero, ← mul_one ‖f 0‖]
-  refine mul_le_mul ?_ ?_ (zero_le_one) (mul_nonneg (norm_nonneg (f 0)) zero_le_one)
-  · rw [mul_one]
-  · rw [← Finset.prod_const_one (s := (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset)]
-    apply Finset.prod_le_prod
-    · intro ρ hρ
-      exact zero_le_one
-    · intro ρ hρ
-      simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
-      apply one_le_pow₀ ?_
-      rw[one_le_div]
-      · linarith
-      · rw [norm_pos_iff]
-        by_contra h
-        rw [h] at hρ
-        exact hf_neq_zero_at_zero hρ.2
+  refine mul_le_mul (by rw[mul_one]) ?_ (zero_le_one) (mul_nonneg (norm_nonneg (f 0)) zero_le_one)
+  rw [← Finset.prod_const_one (s := (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset)]
+  apply Finset.prod_le_prod
+  · intro ρ hρ
+    exact zero_le_one
+  · intro ρ hρ
+    simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+    apply one_le_pow₀
+    rw[one_le_div]
+    · linarith
+    · rw [norm_pos_iff]
+      by_contra h
+      rw [h] at hρ
+      exact hf_neq_zero_at_zero hρ.2
 
 
 
@@ -858,7 +857,7 @@ blueprint_comment /--
 \end{theorem}
 -/
 lemma JBlaschkeDerivBound
-  {B r' r R : ℝ} (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)  (R_lt_one : R < 1)
+  {B r' r R : ℝ} (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R) (R_lt_one : R < 1)
   {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
   (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
   {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r') :
@@ -879,8 +878,10 @@ lemma JBlaschkeDerivBound
   rw[← JB_re w hw]
   have hwr : w ∈ Metric.closedBall (0 : ℂ) r := by exact Metric.ball_subset_closedBall hw
   have hlog : 0 ≤ Real.log ‖BlaschkeB r R f 0‖ := by
-
-    sorry
+    rw [← Real.log_one]
+    apply Real.log_le_log zero_lt_one
+    rw [← norm_one (α := ℂ), ← hf0_eq_one]
+    exact norm_fOfZero_le_norm_BlaschkeOfZero r_lt_one r_lt_R R_pos finiteZeros (hf0_eq_one ▸ one_ne_zero)
   suffices h : Real.log ‖BlaschkeB r R f w‖ ≤ Real.log B by linarith
   exact Real.log_le_log (norm_pos_iff.mpr (blaschkeNonzero w hwr))
     (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound (Metric.closedBall_subset_closedBall r_lt_R.le hwr))
