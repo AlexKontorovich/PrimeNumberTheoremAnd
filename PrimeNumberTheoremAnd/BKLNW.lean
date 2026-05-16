@@ -1155,7 +1155,7 @@ $B_k(b,b') = \widetilde{B}_k(b,b',2)$ gives \eqref{Bbbprime2}.
   (discussion := 1254)]
 theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b') (hbk : b ≥ max 7 (2 * (k : ℝ))) :
   ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
-  let a : ℕ → ℝ := fun ℓ => if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
   have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
   have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
   have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
