@@ -62,7 +62,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
     An application of
     \begin{verbatim}
       Complex.borelCaratheodory_zero.
-    \end{verbaitm}
+    \end{verbatim}
   -/)
   (proof := /--
     This is standard in the literature.
