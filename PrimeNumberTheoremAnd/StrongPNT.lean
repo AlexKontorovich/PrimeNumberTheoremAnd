@@ -1,5 +1,6 @@
 import Architect
 import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
@@ -91,6 +92,8 @@ theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
 blueprint_comment /--
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
 -/
+
+
 
 @[blueprint "cauchy_formula_deriv"
   (title := "cauchy-formula-deriv")
@@ -287,11 +290,9 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
       linarith
     refine ⟨J_B, ?_, hJB.2.1, ?_, hJB.2.2⟩
     · intro z hz
-      apply DifferentiableOn.analyticAt
-        (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt) (IsOpen.mem_nhds Metric.isOpen_ball hz)
+      exact DifferentiableOn.analyticAt (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt) (IsOpen.mem_nhds Metric.isOpen_ball hz)
     · intro z hz
-      have hz' : z ∈ Metric.ball 0 R := Metric.closedBall_subset_ball r_lt_R hz
-      exact (hJB.1 z hz').deriv
+      exact (hJB.1 z (Metric.closedBall_subset_ball r_lt_R hz)).deriv
 
 
 
@@ -590,6 +591,30 @@ lemma BlaschkeOfZero
 
 
 
+lemma norm_fOfZero_le_norm_BlaschkeOfZero
+  {r R : ℝ} (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  ‖f 0‖ ≤ ‖BlaschkeB r R f 0‖ := by
+  rw [BlaschkeOfZero r_lt_one R_pos finiteZeros hf_neq_zero_at_zero, ← mul_one ‖f 0‖]
+  refine mul_le_mul ?_ ?_ (zero_le_one) (mul_nonneg (norm_nonneg (f 0)) zero_le_one)
+  · rw [mul_one]
+  · rw [← Finset.prod_const_one (s := (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset)]
+    apply Finset.prod_le_prod
+    · intro ρ hρ
+      exact zero_le_one
+    · intro ρ hρ
+      simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+      apply one_le_pow₀ ?_
+      rw[one_le_div]
+      · linarith
+      · rw [norm_pos_iff]
+        by_contra h
+        rw [h] at hρ
+        exact hf_neq_zero_at_zero hρ.2
+
+
+
 @[blueprint "DiskBound"
   (title := "DiskBound")
   (statement := /--
@@ -853,13 +878,12 @@ lemma JBlaschkeDerivBound
   intro w hw
   rw[← JB_re w hw]
   have hwr : w ∈ Metric.closedBall (0 : ℂ) r := by exact Metric.ball_subset_closedBall hw
-  have hwR : w ∈ Metric.closedBall (0 : ℂ) R := by exact Metric.closedBall_subset_closedBall r_lt_R.le hwr
-  let blaschkeBound := DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound hwR
   have hlog : 0 ≤ Real.log ‖BlaschkeB r R f 0‖ := by
+
     sorry
   suffices h : Real.log ‖BlaschkeB r R f w‖ ≤ Real.log B by linarith
   exact Real.log_le_log (norm_pos_iff.mpr (blaschkeNonzero w hwr))
-    (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound hwR)
+    (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound (Metric.closedBall_subset_closedBall r_lt_R.le hwr))
 
 
 
