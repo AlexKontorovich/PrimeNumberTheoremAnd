@@ -591,6 +591,20 @@ lemma BlaschkeOfZero
 
 
 
+@[blueprint "norm_fOfZero_le_norm_BlaschkeOfZero"
+  (title := "norm-fOfZero-le-norm-BlaschkeOfZero")
+  (statement := /--
+    Let $0 < r < R<1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. Then
+    $$|f(0)|\leq|B_f(0)|.$$
+  -/)
+  (proof := /--
+    Applying lemma \ref{BlaschkeOfZero} we know that
+    $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}
+      \left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
+    Note that for all $\rho\in\mathcal{K}_f(r)$ that $1<R/|\rho|$ since $r<R$.
+    Thus, the result follows.
+  -/)]
 lemma norm_fOfZero_le_norm_BlaschkeOfZero
   {r R : ℝ} (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)
   {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -830,14 +844,26 @@ noncomputable def JBlaschke
 
 
 
-blueprint_comment /--
-\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}
+@[blueprint "JBlaschkeDerivBound"
+  (title := "JBlaschkeDerivBound")
+  (statement := /--
     Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic
     on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$
     for all $|z|\leq R$, then for all $|z|\leq r'$
+    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}.$$
+  -/)
+  (proof := /--
+    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$.
+    Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem
+    \ref{LogOfAnalyticFunction} we know that
+    $$L_f(0)=0\qquad\text{and}\qquad
+      \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
+    for all $|z|\leq r$. Note that in the above
+    $$0=\log|f(0)|\leq\log|B_f(0)|$$
+    because of Lemma \ref{norm-fOfZero-le-norm-BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-\end{theorem}
--/
+    for all $|z|\leq r'$.
+  -/)]
 lemma JBlaschkeDerivBound
   {B r' r R : ℝ} (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R) (R_lt_one : R < 1)
   {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
@@ -867,22 +893,6 @@ lemma JBlaschkeDerivBound
   suffices h : Real.log ‖BlaschkeB r R f w‖ ≤ Real.log B by linarith
   exact Real.log_le_log (norm_pos_iff.mpr (blaschkeNonzero w hwr))
     (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound (Metric.closedBall_subset_closedBall r_lt_R.le hwr))
-
-
-
-blueprint_comment /--
-\begin{proof}
-\uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
-    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$.
-    Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem
-    \ref{LogOfAnalyticFunction} we know that
-    $$L_f(0)=0\qquad\text{and}\qquad
-      \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
-    for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
-    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-    for all $|z|\leq r'$.
-\end{proof}
--/
 
 
 
