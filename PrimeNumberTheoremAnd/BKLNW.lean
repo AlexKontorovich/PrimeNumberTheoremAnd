@@ -1160,12 +1160,10 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
   have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
   have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
     (one_le_exp (by positivity)).trans Inputs.default.hx₁
-  have hlog_x₁_nonneg : 0 ≤ log Inputs.default.x₁ := log_nonneg hx₁_ge_one
   have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
-    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs hlog_x₁_nonneg
-  have hb_half_nonneg : 0 ≤ b / 2 := by positivity
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_nonneg hx₁_ge_one)
   have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
-    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs hb_half_nonneg
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
   have hα_pos : 0 < 1 + Inputs.default.α := by
     unfold Inputs.default; positivity
   have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) :=
@@ -1178,14 +1176,13 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
   have ha_nonneg : ∀ ℓ ∈ Finset.Icc 1 2, 0 ≤ a ℓ := by
     intro ℓ hℓ
     obtain ⟨h1, h2⟩ := Finset.mem_Icc.1 hℓ
-    interval_cases ℓ <;> simp only [OfNat.ofNat_ne_one, ↓reduceIte, ha₂_nonneg, ha₁_nonneg, a]
+    interval_cases ℓ <;> simp [a, ha₁_nonneg, ha₂_nonneg]
   have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
     intro x hx
-    have h_sum : ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) = Inputs.default.a₁ b * x ^ (1 / 2 : ℝ) + Inputs.default.a₂ b * x ^ (1 / 3 : ℝ) := by
-      simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat, sum_Icc_succ_top,
-        Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, OfNat.ofNat_ne_one, Nat.cast_ofNat,
-        two_add_one_eq_three, a]
-    exact h_sum ▸ cor_5_1 hb_ge_7 hx
+    convert cor_5_1 hb_ge_7 hx using 1
+    simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, a₁, a₂, a]
   have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
     fun x hx ↦ Inputs.default.hε b (by positivity) x hx
   have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
@@ -1198,14 +1195,11 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
       OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, mul_add, B_8_1, a]
     ac_rfl
   intro x hx
-  have hlog_x_pos : 0 < log x :=
-    log_pos (Std.lt_of_lt_of_le (one_lt_exp_iff.2 (by positivity)) hx.1)
-  have h4 : B k 2 a Inputs.default.ε b b' * x / (log x)^k ≤ B_8_1 k b b' * x / (log x)^k := by
-    refine div_le_div_of_nonneg_right ?_ ?_
-    · refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
-      exact h_Btilde_eq ▸ h_main2
-    · exact pow_nonneg hlog_x_pos.le k
-  exact (h_main1 x hx).trans h4
+  exact (h_main1 x hx).trans <| by
+    refine div_le_div_of_nonneg_right ?_ (pow_nonneg (log_pos (Std.lt_of_lt_of_le
+      (one_lt_exp_iff.2 (by positivity)) hx.1)).le k)
+    refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
+    exact h_Btilde_eq ▸ h_main2
 
 @[blueprint
   "bklnw-table-10-verification"
