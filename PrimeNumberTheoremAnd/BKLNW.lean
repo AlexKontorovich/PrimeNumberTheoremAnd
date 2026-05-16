@@ -1163,6 +1163,52 @@ theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x�
     _ = B k n a ε b b' * x / (log x)^k := by
       field_simp
 
+private lemma bklnw_eq_3_11_deriv_nonpos (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ) (b : ℝ) (hbk : b ≥ 2 * k) :
+    ∀ y ∈ interior (Set.Ici b),
+      deriv (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) y ≤ 0 := by
+  intro y hy
+  have h_has_deriv : HasDerivAt (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y))
+      (((y ^ (k - 1) * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) * (k - ((ℓ:ℝ) / (ℓ + 1)) * y))) y := by
+    have h1 := hasDerivAt_pow k y
+    have h3 := ((hasDerivAt_id' y).const_mul (- ((ℓ:ℝ) / (ℓ + 1)))).exp
+    convert h1.mul h3 using 1
+    have h_pow_sub : y * y ^ (k - 1) = y ^ k := mul_pow_sub_one (by omega) y
+    rw [← h_pow_sub]
+    ring_nf
+  have h_factor : (k : ℝ) - ((ℓ:ℝ) / (ℓ + 1)) * y ≤ 0 := by
+    have hy_gt : b < y := by simpa using hy
+    have h_mul : (1 / 2) * y ≤ ((ℓ : ℝ) / (ℓ + 1)) * y :=
+      mul_le_mul_of_nonneg_right (by rw [le_div_iff₀ (by positivity)]; linarith [show 1 ≤ (ℓ:ℝ) by exact_mod_cast hℓ]) (by linarith)
+    linarith
+  have h_y_pow : 0 ≤ y ^ (k - 1) := pow_nonneg (by linarith [show b < y by simpa using hy]) (k - 1)
+  rw [h_has_deriv.deriv]
+  exact mul_nonpos_of_nonneg_of_nonpos (mul_nonneg h_y_pow (exp_pos _).le) h_factor
+
+private lemma bklnw_eq_3_11_antitone (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ) (b : ℝ) (hbk : b ≥ 2 * k) :
+    AntitoneOn (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) (Set.Ici b) := by
+  apply_rules [antitoneOn_of_deriv_nonpos]
+  · exact convex_Ici b
+  · fun_prop
+  · fun_prop
+  · exact bklnw_eq_3_11_deriv_nonpos k hk ℓ hℓ b hbk
+
+private lemma bklnw_eq_3_11_term_le (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (b : ℝ) (hbk : b ≥ 2 * k) (x : ℝ) (hx_pos : 0 < x) (hx_log : b ≤ log x) :
+    (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)) ≤ b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) := by
+  have h_x_pow : x ^ (-(ℓ:ℝ) / (ℓ + 1)) = exp (- ((ℓ:ℝ) / (ℓ + 1)) * log x) := by
+    rw [rpow_def_of_pos hx_pos]
+    congr 1
+    ring
+  have h_RHS_rw : b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) = b ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * b) := by
+    congr 2
+    ring
+  calc
+    (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))
+    _ = (log x)^k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * log x) := congrArg (fun y => (log x)^k * y) h_x_pow
+    _ ≤ b ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * b) :=
+        (bklnw_eq_3_11_antitone k hk ℓ hℓ b hbk) (Set.mem_Ici.mpr (le_refl b)) (Set.mem_Ici.mpr hx_log) hx_log
+    _ = b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) := h_RHS_rw.symm
+
 @[blueprint
   "bklnw-eq-3-11"
   (title := "BKLNW Equation (3.11)")
@@ -1173,11 +1219,43 @@ theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x�
  -/)
   (latexEnv := "sublemma")
   (discussion := 1253)]
-theorem bklnw_eq_3_11 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ)
+theorem bklnw_eq_3_11 (k n : ℕ) (hk : 1 ≤ k) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ)
   (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
+  (hε : 0 ≤ ε b)
   (hbb : b < b') (hbk : b ≥ 2 * k) :
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
-  sorry
+  unfold B Btilde
+  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+    use exp b
+    simp only [Set.mem_Icc, le_refl, true_and]
+    exact exp_le_exp.mpr hbb.le
+  have h_sum_le : ∀ x ∈ Set.Icc (exp b) (exp b'),
+      (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)))
+      ≤ b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+    intro x hx
+    have hx_pos : 0 < x := (exp_pos b).trans_le hx.1
+    have hx_log : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx.1
+    calc
+      (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)))
+      _ = ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * ((log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) := by
+        apply Finset.sum_congr rfl; intro _ _; ring
+      _ ≤ ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+        apply Finset.sum_le_sum; intro ℓ hℓ
+        exact mul_le_mul_of_nonneg_left (bklnw_eq_3_11_term_le k hk ℓ (Finset.mem_Icc.mp hℓ).1 b hbk x hx_pos hx_log) (ha ℓ hℓ)
+      _ = b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+        rw [Finset.mul_sum]; apply Finset.sum_congr rfl; intro _ _; ring
+  have h_eps_le : ∀ x ∈ Set.Icc (exp b) (exp b'),
+      ε b * (log x) ^ k ≤ ε b * b' ^ k := by
+    intro x hx
+    have hx_pos : 0 < x := (exp_pos b).trans_le hx.1
+    have h_log_ge : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx.1
+    have hb_nonneg : 0 ≤ b := by linarith [hbk, show 0 ≤ (k : ℝ) from Nat.cast_nonneg k]
+    have h_log_le : log x ≤ b' := (log_exp b').symm ▸ log_le_log hx_pos hx.2
+    exact mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (by linarith) h_log_le k) hε
+  refine ciSup_le ?_
+  · rintro ⟨x, hx⟩
+    exact add_le_add (h_sum_le x hx) (h_eps_le x hx)
+
 
 abbrev K := 25000
 
@@ -1258,8 +1336,10 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
     fun x hx ↦ Inputs.default.hε b (by positivity) x hx
   have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
     bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk hb_ge_2k le_rfl hψ_θ_bound hε_bound
+  have hε_nonneg_b : 0 ≤ Inputs.default.ε b :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
   have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
-    bklnw_eq_3_11 k 2 a Inputs.default.ε b b' ha_nonneg hb hb_ge_2k
+    bklnw_eq_3_11 k 2 hk.1 a Inputs.default.ε b b' ha_nonneg hε_nonneg_b hb hb_ge_2k
   have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
     simp only [Btilde, neg_mul, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
       sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, one_mul,
