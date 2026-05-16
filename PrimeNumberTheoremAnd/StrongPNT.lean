@@ -59,7 +59,10 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 @[blueprint "borelCaratheodory'"
   (title := "borelCaratheodory'")
   (statement := /--
-    An application of Complex.borelCaratheodory_zero.
+    An application of
+    \begin{verbatim}
+      Complex.borelCaratheodory_zero.
+    \end{verbaitm}
   -/)
   (proof := /--
     This is standard in the literature.
