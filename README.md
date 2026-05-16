@@ -1,21 +1,28 @@
 # PrimeNumberTheoremAnd
 
-This project has a blueprint, which is available at <https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/web/>.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-lightblue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Blueprint: Paper](https://img.shields.io/badge/Blueprint-Paper-red.svg?logo=github&logoColor=white)](https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/blueprint.pdf)
+[![Blueprint: Website](https://img.shields.io/badge/Blueprint-Website-blue.svg?logo=github&logoColor=white)](https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/blueprint)
+[![Docs: Website](https://img.shields.io/badge/Docs-Website-blue.svg?logo=readthedocs&logoColor=white)](https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/docs)
 
-To use the tool, irst install local requirements using
-```sh
-python -pip install -r blueprint/requirements.txt
-```
+The objective of this project is to formalize in Lean the Prime Number Theorem (with classical error term), as well as related results such as the Prime Number Theorem in Arithmetic Progressions.  A stretch goal would be to obtain the Chebotarev density theorem.  We are also hosting the [Integrated Explicit Analytic Number Theory network](https://www.ipam.ucla.edu/news-research/special-projects/integrated-explicit-analytic-number-theory-network/).  A persona log describing the latter project may be [found here](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/wiki/Terence-Tao's-personal-log).
 
-Then compile documentations using `make doc` in the top-level directory. Alternatively, if the PDF is needed, type
-```sh
-cd blueprint
-make pdf
-```
+## Zulip
 
-# Use of LaTeX inside Lean
+The project is coordinated via a [Lean Zulip channel](https://leanprover.zulipchat.com/#narrow/channel/423402-PrimeNumberTheorem.2B).
 
-For those using github's copilot (free for educators), it's very convenient to have the natural language statements
-right next to the Lean to be formalized. So we write the blueprint TeX right in the *.lean document, separated by
-delimiters `/-%% text here %%-/` for multi-line and `--%% text here` for single-line TeX. The code automatically
-scrapes these and populates the blueprint accordingly.
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for instructions on how to claim issues, submit PRs, and participate in the project.
+
+## Quick contributions via gitpod
+If you want to quickly contribute to the project without installing your own copy of lean, you can do so using gitpod.
+Simply visit: <https://gitpod.io/new/#https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/>, or click the button below:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/new/#https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/)
+
+All the required dependencies will be loaded (this takes a few minutes), after which you will be brought to a web-based
+vscode window, where you can edit the code, and submit PR's.
+
+## License
+This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.

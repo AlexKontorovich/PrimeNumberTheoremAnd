@@ -1,17 +1,9 @@
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.VonMangoldt
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.ZetaFunction
-import Mathlib.Analysis.Analytic.Meromorphic
-import EulerProducts.LSeries
+import Architect
+import Mathlib.Init
 
-open Complex BigOperators Finset Nat Classical
+blueprint_comment /--
 
-open scoped ArithmeticFunction Interval
+In this file, we prove the Hadamard Factorization theorem for functions of finite order,
+and prove that the zeta function is such.
 
-/-%%
-
-In this file, we prove the Hadamard Factorization theorem for functions of finite order, and prove that the zeta function
-is such.
-
-%%-/
+-/
