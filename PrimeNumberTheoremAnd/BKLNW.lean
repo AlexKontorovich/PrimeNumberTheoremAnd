@@ -56,7 +56,7 @@ theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by
     have htheta: theta x = 0 := by apply Chebyshev.theta_eq_zero_of_lt_two hworse
     linarith
   · have hnewlb : x≥ 1 := by simpa using h
-    have hineq : x - θ x ≥ 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
+    have hineq : x - θ x > 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
     have hsqrtpos: 0 < sqrt x := by exact Real.sqrt_pos.mpr hlb
     linarith
 
@@ -1091,7 +1091,7 @@ private lemma bklnw_lemma_8_bound_le_B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ �
   \label{psithetadiff}
   \psi (x) - \theta (x) \le \sum_{\ell=1}^n a_{\ell} x^{\frac{1}{\ell+1}} \qquad \text{ for all } x \ge x_0.
  \end{equation}
- Let $b' > b \ge 2k$, $e^b \le x_0$, and assume that there exists $\varepsilon(b)>0$ such that
+ Let $b' > b \ge 2k$, $x_0 \le e^b$, and assume that there exists $\varepsilon(b)>0$ such that
   \begin{equation}
   \label{psixdiff}
   |\psi (x) - x| \le \varepsilon(b)x \qquad \text{for all }x \ge e^{b}.
@@ -1163,7 +1163,6 @@ theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x�
     _ = B k n a ε b b' * x / (log x)^k := by
       field_simp
 
-
 @[blueprint
   "bklnw-eq-3-11"
   (title := "BKLNW Equation (3.11)")
@@ -1180,17 +1179,31 @@ theorem bklnw_eq_3_11 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : �
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
   sorry
 
+abbrev K := 25000
+
+/-- A list of all the b's that appear in Table 10. -/
+noncomputable abbrev table_10_entries : Finset ℝ := (BKLNW.table_10.map (·.1)).toFinset
+
+/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
+noncomputable def table_10_bs : Finset ℝ := table_10_entries ∪ { (K:ℝ) }
+
+/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
+noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
+
 /-- An explicit formula for the quantity $B_k(b,b')$ appearing in Corollary 8.1 -/
 noncomputable def B_8_1 (k : ℕ) (b b' : ℝ) : ℝ :=
   Inputs.default.a₁ b * b^k * exp (-b / 2) + Inputs.default.a₂ b * b^k * exp (-2 * b / 3) + (b')^k * Inputs.default.ε b
 
 noncomputable def B_8_1' (k : ℕ) (b₀ : ℝ) : ℝ :=
-  iSup (ι := { b : ℝ × ℝ // b₀ ≤ b.1 ∧ b.1 < b.2 }) (fun b => B_8_1 k b.val.1 b.val.2)
+  let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image
+    fun b ↦ B_8_1 k b (table_10_next b)
+  if h : S.Nonempty then S.sup' h id else 0
 
 @[blueprint
   "bklnw-cor-8-1a"
   (title := "BKLNW Corollary 8.1a")
-  (statement := /--  Let $k=1,\ldots,5$. Let $b,b'$ be entries of Table 8 with $b < b'$.  Then
+  (statement := /--  Let $k \in \{1,\ldots,5\}$ and let $b<b'$ with
+$b \geq \max(7,2k)$.  Then
 \begin{equation}
  \label{B:ExpSubinterval}
  |\theta(x)-x| \le  \frac{B_k(b,b') x}{(\log x)^k} \qquad   \text{for all }x \in [e^{b}, e^{b'}],
@@ -1200,24 +1213,64 @@ where
  \label{Bbbprime2}
  B_k(b,b') = a_1(b) b^k e^{-\frac{b}{2}} + a_2(b) b^k e^{-\frac{2b}{3}}+  (b')^k \varepsilon(b),
 \end{equation}
-and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-8-1a}.
+and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-5-1}.
 -/)
-  (proof := /-- We apply Lemma \ref{bklnw-lemma-8} with $k \in \{1,2,3,4,5\}$, $b_0 = b$, and $n=2$ and obtain \eqref{Bbbprime2}. For we take
-$B_k(b,b') = \widetilde{B}_k(b,b',2)$.
+  (proof := /-- Apply Lemma \ref{bklnw-lemma-8} with $n=2$, using Corollary
+\ref{bklnw-cor-5-1} for the bound on $\psi(x)-\theta(x)$ and the default
+$\varepsilon(b)$ bound for $\psi(x)-x$. The assumption $b \geq 7$ supplies the
+hypothesis of Corollary \ref{bklnw-cor-5-1}, while $b \geq 2k$ is the monotonicity
+hypothesis used in \eqref{bklnw-eq-3-11}. Taking
+$B_k(b,b') = \widetilde{B}_k(b,b',2)$ gives \eqref{Bbbprime2}.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1254)]
-theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hb : b < b') :
+theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b') (hbk : b ≥ max 7 (2 * (k : ℝ))) :
   ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
-  sorry
-
-abbrev K := 25000
-
-/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
-noncomputable def table_10_bs : Finset ℝ := BKLNW.table_10.toFinset.image (fun p ↦ p.1) ∪ { (K:ℝ) }
-
-/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
-noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
+    (one_le_exp (by positivity)).trans Inputs.default.hx₁
+  have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_nonneg hx₁_ge_one)
+  have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
+  have hα_pos : 0 < 1 + Inputs.default.α := by
+    unfold Inputs.default; positivity
+  have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) :=
+    le_max_iff.2 (Or.inl (Finset.sum_nonneg (by intros; positivity)))
+  have ha₁_nonneg : 0 ≤ Inputs.default.a₁ b := by
+    unfold Inputs.a₁
+    split_ifs <;> positivity
+  have ha₂_nonneg : 0 ≤ Inputs.default.a₂ b :=
+    mul_nonneg hα_pos.le hmax_nonneg
+  have ha_nonneg : ∀ ℓ ∈ Finset.Icc 1 2, 0 ≤ a ℓ := by
+    intro ℓ hℓ
+    obtain ⟨h1, h2⟩ := Finset.mem_Icc.1 hℓ
+    interval_cases ℓ <;> simp [a, ha₁_nonneg, ha₂_nonneg]
+  have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
+    intro x hx
+    convert cor_5_1 hb_ge_7 hx using 1
+    simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, a₁, a₂, a]
+  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
+    fun x hx ↦ Inputs.default.hε b (by positivity) x hx
+  have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk ha_nonneg hb hb_ge_2k le_rfl hψ_θ_bound hε_bound
+  have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
+    bklnw_eq_3_11 k 2 a Inputs.default.ε b b' ha_nonneg hb hb_ge_2k
+  have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
+    simp only [Btilde, neg_mul, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, one_mul,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, mul_add, B_8_1, a]
+    ac_rfl
+  intro x hx
+  exact (h_main1 x hx).trans <| by
+    refine div_le_div_of_nonneg_right ?_ (pow_nonneg (log_pos (Std.lt_of_lt_of_le
+      (one_lt_exp_iff.2 (by positivity)) hx.1)).le k)
+    refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
+    exact h_Btilde_eq ▸ h_main2
 
 @[blueprint
   "bklnw-table-10-verification"
@@ -1229,10 +1282,65 @@ noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b
 theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
   sorry
 
+lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ table_10_entries) : (20 : ℝ) ≤ b := by
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_gt]
+  · exact hp.elim
+
+lemma table_10_next_eq_min' (b : ℝ) (h : (table_10_bs.filter (b < ·)).Nonempty) :
+    table_10_next b = (table_10_bs.filter (b < ·)).min' h := by
+  simpa [table_10_next] using h.csInf_eq_min'
+
+lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b := by
+  have h2 : (K : ℝ) ∈ table_10_bs.filter (b < ·) := by
+    simpa only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_filter, mem_insert,
+      List.mem_toFinset, List.mem_map, Prod.exists, exists_and_right, exists_eq_right, true_or,
+      true_and]
+  rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
+  simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
+
+lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ) := by
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_lt]
+  · exact hp.elim
+
+lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 : b₀ ≤ y) (hy2 : y ≤ (K : ℝ)) :
+  ∃ b ∈ table_10_entries, b₀ ≤ b ∧ b ≤ y ∧ y ≤ table_10_next b := by
+  let S := table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b ≤ y)
+  have h1 : b₀ ∈ S := by
+    simp only [mem_filter, hb₀, le_refl, hy1, and_self, S]
+  let b := S.max' ⟨b₀, h1⟩
+  obtain ⟨h5, h6, h7⟩ : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y := by
+    simpa [S] using show b ∈ S from Finset.max'_mem S ⟨b₀, h1⟩
+  refine ⟨b, h5, h6, h7, ?_⟩
+  let S_finset := table_10_bs.filter (b < ·)
+  have h12 : (K : ℝ) ∈ S_finset := by
+    simpa [S_finset, table_10_bs] using table_10_entry_lt_K b h5
+  let m := S_finset.min' ⟨K, h12⟩
+  have h16 : m ∈ table_10_bs ∧ b < m := by
+    simpa [S_finset] using (show m ∈ S_finset from Finset.min'_mem S_finset ⟨K, h12⟩)
+  rw [show table_10_next b = m from table_10_next_eq_min' b ⟨K, h12⟩]
+  by_contra h19
+  obtain (h22 | h22) : m ∈ table_10_entries ∨ m = K :=
+    Or.comm.1 (by simpa [table_10_bs, table_10_entries, K] using h16.1)
+  · have h28 : m ∈ S := by
+      simp only [mem_filter, h22, le_trans h6 h16.2.le, (Std.not_le.mp h19).le, and_self, S]
+    linarith [Finset.le_max' S m h28, h16.2]
+  · linarith [hy2]
+
 @[blueprint
   "bklnw-cor-8-1b"
   (title := "BKLNW Corollary 8.1b")
-  (statement := /-- let $b_0$ be any entry in column 1 of BKLNW Table 11. Then,
+  (statement := /-- Let $k \in \{1,\ldots,5\}$ and let $b_0$ be any entry in
+column 1 of BKLNW Table 10. Then,
 \begin{equation}
  \label{bound:mathcalB}
  |\theta (x) - x| \le \frac{\mathcal{B}_k(b_0) x}{(\log x)^k}  \qquad \text{for all }x \in [e^{b_0}, e^K]
@@ -1240,16 +1348,58 @@ theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 
 where $K = 25000$, and
 \begin{equation}
 \label{MathcalBbbprime2}
-\mathcal{B}_k(b_0) = \max_{b,b' \atop b_0 \le b < b'}   B_k(b,b').
+\mathcal{B}_k(b_0) =
+\max_{\substack{b \in \mathrm{Table10}\\ b_0 \le b < K}}
+  B_k(b,\operatorname{next}(b)).
 \end{equation} -/)
-  (proof := /-- The inequality \eqref{bound:mathcalB} follows from \eqref{B:ExpSubinterval} together with the fact that
-$[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
+  (proof := /-- For $x \in [e^{b_0},e^K]$, choose the largest Table 10 entry
+$b$ with $b_0 \le b \le \log x$. Then
+$x \in [e^b,e^{\operatorname{next}(b)}]$, so \eqref{B:ExpSubinterval} applies to
+this subinterval. The definition of $\mathcal{B}_k(b_0)$ as a finite maximum over
+the Table 10 grid then bounds the chosen subinterval constant.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1256)]
-theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hb₀K : b₀ < K) :
+theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
+  (hb₀ : b₀ ∈ table_10_entries) :
   ∀ x ∈ Set.Icc (exp b₀) (exp K), |θ x - x| ≤ (B_8_1' k b₀) * x / (log x)^k := by
-  sorry
+  intro x hx
+  have hx_pos : 0 < x := (exp_pos b₀).trans_le hx.1
+  have hlog_lower : b₀ ≤ log x := by
+    simpa using log_le_log (exp_pos b₀) hx.1
+  have hlog_upper : log x ≤ K := by
+    simpa using log_le_log hx_pos hx.2
+  obtain ⟨b, hb_in, hb₀_le, hb_le_logx, hlogx_le_next⟩ :=
+    table_10_coverage b₀ (log x) hb₀ hlog_lower hlog_upper
+  have hb_lt_K : b < K := table_10_entry_lt_K b hb_in
+  have hxb : exp b ≤ x := by
+    simpa [exp_log hx_pos] using exp_le_exp.mpr hb_le_logx
+  have hxnext : x ≤ exp (table_10_next b) := by
+    simpa [exp_log hx_pos] using exp_le_exp.mpr hlogx_le_next
+  have hbk : b ≥ max 7 (2 * (k : ℝ)) := by
+    have hb20 : (20 : ℝ) ≤ b := table_10_entries_ge_20 b hb_in
+    have hk5 : (k : ℝ) ≤ 5 := by exact_mod_cast hk.2
+    exact max_le (by linarith) (by linarith)
+  have hsub :
+      |θ x - x| ≤ (B_8_1 k b (table_10_next b)) * x / (log x)^k :=
+    bklnw_cor_8_1a k b (table_10_next b) hk
+      (table_10_next_gt b hb_lt_K) hbk x ⟨hxb, hxnext⟩
+  have hB : B_8_1 k b (table_10_next b) ≤ B_8_1' k b₀ := by
+    let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image
+      fun b ↦ B_8_1 k b (table_10_next b)
+    have hmem : B_8_1 k b (table_10_next b) ∈ S := mem_image_of_mem _
+      (mem_filter.mpr ⟨hb_in, hb₀_le, hb_lt_K⟩)
+    rw [B_8_1', dif_pos ⟨B_8_1 k b (table_10_next b), hmem⟩]
+    exact Finset.le_sup' id hmem
+  have hx_gt_one : 1 < x := by
+    have hb20 : (20 : ℝ) ≤ b₀ := table_10_entries_ge_20 b₀ hb₀
+    have : 1 < exp b₀ := by
+      simpa using exp_strictMono (by linarith : (0 : ℝ) < b₀)
+    exact this.trans_le hx.1
+  exact hsub.trans <|
+    div_le_div_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hB hx_pos.le)
+      (pow_nonneg (log_pos hx_gt_one).le k)
 
 @[blueprint
   "bklnw-table-11-verification"
@@ -1272,12 +1422,12 @@ In this section we tackle small $x$.
 @[blueprint
   "bklnw-eq-3-17"
   (title := "BKLNW Equation 3.17")
-  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } x \le 10^{19}.$ -/)
+  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } 1 \le x \le 10^{19}.$ -/)
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
   (latexEnv := "lemma")
   (discussion := 1258)]
-theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
-  sorry
+theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x - 0.05 * sqrt x :=
+  lt_tsub_comm.1 (Buthe.theorem_2c hx1 hx2)
 
 @[blueprint
   "bklnw-eq-3-18"
