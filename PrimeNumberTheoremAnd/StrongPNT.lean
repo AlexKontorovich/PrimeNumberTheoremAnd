@@ -671,32 +671,6 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
 
 
 
-@[blueprint "blaschkeFactorNonzero"
-  (title := "blaschkeFactorNonzero")
-  (statement := /--
-    Let $0 < r < R$ and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
-    $f(0)\neq 0$. Then for all $z\in\overline{\mathbb{D}_r}$ and $\rho\in\mathcal{K}_f(r)$, the
-    factor $\displaystyle R-\frac{z\overline{\rho}}{R}$ is nonzero.
-  -/)
-  (proof := /--
-    Suppose that $R-z\overline{\rho}/R=0$. Then we have that $|z|=R^2/|\overline{\rho}|$. However,
-    since $\rho\in\mathcal{K}_f(r)$, we have that $|\overline{\rho}|\leq r < R$. Thus, we have
-    that $R^2/|\overline{\rho}| > R$, but since $z\in\overline{\mathbb{D}_r}$, we have that
-    $|z|\leq r < R$. This is a contradiction. So, $R-z\overline{\rho}/R\neq 0$.
-  -/)]
-lemma blaschkeFactorNonzero {r R : ℝ} (R_pos : 0 < R) (r_lt_R : r < R)
-    {z : ℂ} (hz : ‖z‖ < R)
-    {ρ : ℂ} (hρ : ‖ρ‖ ≤ r) :
-    (↑R : ℂ) - z * (starRingEnd ℂ) ρ / (↑R : ℂ) ≠ 0 := by
-  norm_num [ sub_eq_zero, Complex.ext_iff ];
-  rw [ eq_div_iff ] <;> norm_num [ Complex.normSq, Complex.norm_def ] at *;
-  · rw [ Real.sqrt_lt' (by linarith) ] at hz
-    rw [ Real.sqrt_le_iff ] at hρ
-    exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] )
-  · linarith
-
-
-
 @[blueprint "BlaschkeNonZero"
   (title := "BlaschkeNonZero")
   (statement := /--
@@ -757,11 +731,19 @@ lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r
   intro z hz
   have hz_norm_le_r : ‖z‖ ≤ r := by rwa [mem_closedBall_iff_norm, sub_zero] at hz
   have hz_norm_lt_R : ‖z‖ < R := by linarith
-  have hFin := finiteSetOfZeros_mono r_lt_one finiteZeros
+  let hFin := finiteSetOfZeros_mono r_lt_one finiteZeros
   have hBProd : ∏ ρ ∈ hFin.toFinset,
-      (↑R - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 :=
-    Finset.prod_ne_zero_iff.mpr fun ρ hρ =>
-      pow_ne_zero _ (blaschkeFactorNonzero R_pos r_lt_R hz_norm_lt_R (hFin.mem_toFinset.mp hρ).1)
+      (↑R - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 := by
+    apply Finset.prod_ne_zero_iff.mpr
+    intro ρ hρ
+    apply pow_ne_zero
+    norm_num [ sub_eq_zero, Complex.ext_iff ];
+    simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+    rw [ eq_div_iff ] <;> norm_num [ Complex.normSq, Complex.norm_def ] at *;
+    · rw [Real.sqrt_lt' (by linarith)] at hz_norm_lt_R
+      rw [ Real.sqrt_le_iff ] at hρ
+      exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] )
+    · linarith
   unfold BlaschkeB Cf
   by_cases z_in_zeros : z ∈ SetOfZeros r f
   · simp only [hFin, z_in_zeros, ↓reduceDIte]
