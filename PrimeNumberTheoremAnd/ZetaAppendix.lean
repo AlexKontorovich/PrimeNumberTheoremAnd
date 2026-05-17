@@ -1816,6 +1816,7 @@ theorem lemma_abadeulmac' {b : ℕ} (hb : 0 < b) {s : ℂ}
   push_cast
   ring_nf
 
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   "lem:abadeulmac"
   (title := "Identity for a partial sum of zeta(s)")
@@ -1857,7 +1858,7 @@ theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ
   conv =>
     enter [2, 2, 2, 1, 2, 1]
     equals (1 : ℝ) / 2 + k => ring_nf
-  rw [←Set.Ioc_union_Ioi_eq_Ioi (add_le_add_left one_half_lt_one.le _),MeasureTheory.integral_union_ae]
+  rw [←Set.Ioc_union_Ioi_eq_Ioi (add_le_add_left one_half_lt_one.le _), MeasureTheory.setIntegral_union₀]
   · conv =>
       enter [2, 2, 2, 1, 1, 2, 1]
       equals (k : ℝ) + 1/2 => ring_nf
@@ -1866,14 +1867,33 @@ theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ
       equals (k : ℝ) + 1 => ring_nf
     rw [MeasureTheory.integral_Ioc_eq_integral_Ioo, MeasureTheory.setIntegral_congr_fun (g := fun x : ℝ => (x - k - 1/2 : ℂ) * x ^ (-1 + -s)) measurableSet_Ioo]
     · rw[MeasureTheory.setIntegral_congr_fun (g:=fun x:ℝ=>(x : ℂ)^(-s)-k*x^(-1+-s)-1/2*x^(-1+-s)) (measurableSet_Ioo),←MeasureTheory.integral_Ioc_eq_integral_Ioo]
-      · norm_num[*,←intervalIntegral.integral_of_le _,integral_cpow _,intervalIntegral.intervalIntegrable_cpow]
-        rw [integral_cpow]
-        · norm_num
-          linear_combination(norm:=ring_nf)this-div_self (s.ne_zero_of_re_pos hsigma)*((k + 1)^(-s)-(k+1/2)^(-s))
-          norm_num[add_comm (1/2 : ℂ),mul_assoc, sub_eq_neg_add, add_assoc,mul_comm s,s.ne_zero_of_re_pos hsigma,cpow_add,(mod_cast _: (1: ℂ)+k≠0),hb.ne']
-          norm_num[*, add_assoc,←one_add_mul,←mul_assoc,mul_comm (k+1 : ℂ),neg_add_eq_zero.eq,cpow_add,ne_of_gt]
-          exact (.symm (.trans (by rw [cpow_add _ _ (by ·norm_num [Complex.ext_iff, hb.ne']),cpow_one]) ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' (by·grind)))))))
-        · use .inr ⟨sub_eq_self.not.2 fun and=>by simp_all,((lt_min hb k.cast_add_one_pos).not_ge ·.1)⟩
+      · norm_num[*,←intervalIntegral.integral_of_le _]
+        have notmem : 0 ∉ Set.uIcc ((k : ℝ) + 1 / 2) ((k : ℝ) + 1) := by
+          apply Set.notMem_uIcc_of_lt <;> positivity
+        have  int1 : IntervalIntegrable (fun t ↦ (t : ℂ) ^ (-1 + -s)) volume (↑k + 1 / 2) (↑k + 1) := by
+          exact intervalIntegral.intervalIntegrable_cpow (Or.inr notmem)
+        have  int0 : IntervalIntegrable (fun t ↦ (t : ℂ) ^ (-s)) volume (↑k + 1 / 2) (↑k + 1) := by
+          exact intervalIntegral.intervalIntegrable_cpow (Or.inr notmem)
+        rw [intervalIntegral.integral_sub (int0.sub (int1.const_mul _)) (int1.const_mul _), intervalIntegral.integral_sub int0 (int1.const_mul _)]
+        simp only [intervalIntegral.integral_const_mul]
+        have ne_zero : s ≠ 0 := fun h ↦ (by simp_all)
+        rw [integral_cpow (Or.inr ⟨(by grind), notmem⟩), integral_cpow (Or.inr ⟨(by simp[ne_zero]), notmem⟩)]
+        norm_num
+        rw [eq_sub_of_add_eq this]
+        apply sub_eq_zero.mp
+        field_simp [s.ne_zero_of_re_pos hsigma]
+        ring_nf
+        have {x : ℂ} (hx : x ≠ 0) : x ^ (1 - s) = x * x^(-s) := by
+          rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_one]
+        rw [this, this]
+        · have : 1 - s ≠ 0 := by grind
+          field [s.ne_zero_of_re_pos hsigma]
+        · rw [add_comm] at hb
+          convert  ofReal_ne_zero.mpr hb.ne.symm
+          simp
+        · have : 1 + (k : ℝ) ≠ 0 := by linarith
+          convert  ofReal_ne_zero.mpr this
+          simp
       · use fun A B=>by norm_num[sub_mul,mul_comm (A : ℂ), (hb.trans B.1).ne',cpow_add,cpow_neg]
     · use fun and p=>by zify[Int.fract,Int.floor_eq_iff.2 (p.imp_left (by linear_combination·)),Int.cast_natCast]
   · norm_num[MeasureTheory.AEDisjoint]
