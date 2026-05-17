@@ -1051,8 +1051,7 @@ private lemma bklnw_lemma_8_term_eq (k ℓ : ℕ) (x a_ℓ : ℝ) (hx_pos : 0 < 
     a_ℓ * x ^ ((1 : ℝ) / (↑ℓ + 1)) = a_ℓ * (x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x) := by
       nth_rw 3 [← rpow_one x]
       rw [← rpow_add hx_pos]
-      congr 1
-      congr 1
+      congr
       field_simp [h_denom]
       ring
     _ = a_ℓ * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x := by ring
@@ -1134,32 +1133,25 @@ theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x�
   intro x hx_mem
   have hx_ge_exp_b : x ≥ exp b := hx_mem.1
   have hx_le_exp_b' : x ≤ exp b' := hx_mem.2
-  have hx_ge_x0 : x ≥ x₀ := by linarith [hx_ge_exp_b, hbx₀]
+  have hx_ge_x0 : x ≥ x₀ := hbx₀.trans hx_ge_exp_b
   have hx_pos : 0 < x := lt_of_lt_of_le (exp_pos b) hx_ge_exp_b
   have h_log_x_pos : 0 < log x := by
     have hk_real : (k : ℝ) ≥ 1 := by exact_mod_cast hk.1
     have h_log_ge : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx_ge_exp_b
     linarith [h_log_ge, hbk, hk_real]
   calc
-    abs (θ x - x) ≤ abs (θ x - ψ x) + abs (ψ x - x) := by
-      exact abs_sub_le (θ x) (ψ x) x
+    abs (θ x - x) ≤ abs (θ x - ψ x) + abs (ψ x - x) := abs_sub_le (θ x) (ψ x) x
     _ = (ψ x - θ x) + abs (ψ x - x) := by
-      rw [abs_sub_comm, abs_of_nonneg (show 0 ≤ ψ x - θ x by linarith [theta_le_psi x])]
-    _ ≤ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ))) + ε b * x := by
-      exact add_le_add (hx x hx_ge_x0) (hε x hx_ge_exp_b)
+      rw [abs_sub_comm, abs_of_nonneg (sub_nonneg.mpr (theta_le_psi x))]
+    _ ≤ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ))) + ε b * x :=
+      add_le_add (hx x hx_ge_x0) (hε x hx_ge_exp_b)
     _ = ((∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) + ε b * (log x) ^ k) * (x / (log x)^k) := by
       rw [add_mul, Finset.sum_mul]
       congr 1
-      · apply Finset.sum_congr rfl
-        intro ℓ _
-        exact bklnw_lemma_8_term_eq k ℓ x (a ℓ) hx_pos h_log_x_pos
+      · exact Finset.sum_congr rfl fun ℓ _ => bklnw_lemma_8_term_eq k ℓ x (a ℓ) hx_pos h_log_x_pos
       · field_simp
-    _ ≤ B k n a ε b b' * (x / (log x)^k) := by
-      have h_le_B := bklnw_lemma_8_bound_le_B k n a ε b b' x hx_mem
-      have h_log_pow : 0 ≤ (log x)^k := by positivity
-      have h_mult_nonneg : 0 ≤ x / (log x)^k := by
-        exact div_nonneg hx_pos.le h_log_pow
-      exact mul_le_mul_of_nonneg_right h_le_B h_mult_nonneg
+    _ ≤ B k n a ε b b' * (x / (log x)^k) :=
+      mul_le_mul_of_nonneg_right (bklnw_lemma_8_bound_le_B k n a ε b b' x hx_mem) (by positivity)
     _ = B k n a ε b b' * x / (log x)^k := by
       field_simp
 
