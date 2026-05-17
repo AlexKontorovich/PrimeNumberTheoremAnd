@@ -723,27 +723,6 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
   sorry
 
 @[blueprint
-  "two_pow_omega"
-  (title := "two-pow-omega")
-  (statement := /--
-    A function which sends $n\mapsto 2^{\omega(n)}$ where $\omega(n)$ is
-    the number of distinct prime factors of $n$.
-  -/)]
-noncomputable def two_pow_omega : ArithmeticFunction ℤ where
-  toFun := fun n ↦ if n = 0 then 0 else 2 ^ (ω n)
-  map_zero' := by simp
-
-@[blueprint
-  "two_pow_omega_apply"
-  (title := "two-pow-omega-apply")
-  (statement := /--
-    A helper lemma which rewrites instances of two-pow-omega.
-  -/)]
-lemma two_pow_omega_apply {n : ℕ} (hn : n ≠ 0) :
-    two_pow_omega n = 2 ^ (ω n) := by
-  simp [two_pow_omega, hn]
-
-@[blueprint
   "two_pow_omega_le_sigma_zero"
   (title := "two-pow-omega-le-sigma-zero")
   (statement := /--
@@ -758,10 +737,9 @@ lemma two_pow_omega_apply {n : ℕ} (hn : n ≠ 0) :
     Thus the result immediately follows.
   -/)]
 lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
-    two_pow_omega n ≤ σ 0 n := by
+    2 ^ (ω n) ≤ σ 0 n := by
   have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
-  rw [two_pow_omega_apply hn, h_prime_factors, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
-  norm_cast
+  rw [h_prime_factors, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
   apply Finset.prod_le_prod'
   intro p hp
   simpa [two_mul] using
@@ -778,7 +756,7 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     This follows by comparison test against the $L$-series with coefficients given by $\sigma_0(n)$.
   -/)]
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
-    LSeriesSummable (fun n ↦ two_pow_omega n) s := by
+    LSeriesSummable (fun n ↦ 2 ^ (ω n)) s := by
   have h_sigma0_summable : LSeriesSummable (fun n => (σ 0 n : ℂ)) s := by
     convert LSeries_d_summable 2 hs using 1;
     exact funext fun n => by rw [d_two] ; rfl;
@@ -792,10 +770,8 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     refine (div_le_div_iff_of_pos_right ?_).mpr ?_
     · rw [norm_pos_iff]
       simp [hn]
-    · rw [Complex.norm_intCast, abs_of_nonneg]
-      · exact_mod_cast two_pow_omega_le_sigma_zero hn
-      · rw [two_pow_omega_apply hn, Int.cast_pow, Int.cast_ofNat]
-        apply pow_nonneg zero_le_two
+    · simp only [norm_pow, Complex.norm_ofNat]
+      exact_mod_cast two_pow_omega_le_sigma_zero hn
 
 @[blueprint
   "two_pow_omega_LSeries.term_IsMultiplicative"
@@ -808,13 +784,13 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     for $m$ and $n$ coprime. This fact should be obvious from the definition of $\omega$.
   -/)]
 lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
-    LSeries.term (fun n ↦ ↑(two_pow_omega n)) s (m * n) =
-  LSeries.term (fun n ↦ ↑(two_pow_omega n)) s m * LSeries.term (fun n ↦ ↑(two_pow_omega n)) s n := by
-  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul, two_pow_omega]
+    LSeries.term (fun n ↦ 2 ^ (ω n)) s (m * n) =
+  LSeries.term (fun n ↦ 2 ^ (ω n)) s m * LSeries.term (fun n ↦ 2 ^ (ω n)) s n := by
+  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
   rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
-  simp only [or_self, ↓reduceIte, coe_mk, _root_.mul_eq_zero, m_eq_zero, n_eq_zero, Int.cast_pow, Int.cast_ofNat, cardDistinctFactors_mul mCn]
+  simp only [or_self, ↓reduceIte, cardDistinctFactors_mul mCn]
   congr 1
   exact pow_add 2 (ω m) (ω n)
 
@@ -833,11 +809,11 @@ lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m
   -/)]
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     (p : Nat.Primes) :
-    ∑' e, LSeries.term (fun n ↦ two_pow_omega n) s (p ^ e) =
+    ∑' e, LSeries.term (fun n ↦ 2 ^ (ω n)) s (p ^ e) =
     (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  have h_rw : ∑' e : ℕ, LSeries.term (fun n : ℕ => two_pow_omega n) s (p.val ^ e) = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => (2 : ℂ) ^ (ω n)) s (p.val ^ (e + 1)) := by
+  have h_rw : ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ e) = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ (e + 1)) := by
     rw [Summable.tsum_eq_zero_add];
-    · unfold two_pow_omega LSeries.term
+    · unfold LSeries.term
       simp [Nat.Prime.ne_zero p.prop]
     · have := LSeriesSummable_two_pow_omega hs;
       convert this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
@@ -890,16 +866,16 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
     Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
-    LSeries (fun n ↦ two_pow_omega n) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  have h_euler_product : LSeriesSummable (fun n => two_pow_omega n) s
-    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ two_pow_omega n) s (m * n) =
-      LSeries.term (fun n ↦ two_pow_omega n) s m *
-      LSeries.term (fun n ↦ two_pow_omega n) s n)
-    ∧ LSeries.term (fun n ↦ two_pow_omega n) s 1 = 1 := by
+    LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
+  have h_euler_product : LSeriesSummable (fun n => (2 ^ ω n)) s
+    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ (2 ^ ω n)) s (m * n) =
+      LSeries.term (fun n ↦ (2 ^ ω n)) s m *
+      LSeries.term (fun n ↦ (2 ^ ω n)) s n)
+    ∧ LSeries.term (fun n ↦ (2 ^ ω n)) s 1 = 1 := by
     refine ⟨LSeriesSummable_two_pow_omega hs, ?_, ?_⟩;
     · intro m n mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
     · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, cast_one, pow_zero,
-        Complex.one_cpow, div_one, Int.cast_eq_one, two_pow_omega_apply, cardDistinctFactors_one]
+        Complex.one_cpow, div_one, cardDistinctFactors_one]
   have := @EulerProduct.eulerProduct_hasProd;
   convert HasProd.tprod_eq ( this h_euler_product.2.2 h_euler_product.2.1 _ _ ) |> Eq.symm using 1
   · apply tprod_congr
@@ -918,11 +894,10 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
-    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ two_pow_omega n) s) := by
-  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ ↑(two_pow_omega n)) s) using 1;
+    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ (2 ^ ω n)) s) := by
+  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (2 ^ ω n)) s) using 1;
   · funext p; exact Eq.symm (two_pow_omega_tsum_prime_pow hs p)
-  · simp only [two_pow_omega, coe_mk, Int.cast_ite, Int.cast_zero, Int.cast_pow, Int.cast_ofNat,
-      ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, ↓reduceIte,
+  · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
   · intro _ _ mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
   · convert (LSeriesSummable_two_pow_omega hs).norm using 1
@@ -953,7 +928,7 @@ where omega is the number of distinct prime factors. -/
   -/)]
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
-    riemannZeta (2 * s) * LSeries (fun n ↦ two_pow_omega n) s := by
+    riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
   have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
   have mulable := (riemannZeta_eulerProduct_hasProd hs).multipliable
   rw [sq, ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulable mulable,
@@ -967,7 +942,7 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     rw [show (-(2 * s) : ℂ) = -s + -s from by ring, Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
     field_simp
     ring
-  · exact ⟨LSeries (fun n ↦ two_pow_omega n) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
+  · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
 lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
