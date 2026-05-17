@@ -903,9 +903,10 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · convert (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
-Zeta squared:
-`ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
-where omega is the number of distinct prime factors. -/
+  Zeta squared:
+  `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
+  where omega is the number of distinct prime factors.
+-/
 @[blueprint
   "zeta_pow_two"
   (title := "zeta pow two")
@@ -945,6 +946,15 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
   · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
+@[blueprint
+  "LSeriesSummable_moebius_sq"
+  (title := "LSeriesSummable-moebius-sq")
+  (statement := /--
+    The $L$-series with coefficients given by $\mu^2(n)$ converges on the region $1<\Re(s)$.
+  -/)
+  (proof := /--
+    This follows by comparison test against the Riemann zeta function.
+  -/)]
 lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ (μ n) ^ 2) s := by
   have zetaSummable : LSeriesSummable 1 s := LSeriesSummable_one_iff.mpr hs
@@ -962,6 +972,15 @@ lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
         CStarRing.norm_of_mem_unitary, sq_le_one_iff_abs_le_one]
       exact_mod_cast ArithmeticFunction.abs_moebius_le_one
 
+@[blueprint
+  "moebius_sq_LSeries.term_IsMultiplicative"
+  (title := "moebius-sq-LSeries.term-IsMultiplicative")
+  (statement := /--
+    We have that $n\mapsto \mu^2(n)/n^{-s}$ is a multiplicative function.
+  -/)
+  (proof := /--
+    This immediately follows from the fact that $\mu(mn)=\mu(m)\mu(n)$ for $m$ and $n$ coprime.
+  -/)]
 lemma moebius_sq_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
   LSeries.term (fun n ↦ (μ n) ^ 2) s m * LSeries.term (fun n ↦ (μ n) ^ 2) s n := by
@@ -973,6 +992,17 @@ lemma moebius_sq_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Co
   congr 1
   rw [ArithmeticFunction.isMultiplicative_moebius.2 mCn, Int.cast_mul]
 
+@[blueprint
+  "moebius_sq_tsum_prime_pow"
+  (title := "moebius-sq-tsum-prime-pow")
+  (statement := /--
+    For $p$ prime, we have that
+    $$\sum_{0\leq k}\mu^2(p^k)p^{-ks}=1+p^{-s}.$$
+  -/)
+  (proof := /--
+    Note that $\mu^2(p^0)=1$ and $\mu^2(p^1)=1$ but $\mu^2(p^k)=0$ whenever $1<k$. Thus,
+    $$\sum_{0\leq k}\mu^2(p^k)p^{-ks}=1+p^{-s}.$$
+  -/)]
 lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
     ∑' e, LSeries.term (fun n ↦ (μ n) ^ 2) s (p ^ e) = (1 + (p : ℂ) ^ (-s)) := by
   have h_rw : 1 + ↑↑p ^ (-s) = ∑' (e : ℕ), (if e ≤ 1 then 1 else 0) / ((p : ℂ) ^ e) ^ s := by
@@ -1000,6 +1030,16 @@ lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
     simp only [Nat.Prime.factorization_self p.prop, mul_one]
     exact Nat.lt_of_not_le h
 
+@[blueprint
+  "moebius_sq_LSeries_eulerProduct_tprod"
+  (title := "moebius-sq-LSeries-eulerProduct-tprod")
+  (statement := /--
+    For $1<\Re(s)$ we have that
+    $$\sum_{1\leq n}\mu^2(n)n^{-s}=\prod_p(1+p^{-s}).$$
+  -/)
+  (proof := /--
+    Immediately follows from moebius-sq-LSeries.term-IsMultiplicative and moebius-sq-tsum-prime-pow.
+  -/)]
 lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ (μ n) ^ 2) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) := by
   have h_euler_product : LSeriesSummable (fun n => (μ n) ^ 2) s
@@ -1019,6 +1059,16 @@ lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   · convert h_euler_product.1.norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
+@[blueprint
+  "moebius_sq_LSeries_eulerProduct_hasProd"
+  (title := "moebius-sq-LSeries-eulerProduct-hasProd")
+  (statement := /--
+    For $1<\Re(s)$ we have that
+    $$\sum_{1\leq n}\mu^2(n)n^{-s}=\prod_p(1+p^{-s}).$$
+  -/)
+  (proof := /--
+    Immediately follows from moebius-sq-LSeries.term-IsMultiplicative and moebius-sq-tsum-prime-pow.
+  -/)]
 lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s))) (L (fun n ↦ (μ n) ^ 2) s) := by
   convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
@@ -1031,6 +1081,7 @@ lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.
+
 /--
 Zeta alt:
 `ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
@@ -1039,13 +1090,13 @@ where omega is the number of distinct prime factors. -/
   "zeta_alt"
   (title := "zeta alt")
   (statement := /--
-  $$\zeta(s) =\zeta(2s) \sum_{n=1}^{\infty} |\mu(n)| n^{-s}.$$
+  $$\zeta(s) =\zeta(2s) \sum_{n=1}^{\infty}\mu^2(n)n^{-s}.$$
   \begin{verbatim}
     An expression for `ζ`, in IK (1.32).
   \end{verbatim}
   -/)
   (proof := /--
-  The series $\sum_{n=1}^{\infty} |\mu(n)| n^{-s}$ has Euler product $\prod_{p} (1 + p^{-s})$. On the other hand, $\zeta(2s)=\prod_p (1 - p^{-2s})^{-1}$. The product of these two Euler products is $\prod_p (1 - p^{-s})^{-1} = \zeta(s)$, which gives the desired formula.
+  The series $\sum_{n=1}^{\infty}\mu^2(n)n^{-s}$ has Euler product $\prod_{p} (1 + p^{-s})$. On the other hand, $\zeta(2s)=\prod_p (1 - p^{-2s})^{-1}$. The product of these two Euler products is $\prod_p (1 - p^{-s})^{-1} = \zeta(s)$, which gives the desired formula.
   -/)]
 lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s =
