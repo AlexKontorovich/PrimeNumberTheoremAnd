@@ -1516,8 +1516,9 @@ theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x
   (proof := /-- This follows from Lemma \ref{bklnw-eq-3-17} and the fact that $x - 0.05 \sqrt{x} \le x$ for all $x$. -/)
   (latexEnv := "corollary")
   (discussion := 1259)]
-theorem bklnw_eq_3_18 : ∀ x ≤ exp (19 * log 10), θ x - x ≤ 0 := by
-  sorry
+theorem bklnw_eq_3_18 : ∀ x ∈ Set.Ioc 0 1e19, θ x - x ≤ 0 := by
+  intro x hx
+  linarith [buthe_eq_1_7 x hx]
 
 @[blueprint
   "bklnw-lemma-9"
