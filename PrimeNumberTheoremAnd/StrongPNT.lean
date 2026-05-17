@@ -1,11 +1,12 @@
 import Architect
 import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
-import PrimeNumberTheoremAnd.BorelCaratheodory
+import Mathlib.Analysis.Complex.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
@@ -23,6 +24,73 @@ local notation "ζ'" => deriv ζ
 local notation "ψ" => ChebyshevPsi
 
 --open scoped ArithmeticFunction
+
+
+
+@[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
+  (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
+  (statement := /--
+    An application of the Maximum modulus principle.
+  -/)
+  (proof := /--
+    This is standard in the literature.
+  -/)
+  (latexEnv := "lemma")]
+lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
+    (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (hyp_r : r ≤ R)
+    (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
+    (w : ℂ) (wInS : w ∈ Metric.closedBall 0 r) :
+    ‖f w‖ ≤ C := by
+  apply Complex.norm_le_of_forall_mem_frontier_norm_le
+    (U := Metric.closedBall 0 r) Metric.isBounded_closedBall
+  · apply DifferentiableOn.diffContOnCl
+    rw [Metric.closure_closedBall]
+    exact AnalyticOn.differentiableOn
+      (AnalyticOn.mono analytic
+        (Metric.closedBall_subset_closedBall (by linarith)))
+  · rw [frontier_closedBall']
+    exact cond
+  · rw [Metric.closure_closedBall]
+    exact wInS
+
+
+
+@[blueprint "borelCaratheodory'"
+  (title := "borelCaratheodory'")
+  (statement := /--
+    An application of
+    \begin{verbatim}
+      Complex.borelCaratheodory_zero.
+    \end{verbatim}
+  -/)
+  (proof := /--
+    This is standard in the literature.
+  -/)
+  (latexEnv := "lemma")]
+theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
+    {f : ℂ → ℂ} (Rpos : 0 < R)
+    (analytic : AnalyticOn ℂ f (Metric.ball 0 R))
+    (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
+    (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
+    ‖f z‖ ≤ (2 * M * r) / (R - r) := by
+  have h_borelCaratheodory : ∀ ε > 0, ‖f z‖ ≤ (2 * (M + ε) * ‖z‖) / (R - ‖z‖) := by
+    intro ε εpos;
+    apply Complex.borelCaratheodory_zero;
+    exacts [ by linarith, analytic.differentiableOn, fun z hz => lt_of_le_of_lt ( realPartBounded z hz ) ( by linarith ), Rpos, by exact Metric.mem_ball.mpr ( lt_of_le_of_lt ( Metric.mem_closedBall.mp hyp_z ) hyp_r ), zeroAtZero ];
+  have h_limit : ‖f z‖ ≤ (2 * M * ‖z‖) / (R - ‖z‖) := by
+    have h_limit : Filter.Tendsto (fun ε => (2 * (M + ε) * ‖z‖) / (R - ‖z‖)) (nhdsWithin 0 (Set.Ioi 0)) (nhds ((2 * M * ‖z‖) / (R - ‖z‖))) := by
+      refine tendsto_nhdsWithin_of_tendsto_nhds (Continuous.tendsto' ?_ _ _ (by ring_nf))
+      exact ((continuous_const.mul (continuous_const.add continuous_id)).mul continuous_const).div_const _
+    exact le_of_tendsto_of_tendsto tendsto_const_nhds h_limit ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_borelCaratheodory ε hε );
+  rw [mem_closedBall_iff_norm, sub_zero] at hyp_z
+  refine le_trans h_limit ?_;
+  gcongr
+  · exact mul_nonneg (mul_nonneg (zero_le_two) (le_of_lt Mpos)) (le_trans (norm_nonneg z) hyp_z)
+  · linarith
+
+
 
 blueprint_comment /--
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
@@ -82,18 +150,18 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
   (latexEnv := "lemma")]
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
-    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (analytic_f : AnalyticOn ℂ f (Metric.ball 0 R))
     (f_zero_at_zero : f 0 = 0)
-    (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (re_f_le_M : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-  rw [cauchy_formula_deriv (analytic_f.mono Metric.ball_subset_closedBall).differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
+  rw [cauchy_formula_deriv analytic_f.differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
   grw [circleIntegral.norm_two_pi_i_inv_smul_integral_le_of_norm_le_const (by linarith) (C := 2 * M * r' / ((R - r') * (r' - r) ^ 2))]
   · exact le_of_eq (by ring)
   · intro z' hz'
     rw [smul_eq_mul, norm_mul]
-    grw[borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
+    grw[borelCaratheodory' (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
       (Metric.sphere_subset_closedBall hz')]
     suffices ‖(z' - z)⁻¹ ^ 2‖ ≤ 1 / (r' - r) ^ 2 by
       grw [this]
@@ -107,6 +175,8 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
       dist_zero_right] at hz' z_in_r
       rw [← hz']
       exact le_trans (by linarith) (norm_sub_norm_le z' z)
+
+
 
 @[blueprint "BorelCaratheodoryDeriv"
   (title := "BorelCaratheodoryDeriv")
@@ -123,9 +193,9 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
   -/)
   (latexEnv := "theorem")]
 theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
-    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.ball 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
-    (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
     have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
@@ -137,6 +207,7 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
         _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
             have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
             rw [this]; bound
+
 
 
 @[blueprint "LogOfAnalyticFunction"
@@ -171,10 +242,10 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
 theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
     {B : ℂ → ℂ} (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R)) (Bnonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) R, B z ≠ 0) :
     ∃ (J_B : ℂ → ℂ),
-    (AnalyticOnNhd ℂ J_B (Metric.closedBall 0 r)) ∧
+    (AnalyticOnNhd ℂ J_B (Metric.ball 0 R)) ∧
     (J_B 0 = 0) ∧
     (∀ z ∈ Metric.closedBall 0 r, (deriv J_B) z = (deriv B) z / (B z)) ∧
-    (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
+    (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
     obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (deriv B z / B z) z)) ∧ J_B 0 = 0 ∧ (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
       set f : ℂ → ℂ := fun z => deriv B z / B z;
       have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) :=
@@ -215,14 +286,36 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
       have hB0 := Bnonzero 0 (by norm_num; linarith)
       rw [← Real.log_div (norm_ne_zero_iff.mpr hBz) (norm_ne_zero_iff.mpr hB0),
         ← h_exp_re z hz, Real.log_exp]
-    have hmem : ∀ z, z ∈ Metric.closedBall (0 : ℂ) r → z ∈ Metric.ball (0 : ℂ) R :=
-      fun z hz ↦ Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_R
-    refine ⟨J_B, ?_, hJB.2.1, fun z hz ↦ (hJB.1 z (hmem z hz)).deriv,
-      fun z hz ↦ hJB.2.2 z (hmem z hz)⟩
-    intro z hz
-    exact DifferentiableOn.analyticAt
-      (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt)
-      (Metric.isOpen_ball.mem_nhds <| by simpa using by linarith [mem_closedBall_zero_iff.mp hz])
+    have hmem : ∀ z, z ∈ Metric.ball (0 : ℂ) r → z ∈ Metric.closedBall (0 : ℂ) R := by
+      intro z hz
+      apply Metric.mem_closedBall.mpr
+      rw [Metric.mem_ball] at hz
+      linarith
+    refine ⟨J_B, ?_, hJB.2.1, ?_, hJB.2.2⟩
+    · intro z hz
+      exact DifferentiableOn.analyticAt (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt) (IsOpen.mem_nhds Metric.isOpen_ball hz)
+    · intro z hz
+      exact (hJB.1 z (Metric.closedBall_subset_ball r_lt_R hz)).deriv
+
+
+
+@[blueprint "LogOfAnalyticFunction'"
+  (title := "LogOfAnalyticFunction'")
+  (statement := /--
+    A wrapper of the above theorem that will be useful later on.
+  -/)
+  (proof := /--
+    See above.
+  -/)]
+theorem LogOfAnalyticFunction' {r' r R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_R : r < R)
+    {B : ℂ → ℂ} (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R)) (Bnonzero : ∀ z ∈ Metric.closedBall (0 : ℂ) r, B z ≠ 0) :
+    ∃ (J_B : ℂ → ℂ),
+    (AnalyticOnNhd ℂ J_B (Metric.ball 0 r)) ∧
+    (J_B 0 = 0) ∧
+    (∀ z ∈ Metric.closedBall 0 r', (deriv J_B) z = (deriv B) z / (B z)) ∧
+    (∀ z ∈ Metric.ball 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
+  have BanalyticOnNhdOfDr : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) r) := BanalyticOnNhdOfDR.mono (Metric.closedBall_subset_closedBall r_lt_R.le)
+  exact LogOfAnalyticFunction r'_pos r'_lt_r BanalyticOnNhdOfDr Bnonzero
 
 
 
@@ -501,6 +594,43 @@ lemma BlaschkeOfZero
 
 
 
+@[blueprint "norm_fOfZero_le_norm_BlaschkeOfZero"
+  (title := "norm-fOfZero-le-norm-BlaschkeOfZero")
+  (statement := /--
+    Let $0 < r < R<1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. Then
+    $$|f(0)|\leq|B_f(0)|.$$
+  -/)
+  (proof := /--
+    Applying lemma \ref{BlaschkeOfZero} we know that
+    $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}
+      \left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
+    Note that for all $\rho\in\mathcal{K}_f(r)$ that $1<R/|\rho|$ since $r<R$.
+    Thus, the result follows.
+  -/)]
+lemma norm_fOfZero_le_norm_BlaschkeOfZero
+  {r R : ℝ} (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+    ‖f 0‖ ≤ ‖BlaschkeB r R f 0‖ := by
+  rw [BlaschkeOfZero r_lt_one R_pos finiteZeros hf_neq_zero_at_zero, ← mul_one ‖f 0‖]
+  refine mul_le_mul (by rw[mul_one]) ?_ (zero_le_one) (mul_nonneg (norm_nonneg (f 0)) zero_le_one)
+  rw [← Finset.prod_const_one (s := (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset)]
+  apply Finset.prod_le_prod
+  · intro ρ hρ
+    exact zero_le_one
+  · intro ρ hρ
+    simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+    apply one_le_pow₀
+    rw[one_le_div]
+    · linarith
+    · rw [norm_pos_iff]
+      by_contra h
+      rw [h] at hρ
+      exact hf_neq_zero_at_zero hρ.2
+
+
+
 @[blueprint "DiskBound"
   (title := "DiskBound")
   (statement := /--
@@ -558,6 +688,96 @@ lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R
 
 
 
+@[blueprint "BlaschkeNonZero"
+  (title := "BlaschkeNonZero")
+  (statement := /--
+    Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
+    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then $B_f(z)\neq 0$
+    for all $z\in\overline{\mathbb{D}_r}$.
+  -/)
+  (proof := /--
+    Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
+    $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
+      (z-\rho)^{m_f(\rho)}}.$$
+    where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting
+    this into Definition \ref{BlaschkeB},
+    \begin{equation}\label{pickupPoint2}
+        |B_f(z)|=|h_z(z)|\cdot\left|R-\frac{|z|^2}{R}\right|^{m_f(z)}
+          \prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
+          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
+    \end{equation}
+    Trivially, $|h_z(z)|\neq 0$. Now note that
+    $$\left|R-\frac{|z|^2}{R}\right|=0\implies|z|=R.$$
+    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. Similarly, note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
+    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. So, we know that
+    $$\left|R-\frac{|z|^2}{R}\right|\neq 0\qquad\text{and}\qquad
+      \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
+      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
+    Applying this to Equation (\ref{pickupPoint2}) we have that $|B_f(z)|\neq 0$.
+    So, $B_f(z)\neq 0$.
+
+    Now suppose that $z\not\in\mathcal{K}_f(r)$. Then we have that
+    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
+    Thus, substituting this into Definition \ref{BlaschkeB},
+    \begin{equation}\label{pickupPoint3}
+        |B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}
+          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
+    \end{equation}
+    We know that $|f(z)|\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
+    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
+    $|z|\leq r < R$. So, we know that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
+      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
+    Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$.
+    So, $B_f(z)\neq 0$.
+
+    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
+    $z\not\in\mathcal{K}_f(r)$, so the result follows.
+  -/)]
+lemma BlaschkeNonzero {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  ∀ z ∈ Metric.closedBall (0 : ℂ) r, BlaschkeB r R f z ≠ 0 := by
+  intro z hz
+  have hz_norm_le_r : ‖z‖ ≤ r := by rwa [mem_closedBall_iff_norm, sub_zero] at hz
+  have hz_norm_lt_R : ‖z‖ < R := by linarith
+  let hFin := finiteSetOfZeros_mono r_lt_one finiteZeros
+  have hBProd : ∏ ρ ∈ hFin.toFinset,
+      (↑R - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 := by
+    apply Finset.prod_ne_zero_iff.mpr
+    intro ρ hρ
+    apply pow_ne_zero
+    norm_num [ sub_eq_zero, Complex.ext_iff ];
+    simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+    rw [ eq_div_iff ] <;> norm_num [ Complex.normSq, Complex.norm_def ] at *;
+    · rw [Real.sqrt_lt' (by linarith)] at hz_norm_lt_R
+      rw [ Real.sqrt_le_iff ] at hρ
+      exact fun h => absurd h ( by nlinarith [ sq_nonneg ( z.re - ρ.re ), sq_nonneg ( z.im - ρ.im ), mul_lt_mul_of_pos_left r_lt_R R_pos ] )
+    · linarith
+  unfold BlaschkeB Cf
+  by_cases z_in_zeros : z ∈ SetOfZeros r f
+  · simp only [hFin, z_in_zeros, ↓reduceDIte]
+    obtain ⟨_, _, hne, heq⟩ :=
+      ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith)))
+        hf_neq_zero_at_zero (by linarith) z_in_zeros
+    rw [heq.1]
+    refine mul_ne_zero (div_ne_zero hne (Finset.prod_ne_zero_iff.mpr fun ρ hρ =>
+      pow_ne_zero _ (sub_ne_zero.mpr fun h =>
+        (Finset.mem_sdiff.mp hρ).2 (Finset.mem_singleton.mpr h.symm)))) hBProd
+  · simp only [hFin, z_in_zeros, ↓reduceDIte]
+    refine mul_ne_zero (div_ne_zero (fun hfz => z_in_zeros ⟨hz_norm_le_r, hfz⟩)
+      (Finset.prod_ne_zero_iff.mpr fun ρ hρ =>
+        pow_ne_zero _ (sub_ne_zero.mpr fun h => z_in_zeros (h ▸ hFin.mem_toFinset.mp hρ)))) hBProd
+
+
+
 @[blueprint "ZerosBound"
   (title := "ZerosBound")
   (statement := /--
@@ -608,98 +828,74 @@ lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R
 
 
 
-blueprint_comment /--
-\begin{definition}[JBlaschke]\label{JBlaschke}
+@[blueprint "JBlaschke"
+  (title := "JBlaschke")
+  (statement := /--
     Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define
     $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$
     is from Definition \ref{BlaschkeB}.
-\end{definition}
--/
+  -/)]
+noncomputable def JBlaschke
+  {r' r R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite)
+  (z : ℂ) : ℂ :=
+  (LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R
+    (BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero))
+    (BlaschkeNonzero r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero))).choose z
 
 
 
-blueprint_comment /--
-\begin{lemma}[BlaschkeNonZero]\label{BlaschkeNonZero}
-    Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$. Then $B_f(z)\neq 0$ for all
-    $z\in\overline{\mathbb{D}_r}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroFactorization, BlaschkeB}
-    Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
-    $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
-      (z-\rho)^{m_f(\rho)}}.$$
-    where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting
-    this into Definition \ref{BlaschkeB},
-    \begin{equation}\label{pickupPoint2}
-        |B_f(z)|=|h_z(z)|\cdot\left|R-\frac{|z|^2}{R}\right|^{m_f(z)}
-          \prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}
-          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
-    \end{equation}
-    Trivially, $|h_z(z)|\neq 0$. Now note that
-    $$\left|R-\frac{|z|^2}{R}\right|=0\implies|z|=R.$$
-    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. Similarly, note that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
-    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
-    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. So, we know that
-    $$\left|R-\frac{|z|^2}{R}\right|\neq 0\qquad\text{and}\qquad
-      \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
-      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
-    Applying this to Equation (\ref{pickupPoint2}) we have that $|B_f(z)|\neq 0$.
-    So, $B_f(z)\neq 0$.
-
-    Now suppose that $z\not\in\mathcal{K}_f(r)$. Then we have that
-    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
-    Thus, substituting this into Definition \ref{BlaschkeB},
-    \begin{equation}\label{pickupPoint3}
-        |B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}
-          \left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
-    \end{equation}
-    We know that $|f(z)|\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
-    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that
-    $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that
-    $|z|\leq r < R$. So, we know that
-    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0
-      \quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
-    Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$.
-    So, $B_f(z)\neq 0$.
-
-    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
-    $z\not\in\mathcal{K}_f(r)$, so the result follows.
-\end{proof}
--/
-
-
-
-blueprint_comment /--
-\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}
+@[blueprint "JBlaschkeDerivBound"
+  (title := "JBlaschkeDerivBound")
+  (statement := /--
     Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic
     on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$
     for all $|z|\leq R$, then for all $|z|\leq r'$
-    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
+    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}.$$
+  -/)
+  (proof := /--
     By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$.
     Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem
     \ref{LogOfAnalyticFunction} we know that
     $$L_f(0)=0\qquad\text{and}\qquad
       \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
-    for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
+    for all $|z|\leq r$. Note that in the above
+    $$0=\log|f(0)|\leq\log|B_f(0)|$$
+    because of Lemma \ref{norm-fOfZero-le-norm-BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
     for all $|z|\leq r'$.
-\end{proof}
--/
+  -/)]
+lemma JBlaschkeDerivBound
+  {B r' r R : ℝ} (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_pos : 0 < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r') :
+  ‖deriv (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) z‖
+    ≤ 16 * Real.log (B) * r ^ 2 / (r - r') ^ 3 := by
+  let blaschkeAnalytic := BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+  let blaschkeNonzero := BlaschkeNonzero r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+  let logOfAnalytic := LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R blaschkeAnalytic blaschkeNonzero
+  set JB := logOfAnalytic.choose with JB_def
+  obtain ⟨JB_Analytic, JB_0_eq_0, deriv_JB_eq, JB_re⟩ := logOfAnalytic.choose_spec
+  rw [← JB_def] at JB_Analytic JB_0_eq_0 deriv_JB_eq JB_re
+  have JB_def' : JB = (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) := by
+    unfold JBlaschke
+    rw [← JB_def]
+  rw[← JB_def']
+  refine BorelCaratheodoryDeriv r'_pos (JB_Analytic.analyticOn) JB_0_eq_0 (Real.log_pos one_lt_B) ?_ r'_lt_r hz
+  intro w hw
+  rw[← JB_re w hw]
+  have hwr : w ∈ Metric.closedBall (0 : ℂ) r := by exact Metric.ball_subset_closedBall hw
+  have hlog : 0 ≤ Real.log ‖BlaschkeB r R f 0‖ := by
+    rw [← Real.log_one]
+    apply Real.log_le_log zero_lt_one
+    rw [← norm_one (α := ℂ), ← hf0_eq_one]
+    exact norm_fOfZero_le_norm_BlaschkeOfZero r_lt_one r_lt_R R_pos finiteZeros (hf0_eq_one ▸ one_ne_zero)
+  suffices h : Real.log ‖BlaschkeB r R f w‖ ≤ Real.log B by linarith
+  exact Real.log_le_log (norm_pos_iff.mpr (blaschkeNonzero w hwr))
+    (DiskBound r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero) fz_bound (Metric.closedBall_subset_closedBall r_lt_R.le hwr))
 
 
 
