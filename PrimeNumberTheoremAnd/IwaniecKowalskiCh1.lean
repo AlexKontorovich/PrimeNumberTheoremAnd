@@ -970,9 +970,92 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
   · exact ⟨LSeries (fun n ↦ two_pow_omega n) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
 
+lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
+    LSeriesSummable (fun n ↦ (μ n) ^ 2) s := by
+  have zetaSummable : LSeriesSummable 1 s := LSeriesSummable_one_iff.mpr hs
+  rw [LSeriesSummable, ← summable_norm_iff] at *;
+  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) zetaSummable
+  intro n
+  simp only [LSeries.term]
+  by_cases hn : n = 0
+  · simp only [hn, ↓reduceIte, norm_zero, le_refl]
+  · simp only [hn, ↓reduceIte, Complex.norm_div]
+    refine (div_le_div_iff_of_pos_right ?_).mpr ?_
+    · rw [norm_pos_iff]
+      simp [hn]
+    · simp only [norm_pow, Complex.norm_intCast, sq_abs, Pi.one_apply, one_mem,
+        CStarRing.norm_of_mem_unitary, sq_le_one_iff_abs_le_one]
+      exact_mod_cast ArithmeticFunction.abs_moebius_le_one
+
+lemma moebius_sq_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+    LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
+  LSeries.term (fun n ↦ (μ n) ^ 2) s m * LSeries.term (fun n ↦ (μ n) ^ 2) s n := by
+  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow, ← mul_pow]
+  simp only [or_self, ↓reduceIte]
+  congr 1
+  rw [ArithmeticFunction.isMultiplicative_moebius.2 mCn, Int.cast_mul]
+
+lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
+    ∑' e, LSeries.term (fun n ↦ (μ n) ^ 2) s (p ^ e) = (1 + (p : ℂ) ^ (-s)) := by
+  have h_rw : 1 + ↑↑p ^ (-s) = ∑' (e : ℕ), (if e ≤ 1 then 1 else 0) / ((p : ℂ) ^ e) ^ s := by
+    rw [tsum_eq_sum (s := {0, 1})]
+    · simp only [mem_singleton, zero_ne_one, not_false_eq_true, sum_insert, _root_.zero_le,
+        ↓reduceIte, pow_zero, Complex.one_cpow, ne_eq, one_ne_zero, div_self, sum_singleton,
+        le_refl, pow_one, one_div, Complex.cpow_neg]
+    · intro e he; simp at he
+      simp [show ¬e ≤ 1 by omega]
+  simp only [LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte, ← Int.cast_pow, moebius_sq, h_rw]
+  apply tsum_congr
+  intro e
+  congr 1
+  by_cases h : (e ≤ 1) <;> simp only [Int.cast_ite, Int.cast_one, Int.cast_zero, h, ↓reduceIte, ite_eq_left_iff,
+    zero_ne_one, imp_false, Decidable.not_not, ite_eq_right_iff, one_ne_zero, imp_false]
+  · rw [Nat.squarefree_iff_factorization_le_one (pow_ne_zero _ (Nat.Prime.ne_zero p.prop))]
+    simp only [factorization_pow, Finsupp.coe_smul, Pi.smul_apply, smul_eq_mul]
+    interval_cases e
+    · simp only [zero_mul, zero_le, implies_true]
+    · simp only [one_mul, ← Nat.squarefree_iff_factorization_le_one (Nat.Prime.ne_zero p.prop)]
+      exact (Nat.squarefree_and_prime_pow_iff_prime.mpr p.prop).1
+  · rw [Nat.squarefree_iff_factorization_le_one (pow_ne_zero _ (Nat.Prime.ne_zero p.prop))]
+    simp only [factorization_pow, Finsupp.coe_smul, Pi.smul_apply, smul_eq_mul, not_forall, not_le]
+    use p
+    simp only [Nat.Prime.factorization_self p.prop, mul_one]
+    exact Nat.lt_of_not_le h
+
+lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
+    LSeries (fun n ↦ (μ n) ^ 2) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) := by
+  have h_euler_product : LSeriesSummable (fun n => (μ n) ^ 2) s
+    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
+      LSeries.term (fun n ↦ (μ n) ^ 2) s m *
+      LSeries.term (fun n ↦ (μ n) ^ 2) s n)
+    ∧ LSeries.term (fun n ↦ (μ n) ^ 2) s 1 = 1 := by
+    refine ⟨LSeriesSummable_moebius_sq hs, ?_, ?_⟩;
+    · intro m n mCn; exact moebius_sq_LSeries.term_IsMultiplicative s mCn
+    · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
+        IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
+        Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
+  have := @EulerProduct.eulerProduct_hasProd;
+  convert HasProd.tprod_eq ( this h_euler_product.2.2 h_euler_product.2.1 _ _ ) |> Eq.symm using 1
+  · apply tprod_congr
+    simp only [moebius_sq_tsum_prime_pow, implies_true]
+  · convert h_euler_product.1.norm using 1
+  · unfold LSeries.term; simp only [↓reduceIte]
+
+lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
+    HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s))) (L (fun n ↦ (μ n) ^ 2) s) := by
+  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
+  · funext p; exact Eq.symm (moebius_sq_tsum_prime_pow p)
+  · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
+      IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
+      Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
+  · intro _ _ mCn; exact moebius_sq_LSeries.term_IsMultiplicative s mCn
+  · convert (LSeriesSummable_moebius_sq hs).norm using 1
+
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.
-
 /--
 Zeta alt:
 `ζ(s) = ζ(2*s) * ∑_n (|μ(n)|) n^(-s)`,
@@ -992,7 +1075,20 @@ where omega is the number of distinct prime factors. -/
 lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s =
     riemannZeta (2 * s) * LSeries (fun (n : ℕ) ↦ (μ n : ℂ) ^ 2) s := by
-  sorry
+  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have mulable := (riemannZeta_eulerProduct_hasProd hs).multipliable
+  rw [← riemannZeta_eulerProduct_tprod hs, ← riemannZeta_eulerProduct_tprod hs',
+    moebius_sq_LSeries_eulerProduct_tprod s hs, ← Multipliable.tprod_mul, tprod_congr]
+  · intro p
+    have hsub := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+    have hsq : 1 - ((p : ℂ) ^ (-s)) ^ 2 ≠ 0 := by
+      rw [show 1 - ((p : ℂ) ^ (-s)) ^ 2 = (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) from by ring]
+      exact mul_ne_zero hsub (Complex.one_add_prime_cpow_ne_zero p.2 hs)
+    rw [show (-(2 * s) : ℂ) = -s + -s from by ring, Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
+    field_simp
+    ring
+  · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
+  · exact ⟨LSeries (fun n ↦ (μ n) ^ 2) s, moebius_sq_LSeries_eulerProduct_hasProd s hs⟩
 
 @[blueprint
   "pow_divisors_mul"
