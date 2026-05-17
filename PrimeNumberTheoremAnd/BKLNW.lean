@@ -1041,6 +1041,48 @@ noncomputable def B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ
 noncomputable def Btilde (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ) : ℝ :=
   b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) + ε b * b' ^ k
 
+private lemma bklnw_lemma_8_term_eq (k ℓ : ℕ) (x a_ℓ : ℝ) (hx_pos : 0 < x) (h_log : 0 < log x) :
+    a_ℓ * x ^ ((1 : ℝ) / (↑ℓ + 1)) = a_ℓ * log x ^ k * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * (x / log x ^ k) := by
+  have h_denom : (ℓ : ℝ) + 1 ≠ 0 := by positivity
+  have h_cancel : log x ^ k * (x / log x ^ k) = x := by
+    have hlog_ne : log x ^ k ≠ 0 := by positivity
+    exact mul_div_cancel₀ x hlog_ne
+  calc
+    a_ℓ * x ^ ((1 : ℝ) / (↑ℓ + 1)) = a_ℓ * (x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x) := by
+      nth_rw 3 [← rpow_one x]
+      rw [← rpow_add hx_pos]
+      congr 1
+      congr 1
+      field_simp [h_denom]
+      ring
+    _ = a_ℓ * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x := by ring
+    _ = a_ℓ * log x ^ k * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * (x / log x ^ k) := by
+      conv_lhs =>
+        enter [2]
+        rw [← h_cancel]
+      ring
+
+private lemma bklnw_lemma_8_bound_le_B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x : ℝ)
+    (hx_mem : x ∈ Set.Icc (exp b) (exp b')) :
+    (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) + ε b * (log x) ^ k ≤ B k n a ε b b' := by
+  have h_y_pos : ∀ y : Set.Icc (exp b) (exp b'), 0 < (y : ℝ) := fun y ↦ (exp_pos b).trans_le y.2.1
+  have h_y_ne_zero : ∀ y : Set.Icc (exp b) (exp b'), (y : ℝ) ≠ 0 := fun y ↦ (h_y_pos y).ne'
+  refine le_ciSup (f := fun (y : Set.Icc (exp b) (exp b')) ↦ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log (y : ℝ))^k * (y : ℝ) ^ (-(ℓ:ℝ) / (ℓ + 1)) + ε b * (log (y : ℝ)) ^ k)) ?_ ⟨x, hx_mem⟩
+  apply IsCompact.bddAbove
+  apply isCompact_range
+  apply Continuous.add
+  · refine continuous_finset_sum (Finset.Icc 1 n) (fun ℓ _ ↦ ?_)
+    apply Continuous.mul
+    · apply Continuous.mul continuous_const
+      apply Continuous.pow
+      exact Continuous.log continuous_subtype_val h_y_ne_zero
+    · apply Continuous.rpow continuous_subtype_val continuous_const
+      intro y
+      exact Or.inl (h_y_ne_zero y)
+  · apply Continuous.mul continuous_const
+    apply Continuous.pow
+    exact Continuous.log continuous_subtype_val h_y_ne_zero
+
 @[blueprint
   "bklnw-lemma-8"
   (title := "Lemma 8")
@@ -1049,7 +1091,7 @@ noncomputable def Btilde (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' 
   \label{psithetadiff}
   \psi (x) - \theta (x) \le \sum_{\ell=1}^n a_{\ell} x^{\frac{1}{\ell+1}} \qquad \text{ for all } x \ge x_0.
  \end{equation}
- Let $b' > b \ge 2k$, $e^b \le x_0$, and assume that there exists $\varepsilon(b)>0$ such that
+ Let $b' > b \ge 2k$, $x_0 \le e^b$, and assume that there exists $\varepsilon(b)>0$ such that
   \begin{equation}
   \label{psixdiff}
   |\psi (x) - x| \le \varepsilon(b)x \qquad \text{for all }x \ge e^{b}.
@@ -1084,13 +1126,42 @@ This immediately implies \eqref{thetakBbd} holds with \eqref{defn:B}.
   (discussion := 1252)]
 theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x₀ : ℝ)
   (hk : 1 ≤ k ∧ k ≤ 5)
-  (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
-  (hbb : b < b') (hbk : b ≥ 2 * k) (hbx₀ : exp b ≤ x₀)
+  (hbk : b ≥ 2 * k) (hbx₀ : x₀ ≤ exp b)
   (hx : ∀ x ≥ x₀, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)))
   (hε : ∀ x ≥ exp b, abs (ψ x - x) ≤ ε b * x)
   :
   ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k n a ε b b' * x / (log x)^k := by
-  sorry
+  intro x hx_mem
+  have hx_ge_exp_b : x ≥ exp b := hx_mem.1
+  have hx_le_exp_b' : x ≤ exp b' := hx_mem.2
+  have hx_ge_x0 : x ≥ x₀ := by linarith [hx_ge_exp_b, hbx₀]
+  have hx_pos : 0 < x := lt_of_lt_of_le (exp_pos b) hx_ge_exp_b
+  have h_log_x_pos : 0 < log x := by
+    have hk_real : (k : ℝ) ≥ 1 := by exact_mod_cast hk.1
+    have h_log_ge : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx_ge_exp_b
+    linarith [h_log_ge, hbk, hk_real]
+  calc
+    abs (θ x - x) ≤ abs (θ x - ψ x) + abs (ψ x - x) := by
+      exact abs_sub_le (θ x) (ψ x) x
+    _ = (ψ x - θ x) + abs (ψ x - x) := by
+      rw [abs_sub_comm, abs_of_nonneg (show 0 ≤ ψ x - θ x by linarith [theta_le_psi x])]
+    _ ≤ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ))) + ε b * x := by
+      exact add_le_add (hx x hx_ge_x0) (hε x hx_ge_exp_b)
+    _ = ((∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) + ε b * (log x) ^ k) * (x / (log x)^k) := by
+      rw [add_mul, Finset.sum_mul]
+      congr 1
+      · apply Finset.sum_congr rfl
+        intro ℓ _
+        exact bklnw_lemma_8_term_eq k ℓ x (a ℓ) hx_pos h_log_x_pos
+      · field_simp
+    _ ≤ B k n a ε b b' * (x / (log x)^k) := by
+      have h_le_B := bklnw_lemma_8_bound_le_B k n a ε b b' x hx_mem
+      have h_log_pow : 0 ≤ (log x)^k := by positivity
+      have h_mult_nonneg : 0 ≤ x / (log x)^k := by
+        exact div_nonneg hx_pos.le h_log_pow
+      exact mul_le_mul_of_nonneg_right h_le_B h_mult_nonneg
+    _ = B k n a ε b b' * x / (log x)^k := by
+      field_simp
 
 @[blueprint
   "bklnw-eq-3-11"
@@ -1186,7 +1257,7 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
   have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
     fun x hx ↦ Inputs.default.hε b (by positivity) x hx
   have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
-    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk ha_nonneg hb hb_ge_2k le_rfl hψ_θ_bound hε_bound
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk hb_ge_2k le_rfl hψ_θ_bound hε_bound
   have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
     bklnw_eq_3_11 k 2 a Inputs.default.ε b b' ha_nonneg hb hb_ge_2k
   have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
