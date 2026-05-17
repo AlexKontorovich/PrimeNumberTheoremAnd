@@ -1752,9 +1752,11 @@ theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (
   "bklnw-thm-1b-table"
   (title := "BKLNW Theorem 1b, table form")
   (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
+  The first column of the table is the logarithmic threshold \(b = \log X_0\), so a row with first
+  component \(b\) applies for \(x \geq \exp b\).
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b_table {X₀ : ℝ} (hX₀ : X₀ > 1) {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ X₀) :
+theorem thm_1b_table {b : ℝ} (hb : b > 0) {M : Fin 5 → ℝ} (h : (b, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ exp b) :
   x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
   by sorry
 
