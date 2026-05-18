@@ -91,7 +91,8 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  simp only [← coe_mul_zeta_apply]
+  exact (hf.mul isMultiplicative_zeta.natCast).map_mul_of_coprime hab
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -817,8 +818,26 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  intro ⟨a₁, b₁⟩ hab₁ ⟨a₂, b₂⟩ hab₂ heq
+  simp only [Set.mem_prod, Finset.mem_coe, Nat.mem_divisors] at hab₁ hab₂
+  obtain ⟨⟨ha₁, hm⟩, ⟨hb₁, _⟩⟩ := hab₁
+  obtain ⟨⟨ha₂, _⟩, ⟨hb₂, _⟩⟩ := hab₂
+  simp only at heq  -- normalize the fun application: a₁ * b₁ = a₂ * b₂
+  have ha₁_cop_b₂ : a₁.Coprime b₂ := (hmn.coprime_dvd_left ha₁).coprime_dvd_right hb₂
+  have ha₂_cop_b₁ : a₂.Coprime b₁ := (hmn.coprime_dvd_left ha₂).coprime_dvd_right hb₁
+  have h_a₁_dvd : a₁ ∣ a₂ * b₂ := heq ▸ dvd_mul_right a₁ b₁
+  have h_a₂_dvd : a₂ ∣ a₁ * b₁ := heq.symm ▸ dvd_mul_right a₂ b₂
+  have h₁ : a₁ ∣ a₂ := ha₁_cop_b₂.dvd_of_dvd_mul_right h_a₁_dvd
+  have h₂ : a₂ ∣ a₁ := ha₂_cop_b₁.dvd_of_dvd_mul_right h_a₂_dvd
+  have heq_a : a₁ = a₂ := Nat.dvd_antisymm h₁ h₂
+  have ha_pos : 0 < a₁ := by
+    rcases Nat.eq_zero_or_pos a₁ with h0 | hp
+    · exact absurd (h0 ▸ ha₁) (by simpa using hm)
+    · exact hp
+  have heq_b : b₁ = b₂ := by
+    have : a₁ * b₁ = a₁ * b₂ := by rw [heq, heq_a]
+    exact Nat.eq_of_mul_eq_mul_left ha_pos this
+  simp [heq_a, heq_b]
 
 @[blueprint
   "pow_divisors_mul_injective"
