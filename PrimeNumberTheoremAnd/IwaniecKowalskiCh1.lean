@@ -677,9 +677,33 @@ Baby Rankin-Selberg:
   This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
   -/)]
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
-
+    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s =
+      LSeries (fun n ↦ (τ n) ^ 2) s := by
+  have hzeta :
+      riemannZeta s = LSeries (fun _ : ℕ ↦ (1 : ℂ)) s := by
+    simpa using LSeries_zeta_eq_riemannZeta hs
+  have h1 :
+      LSeriesSummable (fun _ : ℕ ↦ (1 : ℂ)) s := by
+    simpa using LSeriesSummable_zeta_iff.mpr hs
+  have hτ :
+      LSeriesSummable (fun n ↦ τ (n ^ 2)) s := by
+    have hbound : ∀ n, τ (n ^ 2) ≤ (n : ℝ) := by
+      intro n
+      have : τ (n ^ 2) ≤ n := Nat.tau_le_self_pow_two n
+      exact_mod_cast this
+    simpa using
+      LSeriesSummable_of_le
+        (f := fun n ↦ τ (n ^ 2))
+        (g := fun n ↦ (n : ℂ))
+        hbound
+        (by simpa using LSeriesSummable_zeta_iff.mpr hs)
+  have hmul :
+      LSeries (fun _ : ℕ ↦ (1 : ℂ)) s *
+        LSeries (fun n ↦ τ (n ^ 2)) s =
+      LSeries (fun n ↦ (τ n) ^ 2) s := by
+    simpa using
+      (LSeries_mul' h1 hτ)
+  simpa [hzeta] using hmul
 /--
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
