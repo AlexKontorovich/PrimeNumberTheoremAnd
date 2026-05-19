@@ -1858,23 +1858,22 @@ private noncomputable def bklnw_M_row14 : ℝ := table_12_row_M ⟨13, by decide
 local macro "eval_table_12" : tactic =>
   `(tactic| (
     simp only [
-      bklnw_b_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
-      bklnw_b_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
-      table_12_row_b, table_12_row_c, table_12_row_C, table_12_row_M,
+      bklnw_b_row6, bklnw_Cb_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
+      bklnw_b_row14, bklnw_Cb_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
+      table_12_row_b, table_12_row_Cb, table_12_row_c, table_12_row_C, table_12_row_M,
       table_12, List.get
     ]
-    try norm_num
   ))
 
-private lemma bklnw_b_row6_eq : bklnw_b_row6 = log (5 * 10 ^ 10) := by eval_table_12
-private lemma bklnw_c_row6_eq : bklnw_c_row6 = 0.88 := by eval_table_12
-private lemma bklnw_C_row6_eq : bklnw_C_row6 = 0.86 := by eval_table_12
-private lemma bklnw_M_row6_eq : bklnw_M_row6 = 32 * 10 ^ 12 := by eval_table_12
-
-private lemma bklnw_b_row14_eq : bklnw_b_row14 = log (32 * 10 ^ 12) := by eval_table_12
-private lemma bklnw_c_row14_eq : bklnw_c_row14 = 0.94 := by eval_table_12
-private lemma bklnw_C_row14_eq : bklnw_C_row14 = 0.94 := by eval_table_12
-private lemma bklnw_M_row14_eq : bklnw_M_row14 = 10 ^ 19 := by eval_table_12
+local macro "eval_table_12_at_all" : tactic =>
+  `(tactic| (
+    simp only [
+      bklnw_b_row6, bklnw_Cb_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
+      bklnw_b_row14, bklnw_Cb_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
+      table_12_row_b, table_12_row_Cb, table_12_row_c, table_12_row_C, table_12_row_M,
+      table_12, List.get
+    ] at *
+  ))
 
 private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
@@ -1904,9 +1903,7 @@ lemma C_bk_le_Cb_of_M_eq_five_mul_ten_pow_ten (b c C M : ℝ) (Cb : ℕ → ℝ)
   C_bk bklnw_b_row6 bklnw_c_row6 bklnw_C_row6 RS_prime.c₀ k ≤ Cb k := by
   have h_row6_mem : (bklnw_b_row6, bklnw_Cb_row6 1, bklnw_Cb_row6 2, bklnw_Cb_row6 3, bklnw_Cb_row6 4, bklnw_Cb_row6 5, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6) ∈ table_12 := by
     simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
-    unfold bklnw_b_row6 bklnw_Cb_row6 bklnw_c_row6 bklnw_C_row6 bklnw_M_row6 table_12_row_b table_12_row_Cb table_12_row_c table_12_row_C table_12_row_M
-    simp only [table_12, List.get]
-    repeat (first | (left; constructor <;> (first | rfl | norm_num); done) | right)
+    eval_table_12; norm_num
   have h_ver := bklnw_table_12_verification bklnw_b_row6 bklnw_c_row6 bklnw_C_row6 bklnw_M_row6 bklnw_Cb_row6 h_row6_mem k hk
   exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).1 hM5)
 
@@ -1916,9 +1913,7 @@ private lemma C_bk_le_Cb_of_M_ne_ten_pow_nineteen (b c C M : ℝ) (Cb : ℕ → 
     C_bk bklnw_b_row14 bklnw_c_row14 bklnw_C_row14 RS_prime.c₀ k ≤ Cb k := by
   have h_row14_mem : (bklnw_b_row14, bklnw_Cb_row14 1, bklnw_Cb_row14 2, bklnw_Cb_row14 3, bklnw_Cb_row14 4, bklnw_Cb_row14 5, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14) ∈ table_12 := by
     simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
-    unfold bklnw_b_row14 bklnw_Cb_row14 bklnw_c_row14 bklnw_C_row14 bklnw_M_row14 table_12_row_b table_12_row_Cb table_12_row_c table_12_row_C table_12_row_M
-    simp only [table_12, List.get]
-    repeat (first | (left; constructor <;> (first | rfl | norm_num); done) | right)
+    eval_table_12; norm_num
   have h_ver := bklnw_table_12_verification bklnw_b_row14 bklnw_c_row14 bklnw_C_row14 bklnw_M_row14 bklnw_Cb_row14 h_row14_mem k hk
   exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).2 hM)
 
@@ -1958,14 +1953,13 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
     · by_cases hM5 : M = 5 * 10 ^ 10
       · by_cases hx32 : x ≤ bklnw_M_row6
         · have hx_in_Icc6 : x ∈ Set.Icc (exp bklnw_b_row6) bklnw_M_row6 := by
-            rw [bklnw_b_row6_eq, bklnw_M_row6_eq] at *
+            eval_table_12_at_all
             rw [Real.exp_log (by norm_num)]; exact ⟨by linarith, hx32⟩
           have h_cor_9_1_row6 := bklnw_corollary_9_1 k bklnw_M_row6 bklnw_c_row6 bklnw_C_row6 bklnw_b_row6
-            (by rw [bklnw_M_row6_eq, bklnw_c_row6_eq, bklnw_C_row6_eq]
-                simp [table_from_buthe])
-            (by rw [bklnw_M_row6_eq, bklnw_b_row6_eq]
+            (by eval_table_12; simp [table_from_buthe]; norm_num)
+            (by eval_table_12
                 rw [Real.exp_log (by norm_num)]
-                simp only [max_le_iff]
+                try simp only [max_le_iff]
                 refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
                 grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
           have hx_pos : (0 : ℝ) < x := by linarith
@@ -1975,15 +1969,14 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
             (by linarith [h_cor_9_1_row6 x hx_in_Icc6])
             (C_bk_le_Cb_of_M_eq_five_mul_ten_pow_ten b c C M Cb h k hk hM5)
         · have hx_in_Icc14 : x ∈ Set.Icc (exp bklnw_b_row14) bklnw_M_row14 := by
-            rw [bklnw_b_row14_eq, bklnw_M_row6_eq, bklnw_M_row14_eq] at *
+            eval_table_12_at_all
             rw [Real.exp_log (by norm_num)]
-            exact ⟨(not_le.mp hx32).le, hx.2.le⟩
+            exact ⟨(not_le.mp hx32).le, by linarith [hx.2]⟩
           have h_cor_9_1_row14 := bklnw_corollary_9_1 k bklnw_M_row14 bklnw_c_row14 bklnw_C_row14 bklnw_b_row14
-            (by rw [bklnw_M_row14_eq, bklnw_c_row14_eq, bklnw_C_row14_eq]
-                simp [table_from_buthe])
-            (by rw [bklnw_M_row14_eq, bklnw_b_row14_eq]
+            (by eval_table_12; simp [table_from_buthe]; norm_num)
+            (by eval_table_12
                 rw [Real.exp_log (by norm_num)]
-                simp only [max_le_iff]
+                try simp only [max_le_iff]
                 refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
                 grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
           have hx_pos : (0 : ℝ) < x := by linarith
@@ -1993,22 +1986,21 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
             (by linarith [h_cor_9_1_row14 x hx_in_Icc14])
             (C_bk_le_Cb_of_M_ne_ten_pow_nineteen b c C M Cb h k hk (by rw [hM5]; norm_num))
       · have h_M_eq : M = bklnw_M_row6 := by
-          rw [bklnw_M_row6_eq]
+          eval_table_12
           rcases h_M_vals with rfl | rfl | rfl
           · exact absurd rfl hM5
-          · rfl
+          · norm_num
           · exact absurd rfl hM
         have hx_gt32 : x > bklnw_M_row6 := h_M_eq ▸ hx_gt
         have hx_in_Icc14 : x ∈ Set.Icc (exp bklnw_b_row14) bklnw_M_row14 := by
-          rw [bklnw_b_row14_eq, bklnw_M_row6_eq, bklnw_M_row14_eq] at *
+          eval_table_12_at_all
           rw [Real.exp_log (by norm_num)]
-          exact ⟨hx_gt32.le, hx.2.le⟩
+          exact ⟨hx_gt32.le, by linarith [hx.2]⟩
         have h_cor_9_1_row14 := bklnw_corollary_9_1 k bklnw_M_row14 bklnw_c_row14 bklnw_C_row14 bklnw_b_row14
-          (by rw [bklnw_M_row14_eq, bklnw_c_row14_eq, bklnw_C_row14_eq]
-              simp [table_from_buthe])
-          (by rw [bklnw_M_row14_eq, bklnw_b_row14_eq]
+          (by eval_table_12; simp [table_from_buthe]; norm_num)
+          (by eval_table_12
               rw [Real.exp_log (by norm_num)]
-              simp only [max_le_iff]
+              try simp only [max_le_iff]
               refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
               grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
         have hx_pos : (0 : ℝ) < x := by linarith
