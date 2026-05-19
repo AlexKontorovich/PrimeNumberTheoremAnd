@@ -1869,11 +1869,19 @@ private lemma table_12_M_eq_32e12 (b c C M : ℝ) (Cb : ℕ → ℝ)
     try contradiction
     try (revert hM5; norm_num)
     try (revert hM; norm_num)
-    try rfl
 
 private lemma table_12_b_pos (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : 0 < b :=
   (table_12_basic_props b c C M Cb h).2.2.2.2
+
+-- For k ∈ {1,...,5}, pointwise bounds at each index suffice to pick the bound at k
+private lemma Cb_ref_le_dispatch (Cb Cb_ref : ℕ → ℝ)
+    (h1 : Cb_ref 1 ≤ Cb 1) (h2 : Cb_ref 2 ≤ Cb 2) (h3 : Cb_ref 3 ≤ Cb 3)
+    (h4 : Cb_ref 4 ≤ Cb 4) (h5 : Cb_ref 5 ≤ Cb 5)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) : Cb_ref k ≤ Cb k := by
+  have : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+    simp only [Finset.mem_Icc] at hk; omega
+  rcases this with rfl | rfl | rfl | rfl | rfl <;> assumption
 
 lemma bklnw_case1_helper (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM5 : M = 5 * 10 ^ 10) :
   C_bk (log (5 * 10 ^ 10)) 0.88 0.86 RS_prime.c₀ k ≤ Cb k := by
@@ -1913,13 +1921,8 @@ lemma bklnw_case1_helper (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2,
       try contradiction
       try (revert hM5; norm_num)
     all_goals
-      have hk_cases : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
-        simp only [Finset.mem_Icc] at hk
-        omega
-      rcases hk_cases with rfl | rfl | rfl | rfl | rfl
-      all_goals
-        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_6]
-        norm_num
+      refine Cb_ref_le_dispatch Cb Cb_6 ?_ ?_ ?_ ?_ ?_ k hk <;>
+        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_6] <;> norm_num
   exact le_trans h_ver h_Cb_le'
 
 -- Rows in table_12 with M ≠ 10^19 all have Cb values ≥ row 14's Cb values
@@ -1963,13 +1966,8 @@ private lemma bklnw_row14_le (b c C M : ℝ) (Cb : ℕ → ℝ)
       try contradiction
       try (revert hM; norm_num)
     all_goals
-      have hk_cases : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
-        simp only [Finset.mem_Icc] at hk
-        omega
-      rcases hk_cases with rfl | rfl | rfl | rfl | rfl
-      all_goals
-        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_14]
-        norm_num
+      refine Cb_ref_le_dispatch Cb Cb_14 ?_ ?_ ?_ ?_ ?_ k hk <;>
+        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_14] <;> norm_num
   exact le_trans h_ver h_Cb_le'
 
 @[blueprint
