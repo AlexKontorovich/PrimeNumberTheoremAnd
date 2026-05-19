@@ -1855,23 +1855,26 @@ private noncomputable def bklnw_c_row14 : ℝ := table_12_row_c ⟨13, by decide
 private noncomputable def bklnw_C_row14 : ℝ := table_12_row_C ⟨13, by decide⟩
 private noncomputable def bklnw_M_row14 : ℝ := table_12_row_M ⟨13, by decide⟩
 
-private lemma bklnw_b_row6_eq : bklnw_b_row6 = log (5 * 10 ^ 10) := by
-  unfold bklnw_b_row6 table_12_row_b; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_c_row6_eq : bklnw_c_row6 = 0.88 := by
-  unfold bklnw_c_row6 table_12_row_c; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_C_row6_eq : bklnw_C_row6 = 0.86 := by
-  unfold bklnw_C_row6 table_12_row_C; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_M_row6_eq : bklnw_M_row6 = 32 * 10 ^ 12 := by
-  unfold bklnw_M_row6 table_12_row_M; simp only [table_12, List.get]; try norm_num
+local macro "eval_table_12" : tactic =>
+  `(tactic| (
+    simp only [
+      bklnw_b_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
+      bklnw_b_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
+      table_12_row_b, table_12_row_c, table_12_row_C, table_12_row_M,
+      table_12, List.get
+    ]
+    try norm_num
+  ))
 
-private lemma bklnw_b_row14_eq : bklnw_b_row14 = log (32 * 10 ^ 12) := by
-  unfold bklnw_b_row14 table_12_row_b; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_c_row14_eq : bklnw_c_row14 = 0.94 := by
-  unfold bklnw_c_row14 table_12_row_c; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_C_row14_eq : bklnw_C_row14 = 0.94 := by
-  unfold bklnw_C_row14 table_12_row_C; simp only [table_12, List.get]; try norm_num
-private lemma bklnw_M_row14_eq : bklnw_M_row14 = 10 ^ 19 := by
-  unfold bklnw_M_row14 table_12_row_M; simp only [table_12, List.get]; try norm_num
+private lemma bklnw_b_row6_eq : bklnw_b_row6 = log (5 * 10 ^ 10) := by eval_table_12
+private lemma bklnw_c_row6_eq : bklnw_c_row6 = 0.88 := by eval_table_12
+private lemma bklnw_C_row6_eq : bklnw_C_row6 = 0.86 := by eval_table_12
+private lemma bklnw_M_row6_eq : bklnw_M_row6 = 32 * 10 ^ 12 := by eval_table_12
+
+private lemma bklnw_b_row14_eq : bklnw_b_row14 = log (32 * 10 ^ 12) := by eval_table_12
+private lemma bklnw_c_row14_eq : bklnw_c_row14 = 0.94 := by eval_table_12
+private lemma bklnw_C_row14_eq : bklnw_C_row14 = 0.94 := by eval_table_12
+private lemma bklnw_M_row14_eq : bklnw_M_row14 = 10 ^ 19 := by eval_table_12
 
 private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
