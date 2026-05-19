@@ -754,83 +754,83 @@ theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth_prime' k) ≤ Real.
   (statement := /--
   We have for $k \geq 198$,
   \[
-  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  \vartheta(p_k) \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}).
   \]
   -/)
   (latexEnv := "theorem")]
 theorem massias_robin_thm_Bv {k : ℕ} (hk : k ≥ 198) :
-  θ (nth_prime' k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_11a"
   (title := "Dusart Proposition 5.11")
   (statement := /--
   We have for $p_k \geq 10^{11}$,
   \[
-  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.050735}{\log k}.
+  \vartheta(p_k) \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.050735}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_11a {k : ℕ} (hk : nth_prime' k ≥ 10 ^ 11) :
-  θ (nth_prime' k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_11b"
   (title := "Dusart Proposition 5.11")
   (statement := /--
   We have for $p_k \geq 10^{15}$,
   \[
-  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.04}{\log k}.
+  \vartheta(p_k) \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.04}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_11b {k : ℕ} (hk : nth_prime' k ≥ 10 ^ 15) :
-  θ (nth_prime' k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_12"
   (title := "Dusart Proposition 5.12")
   (statement := /--
   We have for $k \geq 781$,
   \[
-  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k} - \frac{0.782}{\log^2 k}.
+  \vartheta(p_k) \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k} - \frac{0.782}{\log^2 k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_12 {k : ℕ} (hk : k ≥ 781) :
-  θ (nth_prime' k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2 := by sorry
+  θ (nth_prime' k) ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2) := by sorry
 
 @[blueprint "Dusart_lemma_5_14"
   (title := "Dusart Lemma 5.14")
   (statement := /--
   We have for $k \geq 178974$,
   \[
-  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 1.95}{\log k}.
+  p_k \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 1.95}{\log k}).
   \]
   -/)
   (latexEnv := "lemma")]
 theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
-  nth_prime' k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k) := by sorry
+  nth_prime' k ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_15"
   (title := "Dusart Proposition 5.15")
   (statement := /--
   We have for $k \geq 688383$,
   \[
-  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  p_k \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
-  nth_prime' k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  nth_prime' k ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_16"
   (title := "Dusart Proposition 5.16")
   (statement := /--
   We have for $k \geq 3$,
   \[
-  p_k \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.1}{\log k}.
+  p_k \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.1}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_16 {k : ℕ} (hk : k ≥ 3) :
-  nth_prime' k ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k) := by sorry
+  nth_prime' k ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k)) := by sorry
 
 end Dusart
