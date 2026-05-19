@@ -1806,9 +1806,9 @@ private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
   all_goals try (rw [Real.le_log_iff_exp_le (by norm_num)]
                  grw [← exp_one_rpow 10, Real.exp_one_lt_d9])
   all_goals try (apply Real.log_pos; norm_num)
-  all_goals try exact Or.inl (by norm_num)
-  all_goals try exact Or.inr (Or.inl (by norm_num))
-  all_goals try exact Or.inr (Or.inr (by norm_num))
+  -- all_goals try (apply Or.inl; simp; done)
+  -- all_goals try (apply Or.inr; apply Or.inl; simp; done)
+  -- all_goals try (apply Or.inr; apply Or.inr; simp; done)
   all_goals try norm_num
 
 private lemma table_12_mem_buthe (b c C M : ℝ) (Cb : ℕ → ℝ)
