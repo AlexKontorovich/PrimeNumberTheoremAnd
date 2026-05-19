@@ -291,7 +291,7 @@ theorem theorem_c (x : ℝ) (hx : x ≥ 3594641) :
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x > 1) :
     |θ x - x| ≤ 515 * x / (log x) ^ 3 := by
-  by_cases h2 : x ≥ 2
+  by_cases! h2 : x ≥ 2
   · have hmem : (3, (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2 := by
       unfold Dusart.Table_4_2; simp [List.mem_cons]
     have hEθ := Dusart.theorem_4_2 hmem (show x ≥ 2 from h2)
@@ -303,8 +303,7 @@ theorem theorem_d (x : ℝ) (hx : x > 1) :
             rw [le_div_iff₀ hlog3_pos]; linarith
       _ ≤ 515 * x / (log x) ^ 3 := by
           apply div_le_div_of_nonneg_right _ hlog3_pos.le; nlinarith
-  · push_neg at h2
-    rw [Chebyshev.theta_eq_zero_of_lt_two h2, zero_sub, abs_neg, abs_of_pos (by linarith)]
+  · rw [Chebyshev.theta_eq_zero_of_lt_two h2, zero_sub, abs_neg, abs_of_pos (by linarith)]
     have hlog_pos : (0 : ℝ) < log x := log_pos hx
     rw [le_div_iff₀ (pow_pos hlog_pos 3)]
     have : (log x) ^ 3 ≤ 1 := by
@@ -332,14 +331,13 @@ theorem theta_improv_1 (x : ℝ) (hx : x > 1) :
     |θ x - x| ≤ 20.83 * x / (log x) ^ 3 := by
   have hx_pos : x > 0 := by linarith
   have hlog_pos : log x > 0 := log_pos hx
-  by_cases hx2 : x ≥ 2
+  by_cases! hx2 : x ≥ 2
   · have hEθ := Dusart.theorem_4_2
       (by simp [Dusart.Table_4_2] : ((3 : ℕ), (20.83 : ℝ), (2 : ℝ)) ∈ Dusart.Table_4_2) hx2
     simp only [Eθ] at hEθ
     rw [div_le_div_iff₀ hx_pos (pow_pos hlog_pos 3)] at hEθ
     rwa [le_div_iff₀ (pow_pos hlog_pos 3)]
-  · push_neg at hx2
-    have hlog2 : log 2 < 1 := by
+  · have hlog2 : log 2 < 1 := by
       linarith [log_lt_sub_one_of_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (2:ℝ) ≠ 1)]
     have hlog_lt1 : log x < 1 := lt_trans (log_lt_log hx_pos hx2) hlog2
     have hlog3_lt1 : (log x) ^ 3 < 1 := by
@@ -774,7 +772,7 @@ blueprint_comment /-- Some results from \cite{rosser1938} -/
   (latexEnv := "theorem")]
 theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
     nth_prime' n > n * log n := by
-  by_cases h : n ≤ 31
+  by_cases! h : n ≤ 31
   · have key : ∀ (n₀ m : ℕ), Nat.count Nat.Prime m ≤ n₀ - 1 → (n₀ : ℝ) * log n₀ < m →
         (nth_prime' n₀ : ℝ) > n₀ * log n₀ :=
       fun n₀ m hc hb => hb.trans_le (by exact_mod_cast RS_prime_helper.count_prime_le_imp_le_nth m (n₀ - 1) hc)
@@ -809,8 +807,7 @@ theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
     · exact key 29 109 count_prime_109_le_28 (by interval_auto)
     · exact key 30 113 count_prime_113_le_29 (by interval_auto)
     · exact key 31 127 count_prime_127_le_30 (by interval_auto)
-  · push_neg at h
-    have h_pn_ge_succ : nth_prime' n ≥ n + 1 := by
+  · have h_pn_ge_succ : nth_prime' n ≥ n + 1 := by
       have : ∀ n ≥ 1, nth_prime' n ≥ n + 1 := by
         intro n hn
         induction n, hn using Nat.le_induction with
