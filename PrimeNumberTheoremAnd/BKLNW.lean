@@ -1772,7 +1772,6 @@ theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
   sorry
 
--- Bundles six basic properties of table_12 rows, avoiding separate 26-case dispatches
 private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
     ((100 : ℝ), M, c, C) ∈ table_from_buthe ∧
@@ -1806,12 +1805,8 @@ private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
   all_goals try (rw [Real.le_log_iff_exp_le (by norm_num)]
                  grw [← exp_one_rpow 10, Real.exp_one_lt_d9])
   all_goals try (apply Real.log_pos; norm_num)
-  -- all_goals try (apply Or.inl; simp; done)
-  -- all_goals try (apply Or.inr; apply Or.inl; simp; done)
-  -- all_goals try (apply Or.inr; apply Or.inr; simp; done)
   all_goals try norm_num
 
--- Transfers a C_bk analytical bound to the tabulated Cb bound in the final inequality
 private lemma theta_sub_ge_of_cbk_le (x cbk cb : ℝ) (k : ℕ)
     (hx_pos : 0 < x) (h_log_pos : 0 < log x ^ k)
     (h_theta : θ x - x ≥ -(cbk * x / log x ^ k))
@@ -1823,15 +1818,12 @@ private lemma theta_sub_ge_of_cbk_le (x cbk cb : ℝ) (k : ℕ)
         apply div_le_div_of_nonneg_right _ (le_of_lt h_log_pos)
         exact mul_le_mul_of_nonneg_right (neg_le_neg h_le) hx_pos.le
 
--- For k ∈ {1,...,5}, we have 2k ≤ 10, so exp(2k) ≤ exp(10)
 private lemma exp_two_k_le_exp_ten (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
     exp (2 * (k : ℝ)) ≤ exp 10 := by
   apply Real.exp_le_exp.mpr
   have : (k : ℝ) ≤ 5 := by exact_mod_cast (Finset.mem_Icc.mp hk).2
   linarith
 
-
--- For k ∈ {1,...,5}, pointwise bounds at each index suffice to pick the bound at k
 private lemma Cb_ref_le_dispatch (Cb Cb_ref : ℕ → ℝ)
     (h1 : Cb_ref 1 ≤ Cb 1) (h2 : Cb_ref 2 ≤ Cb 2) (h3 : Cb_ref 3 ≤ Cb 3)
     (h4 : Cb_ref 4 ≤ Cb 4) (h5 : Cb_ref 5 ≤ Cb 5)
@@ -1854,8 +1846,6 @@ private def bklnw_Cb_row14 : ℕ → ℝ := fun j ↦
   else if j = 4 then 3.08510e-1
   else 9.59360e0
 
--- Bundles the two Cb bounds needed by bklnw_case1_helper and bklnw_row14_le,
--- avoiding two separate 26-case dispatches on table_12.
 private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
     (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
@@ -1879,17 +1869,14 @@ private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     h_false
   all_goals try contradiction
   all_goals try refine ⟨?_, ?_⟩
-  -- Introduce and simplify implication hypotheses for all goals
   all_goals try (
     intro hM
     norm_num at hM
   )
-  -- Solve non-vacuous first component goals (row 6)
   all_goals try (
     refine Cb_ref_le_dispatch Cb bklnw_Cb_row6 ?_ ?_ ?_ ?_ ?_ k hk <;>
       simp only [hCb1, hCb2, hCb3, hCb4, hCb5, bklnw_Cb_row6] <;> norm_num
   )
-  -- Solve non-vacuous second component goals (row 14)
   all_goals try (
     refine Cb_ref_le_dispatch Cb bklnw_Cb_row14 ?_ ?_ ?_ ?_ ?_ k hk <;>
       simp only [hCb1, hCb2, hCb3, hCb4, hCb5, bklnw_Cb_row14] <;> norm_num
@@ -1906,7 +1893,6 @@ lemma bklnw_case1_helper (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2,
   have h_ver := bklnw_table_12_verification (log (5 * 10 ^ 10)) 0.88 0.86 (32 * 10 ^ 12) bklnw_Cb_row6 h_row6_mem k hk
   exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).1 hM5)
 
--- Rows in table_12 with M ≠ 10^19 all have Cb values ≥ row 14's Cb values
 private lemma bklnw_row14_le (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
     (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM : M ≠ 10 ^ 19) :
@@ -1955,8 +1941,7 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
     · subst hM; linarith [hx.2, hx_gt]
     · by_cases hM5 : M = 5 * 10 ^ 10
       · by_cases hx32 : x ≤ 32 * 10 ^ 12
-        · -- Case 1: M = 5e10, x ∈ (5e10, 32e12]
-          have hx_in_Icc6 : x ∈ Set.Icc (exp (log (5 * 10 ^ 10))) (32 * 10 ^ 12) := by
+        · have hx_in_Icc6 : x ∈ Set.Icc (exp (log (5 * 10 ^ 10))) (32 * 10 ^ 12) := by
             rw [Real.exp_log (by norm_num)]; exact ⟨by linarith, hx32⟩
           have h_cor_9_1_row6 := bklnw_corollary_9_1 k (32 * 10 ^ 12) 0.88 0.86 (log (5 * 10 ^ 10))
             (by simp [table_from_buthe]) (by
@@ -1970,8 +1955,7 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
           exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
             (by linarith [h_cor_9_1_row6 x hx_in_Icc6])
             (bklnw_case1_helper b c C M Cb h k hk hM5)
-        · -- Case 2: M = 5e10, x ∈ (32e12, 10^19)
-          have hx_in_Icc14 : x ∈ Set.Icc (exp (log (32 * 10 ^ 12))) (10 ^ 19) := by
+        · have hx_in_Icc14 : x ∈ Set.Icc (exp (log (32 * 10 ^ 12))) (10 ^ 19) := by
             rw [Real.exp_log (by norm_num)]
             exact ⟨(not_le.mp hx32).le, hx.2.le⟩
           have h_cor_9_1_row14 := bklnw_corollary_9_1 k (10 ^ 19) 0.94 0.94 (log (32 * 10 ^ 12))
@@ -1986,8 +1970,7 @@ theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b,
           exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
             (by linarith [h_cor_9_1_row14 x hx_in_Icc14])
             (bklnw_row14_le b c C M Cb h k hk (by rw [hM5]; norm_num))
-      · -- Case 3: M = 32e12 (since M ≠ 10^19 and M ≠ 5e10)
-        have h_M_eq : M = 32 * 10 ^ 12 := by
+      · have h_M_eq : M = 32 * 10 ^ 12 := by
           rcases h_M_vals with rfl | rfl | rfl
           · exact absurd rfl hM5
           · rfl
