@@ -1778,23 +1778,9 @@ private lemma mem_table_from_buthe_and_bounds_of_mem_table_12 (b c C M : ℝ) (C
     exp b ≤ M ∧ (10000 : ℝ) ≤ exp b ∧ (10 : ℝ) ≤ b ∧ 0 < b ∧
     (M = 5 * 10 ^ 10 ∨ M = 32 * 10 ^ 12 ∨ M = 10 ^ 19) := by
   simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
-  rcases h with
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    h
-  -- union of all_goals closers from the six individual lemmas
+  casesm* _ ∨ _
   all_goals try contradiction
+  all_goals try rcases h with ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩
   all_goals try refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   all_goals try simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
   all_goals try simp only [Real.exp_log (show (0 : ℝ) < 5e10 by norm_num),
@@ -1832,19 +1818,18 @@ private lemma le_of_le_of_mem_Icc_one_five (Cb Cb_ref : ℕ → ℝ)
     simp only [Finset.mem_Icc] at hk; omega
   rcases this with rfl | rfl | rfl | rfl | rfl <;> assumption
 
-private def bklnw_Cb_row6 : ℕ → ℝ := fun j ↦
-  if j = 1 then 2.01560e-4
-  else if j = 2 then 4.96540e-3
-  else if j = 3 then 1.22330e-1
-  else if j = 4 then 3.01350e0
-  else 7.42380e1
+noncomputable def table_12_row_Cb (row_idx : Fin BKLNW.table_12.length) (k : ℕ) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (_, Cb1, Cb2, Cb3, Cb4, Cb5, _, _, _) =>
+    if k = 1 then Cb1
+    else if k = 2 then Cb2
+    else if k = 3 then Cb3
+    else if k = 4 then Cb4
+    else Cb5
 
-private def bklnw_Cb_row14 : ℕ → ℝ := fun j ↦
-  if j = 1 then 1.02600e-5
-  else if j = 2 then 3.19040e-4
-  else if j = 3 then 9.92090e-3
-  else if j = 4 then 3.08510e-1
-  else 9.59360e0
+private noncomputable def bklnw_Cb_row6 (k : ℕ) : ℝ := table_12_row_Cb ⟨5, by decide⟩ k
+
+private noncomputable def bklnw_Cb_row14 (k : ℕ) : ℝ := table_12_row_Cb ⟨13, by decide⟩ k
 
 private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
@@ -1852,44 +1837,31 @@ private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
     (M = 5 * 10 ^ 10 → bklnw_Cb_row6 k ≤ Cb k) ∧
     (M ≠ 10 ^ 19 → bklnw_Cb_row14 k ≤ Cb k) := by
   simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
-  rcases h with
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
-    h_false
+  casesm* _ ∨ _
   all_goals try contradiction
+  all_goals try rcases h with ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩
   all_goals try refine ⟨?_, ?_⟩
   all_goals try (
     intro hM
     norm_num at hM
+    try contradiction
   )
   all_goals try (
     refine le_of_le_of_mem_Icc_one_five Cb bklnw_Cb_row6 ?_ ?_ ?_ ?_ ?_ k hk <;>
-      simp only [hCb1, hCb2, hCb3, hCb4, hCb5, bklnw_Cb_row6] <;> norm_num
+      (unfold bklnw_Cb_row6 table_12_row_Cb; simp only [table_12, List.get, hCb1, hCb2, hCb3, hCb4, hCb5]; norm_num)
   )
   all_goals try (
     refine le_of_le_of_mem_Icc_one_five Cb bklnw_Cb_row14 ?_ ?_ ?_ ?_ ?_ k hk <;>
-      simp only [hCb1, hCb2, hCb3, hCb4, hCb5, bklnw_Cb_row14] <;> norm_num
+      (unfold bklnw_Cb_row14 table_12_row_Cb; simp only [table_12, List.get, hCb1, hCb2, hCb3, hCb4, hCb5]; norm_num)
   )
 
 lemma C_bk_le_Cb_of_M_eq_five_mul_ten_pow_ten (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM5 : M = 5 * 10 ^ 10) :
   C_bk (log (5 * 10 ^ 10)) 0.88 0.86 RS_prime.c₀ k ≤ Cb k := by
   have h_row6_mem : (log (5 * 10 ^ 10), bklnw_Cb_row6 1, bklnw_Cb_row6 2, bklnw_Cb_row6 3, bklnw_Cb_row6 4, bklnw_Cb_row6 5, 0.88, 0.86, 32 * 10 ^ 12) ∈ table_12 := by
     simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
-    right; right; right; right; right
-    left
-    simp [bklnw_Cb_row6]
-    constructor <;> norm_num
+    unfold bklnw_Cb_row6 table_12_row_Cb
+    simp only [table_12, List.get]
+    repeat (first | (left; constructor <;> (first | rfl | norm_num); done) | right)
   have h_ver := bklnw_table_12_verification (log (5 * 10 ^ 10)) 0.88 0.86 (32 * 10 ^ 12) bklnw_Cb_row6 h_row6_mem k hk
   exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).1 hM5)
 
@@ -1899,10 +1871,9 @@ private lemma C_bk_le_Cb_of_M_ne_ten_pow_nineteen (b c C M : ℝ) (Cb : ℕ → 
     C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k ≤ Cb k := by
   have h_row14_mem : (log (32 * 10 ^ 12), bklnw_Cb_row14 1, bklnw_Cb_row14 2, bklnw_Cb_row14 3, bklnw_Cb_row14 4, bklnw_Cb_row14 5, 0.94, 0.94, 10 ^ 19) ∈ table_12 := by
     simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
-    right; right; right; right; right; right; right; right; right; right; right; right; right
-    left
-    simp [bklnw_Cb_row14]
-    constructor <;> norm_num
+    unfold bklnw_Cb_row14 table_12_row_Cb
+    simp only [table_12, List.get]
+    repeat (first | (left; constructor <;> (first | rfl | norm_num); done) | right)
   have h_ver := bklnw_table_12_verification (log (32 * 10 ^ 12)) 0.94 0.94 (10 ^ 19) bklnw_Cb_row14 h_row14_mem k hk
   exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).2 hM)
 
