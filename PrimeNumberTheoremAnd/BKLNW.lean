@@ -1772,15 +1772,396 @@ theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
   sorry
 
+-- Transfers a C_bk analytical bound to the tabulated Cb bound in the final inequality
+private lemma theta_sub_ge_of_cbk_le (x cbk cb : ℝ) (k : ℕ)
+    (hx_pos : 0 < x) (h_log_pos : 0 < log x ^ k)
+    (h_theta : θ x - x ≥ -(cbk * x / log x ^ k))
+    (h_le : cbk ≤ cb) :
+    θ x - x ≥ -cb * x / log x ^ k :=
+  calc θ x - x ≥ -(cbk * x / log x ^ k) := h_theta
+    _ = -cbk * x / log x ^ k := by ring
+    _ ≥ -cb * x / log x ^ k := by
+        apply div_le_div_of_nonneg_right _ (le_of_lt h_log_pos)
+        exact mul_le_mul_of_nonneg_right (neg_le_neg h_le) hx_pos.le
+
+-- For k ∈ {1,...,5}, we have 2k ≤ 10, so exp(2k) ≤ exp(10)
+private lemma exp_two_k_le_exp_ten (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
+    exp (2 * (k : ℝ)) ≤ exp 10 := by
+  apply Real.exp_le_exp.mpr
+  have : (k : ℝ) ≤ 5 := by exact_mod_cast (Finset.mem_Icc.mp hk).2
+  linarith
+
+-- Every b-value in table_12 is positive (smallest is log(5e10) ≈ 24.6)
+private lemma table_12_b_pos (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : 0 < b := by
+  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  rcases h with
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+    h
+  all_goals
+    try contradiction
+    try (apply Real.log_pos; norm_num)
+    try norm_num
+
+lemma bklnw_case1_helper (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM5 : M = 5 * 10 ^ 10) :
+  C_bk (log (5 * 10 ^ 10)) 0.88 0.86 RS_prime.c₀ k ≤ Cb k := by
+  let Cb_6 : ℕ → ℝ := fun j ↦
+    if j = 1 then 2.01560e-4
+    else if j = 2 then 4.96540e-3
+    else if j = 3 then 1.22330e-1
+    else if j = 4 then 3.01350e0
+    else 7.42380e1
+  have h_row6_mem : (log (5 * 10 ^ 10), Cb_6 1, Cb_6 2, Cb_6 3, Cb_6 4, Cb_6 5, 0.88, 0.86, 32 * 10 ^ 12) ∈ table_12 := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+    right; right; right; right; right
+    left
+    dsimp [Cb_6]
+    simp
+    constructor <;> norm_num
+  have h_ver := bklnw_table_12_verification (log (5 * 10 ^ 10)) 0.88 0.86 (32 * 10 ^ 12) Cb_6 h_row6_mem k hk
+  have h_Cb_le' : Cb_6 k ≤ Cb k := by
+    have h_simp := h
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h_simp
+    rcases h_simp with
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      h_false
+    all_goals
+      try contradiction
+      try (revert hM5; norm_num)
+    all_goals
+      have hk_cases : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+        simp only [Finset.mem_Icc] at hk
+        omega
+      rcases hk_cases with rfl | rfl | rfl | rfl | rfl
+      all_goals
+        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_6]
+        norm_num
+  exact le_trans h_ver h_Cb_le'
+
+-- Rows in table_12 with M ≠ 10^19 all have Cb values ≥ row 14's Cb values
+private lemma bklnw_row14_le (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM : M ≠ 10 ^ 19) :
+    C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k ≤ Cb k := by
+  let Cb_14 : ℕ → ℝ := fun j ↦
+    if j = 1 then 1.02600e-5
+    else if j = 2 then 3.19040e-4
+    else if j = 3 then 9.92090e-3
+    else if j = 4 then 3.08510e-1
+    else 9.59360e0
+  have h_row14_mem : (log (32 * 10 ^ 12), Cb_14 1, Cb_14 2, Cb_14 3, Cb_14 4, Cb_14 5, 0.94, 0.94, 10 ^ 19) ∈ table_12 := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+    right; right; right; right; right; right; right; right; right; right; right; right; right
+    left
+    dsimp [Cb_14]
+    simp
+    constructor <;> norm_num
+  have h_ver := bklnw_table_12_verification (log (32 * 10 ^ 12)) 0.94 0.94 (10 ^ 19) Cb_14 h_row14_mem k hk
+  have h_Cb_le' : Cb_14 k ≤ Cb k := by
+    have h_simp := h
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h_simp
+    rcases h_simp with
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ | ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩ |
+      h_false
+    all_goals
+      try contradiction
+      try (revert hM; norm_num)
+    all_goals
+      have hk_cases : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+        simp only [Finset.mem_Icc] at hk
+        omega
+      rcases hk_cases with rfl | rfl | rfl | rfl | rfl
+      all_goals
+        simp only [hCb1, hCb2, hCb3, hCb4, hCb5, Cb_14]
+        norm_num
+  exact le_trans h_ver h_Cb_le'
+
 @[blueprint
   "bklnw-corollary-9-1-explicit"
   (title := "BKLNW Corollary 9.1 explicit version")
-  (statement := /--  We have $\theta(x) - x > - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
+  (statement := /--  We have $\theta(x) - x \geq - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
   (proof := /-- Insert the above table into the previous corollary. -/)
   (latexEnv := "corollary")]
 theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
-  ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x > - Cb k * x / (log x)^k := by
-  sorry
+  ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x ≥ - Cb k * x / (log x)^k := by
+  -- Step 1. Every row of table_12 satisfies (100, M, c, C) ∈ table_from_buthe.
+  -- Proof: case-split on all 26 rows via `simp [BKLNW.table_12, table_from_buthe]` + `rcases`.
+  have h_buthe : ((100 : ℝ), M, c, C) ∈ table_from_buthe := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+    rcases h with
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨-, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      h
+    all_goals
+      try contradiction
+      try simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+      try norm_num
+  -- Step 2. Every row has e^b ≤ M (the last column is the Buthe range upper bound).
+  -- Proof: same case-split as Step 1; each row has b ≤ log M, so exp b ≤ M.
+  have h_expb_le_M : exp b ≤ M := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+    rcases h with
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+      h
+    all_goals
+      try contradiction
+      try simp only [Real.exp_log (show (0 : ℝ) < 5e10 by norm_num),
+                     Real.exp_log (show (0 : ℝ) < 32e12 by norm_num)]
+      try grw [← exp_one_rpow, Real.exp_one_lt_d9]
+      try norm_num
+  -- Step 3. Every row has max(10000, exp(2k)) ≤ exp(b) for all k ∈ {1,...,5}.
+  -- Proof: each row has b ≥ 20 ≥ 10 ≥ 2k for k ≤ 5, and exp(20) ≥ 10000. Case-split on rows.
+  have h_expb_lb : ∀ k : ℕ, k ∈ Finset.Icc 1 5 →
+      max (10000 : ℝ) (exp (2 * (k : ℝ))) ≤ exp b := by
+    intro k hk
+    simp only [Finset.mem_Icc] at hk
+    have hk5 : (k : ℝ) ≤ 5 := by norm_cast; exact hk.2
+    rw [max_le_iff]
+    constructor
+    · simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+      rcases h with
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        h
+      all_goals
+        try contradiction
+        try simp only [Real.exp_log (show (0 : ℝ) < 5e10 by norm_num),
+                       Real.exp_log (show (0 : ℝ) < 32e12 by norm_num)]
+        try (
+          rw [← exp_one_rpow]
+          refine le_trans ?_ (rpow_le_rpow (by norm_num) exp_one_gt_d9.le (by norm_num))
+        )
+        try norm_num
+    · apply Real.exp_le_exp.mpr
+      simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+      rcases h with
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+        h
+      all_goals
+        try contradiction
+        try (
+          rw [Real.le_log_iff_exp_le (by norm_num)]
+          refine le_trans (exp_two_k_le_exp_ten k (Finset.mem_Icc.mpr hk)) ?_
+          grw [← exp_one_rpow 10, Real.exp_one_lt_d9]
+        )
+        try linarith
+        try norm_num
+  -- Step 4. Apply bklnw_corollary_9_1 to get the ≥ bound on [exp b, M].
+  -- This is the key application: θ x ≥ x - C_bk b c C c₀ k * x / (log x)^k for x ∈ [exp b, M].
+  have h_cor_9_1 : ∀ k : ℕ, k ∈ Finset.Icc 1 5 →
+      ∀ x ∈ Set.Icc (exp b) M,
+      θ x ≥ x - C_bk b c C RS_prime.c₀ k * x / (log x) ^ k := by
+    intro k hk
+    exact bklnw_corollary_9_1 k M c C b h_buthe ⟨h_expb_lb k hk, h_expb_le_M⟩
+  -- Step 5. Table 12 verification: the tabulated values Cb k upper-bound C_bk analytically.
+  -- Proof: apply bklnw_table_12_verification h k hk (which is itself sorry-ed).
+  have h_Cb_le : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k :=
+    bklnw_table_12_verification b c C M Cb h
+  -- Step 6. Split on whether x ≤ M or x > M.
+  -- For x ≤ M, the target x ∈ Set.Icc (exp b) M is satisfied.
+  -- For x > M, either M = 10^19 (which leads to a contradiction since x < 10^19),
+  -- or M < 10^19
+  intro x hx k hk
+  rcases le_or_gt x M with hx_le | hx_gt
+  · have hx_in_Icc : x ∈ Set.Icc (exp b) M := ⟨hx.1, hx_le⟩
+    have hx_pos : (0 : ℝ) < x := (exp_pos b).trans_le hx_in_Icc.1
+    have h_log_pos : (0 : ℝ) < (log x) ^ k := by
+      apply pow_pos
+      have hb_pos : (0 : ℝ) < b := table_12_b_pos b c C M Cb h
+      calc 0 < b := hb_pos
+        _ = log (exp b) := (Real.log_exp b).symm
+        _ ≤ log x := Real.log_le_log (exp_pos b) hx_in_Icc.1
+    have h_theta_ge := h_cor_9_1 k hk x hx_in_Icc
+    have h_cbk_le := h_Cb_le k hk
+    exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos (by linarith [h_theta_ge]) h_cbk_le
+  · by_cases hM : M = 10 ^ 19
+    · subst hM
+      linarith [hx.2, hx_gt]
+    · by_cases hM5 : M = 5 * 10 ^ 10
+      · by_cases hx32 : x ≤ 32 * 10 ^ 12
+        · -- Case 1: M = 5e10, x ∈ (5e10, 32e12]
+          -- We apply bklnw_corollary_9_1 to row 6 (b = log 5e10, M = 32e12).
+          have hx_in_Icc6 : x ∈ Set.Icc (exp (log (5 * 10 ^ 10))) (32 * 10 ^ 12) := by
+            rw [Real.exp_log (by norm_num)]
+            exact ⟨by linarith, hx32⟩
+          have h_cor_9_1_row6 := bklnw_corollary_9_1 k (32 * 10 ^ 12) 0.88 0.86 (log (5 * 10 ^ 10))
+            (by simp [table_from_buthe]) (by
+              rw [Real.exp_log (by norm_num)]
+              simp only [max_le_iff]
+              refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+              grw [← exp_one_rpow 10, Real.exp_one_lt_d9]
+              norm_num)
+          have h_theta_ge_row6 := h_cor_9_1_row6 x hx_in_Icc6
+          have h_theta_ge_rw : θ x - x ≥ - (C_bk (log (5 * 10 ^ 10)) 0.88 0.86 RS_prime.c₀ k * x / log x ^ k) := by linarith [h_theta_ge_row6]
+          have hx_pos : (0 : ℝ) < x := by linarith
+          have h_log_pos : (0 : ℝ) < log x ^ k := by
+            apply pow_pos
+            have : 1 < x := by linarith
+            exact Real.log_pos this
+          have h_const_le : C_bk (log (5 * 10 ^ 10)) 0.88 0.86 RS_prime.c₀ k ≤ Cb k :=
+            bklnw_case1_helper b c C M Cb h k hk hM5
+          exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos h_theta_ge_rw h_const_le
+        · -- Case 2: M = 5e10, x ∈ (32e12, 10^19)
+          -- We apply bklnw_corollary_9_1 to row 14 (b = log 32e12, M = 10^19).
+          have hx_gt32 : x > 32 * 10 ^ 12 := not_le.mp hx32
+          have hx_in_Icc14 : x ∈ Set.Icc (exp (log (32 * 10 ^ 12))) (10 ^ 19) := by
+            rw [Real.exp_log (by norm_num)]
+            exact ⟨hx_gt32.le, hx.2.le⟩
+          have h_cor_9_1_row14 := bklnw_corollary_9_1 k (10 ^ 19) 0.94 0.94 (log (32 * 10 ^ 12))
+            (by simp [table_from_buthe]) (by
+              rw [Real.exp_log (by norm_num)]
+              simp only [max_le_iff]
+              refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+              grw [← exp_one_rpow 10, Real.exp_one_lt_d9]
+              norm_num)
+          have h_theta_ge_row14 := h_cor_9_1_row14 x hx_in_Icc14
+          have h_theta_ge_rw : θ x - x ≥ - (C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k * x / log x ^ k) := by linarith [h_theta_ge_row14]
+          have hx_pos : (0 : ℝ) < x := by linarith
+          have h_log_pos : (0 : ℝ) < log x ^ k := by
+            apply pow_pos
+            have : 1 < x := by linarith
+            exact Real.log_pos this
+          have h_const_le : C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k ≤ Cb k :=
+            bklnw_row14_le b c C M Cb h k hk (by rw [hM5]; norm_num)
+          exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos h_theta_ge_rw h_const_le
+      · -- Case 3: M = 32e12 (since M ≠ 10^19 and M ≠ 5e10)
+        -- We apply bklnw_corollary_9_1 to row 14 (b = log 32e12, M = 10^19).
+        have h_M_eq : M = 32 * 10 ^ 12 := by
+          -- M must be 32e12
+          simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+          rcases h with
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
+            h_false
+          all_goals
+            try contradiction
+            try (revert hM5; norm_num)
+            try (revert hM; norm_num)
+            try rfl
+        have hx_gt32 : x > 32 * 10 ^ 12 := by
+          rw [← h_M_eq]
+          exact hx_gt
+        have hx_in_Icc14 : x ∈ Set.Icc (exp (log (32 * 10 ^ 12))) (10 ^ 19) := by
+          rw [Real.exp_log (by norm_num)]
+          exact ⟨hx_gt32.le, hx.2.le⟩
+        have h_cor_9_1_row14 := bklnw_corollary_9_1 k (10 ^ 19) 0.94 0.94 (log (32 * 10 ^ 12))
+          (by simp [table_from_buthe]) (by
+            rw [Real.exp_log (by norm_num)]
+            simp only [max_le_iff]
+            refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+            grw [← exp_one_rpow 10, Real.exp_one_lt_d9]
+            norm_num)
+        have h_theta_ge_row14 := h_cor_9_1_row14 x hx_in_Icc14
+        have h_theta_ge_rw : θ x - x ≥ - (C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k * x / log x ^ k) := by linarith [h_theta_ge_row14]
+        have hx_pos : (0 : ℝ) < x := by linarith
+        have h_log_pos : (0 : ℝ) < log x ^ k := by
+          apply pow_pos
+          have : 1 < x := by linarith
+          exact Real.log_pos this
+        have h_const_le : C_bk (log (32 * 10 ^ 12)) 0.94 0.94 RS_prime.c₀ k ≤ Cb k :=
+          bklnw_row14_le b c C M Cb h k hk hM
+        exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos h_theta_ge_rw h_const_le
 
 
 blueprint_comment /--
