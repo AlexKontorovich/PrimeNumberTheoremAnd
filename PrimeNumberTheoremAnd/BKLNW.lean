@@ -1772,11 +1772,12 @@ theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
   sorry
 
--- Bundles five basic properties of table_12 rows, avoiding six separate 26-case dispatches
+-- Bundles six basic properties of table_12 rows, avoiding separate 26-case dispatches
 private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
     ((100 : ℝ), M, c, C) ∈ table_from_buthe ∧
-    exp b ≤ M ∧ (10000 : ℝ) ≤ exp b ∧ (10 : ℝ) ≤ b ∧ 0 < b := by
+    exp b ≤ M ∧ (10000 : ℝ) ≤ exp b ∧ (10 : ℝ) ≤ b ∧ 0 < b ∧
+    (M = 5 * 10 ^ 10 ∨ M = 32 * 10 ^ 12 ∨ M = 10 ^ 19) := by
   simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
   rcases h with
     ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
@@ -1793,9 +1794,9 @@ private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
     ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
     ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
     h
-  -- union of all_goals closers from the five individual lemmas
+  -- union of all_goals closers from the six individual lemmas
   all_goals try contradiction
-  all_goals try refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  all_goals try refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   all_goals try simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
   all_goals try simp only [Real.exp_log (show (0 : ℝ) < 5e10 by norm_num),
                             Real.exp_log (show (0 : ℝ) < 32e12 by norm_num)]
@@ -1805,6 +1806,9 @@ private lemma table_12_basic_props (b c C M : ℝ) (Cb : ℕ → ℝ)
   all_goals try (rw [Real.le_log_iff_exp_le (by norm_num)]
                  grw [← exp_one_rpow 10, Real.exp_one_lt_d9])
   all_goals try (apply Real.log_pos; norm_num)
+  all_goals try exact Or.inl (by norm_num)
+  all_goals try exact Or.inr (Or.inl (by norm_num))
+  all_goals try exact Or.inr (Or.inr (by norm_num))
   all_goals try norm_num
 
 private lemma table_12_mem_buthe (b c C M : ℝ) (Cb : ℕ → ℝ)
@@ -1824,6 +1828,11 @@ private lemma table_12_10000_le_expb (b c C M : ℝ) (Cb : ℕ → ℝ)
 private lemma table_12_ten_le_b (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : (10 : ℝ) ≤ b :=
   (table_12_basic_props b c C M Cb h).2.2.2.1
+
+private lemma table_12_M_vals (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
+    M = 5 * 10 ^ 10 ∨ M = 32 * 10 ^ 12 ∨ M = 10 ^ 19 :=
+  (table_12_basic_props b c C M Cb h).2.2.2.2.2
 
 -- Transfers a C_bk analytical bound to the tabulated Cb bound in the final inequality
 private lemma theta_sub_ge_of_cbk_le (x cbk cb : ℝ) (k : ℕ)
@@ -1849,30 +1858,14 @@ private lemma table_12_M_eq_32e12 (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
     (hM : M ≠ 10 ^ 19) (hM5 : M ≠ 5 * 10 ^ 10) :
     M = 32 * 10 ^ 12 := by
-  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
-  rcases h with
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ | ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩ |
-    h_false
-  all_goals
-    try contradiction
-    try (revert hM5; norm_num)
-    try (revert hM; norm_num)
+  rcases table_12_M_vals b c C M Cb h with rfl | rfl | rfl
+  · exact absurd rfl hM5
+  · rfl
+  · exact absurd rfl hM
 
 private lemma table_12_b_pos (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : 0 < b :=
-  (table_12_basic_props b c C M Cb h).2.2.2.2
+  (table_12_basic_props b c C M Cb h).2.2.2.2.1
 
 -- For k ∈ {1,...,5}, pointwise bounds at each index suffice to pick the bound at k
 private lemma Cb_ref_le_dispatch (Cb Cb_ref : ℕ → ℝ)
