@@ -30,8 +30,11 @@ The border of a rectangle is the union of its four sides.
 /-- A `RectangleBorder` has corners `z` and `w`. -/
 @[blueprint
   (title := "RectangleBorder")
-  (statement := /-- A Rectangle's border, given corners $z$ and $w$ is the union of the four sides. -/)]
-def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪ [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
+  (statement := /-- A Rectangle's border, given corners $z$ and $w$ is the union of the four
+    sides. -/)]
+def RectangleBorder (z w : ℂ) : Set ℂ :=
+  [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪
+    [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
 
 def Square (p : ℂ) (c : ℝ) : Set ℂ := Rectangle (-c - c * I + p) (c + c * I + p)
 
@@ -47,17 +50,19 @@ theorem preimage_equivRealProdCLM_reProdIm (s t : Set ℝ) :
   rfl
 
 @[simp]
-theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
-    {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
+theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R]
+    [Semiring S] {σ : R →+* S} {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ]
+    (M : Type*) [TopologicalSpace M]
     [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
     [Module S M₂] (e : M ≃SL[σ] M₂) :
     ⇑e.toLinearEquiv.symm = e.symm :=
   rfl
 
-/-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product
-  of two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598. -/
+/-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product of
+  two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598. -/
 lemma segment_reProdIm_segment_eq_convexHull (z w : ℂ) :
-    [[z.re, w.re]] ×ℂ [[z.im, w.im]] = convexHull ℝ {z, z.re + w.im * I, w.re + z.im * I, w} := by
+    [[z.re, w.re]] ×ℂ [[z.im, w.im]] =
+      convexHull ℝ {z, z.re + w.im * I, w.re + z.im * I, w} := by
   simp_rw [← segment_eq_uIcc, ← convexHull_pair, ← convexHull_reProdIm, reProdIm]
   exact congrArg _ <| Set.ext <| by simpa [Complex.ext_iff] using by tauto
 
@@ -70,7 +75,8 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
   exact convexHull_min (by simp_all [insert_subset_iff]) U_convex
 
 lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
-    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
+    p ∈ Rectangle z w ↔
+      z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
   rw [Rectangle, uIcc_of_le zRe_lt_wRe, uIcc_of_le zIm_lt_wIm]
   exact and_assoc
 
@@ -98,23 +104,29 @@ lemma rect_subset_iff {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by
   use fun h ↦ ⟨h (left_mem_rect z' w'), h (right_mem_rect z' w')⟩
   intro ⟨⟨⟨hz're_ge, hz're_le⟩, ⟨hz'im_ge, hz'im_le⟩⟩,
-    ⟨⟨hw're_ge, hw're_le⟩, ⟨hw'im_ge, hw'im_le⟩⟩⟩ x ⟨⟨hxre_ge, hxre_le⟩, ⟨hxim_ge, hxim_le⟩⟩
+    ⟨⟨hw're_ge, hw're_le⟩, ⟨hw'im_ge, hw'im_le⟩⟩⟩ x
+    ⟨⟨hxre_ge, hxre_le⟩, ⟨hxim_ge, hxim_le⟩⟩
   refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩
   · exact (le_inf hz're_ge hw're_ge).trans hxre_ge
-  · exact (le_sup_iff.mp hxre_le).casesOn (fun h ↦ h.trans hz're_le) (fun h ↦ h.trans hw're_le)
+  · exact (le_sup_iff.mp hxre_le).casesOn (fun h ↦ h.trans hz're_le)
+      (fun h ↦ h.trans hw're_le)
   · exact (le_inf hz'im_ge hw'im_ge).trans hxim_ge
-  · exact (le_sup_iff.mp hxim_le).casesOn (fun h ↦ h.trans hz'im_le) (fun h ↦ h.trans hw'im_le)
+  · exact (le_sup_iff.mp hxim_le).casesOn (fun h ↦ h.trans hz'im_le)
+      (fun h ↦ h.trans hw'im_le)
 
 set_option linter.style.multiGoal false in
-lemma RectSubRect {x₀ x₁ x₂ x₃ y₀ y₁ y₂ y₃ : ℝ} (x₀_le_x₁ : x₀ ≤ x₁) (x₁_le_x₂ : x₁ ≤ x₂)
-    (x₂_le_x₃ : x₂ ≤ x₃) (y₀_le_y₁ : y₀ ≤ y₁) (y₁_le_y₂ : y₁ ≤ y₂) (y₂_le_y₃ : y₂ ≤ y₃) :
-    Rectangle (x₁ + y₁ * I) (x₂ + y₂ * I) ⊆ Rectangle (x₀ + y₀ * I) (x₃ + y₃ * I) := by
+lemma RectSubRect {x₀ x₁ x₂ x₃ y₀ y₁ y₂ y₃ : ℝ} (x₀_le_x₁ : x₀ ≤ x₁)
+    (x₁_le_x₂ : x₁ ≤ x₂) (x₂_le_x₃ : x₂ ≤ x₃) (y₀_le_y₁ : y₀ ≤ y₁)
+    (y₁_le_y₂ : y₁ ≤ y₂) (y₂_le_y₃ : y₂ ≤ y₃) :
+    Rectangle (x₁ + y₁ * I) (x₂ + y₂ * I) ⊆
+      Rectangle (x₀ + y₀ * I) (x₃ + y₃ * I) := by
   rw [rect_subset_iff, mem_Rect, mem_Rect]
   refine ⟨⟨?_, ?_, ?_, ?_⟩, ?_, ?_, ?_, ?_⟩
   all_goals simpa using by linarith
 
-lemma RectSubRect' {z₀ z₁ z₂ z₃ : ℂ} (x₀_le_x₁ : z₀.re ≤ z₁.re) (x₁_le_x₂ : z₁.re ≤ z₂.re)
-    (x₂_le_x₃ : z₂.re ≤ z₃.re) (y₀_le_y₁ : z₀.im ≤ z₁.im) (y₁_le_y₂ : z₁.im ≤ z₂.im)
+lemma RectSubRect' {z₀ z₁ z₂ z₃ : ℂ} (x₀_le_x₁ : z₀.re ≤ z₁.re)
+    (x₁_le_x₂ : z₁.re ≤ z₂.re) (x₂_le_x₃ : z₂.re ≤ z₃.re)
+    (y₀_le_y₁ : z₀.im ≤ z₁.im) (y₁_le_y₂ : z₁.im ≤ z₂.im)
     (y₂_le_y₃ : z₂.im ≤ z₃.im) :
     Rectangle z₁ z₂ ⊆ Rectangle z₀ z₃ := by
   rw [← re_add_im z₀, ← re_add_im z₁, ← re_add_im z₂, ← re_add_im z₃]
@@ -145,7 +157,8 @@ lemma rectangleBorder_disjoint_singleton {z w p : ℂ}
     Disjoint (RectangleBorder z w) {p} := by
   refine disjoint_singleton_right.mpr ?_
   simp_rw [RectangleBorder, Set.mem_union, not_or]
-  exact ⟨⟨⟨fun hc ↦ h.2.2.1 hc.2, fun hc ↦ h.1 hc.1⟩, fun hc ↦ h.2.2.2 hc.2⟩, fun hc ↦ h.2.1 hc.1⟩
+  exact ⟨⟨⟨fun hc ↦ h.2.2.1 hc.2, fun hc ↦ h.1 hc.1⟩, fun hc ↦ h.2.2.2 hc.2⟩,
+    fun hc ↦ h.2.1 hc.1⟩
 
 lemma rectangle_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
     (hz : z₀.re ≤ z₁.re ∧ z₁.re ≤ z₂.re ∧ z₂.re ≤ z₃.re ∧
@@ -164,9 +177,10 @@ lemma rectangleBorder_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
     (rectangleBorder_subset_rectangle _ _).trans (by apply RectSubRect' <;> tauto),
     rectangleBorder_disjoint_singleton hp⟩
 
-lemma rectangle_mem_nhds_iff {z w p : ℂ} : Rectangle z w ∈ 𝓝 p ↔
-    p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by
-  simp_rw [← mem_interior_iff_mem_nhds, Rectangle, Complex.interior_reProdIm, uIoo, uIcc, interior_Icc]
+lemma rectangle_mem_nhds_iff {z w p : ℂ} :
+    Rectangle z w ∈ 𝓝 p ↔ p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by
+  simp_rw [← mem_interior_iff_mem_nhds, Rectangle, Complex.interior_reProdIm, uIoo, uIcc,
+    interior_Icc]
 
 lemma mapsTo_rectangle_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
@@ -186,41 +200,50 @@ lemma mapsTo_rectangle_right_im (z w : ℂ) :
 
 lemma mapsTo_rectangleBorder_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (RectangleBorder z w) :=
-  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦ by simp_all [verticalSegment_eq, RectangleBorder]
+  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦
+    by simp_all [verticalSegment_eq, RectangleBorder]
 
 lemma mapsTo_rectangleBorder_right_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (RectangleBorder z w) :=
-  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦ by simp_all [verticalSegment_eq, RectangleBorder]
+  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦
+    by simp_all [verticalSegment_eq, RectangleBorder]
 
 lemma mapsTo_rectangleBorder_left_im (z w : ℂ) :
     MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (RectangleBorder z w) :=
-  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦ by simp_all [horizontalSegment_eq, RectangleBorder]
+  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦
+    by simp_all [horizontalSegment_eq, RectangleBorder]
 
 lemma mapsTo_rectangleBorder_right_im (z w : ℂ) :
     MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (RectangleBorder z w) :=
-  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦ by simp_all [horizontalSegment_eq, RectangleBorder]
+  (Set.mapsTo_image _ _).mono subset_rfl fun _ ↦
+    by simp_all [horizontalSegment_eq, RectangleBorder]
 
-lemma mapsTo_rectangle_left_re_NoP (z w : ℂ) {p : ℂ} (pNotOnBorder : p ∉ RectangleBorder z w) :
+lemma mapsTo_rectangle_left_re_NoP (z w : ℂ) {p : ℂ}
+    (pNotOnBorder : p ∉ RectangleBorder z w) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w \ {p}) := by
   refine (mapsTo_rectangleBorder_left_re z w).mono_right (Set.subset_diff.mpr ?_)
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-lemma mapsTo_rectangle_right_re_NoP (z w : ℂ) {p : ℂ} (pNotOnBorder : p ∉ RectangleBorder z w) :
+lemma mapsTo_rectangle_right_re_NoP (z w : ℂ) {p : ℂ}
+    (pNotOnBorder : p ∉ RectangleBorder z w) :
     MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w \ {p}) := by
   refine (mapsTo_rectangleBorder_right_re z w).mono_right (Set.subset_diff.mpr ?_)
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-lemma mapsTo_rectangle_left_im_NoP (z w : ℂ) {p : ℂ} (pNotOnBorder : p ∉ RectangleBorder z w) :
+lemma mapsTo_rectangle_left_im_NoP (z w : ℂ) {p : ℂ}
+    (pNotOnBorder : p ∉ RectangleBorder z w) :
     MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w \ {p}) := by
   refine (mapsTo_rectangleBorder_left_im z w).mono_right (Set.subset_diff.mpr ?_)
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-lemma mapsTo_rectangle_right_im_NoP (z w : ℂ) {p : ℂ} (pNotOnBorder : p ∉ RectangleBorder z w) :
+lemma mapsTo_rectangle_right_im_NoP (z w : ℂ) {p : ℂ}
+    (pNotOnBorder : p ∉ RectangleBorder z w) :
     MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w \ {p}) := by
   refine (mapsTo_rectangleBorder_right_im z w).mono_right (Set.subset_diff.mpr ?_)
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectangle z w ∈ 𝓝 p) :
+theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ}
+    (hp : Rectangle z w ∈ 𝓝 p) :
     p ∉ RectangleBorder z w := by
   refine Set.disjoint_right.mp (rectangleBorder_disjoint_singleton ?_) rfl
   have h1 := rectangle_mem_nhds_iff.mp hp
@@ -228,7 +251,9 @@ theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectan
     Set.ne_left_of_mem_uIoo h1.2, Set.ne_right_of_mem_uIoo h1.2⟩
 
 theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Square p ·) := by
-  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < ·) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p ·)
+  suffices
+      (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < ·)
+        (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p ·)
     by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
       using this.map equivRealProdCLM.symm.toHomeomorph
   apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr

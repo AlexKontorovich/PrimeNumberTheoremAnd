@@ -20,19 +20,19 @@ open scoped Nat ArithmeticFunction BigOperators ArithmeticFunction.zeta Arithmet
 noncomputable section
 namespace BrunTitchmarsh
 
-/- Sifting primes ≤ z from the interval [x, x+y] -/
+/-- Sifting primes ≤ z from the interval [x, x+y] -/
 def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z) : SelbergSieve where
   support := Finset.Icc (Nat.ceil x) (Nat.floor (x+y))
   prodPrimes := primorial (Nat.floor z)
   prodPrimes_squarefree := primorial_squarefree _
-  weights := fun _ => 1
-  weights_nonneg := fun _ => zero_le_one
+  weights := fun _ ↦ 1
+  weights_nonneg := fun _ ↦ zero_le_one
   totalMass := y
   nu := (ζ : ArithmeticFunction ℝ).pdiv .id
   nu_mult := by arith_mult
-  nu_pos_of_prime := fun p hp _ => by
+  nu_pos_of_prime := fun p hp _ ↦ by
     simp [if_neg hp.ne_zero, Nat.pos_of_ne_zero hp.ne_zero]
-  nu_lt_one_of_prime := fun p hp _ => by
+  nu_lt_one_of_prime := fun p hp _ ↦ by
     simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
       ArithmeticFunction.zeta_apply, hp.ne_zero, ↓reduceIte, Nat.cast_one,
       ArithmeticFunction.id_apply, one_div]
@@ -41,9 +41,9 @@ def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z) : SelbergSieve where
   level := z
   one_le_level := hz
 
-/- The number of primes in the interval [a, b] -/
+/-- The number of primes in the interval [a, b] -/
 def primesBetween (a b : ℝ) : ℕ :=
-  (Finset.Icc (Nat.ceil a) (Nat.floor b)).filter (Nat.Prime) |>.card
+  (Finset.Icc (Nat.ceil a) (Nat.floor b)).filter Nat.Prime |>.card
 
 variable (x y z : ℝ) (hx : 0 < x) (hy : 0 < y) (hz : 1 ≤ z)
 
@@ -51,7 +51,7 @@ open Classical in
 theorem siftedSum_eq_card :
     siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) =
       ((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
-        (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
+        (fun d ↦ ∀ p : ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
   apply Sieve.siftedSum_eq
   · exact fun _ _ ↦ rfl
   · exact hz
@@ -59,9 +59,10 @@ theorem siftedSum_eq_card :
 
 open Classical in
 theorem primesBetween_subset :
-  (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (Nat.Prime) ⊆
+  (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter Nat.Prime ⊆
     (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
-      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪ (Finset.Icc 1 (Nat.floor z)) := by
+      (fun d ↦ ∀ p : ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪
+      (Finset.Icc 1 (Nat.floor z)) := by
   intro p
   simp only [Finset.mem_filter, Finset.mem_Icc, Nat.ceil_le, Finset.mem_union, and_imp]
   intro hx hxy hp
@@ -80,11 +81,12 @@ theorem primesBetween_le_siftedSum_add :
       siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) + z := by
   classical
   trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
-      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪ (Finset.Icc 1 (Nat.floor z))).card
+      (fun d ↦ ∀ p : ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪
+      (Finset.Icc 1 (Nat.floor z))).card
   · rw [primesBetween]
     exact_mod_cast Finset.card_le_card (primesBetween_subset _ _ _)
   trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
-      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card +
+      (fun d ↦ ∀ p : ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card +
       ↑(Finset.Icc 1 (Nat.floor z)).card
   · exact_mod_cast Finset.card_union_le _ _
   rw [siftedSum_eq_card]
@@ -97,8 +99,8 @@ theorem primesBetween_le_siftedSum_add :
 section Remainder
 
 theorem Ioc_filter_dvd_eq (d a b : ℕ) (hd : d ≠ 0) :
-  Finset.filter (fun x => d ∣ x) (Finset.Ioc a b) =
-    Finset.image (fun x => x * d) (Finset.Ioc (a / d) (b / d)) := by
+  Finset.filter (fun x ↦ d ∣ x) (Finset.Ioc a b) =
+    Finset.image (fun x ↦ x * d) (Finset.Ioc (a / d) (b / d)) := by
   ext n
   simp only [Finset.mem_filter, Finset.mem_Ioc, Finset.mem_image]
   constructor
@@ -111,9 +113,10 @@ theorem Ioc_filter_dvd_eq (d a b : ℕ) (hd : d ≠ 0) :
       Nat.dvd_mul_left d r⟩
 
 theorem card_Ioc_filter_dvd (d a b : ℕ) (hd : d ≠ 0) :
-    (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d := by
-  rw [Ioc_filter_dvd_eq _ _ _ hd,
-    Finset.card_image_of_injective _ <| mul_left_injective₀ hd, Nat.card_Ioc]
+    (Finset.filter (fun x ↦ d ∣ x) (Finset.Ioc a b)).card =
+      b / d - a / d := by
+  rw [Ioc_filter_dvd_eq _ _ _ hd, Finset.card_image_of_injective _ <| mul_left_injective₀ hd,
+    Nat.card_Ioc]
 
 include hx in
 theorem multSum_eq (d : ℕ) (hd : d ≠ 0) :
@@ -193,13 +196,14 @@ theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
   rw [hC₁, hC₂, Nat.cast_sub, hC₃]
   · ring_nf
     have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤
-        |(↑d)⁻¹ - (↑d)⁻¹*C₃| + |C₁ - C₂| := abs_add_le _ _
-    have : |(↑d)⁻¹ - (↑d)⁻¹*C₃| ≤ |(↑d)⁻¹| + |(↑d)⁻¹*C₃| := abs_sub _ _
+        |(↑d)⁻¹ - (↑d)⁻¹ * C₃| + |C₁ - C₂| := abs_add_le _ _
+    have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃| ≤
+        |(↑d)⁻¹| + |(↑d)⁻¹ * C₃| := abs_sub _ _
     have : |C₁ - C₂| ≤ |C₁| + |C₂| := abs_sub _ _
     have : |(d:ℝ)⁻¹| ≤ 1 := by
       rw [abs_inv, Nat.abs_cast]
       exact Nat.cast_inv_le_one _
-    have : |(↑d)⁻¹*C₃| ≤ |C₃| := by
+    have : |(↑d)⁻¹ * C₃| ≤ |C₃| := by
       rw [inv_mul_eq_div, abs_div]
       refine div_le_self (abs_nonneg _) ?_
       rw [Nat.abs_cast, Nat.one_le_cast]
@@ -222,16 +226,16 @@ theorem primeSieve_rem_sum_le :
     ∑ d ∈ (primeInterSieve x y z hz).prodPrimes.divisors,
         (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d *
           |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| else 0)
-      ≤ 5 * z * (1+Real.log z)^3 := by
+      ≤ 5 * z * (1 + Real.log z) ^ 3 := by
   refine rem_sum_le_of_const (primeInterSieve x y z hz) 5 (fun d hd ↦ ?_)
   apply abs_rem_le _ _ _ <;> linarith
 
 include hx hy in
 theorem siftedSum_le (hz : 1 < z) :
     siftedSum (s := toBoundingSieve (self := primeInterSieve x y z (le_of_lt hz)))
-      ≤ 2 * y / Real.log z + 5 * z * (1+Real.log z)^3  := by
+      ≤ 2 * y / Real.log z + 5 * z * (1 + Real.log z) ^ 3 := by
   apply le_trans (SelbergSieve.selberg_bound_simple ..)
-  calc _ ≤ y / (Real.log z / 2) + 5 * z * (1+Real.log z)^3 := ?_
+  calc _ ≤ y / (Real.log z / 2) + 5 * z * (1 + Real.log z) ^ 3 := ?_
        _ = _ := by ring
   gcongr
   · linarith [Real.log_pos hz]
@@ -241,8 +245,8 @@ theorem siftedSum_le (hz : 1 < z) :
 
 include hx hy in
 theorem primesBetween_le (hz : 1 < z) :
-    primesBetween x (x+y) ≤ 2 * y / Real.log z + 6 * z * (1+Real.log z)^3 := by
-  have : z ≤ z * (1+Real.log z)^3 := by
+    primesBetween x (x+y) ≤ 2 * y / Real.log z + 6 * z * (1 + Real.log z) ^ 3 := by
+  have : z ≤ z * (1 + Real.log z) ^ 3 := by
     apply le_mul_of_one_le_right
     · linarith
     · apply one_le_pow₀
@@ -256,7 +260,8 @@ theorem primesBetween_one (n : ℕ) :
   ext p
   simp only [Nat.ceil_one, Nat.floor_natCast, Finset.mem_filter, Finset.mem_Icc, Finset.mem_range,
     and_congr_left_iff]
-  exact fun hp ↦ ⟨fun h => by omega, fun h => ⟨by have := hp.pos; omega, by omega⟩⟩
+  exact fun hp ↦ ⟨fun h ↦ by omega,
+    fun h ↦ ⟨by have := hp.pos; omega, by omega⟩⟩
 
 theorem primesBetween_mono_right (a b c : ℝ) (hbc : b ≤ c) :
     primesBetween a b ≤ primesBetween a c := by
@@ -267,7 +272,7 @@ theorem primesBetween_mono_right (a b c : ℝ) (hbc : b ≤ c) :
 
 theorem tmp (N : ℕ) :
     ((Finset.range N).filter Nat.Prime).card ≤
-      4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) := by
+      4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N) ^ 3) := by
   trans ↑((Finset.range (N+1)).filter Nat.Prime).card
   · norm_cast
     refine Finset.card_le_card fun n ↦ ?_
@@ -279,23 +284,26 @@ theorem tmp (N : ℕ) :
   by_cases hN : N = 1
   · simp (config := {decide:=true}) [hN, primesBetween]
   have h : primesBetween 1 (1 + N) ≤
-      2 * (N / Real.log (N^(1/2:ℝ))) +
-        6 * (N ^ (1 / 2 : ℝ) * (1 + Real.log (N ^ (1 / 2 : ℝ))) ^ 3) := by
+      2 * (N / Real.log (N ^ (1/2 : ℝ))) +
+        6 * (N ^ (1 / 2 : ℝ) * (1 + Real.log (N ^ (1/2 : ℝ))) ^ 3) := by
     convert (primesBetween_le 1 N (N ^ (1/2 : ℝ)) (by norm_num) (by norm_cast; omega)
       (Real.one_lt_rpow (by norm_cast; omega) (by norm_num))) using 1
     ring
   calc
     _ ≤ (primesBetween 1 (1+N):ℝ) := by
-      norm_cast; apply primesBetween_mono_right; norm_cast; omega
+      norm_cast
+      apply primesBetween_mono_right
+      norm_cast
+      omega
     _ ≤ _ := by
       rw [Real.log_rpow (by norm_num; omega)] at h
       convert h using 2
       ring
 
 theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) :
-    (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop]
+    (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x) ^ k) =O[atTop]
       (fun x ↦ x / Real.log x) := calc
-  (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop]
+  (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x) ^ k) =O[atTop]
       (fun x ↦ (x : ℝ) ^ (r : ℝ) * x ^ ((1-r)/2 : ℝ)) := by
     apply IsBigO.mul (isBigO_refl ..)
     apply (isLittleO_log_rpow_rpow_atTop k (by linarith) ..).isBigO
@@ -332,7 +340,7 @@ theorem card_range_filter_prime_isBigO :
       (fun N ↦ N / Real.log N) := calc
   _ =O[atTop]
       (fun N ↦ 4 * (N / Real.log N) +
-        6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) : ℕ→ℝ) := by
+        6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N) ^ 3) : ℕ→ℝ) := by
     apply isBigO_of_le
     intro N
     simp only [RCLike.norm_natCast, one_div, Real.norm_eq_abs]
@@ -355,7 +363,7 @@ theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
   · rw [Real.lt_sqrt]
     · norm_cast
       calc
-        p^2 ≤ p^k := by gcongr <;> [exact hp.one_le; omega]
+        p ^ 2 ≤ p ^ k := by gcongr <;> [exact hp.one_le; omega]
       _ = n := hpkn
       _ < N := hnN
     · positivity
@@ -374,7 +382,8 @@ theorem range_filter_isPrimePow_subset_union (N : ℕ) :
     Finset.mem_image, Finset.mem_product, Prod.exists, and_imp]
   intro hnN hnprime
   rcases prime_or_pow N n hnN hnprime with hp | ⟨m, hm, k, hk, h⟩
-  · left; exact ⟨hnN, hp⟩
+  · left
+    exact ⟨hnN, hp⟩
   · right
     refine ⟨m, k, ?_⟩
     by_cases hm : m = 0
@@ -508,7 +517,5 @@ theorem card_range_filter_isPrimePow_le :
   apply IsBigO.nat_Top_of_atTop _ _ card_isPrimePow_isBigO
   have (a : ℕ) : (a : ℝ) ≠ -1 := by linarith [show 0 ≤ (a : ℝ) by positivity]
   simp [this, not_isPrimePow_zero]
-
--- #print axioms card_isPrimePow_isBigO
 
 end BrunTitchmarsh

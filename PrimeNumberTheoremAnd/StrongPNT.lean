@@ -1,6 +1,7 @@
 import Architect
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
@@ -42,14 +43,11 @@ blueprint_comment /--
   -/)
   (latexEnv := "lemma")]
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R))
     (r_lt_r' : r < r') (r'_lt_R : r' < R) {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
     deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r'), (w - z)⁻¹ ^ 2 • f w := by
-  obtain ⟨_, _, h_subset, hf_diff⟩ := hf_domain
   have hz_in_ball : z ∈ Metric.ball 0 r' :=
     Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_r'
-  have hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R) :=
-    hf_diff.mono <| Metric.ball_subset_closedBall.trans h_subset
   simp [← Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
       Metric.isOpen_ball (Metric.closedBall_subset_ball r'_lt_R) hf_on_ball hz_in_ball]
 
@@ -86,63 +84,29 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
     (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
     (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-    have diff_neg : r - r' < 0 := by linarith
-    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) *
-        (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) *
-          ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
-        rw[cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
-        unfold circleIntegral circleMap
-        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
-            inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
-            I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero,
-            or_self, or_false]
-        congr 1
-        funext θ
-        rw[deriv_cexp, deriv_mul_const]
-        ·   simp only [_root_.deriv_ofReal, one_mul]
-            ring_nf
-        ·   exact differentiableAt_ofReal θ
-        ·   refine DifferentiableAt.mul_const ?_ I
-            exact differentiableAt_ofReal θ
-    rw[cauchy_param]
-    calc ‖1 / (2 * ↑π * I) * ∫ (θ : ℝ) in 0..2 * π,
-          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖
-        = (2 * π)⁻¹ * ‖∫ (θ : ℝ) in 0..2 * π,
-          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖ := by
-            simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul,
-                norm_I, norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul]
-            rw [abs_of_pos pi_pos]
-        _ ≤ (2 * π)⁻¹ * (r' * ((r' - r) ^ 2)⁻¹ * (2 * M * r' / (R - r'))) * |2 * π - 0| := by
-            rw[mul_assoc]
-            refine mul_le_mul (by rfl) ?_ (by grind) (inv_nonneg.mpr (le_of_lt two_pi_pos))
-            apply intervalIntegral.norm_integral_le_of_norm_le_const
-            intro θ hθ
-            simp only [inv_pow, Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul,
-                norm_exp_I_mul_ofReal, mul_one, norm_inv, norm_pow]
-            rw[abs_of_pos (lt_trans pos_r r_lt_r')]
-            refine mul_le_mul₃ (rfl.le) ?_ ?_ (inv_nonneg.mpr (sq_nonneg _))
-              (le_of_lt (lt_trans pos_r r_lt_r')) (norm_nonneg (f (↑r' * cexp (I * ↑θ))))
-            ·   have hz_norm : ‖z‖ ≤ r := mem_closedBall_zero_iff.mp z_in_r
-                refine inv_anti₀ (sq_pos_of_pos (by grind)) (sq_le_sq' ?_ ?_)
-                · calc -(‖(r' : ℂ) * cexp (I * θ) - z‖) ≤ 0 := neg_nonpos.mpr (norm_nonneg _)
-                    _ ≤ r' - r := by grind
-                · calc r' - r ≤ |r'| - ‖z‖ := sub_le_sub (le_abs_self _) hz_norm
-                    _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by
-                      simp [abs_of_pos <| pos_r.trans r_lt_r']
-                    _ ≤ ‖r' * cexp (I * θ) - z‖ := norm_sub_norm_le _ _
-            ·   exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero
-                    Mpos re_f_le_M r'_lt_R
-                    (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
-        _ = 2 * M * r' ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-            rw[sub_zero, abs_of_pos two_pi_pos]
-            field_simp
-
-
+  rw [cauchy_formula_deriv (analytic_f.mono Metric.ball_subset_closedBall).differentiableOn r_lt_r' r'_lt_R z_in_r, one_div]
+  grw [circleIntegral.norm_two_pi_i_inv_smul_integral_le_of_norm_le_const (by linarith) (C := 2 * M * r' / ((R - r') * (r' - r) ^ 2))]
+  · exact le_of_eq (by ring)
+  · intro z' hz'
+    rw [smul_eq_mul, norm_mul]
+    grw[borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M r'_lt_R
+      (Metric.sphere_subset_closedBall hz')]
+    suffices ‖(z' - z)⁻¹ ^ 2‖ ≤ 1 / (r' - r) ^ 2 by
+      grw [this]
+      · exact le_of_eq (by field)
+      · refine mul_nonneg (mul_nonneg ?_ ?_) (inv_nonneg.mpr ?_) <;> linarith
+    rw [norm_pow, norm_inv, one_div, inv_pow]
+    gcongr
+    · exact pow_pos (by linarith) _
+    · linarith
+    · simp only [mem_sphere_iff_norm, sub_zero, Metric.mem_closedBall,
+      dist_zero_right] at hz' z_in_r
+      rw [← hz']
+      exact le_trans (by linarith) (norm_sub_norm_le z' z)
 
 @[blueprint "BorelCaratheodoryDeriv"
   (title := "BorelCaratheodoryDeriv")
@@ -162,200 +126,17 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
     (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
-    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
-    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U) :
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
-    let r' : ℝ := (R + r) / 2
-    calc
-        ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
-            have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-                simp[r']
-                field_simp
-                ring_nf
-            rw[this]
-            simp only [r']
-            apply DerivativeBound Mpos analytic_f zeroAtZero hf_domain realPartBounded rpos hyp_z (by linarith) (by linarith)
+    have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
+        4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by field_simp; ring
+    calc ‖deriv f z‖
+        _ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := hr' ▸
+            DerivativeBound Mpos analytic_f zeroAtZero realPartBounded rpos hyp_z
+              (by linarith) (by linarith)
         _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
             have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
-            rw[this]
-            bound
-
-
-
-@[blueprint "PathIntegral"
-  (title := "PathIntegral")
-  (statement := /--
-    Let $f:\mathbb{C}\to\mathbb{C}$. Define the functon $I_f:\mathbb{C}\to\mathbb{C}$ by
-    $$I_f(z)=z\int_0^1f(tz)\,dt.$$
-  -/)
-  (latexEnv := "definition")]
-noncomputable def PathIntegral (f : ℂ → ℂ) :
-    ℂ → ℂ := fun c ↦ let γ : ℝ → ℂ := fun s ↦ s * c
-    ∫ t in 0..1, f (γ t) * (deriv γ) t
-
-/--
-Auxilary lemmas for LogOfAnalyticFunction
--/
-lemma shiftedMulCont (z : ℂ) (y : ℂ) : Continuous (fun (t : ℝ) ↦ ↑t * (z + y)) := by
-  exact Continuous.mul (Complex.continuous_ofReal) (continuous_const)
-lemma mulContInterval (z : ℂ) : ContinuousOn (fun (x : ℝ) ↦ ↑x * z) (Set.uIcc (0 : ℝ) 1) := by
-  rw[← add_zero z]
-  exact (shiftedMulCont z 0).continuousOn
-lemma shiftedMulContInverval (z : ℂ) (y : ℂ) : ContinuousOn (fun t ↦ ↑t * (z + y)) (Set.uIcc (0 : ℝ) 1) := by
-  exact (shiftedMulCont z y).continuousOn
-
-lemma PathIntegral_IBP {f : ℂ → ℂ} {R : ℝ}
-    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) {z : ℂ} (hz : z ∈ Metric.ball 0 R) :
-    ∫ t in (0 : ℝ)..1, (t : ℂ) * z * deriv f (t * z) = f z - ∫ t in (0 : ℝ)..1, f (t * z) := by
-      rw[mem_ball_iff_norm, sub_zero] at hz;
-      have norm_thing : Set.MapsTo (fun x => ↑x * z) (Set.Icc (0 : ℝ) 1) (Metric.ball 0 R) := by
-        rw[Set.MapsTo];
-        intro x hx
-        rw[Set.mem_Icc] at hx;
-        simp only [mem_ball_iff_norm, sub_zero, Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
-        rw[abs_of_nonneg hx.1, ← one_mul R]
-        exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
-      rw [ eq_sub_iff_add_eq', ← intervalIntegral.integral_add ];
-      · rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
-        rotate_right;
-        · use fun x => x * f ( x * z )
-        · norm_num
-        · intro x hx; convert HasDerivAt.mul ( HasDerivAt.ofReal_comp ( hasDerivAt_id x ) ) ( HasDerivAt.comp x ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.mul ( hasDerivAt_id _ |> HasDerivAt.ofReal_comp ) ( hasDerivAt_const _ _ ) ) ) using 1 <;> norm_num;
-          · ring_nf;
-          · rw[Set.uIcc_of_le zero_le_one, Set.mem_Icc] at hx
-            rw[abs_of_nonneg hx.1, ← one_mul R]
-            exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
-        · apply ContinuousOn.intervalIntegrable;
-          exact ContinuousOn.add (ContinuousOn.comp ( hf.continuousOn ) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem)))) (ContinuousOn.mul (mulContInterval z) ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn ) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem))) ));
-      · apply ContinuousOn.intervalIntegrable
-        exact ContinuousOn.comp (hf.continuousOn) (mulContInterval z) (norm_thing.mono_left (Set.uIcc_subset_Icc (unitInterval.zero_mem) (unitInterval.one_mem)))
-      · apply ContinuousOn.intervalIntegrable
-        refine ContinuousOn.mul (mulContInterval _) ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn) (mulContInterval _) ?_ );
-        rw[Set.uIcc_of_lt Real.zero_lt_one]
-        exact norm_thing
-
-lemma deriv_integral_of_analytic {f : ℂ → ℂ} {R : ℝ}
-    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) {z : ℂ} (hz : z ∈ Metric.ball 0 R) :
-    HasDerivAt (fun z => ∫ t in (0 : ℝ)..1, f (t * z)) (∫ t in (0 : ℝ)..1, (t : ℂ) * deriv f (t * z)) z := by
-      rw[mem_ball_iff_norm, sub_zero] at hz;
-      have norm_thing' : ∀ y : ℂ, dist y 0 < R - ‖z‖ → Set.MapsTo (fun u ↦ ↑u * (z + y)) (Set.uIcc (0 : ℝ) 1) (Metric.ball 0 R) := by
-        intro y hy
-        rw[dist_eq_norm, sub_zero] at hy
-        simp only [Set.MapsTo, Metric.mem_ball, dist_zero_right, Complex.norm_mul, Complex.norm_real,
-          Real.norm_eq_abs]
-        intro x hx
-        rw[Set.uIcc_of_lt Real.zero_lt_one, Set.mem_Icc] at hx
-        rw[abs_of_nonneg hx.1, ← one_mul R]
-        exact mul_lt_mul' hx.2 (by nlinarith[norm_add_le z y]) (norm_nonneg _) Real.zero_lt_one
-      have norm_thing : Set.MapsTo (fun t ↦ ↑t * z) (Set.uIcc (0 : ℝ) 1) (Metric.ball 0 R) := by
-        have h := norm_thing' 0
-        rw[add_zero, dist_self, sub_pos] at h
-        exact h hz
-      rw [ hasDerivAt_iff_tendsto_slope_zero ];
-      have h_lim : Filter.Tendsto (fun t => ∫ u in (0 : ℝ)..1, (f ((u : ℂ) * (z + t)) - f ((u : ℂ) * z)) / t) (nhdsWithin 0 {0}ᶜ) (nhds (∫ u in (0 : ℝ)..1, (u : ℂ) * deriv f ((u : ℂ) * z))) := by
-        have h_dominate : ∃ M > 0, ∀ t : ℂ, ‖t‖ < (R - ‖z‖) / 2 → ∀ u ∈ Set.Icc (0 : ℝ) 1, ‖(f ((u : ℂ) * (z + t)) - f ((u : ℂ) * z)) / t‖ ≤ M := by
-          obtain ⟨M, hM⟩ : ∃ M > 0, ∀ w ∈ Metric.closedBall 0 (‖z‖ + (R - ‖z‖) / 2), ‖deriv f w‖ ≤ M := by
-            have h_deriv_bound : ContinuousOn (deriv f) (Metric.closedBall 0 (‖z‖ + (R - ‖z‖) / 2)) := by
-              exact (hf.deriv).continuousOn.mono ( Metric.closedBall_subset_ball <| by linarith );
-            obtain ⟨ M, hM ⟩ := IsCompact.exists_bound_of_continuousOn ( ProperSpace.isCompact_closedBall 0 ( ‖z‖ + ( R - ‖z‖ ) / 2 ) ) h_deriv_bound
-            use Max.max M 1
-            exact ⟨lt_max_of_lt_right one_pos, fun w hw => le_trans ( hM w hw ) ( le_max_left _ _ )⟩
-          use M, hM.1;
-          intro t ht u hu
-          have h_int : f (u * (z + t)) - f (u * z) = ∫ s in (0 : ℝ)..1, deriv f (u * z + s * u * t) * u * t := by
-            rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
-            rotate_right;
-            · use fun x => f ( u * z + x * u * t );
-            · simp only [Complex.ofReal_one, one_mul, Complex.ofReal_zero, zero_mul, add_zero, mul_add];
-            · intro x hx; convert HasDerivAt.comp x ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.add ( hasDerivAt_const _ _ ) <| HasDerivAt.mul ( HasDerivAt.mul ( hasDerivAt_id _ |> HasDerivAt.ofReal_comp ) <| hasDerivAt_const _ _ ) <| hasDerivAt_const _ _ ) using 1 <;> norm_num ;
-              · ring;
-              · norm_num at *;
-                refine lt_of_le_of_lt ( norm_add_le _ _ ) ?_ ; norm_num [ abs_of_nonneg hu.1, abs_of_nonneg hx.1 ];
-                nlinarith [ mul_nonneg hu.1 hx.1, mul_le_mul_of_nonneg_left hu.2 hx.1, mul_le_mul_of_nonneg_left hx.2 hu.1, norm_nonneg z, norm_nonneg t ];
-            · apply ContinuousOn.intervalIntegrable;
-              refine ContinuousOn.mul ( ContinuousOn.mul ( ContinuousOn.comp ( show ContinuousOn ( deriv f ) ( Metric.ball 0 R ) from hf.deriv.continuousOn ) ?_ ?_ ) continuousOn_const ) continuousOn_const;
-              · exact ContinuousOn.add (continuousOn_const) (ContinuousOn.mul (ContinuousOn.mul (Complex.continuous_ofReal.continuousOn) (continuousOn_const)) (continuousOn_const))
-              · rw[ Set.MapsTo ];
-                intro x hx
-                simp only [Set.uIcc_of_le zero_le_one, Set.mem_Icc] at hx hu
-                rw[mem_ball_iff_norm, sub_zero]
-                calc ‖u * z + x * u * t‖ ≤ ‖u * z‖ + ‖x * u * t‖ := norm_add_le (u * z) (x * u * t)
-                  _ ≤ u * (‖z‖ + x * ‖t‖) := by
-                    simp only [Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
-                    rw [abs_of_nonneg hu.1, abs_of_nonneg hx.1, mul_add, mul_left_comm, mul_assoc];
-                  _ < R := by
-                    rw[← one_mul R]
-                    refine mul_lt_mul' hu.2 (by nlinarith[hx, ht]) ?_ Real.zero_lt_one
-                    exact add_nonneg (norm_nonneg z) (mul_nonneg hx.1 (norm_nonneg t))
-          by_cases ht' : t = 0
-          · simp only [ht', add_zero, div_zero, norm_zero]
-            linarith
-          · rw[h_int]
-            simp only [intervalIntegral.integral_mul_const, isUnit_iff_ne_zero, ne_eq, ht',
-              not_false_eq_true, IsUnit.mul_div_cancel_right, Complex.norm_mul, Complex.norm_real,
-              Real.norm_eq_abs, ge_iff_le]
-            rw[Set.mem_Icc] at hu
-            have : M = M * |1 - 0| := by simp only [sub_zero, abs_one, mul_one]
-            rw[abs_of_nonneg hu.1, ← mul_one M, this]
-            refine mul_le_mul ?_ hu.2 hu.1 (by linarith)
-            apply intervalIntegral.norm_integral_le_of_norm_le_const
-            intro x hx
-            apply hM.2
-            rw[mem_closedBall_iff_norm, sub_zero]
-            rw[Set.uIoc_of_le zero_le_one, Set.mem_Ioc] at hx
-            calc ‖u * z + x * u * t‖ ≤ ‖u * z‖ + ‖x * u * t‖ := norm_add_le (u * z) (x * u * t)
-              _ ≤ u * ‖z‖ + x * u * ‖t‖ := by
-                simp only [Complex.norm_mul, Complex.norm_real, Real.norm_eq_abs]
-                rw[abs_of_nonneg hu.1, abs_of_pos hx.1];
-              _ ≤ ‖z‖ + (R - ‖z‖) / 2 := by
-                refine add_le_add (mul_le_of_le_one_left (norm_nonneg z) (hu.2)) ?_
-                rw[← one_mul ((R- ‖z‖) / 2), ← one_mul 1]
-                refine mul_le_mul (mul_le_mul hx.2 hu.2 hu.1 zero_le_one) (le_of_lt ht) (norm_nonneg t) ?_
-                rw[one_mul]
-                exact zero_le_one
-        apply intervalIntegral.tendsto_integral_filter_of_dominated_convergence _ _ _ _ _;
-        · use fun u => h_dominate.choose;
-        · rw [ eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
-          refine ⟨ ( R - ‖z‖ ) / 2, half_pos ( sub_pos.mpr <| by simpa using hz ), fun y hy hy' => ?_ ⟩;
-          refine ContinuousOn.aestronglyMeasurable (ContinuousOn.div_const (ContinuousOn.sub ?_ ?_) _) measurableSet_Ioc;
-          · exact ContinuousOn.mono (ContinuousOn.comp (hf.continuousOn) (shiftedMulContInverval z y) (norm_thing' y (by linarith))) (Set.uIoc_subset_uIcc);
-          · exact ContinuousOn.mono (ContinuousOn.comp (hf.continuousOn) (mulContInterval z) (norm_thing)) (Set.uIoc_subset_uIcc);
-        · rw [ eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
-          exact ⟨ ( R - ‖z‖ ) / 2, half_pos ( sub_pos.mpr <| by simpa using hz ), fun y hy hy' => Filter.Eventually.of_forall fun x hx => h_dominate.choose_spec.2 y ( by simpa using hy ) x <| by constructor <;> cases Set.mem_uIoc.mp hx <;> linarith ⟩;
-        · simp only [gt_iff_lt, Set.mem_Icc, Complex.norm_div, and_imp, ne_eq, enorm_ne_top,
-          not_false_eq_true, intervalIntegrable_const]
-        · refine Filter.Eventually.of_forall fun x hx => ?_;
-          rw[Set.uIoc_of_le zero_le_one, Set.mem_Ioc] at hx;
-          have h_deriv : HasDerivAt (fun n => f ((x : ℂ) * (z + n))) (x * deriv f ((x : ℂ) * z)) 0 := by
-            convert HasDerivAt.comp 0 ( hf.differentiableOn.differentiableAt ( Metric.isOpen_ball.mem_nhds ?_ ) |> DifferentiableAt.hasDerivAt ) ( HasDerivAt.const_mul ( x : ℂ ) ( hasDerivAt_id 0 |> HasDerivAt.const_add z ) ) using 1
-            · simp only [id_eq, add_zero, mul_one, mul_comm]
-            · simp only [id_eq, add_zero, Metric.mem_ball, dist_zero_right, Complex.norm_mul,
-              Complex.norm_real, Real.norm_eq_abs]
-              rw[abs_of_pos hx.1, ← one_mul R]
-              exact mul_lt_mul' hx.2 hz (norm_nonneg z) Real.zero_lt_one
-          simpa [ div_eq_inv_mul ] using h_deriv.tendsto_slope_zero;
-      refine h_lim.congr' ?_;
-      rw [ Filter.EventuallyEq, eventually_nhdsWithin_iff, Metric.eventually_nhds_iff ];
-      refine ⟨ R - ‖z‖, sub_pos.mpr hz, fun y hy hy' => ?_ ⟩;
-      rw [ ← intervalIntegral.integral_sub ];
-      · simp only [smul_eq_mul, div_eq_inv_mul, intervalIntegral.integral_const_mul]
-      all_goals apply ContinuousOn.intervalIntegrable;
-      · exact ContinuousOn.comp hf.continuousOn (shiftedMulContInverval _ _) (norm_thing' y hy);
-      · exact ContinuousOn.comp hf.continuousOn (mulContInterval _) (norm_thing);
-
-theorem PathIntegral_deriv {f : ℂ → ℂ} {R : ℝ}
-    (hf : AnalyticOnNhd ℂ f (Metric.ball 0 R)) :
-    ∀ z ∈ Metric.ball 0 R, HasDerivAt (PathIntegral f) (f z) z := by
-      intro z hz;
-      convert HasDerivAt.congr_of_eventuallyEq _ ?_ using 1;
-      · exact fun x => x * ( ∫ t in ( 0 : ℝ )..1, f ( t * x ) );
-      · convert HasDerivAt.mul ( hasDerivAt_id z ) ( deriv_integral_of_analytic hf hz ) using 1;
-        have := @PathIntegral_IBP f R hf z hz;
-        simp_all +decide [ mul_assoc, mul_comm, ← intervalIntegral.integral_const_mul ];
-      · filter_upwards [ IsOpen.mem_nhds ( Metric.isOpen_ball ) hz ] with x hx;
-        unfold PathIntegral;
-        norm_num [ mul_comm ];
-
+            rw [this]; bound
 
 
 @[blueprint "LogOfAnalyticFunction"
@@ -394,84 +175,114 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R)
     (J_B 0 = 0) ∧
     (∀ z ∈ Metric.closedBall 0 r, (deriv J_B) z = (deriv B) z / (B z)) ∧
     (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
-    -- By `PathIntegral_deriv`, $J_B'(z) = f(z) = B'(z)/B(z)$ for all $z \in B(0, R)$.
     obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (deriv B z / B z) z)) ∧ J_B 0 = 0 ∧ (∀ z ∈ Metric.ball 0 R, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
       set f : ℂ → ℂ := fun z => deriv B z / B z;
-      have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) := by
-        apply_rules [ AnalyticOnNhd.div, BanalyticOnNhdOfDR.deriv ];
-        · apply_rules [ AnalyticOnNhd.deriv, BanalyticOnNhdOfDR ];
-          exact BanalyticOnNhdOfDR.mono <| Metric.ball_subset_closedBall;
-        · exact BanalyticOnNhdOfDR.mono <| Metric.ball_subset_closedBall;
-        · exact fun z hz => Bnonzero z <| Metric.ball_subset_closedBall hz;
-      obtain ⟨J_B, hJB⟩ : ∃ J_B : ℂ → ℂ, (∀ z ∈ Metric.ball 0 R, (HasDerivAt J_B (f z) z)) ∧ J_B 0 = 0 := by
-        use PathIntegral f;
-        exact ⟨ fun z hz => PathIntegral_deriv hf z hz, by unfold PathIntegral; norm_num ⟩;
-      -- Let $H(z) = \exp(J_B(z)) / B(z)$.
-      set H : ℂ → ℂ := fun z => Complex.exp (J_B z) / B z;
+      have hf : AnalyticOnNhd ℂ f (Metric.ball 0 R) :=
+        (BanalyticOnNhdOfDR.deriv.mono Metric.ball_subset_closedBall).div
+          (BanalyticOnNhdOfDR.mono Metric.ball_subset_closedBall)
+          (fun z hz => Bnonzero z <| Metric.ball_subset_closedBall hz)
+      obtain ⟨J, hJ⟩ := DifferentiableOn.isExactOn_ball hf.differentiableOn
+      refine ⟨fun z ↦ J z - J 0, fun z hz ↦ (hJ z hz).sub_const _, by simp, ?_⟩
+      set H : ℂ → ℂ := fun z => Complex.exp (J z - J 0) / B z
+      have hJB_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt (fun z ↦ J z - J 0) (f z) z :=
+        fun z hz ↦ (hJ z hz).sub_const _
       have hH_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt H 0 z := by
         intro z hz
-        have hH_deriv : HasDerivAt (fun z => Complex.exp (J_B z)) (Complex.exp (J_B z) * f z) z := by
-          exact HasDerivAt.comp z ( Complex.hasDerivAt_exp _ ) ( hJB.1 z hz );
-        convert HasDerivAt.div hH_deriv ( BanalyticOnNhdOfDR.differentiableOn.differentiableAt ( Metric.closedBall_mem_nhds_of_mem hz ) |> DifferentiableAt.hasDerivAt ) ( Bnonzero z <| Metric.ball_subset_closedBall hz ) using 1 ; ring_nf!;
-        grind;
-      -- Since $H'(z) = 0$, $H(z)$ is constant on $B(0, R)$.
+        have := (Complex.hasDerivAt_exp _).comp z (hJB_deriv z hz)
+        convert this.div (BanalyticOnNhdOfDR.differentiableOn.differentiableAt
+          (Metric.closedBall_mem_nhds_of_mem hz) |>.hasDerivAt)
+          (Bnonzero z <| Metric.ball_subset_closedBall hz) using 1
+        ring_nf!; grind
       have hH_const : ∀ z ∈ Metric.ball 0 R, H z = H 0 := by
         intro z hz
-        have h_diffOn : DifferentiableOn ℂ H (Metric.ball 0 R) := by
-          intro z hz
-          apply DifferentiableAt.differentiableWithinAt
-          exact HasDerivAt.differentiableAt (hH_deriv z hz)
-        refine Convex.is_const_of_fderivWithin_eq_zero (convex_ball 0 R) h_diffOn ?_ hz (Metric.mem_ball_self (Metric.pos_of_mem_ball hz))
+        have h_diffOn : DifferentiableOn ℂ H (Metric.ball 0 R) :=
+          fun z hz ↦ (hH_deriv z hz).differentiableAt.differentiableWithinAt
+        refine Convex.is_const_of_fderivWithin_eq_zero (convex_ball 0 R) h_diffOn ?_ hz
+          (Metric.mem_ball_self (Metric.pos_of_mem_ball hz))
         intro x hx
-        rw[fderivWithin_of_isOpen Metric.isOpen_ball hx, ← ContinuousLinearMap.toSpanSingleton_zero]
-        exact ((hH_deriv x hx).hasFDerivAt).fderiv
-      -- Taking norms: $\exp(\text{Re}(J_B(z))) = |B(z)|/|B(0)|$.
-      have h_exp_re : ∀ z ∈ Metric.ball 0 R, Real.exp (J_B z).re = ‖B z‖ / ‖B 0‖ := by
-        intro z hz; specialize hH_const z hz
-        simp only [H] at hH_const
-        rw[hJB.2, Complex.exp_zero, one_div, div_eq_iff (Bnonzero z (Metric.ball_subset_closedBall hz)), mul_comm] at hH_const
-        rw[← Complex.norm_exp, ← norm_div, div_eq_mul_inv]
-        exact enorm_eq_iff_norm_eq.mp (congrArg enorm hH_const)
-      exact ⟨ J_B, hJB.1, hJB.2, fun z hz => by rw [ ← Real.log_div ( by specialize Bnonzero z ( Metric.ball_subset_closedBall hz ) ; aesop ) ( by specialize Bnonzero 0 ( by norm_num; linarith ) ; aesop ), ← h_exp_re z hz, Real.log_exp ] ⟩;
-    refine ⟨ J_B, ?_, hJB.2.1, ?_, ?_ ⟩;
-    · intro z hz;
-      apply DifferentiableOn.analyticAt _ _
-      exacts [ Metric.ball 0 R, fun w hw => ( hJB.1 w hw |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt ), Metric.isOpen_ball.mem_nhds <| by simpa using by linarith [ mem_closedBall_zero_iff.mp hz ] ];
-    · exact fun z hz => HasDerivAt.deriv ( hJB.1 z <| Metric.mem_ball.mpr <| lt_of_le_of_lt ( Metric.mem_closedBall.mp hz ) r_lt_R );
-    · exact fun z hz => hJB.2.2 z <| Metric.mem_ball.mpr <| lt_of_le_of_lt ( Metric.mem_closedBall.mp hz ) r_lt_R
+        rw [fderivWithin_of_isOpen Metric.isOpen_ball hx,
+          ← ContinuousLinearMap.toSpanSingleton_zero]
+        exact (hH_deriv x hx).hasFDerivAt.fderiv
+      have h_exp_re : ∀ z ∈ Metric.ball 0 R, Real.exp (J z - J 0).re = ‖B z‖ / ‖B 0‖ := by
+        intro z hz
+        have hc := hH_const z hz
+        simp only [H, sub_self, Complex.exp_zero, one_div] at hc
+        rw [div_eq_iff (Bnonzero z (Metric.ball_subset_closedBall hz)), mul_comm] at hc
+        rw [← Complex.norm_exp, ← norm_div, div_eq_mul_inv]
+        exact enorm_eq_iff_norm_eq.mp (congrArg enorm hc)
+      intro z hz
+      have hBz := Bnonzero z (Metric.ball_subset_closedBall hz)
+      have hB0 := Bnonzero 0 (by norm_num; linarith)
+      rw [← Real.log_div (norm_ne_zero_iff.mpr hBz) (norm_ne_zero_iff.mpr hB0),
+        ← h_exp_re z hz, Real.log_exp]
+    have hmem : ∀ z, z ∈ Metric.closedBall (0 : ℂ) r → z ∈ Metric.ball (0 : ℂ) R :=
+      fun z hz ↦ Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_R
+    refine ⟨J_B, ?_, hJB.2.1, fun z hz ↦ (hJB.1 z (hmem z hz)).deriv,
+      fun z hz ↦ hJB.2.2 z (hmem z hz)⟩
+    intro z hz
+    exact DifferentiableOn.analyticAt
+      (fun w hw ↦ (hJB.1 w hw).differentiableAt.differentiableWithinAt)
+      (Metric.isOpen_ball.mem_nhds <| by simpa using by linarith [mem_closedBall_zero_iff.mp hz])
 
 
 
-blueprint_comment /--
-\begin{definition}[SetOfZeros]\label{SetOfZeros}
-    Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros
+@[blueprint "SetOfZeros"
+  (title := "SetOfZeros")
+  (statement := /--
+    Let $R>0$ and $f:\mathbb{C}\to\mathbb{C}$. Define the set of zeros
     $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$.
-\end{definition}
--/
+  -/)]
+def SetOfZeros (R : ℝ) (f : ℂ → ℂ) : Set ℂ := {ρ : ℂ | ‖ρ‖ ≤ R ∧ f ρ = 0}
+
+
+
+lemma finiteSetOfZeros_mono {r : ℝ} (r_lt_one : r < 1) {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite) :
+  (SetOfZeros r f).Finite := by
+  apply Set.Finite.subset finiteZeros
+  unfold SetOfZeros
+  refine setOf_subset_setOf.mpr ?_
+  intro z hz
+  exact ⟨by linarith, hz.2⟩
 
 
 
 blueprint_comment /--
 \begin{definition}[ZeroOrder]\label{ZeroOrder}
-    Let $0 < R<1$ and $f:\mathbb{C}\to\mathbb{C}$ be analtyic on neighborhoods of points in
-    $\overline{\mathbb{D}_1}$. For any zero $\rho\in\mathcal{K}_f(R)$, we define $m_f(\rho)$
-    as the order of the zero $\rho$ w.r.t $f$.
+  Let $f:\mathbb{C}\to\mathbb{C}$.
+  We define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
 \end{definition}
+  In LEAN, this corresponds exactly with analyticOrderAt/analyticOrderNatAt.
 -/
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZeroFactorization]\label{ZeroFactorization}
-    Let $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in
-    $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For all $\rho\in\mathcal{K}_f(1)$ there
-    exists $h_\rho(z)$ that is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and
+open Classical
+@[blueprint "ZeroFactor"
+  (title := "ZeroFactor")
+  (statement := /--
+    Let $f:\mathbb{C}\to\mathbb{C}$ and $\rho\in\mathbb{C}$. Then there exists $h_\rho$ such that
+    $$f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z).$$
+    In LEAN, this corresponds exactly with (-.analyticOrderAt-ne-top.mp -).choose,
+    but this serves as a wrapper of that with the necessary conditions.
+  -/)]
+noncomputable def ZeroFactor (f : ℂ → ℂ) (z : ℂ) : ℂ :=
+  if h1 : AnalyticAt ℂ f z then
+    if h2 : analyticOrderAt f z ≠ ⊤ then
+      (h1.analyticOrderAt_ne_top.mp h2).choose z
+    else 0
+  else 0
+
+
+
+@[blueprint "ZeroFactorization"
+  (title := "ZeroFactorization")
+  (statement := /--
+    Let $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$.
+    For all $\rho\in\mathcal{K}_f(R)$ with $R<1$ there exists $h_\rho(z)$ such that
+    $h_\rho(z)$ is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and
     $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+  -/)
+  (proof := /--
     Since $f$ is analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ we know
     that there exists a series expansion about $\rho$:
     $$f(z)=\sum_{0\leq n}a_n\,(z-\rho)^n.$$
@@ -481,16 +292,38 @@ blueprint_comment /--
     Trivially, $h_\rho(z)$ is analytic at $\rho$ (we have written down the series
     expansion); now note that
     $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
-\end{proof}
--/
+  -/)]
+lemma ZeroFactorization {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+    (hf_neq_zero_at_zero : f 0 ≠ 0) {R : ℝ} (RleOne : R < 1) {ρ : ℂ} (hρ : ρ ∈ SetOfZeros R f) :
+    ∃ h_ρ : ℂ → ℂ, AnalyticAt ℂ h_ρ ρ ∧ h_ρ ρ ≠ 0 ∧ ZeroFactor f ρ = h_ρ ρ ∧
+    f =ᶠ[nhds ρ] fun z ↦ (z - ρ) ^ analyticOrderNatAt f ρ * h_ρ z := by
+    have zero_mem_closedBall : 0 ∈ Metric.closedBall (0 : ℂ) 1 := by
+      rw[mem_closedBall_iff_norm, sub_zero, norm_zero]
+      exact zero_le_one
+    have ρ_mem_closedBall : ρ ∈ Metric.closedBall (0 : ℂ) 1 := by
+      rw[mem_closedBall_iff_norm, sub_zero]
+      linarith[hρ.1]
+    have orderAtZeroIsZero : analyticOrderAt f 0 = 0 := by
+      rw[analyticOrderAt_eq_zero]
+      exact Or.symm (Decidable.not_or_of_imp fun a a_1 ↦ hf_neq_zero_at_zero a)
+    have finiteOrder : analyticOrderAt f ρ ≠ ⊤ := by
+      refine AnalyticOnNhd.analyticOrderAt_ne_top_of_isPreconnected hfAnalytic (Metric.isPreconnected_closedBall) zero_mem_closedBall ρ_mem_closedBall (lt_top_iff_ne_top.mp ?_)
+      rw[orderAtZeroIsZero]
+      exact ENat.top_pos
+    have AnalyticAt_ρ : AnalyticAt ℂ f ρ := by exact (hfAnalytic ρ ρ_mem_closedBall)
+    obtain ⟨h_ρ, h_ρ_neq_zero_at_zero, f_eq⟩ := (AnalyticAt_ρ.analyticOrderAt_ne_top.mp finiteOrder).choose_spec
+    set g := (AnalyticAt_ρ.analyticOrderAt_ne_top.mp finiteOrder).choose
+    refine ⟨g, h_ρ, h_ρ_neq_zero_at_zero, ?_, f_eq⟩
+    simp only [ZeroFactor, AnalyticAt_ρ, ↓reduceDIte, ne_eq, finiteOrder, not_false_eq_true,
+    smul_eq_mul, g]
 
 
 
-blueprint_comment /--
-\begin{definition}[CFunction]\label{CFunction}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a
-    function $C_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows. This function is
+@[blueprint "CFunction"
+  (title := "CFunction")
+  (statement := /--
+    Let $0 < r < 1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. We define a function $C_f:\mathbb{C}\to\mathbb{C}$ as follows. This function is
     constructed by dividing $f(z)$ by a polynomial whose roots are the zeros of $f$ inside
     $\overline{\mathbb{D}_r}$.
     $$C_f(z)=\begin{cases}
@@ -500,56 +333,182 @@ blueprint_comment /--
           (z-\rho)^{m_f(\rho)}}\qquad\text{for }z\in\mathcal{K}_f(r)
     \end{cases}$$
     where $h_z(z)$ comes from Lemma \ref{ZeroFactorization}.
-\end{definition}
--/
+  -/)]
+noncomputable def Cf
+    (r : ℝ) (f : ℂ → ℂ)
+    (z : ℂ) : ℂ :=
+  if finite_zeros_mono : (SetOfZeros r f).Finite then
+    if _ : z ∈ SetOfZeros r f then
+      ZeroFactor f z / ∏ ρ ∈ (finite_zeros_mono.toFinset \ {z}), (z - ρ) ^ (analyticOrderNatAt f ρ)
+    else
+      f z / ∏ ρ ∈ (finite_zeros_mono.toFinset), (z - ρ) ^ (analyticOrderNatAt f ρ)
+  else 1
 
 
 
-blueprint_comment /--
-\begin{definition}[BlaschkeB]\label{BlaschkeB}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a
-    function $B_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows.
+lemma analyticAt_finset_prod_sub_pow (s : Finset ℂ) (g : ℂ → ℕ) (w : ℂ) :
+    AnalyticAt ℂ (fun z => ∏ ρ ∈ s, (z - ρ) ^ g ρ) w := by
+  induction s using Finset.induction with
+  | empty =>
+    simp only [Finset.prod_empty]
+    exact analyticAt_const
+  | @insert a s' hne ih =>
+    have : (fun z => ∏ ρ ∈ insert a s', (z - ρ) ^ g ρ) = fun z => (z - a) ^ g a * ∏ ρ ∈ s', (z - ρ) ^ g ρ :=
+      funext fun z => Finset.prod_insert hne
+    rw [this]
+    exact ((analyticAt_id.sub analyticAt_const).pow _).mul ih
+
+
+
+@[blueprint "CfAnalytic"
+  (title := "CfAnalytic")
+  (statement := /--
+    If $f:\mathbb{C}\to\mathbb{C}$ is analytic on $\overline{\mathbb{D}_1}$ then so too is $C_f$.
+  -/)
+  (proof := /--
+    Look at the definition of $C_f$ and apply ZeroFactorization.
+  -/)]
+lemma CfAnalytic
+  {r R : ℝ} (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  AnalyticOnNhd ℂ (Cf r f) (Metric.closedBall (0 : ℂ) R) := by
+  intro w hw
+  unfold Cf
+  by_cases finite_zeros_mono : (SetOfZeros r f).Finite
+  · simp only [finite_zeros_mono, ↓reduceDIte]
+    by_cases w_in_zeros : w ∈ SetOfZeros r f
+    · obtain ⟨h_w, hh_w_analytic, hh_w_w_ne_zero, hh_w_eq⟩ := ZeroFactorization (hfAnalytic.mono (Metric.closedBall_subset_closedBall (by linarith))) hf_neq_zero_at_zero (by linarith) w_in_zeros;
+      have h_eq : ∀ᶠ z in nhds w, (if h : z ∈ SetOfZeros r f then ZeroFactor f z / ∏ ρ ∈ finite_zeros_mono.toFinset \ {z}, (z - ρ) ^ analyticOrderNatAt f ρ else f z / ∏ ρ ∈ finite_zeros_mono.toFinset, (z - ρ) ^ analyticOrderNatAt f ρ) = h_w z / ∏ ρ ∈ finite_zeros_mono.toFinset \ {w}, (z - ρ) ^ analyticOrderNatAt f ρ := by
+        filter_upwards [ hh_w_eq.2, hh_w_analytic.continuousAt.eventually_ne hh_w_w_ne_zero ] with z hz hz';
+        by_cases h : z = w
+        · subst h
+          rw [dif_pos w_in_zeros]
+          congr 1
+          exact hh_w_eq.1
+        · have z_not_in : z ∉ SetOfZeros r f := by
+            intro hmem
+            have hfz : f z = 0 := hmem.2
+            rw [hz] at hfz
+            exact absurd hfz (mul_ne_zero (pow_ne_zero _ (sub_ne_zero_of_ne h)) hz')
+          rw [dif_neg z_not_in, hz]
+          have hw_mem : w ∈ finite_zeros_mono.toFinset := finite_zeros_mono.mem_toFinset.mpr w_in_zeros
+          rw [Finset.prod_eq_prod_diff_singleton_mul hw_mem (fun ρ => (z - ρ) ^ analyticOrderNatAt f ρ)]
+          rw [mul_comm ((z - w) ^ analyticOrderNatAt f w) (h_w z)]
+          rw [mul_div_mul_right _ _ (pow_ne_zero _ (sub_ne_zero_of_ne h))]
+      apply hh_w_analytic.div _ _ |> fun h => h.congr _;
+      · use fun z => ∏ ρ ∈ finite_zeros_mono.toFinset \ { w }, ( z - ρ ) ^ analyticOrderNatAt f ρ;
+      · exact analyticAt_finset_prod_sub_pow _ _ _
+      · simp only [Finset.prod_eq_zero_iff, ne_eq, pow_eq_zero_iff', Finset.mem_sdiff, Finite.mem_toFinset, Finset.mem_singleton, not_exists, not_and,
+          Decidable.not_not, and_imp]
+        intro x _ h_ne_w
+        exact fun h_eq_w => absurd (sub_eq_zero.mp h_eq_w).symm h_ne_w
+      · filter_upwards [ h_eq ] with z hz using hz.symm
+    · apply AnalyticAt.congr _ _
+      · exact fun z => f z / ∏ ρ ∈ finite_zeros_mono.toFinset, ( z - ρ ) ^ analyticOrderNatAt f ρ
+      · refine AnalyticAt.div ?_ ?_ ?_
+        · exact hfAnalytic w ( Metric.mem_closedBall.mpr <| le_trans hw.out <| by linarith )
+        · exact analyticAt_finset_prod_sub_pow _ _ _
+        · simp only [ ne_eq, Finset.prod_eq_zero_iff, Finite.mem_toFinset, pow_eq_zero_iff',
+          sub_eq_zero, ↓existsAndEq, true_and, not_and, Decidable.not_not]
+          exact fun h => absurd h w_in_zeros
+      · filter_upwards [ IsOpen.mem_nhds ( isOpen_compl_iff.mpr finite_zeros_mono.isClosed ) w_in_zeros ] with z hz
+        split_ifs with h
+        · exact absurd h hz
+        · rfl
+  · simp only [finite_zeros_mono, ↓reduceDIte]
+    exact analyticAt_const
+
+
+
+@[blueprint "BlaschkeB"
+  (title := "BlaschkeB")
+  (statement := /--
+    Let $0 < r < R < 1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. We define a function $B_f:\mathbb{C}\to\mathbb{C}$ as follows.
     $$B_f(z)=C_f(z)\prod_{\rho\in\mathcal{K}_f(r)}
       \left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}$$
-\end{definition}
--/
+  -/)]
+noncomputable def BlaschkeB
+  (r R : ℝ) (f : ℂ → ℂ)
+  (z : ℂ) : ℂ :=
+  if finite_zeros_mono : (SetOfZeros r f).Finite then
+    (Cf r f) z * (∏ ρ ∈ finite_zeros_mono.toFinset, (R - z * (conj ρ) / R) ^ (analyticOrderNatAt f ρ))
+  else 1
 
 
 
-blueprint_comment /--
-\begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
+@[blueprint "BlaschkeAnalytic"
+  (title := "BlaschkeAnalytic")
+  (statement := /--
+    If $f:\mathbb{C}\to\mathbb{C}$ is analytic on $\overline{\mathbb{D}_R}$ then so too is $B_f$.
+  -/)
+  (proof := /--
+    Expand out $B_f$ as a product, and observe that each part is analytic on $\overline{\mathbb{D}_R}$.
+  -/)]
+lemma BlaschkeAnalytic
+  {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  AnalyticOnNhd ℂ (BlaschkeB r R f) (Metric.closedBall (0 : ℂ) R) := by
+  unfold BlaschkeB
+  by_cases finite_zeros_mono : (SetOfZeros r f).Finite
+  · simp only [finite_zeros_mono, ↓reduceDIte]
+    refine AnalyticOnNhd.mul (CfAnalytic r_lt_R R_lt_one hfAnalytic hf_neq_zero_at_zero) (Finset.analyticOnNhd_fun_prod (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset ?_)
+    intro w hw
+    refine AnalyticOnNhd.fun_pow (AnalyticOnNhd.sub (analyticOnNhd_const) (AnalyticOnNhd.div (AnalyticOnNhd.mul (analyticOnNhd_id) (analyticOnNhd_const)) (analyticOnNhd_const) ?_)) (analyticOrderAt f w).toNat
+    intro w' hw'
+    exact_mod_cast ne_of_gt R_pos
+  · simp only [finite_zeros_mono, ↓reduceDIte]
+    exact analyticOnNhd_const
+
+
+
+@[blueprint "BlaschkeOfZero"
+  (title := "BlaschkeOfZero")
+  (statement := /--
+    Let $0 < r < R<1$, and $f:\mathbb{C}\to\mathbb{C}$ be analytic on $\overline{\mathbb{D}_1}$ with
+    $f(0)\neq 0$. Then
     $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}
       \left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
+  -/)
+  (proof := /--
     Since $f(0)\neq 0$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}
       =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{proof}
--/
+  -/)]
+lemma BlaschkeOfZero
+  {r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hf_neq_zero_at_zero : f 0 ≠ 0) :
+  ‖BlaschkeB r R f 0‖ =
+    ‖f 0‖ * (∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ (analyticOrderNatAt f ρ)) := by
+  have zero_not_zero : ¬(0 ∈ SetOfZeros r f) := by
+    apply notMem_setOf_iff.mpr
+    simp only [norm_zero, not_and]
+    intro r
+    exact mem_support.mp hf_neq_zero_at_zero
+  unfold BlaschkeB Cf
+  simp only [finiteSetOfZeros_mono r_lt_one finiteZeros, zero_not_zero, ↓reduceDIte, zero_sub, zero_mul, zero_div, sub_zero,
+    Complex.norm_mul, Complex.norm_div, norm_prod, norm_pow, norm_neg, norm_real, norm_eq_abs]
+  rw[div_eq_mul_inv, mul_assoc, abs_of_pos (by linarith)]
+  refine (mul_right_inj' (norm_ne_zero_iff.mpr hf_neq_zero_at_zero)).mpr ?_
+  rw[← Finset.prod_inv_distrib, ← Finset.prod_mul_distrib]
+  simp only [div_eq_inv_mul, mul_pow, inv_pow]
 
 
 
-blueprint_comment /--
-\begin{lemma}[DiskBound]\label{DiskBound}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for
-    $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
+@[blueprint "DiskBound"
+  (title := "DiskBound")
+  (statement := /--
+    Let $B>1$ and $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
+    $\overline{\mathbb{D}_1}$ with $f(0)\neq0$ such that $|f(z)|\leq B$ for $|z|\leq R$,
+    then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
+  -/)
+  (proof := /--
     For $|z|=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
@@ -562,23 +521,52 @@ blueprint_comment /--
     So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus
     principle, we know that the maximum of $|B_f|$ must occur on the boundary where
     $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$.
-\end{proof}
--/
+  -/)]
+lemma DiskBound {B r R : ℝ} (r_lt_one : r < 1) (R_pos : 0 < R) (r_lt_R : r < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (finiteZeros : (SetOfZeros 1 f).Finite)
+  (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
+  (hf_neq_zero_at_zero : f 0 ≠ 0) (fz_bound : ∀ (z : ℂ), ‖z‖ ≤ R → ‖f z‖ ≤ B)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) R) :
+    ‖BlaschkeB r R f z‖ ≤ B := by
+  refine AnalyticOn.norm_le_of_norm_le_on_sphere (AnalyticOnNhd.analyticOn (BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero)) (Std.IsPreorder.le_refl R) ?_ z hz
+  intro w hw
+  rw[mem_sphere_iff_norm, sub_zero] at hw
+  have hw_not_in : ¬(w ∈ SetOfZeros r f) := by
+    apply notMem_setOf_iff.mpr
+    intro le_r
+    linarith
+  have Bf_eq_f_at_w : ‖BlaschkeB r R f w‖ = ‖f w‖ := by
+    unfold BlaschkeB Cf
+    simp only [finiteSetOfZeros_mono r_lt_one finiteZeros, hw_not_in, ↓reduceDIte, Complex.norm_mul, Complex.norm_div, norm_prod, norm_pow]
+    rw[div_eq_mul_inv, mul_assoc, mul_right_eq_self₀]
+    by_cases fw_normZero : ‖f w‖ = 0
+    · exact Or.inr fw_normZero
+    · apply Or.inl
+      rw[← Finset.prod_inv_distrib, ← Finset.prod_mul_distrib]
+      apply Finset.prod_eq_one
+      intro w' hw'_in
+      have hfact : (R : ℂ) - w * starRingEnd ℂ w' / R = (conj w - conj w') * w / R := by
+        rw[sub_mul, ← Complex.normSq_eq_conj_mul_self, Complex.normSq_eq_norm_sq, hw, ofReal_pow]
+        field_simp
+      rw [hfact, norm_div, norm_mul, ← map_sub, norm_conj, Complex.norm_real, hw, Real.norm_of_nonneg (le_of_lt R_pos)]
+      field_simp
+      rw[← div_pow, div_self, one_pow]
+      rw[Set.Finite.mem_toFinset] at hw'_in
+      exact norm_ne_zero_iff.mpr (sub_ne_zero.mpr (fun h => hw_not_in (h ▸ hw'_in)))
+  rw[Bf_eq_f_at_w]
+  exact fz_bound w (le_of_eq hw)
 
 
 
-blueprint_comment /--
-\begin{theorem}[ZerosBound]\label{ZerosBound}
+@[blueprint "ZerosBound"
+  (title := "ZerosBound")
+  (statement := /--
     Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$
     for $|z|\leq R$, then
     $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB, DiskBound, BlaschkeOfZero}
+  -/)
+   (proof := /--
     Since $f(0)=1$, by Lemma \ref{BlaschkeOfZero} we know that
     $$|B_f(0)|
       =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}
@@ -590,8 +578,33 @@ blueprint_comment /--
       =|B_f(0)|\leq B$$
     whereby Lemma \ref{DiskBound} we know that $|B_f(z)|\leq B$ for all $|z|\leq R$.
     Taking the logarithm of both sides and rearranging gives the desired result.
-\end{proof}
--/
+  -/)]
+lemma ZerosBound {B r R : ℝ} (r_pos : 0 < r) (r_lt_one : r < 1) (R_pos : 0 < R) (R_lt_1 : R < 1) (r_lt_R : r < R)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B) :
+  ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ ≤ 1 / Real.log (R / r) * Real.log B := by
+  have hf0_ne_zero : f 0 ≠ 0 := by rw [hf0_eq_one]; exact one_ne_zero
+  have blaschke_eq := BlaschkeOfZero r_lt_one R_pos finiteZeros hf0_ne_zero
+  rw[hf0_eq_one, norm_one, one_mul] at blaschke_eq
+  rw [one_div, inv_mul_eq_div, le_div_iff₀ (Real.log_pos (by simp only [lt_div_iff₀ r_pos, one_mul, r_lt_R])), ← Real.log_pow]
+  refine Real.log_le_log (pow_pos (div_pos R_pos r_pos) _) ?_
+  calc (R / r) ^ ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ
+      = ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / r) ^ analyticOrderNatAt f ρ := by
+        rw [Finset.prod_pow_eq_pow_sum]
+    _ ≤ ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ analyticOrderNatAt f ρ := by
+      apply Finset.prod_le_prod
+      · intro ρ _
+        exact pow_nonneg (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) _
+      · intro ρ hρ
+        have hρ_mem := (finiteSetOfZeros_mono r_lt_one finiteZeros).mem_toFinset.mp hρ
+        refine pow_le_pow_left₀ (div_nonneg (le_of_lt R_pos) (le_of_lt r_pos)) ?_ _
+        refine div_le_div_of_nonneg_left (le_of_lt R_pos) (norm_pos_iff.mpr ?_) (hρ_mem.1)
+        rintro rfl
+        exact hf0_ne_zero hρ_mem.2
+    _ ≤ B := by
+      rw[← blaschke_eq]
+      exact DiskBound r_lt_one R_pos r_lt_R R_lt_1 finiteZeros hfAnalytic
+        hf0_ne_zero fz_bound (Metric.mem_closedBall_self (le_of_lt R_pos))
 
 
 
@@ -1118,15 +1131,13 @@ theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
 
 
 noncomputable def E : ℝ := ZeroInequality.choose
-lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := by
-    exact ZeroInequality.choose_spec.1
+lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := ZeroInequality.choose_spec.1
 theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ) (σ t : ℝ),
     ζ ρ = 0 →
         σ = ρ.re →
             t = ρ.im →
                 |t| ≥ 2 →
-                    σ ≤ 1 - E / log |t| :=
-    by exact ZeroInequality.choose_spec.2
+                    σ ≤ 1 - E / log |t| := ZeroInequality.choose_spec.2
 @[blueprint
   (title := "DeltaT")
   (statement := /--
@@ -1279,17 +1290,12 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
     3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
-    use E / 3
-    refine exists_prop.mpr ?_
-    constructor
-    ·   rfl
-    ·   sorry
+    exact ⟨E / 3, rfl, sorry⟩
 
 
 
 noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
-lemma Fequ : F = E / 3 := by
-    exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
+lemma Fequ : F = E / 3 := LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
 lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 ≤ C),
     ∀ (σ t : ℝ),
     3 ≤ |t| →
@@ -1297,11 +1303,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 ≤ C),
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
     by exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
 lemma FLogTtoDeltaT : ∀ (t : ℝ),
-    DeltaT t / 3 = F / Real.log |t| := by
-    unfold DeltaT
-    rw [Fequ]
-    ring_nf
-    exact fun t ↦ trivial
+    DeltaT t / 3 = F / Real.log |t| := fun _ ↦ by simp [DeltaT, Fequ]; ring
 
 /-- The logarithmic derivative of the Riemann zeta function is bounded in the half-plane
 `Re(s) >= 3/2`. -/
@@ -1340,10 +1342,7 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
       · exact Real.log_nonneg (Nat.one_le_cast.mpr (Nat.pos_of_ne_zero hn))
   have h_log_deriv_sum : ∀ s : ℂ, 3 / 2 ≤ s.re →
       deriv riemannZeta s / riemannZeta s = -∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s := by
-    intro s hs
-    suffices h : -deriv riemannZeta s / riemannZeta s =
-        ∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s by rw [← h, neg_div, neg_neg]
-    exact LogDerivativeDirichlet s (by grind)
+    intro s hs; have h := LogDerivativeDirichlet s (by grind); linear_combination -h
   have h_triangle : ∀ s : ℂ,
       ‖∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤
         ∑' n : ℕ, ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ := fun s ↦ by
@@ -1544,9 +1543,8 @@ lemma IntegralLogSqOverTSqBound : ∃ C > 0, ∀ T, 3 < T →
 
 lemma NormXPowS {X : ℝ} (X_gt_one : 1 < X) {s : ℂ} (hs : s.re = 1 + (Real.log X)⁻¹) :
     ‖(X : ℂ) ^ s‖ = X * Real.exp 1 := by
-  have hX : 0 < X := by positivity
-  simp only [Complex.norm_cpow_eq_rpow_re_of_pos hX, hs, Real.rpow_add hX, Real.rpow_one,
-    Real.rpow_inv_log hX X_gt_one.ne']
+  simp [Complex.norm_cpow_eq_rpow_re_of_pos (by positivity : 0 < X), hs,
+    Real.rpow_add (by positivity : 0 < X), Real.rpow_inv_log (by positivity) X_gt_one.ne']
 
 lemma LogDerivZetaBoundForI1 : ∃ C > 0, ∀ {X T : ℝ} (_Xgt3 : 3 < X) (_Tgt3 : 3 < T)
     (t : ℝ) (_ht : t ≤ -T),
@@ -1759,15 +1757,14 @@ lemma I5NewBound {SmoothingF : ℝ → ℝ}
         simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
         rw [neg_mul, mul_neg, ← neg_mul]
         congr
-        ·   ring
-        ·   rw [← integral_conj, ← integral_comp_neg_Ioi, integral_Ici_eq_integral_Ioi]
-            apply setIntegral_congr_fun <| measurableSet_Ioi
-            intro x hx
-            simp only []
-            rw[← smoothedChebyshevIntegrand_conj (by linarith)]
-            simp only [ofReal_inv, ofReal_neg, neg_mul, map_add, map_one, map_inv₀, conj_ofReal,
-              map_neg, map_mul, conj_I, mul_neg, neg_neg]
-    rw[I1NewI5New, RCLike.norm_conj]
+        · ring
+        · rw [← integral_conj, ← integral_comp_neg_Ioi, integral_Ici_eq_integral_Ioi]
+          apply setIntegral_congr_fun <| measurableSet_Ioi
+          intro x hx; simp only []
+          rw [← smoothedChebyshevIntegrand_conj (by linarith)]
+          simp [ofReal_inv, ofReal_neg, neg_mul, map_add, map_one, map_inv₀, conj_ofReal,
+            map_neg, map_mul, conj_I, mul_neg, neg_neg]
+    rw [I1NewI5New, RCLike.norm_conj]
     exact hI1NewBound εinIoo Xgt3 Tgt3
 
 
@@ -1865,12 +1862,10 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
         rw [mul_neg, div_neg, neg_mul_comm, ← mul_neg]
         congr
         rw [← intervalIntegral_conj, neg_neg]
-        apply intervalIntegral.integral_congr
-        intro x hx
-        simp only []
-        rw[← smoothedChebyshevIntegrand_conj (by linarith)]
-        simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
-    rw[I2NewI4New, norm_neg, RCLike.norm_conj]
+        exact intervalIntegral.integral_congr fun x hx ↦ by
+          rw [← smoothedChebyshevIntegrand_conj (by linarith)]
+          simp [map_sub, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    rw [I2NewI4New, norm_neg, RCLike.norm_conj]
     exact hI2NewBound εinIoo Xgt3 Tgt3
 
 
@@ -1956,25 +1951,19 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
       I5New SmoothingF ε X T
       + 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) 1 * X := by
     unfold SmoothedChebyshev VerticalIntegral'
-    have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
-        nth_rewrite 1 [← add_zero 1]
-        bound
+    have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by nth_rewrite 1 [← add_zero 1]; bound
     have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
-        rw[← one_add_one_eq_two]
-        gcongr
-        exact inv_lt_one_of_one_lt₀ <| logt_gt_one X_gt.le
+        rw [← one_add_one_eq_two]; gcongr; exact inv_lt_one_of_one_lt₀ <| logt_gt_one X_gt.le
     have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
     rw [verticalIntegral_split_three (a := -T) (b := T)]
     swap
     ·   exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
             X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
     ·   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by simp
-        unfold I1New
-        simp only [smul_eq_mul, mul_add, temp, sub_eq_add_neg, add_assoc, add_left_cancel_iff]
-        unfold I5New
-        nth_rewrite 6 [add_comm]
-        simp only [← add_assoc]
-        rw[add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
+        unfold I1New; simp only [smul_eq_mul, mul_add, temp, sub_eq_add_neg, add_assoc,
+          add_left_cancel_iff]
+        unfold I5New; nth_rewrite 6 [add_comm]; simp only [← add_assoc]
+        rw [add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
             -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
             ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
         unfold VIntegral I2New I3New I4New
@@ -1984,24 +1973,21 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         let fTempC : ℂ → ℂ := fun z ↦ fTempRR z.re z.im
         have : ∫ (y : ℝ) in -T..T,
             SmoothedChebyshevIntegrand SmoothingF ε X (1 + ↑(Real.log X)⁻¹ + ↑y * I) =
-            ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by
-            unfold fTempRR
-            simp only [temp]
-        rw[this]
+            ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by unfold fTempRR; simp [temp]
+        rw [this]
         have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
             SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I) =
             ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
-            unfold fTempRR
-            simp only [ofReal_neg, neg_mul, sub_eq_add_neg]
-        rw[this]
+            unfold fTempRR; simp [ofReal_neg, neg_mul, sub_eq_add_neg]
+        rw [this]
         have : ∫ (t : ℝ) in -T..T,
             SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I) =
-            ∫ (y : ℝ) in -T..T, fTempRR σ' y := by rfl
-        rw[this]
+            ∫ (y : ℝ) in -T..T, fTempRR σ' y := rfl
+        rw [this]
         have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
             SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑T * I) =
-            ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
-        rw[this]
+            ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T := rfl
+        rw [this]
         have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
             -∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
             I * ∫ (y : ℝ) in -T..T, fTempRR σ' y) +
@@ -2017,61 +2003,43 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             simp only [I_sq, neg_mul, one_mul, ne_eq, ofReal_eq_zero, pi_ne_zero, not_false_eq_true,
               mul_inv_cancel_right₀, sub_neg_eq_add, I_pow_three]
             ring_nf
-        rw[this]
+        rw [this]
         field_simp
-        rw[mul_comm, eq_comm, neg_add_eq_zero]
-
+        rw [mul_comm, eq_comm, neg_add_eq_zero]
         have pInRectangleInterior : (Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
-            refine rectangle_mem_nhds_iff.mpr ?_
-            refine mem_reProdIm.mpr ?_
+            refine rectangle_mem_nhds_iff.mpr <| mem_reProdIm.mpr ?_
             simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
                 sub_zero, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero,
                 sub_im, mul_im, zero_sub, add_im, one_im, inv_im, neg_zero, zero_div, zero_add]
             constructor
-            ·   unfold uIoo
-                rw [min_eq_left (by linarith), max_eq_right (by linarith)]
-                exact mem_Ioo.mpr ⟨σ'_lt_one, (by linarith)⟩
-            ·   unfold uIoo
-                rw [min_eq_left (by linarith), max_eq_right (by linarith)]
-                exact mem_Ioo.mpr ⟨(by linarith), (by linarith)⟩
-
+            · unfold uIoo; rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+              exact mem_Ioo.mpr ⟨σ'_lt_one, by linarith⟩
+            · unfold uIoo; rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+              exact mem_Ioo.mpr ⟨by linarith, by linarith⟩
         apply ResidueTheoremOnRectangleWithSimplePole'
-        ·   simp; linarith
-        ·   simp; linarith
-        ·   simp only [one_div]
-            exact pInRectangleInterior
+        · simp; linarith
+        · simp; linarith
+        · simp only [one_div]; exact pInRectangleInterior
         ·   apply DifferentiableOn.mul
             ·   apply DifferentiableOn.mul
                 ·   simp only [re_add_im]
                     have : (fun z ↦ -ζ' z / ζ z) = -(ζ' / ζ) := by ext; simp; ring
-                    rw [this]
-                    apply DifferentiableOn.neg
-                    apply holoOn.mono
-                    apply diff_subset_diff_left
-                    apply reProdIm_subset_iff'.mpr
-                    left
+                    rw [this]; apply DifferentiableOn.neg; apply holoOn.mono
+                    apply diff_subset_diff_left; apply reProdIm_subset_iff'.mpr; left
                     simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
                         sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
                         div_self_mul_self', add_zero, sub_im, mul_im, zero_sub, add_im, one_im, inv_im,
                         neg_zero, zero_div, zero_add]
                     constructor <;> apply uIcc_subset_Icc <;> constructor <;> linarith
-                ·   intro s hs
-                    apply DifferentiableAt.differentiableWithinAt
-                    simp only [re_add_im]
+                ·   intro s hs; apply DifferentiableAt.differentiableWithinAt; simp only [re_add_im]
                     apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
                     have := mem_reProdIm.mp hs.1 |>.1
                     simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
                         sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
                         div_self_mul_self', add_zero] at this
-                    rw [uIcc_of_le (by linarith)] at this
-                    linarith [this.1]
-            ·   intro s hs
-                apply DifferentiableAt.differentiableWithinAt
-                simp only [re_add_im]
-                apply DifferentiableAt.const_cpow (by fun_prop)
-                left
-                norm_cast
-                linarith
+                    rw [uIcc_of_le (by linarith)] at this; linarith [this.1]
+            ·   intro s hs; apply DifferentiableAt.differentiableWithinAt; simp only [re_add_im]
+                apply DifferentiableAt.const_cpow (by fun_prop); left; norm_cast; linarith
         ·   let U : Set ℂ := Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I)
             let f : ℂ → ℂ := fun z ↦ -ζ' z / ζ z
             let g : ℂ → ℂ := fun z ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) z * ↑X ^ z
@@ -2079,30 +2047,21 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             simp only [re_add_im]
             have g_holc : HolomorphicOn g U := by
                 intro u uInU
-                apply DifferentiableAt.differentiableWithinAt
-                simp only [g]
+                apply DifferentiableAt.differentiableWithinAt; simp only [g]
                 apply DifferentiableAt.mul
                 ·   apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
-                    simp only [ofReal_inv, U] at uInU
-                    unfold Rectangle at uInU
-                    rw[Complex.mem_reProdIm] at uInU
-                    have := uInU.1
+                    simp only [ofReal_inv, U] at uInU; unfold Rectangle at uInU
+                    rw[Complex.mem_reProdIm] at uInU; have := uInU.1
                     simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
                         sub_zero, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero] at this
-                    rw [uIcc_of_le (by linarith)] at this
-                    linarith [this.1]
+                    rw [uIcc_of_le (by linarith)] at this; linarith [this.1]
                 ·   unfold HPow.hPow instHPow
                     apply DifferentiableAt.const_cpow differentiableAt_fun_id
-                    left
-                    norm_cast
-                    linarith
+                    left; norm_cast; linarith
             have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
-                simp only [one_mul, f]
-                exact riemannZetaLogDerivResidueBigO
+                simp only [one_mul, f]; exact riemannZetaLogDerivResidueBigO
             convert ResidueMult g_holc pInRectangleInterior f_near_p using 1
-            ext
-            simp [f, g]
-            ring
+            ext; simp [f, g]; ring
 
 
 
