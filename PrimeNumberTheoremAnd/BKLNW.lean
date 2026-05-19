@@ -1542,11 +1542,52 @@ If $u^2 < v$, then
 theorem bklnw_lemma_9 (u v : ℝ) (c C c₀ : ℝ)
   (huv : 1 ≤ u ∧ u < v)
   (hψ_bound : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C)
-  (hψ_linear : ∀ x > 0, ψ x < c₀ * x)
-  (huv : u ^ 2 < v) :
-  ∀ x ∈ Set.Icc (u ^ 2) v, θ x ≥ x - (C + 1) * x ^ (1 / 2) - c₀ * x ^ (1 / 3) - c * x ^ (1 / 4) - c₀ * x ^ (1 / 5) := by
-  sorry
-
+  (hψ_linear : ∀ x > 0, ψ x < c₀ * x) :
+  ∀ x ∈ Set.Icc (u ^ 2) v, θ x ≥ x - (C + 1) * x ^ (1 / 2 : ℝ) - c₀ * x ^ (1 / 3 : ℝ) - c * x ^ (1 / 4 : ℝ) - c₀ * x ^ (1 / 5 : ℝ) := by
+  intro x hx_mem
+  have hx_lb : u ^ 2 ≤ x := hx_mem.1
+  have hx_ub : x ≤ v := hx_mem.2
+  have hx_pos : (0 : ℝ) < x := by
+    have : (0 : ℝ) < u := by linarith [huv.1]
+    nlinarith
+  have hx_ge_u : u ≤ x := by nlinarith [huv.1, hx_lb]
+  have hx_in_uv : x ∈ Set.Icc u v := ⟨hx_ge_u, hx_ub⟩
+  have hxhalf_ge_u : u ≤ x ^ (1 / 2 : ℝ) := by
+    rw [← Real.sqrt_eq_rpow]
+    exact (Real.sqrt_sq (by linarith [huv.1])).symm.trans_le (Real.sqrt_le_sqrt hx_lb)
+  have hxhalf_le_v : x ^ (1 / 2 : ℝ) ≤ v := by
+    rw [← Real.sqrt_eq_rpow]
+    have hv_ge1 : 1 < v := by nlinarith [huv.1]
+    have hsqrtv : Real.sqrt v ≤ v := by
+      rw [Real.sqrt_le_left (by linarith)]; nlinarith
+    exact (Real.sqrt_le_sqrt hx_ub).trans hsqrtv
+  have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) :=
+    CostaPereira.theorem_1a hx_pos
+  have hψx_lb : x - C * x ^ (1 / 2 : ℝ) ≤ ψ x := by
+    have hbound := (hψ_bound x hx_in_uv).2
+    rw [div_le_iff₀ (Real.sqrt_pos.mpr hx_pos), Real.sqrt_eq_rpow] at hbound
+    linarith
+  have hψxhalf_ub : ψ (x ^ (1 / 2 : ℝ)) ≤ x ^ (1 / 2 : ℝ) + c * x ^ (1 / 4 : ℝ) := by
+    have hbound := (hψ_bound _ ⟨hxhalf_ge_u, hxhalf_le_v⟩).1
+    have hsqrt_rw : Real.sqrt (x ^ (1 / 2 : ℝ)) = x ^ (1 / 4 : ℝ) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hx_pos.le]; norm_num
+    rw [le_div_iff₀ (Real.sqrt_pos.mpr (Real.rpow_pos_of_pos hx_pos _)),
+        hsqrt_rw] at hbound
+    linarith
+  have hψxthird_ub : ψ (x ^ (1 / 3 : ℝ)) < c₀ * x ^ (1 / 3 : ℝ) :=
+    hψ_linear _ (Real.rpow_pos_of_pos hx_pos _)
+  have hψxfifth_ub : ψ (x ^ (1 / 5 : ℝ)) < c₀ * x ^ (1 / 5 : ℝ) :=
+    hψ_linear _ (Real.rpow_pos_of_pos hx_pos _)
+  calc θ x
+      ≥ ψ x - ψ (x ^ (1/2 : ℝ)) - ψ (x ^ (1/3 : ℝ)) - ψ (x ^ (1/5 : ℝ)) := by linarith
+    _ ≥ (x - C * x ^ (1/2 : ℝ))
+          - (x ^ (1/2 : ℝ) + c * x ^ (1/4 : ℝ))
+          - c₀ * x ^ (1/3 : ℝ)
+          - c₀ * x ^ (1/5 : ℝ)                     := by linarith
+    _ = x - (C + 1) * x ^ (1/2 : ℝ)
+          - c₀ * x ^ (1/3 : ℝ)
+          - c * x ^ (1/4 : ℝ)
+          - c₀ * x ^ (1/5 : ℝ)                     := by ring
 
 def table_from_buthe : List (ℝ × ℝ × ℝ × ℝ) := [
   (100, 5 * 10 ^ 10, 0.8, 0.81),
@@ -1566,6 +1607,67 @@ theorem bklnw_table_from_buthe (u v c C : ℝ) (h : (u, v, c, C) ∈ table_from_
 
 noncomputable def C_bk (b c C c₀ : ℝ) (k : ℕ) : ℝ :=
   b ^ k * ((C + 1) * exp (-b / 2) + c₀ * exp (-2 * b / 3) + c * exp (-3 * b / 4) + c₀ * exp (-4 * b / 5))
+
+private lemma exp_half_mem_Icc_of_exp_mem (k : ℕ) (v b : ℝ)
+    (hb_lb : max (10000 : ℝ) (exp (2 * k)) ≤ exp b)
+    (hb_ub : exp b ≤ v) :
+    let u := exp (b / 2)
+    b ≥ 2 * (k : ℝ) ∧ (100 : ℝ) ≤ u ∧ 0 < b ∧ u < v ∧ (1 : ℝ) ≤ u ∧ u ^ 2 = exp b := by
+  intro u
+  have hexpb_ge_10000 : (10000 : ℝ) ≤ exp b := le_of_max_le_left hb_lb
+  have hexpb_ge_e2k : exp (2 * (k : ℝ)) ≤ exp b := le_of_max_le_right hb_lb
+  have hbk : b ≥ 2 * (k : ℝ) := by
+    have := Real.exp_le_exp.mp hexpb_ge_e2k
+    push_cast at this ⊢; linarith
+  have hu_ge_100 : (100 : ℝ) ≤ u := by
+    dsimp [u]
+    rw [← Real.exp_log (by norm_num : (0:ℝ) < 100)]
+    apply Real.exp_le_exp.mpr
+    linarith [Real.log_rpow (by norm_num : (0:ℝ) < 10000) (1/2 : ℝ),
+              show Real.log 10000 ≤ b by rwa [← Real.log_exp b, Real.log_le_log_iff (by norm_num) (exp_pos b)]]
+  have hb_pos : 0 < b := one_lt_exp_iff.mp (by linarith [hexpb_ge_10000])
+  have hu_lt_v : u < v := by
+    dsimp [u]; exact (Real.exp_lt_exp.mpr (by linarith)).trans_le hb_ub
+  have hu_ge_1 : (1 : ℝ) ≤ u := le_trans (by norm_num) hu_ge_100
+  have hu_sq : u ^ 2 = exp b := by
+    dsimp [u]
+    rw [← Real.rpow_natCast, ← Real.exp_mul]
+    norm_num
+  exact ⟨hbk, hu_ge_100, hb_pos, hu_lt_v, hu_ge_1, hu_sq⟩
+
+private lemma table_from_buthe_cC_nonneg (v c C : ℝ)
+    (hvcc : (100, v, c, C) ∈ table_from_buthe) :
+    0 ≤ c ∧ 0 ≤ C := by
+  simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at hvcc
+  rcases hvcc with ⟨-, -, rfl, rfl⟩ | ⟨-, -, rfl, rfl⟩ | ⟨-, -, rfl, rfl⟩ | h
+  · constructor <;> norm_num
+  · constructor <;> norm_num
+  · constructor <;> norm_num
+  · contradiction
+
+private lemma log_pow_mul_rpow_neg_le_pow_mul_exp_neg (k ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (b : ℝ) (hbk : b ≥ 2 * (k : ℝ))
+    (x : ℝ) (hx_pos : 0 < x) (hx_log : b ≤ log x) :
+    (log x) ^ k * x ^ (-(ℓ : ℝ) / (ℓ + 1)) ≤ b ^ k * exp (-(ℓ : ℝ) * b / (ℓ + 1)) := by
+  have hk_ge_1_or_zero : k = 0 ∨ 1 ≤ k := by omega
+  rcases hk_ge_1_or_zero with rfl | hk
+  · simp only [pow_zero, one_mul]
+    rw [rpow_def_of_pos hx_pos, exp_le_exp]
+    have h_coeff_neg : -(ℓ : ℝ) / (ℓ + 1) < 0 := by
+      have h1 : (0 : ℝ) < (ℓ : ℝ) := by exact_mod_cast hℓ
+      linarith [div_pos h1 (by positivity : (0:ℝ) < (ℓ:ℝ) + 1),
+                show -(ℓ:ℝ) / (ℓ+1) = -((ℓ:ℝ)/(ℓ+1)) from neg_div _ _]
+    linarith [mul_le_mul_of_nonpos_right hx_log h_coeff_neg.le,
+              show b * (-(ℓ:ℝ) / (ℓ+1)) = -(ℓ:ℝ) * b / (ℓ+1) from by ring]
+  · exact bklnw_eq_3_11_term_le k hk ℓ hℓ b (by exact_mod_cast hbk) x hx_pos hx_log
+
+private lemma rpow_one_div_succ_eq_rpow_neg_div_mul (ℓ : ℝ) (hℓ : 0 ≤ ℓ) (x : ℝ) (hx_pos : 0 < x) :
+    x ^ (1 / (ℓ + 1)) = x ^ (-ℓ / (ℓ + 1)) * x := by
+  nth_rw 3 [← Real.rpow_one x]
+  rw [← Real.rpow_add hx_pos]
+  congr 1
+  field_simp [show ℓ + 1 ≠ 0 by linarith]
+  ring
 
 @[blueprint
   "bklnw-corollary-9-1"
@@ -1599,7 +1701,66 @@ This last inequality leads to the condition $b \ge 2k$.  -/)
   (discussion := 1262)]
 theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈ table_from_buthe) (hb : max (10000 : ℝ) (exp (2 * k)) ≤ exp b ∧ exp b ≤ v) :
   ∀ x ∈ Set.Icc (exp b) v, θ x ≥ x - C_bk b c C RS_prime.c₀ k * x / (log x)^k := by
-  sorry
+  obtain ⟨hb_lb, hb_ub⟩ := hb
+  set u := exp (b / 2) with hu_def
+  obtain ⟨hbk, hu_ge_100, hb_pos, hu_lt_v, hu_ge_1, hu_sq⟩ :=
+    exp_half_mem_Icc_of_exp_mem k v b hb_lb hb_ub
+  have hψ_bound_uv : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C := by
+    intro x hx
+    apply bklnw_table_from_buthe 100 v c C hvcc
+    exact ⟨le_trans (by exact_mod_cast hu_ge_100) hx.1, hx.2⟩
+  have hψ_linear : ∀ x > 0, ψ x < RS_prime.c₀ * x :=
+    fun x hx => RS_prime.theorem_12 hx
+  have hlemma9 : ∀ x ∈ Set.Icc (exp b) v,
+      θ x ≥ x - (C + 1) * x ^ (1 / 2 : ℝ) - RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+              - c * x ^ (1 / 4 : ℝ) - RS_prime.c₀ * x ^ (1 / 5 : ℝ) := by
+    have h9 := bklnw_lemma_9 u v c C RS_prime.c₀ ⟨hu_ge_1, hu_lt_v⟩ hψ_bound_uv hψ_linear
+    rwa [hu_sq] at h9
+  intro x hx_mem
+  have hx_pos : (0 : ℝ) < x := (exp_pos b).trans_le hx_mem.1
+  have hx_log : b ≤ log x := by
+    have := hx_mem.1
+    rwa [← Real.log_exp b, Real.log_le_log_iff (exp_pos b) hx_pos]
+  have hterm1 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 1 (by norm_num) b hbk x hx_pos hx_log
+  have hterm2 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 2 (by norm_num) b hbk x hx_pos hx_log
+  have hterm3 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 3 (by norm_num) b hbk x hx_pos hx_log
+  have hterm4 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 4 (by norm_num) b hbk x hx_pos hx_log
+  obtain ⟨hc_nonneg, hC_nonneg⟩ := table_from_buthe_cC_nonneg v c C hvcc
+  have hc₀_nonneg : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have hlogk_pos : 0 < (log x) ^ k := pow_pos (by linarith) k
+  have hrw1 : x ^ (1 / 2 : ℝ) = x ^ (-(1 : ℝ) / (1 + 1)) * x := by
+    rw [show (1 / 2 : ℝ) = 1 / (1 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 1 (by norm_num) x hx_pos
+  have hrw2 : x ^ (1 / 3 : ℝ) = x ^ (-(2 : ℝ) / (2 + 1)) * x := by
+    rw [show (1 / 3 : ℝ) = 1 / (2 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 2 (by norm_num) x hx_pos
+  have hrw3 : x ^ (1 / 4 : ℝ) = x ^ (-(3 : ℝ) / (3 + 1)) * x := by
+    rw [show (1 / 4 : ℝ) = 1 / (3 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 3 (by norm_num) x hx_pos
+  have hrw4 : x ^ (1 / 5 : ℝ) = x ^ (-(4 : ℝ) / (4 + 1)) * x := by
+    rw [show (1 / 5 : ℝ) = 1 / (4 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 4 (by norm_num) x hx_pos
+  suffices h_sum_le : (C + 1) * x ^ (1 / 2 : ℝ) + RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+      + c * x ^ (1 / 4 : ℝ) + RS_prime.c₀ * x ^ (1 / 5 : ℝ)
+      ≤ C_bk b c C RS_prime.c₀ k * x / (log x) ^ k by
+    linarith [hlemma9 x hx_mem]
+  calc (C + 1) * x ^ (1 / 2 : ℝ) + RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+          + c * x ^ (1 / 4 : ℝ) + RS_prime.c₀ * x ^ (1 / 5 : ℝ)
+      _ ≤ ((C + 1) * (b ^ k * exp (-(1 : ℝ) * b / (1 + 1)))
+            + RS_prime.c₀ * (b ^ k * exp (-(2 : ℝ) * b / (2 + 1)))
+            + c * (b ^ k * exp (-(3 : ℝ) * b / (3 + 1)))
+            + RS_prime.c₀ * (b ^ k * exp (-(4 : ℝ) * b / (4 + 1)))) * x / (log x) ^ k := by
+          rw [hrw1, hrw2, hrw3, hrw4, le_div_iff₀ hlogk_pos]
+          nlinarith [mul_le_mul_of_nonneg_left hterm1 (by linarith : (0:ℝ) ≤ C + 1),
+                     mul_le_mul_of_nonneg_left hterm2 hc₀_nonneg,
+                     mul_le_mul_of_nonneg_left hterm3 hc_nonneg,
+                     mul_le_mul_of_nonneg_left hterm4 hc₀_nonneg,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(1 : ℝ) / (1 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(2 : ℝ) / (2 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(3 : ℝ) / (3 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(4 : ℝ) / (4 + 1))) hx_pos.le]
+      _ = C_bk b c C RS_prime.c₀ k * x / (log x) ^ k := by
+          simp only [C_bk]; ring_nf
 
 @[blueprint
   "bklnw-table-12-verification"
