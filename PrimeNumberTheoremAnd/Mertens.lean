@@ -1113,8 +1113,16 @@ $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \e
   (proof := /-- Immediate from definition
   -/)
   (discussion := 1329)]
-theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
-    sorry
+theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : 1 < x) :
+    ∏ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1 - (1 : ℝ) / p) =
+      exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
+  have hlog : 0 < log x := log_pos hx
+  have hpos : ∀ {p : ℕ}, p.Prime → (0 : ℝ) < 1 - 1 / p := fun {p} hp ↦ by
+    have : (2 : ℝ) ≤ p := mod_cast hp.two_le
+    grind [one_div_le_one_div_of_le two_pos this]
+  rw [E₃, exp_add, exp_add, exp_sum, exp_log hlog, exp_neg,
+    prod_congr rfl fun p hp ↦ exp_log (hpos (mem_filter.mp hp).2)]
+  field_simp
 
 @[blueprint
   "Mertens-third-theorem-error-le"
