@@ -752,16 +752,20 @@ theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
   have htab43 : ((43 : ℝ), M₄₃) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₄₃]
   have hM43 : M₄₃ ⟨1, by norm_num⟩ = 3.7979e-5 := rfl
   have hfin43 : (⟨1, by norm_num⟩ : Fin 5).val + 1 = 2 := rfl
-  have hx_ge43 : x ≥ (43 : ℝ) := by
-    have : (43 : ℝ) ≤ exp 58 := by interval_decide
+  have hx_ge_exp43 : x ≥ exp (43 : ℝ) := by
+    have : exp (43 : ℝ) ≤ exp 58 := by
+      exact exp_le_exp.mpr (by norm_num)
     linarith [hx.1]
   obtain ⟨hlb43, hub43⟩ :=
-    BKLNW.thm_1b_table (by norm_num : (43 : ℝ) > 1) htab43 ⟨1, by norm_num⟩ hx_ge43
+    BKLNW.thm_1b_table (by norm_num : (43 : ℝ) > 0) htab43 ⟨1, by norm_num⟩ hx_ge_exp43
   rw [hM43, hfin43] at hlb43 hub43
   have hE : Eθ x ≤ (3.7979e-5 : ℝ) / (log x) ^ 2 := by
     unfold Eθ
     have hxpos : 0 < x := lt_of_lt_of_le (exp_pos _) hx.1
-    have hpow_pos : 0 < (log x) ^ 2 := pow_pos (log_pos (by linarith [add_one_le_exp (58:ℝ)])) 2
+    have hx_gt_one : 1 < x := by
+      have : (1 : ℝ) < exp 58 := by nlinarith [add_one_le_exp (58 : ℝ)]
+      linarith [hx.1]
+    have hpow_pos : 0 < (log x) ^ 2 := pow_pos (log_pos hx_gt_one) 2
     rw [div_le_div_iff₀ hxpos hpow_pos]
     have h1 : θ x - x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
     have h2 : x - θ x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith

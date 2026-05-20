@@ -159,25 +159,27 @@ private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
     _ ≤ log x := log_le_log (exp_pos _) hx
 
 private lemma theta_err {x : ℝ} (hx : x ≥ exp 22) :
-    |θ x - x| ≤ 3.7979e-5 * x / (log x) ^ 2 := by
-  -- BKLNW Table_15 row (43, M₄₃), k=⟨1,_⟩ → Eθ x ≤ 3.7979e-5 / (log x)²
-  set M₄₃ : Fin 5 → ℝ := ![8.6315e-7, 3.7979e-5, 2.4334e-2, 5.7184e1, 1.3441e5]
-  have htab : ((43 : ℝ), M₄₃) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₄₃]
-  have hM : M₄₃ ⟨1, by norm_num⟩ = 3.7979e-5 := rfl
-  have hfin_val : (⟨1, by norm_num⟩ : Fin 5).val + 1 = 2 := rfl
+    |θ x - x| ≤ 4.2065e-1 * x / (log x) ^ 3 := by
+  -- BKLNW Table_15 row (log 1e9, M₁e9), k=⟨2,_⟩ → Eθ x ≤ 4.2065e-1 / (log x)^3
+  set M₁e9 : Fin 5 → ℝ := ![9.5913e-4, 2.0087e-2, 4.2065e-1, 5.7184e1, 1.3441e5]
+  have htab : ((log 1e9 : ℝ), M₁e9) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₁e9]
+  have hM : M₁e9 ⟨2, by norm_num⟩ = 4.2065e-1 := rfl
+  have hfin_val : (⟨2, by norm_num⟩ : Fin 5).val + 1 = 3 := rfl
   have hxpos : 0 < x := lt_of_lt_of_le (exp_pos _) hx
-  have hlog_pos : 0 < log x := log_pos (by linarith [add_one_le_exp (22:ℝ)])
-  have hpow_pos : 0 < (log x) ^ 2 := pow_pos hlog_pos 2
-  have hx_ge43 : x ≥ (43 : ℝ) := by
-    have : (43 : ℝ) ≤ exp 22 := by interval_decide
+  have hlog_pos : 0 < log x := by linarith [log_ge_22 hx]
+  have hpow_pos : 0 < (log x) ^ 3 := pow_pos hlog_pos 3
+  have hx_ge_exp_log_1e9 : x ≥ exp (log 1e9) := by
+    have h_exp_le : exp (log 1e9 : ℝ) ≤ exp (22 : ℝ) := by
+      rw [exp_log (by norm_num : (0 : ℝ) < 1e9)]
+      interval_decide
     linarith
   obtain ⟨hlb, hub⟩ :=
-    BKLNW.thm_1b_table (by norm_num : (43:ℝ) > 1) htab ⟨1, by norm_num⟩ hx_ge43
+    BKLNW.thm_1b_table (by positivity) htab ⟨2, by norm_num⟩ hx_ge_exp_log_1e9
   rw [hM, hfin_val] at hlb hub
-  have h1 : θ x - x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
-  have h2 : x - θ x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
-  calc |θ x - x| ≤ 3.7979e-5 / (log x) ^ 2 * x := abs_le.mpr ⟨by linarith, h1⟩
-    _ = 3.7979e-5 * x / (log x) ^ 2 := by ring
+  have h1 : θ x - x ≤ 4.2065e-1 / (log x) ^ 3 * x := by nlinarith
+  have h2 : x - θ x ≤ 4.2065e-1 / (log x) ^ 3 * x := by nlinarith
+  calc |θ x - x| ≤ 4.2065e-1 / (log x) ^ 3 * x := abs_le.mpr ⟨by linarith, h1⟩
+    _ = 4.2065e-1 * x / (log x) ^ 3 := by ring
 
 private lemma psi_theta_err {x : ℝ} (hx : x > 0) :
     ψ x - θ x ≤ 1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ) := by
@@ -190,11 +192,19 @@ private lemma psi_triangle (x : ℝ) :
   · rw [abs_of_nonneg (sub_nonneg_of_le <| Chebyshev.theta_le_psi x)]
 
 private lemma theta_err_simpl {x : ℝ} (hx : x ≥ exp 22) :
-    3.7979e-5 * x / (log x) ^ 2 ≤ 3.7979e-5 / 22 * x / log x := by
+    4.2065e-1 * x / (log x) ^ 3 ≤ 0.0009 * x / log x := by
   have hlog_pos : (0 : ℝ) < log x := by linarith [log_ge_22 hx]
-  rw [div_le_div_iff₀ (pow_pos hlog_pos 2) hlog_pos]
-  nlinarith [mul_le_mul_of_nonneg_right (log_ge_22 hx) hlog_pos.le, sq (log x),
-    mul_pos (by linarith [exp_pos (22 : ℝ)] : (0:ℝ) < x) hlog_pos]
+  have hxlog : 0 ≤ x / log x :=
+    div_nonneg (le_of_lt (lt_of_lt_of_le (exp_pos _) hx)) hlog_pos.le
+  have hlog_sq : (22 : ℝ) ^ 2 ≤ (log x) ^ 2 :=
+    pow_le_pow_left₀ (by norm_num) (log_ge_22 hx) 2
+  have hcoeff : (4.2065e-1 : ℝ) / (log x) ^ 2 ≤ 0.0009 := by
+    rw [div_le_iff₀ (pow_pos hlog_pos 2)]
+    nlinarith
+  calc 4.2065e-1 * x / (log x) ^ 3
+      = (4.2065e-1 / (log x) ^ 2) * (x / log x) := by ring
+    _ ≤ 0.0009 * (x / log x) := mul_le_mul_of_nonneg_right hcoeff hxlog
+    _ = 0.0009 * x / log x := by ring
 
 private lemma sqrt_err {x : ℝ} (hx : x ≥ exp 22) :
     1.001 * sqrt x ≤ 0.005 * x / log x := by
@@ -214,25 +224,25 @@ private lemma sqrt_err {x : ℝ} (hx : x ≥ exp 22) :
   nlinarith [pow_le_pow_left₀ (by linarith) (log_ge_22 hx) 7, sqrt_nonneg x, sq_sqrt hx_pos.le]
 
 private lemma cbrt_err {x : ℝ} (hx : x ≥ exp 22) :
-    1.78 * x ^ (1 / 3 : ℝ) ≤ 0.001 * x / log x := by
+    1.78 * x ^ (1 / 3 : ℝ) ≤ 0.0005 * x / log x := by
   have hx_pos : (0 : ℝ) < x := lt_of_lt_of_le (by positivity) hx
   have hlog := log_nonneg <| by linarith [add_one_le_exp 22]
   have h_rpow : x ^ (2 / 3 : ℝ) = exp (2 * log x / 3) := by rw [rpow_def_of_pos hx_pos]; ring_nf
-  have h_taylor : exp (2 * log x / 3) ≥ (2 * log x / 3) ^ 8 / 40320 := by
+  have h_taylor : exp (2 * log x / 3) ≥ (2 * log x / 3) ^ 9 / 362880 := by
     rw [exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div] at *
-    refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 9)
+    refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 10)
       (fun _ _ => div_nonneg (pow_nonneg (div_nonneg (mul_nonneg zero_le_two hlog) zero_le_three) _)
       (Nat.cast_nonneg _)) (show Summable _ from summable_pow_div_factorial _))
     norm_num [Finset.sum_range_succ, Nat.factorial]; ring_nf; norm_num
     nlinarith [sq_nonneg (log x ^ 2), sq_nonneg (log x ^ 3), sq_nonneg (log x ^ 4),
-      sq_nonneg (log x ^ 5), sq_nonneg (log x ^ 6), hlog]
-  have h_bound : x ^ (2 / 3 : ℝ) ≥ 1780 * log x := by
+      sq_nonneg (log x ^ 5), sq_nonneg (log x ^ 6), sq_nonneg (log x ^ 7), hlog]
+  have h_bound : x ^ (2 / 3 : ℝ) ≥ 3560 * log x := by
     rw [h_rpow]
     nlinarith [log_exp 22, log_le_log (by positivity) hx,
       pow_nonneg hlog 2, pow_nonneg hlog 3, pow_nonneg hlog 4,
-      pow_nonneg hlog 5, pow_nonneg hlog 6, pow_nonneg hlog 7]
+      pow_nonneg hlog 5, pow_nonneg hlog 6, pow_nonneg hlog 7, pow_nonneg hlog 8]
   have h_13 : x ^ (1 / 3 : ℝ) * x ^ (2 / 3 : ℝ) = x := by norm_num [← rpow_add hx_pos]
-  have h_recombine : x ≥ 1780 * x ^ (1 / 3 : ℝ) * log x := by nlinarith [rpow_pos_of_pos hx_pos (1 / 3 : ℝ)]
+  have h_recombine : x ≥ 3560 * x ^ (1 / 3 : ℝ) * log x := by nlinarith [rpow_pos_of_pos hx_pos (1 / 3 : ℝ)]
   rw [le_div_iff₀ (log_pos <| lt_of_lt_of_le (by norm_num) hx)]
   linarith
 
@@ -245,15 +255,15 @@ theorem theorem_a (x : ℝ) (hx : x ≥ exp 22) :
     |ψ x - x| ≤ 0.006409 * x / log x := by
   calc |ψ x - x|
       ≤ |θ x - x| + (ψ x - θ x) := psi_triangle x
-    _ ≤ 3.7979e-5 * x / (log x) ^ 2 + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
+    _ ≤ 4.2065e-1 * x / (log x) ^ 3 + (1.001 * sqrt x + 1.78 * x ^ (1 / 3 : ℝ)) := by
         linarith [theta_err hx, psi_theta_err <| lt_of_lt_of_le (exp_pos _) hx]
-    _ ≤ 3.7979e-5 / 22 * x / log x + (0.005 * x / log x + 0.001 * x / log x) := by
+    _ ≤ 0.0009 * x / log x + (0.005 * x / log x + 0.0005 * x / log x) := by
         linarith [theta_err_simpl hx, sqrt_err hx, cbrt_err hx]
     _ ≤ 0.006409 * x / log x := by
         have hxlog : 0 ≤ x / log x :=
           div_nonneg (le_of_lt (lt_of_lt_of_le (exp_pos _) hx)) (le_of_lt (by linarith [log_ge_22 hx]))
-        have : 3.7979e-5 / 22 * x / log x + (0.005 * x / log x + 0.001 * x / log x) =
-               (3.7979e-5 / 22 + 0.005 + 0.001) * (x / log x) := by ring
+        have : 0.0009 * x / log x + (0.005 * x / log x + 0.0005 * x / log x) =
+               (0.0009 + 0.005 + 0.0005) * (x / log x) := by ring
         rw [this, show 0.006409 * x / log x = 0.006409 * (x / log x) from by ring]
         apply mul_le_mul_of_nonneg_right _ hxlog
         norm_num
@@ -400,9 +410,9 @@ blueprint_comment /-- Some results from \cite{johnston-yang}-/
 @[blueprint
   "thm:jy-psi-1"
   (title := "Johnston-Yang $\\psi$ bound 1")
-  (statement := /-- For $x \geq 5000$, we have $|\psi(x) - x| \leq 8.14 \cdot 10^{-20}\, x$. -/)
+  (statement := /-- For $x \geq \exp(5000)$, we have $|\psi(x) - x| \leq 8.14 \cdot 10^{-20}\, x$. -/)
   (latexEnv := "theorem")]
-theorem psi_bound_1 (x : ℝ) (hx : x ≥ 5000) :
+theorem psi_bound_1 (x : ℝ) (hx : x ≥ exp 5000) :
     |ψ x - x| ≤ 8.14e-20 * x := by sorry
 
 @[blueprint
@@ -573,9 +583,9 @@ theorem sum_p_inv_c (x : ℝ) (hx : x ≥ 24284) :
 @[blueprint
   "thm:mawia-spi-d"
   (title := "Mawia 2017, prime reciprocal sum d")
-  (statement := /-- For $\log x \geq 4635$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 1.1 \exp(-\sqrt{0.175 \log x}) / (\log x)^{3/4}$. -/)
+  (statement := /-- For $x \geq \exp 4635$, we have $|\sum_{p \leq x} 1/p - \log \log x - B| \leq 1.1 \exp(-\sqrt{0.175 \log x}) / (\log x)^{3/4}$. -/)
   (latexEnv := "theorem")]
-theorem sum_p_inv_d (x : ℝ) (hx : log x ≥ 4635) :
+theorem sum_p_inv_d (x : ℝ) (hx : x ≥ exp 4635) :
     |∑ p ∈ Finset.filter Nat.Prime (Finset.Iic ⌊x⌋₊), (1 / (p : ℝ)) -
         log (log x) - meisselMertensConstant| ≤
       1.1 * exp (-sqrt (0.175 * log x)) / (log x) ^ ((3 : ℝ) / 4) := by sorry
@@ -1162,39 +1172,7 @@ namespace PrimeGaps2024
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by
-  set y := x * (1 - 1 / 76900000000) with hy_def
-  have hx_pos : x > 0 := lt_trans (exp_pos 60) hx
-  have hx_ge1 : x ≥ 1 := by linarith [one_le_exp (show (0:ℝ) ≤ 60 by norm_num)]
-  have hsqrt_bound : √x > exp 30 := by
-    rw [sqrt_eq_rpow, show exp 30 = (exp 60) ^ ((1:ℝ)/2) from by rw [← exp_mul]; norm_num]
-    exact rpow_lt_rpow (le_of_lt (exp_pos 60)) hx (by norm_num)
-  have hexp30 : exp 30 > 230700000000 := by
-    rw [show (30:ℝ) = (30:ℕ) * 1 from by norm_num, exp_nat_mul]
-    linarith [show (2.718:ℝ) ^ 30 > 230700000000 from by norm_num,
-      show (2.718:ℝ) ^ 30 ≤ (exp 1) ^ 30 from by gcongr; linarith [exp_one_gt_d9]]
-  have hsqx : √x * √x = x := mul_self_sqrt (le_of_lt hx_pos)
-  have h3sqrt : 3 * √x < x / 76900000000 := by nlinarith
-  have hcbrt : x ^ (1/3 : ℝ) ≤ √x := by
-    rw [sqrt_eq_rpow]; exact rpow_le_rpow_of_exponent_le hx_ge1 (by norm_num)
-  have hy_pos : y > 0 := by rw [hy_def]; nlinarith
-  have hy_lt_x : y < x := by rw [hy_def]; nlinarith
-  have hy_ge5000 : y ≥ 5000 := by
-    rw [hy_def]
-    have : exp 60 ≥ 5001 := by
-      rw [show (60:ℝ) = (60:ℕ) * 1 from by norm_num, exp_nat_mul]
-      linarith [show (2.718:ℝ) ^ 60 > 5001 from by norm_num,
-        show (2.718:ℝ) ^ 60 ≤ (exp 1) ^ 60 from by gcongr; linarith [exp_one_gt_d9]]
-    nlinarith
-  have hθy : θ y ≤ y + 8.14e-20 * y := by
-    linarith [theta_le_psi y,
-      show ψ y ≤ y + 8.14e-20 * y from by
-        have h := JY.psi_bound_1 y hy_ge5000; rw [abs_le] at h; linarith]
-  have hψx : ψ x ≥ x - 8.14e-20 * x := by
-    have h := JY.psi_bound_1 x (by linarith : x ≥ 5000); rw [abs_le] at h; linarith
-  have hψθ := Dusart.corollary_4_5 hx_pos
-  have key : x / 76900000000 = x - y := by rw [hy_def]; ring
-  rw [key]
-  exact theta_pos_implies_prime_in_interval hy_lt_x (by nlinarith [show √x > 0 from by positivity])
+  sorry
 
 end PrimeGaps2024
 

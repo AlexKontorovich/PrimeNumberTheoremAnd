@@ -433,15 +433,17 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   have hlog_pos : 0 < log x := Real.log_pos (by linarith)
   have hpow_pos : 0 < (log x) ^ 3 := by positivity
   -- Use BKLNW Table_15 row (29, M₂₉) which gives θ bounds with M 2 = 2.4334e-2.
-  -- This row applies for x ≥ 29, trivially satisfied for x ≥ 4e18.
+  -- This row applies for x ≥ exp 29, satisfied for x ≥ 4e18.
   set M₂₉ : Fin 5 → ℝ := ![2.7336e-5, 7.9272e-4, 2.4334e-2, 5.7184e1, 1.3441e5]
   have htab : ((29 : ℝ), M₂₉) ∈ BKLNW.Table_15 := by
     simp [BKLNW.Table_15, M₂₉]
   have hM : M₂₉ ⟨2, by norm_num⟩ = 2.4334e-2 := rfl
   have hfin_val : (⟨2, by norm_num⟩ : Fin 5).val + 1 = 3 := rfl
-  have hx_ge_29 : x ≥ (29 : ℝ) := by linarith
+  have hx_ge_exp29 : x ≥ exp (29 : ℝ) := by
+    have : exp (29 : ℝ) ≤ (4e18 : ℝ) := by interval_decide
+    linarith
   obtain ⟨hlb_x, hub_x⟩ :=
-    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 1) htab ⟨2, by norm_num⟩ hx_ge_29
+    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 0) htab ⟨2, by norm_num⟩ hx_ge_exp29
   rw [hM, hfin_val] at hlb_x hub_x
   -- Derive Eθ x ≤ 2.4334e-2 / (log x)^3 from the θ bounds
   have hEθ_x : Eθ x ≤ 2.4334e-2 / (log x) ^ 3 := by
@@ -457,8 +459,8 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   set h := x / (log x) ^ 3 with hh_def
   have hh_pos : 0 < h := by positivity
   obtain ⟨hlb_xh, hub_xh⟩ :=
-    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 1) htab ⟨2, by norm_num⟩
-      (show x + h ≥ (29 : ℝ) by linarith)
+    BKLNW.thm_1b_table (by norm_num : (29 : ℝ) > 0) htab ⟨2, by norm_num⟩
+      (show x + h ≥ exp (29 : ℝ) by linarith)
   rw [hM, hfin_val] at hlb_xh hub_xh
   have hEθ_xh : Eθ (x + h) ≤ 2.4334e-2 / (log x) ^ 3 := by
     have hxh_pos : 0 < x + h := by linarith
@@ -752,83 +754,83 @@ theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth_prime' k) ≤ Real.
   (statement := /--
   We have for $k \geq 198$,
   \[
-  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  \vartheta(p_k) \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}).
   \]
   -/)
   (latexEnv := "theorem")]
 theorem massias_robin_thm_Bv {k : ℕ} (hk : k ≥ 198) :
-  θ (nth_prime' k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_11a"
   (title := "Dusart Proposition 5.11")
   (statement := /--
   We have for $p_k \geq 10^{11}$,
   \[
-  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.050735}{\log k}.
+  \vartheta(p_k) \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.050735}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_11a {k : ℕ} (hk : nth_prime' k ≥ 10 ^ 11) :
-  θ (nth_prime' k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_11b"
   (title := "Dusart Proposition 5.11")
   (statement := /--
   We have for $p_k \geq 10^{15}$,
   \[
-  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.04}{\log k}.
+  \vartheta(p_k) \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.04}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_11b {k : ℕ} (hk : nth_prime' k ≥ 10 ^ 15) :
-  θ (nth_prime' k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k) := by sorry
+  θ (nth_prime' k) ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_12"
   (title := "Dusart Proposition 5.12")
   (statement := /--
   We have for $k \geq 781$,
   \[
-  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k} - \frac{0.782}{\log^2 k}.
+  \vartheta(p_k) \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k} - \frac{0.782}{\log^2 k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_12 {k : ℕ} (hk : k ≥ 781) :
-  θ (nth_prime' k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2 := by sorry
+  θ (nth_prime' k) ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2) := by sorry
 
 @[blueprint "Dusart_lemma_5_14"
   (title := "Dusart Lemma 5.14")
   (statement := /--
   We have for $k \geq 178974$,
   \[
-  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 1.95}{\log k}.
+  p_k \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 1.95}{\log k}).
   \]
   -/)
   (latexEnv := "lemma")]
 theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
-  nth_prime' k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k) := by sorry
+  nth_prime' k ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_15"
   (title := "Dusart Proposition 5.15")
   (statement := /--
   We have for $k \geq 688383$,
   \[
-  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  p_k \leq k (\log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
-  nth_prime' k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+  nth_prime' k ≤ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k)) := by sorry
 
 @[blueprint "Dusart_prop_5_16"
   (title := "Dusart Proposition 5.16")
   (statement := /--
   We have for $k \geq 3$,
   \[
-  p_k \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.1}{\log k}.
+  p_k \geq k (\log k + \log \log k - 1 + \frac{\log \log k - 2.1}{\log k}).
   \]
   -/)
   (latexEnv := "proposition")]
 theorem proposition_5_16 {k : ℕ} (hk : k ≥ 3) :
-  nth_prime' k ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k) := by sorry
+  nth_prime' k ≥ k * (Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k)) := by sorry
 
 end Dusart
