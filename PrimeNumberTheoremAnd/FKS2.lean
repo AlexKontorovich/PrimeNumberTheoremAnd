@@ -568,7 +568,8 @@ lemma part2_decay_bound
       gcongr
     _ = (2500 * (5.5666305 : ℝ)) * exp (-(230 : ℝ)) := by ring_nf
 
-
+set_option maxHeartbeats 800000 in
+-- This explicit estimate unfolds several large piecewise constants and needs more than the default budget.
 /--
 **The missing lemma** Codex complained about:
 for `log x₀ ≥ 1000` the correction `ν_asymp` is far below `1e-5`.
