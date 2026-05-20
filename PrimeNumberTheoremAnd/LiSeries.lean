@@ -499,7 +499,7 @@ private lemma li_setDiff_eq_split {x ε : ℝ} (hx : 1 < x) (hε : 0 < ε)
     ext t; simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_union, Set.mem_Icc]
     constructor
     · intro ⟨⟨h0, hx'⟩, hnotin⟩
-      push_neg at hnotin
+      push Not at hnotin
       by_cases ht : t ≤ 1 - ε
       · left; exact ⟨h0, ht⟩
       · right; exact ⟨hnotin (by linarith), hx'⟩

@@ -206,7 +206,7 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
         rw [Nat.factorization_pow, Finsupp.smul_apply, smul_eq_zero]; right
         apply Nat.factorization_eq_zero_of_not_dvd
         rw [Nat.Prime.dvd_iff_eq, ← exists_eq_subtype_mk_iff]
-        · push_neg
+        · push Not
           exact fun _ => hq
         · exact Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp q.2
         · exact (Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp hp).ne_one
@@ -321,11 +321,11 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     · rw [dif_neg hp, eq_comm, Nat.factorization_eq_zero_iff, ←or_assoc]
       rw [Nat.mem_primeFactors] at hp
       left
-      push_neg at hp
+      push Not at hp
       by_cases hpp : p.Prime
       · right; intro h
         apply absurd (hp hpp)
-        push_neg
+        push Not
         exact ⟨hpp.dvd_of_dvd_pow (h.trans hb.1.1), hd.ne_zero⟩
       · left; exact hpp
 
