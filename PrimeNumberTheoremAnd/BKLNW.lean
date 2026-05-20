@@ -2120,6 +2120,18 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
+  "bklnw-thm-1b-table"
+  (title := "BKLNW Theorem 1b, table form")
+  (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
+  The first column of the table is the logarithmic threshold \(b = \log X_0\), so a row with first
+  component \(b\) applies for \(x \geq \exp b\).
+  -/)
+  (latexEnv := "theorem")]
+theorem thm_1b_table {b : ℝ} (hb : b > 0) {M : Fin 5 → ℝ} (h : (b, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ exp b) :
+  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) := by sorry
+
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
+@[blueprint
   "bklnw-thm-1b"
   (title := "Theorem 1b")
   (statement := /--  Let $k$ be an integer with $1 \leq k \leq 5$. For any fixed $X_0 > 1$, there exists $m_k > 0$ such that, for all $x \geq X_0$
@@ -2132,22 +2144,75 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
-    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
-  sorry
-
-/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
-@[blueprint
-  "bklnw-thm-1b-table"
-  (title := "BKLNW Theorem 1b, table form")
-  (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
-  The first column of the table is the logarithmic threshold \(b = \log X_0\), so a row with first
-  component \(b\) applies for \(x \geq \exp b\).
-  -/)
-  (latexEnv := "theorem")]
-theorem thm_1b_table {b : ℝ} (hb : b > 0) {M : Fin 5 → ℝ} (h : (b, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ exp b) :
-  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
-  by sorry
+theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ : ℝ} (hX₀ : X₀ > 1) :
+  ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+  have h_ne : Table_15 ≠ [] := by decide
+  let row := Table_15.getLast h_ne
+  let b : ℝ := row.1
+  let M := row.2
+  have hM : (b, M) ∈ Table_15 := List.getLast_mem h_ne
+  by_cases hk0 : k = 0
+  · subst k
+    let α := Inputs.default.α
+    use 1, α
+    intro x hx
+    have hx_pos : x > 0 := by linarith [hx.1, hX₀]
+    constructor
+    · rw [show 1 - 1 / (log x)^0 = 0 by simp, mul_zero]
+      exact Chebyshev.theta_nonneg x
+    · rw [show 1 + α / (log x)^0 = 1 + α by simp, mul_comm]
+      exact Inputs.default.hα x hx_pos
+  · have hk_fin : k - 1 < 5 := by omega
+    let k_fin : Fin 5 := ⟨k - 1, hk_fin⟩
+    let C_table := M k_fin
+    let α := Inputs.default.α
+    let mk := max C_table (b^k)
+    let Mk := max C_table (α * b^k)
+    use mk, Mk
+    intro x hx
+    have hx_pos : x > 0 := by linarith [hx.1, hX₀]
+    have hlog_pos : log x > 0 := Real.log_pos (by linarith [hx.1, hX₀])
+    have h_log_k_pos : 0 < (log x)^k := by positivity
+    by_cases hxb : x ≥ exp b
+    · have hk_eq : k_fin.val + 1 = k := by dsimp [k_fin]; omega
+      have h_table_bound := thm_1b_table (by dsimp [b, row, Table_15]; norm_num) hM k_fin hxb
+      rw [hk_eq] at h_table_bound
+      constructor
+      · have h_le : x * (1 - mk / (log x)^k) ≤ x * (1 - C_table / (log x)^k) := by
+          gcongr; exact le_max_left _ _
+        exact h_le.trans h_table_bound.1
+      · have h_le : x * (1 + C_table / (log x)^k) ≤ x * (1 + Mk / (log x)^k) := by
+          gcongr; exact le_max_left _ _
+        exact h_table_bound.2.trans h_le
+    · have h_lt : x < exp b := not_le.mp hxb
+      have h_log_lt : log x < b := by
+        rwa [← log_lt_log_iff hx_pos (by positivity), Real.log_exp b] at h_lt
+      have h_log_k_le : (log x)^k ≤ b^k := by
+        have h_log_nonneg : 0 ≤ log x := by positivity
+        exact pow_le_pow_left₀ h_log_nonneg h_log_lt.le k
+      constructor
+      · have h_bk_le : b^k ≤ mk := le_max_right _ _
+        have h_log_k_le_mk : (log x)^k ≤ mk := h_log_k_le.trans h_bk_le
+        have h_le_zero : x * (1 - mk / (log x)^k) ≤ 0 := by
+          have h_div : 1 ≤ mk / (log x)^k := by
+            rw [one_le_div h_log_k_pos]
+            exact h_log_k_le_mk
+          have h_sub : 1 - mk / (log x)^k ≤ 0 := by linarith
+          nlinarith [hx_pos, h_sub]
+        exact h_le_zero.trans (Chebyshev.theta_nonneg x)
+      · have h_α_bk_le : α * b^k ≤ Mk := le_max_right _ _
+        have hα_nonneg : 0 ≤ α := by dsimp [α, Inputs.default]; positivity
+        have h_le_α : α ≤ Mk / (log x)^k := by
+          have h2 : α ≤ α * b^k / (log x)^k := by
+            rw [mul_div_assoc]
+            simpa using mul_le_mul_of_nonneg_left ((one_le_div h_log_k_pos).mpr h_log_k_le) hα_nonneg
+          have h1 : α * b^k / (log x)^k ≤ Mk / (log x)^k := by gcongr
+          exact h2.trans h1
+        have h_bound := cor_2_1 x hx_pos
+        rw [mul_comm] at h_bound
+        have h_sub_bound : 1 + α ≤ 1 + Mk / (log x)^k := by linarith
+        have h_final : x * (1 + α) ≤ x * (1 + Mk / (log x)^k) := by gcongr
+        exact h_bound.trans h_final
 
 
 blueprint_comment /--
