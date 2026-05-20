@@ -620,7 +620,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
   trans ∑ n ∈ Icc 0 ⌊ x ⌋₊, (log n)⁻¹ * g n
   · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp) (by simp)]
     refine sum_congr rfl fun n hn ↦ ?_
-    have : ¬(n < 2) := by simp_all; linarith
+    have : ¬(n ≤ 1) := by simp_all
     simp [g, this]
     field
   rw [sum_mul_eq_sub_integral_mul₁ g (f := (fun n ↦ (log n)⁻¹)) (by simp [g]) (by simp [g])]
@@ -631,7 +631,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 1
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
     · rw [← MeasureTheory.integral_neg]
       refine  MeasureTheory.setIntegral_congr_fun (by measurability) fun t ht ↦ ?_
@@ -641,7 +641,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 2
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
   · intro t ht
     simp only [Set.mem_Icc] at ht

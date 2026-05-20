@@ -214,10 +214,9 @@ arguments were established in \cite{kadiri-lumley}, and we present them here. -/
 theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4) := by
   intro n hn he
   simp only [Finset.mem_Icc] at hn
-  by_cases h1 : n ≤ 4 * 10 ^ 18
+  by_cases! h1 : n ≤ 4 * 10 ^ 18
   · exact e_silva_herzog_piranian_goldbach n (Finset.mem_Icc.mpr ⟨hn.1, h1⟩) he
-  · push_neg at h1
-    obtain ⟨k, hk⟩ := he
+  · obtain ⟨k, hk⟩ := he
     have : n = 4000000000000000002 ∨ n = 4000000000000000004 := by omega
     rcases this with rfl | rfl
     · exact ⟨211, 3999999999999999791, prime_211, prime_3999999999999999791, by norm_num⟩

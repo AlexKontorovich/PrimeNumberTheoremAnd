@@ -35,7 +35,7 @@ here to keep Li2Bounds.lean self-contained and avoid circular imports.
 /-- The logarithmic integral li(x) = ∫₀ˣ dt/log(t) (principal value).
     This is the local copy matching SecondaryDefinitions.li -/
 noncomputable def li (x : ℝ) : ℝ :=
-  lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦
+  Filter.lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦
     ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)),
       1 / log t))
 

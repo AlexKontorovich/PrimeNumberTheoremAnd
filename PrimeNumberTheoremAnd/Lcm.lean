@@ -850,7 +850,7 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
         convert congr_arg (( ↑ ) : ℕ → ℝ) (h_sigma_def hn_ne_zero) using 1 <;>
         norm_num [ArithmeticFunction.sigma]
       have h_sigma_def : (n : ℝ) = (∏ p ∈ Nat.primeFactors n, (p ^ (Nat.factorization n p) : ℝ)) :=
-        mod_cast Eq.symm (Nat.factorization_prod_pow_eq_self hn_ne_zero)
+        mod_cast Eq.symm (Nat.prod_factorization_pow_eq_self hn_ne_zero)
       simp_all only [div_eq_mul_inv]
       rw [← div_eq_mul_inv, ← Finset.prod_div_distrib]
       refine Finset.prod_congr rfl fun p hp ↦ ?_
