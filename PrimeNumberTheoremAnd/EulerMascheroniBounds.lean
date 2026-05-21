@@ -126,8 +126,12 @@ lemma log_ineq_1 (u : ℝ) (hu : 0 < u) : 0 < u ^ 2 / 2 - u + Real.log (1 + u) :
   apply pos_of_mvt hu (by simp [Real.log_one])
   · fun_prop (disch := intro x hx; linarith [hx.1])
   · intro x hx; fun_prop (disch := linarith [hx.1])
-  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
-    nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0)]
+  · intro u hu
+    have : 1 + u ≠ 0 := by linarith
+    rw [deriv_fun_add, deriv_fun_sub, deriv.log _ this, deriv_fun_add]
+    · simp
+      nlinarith [inv_mul_cancel₀ (by linarith : (1 + u) ≠ 0)]
+    all_goals fun_prop (disch := assumption)
 
 /-- For u > 0: u³/6 - u²/2 + (1+u)·log(1+u) - u > 0. The derivative of this
     function is u²/2 - u + log(1+u), which is positive by `log_ineq_1`. -/
@@ -136,8 +140,13 @@ private lemma log_ineq_2 (u : ℝ) (hu : 0 < u) :
   apply pos_of_mvt hu (by simp [Real.log_one])
   · fun_prop (disch := grind)
   · fun_prop (disch := grind)
-  · intro u hu; norm_num [add_comm, show u + 1 ≠ 0 by linarith]; ring_nf
-    nlinarith [log_ineq_1 u hu]
+  · intro u hu
+    convert log_ineq_1 u hu using 1
+    have : 1 + u ≠ 0 := by linarith
+    rw [deriv_fun_sub, deriv_fun_add, deriv_fun_mul, deriv_fun_sub, deriv_fun_add, deriv.log _ this, deriv_fun_add]
+    · simp
+      field
+    all_goals fun_prop (disch := assumption)
 
 /-- For u > 0: 12(1+u)²·log(1+u) > 12u + 18u² + 4u³ - u⁴. The derivative of the
     difference is 24·[(1+u)·log(1+u) - u - u²/2 + u³/6], positive by `log_ineq_2`. -/
@@ -154,10 +163,16 @@ private lemma log_ineq_3 (u : ℝ) (hu : 0 < u) :
       (u - 0) := by
     apply_rules [exists_deriv_eq_slope] <;> fun_prop (disch := grind)
   norm_num [add_comm, mul_comm] at *
-  norm_num [show c + 1 ≠ 0 by linarith] at hc
-  rw [eq_div_iff] at hc <;>
+  have : c + 1 ≠ 0 := by linarith
+  rw [deriv_fun_add, deriv_fun_sub, deriv_fun_sub, deriv_fun_sub, deriv_fun_mul, deriv.log _ (by linarith)] at hc
+  · simp only [differentiableAt_fun_id, deriv_fun_pow, Nat.cast_ofNat, Nat.add_one_sub_one,
+      deriv_id'', mul_one, differentiableAt_add_const_iff, DifferentiableAt.fun_pow,
+      differentiableAt_const, deriv_fun_mul, pow_one, deriv_fun_add,
+      deriv_const', add_zero, mul_zero, one_div, one_mul] at hc
+    rw [eq_div_iff (by linarith)] at hc
     nlinarith [hg_deriv_pos c hc.1.1,
-      mul_inv_cancel_left₀ (by linarith : (c + 1) ≠ 0) (12 * (c + 1))]
+        mul_inv_cancel_left₀ (by linarith : (c + 1) ≠ 0) (12 * (c + 1))]
+  all_goals fun_prop (disch := assumption)
 
 /-- `γ₂` is strictly decreasing for `n ≥ 1`. -/
 lemma euler_maclaurin_decreasing (n : ℕ) (hn : 1 ≤ n) :
@@ -372,7 +387,8 @@ private lemma log_ineq_7 (u : ℝ) (hu : 0 < u) :
     0 < 56 * u ^ 6 + 168 * u ^ 5 - 120 * u ^ 4 + 480 * u ^ 3 + 2160 * u ^ 2 + 1440 * u
       - 1440 * (1 + u) ^ 2 * Real.log (1 + u) := by
   apply pos_of_mvt hu (by simp [Real.log_one])
-  · fun_prop (disch := intro x hx; linarith [hx.1])
+  · intro x hx
+    fun_prop (disch := linarith[hx.1])
   · intro x hx; fun_prop (disch := linarith [hx.1])
   · intro x hx
     have h1p : (0 : ℝ) < 1 + x := by linarith [hx]
@@ -397,8 +413,9 @@ private lemma log_ineq_9 (u : ℝ) (hu : 0 < u) :
   suffices h : 0 < u ^ 8 + 4 * u ^ 7 - 4 * u ^ 6 + 24 * u ^ 5 + 250 * u ^ 4 + 520 * u ^ 3
       + 420 * u ^ 2 + 120 * u - 120 * (1 + u) ^ 4 * Real.log (1 + u) by linarith
   apply pos_of_mvt hu (by simp [Real.log_one])
-  · fun_prop (disch := intro x hx; linarith [hx.1])
   · intro x hx; fun_prop (disch := linarith [hx.1])
+  · intro x hx
+    fun_prop (disch := linarith [hx.1])
   · intro x hx
     have h1p : (0 : ℝ) < 1 + x := by linarith [hx]
     have hd := hasDerivAt_log_ineq_9 x h1p

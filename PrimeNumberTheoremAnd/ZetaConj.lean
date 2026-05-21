@@ -1,37 +1,13 @@
 import Architect
+import Mathlib.Analysis.Calculus.Deriv.Star
 import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 
 open scoped Complex ComplexConjugate
 
-blueprint_comment /--
-Already on Mathlib (with a shortened proof):
--/
-@[blueprint
-  (title := "hasDerivAt-conj-conj")
-  (statement := /--
-    Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$
-    with derivative $a$. Then the function $g(z) = \overline{f(\overline{z})}$ is complex
-    differentiable at $\overline{p}$ with derivative $\overline{a}$.
-  -/)
-  (proof := /-- We expand the definition of the derivative and compute. -/)]
-theorem hasDerivAt_conj_conj {f : ℂ → ℂ} {p a : ℂ} (hf : HasDerivAt f a p) :
-    HasDerivAt (fun z ↦ conj (f (conj z))) (conj a) (conj p) := by
-  rw [hasDerivAt_iff_tendsto] at hf ⊢
-  have := Complex.continuous_conj.tendsto (conj p)
-  rw [Complex.conj_conj] at this
-  have := Filter.Tendsto.comp hf this
-  convert this with z
-  simp only [Complex.conj_conj, smul_eq_mul, Function.comp_apply]
-  congr 1
-  · congr 1
-    rw [← Complex.norm_conj]
-    simp
-  · rw [← Complex.norm_conj]
-    simp
 
 blueprint_comment /--
-Submitted to Mathlib:
+Now in Mathlib:
 -/
 @[blueprint
   (title := "deriv-conj-conj")
@@ -45,19 +21,11 @@ Submitted to Mathlib:
     at $p$, then we can apply the previous theorem. If $f$ is not differentiable at $p$, then
     neither is $g$, and both derivatives have the default value of zero.
   -/)]
-theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
+theorem deriv_conj_conj' (f : ℂ → ℂ) (p : ℂ) :
     deriv (fun z ↦ conj (f (conj z))) (conj p) = conj (deriv f p) := by
-  -- Case analysis on whether f is differentiable at p
-  set g := fun z ↦ conj (f (conj z))
-  by_cases hf : DifferentiableAt ℂ f p
-  · exact (hasDerivAt_conj_conj hf.hasDerivAt).deriv
-  · by_cases hg : DifferentiableAt ℂ g (conj p)
-    · -- If the conjugated function were differentiable, then f would be differentiable
-      have : DifferentiableAt ℂ f p := by
-        convert (hasDerivAt_conj_conj hg.hasDerivAt).differentiableAt using 2 <;> simp [g]
-      contradiction
-    · -- Both derivatives are zero when the functions are not differentiable
-      rw [deriv_zero_of_not_differentiableAt hg, deriv_zero_of_not_differentiableAt hf, map_zero]
+  trans deriv (conj ∘ f ∘ conj) (conj p)
+  · rfl
+  simp
 
 @[blueprint
   (title := "conj-riemannZeta-conj-aux1")
@@ -126,7 +94,7 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
       intro s₁ hs₁
       have hs₁' : conj s₁ ≠ 1 :=
         (map_ne_one_iff (starRingEnd ℂ) (RingHom.injective (starRingEnd ℂ))).mpr hs₁
-      convert (hasDerivAt_conj_conj
+      convert (HasDerivAt.conj_conj
         (differentiableAt_riemannZeta hs₁').hasDerivAt).differentiableAt.differentiableWithinAt
         (s := U)
       rw [Complex.conj_conj]
@@ -159,7 +127,7 @@ theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s)
   -/)]
 theorem deriv_riemannZeta_conj (s : ℂ) :
     deriv riemannZeta (conj s) = conj (deriv riemannZeta s) := by
-  simp [← deriv_conj_conj, conj_riemannZeta_conj]
+  simp [← deriv_conj_conj', conj_riemannZeta_conj]
 
 theorem logDerivZeta_conj (s : ℂ) :
     (deriv riemannZeta / riemannZeta) (conj s) = conj ((deriv riemannZeta / riemannZeta) s) := by
@@ -171,6 +139,7 @@ theorem logDerivZeta_conj' (s : ℂ) :
 blueprint_comment /--
 % TODO: Submit this to Mathlib.
 -/
+set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "intervalIntegral-conj")
   (statement := /--

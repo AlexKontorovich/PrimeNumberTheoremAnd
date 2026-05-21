@@ -579,7 +579,7 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
   unfold Eθ
   rw [div_le_iff₀ hxpos]
   -- Goal: |θ x - x| ≤ (1 - log 2 / 3) * x
-  by_cases hx3 : x < 3
+  by_cases! hx3 : x < 3
   · -- Case x ∈ [2, 3): ⌊x⌋₊ = 2, θ(2) = log 2
     rw [Chebyshev.theta_eq_theta_coe_floor x]
     have hfloor : ⌊x⌋₊ = 2 := by
@@ -596,7 +596,6 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
     -- Goal: x - log 2 ≤ (1 - log 2 / 3) * x
     nlinarith [log_two_gt_d9]
   · -- Case x ∈ [3, 599): use computational checker
-    push_neg at hx3
     have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
     have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
     have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
@@ -632,7 +631,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
     Eθ x ≤ log x ^ 2 / (8 * π * sqrt x) := by
   obtain ⟨hx_lo, hx_hi⟩ := hx
   have hx_pos : (0 : ℝ) < x := by linarith
-  by_cases hx_gt : x > 599
+  by_cases! hx_gt : x > 599
   · have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith : (1 : ℝ) < x)
     have hlog_ge1 : (1 : ℝ) ≤ log x := by
       rw [show (1 : ℝ) = log (exp 1) from by rw [log_exp]]
@@ -655,7 +654,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
         calc 4.92 * sqrt (x / log x) = sqrt (4.92 ^ 2 * (x / log x)) := by
               rw [sqrt_mul (by positivity : (0 : ℝ) ≤ 4.92 ^ 2), sqrt_sq (by positivity : (0 : ℝ) ≤ 4.92)]
           _ ≤ 3e12 := h2
-      by_cases hx45 : x ≤ exp 45
+      by_cases! hx45 : x ≤ exp 45
       · have hexp45 : exp (45 : ℝ) < 2 * 10^20 := by
           have : exp (45 : ℝ) = exp (1 : ℝ) ^ (45 : ℕ) := by rw [← exp_nat_mul]; ring_nf
           rw [this]
@@ -666,8 +665,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
         have : 4.92 ^ 2 * (2 * (10 : ℝ) ^ 20) ≤ (3e12) ^ 2 * 6 := by norm_num
         have : (3e12) ^ 2 * 6 < (3e12 : ℝ) ^ 2 * log x := by gcongr
         linarith
-      · push_neg at hx45
-        have hlog45 : 45 < log x := by
+      · have hlog45 : 45 < log x := by
           rwa [show (45 : ℝ) = log (exp 45) from by rw [log_exp],
                log_lt_log_iff (exp_pos 45) hx_pos]
         have hexp58 : exp (58 : ℝ) < 16 * 10^24 := by
@@ -697,8 +695,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
       field_simp
       nlinarith
     linarith
-  · push_neg at hx_gt
-    have hx_eq : x = 599 := le_antisymm hx_gt hx_lo
+  · have hx_eq : x = 599 := le_antisymm hx_gt hx_lo
     subst hx_eq
     unfold Eθ
     have habs :=
@@ -752,16 +749,20 @@ theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
   have htab43 : ((43 : ℝ), M₄₃) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₄₃]
   have hM43 : M₄₃ ⟨1, by norm_num⟩ = 3.7979e-5 := rfl
   have hfin43 : (⟨1, by norm_num⟩ : Fin 5).val + 1 = 2 := rfl
-  have hx_ge43 : x ≥ (43 : ℝ) := by
-    have : (43 : ℝ) ≤ exp 58 := by interval_decide
+  have hx_ge_exp43 : x ≥ exp (43 : ℝ) := by
+    have : exp (43 : ℝ) ≤ exp 58 := by
+      exact exp_le_exp.mpr (by norm_num)
     linarith [hx.1]
   obtain ⟨hlb43, hub43⟩ :=
-    BKLNW.thm_1b_table (by norm_num : (43 : ℝ) > 1) htab43 ⟨1, by norm_num⟩ hx_ge43
+    BKLNW.thm_1b_table (by norm_num : (43 : ℝ) > 0) htab43 ⟨1, by norm_num⟩ hx_ge_exp43
   rw [hM43, hfin43] at hlb43 hub43
   have hE : Eθ x ≤ (3.7979e-5 : ℝ) / (log x) ^ 2 := by
     unfold Eθ
     have hxpos : 0 < x := lt_of_lt_of_le (exp_pos _) hx.1
-    have hpow_pos : 0 < (log x) ^ 2 := pow_pos (log_pos (by linarith [add_one_le_exp (58:ℝ)])) 2
+    have hx_gt_one : 1 < x := by
+      have : (1 : ℝ) < exp 58 := by nlinarith [add_one_le_exp (58 : ℝ)]
+      linarith [hx.1]
+    have hpow_pos : 0 < (log x) ^ 2 := pow_pos (log_pos hx_gt_one) 2
     rw [div_le_div_iff₀ hxpos hpow_pos]
     have h1 : θ x - x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith
     have h2 : x - θ x ≤ 3.7979e-5 / (log x) ^ 2 * x := by nlinarith

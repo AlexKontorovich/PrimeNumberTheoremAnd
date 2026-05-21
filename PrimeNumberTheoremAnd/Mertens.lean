@@ -365,7 +365,7 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x + O(1). $$
   (discussion := 1309)]
 theorem sum_mangoldt_div_eq_log {x : ℝ} (hx : 1 ≤ x) :
     |∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d - log x| ≤ log 4 + 4 := by
-    sorry
+  grind [E₁Λ.le hx, E₁Λ.ge hx, log_nonneg]
 
 theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   exact ⟨log 4 + 4, (by positivity), fun x hx ↦ sum_mangoldt_div_eq_log hx⟩
@@ -600,7 +600,7 @@ noncomputable abbrev E₂Λ (x : ℝ) : ℝ := ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ
 lemma sum_Ioc_one_eq_sum_Icc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf1 : f 1 = 0) (hf0 : f 0 = 0) :
     ∑ n ∈ Ioc 1 x, f n = ∑ n ∈ Icc 0 x, f n := by
   rw [sum_Ioc_one_eq_sum_Ioc_zero hx hf1, ← add_sum_Ioc_eq_sum_Icc (by linarith)]
-  simpa 
+  simpa
 
 @[blueprint
   "Mertens-integral-ident"
@@ -620,7 +620,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
   trans ∑ n ∈ Icc 0 ⌊ x ⌋₊, (log n)⁻¹ * g n
   · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp) (by simp)]
     refine sum_congr rfl fun n hn ↦ ?_
-    have : ¬(n < 2) := by simp_all; linarith
+    have : ¬(n ≤ 1) := by simp_all
     simp [g, this]
     field
   rw [sum_mul_eq_sub_integral_mul₁ g (f := (fun n ↦ (log n)⁻¹)) (by simp [g]) (by simp [g])]
@@ -631,7 +631,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 1
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
     · rw [← MeasureTheory.integral_neg]
       refine  MeasureTheory.setIntegral_congr_fun (by measurability) fun t ht ↦ ?_
@@ -641,7 +641,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 2
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
   · intro t ht
     simp only [Set.mem_Icc] at ht
@@ -1113,8 +1113,16 @@ $$ \prod_{p \leq x} \left(1 - \frac{1}{p}\right) = \frac{e^{-\gamma}}{\log x} \e
   (proof := /-- Immediate from definition
   -/)
   (discussion := 1329)]
-theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : x > 1) : ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) = exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
-    sorry
+theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : 1 < x) :
+    ∏ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1 - (1 : ℝ) / p) =
+      exp (-eulerMascheroniConstant) * exp (E₃ x) / log x := by
+  have hlog : 0 < log x := log_pos hx
+  have hpos : ∀ {p : ℕ}, p.Prime → (0 : ℝ) < 1 - 1 / p := fun {p} hp ↦ by
+    have : (2 : ℝ) ≤ p := mod_cast hp.two_le
+    grind [one_div_le_one_div_of_le two_pos this]
+  rw [E₃, exp_add, exp_add, exp_sum, exp_log hlog, exp_neg,
+    prod_congr rfl fun p hp ↦ exp_log (hpos (mem_filter.mp hp).2)]
+  field_simp
 
 @[blueprint
   "Mertens-third-theorem-error-le"

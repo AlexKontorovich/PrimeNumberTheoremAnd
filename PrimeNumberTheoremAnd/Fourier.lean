@@ -26,6 +26,7 @@ noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
 
 @[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 (-v * u) := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by
     simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
@@ -49,6 +50,7 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
     𝓕 (fun x => f x - g x) x = 𝓕 f x - 𝓕 g x := by
   simpa [sub_eq_add_neg, Pi.neg_def] using F_add hf hg.neg x
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} :
     𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
   simp [fourier_real_eq, ← integral_const_mul, Real.fourierChar, Circle.exp,

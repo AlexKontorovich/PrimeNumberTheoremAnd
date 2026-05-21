@@ -391,8 +391,7 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
             gcongr
             linarith)
           show 1 ≤ x
-          by_contra h
-          push_neg at h
+          by_contra! h
           rw [Nat.floor_eq_zero.mpr <| Real.rpow_lt_one hx.le h <| by positivity] at hp
           simp_all
       · exact fun _ _ _ ↦ Real.log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by simp_all
@@ -429,8 +428,7 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
         (mem_filter.mp hp |>.1) |>.2).trans
         (Nat.floor_mono ?_)
       have : 1 ≤ x := by
-        by_contra h
-        push_neg at h
+        by_contra! h
         have hpos :
             (0 : ℝ) < 1 / (6 * (i.succ : ℝ) - 1) :=
           one_div_pos.mpr <| by
