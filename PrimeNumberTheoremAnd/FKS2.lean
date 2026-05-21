@@ -576,6 +576,13 @@ lemma part2_decay_bound
     _ = (2500 * (5.5666305 : ℝ)) * exp (-(230 : ℝ)) := by ring_nf
 
 set_option maxHeartbeats 800000 in
+-- This explicit estimate unfolds several large piecewise constants and needs more than the default budget.
+/--
+**The missing lemma** Codex complained about:
+for `log x₀ ≥ 1000` the correction `ν_asymp` is far below `1e-5`.
+This is enough to go from the “exact” Remark 15 statement with `(1+ν_asymp)`
+to the relaxed statement with `(1+remark_15_margin)`.
+-/
 theorem FKS_A_one_le (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) : (1 : ℝ) ≤ FKS.A x₀ := by
   set t : ℝ := Real.log x₀
   have ht : t ≥ 1000 := by simpa [t] using h
