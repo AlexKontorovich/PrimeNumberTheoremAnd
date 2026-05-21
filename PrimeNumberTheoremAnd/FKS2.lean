@@ -918,7 +918,7 @@ private lemma g_bound_le_of_anti {f : ℝ → ℝ} (hanti : StrictAntiOn f (Set.
   · have h_gt1 : 1 < x₀ := by rw [← Real.log_pos_iff hx₀_pos.le]; linarith
     exact (hanti h_gt1 (h_gt1.trans hx_lt) hx_lt).le
 
-private lemma term_le_admissible_bound_mul (α a Aψ B C R x x₀ : ℝ)
+private lemma mul_rpow_sub_div_le_admissible_bound_mul (α a Aψ B C R x x₀ : ℝ)
     (ha_nonneg : 0 ≤ a) (hAψ : Aψ > 0) (hR : R > 0)
     (hx_pos : 0 < x) (hx₀_pos : 0 < x₀)
     (hlog_pos : 0 < Real.log x) (hlog_x₀_pos : 0 < Real.log x₀)
@@ -1031,13 +1031,13 @@ theorem proposition_13
   have h_term1_le : BKLNW.a₁ (log x₀) * x ^ (1 / 2 : ℝ) / x ≤
       admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
         (BKLNW.a₁ (log x₀) * log x₀ * x₀ ^ (-(1 / 2 : ℝ)))) := by
-    have h := term_le_admissible_bound_mul (1 / 2) _ Aψ B C R x x₀ ha₁_nonneg hAψ hR hx_pos hx₀_pos
+    have h := mul_rpow_sub_div_le_admissible_bound_mul (1 / 2) _ Aψ B C R x x₀ ha₁_nonneg hAψ hR hx_pos hx₀_pos
       hlog_pos (by linarith) hx₀ (g_bound_le_of_anti hg1_anti hx₀_pos hx₀ hx)
     rwa [show (1 : ℝ) - 1 / 2 = 1 / 2 by norm_num] at h
   have h_term2_le : BKLNW.a₂ (log x₀) * x ^ (1 / 3 : ℝ) / x ≤
       admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
         (BKLNW.a₂ (log x₀) * log x₀ * x₀ ^ (-(2 / 3 : ℝ)))) := by
-    have h := term_le_admissible_bound_mul (2 / 3) _ Aψ B C R x x₀ ha₂_nonneg hAψ hR hx_pos hx₀_pos
+    have h := mul_rpow_sub_div_le_admissible_bound_mul (2 / 3) _ Aψ B C R x x₀ ha₂_nonneg hAψ hR hx_pos hx₀_pos
       hlog_pos (by linarith) hx₀ (g_bound_le_of_anti hg2_anti hx₀_pos hx₀ hx)
     rwa [show (1 : ℝ) - 2 / 3 = 1 / 3 by norm_num] at h
   calc |θ x - x| / x
