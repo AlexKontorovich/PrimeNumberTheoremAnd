@@ -258,33 +258,6 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ}
         (x.im * x.im + 4 * M * (M - x.re)) := by ring]
   bound
 
--- MIGRATED TO STRONGPNT.LEAN
--- @[blueprint "AnalyticOn.nor m_le_of_norm_le_on_sphere"
---   (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
---   (statement := /--
---     An application of the Maximum modulus principle.
---   -/)
---   (proof := /--
---     This is standard in the literature.
---   -/)
---   (latexEnv := "lemma")]
--- lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
---     (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
---     (hyp_r : r ≤ R)
---     (cond : ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C)
---     (w : ℂ) (wInS : w ∈ Metric.closedBall 0 r) :
---     ‖f w‖ ≤ C := by
---   apply Complex.norm_le_of_forall_mem_frontier_norm_le
---     (U := Metric.closedBall 0 r) Metric.isBounded_closedBall
---   · apply DifferentiableOn.diffContOnCl
---     rw [Metric.closure_closedBall]
---     exact AnalyticOn.differentiableOn
---       (AnalyticOn.mono analytic
---         (Metric.closedBall_subset_closedBall (by linarith)))
---   · rw [frontier_closedBall']
---     exact cond
---   · rw [Metric.closure_closedBall]
---     exact wInS
 
 @[blueprint "borelCaratheodory_closedBall"
   (title := "borelCaratheodory-closedBall")
@@ -377,7 +350,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
       ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r hyp_r r_pos z zOnR
     have zInS : z ∈ Metric.closedBall 0 R :=
-      zInSFunc r (by linarith) z zOnR
+      zInSFunc r hyp_r.le z zOnR
     rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z zInS
     unfold schwartzQuotient at this
@@ -399,31 +372,18 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
           exact norm_sub_le (E := ℂ) ((2 : ℂ) * ↑M) (f z)
         _ = r * (2 * M + ‖f z‖) * R⁻¹ := by
           have U : ‖(2 : ℂ) * M‖ = 2 * M := by
-            simp only [Complex.norm_mul,
-              Complex.norm_ofNat, Complex.norm_real,
-              Real.norm_eq_abs, mul_eq_mul_left_iff,
-              abs_eq_self, OfNat.ofNat_ne_zero,
-              or_false]
-            linarith
+            simp [Mpos.le]
           rw [U]
         _ = 2 * M * r / R + (r / R) * ‖f z‖ := by
           ring_nf
     have U1 : ‖f z‖ - ‖f z‖ * (r * R⁻¹) =
         ‖f z‖ * (1 - r * R⁻¹) := by ring
     have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by
-      have : r * R⁻¹ < 1 := by
-        simp only [← div_lt_one₀ (by linarith : 0 < R)] at hyp_r
-        exact hyp_r
-      linarith
+      rw [sub_pos, ← div_eq_mul_inv, div_lt_one₀ Rpos]
+      exact hyp_r
     have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) =
         2 * M * r / (R - r) := by
-      have hR : R ≠ 0 := by linarith
-      rw [← mul_div_mul_left (r * R⁻¹ * M * (2 : ℝ)) ((1 : ℝ) - r * R⁻¹) hR]
-      ring_nf
-      have U : R * r * R⁻¹ = r := by
-        rw [mul_comm, ← mul_assoc, ← mul_comm R R⁻¹,
-          CommGroupWithZero.mul_inv_cancel R hR, one_mul]
-      rw [U]
+      field
     rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0
     ring_nf at U0
     rw [mul_assoc, U1, ← le_div_iff₀ U2, U3] at U0
@@ -442,5 +402,5 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
   · have U : 0 ≤ r := by
       rw [mem_closedBall_iff_norm, sub_zero] at hyp_z
       linarith [norm_nonneg z]
-    exact maxBoundForF r (by linarith)
+    exact maxBoundForF r hyp_r
       (lt_of_le_of_ne U (Ne.symm pos_r)) z hyp_z
