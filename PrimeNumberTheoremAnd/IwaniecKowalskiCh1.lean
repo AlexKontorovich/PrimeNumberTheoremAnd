@@ -991,14 +991,61 @@ The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
   (title := "LSeries liouville eq")
   (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
   (proof := /--
-  The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
-\[
-L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
-\]
+  Let $g = \lambda * \mathbb{1}$ be the Dirichlet convolution of the Liouville function with the constant function $1$. Since $\lambda$ is multiplicative, so is $g$, and at a prime power its value is the geometric sum $g(p^k) = \sum_{j=0}^{k} (-1)^j$, which is $1$ when $k$ is even and $0$ when $k$ is odd. By multiplicativity, $g$ is therefore the indicator function of the perfect squares. Passing to L-series gives $L(\lambda, s)\,\zeta(s) = L(g, s) = \sum_{m \geq 1} m^{-2s} = \zeta(2s)$, and dividing by $\zeta(s) \neq 0$ yields $L(\lambda, s) = \zeta(2s)/\zeta(s)$.
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
-  sorry
+  have hs2 : 1 < (2 * s).re := by rw [show (2 * s).re = 2 * s.re by simp [Complex.mul_re]]; linarith
+  have hliou_apply : ∀ {n : ℕ}, n ≠ 0 → liouville n = (-1 : ℤ) ^ Ω n := by
+    intro n hn; simp [liouville, toArithmeticFunction, hn]
+  have hliou_mul : (liouville : ArithmeticFunction ℤ).IsMultiplicative := by
+    refine IsMultiplicative.iff_ne_zero.2 ⟨by simp [hliou_apply one_ne_zero, cardFactors_one], ?_⟩
+    intro m n hm hn _
+    rw [hliou_apply (Nat.mul_ne_zero hm hn), hliou_apply hm, hliou_apply hn,
+      cardFactors_mul hm hn, pow_add]
+  -- `g = liouville ⍟ ζ` is the indicator of the perfect squares.
+  set g := liouville * (ζ : ArithmeticFunction ℤ) with hg_def
+  have hg_mul : g.IsMultiplicative := hliou_mul.mul isMultiplicative_zeta.natCast
+  have hg_pp : ∀ p i : ℕ, p.Prime → g (p ^ i) = if Even i then 1 else 0 := fun p i hp => by
+    rw [hg_def, coe_mul_zeta_apply, divisors_prime_pow hp, Finset.sum_map,
+      Finset.sum_congr rfl fun j _ => by rw [Function.Embedding.coeFn_mk,
+        hliou_apply (pow_ne_zero j hp.pos.ne'), cardFactors_apply_prime_pow hp],
+      neg_one_geom_sum]
+    by_cases h : Even i <;> simp [Nat.even_add_one, h]
+  have hg_apply : ∀ {n : ℕ}, n ≠ 0 →
+      g n = if ∀ p ∈ n.factorization.support, Even (n.factorization p) then 1 else 0 := by
+    intro n hn
+    rw [hg_mul.multiplicative_factorization _ hn, Finsupp.prod, ← Finset.prod_boole]
+    exact Finset.prod_congr rfl fun p hp => hg_pp p _ <| Nat.prime_of_mem_primeFactors <|
+      Nat.support_factorization n ▸ hp
+  have hsq : ∀ m : ℕ, m ≠ 0 → g (m ^ 2) = 1 := fun m hm => by
+    rw [hg_apply (pow_ne_zero 2 hm), if_pos fun p _ => by
+      rw [Nat.factorization_pow, Finsupp.smul_apply, smul_eq_mul]; exact ⟨_, two_mul _⟩]
+  have hsumL : LSeriesSummable (↗(liouville : ArithmeticFunction ℤ)) s :=
+    LSeriesSummable_of_bounded_of_one_lt_re (m := 1) (fun n hn => by simp [hliou_apply hn]) hs
+  have hgconv : ↗(liouville : ArithmeticFunction ℤ) ⍟ ↗(ζ : ArithmeticFunction ℕ) = ↗g := by
+    funext n; simp only [hg_def, LSeries.convolution_def, ArithmeticFunction.mul_apply]
+    push_cast [ArithmeticFunction.natCoe_apply]; rfl
+  -- `L(g) = ζ(2s)`, by reindexing the L-series along `m ↦ m²`.
+  have hcomp : ∀ m, LSeries.term (↗g) s (m ^ 2) = LSeries.term 1 (2 * s) m := fun m => by
+    rcases eq_or_ne m 0 with rfl | hm
+    · simp [LSeries.term]
+    · rw [LSeries.term_of_ne_zero (pow_ne_zero 2 hm), LSeries.term_of_ne_zero hm]
+      simp [hsq m hm, ← Complex.natCast_cpow_natCast_mul]
+  have hsupp : Function.support (LSeries.term (↗g) s) ⊆ Set.range (· ^ 2 : ℕ → ℕ) := by
+    intro n hn
+    have hn0 : n ≠ 0 := by rintro rfl; exact hn (LSeries.term_zero _ _)
+    have hev : ∀ p ∈ n.factorization.support, Even (n.factorization p) := not_not.1 fun h =>
+      hn (by rw [LSeries.term_of_ne_zero hn0, hg_apply hn0, if_neg h]; simp)
+    refine ⟨n.factorization.prod fun p k => p ^ (k / 2), ?_⟩
+    conv_rhs => rw [← Nat.factorization_prod_pow_eq_self hn0]
+    simp only [pow_two, ← Finsupp.prod_mul]
+    exact Finsupp.prod_congr fun p hp => by
+      rw [← pow_add, ← two_mul, Nat.mul_div_cancel' (hev p hp).two_dvd]
+  rw [eq_div_iff (riemannZeta_ne_zero_of_one_lt_re hs), ← LSeries_zeta_eq_riemannZeta hs,
+    ← LSeries_convolution' hsumL (LSeriesHasSum_zeta hs).LSeriesSummable, hgconv,
+    ← LSeries_one_eq_riemannZeta hs2]
+  exact ((Nat.pow_left_injective two_ne_zero).tsum_eq hsupp).symm.trans (tsum_congr hcomp)
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
 @[blueprint
