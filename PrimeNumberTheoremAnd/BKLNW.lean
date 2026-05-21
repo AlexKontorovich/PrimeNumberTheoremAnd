@@ -1768,11 +1768,21 @@ theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈
   "bklnw-table-12-verification"
   (title := "BKLNW Table 12 verification")
   (statement := /--  Verification of the entries of Table 12. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 12. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
+  (proof := /-- For each row, the constant $C_{b,k}$ of Corollary \ref{bklnw-corollary-9-1}
+is at most the tabulated entry.  This is a finite numerical check, carried out by
+`table\_12\_check` in `BKLNW\_tables.lean` via interval arithmetic, using
+$C_{b,k} = b^k \cdot S$ with $S$ independent of $k$. -/)
   (latexEnv := "proposition")
   (discussion := 1263)]
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
-  sorry
+  obtain ⟨h1, h2, h3, h4, h5⟩ :=
+    BKLNW.table_12_check b (Cb 1) (Cb 2) (Cb 3) (Cb 4) (Cb 5) c C M h
+  have hC : ∀ j : ℕ, C_bk b c C RS_prime.c₀ j = b ^ j * BKLNW.C_bk_S b c C := by
+    intro j; simp only [C_bk, BKLNW.C_bk_S]
+  intro k hk
+  have hk' : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+    simp only [Finset.mem_Icc] at hk; omega
+  rcases hk' with rfl | rfl | rfl | rfl | rfl <;> rw [hC] <;> assumption
 
 private lemma mem_table_from_buthe_and_bounds_of_mem_table_12 (b c C M : ℝ) (Cb : ℕ → ℝ)
     (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
