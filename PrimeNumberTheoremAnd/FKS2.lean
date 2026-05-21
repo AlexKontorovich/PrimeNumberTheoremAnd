@@ -580,10 +580,140 @@ set_option maxHeartbeats 800000 in
 /--
 **The missing lemma** Codex complained about:
 for `log x₀ ≥ 1000` the correction `ν_asymp` is far below `1e-5`.
-
 This is enough to go from the “exact” Remark 15 statement with `(1+ν_asymp)`
 to the relaxed statement with `(1+remark_15_margin)`.
 -/
+theorem FKS_A_one_le (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) : (1 : ℝ) ≤ FKS.A x₀ := by
+  set t : ℝ := Real.log x₀
+  have ht : t ≥ 1000 := by simpa [t] using h
+  have hlog : Real.log x₀ = t := by simp [t]
+  unfold FKS.A
+  rw [hlog]
+  have ht1000 : ¬ t < 1000 := by linarith [ht]
+  rw [if_neg ht1000]
+  by_cases h2 : t < (2000 : ℝ)
+  · rw [if_pos h2]
+    norm_num
+  · rw [if_neg h2]
+    by_cases h3 : t < (3000 : ℝ)
+    · rw [if_pos h3]
+      norm_num
+    · rw [if_neg h3]
+      by_cases h4 : t < (4000 : ℝ)
+      · rw [if_pos h4]
+        norm_num
+      · rw [if_neg h4]
+        by_cases h5 : t < (5000 : ℝ)
+        · rw [if_pos h5]
+          norm_num
+        · rw [if_neg h5]
+          by_cases h6 : t < (6000 : ℝ)
+          · rw [if_pos h6]
+            norm_num
+          · rw [if_neg h6]
+            by_cases h7 : t < (7000 : ℝ)
+            · rw [if_pos h7]
+              norm_num
+            · rw [if_neg h7]
+              by_cases h8 : t < (8000 : ℝ)
+              · rw [if_pos h8]
+                norm_num
+              · rw [if_neg h8]
+                by_cases h9 : t < (9000 : ℝ)
+                · rw [if_pos h9]
+                  norm_num
+                · rw [if_neg h9]
+                  by_cases h10 : t < (10000 : ℝ)
+                  · rw [if_pos h10]
+                    norm_num
+                  · rw [if_neg h10]
+                    by_cases h11 : t < (20000 : ℝ)
+                    · rw [if_pos h11]
+                      norm_num
+                    · rw [if_neg h11]
+                      by_cases h12 : t < (30000 : ℝ)
+                      · rw [if_pos h12]
+                        norm_num
+                      · rw [if_neg h12]
+                        by_cases h13 : t < (40000 : ℝ)
+                        · rw [if_pos h13]
+                          norm_num
+                        · rw [if_neg h13]
+                          by_cases h14 : t < (50000 : ℝ)
+                          · rw [if_pos h14]
+                            norm_num
+                          · rw [if_neg h14]
+                            by_cases h15 : t < (60000 : ℝ)
+                            · rw [if_pos h15]
+                              norm_num
+                            · rw [if_neg h15]
+                              by_cases h16 : t < (70000 : ℝ)
+                              · rw [if_pos h16]
+                                norm_num
+                              · rw [if_neg h16]
+                                by_cases h17 : t < (80000 : ℝ)
+                                · rw [if_pos h17]
+                                  norm_num
+                                · rw [if_neg h17]
+                                  by_cases h18 : t < (90000 : ℝ)
+                                  · rw [if_pos h18]
+                                    norm_num
+                                  · rw [if_neg h18]
+                                    by_cases h19 : t < (100000 : ℝ)
+                                    · rw [if_pos h19]
+                                      norm_num
+                                    · rw [if_neg h19]
+                                      by_cases h20 : t < (200000 : ℝ)
+                                      · rw [if_pos h20]
+                                        norm_num
+                                      · rw [if_neg h20]
+                                        by_cases h21 : t < (300000 : ℝ)
+                                        · rw [if_pos h21]
+                                          norm_num
+                                        · rw [if_neg h21]
+                                          by_cases h22 : t < (400000 : ℝ)
+                                          · rw [if_pos h22]
+                                            norm_num
+                                          · rw [if_neg h22]
+                                            by_cases h23 : t < (500000 : ℝ)
+                                            · rw [if_pos h23]
+                                              norm_num
+                                            · rw [if_neg h23]
+                                              by_cases h24 : t < (600000 : ℝ)
+                                              · rw [if_pos h24]
+                                                norm_num
+                                              · rw [if_neg h24]
+                                                by_cases h25 : t < (700000 : ℝ)
+                                                · rw [if_pos h25]
+                                                  norm_num
+                                                · rw [if_neg h25]
+                                                  by_cases h26 : t < (800000 : ℝ)
+                                                  · rw [if_pos h26]
+                                                    norm_num
+                                                  · rw [if_neg h26]
+                                                    by_cases h27 : t < (900000 : ℝ)
+                                                    · rw [if_pos h27]
+                                                      norm_num
+                                                    · rw [if_neg h27]
+                                                      by_cases h28 : t < (1e6 : ℝ)
+                                                      · rw [if_pos h28]
+                                                        norm_num
+                                                      · rw [if_neg h28]
+                                                        by_cases h29 : t < (1e7 : ℝ)
+                                                        · rw [if_pos h29]
+                                                          norm_num
+                                                        · rw [if_neg h29]
+                                                          by_cases h30 : t < (1e8 : ℝ)
+                                                          · rw [if_pos h30]
+                                                            norm_num
+                                                          · rw [if_neg h30]
+                                                            by_cases h31 : t < (1e9 : ℝ)
+                                                            · rw [if_pos h31]
+                                                              norm_num
+                                                            · rw [if_neg h31]
+                                                              norm_num
+
+set_option maxHeartbeats 800000 in
 theorem nu_asymp_le_remark_15_margin (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) :
     ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ remark_15_margin := by
   set t : ℝ := Real.log x₀
@@ -591,132 +721,7 @@ theorem nu_asymp_le_remark_15_margin (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) :
   have ht_pos : 0 < t := by linarith [ht]
   have hlog : Real.log x₀ = t := by simp [t]
 
-  have hA_one_le : (1 : ℝ) ≤ FKS.A x₀ := by
-    unfold FKS.A
-    rw [hlog]
-    have ht1000 : ¬ t < 1000 := by linarith [ht]
-    rw [if_neg ht1000]
-    by_cases h2 : t < (2000 : ℝ)
-    · rw [if_pos h2]
-      norm_num
-    · rw [if_neg h2]
-      by_cases h3 : t < (3000 : ℝ)
-      · rw [if_pos h3]
-        norm_num
-      · rw [if_neg h3]
-        by_cases h4 : t < (4000 : ℝ)
-        · rw [if_pos h4]
-          norm_num
-        · rw [if_neg h4]
-          by_cases h5 : t < (5000 : ℝ)
-          · rw [if_pos h5]
-            norm_num
-          · rw [if_neg h5]
-            by_cases h6 : t < (6000 : ℝ)
-            · rw [if_pos h6]
-              norm_num
-            · rw [if_neg h6]
-              by_cases h7 : t < (7000 : ℝ)
-              · rw [if_pos h7]
-                norm_num
-              · rw [if_neg h7]
-                by_cases h8 : t < (8000 : ℝ)
-                · rw [if_pos h8]
-                  norm_num
-                · rw [if_neg h8]
-                  by_cases h9 : t < (9000 : ℝ)
-                  · rw [if_pos h9]
-                    norm_num
-                  · rw [if_neg h9]
-                    by_cases h10 : t < (10000 : ℝ)
-                    · rw [if_pos h10]
-                      norm_num
-                    · rw [if_neg h10]
-                      by_cases h11 : t < (20000 : ℝ)
-                      · rw [if_pos h11]
-                        norm_num
-                      · rw [if_neg h11]
-                        by_cases h12 : t < (30000 : ℝ)
-                        · rw [if_pos h12]
-                          norm_num
-                        · rw [if_neg h12]
-                          by_cases h13 : t < (40000 : ℝ)
-                          · rw [if_pos h13]
-                            norm_num
-                          · rw [if_neg h13]
-                            by_cases h14 : t < (50000 : ℝ)
-                            · rw [if_pos h14]
-                              norm_num
-                            · rw [if_neg h14]
-                              by_cases h15 : t < (60000 : ℝ)
-                              · rw [if_pos h15]
-                                norm_num
-                              · rw [if_neg h15]
-                                by_cases h16 : t < (70000 : ℝ)
-                                · rw [if_pos h16]
-                                  norm_num
-                                · rw [if_neg h16]
-                                  by_cases h17 : t < (80000 : ℝ)
-                                  · rw [if_pos h17]
-                                    norm_num
-                                  · rw [if_neg h17]
-                                    by_cases h18 : t < (90000 : ℝ)
-                                    · rw [if_pos h18]
-                                      norm_num
-                                    · rw [if_neg h18]
-                                      by_cases h19 : t < (100000 : ℝ)
-                                      · rw [if_pos h19]
-                                        norm_num
-                                      · rw [if_neg h19]
-                                        by_cases h20 : t < (200000 : ℝ)
-                                        · rw [if_pos h20]
-                                          norm_num
-                                        · rw [if_neg h20]
-                                          by_cases h21 : t < (300000 : ℝ)
-                                          · rw [if_pos h21]
-                                            norm_num
-                                          · rw [if_neg h21]
-                                            by_cases h22 : t < (400000 : ℝ)
-                                            · rw [if_pos h22]
-                                              norm_num
-                                            · rw [if_neg h22]
-                                              by_cases h23 : t < (500000 : ℝ)
-                                              · rw [if_pos h23]
-                                                norm_num
-                                              · rw [if_neg h23]
-                                                by_cases h24 : t < (600000 : ℝ)
-                                                · rw [if_pos h24]
-                                                  norm_num
-                                                · rw [if_neg h24]
-                                                  by_cases h25 : t < (700000 : ℝ)
-                                                  · rw [if_pos h25]
-                                                    norm_num
-                                                  · rw [if_neg h25]
-                                                    by_cases h26 : t < (800000 : ℝ)
-                                                    · rw [if_pos h26]
-                                                      norm_num
-                                                    · rw [if_neg h26]
-                                                      by_cases h27 : t < (900000 : ℝ)
-                                                      · rw [if_pos h27]
-                                                        norm_num
-                                                      · rw [if_neg h27]
-                                                        by_cases h28 : t < (1e6 : ℝ)
-                                                        · rw [if_pos h28]
-                                                          norm_num
-                                                        · rw [if_neg h28]
-                                                          by_cases h29 : t < (1e7 : ℝ)
-                                                          · rw [if_pos h29]
-                                                            norm_num
-                                                          · rw [if_neg h29]
-                                                            by_cases h30 : t < (1e8 : ℝ)
-                                                            · rw [if_pos h30]
-                                                              norm_num
-                                                            · rw [if_neg h30]
-                                                              by_cases h31 : t < (1e9 : ℝ)
-                                                              · rw [if_pos h31]
-                                                                norm_num
-                                                              · rw [if_neg h31]
-                                                                norm_num
+  have hA_one_le : (1 : ℝ) ≤ FKS.A x₀ := FKS_A_one_le x₀ h
   have hA_pos : 0 < FKS.A x₀ := by linarith [hA_one_le]
   have h_invA_le_one : 1 / FKS.A x₀ ≤ 1 := by
     exact (div_le_iff₀ hA_pos).2 (by simpa [one_mul] using hA_one_le)
@@ -904,7 +909,77 @@ theorem nu_asymp_le_remark_15_margin_sub_one (x₀ : ℝ) (h : Real.log x₀ ≥
   -- this is just rewriting
   simpa [remark_15_margin] using (nu_asymp_le_remark_15_margin x₀ h)
 
+private lemma g_bound_strictAntiOn (α : ℝ) (hα : 0 < α) (B C R : ℝ) (hR : R > 0)
+    (hcond : B > C ^ 2 / (16 * α * R)) :
+    StrictAntiOn (g_bound α (-B) (C / Real.sqrt R)) (Set.Ioi 1) := by
+  apply lemma_10a hα
+  rw [show -(C / Real.sqrt R) ^ 2 / (16 * α) = -C ^ 2 / (16 * α * R) by
+        rw [div_pow, Real.sq_sqrt hR.le]; ring, neg_div]
+  linarith
 
+private lemma g_bound_le_of_anti {f : ℝ → ℝ} (hanti : StrictAntiOn f (Set.Ioi 1))
+    {x₀ x : ℝ} (hx₀_pos : 0 < x₀) (hx₀ : 7 ≤ Real.log x₀) (hx : x₀ ≤ x) :
+    f x ≤ f x₀ := by
+  rcases eq_or_lt_of_le hx with rfl | hx_lt
+  · exact le_rfl
+  · have h_gt1 : 1 < x₀ := by rw [← Real.log_pos_iff hx₀_pos.le]; linarith
+    exact (hanti h_gt1 (h_gt1.trans hx_lt) hx_lt).le
+
+private lemma mul_rpow_sub_div_le_admissible_bound_mul (α a Aψ B C R x x₀ : ℝ)
+    (ha_nonneg : 0 ≤ a) (hAψ : Aψ > 0) (hR : R > 0)
+    (hx_pos : 0 < x) (hx₀_pos : 0 < x₀)
+    (hlog_pos : 0 < Real.log x) (hlog_x₀_pos : 0 < Real.log x₀)
+    (hx₀ : 7 ≤ Real.log x₀)
+    (hg_le : g_bound α (-B) (C / Real.sqrt R) x ≤ g_bound α (-B) (C / Real.sqrt R) x₀) :
+    a * x ^ (1 - α) / x ≤
+      admissible_bound Aψ B C R x * ((1 / Aψ) * (R / Real.log x₀) ^ B *
+        Real.exp (C * Real.sqrt (Real.log x₀ / R)) * (a * Real.log x₀ * x₀ ^ (-α))) := by
+  have h_exp_cancel : Real.exp (-C * Real.sqrt (Real.log x / R)) * Real.exp (C / Real.sqrt R * Real.sqrt (Real.log x)) = 1 := by
+    rw [← Real.exp_add, show -C * Real.sqrt (Real.log x / R) + C / Real.sqrt R * Real.sqrt (Real.log x) = 0 by
+      rw [show Real.log x / R = Real.log x * R⁻¹ from div_eq_mul_inv _ _, Real.sqrt_mul hlog_pos.le, Real.sqrt_inv]; ring, Real.exp_zero]
+  have h_log_cancel : (Real.log x) ^ B * (Real.log x) ^ (-B) = 1 := by
+    rw [← Real.rpow_add hlog_pos, add_neg_cancel, Real.rpow_zero]
+  have h_div_pow1 : (Real.log x / R) ^ B = (Real.log x) ^ B * R ^ (-B) := by
+    rw [div_eq_mul_inv, Real.mul_rpow hlog_pos.le (inv_pos.mpr hR).le, Real.inv_rpow hR.le, ← Real.rpow_neg hR.le]
+  have h_div_pow2 : (R / Real.log x₀) ^ B = R ^ B * (Real.log x₀) ^ (-B) := by
+    rw [div_eq_mul_inv, Real.mul_rpow hR.le (inv_pos.mpr hlog_x₀_pos).le, Real.inv_rpow hlog_x₀_pos.le, ← Real.rpow_neg hlog_x₀_pos.le]
+  have h_R_cancel : R ^ (-B) * R ^ B = 1 := by
+    rw [← Real.rpow_add hR, neg_add_cancel, Real.rpow_zero]
+  have h_exp_eq₀ : C / Real.sqrt R * Real.sqrt (Real.log x₀) = C * Real.sqrt (Real.log x₀ / R) := by
+    rw [div_eq_mul_inv, div_eq_mul_inv, Real.sqrt_mul hlog_x₀_pos.le, Real.sqrt_inv]; ring
+  have hg_nonneg : 0 ≤ g_bound α (-B) (C / Real.sqrt R) x₀ := by unfold g_bound; positivity
+  have h_g_scaled : g_bound α (-B) (C / Real.sqrt R) x ≤ g_bound α (-B) (C / Real.sqrt R) x₀ * Real.log x₀ :=
+    le_trans hg_le (by simpa using mul_le_mul_of_nonneg_left (by linarith : 1 ≤ Real.log x₀) hg_nonneg)
+  calc a * x ^ (1 - α) / x
+      _ = a * x ^ (-α) := by
+          rw [mul_div_assoc, show x ^ (1 - α) / x = x ^ (-α) by
+            field_simp; rw [show 1 - α = 1 + -α by ring, Real.rpow_add hx_pos, Real.rpow_one]]
+      _ = a * (Real.log x) ^ B * Real.exp (-C * Real.sqrt (Real.log x / R)) *
+            g_bound α (-B) (C / Real.sqrt R) x := by
+          unfold g_bound
+          rw [show a * (Real.log x) ^ B * Real.exp (-C * Real.sqrt (Real.log x / R)) *
+              (x ^ (-α) * (Real.log x) ^ (-B) * Real.exp (C / Real.sqrt R * Real.sqrt (Real.log x))) =
+              a * x ^ (-α) * ((Real.log x) ^ B * (Real.log x) ^ (-B)) *
+              (Real.exp (-C * Real.sqrt (Real.log x / R)) *
+              Real.exp (C / Real.sqrt R * Real.sqrt (Real.log x))) by ring,
+              h_log_cancel, h_exp_cancel]
+          ring
+      _ ≤ a * (Real.log x) ^ B * Real.exp (-C * Real.sqrt (Real.log x / R)) *
+            (g_bound α (-B) (C / Real.sqrt R) x₀ * Real.log x₀) :=
+          mul_le_mul_of_nonneg_left h_g_scaled (by positivity)
+      _ = admissible_bound Aψ B C R x * ((1 / Aψ) * (R / Real.log x₀) ^ B *
+            Real.exp (C * Real.sqrt (Real.log x₀ / R)) * (a * Real.log x₀ * x₀ ^ (-α))) := by
+          unfold admissible_bound g_bound
+          rw [(Real.sqrt_eq_rpow _).symm, h_div_pow1, h_div_pow2, h_exp_eq₀]
+          rw [show Aψ * ((Real.log x) ^ B * R ^ (-B)) * Real.exp (-C * Real.sqrt (Real.log x / R)) *
+              ((1 / Aψ) * (R ^ B * (Real.log x₀) ^ (-B)) * Real.exp (C * Real.sqrt (Real.log x₀ / R)) *
+              (a * Real.log x₀ * x₀ ^ (-α))) =
+              (Aψ * (1 / Aψ)) * (R ^ (-B) * R ^ B) * (a * (Real.log x) ^ B *
+              Real.exp (-C * Real.sqrt (Real.log x / R)) *
+              ((x₀ ^ (-α) * (Real.log x₀) ^ (-B) *
+              Real.exp (C * Real.sqrt (Real.log x₀ / R))) * Real.log x₀)) by ring]
+          rw [mul_one_div_cancel hAψ.ne', h_R_cancel]
+          ring
 
 @[blueprint
   "fks2-proposition-13"
@@ -924,10 +999,68 @@ theorem nu_asymp_le_remark_15_margin_sub_one (x₀ : ℝ) (h : Real.log x₀ ≥
   (latexEnv := "proposition")
   (discussion := 671)]
 theorem proposition_13
-  (Aψ B C R x₀ : ℝ)
+  (Aψ B C R x₀ : ℝ) (hAψ : Aψ > 0) (hR : R > 0) (hx₀_pos : 0 < x₀) (hx₀ : 7 ≤ Real.log x₀)
   (h_bound : Eψ.classicalBound Aψ B C R x₀)
   (hB : B > C ^ 2 / (8 * R)) :
-  Eθ.classicalBound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x₀ := by sorry
+  Eθ.classicalBound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x₀ := by
+  unfold Eθ.classicalBound Eθ
+  intro x hx
+  have hx_pos : 0 < x := lt_of_lt_of_le hx₀_pos hx
+  have h_abs_le : |θ x - x| ≤ |ψ x - x| + (ψ x - θ x) := by
+    have h1 : |θ x - x| ≤ |ψ x - x| + |θ x - ψ x| := by
+      rw [show θ x - x = (ψ x - x) + (θ x - ψ x) by ring]; exact abs_add_le _ _
+    have h2 : |θ x - ψ x| = ψ x - θ x := by
+      rw [abs_sub_comm, abs_of_nonneg (sub_nonneg.mpr (theta_le_psi x))]
+    linarith
+  have hg1_anti : StrictAntiOn (g_bound (1 / 2) (-B) (C / sqrt R)) (Set.Ioi 1) :=
+    g_bound_strictAntiOn (1 / 2) (by norm_num) B C R hR
+      (by rw [show 16 * (1 / 2 : ℝ) * R = 8 * R by ring]; exact hB)
+  have hg2_anti : StrictAntiOn (g_bound (2 / 3) (-B) (C / sqrt R)) (Set.Ioi 1) :=
+    g_bound_strictAntiOn (2 / 3) (by norm_num) B C R hR (by
+      have : 0 ≤ C ^ 2 / R := by positivity
+      rw [show C ^ 2 / (16 * (2 / 3 : ℝ) * R) = (3 / 32) * (C ^ 2 / R) by ring]
+      rw [show C ^ 2 / (8 * R) = (1 / 8) * (C ^ 2 / R) by ring] at hB
+      linarith)
+  have hlog_pos : 0 < log x := log_pos (by
+    have : 1 < x₀ := by rw [← log_pos_iff hx₀_pos.le]; linarith
+    linarith)
+  have ha₁_nonneg : 0 ≤ BKLNW.a₁ (log x₀) := by
+    unfold BKLNW.a₁ BKLNW.Inputs.a₁; split_ifs
+    · have hx₁_ge_one : 1 ≤ BKLNW.Inputs.default.x₁ := (one_le_exp (by positivity)).trans BKLNW.Inputs.default.hx₁
+      have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (Real.log_nonneg hx₁_ge_one)
+      linarith
+    · have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (by linarith : 0 ≤ log x₀ / 2)
+      linarith
+  have ha₂_nonneg : 0 ≤ BKLNW.a₂ (log x₀) := by
+    unfold BKLNW.a₂ BKLNW.Inputs.a₂
+    refine mul_nonneg (by norm_num [BKLNW.Inputs.default, BKLNW_app.table_8_margin]) (le_trans ?_ (le_max_left _ _))
+    unfold BKLNW.f; exact Finset.sum_nonneg (fun _ _ ↦ by positivity)
+  have h_term1_le : BKLNW.a₁ (log x₀) * x ^ (1 / 2 : ℝ) / x ≤
+      admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
+        (BKLNW.a₁ (log x₀) * log x₀ * x₀ ^ (-(1 / 2 : ℝ)))) := by
+    have h := mul_rpow_sub_div_le_admissible_bound_mul (1 / 2) _ Aψ B C R x x₀ ha₁_nonneg hAψ hR hx_pos hx₀_pos
+      hlog_pos (by linarith) hx₀ (g_bound_le_of_anti hg1_anti hx₀_pos hx₀ hx)
+    rwa [show (1 : ℝ) - 1 / 2 = 1 / 2 by norm_num] at h
+  have h_term2_le : BKLNW.a₂ (log x₀) * x ^ (1 / 3 : ℝ) / x ≤
+      admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
+        (BKLNW.a₂ (log x₀) * log x₀ * x₀ ^ (-(2 / 3 : ℝ)))) := by
+    have h := mul_rpow_sub_div_le_admissible_bound_mul (2 / 3) _ Aψ B C R x x₀ ha₂_nonneg hAψ hR hx_pos hx₀_pos
+      hlog_pos (by linarith) hx₀ (g_bound_le_of_anti hg2_anti hx₀_pos hx₀ hx)
+    rwa [show (1 : ℝ) - 2 / 3 = 1 / 3 by norm_num] at h
+  calc |θ x - x| / x
+    _ ≤ (|ψ x - x| + (ψ x - θ x)) / x := div_le_div_of_nonneg_right h_abs_le hx_pos.le
+    _ ≤ admissible_bound Aψ B C R x + (ψ x - θ x) / x := by rw [add_div]; exact add_le_add_left (h_bound x hx) _
+    _ ≤ admissible_bound Aψ B C R x +
+        (admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
+          (BKLNW.a₁ (log x₀) * log x₀ * x₀ ^ (-(1 / 2 : ℝ)))) +
+         admissible_bound Aψ B C R x * ((1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
+          (BKLNW.a₂ (log x₀) * log x₀ * x₀ ^ (-(2 / 3 : ℝ))))) := by
+        have h_div_le : (ψ x - θ x) / x ≤ (BKLNW.a₁ (log x₀) * x ^ (1 / 2 : ℝ) + BKLNW.a₂ (log x₀) * x ^ (1 / 3 : ℝ)) / x :=
+          div_le_div_of_nonneg_right (BKLNW.cor_5_1 hx₀ (by rwa [exp_log hx₀_pos])) hx_pos.le
+        rw [add_div] at h_div_le
+        linarith [h_term1_le, h_term2_le]
+    _ = admissible_bound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x := by
+        unfold admissible_bound ν_asymp; simp only [neg_div]; ring
 
 lemma corollary_14_small_adm :
     ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
@@ -1317,7 +1450,7 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
   have hEθ30 :
       Eθ.classicalBound (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)))
         (3/2) 2 5.5666305 (Real.exp 30) :=
-    proposition_13 121.096 (3/2) 2 5.5666305 (Real.exp 30) hEψ30 hB
+    proposition_13 121.096 (3/2) 2 5.5666305 (Real.exp 30) (by norm_num) (by norm_num) (exp_pos 30) (by rw [Real.log_exp]; norm_num) hEψ30 hB
 
   rw [Eθ.classicalBound]
   intro x hx
@@ -1378,7 +1511,7 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
 
 
 
-theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
+theorem remark_15' (x₀ : ℝ) (hx₀_pos : 0 < x₀) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound ((FKS.A x₀) * (1 + remark_15_margin)) (3 / 2) 2 5.5666305 x₀ := by
     have hν : ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ (1 + remark_15_margin) - 1 := by
       exact nu_asymp_le_remark_15_margin_sub_one x₀ h
@@ -1391,10 +1524,12 @@ theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
         refine (div_lt_iff₀ hden).2 ?_
         nlinarith [hR]
       simpa using this
+    have hA_pos : FKS.A x₀ > 0 := by linarith [FKS_A_one_le x₀ h]
+    have hx₀_ge7 : 7 ≤ Real.log x₀ := by linarith
     have hθ :
         Eθ.classicalBound ((FKS.A x₀) * (1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀))
           (3 / 2) 2 5.5666305 x₀ :=
-      proposition_13 (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ hEψ hB
+      proposition_13 (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ hA_pos (by norm_num) hx₀_pos hx₀_ge7 hEψ hB
     have hA_nonneg : 0 ≤ FKS.A x₀ := by
       have hbound₀ : Eψ (exp (log x₀)) ≤ admissible_bound (FKS.A x₀) (3 / 2) 2 5.5666305 (exp (log x₀)) :=
         hEψ (exp (log x₀)) (Real.le_exp_log x₀)
@@ -1466,7 +1601,7 @@ theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
   (latexEnv := "remark")
   (proof := /-- From \cite[Table 6]{FKS} we have $\nu_{asymp}(x_0) \leq 10^{-200}$. Thus, one easily verifies that the rounding up involved in forming \cite[Table 6]{FKS} exceeds the rounding up also needed to apply this step. Consequently we may use values from $A_\theta$ taken from \cite[Table 6]{FKS} directly but this does, in contrast to Corollary \ref{fks2-corollary-14}, require the assumption $x > x_0$, as per that table. -/)
   (discussion := 674)]
-theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
+theorem remark_15 (x₀ : ℝ) (hx₀_pos : 0 < x₀) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound ((FKS.A x₀) * (1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀)) (3 / 2) 2 5.5666305 x₀ := by
   have hEψ : Eψ.classicalBound (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ :=
     FKS.theorem_1_2b x₀ h
@@ -1479,7 +1614,9 @@ theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
       -- Goal: 2^2 < (3/2) * (8*R), which is immediate numerically.
       nlinarith [hR]
     simpa using this
-  simpa using proposition_13 (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ hEψ hB
+  have hA_pos : FKS.A x₀ > 0 := by linarith [FKS_A_one_le x₀ h]
+  have hx₀_ge7 : 7 ≤ Real.log x₀ := by linarith
+  simpa using proposition_13 (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ hA_pos (by norm_num) hx₀_pos hx₀_ge7 hEψ hB
 
 theorem l0 {x y : ℝ} (hx : 2 ≤ x) (hy : x ≤ y) :
     ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc x y) := by
@@ -3321,7 +3458,8 @@ theorem corollary_21
   (hR : R > 0)
   (hAψ : Aψ > 0)
   (hx0_ge2 : x₀ ≥ 2)
-  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R)) :
+  (hsqrt_cond : 0 ≤ √(log x₀) - C / (2 * √R))
+  (hx₀_ge7 : 7 ≤ Real.log x₀) :
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
   -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See
@@ -3354,7 +3492,7 @@ theorem corollary_21
   have hpostemp: 1 / Aψ * (R / log x₀) ^ B * exp (C * √(log x₀ / R)) > 0 := by positivity [hAψ, log_pos (show 1 < x₀ by linarith [hx0_ge2])]
   have hν_asymp_pos: ν_asymp Aψ B C R x₀ > 0 := by unfold ν_asymp; apply (mul_pos_iff_of_pos_left hpostemp).2; positivity [hBKLNW1pos, hBKLNW2pos]
   have hAθ : Aθ > 0 := by nlinarith [hAψ, hν_asymp_pos]
-  theorem_3 Aθ B C R x₀ x₁ hB hx0 (proposition_13 Aψ B C R x₀ hEψ hB') hx1 hR hAθ hx0_ge2 hsqrt_cond
+  theorem_3 Aθ B C R x₀ x₁ hB hx0 (proposition_13 Aψ B C R x₀ hAψ hR hx0 hx₀_ge7 hEψ hB') hx1 hR hAθ hx0_ge2 hsqrt_cond
 
 /-- Values for $\eps_{\pi, num}(x_1) are calculated using Corollary 8 with Theorem 6. Note that here $x_0=1015$ and that our sets $\{b_i\}_{i=1}^N$ and $\{b'_i\}_{i=1}^M$ are more refined than as provided by Tables 1, 2, and 3. -/
 def Table_4 : List (ℝ × ℝ) := [
