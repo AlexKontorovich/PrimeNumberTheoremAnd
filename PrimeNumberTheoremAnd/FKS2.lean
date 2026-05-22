@@ -2717,18 +2717,38 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
               · exact fun x hx => ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( lt_of_lt_of_le ( by norm_num; linarith [ show 0 < b i from by linarith [ hmono ( show 0 ≤ i from Nat.zero_le _ ) ] ] ) hx.1 ) ) );
             · intro t ht₁ ht₂; rw [ ← div_eq_mul_inv ] ; gcongr;
               exact h_εθ_num i t ( by linarith [ Real.exp_pos ( b i ) ] );
-          · simp +zetaDelta only [exp_le_exp] at *;
-            rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] ) ;
-          · simp +zetaDelta only [exp_le_exp] at *;
-            rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] ) ;
+          · simp +zetaDelta only [exp_le_exp] at *
+            rw [Finset.mem_Iio] at hi
+            have h_one : 1 % (N + 1) = 1 := Nat.mod_eq_of_lt (by omega)
+            have h_mod : (i.val + 1) % (N + 1) = i.val + 1 := Nat.mod_eq_of_lt (by omega)
+            exact hmono (by
+              rw [Fin.le_iff_val_le_val, Fin.add_def]
+              dsimp
+              rw [h_one, h_mod]
+              omega)
+          · simp +zetaDelta only [exp_le_exp] at *
+            rw [Finset.mem_Iio] at hi
+            have h_one : 1 % (N + 1) = 1 := Nat.mod_eq_of_lt (by omega)
+            have h_mod : (i.val + 1) % (N + 1) = i.val + 1 := Nat.mod_eq_of_lt (by omega)
+            exact hmono (by
+              rw [Fin.le_iff_val_le_val, Fin.add_def]
+              dsimp
+              rw [h_one, h_mod]
+              omega)
         convert h_bound_x0_x1 using 2;
         rw [ Li_identity' ];
         · norm_num ; ring;
         · rw [ ← Real.log_le_iff_le_exp ( by positivity ) ];
           exact le_trans ( by rw [ h_b_start ] ; exact Real.log_le_log ( by linarith ) ( by linarith ) ) ( hmono ( show 0 ≤ i from Nat.zero_le _ ) );
-        · simp +zetaDelta only [exp_le_exp] at *;
-          exact hmono ( by
-            rcases hi with ⟨ j, rfl ⟩ ; exact Fin.le_iff_val_le_val.mpr ( by simp +decide ) ; )
+        · simp +zetaDelta only [exp_le_exp] at *
+          rw [Finset.mem_Iio] at hi
+          have h_one : 1 % (N + 1) = 1 := Nat.mod_eq_of_lt (by omega)
+          have h_mod : (i.val + 1) % (N + 1) = i.val + 1 := Nat.mod_eq_of_lt (by omega)
+          exact hmono (by
+            rw [Fin.le_iff_val_le_val, Fin.add_def]
+            dsimp
+            rw [h_one, h_mod]
+            omega)
       have hlogx_x_nonneg : 0 ≤ log x / x := le_of_lt hlogx_x_pos
       have h_add_le : ((∫ t in x₀..x₁, Eθ t / log t ^ 2) + ∫ t in x₁..x, Eθ t / log t ^ 2) ≤
           (∑ i ∈ Finset.Iio (Fin.last N),
