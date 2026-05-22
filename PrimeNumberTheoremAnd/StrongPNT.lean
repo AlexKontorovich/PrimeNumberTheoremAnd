@@ -78,7 +78,7 @@ theorem borelCaratheodory' {M R r : ℝ} {z : ℂ}
   have h_borelCaratheodory : ∀ ε > 0, ‖f z‖ ≤ (2 * (M + ε) * ‖z‖) / (R - ‖z‖) := by
     intro ε εpos;
     apply Complex.borelCaratheodory_zero;
-    exacts [ by linarith, analytic.differentiableOn, fun z hz => lt_of_le_of_lt ( realPartBounded z hz ) ( by linarith ), Rpos, by exact Metric.mem_ball.mpr ( lt_of_le_of_lt ( Metric.mem_closedBall.mp hyp_z ) hyp_r ), zeroAtZero ];
+    exacts [ by linarith, analytic.differentiableOn, fun z hz => le_trans ( realPartBounded z hz ) ( by linarith ), Rpos, by exact Metric.mem_ball.mpr ( lt_of_le_of_lt ( Metric.mem_closedBall.mp hyp_z ) hyp_r ), zeroAtZero ];
   have h_limit : ‖f z‖ ≤ (2 * M * ‖z‖) / (R - ‖z‖) := by
     have h_limit : Filter.Tendsto (fun ε => (2 * (M + ε) * ‖z‖) / (R - ‖z‖)) (nhdsWithin 0 (Set.Ioi 0)) (nhds ((2 * M * ‖z‖) / (R - ‖z‖))) := by
       refine tendsto_nhdsWithin_of_tendsto_nhds (Continuous.tendsto' ?_ _ _ (by ring_nf))
