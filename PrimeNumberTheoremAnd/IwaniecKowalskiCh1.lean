@@ -1,7 +1,6 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
 import Mathlib.NumberTheory.LSeries.Nonvanishing
-import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
 
 open ArithmeticFunction hiding log
 
@@ -738,13 +737,31 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     2 ^ (ω n) ≤ σ 0 n := by
-  have h_prime_factors : ω n = (Nat.primeFactors n).card := rfl;
-  rw [h_prime_factors, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
+  rw [show ω n = (Nat.primeFactors n).card from rfl, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
   apply Finset.prod_le_prod'
   intro p hp
   simpa [two_mul] using
   (Nat.Prime.dvd_iff_one_le_factorization (prime_of_mem_primeFactors hp) hn).mp
     (dvd_of_mem_primeFactors hp)
+
+@[blueprint
+  "LSeriesSummable_two_pow_omega"
+  (title := "LSeriesSummable-two-pow-omega")
+  (statement := /--
+    An L-series is convergent if the absolute value of each term is term wise less than a summable series.
+  -/)
+  (proof := /--
+    Apply triangle inequality and comparison test.
+  -/)]
+lemma LSeriesSummable.of_norm_le_norm {f g : ℕ → ℂ} {s : ℂ}
+  (hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ g n) s n‖ ≤ ‖LSeries.term (fun n ↦ f n) s n‖)
+  (hf : Summable (fun n ↦ ‖LSeries.term (fun n ↦ f n) s n‖)) : LSeriesSummable (fun n ↦ g n) s := by
+  have h_fSummable : LSeriesSummable (fun n => f n) s := by
+    rw [LSeriesSummable, ← summable_norm_iff]
+    exact hf
+  rw [LSeriesSummable, ← summable_norm_iff] at *
+  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) h_fSummable
+  exact hgf
 
 @[blueprint
   "LSeriesSummable_two_pow_omega"
@@ -757,25 +774,21 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
   -/)]
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ 2 ^ (ω n)) s := by
-  have h_sigma0_summable : LSeriesSummable (fun n => (σ 0 n : ℂ)) s := by
-    convert LSeries_d_summable 2 hs using 1;
-    exact funext fun n => by rw [d_two] ; rfl;
-  rw [LSeriesSummable, ← summable_norm_iff] at *;
-  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) h_sigma0_summable
-  intro n
-  simp only [LSeries.term]
-  by_cases hn : n = 0
-  · simp only [hn, ↓reduceIte, norm_zero, le_refl]
-  · simp only [hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
-    refine (div_le_div_iff_of_pos_right ?_).mpr ?_
-    · rw [norm_pos_iff]
-      simp [hn]
-    · simp only [norm_pow, Complex.norm_ofNat]
-      exact_mod_cast two_pow_omega_le_sigma_zero hn
+  have hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ 2 ^ ω n) s n‖ ≤ ‖LSeries.term (fun n ↦ σ 0 n) s n‖ := by
+    intro n
+    by_cases hn : n = 0
+    · simp only [LSeries.term, hn, ↓reduceIte, norm_zero, Std.le_refl]
+    · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, norm_pow, Complex.norm_ofNat,
+        RCLike.norm_natCast]
+      exact div_le_div_of_nonneg_right (by exact_mod_cast two_pow_omega_le_sigma_zero hn) (norm_nonneg _)
+  apply LSeriesSummable.of_norm_le_norm hgf
+  rw [summable_norm_iff, ← LSeriesSummable]
+  convert LSeries_d_summable 2 hs using 1;
+  exact funext fun n => by rw [d_two]; rfl
 
 @[blueprint
-  "two_pow_omega_LSeries.term_IsMultiplicative"
-  (title := "two-pow-omega-LSeries.term-IsMultiplicative")
+  "two_pow_omega_LSeries.term_isMultiplicative"
+  (title := "two-pow-omega-LSeries.term-isMultiplicative")
   (statement := /--
     We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
   -/)
@@ -783,7 +796,7 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     This immediately follows from the fact that $\omega(mn)=\omega(m)+\omega(n)$
     for $m$ and $n$ coprime. This fact should be obvious from the definition of $\omega$.
   -/)]
-lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+lemma two_pow_omega_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ 2 ^ (ω n)) s (m * n) =
   LSeries.term (fun n ↦ 2 ^ (ω n)) s m * LSeries.term (fun n ↦ 2 ^ (ω n)) s n := by
   simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
@@ -793,6 +806,23 @@ lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m
   simp only [or_self, ↓reduceIte, cardDistinctFactors_mul mCn]
   congr 1
   exact pow_add 2 (ω m) (ω n)
+
+@[blueprint
+  "sumOnPrimePows"
+  (title := "sumOnPrimePows")
+  (statement := /--
+    Shorthand for the sum of a function $f:\mathbb{N}\to\mathbb{C}$ at prime powers for a prime $p$.
+  -/)]
+noncomputable def sumOnPrimePows (f : ℕ → ℂ) (p : Primes) : ℂ := ∑' e, f (p ^ e)
+
+@[blueprint
+  "sumOnPrimePows_apply"
+  (title := "sumOnPrimePows_apply")
+  (statement := /--
+    Helper lemma for sumOnPrimePows that rewrites the shorthand as its sum.
+  -/)]
+lemma sumOnPrimePows_apply (f : ℕ → ℂ) (p : Primes) :
+  sumOnPrimePows f p = ∑' e, f (p ^ e) := by rfl
 
 @[blueprint
   "two_pow_omega_tsum_prime_pow"
@@ -808,11 +838,9 @@ lemma two_pow_omega_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m
     convergence as $1<\Re(s)$.
   -/)]
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
-    (p : Nat.Primes) :
-    ∑' e, LSeries.term (fun n ↦ 2 ^ (ω n)) s (p ^ e) =
-    (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  have h_rw : ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ e) = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ (e + 1)) := by
-    rw [Summable.tsum_eq_zero_add];
+    (p : Primes) : sumOnPrimePows (LSeries.term (fun n ↦ 2 ^ (ω n)) s) p = (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
+  have h_rw : sumOnPrimePows (LSeries.term (fun n ↦ 2 ^ (ω n)) s) p = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ (e + 1)) := by
+    rw [sumOnPrimePows_apply, Summable.tsum_eq_zero_add];
     · unfold LSeries.term
       simp [Nat.Prime.ne_zero p.prop]
     · have := LSeriesSummable_two_pow_omega hs;
@@ -838,7 +866,10 @@ lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
   "Complex.one_add_prime_cpow_ne_zero"
   (title := "Complex.one-add-prime-cpow-ne-zero")
   (statement := /--
-    For $1<\Re(s)$ and $p$ prime, we have that $1+p^{-s}\neq 0$.
+    For $1<\Re(s)$ and $p$ prime, we have that $1+p^{-s}\neq 0$. The naming convention is to mimic
+    \begin{verbatim}
+      Complex.one_sub_prime_cpow_ne_zero
+    \end{verbatim}
   -/)
   (proof := /--
     Suppose for contradiction $1+p^{-s}=0$, then $|p^{-s}|=1$. However, this can not happen per
@@ -861,26 +892,23 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
   (statement := /--
     For $1<\Re(s)$ we have that
     $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
+    The naming convention here is designed to match
+    \begin{verbatim}
+      riemannZeta_eulerProduct_tprod
+    \end{verbatim}
   -/)
   (proof := /--
-    Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
+    Immediately follows from Lemmas \ref{two-pow-omega-LSeries.term-IsMultiplicative} and \ref{two-pow-omega-tsum-prime-pow}.
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  have h_euler_product : LSeriesSummable (fun n => (2 ^ ω n)) s
-    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ (2 ^ ω n)) s (m * n) =
-      LSeries.term (fun n ↦ (2 ^ ω n)) s m *
-      LSeries.term (fun n ↦ (2 ^ ω n)) s n)
-    ∧ LSeries.term (fun n ↦ (2 ^ ω n)) s 1 = 1 := by
-    refine ⟨LSeriesSummable_two_pow_omega hs, ?_, ?_⟩;
-    · intro m n mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
-    · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, cast_one, pow_zero,
-        Complex.one_cpow, div_one, cardDistinctFactors_one]
-  have := @EulerProduct.eulerProduct_hasProd;
-  convert HasProd.tprod_eq ( this h_euler_product.2.2 h_euler_product.2.1 _ _ ) |> Eq.symm using 1
+  convert HasProd.tprod_eq ( EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _ ) |> Eq.symm using 1
   · apply tprod_congr
-    simp only [two_pow_omega_tsum_prime_pow hs, implies_true]
-  · convert h_euler_product.1.norm using 1
+    simp only [← two_pow_omega_tsum_prime_pow hs, sumOnPrimePows_apply, implies_true]
+  · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
+      cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
+  · intro m n mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
+  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -889,9 +917,13 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   (statement := /--
     For $1<\Re(s)$ we have that
     $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
+    The naming convention here is designed to match
+    \begin{verbatim}
+      riemannZeta_eulerProduct_hasProd
+    \end{verbatim}
   -/)
   (proof := /--
-    Immediately follows from two-pow-omega-LSeries.term-IsMultiplicative and two-pow-omega-tsum-prime-pow.
+    Immediately follows from Lemmas \ref{two-pow-omega-LSeries.term-IsMultiplicative} and \ref{two-pow-omega-tsum-prime-pow}.
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ (2 ^ ω n)) s) := by
@@ -899,7 +931,7 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · funext p; exact Eq.symm (two_pow_omega_tsum_prime_pow hs p)
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
-  · intro _ _ mCn; exact two_pow_omega_LSeries.term_IsMultiplicative s mCn
+  · intro _ _ mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
   · convert (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
@@ -921,7 +953,7 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     $$\zeta(s)^2=\prod_p\frac{1}{(1-p^{-s})^2}.$$
     Similarly
     $$\zeta(2s)=\prod_p\frac{1}{(1-p^{-2s})}.$$
-    Applying two-pow-omega-LSeries-eulerProduct-tprod and two-pow-omega-LSeries-eulerProduct-hasProd we have
+    Applying Theorems \ref{two-pow-omega-LSeries-eulerProduct-tprod} and \ref{two-pow-omega-LSeries-eulerProduct-hasProd} we have
     $$\sum_{1\leq n}2^{\omega(n)}n^{-s}=\prod_p\frac{1+p^{-s}}{1-p^{-s}}.$$
     Thus
     $$\zeta(2s)\left(\sum_{1\leq n}2^{\omega(n)}n^{-s}\right)=\prod_p\frac{1+p^{-s}}{(1-p^{-s})(1-p^{-2s})}=\prod_p\frac{1}{(1-p^{-s})^2}$$
@@ -957,31 +989,29 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ (μ n) ^ 2) s := by
-  have zetaSummable : LSeriesSummable 1 s := LSeriesSummable_one_iff.mpr hs
-  rw [LSeriesSummable, ← summable_norm_iff] at *;
-  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) zetaSummable
-  intro n
-  simp only [LSeries.term]
-  by_cases hn : n = 0
-  · simp only [hn, ↓reduceIte, norm_zero, le_refl]
-  · simp only [hn, ↓reduceIte, Complex.norm_div]
-    refine (div_le_div_iff_of_pos_right ?_).mpr ?_
-    · rw [norm_pos_iff]
-      simp [hn]
-    · simp only [norm_pow, Complex.norm_intCast, sq_abs, Pi.one_apply, one_mem,
-        CStarRing.norm_of_mem_unitary, sq_le_one_iff_abs_le_one]
+  have hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ (μ n) ^ 2) s n‖ ≤ ‖LSeries.term (fun n ↦ 1) s n‖ := by
+    intro n
+    by_cases hn : n = 0
+    · simp only [LSeries.term, hn, ↓reduceIte, norm_zero, Std.le_refl]
+    · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, norm_pow]
+      refine div_le_div_of_nonneg_right ?_ (norm_nonneg _)
+      simp only [Complex.norm_intCast, sq_abs, one_mem, CStarRing.norm_of_mem_unitary,
+        sq_le_one_iff_abs_le_one]
       exact_mod_cast ArithmeticFunction.abs_moebius_le_one
+  have zetaSummable : LSeriesSummable 1 s := LSeriesSummable_one_iff.mpr hs
+  rw [LSeriesSummable, ← summable_norm_iff] at zetaSummable;
+  apply LSeriesSummable.of_norm_le_norm hgf zetaSummable
 
 @[blueprint
-  "moebius_sq_LSeries.term_IsMultiplicative"
-  (title := "moebius-sq-LSeries.term-IsMultiplicative")
+  "moebius_sq_LSeries.term_isMultiplicative"
+  (title := "moebius-sq-LSeries.term-isMultiplicative")
   (statement := /--
     We have that $n\mapsto \mu^2(n)/n^{-s}$ is a multiplicative function.
   -/)
   (proof := /--
     This immediately follows from the fact that $\mu(mn)=\mu(m)\mu(n)$ for $m$ and $n$ coprime.
   -/)]
-lemma moebius_sq_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+lemma moebius_sq_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
   LSeries.term (fun n ↦ (μ n) ^ 2) s m * LSeries.term (fun n ↦ (μ n) ^ 2) s n := by
   simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
@@ -1004,7 +1034,7 @@ lemma moebius_sq_LSeries.term_IsMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Co
     $$\sum_{0\leq k}\mu^2(p^k)p^{-ks}=1+p^{-s}.$$
   -/)]
 lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
-    ∑' e, LSeries.term (fun n ↦ (μ n) ^ 2) s (p ^ e) = (1 + (p : ℂ) ^ (-s)) := by
+    sumOnPrimePows (LSeries.term (fun n ↦ (μ n) ^ 2) s) p = (1 + (p : ℂ) ^ (-s)) := by
   have h_rw : 1 + ↑↑p ^ (-s) = ∑' (e : ℕ), (if e ≤ 1 then 1 else 0) / ((p : ℂ) ^ e) ^ s := by
     rw [tsum_eq_sum (s := {0, 1})]
     · simp only [mem_singleton, zero_ne_one, not_false_eq_true, sum_insert, _root_.zero_le,
@@ -1012,7 +1042,7 @@ lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
         le_refl, pow_one, one_div, Complex.cpow_neg]
     · intro e he; simp at he
       simp [show ¬e ≤ 1 by omega]
-  simp only [LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte, ← Int.cast_pow, moebius_sq, h_rw]
+  simp only [sumOnPrimePows_apply, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte, ← Int.cast_pow, moebius_sq, h_rw]
   apply tsum_congr
   intro e
   congr 1
@@ -1036,27 +1066,24 @@ lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
   (statement := /--
     For $1<\Re(s)$ we have that
     $$\sum_{1\leq n}\mu^2(n)n^{-s}=\prod_p(1+p^{-s}).$$
+    The naming convention here is designed to match
+    \begin{verbatim}
+      riemannZeta_eulerProduct_tprod
+    \end{verbatim}
   -/)
   (proof := /--
-    Immediately follows from moebius-sq-LSeries.term-IsMultiplicative and moebius-sq-tsum-prime-pow.
+    Immediately follows from Lemmas \ref{moebius-sq-LSeries.term-IsMultiplicative} and \ref{moebius-sq-tsum-prime-pow}.
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ (μ n) ^ 2) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) := by
-  have h_euler_product : LSeriesSummable (fun n => (μ n) ^ 2) s
-    ∧ (∀ {m n : ℕ}, m.Coprime n → LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
-      LSeries.term (fun n ↦ (μ n) ^ 2) s m *
-      LSeries.term (fun n ↦ (μ n) ^ 2) s n)
-    ∧ LSeries.term (fun n ↦ (μ n) ^ 2) s 1 = 1 := by
-    refine ⟨LSeriesSummable_moebius_sq hs, ?_, ?_⟩;
-    · intro m n mCn; exact moebius_sq_LSeries.term_IsMultiplicative s mCn
-    · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
-        IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
-        Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
-  have := @EulerProduct.eulerProduct_hasProd;
-  convert HasProd.tprod_eq ( this h_euler_product.2.2 h_euler_product.2.1 _ _ ) |> Eq.symm using 1
+  convert (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _).tprod_eq.symm using 1
   · apply tprod_congr
-    simp only [moebius_sq_tsum_prime_pow, implies_true]
-  · convert h_euler_product.1.norm using 1
+    simp only [← moebius_sq_tsum_prime_pow, sumOnPrimePows_apply, implies_true]
+  · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
+      IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
+      Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
+  · intro m n mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
+  · convert (LSeriesSummable_moebius_sq hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -1065,9 +1092,13 @@ lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   (statement := /--
     For $1<\Re(s)$ we have that
     $$\sum_{1\leq n}\mu^2(n)n^{-s}=\prod_p(1+p^{-s}).$$
+    The naming convention here is designed to match
+    \begin{verbatim}
+      riemannZeta_eulerProduct_hasProd
+    \end{verbatim}
   -/)
   (proof := /--
-    Immediately follows from moebius-sq-LSeries.term-IsMultiplicative and moebius-sq-tsum-prime-pow.
+    Immediately follows from Lemmas \ref{moebius-sq-LSeries.term-IsMultiplicative} and \ref{moebius-sq-tsum-prime-pow}.
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s))) (L (fun n ↦ (μ n) ^ 2) s) := by
@@ -1076,7 +1107,7 @@ lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
       IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
       Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
-  · intro _ _ mCn; exact moebius_sq_LSeries.term_IsMultiplicative s mCn
+  · intro _ _ mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
   · convert (LSeriesSummable_moebius_sq hs).norm using 1
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
