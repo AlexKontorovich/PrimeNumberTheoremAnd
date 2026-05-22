@@ -1873,7 +1873,7 @@ lemma admissible_bound_mul (A K B C R x : ℝ) :
 Helper: the ratio log x / (x * admissible_bound A B C R x) equals R^B / A * g_bound 1 (1-B) (C/√R) x
 -/
 lemma ratio_eq_g {A B C R x : ℝ}
-    (hA : A ≠ 0) (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
+    (hR : R > 0) (hx : x > 0) (hlogx : log x > 0) :
     log x / (x * admissible_bound A B C R x) =
     R ^ B / A * g_bound 1 (1 - B) (C / sqrt R) x := by
   unfold admissible_bound g_bound; ring_nf;
@@ -1920,7 +1920,7 @@ lemma ratio_mono {A B C R x₁ x : ℝ} (hB : B ≥ 1 + C ^ 2 / (16 * R)) (hR : 
       have := exists_deriv_eq_slope ( g_bound 1 ( 1 - B ) ( C / Real.sqrt R ) ) ( show x < y from hy.lt_of_ne ( by rintro rfl; linarith ) ) ; norm_num at this;
       exact absurd ( this ( by exact ContinuousOn.mono ( show ContinuousOn ( g_bound 1 ( 1 - B ) ( C / Real.sqrt R ) ) ( Set.Icc x y ) from by exact ContinuousOn.mul ( ContinuousOn.mul ( ContinuousOn.rpow continuousOn_id continuousOn_const <| by intro u hu; exact Or.inl <| by linarith [ hu.1 ] ) <| ContinuousOn.rpow ( Real.continuousOn_log.mono <| by exact fun u hu => ne_of_gt <| by linarith [ hu.1 ] ) continuousOn_const <| by intro u hu; exact Or.inl <| ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) <| ContinuousOn.rexp <| ContinuousOn.mul continuousOn_const <| ContinuousOn.sqrt <| Real.continuousOn_log.mono <| by exact fun u hu => ne_of_gt <| by linarith [ hu.1 ] ) <| Set.Icc_subset_Icc ( by linarith ) le_rfl ) <| by exact fun u hu => DifferentiableAt.differentiableWithinAt <| by exact DifferentiableAt.mul ( DifferentiableAt.mul ( DifferentiableAt.rpow ( differentiableAt_id ) ( differentiableAt_const _ ) <| by linarith [ hu.1 ] ) <| DifferentiableAt.rpow ( Real.differentiableAt_log <| by linarith [ hu.1 ] ) ( differentiableAt_const _ ) <| by exact ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) <| DifferentiableAt.exp <| DifferentiableAt.mul ( differentiableAt_const _ ) <| DifferentiableAt.sqrt ( Real.differentiableAt_log <| by linarith [ hu.1 ] ) <| by exact ne_of_gt <| Real.log_pos <| by linarith [ hu.1 ] ) ( by rintro ⟨ c, ⟨ hxc, hcy ⟩, hcd ⟩ ; rw [ eq_div_iff ] at hcd <;> nlinarith [ h_deriv_neg c <| by linarith ] ) ;);
     exact mul_le_mul_of_nonneg_left ( h_decreasing _ _ hx1 hx ) ( by positivity );
-  convert h_ratio_simplified using 1 <;> norm_num [ ratio_eq_g hA.ne' hR ( by linarith : 0 < x ) ( Real.log_pos ( by linarith ) ), ratio_eq_g hA.ne' hR ( by linarith : 0 < x₁ ) ( Real.log_pos ( by linarith ) ) ]
+  convert h_ratio_simplified using 1 <;> norm_num [ ratio_eq_g hR ( by linarith : 0 < x ) ( Real.log_pos ( by linarith ) ), ratio_eq_g hR ( by linarith : 0 < x₁ ) ( Real.log_pos ( by linarith ) ) ]
 
 /-
 Helper: for B ≥ 3/2 and x ≥ x₁ ≥ x₀, the m(x₀,x)*(log x)^(1-B) factor simplifies
@@ -2035,7 +2035,7 @@ lemma dawson_mono_ge_one {a b : ℝ} (ha : a ≥ 1) (hab : a ≤ b) :
 Derive that √(log x₁) - C/(2√R) ≥ 1 from the hypothesis on x₁
 -/
 lemma sqrt_log_minus_ge_one {C R x₁ : ℝ}
-    (hR : R > 0) (hx1 : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
+    (hx1 : x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2)) :
     √(log x₁) - C / (2 * √R) ≥ 1 := by
   -- Taking the natural logarithm of both sides of the inequality $x₁ \geq \exp((1 + C / (2 * \sqrt{R}))^2)$, we get $\log x₁ \geq (1 + C / (2 * \sqrt{R}))^2$.
   have h_log : Real.log x₁ ≥ (1 + C / (2 * Real.sqrt R)) ^ 2 := by
@@ -2065,8 +2065,8 @@ Step 5: Apply dawson_mono_ge_one (using sqrt_log_minus_ge_one for the ≥ 1 cond
 Step 6: Combine: ≤ 2/√(log x₁) * dawson(√(log x₁)-C/(2√R)) * admissible_bound.
 -/
 lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
-  (hB : B ≥ 3 / 2) (hB2 : B ≥ 1 + C ^ 2 / (16 * R))
-  (hR : R > 0) (hA : A > 0) (hx0 : x₀ > 0)
+  (hB : B ≥ 3 / 2)
+  (hR : R > 0) (hA : A > 0)
   (hE_theta : Eθ.classicalBound A B C R x₀)
   (hx1_gt1 : x₁ > 1) (hx₁x₀ : x₁ ≥ x₀) (hx : x ≥ x₁)
   (hx0_ge2 : x₀ ≥ 2)
@@ -2108,7 +2108,7 @@ lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
   -- Apply dawson_mono_ge_one to get dawson(√(log x)-C/(2√R)) ≤ dawson(√(log x₁)-C/(2√R)).
   have h_dawson_mono : dawson (Real.sqrt (Real.log x) - C / (2 * Real.sqrt R)) ≤ dawson (Real.sqrt (Real.log x₁) - C / (2 * Real.sqrt R)) := by
     apply dawson_mono_ge_one;
-    · exact le_trans (sqrt_log_minus_ge_one hR hx1_exp) (sub_le_sub_right (Real.sqrt_le_sqrt <| Real.log_le_log (by linarith) (by linarith)) _);
+    · exact le_trans (sqrt_log_minus_ge_one hx1_exp) (sub_le_sub_right (Real.sqrt_le_sqrt <| Real.log_le_log (by linarith) (by linarith)) _);
     · exact sub_le_sub_right ( Real.sqrt_le_sqrt <| Real.log_le_log ( by linarith ) <| by linarith ) _;
   refine le_trans h_integral_mul ?_;
   convert mul_le_mul_of_nonneg_right ( mul_le_mul ( mul_le_mul_of_nonneg_left h_m_simplify zero_le_two ) h_dawson_mono ( ?_ ) ( ?_ ) ) ( show 0 ≤ admissible_bound A B C R x from ?_ ) using 1 <;> ring_nf;
@@ -2118,7 +2118,7 @@ lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
   · exact mul_nonneg ( mul_nonneg hA.le ( Real.rpow_nonneg ( div_nonneg ( Real.log_nonneg ( by linarith ) ) hR.le ) _ ) ) ( Real.exp_nonneg _ )
 
 lemma theorem_3_easy_preconditions
-    (A B C R x₀ x₁ : ℝ)
+    (B C R x₀ x₁ : ℝ)
     (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
     (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
     x₁ ≥ x₀ ∧ x₁ ≥ exp ((1 + C / (2 * sqrt R)) ^ 2) ∧
@@ -2167,7 +2167,7 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   /-NOTE: The conditions hx0_ge2 and hsqrt_cond are not present in the source material [FKS2]. They are added to
   facilitate the application of lemma_12, which requires x₀ ≥ 2 and 0 ≤ √(log x₀) - C/(2√R).
   -/
-  obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions A B C R x₀ x₁ hB hx1
+  obtain ⟨hx1x0, hx1_exp, hB1, hB2⟩ := theorem_3_easy_preconditions B C R x₀ x₁ hB hx1
   have hx1_ge1 : x₁ ≥ 1 := le_trans (Real.one_le_exp (sq_nonneg _)) hx1_exp
   have hx1_gt1 : x₁ > 1 := by linarith
   have hlogx0 : log x₀ > 0 := Real.log_pos (by linarith)
@@ -2176,7 +2176,7 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   have h30 := eq_30 (show x ≥ x₀ by linarith) hx0_ge2
   have hEtheta_x := hE_theta x (show x ≥ x₀ by linarith)
   have hdelta := delta_term_bound hB2 hR hA hx1_gt1 hx hx0 hlogx0
-  have hintegral := integral_term_bound hB1 hB2 hR hA hx0 hE_theta hx1_gt1 hx1x0 hx hx0_ge2 hsqrt_cond hx1_exp
+  have hintegral := integral_term_bound hB1 hR hA hE_theta hx1_gt1 hx1x0 hx hx0_ge2 hsqrt_cond hx1_exp
   calc Eπ x ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := h30
     _ ≤ admissible_bound A B C R x +
           ((x₀ * log x₁) / (admissible_bound A B C R x₁ * x₁ * log x₀) * δ x₀ *
@@ -2680,10 +2680,12 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
           rw [h_bound_x0_x1];
           have h_bound_x0_x1 : ∀ n : Fin (N + 1), ∫ t in (Real.exp (b 0))..(Real.exp (b n)), Eθ t / (log t) ^ 2 = ∑ i ∈ Finset.Iio n, ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), Eθ t / (log t) ^ 2 := by
             intro n
-            induction' n using Fin.induction with n ih;
-            · norm_num;
-              exact?;
-            · rw [ show ( Finset.Iio ( Fin.succ n ) : Finset ( Fin ( N + 1 ) ) ) = Finset.Iio ( Fin.castSucc n ) ∪ { Fin.castSucc n } from ?_, Finset.sum_union ] <;> norm_num [ ih ];
+            induction n using Fin.induction with
+            | zero =>
+              norm_num;
+              exact Eq.symm ((fun {x} ↦ EReal.coe_eq_zero.mp) rfl);
+            | succ n ih =>
+              rw [ show ( Finset.Iio ( Fin.succ n ) : Finset ( Fin ( N + 1 ) ) ) = Finset.Iio ( Fin.castSucc n ) ∪ { Fin.castSucc n } from ?_, Finset.sum_union ] <;> norm_num [ ih ];
               · rw [ ← ih, intervalIntegral.integral_add_adjacent_intervals ] <;> apply_rules [ MeasureTheory.IntegrableOn.intervalIntegrable ];
                 · have h_integrable : IntervalIntegrable (fun t => Eθ t / (log t) ^ 2) volume (Real.exp (b 0)) (Real.exp (b (Fin.last N))) := by
                     rw [ h_b_start, h_b_end, Real.exp_log ( by positivity ), Real.exp_log ( by linarith ) ] ; aesop;
@@ -2700,33 +2702,33 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
         have h_bound_x0_x1 : ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), Eθ t / (log t) ^ 2 ≤ εθ_num (Real.exp (b i)) * ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), 1 / (log t) ^ 2 := by
           rw [ intervalIntegral.integral_of_le, intervalIntegral.integral_of_le ];
           · rw [ ← MeasureTheory.integral_const_mul ];
-            refine' MeasureTheory.setIntegral_mono_on _ _ _ _ <;> norm_num;
-            · refine' MeasureTheory.IntegrableOn.mono_set _ _;
+            apply MeasureTheory.setIntegral_mono_on <;> norm_num;
+            · apply MeasureTheory.IntegrableOn.mono_set;
               any_goals exact Set.Ioc x₀ x₁;
               · exact h_int_x₀_x₁.1;
-              · refine' Set.Ioc_subset_Ioc _ _;
+              · apply Set.Ioc_subset_Ioc;
                 · rw [ ← Real.log_le_iff_le_exp ( by positivity ) ];
                   exact h_b_start ▸ hmono ( Nat.zero_le _ );
                 · rw [ ← Real.log_le_log_iff ( by positivity ) ( by positivity ), Real.log_exp ];
                   exact h_b_end ▸ hmono ( Fin.le_last _ );
-            · refine' ContinuousOn.integrableOn_Icc _ |> fun h => h.mono_set <| Set.Ioc_subset_Icc_self;
-              refine' ContinuousOn.mul continuousOn_const ( ContinuousOn.inv₀ _ _ );
+            · refine ContinuousOn.integrableOn_Icc ?_ |> fun h => h.mono_set <| Set.Ioc_subset_Icc_self;
+              refine ContinuousOn.mul continuousOn_const ( ContinuousOn.inv₀ ?_ ?_ );
               · exact ContinuousOn.pow ( Real.continuousOn_log.mono <| by intro x hx; exact ne_of_gt <| lt_of_lt_of_le ( by positivity ) hx.1 ) _;
               · exact fun x hx => ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( lt_of_lt_of_le ( by norm_num; linarith [ show 0 < b i from by linarith [ hmono ( show 0 ≤ i from Nat.zero_le _ ) ] ] ) hx.1 ) ) );
             · intro t ht₁ ht₂; rw [ ← div_eq_mul_inv ] ; gcongr;
               exact h_εθ_num i t ( by linarith [ Real.exp_pos ( b i ) ] );
-          · simp +zetaDelta at *;
+          · simp +zetaDelta only [exp_le_exp] at *;
             rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] ) ;
-          · simp +zetaDelta at *;
+          · simp +zetaDelta only [exp_le_exp] at *;
             rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] ) ;
         convert h_bound_x0_x1 using 2;
         rw [ Li_identity' ];
         · norm_num ; ring;
         · rw [ ← Real.log_le_iff_le_exp ( by positivity ) ];
           exact le_trans ( by rw [ h_b_start ] ; exact Real.log_le_log ( by linarith ) ( by linarith ) ) ( hmono ( show 0 ≤ i from Nat.zero_le _ ) );
-        · simp +zetaDelta at *;
+        · simp +zetaDelta only [exp_le_exp] at *;
           exact hmono ( by
-            rcases hi with ⟨ j, rfl ⟩ ; exact Fin.le_iff_val_le_val.mpr ( by simp +decide [ Fin.val_add ] ) ; )
+            rcases hi with ⟨ j, rfl ⟩ ; exact Fin.le_iff_val_le_val.mpr ( by simp +decide ) ; )
       have hlogx_x_nonneg : 0 ≤ log x / x := le_of_lt hlogx_x_pos
       have h_add_le : ((∫ t in x₀..x₁, Eθ t / log t ^ 2) + ∫ t in x₁..x, Eθ t / log t ^ 2) ≤
           (∑ i ∈ Finset.Iio (Fin.last N),
@@ -3094,7 +3096,6 @@ By strong induction on M. When M = 0, Fin 0 is empty so we can't form a Fin M, b
 For M+1: If v < b'⟨1, _⟩, then i = ⟨0, _⟩ works since b'⟨0,_⟩ ≤ v (from hv) and v < b'⟨1,_⟩. Otherwise v ≥ b'⟨1,_⟩, and we can apply the result to the shifted sequence b'' = b' ∘ Fin.succ (which has M+1 elements, is monotone, ends at ⊤, and b''(0) = b'(1) ≤ v). This gives i' : Fin M with the bounds, and we take i = ⟨i'.val + 1, _⟩.
 -/
 lemma find_ereal_bin {M : ℕ} (b' : Fin (M + 1) → EReal)
-(hmono : Monotone b')
     (h_end : b' (Fin.last M) = ⊤) (v : ℝ) (hv : (v : EReal) ≥ b' 0) :
     ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ (v : EReal) ∧
       (v : EReal) < b' ⟨i.val + 1, by omega⟩ := by
@@ -3295,7 +3296,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         εθ_num x₁ (exp (b' i.val).toReal)
         (if (i+1) = Fin.last M then ⊤ else exp (b' (i+1)).toReal)) := by
     obtain ⟨i, hi⟩ : ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ ↑(log x) ∧ ↑(log x) < b' ⟨i.val + 1, by omega⟩ := by
-      apply find_ereal_bin b' hmono h_b_end (log x) (by
+      apply find_ereal_bin b' h_b_end (log x) (by
       exact h_b_start.symm ▸ EReal.coe_le_coe_iff.mpr ( Real.log_le_log ( by linarith ) ( by linarith ) ));
     convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
     refine le_csSup ?_ ?_;
