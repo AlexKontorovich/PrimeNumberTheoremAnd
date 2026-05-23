@@ -51,8 +51,8 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
   simpa [sub_eq_add_neg, Pi.neg_def] using F_add hf hg.neg x
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} :
-    𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  exact congr_fun (VectorFourier.fourierIntegral_const_smul 𝐞 _ _ f c) u
+    𝓕 (fun x => c * f x) u = c * 𝓕 f u :=
+  congr_fun (VectorFourier.fourierIntegral_const_smul 𝐞 _ _ f c) u
 
 end lemmas
 
