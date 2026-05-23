@@ -164,7 +164,7 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
     rw [sum_eq_zero]
     · ring
     intro l hl; rw [mem_divisors] at hl
-    rw [if_neg]; push_neg; intro h
+    rw [if_neg]; push Not; intro h
     exfalso; exact h_dvd (dvd_trans h hl.left)
   dsimp only [selbergWeights]
   rw [if_pos h_dvd]
@@ -194,7 +194,7 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
       ring
   · intro l _ hdl
     rw [if_neg, mul_zero]
-    push_neg; intro h; contradiction
+    push Not; intro h; contradiction
 
 theorem selbergWeights_diagonalisation (l : ℕ) (hl : l ∈ divisors P) :
     (∑ d ∈ divisors P, if l ∣ d then ν d * γ d else 0) =
@@ -327,7 +327,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     swap
     · rw [sum_eq_zero]; intro l _
       rw [if_neg]
-      push_neg; intro h; exfalso
+      push Not; intro h; exfalso
       rw [h] at hkd
       exact hkd <| Nat.gcd_dvd_left d l
     rw [sum_mul_subst k P, sum_congr rfl]
@@ -339,7 +339,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
         apply (selbergTerms_mult _).map_mul_of_coprime
         rw [gcd_comm]; apply h.2.coprime_dvd_right hkd
     · intro l _ hkl; apply if_neg
-      push_neg; intro h; exfalso
+      push Not; intro h; exfalso
       rw [h] at hkl; exact hkl (Nat.gcd_dvd_right d l)
   _ ≥ (∑ k ∈ divisors P, if k ∣ d
           then g k * ∑ m ∈ divisors P, if (d * m) ^ 2 ≤ y ∧ m.Coprime d then g m else 0

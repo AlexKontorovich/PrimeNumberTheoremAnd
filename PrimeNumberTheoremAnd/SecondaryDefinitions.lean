@@ -50,9 +50,12 @@ theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
   let f : ℝ → ℝ := fun s ↦ log (1 + s) - (s - s ^ 2 / 2)
   have hf_deriv_pos : ∀ s > 0, 0 ≤ deriv f s := by
     intro s hs
-    norm_num [f, add_comm, show s + 1 ≠ 0 by positivity]
-    ring_nf
-    nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
+    unfold f
+    rw [deriv_fun_sub, deriv.log _ (by linarith), deriv_fun_sub, deriv_fun_add]
+    · simp
+      ring_nf
+      nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
+    all_goals fun_prop (disch := linarith)
   have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
     refine exists_deriv_eq_slope _ ht ?_ ?_
     · intro x hx

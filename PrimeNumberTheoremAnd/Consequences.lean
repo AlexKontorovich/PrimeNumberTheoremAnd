@@ -569,7 +569,7 @@ theorem pi_asymp'' :
           |f t| * (log t ^ 2)⁻¹) +
           (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
           |f t| * (log t ^ 2)⁻¹) := by
-        rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+        rw [← setIntegral_union₀, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
         · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
         · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
         · apply int_flog (by rfl) (le_max_left ..)
@@ -611,7 +611,7 @@ theorem pi_asymp'' :
             ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
               ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
           congr 3
-          rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+          rw [add_comm, ← setIntegral_union₀, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
           · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le,
               volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
@@ -1126,7 +1126,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
 
     · have eventually_nonzero: ∃ t, t > 2 ∧ ∀ n, 1 + k (n + t) ≠ 0 := by
         rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
-        · rw [NormedAddCommGroup.tendsto_nhds_zero] at k_o1
+        · rw [NormedAddGroup.tendsto_nhds_zero] at k_o1
           specialize k_o1 ((1 : ℝ) / 2)
           simp only [one_div, gt_iff_lt, inv_pos, ofNat_pos, div_one, norm_eq_abs, eventually_atTop,
             ge_iff_le, forall_const] at k_o1
@@ -1208,7 +1208,7 @@ lemma bound_f_second_term (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ 
       rw [abs_of_nonpos f_pos] at hf
       linarith
 
-  have f_small := NormedAddCommGroup.tendsto_nhds_zero.mp hf δ hδ
+  have f_small := NormedAddGroup.tendsto_nhds_zero.mp hf δ hδ
   simp only [norm_eq_abs, eventually_atTop, ge_iff_le] at f_small
   obtain ⟨p, hp⟩ := f_small
 
@@ -1239,7 +1239,7 @@ lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ)
       rw [abs_of_nonpos f_pos] at hf
       linarith
 
-  have f_small := NormedAddCommGroup.tendsto_nhds_zero.mp hf δ hδ
+  have f_small := NormedAddGroup.tendsto_nhds_zero.mp hf δ hδ
   simp only [norm_eq_abs, eventually_atTop, ge_iff_le] at f_small
   obtain ⟨p, hp⟩ := f_small
 
@@ -1976,7 +1976,7 @@ lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
     ((-1 : ℝ) ^ (Ω n)) = ∑ d ∈ (Icc 1 n).filter (fun d => d^2 ∣ n), (μ (n / d^2) : ℝ) := by
       set a : ℕ → ℕ := fun p => Nat.factorization n p with ha
       have hn_factor : n = ∏ p ∈ Nat.primeFactors n, p ^ a p := by
-        exact Eq.symm ( Nat.factorization_prod_pow_eq_self hn );
+        exact Eq.symm ( Nat.prod_factorization_pow_eq_self hn );
       have h_sum_factor : (∑ d ∈ Finset.filter (fun d => d^2 ∣ n) (Finset.Icc 1 n), (μ (n / d^2) : ℝ)) = (∏ p ∈ Nat.primeFactors n, (∑ d ∈ Finset.range (a p / 2 + 1), (μ (p^(a p - 2 * d)) : ℝ))) := by
         have h_mult : ∀ {m n : ℕ}, Nat.gcd m n = 1 → (∑ d ∈ Finset.filter (fun d => d^2 ∣ m * n) (Finset.Icc 1 (m * n)), (μ (m * n / d^2) : ℝ)) = (∑ d ∈ Finset.filter (fun d => d^2 ∣ m) (Finset.Icc 1 m), (μ (m / d^2) : ℝ)) * (∑ d ∈ Finset.filter (fun d => d^2 ∣ n) (Finset.Icc 1 n), (μ (n / d^2) : ℝ)) := by
           intros m n h_coprime
@@ -2453,7 +2453,7 @@ theorem chebyshev_asymptotic_pnt
         ext n; simp [mem_Icc, mem_filter]; tauto, sum_filter]
       refine sum_congr rfl fun n _ ↦ ?_
       by_cases hn : 1 ≤ n <;> simp only [hn, ↓reduceIte]
-      push_neg at hn; interval_cases n; simp
+      push Not at hn; interval_cases n; simp
     refine (isEquivalent_iff_tendsto_one ?_).mpr ?_
     · filter_upwards [eventually_ge_atTop 1] with x hx; exact div_ne_zero (by linarith) htot_pos.ne'
     have hlim1 : Tendsto (fun x : ℝ ↦ (∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0) /

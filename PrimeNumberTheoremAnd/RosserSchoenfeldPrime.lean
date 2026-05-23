@@ -165,7 +165,7 @@ theorem summable_pre413 {f : ℝ → ℝ} {s : Set ℝ} (hs : Bornology.IsBounde
     · apply summable_zero
     · simp [s_empty, intervalIntegral.integral_of_le]
 
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
   apply Set.Finite.subset (s := Finset.Icc (⌊sInf s⌋₊ - 1) (⌈sSup s⌉₊ + 1))
   · apply finite_toSet
   · intro a ha

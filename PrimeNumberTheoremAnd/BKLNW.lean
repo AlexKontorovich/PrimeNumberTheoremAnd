@@ -56,7 +56,7 @@ theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by
     have htheta: theta x = 0 := by apply Chebyshev.theta_eq_zero_of_lt_two hworse
     linarith
   · have hnewlb : x≥ 1 := by simpa using h
-    have hineq : x - θ x ≥ 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
+    have hineq : x - θ x > 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
     have hsqrtpos: 0 < sqrt x := by exact Real.sqrt_pos.mpr hlb
     linarith
 
@@ -189,10 +189,9 @@ theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) {x : ℝ} 
   (discussion := 791)]
 theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + (1.93378e-8*BKLNW_app.table_8_margin)) * x := by
   intro x hx_pos
-  by_cases hx : x ≤ 1e19
+  by_cases! hx : x ≤ 1e19
   · exact le_trans (le_of_lt (buthe_eq_1_7 x ⟨hx_pos, hx⟩)) (le_mul_of_one_le_left hx_pos.le (by norm_num))
-  · push_neg at hx
-    have h_exp20 : 1e19 ≥ exp 20 := by grw [← exp_one_rpow 20, Real.exp_one_lt_d9]; norm_num only
+  · have h_exp20 : 1e19 ≥ exp 20 := by grw [← exp_one_rpow 20, Real.exp_one_lt_d9]; norm_num only
     suffices Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 * BKLNW_app.table_8_margin by
       grw [(thm_1a h_exp20 h_exp20 hx.le hx.le).2, this, mul_comm]
     unfold Pre_inputs.default
@@ -255,7 +254,7 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
   rw [div_le_iff₀ hx13_pos]
   have h_step1 : ψ x - θ x - θ (x ^ ((1:ℝ)/2)) ≤
       ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ (1 / (n : ℝ))) := by
-    by_cases hx2 : x < 2
+    by_cases! hx2 : x < 2
     · have hpsi : ψ x = 0 := psi_eq_zero_of_lt_two hx2
       have htheta : θ x = 0 := theta_eq_zero_of_lt_two hx2
       have htheta2 : θ (x ^ ((1:ℝ)/2)) = 0 := theta_eq_zero_of_lt_two (by
@@ -264,16 +263,14 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
           _ = 2 := rpow_one 2)
       simp only [hpsi, htheta, htheta2, sub_zero]
       exact Finset.sum_nonneg fun i _ ↦ Chebyshev.theta_nonneg _
-    · push_neg at hx2
-      have hpsi_eq := psi_eq_theta_add_sum_theta hx2
-      by_cases hN2 : 2 ≤ ⌊log x / log 2⌋₊
+    · have hpsi_eq := psi_eq_theta_add_sum_theta hx2
+      by_cases! hN2 : 2 ≤ ⌊log x / log 2⌋₊
       · have hsplit : ∑ n ∈ Icc 2 ⌊log x / log 2⌋₊, θ (x ^ (1 / (n : ℝ))) =
             θ (x ^ ((1:ℝ)/2)) + ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ (1 / (n : ℝ))) := by
           rw [← add_sum_Ioc_eq_sum_Icc hN2, ← Icc_add_one_left_eq_Ioc]
           push_cast; ring_nf
         linarith
-      · push_neg at hN2
-        have hN_le : ⌊log x / log 2⌋₊ ≤ 1 := by omega
+      · have hN_le : ⌊log x / log 2⌋₊ ≤ 1 := by omega
         have h_empty2 : Icc 2 ⌊log x / log 2⌋₊ = ∅ := by
           simp only [Finset.Icc_eq_empty_iff]; omega
         have h_empty3 : Icc 3 ⌊log x / log 2⌋₊ = ∅ := by
@@ -504,7 +501,7 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
       _ < 2^((n:ℝ)+1) := rpow_lt_rpow_of_exponent_lt one_lt_two (by exact_mod_cast this)
       _ = 2^(n+1) := by rw [← rpow_natCast]; norm_cast
   have hn_ge : n ≥ 4 := by
-    by_contra hcon; push_neg at hcon
+    by_contra! hcon
     have : (2 : ℝ) ^ (n + 1) ≤ 2^9 := pow_le_pow_right₀ one_le_two <| by omega
     linarith [hx₀, hx₀_lt]
   rcases hx_lo.eq_or_lt with rfl | hlt
@@ -810,8 +807,13 @@ lemma g_decreasing_interval (A C : ℝ) (hA : 0 < A) (hC : 0 < C) (u v : ℝ) (h
       -- Let $f(t) = t^A e^{-C\sqrt{t}}$. The derivative is $f'(t) = t^{A-1} e^{-C\sqrt{t}} (A - \frac{C}{2}\sqrt{t})$.
       set f := fun t : ℝ => t ^ A * Real.exp (-C * Real.sqrt t)
       have h_deriv : ∀ t > 0, deriv f t = t ^ (A - 1) * Real.exp (-C * Real.sqrt t) * (A - C / 2 * Real.sqrt t) := by
-        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ] ; ring_nf;
-        rw [ show ( -1 / 2 : ℝ ) = ( 1 / 2 : ℝ ) - 1 by norm_num, Real.rpow_sub ht ] ; norm_num ; ring;
+        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ]
+        rw [deriv_fun_mul, Real.deriv_rpow_const, _root_.deriv_exp]
+        · simp only [deriv.fun_neg', deriv_const_mul_field',
+          Real.deriv_rpow_const, mul_neg]
+          rw [rpow_sub_one (by linarith), rpow_sub_one (by linarith)]
+          ring
+        all_goals fun_prop (disch := linarith)
       -- Since $4A^2/C^2 \le u \le v$, we have $f'(t) \le 0$ for $t \ge 4A^2/C^2$.
       have h_deriv_nonpos : ∀ t > 0, 4 * A ^ 2 / C ^ 2 ≤ t → deriv f t ≤ 0 := by
         intro t ht ht'; rw [ h_deriv t ht ] ; exact mul_nonpos_of_nonneg_of_nonpos ( mul_nonneg ( Real.rpow_nonneg ht.le _ ) ( Real.exp_nonneg _ ) ) ( sub_nonpos_of_le <| by rw [ div_le_iff₀ <| by positivity ] at *; nlinarith [ show 0 ≤ Real.sqrt t * C by positivity, Real.mul_self_sqrt ht.le ] ) ;
@@ -1041,6 +1043,47 @@ noncomputable def B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ
 noncomputable def Btilde (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ) : ℝ :=
   b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) + ε b * b' ^ k
 
+private lemma bklnw_lemma_8_term_eq (k ℓ : ℕ) (x a_ℓ : ℝ) (hx_pos : 0 < x) (h_log : 0 < log x) :
+    a_ℓ * x ^ ((1 : ℝ) / (↑ℓ + 1)) = a_ℓ * log x ^ k * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * (x / log x ^ k) := by
+  have h_denom : (ℓ : ℝ) + 1 ≠ 0 := by positivity
+  have h_cancel : log x ^ k * (x / log x ^ k) = x := by
+    have hlog_ne : log x ^ k ≠ 0 := by positivity
+    exact mul_div_cancel₀ x hlog_ne
+  calc
+    a_ℓ * x ^ ((1 : ℝ) / (↑ℓ + 1)) = a_ℓ * (x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x) := by
+      nth_rw 3 [← rpow_one x]
+      rw [← rpow_add hx_pos]
+      congr
+      field_simp [h_denom]
+      ring
+    _ = a_ℓ * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * x := by ring
+    _ = a_ℓ * log x ^ k * x ^ (-(ℓ : ℝ) / (↑ℓ + 1)) * (x / log x ^ k) := by
+      conv_lhs =>
+        enter [2]
+        rw [← h_cancel]
+      ring
+
+private lemma bklnw_lemma_8_bound_le_B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x : ℝ)
+    (hx_mem : x ∈ Set.Icc (exp b) (exp b')) :
+    (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) + ε b * (log x) ^ k ≤ B k n a ε b b' := by
+  have h_y_pos : ∀ y : Set.Icc (exp b) (exp b'), 0 < (y : ℝ) := fun y ↦ (exp_pos b).trans_le y.2.1
+  have h_y_ne_zero : ∀ y : Set.Icc (exp b) (exp b'), (y : ℝ) ≠ 0 := fun y ↦ (h_y_pos y).ne'
+  refine le_ciSup (f := fun (y : Set.Icc (exp b) (exp b')) ↦ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log (y : ℝ))^k * (y : ℝ) ^ (-(ℓ:ℝ) / (ℓ + 1)) + ε b * (log (y : ℝ)) ^ k)) ?_ ⟨x, hx_mem⟩
+  apply IsCompact.bddAbove
+  apply isCompact_range
+  apply Continuous.add
+  · refine continuous_finset_sum (Finset.Icc 1 n) (fun ℓ _ ↦ ?_)
+    apply Continuous.mul
+    · apply Continuous.mul continuous_const
+      apply Continuous.pow
+      exact Continuous.log continuous_subtype_val h_y_ne_zero
+    · apply Continuous.rpow continuous_subtype_val continuous_const
+      intro y
+      exact Or.inl (h_y_ne_zero y)
+  · apply Continuous.mul continuous_const
+    apply Continuous.pow
+    exact Continuous.log continuous_subtype_val h_y_ne_zero
+
 @[blueprint
   "bklnw-lemma-8"
   (title := "Lemma 8")
@@ -1049,7 +1092,7 @@ noncomputable def Btilde (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' 
   \label{psithetadiff}
   \psi (x) - \theta (x) \le \sum_{\ell=1}^n a_{\ell} x^{\frac{1}{\ell+1}} \qquad \text{ for all } x \ge x_0.
  \end{equation}
- Let $b' > b \ge 2k$, $e^b \le x_0$, and assume that there exists $\varepsilon(b)>0$ such that
+ Let $b' > b \ge 2k$, $x_0 \le e^b$, and assume that there exists $\varepsilon(b)>0$ such that
   \begin{equation}
   \label{psixdiff}
   |\psi (x) - x| \le \varepsilon(b)x \qquad \text{for all }x \ge e^{b}.
@@ -1084,13 +1127,81 @@ This immediately implies \eqref{thetakBbd} holds with \eqref{defn:B}.
   (discussion := 1252)]
 theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x₀ : ℝ)
   (hk : 1 ≤ k ∧ k ≤ 5)
-  (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
-  (hbb : b < b') (hbk : b ≥ 2 * k) (hbx₀ : exp b ≤ x₀)
+  (hbk : b ≥ 2 * k) (hbx₀ : x₀ ≤ exp b)
   (hx : ∀ x ≥ x₀, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)))
   (hε : ∀ x ≥ exp b, abs (ψ x - x) ≤ ε b * x)
   :
   ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k n a ε b b' * x / (log x)^k := by
-  sorry
+  intro x hx_mem
+  have hx_ge_exp_b : x ≥ exp b := hx_mem.1
+  have hx_le_exp_b' : x ≤ exp b' := hx_mem.2
+  have hx_ge_x0 : x ≥ x₀ := hbx₀.trans hx_ge_exp_b
+  have hx_pos : 0 < x := lt_of_lt_of_le (exp_pos b) hx_ge_exp_b
+  have h_log_x_pos : 0 < log x := by
+    have hk_real : (k : ℝ) ≥ 1 := by exact_mod_cast hk.1
+    have h_log_ge : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx_ge_exp_b
+    linarith [h_log_ge, hbk, hk_real]
+  calc
+    abs (θ x - x) ≤ abs (θ x - ψ x) + abs (ψ x - x) := abs_sub_le (θ x) (ψ x) x
+    _ = (ψ x - θ x) + abs (ψ x - x) := by
+      rw [abs_sub_comm, abs_of_nonneg (sub_nonneg.mpr (theta_le_psi x))]
+    _ ≤ (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * x ^ (1 / (ℓ + 1 : ℝ))) + ε b * x :=
+      add_le_add (hx x hx_ge_x0) (hε x hx_ge_exp_b)
+    _ = ((∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) + ε b * (log x) ^ k) * (x / (log x)^k) := by
+      rw [add_mul, Finset.sum_mul]
+      congr 1
+      · exact Finset.sum_congr rfl fun ℓ _ => bklnw_lemma_8_term_eq k ℓ x (a ℓ) hx_pos h_log_x_pos
+      · field_simp
+    _ ≤ B k n a ε b b' * (x / (log x)^k) :=
+      mul_le_mul_of_nonneg_right (bklnw_lemma_8_bound_le_B k n a ε b b' x hx_mem) (by positivity)
+    _ = B k n a ε b b' * x / (log x)^k := by
+      field_simp
+
+private lemma bklnw_eq_3_11_deriv_nonpos (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ) (b : ℝ) (hbk : b ≥ 2 * k) :
+    ∀ y ∈ interior (Set.Ici b),
+      deriv (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) y ≤ 0 := by
+  intro y hy
+  have h_has_deriv : HasDerivAt (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y))
+      (((y ^ (k - 1) * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) * (k - ((ℓ:ℝ) / (ℓ + 1)) * y))) y := by
+    have h1 := hasDerivAt_pow k y
+    have h3 := ((hasDerivAt_id' y).const_mul (- ((ℓ:ℝ) / (ℓ + 1)))).exp
+    convert h1.mul h3 using 1
+    have h_pow_sub : y * y ^ (k - 1) = y ^ k := mul_pow_sub_one (by omega) y
+    rw [← h_pow_sub]
+    ring_nf
+  have h_factor : (k : ℝ) - ((ℓ:ℝ) / (ℓ + 1)) * y ≤ 0 := by
+    have hy_gt : b < y := by simpa using hy
+    have h_mul : (1 / 2) * y ≤ ((ℓ : ℝ) / (ℓ + 1)) * y :=
+      mul_le_mul_of_nonneg_right (by rw [le_div_iff₀ (by positivity)]; linarith [show 1 ≤ (ℓ:ℝ) by exact_mod_cast hℓ]) (by linarith)
+    linarith
+  have h_y_pow : 0 ≤ y ^ (k - 1) := pow_nonneg (by linarith [show b < y by simpa using hy]) (k - 1)
+  rw [h_has_deriv.deriv]
+  exact mul_nonpos_of_nonneg_of_nonpos (mul_nonneg h_y_pow (exp_pos _).le) h_factor
+
+private lemma bklnw_eq_3_11_antitone (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ) (b : ℝ) (hbk : b ≥ 2 * k) :
+    AntitoneOn (fun y ↦ y ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * y)) (Set.Ici b) := by
+  apply_rules [antitoneOn_of_deriv_nonpos]
+  · exact convex_Ici b
+  · fun_prop
+  · fun_prop
+  · exact bklnw_eq_3_11_deriv_nonpos k hk ℓ hℓ b hbk
+
+private lemma bklnw_eq_3_11_term_le (k : ℕ) (hk : 1 ≤ k) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (b : ℝ) (hbk : b ≥ 2 * k) (x : ℝ) (hx_pos : 0 < x) (hx_log : b ≤ log x) :
+    (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)) ≤ b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) := by
+  have h_x_pow : x ^ (-(ℓ:ℝ) / (ℓ + 1)) = exp (- ((ℓ:ℝ) / (ℓ + 1)) * log x) := by
+    rw [rpow_def_of_pos hx_pos]
+    congr 1
+    ring
+  have h_RHS_rw : b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) = b ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * b) := by
+    congr 2
+    ring
+  calc
+    (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))
+    _ = (log x)^k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * log x) := congrArg (fun y => (log x)^k * y) h_x_pow
+    _ ≤ b ^ k * exp (- ((ℓ:ℝ) / (ℓ + 1)) * b) :=
+        (bklnw_eq_3_11_antitone k hk ℓ hℓ b hbk) (Set.mem_Ici.mpr (le_refl b)) (Set.mem_Ici.mpr hx_log) hx_log
+    _ = b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1)) := h_RHS_rw.symm
 
 @[blueprint
   "bklnw-eq-3-11"
@@ -1102,23 +1213,69 @@ theorem bklnw_lemma_8 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' x�
  -/)
   (latexEnv := "sublemma")
   (discussion := 1253)]
-theorem bklnw_eq_3_11 (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ)
+theorem bklnw_eq_3_11 (k n : ℕ) (hk : 1 ≤ k) (a : ℕ → ℝ) (ε : ℝ → ℝ) (b b' : ℝ)
   (ha : ∀ ℓ ∈ Finset.Icc 1 n, 0 ≤ a ℓ)
+  (hε : 0 ≤ ε b)
   (hbb : b < b') (hbk : b ≥ 2 * k) :
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
-  sorry
+  unfold B Btilde
+  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+    use exp b
+    simp only [Set.mem_Icc, le_refl, true_and]
+    exact exp_le_exp.mpr hbb.le
+  have h_sum_le : ∀ x ∈ Set.Icc (exp b) (exp b'),
+      (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)))
+      ≤ b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+    intro x hx
+    have hx_pos : 0 < x := (exp_pos b).trans_le hx.1
+    have hx_log : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx.1
+    calc
+      (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1)))
+      _ = ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * ((log x)^k * x ^ (-(ℓ:ℝ) / (ℓ + 1))) := by
+        apply Finset.sum_congr rfl; intro _ _; ring
+      _ ≤ ∑ ℓ ∈ Finset.Icc 1 n, a ℓ * (b ^ k * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+        apply Finset.sum_le_sum; intro ℓ hℓ
+        exact mul_le_mul_of_nonneg_left (bklnw_eq_3_11_term_le k hk ℓ (Finset.mem_Icc.mp hℓ).1 b hbk x hx_pos hx_log) (ha ℓ hℓ)
+      _ = b ^ k * (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * exp (- (ℓ:ℝ) * b / (ℓ + 1))) := by
+        rw [Finset.mul_sum]; apply Finset.sum_congr rfl; intro _ _; ring
+  have h_eps_le : ∀ x ∈ Set.Icc (exp b) (exp b'),
+      ε b * (log x) ^ k ≤ ε b * b' ^ k := by
+    intro x hx
+    have hx_pos : 0 < x := (exp_pos b).trans_le hx.1
+    have h_log_ge : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx.1
+    have hb_nonneg : 0 ≤ b := by linarith [hbk, show 0 ≤ (k : ℝ) from Nat.cast_nonneg k]
+    have h_log_le : log x ≤ b' := (log_exp b').symm ▸ log_le_log hx_pos hx.2
+    exact mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (by linarith) h_log_le k) hε
+  refine ciSup_le ?_
+  · rintro ⟨x, hx⟩
+    exact add_le_add (h_sum_le x hx) (h_eps_le x hx)
+
+
+abbrev K := 25000
+
+/-- A list of all the b's that appear in Table 10. -/
+noncomputable abbrev table_10_entries : Finset ℝ := (BKLNW.table_10.map (·.1)).toFinset
+
+/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
+noncomputable def table_10_bs : Finset ℝ := table_10_entries ∪ { (K:ℝ) }
+
+/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
+noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
 
 /-- An explicit formula for the quantity $B_k(b,b')$ appearing in Corollary 8.1 -/
 noncomputable def B_8_1 (k : ℕ) (b b' : ℝ) : ℝ :=
   Inputs.default.a₁ b * b^k * exp (-b / 2) + Inputs.default.a₂ b * b^k * exp (-2 * b / 3) + (b')^k * Inputs.default.ε b
 
 noncomputable def B_8_1' (k : ℕ) (b₀ : ℝ) : ℝ :=
-  iSup (ι := { b : ℝ × ℝ // b₀ ≤ b.1 ∧ b.1 < b.2 }) (fun b => B_8_1 k b.val.1 b.val.2)
+  let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image
+    fun b ↦ B_8_1 k b (table_10_next b)
+  if h : S.Nonempty then S.sup' h id else 0
 
 @[blueprint
   "bklnw-cor-8-1a"
   (title := "BKLNW Corollary 8.1a")
-  (statement := /--  Let $k=1,\ldots,5$. Let $b,b'$ be entries of Table 8 with $b < b'$.  Then
+  (statement := /--  Let $k \in \{1,\ldots,5\}$ and let $b<b'$ with
+$b \geq \max(7,2k)$.  Then
 \begin{equation}
  \label{B:ExpSubinterval}
  |\theta(x)-x| \le  \frac{B_k(b,b') x}{(\log x)^k} \qquad   \text{for all }x \in [e^{b}, e^{b'}],
@@ -1128,24 +1285,66 @@ where
  \label{Bbbprime2}
  B_k(b,b') = a_1(b) b^k e^{-\frac{b}{2}} + a_2(b) b^k e^{-\frac{2b}{3}}+  (b')^k \varepsilon(b),
 \end{equation}
-and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-8-1a}.
+and $a_1,a_2$ are defined in Corollary \ref{bklnw-cor-5-1}.
 -/)
-  (proof := /-- We apply Lemma \ref{bklnw-lemma-8} with $k \in \{1,2,3,4,5\}$, $b_0 = b$, and $n=2$ and obtain \eqref{Bbbprime2}. For we take
-$B_k(b,b') = \widetilde{B}_k(b,b',2)$.
+  (proof := /-- Apply Lemma \ref{bklnw-lemma-8} with $n=2$, using Corollary
+\ref{bklnw-cor-5-1} for the bound on $\psi(x)-\theta(x)$ and the default
+$\varepsilon(b)$ bound for $\psi(x)-x$. The assumption $b \geq 7$ supplies the
+hypothesis of Corollary \ref{bklnw-cor-5-1}, while $b \geq 2k$ is the monotonicity
+hypothesis used in \eqref{bklnw-eq-3-11}. Taking
+$B_k(b,b') = \widetilde{B}_k(b,b',2)$ gives \eqref{Bbbprime2}.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1254)]
-theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hb : b < b') :
+theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b') (hbk : b ≥ max 7 (2 * (k : ℝ))) :
   ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_1 k b b') * x / (log x)^k := by
-  sorry
-
-abbrev K := 25000
-
-/-- A list of all the b's that appear in Table 10, along with the maximum value K. -/
-noncomputable def table_10_bs : Finset ℝ := BKLNW.table_10.toFinset.image (fun p ↦ p.1) ∪ { (K:ℝ) }
-
-/-- This may be too inefficient a way to define the "next entry in the table".  Feel free to explore other alternatives, for instance encoding the next entry in the table itself -/
-noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b < b' }
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
+    (one_le_exp (by positivity)).trans Inputs.default.hx₁
+  have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_nonneg hx₁_ge_one)
+  have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
+  have hα_pos : 0 < 1 + Inputs.default.α := by
+    unfold Inputs.default; positivity
+  have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) :=
+    le_max_iff.2 (Or.inl (Finset.sum_nonneg (by intros; positivity)))
+  have ha₁_nonneg : 0 ≤ Inputs.default.a₁ b := by
+    unfold Inputs.a₁
+    split_ifs <;> positivity
+  have ha₂_nonneg : 0 ≤ Inputs.default.a₂ b :=
+    mul_nonneg hα_pos.le hmax_nonneg
+  have ha_nonneg : ∀ ℓ ∈ Finset.Icc 1 2, 0 ≤ a ℓ := by
+    intro ℓ hℓ
+    obtain ⟨h1, h2⟩ := Finset.mem_Icc.1 hℓ
+    interval_cases ℓ <;> simp [a, ha₁_nonneg, ha₂_nonneg]
+  have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
+    intro x hx
+    convert cor_5_1 hb_ge_7 hx using 1
+    simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, a₁, a₂, a]
+  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
+    fun x hx ↦ Inputs.default.hε b (by positivity) x hx
+  have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk hb_ge_2k le_rfl hψ_θ_bound hε_bound
+  have hε_nonneg_b : 0 ≤ Inputs.default.ε b :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
+  have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
+    bklnw_eq_3_11 k 2 hk.1 a Inputs.default.ε b b' ha_nonneg hε_nonneg_b hb hb_ge_2k
+  have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
+    simp only [Btilde, neg_mul, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, one_mul,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, mul_add, B_8_1, a]
+    ac_rfl
+  intro x hx
+  exact (h_main1 x hx).trans <| by
+    refine div_le_div_of_nonneg_right ?_ (pow_nonneg (log_pos (Std.lt_of_lt_of_le
+      (one_lt_exp_iff.2 (by positivity)) hx.1)).le k)
+    refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
+    exact h_Btilde_eq ▸ h_main2
 
 @[blueprint
   "bklnw-table-10-verification"
@@ -1157,10 +1356,65 @@ noncomputable def table_10_next (b : ℝ) : ℝ := sInf { b' ∈ table_10_bs | b
 theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
   sorry
 
+lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ table_10_entries) : (20 : ℝ) ≤ b := by
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_gt]
+  · exact hp.elim
+
+lemma table_10_next_eq_min' (b : ℝ) (h : (table_10_bs.filter (b < ·)).Nonempty) :
+    table_10_next b = (table_10_bs.filter (b < ·)).min' h := by
+  simpa [table_10_next] using h.csInf_eq_min'
+
+lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b := by
+  have h2 : (K : ℝ) ∈ table_10_bs.filter (b < ·) := by
+    simpa only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_filter, mem_insert,
+      List.mem_toFinset, List.mem_map, Prod.exists, exists_and_right, exists_eq_right, true_or,
+      true_and]
+  rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
+  simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
+
+lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ) := by
+  simp only [List.mem_toFinset, List.mem_map] at hb
+  rcases hb with ⟨p, hp, rfl⟩
+  simp only [BKLNW.table_10, List.mem_cons, List.not_mem_nil] at hp
+  casesm* _ ∨ _
+  <;> try (subst hp; norm_num)
+  · linarith [LogTables.log_10_lt]
+  · exact hp.elim
+
+lemma table_10_coverage (b₀ y : ℝ) (hb₀ : b₀ ∈ table_10_entries) (hy1 : b₀ ≤ y) (hy2 : y ≤ (K : ℝ)) :
+  ∃ b ∈ table_10_entries, b₀ ≤ b ∧ b ≤ y ∧ y ≤ table_10_next b := by
+  let S := table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b ≤ y)
+  have h1 : b₀ ∈ S := by
+    simp only [mem_filter, hb₀, le_refl, hy1, and_self, S]
+  let b := S.max' ⟨b₀, h1⟩
+  obtain ⟨h5, h6, h7⟩ : b ∈ table_10_entries ∧ b₀ ≤ b ∧ b ≤ y := by
+    simpa [S] using show b ∈ S from Finset.max'_mem S ⟨b₀, h1⟩
+  refine ⟨b, h5, h6, h7, ?_⟩
+  let S_finset := table_10_bs.filter (b < ·)
+  have h12 : (K : ℝ) ∈ S_finset := by
+    simpa [S_finset, table_10_bs] using table_10_entry_lt_K b h5
+  let m := S_finset.min' ⟨K, h12⟩
+  have h16 : m ∈ table_10_bs ∧ b < m := by
+    simpa [S_finset] using (show m ∈ S_finset from Finset.min'_mem S_finset ⟨K, h12⟩)
+  rw [show table_10_next b = m from table_10_next_eq_min' b ⟨K, h12⟩]
+  by_contra h19
+  obtain (h22 | h22) : m ∈ table_10_entries ∨ m = K :=
+    Or.comm.1 (by simpa [table_10_bs, table_10_entries, K] using h16.1)
+  · have h28 : m ∈ S := by
+      simp only [mem_filter, h22, le_trans h6 h16.2.le, (Std.not_le.mp h19).le, and_self, S]
+    linarith [Finset.le_max' S m h28, h16.2]
+  · linarith [hy2]
+
 @[blueprint
   "bklnw-cor-8-1b"
   (title := "BKLNW Corollary 8.1b")
-  (statement := /-- let $b_0$ be any entry in column 1 of BKLNW Table 11. Then,
+  (statement := /-- Let $k \in \{1,\ldots,5\}$ and let $b_0$ be any entry in
+column 1 of BKLNW Table 10. Then,
 \begin{equation}
  \label{bound:mathcalB}
  |\theta (x) - x| \le \frac{\mathcal{B}_k(b_0) x}{(\log x)^k}  \qquad \text{for all }x \in [e^{b_0}, e^K]
@@ -1168,16 +1422,58 @@ theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 
 where $K = 25000$, and
 \begin{equation}
 \label{MathcalBbbprime2}
-\mathcal{B}_k(b_0) = \max_{b,b' \atop b_0 \le b < b'}   B_k(b,b').
+\mathcal{B}_k(b_0) =
+\max_{\substack{b \in \mathrm{Table10}\\ b_0 \le b < K}}
+  B_k(b,\operatorname{next}(b)).
 \end{equation} -/)
-  (proof := /-- The inequality \eqref{bound:mathcalB} follows from \eqref{B:ExpSubinterval} together with the fact that
-$[e^{b_0},e^K] = \bigcup_{b \in [b_0, K)} [e^{b},e^{b'}]$.
+  (proof := /-- For $x \in [e^{b_0},e^K]$, choose the largest Table 10 entry
+$b$ with $b_0 \le b \le \log x$. Then
+$x \in [e^b,e^{\operatorname{next}(b)}]$, so \eqref{B:ExpSubinterval} applies to
+this subinterval. The definition of $\mathcal{B}_k(b_0)$ as a finite maximum over
+the Table 10 grid then bounds the chosen subinterval constant.
  -/)
   (latexEnv := "sublemma")
   (discussion := 1256)]
-theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hb₀K : b₀ < K) :
+theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
+  (hb₀ : b₀ ∈ table_10_entries) :
   ∀ x ∈ Set.Icc (exp b₀) (exp K), |θ x - x| ≤ (B_8_1' k b₀) * x / (log x)^k := by
-  sorry
+  intro x hx
+  have hx_pos : 0 < x := (exp_pos b₀).trans_le hx.1
+  have hlog_lower : b₀ ≤ log x := by
+    simpa using log_le_log (exp_pos b₀) hx.1
+  have hlog_upper : log x ≤ K := by
+    simpa using log_le_log hx_pos hx.2
+  obtain ⟨b, hb_in, hb₀_le, hb_le_logx, hlogx_le_next⟩ :=
+    table_10_coverage b₀ (log x) hb₀ hlog_lower hlog_upper
+  have hb_lt_K : b < K := table_10_entry_lt_K b hb_in
+  have hxb : exp b ≤ x := by
+    simpa [exp_log hx_pos] using exp_le_exp.mpr hb_le_logx
+  have hxnext : x ≤ exp (table_10_next b) := by
+    simpa [exp_log hx_pos] using exp_le_exp.mpr hlogx_le_next
+  have hbk : b ≥ max 7 (2 * (k : ℝ)) := by
+    have hb20 : (20 : ℝ) ≤ b := table_10_entries_ge_20 b hb_in
+    have hk5 : (k : ℝ) ≤ 5 := by exact_mod_cast hk.2
+    exact max_le (by linarith) (by linarith)
+  have hsub :
+      |θ x - x| ≤ (B_8_1 k b (table_10_next b)) * x / (log x)^k :=
+    bklnw_cor_8_1a k b (table_10_next b) hk
+      (table_10_next_gt b hb_lt_K) hbk x ⟨hxb, hxnext⟩
+  have hB : B_8_1 k b (table_10_next b) ≤ B_8_1' k b₀ := by
+    let S := (table_10_entries.filter (fun b ↦ b₀ ≤ b ∧ b < K)).image
+      fun b ↦ B_8_1 k b (table_10_next b)
+    have hmem : B_8_1 k b (table_10_next b) ∈ S := mem_image_of_mem _
+      (mem_filter.mpr ⟨hb_in, hb₀_le, hb_lt_K⟩)
+    rw [B_8_1', dif_pos ⟨B_8_1 k b (table_10_next b), hmem⟩]
+    exact Finset.le_sup' id hmem
+  have hx_gt_one : 1 < x := by
+    have hb20 : (20 : ℝ) ≤ b₀ := table_10_entries_ge_20 b₀ hb₀
+    have : 1 < exp b₀ := by
+      simpa using exp_strictMono (by linarith : (0 : ℝ) < b₀)
+    exact this.trans_le hx.1
+  exact hsub.trans <|
+    div_le_div_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hB hx_pos.le)
+      (pow_nonneg (log_pos hx_gt_one).le k)
 
 @[blueprint
   "bklnw-table-11-verification"
@@ -1200,12 +1496,12 @@ In this section we tackle small $x$.
 @[blueprint
   "bklnw-eq-3-17"
   (title := "BKLNW Equation 3.17")
-  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } x \le 10^{19}.$ -/)
+  (statement := /-- One has $\theta(x) < x - 0.05 \sqrt{x}  \text{ for all } 1 \le x \le 10^{19}.$ -/)
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}.  -/)
   (latexEnv := "lemma")
   (discussion := 1258)]
-theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
-  sorry
+theorem bklnw_eq_3_17 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) : θ x < x - 0.05 * sqrt x :=
+  lt_tsub_comm.1 (Buthe.theorem_2c hx1 hx2)
 
 @[blueprint
   "bklnw-eq-3-18"
@@ -1214,8 +1510,9 @@ theorem bklnw_eq_3_17 : ∀ x ≤ 10 ^ 19, θ x < x - 0.05 * sqrt x := by
   (proof := /-- This follows from Lemma \ref{bklnw-eq-3-17} and the fact that $x - 0.05 \sqrt{x} \le x$ for all $x$. -/)
   (latexEnv := "corollary")
   (discussion := 1259)]
-theorem bklnw_eq_3_18 : ∀ x ≤ exp (19 * log 10), θ x - x ≤ 0 := by
-  sorry
+theorem bklnw_eq_3_18 : ∀ x ∈ Set.Ioc 0 1e19, θ x - x ≤ 0 := by
+  intro x hx
+  linarith [buthe_eq_1_7 x hx]
 
 @[blueprint
   "bklnw-lemma-9"
@@ -1247,11 +1544,52 @@ If $u^2 < v$, then
 theorem bklnw_lemma_9 (u v : ℝ) (c C c₀ : ℝ)
   (huv : 1 ≤ u ∧ u < v)
   (hψ_bound : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C)
-  (hψ_linear : ∀ x > 0, ψ x < c₀ * x)
-  (huv : u ^ 2 < v) :
-  ∀ x ∈ Set.Icc (u ^ 2) v, θ x ≥ x - (C + 1) * x ^ (1 / 2) - c₀ * x ^ (1 / 3) - c * x ^ (1 / 4) - c₀ * x ^ (1 / 5) := by
-  sorry
-
+  (hψ_linear : ∀ x > 0, ψ x < c₀ * x) :
+  ∀ x ∈ Set.Icc (u ^ 2) v, θ x ≥ x - (C + 1) * x ^ (1 / 2 : ℝ) - c₀ * x ^ (1 / 3 : ℝ) - c * x ^ (1 / 4 : ℝ) - c₀ * x ^ (1 / 5 : ℝ) := by
+  intro x hx_mem
+  have hx_lb : u ^ 2 ≤ x := hx_mem.1
+  have hx_ub : x ≤ v := hx_mem.2
+  have hx_pos : (0 : ℝ) < x := by
+    have : (0 : ℝ) < u := by linarith [huv.1]
+    nlinarith
+  have hx_ge_u : u ≤ x := by nlinarith [huv.1, hx_lb]
+  have hx_in_uv : x ∈ Set.Icc u v := ⟨hx_ge_u, hx_ub⟩
+  have hxhalf_ge_u : u ≤ x ^ (1 / 2 : ℝ) := by
+    rw [← Real.sqrt_eq_rpow]
+    exact (Real.sqrt_sq (by linarith [huv.1])).symm.trans_le (Real.sqrt_le_sqrt hx_lb)
+  have hxhalf_le_v : x ^ (1 / 2 : ℝ) ≤ v := by
+    rw [← Real.sqrt_eq_rpow]
+    have hv_ge1 : 1 < v := by nlinarith [huv.1]
+    have hsqrtv : Real.sqrt v ≤ v := by
+      rw [Real.sqrt_le_left (by linarith)]; nlinarith
+    exact (Real.sqrt_le_sqrt hx_ub).trans hsqrtv
+  have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) :=
+    CostaPereira.theorem_1a hx_pos
+  have hψx_lb : x - C * x ^ (1 / 2 : ℝ) ≤ ψ x := by
+    have hbound := (hψ_bound x hx_in_uv).2
+    rw [div_le_iff₀ (Real.sqrt_pos.mpr hx_pos), Real.sqrt_eq_rpow] at hbound
+    linarith
+  have hψxhalf_ub : ψ (x ^ (1 / 2 : ℝ)) ≤ x ^ (1 / 2 : ℝ) + c * x ^ (1 / 4 : ℝ) := by
+    have hbound := (hψ_bound _ ⟨hxhalf_ge_u, hxhalf_le_v⟩).1
+    have hsqrt_rw : Real.sqrt (x ^ (1 / 2 : ℝ)) = x ^ (1 / 4 : ℝ) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hx_pos.le]; norm_num
+    rw [le_div_iff₀ (Real.sqrt_pos.mpr (Real.rpow_pos_of_pos hx_pos _)),
+        hsqrt_rw] at hbound
+    linarith
+  have hψxthird_ub : ψ (x ^ (1 / 3 : ℝ)) < c₀ * x ^ (1 / 3 : ℝ) :=
+    hψ_linear _ (Real.rpow_pos_of_pos hx_pos _)
+  have hψxfifth_ub : ψ (x ^ (1 / 5 : ℝ)) < c₀ * x ^ (1 / 5 : ℝ) :=
+    hψ_linear _ (Real.rpow_pos_of_pos hx_pos _)
+  calc θ x
+      ≥ ψ x - ψ (x ^ (1/2 : ℝ)) - ψ (x ^ (1/3 : ℝ)) - ψ (x ^ (1/5 : ℝ)) := by linarith
+    _ ≥ (x - C * x ^ (1/2 : ℝ))
+          - (x ^ (1/2 : ℝ) + c * x ^ (1/4 : ℝ))
+          - c₀ * x ^ (1/3 : ℝ)
+          - c₀ * x ^ (1/5 : ℝ)                     := by linarith
+    _ = x - (C + 1) * x ^ (1/2 : ℝ)
+          - c₀ * x ^ (1/3 : ℝ)
+          - c * x ^ (1/4 : ℝ)
+          - c₀ * x ^ (1/5 : ℝ)                     := by ring
 
 def table_from_buthe : List (ℝ × ℝ × ℝ × ℝ) := [
   (100, 5 * 10 ^ 10, 0.8, 0.81),
@@ -1271,6 +1609,67 @@ theorem bklnw_table_from_buthe (u v c C : ℝ) (h : (u, v, c, C) ∈ table_from_
 
 noncomputable def C_bk (b c C c₀ : ℝ) (k : ℕ) : ℝ :=
   b ^ k * ((C + 1) * exp (-b / 2) + c₀ * exp (-2 * b / 3) + c * exp (-3 * b / 4) + c₀ * exp (-4 * b / 5))
+
+private lemma exp_half_mem_Icc_of_exp_mem (k : ℕ) (v b : ℝ)
+    (hb_lb : max (10000 : ℝ) (exp (2 * k)) ≤ exp b)
+    (hb_ub : exp b ≤ v) :
+    let u := exp (b / 2)
+    b ≥ 2 * (k : ℝ) ∧ (100 : ℝ) ≤ u ∧ 0 < b ∧ u < v ∧ (1 : ℝ) ≤ u ∧ u ^ 2 = exp b := by
+  intro u
+  have hexpb_ge_10000 : (10000 : ℝ) ≤ exp b := le_of_max_le_left hb_lb
+  have hexpb_ge_e2k : exp (2 * (k : ℝ)) ≤ exp b := le_of_max_le_right hb_lb
+  have hbk : b ≥ 2 * (k : ℝ) := by
+    have := Real.exp_le_exp.mp hexpb_ge_e2k
+    push_cast at this ⊢; linarith
+  have hu_ge_100 : (100 : ℝ) ≤ u := by
+    dsimp [u]
+    rw [← Real.exp_log (by norm_num : (0:ℝ) < 100)]
+    apply Real.exp_le_exp.mpr
+    linarith [Real.log_rpow (by norm_num : (0:ℝ) < 10000) (1/2 : ℝ),
+              show Real.log 10000 ≤ b by rwa [← Real.log_exp b, Real.log_le_log_iff (by norm_num) (exp_pos b)]]
+  have hb_pos : 0 < b := one_lt_exp_iff.mp (by linarith [hexpb_ge_10000])
+  have hu_lt_v : u < v := by
+    dsimp [u]; exact (Real.exp_lt_exp.mpr (by linarith)).trans_le hb_ub
+  have hu_ge_1 : (1 : ℝ) ≤ u := le_trans (by norm_num) hu_ge_100
+  have hu_sq : u ^ 2 = exp b := by
+    dsimp [u]
+    rw [← Real.rpow_natCast, ← Real.exp_mul]
+    norm_num
+  exact ⟨hbk, hu_ge_100, hb_pos, hu_lt_v, hu_ge_1, hu_sq⟩
+
+private lemma table_from_buthe_cC_nonneg (v c C : ℝ)
+    (hvcc : (100, v, c, C) ∈ table_from_buthe) :
+    0 ≤ c ∧ 0 ≤ C := by
+  simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at hvcc
+  rcases hvcc with ⟨-, -, rfl, rfl⟩ | ⟨-, -, rfl, rfl⟩ | ⟨-, -, rfl, rfl⟩ | h
+  · constructor <;> norm_num
+  · constructor <;> norm_num
+  · constructor <;> norm_num
+  · contradiction
+
+private lemma log_pow_mul_rpow_neg_le_pow_mul_exp_neg (k ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (b : ℝ) (hbk : b ≥ 2 * (k : ℝ))
+    (x : ℝ) (hx_pos : 0 < x) (hx_log : b ≤ log x) :
+    (log x) ^ k * x ^ (-(ℓ : ℝ) / (ℓ + 1)) ≤ b ^ k * exp (-(ℓ : ℝ) * b / (ℓ + 1)) := by
+  have hk_ge_1_or_zero : k = 0 ∨ 1 ≤ k := by omega
+  rcases hk_ge_1_or_zero with rfl | hk
+  · simp only [pow_zero, one_mul]
+    rw [rpow_def_of_pos hx_pos, exp_le_exp]
+    have h_coeff_neg : -(ℓ : ℝ) / (ℓ + 1) < 0 := by
+      have h1 : (0 : ℝ) < (ℓ : ℝ) := by exact_mod_cast hℓ
+      linarith [div_pos h1 (by positivity : (0:ℝ) < (ℓ:ℝ) + 1),
+                show -(ℓ:ℝ) / (ℓ+1) = -((ℓ:ℝ)/(ℓ+1)) from neg_div _ _]
+    linarith [mul_le_mul_of_nonpos_right hx_log h_coeff_neg.le,
+              show b * (-(ℓ:ℝ) / (ℓ+1)) = -(ℓ:ℝ) * b / (ℓ+1) from by ring]
+  · exact bklnw_eq_3_11_term_le k hk ℓ hℓ b (by exact_mod_cast hbk) x hx_pos hx_log
+
+private lemma rpow_one_div_succ_eq_rpow_neg_div_mul (ℓ : ℝ) (hℓ : 0 ≤ ℓ) (x : ℝ) (hx_pos : 0 < x) :
+    x ^ (1 / (ℓ + 1)) = x ^ (-ℓ / (ℓ + 1)) * x := by
+  nth_rw 3 [← Real.rpow_one x]
+  rw [← Real.rpow_add hx_pos]
+  congr 1
+  field_simp [show ℓ + 1 ≠ 0 by linarith]
+  ring
 
 @[blueprint
   "bklnw-corollary-9-1"
@@ -1304,27 +1703,324 @@ This last inequality leads to the condition $b \ge 2k$.  -/)
   (discussion := 1262)]
 theorem bklnw_corollary_9_1 (k : ℕ) (v c C b : ℝ) (hvcc : (100, v, c, C) ∈ table_from_buthe) (hb : max (10000 : ℝ) (exp (2 * k)) ≤ exp b ∧ exp b ≤ v) :
   ∀ x ∈ Set.Icc (exp b) v, θ x ≥ x - C_bk b c C RS_prime.c₀ k * x / (log x)^k := by
-  sorry
+  obtain ⟨hb_lb, hb_ub⟩ := hb
+  set u := exp (b / 2) with hu_def
+  obtain ⟨hbk, hu_ge_100, hb_pos, hu_lt_v, hu_ge_1, hu_sq⟩ :=
+    exp_half_mem_Icc_of_exp_mem k v b hb_lb hb_ub
+  have hψ_bound_uv : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C := by
+    intro x hx
+    apply bklnw_table_from_buthe 100 v c C hvcc
+    exact ⟨le_trans (by exact_mod_cast hu_ge_100) hx.1, hx.2⟩
+  have hψ_linear : ∀ x > 0, ψ x < RS_prime.c₀ * x :=
+    fun x hx => RS_prime.theorem_12 hx
+  have hlemma9 : ∀ x ∈ Set.Icc (exp b) v,
+      θ x ≥ x - (C + 1) * x ^ (1 / 2 : ℝ) - RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+              - c * x ^ (1 / 4 : ℝ) - RS_prime.c₀ * x ^ (1 / 5 : ℝ) := by
+    have h9 := bklnw_lemma_9 u v c C RS_prime.c₀ ⟨hu_ge_1, hu_lt_v⟩ hψ_bound_uv hψ_linear
+    rwa [hu_sq] at h9
+  intro x hx_mem
+  have hx_pos : (0 : ℝ) < x := (exp_pos b).trans_le hx_mem.1
+  have hx_log : b ≤ log x := by
+    have := hx_mem.1
+    rwa [← Real.log_exp b, Real.log_le_log_iff (exp_pos b) hx_pos]
+  have hterm1 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 1 (by norm_num) b hbk x hx_pos hx_log
+  have hterm2 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 2 (by norm_num) b hbk x hx_pos hx_log
+  have hterm3 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 3 (by norm_num) b hbk x hx_pos hx_log
+  have hterm4 := log_pow_mul_rpow_neg_le_pow_mul_exp_neg k 4 (by norm_num) b hbk x hx_pos hx_log
+  obtain ⟨hc_nonneg, hC_nonneg⟩ := table_from_buthe_cC_nonneg v c C hvcc
+  have hc₀_nonneg : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have hlogk_pos : 0 < (log x) ^ k := pow_pos (by linarith) k
+  have hrw1 : x ^ (1 / 2 : ℝ) = x ^ (-(1 : ℝ) / (1 + 1)) * x := by
+    rw [show (1 / 2 : ℝ) = 1 / (1 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 1 (by norm_num) x hx_pos
+  have hrw2 : x ^ (1 / 3 : ℝ) = x ^ (-(2 : ℝ) / (2 + 1)) * x := by
+    rw [show (1 / 3 : ℝ) = 1 / (2 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 2 (by norm_num) x hx_pos
+  have hrw3 : x ^ (1 / 4 : ℝ) = x ^ (-(3 : ℝ) / (3 + 1)) * x := by
+    rw [show (1 / 4 : ℝ) = 1 / (3 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 3 (by norm_num) x hx_pos
+  have hrw4 : x ^ (1 / 5 : ℝ) = x ^ (-(4 : ℝ) / (4 + 1)) * x := by
+    rw [show (1 / 5 : ℝ) = 1 / (4 + 1 : ℝ) by norm_num]
+    exact rpow_one_div_succ_eq_rpow_neg_div_mul 4 (by norm_num) x hx_pos
+  suffices h_sum_le : (C + 1) * x ^ (1 / 2 : ℝ) + RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+      + c * x ^ (1 / 4 : ℝ) + RS_prime.c₀ * x ^ (1 / 5 : ℝ)
+      ≤ C_bk b c C RS_prime.c₀ k * x / (log x) ^ k by
+    linarith [hlemma9 x hx_mem]
+  calc (C + 1) * x ^ (1 / 2 : ℝ) + RS_prime.c₀ * x ^ (1 / 3 : ℝ)
+          + c * x ^ (1 / 4 : ℝ) + RS_prime.c₀ * x ^ (1 / 5 : ℝ)
+      _ ≤ ((C + 1) * (b ^ k * exp (-(1 : ℝ) * b / (1 + 1)))
+            + RS_prime.c₀ * (b ^ k * exp (-(2 : ℝ) * b / (2 + 1)))
+            + c * (b ^ k * exp (-(3 : ℝ) * b / (3 + 1)))
+            + RS_prime.c₀ * (b ^ k * exp (-(4 : ℝ) * b / (4 + 1)))) * x / (log x) ^ k := by
+          rw [hrw1, hrw2, hrw3, hrw4, le_div_iff₀ hlogk_pos]
+          nlinarith [mul_le_mul_of_nonneg_left hterm1 (by linarith : (0:ℝ) ≤ C + 1),
+                     mul_le_mul_of_nonneg_left hterm2 hc₀_nonneg,
+                     mul_le_mul_of_nonneg_left hterm3 hc_nonneg,
+                     mul_le_mul_of_nonneg_left hterm4 hc₀_nonneg,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(1 : ℝ) / (1 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(2 : ℝ) / (2 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(3 : ℝ) / (3 + 1))) hx_pos.le,
+                     mul_nonneg (rpow_nonneg hx_pos.le (-(4 : ℝ) / (4 + 1))) hx_pos.le]
+      _ = C_bk b c C RS_prime.c₀ k * x / (log x) ^ k := by
+          simp only [C_bk]; ring_nf
 
 @[blueprint
   "bklnw-table-12-verification"
   (title := "BKLNW Table 12 verification")
   (statement := /--  Verification of the entries of Table 12. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 12. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
+  (proof := /-- For each row, the constant $C_{b,k}$ of Corollary \ref{bklnw-corollary-9-1}
+is at most the tabulated entry.  This is a finite numerical check, carried out by
+`table\_12\_check` in `BKLNW\_tables.lean` via interval arithmetic, using
+$C_{b,k} = b^k \cdot S$ with $S$ independent of $k$. -/)
   (latexEnv := "proposition")
   (discussion := 1263)]
 theorem bklnw_table_12_verification (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k := by
-  sorry
+  obtain ⟨h1, h2, h3, h4, h5⟩ :=
+    BKLNW.table_12_check b (Cb 1) (Cb 2) (Cb 3) (Cb 4) (Cb 5) c C M h
+  have hC : ∀ j : ℕ, C_bk b c C RS_prime.c₀ j = b ^ j * BKLNW.C_bk_S b c C := by
+    intro j; simp only [C_bk, BKLNW.C_bk_S]
+  intro k hk
+  have hk' : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+    simp only [Finset.mem_Icc] at hk; omega
+  rcases hk' with rfl | rfl | rfl | rfl | rfl <;> rw [hC] <;> assumption
+
+private lemma mem_table_from_buthe_and_bounds_of_mem_table_12 (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
+    ((100 : ℝ), M, c, C) ∈ table_from_buthe ∧
+    exp b ≤ M ∧ (10000 : ℝ) ≤ exp b ∧ (10 : ℝ) ≤ b ∧ 0 < b ∧
+    (M = 5 * 10 ^ 10 ∨ M = 32 * 10 ^ 12 ∨ M = 10 ^ 19) := by
+  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals try rcases h with ⟨rfl, -, -, -, -, -, rfl, rfl, rfl⟩
+  all_goals try refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals try simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+  all_goals try simp only [Real.exp_log (show (0 : ℝ) < 5e10 by norm_num),
+                            Real.exp_log (show (0 : ℝ) < 32e12 by norm_num)]
+  all_goals try grw [← exp_one_rpow, Real.exp_one_lt_d9]
+  all_goals try (rw [← exp_one_rpow]
+                 refine le_trans ?_ (rpow_le_rpow (by norm_num) exp_one_gt_d9.le (by norm_num)))
+  all_goals try (rw [Real.le_log_iff_exp_le (by norm_num)]
+                 grw [← exp_one_rpow 10, Real.exp_one_lt_d9])
+  all_goals try (apply Real.log_pos; norm_num)
+  all_goals try norm_num
+
+private lemma theta_sub_ge_of_cbk_le (x cbk cb : ℝ) (k : ℕ)
+    (hx_pos : 0 < x) (h_log_pos : 0 < log x ^ k)
+    (h_theta : θ x - x ≥ -(cbk * x / log x ^ k))
+    (h_le : cbk ≤ cb) :
+    θ x - x ≥ -cb * x / log x ^ k :=
+  calc θ x - x ≥ -(cbk * x / log x ^ k) := h_theta
+    _ = -cbk * x / log x ^ k := by ring
+    _ ≥ -cb * x / log x ^ k := by
+        apply div_le_div_of_nonneg_right _ (le_of_lt h_log_pos)
+        exact mul_le_mul_of_nonneg_right (neg_le_neg h_le) hx_pos.le
+
+private lemma exp_two_k_le_exp_ten (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
+    exp (2 * (k : ℝ)) ≤ exp 10 := by
+  apply Real.exp_le_exp.mpr
+  have : (k : ℝ) ≤ 5 := by exact_mod_cast (Finset.mem_Icc.mp hk).2
+  linarith
+
+private lemma le_of_le_of_mem_Icc_one_five (Cb Cb_ref : ℕ → ℝ)
+    (h1 : Cb_ref 1 ≤ Cb 1) (h2 : Cb_ref 2 ≤ Cb 2) (h3 : Cb_ref 3 ≤ Cb 3)
+    (h4 : Cb_ref 4 ≤ Cb 4) (h5 : Cb_ref 5 ≤ Cb 5)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) : Cb_ref k ≤ Cb k := by
+  have : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 := by
+    simp only [Finset.mem_Icc] at hk; omega
+  rcases this with rfl | rfl | rfl | rfl | rfl <;> assumption
+
+noncomputable def table_12_row_b (row_idx : Fin BKLNW.table_12.length) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (b, _, _, _, _, _, _, _, _) => b
+
+noncomputable def table_12_row_Cb (row_idx : Fin BKLNW.table_12.length) (k : ℕ) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (_, Cb1, Cb2, Cb3, Cb4, Cb5, _, _, _) =>
+    if k = 1 then Cb1
+    else if k = 2 then Cb2
+    else if k = 3 then Cb3
+    else if k = 4 then Cb4
+    else Cb5
+
+noncomputable def table_12_row_c (row_idx : Fin BKLNW.table_12.length) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (_, _, _, _, _, _, c, _, _) => c
+
+noncomputable def table_12_row_C (row_idx : Fin BKLNW.table_12.length) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (_, _, _, _, _, _, _, C, _) => C
+
+noncomputable def table_12_row_M (row_idx : Fin BKLNW.table_12.length) : ℝ :=
+  match BKLNW.table_12.get row_idx with
+  | (_, _, _, _, _, _, _, _, M) => M
+
+private noncomputable def bklnw_b_row6 : ℝ := table_12_row_b ⟨5, by decide⟩
+private noncomputable def bklnw_Cb_row6 (k : ℕ) : ℝ := table_12_row_Cb ⟨5, by decide⟩ k
+private noncomputable def bklnw_c_row6 : ℝ := table_12_row_c ⟨5, by decide⟩
+private noncomputable def bklnw_C_row6 : ℝ := table_12_row_C ⟨5, by decide⟩
+private noncomputable def bklnw_M_row6 : ℝ := table_12_row_M ⟨5, by decide⟩
+
+private noncomputable def bklnw_b_row14 : ℝ := table_12_row_b ⟨13, by decide⟩
+private noncomputable def bklnw_Cb_row14 (k : ℕ) : ℝ := table_12_row_Cb ⟨13, by decide⟩ k
+private noncomputable def bklnw_c_row14 : ℝ := table_12_row_c ⟨13, by decide⟩
+private noncomputable def bklnw_C_row14 : ℝ := table_12_row_C ⟨13, by decide⟩
+private noncomputable def bklnw_M_row14 : ℝ := table_12_row_M ⟨13, by decide⟩
+
+local macro "eval_table_12" : tactic =>
+  `(tactic| (
+    simp only [
+      bklnw_b_row6, bklnw_Cb_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
+      bklnw_b_row14, bklnw_Cb_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
+      table_12_row_b, table_12_row_Cb, table_12_row_c, table_12_row_C, table_12_row_M,
+      table_12, List.get
+    ]
+  ))
+
+local macro "eval_table_12_at_all" : tactic =>
+  `(tactic| (
+    simp only [
+      bklnw_b_row6, bklnw_Cb_row6, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6,
+      bklnw_b_row14, bklnw_Cb_row14, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14,
+      table_12_row_b, table_12_row_Cb, table_12_row_c, table_12_row_C, table_12_row_M,
+      table_12, List.get
+    ] at *
+  ))
+
+private lemma table_12_Cb_bounds (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
+    (M = 5 * 10 ^ 10 → bklnw_Cb_row6 k ≤ Cb k) ∧
+    (M ≠ 10 ^ 19 → bklnw_Cb_row14 k ≤ Cb k) := by
+  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals try rcases h with ⟨rfl, hCb1, hCb2, hCb3, hCb4, hCb5, rfl, rfl, rfl⟩
+  all_goals try refine ⟨?_, ?_⟩
+  all_goals try (
+    intro hM
+    norm_num at hM
+    try contradiction
+  )
+  all_goals try (
+    refine le_of_le_of_mem_Icc_one_five Cb bklnw_Cb_row6 ?_ ?_ ?_ ?_ ?_ k hk <;>
+      (unfold bklnw_Cb_row6 table_12_row_Cb; simp only [table_12, List.get, hCb1, hCb2, hCb3, hCb4, hCb5]; norm_num)
+  )
+  all_goals try (
+    refine le_of_le_of_mem_Icc_one_five Cb bklnw_Cb_row14 ?_ ?_ ?_ ?_ ?_ k hk <;>
+      (unfold bklnw_Cb_row14 table_12_row_Cb; simp only [table_12, List.get, hCb1, hCb2, hCb3, hCb4, hCb5]; norm_num)
+  )
+
+lemma C_bk_le_Cb_of_M_eq_five_mul_ten_pow_ten (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM5 : M = 5 * 10 ^ 10) :
+  C_bk bklnw_b_row6 bklnw_c_row6 bklnw_C_row6 RS_prime.c₀ k ≤ Cb k := by
+  have h_row6_mem : (bklnw_b_row6, bklnw_Cb_row6 1, bklnw_Cb_row6 2, bklnw_Cb_row6 3, bklnw_Cb_row6 4, bklnw_Cb_row6 5, bklnw_c_row6, bklnw_C_row6, bklnw_M_row6) ∈ table_12 := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+    eval_table_12; norm_num
+  have h_ver := bklnw_table_12_verification bklnw_b_row6 bklnw_c_row6 bklnw_C_row6 bklnw_M_row6 bklnw_Cb_row6 h_row6_mem k hk
+  exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).1 hM5)
+
+private lemma C_bk_le_Cb_of_M_ne_ten_pow_nineteen (b c C M : ℝ) (Cb : ℕ → ℝ)
+    (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) (hM : M ≠ 10 ^ 19) :
+    C_bk bklnw_b_row14 bklnw_c_row14 bklnw_C_row14 RS_prime.c₀ k ≤ Cb k := by
+  have h_row14_mem : (bklnw_b_row14, bklnw_Cb_row14 1, bklnw_Cb_row14 2, bklnw_Cb_row14 3, bklnw_Cb_row14 4, bklnw_Cb_row14 5, bklnw_c_row14, bklnw_C_row14, bklnw_M_row14) ∈ table_12 := by
+    simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq]
+    eval_table_12; norm_num
+  have h_ver := bklnw_table_12_verification bklnw_b_row14 bklnw_c_row14 bklnw_C_row14 bklnw_M_row14 bklnw_Cb_row14 h_row14_mem k hk
+  exact le_trans h_ver ((table_12_Cb_bounds b c C M Cb h k hk).2 hM)
 
 @[blueprint
   "bklnw-corollary-9-1-explicit"
   (title := "BKLNW Corollary 9.1 explicit version")
-  (statement := /--  We have $\theta(x) - x > - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
+  (statement := /--  We have $\theta(x) - x \geq - C_{b,k} x / \log k$ for all $k=1,\dots, 5$, $e^b \leq x < 10^{19}$, and $C_{b,k}$ from Table 12. -/)
   (proof := /-- Insert the above table into the previous corollary. -/)
   (latexEnv := "corollary")]
 theorem bklnw_corollary_9_1_explicit (b c C M : ℝ) (Cb : ℕ → ℝ) (h : (b, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12) :
-  ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x > - Cb k * x / (log x)^k := by
-  sorry
+  ∀ x ∈ Set.Ico (exp b) (10 ^ 19), ∀ k ∈ Finset.Icc 1 5, θ x - x ≥ - Cb k * x / (log x)^k := by
+  obtain ⟨h_buthe, h_expb_le_M, h_10000_le_expb, h_ten_le_b, h_b_pos, h_M_vals⟩ :=
+    mem_table_from_buthe_and_bounds_of_mem_table_12 b c C M Cb h
+  have h_expb_lb : ∀ k : ℕ, k ∈ Finset.Icc 1 5 →
+      max (10000 : ℝ) (exp (2 * (k : ℝ))) ≤ exp b := fun k hk =>
+    max_le_iff.mpr ⟨h_10000_le_expb,
+                    le_trans (exp_two_k_le_exp_ten k hk) (Real.exp_le_exp.mpr h_ten_le_b)⟩
+  have h_cor_9_1 : ∀ k : ℕ, k ∈ Finset.Icc 1 5 →
+      ∀ x ∈ Set.Icc (exp b) M,
+      θ x ≥ x - C_bk b c C RS_prime.c₀ k * x / (log x) ^ k :=
+    fun k hk => bklnw_corollary_9_1 k M c C b h_buthe ⟨h_expb_lb k hk, h_expb_le_M⟩
+  have h_Cb_le : ∀ k ∈ Finset.Icc 1 5, C_bk b c C RS_prime.c₀ k ≤ Cb k :=
+    bklnw_table_12_verification b c C M Cb h
+  intro x hx k hk
+  rcases le_or_gt x M with hx_le | hx_gt
+  · have hx_in_Icc : x ∈ Set.Icc (exp b) M := ⟨hx.1, hx_le⟩
+    have hx_pos : (0 : ℝ) < x := (exp_pos b).trans_le hx_in_Icc.1
+    have h_log_pos : (0 : ℝ) < (log x) ^ k := by
+      apply pow_pos
+      calc 0 < b := h_b_pos
+        _ = log (exp b) := (Real.log_exp b).symm
+        _ ≤ log x := Real.log_le_log (exp_pos b) hx_in_Icc.1
+    exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
+      (by linarith [h_cor_9_1 k hk x hx_in_Icc]) (h_Cb_le k hk)
+  · by_cases hM : M = 10 ^ 19
+    · subst hM; linarith [hx.2, hx_gt]
+    · by_cases hM5 : M = 5 * 10 ^ 10
+      · by_cases hx32 : x ≤ bklnw_M_row6
+        · have hx_in_Icc6 : x ∈ Set.Icc (exp bklnw_b_row6) bklnw_M_row6 := by
+            eval_table_12_at_all
+            rw [Real.exp_log (by norm_num)]; exact ⟨by linarith, hx32⟩
+          have h_cor_9_1_row6 := bklnw_corollary_9_1 k bklnw_M_row6 bklnw_c_row6 bklnw_C_row6 bklnw_b_row6
+            (by eval_table_12; simp [table_from_buthe]; norm_num)
+            (by eval_table_12
+                rw [Real.exp_log (by norm_num)]
+                try simp only [max_le_iff]
+                refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+                grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
+          have hx_pos : (0 : ℝ) < x := by linarith
+          have h_log_pos : (0 : ℝ) < log x ^ k :=
+            pow_pos (Real.log_pos (by linarith : (1 : ℝ) < x)) k
+          exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
+            (by linarith [h_cor_9_1_row6 x hx_in_Icc6])
+            (C_bk_le_Cb_of_M_eq_five_mul_ten_pow_ten b c C M Cb h k hk hM5)
+        · have hx_in_Icc14 : x ∈ Set.Icc (exp bklnw_b_row14) bklnw_M_row14 := by
+            eval_table_12_at_all
+            rw [Real.exp_log (by norm_num)]
+            exact ⟨(not_le.mp hx32).le, by linarith [hx.2]⟩
+          have h_cor_9_1_row14 := bklnw_corollary_9_1 k bklnw_M_row14 bklnw_c_row14 bklnw_C_row14 bklnw_b_row14
+            (by eval_table_12; simp [table_from_buthe]; norm_num)
+            (by eval_table_12
+                rw [Real.exp_log (by norm_num)]
+                try simp only [max_le_iff]
+                refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+                grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
+          have hx_pos : (0 : ℝ) < x := by linarith
+          have h_log_pos : (0 : ℝ) < log x ^ k :=
+            pow_pos (Real.log_pos (by linarith : (1 : ℝ) < x)) k
+          exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
+            (by linarith [h_cor_9_1_row14 x hx_in_Icc14])
+            (C_bk_le_Cb_of_M_ne_ten_pow_nineteen b c C M Cb h k hk (by rw [hM5]; norm_num))
+      · have h_M_eq : M = bklnw_M_row6 := by
+          eval_table_12
+          rcases h_M_vals with rfl | rfl | rfl
+          · exact absurd rfl hM5
+          · norm_num
+          · exact absurd rfl hM
+        have hx_gt32 : x > bklnw_M_row6 := h_M_eq ▸ hx_gt
+        have hx_in_Icc14 : x ∈ Set.Icc (exp bklnw_b_row14) bklnw_M_row14 := by
+          eval_table_12_at_all
+          rw [Real.exp_log (by norm_num)]
+          exact ⟨hx_gt32.le, by linarith [hx.2]⟩
+        have h_cor_9_1_row14 := bklnw_corollary_9_1 k bklnw_M_row14 bklnw_c_row14 bklnw_C_row14 bklnw_b_row14
+          (by eval_table_12; simp [table_from_buthe]; norm_num)
+          (by eval_table_12
+              rw [Real.exp_log (by norm_num)]
+              try simp only [max_le_iff]
+              refine ⟨⟨by norm_num, le_trans (exp_two_k_le_exp_ten k hk) ?_⟩, by norm_num⟩
+              grw [← exp_one_rpow 10, Real.exp_one_lt_d9]; norm_num)
+        have hx_pos : (0 : ℝ) < x := by linarith
+        have h_log_pos : (0 : ℝ) < log x ^ k :=
+          pow_pos (Real.log_pos (by linarith : (1 : ℝ) < x)) k
+        exact theta_sub_ge_of_cbk_le x _ _ k hx_pos h_log_pos
+          (by linarith [h_cor_9_1_row14 x hx_in_Icc14])
+          (C_bk_le_Cb_of_M_ne_ten_pow_nineteen b c C M Cb h k hk hM)
 
 
 blueprint_comment /--
@@ -1436,6 +2132,18 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
+  "bklnw-thm-1b-table"
+  (title := "BKLNW Theorem 1b, table form")
+  (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
+  The first column of the table is the logarithmic threshold \(b = \log X_0\), so a row with first
+  component \(b\) applies for \(x \geq \exp b\).
+  -/)
+  (latexEnv := "theorem")]
+theorem thm_1b_table {b : ℝ} (hb : b > 0) {M : Fin 5 → ℝ} (h : (b, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ exp b) :
+  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) := by sorry
+
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
+@[blueprint
   "bklnw-thm-1b"
   (title := "Theorem 1b")
   (statement := /--  Let $k$ be an integer with $1 \leq k \leq 5$. For any fixed $X_0 > 1$, there exists $m_k > 0$ such that, for all $x \geq X_0$
@@ -1448,20 +2156,75 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
-    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
-  sorry
-
-/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
-@[blueprint
-  "bklnw-thm-1b-table"
-  (title := "BKLNW Theorem 1b, table form")
-  (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
-  -/)
-  (latexEnv := "theorem")]
-theorem thm_1b_table {X₀ : ℝ} (hX₀ : X₀ > 1) {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ X₀) :
-  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
-  by sorry
+theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ : ℝ} (hX₀ : X₀ > 1) :
+  ∃ mₖ Mₖ, ∀ x, x ≥ X₀ ∧ x ≥ X₁ → (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+  have h_ne : Table_15 ≠ [] := by decide
+  let row := Table_15.getLast h_ne
+  let b : ℝ := row.1
+  let M := row.2
+  have hM : (b, M) ∈ Table_15 := List.getLast_mem h_ne
+  by_cases hk0 : k = 0
+  · subst k
+    let α := Inputs.default.α
+    use 1, α
+    intro x hx
+    have hx_pos : x > 0 := by linarith [hx.1, hX₀]
+    constructor
+    · rw [show 1 - 1 / (log x)^0 = 0 by simp, mul_zero]
+      exact Chebyshev.theta_nonneg x
+    · rw [show 1 + α / (log x)^0 = 1 + α by simp, mul_comm]
+      exact Inputs.default.hα x hx_pos
+  · have hk_fin : k - 1 < 5 := by omega
+    let k_fin : Fin 5 := ⟨k - 1, hk_fin⟩
+    let C_table := M k_fin
+    let α := Inputs.default.α
+    let mk := max C_table (b^k)
+    let Mk := max C_table (α * b^k)
+    use mk, Mk
+    intro x hx
+    have hx_pos : x > 0 := by linarith [hx.1, hX₀]
+    have hlog_pos : log x > 0 := Real.log_pos (by linarith [hx.1, hX₀])
+    have h_log_k_pos : 0 < (log x)^k := by positivity
+    by_cases hxb : x ≥ exp b
+    · have hk_eq : k_fin.val + 1 = k := by dsimp [k_fin]; omega
+      have h_table_bound := thm_1b_table (by dsimp [b, row, Table_15]; norm_num) hM k_fin hxb
+      rw [hk_eq] at h_table_bound
+      constructor
+      · have h_le : x * (1 - mk / (log x)^k) ≤ x * (1 - C_table / (log x)^k) := by
+          gcongr; exact le_max_left _ _
+        exact h_le.trans h_table_bound.1
+      · have h_le : x * (1 + C_table / (log x)^k) ≤ x * (1 + Mk / (log x)^k) := by
+          gcongr; exact le_max_left _ _
+        exact h_table_bound.2.trans h_le
+    · have h_lt : x < exp b := not_le.mp hxb
+      have h_log_lt : log x < b := by
+        rwa [← log_lt_log_iff hx_pos (by positivity), Real.log_exp b] at h_lt
+      have h_log_k_le : (log x)^k ≤ b^k := by
+        have h_log_nonneg : 0 ≤ log x := by positivity
+        exact pow_le_pow_left₀ h_log_nonneg h_log_lt.le k
+      constructor
+      · have h_bk_le : b^k ≤ mk := le_max_right _ _
+        have h_log_k_le_mk : (log x)^k ≤ mk := h_log_k_le.trans h_bk_le
+        have h_le_zero : x * (1 - mk / (log x)^k) ≤ 0 := by
+          have h_div : 1 ≤ mk / (log x)^k := by
+            rw [one_le_div h_log_k_pos]
+            exact h_log_k_le_mk
+          have h_sub : 1 - mk / (log x)^k ≤ 0 := by linarith
+          nlinarith [hx_pos, h_sub]
+        exact h_le_zero.trans (Chebyshev.theta_nonneg x)
+      · have h_α_bk_le : α * b^k ≤ Mk := le_max_right _ _
+        have hα_nonneg : 0 ≤ α := by dsimp [α, Inputs.default]; positivity
+        have h_le_α : α ≤ Mk / (log x)^k := by
+          have h2 : α ≤ α * b^k / (log x)^k := by
+            rw [mul_div_assoc]
+            simpa using mul_le_mul_of_nonneg_left ((one_le_div h_log_k_pos).mpr h_log_k_le) hα_nonneg
+          have h1 : α * b^k / (log x)^k ≤ Mk / (log x)^k := by gcongr
+          exact h2.trans h1
+        have h_bound := cor_2_1 x hx_pos
+        rw [mul_comm] at h_bound
+        have h_sub_bound : 1 + α ≤ 1 + Mk / (log x)^k := by linarith
+        have h_final : x * (1 + α) ≤ x * (1 + Mk / (log x)^k) := by gcongr
+        exact h_bound.trans h_final
 
 
 blueprint_comment /--

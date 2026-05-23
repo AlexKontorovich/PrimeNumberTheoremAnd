@@ -179,7 +179,7 @@ theorem lambdaSquared_eq_zero_of_support (w : ℕ → ℝ) (y : ℝ)
   dsimp only [lambdaSquared]
   by_cases hy : 0 ≤ y
   swap
-  · push_neg at hd hy
+  · push Not at hd hy
     have : ∀ d' : ℕ, w d' = 0 := by
       intro d'; apply hw
       have : (0:ℝ) ≤ (d') ^ 2 := by norm_num

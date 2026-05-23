@@ -195,6 +195,7 @@ theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
   obtain ⟨C₃, hC₃_le, hC₃⟩ := ceil_approx (x) (by linarith)
   rw [hC₁, hC₂, Nat.cast_sub, hC₃]
   · ring_nf
+    rw [(by ring_nf : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + C₁ - C₂| = |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)|)]
     have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤
         |(↑d)⁻¹ - (↑d)⁻¹ * C₃| + |C₁ - C₂| := abs_add_le _ _
     have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃| ≤

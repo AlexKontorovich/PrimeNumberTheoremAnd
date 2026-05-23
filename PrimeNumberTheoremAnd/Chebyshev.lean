@@ -133,7 +133,7 @@ $$ \sum_m \nu(m) T(x/m) = \sum_{n \leq x} E(x/n) \Lambda(n).$$ -/)
 theorem T.weighted_eq_sum (ν : ℕ →₀ ℝ) (x : ℝ) : ν.sum (fun m w ↦ w * T (x/m)) = ∑ n ∈ Icc 1 ⌊x⌋₊, Λ n * E ν (x/n) := by
   simp_rw [T.eq_sum_Lambda, E, Finsupp.mul_sum]
   rw [← sum_finsetSum_comm]
-  apply sum_congr fun y hy ↦ ?_
+  apply Finsupp.sum_congr fun y hy ↦ ?_
   rw [Finset.mul_sum]
   by_cases hy : y = 0
   · simp [hy]
@@ -637,10 +637,9 @@ theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by
     by_cases hn0 : n = 0
     · subst hn0; simp [psi_eq_zero_of_lt_two (by norm_num : (0 : ℝ) < 2)]
     · have hn : 0 < n := Nat.pos_of_ne_zero hn0
-      by_cases hsmall : (n : ℝ) ≤ 11723
+      by_cases! hsmall : (n : ℝ) ≤ 11723
       · exact psi_num_2 n (by exact_mod_cast hn) hsmall
-      · push_neg at hsmall
-        let m : ℕ := ⌊(n : ℝ) / 6⌋₊
+      · let m : ℕ := ⌊(n : ℝ) / 6⌋₊
         have hm_lt_n : m < n := by
           exact_mod_cast show (m : ℝ) < n from
             lt_of_le_of_lt (Nat.floor_le (by positivity)) (by nlinarith)
