@@ -2678,6 +2678,63 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
   convert congr_arg (fun y => y - x / Real.log x) (h_parts 2 x (by norm_num) hx) using 1
   ring!
 
+private lemma summable_series_6_58 :
+    Summable (fun n : ℕ => (log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) := by
+  refine .of_nonneg_of_le (fun n => ?_) (fun n => ?_)
+    (summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| log 6.58)
+  · exact div_nonneg (pow_nonneg (log_nonneg (by norm_num)) _) (by positivity)
+  · exact div_le_div_of_nonneg_left (pow_nonneg (log_nonneg (by norm_num)) _) (by positivity)
+      (mod_cast Nat.le_mul_of_pos_left _ (Nat.succ_pos _))
+
+private lemma Li_six_fifty_eight_sub_div_log_pos : Li 6.58 - 6.58 / log 6.58 > 0 := by
+  have h_sum_le_tsum : (∑ n ∈ Finset.range 10, (log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+      ∑' n : ℕ, (log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) :=
+    Summable.sum_le_tsum (Finset.range 10)
+      (fun n _ => div_nonneg (pow_nonneg (log_nonneg (by norm_num)) _) (by positivity))
+      summable_series_6_58
+  have h_log_gt : log 6.58 > 1.884034 := by interval_decide
+  have h_log_lt : log 6.58 < 1.884035 := by interval_decide
+  have h_log_log_gt : log (log 6.58) > 0.633377 := by interval_decide
+  have h_li2_tight : li 2 ≤ 1.045166 := by
+    rw [li_eq_eulerMascheroni_add_log_log_add_tsum (by norm_num)]
+    linarith [show Real.log (Real.log 2) ≤ -0.366512 by interval_decide, hγ_hi, hs_hi]
+  have h_sum_ge : (∑ n ∈ Finset.range 10, (1.884034 : ℝ) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+      ∑ n ∈ Finset.range 10, (log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+    gcongr
+  have h_finite_eval : (∑ n ∈ Finset.range 10, (1.884034 : ℝ) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≥ 3.32709 := by
+    norm_num [Finset.sum_range_succ, Nat.factorial]
+  have h_frac_lt : 6.58 / log 6.58 < 6.58 / 1.884034 :=
+    div_lt_div_of_pos_left (by norm_num) (by norm_num) h_log_gt
+  have h_frac_eval : (6.58 : ℝ) / 1.884034 < 3.49251 := by norm_num
+  calc Li 6.58 - 6.58 / log 6.58
+    _ = eulerMascheroniConstant + log (log 6.58) +
+        (∑' n : ℕ, (log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) -
+        li 2 - 6.58 / log 6.58 := by
+      rw [show Li 6.58 = li 6.58 - li 2 by linarith [li.sub_Li 6.58 (by norm_num)],
+          li_eq_eulerMascheroni_add_log_log_add_tsum (by norm_num)]
+    _ ≥ eulerMascheroniConstant + log (log 6.58) +
+        (∑ n ∈ Finset.range 10, (1.884034 : ℝ) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) -
+        li 2 - 6.58 / log 6.58 := by linarith [h_sum_le_tsum, h_sum_ge]
+    _ > 0 := by linarith [hγ_lo, h_log_log_gt, h_finite_eval, h_li2_tight, h_frac_lt, h_frac_eval]
+
+private lemma integral_one_div_log_sq_ge {x : ℝ} (hx_ge : 6.58 ≤ x) :
+    ∫ t in 6.58..x, 1 / log t ^ 2 ≥ (x - 6.58) / (log x) ^ 2 := by
+  have h_bound : ∫ t in 6.58..x, 1 / log t ^ 2 ≥ ∫ t in 6.58..x, 1 / (log x) ^ 2 := by
+    apply intervalIntegral.integral_mono_on hx_ge
+    · apply_rules [ContinuousOn.intervalIntegrable]; exact continuousOn_const
+    · apply ContinuousOn.intervalIntegrable
+      refine ContinuousOn.div continuousOn_const (ContinuousOn.pow ?_ 2) ?_
+      · refine Real.continuousOn_log.mono ?_
+        intro u hu; rw [Set.uIcc_of_le hx_ge] at hu; exact ne_of_gt (by linarith [hu.1])
+      · intro u hu; rw [Set.uIcc_of_le hx_ge] at hu; exact pow_ne_zero _ (Real.log_pos (by linarith [hu.1])).ne'
+    · intro t ht
+      have hlog_t : 0 < log t := Real.log_pos (by linarith [ht.1])
+      have h_le : log t ≤ log x := Real.log_le_log (by linarith [ht.1]) ht.2
+      exact one_div_le_one_div_of_le (pow_pos hlog_t 2) (pow_le_pow_left₀ (Real.log_nonneg (by linarith [ht.1])) h_le 2)
+  have h_int_const : ∫ t in 6.58..x, 1 / (log x) ^ 2 = (x - 6.58) / (log x) ^ 2 := by
+    simp [intervalIntegral.integral_const, smul_eq_mul, div_eq_mul_inv]
+  linarith [h_bound, h_int_const]
+
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
   "fks2-lemma-20b"
@@ -2690,8 +2747,12 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
   (latexEnv := "lemma")
   (discussion := 714)]
 theorem lemma_20_b {x : ℝ} (hx : x > 6.58) :
-    Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 :=
-  sorry
+    Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 := by
+  constructor
+  · linarith [Li_identity' (a := 6.58) (b := x) (by norm_num) (by linarith),
+      Li_six_fifty_eight_sub_div_log_pos, integral_one_div_log_sq_ge (x := x) (by linarith)]
+  · exact div_pos (by linarith) (pow_pos (log_pos (by linarith)) 2)
+end FKS2
 
 -- Integrability of Eθ t / log t ^ 2
 private lemma Eθ_integrable {x y : ℝ} (hx : 2 ≤ x) (hy : x ≤ y) :
