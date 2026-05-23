@@ -215,6 +215,278 @@ When integrating expressions involving $g$, the Dawson function naturally appear
   $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
 noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
 
+lemma deriv_dawson : ∀ x, deriv dawson x = 1 - 2 * x * dawson x := by
+  intro x
+  unfold dawson
+  have h_exp_cont : Continuous (fun t : ℝ ↦ exp (t ^ 2)) := by fun_prop
+  rw [deriv_fun_mul (by fun_prop) ((intervalIntegral.differentiable_integral_of_continuous h_exp_cont) x),
+    deriv_exp (by fun_prop), Continuous.deriv_integral _ h_exp_cont 0 x,
+    show deriv (fun y ↦ -y ^ 2) x = -2 * x by rw [deriv.fun_neg, deriv_pow_field 2]; norm_num,
+    ← exp_add, neg_add_cancel, exp_zero]
+  ring
+
+lemma differentiable_dawson : Differentiable ℝ dawson := by
+  intro x
+  unfold dawson
+  have h_exp_cont : Continuous (fun t : ℝ ↦ exp (t ^ 2)) := by fun_prop
+  exact DifferentiableAt.mul (by fun_prop) ((intervalIntegral.differentiable_integral_of_continuous h_exp_cont) x)
+
+lemma continuous_dawson : Continuous dawson :=
+  differentiable_dawson.continuous
+
+/-
+dawson is non-negative
+-/
+lemma dawson_nonneg {x : ℝ} (hx : x ≥ 0) : dawson x ≥ 0 := by
+  exact mul_nonneg ( Real.exp_nonneg _ ) ( intervalIntegral.integral_nonneg ( by positivity ) fun t ht => Real.exp_nonneg _ )
+
+lemma dawson_one_pos : dawson 1 > 0 := by
+  unfold dawson
+  exact mul_pos (exp_pos _) (intervalIntegral.integral_pos (by norm_num) (continuous_exp.comp (continuous_pow 2)).continuousOn
+    (fun _ _ ↦ (exp_pos _).le) ⟨0, by norm_num, exp_pos _⟩)
+
+lemma filter_tendsto_dawson_at_top_zero : Filter.Tendsto dawson Filter.atTop (nhds 0) := by
+  have h_dawson_le : ∀ x > 0, dawson x ≤ 1 / x := by
+    intro x hx
+    have h_deriv : ∀ t, HasDerivAt (fun t ↦ exp (x * t) / x) (exp (x * t)) t := by
+      intro t
+      have h := ((hasDerivAt_id t).const_mul x).exp.div_const x
+      rwa [mul_one, mul_div_cancel_right₀ _ (ne_of_gt hx)] at h
+    have hc : Continuous (fun t ↦ exp (x * t)) := by fun_prop
+    have h_int_val : ∫ t in 0..x, exp (x * t) = exp (x * x) / x - exp (x * 0) / x :=
+      intervalIntegral.integral_eq_sub_of_hasDerivAt (fun t _ ↦ h_deriv t) (hc.intervalIntegrable 0 x)
+    have h_int_le_exp : ∫ t in 0..x, exp (x * t) ≤ exp (x ^ 2) / x := by
+      rw [h_int_val, mul_zero, exp_zero, ← sq]
+      have : 0 ≤ 1 / x := one_div_nonneg.mpr hx.le
+      linarith
+    have hc1 : Continuous (fun t : ℝ ↦ exp (t ^ 2)) := continuous_exp.comp (continuous_pow 2)
+    have h_mono : ∫ t in 0..x, exp (t ^ 2) ≤ ∫ t in 0..x, exp (x * t) := by
+      refine intervalIntegral.integral_mono_on hx.le (hc1.intervalIntegrable 0 x)
+        (hc.intervalIntegrable 0 x) (fun t ht ↦ exp_le_exp.mpr ?_)
+      rw [Set.mem_Icc] at ht
+      rw [sq, mul_comm x]
+      exact mul_le_mul_of_nonneg_left ht.2 ht.1
+    unfold dawson
+    calc exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
+      _ ≤ exp (-x ^ 2) * (exp (x ^ 2) / x) := mul_le_mul_of_nonneg_left (le_trans h_mono h_int_le_exp) (exp_pos _).le
+      _ = 1 / x := by
+        rw [show exp (-x ^ 2) * (exp (x ^ 2) / x) = (exp (-x ^ 2) * exp (x ^ 2)) / x by ring]
+        rw [← exp_add, neg_add_cancel, exp_zero]
+  apply squeeze_zero'
+  · filter_upwards [Filter.eventually_gt_atTop (0 : ℝ)] with x hx
+    exact dawson_nonneg hx.le
+  · filter_upwards [Filter.eventually_gt_atTop (0 : ℝ)] with x hx
+    exact h_dawson_le x hx
+  · simpa only [inv_eq_one_div] using tendsto_inv_atTop_zero
+
+lemma dawson_exists_M : ∃ M : ℝ, M > 1 ∧ ∀ x ≥ M, dawson x < dawson 1 := by
+  have h_dawson_1_pos : dawson 1 > 0 := dawson_one_pos
+  obtain ⟨R, hR⟩ := Metric.tendsto_atTop.mp filter_tendsto_dawson_at_top_zero (dawson 1) h_dawson_1_pos
+  refine ⟨max R 2, lt_of_lt_of_le (by norm_num : (1 : ℝ) < 2) (le_max_right R 2), fun x hx ↦ ?_⟩
+  have h_dist := hR x (le_trans (le_max_left R 2) hx)
+  rw [Real.dist_eq, sub_zero] at h_dist
+  exact lt_of_le_of_lt (le_abs_self _) h_dist
+
+lemma dawson_exists_max_Icc (M : ℝ) (hM : M > 1) :
+    ∃ x₀ ∈ Set.Icc 0 M, ∀ x ∈ Set.Icc 0 M, dawson x ≤ dawson x₀ := by
+  refine IsCompact.exists_isMaxOn isCompact_Icc ⟨0, ?_⟩ continuous_dawson.continuousOn
+  rw [Set.mem_Icc]
+  exact ⟨le_rfl, by linarith⟩
+
+lemma dawson_pos {x : ℝ} (hx : x > 0) : dawson x > 0 := by
+  unfold dawson
+  exact mul_pos (exp_pos _)
+    (intervalIntegral.integral_pos hx (by fun_prop)
+      (fun t _ ↦ (exp_pos _).le) ⟨0, Set.mem_Icc.mpr ⟨le_rfl, hx.le⟩, exp_pos _⟩)
+
+private lemma hasDerivAt_exp_sq (x : ℝ) : HasDerivAt (fun t ↦ exp (t^2)) (2 * x * exp (x^2)) x := by
+  have h : HasDerivAt (fun t : ℝ ↦ t ^ 2) (2 * x) x := by
+    have h := hasDerivAt_pow 2 x; rw [show (2 : ℕ) - 1 = 1 from rfl, pow_one] at h
+    exact h.congr_deriv (by push_cast; ring)
+  exact h.exp.congr_deriv (by ring)
+
+lemma F_strictAnti : StrictAntiOn (fun t ↦ exp (t^2) * ((1 : ℝ) - (2 : ℝ) * t * dawson t)) (Set.Ioi (0 : ℝ)) := by
+  have h_diff : Differentiable ℝ (fun t ↦ exp (t^2) * ((1 : ℝ) - (2 : ℝ) * t * dawson t)) := by
+    apply Differentiable.mul (by fun_prop)
+    exact (differentiable_const _).sub (differentiable_id.const_mul (2 : ℝ) |>.mul differentiable_dawson)
+  refine strictAntiOn_of_deriv_neg (convex_Ioi _) h_diff.continuous.continuousOn (fun x hx ↦ ?_)
+  rw [interior_Ioi] at hx
+  have h_deriv_eq : deriv (fun t ↦ exp (t^2) * ((1 : ℝ) - (2 : ℝ) * t * dawson t)) x = -2 * exp (x^2) * dawson x := by
+    have h_dawson : HasDerivAt dawson (1 - 2 * x * dawson x) x :=
+      differentiable_dawson.differentiableAt.hasDerivAt.congr_deriv (deriv_dawson x)
+    exact ((hasDerivAt_exp_sq x).mul
+      ((hasDerivAt_const x 1).sub
+        (((hasDerivAt_id x).const_mul 2).mul h_dawson))).deriv.trans (by dsimp; ring)
+  rw [h_deriv_eq]
+  nlinarith [exp_pos (x^2), dawson_pos hx]
+
+private lemma pos_of_deriv_pos_of_zero {g : ℝ → ℝ} (hg : Differentiable ℝ g)
+    (hg0 : g 0 = 0) (hg_deriv : ∀ y > 0, deriv g y > 0) {x : ℝ} (hx : x > 0) : g x > 0 := by
+  obtain ⟨c, hc, h_eq⟩ := exists_deriv_eq_slope g hx hg.continuous.continuousOn hg.differentiableOn
+  rw [eq_div_iff (by linarith : x - 0 ≠ 0), hg0, sub_zero] at h_eq
+  linarith [mul_pos (hg_deriv c hc.1) (sub_pos.mpr hx), h_eq.symm, sub_zero (g x)]
+
+/-- The Taylor polynomial approximation of degree 13 for the Dawson function. -/
+noncomputable def S6 (x : ℝ) : ℝ :=
+  x - 2/3 * x^3 + 4/15 * x^5 - 8/105 * x^7 + 16/945 * x^9 - 32/10395 * x^11 + 64/135135 * x^13
+
+/-- The Taylor polynomial approximation of degree 11 for the Dawson function. -/
+noncomputable def S5 (x : ℝ) : ℝ :=
+  x - 2/3 * x^3 + 4/15 * x^5 - 8/105 * x^7 + 16/945 * x^9 - 32/10395 * x^11
+
+private lemma hasDerivAt_S5 (y : ℝ) : HasDerivAt S5
+    (1 - 2 * y^2 + 4/3 * y^4 - 8/15 * y^6 + 16/105 * y^8 - 32/945 * y^10) y := by
+  unfold S5
+  have d1 : HasDerivAt (fun x ↦ x) 1 y := hasDerivAt_id y
+  have d2 : HasDerivAt (fun x ↦ 2/3 * x^3) (2 * y^2) y :=
+    ((hasDerivAt_pow 3 y).const_mul (2/3)).congr_deriv (by norm_cast; ring)
+  have d3 : HasDerivAt (fun x ↦ 4/15 * x^5) (4/3 * y^4) y :=
+    ((hasDerivAt_pow 5 y).const_mul (4/15)).congr_deriv (by norm_cast; ring)
+  have d4 : HasDerivAt (fun x ↦ 8/105 * x^7) (8/15 * y^6) y :=
+    ((hasDerivAt_pow 7 y).const_mul (8/105)).congr_deriv (by norm_cast; ring)
+  have d5 : HasDerivAt (fun x ↦ 16/945 * x^9) (16/105 * y^8) y :=
+    ((hasDerivAt_pow 9 y).const_mul (16/945)).congr_deriv (by norm_cast; ring)
+  have d6 : HasDerivAt (fun x ↦ 32/10395 * x^11) (32/945 * y^10) y :=
+    ((hasDerivAt_pow 11 y).const_mul (32/10395)).congr_deriv (by norm_cast; ring)
+  exact ((((d1.sub d2).add d3).sub d4).add d5).sub d6
+
+private lemma hasDerivAt_S6 (y : ℝ) : HasDerivAt S6
+    (1 - 2 * y^2 + 4/3 * y^4 - 8/15 * y^6 + 16/105 * y^8 - 32/945 * y^10 + 64/10395 * y^12) y := by
+  have hd7 : HasDerivAt (fun x ↦ 64/135135 * x^13) (64/10395 * y^12) y :=
+    ((hasDerivAt_pow 13 y).const_mul (64/135135)).congr_deriv (by norm_cast; ring)
+  have heq : S6 = fun x => S5 x + 64/135135 * x^13 := by funext x; simp [S6, S5]
+  rw [heq]; exact ((hasDerivAt_S5 y).add hd7).congr_deriv (by ring)
+
+lemma dawson_lt_S6 (x : ℝ) (hx : x > 0) : dawson x < S6 x := by
+  have hf0 : exp (0^2) * (S6 0 - dawson 0) = 0 := by
+    unfold S6 dawson
+    simp
+  have h_deriv_f : ∀ y > 0, deriv (fun t ↦ exp (t^2) * (S6 t - dawson t)) y =
+      exp (y^2) * (128 / 135135) * y^14 := by
+    intro y hy
+    have h_dawson : HasDerivAt dawson (1 - 2 * y * dawson y) y :=
+      differentiable_dawson.differentiableAt.hasDerivAt.congr_deriv (deriv_dawson y)
+    have h_exp := hasDerivAt_exp_sq y
+    have h_comb := h_exp.mul ((hasDerivAt_S6 y).sub h_dawson)
+    change deriv ((fun t ↦ exp (t^2)) * (S6 - dawson)) y = exp (y^2) * (128 / 135135) * y^14
+    rw [h_comb.deriv]
+    change 2 * y * exp (y^2) * (S6 y - dawson y) +
+      exp (y^2) *
+        (1 - 2 * y^2 + 4/3 * y^4 - 8/15 * y^6 + 16/105 * y^8 - 32/945 * y^10 + 64/10395 * y^12 -
+          (1 - 2 * y * dawson y)) =
+      exp (y^2) * (128 / 135135) * y^14
+    unfold S6
+    ring
+  have h_deriv_pos : ∀ y > 0, deriv (fun t ↦ exp (t^2) * (S6 t - dawson t)) y > 0 := fun y hy => by
+    rw [h_deriv_f y hy]
+    exact mul_pos (mul_pos (exp_pos _) (by norm_num)) (pow_pos hy 14)
+  have h_diff : Differentiable ℝ (fun t ↦ exp (t^2) * (S6 t - dawson t)) := by
+    apply Differentiable.mul (by fun_prop)
+    apply Differentiable.sub
+    · unfold S6; fun_prop
+    · exact differentiable_dawson
+  have hf_pos : exp (x^2) * (S6 x - dawson x) > 0 :=
+    pos_of_deriv_pos_of_zero h_diff hf0 h_deriv_pos hx
+  exact lt_of_sub_pos (pos_of_mul_pos_right hf_pos (exp_pos _).le)
+
+lemma S6_0924_bound : S6 0.924 < 1 / (2 * 0.924) := by
+  unfold S6
+  norm_num
+
+theorem dawson_0924_bound : dawson 0.924 < 1 / (2 * 0.924) :=
+  lt_trans (dawson_lt_S6 _ (by norm_num)) S6_0924_bound
+
+lemma S5_lt_dawson (x : ℝ) (hx : x > 0) : S5 x < dawson x := by
+  have hf0 : exp (0^2) * (dawson 0 - S5 0) = 0 := by
+    unfold S5 dawson
+    simp
+  have h_deriv_f : ∀ y > 0, deriv (fun t ↦ exp (t^2) * (dawson t - S5 t)) y =
+      exp (y^2) * (64 / 10395) * y^12 := by
+    intro y hy
+    have h_dawson : HasDerivAt dawson (1 - 2 * y * dawson y) y :=
+      differentiable_dawson.differentiableAt.hasDerivAt.congr_deriv (deriv_dawson y)
+    have h_exp := hasDerivAt_exp_sq y
+    have h_comb := h_exp.mul (h_dawson.sub (hasDerivAt_S5 y))
+    change deriv ((fun t ↦ exp (t^2)) * (dawson - S5)) y = exp (y^2) * (64 / 10395) * y^12
+    rw [h_comb.deriv]
+    change 2 * y * exp (y^2) * (dawson y - S5 y) +
+      exp (y^2) *
+        (1 - 2 * y * dawson y - (1 - 2 * y^2 + 4/3 * y^4 - 8/15 * y^6 + 16/105 * y^8 - 32/945 * y^10)) =
+      exp (y^2) * (64 / 10395) * y^12
+    unfold S5
+    ring
+  have h_deriv_pos : ∀ y > 0, deriv (fun t ↦ exp (t^2) * (dawson t - S5 t)) y > 0 := fun y hy => by
+    rw [h_deriv_f y hy]
+    exact mul_pos (mul_pos (exp_pos _) (by norm_num)) (pow_pos hy 12)
+  have h_diff : Differentiable ℝ (fun t ↦ exp (t^2) * (dawson t - S5 t)) := by
+    apply Differentiable.mul (by fun_prop)
+    apply Differentiable.sub
+    · exact differentiable_dawson
+    · unfold S5; fun_prop
+  have hf_pos : exp (x^2) * (dawson x - S5 x) > 0 :=
+    pos_of_deriv_pos_of_zero h_diff hf0 h_deriv_pos hx
+  exact lt_of_sub_pos (pos_of_mul_pos_right hf_pos (exp_pos _).le)
+
+lemma S5_0925_bound : 1 / (2 * 0.925) < S5 0.925 := by
+  unfold S5
+  norm_num
+
+theorem dawson_0925_bound : 1 / (2 * 0.925) < dawson 0.925 :=
+  lt_trans S5_0925_bound (S5_lt_dawson _ (by norm_num))
+
+private lemma crit_ge_of_F_pos (x₀ a : ℝ) (hx₀_pos : x₀ > 0) (ha_pos : a > 0)
+    (h_crit_eq : 1 - 2 * x₀ * dawson x₀ = 0)
+    (ha_bound : 1 - 2 * a * dawson a > 0) : a ≤ x₀ := by
+  by_contra h_lt
+  have hF_lt := F_strictAnti hx₀_pos ha_pos (lt_of_not_ge h_lt)
+  dsimp at hF_lt
+  rw [h_crit_eq, mul_zero] at hF_lt
+  nlinarith [exp_pos (a ^ 2), ha_bound]
+
+private lemma crit_le_of_F_neg (x₀ b : ℝ) (hx₀_pos : x₀ > 0) (hb_pos : b > 0)
+    (h_crit_eq : 1 - 2 * x₀ * dawson x₀ = 0)
+    (hb_bound : 1 - 2 * b * dawson b < 0) : x₀ ≤ b := by
+  by_contra h_gt
+  have hF_lt := F_strictAnti hb_pos hx₀_pos (lt_of_not_ge h_gt)
+  dsimp at hF_lt
+  rw [h_crit_eq, mul_zero] at hF_lt
+  nlinarith [exp_pos (b ^ 2), hb_bound]
+
+private lemma dawson_exists_critical_global_max :
+    ∃ x₀ : ℝ, x₀ > 0 ∧ (∀ x, dawson x ≤ dawson x₀) ∧ deriv dawson x₀ = 0 := by
+  have h_dawson_1_pos : dawson 1 > 0 := dawson_one_pos
+  rcases dawson_exists_M with ⟨M, hM1, hM⟩
+  rcases dawson_exists_max_Icc M hM1 with ⟨x₀, hx₀_mem, hx₀_max⟩
+  have hx₀_pos : x₀ > 0 := by
+    have hdawson_x₀_pos : dawson x₀ > 0 :=
+      lt_of_lt_of_le h_dawson_1_pos
+        (hx₀_max 1 (Set.mem_Icc.mpr ⟨by norm_num, hM1.le⟩))
+    exact lt_of_le_of_ne hx₀_mem.1 fun heq => by
+      subst heq
+      simp [dawson] at hdawson_x₀_pos
+  have h_max_nonneg : ∀ x ≥ 0, dawson x ≤ dawson x₀ := by
+    intro x hx
+    rcases le_or_gt x M with hle | hgt
+    · exact hx₀_max x ⟨hx, hle⟩
+    · have h1_mem : (1 : ℝ) ∈ Set.Icc 0 M := Set.mem_Icc.mpr ⟨by norm_num, hM1.le⟩
+      exact le_trans (hM x hgt.le).le (hx₀_max 1 h1_mem)
+  have h_max_neg : ∀ x < 0, dawson x < dawson x₀ := by
+    intro x hx
+    have hdawson_x₀_pos : dawson x₀ > 0 :=
+      lt_of_lt_of_le h_dawson_1_pos
+        (hx₀_max 1 (Set.mem_Icc.mpr ⟨by norm_num, hM1.le⟩))
+    have h_dawson_neg : dawson x ≤ 0 := by
+      unfold dawson
+      rw [intervalIntegral.integral_symm x 0, mul_neg]
+      exact neg_nonpos_of_nonneg (mul_nonneg (exp_pos _).le
+        (intervalIntegral.integral_nonneg (le_of_lt hx) (fun t _ => (exp_pos _).le)))
+    exact lt_of_le_of_lt h_dawson_neg hdawson_x₀_pos
+  have h_max_global : ∀ x, dawson x ≤ dawson x₀ := fun x => by
+    rcases le_or_gt 0 x with hge | hlt
+    · exact h_max_nonneg x hge
+    · exact (h_max_neg x hlt).le
+  exact ⟨x₀, hx₀_pos, h_max_global,
+    IsLocalMax.deriv_eq_zero (Filter.Eventually.of_forall h_max_global)⟩
 
 @[blueprint
   "fks2-remark-after-corollary-11"
@@ -227,7 +499,26 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
   (discussion := 616)]
 theorem remark_after_corollary_11 :
     ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.924 0.925 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
-      StrictAntiOn dawson (Set.Ioi x₀) := sorry
+      StrictAntiOn dawson (Set.Ioi x₀) := by
+  obtain ⟨x₀, hx₀_pos, h_glob_max, h_crit⟩ := dawson_exists_critical_global_max
+  have h_crit_eq : 1 - 2 * x₀ * dawson x₀ = 0 := (deriv_dawson x₀).symm.trans h_crit
+  have h_deriv_pos_0924 : 1 - 2 * 0.924 * dawson 0.924 > 0 := by linarith [dawson_0924_bound]
+  have h_deriv_neg_0925 : 1 - 2 * 0.925 * dawson 0.925 < 0 := by linarith [dawson_0925_bound]
+  have h_ge_0924 : 0.924 ≤ x₀ :=
+    crit_ge_of_F_pos x₀ 0.924 hx₀_pos (by norm_num) h_crit_eq h_deriv_pos_0924
+  have h_le_0925 : x₀ ≤ 0.925 :=
+    crit_le_of_F_neg x₀ 0.925 hx₀_pos (by norm_num) h_crit_eq h_deriv_neg_0925
+  have h_deriv_neg : ∀ x ∈ Set.Ioi x₀, 1 - 2 * x * dawson x < 0 := by
+    intro x hx
+    have hF_lt := F_strictAnti hx₀_pos (lt_trans hx₀_pos hx) hx
+    dsimp at hF_lt
+    rw [h_crit_eq, mul_zero] at hF_lt
+    nlinarith [exp_pos (x ^ 2)]
+  refine ⟨x₀, ⟨h_ge_0924, h_le_0925⟩, h_glob_max,
+    strictAntiOn_of_deriv_neg (convex_Ioi x₀) continuous_dawson.continuousOn (fun x hx ↦ ?_)⟩
+  rw [interior_Ioi] at hx
+  rw [deriv_dawson]
+  exact h_deriv_neg x hx
 
 
 blueprint_comment /--
@@ -1911,12 +2202,6 @@ lemma sqrt_log_minus_ge_one {C R x₁ : ℝ}
   have h_log : Real.log x₁ ≥ (1 + C / (2 * Real.sqrt R)) ^ 2 := by
     simpa using Real.log_le_log ( by positivity ) hx1;
   exact le_tsub_of_add_le_right ( Real.le_sqrt_of_sq_le ( by linarith ) )
-
-/-
-dawson is non-negative
--/
-lemma dawson_nonneg {x : ℝ} (hx : x ≥ 0) : dawson x ≥ 0 := by
-  exact mul_nonneg ( Real.exp_nonneg _ ) ( intervalIntegral.integral_nonneg ( by positivity ) fun t ht => Real.exp_nonneg _ )
 
 /-
 PROBLEM
