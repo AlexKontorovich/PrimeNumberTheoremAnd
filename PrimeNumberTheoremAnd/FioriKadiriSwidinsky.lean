@@ -150,7 +150,7 @@ theorem remark_2_8 {σ α δ d CC₁ c₁ CC₂ c₂ : ℝ}
     theorem_2_7_holds σ α δ d CC₁ c₁ CC₂ c₂ 3E12 1 := by sorry
 
 theorem remark_2_8' {σ α δ d CC₁ c₁ CC₂ c₂ : ℝ}
-    (h : (σ, α, δ, d, CC₁, c₁, CC₂, c₂) ∈ table_7') :
+    (h : (σ, α, δ, d, CC₁, c₁, CC₂, c₂) ∈ Table7') :
     theorem_2_7_holds σ α δ d CC₁ c₁ CC₂ c₂ 3E12 1 := by sorry
 
 @[blueprint
