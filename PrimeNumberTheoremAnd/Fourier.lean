@@ -26,8 +26,6 @@ noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
 
 @[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 (-v * u) := rfl
 
-lemma test (a : ℝ) (b : ℂ) : a • b = (a : ℂ) * b := by rfl
-
 theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by
     simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
