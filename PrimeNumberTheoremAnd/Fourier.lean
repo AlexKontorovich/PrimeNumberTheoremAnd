@@ -54,11 +54,7 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} :
     𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp only [fourier_real_eq]
-  -- `Circle • ℂ` is `rfl`-equal to multiplication by the coerced value; convert explicitly
-  change ∫ v, ((𝐞 (-(v * u)) : ℂ) * (c * f v)) = c * ∫ v, ((𝐞 (-(v * u)) : ℂ) * f v)
-  simp_rw [mul_left_comm _ c]
-  exact integral_const_mul c _
+  exact congr_fun (VectorFourier.fourierIntegral_const_smul 𝐞 _ _ f c) u
 
 end lemmas
 
