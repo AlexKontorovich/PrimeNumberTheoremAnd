@@ -1,5 +1,6 @@
 import Architect
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.FioriKadiriSwidnisky_tables
 
 blueprint_comment /--
 \section{The estimates of Fiori, Kadiri, and Swidinsky}
@@ -127,6 +128,30 @@ theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
       (log T) ^ (5 - 4 * σ) * T ^ (8 / 3 * (1 - σ)) / (2 * π * d) +
       KLN.CC₂ I.H₀ d η k H μ σ * (log T) ^ 2 / (2 * π * d) := by sorry
 
+@[blueprint
+  "fks-remark-2-8"
+  (title := "FKS Remark 2.8")
+  (statement := /--
+    The previous bounds hold for $(\sigma, \alpha, \delta, d, CC_1, c_1, CC_2, c_2)$ given by
+    Table 7 and Table 7' of the paper.
+  -/)]
+noncomputable def theorem_2_7_holds (σ _α _δ d CC₁ _c₁ CC₂ _c₂ H₀ k : ℝ) : Prop :=
+    ∀ H T, H ∈ Set.Ico 1002 H₀ → T ≥ H₀ →
+    riemannZeta.N' σ T ≤ ((T - H) * log T) / (2 * π * d) *
+      log (1 + CC₁ * (log (k * T)) ^ (2 * σ) *
+        (log T) ^ (4 * (1 - σ)) * T ^ (8 / 3 * (1 - σ)) / (T - H)) +
+      CC₂ * (log T) ^ 2 / (2 * π * d) ∧
+    riemannZeta.N' σ T ≤ CC₁ * (log (k * T)) ^ (2 * σ) *
+      (log T) ^ (5 - 4 * σ) * T ^ (8 / 3 * (1 - σ)) / (2 * π * d) +
+      CC₂ * (log T) ^ 2 / (2 * π * d)
+
+theorem remark_2_8 {σ α δ d CC₁ c₁ CC₂ c₂ : ℝ}
+    (h : (σ, α, δ, d, CC₁, c₁, CC₂, c₂) ∈ Table7) :
+    theorem_2_7_holds σ α δ d CC₁ c₁ CC₂ c₂ 3E12 1 := by sorry
+
+theorem remark_2_8' {σ α δ d CC₁ c₁ CC₂ c₂ : ℝ}
+    (h : (σ, α, δ, d, CC₁, c₁, CC₂, c₂) ∈ table_7') :
+    theorem_2_7_holds σ α δ d CC₁ c₁ CC₂ c₂ 3E12 1 := by sorry
 
 @[blueprint
   "fks-corollary-2-9"
