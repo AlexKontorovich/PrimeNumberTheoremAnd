@@ -1890,17 +1890,17 @@ lemma Complex.contDiff_normSq {n : ℕ∞} : ContDiff ℝ n (normSq : ℂ → �
   change ContDiff ℝ n (fun z : ℂ => z.re * z.re + z.im * z.im)
   exact (hre.mul hre).add (him.mul him)
 
+-- The `set_option backward.isDefEq.respectTransparency false` workarounds below
+-- are fixed in mathlib 4.30 and can be removed once we upgrade.
+set_option backward.isDefEq.respectTransparency false in
 @[fun_prop]
-lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) := by
-  have h_exp : ContDiff ℝ n (Complex.exp : ℂ → ℂ) := Complex.contDiff_exp (𝕜 := ℝ)
-  show ContDiff ℝ n (fun z : ℂ => (Complex.exp z - Complex.exp (-z)) / 2)
-  exact (h_exp.sub (h_exp.comp contDiff_neg)).div_const _
+lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) :=
+  Complex.contDiff_sinh.restrict_scalars ℝ
 
+set_option backward.isDefEq.respectTransparency false in
 @[fun_prop]
-lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) := by
-  have h_exp : ContDiff ℝ n (Complex.exp : ℂ → ℂ) := Complex.contDiff_exp (𝕜 := ℝ)
-  show ContDiff ℝ n (fun z : ℂ => (Complex.exp z + Complex.exp (-z)) / 2)
-  exact (h_exp.add (h_exp.comp contDiff_neg)).div_const _
+lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) :=
+  Complex.contDiff_cosh.restrict_scalars ℝ
 
 lemma h_B_rational (ε : ℝ) : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
   simp +contextual [Complex.tanh_eq_sinh_div_cosh, B, coth]
