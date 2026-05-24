@@ -316,7 +316,26 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
 /- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
-  sorry
+  have key : (p ^ k).divisorsAntidiagonal =
+      (Finset.range (k + 1)).image (fun n => (p ^ n, p ^ (k - n))) := by
+    ext ⟨a, b⟩
+    simp only [Nat.mem_divisorsAntidiagonal, Finset.mem_image, Finset.mem_range]
+    constructor
+    · rintro ⟨hab, _⟩
+      have hadp : a ∣ p ^ k := ⟨b, hab.symm⟩
+      obtain ⟨i, hik, rfl⟩ := (Nat.dvd_prime_pow h).mp hadp
+      have hb : b = p ^ (k - i) := by
+        apply Nat.eq_of_mul_eq_mul_left (pow_pos h.pos i)
+        rw [← pow_add, Nat.add_sub_cancel' hik]
+        exact hab
+      exact ⟨i, by omega, Prod.ext rfl hb.symm⟩
+    · rintro ⟨i, hi, hpair⟩
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hpair
+      exact ⟨by rw [← pow_add]; congr 1; omega, (pow_pos h.pos k).ne'⟩
+  rw [key]
+  apply Finset.sum_image
+  intro i _ j _ heq
+  exact Nat.pow_right_injective h.two_le (Prod.mk.inj heq).1
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
