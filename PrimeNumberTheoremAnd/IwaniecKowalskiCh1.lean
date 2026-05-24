@@ -72,7 +72,26 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  refine ⟨(d.gcd a, d.gcd b), ⟨?_, ?_, ?_⟩, ?_⟩
+  · exact Nat.gcd_dvd_right d a
+  · exact Nat.gcd_dvd_right d b
+  · exact (Nat.gcd_mul_gcd_eq_iff_dvd_mul_of_coprime hab).mpr hd
+  · rintro ⟨q₁, q₂⟩ ⟨hq₁a, hq₂b, hq⟩
+    simp only [Prod.mk.injEq]
+    constructor
+    · apply Nat.dvd_antisymm
+      · exact Nat.dvd_gcd (hq ▸ Nat.dvd_mul_right q₁ q₂) hq₁a
+      · have hgda_dvd_q1q2 : d.gcd a ∣ q₁ * q₂ := hq ▸ Nat.gcd_dvd_left d a
+        have hcoprime_gda_q2 : Nat.Coprime (d.gcd a) q₂ :=
+          Nat.Coprime.of_dvd_right hq₂b (Nat.Coprime.of_dvd_left (Nat.gcd_dvd_right d a) hab)
+        exact hcoprime_gda_q2.dvd_of_dvd_mul_right hgda_dvd_q1q2
+    · apply Nat.dvd_antisymm
+      · exact Nat.dvd_gcd (hq ▸ Nat.dvd_mul_left q₂ q₁) hq₂b
+      · have hgdb_dvd_q1q2 : d.gcd b ∣ q₁ * q₂ := hq ▸ Nat.gcd_dvd_left d b
+        have hcoprime_gdb_q1 : Nat.Coprime (d.gcd b) q₁ :=
+          Nat.Coprime.of_dvd_right hq₁a (Nat.Coprime.of_dvd_right (Nat.gcd_dvd_right d b) hab).symm
+        rw [mul_comm] at hgdb_dvd_q1q2
+        exact hcoprime_gdb_q1.dvd_of_dvd_mul_right hgdb_dvd_q1q2
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -91,7 +110,8 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  simp only [← coe_mul_zeta_apply]
+  exact (hf.mul isMultiplicative_zeta.natCast).map_mul_of_coprime hab
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
