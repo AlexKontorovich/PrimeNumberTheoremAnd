@@ -1890,15 +1890,17 @@ lemma Complex.contDiff_normSq {n : ℕ∞} : ContDiff ℝ n (normSq : ℂ → �
   change ContDiff ℝ n (fun z : ℂ => z.re * z.re + z.im * z.im)
   exact (hre.mul hre).add (him.mul him)
 
-set_option backward.isDefEq.respectTransparency false in
 @[fun_prop]
-lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) :=
-  Complex.contDiff_sinh.restrict_scalars ℝ
+lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) := by
+  have h_exp : ContDiff ℝ n (Complex.exp : ℂ → ℂ) := Complex.contDiff_exp (𝕜 := ℝ)
+  show ContDiff ℝ n (fun z : ℂ => (Complex.exp z - Complex.exp (-z)) / 2)
+  exact (h_exp.sub (h_exp.comp contDiff_neg)).div_const _
 
-set_option backward.isDefEq.respectTransparency false in
 @[fun_prop]
-lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) :=
-  Complex.contDiff_cosh.restrict_scalars ℝ
+lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) := by
+  have h_exp : ContDiff ℝ n (Complex.exp : ℂ → ℂ) := Complex.contDiff_exp (𝕜 := ℝ)
+  show ContDiff ℝ n (fun z : ℂ => (Complex.exp z + Complex.exp (-z)) / 2)
+  exact (h_exp.add (h_exp.comp contDiff_neg)).div_const _
 
 lemma h_B_rational (ε : ℝ) : ∀ w : ℂ, w ≠ 0 → B ε w = w * (Complex.cosh (w / 2) / Complex.sinh (w / 2) + ε) / 2 := by
   simp +contextual [Complex.tanh_eq_sinh_div_cosh, B, coth]
@@ -1922,19 +1924,17 @@ theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
     simp_all only [not_true_eq_false]
   convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
 
-set_option backward.isDefEq.respectTransparency false in
+private lemma contDiff_neg_two_pi_I_mul_real_add_div_two {n : ℕ∞} (ν : ℝ) :
+    ContDiff ℝ n (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) / 2) :=
+  ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff)
+    contDiff_const) _
+
 theorem Phi_circ.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
   have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
     simp only [Complex.tanh_eq_sinh_div_cosh]
+    have h_inner := contDiff_neg_two_pi_I_mul_real_add_div_two (n := 2) ν
     have h_sinh_cosh_diff : ContDiff ℝ 2 (fun t : ℝ => Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ContDiff ℝ 2 (fun t : ℝ => Complex.cosh ((-2 * Real.pi * Complex.I * t + ν) / 2)) ∧ ∀ t : ℝ, Complex.sinh ((-2 * Real.pi * Complex.I * t + ν) / 2) ≠ 0 := by
-      refine ⟨?_, ?_, ?_⟩
-      · have h_sinh_entire : ContDiff ℂ 2 Complex.sinh := by fun_prop
-        apply h_sinh_entire.restrict_scalars ℝ |> ContDiff.comp
-        refine ContDiff.div_const ?_ _
-        refine (ContDiff.add ?_ contDiff_const)
-        exact (ContDiff.mul contDiff_const <| Complex.ofRealCLM.contDiff)
-      · have h_cosh_entire : ContDiff ℂ 2 Complex.cosh := by fun_prop
-        exact (h_cosh_entire.restrict_scalars ℝ).comp (ContDiff.div_const (ContDiff.add (ContDiff.mul contDiff_const Complex.ofRealCLM.contDiff) contDiff_const) _)
+      refine ⟨Complex.contDiff_sinh_real.comp h_inner, Complex.contDiff_cosh_real.comp h_inner, ?_⟩
       · norm_num [Complex.sinh, Complex.exp_ne_zero]
         norm_num [sub_eq_zero, Complex.exp_ne_zero]
         intro t ht; rw [Complex.exp_eq_exp_iff_exists_int] at ht
@@ -3381,7 +3381,6 @@ private lemma two_sub_E_sq (x : ℝ) : (2 : ℂ) - E ↑x - E (-↑x) = 4 * (Rea
     ring_nf; linear_combination -4 * Complex.sin_sq_add_cos_sq (z * (1 / 2))]
   simp; ring_nf
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   "shift-upwards-simplified"
   (title := "Simplified formula for upward contour shift")
@@ -3476,14 +3475,18 @@ theorem shift_upwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x 
           (B ε (ν + s) - B ε ν) * Real.exp (x * s) := by
     rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
     rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by positivity)]
-    let f : ℝ → ℂ := fun s ↦ (B ε (s + ν) - B ε ν) * (Real.exp (x * s) : ℂ)
-    have h_scale := intervalIntegral.integral_comp_mul_left f (c := 2 * π) (by positivity) (a := 0) (b := T)
+    let f : ℝ → ℂ := fun s ↦ (B ε (ν + s) - B ε ν) * (Real.exp (x * s) : ℂ)
+    have h_scale : ((2 * π : ℝ) • ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+        = ∫ x_1 in (2 * π : ℝ) * 0..2 * π * T, f x_1 :=
+      intervalIntegral.smul_integral_comp_mul_left (f := f) (2 * π)
     dsimp [f] at h_scale
-    convert h_scale using 1
-    · push_cast; congr 1; ext t; ring_nf
-    · push_cast; field_simp; congr 1
-      · ext s; ring_nf
-      · simp
+    rw [show ((2 * π : ℝ) * 0) = 0 by ring] at h_scale
+    rw [show ∫ t in (0 : ℝ)..T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) * (↑(Real.exp (2 * π * x * t)) : ℂ)
+          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) from by
+        apply intervalIntegral.integral_congr; intro t _; dsimp [f]; push_cast; ring_nf,
+        ← h_scale]
+    rw [show (1 : ℂ) / (2 * ↑π) * (↑(2 * π) * ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) by push_cast; field_simp]
   have h_key (T : ℝ) (hT : 0 ≤ T) :
       (I * ∫ t in Set.Icc 0 (T / (2 * π)),
           (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
@@ -4446,7 +4449,6 @@ theorem third_contour_limit (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) 
       _ = _ := by
         ring_nf
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   "shift-downwards-simplified"
   (title := "Simplified formula for downward contour shift")
@@ -4553,13 +4555,17 @@ theorem shift_downwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : 
     rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
         ← intervalIntegral.integral_of_le (by positivity)]
     let f : ℝ → ℂ := fun s ↦ (B ε (ν - s) - B ε ν) * (Real.exp (-x * s) : ℂ)
-    have h_scale := intervalIntegral.integral_comp_mul_left f (c := 2 * π) (by positivity) (a := 0) (b := T)
+    have h_scale : ((2 * π : ℝ) • ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+        = ∫ x_1 in (2 * π : ℝ) * 0..2 * π * T, f x_1 :=
+      intervalIntegral.smul_integral_comp_mul_left (f := f) (2 * π)
     dsimp [f] at h_scale
-    convert h_scale using 1
-    · push_cast; congr 1; ext t; ring_nf
-    · push_cast; field_simp; congr 1
-      · ext s; ring_nf
-      · simp
+    rw [show ((2 * π : ℝ) * 0) = 0 by ring] at h_scale
+    rw [show ∫ t in (0 : ℝ)..T, (B ε ↑(ν - 2 * π * t) - B ε ↑ν) * (↑(Real.exp (-2 * π * x * t)) : ℂ)
+          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) from by
+        apply intervalIntegral.integral_congr; intro t _; dsimp [f]; push_cast; ring_nf,
+        ← h_scale]
+    rw [show (1 : ℂ) / (2 * ↑π) * (↑(2 * π) * ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) by push_cast; field_simp]
   let combined_expr : ℝ → ℂ := fun T ↦
     (-I * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 - I*t) - Phi_star ν ε (-1 - I*t)) * E (-(-1 - I*↑t) * x)) +
     (I  * ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 - I*t) + Phi_star ν ε (1 - I*t)) * E (-(1 - I*↑t) * x)) -
@@ -4632,7 +4638,6 @@ private lemma integral_neg_one_zero_eq_zero_one (f : ℝ → ℂ) :
   rw [intervalIntegral.integral_comp_neg]
   simp
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   "fourier-real"
   (title := "Fourier transform of $\\varphi$ real")
@@ -4649,7 +4654,10 @@ theorem fourier_real (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) : (𝓕 (ϕ_pm ν
   have h_conj : ∫ t in Set.Icc (-1 : ℝ) 0,
       (Phi_circ ν ε (↑t : ℂ) - Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x) =
       starRingEnd ℂ I_pos := by
-    rw [integral_neg_one_zero_eq_zero_one, ← integral_conj]
+    rw [integral_neg_one_zero_eq_zero_one]
+    rw [show (starRingEnd ℂ) I_pos = ∫ t in Set.Icc 0 (1 : ℝ),
+        starRingEnd ℂ ((Phi_circ ν ε (↑t : ℂ) + Phi_star ν ε (↑t : ℂ)) * E (-(↑t : ℂ) * ↑x))
+      from integral_conj.symm]
     apply MeasureTheory.setIntegral_congr_fun measurableSet_Icc
     intro t _
     simp only [Phi_star_conj_symm, Phi_circ_conj_symm, E_conj_symm, push_cast,
@@ -5819,7 +5827,6 @@ private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
   · rw [abs_le] at hw; linarith
   · rw [abs_le] at hw; linarith
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   "CH2-lemma-4-2a"
   (title := "CH2 Lemma 4.2(a)")
@@ -5861,6 +5868,7 @@ theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ 
     · have h_int : |z.im| < π / 4 := lt_of_le_of_ne hz h_bdy
       let U := Complex.im ⁻¹' Set.Ioo (-π / 4) (π / 4)
       have hU_conn : IsPreconnected U := by
+        haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul
         apply Convex.isPreconnected
         change Convex ℝ ({c : ℂ | -π / 4 < c.im} ∩ {c : ℂ | c.im < π / 4})
         apply Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
