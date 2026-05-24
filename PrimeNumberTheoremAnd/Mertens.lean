@@ -376,7 +376,13 @@ theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
-    sorry
+  rw [isBigO_iff]
+  obtain ⟨c, hc1, hc2⟩:= E₁Λ.bounded'
+  use c
+  filter_upwards [eventually_ge_atTop 1] with x hx
+  convert hc2 x hx
+  simp
+
 
 theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
     simp only [isLittleO_one_left_iff, norm_eq_abs]
