@@ -5828,6 +5828,13 @@ private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
   · rw [abs_le] at hw; linarith
   · rw [abs_le] at hw; linarith
 
+private lemma isPreconnected_im_preimage_Ioo (a b : ℝ) :
+    IsPreconnected (Complex.im ⁻¹' Set.Ioo a b) := by
+  haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul
+  apply Convex.isPreconnected
+  change Convex ℝ ({c : ℂ | a < c.im} ∩ {c : ℂ | c.im < b})
+  exact Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
+
 @[blueprint
   "CH2-lemma-4-2a"
   (title := "CH2 Lemma 4.2(a)")
@@ -5868,11 +5875,7 @@ theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ 
         linarith
     · have h_int : |z.im| < π / 4 := lt_of_le_of_ne hz h_bdy
       let U := Complex.im ⁻¹' Set.Ioo (-π / 4) (π / 4)
-      have hU_conn : IsPreconnected U := by
-        haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul
-        apply Convex.isPreconnected
-        change Convex ℝ ({c : ℂ | -π / 4 < c.im} ∩ {c : ℂ | c.im < π / 4})
-        apply Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
+      have hU_conn : IsPreconnected U := isPreconnected_im_preimage_Ioo _ _
       have hU_open : IsOpen U := isOpen_Ioo.preimage Complex.continuous_im
       have hf_diff : DifferentiableOn ℂ f U := by
         have h_anal : AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
