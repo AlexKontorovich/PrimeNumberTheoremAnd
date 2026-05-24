@@ -1890,8 +1890,9 @@ lemma Complex.contDiff_normSq {n : ℕ∞} : ContDiff ℝ n (normSq : ℂ → �
   change ContDiff ℝ n (fun z : ℂ => z.re * z.re + z.im * z.im)
   exact (hre.mul hre).add (him.mul him)
 
--- The `set_option backward.isDefEq.respectTransparency false` workarounds below
--- are fixed in mathlib 4.30 and can be removed once we upgrade.
+-- The `set_option backward.isDefEq.respectTransparency false` on the next two
+-- lemmas (`contDiff_sinh_real`, `contDiff_cosh_real`) is fixed in mathlib 4.30
+-- and can be removed once we upgrade.
 set_option backward.isDefEq.respectTransparency false in
 @[fun_prop]
 lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) :=
