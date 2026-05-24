@@ -2723,6 +2723,39 @@ private lemma E_conj_symm (t x : ℝ) :
   dsimp [E]; rw [← Complex.exp_conj]; simp only [starRingEnd_apply]
   ring_nf; simp
 
+-- Fourier transform expressed as an integral against `E (-t * x)`.
+-- Essentially `Real.fourier_real_eq_integral_exp_smul` reformulated using `E` and `*`.
+private lemma fourier_eq_E_integral (f : ℝ → ℂ) (x : ℝ) :
+    𝓕 f x = ∫ t : ℝ, f t * E (-t * x) := by
+  rw [Real.fourier_real_eq_integral_exp_smul]
+  refine MeasureTheory.integral_congr_ae (.of_forall fun v => ?_)
+  simp only [E, smul_eq_mul]
+  push_cast; ring_nf
+
+-- Integrability of `ϕ_pm ν ε * E (-· * x)` on any compact `Set.Icc`.
+private lemma ϕ_pm_mul_E_integrableOn_Icc (ν ε : ℝ) (hlam : ν ≠ 0) (x a b : ℝ) :
+    IntegrableOn (fun t => ϕ_pm ν ε t * E (-t * x)) (Set.Icc a b) :=
+  ContinuousOn.integrableOn_compact isCompact_Icc
+    ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
+
+-- On `[-1, 0]`, `ϕ_pm ν ε t = Phi_circ ν ε t - Phi_star ν ε t`.
+private lemma ϕ_pm_eq_on_Icc_neg (ν ε : ℝ) {t : ℝ} (ht : t ∈ Set.Icc (-1 : ℝ) 0) :
+    ϕ_pm ν ε t = Phi_circ ν ε t - Phi_star ν ε t := by
+  dsimp [ϕ_pm]
+  rw [if_pos ⟨ht.1, by linarith [ht.2]⟩]
+  rcases ht.2.lt_or_eq with h | rfl
+  · simp [Real.sign_of_neg h, sub_eq_add_neg]
+  · simp [Phi_star_zero]
+
+-- On `[0, 1]`, `ϕ_pm ν ε t = Phi_circ ν ε t + Phi_star ν ε t`.
+private lemma ϕ_pm_eq_on_Icc_pos (ν ε : ℝ) {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    ϕ_pm ν ε t = Phi_circ ν ε t + Phi_star ν ε t := by
+  dsimp [ϕ_pm]
+  rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
+  rcases ht.1.lt_or_eq with h | rfl
+  · simp [Real.sign_of_pos h]
+  · simp [Phi_star_zero]
+
 @[blueprint
   "varphi-fourier-ident"
   (title := "Fourier transform of $\\varphi$")
@@ -2739,15 +2772,7 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
       (∫ t in Set.Icc (-1 : ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
       (∫ t in Set.Icc 0 (1 : ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
   calc 𝓕 (ϕ_pm ν ε) x
-    _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := by
-      dsimp [FourierTransform.fourier, VectorFourier.fourierIntegral]
-      apply MeasureTheory.integral_congr_ae
-      filter_upwards [] with v
-      simp only [E, Real.fourierChar, AddChar.coe_mk,
-           Circle.smul_def, smul_eq_mul, Circle.coe_exp, real_inner_eq_re_inner,
-           RCLike.inner_apply, conj_trivial, RCLike.re_to_real]
-      push_cast
-      ring
+    _ = ∫ (t : ℝ), ϕ_pm ν ε t * E (-t * x) := fourier_eq_E_integral _ x
     _ = ∫ t in Set.Icc (-1:ℝ) 1, ϕ_pm ν ε t * E (-t * x) := by
       apply (setIntegral_eq_integral_of_forall_compl_eq_zero ?_).symm
       intro t ht
@@ -2760,34 +2785,22 @@ theorem varphi_fourier_ident (ν ε : ℝ) (hlam : ν ≠ 0) (x : ℝ) :
       conv_lhs =>
         rw [show Set.Icc (-1 : ℝ) 1 = Set.Icc (-1) 0 ∪ Set.Icc 0 1 from
           (Set.Icc_union_Icc_eq_Icc (by norm_num) (by norm_num)).symm]
-      refine MeasureTheory.setIntegral_union₀ ?_ nullMeasurableSet_Icc ?_ ?_
-      · have hcap : Set.Icc (-1 : ℝ) 0 ∩ Set.Icc 0 1 = {0} := by
-          ext t; simp only [Set.mem_inter_iff, Set.mem_Icc, Set.mem_singleton_iff]
-          constructor
-          · rintro ⟨⟨-, h1⟩, h2, -⟩; linarith
-          · rintro rfl; norm_num
-        simp [AEDisjoint, hcap]
-      · exact ContinuousOn.integrableOn_compact isCompact_Icc
-          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
-      · exact ContinuousOn.integrableOn_compact isCompact_Icc
-          ((ϕ_continuous ν ε hlam).continuousOn.mul (cont_E x).continuousOn)
+      refine MeasureTheory.setIntegral_union₀ ?_ nullMeasurableSet_Icc
+        (ϕ_pm_mul_E_integrableOn_Icc ν ε hlam x _ _)
+        (ϕ_pm_mul_E_integrableOn_Icc ν ε hlam x _ _)
+      have hcap : Set.Icc (-1 : ℝ) 0 ∩ Set.Icc 0 1 = {0} := by
+        ext t; simp only [Set.mem_inter_iff, Set.mem_Icc, Set.mem_singleton_iff]
+        constructor
+        · rintro ⟨⟨-, h1⟩, h2, -⟩; linarith
+        · rintro rfl; norm_num
+      simp [AEDisjoint, hcap]
     _ = (∫ t in Set.Icc (-1:ℝ) 0, (Phi_circ ν ε t - Phi_star ν ε t) * E (-t * x)) +
         (∫ t in Set.Icc 0 (1:ℝ), (Phi_circ ν ε t + Phi_star ν ε t) * E (-t * x)) := by
       congr 1
-      · apply setIntegral_congr_fun measurableSet_Icc
-        intro t ht
-        dsimp [ϕ_pm]
-        rw [if_pos ⟨ht.1, by linarith [ht.2]⟩]
-        rcases ht.2.lt_or_eq with h_neg | rfl
-        · rw [Real.sign_of_neg h_neg]; push_cast; ring
-        · simp [Real.sign_zero, Phi_star_zero ν ε]
-      · apply setIntegral_congr_fun measurableSet_Icc
-        intro t ht
-        dsimp [ϕ_pm]
-        rw [if_pos ⟨by linarith [ht.1], ht.2⟩]
-        rcases ht.1.lt_or_eq with h_pos | rfl
-        · rw [Real.sign_of_pos h_pos]; push_cast; ring
-        · simp [Real.sign_zero, Phi_star_zero ν ε]
+      · exact setIntegral_congr_fun measurableSet_Icc fun t ht => by
+          rw [ϕ_pm_eq_on_Icc_neg ν ε ht]
+      · exact setIntegral_congr_fun measurableSet_Icc fun t ht => by
+          rw [ϕ_pm_eq_on_Icc_pos ν ε ht]
 
 lemma RectangleIntegral_tendsTo_UpperU' {σ σ' T : ℝ} {f : ℂ → ℂ}
     (htop : Filter.Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) Filter.atTop (nhds 0))
