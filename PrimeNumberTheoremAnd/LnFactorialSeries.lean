@@ -1,4 +1,7 @@
-import Mathlib
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.Data.Int.Star
+import Mathlib.Data.Real.StarOrdered
 
 
 /-!
