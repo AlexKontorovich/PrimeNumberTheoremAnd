@@ -376,7 +376,9 @@ theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
-    sorry
+  simp only [isBigO_iff, norm_eq_abs, norm_one, mul_one,
+    eventually_atTop, ge_iff_le]
+  exact ⟨log 4 + 4, 1, fun _ hx ↦ sum_mangoldt_div_eq_log hx⟩
 
 theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
     simp only [isLittleO_one_left_iff, norm_eq_abs]
