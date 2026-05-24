@@ -833,8 +833,23 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  intro ⟨a₁, b₁⟩ h₁ ⟨a₂, b₂⟩ h₂ heq
+  simp only [Finset.coe_product, Set.mem_prod, Finset.mem_coe, Nat.mem_divisors] at h₁ h₂
+  obtain ⟨⟨ha₁, hm⟩, hb₁, _⟩ := h₁
+  obtain ⟨⟨ha₂, _⟩, hb₂, _⟩ := h₂
+  simp only at heq
+  have hcop_a₁_b₂ : Nat.Coprime a₁ b₂ :=
+    (hmn.coprime_dvd_left ha₁).coprime_dvd_right hb₂
+  have hcop_a₂_b₁ : Nat.Coprime a₂ b₁ :=
+    (hmn.coprime_dvd_left ha₂).coprime_dvd_right hb₁
+  have ha₁_dvd_a₂ : a₁ ∣ a₂ :=
+    hcop_a₁_b₂.dvd_of_dvd_mul_right (heq ▸ dvd_mul_right a₁ b₁)
+  have ha₂_dvd_a₁ : a₂ ∣ a₁ :=
+    hcop_a₂_b₁.dvd_of_dvd_mul_right (heq.symm ▸ dvd_mul_right a₂ b₂)
+  have ha : a₁ = a₂ := Nat.dvd_antisymm ha₁_dvd_a₂ ha₂_dvd_a₁
+  have ha₁_ne : a₁ ≠ 0 := ne_zero_of_dvd_ne_zero hm ha₁
+  have hb : b₁ = b₂ := Nat.eq_of_mul_eq_mul_left (Nat.pos_of_ne_zero ha₁_ne) (ha ▸ heq)
+  exact Prod.ext ha hb
 
 @[blueprint
   "pow_divisors_mul_injective"
@@ -1001,8 +1016,27 @@ The Liouville function is completely multiplicative. -/
   (proof := /--
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
+private theorem liouville_mul_eq' (m n : ℕ) :
+    liouville (m * n) = liouville m * liouville n := by
+  show (if m * n = 0 then (0 : ℤ) else (-1 : ℤ) ^ Ω (m * n)) =
+       (if m = 0 then (0 : ℤ) else (-1 : ℤ) ^ Ω m) *
+       (if n = 0 then (0 : ℤ) else (-1 : ℤ) ^ Ω n)
+  by_cases hm : m = 0
+  · simp [hm]
+  · by_cases hn : n = 0
+    · simp [hn]
+    · have hmn : m * n ≠ 0 := mul_ne_zero hm hn
+      simp only [hm, hn, hmn, ↓reduceIte]
+      rw [cardFactors_mul hm hn, pow_add]
+
 lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
-  sorry
+  refine ⟨?_, fun m n => ?_⟩
+  · simp only [intCoe_apply]
+    norm_cast
+    show (if (1 : ℕ) = 0 then (0 : ℤ) else (-1 : ℤ) ^ Ω 1) = 1
+    simp [cardFactors_one]
+  · simp only [intCoe_apply]
+    exact_mod_cast liouville_mul_eq' m n
 
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
@@ -1029,7 +1063,9 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
   -/)]
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
-  sorry
+  show (if n = 0 then (0 : ℤ) else (-1 : ℤ) ^ Ω n) = μ n
+  rw [if_neg hn.ne_zero]
+  exact (moebius_apply_of_squarefree hn).symm
 
 /-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
 @[blueprint
