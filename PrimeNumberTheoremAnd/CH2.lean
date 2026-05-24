@@ -4,6 +4,7 @@ import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
+import Mathlib.Analysis.Normed.Module.Basic
 import Mathlib.Data.Int.Star
 import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
@@ -5830,10 +5831,35 @@ private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
 
 private lemma isPreconnected_im_preimage_Ioo (a b : ℝ) :
     IsPreconnected (Complex.im ⁻¹' Set.Ioo a b) := by
-  haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul
+  haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul -- can be removed once we upgrade to mathlib 4.30
   apply Convex.isPreconnected
   change Convex ℝ ({c : ℂ | a < c.im} ∩ {c : ℂ | c.im < b})
   exact Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
+
+private lemma differentiableOn_deriv_z_coth_z_strip :
+    DifferentiableOn ℂ (fun w : ℂ ↦ deriv (fun z : ℂ ↦ z * coth z) w)
+      (Complex.im ⁻¹' Set.Ioo (-π / 4) (π / 4)) := by
+  have h_anal : AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z)
+      (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
+    apply analyticOn_deriv_z_coth_z
+    intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
+    simp_rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
+  exact (h_anal.mono (Set.preimage_mono Set.Ioo_subset_Icc_self)).differentiableOn
+
+private lemma deriv_z_coth_z_lt_one_of_abs_im_eq (z : ℂ) (hz : |z.im| = π / 4) :
+    ‖deriv (fun w : ℂ ↦ w * coth w) z‖ < 1 := by
+  rcases abs_cases z.im with ⟨h_pos, _⟩ | ⟨h_neg, _⟩
+  · have heq : z = z.re + ↑(π / 4) * Complex.I := by
+      apply Complex.ext <;> simp; linarith [h_pos, hz]
+    rw [heq]; exact deriv_z_coth_z_bound_boundary z.re
+  · have heq : z = z.re + ↑(-(π / 4)) * Complex.I := by
+      apply Complex.ext <;> simp; ring_nf; linarith [h_neg, hz]
+    have h_z_neg : z = -(-z.re + ↑(π / 4) * Complex.I) := by
+      rw [heq]; apply Complex.ext <;> simp
+    rw [h_z_neg, deriv_z_coth_z_odd, norm_neg]
+    have h_bound := deriv_z_coth_z_bound_boundary (-z.re)
+    rw [Complex.ofReal_neg] at h_bound
+    exact h_bound
 
 @[blueprint
   "CH2-lemma-4-2a"
@@ -5863,26 +5889,12 @@ theorem CH2_lemma_4_2a (z : ℂ) (hz : |z.im| ≤ π / 4) : ‖deriv (fun z:ℂ 
   have h_ne_one : ‖f z‖ ≠ 1 := by
     intro h_eq
     by_cases h_bdy : |z.im| = π / 4
-    · rcases abs_cases z.im with ⟨h_pos, _⟩ | ⟨h_neg, _⟩
-      · have : z = z.re + ↑(π/4) * Complex.I := by apply Complex.ext <;> simp; linarith [h_pos, h_bdy]
-        rw [this] at h_eq; linarith [deriv_z_coth_z_bound_boundary z.re]
-      · have : z = z.re + ↑(-(π / 4)) * Complex.I := by apply Complex.ext <;> simp; ring_nf; linarith [h_neg, h_bdy]
-        have h_z_neg : z = -(-z.re + ↑(π/4) * Complex.I) := by rw [this]; apply Complex.ext <;> simp
-        unfold f at h_eq
-        rw [h_z_neg, deriv_z_coth_z_odd, norm_neg] at h_eq
-        have h_bound := deriv_z_coth_z_bound_boundary (-z.re)
-        rw [Complex.ofReal_neg] at h_bound
-        linarith
+    · linarith [deriv_z_coth_z_lt_one_of_abs_im_eq z h_bdy]
     · have h_int : |z.im| < π / 4 := lt_of_le_of_ne hz h_bdy
       let U := Complex.im ⁻¹' Set.Ioo (-π / 4) (π / 4)
       have hU_conn : IsPreconnected U := isPreconnected_im_preimage_Ioo _ _
       have hU_open : IsOpen U := isOpen_Ioo.preimage Complex.continuous_im
-      have hf_diff : DifferentiableOn ℂ f U := by
-        have h_anal : AnalyticOn ℂ (fun z ↦ deriv (fun w ↦ w * coth w) z) (im ⁻¹' Set.Icc (-π / 4) (π / 4)) := by
-          apply analyticOn_deriv_z_coth_z
-          intro v hv; simp only [Set.mem_preimage, Set.mem_Icc] at hv
-          simp_rw [abs_lt]; constructor <;> linarith [Real.pi_pos]
-        apply (h_anal.mono (Set.preimage_mono Set.Ioo_subset_Icc_self)).differentiableOn
+      have hf_diff : DifferentiableOn ℂ f U := differentiableOn_deriv_z_coth_z_strip
       have hzU : z ∈ U := by
         simp only [U, Set.mem_preimage, Set.mem_Ioo, abs_lt] at *
         constructor <;> linarith
