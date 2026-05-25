@@ -127,4 +127,13 @@ theorem eq_6_2 (x Mψ_minus Mψ_plus : ℝ) (h : (x, Mψ_minus, Mψ_plus) ∈ ta
     ∀ t ∈ Set.Icc x (2 * x), Mψ_minus ≤ (t - ψ t) / sqrt t ∧ (t - ψ t) / sqrt t ≤ Mψ_plus := by
     sorry
 
+@[blueprint
+  "buthe-sieve-bound"
+  (title := "Buthe sieve bound (Eq. 6.2)")
+  (statement := /-- One has $-0.8 \leq \frac{t - \psi(t)}{\sqrt{t}} \leq 0.81$ for $100 \leq t \leq 5 \times 10^{10}$.  Verified by Buthe via the Eratosthenes sieve. -/)
+  (latexEnv := "lemma")]
+theorem sieve_bound (t : ℝ) (ht1 : 100 ≤ t) (ht2 : t ≤ 5 * 10 ^ 10) :
+    -0.8 ≤ (t - ψ t) / sqrt t ∧ (t - ψ t) / sqrt t ≤ 0.81 := by
+    sorry
+
 end Buthe
