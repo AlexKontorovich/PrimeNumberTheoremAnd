@@ -2898,29 +2898,7 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
       have h_bound_x0_x1 := bound_x0_x1 hx₀ hx₀_le_x₁ b hmono h_b_start h_b_end εθ_num h_εθ_num
       nlinarith [h_bound_x0_x1, h_bound_x1_x, hlogx_x_nonneg]
 
-@[blueprint
-  "fks2-theorem-6-2"
-  (title := "FKS2 Theorem 6, substep 2")
-  (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
-  $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} < \frac{1}{\log x_1 + \log \log x_1 - 1}. $$ -/)
-  (proof := /-- Call the left-hand side $f(x)$. We have
-  $$ f(x) = \frac{\log x}{x} \left( \mathrm{Li}(x) - \frac{x}{\log x} - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} \right). $$
-  Using integration by parts, its derivative can be written as
-  $$ f'(x) = -\frac{1}{x \log^2 x} + \frac{2}{x \log^3 x} + \frac{\log x - 1}{x^2} \left( \frac{x_1}{\log^2 x_1} + \frac{2 x_1}{\log^3 x_1} - \int_{x_1}^x \frac{6}{\log^4 t} dt \right). $$
-  From which we see that $f'(x_1) = \frac{1}{\log x_1} > 0$, and that $f'(x)$ is eventually negative. Thus there exists a critical point for $f(x)$ to the right of $x_1$. Moreover, by bounding $\int_{x_1}^x \frac{6}{\log^4 t} dt < 6 \frac{x - x_1}{\log^4 x_1}$, one finds that $f'(x_1 \log x_1) > 0$ if $x_1 > e$.
-  Now we write $f'(x) = \frac{f_1(x)}{x^2}$ with
-  $$ f_1(x) = \frac{x}{\log x} - (\log x - 1) \int_{x_1}^x \frac{1}{\log^2 t} dt. $$
-  Its derivative is $f_1'(x) = -\frac{1}{x} \int_{x_1}^x \frac{1}{\log^2 t} dt$, which is negative for $x > x_1$. Thus $f_1(x)$ decreases and vanishes at most once, giving $f(x)$ at most one critical point, $x_m > x_1$, which is then the maximum of $f(x)$. In other words, $x_m$ satisfies $f_1(x_m) = 0$, i.e.\ $\mathrm{Li}(x_m) - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} = -\frac{x_m}{1 - \log x_m}$, which shows that $f(x)$ attains its maximum at $x = x_m$, where
-  $$ f(x_m) = \frac{\log x_m}{x_m} \left( -\frac{x_m}{\log x_m} - \frac{x_m}{1 - \log x_m} \right) = \frac{1}{\log x_m - 1}. $$
-  Now, because $x_m > x_1 \log x_1$ we obtain the bound
-  $$ f(x) < \frac{1}{\log x_1 + \log(\log x_1) - 1}, $$
-  which gives the announced result.
-  -/)
-  (latexEnv := "sublemma")
-  (discussion := 716)]
-theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
-  (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 < 1 / (log x₁ + log (log x₁) - 1) :=
-  sorry
+
 
 /- The following 3 lemmas are used for theorem_6_3.
 -/
@@ -2976,7 +2954,116 @@ private lemma integral_one_div_log_sq_le_const {x₁ s : ℝ} (hx₁ : 1 < x₁)
       nlinarith [sq_nonneg (Real.log x - Real.log x₁)]
   aesop
 
--- Proves $\int_{x₁}^t \frac{s - x₁}{s} ds = t - x₁ - x₁ \log(t / x₁)$ for $0 < x₁ \le t$.
+private lemma log_gt_two_of_ge_14 {x₁ : ℝ} (h : 14 ≤ x₁) : 2 < Real.log x₁ := by
+  have : (2 : ℝ) < Real.log 14 := by
+    rw [show (2 : ℝ) = Real.log (Real.exp 2) from (Real.log_exp 2).symm]
+    apply Real.log_lt_log (Real.exp_pos 2)
+    have hlt8 : Real.exp 2 < 8 := by interval_decide
+    linarith
+  exact this.trans_le (Real.log_le_log (by norm_num) h)
+
+lemma hasDerivAt_id_div_log_sq {s : ℝ} (hs : 1 < s) :
+    HasDerivAt (fun s ↦ s / (Real.log s) ^ 2) (1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3) s := by
+  have hlog : Real.log s ≠ 0 := ne_of_gt (Real.log_pos hs)
+  have h_deriv := HasDerivAt.div (hasDerivAt_id s)
+      (HasDerivAt.pow (Real.hasDerivAt_log (by linarith)) 2) (pow_ne_zero 2 hlog)
+  convert h_deriv using 1; field_simp [hlog]; simp; ring
+
+lemma integral_one_div_log_sq_le_of_ge {x₁ : ℝ} (hx₁ : 14 ≤ x₁) {y : ℝ} (hy : x₁ ≤ y) :
+    ∫ s in x₁..y, 1 / (Real.log s) ^ 2 ≤ (Real.log x₁ / (Real.log x₁ - 2)) * (y / (Real.log y) ^ 2) := by
+  have hx₁_gt : 1 < x₁ := by linarith
+  have hlogx₁ : 0 < Real.log x₁ := Real.log_pos hx₁_gt
+  have hlogx₁_gt : 2 < Real.log x₁ := log_gt_two_of_ge_14 hx₁
+  have hc : 0 < 1 - 2 / Real.log x₁ := by
+    have : 2 / Real.log x₁ < 1 := (div_lt_iff₀ hlogx₁).mpr (by linarith)
+    linarith
+  have hs_gt_of_mem : ∀ s ∈ Set.uIcc x₁ y, 1 < s := fun s hs => by
+    cases Set.mem_uIcc.mp hs <;> linarith
+  have h_intble1 : IntervalIntegrable (fun s ↦ (1 - 2 / Real.log x₁) * (1 / (Real.log s) ^ 2)) volume x₁ y :=
+    ContinuousOn.intervalIntegrable <| continuousOn_of_forall_continuousAt fun s hs ↦ by
+      have hne : Real.log s ≠ 0 := ne_of_gt (Real.log_pos (hs_gt_of_mem s hs))
+      exact ContinuousAt.mul continuousAt_const
+        (ContinuousAt.div continuousAt_const
+          (ContinuousAt.pow (Real.continuousAt_log (by linarith [hs_gt_of_mem s hs])) 2)
+          (pow_ne_zero 2 hne))
+  have h_intble2 : IntervalIntegrable (fun s ↦ 1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3) volume x₁ y :=
+    ContinuousOn.intervalIntegrable <| continuousOn_of_forall_continuousAt fun s hs ↦ by
+      have hne : Real.log s ≠ 0 := ne_of_gt (Real.log_pos (hs_gt_of_mem s hs))
+      have hs0 : s ≠ 0 := by linarith [hs_gt_of_mem s hs]
+      exact (ContinuousAt.div continuousAt_const
+          (ContinuousAt.pow (Real.continuousAt_log hs0) 2) (pow_ne_zero 2 hne)).sub
+        (ContinuousAt.div continuousAt_const
+          (ContinuousAt.pow (Real.continuousAt_log hs0) 3) (pow_ne_zero 3 hne))
+  have h_mono : ∫ s in x₁..y, (1 - 2 / Real.log x₁) * (1 / (Real.log s) ^ 2) ≤
+      ∫ s in x₁..y, (1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3) := by
+    apply intervalIntegral.integral_mono_on hy h_intble1 h_intble2
+    intro s hs
+    have hs_gt : 1 < s := hx₁_gt.trans_le hs.1
+    have hlogs : 0 < Real.log s := Real.log_pos hs_gt
+    have hlog_le : Real.log x₁ ≤ Real.log s := Real.log_le_log (by linarith) hs.1
+    have h_frac : 2 / Real.log s ≤ 2 / Real.log x₁ :=
+      div_le_div_of_nonneg_left (by norm_num) hlogx₁ hlog_le
+    rw [show (1 - 2 / Real.log x₁) * (1 / (Real.log s) ^ 2) = (1 - 2 / Real.log x₁) / (Real.log s) ^ 2 by ring,
+        show 1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3 = (1 - 2 / Real.log s) / (Real.log s) ^ 2 by field_simp]
+    exact div_le_div_of_nonneg_right (by linarith) (by positivity)
+  have h_int_eq : ∫ s in x₁..y, (1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3) =
+      y / (Real.log y) ^ 2 - x₁ / (Real.log x₁) ^ 2 :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt
+      (fun s hs => hasDerivAt_id_div_log_sq (hx₁_gt.trans_le (Set.uIcc_of_le hy ▸ hs).1))
+      h_intble2
+  rw [intervalIntegral.integral_const_mul] at h_mono
+  have h_bound : (1 - 2 / Real.log x₁) * ∫ s in x₁..y, 1 / (Real.log s) ^ 2 ≤ y / (Real.log y) ^ 2 :=
+    calc (1 - 2 / Real.log x₁) * ∫ s in x₁..y, 1 / (Real.log s) ^ 2
+        ≤ ∫ s in x₁..y, (1 / (Real.log s) ^ 2 - 2 / (Real.log s) ^ 3) := h_mono
+      _ = y / (Real.log y) ^ 2 - x₁ / (Real.log x₁) ^ 2 := h_int_eq
+      _ ≤ y / (Real.log y) ^ 2 := by linarith [div_nonneg (by linarith : 0 ≤ x₁) (by positivity : (0 : ℝ) ≤ (Real.log x₁) ^ 2)]
+  have h_bound' : ∫ s in x₁..y, 1 / (Real.log s) ^ 2 ≤ (y / (Real.log y) ^ 2) / (1 - 2 / Real.log x₁) := by
+    rwa [le_div_iff₀ hc, mul_comm]
+  convert h_bound' using 1
+  field_simp
+
+lemma log_div_self_mul_integral_le_of_ge {x₁ : ℝ} (hx₁ : 14 ≤ x₁) {y : ℝ} (hy : x₁ ≤ y) :
+    (Real.log y / y) * ∫ s in x₁..y, 1 / (Real.log s) ^ 2 ≤ (Real.log x₁ / (Real.log x₁ - 2)) / Real.log y := by
+  have hlogy_pos : 0 < Real.log y := Real.log_pos ((by linarith : 1 < x₁).trans_le hy)
+  refine (mul_le_mul_of_nonneg_left (integral_one_div_log_sq_le_of_ge hx₁ hy)
+      (div_nonneg hlogy_pos.le (by linarith))).trans_eq ?_
+  have hlogx₁_gt : 2 < Real.log x₁ := log_gt_two_of_ge_14 hx₁
+  field_simp [show Real.log x₁ - 2 ≠ 0 by linarith, hlogy_pos.ne', show y ≠ 0 by linarith]
+
+private lemma log_gt_one_of_ge_14 {x₁ : ℝ} (h : 14 ≤ x₁) : 1 < Real.log x₁ := by
+  have hexp : Real.exp 1 < x₁ := by linarith [Real.exp_one_lt_d9, show (2.7182818286:ℝ) < 14 by norm_num]
+  rw [show (1:ℝ) = Real.log (Real.exp 1) from (Real.log_exp 1).symm]
+  exact Real.log_lt_log (Real.exp_pos 1) hexp
+
+lemma x1_le_x1_log_x1 {x₁ : ℝ} (h : 14 ≤ x₁) : x₁ ≤ x₁ * Real.log x₁ :=
+  le_mul_of_one_le_right (by linarith) (log_gt_one_of_ge_14 h).le
+
+lemma x1_lt_x1_log_x1 {x₁ : ℝ} (h : 14 ≤ x₁) : x₁ < x₁ * Real.log x₁ :=
+  lt_mul_of_one_lt_right (by linarith) (log_gt_one_of_ge_14 h)
+
+lemma log_div_self_mul_integral_nonneg {x₁ : ℝ} (hx₁ : 14 ≤ x₁) {y : ℝ} (hy : x₁ ≤ y) :
+    0 ≤ (Real.log y / y) * ∫ s in x₁..y, 1 / (Real.log s) ^ 2 := by
+  have hx₁_gt : 1 < x₁ := by linarith
+  have hlogy_pos : 0 < Real.log y := Real.log_pos (hx₁_gt.trans_le hy)
+  exact mul_nonneg (div_nonneg hlogy_pos.le (by linarith))
+    (intervalIntegral.integral_nonneg hy fun s hs ↦ by
+      have : s > 1 := hx₁_gt.trans_le hs.1; positivity)
+
+lemma tendsto_log_div_self_mul_integral_atTop_zero {x₁ : ℝ} (hx₁ : 14 ≤ x₁) :
+    Filter.Tendsto (fun y ↦ (Real.log y / y) * ∫ s in x₁..y, 1 / (Real.log s) ^ 2) Filter.atTop (nhds 0) := by
+  have h_lim : Filter.Tendsto (fun y ↦ Real.log x₁ / (Real.log x₁ - 2) / Real.log y) Filter.atTop (nhds 0) := by
+    have h_inv : Filter.Tendsto (fun y ↦ (Real.log y)⁻¹) Filter.atTop (nhds 0) :=
+      Filter.Tendsto.comp tendsto_inv_atTop_zero Real.tendsto_log_atTop
+    have := tendsto_const_nhds (x := Real.log x₁ / (Real.log x₁ - 2)) |>.mul h_inv
+    simp only [mul_zero] at this
+    rwa [show (fun x ↦ Real.log x₁ / (Real.log x₁ - 2) * (Real.log x)⁻¹) =
+        (fun y ↦ Real.log x₁ / (Real.log x₁ - 2) / Real.log y) by ext y; ring] at this
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_lim ?_ ?_
+  · filter_upwards [Filter.eventually_ge_atTop x₁] with y hy
+    exact log_div_self_mul_integral_nonneg hx₁ hy
+  · filter_upwards [Filter.eventually_ge_atTop x₁] with y hy
+    exact log_div_self_mul_integral_le_of_ge hx₁ hy
+
 private lemma integral_sub_div_self {x₁ t : ℝ} (hx₁ : 0 < x₁) (ht : x₁ ≤ t) :
     ∫ s in x₁..t, (s - x₁) / s = (t - x₁) - x₁ * Real.log (t / x₁) := by
   rw [ intervalIntegral.integral_eq_sub_of_hasDerivAt ];
@@ -2988,7 +3075,6 @@ private lemma integral_sub_div_self {x₁ t : ℝ} (hx₁ : 0 < x₁) (ht : x₁
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun s hs => ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id ( by cases Set.mem_uIcc.mp hs <;> linarith );
 
--- Proves the bound on the integral of $I(s)/s$ on $[x₁, t]$.
 private lemma integral_I_div_self_le {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈ Set.Icc x₁ (x₁ * Real.log x₁)) :
     ∫ s in x₁..t, (∫ u in x₁..s, 1 / (Real.log u) ^ 2) / s ≤
       (1 / (Real.log x₁) ^ 2) * ∫ s in x₁..t, (s - x₁) / s := by
@@ -3015,7 +3101,6 @@ private lemma integral_I_div_self_le {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : 
     · ring_nf
     · field_simp
 
--- Proves the integration-by-parts identity for the numerator.
 private lemma u_eq_sub_integral {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈ Set.Icc x₁ (x₁ * Real.log x₁)) :
     t / Real.log t - (Real.log t - 1) * (∫ s in x₁..t, 1 / (Real.log s) ^ 2) =
       x₁ / Real.log x₁ - ∫ s in x₁..t, (∫ u in x₁..s, 1 / (Real.log u) ^ 2) / s := by
@@ -3048,29 +3133,51 @@ private lemma u_eq_sub_integral {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈
   rw [ h_integral, h_I_x₁ ]
   ring
 
--- Proves the simplified algebraic bound's non-negativity.
 private lemma hu_simplify {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈ Set.Icc x₁ (x₁ * Real.log x₁)) :
     x₁ / Real.log x₁ - (1 / (Real.log x₁) ^ 2) * (t - x₁ - x₁ * Real.log (t / x₁)) ≥ 0 := by
   field_simp;
   rw [ le_div_iff₀ ( sq_pos_of_pos <| Real.log_pos <| by linarith ) ];
   nlinarith [ ht.1, ht.2, Real.log_nonneg ( show 1 ≤ x₁ by linarith ), Real.log_le_log ( by linarith ) ht.1, Real.log_le_log ( by linarith [ ht.1 ] ) ht.2, Real.log_div ( show t ≠ 0 by linarith [ ht.1 ] ) ( show x₁ ≠ 0 by linarith ) ];
 
+private lemma continuousOn_one_div_log_sq_Ioi :
+    ContinuousOn (fun s : ℝ ↦ 1 / (Real.log s) ^ 2) (Set.Ioi 1) := by
+  intro y hy
+  have hlog_pos : 0 < Real.log y := Real.log_pos hy
+  have hy0 : y ≠ 0 := by
+    have : 1 < y := Set.mem_Ioi.mp hy
+    linarith
+  exact (ContinuousAt.div continuousAt_const
+    (ContinuousAt.pow (Real.continuousAt_log hy0) 2)
+    (pow_ne_zero 2 hlog_pos.ne')).continuousWithinAt
+
+private lemma hasDerivAt_integral_one_div_log_sq {x₁ t : ℝ} (hx₁ : 1 < x₁) (ht : x₁ ≤ t) :
+    HasDerivAt (fun u ↦ ∫ s in x₁..u, 1 / (Real.log s) ^ 2) (1 / (Real.log t) ^ 2) t := by
+  have ht_gt : 1 < t := hx₁.trans_le ht
+  apply intervalIntegral.integral_hasDerivAt_right
+  · exact ContinuousOn.intervalIntegrable
+      (continuousOn_one_div_log_sq_Ioi.mono fun s hs =>
+        Set.mem_Ioi.mpr (by rcases Set.mem_uIcc.mp hs with ⟨h1, h2⟩ <;> linarith))
+  · exact continuousOn_one_div_log_sq_Ioi.stronglyMeasurableAtFilter
+      isOpen_Ioi t (Set.mem_Ioi.mpr ht_gt)
+  · exact continuousOn_one_div_log_sq_Ioi.continuousAt
+      (isOpen_Ioi.mem_nhds ht_gt)
+
+lemma hasDerivAt_log_div_self_mul_integral {x₁ : ℝ} (hx₁ : 1 < x₁) {t : ℝ} (ht : x₁ < t) :
+    HasDerivAt (fun t => (Real.log t / t) * ∫ s in x₁..t, 1 / (Real.log s) ^ 2)
+      ((t / Real.log t - (Real.log t - 1) * ∫ s in x₁..t, 1 / (Real.log s) ^ 2) / t^2) t := by
+  have ht0 : t ≠ 0 := by linarith
+  have hlogt0 : Real.log t ≠ 0 := ne_of_gt ( Real.log_pos (by linarith : 1 < t) )
+  have ht20 : t ^ 2 ≠ 0 := pow_ne_zero 2 ht0
+  have hlogt20 : Real.log t ^ 2 ≠ 0 := pow_ne_zero 2 hlogt0
+  have h_deriv_I := hasDerivAt_integral_one_div_log_sq hx₁ ht.le
+  convert HasDerivAt.mul ( HasDerivAt.div ( Real.hasDerivAt_log ht0 ) ( hasDerivAt_id t ) ht0 ) h_deriv_I using 1
+  dsimp; field_simp [ht0, hlogt0, ht20, hlogt20]; ring_nf
+
 -- Proves the derivative of $(log t / t) * I t$.
 private lemma h_deriv_at {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈ Set.Ioo x₁ (x₁ * Real.log x₁)) :
     HasDerivAt (fun t => (Real.log t / t) * ∫ s in x₁..t, 1 / (Real.log s) ^ 2)
-      ((t / Real.log t - (Real.log t - 1) * ∫ s in x₁..t, 1 / (Real.log s) ^ 2) / t^2) t := by
-  have h_deriv_I : HasDerivAt (fun t => ∫ s in x₁..t, 1 / (Real.log s) ^ 2) (1 / (Real.log t) ^ 2) t := by
-    apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
-    · apply_rules [ ContinuousOn.intervalIntegrable ];
-      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) );
-    · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( by exact Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
-    · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by linarith [ ht.1 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by linarith [ ht.1 ] ) ) ) );
-  have ht0 : t ≠ 0 := by linarith [ ht.1 ]
-  have hlogt0 : Real.log t ≠ 0 := ne_of_gt ( Real.log_pos ( by linarith [ ht.1 ] ) )
-  have ht20 : t ^ 2 ≠ 0 := pow_ne_zero 2 ht0
-  have hlogt20 : Real.log t ^ 2 ≠ 0 := pow_ne_zero 2 hlogt0
-  convert HasDerivAt.mul ( HasDerivAt.div ( Real.hasDerivAt_log ht0 ) ( hasDerivAt_id t ) ht0 ) h_deriv_I using 1
-  dsimp; field_simp [ ht0, hlogt0, ht20, hlogt20 ]; ring_nf
+      ((t / Real.log t - (Real.log t - 1) * ∫ s in x₁..t, 1 / (Real.log s) ^ 2) / t^2) t :=
+  hasDerivAt_log_div_self_mul_integral (by linarith : 1 < x₁) ht.1
 
 lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     MonotoneOn (fun t => (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
@@ -3082,14 +3189,11 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
     intros t ht
     have h_u_eq := u_eq_sub_integral hx₁ ht
     have h_I_bound := integral_I_div_self_le hx₁ ht
-    have h_sub_div := integral_sub_div_self (by linarith : 0 < x₁) ht.1
-    have h_simp := hu_simplify hx₁ ht
-    rw [ h_sub_div ] at h_I_bound
+    rw [integral_sub_div_self (by linarith : 0 < x₁) ht.1] at h_I_bound
     dsimp only [I]
-    linarith
-  have h_deriv : ∀ t ∈ Set.Ioo x₁ (x₁ * Real.log x₁), HasDerivAt (fun t => (Real.log t / t) * I t) ((t / Real.log t - (Real.log t - 1) * I t) / t^2) t := by
-    intro t ht
-    exact h_deriv_at hx₁ ht
+    linarith [hu_simplify hx₁ ht]
+  have h_deriv : ∀ t ∈ Set.Ioo x₁ (x₁ * Real.log x₁), HasDerivAt (fun t => (Real.log t / t) * I t) ((t / Real.log t - (Real.log t - 1) * I t) / t^2) t :=
+    fun t ht => h_deriv_at hx₁ ht
   intro a ha b hb hab; rcases eq_or_lt_of_le hab with rfl | hab' <;> norm_num at *;
   obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a b, deriv (fun t => (Real.log t / t) * I t) c = ((fun t => (Real.log t / t) * I t) b - (fun t => (Real.log t / t) * I t) a) / (b - a) := by
     apply_rules [ exists_deriv_eq_slope ];
@@ -3100,9 +3204,180 @@ lemma h_monotoneOn {x₁ : ℝ} (hx₁ : x₁ ≥ 14) :
         exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> cases min_cases x₁ a <;> cases max_cases x₁ b <;> linarith [ ht.1, ht.2 ] ) ) ) );
     · exact fun t ht => ( h_deriv t ( by linarith [ ht.1 ] ) ( by linarith [ ht.2 ] ) |> HasDerivAt.differentiableAt |> DifferentiableAt.differentiableWithinAt );
   simp +zetaDelta only [one_div, Set.mem_Ioo] at *
-  have := h_deriv c ( by linarith ) ( by linarith )
-  have := this.deriv
-  rw [ eq_div_iff ] at * <;> nlinarith [ hu_nonneg c ( by linarith ) ( by linarith ), show 0 < c ^ 2 by nlinarith ]
+  have hd := (h_deriv c (by linarith) (by linarith)).deriv
+  rw [eq_div_iff] at * <;> nlinarith [hu_nonneg c (by linarith) (by linarith), show 0 < c ^ 2 by nlinarith]
+
+theorem hasDerivAt_log_div_self_mul_integral_one_div_log_sq {x₁ : ℝ} (h : x₁ ≥ 14) :
+    HasDerivAt (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
+      (deriv (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁))
+      (x₁ * log x₁) := by
+  have h_logx₁_gt : 1 < Real.log x₁ := log_gt_one_of_ge_14 h
+  have hD := hasDerivAt_log_div_self_mul_integral (by linarith : 1 < x₁) (by nlinarith : x₁ < x₁ * Real.log x₁)
+  rwa [hD.deriv]
+
+lemma deriv_log_div_self_mul_integral_one_div_log_sq_pos {x₁ : ℝ} (h : x₁ ≥ 14) :
+    deriv (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁) > 0 := by
+  have h_logx₁_gt : 1 < Real.log x₁ := log_gt_one_of_ge_14 h
+  have ht₀_pos : 0 < x₁ * log x₁ := mul_pos (by linarith) (by linarith)
+  have hx₁_le_x₀ : x₁ ≤ x₁ * Real.log x₁ := x1_le_x1_log_x1 h
+  have h_deriv_t₀ := hasDerivAt_log_div_self_mul_integral (by linarith : 1 < x₁) (by nlinarith : x₁ < x₁ * log x₁)
+  rw [h_deriv_t₀.deriv]
+  have ht₀_sq_pos : 0 < (x₁ * log x₁) ^ 2 := pow_pos ht₀_pos 2
+  refine div_pos ?_ ht₀_sq_pos
+  have ht₀_mem : x₁ * log x₁ ∈ Set.Icc x₁ (x₁ * log x₁) := ⟨hx₁_le_x₀, le_refl _⟩
+  have h_sub_div_t₀ : ∫ s in x₁..x₁ * log x₁, (s - x₁) / s = x₁ * log x₁ - x₁ - x₁ * log (log x₁) := by
+    have h_sub := integral_sub_div_self (by linarith : 0 < x₁) hx₁_le_x₀
+    rw [mul_div_cancel_left₀ _ (by linarith : x₁ ≠ 0)] at h_sub
+    linarith
+  have h_I_bound_t₀ : ∫ s in x₁..x₁ * log x₁, (∫ u in x₁..s, 1 / (log u) ^ 2) / s ≤
+      (1 / (log x₁) ^ 2) * (x₁ * log x₁ - x₁ - x₁ * log (log x₁)) :=
+    h_sub_div_t₀ ▸ integral_I_div_self_le (by linarith) ht₀_mem
+  have h_u_eq_t₀ := u_eq_sub_integral (by linarith) ht₀_mem
+  have h_pos_bound : x₁ / log x₁ - (1 / (log x₁) ^ 2) * (x₁ * log x₁ - x₁ - x₁ * log (log x₁)) > 0 := by
+    have h_logx₁_pos : 0 < log x₁ := Real.log_pos (by linarith)
+    have h_loglogx₁_pos : 0 < log (log x₁) := Real.log_pos h_logx₁_gt
+    have h_eq : x₁ / log x₁ - (1 / (log x₁) ^ 2) * (x₁ * log x₁ - x₁ - x₁ * log (log x₁)) =
+        x₁ * (1 + log (log x₁)) / (log x₁) ^ 2 := by
+      field_simp
+      ring
+    rw [h_eq]
+    positivity
+  linarith [h_u_eq_t₀, h_I_bound_t₀, h_pos_bound]
+
+lemma exists_larger_than_boundary_val {x₁ : ℝ} (h : x₁ ≥ 14) :
+    ∃ t > x₁ * log x₁, (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2 >
+      (log (x₁ * log x₁) / (x₁ * log x₁)) * ∫ s in x₁..(x₁ * log x₁), 1 / (log s) ^ 2 := by
+  have h_deriv : deriv (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁) > 0 :=
+    deriv_log_div_self_mul_integral_one_div_log_sq_pos h
+  have h_tendsto := hasDerivAt_iff_tendsto_slope.mp (hasDerivAt_log_div_self_mul_integral_one_div_log_sq h)
+  have h_slope_pos : ∀ᶠ t in nhdsWithin (x₁ * log x₁) (Set.Ioi (x₁ * log x₁)), slope (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁) t > 0 :=
+    Filter.Eventually.filter_mono (nhdsWithin_mono (x₁ * log x₁) (fun _ h ↦ ne_of_gt h))
+      (Filter.Tendsto.eventually_const_lt h_deriv h_tendsto)
+  have h_exists : ∃ t > x₁ * log x₁, slope (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁) t > 0 := by
+    haveI : Filter.NeBot (nhdsWithin (x₁ * log x₁) {x | (fun x ↦ x > x₁ * log x₁) x}) := nhdsWithin_Ioi_neBot le_rfl
+    exact Filter.Eventually.exists (Filter.Eventually.and self_mem_nhdsWithin h_slope_pos)
+  obtain ⟨t, ht_gt, ht_slope⟩ := h_exists
+  have h_val : (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2 >
+    (log (x₁ * log x₁) / (x₁ * log x₁)) * ∫ s in x₁..(x₁ * log x₁), 1 / (log s) ^ 2 :=
+    (slope_pos_iff_of_le ht_gt.le).mp ht_slope
+  exact ⟨t, ht_gt, h_val⟩
+
+lemma exists_isMaxOn_Ici_log_div_self_mul_integral_one_div_log_sq {x₁ : ℝ} (h : x₁ ≥ 14) : ∃ xm > x₁, xm > x₁ * log x₁ ∧
+  ∀ y ≥ x₁, (log y / y) * ∫ t in x₁..y, 1 / (log t) ^ 2 ≤ 1 / (log xm - 1) := by
+  obtain ⟨t₁, ht₁_gt, ht₁_val⟩ := exists_larger_than_boundary_val h
+  have ht₁_ge : x₁ ≤ t₁ := (x1_le_x1_log_x1 h).trans ht₁_gt.le
+  have h_exists_max : ∃ xm ≥ x₁, ∀ y ≥ x₁,
+    (log y / y) * ∫ t in x₁..y, 1 / (log t) ^ 2 ≤ (log xm / xm) * ∫ t in x₁..xm, 1 / (log t) ^ 2 := by
+    have hc_pos : 0 < (log t₁ / t₁) * ∫ s in x₁..t₁, 1 / (log s) ^ 2 :=
+      (log_div_self_mul_integral_nonneg h (x1_le_x1_log_x1 h)).trans_lt ht₁_val
+    have h_eventually : ∀ᶠ y in Filter.atTop,
+        (log y / y) * ∫ s in x₁..y, 1 / (log s) ^ 2 <
+        (log t₁ / t₁) * ∫ s in x₁..t₁, 1 / (log s) ^ 2 := by
+      filter_upwards [tendsto_log_div_self_mul_integral_atTop_zero h
+          (Metric.ball_mem_nhds 0 hc_pos),
+        Filter.eventually_ge_atTop x₁] with y hy hy_ge
+      rwa [Set.mem_preimage, Metric.mem_ball, Real.dist_0_eq_abs,
+           abs_of_nonneg (log_div_self_mul_integral_nonneg h hy_ge)] at hy
+    obtain ⟨M, hM_prop⟩ := Filter.eventually_atTop.mp h_eventually
+    set M' := max (max M t₁) x₁
+    have hM'_ge_x₁ : x₁ ≤ M' := le_max_right (max M t₁) x₁
+    have hM'_ge_t₁ : t₁ ≤ M' := (le_max_right M t₁).trans (le_max_left (max M t₁) x₁)
+    have hM'_ge_M  : M ≤ M'  := (le_max_left M t₁).trans (le_max_left (max M t₁) x₁)
+    have h_int_M' : IntervalIntegrable (fun s ↦ 1 / (Real.log s) ^ 2) volume x₁ M' := by
+      apply ContinuousOn.intervalIntegrable
+      rw [Set.uIcc_of_le hM'_ge_x₁]
+      intro s hs
+      have hs0 : s ≠ 0 := ne_of_gt (by linarith [hs.1] : 0 < s)
+      have hlog_ne : Real.log s ≠ 0 :=
+        ne_of_gt (Real.log_pos (by linarith [hs.1] : 1 < s))
+      exact (ContinuousAt.div continuousAt_const
+        (ContinuousAt.pow (Real.continuousAt_log hs0) 2)
+        (pow_ne_zero 2 hlog_ne)).continuousWithinAt
+    have h_cont_f : ContinuousOn
+        (fun y ↦ (Real.log y / y) * ∫ t in x₁..y, 1 / (Real.log t) ^ 2) (Set.Icc x₁ M') := by
+      apply ContinuousOn.mul
+      · intro y hy
+        exact (ContinuousAt.div (Real.continuousAt_log (ne_of_gt (by linarith [hy.1] : 0 < y)))
+          continuousAt_id (by simp; linarith [hy.1])).continuousWithinAt
+      · rw [← Set.uIcc_of_le hM'_ge_x₁]
+        exact intervalIntegral.continuousOn_primitive_interval' h_int_M' Set.left_mem_uIcc
+    obtain ⟨xm, hxm_mem, hxm_max⟩ :=
+      isCompact_Icc.exists_isMaxOn (Set.nonempty_Icc.mpr hM'_ge_x₁) h_cont_f
+    exact ⟨xm, hxm_mem.1, fun y hy_ge ↦ by
+      by_cases hy_le : y ≤ M'
+      · exact hxm_max ⟨hy_ge, hy_le⟩
+      · have hy_ge_M : M ≤ y := by linarith [hM'_ge_M, not_le.mp hy_le]
+        exact ((hM_prop y hy_ge_M).trans_le (hxm_max ⟨ht₁_ge, hM'_ge_t₁⟩)).le⟩
+  obtain ⟨xm, hxm_ge, hxm_max⟩ := h_exists_max
+  have h_xm_gt : xm > x₁ * log x₁ := by
+    by_contra hle
+    push Not at hle
+    linarith [h_monotoneOn h ⟨hxm_ge, hle⟩ ⟨x1_le_x1_log_x1 h, le_refl _⟩ hle,
+              hxm_max t₁ ((x1_lt_x1_log_x1 h).trans ht₁_gt |>.le)]
+  have h_max_val : (log xm / xm) * ∫ t in x₁..xm, 1 / (log t) ^ 2 = 1 / (log xm - 1) := by
+    have hxm_gt : x₁ < xm := (x1_lt_x1_log_x1 h).trans h_xm_gt
+    have h_local_max : IsLocalMax (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) xm := by
+      filter_upwards [eventually_ge_nhds hxm_gt] with y hy using hxm_max y hy
+    have h_deriv_xm : HasDerivAt (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2)
+        ((xm / log xm - (log xm - 1) * ∫ s in x₁..xm, 1 / (log s) ^ 2) / xm ^ 2) xm :=
+      hasDerivAt_log_div_self_mul_integral (by linarith : 1 < x₁) hxm_gt
+    have h_num_eq_zero : xm / log xm - (log xm - 1) * ∫ s in x₁..xm, 1 / (log s) ^ 2 = 0 :=
+      div_eq_zero_iff.mp (h_deriv_xm.deriv ▸ h_local_max.deriv_eq_zero)
+        |>.resolve_right (pow_ne_zero 2 (by linarith : xm ≠ 0))
+    have h_logxm_gt : log xm > 1 := by
+      have h1 : log x₁ > 1 := log_gt_one_of_ge_14 h
+      linarith [Real.log_le_log (by positivity) h_xm_gt.le, Real.log_pos h1,
+                Real.log_mul (by linarith : x₁ ≠ 0) (by linarith : log x₁ ≠ 0)]
+    have h_logxm_sub_ne : log xm - 1 ≠ 0 := by linarith
+    have h_logxm_ne : log xm ≠ 0 := by linarith
+    have h_xm_ne : xm ≠ 0 := by linarith
+    rw [show (log xm / xm) * ∫ s in x₁..xm, 1 / (log s) ^ 2 =
+        ((log xm - 1) * ∫ s in x₁..xm, 1 / (log s) ^ 2) * (log xm / (xm * (log xm - 1)))
+        from by field_simp,
+      show (log xm - 1) * ∫ s in x₁..xm, 1 / (log s) ^ 2 = xm / log xm
+        from by linarith [h_num_eq_zero]]
+    field_simp [h_logxm_sub_ne, h_logxm_ne, h_xm_ne]
+  exact ⟨xm, (x1_lt_x1_log_x1 h).trans h_xm_gt, h_xm_gt,
+    fun y hy ↦ (hxm_max y hy).trans h_max_val.le⟩
+
+@[blueprint
+  "fks2-theorem-6-2"
+  (title := "FKS2 Theorem 6, substep 2")
+  (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
+  $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} < \frac{1}{\log x_1 + \log \log x_1 - 1}. $$ -/)
+  (proof := /-- Call the left-hand side $f(x)$. We have
+  $$ f(x) = \frac{\log x}{x} \left( \mathrm{Li}(x) - \frac{x}{\log x} - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} \right). $$
+  Using integration by parts, its derivative can be written as
+  $$ f'(x) = -\frac{1}{x \log^2 x} + \frac{2}{x \log^3 x} + \frac{\log x - 1}{x^2} \left( \frac{x_1}{\log^2 x_1} + \frac{2 x_1}{\log^3 x_1} - \int_{x_1}^x \frac{6}{\log^4 t} dt \right). $$
+  From which we see that $f'(x_1) = \frac{1}{\log x_1} > 0$, and that $f'(x)$ is eventually negative. Thus there exists a critical point for $f(x)$ to the right of $x_1$. Moreover, by bounding $\int_{x_1}^x \frac{6}{\log^4 t} dt < 6 \frac{x - x_1}{\log^4 x_1}$, one finds that $f'(x_1 \log x_1) > 0$ if $x_1 > e$.
+  Now we write $f'(x) = \frac{f_1(x)}{x^2}$ with
+  $$ f_1(x) = \frac{x}{\log x} - (\log x - 1) \int_{x_1}^x \frac{1}{\log^2 t} dt. $$
+  Its derivative is $f_1'(x) = -\frac{1}{x} \int_{x_1}^x \frac{1}{\log^2 t} dt$, which is negative for $x > x_1$. Thus $f_1(x)$ decreases and vanishes at most once, giving $f(x)$ at most one critical point, $x_m > x_1$, which is then the maximum of $f(x)$. In other words, $x_m$ satisfies $f_1(x_m) = 0$, i.e.\ $\mathrm{Li}(x_m) - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} = -\frac{x_m}{1 - \log x_m}$, which shows that $f(x)$ attains its maximum at $x = x_m$, where
+  $$ f(x_m) = \frac{\log x_m}{x_m} \left( -\frac{x_m}{\log x_m} - \frac{x_m}{1 - \log x_m} \right) = \frac{1}{\log x_m - 1}. $$
+  Now, because $x_m > x_1 \log x_1$ we obtain the bound
+  $$ f(x) < \frac{1}{\log x_1 + \log(\log x_1) - 1}, $$
+  which gives the announced result.
+  -/)
+  (latexEnv := "sublemma")
+  (discussion := 716)]
+theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
+  (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 < 1 / (log x₁ + log (log x₁) - 1) := by
+  have h_denom_pos : 0 < log x₁ + log (log x₁) - 1 := by
+    have hlog14 : log 14 ≤ log x₁ := Real.log_le_log (by norm_num) h
+    have hlog14_pos : 0 < log 14 := Real.log_pos (by norm_num)
+    linarith [Real.log_le_log hlog14_pos hlog14,
+              show (0 : ℝ) < log 14 + log (log 14) - 1 from by interval_decide]
+  rcases exists_isMaxOn_Ici_log_div_self_mul_integral_one_div_log_sq h with ⟨xm, hxm_gt, hxm_bound, h_max⟩
+  have h_log_sub_lt : log x₁ + log (log x₁) - 1 < log xm - 1 := by
+    have h1 : log x₁ > 1 := log_gt_one_of_ge_14 h
+    have h_log_mul : log (x₁ * log x₁) = log x₁ + log (log x₁) :=
+      Real.log_mul (by linarith : x₁ ≠ 0) (by linarith : log x₁ ≠ 0)
+    linarith [Real.log_lt_log (mul_pos (by linarith : 0 < x₁) (by linarith : 0 < log x₁)) hxm_bound,
+              h_log_mul]
+  calc (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2
+      ≤ 1 / (log xm - 1)                        := h_max x hx
+    _ < 1 / (log x₁ + log (log x₁) - 1)         := one_div_lt_one_div_of_lt h_denom_pos h_log_sub_lt
+
 
 @[blueprint
   "fks2-theorem-6-3"
@@ -3730,7 +4005,8 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   $B(x)$ is given by Table 7.
   -/)
   (proof := /-- Same as in Corollary \ref{fks-corollary-23}.-/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1429)]
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
 
