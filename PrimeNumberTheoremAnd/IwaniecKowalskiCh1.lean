@@ -1,5 +1,7 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
+import Mathlib.Analysis.SpecificLimits.Normed
 
 open ArithmeticFunction hiding log
 
@@ -998,7 +1000,122 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
-  sorry
+-- Port of D102: proof of LSeries_liouville_eq
+-- Replace the sorry at IwaniecKowalskiCh1.lean:1001
+-- Full proof with inline multiplicativity and Euler product approach
+
+  -- Use the liouville function as f_liou
+  -- Show L(liou, s) = prod_p (1 + p^{-s})^{-1} = zeta(2s)/zeta(s)
+  let f_liou : ℕ → ℂ := ↗(liouville : ArithmeticFunction ℤ)
+  let g : ℕ → ℂ := LSeries.term f_liou s
+  -- Euler product for zeta(s)
+  have h_zeta : HasProd (fun p : Nat.Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹) (riemannZeta s) :=
+    riemannZeta_eulerProduct_hasProd hs
+  -- Euler product for zeta(2s)
+  have hs2 : 1 < (2 * s).re := by
+    have : (2 * s).re = 2 * s.re := by simp [Complex.mul_re]
+    linarith
+  have h_zeta2 : HasProd (fun p : Nat.Primes ↦ (1 - (p : ℂ) ^ (-(2 * s)))⁻¹)
+      (riemannZeta (2 * s)) := riemannZeta_eulerProduct_hasProd hs2
+  -- liouville n = (-1)^Ω n for n ≠ 0
+  have hliou_ne : ∀ n : ℕ, n ≠ 0 → liouville n = (-1 : ℤ) ^ Ω n := by
+    intro n hn
+    simp [liouville, toArithmeticFunction, ArithmeticFunction.coe_mk, hn]
+  -- Summability (|f_liou n| ≤ 1)
+  have hg_Lsum : LSeriesSummable f_liou s := by
+    apply LSeriesSummable_of_bounded_of_one_lt_re (m := 1) _ hs
+    intro n hn
+    simp only [f_liou]
+    rw [hliou_ne n hn]
+    push_cast
+    rw [norm_pow, norm_neg, norm_one, one_pow]
+  have hg_sum : Summable (‖g ·‖) := summable_norm_iff.mpr hg_Lsum
+  -- g 1 = 1
+  have hg1 : g 1 = 1 := by
+    simp [g, f_liou, liouville, toArithmeticFunction, cardFactors_one]
+  -- g 0 = 0
+  have hg0 : g 0 = 0 := LSeries.term_zero f_liou s
+  -- Multiplicativity on coprimes
+  have hg_mul : ∀ {m n : ℕ}, m.Coprime n → g (m * n) = g m * g n := by
+    intro m n hmn
+    rcases Nat.eq_zero_or_pos m with rfl | hm
+    · have hn1 : n = 1 := by simp only [Nat.Coprime, Nat.gcd_zero_left] at hmn; exact hmn
+      subst hn1; simp [g, hg0]
+    rcases Nat.eq_zero_or_pos n with rfl | hn
+    · have hm1 : m = 1 := by simp only [Nat.Coprime, Nat.gcd_zero_right] at hmn; exact hmn
+      subst hm1; simp [g, hg0]
+    · have hm' : m ≠ 0 := hm.ne'
+      have hn' : n ≠ 0 := hn.ne'
+      have hmn' : m * n ≠ 0 := Nat.mul_ne_zero hm' hn'
+      simp only [g, LSeries.term_of_ne_zero hmn', LSeries.term_of_ne_zero hm',
+          LSeries.term_of_ne_zero hn', f_liou]
+      have h_omega : Ω (m * n) = Ω m + Ω n := cardFactors_mul hm' hn'
+      have h_liu : (liouville (m * n) : ℂ) = (liouville m : ℂ) * (liouville n : ℂ) := by
+        rw [hliou_ne _ hmn', hliou_ne _ hm', hliou_ne _ hn']
+        push_cast [h_omega, pow_add]
+        rfl
+      have h_cpow : ((m * n : ℕ) : ℂ) ^ s = ((m : ℕ) : ℂ) ^ s * ((n : ℕ) : ℂ) ^ s := by
+        push_cast; exact Complex.natCast_mul_natCast_cpow m n s
+      rw [h_liu, h_cpow]; ring
+  -- Euler product for L(liou,s)
+  have h_ep : HasProd (fun p : Nat.Primes ↦ ∑' e : ℕ, g ((p : ℕ) ^ e))
+      (∑' n, g n) := EulerProduct.eulerProduct_hasProd hg1 hg_mul hg_sum hg0
+  have h_tsum_eq : ∑' n, g n = LSeries f_liou s := rfl
+  rw [h_tsum_eq] at h_ep
+  -- Local factor = (1 + p^{-s})^{-1}
+  have h_local : ∀ (p : Nat.Primes), ∑' e : ℕ, g ((p : ℕ) ^ e) = (1 + ((p : ℕ) : ℂ) ^ (-s))⁻¹ := by
+    intro ⟨p, hp⟩
+    have hge : ∀ e : ℕ, g (p ^ e) = (-(p : ℂ) ^ (-s)) ^ e := by
+      intro e
+      by_cases he : p ^ e = 0
+      · exact absurd he (pow_ne_zero _ hp.ne_zero)
+      · simp only [g, LSeries.term_of_ne_zero he, f_liou]
+        rw [hliou_ne _ he, cardFactors_apply_prime_pow hp]
+        push_cast [Nat.cast_pow]
+        rw [← Complex.natCast_cpow_natCast_mul (p : ℕ) e s]
+        conv_rhs => rw [neg_pow, ← Complex.cpow_nat_mul (p : ℂ) e (-s)]
+        rw [mul_neg, Complex.cpow_neg]
+        ring
+    have hnorm : ‖-(p : ℂ) ^ (-s)‖ < 1 := by
+      rw [norm_neg]
+      exact (Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs).trans_lt (by norm_num)
+    conv_lhs => arg 1; ext e; rw [hge e]
+    rw [tsum_geometric_of_norm_lt_one hnorm]
+    simp [sub_neg_eq_add]
+  -- Rewrite Euler product with local factors
+  have h_ep' : HasProd (fun p : Nat.Primes ↦ (1 + ((p : ℕ) : ℂ) ^ (-s))⁻¹)
+      (LSeries f_liou s) := h_ep.congr_fun (fun p ↦ (h_local p).symm)
+  -- Multiply Euler products
+  have h_prod : HasProd (fun p : Nat.Primes ↦
+      (1 - ((p : ℕ) : ℂ) ^ (-s))⁻¹ * (1 + ((p : ℕ) : ℂ) ^ (-s))⁻¹)
+      (riemannZeta s * LSeries f_liou s) := h_zeta.mul h_ep'
+  -- Algebraic identity
+  have h_alg : ∀ (p : Nat.Primes),
+      (1 - ((p : ℕ) : ℂ) ^ (-s))⁻¹ * (1 + ((p : ℕ) : ℂ) ^ (-s))⁻¹ =
+      (1 - ((p : ℕ) : ℂ) ^ (-(2 * s)))⁻¹ := by
+    intro ⟨p, hp⟩
+    have hne_sub : 1 - (p : ℂ) ^ (-s) ≠ 0 := Complex.one_sub_prime_cpow_ne_zero hp hs
+    have hne_add : 1 + (p : ℂ) ^ (-s) ≠ 0 := by
+      intro h
+      have hle : ‖(p : ℂ) ^ (-s)‖ ≤ 1 / 2 := Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs
+      have heq : (p : ℂ) ^ (-s) = -1 := eq_neg_of_add_eq_zero_right h
+      rw [heq, norm_neg, norm_one] at hle; norm_num at hle
+    have h_sq : (p : ℂ) ^ (-(2 * s)) = ((p : ℂ) ^ (-s)) ^ 2 := by
+      rw [show -(2 * s) = (2 : ℕ) * (-s) by push_cast; ring]
+      exact Complex.cpow_nat_mul (p : ℂ) 2 (-s)
+    have h_factor : 1 - ((p : ℂ) ^ (-s)) ^ 2 =
+        (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) := by ring
+    rw [h_sq, h_factor, mul_inv_rev, mul_comm]
+  -- zeta(s) * L(liou,s) = zeta(2s) via HasProd.unique
+  have h_prod' : HasProd (fun p : Nat.Primes ↦ (1 - ((p : ℕ) : ℂ) ^ (-(2 * s)))⁻¹)
+      (riemannZeta s * LSeries f_liou s) :=
+    h_prod.congr_fun (fun p ↦ (h_alg p).symm)
+  have h_eq : riemannZeta s * LSeries f_liou s = riemannZeta (2 * s) :=
+    (h_zeta2.unique h_prod').symm
+  -- Conclude
+  have hzne : riemannZeta s ≠ 0 := riemannZeta_ne_zero_of_one_lt_re hs
+  rw [eq_div_iff hzne, mul_comm]
+  exact h_eq
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
 @[blueprint
