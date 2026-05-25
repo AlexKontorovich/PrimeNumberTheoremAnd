@@ -338,9 +338,10 @@ private lemma prop_2_3_fourier_integral_ici_eq
       let g := (Set.Ici (-log x / (2 * π))).indicator (𝓕 psi)
       convert (Measure.integral_comp_div g (2 * π)) using 1
       · congr 1; ext u; dsimp [g]; simp [Set.indicator_apply, Set.mem_Ici, le_div_iff₀ h2pi]
-      · dsimp [g]; simp [abs_of_pos h2pi]
-        show _ = ((2 * π : ℝ) : ℂ) * _
-        push_cast; ring
+      · dsimp [g]
+        simp only [abs_of_pos h2pi]
+        change _ = ((2 * π : ℝ) : ℂ) * _
+        exact_mod_cast rfl
     _ = (2 * π : ℂ) * ∫ v in Set.Ici (-log x / (2 * π)), (T : ℂ) * 𝓕 φ (T * v) := by
       congr 1; apply integral_congr_ae; filter_upwards with v
       rw [fourier_scale_div_noscalar φ T v hT]
@@ -352,7 +353,7 @@ private lemma prop_2_3_fourier_integral_ici_eq
       rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
       simp only [push_cast, neg_mul]
       field_simp [hT.ne', Real.pi_pos.ne']
-      show (T : ℂ) * (((1 / T : ℝ) : ℂ) * _) = _
+      change (T : ℂ) * (((1 / T : ℝ) : ℂ) * _) = _
       push_cast; field_simp [hT.ne']
     _ = (2 * π : ℂ) * ((∫ y, 𝓕 φ y) - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ y) := by
       congr 1
@@ -394,8 +395,7 @@ private lemma prop_2_3_tendsto_exp_damped_integral
   · filter_upwards [self_mem_nhdsWithin] with sig _
     refine AEStronglyMeasurable.mul ?_ ?_
     · refine (Continuous.aestronglyMeasurable ?_).restrict
-      refine continuous_ofReal.comp ?_
-      continuity
+      fun_prop
     · refine (Continuous.aestronglyMeasurable ?_).restrict
       exact (VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar (by fun_prop) hpsi_int).comp (continuous_id.div_const _)
   · filter_upwards [self_mem_nhdsWithin, Icc_mem_nhdsGT (one_lt_two)] with sig hsig1 hsig2
@@ -6023,6 +6023,18 @@ private lemma norm_dslope_deriv_z_coth_z_le_one (w : ℂ) (h_nz : w ≠ 0)
   field_simp [norm_pos_iff.mpr h_nz]
   exact h_bound
 
+private lemma analyticOn_dslope_deriv_z_coth_z_zero :
+    AnalyticOn ℂ (dslope (fun w : ℂ ↦ deriv (fun z : ℂ ↦ z * coth z) w) 0)
+      {w : ℂ | |w.im| < π} := by
+  have h_f_anal : AnalyticOn ℂ (fun w : ℂ ↦ deriv (fun z : ℂ ↦ z * coth z) w)
+      {w | |w.im| < π} := analyticOn_deriv_z_coth_z (Set.Subset.refl _)
+  have h_open : IsOpen {w : ℂ | |w.im| < π} := isOpen_lt continuous_im.abs continuous_const
+  have h_diff : DifferentiableOn ℂ
+      (dslope (fun w ↦ deriv (fun z ↦ z * coth z) w) 0) {w | |w.im| < π} := by
+    rw [differentiableOn_dslope (h_open.mem_nhds (by simpa using Real.pi_pos))]
+    exact h_f_anal.differentiableOn
+  exact h_diff.analyticOn h_open
+
 @[blueprint
   "CH2-lemma-4-2b"
   (title := "CH2 Lemma 4.2(b)")
@@ -6038,17 +6050,12 @@ theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ 
   · let g := dslope f 0
     have hg_bound : ‖g z‖ ≤ 1 := by
       apply PhragmenLindelof.horizontal_strip (a := -(π / 2)) (b := π / 2) (C := 1) (f := g) (z := z) (hza := (abs_le.mp hz).1) (hzb := (abs_le.mp hz).2)
-      · have h_f_anal : AnalyticOn ℂ f {w | |w.im| < π} :=
-          analyticOn_deriv_z_coth_z (Set.Subset.refl _)
-        have h_g_anal : AnalyticOn ℂ g {w | |w.im| < π} := by
-          have h_diff : DifferentiableOn ℂ g {w | |w.im| < π} := by
-            rw [differentiableOn_dslope ((isOpen_lt continuous_im.abs continuous_const).mem_nhds
-              (by simpa using Real.pi_pos))]
-            exact h_f_anal.differentiableOn
-          exact h_diff.analyticOn (isOpen_lt (continuous_im.abs) continuous_const)
+      · have h_g_anal : AnalyticOn ℂ g {w | |w.im| < π} :=
+          analyticOn_dslope_deriv_z_coth_z_zero
         constructor
         · apply h_g_anal.differentiableOn.mono
-          intro w hw; simp only [Set.mem_preimage, Set.mem_Ioo, Set.mem_setOf_eq, abs_lt] at hw ⊢; constructor <;> linarith [Real.pi_pos]
+          intro w hw; simp only [Set.mem_preimage, Set.mem_Ioo, Set.mem_setOf_eq, abs_lt] at hw ⊢
+          constructor <;> linarith [Real.pi_pos]
         · rw [Complex.closure_preimage_im, closure_Ioo (by linarith [Real.pi_pos])]
           apply h_g_anal.continuousOn.mono
           intro w hw; simp only [Set.mem_preimage, Set.mem_Icc, Set.mem_setOf_eq, abs_lt] at hw ⊢
