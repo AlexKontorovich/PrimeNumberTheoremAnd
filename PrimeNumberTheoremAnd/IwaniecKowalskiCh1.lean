@@ -676,9 +676,98 @@ Baby Rankin-Selberg:
   (proof := /--
   This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
   -/)]
+-- Helper lemmas for zeta_mul_tau_square_eq
+private lemma zmtse_sum_odd_eq_sq (k : ℕ) :
+    ∑ j ∈ Finset.range (k + 1), (j * 2 + 1) = (k + 1) ^ 2 := by
+  induction k with
+  | zero => simp
+  | succ k ih => rw [Finset.sum_range_succ, ih]; ring
+
+private lemma zmtse_two_mul_plus_one_le_choose (k : ℕ) : k * 2 + 1 ≤ (k + 2).choose 2 := by
+  induction k with
+  | zero => norm_num
+  | succ k ih =>
+    rw [show k + 1 + 2 = (k + 2) + 1 from rfl,
+        Nat.choose_succ_succ' (k + 2) 1, Nat.choose_one_right]
+    linarith
+
+private lemma zmtse_tau_sq_dirichlet_nat {n : ℕ} (hn : n ≠ 0) :
+    ∑ d ∈ n.divisors, σ 0 (d ^ 2) = (σ 0 n) ^ 2 := by
+  let F : ArithmeticFunction ℕ := ⟨fun n ↦ σ 0 (n ^ 2), by simp⟩
+  let G : ArithmeticFunction ℕ := ⟨fun n ↦ (σ 0 n) ^ 2, by simp⟩
+  have hF_mult : F.IsMultiplicative := by
+    constructor
+    · show σ 0 (1 ^ 2) = 1; simp
+    · intro m k hmk
+      show σ 0 ((m * k) ^ 2) = σ 0 (m ^ 2) * σ 0 (k ^ 2)
+      rw [mul_pow]; exact isMultiplicative_sigma.map_mul_of_coprime (hmk.pow 2 2)
+  have hG_mult : G.IsMultiplicative := by
+    constructor
+    · show (σ 0 1) ^ 2 = 1; simp
+    · intro m k hmk
+      show (σ 0 (m * k)) ^ 2 = (σ 0 m) ^ 2 * (σ 0 k) ^ 2
+      rw [isMultiplicative_sigma.map_mul_of_coprime hmk]; ring
+  have h_eq : (ζ : ArithmeticFunction ℕ) * F = G := by
+    rw [IsMultiplicative.eq_iff_eq_on_prime_powers _ (isMultiplicative_zeta.mul hF_mult) _ hG_mult]
+    intro p i hp
+    rcases i with _ | i
+    · simp only [pow_zero]; rw [(isMultiplicative_zeta.mul hF_mult).1, hG_mult.1]
+    · rw [zeta_mul_apply, sum_divisors_prime_pow hp]
+      simp only [F, G, coe_mk]
+      simp_rw [← pow_mul, sigma_zero_apply_prime_pow hp]
+      exact zmtse_sum_odd_eq_sq (i + 1)
+  have h_n := DFunLike.congr_fun h_eq n
+  rw [zeta_mul_apply] at h_n
+  simp only [F, G, coe_mk] at h_n
+  exact h_n
+
+private lemma zmtse_tau_sq_le_d3 (n : ℕ) : σ 0 (n ^ 2) ≤ d 3 n := by
+  rcases n.eq_zero_or_pos with rfl | hn
+  · simp
+  let F : ArithmeticFunction ℕ := ⟨fun n ↦ σ 0 (n ^ 2), by simp⟩
+  have hF_mult : F.IsMultiplicative := by
+    constructor
+    · show σ 0 (1 ^ 2) = 1; simp
+    · intro m k hmk
+      show σ 0 ((m * k) ^ 2) = σ 0 (m ^ 2) * σ 0 (k ^ 2)
+      rw [mul_pow]; exact isMultiplicative_sigma.map_mul_of_coprime (hmk.pow 2 2)
+  rw [show σ 0 (n ^ 2) = F n from rfl,
+      hF_mult.multiplicative_factorization F hn.ne',
+      (d_isMultiplicative 3).multiplicative_factorization (d 3) hn.ne']
+  simp only [Finsupp.prod, Nat.support_factorization]
+  apply Finset.prod_le_prod (fun p _ ↦ Nat.zero_le _)
+  intro p hp
+  have hprime : p.Prime := prime_of_mem_primeFactors hp
+  show σ 0 ((p ^ n.factorization p) ^ 2) ≤ d 3 (p ^ n.factorization p)
+  rw [← pow_mul, sigma_zero_apply_prime_pow hprime,
+      d_apply_prime_pow (by norm_num : 0 < 3) hprime]
+  exact zmtse_two_mul_plus_one_le_choose _
+
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
+  -- τ = σ 0 by abbrev; reduce to ℂ-valued ArithmeticFunctions
+  let F_ℂ : ArithmeticFunction ℂ := ⟨fun n ↦ (σ 0 (n ^ 2) : ℂ), by simp⟩
+  let G_ℂ : ArithmeticFunction ℂ := ⟨fun n ↦ (↑(σ 0 n) : ℂ) ^ 2, by simp⟩
+  have hLF : LSeries (fun n ↦ (τ (n ^ 2) : ℕ)) s = LSeries ↗F_ℂ s := rfl
+  have hLG : LSeries (fun n ↦ (↑(τ n) : ℂ) ^ 2) s = LSeries ↗G_ℂ s := rfl
+  have hF_sum : LSeriesSummable ↗F_ℂ s := by
+    apply Summable.of_norm_bounded (LSeries_d_summable 3 hs).norm
+    intro n
+    apply LSeries.norm_term_le s
+    simp only [F_ℂ, coe_mk, natCoe_apply, RCLike.norm_natCast]
+    exact_mod_cast zmtse_tau_sq_le_d3 n
+  have hζ_sum : LSeriesSummable ↗(ζ : ArithmeticFunction ℂ) s :=
+    LSeriesSummable_zeta_iff.mpr hs
+  have h_conv_eq : (ζ : ArithmeticFunction ℂ) * F_ℂ = G_ℂ := by
+    ext n
+    rw [coe_zeta_mul_apply]
+    simp only [F_ℂ, G_ℂ, coe_mk]
+    rcases n.eq_zero_or_pos with rfl | hn
+    · simp
+    · exact_mod_cast zmtse_tau_sq_dirichlet_nat hn.ne'
+  have h_zeta_eq : LSeries ↗(ζ : ArithmeticFunction ℂ) s = riemannZeta s :=
+    LSeries_zeta_eq_riemannZeta hs
+  rw [hLF, hLG, ← h_conv_eq, LSeries_mul' hζ_sum hF_sum, h_zeta_eq]
 
 /--
 Zeta cubed:
