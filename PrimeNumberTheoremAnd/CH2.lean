@@ -5831,7 +5831,7 @@ private lemma deriv_z_coth_z_le_one (w : ℂ) (hw : |w.im| ≤ π / 4) :
 
 private lemma isPreconnected_im_preimage_Ioo (a b : ℝ) :
     IsPreconnected (Complex.im ⁻¹' Set.Ioo a b) := by
-  haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul -- can be removed once we upgrade to mathlib 4.30
+  haveI : IsBoundedSMul ℝ ℂ := NormedSpace.toIsBoundedSMul -- this line can be removed once we upgrade to mathlib 4.30
   apply Convex.isPreconnected
   change Convex ℝ ({c : ℂ | a < c.im} ∩ {c : ℂ | c.im < b})
   exact Convex.inter (convex_halfSpace_im_gt _) (convex_halfSpace_im_lt _)
@@ -6035,6 +6035,22 @@ private lemma analyticOn_dslope_deriv_z_coth_z_zero :
     exact h_f_anal.differentiableOn
   exact h_diff.analyticOn h_open
 
+private lemma norm_dslope_deriv_z_coth_z_le_one_of_abs_im_eq (w : ℂ)
+    (hw : |w.im| = π / 2) :
+    ‖dslope (fun v : ℂ ↦ deriv (fun z : ℂ ↦ z * coth z) v) 0 w‖ ≤ 1 := by
+  have h_nz : w ≠ 0 := by
+    rintro rfl; simp at hw; linarith [Real.pi_pos]
+  have h_bound : ‖deriv (fun z ↦ z * coth z) w‖ ≤ ‖w‖ := by
+    rcases abs_cases w.im with ⟨h_eq, _⟩ | ⟨h_eq, _⟩
+    · have hw' : w.im = π / 2 := h_eq.symm.trans hw
+      rw [show w = ↑(re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw']]
+      exact deriv_z_coth_z_bound_boundary_half_pi (re w)
+    · have hw' : w.im = -(π / 2) := by linarith [h_eq.symm.trans hw]
+      rw [← norm_neg w, ← norm_neg (deriv (fun z ↦ z * coth z) w), ← deriv_z_coth_z_odd,
+          show -w = ↑(-re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw']]
+      exact deriv_z_coth_z_bound_boundary_half_pi (-re w)
+  exact norm_dslope_deriv_z_coth_z_le_one w h_nz h_bound
+
 @[blueprint
   "CH2-lemma-4-2b"
   (title := "CH2 Lemma 4.2(b)")
@@ -6070,18 +6086,11 @@ theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ 
         simp only [f, g, dslope_of_ne f hw, slope, deriv_z_coth_z_at_zero]
         simp; ring_nf
       · intro w hw
-        have h_bound : ‖f w‖ ≤ ‖w‖ := by
-          rw [← norm_neg w, ← norm_neg (f w), ← deriv_z_coth_z_odd,
-              show -w = ↑(-re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw]]
-          exact deriv_z_coth_z_bound_boundary_half_pi (-re w)
-        exact norm_dslope_deriv_z_coth_z_le_one w
-          (by intro h; simp [h] at hw) h_bound
+        exact norm_dslope_deriv_z_coth_z_le_one_of_abs_im_eq w
+          (by rw [hw, abs_neg]; exact abs_of_pos (by linarith [Real.pi_pos]))
       · intro w hw
-        have h_bound : ‖f w‖ ≤ ‖w‖ := by
-          rw [show w = ↑(re w) + ↑(π / 2) * Complex.I from by apply Complex.ext <;> simp [hw]]
-          exact deriv_z_coth_z_bound_boundary_half_pi (re w)
-        exact norm_dslope_deriv_z_coth_z_le_one w
-          (by intro h; simp [h] at hw; exact Real.pi_pos.ne.symm (by linarith)) h_bound
+        exact norm_dslope_deriv_z_coth_z_le_one_of_abs_im_eq w
+          (by rw [hw]; exact abs_of_pos (by linarith [Real.pi_pos]))
     have hg_eq : ‖g z‖ = ‖f z‖ / ‖z‖ := by
       unfold g dslope; rw [Function.update_of_ne hz_nz]
       unfold slope f
