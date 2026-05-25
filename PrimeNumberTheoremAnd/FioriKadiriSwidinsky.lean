@@ -702,18 +702,6 @@ noncomputable def A (x₀ : ℝ) : ℝ :=
 theorem theorem_1_2b (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eψ.classicalBound (A x₀) (3 / 2) 2 5.5666305 x₀ := by sorry
 
-
-@[blueprint "fks_cor_13"
-  (title := "FKS1 Corollary 1.3")
-  (statement := /--
-    For all x > 2 we have
-    $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$.
-  -/)
-  (uses := ["classical-bound-psi"])
-  (latexEnv := "theorem")]
-theorem FKS_corollary_1_3 :
-    Eψ.classicalBound 121.096 (3 / 2) 2 5.5666305 2 := sorry
-
 @[blueprint "fks_cor_14"
   (title := "FKS1 Corollary 1.4")
   (statement := /--
@@ -723,6 +711,19 @@ theorem FKS_corollary_1_3 :
   (proof := /-- TODO. -/)]
 theorem FKS_corollary_1_4 :
     Eψ.classicalBound 9.22022 (3 / 2) 0.8476836 1 2 := sorry
+
+@[blueprint "fks_cor_14'"
+  (title := "FKS1 Corollary 1.4'")
+  (statement := /--
+    For all x > 2 we have
+    $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$.
+    This minor variant of Corollary 1.4 is not directly stated in this paper, but is stated in
+    \cite{Remark 2}{FKS2}.
+  -/)
+  (uses := ["classical-bound-psi"])
+  (latexEnv := "theorem")]
+theorem FKS_corollary_1_3 :
+    Eψ.classicalBound 121.096 (3 / 2) 2 5.5666305 2 := sorry
 
 
 end FKS
