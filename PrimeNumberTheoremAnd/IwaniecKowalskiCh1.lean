@@ -296,7 +296,17 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
 /- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
-  sorry
+  calc ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x
+      = ∑ x ∈ (p ^ k).divisorsAntidiagonal, (fun a b => f (a, b)) x.1 x.2 := rfl
+    _ = ∑ d ∈ (p ^ k).divisors, (fun a b => f (a, b)) d (p ^ k / d) :=
+          sum_divisorsAntidiagonal (fun a b => f (a, b))
+    _ = ∑ i ∈ Finset.range (k + 1), (fun a b => f (a, b)) (p ^ i) (p ^ k / p ^ i) := by
+          rw [sum_divisors_prime_pow h]
+    _ = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
+          apply Finset.sum_congr rfl
+          intro i hi
+          congr 1
+          exact Nat.pow_div (Nat.lt_succ_iff.mp (Finset.mem_range.mp hi)) h.pos
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
@@ -813,8 +823,19 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  intro ⟨a, b⟩ hab ⟨a', b'⟩ hab' heq
+  simp only [Set.mem_prod, Finset.mem_coe, mem_divisors] at hab hab'
+  obtain ⟨⟨ha, hm⟩, hb, _⟩ := hab
+  obtain ⟨⟨ha', _⟩, hb', _⟩ := hab'
+  simp only at heq
+  have ha_pos : 0 < a := pos_of_dvd_of_pos ha (Nat.pos_of_ne_zero hm)
+  have hab'_cop : a.Coprime b' := (hmn.coprime_dvd_right hb').coprime_dvd_left ha
+  have ha'b_cop : a'.Coprime b := (hmn.coprime_dvd_right hb).coprime_dvd_left ha'
+  have ha_dvd_a' : a ∣ a' := hab'_cop.dvd_of_dvd_mul_right (heq ▸ dvd_mul_right a b)
+  have ha'_dvd_a : a' ∣ a := ha'b_cop.dvd_of_dvd_mul_right (heq.symm ▸ dvd_mul_right a' b')
+  have ha_eq : a = a' := Nat.dvd_antisymm ha_dvd_a' ha'_dvd_a
+  subst ha_eq
+  exact Prod.ext rfl (Nat.eq_of_mul_eq_mul_left ha_pos heq)
 
 @[blueprint
   "pow_divisors_mul_injective"
