@@ -325,10 +325,11 @@ private lemma setIntegral_Ici_const_mul {T : ℝ} (hT : 0 < T) (f : ℝ → ℂ)
   -- `T * v = T • v` on `ℝ` is only definitionally true.
   erw [Measure.setIntegral_comp_smul volume f (Set.Ici a) hT.ne']
   rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
-  field_simp [hT.ne']
-  change (T : ℂ) * (((1 / T : ℝ) : ℂ) * _) = _
+  -- `(T⁻¹ : ℝ) • z = ((T⁻¹ : ℝ) : ℂ) * z` definitionally, so `change` switches view.
+  change (T : ℂ) * (((T⁻¹ : ℝ) : ℂ) * _) = _
+  rw [← mul_assoc]
   push_cast
-  field_simp [hT.ne']
+  rw [mul_inv_cancel₀ (by exact_mod_cast hT.ne' : (T : ℂ) ≠ 0), one_mul]
 
 private lemma prop_2_3_fourier_integral_ici_eq
     {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
