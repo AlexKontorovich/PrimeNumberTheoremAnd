@@ -319,18 +319,13 @@ private lemma fourier_decay_isO_log_rpow
   rw [abs_one, one_rpow, div_one] at hC_bound
   exact (norm_nonneg _).trans hC_bound
 
+-- This proof requires several `erw`'s because `Measure.setIntegral_comp_smul` is stated with `T • v`
 private lemma setIntegral_Ici_const_mul {T : ℝ} (hT : 0 < T) (f : ℝ → ℂ) (a : ℝ) :
     (T : ℂ) * ∫ v in Set.Ici a, f (T * v) = ∫ y in Set.Ici (T * a), f y := by
-  -- `erw` needed because `Measure.setIntegral_comp_smul` is stated with `T • v`
   erw [Measure.setIntegral_comp_smul volume f (Set.Ici a) hT.ne']
   rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
-
-  fail_if_success rw [Complex.real_smul]
   erw [Complex.real_smul]
-
-  rw [← mul_assoc]
-  push_cast
-  rw [mul_inv_cancel₀ (by exact_mod_cast hT.ne' : (T : ℂ) ≠ 0), one_mul]
+  rw [← mul_assoc, show T * ((T⁻¹ : _) : ℂ) = 1 by norm_cast; field_simp, one_mul]
 
 private lemma prop_2_3_fourier_integral_ici_eq
     {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
