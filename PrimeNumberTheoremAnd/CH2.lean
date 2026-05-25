@@ -1921,10 +1921,6 @@ theorem Phi_star.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) :
     simp_all only [not_true_eq_false]
   convert h_diff_B.sub contDiff_const |> fun h => h.div_const (2 * Real.pi * Complex.I) using 1
 
-private lemma contDiff_neg_two_pi_I_mul_real_add_div_two (ν : ℝ) :
-    ContDiff ℝ 2 (fun t : ℝ => (-2 * Real.pi * Complex.I * t + ν) / 2) := by
-  fun_prop
-
 theorem Phi_circ.contDiff_real (ν ε : ℝ) (hlam : ν ≠ 0) : ContDiff ℝ 2 (fun t : ℝ => Phi_circ ν ε (t : ℂ)) := by
   have h_diff : ContDiff ℝ 2 (fun t : ℝ => 1 / Complex.tanh ((-2 * Real.pi * Complex.I * t + ν) / 2)) := by
     simp only [Complex.tanh_eq_sinh_div_cosh]
