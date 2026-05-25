@@ -1,5 +1,8 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
+import Mathlib.Analysis.Complex.Norm
+import Mathlib.NumberTheory.LSeries.Convolution
 
 open ArithmeticFunction hiding log
 
@@ -736,10 +739,188 @@ where omega is the number of distinct prime factors. -/
   (proof := /--
   Follows from previous arguments.
   -/)]
+private lemma sum_moebius_sq_eq_two_pow_omega {n : ℕ} (hn : n ≠ 0) :
+    ∑ d ∈ n.divisors, (moebius d : ℤ) ^ 2 = (2 : ℤ) ^ (ω n) := by
+  let μ_sq : ArithmeticFunction ℤ := moebius.pmul moebius
+  let tpo : ArithmeticFunction ℤ :=
+    ⟨fun k => if k = 0 then 0 else (2 : ℤ) ^ (ω k), by simp⟩
+  have h_unfold : ((ζ : ArithmeticFunction ℤ) * μ_sq) n =
+      ∑ d ∈ n.divisors, (moebius d : ℤ) ^ 2 := by
+    rw [coe_zeta_mul_apply]
+    congr 1; ext d
+    simp [μ_sq, ArithmeticFunction.pmul_apply, sq]
+  have hmu_sq_mult : μ_sq.IsMultiplicative :=
+    isMultiplicative_moebius.pmul isMultiplicative_moebius
+  have hconv_mult : ((ζ : ArithmeticFunction ℤ) * μ_sq).IsMultiplicative :=
+    isMultiplicative_zeta.natCast.mul hmu_sq_mult
+  have htpo_mult : tpo.IsMultiplicative :=
+    IsMultiplicative.iff_ne_zero.2
+      ⟨by simp [tpo, cardDistinctFactors_one],
+       fun {m k} hm hk hmk => by
+         simp only [tpo, ArithmeticFunction.coe_mk, Nat.mul_ne_zero hm hk, hm, hk, if_false]
+         rw [cardDistinctFactors_mul hmk]; exact_mod_cast pow_add 2 _ _⟩
+  have h_eq : (ζ : ArithmeticFunction ℤ) * μ_sq = tpo := by
+    rw [IsMultiplicative.eq_iff_eq_on_prime_powers _ hconv_mult _ htpo_mult]
+    intro p i hp
+    rcases i with _ | i
+    · simp [hconv_mult.1, htpo_mult.1]
+    · rw [coe_zeta_mul_apply, sum_divisors_prime_pow hp, sum_range_succ']
+      simp only [tpo, ArithmeticFunction.coe_mk,
+                 show p ^ (i + 1) ≠ 0 from pow_ne_zero _ hp.ne_zero, if_false,
+                 cardDistinctFactors_apply_prime_pow hp (Nat.succ_ne_zero i), pow_one]
+      simp only [pow_zero, μ_sq, ArithmeticFunction.pmul_apply, moebius_apply_one,
+                 one_mul]
+      suffices h : ∑ x ∈ Finset.range (i + 1),
+          moebius (p ^ (x + 1)) * moebius (p ^ (x + 1)) = 1 by linarith [h]
+      rw [Finset.sum_range_succ']
+      simp only [Nat.zero_add, pow_one, moebius_apply_prime hp]
+      push_cast
+      have h_tail : ∀ x : ℕ, moebius (p ^ (x + 2)) * moebius (p ^ (x + 2)) = 0 := fun x => by
+        have : moebius (p ^ (x + 2)) = 0 := by
+          rw [moebius_apply_prime_pow hp (by omega : x + 2 ≠ 0)]
+          simp [show x + 2 ≠ 1 from by omega]
+        simp [this]
+      simp_rw [h_tail, Finset.sum_const_zero]
+      norm_num
+  have h_val := DFunLike.congr_fun h_eq n
+  simp only [tpo, ArithmeticFunction.coe_mk, hn, if_false] at h_val
+  rw [← h_unfold]; exact h_val
+
 lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 2 =
     riemannZeta (2 * s) * LSeries (fun n ↦ 2 ^ (ω n)) s := by
-  sorry
+  open EulerProduct in
+  -- Step 1: Euler products for ζ(s), ζ(s)², ζ(2s)
+  have hs2 : 1 < (2 * s).re := by
+    have : (2 * s).re = 2 * s.re := by simp [Complex.mul_re]
+    linarith
+  have h_zeta : HasProd (fun p : Nat.Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹) (riemannZeta s) :=
+    riemannZeta_eulerProduct_hasProd hs
+  have h_zeta_sq : HasProd (fun p : Nat.Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹ ^ 2)
+      (riemannZeta s ^ 2) := by
+    have h := (h_zeta.mul h_zeta).congr_fun (fun _ : Nat.Primes => sq _)
+    rwa [← sq] at h
+  have h_zeta2 : HasProd (fun p : Nat.Primes ↦ (1 - (p : ℂ) ^ (-(2 * s)))⁻¹)
+      (riemannZeta (2 * s)) :=
+    riemannZeta_eulerProduct_hasProd hs2
+  -- Step 2: Define g := LSeries.term for 2^ω
+  let f2ω : ℕ → ℂ := fun n ↦ (2 : ℂ) ^ (ω n)
+  let g : ℕ → ℂ := LSeries.term f2ω s
+  -- Step 3: Summability via μ² identity ∑_{d|n} μ(d)² = 2^ω(n)
+  have hmu_sq_sum : LSeriesSummable (fun n : ℕ => (moebius n : ℂ) ^ 2) s := by
+    apply LSeriesSummable_of_bounded_of_one_lt_re (m := 1) _ hs
+    intro n _
+    simp only [norm_pow]
+    apply pow_le_one₀ (norm_nonneg _)
+    rw [Complex.norm_intCast]
+    exact_mod_cast abs_moebius_le_one
+  have hone_sum : LSeriesSummable (fun _ : ℕ => (1 : ℂ)) s :=
+    LSeriesSummable_one_iff.mpr hs
+  have h_identity : ∀ n : ℕ, n ≠ 0 →
+      ((fun _ : ℕ => (1 : ℂ)) ⍟ (fun n => (moebius n : ℂ) ^ 2)) n = f2ω n := by
+    intro n hn
+    rw [LSeries.convolution_def]
+    simp only [one_mul]
+    have h_reindex : ∑ x ∈ n.divisorsAntidiagonal, (moebius x.2 : ℂ) ^ 2 =
+        ∑ d ∈ n.divisors, (moebius d : ℂ) ^ 2 := by
+      rw [← map_div_left_divisors, Finset.sum_map]
+      simp [Function.Embedding.coeFn_mk]
+    rw [h_reindex]
+    change ∑ d ∈ n.divisors, (moebius d : ℂ) ^ 2 = (2 : ℂ) ^ (ω n)
+    exact_mod_cast sum_moebius_sq_eq_two_pow_omega hn
+  have hconv_sum : LSeriesSummable ((fun _ : ℕ => (1 : ℂ)) ⍟ (fun n => (moebius n : ℂ) ^ 2)) s :=
+    hone_sum.convolution hmu_sq_sum
+  have h2omega_sum : LSeriesSummable f2ω s :=
+    (LSeriesSummable_congr s (fun {n} hn => h_identity n hn)).mp hconv_sum
+  have hg_sum : Summable (‖g ·‖) := summable_norm_iff.mpr h2omega_sum
+  -- Step 4: g 1 = 1, g 0 = 0
+  have hg1 : g 1 = 1 := by simp [g, f2ω, cardDistinctFactors_one]
+  have hg0 : g 0 = 0 := LSeries.term_zero f2ω s
+  -- Step 5: Multiplicativity of g
+  have hg_mul : ∀ {m n : ℕ}, m.Coprime n → g (m * n) = g m * g n := by
+    intro m n hmn
+    rcases Nat.eq_zero_or_pos m with rfl | hm
+    · have hn1 : n = 1 := by
+        simp only [Nat.Coprime, Nat.gcd_zero_left] at hmn; exact hmn
+      subst hn1; simp [g, hg0]
+    rcases Nat.eq_zero_or_pos n with rfl | hn
+    · have hm1 : m = 1 := by
+        simp only [Nat.Coprime, Nat.gcd_zero_right] at hmn; exact hmn
+      subst hm1; simp [g, hg0]
+    · simp only [g, f2ω, LSeries.term_of_ne_zero (Nat.mul_ne_zero hm.ne' hn.ne'),
+                 LSeries.term_of_ne_zero hm.ne', LSeries.term_of_ne_zero hn.ne',
+                 cardDistinctFactors_mul hmn]
+      push_cast [pow_add, Complex.natCast_mul_natCast_cpow m n s]
+      ring
+  -- Step 6: Euler product for L(f2ω, s)
+  have h_ep_raw : HasProd (fun p : Nat.Primes ↦ ∑' e : ℕ, g ((p : ℕ) ^ e))
+      (LSeries f2ω s) :=
+    (eulerProduct_hasProd hg1 hg_mul hg_sum hg0).congr_fun (fun _ => rfl)
+  -- Step 7: Local Euler factor
+  have h_local : ∀ (p : Nat.Primes),
+      ∑' e : ℕ, g ((p : ℕ) ^ e) =
+      (1 + ((p : ℕ) : ℂ) ^ (-s)) / (1 - ((p : ℕ) : ℂ) ^ (-s)) := by
+    intro ⟨p, hp⟩
+    have hpne : ((p : ℕ) : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hp.ne_zero
+    have hpnorm : ‖((p : ℕ) : ℂ) ^ (-s)‖ < 1 :=
+      (Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs).trans_lt (by norm_num)
+    have hne_sub : 1 - ((p : ℕ) : ℂ) ^ (-s) ≠ 0 :=
+      Complex.one_sub_prime_cpow_ne_zero hp hs
+    have hne_add : 1 + ((p : ℕ) : ℂ) ^ (-s) ≠ 0 := by
+      intro h
+      have := (Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs).trans_lt (by norm_num : (1/2:ℝ) < 1)
+      rw [show ((p : ℕ) : ℂ) ^ (-s) = -1 from eq_neg_of_add_eq_zero_right h,
+          norm_neg, norm_one] at this; linarith
+    have hgsumm : Summable (fun e : ℕ ↦ g (p ^ e)) :=
+      Summable.of_norm (hg_sum.comp_injective (Nat.pow_right_injective hp.one_lt))
+    have hgpow : ∀ e : ℕ, g (p ^ (e + 1)) =
+        2 * ((p : ℕ) : ℂ) ^ (-s) * (((p : ℕ) : ℂ) ^ (-s)) ^ e := by
+      intro e
+      simp only [g, f2ω, LSeries.term_of_ne_zero (pow_ne_zero _ hp.ne_zero),
+                 cardDistinctFactors_apply_prime_pow hp (Nat.succ_ne_zero e), pow_one]
+      push_cast
+      rw [← Complex.natCast_cpow_natCast_mul p (e + 1) s, div_eq_mul_inv, ← Complex.cpow_neg,
+          ← Complex.cpow_nat_mul ((p : ℕ) : ℂ) e (-s), mul_assoc,
+          ← Complex.cpow_add (hx := hpne),
+          show -s + ↑e * (-s) = -(↑(e + 1 : ℕ) * s) from by push_cast; ring]
+    rw [hgsumm.tsum_eq_zero_add, pow_zero, hg1]
+    have hgsumm1 : Summable (fun e : ℕ ↦ g (p ^ (e + 1))) :=
+      Summable.of_norm (hg_sum.comp_injective
+        (fun a b hab => Nat.succ_injective (Nat.pow_right_injective hp.one_lt hab)))
+    conv_lhs => rw [show ∑' e, g (p ^ (e + 1)) =
+        2 * ((p : ℕ) : ℂ) ^ (-s) * (1 - ((p : ℕ) : ℂ) ^ (-s))⁻¹ from by
+      simp_rw [hgpow]
+      rw [tsum_mul_left, tsum_geometric_of_norm_lt_one hpnorm]]
+    field_simp; ring
+  have h_ep : HasProd (fun p : Nat.Primes ↦
+      (1 + ((p : ℕ) : ℂ) ^ (-s)) / (1 - ((p : ℕ) : ℂ) ^ (-s)))
+      (LSeries f2ω s) :=
+    h_ep_raw.congr_fun (fun p => (h_local p).symm)
+  -- Step 8: Algebraic identity ζ(2s) local × L(2^ω) local = ζ(s)² local
+  have h_alg : ∀ (q : Nat.Primes),
+      (1 - ((q : ℕ) : ℂ) ^ (-(2 * s)))⁻¹ *
+      ((1 + ((q : ℕ) : ℂ) ^ (-s)) / (1 - ((q : ℕ) : ℂ) ^ (-s))) =
+      (1 - ((q : ℕ) : ℂ) ^ (-s))⁻¹ ^ 2 := by
+    intro ⟨p, hp⟩
+    have hne_sub : 1 - (p : ℂ) ^ (-s) ≠ 0 := Complex.one_sub_prime_cpow_ne_zero hp hs
+    have hne_add : 1 + (p : ℂ) ^ (-s) ≠ 0 := by
+      intro h
+      have := (Complex.norm_prime_cpow_le_one_half ⟨p, hp⟩ hs).trans_lt (by norm_num : (1/2:ℝ) < 1)
+      rw [show (p : ℂ) ^ (-s) = -1 from eq_neg_of_add_eq_zero_right h,
+          norm_neg, norm_one] at this; linarith
+    have h_sq : (p : ℂ) ^ (-(2 * s)) = ((p : ℂ) ^ (-s)) ^ 2 := by
+      rw [show -(2 * s) = (2 : ℕ) * (-s) by push_cast; ring]
+      exact Complex.cpow_nat_mul (p : ℂ) 2 (-s)
+    simp only []
+    rw [h_sq, show 1 - ((p : ℂ) ^ (-s)) ^ 2 = (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) from by ring]
+    field_simp [hne_sub, hne_add]
+  -- Step 9: Combine and conclude
+  have h_prod : HasProd (fun p : Nat.Primes ↦
+      (1 - ((p : ℕ) : ℂ) ^ (-(2 * s)))⁻¹ *
+      ((1 + ((p : ℕ) : ℂ) ^ (-s)) / (1 - ((p : ℕ) : ℂ) ^ (-s))))
+      (riemannZeta (2 * s) * LSeries f2ω s) :=
+    h_zeta2.mul h_ep
+  exact h_zeta_sq.unique (h_prod.congr_fun (fun p => (h_alg p).symm))
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.
