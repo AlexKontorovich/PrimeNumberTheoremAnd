@@ -6,6 +6,9 @@ import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Algebra.Group.Submonoid.BigOperators
+import Mathlib.MeasureTheory.Integral.IntegralEqImproper
+import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Architect
 
 
@@ -483,7 +486,157 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
   (latexEnv := "proposition")
   (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
-    sorry
+  -- Private helpers for the proof
+  have exp_half_lt_two : Real.exp ((1:ℝ)/2) < 2 := by
+    have h1 : Real.exp ((1:ℝ)/2) * Real.exp ((1:ℝ)/2) = Real.exp 1 := by
+      rw [← Real.exp_add]; norm_num
+    nlinarith [h1, Real.exp_one_lt_d9, Real.exp_pos ((1:ℝ)/2),
+               sq_nonneg (Real.exp ((1:ℝ)/2) - 2)]
+  have log_two_ge_half : (1:ℝ)/2 ≤ log 2 := by
+    rw [← Real.log_exp ((1:ℝ)/2)]
+    exact Real.log_le_log (Real.exp_pos _) exp_half_lt_two.le
+  have hasDerivAt_antideriv : ∀ x : ℝ, 0 < x →
+      HasDerivAt (fun t => -log t / t - 1 / t) (log x / x ^ 2) x := fun x hx => by
+    have hne : x ≠ 0 := hx.ne'
+    have h1 : HasDerivAt (fun t => -log t / t) ((log x - 1) / x ^ 2) x := by
+      have hlogd : HasDerivAt (fun t => -log t) (-(x⁻¹)) x :=
+        (Real.hasDerivAt_log hne).neg
+      have h := hlogd.div (hasDerivAt_id x) hne
+      convert h using 1; simp only [id_eq]; field_simp [hne]; ring
+    have h2 : HasDerivAt (fun t => -(1 / t)) (1 / x ^ 2) x := by
+      have h := (hasDerivAt_inv hne).neg
+      convert h using 1
+      · funext t; simp [one_div]
+      · simp [one_div, sq]
+    have hsum := h1.add h2
+    convert hsum using 1; ring
+  have tendsto_antideriv_atTop :
+      Filter.Tendsto (fun t => -log t / t - 1 / t) Filter.atTop (nhds 0) := by
+    have h1 : Filter.Tendsto (fun t : ℝ => log t / t) Filter.atTop (nhds 0) := by
+      have := Real.isLittleO_log_id_atTop.tendsto_div_nhds_zero
+      simpa [id_eq] using this
+    have h2 : Filter.Tendsto (fun t : ℝ => 1 / t) Filter.atTop (nhds 0) := by
+      simp_rw [one_div]; exact tendsto_inv_atTop_zero
+    have h := h1.neg.sub h2
+    simp only [neg_zero, zero_sub] at h
+    exact h.congr (fun t => by ring)
+  have integral_Ioi_eq : ∫ t in Set.Ioi (2:ℝ), log t / t ^ 2 = (log 2 + 1) / 2 := by
+    have hval : ∫ t in Set.Ioi (2:ℝ), log t / t ^ 2 = 0 - (-log 2 / 2 - 1 / 2) :=
+      MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg'
+        (g := fun t => -log t / t - 1 / t) (g' := fun t => log t / t ^ 2)
+        (fun x hx => hasDerivAt_antideriv x (by linarith [Set.mem_Ici.mp hx]))
+        (fun x hx => div_nonneg (Real.log_nonneg (by linarith [Set.mem_Ioi.mp hx])) (by positivity))
+        (tendsto_antideriv_atTop.congr (fun x => by ring))
+    linarith [hval]
+  have hasDerivAt_log_div_sq : ∀ x : ℝ, 0 < x →
+      HasDerivAt (fun t => log t / t ^ 2) ((1 - 2 * log x) / x ^ 3) x := fun x hx => by
+    have hne : x ≠ 0 := hx.ne'
+    have hlog : HasDerivAt log x⁻¹ x := Real.hasDerivAt_log hne
+    have hsq : HasDerivAt (fun t : ℝ => t ^ 2) (2 * x) x := by
+      have := hasDerivAt_pow 2 x
+      simpa [pow_succ, pow_one, Nat.cast_ofNat, mul_comm] using this
+    have h := hlog.div hsq (pow_ne_zero 2 hne)
+    convert h using 1; field_simp [hne, sq]
+  have antitoneOn_log_div_sq :
+      AntitoneOn (fun t : ℝ => log t / t ^ 2) (Set.Ici (2:ℝ)) := by
+    apply antitoneOn_of_hasDerivWithinAt_nonpos (convex_Ici 2)
+    · apply ContinuousOn.div
+      · exact Real.continuousOn_log.mono
+          (fun x hx => (show (0:ℝ) < x by linarith [Set.mem_Ici.mp hx]).ne')
+      · exact continuousOn_pow 2
+      · intro x hx; exact pow_ne_zero 2 (show (0:ℝ) < x by linarith [Set.mem_Ici.mp hx]).ne'
+    · intro x hx
+      rw [interior_Ici] at hx
+      exact (hasDerivAt_log_div_sq x (by linarith [Set.mem_Ioi.mp hx])).hasDerivWithinAt
+    · intro x hx
+      rw [interior_Ici] at hx
+      apply div_nonpos_of_nonpos_of_nonneg _ (pow_nonneg (by linarith [Set.mem_Ioi.mp hx]) 3)
+      linarith [log_two_ge_half,
+                Real.log_le_log (by norm_num : (0:ℝ) < 2) (le_of_lt (Set.mem_Ioi.mp hx))]
+  have integrableOn_log_div_sq :
+      MeasureTheory.IntegrableOn (fun t => log t / t ^ 2) (Set.Ioi 2) :=
+    MeasureTheory.integrableOn_Ioi_deriv_of_nonneg'
+      (g := fun t => -log t / t - 1 / t) (g' := fun t => log t / t ^ 2)
+      (fun x hx => hasDerivAt_antideriv x (by linarith [Set.mem_Ici.mp hx]))
+      (fun x hx => div_nonneg (Real.log_nonneg (by linarith [Set.mem_Ioi.mp hx])) (by positivity))
+      (tendsto_antideriv_atTop.congr (fun x => by ring))
+  have sum_log_div_sq_le : ∀ N : ℕ, 2 ≤ N →
+      ∑ i ∈ Finset.Ico 3 (N + 1), (log (i : ℝ) / (i : ℝ) ^ 2) ≤ (log 2 + 1) / 2 := by
+    intro N hN
+    have hanti : AntitoneOn (fun t : ℝ => log t / t ^ 2) (Set.Icc (↑(2:ℕ) : ℝ) (↑N : ℝ)) :=
+      antitoneOn_log_div_sq.mono Set.Icc_subset_Ici_self
+    have hstep : ∑ i ∈ Finset.Ico 3 (N + 1), log (↑i : ℝ) / (↑i : ℝ) ^ 2 =
+        ∑ i ∈ Finset.Ico 2 N, (fun t : ℝ => log t / t ^ 2) (↑(i + 1 : ℕ) : ℝ) :=
+      (Finset.sum_Ico_add' (fun k : ℕ => log (↑k : ℝ) / (↑k : ℝ) ^ 2) 2 N 1).symm
+    rw [hstep]
+    calc ∑ i ∈ Finset.Ico 2 N, (fun t : ℝ => log t / t ^ 2) (↑(i + 1 : ℕ) : ℝ)
+        ≤ ∫ x in (↑(2:ℕ) : ℝ)..(↑N : ℝ), log x / x ^ 2 :=
+          AntitoneOn.sum_le_integral_Ico hN hanti
+      _ = ∫ x in Set.Ioc (↑(2:ℕ) : ℝ) (↑N : ℝ), log x / x ^ 2 := by
+          rw [intervalIntegral.integral_of_le (by exact_mod_cast hN)]
+      _ ≤ ∫ x in Set.Ioi 2, log x / x ^ 2 :=
+          MeasureTheory.setIntegral_mono_set integrableOn_log_div_sq
+            (by filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi]
+                with x hx; exact div_nonneg (Real.log_nonneg (by linarith [Set.mem_Ioi.mp hx])) (by positivity))
+            Set.Ioc_subset_Ioi_self.eventuallyLE
+      _ = (log 2 + 1) / 2 := integral_Ioi_eq
+  have div_bound_of_prime_ge_3 : ∀ p : ℕ, p.Prime → 3 ≤ p →
+      log p / ((p : ℝ) * ((p : ℝ) - 1)) ≤ 3 / 2 * (log p / (p : ℝ) ^ 2) := by
+    intro p hp hp3
+    have hp_pos : (0:ℝ) < p := by exact_mod_cast hp.pos
+    have hpm1_pos : (0:ℝ) < (p : ℝ) - 1 := by
+      linarith [show (1:ℝ) < p from by exact_mod_cast (show 1 < p by omega)]
+    have hlog_nn : 0 ≤ log p := Real.log_nonneg (by
+      linarith [show (2:ℝ) ≤ p from by exact_mod_cast hp.two_le])
+    have hp3r : (3:ℝ) ≤ p := by exact_mod_cast hp3
+    rw [show (3:ℝ)/2 * (log p / (p:ℝ)^2) = 3/2 * log p / (p:ℝ)^2 from by ring]
+    rw [div_le_div_iff₀ (mul_pos hp_pos hpm1_pos) (sq_pos_of_pos hp_pos)]
+    nlinarith [mul_nonneg (mul_nonneg hlog_nn (le_of_lt hp_pos)) (show (0:ℝ) ≤ (p:ℝ) - 3 from by linarith)]
+  have partial_sum_le : ∀ N : ℕ,
+      ∑ n ∈ Finset.range N, (if n.Prime then log n / ((n : ℝ) * ((n : ℝ) - 1)) else 0) ≤
+      (5 * log 2 + 3) / 4 := by
+    intro N
+    have hterm_le : ∀ n : ℕ, (if n.Prime then log n / ((n:ℝ) * ((n:ℝ) - 1)) else 0) ≤
+        (if n = 2 then log 2 / 2 else 0) + (if 3 ≤ n then 3/2 * (log n / (n:ℝ)^2) else 0) := by
+      intro n
+      by_cases hp : n.Prime
+      · have hn2 : 2 ≤ n := hp.two_le
+        rw [if_pos hp]
+        rcases Nat.eq_or_lt_of_le hn2 with (rfl | hn3)
+        · norm_num
+        · rw [if_neg (by omega : n ≠ 2), if_pos (by omega : 3 ≤ n), zero_add]
+          exact div_bound_of_prime_ge_3 n hp (by omega)
+      · rw [if_neg hp]; apply add_nonneg
+        · split_ifs <;> [positivity; rfl]
+        · split_ifs with h3
+          · exact mul_nonneg (by norm_num)
+              (div_nonneg (Real.log_nonneg (by exact_mod_cast (show 1 ≤ n by omega))) (by positivity))
+          · rfl
+    calc ∑ n ∈ Finset.range N, (if n.Prime then log n / ((n:ℝ) * ((n:ℝ)-1)) else 0)
+        ≤ ∑ n ∈ Finset.range N, ((if n=2 then log 2/2 else 0) +
+            (if 3 ≤ n then 3/2 * (log n / (n:ℝ)^2) else 0)) :=
+          Finset.sum_le_sum (fun n _ => hterm_le n)
+      _ = (if 2 ∈ Finset.range N then log 2 / 2 else 0) +
+          ∑ n ∈ Finset.range N, (if 3 ≤ n then 3/2 * (log n / (n:ℝ)^2) else 0) := by
+          rw [Finset.sum_add_distrib]; congr 1; rw [Finset.sum_ite_eq']
+      _ ≤ log 2 / 2 + 3/2 * ∑ n ∈ Finset.Ico 3 N, (log n / (n:ℝ)^2) := by
+          gcongr
+          · split_ifs with h2
+            · linarith
+            · linarith [Real.log_pos (by norm_num : (1:ℝ) < 2)]
+          · rw [← Finset.sum_filter,
+                show (Finset.range N).filter (fun n => 3 ≤ n) = Finset.Ico 3 N from by
+                  rw [Finset.range_eq_Ico]; exact Finset.Ico_filter_le_of_left_le (by norm_num),
+                ← Finset.mul_sum]
+      _ ≤ log 2 / 2 + 3/2 * ((log 2 + 1) / 2) := by
+          gcongr
+          rcases Nat.lt_or_ge N 3 with hN | hN
+          · simp [Finset.Ico_eq_empty_of_le (by omega : N ≤ 3)]
+            linarith [log_two_ge_half]
+          · have hN' : N - 1 + 1 = N := Nat.sub_add_cancel (by omega)
+            rw [← hN']; exact sum_log_div_sq_le (N-1) (by omega)
+      _ = (5 * log 2 + 3) / 4 := by ring
+  exact Real.tsum_le_of_sum_range_le E₁.summand_nonneg partial_sum_le
 
 theorem E₁.nonneg : E₁ ≥ 0 :=
   tsum_nonneg E₁.summand_nonneg
