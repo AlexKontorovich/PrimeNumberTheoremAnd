@@ -982,7 +982,22 @@ The Liouville function is completely multiplicative. -/
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
 lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
-  sorry
+  have liouville_ne_zero : ∀ {n : ℕ}, n ≠ 0 →
+      (liouville : ArithmeticFunction ℤ) n = (-1 : ℤ) ^ Ω n := fun hn => by
+    simp [liouville, toArithmeticFunction, hn]
+  constructor
+  · simp only [intCoe_apply]
+    exact_mod_cast by rw [liouville_ne_zero one_ne_zero, cardFactors_one, pow_zero]
+  · intro a b
+    simp only [intCoe_apply]
+    exact_mod_cast by
+      rcases Nat.eq_zero_or_pos a with rfl | ha
+      · simp [liouville, toArithmeticFunction]
+      rcases Nat.eq_zero_or_pos b with rfl | hb
+      · simp [liouville, toArithmeticFunction]
+      rw [liouville_ne_zero (Nat.mul_ne_zero ha.ne' hb.ne'),
+          liouville_ne_zero ha.ne', liouville_ne_zero hb.ne',
+          cardFactors_mul ha.ne' hb.ne', pow_add]
 
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
@@ -1009,7 +1024,9 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
   -/)]
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
-  sorry
+  have : (liouville : ArithmeticFunction ℤ) n = (-1 : ℤ) ^ Ω n := by
+    simp [liouville, toArithmeticFunction, hn.ne_zero]
+  rw [this, moebius_apply_of_squarefree hn]
 
 /-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
 @[blueprint
