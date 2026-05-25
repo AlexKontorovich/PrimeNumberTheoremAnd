@@ -3373,6 +3373,118 @@ private lemma two_sub_E_sq (x : ℝ) : (2 : ℂ) - E ↑x - E (-↑x) = 4 * (Rea
     ring_nf; linear_combination -4 * Complex.sin_sq_add_cos_sq (z * (1 / 2))]
   simp; ring_nf
 
+/-- At a point `z = -1 + i t` on the vertical line `Re z = -1` (with `t ≥ 0`), the combination
+`Φ_circ - Φ_star` equals `-Φ_star` evaluated on the imaginary axis at `i t`.
+-/
+private lemma shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+    Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t) = -Phi_star ν ε (I * t) := by
+  have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
+    intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h; apply_fun Complex.im at h; simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ_shift (z : ℂ) : Phi_circ ν ε (z - 1) = Phi_circ ν ε z := by
+    have h := (Phi_circ_periodic ν ε (z - 1)).symm; rwa [sub_add_cancel] at h
+  have haff := phi_star_affine_periodic ν ε hν (I * ↑t) 1 h_re (h_im 1 (by norm_num))
+  simp only [Int.cast_one, one_mul] at haff
+  rw [show -1 + I * ↑t = I * ↑t - 1 by ring, h_circ_shift, haff]; ring
+
+/-- At a point `z = 1 + i t` on the vertical line `Re z = +1` (with `t ≥ 0`), the combination
+`Φ_circ + Φ_star` equals `Φ_star` evaluated on the imaginary axis at `i t`.
+-/
+private lemma shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+    Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t) = Phi_star ν ε (I * t) := by
+  have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
+    intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h; apply_fun Complex.im at h; simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ_shift (z : ℂ) : Phi_circ ν ε (z - 1) = Phi_circ ν ε z := by
+    have h := (Phi_circ_periodic ν ε (z - 1)).symm; rwa [sub_add_cancel] at h
+  have haff := phi_star_affine_periodic ν ε hν (I * ↑t) (-1) h_re (h_im (-1) (by norm_num))
+  simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at haff
+  rw [show 1 + I * ↑t = I * ↑t + 1 by ring, ← h_circ_shift (I * ↑t + 1),
+      show I * ↑t + 1 - 1 = I * ↑t by ring, haff]; ring
+
+/-- Let `E(z) = exp(2πi z)`. Consider three "vertical" line integrals over `t ∈ [0, T]`, each
+picking up a factor of `I` from parametrizing the imaginary direction:
+
+* `A = I ∫ (Φ_circ − Φ_star)(−1 + i t) · E(−(−1 + i t) x) dt` (on the line `Re z = −1`)
+* `B = I ∫ (Φ_circ + Φ_star)(+1 + i t) · E(−(+1 + i t) x) dt` (on the line `Re z = +1`)
+* `C = I ∫ Φ_star(i t) · E(−(i t) x) dt` (on the imaginary axis)
+
+Then `A − B + 2C = (2 − E(x) − E(−x)) · C`. -/
+private lemma shift_upwards_factor (ν ε : ℝ) (hν : ν > 0) (x T : ℝ) :
+    (I * ∫ t in Set.Icc 0 T,
+        (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
+    - (I * ∫ t in Set.Icc 0 T,
+        (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
+    + (2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x))
+    = (2 - E x - E (-x)) * (I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) := by
+  have hE_shift_neg (t : ℝ) : E (-(-1 + I * t) * ↑x) = E ↑x * E (-(I * ↑t) * ↑x) := by
+    simp only [E, ← Complex.exp_add]; congr 1; ring
+  have hE_shift_pos (t : ℝ) : E (-(1 + I * ↑t) * ↑x) = E (-↑x) * E (-(I * ↑t) * ↑x) := by
+    simp only [E, ← Complex.exp_add]; congr 1; ring
+  have h1 : ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x) =
+            ∫ t in Set.Icc 0 T, -(E x * (Phi_star ν ε (I * t) * E (-(I * t) * x))) := by
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [ae_restrict_mem measurableSet_Icc] with t ht
+    rw [shift_upwards_phi_diff ν ε hν t ht.1, hE_shift_neg]
+    ring
+  have h2 : ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x) =
+            ∫ t in Set.Icc 0 T, E (-x) * (Phi_star ν ε (I * t) * E (-(I * t) * x)) := by
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [ae_restrict_mem measurableSet_Icc] with t ht
+    rw [shift_upwards_phi_sum ν ε hν t ht.1, hE_shift_pos]
+    ring
+  rw [h1, h2, integral_neg]
+  set g : ℝ → ℂ := fun t => Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)
+  rw [show (∫ t in Set.Icc 0 T, E ↑x * g t) = E ↑x * ∫ t in Set.Icc 0 T, g t from
+    MeasureTheory.integral_const_mul _ _]
+  rw [show (∫ t in Set.Icc 0 T, E (-↑x) * g t) = E (-↑x) * ∫ t in Set.Icc 0 T, g t from
+    MeasureTheory.integral_const_mul _ _]
+  ring
+
+private lemma shift_upwards_imag_integral (ν ε x T : ℝ) :
+    I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)
+    = (1 / (2 * ↑π)) *
+      ∫ t in Set.Icc 0 T,
+        (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(Real.exp (2 * π * x * t)) := by
+  have h_Phi_star_imag (t : ℝ) :
+      Phi_star ν ε (I * ↑t) = (B ε ↑(2 * π * t + ν) - B ε ↑ν) / (2 * ↑π * I) := by
+    simp only [Phi_star]; congr; push_cast; ring_nf; simp [Complex.I_sq]
+  have h_E_imag (t : ℝ) : E (-(I * ↑t) * ↑x) = ↑(Real.exp (2 * π * x * t)) := by
+    simp only [E]; push_cast; ring_nf; congr; simp
+  simp_rw [h_Phi_star_imag, h_E_imag]
+  set f : ℝ → ℂ := fun t ↦ (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(rexp (2 * π * x * t))
+  rw [show (I * ∫ t in Set.Icc 0 T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) / (2 * ↑π * I) *
+          ↑(rexp (2 * π * x * t))) = ∫ t in Set.Icc 0 T, I * ((B ε ↑(2 * π * t + ν) -
+          B ε ↑ν) / (2 * ↑π * I) * ↑(rexp (2 * π * x * t))) from
+    (MeasureTheory.integral_const_mul _ _).symm]
+  rw [show ((1 : ℂ) / (2 * ↑π)) * ∫ t in Set.Icc 0 T, f t = ∫ t in Set.Icc 0 T,
+      ((1 : ℂ) / (2 * ↑π)) * f t from (MeasureTheory.integral_const_mul _ _).symm]
+  congr 1; ext t
+  field_simp [Complex.I_ne_zero, Real.pi_pos.ne.symm]
+  unfold f; ring_nf
+
+private lemma shift_upwards_change_of_variables (ν ε x T : ℝ) (hT : 0 ≤ T) :
+    ∫ t in Set.Icc 0 T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(Real.exp (2 * π * x * t))
+    = (1 / (2 * π)) *
+      ∫ s in Set.Icc 0 (2 * π * T),
+        (B ε (ν + s) - B ε ν) * Real.exp (x * s) := by
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by positivity)]
+  let f : ℝ → ℂ := fun s ↦ (B ε (ν + s) - B ε ν) * (Real.exp (x * s) : ℂ)
+  have h_scale : ((2 * π : ℝ) • ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+      = ∫ x_1 in (2 * π : ℝ) * 0..2 * π * T, f x_1 :=
+    intervalIntegral.smul_integral_comp_mul_left (f := f) (2 * π)
+  dsimp [f] at h_scale
+  rw [show ((2 * π : ℝ) * 0) = 0 by ring] at h_scale
+  rw [show ∫ t in (0 : ℝ)..T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) * (↑(Real.exp (2 * π * x * t)) : ℂ)
+        = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) from by
+      apply intervalIntegral.integral_congr; intro t _; dsimp [f]; push_cast; ring_nf,
+      ← h_scale]
+  rw [show (1 : ℂ) / (2 * ↑π) * (↑(2 * π) * ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
+        = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) by push_cast; field_simp]
+
 @[blueprint
   "shift-upwards-simplified"
   (title := "Simplified formula for upward contour shift")
@@ -3391,94 +3503,6 @@ $$
   (discussion := 1083)]
 theorem shift_upwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x < 0) :
     Filter.atTop.Tendsto (fun T:ℝ ↦ (Real.sin (π * x))^2 / π^2 * ∫ t in Set.Icc 0 T, ((B ε (ν + t) - B ε ν) * Real.exp (x * t))) (nhds (𝓕 (ϕ_pm ν ε) x)) := by
-  have h_circ_periodic (z : ℂ) : Phi_circ ν ε (z - 1) = Phi_circ ν ε z := by
-    have h := (Phi_circ_periodic ν ε (z - 1)).symm; rwa [sub_add_cancel] at h
-  have h_re {t : ℝ} (ht : 0 ≤ t) : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
-    intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
-  have h_im {t : ℝ} (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (I * ↑t - ↑m) + ↑ν ≠ 0 := by
-    intro h; apply_fun Complex.im at h; simp [Real.pi_pos.ne.symm, hm] at h
-  have h_sub (t : ℝ) (ht : 0 ≤ t) :
-      Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t) = -Phi_star ν ε (I * t) := by
-    have haff := phi_star_affine_periodic ν ε hν (I * t) 1 (h_re ht) (h_im (t := t) 1 (by norm_num))
-    simp only [Int.cast_one, one_mul] at haff
-    rw [show -1 + I * t = I * t - 1 by ring, h_circ_periodic, haff]; ring
-  have h_add (t : ℝ) (ht : 0 ≤ t) :
-      Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t) = Phi_star ν ε (I * t) := by
-    have haff := phi_star_affine_periodic ν ε hν (I * t) (-1) (h_re ht) (h_im (t := t) (-1) (by norm_num))
-    simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at haff
-    rw [show 1 + I * t = I * t + 1 by ring, ← h_circ_periodic (I * t + 1), show I * t + 1 - 1 = I * t by ring, haff]; ring
-  have h_factor (T : ℝ) :
-      (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
-      - (I * ∫ t in Set.Icc 0 T,
-          (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x))
-      + (2 * I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x))
-      = (2 - E x - E (-x)) * (I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * t) * E (-(I * t) * x)) := by
-    have hE_shift_neg (t : ℝ) : E (-(-1 + I * ↑t) * ↑x) = E ↑x * E (-(I * ↑t) * ↑x) := by
-      simp only [E, ← Complex.exp_add]; congr 1; ring
-    have hE_shift_pos (t : ℝ) : E (-(1 + I * ↑t) * ↑x) = E (-↑x) * E (-(I * ↑t) * ↑x) := by
-      simp only [E, ← Complex.exp_add]; congr 1; ring
-    have h1 : ∫ t in Set.Icc 0 T, (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x) =
-              ∫ t in Set.Icc 0 T, -(E x * (Phi_star ν ε (I * t) * E (-(I * t) * x))) := by
-      apply MeasureTheory.integral_congr_ae
-      filter_upwards [ae_restrict_mem measurableSet_Icc] with t ht
-      rw [h_sub t ht.1, hE_shift_neg]
-      ring
-    have h2 : ∫ t in Set.Icc 0 T, (Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t)) * E (-(1 + I * t) * x) =
-              ∫ t in Set.Icc 0 T, E (-x) * (Phi_star ν ε (I * t) * E (-(I * t) * x)) := by
-      apply MeasureTheory.integral_congr_ae
-      filter_upwards [ae_restrict_mem measurableSet_Icc] with t ht
-      rw [h_add t ht.1, hE_shift_pos]
-      ring
-    rw [h1, h2, integral_neg]
-    set g : ℝ → ℂ := fun t => Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)
-    rw [show (∫ t in Set.Icc 0 T, E ↑x * g t) = E ↑x * ∫ t in Set.Icc 0 T, g t from
-      MeasureTheory.integral_const_mul _ _]
-    rw [show (∫ t in Set.Icc 0 T, E (-↑x) * g t) = E (-↑x) * ∫ t in Set.Icc 0 T, g t from
-      MeasureTheory.integral_const_mul _ _]
-    ring
-  have h_prefactor := two_sub_E_sq x
-  have h_Phi_star_imag (t : ℝ) :
-      Phi_star ν ε (I * ↑t) = (B ε ↑(2 * π * t + ν) - B ε ↑ν) / (2 * ↑π * I) := by
-    simp only [Phi_star]; congr; push_cast; ring_nf; simp [Complex.I_sq]
-  have h_E_imag (t : ℝ) : E (-(I * ↑t) * ↑x) = ↑(Real.exp (2 * π * x * t)) := by
-    simp only [E]; push_cast; ring_nf; congr; simp
-  have h_imag_integral (T : ℝ) :
-      I * ∫ t in Set.Icc 0 T, Phi_star ν ε (I * ↑t) * E (-(I * ↑t) * ↑x)
-      = (1 / (2 * ↑π)) *
-        ∫ t in Set.Icc 0 T,
-          (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(Real.exp (2 * π * x * t)) := by
-    simp_rw [h_Phi_star_imag, h_E_imag]
-    set f : ℝ → ℂ := fun t ↦ (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(rexp (2 * π * x * t))
-    rw [show (I * ∫ t in Set.Icc 0 T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) / (2 * ↑π * I) *
-            ↑(rexp (2 * π * x * t))) = ∫ t in Set.Icc 0 T, I * ((B ε ↑(2 * π * t + ν) -
-            B ε ↑ν) / (2 * ↑π * I) * ↑(rexp (2 * π * x * t))) from
-      (MeasureTheory.integral_const_mul _ _).symm]
-    rw [show ((1 : ℂ) / (2 * ↑π)) * ∫ t in Set.Icc 0 T, f t = ∫ t in Set.Icc 0 T,
-        ((1 : ℂ) / (2 * ↑π)) * f t from (MeasureTheory.integral_const_mul _ _).symm]
-    congr 1; ext t
-    field_simp [Complex.I_ne_zero, Real.pi_pos.ne.symm]
-    unfold f; ring_nf
-  have h_cov (T : ℝ) (hT : 0 ≤ T) :
-      ∫ t in Set.Icc 0 T,
-          (B ε ↑(2 * π * t + ν) - B ε ↑ν) * ↑(Real.exp (2 * π * x * t))
-      = (1 / (2 * π)) *
-    ∫ s in Set.Icc 0 (2 * π * T),
-          (B ε (ν + s) - B ε ν) * Real.exp (x * s) := by
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hT]
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by positivity)]
-    let f : ℝ → ℂ := fun s ↦ (B ε (ν + s) - B ε ν) * (Real.exp (x * s) : ℂ)
-    have h_scale : ((2 * π : ℝ) • ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
-        = ∫ x_1 in (2 * π : ℝ) * 0..2 * π * T, f x_1 :=
-      intervalIntegral.smul_integral_comp_mul_left (f := f) (2 * π)
-    dsimp [f] at h_scale
-    rw [show ((2 * π : ℝ) * 0) = 0 by ring] at h_scale
-    rw [show ∫ t in (0 : ℝ)..T, (B ε ↑(2 * π * t + ν) - B ε ↑ν) * (↑(Real.exp (2 * π * x * t)) : ℂ)
-          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) from by
-        apply intervalIntegral.integral_congr; intro t _; dsimp [f]; push_cast; ring_nf,
-        ← h_scale]
-    rw [show (1 : ℂ) / (2 * ↑π) * (↑(2 * π) * ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1))
-          = ∫ x_1 in (0 : ℝ)..T, f (2 * π * x_1) by push_cast; field_simp]
   have h_key (T : ℝ) (hT : 0 ≤ T) :
       (I * ∫ t in Set.Icc 0 (T / (2 * π)),
           (Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t)) * E (-(-1 + I * t) * x))
@@ -3488,7 +3512,8 @@ theorem shift_upwards_simplified (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x 
           Phi_star ν ε (I * t) * E (-(I * t) * x))
       = ↑(Real.sin (π * x)) ^ 2 / ↑π ^ 2 *
         ∫ t in Set.Icc 0 T, (B ε (ν + t) - B ε ν) * Real.exp (x * t) := by
-    rw [h_factor, h_imag_integral, h_prefactor, h_cov (T / (2 * π)) (by positivity)]
+    rw [shift_upwards_factor ν ε hν x, shift_upwards_imag_integral ν ε x,
+        two_sub_E_sq x, shift_upwards_change_of_variables ν ε x (T / (2 * π)) (by positivity)]
     rw [show 2 * ↑π * (T / (2 * ↑π)) = T by field_simp]
     push_cast; ring_nf; congr; ext t; ring_nf
   apply ((shift_upwards ν ε hν x hx).comp tendsto_div_two_pi).congr'
