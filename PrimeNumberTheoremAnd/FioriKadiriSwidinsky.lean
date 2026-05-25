@@ -718,7 +718,7 @@ theorem FKS_corollary_1_4 :
     For all x > 2 we have
     $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$.
     This minor variant of Corollary 1.4 is not directly stated in this paper, but is stated in
-    \cite{Remark 2}{FKS2}.
+    \cite[Remark 2]{FKS2}.
   -/)
   (uses := ["classical-bound-psi"])
   (latexEnv := "theorem")]

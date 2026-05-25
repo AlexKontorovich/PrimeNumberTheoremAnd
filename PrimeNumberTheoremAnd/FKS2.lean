@@ -4005,7 +4005,8 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   $B(x)$ is given by Table 7.
   -/)
   (proof := /-- Same as in Corollary \ref{fks-corollary-23}.-/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 1429)]
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
 
