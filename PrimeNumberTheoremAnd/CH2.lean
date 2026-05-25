@@ -321,12 +321,13 @@ private lemma fourier_decay_isO_log_rpow
 
 private lemma setIntegral_Ici_const_mul {T : ℝ} (hT : 0 < T) (f : ℝ → ℂ) (a : ℝ) :
     (T : ℂ) * ∫ v in Set.Ici a, f (T * v) = ∫ y in Set.Ici (T * a), f y := by
-  -- `erw` needed because `Measure.setIntegral_comp_smul` is stated with `T • v`, and
-  -- `T * v = T • v` on `ℝ` is only definitionally true.
+  -- `erw` needed because `Measure.setIntegral_comp_smul` is stated with `T • v`
   erw [Measure.setIntegral_comp_smul volume f (Set.Ici a) hT.ne']
   rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
-  -- `(T⁻¹ : ℝ) • z = ((T⁻¹ : ℝ) : ℂ) * z` definitionally, so `change` switches view.
-  change (T : ℂ) * (((T⁻¹ : ℝ) : ℂ) * _) = _
+
+  fail_if_success rw [Complex.real_smul]
+  erw [Complex.real_smul]
+
   rw [← mul_assoc]
   push_cast
   rw [mul_inv_cancel₀ (by exact_mod_cast hT.ne' : (T : ℂ) ≠ 0), one_mul]
