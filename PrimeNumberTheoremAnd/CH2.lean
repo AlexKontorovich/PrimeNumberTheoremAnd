@@ -4,7 +4,6 @@ import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
-import Mathlib.Analysis.Normed.Module.Basic
 import Mathlib.Data.Int.Star
 import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
@@ -338,9 +337,7 @@ private lemma prop_2_3_fourier_integral_ici_eq
       let g := (Set.Ici (-log x / (2 * π))).indicator (𝓕 psi)
       convert (Measure.integral_comp_div g (2 * π)) using 1
       · congr 1; ext u; dsimp [g]; simp [Set.indicator_apply, Set.mem_Ici, le_div_iff₀ h2pi]
-      · dsimp [g]
-        simp only [abs_of_pos h2pi]
-        change _ = ((2 * π : ℝ) : ℂ) * _
+      · simp only [g, abs_of_pos h2pi]
         exact_mod_cast rfl
     _ = (2 * π : ℂ) * ∫ v in Set.Ici (-log x / (2 * π)), (T : ℂ) * 𝓕 φ (T * v) := by
       congr 1; apply integral_congr_ae; filter_upwards with v
