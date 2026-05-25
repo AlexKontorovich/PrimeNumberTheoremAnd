@@ -74,7 +74,7 @@ theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw [mem_closedBall, dist_zero_right]
     have hw_norm : ‖w‖ < R - r := by rwa [mem_ball, dist_zero_right] at hw
     calc ‖z + w‖ ≤ ‖z‖ + ‖w‖ := norm_add_le _ _
-      _ < r + (R - r) := by linarith
+      _ ≤ r + (R - r) := by linarith [hw_norm.le]
       _ = R := by ring
   have h_analytic : AnalyticOn ℂ h (ball 0 (R - r)) :=
     analytic_f.comp (analyticOn_const.add analyticOn_id)
@@ -101,7 +101,7 @@ theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
       (∀ w ∈ closedBall 0 R, (f w).re ≤ M') →
       ‖deriv h 0‖ ≤ 2 * M' * r' / ((R - r') * (r' - r)) := fun M' hM'pos hM'le => by
     have sphere_bound : ∀ w ∈ sphere 0 (r' - r), ‖h w‖ ≤ 2 * M' * r' / (R - r') := by
-      intro w hw; show ‖f (z + w)‖ ≤ 2 * M' * r' / (R - r')
+      intro w hw; change ‖f (z + w)‖ ≤ 2 * M' * r' / (R - r')
       exact borelCaratheodory_closedBall
         (by linarith) analytic_f f_zero_at_zero hM'pos hM'le r'_le_R (sphere_in_r' w hw)
     have cauchy := norm_deriv_le_of_forall_mem_sphere_norm_le pos_rr h_diffContOnCl sphere_bound
@@ -124,3 +124,4 @@ theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     have heq : 2 * M' * r' / ((R - r') * (r' - r)) = δ := by
       simp only [M'_def]; field_simp
     linarith [heq ▸ hbound]
+
