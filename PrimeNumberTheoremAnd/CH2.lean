@@ -319,6 +319,17 @@ private lemma fourier_decay_isO_log_rpow
   rw [abs_one, one_rpow, div_one] at hC_bound
   exact (norm_nonneg _).trans hC_bound
 
+private lemma setIntegral_Ici_const_mul {T : ℝ} (hT : 0 < T) (f : ℝ → ℂ) (a : ℝ) :
+    (T : ℂ) * ∫ v in Set.Ici a, f (T * v) = ∫ y in Set.Ici (T * a), f y := by
+  -- `erw` needed because `Measure.setIntegral_comp_smul` is stated with `T • v`, and
+  -- `T * v = T • v` on `ℝ` is only definitionally true.
+  erw [Measure.setIntegral_comp_smul volume f (Set.Ici a) hT.ne']
+  rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
+  field_simp [hT.ne']
+  change (T : ℂ) * (((1 / T : ℝ) : ℂ) * _) = _
+  push_cast
+  field_simp [hT.ne']
+
 private lemma prop_2_3_fourier_integral_ici_eq
     {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     {φ : ℝ → ℂ} (hφ_int : Integrable φ)
@@ -345,13 +356,8 @@ private lemma prop_2_3_fourier_integral_ici_eq
     _ = (2 * π : ℂ) * ∫ y in Set.Ici (-T * log x / (2 * π)), 𝓕 φ y := by
       rw [show (∫ v in Set.Ici (-log x / (2 * π)), (T : ℂ) * 𝓕 φ (T * v)) =
           (T : ℂ) * ∫ v in Set.Ici (-log x / (2 * π)), 𝓕 φ (T * v) from
-        MeasureTheory.integral_const_mul _ _]
-      erw [Measure.setIntegral_comp_smul volume (𝓕 φ) (Set.Ici (-log x / (2 * π))) hT.ne']
-      rw [Module.finrank_self, pow_one, abs_of_pos (inv_pos.mpr hT), LinearOrderedField.smul_Ici hT]
-      simp only [push_cast, neg_mul]
-      field_simp [hT.ne', Real.pi_pos.ne']
-      change (T : ℂ) * (((1 / T : ℝ) : ℂ) * _) = _
-      push_cast; field_simp [hT.ne']
+        MeasureTheory.integral_const_mul _ _, setIntegral_Ici_const_mul hT]
+      congr 2; ring
     _ = (2 * π : ℂ) * ((∫ y, 𝓕 φ y) - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ y) := by
       congr 1
       rw [← MeasureTheory.setIntegral_univ, MeasureTheory.setIntegral_univ]
@@ -390,11 +396,9 @@ private lemma prop_2_3_tendsto_exp_damped_integral
     exact (h_int_Fphi.comp_mul_left' hT.ne').const_mul T
   apply MeasureTheory.tendsto_integral_filter_of_dominated_convergence (bound := fun u ↦ max 1 x * ‖𝓕 psi (u / (2 * π))‖)
   · filter_upwards [self_mem_nhdsWithin] with sig _
-    refine AEStronglyMeasurable.mul ?_ ?_
-    · refine (Continuous.aestronglyMeasurable ?_).restrict
-      fun_prop
-    · refine (Continuous.aestronglyMeasurable ?_).restrict
-      exact (VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar (by fun_prop) hpsi_int).comp (continuous_id.div_const _)
+    apply AEStronglyMeasurable.mul (by fun_prop)
+    refine (Continuous.aestronglyMeasurable ?_).restrict
+    exact (VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar (by fun_prop) hpsi_int).comp (continuous_id.div_const _)
   · filter_upwards [self_mem_nhdsWithin, Icc_mem_nhdsGT (one_lt_two)] with sig hsig1 hsig2
     filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ici] with u hu
     rw [Complex.norm_mul]
@@ -1888,15 +1892,12 @@ lemma Complex.contDiff_normSq {n : ℕ∞} : ContDiff ℝ n (normSq : ℂ → �
   change ContDiff ℝ n (fun z : ℂ => z.re * z.re + z.im * z.im)
   exact (hre.mul hre).add (him.mul him)
 
--- The `set_option backward.isDefEq.respectTransparency false` on the next two
--- lemmas (`contDiff_sinh_real`, `contDiff_cosh_real`) is fixed in mathlib 4.30
--- and can be removed once we upgrade.
-set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency false in -- fixed in mathlib 4.30, can be removed once we upgrade
 @[fun_prop]
 lemma Complex.contDiff_sinh_real {n : ℕ∞} : ContDiff ℝ n (Complex.sinh : ℂ → ℂ) :=
   Complex.contDiff_sinh.restrict_scalars ℝ
 
-set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency false in -- fixed in mathlib 4.30, can be removed once we upgrade
 @[fun_prop]
 lemma Complex.contDiff_cosh_real {n : ℕ∞} : ContDiff ℝ n (Complex.cosh : ℂ → ℂ) :=
   Complex.contDiff_cosh.restrict_scalars ℝ
