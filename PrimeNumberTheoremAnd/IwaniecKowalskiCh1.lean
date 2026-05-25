@@ -1,5 +1,6 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.RingTheory.Int.Basic
 
 open ArithmeticFunction hiding log
 
@@ -699,6 +700,208 @@ lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
   apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
   linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
+-- Private helpers for zeta_pow_three_eq_alt proof
+private lemma isSquare_of_coprime_mul_left {m n : ℕ} (hm : m ≠ 0) (_hn : n ≠ 0)
+    (h : m.Coprime n) (hmn : IsSquare (m * n)) : IsSquare m := by
+  obtain ⟨k, hk⟩ := hmn
+  have hk_int : (m : ℤ) * n = (k : ℤ) ^ 2 := by
+    have : (m : ℤ) * n = k * k := by exact_mod_cast hk
+    linarith [sq (k : ℤ), this]
+  obtain ⟨a0, ha0 | ha0⟩ := Int.sq_of_isCoprime (by exact_mod_cast h.isCoprime) hk_int
+  · exact ⟨a0.natAbs, by exact_mod_cast (show (m : ℤ) = a0.natAbs * a0.natAbs by
+      rw [← sq]; rw [Int.natAbs_sq]; exact ha0)⟩
+  · exfalso
+    have ha0_sq : a0 ^ 2 = 0 :=
+      le_antisymm (by linarith [sq_nonneg a0, show (0 : ℤ) ≤ (m : ℕ) from
+        Int.natCast_nonneg m, show (m : ℤ) = -(a0^2) from ha0]) (sq_nonneg a0)
+    exact hm (Nat.cast_injective (show (m : ℤ) = 0 by rw [ha0, ha0_sq, neg_zero]))
+
+private lemma isSquare_prime_pow_iff_even {p : ℕ} (hp : p.Prime) (k : ℕ) :
+    IsSquare (p ^ k) ↔ Even k := by
+  constructor
+  · intro h
+    obtain ⟨a, ha⟩ := h
+    rcases Nat.eq_zero_or_pos a with rfl | hapos
+    · exfalso
+      have h0 : p ^ k = 0 := by simpa using ha
+      exact (Nat.pow_pos hp.pos).ne' h0
+    have hpk : (p ^ k).factorization p = k := by simp [hp.factorization_pow]
+    rw [ha, Nat.factorization_mul hapos.ne' hapos.ne', Finsupp.add_apply] at hpk
+    exact ⟨a.factorization p, by linarith⟩
+  · intro ⟨m, hm⟩; rw [hm]; exact ⟨p ^ m, by ring⟩
+
+private lemma sum_half_range_eq_choose (k : ℕ) :
+    ∑ i ∈ range (k / 2 + 1), (2 * (k - 2 * i) + 1) = (k + 2).choose 2 := by
+  induction k using Nat.rec with
+  | zero => simp
+  | succ k ih =>
+    simp only [Nat.succ_eq_add_one]
+    have hstep : ∀ m, (k = m + m ∨ k = 2 * m + 1) →
+        ∑ x ∈ range (m + 1), (2 * (k + 1 - 2 * x) + 1) =
+        ∑ x ∈ range (m + 1), (2 * (k - 2 * x) + 1) + 2 * (m + 1) := fun m hkm =>
+      calc ∑ x ∈ range (m + 1), (2 * (k + 1 - 2 * x) + 1)
+          = ∑ x ∈ range (m + 1), (2 * (k - 2 * x) + 1 + 2) :=
+            Finset.sum_congr rfl (fun x hx ↦ by
+              rcases hkm with h | h <;>
+              exact by have := Nat.lt_succ_iff.mp (Finset.mem_range.mp hx); omega)
+        _ = ∑ x ∈ range (m + 1), (2 * (k - 2 * x) + 1) + ∑ x ∈ range (m + 1), 2 :=
+            Finset.sum_add_distrib
+        _ = ∑ x ∈ range (m + 1), (2 * (k - 2 * x) + 1) + 2 * (m + 1) := by
+            simp [Finset.sum_const, Finset.card_range, mul_comm]
+    rcases Nat.even_or_odd k with ⟨m, hm⟩ | ⟨m, hm⟩
+    · have hkdiv : k / 2 = m := by omega
+      have hk1div : (k + 1) / 2 = m := by omega
+      rw [hkdiv] at ih; simp only [hk1div]
+      rw [show (k + 1 + 2).choose 2 = (k + 2).choose 2 + (k + 2) from by
+            rw [show k + 1 + 2 = (k + 2) + 1 from by ring, Nat.choose_succ_succ,
+                Nat.choose_one_right]; ring,
+          hstep m (Or.inl (by omega)), ih]; omega
+    · have hkdiv : k / 2 = m := by omega
+      have hk1div : (k + 1) / 2 = m + 1 := by omega
+      rw [hkdiv] at ih; simp only [hk1div]
+      rw [show (k + 1 + 2).choose 2 = (k + 2).choose 2 + (k + 2) from by
+            rw [show k + 1 + 2 = (k + 2) + 1 from by ring, Nat.choose_succ_succ,
+                Nat.choose_one_right]; ring]
+      rw [Finset.sum_range_succ, show 2 * (k + 1 - 2 * (m + 1)) + 1 = 1 from by omega,
+          hstep m (Or.inr hm), ih]; omega
+
+private def sqIndAux : ArithmeticFunction ℕ :=
+  ⟨fun n ↦ if IsSquare n ∧ n ≠ 0 then 1 else 0, by simp⟩
+
+private def tauSqAux : ArithmeticFunction ℕ :=
+  ⟨fun n ↦ sigma 0 (n ^ 2), by simp⟩
+
+private lemma sqIndAux_prime_pow {p : ℕ} (hp : p.Prime) (j : ℕ) :
+    sqIndAux (p ^ j) = if IsSquare (p ^ j) then 1 else 0 := by
+  simp only [sqIndAux, coe_mk]
+  simp only [show (IsSquare (p ^ j) ∧ p ^ j ≠ 0) ↔ IsSquare (p ^ j) from
+    ⟨And.left, fun h ↦ ⟨h, pow_ne_zero j hp.pos.ne'⟩⟩]
+
+private lemma isMultiplicative_sqIndAux : sqIndAux.IsMultiplicative := by
+  refine ⟨by simp [sqIndAux, show IsSquare (1 : ℕ) from ⟨1, by ring⟩], ?_⟩
+  intro m n hmn
+  simp only [sqIndAux, coe_mk]
+  rcases Nat.eq_zero_or_pos m with rfl | hm; · simp
+  rcases Nat.eq_zero_or_pos n with rfl | hn; · simp
+  simp only [mul_ne_zero hm.ne' hn.ne', hm.ne', hn.ne', and_true, ne_eq, not_false_eq_true]
+  rcases Decidable.em (IsSquare m) with hms | hms
+  · rcases Decidable.em (IsSquare n) with hns | hns
+    · simp [hms, hns, hms.mul hns]
+    · simp only [hns, if_false, mul_zero, ite_eq_right_iff]
+      intro hmns
+      exact absurd (isSquare_of_coprime_mul_left hn.ne' hm.ne' hmn.symm
+        (mul_comm m n ▸ hmns)) hns
+  · simp only [hms, if_false, zero_mul, ite_eq_right_iff]
+    intro hmns
+    exact absurd (isSquare_of_coprime_mul_left hm.ne' hn.ne' hmn hmns) hms
+
+private lemma isMultiplicative_tauSqAux : tauSqAux.IsMultiplicative := by
+  refine ⟨by simp [tauSqAux], ?_⟩
+  intro m n hmn
+  change sigma 0 ((m * n) ^ 2) = sigma 0 (m ^ 2) * sigma 0 (n ^ 2)
+  rw [mul_pow]; exact isMultiplicative_sigma.map_mul_of_coprime (hmn.pow 2 2)
+
+private lemma sqIndAux_mul_tauSqAux_prime_pow {p : ℕ} (hp : p.Prime) (k : ℕ) :
+    (sqIndAux * tauSqAux) (p ^ k) = (k + 2).choose 2 := by
+  rw [mul_apply, sum_divisorsAntidiagonal (fun x y ↦ sqIndAux x * tauSqAux y),
+      sum_divisors_prime_pow hp]
+  simp only [sqIndAux_prime_pow hp, tauSqAux, coe_mk]
+  rw [Finset.sum_congr rfl (fun j hj ↦ show
+      (if IsSquare (p ^ j) then 1 else 0) * sigma 0 ((p ^ k / p ^ j) ^ 2) =
+      (if IsSquare (p ^ j) then 1 else 0) * sigma 0 ((p ^ (k - j)) ^ 2) from by
+    rw [Nat.pow_div (Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)) hp.pos])]
+  simp_rw [isSquare_prime_pow_iff_even hp,
+    show ∀ j : ℕ, (p ^ (k - j)) ^ 2 = p ^ (2 * (k - j)) from fun j ↦ by ring,
+    sigma_zero_apply_prime_pow hp,
+    show ∀ j : ℕ, (if Even j then (1 : ℕ) else 0) * (2 * (k - j) + 1) =
+      if Even j then (2 * (k - j) + 1) else 0 from fun j ↦ by split_ifs <;> simp]
+  rw [← Finset.sum_filter, ← sum_half_range_eq_choose]
+  apply Finset.sum_nbij' (fun j ↦ j / 2) (fun i ↦ 2 * i)
+  · intro j hj
+    simp only [Finset.mem_filter, Finset.mem_range] at hj ⊢
+    obtain ⟨hjk, ⟨m, hm⟩⟩ := hj
+    have heq : j = 2 * m := by omega
+    omega
+  · intro i hi
+    simp only [Finset.mem_range] at hi
+    simp only [Finset.mem_filter, Finset.mem_range]
+    exact ⟨by omega, ⟨i, by ring⟩⟩
+  · intro j hj
+    simp only [Finset.mem_filter, Finset.mem_range] at hj
+    obtain ⟨_, ⟨m, hm⟩⟩ := hj
+    have heq : j = 2 * m := by omega
+    omega
+  · intro i _; simp
+  · intro j hj
+    simp only [Finset.mem_filter, Finset.mem_range] at hj
+    obtain ⟨_, ⟨m, hm⟩⟩ := hj
+    have heq : j = 2 * m := by omega
+    congr 1; omega
+
+private lemma sqIndAux_mul_tauSqAux_eq_d3 : sqIndAux * tauSqAux = d 3 := by
+  apply (IsMultiplicative.eq_iff_eq_on_prime_powers (sqIndAux * tauSqAux)
+      (isMultiplicative_sqIndAux.mul isMultiplicative_tauSqAux) (d 3) (d_isMultiplicative 3)).mpr
+  intro p k hp
+  rcases k with _ | k
+  · simp [(isMultiplicative_sqIndAux.mul isMultiplicative_tauSqAux).1, (d_isMultiplicative 3).1]
+  · rw [sqIndAux_mul_tauSqAux_prime_pow hp, d_apply_prime_pow (by norm_num : 0 < 3) hp]
+    norm_num
+
+private lemma pnta_sum_eq_sqIndAux_mul_tauSqAux (n : ℕ) :
+    ∑ dm ∈ (n.divisors ×ˢ n.divisors).filter (fun dm ↦ dm.1 ^ 2 * dm.2 = n),
+      sigma 0 (dm.2 ^ 2) =
+    ∑ c ∈ n.divisors, sqIndAux c * tauSqAux (n / c) := by
+  rcases n.eq_zero_or_pos with rfl | hn
+  · simp
+  have hne : ∀ c ∈ n.divisors, c ≠ 0 := fun c hc ↦ (Nat.pos_of_mem_divisors hc).ne'
+  have hrhs : ∑ c ∈ n.divisors, sqIndAux c * tauSqAux (n / c) =
+      ∑ c ∈ n.divisors.filter IsSquare, (σ 0) ((n / c) ^ 2) := by
+    simp only [sqIndAux, tauSqAux, coe_mk]
+    have step : ∀ c ∈ n.divisors,
+        (if IsSquare c ∧ c ≠ 0 then (1:ℕ) else 0) * (σ 0) ((n / c) ^ 2) =
+        if IsSquare c then (σ 0) ((n / c) ^ 2) else 0 := fun c hc ↦ by
+      rcases Decidable.em (IsSquare c) with hcs | hcs
+      · simp [hcs, hne c hc]
+      · simp [hcs]
+    rw [Finset.sum_congr rfl step, ← Finset.sum_filter]
+  rw [hrhs]
+  apply Finset.sum_nbij' (fun dm ↦ dm.1 ^ 2) (fun c ↦ (Nat.sqrt c, n / c))
+  · intro ⟨a, b⟩ hab
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hab
+    obtain ⟨⟨⟨_, _⟩, ⟨_, _⟩⟩, hab_eq⟩ := hab
+    simp only [Finset.mem_filter, Nat.mem_divisors]
+    exact ⟨⟨⟨b, hab_eq.symm⟩, hn.ne'⟩, IsSquare.sq a⟩
+  · intro c hc
+    simp only [Finset.mem_filter, Nat.mem_divisors] at hc
+    obtain ⟨⟨hc_dvd, _⟩, ⟨r, hr⟩⟩ := hc
+    have hr2 : c = r ^ 2 := by rw [hr]; ring
+    have hrn : r ^ 2 ∣ n := hr2 ▸ hc_dvd
+    rw [hr2, show Nat.sqrt (r ^ 2) = r from by simp [Nat.pow_two, Nat.sqrt_eq]]
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors]
+    exact ⟨⟨⟨dvd_trans ⟨r, by ring⟩ hrn, hn.ne'⟩, ⟨Nat.div_dvd_of_dvd hrn, hn.ne'⟩⟩,
+           Nat.mul_div_cancel' hrn⟩
+  · intro ⟨a, b⟩ hab
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hab
+    obtain ⟨⟨⟨_, _⟩, _⟩, hab_eq⟩ := hab
+    have ha_pos : 0 < a := by
+      rcases Nat.eq_zero_or_pos a with rfl | h
+      · simp at hab_eq; exact absurd hab_eq.symm hn.ne'
+      · exact h
+    simp [show Nat.sqrt (a ^ 2) = a from by simp [Nat.pow_two, Nat.sqrt_eq],
+          Nat.div_eq_of_eq_mul_right (Nat.pow_pos ha_pos) hab_eq.symm]
+  · intro c hc
+    simp only [Finset.mem_filter, Nat.mem_divisors] at hc
+    obtain ⟨_, ⟨r, hr⟩⟩ := hc
+    rw [hr, Nat.sqrt_eq r]; ring
+  · intro ⟨a, b⟩ hab
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hab
+    obtain ⟨⟨⟨_, _⟩, _⟩, hab_eq⟩ := hab
+    have ha_pos : 0 < a := by
+      rcases Nat.eq_zero_or_pos a with rfl | h
+      · simp at hab_eq; exact absurd hab_eq.symm hn.ne'
+      · exact h
+    simp [Nat.div_eq_of_eq_mul_right (Nat.pow_pos ha_pos) hab_eq.symm]
+
 /--
 Zeta cubed alt:
 `ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
@@ -718,7 +921,16 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 =
     LSeries (fun n ↦
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
-  sorry
+  rw [← LSeries_d_eq_riemannZeta_pow 3 hs]
+  apply LSeries_congr
+  intro n _
+  have key : ∑ dm ∈ (n.divisors ×ˢ n.divisors).filter (fun dm ↦ dm.1 ^ 2 * dm.2 = n),
+      tau (dm.2 ^ 2) = d 3 n := by
+    rw [← sqIndAux_mul_tauSqAux_eq_d3, mul_apply,
+        sum_divisorsAntidiagonal (fun x y ↦ sqIndAux x * tauSqAux y)]
+    simp only [tau]
+    exact pnta_sum_eq_sqIndAux_mul_tauSqAux n
+  exact_mod_cast key.symm
 
 /--
 Zeta squared:
