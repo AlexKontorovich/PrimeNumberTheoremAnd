@@ -817,7 +817,7 @@ noncomputable def sumOnPrimePows (f : ℕ → ℂ) (p : Primes) : ℂ := ∑' e,
 
 @[blueprint
   "sumOnPrimePows_apply"
-  (title := "sumOnPrimePows_apply")
+  (title := "sumOnPrimePows-apply")
   (statement := /--
     Helper lemma for sumOnPrimePows that rewrites the shorthand as its sum.
   -/)]
