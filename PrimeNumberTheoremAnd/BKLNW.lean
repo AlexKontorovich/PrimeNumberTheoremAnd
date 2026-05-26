@@ -1600,12 +1600,21 @@ def table_from_buthe : List (ℝ × ℝ × ℝ × ℝ) := [
 @[blueprint
   "bklnw-table_from_buthe"
   (title := "BKLNW table from Buthe")
-  (statement := /--  One has  \eqref{equ:c-Psi-C} for ($u$, $v$, $c$, $C$) as from the table extracted from Equation (6.2), Table 1 of Buthe. -/)
-  (proof := /-- This follows from Lemma \ref{buthe-eq-6-2}.-/)
+  (statement := /-- One has \eqref{equ:c-Psi-C} for each aggregate row
+    extracted from Buthe's finite Eratosthenes-sieve computation, Table 1,
+    and Theorem 2(a). -/)
+  (proof := /-- This follows from Lemma \ref{buthe-sieve-bound},
+    Lemma \ref{buthe-table-1-to-32e12}, and
+    Lemma \ref{buthe-theorem-2a-normalized}. -/)
   (latexEnv := "lemma")
   (discussion := 1261)]
 theorem bklnw_table_from_buthe (u v c C : ℝ) (h : (u, v, c, C) ∈ table_from_buthe) : ∀ x ∈ Set.Icc u v, -c ≤ (x - ψ x) / sqrt x ∧ (x - ψ x) / sqrt x ≤ C := by
-  sorry
+  simp only [table_from_buthe, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  rcases h with ⟨rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl⟩ | hfalse
+  · exact Buthe.sieve_bound
+  · exact Buthe.table_1_to_32e12
+  · exact Buthe.theorem_2a_normalized
+  · contradiction
 
 noncomputable def C_bk (b c C c₀ : ℝ) (k : ℕ) : ℝ :=
   b ^ k * ((C + 1) * exp (-b / 2) + c₀ * exp (-2 * b / 3) + c * exp (-3 * b / 4) + c₀ * exp (-4 * b / 5))
