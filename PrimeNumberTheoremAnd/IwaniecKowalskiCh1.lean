@@ -982,7 +982,15 @@ The Liouville function is completely multiplicative. -/
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
 lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
-  sorry
+  constructor
+  · simp [liouville, toArithmeticFunction]
+  · intro a b
+    by_cases ha : a = 0
+    · simp [liouville, toArithmeticFunction, ha]
+    by_cases hb : b = 0
+    · simp [liouville, toArithmeticFunction, hb]
+    · simp [liouville, toArithmeticFunction, ha, hb, mul_ne_zero ha hb]
+      rw [cardFactors_mul ha hb, pow_add]
 
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
@@ -1009,7 +1017,10 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
   -/)]
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
-  sorry
+  rw [moebius_apply_of_squarefree hn]
+  simp [liouville, toArithmeticFunction]
+  intro h
+  exact absurd h (Squarefree.ne_zero hn)
 
 /-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
 @[blueprint
