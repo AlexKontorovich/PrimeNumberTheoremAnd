@@ -119,6 +119,22 @@ def table_1 : List (ℝ × ℝ × ℝ) := [
 ]
 
 @[blueprint
+  "buthe-sieve-bound"
+  (title := "Buthe sieve bound")
+  (statement := /-- Büthe, arXiv:1511.02032v2, Section 6, Equation (6.2):
+    the Eratosthenes-sieve computation gives
+    $-0.8 \leq (t-\psi(t))/\sqrt{t} \leq 0.81$ for
+    $100 \leq t \leq 5 \cdot 10^{10}$. -/)
+  (proof := /-- This is the finite-range Eratosthenes-sieve computation
+    recorded as Equation (6.2) in \cite{Buthe}. -/)
+  (latexEnv := "lemma")]
+theorem sieve_bound :
+    ∀ t ∈ Set.Icc (100 : ℝ) (5 * 10 ^ 10),
+      -(0.8 : ℝ) ≤ (t - ψ t) / sqrt t ∧
+        (t - ψ t) / sqrt t ≤ (0.81 : ℝ) := by
+  sorry
+
+@[blueprint
   "buthe-eq-6-2"
   (title := "Buthe Equation (6.2)")
   (statement := /-- If $x, M_\psi^-, M_\psi^+$ are as in Table 1 of Buthe, then $\frac{t - \psi(t)}{\sqrt{t}} \in [M_\psi^-, M_\psi^+]$ for $t \in [x, 2x]$. -/)
@@ -126,5 +142,105 @@ def table_1 : List (ℝ × ℝ × ℝ) := [
 theorem eq_6_2 (x Mψ_minus Mψ_plus : ℝ) (h : (x, Mψ_minus, Mψ_plus) ∈ table_1) :
     ∀ t ∈ Set.Icc x (2 * x), Mψ_minus ≤ (t - ψ t) / sqrt t ∧ (t - ψ t) / sqrt t ≤ Mψ_plus := by
     sorry
+
+@[blueprint
+  "buthe-table-1-to-32e12"
+  (title := "Buthe Table 1 up to 32e12")
+  (statement := /-- Combining Büthe, arXiv:1511.02032v2, Section 6,
+    Equation (6.2), with the rows of Table 1 up to
+    $16 \cdot 10^{12}$ gives
+    $-0.88 \leq (t-\psi(t))/\sqrt{t} \leq 0.86$ for
+    $100 \leq t \leq 32 \cdot 10^{12}$. -/)
+  (proof := /-- Use Lemma \ref{buthe-sieve-bound} up to
+    $5 \cdot 10^{10}$, then chain the dyadic Table 1 intervals. -/)
+  (latexEnv := "lemma")]
+theorem table_1_to_32e12 :
+    ∀ t ∈ Set.Icc (100 : ℝ) (32 * 10 ^ 12),
+      -(0.88 : ℝ) ≤ (t - ψ t) / sqrt t ∧
+        (t - ψ t) / sqrt t ≤ (0.86 : ℝ) := by
+  intro t ht
+  by_cases h5 : t ≤ 5 * 10 ^ 10
+  · have h := sieve_bound t ⟨ht.1, h5⟩
+    constructor <;> linarith
+  · by_cases h8 : t ≤ 8 * 10 ^ 10
+    · have h := eq_6_2 (4 * 10 ^ 10) (-0.73) 0.80
+        (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h8]⟩
+      constructor <;> linarith
+    · by_cases h16 : t ≤ 16 * 10 ^ 10
+      · have h := eq_6_2 (8 * 10 ^ 10) (-0.80) 0.86
+          (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h16]⟩
+        constructor <;> linarith
+      · by_cases h32 : t ≤ 32 * 10 ^ 10
+        · have h := eq_6_2 (16 * 10 ^ 10) (-0.88) 0.68
+            (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h32]⟩
+          constructor <;> linarith
+        · by_cases h64 : t ≤ 64 * 10 ^ 10
+          · have h := eq_6_2 (32 * 10 ^ 10) (-0.88) 0.78
+              (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h64]⟩
+            constructor <;> linarith
+          · by_cases h128 : t ≤ 128 * 10 ^ 10
+            · have h := eq_6_2 (64 * 10 ^ 10) (-0.66) 0.74
+                (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h128]⟩
+              constructor <;> linarith
+            · by_cases h2e12 : t ≤ 2 * 10 ^ 12
+              · have h := eq_6_2 (10 ^ 12) (-0.80) 0.81
+                  (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h2e12]⟩
+                constructor <;> linarith
+              · by_cases h4e12 : t ≤ 4 * 10 ^ 12
+                · have h := eq_6_2 (2 * 10 ^ 12) (-0.79) 0.76
+                    (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h4e12]⟩
+                  constructor <;> linarith
+                · by_cases h8e12 : t ≤ 8 * 10 ^ 12
+                  · have h := eq_6_2 (4 * 10 ^ 12) (-0.73) 0.73
+                      (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h8e12]⟩
+                    constructor <;> linarith
+                  · by_cases h16e12 : t ≤ 16 * 10 ^ 12
+                    · have h := eq_6_2 (8 * 10 ^ 12) (-0.80) 0.76
+                        (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [h16e12]⟩
+                      constructor <;> linarith
+                    · have h := eq_6_2 (16 * 10 ^ 12) (-0.80) 0.68
+                        (by norm_num [table_1]) t ⟨by nlinarith, by nlinarith [ht.2]⟩
+                      constructor <;> linarith
+
+private lemma normalized_bounds_of_Eψ {t K : ℝ} (ht : 0 < t)
+    (h : Eψ t ≤ K / sqrt t) :
+    -K ≤ (t - ψ t) / sqrt t ∧ (t - ψ t) / sqrt t ≤ K := by
+  have hsqrt_pos : 0 < sqrt t := Real.sqrt_pos.mpr ht
+  have hdiv_sqrt : t / sqrt t = sqrt t := by
+    rw [div_eq_iff hsqrt_pos.ne']
+    rw [← sq, Real.sq_sqrt ht.le]
+  have h_abs : |ψ t - t| ≤ K * sqrt t := by
+    change |ψ t - t| / t ≤ K / sqrt t at h
+    have hmul := (div_le_iff₀ ht).mp h
+    calc
+      |ψ t - t| ≤ (K / sqrt t) * t := hmul
+      _ = K * sqrt t := by
+        calc
+          (K / sqrt t) * t = K * (t / sqrt t) := by ring
+          _ = K * sqrt t := by rw [hdiv_sqrt]
+  have h_abs' : |t - ψ t| ≤ K * sqrt t := by
+    simpa [abs_sub_comm] using h_abs
+  constructor
+  · rw [le_div_iff₀ hsqrt_pos]
+    nlinarith [(abs_le.mp h_abs').1]
+  · rw [div_le_iff₀ hsqrt_pos]
+    nlinarith [(abs_le.mp h_abs').2]
+
+@[blueprint
+  "buthe-theorem-2a-normalized"
+  (title := "Buthe Theorem 2(a), normalized form")
+  (statement := /-- Büthe, arXiv:1511.02032v2, Theorem 2(a), implies
+    $-0.94 \leq (t-\psi(t))/\sqrt{t} \leq 0.94$ for
+    $100 \leq t \leq 10^{19}$. -/)
+  (proof := /-- Convert the absolute-error form in
+    Theorem \ref{buthe-theorem-2a} to two-sided normalized bounds. -/)
+  (latexEnv := "lemma")]
+theorem theorem_2a_normalized :
+    ∀ t ∈ Set.Icc (100 : ℝ) (10 ^ 19),
+      -(0.94 : ℝ) ≤ (t - ψ t) / sqrt t ∧
+        (t - ψ t) / sqrt t ≤ (0.94 : ℝ) := by
+  intro t ht
+  exact normalized_bounds_of_Eψ (by linarith [ht.1])
+    (theorem_2a (by linarith [ht.1]) ht.2)
 
 end Buthe
