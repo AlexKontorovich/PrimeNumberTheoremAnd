@@ -910,6 +910,119 @@ blueprint_comment /--
 \end{theorem}
 -/
 
+
+-- something in the blueprint is wrong here, the inner-sum needs to be over r not R'
+lemma FinalBound
+  {B r' r R' R : ℝ} (one_lt_B : 1 < B)
+  (r'_pos : 0 < r') (r'_lt_one: r' < 1) (r'_lt_r : r' < r)
+  (r_pos : 0 < r)(r_lt_one : r < 1) (r_lt_R' : r < R')
+  (R'_pos : 0 < R') (R'_lt_one : R' < 1) (R'_lt_R : R' < R)
+  (R_pos : 0 < R) (R_lt_one : R < 1)
+  {f : ℂ → ℂ} (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
+  (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
+  {z : ℂ} (hz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f) :
+  ‖(deriv f z / f z) - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ / (z - ρ)‖ ≤
+    (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * Real.log B := by
+  have r_lt_R : r < R := by linarith
+  have r'_lt_R' : r' < R' := by linarith
+  have hpos : 0 < R ^ 2 / R' - R' := by sorry
+  have LfBound := JBlaschkeDerivBound one_lt_B r'_pos r'_lt_r r_lt_one r_lt_R  R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros fz_bound hz.1
+  have zerosBound : ↑(∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ) ≤ 1 / Real.log (R / R') * Real.log B := by
+    apply (ZerosBound r_pos r_lt_one R_pos R_lt_one r_lt_R hfAnalytic hf0_eq_one finiteZeros fz_bound).trans
+    refine mul_le_mul_of_nonneg_right (one_div_le_one_div_of_le ?_ ?_) (Real.log_nonneg (le_of_lt one_lt_B))
+    · rw [← Real.log_one, Real.log_lt_log_iff zero_lt_one (div_pos R_pos R'_pos), one_lt_div R'_pos]
+      exact R'_lt_R
+    · rw [Real.log_le_log_iff (div_pos R_pos R'_pos) (div_pos R_pos r_pos)]
+      exact div_le_div_of_nonneg_left (le_of_lt R_pos) r_pos (le_of_lt r_lt_R')
+  suffices h1 : ‖deriv f z / f z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ)‖ ≤ ‖deriv (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) z‖ + 1 / (R ^ 2 / R' - R') * ↑(∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ) by
+    calc ‖deriv f z / f z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ)‖
+      ≤ ‖deriv (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) z‖ + 1 / (R ^ 2 / R' - R') * ↑(∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ) := h1
+    _ ≤ 16 * Real.log B * r ^ 2 / (r - r') ^ 3 + 1 / (R ^ 2 / R' - R') * (1 / Real.log (R / R') * Real.log B) := by
+      linarith [mul_le_mul_of_nonneg_left zerosBound (div_nonneg zero_le_one (le_of_lt hpos))]
+    _ = (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * Real.log B := by
+      field_simp
+  suffices h2 : deriv f z / f z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ) =
+    deriv (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ) by
+    rw[h2, sub_eq_add_neg]
+    apply norm_add_le_of_le (le_rfl)
+    simp only [norm_neg, cast_sum, Finset.mul_sum, one_div_mul_eq_div]
+    apply (norm_sum_le _ _).trans (Finset.sum_le_sum (fun ρ hρ => ?_))
+    rw[norm_div, RCLike.norm_natCast]
+    apply div_le_div_of_nonneg_left (Nat.cast_nonneg _) hpos
+    simp only [mem_diff, Metric.mem_closedBall, dist_zero_right, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ hz
+    rw[norm_sub_rev]
+    calc R ^ 2 / R' - R'
+        ≤ ‖↑R ^ 2 / conj ρ‖ - ‖z‖ := by
+          refine sub_le_sub ?_ (hz.1.trans (r'_lt_r.le.trans r_lt_R'.le))
+          rw [norm_div, norm_pow, norm_real, norm_eq_abs, abs_of_nonneg (le_of_lt R_pos)]
+          apply div_le_div_of_nonneg_left (sq_nonneg R) (norm_pos_iff.mpr (star_ne_zero.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))))
+          rw [norm_star]
+          linarith [hρ.1]
+      _ ≤ ‖↑R ^ 2 / conj ρ - z‖ := norm_sub_norm_le _ _
+  suffices h3 : deriv (BlaschkeB r R f) z / BlaschkeB r R f z = deriv f z / f z
+    + ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ)
+    - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ) by
+    let blaschkeAnalytic := BlaschkeAnalytic r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+    let blaschkeNonzero := BlaschkeNonzero r_lt_one R_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
+    let logOfAnalytic := LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R blaschkeAnalytic blaschkeNonzero
+    set JB := logOfAnalytic.choose with JB_def
+    obtain ⟨JB_Analytic, JB_0_eq_0, deriv_JB_eq, JB_re⟩ := logOfAnalytic.choose_spec
+    rw [← JB_def] at JB_Analytic JB_0_eq_0 deriv_JB_eq JB_re
+    have JB_def' : JB = (JBlaschke r'_pos r'_lt_r r_lt_one r_lt_R R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros) := by
+      unfold JBlaschke
+      rw [JB_def]
+    rw[eq_sub_iff_add_eq, sub_add_eq_add_sub, ← h3, ← JB_def', eq_comm]
+    exact deriv_JB_eq z hz.1
+  have rFiniteZeros: (SetOfZeros r f).Finite := by sorry
+  have zNotInZeros : ¬(z ∈ SetOfZeros r f) := by sorry
+  suffices h4 : BlaschkeB r R f z = f z * ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ((R - z * conj ρ / R) / (z - ρ)) ^ (analyticOrderNatAt f ρ) by
+    have sum1LD : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, logDeriv (fun z ↦ (R - z * conj ρ / R) ^ ↑(analyticOrderNatAt f ρ)) z = ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ) := by
+      refine Finset.sum_congr rfl (fun ρ hρ => ?_)
+      rw [← logDeriv_pow, logDeriv_fun_pow, logDeriv_fun_pow, logDeriv_id', mul_eq_mul_left_iff]
+      · left
+        simp only [logDeriv, Pi.div_apply]
+        rw [deriv_fun_sub, deriv_div_const, deriv_mul_const]
+        · simp only [deriv_const', deriv_id'', one_mul, zero_sub]
+          rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
+          · sorry
+          · sorry
+          · sorry
+        · exact differentiableAt_fun_id
+        · exact differentiableAt_const _
+        · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_mul,
+          DifferentiableAt.div_const]
+      · simp only [differentiableAt_fun_id]
+      · simp only [differentiableAt_const, DifferentiableAt.fun_sub_iff_right,
+          differentiableAt_fun_id, DifferentiableAt.fun_mul, DifferentiableAt.div_const]
+    have sum2LD : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, logDeriv (fun z ↦ (z - ρ) ^ ↑(analyticOrderNatAt f ρ)) z =  ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ) := by
+      refine Finset.sum_congr rfl (fun ρ _ => ?_)
+      have : (fun z ↦ (z - ρ) ^ analyticOrderNatAt f ρ) =
+        (fun x ↦ x ^ analyticOrderNatAt f ρ) ∘ (fun z ↦ z - ρ) := by rfl
+      rw[← logDeriv_pow, this, logDeriv_comp]
+      · simp only [logDeriv_pow, differentiableAt_fun_id, differentiableAt_const, deriv_fun_sub,
+          deriv_id'', deriv_const', sub_zero, mul_one]
+      · simp only [differentiableAt_fun_id, DifferentiableAt.fun_pow]
+      · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_sub]
+    unfold BlaschkeB Cf
+    simp only [rFiniteZeros, ↓reduceDIte, dite_eq_ite, ite_mul, ← logDeriv_apply, ← sum1LD, ← sum2LD]
+    rw [← logDeriv_prod, ← logDeriv_prod, ← logDeriv_mul, ← logDeriv_div]
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+  simp only [BlaschkeB, Cf, rFiniteZeros, ↓reduceDIte, zNotInZeros, div_mul_eq_mul_div, mul_div_assoc, ← Finset.prod_div_distrib, div_pow]
+
+
+
 blueprint_comment /--
 \begin{proof}
 \uses{CFunction, BlaschkeB, JBlaschke, LogOfAnalyticFunction, ZerosBound, JBlaschkeDerivBound}
