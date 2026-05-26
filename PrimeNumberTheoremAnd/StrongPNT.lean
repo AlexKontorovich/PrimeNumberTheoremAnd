@@ -925,6 +925,7 @@ lemma FinalBound
     (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * Real.log B := by
   have r_lt_R : r < R := by linarith
   have r'_lt_R' : r' < R' := by linarith
+  have r'_lt_R : r' < R := by linarith
   have hpos : 0 < R ^ 2 / R' - R' := by
     rw [sub_pos, lt_div_iff₀ R'_pos, ← sq]
     apply pow_lt_pow_left₀ R'_lt_R R'_pos.le two_ne_zero
@@ -988,8 +989,20 @@ lemma FinalBound
           rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
           · field_simp
             exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (by simp [show ρ ≠ 0 from fun h => by simp [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, h, hf0_eq_one] at hρ]))
-          · sorry
-          · sorry
+          · rw [Ne.eq_def, sub_eq_zero, eq_div_iff]
+            · intro h
+              replace h := congr_arg Complex.normSq h
+              simp only [normSq_eq_norm_sq, norm_mul, norm_real, norm_eq_abs, abs_mul_abs_self,
+                RingHomIsometric.norm_map, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
+                Metric.mem_closedBall, dist_zero_right, not_and] at h hρ hz
+              absurd h
+              rw [sq_eq_sq₀, ← ne_eq]
+              · exact ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))
+              · exact mul_nonneg R_pos.le R_pos.le
+              · exact mul_nonneg (norm_nonneg z) (norm_nonneg ρ)
+            · exact_mod_cast ne_of_gt R_pos
+          ·
+            sorry
         · exact differentiableAt_fun_id
         · exact differentiableAt_const _
         · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_mul,
