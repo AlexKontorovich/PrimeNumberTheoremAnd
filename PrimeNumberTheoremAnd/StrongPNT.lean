@@ -989,20 +989,30 @@ lemma FinalBound
           rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
           · field_simp
             exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (by simp [show ρ ≠ 0 from fun h => by simp [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, h, hf0_eq_one] at hρ]))
+          · rw [Ne.eq_def, sub_eq_zero, eq_div_iff (by exact_mod_cast ne_of_gt R_pos)]
+            intro h
+            replace h := congr_arg Complex.normSq h
+            simp only [normSq_eq_norm_sq, norm_mul, norm_real, norm_eq_abs, abs_mul_abs_self,
+              RingHomIsometric.norm_map, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
+              Metric.mem_closedBall, dist_zero_right, not_and] at h hρ hz
+            absurd h
+            rw [sq_eq_sq₀, ← ne_eq]
+            · exact ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))
+            · exact mul_nonneg R_pos.le R_pos.le
+            · exact mul_nonneg (norm_nonneg z) (norm_nonneg ρ)
           · rw [Ne.eq_def, sub_eq_zero, eq_div_iff]
             · intro h
               replace h := congr_arg Complex.normSq h
-              simp only [normSq_eq_norm_sq, norm_mul, norm_real, norm_eq_abs, abs_mul_abs_self,
-                RingHomIsometric.norm_map, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
+              simp only [normSq_eq_norm_sq, Complex.norm_mul, RCLike.norm_conj, norm_pow, norm_real,
+                norm_eq_abs, sq_abs, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
                 Metric.mem_closedBall, dist_zero_right, not_and] at h hρ hz
               absurd h
-              rw [sq_eq_sq₀, ← ne_eq]
-              · exact ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))
-              · exact mul_nonneg R_pos.le R_pos.le
+              rw [sq_eq_sq₀, ← ne_eq, sq]
+              · exact (ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))).symm
               · exact mul_nonneg (norm_nonneg z) (norm_nonneg ρ)
-            · exact_mod_cast ne_of_gt R_pos
-          ·
-            sorry
+              · exact sq_nonneg R
+            · simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+              exact star_ne_zero.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))
         · exact differentiableAt_fun_id
         · exact differentiableAt_const _
         · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_mul,
@@ -1022,7 +1032,12 @@ lemma FinalBound
     unfold BlaschkeB Cf
     simp only [rFiniteZeros, ↓reduceDIte, dite_eq_ite, ite_mul, ← logDeriv_apply, ← sum1LD, ← sum2LD]
     rw [← logDeriv_prod, ← logDeriv_prod, ← logDeriv_mul, ← logDeriv_div]
-    · sorry
+    · have h_eq : ∀ᶠ w in nhds z, (if w ∈ SetOfZeros r f then (ZeroFactor f w / ∏ ρ ∈ rFiniteZeros.toFinset \ {w}, (w - ρ) ^ analyticOrderNatAt f ρ) * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ else (f w / ∏ ρ ∈ rFiniteZeros.toFinset, (w - ρ) ^ analyticOrderNatAt f ρ) * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ) = (f w * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ) / ∏ ρ ∈ rFiniteZeros.toFinset, (w - ρ) ^ analyticOrderNatAt f ρ := by
+        filter_upwards [(isOpen_compl_iff.mpr rFiniteZeros.isClosed).mem_nhds zNotInZeros] with w hw using by rw [if_neg hw]; ring
+      simp only [logDeriv, Pi.div_apply]
+      congr 1
+      · apply Filter.EventuallyEq.deriv_eq h_eq
+      · convert h_eq.self_of_nhds using 1
     · sorry
     · sorry
     · sorry
