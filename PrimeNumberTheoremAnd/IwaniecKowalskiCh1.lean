@@ -296,7 +296,13 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
 /- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
-  sorry
+  rw [Nat.sum_divisorsAntidiagonal (f := fun a b => f (a, b))]
+  rw [Nat.divisors_prime_pow h]
+  simp only [Finset.sum_map, Function.Embedding.coeFn_mk]
+  apply Finset.sum_congr rfl
+  intro n hn
+  simp only [Finset.mem_range] at hn
+  rw [Nat.pow_div (by omega : n ≤ k) h.pos]
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
