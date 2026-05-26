@@ -1097,7 +1097,226 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
   (proof := /-- The RHS can be Taylor expanded as $\sum_{j=2}^\infty \sum_p \frac{1}{jp^j}$.  Meanwhile, the difference between $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n}$ and $\sum_{p \leq x} \frac{1}{p}$ is equal to $\sum_{j=2}^\infty \sum_{p: p^j \leq x} \frac{1}{j p^j}$.  Applying the monotone convergence theorem, Lemma \ref{Mertens-second-error-prime-abs-le}, and Lemma \ref{Mertens-second-error-mangoldt-bound} gives the claim.  -/)
   (discussion := 1328)]
 theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by
-    sorry
+    -- F n = contribution from non-prime prime powers
+    let F : ℕ → ℝ := fun n =>
+      if IsPrimePow n ∧ ¬n.Prime then Λ n / ((n : ℝ) * log n) else 0
+    -- Nonnegativity of F
+    have hFnn : ∀ n, 0 ≤ F n := fun n => by
+      simp only [F]
+      split_ifs with h
+      · apply div_nonneg vonMangoldt_nonneg
+        apply mul_nonneg (Nat.cast_nonneg n)
+        apply log_nonneg
+        have hipp := h.1
+        obtain ⟨p, k, hp, hk, rfl⟩ := hipp
+        rw [← Nat.prime_iff] at hp
+        have : 1 < p := hp.one_lt
+        exact_mod_cast Nat.one_le_pow k p (by linarith)
+      · exact le_refl _
+    -- F 0 = 0
+    have hF0 : F 0 = 0 := by simp [F, not_isPrimePow_zero]
+    -- Algebraic identity
+    have hAlg : ∀ N : ℕ,
+        ∑ n ∈ Ioc 0 N, F n = γ - M + E₂Λ (N : ℝ) - E₂p (N : ℝ) := by
+      intro N
+      have hTerm : ∀ n : ℕ, 0 < n →
+          F n = Λ n / ((n : ℝ) * log n) - (if n.Prime then 1 / (n : ℝ) else 0) := by
+        intro n hn
+        simp only [F]
+        by_cases hipp : IsPrimePow n
+        · by_cases hprime : n.Prime
+          · rw [if_neg (fun h => h.2 hprime)]
+            rw [vonMangoldt_apply_prime hprime, if_pos hprime]
+            have hn' : (0 : ℝ) < n := Nat.cast_pos.mpr hn
+            have hlogn : 0 < log n := log_pos (by exact_mod_cast hprime.one_lt)
+            field_simp; ring
+          · rw [if_pos ⟨hipp, hprime⟩, if_neg hprime]
+            ring
+        · rw [if_neg (fun h => hipp h.1)]
+          rw [vonMangoldt_eq_zero_iff.mpr hipp]
+          have hprime : ¬n.Prime := fun hp => hipp hp.prime.isPrimePow
+          simp [if_neg hprime]
+      have heq : ∑ n ∈ Ioc 0 N, F n =
+          ∑ n ∈ Ioc 0 N, Λ n / ((n : ℝ) * log n) -
+          ∑ n ∈ Ioc 0 N, (if n.Prime then 1 / (n : ℝ) else 0) := by
+        rw [← sum_sub_distrib]
+        apply sum_congr rfl
+        intro n hn
+        exact hTerm n (mem_Ioc.mp hn).1
+      rw [heq, ← sum_filter]
+      simp only [E₂Λ, E₂p, Nat.floor_natCast]
+      ring
+    -- Range/Ioc conversion
+    have hRangeIoc : ∀ N : ℕ,
+        ∑ n ∈ Finset.range (N + 1), F n = ∑ n ∈ Ioc 0 N, F n := by
+      intro N
+      rw [show Finset.range (N + 1) = insert 0 (Ioc 0 N) from by
+        ext n; simp only [Finset.mem_range, Finset.mem_insert, Finset.mem_Ioc]
+        omega]
+      rw [sum_insert (by simp), hF0, zero_add]
+    -- HasSum F (γ - M) via tendsto
+    have hF : HasSum F (γ - M) := by
+      rw [hasSum_iff_tendsto_nat_of_nonneg hFnn]
+      have hconv : Tendsto (fun N => ∑ n ∈ Finset.range (N + 1), F n) atTop (nhds (γ - M)) := by
+        simp_rw [hRangeIoc, hAlg]
+        have hE₂Λ0 : Tendsto (fun N : ℕ => E₂Λ (N : ℝ)) atTop (nhds 0) := by
+          have h := E₂Λ.bound'; rw [isLittleO_one_iff] at h; exact h.comp tendsto_natCast_atTop_atTop
+        have hE₂p0 : Tendsto (fun N : ℕ => E₂p (N : ℝ)) atTop (nhds 0) := by
+          have h := E₂p.bound'; rw [isLittleO_one_iff] at h; exact h.comp tendsto_natCast_atTop_atTop
+        have h1 : Tendsto (fun N : ℕ => (γ - M) + E₂Λ (N : ℝ)) atTop (nhds ((γ - M) + 0)) :=
+          tendsto_const_nhds.add hE₂Λ0
+        have h2 := h1.sub hE₂p0
+        simp only [add_zero, sub_zero] at h2
+        exact h2.congr (fun N => by ring)
+      exact (tendsto_add_atTop_iff_nat 1).mp hconv
+    -- G (p, k) = if p.Prime then F(p^(k+2)) else 0
+    let G : ℕ × ℕ → ℝ := fun pk => if pk.1.Prime then F (pk.1 ^ (pk.2 + 2)) else 0
+    -- G nonneg
+    have hGnn : ∀ x, 0 ≤ G x := fun ⟨p, k⟩ => by
+      simp only [G]
+      split_ifs
+      · exact hFnn _
+      · exact le_refl _
+    -- F at prime powers
+    have hFpow : ∀ p k : ℕ, p.Prime →
+        F (p ^ (k + 2)) = (1 / (p : ℝ)) ^ (k + 2) / (k + 2) := by
+      intro p k hp
+      have hipp : IsPrimePow (p ^ (k + 2)) :=
+        ⟨p, k + 2, hp.prime, by omega, rfl⟩
+      have hnprime : ¬(p ^ (k + 2)).Prime := by
+        intro h; exact not_prime_pow (by omega : k + 2 ≠ 1) h.prime
+      have hcond : IsPrimePow (p ^ (k + 2)) ∧ ¬(p ^ (k + 2)).Prime := ⟨hipp, hnprime⟩
+      simp only [F, if_pos hcond]
+      rw [vonMangoldt_apply_pow (by omega : k + 2 ≠ 0), vonMangoldt_apply_prime hp]
+      rw [Nat.cast_pow, log_pow]
+      have hp0 : (p:ℝ) ≠ 0 := Nat.cast_ne_zero.mpr hp.pos.ne'
+      have hlogp : log (p:ℝ) ≠ 0 := (log_pos (by exact_mod_cast hp.one_lt)).ne'
+      rw [show (↑p : ℝ) ^ (k + 2) * (↑(k + 2) * log ↑p) =
+               log ↑p * ((↑p : ℝ) ^ (k + 2) * ↑(k + 2)) from by ring,
+          ← div_div, div_self hlogp, one_div (↑p : ℝ), inv_pow,
+          ← one_div ((↑p : ℝ) ^ (k + 2)), div_div]
+      push_cast; ring
+    -- Upper bound: partial sums of G ≤ tsum of F
+    have hGleF : ∀ u : Finset (ℕ × ℕ), ∑ x ∈ u, G x ≤ ∑' n, F n := by
+      intro u
+      have h1 : ∑ x ∈ u, G x =
+          ∑ x ∈ u.filter (fun pk => pk.1.Prime), F (x.1 ^ (x.2 + 2)) := by
+        have hGeq : ∀ x : ℕ × ℕ, G x = if x.1.Prime then F (x.1 ^ (x.2 + 2)) else 0 :=
+          fun _ => rfl
+        simp_rw [hGeq, ← Finset.sum_filter]
+      rw [h1]
+      have hinj : Set.InjOn (fun x : ℕ × ℕ => x.1 ^ (x.2 + 2))
+          (u.filter (fun pk => pk.1.Prime) : Set (ℕ × ℕ)) := by
+        intro ⟨p₁, k₁⟩ h₁ ⟨p₂, k₂⟩ h₂ h
+        simp only [mem_coe, mem_filter] at h₁ h₂
+        have heq := h₁.2.pow_inj' h₂.2 (by omega) (by omega) h
+        exact Prod.ext heq.1 (Nat.add_right_cancel heq.2)
+      rw [← sum_image hinj]
+      exact hF.summable.sum_le_tsum _ (fun n _ => hFnn n)
+    -- Summable G
+    have hGsumm : Summable G :=
+      summable_of_sum_le hGnn fun u => (hGleF u).trans_eq hF.tsum_eq
+    -- Lower bound: partial sums of F ≤ tsum of G
+    have hFleG : ∀ u : Finset ℕ, ∑ n ∈ u, F n ≤ ∑' x, G x := by
+      intro u
+      -- Filter to nonzero terms
+      have hstep : ∑ n ∈ u, F n =
+          ∑ n ∈ u.filter (fun n => IsPrimePow n ∧ ¬n.Prime), F n := by
+        rw [Finset.sum_filter]
+        apply Finset.sum_congr rfl; intro n _
+        simp only [F]; split_ifs <;> rfl
+      rw [hstep]
+      -- Map each prime power to (p, k-2)
+      let φ : ℕ → ℕ × ℕ := fun n => (n.minFac, n.factorization n.minFac - 2)
+      have hkge2 : ∀ n ∈ u.filter (fun n => IsPrimePow n ∧ ¬n.Prime),
+          2 ≤ n.factorization n.minFac := by
+        intro n hn
+        simp only [mem_filter] at hn
+        obtain ⟨_, hipp, hnprime⟩ := hn
+        obtain ⟨p, k, hp, hk, rfl⟩ := hipp
+        rw [← Nat.prime_iff] at hp
+        rw [hp.pow_minFac hk.ne', hp.factorization_pow, Finsupp.single_eq_same]
+        have hk1 : k ≠ 1 := by
+          intro h; rw [h, pow_one] at hnprime; exact hnprime hp
+        omega
+      have hFeqG : ∀ n ∈ u.filter (fun n => IsPrimePow n ∧ ¬n.Prime),
+          F n = G (φ n) := by
+        intro n hn
+        simp only [mem_filter] at hn
+        obtain ⟨hmem, hipp, hnprime⟩ := hn
+        have hkn := hkge2 n (mem_filter.mpr ⟨hmem, hipp, hnprime⟩)
+        have hn_eq : n = n.minFac ^ n.factorization n.minFac :=
+          hipp.minFac_pow_factorization_eq.symm
+        have hminprime : n.minFac.Prime :=
+          Nat.minFac_prime (IsPrimePow.ne_one hipp)
+        have hcond2 : IsPrimePow n ∧ ¬n.Prime := ⟨hipp, hnprime⟩
+        simp only [G, φ, hminprime, if_true]
+        rw [Nat.sub_add_cancel hkn, ← hn_eq]
+      have hinj : Set.InjOn φ
+          (u.filter (fun n => IsPrimePow n ∧ ¬n.Prime) : Set ℕ) := by
+        intro n₁ h₁ n₂ h₂ heq
+        simp only [mem_coe, mem_filter] at h₁ h₂
+        simp only [φ, Prod.mk.injEq] at heq
+        have hn₁ := h₁.2.1.minFac_pow_factorization_eq
+        have hn₂ := h₂.2.1.minFac_pow_factorization_eq
+        have hkk : n₁.factorization n₁.minFac = n₂.factorization n₂.minFac := by
+          have hk₁ := hkge2 n₁ (mem_filter.mpr h₁)
+          have hk₂ := hkge2 n₂ (mem_filter.mpr h₂)
+          omega
+        calc n₁ = n₁.minFac ^ n₁.factorization n₁.minFac := hn₁.symm
+          _ = n₂.minFac ^ n₂.factorization n₂.minFac := congr_arg₂ HPow.hPow heq.1 hkk
+          _ = n₂ := hn₂
+      let u' := u.filter (fun n => IsPrimePow n ∧ ¬n.Prime)
+      calc ∑ n ∈ u', F n
+          = ∑ n ∈ u', G (φ n) := sum_congr rfl hFeqG
+        _ = ∑ m ∈ u'.image φ, G m := (sum_image hinj).symm
+        _ ≤ ∑' m, G m := hGsumm.sum_le_tsum _ (fun m _ => hGnn m)
+    -- Tsum equality
+    have hGtsum : ∑' x, G x = γ - M :=
+      le_antisymm
+        (hGsumm.tsum_le_of_sum_le (fun u => (hGleF u).trans_eq hF.tsum_eq))
+        (hF.tsum_eq ▸ hF.summable.tsum_le_of_sum_le hFleG)
+    have hGsum : HasSum G (γ - M) := hGtsum ▸ hGsumm.hasSum
+    -- Per-prime Taylor series
+    have hTaylor : ∀ p : ℕ, HasSum (fun k => G (p, k))
+        (if p.Prime then -(log (1 - 1 / (p : ℝ)) + 1 / (p : ℝ)) else 0) := by
+      intro p
+      by_cases hp : p.Prime
+      · rw [if_pos hp]
+        simp only [G, hp, if_true]
+        have hx : |(1 / (p : ℝ))| < 1 := by
+          rw [abs_of_pos (div_pos one_pos (Nat.cast_pos.mpr hp.pos)),
+              div_lt_one (Nat.cast_pos.mpr hp.pos)]
+          exact_mod_cast hp.one_lt
+        have h1 := hasSum_pow_div_log_of_abs_lt_one hx
+        -- h1 : HasSum (fun n => (1/p)^(n+1) / (n+1)) (-log(1-1/p))
+        have h2 : HasSum (fun k : ℕ => (1 / (p : ℝ)) ^ (k + 2) / (↑k + 2 : ℝ))
+            (-log (1 - 1 / (p : ℝ)) - 1 / (p : ℝ)) := by
+          have h3 := (hasSum_nat_add_iff' 1).mpr h1
+          simp only [Finset.sum_range_one, Nat.cast_zero, zero_add, pow_one, div_one] at h3
+          refine h3.congr_fun ?_
+          intro n
+          push_cast
+          ring
+        convert h2.congr_fun (fun k => hFpow p k hp) using 1
+        ring
+      · rw [if_neg hp]
+        simp only [G, hp, if_false]
+        exact hasSum_zero
+    -- Outer fiberwise sum
+    have hOuter : HasSum
+        (fun p : ℕ => if p.Prime then -(log (1 - 1 / (p : ℝ)) + 1 / (p : ℝ)) else 0)
+        (γ - M) := hGsum.prod_fiberwise hTaylor
+    -- Conclude
+    have hFinal : HasSum (fun p : ℕ => if p.Prime then log (1 - 1/(p:ℝ)) + 1/p else 0) (M - γ) := by
+      have h := hOuter.neg
+      simp_rw [show ∀ p : ℕ,
+          -(if p.Prime then -(log (1 - 1/(p:ℝ)) + 1/(p:ℝ)) else (0:ℝ)) =
+          if p.Prime then log (1 - 1/(p:ℝ)) + 1/p else 0 from fun p => by
+        split_ifs <;> ring] at h
+      convert h using 1
+      ring
+    linarith [hFinal.tsum_eq]
 
 @[blueprint
   "Mertens-third-error"
