@@ -925,7 +925,9 @@ lemma FinalBound
     (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * Real.log B := by
   have r_lt_R : r < R := by linarith
   have r'_lt_R' : r' < R' := by linarith
-  have hpos : 0 < R ^ 2 / R' - R' := by sorry
+  have hpos : 0 < R ^ 2 / R' - R' := by
+    rw [sub_pos, lt_div_iff₀ R'_pos, ← sq]
+    apply pow_lt_pow_left₀ R'_lt_R R'_pos.le two_ne_zero
   have LfBound := JBlaschkeDerivBound one_lt_B r'_pos r'_lt_r r_lt_one r_lt_R  R_pos R_lt_one hfAnalytic hf0_eq_one finiteZeros fz_bound hz.1
   have zerosBound : ↑(∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ) ≤ 1 / Real.log (R / R') * Real.log B := by
     apply (ZerosBound r_pos r_lt_one R_pos R_lt_one r_lt_R hfAnalytic hf0_eq_one finiteZeros fz_bound).trans
@@ -984,7 +986,8 @@ lemma FinalBound
         rw [deriv_fun_sub, deriv_div_const, deriv_mul_const]
         · simp only [deriv_const', deriv_id'', one_mul, zero_sub]
           rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
-          · sorry
+          · field_simp
+            exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (by simp [show ρ ≠ 0 from fun h => by simp [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, h, hf0_eq_one] at hρ]))
           · sorry
           · sorry
         · exact differentiableAt_fun_id
