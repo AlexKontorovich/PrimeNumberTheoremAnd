@@ -214,26 +214,25 @@ theorem proposition_4_3 {x : ℝ} (hx : x ≥ 121) :
     -- Macro for the interval_auto step: prove (Real.log c)^3 ≤ d
     have hpow3 : ∀ (c d : ℝ), Real.log c * (Real.log c * Real.log c) ≤ d →
         (Real.log c) ^ 3 ≤ d := fun c d h => by nlinarith [show (Real.log c)^3 = Real.log c * (Real.log c * Real.log c) from by ring]
-    by_cases h1 : x ≤ 130
+    by_cases! h1 : x ≤ 130
     · exact hlci 121 130 (by norm_num) (hpow3 130 121 (by linarith [show Real.log 130 * (Real.log 130 * Real.log 130) < 121 from by interval_auto])) hx h1
-    · push_neg at h1; by_cases h2 : x ≤ 155
+    · by_cases! h2 : x ≤ 155
       · exact hlci 130 155 (by norm_num) (hpow3 155 130 (by linarith [show Real.log 155 * (Real.log 155 * Real.log 155) < 130 from by interval_auto])) h1.le h2
-      · push_neg at h2; by_cases h3 : x ≤ 200
+      · by_cases! h3 : x ≤ 200
         · exact hlci 155 200 (by norm_num) (hpow3 200 155 (by linarith [show Real.log 200 * (Real.log 200 * Real.log 200) < 155 from by interval_auto])) h2.le h3
-        · push_neg at h3; by_cases h4 : x ≤ 300
+        · by_cases! h4 : x ≤ 300
           · exact hlci 200 300 (by norm_num) (hpow3 300 200 (by linarith [show Real.log 300 * (Real.log 300 * Real.log 300) < 200 from by interval_auto])) h3.le h4
-          · push_neg at h4; by_cases h5 : x ≤ 550
+          · by_cases! h5 : x ≤ 550
             · exact hlci 300 550 (by norm_num) (hpow3 550 300 (by linarith [show Real.log 550 * (Real.log 550 * Real.log 550) < 300 from by interval_auto])) h4.le h5
-            · push_neg at h5; by_cases h6 : x ≤ 1500
+            · by_cases! h6 : x ≤ 1500
               · exact hlci 550 1500 (by norm_num) (hpow3 1500 550 (by linarith [show Real.log 1500 * (Real.log 1500 * Real.log 1500) < 550 from by interval_auto])) h5.le h6
-              · push_neg at h6; by_cases h7 : x ≤ 10000
+              · by_cases! h7 : x ≤ 10000
                 · exact hlci 1500 10000 (by norm_num) (hpow3 10000 1500 (by linarith [show Real.log 10000 * (Real.log 10000 * Real.log 10000) < 1500 from by interval_auto])) h6.le h7
-                · push_neg at h7; by_cases h8 : x ≤ (10:ℝ)^8
+                · by_cases! h8 : x ≤ (10:ℝ)^8
                   · exact hlci 10000 ((10:ℝ)^8) (by norm_num) (hpow3 ((10:ℝ)^8) 10000 (by linarith [show Real.log ((10:ℝ)^8) * (Real.log ((10:ℝ)^8) * Real.log ((10:ℝ)^8)) < 10000 from by interval_auto])) h7.le h8
-                  · push_neg at h8; by_cases h9 : x ≤ 3 * (10:ℝ)^10
+                  · by_cases! h9 : x ≤ 3 * (10:ℝ)^10
                     · exact hlci ((10:ℝ)^8) (3 * (10:ℝ)^10) (by norm_num) (hpow3 (3 * (10:ℝ)^10) ((10:ℝ)^8) (by linarith [show Real.log (3 * (10:ℝ)^10) * (Real.log (3 * (10:ℝ)^10) * Real.log (3 * (10:ℝ)^10)) < (10:ℝ)^8 from by interval_auto])) h8.le h9
-                    · push_neg at h9
-                      -- Tail: x ≥ 3*10^10, so log x ≥ 24, use exp(t) ≥ t^4/24 ≥ t^3
+                    · -- Tail: x ≥ 3*10^10, so log x ≥ 24, use exp(t) ≥ t^4/24 ≥ t^3
                       have hlog_nn : 0 ≤ log x := hlog_pos.le
                       have hlog_ge : 24 ≤ log x := le_of_lt (lt_of_lt_of_le
                         (show (24:ℝ) < Real.log (3 * (10:ℝ)^10) by interval_auto)
@@ -534,44 +533,38 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
       (eSHP.table_8_prime_gap p g hmem) hle hx_ge2 le_rfl
   have log_bound : ∀ (U : ℝ), x ≤ exp U → log x ≤ U :=
     fun U h ↦ (Real.log_le_iff_le_exp hx_pos).mpr h
-  by_cases h1 : x ≤ 370261
+  by_cases! h1 : x ≤ 370261
   · have hmem : ((370261 : ℕ), (112 : ℕ)) ∈ eSHP.table_8 := by decide
     refine ⟨112, gap_record _ _ hmem (by push_cast; linarith), ?_⟩
     have hexp : (370261 : ℝ) ≤ exp (1283/100) := by interval_decide
     exact num_bound 112 (1283/100) (log_bound _ (by linarith)) (by norm_num) (by push_cast; nlinarith)
-  · push_neg at h1
-    by_cases h2 : x ≤ 492113
+  · by_cases! h2 : x ≤ 492113
     · have hmem : ((492113 : ℕ), (114 : ℕ)) ∈ eSHP.table_8 := by decide
       refine ⟨114, gap_record _ _ hmem (by push_cast; linarith), ?_⟩
       have hexp : (492113 : ℝ) ≤ exp (1312/100) := by interval_decide
       exact num_bound 114 (1312/100) (log_bound _ (by linarith)) (by norm_num) (by push_cast; nlinarith)
-    · push_neg at h2
-      by_cases h3 : x ≤ 2010733
+    · by_cases! h3 : x ≤ 2010733
       · have hmem : ((2010733 : ℕ), (148 : ℕ)) ∈ eSHP.table_8 := by decide
         refine ⟨148, gap_record _ _ hmem (by push_cast; linarith), ?_⟩
         have hexp : (2010733 : ℝ) ≤ exp (1452/100) := by interval_decide
         exact num_bound 148 (1452/100) (log_bound _ (by linarith)) (by norm_num) (by push_cast; nlinarith)
-      · push_neg at h3
-        by_cases h4 : x ≤ 17051707
+      · by_cases! h4 : x ≤ 17051707
         · have hmem : ((17051707 : ℕ), (180 : ℕ)) ∈ eSHP.table_8 := by decide
           refine ⟨180, gap_record _ _ hmem (by push_cast; linarith), ?_⟩
           have hexp : (17051707 : ℝ) ≤ exp (1666/100) := by interval_decide
           exact num_bound 180 (1666/100) (log_bound _ (by linarith)) (by norm_num) (by push_cast; nlinarith)
-        · push_neg at h4
-          refine ⟨1476, ?_, ?_⟩
-          · by_cases h5 : x ≤ 1425172824437699411
+        · refine ⟨1476, ?_, ?_⟩
+          · by_cases! h5 : x ≤ 1425172824437699411
             · have hmem : ((1425172824437699411 : ℕ), (1476 : ℕ)) ∈ eSHP.table_8 := by decide
               exact gap_record _ _ hmem (by push_cast; linarith)
-            · push_neg at h5
-              set m := ⌊x⌋₊ with hm_def
+            · set m := ⌊x⌋₊ with hm_def
               set k := m.primeCounting with hk_def
               set q := nth_prime k with hq_def
               have hx_nn : (0:ℝ) ≤ x := by linarith
               have hm_le_x : (m : ℝ) ≤ x := Nat.floor_le hx_nn
               have hm_ge2 : 2 ≤ m := Nat.le_floor hx_ge2
               have hk_pos : 0 < k := by
-                by_contra hk0
-                push_neg at hk0
+                by_contra! hk0
                 have hk0' : k = 0 := Nat.eq_zero_of_not_pos (by omega)
                 have : m ≤ 1 := Nat.primeCounting_eq_zero_iff.mp (by simpa [k] using hk0')
                 omega
@@ -610,10 +603,9 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
                 linarith
               · have h_qle : (q : ℝ) ≤ (m : ℝ) + (1476 : ℝ) := by exact_mod_cast hq_le
                 push_cast; linarith
-          · by_cases h6 : x ≤ exp 22
+          · by_cases! h6 : x ≤ exp 22
             · exact num_bound 1476 22 (log_bound 22 h6) (by norm_num) (by push_cast; nlinarith)
-            · push_neg at h6
-              have hexp43 : (4e18 : ℝ) ≤ exp 43 := by interval_decide
+            · have hexp43 : (4e18 : ℝ) ≤ exp 43 := by interval_decide
               have hx_le_exp43 : x ≤ exp 43 := le_of_lt (lt_of_lt_of_le hx_hi hexp43)
               exact num_bound 1476 43 (log_bound 43 hx_le_exp43) (by norm_num)
                 (by

@@ -472,7 +472,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
       Eψ x ≤ max (c / exp (b / 2))
         (ε (log B)) := by
   intro x hx
-  by_cases hcases : x ≤ B
+  by_cases! hcases : x ≤ B
   · have hlb : B₀ < x := by linarith [hx, hb.1]
     simp only [Set.Ioc, Set.mem_setOf_eq, and_imp] at hbound
     have hb : Eψ x ≤ c / sqrt x :=
@@ -494,8 +494,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
     have hsqrtcomp3 : c / sqrt x ≤ c / exp (b / 2) := by gcongr
     have hubcomp : c / exp (b / 2) ≤ max (c / exp (b / 2)) (ε (log B)) := le_max_left ..
     linarith
-  · push_neg at hcases
-    have hidentity : exp (log B) = B :=
+  · have hidentity : exp (log B) = B :=
       Real.exp_log hBpos
     have hBone : 1 < B := by
       linarith [hb.2, Real.one_lt_exp_iff.2 hbpos]

@@ -735,7 +735,7 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
       (if f.balance q > 0 then (f.balance q : ℝ) * Real.log q
        else if q ≤ L then (-f.balance q) * Real.log L else (-f.balance q) * Real.log (n / q)) -
       Real.log (n / p) := by
-    rw [Finset.sum_eq_add_sum_diff_singleton hp_mem, Finset.sum_eq_add_sum_diff_singleton hp_mem]
+    rw [Finset.sum_eq_add_sum_diff_singleton_of_mem hp_mem, Finset.sum_eq_add_sum_diff_singleton_of_mem hp_mem]
     have h_rest := Finset.sum_congr rfl fun x hx ↦
       h_sum_q x (Finset.mem_sdiff.mp hx).1
         (fun h ↦ (Finset.mem_sdiff.mp hx).2 (Finset.mem_singleton.mpr h))
@@ -848,11 +848,10 @@ theorem Factorization.lower_score_3 {n : ℕ} (f : Factorization n) (L : ℕ)
     (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) :
     ∃ f' : Factorization n,
       f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
-  by_cases h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
+  by_cases! h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
   · exact lower_score_1 f L h1
-  by_cases h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
+  by_cases! h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
   · exact lower_score_2 f L h2
-  push_neg at h1 h2
   refine lower_score_3_clean f L (fun p ↦ ?_) (fun p hp ↦ ?_) hf
   · by_cases hp : p.Prime
     · by_cases hp' : p ≤ n
@@ -884,14 +883,12 @@ theorem Factorization.lowest_score {n : ℕ} (f : Factorization n) (L : ℕ) :
           (hle : f₁.score L ≤ f.score L) :
           ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ f.score L :=
         let ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt); ⟨f', hbal, hle'.trans hle⟩
-      by_cases h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
+      by_cases! h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
       · exact let ⟨f₁, hlt, hle⟩ := lower_score_1 f L h1; reduce f₁ hlt hle
-      · by_cases h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
+      · by_cases! h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
         · exact let ⟨f₁, hlt, hle⟩ := lower_score_2 f L h2; reduce f₁ hlt hle
         · have h3 : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0 := by
-            push_neg at h1 h2
-            by_contra hc
-            push_neg at hc
+            by_contra! hc
             exact hk.ne' <| h ▸ sum_eq_zero fun p hp ↦ by
               have := h1 p hp
               have := if hpL : p ≤ L then hc p hp hpL
@@ -2073,7 +2070,7 @@ private lemma Params.initial.score_bound_aux_imbalanced (P : Params)
         constructor
         · rintro ⟨hmem, ⟨-, -⟩, hnot_lt⟩
           exact ⟨hmem, by
-            push_neg at hnot_lt
+            push Not at hnot_lt
             exact hnot_lt⟩
         · rintro ⟨hmem, hge⟩
           refine ⟨hmem, ⟨?_, ?_⟩, ?_⟩
@@ -2806,7 +2803,7 @@ lemma primeCounting_le_bound (n : ℕ) (hn : 2 ≤ n) :
   have h_sum_log_bound :
       (∑ p ∈ filter Prime (Icc 1 n), Real.log p) ≤ n * Real.log 4 := by
     have h_prod_le : (∏ p ∈ filter Prime (Icc 1 n), p : ℕ) ≤ 4 ^ n := by
-      convert primorial_le_4_pow n using 1; congr 1 with (_ | p) <;> aesop
+      convert primorial_le_four_pow n using 1; congr 1 with (_ | p) <;> aesop
     have h_prod_le_real : (∏ p ∈ filter Prime (Icc 1 n), (p : ℝ)) ≤ 4 ^ n := by
       rw [← cast_prod]; exact_mod_cast h_prod_le
     rw [← log_prod fun x hx ↦ cast_ne_zero.mpr <| Nat.Prime.ne_zero <| by aesop]

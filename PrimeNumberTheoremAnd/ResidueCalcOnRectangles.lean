@@ -489,6 +489,7 @@ lemma integral_const_div_sq_add_sq (hy : y ≠ 0) :
     field_simp
     ring
 
+set_option backward.isDefEq.respectTransparency false in
 lemma integral_const_div_self_add_im (hy : y ≠ 0) :
     ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
     A * (Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2) -
@@ -691,7 +692,7 @@ theorem ResidueTheoremOnRectangleWithSimplePole' {f : ℂ → ℂ} {z w p A : �
     apply DifferentiableOn.sub fHolo
     intro s hs
     have : s - p ≠ 0 := sub_ne_zero.mpr hs.2
-    fun_prop (disch := assumption)
+    exact  DifferentiableWithinAt.div (by fun_prop) (by fun_prop) this
   have := BddAbove_on_rectangle_of_bdd_near gHolo.continuousOn near_p
   obtain ⟨h, ⟨hHolo, hEq⟩⟩ := existsDifferentiableOn_of_bddAbove pInRectInterior gHolo this
   exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectInterior hHolo hEq

@@ -376,7 +376,9 @@ theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   "Mertens-first-error-mangoldt"
   (discussion := 1309)]
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
-    sorry
+  simp only [isBigO_iff, norm_eq_abs, norm_one, mul_one,
+    eventually_atTop, ge_iff_le]
+  exact ⟨log 4 + 4, 1, fun _ hx ↦ sum_mangoldt_div_eq_log hx⟩
 
 theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
     simp only [isLittleO_one_left_iff, norm_eq_abs]
@@ -620,7 +622,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
   trans ∑ n ∈ Icc 0 ⌊ x ⌋₊, (log n)⁻¹ * g n
   · rw [← sum_Ioc_one_eq_sum_Icc_zero (Nat.le_floor (by grind)) (by simp) (by simp)]
     refine sum_congr rfl fun n hn ↦ ?_
-    have : ¬(n < 2) := by simp_all; linarith
+    have : ¬(n ≤ 1) := by simp_all
     simp [g, this]
     field
   rw [sum_mul_eq_sub_integral_mul₁ g (f := (fun n ↦ (log n)⁻¹)) (by simp [g]) (by simp [g])]
@@ -631,7 +633,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 1
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
     · rw [← MeasureTheory.integral_neg]
       refine  MeasureTheory.setIntegral_congr_fun (by measurability) fun t ht ↦ ?_
@@ -641,7 +643,7 @@ private theorem sum_div_log_eq {x : ℝ} (hx : 2 ≤ x) (f : ℕ → ℝ) :
       congr 2
       refine sum_congr rfl fun n hn ↦ ?_
       simp only [mem_Ioc] at hn
-      have : ¬(n < 2) := by linarith
+      have : ¬(n ≤ 1) := by linarith
       simp [g, this]
   · intro t ht
     simp only [Set.mem_Icc] at ht
