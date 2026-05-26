@@ -91,7 +91,42 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  rw [Finset.sum_mul_sum, ← Finset.sum_product']
+  refine Finset.sum_nbij (fun d => (Nat.gcd d a, Nat.gcd d b)) ?_ ?_ ?_ ?_
+  · intro d hd
+    rw [Finset.mem_product, Nat.mem_divisors, Nat.mem_divisors]
+    exact ⟨⟨Nat.gcd_dvd_right d a, ha⟩, Nat.gcd_dvd_right d b, hb⟩
+  · intro d1 hd1 d2 hd2 heq
+    simp only [Finset.mem_coe, Nat.mem_divisors] at hd1 hd2
+    simp only [Prod.mk.injEq] at heq
+    have h1 : d1 = d1.gcd a * d1.gcd b := by
+      have h := Nat.gcd_eq_left hd1.1; have h2 := hab.gcd_mul d1; omega
+    have h2 : d2 = d2.gcd a * d2.gcd b := by
+      have h := Nat.gcd_eq_left hd2.1; have h3 := hab.gcd_mul d2; omega
+    rw [h1, h2, heq.1, heq.2]
+  · intro ⟨d1, d2⟩ hd
+    simp only [Finset.mem_coe, Finset.mem_product, Nat.mem_divisors] at hd
+    obtain ⟨⟨hd1a, _⟩, hd2b, _⟩ := hd
+    refine ⟨d1 * d2, ?_, ?_⟩
+    · simp only [Finset.mem_coe, Nat.mem_divisors]
+      exact ⟨Nat.mul_dvd_mul hd1a hd2b, mul_ne_zero ha hb⟩
+    · simp only [Prod.mk.injEq]
+      have hcop_d2a : Nat.Coprime d2 a := (Nat.Coprime.coprime_dvd_right hd2b hab).symm
+      have hcop_d1b : Nat.Coprime d1 b := (Nat.Coprime.coprime_dvd_right hd1a hab.symm).symm
+      exact ⟨by calc (d1 * d2).gcd a = (d2 * d1).gcd a := by rw [mul_comm]
+                  _ = d1.gcd a := hcop_d2a.gcd_mul_left_cancel d1
+                  _ = d1 := Nat.gcd_eq_left hd1a,
+             by calc (d1 * d2).gcd b = d2.gcd b := hcop_d1b.gcd_mul_left_cancel d2
+                  _ = d2 := Nat.gcd_eq_left hd2b⟩
+  · intro d hd
+    simp only [Nat.mem_divisors] at hd
+    have hfact : d = d.gcd a * d.gcd b := by
+      have h := Nat.gcd_eq_left hd.1; have h2 := hab.gcd_mul d; omega
+    have hcop : Nat.Coprime (d.gcd a) (d.gcd b) :=
+      Nat.Coprime.coprime_dvd_left (Nat.gcd_dvd_right d a)
+        (Nat.Coprime.coprime_dvd_right (Nat.gcd_dvd_right d b) hab)
+    conv_lhs => rw [hfact]
+    exact hf.map_mul_of_coprime hcop
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
