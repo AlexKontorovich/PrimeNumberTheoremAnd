@@ -1083,9 +1083,13 @@ lemma FinalBound
           exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
       rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
       exact absurd h (ne_of_gt h_norm)
-    · sorry
-    · sorry
-    · sorry
+    · exact (hfAnalytic z (Metric.closedBall_subset_closedBall r'_lt_one.le hz.1)).differentiableAt
+    · apply DifferentiableAt.fun_finset_prod
+      intro ρ hρ
+      exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
+    · intro ρ hρ
+      simp only [Finite.mem_toFinset] at hρ
+      exact pow_ne_zero _ (sub_ne_zero.mpr (fun h => zNotInZeros (h ▸ hρ)))
     · sorry
     · sorry
     · sorry
