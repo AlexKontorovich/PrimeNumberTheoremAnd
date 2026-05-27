@@ -1055,8 +1055,10 @@ lemma FinalBound
           exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
       rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
       exact absurd h (ne_of_gt h_norm)
-    · sorry
-    · sorry
+    · simp only [ne_eq, Finset.prod_eq_zero_iff, Finite.mem_toFinset, pow_eq_zero_iff',
+        sub_eq_zero, ↓existsAndEq, zNotInZeros, true_and, false_and, not_false_eq_true]
+    ·
+      sorry
     · sorry
     · sorry
     · sorry
