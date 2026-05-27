@@ -1062,8 +1062,11 @@ lemma FinalBound
         exact (lt_of_le_of_lt hz.1 r'_lt_one).le
       · intro ρ hρ
         exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
-    · sorry
-    · sorry
+    · apply DifferentiableAt.fun_finset_prod
+      intro ρ hρ
+      exact (differentiableAt_id.sub (differentiableAt_const _)).pow _
+    · simp only [SetOfZeros, mem_setOf_eq, not_and, mem_diff, Metric.mem_closedBall, dist_zero_right] at zNotInZeros hz
+      exact zNotInZeros (lt_of_le_of_lt hz.1 r'_lt_r).le
     · sorry
     · sorry
     · sorry
