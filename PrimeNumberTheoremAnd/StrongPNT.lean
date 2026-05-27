@@ -946,8 +946,7 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
   have z_norm : ‖z‖ ≤ r' := by simpa [Metric.mem_closedBall, dist_zero_right] using hz.1
   have ρ_mem : ∀ ρ ∈ rFiniteZeros.toFinset, ‖ρ‖ ≤ r ∧ f ρ = 0 := fun ρ hρ => rFiniteZeros.mem_toFinset.mp hρ
   have ρ_ne_zero : ∀ ρ ∈ rFiniteZeros.toFinset, ρ ≠ 0 := fun ρ hρ h => one_ne_zero (hf0_eq_one ▸ h ▸ (ρ_mem ρ hρ).2)
-  have blaschke_sub_ne : ∀ ρ ∈ rFiniteZeros.toFinset,
-      (↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R ≠ 0 := by
+  have blaschke_sub_ne : ∀ ρ ∈ rFiniteZeros.toFinset, (↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R ≠ 0 := by
     intro ρ hρ h
     have : ‖z * (starRingEnd ℂ) ρ / (↑R : ℂ)‖ < R := by
       rw [norm_div, Complex.norm_real, Real.norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul, norm_conj]
@@ -956,15 +955,9 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     rw [← sub_eq_zero.mp h] at this
     simp [Complex.norm_real, abs_of_pos R_pos] at this
   have fz_ne : f z ≠ 0 := fun h => zNotInZeros ⟨z_norm.trans r'_lt_r.le, h⟩
-  have blaschke_prod_ne : ∀ ρ ∈ rFiniteZeros.toFinset,
-      ((↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 :=
-    fun ρ hρ => pow_ne_zero _ (blaschke_sub_ne ρ hρ)
-  have hDiff_blaschke : ∀ ρ ∈ rFiniteZeros.toFinset,
-      DifferentiableAt ℂ (fun w => ((↑R : ℂ) - w * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ) z :=
-    fun ρ _ => ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
-  have hDiff_sub : ∀ ρ ∈ rFiniteZeros.toFinset,
-      DifferentiableAt ℂ (fun w => (w - (ρ : ℂ)) ^ analyticOrderNatAt f ρ) z :=
-    fun ρ _ => (differentiableAt_id.sub (differentiableAt_const _)).pow _
+  have blaschke_prod_ne : ∀ ρ ∈ rFiniteZeros.toFinset, ((↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 := fun ρ hρ => pow_ne_zero _ (blaschke_sub_ne ρ hρ)
+  have hDiff_blaschke : ∀ ρ ∈ rFiniteZeros.toFinset, DifferentiableAt ℂ (fun w => ((↑R : ℂ) - w * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ) z := fun ρ _ => ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
+  have hDiff_sub : ∀ ρ ∈ rFiniteZeros.toFinset, DifferentiableAt ℂ (fun w => (w - (ρ : ℂ)) ^ analyticOrderNatAt f ρ) z := fun ρ _ => (differentiableAt_id.sub (differentiableAt_const _)).pow _
   have hpos : 0 < R ^ 2 / R' - R' := by
     rw [sub_pos, lt_div_iff₀ R'_pos, ← sq]
     apply pow_lt_pow_left₀ R'_lt_R R'_pos.le two_ne_zero
@@ -985,14 +978,14 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       field_simp
   suffices h2 : deriv f z / f z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - ρ) =
     deriv (JBlaschke r'_pos r'_lt_r r_pos r_lt_R R_lt_one hfAnalytic hf0_eq_one finiteZeros) z - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ) by
-    rw[h2, sub_eq_add_neg]
+    rw [h2, sub_eq_add_neg]
     apply norm_add_le_of_le (le_rfl)
     simp only [norm_neg, cast_sum, Finset.mul_sum, one_div_mul_eq_div]
     apply (norm_sum_le _ _).trans (Finset.sum_le_sum (fun ρ hρ => ?_))
-    rw[norm_div, RCLike.norm_natCast]
+    rw [norm_div, RCLike.norm_natCast]
     apply div_le_div_of_nonneg_left (Nat.cast_nonneg _) hpos
     simp only [mem_diff, Metric.mem_closedBall, dist_zero_right, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ hz
-    rw[norm_sub_rev]
+    rw [norm_sub_rev]
     calc R ^ 2 / R' - R'
         ≤ ‖↑R ^ 2 / conj ρ‖ - ‖z‖ := by
           refine sub_le_sub ?_ (hz.1.trans (r'_lt_r.le.trans r_lt_R'.le))
@@ -1013,7 +1006,7 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     have JB_def' : JB = (JBlaschke r'_pos r'_lt_r r_pos r_lt_R R_lt_one hfAnalytic hf0_eq_one finiteZeros) := by
       unfold JBlaschke
       rw [JB_def]
-    rw[eq_sub_iff_add_eq, sub_add_eq_add_sub, ← h3, ← JB_def', eq_comm]
+    rw [eq_sub_iff_add_eq, sub_add_eq_add_sub, ← h3, ← JB_def', eq_comm]
     exact deriv_JB_eq z hz.1
   suffices h4 : BlaschkeB r R f z = f z * ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ((R - z * conj ρ / R) / (z - ρ)) ^ (analyticOrderNatAt f ρ) by
     have sum1LD : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, logDeriv (fun z ↦ (R - z * conj ρ / R) ^ ↑(analyticOrderNatAt f ρ)) z = ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ) := by
@@ -1021,18 +1014,15 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       rw [← logDeriv_pow, logDeriv_fun_pow, logDeriv_fun_pow, logDeriv_id', mul_eq_mul_left_iff]
       · left
         simp only [logDeriv, Pi.div_apply]
-        rw [deriv_fun_sub, deriv_div_const, deriv_mul_const]
+        rw [deriv_fun_sub (differentiableAt_const _) ?_, deriv_div_const, deriv_mul_const (differentiableAt_fun_id)]
         · simp only [deriv_const', deriv_id'', one_mul, zero_sub]
-          rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
+          rw [div_eq_div_iff (blaschke_sub_ne ρ hρ), one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
           · field_simp
             exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (ρ_ne_zero ρ hρ))
-          · exact blaschke_sub_ne ρ hρ
           · intro h; apply blaschke_sub_ne ρ hρ
             have hconj : (starRingEnd ℂ) ρ ≠ 0 := star_ne_zero.mpr (ρ_ne_zero ρ hρ)
             have hR : (↑R : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr (ne_of_gt R_pos)
             rw [sub_eq_zero.mp h, div_mul_cancel₀ _ hconj, sq, mul_div_cancel_right₀ _ hR, sub_self]
-        · exact differentiableAt_fun_id
-        · exact differentiableAt_const _
         · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_mul,
           DifferentiableAt.div_const]
       · simp only [differentiableAt_fun_id]
