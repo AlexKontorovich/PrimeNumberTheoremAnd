@@ -1057,8 +1057,11 @@ lemma FinalBound
       exact absurd h (ne_of_gt h_norm)
     · simp only [ne_eq, Finset.prod_eq_zero_iff, Finite.mem_toFinset, pow_eq_zero_iff',
         sub_eq_zero, ↓existsAndEq, zNotInZeros, true_and, false_and, not_false_eq_true]
-    ·
-      sorry
+    · refine DifferentiableAt.mul ((hfAnalytic z ?_).differentiableAt) (DifferentiableAt.fun_finset_prod ?_)
+      · simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at ⊢ hz
+        exact (lt_of_le_of_lt hz.1 r'_lt_one).le
+      · intro ρ hρ
+        exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
     · sorry
     · sorry
     · sorry
