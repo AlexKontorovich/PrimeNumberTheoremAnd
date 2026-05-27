@@ -1038,7 +1038,23 @@ lemma FinalBound
       congr 1
       · apply Filter.EventuallyEq.deriv_eq h_eq
       · convert h_eq.self_of_nhds using 1
-    · sorry
+    · simp only [SetOfZeros, mem_setOf_eq, not_and] at zNotInZeros
+      simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at hz
+      refine mul_ne_zero (zNotInZeros (lt_of_le_of_lt hz.1 r'_lt_r).le) (Finset.prod_ne_zero_iff.mpr ?_)
+      intro ρ hρ
+      simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
+      apply pow_ne_zero
+      rw [sub_ne_zero]
+      intro h; replace h := congr_arg norm h
+      have h_norm : ‖z * (starRingEnd ℂ) ρ / R‖ < R := by
+        rw [norm_div, norm_real, norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul]
+        refine mul_lt_mul (lt_of_le_of_lt hz.1 r'_lt_R) ?_ ?_ (R_pos.le)
+        · rw [norm_conj]
+          exact (lt_of_le_of_lt hρ.1 r_lt_R).le
+        · rw [norm_conj, norm_pos_iff]
+          exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
+      rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
+      exact absurd h (ne_of_gt h_norm)
     · sorry
     · sorry
     · sorry
