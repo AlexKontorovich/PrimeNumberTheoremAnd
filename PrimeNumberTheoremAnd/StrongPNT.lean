@@ -1090,9 +1090,25 @@ lemma FinalBound
     · intro ρ hρ
       simp only [Finite.mem_toFinset] at hρ
       exact pow_ne_zero _ (sub_ne_zero.mpr (fun h => zNotInZeros (h ▸ hρ)))
-    · sorry
-    · sorry
-    · sorry
+    · intro ρ hρ
+      exact (differentiableAt_id.sub (differentiableAt_const _)).pow _
+    · intro ρ hρ
+      simp only [Finite.mem_toFinset] at hρ
+      apply pow_ne_zero _ ∘ sub_ne_zero.mpr
+      simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at hz
+      simp only [SetOfZeros, mem_setOf_eq] at hρ
+      intro h; replace h := congr_arg norm h
+      have h_norm : ‖z * (starRingEnd ℂ) ρ / R‖ < R := by
+        rw [norm_div, norm_real, norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul]
+        refine mul_lt_mul (lt_of_le_of_lt hz.1 r'_lt_R) ?_ ?_ (R_pos.le)
+        · rw [norm_conj]
+          exact (lt_of_le_of_lt hρ.1 r_lt_R).le
+        · rw [norm_conj, norm_pos_iff]
+          exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
+      rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
+      exact absurd h (ne_of_gt h_norm)
+    · intro ρ hρ
+      exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
   simp only [BlaschkeB, Cf, rFiniteZeros, ↓reduceDIte, zNotInZeros, div_mul_eq_mul_div, mul_div_assoc, ← Finset.prod_div_distrib, div_pow]
 
 
