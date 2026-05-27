@@ -548,8 +548,8 @@ lemma BlaschkeAnalytic {r R : ℝ} {f : ℂ → ℂ}
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
     (hf_neq_zero_at_zero : f 0 ≠ 0) :
     AnalyticOnNhd ℂ (BlaschkeB r R f) (Metric.closedBall (0 : ℂ) R) := by
-  have R_pos : 0 < R := by linarith
-  have r_lt_one : r < 1 := by linarith
+  have R_pos : 0 < R := lt_trans r_pos r_lt_R
+  have r_lt_one : r < 1 := lt_trans r_lt_R R_lt_one
   unfold BlaschkeB
   by_cases finite_zeros_mono : (SetOfZeros r f).Finite
   · simp only [finite_zeros_mono, ↓reduceDIte]
@@ -584,7 +584,6 @@ lemma BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
     (hf_neq_zero_at_zero : f 0 ≠ 0) :
     ‖BlaschkeB r R f 0‖ =
       ‖f 0‖ * (∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, (R / ‖ρ‖) ^ (analyticOrderNatAt f ρ)) := by
-  have r_lt_one : r < 1 := by linarith
   have zero_not_zero : ¬(0 ∈ SetOfZeros r f) := by
     apply notMem_setOf_iff.mpr
     simp only [norm_zero, not_and]
@@ -619,7 +618,7 @@ lemma norm_fOfZero_le_norm_BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
     (finiteZeros : (SetOfZeros 1 f).Finite)
     (hf_neq_zero_at_zero : f 0 ≠ 0) :
     ‖f 0‖ ≤ ‖BlaschkeB r R f 0‖ := by
-  have r_lt_one : r < 1 := by linarith
+  have r_lt_one : r < 1 := lt_trans r_lt_R R_lt_one
   rw [BlaschkeOfZero r_pos r_lt_one r_lt_R finiteZeros hf_neq_zero_at_zero, ← mul_one ‖f 0‖]
   refine mul_le_mul (by rw[mul_one]) ?_ (zero_le_one) (mul_nonneg (norm_nonneg (f 0)) zero_le_one)
   rw [← Finset.prod_const_one (s := (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset)]
@@ -666,8 +665,8 @@ lemma DiskBound {B r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (hf_neq_zero_at_zero : f 0 ≠ 0) (fz_bound : ∀ (z : ℂ), ‖z‖ ≤ R → ‖f z‖ ≤ B)
     (hz : z ∈ Metric.closedBall (0 : ℂ) R) :
     ‖BlaschkeB r R f z‖ ≤ B := by
-  have r_lt_one : r < 1 := by linarith
-  have R_pos : 0 < R := by linarith
+  have r_lt_one : r < 1 := lt_trans r_lt_R R_lt_one
+  have R_pos : 0 < R := lt_trans r_pos r_lt_R
   refine AnalyticOn.norm_le_of_norm_le_on_sphere (Std.IsPreorder.le_refl R) (AnalyticOnNhd.analyticOn (BlaschkeAnalytic r_pos r_lt_R R_lt_one finiteZeros hfAnalytic hf_neq_zero_at_zero)) ?_ hz
   intro w hw
   rw[mem_sphere_iff_norm, sub_zero] at hw
@@ -756,8 +755,8 @@ lemma BlaschkeNonzero {r R : ℝ} {f : ℂ → ℂ}
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
     (hf_neq_zero_at_zero : f 0 ≠ 0) :
     ∀ z ∈ Metric.closedBall (0 : ℂ) r, BlaschkeB r R f z ≠ 0 := by
-  have r_lt_one : r < 1 := by linarith
-  have R_pos : 0 < R := by linarith
+  have r_lt_one : r < 1 := lt_trans r_lt_R R_lt_one
+  have R_pos : 0 < R := lt_trans r_pos r_lt_R
   intro z hz
   have hz_norm_le_r : ‖z‖ ≤ r := by rwa [mem_closedBall_iff_norm, sub_zero] at hz
   have hz_norm_lt_R : ‖z‖ < R := by linarith
@@ -818,7 +817,7 @@ lemma ZerosBound {B r R : ℝ} {f : ℂ → ℂ}
     (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B) :
     ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ ≤
       1 / Real.log (R / r) * Real.log B := by
-  have R_pos : 0 < R := by linarith
+  have R_pos : 0 < R := lt_trans r_pos r_lt_R
   have hf0_ne_zero : f 0 ≠ 0 := by rw [hf0_eq_one]; exact one_ne_zero
   have blaschke_eq := BlaschkeOfZero r_pos r_lt_one r_lt_R finiteZeros hf0_ne_zero
   rw[hf0_eq_one, norm_one, one_mul] at blaschke_eq
@@ -890,7 +889,7 @@ lemma JBlaschkeDerivBound {B r' r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (hz : z ∈ Metric.closedBall (0 : ℂ) r') :
     ‖deriv (JBlaschke r'_pos r'_lt_r r_pos r_lt_R R_lt_one hfAnalytic hf0_eq_one finiteZeros) z‖
       ≤ 16 * Real.log (B) * r ^ 2 / (r - r') ^ 3 := by
-  have r_pos : 0 < r := by linarith
+  have r_pos : 0 < r := lt_trans r'_pos r'_lt_r
   let blaschkeAnalytic := BlaschkeAnalytic r_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
   let blaschkeNonzero := BlaschkeNonzero r_pos r_lt_R R_lt_one finiteZeros hfAnalytic (hf0_eq_one ▸ one_ne_zero)
   let logOfAnalytic := LogOfAnalyticFunction' r'_pos r'_lt_r r_lt_R blaschkeAnalytic blaschkeNonzero
@@ -936,12 +935,12 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (hz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f) :
     ‖(deriv f z / f z) - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ / (z - ρ)‖ ≤
       (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * Real.log B := by
-  have r'_lt_one : r' < 1 := by linarith
-  have r_pos : 0 < r := by linarith
-  have R'_pos : 0 < R' := by linarith
-  have R_pos : 0 < R := by linarith
-  have r_lt_R : r < R := by linarith
-  have r'_lt_R : r' < R := by linarith
+  have r'_lt_one : r' < 1 := lt_trans r'_lt_r r_lt_one
+  have r_pos : 0 < r := lt_trans r'_pos r'_lt_r
+  have R'_pos : 0 < R' := lt_trans r_pos r_lt_R'
+  have R_pos : 0 < R := lt_trans R'_pos R'_lt_R
+  have r_lt_R : r < R := lt_trans r_lt_R' R'_lt_R
+  have r'_lt_R : r' < R := lt_trans r'_lt_r r_lt_R
   have hpos : 0 < R ^ 2 / R' - R' := by
     rw [sub_pos, lt_div_iff₀ R'_pos, ← sq]
     apply pow_lt_pow_left₀ R'_lt_R R'_pos.le two_ne_zero
