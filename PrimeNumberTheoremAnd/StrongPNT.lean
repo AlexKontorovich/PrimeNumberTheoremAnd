@@ -941,6 +941,30 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
   have R_pos : 0 < R := lt_trans R'_pos R'_lt_R
   have r_lt_R : r < R := lt_trans r_lt_R' R'_lt_R
   have r'_lt_R : r' < R := lt_trans r'_lt_r r_lt_R
+  have rFiniteZeros: (SetOfZeros r f).Finite := finiteSetOfZeros_mono r_lt_one finiteZeros
+  have zNotInZeros : ¬(z ∈ SetOfZeros r f) := (fun hmem => hz.2 ⟨hmem.1.trans r_lt_R'.le, hmem.2⟩)
+  have z_norm : ‖z‖ ≤ r' := by simpa [Metric.mem_closedBall, dist_zero_right] using hz.1
+  have ρ_mem : ∀ ρ ∈ rFiniteZeros.toFinset, ‖ρ‖ ≤ r ∧ f ρ = 0 := fun ρ hρ => rFiniteZeros.mem_toFinset.mp hρ
+  have ρ_ne_zero : ∀ ρ ∈ rFiniteZeros.toFinset, ρ ≠ 0 := fun ρ hρ h => one_ne_zero (hf0_eq_one ▸ h ▸ (ρ_mem ρ hρ).2)
+  have blaschke_sub_ne : ∀ ρ ∈ rFiniteZeros.toFinset,
+      (↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R ≠ 0 := by
+    intro ρ hρ h
+    have : ‖z * (starRingEnd ℂ) ρ / (↑R : ℂ)‖ < R := by
+      rw [norm_div, Complex.norm_real, Real.norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul, norm_conj]
+      exact mul_lt_mul (z_norm.trans_lt r'_lt_R) ((ρ_mem ρ hρ).1.trans_lt r_lt_R).le
+        (norm_pos_iff.mpr (ρ_ne_zero ρ hρ)) R_pos.le
+    rw [← sub_eq_zero.mp h] at this
+    simp [Complex.norm_real, abs_of_pos R_pos] at this
+  have fz_ne : f z ≠ 0 := fun h => zNotInZeros ⟨z_norm.trans r'_lt_r.le, h⟩
+  have blaschke_prod_ne : ∀ ρ ∈ rFiniteZeros.toFinset,
+      ((↑R : ℂ) - z * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ ≠ 0 :=
+    fun ρ hρ => pow_ne_zero _ (blaschke_sub_ne ρ hρ)
+  have hDiff_blaschke : ∀ ρ ∈ rFiniteZeros.toFinset,
+      DifferentiableAt ℂ (fun w => ((↑R : ℂ) - w * (starRingEnd ℂ) ρ / ↑R) ^ analyticOrderNatAt f ρ) z :=
+    fun ρ _ => ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
+  have hDiff_sub : ∀ ρ ∈ rFiniteZeros.toFinset,
+      DifferentiableAt ℂ (fun w => (w - (ρ : ℂ)) ^ analyticOrderNatAt f ρ) z :=
+    fun ρ _ => (differentiableAt_id.sub (differentiableAt_const _)).pow _
   have hpos : 0 < R ^ 2 / R' - R' := by
     rw [sub_pos, lt_div_iff₀ R'_pos, ← sq]
     apply pow_lt_pow_left₀ R'_lt_R R'_pos.le two_ne_zero
@@ -991,8 +1015,6 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       rw [JB_def]
     rw[eq_sub_iff_add_eq, sub_add_eq_add_sub, ← h3, ← JB_def', eq_comm]
     exact deriv_JB_eq z hz.1
-  have rFiniteZeros: (SetOfZeros r f).Finite := finiteSetOfZeros_mono r_lt_one finiteZeros
-  have zNotInZeros : ¬(z ∈ SetOfZeros r f) := (fun hmem => hz.2 ⟨hmem.1.trans r_lt_R'.le, hmem.2⟩)
   suffices h4 : BlaschkeB r R f z = f z * ∏ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ((R - z * conj ρ / R) / (z - ρ)) ^ (analyticOrderNatAt f ρ) by
     have sum1LD : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, logDeriv (fun z ↦ (R - z * conj ρ / R) ^ ↑(analyticOrderNatAt f ρ)) z = ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, ↑(analyticOrderNatAt f ρ) / (z - R ^ 2 / conj ρ) := by
       refine Finset.sum_congr rfl (fun ρ hρ => ?_)
@@ -1003,31 +1025,12 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
         · simp only [deriv_const', deriv_id'', one_mul, zero_sub]
           rw [div_eq_div_iff, one_mul, neg_mul, mul_sub, mul_div, neg_sub, mul_comm _ z, ← mul_div_assoc, sub_left_inj]
           · field_simp
-            exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (by simp [show ρ ≠ 0 from fun h => by simp [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, h, hf0_eq_one] at hρ]))
-          · rw [Ne.eq_def, sub_eq_zero, eq_div_iff (by exact_mod_cast ne_of_gt R_pos)]
-            intro h
-            replace h := congr_arg Complex.normSq h
-            simp only [normSq_eq_norm_sq, norm_mul, norm_real, norm_eq_abs, abs_mul_abs_self,
-              RingHomIsometric.norm_map, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
-              Metric.mem_closedBall, dist_zero_right, not_and] at h hρ hz
-            absurd h
-            rw [sq_eq_sq₀, ← ne_eq]
-            · exact ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))
-            · exact mul_nonneg R_pos.le R_pos.le
-            · exact mul_nonneg (norm_nonneg z) (norm_nonneg ρ)
-          · rw [Ne.eq_def, sub_eq_zero, eq_div_iff]
-            · intro h
-              replace h := congr_arg Complex.normSq h
-              simp only [normSq_eq_norm_sq, Complex.norm_mul, RCLike.norm_conj, norm_pow, norm_real,
-                norm_eq_abs, sq_abs, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq, mem_diff,
-                Metric.mem_closedBall, dist_zero_right, not_and] at h hρ hz
-              absurd h
-              rw [sq_eq_sq₀, ← ne_eq, sq]
-              · exact (ne_of_gt (mul_lt_mul (hz.1.trans_lt r'_lt_R) ((hρ.1.trans_lt r_lt_R).le) (norm_pos_iff.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))) (R_pos.le))).symm
-              · exact mul_nonneg (norm_nonneg z) (norm_nonneg ρ)
-              · exact sq_nonneg R
-            · simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
-              exact star_ne_zero.mpr (fun h => one_ne_zero (hf0_eq_one ▸ h ▸ hρ.2))
+            exact mul_div_cancel_left₀ _ (star_ne_zero.mpr (ρ_ne_zero ρ hρ))
+          · exact blaschke_sub_ne ρ hρ
+          · intro h; apply blaschke_sub_ne ρ hρ
+            have hconj : (starRingEnd ℂ) ρ ≠ 0 := star_ne_zero.mpr (ρ_ne_zero ρ hρ)
+            have hR : (↑R : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr (ne_of_gt R_pos)
+            rw [sub_eq_zero.mp h, div_mul_cancel₀ _ hconj, sq, mul_div_cancel_right₀ _ hR, sub_self]
         · exact differentiableAt_fun_id
         · exact differentiableAt_const _
         · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_mul,
@@ -1046,84 +1049,21 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.fun_sub]
     unfold BlaschkeB Cf
     simp only [rFiniteZeros, ↓reduceDIte, dite_eq_ite, ite_mul, ← logDeriv_apply, ← sum1LD, ← sum2LD]
-    rw [← logDeriv_prod, ← logDeriv_prod, ← logDeriv_mul, ← logDeriv_div]
+    rw [← logDeriv_prod blaschke_prod_ne hDiff_blaschke,
+      ← logDeriv_prod ?_ hDiff_sub,
+      ← logDeriv_mul _ fz_ne (Finset.prod_ne_zero_iff.mpr blaschke_prod_ne) ((hfAnalytic z (Metric.closedBall_subset_closedBall r'_lt_one.le hz.1)).differentiableAt) (DifferentiableAt.fun_finset_prod hDiff_blaschke),
+      ← logDeriv_div _ ?_ ?_ ?_ (DifferentiableAt.fun_finset_prod hDiff_sub)]
     · have h_eq : ∀ᶠ w in nhds z, (if w ∈ SetOfZeros r f then (ZeroFactor f w / ∏ ρ ∈ rFiniteZeros.toFinset \ {w}, (w - ρ) ^ analyticOrderNatAt f ρ) * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ else (f w / ∏ ρ ∈ rFiniteZeros.toFinset, (w - ρ) ^ analyticOrderNatAt f ρ) * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ) = (f w * ∏ ρ ∈ rFiniteZeros.toFinset, (R - w * (starRingEnd ℂ) ρ / R) ^ analyticOrderNatAt f ρ) / ∏ ρ ∈ rFiniteZeros.toFinset, (w - ρ) ^ analyticOrderNatAt f ρ := by
         filter_upwards [(isOpen_compl_iff.mpr rFiniteZeros.isClosed).mem_nhds zNotInZeros] with w hw using by rw [if_neg hw]; ring
       simp only [logDeriv, Pi.div_apply]
       congr 1
       · apply Filter.EventuallyEq.deriv_eq h_eq
       · convert h_eq.self_of_nhds using 1
-    · simp only [SetOfZeros, mem_setOf_eq, not_and] at zNotInZeros
-      simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at hz
-      refine mul_ne_zero (zNotInZeros (lt_of_le_of_lt hz.1 r'_lt_r).le) (Finset.prod_ne_zero_iff.mpr ?_)
-      intro ρ hρ
-      simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
-      apply pow_ne_zero
-      rw [sub_ne_zero]
-      intro h; replace h := congr_arg norm h
-      have h_norm : ‖z * (starRingEnd ℂ) ρ / R‖ < R := by
-        rw [norm_div, norm_real, norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul]
-        refine mul_lt_mul (lt_of_le_of_lt hz.1 r'_lt_R) ?_ ?_ (R_pos.le)
-        · rw [norm_conj]
-          exact (lt_of_le_of_lt hρ.1 r_lt_R).le
-        · rw [norm_conj, norm_pos_iff]
-          exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
-      rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
-      exact absurd h (ne_of_gt h_norm)
+    · exact mul_ne_zero fz_ne (Finset.prod_ne_zero_iff.mpr blaschke_prod_ne)
     · simp only [ne_eq, Finset.prod_eq_zero_iff, Finite.mem_toFinset, pow_eq_zero_iff',
         sub_eq_zero, ↓existsAndEq, zNotInZeros, true_and, false_and, not_false_eq_true]
-    · refine DifferentiableAt.mul ((hfAnalytic z ?_).differentiableAt) (DifferentiableAt.fun_finset_prod ?_)
-      · simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at ⊢ hz
-        exact (lt_of_le_of_lt hz.1 r'_lt_one).le
-      · intro ρ hρ
-        exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
-    · apply DifferentiableAt.fun_finset_prod
-      intro ρ hρ
-      exact (differentiableAt_id.sub (differentiableAt_const _)).pow _
-    · simp only [SetOfZeros, mem_setOf_eq, not_and, mem_diff, Metric.mem_closedBall, dist_zero_right] at zNotInZeros hz
-      exact zNotInZeros (lt_of_le_of_lt hz.1 r'_lt_r).le
-    · apply Finset.prod_ne_zero_iff.mpr
-      intro ρ hρ
-      apply pow_ne_zero
-      rw [sub_ne_zero]
-      simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at hz
-      simp only [SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ
-      intro h; replace h := congr_arg norm h
-      have h_norm : ‖z * (starRingEnd ℂ) ρ / R‖ < R := by
-        rw [norm_div, norm_real, norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul]
-        refine mul_lt_mul (lt_of_le_of_lt hz.1 r'_lt_R) ?_ ?_ (R_pos.le)
-        · rw [norm_conj]
-          exact (lt_of_le_of_lt hρ.1 r_lt_R).le
-        · rw [norm_conj, norm_pos_iff]
-          exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
-      rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
-      exact absurd h (ne_of_gt h_norm)
-    · exact (hfAnalytic z (Metric.closedBall_subset_closedBall r'_lt_one.le hz.1)).differentiableAt
-    · apply DifferentiableAt.fun_finset_prod
-      intro ρ hρ
-      exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
-    · intro ρ hρ
-      simp only [Finite.mem_toFinset] at hρ
-      exact pow_ne_zero _ (sub_ne_zero.mpr (fun h => zNotInZeros (h ▸ hρ)))
-    · intro ρ hρ
-      exact (differentiableAt_id.sub (differentiableAt_const _)).pow _
-    · intro ρ hρ
-      simp only [Finite.mem_toFinset] at hρ
-      apply pow_ne_zero _ ∘ sub_ne_zero.mpr
-      simp only [mem_diff, Metric.mem_closedBall, dist_zero_right] at hz
-      simp only [SetOfZeros, mem_setOf_eq] at hρ
-      intro h; replace h := congr_arg norm h
-      have h_norm : ‖z * (starRingEnd ℂ) ρ / R‖ < R := by
-        rw [norm_div, norm_real, norm_eq_abs, abs_of_pos R_pos, div_lt_iff₀ R_pos, norm_mul]
-        refine mul_lt_mul (lt_of_le_of_lt hz.1 r'_lt_R) ?_ ?_ (R_pos.le)
-        · rw [norm_conj]
-          exact (lt_of_le_of_lt hρ.1 r_lt_R).le
-        · rw [norm_conj, norm_pos_iff]
-          exact fun h => by simp only [h, norm_zero] at hρ; exact one_ne_zero (hf0_eq_one ▸ hρ.2)
-      rw [norm_real, norm_eq_abs, abs_of_pos R_pos] at h
-      exact absurd h (ne_of_gt h_norm)
-    · intro ρ hρ
-      exact ((differentiableAt_const _).sub ((differentiableAt_id.mul_const _).div_const _)).pow _
+    · exact ((hfAnalytic z (Metric.closedBall_subset_closedBall r'_lt_one.le hz.1)).differentiableAt).mul (DifferentiableAt.fun_finset_prod hDiff_blaschke)
+    · exact (fun ρ hρ => pow_ne_zero _ (sub_ne_zero.mpr fun h => zNotInZeros (h ▸ rFiniteZeros.mem_toFinset.mp hρ)))
   simp only [BlaschkeB, Cf, rFiniteZeros, ↓reduceDIte, zNotInZeros, div_mul_eq_mul_div, mul_div_assoc, ← Finset.prod_div_distrib, div_pow]
 
 
