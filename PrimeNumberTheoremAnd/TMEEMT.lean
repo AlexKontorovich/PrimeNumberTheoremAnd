@@ -25,6 +25,17 @@ blueprint_comment /--
 
 The results below are taken from https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art01.html -/
 
+blueprint_comment /--
+\paragraph{Warning on Chebyshev function conventions for \cite{Buthe2}.}
+In the section "A partial prime number theorem" of \cite{Buthe2}, Theorem 2
+uses prime-counting and Chebyshev functions introduced there with the source's
+\(\chi^*_{[0,x]}\) convention, which gives boundary points weight \(1/2\). The
+Lean statements in this block currently use the project's ordinary \(\pi\),
+\(\theta\), \(\psi\), and \(\pi^*\), where endpoints are counted fully. The
+source convention is not implemented here, so care is needed when using these
+statements at endpoints.
+-/
+
 namespace Buthe2
 
 blueprint_comment /--

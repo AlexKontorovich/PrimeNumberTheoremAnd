@@ -878,6 +878,10 @@ def table_11 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
 ]
 
 /-
+This longtable reproduces Table 12 of \cite{BKLNW} verbatim.  Four of its
+boundary-row entries are erroneous; see the correction note on `table_12` above
+for the values actually used in Lean.
+
 \subsubsection{Lower bound for first values of $x \in [e^{J_0},10^{19}]$}
 \quad \\
 {\footnotesize
@@ -954,22 +958,39 @@ def table_11 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
 \end{longtable}
 }-/
 
+/-
+Correction note for `table_12`.  In \cite{BKLNW}, Table 12, the rows
+`b = log(5·10¹⁰)` and `b = 25` are listed under the block `c = 0.88, C = 0.86`,
+and `b = log(3.2·10¹³)` and `b = 32` under `c = 0.94, C = 0.94`.  However, the
+entries printed for these four boundary rows were computed with the *previous*
+block's Buthe constants, so they are smaller than `C_bk` (Corollary 9.1,
+eq. 3.25) evaluated with each row's own stated `(c, C)`.  Their entries below
+are therefore recomputed with the correct `(c, C)` and rounded up.  The paper's
+(too small) values were:
+  `log(5·10¹⁰)` : 2.01560e-4, 4.96540e-3, 1.22330e-1, 3.01350e0, 7.42380e1
+  `25`          : 1.70330e-4, 4.25830e-3, 1.06460e-1, 2.66140e0, 6.65350e1
+  `log(3.2·10¹³)`: 1.02600e-5, 3.19040e-4, 9.92090e-3, 3.08510e-1, 9.59360e0
+  `32`          : 6.71750e-6, 2.14960e-4, 6.87870e-3, 2.20120e-1, 7.04380e0
+The row `b = 31` is additionally raised in columns `k = 3, 4, 5` (paper values
+1.03170e-2, 3.19810e-1, 9.91400e0) so that the column stays pointwise above the
+recomputed `b = log(3.2·10¹³)` row, which `table_12_Cb_bounds` relies on.
+-/
 noncomputable def table_12 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ ) := [
   (20, 1.68440e-3, 3.36880e-2, 6.73750e-1, 1.34750e1, 2.69500e2, 0.8, 0.81, 5e10),
   (21, 1.06840e-3, 2.24350e-2, 4.71140e-1, 9.89390e0, 2.07780e2, 0.8, 0.81, 5e10),
   (22, 6.76540e-4, 1.48840e-2, 3.27450e-1, 7.20380e0, 1.58490e2, 0.8, 0.81, 5e10),
   (23, 4.27800e-4, 9.83920e-3, 2.26310e-1, 5.20500e0, 1.19720e2, 0.8, 0.81, 5e10),
   (24, 2.70120e-4, 6.48290e-3, 1.55590e-1, 3.73410e0, 8.96190e1, 0.8, 0.81, 5e10),
-  (Real.log 5e10, 2.01560e-4, 4.96540e-3, 1.22330e-1, 3.01350e0, 7.42380e1, 0.88, 0.86, 32e12),
-  (25, 1.70330e-4, 4.25830e-3, 1.06460e-1, 2.66140e0, 6.65350e1, 0.88, 0.86, 32e12),
+  (Real.log 5e10, 2.070820e-4, 5.101530e-3, 1.256780e-1, 3.096110e0, 7.627340e1, 0.88, 0.86, 32e12),
+  (25, 1.750020e-4, 4.375050e-3, 1.093770e-1, 2.734410e0, 6.836010e1, 0.88, 0.86, 32e12),
   (26, 1.10220e-4, 2.86560e-3, 7.45050e-2, 1.93720e0, 5.03650e1, 0.88, 0.86, 32e12),
   (27, 6.93270e-5, 1.87190e-3, 5.05400e-2, 1.36460e0, 3.68430e1, 0.88, 0.86, 32e12),
   (28, 4.35580e-5, 1.21970e-3, 3.41500e-2, 9.56180e-1, 2.67730e1, 0.88, 0.86, 32e12),
   (29, 2.73380e-5, 7.92780e-4, 2.29910e-2, 6.66730e-1, 1.93360e1, 0.88, 0.86, 32e12),
   (30, 1.71400e-5, 5.14180e-4, 1.54260e-2, 4.62760e-1, 1.38830e1, 0.88, 0.86, 32e12),
-  (31, 1.07350e-5, 3.32790e-4, 1.03170e-2, 3.19810e-1, 9.91400e0, 0.88, 0.86, 32e12),
-  (Real.log (32e12), 1.02600e-5, 3.19040e-4, 9.92090e-3, 3.08510e-1, 9.59360e0, 0.94, 0.94, 1e19),
-  (32, 6.71750e-6, 2.14960e-4, 6.87870e-3, 2.20120e-1, 7.04380e0, 0.94, 0.94, 1e19),
+  (31, 1.07350e-5, 3.32790e-4, 1.034630e-2, 3.217360e-1, 1.000500e1, 0.88, 0.86, 32e12),
+  (Real.log (32e12), 1.069930e-5, 3.327130e-4, 1.034630e-2, 3.217360e-1, 1.000500e1, 0.94, 0.94, 1e19),
+  (32, 7.005640e-6, 2.241810e-4, 7.173770e-3, 2.295610e-1, 7.345940e0, 0.94, 0.94, 1e19),
   (33, 4.38000e-6, 1.44540e-4, 4.76990e-3, 1.57410e-1, 5.19440e0, 0.94, 0.94, 1e19),
   (34, 2.73610e-6, 9.30270e-5, 3.16300e-3, 1.07540e-1, 3.65640e0, 0.94, 0.94, 1e19),
   (35, 1.70780e-6, 5.97730e-5, 2.09210e-3, 7.32220e-2, 2.56280e0, 0.94, 0.94, 1e19),
@@ -982,5 +1003,78 @@ noncomputable def table_12 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ
   (42, 6.18140e-8, 2.59620e-6, 1.09040e-4, 4.57970e-3, 1.92350e-1, 0.94, 0.94, 1e19),
   (43,3.83820e-8 ,1.65050e-6 ,7.09680e-5 ,3.05170e-3 ,1.31220e-1, 0.94, 0.94, 1e19)
 ]
+
+/-- The `k`-independent factor of `BKLNW.C_bk`: one has
+`C_bk b c C RS_prime.c₀ k = b ^ k * C_bk_S b c C`. -/
+noncomputable def C_bk_S (b c C : ℝ) : ℝ :=
+  (C + 1) * exp (-b / 2) + RS_prime.c₀ * exp (-2 * b / 3)
+    + c * exp (-3 * b / 4) + RS_prime.c₀ * exp (-4 * b / 5)
+
+lemma C_bk_S_nonneg {b c C : ℝ} (hc : 0 ≤ c) (hC : 0 ≤ C) : 0 ≤ C_bk_S b c C := by
+  have hc0 : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have t1 := mul_nonneg (by linarith : (0 : ℝ) ≤ C + 1) (exp_pos (-b / 2)).le
+  have t2 := mul_nonneg hc0 (exp_pos (-2 * b / 3)).le
+  have t3 := mul_nonneg hc (exp_pos (-3 * b / 4)).le
+  have t4 := mul_nonneg hc0 (exp_pos (-4 * b / 5)).le
+  unfold C_bk_S; linarith
+
+/-- `C_bk_S` is antitone in `b` (for nonnegative `c, C`): each `exp` term decreases. -/
+lemma C_bk_S_antitone {b b' c C : ℝ} (hbb : b' ≤ b) (hc : 0 ≤ c) (hC : 0 ≤ C) :
+    C_bk_S b c C ≤ C_bk_S b' c C := by
+  have hc0 : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have m1 := mul_le_mul_of_nonneg_left (exp_le_exp.mpr (by linarith : -b / 2 ≤ -b' / 2))
+    (by linarith : (0 : ℝ) ≤ C + 1)
+  have m2 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -2 * b / 3 ≤ -2 * b' / 3)) hc0
+  have m3 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -3 * b / 4 ≤ -3 * b' / 4)) hc
+  have m4 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -4 * b / 5 ≤ -4 * b' / 5)) hc0
+  unfold C_bk_S; linarith
+
+/-- For a row with `b = Real.log N`: bracket `Real.log N ∈ [lo, hi]` and use
+monotonicity of `b ↦ b ^ k * C_bk_S b c C` to reduce to a `log`-free bound. -/
+lemma C_bk_log_row_bound {N c C Cbk : ℝ} {k : ℕ} (lo hi : ℝ)
+    (hlo : lo ≤ Real.log N) (hhi : Real.log N ≤ hi)
+    (hlo0 : 0 ≤ lo) (hc : 0 ≤ c) (hC : 0 ≤ C)
+    (hfin : hi ^ k * C_bk_S lo c C ≤ Cbk) :
+    Real.log N ^ k * C_bk_S (Real.log N) c C ≤ Cbk := by
+  have hb0 : 0 ≤ Real.log N := le_trans hlo0 hlo
+  exact le_trans (mul_le_mul (pow_le_pow_left₀ hb0 hhi k) (C_bk_S_antitone hlo hc hC)
+    (C_bk_S_nonneg hc hC) (pow_nonneg (le_trans hb0 hhi) k)) hfin
+
+set_option maxRecDepth 10000 in
+set_option maxHeartbeats 4000000 in
+-- `table_12_check` runs ~135 `interval_decide` numerical checks in a single
+-- declaration, so the default heartbeat budget is raised.
+/-- Verification of the entries of Table 12: every row obeys
+`b ^ k * C_bk_S b c C ≤ Cb k` for `k = 1, …, 5`.  Together with the identity
+`C_bk b c C RS_prime.c₀ k = b ^ k * C_bk_S b c C` this gives
+`bklnw_table_12_verification`.  The bound for each integer-`b` row is a direct
+interval-arithmetic check; the two rows with `b = Real.log N` are handled by
+`C_bk_log_row_bound`. -/
+theorem table_12_check (b Cb1 Cb2 Cb3 Cb4 Cb5 c C M : ℝ)
+    (h : (b, Cb1, Cb2, Cb3, Cb4, Cb5, c, C, M) ∈ table_12) :
+    b ^ 1 * C_bk_S b c C ≤ Cb1 ∧ b ^ 2 * C_bk_S b c C ≤ Cb2 ∧
+      b ^ 3 * C_bk_S b c C ≤ Cb3 ∧ b ^ 4 * C_bk_S b c C ≤ Cb4 ∧
+      b ^ 5 * C_bk_S b c C ≤ Cb5 := by
+  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩ := h
+  all_goals try
+    (refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> (simp only [C_bk_S, RS_prime.c₀]; interval_decide; done))
+  · -- row b = Real.log 5e10  (log 5e10 ≈ 24.63528884)
+    have hlo : (24.6352888 : ℝ) ≤ Real.log 5e10 := by interval_decide
+    have hhi : Real.log 5e10 ≤ (24.6352889 : ℝ) := by interval_decide
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      exact C_bk_log_row_bound 24.6352888 24.6352889 hlo hhi (by norm_num) (by norm_num)
+        (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
+  · -- row b = Real.log (32e12)  (log 32e12 ≈ 31.09675702)
+    have hlo : (31.0967570 : ℝ) ≤ Real.log (32e12) := by interval_decide
+    have hhi : Real.log (32e12) ≤ (31.0967571 : ℝ) := by interval_decide
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      exact C_bk_log_row_bound 31.0967570 31.0967571 hlo hhi (by norm_num) (by norm_num)
+        (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
 
 end BKLNW
