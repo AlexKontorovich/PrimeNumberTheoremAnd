@@ -9,7 +9,62 @@ namespace CH2
 blueprint_comment /--
 \subsection{Contour shifting}\label{ch2-contour-sec}
 
-TODO: incorporate material from \cite[Section 5]{CH2}.
+This section formalises \cite[Section 5]{CH2}. We collect here the notation and the standing
+hypotheses shared by Lemma \ref{ch2-lemma-5-1} (contour shifting) and its sub-lemmas.
+
+\textbf{Ladder parameters.} We fix:
+\begin{itemize}
+  \item a half-height $T > 0$ and a contour height $\delta \in (0, T/4)$. (We write $\delta$ for the
+    paper's contour height $\varepsilon$, since $\varepsilon$ already denotes the $\pm 1$ sign in the
+    extremal-approximant notation above.)
+  \item truncation abscissae $\sigma \colon \mathbb{N} \to \mathbb{R}$ with $\sigma_0 = 1$,
+    $\sigma_n \leq 1$, and $\sigma_n \to -\infty$; these are the leftward shift levels in the proof.
+\end{itemize}
+
+\textbf{Regions and contours.} Write $s = \Re s + i\, \Im s$. We use:
+\begin{itemize}
+  \item the rectangle $R = \{ s : \Re s \leq 1,\ |\Im s| \leq T \}$ and its boundary $\partial R$;
+  \item the ladder $L = \bigcup_{n \geq 1} \{ \sigma_n + i t : |t| \leq T \}$ (the columns above
+    $\sigma_n$ for $n \geq 1$; the $\sigma_0 = 1$ column is part of $\partial R$);
+  \item the (simplified) admissible contour $C$: up from $1$ to $1 + i\delta$, then leftward along
+    $\Im s = \delta$ to $-\infty$, with conjugate $\overline{C}$;
+  \item $R^+ = \{ \Re s \leq 1,\ \delta \leq \Im s \leq T \}$ (the part of $R$ above $C$), its
+    conjugate $\overline{R^+} = \{ \Re s \leq 1,\ -T \leq \Im s \leq -\delta \}$ (below
+    $\overline{C}$), and $R_C = \{ \Re s \leq 1,\ |\Im s| \leq \delta \}$ (between $C$ and
+    $\overline{C}$). Thus $R = R^+ \sqcup R_C \sqcup \overline{R^+}$, so
+    $R \setminus R_C = R^+ \sqcup \overline{R^+}$;
+  \item the horizontal rays $C_\infty$: $\{ \Im s = \pm T,\ \Re s \leq 1 \}$ (the top and bottom of
+    $R$ continued to $-\infty$).
+\end{itemize}
+
+\textbf{The function $G$.} We are given a decomposition $G(s) = G^\circ(s) + \mathrm{sgn}(\Im s)\,
+G^\star(s)$ in which $G^\circ$ and $G^\star$ are meromorphic on $R$ and $G^\star$ is
+\emph{conjugation-antisymmetric}, $G^\star(\bar s) = -\overline{G^\star(s)}$ (so for real $x$ the
+integrand $s \mapsto G^\star(s) x^s$ is too; this is what lets the integrals over $C$ and
+$\overline{C}$ combine into a single $\frac{1}{\pi} \Im \int_C G^\star x^s$ term). We fix reals
+$1 \leq x_0 < x$ and assume $G(s) x_0^s$ is bounded with no poles on $\partial R$, and that both
+$G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and on the
+contour $C$.
+
+\textbf{Truncated contours (used in the proof).} At truncation level $n$:
+\begin{itemize}
+  \item $C_n^+$: from $1$, follow $C$ leftward to $\sigma_n + i\delta$, then up to $\sigma_n + iT$,
+    then right to $1 + iT$; $C_n^-$ is the conjugate, traversed backwards;
+  \item $C_{n,1}^\pm$: the contour $C_n^\pm$ with its horizontal $\Im s = \pm T$ segment removed;
+  \item the $\sigma_n$ column $\{ \sigma_n + it : |t| \leq T \}$.
+\end{itemize}
+Each contour integral carries the orientation just described; the prefactors $\frac{1}{2\pi i}$ and
+$\frac{1}{\pi} \Im$ are written explicitly at each occurrence rather than baked into the contours.
+
+\textbf{Residues (temporary scaffold).} Mathlib has no general residue theorem yet, so
+$\mathrm{Res}_{s=\rho}$ denotes the simple-pole residue $\lim_{s \to \rho} (s - \rho) f(s)$, and a
+sum $\sum_{\rho \in S} \mathrm{Res}_{s=\rho}$ is the sum of these over the poles of the integrand in
+$S$. Over the bounded off-axis region $R \setminus R_C$ this is a finite sum (we assume finitely
+many poles there). Over $R_C$, which may contain infinitely many poles on the real axis (e.g. the
+trivial zeros of $\zeta$), it is taken in the \emph{improper} sense
+$\lim_{n \to \infty} \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho}$. We also assume
+throughout that every pole in $R$ is at most simple. These last conventions are scaffolding to be
+removed once Mathlib gains a general (higher-order) residue theorem.
 -/
 
 /-- To state the contour integral results of CH2 cleanly we introduce the concept of a "LadderParams" which generates a
@@ -453,7 +508,7 @@ variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
   truncated contour $C_n^+$ picks up the residues of $G$ in $R^+$ to the right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\int_1^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^+} G(s) x^s\, ds + \sum_{\rho \in R^+,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $R^+$ between $[1, 1+iT]$ and $C_n^+$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_a (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -481,7 +536,7 @@ theorem lemma_5_1_a (n : ℕ)
   truncated contour $C_n^-$ picks up the residues of $G$ in $\overline{R^+}$ to the right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\int_{1-iT}^{1} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^-} G(s) x^s\, ds + \sum_{\rho \in \overline{R^+},\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $\overline{R^+}$ between $[1-iT, 1]$ and $C_n^-$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_b (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -510,7 +565,7 @@ theorem lemma_5_1_b (n : ℕ)
   right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\left(\int_{C_{n,1}^+} + \int_{C_{n,1}^-}\right) G^\circ(s) x^s\, ds = \frac{1}{2\pi i}\int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds + \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $R_C$ between $C_{n,1}^+ \cup C_{n,1}^-$ and the $\sigma_n$ column. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_c (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -540,7 +595,7 @@ theorem lemma_5_1_c (n : ℕ)
   -\overline{G^\star(s)}$, the two $G^\star$ contour integrals combine into a single imaginary part:
   $$ \int_{C_{n,1}^+} G^\star(s) x^s\, ds - \int_{C_{n,1}^-} G^\star(s) x^s\, ds = 2i\, \Im \int_{C_{n,1}^+} G^\star(s) x^s\, ds. $$ -/)
   (proof := /-- For the conjugation-antisymmetric integrand $G^\star x^s$, $\int_{C_{n,1}^-} = \overline{\int_{C_{n,1}^+}}$, and $z - \bar z = 2i\, \Im z$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_d (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -568,7 +623,7 @@ theorem lemma_5_1_d (n : ℕ)
   bottom segment of $C_n^-$ converge to the contour $C_\infty$:
   $$ \lim_{n\to\infty} \left( \int_{\sigma_n + iT}^{1 + iT} + \int_{1 - iT}^{\sigma_n - iT} \right) G(s) x^s\, ds = \int_{C_\infty} G(s) x^s\, ds. $$ -/)
   (proof := /-- As $\sigma_n \to -\infty$ the truncated horizontal segments exhaust the rays of $C_\infty$; uses boundedness of $G x_0^s$ on $\partial R$ and $x > x_0$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_e
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -597,7 +652,7 @@ theorem lemma_5_1_e
   column tends to $0$:
   $$ \lim_{n\to\infty} \int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds = 0. $$ -/)
   (proof := /-- The integrand is $O((x/x_0)^{\sigma_n})$ via boundedness of $G^\circ x_0^s$ on $L$, and $(x/x_0)^{\sigma_n} \to 0$ since $x > x_0 \geq 1$ and $\sigma_n \to -\infty$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_f
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -626,7 +681,7 @@ theorem lemma_5_1_f
   (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in $S$, for all
   large $n$ the set $\{\Re s > \sigma_n\}$ contains every pole of $f$ in $S$; the truncated sum is
   then constant and equals the full residue sum over $S$ (analytic points contribute $0$). -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
     (hfin : {z ∈ S | meromorphicOrderAt f z < 0}.Finite) :
     Filter.Tendsto (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re})) Filter.atTop
@@ -645,7 +700,7 @@ theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
   vertical segment $\sigma_n + i\delta \to \sigma_n + iT$, which vanishes --- both as in
   \ref{ch2-lemma-5-1-e}, \ref{ch2-lemma-5-1-f}, here at height $\delta$, using boundedness of
   $G^\star x_0^s$ on $L$ and on $C$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_h
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -765,7 +820,7 @@ variable {l : LadderParams} {F : ℂ → ℂ} {lam ε x₀ x : ℝ}
   (proof := /-- Apply Lemma \ref{ch2-lemma-5-1}. The $G^\star$ reflection is the conjugation
   symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$; boundedness follows from
   $\Phi^\circ$ bounded and $\Phi^\star = O(|z|)$ (CH2 Lemma 4.3). -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem prop_5_2_a
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
@@ -799,7 +854,7 @@ theorem prop_5_2_a
   $|\Phi^\varepsilon_\lambda(z(s))| \leq \frac{1-r}{T}$ (CH2 Lemma 4.3); substituting $t = 1 - r$,
   $$ \left\| \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt. $$ -/)
   (proof := /-- $|\Phi^\varepsilon_\lambda(\pm 1 + ir')| \leq |r'|$ (CH2 Lemma 4.3), $|x^s| = x^{\Re s}$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem prop_5_2_b
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
@@ -828,7 +883,7 @@ theorem prop_5_2_b
   Since $G^\star = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(\cdot)) F$ and $|\Im w| \leq |w|$,
   $$ \left\| \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot 2\left\| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right\|. $$ -/)
   (proof := /-- `intC` is linear, $|\mathrm{sgn}(\lambda)| = 1$, and $|\Im w| \leq |w|$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem prop_5_2_c
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
