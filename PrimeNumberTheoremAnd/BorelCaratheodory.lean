@@ -369,11 +369,8 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
       _ = 1 / R := by rw [hyp_z]
   have maxMod :
       ∀ z ∈ Metric.closedBall 0 R,
-      ‖schwartzQuotient f M z‖ ≤ 1 / R :=
-    AnalyticOn.norm_le_of_norm_le_on_sphere
-      (AnalyticOn.schwartzQuotient M Rpos analytic
-        fPosAll zeroAtZero)
-      le_rfl schwartzQuotientBounded
+      ‖schwartzQuotient f M z‖ ≤ 1 / R := by
+      exact fun z hz => AnalyticOn.norm_le_of_norm_le_on_sphere le_rfl (AnalyticOn.schwartzQuotient M Rpos analytic fPosAll zeroAtZero) schwartzQuotientBounded hz
   have boundForF :
       ∀ r < R, 0 < r →
       ∀ z ∈ Metric.sphere 0 r,
@@ -435,9 +432,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
       ∀ r < R, 0 < r →
       ∀ z ∈ Metric.closedBall 0 r,
       ‖f z‖ ≤ 2 * M * r / (R - r) := by
-    intro r hyp_r pos_r
-    exact AnalyticOn.norm_le_of_norm_le_on_sphere analytic
-      (by linarith) (boundForF r hyp_r pos_r)
+    exact fun r hyp_r pos_r z hz => AnalyticOn.norm_le_of_norm_le_on_sphere (hyp_r.le) analytic (boundForF r hyp_r pos_r) hz
   by_cases pos_r : r = 0
   · have U : z = 0 := by
       rw [pos_r, Metric.closedBall_zero, Set.mem_singleton_iff] at hyp_z
