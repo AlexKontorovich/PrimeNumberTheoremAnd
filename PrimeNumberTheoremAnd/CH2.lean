@@ -45,6 +45,17 @@ def LadderParams.admissible_contour (l : LadderParams) : Set ℂ :=
 /-- Describes the property that a function is bounded with no poles on a given set -/
 def IsBoundedNoPolesOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := ∃ M, ∀ z ∈ s, ‖f z‖ ≤ M ∧ 0 ≤ meromorphicOrderAt f z
 
+/-- Every pole of `f` in `s` is at most simple: the meromorphic order is `≥ -1` everywhere on `s`
+(no poles of order `≤ -2`).
+
+**Temporary scaffold.** The placeholder `residue` below (and Mathlib's current residue-theorem API)
+is only correct for simple poles, so this hypothesis is added to Lemma 5.1 / Proposition 5.2 and
+their sub-lemmas to make them provable with the present API. It holds in the intended applications
+(e.g. `ζ'/ζ`, whose poles are all simple) and is to be removed once Mathlib gains general
+higher-order residue support. -/
+def HasSimplePolesOn (f : ℂ → ℂ) (s : Set ℂ) : Prop :=
+  ∀ z ∈ s, (-1 : ℤ) ≤ meromorphicOrderAt f z
+
 /-- The main rectangle the ladder and contour lie in -/
 def LadderParams.R (l : LadderParams) : Set ℂ := { z | z.re ≤ 1 ∧ |z.im| ≤ l.T }
 
@@ -411,6 +422,15 @@ infinitely many poles, summability must be assumed for the value to be meaningfu
 noncomputable def sumResiduesIn (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
   ∑' z : S, residue f z
 
+/-- The improper sum of residues of `f` over `S`, in the sense of the ladder `l`: sum the residues
+in the truncation `S ∩ {z | σ n < ℜ z}` and let `n → ∞` (so `σ n → -∞` exhausts `S` from the
+right). This is the convention of \cite{CH2} for regions with infinitely many poles --- e.g. the
+trivial zeros of `ζ` on the negative real axis, where the ordinary `sumResiduesIn` `tsum` need not
+converge --- and it reduces to `sumResiduesIn f S` when the poles of `f` in `S` are finite (the
+content of `lemma_5_1_g`). -/
+noncomputable def LadderParams.sumResiduesLim (l : LadderParams) (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
+  Filter.limUnder Filter.atTop (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re}))
+
 /-- The conjugation-antisymmetry condition `g(s̄) = -\overline{g(s)}`. In Lemma 5.1 this is imposed
 on the odd part `G⋆`; it is what makes the integrals over the contour `C` and its conjugate `C̄`
 combine into the single `(1/π) ℑ ∫_C G⋆ x^s` term (the integrand `s ↦ G⋆ s * x^s` inherits the
@@ -446,7 +466,8 @@ theorem lemma_5_1_a (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) := by
@@ -473,7 +494,8 @@ theorem lemma_5_1_b (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
@@ -501,7 +523,8 @@ theorem lemma_5_1_c (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ *
         (l.intCn1Plus n (fun s ↦ G_circ s * (x : ℂ) ^ s) +
           l.intCn1Minus n (fun s ↦ G_circ s * (x : ℂ) ^ s)) =
@@ -530,7 +553,8 @@ theorem lemma_5_1_d (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s) -
         l.intCn1Minus n (fun s ↦ G_star s * (x : ℂ) ^ s) =
       2 * Complex.I * ((l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)).im : ℂ) := by
@@ -557,7 +581,8 @@ theorem lemma_5_1_e
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto
       (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) +
         intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s))
@@ -585,7 +610,8 @@ theorem lemma_5_1_f
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s))
       Filter.atTop (nhds (0 : ℂ)) := by
   sorry
@@ -632,7 +658,8 @@ theorem lemma_5_1_h
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto (fun n ↦ l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)) Filter.atTop
       (nhds (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s))) := by
   sorry
@@ -647,8 +674,16 @@ theorem lemma_5_1_h
   $G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and the
   contour $C$. Then for any $x > x_0$,
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} G^\circ(s) x^s, $$
-  where the two residue sums run over the poles of $G$ (resp.\ $G^\circ$) in the indicated
-  regions, which we assume to be finite. -/)
+  where the first sum runs over the (finitely many --- see the hypotheses) poles of $G$ in the
+  bounded off-axis strip $R \setminus R_C$, while the second is the \emph{improper} residue sum of
+  $G^\circ$ over $R_C$, i.e.\ the limit of the truncations $R_C \cap \{\Re s > \sigma_n\}$ as
+  $n \to \infty$. The improper sum allows infinitely many poles on the real axis (e.g.\ the trivial
+  zeros of $\zeta$), where an ordinary sum need not converge.
+
+  \emph{Temporary scaffold:} we additionally assume every pole of $G$ (resp.\ $G^\circ$) in $R$ is
+  at most simple ($\mathrm{HasSimplePolesOn}$). The formalised residue and the current Mathlib
+  residue-theorem API are only valid for simple poles; this hypothesis holds in the intended
+  applications and is to be dropped once higher-order residue support lands. -/)
   (proof := /-- Assemble from the sub-lemmas. Split the central line into its upper half $[1,1+iT]$
   and lower half $[1-iT,1]$, and apply Lemmas \ref{ch2-lemma-5-1-a} and \ref{ch2-lemma-5-1-b} to
   rewrite each as the truncated contour $C_n^+$ (resp.\ $C_n^-$) plus the residues of $G$ over
@@ -660,9 +695,11 @@ theorem lemma_5_1_h
   combines into $2i\, \Im \int_{C_{n,1}^+} G^\star x^s$. Now let $n \to \infty$: the
   $\Im s = \pm T$ segments converge to $C_\infty$ (\ref{ch2-lemma-5-1-e}); the $\sigma_n$ column
   vanishes (\ref{ch2-lemma-5-1-f}); $C_{n,1}^+ \to C$ (\ref{ch2-lemma-5-1-h}), so
-  $\Im \int_{C_{n,1}^+} G^\star x^s \to \Im \int_C G^\star x^s$; and the truncated residue sums
-  converge to the full sums (\ref{ch2-lemma-5-1-g}), with $R^+ \sqcup \overline{R^+} = R \setminus
-  R_C$. Collecting terms, and using $\frac{1}{2\pi i} \cdot 2i = \frac{1}{\pi}$, yields the claim. -/)
+  $\Im \int_{C_{n,1}^+} G^\star x^s \to \Im \int_C G^\star x^s$; the off-axis truncated sums converge
+  to the full (finite) residue sums over $R^+ \sqcup \overline{R^+} = R \setminus R_C$
+  (\ref{ch2-lemma-5-1-g}), while the $R_C$ truncated sum converges to the improper residue sum by
+  definition. Collecting terms, and using $\frac{1}{2\pi i} \cdot 2i = \frac{1}{\pi}$, yields the
+  claim. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -675,15 +712,21 @@ theorem lemma_5_1
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
-    -- finiteness of the pole sets in each region (our addition; the paper does not address the
-    -- possibility of infinitely many poles):
+    -- finiteness of the off-real-line pole set (our addition; off the real line there are only
+    -- finitely many poles in the bounded strip `R \ R_C`). The `R_C` residue sum is taken in the
+    -- improper `sumResiduesLim` sense, allowing infinitely many poles on the real line (e.g. the
+    -- trivial zeros of `ζ`), so no finiteness is assumed there.
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    -- temporary scaffold: the placeholder `residue` and Mathlib's current residue-theorem API only
+    -- handle simple poles, so we assume all poles in `R` are simple (true in the applications;
+    -- remove once higher-order residue support lands):
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt 1 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCinf (fun s ↦ G s * (x : ℂ) ^ s) +
       (↑(π⁻¹ * (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s)).im) : ℂ) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.R \ l.RC) +
-      sumResiduesIn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.RC := by
+      l.sumResiduesLim (fun s ↦ G_circ s * (x : ℂ) ^ s) l.RC := by
   sorry
 
 end ContourShifting
@@ -733,10 +776,10 @@ theorem prop_5_2_a
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
         meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC |
-        meromorphicOrderAt
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
-          < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ *
         l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ *
@@ -744,7 +787,7 @@ theorem prop_5_2_a
         (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
             Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) +
         sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) +
-        sumResiduesIn
+        l.sumResiduesLim
           (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC := by
   sorry
 
@@ -767,10 +810,10 @@ theorem prop_5_2_b
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
         meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC |
-        meromorphicOrderAt
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
-          < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
     ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
         l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s)‖ ≤
       (1 / (2 * π)) * ((1 / l.T) *
@@ -796,10 +839,10 @@ theorem prop_5_2_c
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
         meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC |
-        meromorphicOrderAt
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
-          < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
     ‖(↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
           Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ)‖ ≤
       (1 / (2 * π)) *
@@ -827,11 +870,15 @@ theorem prop_5_2_c
   $G^\star(s) = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$.
   Then, for any $x > x_0$,
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s\, ds = \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s + \frac{1}{2\pi} O^*(E), $$
-  where the second sum is over the poles of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ in $R_C$ (these include the pole of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$ when $\lambda < 0$), and
+  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$, whose poles include that of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$ when $\lambda < 0$, and
   $$ E = \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt + 2 \left| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right|. $$
   Here $O^*(E)$ is rendered as $\| \cdot \| \leq E$. The first part of $E$ bounds the $C_\infty$
   integral of Lemma \ref{ch2-lemma-5-1} (via $|\Phi^\varepsilon_\lambda(\pm 1 + ir)| \leq |r|$ on
-  the lines $\Re s = \pm 1$), and the second is its $\frac{1}{\pi} \Im \int_C G^\star$ term. -/)
+  the lines $\Re s = \pm 1$), and the second is its $\frac{1}{\pi} \Im \int_C G^\star$ term.
+
+  \emph{Temporary scaffold:} as in Lemma \ref{ch2-lemma-5-1}, we assume every pole in $R$ is at most
+  simple ($\mathrm{HasSimplePolesOn}$), since the formalised residue is only valid for simple poles;
+  this is to be removed once Mathlib gains higher-order residue support. -/)
   (proof := /-- By \ref{ch2-prop-5-2-a} the left side equals the $C_\infty$ integral, the
   $\frac{1}{\pi} \Im \int_C G^\star$ term, and the two residue sums; subtracting the residue sums
   (which match exactly) and applying the triangle inequality with \ref{ch2-prop-5-2-b} and
@@ -847,14 +894,14 @@ theorem prop_5_2
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
         meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC |
-        meromorphicOrderAt
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
-          < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
     ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
           l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
         sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
-        sumResiduesIn
+        l.sumResiduesLim
           (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC‖ ≤
       (1 / (2 * π)) *
         ((1 / l.T) *
@@ -865,19 +912,19 @@ theorem prop_5_2
       (2 * (π : ℂ) * Complex.I)⁻¹ *
             l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
           sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
-          sumResiduesIn
+          l.sumResiduesLim
             (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC =
         (2 * (π : ℂ) * Complex.I)⁻¹ *
             l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
           (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
               Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) := by
-    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ]
+    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ]
     ring
   rw [hLHS]
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
-    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ)
-    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ)) ?_
+    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
+    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)) ?_
   apply le_of_eq
   ring
 
