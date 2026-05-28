@@ -688,6 +688,201 @@ theorem lemma_5_1
 
 end ContourShifting
 
+/-- The rescaling `z(s) = (s - 1)/(iT)` (CH2 §4–5), carrying the central line `1 + i[-T, T]`
+onto `[-1, 1]`. -/
+noncomputable def LadderParams.zOf (l : LadderParams) (s : ℂ) : ℂ := (s - 1) / (Complex.I * l.T)
+
+/-- The combined Graham–Vaaler weight `Φ^ε_λ` (the paper's `Φ^±_λ`, with the sign `±` carried by
+`ε`): `Φ^ε_λ(z) = Phi_circ |λ| ε (sgn λ · z) + sgn λ · sgn (Re z) · Phi_star |λ| ε (sgn λ · z)`. -/
+noncomputable def Phi_lambda (lam ε : ℝ) (z : ℂ) : ℂ :=
+  Phi_circ |lam| ε ((Real.sign lam : ℂ) * z) +
+    (Real.sign lam : ℂ) * (Real.sign z.re : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * z)
+
+/-- The conjugate-symmetry (Schwarz reflection) condition `F(s̄) = conj (F s)` assumed of `F` in
+Proposition 5.2; it makes the derived odd part `G⋆` satisfy `ConjAntisymm`. -/
+def ConjSymm (F : ℂ → ℂ) : Prop := ∀ s : ℂ, F (starRingEnd ℂ s) = starRingEnd ℂ (F s)
+
+section Proposition52
+
+/- Shared context for Proposition 5.2 and its sub-lemmas: the ladder parameters `l`, the
+meromorphic function `F`, the parameter `λ` (`lam`) and sign `ε`, and the reals `x₀ ≤ x`. The
+structural (`Prop`) hypotheses stay explicit on each lemma. -/
+variable {l : LadderParams} {F : ℂ → ℂ} {lam ε x₀ x : ℝ}
+
+@[blueprint
+  "ch2-prop-5-2-a"
+  (title := "Proposition 5.2: reduction to Lemma 5.1")
+  (statement := /--
+  Under the hypotheses of \ref{ch2-prop-5-2}, with $G$, $G^\circ$, $G^\star$, $z(s)$ as there, the
+  decomposition $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ holds (as $\mathrm{sgn}(\Re z(s)) =
+  \mathrm{sgn}(\Im s)$, since $\Re z(s) = \Im s / T$ and $T > 0$), $G^\star$ is
+  conjugation-antisymmetric, and the boundedness hypotheses of Lemma \ref{ch2-lemma-5-1} hold;
+  hence Lemma \ref{ch2-lemma-5-1} gives
+  $$ \frac{1}{2\pi i}\int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C}\mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C}\mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
+  (proof := /-- Apply Lemma \ref{ch2-lemma-5-1}. The $G^\star$ reflection is the conjugation
+  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$; boundedness follows from
+  $\Phi^\circ$ bounded and $\Phi^\star = O(|z|)$ (CH2 Lemma 4.3). -/)
+  (latexEnv := "lemma")]
+theorem prop_5_2_a
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC |
+        meromorphicOrderAt
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
+          < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ *
+        l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ *
+          l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
+        (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+            Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) +
+        sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) +
+        sumResiduesIn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2-b"
+  (title := "Proposition 5.2: bound on the $C_\\infty$ integral")
+  (statement := /--
+  On the rays of $C_\infty$, $z(r \pm iT) = \pm 1 + i\,\frac{1-r}{T}$, so
+  $|\Phi^\varepsilon_\lambda(z(s))| \leq \frac{1-r}{T}$ (CH2 Lemma 4.3); substituting $t = 1 - r$,
+  $$ \left\| \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt. $$ -/)
+  (proof := /-- $|\Phi^\varepsilon_\lambda(\pm 1 + ir')| \leq |r'|$ (CH2 Lemma 4.3), $|x^s| = x^{\Re s}$. -/)
+  (latexEnv := "lemma")]
+theorem prop_5_2_b
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC |
+        meromorphicOrderAt
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
+          < 0}.Finite) :
+    ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
+        l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s)‖ ≤
+      (1 / (2 * π)) * ((1 / l.T) *
+        ((∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)) +
+          ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t))) := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2-c"
+  (title := "Proposition 5.2: bound on the contour integral")
+  (statement := /--
+  Since $G^\star = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(\cdot)) F$ and $|\Im w| \leq |w|$,
+  $$ \left\| \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot 2\left\| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right\|. $$ -/)
+  (proof := /-- `intC` is linear, $|\mathrm{sgn}(\lambda)| = 1$, and $|\Im w| \leq |w|$. -/)
+  (latexEnv := "lemma")]
+theorem prop_5_2_c
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC |
+        meromorphicOrderAt
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
+          < 0}.Finite) :
+    ‖(↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+          Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ)‖ ≤
+      (1 / (2 * π)) *
+        (2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2"
+  (title := "Specialisation to the Graham--Vaaler weight (CH2 Proposition 5.2)")
+  (statement := /--
+  This specialises Lemma \ref{ch2-lemma-5-1} to the weight $\Phi^\varepsilon_\lambda$ built from the
+  Graham--Vaaler approximants. \emph{The notation differs from \cite{CH2}:} the paper's sign $\pm$
+  is here the parameter $\varepsilon \in \{+1, -1\}$ carried by $\Phi^\circ$, $\Phi^\star$ (the
+  formalisation's \texttt{Phi\_circ}, \texttt{Phi\_star}), and the paper's contour height
+  $\varepsilon$ is our $\delta$ (so $C$ is the \texttt{LadderParams} contour at height $\delta$).
+
+  Let $F \colon \mathbb{C} \to \mathbb{C}$ be meromorphic on $R = (-\infty, 1] + i[-T, T]$ with
+  $F(\bar s) = \overline{F(s)}$, and suppose for some $x_0 \geq 1$ that $F(s) x_0^s$ is bounded with
+  no poles on $\partial R \cup C \cup L$. Fix $\lambda \neq 0$ and $\varepsilon \in \{+1, -1\}$,
+  write $z(s) = \frac{s - 1}{iT}$, and set
+  $$ \Phi^\varepsilon_\lambda(z) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z) + \mathrm{sgn}(\lambda)\, \mathrm{sgn}(\Re z)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z). $$
+  This is the $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ of Lemma \ref{ch2-lemma-5-1}, with
+  $G(s) = \Phi^\varepsilon_\lambda(z(s)) F(s)$,
+  $G^\circ(s) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$, and
+  $G^\star(s) = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$.
+  Then, for any $x > x_0$,
+  $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s\, ds = \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s + \frac{1}{2\pi} O^*(E), $$
+  where the second sum is over the poles of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ in $R_C$ (these include the pole of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$ when $\lambda < 0$), and
+  $$ E = \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt + 2 \left| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right|. $$
+  Here $O^*(E)$ is rendered as $\| \cdot \| \leq E$. The first part of $E$ bounds the $C_\infty$
+  integral of Lemma \ref{ch2-lemma-5-1} (via $|\Phi^\varepsilon_\lambda(\pm 1 + ir)| \leq |r|$ on
+  the lines $\Re s = \pm 1$), and the second is its $\frac{1}{\pi} \Im \int_C G^\star$ term. -/)
+  (proof := /-- By \ref{ch2-prop-5-2-a} the left side equals the $C_\infty$ integral, the
+  $\frac{1}{\pi} \Im \int_C G^\star$ term, and the two residue sums; subtracting the residue sums
+  (which match exactly) and applying the triangle inequality with \ref{ch2-prop-5-2-b} and
+  \ref{ch2-prop-5-2-c} gives the $\frac{1}{2\pi} O^*(E)$ bound. -/)
+  (latexEnv := "proposition")]
+theorem prop_5_2
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC |
+        meromorphicOrderAt
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) z
+          < 0}.Finite) :
+    ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
+          l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
+        sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
+        sumResiduesIn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC‖ ≤
+      (1 / (2 * π)) *
+        ((1 / l.T) *
+            ((∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)) +
+              ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t)) +
+          2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
+  have hLHS :
+      (2 * (π : ℂ) * Complex.I)⁻¹ *
+            l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
+          sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
+          sumResiduesIn
+            (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC =
+        (2 * (π : ℂ) * Complex.I)⁻¹ *
+            l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
+          (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+              Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) := by
+    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ]
+    ring
+  rw [hLHS]
+  refine le_trans (norm_add_le _ _) ?_
+  refine le_trans (add_le_add
+    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ)
+    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hfin_circ)) ?_
+  apply le_of_eq
+  ring
+
+end Proposition52
+
 blueprint_comment /--
 \subsection{The main theorem}\label{ch2-main-thm-sec}
 
