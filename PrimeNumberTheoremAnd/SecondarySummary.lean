@@ -109,7 +109,7 @@ $$
 where $A_1 = A + 0.1$.
   -/)
   (proof := /-- This follows trivially (and wastefully) from the work of Dusart
-  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}. It should also follow from
+  \cite[Cor.\ 4.5]{Dusart2018} or the authors \cite[Cor.\ 2]{PT2021}. It should also follow from
   the results of \cite{FKS2}. -/)
   (latexEnv := "corollary")]
 theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
