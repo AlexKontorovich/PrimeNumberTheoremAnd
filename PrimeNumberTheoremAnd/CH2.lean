@@ -32,6 +32,12 @@ lemma LadderParams.hT (l : LadderParams) : 0 < l.T := by
 def LadderParams.ladder (l : LadderParams) : Set ℂ :=
   {z : ℂ | (∃ n, z.re = l.σ n ∧ |z.im| ≤ l.T) ∨ (z.re ≤ 1 ∧ |z.im| = l.T) }
 
+/-- The set `L` from \cite[(5.1)]{CH2}: the union of the vertical ladder columns `σ n + i[-T, T]`
+for `n ≥ 1` (excluding the `σ 0 = 1` column, which is part of `∂R`). This is the set on which
+`G^\circ` and `G^\star` are assumed bounded with no poles in Lemma 5.1. -/
+def LadderParams.L (l : LadderParams) : Set ℂ :=
+  {z : ℂ | ∃ n, 1 ≤ n ∧ z.re = l.σ n ∧ |z.im| ≤ l.T}
+
 /-- The "admissible contour", which we will fix to be of a simplified form. -/
 def LadderParams.admissible_contour (l : LadderParams) : Set ℂ :=
   {z : ℂ | (z.re ≤ 1 ∧ z.im = l.δ) ∨ (z.re = 1 ∧ z.im ∈ Set.Icc 0 l.δ) }
@@ -115,6 +121,20 @@ lemma LadderParams.Rboundary_subset_ladder (l : LadderParams) : l.Rboundary ⊆ 
   rcases hz with ⟨h1, h2⟩ | ⟨h1, h2⟩
   · exact Or.inl ⟨0, h1.trans l.h0.symm, h2⟩
   · exact Or.inr ⟨h1, h2⟩
+
+/-- The ladder columns `L` lie in the rectangle (uses `σ n ≤ 1`). -/
+lemma LadderParams.L_subset_R (l : LadderParams) : l.L ⊆ l.R := by
+  intro z hz
+  simp only [LadderParams.L, LadderParams.R, Set.mem_setOf_eq] at hz ⊢
+  obtain ⟨n, _, hre, him⟩ := hz
+  exact ⟨by rw [hre]; exact l.hσ n, him⟩
+
+/-- The columns `L` are part of the page-2 ladder. -/
+lemma LadderParams.L_subset_ladder (l : LadderParams) : l.L ⊆ l.ladder := by
+  intro z hz
+  simp only [LadderParams.L, LadderParams.ladder, Set.mem_setOf_eq] at hz ⊢
+  obtain ⟨n, _, hre, him⟩ := hz
+  exact Or.inl ⟨n, hre, him⟩
 
 /-- The base point `1` of the contour. -/
 lemma LadderParams.one_mem_admissible_contour (l : LadderParams) :
@@ -299,10 +319,16 @@ many poles: points of analyticity contribute `0`, and when only finitely many po
 region the sum collapses to the finite sum of their residues. Summability — i.e. finiteness of the
 pole set in the region — is the implicit hypothesis to supply when formalizing Lemma 5.1. -/
 
-/-- The residue of `f` at `z₀`, defined as the simple-pole limit `lim_{z → z₀} (z - z₀) · f z`.
-At a point of analyticity this is `0`; for a simple pole it is the usual residue; at higher-order
-or essential singularities the limit diverges and this returns a junk value (acceptable, since the
-CH2 application has only simple poles). -/
+/-- **Placeholder definition — valid only for simple poles.** The residue of `f` at `z₀`, defined
+as the simple-pole limit `lim_{z → z₀} (z - z₀) · f z` (matching the convention of
+`Phi_circ.residue` / `Phi_star.residue`). At a point of analyticity this is `0` and at a simple
+pole it is the usual residue, but at a higher-order or essential singularity the limit diverges
+and this returns a junk value.
+
+A general complex residue (and the residue theorem) is planned for Mathlib but not yet available,
+so results stated in terms of this `residue` are likely **not provable in full generality** with
+the current API. This is a deliberate stopgap, to be replaced with the robust notion once the
+Mathlib residue-theorem API lands. -/
 noncomputable def residue (f : ℂ → ℂ) (z₀ : ℂ) : ℂ :=
   Filter.limUnder (nhdsWithin z₀ {z₀}ᶜ) (fun z => (z - z₀) * f z)
 
@@ -312,6 +338,59 @@ poles lie in `S` the `tsum` equals the finite sum of their residues, regardless 
 infinitely many poles, summability must be assumed for the value to be meaningful.) -/
 noncomputable def sumResiduesIn (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
   ∑' z : S, residue f z
+
+/-- The conjugation-antisymmetry condition `g(s̄) = -\overline{g(s)}`. In Lemma 5.1 this is imposed
+on the odd part `G⋆`; it is what makes the integrals over the contour `C` and its conjugate `C̄`
+combine into the single `(1/π) ℑ ∫_C G⋆ x^s` term (the integrand `s ↦ G⋆ s * x^s` inherits the
+condition since `x` is real). -/
+def ConjAntisymm (g : ℂ → ℂ) : Prop :=
+  ∀ s : ℂ, g (starRingEnd ℂ s) = - starRingEnd ℂ (g s)
+
+section ContourShifting
+
+/- Shared context for Lemma 5.1 and its sub-lemmas: the ladder parameters `l`, the functions
+`G = G◦ + sgn(ℑ·) G⋆`, and the reals `x₀ ≤ x`. The structural (`Prop`) hypotheses stay explicit
+on each lemma. -/
+variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
+
+@[blueprint
+  "ch2-lemma-5-1"
+  (title := "Contour shifting (CH2 Lemma 5.1)")
+  (statement := /--
+  Let $G = G^\circ + \operatorname{sgn}(\Im s)\, G^\star$ with $G^\circ, G^\star$ meromorphic on
+  $R = (-\infty,1] + i[-T,T]$, and suppose $G^\star(\bar s) = -\overline{G^\star(s)}$. Suppose for
+  some $x_0 \geq 1$ that $G(s) x_0^s$ is bounded with no poles on $\partial R$, and both
+  $G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and the
+  contour $C$. Then for any $x > x_0$,
+  $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \operatorname{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \operatorname{Res}_{s=\rho} G^\circ(s) x^s, $$
+  where the two residue sums run over the poles of $G$ (resp.\ $G^\circ$) in the indicated
+  regions, which we assume to be finite. -/)
+  (proof := /-- To be formalized following \cite[\S5]{CH2}; the plan is to split the argument into
+  sub-lemmas, roughly one per displayed equation of the paper's proof. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s => G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s => G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s => G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s => G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s => G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    -- finiteness of the pole sets in each region (our addition; the paper does not address the
+    -- possibility of infinitely many poles):
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s => G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s => G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt 1 (fun s => G s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCinf (fun s => G s * (x : ℂ) ^ s) +
+      (↑(π⁻¹ * (l.intC (fun s => G_star s * (x : ℂ) ^ s)).im) : ℂ) +
+      sumResiduesIn (fun s => G s * (x : ℂ) ^ s) (l.R \ l.RC) +
+      sumResiduesIn (fun s => G_circ s * (x : ℂ) ^ s) l.RC := by
+  sorry
+
+end ContourShifting
 
 blueprint_comment /--
 \subsection{The main theorem}\label{ch2-main-thm-sec}
