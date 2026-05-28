@@ -112,7 +112,7 @@ lemma LadderParams.admissible_contour_subset_R4 (l : LadderParams) :
 /-- The admissible contour lies inside the rectangle. -/
 lemma LadderParams.admissible_contour_subset_R (l : LadderParams) :
     l.admissible_contour ⊆ l.R :=
-  fun _ hz => l.R4_subset_R (l.admissible_contour_subset_R4 hz)
+  fun _ hz ↦ l.R4_subset_R (l.admissible_contour_subset_R4 hz)
 
 /-- The boundary of the rectangle is part of the ladder (the right edge is the `σ 0 = 1` rung). -/
 lemma LadderParams.Rboundary_subset_ladder (l : LadderParams) : l.Rboundary ⊆ l.ladder := by
@@ -184,7 +184,7 @@ lemma LadderParams.belowContour_subset_R4 (l : LadderParams) : l.belowContour �
 
 /-- `belowContour` lies in the rectangle. -/
 lemma LadderParams.belowContour_subset_R (l : LadderParams) : l.belowContour ⊆ l.R :=
-  fun _ hz => l.R4_subset_R (l.belowContour_subset_R4 hz)
+  fun _ hz ↦ l.R4_subset_R (l.belowContour_subset_R4 hz)
 
 /-- A point strictly below the contour does not lie on the contour. -/
 lemma LadderParams.belowContour_disjoint_admissible_contour (l : LadderParams) :
@@ -274,41 +274,113 @@ Definitions of the line integrals appearing in the statement and proof of Lemma 
 The constant factors `1/(2πi)` and `1/π · Im` from Lemma 5.1 are *not* baked in — they appear
 at call sites. -/
 
-/-- The oriented line integral of `F` along the vertical segment from `c - iT` to `c + iT`,
-parametrized as `s = c + it`, `t ∈ [-T, T]`, `ds = i dt`. Used for the LHS of Lemma 5.1
-(`c = 1`) and for the ladder columns `c = σ n` in its proof. -/
+/-! ### Primitives: oriented segment and ray integrals -/
+
+/-- Oriented line integral of `F` along the vertical segment from `c + i·a` to `c + i·b`
+(parametrized `s = c + i t`, `t : a → b`, `ds = i dt`). Reversing `a, b` negates the integral. -/
+noncomputable def intVSeg (c a b : ℝ) (F : ℂ → ℂ) : ℂ :=
+  ∫ t in a..b, F (c + t * Complex.I) * Complex.I
+
+/-- Oriented line integral of `F` along the horizontal segment from `a + i·h` to `b + i·h`
+(parametrized `s = r + i h`, `r : a → b`, `ds = dr`). -/
+noncomputable def intHSeg (h a b : ℝ) (F : ℂ → ℂ) : ℂ :=
+  ∫ r in a..b, F (r + h * Complex.I)
+
+/-- Line integral of `F` along the horizontal ray `(-∞, b] + i·h`, oriented left-to-right
+(`s = r + i h`, `r ∈ (-∞, b]`, `ds = dr`). A contour traversing this ray rightward-to-`-∞`
+carries a minus sign at the call site. -/
+noncomputable def intHRay (h b : ℝ) (F : ℂ → ℂ) : ℂ :=
+  ∫ r in Set.Iic b, F (r + h * Complex.I)
+
+/-- `F` is integrable along the vertical segment from `c + i·a` to `c + i·b`. -/
+def IntegrableOnVSeg (c a b : ℝ) (F : ℂ → ℂ) : Prop :=
+  IntervalIntegrable (fun t : ℝ ↦ F (c + t * Complex.I)) volume a b
+
+/-- `F` is integrable along the horizontal segment from `a + i·h` to `b + i·h`. -/
+def IntegrableOnHSeg (h a b : ℝ) (F : ℂ → ℂ) : Prop :=
+  IntervalIntegrable (fun r : ℝ ↦ F (r + h * Complex.I)) volume a b
+
+/-- `F` is integrable along the horizontal ray `(-∞, b] + i·h`. -/
+def IntegrableOnHRay (h b : ℝ) (F : ℂ → ℂ) : Prop :=
+  IntegrableOn (fun r : ℝ ↦ F (r + h * Complex.I)) (Set.Iic b)
+
+/-! ### The contours of Lemma 5.1, built from the primitives -/
+
+/-- The oriented line integral of `F` along the vertical segment from `c - iT` to `c + iT`. Used
+for the LHS of Lemma 5.1 (`c = 1`) and the ladder columns `c = σ n` in its proof. -/
 noncomputable def LadderParams.intVerticalAt (l : LadderParams) (c : ℝ) (F : ℂ → ℂ) : ℂ :=
-  ∫ t in Set.Icc (-l.T) l.T, F (c + t * Complex.I) * Complex.I
+  intVSeg c (-l.T) l.T F
 
 /-- `F` is integrable along the vertical segment from `c - iT` to `c + iT`. -/
 def LadderParams.IntegrableOnVerticalAt (l : LadderParams) (c : ℝ) (F : ℂ → ℂ) : Prop :=
-  IntegrableOn (fun t : ℝ => F (c + t * Complex.I)) (Set.Icc (-l.T) l.T)
+  IntegrableOnVSeg c (-l.T) l.T F
 
-/-- The oriented line integral of `F` along `C∞`: the upper horizontal ray from `-∞ + iT` to
-`1 + iT` (parametrized `s = r + iT`, `r ∈ (-∞, 1]` increasing, orientation matches), plus the
-lower horizontal ray from `1 - iT` to `-∞ - iT` (parametrized similarly, orientation reversed,
-hence the minus sign). -/
+/-- The oriented line integral of `F` along `C∞`: the upper horizontal ray `-∞ + iT → 1 + iT`,
+minus the lower ray `-∞ - iT → 1 - iT` (which the contour traverses `1 - iT → -∞ - iT`, hence the
+minus sign). -/
 noncomputable def LadderParams.intCinf (l : LadderParams) (F : ℂ → ℂ) : ℂ :=
-  (∫ r in Set.Iic (1:ℝ), F (r + l.T * Complex.I)) -
-    (∫ r in Set.Iic (1:ℝ), F (r - l.T * Complex.I))
+  intHRay l.T 1 F - intHRay (-l.T) 1 F
 
 /-- `F` is integrable on both horizontal rays comprising `C∞`. -/
 def LadderParams.IntegrableOnCinf (l : LadderParams) (F : ℂ → ℂ) : Prop :=
-  IntegrableOn (fun r : ℝ => F (r + l.T * Complex.I)) (Set.Iic 1) ∧
-  IntegrableOn (fun r : ℝ => F (r - l.T * Complex.I)) (Set.Iic 1)
+  IntegrableOnHRay l.T 1 F ∧ IntegrableOnHRay (-l.T) 1 F
 
-/-- The oriented line integral of `F` along the simplified admissible contour `C`: vertically
-from `1` to `1 + iδ` (parametrized `s = 1 + it`, `t ∈ [0, δ]`, `ds = i dt`), then horizontally
-from `1 + iδ` to `-∞ + iδ` (parametrized `s = r + iδ`, `r ∈ (-∞, 1]` increasing, orientation
-reversed, hence the minus sign on the horizontal piece). -/
+/-- The oriented line integral of `F` along the simplified admissible contour `C`: up the segment
+`1 → 1 + iδ`, then along the horizontal ray `1 + iδ → -∞ + iδ` (traversed leftward, hence the
+minus sign on the ray). -/
 noncomputable def LadderParams.intC (l : LadderParams) (F : ℂ → ℂ) : ℂ :=
-  (∫ t in Set.Icc (0:ℝ) l.δ, F (1 + t * Complex.I) * Complex.I) -
-    (∫ r in Set.Iic (1:ℝ), F (r + l.δ * Complex.I))
+  intVSeg 1 0 l.δ F - intHRay l.δ 1 F
 
-/-- `F` is integrable on both pieces (vertical and horizontal) of the contour `C`. -/
+/-- `F` is integrable on both pieces (vertical segment and horizontal ray) of the contour `C`. -/
 def LadderParams.IntegrableOnC (l : LadderParams) (F : ℂ → ℂ) : Prop :=
-  IntegrableOn (fun t : ℝ => F (1 + t * Complex.I)) (Set.Icc 0 l.δ) ∧
-  IntegrableOn (fun r : ℝ => F (r + l.δ * Complex.I)) (Set.Iic 1)
+  IntegrableOnVSeg 1 0 l.δ F ∧ IntegrableOnHRay l.δ 1 F
+
+/-! ### Truncated contours for the proof of Lemma 5.1
+
+The proof of Lemma 5.1 of \cite{CH2} works at a finite truncation level `σ n` and takes `n → ∞`. -/
+
+/-- The truncated contour `C_n^+` from the proof of Lemma 5.1 of \cite{CH2}: from `1`, follow the
+contour `C` leftwards to `σ n + iδ` (up `1 → 1+iδ`, then left along `im = δ`), then up to
+`σ n + iT`, then right to `1 + iT`. -/
+noncomputable def LadderParams.intCnPlus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : ℂ :=
+  intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F +
+    intVSeg (l.σ n) l.δ l.T F + intHSeg l.T (l.σ n) 1 F
+
+/-- `F` is integrable along each of the four segments comprising `C_n^+`. -/
+def LadderParams.IntegrableOnCnPlus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : Prop :=
+  IntegrableOnVSeg 1 0 l.δ F ∧ IntegrableOnHSeg l.δ 1 (l.σ n) F ∧
+    IntegrableOnVSeg (l.σ n) l.δ l.T F ∧ IntegrableOnHSeg l.T (l.σ n) 1 F
+
+/-- The truncated contour `C_n^-` from the proof of Lemma 5.1 of \cite{CH2}: the conjugate of
+`C_n^+` traversed backwards, i.e. from `1 - iT` left to `σ n - iT`, up to `σ n - iδ`, right to
+`1 - iδ`, then up to `1`. -/
+noncomputable def LadderParams.intCnMinus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : ℂ :=
+  intHSeg (-l.T) 1 (l.σ n) F + intVSeg (l.σ n) (-l.T) (-l.δ) F +
+    intHSeg (-l.δ) (l.σ n) 1 F + intVSeg 1 (-l.δ) 0 F
+
+/-- `F` is integrable along each of the four segments comprising `C_n^-`. -/
+def LadderParams.IntegrableOnCnMinus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : Prop :=
+  IntegrableOnHSeg (-l.T) 1 (l.σ n) F ∧ IntegrableOnVSeg (l.σ n) (-l.T) (-l.δ) F ∧
+    IntegrableOnHSeg (-l.δ) (l.σ n) 1 F ∧ IntegrableOnVSeg 1 (-l.δ) 0 F
+
+/-- `C_{n,1}^+`: the part of `C_n^+` other than the top segment `σ n + iT → 1 + iT`, i.e.
+`1 → 1+iδ → σ n+iδ → σ n+iT`. -/
+noncomputable def LadderParams.intCn1Plus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : ℂ :=
+  intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F + intVSeg (l.σ n) l.δ l.T F
+
+/-- `F` is integrable along each segment of `C_{n,1}^+`. -/
+def LadderParams.IntegrableOnCn1Plus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : Prop :=
+  IntegrableOnVSeg 1 0 l.δ F ∧ IntegrableOnHSeg l.δ 1 (l.σ n) F ∧ IntegrableOnVSeg (l.σ n) l.δ l.T F
+
+/-- `C_{n,1}^-`: the part of `C_n^-` other than the bottom segment `1 - iT → σ n - iT`, i.e.
+`σ n - iT → σ n - iδ → 1 - iδ → 1`. -/
+noncomputable def LadderParams.intCn1Minus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : ℂ :=
+  intVSeg (l.σ n) (-l.T) (-l.δ) F + intHSeg (-l.δ) (l.σ n) 1 F + intVSeg 1 (-l.δ) 0 F
+
+/-- `F` is integrable along each segment of `C_{n,1}^-`. -/
+def LadderParams.IntegrableOnCn1Minus (l : LadderParams) (n : ℕ) (F : ℂ → ℂ) : Prop :=
+  IntegrableOnVSeg (l.σ n) (-l.T) (-l.δ) F ∧ IntegrableOnHSeg (-l.δ) (l.σ n) 1 F ∧
+    IntegrableOnVSeg 1 (-l.δ) 0 F
 
 /-! ## Residues and sums of residues (Stage 3)
 
@@ -330,7 +402,7 @@ so results stated in terms of this `residue` are likely **not provable in full g
 the current API. This is a deliberate stopgap, to be replaced with the robust notion once the
 Mathlib residue-theorem API lands. -/
 noncomputable def residue (f : ℂ → ℂ) (z₀ : ℂ) : ℂ :=
-  Filter.limUnder (nhdsWithin z₀ {z₀}ᶜ) (fun z => (z - z₀) * f z)
+  Filter.limUnder (nhdsWithin z₀ {z₀}ᶜ) (fun z ↦ (z - z₀) * f z)
 
 /-- The sum of residues of `f` over a region `S`, as a `tsum` over `S`. Points of analyticity
 contribute `0`, so this is effectively the sum over the poles of `f` in `S`; when finitely many
@@ -354,6 +426,215 @@ on each lemma. -/
 variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
 
 @[blueprint
+  "ch2-lemma-5-1-a"
+  (title := "Contour shifting, upper half (CH2 Lemma 5.1, eq. 1)")
+  (statement := /--
+  For each `n`, shifting the upper half `1 → 1 + iT` of the central line leftwards to the
+  truncated contour `C_n^+` picks up the residues of `G` in `R^+` to the right of `σ_n`:
+  $$ \frac{1}{2\pi i}\int_1^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^+} G(s) x^s\, ds + \sum_{\rho \in R^+,\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of `R^+` between `[1, 1+iT]` and `C_n^+`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_a (n : ℕ)
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
+      sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-b"
+  (title := "Contour shifting, lower half (CH2 Lemma 5.1, eq. 2)")
+  (statement := /--
+  For each `n`, shifting the lower half `1 - iT → 1` of the central line leftwards to the
+  truncated contour `C_n^-` picks up the residues of `G` in `\overline{R^+}` to the right of `σ_n`:
+  $$ \frac{1}{2\pi i}\int_{1-iT}^{1} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^-} G(s) x^s\, ds + \sum_{\rho \in \overline{R^+},\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of `\overline{R^+}` between `[1-iT, 1]` and `C_n^-`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_b (n : ℕ)
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
+      sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-c"
+  (title := "$G^\\circ$ shift to the $\\sigma_n$ column (CH2 Lemma 5.1, eq. 3)")
+  (statement := /--
+  Shifting the `C_{n,1}^±` parts of the truncated contours onto the line `Re s = σ_n` replaces them
+  by the `σ_n` column, picking up the residues of `G^\circ` in `R_C` to the right of `σ_n`:
+  $$ \frac{1}{2\pi i}\left(\int_{C_{n,1}^+} + \int_{C_{n,1}^-}\right) G^\circ(s) x^s\, ds = \frac{1}{2\pi i}\int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds + \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of `R_C` between `C_{n,1}^+ ∪ C_{n,1}^-` and the `σ_n` column. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_c (n : ℕ)
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ *
+        (l.intCn1Plus n (fun s ↦ G_circ s * (x : ℂ) ^ s) +
+          l.intCn1Minus n (fun s ↦ G_circ s * (x : ℂ) ^ s)) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s) +
+      sumResiduesIn (fun s ↦ G_circ s * (x : ℂ) ^ s) (l.RC ∩ {z | l.σ n < z.re}) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-d"
+  (title := "$G^\\star$ reflection (CH2 Lemma 5.1, eq. 4)")
+  (statement := /--
+  Since `C_{n,1}^-` is the conjugate of `C_{n,1}^+` traversed backwards and `G^\star(\bar s) =
+  -\overline{G^\star(s)}`, the two `G^\star` contour integrals combine into a single imaginary part:
+  $$ \int_{C_{n,1}^+} G^\star(s) x^s\, ds - \int_{C_{n,1}^-} G^\star(s) x^s\, ds = 2i\, \Im \int_{C_{n,1}^+} G^\star(s) x^s\, ds. $$ -/)
+  (proof := /-- For the conjugation-antisymmetric integrand `G^\star x^s`, `∫_{C_{n,1}^-} = conj ∫_{C_{n,1}^+}`, and `z - conj z = 2i \Im z`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_d (n : ℕ)
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s) -
+        l.intCn1Minus n (fun s ↦ G_star s * (x : ℂ) ^ s) =
+      2 * Complex.I * ((l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)).im : ℂ) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-e"
+  (title := "The $C_\\infty$ limit (CH2 Lemma 5.1, eq. 5)")
+  (statement := /--
+  As `n → ∞` (so `σ_n → -∞`), the top segment of `C_n^+` together with the bottom segment of
+  `C_n^-` converge to the contour `C_\infty`:
+  $$ \lim_{n\to\infty} \left( \int_{\sigma_n + iT}^{1 + iT} + \int_{1 - iT}^{\sigma_n - iT} \right) G(s) x^s\, ds = \int_{C_\infty} G(s) x^s\, ds. $$ -/)
+  (proof := /-- As `σ_n → -∞` the truncated horizontal segments exhaust the rays of `C_∞`; uses boundedness of `G x_0^s` on `∂R` and `x > x_0`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_e
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    Filter.Tendsto
+      (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) +
+        intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s))
+      Filter.atTop (nhds (l.intCinf (fun s ↦ G s * (x : ℂ) ^ s))) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-f"
+  (title := "The $\\sigma_n$ column vanishes (CH2 Lemma 5.1, eq. 6)")
+  (statement := /--
+  As `n → ∞` (so `σ_n → -∞`), the integral of `G^\circ x^s` over the `σ_n` column tends to `0`:
+  $$ \lim_{n\to\infty} \int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds = 0. $$ -/)
+  (proof := /-- The integrand is `O((x/x_0)^{σ_n})` via boundedness of `G^\circ x_0^s` on `L`, and `(x/x_0)^{σ_n} → 0` since `x > x_0 ≥ 1` and `σ_n → -∞`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_f
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s))
+      Filter.atTop (nhds (0 : ℂ)) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-g"
+  (title := "Residue-sum exhaustion (CH2 Lemma 5.1, residue limit)")
+  (statement := /--
+  If `f` has only finitely many poles in a region `S`, then the truncated residue sums over
+  $S \cap \{\Re s > \sigma_n\}$ converge, as $n \to \infty$, to the full sum over `S`. (Indeed
+  they are eventually equal to it, once $\sigma_n$ has dropped below the real part of every pole.) -/)
+  (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in `S`, for all
+  large `n` the set $\{\Re s > \sigma_n\}$ contains every pole of `f` in `S`; the truncated sum is
+  then constant and equals `sumResiduesIn f S` (analytic points contribute `0`). -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
+    (hfin : {z ∈ S | meromorphicOrderAt f z < 0}.Finite) :
+    Filter.Tendsto (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re})) Filter.atTop
+      (nhds (sumResiduesIn f S)) := by
+  sorry
+
+@[blueprint
+  "ch2-lemma-5-1-h"
+  (title := "$C_{n,1}^+ \\to C$ (CH2 Lemma 5.1, contour limit)")
+  (statement := /--
+  As `n → ∞` (so `σ_n → -∞`), the integral of `G^\star x^s` over `C_{n,1}^+` converges to its
+  integral over the full contour `C`:
+  $$ \lim_{n\to\infty} \int_{C_{n,1}^+} G^\star(s) x^s\, ds = \int_C G^\star(s) x^s\, ds. $$ -/)
+  (proof := /-- `C_{n,1}^+` differs from `C` (truncated at height `δ`) only in its horizontal
+  segment `1 + iδ → σ_n + iδ`, which exhausts the ray `1 + iδ → -∞ + iδ`, and its vertical segment
+  `σ_n + iδ → σ_n + iT`, which vanishes — both as in \ref{ch2-lemma-5-1-e}, \ref{ch2-lemma-5-1-f},
+  here at height `δ`, using boundedness of `G^\star x_0^s` on `L` and on `C`. -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_1_h
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    Filter.Tendsto (fun n ↦ l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)) Filter.atTop
+      (nhds (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s))) := by
+  sorry
+
+@[blueprint
   "ch2-lemma-5-1"
   (title := "Contour shifting (CH2 Lemma 5.1)")
   (statement := /--
@@ -365,29 +646,41 @@ variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \operatorname{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \operatorname{Res}_{s=\rho} G^\circ(s) x^s, $$
   where the two residue sums run over the poles of $G$ (resp.\ $G^\circ$) in the indicated
   regions, which we assume to be finite. -/)
-  (proof := /-- To be formalized following \cite[\S5]{CH2}; the plan is to split the argument into
-  sub-lemmas, roughly one per displayed equation of the paper's proof. -/)
+  (proof := /-- Assemble from the sub-lemmas. Split the central line into its upper half $[1,1+iT]$
+  and lower half $[1-iT,1]$, and apply Lemmas \ref{ch2-lemma-5-1-a} and \ref{ch2-lemma-5-1-b} to
+  rewrite each as the truncated contour $C_n^+$ (resp.\ $C_n^-$) plus the residues of $G$ over
+  $R^+ \cap \{\Re s > \sigma_n\}$ (resp.\ $\overline{R^+} \cap \{\Re s > \sigma_n\}$). Split each
+  $C_n^{\pm}$ into its horizontal $\Im s = \pm T$ segment and the remainder $C_{n,1}^{\pm}$. On
+  $C_{n,1}^{\pm}$ substitute $G = G^\circ + \operatorname{sgn}(\Im s)\, G^\star$: by
+  \ref{ch2-lemma-5-1-c} the $G^\circ$ part becomes the $\sigma_n$ column plus the residues of
+  $G^\circ$ over $R_C \cap \{\Re s > \sigma_n\}$, and by \ref{ch2-lemma-5-1-d} the $G^\star$ part
+  combines into $2i\, \Im \int_{C_{n,1}^+} G^\star x^s$. Now let $n \to \infty$: the
+  $\Im s = \pm T$ segments converge to $C_\infty$ (\ref{ch2-lemma-5-1-e}); the $\sigma_n$ column
+  vanishes (\ref{ch2-lemma-5-1-f}); $C_{n,1}^+ \to C$ (\ref{ch2-lemma-5-1-h}), so
+  $\Im \int_{C_{n,1}^+} G^\star x^s \to \Im \int_C G^\star x^s$; and the truncated residue sums
+  converge to the full sums (\ref{ch2-lemma-5-1-g}), with $R^+ \sqcup \overline{R^+} = R \setminus
+  R_C$. Collecting terms, and using $\frac{1}{2\pi i} \cdot 2i = \frac{1}{\pi}$, yields the claim. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
     (hG_star_symm : ConjAntisymm G_star)
     (hx₀ : 1 ≤ x₀)
-    (hG_bdd : IsBoundedNoPolesOn (fun s => G s * (x₀ : ℂ) ^ s) l.Rboundary)
-    (hGc_L : IsBoundedNoPolesOn (fun s => G_circ s * (x₀ : ℂ) ^ s) l.L)
-    (hGc_contour : IsBoundedNoPolesOn (fun s => G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hGs_L : IsBoundedNoPolesOn (fun s => G_star s * (x₀ : ℂ) ^ s) l.L)
-    (hGs_contour : IsBoundedNoPolesOn (fun s => G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     -- finiteness of the pole sets in each region (our addition; the paper does not address the
     -- possibility of infinitely many poles):
-    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s => G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s => G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
-    (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt 1 (fun s => G s * (x : ℂ) ^ s) =
-      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCinf (fun s => G s * (x : ℂ) ^ s) +
-      (↑(π⁻¹ * (l.intC (fun s => G_star s * (x : ℂ) ^ s)).im) : ℂ) +
-      sumResiduesIn (fun s => G s * (x : ℂ) ^ s) (l.R \ l.RC) +
-      sumResiduesIn (fun s => G_circ s * (x : ℂ) ^ s) l.RC := by
+    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt 1 (fun s ↦ G s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCinf (fun s ↦ G s * (x : ℂ) ^ s) +
+      (↑(π⁻¹ * (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s)).im) : ℂ) +
+      sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.R \ l.RC) +
+      sumResiduesIn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.RC := by
   sorry
 
 end ContourShifting
