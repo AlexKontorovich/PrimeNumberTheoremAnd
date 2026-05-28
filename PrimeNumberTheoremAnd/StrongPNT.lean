@@ -210,19 +210,28 @@ theorem BorelCaratheodoryDeriv {M r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
+blueprint_comment /--
+\begin{definition}[TaxicabIntegral]\label{TaxicabIntegral}
+  Let $0 < R$. Let $f:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on neighborhoods of points
+  in $\overline{\mathbb{D}_R}$. Define the functon $I_f:\mathbb{D}_R\to\mathbb{C}$ by
+    $$I_f(z)=z\int_0^1f(tz)\,dt.$$
+\end{definition}
+-/
+
+
+
 @[blueprint "LogOfAnalyticFunction"
   (title := "LogOfAnalyticFunction")
   (statement := /--
-    Let $0 < r < R$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on
-    neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all
-    $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that
-    is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
+    Let $0<r<R$. Let $B:\overline{\mathbb{D}_{R}}\to\mathbb{C}$ be analytic on neighborhoods of
+    points in $\overline{\mathbb{D}_{R}}$ with $B(z)\neq 0$ for all
+    $z\in\overline{\mathbb{D}_{R}}$.Then there exists $J_B:\mathbb{D}_R\to\mathbb{C}$ that is
+    analytic on neighborhoods of points in $\mathbb{D}_R$ such that
     \begin{itemize}
         \item $J_B(0)=0$
-        \item $J_B'(z)=B'(z)/B(z)$
-        \item $\log|B(z)|-\log|B(0)|=\Re J_B(z)$
+        \item $J_B'(z)=B'(z)/B(z)$ for all $z\in\overline{\mathbb{D}_r}$
+        \item $\log|B(z)|-\log|B(0)|=\mathfrak{R}J_B(z)$ for all $z\in\mathbb{D}_R$.
     \end{itemize}
-    for all $z\in\overline{\mathbb{D}_r}$.
   -/)
   (proof := /--
     We let $J_B(z)=I_{B'/B}(z)$. Then clearly, $J_B(0)=0$. Now note that
@@ -640,7 +649,7 @@ lemma norm_fOfZero_le_norm_BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
 @[blueprint "DiskBound"
   (title := "DiskBound")
   (statement := /--
-    Let $B>1$ and $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
+    Let $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     $\overline{\mathbb{D}_1}$ with $f(0)\neq0$ such that $|f(z)|\leq B$ for $|z|\leq R$,
     then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
   -/)
@@ -793,7 +802,7 @@ lemma BlaschkeNonzero {r R : ℝ} {f : ℂ → ℂ}
 @[blueprint "ZerosBound"
   (title := "ZerosBound")
   (statement := /--
-    Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
+    Let $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$
     for $|z|\leq R$, then
     $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
@@ -846,7 +855,7 @@ lemma ZerosBound {B r R : ℝ} {f : ℂ → ℂ}
 @[blueprint "JBlaschke"
   (title := "JBlaschke")
   (statement := /--
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
+    Let $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on
     neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define
     $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$
     is from Definition \ref{BlaschkeB}.
@@ -915,19 +924,42 @@ lemma JBlaschkeDerivBound {B r' r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
-blueprint_comment /--
-\begin{theorem}[FinalBound]\label{FinalBound}
+@[blueprint "FinalBound"
+  (title := "FinalBound")
+  (statement := /--
     Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function
     analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and
     $|f(z)|\leq B$ for all $|z|\leq R$, then for all
     $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we have
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
-\end{theorem}
--/
-
-
--- something in the blueprint is wrong here, the inner-sum needs to be over r not R'
+  -/)
+  (proof := /--
+    Since $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we know that
+    $z\not\in\mathcal{K}_f(R')$; thus, by Definition \ref{CFunction} we know that
+    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
+    Substituting this into Definition \ref{BlaschkeB} we have that
+    $$B_f(z)=f(z)\prod_{\rho\in\mathcal{K}_f(r)}
+      \left(\frac{R-z\overline{\rho}/R}{z-\rho}\right)^{m_f(\rho)}.$$
+    Taking the complex logarithm of both sides we have that
+    $$\mathrm{Log}\,B_f(z)=\mathrm{Log}\,f(z)
+      +\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\,\mathrm{Log}(R-z\overline{\rho}/R)
+      -\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\,\mathrm{Log}(z-\rho).$$
+    Taking the derivative of both sides we have that
+    $$\frac{B_f'}{B_f}(z)=\frac{f'}{f}(z)
+      +\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}
+      -\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}.$$
+    By Definition \ref{JBlaschke} and Theorem \ref{LogOfAnalyticFunction},
+    since $L_f(z)=J_{B_f}(z)$ we have $L_f'(z)=J'_{B_f}(z)=(B_f'/B_f)(z)$. Thus,
+    $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}
+      =L_f'(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}.$$
+    Now since $z\in\overline{\mathbb{D}_{r'}}\subseteq\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(r)\subseteq\mathcal{K}_f(R')$, we know that
+    $R^2/R'-R'\leq|z-R^2/\overline{\rho}|$. Thus by the triangle inequality we have
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
+      \leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho).$$
+    Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result
+    with a little algebraic manipulation.
+  -/)]
 lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R' : r < R') (R'_lt_R : R' < R) (R_lt_one : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
@@ -1055,38 +1087,6 @@ lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     · exact ((hfAnalytic z (Metric.closedBall_subset_closedBall r'_lt_one.le hz.1)).differentiableAt).mul (DifferentiableAt.fun_finset_prod hDiff_blaschke)
     · exact (fun ρ hρ => pow_ne_zero _ (sub_ne_zero.mpr fun h => zNotInZeros (h ▸ rFiniteZeros.mem_toFinset.mp hρ)))
   simp only [BlaschkeB, Cf, rFiniteZeros, ↓reduceDIte, zNotInZeros, div_mul_eq_mul_div, mul_div_assoc, ← Finset.prod_div_distrib, div_pow]
-
-
-
-blueprint_comment /--
-\begin{proof}
-\uses{CFunction, BlaschkeB, JBlaschke, LogOfAnalyticFunction, ZerosBound, JBlaschkeDerivBound}
-    Since $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we know that
-    $z\not\in\mathcal{K}_f(R')$; thus, by Definition \ref{CFunction} we know that
-    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(R')}(z-\rho)^{m_f(\rho)}}.$$
-    Substituting this into Definition \ref{BlaschkeB} we have that
-    $$B_f(z)=f(z)\prod_{\rho\in\mathcal{K}_f(R')}
-      \left(\frac{R-z\overline{\rho}/R}{z-\rho}\right)^{m_f(\rho)}.$$
-    Taking the complex logarithm of both sides we have that
-    $$\mathrm{Log}\,B_f(z)=\mathrm{Log}\,f(z)
-      +\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(R-z\overline{\rho}/R)
-      -\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(z-\rho).$$
-    Taking the derivative of both sides we have that
-    $$\frac{B_f'}{B_f}(z)=\frac{f'}{f}(z)
-      +\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}
-      -\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}.$$
-    By Definition \ref{JBlaschke} and Theorem \ref{LogOfAnalyticFunction},
-    since $L_f(z)=J_{B_f}(z)$ we have $L_f'(z)=J'_{B_f}(z)=(B_f'/B_f)(z)$. Thus,
-    $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}
-      =L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}.$$
-    Now since $z\in\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(R')$, we know that
-    $R^2/R'-R'\leq|z-R^2/\overline{\rho}|$. Thus by the triangle inequality we have
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
-      \leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho).$$
-    Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result
-    with a little algebraic manipulation.
-\end{proof}
--/
 
 
 
