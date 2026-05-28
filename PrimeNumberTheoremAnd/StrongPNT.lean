@@ -67,7 +67,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {C r R : ℝ} {f : ℂ → ℂ} {w
   (proof := /--
     This is standard in the literature.
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "theorem")]
 theorem borelCaratheodory' {M r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (Mpos : 0 < M) (Rpos : 0 < R) (hyp_r : r < R)
     (analytic : AnalyticOn ℂ f (Metric.ball 0 R))
@@ -316,7 +316,8 @@ theorem LogOfAnalyticFunction {r R : ℝ} {B : ℂ → ℂ}
   -/)
   (proof := /--
     See above.
-  -/)]
+  -/)
+  (latexEnv := "theorem")]
 theorem LogOfAnalyticFunction' {r' r R : ℝ} {B : ℂ → ℂ}
     (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_R : r < R)
     (BanalyticOnNhdOfDR : AnalyticOnNhd ℂ B (Metric.closedBall (0 : ℂ) R))
@@ -398,7 +399,8 @@ noncomputable def ZeroFactor (f : ℂ → ℂ) (z : ℂ) : ℂ :=
     Trivially, $h_\rho(z)$ is analytic at $\rho$ (we have written down the series
     expansion); now note that
     $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma ZeroFactorization {R : ℝ} {f : ℂ → ℂ} {ρ : ℂ}
     (RleOne : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
@@ -474,7 +476,8 @@ lemma analyticAt_finset_prod_sub_pow (s : Finset ℂ) (g : ℂ → ℕ) (w : ℂ
   -/)
   (proof := /--
     Look at the definition of $C_f$ and apply ZeroFactorization.
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma CfAnalytic {r R : ℝ} {f : ℂ → ℂ}
     (r_lt_R : r < R) (R_lt_one : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1))
@@ -550,7 +553,8 @@ noncomputable def BlaschkeB (r R : ℝ) (f : ℂ → ℂ) (z : ℂ) : ℂ :=
   -/)
   (proof := /--
     Expand out $B_f$ as a product, and observe that each part is analytic on $\overline{\mathbb{D}_R}$.
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma BlaschkeAnalytic {r R : ℝ} {f : ℂ → ℂ}
     (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
     (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -586,7 +590,8 @@ lemma BlaschkeAnalytic {r R : ℝ} {f : ℂ → ℂ}
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}
       =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
     (r_pos : 0 < r) (r_lt_one : r < 1) (r_lt_R : r < R)
     (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -621,7 +626,8 @@ lemma BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
       \left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
     Note that for all $\rho\in\mathcal{K}_f(r)$ that $1<R/|\rho|$ since $r<R$.
     Thus, the result follows.
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma norm_fOfZero_le_norm_BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
     (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
     (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -666,7 +672,8 @@ lemma norm_fOfZero_le_norm_BlaschkeOfZero {r R : ℝ} {f : ℂ → ℂ}
     So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus
     principle, we know that the maximum of $|B_f|$ must occur on the boundary where
     $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$.
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma DiskBound {B r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
     (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -757,7 +764,8 @@ lemma DiskBound {B r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
     We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and
     $z\not\in\mathcal{K}_f(r)$, so the result follows.
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 lemma BlaschkeNonzero {r R : ℝ} {f : ℂ → ℂ}
     (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
     (finiteZeros : (SetOfZeros 1 f).Finite)
@@ -819,8 +827,9 @@ lemma BlaschkeNonzero {r R : ℝ} {f : ℂ → ℂ}
       =|B_f(0)|\leq B$$
     whereby Lemma \ref{DiskBound} we know that $|B_f(z)|\leq B$ for all $|z|\leq R$.
     Taking the logarithm of both sides and rearranging gives the desired result.
-  -/)]
-lemma ZerosBound {B r R : ℝ} {f : ℂ → ℂ}
+  -/)
+  (latexEnv := "theorem")]
+theorem ZerosBound {B r R : ℝ} {f : ℂ → ℂ}
     (r_pos : 0 < r) (r_lt_one : r < 1) (r_lt_R : r < R) (R_lt_one : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
     (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B) :
@@ -890,8 +899,9 @@ noncomputable def JBlaschke {r' r R : ℝ} {f : ℂ → ℂ}
     because of Lemma \ref{norm-fOfZero-le-norm-BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
     for all $|z|\leq r'$.
-  -/)]
-lemma JBlaschkeDerivBound {B r' r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
+  -/)
+  (latexEnv := "theorem")]
+theorem JBlaschkeDerivBound {B r' r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_pos : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
     (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
@@ -959,8 +969,9 @@ lemma JBlaschkeDerivBound {B r' r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       \leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho).$$
     Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result
     with a little algebraic manipulation.
-  -/)]
-lemma FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
+  -/)
+  (latexEnv := "theorem")]
+theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (one_lt_B : 1 < B) (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R' : r < R') (R'_lt_R : R' < R) (R_lt_one : R < 1)
     (hfAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1)) (hf0_eq_one : f 0 = 1)
     (finiteZeros : (SetOfZeros 1 f).Finite) (fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B)
