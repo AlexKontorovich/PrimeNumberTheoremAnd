@@ -9,6 +9,7 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Buthe
 import PrimeNumberTheoremAnd.CH2
+import PrimeNumberTheoremAnd.CH2_part1
 import PrimeNumberTheoremAnd.Chebyshev
 import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.CostaPereira

@@ -895,7 +895,7 @@ end Rosser1938
 
 namespace Cipolla
 
-blueprint_comment /-- Some results from \cite{cippola} -/
+blueprint_comment /-- Some results from \cite{cipolla} -/
 
 @[blueprint
   "thm:cipolla-pn-asym"
