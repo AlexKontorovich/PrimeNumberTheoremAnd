@@ -4565,91 +4565,49 @@ theorem CH2_lemma_4_2b (z : ℂ) (hz : |z.im| ≤ π / 2) : ‖deriv (fun z:ℂ 
     sorry
 
 
-
-/-
-\begin{lemma}
-Let $\Phi^{\pm,\circ}_\nu(z)$ and $\Phi^{\pm,\star}_\nu(z)$ be as in \eqref{eq:defPhi} for $\nu > 0$. Then:
-\begin{itemize}
-    \item $\Phi^{\pm,\circ}_\nu(z)$ is a meromorphic function whose poles, all of them simple, are at $n - \frac{i\nu}{2\pi}$, $n \in \mathbb{Z}$; the residue at every pole is $\frac{i}{2\pi}$. Moreover, $\Phi^{\pm,\circ}_\nu(z) = \overline{\Phi^{\pm,\circ}_\nu(-\bar{z})}$.
-    \item $\Phi^{\pm,\star}_\nu(z)$ is a meromorphic function whose poles, all of them simple, are at $n - \frac{i\nu}{2\pi}$, $n \in \mathbb{Z} \setminus \{0\}$; the residue at $n - \frac{i\nu}{2\pi}$ is $-\frac{in}{2\pi}$. Moreover, $\Phi^{\pm,\star}_\nu(z) = -\overline{\Phi^{\pm,\star}_\nu(-\bar{z})}$.
-\end{itemize}
-On every region $\{z : \Im z \geq c\}$, $c > -\frac{\nu}{2\pi}$, or $\{z : \Im z \leq c\}$, $c < -\frac{\nu}{2\pi}$, the function $\Phi^{\pm,\circ}_\nu(z)$ is bounded and $\Phi^{\pm,\star}_\nu(z) = O(|z| + 1)$. Moreover, these bounds hold uniformly for all $\nu$ in an interval $[\nu_0, \nu_1]$, with conditions $c > -\frac{\nu_0}{2\pi}$, $c < -\frac{\nu_1}{2\pi}$, respectively.
-
-We have $\Phi^{\sigma,\star}_\nu(0) = 0$. For $z$ with $0 \leq \Re z \leq \frac{1}{4}$, and for either sign $\sigma = \pm$,
-\[
-\left|(\Phi^{\pm,\star}_\nu)'(z)\right| \leq 1, \quad |\Phi^{\sigma,\star}_\nu(\pm z)| \leq |z|, \quad |(\Phi^{\sigma,\circ}_\nu \pm \Phi^{\sigma,\star}_\nu)(\pm 1 \mp z)| \leq |z|.
-\]
-Moreover, for $z$ purely imaginary, $(\Phi^{\sigma,\star}_\nu)'(\pm z)$, which is purely real, is of constant sign.
-
-Note that $\Phi^{\sigma,\circ}_\nu(z) \pm \Phi^{\sigma,\star}_\nu(z)$ is regular at $\pm 1 - \frac{i\nu}{2\pi}$, since the residues cancel out.
-
-Our convention is that all signs denoted by $\pm$ in the same equation are the same, $\mp$ is the opposite sign, and $\sigma$ denotes a sign that may or may not be the same.
-\end{lemma}
-
-\begin{proof}
-The statements on poles and residues follow directly from \eqref{eq:defPhi}; so do the statements on $\overline{\Phi^{\pm,\circ}_\nu(z)}$ and $\overline{\Phi^{\pm,\star}_\nu(z)}$. The statements on the boundedness of $\Phi^{\sigma,\circ}_\nu(z)$ and the growth of $\Phi^{\sigma,\star}_\nu(z)$ follow from \eqref{eq:defPhi} and the fact that $\coth(w)$ is bounded on $\Re w \geq c$ for $c > 0$ arbitrary and on $\Re w \leq c$ for $c < 0$ arbitrary. Since $|\Phi^{\sigma,\star}_\nu(-z)| = |\Phi^{\sigma,\star}_\nu(z)|$ and $|(\Phi^{\sigma,\circ}_\nu - \Phi^{\sigma,\star}_\nu)(-1 + z)| = |(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)|$, it is left to check that $|\Phi^{\sigma,\star}_\nu(z)| \leq |z|$ and $|(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)| \leq |z|$.
-
-By \eqref{eq:defPhi}, $\Phi^{\pm,\star}_\nu(0) = 0$ and $(\Phi^{\pm,\star}_\nu)'(z) = -\frac{d}{dw}\!\left(\frac{w}{2}\coth\frac{w}{2}\right) \mp \frac{1}{2}$ at $w = -2\pi iz + \nu$. Hence, for $0 \leq \Re z \leq \frac{1}{4}$, by Lemma~4.2, $|(\Phi^{\pm,\star}_\nu)'(z)| \leq 1$, and so $|(\Phi^{\pm,\star}_\nu)(z)| \leq |z|$; moreover, $(\Phi^{\pm,\star}_\nu)'(z)$ does not change sign for $z$ purely imaginary, as $\tanh w$ is real, and the term $\mp\frac{1}{2}$ always dominates. By \eqref{eq:comb}, $(\Phi^{\pm,\circ}_\nu + \Phi^{\pm,\star}_\nu)(1) = 0$ and $(\Phi^{\pm,\circ}_\nu + \Phi^{\pm,\star}_\nu)'(z) = -\frac{d}{dw}\!\left(\frac{w}{2}\coth\frac{w}{2}\right) \mp \frac{1}{2}$ at $w = -2\pi i(z-1) + \nu$. Hence, again by Lemma~4.2, for $0 \leq \Re z \leq \frac{1}{4}$, $|(\Phi^{\sigma,\circ}_\nu + \Phi^{\sigma,\star}_\nu)(1 - z)| \leq |z|$.
-\end{proof}
-
-\begin{lemma}
-For $z \in \mathbb{C}$, $\lambda \in \mathbb{R} \setminus \{0\}$, define
-\[
-\Phi^\pm_\lambda(z) = \Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z) + \operatorname{sgn}(\lambda)\operatorname{sgn}(\Re z)\,\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z),
-\]
-where $\Phi^{\pm,\circ}_{|\lambda|}$, $\Phi^{\pm,\star}_{|\lambda|}$ are as in \eqref{eq:defPhi}, and $\operatorname{sgn}(0) = 0$. Let $T > 0$, and let $z(s) = \frac{s-1}{iT}$.
-
-Then, for $s \in \mathbb{C}$,
-\begin{equation}
-\Phi^\pm_\lambda(z(s)) = \overline{\Phi^\pm_\lambda(z(\bar{s}))}. \label{eq:conjsym}
-\end{equation}
-Let $\sigma \in \mathbb{R} \setminus \{1\}$. Let $\lambda = \frac{2\pi}{T}(\sigma - 1)$ and write $\theta(s) = 1 - \frac{s - \sigma}{iT}$. If $\Im s > 0$,
-\begin{equation}
-\Phi^\pm_\lambda(z(s)) = i\operatorname{sgn}(\lambda)\left(-\frac{\theta(s)}{2}\cot(\pi\theta(s)) + \frac{\theta(1+iT)}{2}\cot(\pi\theta(1+iT)) \pm \frac{1 - z(s)}{2}\right). \label{eq:Phieval}
-\end{equation}
-\end{lemma}
-
-\begin{proof}
-When we evaluate $\Phi^\pm_\lambda$ at $z(s)$, we evaluate $\Phi^{\pm,\circ}_{|\lambda|}$ and $\Phi^{\pm,\star}_{|\lambda|}$ at $\operatorname{sgn}(\lambda)z(s)$, and so the variable $w$ in \eqref{eq:defPhi} is given by
-\begin{equation}
-w = -2\pi i\operatorname{sgn}(\lambda)\frac{s-1}{iT} + |\lambda| = \operatorname{sgn}(\lambda)\!\left(-\frac{2\pi}{T}(s-1) + \lambda\right) = -\operatorname{sgn}(\lambda)\frac{2\pi}{T}(s - \sigma). \label{eq:wform}
-\end{equation}
-In particular, when we conjugate $s$, we conjugate $w$. We thus see from \eqref{eq:defPhi} that
-\[
-\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) = \overline{\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(\bar{s}))}, \quad \Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) = -\overline{\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(\bar{s}))},
-\]
-and thus, since $\operatorname{sgn}(\Re z(s)) = -\operatorname{sgn}(\Re z(\bar{s}))$, \eqref{eq:conjsym} holds.
-
-If $\Im s > 0$,
-\begin{equation}
-\Phi^\pm_\lambda(z(s)) = \Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) + \operatorname{sgn}(\lambda)\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) \label{eq:Phipos}
-\end{equation}
-because $\Im s > 0$ implies $\Re z(s) > 0$. Since $\coth$ is an odd function, \eqref{eq:defPhi} and \eqref{eq:wform} give us
-\begin{align*}
-\Phi^{\pm,\circ}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) &= \frac{1}{2}\!\left(-\operatorname{sgn}(\lambda)\coth\frac{\pi(s-\sigma)}{T} \pm 1\right), \\
-\Phi^{\pm,\star}_{|\lambda|}(\operatorname{sgn}(\lambda)z(s)) &= \frac{i}{2\pi}\!\left(\frac{\lambda}{2}\coth\frac{\lambda}{2} - \frac{\pi(s-\sigma)}{T}\coth\frac{\pi(s-\sigma)}{T} \pm \operatorname{sgn}(\lambda)\pi i z(s)\right).
-\end{align*}
-Thus, for $\Im s > 0$, \eqref{eq:Phipos} gives us
-\[
-\Phi^\pm_\lambda(z(s)) = -\operatorname{sgn}(\lambda)\frac{i(s-\sigma)}{2T} + \frac{1}{2}\!\left(\coth\frac{\pi(s-\sigma)}{T} - \frac{i\lambda}{4\pi}\coth\frac{\lambda}{2}\right) \pm \frac{1 - z(s)}{2}.
-\]
-So, by $\coth u = -i\cot(u/i)$, $\coth(-u) = -\coth u$, $\cot(\pi - u) = -\cot u$ and $\theta(s) = 1 - \frac{s - \sigma}{iT}$,
-\[
-\Phi^\pm_\lambda(z(s)) = i\operatorname{sgn}(\lambda)\!\left(-\frac{\theta(s)}{2}\cot(\pi\theta(s)) - \frac{i\lambda}{4\pi}\cot\frac{\lambda}{2i}\right) \pm \frac{1 - z(s)}{2}.
-\]
-Since $\theta(1 + iT) = \frac{\sigma - 1}{iT} = \frac{\lambda}{2\pi i}$, we have $\cot\frac{\lambda}{2i} = \cot(\pi\theta(1 + iT))$.
-\end{proof}
--/
-
-
-
-
-
 blueprint_comment /--
 \subsection{Contour shifting}\label{ch2-contour-sec}
 
 TODO: incorporate material from \cite[Section 5]{CH2}.
 -/
+
+/-- To state the contour integral results of CH2 cleanly we introduce the concept of a "LadderParams" which generates a
+"ladder" as well as an "admissible contour" - a contour going up from `1` to `1 + I * ε` then backwards to `-∞ + I * ε`. -/
+class LadderParams where
+  σ : ℕ → ℝ
+  T : ℝ
+  ε : ℝ
+  h0 : σ 0 = 1
+  hlim : Filter.atTop.Tendsto σ ⊥
+  hε : ε ∈ Set.Ioo 0 (T/4)
+
+lemma LadderParams.hT (l : LadderParams) : 0 < l.T := by
+  have := l.hε; grind
+
+/-- The "ladder" on page 2 of CH2, where functions need to be bounded (and have no poles). -/
+def LadderParams.ladder (l : LadderParams) : Set ℂ :=
+  {z : ℂ | (∃ n, z.re = l.σ n ∧ |z.im| ≤ l.T) ∨ (z.re ≤ 1 ∧ |z.im| = l.T) }
+
+/-- The "admissible contour", which we will fix to be of a simplified form. -/
+def LadderParams.admissible_contour (l : LadderParams) : Set ℂ :=
+  {z : ℂ | (z.re ≤ 1 ∧ z.im = l.ε) ∨ (z.re = 1 ∧ z.im ∈ Set.Icc 0 l.ε) }
+
+/-- Describes the property that a function is bounded with no poles on a given set -/
+def IsBoundedOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := ∃ M, ∀ z ∈ s, ‖f z‖ ≤ M ∧ 0 ≤ meromorphicOrderAt f z
+
+/-- The main rectangle the ladder and contour lie in-/
+def LadderParams.R (l : LadderParams) : Set ℂ := { z | z.re ≤ 1 ∧ |z.im| ≤ l.T }
+
+/-- An upper quarter of the rectangle -/
+def LadderParams.R4 (l : LadderParams) : Set ℂ := { z | z.re ≤ 1 ∧ z.im ∈ Set.Icc 0 (l.T/4) }
+
+/-- Describes the property that there are no poles between the contour and the real axis. -/
+def LadderParams.HasGoodPoles (l : LadderParams) (f : ℂ → ℂ) : Prop := ∀ z, z.re < 1
+    ∧ z.im ∈ Set.Ioo 0 l.ε → 0 ≤ meromorphicOrderAt f z
+
+
+
+
 
 blueprint_comment /--
 \subsection{The main theorem}\label{ch2-main-thm-sec}
