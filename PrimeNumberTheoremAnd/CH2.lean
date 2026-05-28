@@ -429,10 +429,10 @@ variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
   "ch2-lemma-5-1-a"
   (title := "Contour shifting, upper half (CH2 Lemma 5.1, eq. 1)")
   (statement := /--
-  For each `n`, shifting the upper half `1 → 1 + iT` of the central line leftwards to the
-  truncated contour `C_n^+` picks up the residues of `G` in `R^+` to the right of `σ_n`:
-  $$ \frac{1}{2\pi i}\int_1^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^+} G(s) x^s\, ds + \sum_{\rho \in R^+,\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G(s) x^s. $$ -/)
-  (proof := /-- The residue theorem on the region of `R^+` between `[1, 1+iT]` and `C_n^+`. -/)
+  For each $n$, shifting the upper half $1 \to 1 + iT$ of the central line leftwards to the
+  truncated contour $C_n^+$ picks up the residues of $G$ in $R^+$ to the right of $\sigma_n$:
+  $$ \frac{1}{2\pi i}\int_1^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^+} G(s) x^s\, ds + \sum_{\rho \in R^+,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of $R^+$ between $[1, 1+iT]$ and $C_n^+$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_a (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -456,10 +456,10 @@ theorem lemma_5_1_a (n : ℕ)
   "ch2-lemma-5-1-b"
   (title := "Contour shifting, lower half (CH2 Lemma 5.1, eq. 2)")
   (statement := /--
-  For each `n`, shifting the lower half `1 - iT → 1` of the central line leftwards to the
-  truncated contour `C_n^-` picks up the residues of `G` in `\overline{R^+}` to the right of `σ_n`:
-  $$ \frac{1}{2\pi i}\int_{1-iT}^{1} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^-} G(s) x^s\, ds + \sum_{\rho \in \overline{R^+},\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G(s) x^s. $$ -/)
-  (proof := /-- The residue theorem on the region of `\overline{R^+}` between `[1-iT, 1]` and `C_n^-`. -/)
+  For each $n$, shifting the lower half $1 - iT \to 1$ of the central line leftwards to the
+  truncated contour $C_n^-$ picks up the residues of $G$ in $\overline{R^+}$ to the right of $\sigma_n$:
+  $$ \frac{1}{2\pi i}\int_{1-iT}^{1} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^-} G(s) x^s\, ds + \sum_{\rho \in \overline{R^+},\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of $\overline{R^+}$ between $[1-iT, 1]$ and $C_n^-$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_b (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -483,10 +483,11 @@ theorem lemma_5_1_b (n : ℕ)
   "ch2-lemma-5-1-c"
   (title := "$G^\\circ$ shift to the $\\sigma_n$ column (CH2 Lemma 5.1, eq. 3)")
   (statement := /--
-  Shifting the `C_{n,1}^±` parts of the truncated contours onto the line `Re s = σ_n` replaces them
-  by the `σ_n` column, picking up the residues of `G^\circ` in `R_C` to the right of `σ_n`:
-  $$ \frac{1}{2\pi i}\left(\int_{C_{n,1}^+} + \int_{C_{n,1}^-}\right) G^\circ(s) x^s\, ds = \frac{1}{2\pi i}\int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds + \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \operatorname{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
-  (proof := /-- The residue theorem on the region of `R_C` between `C_{n,1}^+ ∪ C_{n,1}^-` and the `σ_n` column. -/)
+  Shifting the $C_{n,1}^{\pm}$ parts of the truncated contours onto the line $\Re s = \sigma_n$
+  replaces them by the $\sigma_n$ column, picking up the residues of $G^\circ$ in $R_C$ to the
+  right of $\sigma_n$:
+  $$ \frac{1}{2\pi i}\left(\int_{C_{n,1}^+} + \int_{C_{n,1}^-}\right) G^\circ(s) x^s\, ds = \frac{1}{2\pi i}\int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds + \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
+  (proof := /-- The residue theorem on the region of $R_C$ between $C_{n,1}^+ \cup C_{n,1}^-$ and the $\sigma_n$ column. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_c (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -512,10 +513,10 @@ theorem lemma_5_1_c (n : ℕ)
   "ch2-lemma-5-1-d"
   (title := "$G^\\star$ reflection (CH2 Lemma 5.1, eq. 4)")
   (statement := /--
-  Since `C_{n,1}^-` is the conjugate of `C_{n,1}^+` traversed backwards and `G^\star(\bar s) =
-  -\overline{G^\star(s)}`, the two `G^\star` contour integrals combine into a single imaginary part:
+  Since $C_{n,1}^-$ is the conjugate of $C_{n,1}^+$ traversed backwards and $G^\star(\bar s) =
+  -\overline{G^\star(s)}$, the two $G^\star$ contour integrals combine into a single imaginary part:
   $$ \int_{C_{n,1}^+} G^\star(s) x^s\, ds - \int_{C_{n,1}^-} G^\star(s) x^s\, ds = 2i\, \Im \int_{C_{n,1}^+} G^\star(s) x^s\, ds. $$ -/)
-  (proof := /-- For the conjugation-antisymmetric integrand `G^\star x^s`, `∫_{C_{n,1}^-} = conj ∫_{C_{n,1}^+}`, and `z - conj z = 2i \Im z`. -/)
+  (proof := /-- For the conjugation-antisymmetric integrand $G^\star x^s$, $\int_{C_{n,1}^-} = \overline{\int_{C_{n,1}^+}}$, and $z - \bar z = 2i\, \Im z$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_d (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -539,10 +540,10 @@ theorem lemma_5_1_d (n : ℕ)
   "ch2-lemma-5-1-e"
   (title := "The $C_\\infty$ limit (CH2 Lemma 5.1, eq. 5)")
   (statement := /--
-  As `n → ∞` (so `σ_n → -∞`), the top segment of `C_n^+` together with the bottom segment of
-  `C_n^-` converge to the contour `C_\infty`:
+  As $n \to \infty$ (so $\sigma_n \to -\infty$), the top segment of $C_n^+$ together with the
+  bottom segment of $C_n^-$ converge to the contour $C_\infty$:
   $$ \lim_{n\to\infty} \left( \int_{\sigma_n + iT}^{1 + iT} + \int_{1 - iT}^{\sigma_n - iT} \right) G(s) x^s\, ds = \int_{C_\infty} G(s) x^s\, ds. $$ -/)
-  (proof := /-- As `σ_n → -∞` the truncated horizontal segments exhaust the rays of `C_∞`; uses boundedness of `G x_0^s` on `∂R` and `x > x_0`. -/)
+  (proof := /-- As $\sigma_n \to -\infty$ the truncated horizontal segments exhaust the rays of $C_\infty$; uses boundedness of $G x_0^s$ on $\partial R$ and $x > x_0$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_e
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -567,9 +568,10 @@ theorem lemma_5_1_e
   "ch2-lemma-5-1-f"
   (title := "The $\\sigma_n$ column vanishes (CH2 Lemma 5.1, eq. 6)")
   (statement := /--
-  As `n → ∞` (so `σ_n → -∞`), the integral of `G^\circ x^s` over the `σ_n` column tends to `0`:
+  As $n \to \infty$ (so $\sigma_n \to -\infty$), the integral of $G^\circ x^s$ over the $\sigma_n$
+  column tends to $0$:
   $$ \lim_{n\to\infty} \int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds = 0. $$ -/)
-  (proof := /-- The integrand is `O((x/x_0)^{σ_n})` via boundedness of `G^\circ x_0^s` on `L`, and `(x/x_0)^{σ_n} → 0` since `x > x_0 ≥ 1` and `σ_n → -∞`. -/)
+  (proof := /-- The integrand is $O((x/x_0)^{\sigma_n})$ via boundedness of $G^\circ x_0^s$ on $L$, and $(x/x_0)^{\sigma_n} \to 0$ since $x > x_0 \geq 1$ and $\sigma_n \to -\infty$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_f
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -592,12 +594,12 @@ theorem lemma_5_1_f
   "ch2-lemma-5-1-g"
   (title := "Residue-sum exhaustion (CH2 Lemma 5.1, residue limit)")
   (statement := /--
-  If `f` has only finitely many poles in a region `S`, then the truncated residue sums over
-  $S \cap \{\Re s > \sigma_n\}$ converge, as $n \to \infty$, to the full sum over `S`. (Indeed
+  If $f$ has only finitely many poles in a region $S$, then the truncated residue sums over
+  $S \cap \{\Re s > \sigma_n\}$ converge, as $n \to \infty$, to the full sum over $S$. (Indeed
   they are eventually equal to it, once $\sigma_n$ has dropped below the real part of every pole.) -/)
-  (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in `S`, for all
-  large `n` the set $\{\Re s > \sigma_n\}$ contains every pole of `f` in `S`; the truncated sum is
-  then constant and equals `sumResiduesIn f S` (analytic points contribute `0`). -/)
+  (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in $S$, for all
+  large $n$ the set $\{\Re s > \sigma_n\}$ contains every pole of $f$ in $S$; the truncated sum is
+  then constant and equals the full residue sum over $S$ (analytic points contribute $0$). -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
     (hfin : {z ∈ S | meromorphicOrderAt f z < 0}.Finite) :
@@ -609,13 +611,14 @@ theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
   "ch2-lemma-5-1-h"
   (title := "$C_{n,1}^+ \\to C$ (CH2 Lemma 5.1, contour limit)")
   (statement := /--
-  As `n → ∞` (so `σ_n → -∞`), the integral of `G^\star x^s` over `C_{n,1}^+` converges to its
-  integral over the full contour `C`:
+  As $n \to \infty$ (so $\sigma_n \to -\infty$), the integral of $G^\star x^s$ over $C_{n,1}^+$
+  converges to its integral over the full contour $C$:
   $$ \lim_{n\to\infty} \int_{C_{n,1}^+} G^\star(s) x^s\, ds = \int_C G^\star(s) x^s\, ds. $$ -/)
-  (proof := /-- `C_{n,1}^+` differs from `C` (truncated at height `δ`) only in its horizontal
-  segment `1 + iδ → σ_n + iδ`, which exhausts the ray `1 + iδ → -∞ + iδ`, and its vertical segment
-  `σ_n + iδ → σ_n + iT`, which vanishes — both as in \ref{ch2-lemma-5-1-e}, \ref{ch2-lemma-5-1-f},
-  here at height `δ`, using boundedness of `G^\star x_0^s` on `L` and on `C`. -/)
+  (proof := /-- $C_{n,1}^+$ differs from $C$ (truncated at height $\delta$) only in its horizontal
+  segment $1 + i\delta \to \sigma_n + i\delta$, which exhausts the ray $1 + i\delta \to -\infty + i\delta$, and its
+  vertical segment $\sigma_n + i\delta \to \sigma_n + iT$, which vanishes --- both as in
+  \ref{ch2-lemma-5-1-e}, \ref{ch2-lemma-5-1-f}, here at height $\delta$, using boundedness of
+  $G^\star x_0^s$ on $L$ and on $C$. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1_h
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -638,12 +641,12 @@ theorem lemma_5_1_h
   "ch2-lemma-5-1"
   (title := "Contour shifting (CH2 Lemma 5.1)")
   (statement := /--
-  Let $G = G^\circ + \operatorname{sgn}(\Im s)\, G^\star$ with $G^\circ, G^\star$ meromorphic on
+  Let $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ with $G^\circ, G^\star$ meromorphic on
   $R = (-\infty,1] + i[-T,T]$, and suppose $G^\star(\bar s) = -\overline{G^\star(s)}$. Suppose for
   some $x_0 \geq 1$ that $G(s) x_0^s$ is bounded with no poles on $\partial R$, and both
   $G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and the
   contour $C$. Then for any $x > x_0$,
-  $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \operatorname{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \operatorname{Res}_{s=\rho} G^\circ(s) x^s, $$
+  $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} G^\circ(s) x^s, $$
   where the two residue sums run over the poles of $G$ (resp.\ $G^\circ$) in the indicated
   regions, which we assume to be finite. -/)
   (proof := /-- Assemble from the sub-lemmas. Split the central line into its upper half $[1,1+iT]$
@@ -651,7 +654,7 @@ theorem lemma_5_1_h
   rewrite each as the truncated contour $C_n^+$ (resp.\ $C_n^-$) plus the residues of $G$ over
   $R^+ \cap \{\Re s > \sigma_n\}$ (resp.\ $\overline{R^+} \cap \{\Re s > \sigma_n\}$). Split each
   $C_n^{\pm}$ into its horizontal $\Im s = \pm T$ segment and the remainder $C_{n,1}^{\pm}$. On
-  $C_{n,1}^{\pm}$ substitute $G = G^\circ + \operatorname{sgn}(\Im s)\, G^\star$: by
+  $C_{n,1}^{\pm}$ substitute $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$: by
   \ref{ch2-lemma-5-1-c} the $G^\circ$ part becomes the $\sigma_n$ column plus the residues of
   $G^\circ$ over $R_C \cap \{\Re s > \sigma_n\}$, and by \ref{ch2-lemma-5-1-d} the $G^\star$ part
   combines into $2i\, \Im \int_{C_{n,1}^+} G^\star x^s$. Now let $n \to \infty$: the
