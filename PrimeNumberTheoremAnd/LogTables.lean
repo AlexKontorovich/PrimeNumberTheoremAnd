@@ -56,5 +56,7 @@ lemma log_32_lt : log 32 < 3.465736 := by interval_decide
 lemma log_2_353_gt : (0.855 : ℝ) < log 2.353 := by interval_decide
 lemma log_3_2_gt : (1.163 : ℝ) < log 3.2 := by interval_decide
 lemma exp_1_112_lt : exp (1.112 : ℝ) < 3.041 := by interval_decide
+lemma log_6_58_gt : (1.884034 : ℝ) < log 6.58 := by interval_decide
+lemma log_log_6_58_gt : (0.633415 : ℝ) < Real.log (Real.log 6.58) := by interval_decide
 
 end LogTables
