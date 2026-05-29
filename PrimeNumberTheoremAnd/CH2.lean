@@ -9,7 +9,62 @@ namespace CH2
 blueprint_comment /--
 \subsection{Contour shifting}\label{ch2-contour-sec}
 
-TODO: incorporate material from \cite[Section 5]{CH2}.
+This section formalises \cite[Section 5]{CH2}. We collect here the notation and the standing
+hypotheses shared by Lemma \ref{ch2-lemma-5-1} (contour shifting) and its sub-lemmas.
+
+\textbf{Ladder parameters.} We fix:
+\begin{itemize}
+  \item a half-height $T > 0$ and a contour height $\delta \in (0, T/4)$. (We write $\delta$ for the
+    paper's contour height $\varepsilon$, since $\varepsilon$ already denotes the $\pm 1$ sign in the
+    extremal-approximant notation above.)
+  \item truncation abscissae $\sigma \colon \mathbb{N} \to \mathbb{R}$ with $\sigma_0 = 1$,
+    $\sigma_n \leq 1$, and $\sigma_n \to -\infty$; these are the leftward shift levels in the proof.
+\end{itemize}
+
+\textbf{Regions and contours.} Write $s = \Re s + i\, \Im s$. We use:
+\begin{itemize}
+  \item the rectangle $R = \{ s : \Re s \leq 1,\ |\Im s| \leq T \}$ and its boundary $\partial R$;
+  \item the ladder $L = \bigcup_{n \geq 1} \{ \sigma_n + i t : |t| \leq T \}$ (the columns above
+    $\sigma_n$ for $n \geq 1$; the $\sigma_0 = 1$ column is part of $\partial R$);
+  \item the (simplified) admissible contour $C$: up from $1$ to $1 + i\delta$, then leftward along
+    $\Im s = \delta$ to $-\infty$, with conjugate $\overline{C}$;
+  \item $R^+ = \{ \Re s \leq 1,\ \delta \leq \Im s \leq T \}$ (the part of $R$ above $C$), its
+    conjugate $\overline{R^+} = \{ \Re s \leq 1,\ -T \leq \Im s \leq -\delta \}$ (below
+    $\overline{C}$), and $R_C = \{ \Re s \leq 1,\ |\Im s| \leq \delta \}$ (between $C$ and
+    $\overline{C}$). Thus $R = R^+ \sqcup R_C \sqcup \overline{R^+}$, so
+    $R \setminus R_C = R^+ \sqcup \overline{R^+}$;
+  \item the horizontal rays $C_\infty$: $\{ \Im s = \pm T,\ \Re s \leq 1 \}$ (the top and bottom of
+    $R$ continued to $-\infty$).
+\end{itemize}
+
+\textbf{The function $G$.} We are given a decomposition $G(s) = G^\circ(s) + \mathrm{sgn}(\Im s)\,
+G^\star(s)$ in which $G^\circ$ and $G^\star$ are meromorphic on $R$ and $G^\star$ is
+\emph{conjugation-antisymmetric}, $G^\star(\bar s) = -\overline{G^\star(s)}$ (so for real $x$ the
+integrand $s \mapsto G^\star(s) x^s$ is too; this is what lets the integrals over $C$ and
+$\overline{C}$ combine into a single $\frac{1}{\pi} \Im \int_C G^\star x^s$ term). We fix reals
+$1 \leq x_0 < x$ and assume $G(s) x_0^s$ is bounded with no poles on $\partial R$, and that both
+$G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and on the
+contour $C$.
+
+\textbf{Truncated contours (used in the proof).} At truncation level $n$:
+\begin{itemize}
+  \item $C_n^+$: from $1$, follow $C$ leftward to $\sigma_n + i\delta$, then up to $\sigma_n + iT$,
+    then right to $1 + iT$; $C_n^-$ is the conjugate, traversed backwards;
+  \item $C_{n,1}^\pm$: the contour $C_n^\pm$ with its horizontal $\Im s = \pm T$ segment removed;
+  \item the $\sigma_n$ column $\{ \sigma_n + it : |t| \leq T \}$.
+\end{itemize}
+Each contour integral carries the orientation just described; the prefactors $\frac{1}{2\pi i}$ and
+$\frac{1}{\pi} \Im$ are written explicitly at each occurrence rather than baked into the contours.
+
+\textbf{Residues (temporary scaffold).} Mathlib has no general residue theorem yet, so
+$\mathrm{Res}_{s=\rho}$ denotes the simple-pole residue $\lim_{s \to \rho} (s - \rho) f(s)$, and a
+sum $\sum_{\rho \in S} \mathrm{Res}_{s=\rho}$ is the sum of these over the poles of the integrand in
+$S$. Over the bounded off-axis region $R \setminus R_C$ this is a finite sum (we assume finitely
+many poles there). Over $R_C$, which may contain infinitely many poles on the real axis (e.g. the
+trivial zeros of $\zeta$), it is taken in the \emph{improper} sense
+$\lim_{n \to \infty} \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho}$. We also assume
+throughout that every pole in $R$ is at most simple. These last conventions are scaffolding to be
+removed once Mathlib gains a general (higher-order) residue theorem.
 -/
 
 /-- To state the contour integral results of CH2 cleanly we introduce the concept of a "LadderParams" which generates a
@@ -44,6 +99,17 @@ def LadderParams.admissible_contour (l : LadderParams) : Set ℂ :=
 
 /-- Describes the property that a function is bounded with no poles on a given set -/
 def IsBoundedNoPolesOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := ∃ M, ∀ z ∈ s, ‖f z‖ ≤ M ∧ 0 ≤ meromorphicOrderAt f z
+
+/-- Every pole of `f` in `s` is at most simple: the meromorphic order is `≥ -1` everywhere on `s`
+(no poles of order `≤ -2`).
+
+**Temporary scaffold.** The placeholder `residue` below (and Mathlib's current residue-theorem API)
+is only correct for simple poles, so this hypothesis is added to Lemma 5.1 / Proposition 5.2 and
+their sub-lemmas to make them provable with the present API. It holds in the intended applications
+(e.g. `ζ'/ζ`, whose poles are all simple) and is to be removed once Mathlib gains general
+higher-order residue support. -/
+def HasSimplePolesOn (f : ℂ → ℂ) (s : Set ℂ) : Prop :=
+  ∀ z ∈ s, (-1 : ℤ) ≤ meromorphicOrderAt f z
 
 /-- The main rectangle the ladder and contour lie in -/
 def LadderParams.R (l : LadderParams) : Set ℂ := { z | z.re ≤ 1 ∧ |z.im| ≤ l.T }
@@ -411,6 +477,15 @@ infinitely many poles, summability must be assumed for the value to be meaningfu
 noncomputable def sumResiduesIn (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
   ∑' z : S, residue f z
 
+/-- The improper sum of residues of `f` over `S`, in the sense of the ladder `l`: sum the residues
+in the truncation `S ∩ {z | σ n < ℜ z}` and let `n → ∞` (so `σ n → -∞` exhausts `S` from the
+right). This is the convention of \cite{CH2} for regions with infinitely many poles --- e.g. the
+trivial zeros of `ζ` on the negative real axis, where the ordinary `sumResiduesIn` `tsum` need not
+converge --- and it reduces to `sumResiduesIn f S` when the poles of `f` in `S` are finite (the
+content of `lemma_5_1_g`). -/
+noncomputable def LadderParams.sumResiduesLim (l : LadderParams) (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
+  Filter.limUnder Filter.atTop (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re}))
+
 /-- The conjugation-antisymmetry condition `g(s̄) = -\overline{g(s)}`. In Lemma 5.1 this is imposed
 on the odd part `G⋆`; it is what makes the integrals over the contour `C` and its conjugate `C̄`
 combine into the single `(1/π) ℑ ∫_C G⋆ x^s` term (the integrand `s ↦ G⋆ s * x^s` inherits the
@@ -433,7 +508,7 @@ variable {l : LadderParams} {G G_circ G_star : ℂ → ℂ} {x₀ x : ℝ}
   truncated contour $C_n^+$ picks up the residues of $G$ in $R^+$ to the right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\int_1^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^+} G(s) x^s\, ds + \sum_{\rho \in R^+,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $R^+$ between $[1, 1+iT]$ and $C_n^+$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_a (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -446,7 +521,8 @@ theorem lemma_5_1_a (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) := by
@@ -460,7 +536,7 @@ theorem lemma_5_1_a (n : ℕ)
   truncated contour $C_n^-$ picks up the residues of $G$ in $\overline{R^+}$ to the right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\int_{1-iT}^{1} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_n^-} G(s) x^s\, ds + \sum_{\rho \in \overline{R^+},\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $\overline{R^+}$ between $[1-iT, 1]$ and $C_n^-$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_b (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -473,7 +549,8 @@ theorem lemma_5_1_b (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
@@ -488,7 +565,7 @@ theorem lemma_5_1_b (n : ℕ)
   right of $\sigma_n$:
   $$ \frac{1}{2\pi i}\left(\int_{C_{n,1}^+} + \int_{C_{n,1}^-}\right) G^\circ(s) x^s\, ds = \frac{1}{2\pi i}\int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds + \sum_{\rho \in R_C,\ \Re\rho > \sigma_n} \mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
   (proof := /-- The residue theorem on the region of $R_C$ between $C_{n,1}^+ \cup C_{n,1}^-$ and the $\sigma_n$ column. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_c (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -501,7 +578,8 @@ theorem lemma_5_1_c (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ *
         (l.intCn1Plus n (fun s ↦ G_circ s * (x : ℂ) ^ s) +
           l.intCn1Minus n (fun s ↦ G_circ s * (x : ℂ) ^ s)) =
@@ -517,7 +595,7 @@ theorem lemma_5_1_c (n : ℕ)
   -\overline{G^\star(s)}$, the two $G^\star$ contour integrals combine into a single imaginary part:
   $$ \int_{C_{n,1}^+} G^\star(s) x^s\, ds - \int_{C_{n,1}^-} G^\star(s) x^s\, ds = 2i\, \Im \int_{C_{n,1}^+} G^\star(s) x^s\, ds. $$ -/)
   (proof := /-- For the conjugation-antisymmetric integrand $G^\star x^s$, $\int_{C_{n,1}^-} = \overline{\int_{C_{n,1}^+}}$, and $z - \bar z = 2i\, \Im z$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_d (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -530,7 +608,8 @@ theorem lemma_5_1_d (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s) -
         l.intCn1Minus n (fun s ↦ G_star s * (x : ℂ) ^ s) =
       2 * Complex.I * ((l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)).im : ℂ) := by
@@ -544,7 +623,7 @@ theorem lemma_5_1_d (n : ℕ)
   bottom segment of $C_n^-$ converge to the contour $C_\infty$:
   $$ \lim_{n\to\infty} \left( \int_{\sigma_n + iT}^{1 + iT} + \int_{1 - iT}^{\sigma_n - iT} \right) G(s) x^s\, ds = \int_{C_\infty} G(s) x^s\, ds. $$ -/)
   (proof := /-- As $\sigma_n \to -\infty$ the truncated horizontal segments exhaust the rays of $C_\infty$; uses boundedness of $G x_0^s$ on $\partial R$ and $x > x_0$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_e
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -557,7 +636,8 @@ theorem lemma_5_1_e
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto
       (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) +
         intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s))
@@ -572,7 +652,7 @@ theorem lemma_5_1_e
   column tends to $0$:
   $$ \lim_{n\to\infty} \int_{\sigma_n - iT}^{\sigma_n + iT} G^\circ(s) x^s\, ds = 0. $$ -/)
   (proof := /-- The integrand is $O((x/x_0)^{\sigma_n})$ via boundedness of $G^\circ x_0^s$ on $L$, and $(x/x_0)^{\sigma_n} \to 0$ since $x > x_0 \geq 1$ and $\sigma_n \to -\infty$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_f
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -585,7 +665,8 @@ theorem lemma_5_1_f
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s))
       Filter.atTop (nhds (0 : ℂ)) := by
   sorry
@@ -600,7 +681,7 @@ theorem lemma_5_1_f
   (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in $S$, for all
   large $n$ the set $\{\Re s > \sigma_n\}$ contains every pole of $f$ in $S$; the truncated sum is
   then constant and equals the full residue sum over $S$ (analytic points contribute $0$). -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
     (hfin : {z ∈ S | meromorphicOrderAt f z < 0}.Finite) :
     Filter.Tendsto (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re})) Filter.atTop
@@ -619,7 +700,7 @@ theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
   vertical segment $\sigma_n + i\delta \to \sigma_n + iT$, which vanishes --- both as in
   \ref{ch2-lemma-5-1-e}, \ref{ch2-lemma-5-1-f}, here at height $\delta$, using boundedness of
   $G^\star x_0^s$ on $L$ and on $C$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "sublemma")]
 theorem lemma_5_1_h
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
@@ -632,7 +713,8 @@ theorem lemma_5_1_h
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     Filter.Tendsto (fun n ↦ l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)) Filter.atTop
       (nhds (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s))) := by
   sorry
@@ -647,8 +729,16 @@ theorem lemma_5_1_h
   $G^\circ(s) x_0^s$ and $G^\star(s) x_0^s$ are bounded with no poles on the ladder $L$ and the
   contour $C$. Then for any $x > x_0$,
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i} \int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi} \Im \int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} G^\circ(s) x^s, $$
-  where the two residue sums run over the poles of $G$ (resp.\ $G^\circ$) in the indicated
-  regions, which we assume to be finite. -/)
+  where the first sum runs over the (finitely many --- see the hypotheses) poles of $G$ in the
+  bounded off-axis strip $R \setminus R_C$, while the second is the \emph{improper} residue sum of
+  $G^\circ$ over $R_C$, i.e.\ the limit of the truncations $R_C \cap \{\Re s > \sigma_n\}$ as
+  $n \to \infty$. The improper sum allows infinitely many poles on the real axis (e.g.\ the trivial
+  zeros of $\zeta$), where an ordinary sum need not converge.
+
+  \emph{Temporary scaffold:} we additionally assume every pole of $G$ (resp.\ $G^\circ$) in $R$ is
+  at most simple ($\mathrm{HasSimplePolesOn}$). The formalised residue and the current Mathlib
+  residue-theorem API are only valid for simple poles; this hypothesis holds in the intended
+  applications and is to be dropped once higher-order residue support lands. -/)
   (proof := /-- Assemble from the sub-lemmas. Split the central line into its upper half $[1,1+iT]$
   and lower half $[1-iT,1]$, and apply Lemmas \ref{ch2-lemma-5-1-a} and \ref{ch2-lemma-5-1-b} to
   rewrite each as the truncated contour $C_n^+$ (resp.\ $C_n^-$) plus the residues of $G$ over
@@ -660,9 +750,11 @@ theorem lemma_5_1_h
   combines into $2i\, \Im \int_{C_{n,1}^+} G^\star x^s$. Now let $n \to \infty$: the
   $\Im s = \pm T$ segments converge to $C_\infty$ (\ref{ch2-lemma-5-1-e}); the $\sigma_n$ column
   vanishes (\ref{ch2-lemma-5-1-f}); $C_{n,1}^+ \to C$ (\ref{ch2-lemma-5-1-h}), so
-  $\Im \int_{C_{n,1}^+} G^\star x^s \to \Im \int_C G^\star x^s$; and the truncated residue sums
-  converge to the full sums (\ref{ch2-lemma-5-1-g}), with $R^+ \sqcup \overline{R^+} = R \setminus
-  R_C$. Collecting terms, and using $\frac{1}{2\pi i} \cdot 2i = \frac{1}{\pi}$, yields the claim. -/)
+  $\Im \int_{C_{n,1}^+} G^\star x^s \to \Im \int_C G^\star x^s$; the off-axis truncated sums converge
+  to the full (finite) residue sums over $R^+ \sqcup \overline{R^+} = R \setminus R_C$
+  (\ref{ch2-lemma-5-1-g}), while the $R_C$ truncated sum converges to the improper residue sum by
+  definition. Collecting terms, and using $\frac{1}{2\pi i} \cdot 2i = \frac{1}{\pi}$, yields the
+  claim. -/)
   (latexEnv := "lemma")]
 theorem lemma_5_1
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -675,18 +767,223 @@ theorem lemma_5_1
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
-    -- finiteness of the pole sets in each region (our addition; the paper does not address the
-    -- possibility of infinitely many poles):
+    -- finiteness of the off-real-line pole set (our addition; off the real line there are only
+    -- finitely many poles in the bounded strip `R \ R_C`). The `R_C` residue sum is taken in the
+    -- improper `sumResiduesLim` sense, allowing infinitely many poles on the real line (e.g. the
+    -- trivial zeros of `ζ`), so no finiteness is assumed there.
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hfin_circ : {z ∈ l.RC | meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0}.Finite) :
+    -- temporary scaffold: the placeholder `residue` and Mathlib's current residue-theorem API only
+    -- handle simple poles, so we assume all poles in `R` are simple (true in the applications;
+    -- remove once higher-order residue support lands):
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * l.intVerticalAt 1 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCinf (fun s ↦ G s * (x : ℂ) ^ s) +
       (↑(π⁻¹ * (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s)).im) : ℂ) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.R \ l.RC) +
-      sumResiduesIn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.RC := by
+      l.sumResiduesLim (fun s ↦ G_circ s * (x : ℂ) ^ s) l.RC := by
   sorry
 
 end ContourShifting
+
+/-- The rescaling `z(s) = (s - 1)/(iT)` (CH2 §4–5), carrying the central line `1 + i[-T, T]`
+onto `[-1, 1]`. -/
+noncomputable def LadderParams.zOf (l : LadderParams) (s : ℂ) : ℂ := (s - 1) / (Complex.I * l.T)
+
+/-- The combined Graham–Vaaler weight `Φ^ε_λ` (the paper's `Φ^±_λ`, with the sign `±` carried by
+`ε`): `Φ^ε_λ(z) = Phi_circ |λ| ε (sgn λ · z) + sgn λ · sgn (Re z) · Phi_star |λ| ε (sgn λ · z)`. -/
+noncomputable def Phi_lambda (lam ε : ℝ) (z : ℂ) : ℂ :=
+  Phi_circ |lam| ε ((Real.sign lam : ℂ) * z) +
+    (Real.sign lam : ℂ) * (Real.sign z.re : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * z)
+
+/-- The conjugate-symmetry (Schwarz reflection) condition `F(s̄) = conj (F s)` assumed of `F` in
+Proposition 5.2; it makes the derived odd part `G⋆` satisfy `ConjAntisymm`. -/
+def ConjSymm (F : ℂ → ℂ) : Prop := ∀ s : ℂ, F (starRingEnd ℂ s) = starRingEnd ℂ (F s)
+
+section Proposition52
+
+/- Shared context for Proposition 5.2 and its sub-lemmas: the ladder parameters `l`, the
+meromorphic function `F`, the parameter `λ` (`lam`) and sign `ε`, and the reals `x₀ ≤ x`. The
+structural (`Prop`) hypotheses stay explicit on each lemma. -/
+variable {l : LadderParams} {F : ℂ → ℂ} {lam ε x₀ x : ℝ}
+
+@[blueprint
+  "ch2-prop-5-2-a"
+  (title := "Proposition 5.2: reduction to Lemma 5.1")
+  (statement := /--
+  Under the hypotheses of \ref{ch2-prop-5-2}, with $G$, $G^\circ$, $G^\star$, $z(s)$ as there, the
+  decomposition $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ holds (as $\mathrm{sgn}(\Re z(s)) =
+  \mathrm{sgn}(\Im s)$, since $\Re z(s) = \Im s / T$ and $T > 0$), $G^\star$ is
+  conjugation-antisymmetric, and the boundedness hypotheses of Lemma \ref{ch2-lemma-5-1} hold;
+  hence Lemma \ref{ch2-lemma-5-1} gives
+  $$ \frac{1}{2\pi i}\int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C}\mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C}\mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
+  (proof := /-- Apply Lemma \ref{ch2-lemma-5-1}. The $G^\star$ reflection is the conjugation
+  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$; boundedness follows from
+  $\Phi^\circ$ bounded and $\Phi^\star = O(|z|)$ (CH2 Lemma 4.3). -/)
+  (latexEnv := "sublemma")]
+theorem prop_5_2_a
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+    (2 * (π : ℂ) * Complex.I)⁻¹ *
+        l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) =
+      (2 * (π : ℂ) * Complex.I)⁻¹ *
+          l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
+        (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+            Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) +
+        sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) +
+        l.sumResiduesLim
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2-b"
+  (title := "Proposition 5.2: bound on the $C_\\infty$ integral")
+  (statement := /--
+  On the rays of $C_\infty$, $z(r \pm iT) = \pm 1 + i\,\frac{1-r}{T}$, so
+  $|\Phi^\varepsilon_\lambda(z(s))| \leq \frac{1-r}{T}$ (CH2 Lemma 4.3); substituting $t = 1 - r$,
+  $$ \left\| \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt. $$ -/)
+  (proof := /-- $|\Phi^\varepsilon_\lambda(\pm 1 + ir')| \leq |r'|$ (CH2 Lemma 4.3), $|x^s| = x^{\Re s}$. -/)
+  (latexEnv := "sublemma")]
+theorem prop_5_2_b
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+    ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
+        l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s)‖ ≤
+      (1 / (2 * π)) * ((1 / l.T) *
+        ((∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)) +
+          ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t))) := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2-c"
+  (title := "Proposition 5.2: bound on the contour integral")
+  (statement := /--
+  Since $G^\star = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(\cdot)) F$ and $|\Im w| \leq |w|$,
+  $$ \left\| \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds \right\| \leq \frac{1}{2\pi} \cdot 2\left\| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right\|. $$ -/)
+  (proof := /-- `intC` is linear, $|\mathrm{sgn}(\lambda)| = 1$, and $|\Im w| \leq |w|$. -/)
+  (latexEnv := "sublemma")]
+theorem prop_5_2_c
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+    ‖(↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+          Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ)‖ ≤
+      (1 / (2 * π)) *
+        (2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
+  sorry
+
+@[blueprint
+  "ch2-prop-5-2"
+  (title := "Specialisation to the Graham--Vaaler weight (CH2 Proposition 5.2)")
+  (statement := /--
+  This specialises Lemma \ref{ch2-lemma-5-1} to the weight $\Phi^\varepsilon_\lambda$ built from the
+  Graham--Vaaler approximants. \emph{The notation differs from \cite{CH2}:} the paper's sign $\pm$
+  is here the parameter $\varepsilon \in \{+1, -1\}$ carried by $\Phi^\circ$, $\Phi^\star$ (the
+  formalisation's \texttt{Phi\_circ}, \texttt{Phi\_star}), and the paper's contour height
+  $\varepsilon$ is our $\delta$ (so $C$ is the \texttt{LadderParams} contour at height $\delta$).
+
+  Let $F \colon \mathbb{C} \to \mathbb{C}$ be meromorphic on $R = (-\infty, 1] + i[-T, T]$ with
+  $F(\bar s) = \overline{F(s)}$, and suppose for some $x_0 \geq 1$ that $F(s) x_0^s$ is bounded with
+  no poles on $\partial R \cup C \cup L$. Fix $\lambda \neq 0$ and $\varepsilon \in \{+1, -1\}$,
+  write $z(s) = \frac{s - 1}{iT}$, and set
+  $$ \Phi^\varepsilon_\lambda(z) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z) + \mathrm{sgn}(\lambda)\, \mathrm{sgn}(\Re z)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z). $$
+  This is the $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ of Lemma \ref{ch2-lemma-5-1}, with
+  $G(s) = \Phi^\varepsilon_\lambda(z(s)) F(s)$,
+  $G^\circ(s) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$, and
+  $G^\star(s) = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$.
+  Then, for any $x > x_0$,
+  $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s\, ds = \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s + \frac{1}{2\pi} O^*(E), $$
+  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$, whose poles include that of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$ when $\lambda < 0$, and
+  $$ E = \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt + 2 \left| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right|. $$
+  Here $O^*(E)$ is rendered as $\| \cdot \| \leq E$. The first part of $E$ bounds the $C_\infty$
+  integral of Lemma \ref{ch2-lemma-5-1} (via $|\Phi^\varepsilon_\lambda(\pm 1 + ir)| \leq |r|$ on
+  the lines $\Re s = \pm 1$), and the second is its $\frac{1}{\pi} \Im \int_C G^\star$ term.
+
+  \emph{Temporary scaffold:} as in Lemma \ref{ch2-lemma-5-1}, we assume every pole in $R$ is at most
+  simple ($\mathrm{HasSimplePolesOn}$), since the formalised residue is only valid for simple poles;
+  this is to be removed once Mathlib gains higher-order residue support. -/)
+  (proof := /-- By \ref{ch2-prop-5-2-a} the left side equals the $C_\infty$ integral, the
+  $\frac{1}{\pi} \Im \int_C G^\star$ term, and the two residue sums; subtracting the residue sums
+  (which match exactly) and applying the triangle inequality with \ref{ch2-prop-5-2-b} and
+  \ref{ch2-prop-5-2-c} gives the $\frac{1}{2\pi} O^*(E)$ bound. -/)
+  (latexEnv := "proposition")]
+theorem prop_5_2
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_symm : ConjSymm F)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hx₀ : 1 ≤ x₀)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hx : x₀ < x)
+    (hfin : {z ∈ l.R \ l.RC |
+        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
+    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
+    (hsimple_circ :
+        HasSimplePolesOn
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+    ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
+          l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
+        sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
+        l.sumResiduesLim
+          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC‖ ≤
+      (1 / (2 * π)) *
+        ((1 / l.T) *
+            ((∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)) +
+              ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t)) +
+          2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
+  have hLHS :
+      (2 * (π : ℂ) * Complex.I)⁻¹ *
+            l.intVerticalAt 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) -
+          sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) -
+          l.sumResiduesLim
+            (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC =
+        (2 * (π : ℂ) * Complex.I)⁻¹ *
+            l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
+          (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
+              Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) := by
+    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ]
+    ring
+  rw [hLHS]
+  refine le_trans (norm_add_le _ _) ?_
+  refine le_trans (add_le_add
+    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
+    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)) ?_
+  apply le_of_eq
+  ring
+
+end Proposition52
 
 blueprint_comment /--
 \subsection{The main theorem}\label{ch2-main-thm-sec}
