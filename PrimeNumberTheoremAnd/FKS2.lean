@@ -8,6 +8,7 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
+import PrimeNumberTheoremAnd.LogTables
 
 blueprint_comment /--
 \section{The implications of FKS2}\label{fks2-sec}
@@ -2678,6 +2679,77 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
   convert congr_arg (fun y => y - x / Real.log x) (h_parts 2 x (by norm_num) hx) using 1
   ring!
 
+
+/-The following lemmas are used for the proof of lemma_20_b. The first lemma was originally used for
+the proof of theorem_6_3, but was moved up here to be used for lemma_20_b as well.
+-/
+
+
+lemma hasDerivAt_Li_sub_div_log {t : ℝ} (ht : 1 < t) :
+    HasDerivAt (fun t => Li t - t / log t) (1 / (log t) ^ 2) t := by
+  have h_deriv_Li : HasDerivAt Li (1 / Real.log t) t := by
+    apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
+    · apply_rules [ ContinuousOn.intervalIntegrable ];
+      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ( ne_of_gt ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) );
+    · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Real.measurable_log ) ) |> fun h => h.stronglyMeasurableAtFilter;
+    · exact ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) )
+  generalize_proofs at *; (
+  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring_nf! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring_nf!;
+  grind)
+
+private lemma summable_li_series_658 :
+    Summable fun n : ℕ =>
+      (Real.log 6.58) ^ (n + 1) / ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+  refine .of_nonneg_of_le (fun n => ?_) (fun n => ?_)
+    (summable_nat_add_iff 1 |>.2 <| Real.summable_pow_div_factorial <| Real.log 6.58)
+  · exact div_nonneg (pow_nonneg (Real.log_nonneg (by norm_num)) _)
+      (mul_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _))
+  · exact div_le_div_of_nonneg_left (by positivity) (by positivity)
+      (mod_cast Nat.le_mul_of_pos_left _ (Nat.succ_pos _))
+
+private lemma li_series_658_lower : (3.32710 : ℝ) ≤
+    ∑' n : ℕ, (Real.log 6.58) ^ (n + 1) /
+      ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+  have h_sum_le_tsum :
+      (∑ n ∈ Finset.range 10, (Real.log 6.58) ^ (n + 1) /
+        ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+        ∑' n : ℕ, (Real.log 6.58) ^ (n + 1) /
+          ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) :=
+    Summable.sum_le_tsum _ (fun _ _ => div_nonneg (by positivity) (by positivity))
+      summable_li_series_658
+  have h_partial : (3.32710 : ℝ) ≤
+      ∑ n ∈ Finset.range 10, (Real.log 6.58) ^ (n + 1) /
+        ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+    have hlog : (1.884034 : ℝ) ≤ Real.log 6.58 := by linarith [LogTables.log_6_58_gt]
+    have h_const : (3.32710 : ℝ) ≤
+        ∑ n ∈ Finset.range 10, (1.884034 : ℝ) ^ (n + 1) /
+          ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+      norm_num [Finset.sum_range_succ, Nat.factorial]
+    have h_const_le_partial :
+        (∑ n ∈ Finset.range 10, (1.884034 : ℝ) ^ (n + 1) /
+          ((↑(n + 1) : ℝ) * ↑(n + 1).factorial)) ≤
+        ∑ n ∈ Finset.range 10, (Real.log 6.58) ^ (n + 1) /
+          ((↑(n + 1) : ℝ) * ↑(n + 1).factorial) := by
+      gcongr with n hn
+    exact le_trans h_const h_const_le_partial
+  exact le_trans h_partial h_sum_le_tsum
+
+theorem Li_diff_pos_at_6_58 : Li 6.58 - 6.58 / log 6.58 > 0 := by
+  have hli2 : li 2 ≤ (1.0452 : ℝ) := (li.two_approx).2
+  have hll : (0.633415 : ℝ) ≤ Real.log (Real.log 6.58) := by linarith [LogTables.log_log_6_58_gt]
+  have hdiv : 6.58 / Real.log 6.58 ≤ (3.492506 : ℝ) := by
+    have hlog : (1.884034 : ℝ) ≤ Real.log 6.58 := by linarith [LogTables.log_6_58_gt]
+    have hlogpos : 0 < Real.log 6.58 := by linarith
+    rw [div_le_iff₀ hlogpos]
+    nlinarith
+  have hli : (4.537729 : ℝ) < li 6.58 := by
+    rw [li_eq_eulerMascheroni_add_log_log_add_tsum (show (1 : ℝ) < 6.58 by norm_num)]
+    linarith [hγ_lo, hll, li_series_658_lower]
+  have hLi : Li 6.58 = li 6.58 - li 2 := by
+    linarith [li.sub_Li 6.58 (show (2 : ℝ) ≤ 6.58 by norm_num)]
+  rw [hLi]
+  linarith
+
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
   "fks2-lemma-20b"
@@ -2691,7 +2763,48 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
   (discussion := 714)]
 theorem lemma_20_b {x : ℝ} (hx : x > 6.58) :
     Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 :=
-  sorry
+by
+  let f : ℝ → ℝ := fun t ↦ Li t - t / log t
+  obtain ⟨c, hc, h_slope⟩ : ∃ c ∈ Set.Ioo (6.58 : ℝ) x,
+      deriv f c = (f x - f 6.58) / (x - 6.58) := by
+    refine exists_deriv_eq_slope f hx ?_ ?_
+    · intro y hy
+      exact (hasDerivAt_Li_sub_div_log
+        (by rcases Set.mem_Icc.mp hy with ⟨hy₁, hy₂⟩; linarith)).continuousAt.continuousWithinAt
+    · intro y hy
+      exact (hasDerivAt_Li_sub_div_log
+        (by rcases Set.mem_Ioo.mp hy with ⟨hy₁, hy₂⟩; linarith)).differentiableAt.differentiableWithinAt
+  have hc_gt_one : 1 < c := by linarith [hc.1]
+  have h_deriv_c : deriv f c = 1 / (log c) ^ 2 :=
+    (hasDerivAt_Li_sub_div_log hc_gt_one).deriv
+  have hx_sub_pos : 0 < x - 6.58 := by linarith
+  have hf_diff : f x - f 6.58 = (x - 6.58) / (log c) ^ 2 := by
+    have hq : (f x - f 6.58) / (x - 6.58) = 1 / (log c) ^ 2 := by
+      linarith
+    rw [div_eq_iff hx_sub_pos.ne'] at hq
+    rw [hq]
+    ring
+  have hlogc_pos : 0 < log c := Real.log_pos hc_gt_one
+  have hlogx_pos : 0 < log x := Real.log_pos (by linarith)
+  have hlog_lt : log c < log x := Real.log_lt_log (by positivity) hc.2
+  have hsq_lt : (log c) ^ 2 < (log x) ^ 2 := by
+    nlinarith
+  have hinv_lt : 1 / (log x) ^ 2 < 1 / (log c) ^ 2 := by
+    exact one_div_lt_one_div_of_lt (sq_pos_of_pos hlogc_pos) hsq_lt
+  have hmain : (x - 6.58) / (log x) ^ 2 < f x := by
+    rw [← sub_pos]
+    have hbase : 0 < f 6.58 := by
+      simpa [f] using Li_diff_pos_at_6_58
+    have hmul : (x - 6.58) / (log x) ^ 2 <
+        (x - 6.58) / (log c) ^ 2 := by
+      gcongr
+    have hfx : f x = f 6.58 + (x - 6.58) / (log c) ^ 2 := by
+      linarith
+    rw [hfx]
+    linarith
+  have hpos : 0 < (x - 6.58) / (log x) ^ 2 := by
+    positivity
+  exact ⟨by simpa [f] using hmain, by simpa using hpos⟩
 
 -- Integrability of Eθ t / log t ^ 2
 private lemma Eθ_integrable {x y : ℝ} (hx : 2 ≤ x) (hy : x ≤ y) :
@@ -2900,19 +3013,9 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
 
 
 
-/- The following 3 lemmas are used for theorem_6_3.
+/- The following 2 lemmas are used for theorem_6_3.
 -/
-lemma hasDerivAt_Li_sub_div_log {t : ℝ} (ht : 1 < t) :
-    HasDerivAt (fun t => Li t - t / log t) (1 / (log t) ^ 2) t := by
-  have h_deriv_Li : HasDerivAt Li (1 / Real.log t) t := by
-    apply_rules [ intervalIntegral.integral_hasDerivAt_right ];
-    · apply_rules [ ContinuousOn.intervalIntegrable ];
-      exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) ( ne_of_gt ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith ) ) );
-    · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Real.measurable_log ) ) |> fun h => h.stronglyMeasurableAtFilter;
-    · exact ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) )
-  generalize_proofs at *; (
-  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring_nf! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring_nf!;
-  grind)
+
 
 lemma integral_one_div_log_sq {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
     ∫ t in a..b, 1 / (log t) ^ 2 = (Li b - b / log b) - (Li a - a / log a) := by
