@@ -2,6 +2,7 @@ import Mathlib.Algebra.Order.Field.GeomSum
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
@@ -1089,6 +1090,99 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
     apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log_log)
     convert sum_prime_div_eq_log_log' using 1
 
+lemma HasSum_log_one_sub_one_div_prime {p : ℕ} (hp : p.Prime) :
+    HasSum (fun n : ℕ ↦ (-1 : ℝ) / (( n + 1) * p ^ (n + 1))) (log (1 - 1 / p)) := by
+  convert Real.hasSum_pow_div_log_of_abs_lt_one (x := 1 / p) _|>.neg using 1
+  · ext
+    rw [div_pow, one_pow, div_div]
+    ring
+  · ring
+  · simp only [one_div, abs_inv, Nat.abs_cast]
+    exact inv_lt_one_of_one_lt₀ (mod_cast hp.one_lt)
+
+lemma E₂Λ_sub_E₂p_tendsto :
+    Tendsto (E₂Λ - E₂p) atTop (nhds 0) := by
+  exact isLittleO_one_iff ℝ|>.mp <| E₂Λ.bound'.sub E₂p.bound'
+
+/-- Function used in the proof of `M.eq`, `Λ n / n * log n` restricted to not primes. -/
+noncomputable abbrev M_eq_f (n : ℕ) :=
+    if ¬n.Prime then Λ n /(n * log n) else 0
+
+lemma E₂Λ_sub_E₂p_eq (x : ℝ) :
+    E₂Λ x - E₂p x = ∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_f n - (γ - M) := by
+  calc
+  _ = ∑ n ∈ Ioc 0 ⌊x⌋₊, Λ n / (n * log n) - ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1 : ℝ) / p - (γ - M) := by ring
+  _ = _ := by
+    rw [sum_filter, ← sum_sub_distrib]
+    congr
+    ext n
+    split_ifs with hn
+    · rw [vonMangoldt_apply_prime hn]
+      have : log n ≠ 0 := by simp; grind [hn.two_le]
+      field
+    · ring
+
+lemma M_eq_f.sum_tendsto :
+    Tendsto (fun (x : ℝ) ↦ ∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_f n) atTop (nhds (γ - M)) := by
+  apply tendsto_sub_nhds_zero_iff.mp
+  convert E₂Λ_sub_E₂p_tendsto using 1
+  ext
+  rw [← E₂Λ_sub_E₂p_eq]
+  simp
+
+lemma M_eq_f.sum_tendsto' :
+    Tendsto (fun (N : ℕ) ↦ ∑ n ∈ range N, M_eq_f n) atTop (nhds (γ - M)) := by
+  have : Tendsto (fun (N : ℕ) ↦ (∑ n ∈ Ioc 0 ⌊(N : ℝ)⌋₊, M_eq_f n)) atTop (nhds (γ - M)) := M_eq_f.sum_tendsto.comp tendsto_natCast_atTop_atTop
+  simp_rw [Nat.floor_natCast] at this
+  apply (this.comp (tendsto_sub_atTop_nat 1)).congr'
+  filter_upwards [eventually_ge_atTop 1] with N hn
+  rw [Nat.range_eq_Icc_zero_sub_one, ← add_sum_Ioc_eq_sum_Icc] <;> grind
+
+lemma M_eq_f.HasSum :
+    HasSum M_eq_f (γ - M) := by
+  refine hasSum_iff_tendsto_nat_of_nonneg (fun n ↦ ?_) _|>.mpr M_eq_f.sum_tendsto'
+  unfold M_eq_f
+  split_ifs with hn
+  · rfl
+  · exact div_nonneg vonMangoldt_nonneg (by positivity)
+
+lemma M_eq_f.sum_primes :
+    ∑' (p : Nat.Primes), M_eq_f p = 0 := by
+  convert tsum_zero with p
+  grind
+
+lemma tsum_primes_eq_tsum_ite (f : ℕ → ℝ) :
+    ∑' (n : Nat.Primes), f n = ∑' (n : ℕ), if n.Prime then f n else 0 := by
+  convert _root_.tsum_subtype Nat.Prime f using 2
+  ext
+  simp [Set.indicator]
+  congr
+
+lemma tsum_M_eq_f_eq_tsum :
+    -∑' (n : ℕ), M_eq_f n = ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by
+  rw [tsum_eq_tsum_primes_add_tsum_primes_of_support_subset_prime_powers M_eq_f.HasSum.summable
+    (fun n hn ↦ (by simp_all [vonMangoldt_ne_zero_iff])), M_eq_f.sum_primes, zero_add,
+    tsum_primes_eq_tsum_ite (fun p ↦ ∑' (k : ℕ), M_eq_f (p ^ (k + 2))), ← tsum_neg]
+  refine tsum_congr fun n ↦ ?_
+  split_ifs with hn
+  · rw [← HasSum_log_one_sub_one_div_prime hn|>.tsum_eq, HasSum_log_one_sub_one_div_prime hn|>.summable.tsum_eq_zero_add]
+    simp only [ite_not, Nat.cast_pow, log_pow, Nat.cast_add, Nat.cast_ofNat, CharP.cast_eq_zero,
+      zero_add, pow_one, one_mul, Nat.cast_one, one_div]
+    trans -∑' (k : ℕ), (1 : ℝ) / ((k + 2) * n ^ (k + 2))
+    · congr
+      ext k
+      have : ¬(Nat.Prime (n ^ (k + 2))) := by exact Nat.Prime.not_prime_pow (by grind)
+      simp only [this, ↓reduceIte, one_div, mul_inv_rev]
+      rw [vonMangoldt_apply_pow (by grind), vonMangoldt_apply_prime hn]
+      have : log n ≠ 0 := by simp; grind [hn.two_le]
+      field
+    · rw [← tsum_neg]
+      ring_nf
+      congr
+      ext
+      ring_nf
+  · ring
+
 @[blueprint
   "Meissel-Mertens-eq"
   (title := "Formula for Meissel-Mertens constant")
@@ -1097,7 +1191,8 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
   (proof := /-- The RHS can be Taylor expanded as $\sum_{j=2}^\infty \sum_p \frac{1}{jp^j}$.  Meanwhile, the difference between $\sum_{n \leq x} \frac{\Lambda(n)}{n \log n}$ and $\sum_{p \leq x} \frac{1}{p}$ is equal to $\sum_{j=2}^\infty \sum_{p: p^j \leq x} \frac{1}{j p^j}$.  Applying the monotone convergence theorem, Lemma \ref{Mertens-second-error-prime-abs-le}, and Lemma \ref{Mertens-second-error-mangoldt-bound} gives the claim.  -/)
   (discussion := 1328)]
 theorem M.eq : M = γ + ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by
-    sorry
+  rw [← tsum_M_eq_f_eq_tsum, M_eq_f.HasSum.tsum_eq]
+  ring
 
 @[blueprint
   "Mertens-third-error"
