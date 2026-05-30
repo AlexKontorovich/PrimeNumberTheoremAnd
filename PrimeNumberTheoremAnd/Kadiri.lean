@@ -59,9 +59,208 @@ private lemma summable_f_log {d : ℝ} {f : ℝ → ℝ} (hf_supp : tsupport f �
   simp only [Function.mem_support] at hn ⊢
   exact fun h ↦ hn (by rw [h, Complex.ofReal_zero, mul_zero])
 
+/-! ## Precursor results for Proposition 2.1
+
+Four ingredients of the proof of \ref{kadiri-prop-2-1}: the Hadamard constant $B$
+(\ref{kadiri-hadamard-B}), the Hadamard expansion of $-\zeta'/\zeta$
+(\ref{kadiri-hadamard-identity}), the intermediate identity (16) of \cite{Kadiri2005} obtained
+by applying the Weil-type explicit formula to a specific test function
+(\ref{kadiri-identity-16}), and the harmonic-extension principle that lets us pass from the
+half-plane $\Re s > 1$ (where the Dirichlet series converges) to all of $\mathbb{C}$
+(\ref{kadiri-re-agree-extension}). All four are stated below with `sorry` proofs. -/
+
+@[blueprint
+  "kadiri-hadamard-B"
+  (title := "Hadamard constant $B$")
+  (statement := /-- The constant $B \in \mathbb{C}$ appearing in the Hadamard product
+  factorisation of the Riemann zeta function:
+  $$ (s - 1) \zeta(s) = \tfrac{1}{2} e^{B s}
+       \prod_{\rho \in Z(\zeta)} \left(1 - \tfrac{s}{\rho}\right) e^{s/\rho}. $$
+  Concretely $B = -\tfrac{\gamma}{2} - 1 + \tfrac{1}{2} \log (4\pi)$ in terms of the
+  Euler-Mascheroni constant $\gamma$ (\cite[Chapter 12]{Davenport2000}). For our purposes it
+  appears only as the additive constant in \ref{kadiri-hadamard-identity}, and the identity
+  $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$ used in the derivation of
+  \ref{kadiri-prop-2-1}. -/)
+  (latexEnv := "definition")]
+noncomputable def hadamardB : ℂ := sorry
+
+@[blueprint
+  "kadiri-hadamard-identity"
+  (title := "Hadamard expansion of $-\\zeta'/\\zeta$")
+  (statement := /-- For every $s \in \mathbb{C}$ that is neither $1$ nor a non-trivial zero
+  of $\zeta$,
+  $$ -\frac{\zeta'}{\zeta}(s) = -B - \tfrac{1}{2} \log \pi + \frac{1}{s - 1}
+       + \tfrac{1}{2} \frac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2} + 1\right)
+       - \sum_{\rho \in Z(\zeta)} \left(\frac{1}{\rho} + \frac{1}{s - \rho}\right), $$
+  where $B$ is the Hadamard constant (\ref{kadiri-hadamard-B}). This is the logarithmic
+  derivative of the Hadamard factorisation of $\zeta$
+  (\cite[Chapter 12]{Davenport2000}). -/)
+  (proof := /-- Differentiate the Hadamard product (\ref{kadiri-hadamard-B}) logarithmically;
+  the linear-in-$s$ term in the exponential collapses to the constant $B$. The
+  $\tfrac{1}{s-1}$ term comes from the $(s-1)\zeta(s)$ prefactor and the
+  $\tfrac{1}{2} \Gamma'/\Gamma$ term from the gamma factor. To be formalised. -/)
+  (latexEnv := "lemma")]
+theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
+    (hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ)) :
+    -deriv riemannZeta s / riemannZeta s =
+      -hadamardB - (1 / 2 : ℂ) * Real.log Real.pi + 1 / (s - 1) +
+      (1 / 2 : ℂ) * digamma (s / 2 + 1) -
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)) := by
+  sorry
+
+@[blueprint
+  "kadiri-identity-16"
+  (title := "Equation (16) of \\cite{Kadiri2005}: intermediate identity")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$,
+  $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
+                     + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
+   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
+   + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  This is the form obtained from \cite[Theorem 3.1]{Kadiri2005} (the Weil-type explicit
+  formula) by taking the test function
+  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$. Applying
+  \ref{kadiri-hadamard-identity} to the first parenthesised term then yields
+  \ref{kadiri-prop-2-1}. -/)
+  (proof := /-- See \cite[derivation of (16), Section 3.1]{Kadiri2005}: apply the general
+  Weil-type explicit formula (\cite[Theorem 3.1]{Kadiri2005}) to the indicated test function;
+  the Mellin-inversion identity $\varphi(\log n) = (2\pi i)^{-1} \int_{(-1-a)} \Phi(s) n^s\, ds$
+  feeds into the Dirichlet series, and the Plancherel-type identity for the integral term
+  gives the contour integral on the right. To be formalised. -/)
+  (latexEnv := "lemma")]
+theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : deriv f 0 = 0)
+    (hf_deriv_d : deriv f d = 0)
+    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (s : ℂ) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
+      f 0 * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
+              - 1 / (s - 1)
+              + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+                  1 / (s - ρ.val)).re
+        + (laplaceTransform f (s - 1)).re
+        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
+            (laplaceTransform f (s - ρ.val)).re
+        + ((1 / (2 * (Real.pi : ℂ) * I)) *
+            (∫ t : ℝ,
+              ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+                laplaceTransform (fun u ↦ deriv (deriv f) u)
+                  (s - (1 / 2 + (t : ℂ) * I))
+                / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+            + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
+  sorry
+
+@[blueprint
+  "kadiri-re-agree-extension"
+  (title := "Real-part agreement on a half-plane extends to $\\mathbb{C}$")
+  (statement := /-- If $F, G \colon \mathbb{C} \to \mathbb{C}$ are entire and
+  $\Re F(s) = \Re G(s)$ for every $s$ with $\Re s > 1$, then $\Re F(s) = \Re G(s)$ for all
+  $s \in \mathbb{C}$. -/)
+  (proof := /-- Let $H = F - G$. Then $H$ is entire and $\Re H \equiv 0$ on the open
+  half-plane $\{\Re s > 1\}$. The function $\Re H$ is harmonic on $\mathbb{C}$, and
+  vanishes on a non-empty open set; by the identity principle for real-analytic (or
+  harmonic) functions on the connected domain $\mathbb{C}$, $\Re H \equiv 0$ everywhere.
+  (Equivalently: $H$ is locally constant on the half-plane via Cauchy-Riemann, hence
+  $H$ is a purely imaginary constant, hence $\Re H = 0$ everywhere.) -/)
+  (latexEnv := "lemma")]
+theorem re_eq_of_entire_agree_on_halfplane {F G : ℂ → ℂ}
+    (hF : Differentiable ℂ F) (hG : Differentiable ℂ G)
+    (hagree : ∀ s : ℂ, 1 < s.re → (F s).re = (G s).re) :
+    ∀ s : ℂ, (F s).re = (G s).re := by
+  sorry
+
+/-! ## Auxiliaries glueing the four precursors to Proposition 2.1
+
+Two facts not in the four precursors above are needed: \ref{kadiri-re-hadamardB-eq} (the
+closed form $\Re B = -\sum_\rho \Re(1/\rho)$, conjectured from the Hadamard product) and
+\ref{kadiri-summable-lap-at-zeros} (summability of the residue sum at the non-trivial zeros).
+They combine with \ref{kadiri-hadamard-identity} and \ref{kadiri-re-agree-extension} to give
+\ref{kadiri-re-inner-eq} (collapsing the $f(0)$-coefficient of equation (16) into the
+$T_1$ form). After that, \ref{kadiri-prop-2-1} is a two-line `rw` chain. All three are
+stated below with `sorry` proofs. -/
+
+@[blueprint
+  "kadiri-re-hadamardB-eq"
+  (title := "Real part of the Hadamard constant")
+  (statement := /-- $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$, where $B$ is the
+  Hadamard constant (\ref{kadiri-hadamard-B}). -/)
+  (proof := /-- Subtract $\tfrac{1}{s-1}$ from \ref{kadiri-hadamard-identity}, take $s \to 1$
+  using the Laurent expansion $-\zeta'/\zeta(s) = \tfrac{1}{s-1} - \gamma + O(s - 1)$ near $s = 1$
+  and the value $\Gamma'/\Gamma(3/2)$, then symmetrise the resulting sum
+  $\sum_\rho (1/\rho + 1/(1-\rho))$ using $\rho \leftrightarrow 1 - \bar\rho$ to relate
+  $\sum_\rho 1/\rho$ to $\Re B$. To be formalised. -/)
+  (latexEnv := "lemma")]
+theorem re_hadamardB_eq :
+    hadamardB.re =
+    -∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re := by
+  sorry
+
+@[blueprint
+  "kadiri-summable-lap-at-zeros"
+  (title := "Summability of $\\sum_\\rho \\Re F(s - \\rho)$")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}, the sum
+  $\sum_{\rho \in Z(\zeta)} \Re F(s - \rho)$ over the non-trivial zeros of $\zeta$ is
+  convergent (Lean: `Summable`). -/)
+  (proof := /-- The Laplace transform $F$ of a $C^2$ compactly-supported $f$ satisfying $(H_1)$
+  satisfies $|F(\sigma + iy)| = O(1/y^2)$ as $|y| \to \infty$, uniformly for $\sigma$ in any
+  compact set (two integrations by parts using $f(d) = f'(0) = f'(d) = f''(d) = 0$). Combined
+  with the Backlund-type zero-counting bound $N(T) \ll T \log T$ for the non-trivial zeros, this
+  gives $\sum_\rho |F(s - \rho)| < \infty$. To be formalised. -/)
+  (latexEnv := "lemma")]
+theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : deriv f 0 = 0)
+    (hf_deriv_d : deriv f d = 0)
+    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+                (laplaceTransform f (s - ρ.val)).re) := by
+  sorry
+
+@[blueprint
+  "kadiri-re-inner-eq"
+  (title := "Inner real-part identity: collapsing to $T_1$")
+  (statement := /-- For every $s \in \mathbb{C}$,
+  $$ \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
+                + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
+   = -\tfrac{1}{2} \log \pi
+     + \tfrac{1}{2} \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2}+1\right). $$
+  This is the identity that turns the $f(0)$-coefficient of equation (16) into the $T_1$
+  form of \ref{kadiri-prop-2-1}. -/)
+  (proof := /-- For $\Re s > 1$ the Dirichlet series gives $\sum \Lambda(n)/n^s = -\zeta'/\zeta(s)$;
+  apply \ref{kadiri-hadamard-identity} to rewrite the LHS (treating the equation as one in
+  $\mathbb{C}$, not yet taking $\Re$). The $1/(s-1)$ and $\sum_\rho 1/(s-\rho)$ terms cancel,
+  leaving $-B - \tfrac{1}{2}\log\pi + \tfrac{1}{2}\Gamma'/\Gamma(s/2+1) - \sum_\rho 1/\rho$.
+  Taking real parts and applying \ref{kadiri-re-hadamardB-eq} cancels
+  $\Re B + \sum_\rho \Re(1/\rho)$, giving the claim for $\Re s > 1$.
+  Both sides are real parts of entire functions of $s$ (the LHS Dirichlet sum is genuinely
+  finite for any test function, so it extends entirely; the RHS digamma term is entire), so
+  \ref{kadiri-re-agree-extension} extends the identity to all $s \in \mathbb{C}$. -/)
+  (latexEnv := "lemma")]
+theorem re_inner_eq (s : ℂ) :
+    ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
+       ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+         1 / (s - ρ.val)).re =
+    -(1 / 2 : ℝ) * Real.log Real.pi +
+      (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re := by
+  sorry
+
 /-! ## Proposition 2.1 of `Kadiri2005` (the explicit formula)
 
-The proof is in \cite[Section 3.1]{Kadiri2005} and is deferred (`sorry`). -/
+Assembled from \ref{kadiri-identity-16}, \ref{kadiri-re-inner-eq}, and
+\ref{kadiri-summable-lap-at-zeros}. -/
 
 @[blueprint
   "kadiri-prop-2-1"
@@ -81,10 +280,10 @@ The proof is in \cite[Section 3.1]{Kadiri2005} and is deferred (`sorry`). -/
         + \frac{F_2(s)}{s^2} \right), $$
   where $Z(\zeta)$ is the set of non-trivial zeros of $\zeta$ (those in the open critical strip
   $0 < \Re \rho < 1$). -/)
-  (proof := /-- See \cite[Section 3.1]{Kadiri2005}: apply the general Weil-type explicit formula
-  \cite[Theorem 3.1]{Kadiri2005} to the test function $\varphi(y) = (f(0) - f(y)) e^{-y s}$ for
-  $y \geq 0$ (and zero otherwise), rewriting the resulting Dirichlet series via the Hadamard
-  product expansion of $\zeta'/\zeta$. To be formalised. -/)
+  (proof := /-- Assemble: the `Summable` conjunct is \ref{kadiri-summable-lap-at-zeros}; the
+  identity follows from \ref{kadiri-identity-16} (the (16)-form) followed by
+  \ref{kadiri-re-inner-eq} (which substitutes the $T_1$ form for the $f(0)$-coefficient
+  $\Re$-expression). -/)
   (latexEnv := "proposition")]
 theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_nonneg : ∀ t, 0 ≤ f t)
@@ -110,7 +309,10 @@ theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
                   (s - (1 / 2 + (t : ℂ) * I))
                 / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
             + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
-  sorry
+  refine ⟨summable_lap_re_at_zeros hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
+      hf_deriv2_d s, ?_⟩
+  rw [identity_16 hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hf_deriv2_d s,
+      re_inner_eq s]
 
 /-! ## Definitions for equation (5) of `Kadiri2005`
 
