@@ -3624,7 +3624,7 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
   (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
-  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ :=
+  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ := by
   sorry
 
 @[blueprint
