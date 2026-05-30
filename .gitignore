@@ -37,6 +37,7 @@
 *.synctex(busy)
 *.synctex.gz
 *.synctex.gz(busy)
+*.xdv
 *.pdfsync
 *.snm
 *.nav
