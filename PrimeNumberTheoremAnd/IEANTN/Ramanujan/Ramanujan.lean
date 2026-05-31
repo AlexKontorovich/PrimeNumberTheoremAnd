@@ -45,7 +45,6 @@ theorem sq_pi_lt (M_a x_a : ℝ) (hupper : ∀ x > x_a, pi x < x * ∑ k ∈ Fin
   intro x hx
   have sq_algebra (M l : ℝ) : ((Nat.factorial 0 : ℝ) / l ^ 1 + (Nat.factorial 1 : ℝ) / l ^ 2 + (Nat.factorial 2 : ℝ) / l ^ 3 + (Nat.factorial 3 : ℝ) / l ^ 4 + (Nat.factorial 4 : ℝ) / l ^ 5 + M / l ^ 6) ^ 2
     = 1 / l ^ 2 + 2 / l ^ 3 + 5 / l ^ 4 + 16 / l ^ 5 + 64 / l ^ 6 + (72 + 2 * M + (2 * M + 132) / l + (4 * M + 288) / l ^ 2 + (12 * M + 576) / l ^ 3 + (48 * M) / l ^ 4 + M ^ 2 / l ^ 5) / l ^ 7 := by
-    norm_num
     ring
   have h_nonneg_pi : 0 ≤ pi x := by
     unfold _root_.pi
@@ -124,36 +123,24 @@ private lemma shift_m_lower_of_nonpos
     (hxₐ : 0 < log xₐ)
     (hl : log xₐ + 1 ≤ l) :
     m / (l * (l - 1)^6) ≥ ((1 + 1 / log xₐ)^6 * m) / l^7 := by
-  have hxₐ_nonneg : 0 ≤ log xₐ := by linarith
   have hlm1_pos : 0 < l - 1 := by linarith
   have hl_pos : 0 < l := by linarith
-  have hbase :
-      l / (l - 1) ≤ 1 + 1 / log xₐ := by
+  have hbase : l / (l - 1) ≤ 1 + 1 / log xₐ := by
     have hlog_le : log xₐ ≤ l - 1 := by linarith
-    have h_inv : 1 / (l - 1) ≤ 1 / log xₐ :=
-      one_div_le_one_div_of_le hxₐ hlog_le
     have hsum : 1 + 1 / (l - 1) ≤ 1 + 1 / log xₐ := by
-      simpa [add_comm, add_left_comm, add_assoc] using add_le_add_left h_inv 1
+      simpa [add_comm, add_left_comm, add_assoc] using
+        add_le_add_left (one_div_le_one_div_of_le hxₐ hlog_le) 1
     have hratio : l / (l - 1) = 1 + 1 / (l - 1) := by
       field_simp [hlm1_pos.ne']
       ring
     simpa [hratio] using hsum
-  have hpow :
-      (l / (l - 1)) ^ 6 ≤ (1 + 1 / log xₐ) ^ 6 :=
-    pow_le_pow_left₀ (by positivity) hbase 6
-  have hm_div_nonpos : m / l ^ 7 ≤ 0 :=
-    div_nonpos_of_nonpos_of_nonneg hm (pow_nonneg hl_pos.le _)
-  have hmul :
-      (m / l ^ 7) * (1 + 1 / log xₐ) ^ 6 ≤ (m / l ^ 7) * (l / (l - 1)) ^ 6 :=
-    mul_le_mul_of_nonpos_left hpow hm_div_nonpos
-  have hleft :
-      m / (l * (l - 1) ^ 6) = (m / l ^ 7) * (l / (l - 1)) ^ 6 := by
+  have hleft : m / (l * (l - 1) ^ 6) = (m / l ^ 7) * (l / (l - 1)) ^ 6 := by
     field_simp [hl_pos.ne', hlm1_pos.ne']
-  have hright :
-      ((1 + 1 / log xₐ) ^ 6 * m) / l ^ 7 = (m / l ^ 7) * (1 + 1 / log xₐ) ^ 6 := by
+  have hright : ((1 + 1 / log xₐ) ^ 6 * m) / l ^ 7 = (m / l ^ 7) * (1 + 1 / log xₐ) ^ 6 := by
     ring
   rw [hleft, hright]
-  exact hmul
+  exact mul_le_mul_of_nonpos_left (pow_le_pow_left₀ (by positivity) hbase 6)
+    (div_nonpos_of_nonpos_of_nonneg hm (pow_nonneg hl_pos.le _))
 
 theorem ex_pi_gt_neg
     (m xₐ : ℝ)
@@ -173,8 +160,7 @@ theorem ex_pi_gt_neg
       nlinarith [hxₐ, exp_pos (1 : ℝ)]
     grind
   have hlog_gt1 : 1 < log x := by
-    have hlog := log_lt_log (show 0 < exp 1 by positivity) hxe
-    simpa using hlog
+    simpa using log_lt_log (show 0 < exp 1 by positivity) hxe
   have hlog_pos : 0 < log x := by linarith
   have hx_pos : 0 < x := lt_trans (exp_pos 1) hxe
   have hy_gt : x / exp 1 > xₐ := by
@@ -239,17 +225,7 @@ theorem ex_pi_gt_neg
             = (1 / log x) * S + (1 / log x) * (m / (log x - 1) ^ 6) := by ring
         _ = (1 / log x) * S + m / (log x * (log x - 1) ^ 6) := by
           field_simp [hlog_pos.ne']
-    have hfac' :
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
-          + (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
-              30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
-        ≤ (1 / log x) * S :=
-      hfac
-    have hmterm' :
-        ((1 + 1 / log xₐ) ^ 6 * m) / log x ^ 7
-        ≤ m / (log x * (log x - 1) ^ 6) :=
-      hmterm
-    have hsum' := add_le_add hfac' hmterm'
+    have hsum' := add_le_add hfac hmterm
     have hsum'' :
         1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
             (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
@@ -262,25 +238,18 @@ theorem ex_pi_gt_neg
               30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
           + ((1 + 1 / log xₐ) ^ 6 * m) / log x ^ 7
             ≤ (1 / log x) * S + m / (log x * (log x - 1) ^ 6) := hsum'
-        _ = (1 / log x) * (S + m / (log x - 1) ^ 6) := by
-          symm
-          exact hsplit
-    have hsum''' :
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
-            εneg m xₐ x / log x ^ 7
-          ≤ (1 / log x) * (S + m / (log x - 1) ^ 6) := by
-      calc
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
-            εneg m xₐ x / log x ^ 7
-            =
-              1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
-                (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
-                  30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
-                + ((1 + 1 / log xₐ) ^ 6 * m) / log x ^ 7 := by
-                  simp [εneg]
-                  ring
-        _ ≤ (1 / log x) * (S + m / (log x - 1) ^ 6) := hsum''
-    exact hsum'''
+        _ = (1 / log x) * (S + m / (log x - 1) ^ 6) := hsplit.symm
+    calc
+      1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
+          εneg m xₐ x / log x ^ 7
+          =
+            1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
+              (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
+                30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
+              + ((1 + 1 / log xₐ) ^ 6 * m) / log x ^ 7 := by
+                simp [εneg]
+                ring
+      _ ≤ (1 / log x) * (S + m / (log x - 1) ^ 6) := hsum''
   have htarget_le :
       x ^ 2 *
           (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
@@ -296,15 +265,9 @@ private lemma shift_m_lower_of_nonneg
     m / (l * (l - 1) ^ 6) ≥ m / l ^ 7 := by
   have hl0 : 0 < l := by linarith
   have hlm1 : 0 < l - 1 := by linarith
-  have hratio_ge1 : 1 ≤ l / (l - 1) := by
-    have hratio : l / (l - 1) = 1 + 1 / (l - 1) := by
-      field_simp [hlm1.ne']
-      ring
-    have hnonneg : 0 ≤ 1 / (l - 1) := by positivity
-    linarith
+  have hratio_ge1 : 1 ≤ l / (l - 1) := (le_div_iff₀ hlm1).2 (by linarith)
   have hpow : 1 ≤ (l / (l - 1)) ^ 6 := one_le_pow₀ hratio_ge1
-  have hmdiv_nonneg : 0 ≤ m / l ^ 7 :=
-    div_nonneg hm (pow_nonneg hl0.le _)
+  have hmdiv_nonneg : 0 ≤ m / l ^ 7 := div_nonneg hm (pow_nonneg hl0.le _)
   have hmul : m / l ^ 7 ≤ (m / l ^ 7) * (l / (l - 1)) ^ 6 := by
     simpa [one_mul] using mul_le_mul_of_nonneg_left hpow hmdiv_nonneg
   have hrepr : m / (l * (l - 1) ^ 6) = (m / l ^ 7) * (l / (l - 1)) ^ 6 := by
@@ -341,8 +304,7 @@ theorem ex_pi_gt_nonneg
       nlinarith [hxa_ge_one, exp_pos (1 : ℝ)]
     grind
   have hlog_gt1 : 1 < log x := by
-    have hlog := log_lt_log (show 0 < exp 1 by positivity) hxe
-    simpa using hlog
+    simpa using log_lt_log (show 0 < exp 1 by positivity) hxe
   have hlog_pos : 0 < log x := by linarith
   have hx_pos : 0 < x := lt_trans (exp_pos 1) hxe
   have hy_gt : x / exp 1 > x_a := by
@@ -399,16 +361,7 @@ theorem ex_pi_gt_nonneg
             = (1 / log x) * S + (1 / log x) * (m_a / (log x - 1) ^ 6) := by ring
         _ = (1 / log x) * S + m_a / (log x * (log x - 1) ^ 6) := by
           field_simp [hlog_pos.ne']
-    have hfac' :
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
-          + (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
-              30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
-        ≤ (1 / log x) * S :=
-      hfac
-    have hmterm' :
-        m_a / log x ^ 7 ≤ m_a / (log x * (log x - 1) ^ 6) :=
-      hmterm
-    have hsum' := add_le_add hfac' hmterm'
+    have hsum' := add_le_add hfac hmterm
     have hsum'' :
         1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
           + (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
@@ -421,25 +374,18 @@ theorem ex_pi_gt_nonneg
               30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
           + m_a / log x ^ 7
             ≤ (1 / log x) * S + m_a / (log x * (log x - 1) ^ 6) := hsum'
-        _ = (1 / log x) * (S + m_a / (log x - 1) ^ 6) := by
-          symm
-          exact hsplit
-    have hsum''' :
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
-          + ε' m_a x / log x ^ 7
-        ≤ (1 / log x) * (S + m_a / (log x - 1) ^ 6) := by
-      calc
-        1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
-          + ε' m_a x / log x ^ 7
-            =
-              1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
-                + (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
-                    30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
-                + m_a / log x ^ 7 := by
-                  simp [ε']
-                  ring
-        _ ≤ (1 / log x) * (S + m_a / (log x - 1) ^ 6) := hsum''
-    exact hsum'''
+        _ = (1 / log x) * (S + m_a / (log x - 1) ^ 6) := hsplit.symm
+    calc
+      1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
+        + ε' m_a x / log x ^ 7
+          =
+            1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6
+              + (206 + 364 / log x + 381 / log x ^ 2 + 238 / log x ^ 3 + 97 / log x ^ 4 +
+                  30 / log x ^ 5 + 8 / log x ^ 6) / log x ^ 7
+              + m_a / log x ^ 7 := by
+                simp [ε']
+                ring
+      _ ≤ (1 / log x) * (S + m_a / (log x - 1) ^ 6) := hsum''
   have htarget_le :
       x ^ 2 *
           (1 / log x ^ 2 + 2 / log x ^ 3 + 5 / log x ^ 4 + 16 / log x ^ 5 + 65 / log x ^ 6 +
@@ -478,11 +424,9 @@ theorem ex_pi_gt (m_a x_a : ℝ) (hx_a : 1 < x_a)
             εlower m_a x_a x / log x ^ 7) := by
   by_cases hm : 0 ≤ m_a
   · intro x hx
-    have hpos := ex_pi_gt_nonneg m_a x_a hm hlower x hx
-    simpa [εlower, hm] using hpos
+    simpa [εlower, hm] using ex_pi_gt_nonneg m_a x_a hm hlower x hx
   · intro x hx
-    have hneg := ex_pi_gt_neg m_a x_a (le_of_not_ge hm) hx_a hlower x hx
-    simpa [εlower, hm] using hneg
+    simpa [εlower, hm] using ex_pi_gt_neg m_a x_a (le_of_not_ge hm) hx_a hlower x hx
 
 @[blueprint
   "ramanujan-criterion"
@@ -527,9 +471,8 @@ theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
     have h1 : exp 1 < exp 1 * xₐ := by
       nlinarith [hxₐ, exp_pos (1 : ℝ)]
     exact lt_of_lt_of_le h1 (le_of_lt hxexₐ)
-  have hlog_pos : 0 < log x := by
-    have h1 : (1 : ℝ) < exp 1 := (Real.one_lt_exp_iff).2 (by norm_num)
-    exact log_pos (lt_trans h1 hx_gt_e)
+  have hlog_pos : 0 < log x :=
+    log_pos (lt_trans ((Real.one_lt_exp_iff).2 (by norm_num)) hx_gt_e)
   have hnum_neg : ε Mₐ x - εlower mₐ xₐ x - log x < 0 := by
     linarith [hcrit hx]
   have hden_pos : 0 < log x ^ 7 := by positivity
@@ -578,40 +521,28 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
   have hnn : (0 : ℝ) ≤ x := by linarith
   unfold Eθ
   rw [div_le_iff₀ hxpos]
-  -- Goal: |θ x - x| ≤ (1 - log 2 / 3) * x
   by_cases! hx3 : x < 3
-  · -- Case x ∈ [2, 3): ⌊x⌋₊ = 2, θ(2) = log 2
-    rw [Chebyshev.theta_eq_theta_coe_floor x]
+  · rw [Chebyshev.theta_eq_theta_coe_floor x]
     have hfloor : ⌊x⌋₊ = 2 := by
       apply (Nat.floor_eq_iff hnn).mpr
       exact ⟨by push_cast; linarith, by push_cast; linarith⟩
     rw [hfloor]
-    -- Now goal involves θ ↑2, need to compute it
     have htheta_two : θ (↑(2 : ℕ) : ℝ) = log 2 := by
       simp [Chebyshev.theta, Finset.sum_filter, Finset.sum_Ioc_succ_top, Nat.prime_two]
-    rw [htheta_two]
-    -- Goal: |log 2 - x| ≤ (1 - log 2 / 3) * x
-    have hlog2_lt_x : log 2 < x := by linarith [log_two_lt_d9]
-    rw [abs_of_nonpos (by linarith), neg_sub]
-    -- Goal: x - log 2 ≤ (1 - log 2 / 3) * x
+    rw [htheta_two, abs_of_nonpos (by linarith [log_two_lt_d9]), neg_sub]
     nlinarith [log_two_gt_d9]
-  · -- Case x ∈ [3, 599): use computational checker
-    have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
+  · have hfloor_pos : 0 < ⌊x⌋₊ := Nat.floor_pos.mpr (by linarith : 1 ≤ x)
     have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
     have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
-    have hfloor_le : ⌊x⌋₊ ≤ 599 := le_of_lt hfloor_lt
-    -- Extract pointwise check from the bulk checker
     have hpointwise :=
       LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
-        allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_le
+        allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_lt.le
     rw [if_pos hfloor_lt] at hpointwise
-    -- Bridge to real-valued bound
     have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
     have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
     have habs :=
       LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
         ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
-    -- Chain: |θ x - x| ≤ 0.768 * x ≤ (1 - log 2 / 3) * x
     calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
       _ ≤ (1 - log 2 / 3) * x := by
           gcongr
@@ -633,9 +564,6 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
   have hx_pos : (0 : ℝ) < x := by linarith
   by_cases! hx_gt : x > 599
   · have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith : (1 : ℝ) < x)
-    have hlog_ge1 : (1 : ℝ) ≤ log x := by
-      rw [show (1 : ℝ) = log (exp 1) from by rw [log_exp]]
-      exact log_le_log (exp_pos 1) (by linarith [exp_one_lt_d9.le])
     have hlog_x_ge : 6 < log x := by
       have hexp6_lt : exp (6 : ℝ) < x := by
         have : exp (6 : ℝ) = exp (1 : ℝ) ^ (6 : ℕ) := by rw [← exp_nat_mul]; ring_nf
@@ -744,7 +672,6 @@ $$E_\theta(x) \leq \sqrt\frac{8}{17\pi}\left(\frac{\log x}{6.455}\right)^{\frac{
   (discussion := 991)]
 theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
     Eθ x ≤ sqrt (8 / (17 * π)) * (log x / 6.455) ^ (1 / 4 : ℝ) * exp (-sqrt (log x / 6.455)) := by
-  -- Use BKLNW Table_15 row (43, M₄₃) with k=⟨1,_⟩ giving Eθ x ≤ 3.7979e-5 / (log x)^2
   set M₄₃ : Fin 5 → ℝ := ![8.6315e-7, 3.7979e-5, 2.4334e-2, 5.7184e1, 1.3441e5]
   have htab43 : ((43 : ℝ), M₄₃) ∈ BKLNW.Table_15 := by simp [BKLNW.Table_15, M₄₃]
   have hM43 : M₄₃ ⟨1, by norm_num⟩ = 3.7979e-5 := rfl
@@ -957,18 +884,14 @@ theorem pi_bound (x : ℝ) (hx : 2 ≤ x) :
                 by_contra hx3000
                 exact h5 ⟨hx2000, lt_of_not_ge hx3000⟩
               simpa [b, h1, h2, h3, h4, h5] using pi_bound_6 x hx3000
-  have hlog5_nonneg : 0 ≤ log x ^ 5 :=
-    pow_nonneg (log_nonneg (by linarith : 1 ≤ x)) 5
-  have hmul : Eθ x * log x ^ 5 ≤ b * log x ^ 5 :=
-    mul_le_mul_of_nonneg_right hb hlog5_nonneg
-  simpa [ha, mul_assoc, mul_left_comm, mul_comm] using hmul
+  simpa [ha, mul_assoc, mul_left_comm, mul_comm] using
+    mul_le_mul_of_nonneg_right hb (pow_nonneg (log_nonneg (by linarith : 1 ≤ x)) 5)
 
 private lemma pi_bound_abs_mul (x : ℝ) (hx : 2 ≤ x) :
     |θ x - x| * log x ^ 5 ≤ x * a x := by
-  have hpb : Eθ x * log x ^ 5 ≤ a x := pi_bound x hx
   have hxpos : 0 < x := by linarith
   have hpb' : (|θ x - x| / x) * log x ^ 5 ≤ a x := by
-    simpa [Eθ] using hpb
+    simpa [Eθ] using pi_bound x hx
   have hmul : ((|θ x - x| / x) * log x ^ 5) * x ≤ a x * x :=
     mul_le_mul_of_nonneg_right hpb' hxpos.le
   have hleft : ((|θ x - x| / x) * log x ^ 5) * x = |θ x - x| * log x ^ 5 := by
@@ -1039,9 +962,7 @@ noncomputable def mLower (x : ℝ) : ℝ := 120 - a x - (C₁ + C₃) - a xₐ *
 
 noncomputable def exₐ : ℝ := exp 1 * xₐ
 
-private theorem log_xₐ_val : log xₐ = (3914 : ℝ) := by
-  unfold xₐ
-  rw [log_exp]
+private theorem log_xₐ_val : log xₐ = (3914 : ℝ) := log_exp 3914
 
 private lemma xₐ_pos : 0 < xₐ := by
   unfold xₐ
@@ -1064,9 +985,7 @@ private lemma exp3000_le_xₐ : exp 3000 ≤ xₐ := by
 
 private lemma xₐ_le_exₐ : xₐ ≤ exₐ := by
   unfold exₐ
-  have h1 : (1 : ℝ) ≤ exp 1 := by
-    linarith [add_one_le_exp (1 : ℝ)]
-  nlinarith [h1, xₐ_pos.le]
+  nlinarith [add_one_le_exp (1 : ℝ), xₐ_pos.le]
 
 private lemma two_le_exₐ : 2 ≤ exₐ :=
   le_trans two_le_xₐ xₐ_le_exₐ
@@ -1123,64 +1042,21 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
     exact hI_log_ne t ht
 
   have hg2_cont : ContinuousOn g2 I := by
-    refine continuousOn_of_forall_continuousAt ?_
-    intro t ht
-    have ht0 : t ≠ 0 := ne_of_gt (by linarith [ht.1])
-    have hlog : ContinuousAt (fun t => log t) t := continuousAt_log ht0
-    have hsqrt : ContinuousAt (fun t => sqrt t) t := (Real.continuous_sqrt.continuousAt)
-    have hden : ContinuousAt (fun t => (8 * π) * sqrt t) t := continuousAt_const.mul hsqrt
-    have hden_ne : (8 * π) * sqrt t ≠ 0 := by
-      have hsqrt_pos : 0 < sqrt t := sqrt_pos.mpr (by linarith [ht.1])
-      positivity
-    have hfrac : ContinuousAt (fun t => log t ^ 2 / ((8 * π) * sqrt t)) t :=
-      (hlog.pow 2).div hden hden_ne
-    have hfrac' : ContinuousAt (fun t => log t ^ 2 / (8 * π * sqrt t)) t := by
-      simpa [mul_assoc] using hfrac
-    have hnum : ContinuousAt (fun t => (log t) ^ 5 * (log t ^ 2 / (8 * π * sqrt t))) t :=
-      (hlog.pow 5).mul hfrac'
-    have hden2 : ContinuousAt (fun t => log t ^ 7) t := (hlog.pow 7)
-    exact hnum.div hden2 (hI_log_ne t ht)
+    refine continuousOn_of_forall_continuousAt fun t ht => ?_
+    fun_prop (disch := first | exact hI_log_ne t ht | exact ne_of_gt (show (0:ℝ) < t by linarith [ht.1]) | exact mul_ne_zero (by positivity) (sqrt_pos.mpr (show (0:ℝ) < t by linarith [ht.1])).ne' | (right; positivity) | (left; positivity) | positivity)
 
   have hg3_cont : ContinuousOn g3 I := by
-    refine continuousOn_of_forall_continuousAt ?_
-    intro t ht
-    have ht0 : t ≠ 0 := ne_of_gt (by linarith [ht.1])
-    have hlog : ContinuousAt (fun t => log t) t := continuousAt_log ht0
-    have hbase : ContinuousAt (fun t => log t / 6.455) t := hlog.div_const _
-    have hrpow : ContinuousAt (fun t => (log t / 6.455) ^ (1 / 4 : ℝ)) t :=
-      hbase.rpow_const (Or.inr (by positivity : 0 ≤ (1 / 4 : ℝ)))
-    have hsqrt : ContinuousAt (fun t => sqrt (log t / 6.455)) t := (Real.continuous_sqrt.continuousAt).comp hbase
-    have hexp : ContinuousAt (fun t => exp (-sqrt (log t / 6.455))) t :=
-      (Real.continuous_exp.continuousAt).comp hsqrt.neg
-    have hmul2 : ContinuousAt (fun t =>
-        sqrt (8 / (17 * π)) * (log t / 6.455) ^ (1 / 4 : ℝ) * exp (-sqrt (log t / 6.455))) t := by
-      simpa using (continuousAt_const.mul hrpow).mul hexp
-    have hnum : ContinuousAt (fun t => (log t) ^ 5 *
-        (sqrt (8 / (17 * π)) * (log t / 6.455) ^ (1 / 4 : ℝ) * exp (-sqrt (log t / 6.455)))) t :=
-      (hlog.pow 5).mul hmul2
-    have hden2 : ContinuousAt (fun t => log t ^ 7) t := (hlog.pow 7)
-    exact hnum.div hden2 (hI_log_ne t ht)
+    refine continuousOn_of_forall_continuousAt fun t ht => ?_
+    fun_prop (disch := first | exact hI_log_ne t ht | exact ne_of_gt (show (0:ℝ) < t by linarith [ht.1]) | exact mul_ne_zero (by positivity) (sqrt_pos.mpr (show (0:ℝ) < t by linarith [ht.1])).ne' | (right; positivity) | (left; positivity) | positivity)
 
   have hcont46 : ∀ c : ℝ, ContinuousOn (fun t ↦ (log t) ^ 5 *
       (c * (log t / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log t / 5.573412))) / log t ^ 7) I := by
     intro c
-    refine continuousOn_of_forall_continuousAt ?_
-    intro t ht
-    have ht0 : t ≠ 0 := ne_of_gt (by linarith [ht.1])
-    have hlog : ContinuousAt (fun t => log t) t := continuousAt_log ht0
-    have hbase : ContinuousAt (fun t => log t / 5.573412) t := hlog.div_const _
-    have hrpow : ContinuousAt (fun t => (log t / 5.573412) ^ (1.52 : ℝ)) t :=
-      hbase.rpow_const (Or.inr (by positivity : 0 ≤ (1.52 : ℝ)))
-    have hsqrt : ContinuousAt (fun t => sqrt (log t / 5.573412)) t :=
-      (Real.continuous_sqrt.continuousAt).comp hbase
-    have hexp : ContinuousAt (fun t => exp (-1.89 * sqrt (log t / 5.573412))) t :=
-      (Real.continuous_exp.continuousAt).comp (continuousAt_const.mul hsqrt)
-    have hmul2 : ContinuousAt (fun t => c * (log t / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log t / 5.573412))) t :=
-      (continuousAt_const.mul hrpow).mul hexp
-    have hnum : ContinuousAt (fun t => (log t) ^ 5 * (c * (log t / 5.573412) ^ (1.52 : ℝ) * exp (-1.89 * sqrt (log t / 5.573412)))) t :=
-      (hlog.pow 5).mul hmul2
-    have hden2 : ContinuousAt (fun t => log t ^ 7) t := (hlog.pow 7)
-    exact hnum.div hden2 (hI_log_ne t ht)
+    refine continuousOn_of_forall_continuousAt fun t ht ↦ ?_
+    fun_prop (disch := first
+      | exact hI_log_ne t ht | exact ne_of_gt (show (0:ℝ) < t by linarith [ht.1])
+      | exact mul_ne_zero (by positivity) (sqrt_pos.mpr (show (0:ℝ) < t by linarith [ht.1])).ne'
+      | (right; positivity) | (left; positivity) | positivity)
 
   have hg4_cont : ContinuousOn g4 I := by
     simpa [g4] using hcont46 462.0
@@ -1197,11 +1073,9 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
   have hg6_int_I : IntegrableOn g6 I volume := ContinuousOn.integrableOn_Icc hg6_cont
 
   have hS1_meas : MeasurableSet S1 := by
-    dsimp [S1, I, A1]
-    exact measurableSet_Icc.inter measurableSet_Ico
+    dsimp [S1, I, A1]; exact measurableSet_Icc.inter measurableSet_Ico
   have hS2_meas : MeasurableSet S2 := by
-    dsimp [S2, I, A1, A2]
-    exact (measurableSet_Icc.inter measurableSet_Ico.compl).inter measurableSet_Ico
+    dsimp [S2, I, A1, A2]; exact (measurableSet_Icc.inter measurableSet_Ico.compl).inter measurableSet_Ico
   have hS3_meas : MeasurableSet S3 := by
     dsimp [S3, I, A1, A2, A3]
     exact ((measurableSet_Icc.inter measurableSet_Ico.compl).inter measurableSet_Ico.compl).inter measurableSet_Ico
@@ -1225,26 +1099,20 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
   have hEq1 : EqOn f g1 S1 := by
     intro t ht
     have h1 : t ∈ Set.Ico 2 599 := by simpa [A1] using ht.2
-    dsimp [f, g1]
-    unfold a
-    simp [h1]
+    dsimp only [f, g1]; unfold a; simp [h1]
 
   have hEq2 : EqOn f g2 S2 := by
     intro t ht
     have h1 : t ∉ Set.Ico 2 599 := by simpa [A1] using ht.1.2
     have h2 : t ∈ Set.Ico 599 (exp 58) := by simpa [A2] using ht.2
-    dsimp [f, g2]
-    unfold a
-    simp [h1, h2]
+    dsimp only [f, g2]; unfold a; simp [h1, h2]
 
   have hEq3 : EqOn f g3 S3 := by
     intro t ht
     have h1 : t ∉ Set.Ico 2 599 := by simpa [A1] using ht.1.1.2
     have h2 : t ∉ Set.Ico 599 (exp 58) := by simpa [A2] using ht.1.2
     have h3 : t ∈ Set.Ico (exp 58) (exp 1169) := by simpa [A3] using ht.2
-    dsimp [f, g3]
-    unfold a
-    simp [h1, h2, h3]
+    dsimp only [f, g3]; unfold a; simp [h1, h2, h3]
 
   have hEq4 : EqOn f g4 S4 := by
     intro t ht
@@ -1252,9 +1120,7 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
     have h2 : t ∉ Set.Ico 599 (exp 58) := by simpa [A2] using ht.1.1.2
     have h3 : t ∉ Set.Ico (exp 58) (exp 1169) := by simpa [A3] using ht.1.2
     have h4 : t ∈ Set.Ico (exp 1169) (exp 2000) := by simpa [A4] using ht.2
-    dsimp [f, g4]
-    unfold a
-    simp [h1, h2, h3, h4]
+    dsimp only [f, g4]; unfold a; simp [h1, h2, h3, h4]
 
   have hEq5 : EqOn f g5 S5 := by
     intro t ht
@@ -1263,9 +1129,7 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
     have h3 : t ∉ Set.Ico (exp 58) (exp 1169) := by simpa [A3] using ht.1.1.2
     have h4 : t ∉ Set.Ico (exp 1169) (exp 2000) := by simpa [A4] using ht.1.2
     have h5 : t ∈ Set.Ico (exp 2000) (exp 3000) := by simpa [A5] using ht.2
-    dsimp [f, g5]
-    unfold a
-    simp [h1, h2, h3, h4, h5]
+    dsimp only [f, g5]; unfold a; simp [h1, h2, h3, h4, h5]
 
   have hEq6 : EqOn f g6 S6 := by
     intro t ht
@@ -1274,9 +1138,7 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
     have h3 : t ∉ Set.Ico (exp 58) (exp 1169) := by simpa [A3] using ht.1.1.2
     have h4 : t ∉ Set.Ico (exp 1169) (exp 2000) := by simpa [A4] using ht.1.2
     have h5 : t ∉ Set.Ico (exp 2000) (exp 3000) := by simpa [A5] using ht.2
-    dsimp [f, g6]
-    unfold a
-    simp [h1, h2, h3, h4, h5]
+    dsimp only [f, g6]; unfold a; simp [h1, h2, h3, h4, h5]
 
   have hf_int_S1 : IntegrableOn f S1 volume := (integrableOn_congr_fun hEq1 hS1_meas).2 hg1_int_S1
   have hf_int_S2 : IntegrableOn f S2 volume := (integrableOn_congr_fun hEq2 hS2_meas).2 hg2_int_S2
@@ -1293,36 +1155,11 @@ private lemma integrable_a_over_log7_piecewise (x : ℝ) (_hx2 : 2 ≤ x) :
 
   have hU_eq_I : U = I := by
     ext t
-    constructor
-    · intro ht
-      dsimp [U, S1, S2, S3, S4, S5, S6] at ht
-      rcases ht with hS1 | hrest
-      · exact hS1.1
-      · rcases hrest with hS2 | hrest
-        · exact hS2.1.1
-        · rcases hrest with hS3 | hrest
-          · exact hS3.1.1.1
-          · rcases hrest with hS4 | hrest
-            · exact hS4.1.1.1.1
-            · rcases hrest with hS5 | hS6
-              · exact hS5.1.1.1.1.1
-              · exact hS6.1.1.1.1.1
-    · intro ht
-      by_cases h1 : t ∈ A1
-      · exact Or.inl ⟨ht, h1⟩
-      · by_cases h2 : t ∈ A2
-        · exact Or.inr (Or.inl ⟨⟨ht, h1⟩, h2⟩)
-        · by_cases h3 : t ∈ A3
-          · exact Or.inr (Or.inr (Or.inl ⟨⟨⟨ht, h1⟩, h2⟩, h3⟩))
-          · by_cases h4 : t ∈ A4
-            · exact Or.inr (Or.inr (Or.inr (Or.inl ⟨⟨⟨⟨ht, h1⟩, h2⟩, h3⟩, h4⟩)))
-            · by_cases h5 : t ∈ A5
-              · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨⟨⟨⟨⟨ht, h1⟩, h2⟩, h3⟩, h4⟩, h5⟩))))
-              · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨⟨⟨⟨⟨ht, h1⟩, h2⟩, h3⟩, h4⟩, h5⟩))))
+    dsimp only [U, S1, S2, S3, S4, S5, S6]
+    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_compl_iff]
+    tauto
 
-  have hI_int : IntegrableOn f I volume := by
-    simpa [hU_eq_I] using hU_int
-  simpa [f, I] using hI_int
+  simpa [f, I, hU_eq_I] using hU_int
 
 lemma log_6_IBP_t (x : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Icc 2 x, 1 / log t ^ 6 =
@@ -1890,9 +1727,7 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
   have hxpos : 0 < x := by linarith
   have hexax : exₐ ≤ x := le_of_lt hx
 
-  have htheta : ∀ t ≥ 2, |θ t - t| * log t ^ 5 ≤ t * a t := by
-    intro t ht
-    exact pi_bound_abs_mul t ht
+  have htheta : ∀ t ≥ 2, |θ t - t| * log t ^ 5 ≤ t * a t := pi_bound_abs_mul
 
   have ha_int : IntegrableOn (fun t ↦ a t / log t ^ 7) (Set.Icc 2 x) volume :=
     integrable_a_over_log7_piecewise x hx2
@@ -1914,17 +1749,15 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
     norm_num [Finset.sum_range_succ, Nat.factorial]
     ring
 
-  have hS_nonneg : 0 ≤ (∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)) := by
-    refine Finset.sum_nonneg ?_
-    intro k hk
-    exact div_nonneg (by positivity) (pow_nonneg (log_nonneg (by norm_num)) _)
+  have hS_nonneg : 0 ≤ (∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)) :=
+    Finset.sum_nonneg fun k _ ↦
+      div_nonneg (by positivity) (pow_nonneg (log_nonneg (by norm_num)) _)
 
   have ha_nonneg : ∀ t ≥ 2, 0 ≤ a t := by
     intro t ht
-    have hpb : |θ t - t| * log t ^ 5 ≤ t * a t := htheta t ht
-    have hL_nonneg : 0 ≤ |θ t - t| * log t ^ 5 :=
-      mul_nonneg (abs_nonneg _) (pow_nonneg (log_nonneg (by linarith : (1 : ℝ) ≤ t)) 5)
-    have hR_nonneg : 0 ≤ t * a t := le_trans hL_nonneg hpb
+    have hR_nonneg : 0 ≤ t * a t :=
+      le_trans (mul_nonneg (abs_nonneg _)
+        (pow_nonneg (log_nonneg (by linarith : (1 : ℝ) ≤ t)) 5)) (htheta t ht)
     nlinarith
 
   have hax_le : a x ≤ a exₐ :=
@@ -1936,10 +1769,8 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
       pow_ne_zero _ <| ne_of_gt <| log_pos <| by linarith [ht.1])
 
   have h720_int : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) / log t ^ 7) (Set.Icc 2 x) volume := by
-    have htmp : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) * (1 / log t ^ 7)) (Set.Icc 2 x) volume :=
-      hJ_int.const_mul 720
-    refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 htmp
-    intro t ht
+    refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 (hJ_int.const_mul 720)
+    intro t _
     ring
 
   have h_add_int : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) / log t ^ 7 + a t / log t ^ 7) (Set.Icc 2 x) volume :=
@@ -1947,7 +1778,7 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
 
   have hG_int : IntegrableOn (fun t : ℝ ↦ (720 + a t) / log t ^ 7) (Set.Icc 2 x) volume := by
     refine (integrableOn_congr_fun ?_ measurableSet_Icc).2 h_add_int
-    intro t ht
+    intro t _
     ring
 
   have h720Ia :
@@ -1984,7 +1815,7 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
           (720 + a xₐ) * ∫ t in Set.Icc xₐ x, 1 / log t ^ 7 := by
       rw [← MeasureTheory.integral_const_mul]
       refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc ?_
-      intro t ht
+      intro t _
       ring
     simpa [hconst_factor] using this
 
@@ -2008,20 +1839,14 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
   have htail_lt :
       ∫ t in Set.Icc xₐ x, (720 + a t) / log t ^ 7 <
         (720 + a xₐ) * (x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8)) := by
-    have hJtail_lt : ∫ t in Set.Icc xₐ x, 1 / log t ^ 7 <
-        x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8) :=
-      lt_of_le_of_lt hJtail_le hJfull_lt
-    have hm := mul_lt_mul_of_pos_left hJtail_lt h720axa_pos
+    have hm := mul_lt_mul_of_pos_left (lt_of_le_of_lt hJtail_le hJfull_lt) h720axa_pos
     grind
 
   have hI0_eq :
       ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7 = C₁ * xₐ / log xₐ ^ 6 := by
     have hlogxapos0 : 0 < log xₐ := log_xₐ_pos
-    have htmp : C₁ = log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7 := rfl
-    have htmp2 : C₁ * xₐ / log xₐ ^ 6 = ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7 := by
-      rw [htmp]
-      field_simp [hxapos.ne', hlogxapos0.ne']
-    exact htmp2.symm
+    rw [show C₁ = log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7 from rfl]
+    field_simp [hxapos.ne', hlogxapos0.ne']
 
   have hlogxapos : 0 < log xₐ := log_xₐ_pos
   have hlogxpos : 0 < log x := log_pos (by linarith)
@@ -2060,13 +1885,10 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
     have hsum12 : x / log x ^ 7 + 7 * 2 ^ 8 * x / log x ^ 8 ≤
         x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2) := by
       nlinarith
-    have hsum_all :
-        x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8)
-          ≤ x / log x ^ 7 + 7 * (x / log x ^ 6 * (log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) + 2 ^ 8 * x / log x ^ 8) := by
-      gcongr
     calc
       x / log x ^ 7 + 7 * (sqrt x / log 2 ^ 8 + 2 ^ 8 * x / log x ^ 8)
-          ≤ x / log x ^ 7 + 7 * (x / log x ^ 6 * (log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) + 2 ^ 8 * x / log x ^ 8) := hsum_all
+          ≤ x / log x ^ 7 + 7 * (x / log x ^ 6 * (log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) + 2 ^ 8 * x / log x ^ 8) := by
+        gcongr
       _ = (x / log x ^ 7 + 7 * 2 ^ 8 * x / log x ^ 8) + x / log x ^ 6 * (7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
         ring
       _ ≤ x / log x ^ 6 * (1 / log xₐ + 7 * 2 ^ 8 / log xₐ ^ 2) + x / log x ^ 6 * (7 * log xₐ ^ 6 / (sqrt xₐ * log 2 ^ 8)) := by
@@ -2081,11 +1903,8 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
     · positivity
     · apply MeasureTheory.integral_nonneg_of_ae
       filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht
-      have ha_t : 0 ≤ a t := ha_nonneg t ht.1
-      have hnum : 0 ≤ 720 + a t := by linarith
-      have hden : 0 ≤ log t ^ 7 :=
-        pow_nonneg (log_nonneg (by linarith [ht.1])) 7
-      exact div_nonneg hnum hden
+      exact div_nonneg (by linarith [ha_nonneg t ht.1])
+        (pow_nonneg (log_nonneg (by linarith [ht.1])) 7)
 
   have hratio6 : xₐ / log xₐ ^ 6 ≤ x / log x ^ 6 :=
     ratio6_bound_xa x hxax
@@ -2093,9 +1912,8 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
   have hI0_le :
       ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7 ≤ C₁ * x / log x ^ 6 := by
     rw [hI0_eq]
-    have hm0 : C₁ * (xₐ / log xₐ ^ 6) ≤ C₁ * (x / log x ^ 6) :=
+    simpa [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm] using
       mul_le_mul_of_nonneg_left hratio6 hC1_nonneg
-    simpa [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm] using hm0
 
   have htail_B_lt :
       ∫ t in Set.Icc xₐ x, (720 + a t) / log t ^ 7 <
@@ -2124,15 +1942,8 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
         + (120 + a exₐ) * x / log x ^ 6
         + (C₁ * x / log x ^ 6
         + (720 + a xₐ) * (x / log x ^ 6 * B)) := by
-    have hmain_lt :
-        x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
-          + ((120 + a exₐ) * x / log x ^ 6)
-          + (∫ t in Set.Icc 2 x, (720 + a t) / log t ^ 7)
-        < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
-          + ((120 + a exₐ) * x / log x ^ 6)
-          + (C₁ * x / log x ^ 6 + (720 + a xₐ) * (x / log x ^ 6 * B)) := by
-      gcongr
-    grind
+    refine lt_of_le_of_lt hmain_le ?_
+    gcongr
 
   have hMa_eq :
       (120 + a exₐ) * x / log x ^ 6
@@ -2141,13 +1952,7 @@ theorem pi_upper_specific : ∀ x > exₐ, pi x < x * ∑ k ∈ Finset.range 5, 
     unfold Mₐ
     ring
 
-  calc
-    pi x < x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1))
-      + ((120 + a exₐ) * x / log x ^ 6
-      + (C₁ * x / log x ^ 6 + (720 + a xₐ) * (x / log x ^ 6 * B))) := by
-      linarith
-    _ = x * ∑ k ∈ Finset.range 5, (k.factorial / log x ^ (k + 1)) + ((Mₐ exₐ) * x / log x ^ 6) := by
-      rw [hMa_eq]
+  linarith [hMa_eq]
 
 private theorem a_eq_admissible_ge_3000 {z : ℝ} (hz : z ≥ exp 3000) :
     a z = admissible_bound (379.7 * 5.573412 ^ 5) 6.52 1.89 5.573412 z := by
@@ -2159,12 +1964,7 @@ private theorem a_eq_admissible_ge_3000 {z : ℝ} (hz : z ≥ exp 3000) :
   simp only [not_mem_Ico_of_ge_exp3000 hz h599, not_mem_Ico_of_ge_exp3000 hz h58,
     not_mem_Ico_of_ge_exp3000 hz h1169, not_mem_Ico_of_ge_exp3000 hz h2000,
     not_mem_Ico_of_ge_exp3000 hz le_rfl, ite_false, sqrt_eq_rpow]
-  have hlogz : 0 < log z := by
-    have hz1 : (1 : ℝ) < z := by
-      have h1 : (1 : ℝ) < exp 3000 :=
-        Real.one_lt_exp_iff.2 (by norm_num : (0 : ℝ) < 3000)
-      linarith
-    exact log_pos hz1
+  have hlogz : 0 < log z := log_pos (by linarith [add_one_le_exp (3000 : ℝ)])
   have hdiv : 0 < log z / 5.573412 := by positivity
   have hpow : (log z) ^ (5 : ℕ) = 5.573412 ^ (5 : ℕ) * (log z / 5.573412) ^ (5 : ℕ) := by
     rw [show log z = 5.573412 * (log z / 5.573412) by field_simp]
@@ -2195,16 +1995,8 @@ private theorem a_xa_upper : a xₐ ≤ (1311 : ℝ) := by
 private theorem a_xa_pos : 0 < a xₐ := by
   rw [a_eq_admissible_ge_3000 exp3000_le_xₐ]
   unfold admissible_bound
-  have hdiv : 0 < log xₐ / 5.573412 := by
-    exact div_pos log_xₐ_pos (by norm_num)
-  have hrpow : 0 < (log xₐ / 5.573412) ^ (6.52 : ℝ) :=
-    Real.rpow_pos_of_pos hdiv _
-  have hexp : 0 < exp (-1.89 * (log xₐ / 5.573412) ^ ((1 : ℝ) / (2 : ℝ))) := by
-    exact exp_pos _
-  have hconst : 0 < (379.7 : ℝ) * 5.573412 ^ (5 : ℕ) := by positivity
-  have hprod : 0 < ((379.7 : ℝ) * 5.573412 ^ (5 : ℕ)) * (log xₐ / 5.573412) ^ (6.52 : ℝ) :=
-    mul_pos hconst hrpow
-  exact mul_pos hprod hexp
+  have hdiv : 0 < log xₐ / 5.573412 := div_pos log_xₐ_pos (by norm_num)
+  exact mul_pos (mul_pos (by positivity) (Real.rpow_pos_of_pos hdiv _)) (exp_pos _)
 
 private theorem a_3870_upper : a (exp 3870) ≤ (1800 : ℝ) := by
   simpa using
@@ -2224,8 +2016,7 @@ private theorem a_nonneg {z : ℝ} (hz : 2 ≤ z) : 0 ≤ a z := by
   have hzlog : 0 ≤ log z := log_nonneg (by linarith [hz])
   by_cases h1 : z ∈ Set.Ico 2 599
   · simp only [h1, ↓reduceIte]
-    have hconst : 0 ≤ (1 - log 2 / 3 : ℝ) := by linarith [log_two_lt_d9]
-    exact mul_nonneg (pow_nonneg hzlog 5) hconst
+    exact mul_nonneg (pow_nonneg hzlog 5) (by linarith [log_two_lt_d9])
   · by_cases h2 : z ∈ Set.Ico 599 (exp 58)
     · simp only [h1, ↓reduceIte, h2]
       positivity
@@ -2256,18 +2047,14 @@ private theorem C₁_nonneg : 0 ≤ C₁ := by
   have hlogx : 0 ≤ log xₐ := by
     rw [log_xₐ_val]
     norm_num
-  have hcoef_nonneg : 0 ≤ log xₐ ^ 6 / xₐ := by
-    have hxan : 0 ≤ xₐ := by
-      unfold xₐ
-      positivity
-    exact div_nonneg (pow_nonneg hlogx 6) hxan
+  have hcoef_nonneg : 0 ≤ log xₐ ^ 6 / xₐ :=
+    div_nonneg (pow_nonneg hlogx 6) (by unfold xₐ; positivity)
   refine mul_nonneg hcoef_nonneg ?_
   apply MeasureTheory.integral_nonneg_of_ae
   filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht
   have h2 : 2 ≤ t := ht.1
-  have ha : 0 ≤ a t := a_nonneg h2
   have hlog : 0 ≤ log t := log_nonneg (by linarith)
-  exact div_nonneg (by linarith) (pow_nonneg hlog 7)
+  exact div_nonneg (by linarith [a_nonneg h2]) (pow_nonneg hlog 7)
 
 private theorem C₂_abs_le_C₁ : |C₂| ≤ C₁ := by
   unfold C₁ C₂
@@ -2278,11 +2065,8 @@ private theorem C₂_abs_le_C₁ : |C₂| ≤ C₁ := by
     have h1 : exp 1 ≤ exp 3914 :=
       exp_le_exp.mpr (by norm_num : (1 : ℝ) ≤ 3914)
     grind
-  have hcoef_nonneg : 0 ≤ log xₐ ^ 6 / xₐ := by
-    have hlogx : 0 ≤ log xₐ := by
-      rw [log_xₐ_val]
-      norm_num
-    exact div_nonneg (pow_nonneg hlogx 6) (by positivity)
+  have hcoef_nonneg : 0 ≤ log xₐ ^ 6 / xₐ :=
+    div_nonneg (pow_nonneg (by rw [log_xₐ_val]; norm_num) 6) (by positivity)
   have ha_int : IntegrableOn (fun t ↦ a t / log t ^ 7) (Set.Icc 2 xₐ) volume :=
     integrable_a_over_log7_piecewise xₐ h2xa
   have hconst_int : IntegrableOn (fun t ↦ (720 : ℝ) / log t ^ 7) (Set.Icc 2 xₐ) volume := by
@@ -2422,7 +2206,7 @@ private theorem a_exa_upper_tight : a exₐ ≤ (13042 / 10 : ℝ) := by
 
 private theorem mₐ_xₐ_le_121 : mₐ xₐ ≤ (121 : ℝ) := by
   have : 0 ≤ a xₐ := a_nonneg two_le_xₐ
-  have hC1abs : |C₁| ≤ C₁ := by simp [abs_of_nonneg C₁_nonneg]
+  have hC1abs : |C₁| ≤ C₁ := (abs_of_nonneg C₁_nonneg).le
   grind [Calculations.m_upper_from_bounds, mₐ, C₃_nonneg, B_nonneg, C₁_le_one]
 
 private theorem Mₐ_exₐ_nonneg : 0 ≤ Mₐ exₐ := by
@@ -2436,7 +2220,7 @@ private theorem Mₐ_exₐ_le_1426 : Mₐ exₐ ≤ (1426 : ℝ) := by
 
 private theorem mₐ_xₐ_ge_neg1194 : (-1194 : ℝ) ≤ mₐ xₐ := by
   have : 0 ≤ a xₐ := a_nonneg two_le_xₐ
-  have hC1abs : |C₁| ≤ C₁ := by simp [abs_of_nonneg C₁_nonneg]
+  have hC1abs : |C₁| ≤ C₁ := (abs_of_nonneg C₁_nonneg).le
   grind [Calculations.m_lower_from_bounds, mₐ, a_xa_upper, C₁_le_one, C₃_le_one, B_le_small]
 
 
@@ -2453,12 +2237,9 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
   have hxax : xₐ ≤ x := le_of_lt hx
   have hx2 : 2 ≤ x := by linarith
   have hxapos : 0 < xₐ := xₐ_pos
-  have hxpos : 0 < x := by linarith
   have hlogx_pos : 0 < log x := log_pos (by linarith [one_lt_xₐ, hx])
   have hlog_le : log xₐ ≤ log x := log_le_log hxapos hxax
   have hinv_log : (log x)⁻¹ ≤ (log xₐ)⁻¹ := inv_anti₀ log_xₐ_pos hlog_le
-  have hxlog6_nonneg : 0 ≤ x / log x ^ 6 :=
-    div_nonneg (by linarith) (pow_nonneg (log_nonneg (by linarith)) 6)
   let S : ℝ := ∑ k ∈ Finset.Icc 1 5, k.factorial / log 2 ^ (k + 1)
   let J : ℝ := ∫ t in Set.Icc 2 x, 1 / log t ^ 7
   let IA : ℝ := ∫ t in Set.Icc 2 x, a t / log t ^ 7
@@ -2478,9 +2259,10 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
         = x / log x + x / log x ^ 2 + 2 * x / log x ^ 3 + 6 * x / log x ^ 4 + 24 * x / log x ^ 5 := by
     norm_num [Finset.sum_range_succ, Nat.factorial]; ring
   have haxterm : -(a x * x / log x ^ 6) ≥ -(a xₐ * x / log x ^ 6) := by
-    have := mul_le_mul_of_nonneg_right
-      (a_mono (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr hxax) hxax) hxlog6_nonneg
-    simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using neg_le_neg this
+    simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using neg_le_neg
+      (mul_le_mul_of_nonneg_right
+        (a_mono (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr hxax) hxax)
+        (div_nonneg (by linarith) (pow_nonneg (log_nonneg (by linarith)) 6)))
   have h720Ia :
       (720 : ℝ) * (∫ t in Set.Icc 2 x, 1 / log t ^ 7) - (∫ t in Set.Icc 2 x, a t / log t ^ 7)
         = ∫ t in Set.Icc 2 x, (720 - a t) / log t ^ 7 :=
@@ -2502,8 +2284,7 @@ theorem pi_lower_specific : ∀ x > xₐ, pi x > x * ∑ k ∈ Finset.range 5, (
       (continuousOn_log.mono <| by intro t ht; exact ne_of_gt (lt_of_lt_of_le (by norm_num) ht.1)) _) fun t ht ↦
       pow_ne_zero _ <| ne_of_gt <| log_pos <| by linarith [ht.1])
   have h720_int : IntegrableOn (fun t : ℝ ↦ (720 : ℝ) / log t ^ 7) (Set.Icc 2 x) volume := by
-    have : (fun t : ℝ ↦ (720 : ℝ) / log t ^ 7) = (fun t ↦ 720 * (1 / log t ^ 7)) := by
-      funext t; ring
+    have : (fun t : ℝ ↦ (720 : ℝ) / log t ^ 7) = (fun t ↦ 720 * (1 / log t ^ 7)) := by funext t; ring
     rw [this]; exact hJ_int.const_mul 720
   have hG_int : IntegrableOn (fun t : ℝ ↦ (720 - a t) / log t ^ 7) (Set.Icc 2 x) volume := by
     have : (fun t : ℝ ↦ (720 - a t) / log t ^ 7) =
@@ -2607,42 +2388,24 @@ theorem epsilon_bound :
   ∀ x > exₐ, ε (Mₐ exₐ) x - εlower (mₐ xₐ) xₐ x < log x := by
   intro x hx
   have log_gt_3915 : (3915 : ℝ) < log x := by
-    have hlog : log exₐ < log x := log_lt_log exₐ_pos hx
-    have hexa_eq : exₐ = exp (3915 : ℝ) := exₐ_eq
-    simpa [hexa_eq, log_exp] using hlog
+    simpa [exₐ_eq, log_exp] using log_lt_log exₐ_pos hx
   have := Mₐ_exₐ_nonneg
   have := Mₐ_exₐ_le_1426
-  have : (2 * Mₐ exₐ + 132) / log x ≤ (2 * (1426 : ℝ) + 132) / (3915 : ℝ) := by
-    have : (2 * Mₐ exₐ + 132) / log x ≤ (2 * Mₐ exₐ + 132) / (3915 : ℝ) :=
-      div_le_div_of_nonneg_left (by nlinarith) (by positivity) (le_of_lt log_gt_3915)
-    have : (2 * Mₐ exₐ + 132) / (3915 : ℝ) ≤ (2 * (1426 : ℝ) + 132) / (3915 : ℝ) :=
-      div_le_div_of_nonneg_right (by nlinarith) (by positivity)
-    grind
-  have : (4 * Mₐ exₐ + 288) / (log x) ^ 2 ≤ (4 * (1426 : ℝ) + 288) / (3915 : ℝ) ^ 2 := by
-    have : (4 * Mₐ exₐ + 288) / (log x) ^ 2 ≤ (4 * Mₐ exₐ + 288) / (3915 : ℝ) ^ 2 :=
-      div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀])
-    have : (4 * Mₐ exₐ + 288) / (3915 : ℝ) ^ 2 ≤ (4 * (1426 : ℝ) + 288) / (3915 : ℝ) ^ 2 :=
-      div_le_div_of_nonneg_right (by nlinarith) (by positivity)
-    grind
-  have : (12 * Mₐ exₐ + 576) / (log x) ^ 3 ≤ (12 * (1426 : ℝ) + 576) / (3915 : ℝ) ^ 3 := by
-    have : (12 * Mₐ exₐ + 576) / (log x) ^ 3 ≤ (12 * Mₐ exₐ + 576) / (3915 : ℝ) ^ 3 :=
-      div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀])
-    have : (12 * Mₐ exₐ + 576) / (3915 : ℝ) ^ 3 ≤ (12 * (1426 : ℝ) + 576) / (3915 : ℝ) ^ 3 :=
-      div_le_div_of_nonneg_right (by nlinarith) (by positivity)
-    grind
-  have : (48 * Mₐ exₐ) / (log x) ^ 4 ≤ (48 * (1426 : ℝ)) / (3915 : ℝ) ^ 4 := by
-    have : (48 * Mₐ exₐ) / (log x) ^ 4 ≤ (48 * Mₐ exₐ) / (3915 : ℝ) ^ 4 :=
-      div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀])
-    have : (48 * Mₐ exₐ) / (3915 : ℝ) ^ 4 ≤ (48 * (1426 : ℝ)) / (3915 : ℝ) ^ 4 :=
-      div_le_div_of_nonneg_right (by nlinarith) (by positivity)
-    grind
-  have : (Mₐ exₐ ^ 2) / (log x) ^ 5 ≤ ((1426 : ℝ) ^ 2) / (3915 : ℝ) ^ 5 := by
-    have hcoef_nonneg : 0 ≤ Mₐ exₐ ^ 2 := sq_nonneg (Mₐ exₐ)
-    have : (Mₐ exₐ ^ 2) / (log x) ^ 5 ≤ (Mₐ exₐ ^ 2) / (3915 : ℝ) ^ 5 :=
-      div_le_div_of_nonneg_left hcoef_nonneg (by positivity) (by grind [pow_le_pow_left₀])
-    have : (Mₐ exₐ ^ 2) / (3915 : ℝ) ^ 5 ≤ ((1426 : ℝ) ^ 2) / (3915 : ℝ) ^ 5 :=
-      div_le_div_of_nonneg_right (by nlinarith) (by positivity)
-    grind
+  have : (2 * Mₐ exₐ + 132) / log x ≤ (2 * (1426 : ℝ) + 132) / (3915 : ℝ) :=
+    le_trans (div_le_div_of_nonneg_left (by nlinarith) (by positivity) log_gt_3915.le)
+      (div_le_div_of_nonneg_right (by nlinarith) (by positivity))
+  have : (4 * Mₐ exₐ + 288) / (log x) ^ 2 ≤ (4 * (1426 : ℝ) + 288) / (3915 : ℝ) ^ 2 :=
+    le_trans (div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀]))
+      (div_le_div_of_nonneg_right (by nlinarith) (by positivity))
+  have : (12 * Mₐ exₐ + 576) / (log x) ^ 3 ≤ (12 * (1426 : ℝ) + 576) / (3915 : ℝ) ^ 3 :=
+    le_trans (div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀]))
+      (div_le_div_of_nonneg_right (by nlinarith) (by positivity))
+  have : (48 * Mₐ exₐ) / (log x) ^ 4 ≤ (48 * (1426 : ℝ)) / (3915 : ℝ) ^ 4 :=
+    le_trans (div_le_div_of_nonneg_left (by nlinarith) (by positivity) (by grind [pow_le_pow_left₀]))
+      (div_le_div_of_nonneg_right (by nlinarith) (by positivity))
+  have : (Mₐ exₐ ^ 2) / (log x) ^ 5 ≤ ((1426 : ℝ) ^ 2) / (3915 : ℝ) ^ 5 :=
+    le_trans (div_le_div_of_nonneg_left (sq_nonneg _) (by positivity) (by grind [pow_le_pow_left₀]))
+      (div_le_div_of_nonneg_right (by nlinarith) (by positivity))
   have : 0 ≤ 364 / log x := by positivity
   have : 0 ≤ 381 / (log x) ^ 2 := by positivity
   have : 0 ≤ 238 / (log x) ^ 3 := by positivity
@@ -2655,16 +2418,10 @@ theorem epsilon_bound :
     linarith
   · rw [εlower, if_neg hm]
     have := mₐ_xₐ_ge_neg1194
-    have halpha_tight :
-        (1 + 1 / log xₐ) ^ 6 ≤ (10016 : ℝ) / 10000 := by
-      rw [log_xₐ_val]
-      norm_num
-    have :
-        ((10016 : ℝ) / 10000) * (mₐ xₐ)
-          ≤ (1 + 1 / log xₐ) ^ 6 * (mₐ xₐ) :=
-      mul_le_mul_of_nonpos_right halpha_tight (by linarith)
+    have halpha_tight : (1 + 1 / log xₐ) ^ 6 ≤ (10016 : ℝ) / 10000 := by
+      rw [log_xₐ_val]; norm_num
     unfold ε εneg
-    nlinarith
+    nlinarith [mul_le_mul_of_nonpos_right halpha_tight (by linarith : mₐ xₐ ≤ 0)]
 
 @[blueprint
   "ramanujan-final"
