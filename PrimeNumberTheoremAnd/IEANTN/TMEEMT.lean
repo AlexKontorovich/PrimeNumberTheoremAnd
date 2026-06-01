@@ -159,7 +159,7 @@ Some results from \cite{Dusart1999}-/
 @[blueprint
   "thm:dusart1999-pi"
   (title := "Dusart 1999, $\\pi$ inequality")
-  (statement := /-- For $x \geq 17$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
+  (statement := /-- For $x \geq 5393$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
     pi x ≥ x / (log x - 1) :=
