@@ -94,7 +94,7 @@ theorem pnt : ∃ C ≥ 0, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by
       have : |θ x - x| ≤ θ N + N := calc
         _ ≤ |θ x| + |x| := abs_sub _ _
         _ = θ x + x := by rw [abs_of_nonneg (theta_nonneg _), abs_of_nonneg (by linarith)]
-        _ ≤ _ := by gcongr; exact theta_mono h
+        _ ≤ _ := by gcongr
       calc
       _ ≤ (θ N + N) * log x ^ 2 / x := by gcongr
       _ ≤ (θ N + N) * (x ^ (1 / 2 : ℝ) / (1 / 2)) ^ 2 / x := by

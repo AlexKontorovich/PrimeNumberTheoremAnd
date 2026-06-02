@@ -88,7 +88,6 @@ theorem borelCaratheodory' {M r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
   refine le_trans h_limit ?_;
   gcongr
   · exact mul_nonneg (mul_nonneg (zero_le_two) (le_of_lt Mpos)) (le_trans (norm_nonneg z) hyp_z)
-  · linarith
 
 
 
@@ -167,14 +166,13 @@ lemma DerivativeBound {M r r' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
       grw [this]
       · exact le_of_eq (by field)
       · refine mul_nonneg (mul_nonneg ?_ ?_) (inv_nonneg.mpr ?_) <;> linarith
-    rw [norm_pow, norm_inv, one_div, inv_pow]
-    gcongr
-    · exact pow_pos (by linarith) _
-    · linarith
-    · simp only [mem_sphere_iff_norm, sub_zero, Metric.mem_closedBall,
-      dist_zero_right] at hz' z_in_r
+    have hdist : r' - r ≤ ‖z' - z‖ := by
+      simp only [mem_sphere_iff_norm, sub_zero, Metric.mem_closedBall,
+        dist_zero_right] at hz' z_in_r
       rw [← hz']
       exact le_trans (by linarith) (norm_sub_norm_le z' z)
+    rw [norm_pow, norm_inv, one_div, inv_pow]
+    gcongr
 
 
 

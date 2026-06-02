@@ -2837,7 +2837,15 @@ lemma tendsto_contour_shift {σ σ' : ℝ} {f : ℂ → ℂ}
       rw [show 0 + (0 * 0 + 1 * U) = U by ring]
       rw [intervalIntegral.integral_of_le hU, MeasureTheory.integral_Icc_eq_integral_Ioc]
       congr 1; funext y; congr 1; ring
-    rw [h1, h2, h3, h4]
+    have h3' : ∫ (y : ℝ) in 0..U, f (↑σ' + ↑y * I) =
+        ∫ y in Set.Icc 0 U, f (↑σ' + I * ↑y) := by simpa [Complex.I_mul_re, Complex.I_mul_im] using h3
+    have h4' : ∫ (y : ℝ) in 0..U, f (↑σ + ↑y * I) =
+        ∫ y in Set.Icc 0 U, f (↑σ + I * ↑y) := by simpa [Complex.I_mul_im] using h4
+    simp only [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_re, Complex.ofReal_im,
+      neg_zero, zero_add, add_zero, sub_zero]
+    rw [← h1, ← h2]
+    rw [h3', h4']
+    simp [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_im]
   have h_UpperU_zero : UpperUIntegral f σ σ' 0 = 0 := by
     have h1 := RectangleIntegral_tendsTo_UpperU' htop hleft hright
     have e : (↑σ + I * ↑(0:ℝ) : ℂ) = ↑σ := by simp
@@ -3373,6 +3381,7 @@ private lemma two_sub_E_sq (x : ℝ) : (2 : ℂ) - E ↑x - E (-↑x) = 4 * (Rea
     ring_nf; linear_combination -4 * Complex.sin_sq_add_cos_sq (z * (1 / 2))]
   simp; ring_nf
 
+set_option maxHeartbeats 800000 in
 /-- At a point `z = -1 + i t` on the vertical line `Re z = -1` (with `t ≥ 0`), the combination
 `Φ_circ - Φ_star` equals `-Φ_star` evaluated on the imaginary axis at `i t`.
 -/
@@ -3547,7 +3556,17 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
       rw [intervalIntegral.integral_symm, intervalIntegral.integral_of_le hT, MeasureTheory.integral_Icc_eq_integral_Ioc]
       simp only [neg_zero]
       exact congr_arg Neg.neg (integral_congr_ae (Filter.Eventually.of_forall fun y ↦ by push_cast; ring_nf))
-    rw [h1, h2, h3, h4]
+    have h3' : ∫ (y : ℝ) in 0..-T, f (↑σ' + ↑y * I) =
+        -∫ t in Set.Icc 0 T, f (↑σ' - I * ↑t) := by
+      simpa [Complex.I_mul_re, Complex.I_mul_im] using h3
+    have h4' : ∫ (y : ℝ) in 0..-T, f (↑σ + ↑y * I) =
+        -∫ t in Set.Icc 0 T, f (↑σ - I * ↑t) := by
+      simpa [Complex.I_mul_im] using h4
+    rw [← h1, ← h2]
+    simp only [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_re, Complex.ofReal_im,
+      neg_zero, zero_sub, sub_zero]
+    rw [h3', h4']
+    simp [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_im]
     ring
 
   have h_zero : Filter.Tendsto (fun (T : ℝ) ↦ RectangleIntegral f σ (σ' - I * T)) Filter.atTop (nhds 0) :=
@@ -3718,9 +3737,9 @@ lemma Phi_fourier_holo_left (ν ε x : ℝ) (hν : ν > 0) :
         subst h_n
         exact hz₀ (Complex.ext
           (by
+            rw [h_re]
             dsimp [z₀, z₀_pole]
-            rw [h_re, Complex.div_im, Complex.ofReal_im, Complex.mul_im, Complex.ofReal_im]
-            simp
+            simp [Complex.div_im, Complex.ofReal_re, Complex.ofReal_im]
           )
           (by rw [h_im]; dsimp [z₀, z₀_pole]; simp; norm_cast; ring))
       have h_anal_z : AnalyticAt ℂ g z := by
@@ -3783,7 +3802,9 @@ lemma Phi_fourier_holo_right (ν ε x : ℝ) (hν : ν > 0) :
         have : z = z₁ := by
           apply Complex.ext <;> dsimp [z₁, z₁_pole]
           · rw [h_re]; simp; norm_cast
-          · rw [h_im]; norm_cast; simp; ring
+          · rw [h_im]
+            simp [Complex.div_re, Complex.div_im, Complex.ofReal_re, Complex.ofReal_im]
+            field_simp [Real.pi_ne_zero]
         exact hz₁ this
       have h_anal_z : AnalyticAt ℂ g z := by
         have h_eq : g =ᶠ[nhds z] f := by
@@ -3908,7 +3929,8 @@ theorem shift_downwards (ν ε : ℝ) (hν : ν > 0) (x : ℝ) (hx : x > 0) :
         · filter_upwards with t ht; dsimp [fL]; push_cast; simp only [neg_div]; apply hg_eq
           intro h
           simp only [one_div] at h
-          apply absurd (Complex.ext_iff.mp h).1 (by dsimp [z₀_pole]; norm_cast; simp)
+          apply absurd (Complex.ext_iff.mp h).1
+            (by dsimp [z₀_pole]; simp [Complex.div_im, Complex.ofReal_re, Complex.ofReal_im])
       · congr 1
         apply MeasureTheory.setIntegral_congr_ae
         · exact measurableSet_Icc
@@ -5062,7 +5084,7 @@ lemma ϕ_pm_deriv_Iic_finite (ν ε : ℝ) :
         have hi_n : i < n := Finset.mem_range.mp hi
         rw [hg_zero _ (h_lt (i + 1) hi_n), hg_zero _ (h_lt i hi_n.le), edist_self]
       _ = 0 := by simp
-      _ ≤ edist (g (-1)) 0 := zero_le _
+      _ ≤ edist (g (-1)) 0 := by positivity
 
 lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
     eVariationOn (deriv (ϕ_pm ν ε)) (Set.Ici (1 : ℝ)) ≠ ⊤ := by
@@ -5115,7 +5137,7 @@ lemma ϕ_pm_deriv_Ici_finite (ν ε : ℝ) :
         have hi_n : i < n := Finset.mem_range.mp hi
         rw [hg_zero _ (h_gt (i + 1) hi_n), hg_zero _ (h_gt i hi_n.le), edist_self]
       _ = 0 := by simp
-      _ ≤ edist (g 1) 0 := zero_le _
+      _ ≤ edist (g 1) 0 := by positivity
 
 private lemma eVariationOn_add_jump_greatest {α E : Type*} [LinearOrder α] [PseudoEMetricSpace E]
     {f f' : α → E} {s : Set α} {x : α} (hs : IsGreatest s x) (heq : Set.EqOn f f' (s \ {x})) :
@@ -5303,7 +5325,6 @@ private lemma varphi_hat_integrable (ν ε : ℝ) (hlam : ν ≠ 0) :
   · filter_upwards with x
     refine (h_decay x).trans_eq ?_
     rw [div_eq_mul_inv, Real.norm_eq_abs, sq_abs]
-    rfl
 
 private lemma varphi_fourier_inversion_re (ν ε : ℝ) (hlam : ν ≠ 0)
     (hf_hat_int : Integrable (𝓕 (ϕ_pm ν ε))) :
