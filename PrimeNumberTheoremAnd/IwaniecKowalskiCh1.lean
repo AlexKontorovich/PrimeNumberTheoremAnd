@@ -795,7 +795,7 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
   (proof := /--
     Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/n^s)(f(n)/n^s)$.
   -/)]
-lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : ArithmeticFunction.IsMultiplicative (toArithmeticFunction f)) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
   simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
@@ -806,20 +806,16 @@ lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (h
   simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
 
 @[blueprint
-  "two_pow_omega_LSeries.term_isMultiplicative"
-  (title := "two-pow-omega-LSeries.term-isMultiplicative")
+  "two_pow_omega_isMultiplicative"
+  (title := "two-pow-omega-isMultiplicative")
   (statement := /--
-    We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
+    The function $n\mapsto 2^{\omega(n)}$ is multiplicative.
   -/)
   (proof := /--
-    Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
-    and the fact that $\omega(mn)=\omega(m)+\omega(n)$ implies
-    $2^{\omega(mn)}=2^{\omega(m)+\omega(n)}=2^{\omega(m)}2^{\omega(n)}$.
+    The fact that $\omega(mn)=\omega(m)+\omega(n)$ implies $2^{\omega(mn)}=2^{\omega(m)+\omega(n)}=2^{\omega(m)}2^{\omega(n)}$.
   -/)]
-lemma two_pow_omega_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
-    LSeries.term (fun n ↦ 2 ^ (ω n)) s (m * n) =
-  LSeries.term (fun n ↦ 2 ^ (ω n)) s m * LSeries.term (fun n ↦ 2 ^ (ω n)) s n := by
-  refine LSeries.term_isMultiplicative_if_fun_isMultiplicative ?_ s mCn
+lemma two_pow_omega_isMultiplicative :
+    (toArithmeticFunction (fun n ↦ (2 : ℂ) ^ ω n)).IsMultiplicative := by
   simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte,
     cardDistinctFactors_one, pow_zero, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul,
     true_and]
@@ -827,6 +823,21 @@ lemma two_pow_omega_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
   simp only [cardDistinctFactors_mul mCn, pow_add, or_self, ↓reduceIte]
+
+@[blueprint
+  "two_pow_omega_LSeries.term_isMultiplicative"
+  (title := "two-pow-omega-LSeries.term-isMultiplicative")
+  (statement := /--
+    We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
+  -/)
+  (proof := /--
+    Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
+    and \ref{two-pow-omega-isMultiplicative}.
+  -/)]
+lemma two_pow_omega_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+    LSeries.term (fun n ↦ 2 ^ (ω n)) s (m * n) =
+  LSeries.term (fun n ↦ 2 ^ (ω n)) s m * LSeries.term (fun n ↦ 2 ^ (ω n)) s n := by
+  exact LSeries.term_isMultiplicative_if_fun_isMultiplicative two_pow_omega_isMultiplicative s mCn
 
 @[blueprint
   "sumOnPrimePows"
@@ -1024,6 +1035,24 @@ lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
   apply LSeriesSummable.of_norm_le_norm hgf zetaSummable
 
 @[blueprint
+  "powOfMultiplicative_isMultiplicative"
+  (title := "powOfMultiplicative-isMultiplicative")
+  (statement := /--
+    If $f$ is a multiplicative function, then so to is $n\mapsto f(n)^k$ for any $k\in\mathbb{N}$.
+  -/)
+  (proof := /--
+    Note that $f(mn)^k=(f(m)f(n))^k=(f(m)^k)(f(n)^k)$.
+  -/)]
+lemma powOfMultiplicative_isMultiplicative {R : Type u_1} [CommMonoidWithZero R]
+    {f : ArithmeticFunction R} (hf : f.IsMultiplicative) (k : ℕ) :
+    (toArithmeticFunction (fun n ↦ (f n) ^ k)).IsMultiplicative := by
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul, hf.1, one_pow, true_and]
+  intro m n mCn
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte, hf.2 mCn, mul_pow]
+
+@[blueprint
   "moebius_sq_LSeries.term_isMultiplicative"
   (title := "moebius-sq-LSeries.term-isMultiplicative")
   (statement := /--
@@ -1031,20 +1060,13 @@ lemma LSeriesSummable_moebius_sq {s : ℂ} (hs : 1 < s.re) :
   -/)
   (proof := /--
     Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
-    and the fact that $\mu$ is a multiplicative function.
+    and \ref{moebius-sq-isMultiplicative}.
   -/)]
 lemma moebius_sq_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term (fun n ↦ (μ n) ^ 2) s (m * n) =
   LSeries.term (fun n ↦ (μ n) ^ 2) s m * LSeries.term (fun n ↦ (μ n) ^ 2) s n := by
-  refine LSeries.term_isMultiplicative_if_fun_isMultiplicative ?_ s mCn
-  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte,
-    isUnit_iff_eq_one, IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg,
-    cardFactors_one, pow_zero, Int.cast_one, one_pow, _root_.mul_eq_zero, mul_ite, mul_zero,
-    ite_mul, zero_mul, true_and]
-  intro m n mCn
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte, ← mul_pow, ← Int.cast_mul, ← ArithmeticFunction.isMultiplicative_moebius.2 mCn]
+  simp only [← intCoe_apply]
+  exact LSeries.term_isMultiplicative_if_fun_isMultiplicative (powOfMultiplicative_isMultiplicative (ArithmeticFunction.IsMultiplicative.intCast isMultiplicative_moebius) 2) s mCn
 
 @[blueprint
   "moebius_sq_tsum_prime_pow"
