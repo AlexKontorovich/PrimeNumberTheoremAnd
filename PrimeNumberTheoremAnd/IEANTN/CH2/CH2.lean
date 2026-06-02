@@ -648,6 +648,22 @@ lemma RectangleIntegral'_eq_sumResiduesIn {f : ℂ → ℂ} {z w : ℂ}
   let fNF : ℂ → ℂ := toMeromorphicNFOn f R
   let principalPart : ℂ → ℂ := fun s ↦ ∑ p ∈ polesFin, residue fNF p / (s - p)
   let holoPart : ℂ → ℂ := toMeromorphicNFOn (fNF - principalPart) R
+  -- Non-constancy of horizontal paths `x ↦ x + h·i` (the real part strictly varies).
+  have h_hnonconst : ∀ h : ℝ, ∀ x ∈ Set.uIcc z.re w.re,
+      ¬Filter.EventuallyConst (fun r : ℝ ↦ r + h * Complex.I) (nhds x) := fun h x _ hc => by
+    obtain ⟨c, hc⟩ := Filter.eventuallyConst_iff_exists_eventuallyEq.1 hc
+    have := hc.deriv.eq_of_nhds
+    simp at this
+  -- Non-constancy of vertical paths `y ↦ r + y·i` (the imaginary part strictly varies).
+  have h_vnonconst : ∀ r : ℝ, ∀ x ∈ Set.uIcc z.im w.im,
+      ¬Filter.EventuallyConst (fun y : ℝ ↦ (r : ℂ) + y * Complex.I) (nhds x) := fun r x _ hc => by
+    obtain ⟨c, hc⟩ := Filter.eventuallyConst_iff_exists_eventuallyEq.1 hc
+    have heq := hc.deriv.eq_of_nhds
+    have hd : deriv (fun y : ℝ ↦ (r : ℂ) + y * Complex.I) x = Complex.I := by
+      have := (hasDerivAt_const x (r : ℂ)).add
+        ((Complex.ofRealCLM.hasDerivAt (x := x)).mul_const Complex.I)
+      simpa using this.deriv
+    exact Complex.I_ne_zero (hd.symm.trans (heq.trans (deriv_const x c)))
 
   have h_boundary_congr :
       RectangleIntegral' f z w = RectangleIntegral' fNF z w := by
@@ -656,18 +672,9 @@ lemma RectangleIntegral'_eq_sumResiduesIn {f : ℂ → ℂ} {z w : ℂ}
     have h_eq : {s : ℂ | f s = fNF s} ∈ Filter.codiscreteWithin R := by
       simpa [Filter.EventuallyEq, Filter.Eventually, fNF] using
         (toMeromorphicNFOn_eqOn_codiscrete (f := f) (U := R) f_mero)
-    -- Non-constancy of horizontal paths `x ↦ x + h·i` (the real part strictly varies).
-    have h_hnonconst : ∀ h : ℝ, ∀ x ∈ Set.uIcc z.re w.re,
-        ¬Filter.EventuallyConst (fun r : ℝ ↦ r + h * Complex.I) (nhds x) := fun h x _ hc => by
-      obtain ⟨c, hc⟩ := Filter.eventuallyConst_iff_exists_eventuallyEq.1 hc
-      have := hc.deriv.eq_of_nhds
-      simp at this
-    -- Non-constancy of vertical paths `y ↦ r + y·i` (the imaginary part strictly varies).
-    have h_vnonconst : ∀ r : ℝ, ∀ x ∈ Set.uIcc z.im w.im,
-        ¬Filter.EventuallyConst (fun y : ℝ ↦ (r : ℂ) + y * Complex.I) (nhds x) := fun r x _ hc => by
-      obtain ⟨c, hc⟩ := Filter.eventuallyConst_iff_exists_eventuallyEq.1 hc
-      have := hc.deriv.eq_of_nhds
-      simp [Complex.I_ne_zero] at this
+
+
+
     have hbot : HIntegral f z.re w.re z.im = HIntegral fNF z.re w.re z.im := by
       unfold HIntegral
       exact intervalIntegral_congr_ae_of_codiscreteWithin_along_path h_eq
