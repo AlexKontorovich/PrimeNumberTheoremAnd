@@ -1072,7 +1072,7 @@ private lemma bklnw_lemma_8_bound_le_B (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ �
   apply IsCompact.bddAbove
   apply isCompact_range
   apply Continuous.add
-  · refine continuous_finset_sum (Finset.Icc 1 n) (fun ℓ _ ↦ ?_)
+  · refine continuous_finsetSum (Finset.Icc 1 n) (fun ℓ _ ↦ ?_)
     apply Continuous.mul
     · apply Continuous.mul continuous_const
       apply Continuous.pow

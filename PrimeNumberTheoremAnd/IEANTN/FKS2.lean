@@ -2859,7 +2859,7 @@ private lemma bound_x0_x1 {x₀ x₁ : ℝ} (hx₀ : x₀ ≥ 2) (hx₀_le_x₁ 
   have h_ind : ∀ n : Fin (N + 1), ∫ t in (exp (b 0))..(exp (b n)), Eθ t / (log t) ^ 2 = ∑ i ∈ Finset.Iio n, ∫ t in (exp (b i))..(exp (b (i + 1))), Eθ t / (log t) ^ 2 := by
     intro n
     induction n using Fin.induction with
-    | zero => simp [show (Finset.Iio 0 : Finset (Fin (N + 1))) = ∅ by ext i; simp [Fin.lt_def]]
+    | zero => simp [show (Finset.Iio 0 : Finset (Fin (N + 1))) = ∅ by ext i; simp]
     | succ n ih =>
       have h_RHS : Set.uIcc (exp (b 0)) (exp (b (Fin.last N))) = Set.Icc (exp (b 0)) (exp (b (Fin.last N))) :=
         Set.uIcc_of_le (exp_le_exp.mpr (hmono (Fin.le_last _)))
