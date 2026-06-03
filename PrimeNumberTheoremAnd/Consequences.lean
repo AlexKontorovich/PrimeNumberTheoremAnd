@@ -2347,7 +2347,7 @@ lemma sum_mobius_floor_tail_isLittleO (K : ℕ) (hK : 0 < K) :
         rw [Asymptotics.isLittleO_iff_tendsto']
         · have h_sum_little_o : ∀ k ∈ Finset.Ico 1 K, Filter.Tendsto (fun x : ℝ => (∑ n ∈ Finset.Ioc ⌊x / (k + 1 : ℝ)⌋₊ ⌊x / (k : ℝ)⌋₊, (μ n : ℝ)) / x) Filter.atTop (nhds 0) := by
             intro k hk; specialize h_M_x_over_k k (Finset.mem_Ico.mp hk |>.1) (Finset.mem_Ico.mp hk |>.2) ; rw [Asymptotics.isLittleO_iff_tendsto'] at h_M_x_over_k <;> aesop
-          simpa [Finset.sum_div _ _ _, mul_div_assoc] using tendsto_finset_sum _ fun k hk => h_sum_little_o k hk |> Filter.Tendsto.const_mul _
+          simpa [Finset.sum_div _ _ _, mul_div_assoc] using tendsto_finsetSum _ fun k hk => h_sum_little_o k hk |> Filter.Tendsto.const_mul _
         · filter_upwards [Filter.eventually_gt_atTop 0] with x hx hx' using absurd hx' hx.ne'
       exact h_sum_o_x.congr'
         (by filter_upwards [Filter.eventually_ge_atTop 1] with x hx using by rw [h_group x hx])

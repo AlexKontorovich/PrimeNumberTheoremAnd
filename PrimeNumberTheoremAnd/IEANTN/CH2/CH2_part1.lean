@@ -34,6 +34,8 @@ open Real MeasureTheory FourierTransform Chebyshev Asymptotics
 open ArithmeticFunction hiding log
 open Complex hiding log
 
+private lemma pnat_one_le (n : ℕ+) : 1 ≤ (n : ℕ) := n.2
+
 lemma summable_nterm_of_log_weight {a : ℕ → ℂ} {β sig : ℝ}
     (hsig : 1 < sig) (ha : Summable (fun n : ℕ ↦ ‖a n‖ / (n * Real.log n ^ β))) :
     Summable (nterm a sig) := by
@@ -304,7 +306,7 @@ private lemma fourier_decay_isO_log_rpow
   filter_upwards [h_y_pos, h_phi_le, h_y_inv_le, Filter.eventually_ge_atTop (2 : ℕ+)]
     with n hy_pos hn_phi_le hn_inv_le hn2
   simp only [Real.norm_eq_abs, abs_norm]
-  have h_log_n : 0 ≤ log (n : ℝ) := log_nonneg (by exact_mod_cast (PNat.one_le n))
+  have h_log_n : 0 ≤ log (n : ℝ) := log_nonneg (by exact_mod_cast n.2)
   apply hn_phi_le.trans
   rw [abs_of_pos hy_pos, div_eq_mul_inv, ← inv_rpow hy_pos.le, abs_of_nonneg (rpow_nonneg h_log_n _)]
   have h_rhs : (C * (T / (4 * π)) ^ (-β)) * log n ^ (-β) = C * ((T / (4 * π)) * log n)⁻¹ ^ β := by
@@ -612,7 +614,7 @@ private lemma prop_2_3_tendsto_dirichlet_sum
     dsimp [f]
     rw [norm_mul, norm_mul, norm_div, norm_natCast_cpow_of_pos (PNat.pos n)]
     gcongr
-    · convert Real.rpow_le_rpow_of_exponent_le (Nat.one_le_cast.mpr (PNat.one_le n)) hsig.le using 1
+    · convert Real.rpow_le_rpow_of_exponent_le (Nat.one_le_cast.mpr n.2) hsig.le using 1
       · simp; rfl
 
 @[blueprint
@@ -716,17 +718,18 @@ theorem S_eq_I (a : ℕ → ℝ) (s x T : ℝ) (hs : s ≠ 1) (hT : 0 < T) (hx :
       rw [h_cond, tsum_eq_sum (s := Finset.Icc 1 ⟨⌊x⌋₊ + 1, Nat.succ_pos _⟩)]
       · congr 1; rw [← Finset.sum_filter]; field_simp
         refine Finset.sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
-        · simp only [Finset.mem_filter, Finset.mem_Icc, PNat.one_le, true_and, and_imp]
-          exact fun n hn₁ hn₂ ↦ ⟨PNat.one_le _, hn₂⟩
+        · simp only [Finset.mem_filter, Finset.mem_Icc, pnat_one_le, true_and, and_imp]
+          exact fun _ _ _ h ↦ h
         · exact fun _ _ _ _ h ↦ Subtype.val_injective h
-        · simp only [Finset.mem_Icc, Finset.mem_filter, PNat.one_le, true_and,
+        · simp only [Finset.mem_Icc, Finset.mem_filter,
             exists_prop, and_imp]
-          exact fun b hb₁ hb₂ ↦ ⟨⟨b, hb₁⟩, ⟨Nat.le_succ_of_le hb₂, hb₂⟩, rfl⟩
-        · simp only [Finset.mem_filter, Finset.mem_Icc, PNat.one_le, true_and,
+          exact fun b hb₁ hb₂ ↦
+            ⟨⟨b, hb₁⟩, ⟨⟨pnat_one_le _, Nat.le_succ_of_le hb₂⟩, hb₂⟩, rfl⟩
+        · simp only [Finset.mem_filter, Finset.mem_Icc,
             mul_assoc, mul_comm, implies_true]
-      · simp +zetaDelta only [Finset.mem_Icc, PNat.one_le, true_and, not_le, ite_eq_right_iff,
+      · simp +zetaDelta only [Finset.mem_Icc, ite_eq_right_iff,
           mul_eq_zero, div_eq_zero_iff, Nat.cast_eq_zero, PNat.ne_zero, or_false] at *
-        exact fun n hn₁ hn₂ ↦ absurd (Nat.le_succ_of_le hn₂) (not_le_of_gt hn₁)
+        exact fun n hn₁ hn₂ ↦ False.elim (hn₁ ⟨pnat_one_le _, Nat.le_succ_of_le hn₂⟩)
     simp_all only [ne_eq, div_eq_mul_inv, rpow_neg hx.le, mul_left_comm, mul_comm,
       mul_inv_rev, mul_assoc, Finset.mul_sum ..]
     refine Finset.sum_congr rfl fun n hn ↦ ?_
@@ -1161,7 +1164,7 @@ theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh
 
 @[simp]
 public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
-  simpa using tanh_add_int_mul_pi_I z 1
+  simp
 
 lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   simp [coth]
@@ -2842,10 +2845,10 @@ lemma tendsto_contour_shift {σ σ' : ℝ} {f : ℂ → ℂ}
     have h4' : ∫ (y : ℝ) in 0..U, f (↑σ + ↑y * I) =
         ∫ y in Set.Icc 0 U, f (↑σ + I * ↑y) := by simpa [Complex.I_mul_im] using h4
     simp only [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_re, Complex.ofReal_im,
-      neg_zero, zero_add, add_zero, sub_zero]
+      neg_zero, zero_add, add_zero]
     rw [← h1, ← h2]
     rw [h3', h4']
-    simp [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_im]
+    simp
   have h_UpperU_zero : UpperUIntegral f σ σ' 0 = 0 := by
     have h1 := RectangleIntegral_tendsTo_UpperU' htop hleft hright
     have e : (↑σ + I * ↑(0:ℝ) : ℂ) = ↑σ := by simp
@@ -3382,6 +3385,7 @@ private lemma two_sub_E_sq (x : ℝ) : (2 : ℂ) - E ↑x - E (-↑x) = 4 * (Rea
   simp; ring_nf
 
 set_option maxHeartbeats 800000 in
+-- Lean 4.30 needs the larger heartbeat budget for this symbolic identity.
 /-- At a point `z = -1 + i t` on the vertical line `Re z = -1` (with `t ≥ 0`), the combination
 `Φ_circ - Φ_star` equals `-Φ_star` evaluated on the imaginary axis at `i t`.
 -/
@@ -3566,7 +3570,7 @@ lemma tendsto_contour_shift_downwards {σ σ' : ℝ} {f : ℂ → ℂ}
     simp only [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_re, Complex.ofReal_im,
       neg_zero, zero_sub, sub_zero]
     rw [h3', h4']
-    simp [Complex.I_mul_re, Complex.I_mul_im, Complex.ofReal_im]
+    simp
     ring
 
   have h_zero : Filter.Tendsto (fun (T : ℝ) ↦ RectangleIntegral f σ (σ' - I * T)) Filter.atTop (nhds 0) :=

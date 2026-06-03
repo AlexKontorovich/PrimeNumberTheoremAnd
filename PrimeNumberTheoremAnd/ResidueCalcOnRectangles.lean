@@ -281,15 +281,13 @@ lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
         ∫ (x : ℝ) in a..x₁, f (↑x + ↑y₀ * I) := by
     apply intervalIntegral.integral_congr
     intro x _
-    congr 1
-    ring
+    exact congrArg f (by ring)
   have hcomm₂ :
       ∫ (x : ℝ) in a..x₁, f (↑y₁ * I + ↑x) =
         ∫ (x : ℝ) in a..x₁, f (↑x + ↑y₁ * I) := by
     apply intervalIntegral.integral_congr
     intro x _
-    congr 1
-    ring
+    exact congrArg f (by ring)
   rw [hcomm₁, hcomm₂]
   abel
 

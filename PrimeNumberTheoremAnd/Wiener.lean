@@ -2646,7 +2646,7 @@ lemma tendsto_tsum_of_monotone_convergence_nhdsGT_one
     have hsum1 : Summable (fun n : ℕ => F (1 : ℝ) n) := by
       obtain ⟨C, hC⟩ := hT_bdd
       refine summable_of_sum_range_le (hF_nonneg 1) fun m ↦ le_of_tendsto
-        (tendsto_finset_sum _ fun i _ ↦ hF_tend i)
+        (tendsto_finsetSum _ fun i _ ↦ hF_tend i)
         (eventually_of_mem self_mem_nhdsWithin fun σ hσ ↦
           ((hSumm σ hσ).sum_le_tsum _ (fun n _ ↦ hF_nonneg σ n)).trans (hC ⟨σ, hσ, rfl⟩))
     have hg_ne_top : (∑' n : ℕ, ENNReal.ofReal (F 1 n)) ≠ ⊤ := hsum1.tsum_ofReal_ne_top
@@ -3697,7 +3697,7 @@ lemma auto_cheby_fourier_summable (hpos : 0 ≤ f) (hf : ∀ σ', 1 < σ' → Su
         (by simp [hn])).const_mul (f n) |>.mul_const (w n)
       exact (Nat.cast_pos.mpr (Nat.pos_of_ne_zero hn)).ne'
     obtain ⟨C, hC⟩ := Asymptotics.isBigO_iff.mp (hT_bdd.comp_tendsto h_tendsto)
-    refine summable_of_sum_range_le (c := C) (rt_nn 1) fun m ↦ le_of_tendsto (tendsto_finset_sum _
+    refine summable_of_sum_range_le (c := C) (rt_nn 1) fun m ↦ le_of_tendsto (tendsto_finsetSum _
         fun i _ ↦ h_ptwise i) ?_
     filter_upwards [h_tendsto.eventually self_mem_nhdsWithin, hC] with k hk hCk
     calc ∑ i ∈ Finset.range m, rt (σ_seq k) i

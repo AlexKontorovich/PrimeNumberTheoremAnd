@@ -304,7 +304,7 @@ lemma pre_413_measure_inter {x : ℝ} (hx : 2 ≤ x) (y : Finset.Ico 1 ⌊x⌋�
       arg 2
       equals ↑(1: ℕ) + (1: ℝ) => norm_num
     rw [leftLim_theta_succ]
-    simp [theta_one, Real.log_nonneg]
+    simp [Real.log_nonneg]
   · rw [Measure.real_def, MeasureTheory.measure_eq_measure_of_null_diff (t := Set.Ioc (↑↑y) (↑↑y + 1))]
     · simp only [«θ».Stieltjes, StieltjesFunction.measure_Ioc, theta_succ_sub,
       ENNReal.toReal_ofReal_eq_iff]
