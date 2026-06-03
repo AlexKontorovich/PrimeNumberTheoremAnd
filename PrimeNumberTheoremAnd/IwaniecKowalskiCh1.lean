@@ -662,15 +662,37 @@ theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     · ring_nf
     · simp [tau, sigma, sigmaR, pow_two]
 
+lemma IsMultiplicative.of_map_mulHom {f h : ArithmeticFunction ℕ}
+    (hf : f.IsMultiplicative) (g : ℕ →* ℕ) (hh : ∀ n, h n = g (f n)) :
+    h.IsMultiplicative := by
+  refine ⟨?_, ?_⟩
+  · rw [hh, hf.1, g.map_one]
+  · intro m n hmn
+    rw [hh, hh, hh, hf.2 hmn, g.map_mul]
+
+lemma IsMultiplicative.of_comp_mulHom {f h : ArithmeticFunction ℕ}
+    (hf : f.IsMultiplicative) (g : ℕ →* ℕ)
+    (hg_cop : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (g m) (g n))
+    (hh : ∀ n, h n = f (g n)) : h.IsMultiplicative := by
+  refine ⟨?_, ?_⟩
+  · rw [hh, g.map_one, hf.1]
+  · intro m n hmn
+    rw [hh, hh, hh, g.map_mul, hf.2 (hg_cop hmn)]
+
+abbrev sqHom : ℕ →* ℕ where
+  toFun n := n ^ 2
+  map_one' := one_pow 2
+  map_mul' m n := mul_pow m n 2
+
 /-- `τ(p^m) = m + 1` for prime `p`. -/
-lemma tau_prime_pow {p : ℕ} (hp : p.Prime) (m : ℕ) : τ (p ^ m) = m + 1 := by
+lemma tau_prime_pow {p : ℕ} (hp : p.Prime) (m : ℕ) : τ (p ^ m) = m + 1 :=
   have h : τ (p ^ m) = d 2 (p ^ m) := by rw [d_two]
   rw [h, d_apply_prime_pow (by norm_num) hp]
   simp [Nat.choose_one_right]
 
 /-- `∑_{j=0}^{k} (2j+1) = (k+1)²`. -/
 lemma sum_two_mul_add_one (k : ℕ) :
-    ∑ j ∈ Finset.range (k + 1), (2 * j + 1) = (k + 1) ^ 2 := by
+    ∑ j ∈ Finset.range (k + 1), (2 * j + 1) = (k + 1) ^ 2 :=
   induction k with
   | zero => simp
   | succ n ih => rw [Finset.sum_range_succ, ih]; ring
@@ -682,21 +704,10 @@ abbrev tauSq : ArithmeticFunction ℕ := ⟨fun n ↦ τ (n ^ 2), by simp⟩
 abbrev sqTau : ArithmeticFunction ℕ := ⟨fun n ↦ (τ n) ^ 2, by simp⟩
 
 lemma isMultiplicative_tauSq : tauSq.IsMultiplicative := by
-  refine ⟨?_, ?_⟩
-  · change τ ((1 : ℕ) ^ 2) = 1
-    rw [one_pow]; exact isMultiplicative_tau.1
-  · intro m n hmn
-    change τ ((m * n) ^ 2) = τ (m ^ 2) * τ (n ^ 2)
-    rw [mul_pow]
-    exact isMultiplicative_tau.2 (hmn.pow 2 2)
+  isMultiplicative_tau.of_comp_mulHom sqHom (fun h ↦ h.pow 2 2) (fun _ ↦ rfl)
 
 lemma isMultiplicative_sqTau : sqTau.IsMultiplicative := by
-  refine ⟨?_, ?_⟩
-  · change τ (1 : ℕ) ^ 2 = 1
-    rw [isMultiplicative_tau.1, one_pow]
-  · intro m n hmn
-    change τ (m * n) ^ 2 = τ m ^ 2 * τ n ^ 2
-    rw [isMultiplicative_tau.2 hmn, mul_pow]
+  isMultiplicative_tau.of_map_mulHom sqHom (fun _ ↦ rfl)
 
 /-- `τ(n²) ≤ d_3(n)` pointwise.  Used for L-series summability of `n ↦ τ(n²)`. -/
 lemma tau_sq_le_d_three (n : ℕ) : tauSq n ≤ d 3 n := by
