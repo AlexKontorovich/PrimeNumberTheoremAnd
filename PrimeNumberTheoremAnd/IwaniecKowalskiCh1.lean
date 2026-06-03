@@ -805,6 +805,19 @@ lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (h
   congr 1
   simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
 
+lemma powOfAdditive_isMultiplicative
+    {f : ArithmeticFunction ℕ} (hf : IsAdditive f) (z : ℂ) :
+    (toArithmeticFunction (fun n ↦ z ^ (f n))).IsMultiplicative := by
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul]
+  simp only [IsAdditive, ne_eq] at hf
+  have := hf one_ne_zero one_ne_zero (coprime_one_right 1)
+  rw [mul_one, left_eq_add] at this
+  simp only [this, pow_zero, zero_mul, true_and]
+  intro m n mCn
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte, hf m_eq_zero n_eq_zero mCn, pow_add]
+
 @[blueprint
   "two_pow_omega_isMultiplicative"
   (title := "two-pow-omega-isMultiplicative")
@@ -816,13 +829,7 @@ lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (h
   -/)]
 lemma two_pow_omega_isMultiplicative :
     (toArithmeticFunction (fun n ↦ (2 : ℂ) ^ ω n)).IsMultiplicative := by
-  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte,
-    cardDistinctFactors_one, pow_zero, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul,
-    true_and]
-  intro m n mCn
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [cardDistinctFactors_mul mCn, pow_add, or_self, ↓reduceIte]
+  exact powOfAdditive_isMultiplicative (fun hm hn h => ArithmeticFunction.cardDistinctFactors_mul h) 2
 
 @[blueprint
   "two_pow_omega_LSeries.term_isMultiplicative"
