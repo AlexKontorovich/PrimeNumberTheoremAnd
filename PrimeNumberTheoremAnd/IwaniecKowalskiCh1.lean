@@ -805,14 +805,24 @@ lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (h
   congr 1
   simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
 
+@[blueprint
+  "powOfAdditive_isMultiplicative"
+  (title := "powOfAdditive-isMultiplicative")
+  (statement := /--
+    If $f$ is an additive function, then so to is $n\mapsto k^{f(n)}$ for any fixed $k$.
+  -/)
+  (proof := /--
+    Note that $k^{f(mn)}=k^{f(m)+f(n)}=k^{f(m)}k^{f(n)}$.
+  -/)]
 lemma powOfAdditive_isMultiplicative
-    {f : ArithmeticFunction ℕ} (hf : IsAdditive f) (z : ℂ) :
-    (toArithmeticFunction (fun n ↦ z ^ (f n))).IsMultiplicative := by
-  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul]
+    {R : Type u_1} [CommMonoidWithZero R] (k : R)
+    {f : ArithmeticFunction ℕ} (hf : f.IsAdditive) :
+    (toArithmeticFunction (fun n ↦ k ^ (f n))).IsMultiplicative := by
   simp only [IsAdditive, ne_eq] at hf
   have := hf one_ne_zero one_ne_zero (coprime_one_right 1)
   rw [mul_one, left_eq_add] at this
-  simp only [this, pow_zero, zero_mul, true_and]
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, this,
+    pow_zero, mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul, true_and]
   intro m n mCn
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
@@ -829,7 +839,7 @@ lemma powOfAdditive_isMultiplicative
   -/)]
 lemma two_pow_omega_isMultiplicative :
     (toArithmeticFunction (fun n ↦ (2 : ℂ) ^ ω n)).IsMultiplicative := by
-  exact powOfAdditive_isMultiplicative (fun hm hn h => ArithmeticFunction.cardDistinctFactors_mul h) 2
+  exact powOfAdditive_isMultiplicative 2 (fun hm hn h => ArithmeticFunction.cardDistinctFactors_mul h)
 
 @[blueprint
   "two_pow_omega_LSeries.term_isMultiplicative"
