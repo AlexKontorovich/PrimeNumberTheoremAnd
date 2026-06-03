@@ -835,7 +835,7 @@ lemma powOfAdditive_isMultiplicative
     The function $n\mapsto 2^{\omega(n)}$ is multiplicative.
   -/)
   (proof := /--
-    The fact that $\omega(mn)=\omega(m)+\omega(n)$ implies $2^{\omega(mn)}=2^{\omega(m)+\omega(n)}=2^{\omega(m)}2^{\omega(n)}$.
+    This follows directly from Lemma \ref{powOfAdditive-isMultiplicative} and the fact that $\omega(mn)=\omega(m)+\omega(n)$.
   -/)]
 lemma two_pow_omega_isMultiplicative :
     (toArithmeticFunction (fun n ↦ (2 : ℂ) ^ ω n)).IsMultiplicative := by
