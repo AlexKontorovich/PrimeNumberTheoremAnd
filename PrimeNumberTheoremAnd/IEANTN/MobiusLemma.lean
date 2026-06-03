@@ -311,7 +311,7 @@ theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
                   rw [enorm_eq_ofReal_abs]
                 · simp only [h1, ↓reduceIte, mul_zero]
                   rw [enorm_zero]
-                  exact zero_le _
+                  positivity
             _ = ∫⁻ u in Set.Ioc 0 (x / n ^ 2), ENNReal.ofReal |(moebius n : ℝ)| := by
                 rw [lintegral_indicator measurableSet_Ioc,
                   Measure.restrict_restrict measurableSet_Ioc]
@@ -471,7 +471,8 @@ theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
       · refine aestronglyMeasurable ?_
         have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
           nat_floor (.sqrt (measurable_const.div measurable_id'))
-        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) := by fun_prop
+        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) :=
+          measurable_of_countable _
         exact Measurable.comp (by fun_prop) (h_meas_sum.comp h_meas_floor)
       · refine Filter.Eventually.of_forall fun u ↦ ?_
         norm_num [f, M, moebius]
@@ -553,7 +554,8 @@ theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
       · refine aestronglyMeasurable ?_
         have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
           nat_floor (.sqrt (measurable_const.div measurable_id'))
-        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) := by fun_prop
+        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) :=
+          measurable_of_countable _
         exact Measurable.comp (by fun_prop) (h_meas_sum.comp h_meas_floor)
       · filter_upwards [ae_restrict_mem (measurableSet_Ioc : MeasurableSet (Set.Ioc a b))] with u hu
         simpa using (hM_norm_le (show sqrt (x / u) ≥ 0 by exact (sqrt_pos.mpr (show (x / u) > 0 by exact div_pos hx (lt_of_le_of_lt ha hu.1))).le))
