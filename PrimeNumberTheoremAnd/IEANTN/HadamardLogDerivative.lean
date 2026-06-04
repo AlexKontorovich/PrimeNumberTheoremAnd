@@ -16,6 +16,75 @@ namespace Kadiri
 
 open Complex
 
+/-- The genus-one elementary factor used in Hadamard products. -/
+noncomputable def genusOneFactor (z : ℂ) : ℂ :=
+  (1 - z) * Complex.exp z
+
+/-- Pairing the genus-one factors at opposite zeros cancels the exponential corrections. -/
+theorem genusOne_pair_cancellation (α w : ℂ) (hα : α ≠ 0) :
+    genusOneFactor (w / α) * genusOneFactor (w / (-α)) = 1 - w ^ 2 / α ^ 2 := by
+  unfold genusOneFactor
+  have hsum : w / α + w / (-α) = 0 := by
+    field_simp [hα]
+    ring
+  have hexp : Complex.exp (w / α) * Complex.exp (w / (-α)) = 1 := by
+    rw [← Complex.exp_add, hsum, Complex.exp_zero]
+  calc
+    (1 - w / α) * Complex.exp (w / α) *
+        ((1 - w / (-α)) * Complex.exp (w / (-α)))
+        = ((1 - w / α) * (1 - w / (-α))) *
+            (Complex.exp (w / α) * Complex.exp (w / (-α))) := by
+          ring
+    _ = 1 - w ^ 2 / α ^ 2 := by
+      rw [hexp]
+      field_simp [hα]
+      ring
+
+/-- The quadratic zero-orbit block normalized at a basepoint `w₀`. -/
+noncomputable def centeredOrbitBlock (w₀ α w : ℂ) : ℂ :=
+  (α ^ 2 - w ^ 2) / (α ^ 2 - w₀ ^ 2)
+
+theorem centeredOrbitBlock_base {w₀ α : ℂ} (hden : α ^ 2 - w₀ ^ 2 ≠ 0) :
+    centeredOrbitBlock w₀ α w₀ = 1 := by
+  unfold centeredOrbitBlock
+  field_simp [hden]
+
+theorem centeredOrbitBlock_zero_pos {w₀ α : ℂ} :
+    centeredOrbitBlock w₀ α α = 0 := by
+  unfold centeredOrbitBlock
+  simp
+
+theorem centeredOrbitBlock_zero_neg {w₀ α : ℂ} :
+    centeredOrbitBlock w₀ α (-α) = 0 := by
+  unfold centeredOrbitBlock
+  simp
+
+/-- The normalized paired genus-one factors are exactly the centered quadratic orbit block. -/
+theorem normalized_genusOne_pair_cancellation (α w₀ w : ℂ)
+    (hα : α ≠ 0) (hden : α ^ 2 - w₀ ^ 2 ≠ 0) :
+    (genusOneFactor (w / α) * genusOneFactor (w / (-α))) /
+        (genusOneFactor (w₀ / α) * genusOneFactor (w₀ / (-α))) =
+      centeredOrbitBlock w₀ α w := by
+  rw [genusOne_pair_cancellation α w hα, genusOne_pair_cancellation α w₀ hα]
+  unfold centeredOrbitBlock
+  field_simp [hα, hden]
+
+theorem logDeriv_centeredOrbitBlock (w₀ α w : ℂ)
+    (hden : α ^ 2 - w₀ ^ 2 ≠ 0) (hw : w ^ 2 ≠ α ^ 2) :
+    logDeriv (fun z : ℂ => centeredOrbitBlock w₀ α z) w =
+      2 * w / (w ^ 2 - α ^ 2) := by
+  unfold centeredOrbitBlock
+  rw [logDeriv_apply]
+  have hderiv :
+      deriv (fun z : ℂ => (α ^ 2 - z ^ 2) / (α ^ 2 - w₀ ^ 2)) w =
+        (-2 * w) / (α ^ 2 - w₀ ^ 2) := by
+    simp
+  rw [hderiv]
+  have hden' : w ^ 2 - α ^ 2 ≠ 0 := sub_ne_zero.mpr hw
+  have hden'' : α ^ 2 - w ^ 2 ≠ 0 := sub_ne_zero.mpr hw.symm
+  field_simp [hden, hden', hden'']
+  ring
+
 /-- The pole factor in the completed zeta function. -/
 noncomputable def zetaPoleFactor (s : ℂ) : ℂ :=
   s - 1
