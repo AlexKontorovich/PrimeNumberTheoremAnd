@@ -663,35 +663,40 @@ theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     · ring_nf
     · simp [tau, sigma, sigmaR, pow_two]
 
+class IsCoprimePreserving (f : ℕ → ℕ) : Prop where
+  map_coprime : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (f m) (f n)
+
+instance instIsCoprimePreservingPow (k : ℕ) :
+    IsCoprimePreserving (· ^ k : ℕ → ℕ) :=
+  ⟨fun h ↦ h.pow k k⟩
+
+/-- The monoid hom `powMonoidHom k` preserves coprimality (specialization). -/
+instance instIsCoprimePreservingPowMonoidHom (k : ℕ) :
+    IsCoprimePreserving ((powMonoidHom k : ℕ →* ℕ) : ℕ → ℕ) :=
+  inferInstanceAs (IsCoprimePreserving (· ^ k : ℕ → ℕ))
+
 lemma IsMultiplicative.of_map_mulHom {f h : ArithmeticFunction ℕ}
     (hf : f.IsMultiplicative) (g : ℕ →* ℕ) (hh : ∀ n, h n = g (f n)) :
     h.IsMultiplicative := by
-  refine ⟨?_, ?_⟩
-  · rw [hh, hf.1, g.map_one]
-  · intro m n hmn
-    rw [hh, hh, hh, hf.2 hmn, g.map_mul]
+  refine ⟨by rw [hh, hf.1, g.map_one], fun m n hmn => ?_⟩
+  rw [hh, hh, hh, hf.2 hmn, g.map_mul]
 
 lemma IsMultiplicative.of_comp_mulHom {f h : ArithmeticFunction ℕ}
     (hf : f.IsMultiplicative) (g : ℕ →* ℕ)
-    (hg_cop : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (g m) (g n))
+    [hg : IsCoprimePreserving (g : ℕ → ℕ)]
     (hh : ∀ n, h n = f (g n)) : h.IsMultiplicative := by
   refine ⟨by rw [hh, g.map_one, hf.1], fun m n hmn => ?_⟩
-  rw [hh, hh, hh, g.map_mul, hf.2 (hg_cop hmn)]
-
-abbrev sqHom : ℕ →* ℕ where
-  toFun n := n ^ 2
-  map_one' := one_pow 2
-  map_mul' m n := mul_pow m n 2
+  rw [hh, hh, hh, g.map_mul, hf.2 (hg.map_coprime hmn)]
 
 /-- `τ(p^m) = m + 1` for prime `p`. -/
-lemma tau_prime_pow {p : ℕ} (hp : p.Prime) (m : ℕ) : τ (p ^ m) = m + 1 :=
+lemma tau_prime_pow {p : ℕ} (hp : p.Prime) (m : ℕ) : τ (p ^ m) = m + 1 :=  by
   have h : τ (p ^ m) = d 2 (p ^ m) := by rw [d_two]
   rw [h, d_apply_prime_pow (by norm_num) hp]
   simp [Nat.choose_one_right]
 
 /-- `∑_{j=0}^{k} (2j+1) = (k+1)²`. -/
 lemma sum_two_mul_add_one (k : ℕ) :
-    ∑ j ∈ Finset.range (k + 1), (2 * j + 1) = (k + 1) ^ 2 :=
+    ∑ j ∈ Finset.range (k + 1), (2 * j + 1) = (k + 1) ^ 2 := by
   induction k with
   | zero => simp
   | succ n ih => rw [Finset.sum_range_succ, ih]; ring
@@ -702,11 +707,11 @@ abbrev tauSq : ArithmeticFunction ℕ := ⟨fun n ↦ τ (n ^ 2), by simp⟩
 /-- The arithmetic function `n ↦ τ(n)²`. -/
 abbrev sqTau : ArithmeticFunction ℕ := ⟨fun n ↦ (τ n) ^ 2, by simp⟩
 
-lemma isMultiplicative_tauSq : tauSq.IsMultiplicative := by
-  isMultiplicative_tau.of_comp_mulHom sqHom (fun h ↦ h.pow 2 2) (fun _ ↦ rfl)
+lemma isMultiplicative_tauSq : tauSq.IsMultiplicative :=
+  isMultiplicative_tau.of_comp_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
 
-lemma isMultiplicative_sqTau : sqTau.IsMultiplicative := by
-  isMultiplicative_tau.of_map_mulHom sqHom (fun _ ↦ rfl)
+lemma isMultiplicative_sqTau : sqTau.IsMultiplicative :=
+  isMultiplicative_tau.of_map_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
 
 /-- `τ(n²) ≤ d_3(n)` pointwise.  Used for L-series summability of `n ↦ τ(n²)`. -/
 lemma tau_sq_le_d_three (n : ℕ) : tauSq n ≤ d 3 n := by
