@@ -2071,8 +2071,19 @@ lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
         rw [ Finset.sum_congr rfl h_inner_sum_cases ] ; norm_num [ Finset.sum_ite ] ; rcases Nat.even_or_odd' ( a p ) with ⟨ k, hk | hk ⟩ <;> norm_num [ hk, pow_add, pow_mul ]
         · ring_nf
           norm_num [ show ∀ x : ℕ, k * 2 - x * 2 = 0 ↔ x ≥ k by intro x; exact ⟨ fun hx => by contrapose! hx; exact Nat.ne_of_gt <| Nat.sub_pos_of_lt <| by linarith, fun hx => Nat.sub_eq_zero_of_le <| by linarith ⟩ ];
-          rw [ show Finset.filter ( fun x => k ≤ x ) ( Finset.range ( 1 + k ) ) = { k } from Finset.eq_singleton_iff_unique_mem.mpr ⟨ Finset.mem_filter.mpr ⟨ Finset.mem_range.mpr <| by linarith, by linarith ⟩, fun x hx => by linarith [ Finset.mem_filter.mp hx, Finset.mem_range.mp ( Finset.mem_filter.mp hx |>.1 ) ] ⟩ ] ; norm_num;
-          intros; omega;
+          have h_first :
+              Finset.filter (fun x => k ≤ x) (Finset.range (k + 1)) = {k} := by
+            ext x
+            simp
+            omega
+          have h_second :
+              Finset.filter (fun x => k * 2 - x * 2 = 1)
+                (Finset.filter (fun x => ¬2 * k - 2 * x = 0) (Finset.range (k + 1))) = ∅ := by
+            ext x
+            simp
+            omega
+          rw [h_first, h_second]
+          norm_num
         · ring_nf
           norm_num [ Nat.add_div ];
           rw [ Finset.card_eq_zero.mpr ] <;> norm_num;
@@ -2336,7 +2347,7 @@ lemma sum_mobius_floor_tail_isLittleO (K : ℕ) (hK : 0 < K) :
         rw [Asymptotics.isLittleO_iff_tendsto']
         · have h_sum_little_o : ∀ k ∈ Finset.Ico 1 K, Filter.Tendsto (fun x : ℝ => (∑ n ∈ Finset.Ioc ⌊x / (k + 1 : ℝ)⌋₊ ⌊x / (k : ℝ)⌋₊, (μ n : ℝ)) / x) Filter.atTop (nhds 0) := by
             intro k hk; specialize h_M_x_over_k k (Finset.mem_Ico.mp hk |>.1) (Finset.mem_Ico.mp hk |>.2) ; rw [Asymptotics.isLittleO_iff_tendsto'] at h_M_x_over_k <;> aesop
-          simpa [Finset.sum_div _ _ _, mul_div_assoc] using tendsto_finset_sum _ fun k hk => h_sum_little_o k hk |> Filter.Tendsto.const_mul _
+          simpa [Finset.sum_div _ _ _, mul_div_assoc] using tendsto_finsetSum _ fun k hk => h_sum_little_o k hk |> Filter.Tendsto.const_mul _
         · filter_upwards [Filter.eventually_gt_atTop 0] with x hx hx' using absurd hx' hx.ne'
       exact h_sum_o_x.congr'
         (by filter_upwards [Filter.eventually_ge_atTop 1] with x hx using by rw [h_group x hx])
