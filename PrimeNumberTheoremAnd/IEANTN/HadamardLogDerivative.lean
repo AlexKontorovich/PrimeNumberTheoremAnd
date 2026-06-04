@@ -102,6 +102,23 @@ noncomputable def finiteCenteredOrbitProduct (w₀ : ℂ) (A : Finset ℂ) (w : 
 noncomputable def finiteCenteredOrbitLogDerivSum (A : Finset ℂ) (w : ℂ) : ℂ :=
   ∑ α ∈ A, 2 * w / (w ^ 2 - α ^ 2)
 
+/-- The standard genus-one zero contribution in the Hadamard logarithmic derivative. -/
+noncomputable def genusOneZeroLogTerm (ρ s : ℂ) : ℂ :=
+  1 / ρ + 1 / (s - ρ)
+
+/-- A standard Hadamard zero sum, indexed by a supplied zero enumeration. -/
+noncomputable def genusOneZeroLogSum {ι : Type*} (zero : ι → ℂ) (s : ℂ) : ℂ :=
+  ∑' i : ι, genusOneZeroLogTerm (zero i) s
+
+/-- The centered zero-orbit contribution after writing `w = s - 1/2`. -/
+noncomputable def centeredOrbitLogTerm (α s : ℂ) : ℂ :=
+  let w := s - (1 / 2 : ℂ)
+  2 * w / (w ^ 2 - α ^ 2)
+
+/-- A centered zero-orbit Hadamard sum, indexed by a supplied orbit representative map. -/
+noncomputable def centeredOrbitLogSum {ι : Type*} (orbit : ι → ℂ) (s : ℂ) : ℂ :=
+  ∑' i : ι, centeredOrbitLogTerm (orbit i) s
+
 /-- Finite Hadamard-orbit calculation before any infinite product limit is needed. -/
 theorem logDeriv_finiteCenteredOrbitProduct (w₀ w : ℂ) (A : Finset ℂ)
     (hden : ∀ α ∈ A, α ^ 2 - w₀ ^ 2 ≠ 0)
@@ -240,20 +257,36 @@ theorem neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv
   rw [neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv s hs1 hΓdiff hΓ hζ, hHad]
   ring
 
-/-- Same bridge, named for the centered zero-orbit Hadamard formulation. -/
-theorem neg_zeta_logDeriv_eq_of_centered_orbit_hadamard
-    (s B zeroOrbitSum : ℂ)
+/-- Kadiri bridge in the standard genus-one zero-sum form. -/
+theorem neg_zeta_logDeriv_eq_of_genusOne_hadamard
+    {ι : Type*} (zero : ι → ℂ) (s B : ℂ)
     (hs1 : s ≠ 1)
     (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
     (hΓ : zetaGammaFactor s ≠ 0)
     (hζ : riemannZeta s ≠ 0)
-    (hHad : logDeriv completedZetaFactor s = B + zeroOrbitSum) :
+    (hHad : logDeriv completedZetaFactor s = B + genusOneZeroLogSum zero s) :
     -deriv riemannZeta s / riemannZeta s =
-      -B - zeroOrbitSum
+      -B - genusOneZeroLogSum zero s
       + 1 / (s - 1)
       - (1 / 2 : ℂ) * Real.log Real.pi
       + (1 / 2 : ℂ) * digamma (s / 2 + 1) :=
-  neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B zeroOrbitSum
+  neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (genusOneZeroLogSum zero s)
+    hs1 hΓdiff hΓ hζ hHad
+
+/-- Kadiri bridge in the centered zero-orbit Hadamard formulation. -/
+theorem neg_zeta_logDeriv_eq_of_centered_orbit_hadamard
+    {ι : Type*} (orbit : ι → ℂ) (s B : ℂ)
+    (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0)
+    (hζ : riemannZeta s ≠ 0)
+    (hHad : logDeriv completedZetaFactor s = B + centeredOrbitLogSum orbit s) :
+    -deriv riemannZeta s / riemannZeta s =
+      -B - centeredOrbitLogSum orbit s
+      + 1 / (s - 1)
+      - (1 / 2 : ℂ) * Real.log Real.pi
+      + (1 / 2 : ℂ) * digamma (s / 2 + 1) :=
+  neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (centeredOrbitLogSum orbit s)
     hs1 hΓdiff hΓ hζ hHad
 
 end Kadiri
