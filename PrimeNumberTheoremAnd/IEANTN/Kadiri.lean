@@ -82,12 +82,13 @@ half-plane $\Re s > 1$ (where the Dirichlet series converges) to all of $\mathbb
   appears only as the additive constant in \ref{kadiri-hadamard-identity}, and the identity
   $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$ used in the derivation of
   \ref{kadiri-prop-2-1}. -/)
-  (latexEnv := "definition")]
+  (latexEnv := "definition")
+  (discussion := 1474)]
 noncomputable def hadamardB : ℂ := sorry
 
 @[blueprint
   "kadiri-hadamard-identity"
-  (title := "Hadamard expansion of $-\\zeta'/\\zeta$")
+  (title := "Hadamard expansion of $-\\zeta'/\\zeta$ (after equation (16))")
   (statement := /-- For every $s \in \mathbb{C}$ that is neither $1$ nor a non-trivial zero
   of $\zeta$,
   $$ -\frac{\zeta'}{\zeta}(s) = -B - \tfrac{1}{2} \log \pi + \frac{1}{s - 1}
@@ -100,7 +101,8 @@ noncomputable def hadamardB : ℂ := sorry
   the linear-in-$s$ term in the exponential collapses to the constant $B$. The
   $\tfrac{1}{s-1}$ term comes from the $(s-1)\zeta(s)$ prefactor and the
   $\tfrac{1}{2} \Gamma'/\Gamma$ term from the gamma factor. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1474)]
 theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
     (hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ)) :
     -deriv riemannZeta s / riemannZeta s =
@@ -171,7 +173,8 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   harmonic) functions on the connected domain $\mathbb{C}$, $\Re H \equiv 0$ everywhere.
   (Equivalently: $H$ is locally constant on the half-plane via Cauchy-Riemann, hence
   $H$ is a purely imaginary constant, hence $\Re H = 0$ everywhere.) -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1475)]
 theorem re_eq_of_entire_agree_on_halfplane {F G : ℂ → ℂ}
     (hF : Differentiable ℂ F) (hG : Differentiable ℂ G)
     (hagree : ∀ s : ℂ, 1 < s.re → (F s).re = (G s).re) :
@@ -186,7 +189,11 @@ closed form $\Re B = -\sum_\rho \Re(1/\rho)$, conjectured from the Hadamard prod
 They combine with \ref{kadiri-hadamard-identity} and \ref{kadiri-re-agree-extension} to give
 \ref{kadiri-re-inner-eq} (collapsing the $f(0)$-coefficient of equation (16) into the
 $T_1$ form). After that, \ref{kadiri-prop-2-1} is a two-line `rw` chain. All three are
-stated below with `sorry` proofs. -/
+stated below with `sorry` proofs. The summability auxiliary in turn rests on two further
+inputs, also stated below: Backlund's explicit Riemann--von Mangoldt bound
+(\ref{kadiri-backlund-bound}), giving $N(T) \ll T \log T$, and the $1/y^2$ decay of $\Re F$
+on vertical strips (\ref{kadiri-laplace-re-decay}), giving the per-term bound
+$|\Re F(s - \rho)| \ll 1/\gamma^2$. -/
 
 @[blueprint
   "kadiri-re-hadamardB-eq"
@@ -198,11 +205,69 @@ stated below with `sorry` proofs. -/
   and the value $\Gamma'/\Gamma(3/2)$, then symmetrise the resulting sum
   $\sum_\rho (1/\rho + 1/(1-\rho))$ using $\rho \leftrightarrow 1 - \bar\rho$ to relate
   $\sum_\rho 1/\rho$ to $\Re B$. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1476)]
 theorem re_hadamardB_eq :
     hadamardB.re =
     -∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
         (1 / (ρ.val : ℂ)).re := by
+  sorry
+
+@[blueprint
+  "kadiri-backlund-bound"
+  (title := "Backlund's explicit Riemann--von Mangoldt bound")
+  (statement := /-- Backlund's explicit zero-counting bound (\cite{Backlund1918}, cited in
+  \cite[page 24]{Kadiri2005}): the constants $(b_1, b_2, b_3) = (0.137, 0.443, 6.1)$ satisfy
+  the project's \ref{Riemann-von-Mangoldt-estimate}, i.e.\ for every $T \geq 2$,
+  $$ \bigl| N(T) - \bigl( \tfrac{T}{2\pi} \log \tfrac{T}{2\pi} - \tfrac{T}{2\pi}
+                          + \tfrac{7}{8} \bigr) \bigr|
+     \leq 0.137 \log T + 0.443 \log \log T + 6.1. $$
+  Backlund's original (\cite[page 24]{Kadiri2005}) bounds the difference from the simpler
+  main term $\tfrac{T}{2\pi} \log \tfrac{T}{2\pi e}$ by
+  $0.137 \log T + 0.443 \log \log T + 5.225$; absorbing the $\tfrac{7}{8}$ offset between the
+  two main-term conventions gives the project-form constant $5.225 + \tfrac{7}{8} = 6.1$.
+  For $T \in [2, t_1)$ (below the first non-trivial zero $t_1 \approx 14.1347$) the LHS reduces
+  to the main-term absolute value, which is well within the (loose) RHS bound. -/)
+  (proof := /-- Classical Backlund 1918 (\cite{Backlund1918}). The
+  \cite[Theorem of Backlund]{Backlund1918} variant is the form cited at
+  \cite[page 24]{Kadiri2005} as the starting point for the explicit estimates
+  $N_1(u), N_2(u)$ of (34)-(35) there. To be formalised. -/)
+  (latexEnv := "lemma")]
+theorem backlund_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 6.1 := by
+  sorry
+
+@[blueprint
+  "kadiri-laplace-re-decay"
+  (title := "$1/y^2$ decay of $\\Re F$ on a vertical strip")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every closed vertical
+  strip $\sigma_0 \leq \Re s \leq \sigma_1$ there is a constant
+  $C = C(\sigma_0, \sigma_1, f)$ such that for every $s \in \mathbb{C}$ with
+  $\sigma_0 \leq \Re s \leq \sigma_1$ and $|\Im s| \geq 1$,
+  $$ |\Re F(s)| \leq \frac{C}{(\Im s)^2}. $$
+  Note that this is sharper than the elementary $|F(s)| = O(1/|s|)$ from a single integration
+  by parts: the cancellation $\Re(1/s) = \sigma/(\sigma^2 + y^2) = O(1/y^2)$ for bounded
+  $\sigma$ saves one power of $|y|$ once the real part is taken. -/)
+  (proof := /-- Two integrations by parts in $F(s) = \int_0^d e^{-st} f(t)\, dt$ using
+  $f(d) = f'(d) = f'(0) = 0$ from $(H_1)$ give
+  $$ F(s) = \frac{f(0)}{s} + \frac{1}{s^2} \int_0^d e^{-st} f''(t)\, dt. $$
+  Taking real parts at $s = \sigma + iy$:
+  $\Re F(s) = \dfrac{f(0)\, \sigma}{\sigma^2 + y^2}
+              + \Re \dfrac{1}{s^2} \int_0^d e^{-st} f''(t)\, dt$. The first summand is bounded
+  by $|f(0)| \cdot \max(|\sigma_0|, |\sigma_1|)/y^2$; the second by absolute values is at most
+  $\dfrac{1}{y^2} \cdot d \cdot \max(1, e^{-\sigma_0 d}) \cdot \|f''\|_\infty$. Both depend only
+  on $\sigma_0, \sigma_1, d, f$; take $C$ to be their sum. -/)
+  (latexEnv := "lemma")]
+theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : deriv f 0 = 0)
+    (hf_deriv_d : deriv f d = 0)
+    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (σ₀ σ₁ : ℝ) :
+    ∃ C : ℝ, ∀ s : ℂ, σ₀ ≤ s.re → s.re ≤ σ₁ → 1 ≤ |s.im| →
+      |(laplaceTransform f s).re| ≤ C / s.im ^ 2 := by
   sorry
 
 @[blueprint
@@ -211,12 +276,14 @@ theorem re_hadamardB_eq :
   (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}, the sum
   $\sum_{\rho \in Z(\zeta)} \Re F(s - \rho)$ over the non-trivial zeros of $\zeta$ is
   convergent (Lean: `Summable`). -/)
-  (proof := /-- The Laplace transform $F$ of a $C^2$ compactly-supported $f$ satisfying $(H_1)$
-  satisfies $|F(\sigma + iy)| = O(1/y^2)$ as $|y| \to \infty$, uniformly for $\sigma$ in any
-  compact set (two integrations by parts using $f(d) = f'(0) = f'(d) = f''(d) = 0$). Combined
-  with the Backlund-type zero-counting bound $N(T) \ll T \log T$ for the non-trivial zeros, this
-  gives $\sum_\rho |F(s - \rho)| < \infty$. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (proof := /-- Combine \ref{kadiri-laplace-re-decay} (giving $|\Re F(s-\rho)| \leq
+  C/|\Im(s-\rho)|^2 = C/(\Im s - \gamma)^2$ for $|\gamma|$ large, since the real part
+  $\Re(s-\rho) = \Re s - \beta$ stays in the bounded strip $[\Re s - 1, \Re s]$) with
+  \ref{kadiri-backlund-bound} (giving $N(T) \ll T \log T$, hence by Abel summation
+  $\sum_{|\gamma| \geq 1} 1/|\gamma|^2 < \infty$). Bound finitely many small-$|\gamma|$
+  terms by hand. To be formalised. -/)
+  (latexEnv := "lemma")
+  (discussion := 1477)]
 theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
@@ -249,7 +316,8 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   Both sides are real parts of entire functions of $s$ (the LHS Dirichlet sum is genuinely
   finite for any test function, so it extends entirely; the RHS digamma term is entire), so
   \ref{kadiri-re-agree-extension} extends the identity to all $s \in \mathbb{C}$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1478)]
 theorem re_inner_eq (s : ℂ) :
     ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
