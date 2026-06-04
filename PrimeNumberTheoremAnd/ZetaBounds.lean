@@ -735,7 +735,7 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     apply Continuous.intervalIntegrable; continuity
   have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
     derivφCont.intervalIntegrable
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u, u']; rfl
+  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u, u']
 
 
 lemma integrability_aux₀ {a b : ℝ} :
@@ -867,9 +867,9 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (ha : a ∈ Ioo
 
 lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
-  apply hasDerivAt_deriv_iff.mpr <| DifferentiableAt.div (differentiableAt_const _) ?_ ?_
-  · exact Real.differentiableAt_cpow_const_of_ne s xpos
-  · simp [cpow_eq_zero_iff, xpos.ne']
+  exact hasDerivAt_deriv_iff.mpr <|
+    DifferentiableAt.div (differentiableAt_const _)
+      (Real.differentiableAt_cpow_const_of_ne s xpos) (by simp [cpow_eq_zero_iff, xpos.ne'])
 
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s * (x : ℂ) ^ (-(s + 1))) x := by
@@ -1763,7 +1763,7 @@ lemma Nat.self_div_floor_bound {t : ℝ} (t_ge : 1 ≤ |t|) : let N := ⌊|t|⌋
 
 lemma UpperBnd_aux5 {σ t : ℝ} (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
   obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
-  calc _ ≤ ((|t| / ↑⌊|t|⌋₊) ^ (2 : ℝ)) := by gcongr; exact h₁
+  calc _ ≤ ((|t| / ↑⌊|t|⌋₊) ^ (2 : ℝ)) := by gcongr
        _ ≤ (2 : ℝ) ^ (2 : ℝ) := by gcongr
        _ = 4 := by norm_num
 
@@ -2612,11 +2612,6 @@ lemma ZetaLowerBound3 :
   have hlog2 : 0 < Real.log (2 * |t|) := Real.log_pos <| ht_2.trans' <| by norm_num
   have : 0 < Real.log (2 * |t|) ^ (1 / 4 : ℝ) := Real.rpow_pos_of_pos hlog2 (1 / 4)
   field_simp
-  move_mul [(σ - 1) ^ (3 / 4)]
-  rw [mul_le_mul_iff_left₀]
-  swap
-  · have := sub_pos_of_lt σ_gt
-    positivity
   rw [Real.mul_rpow two_pos.le hC.le]
   move_mul [C ^ (1 / 4)]
   rw [mul_le_mul_iff_left₀]

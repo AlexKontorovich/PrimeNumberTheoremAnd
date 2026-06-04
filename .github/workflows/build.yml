@@ -58,7 +58,7 @@ jobs:
           include-drafts: true
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@dac784713171529c96f6d0470f7af30249a02a5d # 2026-02-08
+        uses: leanprover-community/docgen-action@main
         with:
           blueprint: true
           homepage: home_page
