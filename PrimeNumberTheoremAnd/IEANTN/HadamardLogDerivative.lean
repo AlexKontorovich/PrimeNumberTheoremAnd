@@ -257,7 +257,11 @@ theorem neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv
   rw [neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv s hs1 hΓdiff hΓ hζ, hHad]
   ring
 
-/-- Kadiri bridge in the standard genus-one zero-sum form. -/
+/--
+Assuming a Hadamard logarithmic-derivative formula for the completed zeta factor,
+recover the classical explicit expression for `-ζ'/ζ` in terms of the Hadamard
+zero sum.
+-/
 theorem neg_zeta_logDeriv_eq_of_genusOne_hadamard
     {ι : Type*} (zero : ι → ℂ) (s B : ℂ)
     (hs1 : s ≠ 1)
@@ -273,7 +277,11 @@ theorem neg_zeta_logDeriv_eq_of_genusOne_hadamard
   neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (genusOneZeroLogSum zero s)
     hs1 hΓdiff hΓ hζ hHad
 
-/-- Kadiri bridge in the centered zero-orbit Hadamard formulation. -/
+/--
+Assuming a centered zero-orbit Hadamard logarithmic-derivative formula for the
+completed zeta factor, recover the corresponding explicit expression for
+`-ζ'/ζ`.
+-/
 theorem neg_zeta_logDeriv_eq_of_centered_orbit_hadamard
     {ι : Type*} (orbit : ι → ℂ) (s B : ℂ)
     (hs1 : s ≠ 1)
