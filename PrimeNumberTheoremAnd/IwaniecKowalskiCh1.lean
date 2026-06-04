@@ -675,10 +675,8 @@ lemma IsMultiplicative.of_comp_mulHom {f h : ArithmeticFunction ℕ}
     (hf : f.IsMultiplicative) (g : ℕ →* ℕ)
     (hg_cop : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (g m) (g n))
     (hh : ∀ n, h n = f (g n)) : h.IsMultiplicative := by
-  refine ⟨?_, ?_⟩
-  · rw [hh, g.map_one, hf.1]
-  · intro m n hmn
-    rw [hh, hh, hh, g.map_mul, hf.2 (hg_cop hmn)]
+  refine ⟨by rw [hh, g.map_one, hf.1], fun m n hmn => ?_⟩
+  rw [hh, hh, hh, g.map_mul, hf.2 (hg_cop hmn)]
 
 abbrev sqHom : ℕ →* ℕ where
   toFun n := n ^ 2
