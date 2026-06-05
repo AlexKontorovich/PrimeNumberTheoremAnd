@@ -7,6 +7,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
+import Mathlib.Topology.Algebra.InfiniteSum.Field
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
@@ -1099,12 +1100,79 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
+variable {α E : Type*} [SeminormedCommRing E] [NormMulClass E] [NormOneClass E]
+ {f : α → E} {x : E}
+
+lemma HasProd.nnnorm (hfx : HasProd f x) : HasProd (‖f ·‖₊) ‖x‖₊ := by
+  simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter]
+  simp [HasProd] at hfx
+  exact hfx.nnnorm
+
+theorem Multipliable.nnnorm (hf : Multipliable f) : Multipliable (‖f ·‖₊) :=
+  let ⟨x, hx⟩ := hf; ⟨‖x‖₊, hx.nnnorm⟩
+
+lemma Multipliable.nnnorm_tprod (hf : Multipliable f) : ‖∏' i, f i‖₊ = ∏' i, ‖f i‖₊ :=
+  hf.hasProd.nnnorm.tprod_eq.symm
+
+
+
 blueprint_comment /--
 \begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}
     For all $t\in\mathbb{R}$ one has
     $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
 \end{theorem}
 -/
+
+lemma ZetaFixedLowerBound (t : ℝ) :
+    ‖ζ (3/2 + I * t)‖₊ ≥ ‖ζ 3 / ζ (3 / 2)‖₊ := by
+  have three_half_re_gt_one : 1 < ((3 : ℂ) / 2).re := by norm_num
+  have three_re_gt_one : 1 < (3 : ℂ).re := by norm_num
+  have three_half_plus_it_re_gt_one : 1 < (3 / 2 + I * t).re := by norm_num
+  have multipliable_three_half :
+    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-((3 : ℂ) / 2)))⁻¹ := by
+    exact ⟨ζ (3 / 2), riemannZeta_eulerProduct_hasProd three_half_re_gt_one⟩
+  have multipliable_three :
+    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-(3 : ℂ)))⁻¹ := by
+    exact ⟨ζ 3, riemannZeta_eulerProduct_hasProd three_re_gt_one⟩
+  have multipliable_three_half_plus_it :
+    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-(3 / 2 + I * t)))⁻¹ := by
+    exact ⟨ζ (3 / 2 + I * t), riemannZeta_eulerProduct_hasProd three_half_plus_it_re_gt_one⟩
+  rw [nnnorm_div, ge_iff_le,
+     div_le_iff₀ (nnnorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
+     ← riemannZeta_eulerProduct_tprod three_half_re_gt_one,
+     ← riemannZeta_eulerProduct_tprod three_re_gt_one,
+     ← riemannZeta_eulerProduct_tprod three_half_plus_it_re_gt_one,
+     Multipliable.nnnorm_tprod multipliable_three_half,
+     Multipliable.nnnorm_tprod multipliable_three,
+     Multipliable.nnnorm_tprod multipliable_three_half_plus_it,
+     ← Multipliable.tprod_mul
+        (Multipliable.nnnorm multipliable_three_half_plus_it)
+        (Multipliable.nnnorm multipliable_three_half)]
+  refine Multipliable.tprod_le_tprod ?_ multipliable_three.nnnorm (Multipliable.mul (multipliable_three_half_plus_it.nnnorm) (multipliable_three_half.nnnorm))
+  intro p
+  simp only [nnnorm_inv, ← mul_inv]
+  have : ‖1 - (p : ℂ) ^ (-3 : ℂ)‖₊ = ‖1 + (p : ℂ) ^ ((-3 : ℂ) / 2)‖₊ * ‖1 - (p : ℂ) ^ (-((3 : ℂ) / 2))‖₊ := by
+    simp [← nnnorm_mul]
+    congr 1
+    ring_nf
+    rw [← Complex.cpow_nat_mul]
+    ring_nf
+  rw [inv_le_inv₀, this]
+  · apply _root_.mul_le_mul_left
+    rw [← norm_toNNReal, ← norm_toNNReal]
+    apply Real.toNNReal_le_toNNReal
+    have h1 : ‖1 + (p : ℂ) ^ (-(3 : ℂ) / 2)‖ = 1 + ‖(p : ℂ) ^ (-(3 / 2 + I * t))‖ := by
+      have : 0 ≤ 1 + (p : ℝ) ^ (-(3 : ℝ) / 2) := by linarith [Real.rpow_nonneg (cast_nonneg' ↑p) (-3 / 2)]
+      simp only [Complex.norm_natCast_cpow_of_pos (Nat.Prime.pos p.2), add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, div_ofNat_re, re_ofNat, neg_div', add_zero]
+      rw [← Real.norm_of_nonneg this, ← Complex.norm_real, Complex.ofReal_add, Complex.ofReal_cpow (cast_nonneg' ↑p)]
+      push_cast
+      rfl
+    rw [h1, ← Complex.norm_of_nonneg zero_le_one]
+    exact norm_sub_le _ _
+  · exact norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num))
+  · exact mul_pos (norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num)))
+      (norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num)))
 
 blueprint_comment /--
 \begin{proof}
@@ -1223,7 +1291,7 @@ blueprint_comment /--
     Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If
     $f(z)=\zeta(z+3/2+it)$, then for all
     $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we have that
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
 -/
@@ -1236,12 +1304,12 @@ blueprint_comment /--
       \leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
     by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem
     \ref{FinalBound} we have that
-    $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(R')}\frac{m_g(\rho)}{z-\rho}\right|
+    $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(r)}\frac{m_g(\rho)}{z-\rho}\right|
       \leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)
       \left(\log|t|+\log\left(\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\right)\right).$$
-    Now note that $f'/f=g'/g$, $\mathcal{K}_f(R')=\mathcal{K}_g(R')$, and
-    $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(R')$. Thus we have that,
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
+    Now note that $f'/f=g'/g$, $\mathcal{K}_f(r)=\mathcal{K}_g(r)$, and
+    $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(r)$. Thus we have that,
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
     where the implied constant $C$ is taken to be
     $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$
@@ -1252,7 +1320,7 @@ blueprint_comment /--
 
 blueprint_comment /--
 \begin{definition}[ZeroWindows]\label{ZeroWindows}
-    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$.
+    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 3/4\}$.
 \end{definition}
 -/
 
@@ -1273,16 +1341,16 @@ blueprint_comment /--
     $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
     we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let
     $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
     region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
       \ll\log|t|.$$
-    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and
-    $|\rho|\leq 5/6$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that
+    But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$ and
+    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that
     $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us
     that
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
@@ -1414,21 +1482,24 @@ blueprint_comment /--
 
 
 
-blueprint_comment /--
-\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}
+@[blueprint "ThreeFourOneTrigIdentity"
+  (title := "ThreeFourOneTrigIdentity")
+  (statement := /--
     We have that
     $$0\leq 3+4\cos\theta+\cos2\theta$$
     for all $\theta\in\mathbb{R}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+  -/)
+  (proof := /--
     We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
     $$3+4\cos\theta+\cos2\theta=2+4\cos\theta+2\cos^2\theta=2\,(1+\cos\theta)^2.$$
     Noting that $0\leq 1+\cos\theta$ completes the proof.
-\end{proof}
--/
+  -/)
+  (latexEnv := "lemma")]
+lemma ThreeFourOneTrigIdentity (θ : ℝ) :
+    0 ≤ 3 + 4 * Real.cos θ + Real.cos (2 * θ) := by
+  have : 3 + 4 * Real.cos θ + (2 * Real.cos θ ^ 2 - 1) = 2 * (1 + Real.cos θ) ^ 2 := by ring_nf
+  rw [Real.cos_two_mul, this]
+  exact mul_nonneg zero_le_two (sq_nonneg (1 + Real.cos θ))
 
 
 
