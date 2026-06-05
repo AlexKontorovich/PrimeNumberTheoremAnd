@@ -1658,6 +1658,7 @@ theorem lemma_5_1_a (n : ℕ)
 
   rw [h_int_eq, h_residue]
 
+
 @[blueprint
   "ch2-lemma-5-1-b"
   (title := "Contour shifting, lower half (CH2 Lemma 5.1, eq. 2)")
@@ -1671,7 +1672,6 @@ theorem lemma_5_1_a (n : ℕ)
 theorem lemma_5_1_b (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
-    (hG_circ_symm : ConjSymm G_circ)
     (hG_star_symm : ConjAntisymm G_star)
     (hx₀ : 1 ≤ x₀)
     (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
@@ -1679,8 +1679,6 @@ theorem lemma_5_1_b (n : ℕ)
     (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hG_circ_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_circ s)
-    (hG_star_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_star s)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
     (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
@@ -1688,63 +1686,7 @@ theorem lemma_5_1_b (n : ℕ)
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
-  -- 1. Algebraic decomposition: relates the segment integral to the contour and the rectangle boundary.
-  -- This requires a lemma `intVSeg_eq_intCnMinus_add_rectangleIntegral` which splits `intVSeg 1 (-l.T) 0` into the components.
-  have h_unprimed_eq : intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
-    l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
-    RectangleIntegral (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) := by
-      sorry
-
-  -- 2. Primed version of the algebraic decomposition.
-  -- This multiplies the above equation by `1 / (2 * π * i)` to form `RectangleIntegral'`.
-  have h_int_eq : (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
-    (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
-    RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) := by
-    rw [h_unprimed_eq, mul_add]
-    congr 1
-    simp only [smul_eq_mul]
-    ring
-
-  -- 3. Subset relations ensuring the lower rectangle is contained within the proper regions.
-  -- This requires lemmas `lowerRectangle_subset_RposBar` and `RposBar_subset_R`.
-  have h_rect_subset_RposBar :
-      Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.RposBar := by
-      sorry
-  have h_rect_subset_R :
-      Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.R := by
-      sorry
-
-  -- 4. Meromorphic condition on the lower rectangle.
-  -- This requires a lemma `lowerRectangle_meromorphicOn` analogous to `upperRectangle_meromorphicOn`.
-  have h_rect_mero : MeromorphicOn (fun s ↦ G s * (x : ℂ) ^ s)
-      (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I)) := by
-      sorry
-
-  -- 5. No poles on boundary condition.
-  -- This requires a lemma `lowerRectangle_no_poles_boundary`, which will crucially depend on `hG_circ_symm`.
-  have h_no_poles_boundary : Disjoint (RectangleBorder ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I))
-    {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0} := by
-      sorry
-
-  -- 6. Cauchy's Residue Theorem applied to the lower rectangle.
-  -- This requires `lowerRectangleIntegral'_eq_sumResiduesIn`.
-  have h_residue_thm : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) =
-    sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) := by
-      sorry
-
-  -- 7. Region congruence for residues.
-  -- This matches the residues within the rectangle to the desired subset of RposBar.
-  -- This requires `sumResiduesIn_lowerRectangle_eq_sumResiduesIn_RposBar`.
-  have h_residue_set_eq : sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) =
-    sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
-      sorry
-
-  -- 8. Final substitution.
-  have h_residue : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) =
-    sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
-      rw [h_residue_thm, h_residue_set_eq]
-
-  rw [h_int_eq, h_residue]
+  sorry
 
 @[blueprint
   "ch2-lemma-5-1-c"
@@ -1963,8 +1905,6 @@ theorem lemma_5_1
     (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hG_circ_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_circ s)
-    (hG_star_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_star s)
     (hx : x₀ < x)
     -- finiteness of the off-real-line pole set (our addition; off the real line there are only
     -- finitely many poles in the bounded strip `R \ R_C`). The `R_C` residue sum is taken in the
@@ -1994,6 +1934,10 @@ noncomputable def LadderParams.zOf (l : LadderParams) (s : ℂ) : ℂ := (s - 1)
 noncomputable def Phi_lambda (lam ε : ℝ) (z : ℂ) : ℂ :=
   Phi_circ |lam| ε ((Real.sign lam : ℂ) * z) +
     (Real.sign lam : ℂ) * (Real.sign z.re : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * z)
+
+/-- The conjugate-symmetry (Schwarz reflection) condition `F(s̄) = conj (F s)` assumed of `F` in
+Proposition 5.2; it makes the derived odd part `G⋆` satisfy `ConjAntisymm`. -/
+def ConjSymm (F : ℂ → ℂ) : Prop := ∀ s : ℂ, F (starRingEnd ℂ s) = starRingEnd ℂ (F s)
 
 section Proposition52
 
