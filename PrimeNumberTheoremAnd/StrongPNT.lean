@@ -1181,6 +1181,92 @@ blueprint_comment /--
 \end{lemma}
 -/
 
+lemma ZetaAltFormula (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s = 1 + 1 / (s - 1)
+        - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1) := by
+  have h_neg_s : (-s).re < -1 := by simp only [neg_re, neg_lt_neg_iff, hs]
+  have s_ne_zero : s ≠ 0 := by
+    intro h; have : s.re = 0 := by simp only [h, zero_re]
+    linarith
+  have s_ne_one : s ≠ 1 := fun h => hs.ne' (h ▸ by simp)
+  have hIci : Ici (1 : ℝ) = ⋃ n : ℕ, Ico (↑(n + 1)) (↑(n + 2)) := by
+    ext x; constructor
+    · intro hx; simp only [mem_iUnion, mem_Ico, ← one_add_one_eq_two, ← add_assoc]
+      use (Nat.floor x - 1)
+      nth_rewrite 2 [cast_add]
+      rw [cast_one, ← Nat.floor_eq_iff']
+      repeat rw [Nat.sub_add_cancel (Nat.le_floor (by exact_mod_cast hx))]
+      rw [ne_eq, floor_eq_zero, not_lt]
+      exact hx
+    · simp only [cast_add, cast_one, cast_ofNat, mem_iUnion, mem_Ici, forall_exists_index, mem_Ico]
+      exact fun y hy => by linarith [hy.1]
+  have intervalsPairwiseDisjoint : Pairwise (Disjoint on fun (x : ℕ) ↦ Ico ((x + 1) : ℝ) ((x + 2) : ℝ)) := by
+    intro m n hmn; have h := lt_or_gt_of_ne hmn
+    simp only [Ico_disjoint_Ico, le_sup_iff, inf_le_iff, add_le_add_iff_left, not_ofNat_le_one, false_or, or_false]
+    rcases h with hmn | hnm
+    · right
+      have : (m : ℝ) + 1 ≤ (n : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hmn)
+      linarith
+    · left
+      have : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hnm)
+      linarith
+  have bringFloorOutIntegral : ∑' (n : ℕ), ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), ((Int.floor x) : ℝ) * (x : ℂ) ^ (-s - 1) =
+      ∑' (n : ℕ), (n + 1 : ℝ) * ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), (x : ℂ) ^ (-s - 1) := by
+    apply tsum_congr; intro n
+    simp only [ofReal_intCast, ← MeasureTheory.integral_const_mul]
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ico)] with u hu
+    rw[← one_add_one_eq_two, ← add_assoc] at hu
+    have := Int.floor_eq_on_Ico' (n + 1) (u)
+    simp only [mul_eq_mul_right_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq, cast_add, cast_one, mem_Ico, and_imp, ofReal_add, ofReal_natCast, ofReal_one, Int.cast_add, Int.cast_natCast, Int.cast_one] at ⊢ hu this
+    left; exact_mod_cast this hu.1 hu.2
+  have evalIntegral : ∀ (n : ℕ), ∫ (x : ℝ) in ↑n + 1..↑n + 2, (x : ℂ) ^ (-s - 1) =
+      ((n + 1) ^ (-s) - (n + 2) ^ (-s)) / s := by
+    intro n; rw [integral_cpow]
+    · simp only [ofReal_add, ofReal_natCast, ofReal_ofNat, sub_add_cancel, ofReal_one, div_neg, ← neg_div, neg_sub]
+    · right; constructor
+      · simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
+        exact s_ne_zero
+      · simp only [add_le_add_iff_left, one_le_ofNat, uIcc_of_le, mem_Icc, not_and, not_le]
+        intro h; linarith
+  have zetaSplitSum : ζ s = ∑' (n : ℕ), (n + 1) / ((n : ℂ) + 1) ^ s - ∑' (n : ℕ), n / ((n : ℂ) + 1) ^ s := by
+    rw [← Summable.tsum_sub]
+    · simp only [← sub_div, add_sub_cancel_left, zeta_eq_tsum_one_div_nat_add_one_cpow hs]
+    · sorry
+    · sorry
+  suffices h1 : riemannZeta s = s * (∫ u in Ioi (1 : ℝ), (u : ℂ) ^ (-s) - (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+    rw [h1, integral_sub, mul_sub, integral_Ioi_cpow_of_lt h_neg_s zero_lt_one, ofReal_one, one_cpow, one_div, sub_left_inj]
+    · field_simp
+      rw [← div_neg, neg_add, neg_neg, ← sub_eq_add_neg, ← same_add_div, sub_add_cancel]
+      exact sub_ne_zero.mpr s_ne_one
+    · sorry
+    · sorry
+  suffices h2 : riemannZeta s = s * (∫ u in Ioi (1 : ℝ), (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+    simp only [h2, ← Int.self_sub_fract, ofReal_sub, sub_mul, mul_eq_mul_left_iff]
+    left
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with u hu
+    congr 1
+    nth_rewrite 1 [← cpow_one (↑u : ℂ), ← cpow_add _ _ (by exact_mod_cast (by linarith [mem_Ioi.mp hu] : u ≠ 0)), add_sub_cancel]
+    rfl
+  suffices h3 : riemannZeta s = ∑' (x : ℕ), ((x : ℂ) + 1) * (((x : ℂ) + 1) ^ (-s) - ((x : ℂ) + 2) ^ (-s)) by
+    rw [← MeasureTheory.integral_Ici_eq_integral_Ioi, hIci, MeasureTheory.integral_iUnion (fun _ => measurableSet_Ico) (by simp only [cast_add, cast_one, cast_ofNat, intervalsPairwiseDisjoint]), bringFloorOutIntegral]
+    · simp only [ofReal_add, ofReal_natCast, ofReal_one, cast_add, cast_one, cast_ofNat,
+        integral_Ico_eq_integral_Ioc, add_le_add_iff_left, one_le_ofNat,
+        ← intervalIntegral.integral_of_le, evalIntegral, ← tsum_mul_left, h3]
+      field_simp
+    · rw[← hIci, IntegrableOn]
+      sorry
+  rw[zetaSplitSum]
+  nth_rewrite 2 [tsum_eq_zero_add']
+  · simp only [CharP.cast_eq_zero, zero_add, one_cpow, div_one, cast_add, cast_one]
+    rw [← Summable.tsum_sub]
+    · apply tsum_congr; intro n
+      simp [mul_sub, Complex.cpow_neg, ← div_eq_mul_inv, ← one_add_one_eq_two, add_assoc]
+    · sorry
+    · sorry
+  · sorry
+
 blueprint_comment /--
 \begin{proof}
     Note that for $\sigma>1$ we have
