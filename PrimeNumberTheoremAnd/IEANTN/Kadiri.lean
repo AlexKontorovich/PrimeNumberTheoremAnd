@@ -116,7 +116,7 @@ theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
 
 @[blueprint
   "kadiri-thm-3-1-q1"
-  (title := "\\cite[Theorem 3.1]{Kadiri2005}, case $q = 1$, $\\chi$ trivial")
+  (title := "Theorem 3.1 of \\cite{Kadiri2005}, case $q = 1$, $\\chi$ trivial")
   (statement := /-- Let $\varphi \colon \mathbb{R} \to \mathbb{C}$ be $C^1$ and suppose there
   exists $b > 0$ such that both $\varphi(x) e^{x/2}$ and $\varphi'(x) e^{x/2}$ are
   $O(e^{-(1/2 + b)|x|})$ as $|x| \to \infty$. Define the Laplace transform
