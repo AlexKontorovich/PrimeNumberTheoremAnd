@@ -58,8 +58,7 @@ jobs:
           include-drafts: true
 
       - name: Compile blueprint and documentation
-        # workaround for https://github.com/leanprover-community/docgen-action/issues/28, revert when we're on v4.30
-        uses: dwrensha/docgen-action@a3f8189646977363717917b605e6de25f9704656
+        uses: leanprover-community/docgen-action@main
         with:
           blueprint: true
           homepage: home_page

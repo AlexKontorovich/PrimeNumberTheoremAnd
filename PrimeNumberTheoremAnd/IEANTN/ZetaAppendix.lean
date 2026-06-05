@@ -334,7 +334,7 @@ private lemma phase_rewrite (t : ℝ) (s : ℂ) (ν : ℝ) (ht : 0 < t) :
 private lemma deriv_linear_sub_log (ν c : ℝ) (t : ℝ) (ht : t ≠ 0) :
     deriv (fun t ↦ ν * t - c * Real.log t) t = ν - c * t⁻¹ := by
   have hf : deriv (fun t ↦ ν * t) t = ν := by
-    simpa [mul_comm] using ((hasDerivAt_id t).const_mul ν).deriv
+    simpa only [mul_one] using ((hasDerivAt_id t).const_mul ν).deriv
   have hg : deriv (fun t ↦ c * Real.log t) t = c * t⁻¹ := by
     rw [deriv_const_mul_field, Real.deriv_log]
   have hdiff_f : DifferentiableAt ℝ (fun t ↦ ν * t) t := by fun_prop
@@ -2382,7 +2382,7 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         intro x hx
         simp only [one_div, norm_inv, norm_pow, g, path]
         rw [enorm_inv]
-        · conv_rhs => arg 1; rw [← ofReal_norm_eq_enorm, norm_pow]
+        · conv_rhs => arg 1; rw [← ofReal_norm, norm_pow]
           apply ENNReal.ofReal_inv_of_pos
           apply sq_pos_of_pos
           apply norm_pos_iff.mpr (convexity_w x hx)
@@ -4166,7 +4166,7 @@ lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {
       apply ContinuousAt.comp (g := riemannZeta) (f := fun σ : ℝ ↦ ↑σ + I * ↑s.im)
       · exact hs_zero.symm ▸ (differentiableAt_riemannZeta hs1).continuousAt
       · fun_prop
-    · apply tendsto_finset_sum
+    · apply tendsto_finsetSum
       intro i hi
       simp only [Finset.mem_Icc] at hi
       apply ContinuousAt.cpow

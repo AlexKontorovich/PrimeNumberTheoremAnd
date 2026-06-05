@@ -94,7 +94,7 @@ theorem pnt : ∃ C ≥ 0, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by
       have : |θ x - x| ≤ θ N + N := calc
         _ ≤ |θ x| + |x| := abs_sub _ _
         _ = θ x + x := by rw [abs_of_nonneg (theta_nonneg _), abs_of_nonneg (by linarith)]
-        _ ≤ _ := by gcongr; exact theta_mono h
+        _ ≤ _ := by gcongr
       calc
       _ ≤ (θ N + N) * log x ^ 2 / x := by gcongr
       _ ≤ (θ N + N) * (x ^ (1 / 2 : ℝ) / (1 / 2)) ^ 2 / x := by
@@ -304,7 +304,7 @@ lemma pre_413_measure_inter {x : ℝ} (hx : 2 ≤ x) (y : Finset.Ico 1 ⌊x⌋�
       arg 2
       equals ↑(1: ℕ) + (1: ℝ) => norm_num
     rw [leftLim_theta_succ]
-    simp [theta_one, Real.log_nonneg]
+    simp [Real.log_nonneg]
   · rw [Measure.real_def, MeasureTheory.measure_eq_measure_of_null_diff (t := Set.Ioc (↑↑y) (↑↑y + 1))]
     · simp only [«θ».Stieltjes, StieltjesFunction.measure_Ioc, theta_succ_sub,
       ENNReal.toReal_ofReal_eq_iff]

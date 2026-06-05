@@ -1412,34 +1412,31 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
       obtain ⟨hx_re, hx_im⟩ := hx
       -- the real part of x is in the correct interval
       have hzw_re : z.re < w.re := by
-        dsimp [z, w]
-        linarith
+        simpa [z, w] using σ₂_lt_σ₁
       have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
         exact interval_membership x.re z.re w.re hx_re hzw_re
       have x_re_in_Icc : x.re ∈ Icc σ₂ 2 := by
         have ⟨h_left, h_right⟩ := x_re_bounds
         have h_left' : σ₂ ≤ x.re := by
-          dsimp [z] at h_left
-          linarith
+          simpa [z] using h_left
         have h_right' : x.re ≤ 2 := by
           apply le_trans h_right
-          dsimp [w]
-          linarith
+          have : w.re ≤ 2 := by
+            simp [w]
+            linarith
+          exact this
         exact ⟨h_left', h_right'⟩
       -- the imaginary part of x is in the correct interval
       have hzw_im : z.im < w.im := by
-        dsimp [z, w]
-        linarith
+        norm_num [z, w]
       have x_im_bounds : z.im ≤ x.im ∧ x.im ≤ w.im := by
         exact interval_membership x.im z.im w.im hx_im hzw_im
       have x_im_in_Icc : x.im ∈ Icc (-3) 3 := by
         have ⟨h_left, h_right⟩ := x_im_bounds
         have h_left' : -3 ≤ x.im := by
-          dsimp [z] at h_left
-          linarith
+          simpa [z] using h_left
         have h_right' : x.im ≤ 3 := by
-          dsimp [w] at h_right
-          linarith
+          simpa [w] using h_right
         exact ⟨h_left', h_right'⟩
       exact ⟨x_re_in_Icc, x_im_in_Icc⟩
     -- x is not in {1} by contradiction
@@ -1451,12 +1448,11 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         obtain ⟨hx_re, _⟩ := hx
         -- the real part of x is in the interval
         have hzw_re : z.re < w.re := by
-          dsimp [z, w]
-          linarith
+          simpa [z, w] using σ₂_lt_σ₁
         have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
           exact interval_membership x.re z.re w.re hx_re hzw_re
         have x_re_upper' : x.re ≤ w.re := x_re_bounds.2
-        dsimp [w] at x_re_upper'
+        have hw_re : w.re = σ₁ := by simp [w]
         linarith
       -- by contracdiction
       have h_x_ne_one : x ≠ 1 := by
@@ -1641,7 +1637,7 @@ theorem ae_volume_of_contains_compl_singleton_zero
   -- So volume(sᶜ) = 0
   have h_compl_zero : volume sᶜ = 0 := by
     rw [h_zero_null] at h_compl_measure
-    exact le_antisymm h_compl_measure (zero_le _)
+    exact le_antisymm h_compl_measure (by positivity)
 
   -- A set is in ae.sets iff its complement has measure zero
   rwa [mem_ae_iff]

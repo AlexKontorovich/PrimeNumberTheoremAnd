@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abby J. Goldberg, Mario Carneiro, Heather Macbeth
 -/
 import Mathlib.Tactic.Abel
-import Mathlib.Tactic.LinearCombination'
+import Mathlib.Tactic.LinearCombinationPrime
 
 /-!
 # additive_combination Tactic
@@ -31,7 +31,7 @@ Lastly, calls a normalization tactic on this target.
 
 -/
 
-namespace Mathlib.Tactic.LinearCombination'
+namespace Mathlib.Tactic.LinearCombinationPrime
 open Lean
 open Elab Meta Term
 
@@ -182,4 +182,4 @@ elab_rules : tactic
   | `(tactic| additive_combination%$tk $[(norm := $tac)]? $[(exp := $n)]? $(e)?) =>
     elabAdditiveCombination tk tac n e
 
-end Mathlib.Tactic.LinearCombination'
+end Mathlib.Tactic.LinearCombinationPrime
