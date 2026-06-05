@@ -637,10 +637,15 @@ private lemma residue_toMeromorphicNFOn_eq_residue
         meromorphicOrderAt_eq_neg_one_of_simplePole hpU hf_simple hpneg]
       norm_num
     exact tendsto_nhds_of_meromorphicOrderAt_nonneg hmul_mero hmul_nonneg
+  have h_tendsto : Filter.Tendsto (fun z : ℂ ↦ (z - p) * f z) (nhdsWithin p ({p}ᶜ)) (nhds (residue f p)) := by
+    simpa [residue] using tendsto_nhds_limUnder h_exists
+  have h_eq :
+      (fun z ↦ (z - p) * toMeromorphicNFOn f U z) =ᶠ[nhdsWithin p ({p}ᶜ)]
+        (fun z ↦ (z - p) * f z) := by
+    filter_upwards [hf_mero.toMeromorphicNFOn_eq_self_on_nhdsNE hpU] with z hz
+    simp [hz]
   exact residue_eq_of_tendsto
-    ((by simpa [residue] using tendsto_nhds_limUnder h_exists).congr'
-      (by filter_upwards [hf_mero.toMeromorphicNFOn_eq_self_on_nhdsNE hpU] with z hz
-          simp [hz]).symm)
+    (h_tendsto.congr' h_eq.symm)
 
 -- Non-constancy of horizontal paths `x ↦ x + h * I`.
 private lemma horizontalPath_not_eventuallyConst (h : ℝ) (x : ℝ) :
@@ -716,9 +721,19 @@ private lemma sub_principalPart_analyticAt_of_not_mem_poles
     (hxnp : x ∉ polesFin)
     (hxneg : 0 ≤ meromorphicOrderAt f x) :
     AnalyticAt ℂ (f - fun s ↦ ∑ p ∈ polesFin, residue f p / (s - p)) x := by
-  exact (h_nf.meromorphicOrderAt_nonneg_iff_analyticAt.1 hxneg).sub
-    (Finset.analyticAt_fun_sum polesFin fun p hp =>
-      by fun_prop (disch := by rintro rfl; exact hxnp hp))
+  have h_f_analytic : AnalyticAt ℂ f x :=
+    h_nf.meromorphicOrderAt_nonneg_iff_analyticAt.1 hxneg
+  have h_principal_analytic : AnalyticAt ℂ (fun s ↦ ∑ p ∈ polesFin, residue f p / (s - p)) x := by
+    refine Finset.analyticAt_fun_sum polesFin ?_
+    intro p hp
+    have hxp : x ≠ p := by
+      intro heq
+      subst heq
+      exact hxnp hp
+    have : AnalyticAt ℂ (fun z : ℂ ↦ residue f p / (z - p)) x := by
+      fun_prop (disch := exact sub_ne_zero.mpr hxp)
+    simpa using this
+  exact h_f_analytic.sub h_principal_analytic
 
 -- Helper 3: Prove subtracting the principal part removes the simple poles
 private lemma meromorphicOrderAt_sub_principalPart_nonneg
@@ -727,29 +742,35 @@ private lemma meromorphicOrderAt_sub_principalPart_nonneg
     (h_mero : MeromorphicAt f p)
     (h_ord : meromorphicOrderAt f p = -1) :
     0 ≤ meromorphicOrderAt (f - fun s ↦ ∑ q ∈ polesFin, residue f q / (s - q)) p := by
-  have hcore : (f - fun z ↦ residue f p / (z - p)) =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) :=
-    simplePole_sub_residue_isBigO_one h_mero h_ord
+  have hcore : (f - fun z ↦ residue f p / (z - p)) =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) := by
+    exact simplePole_sub_residue_isBigO_one h_mero h_ord
   let rest : ℂ → ℂ := fun z ↦ ∑ q ∈ polesFin.erase p, residue f q / (z - q)
   have hrest_cont : ContinuousAt rest p := by
     dsimp [rest]
     refine tendsto_finsetSum _ (fun q hq ↦ ?_)
-    fun_prop (disch := exact sub_ne_zero.mpr (Finset.mem_erase.mp hq).1.symm)
-  have hrest : rest =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) :=
-    IsBigO.mono hrest_cont.norm.isBoundedUnder_le.isBigO_one ℂ inf_le_left
+    have hpq : p - q ≠ 0 := sub_ne_zero.mpr (Finset.mem_erase.mp hq).1.symm
+    have h_cont : ContinuousAt (fun z : ℂ ↦ residue f q / (z - q)) p := by
+      fun_prop (disch := exact hpq)
+    exact h_cont
+  have hrest : rest =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) := by
+    have hbig : rest =O[nhds p] (1 : ℂ → ℂ) :=
+      hrest_cont.norm.isBoundedUnder_le.isBigO_one ℂ
+    exact IsBigO.mono hbig inf_le_left
   have hraw_big : (f - fun s ↦ ∑ q ∈ polesFin, residue f q / (s - q)) =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) := by
+    have htmp : (fun z : ℂ ↦ (f z - residue f p / (z - p)) - rest z) =O[nhdsWithin p ({p}ᶜ)] (1 : ℂ → ℂ) :=
+      hcore.sub hrest
     have hdecomp : (f - fun s ↦ ∑ q ∈ polesFin, residue f q / (s - q)) =
         (fun z : ℂ ↦ (f z - residue f p / (z - p)) - rest z) := by
       funext z
       dsimp [rest]
       rw [← Finset.add_sum_erase (s := polesFin) (f := fun q ↦ residue f q / (z - q)) hpFin]
       simp [sub_eq_add_neg, add_assoc, add_comm]
-    simpa [hdecomp, rest] using hcore.sub hrest
+    simpa [hdecomp, rest] using htmp
   by_contra hneg
-  exact (Filter.not_isBoundedUnder_of_tendsto_atTop
-    (by
-      rw [tendsto_norm_atTop_iff_cobounded]
-      exact tendsto_cobounded_of_meromorphicOrderAt_neg (not_le.mp hneg)))
-    hraw_big.isBoundedUnder_le
+  have hnorm : Filter.Tendsto (fun z : ℂ ↦ ‖(f - fun s ↦ ∑ q ∈ polesFin, residue f q / (s - q)) z‖) (nhdsWithin p ({p}ᶜ)) Filter.atTop := by
+    rw [tendsto_norm_atTop_iff_cobounded]
+    exact tendsto_cobounded_of_meromorphicOrderAt_neg (not_le.mp hneg)
+  exact (Filter.not_isBoundedUnder_of_tendsto_atTop hnorm) hraw_big.isBoundedUnder_le
 
 -- Subtracting the principal part removes all simple poles of `fNF`, yielding a holomorphic function.
 private lemma holoPart_holomorphicOn {f : ℂ → ℂ} {z w : ℂ}
@@ -768,26 +789,32 @@ private lemma holoPart_holomorphicOn {f : ℂ → ℂ} {z w : ℂ}
   have h_fNF_mero : MeromorphicOn fNF R := by
     simpa [fNF] using
       (meromorphicNFOn_toMeromorphicNFOn (f := f) (U := R)).meromorphicOn
-  have h_raw_mero : MeromorphicOn (fNF - principalPart) R := h_fNF_mero.sub principalPart_meromorphicOn
+  have h_principalPart_mero : MeromorphicOn principalPart R := principalPart_meromorphicOn
+  have h_raw_mero : MeromorphicOn (fNF - principalPart) R := h_fNF_mero.sub h_principalPart_mero
   intro x hx
   have h_raw_nonneg : 0 ≤ meromorphicOrderAt (fNF - principalPart) x := by
     by_cases hxp : x ∈ poles
     · have hpFin : x ∈ polesFin := by simpa [polesFin, poles] using hxp
+      have hord : meromorphicOrderAt f x = (-1 : ℤ) :=
+        meromorphicOrderAt_eq_neg_one_of_simplePole hxp.1 f_simple_poles hxp.2
       have hordNF : meromorphicOrderAt fNF x = (-1 : ℤ) := by
-        rwa [show meromorphicOrderAt fNF x = meromorphicOrderAt f x from by
+        rw [show meromorphicOrderAt fNF x = meromorphicOrderAt f x by
           simpa [fNF] using
             (meromorphicOrderAt_toMeromorphicNFOn (f := f) (U := R) f_mero hxp.1)]
-          , meromorphicOrderAt_eq_neg_one_of_simplePole hxp.1 f_simple_poles hxp.2]
+        exact hord
       exact meromorphicOrderAt_sub_principalPart_nonneg hpFin (h_fNF_mero x hxp.1) hordNF
-    · have h_fNF_nonneg : 0 ≤ meromorphicOrderAt fNF x := by
+    · have hxnp : x ∉ polesFin := by
+        intro h
+        exact hxp (by simpa [polesFin, poles] using h)
+      have h_fNF_nonneg : 0 ≤ meromorphicOrderAt fNF x := by
         rw [show meromorphicOrderAt fNF x = meromorphicOrderAt f x by
           simpa [fNF] using
             (meromorphicOrderAt_toMeromorphicNFOn (f := f) (U := R) f_mero hx)]
         exact le_of_not_gt fun hxneg => hxp ⟨hx, hxneg⟩
-      exact (sub_principalPart_analyticAt_of_not_mem_poles
-        (by simpa [fNF] using meromorphicNFOn_toMeromorphicNFOn (f := f) (U := R) hx)
-        (fun h => hxp (by simpa [polesFin, poles] using h))
-        h_fNF_nonneg).meromorphicOrderAt_nonneg
+      have h_fNF_nf : MeromorphicNFAt fNF x := by
+        simpa [fNF] using
+          (meromorphicNFOn_toMeromorphicNFOn (f := f) (U := R) hx)
+      exact (sub_principalPart_analyticAt_of_not_mem_poles h_fNF_nf hxnp h_fNF_nonneg).meromorphicOrderAt_nonneg
   have h_nf : MeromorphicNFAt holoPart x := by
     simpa [holoPart] using
       (meromorphicNFOn_toMeromorphicNFOn (f := fNF - principalPart) (U := R) hx)
@@ -815,7 +842,9 @@ private lemma principalPart_borderIntegrable {f : ℂ → ℂ} {z w : ℂ}
   intro p hp s hs
   have hsp : s ≠ p := fun hsp => Set.disjoint_right.mp f_no_poles_boundary
     ((by simpa [polesFin, poles] using hp : p ∈ poles).2) (hsp ▸ hs)
-  exact (by fun_prop (disch := exact sub_ne_zero.mpr hsp)).continuousWithinAt
+  have : ContinuousAt (fun z : ℂ ↦ residue fNF p / (z - p)) s := by
+    fun_prop (disch := exact sub_ne_zero.mpr hsp)
+  exact this.continuousWithinAt
 
 -- Helper 1: Prove that a point inside a rectangle (and not on the border) has the rectangle as a neighborhood
 private lemma rectangle_mem_nhds_of_interior {z w p : ℂ}
@@ -845,12 +874,7 @@ private lemma sum_div_rectangleBorderIntegrable {z w : ℂ} {S : Finset ℂ}
   refine ContinuousOn.rectangleBorder_integrable ?_
   refine continuousOn_finsetSum _ ?_
   intro p hp s hs
-  have hpnot : p ∉ RectangleBorder z w := by
-    intro hpb
-    exact Set.disjoint_right.mp hS_disjoint hp hpb
-  have hsp : s ≠ p := by
-    intro hsp
-    exact hpnot (hsp ▸ hs)
+  have hsp : s ≠ p := fun hsp => Set.disjoint_right.mp hS_disjoint hp (hsp ▸ hs)
   have : ContinuousAt (fun z : ℂ ↦ c p / (z - p)) s := by
     fun_prop (disch := exact sub_ne_zero.mpr hsp)
   exact this.continuousWithinAt
@@ -866,11 +890,10 @@ private lemma rectangleIntegral'_sum_div_sub {z w : ℂ} (zRe_le_wRe : z.re ≤ 
   have h_partial_border : ∀ (S' : Finset ℂ), S' ⊆ S → RectangleBorderIntegrable (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w := by
     intro S' hS'
     exact sum_div_rectangleBorderIntegrable (Disjoint.mono_right hS' hS_disjoint) c
-  have h_term_integral : ∀ {p : ℂ}, p ∈ S → RectangleIntegral' (fun s ↦ c p / (s - p)) z w = c p := by
-    intro p hp
-    have hpR : p ∈ Rectangle z w := hS_subset hp
-    have hpnot : p ∉ RectangleBorder z w := Set.disjoint_right.mp hS_disjoint hp
-    exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm (rectangle_mem_nhds_of_interior zRe_le_wRe zIm_le_wIm hpR hpnot)
+  have h_term_integral : ∀ {p : ℂ}, p ∈ S → RectangleIntegral' (fun s ↦ c p / (s - p)) z w = c p :=
+    fun {p} hp => ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm
+      (rectangle_mem_nhds_of_interior zRe_le_wRe zIm_le_wIm
+        (hS_subset hp) (Set.disjoint_right.mp hS_disjoint hp))
   have h_partial_integral :
       ∀ (S' : Finset ℂ), S' ⊆ S →
         RectangleIntegral' (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w =
@@ -881,35 +904,23 @@ private lemma rectangleIntegral'_sum_div_sub {z w : ℂ} (zRe_le_wRe : z.re ≤ 
       · intro _
         simp [RectangleIntegral', RectangleIntegral, HIntegral, VIntegral]
       · intro a S' ha ih hS'
-        have haFin : a ∈ S := hS' (by simp)
-        have hSsub : S' ⊆ S := by
-          intro p hp
-          exact hS' (by simp [hp])
+        obtain ⟨haFin, hSsub⟩ := Finset.insert_subset_iff.mp hS'
         have hterm_border :
-            RectangleBorderIntegrable (fun s ↦ c a / (s - a)) z w := by
-          convert h_partial_border {a} ?_
-          · simp
-          · intro p hp
-            simp only [Finset.mem_singleton] at hp
-            subst hp
-            exact haFin
-        have hsum_border :
-            RectangleBorderIntegrable (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w :=
-          h_partial_border S' hSsub
+            RectangleBorderIntegrable (fun s ↦ c a / (s - a)) z w :=
+          by simpa using h_partial_border ({a} : Finset ℂ) (Finset.singleton_subset_iff.mpr haFin)
         have hfun :
             (fun s ↦ ∑ p ∈ insert a S', c p / (s - p)) =
               (fun s ↦ c a / (s - a)) +
                 (fun s ↦ ∑ p ∈ S', c p / (s - p)) := by
-          funext s
-          simp [Finset.sum_insert, ha]
+          funext s; simp [Finset.sum_insert, ha]
         have h_add_primed :
             RectangleIntegral' ((fun s ↦ c a / (s - a)) + (fun s ↦ ∑ p ∈ S', c p / (s - p))) z w =
               RectangleIntegral' (fun s ↦ c a / (s - a)) z w +
                 RectangleIntegral' (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w := by
           unfold RectangleIntegral'
-          rw [RectangleBorderIntegrable.add hterm_border hsum_border, smul_add]
+          rw [RectangleBorderIntegrable.add hterm_border (h_partial_border S' hSsub), smul_add]
         rw [hfun, h_add_primed, h_term_integral haFin, ih hSsub, Finset.sum_insert ha]
-  exact h_partial_integral S (by rfl)
+  exact h_partial_integral S (by intro p hp; exact hp)
 
 -- Splits the integral of `fNF` into the integral of its holomorphic part and its principal part.
 private lemma toMeromorphicNFOn_add_integral {f : ℂ → ℂ} {z w : ℂ}
@@ -930,30 +941,21 @@ private lemma toMeromorphicNFOn_add_integral {f : ℂ → ℂ} {z w : ℂ}
   let holoPart : ℂ → ℂ := toMeromorphicNFOn (fNF - principalPart) R
   have h_holoPart_border : RectangleBorderIntegrable holoPart z w :=
     (holoPart_holomorphicOn f_mero f_simple_poles f_poles_finite).rectangleBorderIntegrable
-  have h_principalPart_borderIntegrable : RectangleBorderIntegrable principalPart z w :=
-    principalPart_borderIntegrable f_no_poles_boundary f_poles_finite
   have h_fNF_eq :
       Set.EqOn fNF (holoPart + principalPart) (RectangleBorder z w) := by
     intro s hs
-    have hsR : s ∈ R := by
-      exact rectangleBorder_subset_rectangle z w hs
-    have hsnp : s ∉ poles := by
-      intro hsp
-      exact Set.disjoint_right.mp f_no_poles_boundary hsp.2 hs
+    have hsR : s ∈ R := rectangleBorder_subset_rectangle z w hs
+    have hsnp : s ∉ poles := fun hsp => Set.disjoint_right.mp f_no_poles_boundary hsp.2 hs
     have hraw_analytic : AnalyticAt ℂ (fNF - principalPart) s := by
-      have hsnp_fin : s ∉ polesFin := by
-        intro h
-        exact hsnp (by simpa [polesFin, poles] using h)
       have h_fNF_nonneg : 0 ≤ meromorphicOrderAt fNF s := by
         rw [show meromorphicOrderAt fNF s = meromorphicOrderAt f s by
           simpa [fNF] using
             (meromorphicOrderAt_toMeromorphicNFOn (f := f) (U := R) f_mero hsR)]
         exact le_of_not_gt fun hsneg => hsnp ⟨hsR, hsneg⟩
-      have h_fNF_nf : MeromorphicNFAt fNF s := by
-        simpa [fNF] using
-          (meromorphicNFOn_toMeromorphicNFOn (f := f) (U := R) hsR)
-      exact sub_principalPart_analyticAt_of_not_mem_poles h_fNF_nf hsnp_fin h_fNF_nonneg
-    have hraw_nf : MeromorphicNFAt (fNF - principalPart) s := hraw_analytic.meromorphicNFAt
+      exact sub_principalPart_analyticAt_of_not_mem_poles
+        (by simpa [fNF] using meromorphicNFOn_toMeromorphicNFOn (f := f) (U := R) hsR)
+        (fun h => hsnp (by simpa [polesFin, poles] using h))
+        h_fNF_nonneg
     have hs_eq : holoPart s = (fNF - principalPart) s := by
       rw [show holoPart = toMeromorphicNFOn (fNF - principalPart) R by rfl]
       have h_fNF_mero : MeromorphicOn fNF R := by
@@ -961,14 +963,13 @@ private lemma toMeromorphicNFOn_add_integral {f : ℂ → ℂ} {z w : ℂ}
       have hf_sub_mero : MeromorphicOn (fNF - principalPart) R :=
         h_fNF_mero.sub principalPart_meromorphicOn
       rw [toMeromorphicNFOn_eq_toMeromorphicNFAt (f := fNF - principalPart) (U := R) hf_sub_mero hsR]
-      exact congr_fun (toMeromorphicNFAt_eq_self.2 hraw_nf) s
-    have hs_eq' : (fNF - principalPart) s = holoPart s := by
-      simpa using hs_eq.symm
+      exact congr_fun (toMeromorphicNFAt_eq_self.2 hraw_analytic.meromorphicNFAt) s
     calc
       fNF s = (fNF - principalPart) s + principalPart s := by simp
-      _ = holoPart s + principalPart s := by rw [hs_eq']
-  rw [RectangleIntegral'_congr h_fNF_eq]
-  rw [RectangleIntegral', RectangleBorderIntegrable.add h_holoPart_border h_principalPart_borderIntegrable,
+      _ = holoPart s + principalPart s := by rw [← hs_eq]
+  rw [RectangleIntegral'_congr h_fNF_eq, RectangleIntegral',
+    RectangleBorderIntegrable.add h_holoPart_border
+      (principalPart_borderIntegrable f_no_poles_boundary f_poles_finite),
     smul_add]
 
 /-- The general Residue Theorem on a rectangle for functions with simple poles.
@@ -1041,7 +1042,9 @@ lemma meromorphicAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : MeromorphicAt (fun t
   (analyticAt_rpow hx s).meromorphicAt
 
 lemma meromorphicOrderAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : meromorphicOrderAt (fun t : ℂ ↦ (x : ℂ) ^ t) s = 0 := by
-  fun_prop
+  rw [← tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero (meromorphicAt_rpow hx s)]
+  refine ⟨_, ?_, (analyticAt_rpow hx s).continuousAt.continuousWithinAt⟩
+  exact (Complex.cpow_ne_zero_iff).2 (Or.inl (Complex.ofReal_ne_zero.mpr hx.ne'))
 
 lemma residue_eq_zero_of_not_pole_of_meromorphicAt {F : ℂ → ℂ} {s : ℂ}
     (hs_mero : MeromorphicAt F s) (hs_not_pole : 0 ≤ meromorphicOrderAt F s) :
