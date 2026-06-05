@@ -705,7 +705,6 @@ private lemma rectangleIntegral'_toMeromorphicNFOn_eq {f : ℂ → ℂ} {z w : �
   unfold RectangleIntegral'; congr 1; unfold RectangleIntegral
   rw [hbot, htop, hright, hleft]
 
--- Helper 1: Prove the principal part sum is meromorphic everywhere
 private lemma principalPart_meromorphicOn {R : Set ℂ} {polesFin : Finset ℂ} {c : ℂ → ℂ} :
     MeromorphicOn (fun s ↦ ∑ p ∈ polesFin, c p / (s - p)) R := by
   intro x _
@@ -714,7 +713,6 @@ private lemma principalPart_meromorphicOn {R : Set ℂ} {polesFin : Finset ℂ} 
   exact (analyticAt_const.meromorphicAt.div
     ((analyticAt_id.sub analyticAt_const).meromorphicAt))
 
--- Helper 2: Prove subtracting the principal part is analytic outside the poles
 private lemma sub_principalPart_analyticAt_of_not_mem_poles
     {f : ℂ → ℂ} {polesFin : Finset ℂ} {x : ℂ}
     (h_nf : MeromorphicNFAt f x)
@@ -735,7 +733,6 @@ private lemma sub_principalPart_analyticAt_of_not_mem_poles
     simpa using this
   exact h_f_analytic.sub h_principal_analytic
 
--- Helper 3: Prove subtracting the principal part removes the simple poles
 private lemma meromorphicOrderAt_sub_principalPart_nonneg
     {f : ℂ → ℂ} {polesFin : Finset ℂ} {p : ℂ}
     (hpFin : p ∈ polesFin)
@@ -772,7 +769,6 @@ private lemma meromorphicOrderAt_sub_principalPart_nonneg
     exact tendsto_cobounded_of_meromorphicOrderAt_neg (not_le.mp hneg)
   exact (Filter.not_isBoundedUnder_of_tendsto_atTop hnorm) hraw_big.isBoundedUnder_le
 
--- Subtracting the principal part removes all simple poles of `fNF`, yielding a holomorphic function.
 private lemma holoPart_holomorphicOn {f : ℂ → ℂ} {z w : ℂ}
     (f_mero : MeromorphicOn f (Rectangle z w))
     (f_simple_poles : HasSimplePolesOn f (Rectangle z w))
@@ -846,7 +842,6 @@ private lemma principalPart_borderIntegrable {f : ℂ → ℂ} {z w : ℂ}
     fun_prop (disch := exact sub_ne_zero.mpr hsp)
   exact this.continuousWithinAt
 
--- Helper 1: Prove that a point inside a rectangle (and not on the border) has the rectangle as a neighborhood
 private lemma rectangle_mem_nhds_of_interior {z w p : ℂ}
     (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
     (hpR : p ∈ Rectangle z w) (hpnot : p ∉ RectangleBorder z w) :
@@ -867,7 +862,6 @@ private lemma rectangle_mem_nhds_of_interior {z w p : ℂ}
   rw [rectangle_mem_nhds_iff, mem_reProdIm, Set.uIoo_of_le zRe_le_wRe, Set.uIoo_of_le zIm_le_wIm]
   exact ⟨⟨hp_re_left, hp_re_right⟩, ⟨hp_im_left, hp_im_right⟩⟩
 
--- Helper 2: Prove that a sum of principal parts is integrable on the border if poles are disjoint from it
 private lemma sum_div_rectangleBorderIntegrable {z w : ℂ} {S : Finset ℂ}
     (hS_disjoint : Disjoint (RectangleBorder z w) S) (c : ℂ → ℂ) :
     RectangleBorderIntegrable (fun s ↦ ∑ p ∈ S, c p / (s - p)) z w := by
@@ -898,28 +892,28 @@ private lemma rectangleIntegral'_sum_div_sub {z w : ℂ} (zRe_le_wRe : z.re ≤ 
       ∀ (S' : Finset ℂ), S' ⊆ S →
         RectangleIntegral' (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w =
           ∑ p ∈ S', c p := by
-      intro S' hS'
-      revert hS'
-      refine Finset.induction_on S' ?_ ?_
-      · intro _
-        simp [RectangleIntegral', RectangleIntegral, HIntegral, VIntegral]
-      · intro a S' ha ih hS'
-        obtain ⟨haFin, hSsub⟩ := Finset.insert_subset_iff.mp hS'
-        have hterm_border :
-            RectangleBorderIntegrable (fun s ↦ c a / (s - a)) z w :=
-          by simpa using h_partial_border ({a} : Finset ℂ) (Finset.singleton_subset_iff.mpr haFin)
-        have hfun :
-            (fun s ↦ ∑ p ∈ insert a S', c p / (s - p)) =
-              (fun s ↦ c a / (s - a)) +
-                (fun s ↦ ∑ p ∈ S', c p / (s - p)) := by
-          funext s; simp [Finset.sum_insert, ha]
-        have h_add_primed :
-            RectangleIntegral' ((fun s ↦ c a / (s - a)) + (fun s ↦ ∑ p ∈ S', c p / (s - p))) z w =
-              RectangleIntegral' (fun s ↦ c a / (s - a)) z w +
-                RectangleIntegral' (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w := by
-          unfold RectangleIntegral'
-          rw [RectangleBorderIntegrable.add hterm_border (h_partial_border S' hSsub), smul_add]
-        rw [hfun, h_add_primed, h_term_integral haFin, ih hSsub, Finset.sum_insert ha]
+    intro S' hS'
+    revert hS'
+    refine Finset.induction_on S' ?_ ?_
+    · intro _
+      simp [RectangleIntegral', RectangleIntegral, HIntegral, VIntegral]
+    · intro a S' ha ih hS'
+      obtain ⟨haFin, hSsub⟩ := Finset.insert_subset_iff.mp hS'
+      have hterm_border :
+          RectangleBorderIntegrable (fun s ↦ c a / (s - a)) z w :=
+        by simpa using h_partial_border ({a} : Finset ℂ) (Finset.singleton_subset_iff.mpr haFin)
+      have hfun :
+          (fun s ↦ ∑ p ∈ insert a S', c p / (s - p)) =
+            (fun s ↦ c a / (s - a)) +
+              (fun s ↦ ∑ p ∈ S', c p / (s - p)) := by
+        funext s; simp [Finset.sum_insert, ha]
+      have h_add_primed :
+          RectangleIntegral' ((fun s ↦ c a / (s - a)) + (fun s ↦ ∑ p ∈ S', c p / (s - p))) z w =
+            RectangleIntegral' (fun s ↦ c a / (s - a)) z w +
+              RectangleIntegral' (fun s ↦ ∑ p ∈ S', c p / (s - p)) z w := by
+        unfold RectangleIntegral'
+        rw [RectangleBorderIntegrable.add hterm_border (h_partial_border S' hSsub), smul_add]
+      rw [hfun, h_add_primed, h_term_integral haFin, ih hSsub, Finset.sum_insert ha]
   exact h_partial_integral S (by intro p hp; exact hp)
 
 -- Splits the integral of `fNF` into the integral of its holomorphic part and its principal part.
@@ -932,7 +926,6 @@ private lemma toMeromorphicNFOn_add_integral {f : ℂ → ℂ} {z w : ℂ}
       RectangleIntegral' (toMeromorphicNFOn (toMeromorphicNFOn f (Rectangle z w) -
         fun s ↦ ∑ p ∈ f_poles_finite.toFinset, residue (toMeromorphicNFOn f (Rectangle z w)) p / (s - p)) (Rectangle z w)) z w +
       RectangleIntegral' (fun s ↦ ∑ p ∈ f_poles_finite.toFinset, residue (toMeromorphicNFOn f (Rectangle z w)) p / (s - p)) z w := by
-  classical
   let R : Set ℂ := Rectangle z w
   let poles : Set ℂ := R ∩ {u | meromorphicOrderAt f u < 0}
   let polesFin : Finset ℂ := f_poles_finite.toFinset
@@ -969,13 +962,9 @@ private lemma toMeromorphicNFOn_add_integral {f : ℂ → ℂ} {z w : ℂ}
       _ = holoPart s + principalPart s := by rw [← hs_eq]
   rw [RectangleIntegral'_congr h_fNF_eq, RectangleIntegral',
     RectangleBorderIntegrable.add h_holoPart_border
-      (principalPart_borderIntegrable f_no_poles_boundary f_poles_finite),
-    smul_add]
+      (principalPart_borderIntegrable f_no_poles_boundary f_poles_finite), smul_add]
 
-/-- The general Residue Theorem on a rectangle for functions with simple poles.
-Rather than formalizing an arbitrary-set residue theorem, this lemma can be proven by
-partitioning the rectangle into sub-rectangles, each containing at most one pole in its interior
-and no poles on the boundary. Then we apply `ResidueTheoremOnRectangleWithSimplePole'` on each sub-rectangle. -/
+/-- The Residue Theorem on a rectangle for functions with simple poles. -/
 lemma RectangleIntegral'_eq_sumResiduesIn {f : ℂ → ℂ} {z w : ℂ}
     (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
     (f_mero : MeromorphicOn f (Rectangle z w))
@@ -983,7 +972,6 @@ lemma RectangleIntegral'_eq_sumResiduesIn {f : ℂ → ℂ} {z w : ℂ}
     (f_poles_finite : (Rectangle z w ∩ {z | meromorphicOrderAt f z < 0}).Finite)
     (f_simple_poles : HasSimplePolesOn f (Rectangle z w)) :
     RectangleIntegral' f z w = sumResiduesIn f (Rectangle z w ∩ {z | meromorphicOrderAt f z < 0}) := by
-  classical
   let R : Set ℂ := Rectangle z w
   let poles : Set ℂ := R ∩ {u | meromorphicOrderAt f u < 0}
   let polesFin : Finset ℂ := f_poles_finite.toFinset
@@ -1178,15 +1166,10 @@ lemma upperRectangleIntegral'_eq_sumResiduesIn (n : ℕ)
       Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ⊆ l.R :=
     Set.Subset.trans h_rect_subset_Rpos l.Rpos_subset_R
   apply RectangleIntegral'_eq_sumResiduesIn
-  -- Discharge conditions using the lemma's hypotheses
-  · -- z.re ≤ w.re (i.e. l.σ n ≤ 1)
-    simpa using l.hσ n
-  · -- z.im ≤ w.im (i.e. l.δ ≤ l.T)
-    simpa using show l.δ ≤ l.T by linarith [l.hδ.2, l.hT]
-  · -- f_mero
-    exact h_rect_mero
-  · -- f_no_poles_boundary
-    exact h_no_poles_boundary
+  · simpa using l.hσ n
+  · simpa using show l.δ ≤ l.T by linarith [l.hδ.2, l.hT]
+  · exact h_rect_mero
+  · exact h_no_poles_boundary
   · exact Set.Finite.subset hfin (upperRectangle_poles_subset_R_minus_RC l n h_no_poles_boundary)
   · exact HasSimplePolesOn.mono hsimple h_rect_subset_R
 
@@ -1194,41 +1177,35 @@ lemma intVSeg_eq_intCnPlus_add_rectangleIntegral (l : LadderParams) (n : ℕ) (F
     (h_integrable1 : IntervalIntegrable (fun t : ℝ ↦ F (1 + t * Complex.I) * Complex.I) volume 0 l.δ)
     (h_integrable2 : IntervalIntegrable (fun t : ℝ ↦ F (1 + t * Complex.I) * Complex.I) volume l.δ l.T) :
     intVSeg 1 0 l.T F = l.intCnPlus n F + RectangleIntegral F ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) := by
+  have h1 : l.intCnPlus n F = (intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F + intVSeg (l.σ n) l.δ l.T F + intHSeg l.T (l.σ n) 1 F) := rfl
+  have h2 : RectangleIntegral F ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) = (intHSeg l.δ (l.σ n) 1 F - intHSeg l.T (l.σ n) 1 F + intVSeg 1 l.δ l.T F - intVSeg (l.σ n) l.δ l.T F) := by
+    have hH1 : HIntegral F (l.σ n) 1 l.δ = intHSeg l.δ (l.σ n) 1 F := rfl
+    have hH2 : HIntegral F (l.σ n) 1 l.T = intHSeg l.T (l.σ n) 1 F := rfl
+    have hV1 : Complex.I * ∫ (y : ℝ) in l.δ..l.T, F (1 + ↑y * Complex.I) =
+      intVSeg 1 l.δ l.T F := by
+      rw [intVSeg, ← smul_eq_mul, ← intervalIntegral.integral_smul]
+      refine intervalIntegral.integral_congr (fun y _ ↦ ?_)
+      rw [smul_eq_mul, mul_comm]; rfl
+    have hV2 : Complex.I * ∫ (y : ℝ) in l.δ..l.T, F (↑(l.σ n) + ↑y * Complex.I) =
+      intVSeg (l.σ n) l.δ l.T F := by
+      rw [intVSeg, ← smul_eq_mul, ← intervalIntegral.integral_smul]
+      refine intervalIntegral.integral_congr (fun y _ ↦ ?_)
+      rw [smul_eq_mul, mul_comm]
+    rw [RectangleIntegral]
+    simp only [Complex.add_re, Complex.add_im, Complex.mul_re, Complex.mul_im,
+      Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, Complex.one_re,
+      Complex.one_im, mul_zero, sub_zero, add_zero, mul_one, zero_add]
+    dsimp [VIntegral]
+    rw [hH1, hH2, hV1, hV2]
   have h_unfolded : l.intCnPlus n F +
     RectangleIntegral F ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) =
     (intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F +
      intVSeg (l.σ n) l.δ l.T F + intHSeg l.T (l.σ n) 1 F) +
     (intHSeg l.δ (l.σ n) 1 F - intHSeg l.T (l.σ n) 1 F +
      intVSeg 1 l.δ l.T F - intVSeg (l.σ n) l.δ l.T F) := by
-      have h1 : l.intCnPlus n F = (intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F + intVSeg (l.σ n) l.δ l.T F + intHSeg l.T (l.σ n) 1 F) := rfl
-      have h2 : RectangleIntegral F ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) = (intHSeg l.δ (l.σ n) 1 F - intHSeg l.T (l.σ n) 1 F + intVSeg 1 l.δ l.T F - intVSeg (l.σ n) l.δ l.T F) := by
-        have hH1 : HIntegral F (l.σ n) 1 l.δ = intHSeg l.δ (l.σ n) 1 F := rfl
-        have hH2 : HIntegral F (l.σ n) 1 l.T = intHSeg l.T (l.σ n) 1 F := rfl
-        have hV1 : Complex.I * ∫ (y : ℝ) in l.δ..l.T, F (1 + ↑y * Complex.I) =
-          intVSeg 1 l.δ l.T F := by
-          rw [intVSeg]
-          rw [← smul_eq_mul]
-          rw [← intervalIntegral.integral_smul]
-          refine intervalIntegral.integral_congr (fun y _ ↦ ?_)
-          rw [smul_eq_mul, mul_comm]; rfl
-        have hV2 : Complex.I * ∫ (y : ℝ) in l.δ..l.T, F (↑(l.σ n) + ↑y * Complex.I) =
-          intVSeg (l.σ n) l.δ l.T F := by
-          rw [intVSeg]
-          rw [← smul_eq_mul]
-          rw [← intervalIntegral.integral_smul]
-          refine intervalIntegral.integral_congr (fun y _ ↦ ?_)
-          rw [smul_eq_mul, mul_comm]
-        rw [RectangleIntegral]
-        simp only [Complex.add_re, Complex.add_im, Complex.mul_re, Complex.mul_im,
-          Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, Complex.one_re,
-          Complex.one_im, mul_zero, sub_zero, add_zero, mul_one, zero_add]
-        rw [hH1, hH2]
-        dsimp [VIntegral]
-        rw [hV1, hV2]
       rw [h1, h2]
   have h_δ_cancel : intHSeg l.δ 1 (l.σ n) F + intHSeg l.δ (l.σ n) 1 F = 0 := by
-    rw [intHSeg, intHSeg]
-    rw [intervalIntegral.integral_symm]
+    rw [intHSeg, intHSeg, intervalIntegral.integral_symm]
     ring
   have h_cancelled : (intVSeg 1 0 l.δ F + intHSeg l.δ 1 (l.σ n) F +
      intVSeg (l.σ n) l.δ l.T F + intHSeg l.T (l.σ n) 1 F) +
@@ -1251,7 +1228,6 @@ lemma sumResiduesIn_upperRectangle_eq_sumResiduesIn_Rpos (l : LadderParams) (n :
       {z | meromorphicOrderAt F z < 0}) :
     sumResiduesIn F (Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt F z < 0}) =
       sumResiduesIn F (l.Rpos ∩ {z | l.σ n < z.re}) := by
-  classical
   let Rn : Set ℂ :=
     Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I)
   let P : Set ℂ := {z | meromorphicOrderAt F z < 0}
@@ -1387,9 +1363,8 @@ private lemma continuousOn_toMeromorphicNFOn_Rboundary {F : ℂ → ℂ} (l : La
     ContinuousOn (toMeromorphicNFOn F l.R) l.Rboundary := by
   intro s hs
   have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs)
-  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s := by
-    rw [meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs)]
-    exact hF_nopoles s hs
+  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s :=
+    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs)).symm ▸ hF_nopoles s hs
   have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
   exact h_anal.continuousAt.continuousWithinAt
 
@@ -1399,9 +1374,8 @@ private lemma continuousOn_toMeromorphicNFOn_upperRboundary {F : ℂ → ℂ} (l
     ContinuousOn (toMeromorphicNFOn F l.R) (l.Rboundary ∩ {s | 0 ≤ s.im}) := by
   intro s hs
   have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs.1)
-  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s := by
-    rw [meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs.1)]
-    exact hF_nopoles s hs.1 hs.2
+  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s :=
+    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs.1)).symm ▸ hF_nopoles s hs.1 hs.2
   have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
   exact h_anal.continuousAt.continuousWithinAt
 
@@ -1429,9 +1403,9 @@ private lemma ae_eq_NF_vseg {F : ℂ → ℂ} (l : LadderParams) {a b : ℝ} (ha
       add_im, one_im, zero_add, le_refl, true_and]
     simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re, mul_zero, add_zero]
     rw [abs_of_nonneg (by linarith [ha_nonneg, ht.1])]
-    exact by linarith [hb_le_T, ht.2]
+    linarith [hb_le_T, ht.2]
   exact ae_eq_of_codiscreteWithin_along_path h_ae
-    (by intro y _; exact analyticAt_const.add ((Complex.ofRealCLM.analyticAt y).mul analyticAt_const))
+    (fun y _ => analyticAt_const.add ((Complex.ofRealCLM.analyticAt y).mul analyticAt_const))
     (fun y _ ↦ verticalPath_not_eventuallyConst 1 y) h_maps
 
 private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
@@ -1451,10 +1425,7 @@ private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
       MeasureTheory.ae_restrict_mem measurableSet_uIoc
     filter_upwards [h_sum_path, h_mem_ae] with t ht_sum ht_mem
     have ht_pos : 0 < t := by linarith [ha_nonneg, (Set.uIoc_of_le hab ▸ ht_mem).1]
-    have hsign : (Real.sign ((1:ℂ) + t * Complex.I).im : ℂ) = 1 := by
-      have : ((1:ℂ) + t * Complex.I).im = t := by simp
-      rw [this]
-      simpa using congrArg (fun r : ℝ ↦ (r : ℂ)) (Real.sign_of_pos ht_pos)
+    have hsign : (Real.sign ((1:ℂ) + t * Complex.I).im : ℂ) = 1 := by simp [Real.sign_of_pos ht_pos]
     dsimp [H_upper]
     rw [hG ((1:ℂ) + t * Complex.I), hsign, one_mul]
     have h_fold : G_circ (1 + t * Complex.I) + G_star (1 + t * Complex.I) = (G_circ + G_star) (1 + t * Complex.I) := rfl
@@ -1470,14 +1441,8 @@ private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
     simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
       Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
     linarith [ht.1]
-  have h_path : ContinuousOn (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) :=
-    Continuous.continuousOn (by fun_prop)
-  have h_sum_cont : ContinuousOn (fun t : ℝ ↦ toMeromorphicNFOn (G_circ + G_star) l.R (1 + t * Complex.I)) (Set.Icc a b) :=
-    ContinuousOn.comp h_cont_sum_NF h_path h_maps_rb
-  have h_cont_pow : ContinuousOn (fun t : ℝ ↦ (x : ℂ) ^ (1 + t * Complex.I)) (Set.Icc a b) :=
-    continuousOn_cpow_vertical_path hx₀ hx _
-  refine ContinuousOn.mul_const ?_ Complex.I
-  exact h_sum_cont.mul h_cont_pow
+  exact (ContinuousOn.comp h_cont_sum_NF (Continuous.continuousOn (by fun_prop)) h_maps_rb).mul
+    (continuousOn_cpow_vertical_path hx₀ hx _) |>.mul_const Complex.I
 
 @[blueprint
   "ch2-lemma-5-1-a"
@@ -1512,15 +1477,12 @@ theorem lemma_5_1_a (n : ℕ)
         (isOpen_lt continuous_const Complex.continuous_im).mem_nhds hs_im_pos
       have hG_eq : G =ᶠ[nhds s] G_circ + G_star := by
         filter_upwards [hpos_mem] with t ht
-        have hsign : (Real.sign t.im : ℂ) = 1 := by
-          simpa using congrArg (fun r : ℝ ↦ (r : ℂ)) (Real.sign_of_pos ht)
+        have hsign : (Real.sign t.im : ℂ) = 1 := by simp [Real.sign_of_pos ht]
         simp [hG t, hsign]
       have hG_eq' : G =ᶠ[nhdsWithin s {s}ᶜ] G_circ + G_star := hG_eq.filter_mono nhdsWithin_le_nhds
       rw [← meromorphicOrderAt_congr hG_eq']
-      have hG_mero : MeromorphicAt G s := by
-        have h_sum_mero : MeromorphicAt (G_circ + G_star) s :=
-          (hG_circ_mero s (l.Rboundary_subset_R hs)).add (hG_star_mero s (l.Rboundary_subset_R hs))
-        exact h_sum_mero.congr (hG_eq.symm.filter_mono nhdsWithin_le_nhds)
+      have hG_mero : MeromorphicAt G s :=
+        ((hG_circ_mero s (l.Rboundary_subset_R hs)).add (hG_star_mero s (l.Rboundary_subset_R hs))).congr (hG_eq.symm.filter_mono nhdsWithin_le_nhds)
       have hx₀_pos : 0 < x₀ := by linarith [hx₀]
       have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
       have hpow0_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) s = 0 := meromorphicOrderAt_rpow hx₀_pos s
@@ -1535,17 +1497,8 @@ theorem lemma_5_1_a (n : ℕ)
         · rw [hs_im_zero, abs_zero] at him
           have hT_gt_zero := l.hT
           linarith [him]
-      have hs_eq : s = 1 := by
-        rw [Complex.ext_iff]
-        refine ⟨?_, ?_⟩
-        · simp [hs_re]
-        · simp [hs_im_zero]
-      have h1_contour : (1 : ℂ) ∈ l.admissible_contour := by
-        simp only [LadderParams.admissible_contour, Set.mem_setOf_eq]
-        right
-        refine ⟨by simp, ?_⟩
-        simp only [Set.mem_Icc, Complex.one_im]
-        refine ⟨le_rfl, le_of_lt l.hδ.1⟩
+      have hs_eq : s = 1 := by rw [Complex.ext_iff]; simp [hs_re, hs_im_zero]
+      have h1_contour : (1 : ℂ) ∈ l.admissible_contour := Or.inr ⟨by rfl, ⟨le_rfl, l.hδ.1.le⟩⟩
       have hGc_order : 0 ≤ meromorphicOrderAt G_circ s := by
         have hx₀_pos : 0 < x₀ := by linarith [hx₀]
         have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
@@ -1572,11 +1525,7 @@ theorem lemma_5_1_a (n : ℕ)
   have h_int_eq : (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
     (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
     RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) := by
-    rw [h_unprimed_eq, mul_add]
-    congr 1
-    simp only [smul_eq_mul]
-    ring
-
+    rw [h_unprimed_eq, mul_add, RectangleIntegral', smul_eq_mul]; ring_nf
   have h_rect_subset_Rpos :
       Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ⊆ l.Rpos :=
     l.upperRectangle_subset_Rpos n
@@ -1595,10 +1544,7 @@ theorem lemma_5_1_a (n : ℕ)
   have h_residue_set_eq : sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) =
     sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) :=
       sumResiduesIn_upperRectangle_eq_sumResiduesIn_Rpos l n (fun s ↦ G s * (x : ℂ) ^ s) h_rect_mero h_no_poles_boundary
-  have h_residue : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) =
-    sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) := by
-      rw [h_residue_thm, h_residue_set_eq]
-
+  have h_residue := h_residue_thm.trans h_residue_set_eq
   rw [h_int_eq, h_residue]
 
 
