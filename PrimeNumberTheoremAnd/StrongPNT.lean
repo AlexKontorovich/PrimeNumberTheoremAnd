@@ -1100,6 +1100,10 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
+blueprint_comment /--
+  API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm_tprod
+-/
+
 variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
  {f : α → R} {x : R}
 
@@ -1115,13 +1119,23 @@ lemma Multipliable.nnnorm_tprod (hf : Multipliable f) : ‖∏' i, f i‖₊ = �
 
 
 
-blueprint_comment /--
-\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}
+@[blueprint "ZetaFixedLowerBound"
+  (title := "ZetaFixedLowerBound")
+  (statement := /--
     For all $t\in\mathbb{R}$ one has
     $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
-\end{theorem}
--/
-
+  -/)
+  (proof := /--
+    From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
+    $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
+    Thus, we have that
+    $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
+    Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
+    $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}
+      \geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
+    for all $t\in\mathbb{R}$ as desired.
+  -/)
+  (latexEnv := "theorem")]
 lemma ZetaFixedLowerBound (t : ℝ) :
     ‖ζ (3/2 + I * t)‖₊ ≥ ‖ζ 3 / ζ (3 / 2)‖₊ := by
   have mp : ∀ {s : ℂ}, 1 < s.re → Multipliable fun p : Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹ := by
@@ -1156,19 +1170,6 @@ lemma ZetaFixedLowerBound (t : ℝ) :
           push_cast; rfl
   · exact norm_pos_iff.mpr (hne h₂)
   · exact mul_pos (norm_pos_iff.mpr (hne h₃)) (norm_pos_iff.mpr (hne h₁))
-
-blueprint_comment /--
-\begin{proof}
-    From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
-    $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
-    Thus, we have that
-    $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
-    Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
-    $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}
-      \geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
-    for all $t\in\mathbb{R}$ as desired.
-\end{proof}
--/
 
 
 
