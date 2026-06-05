@@ -1104,8 +1104,7 @@ variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
  {f : α → R} {x : R}
 
 lemma HasProd.nnnorm (hfx : HasProd f x) : HasProd (‖f ·‖₊) ‖x‖₊ := by
-  simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter]
-  simp [HasProd] at hfx
+  simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter] at ⊢ hfx
   exact hfx.nnnorm
 
 theorem Multipliable.nnnorm (hf : Multipliable f) : Multipliable (‖f ·‖₊) :=
@@ -1125,54 +1124,38 @@ blueprint_comment /--
 
 lemma ZetaFixedLowerBound (t : ℝ) :
     ‖ζ (3/2 + I * t)‖₊ ≥ ‖ζ 3 / ζ (3 / 2)‖₊ := by
-  have three_half_re_gt_one : 1 < ((3 : ℂ) / 2).re := by norm_num
-  have three_re_gt_one : 1 < (3 : ℂ).re := by norm_num
-  have three_half_plus_it_re_gt_one : 1 < (3 / 2 + I * t).re := by norm_num
-  have multipliable_three_half :
-    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-((3 : ℂ) / 2)))⁻¹ := by
-    exact ⟨ζ (3 / 2), riemannZeta_eulerProduct_hasProd three_half_re_gt_one⟩
-  have multipliable_three :
-    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-(3 : ℂ)))⁻¹ := by
-    exact ⟨ζ 3, riemannZeta_eulerProduct_hasProd three_re_gt_one⟩
-  have multipliable_three_half_plus_it :
-    Multipliable fun (p : Primes) ↦ (1 - (p  : ℂ) ^ (-(3 / 2 + I * t)))⁻¹ := by
-    exact ⟨ζ (3 / 2 + I * t), riemannZeta_eulerProduct_hasProd three_half_plus_it_re_gt_one⟩
+  have mp : ∀ {s : ℂ}, 1 < s.re → Multipliable fun p : Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹ := by
+    intro s hs
+    exact ⟨ζ s, riemannZeta_eulerProduct_hasProd hs⟩
+  have h₁ : 1 < ((3 : ℂ) / 2).re := by norm_num
+  have h₂ : 1 < (3 : ℂ).re := by norm_num
+  have h₃ : 1 < (3 / 2 + I * (t : ℂ)).re := by norm_num
   rw [nnnorm_div, ge_iff_le,
-     div_le_iff₀ (nnnorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
-     ← riemannZeta_eulerProduct_tprod three_half_re_gt_one,
-     ← riemannZeta_eulerProduct_tprod three_re_gt_one,
-     ← riemannZeta_eulerProduct_tprod three_half_plus_it_re_gt_one,
-     Multipliable.nnnorm_tprod multipliable_three_half,
-     Multipliable.nnnorm_tprod multipliable_three,
-     Multipliable.nnnorm_tprod multipliable_three_half_plus_it,
-     ← Multipliable.tprod_mul
-        (Multipliable.nnnorm multipliable_three_half_plus_it)
-        (Multipliable.nnnorm multipliable_three_half)]
-  refine Multipliable.tprod_le_tprod ?_ multipliable_three.nnnorm (Multipliable.mul (multipliable_three_half_plus_it.nnnorm) (multipliable_three_half.nnnorm))
-  intro p
+    div_le_iff₀ (nnnorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
+    ← riemannZeta_eulerProduct_tprod h₁, ← riemannZeta_eulerProduct_tprod h₂,
+    ← riemannZeta_eulerProduct_tprod h₃, (mp h₁).nnnorm_tprod, (mp h₂).nnnorm_tprod,
+    (mp h₃).nnnorm_tprod, ← (mp h₃).nnnorm.tprod_mul (mp h₁).nnnorm]
+  refine (mp h₂).nnnorm.tprod_le_tprod (fun p ↦ ?_) ((mp h₃).nnnorm.mul (mp h₁).nnnorm)
   simp only [nnnorm_inv, ← mul_inv]
-  have : ‖1 - (p : ℂ) ^ (-3 : ℂ)‖₊ = ‖1 + (p : ℂ) ^ ((-3 : ℂ) / 2)‖₊ * ‖1 - (p : ℂ) ^ (-((3 : ℂ) / 2))‖₊ := by
-    simp [← nnnorm_mul]
-    congr 1
-    ring_nf
-    rw [← Complex.cpow_nat_mul]
-    ring_nf
-  rw [inv_le_inv₀, this]
+  have hfact : ‖1 - (p : ℂ) ^ (-3 : ℂ)‖₊ =
+      ‖1 + (p : ℂ) ^ ((-3 : ℂ) / 2)‖₊ * ‖1 - (p : ℂ) ^ (-((3 : ℂ) / 2))‖₊ := by
+    rw [← nnnorm_mul]; congr 1; ring_nf; rw [← Complex.cpow_nat_mul]; ring_nf
+  have hne : ∀ {s : ℂ}, 1 < s.re → (1 - (p : ℂ) ^ (-s)) ≠ 0 := fun hs ↦ Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  rw [inv_le_inv₀, hfact]
   · apply _root_.mul_le_mul_left
     rw [← norm_toNNReal, ← norm_toNNReal]
     apply Real.toNNReal_le_toNNReal
-    have h1 : ‖1 + (p : ℂ) ^ (-(3 : ℂ) / 2)‖ = 1 + ‖(p : ℂ) ^ (-(3 / 2 + I * t))‖ := by
-      have : 0 ≤ 1 + (p : ℝ) ^ (-(3 : ℝ) / 2) := by linarith [Real.rpow_nonneg (cast_nonneg' ↑p) (-3 / 2)]
-      simp only [Complex.norm_natCast_cpow_of_pos (Nat.Prime.pos p.2), add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
-        sub_self, div_ofNat_re, re_ofNat, neg_div', add_zero]
-      rw [← Real.norm_of_nonneg this, ← Complex.norm_real, Complex.ofReal_add, Complex.ofReal_cpow (cast_nonneg' ↑p)]
-      push_cast
-      rfl
-    rw [h1, ← Complex.norm_of_nonneg zero_le_one]
-    exact norm_sub_le _ _
-  · exact norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num))
-  · exact mul_pos (norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num)))
-      (norm_pos_iff.mpr (Complex.one_sub_prime_cpow_ne_zero p.2 (by norm_num)))
+    calc ‖1 - (p : ℂ) ^ (-(3 / 2 + I * ↑t))‖
+        ≤ 1 + ‖(p : ℂ) ^ (-(3 / 2 + I * ↑t))‖ := by
+          rw [← Complex.norm_of_nonneg zero_le_one]; exact norm_sub_le _ _
+      _ = ‖1 + (p : ℂ) ^ (-(3 : ℂ) / 2)‖ := by
+          have : 0 ≤ 1 + (p : ℝ) ^ (-(3 : ℝ) / 2) := by linarith [Real.rpow_nonneg (cast_nonneg' ↑p) (-3 / 2)]
+          simp only [Complex.norm_natCast_cpow_of_pos (Nat.Prime.pos p.2), add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
+            sub_self, div_ofNat_re, re_ofNat, neg_div', add_zero]
+          rw [← Real.norm_of_nonneg this, ← Complex.norm_real, Complex.ofReal_add, Complex.ofReal_cpow (cast_nonneg' ↑p)]
+          push_cast; rfl
+  · exact norm_pos_iff.mpr (hne h₂)
+  · exact mul_pos (norm_pos_iff.mpr (hne h₃)) (norm_pos_iff.mpr (hne h₁))
 
 blueprint_comment /--
 \begin{proof}
