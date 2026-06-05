@@ -1100,8 +1100,8 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
-variable {α E : Type*} [SeminormedCommRing E] [NormMulClass E] [NormOneClass E]
- {f : α → E} {x : E}
+variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
+ {f : α → R} {x : R}
 
 lemma HasProd.nnnorm (hfx : HasProd f x) : HasProd (‖f ·‖₊) ‖x‖₊ := by
   simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter]
