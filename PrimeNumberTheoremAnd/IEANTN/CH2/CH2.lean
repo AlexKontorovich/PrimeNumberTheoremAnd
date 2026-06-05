@@ -549,10 +549,6 @@ content of `lemma_5_1_g`). -/
 noncomputable def LadderParams.sumResiduesLim (l : LadderParams) (f : ℂ → ℂ) (S : Set ℂ) : ℂ :=
   Filter.limUnder Filter.atTop (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re}))
 
-/-- The conjugate-symmetry (Schwarz reflection) condition `F(s̄) = conj (F s)` assumed of `F` in
-Proposition 5.2; it makes the derived odd part `G⋆` satisfy `ConjAntisymm`. -/
-def ConjSymm (F : ℂ → ℂ) : Prop := ∀ s : ℂ, F (starRingEnd ℂ s) = starRingEnd ℂ (F s)
-
 /-- The conjugation-antisymmetry condition `g(s̄) = -\overline{g(s)}`. In Lemma 5.1 this is imposed
 on the odd part `G⋆`; it is what makes the integrals over the contour `C` and its conjugate `C̄`
 combine into the single `(1/π) ℑ ∫_C G⋆ x^s` term (the integrand `s ↦ G⋆ s * x^s` inherits the
@@ -1399,8 +1395,6 @@ lemma upperRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
     (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hG_circ_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_circ s)
-    (hG_star_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_star s)
     (hx : x₀ < x) :
     Disjoint (RectangleBorder ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I))
       {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0} := by
@@ -1518,6 +1512,19 @@ private lemma continuousOn_toMeromorphicNFOn_Rboundary {F : ℂ → ℂ} (l : La
   have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
   exact h_anal.continuousAt.continuousWithinAt
 
+private lemma continuousOn_toMeromorphicNFOn_upperRboundary {F : ℂ → ℂ} (l : LadderParams)
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ s.im → 0 ≤ meromorphicOrderAt F s) :
+    ContinuousOn (toMeromorphicNFOn F l.R) (l.Rboundary ∩ {s | 0 ≤ s.im}) := by
+  intro s hs
+  have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs.1)
+  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s := by
+    rw [meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs.1)]
+    exact hF_nopoles s hs.1 hs.2
+  have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
+  exact h_anal.continuousAt.continuousWithinAt
+
+
 private lemma mapsTo_vseg_Rboundary (l : LadderParams) {a b : ℝ} (ha_nonneg : 0 ≤ a) (hb_le_T : b ≤ l.T) :
     Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) l.Rboundary := by
   intro t ht
@@ -1551,41 +1558,42 @@ private lemma G_mul_cpow_integrable_vseg_generic (l : LadderParams)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
     (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
     (hx₀ : 1 ≤ x₀)
-    (hG_circ_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_circ s)
-    (hG_star_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_star s)
+    (hG_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ s.im → 0 ≤ meromorphicOrderAt (G_circ + G_star) s)
     (hx : x₀ < x) (a b : ℝ) (ha_nonneg : 0 ≤ a) (hab : a ≤ b) (hb_le_T : b ≤ l.T) :
     IntervalIntegrable (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I) volume a b := by
   let H_upper := fun (t : ℝ) ↦
-    (toMeromorphicNFOn G_circ l.R ((1:ℂ) + t * Complex.I) +
-     toMeromorphicNFOn G_star l.R ((1:ℂ) + t * Complex.I)) *
+    toMeromorphicNFOn (G_circ + G_star) l.R ((1:ℂ) + t * Complex.I) *
     (x : ℂ) ^ ((1:ℂ) + t * Complex.I) * Complex.I
   have h_ae : (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I)
       =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)] H_upper := by
-    have h_circ_path := ae_eq_NF_vseg l ha_nonneg hab hb_le_T hG_circ_mero
-    have h_star_path := ae_eq_NF_vseg l ha_nonneg hab hb_le_T hG_star_mero
+    have h_sum_path := ae_eq_NF_vseg l ha_nonneg hab hb_le_T (hG_circ_mero.add hG_star_mero)
     have h_mem_ae : ∀ᵐ t ∂(MeasureTheory.volume.restrict (Set.uIoc a b)), t ∈ Set.uIoc a b :=
       MeasureTheory.ae_restrict_mem measurableSet_uIoc
-    filter_upwards [h_circ_path, h_star_path, h_mem_ae] with t ht_circ ht_star ht_mem
+    filter_upwards [h_sum_path, h_mem_ae] with t ht_sum ht_mem
     have ht_pos : 0 < t := by linarith [ha_nonneg, (Set.uIoc_of_le hab ▸ ht_mem).1]
     have hsign : (Real.sign ((1:ℂ) + t * Complex.I).im : ℂ) = 1 := by
       have : ((1:ℂ) + t * Complex.I).im = t := by simp
       rw [this]
       simpa using congrArg (fun r : ℝ ↦ (r : ℂ)) (Real.sign_of_pos ht_pos)
     dsimp [H_upper]
-    rw [hG ((1:ℂ) + t * Complex.I), hsign, ht_circ, ht_star, one_mul]
+    rw [hG ((1:ℂ) + t * Complex.I), hsign, one_mul]
+    have h_fold : G_circ (1 + t * Complex.I) + G_star (1 + t * Complex.I) = (G_circ + G_star) (1 + t * Complex.I) := rfl
+    rw [h_fold, ht_sum]
   refine IntervalIntegrable.congr_ae ?_ h_ae.symm
   refine ContinuousOn.intervalIntegrable ?_
   rw [Set.uIcc_of_le hab]
-  have h_cont_circ_NF : ContinuousOn (toMeromorphicNFOn G_circ l.R) l.Rboundary :=
-    continuousOn_toMeromorphicNFOn_Rboundary l hG_circ_mero hG_circ_nopoles
-  have h_cont_star_NF : ContinuousOn (toMeromorphicNFOn G_star l.R) l.Rboundary :=
-    continuousOn_toMeromorphicNFOn_Rboundary l hG_star_mero hG_star_nopoles
-  have h_maps_rb : Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) l.Rboundary :=
-    mapsTo_vseg_Rboundary l ha_nonneg hb_le_T
+  have h_cont_sum_NF : ContinuousOn (toMeromorphicNFOn (G_circ + G_star) l.R) (l.Rboundary ∩ {s | 0 ≤ s.im}) :=
+    continuousOn_toMeromorphicNFOn_upperRboundary l (hG_circ_mero.add hG_star_mero) hG_nopoles
+  have h_maps_rb : Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) (l.Rboundary ∩ {s | 0 ≤ s.im}) := by
+    intro t ht
+    refine ⟨mapsTo_vseg_Rboundary l ha_nonneg hb_le_T ht, ?_⟩
+    simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
+      Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
+    linarith [ht.1]
   have h_path : ContinuousOn (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) :=
     Continuous.continuousOn (by fun_prop)
-  have h_sum_cont : ContinuousOn (fun t : ℝ ↦ toMeromorphicNFOn G_circ l.R (1 + t * Complex.I) + toMeromorphicNFOn G_star l.R (1 + t * Complex.I)) (Set.Icc a b) :=
-    (ContinuousOn.comp h_cont_circ_NF h_path h_maps_rb).add (ContinuousOn.comp h_cont_star_NF h_path h_maps_rb)
+  have h_sum_cont : ContinuousOn (fun t : ℝ ↦ toMeromorphicNFOn (G_circ + G_star) l.R (1 + t * Complex.I)) (Set.Icc a b) :=
+    ContinuousOn.comp h_cont_sum_NF h_path h_maps_rb
   have h_cont_pow : ContinuousOn (fun t : ℝ ↦ (x : ℂ) ^ (1 + t * Complex.I)) (Set.Icc a b) :=
     continuousOn_cpow_vertical_path hx₀ hx _
   refine ContinuousOn.mul_const ?_ Complex.I
@@ -1611,8 +1619,6 @@ theorem lemma_5_1_a (n : ℕ)
     (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hG_circ_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_circ s)
-    (hG_star_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt G_star s)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
     (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
@@ -1620,12 +1626,71 @@ theorem lemma_5_1_a (n : ℕ)
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.Rpos ∩ {z | l.σ n < z.re}) := by
+  have hG_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ s.im → 0 ≤ meromorphicOrderAt (G_circ + G_star) s := by
+    intro s hs hs_im
+    by_cases hs_im_pos : 0 < s.im
+    · -- Case 1: s.im > 0, so G = G_circ + G_star near s, and G has no poles on Rboundary (hG_bdd)
+      have hpos_mem : {t : ℂ | 0 < t.im} ∈ nhds s :=
+        (isOpen_lt continuous_const Complex.continuous_im).mem_nhds hs_im_pos
+      have hG_eq : G =ᶠ[nhds s] G_circ + G_star := by
+        filter_upwards [hpos_mem] with t ht
+        have hsign : (Real.sign t.im : ℂ) = 1 := by
+          simpa using congrArg (fun r : ℝ ↦ (r : ℂ)) (Real.sign_of_pos ht)
+        simp [hG t, hsign]
+      have hG_eq' : G =ᶠ[nhdsWithin s {s}ᶜ] G_circ + G_star := hG_eq.filter_mono nhdsWithin_le_nhds
+      rw [← meromorphicOrderAt_congr hG_eq']
+      have hG_mero : MeromorphicAt G s := by
+        have h_sum_mero : MeromorphicAt (G_circ + G_star) s :=
+          (hG_circ_mero s (l.Rboundary_subset_R hs)).add (hG_star_mero s (l.Rboundary_subset_R hs))
+        exact h_sum_mero.congr (hG_eq.symm.filter_mono nhdsWithin_le_nhds)
+      have hx₀_pos : 0 < x₀ := by linarith [hx₀]
+      have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
+      have hpow0_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) s = 0 := meromorphicOrderAt_rpow hx₀_pos s
+      exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hG_mero hpow0_mero hpow0_order hG_bdd hs
+    · -- Case 2: s.im = 0, so s = 1. G_circ and G_star have no poles at 1 from hGc_contour and hGs_contour since 1 ∈ admissible_contour
+      have hs_im_zero : s.im = 0 := by linarith [hs_im, hs_im_pos]
+      have hs_re : s.re = 1 := by
+        have h_Rbd : s ∈ l.Rboundary := hs
+        simp only [LadderParams.Rboundary, Set.mem_setOf_eq] at h_Rbd
+        rcases h_Rbd with ⟨hre, _⟩ | ⟨_, him⟩
+        · exact hre
+        · rw [hs_im_zero, abs_zero] at him
+          have hT_gt_zero := l.hT
+          linarith [him]
+      have hs_eq : s = 1 := by
+        rw [Complex.ext_iff]
+        refine ⟨?_, ?_⟩
+        · simp [hs_re]
+        · simp [hs_im_zero]
+      have h1_contour : (1 : ℂ) ∈ l.admissible_contour := by
+        simp only [LadderParams.admissible_contour, Set.mem_setOf_eq]
+        right
+        refine ⟨by simp, ?_⟩
+        simp only [Set.mem_Icc, Complex.one_im]
+        refine ⟨le_rfl, le_of_lt l.hδ.1⟩
+      have hGc_order : 0 ≤ meromorphicOrderAt G_circ s := by
+        have hx₀_pos : 0 < x₀ := by linarith [hx₀]
+        have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
+        have hpow0_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) s = 0 := meromorphicOrderAt_rpow hx₀_pos s
+        have hGc_mero : MeromorphicAt G_circ s := hG_circ_mero s (l.Rboundary_subset_R hs)
+        have hs_contour : s ∈ l.admissible_contour := hs_eq ▸ h1_contour
+        exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hGc_mero hpow0_mero hpow0_order hGc_contour hs_contour
+      have hGs_order : 0 ≤ meromorphicOrderAt G_star s := by
+        have hx₀_pos : 0 < x₀ := by linarith [hx₀]
+        have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
+        have hpow0_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) s = 0 := meromorphicOrderAt_rpow hx₀_pos s
+        have hGs_mero : MeromorphicAt G_star s := hG_star_mero s (l.Rboundary_subset_R hs)
+        have hs_contour : s ∈ l.admissible_contour := hs_eq ▸ h1_contour
+        exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hGs_mero hpow0_mero hpow0_order hGs_contour hs_contour
+      have hGc_mero : MeromorphicAt G_circ s := hG_circ_mero s (l.Rboundary_subset_R hs)
+      have hGs_mero : MeromorphicAt G_star s := hG_star_mero s (l.Rboundary_subset_R hs)
+      exact meromorphicOrderAt_add_nonneg hGc_mero hGs_mero (Filter.EventuallyEq.refl (nhds s) (G_circ + G_star)) hGc_order hGs_order
   have h_unprimed_eq : intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
     l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
     RectangleIntegral (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) :=
       intVSeg_eq_intCnPlus_add_rectangleIntegral l n (fun s ↦ G s * (x : ℂ) ^ s)
-        (G_mul_cpow_integrable_vseg_generic l hG hG_circ_mero hG_star_mero hx₀ hG_circ_nopoles hG_star_nopoles hx 0 l.δ (by rfl) (le_of_lt l.hδ.1) (by linarith [l.hδ.2, l.hT]))
-        (G_mul_cpow_integrable_vseg_generic l hG hG_circ_mero hG_star_mero hx₀ hG_circ_nopoles hG_star_nopoles hx l.δ l.T (le_of_lt (by linarith [l.hδ.1])) (by linarith [l.hδ.2, l.hT]) le_rfl)
+        (G_mul_cpow_integrable_vseg_generic l hG hG_circ_mero hG_star_mero hx₀ hG_nopoles hx 0 l.δ (by rfl) (le_of_lt l.hδ.1) (by linarith [l.hδ.2, l.hT]))
+        (G_mul_cpow_integrable_vseg_generic l hG hG_circ_mero hG_star_mero hx₀ hG_nopoles hx l.δ l.T (le_of_lt (by linarith [l.hδ.1])) (by linarith [l.hδ.2, l.hT]) le_rfl)
   have h_int_eq : (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 0 l.T (fun s ↦ G s * (x : ℂ) ^ s) =
     (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnPlus n (fun s ↦ G s * (x : ℂ) ^ s) +
     RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) := by
@@ -1645,7 +1710,7 @@ theorem lemma_5_1_a (n : ℕ)
     upperRectangle_meromorphicOn n hG hG_circ_mero hG_star_mero hx₀ hx
   have h_no_poles_boundary : Disjoint (RectangleBorder ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I))
     {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0} :=
-      upperRectangle_no_poles_boundary l n hG hG_circ_mero hG_star_mero hx₀ hG_bdd hGc_L hGc_contour hGs_L hGs_contour hG_circ_nopoles hG_star_nopoles hx
+      upperRectangle_no_poles_boundary l n hG hG_circ_mero hG_star_mero hx₀ hG_bdd hGc_L hGc_contour hGs_L hGs_contour hx
   have h_residue_thm : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) =
     sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) :=
       upperRectangleIntegral'_eq_sumResiduesIn n h_rect_mero h_no_poles_boundary hfin hsimple
