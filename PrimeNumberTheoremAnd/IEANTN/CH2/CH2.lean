@@ -1791,8 +1791,8 @@ lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
   let reflect : (ℂ → ℂ) → (ℂ → ℂ) := fun G w ↦ starRingEnd ℂ (G (starRingEnd ℂ w))
   have hconj_tendsto {a : ℂ} :
       Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhds (starRingEnd ℂ a)) (nhds a) := by
-    simpa [starRingEnd_apply, starRingEnd_self_apply] using
-      (Complex.continuous_conj.continuousAt (x := starRingEnd ℂ a)).tendsto
+    convert (Complex.continuous_conj.continuousAt (x := starRingEnd ℂ a)).tendsto
+    exact (starRingEnd_self_apply a).symm
   have hconj_tendsto_ne {a : ℂ} :
       Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ) (nhdsWithin a {a}ᶜ) := by
     rw [tendsto_nhdsWithin_iff]
@@ -1859,7 +1859,9 @@ lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
           apply (meromorphicOrderAt_eq_int_iff hGref_mero).2
           refine ⟨reflect g, h_analytic_reflect hg_an, ?_, ?_⟩
           · dsimp [reflect]
-            simpa [starRingEnd_self_apply] using map_ne_zero (starRingEnd ℂ) hg_ne
+            intro h
+            apply hg_ne
+            simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) h
           · have hg_eq' :=
               (hconj_tendsto_ne (a := a)).eventually hg_eq
             filter_upwards [hg_eq'] with w hw
@@ -1872,7 +1874,7 @@ lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
       rw [meromorphicOrderAt_of_not_meromorphicAt hGref_not,
         meromorphicOrderAt_of_not_meromorphicAt hG_mero]
   rcases hF_symm with hF | hF
-  · have hreflect : reflect F =ᶠ[𝓝[≠] (starRingEnd ℂ z)] F := by
+  · have hreflect : reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] F := by
       apply Filter.Eventually.of_forall
       intro w
       dsimp [reflect]
@@ -1882,7 +1884,7 @@ lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
         symm
         exact h_order_reflect (G := F) (a := z)
       _ = meromorphicOrderAt F (starRingEnd ℂ z) := meromorphicOrderAt_congr hreflect
-  · have hreflect_neg : reflect F =ᶠ[𝓝[≠] (starRingEnd ℂ z)] -F := by
+  · have hreflect_neg : reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] -F := by
       apply Filter.Eventually.of_forall
       intro w
       dsimp [reflect]
@@ -2166,8 +2168,7 @@ theorem lemma_5_1_b (n : ℕ)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
+    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R) :
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
