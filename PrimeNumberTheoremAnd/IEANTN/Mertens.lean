@@ -1382,11 +1382,8 @@ One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \
   -/)
   (discussion := 1330)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
-  refine ⟨?_, fun x hx ↦ ?_⟩
-  swap
-  · unfold E₃
     sorry
-  · sorry
+
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
