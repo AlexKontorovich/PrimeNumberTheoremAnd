@@ -1463,53 +1463,40 @@ lemma upperRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
   rw [h_prod_order] at h_pole_contra
   exact not_lt.mpr h_nonneg_G h_pole_contra
 
-private lemma continuousOn_toMeromorphicNFOn_Rboundary {F : ℂ → ℂ} (l : LadderParams)
+private lemma continuousOn_toMeromorphicNFOn_subset {F : ℂ → ℂ} {S : Set ℂ} (l : LadderParams)
+    (hS_sub : S ⊆ l.Rboundary)
     (hF_mero : MeromorphicOn F l.R)
-    (hF_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ meromorphicOrderAt F s) :
-    ContinuousOn (toMeromorphicNFOn F l.R) l.Rboundary := by
+    (hF_nopoles : ∀ s ∈ S, 0 ≤ meromorphicOrderAt F s) :
+    ContinuousOn (toMeromorphicNFOn F l.R) S := by
   intro s hs
-  have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs)
+  have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l (hS_sub hs))
   have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s :=
-    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs)).symm ▸ hF_nopoles s hs
+    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l (hS_sub hs))).symm ▸ hF_nopoles s hs
   have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
   exact h_anal.continuousAt.continuousWithinAt
 
-private lemma continuousOn_toMeromorphicNFOn_upperRboundary {F : ℂ → ℂ} (l : LadderParams)
-    (hF_mero : MeromorphicOn F l.R)
-    (hF_nopoles : ∀ s ∈ l.Rboundary, 0 ≤ s.im → 0 ≤ meromorphicOrderAt F s) :
-    ContinuousOn (toMeromorphicNFOn F l.R) (l.Rboundary ∩ {s | 0 ≤ s.im}) := by
-  intro s hs
-  have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs.1)
-  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s :=
-    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs.1)).symm ▸ hF_nopoles s hs.1 hs.2
-  have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
-  exact h_anal.continuousAt.continuousWithinAt
-
-private lemma mapsTo_vseg_Rboundary (l : LadderParams) {a b : ℝ} (ha_nonneg : 0 ≤ a) (hb_le_T : b ≤ l.T) :
+private lemma mapsTo_vseg_Rboundary (l : LadderParams) {a b : ℝ} (ha : -l.T ≤ a) (hb : b ≤ l.T) :
     Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) l.Rboundary := by
   intro t ht
   left
   refine ⟨by simp, ?_⟩
   simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
     Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add]
-  rw [abs_of_nonneg (by linarith [ha_nonneg, ht.1])]
-  exact by linarith [hb_le_T, ht.2]
+  have h1 : -l.T ≤ t := ha.trans ht.1
+  have h2 : t ≤ l.T := ht.2.trans hb
+  exact abs_le.mpr ⟨h1, h2⟩
 
-private lemma ae_eq_NF_vseg {F : ℂ → ℂ} (l : LadderParams) {a b : ℝ} (ha_nonneg : 0 ≤ a) (hab : a ≤ b) (hb_le_T : b ≤ l.T)
+private lemma ae_eq_NF_vseg {F : ℂ → ℂ} (l : LadderParams) {a b : ℝ}
+    (hab : a ≤ b) (ha : -l.T ≤ a) (hb : b ≤ l.T)
     (hF_mero : MeromorphicOn F l.R) :
     (fun t : ℝ ↦ F (1 + t * Complex.I)) =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)]
     (fun t : ℝ ↦ toMeromorphicNFOn F l.R (1 + t * Complex.I)) := by
   have h_uIcc : Set.uIcc a b = Set.Icc a b := Set.uIcc_of_le hab
   have h_ae := toMeromorphicNFOn_eqOn_codiscrete hF_mero
   have h_maps : Set.MapsTo (fun t : ℝ ↦ (1:ℂ) + t * Complex.I) (Set.uIcc a b) l.R := by
-    intro t ht
-    rw [h_uIcc, Set.mem_Icc] at ht
-    simp only [LadderParams.R, Set.mem_setOf_eq, add_re, one_re, mul_re, Complex.ofReal_re,
-      Complex.I_re, mul_zero, Complex.ofReal_im, Complex.I_im, mul_one, sub_zero, add_zero,
-      add_im, one_im, zero_add, le_refl, true_and]
-    simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re, mul_zero, add_zero]
-    rw [abs_of_nonneg (by linarith [ha_nonneg, ht.1])]
-    linarith [hb_le_T, ht.2]
+    rw [h_uIcc]
+    apply Set.MapsTo.mono_right (mapsTo_vseg_Rboundary l ha hb)
+    exact LadderParams.Rboundary_subset_R l
   exact ae_eq_of_codiscreteWithin_along_path h_ae
     (fun y _ => analyticAt_const.add ((Complex.ofRealCLM.analyticAt y).mul analyticAt_const))
     (fun y _ ↦ verticalPath_not_eventuallyConst 1 y) h_maps
@@ -1524,9 +1511,12 @@ private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
   let H_upper := fun (t : ℝ) ↦
     toMeromorphicNFOn (G_circ + G_star) l.R ((1:ℂ) + t * Complex.I) *
     (x : ℂ) ^ ((1:ℂ) + t * Complex.I) * Complex.I
+  have ha_gen : -l.T ≤ a := by
+    have hT_pos : 0 < l.T := l.hT
+    linarith [ha_nonneg]
   have h_ae : (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I)
       =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)] H_upper := by
-    have h_sum_path := ae_eq_NF_vseg l ha_nonneg hab hb_le_T (hG_circ_mero.add hG_star_mero)
+    have h_sum_path := ae_eq_NF_vseg l hab ha_gen hb_le_T (hG_circ_mero.add hG_star_mero)
     have h_mem_ae : ∀ᵐ t ∂(MeasureTheory.volume.restrict (Set.uIoc a b)), t ∈ Set.uIoc a b :=
       MeasureTheory.ae_restrict_mem measurableSet_uIoc
     filter_upwards [h_sum_path, h_mem_ae] with t ht_sum ht_mem
@@ -1540,10 +1530,10 @@ private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
   refine ContinuousOn.intervalIntegrable ?_
   rw [Set.uIcc_of_le hab]
   have h_cont_sum_NF : ContinuousOn (toMeromorphicNFOn (G_circ + G_star) l.R) (l.Rboundary ∩ {s | 0 ≤ s.im}) :=
-    continuousOn_toMeromorphicNFOn_upperRboundary l (hG_circ_mero.add hG_star_mero) hG_nopoles
+    continuousOn_toMeromorphicNFOn_subset l Set.inter_subset_left (hG_circ_mero.add hG_star_mero) (fun s hs => hG_nopoles s hs.1 hs.2)
   have h_maps_rb : Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) (l.Rboundary ∩ {s | 0 ≤ s.im}) := by
     intro t ht
-    refine ⟨mapsTo_vseg_Rboundary l ha_nonneg hb_le_T ht, ?_⟩
+    refine ⟨mapsTo_vseg_Rboundary l ha_gen hb_le_T ht, ?_⟩
     simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
       Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
     linarith [ht.1]
@@ -1662,45 +1652,7 @@ theorem lemma_5_1_a (n : ℕ)
   rw [h_int_eq, h_residue]
 
 
-private lemma mapsTo_vseg_Rboundary_lower (l : LadderParams) {a b : ℝ} (ha_ge_negT : -l.T ≤ a) (hb_nonpos : b ≤ 0) :
-    Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) l.Rboundary := by
-  intro t ht
-  left
-  refine ⟨by simp, ?_⟩
-  simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
-    Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add]
-  rw [abs_of_nonpos (by linarith [hb_nonpos, ht.2])]
-  exact by linarith [ha_ge_negT, ht.1]
 
-private lemma ae_eq_NF_vseg_lower {F : ℂ → ℂ} (l : LadderParams) {a b : ℝ} (ha_ge_negT : -l.T ≤ a) (hab : a ≤ b) (hb_nonpos : b ≤ 0)
-    (hF_mero : MeromorphicOn F l.R) :
-    (fun t : ℝ ↦ F (1 + t * Complex.I)) =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)]
-    (fun t : ℝ ↦ toMeromorphicNFOn F l.R (1 + t * Complex.I)) := by
-  have h_uIcc : Set.uIcc a b = Set.Icc a b := Set.uIcc_of_le hab
-  have h_ae := toMeromorphicNFOn_eqOn_codiscrete hF_mero
-  have h_maps : Set.MapsTo (fun t : ℝ ↦ (1:ℂ) + t * Complex.I) (Set.uIcc a b) l.R := by
-    intro t ht
-    rw [h_uIcc, Set.mem_Icc] at ht
-    simp only [LadderParams.R, Set.mem_setOf_eq, add_re, one_re, mul_re, Complex.ofReal_re,
-      Complex.I_re, mul_zero, Complex.ofReal_im, Complex.I_im, mul_one, sub_zero, add_zero,
-      add_im, one_im, zero_add, le_refl, true_and]
-    simp only [mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re, mul_zero, add_zero]
-    rw [abs_of_nonpos (by linarith [hb_nonpos, ht.2])]
-    linarith [ha_ge_negT, ht.1]
-  exact ae_eq_of_codiscreteWithin_along_path h_ae
-    (fun y _ => analyticAt_const.add ((Complex.ofRealCLM.analyticAt y).mul analyticAt_const))
-    (fun y _ ↦ verticalPath_not_eventuallyConst 1 y) h_maps
-
-private lemma continuousOn_toMeromorphicNFOn_lowerRboundary {F : ℂ → ℂ} (l : LadderParams)
-    (hF_mero : MeromorphicOn F l.R)
-    (hF_nopoles : ∀ s ∈ l.Rboundary, s.im ≤ 0 → 0 ≤ meromorphicOrderAt F s) :
-    ContinuousOn (toMeromorphicNFOn F l.R) (l.Rboundary ∩ {s | s.im ≤ 0}) := by
-  intro s hs
-  have h_NF_mero := meromorphicNFOn_toMeromorphicNFOn F l.R (LadderParams.Rboundary_subset_R l hs.1)
-  have h_order : 0 ≤ meromorphicOrderAt (toMeromorphicNFOn F l.R) s :=
-    (meromorphicOrderAt_toMeromorphicNFOn hF_mero (LadderParams.Rboundary_subset_R l hs.1)).symm ▸ hF_nopoles s hs.1 hs.2
-  have h_anal := h_NF_mero.meromorphicOrderAt_nonneg_iff_analyticAt.1 h_order
-  exact h_anal.continuousAt.continuousWithinAt
 
 private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -1711,7 +1663,10 @@ private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
     IntervalIntegrable (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I) volume a b := by
   let H_lower := fun (t : ℝ) ↦
     toMeromorphicNFOn (G_circ - G_star) l.R ((1:ℂ) + t * Complex.I) * ((x : ℂ) ^ ((1:ℂ) + t * Complex.I)) * Complex.I
-  have h_ae_NF := ae_eq_NF_vseg_lower l ha_ge_negT hab hb_nonpos (hG_circ_mero.sub hG_star_mero)
+  have hb_gen : b ≤ l.T := by
+    have hT_pos : 0 < l.T := l.hT
+    linarith [hb_nonpos]
+  have h_ae_NF := ae_eq_NF_vseg l hab ha_ge_negT hb_gen (hG_circ_mero.sub hG_star_mero)
   have h_mem_ae : ∀ᵐ (t : ℝ) ∂MeasureTheory.volume.restrict (Set.uIoc a b), t < 0 := by
     have h_uIoc : Set.uIoc a b = Set.Ioc a b := Set.uIoc_of_le hab
     rw [h_uIoc]
@@ -1747,10 +1702,10 @@ private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
   refine ContinuousOn.intervalIntegrable ?_
   rw [Set.uIcc_of_le hab]
   have h_cont_sum_NF : ContinuousOn (toMeromorphicNFOn (G_circ - G_star) l.R) (l.Rboundary ∩ {s | s.im ≤ 0}) :=
-    continuousOn_toMeromorphicNFOn_lowerRboundary l (hG_circ_mero.sub hG_star_mero) hG_nopoles_lower
+    continuousOn_toMeromorphicNFOn_subset l Set.inter_subset_left (hG_circ_mero.sub hG_star_mero) (fun s hs => hG_nopoles_lower s hs.1 hs.2)
   have h_maps_rb : Set.MapsTo (fun t : ℝ ↦ 1 + t * Complex.I) (Set.Icc a b) (l.Rboundary ∩ {s | s.im ≤ 0}) := by
     intro t ht
-    refine ⟨mapsTo_vseg_Rboundary_lower l ha_ge_negT hb_nonpos ht, ?_⟩
+    refine ⟨mapsTo_vseg_Rboundary l ha_ge_negT hb_gen ht, ?_⟩
     simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
       Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
     linarith [ht.2]
