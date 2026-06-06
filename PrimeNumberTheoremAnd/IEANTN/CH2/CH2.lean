@@ -1663,38 +1663,27 @@ private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
     IntervalIntegrable (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I) volume a b := by
   let H_lower := fun (t : ℝ) ↦
     toMeromorphicNFOn (G_circ - G_star) l.R ((1:ℂ) + t * Complex.I) * ((x : ℂ) ^ ((1:ℂ) + t * Complex.I)) * Complex.I
-  have hb_gen : b ≤ l.T := by
-    have hT_pos : 0 < l.T := l.hT
-    linarith [hb_nonpos]
+  have hb_gen : b ≤ l.T := hb_nonpos.trans l.hT.le
   have h_ae_NF := ae_eq_NF_vseg l hab ha_ge_negT hb_gen (hG_circ_mero.sub hG_star_mero)
   have h_mem_ae : ∀ᵐ (t : ℝ) ∂MeasureTheory.volume.restrict (Set.uIoc a b), t < 0 := by
     have h_uIoc : Set.uIoc a b = Set.Ioc a b := Set.uIoc_of_le hab
     rw [h_uIoc]
     have h1 : ∀ t ∈ Set.Ioc a b, ¬(t < 0) ↔ t = 0 := by
-      intro t ht
-      constructor
-      · intro h_not_lt
-        have h_ge : 0 ≤ t := not_lt.mp h_not_lt
-        exact le_antisymm (hb_nonpos.trans' ht.2) h_ge
-      · intro h_eq
-        rw [h_eq]
-        simp
+      intro t ht; constructor
+      · intro h_not_lt; exact le_antisymm (hb_nonpos.trans' ht.2) (not_lt.mp h_not_lt)
+      · intro h_eq; rw [h_eq]; simp
     have h2 : {t ∈ Set.Ioc a b | ¬(t < 0)} ⊆ {0} := by
-      intro t ht
-      rw [Set.mem_singleton_iff]
-      exact (h1 t ht.1).mp ht.2
-    have h3 : MeasureTheory.volume {t ∈ Set.Ioc a b | ¬(t < 0)} = 0 :=
-      measure_mono_null h2 (MeasureTheory.measure_singleton 0)
-    rw [MeasureTheory.ae_restrict_iff' measurableSet_Ioc]
+      intro t ht; rw [Set.mem_singleton_iff]; exact (h1 t ht.1).mp ht.2
+    have h3 : MeasureTheory.volume {t ∈ Set.Ioc a b | ¬(t < 0)} = 0 := measure_mono_null h2 (MeasureTheory.measure_singleton 0)
+    rw [MeasureTheory.ae_restrict_iff' measurableSet_Ioc, MeasureTheory.ae_iff]
     have h4 : {a_1 | ¬(a_1 ∈ Set.Ioc a b → a_1 < 0)} = {t ∈ Set.Ioc a b | ¬(t < 0)} := by
       ext t; simp only [Set.mem_Ioc, Set.mem_setOf_eq]; tauto
-    rw [MeasureTheory.ae_iff, h4]
+    rw [h4]
     exact h3
   have h_ae : (fun t : ℝ ↦ G ((1:ℂ) + t * Complex.I) * (x : ℂ) ^ ((1:ℂ) + t * Complex.I) * Complex.I) =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)] H_lower := by
     filter_upwards [h_ae_NF, h_mem_ae] with t ht_NF ht_lt
-    have hsign : (Real.sign ((1:ℂ) + t * Complex.I).im : ℂ) = -1 := by simp [Real.sign_of_neg ht_lt]
     dsimp [H_lower]
-    rw [hG ((1:ℂ) + t * Complex.I), hsign]
+    rw [hG, show (Real.sign ((1:ℂ) + t * Complex.I).im : ℂ) = -1 by simp [Real.sign_of_neg ht_lt]]
     have h_fold : G_circ (1 + t * Complex.I) - G_star (1 + t * Complex.I) = (G_circ - G_star) (1 + t * Complex.I) := rfl
     have h_minus_one : G_circ (1 + t * Complex.I) + -1 * G_star (1 + t * Complex.I) = G_circ (1 + t * Complex.I) - G_star (1 + t * Complex.I) := by ring
     rw [h_minus_one, h_fold, ht_NF]
@@ -1787,39 +1776,133 @@ lemma lowerRectangle_meromorphicOn (n : ℕ)
     MeromorphicOn (fun s ↦ G s * (x : ℂ) ^ s)
       (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I)) := by
   intro s hs
-  have h_rect_subset_RposBar :
-      Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.RposBar :=
-    l.lowerRectangle_subset_RposBar n
-  have h_rect_subset_R :
-      Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.R :=
-    Set.Subset.trans h_rect_subset_RposBar l.RposBar_subset_R
-  have hs_RposBar : s ∈ l.RposBar := h_rect_subset_RposBar hs
-  have hs_R : s ∈ l.R := h_rect_subset_R hs
-  have hs_im_neg : s.im < 0 := lt_of_le_of_lt hs_RposBar.2.2 (neg_lt_zero.mpr l.hδ.1)
-  have h_eq :
-      (fun t : ℂ ↦ G t * (x : ℂ) ^ t) =ᶠ[nhdsWithin s {s}ᶜ]
-        (fun t : ℂ ↦ (G_circ t - G_star t) * (x : ℂ) ^ t) := by
-    have hneg_mem : {t : ℂ | t.im < 0} ∈ nhds s :=
-      (isOpen_lt Complex.continuous_im continuous_const).mem_nhds hs_im_neg
-    have heq : G =ᶠ[nhds s] G_circ - G_star := by
-      filter_upwards [hneg_mem] with t ht
-      have hsign : (Real.sign t.im : ℂ) = -1 := by simp [Real.sign_of_neg ht]
-      have ht_eq_G := hG t
-      rw [hsign] at ht_eq_G
-      change G t = G_circ t - G_star t
-      rw [ht_eq_G]
-      ring
-    have heq_within : G =ᶠ[nhdsWithin s {s}ᶜ] G_circ - G_star :=
-      heq.filter_mono nhdsWithin_le_nhds
-    filter_upwards [heq_within] with t ht
-    rw [ht]; rfl
-  refine MeromorphicAt.congr ?_ h_eq.symm
-  have hx_pos : 0 < x := by linarith
-  exact ((hG_circ_mero s hs_R).sub (hG_star_mero s hs_R)).mul (meromorphicAt_rpow hx_pos s)
+  have hs_RposBar := l.lowerRectangle_subset_RposBar n hs
+  have hs_im_neg : s.im < 0 := hs_RposBar.2.2.trans_lt (neg_lt_zero.mpr l.hδ.1)
+  have h_eq : (fun t : ℂ ↦ G t * (x : ℂ) ^ t) =ᶠ[nhds s] (fun t : ℂ ↦ (G_circ t - G_star t) * (x : ℂ) ^ t) := by
+    filter_upwards [(isOpen_lt Complex.continuous_im continuous_const).mem_nhds hs_im_neg] with t ht
+    rw [hG t, show (Real.sign t.im : ℂ) = -1 by simp [Real.sign_of_neg ht]]
+    ring
+  refine MeromorphicAt.congr ?_ (h_eq.filter_mono nhdsWithin_le_nhds).symm
+  exact ((hG_circ_mero s (l.RposBar_subset_R hs_RposBar)).sub (hG_star_mero s (l.RposBar_subset_R hs_RposBar))).mul (meromorphicAt_rpow (by linarith) s)
 
 lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
     (hF_symm : ConjSymm F ∨ ConjAntisymm F) :
-    meromorphicOrderAt F z = meromorphicOrderAt F (starRingEnd ℂ z) := by sorry
+    meromorphicOrderAt F z = meromorphicOrderAt F (starRingEnd ℂ z) := by
+  let reflect : (ℂ → ℂ) → (ℂ → ℂ) := fun G w ↦ starRingEnd ℂ (G (starRingEnd ℂ w))
+  have hconj_tendsto {a : ℂ} :
+      Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhds (starRingEnd ℂ a)) (nhds a) := by
+    simpa [starRingEnd_apply, starRingEnd_self_apply] using
+      (Complex.continuous_conj.continuousAt (x := starRingEnd ℂ a)).tendsto
+  have hconj_tendsto_ne {a : ℂ} :
+      Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ) (nhdsWithin a {a}ᶜ) := by
+    rw [tendsto_nhdsWithin_iff]
+    constructor
+    · exact (hconj_tendsto (a := a)).mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with w hw
+      intro h
+      apply hw
+      simpa using congrArg (starRingEnd ℂ) h
+  have h_analytic_reflect {g : ℂ → ℂ} {a : ℂ} (hg : AnalyticAt ℂ g a) :
+      AnalyticAt ℂ (reflect g) (starRingEnd ℂ a) := by
+    rcases hg with ⟨p, hp⟩
+    refine ⟨FormalMultilinearSeries.ofScalars ℂ (fun n ↦ starRingEnd ℂ (p.coeff n)), ?_⟩
+    rw [hasFPowerSeriesAt_iff']
+    rw [hasFPowerSeriesAt_iff'] at hp
+    have hp' :
+        ∀ᶠ w in nhds (starRingEnd ℂ a),
+          HasSum (fun n ↦ ((starRingEnd ℂ w - a) ^ n) • p.coeff n) (g (starRingEnd ℂ w)) :=
+      (hconj_tendsto (a := a)).eventually hp
+    filter_upwards [hp'] with w hw
+    have hw' :
+        HasSum
+          (fun n ↦ starRingEnd ℂ ((((starRingEnd ℂ w) - a) ^ n) • p.coeff n))
+          (starRingEnd ℂ (g (starRingEnd ℂ w))) :=
+      (Complex.hasSum_conj').2 hw
+    simpa [reflect, FormalMultilinearSeries.coeff_ofScalars, smul_eq_mul, map_mul, map_sub,
+      starRingEnd_self_apply] using hw'
+  have h_mero_reflect {G : ℂ → ℂ} {a : ℂ} (hG : MeromorphicAt G a) :
+      MeromorphicAt (reflect G) (starRingEnd ℂ a) := by
+    rw [MeromorphicAt.iff_eventuallyEq_zpow_smul_analyticAt] at hG ⊢
+    rcases hG with ⟨n, g, hg_an, hg_eq⟩
+    refine ⟨n, reflect g, h_analytic_reflect hg_an, ?_⟩
+    have hg_eq' :
+        ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ,
+          G (starRingEnd ℂ w) = ((starRingEnd ℂ w) - a) ^ n • g (starRingEnd ℂ w) :=
+      (hconj_tendsto_ne (a := a)).eventually hg_eq
+    filter_upwards [hg_eq'] with w hw
+    simpa [reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
+      congrArg (starRingEnd ℂ) hw
+  have h_mero_reflect_iff {G : ℂ → ℂ} {a : ℂ} :
+      MeromorphicAt (reflect G) (starRingEnd ℂ a) ↔ MeromorphicAt G a := by
+    constructor
+    · intro h
+      simpa [reflect, starRingEnd_self_apply] using
+        h_mero_reflect (G := reflect G) (a := starRingEnd ℂ a) h
+    · exact h_mero_reflect
+  have h_order_reflect {G : ℂ → ℂ} {a : ℂ} :
+      meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = meromorphicOrderAt G a := by
+    by_cases hG_mero : MeromorphicAt G a
+    · by_cases htop : meromorphicOrderAt G a = ⊤
+      · have hzero : ∀ᶠ w in nhdsWithin a {a}ᶜ, G w = 0 := (meromorphicOrderAt_eq_top_iff).1 htop
+        have hzero_ref : ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ, reflect G w = 0 := by
+          have hzero' := (hconj_tendsto_ne (a := a)).eventually hzero
+          filter_upwards [hzero'] with w hw
+          simp [reflect, hw]
+        have htop_ref : meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = ⊤ :=
+          (meromorphicOrderAt_eq_top_iff).2 hzero_ref
+        rw [htop_ref, htop]
+      · have hGref_mero : MeromorphicAt (reflect G) (starRingEnd ℂ a) :=
+          h_mero_reflect (G := G) (a := a) hG_mero
+        obtain ⟨n, hn : meromorphicOrderAt G a = n⟩ := Option.ne_none_iff_exists'.mp htop
+        obtain ⟨g, hg_an, hg_ne, hg_eq⟩ := (meromorphicOrderAt_eq_int_iff hG_mero).1 hn
+        have hn_ref : meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = n := by
+          apply (meromorphicOrderAt_eq_int_iff hGref_mero).2
+          refine ⟨reflect g, h_analytic_reflect hg_an, ?_, ?_⟩
+          · dsimp [reflect]
+            simpa [starRingEnd_self_apply] using map_ne_zero (starRingEnd ℂ) hg_ne
+          · have hg_eq' :=
+              (hconj_tendsto_ne (a := a)).eventually hg_eq
+            filter_upwards [hg_eq'] with w hw
+            simpa [reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
+              congrArg (starRingEnd ℂ) hw
+        rw [hn_ref, hn]
+    · have hGref_not : ¬ MeromorphicAt (reflect G) (starRingEnd ℂ a) := by
+        intro h
+        exact hG_mero ((h_mero_reflect_iff (G := G) (a := a)).1 h)
+      rw [meromorphicOrderAt_of_not_meromorphicAt hGref_not,
+        meromorphicOrderAt_of_not_meromorphicAt hG_mero]
+  rcases hF_symm with hF | hF
+  · have hreflect : reflect F =ᶠ[𝓝[≠] (starRingEnd ℂ z)] F := by
+      apply Filter.Eventually.of_forall
+      intro w
+      dsimp [reflect]
+      simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) (hF w)
+    calc
+      meromorphicOrderAt F z = meromorphicOrderAt (reflect F) (starRingEnd ℂ z) := by
+        symm
+        exact h_order_reflect (G := F) (a := z)
+      _ = meromorphicOrderAt F (starRingEnd ℂ z) := meromorphicOrderAt_congr hreflect
+  · have hreflect_neg : reflect F =ᶠ[𝓝[≠] (starRingEnd ℂ z)] -F := by
+      apply Filter.Eventually.of_forall
+      intro w
+      dsimp [reflect]
+      simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) (hF w)
+    have h_neg_order :
+        meromorphicOrderAt (-F) (starRingEnd ℂ z) = meromorphicOrderAt F (starRingEnd ℂ z) := by
+      have hneg_eq : -F = (fun _ : ℂ ↦ (-1 : ℂ)) * F := by
+        ext w
+        simp
+      rw [hneg_eq]
+      exact meromorphicOrderAt_mul_of_ne_zero
+        (f := F) (g := fun _ : ℂ ↦ (-1 : ℂ))
+        (show AnalyticAt ℂ (fun _ : ℂ ↦ (-1 : ℂ)) (starRingEnd ℂ z) from analyticAt_const)
+        (by simp)
+    calc
+      meromorphicOrderAt F z = meromorphicOrderAt (reflect F) (starRingEnd ℂ z) := by
+        symm
+        exact h_order_reflect (G := F) (a := z)
+      _ = meromorphicOrderAt (-F) (starRingEnd ℂ z) := meromorphicOrderAt_congr hreflect_neg
+      _ = meromorphicOrderAt F (starRingEnd ℂ z) := h_neg_order
 
 lemma lowerRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
