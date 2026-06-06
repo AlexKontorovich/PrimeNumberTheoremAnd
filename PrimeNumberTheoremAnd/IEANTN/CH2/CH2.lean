@@ -1785,109 +1785,126 @@ lemma lowerRectangle_meromorphicOn (n : ℕ)
   refine MeromorphicAt.congr ?_ (h_eq.filter_mono nhdsWithin_le_nhds).symm
   exact ((hG_circ_mero s (l.RposBar_subset_R hs_RposBar)).sub (hG_star_mero s (l.RposBar_subset_R hs_RposBar))).mul (meromorphicAt_rpow (by linarith) s)
 
+private def conj_reflect (G : ℂ → ℂ) : ℂ → ℂ :=
+  fun w ↦ starRingEnd ℂ (G (starRingEnd ℂ w))
+
+private lemma conj_reflect_involutive (G : ℂ → ℂ) :
+    conj_reflect (conj_reflect G) = G := by
+  ext w
+  simp [conj_reflect]
+
+-- Conjugation carries neighborhoods at `conj a` back to neighborhoods at `a`.
+private lemma tendsto_starRingEnd_nhds {a : ℂ} :
+    Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhds (starRingEnd ℂ a)) (nhds a) := by
+  convert (Complex.continuous_conj.continuousAt (x := starRingEnd ℂ a)).tendsto
+  exact (starRingEnd_self_apply a).symm
+
+-- Meromorphic order is computed on punctured neighborhoods, so this transport is the key filter step.
+private lemma tendsto_starRingEnd_nhdsWithin_ne {a : ℂ} :
+    Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w)
+      (nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ) (nhdsWithin a {a}ᶜ) := by
+  rw [tendsto_nhdsWithin_iff]
+  constructor
+  · exact (tendsto_starRingEnd_nhds (a := a)).mono_left nhdsWithin_le_nhds
+  · filter_upwards [self_mem_nhdsWithin] with w hw
+    intro h
+    apply hw
+    simpa using congrArg (starRingEnd ℂ) h
+
+-- Reflection across the real axis turns analytic germs into analytic germs at conjugate points.
+private lemma analyticAt_conj_reflect {g : ℂ → ℂ} {a : ℂ} (hg : AnalyticAt ℂ g a) :
+    AnalyticAt ℂ (conj_reflect g) (starRingEnd ℂ a) := by
+  rcases hg with ⟨p, hp⟩
+  refine ⟨FormalMultilinearSeries.ofScalars ℂ (fun n ↦ starRingEnd ℂ (p.coeff n)), ?_⟩
+  rw [hasFPowerSeriesAt_iff']
+  rw [hasFPowerSeriesAt_iff'] at hp
+  have hp' :
+      ∀ᶠ w in nhds (starRingEnd ℂ a),
+        HasSum (fun n ↦ ((starRingEnd ℂ w - a) ^ n) • p.coeff n) (g (starRingEnd ℂ w)) :=
+    (tendsto_starRingEnd_nhds (a := a)).eventually hp
+  filter_upwards [hp'] with w hw
+  have hw' :
+      HasSum
+        (fun n ↦ starRingEnd ℂ ((((starRingEnd ℂ w) - a) ^ n) • p.coeff n))
+        (starRingEnd ℂ (g (starRingEnd ℂ w))) :=
+    (Complex.hasSum_conj').2 hw
+  simpa [conj_reflect, FormalMultilinearSeries.coeff_ofScalars, smul_eq_mul, map_mul, map_sub,
+    starRingEnd_self_apply] using hw'
+
+private lemma meromorphicAt_conj_reflect {G : ℂ → ℂ} {a : ℂ} (hG : MeromorphicAt G a) :
+    MeromorphicAt (conj_reflect G) (starRingEnd ℂ a) := by
+  rw [MeromorphicAt.iff_eventuallyEq_zpow_smul_analyticAt] at hG ⊢
+  rcases hG with ⟨n, g, hg_an, hg_eq⟩
+  refine ⟨n, conj_reflect g, analyticAt_conj_reflect hg_an, ?_⟩
+  have hg_eq' :
+      ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ,
+        G (starRingEnd ℂ w) = ((starRingEnd ℂ w) - a) ^ n • g (starRingEnd ℂ w) :=
+    (tendsto_starRingEnd_nhdsWithin_ne (a := a)).eventually hg_eq
+  filter_upwards [hg_eq'] with w hw
+  simpa [conj_reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
+    congrArg (starRingEnd ℂ) hw
+
+private lemma meromorphicAt_conj_reflect_iff {G : ℂ → ℂ} {a : ℂ} :
+    MeromorphicAt (conj_reflect G) (starRingEnd ℂ a) ↔ MeromorphicAt G a := by
+  constructor
+  · intro h
+    simpa [conj_reflect_involutive] using
+      meromorphicAt_conj_reflect (G := conj_reflect G) (a := starRingEnd ℂ a) h
+  · exact meromorphicAt_conj_reflect
+
+-- Reflection preserves the local zero/pole order, so symmetry reduces to eventual equality.
+private lemma meromorphicOrderAt_conj_reflect {G : ℂ → ℂ} {a : ℂ} :
+    meromorphicOrderAt (conj_reflect G) (starRingEnd ℂ a) = meromorphicOrderAt G a := by
+  by_cases hG_mero : MeromorphicAt G a
+  · by_cases htop : meromorphicOrderAt G a = ⊤
+    · have hzero : ∀ᶠ w in nhdsWithin a {a}ᶜ, G w = 0 := (meromorphicOrderAt_eq_top_iff).1 htop
+      have hzero_ref : ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ, conj_reflect G w = 0 := by
+        have hzero' := (tendsto_starRingEnd_nhdsWithin_ne (a := a)).eventually hzero
+        filter_upwards [hzero'] with w hw
+        simp [conj_reflect, hw]
+      have htop_ref : meromorphicOrderAt (conj_reflect G) (starRingEnd ℂ a) = ⊤ :=
+        (meromorphicOrderAt_eq_top_iff).2 hzero_ref
+      rw [htop_ref, htop]
+    · have hGref_mero : MeromorphicAt (conj_reflect G) (starRingEnd ℂ a) :=
+        meromorphicAt_conj_reflect (G := G) (a := a) hG_mero
+      obtain ⟨n, hn : meromorphicOrderAt G a = n⟩ := Option.ne_none_iff_exists'.mp htop
+      obtain ⟨g, hg_an, hg_ne, hg_eq⟩ := (meromorphicOrderAt_eq_int_iff hG_mero).1 hn
+      have hn_ref : meromorphicOrderAt (conj_reflect G) (starRingEnd ℂ a) = n := by
+        apply (meromorphicOrderAt_eq_int_iff hGref_mero).2
+        refine ⟨conj_reflect g, analyticAt_conj_reflect hg_an, ?_, ?_⟩
+        · dsimp [conj_reflect]
+          intro h
+          apply hg_ne
+          simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) h
+        · have hg_eq' := (tendsto_starRingEnd_nhdsWithin_ne (a := a)).eventually hg_eq
+          filter_upwards [hg_eq'] with w hw
+          simpa [conj_reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
+            congrArg (starRingEnd ℂ) hw
+      rw [hn_ref, hn]
+  · have hGref_not : ¬ MeromorphicAt (conj_reflect G) (starRingEnd ℂ a) := by
+      intro h
+      exact hG_mero ((meromorphicAt_conj_reflect_iff (G := G) (a := a)).1 h)
+    rw [meromorphicOrderAt_of_not_meromorphicAt hGref_not,
+      meromorphicOrderAt_of_not_meromorphicAt hG_mero]
+
 lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
     (hF_symm : ConjSymm F ∨ ConjAntisymm F) :
     meromorphicOrderAt F z = meromorphicOrderAt F (starRingEnd ℂ z) := by
-  let reflect : (ℂ → ℂ) → (ℂ → ℂ) := fun G w ↦ starRingEnd ℂ (G (starRingEnd ℂ w))
-  have hconj_tendsto {a : ℂ} :
-      Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhds (starRingEnd ℂ a)) (nhds a) := by
-    convert (Complex.continuous_conj.continuousAt (x := starRingEnd ℂ a)).tendsto
-    exact (starRingEnd_self_apply a).symm
-  have hconj_tendsto_ne {a : ℂ} :
-      Filter.Tendsto (fun w : ℂ ↦ starRingEnd ℂ w) (nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ) (nhdsWithin a {a}ᶜ) := by
-    rw [tendsto_nhdsWithin_iff]
-    constructor
-    · exact (hconj_tendsto (a := a)).mono_left nhdsWithin_le_nhds
-    · filter_upwards [self_mem_nhdsWithin] with w hw
-      intro h
-      apply hw
-      simpa using congrArg (starRingEnd ℂ) h
-  have h_analytic_reflect {g : ℂ → ℂ} {a : ℂ} (hg : AnalyticAt ℂ g a) :
-      AnalyticAt ℂ (reflect g) (starRingEnd ℂ a) := by
-    rcases hg with ⟨p, hp⟩
-    refine ⟨FormalMultilinearSeries.ofScalars ℂ (fun n ↦ starRingEnd ℂ (p.coeff n)), ?_⟩
-    rw [hasFPowerSeriesAt_iff']
-    rw [hasFPowerSeriesAt_iff'] at hp
-    have hp' :
-        ∀ᶠ w in nhds (starRingEnd ℂ a),
-          HasSum (fun n ↦ ((starRingEnd ℂ w - a) ^ n) • p.coeff n) (g (starRingEnd ℂ w)) :=
-      (hconj_tendsto (a := a)).eventually hp
-    filter_upwards [hp'] with w hw
-    have hw' :
-        HasSum
-          (fun n ↦ starRingEnd ℂ ((((starRingEnd ℂ w) - a) ^ n) • p.coeff n))
-          (starRingEnd ℂ (g (starRingEnd ℂ w))) :=
-      (Complex.hasSum_conj').2 hw
-    simpa [reflect, FormalMultilinearSeries.coeff_ofScalars, smul_eq_mul, map_mul, map_sub,
-      starRingEnd_self_apply] using hw'
-  have h_mero_reflect {G : ℂ → ℂ} {a : ℂ} (hG : MeromorphicAt G a) :
-      MeromorphicAt (reflect G) (starRingEnd ℂ a) := by
-    rw [MeromorphicAt.iff_eventuallyEq_zpow_smul_analyticAt] at hG ⊢
-    rcases hG with ⟨n, g, hg_an, hg_eq⟩
-    refine ⟨n, reflect g, h_analytic_reflect hg_an, ?_⟩
-    have hg_eq' :
-        ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ,
-          G (starRingEnd ℂ w) = ((starRingEnd ℂ w) - a) ^ n • g (starRingEnd ℂ w) :=
-      (hconj_tendsto_ne (a := a)).eventually hg_eq
-    filter_upwards [hg_eq'] with w hw
-    simpa [reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
-      congrArg (starRingEnd ℂ) hw
-  have h_mero_reflect_iff {G : ℂ → ℂ} {a : ℂ} :
-      MeromorphicAt (reflect G) (starRingEnd ℂ a) ↔ MeromorphicAt G a := by
-    constructor
-    · intro h
-      simpa [reflect, starRingEnd_self_apply] using
-        h_mero_reflect (G := reflect G) (a := starRingEnd ℂ a) h
-    · exact h_mero_reflect
-  have h_order_reflect {G : ℂ → ℂ} {a : ℂ} :
-      meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = meromorphicOrderAt G a := by
-    by_cases hG_mero : MeromorphicAt G a
-    · by_cases htop : meromorphicOrderAt G a = ⊤
-      · have hzero : ∀ᶠ w in nhdsWithin a {a}ᶜ, G w = 0 := (meromorphicOrderAt_eq_top_iff).1 htop
-        have hzero_ref : ∀ᶠ w in nhdsWithin (starRingEnd ℂ a) {(starRingEnd ℂ a)}ᶜ, reflect G w = 0 := by
-          have hzero' := (hconj_tendsto_ne (a := a)).eventually hzero
-          filter_upwards [hzero'] with w hw
-          simp [reflect, hw]
-        have htop_ref : meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = ⊤ :=
-          (meromorphicOrderAt_eq_top_iff).2 hzero_ref
-        rw [htop_ref, htop]
-      · have hGref_mero : MeromorphicAt (reflect G) (starRingEnd ℂ a) :=
-          h_mero_reflect (G := G) (a := a) hG_mero
-        obtain ⟨n, hn : meromorphicOrderAt G a = n⟩ := Option.ne_none_iff_exists'.mp htop
-        obtain ⟨g, hg_an, hg_ne, hg_eq⟩ := (meromorphicOrderAt_eq_int_iff hG_mero).1 hn
-        have hn_ref : meromorphicOrderAt (reflect G) (starRingEnd ℂ a) = n := by
-          apply (meromorphicOrderAt_eq_int_iff hGref_mero).2
-          refine ⟨reflect g, h_analytic_reflect hg_an, ?_, ?_⟩
-          · dsimp [reflect]
-            intro h
-            apply hg_ne
-            simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) h
-          · have hg_eq' :=
-              (hconj_tendsto_ne (a := a)).eventually hg_eq
-            filter_upwards [hg_eq'] with w hw
-            simpa [reflect, smul_eq_mul, map_mul, map_sub, starRingEnd_self_apply] using
-              congrArg (starRingEnd ℂ) hw
-        rw [hn_ref, hn]
-    · have hGref_not : ¬ MeromorphicAt (reflect G) (starRingEnd ℂ a) := by
-        intro h
-        exact hG_mero ((h_mero_reflect_iff (G := G) (a := a)).1 h)
-      rw [meromorphicOrderAt_of_not_meromorphicAt hGref_not,
-        meromorphicOrderAt_of_not_meromorphicAt hG_mero]
   rcases hF_symm with hF | hF
-  · have hreflect : reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] F := by
+  · have hreflect : conj_reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] F := by
       apply Filter.Eventually.of_forall
       intro w
-      dsimp [reflect]
+      dsimp [conj_reflect]
       simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) (hF w)
     calc
-      meromorphicOrderAt F z = meromorphicOrderAt (reflect F) (starRingEnd ℂ z) := by
+      meromorphicOrderAt F z = meromorphicOrderAt (conj_reflect F) (starRingEnd ℂ z) := by
         symm
-        exact h_order_reflect (G := F) (a := z)
+        exact meromorphicOrderAt_conj_reflect (G := F) (a := z)
       _ = meromorphicOrderAt F (starRingEnd ℂ z) := meromorphicOrderAt_congr hreflect
-  · have hreflect_neg : reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] -F := by
+  · have hreflect_neg : conj_reflect F =ᶠ[nhdsWithin (starRingEnd ℂ z) {(starRingEnd ℂ z)}ᶜ] -F := by
       apply Filter.Eventually.of_forall
       intro w
-      dsimp [reflect]
+      dsimp [conj_reflect]
       simpa [starRingEnd_self_apply] using congrArg (starRingEnd ℂ) (hF w)
     have h_neg_order :
         meromorphicOrderAt (-F) (starRingEnd ℂ z) = meromorphicOrderAt F (starRingEnd ℂ z) := by
@@ -1900,9 +1917,9 @@ lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
         (show AnalyticAt ℂ (fun _ : ℂ ↦ (-1 : ℂ)) (starRingEnd ℂ z) from analyticAt_const)
         (by simp)
     calc
-      meromorphicOrderAt F z = meromorphicOrderAt (reflect F) (starRingEnd ℂ z) := by
+      meromorphicOrderAt F z = meromorphicOrderAt (conj_reflect F) (starRingEnd ℂ z) := by
         symm
-        exact h_order_reflect (G := F) (a := z)
+        exact meromorphicOrderAt_conj_reflect (G := F) (a := z)
       _ = meromorphicOrderAt (-F) (starRingEnd ℂ z) := meromorphicOrderAt_congr hreflect_neg
       _ = meromorphicOrderAt F (starRingEnd ℂ z) := h_neg_order
 
