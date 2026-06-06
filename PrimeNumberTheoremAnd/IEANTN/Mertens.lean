@@ -523,13 +523,47 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
       exact_mod_cast h.one_le
   · positivity
 
+private lemma antitoneOn_log_div_sq :
+    AntitoneOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ici 0) := by
+  sorry
+
+private lemma integrableOn_log_div_sq :
+    MeasureTheory.IntegrableOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ioi 0) MeasureTheory.volume := by
+  sorry
+
+private lemma log_div_sq_nonneg :
+    ∀ t ∈ Set.Ioi 0, 0 ≤ log (t + 2) / (t + 2) ^ 2 := by
+  sorry
+
+private lemma integral_log_div_sq :
+    ∫ t in Set.Ioi 0, log (t + 2) / (t + 2) ^ 2 = (log 2 + 1) / 2 := by
+  sorry
+
 lemma summable_log_div_sq :
     Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
-  sorry
+  let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
+  suffices Summable (fun (n : ℕ) ↦ g n ) by
+    convert summable_nat_add_iff 1|>.mpr this using 2
+    unfold g
+    push_cast
+    ring_nf
+  exact antitoneOn_log_div_sq.summable_of_integrable integrableOn_log_div_sq log_div_sq_nonneg
 
 lemma sum_log_div_sq_le :
     ∑' (n : ℕ), log (n + 3) / (n + 3) ^2 ≤ (log 2 + 1) / 2 := by
-  sorry
+  let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
+  calc
+  _ = ∑' (n : ℕ), g (n + 1 : ℕ):= by
+    unfold g
+    congr
+    push_cast
+    ring_nf
+  _ ≤ ∫ x in Set.Ioi 0, g x := by
+    exact antitoneOn_log_div_sq.tsum_add_one_le_integral integrableOn_log_div_sq log_div_sq_nonneg
+  _ = _ := by
+    exact integral_log_div_sq
+
+
 
 @[blueprint
   "E1_bound"
