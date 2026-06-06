@@ -405,10 +405,10 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   equation, then take real parts of both sides. The $f(0)$ factor extracts via
   $\Re((f(0) : \mathbb{C}) \cdot X) = f(0) \cdot \Re X$ (since $f(0) \in \mathbb{R}$), and
   the $\rho$-tsum commutes with $\Re$ via the continuous linear map
-  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map_tsum`), modulo complex
+  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map\_tsum`), modulo complex
   summability of $\sum_\rho F(s - \rho)$ — derivable from
   \ref{kadiri-summable-lap-at-zeros} together with the analogous Im-summability (would need
-  a `laplaceTransform_im_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
+  a `laplaceTransform\_im\_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
   formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1488)]
