@@ -307,8 +307,6 @@ theorem sum_log_eq_log_factorial (x : ℝ) :
     intro x hx
     simp at hx ⊢; grind
 
-#check ArithmeticFunction.vonMangoldt_sum
-
 @[blueprint
   "Mertens-sum-log-eq-sum-mangoldt"
   (title := "Partial sum of logarithm as sum of $\\Lambda(d)/d$")
@@ -526,7 +524,24 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
 private lemma antitoneOn_log_div_sq :
     AntitoneOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ici 0) := by
   apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
-  sorry
+  · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+    simp at ht
+    have : (t + 2) ≠ 0 := by simp; linarith
+    fun_prop (disch := grind)
+  · refine fun t ht ↦ DifferentiableAt.differentiableWithinAt ?_
+    simp at ht
+    have : (t + 2) ^ 2 ≠ 0 := by simp; grind
+    fun_prop (disch := grind)
+  · intro t ht
+    simp at ht
+    rw [deriv_fun_div (by fun_prop (disch := grind)) (by fun_prop) (by simp; grind), deriv_comp_add_const, deriv_log]
+    simp
+    field_simp
+    simp only [mul_zero, tsub_le_iff_right, zero_add]
+    rw [← log_rpow (by linarith), ← log_exp 1, rpow_ofNat]
+    gcongr
+    nlinarith [exp_one_lt_three]
+
 
 private lemma log_div_sq_nonneg :
     ∀ t ∈ Set.Ioi 0, 0 ≤ log (t + 2) / (t + 2) ^ 2 := by
