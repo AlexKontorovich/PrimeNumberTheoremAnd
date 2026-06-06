@@ -193,7 +193,8 @@ Three sublemmas (\ref{kadiri-laplace-ibp}, \ref{kadiri-test-fn-contDiff} +
      + \tfrac{1}{w^2} \int_0^d e^{-wy} f''(y)\, dy$;
   using $f'(0) = f'(d) = 0$ from $(H_1)$ kills both boundary terms, leaving
   $F_2(w)/w^2$. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1483)]
 theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (_hf_supp : tsupport f ⊆ .Ico 0 d)
@@ -231,7 +232,8 @@ noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun 
   $(f(0) - f(d)) e^{-sd} = f(0) e^{-sd}$ (using $f(d) = 0$) and
   $-f'(d) e^{-sd} - s(f(0) - f(d)) e^{-sd} = -s f(0) e^{-sd}$ (using $f(d) = f'(d) = 0$),
   matching the right-limits. Hence $\varphi$ is $C^1$ globally. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1484)]
 theorem kadiriTestFn_contDiff {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
     (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (_hf_supp : tsupport f ⊆ .Ico 0 d)
@@ -258,7 +260,8 @@ theorem kadiriTestFn_contDiff {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
   derivative with an extra factor $|s|$; both are $O(e^{-(1/2 + b) x})$ as $x \to +\infty$
   precisely when $\Re s - 1/2 \geq 1/2 + b$, i.e.\ $b \leq \Re s - 1$. Take any
   $0 < b < \Re s - 1$. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1485)]
 theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f ⊆ .Ico 0 d)
     {s : ℂ} (_hs : 1 < s.re) :
     ∃ b > 0,
@@ -283,7 +286,8 @@ theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f �
   $\Re(s + z) > 0$; $\int_0^{\infty} f(y)\, e^{-(s+z) y}\, dy = F(s + z)$ unconditionally
   since $\mathrm{supp}\, f \subseteq [0, d]$ makes the integral compactly-supported. To be
   formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1486)]
 theorem kadiriTestFn_laplaceTransform {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
     (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (_hf_supp : tsupport f ⊆ .Ico 0 d)
@@ -301,28 +305,60 @@ $(f(0) - f(\log n)) / n^s$. Trivial unfoldings of the definition; left non-bluep
 
 @[simp]
 theorem kadiriTestFn_zero (f : ℝ → ℝ) (s : ℂ) : kadiriTestFn f s 0 = 0 := by
-  sorry
+  simp [kadiriTestFn]
 
 theorem kadiriTestFn_neg_log (f : ℝ → ℝ) (s : ℂ) (n : ℕ) :
     kadiriTestFn f s (-Real.log n) = 0 := by
-  sorry
+  simp only [kadiriTestFn, Left.nonneg_neg_iff, ofReal_neg, natCast_log, mul_neg, neg_mul, neg_neg,
+    ite_eq_right_iff, mul_eq_zero, exp_ne_zero, or_false]
+  intro h
+  rw [Real.log_nonpos_iff (by positivity)] at h
+  simp only [Nat.cast_le_one, Nat.le_one_iff_eq_zero_or_eq_one] at h
+  rcases h with rfl | rfl <;> simp
 
 theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
     kadiriTestFn f s (Real.log n) =
       ((f 0 : ℂ) - (f (Real.log n) : ℂ)) / (n : ℂ) ^ s := by
-  sorry
+  have : 0 ≤ Real.log n := by positivity
+  have hn0 : (n:ℂ) ≠ 0 := by norm_cast; positivity
+  simp only [kadiriTestFn, this, ↓reduceIte, natCast_log, neg_mul, exp_neg,
+    Complex.cpow_def_of_ne_zero hn0, division_def, mul_eq_mul_left_iff, inv_inj]
+  left; ring_nf
 
-/-! ### Auxiliary: complex (pre-`Re`) form of equation (16)
-
-We split the proof of \ref{kadiri-identity-16} in two. The auxiliary `identity_16_complex`
-below carries the mathematical content — apply \ref{kadiri-thm-3-1-q1} to the Kadiri test
-function, substitute the four $\Phi$-values via \ref{kadiri-test-fn-laplace}, rewrite the
-$F$-occurrences at $w = s$ and $w = s - z$ (inside the contour integral) into the
-$F_2$-form via \ref{kadiri-laplace-ibp}, and algebraically rearrange. Then `identity_16`
-itself just takes real parts of both sides and distributes $\Re$ over $+$, $-$, and the
-$\rho$-tsum. -/
-
-private theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+@[blueprint
+  "kadiri-identity-16-complex"
+  (title := "Complex (pre-$\\Re$) form of equation (16)")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$ with $\Re s > 1$,
+  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
+                  + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
+   + F(s - 1) - \sum_{\rho \in Z(\zeta)} F(s - \rho)
+   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  This is the $\mathbb{C}$-valued analogue of \ref{kadiri-identity-16}: the same equation
+  before taking real parts. -/)
+  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
+  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}); its hypotheses
+  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
+  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
+  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
+  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
+  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
+  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
+  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
+  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
+  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
+  for this $\varphi$: $\varphi(0;\, s) = 0$ (\ref{kadiri-test-fn-zero}) kills the
+  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
+  (\ref{kadiri-test-fn-neg-log}) kills the reflected discrete sum. Unfolding
+  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ via \ref{kadiri-test-fn-log} gives
+  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
+   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
+  substituting the $\Phi$ values yields the right-hand side. To be formalised. -/)
+  (latexEnv := "sublemma")]
+theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
@@ -358,31 +394,24 @@ private theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
    + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
        \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
        + \frac{F_2(s)}{s^2} \Bigr). $$
-  This is the form obtained from \ref{kadiri-thm-3-1-q1} (the Weil-type explicit formula,
-  specialized to $q = 1$, $\chi$ trivial) by taking the parametrised test function
-  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$. The restriction $\Re s > 1$
-  is where the Dirichlet series for $-\zeta'/\zeta(s)$ converges absolutely and the
-  $\sum_\rho 1/(s - \rho)$ regularization makes sense; this is also the range used in
-  Kadiri's downstream zero-free region argument, so we do not extend further. -/)
-  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
-  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}); its hypotheses
-  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
-  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
-  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
-  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
-  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
-  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
-  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
-  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
-  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
-  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the $\varphi(0) \log \pi$ term, and
-  $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$ kills the reflected discrete sum.
-  Unfolding the LHS as
-  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
-                                            - \sum_n \Lambda(n) f(\log n)/n^s$, solving for
-  $\sum_n \Lambda(n) f(\log n)/n^s$, substituting the $\Phi$ values, and taking real parts,
-  yields the right-hand side of (16). To be formalised. -/)
-  (latexEnv := "lemma")]
+  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
+  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
+  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
+  The restriction $\Re s > 1$ is where the Dirichlet series for $-\zeta'/\zeta(s)$
+  converges absolutely and the $\sum_\rho 1/(s - \rho)$ regularization makes sense; this
+  is also the range used in Kadiri's downstream zero-free region argument, so we do not
+  extend further. -/)
+  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
+  equation, then take real parts of both sides. The $f(0)$ factor extracts via
+  $\Re((f(0) : \mathbb{C}) \cdot X) = f(0) \cdot \Re X$ (since $f(0) \in \mathbb{R}$), and
+  the $\rho$-tsum commutes with $\Re$ via the continuous linear map
+  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map\_tsum`), modulo complex
+  summability of $\sum_\rho F(s - \rho)$ — derivable from
+  \ref{kadiri-summable-lap-at-zeros} together with the analogous Im-summability (would need
+  a `laplaceTransform\_im\_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
+  formalised. -/)
+  (latexEnv := "lemma")
+  (discussion := 1488)]
 theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
@@ -430,35 +459,6 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [hcomplex]
   simp only [Complex.add_re, Complex.sub_re, Complex.mul_re,
              Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, htsum_re]
-
--- Kept (commented out) as a stub for potential future use. The current Kadiri chain
--- (`identity_16`, `re_inner_eq`, `prop_2_1`, `eq_5`) is stated and proved on the
--- half-plane $\Re s > 1$, which is enough for the downstream zero-free region argument
--- and avoids the meromorphic-extension subtlety: the RHS of `prop_2_1` has poles at the
--- trivial zeros $s = -2, -4, \ldots$ (digamma factor) and at $s = 1$ (the $1/(s-1)$
--- term), so the "entire" hypothesis below cannot be discharged directly in those
--- formulations.
-/-
-@[blueprint
-  "kadiri-re-agree-extension"
-  (title := "Real-part agreement on a half-plane extends to $\\mathbb{C}$")
-  (statement := /-- If $F, G \colon \mathbb{C} \to \mathbb{C}$ are entire and
-  $\Re F(s) = \Re G(s)$ for every $s$ with $\Re s > 1$, then $\Re F(s) = \Re G(s)$ for all
-  $s \in \mathbb{C}$. -/)
-  (proof := /-- Let $H = F - G$. Then $H$ is entire and $\Re H \equiv 0$ on the open
-  half-plane $\{\Re s > 1\}$. The function $\Re H$ is harmonic on $\mathbb{C}$, and
-  vanishes on a non-empty open set; by the identity principle for real-analytic (or
-  harmonic) functions on the connected domain $\mathbb{C}$, $\Re H \equiv 0$ everywhere.
-  (Equivalently: $H$ is locally constant on the half-plane via Cauchy-Riemann, hence
-  $H$ is a purely imaginary constant, hence $\Re H = 0$ everywhere.) -/)
-  (latexEnv := "lemma")
-  (discussion := 1475)]
-theorem re_eq_of_entire_agree_on_halfplane {F G : ℂ → ℂ}
-    (hF : Differentiable ℂ F) (hG : Differentiable ℂ G)
-    (hagree : ∀ s : ℂ, 1 < s.re → (F s).re = (G s).re) :
-    ∀ s : ℂ, (F s).re = (G s).re := by
-  sorry
--/
 
 /-! ## Auxiliaries glueing the three precursors to Proposition 2.1
 
@@ -536,7 +536,8 @@ theorem backlund_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 6.1 :
   $\dfrac{1}{y^2} \cdot d \cdot \max(1, e^{-\sigma_0 d}) \cdot \|f''\|_\infty$ (using
   $\mathrm{supp}\, f'' \subseteq [0, d]$). Both depend only on $\sigma_0, \sigma_1, d, f$;
   take $C$ to be their sum. To be formalised. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1487)]
 theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
