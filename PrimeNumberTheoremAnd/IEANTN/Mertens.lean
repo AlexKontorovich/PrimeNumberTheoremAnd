@@ -523,7 +523,13 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
       exact_mod_cast h.one_le
   · positivity
 
+lemma summable_log_div_sq :
+    Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
+  sorry
 
+lemma sum_log_div_sq_le :
+    ∑' (n : ℕ), log (n + 3) / (n + 3) ^2 ≤ (log 2 + 1) / 2 := by
+  sorry
 
 @[blueprint
   "E1_bound"
@@ -533,7 +539,31 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
   (latexEnv := "proposition")
   (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
-    sorry
+  unfold E₁
+  calc
+  _ = log 2 / 2 + ∑' (n : ℕ), if (n + 3).Prime then log (n + 3) / ((n + 3) * (n + 2)) else 0 := by
+    rw [← E₁.summable.sum_add_tsum_nat_add 3, (by rfl : range 3 = {0, 1, 2})]
+    simp [Nat.prime_two]
+    ring_nf
+  _ ≤ log 2 / 2 + ∑' (n : ℕ), (3 / 2) * (log (n + 3) / (n + 3) ^ 2) := by
+    gcongr with n
+    · convert summable_nat_add_iff 3|>.mpr E₁.summable using 4
+      · norm_cast
+      · push_cast; ring
+    · exact summable_log_div_sq.mul_left _
+    · split_ifs with h
+      · have : (n + 2 : ℝ) ≥ 2 * (n + 3) / 3 := by linarith
+        grw [this]
+        · field_simp
+          rfl
+        · exact log_nonneg (by grind)
+      · exact mul_nonneg (by norm_num) (div_nonneg (log_nonneg (by grind)) (by positivity))
+  _ = log 2 / 2 + (3 / 2) * ∑' (n : ℕ), log (n + 3) / (n + 3) ^ 2 := by
+    rw [tsum_mul_left]
+  _ ≤ _ := by
+    grw [sum_log_div_sq_le]
+    ring_nf
+    rfl
 
 theorem E₁.nonneg : E₁ ≥ 0 :=
   tsum_nonneg E₁.summand_nonneg
@@ -1284,8 +1314,11 @@ One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \
   -/)
   (discussion := 1330)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
+  refine ⟨?_, fun x hx ↦ ?_⟩
+  swap
+  · unfold E₃
     sorry
-
+  · sorry
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
