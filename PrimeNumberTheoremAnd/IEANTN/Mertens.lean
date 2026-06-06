@@ -123,26 +123,23 @@ theorem AntitoneOn.sum_range_le_integral (N : ℕ) (anti : AntitoneOn f (Icc 0 (
     apply setIntegral_mono_set integrable _ (Ioc_subset_Ioi_self.eventuallyLE)
     · filter_upwards [ae_restrict_mem (by measurability)] with t ht using nonneg t ht
 
-theorem AntitoneOn.summable_of_integrable (anti : AntitoneOn f (Set.Ici 0))
-    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+theorem AntitoneOn.summable_of_integrable (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
     Summable (fun (n : ℕ) ↦ f n ) := by
   rw [← summable_nat_add_iff 1]
   apply summable_of_sum_range_le
-  · intro n
-    apply nonneg
-    simp
-    grind
+  · exact fun n ↦ nonneg _ (by simp; grind)
   · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
 
-theorem AntitoneOn.tsum_add_one_le_integral (anti : AntitoneOn f (Set.Ici 0))
-    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+theorem AntitoneOn.tsum_add_one_le_integral (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
     ∑' (n : ℕ),  f (n + 1 : ℕ) ≤ ∫ x in Ioi 0, f x  := by
   apply Summable.tsum_le_of_sum_range_le
   · exact summable_nat_add_iff _|>.mpr (anti.summable_of_integrable integrable nonneg)
   · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
 
-theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Set.Ici 0))
-    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
     ∑' (n : ℕ),  f n ≤ f 0 + ∫ x in Ioi 0, f x  := by
   rw [(anti.summable_of_integrable integrable nonneg).tsum_eq_zero_add]
   gcongr
@@ -542,7 +539,6 @@ private lemma antitoneOn_log_div_sq :
     gcongr
     nlinarith [exp_one_lt_three]
 
-
 private lemma log_div_sq_nonneg :
     ∀ t ∈ Set.Ioi 0, 0 ≤ log (t + 2) / (t + 2) ^ 2 := by
   exact fun t ht ↦  div_nonneg (log_nonneg (by simp_all; linarith)) (by positivity)
@@ -555,7 +551,7 @@ private lemma log_div_sq_is_deriv :
   convert HasDerivAt.fun_div (c' := -1 / (t + 2)) (d' := (1 : ℝ)) _ _  _ using 1
   · field
   · apply HasDerivAt.sub_const
-    convert HasDerivAt.fun_neg (f' := (t + 2)⁻¹) (hasDerivAt_log (by linarith)) using 1
+    convert (hasDerivAt_log (by linarith : t + 2 ≠ 0)).neg using 1
     ring_nf
   · exact hasDerivAt_id _
   · linarith
@@ -567,7 +563,7 @@ private lemma tendsto_antideriv_log_div_sq :
   convert Tendsto.sub (f := (fun t ↦ -log t / t)) (a := 0) _ tendsto_inv_atTop_zero using 1
   · ring_nf
   · ring_nf
-  · convert Tendsto.neg (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)) using 1
+  · convert (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)).neg using 1
     · ext; ring
     · simp
 
@@ -580,7 +576,7 @@ private lemma integral_log_div_sq :
   rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' log_div_sq_is_deriv log_div_sq_nonneg tendsto_antideriv_log_div_sq]
   ring_nf
 
-lemma summable_log_div_sq :
+private lemma summable_log_div_sq :
     Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
   let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
   suffices Summable (fun (n : ℕ) ↦ g n ) by
@@ -590,7 +586,7 @@ lemma summable_log_div_sq :
     ring_nf
   exact antitoneOn_log_div_sq.summable_of_integrable integrableOn_log_div_sq log_div_sq_nonneg
 
-lemma sum_log_div_sq_le :
+private lemma sum_log_div_sq_le :
     ∑' (n : ℕ), log (n + 3) / (n + 3) ^2 ≤ (log 2 + 1) / 2 := by
   let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
   calc
@@ -603,8 +599,6 @@ lemma sum_log_div_sq_le :
     exact antitoneOn_log_div_sq.tsum_add_one_le_integral integrableOn_log_div_sq log_div_sq_nonneg
   _ = _ := by
     exact integral_log_div_sq
-
-
 
 @[blueprint
   "E1_bound"
@@ -627,8 +621,7 @@ theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
       · push_cast; ring
     · exact summable_log_div_sq.mul_left _
     · split_ifs with h
-      · have : (n + 2 : ℝ) ≥ 2 * (n + 3) / 3 := by linarith
-        grw [this]
+      · grw [(by linarith : (n + 2 : ℝ) ≥ 2 * (n + 3) / 3)]
         · field_simp
           rfl
         · exact log_nonneg (by grind)
