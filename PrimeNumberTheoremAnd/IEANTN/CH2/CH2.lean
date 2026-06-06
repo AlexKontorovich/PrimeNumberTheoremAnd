@@ -1862,7 +1862,9 @@ lemma lowerRectangle_meromorphicOn (n : ℕ)
   have hx_pos : 0 < x := by linarith
   exact ((hG_circ_mero s hs_R).sub (hG_star_mero s hs_R)).mul (meromorphicAt_rpow hx_pos s)
 
-
+lemma meromorphicOrderAt_starRingEnd {F : ℂ → ℂ} {z : ℂ}
+    (hF_symm : ConjSymm F ∨ ConjAntisymm F) :
+    meromorphicOrderAt F z = meromorphicOrderAt F (starRingEnd ℂ z) := by sorry
 
 lemma lowerRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -1923,7 +1925,9 @@ lemma lowerRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
     fun F S hF_mero h_bdd hz_S ↦ meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hF_mero hpow0_mero hpow0_order h_bdd hz_S
   have combine_orders : 0 ≤ meromorphicOrderAt G_circ z → 0 ≤ meromorphicOrderAt G_star z → 0 ≤ meromorphicOrderAt G z := by
     intro hc hs
-    sorry
+    have hs_neg : 0 ≤ meromorphicOrderAt (-G_star) z :=
+      meromorphicOrderAt_neg_nonneg hGs_mero hs
+    exact meromorphicOrderAt_add_nonneg hGc_mero hGs_mero.neg hG_eq hc hs_neg
   have h_nonneg_G : 0 ≤ meromorphicOrderAt G z := by
     have h_sigma_le : l.σ n ≤ 1 := l.hσ n
     have h_negT_le_negDelta : -l.T ≤ -l.δ := by linarith [l.hδ.1, l.hδ.2, l.hT]
@@ -1933,11 +1937,15 @@ lemma lowerRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
       Complex.sub_im, Complex.ofReal_im, Complex.mul_im, Complex.one_re, Complex.one_im,
       Set.uIcc_of_le h_sigma_le] at hz
     rcases hz with (((⟨hz_re, hz_im⟩ | ⟨hz_re, hz_im⟩) | ⟨hz_re, hz_im⟩) | ⟨hz_re, hz_im⟩)
-    · have hz_Rb : z ∈ l.Rboundary := sorry
+    · have hz_Rb : z ∈ l.Rboundary := by
+        right
+        exact ⟨hz_re.2, by simpa [hz_im] using l.hT.le⟩
       exact extract_order G l.Rboundary hG_mero hG_bdd hz_Rb
     · cases n with
       | zero =>
-        have hz_Rb : z ∈ l.Rboundary := sorry
+        have hz_Rb : z ∈ l.Rboundary := by
+          left
+          exact ⟨by rw [hz_re, l.h0], abs_zim_le⟩
         exact extract_order G l.Rboundary hG_mero hG_bdd hz_Rb
       | succ n_pred =>
         have hz_L : z ∈ l.L := by
@@ -1945,10 +1953,31 @@ lemma lowerRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
           exact ⟨by omega, hz_re, abs_zim_le⟩
         exact combine_orders (extract_order G_circ l.L hGc_mero hGc_L hz_L)
                              (extract_order G_star l.L hGs_mero hGs_L hz_L)
-    · have hGc_order : 0 ≤ meromorphicOrderAt G_circ z := sorry
-      have hGs_order : 0 ≤ meromorphicOrderAt G_star z := sorry
+    · have h_z_star_contour : starRingEnd ℂ z ∈ l.admissible_contour := by
+        left
+        exact ⟨hz_re.2, by simp [hz_im]⟩
+      have hw_pow_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) (starRingEnd ℂ z) :=
+        meromorphicAt_rpow hx₀_pos (starRingEnd ℂ z)
+      have hw_pow_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) (starRingEnd ℂ z) = 0 :=
+        meromorphicOrderAt_rpow hx₀_pos (starRingEnd ℂ z)
+      have hGc_order : 0 ≤ meromorphicOrderAt G_circ z := by
+        rw [meromorphicOrderAt_starRingEnd (Or.inl hG_circ_symm)]
+        have hw_mero : MeromorphicAt G_circ (starRingEnd ℂ z) := by
+          apply hG_circ_mero
+          have hz_R : z ∈ l.R := h_rect_subset_R hz_rect
+          exact ⟨hz_R.1, by rw [show ((starRingEnd ℂ) z).im = -z.im from rfl, abs_neg]; exact hz_R.2⟩
+        exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hw_mero hw_pow_mero hw_pow_order hGc_contour h_z_star_contour
+      have hGs_order : 0 ≤ meromorphicOrderAt G_star z := by
+        rw [meromorphicOrderAt_starRingEnd (Or.inr hG_star_symm)]
+        have hw_mero : MeromorphicAt G_star (starRingEnd ℂ z) := by
+          apply hG_star_mero
+          have hz_R : z ∈ l.R := h_rect_subset_R hz_rect
+          exact ⟨hz_R.1, by rw [show ((starRingEnd ℂ) z).im = -z.im from rfl, abs_neg]; exact hz_R.2⟩
+        exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hw_mero hw_pow_mero hw_pow_order hGs_contour h_z_star_contour
       exact combine_orders hGc_order hGs_order
-    · have hz_Rb : z ∈ l.Rboundary := sorry
+    · have hz_Rb : z ∈ l.Rboundary := by
+        left
+        exact ⟨hz_re, abs_zim_le⟩
       exact extract_order G l.Rboundary hG_mero hG_bdd hz_Rb
   have h_prod_eq : (fun s ↦ G s * (x : ℂ) ^ s) = G * (fun s : ℂ ↦ (x : ℂ) ^ s) := rfl
   have h_prod_order : meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z = meromorphicOrderAt G z := by
