@@ -2066,13 +2066,10 @@ theorem lemma_5_1_b (n : ℕ)
     (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
       (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
       sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
-  -- 1. Algebraic decomposition: relates the segment integral to the contour and the rectangle boundary.
-  -- This requires a lemma `intVSeg_eq_intCnMinus_add_rectangleIntegral` which splits `intVSeg 1 (-l.T) 0` into the components.
   have hG_nopoles_lower : ∀ s ∈ l.Rboundary, s.im ≤ 0 → 0 ≤ meromorphicOrderAt (G_circ - G_star) s := by
     intro s hs hs_im
     by_cases hs_im_neg : s.im < 0
-    · -- Case 1: s.im < 0, so G = G_circ - G_star near s, and G has no poles on Rboundary (hG_bdd)
-      have hneg_mem : {t : ℂ | t.im < 0} ∈ nhds s :=
+    · have hneg_mem : {t : ℂ | t.im < 0} ∈ nhds s :=
         (isOpen_lt Complex.continuous_im continuous_const).mem_nhds hs_im_neg
       have hG_eq : G =ᶠ[nhds s] G_circ - G_star := by
         filter_upwards [hneg_mem] with t ht
@@ -2088,8 +2085,7 @@ theorem lemma_5_1_b (n : ℕ)
       have hpow0_mero : MeromorphicAt (fun s ↦ (x₀ : ℂ) ^ s) s := meromorphicAt_rpow hx₀_pos s
       have hpow0_order : meromorphicOrderAt (fun s ↦ (x₀ : ℂ) ^ s) s = 0 := meromorphicOrderAt_rpow hx₀_pos s
       exact meromorphicOrderAt_nonneg_of_isBoundedNoPolesOn hG_mero hpow0_mero hpow0_order hG_bdd hs
-    · -- Case 2: s.im = 0, so s = 1. G_circ and G_star have no poles at 1
-      have hs_im_zero : s.im = 0 := by linarith [hs_im, hs_im_neg]
+    · have hs_im_zero : s.im = 0 := by linarith [hs_im, hs_im_neg]
       have hs_re : s.re = 1 := by
         have h_Rbd : s ∈ l.Rboundary := hs
         simp only [LadderParams.Rboundary, Set.mem_setOf_eq] at h_Rbd
@@ -2114,7 +2110,6 @@ theorem lemma_5_1_b (n : ℕ)
         rw [h_const, zero_add]
         exact hs_eq ▸ hGs_order
       exact meromorphicOrderAt_add_nonneg hGc_mero hGs_mero.neg (Filter.EventuallyEq.refl (nhds s) _) (hs_eq ▸ hGc_order) h_neg_order
-
   have h_integrable1 : IntervalIntegrable (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I) volume (-l.T) (-l.δ) :=
     G_mul_cpow_integrable_vseg_lower l hG hG_circ_mero hG_star_mero hx₀ hG_nopoles_lower hx (-l.T) (-l.δ) (by linarith [l.hT]) (by linarith [l.hδ.2, l.hT]) (by linarith [l.hδ.1])
   have h_integrable2 : IntervalIntegrable (fun t : ℝ ↦ (G (1 + t * Complex.I) * (x : ℂ) ^ (1 + t * Complex.I)) * Complex.I) volume (-l.δ) 0 :=
@@ -2123,9 +2118,6 @@ theorem lemma_5_1_b (n : ℕ)
     l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
     RectangleIntegral (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) :=
     intVSeg_eq_intCnMinus_add_rectangleIntegral l n (fun s ↦ G s * (x : ℂ) ^ s) h_integrable1 h_integrable2
-
-  -- 2. Primed version of the algebraic decomposition.
-  -- This multiplies the above equation by `1 / (2 * π * i)` to form `RectangleIntegral'`.
   have h_int_eq : (2 * (π : ℂ) * Complex.I)⁻¹ * intVSeg 1 (-l.T) 0 (fun s ↦ G s * (x : ℂ) ^ s) =
     (2 * (π : ℂ) * Complex.I)⁻¹ * l.intCnMinus n (fun s ↦ G s * (x : ℂ) ^ s) +
     RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) := by
@@ -2133,46 +2125,27 @@ theorem lemma_5_1_b (n : ℕ)
     congr 1
     simp only [smul_eq_mul]
     ring
-
-  -- 3. Subset relations ensuring the lower rectangle is contained within the proper regions.
-  -- This requires lemmas `lowerRectangle_subset_RposBar` and `RposBar_subset_R`.
   have h_rect_subset_RposBar :
       Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.RposBar :=
     l.lowerRectangle_subset_RposBar n
   have h_rect_subset_R :
       Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ⊆ l.R :=
     Set.Subset.trans h_rect_subset_RposBar l.RposBar_subset_R
-
-  -- 4. Meromorphic condition on the lower rectangle.
-  -- This requires a lemma `lowerRectangle_meromorphicOn` analogous to `upperRectangle_meromorphicOn`.
   have h_rect_mero : MeromorphicOn (fun s ↦ G s * (x : ℂ) ^ s)
       (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I)) :=
     lowerRectangle_meromorphicOn n hG hG_circ_mero hG_star_mero hx₀ hx
-
-  -- 5. No poles on boundary condition.
-  -- This requires a lemma `lowerRectangle_no_poles_boundary`, which will crucially depend on `hG_circ_symm`.
   have h_no_poles_boundary : Disjoint (RectangleBorder ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I))
     {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0} :=
     lowerRectangle_no_poles_boundary l n hG hG_circ_mero hG_star_mero hG_circ_symm hG_star_symm hx₀ hG_bdd hGc_L hGc_contour hGs_L hGs_contour hx
-
-  -- 6. Cauchy's Residue Theorem applied to the lower rectangle.
-  -- This requires `lowerRectangleIntegral'_eq_sumResiduesIn`.
   have h_residue_thm : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) =
     sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) :=
     lowerRectangleIntegral'_eq_sumResiduesIn n h_rect_mero h_no_poles_boundary hfin hsimple
-
-  -- 7. Region congruence for residues.
-  -- This matches the residues within the rectangle to the desired subset of RposBar.
-  -- This requires `sumResiduesIn_lowerRectangle_eq_sumResiduesIn_RposBar`.
   have h_residue_set_eq : sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) ∩ {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}) =
     sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) :=
     sumResiduesIn_lowerRectangle_eq_sumResiduesIn_RposBar l n (fun s ↦ G s * (x : ℂ) ^ s) h_rect_mero h_no_poles_boundary
-
-  -- 8. Final substitution.
   have h_residue : RectangleIntegral' (fun s ↦ G s * (x : ℂ) ^ s) ((l.σ n : ℂ) - (l.T : ℂ) * Complex.I) (1 - (l.δ : ℂ) * Complex.I) =
     sumResiduesIn (fun s ↦ G s * (x : ℂ) ^ s) (l.RposBar ∩ {z | l.σ n < z.re}) := by
       rw [h_residue_thm, h_residue_set_eq]
-
   rw [h_int_eq, h_residue]
 
 @[blueprint
