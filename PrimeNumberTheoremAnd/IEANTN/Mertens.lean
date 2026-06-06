@@ -104,6 +104,53 @@ theorem sum_eq_integral_add_integral_deriv (ha : 0 ≤ a) (hab : a ≤ b)
 
 end EulerMaclaurin
 
+section IntegralTest
+
+/-! The integral test for convergence. -/
+
+open MeasureTheory Set
+
+variable {f : ℝ → ℝ}
+
+theorem AntitoneOn.sum_range_le_integral (N : ℕ) (anti : AntitoneOn f (Icc 0 (N : ℝ)))
+    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑ n ∈ Finset.range N, f ((n + 1 : ℕ)) ≤ ∫ x in Ioi 0, f x := by
+  trans ∫ x in 0..N, f x
+  · convert AntitoneOn.sum_le_integral (x₀ := 0) (a := N) (f := f) (by simpa) using 2
+    · simp
+    · ring
+  · rw [intervalIntegral.integral_of_le (by simp)]
+    apply setIntegral_mono_set integrable _ (Ioc_subset_Ioi_self.eventuallyLE)
+    · filter_upwards [ae_restrict_mem (by measurability)] with t ht using nonneg t ht
+
+theorem AntitoneOn.summable_of_integrable (anti : AntitoneOn f (Set.Ici 0))
+    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    Summable (fun (n : ℕ) ↦ f n ) := by
+  rw [← summable_nat_add_iff 1]
+  apply summable_of_sum_range_le
+  · intro n
+    apply nonneg
+    simp
+    grind
+  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
+
+theorem AntitoneOn.tsum_add_one_le_integral (anti : AntitoneOn f (Set.Ici 0))
+    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑' (n : ℕ),  f (n + 1 : ℕ) ≤ ∫ x in Ioi 0, f x  := by
+  apply Summable.tsum_le_of_sum_range_le
+  · exact summable_nat_add_iff _|>.mpr (anti.summable_of_integrable integrable nonneg)
+  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
+
+theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Set.Ici 0))
+    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑' (n : ℕ),  f n ≤ f 0 + ∫ x in Ioi 0, f x  := by
+  rw [(anti.summable_of_integrable integrable nonneg).tsum_eq_zero_add]
+  gcongr
+  · simp
+  · exact anti.tsum_add_one_le_integral integrable nonneg
+
+end IntegralTest
+
 namespace Mertens
 
 blueprint_comment /--
