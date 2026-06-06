@@ -525,19 +525,45 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
 
 private lemma antitoneOn_log_div_sq :
     AntitoneOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ici 0) := by
-  sorry
-
-private lemma integrableOn_log_div_sq :
-    MeasureTheory.IntegrableOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ioi 0) MeasureTheory.volume := by
+  apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
   sorry
 
 private lemma log_div_sq_nonneg :
     ∀ t ∈ Set.Ioi 0, 0 ≤ log (t + 2) / (t + 2) ^ 2 := by
-  sorry
+  exact fun t ht ↦  div_nonneg (log_nonneg (by simp_all; linarith)) (by positivity)
+
+private lemma log_div_sq_is_deriv :
+    ∀ x ∈ Set.Ici 0, HasDerivAt (fun t ↦ (-log (t + 2) - 1) / (t + 2)) (log (x + 2) / (x + 2) ^ 2) x := by
+  intro t ht
+  simp at ht
+  apply HasDerivAt.comp_add_const (f := (fun t ↦ (-log t - 1)/ t)) t 2
+  convert HasDerivAt.fun_div (c' := -1 / (t + 2)) (d' := (1 : ℝ)) _ _  _ using 1
+  · field
+  · apply HasDerivAt.sub_const
+    convert HasDerivAt.fun_neg (f' := (t + 2)⁻¹) (hasDerivAt_log (by linarith)) using 1
+    ring_nf
+  · exact hasDerivAt_id _
+  · linarith
+
+private lemma tendsto_antideriv_log_div_sq :
+    Tendsto (fun t ↦ (-log (t + 2) - 1) / (t + 2)) atTop (nhds 0) := by
+  have : Tendsto (fun (t : ℝ) ↦ t + 2) atTop atTop := by exact tendsto_atTop_add_const_right atTop 2 tendsto_id
+  apply Tendsto.comp (g := (fun t ↦ (-log t - 1) / t)) _ this
+  convert Tendsto.sub (f := (fun t ↦ -log t / t)) (a := 0) _ tendsto_inv_atTop_zero using 1
+  · ring_nf
+  · ring_nf
+  · convert Tendsto.neg (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)) using 1
+    · ext; ring
+    · simp
+
+private lemma integrableOn_log_div_sq :
+    MeasureTheory.IntegrableOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ioi 0) := by
+  exact MeasureTheory.integrableOn_Ioi_deriv_of_nonneg' log_div_sq_is_deriv log_div_sq_nonneg tendsto_antideriv_log_div_sq
 
 private lemma integral_log_div_sq :
     ∫ t in Set.Ioi 0, log (t + 2) / (t + 2) ^ 2 = (log 2 + 1) / 2 := by
-  sorry
+  rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' log_div_sq_is_deriv log_div_sq_nonneg tendsto_antideriv_log_div_sq]
+  ring_nf
 
 lemma summable_log_div_sq :
     Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
