@@ -1409,7 +1409,7 @@ lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
       · simp at ht
         linarith
     have lim : Tendsto (fun t ↦ -1 / (t + N)) atTop (nhds 0) := by
-      exact Tendsto.const_div_atTop (tendsto_atTop_add_const_right atTop N tendsto_id) _
+      exact (tendsto_atTop_add_const_right atTop N tendsto_id).const_div_atTop _
     rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' hd (fun _ _ ↦ (by positivity)) lim]
     ring_nf
     rw [mul_two]
@@ -1440,8 +1440,7 @@ lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :
     grw [sum_one_div_sq_le (mod_cast hN)]
     ring_nf
     rfl
-  · apply Summable.const_div
-    exact summable_nat_add_iff N|>.mpr (summable_one_div_nat_pow.mpr one_lt_two)
+  · exact (summable_nat_add_iff N|>.mpr (summable_one_div_nat_pow.mpr one_lt_two))|>.const_div _
 
 lemma sum_M_eq_summand_le' {x : ℝ} (hx : 2 ≤ x) :
     |∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_summand n - (M - γ)| ≤ 4 / x := by
