@@ -1368,6 +1368,81 @@ theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : 1 < x) :
     prod_congr rfl fun p hp ↦ exp_log (hpos (mem_filter.mp hp).2)]
   field_simp
 
+noncomputable abbrev M_eq_summand (p : ℕ) := if p.Prime then log (1 - 1 / p) + 1 / p else 0
+
+lemma M_eq_summand_bound (n : ℕ) :
+    |M_eq_summand n| ≤ 2 / n ^ 2 := by
+  unfold M_eq_summand
+  split_ifs with h
+  · trans 1 / n ^ 2 / (1 - 1 / n)
+    · convert abs_log_sub_add_sum_range_le (x := 1 / n) _ 1 using 1
+      · rw [add_comm]
+        simp
+      · rw [abs_of_nonneg (by simp)]
+        ring
+      · simpa using inv_lt_one_of_one_lt₀ (mod_cast h.one_lt)
+    rw [(by ring : (2 : ℝ) / n ^ 2 = 1 / n ^ 2 / (1 / 2))]
+    gcongr
+    suffices (1 : ℝ) / n ≤ 1 / 2 by linarith
+    gcongr
+    exact_mod_cast h.two_le
+  · rw [abs_zero]
+    positivity
+
+lemma M_eq_summable : Summable M_eq_summand := by
+  apply Summable.of_abs
+  exact Summable.of_nonneg_of_le (by simp) M_eq_summand_bound (Summable.const_div (by simp) _)
+
+lemma tsum_M_eq_summand_eq :
+    ∑' (n : ℕ), M_eq_summand n = M - γ := by
+  rw [M.eq]
+  grind
+
+lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
+    ∑' (n : ℕ), (1 : ℝ) / (n + N) ^ 2 ≤ 2 / N := by
+  grw [AntitoneOn.tsum_le_integral (f := (fun t ↦ 1 / (t + N) ^ 2))]
+  · have hd : ∀ x ∈ Set.Ici 0, HasDerivAt (fun t ↦ -1 / (t + N)) (1 / (x + N) ^ 2) x := by
+      intro t ht
+      convert HasDerivAt.fun_div (d' := (1 : ℝ)) (hasDerivAt_const ..) _ _ using 1
+      · ring
+      · simpa using hasDerivAt_id' t
+      · simp at ht
+        linarith
+    have lim : Tendsto (fun t ↦ -1 / (t + N)) atTop (nhds 0) := by
+      exact Tendsto.const_div_atTop (tendsto_atTop_add_const_right atTop N tendsto_id) _
+    rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' hd (fun _ _ ↦ (by positivity)) lim]
+    ring_nf
+    rw [mul_two]
+    gcongr
+    field_simp
+    exact hN
+  · unfold AntitoneOn
+    intro a ha b hb h
+    beta_reduce
+    simp at ha hb
+    gcongr
+  · convert integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
+    simp
+    rfl
+  · exact fun _ _ ↦ (by positivity)
+
+lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :
+    |∑ n ∈ range N, M_eq_summand n - (M - γ)| ≤ 4 / N := by
+  rw [← tsum_M_eq_summand_eq, ← M_eq_summable.sum_add_tsum_nat_add N]
+  simp only [sub_add_cancel_left, abs_neg]
+  rw [← norm_eq_abs]
+  have summable := summable_nat_add_iff N|>.mpr M_eq_summable.norm
+  apply norm_tsum_le_tsum_norm summable|>.trans
+  apply Summable.tsum_le_tsum (fun _ ↦ M_eq_summand_bound _) summable _|>.trans
+  · conv => lhs; arg 1; ext; rw [← mul_one_div]
+    rw [tsum_mul_left]
+    push_cast
+    grw [sum_one_div_sq_le (mod_cast hN)]
+    ring_nf
+    rfl
+  · apply Summable.const_div
+    exact summable_nat_add_iff N|>.mpr (summable_one_div_nat_pow.mpr one_lt_two)
+
 @[blueprint
   "Mertens-third-theorem-error-le"
   (title := "Mertens' third theorem error bound")
