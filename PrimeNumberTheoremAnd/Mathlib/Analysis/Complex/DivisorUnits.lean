@@ -9,16 +9,11 @@ public import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorIndex
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactor
 
 /-!
-# Local nonvanishing and units for divisor-indexed Weierstrass factors
+# Local nonvanishing for divisor-indexed Weierstrass factors
 
-This file packages local nonvanishing statements for the factors
+This file provides local nonvanishing statements for the factors
 `weierstrassFactor m (z / a)` indexed by `divisorZeroIndex₀`, on punctured balls that isolate a
 single divisor-support point.
-
-## Main definitions
-
-* `Complex.Hadamard.weierstrassFactorUnits`: factors viewed as `Units ℂ` on punctured isolating
-  balls.
 -/
 
 @[expose] public section
@@ -78,27 +73,5 @@ lemma weierstrassFactor_div_ne_zero_on_ball_punctured
     exact _root_.Complex.weierstrassFactor_ne_zero_of_ne_one (m := m) hz1
   · exact weierstrassFactor_div_ne_zero_on_ball_of_val_ne (m := m) (f := f) (z₀ := z₀)
         (ε := ε) hball p (by simpa using hp) z hz
-
-/-- View the Weierstrass factors `weierstrassFactor m (z / a)` as units on a punctured isolating
-ball around `z₀`. -/
-noncomputable def weierstrassFactorUnits
-    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) (ε : ℝ)
-    (hball : Metric.ball z₀ ε ∩ (MeromorphicOn.divisor f (Set.univ : Set ℂ)).support = {z₀})
-    (z : ℂ) (hz : z ∈ Metric.ball z₀ ε) (hz0 : z ≠ z₀) :
-    divisorZeroIndex₀ f (Set.univ : Set ℂ) → Units ℂ :=
-  fun p => Units.mk0 (weierstrassFactor m (z / divisorZeroIndex₀_val p))
-    (weierstrassFactor_div_ne_zero_on_ball_punctured (m := m) (f := f) (z₀ := z₀)
-      (ε := ε) hball z hz hz0 p)
-
-@[simp]
-lemma weierstrassFactorUnits_coe
-    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) (ε : ℝ)
-    (hball : Metric.ball z₀ ε ∩ (MeromorphicOn.divisor f (Set.univ : Set ℂ)).support = {z₀})
-    (z : ℂ) (hz : z ∈ Metric.ball z₀ ε) (hz0 : z ≠ z₀)
-    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) :
-    ((weierstrassFactorUnits (m := m) (f := f) (z₀ := z₀) (ε := ε)
-        hball z hz hz0 p : Units ℂ) : ℂ) =
-      weierstrassFactor m (z / divisorZeroIndex₀_val p) := by
-  simp [weierstrassFactorUnits]
 
 end Complex.Hadamard

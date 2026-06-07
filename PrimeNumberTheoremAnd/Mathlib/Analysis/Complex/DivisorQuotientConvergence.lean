@@ -425,7 +425,7 @@ theorem divisorComplementCanonicalProduct_ne_zero_at
       simpa [a, Φ, add_sub_cancel] using hΦ_ne p) hsum_norm
   have : (∏' p : divisorZeroIndex₀ f (Set.univ : Set ℂ), (1 + a p)) =
       divisorComplementCanonicalProduct m f z₀ z₀ := by
-    simp [a, Φ, divisorComplementCanonicalProduct, mem_divisorZeroIndex₀_fiberFinset]
+    simp [a, Φ, divisorComplementCanonicalProduct, divisorComplementFactor_def]
   exact by
     intro h0
     exact htprod_ne (by simpa [this] using h0)

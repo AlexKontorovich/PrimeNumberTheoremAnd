@@ -85,7 +85,7 @@ all (nonzero) divisor-indexed zeros inside an ambient bound `B`, then `f` has no
 
 lemma no_zero_on_sphere_of_forall_val_norm_ne
     {f : ℂ → ℂ} (hf : Differentiable ℂ f) (hnot : ∃ z : ℂ, f z ≠ 0)
-    {B r : ℝ} (hrpos : 0 < r) (hBr : r ≤ B) (hr_not :  ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
+    {B r : ℝ} (hrpos : 0 < r) (hBr : r ≤ B) (hr_not : ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
       ‖divisorZeroIndex₀_val p‖ ≤ B → r ≠ ‖divisorZeroIndex₀_val p‖) :
     ∀ u : ℂ, ‖u‖ = r → f u ≠ 0 := by
   intro u hur

@@ -26,6 +26,56 @@ open Set
 namespace Complex.Hadamard
 
 /-!
+## Complement factors
+
+For a fixed point `z₀`, the complement factor agrees with the usual Weierstrass factor away from
+the fiber over `z₀`, and is `1` on that fiber.
+-/
+
+/-- The factor used in complement products. -/
+noncomputable def divisorComplementFactor
+    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
+    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (z : ℂ) : ℂ := by
+  classical
+  exact if p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ then (1 : ℂ)
+    else weierstrassFactor m (z / divisorZeroIndex₀_val p)
+
+@[simp]
+theorem divisorComplementFactor_eq_one_of_mem
+    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
+    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (z : ℂ)
+    (hp : p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀) :
+    divisorComplementFactor m f z₀ p z = 1 := by
+  classical
+  simp [divisorComplementFactor, hp]
+
+@[simp]
+theorem divisorComplementFactor_eq_weierstrassFactor_of_not_mem
+    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
+    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (z : ℂ)
+    (hp : p ∉ divisorZeroIndex₀_fiberFinset (f := f) z₀) :
+    divisorComplementFactor m f z₀ p z =
+      weierstrassFactor m (z / divisorZeroIndex₀_val p) := by
+  classical
+  simp [divisorComplementFactor, hp]
+
+lemma divisorComplementFactor_def
+    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
+    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (z : ℂ) :
+    divisorComplementFactor m f z₀ p z =
+      if divisorZeroIndex₀_val p = z₀ then (1 : ℂ)
+      else weierstrassFactor m (z / divisorZeroIndex₀_val p) := by
+  classical
+  by_cases h : divisorZeroIndex₀_val p = z₀
+  · have hp : p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ := by
+      simpa [mem_divisorZeroIndex₀_fiberFinset] using h
+    simp [divisorComplementFactor_eq_one_of_mem, hp, h]
+  · have hp : p ∉ divisorZeroIndex₀_fiberFinset (f := f) z₀ := by
+      intro hmem
+      exact h ((mem_divisorZeroIndex₀_fiberFinset f z₀ p).1 hmem)
+    simp [divisorComplementFactor_eq_weierstrassFactor_of_not_mem, hp, h]
+
+/-!
 ## Partial products as a named function
 
 These finite products are the approximants to the divisor-indexed canonical product.
@@ -71,13 +121,11 @@ theorem analyticAt_divisorPartialProduct (m : ℕ) (f : ℂ → ℂ)
 This is the finitary “fiber × complement” split.
 -/
 
-/-- The partial product over indices *not* in the fiber over `z₀` (implemented via an `if`). -/
+/-- The partial product over indices *not* in the fiber over `z₀`. -/
 noncomputable def divisorComplementPartialProduct
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
-    (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) (z : ℂ) : ℂ := by
-    classical
-    exact  ∏ p ∈ s, if p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ then (1 : ℂ)
-        else weierstrassFactor m (z / divisorZeroIndex₀_val p)
+    (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) (z : ℂ) : ℂ :=
+  ∏ p ∈ s, divisorComplementFactor m f z₀ p z
 
 @[simp]
 lemma divisorComplementPartialProduct_def
@@ -86,25 +134,32 @@ lemma divisorComplementPartialProduct_def
     divisorComplementPartialProduct m f z₀ s z =
       ∏ p ∈ s, if divisorZeroIndex₀_val p = z₀ then (1 : ℂ)
         else weierstrassFactor m (z / divisorZeroIndex₀_val p) := by
-  simp [divisorComplementPartialProduct, mem_divisorZeroIndex₀_fiberFinset]
+  simp [divisorComplementPartialProduct, divisorComplementFactor,
+    mem_divisorZeroIndex₀_fiberFinset]
 
 theorem differentiable_divisorComplementPartialProduct
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) :
     Differentiable ℂ (divisorComplementPartialProduct m f z₀ s) := by
   let Φ : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℂ → ℂ :=
-    fun p z =>
-      if divisorZeroIndex₀_val p = z₀ then (1 : ℂ)
-      else weierstrassFactor m (z / divisorZeroIndex₀_val p)
+    fun p z => divisorComplementFactor m f z₀ p z
   have hΦ : ∀ p ∈ s, Differentiable ℂ (Φ p) := by
     intro p _hp
-    by_cases hval : divisorZeroIndex₀_val p = z₀
-    · simp [Φ, hval]
-    · simpa [Φ, hval] using differentiable_weierstrassFactor_divisorZeroIndex₀ m p
+    by_cases hpF : p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀
+    · have hΦp : Φ p = fun _ => (1 : ℂ) := by
+        ext z
+        simp only [Φ, divisorComplementFactor_eq_one_of_mem m f z₀ p z hpF]
+      rw [hΦp]
+      exact differentiable_const (1 : ℂ)
+    · have hΦp : Φ p = fun z => weierstrassFactor m (z / divisorZeroIndex₀_val p) := by
+        ext z
+        simp only [Φ, divisorComplementFactor_eq_weierstrassFactor_of_not_mem m f z₀ p z hpF]
+      rw [hΦp]
+      exact differentiable_weierstrassFactor_divisorZeroIndex₀ m p
   have hEq : (fun z : ℂ => ∏ p ∈ s, Φ p z) =
       divisorComplementPartialProduct m f z₀ s := by
     ext z
-    simp [Φ, divisorComplementPartialProduct_def]
+    simp [Φ, divisorComplementPartialProduct]
   have : Differentiable ℂ (fun z : ℂ => ∏ p ∈ s, Φ p z) := by
     simpa using (Differentiable.fun_finsetProd (𝕜 := ℂ) (f := Φ) (u := s) hΦ)
   simpa [hEq] using this
@@ -112,7 +167,7 @@ theorem differentiable_divisorComplementPartialProduct
 /-!
 ## Complement canonical product (fiber factors removed)
 
-For a fixed point `z₀`, we often want to split the infinite product into a finite “fiber part”
+For a fixed point `z₀`, one often wants to split the infinite product into a finite “fiber part”
 (`val = z₀`, accounting for the multiplicity) and an infinite “complement part” (all other indices).
 
 The complement product is written as a total product by inserting the neutral element `1` on the
@@ -122,20 +177,8 @@ fiber indices.
 /-- The infinite product over indices *not* in the fiber over `z₀` (the “complement” canonical
 product). -/
 noncomputable def divisorComplementCanonicalProduct
-    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) (z : ℂ) : ℂ := by
-    classical
-    exact  ∏' p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
-        if p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ then (1 : ℂ)
-        else weierstrassFactor m (z / divisorZeroIndex₀_val p)
-
-/-- The factor used in the complement canonical product: it is `1` on the fiber over `z₀`, and
-otherwise the Weierstrass factor `weierstrassFactor m (z / p)`. -/
-noncomputable def divisorComplementFactor
-    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ)
-    (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (z : ℂ) : ℂ := by
-    classical
-    exact if p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ then (1 : ℂ)
-      else weierstrassFactor m (z / divisorZeroIndex₀_val p)
+    (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) (z : ℂ) : ℂ :=
+  ∏' p : divisorZeroIndex₀ f (Set.univ : Set ℂ), divisorComplementFactor m f z₀ p z
 
 /-!
 ## Convergence/holomorphy of the complement canonical product
@@ -370,7 +413,8 @@ lemma divisorPartialProduct_eq_fiber_mul_complement_of_subset
         (f := term) (g := fun x => if x ∈ fiber then term x else (1 : ℂ)) hs hg hfg)
     simpa [divisorPartialProduct, term, P, fiber, Finset.prod_filter] using hsub.symm
   have hnotP : (∏ p ∈ s with ¬ P p, term p) = divisorComplementPartialProduct m f z₀ s z := by
-    simp [divisorComplementPartialProduct, term, P, fiber, Finset.prod_filter]
+    simp [divisorComplementPartialProduct, divisorComplementFactor, term, P, fiber,
+      Finset.prod_filter, mem_divisorZeroIndex₀_fiberFinset]
   have hsplit' : ∏ p ∈ s, term p = (∏ p ∈ s with P p, term p) * (∏ p ∈ s with ¬ P p, term p) :=
     hsplit.symm
   calc
@@ -387,19 +431,18 @@ lemma divisorComplementPartialProduct_ne_zero_on_ball
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) :
     ∀ z ∈ Metric.ball z₀ ε,
       divisorComplementPartialProduct m f z₀ s z ≠ 0 := by
-  classical -- needed
   intro z hz
   have hfac :
-      ∀ p ∈ s,
-        (if p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀ then (1 : ℂ)
-          else weierstrassFactor m (z / divisorZeroIndex₀_val p)) ≠ 0 := by
+      ∀ p ∈ s, divisorComplementFactor m f z₀ p z ≠ 0 := by
     intro p hp
     by_cases hpF : p ∈ divisorZeroIndex₀_fiberFinset (f := f) z₀
-    · simp [hpF]
-    · have : weierstrassFactor m (z / divisorZeroIndex₀_val p) ≠ 0 :=
+    · simp only [divisorComplementFactor_eq_one_of_mem m f z₀ p z hpF]
+      exact one_ne_zero
+    · have hne : weierstrassFactor m (z / divisorZeroIndex₀_val p) ≠ 0 :=
         weierstrassFactor_div_ne_zero_on_ball_of_not_mem_fiberFinset
           (m := m) (f := f) (z₀ := z₀) (ε := ε) hball p hpF z hz
-      simp [hpF, this]
+      rw [divisorComplementFactor_eq_weierstrassFactor_of_not_mem m f z₀ p z hpF]
+      exact hne
   simpa [divisorComplementPartialProduct, Finset.prod_ne_zero_iff] using hfac
 
 theorem eventually_eq_fiber_mul_divisorComplementPartialProduct
