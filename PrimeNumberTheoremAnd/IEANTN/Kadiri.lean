@@ -69,7 +69,7 @@ Three ingredients of the proof of \ref{kadiri-prop-2-1}: the Hadamard constant $
 obtained by applying the Weil-type explicit formula to a specific test function
 (\ref{kadiri-identity-16}). All three are stated below with `sorry` proofs.
 \ref{kadiri-prop-2-1} below is stated on the half-plane $\Re s > 1$, which is enough for
-Kadiri's downstream zero-free region argument; the harmonic-extension principle that would
+Kadiri's zero-free-region argument; the harmonic-extension principle that would
 lift it to all of $\mathbb{C}$ is no longer needed and is commented out below
 (see \ref{kadiri-re-agree-extension}). -/
 
@@ -79,9 +79,8 @@ genus-one Hadamard product for Riemann's entire xi function:
 $$ \xi(s) = e^{A + Bs}
      \prod_{\rho \in Z(\zeta)} \left(1 - \tfrac{s}{\rho}\right) e^{s/\rho}. $$
 Here we take an explicit xi Hadamard polynomial `P` and use
-`Polynomial.eval 0 P.derivative`; there is deliberately no global Lean constant `hadamardB`
-until the zero-set reindexing and uniqueness layers identify Kadiri's traditional notation
-with that theorem-level data.
+`Polynomial.eval 0 P.derivative`. The uniqueness statement below shows that this value is
+independent of the chosen no-monomial Hadamard factorisation.
 
 The theorem `existsUnique_hadamardB` below is the canonical formulation: it proves that the
 candidate value extracted from any no-monomial xi Hadamard polynomial is unique.
@@ -96,33 +95,26 @@ candidate value extracted from any no-monomial xi Hadamard polynomial is unique.
   $$ \xi(s) = e^{P(s)}
        \prod_{\rho} \left(1 - \tfrac{s}{\rho}\right)e^{s/\rho},
   \qquad \deg P \le 1. $$
-  This unique value is Kadiri's Hadamard constant $B$, stated theorem-theoretically rather than
-  introduced by a global choice. -/)
+  This unique value is Kadiri's Hadamard constant $B$. -/)
   (proof := /-- Existence is the genus-one Hadamard factorisation for `riemannXi`, with the origin
   monomial removed by `riemannXi 0 \ne 0`.  Uniqueness follows by taking logarithmic derivatives of
   two such factorisations at `0`: the divisor-indexed zero product has the same logarithmic
   derivative in both identities, and `0` is not among the nonzero divisor indices. -/)
   (latexEnv := "lemma")
   (discussion := 1474)]
-theorem existsUnique_hadamardB :
-    ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
-      (∀ z : ℂ, riemannXi z =
-        Complex.exp (Polynomial.eval z P) *
-          Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
-      B = Polynomial.eval 0 P.derivative :=
+theorem existsUnique_hadamardB :  ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+    (∀ z : ℂ, riemannXi z = Complex.exp (Polynomial.eval z P) *
+        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
+    B = Polynomial.eval 0 P.derivative :=
   existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero
 
 /-- Kadiri's Hadamard constant `B`: the canonical value `P'(0)`, common to every degree-≤1
-no-monomial xi Hadamard polynomial `P` (well-defined by `existsUnique_hadamardB`).  This replaces
-the previously free `B` parameter in `hadamard_identity` / `re_hadamardB_eq`, which made those
-statements unprovable as written (true only for this canonical constant). -/
+no-monomial xi Hadamard polynomial `P` by `existsUnique_hadamardB`. -/
 noncomputable def hadamardB : ℂ := existsUnique_hadamardB.exists.choose
 
 /-- The defining property of `hadamardB`: it is `P'(0)` for some degree-≤1 no-monomial xi
 Hadamard polynomial `P`. -/
-theorem hadamardB_spec :
-    ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
-      (∀ z : ℂ, riemannXi z =
+theorem hadamardB_spec : ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧  (∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) *
           Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
       hadamardB = Polynomial.eval 0 P.derivative :=
@@ -130,8 +122,8 @@ theorem hadamardB_spec :
 
 /-! ## The zeros of `ξ` are exactly the non-trivial zeros of `ζ`
 
-The imported Hadamard pipeline produces sums indexed by the divisor zeros of Riemann's entire
-`ξ` (`Complex.Hadamard.divisorZeroIndex₀ riemannXi`).  Kadiri's explicit formula is phrased over
+The Hadamard factorisation above is indexed by the divisor zeros of Riemann's entire `ξ`
+(`Complex.Hadamard.divisorZeroIndex₀ riemannXi`). Kadiri's explicit formula is phrased over
 the non-trivial zeros of `ζ`, i.e.\ `riemannZeta.zeroes_rect (.Ioo 0 1) .univ`.  The classical
 fact reconciling the two indexings is that every zero of `ξ` lies in the open critical strip
 `0 < \Re s < 1`, and there `ξ(s) = 0 ↔ ζ(s) = 0`.  These lemmas establish that correspondence;
@@ -298,8 +290,8 @@ theorem analyticOrderNatAt_riemannXi_eq_order {z : ℂ} (h0 : 0 < z.re) (h1 : z.
   logarithmically; the derivative of the degree-one Hadamard polynomial is the constant
   $B$. The $\tfrac{1}{s-1}$ term comes from the pole factor in
   $\xi(s) = (s - 1)\pi^{-s/2}\Gamma(s/2+1)\zeta(s)$, and the
-  $\tfrac{1}{2} \Gamma'/\Gamma$ term comes from the shifted gamma factor. The Lean bridge
-  is through `riemannXi`, not through a Hadamard product for $(s - 1)\zeta(s)`. -/)
+  $\tfrac{1}{2} \Gamma'/\Gamma$ term comes from the shifted gamma factor. The identity is derived
+  from the Hadamard product for `riemannXi`, not from one for $(s - 1)\zeta(s)`. -/)
   (latexEnv := "lemma")
   (discussion := 1474)]
 theorem hadamard_identity (B : ℂ) (s : ℂ) (hs1 : s ≠ 1)
@@ -311,10 +303,9 @@ theorem hadamard_identity (B : ℂ) (s : ℂ) (hs1 : s ≠ 1)
         (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)) := by
   sorry
 
-/-- Proven xi-substrate version of the Hadamard log-derivative bridge, using an explicit
-degree-one xi Hadamard polynomial and its derivative at the origin.  Bridge for the blueprint
-statement `hadamard_identity`; translating the divisor-indexed xi zeros
-to `riemannZeta.zeroes_rect` is the remaining zero-set reindexing layer. -/
+/-- Version of the Hadamard logarithmic derivative using an explicit degree-one xi Hadamard
+polynomial and its derivative at the origin. Translating the divisor-indexed xi zeros to
+`riemannZeta.zeroes_rect` gives the zero sum in the blueprint statement `hadamard_identity`. -/
 theorem neg_zeta_logDeriv_eq_of_riemannXi_hadamardPolynomial
     {P : Polynomial ℂ}
     (hdeg : P.degree ≤ 1)
@@ -398,7 +389,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
 
 Three sublemmas (\ref{kadiri-laplace-ibp}, \ref{kadiri-test-fn-contDiff} +
 \ref{kadiri-test-fn-decay}, \ref{kadiri-test-fn-laplace}) reduce the proof of
-\ref{kadiri-identity-16} (given \ref{kadiri-thm-3-1-q1}) to algebraic glue. The first one
+\ref{kadiri-identity-16} (given \ref{kadiri-thm-3-1-q1}) to algebraic identities. The first one
 (\ref{kadiri-laplace-ibp}) is also a precursor for \ref{kadiri-laplace-re-decay}. -/
 
 @[blueprint
@@ -609,8 +600,8 @@ private theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   specialized to $q = 1$, $\chi$ trivial) by taking the parametrised test function
   $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$. The restriction $\Re s > 1$
   is where the Dirichlet series for $-\zeta'/\zeta(s)$ converges absolutely and the
-  $\sum_\rho 1/(s - \rho)$ regularization makes sense; this is also the range used in
-  Kadiri's downstream zero-free region argument, so we do not extend further. -/)
+  $\sum_\rho 1/(s - \rho)$ regularization makes sense; this is also the range needed for
+  Kadiri's zero-free-region argument. -/)
   (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
   $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}); its hypotheses
   are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
@@ -679,9 +670,9 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   simp only [Complex.add_re, Complex.sub_re, Complex.mul_re,
              Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, htsum_re]
 
--- Kept (commented out) as a stub for potential future use. The current Kadiri chain
+-- Kept (commented out) as a stub for potential future use. The current Kadiri argument
 -- (`identity_16`, `re_inner_eq`, `prop_2_1`, `eq_5`) is stated and proved on the
--- half-plane $\Re s > 1$, which is enough for the downstream zero-free region argument
+-- half-plane $\Re s > 1$, which is enough for the zero-free-region argument
 -- and avoids the meromorphic-extension subtlety: the RHS of `prop_2_1` has poles at the
 -- trivial zeros $s = -2, -4, \ldots$ (digamma factor) and at $s = 1$ (the $1/(s-1)$
 -- term), so the "entire" hypothesis below cannot be discharged directly in those
@@ -708,7 +699,7 @@ theorem re_eq_of_entire_agree_on_halfplane {F G : ℂ → ℂ}
   sorry
 -/
 
-/-! ## Auxiliaries glueing the three precursors to Proposition 2.1
+/-! ## Auxiliaries combining the three precursors to Proposition 2.1
 
 Two facts not in the three precursors above are needed: \ref{kadiri-re-hadamardB-eq} (the
 closed form $\Re B = -\sum_\rho \Re(1/\rho)$, conjectured from the Hadamard product) and
@@ -876,8 +867,8 @@ Assembled from \ref{kadiri-identity-16}, \ref{kadiri-re-inner-eq}, and
         \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
         + \frac{F_2(s)}{s^2} \right), $$
   where $Z(\zeta)$ is the set of non-trivial zeros of $\zeta$ (those in the open critical strip
-  $0 < \Re \rho < 1$). The half-plane $\Re s > 1$ is the range used in Kadiri's downstream
-  zero-free region argument; the harmonic-extension step that would lift the identity to all
+  $0 < \Re \rho < 1$). The half-plane $\Re s > 1$ is the range used in Kadiri's
+  zero-free-region argument; the harmonic-extension step that would lift the identity to all
   of $\mathbb{C}$ is not needed for that application. -/)
   (proof := /-- The `Summable` conjunct is \ref{kadiri-summable-lap-at-zeros}.
   For the identity, combine \ref{kadiri-identity-16} (the (16)-form on $\Re s > 1$) with
