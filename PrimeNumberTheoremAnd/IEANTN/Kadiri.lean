@@ -102,10 +102,12 @@ candidate value extracted from any no-monomial xi Hadamard polynomial is unique.
   derivative in both identities, and `0` is not among the nonzero divisor indices. -/)
   (latexEnv := "lemma")
   (discussion := 1474)]
-theorem existsUnique_hadamardB :  ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
-    (∀ z : ℂ, riemannXi z = Complex.exp (Polynomial.eval z P) *
-        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
-    B = Polynomial.eval 0 P.derivative :=
+theorem existsUnique_hadamardB :
+    ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+      (∀ z : ℂ, riemannXi z =
+        Complex.exp (Polynomial.eval z P) *
+          Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
+      B = Polynomial.eval 0 P.derivative :=
   existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero
 
 /-- Kadiri's Hadamard constant `B`: the canonical value `P'(0)`, common to every degree-≤1
@@ -114,7 +116,9 @@ noncomputable def hadamardB : ℂ := existsUnique_hadamardB.exists.choose
 
 /-- The defining property of `hadamardB`: it is `P'(0)` for some degree-≤1 no-monomial xi
 Hadamard polynomial `P`. -/
-theorem hadamardB_spec : ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧  (∀ z : ℂ, riemannXi z =
+theorem hadamardB_spec :
+    ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+      (∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) *
           Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
       hadamardB = Polynomial.eval 0 P.derivative :=
