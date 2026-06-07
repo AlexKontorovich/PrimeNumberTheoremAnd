@@ -12,7 +12,6 @@ public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Exp
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StripBounds
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.PosLog
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Pow.Real
-public import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Divisor
 public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZeta
 public import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
 public import Mathlib.Analysis.Real.Pi.Bounds
@@ -132,10 +131,8 @@ lemma reflected_zeta_coefficient_le {C CΓ : ℝ} (hCΓ : 0 ≤ CΓ)
 /-- Reflected functional-equation factors obey the global zeta growth majorant. -/
 lemma norm_mul_riemannZeta_le_exp_of_reflected {z w : ℂ} {A CΓ C : ℝ}
     (hw : w = 1 - z)
-    (hzeta_fe :
-      riemannZeta z =
-        2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) *
-          riemannZeta w)
+    (hzeta_fe : riemannZeta z =  2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) *
+      riemannZeta w)
     (hpow_le1 : ‖(2 * π : ℂ) ^ (-w)‖ ≤ 1)
     (hw_norm_le : ‖w‖ ≤ A) (hA1 : 1 ≤ A) (hA2_nonneg : 0 ≤ A ^ (2 : ℝ))
     (hΓw : ‖Complex.Gamma w‖ ≤ rexp (CΓ * A ^ (2 : ℝ)))
@@ -531,21 +528,6 @@ theorem riemannZetaTrivialZero_injective :
     exact_mod_cast hsucc
   exact Nat.succ.inj (by simpa [Nat.succ_eq_add_one] using hsucc_nat)
 
-/-- Divisor indices of the removable entire function `(s - 1)ζ(s)` lying over the trivial-zero
-sequence.  This is deliberately a subfamily API: it does not classify all zeros of `ζ`, and it does
-not assert simplicity of the trivial zeros. -/
-def zetaTimesSMinusOneTrivialZeroIndex : Type :=
-  Σ n : ℕ,
-    {p : Hadamard.divisorZeroIndex₀ zetaTimesSMinusOne_entire (Set.univ : Set ℂ) //
-      Hadamard.divisorZeroIndex₀_val p = riemannZetaTrivialZero n}
-
-/-- The divisor value attached to an index in the trivial-zero subfamily. -/
-@[simp]
-lemma zetaTimesSMinusOneTrivialZeroIndex_val
-    (p : zetaTimesSMinusOneTrivialZeroIndex) :
-    Hadamard.divisorZeroIndex₀_val p.2.1 = riemannZetaTrivialZero p.1 :=
-  p.2.2
-
 /-- The removable extension is uniquely determined by its value at `1` and its values off `1`. -/
 theorem eq_zetaTimesSMinusOne_entire_of_eq_on_compl_singleton {g : ℂ → ℂ}
     (h_one : g (1 : ℂ) = 1)
@@ -600,84 +582,6 @@ theorem zetaTimesSMinusOne_entire_differentiable :
       ⟨zetaTimesSMinusOne_entire_differentiableOn_compl_singleton,
         zetaTimesSMinusOne_entire_continuousAt_one⟩
   simpa [DifferentiableOn, differentiableWithinAt_univ, zetaTimesSMinusOne_entire] using this
-
-/-- Each trivial zero of `ζ` contributes at least one divisor index to `(s - 1)ζ(s)`. -/
-theorem exists_zetaTimesSMinusOne_trivialZeroIndex (n : ℕ) :
-    ∃ p : Hadamard.divisorZeroIndex₀ zetaTimesSMinusOne_entire (Set.univ : Set ℂ),
-      Hadamard.divisorZeroIndex₀_val p = riemannZetaTrivialZero n := by
-  have hf : Differentiable ℂ zetaTimesSMinusOne_entire :=
-    zetaTimesSMinusOne_entire_differentiable
-  have hnot : ∃ z : ℂ, zetaTimesSMinusOne_entire z ≠ 0 := by
-    refine ⟨1, ?_⟩
-    simp [zetaTimesSMinusOne_entire_one]
-  have hzero : zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) = 0 :=
-    zetaTimesSMinusOne_entire_trivial_zero n
-  have hnotTop :
-      analyticOrderAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) ≠ ⊤ :=
-    Hadamard.analyticOrderAt_ne_top_of_exists_ne_zero hf hnot (riemannZetaTrivialZero n)
-  have hord_ne0 :
-      analyticOrderNatAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) ≠ 0 := by
-    intro h0
-    have hEN :
-        (analyticOrderNatAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) : ENat) = 0 := by
-      simp [h0]
-    have hAt0 : analyticOrderAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) = 0 := by
-      have hcast :
-          (analyticOrderNatAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) : ENat) =
-            analyticOrderAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) :=
-        Nat.cast_analyticOrderNatAt (f := zetaTimesSMinusOne_entire)
-          (z₀ := riemannZetaTrivialZero n) hnotTop
-      simpa [hcast] using hEN
-    have han : AnalyticAt ℂ zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) :=
-      hf.analyticAt (riemannZetaTrivialZero n)
-    exact ((han.analyticOrderAt_eq_zero).1 hAt0) hzero
-  have hcard :
-      (Hadamard.divisorZeroIndex₀_fiberFinset
-        (f := zetaTimesSMinusOne_entire) (riemannZetaTrivialZero n)).card =
-        analyticOrderNatAt zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) :=
-    Hadamard.divisorZeroIndex₀_fiberFinset_card_eq_analyticOrderNatAt
-      (hf := hf) (z₀ := riemannZetaTrivialZero n) (riemannZetaTrivialZero_ne_zero n)
-  have hcard_pos :
-      0 <
-        (Hadamard.divisorZeroIndex₀_fiberFinset
-          (f := zetaTimesSMinusOne_entire) (riemannZetaTrivialZero n)).card := by
-    simpa [hcard] using Nat.pos_of_ne_zero hord_ne0
-  rcases Finset.card_pos.mp hcard_pos with ⟨p, hp⟩
-  refine ⟨p, ?_⟩
-  exact (Hadamard.mem_divisorZeroIndex₀_fiberFinset
-    (f := zetaTimesSMinusOne_entire) (z₀ := riemannZetaTrivialZero n) p).1 hp
-
-/-- A chosen divisor index of `(s - 1)ζ(s)` above the `n`th trivial zero.  This chooses one
-index in the relevant fiber; it does not assert that the fiber has cardinality one. -/
-noncomputable def zetaTimesSMinusOne_trivialZeroIndexOfNat
-    (n : ℕ) :
-    {p : Hadamard.divisorZeroIndex₀ zetaTimesSMinusOne_entire (Set.univ : Set ℂ) //
-      Hadamard.divisorZeroIndex₀_val p = riemannZetaTrivialZero n} :=
-  ⟨Classical.choose (exists_zetaTimesSMinusOne_trivialZeroIndex n),
-    Classical.choose_spec (exists_zetaTimesSMinusOne_trivialZeroIndex n)⟩
-
-@[simp]
-lemma zetaTimesSMinusOne_trivialZeroIndexOfNat_val (n : ℕ) :
-    Hadamard.divisorZeroIndex₀_val (zetaTimesSMinusOne_trivialZeroIndexOfNat n).1 =
-      riemannZetaTrivialZero n :=
-  (zetaTimesSMinusOne_trivialZeroIndexOfNat n).2
-
-/-- The chosen divisor indices, packaged as elements of the trivial-zero subfamily. -/
-noncomputable def zetaTimesSMinusOneTrivialZeroIndexOfNat
-    (n : ℕ) : zetaTimesSMinusOneTrivialZeroIndex :=
-  ⟨n, zetaTimesSMinusOne_trivialZeroIndexOfNat n⟩
-
-@[simp]
-lemma zetaTimesSMinusOneTrivialZeroIndexOfNat_fst (n : ℕ) :
-    (zetaTimesSMinusOneTrivialZeroIndexOfNat n).1 = n :=
-  rfl
-
-/-- The chosen inclusion of `ℕ` into the trivial-zero divisor subfamily is injective.
-This is not a simplicity statement about the fibers over the trivial zeros. -/
-theorem zetaTimesSMinusOneTrivialZeroIndexOfNat_injective :
-    Function.Injective zetaTimesSMinusOneTrivialZeroIndexOfNat := by
-  intro m n hmn
-  exact congrArg Sigma.fst hmn
 
 /-- A coarse global growth bound for the removable extension of `(s - 1)ζ(s)`.
 

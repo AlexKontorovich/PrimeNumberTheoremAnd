@@ -10,7 +10,6 @@ public import Mathlib.Analysis.Analytic.Basic
 public import Mathlib.Analysis.SpecialFunctions.Complex.Log
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.ZetaFunctionalEquation
-public import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Domain
 public import Mathlib.Topology.Basic
 public import Mathlib.Analysis.Complex.CauchyIntegral
 
@@ -80,9 +79,8 @@ theorem riemannXi_one_sub (s : ℂ) : riemannXi (1 - s) = riemannXi s := by
   rw [riemannXi, riemannXi, completedRiemannZeta₀_one_sub]
   ring
 
-/-- Open right half-plane Ω = { s | Re s > 1/2 }. -/
-private lemma isOpen_Ω : IsOpen Ω := by
-  change IsOpen {s : ℂ | (1 / 2 : ℝ) < s.re}
+/-- The open right half-plane `{s | 1 / 2 < re s}`. -/
+private lemma isOpen_Ω : IsOpen {s : ℂ | (1 / 2 : ℝ) < s.re} := by
   exact isOpen_lt continuous_const Complex.continuous_re
 
 /-- Differentiability of `completedRiemannZeta` away from its two poles `0` and `1`. -/
@@ -92,10 +90,11 @@ lemma differentiableAt_completedRiemannZeta_of_ne {s : ℂ} (hs0 : s ≠ 0) (hs1
 
 /-- Differentiability of `completedRiemannZeta` on the right half-plane `Ω`, away from `1`. -/
 theorem differentiableOn_completedRiemannZeta_on_Ω_sdiff_one :
-    DifferentiableOn ℂ completedRiemannZeta (Ω \ ({1} : Set ℂ)) := by
+    DifferentiableOn ℂ completedRiemannZeta
+      ({s : ℂ | (1 / 2 : ℝ) < s.re} \ ({1} : Set ℂ)) := by
   intro z hz
   have hzΩ : (1 / 2 : ℝ) < z.re := by
-    simpa [Ω, Set.mem_setOf_eq] using hz.1
+    simpa using hz.1
   have hz0 : z ≠ 0 := by
     intro h0
     have : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hzΩ
@@ -105,20 +104,22 @@ theorem differentiableOn_completedRiemannZeta_on_Ω_sdiff_one :
 
 /-- Analyticity of `completedRiemannZeta` on the right half-plane `Ω`, away from `1`. -/
 lemma analyticOn_completedRiemannZeta_on_Ω_sdiff_one :
-    AnalyticOn ℂ completedRiemannZeta (Ω \ ({1} : Set ℂ)) := by
-  have hOpen : IsOpen (Ω \ ({1} : Set ℂ)) :=
+    AnalyticOn ℂ completedRiemannZeta
+      ({s : ℂ | (1 / 2 : ℝ) < s.re} \ ({1} : Set ℂ)) := by
+  have hOpen : IsOpen ({s : ℂ | (1 / 2 : ℝ) < s.re} \ ({1} : Set ℂ)) :=
     (isOpen_Ω).sdiff isClosed_singleton
   have h :=
     (analyticOn_iff_differentiableOn (f := completedRiemannZeta)
-      (s := Ω \ ({1} : Set ℂ)) hOpen)
+      (s := {s : ℂ | (1 / 2 : ℝ) < s.re} \ ({1} : Set ℂ)) hOpen)
   exact h.mpr differentiableOn_completedRiemannZeta_on_Ω_sdiff_one
 
 /-- On `Ω`, zeros of the completed zeta factor `Λ` coincide with zeros of `riemannZeta`. -/
 lemma completedRiemannZeta_eq_zero_iff_riemannZeta_eq_zero_on_Ω :
-    ∀ z ∈ Ω, completedRiemannZeta z = 0 ↔ riemannZeta z = 0 := by
+    ∀ z ∈ {s : ℂ | (1 / 2 : ℝ) < s.re},
+      completedRiemannZeta z = 0 ↔ riemannZeta z = 0 := by
   intro z hzΩ
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [Ω, Set.mem_setOf_eq] using hzΩ
+    simpa using hzΩ
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   have hΓnz : Gammaℝ z ≠ 0 := Gammaℝ_ne_zero_of_re_pos hpos
   have hζ : riemannZeta z = completedRiemannZeta z / Gammaℝ z :=
@@ -140,19 +141,21 @@ lemma completedRiemannZeta_eq_zero_iff_riemannZeta_eq_zero_on_Ω :
     exact (div_ne_zero hΛ hΓnz) hdiv0
 
 /-- Nonvanishing of the archimedean factor `Γ_ℝ` on `Ω`. -/
-lemma Gammaℝ_ne_zero_on_Ω : ∀ z ∈ Ω, Gammaℝ z ≠ 0 := by
+lemma Gammaℝ_ne_zero_on_Ω :
+    ∀ z ∈ {s : ℂ | (1 / 2 : ℝ) < s.re}, Gammaℝ z ≠ 0 := by
   intro z hzΩ
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [Ω, Set.mem_setOf_eq] using hzΩ
+    simpa using hzΩ
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   exact Gammaℝ_ne_zero_of_re_pos hpos
 
 /-- Factorization of the completed zeta factor on `Ω`: `Λ = Γ_ℝ · ζ`. -/
 lemma completedRiemannZeta_eq_Gammaℝ_mul_riemannZeta_on_Ω :
-    ∀ z ∈ Ω, completedRiemannZeta z = Gammaℝ z * riemannZeta z := by
+    ∀ z ∈ {s : ℂ | (1 / 2 : ℝ) < s.re},
+      completedRiemannZeta z = Gammaℝ z * riemannZeta z := by
   intro z hzΩ
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [Ω, Set.mem_setOf_eq] using hzΩ
+    simpa using hzΩ
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   have hΓnz : Gammaℝ z ≠ 0 := Gammaℝ_ne_zero_of_re_pos hpos
   have hζ : riemannZeta z = completedRiemannZeta z / Gammaℝ z := by
