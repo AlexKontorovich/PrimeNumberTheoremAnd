@@ -104,6 +104,50 @@ theorem sum_eq_integral_add_integral_deriv (ha : 0 ≤ a) (hab : a ≤ b)
 
 end EulerMaclaurin
 
+section IntegralTest
+
+/-! The integral test for convergence. -/
+
+open MeasureTheory Set
+
+variable {f : ℝ → ℝ}
+
+theorem AntitoneOn.sum_range_le_integral (N : ℕ) (anti : AntitoneOn f (Icc 0 (N : ℝ)))
+    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑ n ∈ Finset.range N, f ((n + 1 : ℕ)) ≤ ∫ x in Ioi 0, f x := by
+  trans ∫ x in 0..N, f x
+  · convert AntitoneOn.sum_le_integral (x₀ := 0) (a := N) (f := f) (by simpa) using 2
+    · simp
+    · ring
+  · rw [intervalIntegral.integral_of_le (by simp)]
+    apply setIntegral_mono_set integrable _ (Ioc_subset_Ioi_self.eventuallyLE)
+    · filter_upwards [ae_restrict_mem (by measurability)] with t ht using nonneg t ht
+
+theorem AntitoneOn.summable_of_integrable (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    Summable (fun (n : ℕ) ↦ f n ) := by
+  rw [← summable_nat_add_iff 1]
+  apply summable_of_sum_range_le
+  · exact fun n ↦ nonneg _ (by simp; grind)
+  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
+
+theorem AntitoneOn.tsum_add_one_le_integral (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑' (n : ℕ),  f (n + 1 : ℕ) ≤ ∫ x in Ioi 0, f x  := by
+  apply Summable.tsum_le_of_sum_range_le
+  · exact summable_nat_add_iff _|>.mpr (anti.summable_of_integrable integrable nonneg)
+  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
+
+theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Ici 0))
+    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
+    ∑' (n : ℕ),  f n ≤ f 0 + ∫ x in Ioi 0, f x  := by
+  rw [(anti.summable_of_integrable integrable nonneg).tsum_eq_zero_add]
+  gcongr
+  · simp
+  · exact anti.tsum_add_one_le_integral integrable nonneg
+
+end IntegralTest
+
 namespace Mertens
 
 blueprint_comment /--
@@ -259,8 +303,6 @@ theorem sum_log_eq_log_factorial (x : ℝ) :
     · congr
     intro x hx
     simp at hx ⊢; grind
-
-#check ArithmeticFunction.vonMangoldt_sum
 
 @[blueprint
   "Mertens-sum-log-eq-sum-mangoldt"
@@ -476,7 +518,87 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
       exact_mod_cast h.one_le
   · positivity
 
+private lemma antitoneOn_log_div_sq :
+    AntitoneOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ici 0) := by
+  apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
+  · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+    simp at ht
+    have : (t + 2) ≠ 0 := by simp; linarith
+    fun_prop (disch := grind)
+  · refine fun t ht ↦ DifferentiableAt.differentiableWithinAt ?_
+    simp at ht
+    have : (t + 2) ^ 2 ≠ 0 := by simp; grind
+    fun_prop (disch := grind)
+  · intro t ht
+    simp at ht
+    rw [deriv_fun_div (by fun_prop (disch := grind)) (by fun_prop) (by simp; grind), deriv_comp_add_const, deriv_log]
+    simp
+    field_simp
+    simp only [mul_zero, tsub_le_iff_right, zero_add]
+    rw [← log_rpow (by linarith), ← log_exp 1, rpow_ofNat]
+    gcongr
+    nlinarith [exp_one_lt_three]
 
+private lemma log_div_sq_nonneg :
+    ∀ t ∈ Set.Ioi 0, 0 ≤ log (t + 2) / (t + 2) ^ 2 := by
+  exact fun t ht ↦  div_nonneg (log_nonneg (by simp_all; linarith)) (by positivity)
+
+private lemma log_div_sq_is_deriv :
+    ∀ x ∈ Set.Ici 0, HasDerivAt (fun t ↦ (-log (t + 2) - 1) / (t + 2)) (log (x + 2) / (x + 2) ^ 2) x := by
+  intro t ht
+  simp at ht
+  apply HasDerivAt.comp_add_const (f := (fun t ↦ (-log t - 1)/ t)) t 2
+  convert HasDerivAt.fun_div (c' := -1 / (t + 2)) (d' := (1 : ℝ)) _ _  _ using 1
+  · field
+  · apply HasDerivAt.sub_const
+    convert (hasDerivAt_log (by linarith : t + 2 ≠ 0)).neg using 1
+    ring_nf
+  · exact hasDerivAt_id _
+  · linarith
+
+private lemma tendsto_antideriv_log_div_sq :
+    Tendsto (fun t ↦ (-log (t + 2) - 1) / (t + 2)) atTop (nhds 0) := by
+  have : Tendsto (fun (t : ℝ) ↦ t + 2) atTop atTop := by exact tendsto_atTop_add_const_right atTop 2 tendsto_id
+  apply Tendsto.comp (g := (fun t ↦ (-log t - 1) / t)) _ this
+  convert Tendsto.sub (f := (fun t ↦ -log t / t)) (a := 0) _ tendsto_inv_atTop_zero using 1
+  · ring_nf
+  · ring_nf
+  · convert (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)).neg using 1
+    · ext; ring
+    · simp
+
+private lemma integrableOn_log_div_sq :
+    MeasureTheory.IntegrableOn (fun t ↦ log (t + 2) / (t + 2) ^ 2) (Set.Ioi 0) := by
+  exact MeasureTheory.integrableOn_Ioi_deriv_of_nonneg' log_div_sq_is_deriv log_div_sq_nonneg tendsto_antideriv_log_div_sq
+
+private lemma integral_log_div_sq :
+    ∫ t in Set.Ioi 0, log (t + 2) / (t + 2) ^ 2 = (log 2 + 1) / 2 := by
+  rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' log_div_sq_is_deriv log_div_sq_nonneg tendsto_antideriv_log_div_sq]
+  ring_nf
+
+private lemma summable_log_div_sq :
+    Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
+  let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
+  suffices Summable (fun (n : ℕ) ↦ g n ) by
+    convert summable_nat_add_iff 1|>.mpr this using 2
+    unfold g
+    push_cast
+    ring_nf
+  exact antitoneOn_log_div_sq.summable_of_integrable integrableOn_log_div_sq log_div_sq_nonneg
+
+private lemma sum_log_div_sq_le :
+    ∑' (n : ℕ), log (n + 3) / (n + 3) ^2 ≤ (log 2 + 1) / 2 := by
+  let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
+  calc
+  _ = ∑' (n : ℕ), g (n + 1 : ℕ):= by
+    unfold g
+    congr
+    push_cast
+    ring_nf
+  _ ≤ ∫ x in Set.Ioi 0, g x := by
+    exact antitoneOn_log_div_sq.tsum_add_one_le_integral integrableOn_log_div_sq log_div_sq_nonneg
+  _ = _ := by
+    exact integral_log_div_sq
 
 @[blueprint
   "E1_bound"
@@ -486,7 +608,30 @@ theorem E₁.summable : Summable (fun p : ℕ ↦ if p.Prime then (log p) / (p*(
   (latexEnv := "proposition")
   (discussion := 1316)]
 theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
-    sorry
+  unfold E₁
+  calc
+  _ = log 2 / 2 + ∑' (n : ℕ), if (n + 3).Prime then log (n + 3) / ((n + 3) * (n + 2)) else 0 := by
+    rw [← E₁.summable.sum_add_tsum_nat_add 3, (by rfl : range 3 = {0, 1, 2})]
+    simp [Nat.prime_two]
+    ring_nf
+  _ ≤ log 2 / 2 + ∑' (n : ℕ), (3 / 2) * (log (n + 3) / (n + 3) ^ 2) := by
+    gcongr with n
+    · convert summable_nat_add_iff 3|>.mpr E₁.summable using 4
+      · norm_cast
+      · push_cast; ring
+    · exact summable_log_div_sq.mul_left _
+    · split_ifs with h
+      · grw [(by linarith : (n + 2 : ℝ) ≥ 2 * (n + 3) / 3)]
+        · field_simp
+          rfl
+        · exact log_nonneg (by grind)
+      · exact mul_nonneg (by norm_num) (div_nonneg (log_nonneg (by grind)) (by positivity))
+  _ = log 2 / 2 + (3 / 2) * ∑' (n : ℕ), log (n + 3) / (n + 3) ^ 2 := by
+    rw [tsum_mul_left]
+  _ ≤ _ := by
+    grw [sum_log_div_sq_le]
+    ring_nf
+    rfl
 
 theorem E₁.nonneg : E₁ ≥ 0 :=
   tsum_nonneg E₁.summand_nonneg
