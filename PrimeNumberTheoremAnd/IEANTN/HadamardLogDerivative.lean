@@ -6,11 +6,10 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZeta
 
 /-!
-# Hadamard Log-Derivative Bridges for Kadiri
+# Hadamard logarithmic derivatives for Kadiri
 
-This file contains zeta-specific algebraic bridges from the completed zeta
-factor to the logarithmic derivative `-ζ'/ζ` used in Kadiri's zero-free-region
-argument.
+This file records the algebraic identities relating the completed zeta factor and Riemann's
+entire `ξ` to the logarithmic derivative `-ζ'/ζ` used in Kadiri's zero-free-region argument.
 -/
 
 namespace Kadiri
@@ -340,7 +339,7 @@ theorem logDeriv_completedZetaFactor (s : ℂ)
   · exact (hpole_diff.mul hpi_diff).mul hgamma_diff
   · exact hzeta_diff
 
-/-- Kadiri-facing algebraic bridge from the completed zeta factor to `-ζ'/ζ`. -/
+/-- Algebraic identity relating the completed zeta factor to `-ζ'/ζ`. -/
 theorem neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv
     (s : ℂ)
     (hs1 : s ≠ 1)
@@ -355,7 +354,7 @@ theorem neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv
   rw [logDeriv_completedZetaFactor s hs1 hΓdiff hΓ hζ]
   ring
 
-/-- Kadiri-facing bridge after a Hadamard log-derivative formula has been supplied. -/
+/-- Consequence of a Hadamard logarithmic-derivative formula for the completed zeta factor. -/
 theorem neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv
     (s B Z : ℂ)
     (hs1 : s ≠ 1)
@@ -371,8 +370,8 @@ theorem neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv
   rw [neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv s hs1 hΓdiff hΓ hζ, hHad]
   ring
 
-/-- Preferred Kadiri bridge: use a Hadamard logarithmic-derivative formula for Riemann's entire
-`ξ`, whose constant term is the derivative of the degree-one Hadamard polynomial. -/
+/-- Version using a Hadamard logarithmic-derivative formula for Riemann's entire `ξ`, whose
+constant term is the derivative of the degree-one Hadamard polynomial. -/
 theorem neg_zeta_logDeriv_eq_of_riemannXi_hadamard_logDeriv
     (s B Z : ℂ)
     (hs : 1 < s.re)
@@ -392,8 +391,8 @@ theorem neg_zeta_logDeriv_eq_of_riemannXi_hadamard_logDeriv
     logDeriv_completedZetaFactor_eq_logDeriv_riemannXi_of_one_lt_re hs, hHad]
   ring
 
-/-- Preferred Kadiri bridge with the constant term expressed as the derivative of the
-degree-one Hadamard polynomial for Riemann's entire `ξ`. -/
+/-- Version with the constant term expressed as the derivative of the degree-one Hadamard
+polynomial for Riemann's entire `ξ`. -/
 theorem neg_zeta_logDeriv_eq_of_riemannXi_polynomial_hadamard
     {P : Polynomial ℂ} (s : ℂ)
     (hs : 1 < s.re)
@@ -422,9 +421,9 @@ theorem neg_zeta_logDeriv_eq_of_riemannXi_polynomial_hadamard
         1 / Complex.Hadamard.divisorZeroIndex₀_val p))
     hs hΓdiff hΓ hHad
 
-/-- Downstream-ready existential version of the xi-polynomial Kadiri bridge.  The constant in the
-explicit formula is supplied by `Polynomial.eval s P.derivative` for a degree-one Hadamard
-polynomial of `riemannXi`. -/
+/-- Existential version of the xi-polynomial logarithmic-derivative identity. The constant in the
+explicit formula is `Polynomial.eval s P.derivative` for a degree-one Hadamard polynomial of
+`riemannXi`. -/
 theorem exists_neg_zeta_logDeriv_eq_of_riemannXi_polynomial_hadamard
     (s : ℂ)
     (hs : 1 < s.re)
@@ -471,7 +470,7 @@ theorem neg_zeta_logDeriv_eq_of_genusOne_hadamard
   neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (genusOneZeroLogSum zero s)
     hs1 hΓdiff hΓ hζ hHad
 
-/-- Preferred genus-one bridge with the Hadamard formula stated for Riemann's entire `ξ`. -/
+/-- Genus-one form with the Hadamard formula stated for Riemann's entire `ξ`. -/
 theorem neg_zeta_logDeriv_eq_of_riemannXi_genusOne_hadamard
     {ι : Type*} (zero : ι → ℂ) (s B : ℂ)
     (hs : 1 < s.re)
@@ -506,7 +505,7 @@ theorem neg_zeta_logDeriv_eq_of_centered_orbit_hadamard
   neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (centeredHadamardOrbitLogSum orbit s)
     hs1 hΓdiff hΓ hζ hHad
 
-/-- Preferred centered-orbit bridge with the Hadamard formula stated for Riemann's entire `ξ`. -/
+/-- Centered-orbit form with the Hadamard formula stated for Riemann's entire `ξ`. -/
 theorem neg_zeta_logDeriv_eq_of_riemannXi_centered_orbit_hadamard
     {ι : Type*} (orbit : ι → ℂ) (s B : ℂ)
     (hs : 1 < s.re)
