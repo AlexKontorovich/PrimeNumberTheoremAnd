@@ -1443,6 +1443,16 @@ lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :
   · apply Summable.const_div
     exact summable_nat_add_iff N|>.mpr (summable_one_div_nat_pow.mpr one_lt_two)
 
+lemma sum_M_eq_summand_le' {x : ℝ} (hx : 2 ≤ x) :
+    |∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_summand n - (M - γ)| ≤ 4 / x := by
+  have := sum_M_eq_summand_le (by grind : 0 < ⌊x⌋₊ + 1)
+  rw [Nat.range_eq_Icc_zero_sub_one _ (by grind), ← add_sum_Ioc_eq_sum_Icc (by grind),
+    (by simp : M_eq_summand 0 = 0), zero_add] at this
+  simp only [add_tsub_cancel_right, Nat.cast_add, Nat.cast_one] at this
+  grw [this]
+  gcongr
+  exact Nat.lt_floor_add_one _|>.le
+
 @[blueprint
   "Mertens-third-theorem-error-le"
   (title := "Mertens' third theorem error bound")
@@ -1457,7 +1467,27 @@ One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \
   -/)
   (discussion := 1330)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
-    sorry
+  unfold E₃
+  refine ⟨4 + (log 4 + 6 + E₁), fun x hx ↦ ?_⟩
+  calc
+  _ = |(∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_summand n - (M - γ)) - E₂p x| := by
+    unfold E₂p
+    have (n : ℕ) : M_eq_summand n = (if n.Prime then log (1 - 1 / n) else 0) + (if n.Prime then (1 : ℝ) / n else 0) := by
+      unfold M_eq_summand
+      split_ifs
+      · rfl
+      · ring
+    simp_rw [this]
+    rw [sum_filter, sum_filter, sum_add_distrib, γ.eq_eulerMascheroni]
+    ring_nf
+  _ ≤ _ := by
+    grw [abs_sub, E₂p.abs_le hx, sum_M_eq_summand_le' hx]
+    have : 4 / x ≤ 4 / log x := by
+      gcongr
+      · exact log_pos (by linarith)
+      · exact log_le_self (by linarith)
+    grw [this]
+    rw [← add_div]
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
