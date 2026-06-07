@@ -1,0 +1,31 @@
+module
+
+public import Mathlib.Analysis.Calculus.Deriv.Polynomial
+public import Mathlib.Analysis.Calculus.LogDeriv
+public import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
+
+/-!
+# Polynomial derivatives and logarithmic derivatives
+
+Auxiliary derivative identities for exponential polynomials, used in the polynomial factor
+appearing in Hadamard products.
+-/
+
+@[expose] public section
+
+namespace Polynomial
+
+/-- The logarithmic derivative of the exponential of a complex polynomial is the polynomial
+derivative. -/
+theorem logDeriv_exp_eval (P : ℂ[X]) (z : ℂ) :
+    logDeriv (fun w : ℂ => Complex.exp (Polynomial.eval w P)) z =
+      Polynomial.eval z P.derivative := by
+  have hderiv :
+      deriv (fun w : ℂ => Complex.exp (Polynomial.eval w P)) z =
+        Complex.exp (Polynomial.eval z P) * Polynomial.eval z P.derivative := by
+    simpa [Function.comp_def, mul_comm] using
+      ((Complex.hasDerivAt_exp (Polynomial.eval z P)).comp z (P.hasDerivAt z)).deriv
+  rw [logDeriv_apply, hderiv]
+  field_simp [Complex.exp_ne_zero (Polynomial.eval z P)]
+
+end Polynomial
