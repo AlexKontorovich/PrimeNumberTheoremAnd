@@ -69,8 +69,7 @@ theorem centeredHadamardDenom_eq_hadamardDenom_translate
     (m : ℕ) (c : ℂ) (f : ℂ → ℂ) (z : ℂ) :
     centeredHadamardDenom m c f z =
       hadamardDenom m (fun w : ℂ => f (w + c)) (z - c) := by
-  simp [centeredHadamardDenom, hadamardDenom,
-    centeredDivisorCanonicalProduct_eq_divisorCanonicalProduct, analyticOrderNatAt_comp_add_const]
+  simp [centeredHadamardDenom, hadamardDenom, analyticOrderNatAt_comp_add_const]
 
 /-- An entire function has order at most `ρ` if it satisfies the `ε`-family growth bound used in
 this formalization.
@@ -263,7 +262,8 @@ theorem hadamard_factorization_of_order_centered {f : ℂ → ℂ} {ρ : ℝ} (h
         f z =
           Complex.exp (Polynomial.eval (z - c) P) *
             (z - c) ^ (analyticOrderNatAt f c) *
-            centeredDivisorCanonicalProduct (Nat.floor ρ) c f z := by
+            divisorCanonicalProduct (Nat.floor ρ) (fun w : ℂ => f (w + c))
+              (Set.univ : Set ℂ) (z - c) := by
   classical
   let g : ℂ → ℂ := fun w : ℂ => f (w + c)
   have hnot_g : ∃ w : ℂ, g w ≠ 0 := by
@@ -279,14 +279,14 @@ theorem hadamard_factorization_of_order_centered {f : ℂ → ℂ} {ρ : ℝ} (h
   have h := hfac (z - c)
   have horder0 : analyticOrderNatAt g 0 = analyticOrderNatAt f c := by
     simpa [g] using analyticOrderNatAt_comp_add_const f c
-  simpa [g, centeredDivisorCanonicalProduct, horder0] using h
+  simpa [g, horder0] using h
 
 /-- Reindexed centered finite-order Hadamard factorization, for any index type equivalent to the
 centered nonzero divisor indices. -/
 theorem hadamard_factorization_of_order_centered_reindex {ι : Type*} {f : ℂ → ℂ} {ρ : ℝ}
     (hρ : 0 ≤ ρ) (c : ℂ) (hnot : ∃ z : ℂ, f z ≠ 0)
     (horder : EntireOfOrderAtMost ρ f)
-    (e : ι ≃ centeredDivisorZeroIndex c f) :
+    (e : ι ≃ divisorZeroIndex₀ (fun w : ℂ => f (w + c)) (Set.univ : Set ℂ)) :
     ∃ (P : Polynomial ℂ),
       P.degree ≤ Nat.floor ρ ∧
       ∀ z : ℂ,
@@ -294,21 +294,21 @@ theorem hadamard_factorization_of_order_centered_reindex {ι : Type*} {f : ℂ �
           Complex.exp (Polynomial.eval (z - c) P) *
             (z - c) ^ (analyticOrderNatAt f c) *
             (∏' i : ι, weierstrassFactor (Nat.floor ρ)
-              ((z - c) / centeredDivisorZeroIndex_coord (e i))) := by
+              ((z - c) / divisorZeroIndex₀_val (e i))) := by
   classical
   rcases hadamard_factorization_of_order_centered
       (f := f) (ρ := ρ) hρ c hnot horder with
     ⟨P, hdeg, hfac⟩
   refine ⟨P, hdeg, ?_⟩
   intro z
-  simpa [centeredDivisorCanonicalProduct_eq_tprod_of_equiv (m := Nat.floor ρ)
-      (c := c) (f := f) e z] using hfac z
+  simpa [divisorCanonicalProduct_eq_tprod_of_equiv (m := Nat.floor ρ)
+      (f := fun w : ℂ => f (w + c)) (U := Set.univ) e (z - c)] using hfac z
 
 /-- Sequence-indexed centered finite-order Hadamard factorization. -/
 theorem hadamard_factorization_of_order_centered_sequence {f : ℂ → ℂ} {ρ : ℝ}
     (hρ : 0 ≤ ρ) (c : ℂ) (hnot : ∃ z : ℂ, f z ≠ 0)
     (horder : EntireOfOrderAtMost ρ f)
-    (e : ℕ ≃ centeredDivisorZeroIndex c f) :
+    (e : ℕ ≃ divisorZeroIndex₀ (fun w : ℂ => f (w + c)) (Set.univ : Set ℂ)) :
     ∃ (P : Polynomial ℂ),
       P.degree ≤ Nat.floor ρ ∧
       ∀ z : ℂ,
@@ -316,7 +316,7 @@ theorem hadamard_factorization_of_order_centered_sequence {f : ℂ → ℂ} {ρ 
           Complex.exp (Polynomial.eval (z - c) P) *
             (z - c) ^ (analyticOrderNatAt f c) *
             Complex.canonicalProduct (Nat.floor ρ)
-              (fun n : ℕ => centeredDivisorZeroIndex_coord (e n)) (z - c) := by
+              (fun n : ℕ => divisorZeroIndex₀_val (e n)) (z - c) := by
   classical
   rcases hadamard_factorization_of_order_centered_reindex
       (f := f) (ρ := ρ) hρ c hnot horder e with
