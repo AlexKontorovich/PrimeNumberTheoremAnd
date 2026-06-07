@@ -56,7 +56,7 @@ noncomputable def hadamardDenom (m : ℕ) (f : ℂ → ℂ) (z : ℂ) : ℂ :=
 /-- The denominator in the Hadamard quotient construction, centered at `c`. -/
 noncomputable def centeredHadamardDenom (m : ℕ) (c : ℂ) (f : ℂ → ℂ) (z : ℂ) : ℂ :=
   (z - c) ^ (analyticOrderNatAt f c) *
-    centeredDivisorCanonicalProduct m c f z
+    divisorCanonicalProduct m (fun w : ℂ => f (w + c)) (Set.univ : Set ℂ) (z - c)
 
 /-- The Hadamard quotient construction, centered at `c`. -/
 noncomputable def centeredHadamardQuotient (m : ℕ) (c : ℂ) (f : ℂ → ℂ) (z : ℂ) : ℂ :=
@@ -66,13 +66,15 @@ noncomputable def centeredHadamardQuotient (m : ℕ) (c : ℂ) (f : ℂ → ℂ)
 theorem centeredHadamardDenom_center_eq_one {m : ℕ} {c : ℂ} {f : ℂ → ℂ}
     (h : analyticOrderNatAt f c = 0) :
     centeredHadamardDenom m c f c = 1 := by
-  simp [centeredHadamardDenom, h]
+  simp [centeredHadamardDenom, h, sub_self, divisorCanonicalProduct_zero, pow_zero]
 
 @[simp]
 theorem centeredHadamardDenom_center_eq_zero {m : ℕ} {c : ℂ} {f : ℂ → ℂ}
     (h : analyticOrderNatAt f c ≠ 0) :
     centeredHadamardDenom m c f c = 0 := by
-  simp [centeredHadamardDenom, h]
+  have hn : 0 < analyticOrderNatAt f c := by
+    exact Nat.pos_of_ne_zero h
+  simp [centeredHadamardDenom, sub_self, zero_pow hn.ne']
 
 theorem differentiable_divisorCanonicalProduct_univ (m : ℕ) (f : ℂ → ℂ)
     (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
