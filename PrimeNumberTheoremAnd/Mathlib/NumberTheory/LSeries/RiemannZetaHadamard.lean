@@ -27,8 +27,8 @@ to the entire completed zeta function `completedRiemannZeta₀` (Λ₀) and to R
 
 Note: `completedRiemannZeta` (Λ with simple poles at `0` and `1`) is a different object; Hadamard
 applies to Λ₀.  The negative even integers are the trivial zeros of `riemannZeta`, not zeros of
-Λ₀.  Accordingly, the divisor indices in this file remain generic zeros of Λ₀; trivial-zero divisor
-API belongs with `riemannZeta` or the removable entire function `(s - 1)ζ(s)`.
+Λ₀.  Accordingly, the divisor indices in this file remain generic zeros of Λ₀ rather than a
+separate enumeration of the trivial zeros of ζ.
 
 `RiemannZetaValues` proves `completedRiemannZeta₀_zero_ne_zero`, using the Euler-Mascheroni
 formula for `Λ₀(1)` together with explicit numerical bounds.  Therefore the origin monomial in the
@@ -54,19 +54,19 @@ formula for `Λ₀(1)` together with explicit numerical bounds.  Therefore the o
 * `riemannXi_hadamard_polynomial_derivative_eval_zero_eq` and
   `existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero` : theorem-level uniqueness
   of the xi Hadamard derivative constant
-* `exists_riemannXi_logDeriv_eq_polynomial_derivative_add_tsum` : an API-test style composition of
-  the xi no-monomial factorization and the zero-sum bridge
+* `exists_riemannXi_logDeriv_eq_polynomial_derivative_add_tsum` : logarithmic derivative formula
+  obtained from the xi no-monomial factorization
 * `completedRiemannZeta₀_hadamard_factorization_reindex`, `_sequence` : reindexed enumerations
 
-The analytic chain is `ZetaFiniteOrder` (order-one bound) → `HadamardFactorization/Order`
-(`hadamard_factorization_of_order`) → this file.
+The order-one estimate from `ZetaFiniteOrder` is the finite-order input to
+`hadamard_factorization_of_order`.
 
 ## References
 
 * [tao246bComplexAnalysis], Theorem 22 for the finite-order Hadamard factorization strategy
 * [titchmarsh1986] and [edwards1974] for the classical completed-zeta and ξ-function background
 * [boas1954] and [levin1980] for the general finite-order Hadamard product theorem
-* [kadiri2005] for the explicit zero-free-region motivation behind the xi/log-derivative bridge
+* [kadiri2005] for the explicit zero-free-region use of the xi logarithmic derivative
 
 ## Tags
 
@@ -177,7 +177,7 @@ theorem riemannXi_entireOfOrderAtMost_one :
       _ = C' * R ^ b := by
           ring))
 
-/-! ### Kadiri-compatible logarithmic-derivative bridge -/
+/-! ### Logarithmic-derivative identities -/
 
 /-- The genus-one summability condition for the nonzero zero divisor of Riemann's entire `ξ`.
 
@@ -210,8 +210,7 @@ theorem analyticOrderNatAt_completedRiemannZeta₀_zero :
 
 /-- The logarithmic-derivative zero terms for Riemann's `ξ` are summable away from the zero set.
 
-This is a Kadiri-facing convenience wrapper around the general far-zero comparison and the
-order-one zero summability of `ξ`. -/
+This follows from the general far-zero comparison and the order-one zero summability of `ξ`. -/
 theorem summable_riemannXi_logDerivTerms_divisorZeroIndex₀
     {z : ℂ}
     (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
@@ -222,8 +221,8 @@ theorem summable_riemannXi_logDerivTerms_divisorZeroIndex₀
   Complex.Hadamard.summable_logDerivTerms_divisorZeroIndex₀_of_summable_inv_sq
     summable_riemannXi_divisorZeroIndex₀_norm_inv_sq hz
 
-/-- The Kadiri-facing zero-sum formula for the logarithmic derivative of the genus-one divisor
-canonical product attached to Riemann's entire `ξ`. -/
+/-- The zero-sum formula for the logarithmic derivative of the genus-one divisor canonical product
+attached to Riemann's entire `ξ`. -/
 theorem logDeriv_riemannXi_divisorCanonicalProduct_one_eq_tsum
     {z : ℂ}
     (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
@@ -235,7 +234,7 @@ theorem logDeriv_riemannXi_divisorCanonicalProduct_one_eq_tsum
   Complex.Hadamard.logDeriv_divisorCanonicalProduct_one_eq_tsum_of_forall_ne
     summable_riemannXi_divisorZeroIndex₀_norm_inv_sq hz
 
-/-- Kadiri-facing logarithmic derivative identity for a chosen `ξ` Hadamard factorization.
+/-- Logarithmic derivative identity for a chosen `ξ` Hadamard factorization.
 
 The divisor-product differentiability is supplied by
 `Complex.Hadamard.differentiableAt_divisorCanonicalProduct_univ`, and xi zero summability is
@@ -293,9 +292,7 @@ theorem logDeriv_riemannXi_eq_polynomial_derivative_add_tsum
 /-- Any two xi Hadamard polynomials with the same divisor-canonical product have the same
 derivative at every point away from the nonzero divisor-indexed zero set. -/
 theorem riemannXi_hadamard_polynomial_derivative_eval_eq
-    {P Q : Polynomial ℂ} {z : ℂ}
-    (hPfac : ∀ w : ℂ, riemannXi w =
-      Complex.exp (Polynomial.eval w P) *
+    {P Q : Polynomial ℂ} {z : ℂ} (hPfac : ∀ w : ℂ, riemannXi w = Complex.exp (Polynomial.eval w P) *
         Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
     (hQfac : ∀ w : ℂ, riemannXi w =
       Complex.exp (Polynomial.eval w Q) *
@@ -319,20 +316,18 @@ theorem riemannXi_hadamard_polynomial_derivative_eval_eq
 /-- The xi Hadamard derivative constant `Polynomial.eval 0 P.derivative` is independent of the
 Hadamard polynomial realizing the no-monomial xi factorization. -/
 theorem riemannXi_hadamard_polynomial_derivative_eval_zero_eq
-    {P Q : Polynomial ℂ}
-    (hPfac : ∀ w : ℂ, riemannXi w =
+    {P Q : Polynomial ℂ}  (hPfac : ∀ w : ℂ, riemannXi w =
       Complex.exp (Polynomial.eval w P) *
         Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
-    (hQfac : ∀ w : ℂ, riemannXi w =
-      Complex.exp (Polynomial.eval w Q) *
-        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w) :
+    (hQfac : ∀ w : ℂ, riemannXi w = Complex.exp (Polynomial.eval w Q) *
+      Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w) :
     Polynomial.eval 0 P.derivative = Polynomial.eval 0 Q.derivative := by
   refine riemannXi_hadamard_polynomial_derivative_eval_eq
     (P := P) (Q := Q) (z := 0) hPfac hQfac ?_
   intro p
   exact (Complex.Hadamard.divisorZeroIndex₀_val_ne_zero p).symm
 
-/-- Hadamard factorization for Riemann's entire `ξ` at genus one. -/
+/-- **Hadamard factorization for Riemann's entire `ξ` at genus one. -/
 theorem riemannXi_hadamard_factorization :
     ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧ ∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) * z ^ (analyticOrderNatAt riemannXi 0) *
@@ -357,8 +352,7 @@ theorem riemannXi_hadamard_factorization_no_monomial :
 degree-one no-monomial Hadamard factorization of Riemann's xi function. This is the canonical
 theorem-level formulation of Kadiri's Hadamard constant, without choosing a global witness. -/
 theorem existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero :
-    ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
-      (∀ z : ℂ, riemannXi z =
+    ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧ (∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) *
           Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
       B = Polynomial.eval 0 P.derivative := by
@@ -369,20 +363,16 @@ theorem existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero :
   exact (riemannXi_hadamard_polynomial_derivative_eval_zero_eq
     (P := P) (Q := Q) hfac hQfac).symm
 
-/-- A downstream-ready xi log-derivative identity obtained by combining the no-monomial Hadamard
-factorization with the Kadiri zero-sum bridge.
+/-- A logarithmic derivative identity for `ξ`, obtained from the no-monomial Hadamard
+factorization.
 
-This theorem is intentionally phrased as an existence statement for the polynomial `P`: it tests
-that the factorization theorem and the logarithmic-derivative bridge compose without exposing the
-origin monomial, product differentiability, product nonvanishing, or zero-term summability details
-to callers. -/
+The theorem is phrased existentially in the Hadamard polynomial `P`, and keeps the origin monomial,
+product differentiability, product nonvanishing, and zero-term summability hypotheses internal to
+the proof. -/
 theorem exists_riemannXi_logDeriv_eq_polynomial_derivative_add_tsum
-    {z : ℂ}
-    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
-      z ≠ Complex.Hadamard.divisorZeroIndex₀_val p) :
-    ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧
-      logDeriv riemannXi z =
-        Polynomial.eval z P.derivative +
+    {z : ℂ} (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      z ≠ Complex.Hadamard.divisorZeroIndex₀_val p) :  ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧
+      logDeriv riemannXi z = Polynomial.eval z P.derivative +
           ∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
             (1 / (z - Complex.Hadamard.divisorZeroIndex₀_val p) +
               1 / Complex.Hadamard.divisorZeroIndex₀_val p) := by
@@ -391,8 +381,7 @@ theorem exists_riemannXi_logDeriv_eq_polynomial_derivative_add_tsum
 
 /-- Reindexed divisor Hadamard factorization for Riemann's entire `ξ`. -/
 theorem riemannXi_hadamard_factorization_reindex
-    {ι : Type*}
-    (e : ι ≃ Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    {ι : Type*} (e : ι ≃ Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
     ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧ ∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) * z ^ (analyticOrderNatAt riemannXi 0) *
       (∏' i : ι, Complex.weierstrassFactor 1
@@ -405,8 +394,7 @@ theorem riemannXi_hadamard_factorization_reindex
 
 /-- Reindexed divisor Hadamard factorization for `ξ`, with the origin monomial removed. -/
 theorem riemannXi_hadamard_factorization_reindex_no_monomial
-    {ι : Type*}
-    (e : ι ≃ Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    {ι : Type*} (e : ι ≃ Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
     ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧ ∀ z : ℂ, riemannXi z =
         Complex.exp (Polynomial.eval z P) *
       (∏' i : ι, Complex.weierstrassFactor 1
@@ -441,7 +429,7 @@ theorem riemannXi_hadamard_factorization_sequence_no_monomial
   intro z
   simpa [analyticOrderNatAt_riemannXi_zero, mul_assoc] using hfac z
 
-/-- Hadamard factorization for `completedRiemannZeta₀` (Λ₀) at genus one. -/
+/-- **Hadamard factorization for `completedRiemannZeta₀` (Λ₀) at genus one**. -/
 theorem completedRiemannZeta₀_hadamard_factorization :
     ∃ (P : Polynomial ℂ), P.degree ≤ 1 ∧ ∀ z : ℂ, completedRiemannZeta₀ z =
         Complex.exp (Polynomial.eval z P) * z ^ (analyticOrderNatAt completedRiemannZeta₀ 0) *
