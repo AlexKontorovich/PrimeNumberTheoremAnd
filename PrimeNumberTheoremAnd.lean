@@ -62,7 +62,6 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LocallyUniformLimit
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Norm
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Trigonometric
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactor
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactorization
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Exp
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
