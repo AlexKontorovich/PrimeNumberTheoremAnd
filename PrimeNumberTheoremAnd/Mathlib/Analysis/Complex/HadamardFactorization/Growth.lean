@@ -35,7 +35,7 @@ obtain sufficiently many circles on which the canonical product is not too small
 Hadamard quotient has polynomial exponential growth.  Thus the route is:
 Jensen/zero counting (Tao Theorem 2 and Proposition 8) → canonical-product convergence (forward
 Exercise 19 input) → Cartan minimum-modulus alternative to the good-circle step → finite-order
-Hadamard (Theorem 22).  The converse direction of Exercise 24 is not part of this theorem.
+Hadamard (Theorem 22).
 
 ## Main results
 

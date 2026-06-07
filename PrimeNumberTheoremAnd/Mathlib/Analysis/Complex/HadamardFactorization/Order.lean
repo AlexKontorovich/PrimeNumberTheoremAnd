@@ -17,10 +17,8 @@ The growth input is routed through a midpoint exponent `τ` with `⌊τ⌋ = ⌊
 `⌊ρ⌋` matches Tao's Weierstrass factor degree.
 
 This file proves the finite-order Hadamard factorization theorem, corresponding to
-[tao246bComplexAnalysis], Theorem 22.  The sequence-indexed theorem below reindexes the zero
-divisor of a given finite-order entire function.  It is not Tao's Weierstrass existence theorem
-(Theorem 15), which starts from an arbitrary discrete prescribed zero sequence and constructs an
-entire function with those zeros.
+[tao246bComplexAnalysis], Theorem 22.  The sequence-indexed theorem below packages the same
+factorization after choosing an enumeration of the nonzero divisor indices.
 
 ## Main results
 
@@ -74,13 +72,12 @@ theorem centeredHadamardDenom_eq_hadamardDenom_translate
 /-- An entire function has order at most `ρ` if it satisfies the `ε`-family growth bound used in
 this formalization.
 
-For every `ε > 0`, the norm is bounded by an exponential of order `ρ + ε`. Classical texts often
-package this through an infimum definition of order; this file uses the equivalent `ε`-family side
-directly and does not prove that equivalence as a separate API lemma. -/
+For every `ε > 0`, the norm is bounded by an exponential of order `ρ + ε`. This formulation is
+the convenient finite-order input for the Jensen/counting estimates used in the Hadamard
+factorization pipeline. -/
 def EntireOfOrderAtMost (ρ : ℝ) (f : ℂ → ℂ) : Prop :=
-  Differentiable ℂ f ∧
-    ∀ ε : ℝ, 0 < ε →
-      ∃ C > 0, ∀ z : ℂ, ‖f z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ (ρ + ε))
+    Differentiable ℂ f ∧ ∀ ε : ℝ, 0 < ε →
+  ∃ C > 0, ∀ z : ℂ, ‖f z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ (ρ + ε))
 
 namespace EntireOfOrderAtMost
 
