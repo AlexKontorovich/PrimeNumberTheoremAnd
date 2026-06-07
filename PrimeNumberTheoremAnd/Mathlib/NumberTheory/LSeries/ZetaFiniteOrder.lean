@@ -131,7 +131,7 @@ lemma reflected_zeta_coefficient_le {C CΓ : ℝ} (hCΓ : 0 ≤ CΓ)
 /-- Reflected functional-equation factors obey the global zeta growth majorant. -/
 lemma norm_mul_riemannZeta_le_exp_of_reflected {z w : ℂ} {A CΓ C : ℝ}
     (hw : w = 1 - z)
-    (hzeta_fe : riemannZeta z =  2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) *
+    (hzeta_fe : riemannZeta z = 2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) *
       riemannZeta w)
     (hpow_le1 : ‖(2 * π : ℂ) ^ (-w)‖ ≤ 1)
     (hw_norm_le : ‖w‖ ≤ A) (hA1 : 1 ≤ A) (hA2_nonneg : 0 ≤ A ^ (2 : ℝ))
@@ -450,17 +450,6 @@ theorem zetaTimesSMinusOne_entire_eq_mul_riemannZeta {s : ℂ} (hs : s ≠ 1) :
     zetaTimesSMinusOne_entire s = (s - 1) * riemannZeta s := by
   simp [zetaTimesSMinusOne_entire, Function.update, hs]
 
-/-- Away from `1`, zeros of the removable extension are exactly zeros of `ζ`. -/
-theorem zetaTimesSMinusOne_entire_eq_zero_iff {s : ℂ} (hs : s ≠ 1) :
-    zetaTimesSMinusOne_entire s = 0 ↔ riemannZeta s = 0 := by
-  rw [zetaTimesSMinusOne_entire_eq_mul_riemannZeta hs]
-  exact ⟨fun h => (mul_eq_zero.mp h).resolve_left (sub_ne_zero.2 hs), fun h => by simp [h]⟩
-
-/-- Away from `1`, nonvanishing of the removable extension is the same as nonvanishing of `ζ`. -/
-theorem zetaTimesSMinusOne_entire_ne_zero_iff {s : ℂ} (hs : s ≠ 1) :
-    zetaTimesSMinusOne_entire s ≠ 0 ↔ riemannZeta s ≠ 0 := by
-  simpa using (zetaTimesSMinusOne_entire_eq_zero_iff hs).not
-
 /-- In the half-plane of absolute convergence, the completed zeta function does not vanish. -/
 theorem completedRiemannZeta_ne_zero_of_one_lt_re {s : ℂ} (hs : 1 < s.re) :
     completedRiemannZeta s ≠ 0 := by
@@ -475,58 +464,6 @@ theorem completedRiemannZeta_ne_zero_of_one_lt_re {s : ℂ} (hs : 1 < s.re) :
     exact this.symm
   rw [hΛ_def]
   exact mul_ne_zero hzeta_ne0 hGamma_ne0
-
-/-- The negative even integers, as the standard trivial-zero sequence for `ζ`. -/
-def riemannZetaTrivialZero (n : ℕ) : ℂ := (-2 : ℂ) * (n + 1)
-
-lemma riemannZetaTrivialZero_ne_zero (n : ℕ) :
-    riemannZetaTrivialZero n ≠ 0 := by
-  exact mul_ne_zero (neg_ne_zero.mpr two_ne_zero) (Nat.cast_add_one_ne_zero n)
-
-lemma riemannZetaTrivialZero_ne_one (n : ℕ) :
-    riemannZetaTrivialZero n ≠ 1 := by
-  intro h
-  have hreal : ((-2 : ℝ) * (n + 1 : ℝ)) = 1 := by
-    simpa [riemannZetaTrivialZero] using congrArg Complex.re h
-  have hnpos : (0 : ℝ) < n + 1 := by positivity
-  nlinarith
-
-/-- The Riemann zeta function vanishes at the standard trivial-zero sequence. -/
-theorem riemannZeta_trivialZero (n : ℕ) :
-    riemannZeta (riemannZetaTrivialZero n) = 0 := by
-  simpa [riemannZetaTrivialZero, neg_mul] using
-    (riemannZeta_neg_two_mul_nat_add_one n)
-
-/-- The removable entire function `(s - 1)ζ(s)` vanishes at the trivial zeros of `ζ`. -/
-theorem zetaTimesSMinusOne_entire_trivial_zero (n : ℕ) :
-    zetaTimesSMinusOne_entire (riemannZetaTrivialZero n) = 0 := by
-  exact (zetaTimesSMinusOne_entire_eq_zero_iff (riemannZetaTrivialZero_ne_one n)).2
-    (riemannZeta_trivialZero n)
-
-/-- The completed zeta factor `Λ` does not vanish at the trivial zeros of `ζ`.
-
-This records the standard distinction: the negative even integers are zeros of `ζ`, while the
-completed factor is nonzero there. -/
-theorem completedRiemannZeta_ne_zero_trivialZero (n : ℕ) :
-    completedRiemannZeta (riemannZetaTrivialZero n) ≠ 0 := by
-  have hs_re : 1 < (1 - riemannZetaTrivialZero n).re := by
-    norm_num [riemannZetaTrivialZero]
-    positivity
-  have hnonzero := completedRiemannZeta_ne_zero_of_one_lt_re (s := 1 - riemannZetaTrivialZero n)
-    hs_re
-  intro hzero
-  exact hnonzero (by simpa [completedRiemannZeta_one_sub] using hzero)
-
-/-- The standard trivial-zero sequence `-2, -4, -6, ...` is injective. -/
-theorem riemannZetaTrivialZero_injective :
-    Function.Injective riemannZetaTrivialZero := by
-  intro m n hmn
-  have hsucc : ((m + 1 : ℕ) : ℂ) = (n + 1 : ℕ) := by
-    exact mul_left_cancel₀ (by norm_num : (-2 : ℂ) ≠ 0) <|
-      by simpa [riemannZetaTrivialZero] using hmn
-  have hsucc_nat : m + 1 = n + 1 := by
-    exact_mod_cast hsucc
-  exact Nat.succ.inj (by simpa [Nat.succ_eq_add_one] using hsucc_nat)
 
 /-- The removable extension is uniquely determined by its value at `1` and its values off `1`. -/
 theorem eq_zetaTimesSMinusOne_entire_of_eq_on_compl_singleton {g : ℂ → ℂ}
