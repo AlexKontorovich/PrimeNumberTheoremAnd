@@ -7,7 +7,11 @@ module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
-/-! # Extra interval-integral congruence API from the WF branch. -/
+/-!
+# Interval-integral congruence lemmas
+
+Congruence for interval integrals when the integrands agree on the oriented interval.
+-/
 
 @[expose] public section
 

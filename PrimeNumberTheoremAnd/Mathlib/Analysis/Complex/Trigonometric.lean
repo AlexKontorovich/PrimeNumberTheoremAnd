@@ -7,7 +7,11 @@ module
 
 public import Mathlib.Analysis.Complex.Trigonometric
 
-/-! # Extra complex trigonometric bounds from the WF branch. -/
+/-!
+# Complex trigonometric bounds
+
+Elementary exponential bounds for complex trigonometric functions.
+-/
 
 @[expose] public section
 

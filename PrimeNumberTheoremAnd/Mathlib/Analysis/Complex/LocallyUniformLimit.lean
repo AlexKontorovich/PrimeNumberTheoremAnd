@@ -8,9 +8,10 @@ module
 public import Mathlib.Analysis.Complex.LocallyUniformLimit
 
 /-!
-# Extra locally uniform limit API
+# Locally uniform limits and bounded multiplication
 
-This file hosts the WF locally-uniform-limit API needed by the staged PNT+ Hadamard overlay.
+Uniform convergence on a set is preserved under multiplication by a function that is bounded
+on that set.  This is a basic estimate for locally uniform products.
 -/
 
 @[expose] public section

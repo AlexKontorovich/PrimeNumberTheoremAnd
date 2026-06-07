@@ -8,11 +8,11 @@ module
 public import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 
 /-!
-# Extra complex logarithm bounds for Weierstrass products
+# Logarithm estimates for Weierstrass products
 
-This file collects the `LogBounds` API from the WF mathlib branch needed by the staged PNT+
-Hadamard overlay. The statements are kept close to the WF source so later PNT+ slices can be
-ported without API churn.
+This file develops the finite truncation and tail estimates for the logarithm series
+`-log (1 - z)`.  These estimates are the local analytic input for bounding Weierstrass
+factors and canonical products.
 -/
 
 noncomputable section

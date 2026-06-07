@@ -8,9 +8,10 @@ module
 public import Mathlib.Analysis.SpecialFunctions.Exp
 
 /-!
-# Extra exponential API
+# Elementary exponential estimates
 
-This file hosts small real exponential API from the WF mathlib branch.
+Small real exponential inequalities used to absorb polynomial and product factors into
+finite-order growth bounds.
 -/
 
 @[expose] public section

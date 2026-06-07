@@ -7,7 +7,12 @@ module
 
 public import Mathlib.Analysis.Complex.Convex
 
-/-! # Extra convexity/path-connectedness API from the WF branch. -/
+/-!
+# Path-connected half-planes
+
+This file proves that a right half-plane remains path-connected after removing one point.
+The lemma is used to choose logarithms on punctured half-planes in complex-analysis arguments.
+-/
 
 @[expose] public section
 

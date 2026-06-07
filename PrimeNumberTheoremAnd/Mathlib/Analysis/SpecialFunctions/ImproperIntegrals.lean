@@ -8,7 +8,12 @@ module
 public import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 public import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegrableOn
 
-/-! # Extra improper-integral estimates from the WF branch. -/
+/-!
+# Improper-integral estimates
+
+Elementary power-integral evaluations and convergence criteria for interval integrals on
+half-lines.
+-/
 
 @[expose] public section
 
@@ -62,4 +67,3 @@ theorem integral_Ioi_rpow_neg_re_sub_one {s : ℂ} (hs : 0 < s.re) :
         = - (1 : ℝ) ^ (-s.re) / (-s.re) := h'
     _ = - (1 : ℝ) / (-s.re) := by simp [Real.one_rpow]
     _ = 1 / s.re := by simp
-

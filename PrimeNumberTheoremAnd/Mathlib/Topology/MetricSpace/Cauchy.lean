@@ -7,7 +7,11 @@ module
 
 public import Mathlib.Topology.MetricSpace.Cauchy
 
-/-! # Extra Cauchy-sequence criterion from the WF branch. -/
+/-!
+# A Cauchy-sequence criterion
+
+A tail estimate controlled by a scalar sequence tending to zero gives a Cauchy sequence.
+-/
 
 @[expose] public section
 
@@ -41,4 +45,3 @@ theorem cauchySeq_of_dist_le_of_one_le {s : ℕ → α} {b : ℕ → ℝ} (hb : 
   have h2 : dist (s a) (s k) ≤ b a := by
     simpa [dist_comm] using h a k ha1 hk_a
   exact lt_of_le_of_lt (le_trans htri (add_le_add h1 h2)) (by linarith [hb_a])
-

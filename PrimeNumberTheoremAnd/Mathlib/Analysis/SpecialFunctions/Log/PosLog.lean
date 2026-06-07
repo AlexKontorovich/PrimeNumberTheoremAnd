@@ -8,15 +8,15 @@ module
 public import Mathlib.Analysis.SpecialFunctions.Log.PosLog
 
 /-!
-# Extra positive-log API
+# Positive-log estimates
 
-This file hosts small `Real.log⁺` API from the WF mathlib branch needed by Cartan estimates.
+Small estimates for `Real.log⁺` and for converting logarithmic growth bounds into exponential
+bounds.
 -/
 
 @[expose] public section
 
 namespace Real
-
 
 /-- For `0 ≤ x`, `log (1 + exp x) ≤ x + log 2`. -/
 theorem log_one_add_exp_le_add_log_two {x : ℝ} (hx : 0 ≤ x) :

@@ -7,7 +7,11 @@ module
 
 public import Mathlib.Analysis.Complex.CanonicalDecomposition
 
-/-! # Extra canonical-decomposition API from the WF branch. -/
+/-!
+# Canonical-decomposition notation
+
+Compatibility notation for disk Blaschke factors in terms of Mathlib's `canonicalFactor`.
+-/
 
 @[expose] public section
 

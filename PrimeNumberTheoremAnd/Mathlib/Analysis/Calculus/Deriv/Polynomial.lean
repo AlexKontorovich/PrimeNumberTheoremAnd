@@ -9,7 +9,12 @@ public import Mathlib.Analysis.Calculus.Deriv.Polynomial
 public import Mathlib.Analysis.Calculus.LogDeriv
 public import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
 
-/-! # Extra polynomial derivative API from the WF branch. -/
+/-!
+# Polynomial derivatives and logarithmic derivatives
+
+Auxiliary derivative identities for exponential polynomials, used in the polynomial factor
+appearing in Hadamard products.
+-/
 
 @[expose] public section
 

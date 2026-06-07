@@ -7,8 +7,11 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
-/-! # Extra real-power estimates from the WF branch. -/
+/-!
+# Real-power estimates
 
+Elementary logarithmic and real-power inequalities used in decay and growth estimates.
+-/
 @[expose] public section
 
 namespace Real

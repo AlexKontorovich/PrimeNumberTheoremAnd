@@ -8,9 +8,10 @@ module
 public import Mathlib.Analysis.Complex.BorelCaratheodory
 
 /-!
-# Extra Borel-Caratheodory API
+# Borel-Carathéodory estimates on closed balls
 
-This file hosts the WF Borel-Caratheodory closed-ball variant used by the staged Hadamard overlay.
+This file gives a closed-ball variant of Borel-Carathéodory for functions normalized at the
+origin.  The form is convenient for growth estimates in finite-order complex analysis.
 -/
 
 @[expose] public section

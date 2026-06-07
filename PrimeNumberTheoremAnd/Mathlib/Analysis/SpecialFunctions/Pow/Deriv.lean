@@ -7,8 +7,11 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 
-/-! # Extra complex-power derivative API from the WF branch. -/
+/-!
+# Derivatives of complex powers
 
+Derivative identities for functions of the form `w ↦ a * (u : ℂ) ^ (-w - 1)`.
+-/
 @[expose] public section
 
 namespace Complex

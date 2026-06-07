@@ -7,7 +7,11 @@ module
 
 public import Mathlib.Analysis.Complex.Basic
 
-/-! # Extra basic complex API from the WF branch. -/
+/-!
+# Elementary complex-analysis API
+
+Small algebraic and metric lemmas for complex half-planes and basic rational expressions.
+-/
 
 @[expose] public section
 

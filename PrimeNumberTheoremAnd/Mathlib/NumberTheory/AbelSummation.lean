@@ -7,7 +7,12 @@ module
 
 public import Mathlib.NumberTheory.AbelSummation
 
-/-! # Extra Abel summation finite-sum API from the WF branch. -/
+/-!
+# Finite-sum reindexing for Abel summation
+
+Elementary reindexing lemmas for sums over initial intervals, used when passing between
+floor sums and range sums.
+-/
 
 @[expose] public section
 

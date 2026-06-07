@@ -8,10 +8,9 @@ module
 public import Mathlib.Analysis.Complex.Norm
 
 /-!
-# Extra norm lemmas for complex analysis overlays
+# Norm estimates for complex analysis
 
-This file collects small `Complex.Norm` API from the WF mathlib branch needed by the staged
-PNT+ Hadamard overlay.
+Elementary norm estimates used in Cartan-style product bounds and Gamma/zeta growth arguments.
 -/
 
 public section

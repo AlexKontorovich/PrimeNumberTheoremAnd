@@ -9,9 +9,10 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Base
 public import Mathlib.Topology.Algebra.InfiniteSum.Order
 
 /-!
-## Dyadic estimates from logarithms
+# Dyadic estimates from logarithms
 
 This file records elementary estimates for dyadic radii selected by `⌊logb 2 x⌋₊`.
+The estimates are used to decompose growth bounds into summable geometric shells.
 -/
 
 @[expose] public section
@@ -312,4 +313,3 @@ lemma two_geometric_shift_add (A B q qσ : ℝ) (k k0 : ℕ) :
   ac_rfl
 
 end Real
- 

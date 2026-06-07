@@ -8,9 +8,10 @@ module
 public import Mathlib.Analysis.Complex.AbsMax
 
 /-!
-# Extra maximum-modulus API
+# Maximum-modulus bounds on disks
 
-This file hosts the WF `AbsMax` disk/sphere bound used by Hadamard growth estimates.
+This file records a disk bound from a boundary bound on the sphere, in the form needed by
+growth estimates for holomorphic functions.
 -/
 
 @[expose] public section

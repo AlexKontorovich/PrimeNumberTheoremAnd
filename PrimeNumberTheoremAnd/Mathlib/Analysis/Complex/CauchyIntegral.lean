@@ -7,7 +7,12 @@ module
 
 public import Mathlib.Analysis.Complex.CauchyIntegral
 
-/-! # Extra Cauchy-integral analytic API from the WF branch. -/
+/-!
+# Entire functions from global differentiability
+
+This file records a small bridge from complex differentiability on the plane to
+`AnalyticOnNhd` on `Set.univ`.
+-/
 
 @[expose] public section
 
