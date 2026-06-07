@@ -220,7 +220,7 @@ noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun 
   "kadiri-test-fn-contDiff"
   (title := "The Kadiri test function is $C^1$")
   (statement := /-- For $f$ satisfying $(H_1)$ of \ref{kadiri-prop-2-1} and any
-  $s \in \mathbb{C}$, the Kadiri test function $\mathrm{kadiriTestFn}\, f\, s$
+  $s \in \mathbb{C}$, the Kadiri test function $\varphi$
   (\ref{kadiri-test-fn}) is $C^1$ on $\mathbb{R}$. -/)
   (proof := /-- The function $\varphi(\cdot;\, s)$ is smooth on each of the three open pieces:
   on $(-\infty, 0)$ it is $\equiv 0$; on $(0, d)$ it equals $(f(0) - f(y)) e^{-sy}$, $C^2$
@@ -249,7 +249,7 @@ theorem kadiriTestFn_contDiff {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
   (title := "Decay condition (B) for the Kadiri test function")
   (statement := /-- For $f$ satisfying $(H_1)$ of \ref{kadiri-prop-2-1} and
   $s \in \mathbb{C}$ with $\Re s > 1$, the Kadiri test function
-  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}) satisfies
+  $\varphi$ satisfies
   decay condition (B) of \ref{kadiri-thm-3-1-q1}: there exists $b > 0$
   (any $0 < b < \Re s - 1$ works) such that both $\varphi(x;\, s) e^{x/2}$ and
   $\varphi'(x;\, s) e^{x/2}$ are $O(e^{-(1/2 + b)|x|})$ as $|x| \to \infty$. -/)
@@ -278,8 +278,7 @@ theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f �
   $s, z \in \mathbb{C}$ with $\Re(s + z) > 0$,
   $$ \int_0^{\infty} \varphi(y;\, s)\, e^{-z y}\, dy
      = \frac{f(0)}{s + z} - F(s + z), $$
-  where $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}) and
-  $F$ is the file's `laplaceTransform` of $f$. -/)
+  where $F$ is the Laplace transform of $f$. -/)
   (proof := /-- Direct expansion of the integrand on $y > 0$:
   $\varphi(y;\, s) e^{-zy} = (f(0) - f(y)) e^{-(s+z) y}$. Split the integral:
   $\int_0^{\infty} f(0)\, e^{-(s+z) y}\, dy = f(0)/(s + z)$ converges by
@@ -327,7 +326,7 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
 
 @[blueprint
   "kadiri-identity-16-complex"
-  (title := "Complex (pre-$\\Re$) form of equation (16)")
+  (title := "Complex form of equation (16)")
   (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
   $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
@@ -337,10 +336,9 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
    + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
        \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
        + \frac{F_2(s)}{s^2} \Bigr). $$
-  This is the $\mathbb{C}$-valued analogue of \ref{kadiri-identity-16}: the same equation
-  before taking real parts. -/)
+-/)
   (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
-  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}); its hypotheses
+  $\varphi$; its hypotheses
   are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
   \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
   $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
@@ -350,14 +348,15 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
   Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
   $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
   inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
-  for this $\varphi$: $\varphi(0;\, s) = 0$ (\ref{kadiri-test-fn-zero}) kills the
+  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
   $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
-  (\ref{kadiri-test-fn-neg-log}) kills the reflected discrete sum. Unfolding
-  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ via \ref{kadiri-test-fn-log} gives
+   kills the reflected discrete sum. Unfolding
+  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
   $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
    - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
-  substituting the $\Phi$ values yields the right-hand side. To be formalised. -/)
-  (latexEnv := "sublemma")]
+  substituting the $\Phi$ values yields the right-hand side.  -/)
+  (latexEnv := "sublemma")
+  (discussion := 1494)]
 theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
