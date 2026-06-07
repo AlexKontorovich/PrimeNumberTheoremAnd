@@ -26,7 +26,7 @@ theorem deriv_ofReal_cpow_neg (s : ℂ) {x : ℝ} (hx : 0 < x) :
 theorem continuousOn_deriv_ofReal_cpow_neg (s : ℂ) {a b : ℝ} (ha : 0 < a) :
     ContinuousOn (deriv (fun (t : ℝ) => (t : ℂ) ^ (-s))) (Set.Icc a b) :=
     ((continuousOn_const : ContinuousOn (fun (_ : ℝ) => (-s : ℂ)) (Set.Icc a b)).mul
-      (continuousOn_ofReal_cpow (r := -s - 1) ha)).congr fun t ht =>
+      (continuousOn_ofReal_cpow (r := -s - 1) ha)).congr fun _ ht =>
     deriv_ofReal_cpow_neg s (lt_of_lt_of_le ha ht.1)
 
 theorem ofReal_cpow_mul_cpow_neg_sub_one (s : ℂ) {u : ℝ} (hu : 0 < u) :
