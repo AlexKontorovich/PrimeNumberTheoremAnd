@@ -1517,6 +1517,25 @@ theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound''' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) - exp (-eulerMascheroniConstant) / log x) =O[atTop] (fun x ↦ 1 / (log x)^2) := by
-    sorry
+  obtain ⟨c, hc⟩ := E₃.abs_le
+  rw [isBigO_iff]
+  refine ⟨exp (-eulerMascheroniConstant) * 2 * c, ?_⟩
+  filter_upwards [eventually_ge_atTop 2, eventually_ge_atTop c.exp] with x hx hx2
+  rw [prod_one_minus_div_prime_eq (by linarith)]
+  specialize hc x hx
+  rw [norm_eq_abs, norm_eq_abs]
+  calc
+  _ = |exp (-eulerMascheroniConstant) / log x * (exp (E₃ x) - 1)| := by ring_nf
+  _ = |exp (-eulerMascheroniConstant) / log x| * |exp (E₃ x) - 1| := by rw [abs_mul]
+  _ ≤ _ := by
+    have : |E₃ x| ≤ 1 := by
+      apply hc.trans
+      have := log_le_log (exp_pos _) hx2
+      rw [log_exp] at this
+      apply div_le_one_iff.mpr <| Or.inl ⟨log_pos (by linarith), this⟩
+    grw [abs_exp_sub_one_le this, hc]
+    apply le_of_eq
+    rw [abs_div, abs_div, abs_one, abs_of_nonneg (exp_nonneg _), abs_of_nonneg (log_nonneg (by linarith)), abs_of_nonneg (sq_nonneg _)]
+    ring
 
 end Mertens
