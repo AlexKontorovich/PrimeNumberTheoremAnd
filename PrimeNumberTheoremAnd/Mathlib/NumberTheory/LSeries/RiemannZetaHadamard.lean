@@ -316,7 +316,7 @@ theorem riemannXi_hadamard_polynomial_derivative_eval_eq
 /-- The xi Hadamard derivative constant `Polynomial.eval 0 P.derivative` is independent of the
 Hadamard polynomial realizing the no-monomial xi factorization. -/
 theorem riemannXi_hadamard_polynomial_derivative_eval_zero_eq
-    {P Q : Polynomial ℂ}  (hPfac : ∀ w : ℂ, riemannXi w =
+    {P Q : Polynomial ℂ} (hPfac : ∀ w : ℂ, riemannXi w =
       Complex.exp (Polynomial.eval w P) *
         Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
     (hQfac : ∀ w : ℂ, riemannXi w = Complex.exp (Polynomial.eval w Q) *
