@@ -19,11 +19,6 @@ This file defines canonical products attached to a sequence `a : ℕ → ℂ`:
 
 The convergence results specialize the locally uniform product API for scaled Weierstrass factors
 developed in `Mathlib.Analysis.Complex.WeierstrassFactor`.
-
-## TODO
-
-* Prove simple zeros for injective sequences (`analyticOrderAt_canonicalProduct_eq_one`) via a
-  `canonicalProductExcept` API, avoiding heavy `Function.update` infinite-product proofs.
 -/
 
 @[expose] public section
@@ -99,7 +94,7 @@ theorem differentiable_canonicalProduct {m : ℕ} {a : ℕ → ℂ}
           Set.univ := by
     filter_upwards with N
     simpa [differentiableOn_univ] using
-      (Differentiable.fun_finset_prod (u := Finset.range N) fun i hi ↦ hfactor i)
+      (Differentiable.fun_finsetProd (u := Finset.range N) fun i hi ↦ hfactor i)
   exact differentiableOn_univ.mp <| hloc.differentiableOn hpartial isOpen_univ
 
 /-- The canonical product is analytic on `ℂ` under the standard summability hypothesis. -/
@@ -197,7 +192,7 @@ theorem canonicalProduct_ne_zero {m : ℕ} {a : ℕ → ℂ}
 theorem differentiableOn_canonicalPartialProduct (m : ℕ) (a : ℕ → ℂ) (N : ℕ) :
     DifferentiableOn ℂ (fun z ↦ ∏ k ∈ Finset.range N, weierstrassFactor m (z / a k)) Set.univ := by
   simpa [differentiableOn_univ] using
-    (Differentiable.fun_finset_prod (u := Finset.range N) fun i _ =>
+    (Differentiable.fun_finsetProd (u := Finset.range N) fun i _ =>
       (differentiable_weierstrassFactor m).comp (differentiable_id.div_const (a i)))
 
 private theorem tendsto_deriv_canonicalPartialProduct {m : ℕ} {a : ℕ → ℂ}

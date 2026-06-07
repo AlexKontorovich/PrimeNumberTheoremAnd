@@ -17,7 +17,7 @@ public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 # Weierstrass elementary factors
 
 We define the Weierstrass elementary factors
-`E_m(z) = (1 - z) * exp (∑_{k=1}^m z^k / k)` (as `Complex.weierstrassFactor`) and prove basic 
+`E_m(z) = (1 - z) * exp (∑_{k=1}^m z^k / k)` (as `Complex.weierstrassFactor`) and prove basic
 properties and estimates
 
 ## Main definitions

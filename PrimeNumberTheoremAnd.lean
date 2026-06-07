@@ -55,11 +55,14 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.AbsMax
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Basic
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.BorelCaratheodory
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CanonicalDecomposition
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CanonicalProduct
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CauchyIntegral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Convex
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LocallyUniformLimit
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Norm
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Trigonometric
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactor
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactorization
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Exp
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals

@@ -74,7 +74,7 @@ theorem differentiable_variableCanonicalProduct {m : ℕ → ℕ} {a : ℕ → �
           Set.univ := by
     filter_upwards with N
     simpa [differentiableOn_univ] using
-      (Differentiable.fun_finset_prod (u := Finset.range N) fun i _ ↦ hfactor i)
+      (Differentiable.fun_finsetProd (u := Finset.range N) fun i _ ↦ hfactor i)
   exact differentiableOn_univ.mp <| hloc.differentiableOn hpartial isOpen_univ
 
 /-- If `‖a n‖ → ∞`, then every compact radius is eventually at most half of `‖a n‖`. -/
