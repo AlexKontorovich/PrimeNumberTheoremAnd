@@ -70,8 +70,7 @@ theorem centeredHadamardDenom_center_eq_one {m : ℕ} {c : ℂ} {f : ℂ → ℂ
 
 @[simp]
 theorem centeredHadamardDenom_center_eq_zero {m : ℕ} {c : ℂ} {f : ℂ → ℂ}
-    (h : analyticOrderNatAt f c ≠ 0) :
-    centeredHadamardDenom m c f c = 0 := by
+    (h : analyticOrderNatAt f c ≠ 0) : centeredHadamardDenom m c f c = 0 := by
   have hn : 0 < analyticOrderNatAt f c := by
     exact Nat.pos_of_ne_zero h
   simp [centeredHadamardDenom, sub_self, zero_pow hn.ne']
@@ -82,8 +81,7 @@ theorem differentiable_divisorCanonicalProduct_univ (m : ℕ) (f : ℂ → ℂ)
     Differentiable ℂ (divisorCanonicalProduct m f (Set.univ : Set ℂ)) := by
   intro z
   have hdiffOn :
-      DifferentiableOn ℂ
-        (divisorCanonicalProduct m f (Set.univ : Set ℂ)) (Set.univ : Set ℂ) :=
+      DifferentiableOn ℂ (divisorCanonicalProduct m f (Set.univ : Set ℂ)) (Set.univ : Set ℂ) :=
     differentiableOn_divisorCanonicalProduct_univ (m := m) (f := f) h_sum
   exact (hdiffOn z (by simp)).differentiableAt (by simp)
 
@@ -102,11 +100,8 @@ theorem differentiable_hadamardDenom (m : ℕ) (f : ℂ → ℂ)
   simpa [hadamardDenom] using (differentiable_id.pow (analyticOrderNatAt f 0)).mul hcprod
 
 theorem hadamardDenom_ne_zero_at {m : ℕ} {f : ℂ → ℂ} (hf : Differentiable ℂ f)
-    (hnot : ∃ z : ℂ, f z ≠ 0)
-    (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
-      ‖divisorZeroIndex₀_val p‖⁻¹ ^ (m + 1)))
-    {z : ℂ} (hz : f z ≠ 0) :
-    hadamardDenom m f z ≠ 0 := by
+    (hnot : ∃ z : ℂ, f z ≠ 0) (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+      ‖divisorZeroIndex₀_val p‖⁻¹ ^ (m + 1))) {z : ℂ} (hz : f z ≠ 0) : hadamardDenom m f z ≠ 0 := by
   have hf_not_top : ∀ w : ℂ, analyticOrderAt f w ≠ ⊤ :=
     analyticOrderAt_ne_top_of_exists_ne_zero (hf := hf) hnot
   have han_f : AnalyticAt ℂ f z := hf.analyticAt z
@@ -152,8 +147,7 @@ theorem hadamardDenom_ne_zero_at {m : ℕ} {f : ℂ → ℂ} (hf : Differentiabl
     exact mul_ne_zero hp hcprod_ne
 
 lemma analyticOrderNatAt_divisorCanonicalProduct_zero
-    (m : ℕ) (f : ℂ → ℂ)
-    (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+    (m : ℕ) (f : ℂ → ℂ) (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
       ‖divisorZeroIndex₀_val p‖⁻¹ ^ (m + 1))) :
     analyticOrderNatAt (divisorCanonicalProduct m f (Set.univ : Set ℂ)) 0 = 0 := by
   have hcprod_entire :
@@ -387,12 +381,8 @@ theorem exists_entire_nonzero_hadamardQuotient
     (m : ℕ) {f : ℂ → ℂ} (hf : Differentiable ℂ f) (hnot : ∃ z : ℂ, f z ≠ 0)
     (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
       ‖divisorZeroIndex₀_val p‖⁻¹ ^ (m + 1))) :
-    ∃ H : ℂ → ℂ, Differentiable ℂ H ∧
-      (∀ z, H z ≠ 0) ∧
-      ∀ z : ℂ,
-        f z =
-          H z * z ^ (analyticOrderNatAt f 0) *
-            divisorCanonicalProduct m f (Set.univ : Set ℂ) z := by
+    ∃ H : ℂ → ℂ, Differentiable ℂ H ∧ (∀ z, H z ≠ 0) ∧ ∀ z : ℂ, f z =
+      H z * z ^ (analyticOrderNatAt f 0) * divisorCanonicalProduct m f (Set.univ : Set ℂ) z := by
   let denom : ℂ → ℂ := hadamardDenom m f
   let q : ℂ → ℂ := fun z => f z / denom z
   have hden_entire : Differentiable ℂ denom :=
