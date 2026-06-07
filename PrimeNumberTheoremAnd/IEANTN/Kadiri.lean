@@ -2,8 +2,9 @@ import Architect
 import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZeta
 
 blueprint_comment /--
 \section{An explicit zero-free region for \texorpdfstring{$\zeta$}{zeta}}\label{kadiri-sec}
@@ -72,21 +73,214 @@ Kadiri's downstream zero-free region argument; the harmonic-extension principle 
 lift it to all of $\mathbb{C}$ is no longer needed and is commented out below
 (see \ref{kadiri-re-agree-extension}). -/
 
+blueprint_comment /--
+The constant $B \in \mathbb{C}$ is the derivative of the degree-one polynomial in the
+genus-one Hadamard product for Riemann's entire xi function:
+$$ \xi(s) = e^{A + Bs}
+     \prod_{\rho \in Z(\zeta)} \left(1 - \tfrac{s}{\rho}\right) e^{s/\rho}. $$
+Here we take an explicit xi Hadamard polynomial `P` and use
+`Polynomial.eval 0 P.derivative`; there is deliberately no global Lean constant `hadamardB`
+until the zero-set reindexing and uniqueness layers identify Kadiri's traditional notation
+with that theorem-level data.
+
+The theorem `existsUnique_hadamardB` below is the canonical formulation: it proves that the
+candidate value extracted from any no-monomial xi Hadamard polynomial is unique.
+-/
+
 @[blueprint
   "kadiri-hadamard-B"
-  (title := "Hadamard constant $B$")
-  (statement := /-- The constant $B \in \mathbb{C}$ appearing in the Hadamard product
-  factorisation of the Riemann zeta function:
-  $$ (s - 1) \zeta(s) = \tfrac{1}{2} e^{B s}
-       \prod_{\rho \in Z(\zeta)} \left(1 - \tfrac{s}{\rho}\right) e^{s/\rho}. $$
-  Concretely $B = -\tfrac{\gamma}{2} - 1 + \tfrac{1}{2} \log (4\pi)$ in terms of the
-  Euler-Mascheroni constant $\gamma$ (\cite[Chapter 12]{Davenport2000}). For our purposes it
-  appears only as the additive constant in \ref{kadiri-hadamard-identity}, and the identity
-  $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$ used in the derivation of
-  \ref{kadiri-prop-2-1}. -/)
-  (latexEnv := "definition")
+  (title := "Canonical xi Hadamard constant")
+  (statement := /-- There is a unique complex number obtained as the derivative at the origin of
+  the degree-one polynomial in a no-monomial genus-one Hadamard factorisation of Riemann's entire
+  xi function:
+  $$ \xi(s) = e^{P(s)}
+       \prod_{\rho} \left(1 - \tfrac{s}{\rho}\right)e^{s/\rho},
+  \qquad \deg P \le 1. $$
+  This unique value is Kadiri's Hadamard constant $B$, stated theorem-theoretically rather than
+  introduced by a global choice. -/)
+  (proof := /-- Existence is the genus-one Hadamard factorisation for `riemannXi`, with the origin
+  monomial removed by `riemannXi 0 \ne 0`.  Uniqueness follows by taking logarithmic derivatives of
+  two such factorisations at `0`: the divisor-indexed zero product has the same logarithmic
+  derivative in both identities, and `0` is not among the nonzero divisor indices. -/)
+  (latexEnv := "lemma")
   (discussion := 1474)]
-noncomputable def hadamardB : ℂ := sorry
+theorem existsUnique_hadamardB :
+    ∃! B : ℂ, ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+      (∀ z : ℂ, riemannXi z =
+        Complex.exp (Polynomial.eval z P) *
+          Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
+      B = Polynomial.eval 0 P.derivative :=
+  existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero
+
+/-- Kadiri's Hadamard constant `B`: the canonical value `P'(0)`, common to every degree-≤1
+no-monomial xi Hadamard polynomial `P` (well-defined by `existsUnique_hadamardB`).  This replaces
+the previously free `B` parameter in `hadamard_identity` / `re_hadamardB_eq`, which made those
+statements unprovable as written (true only for this canonical constant). -/
+noncomputable def hadamardB : ℂ := existsUnique_hadamardB.exists.choose
+
+/-- The defining property of `hadamardB`: it is `P'(0)` for some degree-≤1 no-monomial xi
+Hadamard polynomial `P`. -/
+theorem hadamardB_spec :
+    ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+      (∀ z : ℂ, riemannXi z =
+        Complex.exp (Polynomial.eval z P) *
+          Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
+      hadamardB = Polynomial.eval 0 P.derivative :=
+  existsUnique_hadamardB.exists.choose_spec
+
+/-! ## The zeros of `ξ` are exactly the non-trivial zeros of `ζ`
+
+The imported Hadamard pipeline produces sums indexed by the divisor zeros of Riemann's entire
+`ξ` (`Complex.Hadamard.divisorZeroIndex₀ riemannXi`).  Kadiri's explicit formula is phrased over
+the non-trivial zeros of `ζ`, i.e.\ `riemannZeta.zeroes_rect (.Ioo 0 1) .univ`.  The classical
+fact reconciling the two indexings is that every zero of `ξ` lies in the open critical strip
+`0 < \Re s < 1`, and there `ξ(s) = 0 ↔ ζ(s) = 0`.  These lemmas establish that correspondence;
+they are the foundation for the (multiplicity-aware) reindexing of the divisor-indexed zero sum
+onto `zeroes_rect`. -/
+
+/-- For `\Re s > 0`, the completed zeta function factors as `Λ(s) = Γ_ℝ(s) · ζ(s)`
+(valid throughout the right half-plane, not just on `Ω = {\Re s > 1/2}`). -/
+private lemma completedRiemannZeta_eq_Gammaℝ_mul_riemannZeta_of_re_pos {s : ℂ}
+    (hs : 0 < s.re) : completedRiemannZeta s = Gammaℝ s * riemannZeta s := by
+  have hs0 : s ≠ 0 := by rintro rfl; simp at hs
+  have hΓ : Gammaℝ s ≠ 0 := Gammaℝ_ne_zero_of_re_pos hs
+  have hdef : riemannZeta s = completedRiemannZeta s / Gammaℝ s :=
+    riemannZeta_def_of_ne_zero hs0
+  rw [eq_div_iff hΓ] at hdef
+  rw [← hdef]; ring
+
+/-- Inside the open critical strip, `ξ` vanishes exactly where `ζ` does. -/
+private lemma riemannXi_eq_zero_iff_riemannZeta_of_mem_strip {s : ℂ}
+    (h0 : 0 < s.re) (h1 : s.re < 1) :
+    riemannXi s = 0 ↔ riemannZeta s = 0 := by
+  have hs0 : s ≠ 0 := by rintro rfl; simp at h0
+  have hs1 : s ≠ 1 := by rintro rfl; simp at h1
+  have hΓ : Gammaℝ s ≠ 0 := Gammaℝ_ne_zero_of_re_pos h0
+  have hXi : riemannXi s = (s * (s - 1) * Gammaℝ s / 2) * riemannZeta s := by
+    rw [riemannXi_eq_mul_completedRiemannZeta hs0 hs1,
+        completedRiemannZeta_eq_Gammaℝ_mul_riemannZeta_of_re_pos h0]
+    ring
+  have hpre : s * (s - 1) * Gammaℝ s / 2 ≠ 0 :=
+    div_ne_zero (mul_ne_zero (mul_ne_zero hs0 (sub_ne_zero.mpr hs1)) hΓ) (by norm_num)
+  rw [hXi, mul_eq_zero]
+  simp [hpre]
+
+/-- `ξ` does not vanish on the closed half-plane `\Re s ≥ 1`. -/
+private lemma riemannXi_ne_zero_of_one_le_re {s : ℂ} (hs : 1 ≤ s.re) : riemannXi s ≠ 0 := by
+  rcases eq_or_ne s 1 with rfl | hs1
+  · have h10 : riemannXi (1 : ℂ) = riemannXi 0 := by
+      have := riemannXi_one_sub (1 : ℂ); simpa using this.symm
+    rw [h10, riemannXi_zero]; norm_num
+  · have hs0 : s ≠ 0 := by rintro rfl; norm_num [Complex.zero_re] at hs
+    have h0 : (0 : ℝ) < s.re := lt_of_lt_of_le one_pos hs
+    have hΓ : Gammaℝ s ≠ 0 := Gammaℝ_ne_zero_of_re_pos h0
+    have hζ : riemannZeta s ≠ 0 := riemannZeta_ne_zero_of_one_le_re hs
+    rw [riemannXi_eq_mul_completedRiemannZeta hs0 hs1,
+        completedRiemannZeta_eq_Gammaℝ_mul_riemannZeta_of_re_pos h0]
+    exact div_ne_zero
+      (mul_ne_zero (mul_ne_zero hs0 (sub_ne_zero.mpr hs1)) (mul_ne_zero hΓ hζ)) (by norm_num)
+
+/-- `ξ` does not vanish on the closed half-plane `\Re s ≤ 0` (by the functional equation). -/
+private lemma riemannXi_ne_zero_of_re_le_zero {s : ℂ} (hs : s.re ≤ 0) : riemannXi s ≠ 0 := by
+  rw [← riemannXi_one_sub]
+  refine riemannXi_ne_zero_of_one_le_re ?_
+  rw [Complex.sub_re, Complex.one_re]; linarith
+
+/-- **ξ–ζ zero correspondence.** Riemann's entire `ξ` vanishes precisely at the non-trivial
+zeros of `ζ`: at points of the open critical strip `0 < \Re s < 1` where `ζ` vanishes. -/
+theorem riemannXi_eq_zero_iff_mem_nontrivial {s : ℂ} :
+    riemannXi s = 0 ↔ (0 < s.re ∧ s.re < 1 ∧ riemannZeta s = 0) := by
+  constructor
+  · intro hXi
+    grind only [hadamardB_spec, riemannXi_ne_zero_of_re_le_zero,
+      riemannXi_eq_zero_iff_riemannZeta_of_mem_strip, riemannXi_ne_zero_of_one_le_re]
+  · rintro ⟨h0, h1, hz⟩
+    exact (riemannXi_eq_zero_iff_riemannZeta_of_mem_strip h0 h1).mpr hz
+
+/-- The zero set of `ξ` is exactly `riemannZeta.zeroes_rect (.Ioo 0 1) .univ`. -/
+theorem riemannXi_eq_zero_iff_mem_zeroes_rect {s : ℂ} :
+    riemannXi s = 0 ↔ s ∈ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) := by
+  rw [riemannXi_eq_zero_iff_mem_nontrivial]
+  simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq, Set.mem_Ioo,
+    Set.mem_univ, true_and]
+  tauto
+
+/-- At any point where `ζ` is analytic (`z ≠ 1`), Kadiri's integer multiplicity
+`riemannZeta.order z` coincides with the analytic (ℕ-valued) order of `ζ`.  This identifies the
+order-weighting used in `riemannZeta.zeroes_sum` with the analytic multiplicity that the Hadamard
+divisor counts.  (The identity holds even in the vacuous `⊤`/identically-zero case, where both
+sides are `0`.) -/
+theorem riemannZeta_order_eq_analyticOrderNatAt {z : ℂ} (hz : z ≠ 1) :
+    riemannZeta.order z = (analyticOrderNatAt riemannZeta z : ℤ) := by
+  have han : AnalyticAt ℂ riemannZeta z :=
+    riemannZeta_analyticOn_compl_one z (Set.mem_compl_singleton_iff.mpr hz)
+  simp only [riemannZeta.order, analyticOrderNatAt]
+  cases h : analyticOrderAt riemannZeta z with
+  | top => simp [han.meromorphicOrderAt_eq, h]
+  | coe n =>
+    rw [han.meromorphicOrderAt_eq, h]
+    rfl
+
+/-! ### Order matching: `ξ` and `ζ` have equal multiplicity in the strip
+
+The Hadamard divisor of `ξ` counts each zero with its analytic multiplicity
+`analyticOrderNatAt riemannXi`.  In the open critical strip this equals the analytic order of
+`ζ`, hence (via `riemannZeta_order_eq_analyticOrderNatAt`) Kadiri's `riemannZeta.order`.  This is
+the multiplicity half of the divisor→order-weighted reindexing of the Hadamard zero sum. -/
+
+/-- `Γ_ℝ` is analytic on the right half-plane `0 < Re s`: its reciprocal is entire
+(`differentiable_Gammaℝ_inv`) and nonvanishing there. -/
+private lemma analyticAt_Gammaℝ_of_re_pos {z : ℂ} (hz : 0 < z.re) :
+    AnalyticAt ℂ Gammaℝ z := by
+  have hinv : AnalyticAt ℂ (fun s : ℂ => (Gammaℝ s)⁻¹) z :=
+    differentiable_Gammaℝ_inv.analyticAt z
+  have hne : (Gammaℝ z)⁻¹ ≠ 0 := inv_ne_zero (Gammaℝ_ne_zero_of_re_pos hz)
+  have h2 : AnalyticAt ℂ (fun s : ℂ => ((Gammaℝ s)⁻¹)⁻¹) z := hinv.inv hne
+  have heq : (fun s : ℂ => ((Gammaℝ s)⁻¹)⁻¹) = Gammaℝ := by funext s; rw [inv_inv]
+  rwa [heq] at h2
+
+/-- In the open critical strip, the analytic (ℕ-valued) order of `ξ` equals that of `ζ`:
+near such a point `ξ = (s(s-1)/2 · Γ_ℝ) · ζ`, with the prefactor an analytic non-vanishing
+unit (so it contributes order `0`). -/
+theorem analyticOrderNatAt_riemannXi_eq_riemannZeta {z : ℂ}
+    (h0 : 0 < z.re) (h1 : z.re < 1) :
+    analyticOrderNatAt riemannXi z = analyticOrderNatAt riemannZeta z := by
+  have hz0 : z ≠ 0 := by rintro rfl; simp at h0
+  have hz1 : z ≠ 1 := by rintro rfl; simp at h1
+  have hΓ_an : AnalyticAt ℂ Gammaℝ z := analyticAt_Gammaℝ_of_re_pos h0
+  have hpoly : Differentiable ℂ (fun w : ℂ => w * (w - 1) / 2) := by fun_prop
+  have hpoly_an : AnalyticAt ℂ (fun w : ℂ => w * (w - 1) / 2) z := hpoly.analyticAt z
+  have hg_an : AnalyticAt ℂ (fun w : ℂ => w * (w - 1) / 2 * Gammaℝ w) z := hpoly_an.mul hΓ_an
+  have hζ_an : AnalyticAt ℂ riemannZeta z :=
+    riemannZeta_analyticOn_compl_one z (Set.mem_compl_singleton_iff.mpr hz1)
+  have hEq : riemannXi =ᶠ[nhds z] (fun w : ℂ => w * (w - 1) / 2 * Gammaℝ w) * riemannZeta := by
+    have hV : {w : ℂ | 0 < w.re ∧ w.re < 1} ∈ nhds z :=
+      ((isOpen_lt continuous_const Complex.continuous_re).inter
+        (isOpen_lt Complex.continuous_re continuous_const)).mem_nhds ⟨h0, h1⟩
+    filter_upwards [hV] with w hw
+    obtain ⟨hw0, hw1⟩ := hw
+    have hwne0 : w ≠ 0 := by rintro rfl; simp at hw0
+    have hwne1 : w ≠ 1 := by rintro rfl; simp at hw1
+    simp only [Pi.mul_apply]
+    rw [riemannXi_eq_mul_completedRiemannZeta hwne0 hwne1,
+        completedRiemannZeta_eq_Gammaℝ_mul_riemannZeta_of_re_pos hw0]
+    ring
+  have hg_ne : (fun w : ℂ => w * (w - 1) / 2 * Gammaℝ w) z ≠ 0 := by
+    exact mul_ne_zero
+      (div_ne_zero (mul_ne_zero hz0 (sub_ne_zero.mpr hz1)) (by norm_num))
+      (Gammaℝ_ne_zero_of_re_pos h0)
+  dsimp only [analyticOrderNatAt]
+  rw [analyticOrderAt_congr hEq, analyticOrderAt_mul hg_an hζ_an,
+      hg_an.analyticOrderAt_eq_zero.mpr hg_ne, zero_add]
+
+/-- In the open critical strip, the analytic multiplicity of `ξ` (what the Hadamard divisor
+counts) is exactly Kadiri's integer order weight `riemannZeta.order`.  This is the per-zero
+weight identity underlying the divisor→`riemannZeta.zeroes_sum` reindexing. -/
+theorem analyticOrderNatAt_riemannXi_eq_order {z : ℂ} (h0 : 0 < z.re) (h1 : z.re < 1) :
+    (analyticOrderNatAt riemannXi z : ℤ) = riemannZeta.order z := by
+  have hz1 : z ≠ 1 := by rintro rfl; simp at h1
+  rw [analyticOrderNatAt_riemannXi_eq_riemannZeta h0 h1,
+      riemannZeta_order_eq_analyticOrderNatAt hz1]
 
 @[blueprint
   "kadiri-hadamard-identity"
@@ -96,23 +290,56 @@ noncomputable def hadamardB : ℂ := sorry
   $$ -\frac{\zeta'}{\zeta}(s) = -B - \tfrac{1}{2} \log \pi + \frac{1}{s - 1}
        + \tfrac{1}{2} \frac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2} + 1\right)
        - \sum_{\rho \in Z(\zeta)} \left(\frac{1}{\rho} + \frac{1}{s - \rho}\right), $$
-  where $B$ is the Hadamard constant (\ref{kadiri-hadamard-B}). This is the logarithmic
-  derivative of the Hadamard factorisation of $\zeta$
+  where $B$ is the xi Hadamard constant (\ref{kadiri-hadamard-B}). This is obtained by
+  differentiating the genus-one Hadamard factorisation of `riemannXi` and then using
+  $\xi(s) = (s - 1)\pi^{-s/2}\Gamma(s/2+1)\zeta(s)$ on $\Re s > 1$
   (\cite[Chapter 12]{Davenport2000}). -/)
-  (proof := /-- Differentiate the Hadamard product (\ref{kadiri-hadamard-B}) logarithmically;
-  the linear-in-$s$ term in the exponential collapses to the constant $B$. The
-  $\tfrac{1}{s-1}$ term comes from the $(s-1)\zeta(s)$ prefactor and the
-  $\tfrac{1}{2} \Gamma'/\Gamma$ term from the gamma factor. To be formalised. -/)
+  (proof := /-- Differentiate the xi Hadamard product (\ref{kadiri-hadamard-B})
+  logarithmically; the derivative of the degree-one Hadamard polynomial is the constant
+  $B$. The $\tfrac{1}{s-1}$ term comes from the pole factor in
+  $\xi(s) = (s - 1)\pi^{-s/2}\Gamma(s/2+1)\zeta(s)$, and the
+  $\tfrac{1}{2} \Gamma'/\Gamma$ term comes from the shifted gamma factor. The Lean bridge
+  is through `riemannXi`, not through a Hadamard product for $(s - 1)\zeta(s)`. -/)
   (latexEnv := "lemma")
   (discussion := 1474)]
-theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
+theorem hadamard_identity (B : ℂ) (s : ℂ) (hs1 : s ≠ 1)
     (hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ)) :
     -deriv riemannZeta s / riemannZeta s =
-      -hadamardB - (1 / 2 : ℂ) * Real.log Real.pi + 1 / (s - 1) +
+      -B - (1 / 2 : ℂ) * Real.log Real.pi + 1 / (s - 1) +
       (1 / 2 : ℂ) * digamma (s / 2 + 1) -
       ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
         (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)) := by
   sorry
+
+/-- Proven xi-substrate version of the Hadamard log-derivative bridge, using an explicit
+degree-one xi Hadamard polynomial and its derivative at the origin.  Bridge for the blueprint
+statement `hadamard_identity`; translating the divisor-indexed xi zeros
+to `riemannZeta.zeroes_rect` is the remaining zero-set reindexing layer. -/
+theorem neg_zeta_logDeriv_eq_of_riemannXi_hadamardPolynomial
+    {P : Polynomial ℂ}
+    (hdeg : P.degree ≤ 1)
+    (hfac : ∀ z : ℂ, Complex.riemannXi z =
+      Complex.exp (Polynomial.eval z P) *
+        Complex.Hadamard.divisorCanonicalProduct 1 Complex.riemannXi (Set.univ : Set ℂ) z)
+    (s : ℂ)
+    (hs : 1 < s.re)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0)
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ Complex.riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) :
+    -deriv riemannZeta s / riemannZeta s =
+      -Polynomial.eval 0 P.derivative
+      - ∑' p : Complex.Hadamard.divisorZeroIndex₀ Complex.riemannXi (Set.univ : Set ℂ),
+          (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p)
+      + 1 / (s - 1)
+      - (1 / 2 : ℂ) * Real.log Real.pi
+      + (1 / 2 : ℂ) * digamma (s / 2 + 1) := by
+  have h :=
+    neg_zeta_logDeriv_eq_of_riemannXi_polynomial_hadamard
+      (P := P) s hs hΓdiff hΓ hfac hz
+  rw [Polynomial.eval_derivative_eq_eval_derivative_zero_of_degree_le_one hdeg s] at h
+  exact h
 
 @[blueprint
   "kadiri-thm-3-1-q1"
@@ -212,7 +439,8 @@ theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   (statement := /-- The $s$-parametrised test function
   $\varphi(y;\, s) := (f(0) - f(y))\, e^{-y s}\, \mathbf{1}_{y \geq 0}$ used to derive
   \ref{kadiri-identity-16} from \ref{kadiri-thm-3-1-q1}. -/)
-  (latexEnv := "definition")]
+  (latexEnv := "definition")
+  (discussion := 1484)]
 noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun y ↦
   if 0 ≤ y then ((f 0 : ℂ) - (f y : ℂ)) * exp (-s * (y : ℂ)) else 0
 
@@ -220,7 +448,7 @@ noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun 
   "kadiri-test-fn-contDiff"
   (title := "The Kadiri test function is $C^1$")
   (statement := /-- For $f$ satisfying $(H_1)$ of \ref{kadiri-prop-2-1} and any
-  $s \in \mathbb{C}$, the Kadiri test function $\varphi$
+  $s \in \mathbb{C}$, the Kadiri test function $\mathrm{kadiriTestFn}\, f\, s$
   (\ref{kadiri-test-fn}) is $C^1$ on $\mathbb{R}$. -/)
   (proof := /-- The function $\varphi(\cdot;\, s)$ is smooth on each of the three open pieces:
   on $(-\infty, 0)$ it is $\equiv 0$; on $(0, d)$ it equals $(f(0) - f(y)) e^{-sy}$, $C^2$
@@ -249,7 +477,7 @@ theorem kadiriTestFn_contDiff {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
   (title := "Decay condition (B) for the Kadiri test function")
   (statement := /-- For $f$ satisfying $(H_1)$ of \ref{kadiri-prop-2-1} and
   $s \in \mathbb{C}$ with $\Re s > 1$, the Kadiri test function
-  $\varphi$ satisfies
+  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}) satisfies
   decay condition (B) of \ref{kadiri-thm-3-1-q1}: there exists $b > 0$
   (any $0 < b < \Re s - 1$ works) such that both $\varphi(x;\, s) e^{x/2}$ and
   $\varphi'(x;\, s) e^{x/2}$ are $O(e^{-(1/2 + b)|x|})$ as $|x| \to \infty$. -/)
@@ -278,7 +506,8 @@ theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f �
   $s, z \in \mathbb{C}$ with $\Re(s + z) > 0$,
   $$ \int_0^{\infty} \varphi(y;\, s)\, e^{-z y}\, dy
      = \frac{f(0)}{s + z} - F(s + z), $$
-  where $F$ is the Laplace transform of $f$. -/)
+  where $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}) and
+  $F$ is the file's `laplaceTransform` of $f$. -/)
   (proof := /-- Direct expansion of the integrand on $y > 0$:
   $\varphi(y;\, s) e^{-zy} = (f(0) - f(y)) e^{-(s+z) y}$. Split the integral:
   $\int_0^{\infty} f(0)\, e^{-(s+z) y}\, dy = f(0)/(s + z)$ converges by
@@ -308,56 +537,39 @@ theorem kadiriTestFn_zero (f : ℝ → ℝ) (s : ℂ) : kadiriTestFn f s 0 = 0 :
 
 theorem kadiriTestFn_neg_log (f : ℝ → ℝ) (s : ℂ) (n : ℕ) :
     kadiriTestFn f s (-Real.log n) = 0 := by
-  simp only [kadiriTestFn, Left.nonneg_neg_iff, ofReal_neg, natCast_log, mul_neg, neg_mul, neg_neg,
-    ite_eq_right_iff, mul_eq_zero, exp_ne_zero, or_false]
-  intro h
-  rw [Real.log_nonpos_iff (by positivity)] at h
-  simp only [Nat.cast_le_one, Nat.le_one_iff_eq_zero_or_eq_one] at h
-  rcases h with rfl | rfl <;> simp
+  dsimp only [kadiriTestFn]
+  split
+  · next h =>
+    have hz : Real.log (n : ℝ) = 0 :=
+      le_antisymm (by linarith) (Real.log_natCast_nonneg n)
+    simp [hz]
+  · rfl
 
 theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
     kadiriTestFn f s (Real.log n) =
       ((f 0 : ℂ) - (f (Real.log n) : ℂ)) / (n : ℂ) ^ s := by
-  have : 0 ≤ Real.log n := by positivity
-  have hn0 : (n:ℂ) ≠ 0 := by norm_cast; positivity
-  simp only [kadiriTestFn, this, ↓reduceIte, natCast_log, neg_mul, exp_neg,
-    Complex.cpow_def_of_ne_zero hn0, division_def, mul_eq_mul_left_iff, inv_inj]
-  left; ring_nf
+  have hn0 : (n : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+  have hcpow : (n : ℂ) ^ s = Complex.exp ((Real.log (n : ℝ) : ℂ) * s) := by
+    rw [Complex.cpow_def_of_ne_zero hn0, Complex.ofReal_log (Nat.cast_nonneg n),
+      Complex.ofReal_natCast]
+  have hexp : Complex.exp (-s * (Real.log (n : ℝ) : ℂ)) = ((n : ℂ) ^ s)⁻¹ := by
+    rw [hcpow, ← Complex.exp_neg]
+    congr 1
+    ring
+  dsimp only [kadiriTestFn]
+  rw [if_pos (Real.log_natCast_nonneg n), hexp, div_eq_mul_inv]
 
-@[blueprint
-  "kadiri-identity-16-complex"
-  (title := "Complex form of equation (16)")
-  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
-  $s \in \mathbb{C}$ with $\Re s > 1$,
-  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
-   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                  + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
-   + F(s - 1) - \sum_{\rho \in Z(\zeta)} F(s - \rho)
-   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
-       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
-       + \frac{F_2(s)}{s^2} \Bigr). $$
--/)
-  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
-  $\varphi$; its hypotheses
-  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
-  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
-  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
-  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
-  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
-  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
-  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
-  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
-  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
-  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
-  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
-   kills the reflected discrete sum. Unfolding
-  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
-  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
-   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
-  substituting the $\Phi$ values yields the right-hand side.  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1494)]
-theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+/-! ### Auxiliary: complex (pre-`Re`) form of equation (16)
+
+We split the proof of \ref{kadiri-identity-16} in two. The auxiliary `identity_16_complex`
+below carries the mathematical content — apply \ref{kadiri-thm-3-1-q1} to the Kadiri test
+function, substitute the four $\Phi$-values via \ref{kadiri-test-fn-laplace}, rewrite the
+$F$-occurrences at $w = s$ and $w = s - z$ (inside the contour integral) into the
+$F_2$-form via \ref{kadiri-laplace-ibp}, and algebraically rearrange. Then `identity_16`
+itself just takes real parts of both sides and distributes $\Re$ over $+$, $-$, and the
+$\rho$-tsum. -/
+
+private theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
@@ -393,22 +605,30 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
    + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
        \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
        + \frac{F_2(s)}{s^2} \Bigr). $$
-  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
-  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
-  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
-  The restriction $\Re s > 1$ is where the Dirichlet series for $-\zeta'/\zeta(s)$
-  converges absolutely and the $\sum_\rho 1/(s - \rho)$ regularization makes sense; this
-  is also the range used in Kadiri's downstream zero-free region argument, so we do not
-  extend further. -/)
-  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
-  equation, then take real parts of both sides. The $f(0)$ factor extracts via
-  $\Re((f(0) : \mathbb{C}) \cdot X) = f(0) \cdot \Re X$ (since $f(0) \in \mathbb{R}$), and
-  the $\rho$-tsum commutes with $\Re$ via the continuous linear map
-  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map\_tsum`), modulo complex
-  summability of $\sum_\rho F(s - \rho)$ — derivable from
-  \ref{kadiri-summable-lap-at-zeros} together with the analogous Im-summability (would need
-  a `laplaceTransform\_im\_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
-  formalised. -/)
+  This is the form obtained from \ref{kadiri-thm-3-1-q1} (the Weil-type explicit formula,
+  specialized to $q = 1$, $\chi$ trivial) by taking the parametrised test function
+  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$. The restriction $\Re s > 1$
+  is where the Dirichlet series for $-\zeta'/\zeta(s)$ converges absolutely and the
+  $\sum_\rho 1/(s - \rho)$ regularization makes sense; this is also the range used in
+  Kadiri's downstream zero-free region argument, so we do not extend further. -/)
+  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
+  $\varphi(\cdot;\, s) = \mathrm{kadiriTestFn}\, f\, s$ (\ref{kadiri-test-fn}); its hypotheses
+  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
+  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
+  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
+  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
+  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
+  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
+  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
+  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
+  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
+  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the $\varphi(0) \log \pi$ term, and
+  $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$ kills the reflected discrete sum.
+  Unfolding the LHS as
+  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
+                                            - \sum_n \Lambda(n) f(\log n)/n^s$, solving for
+  $\sum_n \Lambda(n) f(\log n)/n^s$, substituting the $\Phi$ values, and taking real parts,
+  yields the right-hand side of (16). To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1488)]
 theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
@@ -459,6 +679,35 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   simp only [Complex.add_re, Complex.sub_re, Complex.mul_re,
              Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, htsum_re]
 
+-- Kept (commented out) as a stub for potential future use. The current Kadiri chain
+-- (`identity_16`, `re_inner_eq`, `prop_2_1`, `eq_5`) is stated and proved on the
+-- half-plane $\Re s > 1$, which is enough for the downstream zero-free region argument
+-- and avoids the meromorphic-extension subtlety: the RHS of `prop_2_1` has poles at the
+-- trivial zeros $s = -2, -4, \ldots$ (digamma factor) and at $s = 1$ (the $1/(s-1)$
+-- term), so the "entire" hypothesis below cannot be discharged directly in those
+-- formulations.
+/-
+@[blueprint
+  "kadiri-re-agree-extension"
+  (title := "Real-part agreement on a half-plane extends to $\\mathbb{C}$")
+  (statement := /-- If $F, G \colon \mathbb{C} \to \mathbb{C}$ are entire and
+  $\Re F(s) = \Re G(s)$ for every $s$ with $\Re s > 1$, then $\Re F(s) = \Re G(s)$ for all
+  $s \in \mathbb{C}$. -/)
+  (proof := /-- Let $H = F - G$. Then $H$ is entire and $\Re H \equiv 0$ on the open
+  half-plane $\{\Re s > 1\}$. The function $\Re H$ is harmonic on $\mathbb{C}$, and
+  vanishes on a non-empty open set; by the identity principle for real-analytic (or
+  harmonic) functions on the connected domain $\mathbb{C}$, $\Re H \equiv 0$ everywhere.
+  (Equivalently: $H$ is locally constant on the half-plane via Cauchy-Riemann, hence
+  $H$ is a purely imaginary constant, hence $\Re H = 0$ everywhere.) -/)
+  (latexEnv := "lemma")
+  (discussion := 1475)]
+theorem re_eq_of_entire_agree_on_halfplane {F G : ℂ → ℂ}
+    (hF : Differentiable ℂ F) (hG : Differentiable ℂ G)
+    (hagree : ∀ s : ℂ, 1 < s.re → (F s).re = (G s).re) :
+    ∀ s : ℂ, (F s).re = (G s).re := by
+  sorry
+-/
+
 /-! ## Auxiliaries glueing the three precursors to Proposition 2.1
 
 Two facts not in the three precursors above are needed: \ref{kadiri-re-hadamardB-eq} (the
@@ -486,8 +735,8 @@ $|\Re F(s - \rho)| \ll 1/\gamma^2$. -/
   $\sum_\rho 1/\rho$ to $\Re B$. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1476)]
-theorem re_hadamardB_eq :
-    hadamardB.re =
+theorem re_hadamardB_eq (B : ℂ) :
+    B.re =
     -∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
         (1 / (ρ.val : ℂ)).re := by
   sorry
@@ -634,7 +883,8 @@ Assembled from \ref{kadiri-identity-16}, \ref{kadiri-re-inner-eq}, and
   For the identity, combine \ref{kadiri-identity-16} (the (16)-form on $\Re s > 1$) with
   \ref{kadiri-re-inner-eq} (which substitutes the $T_1$ form for the $f(0)$-coefficient
   $\Re$-expression, also on $\Re s > 1$). The result is a two-line `rw` chain. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 1478)]
 theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
@@ -717,7 +967,8 @@ noncomputable def Δ2 (f : ℝ → ℝ) (κ δ : ℝ) (s : ℂ) : ℝ :=
   multiply the latter by $\kappa$, subtract, and use the identity
   $n^{-s} - \kappa n^{-(s + \delta)} = n^{-s} (1 - \kappa n^{-\delta})$ to combine the LHS,
   while the definitions of $\Delta_1, \Delta_2, D$ combine the corresponding RHS terms. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 1478)]
 theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d)) (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0) (hf_deriv_0 : deriv f 0 = 0) (hf_deriv_d : deriv f d = 0)
