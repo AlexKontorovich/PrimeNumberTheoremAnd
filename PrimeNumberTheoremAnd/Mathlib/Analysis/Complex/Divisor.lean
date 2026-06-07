@@ -34,8 +34,6 @@ corresponding canonical product.
 
 @[expose] public section
 
-noncomputable section
-
 namespace Complex.Hadamard
 
 /-!
@@ -87,10 +85,8 @@ all (nonzero) divisor-indexed zeros inside an ambient bound `B`, then `f` has no
 
 lemma no_zero_on_sphere_of_forall_val_norm_ne
     {f : ℂ → ℂ} (hf : Differentiable ℂ f) (hnot : ∃ z : ℂ, f z ≠ 0)
-    {B r : ℝ} (hrpos : 0 < r) (hBr : r ≤ B)
-    (hr_not :
-      ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
-        ‖divisorZeroIndex₀_val p‖ ≤ B → r ≠ ‖divisorZeroIndex₀_val p‖) :
+    {B r : ℝ} (hrpos : 0 < r) (hBr : r ≤ B) (hr_not :  ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
+      ‖divisorZeroIndex₀_val p‖ ≤ B → r ≠ ‖divisorZeroIndex₀_val p‖) :
     ∀ u : ℂ, ‖u‖ = r → f u ≠ 0 := by
   intro u hur
   have hu0 : u ≠ 0 := by
@@ -125,7 +121,7 @@ lemma no_zero_on_sphere_of_forall_val_norm_ne
   exact this (by simp [hpval, hur])
 
 /-!
-## Basic correctness: the divisor canonical product vanishes at indexed zeros
+## The divisor canonical product vanishes at indexed zeros
 
 If one of the factors is `0` at `z`, then the infinite product is `0`.
 -/
@@ -313,13 +309,9 @@ where `u` is the analytic quotient coming from the fiber-only product.
 theorem eventually_exists_analyticAt_eq_pow_smul_divisorComplementPartialProduct
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) :
     ∀ᶠ s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) in (Filter.atTop : Filter _),
-      ∃ u : ℂ → ℂ,
-        AnalyticAt ℂ u z₀ ∧ u z₀ ≠ 0 ∧
-          (fun z : ℂ => divisorPartialProduct m f s z)
-            =ᶠ[𝓝 z₀]
-            fun z : ℂ =>
-              (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card •
-                (divisorComplementPartialProduct m f z₀ s z * u z) := by
+      ∃ u : ℂ → ℂ, AnalyticAt ℂ u z₀ ∧ u z₀ ≠ 0 ∧ (fun z : ℂ => divisorPartialProduct m f s z)
+        =ᶠ[𝓝 z₀] fun z : ℂ => (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card •
+          (divisorComplementPartialProduct m f z₀ s z * u z) := by
   let fiber : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) :=
     divisorZeroIndex₀_fiberFinset (f := f) z₀
   have hfib : ∃ u : ℂ → ℂ, AnalyticAt ℂ u z₀ ∧ u z₀ ≠ 0 ∧ (fun z : ℂ =>

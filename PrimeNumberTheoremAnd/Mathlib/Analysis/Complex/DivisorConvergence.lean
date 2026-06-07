@@ -23,8 +23,6 @@ It also provides finiteness lemmas for subsets of the divisor index type cut out
 
 @[expose] public section
 
-noncomputable section
-
 open Filter Function Complex Finset Topology
 open scoped Topology BigOperators
 open Set
@@ -116,11 +114,7 @@ lemma norm_div_le_half_of_norm_le_of_two_mul_lt {z a : ℂ} {R : ℝ}
       _ = (1 / 2 : ℝ) := hRhalf
 
 /-- The genus-one logarithmic-derivative zero terms are summable away from the zero set whenever
-the genus-one divisor product is summable.
-
-The estimate is the standard far-zero comparison
-`1 / (z - a) + 1 / a = z / (a * (z - a)) = O_z(‖a‖⁻²)`, with the finitely many near zeros removed
-using local finiteness of the divisor support. -/
+the genus-one divisor product is summable. -/
 theorem summable_logDerivTerms_divisorZeroIndex₀_of_summable_inv_sq
     {f : ℂ → ℂ} {z : ℂ}
     (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>

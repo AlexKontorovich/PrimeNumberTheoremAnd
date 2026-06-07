@@ -18,8 +18,6 @@ local identity on a punctured ball used later in removable-singularity arguments
 
 @[expose] public section
 
-noncomputable section
-
 open Filter Function Complex Finset Topology
 open scoped Topology BigOperators
 open Set
@@ -248,14 +246,10 @@ theorem bddAbove_norm_divisorCanonicalProduct_div_pow_puncturedBall
     (m : ℕ) (f : ℂ → ℂ)
     (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
       ‖divisorZeroIndex₀_val p‖⁻¹ ^ (m + 1)))
-    (z₀ : ℂ) :
-    ∃ r > 0,
-      BddAbove
-        (norm ∘
-          (fun z : ℂ =>
-            (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
-              (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card) ''
-            ((Metric.ball z₀ r) \ {z₀})) := by
+    (z₀ : ℂ) : ∃ r > 0, BddAbove (norm ∘ (fun z : ℂ =>
+      (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
+        (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card) ''
+      ((Metric.ball z₀ r) \ {z₀})) := by
   rcases exists_ball_eq_divisorCanonicalProduct_div_pow_eq (m := m) (f := f) (h_sum := h_sum)
     (z₀ := z₀) with ⟨ε, hε, u, huA, hu0, hEq⟩
   have huC : ContinuousAt u z₀ := huA.continuousAt
@@ -469,12 +463,9 @@ product is locally divisible by `(z - z₀)^k`, where `k` is the fiber cardinali
 theorem eventually_exists_analyticAt_eq_pow_smul_divisorPartialProduct
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) :
     ∀ᶠ s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) in (Filter.atTop : Filter _),
-      ∃ g : ℂ → ℂ,
-        AnalyticAt ℂ g z₀ ∧ g z₀ ≠ 0 ∧
-          (fun z : ℂ => divisorPartialProduct m f s z)
-            =ᶠ[𝓝 z₀]
-            fun z : ℂ =>
-              (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card • g z := by
+      ∃ g : ℂ → ℂ, AnalyticAt ℂ g z₀ ∧ g z₀ ≠ 0 ∧ (fun z : ℂ => divisorPartialProduct m f s z)
+        =ᶠ[𝓝 z₀] fun z : ℂ =>
+          (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card • g z := by
   refine (eventually_atTop_subset_fiberFinset (f := f) z₀).mono ?_
   intro s hs
   rcases

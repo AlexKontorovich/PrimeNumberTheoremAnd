@@ -25,7 +25,6 @@ theorem _root_.TendstoUniformlyOn.mul_left_bounded {ι : Type*} {p : Filter ι} 
     {F : ι → ℂ → ℂ} {f : ℂ → ℂ} {h : ℂ → ℂ}
     (hF : TendstoUniformlyOn F f p K) (hh : ∃ C, ∀ z ∈ K, ‖h z‖ ≤ C) :
     TendstoUniformlyOn (fun n z => h z * F n z) (fun z => h z * f z) p K := by
-  classical
   intro u hu
   rcases Metric.mem_uniformity_dist.1 hu with ⟨ε, hεpos, hεu⟩
   rcases hh with ⟨C, hC⟩

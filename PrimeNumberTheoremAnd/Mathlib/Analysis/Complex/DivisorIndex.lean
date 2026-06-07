@@ -196,7 +196,6 @@ theorem divisorCanonicalProduct_eq_canonicalProduct_of_equiv
 @[simp]
 lemma divisorCanonicalProduct_zero (m : ℕ) (f : ℂ → ℂ) (U : Set ℂ) :
     divisorCanonicalProduct m f U 0 = 1 := by
-  classical
   simp [divisorCanonicalProduct]
 
 lemma divisorCanonicalProduct_ne_zero_at_zero (m : ℕ) (f : ℂ → ℂ) (U : Set ℂ) :

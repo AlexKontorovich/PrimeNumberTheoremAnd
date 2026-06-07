@@ -41,7 +41,7 @@ theorem analyticOrderAt_finset_prod_weierstrassFactor_divisorZeroIndex₀
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) (z₀ : ℂ) :
     analyticOrderAt (fun z : ℂ => ∏ p ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val p))
         z₀ = ((s.filter (fun p => divisorZeroIndex₀_val p = z₀)).card : ℕ∞) := by
-  classical
+  classical -- needed
   refine Finset.induction_on s ?base ?step
   · simp [analyticOrderAt_eq_zero]
   · intro p s hp hs

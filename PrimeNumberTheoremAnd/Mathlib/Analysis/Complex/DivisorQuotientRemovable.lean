@@ -94,9 +94,9 @@ theorem differentiableOn_update_limUnder_divisorCanonicalProduct_div_pow
   refine ⟨r, hrpos, ?_⟩
   have hnhds : Metric.ball z₀ r ∈ 𝓝 z₀ := Metric.ball_mem_nhds z₀ hrpos
   have hdiff : DifferentiableOn ℂ (fun z : ℂ =>
-          (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
-            (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card)
-        ((Metric.ball z₀ r) \ {z₀}) := by
+        (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
+          (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card)
+      ((Metric.ball z₀ r) \ {z₀}) := by
     have hglob :=
       differentiableOn_divisorCanonicalProduct_div_pow_sub
         (m := m) (f := f) h_sum (z₀ := z₀)
@@ -105,8 +105,8 @@ theorem differentiableOn_update_limUnder_divisorCanonicalProduct_div_pow
     intro z hz
     exact ⟨by simp, hz.2⟩
   have hb : BddAbove (norm ∘ (fun z : ℂ => (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
-              (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card) ''
-            ((Metric.ball z₀ r) \ {z₀})) := hbdd
+      (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card) ''
+    ((Metric.ball z₀ r) \ {z₀})) := hbdd
   simpa using
     (Complex.differentiableOn_update_limUnder_of_bddAbove (f := fun z : ℂ =>
         (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
@@ -162,14 +162,16 @@ noncomputable def divisorCanonicalProductQuotientExtension
       (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
         (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card)
 
-@[simp] theorem divisorCanonicalProductQuotientExtension_apply_of_ne
+@[simp]
+theorem divisorCanonicalProductQuotientExtension_apply_of_ne
     (m : ℕ) (f : ℂ → ℂ) {z₀ z : ℂ} (hz : z ≠ z₀) :
     divisorCanonicalProductQuotientExtension m f z₀ z =
       (divisorCanonicalProduct m f (Set.univ : Set ℂ) z) /
         (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card := by
   simp [divisorCanonicalProductQuotientExtension, Function.update_of_ne hz]
 
-@[simp] theorem divisorCanonicalProductQuotientExtension_self
+@[simp]
+theorem divisorCanonicalProductQuotientExtension_self
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) :
     divisorCanonicalProductQuotientExtension m f z₀ z₀ =
       limUnder (𝓝[≠] z₀) (fun z : ℂ =>

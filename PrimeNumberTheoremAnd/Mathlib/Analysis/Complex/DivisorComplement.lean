@@ -36,7 +36,8 @@ noncomputable def divisorPartialProduct (m : ℕ) (f : ℂ → ℂ)
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) (z : ℂ) : ℂ :=
   ∏ p ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val p)
 
-@[simp] lemma divisorPartialProduct_def (m : ℕ) (f : ℂ → ℂ)
+@[simp]
+lemma divisorPartialProduct_def (m : ℕ) (f : ℂ → ℂ)
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) (z : ℂ) :
     divisorPartialProduct m f s z = ∏ p ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val p) :=
   rfl
@@ -255,7 +256,6 @@ theorem hasProdUniformlyOn_divisorComplementCanonicalProduct_univ
     simpa [g, sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using hprod
   refine hterm.congr_right ?_
   intro z hz
-  classical
   simp [term, divisorComplementCanonicalProduct, divisorComplementFactor]
 
 theorem hasProdLocallyUniformlyOn_divisorComplementCanonicalProduct_univ
@@ -340,7 +340,7 @@ lemma divisorPartialProduct_eq_fiber_mul_complement_of_subset
     divisorPartialProduct m f s z =
       divisorPartialProduct m f (divisorZeroIndex₀_fiberFinset (f := f) z₀) z *
         divisorComplementPartialProduct m f z₀ s z := by
-  classical
+  classical -- needed
   let fiber : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) :=
     divisorZeroIndex₀_fiberFinset (f := f) z₀
   let P : divisorZeroIndex₀ f (Set.univ : Set ℂ) → Prop := fun p => p ∈ fiber
@@ -387,7 +387,7 @@ lemma divisorComplementPartialProduct_ne_zero_on_ball
     (s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ))) :
     ∀ z ∈ Metric.ball z₀ ε,
       divisorComplementPartialProduct m f z₀ s z ≠ 0 := by
-  classical
+  classical -- needed
   intro z hz
   have hfac :
       ∀ p ∈ s,
@@ -405,10 +405,9 @@ lemma divisorComplementPartialProduct_ne_zero_on_ball
 theorem eventually_eq_fiber_mul_divisorComplementPartialProduct
     (m : ℕ) (f : ℂ → ℂ) (z₀ : ℂ) :
     ∀ᶠ s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) in (Filter.atTop : Filter _),
-      ∀ z : ℂ,
-        divisorPartialProduct m f s z =
-          divisorPartialProduct m f (divisorZeroIndex₀_fiberFinset (f := f) z₀) z *
-            divisorComplementPartialProduct m f z₀ s z := by
+      ∀ z : ℂ, divisorPartialProduct m f s z = divisorPartialProduct m f
+        (divisorZeroIndex₀_fiberFinset (f := f) z₀) z *
+          divisorComplementPartialProduct m f z₀ s z := by
   refine (eventually_atTop_subset_fiberFinset (f := f) z₀).mono ?_
   intro s hs z
   simpa using
