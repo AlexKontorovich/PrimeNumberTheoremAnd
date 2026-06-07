@@ -1368,21 +1368,123 @@ theorem prod_one_minus_div_prime_eq {x : ℝ} (hx : 1 < x) :
     prod_congr rfl fun p hp ↦ exp_log (hpos (mem_filter.mp hp).2)]
   field_simp
 
+noncomputable abbrev M_eq_summand (p : ℕ) := if p.Prime then log (1 - 1 / p) + 1 / p else 0
+
+lemma M_eq_summand_bound (n : ℕ) :
+    |M_eq_summand n| ≤ 2 / n ^ 2 := by
+  unfold M_eq_summand
+  split_ifs with h
+  · trans 1 / n ^ 2 / (1 - 1 / n)
+    · convert abs_log_sub_add_sum_range_le (x := 1 / n) _ 1 using 1
+      · rw [add_comm]
+        simp
+      · rw [abs_of_nonneg (by simp)]
+        ring
+      · simpa using inv_lt_one_of_one_lt₀ (mod_cast h.one_lt)
+    rw [(by ring : (2 : ℝ) / n ^ 2 = 1 / n ^ 2 / (1 / 2))]
+    gcongr
+    suffices (1 : ℝ) / n ≤ 1 / 2 by linarith
+    gcongr
+    exact_mod_cast h.two_le
+  · rw [abs_zero]
+    positivity
+
+lemma M_eq_summable : Summable M_eq_summand := by
+  apply Summable.of_abs
+  exact Summable.of_nonneg_of_le (by simp) M_eq_summand_bound (Summable.const_div (by simp) _)
+
+lemma tsum_M_eq_summand_eq :
+    ∑' (n : ℕ), M_eq_summand n = M - γ := by
+  rw [M.eq]
+  grind
+
+lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
+    ∑' (n : ℕ), (1 : ℝ) / (n + N) ^ 2 ≤ 2 / N := by
+  grw [AntitoneOn.tsum_le_integral (f := (fun t ↦ 1 / (t + N) ^ 2))]
+  · have hd : ∀ x ∈ Set.Ici 0, HasDerivAt (fun t ↦ -1 / (t + N)) (1 / (x + N) ^ 2) x := by
+      intro t ht
+      convert HasDerivAt.fun_div (d' := (1 : ℝ)) (hasDerivAt_const ..) _ _ using 1
+      · ring
+      · simpa using hasDerivAt_id' t
+      · simp at ht
+        linarith
+    have lim : Tendsto (fun t ↦ -1 / (t + N)) atTop (nhds 0) := by
+      exact (tendsto_atTop_add_const_right atTop N tendsto_id).const_div_atTop _
+    rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_nonneg' hd (fun _ _ ↦ (by positivity)) lim]
+    ring_nf
+    rw [mul_two]
+    gcongr
+    field_simp
+    exact hN
+  · unfold AntitoneOn
+    intro a ha b hb h
+    beta_reduce
+    simp at ha hb
+    gcongr
+  · convert integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
+    simp
+    rfl
+  · exact fun _ _ ↦ (by positivity)
+
+lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :
+    |∑ n ∈ range N, M_eq_summand n - (M - γ)| ≤ 4 / N := by
+  rw [← tsum_M_eq_summand_eq, ← M_eq_summable.sum_add_tsum_nat_add N]
+  simp only [sub_add_cancel_left, abs_neg]
+  rw [← norm_eq_abs]
+  have summable := summable_nat_add_iff N|>.mpr M_eq_summable.norm
+  apply norm_tsum_le_tsum_norm summable|>.trans
+  apply Summable.tsum_le_tsum (fun _ ↦ M_eq_summand_bound _) summable _|>.trans
+  · conv => lhs; arg 1; ext; rw [← mul_one_div]
+    rw [tsum_mul_left]
+    push_cast
+    grw [sum_one_div_sq_le (mod_cast hN)]
+    ring_nf
+    rfl
+  · exact (summable_nat_add_iff N|>.mpr (summable_one_div_nat_pow.mpr one_lt_two))|>.const_div _
+
+lemma sum_M_eq_summand_le' {x : ℝ} (hx : 2 ≤ x) :
+    |∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_summand n - (M - γ)| ≤ 4 / x := by
+  have := sum_M_eq_summand_le (by grind : 0 < ⌊x⌋₊ + 1)
+  rw [Nat.range_eq_Icc_zero_sub_one _ (by grind), ← add_sum_Ioc_eq_sum_Icc (by grind),
+    (by simp : M_eq_summand 0 = 0), zero_add] at this
+  simp only [add_tsub_cancel_right, Nat.cast_add, Nat.cast_one] at this
+  grw [this]
+  gcongr
+  exact Nat.lt_floor_add_one _|>.le
+
 @[blueprint
   "Mertens-third-theorem-error-le"
   (title := "Mertens' third theorem error bound")
   (statement := /-- For any $x \geq 2$, one has
 $$ E_3(x) = O\left(\frac{1}{\log x}\right) $$
 -/)
-  (proof := /-- Using the Taylor expansion
-  $$ \log (1 - \frac{1}{p}) = \sum_{j=1}^\infty \frac{1}{jp^j} = \sum_{j=1}^\infty \frac{\Lambda(p^j)}{p^j \log p^j}$$
-  one can write
-  $$ E_3(x) = E_{2,\Lambda}(x) + \sum_{p \leq x} \sum_{j \geq 2: p^j > x} \frac{j}{p^j}.$$
-One can bound $\sum_{j \geq 2: p^j > x} \frac{j}{p^j}$ by $O(1/p^2)$ when $p > \sqrt{x}$ and by $O(1/x)$ when $p \leq \sqrt{x}$, so the second error here is $O(1/\sqrt{x})$, giving the claim.
+  (proof := /--Estimating the error in \ref{Meissel-Mertens-eq} using the first order Taylor expansion of log one gets 
+$$\sum_{p \le x}(\log (1-1/p)+1/p) = (M - \gamma) + O(1/x).$$
+The result follows by combining with \ref{Mertens-second-error-prime-abs-le}.
   -/)
   (discussion := 1330)]
 theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
-    sorry
+  unfold E₃
+  refine ⟨4 + (log 4 + 6 + E₁), fun x hx ↦ ?_⟩
+  calc
+  _ = |(∑ n ∈ Ioc 0 ⌊x⌋₊, M_eq_summand n - (M - γ)) - E₂p x| := by
+    unfold E₂p
+    have (n : ℕ) : M_eq_summand n = (if n.Prime then log (1 - 1 / n) else 0) + (if n.Prime then (1 : ℝ) / n else 0) := by
+      unfold M_eq_summand
+      split_ifs
+      · rfl
+      · ring
+    simp_rw [this]
+    rw [sum_filter, sum_filter, sum_add_distrib, γ.eq_eulerMascheroni]
+    ring_nf
+  _ ≤ _ := by
+    grw [abs_sub, E₂p.abs_le hx, sum_M_eq_summand_le' hx]
+    have : 4 / x ≤ 4 / log x := by
+      gcongr
+      · exact log_pos (by linarith)
+      · exact log_le_self (by linarith)
+    grw [this]
+    rw [← add_div]
 
 @[blueprint
   "Mertens-third-theorem-error-le"]
@@ -1415,6 +1517,25 @@ theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound''' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 - (1:ℝ) / p) - exp (-eulerMascheroniConstant) / log x) =O[atTop] (fun x ↦ 1 / (log x)^2) := by
-    sorry
+  obtain ⟨c, hc⟩ := E₃.abs_le
+  rw [isBigO_iff]
+  refine ⟨exp (-eulerMascheroniConstant) * 2 * c, ?_⟩
+  filter_upwards [eventually_ge_atTop 2, eventually_ge_atTop c.exp] with x hx hx2
+  rw [prod_one_minus_div_prime_eq (by linarith)]
+  specialize hc x hx
+  rw [norm_eq_abs, norm_eq_abs]
+  calc
+  _ = |exp (-eulerMascheroniConstant) / log x * (exp (E₃ x) - 1)| := by ring_nf
+  _ = |exp (-eulerMascheroniConstant) / log x| * |exp (E₃ x) - 1| := by rw [abs_mul]
+  _ ≤ _ := by
+    have : |E₃ x| ≤ 1 := by
+      apply hc.trans
+      have := log_le_log (exp_pos _) hx2
+      rw [log_exp] at this
+      apply div_le_one_iff.mpr <| Or.inl ⟨log_pos (by linarith), this⟩
+    grw [abs_exp_sub_one_le this, hc]
+    apply le_of_eq
+    rw [abs_div, abs_div, abs_one, abs_of_nonneg (exp_nonneg _), abs_of_nonneg (log_nonneg (by linarith)), abs_of_nonneg (sq_nonneg _)]
+    ring
 
 end Mertens
