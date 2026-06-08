@@ -12,6 +12,7 @@ import PrimeNumberTheoremAnd.SmoothExistence
 import Mathlib.Analysis.Convolution
 
 set_option lang.lemmaCmd true
+set_option linter.style.header false
 
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems
 -- impossible to hide, and hence parameters that are traditionally called σ will
@@ -2361,10 +2362,13 @@ lemma tendsto_mul_ceil_div :
 noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n ∈ Finset.Ico ⌈ε * N⌉₊ N, f n) / N
 
 lemma S_sub_S {f : ℕ → 𝕜} {ε : ℝ} {N : ℕ} (hε : ε ≤ 1) : S f 0 N - S f ε N = cumsum f ⌈ε * N⌉₊ / N := by
-  have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
-    rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
+  have hceilN : ⌈ε * N⌉₊ ≤ N := by
     simp only [Nat.ceil_le]
     exact mul_le_of_le_one_left N.cast_nonneg hε
+  have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
+    ext n
+    simp only [Finset.mem_range, Finset.mem_union, Finset.mem_Ico]
+    omega
   have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
     rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
   simp [S, r1, Finset.sum_union r2, cumsum, add_div]
@@ -2642,7 +2646,7 @@ lemma tendsto_tsum_of_monotone_convergence_nhdsGT_one
     have hsum1 : Summable (fun n : ℕ => F (1 : ℝ) n) := by
       obtain ⟨C, hC⟩ := hT_bdd
       refine summable_of_sum_range_le (hF_nonneg 1) fun m ↦ le_of_tendsto
-        (tendsto_finset_sum _ fun i _ ↦ hF_tend i)
+        (tendsto_finsetSum _ fun i _ ↦ hF_tend i)
         (eventually_of_mem self_mem_nhdsWithin fun σ hσ ↦
           ((hSumm σ hσ).sum_le_tsum _ (fun n _ ↦ hF_nonneg σ n)).trans (hC ⟨σ, hσ, rfl⟩))
     have hg_ne_top : (∑' n : ℕ, ENNReal.ofReal (F 1 n)) ≠ ⊤ := hsum1.tsum_ofReal_ne_top
@@ -3693,7 +3697,7 @@ lemma auto_cheby_fourier_summable (hpos : 0 ≤ f) (hf : ∀ σ', 1 < σ' → Su
         (by simp [hn])).const_mul (f n) |>.mul_const (w n)
       exact (Nat.cast_pos.mpr (Nat.pos_of_ne_zero hn)).ne'
     obtain ⟨C, hC⟩ := Asymptotics.isBigO_iff.mp (hT_bdd.comp_tendsto h_tendsto)
-    refine summable_of_sum_range_le (c := C) (rt_nn 1) fun m ↦ le_of_tendsto (tendsto_finset_sum _
+    refine summable_of_sum_range_le (c := C) (rt_nn 1) fun m ↦ le_of_tendsto (tendsto_finsetSum _
         fun i _ ↦ h_ptwise i) ?_
     filter_upwards [h_tendsto.eventually self_mem_nhdsWithin, hC] with k hk hCk
     calc ∑ i ∈ Finset.range m, rt (σ_seq k) i
