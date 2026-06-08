@@ -2987,6 +2987,11 @@ theorem prop_5_2_b
           ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t))) := by
   sorry
 
+lemma LadderParams.intC_const_mul (c : ℂ) (F : ℂ → ℂ) :
+    l.intC (fun x ↦ c * F x) = c * l.intC (fun x ↦ F x) := by
+  simp [LadderParams.intC, intVSeg, intHRay, intervalIntegral.integral_const_mul,
+    intervalIntegral.integral_mul_const, integral_const_mul, mul_assoc, mul_sub]
+
 @[blueprint
   "ch2-prop-5-2-c"
   (title := "Proposition 5.2: bound on the contour integral")
@@ -2996,25 +3001,15 @@ theorem prop_5_2_b
   (proof := /-- `intC` is linear, $|\mathrm{sgn}(\lambda)| = 1$, and $|\Im w| \leq |w|$. -/)
   (latexEnv := "sublemma")
   (discussion := 1459)]
-theorem prop_5_2_c
-    (hF_mero : MeromorphicOn F l.R)
-    (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
-    (hx₀ : 1 ≤ x₀)
-    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
-      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC |
-        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ :
-        HasSimplePolesOn
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+theorem prop_5_2_c (hlam : lam ≠ 0) :
     ‖(↑(π⁻¹ * (l.intC (fun s   ↦ (Real.sign lam : ℂ) *
           Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ)‖ ≤
       (1 / (2 * π)) *
         (2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
-  sorry
+  conv in _ * ↑x ^ _ => rw [mul_assoc, mul_assoc]
+  grw [norm_real, norm_eq_abs, abs_mul, abs_im_le_norm, l.intC_const_mul, norm_mul, norm_real]
+  apply le_of_eq
+  grind [Real.sign, Real.pi_pos, norm_eq_abs, - abs_div, - abs_mul]
 
 @[blueprint
   "ch2-prop-5-2"
@@ -3091,7 +3086,7 @@ theorem prop_5_2
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
     (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
-    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)) ?_
+    (prop_5_2_c hlam)) ?_
   apply le_of_eq
   ring
 
