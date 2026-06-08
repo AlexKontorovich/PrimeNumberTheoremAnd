@@ -3116,27 +3116,27 @@ TODO: incorporate material from \cite[Section 7]{CH2} onwards.
   (title := "Corollary 1.2, part a")
   (statement := /--
   Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
-$$|\psi(x) - x \cdot \frac{\pi}{T} \coth(\frac{\pi}{T})| \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \sqrt{x},$$
+$$|\psi(x) - x \cdot \frac{\pi}{T} \coth(\frac{\pi}{T})| \leq \frac{\pi}{T-1} \cdot x + \left(\frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi))\right) \sqrt{x},$$
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
     |ψ x - x * π * T⁻¹ * (coth (π * T⁻¹)).re| ≤
-      π * T⁻¹ * x + ((1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π))) * Real.sqrt x := by sorry
+      π / (T - 1) * x + ((1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π))) * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-2-b"
   (title := "Corollary 1.2, part b")
   (statement := /--
   Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
-$$\sum_{n \leq x} \frac{\Lambda(n)}{n} \leq \pi \sqrt{T}^{-1} + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \frac{1}{x},$$
+$$\left|\sum_{n \leq x} \frac{\Lambda(n)}{n} - (\log x - \gamma)\right| \leq \frac{\pi}{T-1} + \left(\frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi))\right) \frac{1}{\sqrt{x}},$$
 where $\gamma = 0.577215...$ is Euler’s constant.
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
-    ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n ≤
-      π * Real.sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
+    |∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n - (log x - eulerMascheroniConstant)| ≤
+      π / (T - 1) + ((1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π))) / Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-a"
@@ -3156,12 +3156,12 @@ theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
   (title := "Corollary 1.3, part b")
   (statement := /--
 For $x \geq 1$,
-$$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{-12} + 113.67 / x).$$
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{-12} + 113.67 / \sqrt{x}).$$
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n =
-      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * Real.sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * Real.sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / Real.sqrt x := by sorry
 
 end CH2

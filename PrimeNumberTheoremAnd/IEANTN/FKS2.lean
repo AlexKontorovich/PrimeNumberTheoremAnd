@@ -4089,7 +4089,7 @@ theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
 noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   [ (fun x ↦ 2 * log x * x^(-(1:ℝ)/2), Set.Icc 1 57),
     (fun x ↦ (log x)^(3/2) * x^(-(1:ℝ)/2), Set.Icc 1 65.65),
-    (fun x ↦ 8 * π * (log x)^2 * x^(-(1:ℝ)/2), Set.Icc 8 60.8),
+    (fun x ↦ (1 / (8 * π)) * (log x)^2 * x^(-(1:ℝ)/2), Set.Icc 8 60.8),
     (fun x ↦ (log x)^2 * x^(-(1:ℝ)/2), Set.Icc 1 70.6),
     (fun x ↦ (log x)^3 * x^(-(1:ℝ)/2), Set.Icc 1 80),
     (fun x ↦ x^(-(1:ℝ)/3), Set.Icc 1 80.55),

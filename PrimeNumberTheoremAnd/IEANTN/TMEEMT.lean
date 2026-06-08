@@ -999,11 +999,11 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
   "thm:massias-robin1996-pn-lower"
   (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
   (statement := /-- If $p_n < e^{598}$ or $p_n > e^{1800}$, then
-  $p_n > n(\log n + \log\log n - 1)$. -/)
+  $p_n \geq n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ)
     (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
-    nth_prime' n > n * (log n + log (log n) - 1) := by sorry
+    nth_prime' n ≥ n * (log n + log (log n) - 1) := by sorry
 
 end MassiasRobin
 
@@ -1116,12 +1116,12 @@ namespace Schoenfeld1976
   (statement := /--
   If $x > 2010760$, then there is a prime in the interval
   \[
-  \left( x, x\left(1 + \frac{1}{15697}\right) \right].
+  \left( x, x\left(1 + \frac{1}{16597}\right) \right].
   \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval x (x * (1 / 15697)) := by sorry
+    HasPrimeInInterval x (x * (1 / 16597)) := by sorry
 
 end Schoenfeld1976
 

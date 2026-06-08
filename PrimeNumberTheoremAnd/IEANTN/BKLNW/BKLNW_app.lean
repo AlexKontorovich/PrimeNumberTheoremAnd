@@ -681,8 +681,8 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
           log ((ε * rexp (-ε) * x₀ *
             |ν c ε α|) / (2 * (μ c ε α))) +
         2.01 * ε / sqrt x₀ +
-        log (log (2 * x₀ ^ 2) /
-          (2 * x₀))) +
+        log (log (2 * x₀ ^ 2)) /
+          (2 * x₀)) +
       exp (ε * α) - 1
     let E₂ :=
       0.16 * (1 + x₀ ^ (-1 : ℝ)) / sinh c *
