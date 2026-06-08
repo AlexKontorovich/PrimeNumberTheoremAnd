@@ -1173,22 +1173,43 @@ lemma ZetaFixedLowerBound (t : ℝ) :
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
+@[blueprint "ZetaZero"
+  (title := "ZetaZero")
+  (statement := /--
     Let
     $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
+  -/)]
+noncomputable def ζ₀ (s : ℂ) := 1 + 1 / (s - 1) - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)
+
+
+
+blueprint_comment /--
+\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
     We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
 \end{lemma}
 -/
 
-lemma ZetaAltFormula (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s = 1 + 1 / (s - 1)
-        - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1) := by
+lemma ZetaAltFormula {s : ℂ} (hs : 1 < s.re) :
+    ζ s = ζ₀ s:= by
   have h_neg_s : (-s).re < -1 := by simp only [neg_re, neg_lt_neg_iff, hs]
   have s_ne_zero : s ≠ 0 := by
     intro h; have : s.re = 0 := by simp only [h, zero_re]
     linarith
   have s_ne_one : s ≠ 1 := fun h => hs.ne' (h ▸ by simp)
+  have h_neg_s_sub : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
+  have hIntegrable1 : IntegrableOn (fun u : ℝ => (u : ℂ) ^ (-s)) (Ioi 1) := integrableOn_Ioi_cpow_of_lt h_neg_s zero_lt_one
+  have hIntegrable2 : IntegrableOn (fun u : ℝ => (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) (Ioi 1) := by
+    refine MeasureTheory.Integrable.mono' (integrableOn_Ioi_rpow_of_lt (by linarith) (by linarith)) (by fun_prop) ?_ (g := fun u => u ^ ( -s.re - 1 ))
+    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+    norm_num [Complex.norm_cpow_eq_rpow_re_of_pos ( zero_lt_one.trans hx )]
+    exact mul_le_of_le_one_left (Real.rpow_nonneg (by linarith [hx.out]) _) (abs_le.mpr ⟨by linarith [Int.fract_nonneg x], by linarith [Int.fract_lt_one x]⟩)
+  have hIntegrable3 : IntegrableOn (fun u : ℝ => (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) (Ici 1) := by
+    rw [integrableOn_Ici_iff_integrableOn_Ioi]
+    refine hIntegrable1.sub hIntegrable2 |> fun h => h.congr ?_
+    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with u hu
+    simp only [Pi.sub_apply, Int.fract]
+    push_cast; nth_rewrite 2 [← cpow_one (↑u : ℂ)]
+    rw [sub_mul, ← cpow_add _ _ (by exact_mod_cast (by linarith [mem_Ioi.mp hu] : u ≠ 0)), add_sub_cancel, sub_sub_cancel]
   have hIci : Ici (1 : ℝ) = ⋃ n : ℕ, Ico (↑(n + 1)) (↑(n + 2)) := by
     ext x; constructor
     · intro hx; simp only [mem_iUnion, mem_Ico, ← one_add_one_eq_two, ← add_assoc]
@@ -1204,12 +1225,10 @@ lemma ZetaAltFormula (s : ℂ) (hs : 1 < s.re) :
     intro m n hmn; have h := lt_or_gt_of_ne hmn
     simp only [Ico_disjoint_Ico, le_sup_iff, inf_le_iff, add_le_add_iff_left, not_ofNat_le_one, false_or, or_false]
     rcases h with hmn | hnm
-    · right
-      have : (m : ℝ) + 1 ≤ (n : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hmn)
-      linarith
-    · left
-      have : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hnm)
-      linarith
+    · have : (m : ℝ) + 1 ≤ (n : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hmn)
+      right; linarith
+    · have : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hnm)
+      left; linarith
   have bringFloorOutIntegral : ∑' (n : ℕ), ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), ((Int.floor x) : ℝ) * (x : ℂ) ^ (-s - 1) =
       ∑' (n : ℕ), (n + 1 : ℝ) * ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), (x : ℂ) ^ (-s - 1) := by
     apply tsum_congr; intro n
@@ -1229,19 +1248,48 @@ lemma ZetaAltFormula (s : ℂ) (hs : 1 < s.re) :
         exact s_ne_zero
       · simp only [add_le_add_iff_left, one_le_ofNat, uIcc_of_le, mem_Icc, not_and, not_le]
         intro h; linarith
-  have zetaSplitSum : ζ s = ∑' (n : ℕ), (n + 1) / ((n : ℂ) + 1) ^ s - ∑' (n : ℕ), n / ((n : ℂ) + 1) ^ s := by
-    rw [← Summable.tsum_sub]
-    · simp only [← sub_div, add_sub_cancel_left, zeta_eq_tsum_one_div_nat_add_one_cpow hs]
-    · sorry
-    · sorry
-  suffices h1 : riemannZeta s = s * (∫ u in Ioi (1 : ℝ), (u : ℂ) ^ (-s) - (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) by
-    rw [h1, integral_sub, mul_sub, integral_Ioi_cpow_of_lt h_neg_s zero_lt_one, ofReal_one, one_cpow, one_div, sub_left_inj]
-    · field_simp
-      rw [← div_neg, neg_add, neg_neg, ← sub_eq_add_neg, ← same_add_div, sub_add_cancel]
-      exact sub_ne_zero.mpr s_ne_one
-    · sorry
-    · sorry
-  suffices h2 : riemannZeta s = s * (∫ u in Ioi (1 : ℝ), (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+  have term_bound (n : ℕ) (x : ℝ) (hx : x ∈ Set.uIoc (n + 1 : ℝ) (n + 2 : ℝ)) :
+      ‖s * x ^ (-s - 1)‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re - 1) := by
+    simp only [uIoc, add_le_add_iff_left, one_le_ofNat, inf_of_le_left, sup_of_le_right, mem_Ioc] at hx
+    rw [norm_mul, Complex.norm_cpow_eq_rpow_re_of_pos (by linarith)]
+    refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+    rw [sub_re, neg_re, one_re, Real.rpow_le_rpow_iff_of_neg (by linarith) (by linarith) (by linarith)]
+    exact le_of_lt hx.1
+  have integral_bound (n : ℕ) : ‖∫ x in (n + 1 : ℝ).. (n + 2 : ℝ), s * x ^ (-s - 1)‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re - 1) := by
+    have := intervalIntegral.norm_integral_le_of_norm_le_const (term_bound n)
+    norm_num at ⊢ this; exact this
+  have term_bound (n : ℕ) : ‖(n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s))‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re) := by
+    convert mul_le_mul_of_nonneg_left (integral_bound n) (norm_nonneg ((n : ℂ) + 1)) using 1
+    · rw [intervalIntegral.integral_const_mul, integral_cpow]
+      · simp only [Complex.norm_mul, ofReal_add, ofReal_natCast, ofReal_ofNat, sub_add_cancel, ofReal_one,
+          Complex.norm_div, norm_neg, norm_sub_rev]; field_simp
+      · simp only [sub_re, neg_re, one_re, neg_lt_sub_iff_lt_add, lt_add_iff_pos_right,
+          Left.neg_pos_iff, ne_eq, sub_eq_neg_self, neg_eq_zero, s_ne_zero, not_false_eq_true,
+          add_le_add_iff_left, one_le_ofNat, uIcc_of_le, mem_Icc, not_and, not_le, true_and]
+        right; exact fun hn => by linarith
+    · rw [show (-s.re : ℝ) = -s.re - 1 + 1 by ring, Real.rpow_add (by linarith)]; norm_cast; norm_num; ring;
+  have h_summable : Summable (fun n : ℕ => (n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s))) := by
+    refine Summable.of_norm (Summable.of_nonneg_of_le (fun _ => norm_nonneg _) (term_bound) (Summable.const_smul ‖s‖ ?_))
+    exact_mod_cast (summable_nat_add_iff 1).mpr (Real.summable_nat_rpow.mpr (by linarith : -s.re < -1))
+  have telescoping (N : ℕ) :
+      ∑ n ∈ Finset.range N, (n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s)) =
+      ∑ n ∈ Finset.range N, (1 : ℂ) / (n + 1 : ℂ) ^ s - N * (N + 1 : ℂ) ^ (-s) := by
+    induction N with
+    | zero => simp only [Finset.range_zero, Finset.sum_empty, one_div, CharP.cast_eq_zero, zero_add,
+      one_cpow, mul_one, sub_self]
+    | succ N h => simp only [Finset.sum_range_succ, h, one_div, cast_add, cast_one, ← Complex.cpow_neg]; ring_nf
+  have tail_bound (N : ℕ) : ‖(N : ℂ) * (N + 1 : ℂ) ^ (-s)‖ ≤ (N + 1 : ℝ) ^ (1 - s.re) := by
+    have hN1 : (0 : ℝ) < (N : ℝ) + 1 := by linarith [Nat.succ_pos N]
+    simp only [Complex.norm_mul, ← Nat.cast_add_one N, RCLike.norm_natCast, RCLike.norm_natCast]
+    rw [Complex.norm_cpow_of_ne_zero (by norm_cast), RCLike.norm_natCast, Complex.natCast_arg, zero_mul, Real.exp_zero, div_one, Nat.cast_add_one, neg_re, Real.rpow_neg hN1.le, rpow_sub hN1, div_eq_mul_inv, rpow_one]
+    exact mul_le_mul (by linarith) (by rfl) (inv_nonneg.mpr (Real.rpow_nonneg hN1.le _)) (hN1.le)
+  have tail_to_zero : Tendsto (fun N : ℕ => N * (N + 1 : ℂ) ^ (-s)) atTop (nhds 0) := squeeze_zero_norm tail_bound (by simpa using tendsto_rpow_neg_atTop (by linarith : 0 < s.re - 1) |> Filter.Tendsto.comp <| Filter.tendsto_atTop_add_const_right _ _ tendsto_natCast_atTop_atTop)
+  suffices h1 : ζ s = s * (∫ u in Ioi (1 : ℝ), (u : ℂ) ^ (-s) - (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+    rw [ζ₀, h1, integral_sub hIntegrable1 hIntegrable2, mul_sub, integral_Ioi_cpow_of_lt h_neg_s zero_lt_one, ofReal_one, one_cpow, one_div, sub_left_inj]
+    field_simp
+    rw [← div_neg, neg_add, neg_neg, ← sub_eq_add_neg, ← same_add_div, sub_add_cancel]
+    exact sub_ne_zero.mpr s_ne_one
+  suffices h2 : ζ s = s * (∫ u in Ioi (1 : ℝ), (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) by
     simp only [h2, ← Int.self_sub_fract, ofReal_sub, sub_mul, mul_eq_mul_left_iff]
     left
     apply MeasureTheory.integral_congr_ae
@@ -1249,23 +1297,21 @@ lemma ZetaAltFormula (s : ℂ) (hs : 1 < s.re) :
     congr 1
     nth_rewrite 1 [← cpow_one (↑u : ℂ), ← cpow_add _ _ (by exact_mod_cast (by linarith [mem_Ioi.mp hu] : u ≠ 0)), add_sub_cancel]
     rfl
-  suffices h3 : riemannZeta s = ∑' (x : ℕ), ((x : ℂ) + 1) * (((x : ℂ) + 1) ^ (-s) - ((x : ℂ) + 2) ^ (-s)) by
+  suffices h3 : ζ s = ∑' (x : ℕ), ((x : ℂ) + 1) * (((x : ℂ) + 1) ^ (-s) - ((x : ℂ) + 2) ^ (-s)) by
     rw [← MeasureTheory.integral_Ici_eq_integral_Ioi, hIci, MeasureTheory.integral_iUnion (fun _ => measurableSet_Ico) (by simp only [cast_add, cast_one, cast_ofNat, intervalsPairwiseDisjoint]), bringFloorOutIntegral]
-    · simp only [ofReal_add, ofReal_natCast, ofReal_one, cast_add, cast_one, cast_ofNat,
-        integral_Ico_eq_integral_Ioc, add_le_add_iff_left, one_le_ofNat,
-        ← intervalIntegral.integral_of_le, evalIntegral, ← tsum_mul_left, h3]
-      field_simp
+    · rw [h3, ← tsum_mul_left]
+      apply tsum_congr; intro n
+      simp only [cast_add, cast_one, cast_ofNat]
+      rw [mul_comm s, mul_assoc, setIntegral_congr_set Ico_ae_eq_Ioc,
+        ← intervalIntegral.integral_of_le (by linarith [Nat.cast_nonneg' (α := ℝ) n]),
+        evalIntegral]
+      simp only [ofReal_natCast, ofReal_add, ofReal_one]
+      rw [div_mul_cancel₀ _ (by exact s_ne_zero)]
     · rw[← hIci, IntegrableOn]
-      sorry
-  rw[zetaSplitSum]
-  nth_rewrite 2 [tsum_eq_zero_add']
-  · simp only [CharP.cast_eq_zero, zero_add, one_cpow, div_one, cast_add, cast_one]
-    rw [← Summable.tsum_sub]
-    · apply tsum_congr; intro n
-      simp [mul_sub, Complex.cpow_neg, ← div_eq_mul_inv, ← one_add_one_eq_two, add_assoc]
-    · sorry
-    · sorry
-  · sorry
+      exact hIntegrable3
+  rw [eq_comm, zeta_eq_tsum_one_div_nat_add_one_cpow hs]
+  convert tendsto_nhds_unique h_summable.hasSum.tendsto_sum_nat _ using 1
+  simpa only [telescoping, sub_zero] using (Summable.hasSum (show Summable _ from by simpa using summable_nat_add_iff 1 |>.2 <| show Summable fun n : ℕ => (1 : ℂ) / (n : ℂ) ^ s from Complex.summable_one_div_nat_cpow.mpr hs)).tendsto_sum_nat |>.sub tail_to_zero
 
 blueprint_comment /--
 \begin{proof}
