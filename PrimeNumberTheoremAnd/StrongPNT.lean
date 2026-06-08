@@ -1346,6 +1346,34 @@ blueprint_comment /--
 \end{lemma}
 -/
 
+lemma ZetaAltFormulaAnalytic {ε : ℝ} (hε : ε > 0) :
+    AnalyticOn ℂ ζ₀ ({ s : ℂ | ε < s.re ∧ s ≠ 1 }) := by
+  unfold ζ₀
+  simp only [AnalyticOn]
+  intro s hs
+  refine AnalyticAt.analyticWithinAt (AnalyticAt.fun_sub (AnalyticAt.add (analyticAt_const) (AnalyticAt.div (analyticAt_const) (analyticAt_id.sub analyticAt_const) ?_)) (AnalyticAt.mul (analyticAt_id) ?_))
+  · rw [sub_ne_zero]
+    exact hs.2
+  · rw [← IsOpen.mem_nhds_iff] at hs
+    · refine DifferentiableOn.analyticAt ?_ hs
+      simp only [DifferentiableOn]
+      intro s hs
+      refine DifferentiableAt.differentiableWithinAt ?_
+      sorry
+    · exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne
+
+lemma ZetaAltFormulaAnalytic' :
+    AnalyticOn ℂ ζ₀ ({ s : ℂ | 0 < s.re ∧ s ≠ 1 }) := by
+  intro s hs
+  have half_s_re_pos : (s / 2).re > 0 := by norm_num [hs.1]
+  have analyticOnCompactSubsets := ZetaAltFormulaAnalytic half_s_re_pos
+  simp only [AnalyticOn] at ⊢ analyticOnCompactSubsets
+  set S := {s_1 : ℂ | (s / 2).re < s_1.re ∧ s_1 ≠ 1} with S_def
+  have hs' : s ∈ S := by  simp only [S_def, div_ofNat_re, ne_eq, mem_setOf_eq, half_lt_self_iff] at ⊢ hs; exact hs
+  obtain ⟨g, hg⟩ := AnalyticWithinAt.exists_analyticAt (analyticOnCompactSubsets s hs')
+  refine AnalyticAt.analyticWithinAt (hg.2.2.congr (hg.2.1.eventuallyEq_of_mem (mem_nhds_iff.mpr ?_)).symm)
+  exact ⟨S, ⟨subset_insert s S, ⟨(isOpen_lt continuous_const (Complex.continuous_re.comp continuous_id)).inter isOpen_compl_singleton, hs'⟩⟩⟩
+
 blueprint_comment /--
 \begin{proof}
     Note that we have
