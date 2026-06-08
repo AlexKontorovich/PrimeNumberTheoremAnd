@@ -2827,7 +2827,6 @@ private lemma G_mul_cpow_integrable_hray (l : LadderParams)
   have hlog_ratio_pos : 0 < Real.log (x / x₀) := Real.log_pos (by rw [one_lt_div hx₀_pos]; linarith)
   have h_int_bound : IntegrableOn (fun r : ℝ ↦ C * Real.exp (Real.log (x / x₀) * r)) (Set.Iic 1) :=
     (integrableOn_exp_mul_Iic hlog_ratio_pos 1).const_mul C
-  have hG_bdd' : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary := ⟨M, hM⟩
   have h_meas :
       AEStronglyMeasurable (fun r : ℝ ↦ G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I))
         (MeasureTheory.volume.restrict (Set.Iic 1)) := by
@@ -2835,7 +2834,7 @@ private lemma G_mul_cpow_integrable_hray (l : LadderParams)
     · let F := G_circ + G_star
       have hF_mero : MeromorphicOn F l.R := hG_circ_mero.add hG_star_mero
       have h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z := fun z hz_Rbd hz_im ↦
-        upper_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ hG_bdd' hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_pos.le)
+        upper_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ ⟨M, hM⟩ hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_pos.le)
       have hF_meas := aestronglyMeasurable_hray_of_meromorphic l F x₀ x h hx₀ hx h_abs_h hF_mero h_order
       exact AEStronglyMeasurable.congr hF_meas <| ae_of_all _ fun r ↦ by
         have hsign : (Real.sign (r + h * Complex.I).im : ℂ) = 1 := by simp [Real.sign_of_pos hh_pos]
@@ -2847,7 +2846,7 @@ private lemma G_mul_cpow_integrable_hray (l : LadderParams)
       let F := G_circ - G_star
       have hF_mero : MeromorphicOn F l.R := hG_circ_mero.sub hG_star_mero
       have h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z := fun z hz_Rbd hz_im ↦
-        lower_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ hG_bdd' hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_neg.le)
+        lower_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ ⟨M, hM⟩ hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_neg.le)
       have hF_meas := aestronglyMeasurable_hray_of_meromorphic l F x₀ x h hx₀ hx h_abs_h hF_mero h_order
       exact AEStronglyMeasurable.congr hF_meas <| ae_of_all _ fun r ↦ by
         have hsign : (Real.sign (r + h * Complex.I).im : ℂ) = -1 := by simp [Real.sign_of_neg hh_neg]
