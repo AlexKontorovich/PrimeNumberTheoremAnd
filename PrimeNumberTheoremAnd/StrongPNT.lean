@@ -1183,12 +1183,36 @@ noncomputable def ζ₀ (s : ℂ) := 1 + 1 / (s - 1) - s * ∫ u in Ioi (1 : ℝ
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
+@[blueprint "ZetaAltFormula"
+  (title := "ZetaAltFormula")
+  (statement := /--
     We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
-\end{lemma}
--/
-
+  -/)
+  (proof := /--
+    Note that for $\sigma>1$ we have
+    $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}
+      =\sum_{n=1}^\infty\left(\frac{n}{n^s}-\frac{n-1}{n^s}\right)
+      =1+\sum_{n=1}^\infty\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)
+      =\lim_{k\to\infty}\left(1+\sum_{n=1}^k\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)\right).$$
+    Now note that
+    $$\zeta(s)=\lim_{k\to\infty}\left(1+\sum_{n=1}^k\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)\right)
+      =\lim_{k\to\infty}\left(\frac{k+1}{(k+1)^s}+\sum_{n=1}^k\left(\frac{n}{n^s}-\frac{n}{(n+1)^s}\right)\right).$$
+    Now since $\sigma>1$, the leading term in the limit vanishes.
+    Thus
+    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s}).$$
+    Now we note that
+    $$s\int_n^{n+1}x^{-s}\,\frac{dx}{x}
+      =s\left(-\frac{1}{s}\,x^{-s}\right)_n^{n+1}=n^{-s}-(n+1)^{-s}.$$
+    So, substituting this we have
+    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s})
+      =s\sum_{n=1}^\infty n\int_n^{n+1}x^{-s}\,\frac{dx}{x}
+      =s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}.$$
+    But noting that $\lfloor x\rfloor =x-\{x\}$ we have that
+    $$\zeta(s)=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}
+      =s\int_1^\infty x^{-s}\,dx-s\int_1^\infty \{x\}\,x^{-s}\,\frac{dx}{x}.$$
+    Evaluating the first integral completes the result.
+  -/)
+  (latexEnv := "theorem")]
 lemma ZetaAltFormula {s : ℂ} (hs : 1 < s.re) :
     ζ s = ζ₀ s:= by
   have h_neg_s : (-s).re < -1 := by simp only [neg_re, neg_lt_neg_iff, hs]
@@ -1312,29 +1336,6 @@ lemma ZetaAltFormula {s : ℂ} (hs : 1 < s.re) :
   rw [eq_comm, zeta_eq_tsum_one_div_nat_add_one_cpow hs]
   convert tendsto_nhds_unique h_summable.hasSum.tendsto_sum_nat _ using 1
   simpa only [telescoping, sub_zero] using (Summable.hasSum (show Summable _ from by simpa using summable_nat_add_iff 1 |>.2 <| show Summable fun n : ℕ => (1 : ℂ) / (n : ℂ) ^ s from Complex.summable_one_div_nat_cpow.mpr hs)).tendsto_sum_nat |>.sub tail_to_zero
-
-blueprint_comment /--
-\begin{proof}
-    Note that for $\sigma>1$ we have
-    $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n-1}{n^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=0}^\infty\frac{n}{(n+1)^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n}{(n+1)^s}.$$
-    Thus
-    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s}).$$
-    Now we note that
-    $$s\int_n^{n+1}x^{-s}\,\frac{dx}{x}
-      =s\left(-\frac{1}{s}\,x^{-s}\right)_n^{n+1}=n^{-s}-(n+1)^{-s}.$$
-    So, substituting this we have
-    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s})
-      =s\sum_{n=1}^\infty n\int_n^{n+1}x^{-s}\,\frac{dx}{x}
-      =s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}.$$
-    But noting that $\lfloor x\rfloor =x-\{x\}$ we have that
-    $$\zeta(s)=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}
-      =s\int_1^\infty x^{-s}\,dx-s\int_1^\infty \{x\}\,x^{-s}\,\frac{dx}{x}.$$
-    Evaluating the first integral completes the result.
-\end{proof}
--/
 
 
 
