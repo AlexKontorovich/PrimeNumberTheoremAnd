@@ -93,7 +93,6 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
-import PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Annulus
 import PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Cauchy
 import PrimeNumberTheoremAnd.MediumPNT
 import PrimeNumberTheoremAnd.MellinCalculus
