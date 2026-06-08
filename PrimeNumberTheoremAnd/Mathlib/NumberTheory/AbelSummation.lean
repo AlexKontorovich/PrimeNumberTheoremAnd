@@ -24,7 +24,6 @@ variable {𝕜 : Type*} [AddCommGroup 𝕜]
 /-- Reindex `∑ k ∈ Icc 1 N, f k` as `∑ n ∈ range N, f (n + 1)`. -/
 theorem _root_.Finset.sum_Icc_one_eq_sum_range {N : ℕ} (f : ℕ → 𝕜) :
     ∑ k ∈ Icc 1 N, f k = ∑ n ∈ range N, f (n + 1) := by
-  classical
   symm
   refine sum_bij (s := range N) (t := Icc 1 N)
     (f := fun n => f (n + 1)) (g := fun k => f k)
@@ -47,7 +46,6 @@ theorem _root_.Finset.sum_Icc_one_eq_sum_range {N : ℕ} (f : ℕ → 𝕜) :
 /-- If `f 0 = 0`, the term at `0` in `Icc 0 N` is redundant. -/
 theorem _root_.Finset.sum_Icc_zero_eq_sum_Icc_one {N : ℕ} {f : ℕ → 𝕜} (h0 : f 0 = 0) :
     ∑ k ∈ Icc 0 N, f k = ∑ k ∈ Icc 1 N, f k := by
-  classical
   have hdecomp : insert 0 (Icc 1 N) = Icc 0 N := by
     simpa [Nat.succ_eq_add_one] using
       insert_Icc_succ_left_eq_Icc (a := 0) (b := N) (h := Nat.zero_le N)
