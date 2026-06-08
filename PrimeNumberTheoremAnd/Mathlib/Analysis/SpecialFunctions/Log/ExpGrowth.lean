@@ -75,10 +75,8 @@ theorem log_two_le_log_two_mul_mul_inv_norm_of_norm_le {z : F} {R : ℝ} (hz0 : 
 
 /-- An exponential bound with exponent `ρ` weakens to any larger exponent on bases at least `1`. -/
 theorem norm_le_exp_mul_rpow_of_exponent_le
-    {f : α → E} {r : α → ℝ} {C ρ τ : ℝ} (hC : 0 ≤ C)
-    (hr : ∀ x, 1 ≤ r x) (hρτ : ρ ≤ τ)
-    (hbound : ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ ρ)) :
-    ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ τ) := by
+    {f : α → E} {r : α → ℝ} {C ρ τ : ℝ} (hC : 0 ≤ C) (hr : ∀ x, 1 ≤ r x) (hρτ : ρ ≤ τ)
+    (hbound : ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ ρ)) : ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ τ) := by
   intro x
   refine (hbound x).trans (Real.exp_le_exp.2 ?_)
   exact mul_le_mul_of_nonneg_left (Real.rpow_le_rpow_of_exponent_le (hr x) hρτ) hC
@@ -86,10 +84,8 @@ theorem norm_le_exp_mul_rpow_of_exponent_le
 /-- A logarithmic growth bound gives a pointwise exponential norm bound after weakening the
 exponent. -/
 theorem norm_le_exp_mul_rpow_of_log_growth
-    {f : α → E} {r : α → ℝ} {C ρ τ : ℝ} (hC : 0 ≤ C)
-    (hr : ∀ x, 1 ≤ r x) (hρτ : ρ ≤ τ)
-    (hlog : ∀ x, Real.log (1 + ‖f x‖) ≤ C * (r x) ^ ρ) :
-    ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ τ) := by
+    {f : α → E} {r : α → ℝ} {C ρ τ : ℝ} (hC : 0 ≤ C) (hr : ∀ x, 1 ≤ r x) (hρτ : ρ ≤ τ)
+    (hlog : ∀ x, Real.log (1 + ‖f x‖) ≤ C * (r x) ^ ρ) : ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ τ) := by
   intro x
   have hpow : (r x) ^ ρ ≤ (r x) ^ τ :=
     Real.rpow_le_rpow_of_exponent_le (hr x) hρτ
@@ -117,8 +113,7 @@ theorem log_growth_of_norm_le_exp_mul_rpow
 
 /-- A pointwise exponential bound with real exponent can be weakened to a natural exponent. -/
 theorem exists_norm_le_exp_mul_pow_of_rpow_bound
-    {f : α → E} {r : α → ℝ} {τ : ℝ} {n : ℕ}
-    (hr : ∀ x, 1 ≤ r x) (hτn : τ < (n : ℝ))
+    {f : α → E} {r : α → ℝ} {τ : ℝ} {n : ℕ} (hr : ∀ x, 1 ≤ r x) (hτn : τ < (n : ℝ))
     (hbound : ∃ C > 0, ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ τ)) :
     ∃ C > 0, ∀ x, ‖f x‖ ≤ Real.exp (C * (r x) ^ n) := by
   rcases hbound with ⟨C, hCpos, hC⟩
@@ -163,16 +158,14 @@ theorem sq_le_exp_const_mul_rpow {b r : ℝ} (hb : 0 < b) (hr : 1 ≤ r) :
 
 /-- If `r ≤ 2 * max x 1`, then `1 + r ≤ 3 * (1 + x)`. -/
 theorem one_add_le_three_mul_one_add_of_le_two_mul_max {x r : ℝ} (hx : 0 ≤ x)
-    (hr : r ≤ 2 * max x 1) :
-    1 + r ≤ 3 * (1 + x) := by
+    (hr : r ≤ 2 * max x 1) :  1 + r ≤ 3 * (1 + x) := by
   have hmax : max x 1 ≤ 1 + x := max_le_iff.2 ⟨by linarith, by linarith⟩
   nlinarith
 
 /-- A multiplicative radius comparison gives the corresponding exponential `rpow` comparison. -/
 theorem exp_mul_rpow_le_exp_mul_rpow_of_le_mul
     {A B x y τ : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) (hx : 0 ≤ x) (hy : 0 ≤ y)
-    (hτ : 0 ≤ τ) (hxy : x ≤ B * y) :
-    Real.exp (A * x ^ τ) ≤ Real.exp ((A * B ^ τ) * y ^ τ) := by
+    (hτ : 0 ≤ τ) (hxy : x ≤ B * y) : Real.exp (A * x ^ τ) ≤ Real.exp ((A * B ^ τ) * y ^ τ) := by
   refine Real.exp_le_exp.2 ?_
   have hpow : x ^ τ ≤ (B * y) ^ τ := Real.rpow_le_rpow hx hxy hτ
   have hsplit : (B * y) ^ τ = B ^ τ * y ^ τ := by
@@ -181,8 +174,7 @@ theorem exp_mul_rpow_le_exp_mul_rpow_of_le_mul
 
 /-- A midpoint between `ρ` and `⌊ρ⌋ + 1` has the same natural floor as `ρ`. -/
 theorem exists_between_self_and_floor_add_one_same_floor {ρ : ℝ} (hρ : 0 ≤ ρ) :
-    ∃ τ : ℝ,
-      ρ < τ ∧ τ < (Nat.floor ρ + 1 : ℝ) ∧ 0 ≤ τ ∧ Nat.floor τ = Nat.floor ρ := by
+    ∃ τ : ℝ, ρ < τ ∧ τ < (Nat.floor ρ + 1 : ℝ) ∧ 0 ≤ τ ∧ Nat.floor τ = Nat.floor ρ := by
   set m : ℕ := Nat.floor ρ
   set τ : ℝ := (ρ + (m + 1 : ℝ)) / 2
   have hm : ρ < (m + 1 : ℝ) := by simpa [m] using Nat.lt_floor_add_one (a := ρ)
@@ -200,8 +192,7 @@ open Metric Complex
 /-- On the sphere of radius `|R|`, a log `(1 + ‖f‖)` growth bound controls `log ‖f‖`. -/
 theorem log_norm_le_of_log_one_add_growth_on_sphere {f : ℂ → ℂ} {C ρ R : ℝ}
     (hC : ∀ z : ℂ, log (1 + ‖f z‖) ≤ C * (1 + ‖z‖) ^ ρ) {z : ℂ}
-    (hz : z ∈ sphere (0 : ℂ) |R|) :
-    log ‖f z‖ ≤ C * (1 + |R|) ^ ρ := by
+    (hz : z ∈ sphere (0 : ℂ) |R|) : log ‖f z‖ ≤ C * (1 + |R|) ^ ρ := by
   have hz_norm : ‖z‖ = |R| := by
     simpa [mem_sphere, dist_zero_right] using hz
   simpa [hz_norm] using le_trans (log_norm_le_log_one_add_norm (f z)) (hC z)
