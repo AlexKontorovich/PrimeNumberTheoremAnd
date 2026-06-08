@@ -2434,8 +2434,8 @@ private lemma centralRectangle_poles_finite (l : LadderParams) (n : ℕ) (G_circ
     apply IsCompact.reProdIm <;> apply isCompact_uIcc
   have hdiv_finite :
       (MeromorphicOn.divisor (fun s ↦ G_circ s * (x : ℂ) ^ s)
-        (Rectangle ((l.σ n : ℂ) - (l.δ : ℂ) * Complex.I) (1 + (l.δ : ℂ) * Complex.I))).support.Finite := by
-    exact (MeromorphicOn.divisor (fun s ↦ G_circ s * (x : ℂ) ^ s)
+        (Rectangle ((l.σ n : ℂ) - (l.δ : ℂ) * Complex.I) (1 + (l.δ : ℂ) * Complex.I))).support.Finite :=
+    (MeromorphicOn.divisor (fun s ↦ G_circ s * (x : ℂ) ^ s)
       (Rectangle ((l.σ n : ℂ) - (l.δ : ℂ) * Complex.I) (1 + (l.δ : ℂ) * Complex.I))).finiteSupport
         h_rect_compact
   refine Set.Finite.subset hdiv_finite ?_
@@ -2574,9 +2574,8 @@ private lemma integrable_vseg_11 {F G_circ : ℂ → ℂ} {x₀ x : ℝ} (hF : F
     exact hGc_contour_order (starRingEnd ℂ z) hz_star
   · intro t ht
     exact ⟨by simp, by
-      simp only [ofReal_one, add_im, one_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
-      mul_zero, add_zero, zero_add, Set.mem_Icc]
-      exact ht⟩
+      simpa only [ofReal_one, add_im, one_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re,
+        mul_zero, add_zero, zero_add, Set.mem_Icc] using ht⟩
 
 -- Helper for integrating on the upper half of the Re=1 segment
 private lemma integrable_vseg_12 {F G_circ : ℂ → ℂ} {x₀ x : ℝ} (hF : F = fun s ↦ G_circ s * (x : ℂ) ^ s) (l : LadderParams)
