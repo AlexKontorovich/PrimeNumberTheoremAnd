@@ -2690,20 +2690,8 @@ lemma conj_intHSeg_of_antisymm (h a b : ℝ) (F : ℂ → ℂ) (hF : ∀ s, star
   (proof := /-- For the conjugation-antisymmetric integrand $G^\star x^s$, $\int_{C_{n,1}^-} = \overline{\int_{C_{n,1}^+}}$, and $z - \bar z = 2i\, \Im z$. -/)
   (latexEnv := "sublemma")
   (discussion := 1451)]
-theorem lemma_5_1_d (n : ℕ)
-    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
-    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
-    (hG_star_symm : ConjAntisymm G_star)
-    (hx₀ : 1 ≤ x₀)
-    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
-    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
-    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
-    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
+theorem lemma_5_1_d (n : ℕ) (hG_star_symm : ConjAntisymm G_star)
+    (hx₀ : 1 ≤ x₀) (hx : x₀ < x) :
     l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s) -
         l.intCn1Minus n (fun s ↦ G_star s * (x : ℂ) ^ s) =
       2 * Complex.I * ((l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)).im : ℂ) := by
