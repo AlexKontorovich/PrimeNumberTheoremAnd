@@ -1,0 +1,22 @@
+module
+
+public import Mathlib.Analysis.Complex.CanonicalDecomposition
+
+/-!
+# Canonical-decomposition notation
+
+Compatibility notation for disk Blaschke factors in terms of Mathlib's `canonicalFactor`.
+-/
+
+@[expose] public section
+
+namespace Complex
+
+/-- Blaschke factor on the disk of radius `R` with a zero at `w`; equal to `canonicalFactor`. -/
+noncomputable abbrev blaschkeFactor (R : ℝ) (w : ℂ) : ℂ → ℂ := canonicalFactor R w
+
+@[simp] lemma blaschkeFactor_def (R : ℝ) (w : ℂ) :
+    blaschkeFactor R w = canonicalFactor R w :=
+  rfl
+
+end Complex
