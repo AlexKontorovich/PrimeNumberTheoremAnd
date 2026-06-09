@@ -1101,7 +1101,7 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 blueprint_comment /--
-  API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm_tprod
+  API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm-tprod
 -/
 
 variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
