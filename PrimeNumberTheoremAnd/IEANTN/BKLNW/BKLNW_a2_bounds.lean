@@ -6,6 +6,7 @@ Authors: LeanCert Contributors
 import LeanCert.Tactic.IntervalAuto
 import LeanCert.Examples.BKLNW_a2_pow2
 import LeanCert.Examples.BKLNW_a2_bounds
+import LeanCert.Examples.BKLNW_a2_reflective
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 
 /-!
@@ -47,13 +48,13 @@ private lemma floor_20 : ⌊(20 : ℝ) / log 2⌋₊ = 28 := by
 private lemma a2_20_exp_lower :
     (1.4262 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (20 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_bounds.a2_20_exp_lower
+    LeanCert.Examples.BKLNW_a2_reflective.a2_20_exp_lower
 
 private lemma a2_20_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (20 : ℝ)) ≤
       (1.4262 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_bounds.a2_20_exp_upper
+    LeanCert.Examples.BKLNW_a2_reflective.a2_20_exp_upper
 
 private lemma cert_pow29_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (29 : ℕ)) ≤
