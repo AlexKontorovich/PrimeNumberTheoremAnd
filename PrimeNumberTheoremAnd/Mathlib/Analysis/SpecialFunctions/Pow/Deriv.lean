@@ -57,8 +57,7 @@ theorem HasDerivAt.const_mul_ofReal_cpow_neg_sub_one (a : ℂ) {u : ℝ} (hu : 0
       (-(Complex.log (u : ℂ)) * (u : ℂ) ^ (-z - 1)) z := by
     simpa [mul_comm, mul_left_comm, mul_assoc] using hbase
   have hlog : (Real.log u : ℂ) = Complex.log (u : ℂ) := by
-    simpa using (Complex.ofReal_log (x := u) (hx := le_of_lt hu))
+    simpa using (ofReal_log (x := u) (hx := le_of_lt hu))
   simpa [hlog, mul_comm, mul_left_comm, mul_assoc] using hbase'.const_mul a
-
 
 end Complex
