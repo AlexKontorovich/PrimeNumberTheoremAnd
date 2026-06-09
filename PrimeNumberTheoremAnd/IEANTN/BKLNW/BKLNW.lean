@@ -1355,6 +1355,30 @@ noncomputable def B_8_exact (k : ℕ) (b b' : ℝ) : ℝ :=
   B k 2 (fun ℓ => if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0)
     Inputs.default.ε b b'
 
+/-- Exact-`B` companion to `bklnw_cor_8_1a`: the same θ-bound stated with the Lemma-8
+interval supremum `B_8_exact` instead of the looser Corollary-8.1 endpoint surrogate
+`B_8_1`. This is the intermediate already established inside `bklnw_cor_8_1a` (its
+`h_main1`, before the weakening `B ≤ Btilde = B_8_1`). It is what lets the retargeted
+`bklnw_table_10_verification` (`B_8_exact ≤` listed value) chain into applications:
+`|θ x - x| ≤ B_8_exact ≤ listed`. -/
+theorem bklnw_cor_8_1a_exact (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hbk : b ≥ max 7 (2 * (k : ℝ))) :
+  ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_exact k b b') * x / (log x)^k := by
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
+    intro x hx
+    convert cor_5_1 hb_ge_7 hx using 1
+    simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, a₁, a₂, a]
+  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
+    fun x hx ↦ Inputs.default.hε b (by positivity) x hx
+  have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk hb_ge_2k le_rfl hψ_θ_bound hε_bound
+  intro x hx
+  exact h_main1 x hx
+
 @[blueprint
   "bklnw-table-10-verification"
   (title := "BKLNW Table 10 verification")
