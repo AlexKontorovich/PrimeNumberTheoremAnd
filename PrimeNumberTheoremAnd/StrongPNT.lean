@@ -141,7 +141,7 @@ lemma cauchy_formula_deriv {r r' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
           \leq\frac{1}{2\pi}\int_0^{2\pi}
           \left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that
+    Now applying Theorem \ref{borelCaratheodory'}, and noting that
     $r'-r\leq|r'e^{it}-z|$, we have that
     $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
       \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
@@ -895,7 +895,7 @@ noncomputable def JBlaschke {r' r R : ℝ} {f : ℂ → ℂ}
       \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
     for all $|z|\leq r$. Note that in the above
     $$0=\log|f(0)|\leq\log|B_f(0)|$$
-    because of Lemma \ref{norm-fOfZero-le-norm-BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
+    because of Lemma \ref{norm_fOfZero_le_norm_BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
     for all $|z|\leq r'$.
   -/)
@@ -1408,7 +1408,7 @@ lemma ZetaAltFormulaAnalytic :
 
 
 @[blueprint "ZetaExtend"
-  (title := "ZetaAltFormulaAnalytic")
+  (title := "ZetaExtend")
   (statement := /--
     We have that
     $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
