@@ -10,7 +10,7 @@ import Mathlib.Analysis.Complex.BorelCaratheodory
 import Mathlib.Topology.Algebra.InfiniteSum.Field
 import PrimeNumberTheoremAnd.MediumPNT
 
-open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
+open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory Asymptotics
 
 open ArithmeticFunction (vonMangoldt)
 
@@ -1339,52 +1339,71 @@ lemma ZetaAltFormula {s : ℂ} (hs : 1 < s.re) :
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}
+@[blueprint "Int.fract'"
+  (title := "Int.fract'")
+  (statement := /--
+    An auxillary function used to prove the analyticity of \ref{ZetaZero}.
+    We define
+    $$\{x\}'=\{x\}\,\mathbf{1}_{1<x}.$$
+  -/)]
+noncomputable def Int.fract' : ℝ → ℂ := fun (x : ℝ) =>
+  if (1 : ℝ) < x then ((Int.fract x : ℝ) : ℂ) else 0
+
+
+
+@[blueprint "ZetaAltFormulaAnalytic"
+  (title := "ZetaAltFormulaAnalytic")
+  (statement := /--
     We have that $\zeta_0(s)$ is analytic for all $s\in S$ where
     $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$.
-\end{lemma}
--/
-
-lemma ZetaAltFormulaAnalytic {ε : ℝ} (hε : ε > 0) :
-    AnalyticOn ℂ ζ₀ ({ s : ℂ | ε < s.re ∧ s ≠ 1 }) := by
+  -/)
+  (proof := /--
+    Recall that if a function is differentiable on a region, then it is analytic on the interior of
+    that region. So, it suffices to prove that $\zeta_0$ is differentiable on $s\in S$. Now note that
+    $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}
+      =1+\frac{1}{s-1}-s\int_0^\infty\{x\}'\,x^{-s}\,\frac{dx}{x}
+      =1+\frac{1}{s-1}-s\,\mathcal{M}(\{\cdot\}')(-s).$$
+    Since $s\neq 1$, all that remains is to verify that $\mathcal{M}(\{\cdot\}')(-s)$ is differentiable on $S$.
+    Using \begin{verbatim}
+      mellin_differentiableAt_of_isBigO_rpow
+    \end{verbatim}
+    it suffices to show that $\{x\}'$ is $O(1)$ as $x\to\infty$. This is true as $|\{x\}'|\leq 1.$
+  -/)]
+lemma ZetaAltFormulaAnalytic :
+    AnalyticOn ℂ ζ₀ ({ s : ℂ | 0 < s.re ∧ s ≠ 1 }) := by
+  have fract'_norm_le_one (x : ℝ) : ‖Int.fract' x‖ ≤ 1 := by
+    simp only [Int.fract']
+    split_ifs
+    · simp only [norm_real, norm_eq_abs, abs_of_nonneg (Int.fract_nonneg u), Int.abs_fract]
+      exact (Int.fract_lt_one x).le
+    · simp only [norm_zero, zero_le_one]
+  have mellin_fract'_neg (s : ℂ) : ∫ u in Ioi (1 : ℝ), (↑(Int.fract u) : ℂ) * (u : ℂ) ^ (-s - 1) =
+    mellin Int.fract' (-s) := by
+    simp only [← MeasureTheory.integral_indicator (measurableSet_Ioi), mellin, Int.fract',
+      smul_eq_mul, mul_ite, mul_zero]
+    norm_num [Set.indicator]
+    congr 1; funext x
+    split_ifs with h1 h2 <;> ring_nf; linarith
   unfold ζ₀
-  simp only [AnalyticOn]
+  simp only [AnalyticOn, mellin_fract'_neg]
   intro s hs
-  refine AnalyticAt.analyticWithinAt (AnalyticAt.fun_sub (AnalyticAt.add (analyticAt_const) (AnalyticAt.div (analyticAt_const) (analyticAt_id.sub analyticAt_const) ?_)) (AnalyticAt.mul (analyticAt_id) ?_))
+  refine AnalyticAt.analyticWithinAt (AnalyticAt.fun_sub (AnalyticAt.add analyticAt_const (AnalyticAt.div analyticAt_const (analyticAt_id.sub analyticAt_const) ?_)) (AnalyticAt.mul analyticAt_id ?_))
   · rw [sub_ne_zero]
     exact hs.2
-  · rw [← IsOpen.mem_nhds_iff] at hs
-    · refine DifferentiableOn.analyticAt ?_ hs
-      simp only [DifferentiableOn]
-      intro s hs
-      refine DifferentiableAt.differentiableWithinAt ?_
-      sorry
-    · exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne
-
-lemma ZetaAltFormulaAnalytic' :
-    AnalyticOn ℂ ζ₀ ({ s : ℂ | 0 < s.re ∧ s ≠ 1 }) := by
-  intro s hs
-  have half_s_re_pos : (s / 2).re > 0 := by norm_num [hs.1]
-  have analyticOnCompactSubsets := ZetaAltFormulaAnalytic half_s_re_pos
-  simp only [AnalyticOn] at ⊢ analyticOnCompactSubsets
-  set S := {s_1 : ℂ | (s / 2).re < s_1.re ∧ s_1 ≠ 1} with S_def
-  have hs' : s ∈ S := by  simp only [S_def, div_ofNat_re, ne_eq, mem_setOf_eq, half_lt_self_iff] at ⊢ hs; exact hs
-  obtain ⟨g, hg⟩ := AnalyticWithinAt.exists_analyticAt (analyticOnCompactSubsets s hs')
-  refine AnalyticAt.analyticWithinAt (hg.2.2.congr (hg.2.1.eventuallyEq_of_mem (mem_nhds_iff.mpr ?_)).symm)
-  exact ⟨S, ⟨subset_insert s S, ⟨(isOpen_lt continuous_const (Complex.continuous_re.comp continuous_id)).inter isOpen_compl_singleton, hs'⟩⟩⟩
-
-blueprint_comment /--
-\begin{proof}
-    Note that we have
-    $$\left|\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}\right|
-      \leq\int_1^\infty|\{x\}\,x^{-s-1}|\,dx
-      \leq\int_1^\infty x^{-\sigma-1}\,dx=\frac{1}{\sigma}.$$
-    So this integral converges uniformly on compact subsets of $S$, which tells us that
-    it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$
-    as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term.
-\end{proof}
--/
+  · rw [← IsOpen.mem_nhds_iff (by exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne)] at hs
+    refine DifferentiableOn.analyticAt ?_ hs
+    intro s hs
+    refine DifferentiableAt.differentiableWithinAt (DifferentiableAt.comp (f := fun s => -s) (g := mellin Int.fract') (x := s) (mellin_differentiableAt_of_isBigO_rpow (a := 0) (b := (-s).re - 1) ?_ ?_ ?_ ?_ (by linarith)) (differentiableAt_id.neg))
+    · rw [locallyIntegrableOn_iff isOpen_Ioi.isLocallyClosed]
+      exact (fun K hK hKc => Measure.integrableOn_of_bounded (ne_of_lt hKc.measure_lt_top) (Measurable.ite measurableSet_Ioi (Complex.measurable_ofReal.comp measurable_fract) measurable_const).aestronglyMeasurable (Filter.Eventually.of_forall fun x => fract'_norm_le_one x))
+    · simp only [neg_zero, rpow_zero]
+      exact isBigO_of_le _ (fun x => by simpa using fract'_norm_le_one x)
+    · rw [neg_re]
+      linarith [hs.1]
+    · refine IsBigO.of_bound 1 ?_
+      filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Metric.ball_mem_nhds _ zero_lt_one)] with x _ hx
+      unfold Int.fract'; split_ifs <;> norm_num at *
+      linarith [abs_lt.mp hx]
 
 
 
