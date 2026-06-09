@@ -1407,19 +1407,53 @@ lemma ZetaAltFormulaAnalytic :
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaExtend]\label{ZetaExtend}
+@[blueprint "ZetaExtend"
+  (title := "ZetaAltFormulaAnalytic")
+  (statement := /--
     We have that
     $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
     for all $s\in S$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+  -/)
+  (proof := /--
     This is an immediate consequence of the identity theorem.
-\end{proof}
--/
+  -/)]
+lemma ZetaExtend : Set.EqOn ζ ζ₀ {s : ℂ | 0 < s.re ∧ s ≠ 1} := by
+  have asUnion : {s : ℂ | 0 < s.re ∧ s ≠ 1} =
+    {s | 0 < s.re ∧ 0 < s.im} ∪ {s | 1 < s.re} ∪
+    {s | 0 < s.re ∧ s.im < 0} ∪ {s | 0 < s.re ∧ s.re < 1} := by
+    ext s
+    simp only [mem_setOf_eq, mem_union]
+    constructor
+    · intro hs
+      simp only [hs.1, true_and]
+      by_contra h; push Not at h
+      have re_eq := le_antisymm h.2 h.1.1.2
+      have im_eq := le_antisymm h.1.2 h.1.1.1
+      exact hs.2 (Complex.ext re_eq.symm im_eq.symm)
+    · intro hs
+      constructor
+      · rcases hs with (((⟨h, _⟩ | h) | ⟨h, _⟩) | ⟨h, _⟩) <;> linarith
+      · intro heq; simp [heq] at hs
+  apply AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq (𝕜 := ℂ) (z₀ := 3)
+  · simp only [ne_eq, mem_setOf_eq, re_ofNat, ofNat_pos, OfNat.ofNat_ne_one, not_false_eq_true,
+      and_self]
+  · rw [Filter.eventuallyEq_iff_exists_mem]
+    refine ⟨Metric.ball 3 1, ⟨Metric.ball_mem_nhds _ one_pos, ?_⟩⟩
+    simp only [EqOn, mem_ball_iff_norm]
+    intro s hs
+    apply ZetaAltFormula
+    norm_num [Complex.normSq, Complex.norm_def, Real.sqrt_lt'] at hs
+    nlinarith
+  · apply analyticOn_riemannZeta.mono
+    simp only [ne_eq, subset_compl_singleton_iff, mem_setOf_eq, one_re, zero_lt_one,
+      not_true_eq_false, and_false, not_false_eq_true]
+  · rw [← IsOpen.analyticOn_iff_analyticOnNhd (by exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne)]
+    exact ZetaAltFormulaAnalytic
+  · rw [asUnion]
+    refine IsPreconnected.union' ⟨1 / 2 - I, by simp [two_inv_lt_one]⟩ (IsPreconnected.union' ⟨2 - I, by simp⟩ (IsPreconnected.union' ⟨2 + I, by simp⟩ (Convex.isPreconnected ?_) (Convex.isPreconnected (convex_halfSpace_re_gt 1))) (Convex.isPreconnected ?_)) (Convex.isPreconnected ?_)
+    · convert Convex.inter (convex_halfSpace_re_gt 0) (convex_halfSpace_im_gt 0) using 1
+    · convert convex_halfSpace_re_gt 0 |> Convex.inter <| convex_halfSpace_im_lt 0 using 1
+    · convert convex_halfSpace_re_gt 0 |> Convex.inter <| convex_halfSpace_re_lt 1 using 1
 
 
 
