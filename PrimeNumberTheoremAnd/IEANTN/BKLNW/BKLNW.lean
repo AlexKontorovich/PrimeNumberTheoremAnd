@@ -1379,6 +1379,74 @@ theorem bklnw_cor_8_1a_exact (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (
   intro x hx
   exact h_main1 x hx
 
+/-- The exact interval supremum is bounded by the Corollary-8.1 endpoint surrogate:
+`B_8_exact k b b' ≤ B_8_1 k b b'` when `b < b'`. This is exactly the weakening already
+performed inside `bklnw_cor_8_1a` (`B ≤ Btilde = B_8_1`), here stated on its own so the two
+θ-bound variants connect: `bklnw_cor_8_1a_exact` (with `B_8_exact`) gives the tighter
+constant, `bklnw_cor_8_1a` (with `B_8_1`) the looser one, and this lemma is the inequality
+between them. -/
+lemma B_8_exact_le_B_8_1 (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b')
+    (hbk : b ≥ max 7 (2 * (k : ℝ))) : B_8_exact k b b' ≤ B_8_1 k b b' := by
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
+    (one_le_exp (by positivity)).trans Inputs.default.hx₁
+  have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_nonneg hx₁_ge_one)
+  have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
+  have hα_pos : 0 < 1 + Inputs.default.α := by
+    unfold Inputs.default; positivity
+  have hmax_nonneg : 0 ≤ max (f (exp b)) (f (2 ^ (⌊b / log 2⌋₊ + 1))) :=
+    le_max_iff.2 (Or.inl (Finset.sum_nonneg (by intros; positivity)))
+  have ha₁_nonneg : 0 ≤ Inputs.default.a₁ b := by
+    unfold Inputs.a₁
+    split_ifs <;> positivity
+  have ha₂_nonneg : 0 ≤ Inputs.default.a₂ b :=
+    mul_nonneg hα_pos.le hmax_nonneg
+  have ha_nonneg : ∀ ℓ ∈ Finset.Icc 1 2, 0 ≤ a ℓ := by
+    intro ℓ hℓ
+    obtain ⟨h1, h2⟩ := Finset.mem_Icc.1 hℓ
+    interval_cases ℓ <;> simp [a, ha₁_nonneg, ha₂_nonneg]
+  have hε_nonneg_b : 0 ≤ Inputs.default.ε b :=
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
+  have h_main2 : B k 2 a Inputs.default.ε b b' ≤ Btilde k 2 a Inputs.default.ε b b' :=
+    bklnw_eq_3_11 k 2 hk.1 a Inputs.default.ε b b' ha_nonneg hε_nonneg_b hb hb_ge_2k
+  have h_Btilde_eq : Btilde k 2 a Inputs.default.ε b b' = B_8_1 k b b' := by
+    simp only [Btilde, neg_mul, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one, one_mul,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, mul_add, B_8_1, a]
+    ac_rfl
+  exact h_main2.trans_eq h_Btilde_eq
+
+/-- Application form of `bklnw_cor_8_1a_exact`: given a numerical upper bound `C` for the
+exact interval supremum (`B_8_exact k b b' ≤ C`, e.g. an entry verified by
+`bklnw_table_10_verification`), the θ-bound holds with the listed constant `C`, via
+`|θ x - x| ≤ B_8_exact k b b' * x / (log x)^k ≤ C * x / (log x)^k`. -/
+theorem bklnw_cor_8_1a_exact_le (k : ℕ) (b b' C : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
+    (hbk : b ≥ max 7 (2 * (k : ℝ))) (hC : B_8_exact k b b' ≤ C) :
+    ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ C * x / (log x)^k := by
+  intro x hx
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  refine (bklnw_cor_8_1a_exact k b b' hk hbk x hx).trans ?_
+  refine div_le_div_of_nonneg_right ?_ (pow_nonneg (log_pos (Std.lt_of_lt_of_le
+    (one_lt_exp_iff.2 (by positivity)) hx.1)).le k)
+  exact mul_le_mul_of_nonneg_right hC (ZetaSum_aux1_1' (exp_pos b) hx).le
+
+/-- Application form of `bklnw_cor_8_1a`: the weakened-`B_8_1` counterpart of
+`bklnw_cor_8_1a_exact_le`. Given `B_8_1 k b b' ≤ C` (and `b < b'`), the θ-bound holds with
+the constant `C`. A downstream user picks whichever interface matches the constant in hand. -/
+theorem bklnw_cor_8_1a_le (k : ℕ) (b b' C : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b < b')
+    (hbk : b ≥ max 7 (2 * (k : ℝ))) (hC : B_8_1 k b b' ≤ C) :
+    ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ C * x / (log x)^k := by
+  intro x hx
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  refine (bklnw_cor_8_1a k b b' hk hb hbk x hx).trans ?_
+  refine div_le_div_of_nonneg_right ?_ (pow_nonneg (log_pos (Std.lt_of_lt_of_le
+    (one_lt_exp_iff.2 (by positivity)) hx.1)).le k)
+  exact mul_le_mul_of_nonneg_right hC (ZetaSum_aux1_1' (exp_pos b) hx).le
+
 @[blueprint
   "bklnw-table-10-verification"
   (title := "BKLNW Table 10 verification")
