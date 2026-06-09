@@ -998,10 +998,10 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
 @[blueprint
   "thm:massias-robin1996-pn-lower"
   (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
-  (statement := /-- If $p_n < e^{598}$ or $p_n > e^{1800}$, then
+  (statement := /-- If $n \geq 2$ and either $p_n < e^{598}$ or $p_n > e^{1800}$, then
   $p_n \geq n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower (n : ℕ)
+theorem p_n_lower (n : ℕ) (hn2 : 2 ≤ n)
     (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
     nth_prime' n ≥ n * (log n + log (log n) - 1) := by sorry
 
