@@ -34,9 +34,9 @@ factorization conclusion itself.  It is step 1 of the intrinsic Hadamard pipelin
 Jensen's formula and log-counting growth bounds live in
 `Analysis.Complex.ValueDistribution.LogCounting`.
 
-Tao Notes 1 enters here through Theorem 2 (Jensen's formula) and Proposition 8 (zero counting from
-growth).  The forward convergence input corresponding to Exercise 19 is used for the genus
-`⌊ρ⌋` canonical product; the converse direction in Exercise 24 is not proved in this branch.
+Tao Notes 1 enters here through Theorem 2 (Jensen's formula), Proposition 8 (zero counting from
+growth), and the convergence input corresponding to Exercise 19 for the genus `⌊ρ⌋` canonical
+product.
 
 ## References
 
