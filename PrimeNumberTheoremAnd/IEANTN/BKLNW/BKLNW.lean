@@ -1346,6 +1346,15 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
     refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
     exact h_Btilde_eq ▸ h_main2
 
+/-- The exact Lemma-8 interval supremum `B` (eq. 3.10) over `[e^b, e^{b'}]` with the
+standard BKLNW coefficient inputs `a₁, a₂, ε`. This is the quantity Table 10's printed
+values actually track, as opposed to the Corollary-8.1 endpoint surrogate `B_8_1`
+(eq. 3.13). See issue #1255: the previous `bklnw_table_10_verification` target was stated
+in terms of `B_8_1`, which is provably exceeded by the listed values at e.g. `b=20, k=5`. -/
+noncomputable def B_8_exact (k : ℕ) (b b' : ℝ) : ℝ :=
+  B k 2 (fun ℓ => if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0)
+    Inputs.default.ε b b'
+
 @[blueprint
   "bklnw-table-10-verification"
   (title := "BKLNW Table 10 verification")
@@ -1353,9 +1362,13 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
   (proof := /-- TODO: Implement a margin and verify the entries of Table 10.  Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
   (latexEnv := "proposition")
   (discussion := 1255)]
-theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
+theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_exact k b (table_10_next b) ≤ B k := by
   sorry
 
+-- The unabridged 287-row `table_10` makes the per-entry membership enumeration below
+-- large, so the elaboration budget is raised.
+set_option maxHeartbeats 4000000 in
+set_option maxRecDepth 8000 in
 lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ table_10_entries) : (20 : ℝ) ≤ b := by
   simp only [List.mem_toFinset, List.mem_map] at hb
   rcases hb with ⟨p, hp, rfl⟩
@@ -1377,6 +1390,10 @@ lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b
   rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
   simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
 
+-- The unabridged 287-row `table_10` makes the per-entry membership enumeration below
+-- large, so the elaboration budget is raised.
+set_option maxHeartbeats 4000000 in
+set_option maxRecDepth 8000 in
 lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ) := by
   simp only [List.mem_toFinset, List.mem_map] at hb
   rcases hb with ⟨p, hp, rfl⟩
