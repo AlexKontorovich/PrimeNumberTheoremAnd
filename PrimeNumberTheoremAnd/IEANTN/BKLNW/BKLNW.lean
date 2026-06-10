@@ -1346,16 +1346,44 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
     refine mul_le_mul_of_nonneg_right ?_ (ZetaSum_aux1_1' (exp_pos b) hx).le
     exact h_Btilde_eq ▸ h_main2
 
-@[blueprint
-  "bklnw-table-10-verification"
-  (title := "BKLNW Table 10 verification")
-  (statement := /--  Verification of the entries of Table 10. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 10.  Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean` -/)
-  (latexEnv := "proposition")
-  (discussion := 1255)]
-theorem bklnw_table_10_verification (b : ℝ) (B : ℕ → ℝ) (h : (b, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_10) : ∀ k ∈ Finset.Icc 1 5, B_8_1 k b (table_10_next b) ≤ B k := by
-  sorry
+/-- The exact Lemma-8 interval supremum `B` (eq. 3.10) over `[e^b, e^{b'}]` with the
+standard BKLNW coefficient inputs `a₁, a₂, ε`. This is the quantity Table 10's printed
+values actually track, as opposed to the Corollary-8.1 endpoint surrogate `B_8_1`
+(eq. 3.13). See issue #1255: the previous `bklnw_table_10_verification` target was stated
+in terms of `B_8_1`, which is provably exceeded by the listed values at e.g. `b=20, k=5`. -/
+noncomputable def B_8_exact (k : ℕ) (b b' : ℝ) : ℝ :=
+  B k 2 (fun ℓ => if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0)
+    Inputs.default.ε b b'
 
+/-- Exact-`B` companion to `bklnw_cor_8_1a`: the same θ-bound stated with the Lemma-8
+interval supremum `B_8_exact` instead of the looser Corollary-8.1 endpoint surrogate
+`B_8_1`. This is the intermediate already established inside `bklnw_cor_8_1a` (its
+`h_main1`, before the weakening `B ≤ Btilde = B_8_1`). It is what lets the retargeted
+`bklnw_table_10_verification` (`B_8_exact ≤` listed value) chain into applications:
+`|θ x - x| ≤ B_8_exact ≤ listed`. -/
+theorem bklnw_cor_8_1a_exact (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hbk : b ≥ max 7 (2 * (k : ℝ))) :
+  ∀ x ∈ Set.Icc (exp b) (exp b'), |θ x - x| ≤ (B_8_exact k b b') * x / (log x)^k := by
+  let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
+  have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
+  have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
+  have hψ_θ_bound : ∀ x ≥ exp b, ψ x - θ x ≤ ∑ ℓ ∈ Finset.Icc 1 2, a ℓ * x ^ (1 / (ℓ + 1 : ℝ)) := by
+    intro x hx
+    convert cor_5_1 hb_ge_7 hx using 1
+    simp only [one_div, ite_mul, zero_mul, one_add_one_eq_two, Nat.one_le_ofNat,
+      sum_Icc_succ_top, Icc_self, sum_singleton, ↓reduceIte, Nat.cast_one,
+      OfNat.ofNat_ne_one, Nat.cast_ofNat, two_add_one_eq_three, a₁, a₂, a]
+  have hε_bound : ∀ x ≥ exp b, abs (ψ x - x) ≤ Inputs.default.ε b * x :=
+    fun x hx ↦ Inputs.default.hε b (by positivity) x hx
+  have h_main1 : ∀ x ∈ Set.Icc (exp b) (exp b'), abs (θ x - x) ≤ B k 2 a Inputs.default.ε b b' * x / (log x)^k :=
+    bklnw_lemma_8 k 2 a Inputs.default.ε b b' (exp b) hk hb_ge_2k le_rfl hψ_θ_bound hε_bound
+  intro x hx
+  exact h_main1 x hx
+
+-- The unabridged 287-row `table_10` makes the per-entry membership enumeration below
+-- large, so the elaboration budget is raised.
+set_option maxHeartbeats 4000000 in
+-- The unabridged 287-row `table_10` membership enumeration needs a larger elaboration budget.
+set_option maxRecDepth 8000 in
 lemma table_10_entries_ge_20 (b : ℝ) (hb : b ∈ table_10_entries) : (20 : ℝ) ≤ b := by
   simp only [List.mem_toFinset, List.mem_map] at hb
   rcases hb with ⟨p, hp, rfl⟩
@@ -1377,6 +1405,11 @@ lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b
   rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
   simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
 
+-- The unabridged 287-row `table_10` makes the per-entry membership enumeration below
+-- large, so the elaboration budget is raised.
+set_option maxHeartbeats 4000000 in
+-- The unabridged 287-row `table_10` membership enumeration needs a larger elaboration budget.
+set_option maxRecDepth 8000 in
 lemma table_10_entry_lt_K (b : ℝ) (hb : b ∈ table_10_entries) : b < (K : ℝ) := by
   simp only [List.mem_toFinset, List.mem_map] at hb
   rcases hb with ⟨p, hp, rfl⟩
