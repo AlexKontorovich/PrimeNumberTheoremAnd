@@ -16,7 +16,11 @@ set_option maxRecDepth 100000 in
 @[blueprint
   "bklnw-table-10-verification"
   (title := "BKLNW Table 10 verification")
-  (statement := /--  Verification of the entries of Table 10. -/)
+  (statement := /--  Verification of the entries of Table 10, up to the safety margin
+  $m = 1.002001$: each row $(b, B_1, \ldots, B_5)$ of the (unabridged) Table 10 satisfies
+  $$B^{\mathrm{exact}}_k(b, \mathrm{next}(b)) \le B_k \cdot m \qquad (k = 1, \ldots, 5),$$
+  where $m$ is the Table 8 margin $1.001$ composed with a further factor $1.001$,
+  accounting for the final-digit rounding of the printed values. -/)
   (proof := /-- Enumerate the 287 rows of `table_10`, split into the five `k` cases,
   and discharge each case using the generated row margin and next-row certificates. -/)
   (latexEnv := "proposition")
