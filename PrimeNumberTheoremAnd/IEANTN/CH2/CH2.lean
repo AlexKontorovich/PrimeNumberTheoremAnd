@@ -2729,10 +2729,12 @@ theorem lemma_5_1_d (n : ℕ) (hG_star_symm : ConjAntisymm G_star)
   rw [h_sub, Complex.sub_conj]
   simp; ring_nf
 
-private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : ℂ → ℂ)
-    (x₀ x h : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+private lemma aestronglyMeasurable_horizontal_path_mul_cpow_of_meromorphic
+    (l : LadderParams) (F : ℂ → ℂ)
+    (x₀ x h : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (hS_sub : {z : ℂ | z.re ≤ 1 ∧ z.im = h} ⊆ l.R)
     (hF_mero : MeromorphicOn F l.R)
-    (h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z) :
+    (h_order : ∀ z ∈ {z : ℂ | z.re ≤ 1 ∧ z.im = h}, 0 ≤ meromorphicOrderAt F z) :
     AEStronglyMeasurable (fun r : ℝ ↦ F (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I))
       (MeasureTheory.volume.restrict (Set.Iic 1)) := by
   let γ : ℝ → ℂ := fun r ↦ r + h * Complex.I
@@ -2741,18 +2743,13 @@ private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : �
   let Fnf : ℂ → ℂ := toMeromorphicNFOn F l.R
   have hF_nf : MeromorphicNFOn Fnf l.R := by
     simpa [Fnf] using (meromorphicNFOn_toMeromorphicNFOn F l.R)
-  have hF_cont : ContinuousOn Fnf S_h := by
+  have hS_h_sub : S_h ⊆ l.R := by
     intro z hz
-    have hz_Rbd : z ∈ l.Rboundary := by
-      right
-      exact ⟨hz.1, by rw [hz.2]; exact h_abs_h⟩
-    have hz_R : z ∈ l.R := l.Rboundary_subset_R hz_Rbd
-    have h_order_nf : 0 ≤ meromorphicOrderAt Fnf z := by
-      dsimp [Fnf]
-      rw [meromorphicOrderAt_toMeromorphicNFOn hF_mero hz_R]
-      exact h_order z hz_Rbd hz.2
-    exact ((hF_nf hz_R).meromorphicOrderAt_nonneg_iff_analyticAt.1
-      h_order_nf).continuousAt.continuousWithinAt
+    exact hS_sub (by simpa [S_h] using hz)
+  have hF_cont : ContinuousOn Fnf S_h := by
+    exact continuousOn_toMeromorphicNFOn_subset l hS_h_sub hF_mero (by
+      intro z hz
+      exact h_order z (by simpa [S_h] using hz))
   have h_path_maps : Set.MapsTo γ (Set.Iic 1) S_h := fun r hr ↦ ⟨by simpa [γ] using hr, by simp [γ]⟩
   have h_proxy_meas :
       AEStronglyMeasurable (fun r : ℝ ↦ Fnf (γ r) * (x : ℂ) ^ (γ r))
@@ -2768,23 +2765,42 @@ private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : �
       rw [ae_iff]
       simpa using (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
     filter_upwards [h_good, MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr_good hr
-    have hz_Rbd : γ r ∈ l.Rboundary := Or.inr ⟨by simpa [γ] using hr, by simpa [γ] using h_abs_h⟩
-    have hz_R : γ r ∈ l.R := l.Rboundary_subset_R hz_Rbd
+    have hz_Sh : γ r ∈ S_h := h_path_maps hr
+    have hz_R : γ r ∈ l.R := hS_h_sub hz_Sh
     have hF_analytic : AnalyticAt ℂ F (γ r) := by simpa using fun hz_compl ↦ hr_good ⟨hz_compl, hz_R⟩
     dsimp [Fnf]
     rw [toMeromorphicNFOn_eq_toMeromorphicNFAt hF_mero hz_R, toMeromorphicNFAt_eq_self.2 hF_analytic.meromorphicNFAt]
   exact AEStronglyMeasurable.congr h_proxy_meas h_eq_ae.symm
 
-private lemma bound_G_mul_cpow_hray (l : LadderParams) (G : ℂ → ℂ)
-    (x₀ x h M : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
-    (h_abs_h : |h| = l.T)
-    (hM : ∀ z ∈ l.Rboundary, ‖G z * (x₀ : ℂ) ^ z‖ ≤ M)
-    (r : ℝ) (hr : r ≤ 1) :
-    ‖G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)‖ ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
+private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : ℂ → ℂ)
+    (x₀ x h : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+    (hF_mero : MeromorphicOn F l.R)
+    (h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z) :
+    AEStronglyMeasurable (fun r : ℝ ↦ F (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I))
+      (MeasureTheory.volume.restrict (Set.Iic 1)) := by
+  refine aestronglyMeasurable_horizontal_path_mul_cpow_of_meromorphic
+    l F x₀ x h hx₀ hx ?_ hF_mero ?_
+  · intro z hz
+    have hz_Rbd : z ∈ l.Rboundary := by
+      right
+      exact ⟨hz.1, by rw [hz.2]; exact h_abs_h⟩
+    exact l.Rboundary_subset_R hz_Rbd
+  · intro z hz
+    have hz_Rbd : z ∈ l.Rboundary := by
+      right
+      exact ⟨hz.1, by rw [hz.2]; exact h_abs_h⟩
+    exact h_order z hz_Rbd hz.2
+
+private lemma norm_G_mul_cpow_le_of_base_bound (G : ℂ → ℂ) (x₀ x h r M : ℝ)
+    (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (hM : ‖G ((r : ℂ) + h * Complex.I) * (x₀ : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ ≤ M)
+    (hr : r ≤ 1) :
+    ‖G ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖
+      ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
   let C : ℝ := max M 0
-  let z : ℂ := r + h * Complex.I
-  have hz_Rbd : z ∈ l.Rboundary := Or.inr ⟨by dsimp [z]; simpa using hr, by dsimp [z]; simpa using h_abs_h⟩
-  have h_bdd : ‖G z * (x₀ : ℂ) ^ z‖ ≤ C := (hM z hz_Rbd).trans (le_max_left _ _)
+  let z : ℂ := (r : ℂ) + h * Complex.I
+  have h_bdd : ‖G z * (x₀ : ℂ) ^ z‖ ≤ C := by
+    simpa [C, z] using hM.trans (le_max_left M 0)
   have hx₀_pos : 0 < x₀ := by linarith
   have hx_pos : 0 < x := by linarith
   have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
@@ -2809,6 +2825,15 @@ private lemma bound_G_mul_cpow_hray (l : LadderParams) (G : ℂ → ℂ)
   calc ‖G z * (x : ℂ) ^ z‖ = ‖G z‖ * x₀ ^ r * (x / x₀) ^ r := by rw [norm_mul, hnorm_x, hpow_split]; ring
     _ ≤ C * (x / x₀) ^ r := mul_le_mul_of_nonneg_right h_bdd' (Real.rpow_nonneg hratio_nonneg _)
     _ = C * Real.exp (Real.log (x / x₀) * r) := by rw [hratio_exp]
+
+private lemma bound_G_mul_cpow_hray (l : LadderParams) (G : ℂ → ℂ)
+    (x₀ x h M : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (h_abs_h : |h| = l.T)
+    (hM : ∀ z ∈ l.Rboundary, ‖G z * (x₀ : ℂ) ^ z‖ ≤ M)
+    (r : ℝ) (hr : r ≤ 1) :
+    ‖G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)‖ ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
+  refine norm_G_mul_cpow_le_of_base_bound G x₀ x h r M hx₀ hx ?_ hr
+  exact hM _ (Or.inr ⟨by simpa using hr, by simpa using h_abs_h⟩)
 
 private lemma G_mul_cpow_integrable_hray (l : LadderParams)
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
@@ -2892,6 +2917,77 @@ theorem lemma_5_1_e
   rw [h_seq_eq]
   exact h_tendsto_top.sub h_tendsto_bot
 
+private lemma intVSeg_tendsto_zero_of_bounded_on_L (l : LadderParams) (F : ℂ → ℂ)
+    (x₀ x a b : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (ha_abs : |a| ≤ l.T) (hb_le : b ≤ l.T) (hab : a ≤ b)
+    (hF_L : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) l.L) :
+    Filter.Tendsto (fun n ↦ intVSeg (l.σ n) a b (fun s ↦ F s * (x : ℂ) ^ s))
+      Filter.atTop (nhds (0 : ℂ)) := by
+  obtain ⟨M, hM⟩ := hF_L
+  let C : ℝ := max M 0
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hx_pos : 0 < x := by linarith
+  have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
+  have hratio_nonneg : 0 ≤ x / x₀ := hratio_pos.le
+  have hratio_gt_one : 1 < x / x₀ := by
+    rw [one_lt_div hx₀_pos]
+    linarith
+  have h_decay : Filter.Tendsto (fun n ↦ (|b - a| * C) * (x / x₀) ^ (l.σ n))
+      Filter.atTop (nhds (0 : ℝ)) := by
+    simpa [C, mul_assoc, mul_left_comm, mul_comm] using
+      Filter.Tendsto.const_mul (|b - a| * C) <|
+        (tendsto_rpow_atBot_of_base_gt_one (x / x₀) hratio_gt_one).comp l.hlim
+  have h_eventual_bound : ∀ᶠ n in Filter.atTop,
+    ‖intVSeg (l.σ n) a b (fun s ↦ F s * (x : ℂ) ^ s)‖ ≤ (|b - a| * C) * (x / x₀) ^ (l.σ n) := by
+    filter_upwards [Filter.eventually_ge_atTop 1] with n hn
+    have h_pointwise : ∀ t ∈ Set.Icc a b, ‖(F ((l.σ n : ℂ) + t * Complex.I) * (x : ℂ) ^ ((l.σ n : ℂ) + t * Complex.I)) * Complex.I‖
+      ≤ C * (x / x₀) ^ (l.σ n) := fun t ht ↦ by
+      let z : ℂ := (l.σ n : ℂ) + t * Complex.I
+      have ht_abs : |t| ≤ l.T := by
+        by_cases ht_nonneg : 0 ≤ t
+        · rw [abs_of_nonneg ht_nonneg]
+          exact le_trans ht.2 hb_le
+        · have ht_neg : t < 0 := lt_of_not_ge ht_nonneg
+          have ha_neg : a < 0 := lt_of_le_of_lt ht.1 ht_neg
+          rw [abs_of_neg ht_neg]
+          calc
+            -t ≤ -a := neg_le_neg ht.1
+            _ = |a| := by rw [abs_of_neg ha_neg]
+            _ ≤ l.T := ha_abs
+      have hz_L : z ∈ l.L := ⟨n, hn, by simp [z], by simpa [z] using ht_abs⟩
+      have h_bdd : ‖F z * (x₀ : ℂ) ^ z‖ ≤ C := (hM z hz_L).1.trans (le_max_left _ _)
+      have hnorm_x : ‖(x : ℂ) ^ z‖ = x ^ (l.σ n) := by
+        dsimp [z]
+        rw [Complex.norm_cpow_eq_rpow_re_of_pos hx_pos]
+        simp
+      have hnorm_x₀ : ‖(x₀ : ℂ) ^ z‖ = x₀ ^ (l.σ n) := by
+        dsimp [z]
+        rw [Complex.norm_cpow_eq_rpow_re_of_pos hx₀_pos]
+        simp
+      have h_bdd' : ‖F z‖ * x₀ ^ (l.σ n) ≤ C := by
+        simpa [norm_mul, hnorm_x₀] using h_bdd
+      have hpow_split : x ^ (l.σ n) = x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by
+        conv_lhs => rw [← show x₀ * (x / x₀) = x by field_simp [hx₀_pos.ne']]
+        rw [Real.mul_rpow hx₀_pos.le hratio_nonneg]
+      calc
+        ‖(F z * (x : ℂ) ^ z) * Complex.I‖ = ‖F z‖ * x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by
+          rw [norm_mul, norm_mul, hnorm_x, hpow_split]
+          simp
+          ring
+        _ ≤ C * (x / x₀) ^ (l.σ n) :=
+          mul_le_mul_of_nonneg_right h_bdd' (Real.rpow_nonneg hratio_nonneg _)
+    unfold intVSeg
+    calc
+      ‖∫ t in a..b, (F ((l.σ n : ℂ) + t * Complex.I) * (x : ℂ) ^ ((l.σ n : ℂ) + t * Complex.I)) *
+          Complex.I‖ ≤ (C * (x / x₀) ^ (l.σ n)) * |b - a| :=
+            intervalIntegral.norm_integral_le_of_norm_le_const fun t ht ↦
+            let htIoc : t ∈ Set.Ioc a b := by simpa [Set.uIoc_of_le hab] using ht
+            h_pointwise t ⟨htIoc.1.le, htIoc.2⟩
+      _ = (|b - a| * C) * (x / x₀) ^ (l.σ n) := by
+        rw [abs_sub_comm]; ring
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  refine squeeze_zero' (Filter.Eventually.of_forall fun n ↦ norm_nonneg _) h_eventual_bound h_decay
+
 @[blueprint
   "ch2-lemma-5-1-f"
   (title := "The $\\sigma_n$ column vanishes (CH2 Lemma 5.1, eq. 6)")
@@ -2906,62 +3002,53 @@ theorem lemma_5_1_f (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
   (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L) :
     Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s))
       Filter.atTop (nhds (0 : ℂ)) := by
-  let F : ℂ → ℂ := fun s ↦ G_circ s * (x : ℂ) ^ s
-  change Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) F) Filter.atTop (nhds (0 : ℂ))
-  obtain ⟨M, hM⟩ := hGc_L
-  let C : ℝ := max M 0
-  have hx₀_pos : 0 < x₀ := by linarith
-  have hx_pos : 0 < x := by linarith
-  have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
-  have hratio_nonneg : 0 ≤ x / x₀ := hratio_pos.le
-  have hratio_gt_one : 1 < x / x₀ := by
-    rw [one_lt_div hx₀_pos]
-    linarith
-  have h_decay : Filter.Tendsto (fun n ↦ (2 * l.T * C) * (x / x₀) ^ (l.σ n)) Filter.atTop (nhds (0 : ℝ)) := by
-    simpa [C, mul_assoc, mul_left_comm, mul_comm] using
-      Filter.Tendsto.const_mul (2 * l.T * C) <|
-        (tendsto_rpow_atBot_of_base_gt_one (x / x₀) hratio_gt_one).comp l.hlim
-  have h_eventual_bound : ∀ᶠ n in Filter.atTop, ‖l.intVerticalAt (l.σ n) F‖ ≤ (2 * l.T * C) * (x / x₀) ^ (l.σ n) := by
-    filter_upwards [Filter.eventually_ge_atTop 1] with n hn
-    have h_pointwise : ∀ t ∈ Set.Icc (-l.T) l.T, ‖F ((l.σ n : ℂ) + t * Complex.I) * Complex.I‖ ≤ C * (x / x₀) ^ (l.σ n) := fun t ht ↦ by
-      let z : ℂ := (l.σ n : ℂ) + t * Complex.I
-      have hz_L : z ∈ l.L := ⟨n, hn, by simp [z], by simpa [z] using abs_le.mpr ⟨ht.1, ht.2⟩⟩
-      have h_bdd : ‖G_circ z * (x₀ : ℂ) ^ z‖ ≤ C := (hM z hz_L).1.trans (le_max_left _ _)
-      have hnorm_x : ‖(x : ℂ) ^ z‖ = x ^ (l.σ n) := by dsimp [z]; rw [Complex.norm_cpow_eq_rpow_re_of_pos hx_pos]; simp
-      have hnorm_x₀ : ‖(x₀ : ℂ) ^ z‖ = x₀ ^ (l.σ n) := by dsimp [z]; rw [Complex.norm_cpow_eq_rpow_re_of_pos hx₀_pos]; simp
-      have h_bdd' : ‖G_circ z‖ * x₀ ^ (l.σ n) ≤ C := by simpa [norm_mul, hnorm_x₀] using h_bdd
-      have hpow_split : x ^ (l.σ n) = x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by
-        conv_lhs => rw [← show x₀ * (x / x₀) = x by rw [div_eq_mul_inv]; field_simp]
-        rw [Real.mul_rpow hx₀_pos.le hratio_nonneg]
-      calc ‖F z * Complex.I‖ = ‖G_circ z‖ * x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by dsimp [F]; rw [norm_mul, norm_mul, hnorm_x, hpow_split]; simp; ring
-        _ ≤ C * (x / x₀) ^ (l.σ n) := mul_le_mul_of_nonneg_right h_bdd' (Real.rpow_nonneg hratio_nonneg _)
-    unfold LadderParams.intVerticalAt intVSeg
-    calc ‖∫ t in -l.T..l.T, F ((l.σ n : ℂ) + t * Complex.I) * Complex.I‖ ≤ (C * (x / x₀) ^ (l.σ n)) * |l.T - (-l.T)| :=
-        intervalIntegral.norm_integral_le_of_norm_le_const fun t ht ↦
-          let hTT : -l.T ≤ l.T := by linarith [l.hT]
-          let htIoc : t ∈ Set.Ioc (-l.T) l.T := by simpa [Set.uIoc_of_le hTT] using ht
-          h_pointwise t ⟨htIoc.1.le, htIoc.2⟩
-      _ = (2 * l.T * C) * (x / x₀) ^ (l.σ n) := by rw [abs_of_nonneg (by linarith [l.hT])]; ring
-  rw [tendsto_zero_iff_norm_tendsto_zero]
-  refine squeeze_zero' (Filter.Eventually.of_forall fun n ↦ norm_nonneg _) h_eventual_bound h_decay
+  simpa [LadderParams.intVerticalAt] using
+    intVSeg_tendsto_zero_of_bounded_on_L l G_circ x₀ x (-l.T) l.T hx₀ hx
+      (by rw [abs_of_nonpos (neg_nonpos.mpr l.hT.le)]; linarith)
+      le_rfl
+      (by linarith [l.hT])
+      hGc_L
 
 @[blueprint
   "ch2-lemma-5-1-g"
   (title := "Residue-sum exhaustion (CH2 Lemma 5.1, residue limit)")
   (statement := /--
-  If $f$ has only finitely many poles in a region $S$, then the truncated residue sums over
-  $S \cap \{\Re s > \sigma_n\}$ converge, as $n \to \infty$, to the full sum over $S$. (Indeed
-  they are eventually equal to it, once $\sigma_n$ has dropped below the real part of every pole.) -/)
+  If $f$ is meromorphic on a region $S$ and has only finitely many poles there, then the truncated
+  residue sums over $S \cap \{\Re s > \sigma_n\}$ converge, as $n \to \infty$, to the full sum
+  over $S$. (Indeed they are eventually equal to it, once $\sigma_n$ has dropped below the real
+  part of every pole.) -/)
   (proof := /-- Since $\sigma_n \to -\infty$ and there are finitely many poles in $S$, for all
-  large $n$ the set $\{\Re s > \sigma_n\}$ contains every pole of $f$ in $S$; the truncated sum is
-  then constant and equals the full residue sum over $S$ (analytic points contribute $0$). -/)
+  large $n$ the set $\{\Re s > \sigma_n\}$ contains every pole of $f$ in $S$; meromorphicity on
+  $S$ makes the residue vanish at non-poles, so the truncated sum is then constant and equals the
+  full residue sum over $S$. -/)
   (latexEnv := "sublemma")
   (discussion := 1454)]
 theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
+    (hmero : MeromorphicOn f S)
     (hfin : {z ∈ S | meromorphicOrderAt f z < 0}.Finite) :
     Filter.Tendsto (fun n ↦ sumResiduesIn f (S ∩ {z | l.σ n < z.re})) Filter.atTop
       (nhds (sumResiduesIn f S)) := by
-  sorry
+  let P : Set ℂ := {z | meromorphicOrderAt f z < 0}
+  have hP_fin : (S ∩ P).Finite := by
+    simpa [P, Set.setOf_and] using hfin
+  obtain ⟨B, hB⟩ : ∃ B : ℝ, ∀ z ∈ S ∩ P, B ≤ z.re := by
+    obtain ⟨B, hB⟩ := (hP_fin.image Complex.re).exists_ge
+    exact ⟨B, fun z hz ↦ hB z.re ⟨z, hz, rfl⟩⟩
+  have h_residue_zero : ∀ s ∈ S, s ∉ P → residue f s = 0 := fun s hsS hs_not_pole ↦
+    residue_eq_zero_of_not_pole_of_meromorphicAt (hmero s hsS)
+      (le_of_not_gt (fun h ↦ hs_not_pole h))
+  have h_eventually_eq : ∀ᶠ n in Filter.atTop, sumResiduesIn f (S ∩ {z | l.σ n < z.re}) = sumResiduesIn f S := by
+    filter_upwards [l.hlim.eventually_lt_atBot B] with n hn
+    have h_set_eq : (S ∩ {z | l.σ n < z.re}) ∩ P = S ∩ P :=
+      Set.Subset.antisymm (fun z hz ↦ ⟨hz.1.1, hz.2⟩) (fun z hz ↦ ⟨⟨hz.1, lt_of_lt_of_le hn (hB z hz)⟩, hz.2⟩)
+    have h_trunc_eq : sumResiduesIn f ((S ∩ {z | l.σ n < z.re}) ∩ P) = sumResiduesIn f (S ∩ {z | l.σ n < z.re}) :=
+      sumResiduesIn_inter_eq_of_set_eq (F := f) (Rn := S ∩ {z | l.σ n < z.re}) (S2 := S ∩ {z | l.σ n < z.re}) (P := P)
+        rfl (fun s hs_trunc hs_not_pole ↦ h_residue_zero s hs_trunc.1 hs_not_pole)
+    calc
+      sumResiduesIn f (S ∩ {z | l.σ n < z.re}) = sumResiduesIn f ((S ∩ {z | l.σ n < z.re}) ∩ P) := h_trunc_eq.symm
+      _ = sumResiduesIn f (S ∩ P) := by rw [h_set_eq]
+      _ = sumResiduesIn f S := sumResiduesIn_inter_eq_of_set_eq (F := f) (Rn := S) (S2 := S) (P := P) rfl h_residue_zero
+  exact tendsto_nhds_of_eventually_eq h_eventually_eq
 
 @[blueprint
   "ch2-lemma-5-1-h"
@@ -2977,23 +3064,58 @@ theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
   $G^\star x_0^s$ on $L$ and on $C$. -/)
   (latexEnv := "sublemma")
   (discussion := 1455)]
-theorem lemma_5_1_h
-    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
-    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
-    (hG_star_symm : ConjAntisymm G_star)
-    (hx₀ : 1 ≤ x₀)
-    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
-    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
-    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+theorem lemma_5_1_h (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (hG_star_mero : MeromorphicOn G_star l.R)
     (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
-    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
-    Filter.Tendsto (fun n ↦ l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)) Filter.atTop
-      (nhds (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s))) := by
-  sorry
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour) :
+  Filter.Tendsto (fun n ↦ l.intCn1Plus n (fun s ↦ G_star s * (x : ℂ) ^ s)) Filter.atTop
+    (nhds (l.intC (fun s ↦ G_star s * (x : ℂ) ^ s))) := by
+  let F : ℂ → ℂ := fun s ↦ G_star s * (x : ℂ) ^ s
+  have h_meas_mul : AEStronglyMeasurable (fun r : ℝ ↦ G_star (r + l.δ * Complex.I) * (x : ℂ) ^ (r + l.δ * Complex.I))
+    (MeasureTheory.volume.restrict (Set.Iic 1)) := aestronglyMeasurable_horizontal_path_mul_cpow_of_meromorphic
+      l G_star x₀ x l.δ hx₀ hx (fun z hz ↦ l.admissible_contour_subset_R (Or.inl hz)) hG_star_mero
+      fun z hz ↦ meromorphicOrderAt_nonneg_on_of_bounded l hx₀ l.admissible_contour_subset_R hG_star_mero hGs_contour z (Or.inl hz)
+  have h_meas : AEStronglyMeasurable (fun r : ℝ ↦ F ((r : ℂ) + l.δ * Complex.I))
+        (MeasureTheory.volume.restrict (Set.Iic 1)) := by simpa [F] using h_meas_mul
+  have h_int_ray : IntegrableOnHRay l.δ 1 F := by
+    unfold IntegrableOnHRay
+    obtain ⟨M, hM⟩ := hGs_contour
+    let C : ℝ := max M 0
+    have hx₀_pos : 0 < x₀ := by linarith
+    have hx_pos : 0 < x := by linarith
+    have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
+    have hlog_ratio_pos : 0 < Real.log (x / x₀) := Real.log_pos (by rw [one_lt_div hx₀_pos]; linarith)
+    have h_int_bound :
+        IntegrableOn (fun r : ℝ ↦ C * Real.exp (Real.log (x / x₀) * r)) (Set.Iic 1) :=
+      (integrableOn_exp_mul_Iic hlog_ratio_pos 1).const_mul C
+    have h_bound : ∀ r ∈ Set.Iic (1 : ℝ), ‖F ((r : ℂ) + l.δ * Complex.I)‖ ≤ C * Real.exp (Real.log (x / x₀) * r) := by
+      intro r hr
+      have hr' : r ≤ 1 := by simpa using hr
+      have hz_ac : (r : ℂ) + l.δ * Complex.I ∈ l.admissible_contour := by
+        left
+        exact ⟨by simpa using hr', by simp⟩
+      simpa [F, C] using norm_G_mul_cpow_le_of_base_bound G_star x₀ x l.δ r M hx₀ hx
+        ((hM _ hz_ac).1) hr'
+    exact h_int_bound.mono' h_meas <| (ae_restrict_iff' measurableSet_Iic).mpr <| ae_of_all _ (fun r hr ↦ h_bound r hr)
+  have h_horiz :
+      Filter.Tendsto (fun n : ℕ ↦ intHSeg l.δ 1 (l.σ n) F) Filter.atTop
+        (nhds (-intHRay l.δ 1 F)) := by
+    have h_symm : ∀ n, intHSeg l.δ 1 (l.σ n) F = - intHSeg l.δ (l.σ n) 1 F :=
+      fun n ↦ by unfold intHSeg; rw [intervalIntegral.integral_symm]
+    have h_seq_eq : (fun n ↦ intHSeg l.δ 1 (l.σ n) F) = (fun n ↦ - intHSeg l.δ (l.σ n) 1 F) :=
+      funext fun n ↦ h_symm n
+    have h_tendsto_ray : Filter.Tendsto (fun n ↦ intHSeg l.δ (l.σ n) 1 F) Filter.atTop (nhds (intHRay l.δ 1 F)) :=
+      MeasureTheory.intervalIntegral_tendsto_integral_Iic 1 h_int_ray l.hlim
+    rw [h_seq_eq]
+    simpa using h_tendsto_ray.neg
+  have h_vert : Filter.Tendsto (fun n : ℕ ↦ intVSeg (l.σ n) l.δ l.T F) Filter.atTop (nhds 0) := by
+    simpa [F] using intVSeg_tendsto_zero_of_bounded_on_L l G_star x₀ x l.δ l.T hx₀ hx
+        (by rw [abs_of_nonneg l.hδ.1.le]; linarith [l.hδ.2, l.hT]) le_rfl
+        (by linarith [l.hδ.1, l.hδ.2, l.hT]) hGs_L
+  have h_sum : Filter.Tendsto (fun n : ℕ ↦ intVSeg 1 0 l.δ F + (intHSeg l.δ 1 (l.σ n) F + intVSeg (l.σ n) l.δ l.T F))
+        Filter.atTop (nhds (intVSeg 1 0 l.δ F + (-intHRay l.δ 1 F + 0))) :=
+        Filter.Tendsto.add tendsto_const_nhds (Filter.Tendsto.add h_horiz h_vert)
+  simpa [LadderParams.intCn1Plus, LadderParams.intC, F, sub_eq_add_neg, add_assoc] using h_sum
 
 @[blueprint
   "ch2-lemma-5-1"
