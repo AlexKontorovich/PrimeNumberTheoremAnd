@@ -278,14 +278,132 @@ noncomputable def Inputs.s₂ (I : Inputs)
 theorem bklnw_thm_15 (I : Inputs)
     (b₁ b₂ δ lambda T x : ℝ)
     (hb : 1000 ≤ b₁) (hb' : b₁ < b₂)
-    (hδ : 0.001 ≤ δ) (hlambda : 1 < lambda)
+    (hδ : 0.001 ≤ δ) (hδ' : δ ≤ 0.025)
+    (hlambda : 1 < lambda) (hR : 0 < I.R)
+    (hσ : 1 - δ ∈ I.ZDB.σ_range)
+    (hT₀ : I.ZDB.T₀ ≤ I.H) (hH : 50 ≤ I.H)
     (hT1 : I.H < T) (hT2 : T < exp b₁)
     (hx : x ∈ Set.Icc (exp b₁) (exp b₂)) :
     let K := ⌊log (T / I.H) / log lambda⌋₊ + 1
     ‖(ψ x - x) / x‖ ≤
       bklnw_eq_A_8 b₂ T + s₁ b₁ δ T +
         I.s₂ δ b₁ K lambda T := by
-  sorry
+  intro K
+  have hK : K = ⌊log (T / I.H) / log lambda⌋₊ + 1 := rfl
+  -- with (hT50 : 50 < T) in place of hH this line becomes the hypothesis itself
+  have hT50 : 50 < T := lt_of_le_of_lt hH hT1
+  have hT : (0 : ℝ) < T := by linarith
+  have hHpos : (0 : ℝ) < I.H := by linarith
+  have hH1 : (1 : ℝ) < I.H := by linarith
+  have hlam0 : (0 : ℝ) < lambda := by linarith
+  have hloglam : (0 : ℝ) < log lambda := log_pos hlambda
+  have hx1000 : x ≥ exp 1000 := le_trans (exp_le_exp.mpr hb) hx.1
+  have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (exp_pos 1000) hx1000
+  have hx1 : (1 : ℝ) < x := by
+    have := add_one_le_exp (1000 : ℝ)
+    linarith
+  have hlogx₁ : b₁ ≤ log x := (le_log_iff_exp_le hxpos).mpr hx.1
+  have hlogx₂ : log x ≤ b₂ := (log_le_iff_le_exp hxpos).mpr hx.2
+  obtain ⟨E, hE, hEnorm⟩ := bklnw_eq_A_7 x T hx1000 hT50 (le_trans hT2.le hx.1)
+  rw [bklnw_eq_A_9 x T δ (by linarith) (by linarith)] at hE
+  have hcast : (((ψ x - x) / x : ℝ) : ℂ) = Sigma₁ x T δ + Sigma₂ x T δ + E := by
+    push_cast
+    exact hE
+  have hnorm_eq : ‖(ψ x - x) / x‖ = ‖Sigma₁ x T δ + Sigma₂ x T δ + E‖ := by
+    rw [← hcast]
+    norm_cast
+  have hE8 : ‖E‖ ≤ bklnw_eq_A_8 b₂ T := by
+    refine hEnorm.trans ?_
+    simp only [bklnw_eq_A_8]
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    refine mul_le_mul_of_nonneg_right ?_ (inv_nonneg.mpr hT.le)
+    have h0 : (0 : ℝ) ≤ log x := by linarith
+    nlinarith [mul_nonneg (by linarith : (0 : ℝ) ≤ b₂ - log x)
+      (by linarith : (0 : ℝ) ≤ b₂ + log x)]
+  have hS1 : ‖Sigma₁ x T δ‖ ≤ s₁ b₁ δ T := by
+    refine (bklnw_eq_A_10 x T δ hδ).trans ?_
+    simp only [s₁]
+    refine mul_le_mul_of_nonneg_right (exp_le_exp.mpr ?_) (by positivity)
+    nlinarith [mul_nonneg (by linarith : (0 : ℝ) ≤ δ)
+      (by linarith : (0 : ℝ) ≤ log x - b₁)]
+  have hS2 : ‖Sigma₂ x T δ‖ ≤ I.s₂ δ b₁ K lambda T := by
+    have h13 : ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
+        ∑ k ∈ Finset.range K,
+          exp (k * log lambda -
+            (log x) / (I.R * (log T -
+              k * log lambda))) *
+          (I.ZDB.c₁ (1 - δ) *
+            (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+            (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
+          I.ZDB.c₂ (1 - δ) *
+            (log (T / lambda ^ k)) ^ 2) :=
+      bklnw_eq_A_13 I x T δ lambda hlambda hx1 hT hT1 hσ hT₀
+    refine h13.trans ?_
+    simp only [Inputs.s₂]
+    refine mul_le_mul_of_nonneg_left
+      (Finset.sum_le_sum fun k hk ↦ ?_) (div_nonneg (by linarith) hT.le)
+    have hkK : k ≤ ⌊log (T / I.H) / log lambda⌋₊ := by
+      have h := Finset.mem_range.mp hk
+      rw [hK] at h
+      omega
+    have hHT : (1 : ℝ) ≤ T / I.H := by
+      rw [div_eq_mul_inv, ← mul_inv_cancel₀ hHpos.ne']
+      exact mul_le_mul_of_nonneg_right hT1.le (inv_nonneg.mpr hHpos.le)
+    have hfloor : (k : ℝ) ≤ log (T / I.H) / log lambda :=
+      le_trans (Nat.cast_le.mpr hkK)
+        (Nat.floor_le (div_nonneg (log_nonneg hHT) hloglam.le))
+    have hk' : (k : ℝ) * log lambda ≤ log (T / I.H) := by
+      have h1 := mul_le_mul_of_nonneg_right hfloor hloglam.le
+      rwa [div_mul_cancel₀ _ hloglam.ne'] at h1
+    have hk'' : (k : ℝ) * log lambda ≤ log T - log I.H := by
+      rwa [log_div hT.ne' hHpos.ne'] at hk'
+    have hD : (0 : ℝ) < log T - (k : ℝ) * log lambda :=
+      lt_of_lt_of_le (log_pos hH1) (by linarith)
+    have hRD : (0 : ℝ) < I.R * (log T - (k : ℝ) * log lambda) := mul_pos hR hD
+    have hTk : I.H ≤ T / lambda ^ k := by
+      have h2 : exp (log I.H) ≤ exp (log T - (k : ℝ) * log lambda) :=
+        exp_le_exp.mpr (by linarith)
+      rwa [exp_log hHpos, exp_sub, exp_log hT, ← log_pow,
+        exp_log (pow_pos hlam0 k)] at h2
+    -- the density-bound bracket dominates N'(1-δ, T/λ^k), which is nonnegative
+    have hN' : (0 : ℝ) ≤ riemannZeta.N' (1 - δ) (T / lambda ^ k) := by
+      simp only [riemannZeta.N', riemannZeta.zeroes_sum, Pi.one_apply, one_mul]
+      refine tsum_nonneg fun ρ ↦ ?_
+      suffices h : (0 : ℤ) ≤ riemannZeta.order ↑ρ by exact_mod_cast h
+      have hmem := ρ.2
+      simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+        Set.mem_Ioo] at hmem
+      have hne : (↑ρ : ℂ) ≠ 1 := by
+        intro h1
+        have h2 := hmem.1.2
+        rw [h1, Complex.one_re] at h2
+        exact lt_irrefl 1 h2
+      have hana : AnalyticAt ℂ riemannZeta (↑ρ : ℂ) :=
+        riemannZeta_analyticOn_compl_one _ (Set.mem_compl_singleton_iff.mpr hne)
+      have hord := hana.meromorphicOrderAt_nonneg
+      simp only [riemannZeta.order]
+      cases horder : meromorphicOrderAt riemannZeta (↑ρ : ℂ) with
+      | top => exact le_rfl
+      | coe n =>
+        rw [horder] at hord
+        change (0 : ℤ) ≤ n
+        exact_mod_cast hord
+    have hBk : (0 : ℝ) ≤ I.ZDB.c₁ (1 - δ) *
+        (T / lambda ^ k) ^ (I.ZDB.p (1 - δ)) *
+        (log (T / lambda ^ k)) ^ (I.ZDB.q (1 - δ)) +
+        I.ZDB.c₂ (1 - δ) * (log (T / lambda ^ k)) ^ 2 :=
+      le_trans hN' (I.ZDB.bound (T / lambda ^ k) (le_trans hT₀ hTk) (1 - δ) hσ)
+    refine mul_le_mul_of_nonneg_right (exp_le_exp.mpr ?_) hBk
+    have hdiv : b₁ / (I.R * (log T - (k : ℝ) * log lambda)) ≤
+        log x / (I.R * (log T - (k : ℝ) * log lambda)) := by
+      rw [div_eq_mul_inv, div_eq_mul_inv]
+      exact mul_le_mul_of_nonneg_right hlogx₁ (inv_nonneg.mpr hRD.le)
+    linarith
+  rw [hnorm_eq]
+  calc ‖Sigma₁ x T δ + Sigma₂ x T δ + E‖
+      ≤ ‖Sigma₁ x T δ‖ + ‖Sigma₂ x T δ‖ + ‖E‖ :=
+        le_trans (norm_add_le _ _) (add_le_add (norm_add_le _ _) le_rfl)
+    _ ≤ bklnw_eq_A_8 b₂ T + s₁ b₁ δ T + I.s₂ δ b₁ K lambda T := by linarith
 
 @[blueprint
   "bklnw-eq_A_16"
