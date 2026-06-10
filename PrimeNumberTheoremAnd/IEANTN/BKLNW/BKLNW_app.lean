@@ -413,15 +413,15 @@ theorem bklnw_thm_15 (I : Inputs)
   \exp\left(\frac{10 - 16 \sigma}{3}
   \left( \frac{\log x_0}{R}
   \right)^{1/2} \right)
-  \left( \frac{\log x_0}{R}
+  \left( \sqrt{ \frac{\log x_0}{R} }
   \right)^{5 - 2 \sigma}
   \right)^{-1}. $$
   -/)]
 noncomputable def Inputs.k (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
   (exp ((10 - 16 * σ) / 3 *
-      (log x₀ / I.R) ^ (1 / 2)) *
-    (log x₀ / I.R) ^ (5 - 2 * σ)) ^ (-1 : ℝ)
+      (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
+    sqrt (log x₀ / I.R) ^ (5 - 2 * σ)) ^ (-1 : ℝ)
 
 @[blueprint
   "bklnw-eq_A_17"
@@ -434,7 +434,7 @@ noncomputable def Inputs.k (I : Inputs)
   -/)]
 noncomputable def Inputs.c3 (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
-  2 * exp (-2 * (log x₀ / I.R) ^ (1 / 2)) *
+  2 * exp (-2 * (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
     (log x₀) ^ 2 * I.k σ x₀
 
 @[blueprint
@@ -463,21 +463,21 @@ noncomputable def Inputs.c4 (I : Inputs)
 noncomputable def Inputs.c5 (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
   8.01 * I.ZDB.c₂ σ *
-    exp (-2 * (log x₀ / I.R) ^ (1 / 2)) *
+    exp (-2 * (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
     (log x₀ / I.R) * I.k σ x₀
 
 @[blueprint
   "bklnw-eq_A_20"
   (title := "Equation (A.20)")
   (statement := /-- We define
-  $$ A(\sigma, x_0) = 2.0025 \cdot 25^{-2 \sigma}
+  $$ A(\sigma, x_0) = 2.0025 \cdot 2^{5 - 2 \sigma}
   \cdot c_1(\sigma) + c_3(\sigma, x_0)
   + c_4(\sigma, x_0)
   + c_5(\sigma, x_0). $$
   -/)]
 noncomputable def Inputs.A (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
-  2.0025 * 25 ^ (-2 * σ) * I.ZDB.c₁ σ +
+  2.0025 * 2 ^ (5 - 2 * σ) * I.ZDB.c₁ σ +
     I.c3 σ x₀ + I.c4 σ x₀ + I.c5 σ x₀
 
 @[blueprint
@@ -788,16 +788,16 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
     (hc : 3 ≤ c)
     (hx₀ : 100 ≤ x₀)
     (hα : 0 ≤ α ∧ α < 1)
-    (hB0 : (ε * rexp (-ε) * x₀ * |ν c ε α|) /
-      (2 * (μ c ε α)) > 1)
+    (hB0 : 2 * max (μ c 1 α) 0 <
+      ε * rexp (-ε) * x₀ * |ν c 1 α|)
     (hRH : riemannZeta.RH_up_to (c / ε))
     (x : ℝ)
     (hx : x ≥ rexp (ε * α) * x₀) :
     let E₁ :=
       rexp (2 * ε) * log (rexp ε * x₀) *
-        (2 * ε * |ν c ε α| /
+        (2 * ε * |ν c 1 α| /
           log ((ε * rexp (-ε) * x₀ *
-            |ν c ε α|) / (2 * (μ c ε α))) +
+            |ν c 1 α|) / (2 * max (μ c 1 α) 0)) +
         2.01 * ε / sqrt x₀ +
         log (log (2 * x₀ ^ 2)) /
           (2 * x₀)) +
