@@ -936,7 +936,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
 @[blueprint
   "thm:rosser1941-pn-upper"
   (title := "Rosser 1941, upper bound on $p_n$")
-  (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
+  (statement := /-- For $n \geq 55$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_upper (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n < n * (log n + log (log n) + 2) := by sorry

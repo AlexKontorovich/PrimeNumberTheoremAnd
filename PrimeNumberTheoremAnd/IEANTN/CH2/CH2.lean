@@ -616,6 +616,12 @@ private lemma continuousOn_cpow_vertical_path (hx₀ : 1 ≤ x₀) (hx : x₀ < 
       (Complex.ofReal_ne_zero.mpr (ne_of_gt (by linarith : x > 0))))).comp
     (continuous_const.add (Complex.continuous_ofReal.mul continuous_const))).continuousOn
 
+private lemma continuousOn_cpow_horizontal_path (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h : ℝ) (s : Set ℝ) :
+    ContinuousOn (fun r : ℝ ↦ (x : ℂ) ^ (r + h * Complex.I)) s :=
+  ((continuous_iff_continuousAt.mpr (fun _ ↦ continuousAt_const_cpow
+      (Complex.ofReal_ne_zero.mpr (ne_of_gt (by linarith : x > 0))))).comp
+    (Complex.continuous_ofReal.add continuous_const)).continuousOn
+
 
 
 -- Under `HasSimplePolesOn f U`, every point with strictly negative meromorphic order has order
@@ -2723,6 +2729,134 @@ theorem lemma_5_1_d (n : ℕ) (hG_star_symm : ConjAntisymm G_star)
   rw [h_sub, Complex.sub_conj]
   simp; ring_nf
 
+private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : ℂ → ℂ)
+    (x₀ x h : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+    (hF_mero : MeromorphicOn F l.R)
+    (h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z) :
+    AEStronglyMeasurable (fun r : ℝ ↦ F (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I))
+      (MeasureTheory.volume.restrict (Set.Iic 1)) := by
+  let γ : ℝ → ℂ := fun r ↦ r + h * Complex.I
+  have hγ_inj : Function.Injective γ := fun _ _ hEq ↦ by simpa [γ] using congrArg Complex.re hEq
+  let S_h : Set ℂ := {z : ℂ | z.re ≤ 1 ∧ z.im = h}
+  let Fnf : ℂ → ℂ := toMeromorphicNFOn F l.R
+  have hF_nf : MeromorphicNFOn Fnf l.R := by
+    simpa [Fnf] using (meromorphicNFOn_toMeromorphicNFOn F l.R)
+  have hF_cont : ContinuousOn Fnf S_h := by
+    intro z hz
+    have hz_Rbd : z ∈ l.Rboundary := by
+      right
+      exact ⟨hz.1, by rw [hz.2]; exact h_abs_h⟩
+    have hz_R : z ∈ l.R := l.Rboundary_subset_R hz_Rbd
+    have h_order_nf : 0 ≤ meromorphicOrderAt Fnf z := by
+      dsimp [Fnf]
+      rw [meromorphicOrderAt_toMeromorphicNFOn hF_mero hz_R]
+      exact h_order z hz_Rbd hz.2
+    exact ((hF_nf hz_R).meromorphicOrderAt_nonneg_iff_analyticAt.1
+      h_order_nf).continuousAt.continuousWithinAt
+  have h_path_maps : Set.MapsTo γ (Set.Iic 1) S_h := fun r hr ↦ ⟨by simpa [γ] using hr, by simp [γ]⟩
+  have h_proxy_meas :
+      AEStronglyMeasurable (fun r : ℝ ↦ Fnf (γ r) * (x : ℂ) ^ (γ r))
+        (MeasureTheory.volume.restrict (Set.Iic 1)) := by
+    exact (ContinuousOn.comp hF_cont
+      (Continuous.continuousOn (Complex.continuous_ofReal.add continuous_const)) h_path_maps).mul
+      (continuousOn_cpow_horizontal_path hx₀ hx h (Set.Iic 1)) |>.aestronglyMeasurable
+        measurableSet_Iic
+  have h_eq_ae :
+      (fun r : ℝ ↦ F (γ r) * (x : ℂ) ^ (γ r)) =ᵐ[MeasureTheory.volume.restrict (Set.Iic 1)]
+        (fun r : ℝ ↦ Fnf (γ r) * (x : ℂ) ^ (γ r)) := by
+    have h_good : ∀ᵐ r ∂ MeasureTheory.volume.restrict (Set.Iic 1), r ∉ γ ⁻¹' ({z : ℂ | AnalyticAt ℂ F z}ᶜ ∩ l.R) := by
+      rw [ae_iff]
+      simpa using (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
+    filter_upwards [h_good, MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr_good hr
+    have hz_Rbd : γ r ∈ l.Rboundary := Or.inr ⟨by simpa [γ] using hr, by simpa [γ] using h_abs_h⟩
+    have hz_R : γ r ∈ l.R := l.Rboundary_subset_R hz_Rbd
+    have hF_analytic : AnalyticAt ℂ F (γ r) := by simpa using fun hz_compl ↦ hr_good ⟨hz_compl, hz_R⟩
+    dsimp [Fnf]
+    rw [toMeromorphicNFOn_eq_toMeromorphicNFAt hF_mero hz_R, toMeromorphicNFAt_eq_self.2 hF_analytic.meromorphicNFAt]
+  exact AEStronglyMeasurable.congr h_proxy_meas h_eq_ae.symm
+
+private lemma bound_G_mul_cpow_hray (l : LadderParams) (G : ℂ → ℂ)
+    (x₀ x h M : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+    (h_abs_h : |h| = l.T)
+    (hM : ∀ z ∈ l.Rboundary, ‖G z * (x₀ : ℂ) ^ z‖ ≤ M)
+    (r : ℝ) (hr : r ≤ 1) :
+    ‖G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)‖ ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
+  let C : ℝ := max M 0
+  let z : ℂ := r + h * Complex.I
+  have hz_Rbd : z ∈ l.Rboundary := Or.inr ⟨by dsimp [z]; simpa using hr, by dsimp [z]; simpa using h_abs_h⟩
+  have h_bdd : ‖G z * (x₀ : ℂ) ^ z‖ ≤ C := (hM z hz_Rbd).trans (le_max_left _ _)
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hx_pos : 0 < x := by linarith
+  have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
+  have hratio_nonneg : 0 ≤ x / x₀ := hratio_pos.le
+  have hnorm_x : ‖(x : ℂ) ^ z‖ = x ^ r := by
+    dsimp [z]
+    rw [Complex.norm_cpow_eq_rpow_re_of_pos hx_pos]
+    simp
+  have hnorm_x₀ : ‖(x₀ : ℂ) ^ z‖ = x₀ ^ r := by
+    dsimp [z]
+    rw [Complex.norm_cpow_eq_rpow_re_of_pos hx₀_pos]
+    simp
+  have h_bdd' : ‖G z‖ * x₀ ^ r ≤ C := by
+    simpa [norm_mul, hnorm_x₀] using h_bdd
+  have hx_split : x₀ * (x / x₀) = x := by
+    field_simp [hx₀_pos.ne']
+  have hpow_split : x ^ r = x₀ ^ r * (x / x₀) ^ r := by
+    conv_lhs => rw [← hx_split]
+    rw [Real.mul_rpow hx₀_pos.le hratio_nonneg]
+  have hratio_exp : (x / x₀) ^ r = Real.exp (Real.log (x / x₀) * r) := by
+    rw [Real.rpow_def_of_pos hratio_pos]
+  calc ‖G z * (x : ℂ) ^ z‖ = ‖G z‖ * x₀ ^ r * (x / x₀) ^ r := by rw [norm_mul, hnorm_x, hpow_split]; ring
+    _ ≤ C * (x / x₀) ^ r := mul_le_mul_of_nonneg_right h_bdd' (Real.rpow_nonneg hratio_nonneg _)
+    _ = C * Real.exp (Real.log (x / x₀) * r) := by rw [hratio_exp]
+
+private lemma G_mul_cpow_integrable_hray (l : LadderParams)
+    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
+    (x₀ x h : ℝ) (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
+    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour) :
+    IntegrableOnHRay h 1 (fun s ↦ G s * (x : ℂ) ^ s) := by
+  unfold IntegrableOnHRay
+  obtain ⟨M, hM⟩ := hG_bdd
+  let C : ℝ := max M 0
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hx_pos : 0 < x := by linarith
+  have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
+  have hlog_ratio_pos : 0 < Real.log (x / x₀) := Real.log_pos (by rw [one_lt_div hx₀_pos]; linarith)
+  have h_int_bound : IntegrableOn (fun r : ℝ ↦ C * Real.exp (Real.log (x / x₀) * r)) (Set.Iic 1) :=
+    (integrableOn_exp_mul_Iic hlog_ratio_pos 1).const_mul C
+  have h_meas :
+      AEStronglyMeasurable (fun r : ℝ ↦ G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I))
+        (MeasureTheory.volume.restrict (Set.Iic 1)) := by
+    by_cases hh_pos : 0 < h
+    · let F := G_circ + G_star
+      have hF_mero : MeromorphicOn F l.R := hG_circ_mero.add hG_star_mero
+      have h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z := fun z hz_Rbd hz_im ↦
+        upper_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ ⟨M, hM⟩ hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_pos.le)
+      have hF_meas := aestronglyMeasurable_hray_of_meromorphic l F x₀ x h hx₀ hx h_abs_h hF_mero h_order
+      exact AEStronglyMeasurable.congr hF_meas <| ae_of_all _ fun r ↦ by
+        have hsign : (Real.sign (r + h * Complex.I).im : ℂ) = 1 := by simp [Real.sign_of_pos hh_pos]
+        calc F (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)
+          _ = (G_circ (r + h * Complex.I) + 1 * G_star (r + h * Complex.I)) * (x : ℂ) ^ (r + h * Complex.I) := by unfold F; simp
+          _ = (G_circ (r + h * Complex.I) + (Real.sign (r + h * Complex.I).im : ℂ) * G_star (r + h * Complex.I)) * (x : ℂ) ^ (r + h * Complex.I) := by rw [hsign]
+          _ = G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I) := by rw [← hG (r + h * Complex.I)]
+    · have hh_neg : h < 0 := lt_of_le_of_ne (not_lt.mp hh_pos) (fun hh_zero ↦ by rw [hh_zero, abs_zero] at h_abs_h; linarith [l.hT])
+      let F := G_circ - G_star
+      have hF_mero : MeromorphicOn F l.R := hG_circ_mero.sub hG_star_mero
+      have h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z := fun z hz_Rbd hz_im ↦
+        lower_Rboundary_no_poles (l := l) (G := G) (G_circ := G_circ) (G_star := G_star) (x₀ := x₀) hG hG_circ_mero hG_star_mero hx₀ ⟨M, hM⟩ hGc_contour hGs_contour z hz_Rbd (by rw [hz_im]; exact hh_neg.le)
+      have hF_meas := aestronglyMeasurable_hray_of_meromorphic l F x₀ x h hx₀ hx h_abs_h hF_mero h_order
+      exact AEStronglyMeasurable.congr hF_meas <| ae_of_all _ fun r ↦ by
+        have hsign : (Real.sign (r + h * Complex.I).im : ℂ) = -1 := by simp [Real.sign_of_neg hh_neg]
+        calc F (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)
+          _ = (G_circ (r + h * Complex.I) + (-1) * G_star (r + h * Complex.I)) * (x : ℂ) ^ (r + h * Complex.I) := by unfold F; simp; ring_nf; simp
+          _ = (G_circ (r + h * Complex.I) + (Real.sign (r + h * Complex.I).im : ℂ) * G_star (r + h * Complex.I)) * (x : ℂ) ^ (r + h * Complex.I) := by rw [hsign]
+          _ = G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I) := by rw [← hG (r + h * Complex.I)]
+  refine h_int_bound.mono' h_meas <| (ae_restrict_iff' measurableSet_Iic).mpr <| ae_of_all _ (fun r hr ↦
+    bound_G_mul_cpow_hray l G x₀ x h M hx₀ hx h_abs_h (fun z hz => (hM z hz).1) r hr)
+
 @[blueprint
   "ch2-lemma-5-1-e"
   (title := "The $C_\\infty$ limit (CH2 Lemma 5.1, eq. 5)")
@@ -2735,23 +2869,28 @@ theorem lemma_5_1_d (n : ℕ) (hG_star_symm : ConjAntisymm G_star)
   (discussion := 1452)]
 theorem lemma_5_1_e
     (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
-    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
-    (hG_star_symm : ConjAntisymm G_star)
-    (hx₀ : 1 ≤ x₀)
+    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R) (hx₀ : 1 ≤ x₀)
     (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
-    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
     (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
     (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
+    (hx : x₀ < x) :
     Filter.Tendsto
       (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) +
         intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s))
       Filter.atTop (nhds (l.intCinf (fun s ↦ G s * (x : ℂ) ^ s))) := by
-  sorry
+  have h_int_top : IntegrableOnHRay l.T 1 (fun s ↦ G s * (x : ℂ) ^ s) :=
+    G_mul_cpow_integrable_hray l hG hG_circ_mero hG_star_mero x₀ x l.T hx₀ hx (abs_of_nonneg l.hT.le) hG_bdd hGc_contour hGs_contour
+  have h_int_bot : IntegrableOnHRay (-l.T) 1 (fun s ↦ G s * (x : ℂ) ^ s) :=
+    G_mul_cpow_integrable_hray l hG hG_circ_mero hG_star_mero x₀ x (-l.T) hx₀ hx (by rw [abs_of_nonpos (neg_nonpos.mpr l.hT.le)]; ring) hG_bdd hGc_contour hGs_contour
+  have h_symm : ∀ n, intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s) = - intHSeg (-l.T) (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) :=
+    fun n ↦ by unfold intHSeg; rw [intervalIntegral.integral_symm]
+  have h_seq_eq : (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) + intHSeg (-l.T) 1 (l.σ n) (fun s ↦ G s * (x : ℂ) ^ s)) =
+      (fun n ↦ intHSeg l.T (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s) - intHSeg (-l.T) (l.σ n) 1 (fun s ↦ G s * (x : ℂ) ^ s)) :=
+    funext fun n ↦ by rw [h_symm n, sub_eq_add_neg]
+  have h_tendsto_top := MeasureTheory.intervalIntegral_tendsto_integral_Iic 1 h_int_top l.hlim
+  have h_tendsto_bot := MeasureTheory.intervalIntegral_tendsto_integral_Iic 1 h_int_bot l.hlim
+  rw [h_seq_eq]
+  exact h_tendsto_top.sub h_tendsto_bot
 
 @[blueprint
   "ch2-lemma-5-1-f"
@@ -2763,23 +2902,48 @@ theorem lemma_5_1_e
   (proof := /-- The integrand is $O((x/x_0)^{\sigma_n})$ via boundedness of $G^\circ x_0^s$ on $L$, and $(x/x_0)^{\sigma_n} \to 0$ since $x > x_0 \geq 1$ and $\sigma_n \to -\infty$. -/)
   (latexEnv := "sublemma")
   (discussion := 1453)]
-theorem lemma_5_1_f
-    (hG : ∀ s, G s = G_circ s + (Real.sign s.im : ℂ) * G_star s)
-    (hG_circ_mero : MeromorphicOn G_circ l.R) (hG_star_mero : MeromorphicOn G_star l.R)
-    (hG_star_symm : ConjAntisymm G_star)
-    (hx₀ : 1 ≤ x₀)
-    (hG_bdd : IsBoundedNoPolesOn (fun s ↦ G s * (x₀ : ℂ) ^ s) l.Rboundary)
-    (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L)
-    (hGc_contour : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hGs_L : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.L)
-    (hGs_contour : IsBoundedNoPolesOn (fun s ↦ G_star s * (x₀ : ℂ) ^ s) l.admissible_contour)
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ G s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ : HasSimplePolesOn (fun s ↦ G_circ s * (x : ℂ) ^ s) l.R) :
+theorem lemma_5_1_f (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
+  (hGc_L : IsBoundedNoPolesOn (fun s ↦ G_circ s * (x₀ : ℂ) ^ s) l.L) :
     Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) (fun s ↦ G_circ s * (x : ℂ) ^ s))
       Filter.atTop (nhds (0 : ℂ)) := by
-  sorry
+  let F : ℂ → ℂ := fun s ↦ G_circ s * (x : ℂ) ^ s
+  change Filter.Tendsto (fun n ↦ l.intVerticalAt (l.σ n) F) Filter.atTop (nhds (0 : ℂ))
+  obtain ⟨M, hM⟩ := hGc_L
+  let C : ℝ := max M 0
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hx_pos : 0 < x := by linarith
+  have hratio_pos : 0 < x / x₀ := div_pos hx_pos hx₀_pos
+  have hratio_nonneg : 0 ≤ x / x₀ := hratio_pos.le
+  have hratio_gt_one : 1 < x / x₀ := by
+    rw [one_lt_div hx₀_pos]
+    linarith
+  have h_decay : Filter.Tendsto (fun n ↦ (2 * l.T * C) * (x / x₀) ^ (l.σ n)) Filter.atTop (nhds (0 : ℝ)) := by
+    simpa [C, mul_assoc, mul_left_comm, mul_comm] using
+      Filter.Tendsto.const_mul (2 * l.T * C) <|
+        (tendsto_rpow_atBot_of_base_gt_one (x / x₀) hratio_gt_one).comp l.hlim
+  have h_eventual_bound : ∀ᶠ n in Filter.atTop, ‖l.intVerticalAt (l.σ n) F‖ ≤ (2 * l.T * C) * (x / x₀) ^ (l.σ n) := by
+    filter_upwards [Filter.eventually_ge_atTop 1] with n hn
+    have h_pointwise : ∀ t ∈ Set.Icc (-l.T) l.T, ‖F ((l.σ n : ℂ) + t * Complex.I) * Complex.I‖ ≤ C * (x / x₀) ^ (l.σ n) := fun t ht ↦ by
+      let z : ℂ := (l.σ n : ℂ) + t * Complex.I
+      have hz_L : z ∈ l.L := ⟨n, hn, by simp [z], by simpa [z] using abs_le.mpr ⟨ht.1, ht.2⟩⟩
+      have h_bdd : ‖G_circ z * (x₀ : ℂ) ^ z‖ ≤ C := (hM z hz_L).1.trans (le_max_left _ _)
+      have hnorm_x : ‖(x : ℂ) ^ z‖ = x ^ (l.σ n) := by dsimp [z]; rw [Complex.norm_cpow_eq_rpow_re_of_pos hx_pos]; simp
+      have hnorm_x₀ : ‖(x₀ : ℂ) ^ z‖ = x₀ ^ (l.σ n) := by dsimp [z]; rw [Complex.norm_cpow_eq_rpow_re_of_pos hx₀_pos]; simp
+      have h_bdd' : ‖G_circ z‖ * x₀ ^ (l.σ n) ≤ C := by simpa [norm_mul, hnorm_x₀] using h_bdd
+      have hpow_split : x ^ (l.σ n) = x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by
+        conv_lhs => rw [← show x₀ * (x / x₀) = x by rw [div_eq_mul_inv]; field_simp]
+        rw [Real.mul_rpow hx₀_pos.le hratio_nonneg]
+      calc ‖F z * Complex.I‖ = ‖G_circ z‖ * x₀ ^ (l.σ n) * (x / x₀) ^ (l.σ n) := by dsimp [F]; rw [norm_mul, norm_mul, hnorm_x, hpow_split]; simp; ring
+        _ ≤ C * (x / x₀) ^ (l.σ n) := mul_le_mul_of_nonneg_right h_bdd' (Real.rpow_nonneg hratio_nonneg _)
+    unfold LadderParams.intVerticalAt intVSeg
+    calc ‖∫ t in -l.T..l.T, F ((l.σ n : ℂ) + t * Complex.I) * Complex.I‖ ≤ (C * (x / x₀) ^ (l.σ n)) * |l.T - (-l.T)| :=
+        intervalIntegral.norm_integral_le_of_norm_le_const fun t ht ↦
+          let hTT : -l.T ≤ l.T := by linarith [l.hT]
+          let htIoc : t ∈ Set.Ioc (-l.T) l.T := by simpa [Set.uIoc_of_le hTT] using ht
+          h_pointwise t ⟨htIoc.1.le, htIoc.2⟩
+      _ = (2 * l.T * C) * (x / x₀) ^ (l.σ n) := by rw [abs_of_nonneg (by linarith [l.hT])]; ring
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  refine squeeze_zero' (Filter.Eventually.of_forall fun n ↦ norm_nonneg _) h_eventual_bound h_decay
 
 @[blueprint
   "ch2-lemma-5-1-g"
@@ -2987,6 +3151,11 @@ theorem prop_5_2_b
           ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t))) := by
   sorry
 
+lemma LadderParams.intC_const_mul (c : ℂ) (F : ℂ → ℂ) :
+    l.intC (fun x ↦ c * F x) = c * l.intC (fun x ↦ F x) := by
+  simp [LadderParams.intC, intVSeg, intHRay, intervalIntegral.integral_const_mul,
+    intervalIntegral.integral_mul_const, integral_const_mul, mul_assoc, mul_sub]
+
 @[blueprint
   "ch2-prop-5-2-c"
   (title := "Proposition 5.2: bound on the contour integral")
@@ -2996,25 +3165,15 @@ theorem prop_5_2_b
   (proof := /-- `intC` is linear, $|\mathrm{sgn}(\lambda)| = 1$, and $|\Im w| \leq |w|$. -/)
   (latexEnv := "sublemma")
   (discussion := 1459)]
-theorem prop_5_2_c
-    (hF_mero : MeromorphicOn F l.R)
-    (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
-    (hx₀ : 1 ≤ x₀)
-    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
-      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
-    (hx : x₀ < x)
-    (hfin : {z ∈ l.R \ l.RC |
-        meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) z < 0}.Finite)
-    (hsimple : HasSimplePolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) l.R)
-    (hsimple_circ :
-        HasSimplePolesOn
-          (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.R) :
+theorem prop_5_2_c (hlam : lam ≠ 0) :
     ‖(↑(π⁻¹ * (l.intC (fun s   ↦ (Real.sign lam : ℂ) *
           Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ)‖ ≤
       (1 / (2 * π)) *
         (2 * ‖l.intC (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)‖) := by
-  sorry
+  conv in _ * ↑x ^ _ => rw [mul_assoc, mul_assoc]
+  grw [norm_real, norm_eq_abs, abs_mul, abs_im_le_norm, l.intC_const_mul, norm_mul, norm_real]
+  apply le_of_eq
+  grind [Real.sign, Real.pi_pos, norm_eq_abs, - abs_div, - abs_mul]
 
 @[blueprint
   "ch2-prop-5-2"
@@ -3091,7 +3250,7 @@ theorem prop_5_2
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
     (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
-    (prop_5_2_c hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)) ?_
+    (prop_5_2_c hlam)) ?_
   apply le_of_eq
   ring
 
