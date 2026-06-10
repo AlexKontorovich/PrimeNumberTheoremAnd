@@ -1319,18 +1319,116 @@ theorem backlund_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 6.1 :
   take $C$ to be their sum. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1487)]
+private lemma deriv_deriv_eq_derivWithin_derivWithin_of_mem_Ioo {d : ℝ} {f : ℝ → ℝ}
+    {t : ℝ} (ht : t ∈ Set.Ioo 0 d) :
+    deriv (deriv f) t =
+      derivWithin (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) t := by
+  have hmem : Set.Icc 0 d ∈ nhds t := Icc_mem_nhds ht.1 ht.2
+  have heq : deriv f =ᶠ[nhds t] fun y => derivWithin f (Set.Icc 0 d) y := by
+    filter_upwards [Ioo_mem_nhds ht.1 ht.2] with y hy
+    exact (derivWithin_of_mem_nhds (Icc_mem_nhds hy.1 hy.2)).symm
+  rw [Filter.EventuallyEq.deriv_eq heq]
+  exact (derivWithin_of_mem_nhds hmem).symm
+
 theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (_hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
     (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
     (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
-    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
+    (_hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     (σ₀ σ₁ : ℝ) :
     ∃ C : ℝ, ∀ s : ℂ, σ₀ ≤ s.re → s.re ≤ σ₁ → 1 ≤ |s.im| →
       |(laplaceTransform f s).re| ≤ C / s.im ^ 2 := by
-  sorry
+  have hdf_C1 : ContDiffOn ℝ 1 (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) :=
+    hf_C2.derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
+  have hg_cont : ContinuousOn
+      (fun x => derivWithin (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) x)
+      (Set.Icc 0 d) :=
+    hdf_C1.continuousOn_derivWithin (uniqueDiffOn_Icc hd) le_rfl
+  obtain ⟨K0, hK0⟩ := isCompact_Icc.exists_bound_of_continuousOn hg_cont
+  have hK00 : 0 ≤ K0 := (norm_nonneg _).trans (hK0 0 (Set.left_mem_Icc.2 hd.le))
+  set B : ℝ := max 0 (-σ₀) with hB
+  set M : ℝ := Real.exp (B * d) * K0 * d with hMdef
+  have hM0 : 0 ≤ M := mul_nonneg (mul_nonneg (Real.exp_pos _).le hK00) hd.le
+  have hMbound : ∀ s : ℂ, σ₀ ≤ s.re →
+      ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ ≤ M := by
+    intro s hs0
+    rw [laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico hd hf_supp s]
+    have hpt : ∀ t ∈ Set.uIoc (0 : ℝ) d,
+        ‖exp (-s * (t : ℂ)) * ((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ Real.exp (B * d) * K0 := by
+      intro t ht
+      rw [Set.uIoc_of_le hd.le] at ht
+      rw [norm_mul, Complex.norm_exp]
+      have hre : (-s * (t : ℂ)).re = -(s.re * t) := by simp [Complex.mul_re]
+      have hexp_le : Real.exp ((-s * (t : ℂ)).re) ≤ Real.exp (B * d) := by
+        rw [hre]
+        apply Real.exp_le_exp.2
+        have hBge : -s.re ≤ B := le_trans (neg_le_neg hs0) (le_max_right 0 (-σ₀))
+        have hB0 : (0 : ℝ) ≤ B := le_max_left 0 (-σ₀)
+        calc -(s.re * t) = -s.re * t := (neg_mul _ _).symm
+          _ ≤ B * t := mul_le_mul_of_nonneg_right hBge ht.1.le
+          _ ≤ B * d := mul_le_mul_of_nonneg_left ht.2 hB0
+      have hfpp : ‖((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ K0 := by
+        rw [Complex.norm_real]
+        by_cases htd : t = d
+        · rw [htd, deriv_deriv_eq_zero_of_tsupport_subset_Ico hf_supp le_rfl]
+          simpa using hK00
+        · have htlt : t < d := lt_of_le_of_ne ht.2 htd
+          rw [deriv_deriv_eq_derivWithin_derivWithin_of_mem_Ioo ⟨ht.1, htlt⟩]
+          simpa using hK0 t ⟨ht.1.le, ht.2⟩
+      exact mul_le_mul hexp_le hfpp (norm_nonneg _) (Real.exp_pos _).le
+    refine le_trans (intervalIntegral.norm_integral_le_of_norm_le_const hpt) ?_
+    rw [sub_zero, abs_of_pos hd]
+  refine ⟨|f 0| * max |σ₀| |σ₁| + M, ?_⟩
+  intro s hs0 hs1 him
+  have him0 : s.im ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num at him
+  have hs : s ≠ 0 := fun h => him0 (by rw [h]; rfl)
+  have him2 : (0 : ℝ) < s.im ^ 2 := by positivity
+  have hns : s.im ^ 2 ≤ Complex.normSq s := by
+    rw [Complex.normSq_apply]
+    nlinarith [mul_self_nonneg s.re]
+  rw [laplaceTransform_ibp hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hs, Complex.add_re]
+  have hA : |s.re| ≤ max |σ₀| |σ₁| := by
+    rw [abs_le]
+    constructor
+    · calc -(max |σ₀| |σ₁|) ≤ -|σ₀| := neg_le_neg (le_max_left _ _)
+        _ ≤ σ₀ := neg_abs_le σ₀
+        _ ≤ s.re := hs0
+    · calc s.re ≤ σ₁ := hs1
+        _ ≤ |σ₁| := le_abs_self σ₁
+        _ ≤ max |σ₀| |σ₁| := le_max_right _ _
+  have h1 : |(((f 0 : ℝ) : ℂ) / s).re| ≤ |f 0| * max |σ₀| |σ₁| / s.im ^ 2 := by
+    have hre : (((f 0 : ℝ) : ℂ) / s).re = f 0 * s.re / Complex.normSq s := by
+      rw [Complex.div_re]
+      simp
+    rw [hre, abs_div, abs_of_nonneg (Complex.normSq_nonneg s), abs_mul]
+    have hnpos : (0 : ℝ) < Complex.normSq s := Complex.normSq_pos.2 hs
+    calc |f 0| * |s.re| / Complex.normSq s
+        ≤ |f 0| * max |σ₀| |σ₁| / Complex.normSq s := by gcongr
+      _ ≤ |f 0| * max |σ₀| |σ₁| / s.im ^ 2 := by gcongr
+  have h2 : |(laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2).re| ≤ M / s.im ^ 2 := by
+    refine (Complex.abs_re_le_norm _).trans ?_
+    rw [norm_div, norm_pow]
+    have hsq : s.im ^ 2 ≤ ‖s‖ ^ 2 := by
+      rw [← Complex.normSq_eq_norm_sq]
+      exact hns
+    have hnorm2 : (0 : ℝ) < ‖s‖ ^ 2 := by positivity
+    calc ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ / ‖s‖ ^ 2
+        ≤ M / ‖s‖ ^ 2 := by
+          gcongr
+          exact hMbound s hs0
+      _ ≤ M / s.im ^ 2 := by gcongr
+  calc |(((f 0 : ℝ) : ℂ) / s).re +
+        (laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2).re|
+      ≤ |(((f 0 : ℝ) : ℂ) / s).re| +
+        |(laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2).re| := abs_add_le _ _
+    _ ≤ |f 0| * max |σ₀| |σ₁| / s.im ^ 2 + M / s.im ^ 2 := add_le_add h1 h2
+    _ = (|f 0| * max |σ₀| |σ₁| + M) / s.im ^ 2 := (add_div _ _ _).symm
 
 @[blueprint
   "kadiri-summable-lap-at-zeros"
