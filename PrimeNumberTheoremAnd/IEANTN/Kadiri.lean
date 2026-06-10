@@ -894,6 +894,18 @@ theorem kadiriTestFn_contDiff {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   exact ⟨kadiriTestFn_H1_differentiable hd hf s,
     kadiriTestFn_H1_continuous_deriv hd hf s⟩
 
+private lemma kadiriTestFn_deriv_of_gt_max {d : ℝ} {f : ℝ → ℝ}
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (s : ℂ) {x : ℝ} (hx : max d 0 < x) :
+    deriv (kadiriTestFn f s) x = (f 0 : ℂ) * (-s * exp (-s * (x : ℂ))) := by
+  have heq : kadiriTestFn f s =ᶠ[nhds x] fun y : ℝ => (f 0 : ℂ) * exp (-s * (y : ℂ)) := by
+    filter_upwards [Ioi_mem_nhds hx] with y hy
+    have hy0 : (0 : ℝ) ≤ y := ((le_max_right d 0).trans_lt hy).le
+    have hfy : f y = 0 :=
+      eq_zero_of_tsupport_subset_Ico_right hf_supp ((le_max_left d 0).trans_lt hy).le
+    simp [kadiriTestFn, hy0, hfy]
+  rw [heq.deriv_eq]
+  exact ((laplaceKernel_hasDerivAt s x).const_mul (f 0 : ℂ)).deriv
+
 @[blueprint
   "kadiri-test-fn-decay"
   (title := "Decay condition (B) for the Kadiri test function")
@@ -912,14 +924,62 @@ theorem kadiriTestFn_contDiff {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   $0 < b < \Re s - 1$. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1485)]
-theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f ⊆ .Ico 0 d)
-    {s : ℂ} (_hs : 1 < s.re) :
+theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (hf_supp : tsupport f ⊆ .Ico 0 d)
+    {s : ℂ} (hs : 1 < s.re) :
     ∃ b > 0,
       ((fun x : ℝ ↦ kadiriTestFn f s x * exp ((x : ℂ) / 2))
           =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|)) ∧
       ((fun x : ℝ ↦ deriv (kadiriTestFn f s) x * exp ((x : ℂ) / 2))
           =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|)) := by
-  sorry
+  have hb : (0 : ℝ) < (s.re - 1) / 2 := by linarith
+  have hre : ∀ x : ℝ, (-s * (x : ℂ)).re = -(s.re * x) := fun x => by
+    simp [Complex.mul_re]
+  have hre2 : ∀ x : ℝ, ((x : ℂ) / 2).re = x / 2 := fun x => by
+    have : (x : ℂ) / 2 = ((x / 2 : ℝ) : ℂ) := by push_cast; ring
+    rw [this, Complex.ofReal_re]
+  have hexp : ∀ x : ℝ, max d 0 < x →
+      -(s.re * x) + x / 2 ≤ -(1 / 2 + (s.re - 1) / 2) * |x| := by
+    intro x hx
+    have hx0 : (0 : ℝ) < x := (le_max_right d 0).trans_lt hx
+    rw [abs_of_pos hx0]
+    nlinarith [mul_nonneg hx0.le (sub_nonneg.2 hs.le)]
+  refine ⟨(s.re - 1) / 2, hb, ?_, ?_⟩
+  · rw [cocompact_eq_atBot_atTop, Asymptotics.isBigO_sup]
+    constructor
+    · have h0 : (fun x : ℝ ↦ kadiriTestFn f s x * exp ((x : ℂ) / 2))
+          =ᶠ[Filter.atBot] fun _ => (0 : ℂ) := by
+        filter_upwards [Filter.eventually_lt_atBot (0 : ℝ)] with x hx
+        simp [kadiriTestFn, not_le_of_gt hx]
+      exact h0.trans_isBigO (Asymptotics.isBigO_zero _ _)
+    · rw [Asymptotics.isBigO_iff]
+      refine ⟨‖(f 0 : ℂ)‖, ?_⟩
+      filter_upwards [Filter.eventually_gt_atTop (max d 0)] with x hx
+      have hx0 : (0 : ℝ) < x := (le_max_right d 0).trans_lt hx
+      have hfx : f x = 0 :=
+        eq_zero_of_tsupport_subset_Ico_right hf_supp ((le_max_left d 0).trans_lt hx).le
+      have hval : kadiriTestFn f s x = (f 0 : ℂ) * exp (-s * (x : ℂ)) := by
+        simp [kadiriTestFn, hx0.le, hfx]
+      rw [hval, mul_assoc, ← Complex.exp_add, norm_mul, Complex.norm_exp,
+        Real.norm_eq_abs, Real.abs_exp, Complex.add_re, hre, hre2]
+      exact mul_le_mul_of_nonneg_left (Real.exp_le_exp.2 (hexp x hx)) (norm_nonneg _)
+  · rw [cocompact_eq_atBot_atTop, Asymptotics.isBigO_sup]
+    constructor
+    · have h0 : (fun x : ℝ ↦ deriv (kadiriTestFn f s) x * exp ((x : ℂ) / 2))
+          =ᶠ[Filter.atBot] fun _ => (0 : ℂ) := by
+        filter_upwards [Filter.eventually_lt_atBot (0 : ℝ)] with x hx
+        simp [kadiriTestFn_H1_deriv_of_lt_zero s hx]
+      exact h0.trans_isBigO (Asymptotics.isBigO_zero _ _)
+    · rw [Asymptotics.isBigO_iff]
+      refine ⟨‖(f 0 : ℂ)‖ * ‖s‖, ?_⟩
+      filter_upwards [Filter.eventually_gt_atTop (max d 0)] with x hx
+      rw [kadiriTestFn_deriv_of_gt_max hf_supp s hx]
+      have hnorm : ‖(f 0 : ℂ) * (-s * exp (-s * (x : ℂ))) * exp ((x : ℂ) / 2)‖ =
+          ‖(f 0 : ℂ)‖ * ‖s‖ * Real.exp (-(s.re * x) + x / 2) := by
+        rw [mul_assoc, mul_assoc, ← Complex.exp_add, norm_mul, norm_mul, norm_neg,
+          Complex.norm_exp, Complex.add_re, hre, hre2]
+        ring
+      rw [hnorm, Real.norm_eq_abs, Real.abs_exp]
+      exact mul_le_mul_of_nonneg_left (Real.exp_le_exp.2 (hexp x hx)) (by positivity)
 
 @[blueprint
   "kadiri-test-fn-laplace"
@@ -938,12 +998,84 @@ theorem kadiriTestFn_decay {d : ℝ} {f : ℝ → ℝ} (_hf_supp : tsupport f �
   (latexEnv := "lemma")
   (discussion := 1486)]
 theorem kadiriTestFn_laplaceTransform {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
-    (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (_hf_supp : tsupport f ⊆ .Ico 0 d)
-    (s z : ℂ) (_hsz : 0 < (s + z).re) :
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (s z : ℂ) (hsz : 0 < (s + z).re) :
     (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume) =
       (f 0 : ℂ) / (s + z) - laplaceTransform f (s + z) := by
-  sorry
+  set w := s + z with hw
+  have hw0 : w ≠ 0 := fun h => by simp [h] at hsz
+  have hsplit : Set.EqOn (fun y : ℝ => kadiriTestFn f s y * exp (-z * (y : ℂ)))
+      (fun y : ℝ => (f 0 : ℂ) * exp (-w * (y : ℂ)) - exp (-w * (y : ℂ)) * (f y : ℂ))
+      (Set.Ioi 0) := by
+    intro y hy
+    have hy0 : (0 : ℝ) ≤ y := (Set.mem_Ioi.1 hy).le
+    have hmerge : exp (-s * (y : ℂ)) * exp (-z * (y : ℂ)) = exp (-w * (y : ℂ)) := by
+      rw [← Complex.exp_add]
+      congr 1
+      rw [hw]
+      ring
+    simp only [kadiriTestFn, if_pos hy0]
+    calc ((f 0 : ℂ) - (f y : ℂ)) * exp (-s * (y : ℂ)) * exp (-z * (y : ℂ))
+        = ((f 0 : ℂ) - (f y : ℂ)) * (exp (-s * (y : ℂ)) * exp (-z * (y : ℂ))) := by ring
+      _ = ((f 0 : ℂ) - (f y : ℂ)) * exp (-w * (y : ℂ)) := by rw [hmerge]
+      _ = (f 0 : ℂ) * exp (-w * (y : ℂ)) - exp (-w * (y : ℂ)) * (f y : ℂ) := by ring
+  rw [setIntegral_congr_fun measurableSet_Ioi hsplit]
+  have hiexp : IntegrableOn (fun y : ℝ => exp (-w * (y : ℂ))) (Set.Ioi 0) := by
+    refine (integrable_norm_iff (Measurable.aestronglyMeasurable <| by fun_prop)).mp ?_
+    suffices h : IntegrableOn (fun y : ℝ => Real.exp (-w.re * y)) (Set.Ioi 0) by
+      simpa [Complex.norm_exp, neg_mul] using h
+    exact exp_neg_integrableOn_Ioi 0 hsz
+  have hiA : IntegrableOn (fun y : ℝ => (f 0 : ℂ) * exp (-w * (y : ℂ))) (Set.Ioi 0) :=
+    hiexp.const_mul _
+  have hiB : IntegrableOn (fun y : ℝ => exp (-w * (y : ℂ)) * (f y : ℂ)) (Set.Ioi 0) := by
+    have hsupp : Function.support (fun y : ℝ => exp (-w * (y : ℂ)) * (f y : ℂ)) ⊆
+        Set.Icc 0 d := by
+      intro y hy
+      have hfy : f y ≠ 0 := by
+        intro h0
+        apply hy
+        simp [h0]
+      exact Set.Ico_subset_Icc_self (hf_supp (subset_tsupport f hfy))
+    have hcont : ContinuousOn (fun y : ℝ => exp (-w * (y : ℂ)) * (f y : ℂ)) (Set.Icc 0 d) := by
+      apply ContinuousOn.mul
+      · exact Continuous.continuousOn (by fun_prop)
+      · exact Complex.continuous_ofReal.comp_continuousOn hf_C2.continuousOn
+    have hIcc : IntegrableOn (fun y : ℝ => exp (-w * (y : ℂ)) * (f y : ℂ)) (Set.Icc 0 d) :=
+      hcont.integrableOn_compact isCompact_Icc
+    exact ((integrableOn_iff_integrable_of_support_subset hsupp).mp hIcc).integrableOn
+  rw [integral_sub hiA hiB]
+  have hB : (∫ y in Set.Ioi (0 : ℝ), exp (-w * (y : ℂ)) * (f y : ℂ)) =
+      laplaceTransform f w := rfl
+  have hA : (∫ y in Set.Ioi (0 : ℝ), (f 0 : ℂ) * exp (-w * (y : ℂ))) = (f 0 : ℂ) / w := by
+    rw [integral_const_mul]
+    have hderiv : ∀ x ∈ Set.Ici (0 : ℝ),
+        HasDerivAt (fun y : ℝ => -exp (-w * (y : ℂ)) / w) (exp (-w * (x : ℂ))) x :=
+      fun x _ => laplaceKernel_antideriv_hasDerivAt hw0 x
+    have htend : Filter.Tendsto (fun y : ℝ => -exp (-w * (y : ℂ)) / w)
+        Filter.atTop (nhds 0) := by
+      rw [tendsto_zero_iff_norm_tendsto_zero]
+      have heq : (fun y : ℝ => ‖-exp (-w * (y : ℂ)) / w‖) =
+          fun y : ℝ => Real.exp (-w.re * y) / ‖w‖ := by
+        funext y
+        rw [norm_div, norm_neg, Complex.norm_exp]
+        congr 2
+        simp [Complex.mul_re]
+      rw [heq]
+      have hnum : Filter.Tendsto (fun y : ℝ => Real.exp (-w.re * y))
+          Filter.atTop (nhds 0) :=
+        Real.tendsto_exp_atBot.comp
+          ((Filter.tendsto_const_mul_atBot_of_neg (neg_lt_zero.2 hsz)).2 Filter.tendsto_id)
+      simpa using hnum.div_const ‖w‖
+    have hint : (∫ y in Set.Ioi (0 : ℝ), exp (-w * (y : ℂ))) = 1 / w := by
+      calc (∫ y in Set.Ioi (0 : ℝ), exp (-w * (y : ℂ)))
+          = 0 - (-exp (-w * ((0 : ℝ) : ℂ)) / w) :=
+            MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' hderiv hiexp htend
+        _ = 1 / w := by
+            norm_num [Complex.ofReal_zero, mul_zero, Complex.exp_zero, zero_sub, neg_div,
+              neg_neg]
+    rw [hint, mul_one_div]
+  rw [hA, hB]
 
 /-! ### Evaluation helpers for `kadiriTestFn`
 
