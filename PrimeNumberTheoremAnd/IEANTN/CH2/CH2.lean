@@ -2793,8 +2793,7 @@ private lemma aestronglyMeasurable_hray_of_meromorphic (l : LadderParams) (F : �
 
 private lemma norm_G_mul_cpow_le_of_base_bound (G : ℂ → ℂ) (x₀ x h r M : ℝ)
     (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
-    (hM : ‖G ((r : ℂ) + h * Complex.I) * (x₀ : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ ≤ M)
-    (hr : r ≤ 1) :
+    (hM : ‖G ((r : ℂ) + h * Complex.I) * (x₀ : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ ≤ M) :
     ‖G ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖
       ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
   let C : ℝ := max M 0
@@ -2832,7 +2831,7 @@ private lemma bound_G_mul_cpow_hray (l : LadderParams) (G : ℂ → ℂ)
     (hM : ∀ z ∈ l.Rboundary, ‖G z * (x₀ : ℂ) ^ z‖ ≤ M)
     (r : ℝ) (hr : r ≤ 1) :
     ‖G (r + h * Complex.I) * (x : ℂ) ^ (r + h * Complex.I)‖ ≤ max M 0 * Real.exp (Real.log (x / x₀) * r) := by
-  refine norm_G_mul_cpow_le_of_base_bound G x₀ x h r M hx₀ hx ?_ hr
+  refine norm_G_mul_cpow_le_of_base_bound G x₀ x h r M hx₀ hx ?_
   exact hM _ (Or.inr ⟨by simpa using hr, by simpa using h_abs_h⟩)
 
 private lemma G_mul_cpow_integrable_hray (l : LadderParams)
@@ -3094,8 +3093,7 @@ theorem lemma_5_1_h (hx₀ : 1 ≤ x₀) (hx : x₀ < x)
       have hz_ac : (r : ℂ) + l.δ * Complex.I ∈ l.admissible_contour := by
         left
         exact ⟨by simpa using hr', by simp⟩
-      simpa [F, C] using norm_G_mul_cpow_le_of_base_bound G_star x₀ x l.δ r M hx₀ hx
-        ((hM _ hz_ac).1) hr'
+      simpa [F, C] using norm_G_mul_cpow_le_of_base_bound G_star x₀ x l.δ r M hx₀ hx ((hM _ hz_ac).1)
     exact h_int_bound.mono' h_meas <| (ae_restrict_iff' measurableSet_Iic).mpr <| ae_of_all _ (fun r hr ↦ h_bound r hr)
   have h_horiz :
       Filter.Tendsto (fun n : ℕ ↦ intHSeg l.δ 1 (l.σ n) F) Filter.atTop
