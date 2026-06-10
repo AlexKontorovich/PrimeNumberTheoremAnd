@@ -195,16 +195,218 @@ Three sublemmas (\ref{kadiri-laplace-ibp}, \ref{kadiri-test-fn-contDiff} +
   $F_2(w)/w^2$. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1483)]
-theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (_hf_supp : tsupport f ⊆ .Ico 0 d)
-    (_hf_d : f d = 0)
-    (_hf_deriv_0 : deriv f 0 = 0)
-    (_hf_deriv_d : deriv f d = 0)
-    {w : ℂ} (_hw : w ≠ 0) :
+private lemma laplaceKernel_hasDerivAt (w : ℂ) (x : ℝ) :
+    HasDerivAt (fun y : ℝ => exp (-w * (y : ℂ)))
+      (-w * exp (-w * (x : ℂ))) x := by
+  simpa [mul_assoc, mul_comm, mul_left_comm] using
+    ((hasDerivAt_id x).ofReal_comp.const_mul (-w)).cexp
+
+private lemma laplaceKernel_antideriv_hasDerivAt {w : ℂ} (hw : w ≠ 0) (x : ℝ) :
+    HasDerivAt (fun y : ℝ => -exp (-w * (y : ℂ)) / w)
+      (exp (-w * (x : ℂ))) x := by
+  have h := (laplaceKernel_hasDerivAt w x).neg.div_const w
+  convert h using 1
+  field_simp [hw]
+
+private lemma eq_zero_of_tsupport_subset_Ico_right {d : ℝ} {f : ℝ → ℝ} {x : ℝ}
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (hdx : d ≤ x) :
+    f x = 0 := by
+  apply image_eq_zero_of_notMem_tsupport
+  intro hx
+  exact not_lt_of_ge hdx (hf_supp hx).2
+
+private lemma deriv_eq_zero_of_notMem_tsupport {f : ℝ → ℝ} {x : ℝ}
+    (hx : x ∉ tsupport f) : deriv f x = 0 := by
+  have hopen : IsOpen (tsupport f)ᶜ := (isClosed_tsupport f).isOpen_compl
+  have hmem : (tsupport f)ᶜ ∈ nhds x := hopen.mem_nhds hx
+  have hzero : f =ᶠ[nhds x] fun _ => 0 := by
+    filter_upwards [hmem] with y hy
+    exact image_eq_zero_of_notMem_tsupport hy
+  rw [Filter.EventuallyEq.deriv_eq hzero, deriv_const]
+
+private lemma deriv_deriv_eq_zero_of_notMem_tsupport {f : ℝ → ℝ} {x : ℝ}
+    (hx : x ∉ tsupport f) : deriv (deriv f) x = 0 := by
+  have hopen : IsOpen (tsupport f)ᶜ := (isClosed_tsupport f).isOpen_compl
+  have hmem : (tsupport f)ᶜ ∈ nhds x := hopen.mem_nhds hx
+  have hzero : deriv f =ᶠ[nhds x] fun _ => 0 := by
+    filter_upwards [hmem] with y hy
+    exact deriv_eq_zero_of_notMem_tsupport hy
+  rw [Filter.EventuallyEq.deriv_eq hzero, deriv_const]
+
+private lemma deriv_deriv_eq_zero_of_tsupport_subset_Ico {d : ℝ} {f : ℝ → ℝ} {x : ℝ}
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (hdx : d ≤ x) :
+    deriv (deriv f) x = 0 := by
+  apply deriv_deriv_eq_zero_of_notMem_tsupport
+  intro hx
+  exact not_lt_of_ge hdx (hf_supp hx).2
+
+private lemma laplaceTransform_eq_interval_of_tsupport_subset_Ico {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf_supp : tsupport f ⊆ Set.Ico 0 d) (w : ℂ) :
     laplaceTransform f w =
-      (f 0 : ℂ) / w + laplaceTransform (fun u ↦ deriv (deriv f) u) w / w ^ 2 := by
-  sorry
+      ∫ t in (0 : ℝ)..d, exp (-w * (t : ℂ)) * (f t : ℂ) := by
+  unfold laplaceTransform
+  rw [intervalIntegral.integral_of_le hd.le]
+  exact setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Ioi
+    Set.Ioc_subset_Ioi_self (fun x hx => by
+      have hxpos : 0 < x := hx.1
+      have hdx : d ≤ x := by
+        by_contra hnot
+        exact hx.2 ⟨hxpos, le_of_not_ge hnot⟩
+      simp [eq_zero_of_tsupport_subset_Ico_right hf_supp hdx])
+
+private lemma laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico {d : ℝ}
+    (hd : 0 < d) {f : ℝ → ℝ} (hf_supp : tsupport f ⊆ Set.Ico 0 d) (w : ℂ) :
+    laplaceTransform (fun u => deriv (deriv f) u) w =
+      ∫ t in (0 : ℝ)..d,
+        exp (-w * (t : ℂ)) * ((deriv (deriv f) t : ℝ) : ℂ) := by
+  unfold laplaceTransform
+  rw [intervalIntegral.integral_of_le hd.le]
+  exact setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Ioi
+    Set.Ioc_subset_Ioi_self (fun x hx => by
+      have hxpos : 0 < x := hx.1
+      have hdx : d ≤ x := by
+        by_contra hnot
+        exact hx.2 ⟨hxpos, le_of_not_ge hnot⟩
+      simp [deriv_deriv_eq_zero_of_tsupport_subset_Ico hf_supp hdx])
+
+theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_derivWithin_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_derivWithin_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {w : ℂ} (hw : w ≠ 0) :
+    laplaceTransform f w =
+      (f 0 : ℂ) / w + laplaceTransform (fun u => deriv (deriv f) u) w / w ^ 2 := by
+  let I : Set ℝ := Set.Icc 0 d
+  let K : ℝ → ℂ := fun t => exp (-w * (t : ℂ))
+  let A : ℝ → ℂ := fun t => -K t / w
+  let df : ℝ → ℝ := fun t => derivWithin f I t
+  let d2f : ℝ → ℝ := fun t => derivWithin df I t
+  have hdf_C1 : ContDiffOn ℝ 1 df I := by
+    simpa [df, I] using hf_C2.derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
+  have hK_int : IntervalIntegrable K volume 0 d := by
+    apply Continuous.intervalIntegrable
+    fun_prop
+  have hdf_int : IntervalIntegrable (fun t => (df t : ℂ)) volume 0 d := by
+    have hdf_cont : ContinuousOn (fun t => (df t : ℂ)) (Set.uIcc (0 : ℝ) d) := by
+      have hreal : ContinuousOn df I :=
+        hdf_C1.continuousOn
+      simpa [I, Set.uIcc_of_le hd.le] using continuous_ofReal.comp_continuousOn hreal
+    exact hdf_cont.intervalIntegrable
+  have hd2f_int : IntervalIntegrable (fun t => (d2f t : ℂ)) volume 0 d := by
+    have hd2f_cont : ContinuousOn (fun t => (d2f t : ℂ)) (Set.uIcc (0 : ℝ) d) := by
+      have hreal : ContinuousOn d2f I := by
+        simpa [d2f] using hdf_C1.continuousOn_derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
+      simpa [I, Set.uIcc_of_le hd.le] using continuous_ofReal.comp_continuousOn hreal
+    exact hd2f_cont.intervalIntegrable
+  have hA_deriv : ∀ x ∈ Set.uIcc (0 : ℝ) d, HasDerivWithinAt A (K x) (Set.uIcc (0 : ℝ) d) x := by
+    intro x _hx
+    simpa [A, K] using (laplaceKernel_antideriv_hasDerivAt (w := w) hw x).hasDerivWithinAt
+  have hf_deriv :
+      ∀ x ∈ Set.uIcc (0 : ℝ) d,
+        HasDerivWithinAt (fun y : ℝ => (f y : ℂ)) ((df x : ℝ) : ℂ) (Set.uIcc (0 : ℝ) d) x := by
+    intro x hx
+    have hxI : x ∈ I := by
+      simpa [I, Set.uIcc_of_le hd.le] using hx
+    have hreal : HasDerivWithinAt f (df x) I x := by
+      simpa [df] using (hf_C2.differentiableOn (by norm_num) x hxI).hasDerivWithinAt
+    simpa [I, Set.uIcc_of_le hd.le] using hreal.ofReal_comp
+  have hdf_deriv :
+      ∀ x ∈ Set.uIcc (0 : ℝ) d,
+        HasDerivWithinAt (fun y : ℝ => ((df y : ℝ) : ℂ)) ((d2f x : ℝ) : ℂ)
+          (Set.uIcc (0 : ℝ) d) x := by
+    intro x hx
+    have hxI : x ∈ I := by
+      simpa [I, Set.uIcc_of_le hd.le] using hx
+    have hreal : HasDerivWithinAt df (d2f x) I x := by
+      simpa [d2f] using (hdf_C1.differentiableOn (by norm_num) x hxI).hasDerivWithinAt
+    simpa [I, Set.uIcc_of_le hd.le] using hreal.ofReal_comp
+  have hA_df :
+      ∫ t in (0 : ℝ)..d, A t * (df t : ℂ) =
+        -(∫ t in (0 : ℝ)..d, K t * (df t : ℂ)) / w := by
+    calc
+      ∫ t in (0 : ℝ)..d, A t * (df t : ℂ)
+          = ∫ t in (0 : ℝ)..d, -(K t * (df t : ℂ)) / w := by
+            apply intervalIntegral.integral_congr
+            intro t _ht
+            simp [A]
+            ring
+      _ = -(∫ t in (0 : ℝ)..d, K t * (df t : ℂ)) / w := by
+            rw [intervalIntegral.integral_div, intervalIntegral.integral_neg]
+  have hA_d2f :
+      ∫ t in (0 : ℝ)..d, A t * (d2f t : ℂ) =
+        -(∫ t in (0 : ℝ)..d, K t * (d2f t : ℂ)) / w := by
+    calc
+      ∫ t in (0 : ℝ)..d, A t * (d2f t : ℂ)
+          = ∫ t in (0 : ℝ)..d, -(K t * (d2f t : ℂ)) / w := by
+            apply intervalIntegral.integral_congr
+            intro t _ht
+            simp [A]
+            ring
+      _ = -(∫ t in (0 : ℝ)..d, K t * (d2f t : ℂ)) / w := by
+            rw [intervalIntegral.integral_div, intervalIntegral.integral_neg]
+  have hibp1 := intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivWithinAt
+    (a := (0 : ℝ)) (b := d) (u := A) (v := fun t : ℝ => (f t : ℂ))
+    (u' := K) (v' := fun t : ℝ => (df t : ℂ)) hA_deriv hf_deriv hK_int hdf_int
+  have hfirst :
+      ∫ t in (0 : ℝ)..d, K t * (f t : ℂ) =
+        (f 0 : ℂ) / w + (∫ t in (0 : ℝ)..d, K t * (df t : ℂ)) / w := by
+    have hsolve :
+        ∫ t in (0 : ℝ)..d, K t * (f t : ℂ) =
+          A d * (f d : ℂ) - A 0 * (f 0 : ℂ) -
+            ∫ t in (0 : ℝ)..d, A t * (df t : ℂ) := by
+      rw [hibp1]
+      abel
+    rw [hsolve, hA_df, hf_d]
+    simp [A, K]
+    field_simp [hw]
+    ring
+  have hibp2 := intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivWithinAt
+    (a := (0 : ℝ)) (b := d) (u := A) (v := fun t : ℝ => ((df t : ℝ) : ℂ))
+    (u' := K) (v' := fun t : ℝ => (d2f t : ℂ)) hA_deriv hdf_deriv hK_int hd2f_int
+  have hsecond :
+      ∫ t in (0 : ℝ)..d, K t * (df t : ℂ) =
+        (∫ t in (0 : ℝ)..d, K t * (d2f t : ℂ)) / w := by
+    have hsolve :
+        ∫ t in (0 : ℝ)..d, K t * (df t : ℂ) =
+          A d * (df d : ℂ) - A 0 * (df 0 : ℂ) -
+            ∫ t in (0 : ℝ)..d, A t * (d2f t : ℂ) := by
+      rw [hibp2]
+      abel
+    have hdf0 : df 0 = 0 := by simpa [df, I] using hf_derivWithin_0
+    have hdfd : df d = 0 := by simpa [df, I] using hf_derivWithin_d
+    rw [hsolve, hA_d2f, hdf0, hdfd]
+    simp [A, K]
+    field_simp [hw]
+  have hd2f_interval_eq :
+      ∫ t in (0 : ℝ)..d, K t * (d2f t : ℂ) =
+        ∫ t in (0 : ℝ)..d, K t * ((deriv (deriv f) t : ℝ) : ℂ) := by
+    rw [intervalIntegral.integral_of_le hd.le, intervalIntegral.integral_of_le hd.le]
+    apply integral_congr_ae
+    rw [← restrict_Ioo_eq_restrict_Ioc]
+    filter_upwards [self_mem_ae_restrict measurableSet_Ioo] with x hx
+    have hdf_eq : df =ᶠ[nhds x] deriv f := by
+      filter_upwards [Ioo_mem_nhds hx.1 hx.2] with y hy
+      exact derivWithin_of_mem_nhds (s := I) (Icc_mem_nhds hy.1 hy.2)
+    have hd2_eq : d2f x = deriv (deriv f) x := by
+      calc
+        d2f x = derivWithin df I x := rfl
+        _ = deriv df x := derivWithin_of_mem_nhds (s := I) (Icc_mem_nhds hx.1 hx.2)
+        _ = deriv (deriv f) x := Filter.EventuallyEq.deriv_eq hdf_eq
+    simp [hd2_eq]
+  rw [laplaceTransform_eq_interval_of_tsupport_subset_Ico hd hf_supp w,
+    laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico hd hf_supp w]
+  calc
+    ∫ t in (0 : ℝ)..d, K t * (f t : ℂ)
+        = (f 0 : ℂ) / w + (∫ t in (0 : ℝ)..d, K t * (df t : ℂ)) / w := hfirst
+    _ = (f 0 : ℂ) / w + ((∫ t in (0 : ℝ)..d, K t * (d2f t : ℂ)) / w) / w := by
+      rw [hsecond]
+    _ = (f 0 : ℂ) / w +
+          (∫ t in (0 : ℝ)..d, K t * ((deriv (deriv f) t : ℝ) : ℂ)) / w ^ 2 := by
+      rw [hd2f_interval_eq]
+      field_simp [hw]
+
 
 @[blueprint
   "kadiri-test-fn"
@@ -215,6 +417,451 @@ theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   (latexEnv := "definition")]
 noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun y ↦
   if 0 ≤ y then ((f 0 : ℂ) - (f y : ℂ)) * exp (-s * (y : ℂ)) else 0
+
+section
+
+open scoped Topology
+
+/-- Bundled `(H₁)` hypotheses used by the `kadiriTestFn` C¹ chain below.
+The endpoint conditions are interval derivatives on `Set.Icc 0 d`, matching
+`laplaceTransform_ibp`. -/
+private structure KadiriH1 (d : ℝ) (f : ℝ → ℝ) : Prop where
+  contDiffOn_two : ContDiffOn ℝ 2 f (Set.Icc 0 d)
+  tsupport_subset : tsupport f ⊆ Set.Ico 0 d
+  value_d : f d = 0
+  derivWithin_zero : derivWithin f (Set.Icc 0 d) 0 = 0
+  derivWithin_d : derivWithin f (Set.Icc 0 d) d = 0
+
+private noncomputable def kadiriTestFnInterior (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ :=
+  (fun y : ℝ => (f 0 : ℂ) - (f y : ℂ)) * fun y : ℝ => exp (-s * (y : ℂ))
+
+private noncomputable def kadiriTestFnRightTail (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ :=
+  (fun _ : ℝ => (f 0 : ℂ)) * fun y : ℝ => exp (-s * (y : ℂ))
+
+private lemma laplaceKernel_contDiff (s : ℂ) :
+    ContDiff ℝ 1 (fun y : ℝ => exp (-s * (y : ℂ))) := by
+  have hofReal : ContDiff ℝ 1 (fun y : ℝ => (y : ℂ)) := Complex.ofRealCLM.contDiff
+  have hlinear : ContDiff ℝ 1 (fun y : ℝ => -s * (y : ℂ)) := by
+    simpa using (contDiff_const.mul hofReal : ContDiff ℝ 1 (fun y : ℝ => -s * (y : ℂ)))
+  exact hlinear.cexp
+
+private lemma kadiriTestFn_contDiffOn_left {f : ℝ → ℝ} {s : ℂ} :
+    ContDiffOn ℝ 1 (kadiriTestFn f s) (Set.Iio 0) := by
+  refine (contDiffOn_const : ContDiffOn ℝ 1 (fun _ : ℝ => (0 : ℂ)) (Set.Iio 0)).congr ?_
+  intro y hy
+  have hylt : y < 0 := by simpa using hy
+  simp [kadiriTestFn, not_le_of_gt hylt]
+
+private lemma kadiriTestFnInterior_contDiffOn_Icc {d : ℝ} {f : ℝ → ℝ}
+    (hf : KadiriH1 d f) (s : ℂ) :
+    ContDiffOn ℝ 1 (kadiriTestFnInterior f s) (Set.Icc 0 d) := by
+  have hf1 : ContDiffOn ℝ 1 f (Set.Icc 0 d) := by
+    exact hf.contDiffOn_two.of_le (by norm_num)
+  have hfc : ContDiffOn ℝ 1 (fun y : ℝ => (f y : ℂ)) (Set.Icc 0 d) := by
+    exact Complex.ofRealCLM.contDiff.comp_contDiffOn hf1
+  have hfirst : ContDiffOn ℝ 1 (fun y : ℝ => (f 0 : ℂ) - (f y : ℂ)) (Set.Icc 0 d) := by
+    exact contDiffOn_const.sub hfc
+  have hexp : ContDiffOn ℝ 1 (fun y : ℝ => exp (-s * (y : ℂ))) (Set.Icc 0 d) := by
+    exact (laplaceKernel_contDiff s).contDiffOn
+  exact hfirst.mul hexp
+
+private lemma kadiriTestFn_contDiffOn_middle {d : ℝ} {f : ℝ → ℝ}
+    (hf : KadiriH1 d f) (s : ℂ) :
+    ContDiffOn ℝ 1 (kadiriTestFn f s) (Set.Ioo 0 d) := by
+  refine (kadiriTestFnInterior_contDiffOn_Icc hf s).congr_mono ?_ ?_
+  · intro y hy
+    simp [kadiriTestFn, kadiriTestFnInterior, le_of_lt hy.1]
+  · exact Set.Ioo_subset_Icc_self
+
+private lemma kadiriTestFnRightTail_contDiff (f : ℝ → ℝ) (s : ℂ) :
+    ContDiff ℝ 1 (kadiriTestFnRightTail f s) := by
+  exact contDiff_const.mul (laplaceKernel_contDiff s)
+
+private lemma kadiriTestFn_contDiffOn_right {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContDiffOn ℝ 1 (kadiriTestFn f s) (Set.Ioi d) := by
+  refine (kadiriTestFnRightTail_contDiff f s).contDiffOn.congr ?_
+  intro y hy
+  have hy0 : 0 ≤ y := le_trans hd.le hy.le
+  have hfy : f y = 0 := eq_zero_of_tsupport_subset_Ico_right hf.tsupport_subset hy.le
+  simp [kadiriTestFn, kadiriTestFnRightTail, hy0, hfy]
+
+private theorem kadiriTestFn_H1_contDiffAt_off_seams {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) {x : ℝ}
+    (hx0 : x ≠ 0) (hxd : x ≠ d) :
+    ContDiffAt ℝ 1 (kadiriTestFn f s) x := by
+  rcases lt_trichotomy x 0 with hxlt | hxeq | hxgt
+  · exact kadiriTestFn_contDiffOn_left.contDiffAt (isOpen_Iio.mem_nhds hxlt)
+  · exact (hx0 hxeq).elim
+  · rcases lt_trichotomy x d with hxlt_d | hxeq_d | hxd_lt
+    · exact (kadiriTestFn_contDiffOn_middle hf s).contDiffAt
+        (isOpen_Ioo.mem_nhds ⟨hxgt, hxlt_d⟩)
+    · exact (hxd hxeq_d).elim
+    · exact (kadiriTestFn_contDiffOn_right hd hf s).contDiffAt (isOpen_Ioi.mem_nhds hxd_lt)
+
+private lemma kadiriTestFn_eventuallyEq_zero_left {f : ℝ → ℝ} {s : ℂ} :
+    kadiriTestFn f s =ᶠ[𝓝[Set.Iic (0 : ℝ)] (0 : ℝ)] fun _ => (0 : ℂ) := by
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  by_cases hy0 : 0 ≤ y
+  · have hyeq : y = 0 := le_antisymm hy hy0
+    simp [kadiriTestFn, hyeq]
+  · simp [kadiriTestFn, hy0]
+
+private lemma kadiriTestFn_eventuallyEq_interior_zero {d : ℝ} {f : ℝ → ℝ} {s : ℂ} :
+    kadiriTestFn f s =ᶠ[𝓝[Set.Icc 0 d] (0 : ℝ)] kadiriTestFnInterior f s := by
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  simp [kadiriTestFn, kadiriTestFnInterior, hy.1]
+
+private lemma kadiriTestFn_eventuallyEq_interior_d {d : ℝ} (_hd : 0 < d)
+    {f : ℝ → ℝ} {s : ℂ} :
+    kadiriTestFn f s =ᶠ[𝓝[Set.Icc 0 d] d] kadiriTestFnInterior f s := by
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  have hy0 : 0 ≤ y := hy.1
+  simp [kadiriTestFn, kadiriTestFnInterior, hy0]
+
+private lemma kadiriTestFn_eventuallyEq_rightTail_d {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf_supp : tsupport f ⊆ Set.Ico 0 d) {s : ℂ} :
+    kadiriTestFn f s =ᶠ[𝓝[Set.Ici d] d] kadiriTestFnRightTail f s := by
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  have hy0 : 0 ≤ y := le_trans hd.le hy
+  have hfy : f y = 0 := eq_zero_of_tsupport_subset_Ico_right hf_supp hy
+  simp [kadiriTestFn, kadiriTestFnRightTail, hy0, hfy]
+
+private lemma kadiriTestFnInterior_hasDerivWithinAt_zero {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    HasDerivWithinAt (kadiriTestFnInterior f s) 0 (Set.Icc 0 d) 0 := by
+  have hx : (0 : ℝ) ∈ Set.Icc 0 d := Set.left_mem_Icc.mpr hd.le
+  have hf_real :
+      HasDerivWithinAt f (derivWithin f (Set.Icc 0 d) 0) (Set.Icc 0 d) 0 := by
+    simpa using (hf.contDiffOn_two.differentiableOn (by norm_num) 0 hx).hasDerivWithinAt
+  have hf_real_zero : HasDerivWithinAt f 0 (Set.Icc 0 d) 0 := by
+    simpa [hf.derivWithin_zero] using hf_real
+  have hf_complex :
+      HasDerivWithinAt (fun y : ℝ => (f y : ℂ)) 0 (Set.Icc 0 d) 0 := by
+    simpa using hf_real_zero.ofReal_comp
+  have hfirst :
+      HasDerivWithinAt (fun y : ℝ => (f 0 : ℂ) - (f y : ℂ)) 0 (Set.Icc 0 d) 0 := by
+    simpa using hf_complex.const_sub (f 0 : ℂ)
+  have hexp :
+      HasDerivWithinAt (fun y : ℝ => exp (-s * (y : ℂ)))
+        (-s * exp (-s * (0 : ℂ))) (Set.Icc 0 d) 0 := by
+    simpa using (laplaceKernel_hasDerivAt s 0).hasDerivWithinAt
+  have hprod := hfirst.mul hexp
+  simpa [kadiriTestFnInterior] using hprod
+
+private lemma kadiriTestFnInterior_hasDerivWithinAt_d {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    HasDerivWithinAt (kadiriTestFnInterior f s)
+      ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Icc 0 d) d := by
+  have hx : d ∈ Set.Icc 0 d := Set.right_mem_Icc.mpr hd.le
+  have hf_real :
+      HasDerivWithinAt f (derivWithin f (Set.Icc 0 d) d) (Set.Icc 0 d) d := by
+    simpa using (hf.contDiffOn_two.differentiableOn (by norm_num) d hx).hasDerivWithinAt
+  have hf_real_zero : HasDerivWithinAt f 0 (Set.Icc 0 d) d := by
+    simpa [hf.derivWithin_d] using hf_real
+  have hf_complex :
+      HasDerivWithinAt (fun y : ℝ => (f y : ℂ)) 0 (Set.Icc 0 d) d := by
+    simpa using hf_real_zero.ofReal_comp
+  have hfirst :
+      HasDerivWithinAt (fun y : ℝ => (f 0 : ℂ) - (f y : ℂ)) 0 (Set.Icc 0 d) d := by
+    simpa using hf_complex.const_sub (f 0 : ℂ)
+  have hexp :
+      HasDerivWithinAt (fun y : ℝ => exp (-s * (y : ℂ)))
+        (-s * exp (-s * (d : ℂ))) (Set.Icc 0 d) d := by
+    simpa using (laplaceKernel_hasDerivAt s d).hasDerivWithinAt
+  have hprod := hfirst.mul hexp
+  simpa [kadiriTestFnInterior, hf.value_d] using hprod
+
+private lemma kadiriTestFnRightTail_hasDerivWithinAt_d {d : ℝ} {f : ℝ → ℝ} (s : ℂ) :
+    HasDerivWithinAt (kadiriTestFnRightTail f s)
+      ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Ici d) d := by
+  have hexp :
+      HasDerivWithinAt (fun y : ℝ => exp (-s * (y : ℂ)))
+        (-s * exp (-s * (d : ℂ))) (Set.Ici d) d := by
+    simpa using (laplaceKernel_hasDerivAt s d).hasDerivWithinAt
+  simpa [kadiriTestFnRightTail] using hexp.const_mul (f 0 : ℂ)
+
+private theorem kadiriTestFn_H1_seam_derivatives {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    kadiriTestFn f s 0 = 0 ∧
+    HasDerivWithinAt (kadiriTestFn f s) 0 (Set.Iic 0) 0 ∧
+    HasDerivWithinAt (kadiriTestFn f s) 0 (Set.Icc 0 d) 0 ∧
+    HasDerivWithinAt (kadiriTestFn f s)
+      ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Icc 0 d) d ∧
+    HasDerivWithinAt (kadiriTestFn f s)
+      ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Ici d) d := by
+  have hleft_value : kadiriTestFn f s 0 = 0 := by
+    simp [kadiriTestFn]
+  have hleft_deriv :
+      HasDerivWithinAt (kadiriTestFn f s) 0 (Set.Iic 0) 0 := by
+    exact (hasDerivWithinAt_const (0 : ℝ) (Set.Iic 0) (0 : ℂ)).congr_of_eventuallyEq
+      kadiriTestFn_eventuallyEq_zero_left hleft_value
+  have hzero_deriv :
+      HasDerivWithinAt (kadiriTestFn f s) 0 (Set.Icc 0 d) 0 := by
+    exact (kadiriTestFnInterior_hasDerivWithinAt_zero hd hf s).congr_of_eventuallyEq
+      kadiriTestFn_eventuallyEq_interior_zero (by simp [kadiriTestFn, kadiriTestFnInterior])
+  have hd_value : kadiriTestFn f s d = kadiriTestFnInterior f s d := by
+    have hd0 : 0 ≤ d := hd.le
+    simp [kadiriTestFn, kadiriTestFnInterior, hd0]
+  have hd_interior_deriv :
+      HasDerivWithinAt (kadiriTestFn f s)
+        ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Icc 0 d) d := by
+    exact (kadiriTestFnInterior_hasDerivWithinAt_d hd hf s).congr_of_eventuallyEq
+      (kadiriTestFn_eventuallyEq_interior_d hd) hd_value
+  have hd_tail_value : kadiriTestFn f s d = kadiriTestFnRightTail f s d := by
+    have hd0 : 0 ≤ d := hd.le
+    simp [kadiriTestFn, kadiriTestFnRightTail, hd0, hf.value_d]
+  have hd_tail_deriv :
+      HasDerivWithinAt (kadiriTestFn f s)
+        ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) (Set.Ici d) d := by
+    exact (kadiriTestFnRightTail_hasDerivWithinAt_d (d := d) (f := f) s).congr_of_eventuallyEq
+      (kadiriTestFn_eventuallyEq_rightTail_d hd hf.tsupport_subset) hd_tail_value
+  exact ⟨hleft_value, hleft_deriv, hzero_deriv, hd_interior_deriv, hd_tail_deriv⟩
+
+private theorem kadiriTestFn_H1_seam_hasDerivAt {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    HasDerivAt (kadiriTestFn f s) 0 0 ∧
+    HasDerivAt (kadiriTestFn f s)
+      ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) d := by
+  rcases kadiriTestFn_H1_seam_derivatives hd hf s with
+    ⟨_, hleft, hzero, hd_interior, hd_tail⟩
+  have h0_nhds : Set.Iic (0 : ℝ) ∪ Set.Icc 0 d ∈ 𝓝 (0 : ℝ) := by
+    refine Filter.mem_of_superset
+      (Ioo_mem_nhds (show -(d / 2) < (0 : ℝ) by linarith)
+        (show (0 : ℝ) < d / 2 by linarith)) ?_
+    intro y hy
+    rcases le_or_gt y 0 with hy0 | hy0
+    · exact Or.inl hy0
+    · exact Or.inr ⟨le_of_lt hy0, by linarith [hy.2, hd]⟩
+  have hd_nhds : Set.Icc 0 d ∪ Set.Ici d ∈ 𝓝 d := by
+    refine Filter.mem_of_superset
+      (Ioo_mem_nhds (show d / 2 < d by linarith)
+        (show d < d + 1 by linarith)) ?_
+    intro y hy
+    by_cases hyd : y ≤ d
+    · exact Or.inl ⟨by linarith [hy.1, hd], hyd⟩
+    · exact Or.inr (le_of_not_ge hyd)
+  exact ⟨(hleft.union hzero).hasDerivAt h0_nhds,
+    (hd_interior.union hd_tail).hasDerivAt hd_nhds⟩
+
+private theorem kadiriTestFn_H1_differentiable {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    Differentiable ℝ (kadiriTestFn f s) := by
+  intro x
+  rcases kadiriTestFn_H1_seam_hasDerivAt hd hf s with ⟨hzero, hdseam⟩
+  by_cases hx0 : x = 0
+  · simpa [hx0] using hzero.differentiableAt
+  by_cases hxd : x = d
+  · simpa [hxd] using hdseam.differentiableAt
+  exact (kadiriTestFn_H1_contDiffAt_off_seams hd hf s hx0 hxd).differentiableAt_one
+
+private theorem kadiriTestFn_H1_seam_continuity {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContinuousAt (kadiriTestFn f s) 0 ∧ ContinuousAt (kadiriTestFn f s) d := by
+  rcases kadiriTestFn_H1_seam_derivatives hd hf s with
+    ⟨_, hleft, hzero, hd_interior, hd_tail⟩
+  have h0_nhds : Set.Iic (0 : ℝ) ∪ Set.Icc 0 d ∈ 𝓝 (0 : ℝ) := by
+    refine Filter.mem_of_superset
+      (Ioo_mem_nhds (show -(d / 2) < (0 : ℝ) by linarith)
+        (show (0 : ℝ) < d / 2 by linarith)) ?_
+    intro y hy
+    rcases le_or_gt y 0 with hy0 | hy0
+    · exact Or.inl hy0
+    · exact Or.inr ⟨le_of_lt hy0, by linarith [hy.2, hd]⟩
+  have hd_nhds : Set.Icc 0 d ∪ Set.Ici d ∈ 𝓝 d := by
+    refine Filter.mem_of_superset
+      (Ioo_mem_nhds (show d / 2 < d by linarith)
+        (show d < d + 1 by linarith)) ?_
+    intro y hy
+    by_cases hyd : y ≤ d
+    · exact Or.inl ⟨by linarith [hy.1, hd], hyd⟩
+    · exact Or.inr (le_of_not_ge hyd)
+  exact ⟨(hleft.continuousWithinAt.union hzero.continuousWithinAt).continuousAt h0_nhds,
+    (hd_interior.continuousWithinAt.union hd_tail.continuousWithinAt).continuousAt hd_nhds⟩
+
+private lemma kadiriTestFn_H1_deriv_zero {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    deriv (kadiriTestFn f s) 0 = 0 := by
+  exact (kadiriTestFn_H1_seam_hasDerivAt hd hf s).1.deriv
+
+private lemma kadiriTestFn_H1_deriv_d {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    deriv (kadiriTestFn f s) d =
+      (f 0 : ℂ) * (-s * exp (-s * (d : ℂ))) := by
+  exact (kadiriTestFn_H1_seam_hasDerivAt hd hf s).2.deriv
+
+private lemma kadiriTestFn_H1_deriv_of_lt_zero {f : ℝ → ℝ} (s : ℂ) {x : ℝ} (hx : x < 0) :
+    deriv (kadiriTestFn f s) x = 0 := by
+  have heq : kadiriTestFn f s =ᶠ[𝓝 x] fun _ => (0 : ℂ) := by
+    filter_upwards [Iio_mem_nhds hx] with y hy
+    have hylt : y < 0 := by simpa using hy
+    simp [kadiriTestFn, not_le_of_gt hylt]
+  rw [Filter.EventuallyEq.deriv_eq heq, deriv_const]
+
+private lemma kadiriTestFn_H1_deriv_eq_interior_of_mem {d : ℝ}
+    {f : ℝ → ℝ} (s : ℂ) {x : ℝ} (hx : x ∈ Set.Ioo 0 d) :
+    deriv (kadiriTestFn f s) x = deriv (kadiriTestFnInterior f s) x := by
+  have heq : kadiriTestFn f s =ᶠ[𝓝 x] kadiriTestFnInterior f s := by
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with y hy
+    simp [kadiriTestFn, kadiriTestFnInterior, le_of_lt hy.1]
+  exact Filter.EventuallyEq.deriv_eq heq
+
+private lemma kadiriTestFn_H1_deriv_eq_rightTail_of_gt {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) {x : ℝ} (hx : d < x) :
+    deriv (kadiriTestFn f s) x = deriv (kadiriTestFnRightTail f s) x := by
+  have heq : kadiriTestFn f s =ᶠ[𝓝 x] kadiriTestFnRightTail f s := by
+    filter_upwards [Ioi_mem_nhds hx] with y hy
+    have hy0 : 0 ≤ y := le_trans hd.le hy.le
+    have hfy : f y = 0 := eq_zero_of_tsupport_subset_Ico_right hf.tsupport_subset hy.le
+    simp [kadiriTestFn, kadiriTestFnRightTail, hy0, hfy]
+  exact Filter.EventuallyEq.deriv_eq heq
+
+private lemma kadiriTestFn_H1_deriv_eq_interiorWithin_near_zero {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    deriv (kadiriTestFn f s)
+      =ᶠ[𝓝[Set.Icc 0 d] (0 : ℝ)]
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) := by
+  filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds (Iio_mem_nhds hd)]
+    with y hy hyd
+  rcases lt_or_eq_of_le hy.1 with hypos | rfl
+  · have hyI_nhds : Set.Icc 0 d ∈ 𝓝 y := Icc_mem_nhds hypos hyd
+    have hwithin :
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) y =
+          deriv (kadiriTestFnInterior f s) y := derivWithin_of_mem_nhds hyI_nhds
+    exact (kadiriTestFn_H1_deriv_eq_interior_of_mem s ⟨hypos, hyd⟩).trans hwithin.symm
+  · have hglobal : deriv (kadiriTestFn f s) 0 = 0 :=
+      kadiriTestFn_H1_deriv_zero hd hf s
+    have hwithin :
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) 0 = 0 :=
+      (kadiriTestFnInterior_hasDerivWithinAt_zero hd hf s).derivWithin
+        (uniqueDiffOn_Icc hd 0 (Set.left_mem_Icc.mpr hd.le))
+    exact hglobal.trans hwithin.symm
+
+private lemma kadiriTestFn_H1_deriv_eq_interiorWithin_near_d {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    deriv (kadiriTestFn f s)
+      =ᶠ[𝓝[Set.Icc 0 d] d]
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) := by
+  filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds (Ioi_mem_nhds hd)]
+    with y hy hypos
+  rcases lt_or_eq_of_le hy.2 with hylt | hyeq
+  · have hyI_nhds : Set.Icc 0 d ∈ 𝓝 y := Icc_mem_nhds hypos hylt
+    have hwithin :
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) y =
+          deriv (kadiriTestFnInterior f s) y := derivWithin_of_mem_nhds hyI_nhds
+    exact (kadiriTestFn_H1_deriv_eq_interior_of_mem s ⟨hypos, hylt⟩).trans hwithin.symm
+  · subst y
+    have hglobal := kadiriTestFn_H1_deriv_d hd hf s
+    have hwithin :
+        derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d) d =
+          (f 0 : ℂ) * (-s * exp (-s * (d : ℂ))) :=
+      (kadiriTestFnInterior_hasDerivWithinAt_d hd hf s).derivWithin
+        (uniqueDiffOn_Icc hd d (Set.right_mem_Icc.mpr hd.le))
+    exact hglobal.trans hwithin.symm
+
+private lemma kadiriTestFn_H1_deriv_eq_rightTail_near_d {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    deriv (kadiriTestFn f s)
+      =ᶠ[𝓝[Set.Ici d] d] deriv (kadiriTestFnRightTail f s) := by
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  have hyd : d ≤ y := by simpa using hy
+  rcases lt_or_eq_of_le hyd with hylt | hyeq
+  · exact kadiriTestFn_H1_deriv_eq_rightTail_of_gt hd hf s hylt
+  · subst y
+    have hglobal := kadiriTestFn_H1_deriv_d hd hf s
+    have hright :
+        deriv (kadiriTestFnRightTail f s) d =
+          (f 0 : ℂ) * (-s * exp (-s * (d : ℂ))) := by
+      have hright_deriv :
+          HasDerivAt (kadiriTestFnRightTail f s)
+            ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) d := by
+        simpa [kadiriTestFnRightTail] using
+          (laplaceKernel_hasDerivAt s d).const_mul (f 0 : ℂ)
+      exact hright_deriv.deriv
+    exact hglobal.trans hright.symm
+
+private lemma kadiriTestFn_H1_deriv_continuousWithinAt_zero_left {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Iic 0) (0 : ℝ) := by
+  have hconst :
+      ContinuousWithinAt (fun _ : ℝ => (0 : ℂ)) (Set.Iic 0) (0 : ℝ) :=
+    continuous_const.continuousAt.continuousWithinAt
+  refine hconst.congr_of_eventuallyEq_of_mem ?_ Set.self_mem_Iic
+  filter_upwards [self_mem_nhdsWithin] with y hy
+  have hy0 : y ≤ 0 := by simpa using hy
+  rcases lt_or_eq_of_le hy0 with hylt | hyeq
+  · exact kadiriTestFn_H1_deriv_of_lt_zero s hylt
+  · subst y
+    exact kadiriTestFn_H1_deriv_zero hd hf s
+
+private lemma kadiriTestFn_H1_deriv_continuousWithinAt_zero_right {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Ici 0) (0 : ℝ) := by
+  have hcontIcc :
+      ContinuousWithinAt
+        (derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d))
+        (Set.Icc 0 d) (0 : ℝ) :=
+    ((kadiriTestFnInterior_contDiffOn_Icc hf s).continuousOn_derivWithin
+      (uniqueDiffOn_Icc hd) le_rfl) 0 (Set.left_mem_Icc.mpr hd.le)
+  have hglobalIcc :
+      ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Icc 0 d) (0 : ℝ) :=
+    hcontIcc.congr_of_eventuallyEq_of_mem
+      (kadiriTestFn_H1_deriv_eq_interiorWithin_near_zero hd hf s)
+      (Set.left_mem_Icc.mpr hd.le)
+  have hIcc_mem : Set.Icc 0 d ∈ 𝓝[Set.Ici 0] (0 : ℝ) := by
+    filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds (Iio_mem_nhds hd)]
+      with y hy0 hyd
+    exact ⟨hy0, le_of_lt hyd⟩
+  exact hglobalIcc.mono_of_mem_nhdsWithin hIcc_mem
+
+private lemma kadiriTestFn_H1_deriv_continuousWithinAt_d_left {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Iic d) d := by
+  have hcontIcc :
+      ContinuousWithinAt
+        (derivWithin (kadiriTestFnInterior f s) (Set.Icc 0 d))
+        (Set.Icc 0 d) d :=
+    ((kadiriTestFnInterior_contDiffOn_Icc hf s).continuousOn_derivWithin
+      (uniqueDiffOn_Icc hd) le_rfl) d (Set.right_mem_Icc.mpr hd.le)
+  have hglobalIcc :
+      ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Icc 0 d) d :=
+    hcontIcc.congr_of_eventuallyEq_of_mem
+      (kadiriTestFn_H1_deriv_eq_interiorWithin_near_d hd hf s)
+      (Set.right_mem_Icc.mpr hd.le)
+  have hIcc_mem : Set.Icc 0 d ∈ 𝓝[Set.Iic d] d := by
+    filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds (Ioi_mem_nhds hd)]
+      with y hyd hy0
+    exact ⟨le_of_lt hy0, hyd⟩
+  exact hglobalIcc.mono_of_mem_nhdsWithin hIcc_mem
+
+private lemma kadiriTestFn_H1_deriv_continuousWithinAt_d_right {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    ContinuousWithinAt (deriv (kadiriTestFn f s)) (Set.Ici d) d := by
+  have htail :
+      ContinuousWithinAt (deriv (kadiriTestFnRightTail f s)) (Set.Ici d) d :=
+    ((kadiriTestFnRightTail_contDiff f s).continuous_deriv le_rfl).continuousAt.continuousWithinAt
+  exact htail.congr_of_eventuallyEq_of_mem
+    (kadiriTestFn_H1_deriv_eq_rightTail_near_d hd hf s) Set.self_mem_Ici
+
+private theorem kadiriTestFn_H1_continuous_deriv {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
+    Continuous (deriv (kadiriTestFn f s)) := by
+  rw [continuous_iff_continuousAt]
+  intro x
+  by_cases hx0 : x = 0
+  · subst x
+    exact continuousAt_iff_continuous_left_right.2
+      ⟨kadiriTestFn_H1_deriv_continuousWithinAt_zero_left hd hf s,
+        kadiriTestFn_H1_deriv_continuousWithinAt_zero_right hd hf s⟩
+  by_cases hxd : x = d
+  · subst x
+    exact continuousAt_iff_continuous_left_right.2
+      ⟨kadiriTestFn_H1_deriv_continuousWithinAt_d_left hd hf s,
+        kadiriTestFn_H1_deriv_continuousWithinAt_d_right hd hf s⟩
+  exact ((kadiriTestFn_H1_contDiffAt_off_seams hd hf s hx0 hxd).derivWithin
+    (m := 0) (by norm_num)).continuousAt
+
+end
 
 @[blueprint
   "kadiri-test-fn-contDiff"
@@ -234,15 +881,18 @@ noncomputable def kadiriTestFn (f : ℝ → ℝ) (s : ℂ) : ℝ → ℂ := fun 
   matching the right-limits. Hence $\varphi$ is $C^1$ globally. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1484)]
-theorem kadiriTestFn_contDiff {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
-    (_hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (_hf_supp : tsupport f ⊆ .Ico 0 d)
-    (_hf_d : f d = 0)
-    (_hf_deriv_0 : deriv f 0 = 0)
-    (_hf_deriv_d : deriv f d = 0)
-    (_s : ℂ) :
-    ContDiff ℝ 1 (kadiriTestFn f _s) := by
-  sorry
+theorem kadiriTestFn_contDiff {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (s : ℂ) :
+    ContDiff ℝ 1 (kadiriTestFn f s) := by
+  rw [contDiff_one_iff_deriv]
+  have hf : KadiriH1 d f := ⟨hf_C2, hf_supp, hf_d, hf_deriv_0, hf_deriv_d⟩
+  exact ⟨kadiriTestFn_H1_differentiable hd hf s,
+    kadiriTestFn_H1_continuous_deriv hd hf s⟩
 
 @[blueprint
   "kadiri-test-fn-decay"
@@ -361,9 +1011,9 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
-    (hf_deriv_0 : deriv f 0 = 0)
-    (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
       (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
@@ -416,9 +1066,9 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
-    (hf_deriv_0 : deriv f 0 = 0)
-    (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
       f 0 * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
@@ -542,9 +1192,9 @@ theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
-    (hf_deriv_0 : deriv f 0 = 0)
-    (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     (σ₀ σ₁ : ℝ) :
     ∃ C : ℝ, ∀ s : ℂ, σ₀ ≤ s.re → s.re ≤ σ₁ → 1 ≤ |s.im| →
       |(laplaceTransform f s).re| ≤ C / s.im ^ 2 := by
@@ -569,9 +1219,9 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
-    (hf_deriv_0 : deriv f 0 = 0)
-    (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     (s : ℂ) :
     Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
                 (laplaceTransform f (s - ρ.val)).re) := by
@@ -640,9 +1290,9 @@ theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (hf_d : f d = 0)
-    (hf_deriv_0 : deriv f 0 = 0)
-    (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
     {s : ℂ} (hs : 1 < s.re) :
     Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
                 (laplaceTransform f (s - ρ.val)).re) ∧
@@ -720,8 +1370,8 @@ noncomputable def Δ2 (f : ℝ → ℝ) (κ δ : ℝ) (s : ℂ) : ℝ :=
   (latexEnv := "lemma")]
 theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ f t)
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d)) (hf_supp : tsupport f ⊆ .Ico 0 d)
-    (hf_d : f d = 0) (hf_deriv_0 : deriv f 0 = 0) (hf_deriv_d : deriv f d = 0)
-    (hf_deriv2_d : deriv (deriv f) d = 0) (κ : ℝ) {δ : ℝ} (hδ : 0 ≤ δ)
+    (hf_d : f d = 0) (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0) (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0) (κ : ℝ) {δ : ℝ} (hδ : 0 ≤ δ)
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, Λ n / n ^ s * f (Real.log n) * ((1 : ℂ) - κ / n ^ (δ : ℂ))).re =
       f 0 * Δ1 κ δ s + D f κ δ (s - 1)
