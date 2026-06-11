@@ -488,6 +488,71 @@ theorem u6aCA_divisorMassClosedBall₀_le_of_sphere_bound {f : ℂ → ℂ}
       = Real.log 2 * Complex.Hadamard.divisorMassClosedBall₀ f R := by ring
     _ ≤ M - Real.log ‖f 0‖ := hchain
 
+/-! ## The window count injects into the Jensen ball -/
+
+/-- Every zero of the Kadiri window `Re ∈ [-1,2]`, `|Im - t| ≤ 1` lies in the
+ball of radius `9/4` around `2 + it` (its real part is actually in `(0,1)`),
+so the order-weighted window count is dominated by the shifted ball sum. -/
+theorem u6aCA_count_le_ballSum {t : ℝ} (ht : 3 ≤ |t|) :
+    u6aNearbyZeroCount (-1) 2 t ≤
+      ∑ z ∈ u6aShiftedZetaZeroBallFinset (2 + ↑t * I) (9 / 4),
+        (riemannZeta.order ((2 + ↑t * I) + z) : ℝ) := by
+  classical
+  have hfin := u6aFTNearbyWindow_finite t
+  have hcount := riemannZeta.zeroes_sum_eq_finset_of_finite (I := Set.uIcc (-1 : ℝ) 2)
+    (J := Set.Icc (t - 1) (t + 1)) (fun _ => (1 : ℝ)) hfin
+  unfold u6aNearbyZeroCount
+  rw [hcount]
+  simp only [one_mul]
+  set s₀ : ℂ := 2 + ↑t * I with hs₀def
+  have hinj : Set.InjOn (fun ρ : ℂ => ρ - s₀) ↑hfin.toFinset := by
+    intro ρ₁ _ ρ₂ _ h
+    have := congrArg (fun w : ℂ => w + s₀) h
+    simpa using this
+  have himg_subset : hfin.toFinset.image (fun ρ : ℂ => ρ - s₀) ⊆
+      u6aShiftedZetaZeroBallFinset s₀ (9 / 4) := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨ρ, hρ, rfl⟩ := hz
+    have hρmem := hfin.mem_toFinset.mp hρ
+    obtain ⟨hre, him, hζ⟩ := hρmem
+    have hζ0 : riemannZeta ρ = 0 := hζ
+    have himne : ρ.im ≠ 0 := by
+      intro h0
+      rw [h0] at him
+      have habs : |t| ≤ 1 := abs_le.mpr ⟨by linarith [him.2], by linarith [him.1]⟩
+      linarith
+    have hIoo := riemannZeta_zero_re_mem_Ioo_of_im_ne_zero' hζ0 himne
+    unfold u6aShiftedZetaZeroBallFinset
+    rw [Set.Finite.mem_toFinset]
+    constructor
+    · have hre2 : (ρ - s₀).re = ρ.re - 2 := by simp [hs₀def]
+      have him2 : (ρ - s₀).im = ρ.im - t := by simp [hs₀def]
+      have hsq : ‖ρ - s₀‖ ^ 2 = (ρ.re - 2) ^ 2 + (ρ.im - t) ^ 2 := by
+        rw [← Complex.normSq_eq_norm_sq, Complex.normSq_apply, hre2, him2]
+        ring
+      have hb1 : (ρ.re - 2) ^ 2 ≤ 4 := by nlinarith [hIoo.1, hIoo.2]
+      have hb2 : (ρ.im - t) ^ 2 ≤ 1 := by nlinarith [him.1, him.2]
+      have hsqle : ‖ρ - s₀‖ ^ 2 ≤ (9 / 4) ^ 2 := by rw [hsq]; nlinarith
+      nlinarith [norm_nonneg (ρ - s₀)]
+    · rw [show s₀ + (ρ - s₀) = ρ by ring]
+      exact hζ0
+  have hsum_eq : (∑ ρ ∈ hfin.toFinset, (riemannZeta.order ρ : ℝ)) =
+      ∑ z ∈ hfin.toFinset.image (fun ρ : ℂ => ρ - s₀),
+        (riemannZeta.order (s₀ + z) : ℝ) := by
+    rw [Finset.sum_image hinj]
+    refine Finset.sum_congr rfl fun ρ _ => ?_
+    rw [show s₀ + (ρ - s₀) = ρ by ring]
+  refine le_trans (le_of_eq hsum_eq)
+    (Finset.sum_le_sum_of_subset_of_nonneg himg_subset fun z hz _ => ?_)
+  have hzmem : ‖z‖ ≤ 9 / 4 ∧ riemannZeta (s₀ + z) = 0 := by
+    unfold u6aShiftedZetaZeroBallFinset at hz
+    rw [Set.Finite.mem_toFinset] at hz
+    exact hz
+  have hne1 : s₀ + z ≠ 1 := fun hc => riemannZeta_one_ne_zero (hc ▸ hzmem.2)
+  have hpos := riemannZeta_order_pos_of_zero_ne_one hne1 hzmem.2
+  exact_mod_cast hpos.le
+
 end
 
 end Kadiri
