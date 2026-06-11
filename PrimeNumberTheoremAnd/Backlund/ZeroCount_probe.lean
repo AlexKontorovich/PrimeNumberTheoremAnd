@@ -228,28 +228,37 @@ optimized. The proof is sorried — the kernel probe checks that the statement
 type-checks against `riemannZeta.N` (ZetaDefinitions :137), against existing
 lemmas, and that the dependency graph closes without any reference to
 `backlund_bound` or KadiriZeroCounting machinery. -/
-theorem zetaCounting_crude_majorant :
+/-- The bridge from `riemannZeta.N` to the surrogate's divisor mass: every zero counted
+by `N T` lies in the closed ball `B(0, T + 1)` (localization), its ζ-order agrees with
+the surrogate's divisor value there (the patch only changes the value at `s = 1`, which
+is not a zero of the surrogate, and `(s - 1)` is nonvanishing off `1`), the rect is
+finite, and the order-weighted finite sum is dominated by the (nonnegative) divisor
+mass on the ball. -/
+lemma zetaCounting_le_surrogate_mass :
     ∀ T : ℝ, 2 ≤ T →
-      |riemannZeta.N T| ≤ (100 : ℝ) * T ^ (3/2 : ℝ) := by
-  intro T hT
-  -- HEADLINE REPAIR (2026-06-11 audit): `100 · T · log T` is true but NOT reachable
-  -- from the global-growth machinery (the order-1 hypothesis it would need is false;
-  -- the `T log T` route needs a center-translated Jensen count absent from the tree).
-  -- `100 · T^(3/2)` is reachable and feeds the Phase-2 dyadic consumer with room:
-  --   Σ_k 100 · (2^(k+1))^(3/2) / 4^k = 100 · 2^(3/2) · Σ_k 2^(-k/2) < ∞.
-  -- proof plan (single ball, no disk cover, no translation glue):
-  --   step 1: `zeta_zero_re_mem_of_im_pos` places every zero counted by `N T`
-  --           (Im ∈ (0, T), any Re) in the strip `0 ≤ Re ≤ 1`, hence in the
-  --           closed ball `B(0, T + 1)`.
-  --   step 2: `N T` = order-weighted count over those zeros; orders are ≥ 0
-  --           (analyticity off `s = 1`), so `|N T| = N T` and the count is
-  --           dominated by `divisorMassClosedBall₀ zetaSurrogate (T + 1)`
-  --           (the surrogate's divisor agrees with ζ's away from `s = 1` and
-  --           vanishes at `s = 1`).
-  --   step 3: `zetaSurrogate_zeros_in_closedBall₀_count` at `R = T + 1`, then
-  --           absorb `C' · (2 + T)^(3/2) ≤ 100 · T^(3/2)` for `T ≥ 2` (constant
-  --           arithmetic, `2 + T ≤ 2T`).
+      |riemannZeta.N T| ≤
+        Complex.Hadamard.divisorMassClosedBall₀ zetaSurrogate (T + 1) := by
   sorry
+
+/-- HEADLINE REPAIR 2 (loop session): the constant is existential, not the literal
+`100` — the growth and ball-count inputs are existential, so a fixed numeric headline
+constant is underivable until the growth constant is made explicit. The Phase-2
+consumer is indifferent: the constant factors out of the dyadic summability. -/
+theorem zetaCounting_crude_majorant :
+    ∃ A : ℝ, 0 < A ∧ ∀ T : ℝ, 2 ≤ T →
+      |riemannZeta.N T| ≤ A * T ^ (3/2 : ℝ) := by
+  obtain ⟨C', hC'0, hC'⟩ := zetaSurrogate_zeros_in_closedBall₀_count
+  refine ⟨C' * 4 ^ (3/2 : ℝ), mul_pos hC'0 (Real.rpow_pos_of_pos (by norm_num) _), ?_⟩
+  intro T hT
+  have h12 : |riemannZeta.N T| ≤ C' * (1 + (T + 1)) ^ (3/2 : ℝ) :=
+    (zetaCounting_le_surrogate_mass T hT).trans (hC' (T + 1) (by linarith))
+  have h3 : (1 + (T + 1) : ℝ) ^ (3/2 : ℝ) ≤ 4 ^ (3/2 : ℝ) * T ^ (3/2 : ℝ) := by
+    rw [← Real.mul_rpow (by norm_num) (by linarith : (0 : ℝ) ≤ T)]
+    exact Real.rpow_le_rpow (by linarith) (by linarith) (by norm_num)
+  calc |riemannZeta.N T|
+      ≤ C' * (1 + (T + 1)) ^ (3/2 : ℝ) := h12
+    _ ≤ C' * (4 ^ (3/2 : ℝ) * T ^ (3/2 : ℝ)) := mul_le_mul_of_nonneg_left h3 hC'0.le
+    _ = C' * 4 ^ (3/2 : ℝ) * T ^ (3/2 : ℝ) := by ring
 
 /-! ### Statement-audit footnote
 
