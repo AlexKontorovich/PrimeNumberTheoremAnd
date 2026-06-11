@@ -175,6 +175,203 @@ theorem kadiriPoleFilledLogFunction_of_one_lt {f : ℝ → ℝ} {x : ℝ} (hx : 
     kadiriPoleFilledLogFunction f x = (f (Real.log x) : ℂ) := by
   simp [kadiriPoleFilledLogFunction, not_lt.mpr hx.le]
 
+private lemma log_mem_Icc_of_mem_Icc_one_exp {d t : ℝ}
+    (ht : t ∈ Set.Icc (1 : ℝ) (Real.exp d)) :
+    Real.log t ∈ Set.Icc (0 : ℝ) d := by
+  have htpos : 0 < t := zero_lt_one.trans_le ht.1
+  exact ⟨Real.log_nonneg ht.1, (Real.log_le_iff_le_exp htpos).2 ht.2⟩
+
+/-- The logarithmic Mellin source is compactly supported away from zero, so it
+converges on every vertical line without requiring global continuity of `f`. -/
+theorem kadiriMellinConvergent_log_of_laplaceSurface {d : ℝ} (_hd : 0 < d)
+    {f : ℝ → ℝ} (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (s : ℂ) :
+    MellinConvergent (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ)) s := by
+  rw [MellinConvergent]
+  let g : ℝ → ℂ := fun t => (t : ℂ) ^ (s - 1) • ((f (Real.log t) : ℝ) : ℂ)
+  have hlog_cont : ContinuousOn Real.log (Set.Icc (1 : ℝ) (Real.exp d)) := by
+    refine continuousOn_of_forall_continuousAt fun t ht => ?_
+    exact Real.continuousAt_log (ne_of_gt (zero_lt_one.trans_le ht.1))
+  have hlog_maps : Set.MapsTo Real.log (Set.Icc (1 : ℝ) (Real.exp d)) (Set.Icc 0 d) :=
+    fun _ ht => log_mem_Icc_of_mem_Icc_one_exp ht
+  have hf_log_cont : ContinuousOn (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ))
+      (Set.Icc (1 : ℝ) (Real.exp d)) :=
+    Complex.continuous_ofReal.comp_continuousOn (hf_C2.continuousOn.comp hlog_cont hlog_maps)
+  have hcpow_cont : ContinuousOn (fun t : ℝ => (t : ℂ) ^ (s - 1))
+      (Set.Icc (1 : ℝ) (Real.exp d)) := by
+    refine continuousOn_of_forall_continuousAt fun t ht => ?_
+    exact Complex.continuousAt_ofReal_cpow_const t (s - 1)
+      (Or.inr (ne_of_gt (zero_lt_one.trans_le ht.1)))
+  have hIcc : IntegrableOn g (Set.Icc (1 : ℝ) (Real.exp d)) := by
+    simpa [g, smul_eq_mul] using
+      (hcpow_cont.mul hf_log_cont).integrableOn_compact isCompact_Icc
+  refine hIcc.of_forall_diff_eq_zero measurableSet_Ioi ?_
+  intro t ht
+  have htpos : 0 < t := ht.1
+  have hnot : t ∉ Set.Icc (1 : ℝ) (Real.exp d) := ht.2
+  have hfzero : f (Real.log t) = 0 := by
+    by_cases ht1 : t < 1
+    · exact eq_zero_of_tsupport_subset_Ico_left hf_supp (Real.log_neg htpos ht1)
+    · have hexp_le : Real.exp d ≤ t := by
+        by_contra hlt
+        exact hnot ⟨le_of_not_gt ht1, le_of_not_ge hlt⟩
+      exact eq_zero_of_tsupport_subset_Ico_right hf_supp
+        ((Real.le_log_iff_exp_le htpos).2 hexp_le)
+  simp [g, hfzero]
+
+private theorem hasMellin_one_Ioo {s : ℂ} (hs : 0 < s.re) :
+    HasMellin (Set.indicator (Set.Ioo (0 : ℝ) 1) (fun _ => (1 : ℂ))) s (1 / s) := by
+  have hIoc := hasMellin_one_Ioc (s := s) hs
+  refine ⟨?_, ?_⟩
+  · have hIocConv := hIoc.1
+    rw [MellinConvergent] at hIocConv ⊢
+    refine hIocConv.congr_fun_ae ?_
+    rw [Filter.EventuallyEq, ae_restrict_iff' measurableSet_Ioi]
+    filter_upwards [Measure.ae_ne volume (1 : ℝ)] with t htne htpos
+    by_cases ht1 : t < 1
+    · have hioc : t ∈ Set.Ioc (0 : ℝ) 1 := ⟨htpos, ht1.le⟩
+      have hioo : t ∈ Set.Ioo (0 : ℝ) 1 := ⟨htpos, ht1⟩
+      simp [hioc, hioo]
+    · have hnot_ioc : t ∉ Set.Ioc (0 : ℝ) 1 := by
+        intro ht
+        exact htne (le_antisymm ht.2 (le_of_not_gt ht1))
+      have hnot_ioo : t ∉ Set.Ioo (0 : ℝ) 1 := fun ht => ht1 ht.2
+      simp [hnot_ioc, hnot_ioo]
+  · rw [mellin]
+    calc
+      (∫ (t : ℝ) in Set.Ioi 0,
+          (t : ℂ) ^ (s - 1) • Set.indicator (Set.Ioo (0 : ℝ) 1) (fun _ => (1 : ℂ)) t)
+          = ∫ (t : ℝ) in Set.Ioi 0,
+              (t : ℂ) ^ (s - 1) • Set.indicator (Set.Ioc (0 : ℝ) 1) (fun _ => (1 : ℂ)) t := by
+            refine setIntegral_congr_ae measurableSet_Ioi ?_
+            filter_upwards [Measure.ae_ne volume (1 : ℝ)] with t htne htpos
+            by_cases ht1 : t < 1
+            · have hioc : t ∈ Set.Ioc (0 : ℝ) 1 := ⟨htpos, ht1.le⟩
+              have hioo : t ∈ Set.Ioo (0 : ℝ) 1 := ⟨htpos, ht1⟩
+              simp [hioc, hioo]
+            · have hnot_ioc : t ∉ Set.Ioc (0 : ℝ) 1 := by
+                intro ht
+                exact htne (le_antisymm ht.2 (le_of_not_gt ht1))
+              have hnot_ioo : t ∉ Set.Ioo (0 : ℝ) 1 := fun ht => ht1 ht.2
+              simp [hnot_ioc, hnot_ioo]
+      _ = 1 / s := by simpa [mellin] using hIoc.2
+
+/-- Mellin convergence of the pole-filled source under the real Kadiri
+test-function surface.  The line must lie to the right of the pole at `0`. -/
+theorem kadiriPoleFilledMellinConvergent_of_laplaceSurface {d σ : ℝ}
+    (hd : 0 < d) (hσ : 0 < σ) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) :
+    MellinConvergent (kadiriPoleFilledLogFunction f) (σ : ℂ) := by
+  have hlog := kadiriMellinConvergent_log_of_laplaceSurface (d := d) hd hf_C2 hf_supp (σ : ℂ)
+  have hone := (hasMellin_one_Ioo (s := (σ : ℂ)) (by simpa using hσ)).1
+  have hind := hone.const_smul (f 0 : ℂ)
+  have hsum : MellinConvergent
+      (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ) +
+        (f 0 : ℂ) • Set.indicator (Set.Ioo (0 : ℝ) 1) (fun _ => (1 : ℂ)) t) (σ : ℂ) := by
+    simpa only [MellinConvergent, smul_add] using hlog.add hind
+  rw [MellinConvergent] at hsum ⊢
+  refine hsum.congr_fun ?_ measurableSet_Ioi
+  intro t htpos
+  by_cases ht1 : t < 1
+  · have hlog_zero : f (Real.log t) = 0 :=
+      eq_zero_of_tsupport_subset_Ico_left hf_supp (Real.log_neg htpos ht1)
+    have hioo : t ∈ Set.Ioo (0 : ℝ) 1 := ⟨htpos, ht1⟩
+    simp [kadiriPoleFilledLogFunction, ht1, hlog_zero, hioo]
+  · have hnot_ioo : t ∉ Set.Ioo (0 : ℝ) 1 := fun ht => ht1 ht.2
+    simp [kadiriPoleFilledLogFunction, ht1, hnot_ioo]
+
+/-- The pole-filled logarithmic source has Mellin transform equal to the
+pole-subtracted Kadiri line transform on the right half-plane. -/
+theorem kadiriPoleFilled_mellin_eq_poleSubtracted {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) {s : ℂ} (hs : 0 < s.re) :
+    mellin (kadiriPoleFilledLogFunction f) s = kadiriPoleSubtractedMellin f s := by
+  let oneIoo : ℝ → ℂ := Set.indicator (Set.Ioo (0 : ℝ) 1) (fun _ => (1 : ℂ))
+  have hlog := kadiriMellinConvergent_log_of_laplaceSurface
+    (d := d) hd hf_C2 hf_supp s
+  have hone := hasMellin_one_Ioo (s := s) hs
+  have hind : MellinConvergent (fun t : ℝ => (f 0 : ℂ) • oneIoo t) s :=
+    hone.1.const_smul (f 0 : ℂ)
+  have hsumVal :
+      mellin (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ) + (f 0 : ℂ) • oneIoo t) s =
+        mellin (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ)) s +
+          mellin (fun t : ℝ => (f 0 : ℂ) • oneIoo t) s :=
+    (hasMellin_add hlog hind).2
+  have hpoleVal : mellin (fun t : ℝ => (f 0 : ℂ) • oneIoo t) s = (f 0 : ℂ) / s := by
+    rw [mellin_const_smul, hone.2]
+    simp [smul_eq_mul, div_eq_mul_inv]
+  have hdecomp :
+      mellin (kadiriPoleFilledLogFunction f) s =
+        mellin (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ) + (f 0 : ℂ) • oneIoo t) s := by
+    rw [mellin, mellin]
+    refine setIntegral_congr_fun measurableSet_Ioi fun t htpos => ?_
+    by_cases ht1 : t < 1
+    · have hlog_zero : f (Real.log t) = 0 :=
+        eq_zero_of_tsupport_subset_Ico_left hf_supp (Real.log_neg htpos ht1)
+      have hioo : t ∈ Set.Ioo (0 : ℝ) 1 := ⟨htpos, ht1⟩
+      simp [kadiriPoleFilledLogFunction, oneIoo, ht1, hlog_zero, hioo, smul_eq_mul]
+    · have hnot_ioo : t ∉ Set.Ioo (0 : ℝ) 1 := fun ht => ht1 ht.2
+      simp [kadiriPoleFilledLogFunction, oneIoo, ht1, hnot_ioo, smul_eq_mul]
+  calc
+    mellin (kadiriPoleFilledLogFunction f) s
+        = mellin (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ) + (f 0 : ℂ) • oneIoo t) s :=
+          hdecomp
+    _ = mellin (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ)) s +
+          mellin (fun t : ℝ => (f 0 : ℂ) • oneIoo t) s := hsumVal
+    _ = laplaceTransform f (-s) + (f 0 : ℂ) / s := by
+          rw [kadiriMellin_log_eq_laplaceTransform hf_supp s, hpoleVal]
+    _ = kadiriPoleSubtractedMellin f s := rfl
+
+private lemma continuousAt_of_kadiriRealSurface {d x : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (hf_d : f d = 0) (hx0 : 0 < x) :
+    ContinuousAt f x := by
+  by_cases hxd : x < d
+  · have hIcc : Set.Icc (0 : ℝ) d ∈ 𝓝 x := Icc_mem_nhds hx0 hxd
+    exact (hf_C2.continuousOn x ⟨hx0.le, hxd.le⟩).continuousAt hIcc
+  · have hdx : d ≤ x := le_of_not_gt hxd
+    by_cases hgt : d < x
+    · have hz : f =ᶠ[𝓝 x] fun _ : ℝ => 0 := by
+        filter_upwards [Ioi_mem_nhds hgt] with y hy
+        exact eq_zero_of_tsupport_subset_Ico_right hf_supp hy.le
+      exact (continuousAt_const : ContinuousAt (fun _ : ℝ => (0 : ℝ)) x).congr hz.symm
+    · have hdx_eq : d = x := le_antisymm hdx (le_of_not_gt hgt)
+      subst x
+      have hleft₀ : ContinuousWithinAt f (Set.Iic d ∩ Set.Ici (0 : ℝ)) d := by
+        simpa [Set.Icc, Set.Iic, Set.Ici, and_comm, and_left_comm, and_assoc] using
+          hf_C2.continuousOn d ⟨hd.le, le_rfl⟩
+      have hleft : ContinuousWithinAt f (Set.Iic d) d := by
+        exact (continuousWithinAt_inter (f := f) (s := Set.Iic d)
+          (t := Set.Ici (0 : ℝ)) (x := d) (Ici_mem_nhds hd)).1 hleft₀
+      have hright : ContinuousWithinAt f (Set.Ici d) d := by
+        exact (continuousWithinAt_const : ContinuousWithinAt (fun _ : ℝ => (0 : ℝ))
+          (Set.Ici d) d).congr
+          (fun y hy => eq_zero_of_tsupport_subset_Ico_right hf_supp hy) hf_d
+      exact continuousAt_iff_continuous_left_right.2 ⟨hleft, hright⟩
+
+/-- The pole-filled logarithmic source is continuous at every weighted integer
+point `n > 1` under the real Kadiri surface. -/
+theorem kadiriPoleFilled_continuousAt_nat_of_one_lt {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ} (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) (hf_d : f d = 0)
+    {n : ℕ} (hn : 1 < n) :
+    ContinuousAt (kadiriPoleFilledLogFunction f) (n : ℝ) := by
+  have hnreal : (1 : ℝ) < (n : ℝ) := by exact_mod_cast hn
+  have hlocal : kadiriPoleFilledLogFunction f =ᶠ[𝓝 (n : ℝ)]
+      fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ) := by
+    filter_upwards [Ioi_mem_nhds hnreal] with t ht
+    have ht1 : ¬ t < 1 := not_lt.mpr (Set.mem_Ioi.mp ht).le
+    simp [kadiriPoleFilledLogFunction, ht1]
+  have hlogpos : 0 < Real.log (n : ℝ) := Real.log_pos hnreal
+  have hf_at : ContinuousAt f (Real.log (n : ℝ)) :=
+    continuousAt_of_kadiriRealSurface hd hf_C2 hf_supp hf_d hlogpos
+  have hlog_at : ContinuousAt (fun t : ℝ => f (Real.log t)) (n : ℝ) :=
+    hf_at.comp (Real.continuousAt_log (ne_of_gt (zero_lt_one.trans hnreal)))
+  have hcomplex : ContinuousAt (fun t : ℝ => ((f (Real.log t) : ℝ) : ℂ)) (n : ℝ) :=
+    Complex.continuous_ofReal.continuousAt.comp hlog_at
+  exact hcomplex.congr hlocal.symm
+
 /-- The explicit Mellin kernel contributed by the filled interval `0 < t < 1`.
 This is the `f 0 / s` term in the pole-subtracted transform identity. -/
 theorem kadiriPoleKernelIntegral {s : ℂ} (hs : 0 < s.re) :
@@ -199,20 +396,24 @@ function has been identified as its Mellin-side source. -/
 theorem kadiriPoleSubtracted_mellinInv_eq_of_poleFilled
     {σ x : ℝ} {f : ℝ → ℝ} (hx : 0 < x)
     (hMellin : MellinConvergent (kadiriPoleFilledLogFunction f) (σ : ℂ))
-    (hTransform : ∀ s : ℂ,
-      mellin (kadiriPoleFilledLogFunction f) s = kadiriPoleSubtractedMellin f s)
+    (hTransform : ∀ y : ℝ,
+      mellin (kadiriPoleFilledLogFunction f) (σ + y * I) =
+        kadiriPoleSubtractedMellin f (σ + y * I))
     (hVertical : VerticalIntegrable (kadiriPoleSubtractedMellin f) σ)
     (hCont : ContinuousAt (kadiriPoleFilledLogFunction f) x) :
     mellinInv σ (kadiriPoleSubtractedMellin f) x =
       kadiriPoleFilledLogFunction f x := by
   have hVertical' : VerticalIntegrable (mellin (kadiriPoleFilledLogFunction f)) σ := by
     dsimp [VerticalIntegrable] at hVertical ⊢
-    exact hVertical.congr (Eventually.of_forall fun y => (hTransform (σ + y * I)).symm)
+    exact hVertical.congr (Eventually.of_forall fun y => (hTransform y).symm)
   calc
     mellinInv σ (kadiriPoleSubtractedMellin f) x
         = mellinInv σ (mellin (kadiriPoleFilledLogFunction f)) x := by
           dsimp [mellinInv]
-          simp_rw [← hTransform]
+          congr 1
+          exact integral_congr_ae (Eventually.of_forall fun y => by
+            dsimp
+            rw [(hTransform y).symm])
     _ = kadiriPoleFilledLogFunction f x :=
           mellinInv_mellin_eq σ (f := kadiriPoleFilledLogFunction f) hx
             hMellin hVertical' hCont
@@ -621,8 +822,9 @@ theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : �
     (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
     (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
     (hMellin : MellinConvergent (kadiriPoleFilledLogFunction f) (σ : ℂ))
-    (hTransform : ∀ s : ℂ,
-      mellin (kadiriPoleFilledLogFunction f) s = kadiriPoleSubtractedMellin f s)
+    (hTransform : ∀ y : ℝ,
+      mellin (kadiriPoleFilledLogFunction f) (σ + y * I) =
+        kadiriPoleSubtractedMellin f (σ + y * I))
     (hCont : ∀ n : ℕ, 1 < n → ContinuousAt (kadiriPoleFilledLogFunction f) n) :
     (∑' n : ℕ, a n * kadiriPoleSplitMellinInv σ f n) =
       ∑' n : ℕ, a n * (f (Real.log n) : ℂ) := by
@@ -649,6 +851,29 @@ theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : �
     exact hInvFilled.trans (kadiriPoleFilledLogFunction_of_one_lt hn_gt_one_real)
   rw [kadiriPoleSplitMellinInv, hInv, kadiriPoleKernel_of_one_lt hn_gt_one_real]
   simp
+
+/-- Consumer-facing weighted pole-split inversion for the real Kadiri class.
+All Mellin convergence, transform-identification, vertical-integrability, and
+integer-point continuity hypotheses are discharged from the Kadiri surface. -/
+theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_realKadiri {d σ : ℝ}
+    (hd : 0 < d) (hσ : 0 < σ) {f : ℝ → ℝ} (a : ℕ → ℂ)
+    (ha0 : a 0 = 0) (ha1 : a 1 = 0)
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0) :
+    (∑' n : ℕ, a n * kadiriPoleSplitMellinInv σ f n) =
+      ∑' n : ℕ, a n * (f (Real.log n) : ℂ) := by
+  exact kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay
+    (d := d) (σ := σ) hd hσ.ne' a ha0 ha1 hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d
+    (kadiriPoleFilledMellinConvergent_of_laplaceSurface (d := d) (σ := σ)
+      hd hσ hf_C2 hf_supp)
+    (fun y => kadiriPoleFilled_mellin_eq_poleSubtracted (d := d) hd hf_C2 hf_supp
+      (s := σ + y * I) (by simpa [Complex.add_re, Complex.mul_re] using hσ))
+    (fun n hn => kadiriPoleFilled_continuousAt_nat_of_one_lt (d := d)
+      hd hf_C2 hf_supp hf_d hn)
 
 /-- Compact-support wrapper for the von-Mangoldt weighted fixed-line
 inversion. -/
