@@ -162,7 +162,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
         - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ), Φ (-ρ.val)
         - φ 0 * ((Real.log Real.pi : ℝ) : ℂ)
         + ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n)
-        + (1 / (2 * (Real.pi : ℂ) * I)) *
+        + (1 / (2 * (Real.pi : ℂ))) *
             ∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 Φ (-(1 / 2 + (t : ℂ) * I)) := by
@@ -1107,141 +1107,6 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
     Complex.cpow_def_of_ne_zero hn0, division_def, mul_eq_mul_left_iff, inv_inj]
   left; ring_nf
 
-@[blueprint
-  "kadiri-identity-16-complex"
-  (title := "Complex form of equation (16)")
-  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
-  $s \in \mathbb{C}$ with $\Re s > 1$,
-  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
-   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                  + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
-   + F(s - 1) - \sum_{\rho \in Z(\zeta)} F(s - \rho)
-   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
-       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
-       + \frac{F_2(s)}{s^2} \Bigr). $$
--/)
-  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
-  $\varphi$; its hypotheses
-  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
-  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
-  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
-  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
-  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
-  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
-  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
-  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
-  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
-  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
-  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
-   kills the reflected discrete sum. Unfolding
-  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
-  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
-   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
-  substituting the $\Phi$ values yields the right-hand side.  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1494)]
-theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (hf_supp : tsupport f ⊆ .Ico 0 d)
-    (hf_d : f d = 0)
-    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
-    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
-    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
-    {s : ℂ} (hs : 1 < s.re) :
-    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
-      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
-                    - 1 / (s - 1)
-                    + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                        1 / (s - ρ.val))
-      + laplaceTransform f (s - 1)
-      - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          laplaceTransform f (s - ρ.val)
-      + ((1 / (2 * (Real.pi : ℂ) * I)) *
-          (∫ t : ℝ,
-            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
-              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
-          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
-  sorry
-
-@[blueprint
-  "kadiri-identity-16"
-  (title := "Equation (16) of \\cite{Kadiri2005}: intermediate identity")
-  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
-  $s \in \mathbb{C}$ with $\Re s > 1$,
-  $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
-   = f(0) \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                     + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
-   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
-   + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
-       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
-       + \frac{F_2(s)}{s^2} \Bigr). $$
-  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
-  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
-  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
-  The restriction $\Re s > 1$ is where the Dirichlet series for $-\zeta'/\zeta(s)$
-  converges absolutely and the $\sum_\rho 1/(s - \rho)$ regularization makes sense; this
-  is also the range used in Kadiri's downstream zero-free region argument, so we do not
-  extend further. -/)
-  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
-  equation, then take real parts of both sides. The $f(0)$ factor extracts via
-  $\Re((f(0) : \mathbb{C}) \cdot X) = f(0) \cdot \Re X$ (since $f(0) \in \mathbb{R}$), and
-  the $\rho$-tsum commutes with $\Re$ via the continuous linear map
-  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map\_tsum`), modulo complex
-  summability of $\sum_\rho F(s - \rho)$ — derivable from
-  \ref{kadiri-summable-lap-at-zeros} together with the analogous Im-summability (would need
-  a `laplaceTransform\_im\_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
-  formalised. -/)
-  (latexEnv := "lemma")
-  (discussion := 1488)]
-theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (hf_nonneg : ∀ t, 0 ≤ f t)
-    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (hf_supp : tsupport f ⊆ .Ico 0 d)
-    (hf_d : f d = 0)
-    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
-    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
-    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
-    {s : ℂ} (hs : 1 < s.re) :
-    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
-      f 0 * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
-              - 1 / (s - 1)
-              + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                  1 / (s - ρ.val)).re
-        + (laplaceTransform f (s - 1)).re
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-            (laplaceTransform f (s - ρ.val)).re
-        + ((1 / (2 * (Real.pi : ℂ) * I)) *
-            (∫ t : ℝ,
-              ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-                laplaceTransform (fun u ↦ deriv (deriv f) u)
-                  (s - (1 / 2 + (t : ℂ) * I))
-                / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
-            + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
-  -- Reduce to the complex (pre-`Re`) form, then distribute `Re` over `+`, `-`, the
-  -- $(f(0) : \mathbb{C}) \cdot ?$ factor (since $f(0) \in \mathbb{R}$), and the
-  -- $\rho$-tsum (via `Complex.reCLM`).
-  have hcomplex := identity_16_complex hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
-    hf_deriv2_d hs
-  -- Complex summability of `∑ρ F(s − ρ)`. Pending: derive from `summable_lap_re_at_zeros`
-  -- together with an analogous Im-summability — would need a `laplaceTransform_im_decay`
-  -- lemma paralleling `kadiri-laplace-re-decay`.
-  have hSumm : Summable
-      (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
-        laplaceTransform f (s - ρ.val)) := by
-    sorry
-  -- Commute the ρ-tsum with `.re` via the continuous linear map `Complex.reCLM`.
-  have htsum_re :
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          laplaceTransform f (s - ρ.val)).re =
-      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          (laplaceTransform f (s - ρ.val)).re := by
-    simpa using ContinuousLinearMap.map_tsum Complex.reCLM hSumm
-  -- Substitute the complex form and distribute `.re`.
-  rw [hcomplex]
-  simp only [Complex.add_re, Complex.sub_re, Complex.mul_re,
-             Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, htsum_re]
-
 /-! ## Auxiliaries glueing the three precursors to Proposition 2.1
 
 Two facts not in the three precursors above are needed: \ref{kadiri-re-hadamardB-eq} (the
@@ -1431,6 +1296,287 @@ theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     _ ≤ |f 0| * max |σ₀| |σ₁| / s.im ^ 2 + M / s.im ^ 2 := add_le_add h1 h2
     _ = (|f 0| * max |σ₀| |σ₁| + M) / s.im ^ 2 := (add_div _ _ _).symm
 
+/-- Norm decay of the pole-subtracted Laplace transform on a right half-plane:
+subtracting the `f 0 / s` pole removes the only `1/|Im s|`-order term of
+`laplaceTransform_ibp`, so the remainder `F₂(s)/s²` decays like `1/(Im s)^2` in
+norm, not just in real part. The full transform does NOT have this decay (its
+imaginary part is of order `f 0 / Im s`), which is why the complex sum
+`∑ ρ, F(s - ρ)` over the zeta zeros is not absolutely summable for `f 0 ≠ 0`,
+while the pole-subtracted sum is. -/
+theorem laplaceTransform_sub_pole_norm_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (σ₀ : ℝ) :
+    ∃ C : ℝ, ∀ s : ℂ, σ₀ ≤ s.re → s.im ≠ 0 →
+      ‖(f 0 : ℂ) / s - laplaceTransform f s‖ ≤ C / s.im ^ 2 := by
+  have hdf_C1 : ContDiffOn ℝ 1 (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) :=
+    hf_C2.derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
+  have hg_cont : ContinuousOn
+      (fun x => derivWithin (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) x)
+      (Set.Icc 0 d) :=
+    hdf_C1.continuousOn_derivWithin (uniqueDiffOn_Icc hd) le_rfl
+  obtain ⟨K0, hK0⟩ := isCompact_Icc.exists_bound_of_continuousOn hg_cont
+  have hK00 : 0 ≤ K0 := (norm_nonneg _).trans (hK0 0 (Set.left_mem_Icc.2 hd.le))
+  set B : ℝ := max 0 (-σ₀) with hB
+  set M : ℝ := Real.exp (B * d) * K0 * d with hMdef
+  have hM0 : 0 ≤ M := mul_nonneg (mul_nonneg (Real.exp_pos _).le hK00) hd.le
+  have hMbound : ∀ s : ℂ, σ₀ ≤ s.re →
+      ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ ≤ M := by
+    intro s hs0
+    rw [laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico hd hf_supp s]
+    have hpt : ∀ t ∈ Set.uIoc (0 : ℝ) d,
+        ‖exp (-s * (t : ℂ)) * ((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ Real.exp (B * d) * K0 := by
+      intro t ht
+      rw [Set.uIoc_of_le hd.le] at ht
+      rw [norm_mul, Complex.norm_exp]
+      have hre : (-s * (t : ℂ)).re = -(s.re * t) := by simp [Complex.mul_re]
+      have hexp_le : Real.exp ((-s * (t : ℂ)).re) ≤ Real.exp (B * d) := by
+        rw [hre]
+        apply Real.exp_le_exp.2
+        have hBge : -s.re ≤ B := le_trans (neg_le_neg hs0) (le_max_right 0 (-σ₀))
+        have hB0 : (0 : ℝ) ≤ B := le_max_left 0 (-σ₀)
+        calc -(s.re * t) = -s.re * t := (neg_mul _ _).symm
+          _ ≤ B * t := mul_le_mul_of_nonneg_right hBge ht.1.le
+          _ ≤ B * d := mul_le_mul_of_nonneg_left ht.2 hB0
+      have hfpp : ‖((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ K0 := by
+        rw [Complex.norm_real]
+        by_cases htd : t = d
+        · rw [htd, deriv_deriv_eq_zero_of_tsupport_subset_Ico hf_supp le_rfl]
+          simpa using hK00
+        · have htlt : t < d := lt_of_le_of_ne ht.2 htd
+          rw [deriv_deriv_eq_derivWithin_derivWithin_of_mem_Ioo ⟨ht.1, htlt⟩]
+          simpa using hK0 t ⟨ht.1.le, ht.2⟩
+      exact mul_le_mul hexp_le hfpp (norm_nonneg _) (Real.exp_pos _).le
+    refine le_trans (intervalIntegral.norm_integral_le_of_norm_le_const hpt) ?_
+    rw [sub_zero, abs_of_pos hd]
+  refine ⟨M, ?_⟩
+  intro s hs0 him0
+  have hs : s ≠ 0 := fun h => him0 (by rw [h]; rfl)
+  have him2 : (0 : ℝ) < s.im ^ 2 := by positivity
+  have hns : s.im ^ 2 ≤ Complex.normSq s := by
+    rw [Complex.normSq_apply]
+    nlinarith [mul_self_nonneg s.re]
+  rw [laplaceTransform_ibp hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hs]
+  have hcancel : (f 0 : ℂ) / s -
+      ((f 0 : ℂ) / s + laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2) =
+      -(laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2) := by
+    ring
+  rw [hcancel, norm_neg, norm_div, norm_pow]
+  have hsq : s.im ^ 2 ≤ ‖s‖ ^ 2 := by
+    rw [← Complex.normSq_eq_norm_sq]
+    exact hns
+  have hnorm2 : (0 : ℝ) < ‖s‖ ^ 2 := by positivity
+  calc ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ / ‖s‖ ^ 2
+      ≤ M / ‖s‖ ^ 2 := by
+        gcongr
+        exact hMbound s hs0
+    _ ≤ M / s.im ^ 2 := by gcongr
+
+/-- Unconditional summability over the non-trivial zeros of the pole-subtracted
+Laplace transform. The un-subtracted complex sum `∑ ρ, F(s - ρ)` is not
+absolutely summable when `f 0 ≠ 0` (terms of norm `~ |f 0| / |Im ρ|`); in
+equation (16) the groups `f 0 * ∑ ρ, 1/(s - ρ)` and `-∑ ρ, F(s - ρ)` combine
+into exactly this summand, which is `O(1/(Im ρ)^2)` and summable against the
+crude counting majorant. -/
+theorem summable_lap_sub_pole_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)) := by
+  obtain ⟨C, hC⟩ := laplaceTransform_sub_pole_norm_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d (s.re - 1)
+  have htail : Summable (fun ρ : NontrivialZeros ↦
+      C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left C
+  refine Summable.of_norm_bounded_eventually htail ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+  have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num at him
+  have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1
+  have hre_lo : s.re - 1 ≤ (s - (ρ : ℂ)).re := by
+    rw [Complex.sub_re]
+    linarith [hre.2]
+  have hdecay := hC (s - (ρ : ℂ)) hre_lo him0
+  apply hbad
+  calc ‖(f 0 : ℂ) / (s - (ρ : ℂ)) - laplaceTransform f (s - (ρ : ℂ))‖
+      ≤ C / (s - (ρ : ℂ)).im ^ 2 := hdecay
+    _ = C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        rw [inv_pow, sq_abs, div_eq_mul_inv]
+
+/-- Unconditional summability of the real parts of the zero residues:
+`Re (1/(s - ρ)) = Re (s - ρ) / |s - ρ|²` decays like `1/(Im ρ)^2` on the strip,
+while the complex sum `∑ ρ, 1/(s - ρ)` is only conditionally convergent. This is
+the summability needed to move `Re` inside the residue sum of equation (16). -/
+theorem summable_re_one_div_at_zeros (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (s - ρ.val)).re) := by
+  have htail : Summable (fun ρ : NontrivialZeros ↦
+      (|s.re| + 1) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left _
+  refine Summable.of_norm_bounded_eventually htail ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+  have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num at him
+  have hw0 : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him0
+    rw [h]
+    rfl
+  have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1
+  have hre_bound : |(s - (ρ : ℂ)).re| ≤ |s.re| + 1 := by
+    rw [Complex.sub_re]
+    calc |s.re - (ρ : ℂ).re| ≤ |s.re| + |(ρ : ℂ).re| := abs_sub _ _
+      _ ≤ |s.re| + 1 := by
+          rw [abs_of_pos hre.1]
+          linarith [hre.2]
+  have hdiv_re : (1 / (s - (ρ : ℂ))).re =
+      (s - (ρ : ℂ)).re / Complex.normSq (s - (ρ : ℂ)) := by
+    rw [Complex.div_re]
+    simp
+  have hns : (s - (ρ : ℂ)).im ^ 2 ≤ Complex.normSq (s - (ρ : ℂ)) := by
+    rw [Complex.normSq_apply]
+    nlinarith [mul_self_nonneg (s - (ρ : ℂ)).re]
+  have him2 : (0 : ℝ) < (s - (ρ : ℂ)).im ^ 2 := by positivity
+  have hnpos : (0 : ℝ) < Complex.normSq (s - (ρ : ℂ)) := Complex.normSq_pos.2 hw0
+  apply hbad
+  rw [Real.norm_eq_abs, hdiv_re, abs_div, abs_of_nonneg (Complex.normSq_nonneg _)]
+  calc |(s - (ρ : ℂ)).re| / Complex.normSq (s - (ρ : ℂ))
+      ≤ (|s.re| + 1) / Complex.normSq (s - (ρ : ℂ)) := by gcongr
+    _ ≤ (|s.re| + 1) / (s - (ρ : ℂ)).im ^ 2 := by
+        gcongr
+    _ = (|s.re| + 1) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        rw [inv_pow, sq_abs, div_eq_mul_inv]
+
+
+/-- Summability of the genus-one zero packets `1/ρ + 1/(s - ρ)`: away from finitely
+many zeros the packet equals `s/(ρ(s - ρ))`, of norm at most
+`‖s‖/2 · (1/(Im ρ)² + 1/(Im (s - ρ))²)` by AM-GM, and both square tails are summable
+by the crude counting majorant. This is the convergence input that makes the paired
+form of the residue sums legitimate. -/
+theorem summable_one_div_add_one_div_at_zeros (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))) := by
+  have htail0 : Summable (fun ρ : NontrivialZeros ↦ |(ρ : ℂ).im|⁻¹ ^ (2 : ℕ)) := by
+    have h := zeroImagSquareTailSummable_of_crude_majorant
+    unfold zeroImagSquareTailSummable zeroImagSquareTail at h
+    exact h
+  have htails : Summable (fun ρ : NontrivialZeros ↦
+      ‖s‖ / 2 * (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (htail0.add (summable_zeroImagSquareTail_shifted_unconditional s)).mul_left _
+  refine Summable.of_norm_bounded_eventually htails ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset
+    (nontrivialZeros_abs_im_lt_one_finite.union
+      (nontrivialZeros_shifted_abs_im_lt_one_finite s))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad
+  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  by_contra hsmall
+  rw [not_or] at hsmall
+  obtain ⟨h1, h2⟩ := hsmall
+  have him1 : 1 ≤ |(ρ : ℂ).im| := not_lt.mp h1
+  have him2 : 1 ≤ |(s - (ρ : ℂ)).im| := not_lt.mp h2
+  apply hbad
+  have hρ0 : ((ρ : ℂ)) ≠ 0 := nontrivialZero_ne_zero ρ
+  have him2ne : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him2
+    norm_num at him2
+  have hsρ : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him2ne
+    rw [h]
+    rfl
+  have hnρ : (0 : ℝ) < ‖(ρ : ℂ)‖ := norm_pos_iff.mpr hρ0
+  have hnsρ : (0 : ℝ) < ‖s - (ρ : ℂ)‖ := norm_pos_iff.mpr hsρ
+  have him1pos : (0 : ℝ) < |(ρ : ℂ).im| := lt_of_lt_of_le one_pos him1
+  have him2pos : (0 : ℝ) < |(s - (ρ : ℂ)).im| := lt_of_lt_of_le one_pos him2
+  have hpacket : 1 / ((ρ : ℂ)) + 1 / (s - (ρ : ℂ)) =
+      s / (((ρ : ℂ)) * (s - (ρ : ℂ))) := by
+    field_simp
+    ring
+  rw [hpacket, norm_div, norm_mul]
+  have hstep1 : ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+      ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := by
+    rw [div_eq_mul_inv, mul_inv]
+    have ha : ‖(ρ : ℂ)‖⁻¹ ≤ |(ρ : ℂ).im|⁻¹ :=
+      inv_anti₀ him1pos (Complex.abs_im_le_norm _)
+    have hb : ‖s - (ρ : ℂ)‖⁻¹ ≤ |(s - (ρ : ℂ)).im|⁻¹ :=
+      inv_anti₀ him2pos (Complex.abs_im_le_norm _)
+    have hb0 : (0 : ℝ) ≤ ‖s - (ρ : ℂ)‖⁻¹ := by positivity
+    have ha0 : (0 : ℝ) ≤ |(ρ : ℂ).im|⁻¹ := by positivity
+    refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+    exact mul_le_mul ha hb hb0 ha0
+  have hstep2 : |(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹ ≤
+      (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2 := by
+    nlinarith [two_mul_le_add_sq (|(ρ : ℂ).im|⁻¹) (|(s - (ρ : ℂ)).im|⁻¹)]
+  calc ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)
+      ≤ ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := hstep1
+    _ ≤ ‖s‖ * ((|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2) :=
+        mul_le_mul_of_nonneg_left hstep2 (norm_nonneg s)
+    _ = ‖s‖ / 2 * (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        ring
+
+/-- The reciprocal real-part sum, the `s`-free half of the packet. -/
+theorem summable_re_inv_at_zeros :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (ρ.val : ℂ)).re) := by
+  refine (summable_re_one_div_at_zeros 0).neg.congr fun ρ ↦ ?_
+  rw [zero_sub, one_div, inv_neg, Complex.neg_re, neg_neg, one_div]
+
+/-- Distributing `Re` over the packet sum: the paired complex sum splits into the two
+absolutely summable real-part sums. -/
+theorem re_tsum_paired_eq_re_inv_add_re_shifted (s : ℂ) :
+    (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re =
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re) +
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (s - ρ.val)).re := by
+  have h1 : (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re =
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)).re := by
+    simpa using ContinuousLinearMap.map_tsum Complex.reCLM
+      (summable_one_div_add_one_div_at_zeros s)
+  rw [h1, tsum_congr (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+    Complex.add_re (1 / (ρ.val : ℂ)) (1 / (s - ρ.val)))]
+  exact summable_re_inv_at_zeros.tsum_add (summable_re_one_div_at_zeros s)
+
+/-- BRIDGE between the two repaired shapes of the residue sums: the Re-inside form
+equals the paired form minus the reciprocal correction. Either side can serve as the
+zero term of the real-part identities; this lemma converts between them for free. -/
+theorem re_shifted_sum_eq_paired_sub_re_inv (s : ℂ) :
+    (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (s - ρ.val)).re) =
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re := by
+  rw [re_tsum_paired_eq_re_inv_add_re_shifted s]
+  ring
+
 @[blueprint
   "kadiri-summable-lap-at-zeros"
   (title := "Summability of $\\sum_\\rho \\Re F(s - \\rho)$")
@@ -1488,31 +1634,213 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         rw [inv_pow, sq_abs, div_eq_mul_inv]
 
 @[blueprint
+  "kadiri-identity-16-complex"
+  (title := "Complex form of equation (16)")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$ with $\Re s > 1$,
+  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1} \Bigr)
+   + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{f(0)}{s - \rho} - F(s - \rho) \Bigr)
+   + F(s - 1)
+   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  The zero sum is grouped: each summand is $\Phi(-\rho)$, the Laplace transform of the
+  test function $\varphi(y) = (f(0) - f(y)) e^{-y s}$ at $-\rho$, equal to
+  $-F_2(s-\rho)/(s-\rho)^2$ and hence of size $O(1/|\Im \rho|^2)$; the split sums
+  $\sum_\rho 1/(s-\rho)$ and $\sum_\rho F(s-\rho)$ are individually divergent.
+-/)
+  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
+  $\varphi$; its hypotheses
+  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
+  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
+  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
+  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
+  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
+  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
+  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
+  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
+  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
+  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
+  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
+   kills the reflected discrete sum. Unfolding
+  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
+  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
+   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
+  substituting the $\Phi$ values yields the right-hand side.  -/)
+  (latexEnv := "sublemma")
+  (discussion := 1494)]
+theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
+      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
+      + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))
+      + laplaceTransform f (s - 1)
+      + ((1 / (2 * (Real.pi : ℂ))) *
+          (∫ t : ℝ,
+            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
+  sorry
+
+@[blueprint
+  "kadiri-identity-16"
+  (title := "Equation (16) of \\cite{Kadiri2005}: intermediate identity")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$ with $\Re s > 1$,
+  $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Bigl( \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
+                  + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+                  - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho} \Bigr)
+   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
+   + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
+  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
+  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
+  The zero contribution in the $f(0)$-coefficient uses the absolutely convergent
+  Hadamard-paired block $\sum_\rho (1/\rho + 1/(s - \rho))$ together with the absolutely
+  convergent real correction $\sum_\rho \Re(1/\rho)$, matching
+  \ref{kadiri-hadamard-identity}; the standalone $\sum_\rho 1/(s - \rho)$ does not
+  converge unconditionally. The restriction $\Re s > 1$ is where the Dirichlet series for
+  $-\zeta'/\zeta(s)$ converges absolutely; this is also the range used in Kadiri's
+  downstream zero-free region argument, so we do not extend further. -/)
+  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
+  equation, then take real parts of both sides. The grouped zero sum is absolutely
+  summable (each summand is $-F_2(s-\rho)/(s-\rho)^2$ by \ref{kadiri-laplace-ibp}), so
+  $\Re$ passes through it; each term splits as $f(0) \Re(1/(s-\rho)) - \Re F(s-\rho)$,
+  and both real families are absolutely summable. Regrouping
+  $\sum_\rho \Re(1/(s-\rho))$ into the paired block minus the $\Re(1/\rho)$ correction
+  is legitimate by the paired-family summability. -/)
+  (latexEnv := "lemma")
+  (discussion := 1488)]
+theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
+      f 0 * (((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
+                ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+                  (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+              ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+                (1 / (ρ.val : ℂ)).re)
+        + (laplaceTransform f (s - 1)).re
+        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
+            (laplaceTransform f (s - ρ.val)).re
+        + ((1 / (2 * (Real.pi : ℂ))) *
+            (∫ t : ℝ,
+              ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+                laplaceTransform (fun u ↦ deriv (deriv f) u)
+                  (s - (1 / 2 + (t : ℂ) * I))
+                / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+            + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
+  have hcomplex := identity_16_complex hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
+    hf_deriv2_d hs
+  have hsub := summable_lap_sub_pole_at_zeros hd hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d s
+  have hre1 := summable_re_one_div_at_zeros s
+  have hreF := summable_lap_re_at_zeros hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d hf_deriv2_d s
+  -- `Re` commutes with the grouped zero sum, which is genuinely summable
+  have htsum_re :
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))).re =
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re := by
+    simpa using ContinuousLinearMap.map_tsum Complex.reCLM hsub
+  -- pointwise real part of the grouped summand
+  have hpt : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re =
+        f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re := by
+    intro ρ
+    have hmul : ((f 0 : ℝ) : ℂ) / (s - ρ.val) =
+        ((f 0 : ℝ) : ℂ) * (1 / (s - ρ.val)) := div_eq_mul_one_div _ _
+    rw [Complex.sub_re, hmul, Complex.re_ofReal_mul]
+  -- split the real tsum of differences
+  have hsplit :
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re)) =
+      f 0 * (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (1 / (s - ρ.val)).re) -
+        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (laplaceTransform f (s - ρ.val)).re := by
+    rw [Summable.tsum_sub (hre1.mul_left (f 0)) hreF, tsum_mul_left]
+  rw [hcomplex]
+  simp only [Complex.add_re, Complex.sub_re]
+  rw [htsum_re, tsum_congr hpt, hsplit, Complex.re_ofReal_mul, Complex.sub_re,
+    re_shifted_sum_eq_paired_sub_re_inv s]
+  ring
+
+
+/-- The raw von Mangoldt Dirichlet sum is `-ζ'/ζ` on `1 < Re s` (the tsum form of
+`ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div`). -/
+lemma tsum_vonMangoldt_eq {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) = -deriv riemannZeta s / riemannZeta s := by
+  rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, LSeries]
+  refine tsum_congr fun n ↦ ?_
+  rcases eq_or_ne n 0 with rfl | hn
+  · simp
+  · rw [LSeries.term_of_ne_zero hn]
+
+@[blueprint
   "kadiri-re-inner-eq"
   (title := "Inner real-part identity: collapsing to $T_1$")
   (statement := /-- For every $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
+                + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+     - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho}
    = -\tfrac{1}{2} \log \pi
      + \tfrac{1}{2} \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2}+1\right). $$
-  This is the identity that turns the $f(0)$-coefficient of equation (16) into the $T_1$
-  form of \ref{kadiri-prop-2-1}. -/)
+  The zero block is the absolutely convergent Hadamard pairing of
+  \ref{kadiri-hadamard-identity}, and the $\Re(1/\rho)$ correction is absolutely
+  convergent; the standalone $\sum_\rho 1/(s - \rho)$ does not converge
+  unconditionally. This is the identity that turns the $f(0)$-coefficient of
+  equation (16) into the $T_1$ form of \ref{kadiri-prop-2-1}. -/)
   (proof := /-- For $\Re s > 1$ the Dirichlet series gives
-  $\sum \Lambda(n)/n^s = -\zeta'/\zeta(s)$; apply \ref{kadiri-hadamard-identity} to rewrite
-  the LHS (treating the equation as one in $\mathbb{C}$, not yet taking $\Re$). The
-  $1/(s-1)$ and $\sum_\rho 1/(s-\rho)$ terms cancel, leaving
-  $-B - \tfrac{1}{2}\log\pi + \tfrac{1}{2}\Gamma'/\Gamma(s/2+1) - \sum_\rho 1/\rho$.
-  Taking real parts and applying \ref{kadiri-re-hadamardB-eq} cancels
-  $\Re B + \sum_\rho \Re(1/\rho)$, leaving the claim. -/)
+  $\sum \Lambda(n)/n^s = -\zeta'/\zeta(s)$; substitute \ref{kadiri-hadamard-identity}
+  (treating the equation as one in $\mathbb{C}$, not yet taking $\Re$). The $1/(s-1)$
+  terms and the paired zero blocks cancel exactly, leaving
+  $-B - \tfrac{1}{2}\log\pi + \tfrac{1}{2}\Gamma'/\Gamma(s/2+1)$. Taking real parts and
+  applying \ref{kadiri-re-hadamardB-eq} cancels $\Re B$ against the
+  $\sum_\rho \Re(1/\rho)$ correction, leaving the claim. -/)
   (latexEnv := "lemma")
   (discussion := 1478)]
 theorem re_inner_eq {s : ℂ} (hs : 1 < s.re) :
     ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-         1 / (s - ρ.val)).re =
+         (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re =
     -(1 / 2 : ℝ) * Real.log Real.pi +
       (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re := by
-  sorry
+  have hs1 : s ≠ 1 := by
+    intro hs_eq
+    rw [hs_eq] at hs
+    norm_num at hs
+  have hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) := by
+    intro hz
+    exact (not_lt_of_gt hs) hz.1.2
+  rw [tsum_vonMangoldt_eq hs, hadamard_identity s hs1 hsZ]
+  ring_nf
+  simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.ofReal_re,
+    Complex.ofReal_im, zero_mul, sub_zero]
+  rw [re_hadamardB_eq]
+  norm_num
+  ring_nf
 
 /-! ## Proposition 2.1 of `Kadiri2005` (the explicit formula)
 
@@ -1562,7 +1890,7 @@ theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         + (laplaceTransform f (s - 1)).re
         - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
             (laplaceTransform f (s - ρ.val)).re
-        + ((1 / (2 * (Real.pi : ℂ) * I)) *
+        + ((1 / (2 * (Real.pi : ℂ))) *
             (∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 laplaceTransform (fun u ↦ deriv (deriv f) u)
@@ -1588,7 +1916,7 @@ noncomputable def T1 (s : ℂ) : ℝ :=
 /-- $T_2(s)$ — the contour-integral and boundary contributions to the RHS of
 \cite[(4)]{Kadiri2005}, expressed via $F_2$, the Laplace transform of $f''$. -/
 noncomputable def T2 (f : ℝ → ℝ) (s : ℂ) : ℝ :=
-  ((1 / (2 * (Real.pi : ℂ) * I)) *
+  ((1 / (2 * (Real.pi : ℂ))) *
     (∫ t : ℝ,
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
         laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
@@ -1668,8 +1996,25 @@ theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ 
     have harg : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
         (s - ρ.val) + δ = s + δ - ρ.val := fun _ ↦ by ring
     simp_rw [D, harg, (h1.1.hasSum.sub (h2.1.mul_left κ).hasSum).tsum_eq, tsum_mul_left]
-  rw [hLHS, h1.2, h2.2, hZeros]
-  simp only [Δ1, Δ2, D, T1, T2]
-  ring_nf
+  have hT1s : -(1 / 2 : ℝ) * Real.log Real.pi +
+      (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re = T1 s := rfl
+  have hT1sd : -(1 / 2 : ℝ) * Real.log Real.pi +
+      (1 / 2 : ℝ) * (digamma ((s + (δ : ℂ)) / 2 + 1)).re = T1 (s + (δ : ℂ)) := rfl
+  have hT2s : ((1 / (2 * (Real.pi : ℂ))) *
+      (∫ t : ℝ,
+        ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+          laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+          / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+      + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re = T2 f s := rfl
+  have hT2sd : ((1 / (2 * (Real.pi : ℂ))) *
+      (∫ t : ℝ,
+        ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+          laplaceTransform (fun u ↦ deriv (deriv f) u) (s + (δ : ℂ) - (1 / 2 + (t : ℂ) * I))
+          / (s + (δ : ℂ) - (1 / 2 + (t : ℂ) * I)) ^ 2)
+      + laplaceTransform (fun u ↦ deriv (deriv f) u) (s + (δ : ℂ)) / (s + (δ : ℂ)) ^ 2).re =
+      T2 f (s + (δ : ℂ)) := rfl
+  rw [hLHS, h1.2, h2.2, hZeros, hT1s, hT1sd, hT2s, hT2sd]
+  simp only [Δ1, Δ2, D]
+  ring
 
 end Kadiri
