@@ -694,21 +694,38 @@ noncomputable def ℓ (c ε ξ : ℝ) : ℝ :=
     sin (sqrt ((ξ * ε) ^ 2 - c ^ 2)) /
     sqrt ((ξ * ε) ^ 2 - c ^ 2)
 
-open Complex in
+/-- The modified Bessel function of the first kind of order zero,
+$I_0(x) = \sum_{m \geq 0} (x/2)^{2m}/(m!)^2$, introduced for the closed form of the
+Logan kernel transform below (not yet in Mathlib). -/
+noncomputable def besselI0 (x : ℝ) : ℝ :=
+  ∑' m : ℕ, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2
+
 @[blueprint
   "logan-function-ft"
   (title := "Fourier transform of Logan's function")
-  (statement := /-- We define
-  $$ \eta_{c,\varepsilon}(\xi)
+  (statement := /-- The Fourier transform
+  $\eta_{c,\varepsilon}(\xi)
   = \frac{1}{2\pi} \int_{\R} e^{-it\xi}
-  ℓ_{c,\varepsilon}(t) \, dt. $$ -/)
+  ℓ_{c,\varepsilon}(t) \, dt$
+  of Logan's kernel, in closed form: the kernel
+  is band-limited, so the transform is supported
+  in $[-\varepsilon, \varepsilon]$, where
+  $$ \eta_{c,\varepsilon}(\xi)
+  = \frac{c}{2 \varepsilon \sinh c}\,
+  I_0\!\left(c \sqrt{1 - (\xi/\varepsilon)^2}\right) $$
+  with $I_0$ the modified Bessel function of
+  order zero (\cite[p.~2490]{Buthe2}). The
+  closed form is taken as the definition; the
+  Fourier identity is a proof obligation of
+  Theorem 16. -/)
   (latexEnv := "definition")]
 noncomputable def η (c ε ξ : ℝ) : ℝ :=
-  (1 / (2 * π)) *
-    (∫ t : ℝ, exp (-I * t * ξ) * ℓ c ε t).re
+  if |ξ| ≤ ε then
+    c / (2 * ε * sinh c) * besselI0 (c * sqrt (1 - (ξ / ε) ^ 2))
+  else 0
 
 noncomputable def pre_μ (c ε t : ℝ) : ℝ :=
-  -∫ τ in Set.Ici t, η c ε τ
+  -∫ τ in Set.Iic t, η c ε τ
 
 @[blueprint
   "buthe-mu-def"
@@ -718,7 +735,7 @@ noncomputable def pre_μ (c ε t : ℝ) : ℝ :=
   \begin{align*}
   \mu_{c,\varepsilon}(t) &=
   \begin{cases}
-  -\int_t^{\infty} \eta_{c,\varepsilon}(\tau)
+  -\int_{-\infty}^{t} \eta_{c,\varepsilon}(\tau)
   d\tau & t < 0, \\
   -\mu_{c,\varepsilon}(-t) & t > 0, \\
   0 & t = 0,
