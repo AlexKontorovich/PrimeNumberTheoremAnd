@@ -864,4 +864,96 @@ theorem zeroes_sum_critical_eq_contour {Φ : ℂ → ℂ} {σL σR : ℝ} {T : �
   -- limit uniqueness
   exact tendsto_nhds_unique h2 ((h1.congr fun k => hbr k))
 
+/-! ## Discharging the line and edge hypotheses -/
+
+/-- The right vertical line input (`hright` of the contour pull), from the `Re > 1`
+edge machinery of `Kadiri.lean` via the spelling bridge
+`-logDeriv ζ · (-Φ(-·)) = -((-ζ'/ζ) · Φ(-·))`. -/
+theorem integrable_right_line_neg_logDeriv_mul {Φ : ℂ → ℂ} {σR : ℝ} (hσR : 1 < σR)
+    (hΦ_cont : Continuous fun t : ℝ => Φ (-((σR : ℂ) + t * I)))
+    {C R : ℝ} (hΦ_dec : ∀ t : ℝ, R ≤ |t| → ‖Φ (-((σR : ℂ) + t * I))‖ ≤ C / t ^ 2) :
+    MeasureTheory.Integrable fun t : ℝ =>
+      -logDeriv riemannZeta ((σR : ℂ) + t * I) * (-(Φ (-((σR : ℂ) + t * I)))) := by
+  have h := integrable_neg_deriv_zeta_div_mul_of_decay hσR
+    (g := fun z => Φ (-z)) hΦ_cont hΦ_dec
+  refine h.neg.congr ?_
+  filter_upwards with t
+  simp only [Pi.neg_apply, logDeriv_apply]
+  ring
+
+/-- Horizontal-edge vanishing (`hbot`/`htop` of the contour pull) from the good-heights
+log-derivative bound (sub-unit U6a) and quadratic decay of the coefficient on the band:
+the edge integrals are `O(log² T_k / T_k²)`. The sign sequence `ε` covers both edges at
+once (`ε k = ± T k`). -/
+theorem tendsto_horizontal_edge_zero_of_logDerivBound {Φ : ℂ → ℂ}
+    {σL σR C CΦ Y₀ : ℝ} {T ε : ℕ → ℝ}
+    (hT : Filter.Tendsto T Filter.atTop Filter.atTop) (hT3 : ∀ k, 3 ≤ T k)
+    (hε : ∀ k, |ε k| = T k)
+    (hbound : ∀ k, horizontalSegmentLogDerivBound σL σR (T k) C)
+    (hΦdec : ∀ x ∈ Set.uIcc σL σR, ∀ t : ℝ, Y₀ ≤ |t| →
+      ‖Φ (-((x : ℂ) + t * I))‖ ≤ CΦ / t ^ 2)
+    (hC : 0 ≤ C) :
+    Filter.Tendsto (fun k : ℕ => ∫ x in σL..σR,
+      -logDeriv riemannZeta ((x : ℂ) + (ε k) * I) *
+        (-(Φ (-((x : ℂ) + (ε k) * I))))) Filter.atTop (nhds 0) := by
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  -- the scalar bound sequence tends to zero
+  have hlog : Filter.Tendsto (fun u : ℝ => Real.log u ^ 2 / u ^ 2)
+      Filter.atTop (nhds 0) := by
+    have h1 : Filter.Tendsto (fun u : ℝ => Real.log u ^ 2 / (1 * u + 0))
+        Filter.atTop (nhds 0) := Real.tendsto_pow_log_div_mul_add_atTop 1 0 2 one_ne_zero
+    have h2 : Filter.Tendsto (fun u : ℝ => u⁻¹) Filter.atTop (nhds 0) :=
+      tendsto_inv_atTop_zero
+    have h3 := h1.mul h2
+    rw [mul_zero] at h3
+    refine h3.congr' ?_
+    filter_upwards [Filter.eventually_gt_atTop (0 : ℝ)] with u hu
+    field_simp
+    ring
+  have hbnd : Filter.Tendsto
+      (fun k : ℕ => C * CΦ * |σR - σL| * (Real.log (T k) ^ 2 / (T k) ^ 2))
+      Filter.atTop (nhds 0) := by
+    have := (hlog.comp hT).const_mul (C * CΦ * |σR - σL|)
+    simpa using this
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hbnd
+  · filter_upwards with k
+    exact norm_nonneg _
+  · filter_upwards [hT.eventually_ge_atTop (max Y₀ 1)] with k hk
+    have hTk0 : (0 : ℝ) < T k := by linarith [hT3 k]
+    have hYk : Y₀ ≤ |ε k| := by rw [hε k]; exact le_trans (le_max_left _ _) hk
+    have hptw : ∀ x ∈ Set.uIoc σL σR,
+        ‖-logDeriv riemannZeta ((x : ℂ) + (ε k) * I) *
+          (-(Φ (-((x : ℂ) + (ε k) * I))))‖
+          ≤ C * Real.log (T k) ^ 2 * (CΦ / (T k) ^ 2) := by
+      intro x hx
+      have hx' : x ∈ Set.uIcc σL σR := Set.uIoc_subset_uIcc hx
+      have hζ := (hbound k).2 x hx' (ε k) (hε k)
+      have hΦ := hΦdec x hx' (ε k) hYk
+      rw [norm_mul, norm_neg, norm_neg]
+      have hε2 : (ε k) ^ 2 = (T k) ^ 2 := by
+        rw [← sq_abs (ε k), hε k]
+      rw [hε2] at hΦ
+      have hζ' : ‖logDeriv riemannZeta ((x : ℂ) + (ε k) * I)‖ ≤ C * Real.log (T k) ^ 2 := by
+        rw [logDeriv_apply]
+        exact hζ
+      exact mul_le_mul hζ' hΦ (norm_nonneg _) (by positivity)
+    have h1 := intervalIntegral.norm_integral_le_of_norm_le_const
+      (C := C * Real.log (T k) ^ 2 * (CΦ / (T k) ^ 2))
+      (f := fun x : ℝ => -logDeriv riemannZeta ((x : ℂ) + (ε k) * I) *
+        (-(Φ (-((x : ℂ) + (ε k) * I))))) hptw
+    refine h1.trans ?_
+    rw [show C * Real.log (T k) ^ 2 * (CΦ / (T k) ^ 2) * |σR - σL|
+        = C * CΦ * |σR - σL| * (Real.log (T k) ^ 2 / (T k) ^ 2) by ring]
+
+/-- A sequence of heights carrying the U6a log-derivative bound, by choice from the
+banked classical target. Inherits the `sorryAx` of
+`exists_arbitrarily_large_horizontalSegmentLogDerivBound` until the external
+derivation lands. -/
+lemma exists_logDerivBound_seq (σ₁ σ₂ : ℝ) :
+    ∃ C : ℝ, 0 < C ∧ ∃ T : ℕ → ℝ, Filter.Tendsto T Filter.atTop Filter.atTop ∧
+      (∀ k, 3 ≤ T k) ∧ ∀ k, horizontalSegmentLogDerivBound σ₁ σ₂ (T k) C := by
+  obtain ⟨C, hC0, hC⟩ := exists_arbitrarily_large_horizontalSegmentLogDerivBound σ₁ σ₂
+  choose T hT1 hT2 hT3 using fun k : ℕ => hC (k : ℝ)
+  exact ⟨C, hC0, T, tendsto_atTop_mono hT1 tendsto_natCast_atTop_atTop, hT2, hT3⟩
+
 end Kadiri
