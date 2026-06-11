@@ -97,11 +97,308 @@ def u6aSafeHeightSet (σ₁ σ₂ X δ : ℝ) : Set ℝ :=
 noncomputable def u6aAveragedSelectionBound (X δ M : ℝ) : ℝ :=
   4 * M * Real.log (2 / δ) / X
 
+private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
+    (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
+  rw [riemannZeta.zeroes_rect_eq]
+  let S : Set ℂ :=
+    (Complex.re ⁻¹' Set.Icc (min σ₁ σ₂) (max σ₁ σ₂)) ∩
+      (Complex.im ⁻¹' Set.Icc (t - 1) (t + 1))
+  have hS : IsCompact S := by
+    exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+      (isCompact_Icc.prod isCompact_Icc)
+  refine (riemannZeta.zeroes_on_Compact_finite' (S := S) hS).subset ?_
+  intro z hz
+  rcases hz with ⟨⟨hre, him⟩, hzeta⟩
+  exact ⟨⟨by simpa [Set.uIcc] using hre, him⟩, hzeta⟩
+
+private lemma u6aNearbyZeroCount_toFinset_card_le (σ₁ σ₂ t : ℝ) (ht : 3 ≤ t) :
+    let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
+    let hfin : Z.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
+    (hfin.toFinset.card : ℝ) ≤ u6aNearbyZeroCount σ₁ σ₂ t := by
+  classical
+  dsimp
+  let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
+  let hfin : Z.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
+  unfold u6aNearbyZeroCount
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ => (1 : ℝ)) hfin]
+  calc
+    (hfin.toFinset.card : ℝ)
+        = ∑ rho ∈ hfin.toFinset, (1 : ℝ) := by simp
+    _ ≤ ∑ rho ∈ hfin.toFinset, (1 : ℝ) * (riemannZeta.order rho : ℝ) := by
+      refine Finset.sum_le_sum fun rho hρ => ?_
+      have hmem : rho ∈ Z := hfin.mem_toFinset.mp hρ
+      have him_low : t - 1 ≤ rho.im := hmem.2.1.1
+      have him_high : rho.im ≤ t + 1 := hmem.2.1.2
+      let rhoPos : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 (t + 2)) :=
+        ⟨rho, Set.mem_univ _, by constructor <;> linarith, hmem.2.2⟩
+      have horder : (1 : ℤ) ≤ riemannZeta.order rho :=
+        riemannZeta_one_le_order_positiveHeightZero rhoPos
+      have horderR : (1 : ℝ) ≤ (riemannZeta.order rho : ℝ) := by
+        exact_mod_cast horder
+      simpa using horderR
+
+private lemma exists_avoids_finset_intervals
+    (A : Finset ℝ) {L U η : ℝ} (hη : 0 < η)
+    (hsmall : 2 * η * (A.card : ℝ) < U - L) :
+    ∃ T : ℝ, T ∈ Set.Ioo L U ∧ ∀ a : ℝ, a ∈ A → η ≤ |T - a| := by
+  by_contra hnone
+  push Not at hnone
+  have hsubset :
+      Set.Ioo L U ⊆ ⋃ a ∈ A, Metric.closedBall a η := by
+    intro T hT
+    obtain ⟨a, ha, hbad⟩ := hnone T hT
+    rw [Set.mem_iUnion]
+    refine ⟨a, ?_⟩
+    rw [Set.mem_iUnion]
+    refine ⟨ha, ?_⟩
+    rw [Metric.mem_closedBall, Real.dist_eq]
+    exact le_of_lt hbad
+  have hle₁ : volume (Set.Ioo L U) ≤ volume (⋃ a ∈ A, Metric.closedBall a η) :=
+    measure_mono hsubset
+  have hle₂ :
+      volume (⋃ a ∈ A, Metric.closedBall a η) ≤
+        ∑ a ∈ A, volume (Metric.closedBall a η) :=
+    measure_biUnion_finset_le A (fun a => Metric.closedBall a η)
+  have hle : volume (Set.Ioo L U) ≤
+      ∑ a ∈ A, volume (Metric.closedBall a η) :=
+    hle₁.trans hle₂
+  have hsum :
+      (∑ a ∈ A, volume (Metric.closedBall a η)) =
+        (A.card : ENNReal) * ENNReal.ofReal (2 * η) := by
+    simp [Real.volume_closedBall, Finset.sum_const, nsmul_eq_mul]
+  have hUpos : 0 < U - L := by
+    have hnonneg : 0 ≤ 2 * η * (A.card : ℝ) := by positivity
+    linarith
+  have hstrict :
+      (∑ a ∈ A, volume (Metric.closedBall a η)) <
+        volume (Set.Ioo L U) := by
+    rw [hsum, Real.volume_Ioo]
+    have hcard_nonneg : 0 ≤ (A.card : ℝ) := by positivity
+    have hmul :
+        (A.card : ENNReal) * ENNReal.ofReal (2 * η) =
+          ENNReal.ofReal ((A.card : ℝ) * (2 * η)) := by
+      rw [← ENNReal.ofReal_natCast A.card, ← ENNReal.ofReal_mul hcard_nonneg]
+    rw [hmul]
+    have hcomm : (A.card : ℝ) * (2 * η) = 2 * η * (A.card : ℝ) := by ring
+    rw [hcomm]
+    exact (ENNReal.ofReal_lt_ofReal_iff hUpos).2 hsmall
+  exact (not_lt_of_ge hle) hstrict
+
+private lemma u6aEta_lt_quarter {C L c η : ℝ}
+    (hC : 0 < C) (hL : 1 < L) (hc : c = 1 / (16 * (C + 1)))
+    (hη : η = 2 * c / L) :
+    η < 1 / 4 := by
+  subst c
+  subst η
+  have hden_pos : 0 < 8 * (C + 1) * L := by positivity
+  have hden_gt_four : 4 < 8 * (C + 1) * L := by nlinarith
+  have hrewrite : 2 * (1 / (16 * (C + 1))) / L =
+      1 / (8 * (C + 1) * L) := by
+    field_simp [show 16 * (C + 1) ≠ 0 by positivity, show L ≠ 0 by positivity]
+    ring
+  rw [hrewrite]
+  field_simp [hden_pos.ne']
+  linarith
+
+private lemma u6aSmall_for_avoidance {C L c η card : ℝ}
+    (hC : 0 < C) (hL : 0 < L) (hc : c = 1 / (16 * (C + 1)))
+    (hη : η = 2 * c / L) (hcard : card ≤ C * L) :
+    2 * η * card < 1 / 2 := by
+  subst c
+  subst η
+  have hcoef_nonneg : 0 ≤ 2 * (2 * (1 / (16 * (C + 1))) / L) := by positivity
+  have hbound :
+      2 * (2 * (1 / (16 * (C + 1))) / L) * card ≤
+        2 * (2 * (1 / (16 * (C + 1))) / L) * (C * L) := by
+    exact mul_le_mul_of_nonneg_left hcard hcoef_nonneg
+  have hcalc :
+      2 * (2 * (1 / (16 * (C + 1))) / L) * (C * L) =
+        C / (4 * (C + 1)) := by
+    field_simp [show 16 * (C + 1) ≠ 0 by positivity, hL.ne']
+    ring
+  have hfrac : C / (4 * (C + 1)) < 1 / 2 := by
+    field_simp [show 4 * (C + 1) ≠ 0 by positivity]
+    nlinarith
+  linarith
+
+private lemma u6aScale_gap {B T c η : ℝ}
+    (hc : 0 ≤ c) (hBlog : 0 < Real.log (B + 1))
+    (hlog : Real.log (B + 1) ≤ 2 * Real.log T)
+    (hη : η = 2 * c / Real.log (B + 1)) :
+    c / Real.log T ≤ η := by
+  subst η
+  calc
+    c / Real.log T = (2 * c) / (2 * Real.log T) := by ring
+    _ ≤ (2 * c) / Real.log (B + 1) := by
+      exact div_le_div_of_nonneg_left (by positivity) hBlog hlog
+
 /-- Named local-density hypothesis for the conditional U6a route.  This is the
 RvM-style input `N(t+1)-N(t) ≤ C log t` used by the sprint panel. -/
 def U6aLocalZeroDensityHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
   0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ t → 3 ≤ t →
     u6aNearbyZeroCount σ₁ σ₂ t ≤ C * Real.log t
+
+private theorem exists_good_height_in_half_unit_of_localDensity
+    (σ₁ σ₂ Cdens Tdens B : ℝ)
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
+    (hBdens : Tdens ≤ B) (hB4 : 4 ≤ B) :
+    let c : ℝ := 1 / (16 * (Cdens + 1))
+    ∃ T : ℝ, B + 1 / 4 < T ∧ T < B + 3 / 4 ∧
+      horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T) := by
+  classical
+  let center : ℝ := B + 1 / 2
+  let c : ℝ := 1 / (16 * (Cdens + 1))
+  let η : ℝ := 2 * c / Real.log (B + 1)
+  let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+    (Set.Icc (center - 1) (center + 1))
+  have hfin : Z.Finite := by
+    simpa [Z, center] using u6aNearbyZeroSet_finite σ₁ σ₂ center
+  let A : Finset ℝ := hfin.toFinset.image Complex.im
+  have hcenter3 : 3 ≤ center := by
+    dsimp [center]
+    linarith
+  have hcenter_dens : Tdens ≤ center := by
+    dsimp [center]
+    linarith
+  have hcenter_pos : 0 < center := by
+    dsimp [center]
+    linarith
+  have hcenter_le_B1 : center ≤ B + 1 := by
+    dsimp [center]
+    linarith
+  have hB1_pos : 0 < B + 1 := by linarith
+  have hlog_center_le_B1 : Real.log center ≤ Real.log (B + 1) :=
+    Real.log_le_log hcenter_pos hcenter_le_B1
+  have hcard_window :
+      (hfin.toFinset.card : ℝ) ≤ u6aNearbyZeroCount σ₁ σ₂ center := by
+    simpa [Z, center] using u6aNearbyZeroCount_toFinset_card_le σ₁ σ₂ center hcenter3
+  have hcard_A_to_window : (A.card : ℝ) ≤ (hfin.toFinset.card : ℝ) := by
+    exact_mod_cast (Finset.card_image_le (s := hfin.toFinset) (f := Complex.im))
+  have hcard_A_center : (A.card : ℝ) ≤ Cdens * Real.log center :=
+    hcard_A_to_window.trans
+      (hcard_window.trans (hDensity.2 center hcenter_dens hcenter3))
+  have hcard_A_B1 : (A.card : ℝ) ≤ Cdens * Real.log (B + 1) := by
+    exact hcard_A_center.trans
+      (mul_le_mul_of_nonneg_left hlog_center_le_B1 (le_of_lt hDensity.1))
+  have hlogB1_gt_one : 1 < Real.log (B + 1) := by
+    rw [Real.lt_log_iff_exp_lt hB1_pos]
+    calc
+      Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+      _ < B + 1 := by norm_num; linarith
+  have hlogB1_pos : 0 < Real.log (B + 1) := lt_trans zero_lt_one hlogB1_gt_one
+  have hcpos : 0 < c := by
+    dsimp [c]
+    exact one_div_pos.mpr (by nlinarith [hDensity.1])
+  have hηpos : 0 < η := by
+    dsimp [η]
+    positivity
+  have hη_lt_quarter : η < 1 / 4 :=
+    u6aEta_lt_quarter hDensity.1 hlogB1_gt_one (by rfl : c = 1 / (16 * (Cdens + 1)))
+      (by rfl : η = 2 * c / Real.log (B + 1))
+  have hsmall : 2 * η * (A.card : ℝ) < (B + 3 / 4) - (B + 1 / 4) := by
+    have hhalf : 2 * η * (A.card : ℝ) < 1 / 2 :=
+      u6aSmall_for_avoidance hDensity.1 hlogB1_pos
+        (by rfl : c = 1 / (16 * (Cdens + 1)))
+        (by rfl : η = 2 * c / Real.log (B + 1)) hcard_A_B1
+    calc
+      2 * η * (A.card : ℝ) < (1 / 2 : ℝ) := hhalf
+      _ = (B + 3 / 4) - (B + 1 / 4) := by ring
+  obtain ⟨T, hTinterval, hAvoid⟩ :=
+    exists_avoids_finset_intervals A hηpos hsmall
+  have hTpos : 0 < T := by linarith [hTinterval.1, hB4]
+  have hT_gt_one : 1 < T := by linarith [hTinterval.1, hB4]
+  have hlogT_pos : 0 < Real.log T := Real.log_pos hT_gt_one
+  have hlogB1_le_two_logT : Real.log (B + 1) ≤ 2 * Real.log T := by
+    have hB1_le_Tsq : B + 1 ≤ T ^ 2 := by nlinarith [hTinterval.1, hB4]
+    have hlog_le_sq : Real.log (B + 1) ≤ Real.log (T ^ 2) :=
+      Real.log_le_log hB1_pos hB1_le_Tsq
+    simpa [Real.log_pow] using hlog_le_sq
+  have hscale : c / Real.log T ≤ η :=
+    u6aScale_gap (le_of_lt hcpos) hlogB1_pos hlogB1_le_two_logT
+      (by rfl : η = 2 * c / Real.log (B + 1))
+  refine ⟨T, hTinterval.1, hTinterval.2, ?_⟩
+  refine ⟨div_pos hcpos hlogT_pos, ?_, ?_⟩
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose_final : |z.im - T| < c / Real.log T := lt_of_not_ge hnot
+    have hclose_eta : |z.im - T| < η := hclose_final.trans_le hscale
+    have hdist := abs_lt.mp hclose_eta
+    have him_low : center - 1 ≤ z.im := by
+      dsimp [center]
+      nlinarith [hdist.1, hTinterval.1, hη_lt_quarter]
+    have him_high : z.im ≤ center + 1 := by
+      dsimp [center]
+      nlinarith [hdist.2, hTinterval.2, hη_lt_quarter]
+    have hzZ : z ∈ Z := by
+      exact ⟨hzre, ⟨him_low, him_high⟩, hzeta⟩
+    have hzA : z.im ∈ A := by
+      dsimp [A]
+      rw [Finset.mem_image]
+      exact ⟨z, hfin.mem_toFinset.2 hzZ, rfl⟩
+    have havoid_abs : η ≤ |z.im - T| := by
+      have := hAvoid z.im hzA
+      rwa [abs_sub_comm] at this
+    exact not_lt_of_ge havoid_abs hclose_eta
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose_final : |z.im + T| < c / Real.log T := lt_of_not_ge hnot
+    have hclose_eta : |z.im + T| < η := hclose_final.trans_le hscale
+    let zc : ℂ := (starRingEnd ℂ) z
+    have hzc_re : zc.re ∈ Set.uIcc σ₁ σ₂ := by
+      dsimp [zc]
+      simpa [Complex.conj_re] using hzre
+    have hzc_zeta : riemannZeta zc = 0 := by
+      dsimp [zc]
+      exact riemannZetaConjZeroSource_of_riemannZeta_conj z hzeta
+    have hzc_close_eta : |zc.im - T| < η := by
+      have hdist_eq : |zc.im - T| = |z.im + T| := by
+        calc
+          |zc.im - T| = |-z.im - T| := by
+            simp [zc, Complex.conj_im]
+          _ = |-(z.im + T)| := by ring_nf
+          _ = |z.im + T| := by rw [abs_neg]
+      simpa [hdist_eq] using hclose_eta
+    have hdist := abs_lt.mp hzc_close_eta
+    have him_low : center - 1 ≤ zc.im := by
+      dsimp [center]
+      nlinarith [hdist.1, hTinterval.1, hη_lt_quarter]
+    have him_high : zc.im ≤ center + 1 := by
+      dsimp [center]
+      nlinarith [hdist.2, hTinterval.2, hη_lt_quarter]
+    have hzcZ : zc ∈ Z := by
+      exact ⟨hzc_re, ⟨him_low, him_high⟩, hzc_zeta⟩
+    have hzcA : zc.im ∈ A := by
+      dsimp [A]
+      rw [Finset.mem_image]
+      exact ⟨zc, hfin.mem_toFinset.2 hzcZ, rfl⟩
+    have havoid_abs : η ≤ |zc.im - T| := by
+      have := hAvoid zc.im hzcA
+      rwa [abs_sub_comm] at this
+    exact not_lt_of_ge havoid_abs hzc_close_eta
+
+private theorem u6aHeightSelection_fixedC_of_localDensity
+    (σ₁ σ₂ : ℝ) {Cdens Tdens : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens) :
+    0 < 1 / (16 * (Cdens + 1)) ∧
+      ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+        horizontalSegmentZeroGap σ₁ σ₂ T
+          ((1 / (16 * (Cdens + 1))) / Real.log T) := by
+  constructor
+  · exact one_div_pos.mpr (by nlinarith [hDensity.1])
+  intro T₀
+  let B : ℝ := max (max T₀ Tdens) 4
+  have hT₀B : T₀ ≤ B := by
+    exact (le_max_left T₀ Tdens).trans (le_max_left (max T₀ Tdens) 4)
+  have hTdensB : Tdens ≤ B := by
+    exact (le_max_right T₀ Tdens).trans (le_max_left (max T₀ Tdens) 4)
+  have hB4 : 4 ≤ B := le_max_right (max T₀ Tdens) 4
+  obtain ⟨T, hTB_low, _hTB_high, hgap⟩ :=
+    exists_good_height_in_half_unit_of_localDensity σ₁ σ₂ Cdens Tdens B
+      hDensity hTdensB hB4
+  refine ⟨T, ?_, ?_, ?_⟩
+  · linarith
+  · linarith
+  · simpa using hgap
 
 /-- Named partial-fraction approximation hypothesis.  The Hadamard input is
 `logDeriv_riemannXi_eq_polynomial_derivative_add_tsum` in
@@ -118,6 +415,25 @@ def U6aHeightSelectionHypothesis (σ₁ σ₂ Cdens Tdens c : ℝ) : Prop :=
   U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens →
     0 < c ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
       horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T)
+
+/-- The local-density hypothesis alone supplies the `c / log T` height selector
+with explicit `c = 1 / (16 * (C + 1))`. -/
+theorem U6aHeightSelectionHypothesis_of_localDensity
+    (σ₁ σ₂ Cdens Tdens : ℝ) :
+    U6aHeightSelectionHypothesis σ₁ σ₂ Cdens Tdens
+      (1 / (16 * (Cdens + 1))) := by
+  intro hDensity
+  exact u6aHeightSelection_fixedC_of_localDensity σ₁ σ₂ hDensity
+
+/-- Cofinal quantitative zero gaps obtained from the local-density hypothesis,
+with the explicit selector constant exposed existentially. -/
+theorem exists_arbitrarily_large_horizontalSegmentZeroGap_of_localDensity_proved
+    (σ₁ σ₂ : ℝ) {Cdens Tdens : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens) :
+    ∃ c : ℝ, 0 < c ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T) := by
+  exact ⟨1 / (16 * (Cdens + 1)),
+    u6aHeightSelection_fixedC_of_localDensity σ₁ σ₂ hDensity⟩
 
 /-- Named consequence of the partial-fraction formula plus local density and
 the `c/log T` zero gap: a uniform `log² T` bound on the horizontal segment. -/
