@@ -413,15 +413,15 @@ theorem bklnw_thm_15 (I : Inputs)
   \exp\left(\frac{10 - 16 \sigma}{3}
   \left( \frac{\log x_0}{R}
   \right)^{1/2} \right)
-  \left( \frac{\log x_0}{R}
+  \left( \sqrt{ \frac{\log x_0}{R} }
   \right)^{5 - 2 \sigma}
   \right)^{-1}. $$
   -/)]
 noncomputable def Inputs.k (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
   (exp ((10 - 16 * σ) / 3 *
-      (log x₀ / I.R) ^ (1 / 2)) *
-    (log x₀ / I.R) ^ (5 - 2 * σ)) ^ (-1 : ℝ)
+      (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
+    sqrt (log x₀ / I.R) ^ (5 - 2 * σ)) ^ (-1 : ℝ)
 
 @[blueprint
   "bklnw-eq_A_17"
@@ -434,7 +434,7 @@ noncomputable def Inputs.k (I : Inputs)
   -/)]
 noncomputable def Inputs.c3 (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
-  2 * exp (-2 * (log x₀ / I.R) ^ (1 / 2)) *
+  2 * exp (-2 * (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
     (log x₀) ^ 2 * I.k σ x₀
 
 @[blueprint
@@ -463,21 +463,21 @@ noncomputable def Inputs.c4 (I : Inputs)
 noncomputable def Inputs.c5 (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
   8.01 * I.ZDB.c₂ σ *
-    exp (-2 * (log x₀ / I.R) ^ (1 / 2)) *
+    exp (-2 * (log x₀ / I.R) ^ (1 / 2 : ℝ)) *
     (log x₀ / I.R) * I.k σ x₀
 
 @[blueprint
   "bklnw-eq_A_20"
   (title := "Equation (A.20)")
   (statement := /-- We define
-  $$ A(\sigma, x_0) = 2.0025 \cdot 25^{-2 \sigma}
+  $$ A(\sigma, x_0) = 2.0025 \cdot 2^{5 - 2 \sigma}
   \cdot c_1(\sigma) + c_3(\sigma, x_0)
   + c_4(\sigma, x_0)
   + c_5(\sigma, x_0). $$
   -/)]
 noncomputable def Inputs.A (I : Inputs)
     (σ x₀ : ℝ) : ℝ :=
-  2.0025 * 25 ^ (-2 * σ) * I.ZDB.c₁ σ +
+  2.0025 * 2 ^ (5 - 2 * σ) * I.ZDB.c₁ σ +
     I.c3 σ x₀ + I.c4 σ x₀ + I.c5 σ x₀
 
 @[blueprint
@@ -694,21 +694,38 @@ noncomputable def ℓ (c ε ξ : ℝ) : ℝ :=
     sin (sqrt ((ξ * ε) ^ 2 - c ^ 2)) /
     sqrt ((ξ * ε) ^ 2 - c ^ 2)
 
-open Complex in
+/-- The modified Bessel function of the first kind of order zero,
+$I_0(x) = \sum_{m \geq 0} (x/2)^{2m}/(m!)^2$, introduced for the closed form of the
+Logan kernel transform below (not yet in Mathlib). -/
+noncomputable def besselI0 (x : ℝ) : ℝ :=
+  ∑' m : ℕ, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2
+
 @[blueprint
   "logan-function-ft"
   (title := "Fourier transform of Logan's function")
-  (statement := /-- We define
-  $$ \eta_{c,\varepsilon}(\xi)
+  (statement := /-- The Fourier transform
+  $\eta_{c,\varepsilon}(\xi)
   = \frac{1}{2\pi} \int_{\R} e^{-it\xi}
-  ℓ_{c,\varepsilon}(t) \, dt. $$ -/)
+  ℓ_{c,\varepsilon}(t) \, dt$
+  of Logan's kernel, in closed form: the kernel
+  is band-limited, so the transform is supported
+  in $[-\varepsilon, \varepsilon]$, where
+  $$ \eta_{c,\varepsilon}(\xi)
+  = \frac{c}{2 \varepsilon \sinh c}\,
+  I_0\!\left(c \sqrt{1 - (\xi/\varepsilon)^2}\right) $$
+  with $I_0$ the modified Bessel function of
+  order zero (\cite[p.~2490]{Buthe2}). The
+  closed form is taken as the definition; the
+  Fourier identity is a proof obligation of
+  Theorem 16. -/)
   (latexEnv := "definition")]
 noncomputable def η (c ε ξ : ℝ) : ℝ :=
-  (1 / (2 * π)) *
-    (∫ t : ℝ, exp (-I * t * ξ) * ℓ c ε t).re
+  if |ξ| ≤ ε then
+    c / (2 * ε * sinh c) * besselI0 (c * sqrt (1 - (ξ / ε) ^ 2))
+  else 0
 
 noncomputable def pre_μ (c ε t : ℝ) : ℝ :=
-  -∫ τ in Set.Ici t, η c ε τ
+  -∫ τ in Set.Iic t, η c ε τ
 
 @[blueprint
   "buthe-mu-def"
@@ -718,7 +735,7 @@ noncomputable def pre_μ (c ε t : ℝ) : ℝ :=
   \begin{align*}
   \mu_{c,\varepsilon}(t) &=
   \begin{cases}
-  -\int_t^{\infty} \eta_{c,\varepsilon}(\tau)
+  -\int_{-\infty}^{t} \eta_{c,\varepsilon}(\tau)
   d\tau & t < 0, \\
   -\mu_{c,\varepsilon}(-t) & t > 0, \\
   0 & t = 0,
@@ -788,16 +805,16 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
     (hc : 3 ≤ c)
     (hx₀ : 100 ≤ x₀)
     (hα : 0 ≤ α ∧ α < 1)
-    (hB0 : (ε * rexp (-ε) * x₀ * |ν c ε α|) /
-      (2 * (μ c ε α)) > 1)
+    (hB0 : 2 * max (μ c 1 α) 0 <
+      ε * rexp (-ε) * x₀ * |ν c 1 α|)
     (hRH : riemannZeta.RH_up_to (c / ε))
     (x : ℝ)
     (hx : x ≥ rexp (ε * α) * x₀) :
     let E₁ :=
       rexp (2 * ε) * log (rexp ε * x₀) *
-        (2 * ε * |ν c ε α| /
+        (2 * ε * |ν c 1 α| /
           log ((ε * rexp (-ε) * x₀ *
-            |ν c ε α|) / (2 * (μ c ε α))) +
+            |ν c 1 α|) / (2 * max (μ c 1 α) 0)) +
         2.01 * ε / sqrt x₀ +
         log (log (2 * x₀ ^ 2)) /
           (2 * x₀)) +
