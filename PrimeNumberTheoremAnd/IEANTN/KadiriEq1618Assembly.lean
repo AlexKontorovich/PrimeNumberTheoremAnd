@@ -64,6 +64,14 @@ def u8ContourIntegrand (Φ : ℂ → ℂ) (s : ℂ) : ℂ :=
 def u8NormalizedVertical (Φ : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * (Real.pi : ℂ) * I)) • VerticalIntegral (u8ContourIntegrand Φ) σ
 
+/-- The literal target shape of
+`56e3a7d:KadiriContourPull.lean:391-394`. -/
+def u8ContourPullSourceTarget (Φ : ℂ → ℂ) (σL σR : ℝ) : ℂ :=
+  (1 / (2 * (Real.pi : ℂ) * I)) •
+    (VerticalIntegral (u8ContourIntegrand Φ) σR -
+      VerticalIntegral (u8ContourIntegrand Φ) σL) +
+    Φ (-1)
+
 /-- The finite-window zero sum used before passing to full height. -/
 def u8ZeroWindow (Φ : ℂ → ℂ) (σL σR : ℝ) (T : ℕ → ℝ) (k : ℕ) : ℂ :=
   riemannZeta.zeroes_sum (Set.uIcc σL σR) (Set.uIcc (-(T k)) (T k))
@@ -73,7 +81,7 @@ def u8ZeroWindow (Φ : ℂ → ℂ) (σL σR : ℝ) (T : ℕ → ℝ) (k : ℕ) 
 notation.  Source shape: `56e3a7d:KadiriContourPull.lean:372-394`. -/
 def U8ContourPullIdentity (Φ : ℂ → ℂ) (σL σR : ℝ) (T : ℕ → ℝ) : Prop :=
   Tendsto (u8ZeroWindow Φ σL σR T) atTop
-    (𝓝 (u8NormalizedVertical Φ σR - u8NormalizedVertical Φ σL + Φ (-1)))
+    (𝓝 (u8ContourPullSourceTarget Φ σL σR))
 
 /-- The full-height identification needed after the good-height contour pull. -/
 def U8ZeroWindowLimit (Φ : ℂ → ℂ) (σL σR : ℝ) (T : ℕ → ℝ) : Prop :=
@@ -93,6 +101,14 @@ def U8LeftLineFunctionalEquationSplitHypothesis
   u8NormalizedVertical Φ σL =
     -(u8PiLogTerm φ + u8ReflectedVonMangoldtTerm φ + u8GammaContourTerm φ)
 
+/-- The literal contour-pull target is the vertical-line split used by the
+equation (16)-(18) algebra. -/
+theorem u8ContourPullSourceTarget_eq_vertical_split (Φ : ℂ → ℂ) (σL σR : ℝ) :
+    u8ContourPullSourceTarget Φ σL σR =
+      u8NormalizedVertical Φ σR - u8NormalizedVertical Φ σL + Φ (-1) := by
+  unfold u8ContourPullSourceTarget u8NormalizedVertical
+  ring
+
 /-- The contour pull and zero-window limit identify the full zero sum with the
 two vertical lines plus the pole at `1`. -/
 theorem u8_zeroes_sum_eq_vertical_split_of_contour_pull {Φ : ℂ → ℂ}
@@ -102,7 +118,8 @@ theorem u8_zeroes_sum_eq_vertical_split_of_contour_pull {Φ : ℂ → ℂ}
     riemannZeta.zeroes_sum (Set.Ioo (0 : ℝ) 1) (Set.univ : Set ℝ)
         (fun ρ => Φ (-ρ)) =
       u8NormalizedVertical Φ σR - u8NormalizedVertical Φ σL + Φ (-1) :=
-  tendsto_nhds_unique hZeroLimit hContour
+  (tendsto_nhds_unique hZeroLimit hContour).trans
+    (u8ContourPullSourceTarget_eq_vertical_split Φ σL σR)
 
 /-- The local real-Kadiri pole-split wrapper specialized to von Mangoldt
 weights. -/
