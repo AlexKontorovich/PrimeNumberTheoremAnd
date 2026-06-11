@@ -3953,6 +3953,42 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta :
       (σ₁ := (-1 : ℝ)) (σ₂ := 2) (X := X) (δ := δ) (M := C * 3 ^ k + D)
       hX hδ hsmall_bad hAvg
 
+/-- Cofinal form of the unconditional averaged selector in the U6a strip.  For
+every lower height threshold, one can choose a dyadic scale and a safe height in
+that scale whose reciprocal zero sum is bounded by the averaged-selection
+constant. -/
+theorem exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_delta :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ T₀ : ℝ, ∃ k : ℕ, ∃ X T : ℝ,
+      T₀ ≤ T ∧ 0 < X ∧
+      2 * X + 2 < (2 : ℝ) ^ (k + 1) ∧
+      T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) ∧
+      u6aReciprocalZeroSum (-1) 2 T ≤
+        u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D) := by
+  obtain ⟨C, D, hC, hD, hsel⟩ :=
+    exists_height_with_small_reciprocalZeroSum_of_crude_delta
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro T₀
+  let X : ℝ := max T₀ 1
+  have hX : 0 < X := by
+    dsimp [X]
+    exact lt_of_lt_of_le zero_lt_one (le_max_right T₀ 1)
+  have hT₀X : T₀ ≤ X := by
+    dsimp [X]
+    exact le_max_left T₀ 1
+  obtain ⟨k, hk⟩ := Real.exists_nat_le_two_pow (2 * (2 * X + 2))
+  have hk_bound : 2 * (2 * X + 2) ≤ (2 : ℝ) ^ k := hk k le_rfl
+  have hscale_lt : 2 * X + 2 < (2 : ℝ) ^ (k + 1) := by
+    have hlt_double : 2 * X + 2 < 2 * (2 * X + 2) := by linarith
+    have hpow_succ : (2 : ℝ) ^ k ≤ (2 : ℝ) ^ (k + 1) := by
+      rw [pow_succ]
+      nlinarith [show 0 ≤ (2 : ℝ) ^ k by positivity]
+    exact hlt_double.trans_le (hk_bound.trans hpow_succ)
+  obtain ⟨T, hTmem, hrec⟩ := hsel k X hX hscale_lt
+  have hT₀T : T₀ ≤ T := by
+    have hXT : X < T := hTmem.1.1
+    exact hT₀X.trans hXT.le
+  exact ⟨k, X, T, hT₀T, hX, hscale_lt, hTmem, hrec⟩
+
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
     x ∈ Set.Icc (min σ₁ σ₂) (max σ₁ σ₂) := by
