@@ -1207,6 +1207,35 @@ theorem u6aFT_invSqTail_le_log {Ccnt Tₘᵢₙ : ℝ}
       mul_nonneg (mul_nonneg (by linarith) hW0) (by linarith)
     nlinarith [hkey, e1, e2, hlog1]
 
+/-! ## Assembly: the far-tail bound from the count atom alone -/
+
+/-- The far-tail estimate from the local count atom: the anchor-difference
+comparison reduces the strip far tail to the shifted inverse-square ladder
+plus the anchor value, and both are log-grade given the atom. -/
+theorem exists_U6aFarTailBoundHypothesis_of_localCount {Ccnt Tₘᵢₙ : ℝ}
+    (hcnt : U6aLocalZeroCountLogHypothesis Ccnt Tₘᵢₙ) :
+    ∃ C : ℝ, U6aFarTailBoundHypothesis C Tₘᵢₙ := by
+  obtain ⟨P, hPdeg, hfac⟩ := riemannXi_hadamard_factorization_no_monomial
+  obtain ⟨C₁, hC₁0, hC₁⟩ := u6aFT_invSqTail_le_log hcnt
+  obtain ⟨C₂, hC₂0, hC₂⟩ := u6aFT_far_at_anchor_le hfac hPdeg hcnt
+  refine ⟨3 * C₁ + C₂, by positivity, fun s hre hT h3 => ?_⟩
+  have hb := u6aFT_norm_far_le_invSqTail_add_anchor (t := s.im) h3 hre rfl
+  have h1 := hC₁ s.im hT h3
+  have h2 := hC₂ s.im hT h3
+  have hexp : (3 * C₁ + C₂) * Real.log |s.im| =
+      3 * (C₁ * Real.log |s.im|) + C₂ * Real.log |s.im| := by ring
+  rw [hexp]
+  linarith
+
+/-- The U6a zero-sum remainder estimate from the local count atom: the count
+controls both the far tail (through the ladder and the anchor) and the nearby
+fiber residue. -/
+theorem exists_U6aZeroSumRemainderBoundHypothesis_of_localCount {Ccnt Tₘᵢₙ : ℝ}
+    (hcnt : U6aLocalZeroCountLogHypothesis Ccnt Tₘᵢₙ) :
+    ∃ C : ℝ, U6aZeroSumRemainderBoundHypothesis (-1) 2 C Tₘᵢₙ := by
+  obtain ⟨Cfar, hfar⟩ := exists_U6aFarTailBoundHypothesis_of_localCount hcnt
+  exact ⟨Cfar + Ccnt, U6aZeroSumRemainderBoundHypothesis_of_farTail_and_count hfar hcnt⟩
+
 end
 
 end Kadiri
