@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.ZetaConj
+import PrimeNumberTheoremAnd.Backlund.ZeroCountCrude
 import Mathlib.Analysis.PSeries
 import Mathlib.Analysis.SpecificLimits.Normed
 
@@ -19,8 +20,10 @@ bounded by the explicit Backlund majorant
 `|T/2pi log (T/2pi) - T/2pi + 7/8| + RvM(T)`, which grows like `(k+1) * 2^k` on dyadic
 heights, so the dyadic shell masses are summable against `(k+1) * 2^(-k)`.
 
-Since the counting estimate stays hypothetical, this file imports only `ZetaDefinitions`
-and `ZetaConj` from the project.
+The final section feeds the unconditional crude majorant
+`Backlund.zetaCounting_crude_majorant` (`|N(T)| <= A * T^(3/2)`) through a weighted
+form of the same dyadic chain, making the square-tail summability hypothesis-free.
+The explicit RvM-hypothesis route stays as the path to the chapter's numerics.
 -/
 
 noncomputable section
@@ -1714,5 +1717,102 @@ theorem summable_zeroImagSquareTail_shifted_of_RvM
     (hRvM : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 6.1) (s : ℂ) :
     Summable (fun rho : NontrivialZeros ↦ |(s - (rho : ℂ)).im|⁻¹ ^ (2 : ℕ)) :=
   summable_zeroImagSquareTail_shifted (zeroImagSquareTailSummable_of_RvM hRvM) s
+
+/-!
+### Unconditional square-tail summability from the crude counting majorant
+
+The contracts above consume the counting estimate through the `(k+1) * 2^k` dyadic
+growth shape. The crude majorant `|N(T)| <= A * T^(3/2)` grows faster than that shape,
+but its `4^(-k)`-weighted dyadic series is still geometric (`2^(3(k+1)/2) / 4^k` decays
+like `2^(-k/2)`), which is all the shell route needs.
+-/
+
+/-- Square-tail summability from any cumulative dyadic count bound whose
+`4^(-k)`-weighted series is summable. -/
+theorem zeroImagSquareTailSummable_of_cumulative_count_le {g : ℕ → ℝ}
+    (hg : Summable fun k : ℕ => g k * (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ))
+    (hcount : ∀ k : ℕ, (Nat.card {rho : NontrivialZeros //
+        |(rho : ℂ).im| < (2 : ℝ) ^ (k + 1)} : ℝ) ≤ g k) :
+    zeroImagSquareTailSummable := by
+  apply zeroImagSquareTailSummable_of_dyadic_shell_source
+  unfold zeroImagDyadicShellSummableSource
+  rw [summable_sigma_of_nonneg]
+  · constructor
+    · intro k
+      haveI : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
+        Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
+      exact Summable.of_finite
+    · refine Summable.of_nonneg_of_le
+        (fun k => zeroHeightDyadicShellMass_nonneg k) (fun k => ?_) hg
+      have hmass := zeroHeightDyadicShellMass_le_count_inv_sq k
+      have hcard :
+          (Nat.card {rho : NontrivialZeros // zeroHeightDyadicShell k rho} : ℝ) ≤
+            g k := by
+        refine le_trans ?_ (hcount k)
+        exact_mod_cast zeroHeightDyadicShellCount_le_cumulative_count k
+      exact hmass.trans (mul_le_mul_of_nonneg_right hcard (sq_nonneg _))
+  · intro p
+    exact sq_nonneg _
+
+/-- The crude counting majorant at dyadic heights, in geometric form:
+`(2^(k+1))^(3/2) = (2 * sqrt 2)^(k+1) <= 3^(k+1)`. -/
+lemma zetaCountingDyadic_abs_N_le_geometric :
+    ∃ E : ℝ, 0 < E ∧ ∀ k : ℕ,
+      |riemannZeta.N ((2 : ℝ) ^ (k + 1))| ≤ E * 3 ^ k := by
+  obtain ⟨A, hA0, hA⟩ := Backlund.zetaCounting_crude_majorant
+  refine ⟨3 * A, by linarith, fun k => ?_⟩
+  have hT2 : (2 : ℝ) ≤ (2 : ℝ) ^ (k + 1) := by
+    calc (2 : ℝ) = 2 ^ 1 := (pow_one 2).symm
+    _ ≤ 2 ^ (k + 1) := pow_le_pow_right₀ one_le_two (by omega)
+  have hpow32 : ((2 : ℝ) ^ (k + 1)) ^ (3 / 2 : ℝ) =
+      ((2 : ℝ) ^ (3 / 2 : ℝ)) ^ (k + 1) := by
+    rw [← Real.rpow_natCast (2 : ℝ) (k + 1),
+      ← Real.rpow_mul (by norm_num : (0 : ℝ) ≤ 2), mul_comm,
+      Real.rpow_mul (by norm_num : (0 : ℝ) ≤ 2), Real.rpow_natCast]
+  have hbase : (2 : ℝ) ^ (3 / 2 : ℝ) ≤ 3 := by
+    rw [show (3 / 2 : ℝ) = 1 + 1 / 2 by norm_num,
+      Real.rpow_add (by norm_num : (0 : ℝ) < 2), Real.rpow_one,
+      ← Real.sqrt_eq_rpow]
+    nlinarith [Real.sq_sqrt (show (0 : ℝ) ≤ 2 by norm_num), Real.sqrt_nonneg 2]
+  have hbase0 : (0 : ℝ) ≤ (2 : ℝ) ^ (3 / 2 : ℝ) :=
+    Real.rpow_nonneg (by norm_num) _
+  calc |riemannZeta.N ((2 : ℝ) ^ (k + 1))|
+      ≤ A * ((2 : ℝ) ^ (k + 1)) ^ (3 / 2 : ℝ) := hA ((2 : ℝ) ^ (k + 1)) hT2
+    _ = A * ((2 : ℝ) ^ (3 / 2 : ℝ)) ^ (k + 1) := by rw [hpow32]
+    _ ≤ A * 3 ^ (k + 1) :=
+        mul_le_mul_of_nonneg_left (pow_le_pow_left₀ hbase0 hbase (k + 1)) hA0.le
+    _ = 3 * A * 3 ^ k := by ring
+
+/-- Unconditional height-square zero-tail summability, from the crude majorant. -/
+theorem zeroImagSquareTailSummable_of_crude_majorant :
+    zeroImagSquareTailSummable := by
+  obtain ⟨E, hE0, hE⟩ := zetaCountingDyadic_abs_N_le_geometric
+  obtain ⟨A, D, hA0, hD0, hcountN⟩ :=
+    zeroImagDyadicCumulativeCountByNWithZeroHeightSource_of_conj_and_positive_height_zero_free
+  refine zeroImagSquareTailSummable_of_cumulative_count_le
+    (g := fun k => A * (E * 3 ^ k) + D) ?_ (fun k => ?_)
+  · have hterm : ∀ k : ℕ,
+        A * E * (3 / 4 : ℝ) ^ k + D * ((4 : ℝ)⁻¹) ^ k =
+          (A * (E * 3 ^ k) + D) * (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+      intro k
+      have h4 : (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) = ((4 : ℝ)⁻¹) ^ k := by
+        rw [inv_pow, ← pow_mul, mul_comm k 2, pow_mul, ← inv_pow]
+        norm_num
+      have h34 : ((3 : ℝ) / 4) ^ k = 3 ^ k * ((4 : ℝ)⁻¹) ^ k := by
+        rw [← mul_pow]
+        norm_num
+      rw [h4, h34]
+      ring
+    exact (((summable_geometric_of_lt_one (by norm_num)
+      (by norm_num : (3 / 4 : ℝ) < 1)).mul_left (A * E)).add
+      ((summable_geometric_of_lt_one (by norm_num)
+        (by norm_num : ((4 : ℝ)⁻¹) < 1)).mul_left D)).congr hterm
+  · exact (hcountN k).trans
+      (add_le_add (mul_le_mul_of_nonneg_left (hE k) hA0) le_rfl)
+
+/-- Unconditional shifted height-square zero-tail summability. -/
+theorem summable_zeroImagSquareTail_shifted_unconditional (s : ℂ) :
+    Summable (fun rho : NontrivialZeros => |(s - (rho : ℂ)).im|⁻¹ ^ (2 : ℕ)) :=
+  summable_zeroImagSquareTail_shifted zeroImagSquareTailSummable_of_crude_majorant s
 
 end Kadiri

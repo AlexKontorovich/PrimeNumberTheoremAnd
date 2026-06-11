@@ -1460,7 +1460,7 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     hf_deriv_0 hf_deriv_d hf_deriv2_d (s.re - 1) s.re
   have htail : Summable (fun ρ : NontrivialZeros ↦
       C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
-    (summable_zeroImagSquareTail_shifted_of_RvM backlund_bound s).mul_left C
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left C
   refine Summable.of_norm_bounded_eventually htail ?_
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
