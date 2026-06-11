@@ -3000,6 +3000,126 @@ theorem u6aShiftedZetaZeroBallMass_le_jensen_growth {s : ℂ} {R : ℝ}
             |Real.log ‖(s - 1) * riemannZeta s‖|) / Real.log 2 := by
           rw [htail]
 
+/-- Center used for the radius-three Jensen disk covering a unit-height U6a
+zero window. -/
+noncomputable def u6aJensenCenter (t : ℝ) : ℂ :=
+  (1 / 2 : ℝ) + t * I
+
+/-- The unit-height U6a zero box lies in the radius-three disk around
+`1 / 2 + it` after translating by the Jensen center. -/
+theorem u6aNearbyZero_mem_shiftedZetaZeroBallFinset {t : ℝ} {ρ : ℂ}
+    (hρ : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+      (Set.Icc (t - 1) (t + 1))) :
+    ρ - u6aJensenCenter t ∈
+      u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3 := by
+  classical
+  have hle : (-1 : ℝ) ≤ 2 := by norm_num
+  have hreI : ρ.re ∈ Set.Icc (-1 : ℝ) 2 := by
+    simpa [Set.uIcc_of_le hle] using hρ.1
+  have hre_abs : |(ρ - u6aJensenCenter t).re| ≤ (3 / 2 : ℝ) := by
+    rw [abs_le]
+    constructor
+    · simp [u6aJensenCenter]
+      linarith [hreI.1]
+    · simp [u6aJensenCenter]
+      linarith [hreI.2]
+  have him_abs : |(ρ - u6aJensenCenter t).im| ≤ (1 : ℝ) := by
+    rw [abs_le]
+    constructor
+    · simp [u6aJensenCenter]
+      linarith [hρ.2.1.1]
+    · simp [u6aJensenCenter]
+      linarith [hρ.2.1.2]
+  have hnorm : ‖ρ - u6aJensenCenter t‖ ≤ (3 : ℝ) := by
+    calc
+      ‖ρ - u6aJensenCenter t‖
+          ≤ |(ρ - u6aJensenCenter t).re| +
+              |(ρ - u6aJensenCenter t).im| :=
+            Complex.norm_le_abs_re_add_abs_im _
+      _ ≤ (3 / 2 : ℝ) + 1 := add_le_add hre_abs him_abs
+      _ ≤ 3 := by norm_num
+  have hset :
+      ρ - u6aJensenCenter t ∈
+        {z : ℂ | ‖z‖ ≤ (3 : ℝ) ∧ riemannZeta (u6aJensenCenter t + z) = 0} := by
+    constructor
+    · exact hnorm
+    · simpa [sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using hρ.2.2
+  exact (u6aShiftedZetaZeroBallSet_finite (u6aJensenCenter t) 3).mem_toFinset.mpr hset
+
+/-- The order-weighted nearby zero count is bounded by the shifted radius-three
+zero mass around the Jensen center. -/
+theorem u6aNearbyZeroCount_le_shiftedZetaZeroBallMass (t : ℝ) :
+    u6aNearbyZeroCount (-1) 2 t ≤
+      ∑ z ∈ u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3,
+        (riemannZeta.order (u6aJensenCenter t + z) : ℝ) := by
+  classical
+  let s : ℂ := u6aJensenCenter t
+  let hnear : (riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (t - 1) (t + 1))).Finite := u6aNearbyZeroSet_finite (-1) 2 t
+  let Znear : Finset ℂ := hnear.toFinset
+  let Zball : Finset ℂ := u6aShiftedZetaZeroBallFinset s 3
+  let shift : ℂ → ℂ := fun ρ => ρ - s
+  have hsubset : Znear.image shift ⊆ Zball := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    rcases hz with ⟨ρ, hρ, rfl⟩
+    have hρmem : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+        (Set.Icc (t - 1) (t + 1)) := hnear.mem_toFinset.mp hρ
+    simpa [s, shift] using u6aNearbyZero_mem_shiftedZetaZeroBallFinset hρmem
+  have hsum_image :
+      (∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ)) =
+        ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := by
+    rw [Finset.sum_image]
+    · refine Finset.sum_congr rfl ?_
+      intro ρ _hρ
+      simp [shift]
+    · intro ρ hρ ρ' hρ' hshift
+      dsimp [shift] at hshift
+      calc
+        ρ = (ρ - s) + s := by abel
+        _ = (ρ' - s) + s := by rw [hshift]
+        _ = ρ' := by abel
+  have hnonneg : ∀ z ∈ Zball, z ∉ Znear.image shift →
+      0 ≤ (riemannZeta.order (s + z) : ℝ) := by
+    intro z hz _hznot
+    have hzmem :
+        z ∈ {z : ℂ | ‖z‖ ≤ (3 : ℝ) ∧ riemannZeta (s + z) = 0} :=
+      (u6aShiftedZetaZeroBallSet_finite s 3).mem_toFinset.mp hz
+    exact u6a_zeta_zero_order_nonneg_of_zero hzmem.2
+  have hmass_le :
+      (∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ)) ≤
+        ∑ z ∈ Zball, (riemannZeta.order (s + z) : ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsubset hnonneg
+  have hcount_eq :
+      u6aNearbyZeroCount (-1) 2 t =
+        ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := by
+    unfold u6aNearbyZeroCount
+    rw [riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ : ℂ => (1 : ℝ)) hnear]
+    simp [Znear]
+  calc
+    u6aNearbyZeroCount (-1) 2 t
+        = ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := hcount_eq
+    _ = ∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ) := hsum_image.symm
+    _ ≤ ∑ z ∈ Zball, (riemannZeta.order (s + z) : ℝ) := hmass_le
+
+/-- Sharp local Jensen-log mass input for the radius-three disks centered at
+`1 / 2 + it`.  This is the single analytic estimate still needed for the
+unconditional nearby-count atom. -/
+def U6aShiftedJensenLocalMassLogHypothesis (C : ℝ) : Prop :=
+  0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+    (∑ z ∈ u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3,
+      (riemannZeta.order (u6aJensenCenter t + z) : ℝ)) ≤ C * Real.log |t|
+
+/-- A sharp radius-three shifted Jensen mass bound gives the exact nearby
+zero-count endpoint shape requested by the U6a assembly. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  refine ⟨C, hMass.1, ?_⟩
+  intro t ht
+  exact (u6aNearbyZeroCount_le_shiftedZetaZeroBallMass t).trans (hMass.2 t ht)
+
 private lemma u6aZetaPiFactor_eq_cpow (s : ℂ) :
     zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
   unfold zetaPiFactor
