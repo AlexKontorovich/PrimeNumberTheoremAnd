@@ -468,4 +468,256 @@ theorem tendsto_zeroes_sum_of_good_heights {Φ : ℂ → ℂ} {σL σR : ℝ} {T
   have hfinal := hrect'.add_const (Φ (-1))
   exact hfinal.congr fun k => (hres k).symm
 
+/-! ## Locating the zeros: the band `(-2, σR)` sees only critical-strip zeros (U7) -/
+
+/-- `ζ` does not vanish on the line `Re z = 0`: the point `0` itself has
+`ζ(0) = -1/2`, and for `Im z ≠ 0` the functional equation factors at `1 - z`
+(which has real part `1`) are all nonzero. -/
+lemma riemannZeta_ne_zero_of_re_eq_zero {z : ℂ} (h0 : z.re = 0) :
+    riemannZeta z ≠ 0 := by
+  by_cases hz0 : z = 0
+  · rw [hz0, riemannZeta_zero]
+    norm_num
+  intro hzero
+  set s : ℂ := 1 - z with hs_def
+  have hs_re : s.re = 1 := by rw [hs_def]; simp [h0]
+  have hsne : ∀ n : ℕ, s ≠ -n := by
+    intro n h
+    have hre : s.re = -(n : ℝ) := by rw [h]; simp
+    have : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+    rw [hs_re] at hre
+    linarith
+  have hsne1 : s ≠ 1 := by
+    intro h
+    apply hz0
+    have : z = 1 - s := by rw [hs_def]; ring
+    rw [this, h]
+    ring
+  have hFE := riemannZeta_one_sub hsne hsne1
+  have h1s : (1 : ℂ) - s = z := by rw [hs_def]; ring
+  rw [h1s, hzero] at hFE
+  have hprod := hFE.symm
+  have h2ne : (2 : ℂ) ≠ 0 := two_ne_zero
+  have hpow : (2 * (Real.pi : ℂ)) ^ (-s) ≠ 0 := by
+    have hbase : (2 * (Real.pi : ℂ)) ≠ 0 := by
+      have h1 : (0 : ℝ) < 2 * Real.pi := by positivity
+      intro h
+      have h2 : ((2 * Real.pi : ℝ) : ℂ) = 0 := by rw [← h]; push_cast; ring
+      exact h1.ne' (by exact_mod_cast h2)
+    rw [Complex.cpow_def_of_ne_zero hbase]
+    exact Complex.exp_ne_zero _
+  have hΓ : Gamma s ≠ 0 := by
+    apply Complex.Gamma_ne_zero
+    intro m h
+    have hre : s.re = -(m : ℝ) := by rw [h]; simp
+    have : (0 : ℝ) ≤ (m : ℝ) := Nat.cast_nonneg m
+    rw [hs_re] at hre
+    linarith
+  have hζs : riemannZeta s ≠ 0 :=
+    riemannZeta_ne_zero_of_one_le_re (by rw [hs_re])
+  have hcos : Complex.cos (Real.pi * s / 2) ≠ 0 := by
+    intro hc
+    -- `s = 1 - z` with `Re z = 0`, so `π s / 2 = π/2 - π z / 2` and the cosine is
+    -- `sin (π z / 2)`, which vanishes only at real multiples of `π`
+    have hrw : Real.pi * s / 2 = Real.pi / 2 - Real.pi * z / 2 := by
+      rw [hs_def]
+      ring
+    rw [hrw, Complex.cos_pi_div_two_sub] at hc
+    rw [Complex.sin_eq_zero_iff] at hc
+    obtain ⟨k, hk⟩ := hc
+    -- compare real parts: `Re (π z / 2) = 0` while `Re (k π) = k π`
+    have hre_eq : (Real.pi * z / 2).re = ((k : ℂ) * (Real.pi : ℂ)).re := by rw [hk]
+    have hL : (Real.pi * z / 2).re = 0 := by
+      rw [show Real.pi * z / 2 = ((Real.pi / 2 : ℝ) : ℂ) * z by push_cast; ring,
+        Complex.re_ofReal_mul, h0]
+      ring
+    have hR : ((k : ℂ) * (Real.pi : ℂ)).re = (k : ℝ) * Real.pi := by
+      rw [show ((k : ℂ) * (Real.pi : ℂ)) = (((k * Real.pi : ℝ)) : ℂ) by push_cast; ring,
+        Complex.ofReal_re]
+    have hk0 : (k : ℝ) * Real.pi = 0 := by rw [← hR, ← hre_eq, hL]
+    have hkz : k = 0 := by
+      rcases mul_eq_zero.mp hk0 with h | h
+      · exact_mod_cast h
+      · exact absurd h Real.pi_pos.ne'
+    rw [hkz] at hk
+    -- now `π z / 2 = 0`, forcing `z = 0`
+    apply hz0
+    have hπc : (Real.pi : ℂ) ≠ 0 := by
+      exact_mod_cast Real.pi_pos.ne'
+    have h2 : Real.pi * z / 2 = 0 := by
+      rw [hk]
+      simp
+    have h3 : (Real.pi : ℂ) * z = 0 := by
+      have h4 := congrArg (fun w : ℂ => w * 2) h2
+      simpa using h4
+    rcases mul_eq_zero.mp h3 with h | h
+    · exact absurd h hπc
+    · exact h
+  simp only [mul_eq_zero] at hprod
+  rcases hprod with (((h | h) | h) | h) | h
+  · exact h2ne h
+  · exact hpow h
+  · exact hΓ h
+  · exact hcos h
+  · exact hζs h
+
+/-- `ζ` does not vanish on the real interval `(0, 1)`: by the truncated-series
+representation `Zeta0EqZeta` at `N = 1`, the real part is at most `-x/(1-x) < 0`. -/
+lemma riemannZeta_ne_zero_of_real_mem_Ioo {x : ℝ} (h0 : 0 < x) (h1 : x < 1) :
+    riemannZeta ((x : ℝ) : ℂ) ≠ 0 := by
+  have hne1 : ((x : ℝ) : ℂ) ≠ 1 := by
+    intro h
+    have : x = 1 := by exact_mod_cast h
+    linarith
+  have hre : (0 : ℝ) < (((x : ℝ) : ℂ)).re := by simpa using h0
+  have hzeta0 := (Zeta0EqZeta (N := 1) one_pos hre hne1).symm
+  -- the head of the truncated series
+  have hsum : (∑ n ∈ Finset.range 2, 1 / (n : ℂ) ^ ((x : ℝ) : ℂ)) = 1 := by
+    rw [Finset.sum_range_succ, Finset.sum_range_one]
+    have hx0 : ((x : ℝ) : ℂ) ≠ 0 := by
+      intro h
+      have : x = 0 := by exact_mod_cast h
+      linarith
+    norm_num [zero_cpow hx0, one_cpow]
+  -- the tail integral is bounded by `1/(2x)` in norm
+  set K : ℂ := ∫ u in Set.Ioi (1 : ℝ), (⌊u⌋ + 1 / 2 - u) / (u : ℂ) ^ (((x : ℝ) : ℂ) + 1)
+    with hK_def
+  have hmaj : MeasureTheory.IntegrableOn (fun u : ℝ => (1 / 2 : ℝ) * u ^ (-x - 1))
+      (Set.Ioi (1 : ℝ)) :=
+    (integrableOn_Ioi_rpow_of_lt (by linarith) one_pos).const_mul _
+  have hptw : ∀ u ∈ Set.Ioi (1 : ℝ),
+      ‖(⌊u⌋ + 1 / 2 - u : ℂ) / (u : ℂ) ^ (((x : ℝ) : ℂ) + 1)‖
+        ≤ (1 / 2 : ℝ) * u ^ (-x - 1) := by
+    intro u hu
+    have hu1 : (1 : ℝ) < u := hu
+    have hu0 : (0 : ℝ) < u := by linarith
+    rw [norm_div]
+    have hnum : ‖(⌊u⌋ + 1 / 2 - u : ℂ)‖ ≤ 1 / 2 := by
+      have hcast : ((⌊u⌋ : ℂ) + 1 / 2 - u) = (((⌊u⌋ : ℝ) + 1 / 2 - u : ℝ) : ℂ) := by
+        push_cast
+        ring
+      rw [hcast, Complex.norm_real, Real.norm_eq_abs, abs_le]
+      have hfl1 := Int.sub_one_lt_floor u
+      have hfl2 := Int.floor_le u
+      constructor <;> linarith
+    have hden : ‖(u : ℂ) ^ (((x : ℝ) : ℂ) + 1)‖ = u ^ (x + 1) := by
+      rw [Complex.norm_cpow_eq_rpow_re_of_pos hu0]
+      norm_num
+    rw [hden]
+    have hpos : (0 : ℝ) < u ^ (x + 1) := Real.rpow_pos_of_pos hu0 _
+    rw [div_le_iff₀ hpos]
+    have hflip : (1 / 2 : ℝ) * u ^ (-x - 1) * u ^ (x + 1) = 1 / 2 := by
+      rw [mul_assoc, ← Real.rpow_add hu0]
+      norm_num
+    rw [hflip]
+    exact hnum
+  have hKnorm : ‖K‖ ≤ 1 / (2 * x) := by
+    refine (MeasureTheory.norm_integral_le_integral_norm _).trans ?_
+    have hmono : (∫ u in Set.Ioi (1 : ℝ),
+          ‖(⌊u⌋ + 1 / 2 - u : ℂ) / (u : ℂ) ^ (((x : ℝ) : ℂ) + 1)‖)
+        ≤ ∫ u in Set.Ioi (1 : ℝ), (1 / 2 : ℝ) * u ^ (-x - 1) := by
+      apply MeasureTheory.integral_mono_of_nonneg
+      · filter_upwards with u
+        exact norm_nonneg _
+      · exact hmaj
+      · exact (MeasureTheory.ae_restrict_iff' measurableSet_Ioi).mpr
+          (MeasureTheory.ae_of_all _ hptw)
+    refine hmono.trans ?_
+    rw [MeasureTheory.integral_const_mul, integral_Ioi_rpow_of_lt (by linarith) one_pos,
+      Real.one_rpow]
+    rw [show (-x - 1 + 1 : ℝ) = -x by ring]
+    field_simp
+    norm_num
+  -- assemble: the real part of `ζ x` is at most `-x/(1-x) < 0`
+  have hre_neg : (riemannZeta ((x : ℝ) : ℂ)).re < 0 := by
+    have heq : riemannZeta ((x : ℝ) : ℂ) =
+        (((1 / 2 - 1 / (1 - x) : ℝ)) : ℂ) + ((x : ℝ) : ℂ) * K := by
+      rw [← Zeta0EqZeta (N := 1) one_pos hre hne1]
+      rw [riemannZeta0]
+      rw [show ((1 : ℕ) : ℂ) = 1 by norm_cast]
+      rw [hsum, one_cpow, one_cpow]
+      rw [show ((1 : ℕ) : ℝ) = (1 : ℝ) from Nat.cast_one]
+      rw [← hK_def]
+      have h1x : ((1 : ℂ) - ((x : ℝ) : ℂ)) = (((1 - x : ℝ)) : ℂ) := by push_cast; ring
+      rw [h1x]
+      have hcast : (-1 : ℂ) / (((1 - x : ℝ)) : ℂ) = (((-1 / (1 - x) : ℝ)) : ℂ) := by
+        push_cast
+        ring
+      rw [hcast]
+      push_cast
+      ring
+    rw [heq]
+    rw [Complex.add_re, Complex.ofReal_re, Complex.re_ofReal_mul]
+    have hKre : K.re ≤ 1 / (2 * x) := (Complex.re_le_norm K).trans hKnorm
+    have hxK : x * K.re ≤ 1 / 2 := by
+      have h2 := mul_le_mul_of_nonneg_left hKre h0.le
+      have h3 : x * (1 / (2 * x)) = 1 / 2 := by field_simp
+      linarith
+    have hfrac : (1 : ℝ) < 1 / (1 - x) := by
+      rw [lt_div_iff₀ (by linarith)]
+      linarith
+    linarith
+  intro hzero
+  rw [hzero] at hre_neg
+  simp at hre_neg
+
+/-- Wrapper for the strip localization covering both signs of the imaginary part:
+a zero of `ζ` off the real axis has real part in `[0, 1]`. -/
+lemma zeta_zero_re_mem_of_im_ne_zero {z : ℂ} (hz : riemannZeta z = 0) (him : z.im ≠ 0) :
+    0 ≤ z.re ∧ z.re ≤ 1 := by
+  rcases him.lt_or_gt with hlt | hgt
+  · have hconj0 : riemannZeta (starRingEnd ℂ z) = 0 := by
+      have h := conj_riemannZeta_conj z
+      rw [hz] at h
+      have h' := congrArg (starRingEnd ℂ) h
+      simpa using h'
+    have him' : 0 < (starRingEnd ℂ z).im := by
+      rw [Complex.conj_im]
+      linarith
+    have hloc := Backlund.zeta_zero_re_mem_of_im_pos hconj0 him'
+    rwa [Complex.conj_re] at hloc
+  · exact Backlund.zeta_zero_re_mem_of_im_pos hz hgt
+
+/-- The index-set bridge: every zero of `ζ` in the band `σL < Re < σR` (with
+`-2 < σL < 0` and `σR > 1`) lies in the open critical strip, so the rectangle zero sets
+of the contour and of `kadiri_thm_3_1_q1` agree for every height window. -/
+lemma zeroes_rect_band_eq_critical {σL σR : ℝ} (hσL2 : -2 < σL) (hσL0 : σL < 0)
+    (hσR : 1 < σR) (J : Set ℝ) :
+    riemannZeta.zeroes_rect (Set.uIcc σL σR) J = riemannZeta.zeroes_rect (Set.Ioo 0 1) J := by
+  have hσLR : σL ≤ σR := by linarith
+  ext z
+  simp only [riemannZeta.zeroes_rect, Set.mem_setOf_eq, riemannZeta.zeroes]
+  constructor
+  · rintro ⟨hre, him, hζ⟩
+    refine ⟨?_, him, hζ⟩
+    rw [Set.uIcc_of_le hσLR] at hre
+    by_cases him0 : z.im = 0
+    · -- a real zero in the band is impossible
+      exfalso
+      have hz_eq : z = ((z.re : ℝ) : ℂ) := by
+        apply Complex.ext
+        · simp
+        · simp [him0]
+      rcases lt_trichotomy z.re 0 with h | h | h
+      · exact riemannZeta_ne_zero_of_re_mem_Ioo_neg (by linarith [hre.1]) h hζ
+      · exact riemannZeta_ne_zero_of_re_eq_zero h hζ
+      · rcases lt_trichotomy z.re 1 with h1 | h1 | h1
+        · apply riemannZeta_ne_zero_of_real_mem_Ioo h h1
+          rw [← hz_eq]
+          exact hζ
+        · exact riemannZeta_ne_zero_of_one_le_re (by rw [h1]) hζ
+        · exact riemannZeta_ne_zero_of_one_le_re (by linarith) hζ
+    · have hloc := zeta_zero_re_mem_of_im_ne_zero hζ him0
+      constructor
+      · rcases hloc.1.lt_or_eq with h | h
+        · exact h
+        · exact absurd hζ (riemannZeta_ne_zero_of_re_eq_zero h.symm)
+      · rcases hloc.2.lt_or_eq with h | h
+        · exact h
+        · exact absurd hζ (riemannZeta_ne_zero_of_one_le_re (by rw [h]))
+  · rintro ⟨hre, him, hζ⟩
+    refine ⟨?_, him, hζ⟩
+    rw [Set.uIcc_of_le hσLR]
+    exact ⟨by linarith [hre.1], by linarith [hre.2]⟩
+
 end Kadiri
