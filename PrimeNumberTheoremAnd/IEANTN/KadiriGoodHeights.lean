@@ -98,6 +98,55 @@ def u6aSafeHeightSet (σ₁ σ₂ X δ : ℝ) : Set ℝ :=
 noncomputable def u6aAveragedSelectionBound (X δ M : ℝ) : ℝ :=
   4 * M * Real.log (2 / δ) / X
 
+private lemma u6a_riemannZeta_eventually_ne_zero_punctured_of_ne_one {s : ℂ}
+    (hs : s ≠ 1) :
+    ∀ᶠ z in nhdsWithin s ({s}ᶜ), riemannZeta z ≠ 0 := by
+  have hmem_compl_one : s ∈ ({1} : Set ℂ)ᶜ := by
+    simpa [Set.mem_compl_iff] using hs
+  have hdisj : Disjoint (nhdsWithin s ({s}ᶜ))
+      (Filter.principal (({1} : Set ℂ)ᶜ \ riemannZeta.zeroesᶜ)) := by
+    exact (mem_codiscreteWithin.mp riemannZeta.zeroes_codiscreteWithin_compl_one)
+      s hmem_compl_one
+  have hnot_zeroes : (({1} : Set ℂ)ᶜ \ riemannZeta.zeroesᶜ)ᶜ ∈
+      nhdsWithin s ({s}ᶜ) :=
+    Filter.disjoint_principal_right.mp hdisj
+  have heventually_compl_one : ∀ᶠ z in nhdsWithin s ({s}ᶜ),
+      z ∈ ({1} : Set ℂ)ᶜ := by
+    exact nhdsWithin_le_nhds (isOpen_compl_singleton.mem_nhds hmem_compl_one)
+  filter_upwards [hnot_zeroes, heventually_compl_one] with z hznot hz_compl_one hzero
+  have hz_zero : z ∈ riemannZeta.zeroes := by
+    simpa [riemannZeta.zeroes] using hzero
+  exact hznot ⟨hz_compl_one, by simpa using hz_zero⟩
+
+private lemma u6a_riemannZeta_meromorphicOrderAt_ne_top_of_ne_one {s : ℂ}
+    (hs : s ≠ 1) :
+    meromorphicOrderAt riemannZeta s ≠ ⊤ := by
+  have han := riemannZeta_analyticOn_compl_one s (by simpa [Set.mem_compl_iff] using hs)
+  exact (meromorphicOrderAt_ne_top_iff_eventually_ne_zero han.meromorphicAt).2
+    (u6a_riemannZeta_eventually_ne_zero_punctured_of_ne_one hs)
+
+private lemma u6a_riemannZeta_order_pos_of_zero_ne_one {s : ℂ} (hs : s ≠ 1)
+    (hzero : riemannZeta s = 0) :
+    0 < riemannZeta.order s := by
+  have han := riemannZeta_analyticOn_compl_one s (by simpa [Set.mem_compl_iff] using hs)
+  have horder_ne_top : meromorphicOrderAt riemannZeta s ≠ ⊤ :=
+    u6a_riemannZeta_meromorphicOrderAt_ne_top_of_ne_one hs
+  have hanOrder_ne_zero : analyticOrderAt riemannZeta s ≠ 0 := by
+    intro h
+    exact (han.analyticOrderAt_eq_zero.mp h) hzero
+  unfold riemannZeta.order
+  cases hO : analyticOrderAt riemannZeta s with
+  | top =>
+      exfalso
+      exact horder_ne_top (by simp [han.meromorphicOrderAt_eq, hO])
+  | coe n =>
+      have hn_pos : 0 < n := by
+        exact Nat.pos_of_ne_zero (by
+          intro hn
+          exact hanOrder_ne_zero (by simp [hO, hn]))
+      rw [han.meromorphicOrderAt_eq, hO, ENat.map_coe, WithTop.untopD_coe]
+      exact_mod_cast hn_pos
+
 private lemma reciprocalKernelPositiveIntegral_eq {δ γ : ℝ}
     (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
     (∫ u in (γ + δ)..(γ + 2), (1 / |u - γ| : ℝ) ∂volume) =
@@ -237,6 +286,12 @@ private lemma u6aZeroWindowSet_finite (σ₁ σ₂ X δ : ℝ) :
 `(X, 2X]`. -/
 noncomputable def u6aZeroWindowFinset (σ₁ σ₂ X δ : ℝ) : Finset ℂ :=
   (u6aZeroWindowSet_finite σ₁ σ₂ X δ).toFinset
+
+/-- Fixed finite window that contains every zero contributing to `S₂(t)` when
+`t ∈ (X, 2X]`. -/
+noncomputable def u6aFixedWindowReciprocalSum (σ₁ σ₂ X t : ℝ) : ℝ :=
+  ∑ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2,
+    (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ)
 
 /-- Finite set of heights that can violate the top or bottom `δ`-gap inside
 `(X, 2X]`.  It contains both zero ordinates and their negatives. -/
@@ -649,6 +704,60 @@ theorem u6aSafeHeightSet_restrict_measure_ne_zero_of_badHeightFinset
     (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) hX hδ hsmall
   have hpos : 0 < ENNReal.ofReal (X / 2) := ENNReal.ofReal_pos.2 (by linarith)
   exact ne_of_gt (lt_of_lt_of_le hpos hmeasure)
+
+private lemma u6aReciprocalZeroSet_finite (σ₁ σ₂ t : ℝ) :
+    (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))).Finite := by
+  rw [riemannZeta.zeroes_rect_eq]
+  let S : Set ℂ :=
+    (Complex.re ⁻¹' Set.Icc (min σ₁ σ₂) (max σ₁ σ₂)) ∩
+      (Complex.im ⁻¹' Set.Icc (t - 2) (t + 2))
+  have hS : IsCompact S := by
+    exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+      (isCompact_Icc.prod isCompact_Icc)
+  refine (riemannZeta.zeroes_on_Compact_finite' (S := S) hS).subset ?_
+  intro z hz
+  rcases hz with ⟨⟨hre, him⟩, hzeta⟩
+  exact ⟨⟨by simpa [Set.uIcc] using hre, him⟩, hzeta⟩
+
+/-- For `t ∈ (X, 2X]`, the moving width-two reciprocal zero sum is bounded by
+the fixed zero window used in the dyadic averaging argument. -/
+theorem u6aReciprocalZeroSum_le_fixedWindowReciprocalSum
+    {σ₁ σ₂ X δ t : ℝ} (hX : 0 < X) (ht : t ∈ u6aSafeHeightSet σ₁ σ₂ X δ) :
+    u6aReciprocalZeroSum σ₁ σ₂ t ≤ u6aFixedWindowReciprocalSum σ₁ σ₂ X t := by
+  classical
+  let Zmove := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))
+  let hmove : Zmove.Finite := u6aReciprocalZeroSet_finite σ₁ σ₂ t
+  let Zfixed := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+    (Set.Icc (-(2 * X + 2)) (2 * X + 2))
+  have hsubset : hmove.toFinset ⊆ u6aZeroWindowFinset σ₁ σ₂ X 2 := by
+    intro ρ hρ
+    have hρmove : ρ ∈ Zmove := hmove.mem_toFinset.mp hρ
+    have hρfixed : ρ ∈ Zfixed := by
+      refine ⟨hρmove.1, ?_, hρmove.2.2⟩
+      constructor
+      · have ht_low : X < t := ht.1.1
+        have him_low : t - 2 ≤ ρ.im := hρmove.2.1.1
+        linarith
+      · have ht_high : t ≤ 2 * X := ht.1.2
+        have him_high : ρ.im ≤ t + 2 := hρmove.2.1.2
+        linarith
+    unfold u6aZeroWindowFinset
+    exact (u6aZeroWindowSet_finite σ₁ σ₂ X 2).mem_toFinset.mpr hρfixed
+  unfold u6aReciprocalZeroSum u6aFixedWindowReciprocalSum
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+    (fun ρ => (1 / |t - ρ.im| : ℝ)) hmove]
+  refine Finset.sum_le_sum_of_subset_of_nonneg hsubset ?_
+  intro ρ hρfixed hρnot_move
+  have hρfixed_mem : ρ ∈ Zfixed := by
+    unfold u6aZeroWindowFinset at hρfixed
+    exact (u6aZeroWindowSet_finite σ₁ σ₂ X 2).mem_toFinset.mp hρfixed
+  have hzero : riemannZeta ρ = 0 := hρfixed_mem.2.2
+  have hne_one : ρ ≠ 1 := by
+    intro hρone
+    exact riemannZeta_one_ne_zero (by simpa [hρone] using hzero)
+  have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) := by
+    exact_mod_cast le_of_lt (u6a_riemannZeta_order_pos_of_zero_ne_one hne_one hzero)
+  exact mul_nonneg (by positivity) horder_nonneg
 
 private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
     (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
