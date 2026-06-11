@@ -612,6 +612,141 @@ theorem u6aSafeHeightSet_contains_diff_badHeightFinset
       rw [Set.mem_iUnion]
       exact ⟨-z.im, by rw [Set.mem_iUnion]; exact ⟨hzbad, htball⟩⟩)
 
+/-- The open bad-height cover is exactly the complement of the safe-height set
+inside `(X, 2X]`. -/
+theorem u6aSafeHeightSet_contains_diff_badHeightOpenBalls
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    Set.diff (Set.Ioc X (2 * X))
+        (⋃ a ∈ u6aBadHeightFinset σ₁ σ₂ X δ, Metric.ball a δ) ⊆
+      u6aSafeHeightSet σ₁ σ₂ X δ := by
+  classical
+  intro t ht
+  rcases ht with ⟨htIoc, htbad⟩
+  refine ⟨htIoc, hδ, ?_, ?_⟩
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose : |z.im - t| < δ := lt_of_not_ge hnot
+    have hdist := abs_lt.mp hclose
+    have him_low : -(2 * X + δ) ≤ z.im := by
+      nlinarith [htIoc.1, hdist.1, hX.le, hδ.le]
+    have him_high : z.im ≤ 2 * X + δ := by
+      nlinarith [htIoc.2, hdist.2]
+    have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+        (Set.Icc (-(2 * X + δ)) (2 * X + δ)) :=
+      ⟨hzre, ⟨him_low, him_high⟩, hzeta⟩
+    have hzFin : z ∈ u6aZeroWindowFinset σ₁ σ₂ X δ := by
+      unfold u6aZeroWindowFinset
+      exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mpr hzZ
+    have hzbad : z.im ∈ u6aBadHeightFinset σ₁ σ₂ X δ := by
+      unfold u6aBadHeightFinset
+      simp only [Finset.mem_union, Finset.mem_image]
+      exact Or.inl ⟨z, hzFin, rfl⟩
+    have htball : t ∈ Metric.ball z.im δ := by
+      rw [Metric.mem_ball, Real.dist_eq]
+      simpa [abs_sub_comm] using hclose
+    exact htbad (by
+      rw [Set.mem_iUnion]
+      exact ⟨z.im, by rw [Set.mem_iUnion]; exact ⟨hzbad, htball⟩⟩)
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose : |z.im + t| < δ := lt_of_not_ge hnot
+    have hdist := abs_lt.mp hclose
+    have him_low : -(2 * X + δ) ≤ z.im := by
+      nlinarith [htIoc.2, hdist.1]
+    have him_high : z.im ≤ 2 * X + δ := by
+      nlinarith [htIoc.1, hdist.2, hX.le, hδ.le]
+    have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+        (Set.Icc (-(2 * X + δ)) (2 * X + δ)) :=
+      ⟨hzre, ⟨him_low, him_high⟩, hzeta⟩
+    have hzFin : z ∈ u6aZeroWindowFinset σ₁ σ₂ X δ := by
+      unfold u6aZeroWindowFinset
+      exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mpr hzZ
+    have hzbad : -z.im ∈ u6aBadHeightFinset σ₁ σ₂ X δ := by
+      unfold u6aBadHeightFinset
+      simp only [Finset.mem_union, Finset.mem_image, neg_inj]
+      exact Or.inr ⟨z, hzFin, rfl⟩
+    have htball : t ∈ Metric.ball (-z.im) δ := by
+      rw [Metric.mem_ball, Real.dist_eq]
+      have hclose' : |t + z.im| < δ := by
+        simpa [add_comm] using hclose
+      simpa using hclose'
+    exact htbad (by
+      rw [Set.mem_iUnion]
+      exact ⟨-z.im, by rw [Set.mem_iUnion]; exact ⟨hzbad, htball⟩⟩)
+
+/-- Safe heights are exactly `(X, 2X]` after deleting the open `δ`-balls around
+the finitely many bad heights. -/
+theorem u6aSafeHeightSet_eq_diff_badHeightOpenBalls
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    u6aSafeHeightSet σ₁ σ₂ X δ =
+      Set.diff (Set.Ioc X (2 * X))
+        (⋃ a ∈ u6aBadHeightFinset σ₁ σ₂ X δ, Metric.ball a δ) := by
+  classical
+  apply Set.Subset.antisymm
+  · intro t ht
+    refine ⟨ht.1, ?_⟩
+    intro htbad
+    rcases Set.mem_iUnion.mp htbad with ⟨a, ha'⟩
+    rcases Set.mem_iUnion.mp ha' with ⟨ha, htball⟩
+    unfold u6aBadHeightFinset at ha
+    simp only [Finset.mem_union, Finset.mem_image] at ha
+    rcases ha with ha | ha
+    · rcases ha with ⟨z, hzFin, hza⟩
+      have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+          (Set.Icc (-(2 * X + δ)) (2 * X + δ)) := by
+        unfold u6aZeroWindowFinset at hzFin
+        exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mp hzFin
+      have htop := ht.2.2.1 z hzZ.1 hzZ.2.2
+      rw [← hza, Metric.mem_ball, Real.dist_eq] at htball
+      have hclose : |z.im - t| < δ := by
+        simpa [abs_sub_comm] using htball
+      exact not_le_of_gt hclose htop
+    · rcases ha with ⟨z, hzFin, hza⟩
+      have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+          (Set.Icc (-(2 * X + δ)) (2 * X + δ)) := by
+        unfold u6aZeroWindowFinset at hzFin
+        exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mp hzFin
+      have hbot := ht.2.2.2 z hzZ.1 hzZ.2.2
+      rw [← hza, Metric.mem_ball, Real.dist_eq] at htball
+      have hclose : |z.im + t| < δ := by
+        simpa [sub_neg_eq_add, add_comm] using htball
+      exact not_le_of_gt hclose hbot
+  · exact u6aSafeHeightSet_contains_diff_badHeightOpenBalls hX hδ
+
+/-- The safe-height set is measurable because the bad heights are finite. -/
+theorem measurableSet_u6aSafeHeightSet
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    MeasurableSet (u6aSafeHeightSet σ₁ σ₂ X δ) := by
+  rw [u6aSafeHeightSet_eq_diff_badHeightOpenBalls hX hδ]
+  have hbad_meas :
+      MeasurableSet (⋃ a ∈ u6aBadHeightFinset σ₁ σ₂ X δ, Metric.ball a δ) :=
+    Finset.measurableSet_biUnion (u6aBadHeightFinset σ₁ σ₂ X δ)
+      (fun _ _ => measurableSet_ball)
+  exact measurableSet_Ioc.diff hbad_meas
+
+/-- The constant side of the averaged selector is interval-integrable once the
+safe set has been identified as a finite open-ball deletion. -/
+theorem intervalIntegrable_u6aAveragedSelectionBound_indicator
+    {σ₁ σ₂ X δ M : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X) := by
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  let B : ℝ := u6aAveragedSelectionBound X δ M
+  have hE_meas : MeasurableSet E := by
+    simpa [E] using measurableSet_u6aSafeHeightSet (σ₁ := σ₁) (σ₂ := σ₂)
+      (X := X) (δ := δ) hX hδ
+  have hE_subset : E ⊆ Set.Ioc X (2 * X) := by
+    intro t ht
+    exact ht.1
+  have hIoc_ne_top : (volume : Measure ℝ) (Set.Ioc X (2 * X)) ≠ ⊤ := by
+    simp [Real.volume_Ioc]
+  have hE_ne_top : (volume : Measure ℝ) E ≠ ⊤ :=
+    ne_top_of_le_ne_top hIoc_ne_top (measure_mono hE_subset)
+  have hConst : IntegrableOn (fun _ : ℝ => B) E (volume : Measure ℝ) :=
+    integrableOn_const hE_ne_top
+  simpa [E, B] using hConst.integrable_indicator hE_meas |>.intervalIntegrable
+
 /-- Safe heights have measure at least `X / 2` once the finite bad-height
 cover has total length at most `X / 2`. -/
 theorem u6aSafeHeightSet_measure_ge_of_badHeightFinset
