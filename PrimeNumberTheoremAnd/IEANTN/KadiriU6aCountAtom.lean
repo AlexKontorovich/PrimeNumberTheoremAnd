@@ -100,6 +100,89 @@ theorem u6aCA_norm_gamma_half_mul_cosh_le (u : ℝ) :
   rw [hexpand, div_mul_eq_mul_div, div_le_iff₀ hpos]
   nlinarith [hcosh2, Real.pi_pos]
 
+/-! ## Gronwall transport across the strip -/
+
+/-- The vertical line `Re = σ` parametrization of `Γ` is differentiable in
+`σ`, with logarithmic derivative `digamma`. -/
+private lemma u6aCA_hasDerivAt_gamma_line {u : ℝ} (t : ℝ) (hu : 1 / 2 ≤ u) :
+    HasDerivAt (fun v : ℝ => Complex.Gamma (↑v + ↑t * I))
+      (Complex.Gamma (↑u + ↑t * I) * Complex.digamma (↑u + ↑t * I)) u := by
+  have hz : ∀ m : ℕ, (↑u + ↑t * I : ℂ) ≠ -↑m := by
+    intro m hc
+    have hre := congrArg Complex.re hc
+    simp at hre
+    nlinarith [Nat.cast_nonneg (α := ℝ) m]
+  have hdiff : DifferentiableAt ℂ Complex.Gamma (↑u + ↑t * I) :=
+    Complex.differentiableAt_Gamma _ hz
+  have hΓval : Complex.Gamma (↑u + ↑t * I) * Complex.digamma (↑u + ↑t * I) =
+      deriv Complex.Gamma (↑u + ↑t * I) := by
+    rw [Complex.digamma_def, logDeriv_apply,
+      mul_div_cancel₀ _ (Complex.Gamma_ne_zero hz)]
+  have hΓ : HasDerivAt Complex.Gamma (deriv Complex.Gamma (↑u + ↑t * I))
+      (↑u + ↑t * I) := hdiff.hasDerivAt
+  have hshift : HasDerivAt (fun w : ℂ => w + ↑t * I) 1 ↑u :=
+    (hasDerivAt_id (↑u : ℂ)).add_const _
+  have hcomp : HasDerivAt (fun w : ℂ => Complex.Gamma (w + ↑t * I))
+      (deriv Complex.Gamma (↑u + ↑t * I) * 1) ↑u := by
+    have := HasDerivAt.comp (h₂ := Complex.Gamma) (h := fun w : ℂ => w + ↑t * I)
+      ((↑u : ℂ)) hΓ hshift
+    simpa [Function.comp_def] using this
+  rw [mul_one] at hcomp
+  have hreal := HasDerivAt.comp_ofReal (e := fun w : ℂ => Complex.Gamma (w + ↑t * I))
+    (e' := deriv Complex.Gamma (↑u + ↑t * I)) (z := u) hcomp
+  rw [← hΓval] at hreal
+  exact hreal
+
+/-- Gronwall transport of `‖Γ‖` from the critical line across `Re ∈ [1/2, 7/2]`:
+the digamma strip bound is the Gronwall constant, so the strip only costs a
+polynomial factor `(|t|+2)^(3K)`. -/
+theorem u6aCA_exists_gamma_transport :
+    ∃ K : ℝ, 0 < K ∧ ∀ σ t : ℝ, 1 / 2 ≤ σ → σ ≤ 7 / 2 →
+      ‖Complex.Gamma (↑σ + ↑t * I)‖ ≤
+        ‖Complex.Gamma (1 / 2 + ↑t * I)‖ * (|t| + 2) ^ (3 * K) := by
+  obtain ⟨K, hK0, hψ⟩ := Complex.exists_norm_digamma_le_log (a := 1 / 2) (b := 7 / 2)
+    (by norm_num)
+  refine ⟨K, hK0, fun σ t hσ1 hσ2 => ?_⟩
+  have hlog2 : 0 < Real.log (|t| + 2) :=
+    Real.log_pos (by linarith [abs_nonneg t])
+  have hcont : ContinuousOn (fun v : ℝ => Complex.Gamma (↑v + ↑t * I))
+      (Set.Icc (1 / 2 : ℝ) (7 / 2)) := fun v hv =>
+    ((u6aCA_hasDerivAt_gamma_line t hv.1).continuousAt).continuousWithinAt
+  have hder : ∀ v ∈ Set.Ico (1 / 2 : ℝ) (7 / 2),
+      HasDerivWithinAt (fun v : ℝ => Complex.Gamma (↑v + ↑t * I))
+        (Complex.Gamma (↑v + ↑t * I) * Complex.digamma (↑v + ↑t * I))
+        (Set.Ici v) v := fun v hv =>
+    (u6aCA_hasDerivAt_gamma_line t hv.1).hasDerivWithinAt
+  have hbound : ∀ v ∈ Set.Ico (1 / 2 : ℝ) (7 / 2),
+      ‖Complex.Gamma (↑v + ↑t * I) * Complex.digamma (↑v + ↑t * I)‖ ≤
+        K * Real.log (|t| + 2) * ‖Complex.Gamma (↑v + ↑t * I)‖ + 0 := by
+    intro v hv
+    rw [norm_mul, add_zero]
+    have hre : (↑v + ↑t * I : ℂ).re = v := by simp
+    have him : (↑v + ↑t * I : ℂ).im = t := by simp
+    have hψv := hψ (↑v + ↑t * I) (by rw [hre]; exact hv.1) (by rw [hre]; exact hv.2.le)
+    rw [him] at hψv
+    calc ‖Complex.Gamma (↑v + ↑t * I)‖ * ‖Complex.digamma (↑v + ↑t * I)‖
+        ≤ ‖Complex.Gamma (↑v + ↑t * I)‖ * (K * Real.log (|t| + 2)) :=
+          mul_le_mul_of_nonneg_left hψv (norm_nonneg _)
+      _ = K * Real.log (|t| + 2) * ‖Complex.Gamma (↑v + ↑t * I)‖ := by ring
+  have key := norm_le_gronwallBound_of_norm_deriv_right_le
+    (f := fun v : ℝ => Complex.Gamma (↑v + ↑t * I))
+    (f' := fun v : ℝ => Complex.Gamma (↑v + ↑t * I) * Complex.digamma (↑v + ↑t * I))
+    (δ := ‖Complex.Gamma (↑(1 / 2 : ℝ) + ↑t * I)‖) (K := K * Real.log (|t| + 2))
+    (ε := 0) (a := 1 / 2) (b := 7 / 2) hcont hder le_rfl hbound
+  have hσKey := key σ ⟨hσ1, hσ2⟩
+  rw [gronwallBound_ε0] at hσKey
+  have hhalf : (↑(1 / 2 : ℝ) : ℂ) + ↑t * I = 1 / 2 + ↑t * I := by norm_num
+  rw [hhalf] at hσKey
+  refine le_trans hσKey ?_
+  have hexp : Real.exp (K * Real.log (|t| + 2) * (σ - 1 / 2)) ≤ (|t| + 2) ^ (3 * K) := by
+    rw [Real.rpow_def_of_pos (by linarith [abs_nonneg t])]
+    apply Real.exp_le_exp.mpr
+    have h3 : σ - 1 / 2 ≤ 3 := by linarith
+    nlinarith [mul_le_mul_of_nonneg_left h3 (mul_pos hK0 hlog2).le]
+  exact mul_le_mul_of_nonneg_left hexp (norm_nonneg _)
+
 end
 
 end Kadiri
