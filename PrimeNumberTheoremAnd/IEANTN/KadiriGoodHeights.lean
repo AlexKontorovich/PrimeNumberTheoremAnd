@@ -2297,6 +2297,45 @@ theorem u6aShiftedZetaPoleRemoved_divisorMassClosedBall_le
       (C := C * (1 + ‖s‖) ^ (2 : ℝ))
       (differentiable_u6aShiftedZetaPoleRemoved s) hgrowth_for_s hR
 
+/-- Away from the pole point, the translated removable extension is the zeta
+factor multiplied by `s + z - 1`. -/
+theorem u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta {s z : ℂ}
+    (h1 : s + z ≠ 1) :
+    u6aShiftedZetaPoleRemoved s z = (s + z - 1) * riemannZeta (s + z) := by
+  simpa [u6aShiftedZetaPoleRemoved] using
+    Complex.zetaTimesSMinusOne_entire_eq_mul_riemannZeta h1
+
+/-- On disks not meeting the pole point, zeros of the translated removable
+extension are exactly zeta zeros.  Multiplicity packaging is the next PF-disk
+bridge, but this is the zero-set identity needed before that step. -/
+theorem u6aShiftedZetaPoleRemoved_zero_iff {s z : ℂ}
+    (h1 : s + z ≠ 1) :
+    u6aShiftedZetaPoleRemoved s z = 0 ↔ riemannZeta (s + z) = 0 := by
+  rw [u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta h1]
+  constructor
+  · intro h
+    exact (mul_eq_zero.mp h).resolve_left (sub_ne_zero.2 h1)
+  · intro h
+    simp [h]
+
+/-- If the center is neither the pole nor a zeta zero, Jensen's trailing
+coefficient for the translated removable extension is the center value
+`(s - 1)ζ(s)`. -/
+theorem u6aShiftedZetaPoleRemoved_trailingCoeffAt_zero_eq {s : ℂ}
+    (hs1 : s ≠ 1) (hζ : riemannZeta s ≠ 0) :
+    meromorphicTrailingCoeffAt (u6aShiftedZetaPoleRemoved s) 0 =
+      (s - 1) * riemannZeta s := by
+  have han : AnalyticAt ℂ (u6aShiftedZetaPoleRemoved s) 0 :=
+    (differentiable_u6aShiftedZetaPoleRemoved s).analyticAt 0
+  have hval :
+      u6aShiftedZetaPoleRemoved s 0 = (s - 1) * riemannZeta s := by
+    simpa using u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta
+      (s := s) (z := 0) (by simpa using hs1)
+  have hnonzero : u6aShiftedZetaPoleRemoved s 0 ≠ 0 := by
+    rw [hval]
+    exact mul_ne_zero (sub_ne_zero.2 hs1) hζ
+  rw [han.meromorphicTrailingCoeffAt_of_ne_zero hnonzero, hval]
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
