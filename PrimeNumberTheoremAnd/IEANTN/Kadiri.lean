@@ -1603,6 +1603,115 @@ theorem summable_re_one_div_at_zeros (s : ℂ) :
     _ = (|s.re| + 1) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
         rw [inv_pow, sq_abs, div_eq_mul_inv]
 
+
+/-- Summability of the genus-one zero packets `1/ρ + 1/(s - ρ)`: away from finitely
+many zeros the packet equals `s/(ρ(s - ρ))`, of norm at most
+`‖s‖/2 · (1/(Im ρ)² + 1/(Im (s - ρ))²)` by AM-GM, and both square tails are summable
+by the crude counting majorant. This is the convergence input that makes the paired
+form of the residue sums legitimate. -/
+theorem summable_one_div_add_one_div_at_zeros (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))) := by
+  have htail0 : Summable (fun ρ : NontrivialZeros ↦ |(ρ : ℂ).im|⁻¹ ^ (2 : ℕ)) := by
+    have h := zeroImagSquareTailSummable_of_crude_majorant
+    unfold zeroImagSquareTailSummable zeroImagSquareTail at h
+    exact h
+  have htails : Summable (fun ρ : NontrivialZeros ↦
+      ‖s‖ / 2 * (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (htail0.add (summable_zeroImagSquareTail_shifted_unconditional s)).mul_left _
+  refine Summable.of_norm_bounded_eventually htails ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset
+    (nontrivialZeros_abs_im_lt_one_finite.union
+      (nontrivialZeros_shifted_abs_im_lt_one_finite s))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad
+  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  by_contra hsmall
+  rw [not_or] at hsmall
+  obtain ⟨h1, h2⟩ := hsmall
+  have him1 : 1 ≤ |(ρ : ℂ).im| := not_lt.mp h1
+  have him2 : 1 ≤ |(s - (ρ : ℂ)).im| := not_lt.mp h2
+  apply hbad
+  have hρ0 : ((ρ : ℂ)) ≠ 0 := nontrivialZero_ne_zero ρ
+  have him2ne : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him2
+    norm_num at him2
+  have hsρ : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him2ne
+    rw [h]
+    rfl
+  have hnρ : (0 : ℝ) < ‖(ρ : ℂ)‖ := norm_pos_iff.mpr hρ0
+  have hnsρ : (0 : ℝ) < ‖s - (ρ : ℂ)‖ := norm_pos_iff.mpr hsρ
+  have him1pos : (0 : ℝ) < |(ρ : ℂ).im| := lt_of_lt_of_le one_pos him1
+  have him2pos : (0 : ℝ) < |(s - (ρ : ℂ)).im| := lt_of_lt_of_le one_pos him2
+  have hpacket : 1 / ((ρ : ℂ)) + 1 / (s - (ρ : ℂ)) =
+      s / (((ρ : ℂ)) * (s - (ρ : ℂ))) := by
+    field_simp
+    ring
+  rw [hpacket, norm_div, norm_mul]
+  have hstep1 : ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+      ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := by
+    rw [div_eq_mul_inv, mul_inv]
+    have ha : ‖(ρ : ℂ)‖⁻¹ ≤ |(ρ : ℂ).im|⁻¹ :=
+      inv_anti₀ him1pos (Complex.abs_im_le_norm _)
+    have hb : ‖s - (ρ : ℂ)‖⁻¹ ≤ |(s - (ρ : ℂ)).im|⁻¹ :=
+      inv_anti₀ him2pos (Complex.abs_im_le_norm _)
+    have hb0 : (0 : ℝ) ≤ ‖s - (ρ : ℂ)‖⁻¹ := by positivity
+    have ha0 : (0 : ℝ) ≤ |(ρ : ℂ).im|⁻¹ := by positivity
+    refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+    exact mul_le_mul ha hb hb0 ha0
+  have hstep2 : |(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹ ≤
+      (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2 := by
+    nlinarith [two_mul_le_add_sq (|(ρ : ℂ).im|⁻¹) (|(s - (ρ : ℂ)).im|⁻¹)]
+  calc ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)
+      ≤ ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := hstep1
+    _ ≤ ‖s‖ * ((|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2) :=
+        mul_le_mul_of_nonneg_left hstep2 (norm_nonneg s)
+    _ = ‖s‖ / 2 * (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        ring
+
+/-- The reciprocal real-part sum, the `s`-free half of the packet. -/
+theorem summable_re_inv_at_zeros :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (ρ.val : ℂ)).re) := by
+  refine (summable_re_one_div_at_zeros 0).neg.congr fun ρ ↦ ?_
+  rw [zero_sub, one_div, inv_neg, Complex.neg_re, neg_neg, one_div]
+
+/-- Distributing `Re` over the packet sum: the paired complex sum splits into the two
+absolutely summable real-part sums. -/
+theorem re_tsum_paired_eq_re_inv_add_re_shifted (s : ℂ) :
+    (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re =
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re) +
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (s - ρ.val)).re := by
+  have h1 : (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re =
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)).re := by
+    simpa using ContinuousLinearMap.map_tsum Complex.reCLM
+      (summable_one_div_add_one_div_at_zeros s)
+  rw [h1, tsum_congr (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+    Complex.add_re (1 / (ρ.val : ℂ)) (1 / (s - ρ.val)))]
+  exact summable_re_inv_at_zeros.tsum_add (summable_re_one_div_at_zeros s)
+
+/-- BRIDGE between the two repaired shapes of the residue sums: the Re-inside form
+equals the paired form minus the reciprocal correction. Either side can serve as the
+zero term of the real-part identities; this lemma converts between them for free. -/
+theorem re_shifted_sum_eq_paired_sub_re_inv (s : ℂ) :
+    (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (s - ρ.val)).re) =
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re := by
+  rw [re_tsum_paired_eq_re_inv_add_re_shifted s]
+  ring
+
 @[blueprint
   "kadiri-summable-lap-at-zeros"
   (title := "Summability of $\\sum_\\rho \\Re F(s - \\rho)$")
