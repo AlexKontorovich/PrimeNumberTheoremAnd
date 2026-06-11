@@ -2318,6 +2318,23 @@ theorem u6aShiftedZetaPoleRemoved_zero_iff {s z : ℂ}
   · intro h
     simp [h]
 
+/-- Disk form of `u6aShiftedZetaPoleRemoved_zero_iff`: if the closed radius
+`R` disk around the translated origin stays away from the pole point `1`, every
+point in that disk has the same zero predicate for the removable extension and
+for `ζ`. -/
+theorem u6aShiftedZetaPoleRemoved_zero_iff_of_norm_le
+    {s z : ℂ} {R : ℝ} (hz : ‖z‖ ≤ R) (hR : R < ‖s - 1‖) :
+    u6aShiftedZetaPoleRemoved s z = 0 ↔ riemannZeta (s + z) = 0 := by
+  apply u6aShiftedZetaPoleRemoved_zero_iff
+  intro h
+  have hs1 : s - 1 = -z := by
+    calc
+      s - 1 = s - (s + z) := by rw [h]
+      _ = -z := by ring
+  have hnorm : ‖s - 1‖ = ‖z‖ := by
+    rw [hs1, norm_neg]
+  linarith
+
 /-- If the center is neither the pole nor a zeta zero, Jensen's trailing
 coefficient for the translated removable extension is the center value
 `(s - 1)ζ(s)`. -/
