@@ -1,4 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriGoodHeights
+import PrimeNumberTheoremAnd.IEANTN.KadiriContourShift
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 
 /-!
 # U6a far-tail lane: the zero-sum remainder from a single local-count atom
@@ -81,6 +83,100 @@ theorem U6aZeroSumRemainderBoundHypothesis_of_farTail_and_count
         have := le_trans h2 h3'
         linarith
     _ = (Cfar + Ccnt) * Real.log |s.im| := by ring
+
+/-! ## The finite/global bridge: splitting the Hadamard tsum at the window -/
+
+/-- The nearby window of zeta zeros, as a set. -/
+def u6aFTNearbyWindow (t : ℝ) : Set ℂ :=
+  riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1))
+
+theorem u6aFTNearbyWindow_finite (t : ℝ) : (u6aFTNearbyWindow t).Finite := by
+  have h := zeroes_rect_uIcc_finite ((-1 : ℂ) + (t - 1) * I) ((2 : ℂ) + (t + 1) * I)
+  have hre1 : ((-1 : ℂ) + (t - 1) * I).re = -1 := by simp
+  have hre2 : ((2 : ℂ) + (t + 1) * I).re = 2 := by simp
+  have him1 : ((-1 : ℂ) + (t - 1) * I).im = t - 1 := by simp
+  have him2 : ((2 : ℂ) + (t + 1) * I).im = t + 1 := by simp
+  rw [hre1, hre2, him1, him2, Set.uIcc_of_le (by linarith : t - 1 ≤ t + 1)] at h
+  exact h
+
+/-- The nearby window pulled back to the xi divisor index: the union of the
+finite fibers over the windowed zeros. -/
+noncomputable def u6aXiNearbyIndexFinset (t : ℝ) :
+    Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :=
+  letI : DecidableEq (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :=
+    Classical.decEq _
+  (u6aFTNearbyWindow_finite t).toFinset.biUnion
+    fun ρ => Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ
+
+/-- Membership in the pulled-back window is membership of the value in the
+window. -/
+theorem mem_u6aXiNearbyIndexFinset_iff (t : ℝ)
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    p ∈ u6aXiNearbyIndexFinset t ↔
+      Complex.Hadamard.divisorZeroIndex₀_val p ∈ u6aFTNearbyWindow t := by
+  unfold u6aXiNearbyIndexFinset
+  letI : DecidableEq (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :=
+    Classical.decEq _
+  rw [Finset.mem_biUnion]
+  constructor
+  · rintro ⟨ρ, hρ, hp⟩
+    rw [Complex.Hadamard.mem_divisorZeroIndex₀_fiberFinset] at hp
+    rw [hp]
+    exact (Set.Finite.mem_toFinset _).mp hρ
+  · intro hval
+    exact ⟨Complex.Hadamard.divisorZeroIndex₀_val p, (Set.Finite.mem_toFinset _).mpr hval,
+      (Complex.Hadamard.mem_divisorZeroIndex₀_fiberFinset _ _ _).mpr rfl⟩
+
+/-- The nearby fiber double sum is the single sum over the pulled-back window. -/
+theorem u6aXiFiberNearbyHadamardSum_eq_indexFinset_sum (t : ℝ) (s : ℂ) :
+    u6aXiFiberNearbyHadamardSum t s =
+      ∑ p ∈ u6aXiNearbyIndexFinset t,
+        ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+          1 / Complex.Hadamard.divisorZeroIndex₀_val p) := by
+  letI : DecidableEq (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :=
+    Classical.decEq _
+  unfold u6aXiFiberNearbyHadamardSum u6aXiNearbyIndexFinset
+  rw [Finset.sum_biUnion (by
+    intro ρ₁ _ ρ₂ _ hne
+    simp only [Function.onFun]
+    rw [Finset.disjoint_left]
+    intro p hp1 hp2
+    rw [Complex.Hadamard.mem_divisorZeroIndex₀_fiberFinset] at hp1 hp2
+    exact hne (hp1 ▸ hp2))]
+  refine Finset.sum_congr ?_ fun ρ _ => rfl
+  ext ρ
+  simp only [Set.Finite.mem_toFinset]
+  rfl
+
+/-- The finite/global bridge: at any point off the indexed zero set, the
+global xi Hadamard sum splits into the nearby fiber sum plus the far-tail
+tsum over the complement of the pulled-back window. -/
+theorem u6aXiHadamardZeroSum_eq_nearby_add_farTail (t : ℝ) {s : ℂ}
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) :
+    u6aXiHadamardZeroSum s =
+      u6aXiFiberNearbyHadamardSum t s +
+        ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+            p ∉ u6aXiNearbyIndexFinset t},
+          ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) := by
+  have hsum := summable_riemannXi_logDerivTerms_divisorZeroIndex₀ (z := s) hz
+  have hsplit := hsum.sum_add_tsum_subtype_compl (u6aXiNearbyIndexFinset t)
+  unfold u6aXiHadamardZeroSum
+  rw [← hsplit, u6aXiFiberNearbyHadamardSum_eq_indexFinset_sum]
+
+/-- The far remainder is exactly the complement tsum: the analytic far-tail
+estimate may now be attacked termwise. -/
+theorem u6aXiFarHadamardRemainder_eq_tsum_compl (t : ℝ) {s : ℂ}
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) :
+    u6aXiFarHadamardRemainder t s =
+      ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+        ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+          1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) := by
+  unfold u6aXiFarHadamardRemainder
+  linear_combination u6aXiHadamardZeroSum_eq_nearby_add_farTail t hz
 
 end
 
