@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import Mathlib.Order.Interval.Set.Infinite
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
 # Zero-free horizontal heights for Kadiri contour shifts
@@ -11,6 +12,7 @@ contour heights away from zeta zeros.
 namespace Kadiri
 
 open Complex
+open MeasureTheory
 
 noncomputable section
 
@@ -78,6 +80,22 @@ noncomputable def u6aNearbyZeroPrincipalSum (σ₁ σ₂ t : ℝ) (s : ℂ) : �
 noncomputable def u6aNearbyZeroCount (σ₁ σ₂ t : ℝ) : ℝ :=
   riemannZeta.zeroes_sum (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
     fun _ => (1 : ℝ)
+
+/-- The panel-revised U6a reciprocal zero sum
+`S₂(t) = Σ_{|γ - t| ≤ 2} 1 / |t - γ|`, multiplicity-weighted through
+`zeroes_sum`. -/
+noncomputable def u6aReciprocalZeroSum (σ₁ σ₂ t : ℝ) : ℝ :=
+  riemannZeta.zeroes_sum (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))
+    fun ρ => 1 / |t - ρ.im|
+
+/-- Safe heights in the dyadic interval `[X, 2X]`, with both horizontal sides
+at least `δ` away from zero ordinates. -/
+def u6aSafeHeightSet (σ₁ σ₂ X δ : ℝ) : Set ℝ :=
+  {t | t ∈ Set.Ioc X (2 * X) ∧ horizontalSegmentZeroGap σ₁ σ₂ t δ}
+
+/-- The explicit panel bound selected from the averaged reciprocal-zero sum. -/
+noncomputable def u6aAveragedSelectionBound (X δ M : ℝ) : ℝ :=
+  4 * M * Real.log (2 / δ) / X
 
 /-- Named local-density hypothesis for the conditional U6a route.  This is the
 RvM-style input `N(t+1)-N(t) ≤ C log t` used by the sprint panel. -/
@@ -169,6 +187,67 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_conditional
   exact ⟨T, hT₀, hT3,
     horizontalSegmentLogDerivBound_of_zeroGap_and_partialFraction hT3 hgap
       (hC T hT3 hgap)⟩
+
+/-- Mean-value extraction for the panel-revised averaged selector.  Once the
+safe-set integral of `S₂` is below the safe-set integral of the boxed constant,
+some safe height realizes the pointwise bound. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_indicator_average
+    {σ₁ σ₂ X δ M : ℝ}
+    (hX : 0 < X)
+    (hEpos :
+      (volume.restrict (Set.Ioc X (2 * X)))
+        (u6aSafeHeightSet σ₁ σ₂ X δ) ≠ 0)
+    (hSInt : IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        (u6aReciprocalZeroSum σ₁ σ₂)) volume X (2 * X))
+    (hBInt : IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X))
+    (hAvg :
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+        ∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume) :
+    ∃ T : ℝ, T ∈ u6aSafeHeightSet σ₁ σ₂ X δ ∧
+      u6aReciprocalZeroSum σ₁ σ₂ T ≤ u6aAveragedSelectionBound X δ M := by
+  by_contra hnone
+  push Not at hnone
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  let B : ℝ := u6aAveragedSelectionBound X δ M
+  let f : ℝ → ℝ := E.indicator fun _ : ℝ => B
+  let g : ℝ → ℝ := E.indicator (u6aReciprocalZeroSum σ₁ σ₂)
+  have hle : f ≤ᶠ[ae (volume.restrict (Set.Ioc X (2 * X)))] g := by
+    filter_upwards with t
+    by_cases ht : t ∈ E
+    · have hlt : B < u6aReciprocalZeroSum σ₁ σ₂ t := hnone t ht
+      simp [f, g, E, B, ht, le_of_lt hlt]
+    · simp [f, g, ht]
+  have hlt_set : (volume.restrict (Set.Ioc X (2 * X))) {t | f t < g t} ≠ 0 := by
+    have hsub : E ⊆ {t | f t < g t} := by
+      intro t ht
+      have hlt : B < u6aReciprocalZeroSum σ₁ σ₂ t := hnone t ht
+      simp [f, g, ht, hlt]
+    have hle_measure :
+        (volume.restrict (Set.Ioc X (2 * X))) E ≤
+          (volume.restrict (Set.Ioc X (2 * X))) {t | f t < g t} :=
+      measure_mono hsub
+    intro hzero
+    have hEzero : (volume.restrict (Set.Ioc X (2 * X))) E = 0 :=
+      le_antisymm (hle_measure.trans (le_of_eq hzero)) (by positivity)
+    exact hEpos (by simpa [E] using hEzero)
+  have hlt_int :
+      (∫ t in X..(2 * X), f t ∂volume) <
+        ∫ t in X..(2 * X), g t ∂volume := by
+    have hXX : X ≤ 2 * X := by nlinarith [hX]
+    exact intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOf_lt_ne_zero
+      (μ := volume) (a := X) (b := 2 * X) hXX
+      (by simpa [f, E, B] using hBInt)
+      (by simpa [g, E] using hSInt)
+      hle hlt_set
+  exact not_lt_of_ge (by simpa [f, g, E, B] using hAvg)
+    (by simpa [f, g, E, B] using hlt_int)
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
