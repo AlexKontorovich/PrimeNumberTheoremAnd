@@ -190,6 +190,85 @@ theorem reciprocalKernelTwoSidedIntegral_le {δ γ : ℝ}
   rw [hpos]
   linarith
 
+private lemma intervalIntegrable_reciprocalKernel_left {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    IntervalIntegrable (fun u : ℝ => (1 / |u - γ| : ℝ)) volume (γ - 2) (γ - δ) := by
+  have hle : γ - 2 ≤ γ - δ := by linarith
+  refine ContinuousOn.intervalIntegrable_of_Icc hle ?_
+  intro u hu
+  have hne : |u - γ| ≠ 0 := by
+    have hu_le : u ≤ γ - δ := hu.2
+    have hlt : u < γ := by linarith
+    exact abs_ne_zero.mpr (sub_ne_zero.mpr hlt.ne)
+  simpa [one_div] using
+    (ContinuousAt.inv₀ ((continuousAt_id.sub continuousAt_const).abs) hne).continuousWithinAt
+
+private lemma intervalIntegrable_reciprocalKernel_right {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    IntervalIntegrable (fun u : ℝ => (1 / |u - γ| : ℝ)) volume (γ + δ) (γ + 2) := by
+  have hle : γ + δ ≤ γ + 2 := by linarith
+  refine ContinuousOn.intervalIntegrable_of_Icc hle ?_
+  intro u hu
+  have hne : |u - γ| ≠ 0 := by
+    have hu_ge : γ + δ ≤ u := hu.1
+    have hgt : γ < u := by linarith
+    exact abs_ne_zero.mpr (sub_ne_zero.mpr hgt.ne')
+  simpa [one_div] using
+    (ContinuousAt.inv₀ ((continuousAt_id.sub continuousAt_const).abs) hne).continuousWithinAt
+
+private lemma integrable_puncturedReciprocalKernel {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    Integrable
+      ((Set.Icc (γ - 2) (γ - δ) ∪ Set.Icc (γ + δ) (γ + 2)).indicator
+        (fun u : ℝ => (1 / |u - γ| : ℝ))) volume := by
+  let k : ℝ → ℝ := fun u => (1 / |u - γ| : ℝ)
+  let L : Set ℝ := Set.Icc (γ - 2) (γ - δ)
+  let R : Set ℝ := Set.Icc (γ + δ) (γ + 2)
+  have hL_ioc : IntegrableOn k (Set.Ioc (γ - 2) (γ - δ)) volume := by
+    simpa [k, L] using
+      (intervalIntegrable_reciprocalKernel_left (γ := γ) hδ0 hδ2).1
+  have hR_ioc : IntegrableOn k (Set.Ioc (γ + δ) (γ + 2)) volume := by
+    simpa [k, R] using
+      (intervalIntegrable_reciprocalKernel_right (γ := γ) hδ0 hδ2).1
+  have hL : IntegrableOn k L volume := by
+    simpa [L] using hL_ioc.congr_set_ae (Ioc_ae_eq_Icc (μ := volume)).symm
+  have hR : IntegrableOn k R volume := by
+    simpa [R] using hR_ioc.congr_set_ae (Ioc_ae_eq_Icc (μ := volume)).symm
+  have hLR : IntegrableOn k (L ∪ R) volume := hL.union hR
+  exact hLR.integrable_indicator (measurableSet_Icc.union measurableSet_Icc)
+
+private lemma integral_puncturedReciprocalKernel_eq {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    ∫ u, (Set.Icc (γ - 2) (γ - δ) ∪ Set.Icc (γ + δ) (γ + 2)).indicator
+        (fun u : ℝ => (1 / |u - γ| : ℝ)) u ∂volume =
+      (∫ u in (γ - 2)..(γ - δ), (1 / |u - γ| : ℝ) ∂volume) +
+        ∫ u in (γ + δ)..(γ + 2), (1 / |u - γ| : ℝ) ∂volume := by
+  let k : ℝ → ℝ := fun u => (1 / |u - γ| : ℝ)
+  let L : Set ℝ := Set.Icc (γ - 2) (γ - δ)
+  let R : Set ℝ := Set.Icc (γ + δ) (γ + 2)
+  have hL_ioc : IntegrableOn k (Set.Ioc (γ - 2) (γ - δ)) volume := by
+    simpa [k] using
+      (intervalIntegrable_reciprocalKernel_left (γ := γ) hδ0 hδ2).1
+  have hR_ioc : IntegrableOn k (Set.Ioc (γ + δ) (γ + 2)) volume := by
+    simpa [k] using
+      (intervalIntegrable_reciprocalKernel_right (γ := γ) hδ0 hδ2).1
+  have hL : IntegrableOn k L volume := by
+    simpa [L] using hL_ioc.congr_set_ae (Ioc_ae_eq_Icc (μ := volume)).symm
+  have hR : IntegrableOn k R volume := by
+    simpa [R] using hR_ioc.congr_set_ae (Ioc_ae_eq_Icc (μ := volume)).symm
+  have hdisj : Disjoint L R := by
+    rw [Set.disjoint_left]
+    intro u huL huR
+    have hle_left : u ≤ γ - δ := huL.2
+    have hge_right : γ + δ ≤ u := huR.1
+    linarith
+  have haedisj : AEDisjoint volume L R := hdisj.aedisjoint
+  rw [MeasureTheory.integral_indicator (measurableSet_Icc.union measurableSet_Icc)]
+  rw [MeasureTheory.setIntegral_union₀ haedisj measurableSet_Icc.nullMeasurableSet hL hR]
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, MeasureTheory.integral_Icc_eq_integral_Ioc]
+  rw [intervalIntegral.integral_of_le (by linarith : γ - 2 ≤ γ - δ)]
+  rw [intervalIntegral.integral_of_le (by linarith : γ + δ ≤ γ + 2)]
+
 /-- Removing finitely many closed `δ`-balls from `(X, 2X]` leaves at least
 `X / 2` measure once their total length is at most `X / 2`. -/
 theorem volume_Ioc_diff_closedBalls_ge (A : Finset ℝ) {X δ : ℝ}
@@ -300,6 +379,11 @@ noncomputable def u6aFixedWindowLocalizedReciprocalSum (σ₁ σ₂ X t : ℝ) :
     (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
       (fun u : ℝ => 1 / |u - ρ.im|) t *
       (riemannZeta.order ρ : ℝ)
+
+/-- Order-weighted zero mass in the fixed dyadic window used by the
+averaging argument. -/
+noncomputable def u6aFixedWindowZeroMass (σ₁ σ₂ X : ℝ) : ℝ :=
+  ∑ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2, (riemannZeta.order ρ : ℝ)
 
 /-- Finite set of heights that can violate the top or bottom `δ`-gap inside
 `(X, 2X]`.  It contains both zero ordinates and their negatives. -/
@@ -1148,6 +1232,454 @@ theorem intervalIntegrable_u6aReciprocalZeroSum_indicator
       simp [f, g, ht, heq]
     · simp [f, g, ht]
   exact hg.congr_ae hfg
+
+private lemma norm_safe_localizedReciprocalKernel_le
+    {σ₁ σ₂ X δ : ℝ} {ρ : ℂ} (hδ : 0 < δ)
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2) :
+    ∀ t : ℝ,
+      ‖(u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun u : ℝ =>
+            (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+              (fun v : ℝ => 1 / |v - ρ.im|) u) t‖ ≤
+        1 / δ := by
+  intro t
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  by_cases htE : t ∈ E
+  · by_cases htlocal : t ∈ Set.Icc (ρ.im - 2) (ρ.im + 2)
+    · have hρmem : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+          (Set.Icc (-(2 * X + 2)) (2 * X + 2)) := by
+        simpa [u6aZeroWindowFinset] using hρ
+      have hgap : δ ≤ |t - ρ.im| := by
+        have h := htE.2.2.1 ρ hρmem.1 hρmem.2.2
+        simpa [E, abs_sub_comm] using h
+      have hinv : 1 / |t - ρ.im| ≤ 1 / δ :=
+        one_div_le_one_div_of_le hδ hgap
+      have hnonneg : 0 ≤ (1 / |t - ρ.im| : ℝ) := by positivity
+      simpa [E, htE, htlocal, Real.norm_eq_abs, abs_of_nonneg hnonneg] using hinv
+    · have hδ_nonneg : 0 ≤ 1 / δ := by positivity
+      simpa [E, htE, htlocal, Real.norm_eq_abs] using hδ_nonneg
+  · have hδ_nonneg : 0 ≤ 1 / δ := by positivity
+    simpa [E, htE, Real.norm_eq_abs] using hδ_nonneg
+
+private lemma intervalIntegrable_safe_localizedReciprocalKernel
+    {σ₁ σ₂ X δ : ℝ} {ρ : ℂ}
+    (hX : 0 < X) (hδ : 0 < δ)
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2) :
+    IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        (fun u : ℝ =>
+          (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+            (fun v : ℝ => 1 / |v - ρ.im|) u)) volume X (2 * X) := by
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  have hE_meas : MeasurableSet E := by
+    simpa [E] using measurableSet_u6aSafeHeightSet (σ₁ := σ₁) (σ₂ := σ₂)
+      (X := X) (δ := δ) hX hδ
+  have hmeas :
+      Measurable
+        (E.indicator
+          (fun u : ℝ =>
+            (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+              (fun v : ℝ => 1 / |v - ρ.im|) u)) := by
+    have hkernel : Measurable fun v : ℝ => (1 / |v - ρ.im| : ℝ) := by
+      fun_prop
+    exact ((hkernel.indicator measurableSet_Icc).indicator hE_meas)
+  have hB : IntervalIntegrable (fun _ : ℝ => 1 / δ) volume X (2 * X) :=
+    continuous_const.intervalIntegrable X (2 * X)
+  exact hB.mono_fun' hmeas.aestronglyMeasurable
+    (Filter.Eventually.of_forall fun t =>
+      norm_safe_localizedReciprocalKernel_le (σ₁ := σ₁) (σ₂ := σ₂) (X := X)
+        (δ := δ) (ρ := ρ) hδ hρ t)
+
+private lemma safe_localizedReciprocalKernel_le_puncturedKernel
+    {σ₁ σ₂ X δ : ℝ} {ρ : ℂ}
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2) :
+    ∀ t : ℝ,
+      (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun u : ℝ =>
+            (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+              (fun v : ℝ => 1 / |v - ρ.im|) u) t ≤
+        (Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+          Set.Icc (ρ.im + δ) (ρ.im + 2)).indicator
+            (fun u : ℝ => 1 / |u - ρ.im|) t := by
+  intro t
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  by_cases htE : t ∈ E
+  · by_cases htlocal : t ∈ Set.Icc (ρ.im - 2) (ρ.im + 2)
+    · have hρmem : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+          (Set.Icc (-(2 * X + 2)) (2 * X + 2)) := by
+        simpa [u6aZeroWindowFinset] using hρ
+      have hgap : δ ≤ |t - ρ.im| := by
+        have h := htE.2.2.1 ρ hρmem.1 hρmem.2.2
+        simpa [E, abs_sub_comm] using h
+      have hpunct :
+          t ∈ Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+            Set.Icc (ρ.im + δ) (ρ.im + 2) := by
+        by_cases hle : t ≤ ρ.im
+        · have habs : |t - ρ.im| = ρ.im - t := by
+            have hsub_nonpos : t - ρ.im ≤ 0 := by linarith
+            rw [abs_of_nonpos hsub_nonpos]
+            ring
+          have ht_upper : t ≤ ρ.im - δ := by
+            rw [habs] at hgap
+            linarith
+          exact Or.inl ⟨htlocal.1, ht_upper⟩
+        · have hge : ρ.im ≤ t := le_of_not_ge hle
+          have habs : |t - ρ.im| = t - ρ.im := by
+            rw [abs_of_nonneg]
+            linarith
+          have ht_lower : ρ.im + δ ≤ t := by
+            rw [habs] at hgap
+            linarith
+          exact Or.inr ⟨ht_lower, htlocal.2⟩
+      simp [E, htE, htlocal, hpunct]
+    · have hpunct_nonneg :
+          0 ≤ (Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+            Set.Icc (ρ.im + δ) (ρ.im + 2)).indicator
+              (fun u : ℝ => 1 / |u - ρ.im|) t := by
+        by_cases hp : t ∈ Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+            Set.Icc (ρ.im + δ) (ρ.im + 2)
+        · simp [hp]
+        · simp [hp]
+      simpa [E, htE, htlocal] using hpunct_nonneg
+  · have hpunct_nonneg :
+        0 ≤ (Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+          Set.Icc (ρ.im + δ) (ρ.im + 2)).indicator
+            (fun u : ℝ => 1 / |u - ρ.im|) t := by
+      by_cases hp : t ∈ Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+          Set.Icc (ρ.im + δ) (ρ.im + 2)
+      · simp [hp]
+      · simp [hp]
+    simpa [E, htE] using hpunct_nonneg
+
+private lemma integral_safe_localizedReciprocalKernel_le
+    {σ₁ σ₂ X δ : ℝ} {ρ : ℂ}
+    (hX : 0 < X) (hδ : 0 < δ) (hδ2 : δ ≤ 2)
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2) :
+    (∫ t in X..(2 * X),
+      (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        (fun u : ℝ =>
+          (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+            (fun v : ℝ => 1 / |v - ρ.im|) u) t ∂volume) ≤
+      2 * Real.log (2 / δ) := by
+  let base : ℝ → ℝ :=
+    (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+      (fun u : ℝ =>
+        (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+          (fun v : ℝ => 1 / |v - ρ.im|) u)
+  let punctured : ℝ → ℝ :=
+    (Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+      Set.Icc (ρ.im + δ) (ρ.im + 2)).indicator
+        (fun u : ℝ => 1 / |u - ρ.im|)
+  have hXX : X ≤ 2 * X := by nlinarith [hX]
+  have hbase_int_interval :
+      IntervalIntegrable base volume X (2 * X) := by
+    simpa [base] using
+      intervalIntegrable_safe_localizedReciprocalKernel (σ₁ := σ₁) (σ₂ := σ₂)
+        (X := X) (δ := δ) (ρ := ρ) hX hδ hρ
+  have hbase_int_global :
+      Integrable ((Set.Ioc X (2 * X)).indicator base) volume := by
+    exact hbase_int_interval.1.integrable_indicator measurableSet_Ioc
+  have hpunct_int_global : Integrable punctured volume := by
+    simpa [punctured] using
+      integrable_puncturedReciprocalKernel (δ := δ) (γ := ρ.im) hδ hδ2
+  have hmono :
+      (Set.Ioc X (2 * X)).indicator base ≤ punctured := by
+    intro t
+    by_cases htI : t ∈ Set.Ioc X (2 * X)
+    · have hbp := safe_localizedReciprocalKernel_le_puncturedKernel
+        (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) (ρ := ρ) hρ t
+      simpa [base, punctured, htI] using hbp
+    · have hnonneg : 0 ≤ punctured t := by
+        by_cases hp : t ∈ Set.Icc (ρ.im - 2) (ρ.im - δ) ∪
+            Set.Icc (ρ.im + δ) (ρ.im + 2)
+        · simp [punctured, hp]
+        · simp [punctured, hp]
+      simpa [htI] using hnonneg
+  have hglobal :
+      (∫ t, (Set.Ioc X (2 * X)).indicator base t ∂volume) ≤
+        ∫ t, punctured t ∂volume :=
+    MeasureTheory.integral_mono hbase_int_global hpunct_int_global hmono
+  have hinterval_global :
+      (∫ t in X..(2 * X), base t ∂volume) =
+        ∫ t, (Set.Ioc X (2 * X)).indicator base t ∂volume := by
+    rw [intervalIntegral.integral_of_le hXX]
+    rw [MeasureTheory.integral_indicator measurableSet_Ioc]
+  have hpunct_eq :
+      (∫ t, punctured t ∂volume) =
+        (∫ u in (ρ.im - 2)..(ρ.im - δ), (1 / |u - ρ.im| : ℝ) ∂volume) +
+          ∫ u in (ρ.im + δ)..(ρ.im + 2), (1 / |u - ρ.im| : ℝ) ∂volume := by
+    simpa [punctured] using
+      integral_puncturedReciprocalKernel_eq (δ := δ) (γ := ρ.im) hδ hδ2
+  calc
+    (∫ t in X..(2 * X), base t ∂volume)
+        = ∫ t, (Set.Ioc X (2 * X)).indicator base t ∂volume := hinterval_global
+    _ ≤ ∫ t, punctured t ∂volume := hglobal
+    _ = (∫ u in (ρ.im - 2)..(ρ.im - δ), (1 / |u - ρ.im| : ℝ) ∂volume) +
+          ∫ u in (ρ.im + δ)..(ρ.im + 2), (1 / |u - ρ.im| : ℝ) ∂volume := hpunct_eq
+    _ ≤ 2 * Real.log (2 / δ) :=
+          reciprocalKernelTwoSidedIntegral_le (γ := ρ.im) hδ hδ2
+
+private lemma integral_safe_localizedReciprocalKernel_mul_order_le
+    {σ₁ σ₂ X δ : ℝ} {ρ : ℂ}
+    (hX : 0 < X) (hδ : 0 < δ) (hδ2 : δ ≤ 2)
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2) :
+    IntervalIntegrable
+        ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun u : ℝ =>
+            (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+              (fun v : ℝ => 1 / |v - ρ.im|) u *
+            (riemannZeta.order ρ : ℝ))) volume X (2 * X) ∧
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (fun u : ℝ =>
+              (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+                (fun v : ℝ => 1 / |v - ρ.im|) u *
+              (riemannZeta.order ρ : ℝ)) t ∂volume) ≤
+        (2 * Real.log (2 / δ)) * (riemannZeta.order ρ : ℝ) := by
+  let scalar : ℝ → ℝ :=
+    (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+      (fun u : ℝ =>
+        (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+          (fun v : ℝ => 1 / |v - ρ.im|) u)
+  let target : ℝ → ℝ :=
+    (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+      (fun u : ℝ =>
+        (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+          (fun v : ℝ => 1 / |v - ρ.im|) u *
+        (riemannZeta.order ρ : ℝ))
+  have htarget_eq :
+      target = fun t : ℝ => scalar t * (riemannZeta.order ρ : ℝ) := by
+    funext t
+    by_cases ht : t ∈ u6aSafeHeightSet σ₁ σ₂ X δ
+    · simp [target, scalar, ht]
+    · simp [target, scalar, ht]
+  have hscalar_int :
+      IntervalIntegrable scalar volume X (2 * X) := by
+    simpa [scalar] using
+      intervalIntegrable_safe_localizedReciprocalKernel (σ₁ := σ₁) (σ₂ := σ₂)
+        (X := X) (δ := δ) (ρ := ρ) hX hδ hρ
+  have hscalar_bound :
+      (∫ t in X..(2 * X), scalar t ∂volume) ≤ 2 * Real.log (2 / δ) := by
+    simpa [scalar] using
+      integral_safe_localizedReciprocalKernel_le (σ₁ := σ₁) (σ₂ := σ₂)
+        (X := X) (δ := δ) (ρ := ρ) hX hδ hδ2 hρ
+  have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) :=
+    u6aZeroWindow_order_nonneg (σ₁ := σ₁) (σ₂ := σ₂) (X := X)
+      (δ := 2) (ρ := ρ) hρ
+  constructor
+  · change IntervalIntegrable target volume X (2 * X)
+    rw [htarget_eq]
+    exact hscalar_int.mul_const (riemannZeta.order ρ : ℝ)
+  · change (∫ t in X..(2 * X), target t ∂volume) ≤
+        (2 * Real.log (2 / δ)) * (riemannZeta.order ρ : ℝ)
+    rw [htarget_eq, intervalIntegral.integral_mul_const]
+    exact mul_le_mul_of_nonneg_right hscalar_bound horder_nonneg
+
+/-- Fixed-window summation step for the averaged route: if each localized
+reciprocal kernel has the stated integral bound, the order-weighted sum has
+the corresponding fixed-window mass bound. -/
+theorem integral_u6aReciprocalZeroSum_indicator_le_of_fixedWindowTermBounds
+    {σ₁ σ₂ X δ B : ℝ}
+    (hX : 0 < X)
+    (hTerm : ∀ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2,
+      IntervalIntegrable
+          ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (fun u : ℝ =>
+              (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+                (fun v : ℝ => 1 / |v - ρ.im|) u *
+              (riemannZeta.order ρ : ℝ))) volume X (2 * X) ∧
+        (∫ t in X..(2 * X),
+            (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+              (fun u : ℝ =>
+                (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+                  (fun v : ℝ => 1 / |v - ρ.im|) u *
+                (riemannZeta.order ρ : ℝ)) t ∂volume) ≤
+          B * (riemannZeta.order ρ : ℝ)) :
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+      B * u6aFixedWindowZeroMass σ₁ σ₂ X := by
+  classical
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  let Z : Finset ℂ := u6aZeroWindowFinset σ₁ σ₂ X 2
+  let term : ℂ → ℝ → ℝ := fun ρ u =>
+    (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+      (fun v : ℝ => 1 / |v - ρ.im|) u *
+    (riemannZeta.order ρ : ℝ)
+  have hleft_eq :
+      (∫ t in X..(2 * X),
+          E.indicator (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) =
+        ∫ t in X..(2 * X),
+          E.indicator (u6aFixedWindowLocalizedReciprocalSum σ₁ σ₂ X) t ∂volume := by
+    refine intervalIntegral.integral_congr_ae ?_
+    filter_upwards with t ht
+    by_cases htE : t ∈ E
+    · have heq :=
+        u6aReciprocalZeroSum_eq_fixedWindowLocalizedReciprocalSum
+          (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) (t := t) hX
+          (by simpa [E] using htE)
+      simp [E, htE, heq]
+    · simp [E, htE]
+  have hfixed_eq_sum :
+      (∫ t in X..(2 * X),
+          E.indicator (u6aFixedWindowLocalizedReciprocalSum σ₁ σ₂ X) t ∂volume) =
+        ∫ t in X..(2 * X), ∑ ρ ∈ Z, E.indicator (term ρ) t ∂volume := by
+    refine intervalIntegral.integral_congr_ae ?_
+    filter_upwards with t ht
+    by_cases htE : t ∈ E
+    · simp [E, Z, term, htE, u6aFixedWindowLocalizedReciprocalSum]
+    · simp [E, Z, term, htE]
+  have hterm_int :
+      ∀ ρ ∈ Z, IntervalIntegrable (fun t : ℝ => E.indicator (term ρ) t)
+        volume X (2 * X) := by
+    intro ρ hρ
+    simpa [E, term, Z] using (hTerm ρ hρ).1
+  calc
+    (∫ t in X..(2 * X),
+        E.indicator (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume)
+        = ∫ t in X..(2 * X),
+            ∑ ρ ∈ Z, E.indicator (term ρ) t ∂volume := by
+          rw [hleft_eq, hfixed_eq_sum]
+    _ = ∑ ρ ∈ Z, ∫ t in X..(2 * X), E.indicator (term ρ) t ∂volume := by
+          rw [intervalIntegral.integral_finsetSum hterm_int]
+    _ ≤ ∑ ρ ∈ Z, B * (riemannZeta.order ρ : ℝ) := by
+          exact Finset.sum_le_sum fun ρ hρ => by
+            simpa [E, term, Z] using (hTerm ρ hρ).2
+    _ = B * u6aFixedWindowZeroMass σ₁ σ₂ X := by
+          rw [u6aFixedWindowZeroMass, Finset.mul_sum]
+
+/-- Integrating the fixed-window reciprocal sum over the safe set gives the
+panel bound `2 log(2 / δ)` times the order-weighted fixed-window mass. -/
+theorem integral_u6aReciprocalZeroSum_indicator_le_fixedWindowZeroMass
+    {σ₁ σ₂ X δ : ℝ}
+    (hX : 0 < X) (hδ : 0 < δ) (hδ2 : δ ≤ 2) :
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+      (2 * Real.log (2 / δ)) * u6aFixedWindowZeroMass σ₁ σ₂ X :=
+  integral_u6aReciprocalZeroSum_indicator_le_of_fixedWindowTermBounds hX
+    (fun ρ hρ =>
+      integral_safe_localizedReciprocalKernel_mul_order_le
+        (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) (ρ := ρ)
+        hX hδ hδ2 hρ)
+
+private lemma integral_u6aAveragedSelectionBound_indicator_eq_measureReal
+    {σ₁ σ₂ X δ M : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume) =
+      (volume.restrict (Set.Ioc X (2 * X))).real
+          (u6aSafeHeightSet σ₁ σ₂ X δ) *
+        u6aAveragedSelectionBound X δ M := by
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  let B : ℝ := u6aAveragedSelectionBound X δ M
+  have hXX : X ≤ 2 * X := by nlinarith [hX]
+  have hE_meas : MeasurableSet E := by
+    simpa [E] using measurableSet_u6aSafeHeightSet (σ₁ := σ₁) (σ₂ := σ₂)
+      (X := X) (δ := δ) hX hδ
+  have hE_subset : E ⊆ Set.Ioc X (2 * X) := by
+    intro t ht
+    exact ht.1
+  rw [intervalIntegral.integral_of_le hXX]
+  rw [← MeasureTheory.integral_indicator measurableSet_Ioc]
+  have hindicator :
+      (Set.Ioc X (2 * X)).indicator (E.indicator (fun _ : ℝ => B)) =
+        E.indicator (fun _ : ℝ => B) := by
+    funext t
+    by_cases htE : t ∈ E
+    · have htI := hE_subset htE
+      simp [htE, htI]
+    · simp [htE]
+  rw [hindicator]
+  rw [MeasureTheory.integral_indicator hE_meas]
+  rw [MeasureTheory.setIntegral_const]
+  rw [MeasureTheory.measureReal_restrict_apply hE_meas]
+  have hinter : E ∩ Set.Ioc X (2 * X) = E := Set.inter_eq_left.mpr hE_subset
+  simp [E, B, smul_eq_mul, hinter]
+
+/-- The averaged `S₂` estimate follows from a fixed-window mass bound and the
+safe-set measure lower bound. -/
+theorem integral_u6aReciprocalZeroSum_indicator_le_averagedSelectionBound_indicator_of_fixedWindowMass
+    {σ₁ σ₂ X δ M : ℝ}
+    (hX : 0 < X) (hδ : 0 < δ) (hδ2 : δ ≤ 2)
+    (hMass : u6aFixedWindowZeroMass σ₁ σ₂ X ≤ M)
+    (hMeasure :
+      ENNReal.ofReal (X / 2) ≤
+        (volume.restrict (Set.Ioc X (2 * X)))
+          (u6aSafeHeightSet σ₁ σ₂ X δ)) :
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+      ∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume := by
+  let E : Set ℝ := u6aSafeHeightSet σ₁ σ₂ X δ
+  let μ : Measure ℝ := volume.restrict (Set.Ioc X (2 * X))
+  let L : ℝ := Real.log (2 / δ)
+  have hmass_nonneg : 0 ≤ u6aFixedWindowZeroMass σ₁ σ₂ X := by
+    unfold u6aFixedWindowZeroMass
+    exact Finset.sum_nonneg fun ρ hρ =>
+      u6aZeroWindow_order_nonneg (σ₁ := σ₁) (σ₂ := σ₂) (X := X)
+        (δ := 2) (ρ := ρ) hρ
+  have hM_nonneg : 0 ≤ M := hmass_nonneg.trans hMass
+  have hratio : 1 ≤ 2 / δ := by
+    field_simp [hδ.ne']
+    linarith
+  have hL_nonneg : 0 ≤ L := by
+    dsimp [L]
+    exact Real.log_nonneg hratio
+  have hA_nonneg : 0 ≤ 2 * L := by positivity
+  have hleft_mass :=
+    integral_u6aReciprocalZeroSum_indicator_le_fixedWindowZeroMass
+      (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) hX hδ hδ2
+  have hleft_M :
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+        (2 * L) * M := by
+    have hmass_step :
+        (2 * L) * u6aFixedWindowZeroMass σ₁ σ₂ X ≤ (2 * L) * M :=
+      mul_le_mul_of_nonneg_left hMass hA_nonneg
+    exact hleft_mass.trans (by simpa [L, mul_assoc] using hmass_step)
+  have hE_subset : E ⊆ Set.Ioc X (2 * X) := by
+    intro t ht
+    exact ht.1
+  have hμE_ne_top : μ E ≠ ⊤ := by
+    have hμ_univ_ne_top : μ Set.univ ≠ ⊤ := by
+      dsimp [μ]
+      simp [Real.volume_Ioc]
+    exact ne_top_of_le_ne_top hμ_univ_ne_top (measure_mono (Set.subset_univ E))
+  have hmeas_real : X / 2 ≤ μ.real E := by
+    rw [MeasureTheory.measureReal_def]
+    have hleft_ne_top : ENNReal.ofReal (X / 2) ≠ ⊤ := by simp
+    have htoReal :=
+      (ENNReal.toReal_le_toReal hleft_ne_top hμE_ne_top).2 hMeasure
+    simpa [ENNReal.toReal_ofReal (by linarith : 0 ≤ X / 2)] using htoReal
+  have hB_nonneg : 0 ≤ u6aAveragedSelectionBound X δ M := by
+    unfold u6aAveragedSelectionBound
+    positivity
+  have hright_lower :
+      (2 * L) * M ≤
+        μ.real E * u6aAveragedSelectionBound X δ M := by
+    have hmul :=
+      mul_le_mul_of_nonneg_right hmeas_real hB_nonneg
+    have hcalc :
+        (X / 2) * u6aAveragedSelectionBound X δ M = (2 * L) * M := by
+      unfold u6aAveragedSelectionBound
+      field_simp [hX.ne']
+      ring
+    simpa [μ, E, L, hcalc] using hmul
+  calc
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume)
+        ≤ (2 * L) * M := hleft_M
+    _ ≤ μ.real E * u6aAveragedSelectionBound X δ M := hright_lower
+    _ = ∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume := by
+        rw [integral_u6aAveragedSelectionBound_indicator_eq_measureReal
+          (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) (M := M) hX hδ]
 
 private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
     (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
