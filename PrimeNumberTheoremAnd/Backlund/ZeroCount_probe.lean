@@ -46,13 +46,43 @@ truncated-series machinery on the critical strip). The statement of the growth
 hypothesis is the *minimal* form consumed by `divisorMassClosedBall₀_le_of_growth`.
 -/
 
-/-- Entire surrogate `(s - 1) · riemannZeta s`. -/
-noncomputable def zetaSurrogate (s : ℂ) : ℂ := (s - 1) * riemannZeta s
+/-- Entire surrogate: `(s - 1) · ζ(s)` away from `1`, patched with the residue value
+`1` at `s = 1`. STATEMENT REPAIR (loop session): the unpatched `(s - 1) * riemannZeta s`
+takes the value `0` at `s = 1` while its limit there is `1` (`riemannZeta_residue_one`),
+so it is discontinuous at `1` — not entire — and its divisor would carry a spurious
+zero at `s = 1`, polluting the count. The patch removes both problems. -/
+noncomputable def zetaSurrogate (s : ℂ) : ℂ :=
+  if s = 1 then 1 else (s - 1) * riemannZeta s
 
-/-- Sketched: the surrogate is entire. (Proof obligation: combine
-`riemannZeta_differentiableOn_compl_one` with the residue-1 fact at `s = 1`.) -/
+/-- Away from `s = 1` the surrogate agrees with `(s - 1) · ζ(s)` on a neighbourhood. -/
+private lemma zetaSurrogate_eventuallyEq {s : ℂ} (hs : s ≠ 1) :
+    zetaSurrogate =ᶠ[nhds s] fun w ↦ (w - 1) * riemannZeta w := by
+  filter_upwards [isOpen_compl_singleton.mem_nhds hs] with w hw
+  simp [zetaSurrogate, Set.mem_compl_singleton_iff.mp hw]
+
+/-- The surrogate is entire: differentiable off `1` by congruence with
+`(s - 1) · ζ(s)`, and at `1` by the removable-singularity criterion with the
+residue limit. -/
 lemma zetaSurrogate_differentiable : Differentiable ℂ zetaSurrogate := by
-  sorry
+  rw [← differentiableOn_univ,
+    ← Complex.differentiableOn_compl_singleton_and_continuousAt_iff
+      (c := (1 : ℂ)) Filter.univ_mem]
+  constructor
+  · intro s hs
+    have hs1 : s ≠ 1 := by simpa using hs.2
+    have hd : DifferentiableAt ℂ (fun w : ℂ ↦ (w - 1) * riemannZeta w) s :=
+      (differentiableAt_id.sub_const 1).mul (differentiableAt_riemannZeta hs1)
+    exact (hd.congr_of_eventuallyEq (zetaSurrogate_eventuallyEq hs1)).differentiableWithinAt
+  · have h1 : zetaSurrogate 1 = 1 := if_pos rfl
+    have hev : (fun w : ℂ ↦ (w - 1) * riemannZeta w) =ᶠ[nhdsWithin 1 {(1 : ℂ)}ᶜ]
+        zetaSurrogate := by
+      filter_upwards [self_mem_nhdsWithin] with w hw
+      simp [zetaSurrogate, Set.mem_compl_singleton_iff.mp hw]
+    have key : Filter.Tendsto zetaSurrogate (nhdsWithin 1 {(1 : ℂ)}ᶜ)
+        (nhds (zetaSurrogate 1)) := by
+      rw [h1]
+      exact Filter.Tendsto.congr' hev riemannZeta_residue_one
+    exact continuousWithinAt_compl_self.mp key
 
 /-- Sketched: log-growth majorant at exponent `3/2`. STATEMENT REPAIR (2026-06-11
 audit): the exponent-1 form originally probed here is FALSE — on the left half-plane
