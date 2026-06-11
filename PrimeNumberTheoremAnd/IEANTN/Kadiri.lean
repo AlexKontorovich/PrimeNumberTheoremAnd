@@ -1431,6 +1431,178 @@ theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     _ ≤ |f 0| * max |σ₀| |σ₁| / s.im ^ 2 + M / s.im ^ 2 := add_le_add h1 h2
     _ = (|f 0| * max |σ₀| |σ₁| + M) / s.im ^ 2 := (add_div _ _ _).symm
 
+/-- Norm decay of the pole-subtracted Laplace transform on a right half-plane:
+subtracting the `f 0 / s` pole removes the only `1/|Im s|`-order term of
+`laplaceTransform_ibp`, so the remainder `F₂(s)/s²` decays like `1/(Im s)^2` in
+norm, not just in real part. The full transform does NOT have this decay (its
+imaginary part is of order `f 0 / Im s`), which is why the complex sum
+`∑ ρ, F(s - ρ)` over the zeta zeros is not absolutely summable for `f 0 ≠ 0`,
+while the pole-subtracted sum is. -/
+theorem laplaceTransform_sub_pole_norm_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (σ₀ : ℝ) :
+    ∃ C : ℝ, ∀ s : ℂ, σ₀ ≤ s.re → s.im ≠ 0 →
+      ‖(f 0 : ℂ) / s - laplaceTransform f s‖ ≤ C / s.im ^ 2 := by
+  have hdf_C1 : ContDiffOn ℝ 1 (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) :=
+    hf_C2.derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
+  have hg_cont : ContinuousOn
+      (fun x => derivWithin (fun y => derivWithin f (Set.Icc 0 d) y) (Set.Icc 0 d) x)
+      (Set.Icc 0 d) :=
+    hdf_C1.continuousOn_derivWithin (uniqueDiffOn_Icc hd) le_rfl
+  obtain ⟨K0, hK0⟩ := isCompact_Icc.exists_bound_of_continuousOn hg_cont
+  have hK00 : 0 ≤ K0 := (norm_nonneg _).trans (hK0 0 (Set.left_mem_Icc.2 hd.le))
+  set B : ℝ := max 0 (-σ₀) with hB
+  set M : ℝ := Real.exp (B * d) * K0 * d with hMdef
+  have hM0 : 0 ≤ M := mul_nonneg (mul_nonneg (Real.exp_pos _).le hK00) hd.le
+  have hMbound : ∀ s : ℂ, σ₀ ≤ s.re →
+      ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ ≤ M := by
+    intro s hs0
+    rw [laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico hd hf_supp s]
+    have hpt : ∀ t ∈ Set.uIoc (0 : ℝ) d,
+        ‖exp (-s * (t : ℂ)) * ((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ Real.exp (B * d) * K0 := by
+      intro t ht
+      rw [Set.uIoc_of_le hd.le] at ht
+      rw [norm_mul, Complex.norm_exp]
+      have hre : (-s * (t : ℂ)).re = -(s.re * t) := by simp [Complex.mul_re]
+      have hexp_le : Real.exp ((-s * (t : ℂ)).re) ≤ Real.exp (B * d) := by
+        rw [hre]
+        apply Real.exp_le_exp.2
+        have hBge : -s.re ≤ B := le_trans (neg_le_neg hs0) (le_max_right 0 (-σ₀))
+        have hB0 : (0 : ℝ) ≤ B := le_max_left 0 (-σ₀)
+        calc -(s.re * t) = -s.re * t := (neg_mul _ _).symm
+          _ ≤ B * t := mul_le_mul_of_nonneg_right hBge ht.1.le
+          _ ≤ B * d := mul_le_mul_of_nonneg_left ht.2 hB0
+      have hfpp : ‖((deriv (deriv f) t : ℝ) : ℂ)‖ ≤ K0 := by
+        rw [Complex.norm_real]
+        by_cases htd : t = d
+        · rw [htd, deriv_deriv_eq_zero_of_tsupport_subset_Ico hf_supp le_rfl]
+          simpa using hK00
+        · have htlt : t < d := lt_of_le_of_ne ht.2 htd
+          rw [deriv_deriv_eq_derivWithin_derivWithin_of_mem_Ioo ⟨ht.1, htlt⟩]
+          simpa using hK0 t ⟨ht.1.le, ht.2⟩
+      exact mul_le_mul hexp_le hfpp (norm_nonneg _) (Real.exp_pos _).le
+    refine le_trans (intervalIntegral.norm_integral_le_of_norm_le_const hpt) ?_
+    rw [sub_zero, abs_of_pos hd]
+  refine ⟨M, ?_⟩
+  intro s hs0 him0
+  have hs : s ≠ 0 := fun h => him0 (by rw [h]; rfl)
+  have him2 : (0 : ℝ) < s.im ^ 2 := by positivity
+  have hns : s.im ^ 2 ≤ Complex.normSq s := by
+    rw [Complex.normSq_apply]
+    nlinarith [mul_self_nonneg s.re]
+  rw [laplaceTransform_ibp hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hs]
+  have hcancel : (f 0 : ℂ) / s -
+      ((f 0 : ℂ) / s + laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2) =
+      -(laplaceTransform (fun u => deriv (deriv f) u) s / s ^ 2) := by
+    ring
+  rw [hcancel, norm_neg, norm_div, norm_pow]
+  have hsq : s.im ^ 2 ≤ ‖s‖ ^ 2 := by
+    rw [← Complex.normSq_eq_norm_sq]
+    exact hns
+  have hnorm2 : (0 : ℝ) < ‖s‖ ^ 2 := by positivity
+  calc ‖laplaceTransform (fun u => deriv (deriv f) u) s‖ / ‖s‖ ^ 2
+      ≤ M / ‖s‖ ^ 2 := by
+        gcongr
+        exact hMbound s hs0
+    _ ≤ M / s.im ^ 2 := by gcongr
+
+/-- Unconditional summability over the non-trivial zeros of the pole-subtracted
+Laplace transform. The un-subtracted complex sum `∑ ρ, F(s - ρ)` is not
+absolutely summable when `f 0 ≠ 0` (terms of norm `~ |f 0| / |Im ρ|`); in
+equation (16) the groups `f 0 * ∑ ρ, 1/(s - ρ)` and `-∑ ρ, F(s - ρ)` combine
+into exactly this summand, which is `O(1/(Im ρ)^2)` and summable against the
+crude counting majorant. -/
+theorem summable_lap_sub_pole_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)) := by
+  obtain ⟨C, hC⟩ := laplaceTransform_sub_pole_norm_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d (s.re - 1)
+  have htail : Summable (fun ρ : NontrivialZeros ↦
+      C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left C
+  refine Summable.of_norm_bounded_eventually htail ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+  have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num at him
+  have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1
+  have hre_lo : s.re - 1 ≤ (s - (ρ : ℂ)).re := by
+    rw [Complex.sub_re]
+    linarith [hre.2]
+  have hdecay := hC (s - (ρ : ℂ)) hre_lo him0
+  apply hbad
+  calc ‖(f 0 : ℂ) / (s - (ρ : ℂ)) - laplaceTransform f (s - (ρ : ℂ))‖
+      ≤ C / (s - (ρ : ℂ)).im ^ 2 := hdecay
+    _ = C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        rw [inv_pow, sq_abs, div_eq_mul_inv]
+
+/-- Unconditional summability of the real parts of the zero residues:
+`Re (1/(s - ρ)) = Re (s - ρ) / |s - ρ|²` decays like `1/(Im ρ)^2` on the strip,
+while the complex sum `∑ ρ, 1/(s - ρ)` is only conditionally convergent. This is
+the summability needed to move `Re` inside the residue sum of equation (16). -/
+theorem summable_re_one_div_at_zeros (s : ℂ) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (1 / (s - ρ.val)).re) := by
+  have htail : Summable (fun ρ : NontrivialZeros ↦
+      (|s.re| + 1) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left _
+  refine Summable.of_norm_bounded_eventually htail ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+  have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num at him
+  have hw0 : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him0
+    rw [h]
+    rfl
+  have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1
+  have hre_bound : |(s - (ρ : ℂ)).re| ≤ |s.re| + 1 := by
+    rw [Complex.sub_re]
+    calc |s.re - (ρ : ℂ).re| ≤ |s.re| + |(ρ : ℂ).re| := abs_sub _ _
+      _ ≤ |s.re| + 1 := by
+          rw [abs_of_pos hre.1]
+          linarith [hre.2]
+  have hdiv_re : (1 / (s - (ρ : ℂ))).re =
+      (s - (ρ : ℂ)).re / Complex.normSq (s - (ρ : ℂ)) := by
+    rw [Complex.div_re]
+    simp
+  have hns : (s - (ρ : ℂ)).im ^ 2 ≤ Complex.normSq (s - (ρ : ℂ)) := by
+    rw [Complex.normSq_apply]
+    nlinarith [mul_self_nonneg (s - (ρ : ℂ)).re]
+  have him2 : (0 : ℝ) < (s - (ρ : ℂ)).im ^ 2 := by positivity
+  have hnpos : (0 : ℝ) < Complex.normSq (s - (ρ : ℂ)) := Complex.normSq_pos.2 hw0
+  apply hbad
+  rw [Real.norm_eq_abs, hdiv_re, abs_div, abs_of_nonneg (Complex.normSq_nonneg _)]
+  calc |(s - (ρ : ℂ)).re| / Complex.normSq (s - (ρ : ℂ))
+      ≤ (|s.re| + 1) / Complex.normSq (s - (ρ : ℂ)) := by gcongr
+    _ ≤ (|s.re| + 1) / (s - (ρ : ℂ)).im ^ 2 := by
+        gcongr
+    _ = (|s.re| + 1) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        rw [inv_pow, sq_abs, div_eq_mul_inv]
+
 @[blueprint
   "kadiri-summable-lap-at-zeros"
   (title := "Summability of $\\sum_\\rho \\Re F(s - \\rho)$")
