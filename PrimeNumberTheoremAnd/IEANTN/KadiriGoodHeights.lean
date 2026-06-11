@@ -2120,6 +2120,58 @@ theorem u6aReciprocalZeroSum_neg (T : ℝ) :
       u6a_riemannZeta_order_star ρ
     rw [hden, horder]
 
+/-- The width-one nearby zero count in the U6a strip is symmetric under
+height reversal. -/
+theorem u6aNearbyZeroCount_neg (T : ℝ) :
+    u6aNearbyZeroCount (-1) 2 (-T) = u6aNearbyZeroCount (-1) 2 T := by
+  classical
+  let Zbot := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (-T - 1) (-T + 1))
+  let Ztop := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (T - 1) (T + 1))
+  let hbot : Zbot.Finite := u6aNearbyZeroSet_finite (-1) 2 (-T)
+  let htop : Ztop.Finite := u6aNearbyZeroSet_finite (-1) 2 T
+  unfold u6aNearbyZeroCount
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ => (1 : ℝ)) hbot,
+    riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ => (1 : ℝ)) htop]
+  refine Finset.sum_bij (fun ρ _ => (starRingEnd ℂ) ρ) ?_ ?_ ?_ ?_
+  · intro ρ hρ
+    have hρbot : ρ ∈ Zbot := hbot.mem_toFinset.mp hρ
+    refine htop.mem_toFinset.mpr ?_
+    rcases hρbot with ⟨hre, him, hzero⟩
+    refine ⟨?_, ?_, ?_⟩
+    · simpa [Complex.conj_re] using hre
+    · constructor
+      · rw [Complex.conj_im]
+        linarith [him.2]
+      · rw [Complex.conj_im]
+        linarith [him.1]
+    · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+      rw [riemannZeta_conj, hzero, map_zero]
+  · intro ρ hρ τ hτ hconj
+    have h := congrArg (starRingEnd ℂ) hconj
+    simpa [Complex.conj_conj] using h
+  · intro ρ hρ
+    refine ⟨(starRingEnd ℂ) ρ, ?_, ?_⟩
+    · have hρtop : ρ ∈ Ztop := htop.mem_toFinset.mp hρ
+      refine hbot.mem_toFinset.mpr ?_
+      rcases hρtop with ⟨hre, him, hzero⟩
+      refine ⟨?_, ?_, ?_⟩
+      · simpa [Complex.conj_re] using hre
+      · constructor
+        · rw [Complex.conj_im]
+          linarith [him.2]
+        · rw [Complex.conj_im]
+          linarith [him.1]
+      · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+        rw [riemannZeta_conj, hzero, map_zero]
+    · simp
+  · intro ρ hρ
+    have horder :
+        riemannZeta.order ((starRingEnd ℂ) ρ) = riemannZeta.order ρ :=
+      u6a_riemannZeta_order_star ρ
+    rw [horder]
+
 private lemma u6aNearbyZeroCount_toFinset_card_le (σ₁ σ₂ t : ℝ) (ht : 3 ≤ t) :
     let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
     let hfin : Z.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
@@ -3482,6 +3534,88 @@ def U6aZeroSumRemainderBoundHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :
   0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
     ‖u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤
       C * Real.log |s.im|
+
+/-- The exact global far-tail term after removing the finite nearby xi-fiber
+Hadamard contribution.  This isolates the infinite `tsum` bridge from the
+already-local finite cancellation. -/
+def U6aXiHadamardFarTailBoundHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+    3 ≤ |s.im| →
+      ‖u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s‖ ≤
+        C * Real.log |s.im|
+
+/-- The zero-sum PF remainder is the far xi-Hadamard tail plus the finite
+near-window convergence-factor residue.  The latter is already bounded by the
+existing local-density hypothesis, with negative heights transferred by
+conjugation. -/
+theorem U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, U6aZeroSumRemainderBoundHypothesis (-1) 2 C Tₘᵢₙ := by
+  let C : ℝ := Cfar + Cdens
+  let T : ℝ := max Tfar Tdens
+  have hCpos : 0 < C := by
+    dsimp [C]
+    linarith [hFar.1, hDensity.1]
+  refine ⟨C, T, ?_⟩
+  unfold U6aZeroSumRemainderBoundHypothesis
+  refine ⟨hCpos, ?_⟩
+  intro s hsre hsT hT3
+  have hTfar : Tfar ≤ |s.im| := (le_max_left Tfar Tdens).trans hsT
+  have hTdens : Tdens ≤ |s.im| := (le_max_right Tfar Tdens).trans hsT
+  have hT2 : 2 ≤ |s.im| := by linarith
+  have hlog_nonneg : 0 ≤ Real.log |s.im| :=
+    Real.log_nonneg (by linarith)
+  have hfar_bound :
+      ‖u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s‖ ≤
+        Cfar * Real.log |s.im| :=
+    hFar.2 s hsre hTfar hT3
+  have hnear_raw :
+      ‖u6aXiFiberNearbyHadamardSum s.im s -
+          u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤
+        u6aNearbyZeroCount (-1) 2 s.im :=
+    norm_u6aXiFiberNearbyHadamardSum_sub_nearbyZeroPrincipalSum_le_nearbyZeroCount
+      (t := s.im) (s := s) hT2
+  have hcount :
+      u6aNearbyZeroCount (-1) 2 s.im ≤ Cdens * Real.log |s.im| := by
+    by_cases hnonneg : 0 ≤ s.im
+    · have him_abs : |s.im| = s.im := abs_of_nonneg hnonneg
+      have hTdens' : Tdens ≤ s.im := by simpa [him_abs] using hTdens
+      have hT3' : 3 ≤ s.im := by simpa [him_abs] using hT3
+      simpa [him_abs] using hDensity.2 s.im hTdens' hT3'
+    · have hneg : s.im < 0 := lt_of_not_ge hnonneg
+      have him_abs : |s.im| = -s.im := abs_of_neg hneg
+      have hTdens' : Tdens ≤ -s.im := by simpa [him_abs] using hTdens
+      have hT3' : 3 ≤ -s.im := by simpa [him_abs] using hT3
+      have hsym :
+          u6aNearbyZeroCount (-1) 2 s.im =
+            u6aNearbyZeroCount (-1) 2 (-s.im) := by
+        simpa using (u6aNearbyZeroCount_neg (-s.im))
+      rw [hsym]
+      simpa [him_abs] using hDensity.2 (-s.im) hTdens' hT3'
+  have hnear_bound :
+      ‖u6aXiFiberNearbyHadamardSum s.im s -
+          u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤
+        Cdens * Real.log |s.im| :=
+    hnear_raw.trans hcount
+  let A : ℂ := u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s
+  let B : ℂ := u6aXiFiberNearbyHadamardSum s.im s -
+    u6aNearbyZeroPrincipalSum (-1) 2 s.im s
+  have hsplit :
+      u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum (-1) 2 s.im s = A + B := by
+    dsimp [A, B]
+    ring
+  calc
+    ‖u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖
+        = ‖A + B‖ := by rw [hsplit]
+    _ ≤ ‖A‖ + ‖B‖ := norm_add_le A B
+    _ ≤ Cfar * Real.log |s.im| + Cdens * Real.log |s.im| := by
+          dsimp [A, B] at hfar_bound hnear_bound ⊢
+          nlinarith
+    _ = C * Real.log |s.im| := by
+          dsimp [C]
+          ring
 
 /-- All non-zero-sum PF-rung estimates compose with the isolated zero-sum
 estimate to give the Hadamard remainder bound on the U6a strip. -/
