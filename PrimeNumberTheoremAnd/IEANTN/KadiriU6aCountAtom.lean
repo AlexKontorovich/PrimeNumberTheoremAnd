@@ -221,6 +221,151 @@ theorem u6aCA_exists_norm_gamma_mul_cos :
     _ ≤ Real.sqrt Real.pi * (|s.im| + 2) ^ (3 * K) :=
         mul_le_mul_of_nonneg_right (u6aCA_norm_gamma_half_mul_cosh_le s.im) hrpow
 
+/-! ## Polynomial growth of zeta on the band -/
+
+/-- Linear growth of `ζ` right of the critical line, from the Abel-summation
+continuation bound. -/
+theorem u6aCA_norm_riemannZeta_le_right {s : ℂ} (h1 : 1 / 2 ≤ s.re)
+    (h2 : s.re ≤ 13 / 2) (him : 1 ≤ |s.im|) :
+    ‖riemannZeta s‖ ≤ 8 * (|s.im| + 2) := by
+  have hs1 : s ≠ 1 := by
+    intro hc
+    rw [hc] at him
+    norm_num at him
+  have hdom : s ∈ zetaAbelContinuationDomain :=
+    ⟨hs1, lt_of_lt_of_le (lt_of_lt_of_le zetaAbelContinuationReLower_lt_half
+      (by norm_num)) h1⟩
+  have hb := norm_riemannZeta_le s hdom
+  have hp1 : ‖1 / (s - 1)‖ ≤ 1 := by
+    rw [norm_div, norm_one]
+    have hge : 1 ≤ ‖s - 1‖ := by
+      have him' : |(s - 1).im| = |s.im| := by simp
+      calc (1 : ℝ) ≤ |s.im| := him
+        _ = |(s - 1).im| := him'.symm
+        _ ≤ ‖s - 1‖ := Complex.abs_im_le_norm _
+    rw [div_le_one (by linarith)]
+    exact hge
+  have hp2 : ‖s‖ / s.re ≤ 13 + 2 * |s.im| := by
+    have hre : (0 : ℝ) < s.re := by linarith
+    have hnorm : ‖s‖ ≤ 13 / 2 + |s.im| := by
+      have h := Complex.norm_le_abs_re_add_abs_im s
+      have habs : |s.re| ≤ 13 / 2 := abs_le.mpr ⟨by linarith, h2⟩
+      linarith
+    rw [div_le_iff₀ hre]
+    nlinarith [abs_nonneg s.im]
+  have hfinal : (1 : ℝ) + 1 + (13 + 2 * |s.im|) ≤ 8 * (|s.im| + 2) := by
+    nlinarith [abs_nonneg s.im]
+  calc ‖riemannZeta s‖ ≤ 1 + ‖1 / (s - 1)‖ + ‖s‖ / s.re := hb
+    _ ≤ 1 + 1 + (13 + 2 * |s.im|) := by linarith
+    _ ≤ 8 * (|s.im| + 2) := hfinal
+
+/-- Polynomial growth of `ζ` left of the critical line, through the
+functional equation and the packaged `Γ cos` bound. -/
+theorem u6aCA_exists_norm_riemannZeta_le_left :
+    ∃ B : ℝ, 0 < B ∧ ∀ w : ℂ, -5 / 2 ≤ w.re → w.re ≤ 1 / 2 → 1 ≤ |w.im| →
+      ‖riemannZeta w‖ ≤ 16 * Real.sqrt Real.pi * (|w.im| + 2) ^ (B + 1) := by
+  obtain ⟨B, hB0, hΓcos⟩ := u6aCA_exists_norm_gamma_mul_cos
+  refine ⟨B, hB0, fun w hw1 hw2 him => ?_⟩
+  set s : ℂ := 1 - w with hsdef
+  have hsre : s.re = 1 - w.re := by simp [hsdef]
+  have hsim : |s.im| = |w.im| := by
+    have : s.im = -w.im := by simp [hsdef]
+    rw [this, abs_neg]
+  have hsre1 : 1 / 2 ≤ s.re := by rw [hsre]; linarith
+  have hsre2 : s.re ≤ 7 / 2 := by rw [hsre]; linarith
+  have hpoles : ∀ n : ℕ, s ≠ -↑n := by
+    intro n hc
+    have hre := congrArg Complex.re hc
+    rw [hsre] at hre
+    simp at hre
+    nlinarith [Nat.cast_nonneg (α := ℝ) n]
+  have hs1 : s ≠ 1 := by
+    intro hc
+    have him' := congrArg Complex.im hc
+    have : s.im = -w.im := by simp [hsdef]
+    rw [this] at him'
+    simp at him'
+    rw [him'] at him
+    norm_num at him
+  have hFE := riemannZeta_one_sub (s := s) hpoles hs1
+  have hw_eq : (1 : ℂ) - s = w := by rw [hsdef]; ring
+  rw [hw_eq] at hFE
+  rw [hFE]
+  have hregroup : (2 : ℂ) * (2 * ↑Real.pi) ^ (-s) * Complex.Gamma s *
+      Complex.cos (↑Real.pi * s / 2) * riemannZeta s =
+      (2 * (2 * ↑Real.pi) ^ (-s)) *
+        ((Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)) * riemannZeta s) := by
+    ring
+  have e1 : ‖((2 : ℂ) * (2 * ↑Real.pi) ^ (-s)) *
+      ((Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)) * riemannZeta s)‖ =
+      ‖(2 : ℂ) * (2 * ↑Real.pi) ^ (-s)‖ *
+        ‖(Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)) * riemannZeta s‖ :=
+    norm_mul _ _
+  have e2 : ‖(Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)) * riemannZeta s‖ =
+      ‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖ * ‖riemannZeta s‖ :=
+    norm_mul _ _
+  rw [hregroup, e1, e2]
+  have hpre : ‖(2 : ℂ) * (2 * ↑Real.pi) ^ (-s)‖ ≤ 2 := by
+    rw [norm_mul]
+    have h2 : ‖(2 : ℂ)‖ = 2 := by norm_num
+    have hbase : ((2 : ℂ) * ↑Real.pi) = ↑(2 * Real.pi : ℝ) := by push_cast; ring
+    have hpos : (0 : ℝ) < 2 * Real.pi := by positivity
+    have hcpow : ‖((2 : ℂ) * ↑Real.pi) ^ (-s)‖ = (2 * Real.pi) ^ ((-s).re) := by
+      rw [hbase]
+      exact Complex.norm_cpow_eq_rpow_re_of_pos hpos _
+    have hle1 : (2 * Real.pi) ^ ((-s).re) ≤ 1 := by
+      apply Real.rpow_le_one_of_one_le_of_nonpos
+      · nlinarith [Real.pi_gt_three]
+      · rw [Complex.neg_re]; linarith
+    rw [h2, hcpow]
+    nlinarith
+  have hΓcosb : ‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖ ≤
+      Real.sqrt Real.pi * (|w.im| + 2) ^ B := by
+    have := hΓcos s hsre1 hsre2
+    rwa [hsim] at this
+  have hζb : ‖riemannZeta s‖ ≤ 8 * (|w.im| + 2) := by
+    have := u6aCA_norm_riemannZeta_le_right (s := s) hsre1 (by linarith) (by
+      rw [hsim]; exact him)
+    rwa [hsim] at this
+  have hx2 : (0 : ℝ) < |w.im| + 2 := by positivity
+  have hrpadd : (|w.im| + 2) ^ B * (|w.im| + 2) = (|w.im| + 2) ^ (B + 1) := by
+    rw [Real.rpow_add hx2, Real.rpow_one]
+  have hΓnn : (0 : ℝ) ≤ ‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖ :=
+    norm_nonneg _
+  have hrpnn : (0 : ℝ) ≤ Real.sqrt Real.pi * (|w.im| + 2) ^ B := by positivity
+  calc ‖(2 : ℂ) * (2 * ↑Real.pi) ^ (-s)‖ *
+      (‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖ * ‖riemannZeta s‖)
+      ≤ 2 * ((Real.sqrt Real.pi * (|w.im| + 2) ^ B) * (8 * (|w.im| + 2))) := by
+        apply mul_le_mul hpre
+        · exact mul_le_mul hΓcosb hζb (norm_nonneg _) hrpnn
+        · positivity
+        · norm_num
+    _ = 16 * Real.sqrt Real.pi * ((|w.im| + 2) ^ B * (|w.im| + 2)) := by ring
+    _ = 16 * Real.sqrt Real.pi * (|w.im| + 2) ^ (B + 1) := by rw [hrpadd]
+
+/-- Polynomial growth of `ζ` on the whole band `Re ∈ [-5/2, 13/2]` needed by
+the Jensen disk, away from the real axis. -/
+theorem u6aCA_exists_norm_riemannZeta_le_band :
+    ∃ A B : ℝ, 1 ≤ A ∧ 1 ≤ B ∧ ∀ w : ℂ, -5 / 2 ≤ w.re → w.re ≤ 13 / 2 →
+      1 ≤ |w.im| → ‖riemannZeta w‖ ≤ A * (|w.im| + 2) ^ B := by
+  obtain ⟨B, hB0, hleft⟩ := u6aCA_exists_norm_riemannZeta_le_left
+  have hsqrt1 : (1 : ℝ) ≤ Real.sqrt Real.pi := by
+    rw [show (1 : ℝ) = Real.sqrt 1 by simp]
+    exact Real.sqrt_le_sqrt (by linarith [Real.pi_gt_three])
+  refine ⟨16 * Real.sqrt Real.pi + 8, B + 1, by nlinarith, by linarith,
+    fun w h1 h2 him => ?_⟩
+  have hx1 : (1 : ℝ) ≤ |w.im| + 2 := by linarith [abs_nonneg w.im]
+  have hrpnn : (0 : ℝ) ≤ (|w.im| + 2) ^ (B + 1) := Real.rpow_nonneg (by positivity) _
+  rcases le_total w.re (1 / 2) with hsplit | hsplit
+  · have hb := hleft w h1 hsplit him
+    nlinarith
+  · have hb := u6aCA_norm_riemannZeta_le_right (s := w) hsplit h2 him
+    have hmono : (|w.im| + 2 : ℝ) ≤ (|w.im| + 2) ^ (B + 1) := by
+      calc (|w.im| + 2 : ℝ) = (|w.im| + 2) ^ (1 : ℝ) := (Real.rpow_one _).symm
+        _ ≤ (|w.im| + 2) ^ (B + 1) :=
+          Real.rpow_le_rpow_of_exponent_le hx1 (by linarith)
+    nlinarith
+
 end
 
 end Kadiri
