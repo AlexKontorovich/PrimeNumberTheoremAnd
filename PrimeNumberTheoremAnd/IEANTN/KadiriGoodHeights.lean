@@ -293,6 +293,14 @@ noncomputable def u6aFixedWindowReciprocalSum (σ₁ σ₂ X t : ℝ) : ℝ :=
   ∑ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2,
     (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ)
 
+/-- Fixed finite window with the per-zero kernel localized to
+`|t - Im ρ| ≤ 2`, matching the support of `S₂(t)`. -/
+noncomputable def u6aFixedWindowLocalizedReciprocalSum (σ₁ σ₂ X t : ℝ) : ℝ :=
+  ∑ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2,
+    (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+      (fun u : ℝ => 1 / |u - ρ.im|) t *
+      (riemannZeta.order ρ : ℝ)
+
 /-- Finite set of heights that can violate the top or bottom `δ`-gap inside
 `(X, 2X]`.  It contains both zero ordinates and their negatives. -/
 noncomputable def u6aBadHeightFinset (σ₁ σ₂ X δ : ℝ) : Finset ℝ :=
@@ -719,6 +727,19 @@ private lemma u6aReciprocalZeroSet_finite (σ₁ σ₂ t : ℝ) :
   rcases hz with ⟨⟨hre, him⟩, hzeta⟩
   exact ⟨⟨by simpa [Set.uIcc] using hre, him⟩, hzeta⟩
 
+private lemma u6aZeroWindow_order_nonneg {σ₁ σ₂ X δ : ℝ} {ρ : ℂ}
+    (hρ : ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X δ) :
+    0 ≤ (riemannZeta.order ρ : ℝ) := by
+  have hρmem : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+      (Set.Icc (-(2 * X + δ)) (2 * X + δ)) := by
+    unfold u6aZeroWindowFinset at hρ
+    exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mp hρ
+  have hzero : riemannZeta ρ = 0 := hρmem.2.2
+  have hne_one : ρ ≠ 1 := by
+    intro hρone
+    exact riemannZeta_one_ne_zero (by simpa [hρone] using hzero)
+  exact_mod_cast le_of_lt (u6a_riemannZeta_order_pos_of_zero_ne_one hne_one hzero)
+
 /-- For `t ∈ (X, 2X]`, the moving width-two reciprocal zero sum is bounded by
 the fixed zero window used in the dyadic averaging argument. -/
 theorem u6aReciprocalZeroSum_le_fixedWindowReciprocalSum
@@ -758,6 +779,64 @@ theorem u6aReciprocalZeroSum_le_fixedWindowReciprocalSum
   have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) := by
     exact_mod_cast le_of_lt (u6a_riemannZeta_order_pos_of_zero_ne_one hne_one hzero)
   exact mul_nonneg (by positivity) horder_nonneg
+
+/-- Localized fixed-window comparison: every term of `S₂(t)` appears in the
+fixed dyadic zero window with its width-two support indicator turned on. -/
+theorem u6aReciprocalZeroSum_le_fixedWindowLocalizedReciprocalSum
+    {σ₁ σ₂ X δ t : ℝ} (hX : 0 < X) (ht : t ∈ u6aSafeHeightSet σ₁ σ₂ X δ) :
+    u6aReciprocalZeroSum σ₁ σ₂ t ≤
+      u6aFixedWindowLocalizedReciprocalSum σ₁ σ₂ X t := by
+  classical
+  let Zmove := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))
+  let hmove : Zmove.Finite := u6aReciprocalZeroSet_finite σ₁ σ₂ t
+  let Zfixed := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+    (Set.Icc (-(2 * X + 2)) (2 * X + 2))
+  let f : ℂ → ℝ := fun ρ =>
+    (Set.Icc (ρ.im - 2) (ρ.im + 2)).indicator
+      (fun u : ℝ => 1 / |u - ρ.im|) t *
+      (riemannZeta.order ρ : ℝ)
+  have hsubset : hmove.toFinset ⊆ u6aZeroWindowFinset σ₁ σ₂ X 2 := by
+    intro ρ hρ
+    have hρmove : ρ ∈ Zmove := hmove.mem_toFinset.mp hρ
+    have hρfixed : ρ ∈ Zfixed := by
+      refine ⟨hρmove.1, ?_, hρmove.2.2⟩
+      constructor
+      · have ht_low : X < t := ht.1.1
+        have him_low : t - 2 ≤ ρ.im := hρmove.2.1.1
+        linarith
+      · have ht_high : t ≤ 2 * X := ht.1.2
+        have him_high : ρ.im ≤ t + 2 := hρmove.2.1.2
+        linarith
+    unfold u6aZeroWindowFinset
+    exact (u6aZeroWindowSet_finite σ₁ σ₂ X 2).mem_toFinset.mpr hρfixed
+  unfold u6aReciprocalZeroSum
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+    (fun ρ => (1 / |t - ρ.im| : ℝ)) hmove]
+  calc
+    ∑ ρ ∈ hmove.toFinset, (1 / |t - ρ.im| : ℝ) * (riemannZeta.order ρ : ℝ)
+        = ∑ ρ ∈ hmove.toFinset, f ρ := by
+          refine Finset.sum_congr rfl ?_
+          intro ρ hρ
+          have hρmove : ρ ∈ Zmove := hmove.mem_toFinset.mp hρ
+          have htlocal : t ∈ Set.Icc (ρ.im - 2) (ρ.im + 2) := by
+            constructor
+            · have him_high : ρ.im ≤ t + 2 := hρmove.2.1.2
+              linarith
+            · have him_low : t - 2 ≤ ρ.im := hρmove.2.1.1
+              linarith
+          simp [f, htlocal]
+    _ ≤ ∑ ρ ∈ u6aZeroWindowFinset σ₁ σ₂ X 2, f ρ := by
+          refine Finset.sum_le_sum_of_subset_of_nonneg hsubset ?_
+          intro ρ hρfixed hρnot_move
+          by_cases htlocal : t ∈ Set.Icc (ρ.im - 2) (ρ.im + 2)
+          · have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) :=
+              u6aZeroWindow_order_nonneg hρfixed
+            have hkernel_nonneg : 0 ≤ |t - ρ.im|⁻¹ :=
+              inv_nonneg.mpr (abs_nonneg _)
+            simpa [f, htlocal] using mul_nonneg hkernel_nonneg horder_nonneg
+          · simp [f, htlocal]
+    _ = u6aFixedWindowLocalizedReciprocalSum σ₁ σ₂ X t := by
+          rfl
 
 private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
     (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
