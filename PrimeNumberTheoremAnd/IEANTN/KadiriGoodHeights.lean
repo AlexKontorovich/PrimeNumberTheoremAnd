@@ -2358,6 +2358,40 @@ theorem exists_u6aNearbyZeroCount_le_log_of_localDensity {C Tₘᵢₙ : ℝ}
   exact exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis
     (U6aNearbyZeroCountLogHypothesis_of_localDensity hDensity) hTₘᵢₙ
 
+/-- The absolute-height count atom feeds the one-sided local-density
+hypothesis consumed by the older U6a height-selection and PF wrappers. -/
+theorem U6aLocalZeroDensityHypothesis_of_countLogHypothesis {C Tₘᵢₙ : ℝ}
+    (hCount : U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ := by
+  refine ⟨hCount.1, ?_⟩
+  intro t hTₘᵢₙ h3
+  have ht0 : 0 ≤ t := by linarith
+  have habs : |t| = t := abs_of_nonneg ht0
+  simpa [habs] using
+    hCount.2 t (by simpa [habs] using hTₘᵢₙ) (by simpa [habs] using h3)
+
+/-- Exact existential count-log control from height `3` gives the local-density
+surface used by the existing U6a consumers. -/
+theorem U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log {C : ℝ}
+    (hC : 0 < C)
+    (hCount : ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C 3 := by
+  refine ⟨hC, ?_⟩
+  intro t _hT h3
+  have ht0 : 0 ≤ t := by linarith
+  have habs : |t| = t := abs_of_nonneg ht0
+  simpa [habs] using hCount t (by simpa [habs] using h3)
+
+/-- Existential count-log control packages into the local-density surface with
+threshold `3`. -/
+theorem exists_U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|) :
+    ∃ C Tₘᵢₙ : ℝ, U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ ∧ Tₘᵢₙ ≤ 3 := by
+  rcases hCount with ⟨C, hC, hbound⟩
+  exact ⟨C, 3, U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log hC hbound, le_rfl⟩
+
 private theorem exists_good_height_in_half_unit_of_localDensity
     (σ₁ σ₂ Cdens Tdens B : ℝ)
     (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
@@ -4945,6 +4979,65 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_
   exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
     (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
     hDensity hAvgCmp
+
+/-- Cofinal U6a composition with the count-log atom feeding the older
+local-density API. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_countLog_and_averagedComparison
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hCount : U6aNearbyZeroCountLogHypothesis Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar (U6aLocalZeroDensityHypothesis_of_countLogHypothesis hCount) hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split, with the
+count-log atom as the local zero-count input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_countLog_and_averagedComparison
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hCount : U6aNearbyZeroCountLogHypothesis Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_countLog_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hCount hAvgCmp
+
+/-- Cofinal U6a composition from the exact existential count-log endpoint. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_existsNearbyZeroCountLog_and_averagedComparison
+    {Cfar Tfar : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  rcases exists_U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log hCount with
+    ⟨Cdens, Tdens, hDensity, _hTdens⟩
+  exact exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar hDensity hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split from the
+exact existential count-log endpoint. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_existsNearbyZeroCountLog_and_averagedComparison
+    {Ctail Ttail : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_existsNearbyZeroCountLog_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hCount hAvgCmp
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
