@@ -128,7 +128,57 @@ real, contradicting `0 < Im s`. Needed to place all counted zeros inside the sin
 ball `B(0, T + 1)`. -/
 lemma zeta_zero_re_mem_of_im_pos {s : ℂ} (hs : riemannZeta s = 0) (him : 0 < s.im) :
     0 ≤ s.re ∧ s.re ≤ 1 := by
-  sorry
+  refine ⟨?_, ?_⟩
+  · by_contra hre
+    push_neg at hre
+    set w : ℂ := 1 - s with hw
+    have hwre : 1 < w.re := by
+      rw [hw]
+      simp only [Complex.sub_re, Complex.one_re]
+      linarith
+    have hwn : ∀ n : ℕ, w ≠ -(n : ℂ) := by
+      intro n h
+      have h' := congrArg Complex.re h
+      simp only [Complex.neg_re, Complex.natCast_re] at h'
+      have hn : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+      linarith
+    have hw1 : w ≠ 1 := by
+      intro h
+      have h' := congrArg Complex.re h
+      simp only [Complex.one_re] at h'
+      linarith
+    have hfe := riemannZeta_one_sub hwn hw1
+    have h1w : (1 : ℂ) - w = s := by
+      rw [hw]; ring
+    rw [h1w, hs] at hfe
+    have hζw : riemannZeta w ≠ 0 := riemannZeta_ne_zero_of_one_le_re hwre.le
+    have hΓ : Complex.Gamma w ≠ 0 := Complex.Gamma_ne_zero hwn
+    have h2π : ((2 : ℂ) * (Real.pi : ℂ)) ^ (-w) ≠ 0 := by
+      rw [Complex.cpow_def_of_ne_zero (by
+        simp only [ne_eq, mul_eq_zero, not_or]
+        exact ⟨two_ne_zero, by exact_mod_cast Real.pi_ne_zero⟩)]
+      exact Complex.exp_ne_zero _
+    have hprod := hfe.symm
+    simp only [mul_eq_zero] at hprod
+    have hcos : Complex.cos ((Real.pi : ℂ) * w / 2) = 0 := by
+      rcases hprod with ((((h | h) | h) | h) | h)
+      · norm_num at h
+      · exact absurd h h2π
+      · exact absurd h hΓ
+      · exact h
+      · exact absurd h hζw
+    rw [Complex.cos_eq_zero_iff] at hcos
+    obtain ⟨k, hk⟩ := hcos
+    have hπ : ((Real.pi : ℝ) : ℂ) ≠ 0 := by exact_mod_cast Real.pi_ne_zero
+    have h2 : (Real.pi : ℂ) * w = (Real.pi : ℂ) * (2 * (k : ℂ) + 1) := by
+      linear_combination 2 * hk
+    have hwk : w = 2 * (k : ℂ) + 1 := mul_left_cancel₀ hπ h2
+    have himw := congrArg Complex.im hwk
+    simp [hw] at himw
+    linarith
+  · by_contra hre
+    push_neg at hre
+    exact riemannZeta_ne_zero_of_one_le_re hre.le hs
 
 /-! ### Probe lemma 3 — disk-strip cover (the easy bit; combinatorial)
 
