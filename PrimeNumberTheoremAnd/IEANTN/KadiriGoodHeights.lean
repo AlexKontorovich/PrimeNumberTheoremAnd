@@ -1,6 +1,8 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.ZetaFiniteOrder
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
@@ -2219,6 +2221,81 @@ def U6aPartialFractionApproximationHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) :
   0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
     ‖deriv riemannZeta s / riemannZeta s -
         u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤ C * Real.log |s.im|
+
+/-- The translated removable extension of `(w - 1)ζ(w)`, centered at `s`.
+Jensen's disk-counting lemmas are centered at zero, so the PF-disk route applies
+them to this translated entire function. -/
+noncomputable def u6aShiftedZetaPoleRemoved (s z : ℂ) : ℂ :=
+  Complex.zetaTimesSMinusOne_entire (s + z)
+
+theorem differentiable_u6aShiftedZetaPoleRemoved (s : ℂ) :
+    Differentiable ℂ (u6aShiftedZetaPoleRemoved s) := by
+  intro z
+  unfold u6aShiftedZetaPoleRemoved
+  have hshift : DifferentiableAt ℂ (fun z : ℂ => s + z) z := by
+    fun_prop
+  exact Complex.zetaTimesSMinusOne_entire_differentiable.differentiableAt.comp z hshift
+
+/-- Translate the global growth bound for `(w - 1)ζ(w)` to disks centered at
+`s`.  The center dependence is explicit and will be specialized to high
+horizontal lines in the PF-disk estimate. -/
+theorem u6aShiftedZetaPoleRemoved_growth :
+    ∃ C : ℝ, 0 < C ∧ ∀ s z : ℂ,
+      Real.log (1 + ‖u6aShiftedZetaPoleRemoved s z‖) ≤
+        C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + ‖z‖) ^ (2 : ℝ) := by
+  obtain ⟨C, hCpos, hC⟩ := Complex.zeta_minus_pole_entire_growth
+  refine ⟨C, hCpos, ?_⟩
+  intro s z
+  have hbase := hC (s + z)
+  have hs_nonneg : 0 ≤ ‖s‖ := norm_nonneg s
+  have hz_nonneg : 0 ≤ ‖z‖ := norm_nonneg z
+  have hleft_nonneg : 0 ≤ 1 + ‖s‖ := by positivity
+  have hright_nonneg : 0 ≤ 1 + ‖z‖ := by positivity
+  have hnorm : 1 + ‖s + z‖ ≤ (1 + ‖s‖) * (1 + ‖z‖) := by
+    calc
+      1 + ‖s + z‖ ≤ 1 + (‖s‖ + ‖z‖) := by
+        gcongr
+        exact norm_add_le s z
+      _ ≤ (1 + ‖s‖) * (1 + ‖z‖) := by nlinarith [hs_nonneg, hz_nonneg]
+  have hpow :
+      (1 + ‖s + z‖) ^ (2 : ℝ) ≤
+        ((1 + ‖s‖) * (1 + ‖z‖)) ^ (2 : ℝ) := by
+    exact Real.rpow_le_rpow (by positivity) hnorm (by norm_num)
+  have hsplit :
+      ((1 + ‖s‖) * (1 + ‖z‖)) ^ (2 : ℝ) =
+        (1 + ‖s‖) ^ (2 : ℝ) * (1 + ‖z‖) ^ (2 : ℝ) := by
+    rw [Real.mul_rpow hleft_nonneg hright_nonneg]
+  calc
+    Real.log (1 + ‖u6aShiftedZetaPoleRemoved s z‖)
+        ≤ C * (1 + ‖s + z‖) ^ (2 : ℝ) := by
+          simpa [u6aShiftedZetaPoleRemoved] using hbase
+    _ ≤ C * (((1 + ‖s‖) * (1 + ‖z‖)) ^ (2 : ℝ)) := by
+          exact mul_le_mul_of_nonneg_left hpow hCpos.le
+    _ = C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + ‖z‖) ^ (2 : ℝ) := by
+          rw [hsplit, mul_assoc]
+
+/-- Jensen/log-counting mass bound for zeros of the translated removable zeta
+extension in a disk around `s`.  This is the centered disk-count source for the
+PF-remainder route before the zeta-zero multiplicity bridge is applied. -/
+theorem u6aShiftedZetaPoleRemoved_divisorMassClosedBall_le
+    (s : ℂ) {R : ℝ} (hR : 1 ≤ R) :
+    ∃ C : ℝ, 0 < C ∧
+      Complex.Hadamard.divisorMassClosedBall₀ (u6aShiftedZetaPoleRemoved s) R ≤
+        (C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + |2 * R|) ^ (2 : ℝ) +
+            |Real.log ‖meromorphicTrailingCoeffAt (u6aShiftedZetaPoleRemoved s) 0‖|) /
+          Real.log 2 := by
+  obtain ⟨C, hCpos, hC⟩ := u6aShiftedZetaPoleRemoved_growth
+  refine ⟨C, hCpos, ?_⟩
+  have hgrowth_for_s :
+      ∀ z : ℂ, Real.log (1 + ‖u6aShiftedZetaPoleRemoved s z‖) ≤
+        (C * (1 + ‖s‖) ^ (2 : ℝ)) * (1 + ‖z‖) ^ (2 : ℝ) := by
+    intro z
+    simpa [mul_assoc] using hC s z
+  simpa [mul_assoc] using
+    Complex.Hadamard.divisorMassClosedBall₀_le_of_growth
+      (f := u6aShiftedZetaPoleRemoved s) (ρ := (2 : ℝ))
+      (C := C * (1 + ‖s‖) ^ (2 : ℝ))
+      (differentiable_u6aShiftedZetaPoleRemoved s) hgrowth_for_s hR
 
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
