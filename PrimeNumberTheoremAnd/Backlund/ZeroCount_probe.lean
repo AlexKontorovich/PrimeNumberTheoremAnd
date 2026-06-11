@@ -228,17 +228,149 @@ optimized. The proof is sorried — the kernel probe checks that the statement
 type-checks against `riemannZeta.N` (ZetaDefinitions :137), against existing
 lemmas, and that the dependency graph closes without any reference to
 `backlund_bound` or KadiriZeroCounting machinery. -/
-/-- The bridge from `riemannZeta.N` to the surrogate's divisor mass: every zero counted
-by `N T` lies in the closed ball `B(0, T + 1)` (localization), its ζ-order agrees with
-the surrogate's divisor value there (the patch only changes the value at `s = 1`, which
-is not a zero of the surrogate, and `(s - 1)` is nonvanishing off `1`), the rect is
-finite, and the order-weighted finite sum is dominated by the (nonnegative) divisor
-mass on the ball. -/
+/-- Order transport: away from `s = 1`, the surrogate's divisor value is exactly the
+ζ-order (the linear factor is analytic and nonvanishing there, and the patch is
+invisible on a punctured neighbourhood). -/
+private lemma divisor_surrogate_eq_order {ρ : ℂ} (hρ : ρ ≠ 1) :
+    (MeromorphicOn.divisor zetaSurrogate Set.univ) ρ = riemannZeta.order ρ := by
+  have hζan : AnalyticAt ℂ riemannZeta ρ :=
+    riemannZeta_analyticOn_compl_one _ (Set.mem_compl_singleton_iff.mpr hρ)
+  have hlin : AnalyticAt ℂ (fun w : ℂ ↦ w - 1) ρ := by fun_prop
+  have hmero : MeromorphicOn zetaSurrogate Set.univ := fun x _ ↦
+    (zetaSurrogate_differentiable.analyticAt x).meromorphicAt
+  rw [MeromorphicOn.divisor_apply hmero (Set.mem_univ ρ)]
+  have hcongr : meromorphicOrderAt zetaSurrogate ρ =
+      meromorphicOrderAt (fun w ↦ (w - 1) * riemannZeta w) ρ :=
+    meromorphicOrderAt_congr
+      ((zetaSurrogate_eventuallyEq hρ).filter_mono nhdsWithin_le_nhds)
+  have hmul : meromorphicOrderAt (fun w ↦ (w - 1) * riemannZeta w) ρ =
+      meromorphicOrderAt (fun w : ℂ ↦ w - 1) ρ + meromorphicOrderAt riemannZeta ρ :=
+    meromorphicOrderAt_mul hlin.meromorphicAt hζan.meromorphicAt
+  have hlin0 : meromorphicOrderAt (fun w : ℂ ↦ w - 1) ρ = 0 := by
+    rw [hlin.meromorphicOrderAt_eq]
+    have h0 : analyticOrderAt (fun w : ℂ ↦ w - 1) ρ = 0 :=
+      analyticOrderAt_eq_zero.mpr (Or.inr (by simpa [sub_eq_zero] using hρ))
+    simp [h0]
+  rw [hcongr, hmul, hlin0, zero_add, riemannZeta.order]
+  rfl
+
 lemma zetaCounting_le_surrogate_mass :
     ∀ T : ℝ, 2 ≤ T →
       |riemannZeta.N T| ≤
         Complex.Hadamard.divisorMassClosedBall₀ zetaSurrogate (T + 1) := by
-  sorry
+  intro T hT
+  classical
+  -- localization: the rect over `univ` equals the rect over the closed strip
+  have hseteq : riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T) =
+      riemannZeta.zeroes_rect (Set.Icc 0 1) (Set.Ioo 0 T) := by
+    ext ρ
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+      Set.mem_univ, true_and, Set.mem_Icc, Set.mem_Ioo]
+    constructor
+    · rintro ⟨him, hzero⟩
+      exact ⟨zeta_zero_re_mem_of_im_pos hzero him.1, ⟨him, hzero⟩⟩
+    · rintro ⟨-, him, hzero⟩
+      exact ⟨him, hzero⟩
+  have hfin : (riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T)).Finite := by
+    rw [hseteq, riemannZeta.zeroes_rect_eq]
+    refine (riemannZeta.zeroes_on_Compact_finite' ?_).subset
+      (Set.inter_subset_inter (Set.inter_subset_inter_right _
+        (Set.preimage_mono Set.Ioo_subset_Icc_self)) le_rfl)
+    exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+      (isCompact_Icc.prod isCompact_Icc)
+  -- basic facts about rect members
+  have hmem : ∀ ρ ∈ riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T),
+      riemannZeta ρ = 0 ∧ 0 < ρ.im ∧ ρ.im < T ∧ 0 ≤ ρ.re ∧ ρ.re ≤ 1 ∧ ρ ≠ 1 := by
+    intro ρ hρ
+    rw [hseteq] at hρ
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+      Set.mem_Icc, Set.mem_Ioo] at hρ
+    obtain ⟨⟨hre0, hre1⟩, ⟨him0, himT⟩, hzero⟩ := hρ
+    refine ⟨hzero, him0, himT, hre0, hre1, fun h ↦ ?_⟩
+    rw [h] at him0
+    simp [Complex.one_im] at him0
+  -- N T as a finite sum
+  have hNT : riemannZeta.N T =
+      ∑ ρ ∈ hfin.toFinset, ((riemannZeta.order ρ : ℤ) : ℝ) := by
+    have h1 : riemannZeta.N T =
+        ∑' (ρ : ↑(riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T))),
+          (fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) ↑ρ := by
+      rw [riemannZeta.N, riemannZeta.zeroes_sum]
+      simp
+    calc riemannZeta.N T
+        = ∑' (ρ : ↑(riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T))),
+            (fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) ↑ρ := h1
+      _ = ∑' (z : ℂ), (riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T)).indicator
+            (fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) z :=
+          tsum_subtype (riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T))
+            (fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ))
+      _ = ∑ ρ ∈ hfin.toFinset,
+            (riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T)).indicator
+              (fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) ρ :=
+          tsum_eq_sum (fun b hb ↦
+            Set.indicator_of_notMem (fun hmem ↦ hb (hfin.mem_toFinset.mpr hmem)) _)
+      _ = ∑ ρ ∈ hfin.toFinset, ((riemannZeta.order ρ : ℤ) : ℝ) :=
+          Finset.sum_congr rfl fun ρ hρ ↦ by
+            rw [Set.indicator_of_mem (hfin.mem_toFinset.mp hρ)]
+  -- order nonnegativity on the rect
+  have hnn : ∀ ρ ∈ hfin.toFinset, (0 : ℝ) ≤ ((riemannZeta.order ρ : ℤ) : ℝ) := by
+    intro ρ hρ
+    obtain ⟨-, -, -, -, -, hρ1⟩ := hmem ρ (hfin.mem_toFinset.mp hρ)
+    have hana : AnalyticAt ℂ riemannZeta ρ :=
+      riemannZeta_analyticOn_compl_one _ (Set.mem_compl_singleton_iff.mpr hρ1)
+    have hord := hana.meromorphicOrderAt_nonneg
+    suffices h : (0 : ℤ) ≤ riemannZeta.order ρ by exact_mod_cast h
+    rw [riemannZeta.order]
+    cases horder : meromorphicOrderAt riemannZeta ρ with
+    | top => exact le_rfl
+    | coe n =>
+      rw [horder] at hord
+      change (0 : ℤ) ≤ n
+      exact_mod_cast hord
+  -- the divisor of the surrogate
+  set D := MeromorphicOn.divisor zetaSurrogate Set.univ with hDdef
+  have hterm : ∀ ρ ∈ hfin.toFinset,
+      ((riemannZeta.order ρ : ℤ) : ℝ) = ((D ρ : ℤ) : ℝ) := by
+    intro ρ hρ
+    obtain ⟨-, -, -, -, -, hρ1⟩ := hmem ρ (hfin.mem_toFinset.mp hρ)
+    rw [hDdef, divisor_surrogate_eq_order hρ1]
+  have hDnn : 0 ≤ D := Differentiable.divisor_nonneg zetaSurrogate_differentiable
+  -- assemble: |N T| = N T = Σ orders = Σ divisor values ≤ mass
+  have habs : |riemannZeta.N T| = riemannZeta.N T := by
+    rw [abs_of_nonneg]
+    rw [hNT]
+    exact Finset.sum_nonneg hnn
+  rw [habs, hNT, Finset.sum_congr rfl hterm]
+  -- drop zero terms, then dominate by the mass finset
+  rw [← Finset.sum_filter_ne_zero]
+  rw [Complex.Hadamard.divisorMassClosedBall₀,
+    Function.locallyFinsuppWithin.massClosedBall₀]
+  refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+  · intro ρ hρ
+    rw [Finset.mem_filter] at hρ
+    obtain ⟨hρrect, hρne⟩ := hρ
+    obtain ⟨-, him0, himT, hre0, hre1, -⟩ := hmem ρ (hfin.mem_toFinset.mp hρrect)
+    have hDρ : D ρ ≠ 0 := by
+      intro h
+      exact hρne (by rw [h]; norm_num)
+    have hnorm : ‖ρ‖ ≤ |T + 1| := by
+      rw [abs_of_nonneg (by linarith : (0 : ℝ) ≤ T + 1)]
+      calc ‖ρ‖ ≤ |ρ.re| + |ρ.im| := Complex.norm_le_abs_re_add_abs_im ρ
+        _ ≤ 1 + T := by
+            rw [abs_of_nonneg hre0, abs_of_nonneg him0.le]
+            linarith
+        _ = T + 1 := by ring
+    have hsupp : ρ ∈ Function.locallyFinsuppWithin.support D :=
+      Function.mem_support.mpr hDρ
+    have hball :=
+      Function.locallyFinsuppWithin.mem_toClosedBall_support_of_mem_support_of_norm_le_abs
+        hsupp hnorm
+    refine Finset.mem_filter.mpr ⟨(Set.Finite.mem_toFinset _).mpr hball, ?_⟩
+    intro h
+    rw [h] at him0
+    simp at him0
+  · intro z _ _
+    exact_mod_cast hDnn z
 
 /-- HEADLINE REPAIR 2 (loop session): the constant is existential, not the literal
 `100` — the growth and ball-count inputs are existential, so a fixed numeric headline
