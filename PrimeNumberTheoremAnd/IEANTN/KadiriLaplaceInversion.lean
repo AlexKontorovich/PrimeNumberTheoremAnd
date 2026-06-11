@@ -145,6 +145,78 @@ theorem kadiriMellin_log_eq_laplaceTransform {d : ℝ} {f : ℝ → ℝ}
   rw [kadiriMellin_log_eq_integral]
   exact integral_exp_mul_eq_laplaceTransform_neg hf_supp s
 
+/-- The Mellin-line transform after subtracting the high-frequency
+`f 0 / w` Laplace pole, written in the `s` variable where `w = -s`. -/
+noncomputable def kadiriPoleSubtractedMellin (f : ℝ → ℝ) (s : ℂ) : ℂ :=
+  laplaceTransform f (-s) + (f 0 : ℂ) / s
+
+/-- The Perron kernel carried by the `f 0 / w` pole term on the right Mellin
+line.  The weighted Kadiri consumer only evaluates it at integers `n > 1`,
+where it vanishes. -/
+noncomputable def kadiriPoleKernel (x : ℝ) : ℂ :=
+  if 1 < x then 0 else -1
+
+theorem kadiriPoleKernel_of_one_lt {x : ℝ} (hx : 1 < x) :
+    kadiriPoleKernel x = 0 := by
+  simp [kadiriPoleKernel, hx]
+
+theorem kadiriPoleKernel_of_lt_one {x : ℝ} (hx : x < 1) :
+    kadiriPoleKernel x = -1 := by
+  simp [kadiriPoleKernel, not_lt.mpr hx.le]
+
+/-- The multiplicative test function whose Mellin transform is the
+pole-subtracted line transform on a right half-plane: fill the interval
+`0 < t < 1` with the endpoint value `f 0`, then use `f (log t)` to the
+right of `1`. -/
+noncomputable def kadiriPoleFilledLogFunction (f : ℝ → ℝ) (t : ℝ) : ℂ :=
+  if t < 1 then (f 0 : ℂ) else (f (Real.log t) : ℂ)
+
+theorem kadiriPoleFilledLogFunction_of_one_lt {f : ℝ → ℝ} {x : ℝ} (hx : 1 < x) :
+    kadiriPoleFilledLogFunction f x = (f (Real.log x) : ℂ) := by
+  simp [kadiriPoleFilledLogFunction, not_lt.mpr hx.le]
+
+/-- The explicit Mellin kernel contributed by the filled interval `0 < t < 1`.
+This is the `f 0 / s` term in the pole-subtracted transform identity. -/
+theorem kadiriPoleKernelIntegral {s : ℂ} (hs : 0 < s.re) :
+    (∫ t : ℝ in (0 : ℝ)..1, (t : ℂ) ^ (s - 1)) = 1 / s := by
+  rw [integral_cpow (r := s - 1) (a := (0 : ℝ)) (b := 1)]
+  · have hs0 : s ≠ 0 := by
+      intro h
+      rw [h] at hs
+      norm_num at hs
+    simp [hs0]
+  · left
+    simpa using hs
+
+/-- Pole-split fixed-line inversion expression: the line-integrable
+pole-subtracted Mellin inverse plus the explicit Perron kernel carried by the
+`f 0 / w` term. -/
+noncomputable def kadiriPoleSplitMellinInv (σ : ℝ) (f : ℝ → ℝ) (x : ℝ) : ℂ :=
+  mellinInv σ (kadiriPoleSubtractedMellin f) x + (f 0 : ℂ) * kadiriPoleKernel x
+
+/-- Mellin inversion for the pole-subtracted transform once the pole-filled
+function has been identified as its Mellin-side source. -/
+theorem kadiriPoleSubtracted_mellinInv_eq_of_poleFilled
+    {σ x : ℝ} {f : ℝ → ℝ} (hx : 0 < x)
+    (hMellin : MellinConvergent (kadiriPoleFilledLogFunction f) (σ : ℂ))
+    (hTransform : ∀ s : ℂ,
+      mellin (kadiriPoleFilledLogFunction f) s = kadiriPoleSubtractedMellin f s)
+    (hVertical : VerticalIntegrable (kadiriPoleSubtractedMellin f) σ)
+    (hCont : ContinuousAt (kadiriPoleFilledLogFunction f) x) :
+    mellinInv σ (kadiriPoleSubtractedMellin f) x =
+      kadiriPoleFilledLogFunction f x := by
+  have hVertical' : VerticalIntegrable (mellin (kadiriPoleFilledLogFunction f)) σ := by
+    dsimp [VerticalIntegrable] at hVertical ⊢
+    exact hVertical.congr (Eventually.of_forall fun y => (hTransform (σ + y * I)).symm)
+  calc
+    mellinInv σ (kadiriPoleSubtractedMellin f) x
+        = mellinInv σ (mellin (kadiriPoleFilledLogFunction f)) x := by
+          dsimp [mellinInv]
+          simp_rw [← hTransform]
+    _ = kadiriPoleFilledLogFunction f x :=
+          mellinInv_mellin_eq σ (f := kadiriPoleFilledLogFunction f) hx
+            hMellin hVertical' hCont
+
 private lemma laplaceLine_continuous {d σ : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_cont : Continuous f) (hf_supp : tsupport f ⊆ Set.Ico 0 d) :
     Continuous fun y : ℝ => laplaceTransform f (-(σ + y * I)) := by
@@ -153,6 +225,58 @@ private lemma laplaceLine_continuous {d σ : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     refine intervalIntegral.continuous_parametric_intervalIntegral_of_continuous' ?_ (0 : ℝ) d
     change Continuous fun p : ℝ × ℝ => exp (-(-(σ + p.1 * I)) * (p.2 : ℂ)) * (f p.2 : ℂ)
     fun_prop
+  refine hcont_int.congr ?_
+  intro y
+  exact (laplaceTransform_eq_interval_of_tsupport_subset_Ico hd hf_supp (-(σ + y * I))).symm
+
+private lemma laplaceLine_continuous_of_contDiffOn {d σ : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) :
+    Continuous fun y : ℝ => laplaceTransform f (-(σ + y * I)) := by
+  have hf_contOn : ContinuousOn f (Set.Icc 0 d) := hf_C2.continuousOn
+  obtain ⟨K, hK⟩ := isCompact_Icc.exists_bound_of_continuousOn
+    (Complex.continuous_ofReal.comp_continuousOn hf_contOn)
+  let K' : ℝ := max K 0
+  have hK' : ∀ t ∈ Set.Icc (0 : ℝ) d, ‖((f t : ℝ) : ℂ)‖ ≤ K' := by
+    intro t ht
+    exact (hK t ht).trans (le_max_left K 0)
+  let B : ℝ := Real.exp (max σ 0 * d) * K'
+  have hB0 : 0 ≤ B := by
+    exact mul_nonneg (Real.exp_pos _).le (le_max_right K 0)
+  have hcont_int : Continuous fun y : ℝ =>
+      ∫ t in (0 : ℝ)..d, exp (-(-(σ + y * I)) * (t : ℂ)) * (f t : ℂ) := by
+    refine intervalIntegral.continuous_of_dominated_interval
+      (bound := fun _ : ℝ => B) ?_ ?_ ?_ ?_
+    · intro y
+      have hcont : ContinuousOn
+          (fun t : ℝ => exp (-(-(σ + y * I)) * (t : ℂ)) * (f t : ℂ))
+          (Set.uIcc (0 : ℝ) d) := by
+        refine (Continuous.continuousOn ?_).mul
+          ((Complex.continuous_ofReal.comp_continuousOn hf_contOn).mono ?_)
+        · fun_prop
+        · intro t ht
+          simpa [Set.uIcc, min_eq_left hd.le, max_eq_right hd.le] using ht
+      exact (hcont.mono Set.uIoc_subset_uIcc).aestronglyMeasurable measurableSet_uIoc
+    · intro y
+      filter_upwards with t ht
+      rw [norm_mul, Complex.norm_exp]
+      have htIcc : t ∈ Set.Icc (0 : ℝ) d := by
+        simpa [Set.uIcc, min_eq_left hd.le, max_eq_right hd.le] using
+          (Set.uIoc_subset_uIcc ht)
+      have hre : (-(-(σ + y * I)) * (t : ℂ)).re = σ * t := by
+        simp [Complex.mul_re]
+      have hexp : Real.exp ((-(-(σ + y * I)) * (t : ℂ)).re) ≤
+          Real.exp (max σ 0 * d) := by
+        rw [hre]
+        apply Real.exp_le_exp.2
+        have hσ : σ ≤ max σ 0 := le_max_left σ 0
+        have hσ0 : 0 ≤ max σ 0 := le_max_right σ 0
+        calc σ * t ≤ max σ 0 * t := mul_le_mul_of_nonneg_right hσ htIcc.1
+          _ ≤ max σ 0 * d := mul_le_mul_of_nonneg_left htIcc.2 hσ0
+      exact mul_le_mul hexp (hK' t htIcc) (norm_nonneg _) (Real.exp_pos _).le
+    · exact intervalIntegrable_const
+    · filter_upwards with t ht
+      fun_prop
   refine hcont_int.congr ?_
   intro y
   exact (laplaceTransform_eq_interval_of_tsupport_subset_Ico hd hf_supp (-(σ + y * I))).symm
@@ -199,6 +323,80 @@ private lemma laplaceLine_decay_bound {d σ : ℝ} (hd : 0 < d) {f : ℝ → ℝ
             abs_of_nonneg (Real.rpow_nonneg (abs_nonneg y) _),
             Real.rpow_neg (abs_nonneg y)]
           simp [w, pow_two]
+
+/-- Vertical integrability of the pole-subtracted Kadiri Mellin line under the
+real Kadiri test-function surface.  This is the line-integrable half of the
+pole split; no global continuity of `f` is used. -/
+theorem kadiriPoleSubtractedVerticalIntegrable_of_laplaceDecay {d σ : ℝ}
+    (hd : 0 < d) (hσ : σ ≠ 0) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0) :
+    VerticalIntegrable (kadiriPoleSubtractedMellin f) σ := by
+  dsimp [VerticalIntegrable]
+  let line : ℝ → ℂ := fun y => kadiriPoleSubtractedMellin f (σ + y * I)
+  have hden : ∀ y : ℝ, σ + y * I ≠ 0 := by
+    intro y h
+    have hre : σ = 0 := by
+      simpa using congrArg Complex.re h
+    exact hσ hre
+  have hline_cont : Continuous line := by
+    dsimp [line, kadiriPoleSubtractedMellin]
+    exact (laplaceLine_continuous_of_contDiffOn (d := d) (σ := σ) hd hf_C2 hf_supp).add
+      (continuous_const.div (by fun_prop) hden)
+  have h_loc : LocallyIntegrable line := hline_cont.locallyIntegrable
+  obtain ⟨C, hC⟩ := laplaceTransform_sub_pole_norm_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d (-σ)
+  have h_int_top := rpow_neg_two_integrableAtFilter_atTop
+  have h_int_bot : IntegrableAtFilter (fun y : ℝ => |y| ^ (-(2 : ℝ))) Filter.atBot volume := by
+    rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
+    have : (volume : Measure ℝ).comap Neg.neg = volume := by
+      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1
+      simp
+    rw [this, Function.comp_def]
+    simp only [abs_neg]
+    exact h_int_top
+  have hbound : ∃ C' : ℝ, ∀ y : ℝ, y ≠ 0 →
+      ‖line y‖ ≤ C' * ‖|y| ^ (-(2 : ℝ))‖ := by
+    refine ⟨max 0 C, fun y hy => ?_⟩
+    set w : ℂ := -(σ + y * I)
+    have hwre : -σ ≤ w.re := by simp [w]
+    have hwim : w.im ≠ 0 := by simp [w, hy]
+    have hdecay := hC w hwre hwim
+    have hline :
+        line y = -(((f 0 : ℝ) : ℂ) / w - laplaceTransform f w) := by
+      have hs_eq : (σ + y * I : ℂ) = -w := by
+        simp [w]
+      dsimp [line, kadiriPoleSubtractedMellin]
+      rw [hs_eq]
+      simp
+      ring_nf
+    calc
+      ‖line y‖ = ‖((f 0 : ℝ) : ℂ) / w - laplaceTransform f w‖ := by
+          rw [hline, norm_neg]
+      _ ≤ C / w.im ^ 2 := hdecay
+      _ ≤ max 0 C / w.im ^ 2 := by
+          gcongr
+          exact le_max_right 0 C
+      _ = max 0 C * ‖|y| ^ (-(2 : ℝ))‖ := by
+          rw [div_eq_mul_inv, Real.norm_eq_abs,
+            abs_of_nonneg (Real.rpow_nonneg (abs_nonneg y) _),
+            Real.rpow_neg (abs_nonneg y)]
+          simp [w, pow_two]
+  obtain ⟨C', hC'⟩ := hbound
+  have h_line_int : Integrable line := by
+    apply h_loc.integrable_of_isBigO_atBot_atTop
+      (g := fun y : ℝ => |y| ^ (-(2 : ℝ)))
+      (g' := fun y : ℝ => |y| ^ (-(2 : ℝ)))
+    · apply IsBigO.of_bound C'
+      filter_upwards [Filter.eventually_ne_atBot 0] with y hy using hC' y hy
+    · exact h_int_bot
+    · apply IsBigO.of_bound C'
+      filter_upwards [Filter.eventually_ne_atTop 0] with y hy using hC' y hy
+    · exact h_int_top
+  exact h_line_int
 
 /-- Vertical integrability of the Mellin transform after the logarithmic
 change of variables, obtained from the Kadiri two-IBP decay theorem.  The raw
@@ -408,6 +606,49 @@ theorem kadiriCompactSupport_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ
     (kadiriVerticalIntegrable_mellin_log_of_laplaceDecay (d := d) (σ := σ) hd
       hf_cont hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d)
     (fun _ _ => hφ_cont.continuousAt)
+
+/-- Weighted pole-split wrapper for the real Kadiri class.  The discharged
+content here is the line-integrability of the pole-subtracted transform and
+the explicit Perron-kernel contribution at the weighted integer points.  The
+remaining analytic inputs identify the pole-filled function as the Mellin-side
+source of the pole-subtracted transform. -/
+theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : ℝ}
+    (hd : 0 < d) (hσ : σ ≠ 0) {f : ℝ → ℝ} (a : ℕ → ℂ)
+    (ha0 : a 0 = 0) (ha1 : a 1 = 0)
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hMellin : MellinConvergent (kadiriPoleFilledLogFunction f) (σ : ℂ))
+    (hTransform : ∀ s : ℂ,
+      mellin (kadiriPoleFilledLogFunction f) s = kadiriPoleSubtractedMellin f s)
+    (hCont : ∀ n : ℕ, 1 < n → ContinuousAt (kadiriPoleFilledLogFunction f) n) :
+    (∑' n : ℕ, a n * kadiriPoleSplitMellinInv σ f n) =
+      ∑' n : ℕ, a n * (f (Real.log n) : ℂ) := by
+  have hVertical : VerticalIntegrable (kadiriPoleSubtractedMellin f) σ :=
+    kadiriPoleSubtractedVerticalIntegrable_of_laplaceDecay
+      (d := d) (σ := σ) hd hσ hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
+  refine tsum_congr fun n => ?_
+  rcases Nat.eq_zero_or_pos n with rfl | hnpos
+  · simp [ha0]
+  by_cases hn1 : n = 1
+  · simp [hn1, ha1]
+  have hn_gt_one : 1 < n := by omega
+  have hn_gt_one_real : (1 : ℝ) < (n : ℝ) := by exact_mod_cast hn_gt_one
+  have hxpos : 0 < (n : ℝ) := by exact_mod_cast Nat.pos_of_ne_zero (by omega : n ≠ 0)
+  have hInvFilled :
+      mellinInv σ (kadiriPoleSubtractedMellin f) n =
+        kadiriPoleFilledLogFunction f n :=
+    kadiriPoleSubtracted_mellinInv_eq_of_poleFilled
+      (σ := σ) (x := (n : ℝ)) (f := f) hxpos hMellin hTransform hVertical
+      (hCont n hn_gt_one)
+  have hInv :
+      mellinInv σ (kadiriPoleSubtractedMellin f) n =
+        (f (Real.log n) : ℂ) := by
+    exact hInvFilled.trans (kadiriPoleFilledLogFunction_of_one_lt hn_gt_one_real)
+  rw [kadiriPoleSplitMellinInv, hInv, kadiriPoleKernel_of_one_lt hn_gt_one_real]
+  simp
 
 /-- Compact-support wrapper for the von-Mangoldt weighted fixed-line
 inversion. -/
