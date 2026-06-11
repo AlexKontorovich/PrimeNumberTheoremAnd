@@ -1914,7 +1914,7 @@ is finite and height-independent.
 -/
 
 /-- Zero orders are nonnegative away from `1`. -/
-private lemma riemannZeta_order_nonneg {ρ : ℂ} (hρ : ρ ≠ 1) :
+lemma riemannZeta_order_nonneg {ρ : ℂ} (hρ : ρ ≠ 1) :
     0 ≤ riemannZeta.order ρ := by
   have han : AnalyticAt ℂ riemannZeta ρ :=
     riemannZeta_analyticOn_compl_one ρ (by simpa [Set.mem_compl_iff] using hρ)
@@ -2069,5 +2069,186 @@ theorem weighted_cumulative_count_le (k : ℕ) :
   have hNabs : riemannZeta.N ((2 : ℝ) ^ (k + 1)) ≤
       |riemannZeta.N ((2 : ℝ) ^ (k + 1))| := le_abs_self _
   linarith [hsplit1, hsplit2, hpos, hneg, hzero]
+
+/-!
+### The weighted square tail
+
+The order-weighted height-square tail over the zeros is summable: shell masses
+carry the order weight into the weighted cumulative count, which the crude
+majorant makes geometric.
+-/
+
+/-- The weighted dyadic shell mass is controlled by the weighted cumulative count. -/
+private lemma weighted_shell_mass_le (k : ℕ) :
+    (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+          zeroImagSquareTail ρ.1) ≤
+      (2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+  classical
+  haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+    Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
+  haveI : Finite {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+    Set.finite_coe_iff.mpr (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1)))
+  have hstep1 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) ≤
+      ∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+          (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+    refine Summable.tsum_le_tsum (fun ρ ↦ ?_) Summable.of_finite Summable.of_finite
+    have hord : (0 : ℝ) ≤
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) := by
+      exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+    exact mul_le_mul_of_nonneg_left (zeroImagSquareTail_le_dyadic_inv_sq ρ.2) hord
+  have hstep2 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) =
+      (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := tsum_mul_right
+  have hstep3 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑' ρ : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ) := by
+    classical
+    haveI hSf : Fintype {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+      (nontrivialZeros_dyadic_shell_finite k).fintype
+    haveI hCf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+      (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
+    rw [tsum_fintype, tsum_fintype]
+    have himgS : (∑ x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((x.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ Finset.univ.image (fun x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} ↦ ((x.1 : NontrivialZeros) : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ))
+        (g := fun x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} ↦ ((x.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    have himgC : (∑ x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ Finset.univ.image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((x.1 : NontrivialZeros) : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ))
+        (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((x.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himgS, himgC]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+    · intro z hz
+      rw [Finset.mem_image] at hz
+      obtain ⟨x, -, rfl⟩ := hz
+      rw [Finset.mem_image]
+      exact ⟨⟨x.1, x.2.2⟩, Finset.mem_univ _, rfl⟩
+    · intro z hz _
+      rw [Finset.mem_image] at hz
+      obtain ⟨x, -, rfl⟩ := hz
+      exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one x.1)
+  have h4nn : (0 : ℝ) ≤ (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := sq_nonneg _
+  have hfinal : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) ≤
+      (2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+    rw [hstep2]
+    exact mul_le_mul_of_nonneg_right
+      (hstep3.trans (weighted_cumulative_count_le k)) h4nn
+  exact hstep1.trans hfinal
+
+/-- The weighted dyadic-shell sigma sum is summable. -/
+private lemma weighted_shell_sigma_summable :
+    Summable (fun p : Sigma (fun k : ℕ ↦
+        {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ}) ↦
+      ((riemannZeta.order ((p.2.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail p.2.1) := by
+  classical
+  rw [summable_sigma_of_nonneg]
+  · constructor
+    · intro k
+      haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+        Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
+      exact Summable.of_finite
+    · obtain ⟨E, hE0, hE⟩ := zetaCountingDyadic_abs_N_le_geometric
+      have hterm : ∀ k : ℕ,
+          (2 * E) * ((3 / 4 : ℝ)) ^ k +
+            weightedZeroHeightBucket * ((4 : ℝ)⁻¹) ^ k =
+          (2 * (E * 3 ^ k) + weightedZeroHeightBucket) *
+            (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+        intro k
+        have h4 : (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) = ((4 : ℝ)⁻¹) ^ k := by
+          rw [inv_pow, ← pow_mul, mul_comm k 2, pow_mul, ← inv_pow]
+          norm_num
+        have h34 : ((3 : ℝ) / 4) ^ k = 3 ^ k * ((4 : ℝ)⁻¹) ^ k := by
+          rw [← mul_pow]
+          norm_num
+        rw [h4, h34]
+        ring
+      have hgeom : Summable (fun k : ℕ ↦
+          (2 * (E * 3 ^ k) + weightedZeroHeightBucket) *
+            (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) :=
+        (((summable_geometric_of_lt_one (by norm_num)
+          (by norm_num : (3 / 4 : ℝ) < 1)).mul_left (2 * E)).add
+          ((summable_geometric_of_lt_one (by norm_num)
+            (by norm_num : ((4 : ℝ)⁻¹) < 1)).mul_left
+              weightedZeroHeightBucket)).congr hterm
+      refine Summable.of_nonneg_of_le (fun k ↦ ?_) (fun k ↦ ?_) hgeom
+      · refine tsum_nonneg fun ρ ↦ mul_nonneg ?_ (sq_nonneg _)
+        exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+      · refine (weighted_shell_mass_le k).trans ?_
+        have hb := weightedZeroHeightBucket_nonneg
+        have hNk := hE k
+        have h4nn : (0 : ℝ) ≤ (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := sq_nonneg _
+        refine mul_le_mul_of_nonneg_right ?_ h4nn
+        linarith
+  · intro p
+    refine mul_nonneg ?_ (sq_nonneg _)
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one p.2.1)
+
+/-- The order-weighted height-square zero tail is summable, unconditionally. -/
+theorem weighted_zeroImagSquareTail_summable :
+    Summable (fun ρ : NontrivialZeros ↦
+      ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ) := by
+  classical
+  have hhigh : Summable (fun ρ : {ρ : NontrivialZeros // 1 ≤ |(ρ : ℂ).im|} ↦
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) := by
+    have h := weighted_shell_sigma_summable.comp_injective
+      highZeroToDyadicShell_injective
+    simpa [Function.comp_def, highZeroToDyadicShell] using h
+  have hlow_set : ({ρ : NontrivialZeros | ¬ 1 ≤ |(ρ : ℂ).im|} :
+      Set NontrivialZeros).Finite := by
+    apply Set.Finite.subset nontrivialZeros_abs_im_lt_one_finite
+    intro ρ hρ
+    rw [Set.mem_setOf_eq] at hρ ⊢
+    exact lt_of_not_ge hρ
+  haveI : Finite {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} :=
+    Set.finite_coe_iff.mpr hlow_set
+  have hlow : Summable (fun ρ : {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} ↦
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) := Summable.of_finite
+  exact (summable_subtype_and_compl
+    (s := {ρ : NontrivialZeros | 1 ≤ |(ρ : ℂ).im|})).mp ⟨hhigh, hlow⟩
+
+/-- The order-weighted shifted height-square tail is summable for every shift. -/
+theorem weighted_zeroImagSquareTail_shifted_summable (s : ℂ) :
+    Summable (fun ρ : NontrivialZeros ↦
+      ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) := by
+  refine Summable.of_norm_bounded_eventually
+    (weighted_zeroImagSquareTail_summable.mul_left 4) ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_abs_im_lt_finite (2 * |s.im| + 2))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have hlarge : 2 * |s.im| + 2 ≤ |(ρ : ℂ).im| := le_of_not_gt hsmall
+  apply hbad
+  have hle := zeroImagSquareTail_shifted_le_four (s := s) (rho := ρ) hlarge
+  have hord : (0 : ℝ) ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ)
+  have hshift_nn : (0 : ℝ) ≤ |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ) := by positivity
+  rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg hord hshift_nn)]
+  calc ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))
+      ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (4 * zeroImagSquareTail ρ) :=
+        mul_le_mul_of_nonneg_left hle hord
+    _ = 4 * (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ) := by
+        ring
 
 end Kadiri
