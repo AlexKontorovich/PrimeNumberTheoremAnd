@@ -271,6 +271,83 @@ theorem u6aFT_offWindow_im_far {t : ℝ} (ht : 3 ≤ |t|)
   rw [Set.uIcc_of_le (by norm_num : (-1 : ℝ) ≤ 2)]
   exact ⟨by linarith [hre.1], by linarith [hre.2]⟩
 
+/-! ## The anchor estimate: counting the pulled-back window -/
+
+/-- A zeta zero off the real axis lies strictly inside the critical strip:
+right of it zeta does not vanish, and left of it the completed functional
+equation reflects to the nonvanishing region. -/
+theorem riemannZeta_zero_re_mem_Ioo_of_im_ne_zero' {ρ : ℂ}
+    (hζ : riemannZeta ρ = 0) (him : ρ.im ≠ 0) : ρ.re ∈ Set.Ioo (0 : ℝ) 1 := by
+  have hρ0 : ρ ≠ 0 := fun h => him (by rw [h]; simp)
+  constructor
+  · by_contra h
+    push Not at h
+    have hΓℝ : Complex.Gammaℝ ρ ≠ 0 := by
+      rw [Complex.Gammaℝ_def]
+      refine mul_ne_zero ?_ (Complex.Gamma_ne_zero fun m hc => him (by
+        have h2 : ρ = -(2 * m : ℂ) := by linear_combination (2 : ℂ) * hc
+        have h3 := congrArg Complex.im h2
+        simpa using h3))
+      rw [Complex.cpow_def_of_ne_zero
+        (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)]
+      exact Complex.exp_ne_zero _
+    have hcompleted : completedRiemannZeta ρ = 0 := by
+      have hdef := riemannZeta_def_of_ne_zero hρ0
+      rw [hζ] at hdef
+      rcases div_eq_zero_iff.mp hdef.symm with h2 | h2
+      · exact h2
+      · exact absurd h2 hΓℝ
+    have hFE : completedRiemannZeta (1 - ρ) = 0 := by
+      rw [completedRiemannZeta_one_sub]
+      exact hcompleted
+    have h1ρ : (1 : ℂ) - ρ ≠ 0 := fun hc => him (by
+      have h3 := congrArg Complex.im hc
+      simpa using h3)
+    have hζ1 : riemannZeta (1 - ρ) = 0 := by
+      rw [riemannZeta_def_of_ne_zero h1ρ, hFE, zero_div]
+    exact riemannZeta_ne_zero_of_one_le_re
+      (by rw [Complex.sub_re, Complex.one_re]; linarith) hζ1
+  · by_contra h
+    push Not at h
+    exact riemannZeta_ne_zero_of_one_le_re h hζ
+
+/-- The pulled-back window has at most the multiplicity-weighted nearby count
+many index points. -/
+theorem u6aXiNearbyIndexFinset_card_le_count {t : ℝ} (ht : 3 ≤ |t|) :
+    ((u6aXiNearbyIndexFinset t).card : ℝ) ≤ u6aNearbyZeroCount (-1) 2 t := by
+  letI : DecidableEq (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :=
+    Classical.decEq _
+  have hcount := riemannZeta.zeroes_sum_eq_finset_of_finite (I := Set.uIcc (-1 : ℝ) 2)
+    (J := Set.Icc (t - 1) (t + 1)) (fun _ => (1 : ℝ)) (u6aFTNearbyWindow_finite t)
+  unfold u6aNearbyZeroCount
+  rw [hcount]
+  simp only [one_mul]
+  unfold u6aXiNearbyIndexFinset
+  refine le_trans (Nat.cast_le.mpr (Finset.card_biUnion_le)) ?_
+  rw [Nat.cast_sum]
+  refine Finset.sum_le_sum fun ρ hρ => ?_
+  have hρmem : ρ ∈ u6aFTNearbyWindow t := (Set.Finite.mem_toFinset _).mp hρ
+  obtain ⟨hre, him, hζρ⟩ := hρmem
+  have hζ0 : riemannZeta ρ = 0 := hζρ
+  have himne : ρ.im ≠ 0 := by
+    intro h0
+    rw [h0] at him
+    have habs : |t| ≤ 1 := abs_le.mpr ⟨by linarith [him.2], by linarith [him.1]⟩
+    linarith
+  have hIoo := riemannZeta_zero_re_mem_Ioo_of_im_ne_zero' hζ0 himne
+  have hρ0 : ρ ≠ 0 := fun h => himne (by rw [h]; simp)
+  rw [Complex.Hadamard.divisorZeroIndex₀_fiberFinset_card_eq_toNat_divisor
+    (f := riemannXi) hρ0,
+    u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip hIoo.1 hIoo.2]
+  have hord : 0 < riemannZeta.order ρ := riemannZeta_order_pos_of_zero_ne_one
+    (fun h => by
+      rw [h] at hζ0
+      exact riemannZeta_ne_zero_of_one_le_re (by norm_num) hζ0) hζ0
+  have hcast : ((Int.toNat (riemannZeta.order ρ) : ℕ) : ℝ) =
+      ((riemannZeta.order ρ : ℤ) : ℝ) := by
+    rw [← Int.cast_natCast, Int.toNat_of_nonneg hord.le]
+  rw [hcast]
+
 end
 
 end Kadiri
