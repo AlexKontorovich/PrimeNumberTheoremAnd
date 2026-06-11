@@ -4755,6 +4755,44 @@ def U6aAveragedSelectionLogSqComparisonHypothesis (C D Crec : ℝ) : Prop :=
       u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D) ≤
         Crec * Real.log T ^ 2
 
+/-- Compose a packaged averaged selector, the zero-sum PF route, and the
+averaged-bound comparison into cofinally many legal horizontal segments. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedSelection
+    {Czero Tzero Csel Dsel Crec : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero)
+    (hSel : U6aAveragedSelectionHypothesis Csel Dsel)
+    (hCmp : U6aAveragedSelectionLogSqComparisonHypothesis Csel Dsel Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  rcases hSel with ⟨_hCsel, _hDsel, hsel⟩
+  obtain ⟨Cout, Tpf, hCout, _hTpf4, hmain⟩ :=
+    exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound_of_zeroGap
+      hZero hCmp.1
+  refine ⟨Cout, hCout, ?_⟩
+  intro T₀
+  let Tbase : ℝ := max (max T₀ Tpf) 3
+  obtain ⟨k, X, T, hTbase, hX, hscale, hTmem, hrecTop⟩ := hsel Tbase
+  have hT₀ : T₀ ≤ T := by
+    exact (le_max_left T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hTpf : Tpf ≤ T := by
+    exact (le_max_right T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hT3 : 3 ≤ T := by
+    exact (le_max_right (max T₀ Tpf) 3).trans hTbase
+  have havg_le :
+      u6aAveragedSelectionBound X (u6aCrudeDelta Csel Dsel X k)
+          (Csel * 3 ^ k + Dsel) ≤ Crec * Real.log T ^ 2 :=
+    hCmp.2 k X T hX hT3 hTmem hscale
+  have hrecAll : ∀ t : ℝ, |t| = T →
+      u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2 := by
+    intro t ht
+    have htcase : t = T ∨ t = -T :=
+      (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp ht
+    rcases htcase with rfl | rfl
+    · exact hrecTop.trans havg_le
+    · simpa [u6aReciprocalZeroSum_neg] using hrecTop.trans havg_le
+  exact ⟨T, hT₀, hT3,
+    hmain T (u6aCrudeDelta Csel Dsel X k) hTpf hT3 hTmem.2 hrecAll⟩
+
 /-- Consumer-shape U6a composition: the proved cofinal averaged selector plus
 a partial-fraction approximation and the one remaining averaged-bound
 comparison give cofinally many horizontal segments with the desired
