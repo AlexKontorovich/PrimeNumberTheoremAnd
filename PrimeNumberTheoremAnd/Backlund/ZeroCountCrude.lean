@@ -2,56 +2,48 @@
 Copyright (c) 2026 Robby Sneiderman. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robby Sneiderman
-
-KERNEL PROBE — Backlund Tier A Phase 1 (LOCAL ONLY, NOT FOR PR).
-
-Purpose: demonstrate that the *shape* of the crude Riemann-zero counting bound
-  |riemannZeta.N T| ≤ C · T · log T  (for T ≥ 2)
-lifts cleanly from the existing Hadamard / LogCounting machinery in
-  `Mathlib/Analysis/Complex/HadamardFactorization/Summability.lean`
-  `Mathlib/Analysis/Complex/ValueDistribution/LogCounting/Growth.lean`
-applied to the entire surrogate `g(s) := (s - 1) · riemannZeta s` (order 1).
-
-This file is a *probe*, not a proof: every analytic step is sorried and the
-GO/NO-GO verdict rides on whether the *statement* type-checks and whether the
-existing zero-counting lemmas have the right shape to discharge it without
-inventing new mathlib. No new axioms are introduced beyond those of the cited
-lemmas.
-
-Statement-audit (BEFORE proving):
-  * hypotheses: only `T ≥ 2` (no vacuous typeclass / domain conditions) ✓
-  * conclusion: explicit constant `C = 100` matches the brief; bound is on `|N T|`
-    (absolute value, since the brief notes summability needs only the majorant
-    form, not a signed estimate) ✓
-  * statement closure: depends only on `riemannZeta.N` (ZetaDefinitions :137);
-    no dependency on KadiriZeroCounting, no dependency on `backlund_bound` ✓
-  * shape match: `C · T · log T` is the standard Riemann–von Mangoldt order;
-    matches blueprint comment in ZetaDefinitions :139 ✓
 -/
-
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.ZetaConj
 import PrimeNumberTheoremAnd.ZetaBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
 import Mathlib.Analysis.Real.Pi.Bounds
 
-open Real Complex Function
+/-!
+# A crude polynomial bound for the zeta zero-counting function
 
-namespace Backlund.Phase1Probe
+The headline is `Backlund.zetaCounting_crude_majorant`: there is a constant `A > 0`
+with `|riemannZeta.N T| <= A * T ^ (3/2)` for every `T >= 2`, unconditionally.
 
-/-! ### Probe lemma 1 — order-1 surrogate
+The route avoids the argument principle. All zeta zeros with `0 < Im rho <= T` have
+real part in `[0, 1]`, hence lie in the closed ball `B(0, T + 1)`; the counting
+function is therefore dominated by the divisor mass of the entire surrogate
+`zetaSurrogate s = (s - 1) * riemannZeta s` (patched to its limiting value `1` at
+`s = 1`) on that ball, and `Complex.Hadamard.divisorMassClosedBall₀_le_of_growth`
+turns a log-growth bound for the surrogate into a mass bound. The growth bound
+`log (1 + ‖zetaSurrogate z‖) <= C * (1 + ‖z‖) ^ (3/2)` is proved by region: the
+Dirichlet series for `Re z >= 2`, the truncated Euler-Maclaurin representation
+(`Zeta0EqZeta` at `N = 1`) on `-1 <= Re z <= 2`, and the functional equation with a
+factorial bound on `Gamma` for `Re z <= -1`.
 
-`g(s) := (s - 1) · riemannZeta s` is entire (the pole at `s = 1` is removed) and
-has logarithmic growth of order 1 (Stirling on `completedRiemannZeta`, +
-truncated-series machinery on the critical strip). The statement of the growth
-hypothesis is the *minimal* form consumed by `divisorMassClosedBall₀_le_of_growth`.
+The exponent `3/2` is not cosmetic: `zeta` has order `1` with maximal type on the
+left half-plane (`|zeta (-2k-1)|` grows factorially), so an exponent-`1` growth
+bound is false there, while `x * log x <= 2 * x ^ (3/2)` keeps every region linear.
+Any polynomial exponent suffices for the intended consumer, the summability of
+`Re (1 / rho ^ 2)` over the zeta zeros.
 -/
 
+open Real Complex Function
+
+namespace Backlund
+
+/-! ### The entire surrogate -/
+
 /-- Entire surrogate: `(s - 1) · ζ(s)` away from `1`, patched with the residue value
-`1` at `s = 1`. STATEMENT REPAIR (loop session): the unpatched `(s - 1) * riemannZeta s`
-takes the value `0` at `s = 1` while its limit there is `1` (`riemannZeta_residue_one`),
-so it is discontinuous at `1` — not entire — and its divisor would carry a spurious
-zero at `s = 1`, polluting the count. The patch removes both problems. -/
+`1` at `s = 1`. The unpatched `(s - 1) * riemannZeta s` takes the value `0` at
+`s = 1` while its limit there is `1` (`riemannZeta_residue_one`), so it is
+discontinuous at `1` (not entire) and its divisor would carry a spurious zero at
+`s = 1`, polluting the count. The patch removes both problems. -/
 noncomputable def zetaSurrogate (s : ℂ) : ℂ :=
   if s = 1 then 1 else (s - 1) * riemannZeta s
 
@@ -97,45 +89,49 @@ private lemma log_le_two_mul_sqrt {x : ℝ} (hx : 1 ≤ x) :
     Real.log_le_sub_one_of_pos (Real.sqrt_pos.mpr h0)
   nlinarith [Real.sqrt_nonneg x]
 
+/-- The uniform series bound on `Re ≥ 2`. -/
+private lemma exists_zeta_bound_right :
+    ∃ M : ℝ, 0 ≤ M ∧ ∀ z : ℂ, 2 ≤ z.re → ‖riemannZeta z‖ ≤ M := by
+  refine ⟨∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2, tsum_nonneg fun n ↦ by positivity, ?_⟩
+  intro z hz
+  have hMsum : Summable (fun n : ℕ ↦ 1 / ((n : ℝ) + 1) ^ 2) := by
+    have h := (summable_nat_add_iff (f := fun n : ℕ ↦ 1 / (n : ℝ) ^ 2) 1).mpr
+      (Real.summable_one_div_nat_pow.mpr one_lt_two)
+    simpa using h
+  have hterm : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ = 1 / ((n : ℝ) + 1) ^ z.re := by
+    intro n
+    rw [norm_div, norm_one]
+    congr 1
+    have h1 : ((n : ℂ) + 1) = ((n + 1 : ℕ) : ℂ) := by push_cast; ring
+    rw [h1, Complex.norm_natCast_cpow_of_pos (Nat.succ_pos n)]
+    push_cast
+    ring
+  have hle : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ ≤ 1 / ((n : ℝ) + 1) ^ 2 := by
+    intro n
+    rw [hterm n]
+    have hb1 : (1 : ℝ) ≤ (n : ℝ) + 1 := by
+      have := Nat.cast_nonneg (α := ℝ) n
+      linarith
+    have hrw : ((n : ℝ) + 1) ^ (2 : ℕ) = ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) := by
+      rw [Real.rpow_natCast]
+    have h2 : ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) ≤ ((n : ℝ) + 1) ^ z.re :=
+      Real.rpow_le_rpow_of_exponent_le hb1 (by exact_mod_cast hz)
+    rw [hrw]
+    gcongr
+  have hns : Summable (fun n : ℕ ↦ ‖1 / ((n : ℂ) + 1) ^ z‖) :=
+    Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) hle hMsum
+  rw [zeta_eq_tsum_one_div_nat_add_one_cpow (by linarith : 1 < z.re)]
+  calc ‖∑' n : ℕ, 1 / ((n : ℂ) + 1) ^ z‖
+      ≤ ∑' n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ := norm_tsum_le_tsum_norm hns
+    _ ≤ ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 := Summable.tsum_le_tsum hle hns hMsum
+
+
 /-- Region `Re ≥ 2`: the Dirichlet series bounds `‖ζ‖` by an absolute constant, so the
 surrogate's log-norm is linear in `‖z‖`. -/
 private lemma surrogate_growth_right :
     ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, 2 ≤ z.re →
       Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
-  set M : ℝ := ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 with hM
-  have hMsum : Summable (fun n : ℕ ↦ 1 / ((n : ℝ) + 1) ^ 2) := by
-    have h := (summable_nat_add_iff (f := fun n : ℕ ↦ 1 / (n : ℝ) ^ 2) 1).mpr
-      (Real.summable_one_div_nat_pow.mpr one_lt_two)
-    simpa using h
-  have hM0 : 0 ≤ M := tsum_nonneg fun n ↦ by positivity
-  have hζ : ∀ z : ℂ, 2 ≤ z.re → ‖riemannZeta z‖ ≤ M := by
-    intro z hz
-    have hterm : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ = 1 / ((n : ℝ) + 1) ^ z.re := by
-      intro n
-      rw [norm_div, norm_one]
-      congr 1
-      have h1 : ((n : ℂ) + 1) = ((n + 1 : ℕ) : ℂ) := by push_cast; ring
-      rw [h1, Complex.norm_natCast_cpow_of_pos (Nat.succ_pos n)]
-      push_cast
-      ring
-    have hle : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ ≤ 1 / ((n : ℝ) + 1) ^ 2 := by
-      intro n
-      rw [hterm n]
-      have hb1 : (1 : ℝ) ≤ (n : ℝ) + 1 := by
-        have := Nat.cast_nonneg (α := ℝ) n
-        linarith
-      have hrw : ((n : ℝ) + 1) ^ (2 : ℕ) = ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) := by
-        rw [Real.rpow_natCast]
-      have h2 : ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) ≤ ((n : ℝ) + 1) ^ z.re :=
-        Real.rpow_le_rpow_of_exponent_le hb1 (by exact_mod_cast hz)
-      rw [hrw]
-      gcongr
-    have hns : Summable (fun n : ℕ ↦ ‖1 / ((n : ℂ) + 1) ^ z‖) :=
-      Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) hle hMsum
-    rw [zeta_eq_tsum_one_div_nat_add_one_cpow (by linarith : 1 < z.re)]
-    calc ‖∑' n : ℕ, 1 / ((n : ℂ) + 1) ^ z‖
-        ≤ ∑' n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ := norm_tsum_le_tsum_norm hns
-      _ ≤ ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 := Summable.tsum_le_tsum hle hns hMsum
+  obtain ⟨M, hM0, hζ⟩ := exists_zeta_bound_right
   refine ⟨Real.log (1 + M) + 1, ?_, fun z hz ↦ ?_⟩
   · have h := Real.log_nonneg (by linarith : (1 : ℝ) ≤ 1 + M)
     linarith
@@ -169,13 +165,13 @@ private lemma surrogate_growth_right :
           linarith
       _ = (Real.log (1 + M) + 1) * (1 + ‖z‖) := by ring
 
-/-- Polynomial bound for ζ on the sub-band `1/2 ≤ Re ≤ 2`, `1 ≤ |Im|`, via the
+/-- Polynomial bound for `ζ` on the region `1/2 ≤ Re`, `1 ≤ |Im|`, via the
 truncated Euler-Maclaurin representation at `N = 1` (`Zeta0EqZeta`): the finite sum is
 `1`, the two boundary terms are at most `1` and `1/2` (the denominator `1 - z` has norm
 at least `|Im z| ≥ 1`), and the tail integral is at most `‖z‖` after the fractional-part
 bound `|⌊x⌋ + 1/2 - x| ≤ 1/2` and `∫_1^∞ x^(-Re z - 1) = 1/Re z ≤ 2`. -/
-private lemma zeta_norm_le_subband {z : ℂ} (h1 : 1/2 ≤ z.re) (h2 : z.re ≤ 2)
-    (him : 1 ≤ |z.im|) : ‖riemannZeta z‖ ≤ 3 + ‖z‖ := by
+private lemma zeta_norm_le_subband {z : ℂ} (h1 : 1 / 2 ≤ z.re) (him : 1 ≤ |z.im|) :
+    ‖riemannZeta z‖ ≤ 3 + ‖z‖ := by
   have hzr : (0 : ℝ) < z.re := by linarith
   have hz0 : z ≠ 0 := by
     intro h
@@ -220,7 +216,7 @@ private lemma zeta_norm_le_subband {z : ℂ} (h1 : 1/2 ≤ z.re) (h2 : z.re ≤ 
         (Filter.Eventually.of_forall fun x hx ↦ ?_)
       rw [Set.mem_Ioi] at hx
       have hx0 : (0 : ℝ) < x := by linarith
-      show ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) / (x : ℂ) ^ (z + 1)‖ ≤
+      change ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) / (x : ℂ) ^ (z + 1)‖ ≤
         1 / 2 * x ^ (-z.re - 1)
       rw [norm_div]
       have hnum : ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ))‖ ≤ 1 / 2 := by
@@ -396,43 +392,6 @@ private lemma log_one_add_mul_le {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
   rw [← Real.log_mul (by linarith) (by linarith)]
   refine Real.log_le_log (by nlinarith) (by nlinarith)
 
-/-- The uniform series bound on `Re ≥ 2`, packaged for reuse (the analogous bound is
-inlined in `surrogate_growth_right`; deduplicate at promotion). -/
-private lemma exists_zeta_bound_right :
-    ∃ M : ℝ, 0 ≤ M ∧ ∀ z : ℂ, 2 ≤ z.re → ‖riemannZeta z‖ ≤ M := by
-  refine ⟨∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2, tsum_nonneg fun n ↦ by positivity, ?_⟩
-  intro z hz
-  have hMsum : Summable (fun n : ℕ ↦ 1 / ((n : ℝ) + 1) ^ 2) := by
-    have h := (summable_nat_add_iff (f := fun n : ℕ ↦ 1 / (n : ℝ) ^ 2) 1).mpr
-      (Real.summable_one_div_nat_pow.mpr one_lt_two)
-    simpa using h
-  have hterm : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ = 1 / ((n : ℝ) + 1) ^ z.re := by
-    intro n
-    rw [norm_div, norm_one]
-    congr 1
-    have h1 : ((n : ℂ) + 1) = ((n + 1 : ℕ) : ℂ) := by push_cast; ring
-    rw [h1, Complex.norm_natCast_cpow_of_pos (Nat.succ_pos n)]
-    push_cast
-    ring
-  have hle : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ ≤ 1 / ((n : ℝ) + 1) ^ 2 := by
-    intro n
-    rw [hterm n]
-    have hb1 : (1 : ℝ) ≤ (n : ℝ) + 1 := by
-      have := Nat.cast_nonneg (α := ℝ) n
-      linarith
-    have hrw : ((n : ℝ) + 1) ^ (2 : ℕ) = ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) := by
-      rw [Real.rpow_natCast]
-    have h2 : ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) ≤ ((n : ℝ) + 1) ^ z.re :=
-      Real.rpow_le_rpow_of_exponent_le hb1 (by exact_mod_cast hz)
-    rw [hrw]
-    gcongr
-  have hns : Summable (fun n : ℕ ↦ ‖1 / ((n : ℂ) + 1) ^ z‖) :=
-    Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) hle hMsum
-  rw [zeta_eq_tsum_one_div_nat_add_one_cpow (by linarith : 1 < z.re)]
-  calc ‖∑' n : ℕ, 1 / ((n : ℂ) + 1) ^ z‖
-      ≤ ∑' n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ := norm_tsum_le_tsum_norm hns
-    _ ≤ ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 := Summable.tsum_le_tsum hle hns hMsum
-
 /-- Left region `Re ≤ -1`: the functional equation with `|Γ(1-z)| ≤ Γ(1 - Re z)` and a
 crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
 private lemma surrogate_growth_left :
@@ -489,7 +448,6 @@ private lemma surrogate_growth_left :
       refine Gamma_le_two_mul_factorial n (by linarith) ?_
       have hceil := Nat.le_ceil w.re
       rw [← hn] at hceil
-      push_cast
       linarith
     have hcos : ‖Complex.cos ((Real.pi : ℂ) * w / 2)‖ ≤
         Real.exp (Real.pi * ‖w‖ / 2) := by
@@ -687,7 +645,7 @@ private lemma surrogate_growth_band :
       linarith [hlog, hmul, hBK, hrest]
     · rcases le_total (1/2 : ℝ) z.re with hhalf | hhalf
       · -- direct subband case
-        have hzeta := zeta_norm_le_subband hhalf hre2 him
+        have hzeta := zeta_norm_le_subband hhalf him
         have hz1 : z ≠ 1 := by
           intro h
           rw [h] at him
@@ -784,7 +742,7 @@ private lemma surrogate_growth_band :
           rw [norm_div, norm_mul, Complex.norm_real, Real.norm_eq_abs,
             abs_of_pos Real.pi_pos]
           norm_num
-        have hζw := zeta_norm_le_subband hwre1 hwre2 hwim
+        have hζw := zeta_norm_le_subband hwre1 hwim
         have hg : ‖zetaSurrogate z‖ ≤
             (1 + ‖z‖) * ((64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2)) := by
           rw [zetaSurrogate, if_neg hz1, norm_mul]
@@ -888,18 +846,11 @@ lemma zetaSurrogate_log_growth :
         _ ≤ (B₁ + B₂ + B₃) * (1 + ‖z‖) ^ (3/2 : ℝ) :=
             mul_le_mul_of_nonneg_right (by linarith) hpos.le
 
-/-! ### Probe lemma 2 — zeros-in-disk count for ζ via the surrogate
+/-! ### Zero mass in a ball -/
 
-Lift `Complex.Hadamard.divisorMassClosedBall₀_le_of_growth` to a count of ζ-zeros
-inside a closed disk of radius `R` centered at 0. For each disk center `c`, the
-same shape gives a count via translation (sorried here; the translation glue is
-`divisorMassClosedBall₀` applied to `s ↦ zetaSurrogate (s + c)`).
--/
-
-/-- Sketched: zero-mass-in-ball bound for the surrogate. STATEMENT REPAIR (2026-06-11
-audit): the `O(R)` form originally probed here is FALSE — the true mass in `B(0, R)`
-is `~ (R/2π) · log R` (Riemann-von Mangoldt), which beats `C' · (1 + R)` for every
-fixed `C'`. The `(1 + R)^(3/2)` form follows directly from
+/-- Zero-mass-in-ball bound for the surrogate. An `O(R)` form would be false: the
+true mass in `B(0, R)` is `~ (R/2π) · log R` (Riemann-von Mangoldt), which beats
+`C' · (1 + R)` for every fixed `C'`. The `(1 + R)^(3/2)` form follows directly from
 `divisorMassClosedBall₀_le_of_growth` at `ρ = 3/2` plus the trailing-coefficient term
 (`zetaSurrogate 0 = 1/2 ≠ 0`, so that term is the constant `|log (1/2)|`). -/
 lemma zetaSurrogate_zeros_in_closedBall₀_count :
@@ -948,7 +899,7 @@ lemma zeta_zero_re_mem_of_im_pos {s : ℂ} (hs : riemannZeta s = 0) (him : 0 < s
     0 ≤ s.re ∧ s.re ≤ 1 := by
   refine ⟨?_, ?_⟩
   · by_contra hre
-    push_neg at hre
+    push Not at hre
     set w : ℂ := 1 - s with hw
     have hwre : 1 < w.re := by
       rw [hw]
@@ -995,29 +946,10 @@ lemma zeta_zero_re_mem_of_im_pos {s : ℂ} (hs : riemannZeta s = 0) (him : 0 < s
     simp [hw] at himw
     linarith
   · by_contra hre
-    push_neg at hre
+    push Not at hre
     exact riemannZeta_ne_zero_of_one_le_re hre.le hs
 
-/-! ### Probe lemma 3 — disk-strip cover (the easy bit; combinatorial)
-
-The strip `Re ∈ [1/2, 1)`, `Im ∈ (0, T)` is covered by `⌊T⌋ + 1` closed disks of
-radius `7/4` centered at `c_k := 2 + i · k` for `k = 0, …, ⌊T⌋`. Each disk
-contains all of `Re ∈ [1/4, 15/4]` along the horizontal line `Im = k`, in
-particular the strip slice `Re ∈ [1/2, 1)`, `Im ∈ [k, k+1]`.
-
-The conjugation symmetry `riemannZeta_conj` (ZetaConj :115) doubles to cover the
-left half `Re ∈ (0, 1/2)`. The combinatorial counting is sorried; this is the
-easy bit, no novel analytic input.
--/
-
-/-! ### THE CRUDE MAJORANT — the probe's headline theorem
-
-This is the GO/NO-GO target. The statement is what the brief asks for: a crude
-`O(T log T)` bound on `|N(T)|`. The constant `C = 100` is generous and not
-optimized. The proof is sorried — the kernel probe checks that the statement
-type-checks against `riemannZeta.N` (ZetaDefinitions :137), against existing
-lemmas, and that the dependency graph closes without any reference to
-`backlund_bound` or KadiriZeroCounting machinery. -/
+/-! ### The crude majorant -/
 /-- Order transport: away from `s = 1`, the surrogate's divisor value is exactly the
 ζ-order (the linear factor is analytic and nonvanishing there, and the patch is
 invisible on a punctured neighbourhood). -/
@@ -1162,10 +1094,10 @@ lemma zetaCounting_le_surrogate_mass :
   · intro z _ _
     exact_mod_cast hDnn z
 
-/-- HEADLINE REPAIR 2 (loop session): the constant is existential, not the literal
-`100` — the growth and ball-count inputs are existential, so a fixed numeric headline
-constant is underivable until the growth constant is made explicit. The Phase-2
-consumer is indifferent: the constant factors out of the dyadic summability. -/
+/-- A crude polynomial majorant for the zero-counting function `riemannZeta.N`,
+unconditional and with no argument-principle input. The constant is existential
+(the growth and ball-count inputs are existential); the intended consumer, dyadic
+summability over the zeta zeros, is indifferent to its value. -/
 theorem zetaCounting_crude_majorant :
     ∃ A : ℝ, 0 < A ∧ ∀ T : ℝ, 2 ≤ T →
       |riemannZeta.N T| ≤ A * T ^ (3/2 : ℝ) := by
@@ -1182,23 +1114,4 @@ theorem zetaCounting_crude_majorant :
     _ ≤ C' * (4 ^ (3/2 : ℝ) * T ^ (3/2 : ℝ)) := mul_le_mul_of_nonneg_left h3 hC'0.le
     _ = C' * 4 ^ (3/2 : ℝ) * T ^ (3/2 : ℝ) := by ring
 
-/-! ### Statement-audit footnote
-
-For the GO verdict, the probe relies on these *existing* (= present on
-`upstream/main` as of this worktree's HEAD `d379571`) infrastructure pieces:
-  * `riemannZeta.N`                       — ZetaDefinitions :137
-  * `riemannZeta_conj`                    — ZetaConj :115
-  * `Complex.Hadamard.divisorMassClosedBall₀_le_of_growth`
-                                          — HadamardFactorization/Summability :90
-  * `Function.locallyFinsuppWithin.logCounting_divisor_le_of_log_growth`
-                                          — ValueDistribution/LogCounting/Growth :41
-
-NOT required for this probe (out of scope until later phases):
-  * KadiriZeroCounting.lean    — only enters in Phase 2 discharge.
-  * `backlund_bound`           — the named-constants theorem, Tier B (4-8 wk arc).
-  * Argument principle         — absent from mathlib + repo; we route around it.
-
-NOT new axioms — the sorries above all reduce to known PNT+ + mathlib lemmas.
--/
-
-end Backlund.Phase1Probe
+end Backlund
