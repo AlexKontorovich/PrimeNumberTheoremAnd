@@ -2309,6 +2309,55 @@ def U6aLocalZeroDensityHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
   0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ t → 3 ≤ t →
     u6aNearbyZeroCount σ₁ σ₂ t ≤ C * Real.log t
 
+/-- Sibling-compatible count atom for the U6a unit-height zero window, using
+absolute height.  The name is intentionally local to this branch to avoid a
+merge-time duplicate declaration. -/
+def U6aNearbyZeroCountLogHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ |t| → 3 ≤ |t| →
+    u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|
+
+/-- The existing one-sided local-density surface implies the absolute-height
+count atom by conjugation symmetry of the zero window. -/
+theorem U6aNearbyZeroCountLogHypothesis_of_localDensity {C Tₘᵢₙ : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ) :
+    U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ := by
+  refine ⟨hDensity.1, ?_⟩
+  intro t hTmin h3
+  by_cases ht : 0 ≤ t
+  · have habs : |t| = t := abs_of_nonneg ht
+    simpa [habs] using hDensity.2 t (by simpa [habs] using hTmin)
+      (by simpa [habs] using h3)
+  · have htneg : t < 0 := lt_of_not_ge ht
+    have habs : |t| = -t := abs_of_neg htneg
+    have hsymm : u6aNearbyZeroCount (-1) 2 t =
+        u6aNearbyZeroCount (-1) 2 (-t) := by
+      simpa using (u6aNearbyZeroCount_neg (-t))
+    have hpos := hDensity.2 (-t) (by simpa [habs] using hTmin)
+      (by simpa [habs] using h3)
+    simpa [habs, hsymm] using hpos
+
+/-- A count-log atom starting by height `3` gives the exact existential
+endpoint shape requested by the horizontal-segment assembly. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis {C Tₘᵢₙ : ℝ}
+    (hCount : U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ)
+    (hTₘᵢₙ : Tₘᵢₙ ≤ 3) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  refine ⟨C, hCount.1, ?_⟩
+  intro t h3
+  exact hCount.2 t (hTₘᵢₙ.trans h3) h3
+
+/-- Exact existential count-log endpoint once local density has been proved
+from height `3`.  This is the consumer shape modulo the analytic local-density
+input. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_localDensity {C Tₘᵢₙ : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ)
+    (hTₘᵢₙ : Tₘᵢₙ ≤ 3) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  exact exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_localDensity hDensity) hTₘᵢₙ
+
 private theorem exists_good_height_in_half_unit_of_localDensity
     (σ₁ σ₂ Cdens Tdens B : ℝ)
     (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
