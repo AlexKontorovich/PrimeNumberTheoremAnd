@@ -3989,6 +3989,55 @@ theorem exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_de
     exact hT₀X.trans hXT.le
   exact ⟨k, X, T, hT₀T, hX, hscale_lt, hTmem, hrec⟩
 
+/-- The remaining comparison needed to turn the averaged selector's boxed
+reciprocal-zero bound into the lane's `log² T` horizontal estimate.
+
+This is intentionally separated from the selector: the current crude
+polynomial count proves cofinal safe heights, but not this sharper
+log-squared comparison. -/
+def U6aAveragedSelectionLogSqComparisonHypothesis (C D Crec : ℝ) : Prop :=
+  0 < Crec ∧ ∀ k : ℕ, ∀ X T : ℝ,
+    0 < X →
+    3 ≤ T →
+    T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) →
+    2 * X + 2 < (2 : ℝ) ^ (k + 1) →
+      u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D) ≤
+        Crec * Real.log T ^ 2
+
+/-- Consumer-shape U6a composition: the proved cofinal averaged selector plus
+a partial-fraction approximation and the one remaining averaged-bound
+comparison give cofinally many horizontal segments with the desired
+`log² T` bound in the Kadiri strip `[-1, 2]`. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_partialFraction_and_averagedComparison
+    {Cpf Tpf : ℝ}
+    (hPF : U6aPartialFractionApproximationHypothesis (-1) 2 Cpf Tpf)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨Csel, Dsel, hCsel, hDsel, hsel⟩ :=
+    exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_delta
+  obtain ⟨Crec, hCmp⟩ := hAvgCmp Csel Dsel hCsel hDsel
+  refine ⟨Cpf + Crec, by nlinarith [hPF.1, hCmp.1], ?_⟩
+  intro T₀
+  let Tbase : ℝ := max (max T₀ Tpf) 3
+  obtain ⟨k, X, T, hTbase, hX, hscale, hTmem, hrec⟩ := hsel Tbase
+  have hT₀ : T₀ ≤ T := by
+    exact (le_max_left T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hTpf : Tpf ≤ T := by
+    exact (le_max_right T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hT3 : 3 ≤ T := by
+    exact (le_max_right (max T₀ Tpf) 3).trans hTbase
+  have havg_le :
+      u6aAveragedSelectionBound X (u6aCrudeDelta Csel Dsel X k)
+          (Csel * 3 ^ k + Dsel) ≤ Crec * Real.log T ^ 2 :=
+    hCmp.2 k X T hX hT3 hTmem hscale
+  exact ⟨T, hT₀, hT3,
+    horizontalSegmentLogDerivBound_of_partialFraction_and_averagedSelection
+      (Cpf := Cpf) (Tpf := Tpf) (Crec := Crec) (X := X)
+      (δ := u6aCrudeDelta Csel Dsel X k) (M := Csel * 3 ^ k + Dsel)
+      (T := T) hPF hT3 hTpf hTmem hrec havg_le⟩
+
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
     x ∈ Set.Icc (min σ₁ σ₂) (max σ₁ σ₂) := by
