@@ -135,7 +135,14 @@ theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
   at $z = 1$ (and is absent for non-trivial $\chi$); the $\varphi(0)\log\pi$ term and the
   $\Gamma$-integral come from the gamma factor in the functional equation of $\zeta$; the
   $\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ term is the contribution from the reflected
-  ($z \leftrightarrow 1 - z$) Dirichlet series. -/)
+  ($z \leftrightarrow 1 - z$) Dirichlet series.
+
+  The zeros are counted with multiplicity (the residue at a zero of order $m_\rho$ is
+  $m_\rho \Phi(-\rho)$). For general $C^1$ test functions the $\rho$-sum and the
+  $\Gamma$-integral are only conditionally convergent (as symmetric limits), so their
+  absolute convergence is taken as hypotheses here; the test function used downstream
+  (\ref{kadiri-test-fn-laplace}) satisfies both via the $F_2(s-z)/(s-z)^2$
+  representation. -/)
   (proof := /-- Classical Weil-style argument. Write the LHS as a Mellin contour integral
   $\tfrac{1}{2\pi i} \int_{(c)} (-\zeta'/\zeta)(z)\, \Phi(-z)\, dz$ for some $c > 1$, using
   the Dirichlet series $-\zeta'/\zeta(z) = \sum_n \Lambda(n) n^{-z}$ on $\Re z > 1$ together
@@ -155,11 +162,17 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     (_hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
-        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|)) :
+        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
+    (_hΦ_sum : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (∫ y in (.Ioi (0 : ℝ)), φ y * exp (ρ.val * (y : ℂ)) ∂volume) *
+        (riemannZeta.order ρ.val : ℂ)))
+    (_hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
+      ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+        ∫ y in (.Ioi (0 : ℝ)), φ y * exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
     let Φ : ℂ → ℂ := fun z ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-z * (y : ℂ)) ∂volume
     (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
       Φ (-1) + Φ 0
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ), Φ (-ρ.val)
+        - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ) (fun ρ ↦ Φ (-ρ))
         - φ 0 * ((Real.log Real.pi : ℝ) : ℂ)
         + ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n)
         + (1 / (2 * (Real.pi : ℂ))) *
