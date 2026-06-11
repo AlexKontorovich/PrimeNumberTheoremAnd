@@ -273,11 +273,6 @@ private lemma zeta_norm_le_subband {z : ℂ} (h1 : 1/2 ≤ z.re) (h2 : z.re ≤ 
         refine add_le_add ?_ (mul_le_mul_of_nonneg_left hI (norm_nonneg z))
         exact add_le_add ((norm_add_le _ _).trans (add_le_add hA hB)) hC
     _ ≤ 3 + ‖z‖ := by linarith [norm_nonneg z]
-private lemma surrogate_growth_band :
-    ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, -1 ≤ z.re → z.re ≤ 2 →
-      Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
-  sorry
-
 /-- The Euler integral bounds the complex `Γ` by the real `Γ` of the real part, on the
 right half-plane. Not in Mathlib; the keystone for the left-region growth bound. -/
 private lemma norm_Gamma_le_Gamma_re {z : ℂ} (hz : 0 < z.re) :
@@ -637,6 +632,227 @@ private lemma surrogate_growth_left :
         + (1 + ‖z‖) ^ (3/2 : ℝ) := by ring
     have hK0 : (0 : ℝ) ≤ (1 + ‖z‖) ^ (3/2 : ℝ) := by linarith [hK1]
     linarith [step1, step2, step3, p1, p2, p3, q1, q2, q3, q4, hBK, hK1]
+
+/-- Linear log-growth on the band `-1 ≤ Re ≤ 2`: compact box for `|Im| ≤ 1`,
+the explicit subband bound for `Re ∈ [1/2, 2]`, and the functional equation (with a
+constant `Γ`-factor) reflecting `Re ∈ [-1, 1/2)` into the subband. -/
+private lemma surrogate_growth_band :
+    ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, -1 ≤ z.re → z.re ≤ 2 →
+      Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
+  -- the compact box bound for |Im| ≤ 1
+  obtain ⟨Cb, hCb⟩ := (Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+    ((isCompact_Icc (a := (-1 : ℝ)) (b := 2)).prod (isCompact_Icc (a := (-1 : ℝ)) (b := 1)))).exists_bound_of_continuousOn
+    (zetaSurrogate_differentiable.continuous.continuousOn)
+  set Cb' : ℝ := max Cb 0 with hCb'
+  have hCb'0 : (0 : ℝ) ≤ Cb' := le_max_right _ _
+  refine ⟨Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+      (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1, ?_, fun z hre1 hre2 ↦ ?_⟩
+  · have l1 : (0 : ℝ) ≤ Real.log (1 + Cb') := Real.log_nonneg (by linarith)
+    have l2 : (0 : ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+    have l3 : (0 : ℝ) ≤ Real.log 65 := Real.log_nonneg (by norm_num)
+    have l4 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg one_le_two
+    have := Real.pi_pos
+    linarith
+  · have hzn : (0 : ℝ) ≤ ‖z‖ := norm_nonneg z
+    have hz1K : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith
+    have hgnn : (0 : ℝ) ≤ ‖zetaSurrogate z‖ := norm_nonneg _
+    -- it suffices to bound by the per-case constants
+    have l1 : (0 : ℝ) ≤ Real.log (1 + Cb') := Real.log_nonneg (by linarith)
+    have l2 : (0 : ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+    have l3 : (0 : ℝ) ≤ Real.log 65 := Real.log_nonneg (by norm_num)
+    have l4 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg one_le_two
+    have hπ := Real.pi_pos
+    rcases le_total |z.im| 1 with him | him
+    · -- box case
+      have hmem : z ∈ ⇑Complex.equivRealProdCLM ⁻¹'
+          (Set.Icc (-1 : ℝ) 2 ×ˢ Set.Icc (-1 : ℝ) 1) := by
+        simp only [Set.mem_preimage, Complex.equivRealProdCLM_apply, Set.mem_prod,
+          Set.mem_Icc]
+        rcases abs_le.mp him with ⟨h1, h2⟩
+        exact ⟨⟨hre1, hre2⟩, h1, h2⟩
+      have hb := (hCb z hmem).trans (le_max_left Cb 0)
+      have hlog : Real.log (1 + ‖zetaSurrogate z‖) ≤ Real.log (1 + Cb') :=
+        Real.log_le_log (by linarith) (by linarith)
+      have hmul : Real.log (1 + Cb') ≤ Real.log (1 + Cb') * (1 + ‖z‖) :=
+        le_mul_of_one_le_right l1 hz1K
+      have hBK : (Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+          (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1) * (1 + ‖z‖) =
+          Real.log (1 + Cb') * (1 + ‖z‖) +
+          ((Real.log 4 + 2) + 2 + (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1) *
+            (1 + ‖z‖) := by ring
+      have hrest : (0 : ℝ) ≤
+          ((Real.log 4 + 2) + 2 + (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1) *
+            (1 + ‖z‖) :=
+        mul_nonneg (by linarith) (by linarith)
+      linarith [hlog, hmul, hBK, hrest]
+    · rcases le_total (1/2 : ℝ) z.re with hhalf | hhalf
+      · -- direct subband case
+        have hzeta := zeta_norm_le_subband hhalf hre2 him
+        have hz1 : z ≠ 1 := by
+          intro h
+          rw [h] at him
+          norm_num [Complex.one_im] at him
+        have hg : ‖zetaSurrogate z‖ ≤ (3 * (1 + ‖z‖)) * (1 + ‖z‖) := by
+          rw [zetaSurrogate, if_neg hz1, norm_mul]
+          have ha : ‖z - 1‖ ≤ 1 + ‖z‖ := by
+            calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
+              _ = 1 + ‖z‖ := by rw [norm_one]; ring
+          have hb : ‖riemannZeta z‖ ≤ 3 * (1 + ‖z‖) := by
+            refine hzeta.trans ?_
+            linarith
+          calc ‖z - 1‖ * ‖riemannZeta z‖ ≤ (1 + ‖z‖) * (3 * (1 + ‖z‖)) :=
+              mul_le_mul ha hb (norm_nonneg _) (by linarith)
+            _ = (3 * (1 + ‖z‖)) * (1 + ‖z‖) := by ring
+        have hsplit := log_one_add_mul_le (a := 3 * (1 + ‖z‖)) (b := 1 + ‖z‖)
+          (by linarith) (by linarith)
+        have hlog1 : Real.log (1 + ‖zetaSurrogate z‖) ≤
+            Real.log (1 + (3 * (1 + ‖z‖)) * (1 + ‖z‖)) :=
+          Real.log_le_log (by linarith) (by linarith)
+        have hp1 : Real.log (1 + 3 * (1 + ‖z‖)) ≤ 1 + 3 * (1 + ‖z‖) := by
+          have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + 3 * (1 + ‖z‖) by linarith)
+          linarith
+        have hp2 : Real.log (1 + (1 + ‖z‖)) ≤ 1 + (1 + ‖z‖) := by
+          have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + (1 + ‖z‖) by linarith)
+          linarith
+        have hBK : (Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+            (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1) * (1 + ‖z‖) =
+            6 * (1 + ‖z‖) +
+            (Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+              (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1 - 6) * (1 + ‖z‖) := by
+          ring
+        have hrest : (0 : ℝ) ≤
+            (Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+              (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1 - 6) * (1 + ‖z‖) :=
+          mul_nonneg (by linarith) (by linarith)
+        linarith [hlog1, hsplit, hp1, hp2, hBK, hrest, hz1K]
+      · -- reflection case: Re ∈ [-1, 1/2], |Im| ≥ 1
+        set w : ℂ := 1 - z with hw
+        have hwre1 : 1/2 ≤ w.re := by
+          rw [hw]; simp only [Complex.sub_re, Complex.one_re]; linarith
+        have hwre2 : w.re ≤ 2 := by
+          rw [hw]; simp only [Complex.sub_re, Complex.one_re]; linarith
+        have hwim : 1 ≤ |w.im| := by
+          rw [hw]
+          simp only [Complex.sub_im, Complex.one_im, zero_sub, abs_neg]
+          exact him
+        have hwn : ∀ n : ℕ, w ≠ -(n : ℂ) := by
+          intro n h
+          have h' := congrArg Complex.re h
+          simp only [Complex.neg_re, Complex.natCast_re] at h'
+          have hn : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+          linarith
+        have hw1 : w ≠ 1 := by
+          intro h
+          have h' := congrArg Complex.im h
+          simp only [Complex.one_im] at h'
+          rw [h'] at hwim
+          norm_num at hwim
+        have hz1 : z ≠ 1 := by
+          intro h
+          rw [h] at him
+          norm_num [Complex.one_im] at him
+        have hfe := riemannZeta_one_sub hwn hw1
+        have h1w : (1 : ℂ) - w = z := by rw [hw]; ring
+        rw [h1w] at hfe
+        have hwnorm : ‖w‖ ≤ 1 + ‖z‖ := by
+          rw [hw]
+          calc ‖(1 : ℂ) - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ := norm_sub_le 1 z
+            _ = 1 + ‖z‖ := by rw [norm_one]
+        have hpow_bound : ‖((2 : ℂ) * (Real.pi : ℂ)) ^ (-w)‖ ≤ 1 := by
+          have h2π : ((2 : ℂ) * (Real.pi : ℂ)) = (((2 * Real.pi : ℝ)) : ℂ) := by
+            push_cast; ring
+          rw [h2π, Complex.norm_cpow_eq_rpow_re_of_pos (by positivity)]
+          refine Real.rpow_le_one_of_one_le_of_nonpos ?_ ?_
+          · nlinarith [Real.pi_gt_three]
+          · simp only [Complex.neg_re]
+            linarith
+        have hΓ8 : ‖Complex.Gamma w‖ ≤ 8 := by
+          refine (norm_Gamma_le_Gamma_re (by linarith)).trans ?_
+          have hne : w.re ≠ 0 := by linarith
+          have hrec := Real.Gamma_add_one hne
+          have h4 : Real.Gamma (w.re + 1) ≤ 4 := by
+            have h := Gamma_le_two_mul_factorial 1 (x := w.re + 1)
+              (by linarith) (by push_cast; linarith)
+            norm_num [Nat.factorial] at h
+            linarith
+          have hpos := Real.Gamma_pos_of_pos (show (0 : ℝ) < w.re by linarith)
+          nlinarith [hrec]
+        have hcos : ‖Complex.cos ((Real.pi : ℂ) * w / 2)‖ ≤
+            Real.exp (Real.pi * ‖w‖ / 2) := by
+          refine (norm_cos_le_exp _).trans ?_
+          refine Real.exp_le_exp.mpr (le_of_eq ?_)
+          rw [norm_div, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+            abs_of_pos Real.pi_pos]
+          norm_num
+        have hζw := zeta_norm_le_subband hwre1 hwre2 hwim
+        have hg : ‖zetaSurrogate z‖ ≤
+            (1 + ‖z‖) * ((64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2)) := by
+          rw [zetaSurrogate, if_neg hz1, norm_mul]
+          have ha : ‖z - 1‖ ≤ 1 + ‖z‖ := by
+            calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
+              _ = 1 + ‖z‖ := by rw [norm_one]; ring
+          have hζz : ‖riemannZeta z‖ ≤
+              (64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2) := by
+            rw [hfe, norm_mul, norm_mul, norm_mul, norm_mul]
+            have e2 : ‖(2 : ℂ)‖ = 2 := by norm_num
+            rw [e2]
+            have hζw4 : ‖riemannZeta w‖ ≤ 4 * (1 + ‖z‖) := by
+              refine hζw.trans ?_
+              linarith [hwnorm]
+            calc 2 * ‖((2 : ℂ) * (Real.pi : ℂ)) ^ (-w)‖ * ‖Complex.Gamma w‖ *
+                  ‖Complex.cos ((Real.pi : ℂ) * w / 2)‖ * ‖riemannZeta w‖
+                ≤ 2 * 1 * 8 * Real.exp (Real.pi * ‖w‖ / 2) * (4 * (1 + ‖z‖)) := by
+                  gcongr
+              _ = (64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2) := by ring
+          exact mul_le_mul ha hζz (norm_nonneg _) (by linarith)
+        have hE1 : (1 : ℝ) ≤ Real.exp (Real.pi * ‖w‖ / 2) := by
+          rw [← Real.exp_zero]
+          exact Real.exp_le_exp.mpr (by positivity)
+        have hsplit1 := log_one_add_mul_le (a := 1 + ‖z‖)
+          (b := (64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2))
+          (by linarith) (by positivity)
+        have hsplit2 := log_one_add_mul_le (a := 64 * (1 + ‖z‖))
+          (b := Real.exp (Real.pi * ‖w‖ / 2)) (by linarith) (by positivity)
+        have hlog0 : Real.log (1 + ‖zetaSurrogate z‖) ≤
+            Real.log (1 + (1 + ‖z‖) * ((64 * (1 + ‖z‖)) *
+              Real.exp (Real.pi * ‖w‖ / 2))) := by
+          refine Real.log_le_log (by linarith) ?_
+          linarith [hg]
+        have hp1 : Real.log (1 + (1 + ‖z‖)) ≤ 1 + (1 + ‖z‖) := by
+          have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + (1 + ‖z‖) by linarith)
+          linarith
+        have hp2 : Real.log (1 + 64 * (1 + ‖z‖)) ≤
+            Real.log 65 + (1 + ‖z‖) := by
+          have h1 : (1 : ℝ) + 64 * (1 + ‖z‖) ≤ 65 * (1 + ‖z‖) := by linarith
+          have h2 := Real.log_le_log (by linarith) h1
+          rw [Real.log_mul (by norm_num) (by linarith)] at h2
+          have h3 : Real.log (1 + ‖z‖) ≤ 1 + ‖z‖ := by
+            have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + ‖z‖ by linarith)
+            linarith
+          linarith
+        have hp3 : Real.log (1 + Real.exp (Real.pi * ‖w‖ / 2)) ≤
+            Real.log 2 + Real.pi * (1 + ‖z‖) / 2 := by
+          have h1 : (1 : ℝ) + Real.exp (Real.pi * ‖w‖ / 2) ≤
+              2 * Real.exp (Real.pi * ‖w‖ / 2) := by linarith
+          have h2 := Real.log_le_log (by positivity) h1
+          rw [Real.log_mul (by norm_num) (by positivity), Real.log_exp] at h2
+          have h3 : Real.pi * ‖w‖ / 2 ≤ Real.pi * (1 + ‖z‖) / 2 := by
+            nlinarith [hwnorm]
+          linarith
+        have hconst : (1 + Real.log 65 + Real.log 2) ≤
+            (1 + Real.log 65 + Real.log 2) * (1 + ‖z‖) :=
+          le_mul_of_one_le_right (by linarith) hz1K
+        have hBK : (Real.log (1 + Cb') + (Real.log 4 + 2) + 2 +
+            (Real.log 65 + 1 + (Real.log 2 + Real.pi) + 2) + 1) * (1 + ‖z‖) =
+            (1 + Real.log 65 + Real.log 2) * (1 + ‖z‖) +
+            (2 * (1 + ‖z‖) + Real.pi * (1 + ‖z‖) / 2) +
+            (Real.log (1 + Cb') + Real.log 4 + Real.pi / 2 + 5) * (1 + ‖z‖) := by
+          ring
+        have hrest : (0 : ℝ) ≤
+            (Real.log (1 + Cb') + Real.log 4 + Real.pi / 2 + 5) * (1 + ‖z‖) :=
+          mul_nonneg (by linarith) (by linarith)
+        linarith [hlog0, hsplit1, hsplit2, hp1, hp2, hp3, hconst, hBK, hrest]
+
 
 /-- The exponent-`3/2` log-growth majorant for the surrogate. The exponent-1 form is
 FALSE on the left half-plane (`|ζ(-2k-1)| ~ 2(2k+1)!/(2π)^{2k+2}` via Bernoulli
