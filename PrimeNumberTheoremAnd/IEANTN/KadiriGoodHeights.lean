@@ -2335,6 +2335,170 @@ theorem u6aShiftedZetaPoleRemoved_zero_iff_of_norm_le
     rw [hs1, norm_neg]
   linarith
 
+/-- Local product identity for the translated removable zeta extension, away
+from the pole point. -/
+theorem u6aShiftedZetaPoleRemoved_eventuallyEq_mul {s z : ℂ}
+    (h1 : s + z ≠ 1) :
+    u6aShiftedZetaPoleRemoved s =ᶠ[nhds z]
+      fun w => (s + w - 1) * riemannZeta (s + w) := by
+  have hcont : ContinuousAt (fun w : ℂ => s + w) z := by fun_prop
+  have hnear : {w : ℂ | w ≠ 1} ∈ nhds (s + z) :=
+    isOpen_compl_singleton.mem_nhds (by simpa using h1)
+  have hpre : (fun w : ℂ => s + w) ⁻¹' {w : ℂ | w ≠ 1} ∈ nhds z :=
+    hcont hnear
+  filter_upwards [hpre] with w hw
+  exact u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta (s := s) (z := w)
+    (by simpa using hw)
+
+/-- Divisor multiplicity transport for the translated removable zeta
+extension.  Inside disks not meeting the pole point, Jensen's divisor mass for
+`u6aShiftedZetaPoleRemoved s` counts zeta zeros with their usual order. -/
+theorem u6aShiftedZetaPoleRemoved_divisor_eq_order {s z : ℂ}
+    (h1 : s + z ≠ 1) :
+    (MeromorphicOn.divisor (u6aShiftedZetaPoleRemoved s) Set.univ) z =
+      riemannZeta.order (s + z) := by
+  have hζan : AnalyticAt ℂ riemannZeta (s + z) :=
+    riemannZeta_analyticOn_compl_one _ (Set.mem_compl_singleton_iff.mpr h1)
+  have hlin : AnalyticAt ℂ (fun w : ℂ => s + w - 1) z := by fun_prop
+  have hmero : MeromorphicOn (u6aShiftedZetaPoleRemoved s) Set.univ := fun x _ =>
+    ((differentiable_u6aShiftedZetaPoleRemoved s).analyticAt x).meromorphicAt
+  rw [MeromorphicOn.divisor_apply hmero (Set.mem_univ z)]
+  have hcongr : meromorphicOrderAt (u6aShiftedZetaPoleRemoved s) z =
+      meromorphicOrderAt (fun w : ℂ => (s + w - 1) * riemannZeta (s + w)) z :=
+    meromorphicOrderAt_congr
+      ((u6aShiftedZetaPoleRemoved_eventuallyEq_mul (s := s) (z := z) h1).filter_mono
+        nhdsWithin_le_nhds)
+  have hζcomp : MeromorphicAt (fun w : ℂ => riemannZeta (s + w)) z := by
+    have hshift : AnalyticAt ℂ (fun w : ℂ => s + w) z := by fun_prop
+    exact hζan.meromorphicAt.comp_analyticAt hshift
+  have hmul :
+      meromorphicOrderAt (fun w : ℂ => (s + w - 1) * riemannZeta (s + w)) z =
+        meromorphicOrderAt (fun w : ℂ => s + w - 1) z +
+          meromorphicOrderAt (fun w : ℂ => riemannZeta (s + w)) z :=
+    meromorphicOrderAt_mul hlin.meromorphicAt hζcomp
+  have hlin0 : meromorphicOrderAt (fun w : ℂ => s + w - 1) z = 0 := by
+    rw [hlin.meromorphicOrderAt_eq]
+    have h0 : analyticOrderAt (fun w : ℂ => s + w - 1) z = 0 :=
+      analyticOrderAt_eq_zero.mpr (Or.inr (by
+        change s + z - 1 ≠ 0
+        simpa [sub_eq_zero] using h1))
+    simp [h0]
+  have hshift : AnalyticAt ℂ (fun w : ℂ => s + w) z := by fun_prop
+  have hderiv : deriv (fun w : ℂ => s + w) z ≠ 0 := by
+    have hd : HasDerivAt (fun w : ℂ => s + w) 1 z := by
+      simpa [one_mul] using (hasDerivAt_const z s).add (hasDerivAt_id z)
+    rw [hd.deriv]
+    norm_num
+  have hcomp : meromorphicOrderAt (fun w : ℂ => riemannZeta (s + w)) z =
+      meromorphicOrderAt riemannZeta (s + z) := by
+    simpa [Function.comp_def] using
+      (meromorphicOrderAt_comp_of_deriv_ne_zero (f := riemannZeta)
+        (g := fun w : ℂ => s + w) hshift hderiv)
+  rw [hcongr, hmul, hlin0, zero_add, hcomp, riemannZeta.order]
+  rfl
+
+/-- The shifted zeta zeros in a closed ball around the Jensen center form a
+finite set after translating the center to the origin. -/
+private lemma u6aShiftedZetaZeroBallSet_finite (s : ℂ) (R : ℝ) :
+    {z : ℂ | ‖z‖ ≤ R ∧ riemannZeta (s + z) = 0}.Finite := by
+  let S : Set ℂ := Metric.closedBall s R ∩ riemannZeta.zeroes
+  have hS_compact : IsCompact (Metric.closedBall s R) := isCompact_closedBall s R
+  have hzeros : S.Finite :=
+    riemannZeta.zeroes_on_Compact_finite' (S := Metric.closedBall s R) hS_compact
+  refine (hzeros.image fun ρ : ℂ => ρ - s).subset ?_
+  intro z hz
+  rcases hz with ⟨hzR, hzeta⟩
+  refine ⟨s + z, ?_, by ring⟩
+  constructor
+  · rw [Metric.mem_closedBall, dist_eq_norm]
+    simpa [add_sub_cancel_left] using hzR
+  · simpa [riemannZeta.zeroes] using hzeta
+
+/-- Translated zeta zeros in a closed ball around `s`, indexed without
+multiplicity.  Multiplicity is supplied by `riemannZeta.order` in the mass
+lemma below. -/
+noncomputable def u6aShiftedZetaZeroBallFinset (s : ℂ) (R : ℝ) : Finset ℂ :=
+  (u6aShiftedZetaZeroBallSet_finite s R).toFinset
+
+/-- Jensen-facing shifted zero-mass bridge: if the closed disk around `s` misses
+the pole point and the center is not itself a zeta zero, then the
+order-weighted zeta zeros in that shifted disk are bounded by Jensen's divisor
+mass for `u6aShiftedZetaPoleRemoved s`. -/
+theorem u6aShiftedZetaZeroBallMass_le_divisorMass {s : ℂ} {R : ℝ}
+    (hR0 : 0 ≤ R) (hpole : R < ‖s - 1‖) (hcenter : riemannZeta s ≠ 0) :
+    (∑ z ∈ u6aShiftedZetaZeroBallFinset s R, (riemannZeta.order (s + z) : ℝ)) ≤
+      Complex.Hadamard.divisorMassClosedBall₀ (u6aShiftedZetaPoleRemoved s) R := by
+  classical
+  let D : Function.locallyFinsupp ℂ ℤ :=
+    MeromorphicOn.divisor (u6aShiftedZetaPoleRemoved s) Set.univ
+  let SR : Finset ℂ :=
+    (Function.locallyFinsuppWithin.finiteSupport
+      (Function.locallyFinsuppWithin.toClosedBall R D)
+      (isCompact_closedBall (0 : ℂ) |R|)).toFinset
+  let S : Finset ℂ := SR.filter fun z : ℂ => z ≠ 0
+  have hterm : ∀ z ∈ u6aShiftedZetaZeroBallFinset s R,
+      (riemannZeta.order (s + z) : ℝ) = (D z : ℝ) := by
+    intro z hz
+    have hzmem : z ∈ {z : ℂ | ‖z‖ ≤ R ∧ riemannZeta (s + z) = 0} :=
+      (u6aShiftedZetaZeroBallSet_finite s R).mem_toFinset.mp hz
+    have h1 : s + z ≠ 1 := by
+      intro h
+      have hs1 : s - 1 = -z := by
+        calc
+          s - 1 = s - (s + z) := by rw [h]
+          _ = -z := by ring
+      have hnorm : ‖s - 1‖ = ‖z‖ := by rw [hs1, norm_neg]
+      linarith [hzmem.1]
+    have hD : D z = riemannZeta.order (s + z) := by
+      simpa [D] using u6aShiftedZetaPoleRemoved_divisor_eq_order (s := s) (z := z) h1
+    exact_mod_cast hD.symm
+  have hsubset : u6aShiftedZetaZeroBallFinset s R ⊆ S := by
+    intro z hz
+    have hzmem : z ∈ {z : ℂ | ‖z‖ ≤ R ∧ riemannZeta (s + z) = 0} :=
+      (u6aShiftedZetaZeroBallSet_finite s R).mem_toFinset.mp hz
+    have h1 : s + z ≠ 1 := by
+      intro h
+      have hs1 : s - 1 = -z := by
+        calc
+          s - 1 = s - (s + z) := by rw [h]
+          _ = -z := by ring
+      have hnorm : ‖s - 1‖ = ‖z‖ := by rw [hs1, norm_neg]
+      linarith [hzmem.1]
+    have hD_eq : D z = riemannZeta.order (s + z) := by
+      simpa [D] using u6aShiftedZetaPoleRemoved_divisor_eq_order (s := s) (z := z) h1
+    have hD_ne : D z ≠ 0 := by
+      have horder_pos : 0 < riemannZeta.order (s + z) :=
+        u6a_riemannZeta_order_pos_of_zero_ne_one h1 hzmem.2
+      rw [hD_eq]
+      exact ne_of_gt horder_pos
+    have hsupp : z ∈ Function.locallyFinsuppWithin.support D :=
+      Function.mem_support.mpr hD_ne
+    have hnorm_abs : ‖z‖ ≤ |R| := by simpa [abs_of_nonneg hR0] using hzmem.1
+    have hball : z ∈ (Function.locallyFinsuppWithin.toClosedBall R D).support :=
+      Function.locallyFinsuppWithin.mem_toClosedBall_support_of_mem_support_of_norm_le_abs
+        hsupp hnorm_abs
+    have hSR : z ∈ SR :=
+      (Set.Finite.mem_toFinset _).mpr hball
+    have hz0 : z ≠ 0 := by
+      intro hz0
+      exact hcenter (by simpa [hz0] using hzmem.2)
+    exact Finset.mem_filter.mpr ⟨hSR, hz0⟩
+  have hDnonneg : ∀ z : ℂ, 0 ≤ (D z : ℝ) := by
+    intro z
+    have hnn : (0 : ℤ) ≤ D z := by
+      simpa [D] using Differentiable.divisor_nonneg
+        (differentiable_u6aShiftedZetaPoleRemoved s) z
+    exact_mod_cast hnn
+  calc
+    (∑ z ∈ u6aShiftedZetaZeroBallFinset s R, (riemannZeta.order (s + z) : ℝ))
+        = ∑ z ∈ u6aShiftedZetaZeroBallFinset s R, (D z : ℝ) := by
+          exact Finset.sum_congr rfl hterm
+    _ ≤ ∑ z ∈ S, (D z : ℝ) := by
+          exact Finset.sum_le_sum_of_subset_of_nonneg hsubset
+            (fun z _ _ => hDnonneg z)
+    _ = Complex.Hadamard.divisorMassClosedBall₀ (u6aShiftedZetaPoleRemoved s) R := by
+          rfl
+
 /-- If the center is neither the pole nor a zeta zero, Jensen's trailing
 coefficient for the translated removable extension is the center value
 `(s - 1)ζ(s)`. -/
@@ -2352,6 +2516,174 @@ theorem u6aShiftedZetaPoleRemoved_trailingCoeffAt_zero_eq {s : ℂ}
     rw [hval]
     exact mul_ne_zero (sub_ne_zero.2 hs1) hζ
   rw [han.meromorphicTrailingCoeffAt_of_ne_zero hnonzero, hval]
+
+/-- Jensen-growth bound for order-weighted zeta zeros in a shifted closed
+ball, with the pole removed and the center assumed nonzero. -/
+theorem u6aShiftedZetaZeroBallMass_le_jensen_growth {s : ℂ} {R : ℝ}
+    (hR : 1 ≤ R) (hpole : R < ‖s - 1‖) (hcenter : riemannZeta s ≠ 0) :
+    ∃ C : ℝ, 0 < C ∧
+      (∑ z ∈ u6aShiftedZetaZeroBallFinset s R, (riemannZeta.order (s + z) : ℝ)) ≤
+        (C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + |2 * R|) ^ (2 : ℝ) +
+            |Real.log ‖(s - 1) * riemannZeta s‖|) / Real.log 2 := by
+  have hR0 : 0 ≤ R := by linarith
+  have hs1 : s ≠ 1 := by
+    intro hs
+    rw [hs] at hpole
+    simp at hpole
+    linarith
+  obtain ⟨C, hCpos, hmass⟩ := u6aShiftedZetaPoleRemoved_divisorMassClosedBall_le s hR
+  refine ⟨C, hCpos, ?_⟩
+  have hzero_mass :=
+    u6aShiftedZetaZeroBallMass_le_divisorMass (s := s) (R := R) hR0 hpole hcenter
+  have htail :
+      meromorphicTrailingCoeffAt (u6aShiftedZetaPoleRemoved s) 0 =
+        (s - 1) * riemannZeta s :=
+    u6aShiftedZetaPoleRemoved_trailingCoeffAt_zero_eq hs1 hcenter
+  calc
+    (∑ z ∈ u6aShiftedZetaZeroBallFinset s R, (riemannZeta.order (s + z) : ℝ))
+        ≤ Complex.Hadamard.divisorMassClosedBall₀ (u6aShiftedZetaPoleRemoved s) R :=
+          hzero_mass
+    _ ≤ (C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + |2 * R|) ^ (2 : ℝ) +
+            |Real.log ‖meromorphicTrailingCoeffAt (u6aShiftedZetaPoleRemoved s) 0‖|) /
+          Real.log 2 := hmass
+    _ = (C * (1 + ‖s‖) ^ (2 : ℝ) * (1 + |2 * R|) ^ (2 : ℝ) +
+            |Real.log ‖(s - 1) * riemannZeta s‖|) / Real.log 2 := by
+          rw [htail]
+
+private lemma u6aZetaPiFactor_eq_cpow (s : ℂ) :
+    zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
+  unfold zetaPiFactor
+  rw [Complex.cpow_def_of_ne_zero, Complex.ofReal_log Real.pi_pos.le]
+  · ring_nf
+  · exact_mod_cast Real.pi_ne_zero
+
+private lemma u6a_gamma_half_ne_zero_of_re_pos {s : ℂ} (hsre : 0 < s.re) :
+    Gamma (s / 2) ≠ 0 := by
+  refine Gamma_ne_zero ?_
+  intro m hm
+  have hre := congrArg Complex.re hm
+  have hm_nonneg : (0 : ℝ) ≤ m := by exact_mod_cast Nat.zero_le m
+  simp at hre
+  nlinarith
+
+private lemma u6a_gamma_factor_ne_zero_of_re_pos {s : ℂ} (hsre : 0 < s.re) :
+    zetaGammaFactor s ≠ 0 := by
+  unfold zetaGammaFactor
+  refine Gamma_ne_zero ?_
+  intro m hm
+  have hre := congrArg Complex.re hm
+  have hm_nonneg : (0 : ℝ) ≤ m := by exact_mod_cast Nat.zero_le m
+  simp at hre
+  nlinarith
+
+private lemma u6a_gamma_factor_differentiableAt_of_re_pos {s : ℂ} (hsre : 0 < s.re) :
+    DifferentiableAt ℂ zetaGammaFactor s := by
+  unfold zetaGammaFactor
+  refine (differentiableAt_Gamma _ ?_).comp s (by fun_prop)
+  intro m hm
+  have hre := congrArg Complex.re hm
+  have hm_nonneg : (0 : ℝ) ≤ m := by exact_mod_cast Nat.zero_le m
+  simp at hre
+  nlinarith
+
+private lemma u6a_gamma_factor_analyticAt_of_re_pos {s : ℂ} (hsre : 0 < s.re) :
+    AnalyticAt ℂ zetaGammaFactor s := by
+  refine Complex.analyticAt_iff_eventually_differentiableAt.mpr ?_
+  have hopen : IsOpen {w : ℂ | 0 < w.re} :=
+    isOpen_lt continuous_const continuous_re
+  filter_upwards [hopen.mem_nhds hsre] with w hw
+  exact u6a_gamma_factor_differentiableAt_of_re_pos hw
+
+private theorem u6a_completedZetaFactor_eq_riemannXi_of_criticalStrip {s : ℂ}
+    (hsre0 : 0 < s.re) (hsre1 : s.re < 1) :
+    completedZetaFactor s = riemannXi s := by
+  have hs0 : s ≠ 0 := by
+    intro hs
+    rw [hs] at hsre0
+    norm_num at hsre0
+  have hs1 : s ≠ 1 := by
+    intro hs
+    rw [hs] at hsre1
+    norm_num at hsre1
+  have hGamma :
+      Gamma (s / 2 + 1) = (s / 2) * Gamma (s / 2) := by
+    exact Gamma_add_one (s / 2) (div_ne_zero hs0 two_ne_zero)
+  rw [completedZetaFactor, zetaPoleFactor, zetaGammaFactor, u6aZetaPiFactor_eq_cpow,
+    riemannXi_eq_mul_completedRiemannZeta hs0 hs1,
+    hGamma, riemannZeta_def_of_ne_zero hs0, Gammaℝ_def]
+  field_simp [hs0, u6a_gamma_half_ne_zero_of_re_pos hsre0]
+
+private lemma u6a_riemannXi_eventuallyEq_completedZetaFactor_of_criticalStrip {s : ℂ}
+    (hsre0 : 0 < s.re) (hsre1 : s.re < 1) :
+    riemannXi =ᶠ[nhds s] completedZetaFactor := by
+  have hopen : IsOpen {w : ℂ | 0 < w.re ∧ w.re < 1} := by
+    exact (isOpen_lt continuous_const continuous_re).inter
+      (isOpen_lt continuous_re continuous_const)
+  have hmem : s ∈ {w : ℂ | 0 < w.re ∧ w.re < 1} := ⟨hsre0, hsre1⟩
+  filter_upwards [hopen.mem_nhds hmem] with w hw
+  exact (u6a_completedZetaFactor_eq_riemannXi_of_criticalStrip hw.1 hw.2).symm
+
+private lemma u6a_completedZetaFactor_order_eq_riemannZeta_order_of_criticalStrip
+    {s : ℂ} (hsre0 : 0 < s.re) (hsre1 : s.re < 1) :
+    meromorphicOrderAt completedZetaFactor s = meromorphicOrderAt riemannZeta s := by
+  let G : ℂ → ℂ := fun w => zetaPoleFactor w * zetaPiFactor w * zetaGammaFactor w
+  have hG_an : AnalyticAt ℂ G s := by
+    dsimp [G, zetaPoleFactor, zetaPiFactor]
+    exact (((by fun_prop : AnalyticAt ℂ (fun w : ℂ => w - 1) s).mul
+      (by
+        rw [show (fun w : ℂ => Complex.exp (-(w / 2) * (Real.log Real.pi : ℂ))) =
+          Complex.exp ∘ (fun w : ℂ => -(w / 2) * (Real.log Real.pi : ℂ)) by rfl]
+        exact (Complex.differentiable_exp.analyticAt _).comp (by fun_prop))).mul
+      (u6a_gamma_factor_analyticAt_of_re_pos hsre0))
+  have hζ_an : AnalyticAt ℂ riemannZeta s := by
+    have hs1 : s ≠ 1 := by
+      intro hs
+      rw [hs] at hsre1
+      norm_num at hsre1
+    exact riemannZeta_analyticOn_compl_one s (Set.mem_compl_singleton_iff.mpr hs1)
+  have hG_ne : G s ≠ 0 := by
+    dsimp [G, zetaPoleFactor, zetaPiFactor]
+    refine mul_ne_zero (mul_ne_zero ?_ ?_) ?_
+    · intro h
+      have hs : s = 1 := by simpa [sub_eq_zero] using h
+      rw [hs] at hsre1
+      norm_num at hsre1
+    · exact Complex.exp_ne_zero _
+    · exact u6a_gamma_factor_ne_zero_of_re_pos hsre0
+  have hmul :
+      meromorphicOrderAt (fun w : ℂ => G w * riemannZeta w) s =
+        meromorphicOrderAt G s + meromorphicOrderAt riemannZeta s :=
+    meromorphicOrderAt_mul hG_an.meromorphicAt hζ_an.meromorphicAt
+  have hG0 : meromorphicOrderAt G s = 0 := by
+    rw [hG_an.meromorphicOrderAt_eq]
+    have horder : analyticOrderAt G s = 0 :=
+      analyticOrderAt_eq_zero.mpr (Or.inr hG_ne)
+    simp [horder]
+  calc
+    meromorphicOrderAt completedZetaFactor s =
+        meromorphicOrderAt (fun w : ℂ => G w * riemannZeta w) s := by
+          rfl
+    _ = meromorphicOrderAt G s + meromorphicOrderAt riemannZeta s := hmul
+    _ = meromorphicOrderAt riemannZeta s := by rw [hG0, zero_add]
+
+/-- In the non-trivial strip, the xi divisor counts zeta zeros with the same
+order.  This is the multiplicity bridge needed to compare the xi-Hadamard
+indexing with the Kadiri zeta-zero windows. -/
+theorem u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip {s : ℂ}
+    (hsre0 : 0 < s.re) (hsre1 : s.re < 1) :
+    (MeromorphicOn.divisor riemannXi Set.univ) s = riemannZeta.order s := by
+  have hmero : MeromorphicOn riemannXi Set.univ := fun x _ =>
+    (Differentiable.analyticAt (f := riemannXi) differentiable_riemannXi x).meromorphicAt
+  rw [MeromorphicOn.divisor_apply hmero (Set.mem_univ s)]
+  have hcongr : meromorphicOrderAt riemannXi s =
+      meromorphicOrderAt completedZetaFactor s :=
+    meromorphicOrderAt_congr
+      ((u6a_riemannXi_eventuallyEq_completedZetaFactor_of_criticalStrip
+        (s := s) hsre0 hsre1).filter_mono nhdsWithin_le_nhds)
+  rw [hcongr,
+    u6a_completedZetaFactor_order_eq_riemannZeta_order_of_criticalStrip hsre0 hsre1,
+    riemannZeta.order]
+  rfl
 
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
