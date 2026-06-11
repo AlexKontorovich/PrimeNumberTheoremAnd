@@ -3606,6 +3606,104 @@ theorem u6aPartialFractionApproximation_at_of_hadamardRemainderBound
     hfac hz hs0 hs1 hΓdiff hΓ hζ]
   exact hR.2 s hre hT hT3
 
+/-- Pointwise PF wrapper from the isolated zero-sum remainder estimate.  This
+is the consumer shape needed on selected horizontal lines: the Hadamard
+factorization and elementary non-zero-sum estimates are discharged once, while
+the local legality conditions remain pointwise. -/
+theorem exists_u6aPartialFractionPointwise_of_zeroSum
+    {Czero Tzero : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) →
+        s ≠ 0 → s ≠ 1 →
+        (∀ m : ℕ, s / 2 + 1 ≠ -m) →
+        zetaGammaFactor s ≠ 0 →
+        riemannZeta s ≠ 0 →
+          ‖deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤ C * Real.log |s.im| := by
+  obtain ⟨P, hPdeg, hfac⟩ := riemannXi_hadamard_factorization_no_monomial
+  obtain ⟨C, Tₘᵢₙ, hC, hT4, hR⟩ :=
+    U6aHadamardRemainderBoundHypothesis_of_zeroSum (P := P) hPdeg hZero
+  refine ⟨C, Tₘᵢₙ, hC, hT4, ?_⟩
+  intro s hsre hsT hz hs0 hs1 hΓdiff hΓ hζ
+  have hT3 : 3 ≤ |s.im| := by linarith
+  exact u6aPartialFractionApproximation_at_of_hadamardRemainderBound
+    (P := P) (σ₁ := (-1 : ℝ)) (σ₂ := 2) (C := C) (Tₘᵢₙ := Tₘᵢₙ)
+    (s := s) hfac hz hs0 hs1 hΓdiff hΓ hζ hR hsre hsT hT3
+
+/-- Local Hadamard legality needed only on a selected horizontal line.  This
+keeps the PF route pointwise, rather than requiring a global partial-fraction
+hypothesis over the whole strip. -/
+def U6aHadamardLegalityOnHorizontal (T : ℝ) : Prop :=
+  ∀ x ∈ Set.uIcc (-1 : ℝ) 2, ∀ t : ℝ, |t| = T →
+    let s : ℂ := (x : ℂ) + t * I
+    (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) ∧
+    s ≠ 0 ∧ s ≠ 1 ∧
+    (∀ m : ℕ, s / 2 + 1 ≠ -m) ∧
+    zetaGammaFactor s ≠ 0 ∧
+    riemannZeta s ≠ 0
+
+/-- Fixed-height horizontal consumer for the zero-sum PF route.  A zero-sum
+Hadamard remainder estimate supplies the PF approximation pointwise on the
+selected line; a reciprocal-zero bound then gives the lane's horizontal
+`log²` predicate. -/
+theorem exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound
+    {Czero Tzero Crec : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        U6aHadamardLegalityOnHorizontal T →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨Cpf, Tpf, hCpf, hTpf4, hPF⟩ :=
+    exists_u6aPartialFractionPointwise_of_zeroSum hZero
+  refine ⟨Cpf + Crec, Tpf, by nlinarith, hTpf4, ?_⟩
+  intro T η hTpf hT3 hgap hlegal hrec
+  have hTpos : 0 < T := by linarith
+  refine ⟨horizontalSegmentZeroFree_of_zeroGap hTpos hgap, ?_⟩
+  intro x hx t htabs
+  let s : ℂ := (x : ℂ) + t * I
+  have hsim : s.im = t := by simp [s]
+  have hsre : s.re ∈ Set.uIcc (-1 : ℝ) 2 := by simpa [s] using hx
+  have hT_abs_s : |s.im| = T := by simpa [hsim] using htabs
+  have hpfT : Tpf ≤ |s.im| := by rw [hT_abs_s]; exact hTpf
+  rcases hlegal x hx t htabs with ⟨hz, hs0, hs1, hΓdiff, hΓ, hζ⟩
+  have hA := hPF s hsre hpfT hz hs0 hs1 hΓdiff hΓ hζ
+  have htcase : t = T ∨ t = -T :=
+    (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp htabs
+  have hnear := norm_u6aNearbyZeroPrincipalSum_le_reciprocalZeroSum_of_zeroGap
+    (σ₁ := (-1 : ℝ)) (σ₂ := 2) (T := T) (η := η) (t := t) (s := s)
+    hgap htcase hsim
+  have hnear2 :
+      ‖u6aNearbyZeroPrincipalSum (-1) 2 t s‖ ≤ Crec * Real.log T ^ 2 :=
+    hnear.trans (hrec t htabs)
+  have hlog_le_sq : Real.log T ≤ Real.log T ^ 2 :=
+    u6a_log_le_log_sq_of_three_le hT3
+  calc
+    ‖deriv riemannZeta ((x : ℂ) + t * I) / riemannZeta ((x : ℂ) + t * I)‖
+        = ‖(deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 t s) +
+            u6aNearbyZeroPrincipalSum (-1) 2 t s‖ := by
+          simp [s]
+    _ ≤ ‖deriv riemannZeta s / riemannZeta s -
+            u6aNearbyZeroPrincipalSum (-1) 2 t s‖ +
+          ‖u6aNearbyZeroPrincipalSum (-1) 2 t s‖ := norm_add_le _ _
+    _ ≤ Cpf * Real.log T + Crec * Real.log T ^ 2 := by
+          have hA' :
+              ‖deriv riemannZeta s / riemannZeta s -
+                  u6aNearbyZeroPrincipalSum (-1) 2 t s‖ ≤ Cpf * Real.log T := by
+            simpa [hsim, htabs] using hA
+          nlinarith
+    _ ≤ Cpf * Real.log T ^ 2 + Crec * Real.log T ^ 2 := by
+          exact add_le_add (mul_le_mul_of_nonneg_left hlog_le_sq hCpf.le) le_rfl
+    _ = (Cpf + Crec) * Real.log T ^ 2 := by ring
+
 /-- Named height-selection output from the local-density pigeonhole argument:
 cofinally many heights stay at least `c / log T` away from zero ordinates. -/
 def U6aHeightSelectionHypothesis (σ₁ σ₂ Cdens Tdens c : ℝ) : Prop :=
