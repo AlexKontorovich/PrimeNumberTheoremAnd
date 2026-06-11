@@ -1,8 +1,10 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Calculus.Deriv.Polynomial
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.ZetaFiniteOrder
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
@@ -92,6 +94,15 @@ noncomputable def u6aReciprocalZeroSum (σ₁ σ₂ t : ℝ) : ℝ :=
   riemannZeta.zeroes_sum (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))
     fun ρ => 1 / |t - ρ.im|
 
+private lemma u6aNearbyZeroSet_subset_reciprocalZeroSet
+    (σ₁ σ₂ t : ℝ) :
+    riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1)) ⊆
+      riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2)) := by
+  intro ρ hρ
+  rcases hρ with ⟨hρre, hρim, hρzero⟩
+  refine ⟨hρre, ?_, hρzero⟩
+  exact ⟨by linarith [hρim.1], by linarith [hρim.2]⟩
+
 /-- Safe heights in the dyadic interval `[X, 2X]`, with both horizontal sides
 at least `δ` away from zero ordinates. -/
 def u6aSafeHeightSet (σ₁ σ₂ X δ : ℝ) : Set ℝ :=
@@ -150,6 +161,14 @@ private lemma u6a_riemannZeta_order_pos_of_zero_ne_one {s : ℂ} (hs : s ≠ 1)
       rw [han.meromorphicOrderAt_eq, hO, ENat.map_coe, WithTop.untopD_coe]
       exact_mod_cast hn_pos
 
+private lemma u6a_zeta_zero_order_nonneg_of_zero {ρ : ℂ}
+    (hzero : riemannZeta ρ = 0) :
+    0 ≤ (riemannZeta.order ρ : ℝ) := by
+  have hne_one : ρ ≠ 1 := by
+    intro hρ
+    exact riemannZeta_one_ne_zero (by simpa [hρ] using hzero)
+  exact_mod_cast le_of_lt (u6a_riemannZeta_order_pos_of_zero_ne_one hne_one hzero)
+
 private lemma u6a_riemannZeta_order_star (z : ℂ) :
     riemannZeta.order ((starRingEnd ℂ) z) = riemannZeta.order z := by
   have hsymm : CH2.ConjSymm riemannZeta := by
@@ -157,6 +176,39 @@ private lemma u6a_riemannZeta_order_star (z : ℂ) :
     exact riemannZeta_conj s
   unfold riemannZeta.order
   rw [← CH2.meromorphicOrderAt_starRingEnd (F := riemannZeta) (z := z) (Or.inl hsymm)]
+
+/-- Any non-real zeta zero is a non-trivial zero in the project's
+`NontrivialZeros` representation. -/
+theorem u6a_zeta_zero_mem_nontrivial_of_im_ne_zero {ρ : ℂ}
+    (hzero : riemannZeta ρ = 0) (him : ρ.im ≠ 0) : ρ ∈ NontrivialZeros := by
+  have hnot_re_nonpos : ¬ ρ.re ≤ 0 := by
+    intro hre
+    exact (riemannZeta_ne_zero_of_re_nonpos_im_ne_zero hre him) hzero
+  have hre_pos : 0 < ρ.re := lt_of_not_ge hnot_re_nonpos
+  have hnot_re_one_le : ¬ 1 ≤ ρ.re := by
+    intro hre
+    exact (riemannZeta_ne_zero_of_one_le_re hre) hzero
+  have hre_lt_one : ρ.re < 1 := lt_of_not_ge hnot_re_one_le
+  exact ⟨⟨hre_pos, hre_lt_one⟩, Set.mem_univ ρ.im, hzero⟩
+
+/-- A unit-height window centered at height `t` with `|t| ≥ 2` contains no
+real-axis zeta zeros; hence every zeta zero in the U6a strip window is
+non-trivial. -/
+theorem u6a_zeroes_rect_high_window_subset_nontrivial {t : ℝ}
+    (ht : 2 ≤ |t|) :
+    ∀ ρ : ℂ, ρ ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+        (Set.Icc (t - 1) (t + 1)) →
+      ρ ∈ NontrivialZeros := by
+  intro ρ hρ
+  exact u6a_zeta_zero_mem_nontrivial_of_im_ne_zero hρ.2.2 (by
+    intro him0
+    have him_abs : |t| ≤ 1 := by
+      have himI := hρ.2.1
+      rw [him0] at himI
+      have ht_le : t ≤ 1 := by linarith [himI.1]
+      have hneg_le : -1 ≤ t := by linarith [himI.2]
+      exact abs_le.mpr ⟨hneg_le, ht_le⟩
+    linarith)
 
 private lemma reciprocalKernelPositiveIntegral_eq {δ γ : ℝ}
     (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
@@ -1914,6 +1966,160 @@ private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
   rcases hz with ⟨⟨hre, him⟩, hzeta⟩
   exact ⟨⟨by simpa [Set.uIcc] using hre, him⟩, hzeta⟩
 
+/-- On a horizontal line separated from zero ordinates, the nearby principal
+part is bounded by the width-two reciprocal zero sum at the same height. -/
+theorem norm_u6aNearbyZeroPrincipalSum_le_reciprocalZeroSum_of_im_gap
+    {σ₁ σ₂ t : ℝ} {s : ℂ}
+    (hsim : s.im = t)
+    (hsep : ∀ ρ : ℂ, ρ.re ∈ Set.uIcc σ₁ σ₂ → riemannZeta ρ = 0 →
+      0 < |t - ρ.im|) :
+    ‖u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ ≤
+      u6aReciprocalZeroSum σ₁ σ₂ t := by
+  classical
+  let Znear := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
+  let Zrec := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 2) (t + 2))
+  let hnear : Znear.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
+  let hrec : Zrec.Finite := u6aReciprocalZeroSet_finite σ₁ σ₂ t
+  have hsubset : hnear.toFinset ⊆ hrec.toFinset := by
+    intro ρ hρ
+    have hρnear : ρ ∈ Znear := hnear.mem_toFinset.mp hρ
+    exact hrec.mem_toFinset.mpr
+      (u6aNearbyZeroSet_subset_reciprocalZeroSet σ₁ σ₂ t hρnear)
+  have hterm_le : ∀ ρ ∈ hnear.toFinset,
+      ‖((1 : ℂ) / (s - ρ)) * (riemannZeta.order ρ : ℂ)‖ ≤
+        (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ) := by
+    intro ρ hρ
+    have hρnear : ρ ∈ Znear := hnear.mem_toFinset.mp hρ
+    have hzero : riemannZeta ρ = 0 := hρnear.2.2
+    have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) :=
+      u6a_zeta_zero_order_nonneg_of_zero hzero
+    have him_pos : 0 < |t - ρ.im| := hsep ρ hρnear.1 hzero
+    have him_le_norm : |t - ρ.im| ≤ ‖s - ρ‖ := by
+      have h := Complex.abs_im_le_norm (s - ρ)
+      simpa [Complex.sub_im, hsim] using h
+    have hdiv_le : ‖(1 : ℂ) / (s - ρ)‖ ≤ 1 / |t - ρ.im| := by
+      rw [norm_div, norm_one]
+      exact one_div_le_one_div_of_le him_pos him_le_norm
+    have horder_norm :
+        ‖(riemannZeta.order ρ : ℂ)‖ = (riemannZeta.order ρ : ℝ) := by
+      rw [Complex.norm_intCast, abs_of_nonneg horder_nonneg]
+    calc
+      ‖((1 : ℂ) / (s - ρ)) * (riemannZeta.order ρ : ℂ)‖
+          ≤ ‖(1 : ℂ) / (s - ρ)‖ * ‖(riemannZeta.order ρ : ℂ)‖ :=
+            norm_mul_le _ _
+      _ ≤ (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ) := by
+            rw [horder_norm]
+            exact mul_le_mul_of_nonneg_right hdiv_le horder_nonneg
+  unfold u6aNearbyZeroPrincipalSum u6aReciprocalZeroSum
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ => (1 : ℂ) / (s - ρ)) hnear,
+    riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ => (1 : ℝ) / |t - ρ.im|) hrec]
+  calc
+    ‖∑ ρ ∈ hnear.toFinset,
+        ((1 : ℂ) / (s - ρ)) * (riemannZeta.order ρ : ℂ)‖
+        ≤ ∑ ρ ∈ hnear.toFinset,
+          ‖((1 : ℂ) / (s - ρ)) * (riemannZeta.order ρ : ℂ)‖ := by
+          exact norm_sum_le _ _
+    _ ≤ ∑ ρ ∈ hnear.toFinset,
+          (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ) := by
+          exact Finset.sum_le_sum hterm_le
+    _ ≤ ∑ ρ ∈ hrec.toFinset,
+          (1 / |t - ρ.im|) * (riemannZeta.order ρ : ℝ) := by
+          refine Finset.sum_le_sum_of_subset_of_nonneg hsubset ?_
+          intro ρ hρrec _hρnot
+          have hρmem : ρ ∈ Zrec := hrec.mem_toFinset.mp hρrec
+          have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) :=
+            u6a_zeta_zero_order_nonneg_of_zero hρmem.2.2
+          exact mul_nonneg (by positivity) horder_nonneg
+
+/-- A horizontal zero gap supplies the separation hypothesis needed to bound
+the nearby principal part by the reciprocal zero sum, on either horizontal side. -/
+theorem norm_u6aNearbyZeroPrincipalSum_le_reciprocalZeroSum_of_zeroGap
+    {σ₁ σ₂ T η t : ℝ} {s : ℂ}
+    (hgap : horizontalSegmentZeroGap σ₁ σ₂ T η)
+    (ht : t = T ∨ t = -T)
+    (hsim : s.im = t) :
+    ‖u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ ≤
+      u6aReciprocalZeroSum σ₁ σ₂ t := by
+  refine norm_u6aNearbyZeroPrincipalSum_le_reciprocalZeroSum_of_im_gap hsim ?_
+  intro ρ hρre hρzero
+  rcases hgap with ⟨hη, htop, hbot⟩
+  rcases ht with htT | htT
+  · have hdist := htop ρ hρre hρzero
+    have hpos : 0 < |ρ.im - T| := hη.trans_le hdist
+    have hrewrite : |t - ρ.im| = |ρ.im - T| := by
+      rw [htT, abs_sub_comm]
+    rwa [hrewrite]
+  · have hdist := hbot ρ hρre hρzero
+    have hpos : 0 < |ρ.im + T| := hη.trans_le hdist
+    have hrewrite : |t - ρ.im| = |ρ.im + T| := by
+      rw [htT]
+      have hneg : -T - ρ.im = -(ρ.im + T) := by ring
+      rw [hneg, abs_neg]
+    rwa [hrewrite]
+
+/-- The width-two reciprocal zero sum in the U6a strip is symmetric under
+height reversal.  This is a finite reindexing over the closed windows via
+conjugation, preserving zeta order. -/
+theorem u6aReciprocalZeroSum_neg (T : ℝ) :
+    u6aReciprocalZeroSum (-1) 2 (-T) = u6aReciprocalZeroSum (-1) 2 T := by
+  classical
+  let Zbot := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (-T - 2) (-T + 2))
+  let Ztop := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (T - 2) (T + 2))
+  let hbot : Zbot.Finite := u6aReciprocalZeroSet_finite (-1) 2 (-T)
+  let htop : Ztop.Finite := u6aReciprocalZeroSet_finite (-1) 2 T
+  unfold u6aReciprocalZeroSum
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ => (1 : ℝ) / |(-T) - ρ.im|) hbot,
+    riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ => (1 : ℝ) / |T - ρ.im|) htop]
+  refine Finset.sum_bij (fun ρ _ => (starRingEnd ℂ) ρ) ?_ ?_ ?_ ?_
+  · intro ρ hρ
+    have hρbot : ρ ∈ Zbot := hbot.mem_toFinset.mp hρ
+    refine htop.mem_toFinset.mpr ?_
+    rcases hρbot with ⟨hre, him, hzero⟩
+    refine ⟨?_, ?_, ?_⟩
+    · simpa [Complex.conj_re] using hre
+    · constructor
+      · rw [Complex.conj_im]
+        linarith [him.2]
+      · rw [Complex.conj_im]
+        linarith [him.1]
+    · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+      rw [riemannZeta_conj, hzero, map_zero]
+  · intro ρ hρ τ hτ hconj
+    have h := congrArg (starRingEnd ℂ) hconj
+    simpa [Complex.conj_conj] using h
+  · intro ρ hρ
+    refine ⟨(starRingEnd ℂ) ρ, ?_, ?_⟩
+    · have hρtop : ρ ∈ Ztop := htop.mem_toFinset.mp hρ
+      refine hbot.mem_toFinset.mpr ?_
+      rcases hρtop with ⟨hre, him, hzero⟩
+      refine ⟨?_, ?_, ?_⟩
+      · simpa [Complex.conj_re] using hre
+      · constructor
+        · rw [Complex.conj_im]
+          linarith [him.2]
+        · rw [Complex.conj_im]
+          linarith [him.1]
+      · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+        rw [riemannZeta_conj, hzero, map_zero]
+    · simp
+  · intro ρ hρ
+    have hden :
+        |(-T) - ρ.im| = |T - ((starRingEnd ℂ) ρ).im| := by
+      rw [Complex.conj_im]
+      have hleft : (-T) - ρ.im = -(T + ρ.im) := by ring
+      have hright : T - -ρ.im = T + ρ.im := by ring
+      rw [hleft, abs_neg, hright]
+    have horder :
+        riemannZeta.order ((starRingEnd ℂ) ρ) = riemannZeta.order ρ :=
+      u6a_riemannZeta_order_star ρ
+    rw [hden, horder]
+
 private lemma u6aNearbyZeroCount_toFinset_card_le (σ₁ σ₂ t : ℝ) (ht : 3 ≤ t) :
     let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
     let hfin : Z.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
@@ -2221,6 +2427,115 @@ def U6aPartialFractionApproximationHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) :
   0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
     ‖deriv riemannZeta s / riemannZeta s -
         u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤ C * Real.log |s.im|
+
+private lemma u6a_log_le_log_sq_of_three_le {T : ℝ} (hT : 3 ≤ T) :
+    Real.log T ≤ Real.log T ^ 2 := by
+  have hTpos : 0 < T := by linarith
+  have hlog_ge_one : (1 : ℝ) ≤ Real.log T := by
+    apply le_of_lt
+    rw [Real.lt_log_iff_exp_lt hTpos]
+    calc
+      Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+      _ < T := by norm_num; linarith
+  nlinarith
+
+/-- Fixed-height composition: a partial-fraction approximation plus a bound
+for the reciprocal zero sum gives the lane's pointwise `log²` horizontal
+estimate at that height. -/
+theorem logDeriv_bound_of_partialFraction_and_reciprocalBound
+    {σ₁ σ₂ Cpf Tpf Crec T η t x : ℝ}
+    (hPF : U6aPartialFractionApproximationHypothesis σ₁ σ₂ Cpf Tpf)
+    (hT : 3 ≤ T) (hTpf : Tpf ≤ T)
+    (hgap : horizontalSegmentZeroGap σ₁ σ₂ T η)
+    (ht : t = T ∨ t = -T) (htabs : |t| = T)
+    (hx : x ∈ Set.uIcc σ₁ σ₂)
+    (hrec : u6aReciprocalZeroSum σ₁ σ₂ t ≤ Crec * Real.log T ^ 2) :
+    ‖deriv riemannZeta ((x : ℂ) + t * I) / riemannZeta ((x : ℂ) + t * I)‖ ≤
+      (Cpf + Crec) * Real.log T ^ 2 := by
+  let s : ℂ := (x : ℂ) + t * I
+  have hsim : s.im = t := by simp [s]
+  have hsre : s.re ∈ Set.uIcc σ₁ σ₂ := by simpa [s] using hx
+  have hT_abs_s : |s.im| = T := by simpa [hsim] using htabs
+  have hpfT : Tpf ≤ |s.im| := by rw [hT_abs_s]; exact hTpf
+  have h3s : 3 ≤ |s.im| := by rw [hT_abs_s]; exact hT
+  have hA := hPF.2 s hsre hpfT h3s
+  have hnear := norm_u6aNearbyZeroPrincipalSum_le_reciprocalZeroSum_of_zeroGap
+    (σ₁ := σ₁) (σ₂ := σ₂) (T := T) (η := η) (t := t) (s := s)
+    hgap ht hsim
+  have hnear2 : ‖u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ ≤ Crec * Real.log T ^ 2 :=
+    hnear.trans hrec
+  have hlog_le_sq : Real.log T ≤ Real.log T ^ 2 := u6a_log_le_log_sq_of_three_le hT
+  calc
+    ‖deriv riemannZeta ((x : ℂ) + t * I) / riemannZeta ((x : ℂ) + t * I)‖
+        = ‖(deriv riemannZeta s / riemannZeta s - u6aNearbyZeroPrincipalSum σ₁ σ₂ t s) +
+            u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ := by
+          simp [s]
+    _ ≤ ‖deriv riemannZeta s / riemannZeta s -
+          u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ +
+        ‖u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ := norm_add_le _ _
+    _ ≤ Cpf * Real.log T + Crec * Real.log T ^ 2 := by
+          have hA' : ‖deriv riemannZeta s / riemannZeta s -
+                u6aNearbyZeroPrincipalSum σ₁ σ₂ t s‖ ≤ Cpf * Real.log T := by
+            simpa [hsim, htabs] using hA
+          nlinarith
+    _ ≤ Cpf * Real.log T ^ 2 + Crec * Real.log T ^ 2 := by
+          exact add_le_add (mul_le_mul_of_nonneg_left hlog_le_sq hPF.1.le) le_rfl
+    _ = (Cpf + Crec) * Real.log T ^ 2 := by ring
+
+/-- A fixed-height horizontal-segment wrapper: if both horizontal sides at
+height `|t| = T` have the reciprocal zero sum bounded by `Crec log² T`, the
+partial-fraction approximation gives the lane's `horizontalSegmentLogDerivBound`
+at that height. -/
+theorem horizontalSegmentLogDerivBound_of_partialFraction_and_reciprocalBound
+    {σ₁ σ₂ Cpf Tpf Crec T η : ℝ}
+    (hPF : U6aPartialFractionApproximationHypothesis σ₁ σ₂ Cpf Tpf)
+    (hT : 3 ≤ T) (hTpf : Tpf ≤ T)
+    (hgap : horizontalSegmentZeroGap σ₁ σ₂ T η)
+    (hrec : ∀ t : ℝ, |t| = T →
+      u6aReciprocalZeroSum σ₁ σ₂ t ≤ Crec * Real.log T ^ 2) :
+    horizontalSegmentLogDerivBound σ₁ σ₂ T (Cpf + Crec) := by
+  have hTpos : 0 < T := by linarith
+  refine ⟨horizontalSegmentZeroFree_of_zeroGap hTpos hgap, ?_⟩
+  intro x hx t htabs
+  have htcase : t = T ∨ t = -T := by
+    exact (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp htabs
+  exact logDeriv_bound_of_partialFraction_and_reciprocalBound
+    (σ₁ := σ₁) (σ₂ := σ₂) (Cpf := Cpf) (Tpf := Tpf) (Crec := Crec)
+    (T := T) (η := η) (t := t) (x := x) hPF hT hTpf hgap htcase htabs hx
+    (hrec t htabs)
+
+/-- U6a-strip specialization: by conjugation symmetry of the reciprocal zero
+sum, it is enough to bound the selected positive height. -/
+theorem horizontalSegmentLogDerivBound_of_partialFraction_and_top_reciprocalBound
+    {Cpf Tpf Crec T η : ℝ}
+    (hPF : U6aPartialFractionApproximationHypothesis (-1) 2 Cpf Tpf)
+    (hT : 3 ≤ T) (hTpf : Tpf ≤ T)
+    (hgap : horizontalSegmentZeroGap (-1) 2 T η)
+    (hrecTop : u6aReciprocalZeroSum (-1) 2 T ≤ Crec * Real.log T ^ 2) :
+    horizontalSegmentLogDerivBound (-1) 2 T (Cpf + Crec) := by
+  refine horizontalSegmentLogDerivBound_of_partialFraction_and_reciprocalBound
+    (σ₁ := (-1 : ℝ)) (σ₂ := 2) (Cpf := Cpf) (Tpf := Tpf) (Crec := Crec)
+    (T := T) (η := η) hPF hT hTpf hgap ?_
+  intro t ht
+  have htcase : t = T ∨ t = -T := (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp ht
+  rcases htcase with rfl | rfl
+  · exact hrecTop
+  · simpa [u6aReciprocalZeroSum_neg] using hrecTop
+
+/-- Consumer wrapper for the averaged selector: once the selected positive
+height's averaged reciprocal-zero bound is compared to `C log² T`, the
+horizontal-segment `log²` estimate follows on both sides. -/
+theorem horizontalSegmentLogDerivBound_of_partialFraction_and_averagedSelection
+    {Cpf Tpf Crec X δ M T : ℝ}
+    (hPF : U6aPartialFractionApproximationHypothesis (-1) 2 Cpf Tpf)
+    (hT : 3 ≤ T) (hTpf : Tpf ≤ T)
+    (hsel : T ∈ u6aSafeHeightSet (-1) 2 X δ)
+    (hrecSel : u6aReciprocalZeroSum (-1) 2 T ≤ u6aAveragedSelectionBound X δ M)
+    (havg_le : u6aAveragedSelectionBound X δ M ≤ Crec * Real.log T ^ 2) :
+    horizontalSegmentLogDerivBound (-1) 2 T (Cpf + Crec) :=
+  horizontalSegmentLogDerivBound_of_partialFraction_and_top_reciprocalBound
+    (Cpf := Cpf) (Tpf := Tpf) (Crec := Crec) (T := T) (η := δ)
+    hPF hT hTpf hsel.2 (hrecSel.trans havg_le)
 
 /-- The translated removable extension of `(w - 1)ζ(w)`, centered at `s`.
 Jensen's disk-counting lemmas are centered at zero, so the PF-disk route applies
@@ -2720,6 +3035,86 @@ theorem u6aRiemannXi_divisorZeroIndex₀_fiber_card_eq_riemannZeta_order
   have hre := ρ.property.1
   rw [u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip hre.1 hre.2]
 
+/-- Finite window-local reindexing over xi divisor fibers.  This is the local
+bridge used in U6a: for any finite zeta-zero window already represented as
+non-trivial zeros, summing over xi divisor-index fibers is the same as the
+order-weighted zeta-zero sum. -/
+theorem u6aRiemannXi_fiberWindow_sum_eq_zeroes_finset_sum
+    (Z : Finset NontrivialZeros) (φ : ℂ → ℂ) :
+    (∑ ρ ∈ Z,
+        ∑ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) (ρ : ℂ),
+          φ (Complex.Hadamard.divisorZeroIndex₀_val p)) =
+      ∑ ρ ∈ Z, (riemannZeta.order (ρ : ℂ) : ℂ) * φ (ρ : ℂ) := by
+  refine Finset.sum_congr rfl ?_
+  intro ρ _hρ
+  have hval : ∀ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) (ρ : ℂ),
+      φ (Complex.Hadamard.divisorZeroIndex₀_val p) = φ (ρ : ℂ) := by
+    intro p hp
+    have hpval := (Complex.Hadamard.mem_divisorZeroIndex₀_fiberFinset (f := riemannXi)
+      (z₀ := (ρ : ℂ)) p).1 hp
+    rw [hpval]
+  rw [Finset.sum_congr rfl hval, Finset.sum_const, nsmul_eq_mul]
+  have hcard := u6aRiemannXi_divisorZeroIndex₀_fiber_card_eq_riemannZeta_order ρ
+  have horder_nonneg : 0 ≤ riemannZeta.order (ρ : ℂ) := by
+    exact le_of_lt (riemannZeta_order_pos_nontrivialZero ρ)
+  have hcast :
+      ((Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) (ρ : ℂ)).card : ℂ) =
+        (riemannZeta.order (ρ : ℂ) : ℂ) := by
+    rw [hcard]
+    exact_mod_cast Int.toNat_of_nonneg horder_nonneg
+  rw [hcast]
+
+/-- Window-local finite reindexing in the `zeroes_sum` representation.  Once
+the selected finite window is known to contain only non-trivial zeta zeros, the
+sum over the corresponding xi divisor-index fibers is exactly the
+order-weighted zeta-zero sum. -/
+theorem u6aRiemannXi_fiberWindow_sum_eq_zeroes_sum_of_finite
+    {I J : Set ℝ} (hfin : (riemannZeta.zeroes_rect I J).Finite)
+    (hNT : ∀ ρ : ℂ, ρ ∈ riemannZeta.zeroes_rect I J → ρ ∈ NontrivialZeros)
+    (φ : ℂ → ℂ) :
+    (∑ ρ ∈ hfin.toFinset,
+        ∑ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ,
+          φ (Complex.Hadamard.divisorZeroIndex₀_val p)) =
+      riemannZeta.zeroes_sum I J φ := by
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite φ hfin]
+  refine Finset.sum_congr rfl ?_
+  intro ρ hρ
+  have hρmem : ρ ∈ riemannZeta.zeroes_rect I J := hfin.mem_toFinset.mp hρ
+  let ρnt : NontrivialZeros := ⟨ρ, hNT ρ hρmem⟩
+  have hval : ∀ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ,
+      φ (Complex.Hadamard.divisorZeroIndex₀_val p) = φ ρ := by
+    intro p hp
+    have hpval := (Complex.Hadamard.mem_divisorZeroIndex₀_fiberFinset (f := riemannXi)
+      (z₀ := ρ) p).1 hp
+    rw [hpval]
+  rw [Finset.sum_congr rfl hval, Finset.sum_const, nsmul_eq_mul]
+  have hcard := u6aRiemannXi_divisorZeroIndex₀_fiber_card_eq_riemannZeta_order ρnt
+  have horder_nonneg : 0 ≤ riemannZeta.order ρ := by
+    have hpos := riemannZeta_order_pos_nontrivialZero ρnt
+    simpa [ρnt] using le_of_lt hpos
+  have hcast :
+      ((Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ).card : ℂ) =
+        (riemannZeta.order ρ : ℂ) := by
+    rw [hcard]
+    exact_mod_cast Int.toNat_of_nonneg horder_nonneg
+  rw [hcast]
+  ring
+
+/-- High-window specialization of the local finite reindexing theorem.  The
+nontriviality hypothesis is discharged from `|t| ≥ 2`. -/
+theorem u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
+    {t : ℝ}
+    (hfin : (riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+      (Set.Icc (t - 1) (t + 1))).Finite)
+    (ht : 2 ≤ |t|)
+    (φ : ℂ → ℂ) :
+    (∑ ρ ∈ hfin.toFinset,
+        ∑ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ,
+          φ (Complex.Hadamard.divisorZeroIndex₀_val p)) =
+      riemannZeta.zeroes_sum (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1)) φ :=
+  u6aRiemannXi_fiberWindow_sum_eq_zeroes_sum_of_finite hfin
+    (u6a_zeroes_rect_high_window_subset_nontrivial ht) φ
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
@@ -2744,6 +3139,269 @@ def U6aHadamardRemainderBoundHypothesis
     (σ₁ σ₂ C Tₘᵢₙ : ℝ) (P : Polynomial ℂ) : Prop :=
   0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
     ‖u6aHadamardPartialFractionRemainder σ₁ σ₂ s.im P s‖ ≤ C * Real.log |s.im|
+
+private lemma u6a_re_div_two (z : ℂ) : (z / 2).re = z.re / 2 := by
+  rw [Complex.div_re]
+  norm_num [Complex.normSq_apply]
+  ring
+
+private lemma u6a_im_div_two (z : ℂ) : (z / 2).im = z.im / 2 := by
+  rw [Complex.div_im]
+  norm_num [Complex.normSq_apply]
+  ring
+
+/-- PF-rung digamma bound for the argument appearing in the Hadamard remainder.
+For high horizontal lines in the U6a strip, the `s / 2 + 1` digamma term is
+`O(log |Im s|)`. -/
+theorem u6a_digamma_shift_le_log_abs_im :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        ‖(1 / 2 : ℂ) * digamma (s / 2 + 1)‖ ≤ C * Real.log |s.im| := by
+  obtain ⟨Cψ, hCψ, hψ⟩ :=
+    Complex.exists_norm_digamma_le_log (a := (1 / 2 : ℝ)) (b := 2) (by norm_num)
+  refine ⟨Cψ, 4, hCψ, by norm_num, ?_⟩
+  intro s hsre hsT
+  have hsT4 : (4 : ℝ) ≤ |s.im| := by simpa using hsT
+  have hsTpos : 0 < |s.im| := by linarith
+  have hlog_nonneg : 0 ≤ Real.log |s.im| :=
+    Real.log_nonneg (by linarith)
+  have harg_re : (s / 2 + 1).re = s.re / 2 + 1 := by
+    rw [Complex.add_re, Complex.one_re, u6a_re_div_two]
+  have hsIcc : s.re ∈ Set.Icc (-1 : ℝ) 2 := by
+    simpa [Set.uIcc_of_le (by norm_num : (-1 : ℝ) ≤ 2)] using hsre
+  have harg_re_low : (1 / 2 : ℝ) ≤ (s / 2 + 1).re := by
+    rw [harg_re]
+    have hs_low : (-1 : ℝ) ≤ s.re := hsIcc.1
+    linarith
+  have harg_re_high : (s / 2 + 1).re ≤ 2 := by
+    rw [harg_re]
+    have hs_high : s.re ≤ (2 : ℝ) := hsIcc.2
+    linarith
+  have harg_im_le : |(s / 2 + 1).im| + 2 ≤ |s.im| := by
+    have him : |(s / 2 + 1).im| = |s.im| / 2 := by
+      rw [Complex.add_im, Complex.one_im, add_zero, u6a_im_div_two, abs_div]
+      norm_num
+    rw [him]
+    linarith
+  have hlog_arg_le : Real.log (|(s / 2 + 1).im| + 2) ≤ Real.log |s.im| :=
+    Real.log_le_log (by positivity) harg_im_le
+  have hψ_arg :
+      ‖digamma (s / 2 + 1)‖ ≤ Cψ * Real.log |s.im| := by
+    exact (hψ (s / 2 + 1) harg_re_low harg_re_high).trans
+      (mul_le_mul_of_nonneg_left hlog_arg_le hCψ.le)
+  have hmul :
+      ‖(1 / 2 : ℂ) * digamma (s / 2 + 1)‖ ≤
+        (1 / 2 : ℝ) * (Cψ * Real.log |s.im|) := by
+    calc
+      ‖(1 / 2 : ℂ) * digamma (s / 2 + 1)‖
+          ≤ ‖(1 / 2 : ℂ)‖ * ‖digamma (s / 2 + 1)‖ := norm_mul_le _ _
+      _ = (1 / 2 : ℝ) * ‖digamma (s / 2 + 1)‖ := by norm_num
+      _ ≤ (1 / 2 : ℝ) * (Cψ * Real.log |s.im|) := by
+        exact mul_le_mul_of_nonneg_left hψ_arg (by norm_num)
+  have htarget_nonneg : 0 ≤ Cψ * Real.log |s.im| := by positivity
+  exact hmul.trans (by nlinarith)
+
+private lemma u6a_one_le_log_abs_im_of_four_le {s : ℂ} (hsT : (4 : ℝ) ≤ |s.im|) :
+    (1 : ℝ) ≤ Real.log |s.im| := by
+  have hsTpos : 0 < |s.im| := by linarith
+  apply le_of_lt
+  rw [Real.lt_log_iff_exp_lt hsTpos]
+  calc
+    Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+    _ < |s.im| := by norm_num; linarith
+
+/-- The zeta pole contribution in the Hadamard remainder is `O(log |Im s|)`
+on high horizontal lines. -/
+theorem u6a_pole_term_le_log_abs_im :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, Tₘᵢₙ ≤ |s.im| →
+        ‖(1 : ℂ) / (s - 1)‖ ≤ C * Real.log |s.im| := by
+  refine ⟨1, 4, by norm_num, by norm_num, ?_⟩
+  intro s hsT
+  have hsT4 : (4 : ℝ) ≤ |s.im| := by simpa using hsT
+  have hsTpos : 0 < |s.im| := by linarith
+  have hsTge1 : (1 : ℝ) ≤ |s.im| := by linarith
+  have hlog_ge_one : (1 : ℝ) ≤ Real.log |s.im| :=
+    u6a_one_le_log_abs_im_of_four_le hsT4
+  have him_le_norm : |s.im| ≤ ‖s - 1‖ := by
+    have h := Complex.abs_im_le_norm (s - 1)
+    simpa [Complex.sub_im, Complex.one_im] using h
+  have hnorm_bound : ‖(1 : ℂ) / (s - 1)‖ ≤ 1 / |s.im| := by
+    rw [norm_div, norm_one]
+    exact one_div_le_one_div_of_le hsTpos him_le_norm
+  have hinv_le_one : 1 / |s.im| ≤ 1 := by
+    simpa using one_div_le_one_div_of_le (by norm_num : (0 : ℝ) < 1) hsTge1
+  calc
+    ‖(1 : ℂ) / (s - 1)‖ ≤ 1 / |s.im| := hnorm_bound
+    _ ≤ 1 := hinv_le_one
+    _ ≤ (1 : ℝ) * Real.log |s.im| := by simpa using hlog_ge_one
+
+/-- The constant `log π` contribution in the Hadamard remainder is
+`O(log |Im s|)` on high horizontal lines. -/
+theorem u6a_log_pi_term_le_log_abs_im :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, Tₘᵢₙ ≤ |s.im| →
+        ‖(1 / 2 : ℂ) * Real.log Real.pi‖ ≤ C * Real.log |s.im| := by
+  let C : ℝ := ‖(1 / 2 : ℂ) * Real.log Real.pi‖ + 1
+  refine ⟨C, 4, by dsimp [C]; positivity, by norm_num, ?_⟩
+  intro s hsT
+  have hsT4 : (4 : ℝ) ≤ |s.im| := by simpa using hsT
+  have hlog_ge_one : (1 : ℝ) ≤ Real.log |s.im| :=
+    u6a_one_le_log_abs_im_of_four_le hsT4
+  have hC_nonneg : 0 ≤ C := by dsimp [C]; positivity
+  calc
+    ‖(1 / 2 : ℂ) * Real.log Real.pi‖ ≤ C := by dsimp [C]; linarith
+    _ ≤ C * Real.log |s.im| := by nlinarith
+
+/-- The derivative of the degree-one Hadamard polynomial is a constant, hence
+is `O(log |Im s|)` on high horizontal lines. -/
+theorem u6a_polynomial_derivative_term_le_log_abs_im {P : Polynomial ℂ}
+    (hP : P.degree ≤ 1) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, Tₘᵢₙ ≤ |s.im| →
+        ‖Polynomial.eval s P.derivative‖ ≤ C * Real.log |s.im| := by
+  let C : ℝ := ‖Polynomial.eval 0 P.derivative‖ + 1
+  refine ⟨C, 4, by dsimp [C]; positivity, by norm_num, ?_⟩
+  intro s hsT
+  have hsT4 : (4 : ℝ) ≤ |s.im| := by simpa using hsT
+  have hlog_ge_one : (1 : ℝ) ≤ Real.log |s.im| :=
+    u6a_one_le_log_abs_im_of_four_le hsT4
+  have hC_nonneg : 0 ≤ C := by dsimp [C]; positivity
+  calc
+    ‖Polynomial.eval s P.derivative‖ = ‖Polynomial.eval 0 P.derivative‖ := by
+      rw [Polynomial.eval_derivative_eq_eval_derivative_zero_of_degree_le_one hP]
+    _ ≤ C := by dsimp [C]; linarith
+    _ ≤ C * Real.log |s.im| := by nlinarith
+
+/-- The non-zero-sum terms in the Hadamard remainder are logarithmically
+bounded on high horizontal lines in the U6a strip. -/
+theorem u6a_hadamard_elementary_terms_le_log_abs_im {P : Polynomial ℂ}
+    (hP : P.degree ≤ 1) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        ‖Polynomial.eval s P.derivative
+          - 1 / (s - 1)
+          + (1 / 2 : ℂ) * Real.log Real.pi
+          - (1 / 2 : ℂ) * digamma (s / 2 + 1)‖ ≤
+            C * Real.log |s.im| := by
+  obtain ⟨CA, TA, hCA, hTA4, hA⟩ := u6a_polynomial_derivative_term_le_log_abs_im hP
+  obtain ⟨CD, TD, hCD, hTD4, hD⟩ := u6a_pole_term_le_log_abs_im
+  obtain ⟨CE, TE, hCE, hTE4, hE⟩ := u6a_log_pi_term_le_log_abs_im
+  obtain ⟨CF, TF, hCF, hTF4, hF⟩ := u6a_digamma_shift_le_log_abs_im
+  let C : ℝ := CA + CD + CE + CF
+  let T : ℝ := max (max TA TD) (max TE TF)
+  refine ⟨C, T, by dsimp [C]; positivity, ?_, ?_⟩
+  · dsimp [T]
+    exact le_max_of_le_left (le_max_of_le_left hTA4)
+  intro s hsre hsT
+  have hTA : TA ≤ |s.im| := by
+    exact (le_max_left TA TD).trans (le_max_left (max TA TD) (max TE TF)) |>.trans hsT
+  have hTD : TD ≤ |s.im| := by
+    exact (le_max_right TA TD).trans (le_max_left (max TA TD) (max TE TF)) |>.trans hsT
+  have hTE : TE ≤ |s.im| := by
+    exact (le_max_left TE TF).trans (le_max_right (max TA TD) (max TE TF)) |>.trans hsT
+  have hTF : TF ≤ |s.im| := by
+    exact (le_max_right TE TF).trans (le_max_right (max TA TD) (max TE TF)) |>.trans hsT
+  have hT4 : (4 : ℝ) ≤ |s.im| := by
+    exact hTA4.trans hTA
+  have hlog_nonneg : 0 ≤ Real.log |s.im| :=
+    Real.log_nonneg (by linarith)
+  have hAb := hA s hTA
+  have hDb := hD s hTD
+  have hEb := hE s hTE
+  have hFb := hF s hsre hTF
+  let A : ℂ := Polynomial.eval s P.derivative
+  let D : ℂ := (1 : ℂ) / (s - 1)
+  let E : ℂ := (1 / 2 : ℂ) * Real.log Real.pi
+  let F : ℂ := (1 / 2 : ℂ) * digamma (s / 2 + 1)
+  have htri : ‖A - D + E - F‖ ≤ ‖A‖ + ‖D‖ + ‖E‖ + ‖F‖ := by
+    have h1 : ‖A - D + E - F‖ ≤ ‖A - D + E‖ + ‖F‖ := by
+      simpa [sub_eq_add_neg, add_assoc, norm_neg] using norm_add_le (A - D + E) (-F)
+    have h2 : ‖A - D + E‖ ≤ ‖A - D‖ + ‖E‖ := norm_add_le (A - D) E
+    have h3 : ‖A - D‖ ≤ ‖A‖ + ‖D‖ := norm_sub_le A D
+    calc
+      ‖A - D + E - F‖ ≤ ‖A - D + E‖ + ‖F‖ := h1
+      _ ≤ (‖A - D‖ + ‖E‖) + ‖F‖ := by
+        nlinarith
+      _ ≤ ((‖A‖ + ‖D‖) + ‖E‖) + ‖F‖ := by
+        nlinarith
+      _ = ‖A‖ + ‖D‖ + ‖E‖ + ‖F‖ := by ring
+  have hAb' : ‖A‖ ≤ CA * Real.log |s.im| := by simpa [A] using hAb
+  have hDb' : ‖D‖ ≤ CD * Real.log |s.im| := by simpa [D] using hDb
+  have hEb' : ‖E‖ ≤ CE * Real.log |s.im| := by simpa [E] using hEb
+  have hFb' : ‖F‖ ≤ CF * Real.log |s.im| := by simpa [F] using hFb
+  calc
+    ‖Polynomial.eval s P.derivative
+          - 1 / (s - 1)
+          + (1 / 2 : ℂ) * Real.log Real.pi
+          - (1 / 2 : ℂ) * digamma (s / 2 + 1)‖
+        = ‖A - D + E - F‖ := by rfl
+    _ ≤ ‖A‖ + ‖D‖ + ‖E‖ + ‖F‖ := htri
+    _ ≤ CA * Real.log |s.im| + CD * Real.log |s.im| +
+        CE * Real.log |s.im| + CF * Real.log |s.im| := by
+          nlinarith
+    _ = C * Real.log |s.im| := by
+          dsimp [C]
+          ring
+
+/-- The single remaining analytic zero-sum estimate for the PF remainder
+route.  This is the term where the xi divisor indexing, the Kadiri nearby-zero
+sum, and the weighted tail/local-count arguments must be reconciled. -/
+def U6aZeroSumRemainderBoundHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
+    ‖u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤
+      C * Real.log |s.im|
+
+/-- All non-zero-sum PF-rung estimates compose with the isolated zero-sum
+estimate to give the Hadamard remainder bound on the U6a strip. -/
+theorem U6aHadamardRemainderBoundHypothesis_of_zeroSum
+    {P : Polynomial ℂ} (hP : P.degree ≤ 1) {Czero Tzero : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      U6aHadamardRemainderBoundHypothesis (-1) 2 C Tₘᵢₙ P := by
+  obtain ⟨Celem, Telem, hCelem, hTelem4, helem⟩ :=
+    u6a_hadamard_elementary_terms_le_log_abs_im hP
+  let C : ℝ := Celem + Czero
+  let T : ℝ := max Telem Tzero
+  have hCpos : 0 < C := by
+    dsimp [C]
+    linarith [hCelem, hZero.1]
+  refine ⟨C, T, hCpos, ?_, ?_⟩
+  · dsimp [T]
+    exact hTelem4.trans (le_max_left Telem Tzero)
+  unfold U6aHadamardRemainderBoundHypothesis
+  refine ⟨hCpos, ?_⟩
+  intro s hsre hsT hT3
+  have hTelem : Telem ≤ |s.im| := (le_max_left Telem Tzero).trans hsT
+  have hTzero : Tzero ≤ |s.im| := (le_max_right Telem Tzero).trans hsT
+  have hlog_nonneg : 0 ≤ Real.log |s.im| :=
+    Real.log_nonneg (by linarith)
+  have he := helem s hsre hTelem
+  have hz := hZero.2 s hsre hTzero hT3
+  let E : ℂ :=
+    Polynomial.eval s P.derivative
+      - 1 / (s - 1)
+      + (1 / 2 : ℂ) * Real.log Real.pi
+      - (1 / 2 : ℂ) * digamma (s / 2 + 1)
+  let Z : ℂ := u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum (-1) 2 s.im s
+  have heE : ‖E‖ ≤ Celem * Real.log |s.im| := by
+    simpa [E] using he
+  have hzZ : ‖Z‖ ≤ Czero * Real.log |s.im| := by
+    simpa [Z] using hz
+  have hrem_eq :
+      u6aHadamardPartialFractionRemainder (-1) 2 s.im P s = E + Z := by
+    unfold u6aHadamardPartialFractionRemainder
+    dsimp [E, Z]
+    ring
+  calc
+    ‖u6aHadamardPartialFractionRemainder (-1) 2 s.im P s‖
+        = ‖E + Z‖ := by rw [hrem_eq]
+    _ ≤ ‖E‖ + ‖Z‖ := norm_add_le E Z
+    _ ≤ Celem * Real.log |s.im| + Czero * Real.log |s.im| := by
+          nlinarith
+    _ = C * Real.log |s.im| := by
+          dsimp [C]
+          ring
 
 /-- Exact pointwise reduction of `ζ'/ζ` minus Kadiri's nearby-zero principal
 part to the xi-Hadamard remainder. -/
