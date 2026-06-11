@@ -33,6 +33,7 @@ import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.ZetaConj
 import PrimeNumberTheoremAnd.ZetaBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
+import Mathlib.Analysis.Real.Pi.Bounds
 
 open Real Complex Function
 
@@ -342,7 +343,200 @@ crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
 private lemma surrogate_growth_left :
     ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, z.re ≤ -1 →
       Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) ^ (3/2 : ℝ) := by
-  sorry
+  obtain ⟨M, hM0, hM⟩ := exists_zeta_bound_right
+  refine ⟨2 + (Real.log 2 + Real.pi) + (Real.log (1 + 4 * M) + Real.log 2)
+      + 3 * (Real.log 3 + 2) + 1, ?_, fun z hz ↦ ?_⟩
+  · have l2 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg one_le_two
+    have l3 : (0 : ℝ) ≤ Real.log 3 := Real.log_nonneg (by norm_num)
+    have l4 : (0 : ℝ) ≤ Real.log (1 + 4 * M) := Real.log_nonneg (by linarith)
+    have := Real.pi_pos
+    linarith
+  · set w : ℂ := 1 - z with hw
+    have hzn : (0 : ℝ) ≤ ‖z‖ := norm_nonneg z
+    have hwre : 2 ≤ w.re := by
+      rw [hw]
+      simp only [Complex.sub_re, Complex.one_re]
+      linarith
+    have hwn : ∀ n : ℕ, w ≠ -(n : ℂ) := by
+      intro n h
+      have h' := congrArg Complex.re h
+      simp only [Complex.neg_re, Complex.natCast_re] at h'
+      have hn : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+      linarith
+    have hw1 : w ≠ 1 := by
+      intro h
+      have h' := congrArg Complex.re h
+      simp only [Complex.one_re] at h'
+      linarith
+    have hz1 : z ≠ 1 := by
+      intro h
+      rw [h] at hz
+      norm_num [Complex.one_re] at hz
+    have hfe := riemannZeta_one_sub hwn hw1
+    have h1w : (1 : ℂ) - w = z := by rw [hw]; ring
+    rw [h1w] at hfe
+    have hwnorm : ‖w‖ ≤ 1 + ‖z‖ := by
+      rw [hw]
+      calc ‖(1 : ℂ) - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ := norm_sub_le 1 z
+        _ = 1 + ‖z‖ := by rw [norm_one]
+    have hpow_bound : ‖((2 : ℂ) * (Real.pi : ℂ)) ^ (-w)‖ ≤ 1 := by
+      have h2π : ((2 : ℂ) * (Real.pi : ℂ)) = (((2 * Real.pi : ℝ)) : ℂ) := by
+        push_cast; ring
+      rw [h2π, Complex.norm_cpow_eq_rpow_re_of_pos (by positivity)]
+      refine Real.rpow_le_one_of_one_le_of_nonpos ?_ ?_
+      · nlinarith [Real.pi_gt_three]
+      · simp only [Complex.neg_re]
+        linarith
+    have hΓn : ‖Complex.Gamma w‖ ≤ Real.Gamma w.re :=
+      norm_Gamma_le_Gamma_re (by linarith)
+    set n : ℕ := ⌈w.re⌉₊ with hn
+    have hΓfac : Real.Gamma w.re ≤ 2 * ((n + 1).factorial : ℝ) := by
+      refine Gamma_le_two_mul_factorial n (by linarith) ?_
+      have hceil := Nat.le_ceil w.re
+      rw [← hn] at hceil
+      push_cast
+      linarith
+    have hcos : ‖Complex.cos ((Real.pi : ℂ) * w / 2)‖ ≤
+        Real.exp (Real.pi * ‖w‖ / 2) := by
+      refine (norm_cos_le_exp _).trans ?_
+      refine Real.exp_le_exp.mpr (le_of_eq ?_)
+      rw [norm_div, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_pos Real.pi_pos]
+      norm_num
+    have hζw : ‖riemannZeta w‖ ≤ M := hM w hwre
+    have hΓ2 : ‖Complex.Gamma w‖ ≤ 2 * ((n + 1).factorial : ℝ) := hΓn.trans hΓfac
+    have hfacnn : (1 : ℝ) ≤ ((n + 1).factorial : ℝ) := by
+      exact_mod_cast Nat.one_le_iff_ne_zero.mpr (Nat.factorial_ne_zero _)
+    have hgz : ‖zetaSurrogate z‖ ≤
+        (1 + ‖z‖) * ((4 * M * ((n + 1).factorial : ℝ)) *
+          Real.exp (Real.pi * ‖w‖ / 2)) := by
+      rw [zetaSurrogate, if_neg hz1, norm_mul]
+      have hz1n : ‖z - 1‖ ≤ 1 + ‖z‖ := by
+        calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
+          _ = 1 + ‖z‖ := by rw [norm_one]; ring
+      have hζz : ‖riemannZeta z‖ ≤ (4 * M * ((n + 1).factorial : ℝ)) *
+          Real.exp (Real.pi * ‖w‖ / 2) := by
+        rw [hfe, norm_mul, norm_mul, norm_mul, norm_mul]
+        have e2 : ‖(2 : ℂ)‖ = 2 := by norm_num
+        rw [e2]
+        calc 2 * ‖((2 : ℂ) * (Real.pi : ℂ)) ^ (-w)‖ * ‖Complex.Gamma w‖ *
+              ‖Complex.cos ((Real.pi : ℂ) * w / 2)‖ * ‖riemannZeta w‖
+            ≤ 2 * 1 * (2 * ((n + 1).factorial : ℝ)) *
+              Real.exp (Real.pi * ‖w‖ / 2) * M := by
+              gcongr
+            _ = (4 * M * ((n + 1).factorial : ℝ)) *
+              Real.exp (Real.pi * ‖w‖ / 2) := by ring
+      exact mul_le_mul hz1n hζz (norm_nonneg _) (by linarith)
+    -- the log chain
+    have hK1 : (1 : ℝ) ≤ (1 + ‖z‖) ^ (3/2 : ℝ) := by
+      calc (1 : ℝ) = 1 ^ (3/2 : ℝ) := (Real.one_rpow _).symm
+        _ ≤ _ := Real.rpow_le_rpow zero_le_one (by linarith) (by norm_num)
+    have hKlin : (1 + ‖z‖) ≤ (1 + ‖z‖) ^ (3/2 : ℝ) := by
+      calc (1 + ‖z‖) = (1 + ‖z‖) ^ (1 : ℝ) := (Real.rpow_one _).symm
+        _ ≤ _ := Real.rpow_le_rpow_of_exponent_le (by linarith) (by norm_num)
+    have hFnn : (0 : ℝ) ≤ 4 * M * ((n + 1).factorial : ℝ) :=
+      mul_nonneg (mul_nonneg (by norm_num) hM0) (Nat.cast_nonneg _)
+    have hE1 : (1 : ℝ) ≤ Real.exp (Real.pi * ‖w‖ / 2) := by
+      rw [← Real.exp_zero]
+      exact Real.exp_le_exp.mpr (by positivity)
+    have step1 : Real.log (1 + ‖zetaSurrogate z‖) ≤
+        Real.log (1 + (1 + ‖z‖) * ((4 * M * ((n + 1).factorial : ℝ)) *
+          Real.exp (Real.pi * ‖w‖ / 2))) := by
+      refine Real.log_le_log (by positivity) ?_
+      linarith [hgz]
+    have step2 := log_one_add_mul_le (a := 1 + ‖z‖)
+      (b := (4 * M * ((n + 1).factorial : ℝ)) * Real.exp (Real.pi * ‖w‖ / 2))
+      (by linarith) (mul_nonneg hFnn (by linarith))
+    have step3 := log_one_add_mul_le (a := 4 * M * ((n + 1).factorial : ℝ))
+      (b := Real.exp (Real.pi * ‖w‖ / 2)) hFnn (by linarith)
+    have p1 : Real.log (1 + (1 + ‖z‖)) ≤ 2 * (1 + ‖z‖) := by
+      have := Real.log_le_sub_one_of_pos (show (0 : ℝ) < 1 + (1 + ‖z‖) by linarith)
+      linarith
+    have p3 : Real.log (1 + Real.exp (Real.pi * ‖w‖ / 2)) ≤
+        Real.log 2 + Real.pi * (1 + ‖z‖) / 2 := by
+      have h1 : (1 : ℝ) + Real.exp (Real.pi * ‖w‖ / 2) ≤
+          2 * Real.exp (Real.pi * ‖w‖ / 2) := by linarith
+      have h2 := Real.log_le_log (by positivity) h1
+      rw [Real.log_mul (by norm_num) (by positivity), Real.log_exp] at h2
+      have h3 : Real.pi * ‖w‖ / 2 ≤ Real.pi * (1 + ‖z‖) / 2 := by
+        have := Real.pi_pos
+        nlinarith [hwnorm]
+      linarith
+    have p2 : Real.log (1 + 4 * M * ((n + 1).factorial : ℝ)) ≤
+        Real.log (1 + 4 * M) + Real.log 2 +
+          3 * (Real.log 3 + 2) * (1 + ‖z‖) ^ (3/2 : ℝ) := by
+      have s1 := log_one_add_mul_le (a := 4 * M) (b := ((n + 1).factorial : ℝ))
+        (by linarith) (Nat.cast_nonneg _)
+      have s2 : Real.log (1 + ((n + 1).factorial : ℝ)) ≤
+          Real.log 2 + Real.log ((n + 1).factorial : ℝ) := by
+        have h1 : (1 : ℝ) + ((n + 1).factorial : ℝ) ≤
+            2 * ((n + 1).factorial : ℝ) := by linarith
+        have h2 := Real.log_le_log (by linarith) h1
+        rwa [Real.log_mul two_ne_zero (by linarith)] at h2
+      have s3 : Real.log ((n + 1).factorial : ℝ) ≤
+          ((n : ℝ) + 1) * Real.log ((n : ℝ) + 1) := by
+        have hle : ((n + 1).factorial : ℝ) ≤ (((n + 1) : ℕ) : ℝ) ^ ((n + 1) : ℕ) := by
+          exact_mod_cast Nat.factorial_le_pow (n + 1)
+        have h2 := Real.log_le_log (by linarith) hle
+        rw [Real.log_pow] at h2
+        push_cast at h2 ⊢
+        linarith
+      have hnb : ((n : ℝ) + 1) ≤ 3 * (1 + ‖z‖) := by
+        have hceil := Nat.ceil_lt_add_one (show (0 : ℝ) ≤ w.re by linarith)
+        rw [← hn] at hceil
+        have hre : w.re ≤ 1 + ‖z‖ := by
+          have h1 : w.re ≤ |w.re| := le_abs_self _
+          have h2 := Complex.abs_re_le_norm w
+          linarith [hwnorm]
+        linarith
+      have hlogn_nn : (0 : ℝ) ≤ Real.log ((n : ℝ) + 1) := by
+        refine Real.log_nonneg ?_
+        have := Nat.cast_nonneg (α := ℝ) n
+        linarith
+      have hlogn : Real.log ((n : ℝ) + 1) ≤
+          (Real.log 3 + 2) * (1 + ‖z‖) ^ ((1 : ℝ) / 2) := by
+        have h1 : Real.log ((n : ℝ) + 1) ≤ Real.log (3 * (1 + ‖z‖)) := by
+          refine Real.log_le_log ?_ hnb
+          have := Nat.cast_nonneg (α := ℝ) n
+          linarith
+        rw [Real.log_mul (by norm_num) (by linarith)] at h1
+        have h2 : Real.log (1 + ‖z‖) ≤ 2 * Real.sqrt (1 + ‖z‖) :=
+          log_le_two_mul_sqrt (by linarith)
+        rw [Real.sqrt_eq_rpow] at h2
+        have h3 : (1 : ℝ) ≤ (1 + ‖z‖) ^ ((1 : ℝ) / 2) := by
+          calc (1 : ℝ) = 1 ^ ((1 : ℝ) / 2) := (Real.one_rpow _).symm
+            _ ≤ _ := Real.rpow_le_rpow zero_le_one (by linarith) (by norm_num)
+        nlinarith [Real.log_nonneg (show (1 : ℝ) ≤ 3 by norm_num)]
+      have hs32 : ((n : ℝ) + 1) * Real.log ((n : ℝ) + 1) ≤
+          3 * (Real.log 3 + 2) * (1 + ‖z‖) ^ (3/2 : ℝ) := by
+        have hmul := mul_le_mul hnb hlogn hlogn_nn (by positivity)
+        refine hmul.trans (le_of_eq ?_)
+        rw [show (3 : ℝ)/2 = 1 + 1/2 by norm_num, Real.rpow_add (by linarith),
+          Real.rpow_one]
+        ring
+      linarith [s1, s2, s3, hs32]
+    -- final assembly
+    have l2 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg one_le_two
+    have l4 : (0 : ℝ) ≤ Real.log (1 + 4 * M) := Real.log_nonneg (by linarith)
+    have q1 : 2 * (1 + ‖z‖) ≤ 2 * (1 + ‖z‖) ^ (3/2 : ℝ) := by linarith [hKlin]
+    have q2 : Real.log (1 + 4 * M) ≤
+        Real.log (1 + 4 * M) * (1 + ‖z‖) ^ (3/2 : ℝ) :=
+      le_mul_of_one_le_right l4 hK1
+    have q3 : Real.log 2 ≤ Real.log 2 * (1 + ‖z‖) ^ (3/2 : ℝ) :=
+      le_mul_of_one_le_right l2 hK1
+    have q4 : Real.pi * (1 + ‖z‖) / 2 ≤ Real.pi * (1 + ‖z‖) ^ (3/2 : ℝ) := by
+      have := Real.pi_pos
+      nlinarith [hKlin]
+    have hBK : (2 + (Real.log 2 + Real.pi) + (Real.log (1 + 4 * M) + Real.log 2)
+        + 3 * (Real.log 3 + 2) + 1) * (1 + ‖z‖) ^ (3/2 : ℝ) =
+        2 * (1 + ‖z‖) ^ (3/2 : ℝ) + Real.log 2 * (1 + ‖z‖) ^ (3/2 : ℝ)
+        + Real.pi * (1 + ‖z‖) ^ (3/2 : ℝ)
+        + Real.log (1 + 4 * M) * (1 + ‖z‖) ^ (3/2 : ℝ)
+        + Real.log 2 * (1 + ‖z‖) ^ (3/2 : ℝ)
+        + 3 * (Real.log 3 + 2) * (1 + ‖z‖) ^ (3/2 : ℝ)
+        + (1 + ‖z‖) ^ (3/2 : ℝ) := by ring
+    have hK0 : (0 : ℝ) ≤ (1 + ‖z‖) ^ (3/2 : ℝ) := by linarith [hK1]
+    linarith [step1, step2, step3, p1, p2, p3, q1, q2, q3, q4, hBK, hK1]
 
 /-- The exponent-`3/2` log-growth majorant for the surrogate. The exponent-1 form is
 FALSE on the left half-plane (`|ζ(-2k-1)| ~ 2(2k+1)!/(2π)^{2k+2}` via Bernoulli
