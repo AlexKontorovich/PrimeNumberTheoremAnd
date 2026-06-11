@@ -98,6 +98,49 @@ def u6aSafeHeightSet (σ₁ σ₂ X δ : ℝ) : Set ℝ :=
 noncomputable def u6aAveragedSelectionBound (X δ M : ℝ) : ℝ :=
   4 * M * Real.log (2 / δ) / X
 
+private lemma reciprocalKernelPositiveIntegral_eq {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    (∫ u in (γ + δ)..(γ + 2), (1 / |u - γ| : ℝ) ∂volume) =
+      ∫ v in δ..2, (1 / v : ℝ) ∂volume := by
+  rw [← intervalIntegral.integral_comp_add_left
+    (fun u : ℝ => (1 / |u - γ| : ℝ)) γ]
+  apply intervalIntegral.integral_congr
+  intro v hv
+  have hvIcc : v ∈ Set.Icc δ 2 := by
+    simpa [Set.uIcc_of_le hδ2] using hv
+  have hv_nonneg : 0 ≤ v := by linarith [hvIcc.1, hδ0]
+  simp [abs_of_nonneg hv_nonneg]
+
+private lemma reciprocalKernelNegativeIntegral_eq {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    (∫ u in (γ - 2)..(γ - δ), (1 / |u - γ| : ℝ) ∂volume) =
+      ∫ v in δ..2, (1 / v : ℝ) ∂volume := by
+  rw [← intervalIntegral.integral_comp_sub_left
+    (fun u : ℝ => (1 / |u - γ| : ℝ)) γ]
+  apply intervalIntegral.integral_congr
+  intro v hv
+  have hvIcc : v ∈ Set.Icc δ 2 := by
+    simpa [Set.uIcc_of_le hδ2] using hv
+  have hv_nonneg : 0 ≤ v := by linarith [hvIcc.1, hδ0]
+  simp [abs_of_nonneg hv_nonneg]
+
+/-- Per-zero reciprocal-kernel integral used by the panel-revised U6a
+averaging argument. -/
+theorem reciprocalKernelTwoSidedIntegral_le {δ γ : ℝ}
+    (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
+    (∫ u in (γ - 2)..(γ - δ), (1 / |u - γ| : ℝ) ∂volume) +
+      (∫ u in (γ + δ)..(γ + 2), (1 / |u - γ| : ℝ) ∂volume) ≤
+        2 * Real.log (2 / δ) := by
+  rw [reciprocalKernelNegativeIntegral_eq hδ0 hδ2,
+    reciprocalKernelPositiveIntegral_eq hδ0 hδ2]
+  have hpos :
+      (∫ v in δ..2, (1 / v : ℝ) ∂volume) = Real.log (2 / δ) := by
+    simp only [one_div]
+    rw [integral_inv_of_pos, Real.log_div]
+    all_goals positivity
+  rw [hpos]
+  linarith
+
 private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
     (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
   rw [riemannZeta.zeroes_rect_eq]
@@ -612,6 +655,28 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_conditional
     horizontalSegmentLogDerivBound_of_zeroGap_and_partialFraction hT3 hgap
       (hC T hT3 hgap)⟩
 
+/-- Averaged-selection input for the unconditional U6a height-selection route.
+This packages the safe-set measure, integrability, and averaged `S₂` estimate
+after the crude zero-counting and zero-gap work has supplied them. -/
+structure U6aAveragedSelectionInput (σ₁ σ₂ X δ M : ℝ) : Prop where
+  hX : 0 < X
+  hEpos :
+    (volume.restrict (Set.Ioc X (2 * X)))
+      (u6aSafeHeightSet σ₁ σ₂ X δ) ≠ 0
+  hSInt : IntervalIntegrable
+    ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+      (u6aReciprocalZeroSum σ₁ σ₂)) volume X (2 * X)
+  hBInt : IntervalIntegrable
+    ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+      fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X)
+  hAvg :
+    (∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+      ∫ t in X..(2 * X),
+        (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+          (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume
+
 /-- Mean-value extraction for the panel-revised averaged selector.  Once the
 safe-set integral of `S₂` is below the safe-set integral of the boxed constant,
 some safe height realizes the pointwise bound. -/
@@ -672,6 +737,17 @@ theorem exists_height_with_small_reciprocalZeroSum_of_indicator_average
       hle hlt_set
   exact not_lt_of_ge (by simpa [f, g, E, B] using hAvg)
     (by simpa [f, g, E, B] using hlt_int)
+
+/-- Consumer-facing averaged height selector.  The selection layer has no
+local-density or `c / log T` height-selector hypothesis; those are replaced by
+the averaged safe-set input. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_averaging
+    {σ₁ σ₂ X δ M : ℝ}
+    (hAvgSel : U6aAveragedSelectionInput σ₁ σ₂ X δ M) :
+    ∃ T : ℝ, T ∈ u6aSafeHeightSet σ₁ σ₂ X δ ∧
+      u6aReciprocalZeroSum σ₁ σ₂ T ≤ u6aAveragedSelectionBound X δ M :=
+  exists_height_with_small_reciprocalZeroSum_of_indicator_average
+    hAvgSel.hX hAvgSel.hEpos hAvgSel.hSInt hAvgSel.hBInt hAvgSel.hAvg
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
