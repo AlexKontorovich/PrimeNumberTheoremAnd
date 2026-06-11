@@ -441,6 +441,53 @@ theorem u6aCA_norm_riemannZeta_two_ge (t : ℝ) :
     simpa using h
   linarith
 
+/-! ## Jensen with a max-modulus input -/
+
+/-- Max-modulus form of the Jensen divisor-mass bound: a pointwise bound on
+`log ‖f‖` over the circle of twice the radius controls the zero mass, with
+the center value as the lower input.  This replaces the global-growth form
+`divisorMassClosedBall₀_le_of_growth`, whose `(1+‖s‖)²` cost is too large at
+high centers. -/
+theorem u6aCA_divisorMassClosedBall₀_le_of_sphere_bound {f : ℂ → ℂ}
+    (hf : Differentiable ℂ f) {R M : ℝ} (hR : 1 ≤ R) (hf0 : f 0 ≠ 0)
+    (hM : ∀ z ∈ Metric.sphere (0 : ℂ) (2 * R), Real.log ‖f z‖ ≤ M) :
+    Complex.Hadamard.divisorMassClosedBall₀ f R ≤
+      (M - Real.log ‖f 0‖) / Real.log 2 := by
+  have hlog2 : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have h2R : (0 : ℝ) < 2 * R := by linarith
+  have h2Rne : (2 * R : ℝ) ≠ 0 := ne_of_gt h2R
+  have hlow := Complex.Hadamard.log_two_mul_divisorMassClosedBall₀_le_logCounting_two_mul
+    (f := f) hf hR
+  have hjensen := Complex.Hadamard.jensen_formula_logCounting_eq_circleAverage_sub_log_trailingCoeff
+    (f := f) hf (R := 2 * R) h2Rne
+  have htrail : meromorphicTrailingCoeffAt f 0 = f 0 :=
+    (hf.analyticAt 0).meromorphicTrailingCoeffAt_of_ne_zero hf0
+  have hsphere_eq : |2 * R| = 2 * R := abs_of_pos h2R
+  have hmero : MeromorphicOn f (Metric.sphere (0 : ℂ) |2 * R|) := fun z _ =>
+    ((hf.analyticAt z).meromorphicAt)
+  have hint : CircleIntegrable (fun z : ℂ => Real.log ‖f z‖) 0 (2 * R) :=
+    MeromorphicOn.circleIntegrable_log_norm hmero
+  have havg : Real.circleAverage (fun z : ℂ => Real.log ‖f z‖) 0 (2 * R) ≤ M := by
+    refine Real.circleAverage_mono_on_of_le_circle (f := fun z : ℂ => Real.log ‖f z‖)
+      hint ?_
+    intro z hz
+    rw [hsphere_eq] at hz
+    exact hM z hz
+  have hchain : Real.log 2 * Complex.Hadamard.divisorMassClosedBall₀ f R ≤
+      M - Real.log ‖f 0‖ := by
+    calc Real.log 2 * Complex.Hadamard.divisorMassClosedBall₀ f R
+        ≤ Function.locallyFinsuppWithin.logCounting
+            (MeromorphicOn.divisor f (Set.univ : Set ℂ)) (2 * R) := hlow
+      _ = Real.circleAverage (fun z : ℂ => Real.log ‖f z‖) 0 (2 * R) -
+          Real.log ‖meromorphicTrailingCoeffAt f 0‖ := hjensen
+      _ ≤ M - Real.log ‖f 0‖ := by
+          rw [htrail]
+          linarith
+  rw [le_div_iff₀ hlog2]
+  calc Complex.Hadamard.divisorMassClosedBall₀ f R * Real.log 2
+      = Real.log 2 * Complex.Hadamard.divisorMassClosedBall₀ f R := by ring
+    _ ≤ M - Real.log ‖f 0‖ := hchain
+
 end
 
 end Kadiri
