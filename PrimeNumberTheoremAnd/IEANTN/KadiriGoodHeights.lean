@@ -3115,6 +3115,137 @@ theorem u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
   u6aRiemannXi_fiberWindow_sum_eq_zeroes_sum_of_finite hfin
     (u6a_zeroes_rect_high_window_subset_nontrivial ht) φ
 
+/-- The finite xi-divisor fiber contribution over Kadiri's nearby zeta-zero
+window, retaining only the principal `1 / (s - ρ)` term. -/
+noncomputable def u6aXiFiberNearbyPrincipalSum (t : ℝ) (s : ℂ) : ℂ :=
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  ∑ ρ ∈ hfin.toFinset,
+    ∑ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ,
+      (1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p)
+
+/-- Window-local cancellation statement for the near principal part: after
+finite reindexing through xi divisor fibers, the xi near principal contribution
+is exactly Kadiri's order-weighted nearby zeta-zero sum. -/
+theorem u6aXiFiberNearbyPrincipalSum_eq_nearbyZeroPrincipalSum
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiFiberNearbyPrincipalSum t s =
+      u6aNearbyZeroPrincipalSum (-1) 2 t s := by
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  unfold u6aXiFiberNearbyPrincipalSum u6aNearbyZeroPrincipalSum
+  simpa [hfin] using
+    (u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
+      (t := t) hfin ht (fun ρ : ℂ => (1 : ℂ) / (s - ρ)))
+
+/-- The finite convergence-factor residue from the local nearby zeta-zero
+window.  This is the `+ 1 / ρ` part of the genus-one Hadamard zero term after
+the principal contribution has been locally cancelled. -/
+noncomputable def u6aNearbyZeroConvergenceFactorSum (t : ℝ) : ℂ :=
+  riemannZeta.zeroes_sum (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1))
+    fun ρ => (1 : ℂ) / ρ
+
+/-- The finite xi-divisor fiber contribution over Kadiri's nearby window,
+including the genus-one `+1/ρ` convergence factor. -/
+noncomputable def u6aXiFiberNearbyHadamardSum (t : ℝ) (s : ℂ) : ℂ :=
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  ∑ ρ ∈ hfin.toFinset,
+    ∑ p ∈ Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) ρ,
+      ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+        1 / Complex.Hadamard.divisorZeroIndex₀_val p)
+
+/-- Finite near-window decomposition for the xi Hadamard zero contribution:
+the local principal part is exactly Kadiri's nearby zeta-zero sum, and the only
+local residue is the finite convergence-factor sum. -/
+theorem u6aXiFiberNearbyHadamardSum_eq_nearbyZeroPrincipalSum_add_convergence
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiFiberNearbyHadamardSum t s =
+      u6aNearbyZeroPrincipalSum (-1) 2 t s + u6aNearbyZeroConvergenceFactorSum t := by
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  unfold u6aXiFiberNearbyHadamardSum u6aNearbyZeroPrincipalSum
+    u6aNearbyZeroConvergenceFactorSum
+  rw [u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
+    (t := t) hfin ht
+    (fun ρ : ℂ => (1 : ℂ) / (s - ρ) + 1 / ρ)]
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ : ℂ => (1 : ℂ) / (s - ρ) + 1 / ρ) hfin,
+    riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ : ℂ => (1 : ℂ) / (s - ρ)) hfin,
+    riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ : ℂ => (1 : ℂ) / ρ) hfin]
+  simp only [add_mul, Finset.sum_add_distrib]
+
+/-- The finite convergence-factor residue in a high nearby window is bounded
+by the order-weighted nearby zero count. -/
+theorem norm_u6aNearbyZeroConvergenceFactorSum_le_nearbyZeroCount
+    {t : ℝ} (ht : 2 ≤ |t|) :
+    ‖u6aNearbyZeroConvergenceFactorSum t‖ ≤ u6aNearbyZeroCount (-1) 2 t := by
+  classical
+  let Z := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1))
+  let hfin : Z.Finite := u6aNearbyZeroSet_finite (-1) 2 t
+  have hterm_le : ∀ ρ ∈ hfin.toFinset,
+      ‖((1 : ℂ) / ρ) * (riemannZeta.order ρ : ℂ)‖ ≤
+        (1 : ℝ) * (riemannZeta.order ρ : ℝ) := by
+    intro ρ hρ
+    have hρmem : ρ ∈ Z := hfin.mem_toFinset.mp hρ
+    have hzero : riemannZeta ρ = 0 := hρmem.2.2
+    have horder_nonneg : 0 ≤ (riemannZeta.order ρ : ℝ) :=
+      u6a_zeta_zero_order_nonneg_of_zero hzero
+    have him_abs_ge_one : (1 : ℝ) ≤ |ρ.im| := by
+      rcases (le_abs.mp ht) with htpos | htneg
+      · have hlow : (1 : ℝ) ≤ ρ.im := by
+          have him_low := hρmem.2.1.1
+          linarith
+        exact hlow.trans (le_abs_self ρ.im)
+      · have hneg_im : (1 : ℝ) ≤ -ρ.im := by
+          have him_high := hρmem.2.1.2
+          linarith
+        exact hneg_im.trans (neg_le_abs ρ.im)
+    have hnorm_ge_one : (1 : ℝ) ≤ ‖ρ‖ :=
+      him_abs_ge_one.trans (Complex.abs_im_le_norm ρ)
+    have hdiv_le_one : ‖(1 : ℂ) / ρ‖ ≤ 1 := by
+      rw [norm_div, norm_one]
+      calc
+        1 / ‖ρ‖ ≤ 1 / (1 : ℝ) :=
+          one_div_le_one_div_of_le (by norm_num) hnorm_ge_one
+        _ = 1 := by norm_num
+    have horder_norm :
+        ‖(riemannZeta.order ρ : ℂ)‖ = (riemannZeta.order ρ : ℝ) := by
+      rw [Complex.norm_intCast, abs_of_nonneg horder_nonneg]
+    calc
+      ‖((1 : ℂ) / ρ) * (riemannZeta.order ρ : ℂ)‖
+          ≤ ‖(1 : ℂ) / ρ‖ * ‖(riemannZeta.order ρ : ℂ)‖ := norm_mul_le _ _
+      _ ≤ (1 : ℝ) * (riemannZeta.order ρ : ℝ) := by
+            rw [horder_norm]
+            exact mul_le_mul_of_nonneg_right hdiv_le_one horder_nonneg
+  unfold u6aNearbyZeroConvergenceFactorSum u6aNearbyZeroCount
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun ρ : ℂ => (1 : ℂ) / ρ) hfin,
+    riemannZeta.zeroes_sum_eq_finset_of_finite
+      (fun _ : ℂ => (1 : ℝ)) hfin]
+  calc
+    ‖∑ ρ ∈ hfin.toFinset, ((1 : ℂ) / ρ) * (riemannZeta.order ρ : ℂ)‖
+        ≤ ∑ ρ ∈ hfin.toFinset,
+          ‖((1 : ℂ) / ρ) * (riemannZeta.order ρ : ℂ)‖ := norm_sum_le _ _
+    _ ≤ ∑ ρ ∈ hfin.toFinset, (1 : ℝ) * (riemannZeta.order ρ : ℝ) :=
+          Finset.sum_le_sum hterm_le
+
+/-- After local finite cancellation, the near-window xi Hadamard residue is
+bounded by the order-weighted nearby zero count. -/
+theorem norm_u6aXiFiberNearbyHadamardSum_sub_nearbyZeroPrincipalSum_le_nearbyZeroCount
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    ‖u6aXiFiberNearbyHadamardSum t s - u6aNearbyZeroPrincipalSum (-1) 2 t s‖ ≤
+      u6aNearbyZeroCount (-1) 2 t := by
+  have hdecomp :=
+    u6aXiFiberNearbyHadamardSum_eq_nearbyZeroPrincipalSum_add_convergence
+      (t := t) (s := s) ht
+  rw [hdecomp]
+  have hdiff :
+      u6aNearbyZeroPrincipalSum (-1) 2 t s + u6aNearbyZeroConvergenceFactorSum t -
+          u6aNearbyZeroPrincipalSum (-1) 2 t s =
+        u6aNearbyZeroConvergenceFactorSum t := by
+    abel
+  rw [hdiff]
+  exact norm_u6aNearbyZeroConvergenceFactorSum_le_nearbyZeroCount (t := t) ht
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
