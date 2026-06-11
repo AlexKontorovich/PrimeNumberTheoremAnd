@@ -4721,6 +4721,25 @@ theorem exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_de
     exact hT₀X.trans hXT.le
   exact ⟨k, X, T, hT₀T, hX, hscale_lt, hTmem, hrec⟩
 
+/-- Named Prop-shaped output of the unconditional averaged selector.  This is
+the exact cofinal selection package produced by the crude-majorant zero count,
+safe-set measure lower bound, and mean-value extraction. -/
+def U6aAveragedSelectionHypothesis (C D : ℝ) : Prop :=
+  0 < C ∧ 0 ≤ D ∧ ∀ T₀ : ℝ, ∃ k : ℕ, ∃ X T : ℝ,
+    T₀ ≤ T ∧ 0 < X ∧
+    2 * X + 2 < (2 : ℝ) ^ (k + 1) ∧
+    T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) ∧
+    u6aReciprocalZeroSum (-1) 2 T ≤
+      u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D)
+
+/-- The unconditional averaged selector packaged as a named hypothesis
+instance for downstream U6a assembly. -/
+theorem exists_u6aAveragedSelectionHypothesis :
+    ∃ C D : ℝ, U6aAveragedSelectionHypothesis C D := by
+  obtain ⟨C, D, hC, hD, hsel⟩ :=
+    exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_delta
+  exact ⟨C, D, hC, hD, hsel⟩
+
 /-- The remaining comparison needed to turn the averaged selector's boxed
 reciprocal-zero bound into the lane's `log² T` horizontal estimate.
 
