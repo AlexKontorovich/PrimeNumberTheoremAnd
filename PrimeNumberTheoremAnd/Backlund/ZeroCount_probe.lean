@@ -117,7 +117,35 @@ lemma zetaSurrogate_zeros_in_closedBall₀_count :
       ∀ R : ℝ, 1 ≤ R →
         Complex.Hadamard.divisorMassClosedBall₀ zetaSurrogate R ≤
           C' * (1 + R) ^ (3/2 : ℝ) := by
-  sorry
+  obtain ⟨C, hC0, hC⟩ := zetaSurrogate_log_growth
+  set K : ℝ := |Real.log ‖meromorphicTrailingCoeffAt zetaSurrogate 0‖| with hK
+  refine ⟨(C * 2 ^ (3/2 : ℝ) + K) / Real.log 2, ?_, ?_⟩
+  · refine div_pos ?_ (Real.log_pos one_lt_two)
+    have h2 : (0 : ℝ) < 2 ^ (3/2 : ℝ) := Real.rpow_pos_of_pos two_pos _
+    have hKnn : (0 : ℝ) ≤ K := abs_nonneg _
+    nlinarith [mul_pos hC0 h2]
+  · intro R hR
+    have hmass := Complex.Hadamard.divisorMassClosedBall₀_le_of_growth
+      zetaSurrogate_differentiable hC hR
+    refine hmass.trans ?_
+    rw [div_mul_eq_mul_div, div_eq_mul_inv, div_eq_mul_inv]
+    refine mul_le_mul_of_nonneg_right ?_ (inv_nonneg.mpr (Real.log_nonneg one_le_two))
+    have habs : |2 * R| = 2 * R := abs_of_nonneg (by linarith)
+    rw [habs]
+    have h1R : (0 : ℝ) ≤ 1 + R := by linarith
+    have hone : (1 : ℝ) ≤ (1 + R) ^ (3/2 : ℝ) := by
+      calc (1 : ℝ) = (1 : ℝ) ^ (3/2 : ℝ) := (Real.one_rpow _).symm
+        _ ≤ (1 + R) ^ (3/2 : ℝ) :=
+          Real.rpow_le_rpow zero_le_one (by linarith) (by norm_num)
+    have hpow : (1 + 2 * R) ^ (3/2 : ℝ) ≤ 2 ^ (3/2 : ℝ) * (1 + R) ^ (3/2 : ℝ) := by
+      rw [← Real.mul_rpow (by norm_num) h1R]
+      exact Real.rpow_le_rpow (by linarith) (by linarith) (by norm_num)
+    have hKnn : (0 : ℝ) ≤ K := abs_nonneg _
+    calc C * (1 + 2 * R) ^ (3/2 : ℝ) + K
+        ≤ C * (2 ^ (3/2 : ℝ) * (1 + R) ^ (3/2 : ℝ)) + K * (1 + R) ^ (3/2 : ℝ) :=
+          add_le_add (mul_le_mul_of_nonneg_left hpow hC0.le)
+            (le_mul_of_one_le_right hKnn hone)
+      _ = (C * 2 ^ (3/2 : ℝ) + K) * (1 + R) ^ (3/2 : ℝ) := by ring
 
 /-- Zeros of ζ with positive imaginary part lie in the closed strip `0 ≤ Re ≤ 1`.
 Right edge: `riemannZeta_ne_zero_of_one_le_re` (mathlib) forces `Re < 1`. Left edge:
