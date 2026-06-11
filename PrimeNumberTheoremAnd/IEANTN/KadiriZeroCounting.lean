@@ -1815,4 +1815,93 @@ theorem summable_zeroImagSquareTail_shifted_unconditional (s : ℂ) :
     Summable (fun rho : NontrivialZeros => |(s - (rho : ℂ)).im|⁻¹ ^ (2 : ℕ)) :=
   summable_zeroImagSquareTail_shifted zeroImagSquareTailSummable_of_crude_majorant s
 
+/-!
+### Conjugation transport for zero orders
+
+`conj ∘ ζ ∘ conj = ζ` by `riemannZeta_conj`, so the zero order of `ζ` is symmetric
+under conjugation. The general double-conjugation transport is built here from the
+slope characterization of the derivative; mathlib does not provide it directly.
+-/
+
+/-- If `f` has derivative `f'` at `conj z₀`, the double conjugate has derivative
+`conj f'` at `z₀`. -/
+private lemma hasDerivAt_conj_conj {f : ℂ → ℂ} {f' z₀ : ℂ}
+    (hf : HasDerivAt f f' ((starRingEnd ℂ) z₀)) :
+    HasDerivAt (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w)))
+      ((starRingEnd ℂ) f') z₀ := by
+  rw [hasDerivAt_iff_tendsto_slope] at hf ⊢
+  have hconj_tendsto : Filter.Tendsto (starRingEnd ℂ)
+      (nhdsWithin z₀ {z₀}ᶜ)
+      (nhdsWithin ((starRingEnd ℂ) z₀) {(starRingEnd ℂ) z₀}ᶜ) := by
+    apply tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
+    · exact (Complex.continuous_conj.tendsto z₀).mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with w hw
+      intro h
+      apply hw
+      have := congrArg (starRingEnd ℂ) h
+      simpa [Complex.conj_conj] using this
+  have hcomp := (Complex.continuous_conj.tendsto f').comp (hf.comp hconj_tendsto)
+  refine Filter.Tendsto.congr (fun u ↦ ?_) hcomp
+  simp only [Function.comp_apply, slope_def_field, map_div₀, map_sub, Complex.conj_conj]
+
+/-- Analyticity of the double conjugate. -/
+private lemma analyticAt_conj_conj {f : ℂ → ℂ} {z₀ : ℂ}
+    (hf : AnalyticAt ℂ f ((starRingEnd ℂ) z₀)) :
+    AnalyticAt ℂ (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w))) z₀ := by
+  rw [Complex.analyticAt_iff_eventually_differentiableAt] at hf ⊢
+  have hc : Filter.Tendsto (starRingEnd ℂ) (nhds z₀) (nhds ((starRingEnd ℂ) z₀)) :=
+    Complex.continuous_conj.tendsto z₀
+  filter_upwards [hc.eventually hf] with w hw
+  exact (hasDerivAt_conj_conj hw.hasDerivAt).differentiableAt
+
+/-- The analytic order of the double conjugate at `z₀` is the analytic order of `f`
+at `conj z₀`. -/
+private lemma analyticOrderAt_conj_conj {f : ℂ → ℂ} {z₀ : ℂ}
+    (hf : AnalyticAt ℂ f ((starRingEnd ℂ) z₀)) :
+    analyticOrderAt (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w))) z₀ =
+      analyticOrderAt f ((starRingEnd ℂ) z₀) := by
+  have hcfc := analyticAt_conj_conj hf
+  have hc : Filter.Tendsto (starRingEnd ℂ) (nhds z₀) (nhds ((starRingEnd ℂ) z₀)) :=
+    Complex.continuous_conj.tendsto z₀
+  cases h : analyticOrderAt f ((starRingEnd ℂ) z₀) with
+  | top =>
+      rw [analyticOrderAt_eq_top] at h ⊢
+      filter_upwards [hc.eventually h] with w hw
+      rw [hw, map_zero]
+  | coe n =>
+      rw [hf.analyticOrderAt_eq_natCast] at h
+      obtain ⟨g, hg, hg0, hfg⟩ := h
+      rw [hcfc.analyticOrderAt_eq_natCast]
+      refine ⟨fun w ↦ (starRingEnd ℂ) (g ((starRingEnd ℂ) w)),
+        analyticAt_conj_conj hg, ?_, ?_⟩
+      · intro h0
+        apply hg0
+        have := congrArg (starRingEnd ℂ) h0
+        simpa [Complex.conj_conj] using this
+      · filter_upwards [hc.eventually hfg] with w hw
+        rw [hw]
+        simp only [smul_eq_mul, map_mul, map_pow, map_sub, Complex.conj_conj]
+
+/-- The zero order of `ζ` is conjugation-symmetric away from `1`. -/
+theorem riemannZeta_order_conj {ρ : ℂ} (hρ : ρ ≠ 1) :
+    riemannZeta.order ((starRingEnd ℂ) ρ) = riemannZeta.order ρ := by
+  have hρ' : (starRingEnd ℂ) ρ ≠ 1 := by
+    intro h
+    apply hρ
+    have := congrArg (starRingEnd ℂ) h
+    simpa [Complex.conj_conj] using this
+  have han : AnalyticAt ℂ riemannZeta ρ :=
+    riemannZeta_analyticOn_compl_one ρ (by simpa [Set.mem_compl_iff] using hρ)
+  have han' : AnalyticAt ℂ riemannZeta ((starRingEnd ℂ) ρ) :=
+    riemannZeta_analyticOn_compl_one _ (by simpa [Set.mem_compl_iff] using hρ')
+  have hfun : (fun w ↦ (starRingEnd ℂ) (riemannZeta ((starRingEnd ℂ) w))) = riemannZeta := by
+    funext w
+    rw [riemannZeta_conj, Complex.conj_conj]
+  have hkey := analyticOrderAt_conj_conj (f := riemannZeta)
+    (z₀ := (starRingEnd ℂ) ρ) (by simpa [Complex.conj_conj] using han)
+  rw [hfun, Complex.conj_conj] at hkey
+  unfold riemannZeta.order
+  rw [han.meromorphicOrderAt_eq, han'.meromorphicOrderAt_eq, hkey]
+
+
 end Kadiri
