@@ -636,6 +636,209 @@ theorem u6aXiFarHadamardRemainder_eq_tsum_compl' (t : ℝ) (s : ℂ) :
   unfold u6aXiFarHadamardRemainder
   linear_combination u6aXiHadamardZeroSum_eq_nearby_add_farTail' t s
 
+/-! ## The anchor-difference comparison -/
+
+/-- Pointwise kernel difference: away from the poles, the kernel at `s` is the
+kernel at the anchor plus the paired difference, whose convergence factors
+cancel. -/
+private lemma u6aFT_kernel_eq_diff_add_anchorKernel {s s₀ ρ : ℂ}
+    (hs : s ≠ ρ) (hs₀ : s₀ ≠ ρ) :
+    (1 : ℂ) / (s - ρ) + 1 / ρ =
+      (s₀ - s) / ((s - ρ) * (s₀ - ρ)) + ((1 : ℂ) / (s₀ - ρ) + 1 / ρ) := by
+  have h1 : s - ρ ≠ 0 := sub_ne_zero.mpr hs
+  have h2 : s₀ - ρ ≠ 0 := sub_ne_zero.mpr hs₀
+  field_simp
+  ring
+
+/-- The shifted inverse-square family over the xi divisor index is summable at
+every height: zeros sit in the critical strip, so off a finite ball the
+imaginary part carries the norm. -/
+theorem u6aFT_summable_invSq (t : ℝ) :
+    Summable (fun p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) =>
+      (((Complex.Hadamard.divisorZeroIndex₀_val p).im - t) ^ 2)⁻¹) := by
+  have hg : Summable (fun p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) =>
+      (4 : ℝ) * (‖Complex.Hadamard.divisorZeroIndex₀_val p‖⁻¹ ^ (2 : ℕ))) :=
+    summable_riemannXi_divisorZeroIndex₀_norm_inv_sq.mul_left _
+  refine Summable.of_norm_bounded_eventually hg ?_
+  have hfin : ({p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) |
+      ‖Complex.Hadamard.divisorZeroIndex₀_val p‖ ≤ 2 * |t| + 2} : Set _).Finite :=
+    Complex.Hadamard.divisorZeroIndex₀_norm_le_finite (2 * |t| + 2) (Set.subset_univ _)
+  rw [Filter.eventually_cofinite]
+  refine hfin.subset ?_
+  intro p hp
+  simp only [Set.mem_setOf_eq, not_le] at hp ⊢
+  by_contra hval
+  rw [not_le] at hval
+  set ρ := Complex.Hadamard.divisorZeroIndex₀_val p with hρdef
+  have hrest := riemannXi_zero_re_mem (riemannXi_val_eq_zero p)
+  have hnorm : ‖ρ‖ ≤ 1 + |ρ.im| := by
+    have h1 := Complex.norm_le_abs_re_add_abs_im ρ
+    have h2 : |ρ.re| ≤ 1 := abs_le.mpr ⟨by linarith [hrest.1], hrest.2⟩
+    linarith
+  have htpos : (0 : ℝ) ≤ |t| := abs_nonneg t
+  have hfar : ‖ρ‖ / 2 ≤ |ρ.im - t| := by
+    have h1 : |ρ.im| - |t| ≤ |ρ.im - t| := abs_sub_abs_le_abs_sub ρ.im t
+    linarith
+  have hx2 : (0 : ℝ) < (ρ.im - t) ^ 2 := by
+    nlinarith [sq_abs (ρ.im - t), abs_nonneg (ρ.im - t)]
+  have hρpos : (0 : ℝ) < ‖ρ‖ := by linarith
+  have hbound : ‖(((ρ.im - t) ^ 2)⁻¹ : ℝ)‖ ≤ 4 * (‖ρ‖⁻¹ ^ (2 : ℕ)) := by
+    rw [Real.norm_eq_abs, abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((ρ.im - t) ^ 2)⁻¹),
+      inv_pow, ← one_div, ← one_div, mul_one_div, div_le_div_iff₀ hx2 (by positivity)]
+    nlinarith [sq_abs (ρ.im - t),
+      mul_le_mul hfar hfar (by positivity) (abs_nonneg (ρ.im - t))]
+  exact absurd hbound (not_le.mpr hp)
+
+/-- Termwise estimate for the anchored kernel difference on the far
+complement: both factors are imaginary-far from their pole. -/
+private lemma u6aFT_diffKernel_norm_le {t : ℝ} (ht : 3 ≤ |t|) {s : ℂ}
+    (hre : s.re ∈ Set.uIcc (-1 : ℝ) 2) (him : s.im = t)
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ))
+    (hp : p ∉ u6aXiNearbyIndexFinset t) :
+    ‖(((2 : ℂ) + t * I) - s) /
+        ((s - Complex.Hadamard.divisorZeroIndex₀_val p) *
+          (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p))‖ ≤
+      3 * (((Complex.Hadamard.divisorZeroIndex₀_val p).im - t) ^ 2)⁻¹ := by
+  set ρ := Complex.Hadamard.divisorZeroIndex₀_val p with hρdef
+  have hfar : 1 < |ρ.im - t| := u6aFT_offWindow_im_far ht p hp
+  have hnum : ‖((2 : ℂ) + t * I) - s‖ ≤ 3 := by
+    have h1 := Complex.norm_le_abs_re_add_abs_im (((2 : ℂ) + t * I) - s)
+    have hre2 : (((2 : ℂ) + t * I) - s).re = 2 - s.re := by simp
+    have him2 : (((2 : ℂ) + t * I) - s).im = t - s.im := by simp
+    rw [hre2, him2, him, sub_self, abs_zero, add_zero] at h1
+    rw [Set.uIcc_of_le (by norm_num : (-1 : ℝ) ≤ 2)] at hre
+    have h3 : |2 - s.re| ≤ 3 := abs_le.mpr ⟨by linarith [hre.2], by linarith [hre.1]⟩
+    linarith
+  have hd1 : |ρ.im - t| ≤ ‖s - ρ‖ := by
+    have h1 := Complex.abs_im_le_norm (s - ρ)
+    have h2 : (s - ρ).im = t - ρ.im := by rw [Complex.sub_im, him]
+    rw [h2, abs_sub_comm] at h1
+    exact h1
+  have hd2 : |ρ.im - t| ≤ ‖((2 : ℂ) + t * I) - ρ‖ := by
+    have h1 := Complex.abs_im_le_norm (((2 : ℂ) + t * I) - ρ)
+    have h2 : (((2 : ℂ) + t * I) - ρ).im = t - ρ.im := by simp
+    rw [h2, abs_sub_comm] at h1
+    exact h1
+  have hX0 : (0 : ℝ) < |ρ.im - t| := by linarith
+  have hx2 : (0 : ℝ) < (ρ.im - t) ^ 2 := by
+    nlinarith [sq_abs (ρ.im - t), abs_nonneg (ρ.im - t)]
+  have hden : (ρ.im - t) ^ 2 ≤ ‖s - ρ‖ * ‖((2 : ℂ) + t * I) - ρ‖ := by
+    nlinarith [mul_le_mul hd1 hd2 hX0.le (le_trans hX0.le hd1), sq_abs (ρ.im - t)]
+  have hdenpos : (0 : ℝ) < ‖s - ρ‖ * ‖((2 : ℂ) + t * I) - ρ‖ := lt_of_lt_of_le hx2 hden
+  rw [norm_div, norm_mul, ← one_div ((ρ.im - t) ^ 2), mul_one_div,
+    div_le_div_iff₀ hdenpos hx2]
+  have hstep1 : ‖((2 : ℂ) + t * I) - s‖ * (ρ.im - t) ^ 2 ≤ 3 * (ρ.im - t) ^ 2 :=
+    mul_le_mul_of_nonneg_right hnum hx2.le
+  have hstep2 : 3 * (ρ.im - t) ^ 2 ≤
+      3 * (‖s - ρ‖ * ‖((2 : ℂ) + t * I) - ρ‖) :=
+    mul_le_mul_of_nonneg_left hden (by norm_num)
+  linarith
+
+/-- The anchored difference family is summable over the far complement. -/
+private lemma u6aFT_summable_diffKernel {t : ℝ} (ht : 3 ≤ |t|) {s : ℂ}
+    (hre : s.re ∈ Set.uIcc (-1 : ℝ) 2) (him : s.im = t) :
+    Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+        p ∉ u6aXiNearbyIndexFinset t} =>
+      (((2 : ℂ) + t * I) - s) /
+        ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+          (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val))) := by
+  have hg : Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) // p ∉ u6aXiNearbyIndexFinset t} =>
+      (3 : ℝ) * (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) :=
+    ((u6aFT_summable_invSq t).subtype _).mul_left _
+  exact Summable.of_norm_bounded hg fun p =>
+    u6aFT_diffKernel_norm_le ht hre him p.val p.2
+
+/-- Anchor difference: on the strip at height `t`, the far remainder is the
+far remainder at the anchor `2 + i t` plus a summable paired-difference tail. -/
+theorem u6aFT_far_eq_diffSum_add_anchor {t : ℝ} (ht : 3 ≤ |t|) {s : ℂ}
+    (hre : s.re ∈ Set.uIcc (-1 : ℝ) 2) (him : s.im = t) :
+    u6aXiFarHadamardRemainder t s =
+      (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+        (((2 : ℂ) + t * I) - s) /
+          ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+            (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val))) +
+      u6aXiFarHadamardRemainder t ((2 : ℂ) + t * I) := by
+  have hanch : Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) // p ∉ u6aXiNearbyIndexFinset t} =>
+      (1 : ℂ) / (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+        1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) :=
+    (u6aFT_summable_xiKernel ((2 : ℂ) + t * I)).subtype _
+  calc u6aXiFarHadamardRemainder t s
+      = ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+          ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) :=
+        u6aXiFarHadamardRemainder_eq_tsum_compl' t s
+    _ = ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+          ((((2 : ℂ) + t * I) - s) /
+            ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+              (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val)) +
+          ((1 : ℂ) / (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p.val)) := by
+        refine tsum_congr fun p => ?_
+        have hfar := u6aFT_offWindow_im_far ht p.val p.2
+        have hsne : s ≠ Complex.Hadamard.divisorZeroIndex₀_val p.val := by
+          intro h
+          rw [← h, him, sub_self, abs_zero] at hfar
+          exact absurd hfar (by norm_num)
+        have hs₀ne : ((2 : ℂ) + t * I) ≠ Complex.Hadamard.divisorZeroIndex₀_val p.val := by
+          intro h
+          have hrest := riemannXi_zero_re_mem (riemannXi_val_eq_zero p.val)
+          rw [← h] at hrest
+          have h2 : ((2 : ℂ) + t * I).re = 2 := by simp
+          rw [h2] at hrest
+          linarith [hrest.2]
+        exact u6aFT_kernel_eq_diff_add_anchorKernel hsne hs₀ne
+    _ = (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+          (((2 : ℂ) + t * I) - s) /
+            ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+              (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val))) +
+        (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+          ((1 : ℂ) / (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p.val)) :=
+        Summable.tsum_add (u6aFT_summable_diffKernel ht hre him) hanch
+    _ = (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+          (((2 : ℂ) + t * I) - s) /
+            ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+              (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val))) +
+        u6aXiFarHadamardRemainder t ((2 : ℂ) + t * I) := by
+        rw [u6aXiFarHadamardRemainder_eq_tsum_compl' t ((2 : ℂ) + t * I)]
+
+/-- The anchored norm comparison: the far tail at any strip point is bounded
+by the shifted inverse-square tail plus the far tail at the anchor. -/
+theorem u6aFT_norm_far_le_invSqTail_add_anchor {t : ℝ} (ht : 3 ≤ |t|) {s : ℂ}
+    (hre : s.re ∈ Set.uIcc (-1 : ℝ) 2) (him : s.im = t) :
+    ‖u6aXiFarHadamardRemainder t s‖ ≤
+      3 * (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+        (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) +
+      ‖u6aXiFarHadamardRemainder t ((2 : ℂ) + t * I)‖ := by
+  rw [u6aFT_far_eq_diffSum_add_anchor ht hre him]
+  refine le_trans (norm_add_le _ _) (add_le_add ?_ le_rfl)
+  have hsub : Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) // p ∉ u6aXiNearbyIndexFinset t} =>
+      (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) :=
+    (u6aFT_summable_invSq t).subtype _
+  have hnorms : Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) // p ∉ u6aXiNearbyIndexFinset t} =>
+      ‖(((2 : ℂ) + t * I) - s) /
+        ((s - Complex.Hadamard.divisorZeroIndex₀_val p.val) *
+          (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p.val))‖) :=
+    Summable.of_nonneg_of_le (fun p => norm_nonneg _)
+      (fun p => u6aFT_diffKernel_norm_le ht hre him p.val p.2) (hsub.mul_left 3)
+  refine le_trans (norm_tsum_le_tsum_norm hnorms) ?_
+  rw [← tsum_mul_left]
+  exact Summable.tsum_le_tsum
+    (fun p => u6aFT_diffKernel_norm_le ht hre him p.val p.2)
+    hnorms (hsub.mul_left 3)
+
 end
 
 end Kadiri
