@@ -183,6 +183,44 @@ theorem u6aCA_exists_gamma_transport :
     nlinarith [mul_le_mul_of_nonneg_left h3 (mul_pos hK0 hlog2).le]
   exact mul_le_mul_of_nonneg_left hexp (norm_nonneg _)
 
+/-! ## The packaged product `Γ(s) cos(πs/2)` -/
+
+/-- On the strip `Re ∈ [1/2, 7/2]` the product `Γ(s) cos(πs/2)` grows at most
+polynomially in `Im s`: the exponential decay of `Γ` cancels the exponential
+growth of `cos` exactly, leaving the Gronwall polynomial factor. -/
+theorem u6aCA_exists_norm_gamma_mul_cos :
+    ∃ B : ℝ, 0 < B ∧ ∀ s : ℂ, 1 / 2 ≤ s.re → s.re ≤ 7 / 2 →
+      ‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖ ≤
+        Real.sqrt Real.pi * (|s.im| + 2) ^ B := by
+  obtain ⟨K, hK0, htrans⟩ := u6aCA_exists_gamma_transport
+  refine ⟨3 * K, by positivity, fun s h1 h2 => ?_⟩
+  have hs : (↑s.re : ℂ) + ↑s.im * I = s := Complex.re_add_im s
+  have hΓ : ‖Complex.Gamma s‖ ≤
+      ‖Complex.Gamma (1 / 2 + ↑s.im * I)‖ * (|s.im| + 2) ^ (3 * K) := by
+    have := htrans s.re s.im h1 h2
+    rwa [hs] at this
+  have hcos : ‖Complex.cos (↑Real.pi * s / 2)‖ ≤ Real.cosh (Real.pi * s.im / 2) := by
+    have hbound := u6aCA_norm_cos_le_cosh (↑Real.pi * s / 2)
+    have him : (↑Real.pi * s / 2).im = Real.pi * s.im / 2 := by
+      have hrw : (↑Real.pi : ℂ) * s / 2 = ↑(Real.pi / 2) * s := by
+        push_cast
+        ring
+      rw [hrw]
+      simp [Complex.mul_im]
+      ring
+    rwa [him] at hbound
+  have hrpow : (0 : ℝ) ≤ (|s.im| + 2) ^ (3 * K) :=
+    Real.rpow_nonneg (by positivity) _
+  calc ‖Complex.Gamma s * Complex.cos (↑Real.pi * s / 2)‖
+      = ‖Complex.Gamma s‖ * ‖Complex.cos (↑Real.pi * s / 2)‖ := norm_mul _ _
+    _ ≤ (‖Complex.Gamma (1 / 2 + ↑s.im * I)‖ * (|s.im| + 2) ^ (3 * K)) *
+        Real.cosh (Real.pi * s.im / 2) :=
+        mul_le_mul hΓ hcos (norm_nonneg _) (by positivity)
+    _ = (‖Complex.Gamma (1 / 2 + ↑s.im * I)‖ * Real.cosh (Real.pi * s.im / 2)) *
+        (|s.im| + 2) ^ (3 * K) := by ring
+    _ ≤ Real.sqrt Real.pi * (|s.im| + 2) ^ (3 * K) :=
+        mul_le_mul_of_nonneg_right (u6aCA_norm_gamma_half_mul_cosh_le s.im) hrpow
+
 end
 
 end Kadiri
