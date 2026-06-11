@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -1455,7 +1456,32 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (s : ℂ) :
     Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
                 (laplaceTransform f (s - ρ.val)).re) := by
-  sorry
+  obtain ⟨C, hC⟩ := laplaceTransform_re_decay hd hf_nonneg hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d hf_deriv2_d (s.re - 1) s.re
+  have htail : Summable (fun ρ : NontrivialZeros ↦
+      C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+    (summable_zeroImagSquareTail_shifted_of_RvM backlund_bound s).mul_left C
+  refine Summable.of_norm_bounded_eventually htail ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+  have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1
+  have hre_lo : s.re - 1 ≤ (s - (ρ : ℂ)).re := by
+    rw [Complex.sub_re]
+    linarith [hre.2]
+  have hre_hi : (s - (ρ : ℂ)).re ≤ s.re := by
+    rw [Complex.sub_re]
+    linarith [hre.1]
+  have hdecay := hC (s - (ρ : ℂ)) hre_lo hre_hi him
+  apply hbad
+  rw [Real.norm_eq_abs]
+  calc |(laplaceTransform f (s - (ρ : ℂ))).re|
+      ≤ C / (s - (ρ : ℂ)).im ^ 2 := hdecay
+    _ = C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+        rw [inv_pow, sq_abs, div_eq_mul_inv]
 
 @[blueprint
   "kadiri-re-inner-eq"
