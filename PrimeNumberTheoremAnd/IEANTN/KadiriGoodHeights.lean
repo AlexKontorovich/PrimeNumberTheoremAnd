@@ -141,6 +141,238 @@ theorem reciprocalKernelTwoSidedIntegral_le {δ γ : ℝ}
   rw [hpos]
   linarith
 
+/-- Removing finitely many closed `δ`-balls from `(X, 2X]` leaves at least
+`X / 2` measure once their total length is at most `X / 2`. -/
+theorem volume_Ioc_diff_closedBalls_ge (A : Finset ℝ) {X δ : ℝ}
+    (hδ : 0 ≤ δ) (hsmall : 2 * δ * (A.card : ℝ) ≤ X / 2) :
+    ENNReal.ofReal (X / 2) ≤
+      (volume : Measure ℝ) (Set.diff (Set.Ioc X (2 * X))
+        (⋃ a ∈ A, Metric.closedBall a δ)) := by
+  classical
+  let s : Set ℝ := Set.Ioc X (2 * X)
+  let bad : Set ℝ := ⋃ a ∈ A, Metric.closedBall a δ
+  have hs_meas : MeasurableSet s := measurableSet_Ioc
+  have hbad_meas : MeasurableSet bad := by
+    dsimp [bad]
+    exact Finset.measurableSet_biUnion A (fun _ _ => measurableSet_closedBall)
+  have hinter_meas : NullMeasurableSet (s ∩ bad) (volume : Measure ℝ) :=
+    (hs_meas.inter hbad_meas).nullMeasurableSet
+  have hinter_fin : (volume : Measure ℝ) (s ∩ bad) ≠ ⊤ := by
+    have hle : (volume : Measure ℝ) (s ∩ bad) ≤ (volume : Measure ℝ) s :=
+      measure_mono Set.inter_subset_left
+    have hs_ne_top : (volume : Measure ℝ) s ≠ ⊤ := by
+      simp [s, Real.volume_Ioc]
+    exact ne_top_of_le_ne_top hs_ne_top hle
+  have hdiff :
+      (volume : Measure ℝ) (Set.diff s bad) =
+        (volume : Measure ℝ) s - (volume : Measure ℝ) (s ∩ bad) := by
+    have h := MeasureTheory.measure_diff (μ := (volume : Measure ℝ))
+      (s₁ := s) (s₂ := s ∩ bad) Set.inter_subset_left hinter_meas hinter_fin
+    have hset : Set.diff s (s ∩ bad) = Set.diff s bad := by
+      ext x
+      constructor
+      · intro hx
+        exact ⟨hx.1, fun hb => hx.2 ⟨hx.1, hb⟩⟩
+      · intro hx
+        exact ⟨hx.1, fun hsb => hx.2 hsb.2⟩
+    simpa [hset] using h
+  have hbad_le :
+      (volume : Measure ℝ) (s ∩ bad) ≤ ENNReal.ofReal (2 * δ * (A.card : ℝ)) := by
+    have hle1 : (volume : Measure ℝ) (s ∩ bad) ≤ (volume : Measure ℝ) bad :=
+      measure_mono Set.inter_subset_right
+    have hle2 :
+        (volume : Measure ℝ) bad ≤
+          ∑ a ∈ A, (volume : Measure ℝ) (Metric.closedBall a δ) := by
+      dsimp [bad]
+      exact measure_biUnion_finset_le A (fun a => Metric.closedBall a δ)
+    have hsum :
+        (∑ a ∈ A, (volume : Measure ℝ) (Metric.closedBall a δ)) =
+          (A.card : ENNReal) * ENNReal.ofReal (2 * δ) := by
+      simp [Real.volume_closedBall, Finset.sum_const, nsmul_eq_mul]
+    calc
+      (volume : Measure ℝ) (s ∩ bad) ≤ (volume : Measure ℝ) bad := hle1
+      _ ≤ ∑ a ∈ A, (volume : Measure ℝ) (Metric.closedBall a δ) := hle2
+      _ = (A.card : ENNReal) * ENNReal.ofReal (2 * δ) := hsum
+      _ = ENNReal.ofReal (2 * δ * (A.card : ℝ)) := by
+        rw [← ENNReal.ofReal_natCast A.card, ← ENNReal.ofReal_mul]
+        · ring_nf
+        · positivity
+  have htarget_sub :
+      ENNReal.ofReal (X / 2) ≤
+        ENNReal.ofReal X - ENNReal.ofReal (2 * δ * (A.card : ℝ)) := by
+    rw [← ENNReal.ofReal_sub]
+    · exact ENNReal.ofReal_le_ofReal (by linarith)
+    · positivity
+  have hsub_mono :
+      ENNReal.ofReal X - ENNReal.ofReal (2 * δ * (A.card : ℝ)) ≤
+        ENNReal.ofReal X - (volume : Measure ℝ) (s ∩ bad) :=
+    tsub_le_tsub_left hbad_le (ENNReal.ofReal X)
+  have hs_vol : (volume : Measure ℝ) s = ENNReal.ofReal X := by
+    simp [s, Real.volume_Ioc]
+    ring_nf
+  calc
+    ENNReal.ofReal (X / 2)
+        ≤ ENNReal.ofReal X - ENNReal.ofReal (2 * δ * (A.card : ℝ)) := htarget_sub
+    _ ≤ ENNReal.ofReal X - (volume : Measure ℝ) (s ∩ bad) := hsub_mono
+    _ = (volume : Measure ℝ) (Set.diff s bad) := by rw [hdiff, hs_vol]
+    _ = (volume : Measure ℝ) (Set.diff (Set.Ioc X (2 * X))
+        (⋃ a ∈ A, Metric.closedBall a δ)) := by rfl
+
+private lemma u6aZeroWindowSet_finite (σ₁ σ₂ X δ : ℝ) :
+    (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+      (Set.Icc (-(2 * X + δ)) (2 * X + δ))).Finite := by
+  rw [riemannZeta.zeroes_rect_eq]
+  let S : Set ℂ :=
+    (Complex.re ⁻¹' Set.Icc (min σ₁ σ₂) (max σ₁ σ₂)) ∩
+      (Complex.im ⁻¹' Set.Icc (-(2 * X + δ)) (2 * X + δ))
+  have hS : IsCompact S := by
+    exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+      (isCompact_Icc.prod isCompact_Icc)
+  refine (riemannZeta.zeroes_on_Compact_finite' (S := S) hS).subset ?_
+  intro z hz
+  rcases hz with ⟨⟨hre, him⟩, hzeta⟩
+  exact ⟨⟨by simpa [Set.uIcc] using hre, him⟩, hzeta⟩
+
+/-- The finite zero window whose ordinates can affect `δ`-separation in
+`(X, 2X]`. -/
+noncomputable def u6aZeroWindowFinset (σ₁ σ₂ X δ : ℝ) : Finset ℂ :=
+  (u6aZeroWindowSet_finite σ₁ σ₂ X δ).toFinset
+
+/-- Finite set of heights that can violate the top or bottom `δ`-gap inside
+`(X, 2X]`.  It contains both zero ordinates and their negatives. -/
+noncomputable def u6aBadHeightFinset (σ₁ σ₂ X δ : ℝ) : Finset ℝ :=
+  (u6aZeroWindowFinset σ₁ σ₂ X δ).image Complex.im ∪
+    (u6aZeroWindowFinset σ₁ σ₂ X δ).image (fun z : ℂ => -z.im)
+
+/-- The bad-height set has at most two images of each zero in the underlying
+window. -/
+theorem u6aBadHeightFinset_card_le_two_zeroWindow
+    (σ₁ σ₂ X δ : ℝ) :
+    (u6aBadHeightFinset σ₁ σ₂ X δ).card ≤
+      2 * (u6aZeroWindowFinset σ₁ σ₂ X δ).card := by
+  classical
+  let Z := u6aZeroWindowFinset σ₁ σ₂ X δ
+  have h₁ : (Z.image Complex.im ∪ Z.image (fun z : ℂ => -z.im)).card ≤
+      (Z.image Complex.im).card + (Z.image (fun z : ℂ => -z.im)).card :=
+    Finset.card_union_le _ _
+  have h₂ : (Z.image Complex.im).card + (Z.image (fun z : ℂ => -z.im)).card ≤
+      Z.card + Z.card :=
+    Nat.add_le_add Finset.card_image_le Finset.card_image_le
+  calc
+    (u6aBadHeightFinset σ₁ σ₂ X δ).card
+        = (Z.image Complex.im ∪ Z.image (fun z : ℂ => -z.im)).card := by
+          rfl
+    _ ≤ (Z.image Complex.im).card + (Z.image (fun z : ℂ => -z.im)).card := h₁
+    _ ≤ Z.card + Z.card := h₂
+    _ = 2 * Z.card := by omega
+
+/-- The finite bad-height set really covers every way the horizontal segment
+can fail the `δ`-gap condition. -/
+theorem u6aSafeHeightSet_contains_diff_badHeightFinset
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ) :
+    Set.diff (Set.Ioc X (2 * X))
+        (⋃ a ∈ u6aBadHeightFinset σ₁ σ₂ X δ, Metric.closedBall a δ) ⊆
+      u6aSafeHeightSet σ₁ σ₂ X δ := by
+  classical
+  intro t ht
+  rcases ht with ⟨htIoc, htbad⟩
+  refine ⟨htIoc, hδ, ?_, ?_⟩
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose : |z.im - t| < δ := lt_of_not_ge hnot
+    have hdist := abs_lt.mp hclose
+    have him_low : -(2 * X + δ) ≤ z.im := by
+      nlinarith [htIoc.1, hdist.1, hX.le, hδ.le]
+    have him_high : z.im ≤ 2 * X + δ := by
+      nlinarith [htIoc.2, hdist.2]
+    have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+        (Set.Icc (-(2 * X + δ)) (2 * X + δ)) :=
+      ⟨hzre, ⟨him_low, him_high⟩, hzeta⟩
+    have hzFin : z ∈ u6aZeroWindowFinset σ₁ σ₂ X δ := by
+      unfold u6aZeroWindowFinset
+      exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mpr hzZ
+    have hzbad : z.im ∈ u6aBadHeightFinset σ₁ σ₂ X δ := by
+      unfold u6aBadHeightFinset
+      simp only [Finset.mem_union, Finset.mem_image]
+      exact Or.inl ⟨z, hzFin, rfl⟩
+    have htball : t ∈ Metric.closedBall z.im δ := by
+      rw [Metric.mem_closedBall, Real.dist_eq]
+      exact le_of_lt (by simpa [abs_sub_comm] using hclose)
+    exact htbad (by
+      rw [Set.mem_iUnion]
+      exact ⟨z.im, by rw [Set.mem_iUnion]; exact ⟨hzbad, htball⟩⟩)
+  · intro z hzre hzeta
+    by_contra hnot
+    have hclose : |z.im + t| < δ := lt_of_not_ge hnot
+    have hdist := abs_lt.mp hclose
+    have him_low : -(2 * X + δ) ≤ z.im := by
+      nlinarith [htIoc.2, hdist.1]
+    have him_high : z.im ≤ 2 * X + δ := by
+      nlinarith [htIoc.1, hdist.2, hX.le, hδ.le]
+    have hzZ : z ∈ riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂)
+        (Set.Icc (-(2 * X + δ)) (2 * X + δ)) :=
+      ⟨hzre, ⟨him_low, him_high⟩, hzeta⟩
+    have hzFin : z ∈ u6aZeroWindowFinset σ₁ σ₂ X δ := by
+      unfold u6aZeroWindowFinset
+      exact (u6aZeroWindowSet_finite σ₁ σ₂ X δ).mem_toFinset.mpr hzZ
+    have hzbad : -z.im ∈ u6aBadHeightFinset σ₁ σ₂ X δ := by
+      unfold u6aBadHeightFinset
+      simp only [Finset.mem_union, Finset.mem_image, neg_inj]
+      exact Or.inr ⟨z, hzFin, rfl⟩
+    have htball : t ∈ Metric.closedBall (-z.im) δ := by
+      rw [Metric.mem_closedBall, Real.dist_eq]
+      have hclose' : |t + z.im| < δ := by
+        simpa [add_comm] using hclose
+      exact le_of_lt (by simpa using hclose')
+    exact htbad (by
+      rw [Set.mem_iUnion]
+      exact ⟨-z.im, by rw [Set.mem_iUnion]; exact ⟨hzbad, htball⟩⟩)
+
+/-- Safe heights have measure at least `X / 2` once the finite bad-height
+cover has total length at most `X / 2`. -/
+theorem u6aSafeHeightSet_measure_ge_of_badHeightFinset
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ)
+    (hsmall : 2 * δ * ((u6aBadHeightFinset σ₁ σ₂ X δ).card : ℝ) ≤ X / 2) :
+    ENNReal.ofReal (X / 2) ≤
+      (volume.restrict (Set.Ioc X (2 * X))) (u6aSafeHeightSet σ₁ σ₂ X δ) := by
+  classical
+  let A := u6aBadHeightFinset σ₁ σ₂ X δ
+  let G : Set ℝ := Set.diff (Set.Ioc X (2 * X))
+    (⋃ a ∈ A, Metric.closedBall a δ)
+  have hG_meas : MeasurableSet G := by
+    have hbad_meas : MeasurableSet (⋃ a ∈ A, Metric.closedBall a δ) :=
+      Finset.measurableSet_biUnion A (fun _ _ => measurableSet_closedBall)
+    exact measurableSet_Ioc.diff hbad_meas
+  have hG_subset_Ioc : G ⊆ Set.Ioc X (2 * X) := by
+    intro t ht
+    exact ht.1
+  have hG_subset_safe : G ⊆ u6aSafeHeightSet σ₁ σ₂ X δ := by
+    simpa [G, A] using
+      (u6aSafeHeightSet_contains_diff_badHeightFinset (σ₁ := σ₁) (σ₂ := σ₂)
+        (X := X) (δ := δ) hX hδ)
+  have hmeasure_mono :
+      (volume.restrict (Set.Ioc X (2 * X))) G ≤
+        (volume.restrict (Set.Ioc X (2 * X))) (u6aSafeHeightSet σ₁ σ₂ X δ) :=
+    measure_mono hG_subset_safe
+  have hrestrictG :
+      (volume.restrict (Set.Ioc X (2 * X))) G = (volume : Measure ℝ) G := by
+    have hinter : G ∩ Set.Ioc X (2 * X) = G := Set.inter_eq_left.mpr hG_subset_Ioc
+    simp [Measure.restrict_apply, hG_meas, hinter]
+  exact (volume_Ioc_diff_closedBalls_ge A hδ.le hsmall).trans
+    (by simpa [G, A, hrestrictG] using hmeasure_mono)
+
+/-- The bad-height length condition gives the nonzero safe-set measure needed
+by the averaged mean-value extraction. -/
+theorem u6aSafeHeightSet_restrict_measure_ne_zero_of_badHeightFinset
+    {σ₁ σ₂ X δ : ℝ} (hX : 0 < X) (hδ : 0 < δ)
+    (hsmall : 2 * δ * ((u6aBadHeightFinset σ₁ σ₂ X δ).card : ℝ) ≤ X / 2) :
+    (volume.restrict (Set.Ioc X (2 * X)))
+      (u6aSafeHeightSet σ₁ σ₂ X δ) ≠ 0 := by
+  have hmeasure := u6aSafeHeightSet_measure_ge_of_badHeightFinset
+    (σ₁ := σ₁) (σ₂ := σ₂) (X := X) (δ := δ) hX hδ hsmall
+  have hpos : 0 < ENNReal.ofReal (X / 2) := ENNReal.ofReal_pos.2 (by linarith)
+  exact ne_of_gt (lt_of_lt_of_le hpos hmeasure)
+
 private lemma u6aNearbyZeroSet_finite (σ₁ σ₂ t : ℝ) :
     (riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))).Finite := by
   rw [riemannZeta.zeroes_rect_eq]
@@ -748,6 +980,31 @@ theorem exists_height_with_small_reciprocalZeroSum_of_averaging
       u6aReciprocalZeroSum σ₁ σ₂ T ≤ u6aAveragedSelectionBound X δ M :=
   exists_height_with_small_reciprocalZeroSum_of_indicator_average
     hAvgSel.hX hAvgSel.hEpos hAvgSel.hSInt hAvgSel.hBInt hAvgSel.hAvg
+
+/-- Averaged selector with the safe-set nonzero-measure hypothesis discharged
+from the finite bad-height length estimate. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_badHeightFinset_average
+    {σ₁ σ₂ X δ M : ℝ}
+    (hX : 0 < X) (hδ : 0 < δ)
+    (hsmall : 2 * δ * ((u6aBadHeightFinset σ₁ σ₂ X δ).card : ℝ) ≤ X / 2)
+    (hSInt : IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        (u6aReciprocalZeroSum σ₁ σ₂)) volume X (2 * X))
+    (hBInt : IntervalIntegrable
+      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+        fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X))
+    (hAvg :
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (u6aReciprocalZeroSum σ₁ σ₂) t ∂volume) ≤
+        ∫ t in X..(2 * X),
+          (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
+            (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume) :
+    ∃ T : ℝ, T ∈ u6aSafeHeightSet σ₁ σ₂ X δ ∧
+      u6aReciprocalZeroSum σ₁ σ₂ T ≤ u6aAveragedSelectionBound X δ M :=
+  exists_height_with_small_reciprocalZeroSum_of_indicator_average hX
+    (u6aSafeHeightSet_restrict_measure_ne_zero_of_badHeightFinset hX hδ hsmall)
+    hSInt hBInt hAvg
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
