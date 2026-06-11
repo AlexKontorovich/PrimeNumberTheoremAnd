@@ -1739,6 +1739,102 @@ theorem re_shifted_sum_eq_paired_sub_re_inv (s : ℂ) :
   rw [re_tsum_paired_eq_re_inv_add_re_shifted s]
   ring
 
+
+/-- The explicit formula's weighted zero-sum hypothesis holds at the Kadiri test
+function: each integral is the pole-subtracted packet `f 0/(s-ρ) - F(s-ρ)`, of
+norm `O(1/(Im (s-ρ))²)`, and the order weight is carried by the unconditional
+weighted square tail. This discharges `hΦ_sum` of `identity_16_complex_weighted`. -/
+theorem summable_kadiriTestFn_weighted_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) *
+        (riemannZeta.order ρ.val : ℂ)) := by
+  have hpt : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) =
+      (f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val) := by
+    intro ρ
+    have hre : (0 : ℝ) < (s + -ρ.val).re := by
+      have hlt : (ρ.val).re < 1 := ρ.property.1.2
+      simp only [Complex.add_re, Complex.neg_re]
+      linarith
+    have h := kadiriTestFn_laplaceTransform hd hf_C2 hf_supp s (-ρ.val) hre
+    simp only [neg_neg] at h
+    rw [h, show s + -ρ.val = s - ρ.val by ring]
+  have hmain : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+      ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)) *
+        (riemannZeta.order ρ.val : ℂ)) := by
+    obtain ⟨C, hC⟩ := laplaceTransform_sub_pole_norm_decay hd hf_C2 hf_supp hf_d
+      hf_deriv_0 hf_deriv_d (s.re - 1)
+    have htail := (weighted_zeroImagSquareTail_shifted_summable s).mul_left C
+    refine Summable.of_norm_bounded_eventually htail ?_
+    rw [Filter.eventually_cofinite]
+    apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
+    intro ρ hbad
+    rw [Set.mem_setOf_eq] at hbad ⊢
+    by_contra hsmall
+    have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
+    have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
+      intro h
+      rw [h] at him
+      norm_num at him
+    have hre_lo : s.re - 1 ≤ (s - (ρ : ℂ)).re := by
+      rw [Complex.sub_re]
+      linarith [ρ.property.1.2]
+    have hdecay := hC (s - (ρ : ℂ)) hre_lo him0
+    apply hbad
+    have hordZ : (0 : ℤ) ≤ riemannZeta.order (ρ : ℂ) :=
+      riemannZeta_order_nonneg (nontrivialZero_ne_one ρ)
+    have hord : (0 : ℝ) ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+      exact_mod_cast hordZ
+    rw [norm_mul]
+    have hnormord : ‖((riemannZeta.order (ρ : ℂ) : ℤ) : ℂ)‖ =
+        ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+      rw [Complex.norm_intCast]
+      exact_mod_cast abs_of_nonneg hordZ
+    rw [hnormord]
+    calc ‖(f 0 : ℂ) / (s - (ρ : ℂ)) - laplaceTransform f (s - (ρ : ℂ))‖ *
+          ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ)
+        ≤ (C / (s - (ρ : ℂ)).im ^ 2) * ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) :=
+          mul_le_mul_of_nonneg_right hdecay hord
+      _ = C * (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) := by
+          rw [inv_pow, sq_abs, div_eq_mul_inv]
+          ring
+  exact hmain.congr fun ρ ↦ by rw [hpt ρ]
+
+/-- The weighted complex form of equation (16) with the zero-sum hypothesis
+discharged: only the contour integrability and `kadiri_thm_3_1_q1` itself remain. -/
+theorem identity_16_complex_weighted_of_integrable {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re)
+    (hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
+      ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+        ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+          exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
+      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
+      + riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ))
+      + laplaceTransform f (s - 1)
+      + ((1 / (2 * (Real.pi : ℂ))) *
+          (∫ t : ℝ,
+            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) :=
+  identity_16_complex_weighted hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hs
+    (summable_kadiriTestFn_weighted_at_zeros hd hf_C2 hf_supp hf_d hf_deriv_0
+      hf_deriv_d hs) hΓ_int
+
 @[blueprint
   "kadiri-summable-lap-at-zeros"
   (title := "Summability of $\\sum_\\rho \\Re F(s - \\rho)$")
