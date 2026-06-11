@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+import PrimeNumberTheoremAnd.IEANTN.CH2.CH2
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
@@ -146,6 +147,14 @@ private lemma u6a_riemannZeta_order_pos_of_zero_ne_one {s : ℂ} (hs : s ≠ 1)
           exact hanOrder_ne_zero (by simp [hO, hn]))
       rw [han.meromorphicOrderAt_eq, hO, ENat.map_coe, WithTop.untopD_coe]
       exact_mod_cast hn_pos
+
+private lemma u6a_riemannZeta_order_star (z : ℂ) :
+    riemannZeta.order ((starRingEnd ℂ) z) = riemannZeta.order z := by
+  have hsymm : CH2.ConjSymm riemannZeta := by
+    intro s
+    exact riemannZeta_conj s
+  unfold riemannZeta.order
+  rw [← CH2.meromorphicOrderAt_starRingEnd (F := riemannZeta) (z := z) (Or.inl hsymm)]
 
 private lemma reciprocalKernelPositiveIntegral_eq {δ γ : ℝ}
     (hδ0 : 0 < δ) (hδ2 : δ ≤ 2) :
@@ -433,6 +442,214 @@ lemma u6aStripZeroHeightZeros_finite : Finite u6aStripZeroHeightZeros := by
     have hle : (-1 : ℝ) ≤ 2 := by norm_num
     exact ⟨⟨by simpa [Set.uIcc_of_le hle] using hre, him⟩, hzeta⟩
   exact Set.finite_coe_iff.mpr hfin
+
+/-- Order-weighted real-axis zero bucket in the U6a strip.  This remains
+finite and additive rather than asserting those zeros away. -/
+noncomputable def u6aStripZeroHeightZeroMass : ℝ :=
+  riemannZeta.zeroes_sum (Set.uIcc (-1 : ℝ) 2) (Set.Icc 0 0) (fun _ => (1 : ℝ))
+
+/-- The order-weighted fixed window is controlled by the positive-height
+zero-counting function twice, plus the finite real-axis order bucket.  Negative
+heights are transferred to positive heights by conjugation, preserving order. -/
+theorem u6aFixedWindowZeroMass_le_two_N_add_zeroHeightMass {k : ℕ} {X : ℝ}
+    (hT : 2 * X + 2 < (2 : ℝ) ^ (k + 1)) :
+    u6aFixedWindowZeroMass (-1) 2 X ≤
+      2 * riemannZeta.N ((2 : ℝ) ^ (k + 1)) + u6aStripZeroHeightZeroMass := by
+  classical
+  let T : ℝ := (2 : ℝ) ^ (k + 1)
+  let Win : Type := {z : ℂ // z ∈ u6aZeroWindowFinset (-1) 2 X 2}
+  let Pos : Type := riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T)
+  let Zero : Type := u6aStripZeroHeightZeros
+  haveI : Finite Pos :=
+    Set.finite_coe_iff.mpr (zeroes_rect_univ_positive_height_finite T)
+  haveI : Fintype Pos := Fintype.ofFinite Pos
+  haveI : Finite Zero := u6aStripZeroHeightZeros_finite
+  haveI : Fintype Zero := Fintype.ofFinite Zero
+  haveI : Fintype Win := Finset.fintypeCoeSort (u6aZeroWindowFinset (-1) 2 X 2)
+  let Bucket : Type := Pos ⊕ (Pos ⊕ Zero)
+  let weightWin : Win → ℝ := fun z => (riemannZeta.order (z : ℂ) : ℝ)
+  let weightBucket : Bucket → ℝ
+    | Sum.inl ρ => (riemannZeta.order (ρ : ℂ) : ℝ)
+    | Sum.inr (Sum.inl ρ) => (riemannZeta.order (ρ : ℂ) : ℝ)
+    | Sum.inr (Sum.inr ρ) => (riemannZeta.order (ρ : ℂ) : ℝ)
+  let toBucket : Win → Bucket := fun z =>
+    have hzwin : (z : ℂ) ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+        (Set.Icc (-(2 * X + 2)) (2 * X + 2)) := by
+      simpa [u6aZeroWindowFinset] using z.property
+    if hpos : 0 < (z : ℂ).im then
+      Sum.inl
+        ⟨(z : ℂ), Set.mem_univ _, by
+          constructor
+          · exact hpos
+          · have him_le : (z : ℂ).im ≤ 2 * X + 2 := hzwin.2.1.2
+            exact lt_of_le_of_lt him_le hT,
+          hzwin.2.2⟩
+    else if hzero : (z : ℂ).im = 0 then
+      Sum.inr (Sum.inr ⟨(z : ℂ), hzwin.1, by simp [hzero], hzwin.2.2⟩)
+    else
+      Sum.inr (Sum.inl
+        ⟨((starRingEnd ℂ) (z : ℂ)), Set.mem_univ _, by
+          have hneg : (z : ℂ).im < 0 := lt_of_le_of_ne (not_lt.mp hpos) hzero
+          constructor
+          · simpa [Complex.conj_im] using neg_pos.mpr hneg
+          · have him_abs_le : |(z : ℂ).im| ≤ 2 * X + 2 :=
+              abs_le.mpr ⟨hzwin.2.1.1, hzwin.2.1.2⟩
+            have him_neg : -((z : ℂ).im) = |(z : ℂ).im| := by
+              rw [abs_of_neg hneg]
+            rw [Complex.conj_im, him_neg]
+            exact lt_of_le_of_lt him_abs_le hT,
+          by
+            exact riemannZetaConjZeroSource_of_riemannZeta_conj (z : ℂ) hzwin.2.2⟩)
+  let recover : Bucket → ℂ
+    | Sum.inl ρ => (ρ : ℂ)
+    | Sum.inr (Sum.inl ρ) => (starRingEnd ℂ) (ρ : ℂ)
+    | Sum.inr (Sum.inr ρ) => (ρ : ℂ)
+  have hrecover : ∀ z : Win, recover (toBucket z) = (z : ℂ) := by
+    intro z
+    dsimp [toBucket, recover]
+    by_cases hpos : 0 < (z : ℂ).im
+    · simp [hpos]
+    · by_cases hzero : (z : ℂ).im = 0
+      · simp [hzero]
+      · simp [hpos, hzero]
+  have hinj : Function.Injective toBucket := by
+    intro z w hzw
+    apply Subtype.ext
+    calc
+      (z : ℂ) = recover (toBucket z) := (hrecover z).symm
+      _ = recover (toBucket w) := by rw [hzw]
+      _ = (w : ℂ) := hrecover w
+  have hweight : ∀ z : Win, weightBucket (toBucket z) = weightWin z := by
+    intro z
+    dsimp [toBucket, weightBucket, weightWin]
+    by_cases hpos : 0 < (z : ℂ).im
+    · simp [hpos]
+    · by_cases hzero : (z : ℂ).im = 0
+      · simp [hzero]
+      · simp [hpos, hzero, u6a_riemannZeta_order_star]
+  have hbucket_nonneg : ∀ b : Bucket, 0 ≤ weightBucket b := by
+    intro b
+    rcases b with ρ | ρz
+    · dsimp [weightBucket]
+      have horder : (0 : ℤ) ≤ riemannZeta.order (ρ : ℂ) :=
+        le_of_lt (riemannZeta_order_pos_positiveHeightZero ρ)
+      exact_mod_cast horder
+    · rcases ρz with ρ | ρ
+      · dsimp [weightBucket]
+        have horder : (0 : ℤ) ≤ riemannZeta.order (ρ : ℂ) :=
+          le_of_lt (riemannZeta_order_pos_positiveHeightZero ρ)
+        exact_mod_cast horder
+      · dsimp [weightBucket]
+        exact_mod_cast le_of_lt
+          (u6a_riemannZeta_order_pos_of_zero_ne_one
+            (by
+              intro h
+              have hzeta : riemannZeta ((ρ : ℂ)) = 0 := ρ.property.2.2
+              exact riemannZeta_one_ne_zero (by simpa [h] using hzeta))
+            ρ.property.2.2)
+  have hbucket_summable : Summable weightBucket := by
+    exact Summable.of_finite
+  let emb : Win ↪ Bucket := ⟨toBucket, hinj⟩
+  have hwin_sum_eq_bucket :
+      (∑ z : Win, weightWin z) =
+        ∑ b ∈ Finset.univ.map emb, weightBucket b := by
+    rw [Finset.sum_map]
+    exact Finset.sum_congr rfl (fun z _ => (hweight z).symm)
+  have hsum_le_tsum :
+      (∑ z : Win, weightWin z) ≤ ∑' b : Bucket, weightBucket b := by
+    rw [hwin_sum_eq_bucket]
+    exact Summable.sum_le_tsum (Finset.univ.map emb)
+      (fun b _ => hbucket_nonneg b) hbucket_summable
+  have hmass_eq :
+      u6aFixedWindowZeroMass (-1) 2 X = ∑ z : Win, weightWin z := by
+    unfold u6aFixedWindowZeroMass
+    let Z : Finset ℂ := u6aZeroWindowFinset (-1) 2 X 2
+    have huniv : (Finset.univ : Finset Win) = Z.attach := by
+      ext z
+      simp [Win, Z]
+    change (∑ ρ ∈ Z, (riemannZeta.order ρ : ℝ)) =
+      ∑ z : Win, weightWin z
+    rw [show (∑ z : Win, weightWin z) =
+        ∑ z ∈ (Finset.univ : Finset Win), weightWin z by rfl]
+    rw [huniv]
+    simpa [Win, Z, weightWin] using
+      (Finset.sum_attach (s := Z)
+        (f := fun z : ℂ => (riemannZeta.order z : ℝ))).symm
+  have hbucket_tsum :
+      (∑' b : Bucket, weightBucket b) =
+        2 * riemannZeta.N T + u6aStripZeroHeightZeroMass := by
+    have hN_eq : (∑' ρ : Pos, (riemannZeta.order (ρ : ℂ) : ℝ)) = riemannZeta.N T := by
+      unfold riemannZeta.N riemannZeta.zeroes_sum
+      simp [Pos]
+    have hzero_eq :
+        (∑' ρ : Zero, (riemannZeta.order (ρ : ℂ) : ℝ)) =
+          u6aStripZeroHeightZeroMass := by
+      simp [u6aStripZeroHeightZeroMass, riemannZeta.zeroes_sum, Zero]
+    rw [Summable.tsum_sum (Summable.of_finite) (Summable.of_finite)]
+    simp only [weightBucket]
+    rw [Summable.tsum_sum (Summable.of_finite) (Summable.of_finite)]
+    change (∑' ρ : Pos, (riemannZeta.order (ρ : ℂ) : ℝ)) +
+        ((∑' ρ : Pos, (riemannZeta.order (ρ : ℂ) : ℝ)) +
+          ∑' ρ : Zero, (riemannZeta.order (ρ : ℂ) : ℝ)) =
+      2 * riemannZeta.N T + u6aStripZeroHeightZeroMass
+    rw [hzero_eq]
+    rw [hN_eq]
+    ring_nf
+  calc
+    u6aFixedWindowZeroMass (-1) 2 X = ∑ z : Win, weightWin z := hmass_eq
+    _ ≤ ∑' b : Bucket, weightBucket b := hsum_le_tsum
+    _ = 2 * riemannZeta.N T + u6aStripZeroHeightZeroMass := hbucket_tsum
+    _ = 2 * riemannZeta.N ((2 : ℝ) ^ (k + 1)) +
+        u6aStripZeroHeightZeroMass := by rfl
+
+theorem u6aStripZeroHeightZeroMass_nonneg :
+    0 ≤ u6aStripZeroHeightZeroMass := by
+  unfold u6aStripZeroHeightZeroMass riemannZeta.zeroes_sum
+  exact tsum_nonneg fun ρ => by
+    have horder : 0 ≤ (riemannZeta.order (ρ : ℂ) : ℝ) := by
+      exact_mod_cast le_of_lt
+        (u6a_riemannZeta_order_pos_of_zero_ne_one
+          (by
+            intro h
+            exact riemannZeta_one_ne_zero (by simpa [h] using ρ.property.2.2))
+          ρ.property.2.2)
+    simpa using horder
+
+/-- Crude-majorant bound for the order-weighted fixed U6a zero window. -/
+theorem u6aFixedWindowZeroMass_le_crude_geometric :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X : ℝ,
+      2 * X + 2 < (2 : ℝ) ^ (k + 1) →
+        u6aFixedWindowZeroMass (-1) 2 X ≤ C * 3 ^ k + D := by
+  obtain ⟨E, hE, hN⟩ := zetaCountingDyadic_abs_N_le_geometric
+  let C : ℝ := max 1 (2 * E)
+  let D : ℝ := u6aStripZeroHeightZeroMass
+  have hC : 0 < C := by
+    exact lt_of_lt_of_le zero_lt_one (le_max_left 1 (2 * E))
+  refine ⟨C, D, hC, u6aStripZeroHeightZeroMass_nonneg, ?_⟩
+  intro k X hT
+  have hbase := u6aFixedWindowZeroMass_le_two_N_add_zeroHeightMass
+    (k := k) (X := X) hT
+  have hNabs :
+      riemannZeta.N ((2 : ℝ) ^ (k + 1)) ≤
+        |riemannZeta.N ((2 : ℝ) ^ (k + 1))| := le_abs_self _
+  have hNbound := hN k
+  have htwoN :
+      2 * riemannZeta.N ((2 : ℝ) ^ (k + 1)) ≤ 2 * (E * 3 ^ k) := by
+    exact mul_le_mul_of_nonneg_left (hNabs.trans hNbound) (by norm_num)
+  have hpow_nonneg : 0 ≤ (3 : ℝ) ^ k := by positivity
+  have hcoef : 2 * E ≤ C := le_max_right 1 (2 * E)
+  have hCmul : 2 * (E * 3 ^ k) ≤ C * 3 ^ k := by
+    calc
+      2 * (E * 3 ^ k) = (2 * E) * 3 ^ k := by ring
+      _ ≤ C * 3 ^ k := mul_le_mul_of_nonneg_right hcoef hpow_nonneg
+  calc
+    u6aFixedWindowZeroMass (-1) 2 X
+        ≤ 2 * riemannZeta.N ((2 : ℝ) ^ (k + 1)) + D := by
+          simpa [D] using hbase
+    _ ≤ 2 * (E * 3 ^ k) + D := by
+          simpa [add_comm] using add_le_add_right htwoN D
+    _ ≤ C * 3 ^ k + D := by
+          simpa [add_comm] using add_le_add_right hCmul D
 
 /-- In the actual U6a strip `[-1, 2]`, every non-real zero in the finite
 height window injects into the non-trivial zero count by absolute height; the
@@ -2356,6 +2573,96 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta_average :
   exact hsel k X (u6aCrudeDelta C D X k) M hX
     (u6aCrudeDelta_pos k hX hC.le hD) hT
     (u6aCrudeDelta_small k hX hC.le hD) hAvg
+
+/-- Averaged selector in the actual U6a strip with the safe-set measure and
+fixed-window integral hypotheses discharged from the crude majorants. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X : ℝ,
+      0 < X →
+      2 * X + 2 < (2 : ℝ) ^ (k + 1) →
+      ∃ T : ℝ, T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) ∧
+        u6aReciprocalZeroSum (-1) 2 T ≤
+          u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D) := by
+  obtain ⟨Cbad, Dbad, hCbad, hDbad, hbad⟩ :=
+    u6aBadHeightFinset_card_le_crude_geometric
+  obtain ⟨Cmass, Dmass, hCmass, hDmass, hmass⟩ :=
+    u6aFixedWindowZeroMass_le_crude_geometric
+  let C : ℝ := max Cbad Cmass
+  let D : ℝ := Dbad + Dmass
+  have hC : 0 < C := by
+    exact lt_of_lt_of_le hCbad (by dsimp [C]; exact le_max_left Cbad Cmass)
+  have hD : 0 ≤ D := by
+    dsimp [D]
+    linarith
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X hX hT
+  let δ : ℝ := u6aCrudeDelta C D X k
+  have hδ : 0 < δ := by
+    dsimp [δ]
+    exact u6aCrudeDelta_pos k hX hC.le hD
+  have hδ_le_one : δ ≤ 1 := by
+    dsimp [δ]
+    unfold u6aCrudeDelta
+    exact min_le_left _ _
+  have hδ2 : δ ≤ 2 := hδ_le_one.trans (by norm_num)
+  have hTδ : 2 * X + δ < (2 : ℝ) ^ (k + 1) := by
+    have hle : 2 * X + δ ≤ 2 * X + 2 := by linarith
+    exact lt_of_le_of_lt hle hT
+  have hpow_nonneg : 0 ≤ (3 : ℝ) ^ k := by positivity
+  have hbad_bound_constants :
+      Cbad * 3 ^ k + Dbad ≤ C * 3 ^ k + D := by
+    have hCbad_le : Cbad ≤ C := by
+      dsimp [C]
+      exact le_max_left Cbad Cmass
+    have hmul : Cbad * 3 ^ k ≤ C * 3 ^ k :=
+      mul_le_mul_of_nonneg_right hCbad_le hpow_nonneg
+    have hDle : Dbad ≤ D := by
+      dsimp [D]
+      linarith [hDmass]
+    linarith
+  have hbad_card :
+      ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ) ≤ C * 3 ^ k + D :=
+    (hbad k X δ hTδ).trans hbad_bound_constants
+  have hsmall_bad :
+      2 * δ * ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ) ≤ X / 2 := by
+    have hcoef : 0 ≤ 2 * δ := by positivity
+    calc
+      2 * δ * ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ)
+          ≤ 2 * δ * (C * 3 ^ k + D) := by
+            exact mul_le_mul_of_nonneg_left hbad_card hcoef
+      _ ≤ X / 2 := u6aCrudeDelta_small k hX hC.le hD
+  have hmass_bound_constants :
+      Cmass * 3 ^ k + Dmass ≤ C * 3 ^ k + D := by
+    have hCmass_le : Cmass ≤ C := by
+      dsimp [C]
+      exact le_max_right Cbad Cmass
+    have hmul : Cmass * 3 ^ k ≤ C * 3 ^ k :=
+      mul_le_mul_of_nonneg_right hCmass_le hpow_nonneg
+    have hDle : Dmass ≤ D := by
+      dsimp [D]
+      linarith [hDbad]
+    linarith
+  have hMass : u6aFixedWindowZeroMass (-1) 2 X ≤ C * 3 ^ k + D :=
+    (hmass k X hT).trans hmass_bound_constants
+  have hMeasure :
+      ENNReal.ofReal (X / 2) ≤
+        (volume.restrict (Set.Ioc X (2 * X)))
+          (u6aSafeHeightSet (-1) 2 X δ) :=
+    u6aSafeHeightSet_measure_ge_of_badHeightFinset hX hδ hsmall_bad
+  have hAvg :
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X δ).indicator
+            (u6aReciprocalZeroSum (-1) 2) t ∂volume) ≤
+        ∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X δ).indicator
+            (fun _ : ℝ => u6aAveragedSelectionBound X δ (C * 3 ^ k + D)) t ∂volume :=
+    integral_u6aReciprocalZeroSum_indicator_le_averagedSelectionBound_indicator_of_fixedWindowMass
+      (σ₁ := (-1 : ℝ)) (σ₂ := 2) (X := X) (δ := δ) (M := C * 3 ^ k + D)
+      hX hδ hδ2 hMass hMeasure
+  simpa [δ] using
+    exists_height_with_small_reciprocalZeroSum_of_badHeightFinset_average
+      (σ₁ := (-1 : ℝ)) (σ₂ := 2) (X := X) (δ := δ) (M := C * 3 ^ k + D)
+      hX hδ hsmall_bad hAvg
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
