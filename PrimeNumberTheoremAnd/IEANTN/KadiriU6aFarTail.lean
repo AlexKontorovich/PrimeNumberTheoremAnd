@@ -348,6 +348,220 @@ theorem u6aXiNearbyIndexFinset_card_le_count {t : ℝ} (ht : 3 ≤ |t|) :
     rw [← Int.cast_natCast, Int.toNat_of_nonneg hord.le]
   rw [hcast]
 
+/-- The nearby fiber sum at the anchor `2 + i t` is controlled by the window
+count: each kernel term is at most `3/2` there. -/
+theorem u6aFT_nearby_at_anchor_le {t : ℝ} (ht : 3 ≤ |t|) :
+    ‖u6aXiFiberNearbyHadamardSum t ((2 : ℂ) + t * I)‖ ≤
+      (3 / 2) * u6aNearbyZeroCount (-1) 2 t := by
+  rw [u6aXiFiberNearbyHadamardSum_eq_indexFinset_sum]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hbound : ∀ p ∈ u6aXiNearbyIndexFinset t,
+      ‖(1 : ℂ) / (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p) +
+        1 / Complex.Hadamard.divisorZeroIndex₀_val p‖ ≤ 3 / 2 := by
+    intro p hp
+    rw [mem_u6aXiNearbyIndexFinset_iff] at hp
+    obtain ⟨_, him, _⟩ := hp
+    have hxire := riemannXi_zero_re_mem (riemannXi_val_eq_zero p)
+    set ρ := Complex.Hadamard.divisorZeroIndex₀_val p with hρdef
+    have h1 : (1 : ℝ) ≤ ‖((2 : ℂ) + t * I) - ρ‖ := by
+      have hre2 : (((2 : ℂ) + t * I) - ρ).re = 2 - ρ.re := by simp
+      calc (1 : ℝ) ≤ 2 - ρ.re := by linarith [hxire.2]
+        _ = (((2 : ℂ) + t * I) - ρ).re := hre2.symm
+        _ ≤ |(((2 : ℂ) + t * I) - ρ).re| := le_abs_self _
+        _ ≤ ‖((2 : ℂ) + t * I) - ρ‖ := Complex.abs_re_le_norm _
+    have h2 : (2 : ℝ) ≤ ‖ρ‖ := by
+      have himabs : |ρ.im - t| ≤ 1 :=
+        abs_le.mpr ⟨by linarith [him.1], by linarith [him.2]⟩
+      have htri : |t| - |ρ.im| ≤ |t - ρ.im| := abs_sub_abs_le_abs_sub t ρ.im
+      rw [abs_sub_comm] at htri
+      have : (2 : ℝ) ≤ |ρ.im| := by linarith
+      exact le_trans this (Complex.abs_im_le_norm ρ)
+    calc ‖(1 : ℂ) / (((2 : ℂ) + t * I) - ρ) + 1 / ρ‖
+        ≤ ‖(1 : ℂ) / (((2 : ℂ) + t * I) - ρ)‖ + ‖(1 : ℂ) / ρ‖ := norm_add_le _ _
+      _ = 1 / ‖((2 : ℂ) + t * I) - ρ‖ + 1 / ‖ρ‖ := by
+          rw [norm_div, norm_div, norm_one]
+      _ ≤ 1 + 1 / 2 := by
+          refine add_le_add ?_ (one_div_le_one_div_of_le two_pos h2)
+          rw [div_le_one (by linarith)]
+          exact h1
+      _ = 3 / 2 := by norm_num
+  calc (∑ p ∈ u6aXiNearbyIndexFinset t,
+        ‖(1 : ℂ) / (((2 : ℂ) + t * I) - Complex.Hadamard.divisorZeroIndex₀_val p) +
+          1 / Complex.Hadamard.divisorZeroIndex₀_val p‖)
+      ≤ (u6aXiNearbyIndexFinset t).card • (3 / 2 : ℝ) :=
+        Finset.sum_le_card_nsmul _ _ _ hbound
+    _ = ((u6aXiNearbyIndexFinset t).card : ℝ) * (3 / 2) := nsmul_eq_mul _ _
+    _ ≤ u6aNearbyZeroCount (-1) 2 t * (3 / 2) := by
+        have := u6aXiNearbyIndexFinset_card_le_count (t := t) ht
+        nlinarith [this]
+    _ = (3 / 2) * u6aNearbyZeroCount (-1) 2 t := by ring
+
+/-- The global Hadamard zero sum at the anchor grows logarithmically, given a
+degree-one Hadamard factorization witness for xi. -/
+theorem u6aFT_global_at_anchor_le {P : Polynomial ℂ}
+    (hfac : ∀ w : ℂ, riemannXi w = Complex.exp (Polynomial.eval w P) *
+      Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
+    (hPdeg : P.degree ≤ 1) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      ‖u6aXiHadamardZeroSum ((2 : ℂ) + t * I)‖ ≤ C * Real.log |t| := by
+  obtain ⟨Cψ, hCψ0, hψ⟩ := exists_norm_digamma_le_log (a := 2) (b := 2) two_pos
+  set A : ℝ := ‖deriv riemannZeta ((2 : ℝ) : ℂ) / riemannZeta ((2 : ℝ) : ℂ)‖ with hA
+  have hP' : P.derivative = Polynomial.C (P.derivative.coeff 0) := by
+    refine Polynomial.eq_C_of_natDegree_le_zero ?_
+    have h1 := Polynomial.natDegree_derivative_le P
+    have h2 : P.natDegree ≤ 1 := Polynomial.natDegree_le_iff_degree_le.mpr hPdeg
+    omega
+  set cP : ℝ := ‖P.derivative.coeff 0‖ with hcP
+  set cπ : ℝ := ‖(1 / 2 : ℂ) * (Real.log Real.pi : ℂ)‖ with hcπ
+  refine ⟨A + cP + 1 + cπ + Cψ + 1, by positivity, fun t ht => ?_⟩
+  set s₀ : ℂ := (2 : ℂ) + t * I with hs₀
+  have hs₀re : s₀.re = 2 := by simp [hs₀]
+  have hs₀im : s₀.im = t := by simp [hs₀]
+  have hlog1 : 1 < Real.log |t| := by
+    rw [Real.lt_log_iff_exp_lt (by linarith : (0 : ℝ) < |t|)]
+    calc Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+      _ ≤ |t| := by linarith
+  -- the identity hypotheses at the anchor
+  have hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s₀ ≠ Complex.Hadamard.divisorZeroIndex₀_val p := by
+    intro p hc
+    exact riemannXi_ne_zero_of_one_lt_re (by rw [hs₀re]; norm_num)
+      (hc ▸ riemannXi_val_eq_zero p)
+  have hs0 : s₀ ≠ 0 := fun hc => by
+    have := congrArg Complex.re hc
+    rw [hs₀re] at this
+    simp at this
+  have hs1 : s₀ ≠ 1 := fun hc => by
+    have := congrArg Complex.re hc
+    rw [hs₀re] at this
+    simp at this
+  have hhalf : s₀ / 2 + 1 = (2 : ℂ) + ((t / 2 : ℝ) : ℂ) * I := by
+    rw [hs₀]
+    push_cast
+    ring
+  have hΓdiff : ∀ m : ℕ, s₀ / 2 + 1 ≠ -m := by
+    intro m hc
+    rw [hhalf] at hc
+    have := congrArg Complex.re hc
+    simp at this
+    linarith [Nat.cast_nonneg (α := ℝ) m]
+  have hΓ : zetaGammaFactor s₀ ≠ 0 := by
+    unfold zetaGammaFactor
+    exact Complex.Gamma_ne_zero hΓdiff
+  have hζ : riemannZeta s₀ ≠ 0 :=
+    riemannZeta_ne_zero_of_one_le_re (by rw [hs₀re]; norm_num)
+  have hid := neg_zeta_logDeriv_eq_of_riemannXi_hadamard (P := P) (s := s₀)
+    hfac hz hs0 hs1 hΓdiff hΓ hζ
+  -- solve for the zero sum
+  have hG : u6aXiHadamardZeroSum s₀ =
+      -Polynomial.eval s₀ P.derivative + 1 / (s₀ - 1)
+        - (1 / 2 : ℂ) * Real.log Real.pi
+        + (1 / 2 : ℂ) * digamma (s₀ / 2 + 1)
+        + deriv riemannZeta s₀ / riemannZeta s₀ := by
+    unfold u6aXiHadamardZeroSum
+    linear_combination hid
+  rw [hG]
+  -- the five bounds
+  have hb1 : ‖-Polynomial.eval s₀ P.derivative‖ = cP := by
+    rw [norm_neg, hP', Polynomial.eval_C]
+  have hb2 : ‖(1 : ℂ) / (s₀ - 1)‖ ≤ 1 := by
+    rw [norm_div, norm_one, div_le_one (by
+      have h3 : (3 : ℝ) ≤ |(s₀ - 1).im| := by
+        rw [Complex.sub_im, hs₀im, Complex.one_im, sub_zero]
+        exact ht
+      have := Complex.abs_im_le_norm (s₀ - 1)
+      linarith)]
+    have h3 : (3 : ℝ) ≤ |(s₀ - 1).im| := by
+      rw [Complex.sub_im, hs₀im, Complex.one_im, sub_zero]
+      exact ht
+    have := Complex.abs_im_le_norm (s₀ - 1)
+    linarith
+  have hb3 : ‖(1 / 2 : ℂ) * digamma (s₀ / 2 + 1)‖ ≤ Cψ * Real.log |t| := by
+    rw [norm_mul]
+    have hre : (s₀ / 2 + 1).re = 2 := by
+      rw [hhalf]
+      simp
+    have him : |(s₀ / 2 + 1).im| = |t| / 2 := by
+      rw [hhalf]
+      simp [abs_div]
+    have hψb := hψ (s₀ / 2 + 1) (by rw [hre]) (by rw [hre])
+    rw [him] at hψb
+    have hmono : Real.log (|t| / 2 + 2) ≤ Real.log (|t| + 2) :=
+      Real.log_le_log (by linarith) (by linarith)
+    have hlog2 : Real.log (|t| + 2) ≤ 2 * Real.log |t| := by
+      have h2t : |t| + 2 ≤ |t| ^ 2 := by nlinarith
+      calc Real.log (|t| + 2) ≤ Real.log (|t| ^ 2) :=
+            Real.log_le_log (by linarith) h2t
+        _ = 2 * Real.log |t| := by
+            rw [show |t| ^ 2 = |t| * |t| from sq |t| ▸ rfl, Real.log_mul
+              (by linarith) (by linarith)]
+            ring
+    have hn : ‖(1 / 2 : ℂ)‖ = 1 / 2 := by norm_num
+    rw [hn]
+    nlinarith [norm_nonneg (digamma (s₀ / 2 + 1))]
+  have hb4 : ‖deriv riemannZeta s₀ / riemannZeta s₀‖ ≤ A := by
+    have h := dlog_riemannZeta_bdd_on_vertical_lines_generalized 2 2 t
+      (by norm_num) le_rfl
+    have hpt : ((2 : ℝ) : ℂ) + (t : ℝ) * I = s₀ := by
+      rw [hs₀]
+      push_cast
+      ring
+    rw [hpt] at h
+    calc ‖deriv riemannZeta s₀ / riemannZeta s₀‖
+        = ‖-deriv riemannZeta s₀ / riemannZeta s₀‖ := by rw [neg_div, norm_neg]
+      _ ≤ A := h
+  calc ‖-Polynomial.eval s₀ P.derivative + 1 / (s₀ - 1)
+        - (1 / 2 : ℂ) * Real.log Real.pi
+        + (1 / 2 : ℂ) * digamma (s₀ / 2 + 1)
+        + deriv riemannZeta s₀ / riemannZeta s₀‖
+      ≤ ‖-Polynomial.eval s₀ P.derivative + 1 / (s₀ - 1)
+          - (1 / 2 : ℂ) * Real.log Real.pi
+          + (1 / 2 : ℂ) * digamma (s₀ / 2 + 1)‖
+        + ‖deriv riemannZeta s₀ / riemannZeta s₀‖ := norm_add_le _ _
+    _ ≤ ‖-Polynomial.eval s₀ P.derivative + 1 / (s₀ - 1)
+          - (1 / 2 : ℂ) * Real.log Real.pi‖
+        + ‖(1 / 2 : ℂ) * digamma (s₀ / 2 + 1)‖
+        + ‖deriv riemannZeta s₀ / riemannZeta s₀‖ := by
+        gcongr
+        exact norm_add_le _ _
+    _ ≤ ‖-Polynomial.eval s₀ P.derivative + 1 / (s₀ - 1)‖ + cπ
+        + ‖(1 / 2 : ℂ) * digamma (s₀ / 2 + 1)‖
+        + ‖deriv riemannZeta s₀ / riemannZeta s₀‖ := by
+        gcongr
+        exact le_trans (norm_sub_le _ _) (by rw [hcπ])
+    _ ≤ cP + 1 + cπ + Cψ * Real.log |t| + A := by
+        have hsum := norm_add_le (-Polynomial.eval s₀ P.derivative) (1 / (s₀ - 1))
+        rw [hb1] at hsum
+        linarith [hb2, hb3, hb4, hsum]
+    _ ≤ (A + cP + 1 + cπ + Cψ + 1) * Real.log |t| := by
+        have hA0 : 0 ≤ A := norm_nonneg _
+        have hcP0 : 0 ≤ cP := norm_nonneg _
+        have hcπ0 : 0 ≤ cπ := norm_nonneg _
+        nlinarith
+
+/-- The far tail at the anchor grows logarithmically, from the count atom. -/
+theorem u6aFT_far_at_anchor_le {P : Polynomial ℂ}
+    (hfac : ∀ w : ℂ, riemannXi w = Complex.exp (Polynomial.eval w P) *
+      Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
+    (hPdeg : P.degree ≤ 1)
+    {Ccnt Tₘᵢₙ : ℝ} (hcnt : U6aLocalZeroCountLogHypothesis Ccnt Tₘᵢₙ) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ |t| → 3 ≤ |t| →
+      ‖u6aXiFarHadamardRemainder t ((2 : ℂ) + t * I)‖ ≤ C * Real.log |t| := by
+  obtain ⟨Cg, hCg0, hCg⟩ := u6aFT_global_at_anchor_le hfac hPdeg
+  obtain ⟨hCcnt, hcnt⟩ := hcnt
+  refine ⟨Cg + (3 / 2) * Ccnt, by positivity, fun t hT h3 => ?_⟩
+  have hlog0 : 0 < Real.log |t| := Real.log_pos (by linarith)
+  unfold u6aXiFarHadamardRemainder
+  calc ‖u6aXiHadamardZeroSum ((2 : ℂ) + t * I) -
+        u6aXiFiberNearbyHadamardSum t ((2 : ℂ) + t * I)‖
+      ≤ ‖u6aXiHadamardZeroSum ((2 : ℂ) + t * I)‖ +
+        ‖u6aXiFiberNearbyHadamardSum t ((2 : ℂ) + t * I)‖ := norm_sub_le _ _
+    _ ≤ Cg * Real.log |t| + (3 / 2) * u6aNearbyZeroCount (-1) 2 t :=
+        add_le_add (hCg t h3) (u6aFT_nearby_at_anchor_le h3)
+    _ ≤ Cg * Real.log |t| + (3 / 2) * (Ccnt * Real.log |t|) :=
+        add_le_add le_rfl (mul_le_mul_of_nonneg_left (hcnt t hT h3) (by norm_num))
+    _ = (Cg + (3 / 2) * Ccnt) * Real.log |t| := by ring
+
 end
 
 end Kadiri
