@@ -366,6 +366,81 @@ theorem u6aCA_exists_norm_riemannZeta_le_band :
           Real.rpow_le_rpow_of_exponent_le hx1 (by linarith)
     nlinarith
 
+/-! ## The center lower bound `‖ζ(2+it)‖ ≥ 1/4` -/
+
+private lemma u6aCA_term_norm (s : ℂ) (hs : s.re = 2) (n : ℕ) :
+    ‖(1 : ℂ) / (↑n + 1) ^ s‖ = 1 / ((n : ℝ) + 1) ^ 2 := by
+  have hcast : ((n : ℂ) + 1) = ↑((n : ℝ) + 1) := by push_cast; ring
+  have hpos : (0 : ℝ) < (n : ℝ) + 1 := by positivity
+  rw [norm_div, norm_one, hcast, Complex.norm_cpow_eq_rpow_re_of_pos hpos, hs]
+  norm_num
+
+private lemma u6aCA_tail_summable :
+    Summable (fun n : ℕ => 1 / ((n : ℝ) + 1) ^ 2) := by
+  have hbase : Summable (fun n : ℕ => 1 / (n : ℝ) ^ 2) :=
+    Real.summable_one_div_nat_pow.mpr one_lt_two
+  have := (summable_nat_add_iff (f := fun n : ℕ => 1 / (n : ℝ) ^ 2) 1).mpr hbase
+  simpa [Nat.cast_add] using this
+
+/-- The Dirichlet-series triangle bound: `‖ζ(2+it)‖ ≥ 1/4` uniformly in `t`. -/
+theorem u6aCA_norm_riemannZeta_two_ge (t : ℝ) :
+    (1 / 4 : ℝ) ≤ ‖riemannZeta (2 + ↑t * I)‖ := by
+  set s : ℂ := 2 + ↑t * I with hsdef
+  have hsre : s.re = 2 := by simp [hsdef]
+  have h1 : 1 < s.re := by rw [hsre]; norm_num
+  have hzeta := zeta_eq_tsum_one_div_nat_add_one_cpow (s := s) h1
+  have hnorms : Summable (fun n : ℕ => ‖(1 : ℂ) / (↑n + 1) ^ s‖) := by
+    have heq : (fun n : ℕ => ‖(1 : ℂ) / (↑n + 1) ^ s‖) =
+        fun n : ℕ => 1 / ((n : ℝ) + 1) ^ 2 :=
+      funext fun n => u6aCA_term_norm s hsre n
+    rw [heq]
+    exact u6aCA_tail_summable
+  have hsumm : Summable (fun n : ℕ => (1 : ℂ) / (↑n + 1) ^ s) :=
+    Summable.of_norm hnorms
+  have hsplit := hsumm.tsum_eq_zero_add
+  have hfirst : (1 : ℂ) / (↑(0 : ℕ) + 1) ^ s = 1 := by
+    norm_num
+  rw [hfirst] at hsplit
+  -- the tail and its norm
+  set T : ℂ := ∑' n : ℕ, (1 : ℂ) / (↑(n + 1) + 1) ^ s with hT
+  have htail_norms : Summable (fun n : ℕ => ‖(1 : ℂ) / (↑(n + 1) + 1) ^ s‖) :=
+    (summable_nat_add_iff 1).mpr hnorms
+  have htail_le : ‖T‖ ≤ ∑' n : ℕ, ‖(1 : ℂ) / (↑(n + 1) + 1) ^ s‖ :=
+    norm_tsum_le_tsum_norm htail_norms
+  have htail_eq : (∑' n : ℕ, ‖(1 : ℂ) / (↑(n + 1) + 1) ^ s‖) =
+      ∑' n : ℕ, 1 / ((n : ℝ) + 2) ^ 2 := by
+    congr 1
+    funext n
+    rw [u6aCA_term_norm s hsre (n + 1)]
+    push_cast
+    ring_nf
+  -- the Basel tail: ∑ 1/(n+2)² = π²/6 - 1 ≤ 3/4
+  have hbasel := hasSum_zeta_two
+  have hbasel_sum : Summable (fun n : ℕ => 1 / (n : ℝ) ^ 2) := hbasel.summable
+  have hshift := hbasel_sum.sum_add_tsum_nat_add 2
+  have hhead : (∑ i ∈ Finset.range 2, 1 / ((i : ℝ)) ^ 2) = 1 := by
+    rw [Finset.sum_range_succ, Finset.sum_range_one]
+    norm_num
+  rw [hbasel.tsum_eq, hhead] at hshift
+  have htail_val : (∑' n : ℕ, 1 / ((n : ℝ) + 2) ^ 2) = Real.pi ^ 2 / 6 - 1 := by
+    have hcast : (fun n : ℕ => 1 / ((n + 2 : ℕ) : ℝ) ^ 2) =
+        fun n : ℕ => 1 / ((n : ℝ) + 2) ^ 2 := by
+      funext n
+      push_cast
+      ring
+    rw [← hcast]
+    linarith [hshift]
+  have htail_bound : ‖T‖ ≤ 3 / 4 := by
+    rw [htail_eq, htail_val] at htail_le
+    have hpi : Real.pi < 3.15 := Real.pi_lt_d2
+    nlinarith [Real.pi_pos]
+  -- assemble
+  rw [hzeta, hsplit]
+  have htri : (1 : ℝ) ≤ ‖(1 : ℂ) + T‖ + ‖T‖ := by
+    have h := norm_sub_le ((1 : ℂ) + T) T
+    simpa using h
+  linarith
+
 end
 
 end Kadiri
