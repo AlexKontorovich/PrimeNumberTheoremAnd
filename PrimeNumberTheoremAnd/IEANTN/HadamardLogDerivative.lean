@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import Mathlib.Analysis.Calculus.LogDeriv
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
@@ -15,6 +16,8 @@ argument.
 namespace Kadiri
 
 open Complex
+open Filter
+open scoped Topology
 
 /-- The genus-one elementary factor used in Hadamard products. -/
 noncomputable def hadamardGenusOneFactor (z : ℂ) : ℂ :=
@@ -152,6 +155,65 @@ noncomputable def zetaGammaFactor (s : ℂ) : ℂ :=
 `(s - 1) π^{-s/2} Γ(s/2+1) ζ(s)`. -/
 noncomputable def completedZetaFactor (s : ℂ) : ℂ :=
   zetaPoleFactor s * zetaPiFactor s * zetaGammaFactor s * riemannZeta s
+
+private lemma zetaPiFactor_eq_cpow (s : ℂ) :
+    zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
+  unfold zetaPiFactor
+  rw [Complex.cpow_def_of_ne_zero, Complex.ofReal_log Real.pi_pos.le]
+  · ring_nf
+  · exact_mod_cast Real.pi_ne_zero
+
+private lemma completedZetaFactor_eq_riemannXi {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓhalf : Gamma (s / 2) ≠ 0) :
+    completedZetaFactor s = riemannXi s := by
+  have hGamma :
+      Gamma (s / 2 + 1) = (s / 2) * Gamma (s / 2) := by
+    exact Gamma_add_one (s / 2) (div_ne_zero hs0 two_ne_zero)
+  rw [completedZetaFactor, zetaPoleFactor, zetaGammaFactor, zetaPiFactor_eq_cpow,
+    riemannXi_eq_mul_completedRiemannZeta hs0 hs1,
+    hGamma, riemannZeta_def_of_ne_zero hs0, Gammaℝ_def]
+  field_simp [hs0, hΓhalf]
+
+private lemma gamma_half_avoid_neg_nat_of_shift {s : ℂ} (hs0 : s ≠ 0)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    ∀ m : ℕ, s / 2 ≠ -m := by
+  intro m hm
+  cases m with
+  | zero =>
+      apply hs0
+      rw [show s = 2 * (s / 2) by ring, hm]
+      ring
+  | succ m =>
+      have hbad : s / 2 + 1 = -(m : ℂ) := by
+        rw [hm]
+        norm_num
+      exact hΓdiff m hbad
+
+private lemma gamma_half_ne_zero_of_shift {s : ℂ} (hs0 : s ≠ 0)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    Gamma (s / 2) ≠ 0 :=
+  Gamma_ne_zero (gamma_half_avoid_neg_nat_of_shift hs0 hΓdiff)
+
+private theorem logDeriv_completedZetaFactor_eq_logDeriv_riemannXi {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    logDeriv completedZetaFactor s = logDeriv riemannXi s := by
+  have hΓhalf_s : Gamma (s / 2) ≠ 0 :=
+    gamma_half_ne_zero_of_shift hs0 hΓdiff
+  have hΓhalf_near : ∀ᶠ z in 𝓝 s, Gamma (z / 2) ≠ 0 := by
+    have hdiff : DifferentiableAt ℂ (fun z : ℂ => Gamma (z / 2)) s :=
+      (differentiableAt_Gamma _ (gamma_half_avoid_neg_nat_of_shift hs0 hΓdiff)).comp
+        s (by fun_prop)
+    have hcont : ContinuousAt (fun z : ℂ => Gamma (z / 2)) s := hdiff.continuousAt
+    exact (hcont.ne_iff_eventually_ne continuousAt_const).mp hΓhalf_s
+  have heq_near : completedZetaFactor =ᶠ[𝓝 s] riemannXi := by
+    filter_upwards [isOpen_ne.mem_nhds hs0, isOpen_ne.mem_nhds hs1, hΓhalf_near] with
+      z hz0 hz1 hΓ
+    exact completedZetaFactor_eq_riemannXi hz0 hz1 hΓ
+  rw [logDeriv_apply, logDeriv_apply]
+  rw [Filter.EventuallyEq.deriv_eq heq_near]
+  exact congrArg (fun z => deriv riemannXi s / z) heq_near.eq_of_nhds
 
 theorem logDeriv_zetaPoleFactor (s : ℂ) :
     logDeriv zetaPoleFactor s = 1 / (s - 1) := by
@@ -296,5 +358,46 @@ theorem neg_zeta_logDeriv_eq_of_centered_orbit_hadamard
       + (1 / 2 : ℂ) * digamma (s / 2 + 1) :=
   neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv s B (centeredHadamardOrbitLogSum orbit s)
     hs1 hΓdiff hΓ hζ hHad
+
+/-- Bridge Mathlib's xi Hadamard logarithmic derivative to the Kadiri
+`-ζ'/ζ` expression.  The zero sum is exactly the one supplied by
+`logDeriv_riemannXi_eq_polynomial_derivative_add_tsum`; analytic estimates of
+the remaining terms are deliberately kept separate. -/
+theorem neg_zeta_logDeriv_eq_of_riemannXi_hadamard
+    {P : Polynomial ℂ} {s : ℂ}
+    (hfac : ∀ w : ℂ, riemannXi w =
+      Complex.exp (Polynomial.eval w P) *
+        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p)
+    (hs0 : s ≠ 0)
+    (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0)
+    (hζ : riemannZeta s ≠ 0) :
+    -deriv riemannZeta s / riemannZeta s =
+      -Polynomial.eval s P.derivative
+      - (∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p))
+      + 1 / (s - 1)
+      - (1 / 2 : ℂ) * Real.log Real.pi
+      + (1 / 2 : ℂ) * digamma (s / 2 + 1) := by
+  have hHad :=
+    logDeriv_riemannXi_eq_polynomial_derivative_add_tsum
+      (P := P) (z := s) hfac hz
+  have hcomp : logDeriv completedZetaFactor s =
+      Polynomial.eval s P.derivative +
+        ∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p) := by
+    rw [logDeriv_completedZetaFactor_eq_logDeriv_riemannXi hs0 hs1 hΓdiff]
+    exact hHad
+  exact neg_zeta_logDeriv_eq_of_completed_hadamard_logDeriv
+    s (Polynomial.eval s P.derivative)
+    (∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+        1 / Complex.Hadamard.divisorZeroIndex₀_val p))
+    hs1 hΓdiff hΓ hζ hcomp
 
 end Kadiri
