@@ -1590,9 +1590,6 @@ theorem exists_height_with_small_reciprocalZeroSum_of_badHeightFinset_average
     (hSInt : IntervalIntegrable
       ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
         (u6aReciprocalZeroSum σ₁ σ₂)) volume X (2 * X))
-    (hBInt : IntervalIntegrable
-      ((u6aSafeHeightSet σ₁ σ₂ X δ).indicator
-        fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X))
     (hAvg :
       (∫ t in X..(2 * X),
           (u6aSafeHeightSet σ₁ σ₂ X δ).indicator
@@ -1604,7 +1601,7 @@ theorem exists_height_with_small_reciprocalZeroSum_of_badHeightFinset_average
       u6aReciprocalZeroSum σ₁ σ₂ T ≤ u6aAveragedSelectionBound X δ M :=
   exists_height_with_small_reciprocalZeroSum_of_indicator_average hX
     (u6aSafeHeightSet_restrict_measure_ne_zero_of_badHeightFinset hX hδ hsmall)
-    hSInt hBInt hAvg
+    hSInt (intervalIntegrable_u6aAveragedSelectionBound_indicator hX hδ) hAvg
 
 /-- Averaged selector in the actual U6a strip, with the safe-set measure
 hypothesis discharged by the crude-majorant geometric count source. -/
@@ -1616,9 +1613,6 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_geometric_average :
       IntervalIntegrable
         ((u6aSafeHeightSet (-1) 2 X δ).indicator
           (u6aReciprocalZeroSum (-1) 2)) volume X (2 * X) →
-      IntervalIntegrable
-        ((u6aSafeHeightSet (-1) 2 X δ).indicator
-          fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X) →
       (∫ t in X..(2 * X),
           (u6aSafeHeightSet (-1) 2 X δ).indicator
             (u6aReciprocalZeroSum (-1) 2) t ∂volume) ≤
@@ -1630,9 +1624,10 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_geometric_average :
   obtain ⟨C, D, hC, hD, hEpos⟩ :=
     u6aSafeHeightSet_restrict_measure_ne_zero_of_crude_geometric
   refine ⟨C, D, hC, hD, ?_⟩
-  intro k X δ M hX hδ hT hsmall hSInt hBInt hAvg
+  intro k X δ M hX hδ hT hsmall hSInt hAvg
   exact exists_height_with_small_reciprocalZeroSum_of_indicator_average hX
-    (hEpos k X δ hX hδ hT hsmall) hSInt hBInt hAvg
+    (hEpos k X δ hX hδ hT hsmall) hSInt
+    (intervalIntegrable_u6aAveragedSelectionBound_indicator hX hδ) hAvg
 
 /-- Averaged selector in the actual U6a strip with the explicit crude-majorant
 `δ_X` choice. -/
@@ -1643,10 +1638,6 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta_average :
       IntervalIntegrable
         ((u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
           (u6aReciprocalZeroSum (-1) 2)) volume X (2 * X) →
-      IntervalIntegrable
-        ((u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
-          fun _ : ℝ => u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) M)
-            volume X (2 * X) →
       (∫ t in X..(2 * X),
           (u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
             (u6aReciprocalZeroSum (-1) 2) t ∂volume) ≤
@@ -1660,10 +1651,10 @@ theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta_average :
   obtain ⟨C, D, hC, hD, hsel⟩ :=
     exists_height_with_small_reciprocalZeroSum_of_crude_geometric_average
   refine ⟨C, D, hC, hD, ?_⟩
-  intro k X M hX hT hSInt hBInt hAvg
+  intro k X M hX hT hSInt hAvg
   exact hsel k X (u6aCrudeDelta C D X k) M hX
     (u6aCrudeDelta_pos k hX hC.le hD) hT
-    (u6aCrudeDelta_small k hX hC.le hD) hSInt hBInt hAvg
+    (u6aCrudeDelta_small k hX hC.le hD) hSInt hAvg
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
