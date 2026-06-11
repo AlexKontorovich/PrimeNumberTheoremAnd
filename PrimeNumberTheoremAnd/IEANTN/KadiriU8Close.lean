@@ -265,6 +265,152 @@ theorem u8_kadiri_thm_3_1_q1_kadiriTestFn {d : ℝ} (hd : 0 < d) {f : ℝ → �
     (u8LeftLineFunctionalEquationSplitHypothesis_kadiriTestFn hd hf_C2 hf_supp hf_d
       hf_deriv_0 hf_deriv_d hs (by norm_num) (by norm_num))
 
+/-! ## The equation (16) consumer on the contour route -/
+
+/-- The weighted complex form of equation (16), proved from the contour chain
+instead of the sorried `kadiri_thm_3_1_q1`: the conclusion of
+`identity_16_complex_weighted_of_integrable` with the `hΓ_int` hypothesis
+discharged and the axiom debt reduced to the good-heights bound (sub-unit
+U6a).  The dictionary between the two statements is the transform identity
+`kadiriTestFn_laplaceTransform` and the double integration by parts
+`laplaceTransform_ibp`. -/
+theorem identity_16_complex_weighted_of_good_heights {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
+      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
+      + riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ))
+      + laplaceTransform f (s - 1)
+      + ((1 / (2 * (Real.pi : ℂ))) *
+          (∫ t : ℝ,
+            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
+  -- the contour chain, with the transform abbreviation unfolded
+  have h : (∑' n : ℕ, (Λ n : ℂ) * kadiriTestFn f s (Real.log n)) =
+      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (-(-1 : ℂ) * (y : ℂ)) ∂volume)
+      + (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (-(0 : ℂ) * (y : ℂ)) ∂volume)
+      - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ ∫ y in (.Ioi (0 : ℝ)),
+            kadiriTestFn f s y * exp (-(-ρ) * (y : ℂ)) ∂volume)
+      - kadiriTestFn f s 0 * ((Real.log Real.pi : ℝ) : ℂ)
+      + ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * kadiriTestFn f s (-Real.log n)
+      + (1 / (2 * (Real.pi : ℂ))) *
+          ∫ t : ℝ, ((digamma (((1 / 2 : ℂ) + (t : ℂ) * I) / 2)).re : ℂ) *
+            ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+              exp (-(-((1 / 2 : ℂ) + (t : ℂ) * I)) * (y : ℂ)) ∂volume :=
+    u8_kadiri_thm_3_1_q1_kadiriTestFn hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hs
+  -- the transform dictionary
+  have hval : ∀ z : ℂ, 0 < (s + z).re →
+      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume) =
+        (f 0 : ℂ) / (s + z) - laplaceTransform f (s + z) :=
+    fun z hz => kadiriTestFn_laplaceTransform hd hf_C2 hf_supp s z hz
+  have hibp : ∀ w : ℂ, w ≠ 0 → laplaceTransform f w =
+      (f 0 : ℂ) / w + laplaceTransform (fun u => deriv (deriv f) u) w / w ^ 2 :=
+    fun w hw => laplaceTransform_ibp hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hw
+  -- the pole and constant kernel values
+  have hsm1 : (0 : ℝ) < (s + (-1 : ℂ)).re := by
+    simp only [Complex.add_re, Complex.neg_re, Complex.one_re]
+    linarith
+  have hs0' : (0 : ℝ) < (s + 0).re := by
+    rw [add_zero]
+    linarith
+  rw [hval (-1 : ℂ) hsm1, hval 0 hs0',
+    show s + (-1 : ℂ) = s - 1 from by ring, add_zero, kadiriTestFn_zero] at h
+  -- the reflected series vanishes
+  have hRefl : (∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * kadiriTestFn f s (-Real.log n)) = 0 := by
+    have hterm : ∀ n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * kadiriTestFn f s (-Real.log n) = 0 :=
+      fun n => by rw [kadiriTestFn_neg_log, mul_zero]
+    simp only [hterm]
+    exact tsum_zero
+  rw [hRefl] at h
+  -- the zero sum in pole-subtracted form
+  have hZ : riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+      (fun ρ ↦ ∫ y in (.Ioi (0 : ℝ)),
+        kadiriTestFn f s y * exp (-(-ρ) * (y : ℂ)) ∂volume) =
+      riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+        (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ)) := by
+    unfold riemannZeta.zeroes_sum
+    refine tsum_congr fun ρ => ?_
+    dsimp only
+    congr 1
+    have hρre : ρ.val.re < 1 := ρ.2.1.2
+    rw [hval (-ρ.val) (by
+      simp only [Complex.add_re, Complex.neg_re]
+      linarith), show s + -ρ.val = s - ρ.val from by ring]
+  rw [hZ] at h
+  -- the gamma contour term through the double integration by parts
+  have hΓ : (∫ t : ℝ, ((digamma (((1 / 2 : ℂ) + (t : ℂ) * I) / 2)).re : ℂ) *
+      ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+        exp (-(-((1 / 2 : ℂ) + (t : ℂ) * I)) * (y : ℂ)) ∂volume) =
+      -∫ t : ℝ, ((digamma (((1 / 2 : ℂ) + (t : ℂ) * I) / 2)).re : ℂ) *
+        laplaceTransform (fun u ↦ deriv (deriv f) u) (s - ((1 / 2 : ℂ) + (t : ℂ) * I))
+          / (s - ((1 / 2 : ℂ) + (t : ℂ) * I)) ^ 2 := by
+    rw [← integral_neg]
+    congr 1
+    funext t
+    have hhre : ((1 / 2 : ℂ) + (t : ℂ) * I).re = 1 / 2 := by simp
+    have hwne : s - ((1 / 2 : ℂ) + (t : ℂ) * I) ≠ 0 := by
+      intro hc
+      have h2 := congrArg Complex.re hc
+      rw [Complex.sub_re, hhre, Complex.zero_re] at h2
+      linarith
+    rw [hval (-((1 / 2 : ℂ) + (t : ℂ) * I)) (by
+        simp only [Complex.add_re, Complex.neg_re, hhre]
+        linarith),
+      show s + -((1 / 2 : ℂ) + (t : ℂ) * I) = s - ((1 / 2 : ℂ) + (t : ℂ) * I) from by ring,
+      hibp _ hwne]
+    ring
+  rw [hΓ] at h
+  -- split the von Mangoldt side
+  have hL : Summable fun n : ℕ => (Λ n : ℂ) / (n : ℂ) ^ s := by
+    refine (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := s) hs).congr fun n => ?_
+    rcases eq_or_ne n 0 with rfl | hn
+    · simp
+    · rw [LSeries.term_of_ne_zero hn]
+  have hfin : ∀ n : ℕ, n ∉ Finset.range (⌈Real.exp d⌉₊ + 1) →
+      (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ) = 0 := by
+    intro n hn
+    have hn' : ⌈Real.exp d⌉₊ + 1 ≤ n := by simpa [Finset.mem_range, not_lt] using hn
+    have hexp : Real.exp d ≤ (n : ℝ) := by
+      calc Real.exp d ≤ (⌈Real.exp d⌉₊ : ℝ) := Nat.le_ceil _
+        _ ≤ (n : ℝ) := by exact_mod_cast Nat.le_of_succ_le hn'
+    have hlog : d ≤ Real.log n := by
+      rw [← Real.log_exp d]
+      exact Real.log_le_log (Real.exp_pos d) hexp
+    have hf0 : f (Real.log n) = 0 := by
+      refine image_eq_zero_of_notMem_tsupport fun hmem => ?_
+      exact absurd (hf_supp hmem).2 (not_lt.mpr hlog)
+    rw [hf0]
+    simp
+  have hA' : Summable fun n : ℕ =>
+      (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ) :=
+    summable_of_ne_finset_zero hfin
+  have hsplit : (∑' n : ℕ, (Λ n : ℂ) * kadiriTestFn f s (Real.log n)) =
+      (f 0 : ℂ) * (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) -
+        ∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ) := by
+    rw [← tsum_mul_left, ← Summable.tsum_sub (hL.mul_left _) hA']
+    refine tsum_congr fun n => ?_
+    rcases eq_or_ne n 0 with rfl | hn
+    · simp [kadiriTestFn_zero]
+    · rw [kadiriTestFn_log f s (Nat.one_le_iff_ne_zero.mpr hn)]
+      ring
+  rw [hsplit] at h
+  -- the constant kernel value through the parts identity at s
+  have hsne : s ≠ 0 := by
+    intro hc
+    rw [hc] at hs
+    simp only [Complex.zero_re] at hs
+    linarith
+  rw [hibp s hsne] at h
+  linear_combination -h
+
 end
 
 end Kadiri
