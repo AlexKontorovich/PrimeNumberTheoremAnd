@@ -562,6 +562,80 @@ theorem u6aFT_far_at_anchor_le {P : Polynomial ℂ}
         add_le_add le_rfl (mul_le_mul_of_nonneg_left (hcnt t hT h3) (by norm_num))
     _ = (Cg + (3 / 2) * Ccnt) * Real.log |t| := by ring
 
+/-! ## Junk-robust summability and the unconditional split -/
+
+/-- The xi Hadamard kernel family is summable at every point: at a zero value
+the junk terms modify only the finite fiber, and off a finite ball the kernel
+collapses to `s / (ρ (s - ρ))` with quadratic decay. -/
+theorem u6aFT_summable_xiKernel (s : ℂ) :
+    Summable (fun p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) =>
+      (1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+        1 / Complex.Hadamard.divisorZeroIndex₀_val p) := by
+  have hg : Summable (fun p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+      (Set.univ : Set ℂ) =>
+      (2 * ‖s‖ + 5) * (‖Complex.Hadamard.divisorZeroIndex₀_val p‖⁻¹ ^ (2 : ℕ))) :=
+    summable_riemannXi_divisorZeroIndex₀_norm_inv_sq.mul_left _
+  refine Summable.of_norm_bounded_eventually hg ?_
+  have hfin : ({p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) |
+      ‖Complex.Hadamard.divisorZeroIndex₀_val p‖ ≤ 2 * ‖s‖ + 2} : Set _).Finite :=
+    Complex.Hadamard.divisorZeroIndex₀_norm_le_finite (2 * ‖s‖ + 2) (Set.subset_univ _)
+  rw [Filter.eventually_cofinite]
+  refine hfin.subset ?_
+  intro p hp
+  simp only [Set.mem_setOf_eq, not_le] at hp ⊢
+  by_contra hval
+  rw [not_le] at hval
+  set ρ := Complex.Hadamard.divisorZeroIndex₀_val p with hρdef
+  have hρ0 : ρ ≠ 0 := Complex.Hadamard.divisorZeroIndex₀_val_ne_zero p
+  have hρpos : (0 : ℝ) < ‖ρ‖ := by
+    have := norm_nonneg s
+    linarith
+  have hsρ : s - ρ ≠ 0 := by
+    intro h
+    have heq : s = ρ := by linear_combination h
+    have hnorm : ‖ρ‖ = ‖s‖ := by rw [heq]
+    have := norm_nonneg s
+    linarith
+  have hker : (1 : ℂ) / (s - ρ) + 1 / ρ = s / (ρ * (s - ρ)) := by
+    field_simp
+    ring
+  have hlow : ‖ρ‖ / 2 ≤ ‖s - ρ‖ := by
+    have h1 : ‖ρ‖ - ‖s‖ ≤ ‖ρ - s‖ := norm_sub_norm_le ρ s
+    rw [norm_sub_rev] at h1
+    linarith
+  have hsρpos : (0 : ℝ) < ‖s - ρ‖ := norm_pos_iff.mpr hsρ
+  have hbound : ‖(1 : ℂ) / (s - ρ) + 1 / ρ‖ ≤ (2 * ‖s‖ + 5) * ‖ρ‖⁻¹ ^ 2 := by
+    rw [hker, norm_div, norm_mul, inv_pow, ← one_div, mul_one_div,
+      div_le_div_iff₀ (by positivity) (by positivity)]
+    nlinarith [mul_le_mul_of_nonneg_left hlow
+      (mul_nonneg (by linarith [norm_nonneg s] : (0 : ℝ) ≤ 2 * ‖s‖ + 5) hρpos.le),
+      norm_nonneg s, sq_nonneg ‖ρ‖]
+  exact absurd hbound (not_le.mpr hp)
+
+/-- The unconditional split: no zero-avoidance hypothesis is needed, since the
+junk conventions of the global tsum and the fiber sum align. -/
+theorem u6aXiHadamardZeroSum_eq_nearby_add_farTail' (t : ℝ) (s : ℂ) :
+    u6aXiHadamardZeroSum s =
+      u6aXiFiberNearbyHadamardSum t s +
+        ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+            p ∉ u6aXiNearbyIndexFinset t},
+          ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+            1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) := by
+  have hsplit := (u6aFT_summable_xiKernel s).sum_add_tsum_subtype_compl
+    (u6aXiNearbyIndexFinset t)
+  unfold u6aXiHadamardZeroSum
+  rw [← hsplit, u6aXiFiberNearbyHadamardSum_eq_indexFinset_sum]
+
+/-- The far remainder is the complement tsum, unconditionally. -/
+theorem u6aXiFarHadamardRemainder_eq_tsum_compl' (t : ℝ) (s : ℂ) :
+    u6aXiFarHadamardRemainder t s =
+      ∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+        ((1 : ℂ) / (s - Complex.Hadamard.divisorZeroIndex₀_val p.val) +
+          1 / Complex.Hadamard.divisorZeroIndex₀_val p.val) := by
+  unfold u6aXiFarHadamardRemainder
+  linear_combination u6aXiHadamardZeroSum_eq_nearby_add_farTail' t s
+
 end
 
 end Kadiri
