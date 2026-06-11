@@ -101,7 +101,72 @@ surrogate's log-norm is linear in `‖z‖`. -/
 private lemma surrogate_growth_right :
     ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, 2 ≤ z.re →
       Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
-  sorry
+  set M : ℝ := ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 with hM
+  have hMsum : Summable (fun n : ℕ ↦ 1 / ((n : ℝ) + 1) ^ 2) := by
+    have h := (summable_nat_add_iff (f := fun n : ℕ ↦ 1 / (n : ℝ) ^ 2) 1).mpr
+      (Real.summable_one_div_nat_pow.mpr one_lt_two)
+    simpa using h
+  have hM0 : 0 ≤ M := tsum_nonneg fun n ↦ by positivity
+  have hζ : ∀ z : ℂ, 2 ≤ z.re → ‖riemannZeta z‖ ≤ M := by
+    intro z hz
+    have hterm : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ = 1 / ((n : ℝ) + 1) ^ z.re := by
+      intro n
+      rw [norm_div, norm_one]
+      congr 1
+      have h1 : ((n : ℂ) + 1) = ((n + 1 : ℕ) : ℂ) := by push_cast; ring
+      rw [h1, Complex.norm_natCast_cpow_of_pos (Nat.succ_pos n)]
+      push_cast
+      ring
+    have hle : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ ≤ 1 / ((n : ℝ) + 1) ^ 2 := by
+      intro n
+      rw [hterm n]
+      have hb1 : (1 : ℝ) ≤ (n : ℝ) + 1 := by
+        have := Nat.cast_nonneg (α := ℝ) n
+        linarith
+      have hrw : ((n : ℝ) + 1) ^ (2 : ℕ) = ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) := by
+        rw [Real.rpow_natCast]
+      have h2 : ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) ≤ ((n : ℝ) + 1) ^ z.re :=
+        Real.rpow_le_rpow_of_exponent_le hb1 (by exact_mod_cast hz)
+      rw [hrw]
+      gcongr
+    have hns : Summable (fun n : ℕ ↦ ‖1 / ((n : ℂ) + 1) ^ z‖) :=
+      Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) hle hMsum
+    rw [zeta_eq_tsum_one_div_nat_add_one_cpow (by linarith : 1 < z.re)]
+    calc ‖∑' n : ℕ, 1 / ((n : ℂ) + 1) ^ z‖
+        ≤ ∑' n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ := norm_tsum_le_tsum_norm hns
+      _ ≤ ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 := Summable.tsum_le_tsum hle hns hMsum
+  refine ⟨Real.log (1 + M) + 1, ?_, fun z hz ↦ ?_⟩
+  · have h := Real.log_nonneg (by linarith : (1 : ℝ) ≤ 1 + M)
+    linarith
+  · have hz1 : z ≠ 1 := by
+      intro h
+      rw [h] at hz
+      norm_num [Complex.one_re] at hz
+    have hzn : (0 : ℝ) ≤ ‖z‖ := norm_nonneg z
+    have hg : ‖zetaSurrogate z‖ ≤ M * (1 + ‖z‖) := by
+      rw [zetaSurrogate, if_neg hz1, norm_mul]
+      have h1 : ‖z - 1‖ ≤ 1 + ‖z‖ := by
+        calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
+          _ = 1 + ‖z‖ := by rw [norm_one]; ring
+      calc ‖z - 1‖ * ‖riemannZeta z‖
+          ≤ (1 + ‖z‖) * M :=
+            mul_le_mul h1 (hζ z hz) (norm_nonneg _) (by linarith)
+        _ = M * (1 + ‖z‖) := by ring
+    have hMz : 1 + ‖zetaSurrogate z‖ ≤ (1 + M) * (1 + ‖z‖) := by
+      nlinarith [hg, mul_nonneg hM0 hzn, norm_nonneg (zetaSurrogate z)]
+    calc Real.log (1 + ‖zetaSurrogate z‖)
+        ≤ Real.log ((1 + M) * (1 + ‖z‖)) :=
+          Real.log_le_log (by positivity) hMz
+      _ = Real.log (1 + M) + Real.log (1 + ‖z‖) :=
+          Real.log_mul (by linarith) (by linarith)
+      _ ≤ Real.log (1 + M) * (1 + ‖z‖) + (1 + ‖z‖) := by
+          have hl1 : Real.log (1 + M) ≤ Real.log (1 + M) * (1 + ‖z‖) :=
+            le_mul_of_one_le_right (Real.log_nonneg (by linarith)) (by linarith)
+          have hl2 : Real.log (1 + ‖z‖) ≤ 1 + ‖z‖ := by
+            have := Real.log_le_sub_one_of_pos (by linarith : (0 : ℝ) < 1 + ‖z‖)
+            linarith
+          linarith
+      _ = (Real.log (1 + M) + 1) * (1 + ‖z‖) := by ring
 
 /-- Critical band `-1 ≤ Re ≤ 2`: polynomial bound on the surrogate via the truncated
 Euler-Maclaurin representation (`ZetaBounds.riemannZeta0`) for `|Im| ≥ 1`, and
