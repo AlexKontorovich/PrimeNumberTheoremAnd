@@ -813,7 +813,7 @@ content here is the line-integrability of the pole-subtracted transform and
 the explicit Perron-kernel contribution at the weighted integer points.  The
 remaining analytic inputs identify the pole-filled function as the Mellin-side
 source of the pole-subtracted transform. -/
-theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : ℝ}
+theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_poleFilled {d σ : ℝ}
     (hd : 0 < d) (hσ : σ ≠ 0) {f : ℝ → ℝ} (a : ℕ → ℂ)
     (ha0 : a 0 = 0) (ha1 : a 1 = 0)
     (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
@@ -853,8 +853,30 @@ theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : �
   simp
 
 /-- Consumer-facing weighted pole-split inversion for the real Kadiri class.
-All Mellin convergence, transform-identification, vertical-integrability, and
-integer-point continuity hypotheses are discharged from the Kadiri surface. -/
+The line-integrability hypothesis is discharged from the Kadiri two-IBP
+Laplace decay theorem; the remaining Mellin convergence, transform identity,
+and integer-point continuity facts are also supplied from the Kadiri surface. -/
+theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay {d σ : ℝ}
+    (hd : 0 < d) (hσ : 0 < σ) {f : ℝ → ℝ} (a : ℕ → ℂ)
+    (ha0 : a 0 = 0) (ha1 : a 1 = 0)
+    (hf_C2 : ContDiffOn ℝ 2 f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0) :
+    (∑' n : ℕ, a n * kadiriPoleSplitMellinInv σ f n) =
+      ∑' n : ℕ, a n * (f (Real.log n) : ℂ) := by
+  exact kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_poleFilled
+    (d := d) (σ := σ) hd hσ.ne' a ha0 ha1 hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d
+    (kadiriPoleFilledMellinConvergent_of_laplaceSurface (d := d) (σ := σ)
+      hd hσ hf_C2 hf_supp)
+    (fun y => kadiriPoleFilled_mellin_eq_poleSubtracted (d := d) hd hf_C2 hf_supp
+      (s := σ + y * I) (by simpa [Complex.add_re, Complex.mul_re] using hσ))
+    (fun n hn => kadiriPoleFilled_continuousAt_nat_of_one_lt (d := d)
+      hd hf_C2 hf_supp hf_d hn)
+
+/-- Consumer-facing weighted pole-split inversion for the real Kadiri class. -/
 theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_realKadiri {d σ : ℝ}
     (hd : 0 < d) (hσ : 0 < σ) {f : ℝ → ℝ} (a : ℕ → ℂ)
     (ha0 : a 0 = 0) (ha1 : a 1 = 0)
@@ -866,14 +888,7 @@ theorem kadiriPoleSplit_mellinInv_weighted_log_sum_eq_realKadiri {d σ : ℝ}
     (∑' n : ℕ, a n * kadiriPoleSplitMellinInv σ f n) =
       ∑' n : ℕ, a n * (f (Real.log n) : ℂ) := by
   exact kadiriPoleSplit_mellinInv_weighted_log_sum_eq_of_laplaceDecay
-    (d := d) (σ := σ) hd hσ.ne' a ha0 ha1 hf_C2 hf_supp hf_d hf_deriv_0
-    hf_deriv_d
-    (kadiriPoleFilledMellinConvergent_of_laplaceSurface (d := d) (σ := σ)
-      hd hσ hf_C2 hf_supp)
-    (fun y => kadiriPoleFilled_mellin_eq_poleSubtracted (d := d) hd hf_C2 hf_supp
-      (s := σ + y * I) (by simpa [Complex.add_re, Complex.mul_re] using hσ))
-    (fun n hn => kadiriPoleFilled_continuousAt_nat_of_one_lt (d := d)
-      hd hf_C2 hf_supp hf_d hn)
+    (d := d) (σ := σ) hd hσ a ha0 ha1 hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
 
 /-- Compact-support wrapper for the von-Mangoldt weighted fixed-line
 inversion. -/
