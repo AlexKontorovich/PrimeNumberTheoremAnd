@@ -108,6 +108,19 @@ noncomputable def riemannZeta.zeroes_sum {α : Type*} [RCLike α]
     (I J : Set ℝ) (f : ℂ → α) : α :=
   ∑' ρ : riemannZeta.zeroes_rect I J, (f ρ) * (riemannZeta.order ρ)
 
+lemma riemannZeta.zeroes_sum_eq_finset_of_finite {α : Type*} [RCLike α]
+    {I J : Set ℝ} (f : ℂ → α)
+    (hfin : (riemannZeta.zeroes_rect I J).Finite) :
+    riemannZeta.zeroes_sum I J f =
+      ∑ ρ ∈ hfin.toFinset, f ρ * (riemannZeta.order ρ : α) := by
+  classical
+  haveI : Finite (riemannZeta.zeroes_rect I J) := Set.finite_coe_iff.mpr hfin
+  letI := Fintype.ofFinite (riemannZeta.zeroes_rect I J)
+  unfold riemannZeta.zeroes_sum
+  rw [tsum_fintype]
+  exact (Finset.sum_subtype hfin.toFinset (fun ρ ↦ hfin.mem_toFinset)
+    (fun ρ ↦ f ρ * (riemannZeta.order ρ : α))).symm
+
 @[blueprint
   "RH-up-to"
   (statement := /--
