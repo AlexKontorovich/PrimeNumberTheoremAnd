@@ -1943,4 +1943,131 @@ lemma weightedZeroHeightBucket_nonneg : 0 ≤ weightedZeroHeightBucket := by
   refine tsum_nonneg fun ρ ↦ ?_
   exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
 
+/-- The weighted cumulative dyadic count against the multiplicity count `N`:
+positive heights land in `N`'s window, negative heights reindex through
+conjugation, the real axis lands in the fixed bucket. -/
+theorem weighted_cumulative_count_le (k : ℕ) :
+    (∑' ρ : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket := by
+  classical
+  haveI hXf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+    (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
+  haveI hRf : Fintype (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1)))) :=
+    (zeroes_rect_univ_positive_height_finite ((2 : ℝ) ^ (k + 1))).fintype
+  haveI hZf : Fintype ZeroHeightNontrivialZeros :=
+    @Fintype.ofFinite _ zeroHeightNontrivialZeros_finite
+  have hRnonneg : ∀ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), (0 : ℝ) ≤ ((riemannZeta.order z : ℤ) : ℝ) := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨ρ, -, rfl⟩ := hz
+    have hne : (ρ : ℂ) ≠ 1 := by
+      intro h
+      have him := ρ.property.2.1.1
+      rw [h] at him
+      simp [Complex.one_im] at him
+    exact_mod_cast riemannZeta_order_nonneg hne
+  have hZnonneg : ∀ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), (0 : ℝ) ≤ ((riemannZeta.order z : ℤ) : ℝ) := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨ρ, -, rfl⟩ := hz
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+  have hN : riemannZeta.N ((2 : ℝ) ^ (k + 1)) =
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    rw [riemannZeta_N_eq_tsum_order, tsum_fintype,
+      Finset.sum_image (g := fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext hab)]
+  have hB : weightedZeroHeightBucket =
+      ∑ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    unfold weightedZeroHeightBucket
+    rw [tsum_fintype,
+      Finset.sum_image (g := fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))]
+  rw [tsum_fintype]
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not
+    (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)})
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im)
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im))
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0)
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ))
+  have hpos : (∑ x ∈ (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have himg : (∑ x ∈ (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hRnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    rw [Finset.mem_image]
+    exact ⟨⟨(x.1 : ℂ), Set.mem_univ _,
+      ⟨hx.2, lt_of_le_of_lt (le_abs_self _) x.property⟩,
+      x.1.property.2.2⟩, Finset.mem_univ _, rfl⟩
+  have hneg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have hcongr : ∀ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ) =
+        ((riemannZeta.order ((starRingEnd ℂ) (x.1 : ℂ)) : ℤ) : ℝ) := by
+      intro x hx
+      rw [riemannZeta_order_conj (nontrivialZero_ne_one x.1)]
+    rw [Finset.sum_congr rfl hcongr]
+    have himg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((starRingEnd ℂ) (x.1 : ℂ)) : ℤ) : ℝ)) =
+        ∑ z ∈ (((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (starRingEnd ℂ) (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (starRingEnd ℂ) (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext (by
+          have h2 := congrArg (starRingEnd ℂ) hab
+          simpa [Complex.conj_conj] using h2)))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hRnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    have hx2 := hx.2
+    rw [Finset.mem_image]
+    refine ⟨⟨(starRingEnd ℂ) (x.1 : ℂ), Set.mem_univ _, ⟨?_, ?_⟩, ?_⟩,
+      Finset.mem_univ _, rfl⟩
+    · simpa [Complex.conj_im] using hx2
+    · have h1 : |(x.1 : ℂ).im| < (2 : ℝ) ^ (k + 1) := x.property
+      rw [abs_of_neg hx2] at h1
+      simpa [Complex.conj_im] using h1
+    · show riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
+      rw [riemannZeta_conj, x.1.property.2.2, map_zero]
+  have hzero : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have himg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ (((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hZnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    have hx2 := hx.2
+    have hx1 := hx.1
+    rw [Finset.mem_filter] at hx1
+    have him0 : (x.1 : ℂ).im = 0 :=
+      le_antisymm (not_lt.mp hx1.2) (not_lt.mp hx2)
+    rw [Finset.mem_image]
+    exact ⟨⟨x.1, him0⟩, Finset.mem_univ _, rfl⟩
+  have hNabs : riemannZeta.N ((2 : ℝ) ^ (k + 1)) ≤
+      |riemannZeta.N ((2 : ℝ) ^ (k + 1))| := le_abs_self _
+  linarith [hsplit1, hsplit2, hpos, hneg, hzero]
+
 end Kadiri
