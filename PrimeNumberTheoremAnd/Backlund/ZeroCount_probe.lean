@@ -84,19 +84,74 @@ lemma zetaSurrogate_differentiable : Differentiable ℂ zetaSurrogate := by
       exact Filter.Tendsto.congr' hev riemannZeta_residue_one
     exact continuousWithinAt_compl_self.mp key
 
-/-- Sketched: log-growth majorant at exponent `3/2`. STATEMENT REPAIR (2026-06-11
-audit): the exponent-1 form originally probed here is FALSE — on the left half-plane
-`|ζ(-2k-1)| = |B_{2k+2}|/(2k+2) ~ 2(2k+1)!/(2π)^{2k+2}`, so `log ‖zetaSurrogate z‖`
-grows like `‖z‖ · log ‖z‖` (order 1, maximal type), beating `C · ‖z‖` for every fixed
-`C`. Since `x · log x ≤ 2 · x^(3/2)` for `x ≥ 1`, the exponent-`3/2` form is true and
-still feeds the dyadic consumer. Proof obligations: right of `Re = -1`: truncated
-Euler-Maclaurin bound (`ZetaBounds.riemannZeta0`); left of `Re = -1`: functional
-equation + `|Γ(z)| ≤ Γ(Re z)` (from `Complex.Gamma_eq_integral`) + a crude factorial
-bound on real `Γ`. -/
+/-- Elementary: `log x ≤ 2√x` for `x ≥ 1` (via `log √x ≤ √x - 1`). The helper that
+absorbs every logarithm into the `3/2`-power below. -/
+private lemma log_le_two_mul_sqrt {x : ℝ} (hx : 1 ≤ x) :
+    Real.log x ≤ 2 * Real.sqrt x := by
+  have h0 : (0 : ℝ) < x := by linarith
+  have h1 : Real.log x = 2 * Real.log (Real.sqrt x) := by
+    rw [Real.log_sqrt h0.le]; ring
+  rw [h1]
+  have h2 : Real.log (Real.sqrt x) ≤ Real.sqrt x - 1 :=
+    Real.log_le_sub_one_of_pos (Real.sqrt_pos.mpr h0)
+  nlinarith [Real.sqrt_nonneg x]
+
+/-- Region `Re ≥ 2`: the Dirichlet series bounds `‖ζ‖` by an absolute constant, so the
+surrogate's log-norm is linear in `‖z‖`. -/
+private lemma surrogate_growth_right :
+    ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, 2 ≤ z.re →
+      Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
+  sorry
+
+/-- Critical band `-1 ≤ Re ≤ 2`: polynomial bound on the surrogate via the truncated
+Euler-Maclaurin representation (`ZetaBounds.riemannZeta0`) for `|Im| ≥ 1`, and
+compactness of the box (the patch removes the pole) for `|Im| ≤ 1`; logs of
+polynomials are linear via `log_le_two_mul_sqrt`. -/
+private lemma surrogate_growth_band :
+    ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, -1 ≤ z.re → z.re ≤ 2 →
+      Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
+  sorry
+
+/-- Left region `Re ≤ -1`: the functional equation with `|Γ(1-z)| ≤ Γ(1 - Re z)` and a
+crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
+private lemma surrogate_growth_left :
+    ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, z.re ≤ -1 →
+      Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) ^ (3/2 : ℝ) := by
+  sorry
+
+/-- The exponent-`3/2` log-growth majorant for the surrogate. The exponent-1 form is
+FALSE on the left half-plane (`|ζ(-2k-1)| ~ 2(2k+1)!/(2π)^{2k+2}` via Bernoulli
+numbers: order 1 but maximal type), and `x log x ≤ 2 x^(3/2)` restores a true bound.
+Assembled from the three region lemmas above. -/
 lemma zetaSurrogate_log_growth :
     ∃ C : ℝ, 0 < C ∧
       ∀ z : ℂ, Real.log (1 + ‖zetaSurrogate z‖) ≤ C * (1 + ‖z‖) ^ (3/2 : ℝ) := by
-  sorry
+  obtain ⟨B₁, hB₁0, hB₁⟩ := surrogate_growth_right
+  obtain ⟨B₂, hB₂0, hB₂⟩ := surrogate_growth_band
+  obtain ⟨B₃, hB₃0, hB₃⟩ := surrogate_growth_left
+  refine ⟨B₁ + B₂ + B₃, by linarith, fun z ↦ ?_⟩
+  have hz1 : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith [norm_nonneg z]
+  have hpos : (0 : ℝ) < (1 + ‖z‖) ^ (3/2 : ℝ) :=
+    Real.rpow_pos_of_pos (by linarith [norm_nonneg z]) _
+  have hpow : (1 + ‖z‖) ≤ (1 + ‖z‖) ^ (3/2 : ℝ) := by
+    calc (1 + ‖z‖) = (1 + ‖z‖) ^ (1 : ℝ) := (Real.rpow_one _).symm
+      _ ≤ (1 + ‖z‖) ^ (3/2 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le hz1 (by norm_num)
+  rcases le_total z.re (-1) with h | h
+  · refine (hB₃ z h).trans ?_
+    refine mul_le_mul_of_nonneg_right ?_ hpos.le
+    linarith
+  · rcases le_total z.re 2 with h2 | h2
+    · refine (hB₂ z h h2).trans ?_
+      calc B₂ * (1 + ‖z‖)
+          ≤ B₂ * (1 + ‖z‖) ^ (3/2 : ℝ) := mul_le_mul_of_nonneg_left hpow hB₂0.le
+        _ ≤ (B₁ + B₂ + B₃) * (1 + ‖z‖) ^ (3/2 : ℝ) :=
+            mul_le_mul_of_nonneg_right (by linarith) hpos.le
+    · refine (hB₁ z h2).trans ?_
+      calc B₁ * (1 + ‖z‖)
+          ≤ B₁ * (1 + ‖z‖) ^ (3/2 : ℝ) := mul_le_mul_of_nonneg_left hpow hB₁0.le
+        _ ≤ (B₁ + B₂ + B₃) * (1 + ‖z‖) ^ (3/2 : ℝ) :=
+            mul_le_mul_of_nonneg_right (by linarith) hpos.le
 
 /-! ### Probe lemma 2 — zeros-in-disk count for ζ via the surrogate
 
