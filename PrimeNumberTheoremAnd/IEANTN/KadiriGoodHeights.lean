@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
+import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
@@ -183,6 +184,16 @@ private lemma exists_avoids_finset_intervals
     rw [hcomm]
     exact (ENNReal.ofReal_lt_ofReal_iff hUpos).2 hsmall
   exact (not_lt_of_ge hle) hstrict
+
+/-- Finite real-set interval avoidance by the elementary length pigeonhole
+argument. -/
+theorem exists_avoids_finite_set_intervals {A : Set ℝ} (hA : A.Finite)
+    {L U η : ℝ} (hη : 0 < η)
+    (hsmall : 2 * η * (hA.toFinset.card : ℝ) < U - L) :
+    ∃ T : ℝ, T ∈ Set.Ioo L U ∧ ∀ a : ℝ, a ∈ A → η ≤ |T - a| := by
+  obtain ⟨T, hT, havoid⟩ :=
+    exists_avoids_finset_intervals hA.toFinset hη hsmall
+  exact ⟨T, hT, fun a ha => havoid a (hA.mem_toFinset.mpr ha)⟩
 
 private lemma u6aEta_lt_quarter {C L c η : ℝ}
     (hC : 0 < C) (hL : 1 < L) (hc : c = 1 / (16 * (C + 1)))
@@ -408,6 +419,103 @@ def U6aPartialFractionApproximationHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) :
   0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
     ‖deriv riemannZeta s / riemannZeta s -
         u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤ C * Real.log |s.im|
+
+/-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
+logarithmic derivative formula. -/
+noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
+  ∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+    (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+      1 / Complex.Hadamard.divisorZeroIndex₀_val p)
+
+/-- The exact remainder after subtracting the local Kadiri principal part from
+the xi-Hadamard expression for `ζ'/ζ`.  Bounding this term is the analytic
+piece left for the partial-fraction disk argument. -/
+noncomputable def u6aHadamardPartialFractionRemainder
+    (σ₁ σ₂ t : ℝ) (P : Polynomial ℂ) (s : ℂ) : ℂ :=
+  Polynomial.eval s P.derivative
+    + u6aXiHadamardZeroSum s
+    - u6aNearbyZeroPrincipalSum σ₁ σ₂ t s
+    - 1 / (s - 1)
+    + (1 / 2 : ℂ) * Real.log Real.pi
+    - (1 / 2 : ℂ) * digamma (s / 2 + 1)
+
+/-- Named analytic-estimate input for the Hadamard partial-fraction route. -/
+def U6aHadamardRemainderBoundHypothesis
+    (σ₁ σ₂ C Tₘᵢₙ : ℝ) (P : Polynomial ℂ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
+    ‖u6aHadamardPartialFractionRemainder σ₁ σ₂ s.im P s‖ ≤ C * Real.log |s.im|
+
+/-- Exact pointwise reduction of `ζ'/ζ` minus Kadiri's nearby-zero principal
+part to the xi-Hadamard remainder. -/
+theorem zeta_logDeriv_sub_nearby_eq_hadamardRemainder
+    {P : Polynomial ℂ} {σ₁ σ₂ t : ℝ} {s : ℂ}
+    (hfac : ∀ w : ℂ, riemannXi w =
+      Complex.exp (Polynomial.eval w P) *
+        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p)
+    (hs0 : s ≠ 0)
+    (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0)
+    (hζ : riemannZeta s ≠ 0) :
+    deriv riemannZeta s / riemannZeta s - u6aNearbyZeroPrincipalSum σ₁ σ₂ t s =
+      u6aHadamardPartialFractionRemainder σ₁ σ₂ t P s := by
+  have hneg :=
+    neg_zeta_logDeriv_eq_of_riemannXi_hadamard
+      (P := P) (s := s) hfac hz hs0 hs1 hΓdiff hΓ hζ
+  have hpos : deriv riemannZeta s / riemannZeta s =
+      Polynomial.eval s P.derivative
+        + u6aXiHadamardZeroSum s
+        - 1 / (s - 1)
+        + (1 / 2 : ℂ) * Real.log Real.pi
+        - (1 / 2 : ℂ) * digamma (s / 2 + 1) := by
+    unfold u6aXiHadamardZeroSum
+    calc
+      deriv riemannZeta s / riemannZeta s =
+          -(-deriv riemannZeta s / riemannZeta s) := by ring
+      _ = -(-Polynomial.eval s P.derivative
+          - (∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+              (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+                1 / Complex.Hadamard.divisorZeroIndex₀_val p))
+          + 1 / (s - 1)
+          - (1 / 2 : ℂ) * Real.log Real.pi
+          + (1 / 2 : ℂ) * digamma (s / 2 + 1)) := by rw [hneg]
+      _ = Polynomial.eval s P.derivative
+          + (∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+              (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
+                1 / Complex.Hadamard.divisorZeroIndex₀_val p))
+          - 1 / (s - 1)
+          + (1 / 2 : ℂ) * Real.log Real.pi
+          - (1 / 2 : ℂ) * digamma (s / 2 + 1) := by ring
+  rw [hpos]
+  unfold u6aHadamardPartialFractionRemainder
+  ring
+
+/-- A named Hadamard remainder bound gives the pointwise partial-fraction
+approximation wherever the exact xi-Hadamard bridge is legal. -/
+theorem u6aPartialFractionApproximation_at_of_hadamardRemainderBound
+    {P : Polynomial ℂ} {σ₁ σ₂ C Tₘᵢₙ : ℝ} {s : ℂ}
+    (hfac : ∀ w : ℂ, riemannXi w =
+      Complex.exp (Polynomial.eval w P) *
+        Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) w)
+    (hz : ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p)
+    (hs0 : s ≠ 0)
+    (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0)
+    (hζ : riemannZeta s ≠ 0)
+    (hR : U6aHadamardRemainderBoundHypothesis σ₁ σ₂ C Tₘᵢₙ P)
+    (hre : s.re ∈ Set.uIcc σ₁ σ₂)
+    (hT : Tₘᵢₙ ≤ |s.im|)
+    (hT3 : 3 ≤ |s.im|) :
+    ‖deriv riemannZeta s / riemannZeta s -
+        u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤ C * Real.log |s.im| := by
+  rw [zeta_logDeriv_sub_nearby_eq_hadamardRemainder
+    (P := P) (σ₁ := σ₁) (σ₂ := σ₂) (t := s.im) (s := s)
+    hfac hz hs0 hs1 hΓdiff hΓ hζ]
+  exact hR.2 s hre hT hT3
 
 /-- Named height-selection output from the local-density pigeonhole argument:
 cofinally many heights stay at least `c / log T` away from zero ordinates. -/
