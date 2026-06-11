@@ -177,6 +177,19 @@ private lemma surrogate_growth_band :
       Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
   sorry
 
+/-- The Euler integral bounds the complex `Γ` by the real `Γ` of the real part, on the
+right half-plane. Not in Mathlib; the keystone for the left-region growth bound. -/
+private lemma norm_Gamma_le_Gamma_re {z : ℂ} (hz : 0 < z.re) :
+    ‖Complex.Gamma z‖ ≤ Real.Gamma z.re := by
+  rw [Complex.Gamma_eq_integral hz, Real.Gamma_eq_integral hz]
+  unfold Complex.GammaIntegral
+  refine (MeasureTheory.norm_integral_le_integral_norm _).trans (le_of_eq ?_)
+  refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun x hx ↦ ?_
+  rw [Set.mem_Ioi] at hx
+  rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _),
+    Complex.norm_cpow_eq_rpow_re_of_pos hx]
+  simp [Complex.sub_re, Complex.one_re]
+
 /-- Left region `Re ≤ -1`: the functional equation with `|Γ(1-z)| ≤ Γ(1 - Re z)` and a
 crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
 private lemma surrogate_growth_left :
