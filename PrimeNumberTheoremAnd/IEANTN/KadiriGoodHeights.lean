@@ -2685,6 +2685,41 @@ theorem u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip {s : ℂ}
     riemannZeta.order]
   rfl
 
+/-- Non-trivial zeta zeros carry positive xi-divisor mass. -/
+theorem u6aRiemannXi_divisor_pos_of_nontrivialZero (ρ : NontrivialZeros) :
+    0 < (MeromorphicOn.divisor riemannXi Set.univ) (ρ : ℂ) := by
+  have hre := ρ.property.1
+  rw [u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip hre.1 hre.2]
+  exact riemannZeta_order_pos_nontrivialZero ρ
+
+/-- Non-trivial zeta zeros lie in the support of the xi divisor. -/
+theorem u6aRiemannXi_divisor_ne_zero_of_nontrivialZero (ρ : NontrivialZeros) :
+    (MeromorphicOn.divisor riemannXi Set.univ) (ρ : ℂ) ≠ 0 :=
+  ne_of_gt (u6aRiemannXi_divisor_pos_of_nontrivialZero ρ)
+
+/-- The xi divisor index has a concrete fiber over every non-trivial zeta zero. -/
+theorem u6aRiemannXi_divisorZeroIndex₀_fiber_nonempty_of_nontrivialZero
+    (ρ : NontrivialZeros) :
+    Nonempty {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+      Complex.Hadamard.divisorZeroIndex₀_val p = (ρ : ℂ)} := by
+  have htoNat : 0 <
+      Int.toNat ((MeromorphicOn.divisor riemannXi Set.univ) (ρ : ℂ)) := by
+    have hpos := u6aRiemannXi_divisor_pos_of_nontrivialZero ρ
+    omega
+  refine ⟨⟨⟨⟨(ρ : ℂ), ⟨0, htoNat⟩⟩, nontrivialZero_ne_zero ρ⟩, ?_⟩⟩
+  rfl
+
+/-- The xi divisor-index fiber over a non-trivial zeta zero has the expected
+zeta order cardinality. -/
+theorem u6aRiemannXi_divisorZeroIndex₀_fiber_card_eq_riemannZeta_order
+    (ρ : NontrivialZeros) :
+    (Complex.Hadamard.divisorZeroIndex₀_fiberFinset (f := riemannXi) (ρ : ℂ)).card =
+      Int.toNat (riemannZeta.order (ρ : ℂ)) := by
+  rw [Complex.Hadamard.divisorZeroIndex₀_fiberFinset_card_eq_toNat_divisor
+    (f := riemannXi) (z₀ := (ρ : ℂ)) (nontrivialZero_ne_zero ρ)]
+  have hre := ρ.property.1
+  rw [u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip hre.1 hre.2]
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
