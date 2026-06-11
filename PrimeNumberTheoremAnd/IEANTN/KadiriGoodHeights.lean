@@ -4051,6 +4051,137 @@ private lemma u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero {s : ℂ}
     exact hdiv_s
   exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p hdiv_val
 
+private lemma u6a_gamma_factor_regular_of_one_le_re {s : ℂ} (hsre : 1 ≤ s.re) :
+    ∀ m : ℕ, s / 2 + 1 ≠ -m := by
+  intro m hm
+  have hre := congrArg Complex.re hm
+  have hm_nonneg : (0 : ℝ) ≤ m := by exact_mod_cast Nat.zero_le m
+  simp at hre
+  nlinarith
+
+private lemma u6a_gamma_factor_ne_zero_of_one_le_re {s : ℂ} (hsre : 1 ≤ s.re) :
+    zetaGammaFactor s ≠ 0 := by
+  unfold zetaGammaFactor
+  exact Gamma_ne_zero (u6a_gamma_factor_regular_of_one_le_re hsre)
+
+/-- Every nonzero xi divisor index value is a non-trivial zeta zero.  This
+is the local zero-locus half of the U6a finite reindexing bridge. -/
+theorem u6aRiemannXi_divisorZeroIndex₀_val_mem_nontrivialZero
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    Complex.Hadamard.divisorZeroIndex₀_val p ∈ NontrivialZeros := by
+  let z : ℂ := Complex.Hadamard.divisorZeroIndex₀_val p
+  have hz0 : z ≠ 0 := by
+    dsimp [z]
+    exact Complex.Hadamard.divisorZeroIndex₀_val_ne_zero p
+  have hxi_zero : riemannXi z = 0 := by
+    by_contra hxi_ne
+    exact u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero (s := z) hxi_ne p rfl
+  have hz1 : z ≠ 1 := by
+    intro hz
+    have hxi_one : riemannXi (1 : ℂ) = 1 / 2 := by
+      simpa [riemannXi_zero] using (riemannXi_one_sub (0 : ℂ))
+    have hhalf : (1 / 2 : ℂ) = 0 := by
+      rw [← hxi_one, ← hz]
+      exact hxi_zero
+    norm_num at hhalf
+  have hnot_one_le_re : ¬ 1 ≤ z.re := by
+    intro hzre
+    have hxi_ne : riemannXi z ≠ 0 :=
+      u6a_riemannXi_ne_zero_of_zeta_ne_zero (s := z) hz0 hz1
+        (u6a_gamma_factor_regular_of_one_le_re hzre)
+        (u6a_gamma_factor_ne_zero_of_one_le_re hzre)
+        (riemannZeta_ne_zero_of_one_le_re hzre)
+    exact hxi_ne hxi_zero
+  have hnot_re_nonpos : ¬ z.re ≤ 0 := by
+    intro hzre
+    let w : ℂ := 1 - z
+    have hwre : 1 ≤ w.re := by
+      dsimp [w]
+      simp
+      linarith
+    have hw0 : w ≠ 0 := by
+      intro hw
+      exact hz1 ((sub_eq_zero.mp hw).symm)
+    have hw1 : w ≠ 1 := by
+      intro hw
+      apply hz0
+      have hneg : -z = 0 := by
+        calc
+          -z = w - 1 := by
+            dsimp [w]
+            ring
+          _ = 0 := by
+            rw [hw]
+            ring
+      exact neg_eq_zero.mp hneg
+    have hxi_w_zero : riemannXi w = 0 := by
+      dsimp [w]
+      rw [riemannXi_one_sub z]
+      exact hxi_zero
+    have hxi_w_ne : riemannXi w ≠ 0 :=
+      u6a_riemannXi_ne_zero_of_zeta_ne_zero (s := w) hw0 hw1
+        (u6a_gamma_factor_regular_of_one_le_re hwre)
+        (u6a_gamma_factor_ne_zero_of_one_le_re hwre)
+        (riemannZeta_ne_zero_of_one_le_re hwre)
+    exact hxi_w_ne hxi_w_zero
+  have hzre0 : 0 < z.re := lt_of_not_ge hnot_re_nonpos
+  have hzre1 : z.re < 1 := lt_of_not_ge hnot_one_le_re
+  have hdiv_ne :
+      (MeromorphicOn.divisor riemannXi Set.univ) z ≠ 0 := by
+    dsimp [z]
+    exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p
+  have horder_ne : riemannZeta.order z ≠ 0 := by
+    have hdiv_eq :=
+      u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := z) hzre0 hzre1
+    rwa [hdiv_eq] at hdiv_ne
+  have hzeta_zero : riemannZeta z = 0 := by
+    by_contra hzeta_ne
+    have han : AnalyticAt ℂ riemannZeta z :=
+      riemannZeta_analyticOn_compl_one z (Set.mem_compl_singleton_iff.mpr hz1)
+    have horder_zero : riemannZeta.order z = 0 := by
+      unfold riemannZeta.order
+      rw [han.meromorphicOrderAt_eq]
+      have horder : analyticOrderAt riemannZeta z = 0 :=
+        analyticOrderAt_eq_zero.mpr (Or.inr hzeta_ne)
+      simp [horder]
+    exact horder_ne horder_zero
+  exact ⟨⟨hzre0, hzre1⟩, Set.mem_univ z, hzeta_zero⟩
+
+/-- The nonzero xi divisor indices are exactly non-trivial zeta zeros with
+one finite slot for each unit of `riemannZeta.order`.  This packages the
+global reindexing problem into sigma-summation bookkeeping. -/
+noncomputable def u6aRiemannXi_divisorZeroIndex₀_equiv_nontrivialZeroSigma :
+    Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) ≃
+      Σ ρ : NontrivialZeros, Fin (Int.toNat (riemannZeta.order (ρ : ℂ))) where
+  toFun p := by
+    let ρ : NontrivialZeros :=
+      ⟨Complex.Hadamard.divisorZeroIndex₀_val p,
+        u6aRiemannXi_divisorZeroIndex₀_val_mem_nontrivialZero p⟩
+    refine ⟨ρ, ?_⟩
+    refine Fin.cast ?_ p.1.2
+    have hre := ρ.property.1
+    exact congrArg Int.toNat
+      (u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := (ρ : ℂ)) hre.1 hre.2)
+  invFun q := by
+    refine ⟨⟨(q.1 : ℂ), ?_⟩, nontrivialZero_ne_zero q.1⟩
+    refine Fin.cast ?_ q.2
+    have hre := q.1.property.1
+    exact (congrArg Int.toNat
+      (u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := (q.1 : ℂ)) hre.1 hre.2)).symm
+  left_inv p := by
+    cases p with
+    | mk p hp =>
+      cases p with
+      | mk z n =>
+        simp [Complex.Hadamard.divisorZeroIndex₀_val]
+  right_inv q := by
+    cases q with
+    | mk ρ n =>
+      simp [Complex.Hadamard.divisorZeroIndex₀_val]
+
 theorem U6aHadamardLegalityOnHorizontal_of_zeroFree {T : ℝ}
     (hT : 3 ≤ T) (hfree : horizontalSegmentZeroFree (-1) 2 T) :
     U6aHadamardLegalityOnHorizontal T := by
