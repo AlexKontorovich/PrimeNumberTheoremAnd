@@ -22,6 +22,130 @@ def horizontalSegmentZeroFree (σ₁ σ₂ T : ℝ) : Prop :=
   (∀ z : ℂ, z.re ∈ Set.uIcc σ₁ σ₂ → z.im = -T →
     riemannZeta z ≠ 0 ∧ z ≠ 1)
 
+/-- The lane U6a horizontal-segment bound: both horizontal sides avoid zeros
+and the pole, and `ζ'/ζ` is `O(log² T)` along the strip.  This matches
+`56e3a7d:KadiriContourPull.lean:313-317`. -/
+def horizontalSegmentLogDerivBound (σ₁ σ₂ T C : ℝ) : Prop :=
+  horizontalSegmentZeroFree σ₁ σ₂ T ∧
+  ∀ x ∈ Set.uIcc σ₁ σ₂, ∀ t : ℝ, |t| = T →
+    ‖deriv riemannZeta ((x : ℂ) + t * I) / riemannZeta ((x : ℂ) + t * I)‖
+      ≤ C * Real.log T ^ 2
+
+/-- A quantitative zero-ordinate gap for both horizontal sides. -/
+def horizontalSegmentZeroGap (σ₁ σ₂ T η : ℝ) : Prop :=
+  0 < η ∧
+  (∀ z : ℂ, z.re ∈ Set.uIcc σ₁ σ₂ → riemannZeta z = 0 →
+    η ≤ |z.im - T|) ∧
+  (∀ z : ℂ, z.re ∈ Set.uIcc σ₁ σ₂ → riemannZeta z = 0 →
+    η ≤ |z.im + T|)
+
+/-- A positive zero-ordinate gap implies the zero-free horizontal condition. -/
+theorem horizontalSegmentZeroFree_of_zeroGap {σ₁ σ₂ T η : ℝ}
+    (hT : 0 < T) (hgap : horizontalSegmentZeroGap σ₁ σ₂ T η) :
+    horizontalSegmentZeroFree σ₁ σ₂ T := by
+  rcases hgap with ⟨hη, htop, hbot⟩
+  constructor
+  · intro z hzre hzim
+    constructor
+    · intro hzeta
+      have hdist := htop z hzre hzeta
+      rw [hzim] at hdist
+      norm_num at hdist
+      linarith
+    · intro hz1
+      rw [hz1] at hzim
+      norm_num at hzim
+      linarith
+  · intro z hzre hzim
+    constructor
+    · intro hzeta
+      have hdist := hbot z hzre hzeta
+      rw [hzim] at hdist
+      norm_num at hdist
+      linarith
+    · intro hz1
+      rw [hz1] at hzim
+      norm_num at hzim
+      linarith
+
+/-- The order-weighted nearby-zero principal part in the partial-fraction
+formula, summing zeros with `|Im ρ - t| ≤ 1`. -/
+noncomputable def u6aNearbyZeroPrincipalSum (σ₁ σ₂ t : ℝ) (s : ℂ) : ℂ :=
+  riemannZeta.zeroes_sum (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
+    fun ρ => (1 : ℂ) / (s - ρ)
+
+/-- The order-weighted local zero count in a unit-height box. -/
+noncomputable def u6aNearbyZeroCount (σ₁ σ₂ t : ℝ) : ℝ :=
+  riemannZeta.zeroes_sum (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
+    fun _ => (1 : ℝ)
+
+/-- Named local-density hypothesis for the conditional U6a route.  This is the
+RvM-style input `N(t+1)-N(t) ≤ C log t` used by the sprint panel. -/
+def U6aLocalZeroDensityHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ t → 3 ≤ t →
+    u6aNearbyZeroCount σ₁ σ₂ t ≤ C * Real.log t
+
+/-- Named partial-fraction approximation hypothesis.  The Hadamard input is
+`logDeriv_riemannXi_eq_polynomial_derivative_add_tsum` in
+`RiemannZetaHadamard.lean:244`, with the zeta bridge in
+`HadamardLogDerivative.lean`. -/
+def U6aPartialFractionApproximationHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc σ₁ σ₂ → Tₘᵢₙ ≤ |s.im| → 3 ≤ |s.im| →
+    ‖deriv riemannZeta s / riemannZeta s -
+        u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤ C * Real.log |s.im|
+
+/-- Named height-selection output from the local-density pigeonhole argument:
+cofinally many heights stay at least `c / log T` away from zero ordinates. -/
+def U6aHeightSelectionHypothesis (σ₁ σ₂ Cdens Tdens c : ℝ) : Prop :=
+  U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens →
+    0 < c ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T)
+
+/-- Named consequence of the partial-fraction formula plus local density and
+the `c/log T` zero gap: a uniform `log² T` bound on the horizontal segment. -/
+def U6aPartialFractionLogSqBoundHypothesis
+    (σ₁ σ₂ Cpf Tpf Cdens Tdens c : ℝ) : Prop :=
+  U6aPartialFractionApproximationHypothesis σ₁ σ₂ Cpf Tpf →
+    U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens →
+      ∃ C : ℝ, 0 < C ∧ ∀ T : ℝ, 3 ≤ T →
+        horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T) →
+          ∀ x ∈ Set.uIcc σ₁ σ₂, ∀ t : ℝ, |t| = T →
+            ‖deriv riemannZeta ((x : ℂ) + t * I) /
+                riemannZeta ((x : ℂ) + t * I)‖ ≤ C * Real.log T ^ 2
+
+/-- Compose a quantitative zero gap with the partial-fraction `log²` bound to
+obtain the lane's horizontal-segment bound predicate. -/
+theorem horizontalSegmentLogDerivBound_of_zeroGap_and_partialFraction
+    {σ₁ σ₂ T c C : ℝ}
+    (hT : 3 ≤ T)
+    (hgap : horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T))
+    (hbound : ∀ x ∈ Set.uIcc σ₁ σ₂, ∀ t : ℝ, |t| = T →
+      ‖deriv riemannZeta ((x : ℂ) + t * I) /
+          riemannZeta ((x : ℂ) + t * I)‖ ≤ C * Real.log T ^ 2) :
+    horizontalSegmentLogDerivBound σ₁ σ₂ T C := by
+  have hTpos : 0 < T := by linarith
+  exact ⟨horizontalSegmentZeroFree_of_zeroGap hTpos hgap, hbound⟩
+
+/-- Conditional U6a endpoint matching the conclusion of
+`56e3a7d:KadiriContourPull.lean:329-331`, with the local-density,
+height-selection, and partial-fraction layers carried as named hypotheses. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_conditional
+    (σ₁ σ₂ : ℝ) {Cdens Tdens c Cpf Tpf : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
+    (hHeight : U6aHeightSelectionHypothesis σ₁ σ₂ Cdens Tdens c)
+    (hPartialFraction : U6aPartialFractionApproximationHypothesis σ₁ σ₂ Cpf Tpf)
+    (hLogSq : U6aPartialFractionLogSqBoundHypothesis σ₁ σ₂ Cpf Tpf Cdens Tdens c) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound σ₁ σ₂ T C := by
+  rcases hHeight hDensity with ⟨hc, hselect⟩
+  rcases hLogSq hPartialFraction hDensity with ⟨C, hCpos, hC⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro T₀
+  obtain ⟨T, hT₀, hT3, hgap⟩ := hselect T₀
+  exact ⟨T, hT₀, hT3,
+    horizontalSegmentLogDerivBound_of_zeroGap_and_partialFraction hT3 hgap
+      (hC T hT3 hgap)⟩
+
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
     x ∈ Set.Icc (min σ₁ σ₂) (max σ₁ σ₂) := by
