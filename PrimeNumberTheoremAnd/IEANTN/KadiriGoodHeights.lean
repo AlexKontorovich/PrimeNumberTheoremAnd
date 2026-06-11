@@ -3298,12 +3298,164 @@ theorem norm_u6aXiFiberNearbyHadamardSum_sub_nearbyZeroPrincipalSum_le_nearbyZer
   rw [hdiff]
   exact norm_u6aNearbyZeroConvergenceFactorSum_le_nearbyZeroCount (t := t) ht
 
+/-- The order-weighted genus-one zeta zero packets are summable.  This is the
+zeta-side tail input for comparing the global xi-Hadamard `tsum` against a
+finite near-window subtraction. -/
+theorem summable_u6aWeightedZetaHadamardZeroTerm (s : ℂ) :
+    Summable (fun ρ : NontrivialZeros =>
+      (riemannZeta.order (ρ : ℂ) : ℂ) *
+        ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))) := by
+  have htails : Summable (fun ρ : NontrivialZeros =>
+      ‖s‖ / 2 *
+        (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ +
+          ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)))) :=
+    (weighted_zeroImagSquareTail_summable.add
+      (weighted_zeroImagSquareTail_shifted_summable s)).mul_left _
+  refine Summable.of_norm_bounded_eventually htails ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset
+    (nontrivialZeros_abs_im_lt_one_finite.union
+      (nontrivialZeros_shifted_abs_im_lt_one_finite s))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad
+  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  by_contra hsmall
+  rw [not_or] at hsmall
+  obtain ⟨h1, h2⟩ := hsmall
+  have him1 : 1 ≤ |(ρ : ℂ).im| := not_lt.mp h1
+  have him2 : 1 ≤ |(s - (ρ : ℂ)).im| := not_lt.mp h2
+  apply hbad
+  have hρ0 : ((ρ : ℂ)) ≠ 0 := nontrivialZero_ne_zero ρ
+  have him2ne : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him2
+    norm_num at him2
+  have hsρ : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him2ne
+    rw [h]
+    rfl
+  have him1pos : (0 : ℝ) < |(ρ : ℂ).im| := lt_of_lt_of_le one_pos him1
+  have him2pos : (0 : ℝ) < |(s - (ρ : ℂ)).im| := lt_of_lt_of_le one_pos him2
+  have horder_nonneg :
+      0 ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    exact_mod_cast le_of_lt (riemannZeta_order_pos_nontrivialZero ρ)
+  have horder_norm :
+      ‖(riemannZeta.order (ρ : ℂ) : ℂ)‖ =
+        ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    rw [Complex.norm_intCast, abs_of_nonneg horder_nonneg]
+  have hpacket : (1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ) =
+      s / (((ρ : ℂ)) * (s - (ρ : ℂ))) := by
+    field_simp
+    ring
+  have hbase :
+      ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+        ‖s‖ / 2 *
+          (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+    have hstep1 : ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+        ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := by
+      rw [div_eq_mul_inv, mul_inv]
+      have ha : ‖(ρ : ℂ)‖⁻¹ ≤ |(ρ : ℂ).im|⁻¹ :=
+        inv_anti₀ him1pos (Complex.abs_im_le_norm _)
+      have hb : ‖s - (ρ : ℂ)‖⁻¹ ≤ |(s - (ρ : ℂ)).im|⁻¹ :=
+        inv_anti₀ him2pos (Complex.abs_im_le_norm _)
+      have hb0 : (0 : ℝ) ≤ ‖s - (ρ : ℂ)‖⁻¹ := by positivity
+      have ha0 : (0 : ℝ) ≤ |(ρ : ℂ).im|⁻¹ := by positivity
+      refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+      exact mul_le_mul ha hb hb0 ha0
+    have hstep2 : |(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹ ≤
+        (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) +
+          |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2 := by
+      nlinarith [two_mul_le_add_sq (|(ρ : ℂ).im|⁻¹)
+        (|(s - (ρ : ℂ)).im|⁻¹)]
+    calc
+      ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)
+          ≤ ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := hstep1
+      _ ≤ ‖s‖ * ((|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) +
+            |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2) :=
+          mul_le_mul_of_nonneg_left hstep2 (norm_nonneg s)
+      _ = ‖s‖ / 2 *
+            (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+          unfold zeroImagSquareTail
+          ring
+  calc
+    ‖(riemannZeta.order (ρ : ℂ) : ℂ) *
+        ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))‖
+        = ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)) := by
+          rw [hpacket, norm_mul, horder_norm, norm_div, norm_mul]
+    _ ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+          (‖s‖ / 2 *
+            (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+        mul_le_mul_of_nonneg_left hbase horder_nonneg
+    _ = ‖s‖ / 2 *
+        (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ +
+          ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) := by
+        ring
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
   ∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
     (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
       1 / Complex.Hadamard.divisorZeroIndex₀_val p)
+
+/-- The same genus-one zero packet, indexed directly by non-trivial zeta zeros
+with `riemannZeta.order` multiplicity. -/
+noncomputable def u6aWeightedZetaHadamardZeroSum (s : ℂ) : ℂ :=
+  ∑' ρ : NontrivialZeros,
+    (riemannZeta.order (ρ : ℂ) : ℂ) *
+      ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))
+
+/-- The finite nearby zeta-zero contribution corresponding to
+`u6aXiFiberNearbyHadamardSum`, but written in the order-weighted zeta
+indexing. -/
+noncomputable def u6aWeightedZetaNearbyHadamardSum (t : ℝ) (s : ℂ) : ℂ :=
+  riemannZeta.zeroes_sum (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1))
+    fun ρ => (1 : ℂ) / (s - ρ) + 1 / ρ
+
+/-- Local finite bridge from the xi-fiber near-window sum to the
+order-weighted zeta near-window sum. -/
+theorem u6aXiFiberNearbyHadamardSum_eq_weightedZetaNearbyHadamardSum
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiFiberNearbyHadamardSum t s =
+      u6aWeightedZetaNearbyHadamardSum t s := by
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  unfold u6aXiFiberNearbyHadamardSum u6aWeightedZetaNearbyHadamardSum
+  simpa [hfin] using
+    (u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
+      (t := t) hfin ht (fun ρ : ℂ => (1 : ℂ) / (s - ρ) + 1 / ρ))
+
+/-- The zeta-side far-tail term after finite near-window subtraction. -/
+noncomputable def u6aWeightedZetaHadamardFarTail (t : ℝ) (s : ℂ) : ℂ :=
+  u6aWeightedZetaHadamardZeroSum s - u6aWeightedZetaNearbyHadamardSum t s
+
+/-- Exact global bridge from xi divisor indexing to the order-weighted zeta
+indexing.  This is intentionally separated from the proved finite near-window
+bridge, so the remaining global `tsum` reindexing obstruction is named at its
+real boundary. -/
+def U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis : Prop :=
+  ∀ s : ℂ, u6aXiHadamardZeroSum s = u6aWeightedZetaHadamardZeroSum s
+
+/-- Exact far-tail bridge obtained from the global bridge plus the already
+proved finite near-window bridge. -/
+theorem u6aXiHadamardFarTail_eq_weightedZetaHadamardFarTail
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum t s =
+      u6aWeightedZetaHadamardFarTail t s := by
+  rw [hBridge s, u6aXiFiberNearbyHadamardSum_eq_weightedZetaNearbyHadamardSum
+    (t := t) (s := s) ht]
+  rfl
+
+/-- Zeta-indexed far-tail bound, separated from the global xi-to-zeta `tsum`
+bridge. -/
+def U6aWeightedZetaHadamardFarTailBoundHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+    3 ≤ |s.im| →
+      ‖u6aWeightedZetaHadamardFarTail s.im s‖ ≤ C * Real.log |s.im|
 
 /-- The exact remainder after subtracting the local Kadiri principal part from
 the xi-Hadamard expression for `ζ'/ζ`.  Bounding this term is the analytic
@@ -3543,6 +3695,20 @@ def U6aXiHadamardFarTailBoundHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
     3 ≤ |s.im| →
       ‖u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s‖ ≤
         C * Real.log |s.im|
+
+/-- The existing xi far-tail bound follows from the exact global bridge and a
+zeta-indexed far-tail estimate. -/
+theorem U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail
+    {C Tₘᵢₙ : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis C Tₘᵢₙ) :
+    U6aXiHadamardFarTailBoundHypothesis C Tₘᵢₙ := by
+  refine ⟨hTail.1, ?_⟩
+  intro s hsre hsT hT3
+  have ht : 2 ≤ |s.im| := by linarith
+  rw [u6aXiHadamardFarTail_eq_weightedZetaHadamardFarTail
+    hBridge (t := s.im) (s := s) ht]
+  exact hTail.2 s hsre hsT hT3
 
 /-- The zero-sum PF remainder is the far xi-Hadamard tail plus the finite
 near-window convergence-factor residue.  The latter is already bounded by the
@@ -3787,6 +3953,26 @@ theorem exists_u6aPartialFractionPointwise_of_farTail_and_localDensity
     U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
   exact exists_u6aPartialFractionPointwise_of_zeroSum hZero
 
+/-- Pointwise PF wrapper through the zeta-indexed far-tail split. -/
+theorem exists_u6aPartialFractionPointwise_of_globalBridge_zetaFarTail_and_localDensity
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) →
+        s ≠ 0 → s ≠ 1 →
+        (∀ m : ℕ, s / 2 + 1 ≠ -m) →
+        zetaGammaFactor s ≠ 0 →
+        riemannZeta s ≠ 0 →
+          ‖deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤ C * Real.log |s.im| :=
+  exists_u6aPartialFractionPointwise_of_farTail_and_localDensity
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity
+
 /-- Local Hadamard legality needed only on a selected horizontal line.  This
 keeps the PF route pointwise, rather than requiring a global partial-fraction
 hypothesis over the whole strip. -/
@@ -3980,6 +4166,24 @@ theorem exists_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_recipr
   obtain ⟨_Czero, _Tzero, hZero⟩ :=
     U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
   exact exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound hZero hCrec
+
+/-- Fixed-height horizontal consumer through the zeta-indexed far-tail split. -/
+theorem exists_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_localDensity_and_reciprocalBound
+    {Ctail Ttail Cdens Tdens Crec : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        U6aHadamardLegalityOnHorizontal T →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_reciprocalBound
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity hCrec
 
 /-- Fixed-height zero-sum PF consumer with all local Hadamard legality
 discharged from the zero-gap condition. -/
@@ -4490,6 +4694,20 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_local
     U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
   exact exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedComparison
     hZero hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_localDensity_and_averagedComparison
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity hAvgCmp
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
