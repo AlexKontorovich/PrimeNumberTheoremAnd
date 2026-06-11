@@ -3646,6 +3646,111 @@ def U6aHadamardLegalityOnHorizontal (T : ℝ) : Prop :=
     zetaGammaFactor s ≠ 0 ∧
     riemannZeta s ≠ 0
 
+private lemma u6a_gamma_half_avoid_neg_nat_of_shift {s : ℂ}
+    (hs0 : s ≠ 0) (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    ∀ m : ℕ, s / 2 ≠ -m := by
+  intro m hm
+  cases m with
+  | zero =>
+      apply hs0
+      rw [show s = 2 * (s / 2) by ring, hm]
+      ring
+  | succ m =>
+      have hbad : s / 2 + 1 = -(m : ℂ) := by
+        rw [hm]
+        norm_num
+      exact hΓdiff m hbad
+
+private lemma u6a_completedZetaFactor_eq_riemannXi_of_shift {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    completedZetaFactor s = riemannXi s := by
+  have hΓhalf : Gamma (s / 2) ≠ 0 :=
+    Gamma_ne_zero (u6a_gamma_half_avoid_neg_nat_of_shift hs0 hΓdiff)
+  have hGamma :
+      Gamma (s / 2 + 1) = (s / 2) * Gamma (s / 2) := by
+    exact Gamma_add_one (s / 2) (div_ne_zero hs0 two_ne_zero)
+  rw [completedZetaFactor, zetaPoleFactor, zetaGammaFactor, u6aZetaPiFactor_eq_cpow,
+    riemannXi_eq_mul_completedRiemannZeta hs0 hs1,
+    hGamma, riemannZeta_def_of_ne_zero hs0, Gammaℝ_def]
+  field_simp [hs0, hΓhalf]
+
+private lemma u6a_riemannXi_ne_zero_of_zeta_ne_zero {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓ : zetaGammaFactor s ≠ 0) (hζ : riemannZeta s ≠ 0) :
+    riemannXi s ≠ 0 := by
+  have heq := u6a_completedZetaFactor_eq_riemannXi_of_shift hs0 hs1 hΓdiff
+  have hpole : zetaPoleFactor s ≠ 0 := by
+    simp [zetaPoleFactor, sub_ne_zero, hs1]
+  have hpi : zetaPiFactor s ≠ 0 := by
+    simp [zetaPiFactor]
+  have hcomp : completedZetaFactor s ≠ 0 := by
+    unfold completedZetaFactor
+    exact mul_ne_zero (mul_ne_zero (mul_ne_zero hpole hpi) hΓ) hζ
+  exact fun hxi => hcomp (by rwa [heq])
+
+private lemma u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero {s : ℂ}
+    (hxi : riemannXi s ≠ 0) :
+    ∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+      s ≠ Complex.Hadamard.divisorZeroIndex₀_val p := by
+  intro p hs
+  have hmero : MeromorphicOn riemannXi Set.univ := fun x _ =>
+    (Differentiable.analyticAt (f := riemannXi) differentiable_riemannXi x).meromorphicAt
+  have han : AnalyticAt ℂ riemannXi s :=
+    Differentiable.analyticAt (f := riemannXi) differentiable_riemannXi s
+  have hdiv_s : (MeromorphicOn.divisor riemannXi Set.univ) s = 0 := by
+    rw [MeromorphicOn.divisor_apply hmero (Set.mem_univ s)]
+    rw [han.meromorphicOrderAt_eq]
+    have horder : analyticOrderAt riemannXi s = 0 :=
+      analyticOrderAt_eq_zero.mpr (Or.inr hxi)
+    simp [horder]
+  have hdiv_val : (MeromorphicOn.divisor riemannXi Set.univ)
+      (Complex.Hadamard.divisorZeroIndex₀_val p) = 0 := by
+    rw [← hs]
+    exact hdiv_s
+  exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p hdiv_val
+
+theorem U6aHadamardLegalityOnHorizontal_of_zeroFree {T : ℝ}
+    (hT : 3 ≤ T) (hfree : horizontalSegmentZeroFree (-1) 2 T) :
+    U6aHadamardLegalityOnHorizontal T := by
+  intro x hx t htabs
+  let s : ℂ := (x : ℂ) + t * I
+  have hTnonneg : 0 ≤ T := by linarith
+  have htcase : t = T ∨ t = -T := (abs_eq hTnonneg).mp htabs
+  have hsre : s.re ∈ Set.uIcc (-1 : ℝ) 2 := by
+    simpa [s] using hx
+  have hsim : s.im = t := by simp [s]
+  have hζ1 : riemannZeta s ≠ 0 ∧ s ≠ 1 := by
+    rcases htcase with rfl | rfl
+    · exact hfree.1 s hsre (by simp [s])
+    · exact hfree.2 s hsre (by simp [s])
+  have ht_ne_zero : t ≠ 0 := by
+    intro ht0
+    rw [ht0, abs_zero] at htabs
+    linarith
+  have hs0 : s ≠ 0 := by
+    intro hs
+    have him := congrArg Complex.im hs
+    have ht0 : t = 0 := by
+      simpa [s] using him
+    exact ht_ne_zero ht0
+  have hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m := by
+    intro m hm
+    have him := congrArg Complex.im hm
+    have ht0 : t = 0 := by
+      have hhalf : t / 2 = 0 := by
+        simpa [s] using him
+      linarith
+    exact ht_ne_zero ht0
+  have hΓ : zetaGammaFactor s ≠ 0 := by
+    unfold zetaGammaFactor
+    exact Gamma_ne_zero hΓdiff
+  have hxi : riemannXi s ≠ 0 :=
+    u6a_riemannXi_ne_zero_of_zeta_ne_zero hs0 hζ1.2 hΓdiff hΓ hζ1.1
+  exact ⟨u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero hxi,
+    hs0, hζ1.2, hΓdiff, hΓ, hζ1.1⟩
+
 /-- Fixed-height horizontal consumer for the zero-sum PF route.  A zero-sum
 Hadamard remainder estimate supplies the PF approximation pointwise on the
 selected line; a reciprocal-zero bound then gives the lane's horizontal
@@ -3703,6 +3808,28 @@ theorem exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound
     _ ≤ Cpf * Real.log T ^ 2 + Crec * Real.log T ^ 2 := by
           exact add_le_add (mul_le_mul_of_nonneg_left hlog_le_sq hCpf.le) le_rfl
     _ = (Cpf + Crec) * Real.log T ^ 2 := by ring
+
+/-- Fixed-height zero-sum PF consumer with all local Hadamard legality
+discharged from the zero-gap condition. -/
+theorem exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound_of_zeroGap
+    {Czero Tzero Crec : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨C, Tₘᵢₙ, hC, hT4, hmain⟩ :=
+    exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound hZero hCrec
+  refine ⟨C, Tₘᵢₙ, hC, hT4, ?_⟩
+  intro T η hTmin hT3 hgap hrec
+  have hTpos : 0 < T := by linarith
+  have hlegal : U6aHadamardLegalityOnHorizontal T :=
+    U6aHadamardLegalityOnHorizontal_of_zeroFree hT3
+      (horizontalSegmentZeroFree_of_zeroGap hTpos hgap)
+  exact hmain T η hTmin hT3 hgap hlegal hrec
 
 /-- Named height-selection output from the local-density pigeonhole argument:
 cofinally many heights stay at least `c / log T` away from zero ordinates. -/
@@ -4135,6 +4262,47 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_partialFracti
       (Cpf := Cpf) (Tpf := Tpf) (Crec := Crec) (X := X)
       (δ := u6aCrudeDelta Csel Dsel X k) (M := Csel * 3 ^ k + Dsel)
       (T := T) hPF hT3 hTpf hTmem hrec havg_le⟩
+
+/-- Cofinal U6a composition for the zero-sum PF route.  This avoids the
+global partial-fraction hypothesis: the zero-sum Hadamard remainder estimate
+is consumed only on the selected horizontal lines. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedComparison
+    {Czero Tzero : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨Csel, Dsel, hCsel, hDsel, hsel⟩ :=
+    exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_delta
+  obtain ⟨Crec, hCmp⟩ := hAvgCmp Csel Dsel hCsel hDsel
+  obtain ⟨Cout, Tpf, hCout, _hTpf4, hmain⟩ :=
+    exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound_of_zeroGap
+      hZero hCmp.1
+  refine ⟨Cout, hCout, ?_⟩
+  intro T₀
+  let Tbase : ℝ := max (max T₀ Tpf) 3
+  obtain ⟨k, X, T, hTbase, hX, hscale, hTmem, hrecTop⟩ := hsel Tbase
+  have hT₀ : T₀ ≤ T := by
+    exact (le_max_left T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hTpf : Tpf ≤ T := by
+    exact (le_max_right T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hT3 : 3 ≤ T := by
+    exact (le_max_right (max T₀ Tpf) 3).trans hTbase
+  have havg_le :
+      u6aAveragedSelectionBound X (u6aCrudeDelta Csel Dsel X k)
+          (Csel * 3 ^ k + Dsel) ≤ Crec * Real.log T ^ 2 :=
+    hCmp.2 k X T hX hT3 hTmem hscale
+  have hrecAll : ∀ t : ℝ, |t| = T →
+      u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2 := by
+    intro t ht
+    have htcase : t = T ∨ t = -T :=
+      (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp ht
+    rcases htcase with rfl | rfl
+    · exact hrecTop.trans havg_le
+    · simpa [u6aReciprocalZeroSum_neg] using hrecTop.trans havg_le
+  exact ⟨T, hT₀, hT3,
+    hmain T (u6aCrudeDelta Csel Dsel X k) hTpf hT3 hTmem.2 hrecAll⟩
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
