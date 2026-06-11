@@ -178,6 +178,99 @@ theorem u6aXiFarHadamardRemainder_eq_tsum_compl (t : ℝ) {s : ℂ}
   unfold u6aXiFarHadamardRemainder
   linear_combination u6aXiHadamardZeroSum_eq_nearby_add_farTail t hz
 
+/-! ## Location of the xi zeros and the off-window geometry -/
+
+theorem riemannXi_one : riemannXi 1 = 1 / 2 := by
+  have h := riemannXi_one_sub 1
+  simpa [riemannXi_zero] using h.symm
+
+/-- The xi function does not vanish right of the critical strip. -/
+theorem riemannXi_ne_zero_of_one_lt_re {z : ℂ} (hz : 1 < z.re) : riemannXi z ≠ 0 := by
+  have hz0 : z ≠ 0 := fun h => by rw [h] at hz; simp at hz; linarith
+  have hz1 : z ≠ 1 := fun h => by rw [h] at hz; simp at hz
+  rw [riemannXi_eq_mul_completedRiemannZeta hz0 hz1]
+  have hζ : riemannZeta z ≠ 0 := riemannZeta_ne_zero_of_one_le_re (by linarith)
+  have hΓ : Complex.Gammaℝ z ≠ 0 := Complex.Gammaℝ_ne_zero_of_re_pos (by linarith)
+  have hcompleted : completedRiemannZeta z ≠ 0 := by
+    intro h
+    apply hζ
+    rw [riemannZeta_def_of_ne_zero hz0, h, zero_div]
+  have hsub : z - 1 ≠ 0 := sub_ne_zero.mpr hz1
+  exact div_ne_zero (mul_ne_zero (mul_ne_zero hz0 hsub) hcompleted) two_ne_zero
+
+/-- The xi zeros lie in the closed critical strip. -/
+theorem riemannXi_zero_re_mem {z : ℂ} (hz : riemannXi z = 0) :
+    z.re ∈ Set.Icc (0 : ℝ) 1 := by
+  constructor
+  · by_contra h
+    push Not at h
+    have h1z : 1 < (1 - z).re := by
+      rw [Complex.sub_re, Complex.one_re]
+      linarith
+    exact riemannXi_ne_zero_of_one_lt_re h1z (by rw [riemannXi_one_sub]; exact hz)
+  · by_contra h
+    push Not at h
+    exact riemannXi_ne_zero_of_one_lt_re h hz
+/-- A xi zero away from `0` and `1` is a zeta zero. -/
+theorem riemannZeta_eq_zero_of_riemannXi_eq_zero {z : ℂ} (hz : riemannXi z = 0)
+    (hz0 : z ≠ 0) (hz1 : z ≠ 1) : riemannZeta z = 0 := by
+  have hcompleted : completedRiemannZeta z = 0 := by
+    have h := riemannXi_eq_mul_completedRiemannZeta hz0 hz1
+    rw [hz] at h
+    have h2 : z * (z - 1) * completedRiemannZeta z = 0 := by linear_combination (-2 : ℂ) * h
+    rcases mul_eq_zero.mp h2 with h3 | h3
+    · rcases mul_eq_zero.mp h3 with h4 | h4
+      · exact absurd h4 hz0
+      · exact absurd (by linear_combination h4) hz1
+    · exact h3
+  rw [riemannZeta_def_of_ne_zero hz0, hcompleted, zero_div]
+
+/-- Index points of the xi divisor are xi zeros. -/
+theorem riemannXi_val_eq_zero
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    riemannXi (Complex.Hadamard.divisorZeroIndex₀_val p) = 0 := by
+  by_contra hxi
+  have hmero : MeromorphicOn riemannXi Set.univ := fun x _ =>
+    (Differentiable.analyticAt (f := riemannXi) differentiable_riemannXi x).meromorphicAt
+  have han : AnalyticAt ℂ riemannXi (Complex.Hadamard.divisorZeroIndex₀_val p) :=
+    Differentiable.analyticAt (f := riemannXi) differentiable_riemannXi _
+  have hdiv : (MeromorphicOn.divisor riemannXi Set.univ)
+      (Complex.Hadamard.divisorZeroIndex₀_val p) = 0 := by
+    rw [MeromorphicOn.divisor_apply hmero (Set.mem_univ _), han.meromorphicOrderAt_eq]
+    have horder : analyticOrderAt riemannXi (Complex.Hadamard.divisorZeroIndex₀_val p) = 0 :=
+      analyticOrderAt_eq_zero.mpr (Or.inr hxi)
+    simp [horder]
+  exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p hdiv
+
+/-- Off the pulled-back window, an index point is imaginary-far from the
+height: its value is either a nontrivial zeta zero outside the window strip,
+or a real exceptional point, and both force `|Im - t| > 1` once `|t| ≥ 3`. -/
+theorem u6aFT_offWindow_im_far {t : ℝ} (ht : 3 ≤ |t|)
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ))
+    (hp : p ∉ u6aXiNearbyIndexFinset t) :
+    1 < |(Complex.Hadamard.divisorZeroIndex₀_val p).im - t| := by
+  by_contra h
+  push Not at h
+  apply hp
+  rw [mem_u6aXiNearbyIndexFinset_iff]
+  set z := Complex.Hadamard.divisorZeroIndex₀_val p with hzdef
+  have hxi : riemannXi z = 0 := riemannXi_val_eq_zero p
+  have habs := abs_le.mp h
+  have him : z.im ∈ Set.Icc (t - 1) (t + 1) :=
+    ⟨by linarith [habs.1], by linarith [habs.2]⟩
+  have himne : z.im ≠ 0 := by
+    intro h0
+    rw [h0] at him
+    have habs2 : |t| ≤ 1 := abs_le.mpr ⟨by linarith [him.2], by linarith [him.1]⟩
+    linarith
+  have hz0 : z ≠ 0 := fun hc => himne (by rw [hc]; simp)
+  have hz1 : z ≠ 1 := fun hc => himne (by rw [hc]; simp)
+  have hζ : riemannZeta z = 0 := riemannZeta_eq_zero_of_riemannXi_eq_zero hxi hz0 hz1
+  have hre := riemannXi_zero_re_mem hxi
+  refine ⟨?_, him, hζ⟩
+  rw [Set.uIcc_of_le (by norm_num : (-1 : ℝ) ≤ 2)]
+  exact ⟨by linarith [hre.1], by linarith [hre.2]⟩
+
 end
 
 end Kadiri
