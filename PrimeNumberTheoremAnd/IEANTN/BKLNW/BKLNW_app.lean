@@ -829,6 +829,110 @@ lemma μ_neg (c ε t : ℝ) : μ c ε (-t) = -μ c ε t := by
     rw [if_pos (by linarith : -t < 0), if_neg (by linarith : ¬ t < 0), if_pos ht,
       neg_neg]
 
+lemma continuous_besselI0 : Continuous besselI0 := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have hmem : Metric.ball (0 : ℝ) (|x₀| + 1) ∈ nhds x₀ := by
+    refine Metric.isOpen_ball.mem_nhds ?_
+    simp only [Metric.mem_ball, Real.dist_eq, sub_zero]
+    linarith [abs_nonneg x₀]
+  refine (continuousOn_tsum
+    (fun m ↦ (((continuous_id.div_const 2).pow (2 * m)).div_const _).continuousOn)
+    (besselI0_summable (|x₀| + 1)) ?_).continuousAt hmem
+  intro m x hx
+  simp only [Metric.mem_ball, Real.dist_eq, sub_zero] at hx
+  have hb : |x / 2| ≤ (|x₀| + 1) / 2 := by
+    rw [abs_div, abs_two]
+    linarith
+  rw [Real.norm_eq_abs, abs_div, abs_pow,
+    abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((m.factorial : ℝ)) ^ 2)]
+  gcongr
+  exact hb
+
+lemma measurable_η (c ε : ℝ) : Measurable (η c ε) := by
+  unfold η
+  refine Measurable.ite (measurableSet_le measurable_id.abs measurable_const) ?_
+    measurable_const
+  have h1 : Continuous fun ξ : ℝ ↦ c * sqrt (1 - (ξ / ε) ^ 2) :=
+    (Real.continuous_sqrt.comp (by fun_prop)).const_mul c
+  exact ((continuous_besselI0.comp h1).const_mul _).measurable
+
+lemma η_le {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (ξ : ℝ) :
+    η c ε ξ ≤ c / (2 * ε * sinh c) * besselI0 c := by
+  have hs : 0 < sinh c := sinh_pos_iff.mpr hc
+  have hcoef : 0 ≤ c / (2 * ε * sinh c) :=
+    div_nonneg hc.le (by nlinarith [mul_pos hε hs])
+  unfold η
+  split
+  · refine mul_le_mul_of_nonneg_left (besselI0_le_besselI0 ?_) hcoef
+    have h1 : sqrt (1 - (ξ / ε) ^ 2) ≤ 1 :=
+      Real.sqrt_le_one.mpr (by nlinarith [sq_nonneg (ξ / ε)])
+    calc |c * sqrt (1 - (ξ / ε) ^ 2)|
+        = c * sqrt (1 - (ξ / ε) ^ 2) :=
+          abs_of_nonneg (mul_nonneg hc.le (Real.sqrt_nonneg _))
+      _ ≤ c * 1 := mul_le_mul_of_nonneg_left h1 hc.le
+      _ = c := mul_one c
+      _ = |c| := (abs_of_pos hc).symm
+  · exact mul_nonneg hcoef (besselI0_nonneg c)
+
+lemma integrable_η {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) :
+    MeasureTheory.Integrable (η c ε) := by
+  have hsupp : Function.support (η c ε) ⊆ Set.Icc (-ε) ε := by
+    intro ξ hξ
+    rw [Set.mem_Icc, ← abs_le]
+    by_contra h
+    exact hξ (η_eq_zero_of_abs_gt (not_le.mp h))
+  rw [← MeasureTheory.integrableOn_iff_integrable_of_support_subset hsupp]
+  refine MeasureTheory.Measure.integrableOn_of_bounded
+    (M := c / (2 * ε * sinh c) * besselI0 c)
+    (by rw [Real.volume_Icc]; exact ENNReal.ofReal_ne_top)
+    ((measurable_η c ε).aestronglyMeasurable)
+    (MeasureTheory.ae_of_all _ fun ξ ↦ ?_)
+  rw [Real.norm_eq_abs, abs_of_nonneg (η_nonneg hc hε ξ)]
+  exact η_le hc hε ξ
+
+lemma μ_eq_zero_of_lt_neg {c ε : ℝ} (hε : 0 < ε) {t : ℝ} (ht : t < -ε) :
+    μ c ε t = 0 := by
+  unfold μ
+  rw [if_pos (by linarith : t < 0), pre_μ, neg_eq_zero]
+  refine MeasureTheory.setIntegral_eq_zero_of_forall_eq_zero fun ξ hξ ↦ ?_
+  have h1 : ξ ≤ t := hξ
+  refine η_eq_zero_of_abs_gt ?_
+  rw [abs_of_neg (by linarith : ξ < 0)]
+  linarith
+
+lemma μ_eq_zero_of_gt {c ε : ℝ} (hε : 0 < ε) {t : ℝ} (ht : ε < t) :
+    μ c ε t = 0 := by
+  have h1 := μ_eq_zero_of_lt_neg (c := c) hε (by linarith : -t < -ε)
+  have h2 := μ_neg c ε t
+  linarith [h1, h2]
+
+lemma μ_antitoneOn {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) :
+    AntitoneOn (μ c ε) (Set.Ioi 0) := by
+  intro s hs t ht hst
+  rw [Set.mem_Ioi] at hs ht
+  unfold μ
+  rw [if_neg (by linarith : ¬ t < 0), if_pos ht, if_neg (by linarith : ¬ s < 0),
+    if_pos hs, pre_μ, pre_μ, neg_neg, neg_neg]
+  refine MeasureTheory.setIntegral_mono_set ((integrable_η hc hε).integrableOn)
+    (MeasureTheory.ae_of_all _ fun ξ ↦ η_nonneg hc hε ξ) ?_
+  exact (Set.Iic_subset_Iic.mpr (by linarith : -t ≤ -s)).eventuallyLE
+
+lemma ν_nonpos_of_nonpos {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) {t : ℝ} (ht : t ≤ 0) :
+    ν c ε t ≤ 0 := by
+  unfold ν
+  refine MeasureTheory.setIntegral_nonpos measurableSet_Iic fun τ hτ ↦ ?_
+  have h1 : τ ≤ t := hτ
+  rcases lt_or_eq_of_le (le_trans h1 ht) with h | h
+  · exact μ_nonpos_of_neg hc hε h
+  · simp [h, μ_zero]
+
+lemma ν_eq_zero_of_lt_neg {c ε : ℝ} (hε : 0 < ε) {t : ℝ} (ht : t < -ε) :
+    ν c ε t = 0 := by
+  unfold ν
+  refine MeasureTheory.setIntegral_eq_zero_of_forall_eq_zero fun τ hτ ↦ ?_
+  exact μ_eq_zero_of_lt_neg hε (lt_of_le_of_lt hτ ht)
+
 @[blueprint
   "bklnw-thm_16"
   (title := "Theorem 16")
