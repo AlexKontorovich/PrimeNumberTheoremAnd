@@ -162,7 +162,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
         - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ), Φ (-ρ.val)
         - φ 0 * ((Real.log Real.pi : ℝ) : ℂ)
         + ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n)
-        + (1 / (2 * (Real.pi : ℂ) * I)) *
+        + (1 / (2 * (Real.pi : ℂ))) *
             ∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 Φ (-(1 / 2 + (t : ℂ) * I)) := by
@@ -1683,7 +1683,7 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
       + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
           ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))
       + laplaceTransform f (s - 1)
-      + ((1 / (2 * (Real.pi : ℂ) * I)) *
+      + ((1 / (2 * (Real.pi : ℂ))) *
           (∫ t : ℝ,
             ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
               laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
@@ -1741,7 +1741,7 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         + (laplaceTransform f (s - 1)).re
         - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
             (laplaceTransform f (s - ρ.val)).re
-        + ((1 / (2 * (Real.pi : ℂ) * I)) *
+        + ((1 / (2 * (Real.pi : ℂ))) *
             (∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 laplaceTransform (fun u ↦ deriv (deriv f) u)
@@ -1890,7 +1890,7 @@ theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         + (laplaceTransform f (s - 1)).re
         - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
             (laplaceTransform f (s - ρ.val)).re
-        + ((1 / (2 * (Real.pi : ℂ) * I)) *
+        + ((1 / (2 * (Real.pi : ℂ))) *
             (∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 laplaceTransform (fun u ↦ deriv (deriv f) u)
@@ -1916,7 +1916,7 @@ noncomputable def T1 (s : ℂ) : ℝ :=
 /-- $T_2(s)$ — the contour-integral and boundary contributions to the RHS of
 \cite[(4)]{Kadiri2005}, expressed via $F_2$, the Laplace transform of $f''$. -/
 noncomputable def T2 (f : ℝ → ℝ) (s : ℂ) : ℝ :=
-  ((1 / (2 * (Real.pi : ℂ) * I)) *
+  ((1 / (2 * (Real.pi : ℂ))) *
     (∫ t : ℝ,
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
         laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
@@ -1996,8 +1996,25 @@ theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ 
     have harg : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
         (s - ρ.val) + δ = s + δ - ρ.val := fun _ ↦ by ring
     simp_rw [D, harg, (h1.1.hasSum.sub (h2.1.mul_left κ).hasSum).tsum_eq, tsum_mul_left]
-  rw [hLHS, h1.2, h2.2, hZeros]
-  simp only [Δ1, Δ2, D, T1, T2]
-  ring_nf
+  have hT1s : -(1 / 2 : ℝ) * Real.log Real.pi +
+      (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re = T1 s := rfl
+  have hT1sd : -(1 / 2 : ℝ) * Real.log Real.pi +
+      (1 / 2 : ℝ) * (digamma ((s + (δ : ℂ)) / 2 + 1)).re = T1 (s + (δ : ℂ)) := rfl
+  have hT2s : ((1 / (2 * (Real.pi : ℂ))) *
+      (∫ t : ℝ,
+        ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+          laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+          / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+      + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re = T2 f s := rfl
+  have hT2sd : ((1 / (2 * (Real.pi : ℂ))) *
+      (∫ t : ℝ,
+        ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+          laplaceTransform (fun u ↦ deriv (deriv f) u) (s + (δ : ℂ) - (1 / 2 + (t : ℂ) * I))
+          / (s + (δ : ℂ) - (1 / 2 + (t : ℂ) * I)) ^ 2)
+      + laplaceTransform (fun u ↦ deriv (deriv f) u) (s + (δ : ℂ)) / (s + (δ : ℂ)) ^ 2).re =
+      T2 f (s + (δ : ℂ)) := rfl
+  rw [hLHS, h1.2, h2.2, hZeros, hT1s, hT1sd, hT2s, hT2sd]
+  simp only [Δ1, Δ2, D]
+  ring
 
 end Kadiri
