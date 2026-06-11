@@ -113,6 +113,30 @@ def U6aPartialFractionLogSqBoundHypothesis
             ‖deriv riemannZeta ((x : ℂ) + t * I) /
                 riemannZeta ((x : ℂ) + t * I)‖ ≤ C * Real.log T ^ 2
 
+/-- Consume the named local-density height selector and expose its cofinal
+`c/log T` zero-gap conclusion. -/
+theorem exists_arbitrarily_large_horizontalSegmentZeroGap_of_localDensity
+    (σ₁ σ₂ : ℝ) {Cdens Tdens c : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
+    (hHeight : U6aHeightSelectionHypothesis σ₁ σ₂ Cdens Tdens c) :
+    0 < c ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T) :=
+  hHeight hDensity
+
+/-- Consume the named partial-fraction and local-density inputs and expose the
+uniform `log² T` horizontal estimate at separated heights. -/
+theorem exists_logSq_horizontal_bound_of_partialFraction
+    (σ₁ σ₂ : ℝ) {Cdens Tdens c Cpf Tpf : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis σ₁ σ₂ Cdens Tdens)
+    (hPartialFraction : U6aPartialFractionApproximationHypothesis σ₁ σ₂ Cpf Tpf)
+    (hLogSq : U6aPartialFractionLogSqBoundHypothesis σ₁ σ₂ Cpf Tpf Cdens Tdens c) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T : ℝ, 3 ≤ T →
+      horizontalSegmentZeroGap σ₁ σ₂ T (c / Real.log T) →
+        ∀ x ∈ Set.uIcc σ₁ σ₂, ∀ t : ℝ, |t| = T →
+          ‖deriv riemannZeta ((x : ℂ) + t * I) /
+              riemannZeta ((x : ℂ) + t * I)‖ ≤ C * Real.log T ^ 2 :=
+  hLogSq hPartialFraction hDensity
+
 /-- Compose a quantitative zero gap with the partial-fraction `log²` bound to
 obtain the lane's horizontal-segment bound predicate. -/
 theorem horizontalSegmentLogDerivBound_of_zeroGap_and_partialFraction
