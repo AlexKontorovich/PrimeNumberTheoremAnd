@@ -169,10 +169,110 @@ private lemma surrogate_growth_right :
           linarith
       _ = (Real.log (1 + M) + 1) * (1 + ‖z‖) := by ring
 
-/-- Critical band `-1 ≤ Re ≤ 2`: polynomial bound on the surrogate via the truncated
-Euler-Maclaurin representation (`ZetaBounds.riemannZeta0`) for `|Im| ≥ 1`, and
-compactness of the box (the patch removes the pole) for `|Im| ≤ 1`; logs of
-polynomials are linear via `log_le_two_mul_sqrt`. -/
+/-- Polynomial bound for ζ on the sub-band `1/2 ≤ Re ≤ 2`, `1 ≤ |Im|`, via the
+truncated Euler-Maclaurin representation at `N = 1` (`Zeta0EqZeta`): the finite sum is
+`1`, the two boundary terms are at most `1` and `1/2` (the denominator `1 - z` has norm
+at least `|Im z| ≥ 1`), and the tail integral is at most `‖z‖` after the fractional-part
+bound `|⌊x⌋ + 1/2 - x| ≤ 1/2` and `∫_1^∞ x^(-Re z - 1) = 1/Re z ≤ 2`. -/
+private lemma zeta_norm_le_subband {z : ℂ} (h1 : 1/2 ≤ z.re) (h2 : z.re ≤ 2)
+    (him : 1 ≤ |z.im|) : ‖riemannZeta z‖ ≤ 3 + ‖z‖ := by
+  have hzr : (0 : ℝ) < z.re := by linarith
+  have hz0 : z ≠ 0 := by
+    intro h
+    rw [h] at him
+    norm_num [Complex.zero_im] at him
+  have hz1 : z ≠ 1 := by
+    intro h
+    rw [h] at him
+    norm_num [Complex.one_im] at him
+  have him1z : (1 : ℝ) ≤ ‖(1 : ℂ) - z‖ := by
+    calc (1 : ℝ) ≤ |z.im| := him
+      _ = |((1 : ℂ) - z).im| := by
+          simp [Complex.sub_im, Complex.one_im]
+      _ ≤ ‖(1 : ℂ) - z‖ := Complex.abs_im_le_norm _
+  rw [← Zeta0EqZeta one_pos hzr hz1]
+  unfold riemannZeta0
+  have hA : ‖∑ n ∈ Finset.range (1 + 1), 1 / (n : ℂ) ^ z‖ ≤ 1 := by
+    rw [Finset.sum_range_succ, Finset.sum_range_one]
+    push_cast
+    rw [Complex.zero_cpow hz0, Complex.one_cpow]
+    norm_num
+  have hB : ‖(-(((1 : ℕ) : ℂ)) ^ ((1 : ℂ) - z) / (1 - z))‖ ≤ 1 := by
+    simp only [Nat.cast_one, Complex.one_cpow, norm_div, norm_neg, norm_one]
+    rw [div_le_one (by linarith)]
+    exact him1z
+  have hC : ‖(-(((1 : ℕ) : ℂ)) ^ (-z) / 2)‖ ≤ 1 / 2 := by
+    simp only [Nat.cast_one, Complex.one_cpow, norm_div, norm_neg, norm_one]
+    norm_num
+  have hI : ‖∫ x in Set.Ioi ((1 : ℕ) : ℝ), ((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) /
+      (x : ℂ) ^ (z + 1)‖ ≤ 1 := by
+    refine (MeasureTheory.norm_integral_le_integral_norm _).trans ?_
+    have hint : MeasureTheory.IntegrableOn
+        (fun x : ℝ ↦ (1 / 2) * x ^ (-z.re - 1)) (Set.Ioi 1) :=
+      (integrableOn_Ioi_rpow_of_lt (by linarith) one_pos).const_mul _
+    have hcmp : (∫ x in Set.Ioi ((1 : ℕ) : ℝ),
+        ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) / (x : ℂ) ^ (z + 1)‖) ≤
+        ∫ x in Set.Ioi (1 : ℝ), (1 / 2) * x ^ (-z.re - 1) := by
+      rw [show (((1 : ℕ) : ℝ)) = (1 : ℝ) by norm_num]
+      refine MeasureTheory.integral_mono_of_nonneg
+        (Filter.Eventually.of_forall fun x ↦ norm_nonneg _) hint ?_
+      refine (MeasureTheory.ae_restrict_iff' measurableSet_Ioi).mpr
+        (Filter.Eventually.of_forall fun x hx ↦ ?_)
+      rw [Set.mem_Ioi] at hx
+      have hx0 : (0 : ℝ) < x := by linarith
+      show ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) / (x : ℂ) ^ (z + 1)‖ ≤
+        1 / 2 * x ^ (-z.re - 1)
+      rw [norm_div]
+      have hnum : ‖((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ))‖ ≤ 1 / 2 := by
+        have hcast : ((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) =
+            (((⌊x⌋ : ℝ) + 1 / 2 - x : ℝ) : ℂ) := by push_cast; ring
+        rw [hcast, Complex.norm_real, Real.norm_eq_abs]
+        have hf1 : (0 : ℝ) ≤ Int.fract x := Int.fract_nonneg x
+        have hf2 : Int.fract x < 1 := Int.fract_lt_one x
+        have hfr : (⌊x⌋ : ℝ) + 1 / 2 - x = 1 / 2 - Int.fract x := by
+          rw [Int.fract]
+          ring
+        rw [hfr, abs_le]
+        constructor <;> linarith
+      have hden : ‖(x : ℂ) ^ (z + 1)‖ = x ^ (z.re + 1) := by
+        rw [Complex.norm_cpow_eq_rpow_re_of_pos hx0]
+        simp [Complex.add_re, Complex.one_re]
+      rw [hden, div_eq_mul_inv, ← Real.rpow_neg hx0.le]
+      have hexp : -(z.re + 1) = -z.re - 1 := by ring
+      rw [hexp]
+      exact mul_le_mul_of_nonneg_right hnum (Real.rpow_nonneg hx0.le _)
+    refine hcmp.trans ?_
+    rw [MeasureTheory.integral_const_mul, integral_Ioi_rpow_of_lt (by linarith) one_pos,
+      Real.one_rpow]
+    have hform : -1 / (-z.re - 1 + 1) = 1 / z.re := by
+      rw [show -z.re - 1 + 1 = -z.re by ring, div_neg, neg_div, neg_neg]
+    rw [hform]
+    have hinv : (1 : ℝ) / z.re ≤ 2 := by
+      rw [div_le_iff₀ hzr]
+      linarith
+    linarith
+  calc ‖(∑ n ∈ Finset.range (1 + 1), 1 / (n : ℂ) ^ z) +
+        (-(((1 : ℕ) : ℂ)) ^ ((1 : ℂ) - z)) / (1 - z) +
+        (-(((1 : ℕ) : ℂ)) ^ (-z)) / 2 +
+        z * ∫ x in Set.Ioi ((1 : ℕ) : ℝ), ((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) /
+          (x : ℂ) ^ (z + 1)‖
+      ≤ ‖(∑ n ∈ Finset.range (1 + 1), 1 / (n : ℂ) ^ z) +
+          (-(((1 : ℕ) : ℂ)) ^ ((1 : ℂ) - z)) / (1 - z) +
+          (-(((1 : ℕ) : ℂ)) ^ (-z)) / 2‖ +
+        ‖z * ∫ x in Set.Ioi ((1 : ℕ) : ℝ), ((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) /
+          (x : ℂ) ^ (z + 1)‖ := norm_add_le _ _
+    _ ≤ (‖(∑ n ∈ Finset.range (1 + 1), 1 / (n : ℂ) ^ z) +
+          (-(((1 : ℕ) : ℂ)) ^ ((1 : ℂ) - z)) / (1 - z)‖ +
+        ‖(-(((1 : ℕ) : ℂ)) ^ (-z)) / 2‖) +
+        ‖z‖ * ‖∫ x in Set.Ioi ((1 : ℕ) : ℝ), ((⌊x⌋ : ℂ) + 1 / 2 - (x : ℂ)) /
+          (x : ℂ) ^ (z + 1)‖ := by
+        rw [norm_mul]
+        gcongr
+        exact norm_add_le _ _
+    _ ≤ ((1 + 1) + 1 / 2) + ‖z‖ * 1 := by
+        refine add_le_add ?_ (mul_le_mul_of_nonneg_left hI (norm_nonneg z))
+        exact add_le_add ((norm_add_le _ _).trans (add_le_add hA hB)) hC
+    _ ≤ 3 + ‖z‖ := by linarith [norm_nonneg z]
 private lemma surrogate_growth_band :
     ∃ B : ℝ, 0 < B ∧ ∀ z : ℂ, -1 ≤ z.re → z.re ≤ 2 →
       Real.log (1 + ‖zetaSurrogate z‖) ≤ B * (1 + ‖z‖) := by
