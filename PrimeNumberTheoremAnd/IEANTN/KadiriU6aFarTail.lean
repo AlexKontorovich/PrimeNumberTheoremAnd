@@ -839,6 +839,374 @@ theorem u6aFT_norm_far_le_invSqTail_add_anchor {t : ℝ} (ht : 3 ≤ |t|) {s : �
     (fun p => u6aFT_diffKernel_norm_le ht hre him p.val p.2)
     hnorms (hsub.mul_left 3)
 
+/-! ## The k-bucket ladder -/
+
+private lemma u6aFT_summable_invSqNat :
+    Summable (fun k : ℕ => (((k : ℝ)) ^ 2)⁻¹) := by
+  have h := (Real.summable_one_div_nat_pow (p := 2)).mpr one_lt_two
+  simp only [one_div] at h
+  exact h
+
+private lemma u6aFT_summable_logWeight :
+    Summable (fun k : ℕ => Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹) := by
+  have hbase : Summable (fun k : ℕ => 1 / (k : ℝ) ^ ((3 : ℝ) / 2)) :=
+    Real.summable_one_div_nat_rpow.mpr (by norm_num)
+  refine Summable.of_nonneg_of_le (fun k => ?_) (fun k => ?_)
+    (hbase.mul_left (2 * Real.sqrt 3))
+  · refine mul_nonneg (Real.log_nonneg ?_) (by positivity)
+    have h0 : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg _
+    linarith
+  · rcases Nat.eq_zero_or_pos k with hk0 | hk1
+    · subst hk0
+      simp [Real.zero_rpow (show ((3 : ℝ) / 2) ≠ 0 by norm_num)]
+    · have hk1' : (1 : ℝ) ≤ (k : ℝ) := by exact_mod_cast hk1
+      have hk0 : (0 : ℝ) < (k : ℝ) := by linarith
+      have hx : (0 : ℝ) < (k : ℝ) + 2 := by linarith
+      have hlog : Real.log ((k : ℝ) + 2) ≤ 2 * Real.sqrt ((k : ℝ) + 2) := by
+        have h1 := Real.log_sqrt hx.le
+        have h2 := Real.log_le_sub_one_of_pos (Real.sqrt_pos.mpr hx)
+        have h3 : (0 : ℝ) ≤ Real.sqrt ((k : ℝ) + 2) := Real.sqrt_nonneg _
+        linarith
+      have hsq : Real.sqrt ((k : ℝ) + 2) ≤ Real.sqrt 3 * Real.sqrt (k : ℝ) := by
+        rw [← Real.sqrt_mul (by norm_num : (0 : ℝ) ≤ 3)]
+        exact Real.sqrt_le_sqrt (by linarith)
+      have heq : Real.sqrt (k : ℝ) * (((k : ℝ)) ^ 2)⁻¹ = 1 / (k : ℝ) ^ ((3 : ℝ) / 2) := by
+        have hk2 : ((k : ℝ)) ^ 2 ≠ 0 := (pow_pos hk0 2).ne'
+        have hk32 : (k : ℝ) ^ ((3 : ℝ) / 2) ≠ 0 := (Real.rpow_pos_of_pos hk0 _).ne'
+        have hmul : Real.sqrt (k : ℝ) * (k : ℝ) ^ ((3 : ℝ) / 2) = ((k : ℝ)) ^ 2 := by
+          rw [Real.sqrt_eq_rpow, ← Real.rpow_add hk0, ← Real.rpow_natCast (k : ℝ) 2]
+          norm_num
+        rw [eq_div_iff hk32,
+          show Real.sqrt (k : ℝ) * (((k : ℝ)) ^ 2)⁻¹ * (k : ℝ) ^ ((3 : ℝ) / 2) =
+            Real.sqrt (k : ℝ) * (k : ℝ) ^ ((3 : ℝ) / 2) * (((k : ℝ)) ^ 2)⁻¹ from by ring,
+          hmul, mul_inv_cancel₀ hk2]
+      have hw0 : (0 : ℝ) ≤ (((k : ℝ)) ^ 2)⁻¹ := by positivity
+      calc Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹
+          ≤ (2 * (Real.sqrt 3 * Real.sqrt (k : ℝ))) * (((k : ℝ)) ^ 2)⁻¹ := by
+            refine mul_le_mul_of_nonneg_right ?_ hw0
+            linarith
+        _ = 2 * Real.sqrt 3 * (Real.sqrt (k : ℝ) * (((k : ℝ)) ^ 2)⁻¹) := by ring
+        _ = 2 * Real.sqrt 3 * (1 / (k : ℝ) ^ ((3 : ℝ) / 2)) := by rw [heq]
+
+/-- A finset of index points within `1/2` of a shifted height is controlled by
+the count atom (high window) or by the fixed low-height constant. -/
+private lemma u6aFT_window_card_le {Ccnt Tₘᵢₙ Tf K₀ : ℝ} (hCcnt : 0 < Ccnt)
+    (hcnt : ∀ u : ℝ, Tₘᵢₙ ≤ |u| → 3 ≤ |u| →
+      u6aNearbyZeroCount (-1) 2 u ≤ Ccnt * Real.log |u|)
+    (hTfm : Tₘᵢₙ ≤ Tf) (h3Tf : 3 ≤ Tf) (hK₀ : 0 ≤ K₀)
+    (hK₀cnt : ∀ G : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)),
+      (∀ p ∈ G, |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤ Tf + 1) →
+      (G.card : ℝ) ≤ K₀)
+    (u : ℝ)
+    (H : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)))
+    (hH : ∀ p ∈ H, |(Complex.Hadamard.divisorZeroIndex₀_val p).im - u| ≤ 1 / 2) :
+    (H.card : ℝ) ≤ Ccnt * Real.log (|u| + 1) + K₀ := by
+  have hlogpos : 0 ≤ Real.log (|u| + 1) :=
+    Real.log_nonneg (by linarith [abs_nonneg u])
+  by_cases hu : Tf ≤ |u|
+  · have hsub : H ⊆ u6aXiNearbyIndexFinset u := by
+      intro p hp
+      rw [mem_u6aXiNearbyIndexFinset_iff]
+      set z := Complex.Hadamard.divisorZeroIndex₀_val p with hzdef
+      have hxi : riemannXi z = 0 := riemannXi_val_eq_zero p
+      have hrest := riemannXi_zero_re_mem hxi
+      have him := hH p hp
+      have habs := abs_le.mp him
+      have himz : |u| - 1 / 2 ≤ |z.im| := by
+        have h1 : |u| - |z.im| ≤ |u - z.im| := abs_sub_abs_le_abs_sub u z.im
+        rw [abs_sub_comm] at h1
+        linarith
+      have himne : z.im ≠ 0 := by
+        intro h0
+        rw [h0, abs_zero] at himz
+        linarith
+      have hz0 : z ≠ 0 := fun hc => himne (by rw [hc]; simp)
+      have hz1 : z ≠ 1 := fun hc => himne (by rw [hc]; simp)
+      refine ⟨?_, ⟨by linarith [habs.1], by linarith [habs.2]⟩,
+        riemannZeta_eq_zero_of_riemannXi_eq_zero hxi hz0 hz1⟩
+      rw [Set.uIcc_of_le (by norm_num : (-1 : ℝ) ≤ 2)]
+      exact ⟨by linarith [hrest.1], by linarith [hrest.2]⟩
+    have h1 : (H.card : ℝ) ≤ ((u6aXiNearbyIndexFinset u).card : ℝ) :=
+      Nat.cast_le.mpr (Finset.card_le_card hsub)
+    have h2 := u6aXiNearbyIndexFinset_card_le_count (t := u) (by linarith)
+    have h3 := hcnt u (by linarith) (by linarith)
+    have h4 : Real.log |u| ≤ Real.log (|u| + 1) :=
+      Real.log_le_log (by linarith) (by linarith)
+    have h5 : Ccnt * Real.log |u| ≤ Ccnt * Real.log (|u| + 1) :=
+      mul_le_mul_of_nonneg_left h4 hCcnt.le
+    linarith
+  · push Not at hu
+    have h1 : (H.card : ℝ) ≤ K₀ := by
+      refine hK₀cnt H fun p hp => ?_
+      have him := hH p hp
+      have h2 : |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤
+          |(Complex.Hadamard.divisorZeroIndex₀_val p).im - u| + |u| := by
+        have h3 := abs_add_le ((Complex.Hadamard.divisorZeroIndex₀_val p).im - u) u
+        rw [sub_add_cancel] at h3
+        exact h3
+      linarith
+    have h6 : 0 ≤ Ccnt * Real.log (|u| + 1) := mul_nonneg hCcnt.le hlogpos
+    linarith
+
+/-- Bucket count: the index points at distance `[k, k+1)` from height `t` fit
+into two shifted unit windows. -/
+private lemma u6aFT_bucket_card_le {Ccnt Tₘᵢₙ Tf K₀ : ℝ} (hCcnt : 0 < Ccnt)
+    (hcnt : ∀ u : ℝ, Tₘᵢₙ ≤ |u| → 3 ≤ |u| →
+      u6aNearbyZeroCount (-1) 2 u ≤ Ccnt * Real.log |u|)
+    (hTfm : Tₘᵢₙ ≤ Tf) (h3Tf : 3 ≤ Tf) (hK₀ : 0 ≤ K₀)
+    (hK₀cnt : ∀ G : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)),
+      (∀ p ∈ G, |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤ Tf + 1) →
+      (G.card : ℝ) ≤ K₀)
+    (t : ℝ) {k : ℕ} (hk : 1 ≤ k)
+    (G : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)))
+    (hG : ∀ p ∈ G, (k : ℝ) ≤ |(Complex.Hadamard.divisorZeroIndex₀_val p).im - t| ∧
+      |(Complex.Hadamard.divisorZeroIndex₀_val p).im - t| < (k : ℝ) + 1) :
+    (G.card : ℝ) ≤ 2 * (Ccnt * Real.log (|t| + (k : ℝ) + 2) + K₀) := by
+  classical
+  have hk1 : (1 : ℝ) ≤ (k : ℝ) := by exact_mod_cast hk
+  have hcards := Finset.card_filter_add_card_filter_not (s := G)
+    (fun p => 0 ≤ (Complex.Hadamard.divisorZeroIndex₀_val p).im - t)
+  have hwp : ∀ p ∈ G.filter
+      (fun p => 0 ≤ (Complex.Hadamard.divisorZeroIndex₀_val p).im - t),
+      |(Complex.Hadamard.divisorZeroIndex₀_val p).im - (t + ((k : ℝ) + 1 / 2))| ≤ 1 / 2 := by
+    intro p hp
+    simp only [Finset.mem_filter] at hp
+    obtain ⟨hpG, hsign⟩ := hp
+    obtain ⟨hlo, hhi⟩ := hG p hpG
+    rw [abs_of_nonneg hsign] at hlo hhi
+    rw [abs_le]
+    exact ⟨by linarith, by linarith⟩
+  have hwm : ∀ p ∈ G.filter
+      (fun p => ¬ 0 ≤ (Complex.Hadamard.divisorZeroIndex₀_val p).im - t),
+      |(Complex.Hadamard.divisorZeroIndex₀_val p).im - (t - ((k : ℝ) + 1 / 2))| ≤ 1 / 2 := by
+    intro p hp
+    simp only [Finset.mem_filter] at hp
+    obtain ⟨hpG, hsign⟩ := hp
+    rw [not_le] at hsign
+    obtain ⟨hlo, hhi⟩ := hG p hpG
+    rw [abs_of_neg hsign] at hlo hhi
+    rw [abs_le]
+    exact ⟨by linarith, by linarith⟩
+  have hbp := u6aFT_window_card_le hCcnt hcnt hTfm h3Tf hK₀ hK₀cnt
+    (t + ((k : ℝ) + 1 / 2)) _ hwp
+  have hbm := u6aFT_window_card_le hCcnt hcnt hTfm h3Tf hK₀ hK₀cnt
+    (t - ((k : ℝ) + 1 / 2)) _ hwm
+  have habs_p : |t + ((k : ℝ) + 1 / 2)| + 1 ≤ |t| + (k : ℝ) + 2 := by
+    have h1 := abs_add_le t ((k : ℝ) + 1 / 2)
+    rw [abs_of_nonneg (by linarith : (0 : ℝ) ≤ (k : ℝ) + 1 / 2)] at h1
+    linarith
+  have habs_m : |t - ((k : ℝ) + 1 / 2)| + 1 ≤ |t| + (k : ℝ) + 2 := by
+    have h1 := abs_add_le t (-((k : ℝ) + 1 / 2))
+    rw [← sub_eq_add_neg, abs_neg,
+      abs_of_nonneg (by linarith : (0 : ℝ) ≤ (k : ℝ) + 1 / 2)] at h1
+    linarith
+  have hlogp : Real.log (|t + ((k : ℝ) + 1 / 2)| + 1) ≤ Real.log (|t| + (k : ℝ) + 2) :=
+    Real.log_le_log (by positivity) habs_p
+  have hlogm : Real.log (|t - ((k : ℝ) + 1 / 2)| + 1) ≤ Real.log (|t| + (k : ℝ) + 2) :=
+    Real.log_le_log (by positivity) habs_m
+  have hCp : Ccnt * Real.log (|t + ((k : ℝ) + 1 / 2)| + 1) ≤
+      Ccnt * Real.log (|t| + (k : ℝ) + 2) := mul_le_mul_of_nonneg_left hlogp hCcnt.le
+  have hCm : Ccnt * Real.log (|t - ((k : ℝ) + 1 / 2)| + 1) ≤
+      Ccnt * Real.log (|t| + (k : ℝ) + 2) := mul_le_mul_of_nonneg_left hlogm hCcnt.le
+  have hfinal : (G.card : ℝ) =
+      ((G.filter (fun p => 0 ≤ (Complex.Hadamard.divisorZeroIndex₀_val p).im - t)).card : ℝ) +
+      ((G.filter
+        (fun p => ¬ 0 ≤ (Complex.Hadamard.divisorZeroIndex₀_val p).im - t)).card : ℝ) := by
+    rw [← hcards]
+    push_cast
+    ring
+  rw [hfinal]
+  linarith
+
+/-- The bucketed per-finset bound: any finite part of the far inverse-square
+tail is controlled by the count atom through the two weight series. -/
+private lemma u6aFT_bucketSum_le {Ccnt Tₘᵢₙ Tf K₀ : ℝ} (hCcnt : 0 < Ccnt)
+    (hcnt : ∀ u : ℝ, Tₘᵢₙ ≤ |u| → 3 ≤ |u| →
+      u6aNearbyZeroCount (-1) 2 u ≤ Ccnt * Real.log |u|)
+    (hTfm : Tₘᵢₙ ≤ Tf) (h3Tf : 3 ≤ Tf) (hK₀ : 0 ≤ K₀)
+    (hK₀cnt : ∀ G : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)),
+      (∀ p ∈ G, |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤ Tf + 1) →
+      (G.card : ℝ) ≤ K₀)
+    {t : ℝ} (h3 : 3 ≤ |t|)
+    (F : Finset {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+        p ∉ u6aXiNearbyIndexFinset t}) :
+    (∑ p ∈ F, (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) ≤
+      (2 * Ccnt * Real.log |t| + 2 * K₀) * (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) +
+        2 * Ccnt * (∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹) := by
+  classical
+  have hlogt : 0 ≤ Real.log |t| := Real.log_nonneg (by linarith)
+  rw [← Finset.sum_fiberwise_of_maps_to
+    (g := fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+      p ∉ u6aXiNearbyIndexFinset t} =>
+      ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊)
+    (t := F.image (fun p =>
+      ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊))
+    (fun p hp => Finset.mem_image_of_mem _ hp)
+    (fun p => (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹)]
+  have hbucket : ∀ j ∈ F.image (fun p =>
+      ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊),
+      (∑ p ∈ F.filter (fun p =>
+        ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j),
+        (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) ≤
+      (2 * Ccnt * Real.log |t| + 2 * K₀) * (((j : ℝ)) ^ 2)⁻¹ +
+        2 * Ccnt * (Real.log ((j : ℝ) + 2) * (((j : ℝ)) ^ 2)⁻¹) := by
+    intro j hj
+    obtain ⟨q, hqF, hqg⟩ := Finset.mem_image.mp hj
+    have hqfar := u6aFT_offWindow_im_far h3 q.val q.2
+    have hj1 : 1 ≤ j := by
+      rw [← hqg]
+      exact Nat.le_floor (by exact_mod_cast hqfar.le)
+    have hj1' : (1 : ℝ) ≤ (j : ℝ) := by exact_mod_cast hj1
+    have hjpos : (0 : ℝ) < ((j : ℝ)) ^ 2 := pow_pos (by linarith) 2
+    have hterm : ∀ p ∈ F.filter (fun p =>
+        ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j),
+        (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹ ≤
+          (((j : ℝ)) ^ 2)⁻¹ := by
+      intro p hp
+      simp only [Finset.mem_filter] at hp
+      have hfloor : (j : ℝ) ≤ |(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t| := by
+        rw [← hp.2]
+        exact Nat.floor_le (abs_nonneg _)
+      have hsq : ((j : ℝ)) ^ 2 ≤
+          ((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2 := by
+        rw [← sq_abs ((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t)]
+        exact pow_le_pow_left₀ (by linarith) hfloor 2
+      have h1 := one_div_le_one_div_of_le hjpos hsq
+      rwa [one_div, one_div] at h1
+    have hcard : (((F.filter (fun p =>
+        ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j)).card : ℕ) : ℝ) ≤
+        2 * (Ccnt * Real.log (|t| + (j : ℝ) + 2) + K₀) := by
+      have hcardeq : ((F.filter (fun p =>
+          ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j)).image
+            Subtype.val).card =
+          (F.filter (fun p =>
+            ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j)).card :=
+        Finset.card_image_of_injective _ Subtype.val_injective
+      rw [← hcardeq]
+      refine u6aFT_bucket_card_le hCcnt hcnt hTfm h3Tf hK₀ hK₀cnt t hj1 _ ?_
+      intro p hpG
+      obtain ⟨p', hp'F, hp'val⟩ := Finset.mem_image.mp hpG
+      simp only [Finset.mem_filter] at hp'F
+      rw [← hp'val]
+      constructor
+      · rw [← hp'F.2]
+        exact Nat.floor_le (abs_nonneg _)
+      · rw [← hp'F.2]
+        exact Nat.lt_floor_add_one _
+    calc (∑ p ∈ F.filter (fun p =>
+          ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j),
+          (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹)
+        ≤ (F.filter (fun p =>
+            ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j)).card •
+            (((j : ℝ)) ^ 2)⁻¹ := Finset.sum_le_card_nsmul _ _ _ hterm
+      _ = (((F.filter (fun p =>
+            ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊ = j)).card : ℕ) : ℝ) *
+            (((j : ℝ)) ^ 2)⁻¹ := nsmul_eq_mul _ _
+      _ ≤ (2 * (Ccnt * Real.log (|t| + (j : ℝ) + 2) + K₀)) * (((j : ℝ)) ^ 2)⁻¹ :=
+          mul_le_mul_of_nonneg_right hcard (by positivity)
+      _ ≤ (2 * Ccnt * Real.log |t| + 2 * K₀) * (((j : ℝ)) ^ 2)⁻¹ +
+            2 * Ccnt * (Real.log ((j : ℝ) + 2) * (((j : ℝ)) ^ 2)⁻¹) := by
+          have hsplit : Real.log (|t| + (j : ℝ) + 2) ≤
+              Real.log |t| + Real.log ((j : ℝ) + 2) := by
+            have h1 : |t| + (j : ℝ) + 2 ≤ |t| * ((j : ℝ) + 2) := by nlinarith
+            calc Real.log (|t| + (j : ℝ) + 2)
+                ≤ Real.log (|t| * ((j : ℝ) + 2)) := Real.log_le_log (by linarith) h1
+              _ = Real.log |t| + Real.log ((j : ℝ) + 2) :=
+                  Real.log_mul (by linarith) (by linarith)
+          have hw0 : (0 : ℝ) ≤ (((j : ℝ)) ^ 2)⁻¹ := by positivity
+          have hmul := mul_le_mul_of_nonneg_right
+            (mul_le_mul_of_nonneg_left hsplit hCcnt.le) hw0
+          nlinarith [hmul]
+  refine le_trans (Finset.sum_le_sum hbucket) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hsw : (∑ j ∈ F.image (fun p =>
+      ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊),
+      (((j : ℝ)) ^ 2)⁻¹) ≤ ∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹ :=
+    Summable.sum_le_tsum _ (fun i _ => by positivity) u6aFT_summable_invSqNat
+  have hsv : (∑ j ∈ F.image (fun p =>
+      ⌊|(Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t|⌋₊),
+      Real.log ((j : ℝ) + 2) * (((j : ℝ)) ^ 2)⁻¹) ≤
+      ∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹ := by
+    refine Summable.sum_le_tsum _ (fun i _ => ?_) u6aFT_summable_logWeight
+    refine mul_nonneg (Real.log_nonneg ?_) (by positivity)
+    have h0 : (0 : ℝ) ≤ (i : ℝ) := Nat.cast_nonneg _
+    linarith
+  have hA : 0 ≤ 2 * Ccnt * Real.log |t| + 2 * K₀ := by
+    have h1 := mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 2) hCcnt.le) hlogt
+    linarith
+  have h1 := mul_le_mul_of_nonneg_left hsw hA
+  have h2 := mul_le_mul_of_nonneg_left hsv (by linarith : (0 : ℝ) ≤ 2 * Ccnt)
+  linarith
+
+/-- The k-bucket ladder: given the local count atom, the shifted inverse-square
+tail over the far complement is log-grade, uniformly on the strip heights. -/
+theorem u6aFT_invSqTail_le_log {Ccnt Tₘᵢₙ : ℝ}
+    (hcnt : U6aLocalZeroCountLogHypothesis Ccnt Tₘᵢₙ) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ |t| → 3 ≤ |t| →
+      (∑' p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) //
+          p ∉ u6aXiNearbyIndexFinset t},
+        (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) ≤
+      C * Real.log |t| := by
+  classical
+  obtain ⟨hCcnt, hcnt⟩ := hcnt
+  have hLowFin : ({p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) |
+      |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤ max Tₘᵢₙ 3 + 1} : Set _).Finite := by
+    refine (Complex.Hadamard.divisorZeroIndex₀_norm_le_finite (max Tₘᵢₙ 3 + 2)
+      (Set.subset_univ _)).subset ?_
+    intro p hp
+    simp only [Set.mem_setOf_eq] at hp ⊢
+    have hrest := riemannXi_zero_re_mem (riemannXi_val_eq_zero p)
+    have h1 := Complex.norm_le_abs_re_add_abs_im (Complex.Hadamard.divisorZeroIndex₀_val p)
+    have h2 : |(Complex.Hadamard.divisorZeroIndex₀_val p).re| ≤ 1 :=
+      abs_le.mpr ⟨by linarith [hrest.1], hrest.2⟩
+    linarith
+  have hK₀ : (0 : ℝ) ≤ (hLowFin.toFinset.card : ℝ) := by positivity
+  have hK₀cnt : ∀ G : Finset (Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)),
+      (∀ p ∈ G, |(Complex.Hadamard.divisorZeroIndex₀_val p).im| ≤ max Tₘᵢₙ 3 + 1) →
+      (G.card : ℝ) ≤ (hLowFin.toFinset.card : ℝ) := by
+    intro G hG
+    have hsub : G ⊆ hLowFin.toFinset := fun p hp =>
+      (Set.Finite.mem_toFinset _).mpr (hG p hp)
+    exact Nat.cast_le.mpr (Finset.card_le_card hsub)
+  have hW0 : (0 : ℝ) ≤ ∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹ :=
+    tsum_nonneg fun k => by positivity
+  have hV0 : (0 : ℝ) ≤ ∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹ := by
+    refine tsum_nonneg fun k => mul_nonneg (Real.log_nonneg ?_) (by positivity)
+    have h0 : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg _
+    linarith
+  refine ⟨2 * Ccnt * (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) +
+      2 * Ccnt * (∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹) +
+      2 * (hLowFin.toFinset.card : ℝ) * (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) + 1, ?_, ?_⟩
+  · have h1 : (0 : ℝ) ≤ 2 * Ccnt * (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) :=
+      mul_nonneg (by linarith) hW0
+    have h2 : (0 : ℝ) ≤
+        2 * Ccnt * (∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹) :=
+      mul_nonneg (by linarith) hV0
+    have h3 : (0 : ℝ) ≤ 2 * (hLowFin.toFinset.card : ℝ) * (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) :=
+      mul_nonneg (by linarith) hW0
+    linarith
+  · intro t hT h3
+    have hsub : Summable (fun p : {p : Complex.Hadamard.divisorZeroIndex₀ riemannXi
+        (Set.univ : Set ℂ) // p ∉ u6aXiNearbyIndexFinset t} =>
+        (((Complex.Hadamard.divisorZeroIndex₀_val p.val).im - t) ^ 2)⁻¹) :=
+      (u6aFT_summable_invSq t).subtype _
+    have hkey := Summable.tsum_le_of_sum_le hsub fun F =>
+      u6aFT_bucketSum_le hCcnt hcnt (le_max_left _ _) (le_max_right _ _)
+        hK₀ hK₀cnt h3 F
+    have hlog1 : 1 ≤ Real.log |t| := by
+      have h1 : (1 : ℝ) < Real.log |t| := by
+        rw [Real.lt_log_iff_exp_lt (by linarith : (0 : ℝ) < |t|)]
+        calc Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+          _ ≤ |t| := by linarith
+      linarith
+    have e1 : (0 : ℝ) ≤ 2 * Ccnt *
+        (∑' k : ℕ, Real.log ((k : ℝ) + 2) * (((k : ℝ)) ^ 2)⁻¹) * (Real.log |t| - 1) :=
+      mul_nonneg (mul_nonneg (by linarith) hV0) (by linarith)
+    have e2 : (0 : ℝ) ≤ 2 * (hLowFin.toFinset.card : ℝ) *
+        (∑' k : ℕ, (((k : ℝ)) ^ 2)⁻¹) * (Real.log |t| - 1) :=
+      mul_nonneg (mul_nonneg (by linarith) hW0) (by linarith)
+    nlinarith [hkey, e1, e2, hlog1]
+
 end
 
 end Kadiri
