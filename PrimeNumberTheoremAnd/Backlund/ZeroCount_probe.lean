@@ -265,6 +265,78 @@ private lemma Gamma_le_two_mul_factorial :
             push_cast
             ring
 
+/-- The cosine is dominated by the exponential of the norm, via the exponential
+formula and `‖exp u‖ = exp (Re u)`. -/
+private lemma norm_cos_le_exp (v : ℂ) : ‖Complex.cos v‖ ≤ Real.exp ‖v‖ := by
+  have h1 : ‖Complex.exp (v * Complex.I)‖ ≤ Real.exp ‖v‖ := by
+    rw [Complex.norm_exp]
+    refine Real.exp_le_exp.mpr ?_
+    have him := Complex.abs_im_le_norm v
+    have hre : (v * Complex.I).re = -v.im := by simp [Complex.mul_re]
+    rw [hre]
+    have : -v.im ≤ |v.im| := neg_le_abs v.im
+    linarith
+  have h2 : ‖Complex.exp (-v * Complex.I)‖ ≤ Real.exp ‖v‖ := by
+    rw [Complex.norm_exp]
+    refine Real.exp_le_exp.mpr ?_
+    have him := Complex.abs_im_le_norm v
+    have hre : (-v * Complex.I).re = v.im := by simp [Complex.mul_re]
+    rw [hre]
+    have : v.im ≤ |v.im| := le_abs_self v.im
+    linarith
+  unfold Complex.cos
+  calc ‖(Complex.exp (v * Complex.I) + Complex.exp (-v * Complex.I)) / 2‖
+      = ‖Complex.exp (v * Complex.I) + Complex.exp (-v * Complex.I)‖ / 2 := by
+        rw [norm_div]
+        norm_num
+    _ ≤ (‖Complex.exp (v * Complex.I)‖ + ‖Complex.exp (-v * Complex.I)‖) / 2 := by
+        have := norm_add_le (Complex.exp (v * Complex.I)) (Complex.exp (-v * Complex.I))
+        linarith
+    _ ≤ Real.exp ‖v‖ := by linarith
+
+/-- Splitting logs across products shifted by one. -/
+private lemma log_one_add_mul_le {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+    Real.log (1 + a * b) ≤ Real.log (1 + a) + Real.log (1 + b) := by
+  rw [← Real.log_mul (by linarith) (by linarith)]
+  refine Real.log_le_log (by nlinarith) (by nlinarith)
+
+/-- The uniform series bound on `Re ≥ 2`, packaged for reuse (the analogous bound is
+inlined in `surrogate_growth_right`; deduplicate at promotion). -/
+private lemma exists_zeta_bound_right :
+    ∃ M : ℝ, 0 ≤ M ∧ ∀ z : ℂ, 2 ≤ z.re → ‖riemannZeta z‖ ≤ M := by
+  refine ⟨∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2, tsum_nonneg fun n ↦ by positivity, ?_⟩
+  intro z hz
+  have hMsum : Summable (fun n : ℕ ↦ 1 / ((n : ℝ) + 1) ^ 2) := by
+    have h := (summable_nat_add_iff (f := fun n : ℕ ↦ 1 / (n : ℝ) ^ 2) 1).mpr
+      (Real.summable_one_div_nat_pow.mpr one_lt_two)
+    simpa using h
+  have hterm : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ = 1 / ((n : ℝ) + 1) ^ z.re := by
+    intro n
+    rw [norm_div, norm_one]
+    congr 1
+    have h1 : ((n : ℂ) + 1) = ((n + 1 : ℕ) : ℂ) := by push_cast; ring
+    rw [h1, Complex.norm_natCast_cpow_of_pos (Nat.succ_pos n)]
+    push_cast
+    ring
+  have hle : ∀ n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ ≤ 1 / ((n : ℝ) + 1) ^ 2 := by
+    intro n
+    rw [hterm n]
+    have hb1 : (1 : ℝ) ≤ (n : ℝ) + 1 := by
+      have := Nat.cast_nonneg (α := ℝ) n
+      linarith
+    have hrw : ((n : ℝ) + 1) ^ (2 : ℕ) = ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) := by
+      rw [Real.rpow_natCast]
+    have h2 : ((n : ℝ) + 1) ^ ((2 : ℕ) : ℝ) ≤ ((n : ℝ) + 1) ^ z.re :=
+      Real.rpow_le_rpow_of_exponent_le hb1 (by exact_mod_cast hz)
+    rw [hrw]
+    gcongr
+  have hns : Summable (fun n : ℕ ↦ ‖1 / ((n : ℂ) + 1) ^ z‖) :=
+    Summable.of_nonneg_of_le (fun n ↦ norm_nonneg _) hle hMsum
+  rw [zeta_eq_tsum_one_div_nat_add_one_cpow (by linarith : 1 < z.re)]
+  calc ‖∑' n : ℕ, 1 / ((n : ℂ) + 1) ^ z‖
+      ≤ ∑' n : ℕ, ‖1 / ((n : ℂ) + 1) ^ z‖ := norm_tsum_le_tsum_norm hns
+    _ ≤ ∑' n : ℕ, 1 / ((n : ℝ) + 1) ^ 2 := Summable.tsum_le_tsum hle hns hMsum
+
 /-- Left region `Re ≤ -1`: the functional equation with `|Γ(1-z)| ≤ Γ(1 - Re z)` and a
 crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
 private lemma surrogate_growth_left :
