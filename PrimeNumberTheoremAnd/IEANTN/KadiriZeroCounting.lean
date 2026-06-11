@@ -1904,4 +1904,43 @@ theorem riemannZeta_order_conj {ρ : ℂ} (hρ : ρ ≠ 1) :
   rw [han.meromorphicOrderAt_eq, han'.meromorphicOrderAt_eq, hkey]
 
 
+/-!
+### The weighted (order-carrying) zero accounting
+
+The order-weighted count of zeros below a dyadic height is controlled by the
+multiplicity-counting `N`: positive heights are `N`'s own index, negative heights
+reindex through conjugation (`riemannZeta_order_conj`), and the real-axis bucket
+is finite and height-independent.
+-/
+
+/-- Zero orders are nonnegative away from `1`. -/
+private lemma riemannZeta_order_nonneg {ρ : ℂ} (hρ : ρ ≠ 1) :
+    0 ≤ riemannZeta.order ρ := by
+  have han : AnalyticAt ℂ riemannZeta ρ :=
+    riemannZeta_analyticOn_compl_one ρ (by simpa [Set.mem_compl_iff] using hρ)
+  unfold riemannZeta.order
+  rw [han.meromorphicOrderAt_eq]
+  cases h : analyticOrderAt riemannZeta ρ with
+  | top => simp
+  | coe n =>
+      simp only [ENat.map_coe, WithTop.untopD_coe]
+      exact_mod_cast Nat.zero_le n
+
+/-- `N` is the order sum over its own window. -/
+private lemma riemannZeta_N_eq_tsum_order (T : ℝ) :
+    riemannZeta.N T =
+      ∑' ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T),
+        ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+  unfold riemannZeta.N riemannZeta.zeroes_sum
+  exact tsum_congr fun ρ ↦ one_mul _
+
+/-- The fixed weighted real-axis bucket. -/
+noncomputable def weightedZeroHeightBucket : ℝ :=
+  ∑' ρ : ZeroHeightNontrivialZeros,
+    ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ)
+
+lemma weightedZeroHeightBucket_nonneg : 0 ≤ weightedZeroHeightBucket := by
+  refine tsum_nonneg fun ρ ↦ ?_
+  exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+
 end Kadiri
