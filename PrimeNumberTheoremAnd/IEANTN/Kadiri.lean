@@ -1537,6 +1537,378 @@ theorem laplaceTransform_sub_pole_norm_decay {d : ℝ} (hd : 0 < d) {f : ℝ →
         exact hMbound s hs0
     _ ≤ M / s.im ^ 2 := by gcongr
 
+/-! ## Contour edge estimates on the zero-free half-plane `Re z > 1`
+
+Standalone inputs for the explicit-formula contour pull (`kadiri_thm_3_1_q1`): on a
+vertical line `Re z = σ > 1` the integrand `(-ζ'/ζ)(z) · Φ(-z)` is integrable, and on
+horizontal corridor segments inside `Re z > 1` its integral vanishes as the height tends
+to `±∞`. The statement shapes match the `hleft`/`hright`/`hbot`/`htop` hypotheses of
+`RectangleIntegral_tendsTo_VerticalIntegral` verbatim. The `Φ`-factor is spelled in the
+pole-subtracted form `f 0 / (s - z) - F(s - z)`: by `kadiriTestFn_laplaceTransform` this
+is the transform of the Kadiri test function (which vanishes at `0`), and it decays
+quadratically along vertical lines by `laplaceTransform_sub_pole_norm_decay`. For a test
+function with a nonzero value at `0` the corresponding product decays only like
+`1/|Im z|` and is not absolutely integrable on vertical lines, so the pole-subtracted
+spelling is the honest one for the rectangle machinery. -/
+
+/-- The negative logarithmic derivative of `ζ` is continuous away from `s = 1` and the
+zeros of `ζ`. -/
+lemma continuousAt_neg_deriv_riemannZeta_div {s : ℂ} (hs1 : s ≠ 1)
+    (hs0 : riemannZeta s ≠ 0) :
+    ContinuousAt (fun z : ℂ => -deriv riemannZeta z / riemannZeta z) s := by
+  have h1 : ContinuousAt (deriv riemannZeta) s :=
+    (analyticAt_riemannZeta hs1).deriv.continuousAt
+  have h2 : ContinuousAt riemannZeta s := (differentiableAt_riemannZeta hs1).continuousAt
+  exact h1.neg.div h2 hs0
+
+/-- The Laplace transform of a function supported in `[0, d)` and continuous on `[0, d]`
+is continuous on all of `ℂ`. -/
+lemma laplaceTransform_continuous {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_cont : ContinuousOn f (Set.Icc 0 d))
+    (hf_supp : tsupport f ⊆ Set.Ico 0 d) :
+    Continuous (laplaceTransform f) := by
+  obtain ⟨M, hM⟩ := isCompact_Icc.exists_bound_of_continuousOn hf_cont
+  rw [continuous_iff_continuousAt]
+  intro w₀
+  have key : ContinuousAt
+      (fun w : ℂ => ∫ t in Set.Ioc (0 : ℝ) d, exp (-w * (t : ℂ)) * (f t : ℂ)) w₀ := by
+    apply MeasureTheory.continuousAt_of_dominated
+      (bound := fun _ : ℝ => Real.exp ((1 + |w₀.re|) * d) * M)
+    · filter_upwards with w
+      apply ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioc
+      apply ContinuousOn.mul
+      · apply Continuous.continuousOn
+        exact (continuous_const.mul continuous_ofReal).cexp
+      · exact continuous_ofReal.comp_continuousOn (hf_cont.mono Set.Ioc_subset_Icc_self)
+    · filter_upwards [Metric.ball_mem_nhds w₀ one_pos] with w hw
+      rw [MeasureTheory.ae_restrict_iff' measurableSet_Ioc]
+      filter_upwards with t ht
+      rw [norm_mul, Complex.norm_exp]
+      have hwre : -w.re ≤ 1 + |w₀.re| := by
+        have h1 : |(w - w₀).re| ≤ ‖w - w₀‖ := Complex.abs_re_le_norm _
+        rw [Complex.sub_re] at h1
+        rw [Metric.mem_ball, dist_eq_norm] at hw
+        have h2 := abs_le.mp (lt_of_le_of_lt h1 hw).le
+        have h4 := neg_abs_le w₀.re
+        linarith [h2.1]
+      have hre : (-w * (t : ℂ)).re = -w.re * t := by
+        simp [Complex.mul_re]
+      have hexp_le : Real.exp ((-w * (t : ℂ)).re) ≤ Real.exp ((1 + |w₀.re|) * d) := by
+        rw [hre]
+        apply Real.exp_le_exp.2
+        have ht0 : (0 : ℝ) ≤ t := ht.1.le
+        have hB0 : (0 : ℝ) ≤ 1 + |w₀.re| := by positivity
+        calc -w.re * t ≤ (1 + |w₀.re|) * t := mul_le_mul_of_nonneg_right hwre ht0
+          _ ≤ (1 + |w₀.re|) * d := mul_le_mul_of_nonneg_left ht.2 hB0
+      have hf_le : ‖((f t : ℝ) : ℂ)‖ ≤ M := by
+        rw [Complex.norm_real]
+        exact hM t ⟨ht.1.le, ht.2⟩
+      exact mul_le_mul hexp_le hf_le (norm_nonneg _) (Real.exp_pos _).le
+    · exact MeasureTheory.integrableOn_const (hs := measure_Ioc_lt_top.ne)
+    · filter_upwards with t
+      exact ((continuous_id.neg.mul continuous_const).cexp.mul continuous_const).continuousAt
+  refine key.congr ?_
+  filter_upwards with w
+  rw [laplaceTransform_eq_interval_of_tsupport_subset_Ico hd hf_supp w,
+    intervalIntegral.integral_of_le hd.le]
+
+/-- Quadratic decay of the pole-subtracted Laplace transform `f 0/(s - z) - F(s - z)` in
+the height of `z`, uniform over `Re z ≤ σmax < Re s`. -/
+lemma laplace_sub_pole_strip_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (s : ℂ) (σmax : ℝ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x y : ℝ, x ≤ σmax → 2 * |s.im| + 2 ≤ |y| →
+      ‖(f 0 : ℂ) / (s - ((x : ℂ) + y * I)) - laplaceTransform f (s - ((x : ℂ) + y * I))‖
+        ≤ C / y ^ 2 := by
+  obtain ⟨C, hC⟩ := laplaceTransform_sub_pole_norm_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d (s.re - σmax)
+  refine ⟨4 * max C 0, by positivity, fun x y hx hy => ?_⟩
+  have him : (s - ((x : ℂ) + y * I)).im = s.im - y := by simp
+  have hre : (s - ((x : ℂ) + y * I)).re = s.re - x := by simp
+  have hy1 : (1 : ℝ) ≤ |y| := by linarith [abs_nonneg s.im]
+  have habs : |y| / 2 ≤ |s.im - y| := by
+    have h1 := abs_sub_abs_le_abs_sub y s.im
+    rw [abs_sub_comm y s.im] at h1
+    linarith
+  have him0 : (s - ((x : ℂ) + y * I)).im ≠ 0 := by
+    rw [him]
+    intro h
+    rw [h, abs_zero] at habs
+    linarith
+  have hb := hC (s - ((x : ℂ) + y * I)) (by rw [hre]; linarith) him0
+  rw [him] at hb
+  have hy2 : (0 : ℝ) < y ^ 2 := by nlinarith [sq_abs y]
+  have hsq : y ^ 2 / 4 ≤ (s.im - y) ^ 2 := by
+    nlinarith [sq_abs (s.im - y), sq_abs y, abs_nonneg y]
+  have hsq0 : (0 : ℝ) < (s.im - y) ^ 2 := by linarith
+  calc ‖(f 0 : ℂ) / (s - ((x : ℂ) + y * I)) - laplaceTransform f (s - ((x : ℂ) + y * I))‖
+      ≤ C / (s.im - y) ^ 2 := hb
+    _ ≤ 4 * max C 0 / y ^ 2 := by
+        rw [div_le_div_iff₀ hsq0 hy2]
+        nlinarith [mul_le_mul_of_nonneg_right (le_max_left C 0) hy2.le,
+          mul_le_mul_of_nonneg_left hsq (le_max_right C 0)]
+
+/-- On a vertical line `Re z = σ > 1`, the product of `-ζ'/ζ` with any function having a
+quadratic-decay bound along the line is integrable. This is the `Re > 1` vertical-side
+input to `RectangleIntegral_tendsTo_VerticalIntegral` (its `hleft`/`hright` shapes). -/
+theorem integrable_neg_deriv_zeta_div_mul_of_decay {σ : ℝ} (hσ : 1 < σ) {g : ℂ → ℂ}
+    (hg_cont : Continuous fun y : ℝ => g ((σ : ℂ) + y * I))
+    {C R : ℝ} (hg_dec : ∀ y : ℝ, R ≤ |y| → ‖g ((σ : ℂ) + y * I)‖ ≤ C / y ^ 2) :
+    MeasureTheory.Integrable (fun y : ℝ =>
+      -deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I) *
+        g ((σ : ℂ) + y * I)) := by
+  set R' : ℝ := max R 1 with hR'def
+  have hR'1 : (1 : ℝ) ≤ R' := le_max_right _ _
+  have hline_re : ∀ y : ℝ, ((σ : ℂ) + y * I).re = σ := fun y => by simp
+  have hK : ∀ y : ℝ,
+      ‖-deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I)‖
+        ≤ ‖deriv riemannZeta (σ : ℂ) / riemannZeta (σ : ℂ)‖ := fun y =>
+    dlog_riemannZeta_bdd_on_vertical_lines_generalized σ σ y hσ le_rfl
+  set K : ℝ := ‖deriv riemannZeta (σ : ℂ) / riemannZeta (σ : ℂ)‖ with hKdef
+  have hK0 : 0 ≤ K := norm_nonneg _
+  have hzcont : Continuous fun y : ℝ =>
+      -deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I) := by
+    rw [continuous_iff_continuousAt]
+    intro y
+    have hline : Continuous fun y : ℝ => (σ : ℂ) + y * I :=
+      continuous_const.add (continuous_ofReal.mul continuous_const)
+    have hne1 : (σ : ℂ) + y * I ≠ 1 := by
+      intro h
+      have h1 : ((σ : ℂ) + y * I).re = 1 := by rw [h]; simp
+      rw [hline_re y] at h1
+      linarith
+    have hne0 : riemannZeta ((σ : ℂ) + y * I) ≠ 0 :=
+      riemannZeta_ne_zero_of_one_lt_re (by rw [hline_re y]; exact hσ)
+    have hcomp : ContinuousAt
+        ((fun z : ℂ => -deriv riemannZeta z / riemannZeta z) ∘ fun y : ℝ => (σ : ℂ) + y * I)
+        y :=
+      ContinuousAt.comp (continuousAt_neg_deriv_riemannZeta_div hne1 hne0)
+        hline.continuousAt
+    exact hcomp
+  have hcont : Continuous (fun y : ℝ =>
+      -deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I) *
+        g ((σ : ℂ) + y * I)) := hzcont.mul hg_cont
+  obtain ⟨M, hM⟩ := isCompact_Icc.exists_bound_of_continuousOn
+    (hg_cont.continuousOn (s := Set.Icc (-R') R'))
+  have hM0 : 0 ≤ M := (norm_nonneg _).trans (hM 0 ⟨by linarith, by linarith⟩)
+  set A : ℝ := K * max (M * (1 + R' ^ 2)) (2 * C) with hAdef
+  apply MeasureTheory.Integrable.mono' (integrable_inv_one_add_sq.const_mul A)
+    hcont.aestronglyMeasurable
+  filter_upwards with y
+  rw [norm_mul]
+  have h1y : (0 : ℝ) < 1 + y ^ 2 := by positivity
+  by_cases hcase : |y| ≤ R'
+  · have hg1 : ‖g ((σ : ℂ) + y * I)‖ ≤ M := hM y ⟨(abs_le.mp hcase).1, (abs_le.mp hcase).2⟩
+    have h2 : (1 : ℝ) + y ^ 2 ≤ 1 + R' ^ 2 := by nlinarith [sq_abs y, abs_nonneg y]
+    have h3 : ‖-deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I)‖ *
+        ‖g ((σ : ℂ) + y * I)‖ ≤ K * M :=
+      mul_le_mul (hK y) hg1 (norm_nonneg _) hK0
+    have h5 : K * (M * (1 + R' ^ 2)) ≤ A := by
+      rw [hAdef]
+      exact mul_le_mul_of_nonneg_left (le_max_left _ _) hK0
+    refine h3.trans ?_
+    rw [← div_eq_mul_inv, le_div_iff₀ h1y]
+    nlinarith [mul_le_mul_of_nonneg_left h2 (mul_nonneg hK0 hM0)]
+  · push Not at hcase
+    have hyR : R ≤ |y| := le_trans (le_max_left _ _) hcase.le
+    have hg1 := hg_dec y hyR
+    have hy1 : (1 : ℝ) ≤ |y| := le_trans hR'1 hcase.le
+    have hy2 : (1 : ℝ) ≤ y ^ 2 := by nlinarith [sq_abs y]
+    have hy2' : (0 : ℝ) < y ^ 2 := by linarith
+    have hC0 : 0 ≤ C := by
+      by_contra hneg
+      push Not at hneg
+      have h6 : C / y ^ 2 < 0 := div_neg_of_neg_of_pos hneg hy2'
+      linarith [(norm_nonneg (g ((σ : ℂ) + y * I))).trans hg1]
+    have h3 : ‖-deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I)‖ *
+        ‖g ((σ : ℂ) + y * I)‖ ≤ K * (C / y ^ 2) :=
+      mul_le_mul (hK y) hg1 (norm_nonneg _) hK0
+    have h8 : C / y ^ 2 * (1 + y ^ 2) ≤ 2 * C := by
+      have h9 : C / y ^ 2 * (1 + y ^ 2) = C / y ^ 2 + C := by
+        have hy0 : y ≠ 0 := by
+          intro h
+          rw [h] at hy2'
+          simp at hy2'
+        field_simp [hy0]
+      have h10 : C / y ^ 2 ≤ C := by
+        rw [div_le_iff₀ hy2']
+        nlinarith
+      linarith [h9.le]
+    have h11 : K * (2 * C) ≤ A := by
+      rw [hAdef]
+      exact mul_le_mul_of_nonneg_left (le_max_right _ _) hK0
+    refine h3.trans ?_
+    rw [← div_eq_mul_inv, le_div_iff₀ h1y]
+    calc K * (C / y ^ 2) * (1 + y ^ 2) = K * (C / y ^ 2 * (1 + y ^ 2)) := by ring
+      _ ≤ K * (2 * C) := mul_le_mul_of_nonneg_left h8 hK0
+      _ ≤ A := h11
+
+/-- The `Re > 1` vertical-side integrability for the explicit-formula integrand at the
+Kadiri test function: `(-ζ'/ζ)(z) · Φ(-z)` is integrable on the line `Re z = σ` for
+`1 < σ < Re s`, where `Φ(-z) = f 0/(s - z) - F(s - z)` is the transform of the test
+function by `kadiriTestFn_laplaceTransform`. -/
+theorem integrable_neg_deriv_zeta_div_mul_laplace_sub_pole {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} {σ : ℝ} (hσ : 1 < σ) (hσs : σ < s.re) :
+    MeasureTheory.Integrable (fun y : ℝ =>
+      -deriv riemannZeta ((σ : ℂ) + y * I) / riemannZeta ((σ : ℂ) + y * I) *
+        ((f 0 : ℂ) / (s - ((σ : ℂ) + y * I)) -
+          laplaceTransform f (s - ((σ : ℂ) + y * I)))) := by
+  obtain ⟨C, hC0, hC⟩ := laplace_sub_pole_strip_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d s σ
+  apply integrable_neg_deriv_zeta_div_mul_of_decay hσ
+    (g := fun z => (f 0 : ℂ) / (s - z) - laplaceTransform f (s - z))
+    (C := C) (R := 2 * |s.im| + 2)
+  · have hline : Continuous fun y : ℝ => s - ((σ : ℂ) + y * I) :=
+      continuous_const.sub (continuous_const.add (continuous_ofReal.mul continuous_const))
+    have hne : ∀ y : ℝ, s - ((σ : ℂ) + y * I) ≠ 0 := by
+      intro y h
+      have h1 : (s - ((σ : ℂ) + y * I)).re = s.re - σ := by simp
+      rw [h] at h1
+      simp at h1
+      linarith
+    have h1 : Continuous fun y : ℝ => (f 0 : ℂ) / (s - ((σ : ℂ) + y * I)) :=
+      continuous_const.div hline hne
+    have h2 : Continuous fun y : ℝ => laplaceTransform f (s - ((σ : ℂ) + y * I)) :=
+      (laplaceTransform_continuous hd hf_C2.continuousOn hf_supp).comp hline
+    exact h1.sub h2
+  · exact fun y hy => hC σ y le_rfl hy
+
+/-- Horizontal corridor integrals vanish at `+∞` under a uniform `C/|y|` bound on the
+strip. Matches the `htop` hypothesis shape of
+`RectangleIntegral_tendsTo_VerticalIntegral`. -/
+theorem tendsto_horizontal_integral_zero_atTop_of_decay {F : ℂ → ℂ} {a b C R : ℝ}
+    (hF : ∀ y : ℝ, R ≤ |y| → ∀ x ∈ Set.uIcc a b, ‖F ((x : ℂ) + y * I)‖ ≤ C / |y|) :
+    Filter.Tendsto (fun y : ℝ => ∫ x in a..b, F ((x : ℂ) + y * I)) Filter.atTop (nhds 0) := by
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  have hbnd : Filter.Tendsto (fun y : ℝ => C * |b - a| * |y|⁻¹) Filter.atTop (nhds 0) := by
+    have habs : Filter.Tendsto (fun y : ℝ => |y|) Filter.atTop Filter.atTop :=
+      Filter.tendsto_abs_atTop_atTop
+    have h1 := habs.inv_tendsto_atTop
+    simpa using h1.const_mul (C * |b - a|)
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hbnd
+  · filter_upwards with y
+    exact norm_nonneg _
+  · filter_upwards [Filter.eventually_ge_atTop (max R 1)] with y hy
+    have hy1 : (1 : ℝ) ≤ y := le_trans (le_max_right _ _) hy
+    have hyabs : |y| = y := abs_of_pos (by linarith)
+    have hyR : R ≤ |y| := by rw [hyabs]; exact le_trans (le_max_left _ _) hy
+    have h1 := intervalIntegral.norm_integral_le_of_norm_le_const
+      (C := C / |y|) (f := fun x : ℝ => F ((x : ℂ) + y * I))
+      (fun x hx => hF y hyR x (Set.uIoc_subset_uIcc hx))
+    calc ‖∫ x in a..b, F ((x : ℂ) + y * I)‖ ≤ C / |y| * |b - a| := h1
+      _ = C * |b - a| * |y|⁻¹ := by ring
+
+/-- Horizontal corridor integrals vanish at `-∞` under a uniform `C/|y|` bound on the
+strip. Matches the `hbot` hypothesis shape of
+`RectangleIntegral_tendsTo_VerticalIntegral`. -/
+theorem tendsto_horizontal_integral_zero_atBot_of_decay {F : ℂ → ℂ} {a b C R : ℝ}
+    (hF : ∀ y : ℝ, R ≤ |y| → ∀ x ∈ Set.uIcc a b, ‖F ((x : ℂ) + y * I)‖ ≤ C / |y|) :
+    Filter.Tendsto (fun y : ℝ => ∫ x in a..b, F ((x : ℂ) + y * I)) Filter.atBot (nhds 0) := by
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  have hbnd : Filter.Tendsto (fun y : ℝ => C * |b - a| * |y|⁻¹) Filter.atBot (nhds 0) := by
+    have habs : Filter.Tendsto (fun y : ℝ => |y|) Filter.atBot Filter.atTop :=
+      Filter.tendsto_abs_atBot_atTop
+    have h1 := habs.inv_tendsto_atTop
+    simpa using h1.const_mul (C * |b - a|)
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hbnd
+  · filter_upwards with y
+    exact norm_nonneg _
+  · filter_upwards [Filter.eventually_le_atBot (-(max R 1))] with y hy
+    have hy1 : y ≤ -1 := le_trans hy (by simp [le_max_right R 1])
+    have hyabs : |y| = -y := abs_of_neg (by linarith)
+    have hyR : R ≤ |y| := by
+      rw [hyabs]
+      have h2 := le_max_left R 1
+      linarith
+    have h1 := intervalIntegral.norm_integral_le_of_norm_le_const
+      (C := C / |y|) (f := fun x : ℝ => F ((x : ℂ) + y * I))
+      (fun x hx => hF y hyR x (Set.uIoc_subset_uIcc hx))
+    calc ‖∫ x in a..b, F ((x : ℂ) + y * I)‖ ≤ C / |y| * |b - a| := h1
+      _ = C * |b - a| * |y|⁻¹ := by ring
+
+/-- Uniform `C/|y|` bound on the strip `min σ' σ ≤ Re z ≤ max σ' σ` inside `Re z > 1`
+for the explicit-formula integrand at the Kadiri test function. -/
+lemma exists_strip_bound_neg_deriv_zeta_div_mul_laplace_sub_pole {d : ℝ} (hd : 0 < d)
+    {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} {σ' σ : ℝ} (hσ' : 1 < σ') (hσ : 1 < σ) :
+    ∃ C₀ : ℝ, ∀ y : ℝ, 2 * |s.im| + 2 ≤ |y| → ∀ x ∈ Set.uIcc σ' σ,
+      ‖-deriv riemannZeta ((x : ℂ) + y * I) / riemannZeta ((x : ℂ) + y * I) *
+        ((f 0 : ℂ) / (s - ((x : ℂ) + y * I)) -
+          laplaceTransform f (s - ((x : ℂ) + y * I)))‖
+        ≤ C₀ / |y| := by
+  obtain ⟨C, hC0, hC⟩ := laplace_sub_pole_strip_decay hd hf_C2 hf_supp hf_d
+    hf_deriv_0 hf_deriv_d s (max σ' σ)
+  have hmin1 : 1 < min σ' σ := lt_min hσ' hσ
+  refine ⟨‖deriv riemannZeta ((min σ' σ : ℝ) : ℂ) / riemannZeta ((min σ' σ : ℝ) : ℂ)‖ * C,
+    fun y hy x hx => ?_⟩
+  have hxmin : min σ' σ ≤ x := hx.1
+  have hxmax : x ≤ max σ' σ := hx.2
+  have hζ := dlog_riemannZeta_bdd_on_vertical_lines_generalized (min σ' σ) x y hmin1 hxmin
+  have hg := hC x y hxmax hy
+  have hy1 : (1 : ℝ) ≤ |y| := by linarith [abs_nonneg s.im]
+  have hy2 : (0 : ℝ) < y ^ 2 := by nlinarith [sq_abs y]
+  rw [norm_mul]
+  refine (mul_le_mul hζ hg (norm_nonneg _) (norm_nonneg _)).trans ?_
+  rw [mul_div_assoc]
+  apply mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+  rw [div_le_div_iff₀ hy2 (by linarith : (0 : ℝ) < |y|)]
+  nlinarith [sq_abs y, mul_le_mul_of_nonneg_left hy1 hC0]
+
+/-- Horizontal-edge vanishing at `+∞` for the explicit-formula integrand at the Kadiri
+test function, on corridor segments inside `Re z > 1`. -/
+theorem tendsto_horizontal_neg_deriv_zeta_div_mul_laplace_sub_pole_atTop {d : ℝ}
+    (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} {σ' σ : ℝ} (hσ' : 1 < σ') (hσ : 1 < σ) :
+    Filter.Tendsto (fun y : ℝ => ∫ x in σ'..σ,
+      -deriv riemannZeta ((x : ℂ) + y * I) / riemannZeta ((x : ℂ) + y * I) *
+        ((f 0 : ℂ) / (s - ((x : ℂ) + y * I)) -
+          laplaceTransform f (s - ((x : ℂ) + y * I)))) Filter.atTop (nhds 0) := by
+  obtain ⟨C₀, hC₀⟩ := exists_strip_bound_neg_deriv_zeta_div_mul_laplace_sub_pole hd
+    hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d (s := s) hσ' hσ
+  exact tendsto_horizontal_integral_zero_atTop_of_decay
+    (F := fun z : ℂ => -deriv riemannZeta z / riemannZeta z *
+      ((f 0 : ℂ) / (s - z) - laplaceTransform f (s - z))) hC₀
+
+/-- Horizontal-edge vanishing at `-∞` for the explicit-formula integrand at the Kadiri
+test function, on corridor segments inside `Re z > 1`. -/
+theorem tendsto_horizontal_neg_deriv_zeta_div_mul_laplace_sub_pole_atBot {d : ℝ}
+    (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    {s : ℂ} {σ' σ : ℝ} (hσ' : 1 < σ') (hσ : 1 < σ) :
+    Filter.Tendsto (fun y : ℝ => ∫ x in σ'..σ,
+      -deriv riemannZeta ((x : ℂ) + y * I) / riemannZeta ((x : ℂ) + y * I) *
+        ((f 0 : ℂ) / (s - ((x : ℂ) + y * I)) -
+          laplaceTransform f (s - ((x : ℂ) + y * I)))) Filter.atBot (nhds 0) := by
+  obtain ⟨C₀, hC₀⟩ := exists_strip_bound_neg_deriv_zeta_div_mul_laplace_sub_pole hd
+    hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d (s := s) hσ' hσ
+  exact tendsto_horizontal_integral_zero_atBot_of_decay
+    (F := fun z : ℂ => -deriv riemannZeta z / riemannZeta z *
+      ((f 0 : ℂ) / (s - z) - laplaceTransform f (s - z))) hC₀
+
 /-- Unconditional summability over the non-trivial zeros of the pole-subtracted
 Laplace transform. The un-subtracted complex sum `∑ ρ, F(s - ρ)` is not
 absolutely summable when `f 0 ≠ 0` (terms of norm `~ |f 0| / |Im ρ|`); in
