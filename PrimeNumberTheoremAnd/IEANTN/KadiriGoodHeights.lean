@@ -3110,15 +3110,31 @@ def U6aShiftedJensenLocalMassLogHypothesis (C : ℝ) : Prop :=
     (∑ z ∈ u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3,
       (riemannZeta.order (u6aJensenCenter t + z) : ℝ)) ≤ C * Real.log |t|
 
+/-- The shifted Jensen mass atom gives the sibling-compatible count-log
+surface with threshold `3`. -/
+theorem U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    U6aNearbyZeroCountLogHypothesis C 3 := by
+  refine ⟨hMass.1, ?_⟩
+  intro t _hT h3
+  exact (u6aNearbyZeroCount_le_shiftedZetaZeroBallMass t).trans (hMass.2 t h3)
+
 /-- A sharp radius-three shifted Jensen mass bound gives the exact nearby
 zero-count endpoint shape requested by the U6a assembly. -/
 theorem exists_u6aNearbyZeroCount_le_log_of_shiftedJensenLocalMass {C : ℝ}
     (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
     ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
       u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
-  refine ⟨C, hMass.1, ?_⟩
-  intro t ht
-  exact (u6aNearbyZeroCount_le_shiftedZetaZeroBallMass t).trans (hMass.2 t ht)
+  exact exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass hMass) le_rfl
+
+/-- The shifted Jensen mass atom also feeds the older one-sided local-density
+API consumed by the height-selector and PF wrappers. -/
+theorem U6aLocalZeroDensityHypothesis_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C 3 :=
+  U6aLocalZeroDensityHypothesis_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass hMass)
 
 private lemma u6aZetaPiFactor_eq_cpow (s : ℂ) :
     zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
