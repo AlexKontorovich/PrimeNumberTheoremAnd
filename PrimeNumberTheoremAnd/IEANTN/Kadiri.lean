@@ -1440,9 +1440,13 @@ theorem laplaceTransform_re_decay {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   (proof := /-- Combine \ref{kadiri-laplace-re-decay} (giving $|\Re F(s-\rho)| \leq
   C/|\Im(s-\rho)|^2 = C/(\Im s - \gamma)^2$ for $|\gamma|$ large, since the real part
   $\Re(s-\rho) = \Re s - \beta$ stays in the bounded strip $[\Re s - 1, \Re s]$) with
-  \ref{kadiri-backlund-bound} (giving $N(T) \ll T \log T$, hence by Abel summation
-  $\sum_{|\gamma| \geq 1} 1/|\gamma|^2 < \infty$). Bound finitely many small-$|\gamma|$
-  terms by hand. To be formalised. -/)
+  the unconditional crude counting bound $N(T) = O(T^{3/2})$ proved in
+  the Backlund zero-count module: over the dyadic shells
+  $|\gamma| \in [2^k, 2^{k+1})$ the shell count is $O(3^k)$ while each term is at
+  most $4^{-k}$, so $\sum_{|\gamma| \geq 1} 1/|\gamma|^2 < \infty$. The finitely many
+  small-$|\gamma|$ terms are absorbed by cofiniteness. The sharper
+  \ref{kadiri-backlund-bound} route ($N(T) \ll T \log T$) is not needed here and
+  remains the path to the explicit numerics. -/)
   (latexEnv := "lemma")
   (discussion := 1477)]
 theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
@@ -1460,7 +1464,7 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     hf_deriv_0 hf_deriv_d hf_deriv2_d (s.re - 1) s.re
   have htail : Summable (fun ρ : NontrivialZeros ↦
       C * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
-    (summable_zeroImagSquareTail_shifted_of_RvM backlund_bound s).mul_left C
+    (summable_zeroImagSquareTail_shifted_unconditional s).mul_left C
   refine Summable.of_norm_bounded_eventually htail ?_
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
