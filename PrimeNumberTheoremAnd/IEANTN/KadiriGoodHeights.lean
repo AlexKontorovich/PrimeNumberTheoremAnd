@@ -266,6 +266,227 @@ theorem u6aBadHeightFinset_card_le_two_zeroWindow
     _ ≤ Z.card + Z.card := h₂
     _ = 2 * Z.card := by omega
 
+/-- Possible real-axis zeros in the U6a strip, kept as a finite additive
+bucket instead of being asserted away. -/
+abbrev u6aStripZeroHeightZeros : Type :=
+  riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2) (Set.Icc 0 0)
+
+lemma u6aStripZeroHeightZeros_finite : Finite u6aStripZeroHeightZeros := by
+  have hfin : (riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2) (Set.Icc 0 0)).Finite := by
+    rw [riemannZeta.zeroes_rect_eq]
+    let S : Set ℂ :=
+      (Complex.re ⁻¹' Set.Icc (-1 : ℝ) 2) ∩
+        (Complex.im ⁻¹' Set.Icc (0 : ℝ) 0)
+    have hS : IsCompact S := by
+      exact Complex.equivRealProdCLM.toHomeomorph.isClosedEmbedding.isCompact_preimage
+        (isCompact_Icc.prod isCompact_Icc)
+    refine (riemannZeta.zeroes_on_Compact_finite' (S := S) hS).subset ?_
+    intro z hz
+    rcases hz with ⟨⟨hre, him⟩, hzeta⟩
+    have hle : (-1 : ℝ) ≤ 2 := by norm_num
+    exact ⟨⟨by simpa [Set.uIcc_of_le hle] using hre, him⟩, hzeta⟩
+  exact Set.finite_coe_iff.mpr hfin
+
+/-- In the actual U6a strip `[-1, 2]`, every non-real zero in the finite
+height window injects into the non-trivial zero count by absolute height; the
+only extra bucket is the finite real-axis strip set. -/
+theorem u6aZeroWindowFinset_card_le_nontrivial_abs_count {X δ T : ℝ}
+    (hT : 2 * X + δ < T) :
+    (u6aZeroWindowFinset (-1) 2 X δ).card ≤
+      Nat.card {rho : NontrivialZeros // |(rho : ℂ).im| < T} +
+        Nat.card u6aStripZeroHeightZeros := by
+  classical
+  let Win : Type := {z : ℂ // z ∈ u6aZeroWindowFinset (-1) 2 X δ}
+  let Abs : Type := {rho : NontrivialZeros // |(rho : ℂ).im| < T}
+  let Zero : Type := u6aStripZeroHeightZeros
+  haveI : Finite Abs :=
+    Set.finite_coe_iff.mpr (nontrivialZeros_abs_im_lt_finite T)
+  haveI : Finite Zero := u6aStripZeroHeightZeros_finite
+  let toBucket : Win → Abs ⊕ Zero := fun z =>
+    have hzwin : (z : ℂ) ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+        (Set.Icc (-(2 * X + δ)) (2 * X + δ)) := by
+      have hzfin : (z : ℂ) ∈ u6aZeroWindowFinset (-1) 2 X δ := z.property
+      unfold u6aZeroWindowFinset at hzfin
+      exact (u6aZeroWindowSet_finite (-1) 2 X δ).mem_toFinset.mp hzfin
+    if him : (z : ℂ).im = 0 then
+      Sum.inr
+        ⟨(z : ℂ), hzwin.1, by simp [him], hzwin.2.2⟩
+    else
+      have hre_nontrivial : (z : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := by
+        have hzeta : riemannZeta (z : ℂ) = 0 := hzwin.2.2
+        have hnot_nonpos : ¬ (z : ℂ).re ≤ 0 := by
+          intro hre
+          exact (riemannZeta_ne_zero_of_re_nonpos_im_ne_zero hre him) hzeta
+        have hnot_one_le : ¬ 1 ≤ (z : ℂ).re := by
+          intro hre
+          exact (riemannZeta_ne_zero_of_one_le_re hre) hzeta
+        exact ⟨lt_of_not_ge hnot_nonpos, lt_of_not_ge hnot_one_le⟩
+      have habs_lt : |(z : ℂ).im| < T := by
+        have habs_le : |(z : ℂ).im| ≤ 2 * X + δ :=
+          abs_le.mpr ⟨hzwin.2.1.1, hzwin.2.1.2⟩
+        exact lt_of_le_of_lt habs_le hT
+      Sum.inl
+        ⟨⟨(z : ℂ), hre_nontrivial, Set.mem_univ _, hzwin.2.2⟩, habs_lt⟩
+  let recover : Abs ⊕ Zero → ℂ := fun bucket =>
+    match bucket with
+    | Sum.inl rho => (rho.1 : ℂ)
+    | Sum.inr rho => (rho : ℂ)
+  have hrecover : ∀ z : Win, recover (toBucket z) = (z : ℂ) := by
+    intro z
+    dsimp [toBucket, recover]
+    by_cases him : (z : ℂ).im = 0
+    · simp [him]
+    · simp [him]
+  have hinj : Function.Injective toBucket := by
+    intro z w hzw
+    apply Subtype.ext
+    calc
+      (z : ℂ) = recover (toBucket z) := (hrecover z).symm
+      _ = recover (toBucket w) := by rw [hzw]
+      _ = (w : ℂ) := hrecover w
+  have hcard : Nat.card Win ≤ Nat.card (Abs ⊕ Zero) :=
+    Nat.card_le_card_of_injective toBucket hinj
+  have hsum : Nat.card (Abs ⊕ Zero) = Nat.card Abs + Nat.card Zero := by
+    rw [Nat.card_sum]
+  have hwin : Nat.card Win = (u6aZeroWindowFinset (-1) 2 X δ).card := by
+    simp [Win]
+  simpa [Abs, Zero, hwin, hsum] using hcard
+
+/-- The U6a zero-window count in the actual strip is bounded by the project
+zero-counting function, with the real-axis bucket absorbed as an additive
+constant. -/
+theorem u6aZeroWindowFinset_card_le_countByN_with_zero_height :
+    ∃ A D : ℝ, 0 ≤ A ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ : ℝ,
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+        ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) ≤
+          A * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + D := by
+  classical
+  obtain ⟨A, D, hA, hD, hcount⟩ :=
+    zeroImagDyadicCumulativeCountByNWithZeroHeightSource_of_conj_and_positive_height_zero_free
+  refine ⟨A, D + (Nat.card u6aStripZeroHeightZeros : ℝ), hA,
+    add_nonneg hD (by positivity), ?_⟩
+  intro k X δ hT
+  have hwin :=
+    u6aZeroWindowFinset_card_le_nontrivial_abs_count
+      (X := X) (δ := δ) (T := (2 : ℝ) ^ (k + 1)) hT
+  have hwinR :
+      ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) ≤
+        (Nat.card {rho : NontrivialZeros //
+            |(rho : ℂ).im| < (2 : ℝ) ^ (k + 1)} : ℝ) +
+          (Nat.card u6aStripZeroHeightZeros : ℝ) := by
+    exact_mod_cast hwin
+  have hcountk := hcount k
+  calc
+    ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ)
+        ≤ (Nat.card {rho : NontrivialZeros //
+            |(rho : ℂ).im| < (2 : ℝ) ^ (k + 1)} : ℝ) +
+          (Nat.card u6aStripZeroHeightZeros : ℝ) := hwinR
+    _ ≤ A * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + D +
+          (Nat.card u6aStripZeroHeightZeros : ℝ) := by
+        simpa [add_comm, add_left_comm, add_assoc] using
+          add_le_add_right hcountk (Nat.card u6aStripZeroHeightZeros : ℝ)
+    _ = A * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| +
+          (D + (Nat.card u6aStripZeroHeightZeros : ℝ)) := by ring
+
+/-- Crude-majorant form of the U6a zero-window count.  The growth is geometric
+in the dyadic scale because it consumes `Backlund.zetaCounting_crude_majorant`. -/
+theorem u6aZeroWindowFinset_card_le_crude_geometric :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ : ℝ,
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+        ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) ≤ C * 3 ^ k + D := by
+  obtain ⟨A, D, hA, hD, hcount⟩ :=
+    u6aZeroWindowFinset_card_le_countByN_with_zero_height
+  obtain ⟨E, hE, hN⟩ := zetaCountingDyadic_abs_N_le_geometric
+  let C : ℝ := max 1 (A * E)
+  have hC : 0 < C := by
+    exact lt_of_lt_of_le zero_lt_one (le_max_left 1 (A * E))
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X δ hT
+  have hbase := hcount k X δ hT
+  have hNbound := hN k
+  have hmul :
+      A * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| ≤ A * (E * 3 ^ k) := by
+    exact mul_le_mul_of_nonneg_left hNbound hA
+  have hpow_nonneg : 0 ≤ (3 : ℝ) ^ k := by positivity
+  have hCmul : A * E * 3 ^ k ≤ C * 3 ^ k := by
+    exact mul_le_mul_of_nonneg_right (le_max_right 1 (A * E)) hpow_nonneg
+  calc
+    ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ)
+        ≤ A * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + D := hbase
+    _ ≤ A * (E * 3 ^ k) + D := by
+        simpa [add_comm, add_left_comm, add_assoc] using add_le_add_right hmul D
+    _ = A * E * 3 ^ k + D := by ring
+    _ ≤ C * 3 ^ k + D := by
+        simpa [add_comm, add_left_comm, add_assoc] using add_le_add_right hCmul D
+
+/-- Crude-majorant form of the finite bad-height count used in the safe-set
+length estimate. -/
+theorem u6aBadHeightFinset_card_le_crude_geometric :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ : ℝ,
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+        ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ) ≤ C * 3 ^ k + D := by
+  obtain ⟨C, D, hC, hD, hcount⟩ := u6aZeroWindowFinset_card_le_crude_geometric
+  refine ⟨2 * C, 2 * D, by positivity, by positivity, ?_⟩
+  intro k X δ hT
+  have hbad :=
+    u6aBadHeightFinset_card_le_two_zeroWindow (-1) 2 X δ
+  have hbadR :
+      ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ) ≤
+        2 * ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) := by
+    exact_mod_cast hbad
+  have hcountk := hcount k X δ hT
+  have hmul :
+      2 * ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) ≤
+        2 * (C * 3 ^ k + D) := by
+    exact mul_le_mul_of_nonneg_left hcountk (by norm_num)
+  calc
+    ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ)
+        ≤ 2 * ((u6aZeroWindowFinset (-1) 2 X δ).card : ℝ) := hbadR
+    _ ≤ 2 * (C * 3 ^ k + D) := hmul
+    _ = (2 * C) * 3 ^ k + 2 * D := by ring
+
+/-- Explicit small radius for the crude-majorant safe-height selector. -/
+noncomputable def u6aCrudeDelta (C D X : ℝ) (k : ℕ) : ℝ :=
+  min 1 (X / (8 * (C * 3 ^ k + D + 1)))
+
+theorem u6aCrudeDelta_pos {C D X : ℝ} (k : ℕ)
+    (hX : 0 < X) (hC : 0 ≤ C) (hD : 0 ≤ D) :
+    0 < u6aCrudeDelta C D X k := by
+  unfold u6aCrudeDelta
+  apply lt_min
+  · norm_num
+  · positivity
+
+/-- The explicit `δ_X` choice makes the bad-height cover short enough for
+the `X / 2` safe-set measure lower bound. -/
+theorem u6aCrudeDelta_small {C D X : ℝ} (k : ℕ)
+    (hX : 0 < X) (hC : 0 ≤ C) (hD : 0 ≤ D) :
+    2 * u6aCrudeDelta C D X k * (C * 3 ^ k + D) ≤ X / 2 := by
+  let B : ℝ := C * 3 ^ k + D
+  have hB : 0 ≤ B := by
+    dsimp [B]
+    positivity
+  have hdelta_le : u6aCrudeDelta C D X k ≤ X / (8 * (B + 1)) := by
+    unfold u6aCrudeDelta
+    dsimp [B]
+    exact min_le_right _ _
+  have hcoef : 0 ≤ 2 * B := by positivity
+  have hstep :
+      u6aCrudeDelta C D X k * (2 * B) ≤
+        (X / (8 * (B + 1))) * (2 * B) :=
+    mul_le_mul_of_nonneg_right hdelta_le hcoef
+  have htarget : (X / (8 * (B + 1))) * (2 * B) ≤ X / 2 := by
+    have hden_pos : 0 < 8 * (B + 1) := by positivity
+    field_simp [hden_pos.ne']
+    nlinarith [hX.le, hB]
+  calc
+    2 * u6aCrudeDelta C D X k * (C * 3 ^ k + D)
+        = u6aCrudeDelta C D X k * (2 * B) := by
+          dsimp [B]
+          ring
+    _ ≤ (X / (8 * (B + 1))) * (2 * B) := hstep
+    _ ≤ X / 2 := htarget
+
 /-- The finite bad-height set really covers every way the horizontal segment
 can fail the `δ`-gap condition. -/
 theorem u6aSafeHeightSet_contains_diff_badHeightFinset
@@ -360,6 +581,62 @@ theorem u6aSafeHeightSet_measure_ge_of_badHeightFinset
     simp [Measure.restrict_apply, hG_meas, hinter]
   exact (volume_Ioc_diff_closedBalls_ge A hδ.le hsmall).trans
     (by simpa [G, A, hrestrictG] using hmeasure_mono)
+
+/-- Crude-majorant safe-set measure lower bound in the actual U6a strip.  The
+smallness condition is now expressed through the geometric count source rather
+than the concrete finite bad-height set. -/
+theorem u6aSafeHeightSet_measure_ge_of_crude_geometric :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ : ℝ,
+      0 < X → 0 < δ →
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+      2 * δ * (C * 3 ^ k + D) ≤ X / 2 →
+        ENNReal.ofReal (X / 2) ≤
+          (volume.restrict (Set.Ioc X (2 * X)))
+            (u6aSafeHeightSet (-1) 2 X δ) := by
+  obtain ⟨C, D, hC, hD, hcount⟩ := u6aBadHeightFinset_card_le_crude_geometric
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X δ hX hδ hT hsmall
+  have hbad := hcount k X δ hT
+  have hcoef : 0 ≤ 2 * δ := by positivity
+  have hsmall_bad :
+      2 * δ * ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ) ≤ X / 2 := by
+    calc
+      2 * δ * ((u6aBadHeightFinset (-1) 2 X δ).card : ℝ)
+          ≤ 2 * δ * (C * 3 ^ k + D) := by
+            exact mul_le_mul_of_nonneg_left hbad hcoef
+      _ ≤ X / 2 := hsmall
+  exact u6aSafeHeightSet_measure_ge_of_badHeightFinset hX hδ hsmall_bad
+
+/-- Safe-set measure lower bound with the explicit crude-majorant
+`δ_X` choice. -/
+theorem u6aSafeHeightSet_measure_ge_of_crude_delta :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X : ℝ,
+      0 < X →
+      2 * X + u6aCrudeDelta C D X k < (2 : ℝ) ^ (k + 1) →
+        ENNReal.ofReal (X / 2) ≤
+          (volume.restrict (Set.Ioc X (2 * X)))
+            (u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)) := by
+  obtain ⟨C, D, hC, hD, hmeasure⟩ := u6aSafeHeightSet_measure_ge_of_crude_geometric
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X hX hT
+  exact hmeasure k X (u6aCrudeDelta C D X k) hX
+    (u6aCrudeDelta_pos k hX hC.le hD) hT
+    (u6aCrudeDelta_small k hX hC.le hD)
+
+/-- Nonzero safe-set measure from the crude-majorant geometric count source. -/
+theorem u6aSafeHeightSet_restrict_measure_ne_zero_of_crude_geometric :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ : ℝ,
+      0 < X → 0 < δ →
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+      2 * δ * (C * 3 ^ k + D) ≤ X / 2 →
+        (volume.restrict (Set.Ioc X (2 * X)))
+          (u6aSafeHeightSet (-1) 2 X δ) ≠ 0 := by
+  obtain ⟨C, D, hC, hD, hmeasure⟩ := u6aSafeHeightSet_measure_ge_of_crude_geometric
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X δ hX hδ hT hsmall
+  have hmeasurek := hmeasure k X δ hX hδ hT hsmall
+  have hpos : 0 < ENNReal.ofReal (X / 2) := ENNReal.ofReal_pos.2 (by linarith)
+  exact ne_of_gt (lt_of_lt_of_le hpos hmeasurek)
 
 /-- The bad-height length condition gives the nonzero safe-set measure needed
 by the averaged mean-value extraction. -/
@@ -1005,6 +1282,65 @@ theorem exists_height_with_small_reciprocalZeroSum_of_badHeightFinset_average
   exists_height_with_small_reciprocalZeroSum_of_indicator_average hX
     (u6aSafeHeightSet_restrict_measure_ne_zero_of_badHeightFinset hX hδ hsmall)
     hSInt hBInt hAvg
+
+/-- Averaged selector in the actual U6a strip, with the safe-set measure
+hypothesis discharged by the crude-majorant geometric count source. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_crude_geometric_average :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X δ M : ℝ,
+      0 < X → 0 < δ →
+      2 * X + δ < (2 : ℝ) ^ (k + 1) →
+      2 * δ * (C * 3 ^ k + D) ≤ X / 2 →
+      IntervalIntegrable
+        ((u6aSafeHeightSet (-1) 2 X δ).indicator
+          (u6aReciprocalZeroSum (-1) 2)) volume X (2 * X) →
+      IntervalIntegrable
+        ((u6aSafeHeightSet (-1) 2 X δ).indicator
+          fun _ : ℝ => u6aAveragedSelectionBound X δ M) volume X (2 * X) →
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X δ).indicator
+            (u6aReciprocalZeroSum (-1) 2) t ∂volume) ≤
+        ∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X δ).indicator
+            (fun _ : ℝ => u6aAveragedSelectionBound X δ M) t ∂volume →
+      ∃ T : ℝ, T ∈ u6aSafeHeightSet (-1) 2 X δ ∧
+        u6aReciprocalZeroSum (-1) 2 T ≤ u6aAveragedSelectionBound X δ M := by
+  obtain ⟨C, D, hC, hD, hEpos⟩ :=
+    u6aSafeHeightSet_restrict_measure_ne_zero_of_crude_geometric
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X δ M hX hδ hT hsmall hSInt hBInt hAvg
+  exact exists_height_with_small_reciprocalZeroSum_of_indicator_average hX
+    (hEpos k X δ hX hδ hT hsmall) hSInt hBInt hAvg
+
+/-- Averaged selector in the actual U6a strip with the explicit crude-majorant
+`δ_X` choice. -/
+theorem exists_height_with_small_reciprocalZeroSum_of_crude_delta_average :
+    ∃ C D : ℝ, 0 < C ∧ 0 ≤ D ∧ ∀ k : ℕ, ∀ X M : ℝ,
+      0 < X →
+      2 * X + u6aCrudeDelta C D X k < (2 : ℝ) ^ (k + 1) →
+      IntervalIntegrable
+        ((u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
+          (u6aReciprocalZeroSum (-1) 2)) volume X (2 * X) →
+      IntervalIntegrable
+        ((u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
+          fun _ : ℝ => u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) M)
+            volume X (2 * X) →
+      (∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
+            (u6aReciprocalZeroSum (-1) 2) t ∂volume) ≤
+        ∫ t in X..(2 * X),
+          (u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k)).indicator
+            (fun _ : ℝ => u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) M)
+              t ∂volume →
+      ∃ T : ℝ, T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) ∧
+        u6aReciprocalZeroSum (-1) 2 T ≤
+          u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) M := by
+  obtain ⟨C, D, hC, hD, hsel⟩ :=
+    exists_height_with_small_reciprocalZeroSum_of_crude_geometric_average
+  refine ⟨C, D, hC, hD, ?_⟩
+  intro k X M hX hT hSInt hBInt hAvg
+  exact hsel k X (u6aCrudeDelta C D X k) M hX
+    (u6aCrudeDelta_pos k hX hC.le hD) hT
+    (u6aCrudeDelta_small k hX hC.le hD) hSInt hBInt hAvg
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
