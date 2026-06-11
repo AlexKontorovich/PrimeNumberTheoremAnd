@@ -1107,141 +1107,6 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
     Complex.cpow_def_of_ne_zero hn0, division_def, mul_eq_mul_left_iff, inv_inj]
   left; ring_nf
 
-@[blueprint
-  "kadiri-identity-16-complex"
-  (title := "Complex form of equation (16)")
-  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
-  $s \in \mathbb{C}$ with $\Re s > 1$,
-  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
-   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                  + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
-   + F(s - 1) - \sum_{\rho \in Z(\zeta)} F(s - \rho)
-   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
-       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
-       + \frac{F_2(s)}{s^2} \Bigr). $$
--/)
-  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
-  $\varphi$; its hypotheses
-  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
-  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
-  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
-  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
-  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
-  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
-  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
-  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
-  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
-  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
-  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
-   kills the reflected discrete sum. Unfolding
-  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
-  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
-   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
-  substituting the $\Phi$ values yields the right-hand side.  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1494)]
-theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (hf_supp : tsupport f ⊆ .Ico 0 d)
-    (hf_d : f d = 0)
-    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
-    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
-    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
-    {s : ℂ} (hs : 1 < s.re) :
-    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
-      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
-                    - 1 / (s - 1)
-                    + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                        1 / (s - ρ.val))
-      + laplaceTransform f (s - 1)
-      - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          laplaceTransform f (s - ρ.val)
-      + ((1 / (2 * (Real.pi : ℂ) * I)) *
-          (∫ t : ℝ,
-            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
-              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
-          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
-  sorry
-
-@[blueprint
-  "kadiri-identity-16"
-  (title := "Equation (16) of \\cite{Kadiri2005}: intermediate identity")
-  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
-  $s \in \mathbb{C}$ with $\Re s > 1$,
-  $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
-   = f(0) \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                     + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
-   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
-   + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
-       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
-       + \frac{F_2(s)}{s^2} \Bigr). $$
-  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
-  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
-  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
-  The restriction $\Re s > 1$ is where the Dirichlet series for $-\zeta'/\zeta(s)$
-  converges absolutely and the $\sum_\rho 1/(s - \rho)$ regularization makes sense; this
-  is also the range used in Kadiri's downstream zero-free region argument, so we do not
-  extend further. -/)
-  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
-  equation, then take real parts of both sides. The $f(0)$ factor extracts via
-  $\Re((f(0) : \mathbb{C}) \cdot X) = f(0) \cdot \Re X$ (since $f(0) \in \mathbb{R}$), and
-  the $\rho$-tsum commutes with $\Re$ via the continuous linear map
-  $\Re \colon \mathbb{C} \to \mathbb{R}$ (`ContinuousLinearMap.map\_tsum`), modulo complex
-  summability of $\sum_\rho F(s - \rho)$ — derivable from
-  \ref{kadiri-summable-lap-at-zeros} together with the analogous Im-summability (would need
-  a `laplaceTransform\_im\_decay` lemma paralleling \ref{kadiri-laplace-re-decay}). To be
-  formalised. -/)
-  (latexEnv := "lemma")
-  (discussion := 1488)]
-theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
-    (hf_nonneg : ∀ t, 0 ≤ f t)
-    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
-    (hf_supp : tsupport f ⊆ .Ico 0 d)
-    (hf_d : f d = 0)
-    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
-    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
-    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
-    {s : ℂ} (hs : 1 < s.re) :
-    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
-      f 0 * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s)
-              - 1 / (s - 1)
-              + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                  1 / (s - ρ.val)).re
-        + (laplaceTransform f (s - 1)).re
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-            (laplaceTransform f (s - ρ.val)).re
-        + ((1 / (2 * (Real.pi : ℂ) * I)) *
-            (∫ t : ℝ,
-              ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-                laplaceTransform (fun u ↦ deriv (deriv f) u)
-                  (s - (1 / 2 + (t : ℂ) * I))
-                / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
-            + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
-  -- Reduce to the complex (pre-`Re`) form, then distribute `Re` over `+`, `-`, the
-  -- $(f(0) : \mathbb{C}) \cdot ?$ factor (since $f(0) \in \mathbb{R}$), and the
-  -- $\rho$-tsum (via `Complex.reCLM`).
-  have hcomplex := identity_16_complex hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
-    hf_deriv2_d hs
-  -- Complex summability of `∑ρ F(s − ρ)`. Pending: derive from `summable_lap_re_at_zeros`
-  -- together with an analogous Im-summability — would need a `laplaceTransform_im_decay`
-  -- lemma paralleling `kadiri-laplace-re-decay`.
-  have hSumm : Summable
-      (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
-        laplaceTransform f (s - ρ.val)) := by
-    sorry
-  -- Commute the ρ-tsum with `.re` via the continuous linear map `Complex.reCLM`.
-  have htsum_re :
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          laplaceTransform f (s - ρ.val)).re =
-      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          (laplaceTransform f (s - ρ.val)).re := by
-    simpa using ContinuousLinearMap.map_tsum Complex.reCLM hSumm
-  -- Substitute the complex form and distribute `.re`.
-  rw [hcomplex]
-  simp only [Complex.add_re, Complex.sub_re, Complex.mul_re,
-             Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, htsum_re]
-
 /-! ## Auxiliaries glueing the three precursors to Proposition 2.1
 
 Two facts not in the three precursors above are needed: \ref{kadiri-re-hadamardB-eq} (the
@@ -1769,31 +1634,213 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         rw [inv_pow, sq_abs, div_eq_mul_inv]
 
 @[blueprint
+  "kadiri-identity-16-complex"
+  (title := "Complex form of equation (16)")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$ with $\Re s > 1$,
+  $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1} \Bigr)
+   + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{f(0)}{s - \rho} - F(s - \rho) \Bigr)
+   + F(s - 1)
+   + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  The zero sum is grouped: each summand is $\Phi(-\rho)$, the Laplace transform of the
+  test function $\varphi(y) = (f(0) - f(y)) e^{-y s}$ at $-\rho$, equal to
+  $-F_2(s-\rho)/(s-\rho)^2$ and hence of size $O(1/|\Im \rho|^2)$; the split sums
+  $\sum_\rho 1/(s-\rho)$ and $\sum_\rho F(s-\rho)$ are individually divergent.
+-/)
+  (proof := /-- Apply \ref{kadiri-thm-3-1-q1} to the Kadiri test function
+  $\varphi$; its hypotheses
+  are discharged by \ref{kadiri-test-fn-contDiff} ($\varphi$ is $C^1$) and
+  \ref{kadiri-test-fn-decay} (decay (B) with any $0 < b < \Re s - 1$, requiring
+  $\Re s > 1$). The Laplace transform of $\varphi$ is computed by
+  \ref{kadiri-test-fn-laplace}: $\Phi(z;\, s) = f(0)/(s+z) - F(s+z)$. In particular
+  $\Phi(-1) = f(0)/(s-1) - F(s-1)$, $\Phi(-\rho) = f(0)/(s-\rho) - F(s-\rho)$,
+  $\Phi(0) = f(0)/s - F(s)$, and $\Phi(-z) = f(0)/(s-z) - F(s-z)$ at $z = 1/2 + it$.
+  Rewriting $F(s) = f(0)/s + F_2(s)/s^2$ via \ref{kadiri-laplace-ibp} (and likewise at
+  $w = s - z$) collapses $\Phi(0) = -F_2(s)/s^2$ and $\Phi(-z) = -F_2(s-z)/(s-z)^2$ used
+  inside the contour integral. Three terms of \ref{kadiri-thm-3-1-q1}'s conclusion vanish
+  for this $\varphi$: $\varphi(0;\, s) = 0$ kills the
+  $\varphi(0) \log \pi$ term, and $\varphi(-\log n;\, s) = 0$ for every $n \geq 1$
+   kills the reflected discrete sum. Unfolding
+  $\varphi(\log n;\, s) = (f(0) - f(\log n))/n^s$ gives
+  $\sum_n \Lambda(n) \varphi(\log n;\, s) = f(0) \sum_n \Lambda(n)/n^s
+   - \sum_n \Lambda(n) f(\log n)/n^s$; solving for $\sum_n \Lambda(n) f(\log n)/n^s$ and
+  substituting the $\Phi$ values yields the right-hand side.  -/)
+  (latexEnv := "sublemma")
+  (discussion := 1494)]
+theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
+      (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
+      + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))
+      + laplaceTransform f (s - 1)
+      + ((1 / (2 * (Real.pi : ℂ) * I)) *
+          (∫ t : ℝ,
+            ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+              laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I))
+              / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+          + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
+  sorry
+
+@[blueprint
+  "kadiri-identity-16"
+  (title := "Equation (16) of \\cite{Kadiri2005}: intermediate identity")
+  (statement := /-- Under the hypotheses of \ref{kadiri-prop-2-1}: for every
+  $s \in \mathbb{C}$ with $\Re s > 1$,
+  $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
+   = f(0) \Bigl( \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
+                  + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+                  - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho} \Bigr)
+   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
+   + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
+       \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
+       + \frac{F_2(s)}{s^2} \Bigr). $$
+  This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
+  derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
+  $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
+  The zero contribution in the $f(0)$-coefficient uses the absolutely convergent
+  Hadamard-paired block $\sum_\rho (1/\rho + 1/(s - \rho))$ together with the absolutely
+  convergent real correction $\sum_\rho \Re(1/\rho)$, matching
+  \ref{kadiri-hadamard-identity}; the standalone $\sum_\rho 1/(s - \rho)$ does not
+  converge unconditionally. The restriction $\Re s > 1$ is where the Dirichlet series for
+  $-\zeta'/\zeta(s)$ converges absolutely; this is also the range used in Kadiri's
+  downstream zero-free region argument, so we do not extend further. -/)
+  (proof := /-- Apply \ref{kadiri-identity-16-complex} to obtain the $\mathbb{C}$-valued
+  equation, then take real parts of both sides. The grouped zero sum is absolutely
+  summable (each summand is $-F_2(s-\rho)/(s-\rho)^2$ by \ref{kadiri-laplace-ibp}), so
+  $\Re$ passes through it; each term splits as $f(0) \Re(1/(s-\rho)) - \Re F(s-\rho)$,
+  and both real families are absolutely summable. Regrouping
+  $\sum_\rho \Re(1/(s-\rho))$ into the paired block minus the $\Re(1/\rho)$ correction
+  is legitimate by the paired-family summability. -/)
+  (latexEnv := "lemma")
+  (discussion := 1488)]
+theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
+    (hf_nonneg : ∀ t, 0 ≤ f t)
+    (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
+    (hf_supp : tsupport f ⊆ .Ico 0 d)
+    (hf_d : f d = 0)
+    (hf_deriv_0 : derivWithin f (Set.Icc 0 d) 0 = 0)
+    (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
+    (hf_deriv2_d : derivWithin (fun x => derivWithin f (Set.Icc 0 d) x) (Set.Icc 0 d) d = 0)
+    {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
+      f 0 * (((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
+                ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+                  (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+              ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+                (1 / (ρ.val : ℂ)).re)
+        + (laplaceTransform f (s - 1)).re
+        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
+            (laplaceTransform f (s - ρ.val)).re
+        + ((1 / (2 * (Real.pi : ℂ) * I)) *
+            (∫ t : ℝ,
+              ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+                laplaceTransform (fun u ↦ deriv (deriv f) u)
+                  (s - (1 / 2 + (t : ℂ) * I))
+                / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
+            + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
+  have hcomplex := identity_16_complex hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
+    hf_deriv2_d hs
+  have hsub := summable_lap_sub_pole_at_zeros hd hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d s
+  have hre1 := summable_re_one_div_at_zeros s
+  have hreF := summable_lap_re_at_zeros hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0
+    hf_deriv_d hf_deriv2_d s
+  -- `Re` commutes with the grouped zero sum, which is genuinely summable
+  have htsum_re :
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))).re =
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re := by
+    simpa using ContinuousLinearMap.map_tsum Complex.reCLM hsub
+  -- pointwise real part of the grouped summand
+  have hpt : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re =
+        f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re := by
+    intro ρ
+    have hmul : ((f 0 : ℝ) : ℂ) / (s - ρ.val) =
+        ((f 0 : ℝ) : ℂ) * (1 / (s - ρ.val)) := div_eq_mul_one_div _ _
+    rw [Complex.sub_re, hmul, Complex.re_ofReal_mul]
+  -- split the real tsum of differences
+  have hsplit :
+      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re)) =
+      f 0 * (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (1 / (s - ρ.val)).re) -
+        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+          (laplaceTransform f (s - ρ.val)).re := by
+    rw [Summable.tsum_sub (hre1.mul_left (f 0)) hreF, tsum_mul_left]
+  rw [hcomplex]
+  simp only [Complex.add_re, Complex.sub_re]
+  rw [htsum_re, tsum_congr hpt, hsplit, Complex.re_ofReal_mul, Complex.sub_re,
+    re_shifted_sum_eq_paired_sub_re_inv s]
+  ring
+
+
+/-- The raw von Mangoldt Dirichlet sum is `-ζ'/ζ` on `1 < Re s` (the tsum form of
+`ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div`). -/
+lemma tsum_vonMangoldt_eq {s : ℂ} (hs : 1 < s.re) :
+    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) = -deriv riemannZeta s / riemannZeta s := by
+  rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, LSeries]
+  refine tsum_congr fun n ↦ ?_
+  rcases eq_or_ne n 0 with rfl | hn
+  · simp
+  · rw [LSeries.term_of_ne_zero hn]
+
+@[blueprint
   "kadiri-re-inner-eq"
   (title := "Inner real-part identity: collapsing to $T_1$")
   (statement := /-- For every $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                + \sum_{\rho \in Z(\zeta)} \frac{1}{s - \rho} \Bigr)
+                + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+     - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho}
    = -\tfrac{1}{2} \log \pi
      + \tfrac{1}{2} \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2}+1\right). $$
-  This is the identity that turns the $f(0)$-coefficient of equation (16) into the $T_1$
-  form of \ref{kadiri-prop-2-1}. -/)
+  The zero block is the absolutely convergent Hadamard pairing of
+  \ref{kadiri-hadamard-identity}, and the $\Re(1/\rho)$ correction is absolutely
+  convergent; the standalone $\sum_\rho 1/(s - \rho)$ does not converge
+  unconditionally. This is the identity that turns the $f(0)$-coefficient of
+  equation (16) into the $T_1$ form of \ref{kadiri-prop-2-1}. -/)
   (proof := /-- For $\Re s > 1$ the Dirichlet series gives
-  $\sum \Lambda(n)/n^s = -\zeta'/\zeta(s)$; apply \ref{kadiri-hadamard-identity} to rewrite
-  the LHS (treating the equation as one in $\mathbb{C}$, not yet taking $\Re$). The
-  $1/(s-1)$ and $\sum_\rho 1/(s-\rho)$ terms cancel, leaving
-  $-B - \tfrac{1}{2}\log\pi + \tfrac{1}{2}\Gamma'/\Gamma(s/2+1) - \sum_\rho 1/\rho$.
-  Taking real parts and applying \ref{kadiri-re-hadamardB-eq} cancels
-  $\Re B + \sum_\rho \Re(1/\rho)$, leaving the claim. -/)
+  $\sum \Lambda(n)/n^s = -\zeta'/\zeta(s)$; substitute \ref{kadiri-hadamard-identity}
+  (treating the equation as one in $\mathbb{C}$, not yet taking $\Re$). The $1/(s-1)$
+  terms and the paired zero blocks cancel exactly, leaving
+  $-B - \tfrac{1}{2}\log\pi + \tfrac{1}{2}\Gamma'/\Gamma(s/2+1)$. Taking real parts and
+  applying \ref{kadiri-re-hadamardB-eq} cancels $\Re B$ against the
+  $\sum_\rho \Re(1/\rho)$ correction, leaving the claim. -/)
   (latexEnv := "lemma")
   (discussion := 1478)]
 theorem re_inner_eq {s : ℂ} (hs : 1 < s.re) :
     ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-         1 / (s - ρ.val)).re =
+         (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
+      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+        (1 / (ρ.val : ℂ)).re =
     -(1 / 2 : ℝ) * Real.log Real.pi +
       (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re := by
-  sorry
+  have hs1 : s ≠ 1 := by
+    intro hs_eq
+    rw [hs_eq] at hs
+    norm_num at hs
+  have hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) := by
+    intro hz
+    exact (not_lt_of_gt hs) hz.1.2
+  rw [tsum_vonMangoldt_eq hs, hadamard_identity s hs1 hsZ]
+  ring_nf
+  simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.ofReal_re,
+    Complex.ofReal_im, zero_mul, sub_zero]
+  rw [re_hadamardB_eq]
+  norm_num
+  ring_nf
 
 /-! ## Proposition 2.1 of `Kadiri2005` (the explicit formula)
 
