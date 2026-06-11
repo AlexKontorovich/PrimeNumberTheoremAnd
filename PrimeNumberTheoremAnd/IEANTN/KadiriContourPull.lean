@@ -720,4 +720,148 @@ lemma zeroes_rect_band_eq_critical {σL σR : ℝ} (hσL2 : -2 < σL) (hσL0 : �
     rw [Set.uIcc_of_le hσLR]
     exact ⟨by linarith [hre.1], by linarith [hre.2]⟩
 
+/-! ## Window exhaustion of the zero sum (U7) -/
+
+/-- A sequence of zero-free heights tending to infinity, from the good-heights
+selector. -/
+lemma exists_goodHeight_seq (σ₁ σ₂ : ℝ) :
+    ∃ T : ℕ → ℝ, Filter.Tendsto T Filter.atTop Filter.atTop ∧ (∀ k, 0 < T k) ∧
+      ∀ k, horizontalSegmentZeroFree σ₁ σ₂ (T k) := by
+  choose T hT1 hT2 hT3 using fun k : ℕ =>
+    exists_arbitrarily_large_horizontalSegmentZeroFree σ₁ σ₂ (k : ℝ)
+  exact ⟨T, tendsto_atTop_mono hT1 tendsto_natCast_atTop_atTop, hT2, hT3⟩
+
+/-- Window exhaustion: if the multiplicity-weighted family over all zeros in the strip
+`I` is summable, the zero sums over growing height windows converge to the full zero
+sum. This is the bridge from the contour limit to the `hΦ_sum` hypothesis of
+`kadiri_thm_3_1_q1`. -/
+lemma tendsto_zeroes_sum_window {I : Set ℝ} {g : ℂ → ℂ} {T : ℕ → ℝ}
+    (hT : Filter.Tendsto T Filter.atTop Filter.atTop)
+    (hsum : Summable (fun ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ) =>
+      g ρ.val * (riemannZeta.order ρ.val : ℂ))) :
+    Filter.Tendsto (fun k => riemannZeta.zeroes_sum I (Set.uIcc (-(T k)) (T k)) g)
+      Filter.atTop (nhds (riemannZeta.zeroes_sum I (Set.univ : Set ℝ) g)) := by
+  set W : ℕ → ℂ → ℂ := fun k =>
+    ({z : ℂ | z.im ∈ Set.uIcc (-(T k)) (T k)}).indicator
+      (fun z => g z * (riemannZeta.order z : ℂ))
+    with hW_def
+  -- each window sum is the full-subtype sum of the cut-off family
+  have hwin : ∀ k, riemannZeta.zeroes_sum I (Set.uIcc (-(T k)) (T k)) g
+      = ∑' ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ), W k ρ.val := by
+    intro k
+    calc riemannZeta.zeroes_sum I (Set.uIcc (-(T k)) (T k)) g
+        = ∑' x : ℂ, (riemannZeta.zeroes_rect I (Set.uIcc (-(T k)) (T k))).indicator
+            (fun z => g z * (riemannZeta.order z : ℂ)) x :=
+          tsum_subtype (riemannZeta.zeroes_rect I (Set.uIcc (-(T k)) (T k)))
+            (fun z => g z * (riemannZeta.order z : ℂ))
+      _ = ∑' x : ℂ, (riemannZeta.zeroes_rect I (Set.univ : Set ℝ)).indicator (W k) x := by
+          congr 1
+          funext z
+          by_cases hz : z ∈ riemannZeta.zeroes_rect I (Set.univ : Set ℝ)
+          · rw [Set.indicator_of_mem hz]
+            by_cases him : z.im ∈ Set.uIcc (-(T k)) (T k)
+            · have hzw : z ∈ riemannZeta.zeroes_rect I (Set.uIcc (-(T k)) (T k)) :=
+                ⟨hz.1, him, hz.2.2⟩
+              rw [Set.indicator_of_mem hzw]
+              simp only [hW_def]
+              exact (Set.indicator_of_mem
+                (show z ∈ {w : ℂ | w.im ∈ Set.uIcc (-(T k)) (T k)} from him)
+                (fun w => g w * (riemannZeta.order w : ℂ))).symm
+            · have hzw : z ∉ riemannZeta.zeroes_rect I (Set.uIcc (-(T k)) (T k)) := by
+                intro hcon
+                exact him hcon.2.1
+              rw [Set.indicator_of_notMem hzw]
+              simp only [hW_def]
+              exact (Set.indicator_of_notMem
+                (show z ∉ {w : ℂ | w.im ∈ Set.uIcc (-(T k)) (T k)} from him)
+                (fun w => g w * (riemannZeta.order w : ℂ))).symm
+          · have hzw : z ∉ riemannZeta.zeroes_rect I (Set.uIcc (-(T k)) (T k)) := by
+              intro hcon
+              exact hz ⟨hcon.1, Set.mem_univ _, hcon.2.2⟩
+            rw [Set.indicator_of_notMem hzw, Set.indicator_of_notMem hz]
+      _ = ∑' ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ), W k ρ.val :=
+          (tsum_subtype (riemannZeta.zeroes_rect I (Set.univ : Set ℝ)) (W k)).symm
+  -- Tannery's theorem with the summable norm bound
+  have hconv : Filter.Tendsto
+      (fun k => ∑' ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ), W k ρ.val)
+      Filter.atTop
+      (nhds (∑' ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ),
+        g ρ.val * (riemannZeta.order ρ.val : ℂ))) := by
+    apply tendsto_tsum_of_dominated_convergence
+      (bound := fun ρ : riemannZeta.zeroes_rect I (Set.univ : Set ℝ) =>
+        ‖g ρ.val * (riemannZeta.order ρ.val : ℂ)‖)
+      (summable_norm_iff.mpr hsum)
+    · intro ρ
+      have hev : ∀ᶠ k in Filter.atTop,
+          W k ρ.val = g ρ.val * (riemannZeta.order ρ.val : ℂ) := by
+        filter_upwards [hT.eventually_ge_atTop |(ρ.val).im|] with k hk
+        have him : (ρ.val).im ∈ Set.uIcc (-(T k)) (T k) := by
+          have habs := abs_le.mp hk
+          have hTk0 : 0 ≤ T k := le_trans (abs_nonneg _) hk
+          rw [Set.uIcc_of_le (by linarith)]
+          exact ⟨habs.1, habs.2⟩
+        simp only [hW_def]
+        exact Set.indicator_of_mem
+          (show ρ.val ∈ {w : ℂ | w.im ∈ Set.uIcc (-(T k)) (T k)} from him)
+          (fun w => g w * (riemannZeta.order w : ℂ))
+      exact Filter.Tendsto.congr' (hev.mono fun k hk => hk.symm) tendsto_const_nhds
+    · filter_upwards with k
+      intro ρ
+      simp only [hW_def]
+      by_cases him : (ρ.val).im ∈ Set.uIcc (-(T k)) (T k)
+      · rw [Set.indicator_of_mem
+          (show ρ.val ∈ {w : ℂ | w.im ∈ Set.uIcc (-(T k)) (T k)} from him)]
+      · rw [Set.indicator_of_notMem
+          (show ρ.val ∉ {w : ℂ | w.im ∈ Set.uIcc (-(T k)) (T k)} from him)]
+        rw [norm_zero]
+        exact norm_nonneg _
+  exact hconv.congr fun k => (hwin k).symm
+
+/-! ## The endpoint: the critical-strip zero sum equals the contour limit -/
+
+/-- U7 endpoint, shaped for the `kadiri_thm_3_1_q1` close: given the edge and line
+hypotheses of the contour pull along a sequence of good heights, and the summability
+of the multiplicity-weighted family over all critical-strip zeros (the `hΦ_sum`
+hypothesis of `kadiri_thm_3_1_q1` at `g = Φ(-·)`), the full zero sum equals the
+normalized difference of the two vertical integrals plus the pole contribution. -/
+theorem zeroes_sum_critical_eq_contour {Φ : ℂ → ℂ} {σL σR : ℝ} {T : ℕ → ℝ}
+    (hσL2 : -2 < σL) (hσL0 : σL < 0) (hσR : 1 < σR)
+    (hT : Filter.Tendsto T Filter.atTop Filter.atTop) (hT0 : ∀ k, 0 < T k)
+    (hgood : ∀ k, horizontalSegmentZeroFree σL σR (T k))
+    (hΦ_an : ∀ s : ℂ, σL ≤ s.re → s.re ≤ σR → AnalyticAt ℂ (fun u => Φ (-u)) s)
+    (hleft : MeasureTheory.Integrable fun t : ℝ =>
+      -logDeriv riemannZeta ((σL : ℂ) + t * I) * (-(Φ (-((σL : ℂ) + t * I)))))
+    (hright : MeasureTheory.Integrable fun t : ℝ =>
+      -logDeriv riemannZeta ((σR : ℂ) + t * I) * (-(Φ (-((σR : ℂ) + t * I)))))
+    (hbot : Filter.Tendsto (fun k : ℕ => ∫ x in σL..σR,
+        -logDeriv riemannZeta ((x : ℂ) + (-(T k)) * I) *
+          (-(Φ (-((x : ℂ) + (-(T k)) * I))))) Filter.atTop (nhds 0))
+    (htop : Filter.Tendsto (fun k : ℕ => ∫ x in σL..σR,
+        -logDeriv riemannZeta ((x : ℂ) + (T k) * I) *
+          (-(Φ (-((x : ℂ) + (T k) * I))))) Filter.atTop (nhds 0))
+    (hsum : Summable (fun ρ : riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.univ : Set ℝ) =>
+      Φ (-ρ.val) * (riemannZeta.order ρ.val : ℂ))) :
+    riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.univ : Set ℝ) (fun ρ => Φ (-ρ))
+      = (1 / (2 * (Real.pi : ℂ) * I)) •
+          (VerticalIntegral (fun s => -logDeriv riemannZeta s * (-(Φ (-s)))) σR -
+            VerticalIntegral (fun s => -logDeriv riemannZeta s * (-(Φ (-s)))) σL) +
+        Φ (-1) := by
+  -- the contour limit of the band zero sums
+  have h1 := tendsto_zeroes_sum_of_good_heights hσL2 hσL0 hσR hT hT0 hgood hΦ_an
+    hleft hright hbot htop
+  -- the band sums agree with the critical-strip sums for every window
+  have hbr : ∀ k : ℕ,
+      riemannZeta.zeroes_sum (Set.uIcc σL σR) (Set.uIcc (-(T k)) (T k)) (fun ρ => Φ (-ρ))
+        = riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.uIcc (-(T k)) (T k))
+            (fun ρ => Φ (-ρ)) := by
+    intro k
+    have hset := zeroes_rect_band_eq_critical hσL2 hσL0 hσR (Set.uIcc (-(T k)) (T k))
+    exact congrArg
+      (fun S : Set ℂ => ∑' ρ : S, (fun z => Φ (-z)) ρ.val * (riemannZeta.order ρ.val : ℂ))
+      hset
+  -- the exhaustion limit of the critical-strip window sums
+  have h2 := tendsto_zeroes_sum_window (I := Set.Ioo 0 1) (g := fun z => Φ (-z)) hT hsum
+  -- limit uniqueness
+  exact tendsto_nhds_unique h2 ((h1.congr fun k => hbr k))
+
 end Kadiri
