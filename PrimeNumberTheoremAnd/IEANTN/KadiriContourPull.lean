@@ -307,15 +307,6 @@ theorem integrable_left_line_neg_logDeriv_mul {Φ : ℂ → ℂ} {a b : ℝ}
 
 /-! ## The good-heights bound (sub-unit U6a) -/
 
-/-- A height `T` is good for the strip `[σ₁, σ₂]` when both horizontal segments at
-`Im z = ±T` avoid the zeros of `ζ` and the pole at `1`, and `ζ'/ζ` satisfies the
-classical `O(log² T)` bound along them. -/
-def horizontalSegmentLogDerivBound (σ₁ σ₂ T C : ℝ) : Prop :=
-  horizontalSegmentZeroFree σ₁ σ₂ T ∧
-  ∀ x ∈ Set.uIcc σ₁ σ₂, ∀ t : ℝ, |t| = T →
-    ‖deriv riemannZeta ((x : ℂ) + t * I) / riemannZeta ((x : ℂ) + t * I)‖
-      ≤ C * Real.log T ^ 2
-
 /-- Sub-unit U6a (banked gap; classical target): there exist arbitrarily large heights
 `T` at which `‖ζ'/ζ(σ + iT)‖ ≤ C·log²T` uniformly on the strip `σ ∈ [σ₁, σ₂]`.
 Classically this follows from the partial-fraction expansion of `ζ'/ζ` over the zeros
