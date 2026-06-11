@@ -553,6 +553,183 @@ theorem u6aCA_count_le_ballSum {t : ℝ} (ht : 3 ≤ |t|) :
   have hpos := riemannZeta_order_pos_of_zero_ne_one hne1 hzmem.2
   exact_mod_cast hpos.le
 
+/-! ## The count atom -/
+
+/-- The U6a local zero-count atom: the order-weighted zero count of the
+Kadiri unit window grows logarithmically.  Jensen disk at `2 + it`, inner
+radius `9/4`, outer circle `9/2`, fed by the band growth bound and the
+Dirichlet center bound. -/
+theorem exists_u6aLocalZeroCountLogHypothesis :
+    ∃ C Tₘᵢₙ : ℝ, U6aLocalZeroCountLogHypothesis C Tₘᵢₙ := by
+  obtain ⟨A, B, hA1, hB1, hband⟩ := u6aCA_exists_norm_riemannZeta_le_band
+  have h4B : (1 : ℝ) ≤ 4 ^ B := by
+    calc (1 : ℝ) = 4 ^ (0 : ℝ) := (Real.rpow_zero 4).symm
+      _ ≤ 4 ^ B := Real.rpow_le_rpow_of_exponent_le (by norm_num) (by linarith)
+  set A2 : ℝ := 3 * A * 4 ^ B with hA2def
+  have hA2_1 : (1 : ℝ) ≤ A2 := by nlinarith
+  have hA2_0 : (0 : ℝ) < A2 := by linarith
+  have hlogA2 : (0 : ℝ) ≤ Real.log A2 := Real.log_nonneg hA2_1
+  have hlog2 : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog4 : (0 : ℝ) < Real.log 4 := Real.log_pos (by norm_num)
+  refine ⟨(Real.log A2 + Real.log 4 + 2 * (B + 1)) / Real.log 2, 6,
+    by positivity, fun t hT _h3 => ?_⟩
+  set s₀ : ℂ := 2 + ↑t * I with hs₀def
+  have hs₀re : s₀.re = 2 := by simp [hs₀def]
+  have hs₀sub : s₀ - 1 = 1 + ↑t * I := by rw [hs₀def]; ring
+  have hs₀sub_ge : (1 : ℝ) ≤ ‖s₀ - 1‖ := by
+    rw [hs₀sub]
+    calc (1 : ℝ) = |(1 + ↑t * I : ℂ).re| := by simp
+      _ ≤ ‖(1 + ↑t * I : ℂ)‖ := Complex.abs_re_le_norm _
+  have hs₀sub_ge_t : |t| ≤ ‖s₀ - 1‖ := by
+    rw [hs₀sub]
+    calc |t| = |(1 + ↑t * I : ℂ).im| := by simp
+      _ ≤ ‖(1 + ↑t * I : ℂ)‖ := Complex.abs_im_le_norm _
+  have hs₀ne1 : s₀ ≠ 1 := by
+    intro hc
+    have := congrArg Complex.re hc
+    rw [hs₀re] at this
+    norm_num at this
+  have hζs₀ : riemannZeta s₀ ≠ 0 :=
+    riemannZeta_ne_zero_of_one_lt_re (by rw [hs₀re]; norm_num)
+  have hx2 : (0 : ℝ) < |t| + 2 := by positivity
+  have hx2_1 : (1 : ℝ) ≤ |t| + 2 := by linarith [abs_nonneg t]
+  -- the sphere bound for the pole-removed translate
+  have hM : ∀ z ∈ Metric.sphere (0 : ℂ) (2 * (9 / 4 : ℝ)),
+      Real.log ‖u6aShiftedZetaPoleRemoved s₀ z‖ ≤
+        Real.log (A2 * (|t| + 2) ^ (B + 1)) := by
+    intro z hz
+    have hznorm : ‖z‖ = 9 / 2 := by
+      have := Metric.mem_sphere.mp hz
+      rw [dist_zero_right] at this
+      linarith
+    have hzre : |z.re| ≤ 9 / 2 := hznorm ▸ Complex.abs_re_le_norm z
+    have hzim : |z.im| ≤ 9 / 2 := hznorm ▸ Complex.abs_im_le_norm z
+    have hwre : (s₀ + z).re = 2 + z.re := by simp [hs₀def]
+    have hwim : (s₀ + z).im = t + z.im := by simp [hs₀def]
+    have hzre' := abs_le.mp hzre
+    have hzim' := abs_le.mp hzim
+    have hwim_ge : (3 / 2 : ℝ) ≤ |(s₀ + z).im| := by
+      rw [hwim]
+      have htri : |t| ≤ |t + z.im| + |z.im| := by
+        calc |t| = |t + z.im + -z.im| := by ring_nf
+          _ ≤ |t + z.im| + |(-z.im)| := abs_add_le _ _
+          _ = |t + z.im| + |z.im| := by rw [abs_neg]
+      linarith
+    have hwim_le : |(s₀ + z).im| ≤ |t| + 9 / 2 := by
+      rw [hwim]
+      calc |t + z.im| ≤ |t| + |z.im| := abs_add_le _ _
+        _ ≤ |t| + 9 / 2 := by linarith
+    have hwne1 : s₀ + z ≠ 1 := by
+      intro hc
+      have := congrArg Complex.im hc
+      rw [hwim] at this
+      simp at this
+      rw [hwim] at hwim_ge
+      rw [this] at hwim_ge
+      norm_num at hwim_ge
+    have hFeq := u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta (s := s₀) (z := z) hwne1
+    have hζw : ‖riemannZeta (s₀ + z)‖ ≤ A * (|(s₀ + z).im| + 2) ^ B := by
+      refine hband (s₀ + z) ?_ ?_ (by linarith)
+      · rw [hwre]; linarith
+      · rw [hwre]; linarith
+    have hζw' : ‖riemannZeta (s₀ + z)‖ ≤ A * (4 * (|t| + 2)) ^ B := by
+      refine le_trans hζw (mul_le_mul_of_nonneg_left ?_ (by linarith))
+      refine Real.rpow_le_rpow (by positivity) (by linarith) (by linarith)
+    have hwsub : ‖s₀ + z - 1‖ ≤ 3 * (|t| + 2) := by
+      have : s₀ + z - 1 = (s₀ - 1) + z := by ring
+      rw [this]
+      calc ‖(s₀ - 1) + z‖ ≤ ‖s₀ - 1‖ + ‖z‖ := norm_add_le _ _
+        _ ≤ (1 + |t|) + 9 / 2 := by
+            have : ‖s₀ - 1‖ ≤ 1 + |t| := by
+              rw [hs₀sub]
+              calc ‖(1 + ↑t * I : ℂ)‖ ≤ ‖(1 : ℂ)‖ + ‖(↑t * I : ℂ)‖ := norm_add_le _ _
+                _ = 1 + |t| := by simp
+            linarith [hznorm]
+        _ ≤ 3 * (|t| + 2) := by linarith
+    have hFle : ‖u6aShiftedZetaPoleRemoved s₀ z‖ ≤ A2 * (|t| + 2) ^ (B + 1) := by
+      rw [hFeq, norm_mul]
+      have hsplit : A * (4 * (|t| + 2)) ^ B = A * 4 ^ B * (|t| + 2) ^ B := by
+        rw [Real.mul_rpow (by norm_num) (by positivity)]
+        ring
+      calc ‖s₀ + z - 1‖ * ‖riemannZeta (s₀ + z)‖
+          ≤ (3 * (|t| + 2)) * (A * 4 ^ B * (|t| + 2) ^ B) := by
+            rw [← hsplit]
+            exact mul_le_mul hwsub hζw' (norm_nonneg _) (by positivity)
+        _ = A2 * ((|t| + 2) ^ B * (|t| + 2)) := by rw [hA2def]; ring
+        _ = A2 * (|t| + 2) ^ (B + 1) := by
+            rw [Real.rpow_add hx2, Real.rpow_one]
+    rcases eq_or_ne ‖u6aShiftedZetaPoleRemoved s₀ z‖ 0 with hzero | hne
+    · rw [hzero, Real.log_zero]
+      refine Real.log_nonneg ?_
+      have : (1 : ℝ) ≤ (|t| + 2) ^ (B + 1) := by
+        calc (1 : ℝ) = (|t| + 2) ^ (0 : ℝ) := (Real.rpow_zero _).symm
+          _ ≤ (|t| + 2) ^ (B + 1) :=
+            Real.rpow_le_rpow_of_exponent_le hx2_1 (by linarith)
+      nlinarith
+    · exact Real.log_le_log (lt_of_le_of_ne (norm_nonneg _) (Ne.symm hne)) hFle
+  -- the center value
+  have hF0eq : u6aShiftedZetaPoleRemoved s₀ 0 = (s₀ - 1) * riemannZeta s₀ := by
+    have := u6aShiftedZetaPoleRemoved_eq_mul_riemannZeta (s := s₀) (z := 0)
+      (by rw [add_zero]; exact hs₀ne1)
+    rwa [add_zero] at this
+  have hF0ne : u6aShiftedZetaPoleRemoved s₀ 0 ≠ 0 := by
+    rw [hF0eq]
+    exact mul_ne_zero (sub_ne_zero.mpr hs₀ne1) hζs₀
+  have hF0ge : (1 / 4 : ℝ) ≤ ‖u6aShiftedZetaPoleRemoved s₀ 0‖ := by
+    rw [hF0eq, norm_mul]
+    have h1 := u6aCA_norm_riemannZeta_two_ge t
+    rw [← hs₀def] at h1
+    nlinarith [norm_nonneg (riemannZeta s₀)]
+  have hF0log : -Real.log ‖u6aShiftedZetaPoleRemoved s₀ 0‖ ≤ Real.log 4 := by
+    have hmono := Real.log_le_log (by norm_num : (0 : ℝ) < 1 / 4) hF0ge
+    have hquarter : Real.log (1 / 4 : ℝ) = -Real.log 4 := by
+      rw [one_div, Real.log_inv]
+    linarith
+  -- Jensen
+  have hmass := u6aCA_divisorMassClosedBall₀_le_of_sphere_bound
+    (f := u6aShiftedZetaPoleRemoved s₀) (differentiable_u6aShiftedZetaPoleRemoved s₀)
+    (R := 9 / 4) (M := Real.log (A2 * (|t| + 2) ^ (B + 1))) (by norm_num) hF0ne hM
+  -- ball sum below the mass
+  have hball := u6aShiftedZetaZeroBallMass_le_divisorMass (s := s₀) (R := 9 / 4)
+    (by norm_num) (by linarith [hs₀sub_ge_t]) hζs₀
+  -- log arithmetic
+  have hMlog : Real.log (A2 * (|t| + 2) ^ (B + 1)) =
+      Real.log A2 + (B + 1) * Real.log (|t| + 2) := by
+    rw [Real.log_mul (ne_of_gt hA2_0) (ne_of_gt (Real.rpow_pos_of_pos hx2 _)),
+      Real.log_rpow hx2]
+  have hlogt1 : (1 : ℝ) ≤ Real.log |t| := by
+    have hexp : Real.exp 1 < |t| := by
+      calc Real.exp 1 < 2.7182818286 := Real.exp_one_lt_d9
+        _ ≤ |t| := by linarith
+    have := (Real.lt_log_iff_exp_lt (by linarith : (0 : ℝ) < |t|)).mpr hexp
+    linarith
+  have hlogshift : Real.log (|t| + 2) ≤ 2 * Real.log |t| := by
+    have hsq : |t| + 2 ≤ |t| ^ 2 := by nlinarith
+    calc Real.log (|t| + 2) ≤ Real.log (|t| ^ 2) := Real.log_le_log hx2 hsq
+      _ = 2 * Real.log |t| := by
+          rw [Real.log_pow]
+          norm_num
+  -- assemble
+  have hchain : u6aNearbyZeroCount (-1) 2 t ≤
+      (Real.log A2 + (B + 1) * Real.log (|t| + 2) + Real.log 4) / Real.log 2 := by
+    calc u6aNearbyZeroCount (-1) 2 t
+        ≤ ∑ z ∈ u6aShiftedZetaZeroBallFinset s₀ (9 / 4),
+            (riemannZeta.order (s₀ + z) : ℝ) := u6aCA_count_le_ballSum (by linarith)
+      _ ≤ Complex.Hadamard.divisorMassClosedBall₀ (u6aShiftedZetaPoleRemoved s₀)
+            (9 / 4) := hball
+      _ ≤ (Real.log (A2 * (|t| + 2) ^ (B + 1)) -
+            Real.log ‖u6aShiftedZetaPoleRemoved s₀ 0‖) / Real.log 2 := hmass
+      _ ≤ (Real.log A2 + (B + 1) * Real.log (|t| + 2) + Real.log 4) / Real.log 2 := by
+          rw [hMlog]
+          gcongr
+          linarith
+  refine le_trans hchain ?_
+  rw [div_mul_eq_mul_div]
+  gcongr
+  nlinarith [mul_le_mul_of_nonneg_left hlogshift (by linarith : (0 : ℝ) ≤ B + 1),
+    mul_le_mul_of_nonneg_left hlogt1 hlogA2,
+    mul_le_mul_of_nonneg_left hlogt1 hlog4.le]
+
 end
 
 end Kadiri
