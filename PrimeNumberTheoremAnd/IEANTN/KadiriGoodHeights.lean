@@ -3767,6 +3767,26 @@ theorem exists_u6aPartialFractionPointwise_of_zeroSum
     (P := P) (σ₁ := (-1 : ℝ)) (σ₂ := 2) (C := C) (Tₘᵢₙ := Tₘᵢₙ)
     (s := s) hfac hz hs0 hs1 hΓdiff hΓ hζ hR hsre hsT hT3
 
+/-- Pointwise PF wrapper with the far xi-Hadamard tail exposed directly as
+the remaining analytic input. -/
+theorem exists_u6aPartialFractionPointwise_of_farTail_and_localDensity
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) →
+        s ≠ 0 → s ≠ 1 →
+        (∀ m : ℕ, s / 2 + 1 ≠ -m) →
+        zetaGammaFactor s ≠ 0 →
+        riemannZeta s ≠ 0 →
+          ‖deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤ C * Real.log |s.im| := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_u6aPartialFractionPointwise_of_zeroSum hZero
+
 /-- Local Hadamard legality needed only on a selected horizontal line.  This
 keeps the PF route pointwise, rather than requiring a global partial-fraction
 hypothesis over the whole strip. -/
@@ -3942,6 +3962,24 @@ theorem exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound
     _ ≤ Cpf * Real.log T ^ 2 + Crec * Real.log T ^ 2 := by
           exact add_le_add (mul_le_mul_of_nonneg_left hlog_le_sq hCpf.le) le_rfl
     _ = (Cpf + Crec) * Real.log T ^ 2 := by ring
+
+/-- Fixed-height horizontal consumer with the far xi-Hadamard tail exposed
+directly. -/
+theorem exists_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_reciprocalBound
+    {Cfar Tfar Cdens Tdens Crec : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        U6aHadamardLegalityOnHorizontal T →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound hZero hCrec
 
 /-- Fixed-height zero-sum PF consumer with all local Hadamard legality
 discharged from the zero-gap condition. -/
@@ -4437,6 +4475,21 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_a
     · simpa [u6aReciprocalZeroSum_neg] using hrecTop.trans havg_le
   exact ⟨T, hT₀, hT3,
     hmain T (u6aCrudeDelta Csel Dsel X k) hTpf hT3 hTmem.2 hrecAll⟩
+
+/-- Cofinal U6a composition with the far xi-Hadamard tail exposed directly as
+the PF-side analytic input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedComparison
+    hZero hAvgCmp
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
