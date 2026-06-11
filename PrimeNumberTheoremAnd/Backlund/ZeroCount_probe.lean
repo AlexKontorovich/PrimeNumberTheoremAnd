@@ -190,6 +190,81 @@ private lemma norm_Gamma_le_Gamma_re {z : ℂ} (hz : 0 < z.re) :
     Complex.norm_cpow_eq_rpow_re_of_pos hx]
   simp [Complex.sub_re, Complex.one_re]
 
+/-- `Γ ≤ 2` on `[1, 2]`: the integrand is dominated by `e⁻ᵗ(t⁰ + t¹)`, whose integral
+is `Γ(1) + Γ(2) = 2`. -/
+private lemma Gamma_le_two_of_mem_Icc {x : ℝ} (h1 : 1 ≤ x) (h2 : x ≤ 2) :
+    Real.Gamma x ≤ 2 := by
+  have hx0 : 0 < x := by linarith
+  have hΓ2 : Real.Gamma 2 = 1 := by
+    norm_num
+  rw [Real.Gamma_eq_integral hx0]
+  have key : (∫ t in Set.Ioi (0 : ℝ), Real.exp (-t) * t ^ (x - 1)) ≤
+      ∫ t in Set.Ioi (0 : ℝ),
+        (Real.exp (-t) * t ^ ((1 : ℝ) - 1) + Real.exp (-t) * t ^ ((2 : ℝ) - 1)) := by
+    refine MeasureTheory.setIntegral_mono_on (Real.GammaIntegral_convergent hx0)
+      ((Real.GammaIntegral_convergent one_pos).add (Real.GammaIntegral_convergent two_pos))
+      measurableSet_Ioi fun t ht ↦ ?_
+    rw [Set.mem_Ioi] at ht
+    have he : (0 : ℝ) ≤ Real.exp (-t) := (Real.exp_pos _).le
+    rcases le_total t 1 with htle | htge
+    · have hpow : t ^ (x - 1) ≤ t ^ ((1 : ℝ) - 1) :=
+        Real.rpow_le_rpow_of_exponent_ge ht htle (by linarith)
+      nlinarith [mul_le_mul_of_nonneg_left hpow he,
+        mul_nonneg he (Real.rpow_nonneg ht.le ((2 : ℝ) - 1))]
+    · have hpow : t ^ (x - 1) ≤ t ^ ((2 : ℝ) - 1) :=
+        Real.rpow_le_rpow_of_exponent_le htge (by linarith)
+      nlinarith [mul_le_mul_of_nonneg_left hpow he,
+        mul_nonneg he (Real.rpow_nonneg ht.le ((1 : ℝ) - 1))]
+  calc (∫ t in Set.Ioi (0 : ℝ), Real.exp (-t) * t ^ (x - 1))
+      ≤ ∫ t in Set.Ioi (0 : ℝ),
+          (Real.exp (-t) * t ^ ((1 : ℝ) - 1) + Real.exp (-t) * t ^ ((2 : ℝ) - 1)) := key
+    _ = Real.Gamma 1 + Real.Gamma 2 := by
+        rw [MeasureTheory.integral_add (Real.GammaIntegral_convergent one_pos)
+          (Real.GammaIntegral_convergent two_pos), Real.Gamma_eq_integral one_pos,
+          Real.Gamma_eq_integral two_pos]
+    _ = 2 := by rw [Real.Gamma_one, hΓ2]; norm_num
+
+/-- Crude factorial bound: `Γ(x) ≤ 2 · (n+1)!` for `1 ≤ x ≤ n + 2`, by induction
+through the recursion `Γ(x) = (x-1)Γ(x-1)`. -/
+private lemma Gamma_le_two_mul_factorial :
+    ∀ (n : ℕ) {x : ℝ}, 1 ≤ x → x ≤ n + 2 →
+      Real.Gamma x ≤ 2 * ((n + 1).factorial : ℝ) := by
+  intro n
+  induction n with
+  | zero =>
+    intro x h1 h2
+    push_cast at h2
+    simpa using Gamma_le_two_of_mem_Icc h1 (by linarith)
+  | succ m ih =>
+    intro x h1 h2
+    rcases le_total x ((m : ℝ) + 2) with hle | hge
+    · refine (ih h1 hle).trans ?_
+      have hf : ((m + 1).factorial : ℝ) ≤ (((m + 1) + 1).factorial : ℝ) := by
+        exact_mod_cast Nat.factorial_le (by omega)
+      linarith
+    · have hm0 : (0 : ℝ) ≤ (m : ℝ) := Nat.cast_nonneg m
+      have hx1ne : x - 1 ≠ 0 := by nlinarith
+      have hrec : Real.Gamma x = (x - 1) * Real.Gamma (x - 1) := by
+        have h := Real.Gamma_add_one hx1ne
+        simpa using h
+      have hih : Real.Gamma (x - 1) ≤ 2 * ((m + 1).factorial : ℝ) := by
+        refine ih (by nlinarith) ?_
+        push_cast at h2
+        linarith
+      have hxb : x - 1 ≤ (m : ℝ) + 2 := by
+        push_cast at h2
+        linarith
+      have hΓnn : 0 ≤ Real.Gamma (x - 1) :=
+        (Real.Gamma_pos_of_pos (by nlinarith)).le
+      rw [hrec]
+      calc (x - 1) * Real.Gamma (x - 1)
+          ≤ ((m : ℝ) + 2) * (2 * ((m + 1).factorial : ℝ)) :=
+            mul_le_mul hxb hih hΓnn (by positivity)
+        _ = 2 * ((((m + 1) + 1)).factorial : ℝ) := by
+            rw [Nat.factorial_succ (m + 1)]
+            push_cast
+            ring
+
 /-- Left region `Re ≤ -1`: the functional equation with `|Γ(1-z)| ≤ Γ(1 - Re z)` and a
 crude factorial bound; the `Γ`-growth is what forces the `3/2` exponent. -/
 private lemma surrogate_growth_left :
