@@ -933,6 +933,149 @@ lemma ν_eq_zero_of_lt_neg {c ε : ℝ} (hε : 0 < ε) {t : ℝ} (ht : t < -ε) 
   refine MeasureTheory.setIntegral_eq_zero_of_forall_eq_zero fun τ hτ ↦ ?_
   exact μ_eq_zero_of_lt_neg hε (lt_of_le_of_lt hτ ht)
 
+open MeasureTheory in
+/-- A bounded function vanishing outside `[-ε, ε]` has all its `Iic`-integrals bounded
+by `M * (2ε)`. -/
+private lemma abs_setIntegral_Iic_le {f : ℝ → ℝ} {ε M : ℝ} (hε : 0 < ε) (hM : 0 ≤ M)
+    (hf_bound : ∀ x, |f x| ≤ M) (hf_zero : ∀ x, ε < |x| → f x = 0) (u : ℝ) :
+    |∫ x in Set.Iic u, f x| ≤ M * (2 * ε) := by
+  have heq : ∫ x in Set.Iic u, f x = ∫ x in Set.Iic u ∩ Set.Icc (-ε) ε, f x := by
+    refine MeasureTheory.setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Iic
+      Set.inter_subset_left fun x hx ↦ ?_
+    refine hf_zero x ?_
+    have h3 : x ∉ Set.Icc (-ε) ε := fun hmem ↦ hx.2 ⟨hx.1, hmem⟩
+    rw [Set.mem_Icc, ← abs_le] at h3
+    exact not_le.mp h3
+  have hvol : (volume (Set.Iic u ∩ Set.Icc (-ε) ε)).toReal ≤ 2 * ε := by
+    have h2 : volume (Set.Icc (-ε : ℝ) ε) = ENNReal.ofReal (2 * ε) := by
+      rw [Real.volume_Icc]
+      ring_nf
+    calc (volume (Set.Iic u ∩ Set.Icc (-ε) ε)).toReal
+        ≤ (volume (Set.Icc (-ε : ℝ) ε)).toReal :=
+          ENNReal.toReal_mono (by rw [h2]; exact ENNReal.ofReal_ne_top)
+            (measure_mono Set.inter_subset_right)
+      _ = 2 * ε := by rw [h2, ENNReal.toReal_ofReal (by linarith)]
+  have hfin : volume (Set.Iic u ∩ Set.Icc (-ε) ε) < ⊤ :=
+    lt_of_le_of_lt (measure_mono Set.inter_subset_right)
+      (by rw [Real.volume_Icc]; exact ENNReal.ofReal_lt_top)
+  have hnorm := MeasureTheory.norm_setIntegral_le_of_norm_le_const (μ := volume) (C := M)
+    (f := f) hfin (fun x _ ↦ by simpa using hf_bound x)
+  rw [heq, ← Real.norm_eq_abs]
+  calc ‖∫ x in Set.Iic u ∩ Set.Icc (-ε) ε, f x‖
+      ≤ M * (volume (Set.Iic u ∩ Set.Icc (-ε) ε)).toReal := hnorm
+    _ ≤ M * (2 * ε) := mul_le_mul_of_nonneg_left hvol hM
+
+lemma pre_μ_antitone {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) : Antitone (pre_μ c ε) := by
+  intro s t hst
+  unfold pre_μ
+  rw [neg_le_neg_iff]
+  exact MeasureTheory.setIntegral_mono_set ((integrable_η hc hε).integrableOn)
+    (MeasureTheory.ae_of_all _ fun ξ ↦ η_nonneg hc hε ξ)
+    (Set.Iic_subset_Iic.mpr hst).eventuallyLE
+
+lemma measurable_μ {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) : Measurable (μ c ε) := by
+  unfold μ
+  refine Measurable.ite measurableSet_Iio (pre_μ_antitone hc hε).measurable ?_
+  refine Measurable.ite measurableSet_Ioi ?_ measurable_const
+  exact ((pre_μ_antitone hc hε).measurable.comp measurable_neg).neg
+
+private lemma pre_μ_abs_le {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (u : ℝ) :
+    |pre_μ c ε u| ≤ c / sinh c * besselI0 c := by
+  have hs : 0 < sinh c := sinh_pos_iff.mpr hc
+  have h := abs_setIntegral_Iic_le (f := η c ε)
+    (M := c / (2 * ε * sinh c) * besselI0 c) hε
+    (mul_nonneg (div_nonneg hc.le (by nlinarith [mul_pos hε hs])) (besselI0_nonneg c))
+    (fun x ↦ by rw [abs_of_nonneg (η_nonneg hc hε x)]; exact η_le hc hε x)
+    (fun x hx ↦ η_eq_zero_of_abs_gt hx) u
+  unfold pre_μ
+  rw [abs_neg]
+  refine h.trans (le_of_eq ?_)
+  field_simp [hε.ne', hs.ne']
+
+lemma μ_abs_le {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (t : ℝ) :
+    |μ c ε t| ≤ c / sinh c * besselI0 c := by
+  have hs : 0 < sinh c := sinh_pos_iff.mpr hc
+  have hnn : 0 ≤ c / sinh c * besselI0 c :=
+    mul_nonneg (div_nonneg hc.le hs.le) (besselI0_nonneg c)
+  unfold μ
+  split
+  · exact pre_μ_abs_le hc hε t
+  · split
+    · rw [abs_neg]
+      exact pre_μ_abs_le hc hε (-t)
+    · simpa using hnn
+
+lemma integrable_μ {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) :
+    MeasureTheory.Integrable (μ c ε) := by
+  have hsupp : Function.support (μ c ε) ⊆ Set.Icc (-ε) ε := by
+    intro t ht
+    rw [Set.mem_Icc, ← abs_le]
+    by_contra h
+    rcases lt_abs.mp (not_le.mp h) with h1 | h1
+    · exact ht (μ_eq_zero_of_gt hε h1)
+    · exact ht (μ_eq_zero_of_lt_neg hε (by linarith))
+  rw [← MeasureTheory.integrableOn_iff_integrable_of_support_subset hsupp]
+  refine MeasureTheory.Measure.integrableOn_of_bounded
+    (M := c / sinh c * besselI0 c)
+    (by rw [Real.volume_Icc]; exact ENNReal.ofReal_ne_top)
+    ((measurable_μ hc hε).aestronglyMeasurable)
+    (MeasureTheory.ae_of_all _ fun t ↦ ?_)
+  rw [Real.norm_eq_abs]
+  exact μ_abs_le hc hε t
+
+lemma ν_abs_le {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (t : ℝ) :
+    |ν c ε t| ≤ c / sinh c * besselI0 c * (2 * ε) := by
+  have hs : 0 < sinh c := sinh_pos_iff.mpr hc
+  have hM : 0 ≤ c / sinh c * besselI0 c :=
+    mul_nonneg (div_nonneg hc.le hs.le) (besselI0_nonneg c)
+  unfold ν
+  exact abs_setIntegral_Iic_le hε hM (fun x ↦ μ_abs_le hc hε x)
+    (fun x hx ↦ by
+      rcases lt_abs.mp hx with h1 | h1
+      · exact μ_eq_zero_of_gt hε h1
+      · exact μ_eq_zero_of_lt_neg hε (by linarith)) t
+
+lemma besselI0_partial_le (x : ℝ) (N : ℕ) :
+    ∑ m ∈ Finset.range N, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2 ≤ besselI0 x := by
+  change _ ≤ ∑' m : ℕ, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2
+  exact Summable.sum_le_tsum (Finset.range N)
+    (fun m _ ↦ by rw [pow_mul]; positivity) (besselI0_summable x)
+
+lemma besselI0_sub_partial_le (x : ℝ) (N : ℕ) :
+    besselI0 x - ∑ m ∈ Finset.range N, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2 ≤
+      (x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2 * besselI0 x := by
+  have hsum := besselI0_summable x
+  have hb : besselI0 x = ∑' m : ℕ, (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2 := rfl
+  have hsplit := hsum.sum_add_tsum_nat_add N
+  have hterm : ∀ k : ℕ, (x / 2) ^ (2 * (k + N)) / (((k + N).factorial : ℝ)) ^ 2 ≤
+      (x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2 *
+        ((x / 2) ^ (2 * k) / ((k.factorial : ℝ)) ^ 2) := by
+    intro k
+    have hfact : (N.factorial : ℝ) * (k.factorial : ℝ) ≤ ((k + N).factorial : ℝ) := by
+      exact_mod_cast Nat.le_of_dvd (k + N).factorial_pos
+        (by simpa [mul_comm] using Nat.factorial_mul_factorial_dvd_factorial_add k N)
+    have hN : (0 : ℝ) < ((N.factorial : ℝ)) ^ 2 :=
+      pow_pos (by exact_mod_cast N.factorial_pos) 2
+    have hk : (0 : ℝ) < ((k.factorial : ℝ)) ^ 2 :=
+      pow_pos (by exact_mod_cast k.factorial_pos) 2
+    have hNk : (0 : ℝ) ≤ (N.factorial : ℝ) * (k.factorial : ℝ) := by positivity
+    rw [show 2 * (k + N) = 2 * N + 2 * k by ring, pow_add, div_mul_div_comm]
+    gcongr (x / 2) ^ (2 * N) * (x / 2) ^ (2 * k) / ?_ <;>
+      first
+        | exact mul_pos hN hk
+        | (rw [pow_mul, pow_mul]; positivity)
+        | nlinarith [hfact, hNk]
+  have htail : (∑' k : ℕ, (x / 2) ^ (2 * (k + N)) / (((k + N).factorial : ℝ)) ^ 2) ≤
+      (x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2 * besselI0 x := by
+    calc (∑' k : ℕ, (x / 2) ^ (2 * (k + N)) / (((k + N).factorial : ℝ)) ^ 2)
+        ≤ ∑' k : ℕ, (x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2 *
+            ((x / 2) ^ (2 * k) / ((k.factorial : ℝ)) ^ 2) :=
+          Summable.tsum_le_tsum hterm ((summable_nat_add_iff N).mpr hsum)
+            (hsum.mul_left ((x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2))
+      _ = (x / 2) ^ (2 * N) / ((N.factorial : ℝ)) ^ 2 * besselI0 x := by
+          rw [tsum_mul_left, ← hb]
+  linarith [hsplit, htail, hb.le, hb.ge]
+
 @[blueprint
   "bklnw-thm_16"
   (title := "Theorem 16")
