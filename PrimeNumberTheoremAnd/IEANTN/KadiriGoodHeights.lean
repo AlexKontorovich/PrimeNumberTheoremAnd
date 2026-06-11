@@ -5129,6 +5129,19 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_count
   exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
     hFar (U6aLocalZeroDensityHypothesis_of_countLogHypothesis hCount) hAvgCmp
 
+/-- Cofinal U6a composition with the shifted Jensen mass atom feeding the
+local-count side of the PF route. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_shiftedJensenLocalMass_and_averagedComparison
+    {Cfar Tfar Cmass : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis Cmass)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar (U6aLocalZeroDensityHypothesis_of_shiftedJensenLocalMass hMass) hAvgCmp
+
 /-- Cofinal U6a composition through the zeta-indexed far-tail split, with the
 count-log atom as the local zero-count input. -/
 theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_countLog_and_averagedComparison
@@ -5143,6 +5156,21 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_
   exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_countLog_and_averagedComparison
     (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
     hCount hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split, with the
+shifted Jensen mass atom as the local zero-count input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_shiftedJensenLocalMass_and_averagedComparison
+    {Ctail Ttail Cmass : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis Cmass)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_shiftedJensenLocalMass_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hMass hAvgCmp
 
 /-- Cofinal U6a composition from the exact existential count-log endpoint. -/
 theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_existsNearbyZeroCountLog_and_averagedComparison
