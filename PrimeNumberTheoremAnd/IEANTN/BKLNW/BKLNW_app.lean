@@ -752,6 +752,83 @@ noncomputable def μ (c ε t : ℝ) : ℝ :=
 noncomputable def ν (c ε t : ℝ) : ℝ :=
   ∫ τ in Set.Iic t, μ c ε τ
 
+/-! ### Elementary properties of the Logan kernel transform
+
+Sign, support, and symmetry facts about `besselI0`, `η` and `μ`, provable directly from
+the closed form. They are the base layer for the monotonicity claims of
+\cite[p.~2492]{Buthe2} and for certified bounds on the `μ` and `ν` values appearing in
+the `hB0` hypothesis of Theorem 16. -/
+
+lemma besselI0_summable (x : ℝ) :
+    Summable (fun m : ℕ ↦ (x / 2) ^ (2 * m) / ((m.factorial : ℝ)) ^ 2) := by
+  refine Summable.of_nonneg_of_le (fun m ↦ by rw [pow_mul]; positivity) (fun m ↦ ?_)
+    (Real.summable_pow_div_factorial (x ^ 2 / 4))
+  have h2 : (x / 2) ^ (2 * m) = (x ^ 2 / 4) ^ m := by
+    rw [pow_mul, div_pow]
+    norm_num
+  rw [h2]
+  gcongr (x ^ 2 / 4) ^ m / ?_
+  exact_mod_cast Nat.le_self_pow (by norm_num) m.factorial
+
+lemma besselI0_nonneg (x : ℝ) : 0 ≤ besselI0 x :=
+  tsum_nonneg fun m ↦ by rw [pow_mul]; positivity
+
+lemma besselI0_one_le (x : ℝ) : 1 ≤ besselI0 x := by
+  have h := (besselI0_summable x).le_tsum 0 fun j _ ↦ by rw [pow_mul]; positivity
+  simpa [Nat.factorial] using h
+
+lemma besselI0_pos (x : ℝ) : 0 < besselI0 x :=
+  lt_of_lt_of_le one_pos (besselI0_one_le x)
+
+lemma besselI0_le_besselI0 {x y : ℝ} (h : |x| ≤ |y|) : besselI0 x ≤ besselI0 y := by
+  refine Summable.tsum_le_tsum (fun m ↦ ?_) (besselI0_summable x) (besselI0_summable y)
+  have hx : (x / 2) ^ (2 * m) = (x ^ 2 / 4) ^ m := by rw [pow_mul, div_pow]; norm_num
+  have hy : (y / 2) ^ (2 * m) = (y ^ 2 / 4) ^ m := by rw [pow_mul, div_pow]; norm_num
+  rw [hx, hy]
+  have hxy : x ^ 2 ≤ y ^ 2 := by
+    nlinarith [sq_abs x, sq_abs y, abs_nonneg x, abs_nonneg y]
+  gcongr
+
+lemma η_nonneg {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (ξ : ℝ) : 0 ≤ η c ε ξ := by
+  unfold η
+  split
+  · have hs : 0 < sinh c := sinh_pos_iff.mpr hc
+    refine mul_nonneg (div_nonneg hc.le ?_) (besselI0_nonneg _)
+    nlinarith [mul_pos hε hs]
+  · exact le_rfl
+
+lemma η_even (c ε ξ : ℝ) : η c ε (-ξ) = η c ε ξ := by
+  simp [η, abs_neg, neg_div]
+
+lemma η_eq_zero_of_abs_gt {c ε ξ : ℝ} (h : ε < |ξ|) : η c ε ξ = 0 := by
+  simp [η, not_le.mpr h]
+
+lemma μ_zero (c ε : ℝ) : μ c ε 0 = 0 := by
+  simp [μ]
+
+lemma μ_nonneg_of_pos {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) {t : ℝ} (ht : 0 < t) :
+    0 ≤ μ c ε t := by
+  unfold μ
+  rw [if_neg (by linarith : ¬ t < 0), if_pos ht, pre_μ, neg_neg]
+  exact MeasureTheory.setIntegral_nonneg measurableSet_Iic fun ξ _ ↦ η_nonneg hc hε ξ
+
+lemma μ_nonpos_of_neg {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) {t : ℝ} (ht : t < 0) :
+    μ c ε t ≤ 0 := by
+  unfold μ
+  rw [if_pos ht, pre_μ]
+  simp only [neg_nonpos]
+  exact MeasureTheory.setIntegral_nonneg measurableSet_Iic fun ξ _ ↦ η_nonneg hc hε ξ
+
+lemma μ_neg (c ε t : ℝ) : μ c ε (-t) = -μ c ε t := by
+  rcases lt_trichotomy t 0 with ht | rfl | ht
+  · unfold μ
+    rw [if_neg (by linarith : ¬ -t < 0), if_pos (by linarith : -t > 0), neg_neg,
+      if_pos ht]
+  · simp [μ]
+  · unfold μ
+    rw [if_pos (by linarith : -t < 0), if_neg (by linarith : ¬ t < 0), if_pos ht,
+      neg_neg]
+
 @[blueprint
   "bklnw-thm_16"
   (title := "Theorem 16")
