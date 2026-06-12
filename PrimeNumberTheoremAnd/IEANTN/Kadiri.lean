@@ -151,7 +151,7 @@ theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff 
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
     {n : ℕ} (_hn : 1 ≤ n) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     (φ (Real.log n) : ℂ) =
       (1 / (2 * (Real.pi : ℂ))) *
         ∫ t : ℝ,
@@ -187,7 +187,7 @@ theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
       (1 / (2 * (Real.pi : ℂ))) *
         ∫ t : ℝ,
@@ -209,7 +209,7 @@ theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
   \cite{Kadiri2005} (\ref{kadiri-thm-3-1-q1-eq-12}). -/)
   (latexEnv := "definition")]
 noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
   (1 / (2 * (Real.pi : ℂ))) *
     ∫ t in Set.Ioo (-T) T,
       (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
@@ -259,7 +259,7 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
     {T : ℝ} (_hT : 0 < T) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     kadiri_thm_3_1_q1_I φ a T =
       -- (1/(2πi)) ∫ on σ = -a from -iT to +iT
       (1 / (2 * (Real.pi : ℂ))) *
@@ -307,7 +307,7 @@ theorem kadiri_thm_3_1_q1_top_horizontal_vanishes
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     Filter.Tendsto
       (fun T : ℝ ↦
         (1 / (2 * (Real.pi : ℂ) * I)) *
@@ -339,7 +339,7 @@ theorem kadiri_thm_3_1_q1_bot_horizontal_vanishes
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     Filter.Tendsto
       (fun T : ℝ ↦
         (1 / (2 * (Real.pi : ℂ) * I)) *
@@ -399,7 +399,7 @@ theorem kadiri_thm_3_1_q1_functional_eq {s : ℂ}
   Its $T \to \infty$ limit is given by \ref{kadiri-thm-3-1-q1-eq-13}. -/)
   (latexEnv := "definition")]
 noncomputable def kadiri_thm_3_1_q1_I_1 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
   (1 / (2 * (Real.pi : ℂ))) *
     ∫ t in Set.Ioo (-T) T,
       ((-Real.log Real.pi : ℝ) : ℂ) *
@@ -424,7 +424,7 @@ noncomputable def kadiri_thm_3_1_q1_I_1 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
   is given by \ref{kadiri-thm-3-1-q1-eq-14}. -/)
   (latexEnv := "definition")]
 noncomputable def kadiri_thm_3_1_q1_I_2 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
   (1 / (2 * (Real.pi : ℂ))) *
     ∫ t in Set.Ioo (-T) T,
       (deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
@@ -448,7 +448,7 @@ noncomputable def kadiri_thm_3_1_q1_I_2 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
   $\Re s = 1/2$ collapses the two gamma terms into $\Re[\Gamma'/\Gamma(s/2)]$. -/)
   (latexEnv := "definition")]
 noncomputable def kadiri_thm_3_1_q1_I_3 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
   (1 / (2 * (Real.pi : ℂ))) *
     ∫ t in Set.Ioo (-T) T,
       ((1 / 2 : ℂ) *
@@ -483,7 +483,7 @@ theorem kadiri_thm_3_1_q1_shifted_eq_I123
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) (T : ℝ) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     (1 / (2 * (Real.pi : ℂ))) *
       (∫ t in Set.Ioo (-T) T,
         (-deriv riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I) /
@@ -608,7 +608,10 @@ theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
   residue $+\Phi(0)$ contributed by the leftward shift; no other poles lie in
   $-a < \Re s < 1/2$. The horizontal arcs vanish as $T \to \infty$ by (B). On
   $\Re s = 1/2$, apply \ref{kadiri-thm-3-1-q1-gamma-symmetrization} to identify the
-  integrand as $\Re[\Gamma'/\Gamma(s/2)]\, \Phi(-s)$. To be formalised. -/)
+  integrand as $\Re[\Gamma'/\Gamma(s/2)]\, \Phi(-s)$. The Bochner integral in the limit
+  value is well-defined precisely under the hypothesis `hΓ_int` (otherwise the integral
+  evaluates to $0$ by Mathlib's convention and the statement is vacuous); this same
+  hypothesis is carried by \ref{kadiri-thm-3-1-q1}. To be formalised. -/)
   (latexEnv := "sublemma")
   (discussion := 1545)]
 theorem kadiri_thm_3_1_q1_eq_15
@@ -618,8 +621,11 @@ theorem kadiri_thm_3_1_q1_eq_15
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
+    {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
+    (_hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
+      ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+        ∫ y, φ y * exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I_3 φ a T)
       Filter.atTop
       (nhds (Φ 0
@@ -698,12 +704,12 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
     (hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     (hΦ_sum : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
-      (∫ y in (.Ioi (0 : ℝ)), φ y * exp (ρ.val * (y : ℂ)) ∂volume) *
+      (∫ y, φ y * exp (ρ.val * (y : ℂ)) ∂volume) *
         (riemannZeta.order ρ.val : ℂ)))
     (hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-        ∫ y in (.Ioi (0 : ℝ)), φ y * exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
-    let Φ : ℂ → ℂ := fun z ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-z * (y : ℂ)) ∂volume
+        ∫ y, φ y * exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
+    let Φ : ℂ → ℂ := fun z ↦ ∫ y, φ y * exp (-z * (y : ℂ)) ∂volume
     (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
       Φ (-1) + Φ 0
         - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ) (fun ρ ↦ Φ (-ρ))
@@ -743,7 +749,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
   have h14 :=
     kadiri_thm_3_1_q1_eq_14 hφ hb hφ_decay hφ'_decay ha_pos ha_lt_b ha_lt_1
   have h15 :=
-    kadiri_thm_3_1_q1_eq_15 hφ hb hφ_decay hφ'_decay ha_pos ha_lt_b ha_lt_1
+    kadiri_thm_3_1_q1_eq_15 hφ hb hφ_decay hφ'_decay ha_pos ha_lt_b ha_lt_1 hΓ_int
   -- The two intermediate limit facts; both are technical limit-management steps left as
   -- `sorry` for now (dominated convergence + summability across the $T \to \infty$ limit).
 
@@ -1620,8 +1626,28 @@ theorem kadiriTestFn_laplaceTransform {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
     (hf_C2 : ContDiffOn ℝ 2 f (.Icc 0 d))
     (hf_supp : tsupport f ⊆ .Ico 0 d)
     (s z : ℂ) (hsz : 0 < (s + z).re) :
-    (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume) =
+    (∫ y, kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume) =
       (f 0 : ℂ) / (s + z) - laplaceTransform f (s + z) := by
+  -- Bridge from two-sided to one-sided: `kadiriTestFn f s` vanishes on $(-\infty, 0]$
+  -- (it is $0$ for $y < 0$ by the `if 0 ≤ y` branch, and equals $f(0) - f(0) = 0$ at
+  -- $y = 0$). Hence the integrand equals its $\mathrm{Ioi}\, 0$-indicator, and the
+  -- two integrals agree.
+  have heq_indicator :
+      (fun y => kadiriTestFn f s y * exp (-z * (y : ℂ))) =
+      (Set.Ioi (0 : ℝ)).indicator (fun y => kadiriTestFn f s y * exp (-z * (y : ℂ))) := by
+    ext y
+    by_cases hy : y ∈ Set.Ioi (0 : ℝ)
+    · rw [Set.indicator_of_mem hy]
+    · rw [Set.indicator_of_notMem hy]
+      rw [Set.mem_Ioi, not_lt] at hy
+      rcases lt_or_eq_of_le hy with hy' | hy'
+      · simp [kadiriTestFn, not_le.mpr hy']
+      · simp [kadiriTestFn, ← hy']
+  have hbridge : (∫ y, kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume) =
+      ∫ y in Set.Ioi (0 : ℝ), kadiriTestFn f s y * exp (-z * (y : ℂ)) ∂volume := by
+    conv_lhs => rw [heq_indicator]
+    exact MeasureTheory.integral_indicator measurableSet_Ioi
+  rw [hbridge]
   set w := s + z with hw
   have hw0 : w ≠ 0 := fun h => by simp [h] at hsz
   have hsplit : Set.EqOn (fun y : ℝ => kadiriTestFn f s y * exp (-z * (y : ℂ)))
@@ -1740,11 +1766,11 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
     {s : ℂ} (hs : 1 < s.re)
     (hΦ_sum : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
-      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) *
+      (∫ y, kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) *
         (riemannZeta.order ρ.val : ℂ)))
     (hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-        ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+        ∫ y, kadiriTestFn f s y *
           exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
       (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
@@ -1768,7 +1794,7 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     hb hdecay hdecay' hΦ_sum hΓ_int
   dsimp only at hform
   -- the pole value
-  have hΦ1 : (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+  have hΦ1 : (∫ y, kadiriTestFn f s y *
       exp (-(-1 : ℂ) * (y : ℂ)) ∂volume) =
       (f 0 : ℂ) / (s - 1) - laplaceTransform f (s - 1) := by
     have hre : (0 : ℝ) < (s + (-1 : ℂ)).re := by
@@ -1777,7 +1803,7 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     rw [kadiriTestFn_laplaceTransform hd hf_C2 hf_supp s (-1) hre,
       show s + (-1 : ℂ) = s - 1 by ring]
   -- the value at zero, collapsed by integration by parts
-  have hΦ0 : (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+  have hΦ0 : (∫ y, kadiriTestFn f s y *
       exp (-(0 : ℂ) * (y : ℂ)) ∂volume) =
       -(laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2) := by
     have hre : (0 : ℝ) < (s + (0 : ℂ)).re := by
@@ -1789,13 +1815,13 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     ring
   -- the zero packet values
   have hzero : riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
-      (fun ρ ↦ ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+      (fun ρ ↦ ∫ y, kadiriTestFn f s y *
         exp (-(-ρ) * (y : ℂ)) ∂volume) =
       riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
         (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ)) := by
     unfold riemannZeta.zeroes_sum
     refine tsum_congr fun ρ ↦ ?_
-    change (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+    change (∫ y, kadiriTestFn f s y *
         exp (-(-ρ.val) * (y : ℂ)) ∂volume) * (riemannZeta.order ρ.val : ℂ) =
       ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)) *
         (riemannZeta.order ρ.val : ℂ)
@@ -1826,7 +1852,7 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     rw [tsum_congr hterm, tsum_zero]
   -- the contour integrand, collapsed by integration by parts
   have hcont : (∫ t : ℝ, ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-        ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+        ∫ y, kadiriTestFn f s y *
           exp (-(-(1 / 2 + (t : ℂ) * I)) * (y : ℂ)) ∂volume) =
       -(∫ t : ℝ, ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
           laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I)) /
@@ -1834,7 +1860,7 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     rw [← MeasureTheory.integral_neg]
     refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun t ↦ ?_)
     change ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-        (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+        (∫ y, kadiriTestFn f s y *
           exp (-(-(1 / 2 + (t : ℂ) * I)) * (y : ℂ)) ∂volume) =
       -(((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
           laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I)) /
@@ -2357,10 +2383,10 @@ theorem summable_kadiriTestFn_weighted_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ 
     (hf_deriv_d : derivWithin f (Set.Icc 0 d) d = 0)
     {s : ℂ} (hs : 1 < s.re) :
     Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
-      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) *
+      (∫ y, kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) *
         (riemannZeta.order ρ.val : ℂ)) := by
   have hpt : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-      (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) =
+      (∫ y, kadiriTestFn f s y * exp (ρ.val * (y : ℂ)) ∂volume) =
       (f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val) := by
     intro ρ
     have hre : (0 : ℝ) < (s + -ρ.val).re := by
@@ -2423,7 +2449,7 @@ theorem identity_16_complex_weighted_of_integrable {d : ℝ} (hd : 0 < d) {f : �
     {s : ℂ} (hs : 1 < s.re)
     (hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
-        ∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+        ∫ y, kadiriTestFn f s y *
           exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
       (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
