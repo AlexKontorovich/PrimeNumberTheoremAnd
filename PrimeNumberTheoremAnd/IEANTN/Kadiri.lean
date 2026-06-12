@@ -120,7 +120,17 @@ theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
 The proof of \ref{kadiri-thm-3-1-q1} (Kadiri 2005, \S 3.1, pp.~11--13) decomposes into
 several explicit steps. We state each as its own blueprinted sublemma below, with `sorry`
 proofs to be filled in. The displayed equation before \cite[(11)]{Kadiri2005} is the
-underlying Laplace-inversion identity; equations (11)--(15) are the explicit steps. -/
+underlying Laplace-inversion identity; equations (11)--(15) are the explicit steps.
+
+Convention: in these sublemmas $\Phi$ denotes the two-sided Laplace transform
+$\Phi(s) := \int_{-\infty}^{\infty} \varphi(y)\, e^{-sy}\, dy$, convergent on the strip
+$-(1+b) < \Re s < b$ supplied by hypothesis (B). Kadiri's intermediate equations evaluate the
+inverted transform at both reflections $y = \pm \log n$, so equations (13) and (14) hold only
+for the two-sided transform: with the one-sided $\int_0^\infty$ the limit of $I_1(T)$ is the
+half-value $\tfrac{1}{2}\varphi(0)\log(1/\pi)$ (jump of $\varphi \mathbf{1}_{(0,\infty)}$ at
+$y = 0$) and the limit of $I_2(T)$ is $0$ (the one-sided transform carries no information
+about $\varphi$ on $(-\infty, 0)$). The final statement \ref{kadiri-thm-3-1-q1} uses the
+same two-sided transform. -/
 
 @[blueprint
   "kadiri-thm-3-1-q1-laplace-inversion"
@@ -132,9 +142,9 @@ underlying Laplace-inversion identity; equations (11)--(15) are the explicit ste
      = \frac{1}{2\pi i}
        \int_{-(1 + a) - i\infty}^{-(1 + a) + i\infty}
        \Phi(s)\, n^{s}\, ds, $$
-  where $\Phi(s) := \int_0^{\infty} \varphi(y)\, e^{-sy}\, dy$ is the Laplace transform of
-  $\varphi$. The contour $\sigma = -(1 + a)$ lies inside the strip of holomorphy of
-  $\Phi$ given by (B). This is the displayed equation just before
+  where $\Phi(s) := \int_{-\infty}^{\infty} \varphi(y)\, e^{-sy}\, dy$ is the two-sided
+  Laplace transform of $\varphi$. The contour $\sigma = -(1 + a)$ lies inside the strip of
+  holomorphy of $\Phi$ given by (B). This is the displayed equation just before
   \cite[(11)]{Kadiri2005}. -/)
   (proof := /-- Standard inverse-Laplace theorem (e.g.\ Widder, \emph{The Laplace
   Transform}, Ch.~III, Theorem~7.3). Hypotheses (A) (regularity / mean-value condition at
