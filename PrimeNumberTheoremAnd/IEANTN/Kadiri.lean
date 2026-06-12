@@ -566,6 +566,21 @@ theorem kadiri_thm_3_1_q1_eq_14
       (nhds (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
   sorry
 
+/-- The digamma function commutes with complex conjugation. Mathlib's junk-value
+conventions make this unconditional: `Complex.Gamma_conj` holds at every point,
+`deriv` returns `0` at non-differentiable points on both sides of the symmetry,
+and `conj` fixes `0`. In the application below the argument `s / 2` has real
+part `1 / 4`, away from the poles of `Γ` in any case. -/
+private lemma digamma_conj (z : ℂ) :
+    digamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (digamma z) := by
+  have hΓ : (starRingEnd ℂ) ∘ Gamma ∘ (starRingEnd ℂ) = Gamma := by
+    funext w
+    simp [Function.comp_apply, Gamma_conj]
+  have hd : deriv Gamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (deriv Gamma z) := by
+    conv_lhs => rw [← hΓ, deriv_conj_conj]
+    simp [Function.comp_apply]
+  rw [digamma_def, logDeriv_apply, logDeriv_apply, hd, Gamma_conj, ← map_div₀]
+
 @[blueprint
   "kadiri-thm-3-1-q1-gamma-symmetrization"
   (title := "$\\Gamma'/\\Gamma$ symmetrization on the critical line")
@@ -587,7 +602,17 @@ theorem kadiri_thm_3_1_q1_eq_14
 theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
     (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) =
       ((digamma (s / 2)).re : ℂ) := by
-  sorry
+  have h1s : 1 - s = (starRingEnd ℂ) s := by
+    apply Complex.ext
+    · rw [Complex.sub_re, Complex.one_re, Complex.conj_re, _hs]
+      norm_num
+    · rw [Complex.sub_im, Complex.one_im, Complex.conj_im]
+      ring
+  have hconj : (1 - s) / 2 = (starRingEnd ℂ) (s / 2) := by
+    rw [map_div₀, map_ofNat, h1s]
+  rw [hconj, digamma_conj, Complex.add_conj]
+  push_cast
+  ring
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-15"
