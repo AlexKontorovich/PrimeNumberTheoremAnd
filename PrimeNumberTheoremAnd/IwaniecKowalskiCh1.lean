@@ -1498,10 +1498,15 @@ The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
   (title := "LSeries liouville eq")
   (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
   (proof := /--
-  The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
-\[
-L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
-\]
+  The Liouville function $\lambda$ is completely multiplicative with $\lambda(p) = -1$, so its
+  Dirichlet series factors as an Euler product over the primes:
+  \[
+    L(\lambda, s) = \prod_{p} \left(1 - \lambda(p)p^{-s}\right)^{-1} = \prod_{p} \left(1 + p^{-s}\right)^{-1}.
+  \]
+  Using $(1 - p^{-s})(1 + p^{-s}) = 1 - p^{-2s}$ together with the Euler product
+  $\zeta(s) = \prod_{p} (1 - p^{-s})^{-1}$, one obtains
+  $\zeta(s)\, L(\lambda, s) = \prod_{p} \left(1 - p^{-2s}\right)^{-1} = \zeta(2s)$, and hence
+  $L(\lambda, s) = \zeta(2s)/\zeta(s)$ since $\zeta(s) \neq 0$ for $\operatorname{Re}(s) > 1$.
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
