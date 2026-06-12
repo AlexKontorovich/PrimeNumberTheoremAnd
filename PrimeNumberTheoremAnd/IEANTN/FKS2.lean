@@ -4391,6 +4391,26 @@ lemma admissible_bound_anti {A C x y : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
   exact cube_mul_exp_antitoneOn hA hC
     (Set.mem_Ici.mpr htx) (Set.mem_Ici.mpr (le_trans htx hty)) hty
 
+/-- Step-interval bridge for the Table 4/5 interpolation. A constant bound
+`V` on `Eπ` over a grid cell `[x₁, x₂]` (as produced by `theorem_6_alt` with
+`V = εθ_num x₁ * (1 + μ_num_2 …)`), dominated by the admissible curve at the
+right endpoint, yields the classical bound across the whole cell, by
+`admissible_bound_anti`. The mid-range verification is this lemma
+instantiated once per grid cell, with `hrow` a numeric endpoint check. -/
+theorem step_interval_bound {A C V x₁ x₂ : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
+    (hlog : (3 / C) ^ 2 ≤ Real.log x₁) (hx₁ : 0 < x₁)
+    (hV : ∀ x ∈ Set.Icc x₁ x₂, Eπ x ≤ V)
+    (hrow : V ≤ admissible_bound A 1.5 C 1 x₂) :
+    ∀ x ∈ Set.Icc x₁ x₂, Eπ x ≤ admissible_bound A 1.5 C 1 x := by
+  intro x hx
+  have hlogx : (3 / C) ^ 2 ≤ Real.log x :=
+    le_trans hlog (Real.log_le_log hx₁ hx.1)
+  have hx0 : (0:ℝ) < x := lt_of_lt_of_le hx₁ hx.1
+  calc Eπ x ≤ V := hV x hx
+    _ ≤ admissible_bound A 1.5 C 1 x₂ := hrow
+    _ ≤ admissible_bound A 1.5 C 1 x :=
+        admissible_bound_anti hA hC hlogx hx.2 hx0
+
 @[blueprint
   "fks2-corollary-22"
   (title := "FKS2 Corollary 22")
