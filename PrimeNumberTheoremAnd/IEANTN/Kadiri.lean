@@ -234,7 +234,9 @@ theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
   "kadiri-thm-3-1-q1-eq-12"
   (title := "Equation (12) of \\cite{Kadiri2005}: rectangle decomposition of $I(T)$")
   (statement := /-- Under the hypotheses of \ref{kadiri-thm-3-1-q1-eq-11}: for every
-  $T > 0$,
+  $T > 0$ such that no non-trivial zero satisfies $\Im \rho = \pm T$ (at a zero
+  ordinate the horizontal edges pass through poles of the integrand, the edge
+  integrals do not exist, and the identity degenerates),
   $$ I(T) \;=\; \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
                     \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds
              \;+\; \frac{1}{2\pi i} \int_{-a + iT}^{1+a + iT}
@@ -272,7 +274,9 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
-    {T : ℝ} (_hT : 0 < T) :
+    {T : ℝ} (_hT : 0 < T)
+    (_hT_ord : ∀ ρ ∈ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
+      ρ.im ≠ T ∧ ρ.im ≠ -T) :
     let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     kadiri_thm_3_1_q1_I φ a T =
       -- (1/(2πi)) ∫ on σ = -a from -iT to +iT
