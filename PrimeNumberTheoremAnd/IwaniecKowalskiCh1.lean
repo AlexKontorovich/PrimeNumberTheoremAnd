@@ -1,6 +1,8 @@
 import Architect
 import Mathlib.NumberTheory.LSeries.Dirichlet
 import Mathlib.NumberTheory.LSeries.Nonvanishing
+import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
+import Mathlib.NumberTheory.EulerProduct.Basic
 
 open ArithmeticFunction hiding log
 
@@ -1429,6 +1431,66 @@ The Liouville function is completely multiplicative. -/
 lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
   sorry
 
+/-! ### The Dirichlet series of the Liouville function
+
+Elementary properties of the Liouville function `λ`, leading to the identity
+`∑ₙ λ(n) · n⁻ˢ = ζ(2s)/ζ(s)` for `1 < Re s`. -/
+
+/-- Value of `liouville` at `n ≠ 0`: `λ(n) = (-1)^Ω(n)`. -/
+lemma liouville_apply {n : ℕ} (hn : n ≠ 0) : liouville n = (-1) ^ cardFactors n := by
+  simp [liouville, toArithmeticFunction, hn]
+
+/-- `λ(1) = 1`. -/
+lemma liouville_apply_one : liouville 1 = 1 := by
+  simp [liouville, toArithmeticFunction]
+
+/-- `liouville` is completely multiplicative: `λ(mn) = λ(m)λ(n)`. -/
+lemma liouville_apply_mul (m n : ℕ) : liouville (m * n) = liouville m * liouville n := by
+  rcases eq_or_ne m 0 with rfl | hm
+  · simp [liouville, toArithmeticFunction]
+  rcases eq_or_ne n 0 with rfl | hn
+  · simp [liouville, toArithmeticFunction]
+  rw [liouville_apply (mul_ne_zero hm hn), liouville_apply hm, liouville_apply hn,
+    cardFactors_mul hm hn, pow_add]
+
+/-- `‖λ(n)‖ ≤ 1` (it is `0`, `1` or `-1`). -/
+lemma liouville_norm_le (n : ℕ) : ‖(liouville n : ℂ)‖ ≤ 1 := by
+  rcases eq_or_ne n 0 with rfl | hn
+  · simp [liouville, toArithmeticFunction]
+  · rw [liouville_apply hn]; push_cast; simp [norm_pow]
+
+/-- The summand `n ↦ λ(n) · n^(-s)` as a completely multiplicative `ℕ →*₀ ℂ`. -/
+noncomputable def liouvilleSummandHom (s : ℂ) : ℕ →*₀ ℂ where
+  toFun n := (liouville n : ℂ) * (n : ℂ) ^ (-s)
+  map_zero' := by simp
+  map_one' := by simp [liouville_apply_one]
+  map_mul' m n := by
+    rw [liouville_apply_mul, Nat.cast_mul, Complex.natCast_mul_natCast_cpow m n (-s)]
+    push_cast
+    ring
+
+/-- The Liouville summand is norm-summable for `Re s > 1` (comparison with the `ζ` summand). -/
+lemma summable_liouvilleSummand {s : ℂ} (hs : 1 < s.re) :
+    Summable (fun n ↦ ‖liouvilleSummandHom s n‖) := by
+  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) ?_ (summable_riemannZetaSummand hs)
+  intro n
+  simp only [liouvilleSummandHom, riemannZetaSummandHom, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk,
+    norm_mul]
+  calc ‖(liouville n : ℂ)‖ * ‖(n : ℂ) ^ (-s)‖
+      ≤ 1 * ‖(n : ℂ) ^ (-s)‖ := mul_le_mul_of_nonneg_right (liouville_norm_le n) (norm_nonneg _)
+    _ = ‖(n : ℂ) ^ (-s)‖ := one_mul _
+
+/-- The sum of the Liouville summand equals the Liouville L-series. -/
+lemma tsum_liouvilleSummand {s : ℂ} :
+    ∑' n, liouvilleSummandHom s n = LSeries (↗(liouville)) s := by
+  rw [LSeries]
+  refine tsum_congr fun n => ?_
+  rcases eq_or_ne n 0 with rfl | hn
+  · rw [LSeries.term_zero, _root_.map_zero]
+  · rw [LSeries.term_of_ne_zero hn]
+    show (liouville n : ℂ) * (n : ℂ) ^ (-s) = (liouville n : ℂ) / (n : ℂ) ^ s
+    rw [Complex.cpow_neg, div_eq_mul_inv]
+
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
 @[blueprint
@@ -1443,7 +1505,37 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
-  sorry
+  have hs2 : 1 < (2 * s).re := by
+    have h2 : ((2 : ℂ) * s).re = 2 * s.re := by simp [Complex.mul_re]
+    rw [h2]; linarith
+  have hP_s : HasProd (fun p : Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹) (riemannZeta s) :=
+    riemannZeta_eulerProduct_hasProd hs
+  have hP_2s : HasProd (fun p : Primes ↦ (1 - (p : ℂ) ^ (-(2 * s)))⁻¹) (riemannZeta (2 * s)) :=
+    riemannZeta_eulerProduct_hasProd hs2
+  have hP_L : HasProd (fun p : Primes ↦ (1 - liouvilleSummandHom s p)⁻¹)
+      (LSeries (↗(liouville)) s) := by
+    rw [← tsum_liouvilleSummand]
+    exact EulerProduct.eulerProduct_completely_multiplicative_hasProd (summable_liouvilleSummand hs)
+  have hFG : (fun p : Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹ *
+        (1 - liouvilleSummandHom s p)⁻¹)
+      = (fun p : Primes ↦ (1 - (p : ℂ) ^ (-(2 * s)))⁻¹) := by
+    funext p
+    have hp0 : (p : ℂ) ≠ 0 := by exact_mod_cast p.2.pos.ne'
+    have hlio : (liouville (p : ℕ) : ℂ) = -1 := by
+      rw [liouville_apply p.2.pos.ne', cardFactors_apply_prime p.2]; norm_num
+    have hx2 : (p : ℂ) ^ (-(2 * s)) = (p : ℂ) ^ (-s) * (p : ℂ) ^ (-s) := by
+      rw [show -(2 * s) = -s + -s by ring, Complex.cpow_add _ _ hp0]
+    simp only [liouvilleSummandHom, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
+    rw [hlio, hx2, ← mul_inv]; congr 1; ring
+  have hmul : HasProd (fun p : Primes ↦ (1 - (p : ℂ) ^ (-(2 * s)))⁻¹)
+      (riemannZeta s * LSeries (↗(liouville)) s) := by
+    have h := hP_s.mul hP_L
+    rwa [hFG] at h
+  have hkey : riemannZeta s * LSeries (↗(liouville)) s = riemannZeta (2 * s) :=
+    hmul.unique hP_2s
+  have hz_ne : riemannZeta s ≠ 0 := riemannZeta_ne_zero_of_one_lt_re hs
+  rw [eq_div_iff hz_ne]
+  linear_combination hkey
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
 @[blueprint
