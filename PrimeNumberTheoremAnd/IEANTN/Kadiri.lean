@@ -609,9 +609,10 @@ theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
   $-a < \Re s < 1/2$. The horizontal arcs vanish as $T \to \infty$ by (B). On
   $\Re s = 1/2$, apply \ref{kadiri-thm-3-1-q1-gamma-symmetrization} to identify the
   integrand as $\Re[\Gamma'/\Gamma(s/2)]\, \Phi(-s)$. The Bochner integral in the limit
-  value is well-defined precisely under the hypothesis `hΓ_int` (otherwise the integral
-  evaluates to $0$ by Mathlib's convention and the statement is vacuous); this same
-  hypothesis is carried by \ref{kadiri-thm-3-1-q1}. To be formalised. -/)
+  value is well-defined precisely under the explicit integrability hypothesis on the
+  $\Gamma$-contour integrand (otherwise the integral evaluates to $0$ by Mathlib's
+  convention and the statement is vacuous); this same hypothesis is carried by
+  \ref{kadiri-thm-3-1-q1}. To be formalised. -/)
   (latexEnv := "sublemma")
   (discussion := 1545)]
 theorem kadiri_thm_3_1_q1_eq_15
