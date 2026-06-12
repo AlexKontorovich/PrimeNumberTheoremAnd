@@ -2120,6 +2120,58 @@ theorem u6aReciprocalZeroSum_neg (T : ℝ) :
       u6a_riemannZeta_order_star ρ
     rw [hden, horder]
 
+/-- The width-one nearby zero count in the U6a strip is symmetric under
+height reversal. -/
+theorem u6aNearbyZeroCount_neg (T : ℝ) :
+    u6aNearbyZeroCount (-1) 2 (-T) = u6aNearbyZeroCount (-1) 2 T := by
+  classical
+  let Zbot := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (-T - 1) (-T + 1))
+  let Ztop := riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (T - 1) (T + 1))
+  let hbot : Zbot.Finite := u6aNearbyZeroSet_finite (-1) 2 (-T)
+  let htop : Ztop.Finite := u6aNearbyZeroSet_finite (-1) 2 T
+  unfold u6aNearbyZeroCount
+  rw [riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ => (1 : ℝ)) hbot,
+    riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ => (1 : ℝ)) htop]
+  refine Finset.sum_bij (fun ρ _ => (starRingEnd ℂ) ρ) ?_ ?_ ?_ ?_
+  · intro ρ hρ
+    have hρbot : ρ ∈ Zbot := hbot.mem_toFinset.mp hρ
+    refine htop.mem_toFinset.mpr ?_
+    rcases hρbot with ⟨hre, him, hzero⟩
+    refine ⟨?_, ?_, ?_⟩
+    · simpa [Complex.conj_re] using hre
+    · constructor
+      · rw [Complex.conj_im]
+        linarith [him.2]
+      · rw [Complex.conj_im]
+        linarith [him.1]
+    · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+      rw [riemannZeta_conj, hzero, map_zero]
+  · intro ρ hρ τ hτ hconj
+    have h := congrArg (starRingEnd ℂ) hconj
+    simpa [Complex.conj_conj] using h
+  · intro ρ hρ
+    refine ⟨(starRingEnd ℂ) ρ, ?_, ?_⟩
+    · have hρtop : ρ ∈ Ztop := htop.mem_toFinset.mp hρ
+      refine hbot.mem_toFinset.mpr ?_
+      rcases hρtop with ⟨hre, him, hzero⟩
+      refine ⟨?_, ?_, ?_⟩
+      · simpa [Complex.conj_re] using hre
+      · constructor
+        · rw [Complex.conj_im]
+          linarith [him.2]
+        · rw [Complex.conj_im]
+          linarith [him.1]
+      · change riemannZeta ((starRingEnd ℂ) ρ) = 0
+        rw [riemannZeta_conj, hzero, map_zero]
+    · simp
+  · intro ρ hρ
+    have horder :
+        riemannZeta.order ((starRingEnd ℂ) ρ) = riemannZeta.order ρ :=
+      u6a_riemannZeta_order_star ρ
+    rw [horder]
+
 private lemma u6aNearbyZeroCount_toFinset_card_le (σ₁ σ₂ t : ℝ) (ht : 3 ≤ t) :
     let Z := riemannZeta.zeroes_rect (Set.uIcc σ₁ σ₂) (Set.Icc (t - 1) (t + 1))
     let hfin : Z.Finite := u6aNearbyZeroSet_finite σ₁ σ₂ t
@@ -2256,6 +2308,89 @@ RvM-style input `N(t+1)-N(t) ≤ C log t` used by the sprint panel. -/
 def U6aLocalZeroDensityHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :=
   0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ t → 3 ≤ t →
     u6aNearbyZeroCount σ₁ σ₂ t ≤ C * Real.log t
+
+/-- Sibling-compatible count atom for the U6a unit-height zero window, using
+absolute height.  The name is intentionally local to this branch to avoid a
+merge-time duplicate declaration. -/
+def U6aNearbyZeroCountLogHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ t : ℝ, Tₘᵢₙ ≤ |t| → 3 ≤ |t| →
+    u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|
+
+/-- The existing one-sided local-density surface implies the absolute-height
+count atom by conjugation symmetry of the zero window. -/
+theorem U6aNearbyZeroCountLogHypothesis_of_localDensity {C Tₘᵢₙ : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ) :
+    U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ := by
+  refine ⟨hDensity.1, ?_⟩
+  intro t hTmin h3
+  by_cases ht : 0 ≤ t
+  · have habs : |t| = t := abs_of_nonneg ht
+    simpa [habs] using hDensity.2 t (by simpa [habs] using hTmin)
+      (by simpa [habs] using h3)
+  · have htneg : t < 0 := lt_of_not_ge ht
+    have habs : |t| = -t := abs_of_neg htneg
+    have hsymm : u6aNearbyZeroCount (-1) 2 t =
+        u6aNearbyZeroCount (-1) 2 (-t) := by
+      simpa using (u6aNearbyZeroCount_neg (-t))
+    have hpos := hDensity.2 (-t) (by simpa [habs] using hTmin)
+      (by simpa [habs] using h3)
+    simpa [habs, hsymm] using hpos
+
+/-- A count-log atom starting by height `3` gives the exact existential
+endpoint shape requested by the horizontal-segment assembly. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis {C Tₘᵢₙ : ℝ}
+    (hCount : U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ)
+    (hTₘᵢₙ : Tₘᵢₙ ≤ 3) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  refine ⟨C, hCount.1, ?_⟩
+  intro t h3
+  exact hCount.2 t (hTₘᵢₙ.trans h3) h3
+
+/-- Exact existential count-log endpoint once local density has been proved
+from height `3`.  This is the consumer shape modulo the analytic local-density
+input. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_localDensity {C Tₘᵢₙ : ℝ}
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ)
+    (hTₘᵢₙ : Tₘᵢₙ ≤ 3) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  exact exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_localDensity hDensity) hTₘᵢₙ
+
+/-- The absolute-height count atom feeds the one-sided local-density
+hypothesis consumed by the older U6a height-selection and PF wrappers. -/
+theorem U6aLocalZeroDensityHypothesis_of_countLogHypothesis {C Tₘᵢₙ : ℝ}
+    (hCount : U6aNearbyZeroCountLogHypothesis C Tₘᵢₙ) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ := by
+  refine ⟨hCount.1, ?_⟩
+  intro t hTₘᵢₙ h3
+  have ht0 : 0 ≤ t := by linarith
+  have habs : |t| = t := abs_of_nonneg ht0
+  simpa [habs] using
+    hCount.2 t (by simpa [habs] using hTₘᵢₙ) (by simpa [habs] using h3)
+
+/-- Exact existential count-log control from height `3` gives the local-density
+surface used by the existing U6a consumers. -/
+theorem U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log {C : ℝ}
+    (hC : 0 < C)
+    (hCount : ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C 3 := by
+  refine ⟨hC, ?_⟩
+  intro t _hT h3
+  have ht0 : 0 ≤ t := by linarith
+  have habs : |t| = t := abs_of_nonneg ht0
+  simpa [habs] using hCount t (by simpa [habs] using h3)
+
+/-- Existential count-log control packages into the local-density surface with
+threshold `3`. -/
+theorem exists_U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|) :
+    ∃ C Tₘᵢₙ : ℝ, U6aLocalZeroDensityHypothesis (-1) 2 C Tₘᵢₙ ∧ Tₘᵢₙ ≤ 3 := by
+  rcases hCount with ⟨C, hC, hbound⟩
+  exact ⟨C, 3, U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log hC hbound, le_rfl⟩
 
 private theorem exists_good_height_in_half_unit_of_localDensity
     (σ₁ σ₂ Cdens Tdens B : ℝ)
@@ -2865,6 +3000,142 @@ theorem u6aShiftedZetaZeroBallMass_le_jensen_growth {s : ℂ} {R : ℝ}
             |Real.log ‖(s - 1) * riemannZeta s‖|) / Real.log 2 := by
           rw [htail]
 
+/-- Center used for the radius-three Jensen disk covering a unit-height U6a
+zero window. -/
+noncomputable def u6aJensenCenter (t : ℝ) : ℂ :=
+  (1 / 2 : ℝ) + t * I
+
+/-- The unit-height U6a zero box lies in the radius-three disk around
+`1 / 2 + it` after translating by the Jensen center. -/
+theorem u6aNearbyZero_mem_shiftedZetaZeroBallFinset {t : ℝ} {ρ : ℂ}
+    (hρ : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+      (Set.Icc (t - 1) (t + 1))) :
+    ρ - u6aJensenCenter t ∈
+      u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3 := by
+  classical
+  have hle : (-1 : ℝ) ≤ 2 := by norm_num
+  have hreI : ρ.re ∈ Set.Icc (-1 : ℝ) 2 := by
+    simpa [Set.uIcc_of_le hle] using hρ.1
+  have hre_abs : |(ρ - u6aJensenCenter t).re| ≤ (3 / 2 : ℝ) := by
+    rw [abs_le]
+    constructor
+    · simp [u6aJensenCenter]
+      linarith [hreI.1]
+    · simp [u6aJensenCenter]
+      linarith [hreI.2]
+  have him_abs : |(ρ - u6aJensenCenter t).im| ≤ (1 : ℝ) := by
+    rw [abs_le]
+    constructor
+    · simp [u6aJensenCenter]
+      linarith [hρ.2.1.1]
+    · simp [u6aJensenCenter]
+      linarith [hρ.2.1.2]
+  have hnorm : ‖ρ - u6aJensenCenter t‖ ≤ (3 : ℝ) := by
+    calc
+      ‖ρ - u6aJensenCenter t‖
+          ≤ |(ρ - u6aJensenCenter t).re| +
+              |(ρ - u6aJensenCenter t).im| :=
+            Complex.norm_le_abs_re_add_abs_im _
+      _ ≤ (3 / 2 : ℝ) + 1 := add_le_add hre_abs him_abs
+      _ ≤ 3 := by norm_num
+  have hset :
+      ρ - u6aJensenCenter t ∈
+        {z : ℂ | ‖z‖ ≤ (3 : ℝ) ∧ riemannZeta (u6aJensenCenter t + z) = 0} := by
+    constructor
+    · exact hnorm
+    · simpa [sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using hρ.2.2
+  exact (u6aShiftedZetaZeroBallSet_finite (u6aJensenCenter t) 3).mem_toFinset.mpr hset
+
+/-- The order-weighted nearby zero count is bounded by the shifted radius-three
+zero mass around the Jensen center. -/
+theorem u6aNearbyZeroCount_le_shiftedZetaZeroBallMass (t : ℝ) :
+    u6aNearbyZeroCount (-1) 2 t ≤
+      ∑ z ∈ u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3,
+        (riemannZeta.order (u6aJensenCenter t + z) : ℝ) := by
+  classical
+  let s : ℂ := u6aJensenCenter t
+  let hnear : (riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+    (Set.Icc (t - 1) (t + 1))).Finite := u6aNearbyZeroSet_finite (-1) 2 t
+  let Znear : Finset ℂ := hnear.toFinset
+  let Zball : Finset ℂ := u6aShiftedZetaZeroBallFinset s 3
+  let shift : ℂ → ℂ := fun ρ => ρ - s
+  have hsubset : Znear.image shift ⊆ Zball := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    rcases hz with ⟨ρ, hρ, rfl⟩
+    have hρmem : ρ ∈ riemannZeta.zeroes_rect (Set.uIcc (-1 : ℝ) 2)
+        (Set.Icc (t - 1) (t + 1)) := hnear.mem_toFinset.mp hρ
+    simpa [s, shift] using u6aNearbyZero_mem_shiftedZetaZeroBallFinset hρmem
+  have hsum_image :
+      (∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ)) =
+        ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := by
+    rw [Finset.sum_image]
+    · refine Finset.sum_congr rfl ?_
+      intro ρ _hρ
+      simp [shift]
+    · intro ρ hρ ρ' hρ' hshift
+      dsimp [shift] at hshift
+      calc
+        ρ = (ρ - s) + s := by abel
+        _ = (ρ' - s) + s := by rw [hshift]
+        _ = ρ' := by abel
+  have hnonneg : ∀ z ∈ Zball, z ∉ Znear.image shift →
+      0 ≤ (riemannZeta.order (s + z) : ℝ) := by
+    intro z hz _hznot
+    have hzmem :
+        z ∈ {z : ℂ | ‖z‖ ≤ (3 : ℝ) ∧ riemannZeta (s + z) = 0} :=
+      (u6aShiftedZetaZeroBallSet_finite s 3).mem_toFinset.mp hz
+    exact u6a_zeta_zero_order_nonneg_of_zero hzmem.2
+  have hmass_le :
+      (∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ)) ≤
+        ∑ z ∈ Zball, (riemannZeta.order (s + z) : ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsubset hnonneg
+  have hcount_eq :
+      u6aNearbyZeroCount (-1) 2 t =
+        ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := by
+    unfold u6aNearbyZeroCount
+    rw [riemannZeta.zeroes_sum_eq_finset_of_finite (fun _ : ℂ => (1 : ℝ)) hnear]
+    simp [Znear]
+  calc
+    u6aNearbyZeroCount (-1) 2 t
+        = ∑ ρ ∈ Znear, (riemannZeta.order ρ : ℝ) := hcount_eq
+    _ = ∑ z ∈ Znear.image shift, (riemannZeta.order (s + z) : ℝ) := hsum_image.symm
+    _ ≤ ∑ z ∈ Zball, (riemannZeta.order (s + z) : ℝ) := hmass_le
+
+/-- Sharp local Jensen-log mass input for the radius-three disks centered at
+`1 / 2 + it`.  This is the single analytic estimate still needed for the
+unconditional nearby-count atom. -/
+def U6aShiftedJensenLocalMassLogHypothesis (C : ℝ) : Prop :=
+  0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+    (∑ z ∈ u6aShiftedZetaZeroBallFinset (u6aJensenCenter t) 3,
+      (riemannZeta.order (u6aJensenCenter t + z) : ℝ)) ≤ C * Real.log |t|
+
+/-- The shifted Jensen mass atom gives the sibling-compatible count-log
+surface with threshold `3`. -/
+theorem U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    U6aNearbyZeroCountLogHypothesis C 3 := by
+  refine ⟨hMass.1, ?_⟩
+  intro t _hT h3
+  exact (u6aNearbyZeroCount_le_shiftedZetaZeroBallMass t).trans (hMass.2 t h3)
+
+/-- A sharp radius-three shifted Jensen mass bound gives the exact nearby
+zero-count endpoint shape requested by the U6a assembly. -/
+theorem exists_u6aNearbyZeroCount_le_log_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t| := by
+  exact exists_u6aNearbyZeroCount_le_log_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass hMass) le_rfl
+
+/-- The shifted Jensen mass atom also feeds the older one-sided local-density
+API consumed by the height-selector and PF wrappers. -/
+theorem U6aLocalZeroDensityHypothesis_of_shiftedJensenLocalMass {C : ℝ}
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis C) :
+    U6aLocalZeroDensityHypothesis (-1) 2 C 3 :=
+  U6aLocalZeroDensityHypothesis_of_countLogHypothesis
+    (U6aNearbyZeroCountLogHypothesis_of_shiftedJensenLocalMass hMass)
+
 private lemma u6aZetaPiFactor_eq_cpow (s : ℂ) :
     zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
   unfold zetaPiFactor
@@ -3246,12 +3517,164 @@ theorem norm_u6aXiFiberNearbyHadamardSum_sub_nearbyZeroPrincipalSum_le_nearbyZer
   rw [hdiff]
   exact norm_u6aNearbyZeroConvergenceFactorSum_le_nearbyZeroCount (t := t) ht
 
+/-- The order-weighted genus-one zeta zero packets are summable.  This is the
+zeta-side tail input for comparing the global xi-Hadamard `tsum` against a
+finite near-window subtraction. -/
+theorem summable_u6aWeightedZetaHadamardZeroTerm (s : ℂ) :
+    Summable (fun ρ : NontrivialZeros =>
+      (riemannZeta.order (ρ : ℂ) : ℂ) *
+        ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))) := by
+  have htails : Summable (fun ρ : NontrivialZeros =>
+      ‖s‖ / 2 *
+        (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ +
+          ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)))) :=
+    (weighted_zeroImagSquareTail_summable.add
+      (weighted_zeroImagSquareTail_shifted_summable s)).mul_left _
+  refine Summable.of_norm_bounded_eventually htails ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset
+    (nontrivialZeros_abs_im_lt_one_finite.union
+      (nontrivialZeros_shifted_abs_im_lt_one_finite s))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad
+  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  by_contra hsmall
+  rw [not_or] at hsmall
+  obtain ⟨h1, h2⟩ := hsmall
+  have him1 : 1 ≤ |(ρ : ℂ).im| := not_lt.mp h1
+  have him2 : 1 ≤ |(s - (ρ : ℂ)).im| := not_lt.mp h2
+  apply hbad
+  have hρ0 : ((ρ : ℂ)) ≠ 0 := nontrivialZero_ne_zero ρ
+  have him2ne : (s - (ρ : ℂ)).im ≠ 0 := by
+    intro h
+    rw [h] at him2
+    norm_num at him2
+  have hsρ : s - (ρ : ℂ) ≠ 0 := by
+    intro h
+    apply him2ne
+    rw [h]
+    rfl
+  have him1pos : (0 : ℝ) < |(ρ : ℂ).im| := lt_of_lt_of_le one_pos him1
+  have him2pos : (0 : ℝ) < |(s - (ρ : ℂ)).im| := lt_of_lt_of_le one_pos him2
+  have horder_nonneg :
+      0 ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    exact_mod_cast le_of_lt (riemannZeta_order_pos_nontrivialZero ρ)
+  have horder_norm :
+      ‖(riemannZeta.order (ρ : ℂ) : ℂ)‖ =
+        ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    rw [Complex.norm_intCast, abs_of_nonneg horder_nonneg]
+  have hpacket : (1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ) =
+      s / (((ρ : ℂ)) * (s - (ρ : ℂ))) := by
+    field_simp
+    ring
+  have hbase :
+      ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+        ‖s‖ / 2 *
+          (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+    have hstep1 : ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖) ≤
+        ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := by
+      rw [div_eq_mul_inv, mul_inv]
+      have ha : ‖(ρ : ℂ)‖⁻¹ ≤ |(ρ : ℂ).im|⁻¹ :=
+        inv_anti₀ him1pos (Complex.abs_im_le_norm _)
+      have hb : ‖s - (ρ : ℂ)‖⁻¹ ≤ |(s - (ρ : ℂ)).im|⁻¹ :=
+        inv_anti₀ him2pos (Complex.abs_im_le_norm _)
+      have hb0 : (0 : ℝ) ≤ ‖s - (ρ : ℂ)‖⁻¹ := by positivity
+      have ha0 : (0 : ℝ) ≤ |(ρ : ℂ).im|⁻¹ := by positivity
+      refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+      exact mul_le_mul ha hb hb0 ha0
+    have hstep2 : |(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹ ≤
+        (|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) +
+          |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2 := by
+      nlinarith [two_mul_le_add_sq (|(ρ : ℂ).im|⁻¹)
+        (|(s - (ρ : ℂ)).im|⁻¹)]
+    calc
+      ‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)
+          ≤ ‖s‖ * (|(ρ : ℂ).im|⁻¹ * |(s - (ρ : ℂ)).im|⁻¹) := hstep1
+      _ ≤ ‖s‖ * ((|(ρ : ℂ).im|⁻¹ ^ (2 : ℕ) +
+            |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) / 2) :=
+          mul_le_mul_of_nonneg_left hstep2 (norm_nonneg s)
+      _ = ‖s‖ / 2 *
+            (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ)) := by
+          unfold zeroImagSquareTail
+          ring
+  calc
+    ‖(riemannZeta.order (ρ : ℂ) : ℂ) *
+        ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))‖
+        = ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (‖s‖ / (‖(ρ : ℂ)‖ * ‖s - (ρ : ℂ)‖)) := by
+          rw [hpacket, norm_mul, horder_norm, norm_div, norm_mul]
+    _ ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+          (‖s‖ / 2 *
+            (zeroImagSquareTail ρ + |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) :=
+        mul_le_mul_of_nonneg_left hbase horder_nonneg
+    _ = ‖s‖ / 2 *
+        (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ +
+          ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) *
+            (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) := by
+        ring
+
 /-- The global xi-zero contribution supplied by Mathlib's genus-one Hadamard
 logarithmic derivative formula. -/
 noncomputable def u6aXiHadamardZeroSum (s : ℂ) : ℂ :=
   ∑' p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
     (1 / (s - Complex.Hadamard.divisorZeroIndex₀_val p) +
       1 / Complex.Hadamard.divisorZeroIndex₀_val p)
+
+/-- The same genus-one zero packet, indexed directly by non-trivial zeta zeros
+with `riemannZeta.order` multiplicity. -/
+noncomputable def u6aWeightedZetaHadamardZeroSum (s : ℂ) : ℂ :=
+  ∑' ρ : NontrivialZeros,
+    (riemannZeta.order (ρ : ℂ) : ℂ) *
+      ((1 : ℂ) / (s - (ρ : ℂ)) + 1 / (ρ : ℂ))
+
+/-- The finite nearby zeta-zero contribution corresponding to
+`u6aXiFiberNearbyHadamardSum`, but written in the order-weighted zeta
+indexing. -/
+noncomputable def u6aWeightedZetaNearbyHadamardSum (t : ℝ) (s : ℂ) : ℂ :=
+  riemannZeta.zeroes_sum (Set.uIcc (-1 : ℝ) 2) (Set.Icc (t - 1) (t + 1))
+    fun ρ => (1 : ℂ) / (s - ρ) + 1 / ρ
+
+/-- Local finite bridge from the xi-fiber near-window sum to the
+order-weighted zeta near-window sum. -/
+theorem u6aXiFiberNearbyHadamardSum_eq_weightedZetaNearbyHadamardSum
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiFiberNearbyHadamardSum t s =
+      u6aWeightedZetaNearbyHadamardSum t s := by
+  let hfin := u6aNearbyZeroSet_finite (-1) 2 t
+  unfold u6aXiFiberNearbyHadamardSum u6aWeightedZetaNearbyHadamardSum
+  simpa [hfin] using
+    (u6aRiemannXi_fiberHighWindow_sum_eq_zeroes_sum_of_finite
+      (t := t) hfin ht (fun ρ : ℂ => (1 : ℂ) / (s - ρ) + 1 / ρ))
+
+/-- The zeta-side far-tail term after finite near-window subtraction. -/
+noncomputable def u6aWeightedZetaHadamardFarTail (t : ℝ) (s : ℂ) : ℂ :=
+  u6aWeightedZetaHadamardZeroSum s - u6aWeightedZetaNearbyHadamardSum t s
+
+/-- Exact global bridge from xi divisor indexing to the order-weighted zeta
+indexing.  This is intentionally separated from the proved finite near-window
+bridge, so the remaining global `tsum` reindexing obstruction is named at its
+real boundary. -/
+def U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis : Prop :=
+  ∀ s : ℂ, u6aXiHadamardZeroSum s = u6aWeightedZetaHadamardZeroSum s
+
+/-- Exact far-tail bridge obtained from the global bridge plus the already
+proved finite near-window bridge. -/
+theorem u6aXiHadamardFarTail_eq_weightedZetaHadamardFarTail
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    {t : ℝ} (s : ℂ) (ht : 2 ≤ |t|) :
+    u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum t s =
+      u6aWeightedZetaHadamardFarTail t s := by
+  rw [hBridge s, u6aXiFiberNearbyHadamardSum_eq_weightedZetaNearbyHadamardSum
+    (t := t) (s := s) ht]
+  rfl
+
+/-- Zeta-indexed far-tail bound, separated from the global xi-to-zeta `tsum`
+bridge. -/
+def U6aWeightedZetaHadamardFarTailBoundHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+    3 ≤ |s.im| →
+      ‖u6aWeightedZetaHadamardFarTail s.im s‖ ≤ C * Real.log |s.im|
 
 /-- The exact remainder after subtracting the local Kadiri principal part from
 the xi-Hadamard expression for `ζ'/ζ`.  Bounding this term is the analytic
@@ -3483,6 +3906,102 @@ def U6aZeroSumRemainderBoundHypothesis (σ₁ σ₂ C Tₘᵢₙ : ℝ) : Prop :
     ‖u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum σ₁ σ₂ s.im s‖ ≤
       C * Real.log |s.im|
 
+/-- The exact global far-tail term after removing the finite nearby xi-fiber
+Hadamard contribution.  This isolates the infinite `tsum` bridge from the
+already-local finite cancellation. -/
+def U6aXiHadamardFarTailBoundHypothesis (C Tₘᵢₙ : ℝ) : Prop :=
+  0 < C ∧ ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+    3 ≤ |s.im| →
+      ‖u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s‖ ≤
+        C * Real.log |s.im|
+
+/-- The existing xi far-tail bound follows from the exact global bridge and a
+zeta-indexed far-tail estimate. -/
+theorem U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail
+    {C Tₘᵢₙ : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis C Tₘᵢₙ) :
+    U6aXiHadamardFarTailBoundHypothesis C Tₘᵢₙ := by
+  refine ⟨hTail.1, ?_⟩
+  intro s hsre hsT hT3
+  have ht : 2 ≤ |s.im| := by linarith
+  rw [u6aXiHadamardFarTail_eq_weightedZetaHadamardFarTail
+    hBridge (t := s.im) (s := s) ht]
+  exact hTail.2 s hsre hsT hT3
+
+/-- The zero-sum PF remainder is the far xi-Hadamard tail plus the finite
+near-window convergence-factor residue.  The latter is already bounded by the
+existing local-density hypothesis, with negative heights transferred by
+conjugation. -/
+theorem U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, U6aZeroSumRemainderBoundHypothesis (-1) 2 C Tₘᵢₙ := by
+  let C : ℝ := Cfar + Cdens
+  let T : ℝ := max Tfar Tdens
+  have hCpos : 0 < C := by
+    dsimp [C]
+    linarith [hFar.1, hDensity.1]
+  refine ⟨C, T, ?_⟩
+  unfold U6aZeroSumRemainderBoundHypothesis
+  refine ⟨hCpos, ?_⟩
+  intro s hsre hsT hT3
+  have hTfar : Tfar ≤ |s.im| := (le_max_left Tfar Tdens).trans hsT
+  have hTdens : Tdens ≤ |s.im| := (le_max_right Tfar Tdens).trans hsT
+  have hT2 : 2 ≤ |s.im| := by linarith
+  have hlog_nonneg : 0 ≤ Real.log |s.im| :=
+    Real.log_nonneg (by linarith)
+  have hfar_bound :
+      ‖u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s‖ ≤
+        Cfar * Real.log |s.im| :=
+    hFar.2 s hsre hTfar hT3
+  have hnear_raw :
+      ‖u6aXiFiberNearbyHadamardSum s.im s -
+          u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤
+        u6aNearbyZeroCount (-1) 2 s.im :=
+    norm_u6aXiFiberNearbyHadamardSum_sub_nearbyZeroPrincipalSum_le_nearbyZeroCount
+      (t := s.im) (s := s) hT2
+  have hcount :
+      u6aNearbyZeroCount (-1) 2 s.im ≤ Cdens * Real.log |s.im| := by
+    by_cases hnonneg : 0 ≤ s.im
+    · have him_abs : |s.im| = s.im := abs_of_nonneg hnonneg
+      have hTdens' : Tdens ≤ s.im := by simpa [him_abs] using hTdens
+      have hT3' : 3 ≤ s.im := by simpa [him_abs] using hT3
+      simpa [him_abs] using hDensity.2 s.im hTdens' hT3'
+    · have hneg : s.im < 0 := lt_of_not_ge hnonneg
+      have him_abs : |s.im| = -s.im := abs_of_neg hneg
+      have hTdens' : Tdens ≤ -s.im := by simpa [him_abs] using hTdens
+      have hT3' : 3 ≤ -s.im := by simpa [him_abs] using hT3
+      have hsym :
+          u6aNearbyZeroCount (-1) 2 s.im =
+            u6aNearbyZeroCount (-1) 2 (-s.im) := by
+        simpa using (u6aNearbyZeroCount_neg (-s.im))
+      rw [hsym]
+      simpa [him_abs] using hDensity.2 (-s.im) hTdens' hT3'
+  have hnear_bound :
+      ‖u6aXiFiberNearbyHadamardSum s.im s -
+          u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤
+        Cdens * Real.log |s.im| :=
+    hnear_raw.trans hcount
+  let A : ℂ := u6aXiHadamardZeroSum s - u6aXiFiberNearbyHadamardSum s.im s
+  let B : ℂ := u6aXiFiberNearbyHadamardSum s.im s -
+    u6aNearbyZeroPrincipalSum (-1) 2 s.im s
+  have hsplit :
+      u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum (-1) 2 s.im s = A + B := by
+    dsimp [A, B]
+    ring
+  calc
+    ‖u6aXiHadamardZeroSum s - u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖
+        = ‖A + B‖ := by rw [hsplit]
+    _ ≤ ‖A‖ + ‖B‖ := norm_add_le A B
+    _ ≤ Cfar * Real.log |s.im| + Cdens * Real.log |s.im| := by
+          dsimp [A, B] at hfar_bound hnear_bound ⊢
+          nlinarith
+    _ = C * Real.log |s.im| := by
+          dsimp [C]
+          ring
+
 /-- All non-zero-sum PF-rung estimates compose with the isolated zero-sum
 estimate to give the Hadamard remainder bound on the U6a strip. -/
 theorem U6aHadamardRemainderBoundHypothesis_of_zeroSum
@@ -3633,6 +4152,46 @@ theorem exists_u6aPartialFractionPointwise_of_zeroSum
     (P := P) (σ₁ := (-1 : ℝ)) (σ₂ := 2) (C := C) (Tₘᵢₙ := Tₘᵢₙ)
     (s := s) hfac hz hs0 hs1 hΓdiff hΓ hζ hR hsre hsT hT3
 
+/-- Pointwise PF wrapper with the far xi-Hadamard tail exposed directly as
+the remaining analytic input. -/
+theorem exists_u6aPartialFractionPointwise_of_farTail_and_localDensity
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) →
+        s ≠ 0 → s ≠ 1 →
+        (∀ m : ℕ, s / 2 + 1 ≠ -m) →
+        zetaGammaFactor s ≠ 0 →
+        riemannZeta s ≠ 0 →
+          ‖deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤ C * Real.log |s.im| := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_u6aPartialFractionPointwise_of_zeroSum hZero
+
+/-- Pointwise PF wrapper through the zeta-indexed far-tail split. -/
+theorem exists_u6aPartialFractionPointwise_of_globalBridge_zetaFarTail_and_localDensity
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ s : ℂ, s.re ∈ Set.uIcc (-1 : ℝ) 2 → Tₘᵢₙ ≤ |s.im| →
+        (∀ p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ),
+          s ≠ Complex.Hadamard.divisorZeroIndex₀_val p) →
+        s ≠ 0 → s ≠ 1 →
+        (∀ m : ℕ, s / 2 + 1 ≠ -m) →
+        zetaGammaFactor s ≠ 0 →
+        riemannZeta s ≠ 0 →
+          ‖deriv riemannZeta s / riemannZeta s -
+              u6aNearbyZeroPrincipalSum (-1) 2 s.im s‖ ≤ C * Real.log |s.im| :=
+  exists_u6aPartialFractionPointwise_of_farTail_and_localDensity
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity
+
 /-- Local Hadamard legality needed only on a selected horizontal line.  This
 keeps the PF route pointwise, rather than requiring a global partial-fraction
 hypothesis over the whole strip. -/
@@ -3710,6 +4269,137 @@ private lemma u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero {s : ℂ}
     rw [← hs]
     exact hdiv_s
   exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p hdiv_val
+
+private lemma u6a_gamma_factor_regular_of_one_le_re {s : ℂ} (hsre : 1 ≤ s.re) :
+    ∀ m : ℕ, s / 2 + 1 ≠ -m := by
+  intro m hm
+  have hre := congrArg Complex.re hm
+  have hm_nonneg : (0 : ℝ) ≤ m := by exact_mod_cast Nat.zero_le m
+  simp at hre
+  nlinarith
+
+private lemma u6a_gamma_factor_ne_zero_of_one_le_re {s : ℂ} (hsre : 1 ≤ s.re) :
+    zetaGammaFactor s ≠ 0 := by
+  unfold zetaGammaFactor
+  exact Gamma_ne_zero (u6a_gamma_factor_regular_of_one_le_re hsre)
+
+/-- Every nonzero xi divisor index value is a non-trivial zeta zero.  This
+is the local zero-locus half of the U6a finite reindexing bridge. -/
+theorem u6aRiemannXi_divisorZeroIndex₀_val_mem_nontrivialZero
+    (p : Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ)) :
+    Complex.Hadamard.divisorZeroIndex₀_val p ∈ NontrivialZeros := by
+  let z : ℂ := Complex.Hadamard.divisorZeroIndex₀_val p
+  have hz0 : z ≠ 0 := by
+    dsimp [z]
+    exact Complex.Hadamard.divisorZeroIndex₀_val_ne_zero p
+  have hxi_zero : riemannXi z = 0 := by
+    by_contra hxi_ne
+    exact u6a_riemannXi_avoids_divisorZeroIndex₀_of_ne_zero (s := z) hxi_ne p rfl
+  have hz1 : z ≠ 1 := by
+    intro hz
+    have hxi_one : riemannXi (1 : ℂ) = 1 / 2 := by
+      simpa [riemannXi_zero] using (riemannXi_one_sub (0 : ℂ))
+    have hhalf : (1 / 2 : ℂ) = 0 := by
+      rw [← hxi_one, ← hz]
+      exact hxi_zero
+    norm_num at hhalf
+  have hnot_one_le_re : ¬ 1 ≤ z.re := by
+    intro hzre
+    have hxi_ne : riemannXi z ≠ 0 :=
+      u6a_riemannXi_ne_zero_of_zeta_ne_zero (s := z) hz0 hz1
+        (u6a_gamma_factor_regular_of_one_le_re hzre)
+        (u6a_gamma_factor_ne_zero_of_one_le_re hzre)
+        (riemannZeta_ne_zero_of_one_le_re hzre)
+    exact hxi_ne hxi_zero
+  have hnot_re_nonpos : ¬ z.re ≤ 0 := by
+    intro hzre
+    let w : ℂ := 1 - z
+    have hwre : 1 ≤ w.re := by
+      dsimp [w]
+      simp
+      linarith
+    have hw0 : w ≠ 0 := by
+      intro hw
+      exact hz1 ((sub_eq_zero.mp hw).symm)
+    have hw1 : w ≠ 1 := by
+      intro hw
+      apply hz0
+      have hneg : -z = 0 := by
+        calc
+          -z = w - 1 := by
+            dsimp [w]
+            ring
+          _ = 0 := by
+            rw [hw]
+            ring
+      exact neg_eq_zero.mp hneg
+    have hxi_w_zero : riemannXi w = 0 := by
+      dsimp [w]
+      rw [riemannXi_one_sub z]
+      exact hxi_zero
+    have hxi_w_ne : riemannXi w ≠ 0 :=
+      u6a_riemannXi_ne_zero_of_zeta_ne_zero (s := w) hw0 hw1
+        (u6a_gamma_factor_regular_of_one_le_re hwre)
+        (u6a_gamma_factor_ne_zero_of_one_le_re hwre)
+        (riemannZeta_ne_zero_of_one_le_re hwre)
+    exact hxi_w_ne hxi_w_zero
+  have hzre0 : 0 < z.re := lt_of_not_ge hnot_re_nonpos
+  have hzre1 : z.re < 1 := lt_of_not_ge hnot_one_le_re
+  have hdiv_ne :
+      (MeromorphicOn.divisor riemannXi Set.univ) z ≠ 0 := by
+    dsimp [z]
+    exact Complex.Hadamard.divisorZeroIndex₀_val_mem_divisor_support p
+  have horder_ne : riemannZeta.order z ≠ 0 := by
+    have hdiv_eq :=
+      u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := z) hzre0 hzre1
+    rwa [hdiv_eq] at hdiv_ne
+  have hzeta_zero : riemannZeta z = 0 := by
+    by_contra hzeta_ne
+    have han : AnalyticAt ℂ riemannZeta z :=
+      riemannZeta_analyticOn_compl_one z (Set.mem_compl_singleton_iff.mpr hz1)
+    have horder_zero : riemannZeta.order z = 0 := by
+      unfold riemannZeta.order
+      rw [han.meromorphicOrderAt_eq]
+      have horder : analyticOrderAt riemannZeta z = 0 :=
+        analyticOrderAt_eq_zero.mpr (Or.inr hzeta_ne)
+      simp [horder]
+    exact horder_ne horder_zero
+  exact ⟨⟨hzre0, hzre1⟩, Set.mem_univ z, hzeta_zero⟩
+
+/-- The nonzero xi divisor indices are exactly non-trivial zeta zeros with
+one finite slot for each unit of `riemannZeta.order`.  This packages the
+global reindexing problem into sigma-summation bookkeeping. -/
+noncomputable def u6aRiemannXi_divisorZeroIndex₀_equiv_nontrivialZeroSigma :
+    Complex.Hadamard.divisorZeroIndex₀ riemannXi (Set.univ : Set ℂ) ≃
+      Σ ρ : NontrivialZeros, Fin (Int.toNat (riemannZeta.order (ρ : ℂ))) where
+  toFun p := by
+    let ρ : NontrivialZeros :=
+      ⟨Complex.Hadamard.divisorZeroIndex₀_val p,
+        u6aRiemannXi_divisorZeroIndex₀_val_mem_nontrivialZero p⟩
+    refine ⟨ρ, ?_⟩
+    refine Fin.cast ?_ p.1.2
+    have hre := ρ.property.1
+    exact congrArg Int.toNat
+      (u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := (ρ : ℂ)) hre.1 hre.2)
+  invFun q := by
+    refine ⟨⟨(q.1 : ℂ), ?_⟩, nontrivialZero_ne_zero q.1⟩
+    refine Fin.cast ?_ q.2
+    have hre := q.1.property.1
+    exact (congrArg Int.toNat
+      (u6aRiemannXi_divisor_eq_riemannZeta_order_of_criticalStrip
+        (s := (q.1 : ℂ)) hre.1 hre.2)).symm
+  left_inv p := by
+    cases p with
+    | mk p hp =>
+      cases p with
+      | mk z n =>
+        simp [Complex.Hadamard.divisorZeroIndex₀_val]
+  right_inv q := by
+    cases q with
+    | mk ρ n =>
+      simp [Complex.Hadamard.divisorZeroIndex₀_val]
 
 theorem U6aHadamardLegalityOnHorizontal_of_zeroFree {T : ℝ}
     (hT : 3 ≤ T) (hfree : horizontalSegmentZeroFree (-1) 2 T) :
@@ -3808,6 +4498,42 @@ theorem exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound
     _ ≤ Cpf * Real.log T ^ 2 + Crec * Real.log T ^ 2 := by
           exact add_le_add (mul_le_mul_of_nonneg_left hlog_le_sq hCpf.le) le_rfl
     _ = (Cpf + Crec) * Real.log T ^ 2 := by ring
+
+/-- Fixed-height horizontal consumer with the far xi-Hadamard tail exposed
+directly. -/
+theorem exists_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_reciprocalBound
+    {Cfar Tfar Cdens Tdens Crec : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        U6aHadamardLegalityOnHorizontal T →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound hZero hCrec
+
+/-- Fixed-height horizontal consumer through the zeta-indexed far-tail split. -/
+theorem exists_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_localDensity_and_reciprocalBound
+    {Ctail Ttail Cdens Tdens Crec : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hCrec : 0 < Crec) :
+    ∃ C Tₘᵢₙ : ℝ, 0 < C ∧ 4 ≤ Tₘᵢₙ ∧
+      ∀ T η : ℝ, Tₘᵢₙ ≤ T → 3 ≤ T →
+        horizontalSegmentZeroGap (-1) 2 T η →
+        U6aHadamardLegalityOnHorizontal T →
+        (∀ t : ℝ, |t| = T →
+          u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2) →
+          horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_reciprocalBound
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity hCrec
 
 /-- Fixed-height zero-sum PF consumer with all local Hadamard legality
 discharged from the zero-gap condition. -/
@@ -4214,6 +4940,25 @@ theorem exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_de
     exact hT₀X.trans hXT.le
   exact ⟨k, X, T, hT₀T, hX, hscale_lt, hTmem, hrec⟩
 
+/-- Named Prop-shaped output of the unconditional averaged selector.  This is
+the exact cofinal selection package produced by the crude-majorant zero count,
+safe-set measure lower bound, and mean-value extraction. -/
+def U6aAveragedSelectionHypothesis (C D : ℝ) : Prop :=
+  0 < C ∧ 0 ≤ D ∧ ∀ T₀ : ℝ, ∃ k : ℕ, ∃ X T : ℝ,
+    T₀ ≤ T ∧ 0 < X ∧
+    2 * X + 2 < (2 : ℝ) ^ (k + 1) ∧
+    T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k) ∧
+    u6aReciprocalZeroSum (-1) 2 T ≤
+      u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D)
+
+/-- The unconditional averaged selector packaged as a named hypothesis
+instance for downstream U6a assembly. -/
+theorem exists_u6aAveragedSelectionHypothesis :
+    ∃ C D : ℝ, U6aAveragedSelectionHypothesis C D := by
+  obtain ⟨C, D, hC, hD, hsel⟩ :=
+    exists_arbitrarily_large_height_with_small_reciprocalZeroSum_of_crude_delta
+  exact ⟨C, D, hC, hD, hsel⟩
+
 /-- The remaining comparison needed to turn the averaged selector's boxed
 reciprocal-zero bound into the lane's `log² T` horizontal estimate.
 
@@ -4228,6 +4973,44 @@ def U6aAveragedSelectionLogSqComparisonHypothesis (C D Crec : ℝ) : Prop :=
     2 * X + 2 < (2 : ℝ) ^ (k + 1) →
       u6aAveragedSelectionBound X (u6aCrudeDelta C D X k) (C * 3 ^ k + D) ≤
         Crec * Real.log T ^ 2
+
+/-- Compose a packaged averaged selector, the zero-sum PF route, and the
+averaged-bound comparison into cofinally many legal horizontal segments. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedSelection
+    {Czero Tzero Csel Dsel Crec : ℝ}
+    (hZero : U6aZeroSumRemainderBoundHypothesis (-1) 2 Czero Tzero)
+    (hSel : U6aAveragedSelectionHypothesis Csel Dsel)
+    (hCmp : U6aAveragedSelectionLogSqComparisonHypothesis Csel Dsel Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  rcases hSel with ⟨_hCsel, _hDsel, hsel⟩
+  obtain ⟨Cout, Tpf, hCout, _hTpf4, hmain⟩ :=
+    exists_horizontalSegmentLogDerivBound_of_zeroSum_and_reciprocalBound_of_zeroGap
+      hZero hCmp.1
+  refine ⟨Cout, hCout, ?_⟩
+  intro T₀
+  let Tbase : ℝ := max (max T₀ Tpf) 3
+  obtain ⟨k, X, T, hTbase, hX, hscale, hTmem, hrecTop⟩ := hsel Tbase
+  have hT₀ : T₀ ≤ T := by
+    exact (le_max_left T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hTpf : Tpf ≤ T := by
+    exact (le_max_right T₀ Tpf).trans (le_max_left (max T₀ Tpf) 3) |>.trans hTbase
+  have hT3 : 3 ≤ T := by
+    exact (le_max_right (max T₀ Tpf) 3).trans hTbase
+  have havg_le :
+      u6aAveragedSelectionBound X (u6aCrudeDelta Csel Dsel X k)
+          (Csel * 3 ^ k + Dsel) ≤ Crec * Real.log T ^ 2 :=
+    hCmp.2 k X T hX hT3 hTmem hscale
+  have hrecAll : ∀ t : ℝ, |t| = T →
+      u6aReciprocalZeroSum (-1) 2 t ≤ Crec * Real.log T ^ 2 := by
+    intro t ht
+    have htcase : t = T ∨ t = -T :=
+      (abs_eq (by linarith : (0 : ℝ) ≤ T)).mp ht
+    rcases htcase with rfl | rfl
+    · exact hrecTop.trans havg_le
+    · simpa [u6aReciprocalZeroSum_neg] using hrecTop.trans havg_le
+  exact ⟨T, hT₀, hT3,
+    hmain T (u6aCrudeDelta Csel Dsel X k) hTpf hT3 hTmem.2 hrecAll⟩
 
 /-- Consumer-shape U6a composition: the proved cofinal averaged selector plus
 a partial-fraction approximation and the one remaining averaged-bound
@@ -4303,6 +5086,122 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_a
     · simpa [u6aReciprocalZeroSum_neg] using hrecTop.trans havg_le
   exact ⟨T, hT₀, hT3,
     hmain T (u6aCrudeDelta Csel Dsel X k) hTpf hT3 hTmem.2 hrecAll⟩
+
+/-- Cofinal U6a composition with the far xi-Hadamard tail exposed directly as
+the PF-side analytic input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  obtain ⟨_Czero, _Tzero, hZero⟩ :=
+    U6aZeroSumRemainderBoundHypothesis_of_farTail_and_localDensity hFar hDensity
+  exact exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedComparison
+    hZero hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_localDensity_and_averagedComparison
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hDensity : U6aLocalZeroDensityHypothesis (-1) 2 Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hDensity hAvgCmp
+
+/-- Cofinal U6a composition with the count-log atom feeding the older
+local-density API. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_countLog_and_averagedComparison
+    {Cfar Tfar Cdens Tdens : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hCount : U6aNearbyZeroCountLogHypothesis Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar (U6aLocalZeroDensityHypothesis_of_countLogHypothesis hCount) hAvgCmp
+
+/-- Cofinal U6a composition with the shifted Jensen mass atom feeding the
+local-count side of the PF route. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_shiftedJensenLocalMass_and_averagedComparison
+    {Cfar Tfar Cmass : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis Cmass)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar (U6aLocalZeroDensityHypothesis_of_shiftedJensenLocalMass hMass) hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split, with the
+count-log atom as the local zero-count input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_countLog_and_averagedComparison
+    {Ctail Ttail Cdens Tdens : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hCount : U6aNearbyZeroCountLogHypothesis Cdens Tdens)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_countLog_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hCount hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split, with the
+shifted Jensen mass atom as the local zero-count input. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_shiftedJensenLocalMass_and_averagedComparison
+    {Ctail Ttail Cmass : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hMass : U6aShiftedJensenLocalMassLogHypothesis Cmass)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_shiftedJensenLocalMass_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hMass hAvgCmp
+
+/-- Cofinal U6a composition from the exact existential count-log endpoint. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_existsNearbyZeroCountLog_and_averagedComparison
+    {Cfar Tfar : ℝ}
+    (hFar : U6aXiHadamardFarTailBoundHypothesis Cfar Tfar)
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C := by
+  rcases exists_U6aLocalZeroDensityHypothesis_of_nearbyZeroCount_le_log hCount with
+    ⟨Cdens, Tdens, hDensity, _hTdens⟩
+  exact exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_localDensity_and_averagedComparison
+    hFar hDensity hAvgCmp
+
+/-- Cofinal U6a composition through the zeta-indexed far-tail split from the
+exact existential count-log endpoint. -/
+theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_globalBridge_zetaFarTail_existsNearbyZeroCountLog_and_averagedComparison
+    {Ctail Ttail : ℝ}
+    (hBridge : U6aXiHadamardGlobalToWeightedZetaBridgeHypothesis)
+    (hTail : U6aWeightedZetaHadamardFarTailBoundHypothesis Ctail Ttail)
+    (hCount : ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 3 ≤ |t| →
+      u6aNearbyZeroCount (-1) 2 t ≤ C * Real.log |t|)
+    (hAvgCmp : ∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) :
+    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
+      horizontalSegmentLogDerivBound (-1) 2 T C :=
+  exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_farTail_existsNearbyZeroCountLog_and_averagedComparison
+    (U6aXiHadamardFarTailBoundHypothesis_of_globalBridge_and_zetaFarTail hBridge hTail)
+    hCount hAvgCmp
 
 private lemma mem_Icc_min_max_of_mem_uIcc {σ₁ σ₂ x : ℝ}
     (hx : x ∈ Set.uIcc σ₁ σ₂) :
