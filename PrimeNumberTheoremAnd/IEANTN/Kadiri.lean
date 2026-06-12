@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -84,10 +85,28 @@ lift it to all of $\mathbb{C}$ is no longer needed and is commented out below
   Euler-Mascheroni constant $\gamma$ (\cite[Chapter 12]{Davenport2000}). For our purposes it
   appears only as the additive constant in \ref{kadiri-hadamard-identity}, and the identity
   $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$ used in the derivation of
-  \ref{kadiri-prop-2-1}. -/)
+  \ref{kadiri-prop-2-1}.
+
+  Formally, $B$ is extracted from the Hadamard factorisation of Riemann's xi function
+  $\xi(s) = (s-1)\, \pi^{-s/2}\, \Gamma(\tfrac{s}{2}+1)\, \zeta(s)$: there is a unique
+  $B \in \mathbb{C}$ arising as $P'(0)$ for a degree-one polynomial $P$ with
+  $\xi(z) = e^{P(z)} \prod_\rho (1 - z/\rho) e^{z/\rho}$ (the genus-one canonical product
+  over the xi divisor, with multiplicity), and the displayed product expansion of
+  $(s-1)\zeta(s)$ is that factorisation with the archimedean factors moved across. -/)
   (latexEnv := "definition")
   (discussion := 1474)]
-noncomputable def hadamardB : ℂ := sorry
+noncomputable def hadamardB : ℂ :=
+  Classical.choose existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero.exists
+
+/-- Choice specification for `hadamardB`: some degree-one polynomial `P` realizes the
+no-monomial xi Hadamard factorization with `hadamardB = P.derivative.eval 0`. -/
+theorem hadamardB_spec :
+    ∃ P : Polynomial ℂ, P.degree ≤ 1 ∧
+      (∀ z : ℂ, riemannXi z =
+        Complex.exp (Polynomial.eval z P) *
+          Complex.Hadamard.divisorCanonicalProduct 1 riemannXi (Set.univ : Set ℂ) z) ∧
+      hadamardB = Polynomial.eval 0 P.derivative :=
+  Classical.choose_spec existsUnique_riemannXi_hadamard_polynomial_derivative_eval_zero.exists
 
 @[blueprint
   "kadiri-hadamard-identity"
