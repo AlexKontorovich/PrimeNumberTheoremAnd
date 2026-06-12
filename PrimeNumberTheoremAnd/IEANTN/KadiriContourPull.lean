@@ -23,9 +23,9 @@ two vertical integrals; combined with the residue identity
 this exhibits the limit of the partial zero sums.
 
 The horizontal edges cross the critical strip. On the sub-`(1)` part the required
-bound on `-ζ'/ζ` at well-chosen heights is classical but not yet in the tree; it is
-banked here as `horizontalSegmentLogDerivBound` together with the sorried classical
-target `exists_arbitrarily_large_horizontalSegmentLogDerivBound` (sub-unit U6a). All
+bound on `-ζ'/ζ` at well-chosen heights enters as `horizontalSegmentLogDerivBound`;
+its cofinal form `exists_arbitrarily_large_horizontalSegmentLogDerivBound`
+(sub-unit U6a) is proved in `KadiriU6aEndpointClose` and imported here. All
 other inputs are proved: the left vertical line integrability comes from the
 functional-equation bound of `KadiriFunctionalEquation` with its digamma hypothesis
 discharged by `Complex.exists_norm_digamma_div_two_le_log`, and the right line from
@@ -926,10 +926,9 @@ theorem tendsto_horizontal_edge_zero_of_logDerivBound {Φ : ℂ → ℂ}
     rw [show C * Real.log (T k) ^ 2 * (CΦ / (T k) ^ 2) * |σR - σL|
         = C * CΦ * |σR - σL| * (Real.log (T k) ^ 2 / (T k) ^ 2) by ring]
 
-/-- A sequence of heights carrying the U6a log-derivative bound, by choice from the
-banked classical target. Inherits the `sorryAx` of
-`exists_arbitrarily_large_horizontalSegmentLogDerivBound` until the external
-derivation lands. -/
+/-- A sequence of heights carrying the U6a log-derivative bound, by choice from
+`exists_arbitrarily_large_horizontalSegmentLogDerivBound` (proved in
+`KadiriU6aEndpointClose`; axiom-clean). -/
 lemma exists_logDerivBound_seq (σ₁ σ₂ : ℝ) :
     ∃ C : ℝ, 0 < C ∧ ∃ T : ℕ → ℝ, Filter.Tendsto T Filter.atTop Filter.atTop ∧
       (∀ k, 3 ≤ T k) ∧ ∀ k, horizontalSegmentLogDerivBound σ₁ σ₂ (T k) C := by

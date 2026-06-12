@@ -21,8 +21,8 @@ identifications `U8RightLineInversionHypothesis` and
 functional-equation layers; per the convention ruling these are closed rightward,
 with the rational terms contributing kernel values, and no leftward-vanishing
 argument is used or assumed here), the vertical-line and band decay inputs for the
-transform `Φ`, and the good-heights log-derivative bound (sub-unit U6a, the lone
-carried `sorry`).
+transform `Φ`, and the good-heights log-derivative bound (sub-unit U6a; now proved
+in `KadiriU6aEndpointClose`, so the chain carries no `sorry`).
 -/
 
 open Complex MeasureTheory Filter Set Asymptotics
@@ -98,8 +98,8 @@ lemma summable_u8Phi_of_hΦ_sum {φ : ℝ → ℂ}
 its own analytic hypotheses, the two line-value identifications (Mellin inversion on
 the right line, functional-equation split on the left line), and the `Φ`-side decay
 and analyticity inputs for the contour. The good-heights log-derivative bound enters
-through `exists_logDerivBound_seq` and is the lone `sorry` in the chain (sub-unit
-U6a, with the external panel). No hypothesis constrains `Φ` left of the contour
+through `exists_logDerivBound_seq`, proved unconditionally in
+`KadiriU6aEndpointClose` (sub-unit U6a, closed). No hypothesis constrains `Φ` left of the contour
 band: the closure is rightward throughout, per the convention ruling. -/
 theorem u8_kadiri_thm_3_1_q1_of_line_identifications {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ)
