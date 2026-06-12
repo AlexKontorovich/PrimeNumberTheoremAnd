@@ -111,27 +111,30 @@ theorem hadamardB_spec :
 @[blueprint
   "kadiri-hadamard-identity"
   (title := "Hadamard expansion of $-\\zeta'/\\zeta$ (after equation (16))")
-  (statement := /-- For every $s \in \mathbb{C}$ that is neither $1$ nor a non-trivial zero
-  of $\zeta$,
+  (statement := /-- For every $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ -\frac{\zeta'}{\zeta}(s) = -B - \tfrac{1}{2} \log \pi + \frac{1}{s - 1}
        + \tfrac{1}{2} \frac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2} + 1\right)
-       - \sum_{\rho \in Z(\zeta)} \left(\frac{1}{\rho} + \frac{1}{s - \rho}\right), $$
-  where $B$ is the Hadamard constant (\ref{kadiri-hadamard-B}). This is the logarithmic
-  derivative of the Hadamard factorisation of $\zeta$
+       - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)
+           \left(\frac{1}{\rho} + \frac{1}{s - \rho}\right), $$
+  where $B$ is the Hadamard constant (\ref{kadiri-hadamard-B}) and each zero is counted
+  with its multiplicity $\mathrm{ord}_\zeta(\rho)$, as the Hadamard product repeats its
+  factors. The half-plane $\Re s > 1$ is where Kadiri's downstream argument applies the
+  identity; it supplies $s \neq 1$ and $\zeta(s) \neq 0$ directly. This is the
+  logarithmic derivative of the Hadamard factorisation of $\zeta$
   (\cite[Chapter 12]{Davenport2000}). -/)
   (proof := /-- Differentiate the Hadamard product (\ref{kadiri-hadamard-B}) logarithmically;
   the linear-in-$s$ term in the exponential collapses to the constant $B$. The
   $\tfrac{1}{s-1}$ term comes from the $(s-1)\zeta(s)$ prefactor and the
-  $\tfrac{1}{2} \Gamma'/\Gamma$ term from the gamma factor. To be formalised. -/)
+  $\tfrac{1}{2} \Gamma'/\Gamma$ term from the gamma factor; the zero factors contribute
+  one kernel term per unit of multiplicity. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1474)]
-theorem hadamard_identity (s : ℂ) (hs1 : s ≠ 1)
-    (hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ)) :
+theorem hadamard_identity {s : ℂ} (hs : 1 < s.re) :
     -deriv riemannZeta s / riemannZeta s =
       -hadamardB - (1 / 2 : ℂ) * Real.log Real.pi + 1 / (s - 1) +
       (1 / 2 : ℂ) * digamma (s / 2 + 1) -
-      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-        (1 / (ρ.val : ℂ) + 1 / (s - ρ.val)) := by
+      riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+        (fun ρ ↦ 1 / ρ + 1 / (s - ρ)) := by
   sorry
 
 /-! ## Sublemmas for the proof of Theorem 3.1
@@ -1989,19 +1992,23 @@ $|\Re F(s - \rho)| \ll 1/\gamma^2$. -/
 @[blueprint
   "kadiri-re-hadamardB-eq"
   (title := "Real part of the Hadamard constant")
-  (statement := /-- $\Re B = -\sum_{\rho \in Z(\zeta)} \Re \tfrac{1}{\rho}$, where $B$ is the
-  Hadamard constant (\ref{kadiri-hadamard-B}). -/)
+  (statement := /-- $\Re B = -\sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\,
+  \Re \tfrac{1}{\rho}$, where $B$ is the Hadamard constant (\ref{kadiri-hadamard-B}) and
+  each zero is counted with its multiplicity, matching the weights of
+  \ref{kadiri-hadamard-identity}. Unlike the paired complex kernel, the real parts
+  $\Re(1/\rho)$ are separately (absolutely) summable on the strip. -/)
   (proof := /-- Subtract $\tfrac{1}{s-1}$ from \ref{kadiri-hadamard-identity}, take $s \to 1$
   using the Laurent expansion $-\zeta'/\zeta(s) = \tfrac{1}{s-1} - \gamma + O(s - 1)$ near $s = 1$
   and the value $\Gamma'/\Gamma(3/2)$, then symmetrise the resulting sum
-  $\sum_\rho (1/\rho + 1/(1-\rho))$ using $\rho \leftrightarrow 1 - \bar\rho$ to relate
+  $\sum_\rho (1/\rho + 1/(1-\rho))$ using the involution $\rho \leftrightarrow 1 - \rho$
+  of the functional equation (which preserves multiplicities) to relate
   $\sum_\rho 1/\rho$ to $\Re B$. To be formalised. -/)
   (latexEnv := "lemma")
   (discussion := 1476)]
 theorem re_hadamardB_eq :
     hadamardB.re =
-    -∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-        (1 / (ρ.val : ℂ)).re := by
+      -riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+        (fun ρ ↦ (1 / ρ).re) := by
   sorry
 
 @[blueprint
@@ -2600,12 +2607,15 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
    = f(0) \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1} \Bigr)
-   + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{f(0)}{s - \rho} - F(s - \rho) \Bigr)
+   + \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)
+       \Bigl( \frac{f(0)}{s - \rho} - F(s - \rho) \Bigr)
    + F(s - 1)
    + \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
        \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
        + \frac{F_2(s)}{s^2} \Bigr). $$
-  The zero sum is grouped: each summand is $\Phi(-\rho)$, the Laplace transform of the
+  The zero sum is grouped and carries the multiplicity weights
+  $\mathrm{ord}_\zeta(\rho)$ that the residue calculus of \ref{kadiri-thm-3-1-q1}
+  produces: each summand is $\Phi(-\rho)$, the Laplace transform of the
   test function $\varphi(y) = (f(0) - f(y)) e^{-y s}$ at $-\rho$, equal to
   $-F_2(s-\rho)/(s-\rho)^2$ and hence of size $O(1/|\Im \rho|^2)$; the split sums
   $\sum_\rho 1/(s-\rho)$ and $\sum_\rho F(s-\rho)$ are individually divergent.
@@ -2640,8 +2650,8 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)) =
       (f 0 : ℂ) * ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1))
-      + ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))
+      + riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ))
       + laplaceTransform f (s - 1)
       + ((1 / (2 * (Real.pi : ℂ))) *
           (∫ t : ℝ,
@@ -2658,18 +2668,20 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
    = f(0) \Bigl( \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                  + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
-                  - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho} \Bigr)
-   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
+                  + \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)
+                      \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+                  - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\, \Re \frac{1}{\rho} \Bigr)
+   + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\, \Re F(s - \rho)
    + \Re \Bigl( \frac{1}{2\pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
        \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
        + \frac{F_2(s)}{s^2} \Bigr). $$
   This is the real-part form of \ref{kadiri-identity-16-complex}; the substantive
   derivation from \ref{kadiri-thm-3-1-q1} via the Kadiri test function
   $\varphi(y) = (f(0) - f(y)) e^{-y s} \mathbf{1}_{y \geq 0}$ lives in that sublemma.
-  The zero contribution in the $f(0)$-coefficient uses the absolutely convergent
-  Hadamard-paired block $\sum_\rho (1/\rho + 1/(s - \rho))$ together with the absolutely
-  convergent real correction $\sum_\rho \Re(1/\rho)$, matching
+  All three zero sums carry the multiplicity weights $\mathrm{ord}_\zeta(\rho)$ of the
+  residue calculus. The zero contribution in the $f(0)$-coefficient uses the absolutely
+  convergent Hadamard-paired block $\sum_\rho (1/\rho + 1/(s - \rho))$ together with the
+  absolutely convergent real correction $\sum_\rho \Re(1/\rho)$, matching
   \ref{kadiri-hadamard-identity}; the standalone $\sum_\rho 1/(s - \rho)$ does not
   converge unconditionally. The restriction $\Re s > 1$ is where the Dirichlet series for
   $-\zeta'/\zeta(s)$ converges absolutely; this is also the range used in Kadiri's
@@ -2678,9 +2690,12 @@ theorem identity_16_complex {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   equation, then take real parts of both sides. The grouped zero sum is absolutely
   summable (each summand is $-F_2(s-\rho)/(s-\rho)^2$ by \ref{kadiri-laplace-ibp}), so
   $\Re$ passes through it; each term splits as $f(0) \Re(1/(s-\rho)) - \Re F(s-\rho)$,
-  and both real families are absolutely summable. Regrouping
+  and both real families are absolutely summable, with the order weights carried by the
+  weighted square-tail bound. Regrouping
   $\sum_\rho \Re(1/(s-\rho))$ into the paired block minus the $\Re(1/\rho)$ correction
-  is legitimate by the paired-family summability. -/)
+  is legitimate by the paired-family summability. To be re-formalised in the weighted
+  form: the unweighted version of this argument is in the history, and the weighted
+  square tail is available; the weighted splitting lemmas remain to be supplied. -/)
   (latexEnv := "lemma")
   (discussion := 1488)]
 theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
@@ -2694,13 +2709,13 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s * ((f (Real.log n) : ℝ) : ℂ)).re =
       f 0 * (((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
-                ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                  (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
-              ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-                (1 / (ρ.val : ℂ)).re)
+                riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+                  (fun ρ ↦ 1 / ρ + 1 / (s - ρ))).re -
+              riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+                (fun ρ ↦ (1 / ρ).re))
         + (laplaceTransform f (s - 1)).re
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-            (laplaceTransform f (s - ρ.val)).re
+        - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+            (fun ρ ↦ (laplaceTransform f (s - ρ)).re)
         + ((1 / (2 * (Real.pi : ℂ))) *
             (∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
@@ -2708,42 +2723,15 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
                   (s - (1 / 2 + (t : ℂ) * I))
                 / (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
             + laplaceTransform (fun u ↦ deriv (deriv f) u) s / s ^ 2).re := by
-  have hcomplex := identity_16_complex hd hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d
-    hf_deriv2_d hs
-  have hsub := summable_lap_sub_pole_at_zeros hd hf_C2 hf_supp hf_d hf_deriv_0
-    hf_deriv_d s
-  have hre1 := summable_re_one_div_at_zeros s
-  have hreF := summable_lap_re_at_zeros hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0
-    hf_deriv_d hf_deriv2_d s
-  -- `Re` commutes with the grouped zero sum, which is genuinely summable
-  have htsum_re :
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val))).re =
-      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re := by
-    simpa using ContinuousLinearMap.map_tsum Complex.reCLM hsub
-  -- pointwise real part of the grouped summand
-  have hpt : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-      ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)).re =
-        f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re := by
-    intro ρ
-    have hmul : ((f 0 : ℝ) : ℂ) / (s - ρ.val) =
-        ((f 0 : ℝ) : ℂ) * (1 / (s - ρ.val)) := div_eq_mul_one_div _ _
-    rw [Complex.sub_re, hmul, Complex.re_ofReal_mul]
-  -- split the real tsum of differences
-  have hsplit :
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          (f 0 * (1 / (s - ρ.val)).re - (laplaceTransform f (s - ρ.val)).re)) =
-      f 0 * (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          (1 / (s - ρ.val)).re) -
-        ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-          (laplaceTransform f (s - ρ.val)).re := by
-    rw [Summable.tsum_sub (hre1.mul_left (f 0)) hreF, tsum_mul_left]
-  rw [hcomplex]
-  simp only [Complex.add_re, Complex.sub_re]
-  rw [htsum_re, tsum_congr hpt, hsplit, Complex.re_ofReal_mul, Complex.sub_re,
-    re_shifted_sum_eq_paired_sub_re_inv s]
-  ring
+  -- Weighted form of the previous unweighted derivation. The route is unchanged:
+  -- apply `identity_16_complex`, push `Re` through the grouped weighted zero sum
+  -- (`summable_kadiriTestFn_weighted_at_zeros` supplies the summability), split the
+  -- real families, and regroup via the paired block. The remaining inputs are the
+  -- weighted twins of `summable_re_one_div_at_zeros`, `summable_lap_re_at_zeros`,
+  -- and `re_shifted_sum_eq_paired_sub_re_inv`, all reachable from
+  -- `weighted_zeroImagSquareTail_shifted_summable` by the transplant pattern of
+  -- `summable_kadiriTestFn_weighted_at_zeros`.
+  sorry
 
 
 /-- The raw von Mangoldt Dirichlet sum is `-ζ'/ζ` on `1 < Re s` (the tsum form of
@@ -2761,11 +2749,12 @@ lemma tsum_vonMangoldt_eq {s : ℂ} (hs : 1 < s.re) :
   (title := "Inner real-part identity: collapsing to $T_1$")
   (statement := /-- For every $s \in \mathbb{C}$ with $\Re s > 1$,
   $$ \Re \Bigl( \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} - \frac{1}{s - 1}
-                + \sum_{\rho \in Z(\zeta)} \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
-     - \sum_{\rho \in Z(\zeta)} \Re \frac{1}{\rho}
+                + \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)
+                    \Bigl( \frac{1}{\rho} + \frac{1}{s - \rho} \Bigr) \Bigr)
+     - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\, \Re \frac{1}{\rho}
    = -\tfrac{1}{2} \log \pi
      + \tfrac{1}{2} \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2}+1\right). $$
-  The zero block is the absolutely convergent Hadamard pairing of
+  The zero block is the absolutely convergent multiplicity-weighted Hadamard pairing of
   \ref{kadiri-hadamard-identity}, and the $\Re(1/\rho)$ correction is absolutely
   convergent; the standalone $\sum_\rho 1/(s - \rho)$ does not converge
   unconditionally. This is the identity that turns the $f(0)$-coefficient of
@@ -2781,20 +2770,13 @@ lemma tsum_vonMangoldt_eq {s : ℂ} (hs : 1 < s.re) :
   (discussion := 1478)]
 theorem re_inner_eq {s : ℂ} (hs : 1 < s.re) :
     ((∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) - 1 / (s - 1) +
-       ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-         (1 / (ρ.val : ℂ) + 1 / (s - ρ.val))).re -
-      ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-        (1 / (ρ.val : ℂ)).re =
+       riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+         (fun ρ ↦ 1 / ρ + 1 / (s - ρ))).re -
+      riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+        (fun ρ ↦ (1 / ρ).re) =
     -(1 / 2 : ℝ) * Real.log Real.pi +
       (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re := by
-  have hs1 : s ≠ 1 := by
-    intro hs_eq
-    rw [hs_eq] at hs
-    norm_num at hs
-  have hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) := by
-    intro hz
-    exact (not_lt_of_gt hs) hz.1.2
-  rw [tsum_vonMangoldt_eq hs, hadamard_identity s hs1 hsZ]
+  rw [tsum_vonMangoldt_eq hs, hadamard_identity hs]
   ring_nf
   simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.ofReal_re,
     Complex.ofReal_im, zero_mul, sub_zero]
@@ -2820,14 +2802,16 @@ Assembled from \ref{kadiri-identity-16}, \ref{kadiri-re-inner-eq}, and
   $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n)
     = f(0) \left( -\tfrac{1}{2} \log \pi
         + \tfrac{1}{2} \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{s}{2} + 1\right) \right)
-    + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \Re F(s - \rho)
+    + \Re F(s - 1) - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\, \Re F(s - \rho)
     + \Re \left( \frac{1}{2 \pi i} \int_{1/2 - i \infty}^{1/2 + i \infty}
         \Re \tfrac{\Gamma'}{\Gamma}\!\left(\tfrac{z}{2}\right) \frac{F_2(s - z)}{(s - z)^2}\, dz
         + \frac{F_2(s)}{s^2} \right), $$
   where $Z(\zeta)$ is the set of non-trivial zeros of $\zeta$ (those in the open critical strip
-  $0 < \Re \rho < 1$). The half-plane $\Re s > 1$ is the range used in Kadiri's downstream
-  zero-free region argument; the harmonic-extension step that would lift the identity to all
-  of $\mathbb{C}$ is not needed for that application. -/)
+  $0 < \Re \rho < 1$) and the zero sum carries the multiplicity weights
+  $\mathrm{ord}_\zeta(\rho)$; the convergence conjunct is stated for the plain family
+  $\Re F(s - \rho)$, one term per zero. The half-plane $\Re s > 1$ is the range used in
+  Kadiri's downstream zero-free region argument; the harmonic-extension step that would
+  lift the identity to all of $\mathbb{C}$ is not needed for that application. -/)
   (proof := /-- The `Summable` conjunct is \ref{kadiri-summable-lap-at-zeros}.
   For the identity, combine \ref{kadiri-identity-16} (the (16)-form on $\Re s > 1$) with
   \ref{kadiri-re-inner-eq} (which substitutes the $T_1$ form for the $f(0)$-coefficient
@@ -2848,8 +2832,8 @@ theorem prop_2_1 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
       f 0 * (-(1 / 2 : ℝ) * Real.log Real.pi
               + (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re)
         + (laplaceTransform f (s - 1)).re
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-            (laplaceTransform f (s - ρ.val)).re
+        - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+            (fun ρ ↦ (laplaceTransform f (s - ρ)).re)
         + ((1 / (2 * (Real.pi : ℂ))) *
             (∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
@@ -2909,7 +2893,9 @@ noncomputable def Δ2 (f : ℝ → ℝ) (κ δ : ℝ) (s : ℂ) : ℝ :=
   where $T_1, T_2$ are the "gamma" and "remainder" contributions to the RHS of
   \ref{kadiri-prop-2-1}. Then
   $$ \Re \sum_{n \geq 1} \frac{\Lambda(n)}{n^s} f(\log n) \left( 1 - \frac{\kappa}{n^\delta} \right)
-       = f(0) \Delta_1(s) + D(s - 1) - \sum_{\rho \in Z(\zeta)} D(s - \rho) + \Delta_2(s). $$
+       = f(0) \Delta_1(s) + D(s - 1)
+         - \sum_{\rho \in Z(\zeta)} \mathrm{ord}_\zeta(\rho)\, D(s - \rho) + \Delta_2(s), $$
+  with the zero sum weighted by multiplicity as in \ref{kadiri-prop-2-1}.
   -/)
   (proof := /-- Direct substitution: apply \ref{kadiri-prop-2-1} at $s$ and at $s + \delta$,
   multiply the latter by $\kappa$, subtract, and use the identity
@@ -2923,7 +2909,8 @@ theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ 
     {s : ℂ} (hs : 1 < s.re) :
     (∑' n : ℕ, Λ n / n ^ s * f (Real.log n) * ((1 : ℂ) - κ / n ^ (δ : ℂ))).re =
       f 0 * Δ1 κ δ s + D f κ δ (s - 1)
-        - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ, D f κ δ (s - ρ.val) + Δ2 f κ δ s := by
+        - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+            (fun ρ ↦ D f κ δ (s - ρ)) + Δ2 f κ δ s := by
   have hsδ : 1 < (s + δ).re := by
     simp only [Complex.add_re, Complex.ofReal_re]; linarith
   have h1 := prop_2_1 hd hf_nonneg hf_C2 hf_supp hf_d hf_deriv_0 hf_deriv_d hf_deriv2_d hs
@@ -2948,14 +2935,17 @@ theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ 
         (κ : ℂ)).hasSum).tsum_eq, tsum_mul_left]
     rw [h_complex, Complex.sub_re, Complex.re_ofReal_mul]
   have hZeros :
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ, D f κ δ (s - ρ.val)) =
-      (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-          (laplaceTransform f (s - ρ.val)).re)
-        - κ * (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) .univ,
-                 (laplaceTransform f ((s + δ) - ρ.val)).re) := by
-    have harg : ∀ ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-        (s - ρ.val) + δ = s + δ - ρ.val := fun _ ↦ by ring
-    simp_rw [D, harg, (h1.1.hasSum.sub (h2.1.mul_left κ).hasSum).tsum_eq, tsum_mul_left]
+      riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ D f κ δ (s - ρ)) =
+      riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+          (fun ρ ↦ (laplaceTransform f (s - ρ)).re)
+        - κ * riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ)
+                (fun ρ ↦ (laplaceTransform f (s + δ - ρ)).re) := by
+    -- Splitting the weighted sum needs summability of the weighted families
+    -- `(laplaceTransform f (s - ρ)).re * ord ρ` at `s` and at `s + δ`, the weighted
+    -- twin of `summable_lap_re_at_zeros` (transplant via
+    -- `weighted_zeroImagSquareTail_shifted_summable`); to be supplied with the fills.
+    sorry
   have hT1s : -(1 / 2 : ℝ) * Real.log Real.pi +
       (1 / 2 : ℝ) * (digamma (s / 2 + 1)).re = T1 s := rfl
   have hT1sd : -(1 / 2 : ℝ) * Real.log Real.pi +
