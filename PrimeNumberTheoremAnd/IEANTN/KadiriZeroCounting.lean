@@ -1815,4 +1815,440 @@ theorem summable_zeroImagSquareTail_shifted_unconditional (s : ℂ) :
     Summable (fun rho : NontrivialZeros => |(s - (rho : ℂ)).im|⁻¹ ^ (2 : ℕ)) :=
   summable_zeroImagSquareTail_shifted zeroImagSquareTailSummable_of_crude_majorant s
 
+/-!
+### Conjugation transport for zero orders
+
+`conj ∘ ζ ∘ conj = ζ` by `riemannZeta_conj`, so the zero order of `ζ` is symmetric
+under conjugation. The general double-conjugation transport is built here from the
+slope characterization of the derivative; mathlib does not provide it directly.
+-/
+
+/-- If `f` has derivative `f'` at `conj z₀`, the double conjugate has derivative
+`conj f'` at `z₀`. -/
+private lemma hasDerivAt_conj_conj {f : ℂ → ℂ} {f' z₀ : ℂ}
+    (hf : HasDerivAt f f' ((starRingEnd ℂ) z₀)) :
+    HasDerivAt (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w)))
+      ((starRingEnd ℂ) f') z₀ := by
+  rw [hasDerivAt_iff_tendsto_slope] at hf ⊢
+  have hconj_tendsto : Filter.Tendsto (starRingEnd ℂ)
+      (nhdsWithin z₀ {z₀}ᶜ)
+      (nhdsWithin ((starRingEnd ℂ) z₀) {(starRingEnd ℂ) z₀}ᶜ) := by
+    apply tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
+    · exact (Complex.continuous_conj.tendsto z₀).mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with w hw
+      intro h
+      apply hw
+      have := congrArg (starRingEnd ℂ) h
+      simpa [Complex.conj_conj] using this
+  have hcomp := (Complex.continuous_conj.tendsto f').comp (hf.comp hconj_tendsto)
+  refine Filter.Tendsto.congr (fun u ↦ ?_) hcomp
+  simp only [Function.comp_apply, slope_def_field, map_div₀, map_sub, Complex.conj_conj]
+
+/-- Analyticity of the double conjugate. -/
+private lemma analyticAt_conj_conj {f : ℂ → ℂ} {z₀ : ℂ}
+    (hf : AnalyticAt ℂ f ((starRingEnd ℂ) z₀)) :
+    AnalyticAt ℂ (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w))) z₀ := by
+  rw [Complex.analyticAt_iff_eventually_differentiableAt] at hf ⊢
+  have hc : Filter.Tendsto (starRingEnd ℂ) (nhds z₀) (nhds ((starRingEnd ℂ) z₀)) :=
+    Complex.continuous_conj.tendsto z₀
+  filter_upwards [hc.eventually hf] with w hw
+  exact (hasDerivAt_conj_conj hw.hasDerivAt).differentiableAt
+
+/-- The analytic order of the double conjugate at `z₀` is the analytic order of `f`
+at `conj z₀`. -/
+private lemma analyticOrderAt_conj_conj {f : ℂ → ℂ} {z₀ : ℂ}
+    (hf : AnalyticAt ℂ f ((starRingEnd ℂ) z₀)) :
+    analyticOrderAt (fun w ↦ (starRingEnd ℂ) (f ((starRingEnd ℂ) w))) z₀ =
+      analyticOrderAt f ((starRingEnd ℂ) z₀) := by
+  have hcfc := analyticAt_conj_conj hf
+  have hc : Filter.Tendsto (starRingEnd ℂ) (nhds z₀) (nhds ((starRingEnd ℂ) z₀)) :=
+    Complex.continuous_conj.tendsto z₀
+  cases h : analyticOrderAt f ((starRingEnd ℂ) z₀) with
+  | top =>
+      rw [analyticOrderAt_eq_top] at h ⊢
+      filter_upwards [hc.eventually h] with w hw
+      rw [hw, map_zero]
+  | coe n =>
+      rw [hf.analyticOrderAt_eq_natCast] at h
+      obtain ⟨g, hg, hg0, hfg⟩ := h
+      rw [hcfc.analyticOrderAt_eq_natCast]
+      refine ⟨fun w ↦ (starRingEnd ℂ) (g ((starRingEnd ℂ) w)),
+        analyticAt_conj_conj hg, ?_, ?_⟩
+      · intro h0
+        apply hg0
+        have := congrArg (starRingEnd ℂ) h0
+        simpa [Complex.conj_conj] using this
+      · filter_upwards [hc.eventually hfg] with w hw
+        rw [hw]
+        simp only [smul_eq_mul, map_mul, map_pow, map_sub, Complex.conj_conj]
+
+/-- The zero order of `ζ` is conjugation-symmetric away from `1`. -/
+theorem riemannZeta_order_conj {ρ : ℂ} (hρ : ρ ≠ 1) :
+    riemannZeta.order ((starRingEnd ℂ) ρ) = riemannZeta.order ρ := by
+  have hρ' : (starRingEnd ℂ) ρ ≠ 1 := by
+    intro h
+    apply hρ
+    have := congrArg (starRingEnd ℂ) h
+    simpa [Complex.conj_conj] using this
+  have han : AnalyticAt ℂ riemannZeta ρ :=
+    riemannZeta_analyticOn_compl_one ρ (by simpa [Set.mem_compl_iff] using hρ)
+  have han' : AnalyticAt ℂ riemannZeta ((starRingEnd ℂ) ρ) :=
+    riemannZeta_analyticOn_compl_one _ (by simpa [Set.mem_compl_iff] using hρ')
+  have hfun : (fun w ↦ (starRingEnd ℂ) (riemannZeta ((starRingEnd ℂ) w))) = riemannZeta := by
+    funext w
+    rw [riemannZeta_conj, Complex.conj_conj]
+  have hkey := analyticOrderAt_conj_conj (f := riemannZeta)
+    (z₀ := (starRingEnd ℂ) ρ) (by simpa [Complex.conj_conj] using han)
+  rw [hfun, Complex.conj_conj] at hkey
+  unfold riemannZeta.order
+  rw [han.meromorphicOrderAt_eq, han'.meromorphicOrderAt_eq, hkey]
+
+
+/-!
+### The weighted (order-carrying) zero accounting
+
+The order-weighted count of zeros below a dyadic height is controlled by the
+multiplicity-counting `N`: positive heights are `N`'s own index, negative heights
+reindex through conjugation (`riemannZeta_order_conj`), and the real-axis bucket
+is finite and height-independent.
+-/
+
+/-- Zero orders are nonnegative away from `1`. -/
+lemma riemannZeta_order_nonneg {ρ : ℂ} (hρ : ρ ≠ 1) :
+    0 ≤ riemannZeta.order ρ := by
+  have han : AnalyticAt ℂ riemannZeta ρ :=
+    riemannZeta_analyticOn_compl_one ρ (by simpa [Set.mem_compl_iff] using hρ)
+  unfold riemannZeta.order
+  rw [han.meromorphicOrderAt_eq]
+  cases h : analyticOrderAt riemannZeta ρ with
+  | top => simp
+  | coe n =>
+      simp only [ENat.map_coe, WithTop.untopD_coe]
+      exact_mod_cast Nat.zero_le n
+
+/-- `N` is the order sum over its own window. -/
+private lemma riemannZeta_N_eq_tsum_order (T : ℝ) :
+    riemannZeta.N T =
+      ∑' ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T),
+        ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+  unfold riemannZeta.N riemannZeta.zeroes_sum
+  exact tsum_congr fun ρ ↦ one_mul _
+
+/-- The fixed weighted real-axis bucket. -/
+noncomputable def weightedZeroHeightBucket : ℝ :=
+  ∑' ρ : ZeroHeightNontrivialZeros,
+    ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ)
+
+lemma weightedZeroHeightBucket_nonneg : 0 ≤ weightedZeroHeightBucket := by
+  refine tsum_nonneg fun ρ ↦ ?_
+  exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+
+/-- The weighted cumulative dyadic count against the multiplicity count `N`:
+positive heights land in `N`'s window, negative heights reindex through
+conjugation, the real axis lands in the fixed bucket. -/
+theorem weighted_cumulative_count_le (k : ℕ) :
+    (∑' ρ : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket := by
+  classical
+  haveI hXf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+    (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
+  haveI hRf : Fintype (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1)))) :=
+    (zeroes_rect_univ_positive_height_finite ((2 : ℝ) ^ (k + 1))).fintype
+  haveI hZf : Fintype ZeroHeightNontrivialZeros :=
+    @Fintype.ofFinite _ zeroHeightNontrivialZeros_finite
+  have hRnonneg : ∀ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), (0 : ℝ) ≤ ((riemannZeta.order z : ℤ) : ℝ) := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨ρ, -, rfl⟩ := hz
+    have hne : (ρ : ℂ) ≠ 1 := by
+      intro h
+      have him := ρ.property.2.1.1
+      rw [h] at him
+      simp [Complex.one_im] at him
+    exact_mod_cast riemannZeta_order_nonneg hne
+  have hZnonneg : ∀ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), (0 : ℝ) ≤ ((riemannZeta.order z : ℤ) : ℝ) := by
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨ρ, -, rfl⟩ := hz
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+  have hN : riemannZeta.N ((2 : ℝ) ^ (k + 1)) =
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    rw [riemannZeta_N_eq_tsum_order, tsum_fintype,
+      Finset.sum_image (g := fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext hab)]
+  have hB : weightedZeroHeightBucket =
+      ∑ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    unfold weightedZeroHeightBucket
+    rw [tsum_fintype,
+      Finset.sum_image (g := fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))]
+  rw [tsum_fintype]
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not
+    (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)})
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im)
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im))
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0)
+    (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ))
+  have hpos : (∑ x ∈ (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have himg : (∑ x ∈ (Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ 0 < (x.1 : ℂ).im)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hRnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    rw [Finset.mem_image]
+    exact ⟨⟨(x.1 : ℂ), Set.mem_univ _,
+      ⟨hx.2, lt_of_le_of_lt (le_abs_self _) x.property⟩,
+      x.1.property.2.2⟩, Finset.mem_univ _, rfl⟩
+  have hneg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have hcongr : ∀ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ) =
+        ((riemannZeta.order ((starRingEnd ℂ) (x.1 : ℂ)) : ℤ) : ℝ) := by
+      intro x hx
+      rw [riemannZeta_order_conj (nontrivialZero_ne_one x.1)]
+    rw [Finset.sum_congr rfl hcongr]
+    have himg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((starRingEnd ℂ) (x.1 : ℂ)) : ℤ) : ℝ)) =
+        ∑ z ∈ (((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ).im < 0)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (starRingEnd ℂ) (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (starRingEnd ℂ) (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext (by
+          have h2 := congrArg (starRingEnd ℂ) hab
+          simpa [Complex.conj_conj] using h2)))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hRnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    have hx2 := hx.2
+    rw [Finset.mem_image]
+    refine ⟨⟨(starRingEnd ℂ) (x.1 : ℂ), Set.mem_univ _, ⟨?_, ?_⟩, ?_⟩,
+      Finset.mem_univ _, rfl⟩
+    · simpa [Complex.conj_im] using hx2
+    · have h1 : |(x.1 : ℂ).im| < (2 : ℝ) ^ (k + 1) := x.property
+      rw [abs_of_neg hx2] at h1
+      simpa [Complex.conj_im] using h1
+    · show riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
+      rw [riemannZeta_conj, x.1.property.2.2, map_zero]
+  have hzero : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
+      ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑ z ∈ Finset.univ.image (fun ρ : ZeroHeightNontrivialZeros ↦ ((ρ.1 : NontrivialZeros) : ℂ)), ((riemannZeta.order z : ℤ) : ℝ) := by
+    have himg : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ (((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0)).image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ)) (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ (x.1 : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himg]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun z hz _ ↦ hZnonneg z hz)
+    intro z hz
+    rw [Finset.mem_image] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rw [Finset.mem_filter] at hx
+    have hx2 := hx.2
+    have hx1 := hx.1
+    rw [Finset.mem_filter] at hx1
+    have him0 : (x.1 : ℂ).im = 0 :=
+      le_antisymm (not_lt.mp hx1.2) (not_lt.mp hx2)
+    rw [Finset.mem_image]
+    exact ⟨⟨x.1, him0⟩, Finset.mem_univ _, rfl⟩
+  have hNabs : riemannZeta.N ((2 : ℝ) ^ (k + 1)) ≤
+      |riemannZeta.N ((2 : ℝ) ^ (k + 1))| := le_abs_self _
+  linarith [hsplit1, hsplit2, hpos, hneg, hzero]
+
+/-!
+### The weighted square tail
+
+The order-weighted height-square tail over the zeros is summable: shell masses
+carry the order weight into the weighted cumulative count, which the crude
+majorant makes geometric.
+-/
+
+/-- The weighted dyadic shell mass is controlled by the weighted cumulative count. -/
+private lemma weighted_shell_mass_le (k : ℕ) :
+    (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+          zeroImagSquareTail ρ.1) ≤
+      (2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+  classical
+  haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+    Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
+  haveI : Finite {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+    Set.finite_coe_iff.mpr (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1)))
+  have hstep1 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) ≤
+      ∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+          (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+    refine Summable.tsum_le_tsum (fun ρ ↦ ?_) Summable.of_finite Summable.of_finite
+    have hord : (0 : ℝ) ≤
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) := by
+      exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+    exact mul_le_mul_of_nonneg_left (zeroImagSquareTail_le_dyadic_inv_sq ρ.2) hord
+  have hstep2 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) =
+      (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := tsum_mul_right
+  have hstep3 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
+      ∑' ρ : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ) := by
+    classical
+    haveI hSf : Fintype {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+      (nontrivialZeros_dyadic_shell_finite k).fintype
+    haveI hCf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+      (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
+    rw [tsum_fintype, tsum_fintype]
+    have himgS : (∑ x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+        ((riemannZeta.order ((x.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ Finset.univ.image (fun x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} ↦ ((x.1 : NontrivialZeros) : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ))
+        (g := fun x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} ↦ ((x.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    have himgC : (∑ x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
+        ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) =
+        ∑ z ∈ Finset.univ.image (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((x.1 : NontrivialZeros) : ℂ)),
+          ((riemannZeta.order z : ℤ) : ℝ) :=
+      (Finset.sum_image (f := fun z : ℂ ↦ ((riemannZeta.order z : ℤ) : ℝ))
+        (g := fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ((x.1 : NontrivialZeros) : ℂ))
+        (fun a _ b _ hab ↦ Subtype.ext (Subtype.ext hab))).symm
+    rw [himgS, himgC]
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+    · intro z hz
+      rw [Finset.mem_image] at hz
+      obtain ⟨x, -, rfl⟩ := hz
+      rw [Finset.mem_image]
+      exact ⟨⟨x.1, x.2.2⟩, Finset.mem_univ _, rfl⟩
+    · intro z hz _
+      rw [Finset.mem_image] at hz
+      obtain ⟨x, -, rfl⟩ := hz
+      exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one x.1)
+  have h4nn : (0 : ℝ) ≤ (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := sq_nonneg _
+  have hfinal : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) ≤
+      (2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket) *
+        (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+    rw [hstep2]
+    exact mul_le_mul_of_nonneg_right
+      (hstep3.trans (weighted_cumulative_count_le k)) h4nn
+  exact hstep1.trans hfinal
+
+/-- The weighted dyadic-shell sigma sum is summable. -/
+private lemma weighted_shell_sigma_summable :
+    Summable (fun p : Sigma (fun k : ℕ ↦
+        {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ}) ↦
+      ((riemannZeta.order ((p.2.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail p.2.1) := by
+  classical
+  rw [summable_sigma_of_nonneg]
+  · constructor
+    · intro k
+      haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+        Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
+      exact Summable.of_finite
+    · obtain ⟨E, hE0, hE⟩ := zetaCountingDyadic_abs_N_le_geometric
+      have hterm : ∀ k : ℕ,
+          (2 * E) * ((3 / 4 : ℝ)) ^ k +
+            weightedZeroHeightBucket * ((4 : ℝ)⁻¹) ^ k =
+          (2 * (E * 3 ^ k) + weightedZeroHeightBucket) *
+            (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
+        intro k
+        have h4 : (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) = ((4 : ℝ)⁻¹) ^ k := by
+          rw [inv_pow, ← pow_mul, mul_comm k 2, pow_mul, ← inv_pow]
+          norm_num
+        have h34 : ((3 : ℝ) / 4) ^ k = 3 ^ k * ((4 : ℝ)⁻¹) ^ k := by
+          rw [← mul_pow]
+          norm_num
+        rw [h4, h34]
+        ring
+      have hgeom : Summable (fun k : ℕ ↦
+          (2 * (E * 3 ^ k) + weightedZeroHeightBucket) *
+            (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ)) :=
+        (((summable_geometric_of_lt_one (by norm_num)
+          (by norm_num : (3 / 4 : ℝ) < 1)).mul_left (2 * E)).add
+          ((summable_geometric_of_lt_one (by norm_num)
+            (by norm_num : ((4 : ℝ)⁻¹) < 1)).mul_left
+              weightedZeroHeightBucket)).congr hterm
+      refine Summable.of_nonneg_of_le (fun k ↦ ?_) (fun k ↦ ?_) hgeom
+      · refine tsum_nonneg fun ρ ↦ mul_nonneg ?_ (sq_nonneg _)
+        exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ.1)
+      · refine (weighted_shell_mass_le k).trans ?_
+        have hb := weightedZeroHeightBucket_nonneg
+        have hNk := hE k
+        have h4nn : (0 : ℝ) ≤ (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := sq_nonneg _
+        refine mul_le_mul_of_nonneg_right ?_ h4nn
+        linarith
+  · intro p
+    refine mul_nonneg ?_ (sq_nonneg _)
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one p.2.1)
+
+/-- The order-weighted height-square zero tail is summable, unconditionally. -/
+theorem weighted_zeroImagSquareTail_summable :
+    Summable (fun ρ : NontrivialZeros ↦
+      ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ) := by
+  classical
+  have hhigh : Summable (fun ρ : {ρ : NontrivialZeros // 1 ≤ |(ρ : ℂ).im|} ↦
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) := by
+    have h := weighted_shell_sigma_summable.comp_injective
+      highZeroToDyadicShell_injective
+    simpa [Function.comp_def, highZeroToDyadicShell] using h
+  have hlow_set : ({ρ : NontrivialZeros | ¬ 1 ≤ |(ρ : ℂ).im|} :
+      Set NontrivialZeros).Finite := by
+    apply Set.Finite.subset nontrivialZeros_abs_im_lt_one_finite
+    intro ρ hρ
+    rw [Set.mem_setOf_eq] at hρ ⊢
+    exact lt_of_not_ge hρ
+  haveI : Finite {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} :=
+    Set.finite_coe_iff.mpr hlow_set
+  have hlow : Summable (fun ρ : {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} ↦
+      ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
+        zeroImagSquareTail ρ.1) := Summable.of_finite
+  exact (summable_subtype_and_compl
+    (s := {ρ : NontrivialZeros | 1 ≤ |(ρ : ℂ).im|})).mp ⟨hhigh, hlow⟩
+
+/-- The order-weighted shifted height-square tail is summable for every shift. -/
+theorem weighted_zeroImagSquareTail_shifted_summable (s : ℂ) :
+    Summable (fun ρ : NontrivialZeros ↦
+      ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))) := by
+  refine Summable.of_norm_bounded_eventually
+    (weighted_zeroImagSquareTail_summable.mul_left 4) ?_
+  rw [Filter.eventually_cofinite]
+  apply Set.Finite.subset (nontrivialZeros_abs_im_lt_finite (2 * |s.im| + 2))
+  intro ρ hbad
+  rw [Set.mem_setOf_eq] at hbad ⊢
+  by_contra hsmall
+  have hlarge : 2 * |s.im| + 2 ≤ |(ρ : ℂ).im| := le_of_not_gt hsmall
+  apply hbad
+  have hle := zeroImagSquareTail_shifted_le_four (s := s) (rho := ρ) hlarge
+  have hord : (0 : ℝ) ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) := by
+    exact_mod_cast riemannZeta_order_nonneg (nontrivialZero_ne_one ρ)
+  have hshift_nn : (0 : ℝ) ≤ |(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ) := by positivity
+  rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg hord hshift_nn)]
+  calc ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (|(s - (ρ : ℂ)).im|⁻¹ ^ (2 : ℕ))
+      ≤ ((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * (4 * zeroImagSquareTail ρ) :=
+        mul_le_mul_of_nonneg_left hle hord
+    _ = 4 * (((riemannZeta.order (ρ : ℂ) : ℤ) : ℝ) * zeroImagSquareTail ρ) := by
+        ring
+
 end Kadiri
