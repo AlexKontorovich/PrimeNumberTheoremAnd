@@ -174,20 +174,45 @@ theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff 
   sorry
 
 @[blueprint
+  "kadiri-thm-3-1-q1-I"
+  (title := "Truncated contour integral $I(T)$ on $\\sigma = 1 + a$")
+  (statement := /-- Kadiri's $I(T)$ from \cite[p.~12]{Kadiri2005}: the truncated contour
+  integral
+  $$ I(T) \;:=\; \frac{1}{2\pi i} \int_{1+a-iT}^{1+a+iT}
+              \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds, $$
+  where $\Phi(s) := \int_{-\infty}^{\infty} \varphi(y) e^{-sy}\, dy$ is the two-sided
+  Laplace transform of $\varphi$. The $T \to \infty$ limit of $I(T)$ is the Mellin-contour
+  identity of \ref{kadiri-thm-3-1-q1-eq-11}, and its rectangle decomposition is
+  equation~(12) of \cite{Kadiri2005} (\ref{kadiri-thm-3-1-q1-eq-12}). -/)
+  (latexEnv := "definition")]
+noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
+  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+  (1 / (2 * (Real.pi : ℂ))) *
+    ∫ t in Set.Ioo (-T) T,
+      (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
+          riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
+        Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I))
+
+@[blueprint
   "kadiri-thm-3-1-q1-eq-11"
   (title := "Equation (11) of \\cite{Kadiri2005}: LHS as a Mellin contour integral")
   (statement := /-- For $\varphi$ satisfying (A) and (B) of \ref{kadiri-thm-3-1-q1},
   and any real $a$ with $0 < a < b$ and $a < 1$,
   $$ \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n)
-     = \frac{1}{2 \pi i}
-       \int_{1 + a - i\infty}^{1 + a + i\infty}
+     = \lim_{T \to \infty} I(T), \qquad
+       I(T) = \frac{1}{2 \pi i}
+       \int_{1 + a - iT}^{1 + a + iT}
          \left(-\frac{\zeta'}{\zeta}\right)(s)\, \Phi(-s)\, ds, $$
-  with $\Phi$ as in \ref{kadiri-thm-3-1-q1-laplace-inversion}. This is equation~(11) of
-  \cite{Kadiri2005}, page~11, specialized to $q = 1$. -/)
+  with $\Phi$ as in \ref{kadiri-thm-3-1-q1-laplace-inversion} and $I(T)$ the truncated
+  contour integral defined above. The symmetric truncation matters for the same reason as
+  in \ref{kadiri-thm-3-1-q1-laplace-inversion}: when $\varphi(0) \neq 0$ the integrand
+  decays only like $1/|t|$ and the full line integral need not exist. This is
+  equation~(11) of \cite{Kadiri2005}, page~11, specialized to $q = 1$. -/)
   (proof := /-- Corollary of \ref{kadiri-thm-3-1-q1-laplace-inversion}: multiply that
-  identity by $\Lambda(n)$, sum over $n \geq 1$, and exchange sum and integral
-  (justified by absolute convergence of the Dirichlet series for $-\zeta'/\zeta$ on
-  $\sigma > 1$ combined with the $O(1/|t|)$ decay of $\Phi$ from (B)). The Dirichlet
+  identity by $\Lambda(n)$, sum over $n \geq 2$ ($\Lambda(1) = 0$), and exchange sum and
+  truncated integral (justified at each fixed $T$ by absolute convergence of the
+  Dirichlet series for $-\zeta'/\zeta$ on $\sigma > 1$); the truncated inversion limits
+  are uniform enough in $n$ by (B) to pass to the limit in the sum. The Dirichlet
   series identity $-\zeta'/\zeta(s) = \sum_n \Lambda(n) n^{-s}$ converts the sum into a
   factor of $-\zeta'/\zeta(s)$ in the integrand. Finally, change of variable
   $s \mapsto -s$ maps the contour $\sigma = -(1 + a)$ to $\sigma = 1 + a$ (with the
@@ -201,34 +226,9 @@ theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-    (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
-      (1 / (2 * (Real.pi : ℂ))) *
-        ∫ t : ℝ,
-          (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-              riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-            Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) := by
+    Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I φ a T) Filter.atTop
+      (nhds (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n))) := by
   sorry
-
-@[blueprint
-  "kadiri-thm-3-1-q1-I"
-  (title := "Truncated contour integral $I(T)$ on $\\sigma = 1 + a$")
-  (statement := /-- Kadiri's $I(T)$ from \cite[p.~12]{Kadiri2005}: the truncated contour
-  integral
-  $$ I(T) \;:=\; \frac{1}{2\pi i} \int_{1+a-iT}^{1+a+iT}
-              \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds, $$
-  where $\Phi(s) := \int_0^\infty \varphi(y) e^{-sy}\, dy$ is the Laplace transform of
-  $\varphi$. The $T \to \infty$ limit of $I(T)$ is the Mellin-contour identity of
-  \ref{kadiri-thm-3-1-q1-eq-11}, and its rectangle decomposition is equation~(12) of
-  \cite{Kadiri2005} (\ref{kadiri-thm-3-1-q1-eq-12}). -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-          riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-        Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I))
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-12"
