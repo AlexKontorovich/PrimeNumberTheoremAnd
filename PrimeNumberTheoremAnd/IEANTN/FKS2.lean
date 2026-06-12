@@ -4199,6 +4199,137 @@ def Table_5 : List (ℝ × ℝ × ℝ) := [
   (20000, 2.2536e-45, 1.9349e-45)
 ]
 
+/-- Numerical evaluation of `μ_asymp` at the Corollary 22 parameters
+(`B = 1.5`, `C = 0.8476`, `R = 1`, `x₀ = 2`, `x₁ = e^20000`):
+`μ_asymp ≤ 5.01516e-5`, for any `A ≥ 1`. The Dawson term is evaluated with
+`dawson_le_sharp` at `w = 0.117`; the `x₁`-denominator term is below `1e-11`.
+This is the bound quoted in the Corollary 22 blueprint proof. -/
+theorem mu_asymp_num_le {A : ℝ} (hA : 1 ≤ A) :
+    μ_asymp A 1.5 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 := by
+  have hs_lo : (141.4213562 : ℝ) ≤ Real.sqrt 20000 := by interval_decide
+  have hs_hi : Real.sqrt 20000 ≤ (141.4213563 : ℝ) := by
+    have h := Real.sqrt_le_sqrt (show (20000:ℝ) ≤ 141.4213563 ^ 2 by norm_num)
+    rwa [Real.sqrt_sq (by norm_num : (0:ℝ) ≤ 141.4213563)] at h
+  have hexp32 : Real.exp (-(32:ℝ)) ≤ (1.3e-14 : ℝ) := by interval_decide
+  have hexpw : Real.exp ((0.117:ℝ) ^ 2) ≤ (1.0138790 : ℝ) := by
+    rw [show ((0.117:ℝ)) ^ 2 = 13689 / 1000000 by norm_num]
+    interval_decide
+  have hlog2_lo : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlog2_hi : Real.log 2 < (0.6931471808 : ℝ) := Real.log_two_lt_d9
+  unfold μ_asymp
+  rw [Real.log_exp, Real.sqrt_one]
+  -- ===== Term 1 =====
+  have hT1 : (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 * Real.log 2)
+      * δ 2 ≤ 1e-11 := by
+    have hpc : Nat.primeCounting 2 = 1 := by decide
+    have hpi2 : pi 2 = 1 := by
+      unfold pi
+      rw [show ⌊(2:ℝ)⌋₊ = 2 from by norm_num, hpc]
+      norm_num
+    have hLi2 : Li 2 = 0 := by
+      unfold Li
+      exact intervalIntegral.integral_same
+    have hθ0 : (0:ℝ) ≤ θ 2 := Chebyshev.theta_nonneg 2
+    have hθ3 : θ 2 ≤ 3 := by
+      have h4 := theta_le_log4_mul_x (by norm_num : (0:ℝ) ≤ 2)
+      have hlog4 : Real.log 4 ≤ 1.4 := by
+        rw [show (4:ℝ) = 2 ^ 2 by norm_num, Real.log_pow]
+        push_cast
+        nlinarith [hlog2_hi]
+      nlinarith [h4, hlog4]
+    have hδ2 : δ 2 ≤ 2 := by
+      unfold δ
+      rw [hpi2, hLi2]
+      have hlogne : Real.log 2 ≠ 0 := (Real.log_pos (by norm_num)).ne'
+      have hform : ((1:ℝ) - 0) / ((2:ℝ) / Real.log 2) = Real.log 2 / 2 := by
+        field_simp
+        norm_num
+      rw [hform, abs_le]
+      constructor
+      · nlinarith [hθ0, hθ3, hlog2_lo, hlog2_hi]
+      · nlinarith [hθ0, hθ3, hlog2_lo, hlog2_hi]
+    have hδ0 : (0:ℝ) ≤ δ 2 := abs_nonneg _
+    have hbig : (2:ℝ) ^ (60:ℕ) ≤
+        admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 := by
+      unfold admissible_bound
+      rw [Real.log_exp, div_one, ← Real.sqrt_eq_rpow]
+      have hP : (1:ℝ) ≤ (20000:ℝ) ^ (1.5:ℝ) :=
+        Real.one_le_rpow (by norm_num) (by norm_num)
+      have hAP : (1:ℝ) ≤ A * (20000:ℝ) ^ (1.5:ℝ) := by nlinarith [hA, hP]
+      have hE : Real.exp (19880:ℝ) ≤
+          Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 := by
+        rw [← Real.exp_add]
+        apply Real.exp_le_exp.mpr
+        nlinarith [hs_hi]
+      have hEpos : (0:ℝ) < Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 :=
+        mul_pos (Real.exp_pos _) (Real.exp_pos _)
+      have hK : (2:ℝ) ^ (60:ℕ) ≤ Real.exp (19880:ℝ) := by
+        have h1 : Real.exp (19880:ℝ) = Real.exp 1 ^ (19880:ℕ) := by
+          rw [← Real.exp_nat_mul]
+          norm_num
+        rw [h1]
+        calc (2:ℝ) ^ (60:ℕ) ≤ (2:ℝ) ^ (19880:ℕ) :=
+              pow_le_pow_right₀ (by norm_num) (by norm_num)
+          _ ≤ Real.exp 1 ^ (19880:ℕ) := by
+              apply pow_le_pow_left₀ (by norm_num)
+              nlinarith [Real.exp_one_gt_d9]
+      have hstep : Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 ≤
+          (A * (20000:ℝ) ^ (1.5:ℝ)) *
+            (Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000) := by
+        nlinarith [mul_nonneg (by linarith [hAP] : (0:ℝ) ≤ A * (20000:ℝ) ^ (1.5:ℝ) - 1)
+          hEpos.le]
+      calc (2:ℝ) ^ (60:ℕ) ≤ Real.exp (19880:ℝ) := hK
+        _ ≤ Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 := hE
+        _ ≤ (A * (20000:ℝ) ^ (1.5:ℝ)) *
+              (Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000) := hstep
+        _ = A * (20000:ℝ) ^ (1.5:ℝ) * Real.exp (-0.8476 * Real.sqrt 20000) *
+              Real.exp 20000 := by ring
+    have hpow60 : ((2:ℝ) ^ (60:ℕ)) = 1152921504606846976 := by norm_num
+    have hfrac : (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 *
+        Real.log 2) ≤ 40000 / (1152921504606846976 * 0.6931471803) := by
+      gcongr
+      · norm_num
+      · nlinarith [hbig, hlog2_lo, hpow60]
+    calc (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 *
+        Real.log 2) * δ 2
+        ≤ 40000 / (1152921504606846976 * 0.6931471803) * 2 := by
+          apply mul_le_mul hfrac hδ2 hδ0 (by positivity)
+      _ ≤ 1e-11 := by norm_num
+  -- ===== Term 2: the Dawson term =====
+  have hzform : (0.8476:ℝ) / (2 * 1) = 0.4238 := by norm_num
+  rw [hzform]
+  set z := Real.sqrt 20000 - 0.4238 with hzdef
+  have hz_lo : (140.9975562 : ℝ) ≤ z := by rw [hzdef]; linarith
+  have hz_hi : z ≤ (140.9975563 : ℝ) := by rw [hzdef]; linarith
+  have hz_pos : (0:ℝ) < z := by linarith
+  have hD := dawson_le_sharp (z := z) (w := 0.117) (by norm_num) (by linarith) hz_pos
+  have b1 : 1 / (2 * z) ≤ 1 / (2 * 140.9975562) := by
+    gcongr
+  have b2 : Real.exp ((0.117:ℝ) ^ 2) / (4 * z ^ 3) ≤
+      1.0138790 / (4 * (140.9975562:ℝ) ^ 3) := by
+    gcongr
+  have b3 : (z - 0.117) * Real.exp (-(0.117 * (2 * z - 0.117))) ≤
+      141 * (1.3e-14 : ℝ) := by
+    have hexpo : Real.exp (-(0.117 * (2 * z - 0.117))) ≤ Real.exp (-(32:ℝ)) := by
+      apply Real.exp_le_exp.mpr
+      nlinarith [hz_lo]
+    have hzw : z - 0.117 ≤ 141 := by linarith
+    have hzw0 : (0:ℝ) ≤ z - 0.117 := by linarith
+    calc (z - 0.117) * Real.exp (-(0.117 * (2 * z - 0.117)))
+        ≤ 141 * Real.exp (-(32:ℝ)) := by
+          apply mul_le_mul hzw hexpo (Real.exp_nonneg _) (by norm_num)
+      _ ≤ 141 * 1.3e-14 := by nlinarith [hexp32]
+  have hDb : dawson z ≤ 1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) +
+      141 * 1.3e-14 := by linarith [hD, b1, b2, b3]
+  have hD0 : (0:ℝ) ≤ dawson z := dawson_nonneg hz_pos.le
+  have hT2 : 2 * dawson z / Real.sqrt 20000 ≤
+      2 * (1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) + 141 * 1.3e-14) /
+        141.4213562 := by
+    gcongr
+  linarith [hT1, hT2, show
+    (2:ℝ) * (1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) + 141 * 1.3e-14) /
+      141.4213562 + 1e-11 ≤ 5.01516e-5 from by norm_num]
+
 @[blueprint
   "fks2-corollary-22"
   (title := "FKS2 Corollary 22")
