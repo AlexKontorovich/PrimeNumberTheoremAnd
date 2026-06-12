@@ -249,6 +249,120 @@ theorem exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSumRemain
     · simpa [u6aReciprocalZeroSum_neg] using hrecTop
   exact ⟨T, hT₀, hT3, hmain T (c / Real.log T) hTout hT3 hgap hrecAll⟩
 
+/-! ## Audit verdict: the stated averaged-selection comparison is false -/
+
+/-- The stated comparison hypothesis is refutable for every admissible
+constant triple.  It quantifies over all dyadic indices `k` with only the
+upper coupling `2X + 2 < 2^(k+1)`, while its left side carries the crude
+geometric mass `C·3^k + D`; at a fixed gap-selected height, `k → ∞` drives
+the left side past any fixed `Crec log² T`. -/
+theorem u6aAC_averagedSelectionLogSqComparisonHypothesis_false
+    {C D Crec : ℝ} (hC : 0 < C) (hD : 0 ≤ D) :
+    ¬ U6aAveragedSelectionLogSqComparisonHypothesis C D Crec := by
+  rintro ⟨hCrec, hcomp⟩
+  obtain ⟨Ccnt, Tₘᵢₙ, hcnt⟩ := exists_u6aLocalZeroCountLogHypothesis
+  obtain ⟨c, hc, hsel⟩ :=
+    exists_arbitrarily_large_horizontalSegmentZeroGap_of_localDensity_proved
+      (-1) 2 (u6aAC_localZeroDensity_of_countAtom hcnt)
+  obtain ⟨T, _hTge, hT3, hgap⟩ := hsel 3
+  have hlogT : 0 < Real.log T := Real.log_pos (by linarith)
+  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  set X : ℝ := T / 2 with hXdef
+  have hX : 0 < X := by
+    rw [hXdef]
+    linarith
+  set η : ℝ := c / Real.log T with hηdef
+  have hη0 : 0 < η := div_pos hc hlogT
+  obtain ⟨k₀, hk₀⟩ := Real.exists_nat_le_two_pow
+    (max (2 * X + 3) (max ((X / (8 * η) + 1) / C)
+      ((Crec * Real.log T ^ 2 * X / (4 * Real.log 2) + 1) / C)))
+  have h2pow := hk₀ k₀ le_rfl
+  have h3pow : (2 : ℝ) ^ k₀ ≤ 3 ^ k₀ :=
+    pow_le_pow_left₀ (by norm_num) (by norm_num) k₀
+  have hpow3pos : (0 : ℝ) < 3 ^ k₀ := by positivity
+  have hC3pos : 0 < C * 3 ^ k₀ := mul_pos hC hpow3pos
+  have hscale : 2 * X + 2 < (2 : ℝ) ^ (k₀ + 1) := by
+    have h1 : 2 * X + 3 ≤ (2 : ℝ) ^ k₀ := (le_max_left _ _).trans h2pow
+    have h2 : (2 : ℝ) ^ k₀ ≤ 2 ^ (k₀ + 1) := by
+      rw [pow_succ]
+      nlinarith [show (0 : ℝ) < (2 : ℝ) ^ k₀ by positivity]
+    linarith
+  have hth1 : X / (8 * η) + 1 ≤ C * 3 ^ k₀ := by
+    have h1 : (X / (8 * η) + 1) / C ≤ (3 : ℝ) ^ k₀ :=
+      (((le_max_left _ _).trans (le_max_right _ _)).trans h2pow).trans h3pow
+    calc X / (8 * η) + 1
+        = ((X / (8 * η) + 1) / C) * C := (div_mul_cancel₀ _ hC.ne').symm
+      _ ≤ (3 : ℝ) ^ k₀ * C := mul_le_mul_of_nonneg_right h1 hC.le
+      _ = C * 3 ^ k₀ := by ring
+  have hth2 : Crec * Real.log T ^ 2 * X / (4 * Real.log 2) + 1 ≤ C * 3 ^ k₀ := by
+    have h1 : (Crec * Real.log T ^ 2 * X / (4 * Real.log 2) + 1) / C ≤
+        (3 : ℝ) ^ k₀ :=
+      (((le_max_right _ _).trans (le_max_right _ _)).trans h2pow).trans h3pow
+    calc Crec * Real.log T ^ 2 * X / (4 * Real.log 2) + 1
+        = ((Crec * Real.log T ^ 2 * X / (4 * Real.log 2) + 1) / C) * C :=
+          (div_mul_cancel₀ _ hC.ne').symm
+      _ ≤ (3 : ℝ) ^ k₀ * C := mul_le_mul_of_nonneg_right h1 hC.le
+      _ = C * 3 ^ k₀ := by ring
+  have hδpos : 0 < u6aCrudeDelta C D X k₀ := u6aCrudeDelta_pos k₀ hX hC.le hD
+  have hδ1 : u6aCrudeDelta C D X k₀ ≤ 1 := by
+    unfold u6aCrudeDelta
+    exact min_le_left _ _
+  have hδ_le : u6aCrudeDelta C D X k₀ ≤ X / (8 * (C * 3 ^ k₀ + D + 1)) := by
+    unfold u6aCrudeDelta
+    exact min_le_right _ _
+  have hden_pos : 0 < 8 * (C * 3 ^ k₀ + D + 1) := by nlinarith [hC3pos]
+  have hδ_le_η : u6aCrudeDelta C D X k₀ ≤ η := by
+    have h1 : X / (8 * η) ≤ C * 3 ^ k₀ - 1 := by linarith
+    have h2 : X ≤ (C * 3 ^ k₀ - 1) * (8 * η) := by
+      rwa [div_le_iff₀ (by positivity)] at h1
+    have h3 : X / (8 * (C * 3 ^ k₀ + D + 1)) ≤ η := by
+      rw [div_le_iff₀ hden_pos]
+      nlinarith [hη0, mul_nonneg hD hη0.le]
+    exact hδ_le.trans h3
+  have hmem : T ∈ u6aSafeHeightSet (-1) 2 X (u6aCrudeDelta C D X k₀) := by
+    simp only [u6aSafeHeightSet, Set.mem_setOf_eq]
+    refine ⟨Set.mem_Ioc.mpr ⟨?_, ?_⟩, ?_⟩
+    · rw [hXdef]
+      linarith
+    · rw [hXdef]
+      linarith
+    · exact ⟨hδpos,
+        fun z hz h0 => hδ_le_η.trans (hgap.2.1 z hz h0),
+        fun z hz h0 => hδ_le_η.trans (hgap.2.2 z hz h0)⟩
+  have hcontra := hcomp k₀ X T hX hT3 hmem hscale
+  unfold u6aAveragedSelectionBound at hcontra
+  have hlogδ : Real.log 2 ≤ Real.log (2 / u6aCrudeDelta C D X k₀) := by
+    apply Real.log_le_log (by norm_num)
+    rw [le_div_iff₀ hδpos]
+    linarith
+  have hfactor : 0 ≤ 4 * (C * 3 ^ k₀ + D) := by nlinarith [hC3pos]
+  have hlb : Crec * Real.log T ^ 2 <
+      4 * (C * 3 ^ k₀ + D) * Real.log (2 / u6aCrudeDelta C D X k₀) / X := by
+    rw [lt_div_iff₀ hX]
+    have h1 : Crec * Real.log T ^ 2 * X / (4 * Real.log 2) ≤ C * 3 ^ k₀ - 1 := by
+      linarith
+    have h2 : Crec * Real.log T ^ 2 * X ≤ (C * 3 ^ k₀ - 1) * (4 * Real.log 2) := by
+      rwa [div_le_iff₀ (by positivity)] at h1
+    have hstep1 : Crec * Real.log T ^ 2 * X < 4 * (C * 3 ^ k₀ + D) * Real.log 2 := by
+      nlinarith [hlog2, mul_nonneg hD hlog2.le]
+    have hstep2 : 4 * (C * 3 ^ k₀ + D) * Real.log 2 ≤
+        4 * (C * 3 ^ k₀ + D) * Real.log (2 / u6aCrudeDelta C D X k₀) :=
+      mul_le_mul_of_nonneg_left hlogδ hfactor
+    linarith
+  exact absurd hcontra (not_le.mpr hlb)
+
+/-- Consumer-shape refutation: the averaged-comparison input demanded by
+`exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSum_and_averagedComparison`
+is false, so that route can never be discharged as stated.  The replacement is
+`exists_arbitrarily_large_horizontalSegmentLogDerivBound_of_zeroSumRemainder`
+above, which needs only the zero-sum remainder hypothesis. -/
+theorem u6aAC_averagedComparison_input_false :
+    ¬ (∀ C D : ℝ, 0 < C → 0 ≤ D →
+      ∃ Crec : ℝ, U6aAveragedSelectionLogSqComparisonHypothesis C D Crec) := by
+  intro h
+  obtain ⟨Crec, hCrec⟩ := h 1 0 one_pos le_rfl
+  exact u6aAC_averagedSelectionLogSqComparisonHypothesis_false one_pos le_rfl hCrec
+
 end
 
 end Kadiri
