@@ -612,12 +612,12 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
     {b : ℝ} (hb : 0 < b)
     (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
+    (hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    (_hΦ_sum : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
+    (hΦ_sum : Summable (fun ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ) ↦
       (∫ y in (.Ioi (0 : ℝ)), φ y * exp (ρ.val * (y : ℂ)) ∂volume) *
         (riemannZeta.order ρ.val : ℂ)))
-    (_hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
+    (hΓ_int : MeasureTheory.Integrable (fun t : ℝ ↦
       ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
         ∫ y in (.Ioi (0 : ℝ)), φ y * exp ((1 / 2 + (t : ℂ) * I) * (y : ℂ)) ∂volume)) :
     let Φ : ℂ → ℂ := fun z ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-z * (y : ℂ)) ∂volume
@@ -689,14 +689,18 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
                   ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                     Φ (-(1 / 2 + (t : ℂ) * I)))
           + Φ (-1)
-          - (∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ),
-              Φ (-ρ.val)))) := by
+          - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ) (fun ρ ↦ Φ (-ρ)))) := by
     sorry
 
   -- The two limits agree (both are `lim I(T)`), giving the desired equation.
   have heq := tendsto_nhds_unique lim_I_from_eq11 lim_I_from_pieces
   rw [heq]
   push_cast
+  -- `ring_nf` normalizes the outer arithmetic, but cannot reach inside the opaque
+  -- `Φ(...)` and `(digamma _).re` applications. The remaining difference is purely
+  -- `mul_comm` on `(t : ℂ) * I` vs `I * (t : ℂ)` inside the integrand; unify by an
+  -- explicit `simp_rw` before normalization.
+  simp_rw [show ∀ (t : ℝ), (t : ℂ) * I = I * (t : ℂ) from fun _ => mul_comm _ _]
   ring
 
 /-! ## Machinery for deriving (16) from Theorem 3.1
