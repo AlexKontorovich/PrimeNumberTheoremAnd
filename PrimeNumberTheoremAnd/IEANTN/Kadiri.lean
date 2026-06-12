@@ -134,23 +134,25 @@ same two-sided transform. -/
 
 @[blueprint
   "kadiri-thm-3-1-q1-laplace-inversion"
-  (title := "Laplace inversion of $\\varphi$ at $y = \\log n$ for $n \\geq 1$")
+  (title := "Laplace inversion of $\\varphi$ at $y = \\log n$ for $n \\geq 2$")
   (statement := /-- For $\varphi$ satisfying hypotheses (A) and (B) of
   \ref{kadiri-thm-3-1-q1}, and any real $a$ with $0 < a < b$ and $a < 1$: for every
-  positive integer $n \geq 1$,
+  integer $n \geq 2$,
   $$ \varphi(\log n)
-     = \frac{1}{2\pi i}
-       \int_{-(1 + a) - i\infty}^{-(1 + a) + i\infty}
+     = \lim_{T \to \infty} \frac{1}{2\pi i}
+       \int_{-(1 + a) - iT}^{-(1 + a) + iT}
        \Phi(s)\, n^{s}\, ds, $$
   where $\Phi(s) := \int_{-\infty}^{\infty} \varphi(y)\, e^{-sy}\, dy$ is the two-sided
   Laplace transform of $\varphi$. The contour $\sigma = -(1 + a)$ lies inside the strip of
-  holomorphy of $\Phi$ given by (B). This is the displayed equation just before
-  \cite[(11)]{Kadiri2005}. -/)
-  (proof := /-- Standard inverse-Laplace theorem (e.g.\ Widder, \emph{The Laplace
-  Transform}, Ch.~III, Theorem~7.3). Hypotheses (A) (regularity / mean-value condition at
-  jumps) and (B) (the $O(1/|t|)$ decay of $\Phi$ on the strip) provide exactly what is
-  needed for the inversion integral to converge absolutely and recover $\varphi$ at
-  $y = \log n \geq 0$. To be formalised. -/)
+  holomorphy of $\Phi$ given by (B). The integral is a symmetric truncation: under (A)
+  and (B) alone $\Phi$ decays only like $1/|t|$ on the line when $\varphi(0) \neq 0$, so
+  the line integral need not converge absolutely. The restriction to $n \geq 2$ is all
+  that \ref{kadiri-thm-3-1-q1-eq-11} consumes, since $\Lambda(1) = 0$. This is the
+  displayed equation just before \cite[(11)]{Kadiri2005}. -/)
+  (proof := /-- Symmetric-truncation (principal value) Laplace/Fourier inversion at a
+  continuity point: hypothesis (A) gives $\varphi \in C^1$, so the Dirichlet/Dini
+  argument applies to $\varphi(y) e^{(1+a)y}$ at $y = \log n$, and (B) controls the
+  tails of the truncated integrals on the strip. To be formalised. -/)
   (latexEnv := "sublemma")
   (discussion := 1535)]
 theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
@@ -160,13 +162,15 @@ theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff 
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
-    {n : ℕ} (_hn : 1 ≤ n) :
+    {n : ℕ} (_hn : 2 ≤ n) :
     let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-    (φ (Real.log n) : ℂ) =
-      (1 / (2 * (Real.pi : ℂ))) *
-        ∫ t : ℝ,
-          Φ ((-(1 + a : ℝ) : ℂ) + (t : ℂ) * I) *
-            ((n : ℂ) ^ ((-(1 + a : ℝ) : ℂ) + (t : ℂ) * I)) := by
+    Filter.Tendsto
+      (fun T : ℝ ↦
+        (1 / (2 * (Real.pi : ℂ))) *
+          ∫ t in Set.Ioo (-T) T,
+            Φ ((-(1 + a : ℝ) : ℂ) + (t : ℂ) * I) *
+              ((n : ℂ) ^ ((-(1 + a : ℝ) : ℂ) + (t : ℂ) * I)))
+      Filter.atTop (nhds (φ (Real.log n))) := by
   sorry
 
 @[blueprint
@@ -514,8 +518,9 @@ theorem kadiri_thm_3_1_q1_shifted_eq_I123
   $\log(q/\pi) = -\log\pi$). -/)
   (proof := /-- The constant prefactor $\log(1/\pi)$ pulls out of the integral. The
   remaining $\tfrac{1}{2\pi i} \int_{-a - iT}^{-a + iT} \Phi(-s)\, ds$ tends to
-  $\varphi(0)$ as $T \to \infty$ by the Laplace-inversion identity at $y = 0$
-  (\ref{kadiri-thm-3-1-q1-laplace-inversion} specialized to $n = 1$, with a
+  $\varphi(0)$ as $T \to \infty$ by the symmetric-truncation inversion argument of
+  \ref{kadiri-thm-3-1-q1-laplace-inversion} at $y = 0$ (a continuity point of
+  $\varphi$, since the transform is two-sided there is no jump; with a
   change of variable $s \mapsto -s$ that maps the $\sigma = -a$ contour back to
   $\sigma = a$). To be formalised. -/)
   (latexEnv := "sublemma")
