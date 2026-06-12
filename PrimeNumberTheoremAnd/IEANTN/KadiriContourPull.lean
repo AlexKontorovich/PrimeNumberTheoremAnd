@@ -6,6 +6,7 @@ Authors: Robby Sneiderman
 import PrimeNumberTheoremAnd.IEANTN.KadiriContourShift
 import PrimeNumberTheoremAnd.IEANTN.KadiriFunctionalEquation
 import PrimeNumberTheoremAnd.IEANTN.KadiriGoodHeights
+import PrimeNumberTheoremAnd.IEANTN.KadiriU6aEndpointClose
 import PrimeNumberTheoremAnd.Backlund.ZeroCountCrude
 import PrimeNumberTheoremAnd.ZetaConj
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
@@ -305,22 +306,11 @@ theorem integrable_left_line_neg_logDeriv_mul {Φ : ℂ → ℂ} {a b : ℝ}
   exact integrable_of_norm_le_log_div_sq
     (continuous_left_line_integrand ha ha1 hΦ_cont) hC
 
-/-! ## The good-heights bound (sub-unit U6a) -/
+/-! ## The good-heights bound (sub-unit U6a)
 
-/-- Sub-unit U6a (banked gap; classical target): there exist arbitrarily large heights
-`T` at which `‖ζ'/ζ(σ + iT)‖ ≤ C·log²T` uniformly on the strip `σ ∈ [σ₁, σ₂]`.
-Classically this follows from the partial-fraction expansion of `ζ'/ζ` over the zeros
-in unit boxes around height `T` (the in-tree crude counting majorant
-`Backlund.zetaCounting_crude_majorant` bounds the number of such zeros) after choosing
-`T` to stay `≫ 1/log T` away from every zero ordinate; the in-tree bounds
-`LogDerivZetaBnd`/`LogDerivZetaBndUnif` cover the part of the segment with
-`σ ≥ 1 - A/log⁹T`, and the functional-equation transport of
-`KadiriFunctionalEquation` covers `σ ≤ 0`; the critical-strip middle is the open
-part. A panel derivation of this bound is in flight as the cross-check. -/
-lemma exists_arbitrarily_large_horizontalSegmentLogDerivBound (σ₁ σ₂ : ℝ) :
-    ∃ C : ℝ, 0 < C ∧ ∀ T₀ : ℝ, ∃ T : ℝ, T₀ ≤ T ∧ 3 ≤ T ∧
-      horizontalSegmentLogDerivBound σ₁ σ₂ T C := by
-  sorry
+`exists_arbitrarily_large_horizontalSegmentLogDerivBound` is proved in
+`KadiriU6aEndpointClose` (three-region clip over the unconditional zero-sum
+remainder and local zero-count bounds) and imported here. -/
 
 /-! ## The rectangle limit along a sequence of heights -/
 
