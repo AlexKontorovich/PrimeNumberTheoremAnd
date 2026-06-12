@@ -30,6 +30,7 @@ import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.IEANTN.FKS2
 import PrimeNumberTheoremAnd.IEANTN.Goldbach
 import PrimeNumberTheoremAnd.IEANTN.Kadiri
+import PrimeNumberTheoremAnd.IEANTN.KadiriContourPull
 import PrimeNumberTheoremAnd.IEANTN.KadiriContourShift
 import PrimeNumberTheoremAnd.IEANTN.KadiriLaplaceInversion
 import PrimeNumberTheoremAnd.IEANTN.KadiriFunctionalEquation
@@ -40,6 +41,11 @@ import PrimeNumberTheoremAnd.IEANTN.KadiriU6aFarTailClose
 import PrimeNumberTheoremAnd.IEANTN.KadiriU6aAvgComparison
 import PrimeNumberTheoremAnd.IEANTN.KadiriU6aEndpointClose
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq1618Assembly
+import PrimeNumberTheoremAnd.IEANTN.KadiriU8Close
+import PrimeNumberTheoremAnd.IEANTN.KadiriU8LeftLine
+import PrimeNumberTheoremAnd.IEANTN.KadiriU8RightLine
+import PrimeNumberTheoremAnd.IEANTN.KadiriU8TestFn
+import PrimeNumberTheoremAnd.IEANTN.KadiriU8Wiring
 import PrimeNumberTheoremAnd.IEANTN.KLN
 import PrimeNumberTheoremAnd.IEANTN.Lcm
 import PrimeNumberTheoremAnd.IEANTN.Li2Bounds

@@ -2042,7 +2042,7 @@ theorem weighted_cumulative_count_le (k : ℕ) :
     · have h1 : |(x.1 : ℂ).im| < (2 : ℝ) ^ (k + 1) := x.property
       rw [abs_of_neg hx2] at h1
       simpa [Complex.conj_im] using h1
-    · change riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
+    · show riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
       rw [riemannZeta_conj, x.1.property.2.2, map_zero]
   have hzero : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
       ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤

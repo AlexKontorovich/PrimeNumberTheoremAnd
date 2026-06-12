@@ -89,17 +89,27 @@ def U8ZeroWindowLimit (Φ : ℂ → ℂ) (σL σR : ℝ) (T : ℕ → ℝ) : Pro
     (𝓝 (riemannZeta.zeroes_sum (Set.Ioo (0 : ℝ) 1) (Set.univ : Set ℝ)
       fun ρ => Φ (-ρ)))
 
-/-- Right-line inversion target.  The real Kadiri pole-split wrapper below is
-the local discharge for the corresponding Mellin inversion layer. -/
+/-- Right-line inversion target.  On `Re = σR > 1` the normalized vertical
+integral is minus the von Mangoldt series: Mellin inversion against the
+Dirichlet series, term by term.  Statement audit 2026-06-12: the `Φ 0` kernel
+value recorded here earlier belongs to the left-line split (it is the `z = 0`
+residue crossed when the digamma piece of the functional-equation identity is
+shifted rightward to the critical line); no mechanism on the right line
+produces it.  The total `hRight - hLeft`, which is all the assembly consumes,
+is unchanged by the move. -/
 def U8RightLineInversionHypothesis (φ : ℝ → ℂ) (Φ : ℂ → ℂ) (σR : ℝ) : Prop :=
-  u8NormalizedVertical Φ σR = u8Phi φ 0 - u8FormulaLHS φ
+  u8NormalizedVertical Φ σR = -u8FormulaLHS φ
 
-/-- Left-line functional-equation split target.  The sign convention is the
-one needed after moving the left vertical integral across the contour identity. -/
+/-- Left-line functional-equation split target: the constant, reflected-series
+and digamma terms together with the transform value `Φ 0`, the kernel value
+picked up at `z = 0` (residue of the `-1/z` rational term of the symmetric
+functional-equation log-derivative identity) when the digamma piece is shifted
+rightward to the critical line.  The sign convention is the one needed after
+moving the left vertical integral across the contour identity. -/
 def U8LeftLineFunctionalEquationSplitHypothesis
     (φ : ℝ → ℂ) (Φ : ℂ → ℂ) (σL : ℝ) : Prop :=
   u8NormalizedVertical Φ σL =
-    -(u8PiLogTerm φ + u8ReflectedVonMangoldtTerm φ + u8GammaContourTerm φ)
+    -(Φ 0 + u8PiLogTerm φ + u8ReflectedVonMangoldtTerm φ + u8GammaContourTerm φ)
 
 /-- The literal contour-pull target is the vertical-line split used by the
 equation (16)-(18) algebra. -/
