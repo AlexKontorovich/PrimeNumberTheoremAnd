@@ -220,21 +220,26 @@ noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
                     \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds
              \;+\; \Phi(-1) \;-\; \!\!\!\!\!\!
                     \sum_{\substack{\rho \in Z(\zeta) \\ |\Im \rho| < T}}
-                    \!\!\!\! \Phi(-\rho). $$
+                    \!\!\!\! \mathrm{ord}_\zeta(\rho)\, \Phi(-\rho). $$
   This is equation (12) of \cite{Kadiri2005}, page~12, specialized to $q = 1$
   ($\delta_{q,1} = 1$, $\mathfrak{a} = 0$, so the residue contribution
   $-(-\delta_{q,1}\Phi(-1) + \tfrac{1}{2}(1-\delta_{q,1})(1-\mathfrak{a})\Phi(0)
-  + \sum_\rho \Phi(-\rho))$ collapses to $\Phi(-1) - \sum_\rho \Phi(-\rho)$); the
+  + \sum_\rho \Phi(-\rho))$ collapses to
+  $\Phi(-1) - \sum_\rho \mathrm{ord}_\zeta(\rho)\, \Phi(-\rho)$); the
   $\rho$-sum is over the non-trivial zeros enclosed by the rectangle (i.e.\ those with
-  $|\Im \rho| < T$). -/)
+  $|\Im \rho| < T$), weighted by their multiplicity
+  $\mathrm{ord}_\zeta(\rho) := -\mathrm{ord}\,\zeta\!\restriction_{\rho}$
+  (the order of $\rho$ as a zero of $\zeta$). -/)
   (proof := /-- Apply the residue theorem to $(-\zeta'/\zeta)(s) \Phi(-s)$ on the
   counterclockwise rectangle with vertices $1+a-iT$, $1+a+iT$, $-a+iT$, $-a-iT$.
-  Between $\sigma = -a$ and $\sigma = 1+a$, the integrand has simple poles only at
-  $s = 1$ (residue $+\Phi(-1)$, from the simple pole of $\zeta$ at $s = 1$) and at each
-  non-trivial zero $s = \rho \in Z(\zeta)$ with $|\Im \rho| < T$ (residue
-  $-\Phi(-\rho)$). [Note: $\zeta(0) = -1/2 \neq 0$, so there is no pole at $s = 0$; the
-  trivial zeros at $s = -2, -4, \ldots$ all lie to the left of $\sigma = -a$ and are
-  not enclosed.] To be formalised. -/)
+  Between $\sigma = -a$ and $\sigma = 1+a$, the integrand has poles only at $s = 1$
+  (a simple pole of $-\zeta'/\zeta$ with residue $+\Phi(-1)$, from the simple pole of
+  $\zeta$ at $s = 1$) and at each non-trivial zero $s = \rho \in Z(\zeta)$ with
+  $|\Im \rho| < T$ (a pole of $-\zeta'/\zeta$ with residue
+  $-\mathrm{ord}_\zeta(\rho)\, \Phi(-\rho)$, weighted by the multiplicity of $\rho$).
+  [Note: $\zeta(0) = -1/2 \neq 0$, so there is no pole at $s = 0$; the trivial zeros
+  at $s = -2, -4, \ldots$ all lie to the left of $\sigma = -a$ and are not enclosed.]
+  To be formalised. -/)
   (latexEnv := "sublemma")]
 theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     {b : ℝ} (_hb : 0 < b)
@@ -265,7 +270,7 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
               riemannZeta ((σ : ℂ) + ((-T : ℝ) : ℂ) * I)) *
             Φ (-((σ : ℂ) + ((-T : ℝ) : ℂ) * I)))
       + Φ (-1)
-      - ∑' ρ : riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo (-T) T), Φ (-ρ.val) := by
+      - riemannZeta.zeroes_sum (.Ioo 0 1) (.Ioo (-T) T) (fun ρ ↦ Φ (-ρ)) := by
   sorry
 
 @[blueprint
@@ -1712,7 +1717,7 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
         (fun ρ ↦ (f 0 : ℂ) / (s - ρ) - laplaceTransform f (s - ρ)) := by
     unfold riemannZeta.zeroes_sum
     refine tsum_congr fun ρ ↦ ?_
-    show (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
+    change (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
         exp (-(-ρ.val) * (y : ℂ)) ∂volume) * (riemannZeta.order ρ.val : ℂ) =
       ((f 0 : ℂ) / (s - ρ.val) - laplaceTransform f (s - ρ.val)) *
         (riemannZeta.order ρ.val : ℂ)
@@ -1750,14 +1755,14 @@ theorem identity_16_complex_weighted {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
             (s - (1 / 2 + (t : ℂ) * I)) ^ 2) := by
     rw [← MeasureTheory.integral_neg]
     refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun t ↦ ?_)
-    show ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
+    change ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
         (∫ y in (.Ioi (0 : ℝ)), kadiriTestFn f s y *
           exp (-(-(1 / 2 + (t : ℂ) * I)) * (y : ℂ)) ∂volume) =
       -(((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
           laplaceTransform (fun u ↦ deriv (deriv f) u) (s - (1 / 2 + (t : ℂ) * I)) /
             (s - (1 / 2 + (t : ℂ) * I)) ^ 2)
     have h12 : ((1 : ℂ) / 2 + (t : ℂ) * I).re = 1 / 2 := by
-      simp [Complex.add_re, Complex.div_re, Complex.mul_re]
+      simp [Complex.add_re, Complex.mul_re]
     have hre : (0 : ℝ) < (s + -(1 / 2 + (t : ℂ) * I)).re := by
       simp only [Complex.add_re, Complex.neg_re, h12]
       linarith
@@ -2795,6 +2800,6 @@ theorem eq_5 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ} (hf_nonneg : ∀ t, 0 ≤ 
       T2 f (s + (δ : ℂ)) := rfl
   rw [hLHS, h1.2, h2.2, hZeros, hT1s, hT1sd, hT2s, hT2sd]
   simp only [Δ1, Δ2, D]
-  ring
+  ring_nf
 
 end Kadiri
