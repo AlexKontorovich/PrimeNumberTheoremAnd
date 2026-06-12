@@ -270,7 +270,7 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
 
 @[blueprint
   "kadiri-thm-3-1-q1-top-horizontal-vanishes"
-  (title := "Top horizontal integral in \\cite[(12)]{Kadiri2005} vanishes as $T \\to \\infty$")
+  (title := "Top horizontal integral in eq.~(12) of \\cite{Kadiri2005} vanishes as $T \\to \\infty$")
   (statement := /-- Under the hypotheses of \ref{kadiri-thm-3-1-q1-eq-11}:
   $$ \lim_{T \to \infty}
        \frac{1}{2\pi i} \int_{-a + iT}^{1 + a + iT}
@@ -304,7 +304,7 @@ theorem kadiri_thm_3_1_q1_top_horizontal_vanishes
 
 @[blueprint
   "kadiri-thm-3-1-q1-bot-horizontal-vanishes"
-  (title := "Bottom horizontal integral in \\cite[(12)]{Kadiri2005} vanishes as $T \\to \\infty$")
+  (title := "Bottom horizontal integral in eq.~(12) of \\cite{Kadiri2005} vanishes as $T \\to \\infty$")
   (statement := /-- Under the hypotheses of \ref{kadiri-thm-3-1-q1-eq-11}:
   $$ \lim_{T \to \infty}
        \frac{1}{2\pi i} \int_{-a - iT}^{1 + a - iT}
