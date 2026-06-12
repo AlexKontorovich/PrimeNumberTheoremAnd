@@ -718,8 +718,11 @@ Composition of the eleven sublemmas above. -/
   (title := "Theorem 3.1 of \\cite{Kadiri2005}, case $q = 1$, $\\chi$ trivial")
   (statement := /-- Let $\varphi \colon \mathbb{R} \to \mathbb{C}$ be $C^1$ and suppose there
   exists $b > 0$ such that both $\varphi(x) e^{x/2}$ and $\varphi'(x) e^{x/2}$ are
-  $O(e^{-(1/2 + b)|x|})$ as $|x| \to \infty$. Define the Laplace transform
-  $\Phi(z) := \int_0^{\infty} \varphi(y) e^{-zy}\, dy$. Then
+  $O(e^{-(1/2 + b)|x|})$ as $|x| \to \infty$. Define the two-sided Laplace transform
+  $\Phi(z) := \int_{-\infty}^{\infty} \varphi(y) e^{-zy}\, dy$ (the decay hypotheses
+  make it entire in the strip of interest; the reflected sum
+  $\sum_n \Lambda(n) \varphi(-\log n)/n$ enters with the minus sign exactly in this
+  two-sided normalization). Then
   $$ \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n)
      = \Phi(-1) + \Phi(0) - \sum_{\rho \in Z(\zeta)} \Phi(-\rho)
        - \varphi(0)\, \log \pi
@@ -1824,7 +1827,6 @@ theorem kadiriTestFn_log (f : ℝ → ℝ) (s : ℂ) {n : ℕ} (hn : 1 ≤ n) :
   simp only [kadiriTestFn, this, ↓reduceIte, natCast_log, neg_mul, exp_neg,
     Complex.cpow_def_of_ne_zero hn0, division_def, mul_eq_mul_left_iff, inv_inj]
   left; ring_nf
-
 
 /-- Weighted complex form of equation (16), derived from the explicit formula
 `kadiri_thm_3_1_q1` at the Kadiri test function. The zero sum carries the
