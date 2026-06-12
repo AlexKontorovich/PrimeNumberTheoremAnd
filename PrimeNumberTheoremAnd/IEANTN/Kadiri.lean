@@ -341,30 +341,38 @@ theorem kadiri_thm_3_1_q1_bot_horizontal_vanishes
 @[blueprint
   "kadiri-thm-3-1-q1-functional-eq"
   (title := "Functional equation of $-\\zeta'/\\zeta$ in log-derivative form")
-  (statement := /-- For every $s \in \mathbb{C}$ such that neither $s$ nor $1 - s$ is a
-  pole or non-trivial zero of $\zeta$,
+  (statement := /-- For every $s \in \mathbb{C}$ such that $\zeta(s) \neq 0$,
+  $\zeta(1 - s) \neq 0$, $s \neq 1$, and $s \neq 0$,
   $$ -\frac{\zeta'}{\zeta}(s) \;=\; \log\frac{1}{\pi}
-                                 \;-\; \frac{\zeta'}{\zeta}(1-s)
+                                 \;+\; \frac{\zeta'}{\zeta}(1-s)
                                  \;+\; \frac{1}{2}\!\left\{
                                        \frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)
                                      + \frac{\Gamma'}{\Gamma}\!\Big(\frac{1-s}{2}\Big)
                                        \right\}. $$
   This is the displayed equation just before $I_1, I_2, I_3$ are defined on
   \cite[p.~12]{Kadiri2005}, specialized from the general Dirichlet $L$-function form to
-  $q = 1$ (so $L = \zeta$, $\bar\chi = \chi$, $\mathfrak{a} = 0$). -/)
+  $q = 1$ (so $L = \zeta$, $\bar\chi = \chi$, $\mathfrak{a} = 0$). The hypotheses
+  $\zeta(s), \zeta(1-s) \neq 0$ exclude both the non-trivial zeros (those in the
+  critical strip) and the trivial zeros $s, 1-s \in \{-2, -4, \ldots\}$ where the
+  $\zeta'/\zeta$ terms would otherwise be degenerate. -/)
   (proof := /-- Take the logarithmic derivative of the completed-zeta functional equation
   $\zeta(s)\, \Gamma(s/2)\, \pi^{-s/2}
       = \zeta(1-s)\, \Gamma((1-s)/2)\, \pi^{-(1-s)/2}$
-  (with appropriate $(s-1)$ regularization at $s = 1$) and solve for $-\zeta'/\zeta(s)$.
+  (with appropriate $(s-1)$ regularization at $s = 1$). Differentiating both sides with
+  respect to $s$ gives
+  $\zeta'/\zeta(s) + \tfrac{1}{2}\Gamma'/\Gamma(s/2) - \tfrac{1}{2}\log\pi
+   = -\zeta'/\zeta(1-s) - \tfrac{1}{2}\Gamma'/\Gamma((1-s)/2) + \tfrac{1}{2}\log\pi$,
+  and solving for $-\zeta'/\zeta(s)$ yields the stated identity (note the chain-rule
+  sign from $d(1-s)/ds = -1$ giving the $+\zeta'/\zeta(1-s)$ term).
   To be formalised. -/)
   (latexEnv := "sublemma")]
 theorem kadiri_thm_3_1_q1_functional_eq {s : ℂ}
     (_hs1 : s ≠ 1) (_hs0 : s ≠ 0)
-    (_hsZ : s ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ))
-    (_hsZbar : (1 - s) ∉ riemannZeta.zeroes_rect (.Ioo 0 1) (.univ : Set ℝ)) :
+    (_hζs : riemannZeta s ≠ 0)
+    (_hζ1s : riemannZeta (1 - s) ≠ 0) :
     -deriv riemannZeta s / riemannZeta s =
       ((-Real.log Real.pi : ℝ) : ℂ)
-      - deriv riemannZeta (1 - s) / riemannZeta (1 - s)
+      + deriv riemannZeta (1 - s) / riemannZeta (1 - s)
       + (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) := by
   sorry
 
@@ -381,12 +389,16 @@ noncomputable def kadiri_thm_3_1_q1_I_1 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
 
 /-- Kadiri's $I_2(T)$ from \cite[p.~12]{Kadiri2005}: the reflected Dirichlet-series piece,
 $$ I_2(T) := \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
-              \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(1-s)\, \Phi(-s)\, ds. $$ -/
+              \frac{\zeta'}{\zeta}(1-s)\, \Phi(-s)\, ds. $$
+Sign: $+\zeta'/\zeta(1-s)$ comes from substituting the (corrected) functional equation
+$-\zeta'/\zeta(s) = -\log\pi + \zeta'/\zeta(1-s) + \tfrac{1}{2}\{\Gamma'/\Gamma(s/2) +
+\Gamma'/\Gamma((1-s)/2)\}$ into the integrand of the $\sigma = -a$ integral and reading
+off the middle term. -/
 noncomputable def kadiri_thm_3_1_q1_I_2 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
   let Φ : ℂ → ℂ := fun s ↦ ∫ y in (.Ioi (0 : ℝ)), φ y * exp (-s * (y : ℂ)) ∂volume
   (1 / (2 * (Real.pi : ℂ))) *
     ∫ t in Set.Ioo (-T) T,
-      (-deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
+      (deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
           riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I))) *
         Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
 
@@ -474,18 +486,30 @@ theorem kadiri_thm_3_1_q1_eq_13
   (title := "Equation (14) of \\cite{Kadiri2005}: limit of $I_2(T)$")
   (statement := /-- Under the hypotheses of \ref{kadiri-thm-3-1-q1-eq-11}:
   $$ \lim_{T \to \infty} I_2(T) \;=\;
-       \sum_{n \geq 1} \frac{\Lambda(n)}{n}\, \varphi(-\log n). $$
+       -\sum_{n \geq 1} \frac{\Lambda(n)}{n}\, \varphi(-\log n). $$
   Specialization of equation~(14) of \cite{Kadiri2005}, page~12, to $q = 1$ (so
   $\bar\chi = \chi = 1$ and the reflected Dirichlet series reduces to
-  $\sum_n \Lambda(n)/n^{1-s}$). -/)
+  $\sum_n \Lambda(n)/n^{1-s}$).
+
+  \emph{Sign correction:} The paper states this limit as $+\sum_n \Lambda(n)/n
+  \cdot \varphi(-\log n)$, but this is a downstream consequence of the sign typo in
+  the paper's functional equation on \cite[p.~12]{Kadiri2005}, which we correct in
+  \ref{kadiri-thm-3-1-q1-functional-eq}. With the corrected functional equation
+  (sign $+\zeta'/\zeta(1-s)$ rather than $-\zeta'/\zeta(1-s)$), $I_2(T)$ has
+  integrand $+\zeta'/\zeta(1-s)\, \Phi(-s)$, the Dirichlet expansion contributes
+  an extra minus sign, and the limit picks up the corresponding minus. See the
+  parallel correction in \ref{kadiri-thm-3-1-q1}'s main statement (the
+  $-\sum_n \Lambda(n)/n \cdot \varphi(-\log n)$ term). -/)
   (proof := /-- On the contour $\sigma = -a$, write $1 - s = (1 + a) - i\Im s$ so
-  $\Re(1 - s) = 1 + a > 1$, and expand the Dirichlet series
-  $-\zeta'/\zeta(1-s) = \sum_n \Lambda(n) n^{-(1-s)}$ absolutely. Exchange sum and
-  integral (justified by absolute convergence and the $O(1/|t|)$ decay of $\Phi$);
-  apply \ref{kadiri-thm-3-1-q1-laplace-inversion} at $y = -\log n$ to identify the
-  inner integral as $n^a \varphi(-\log n)$, and combine with the $n^{-(1+a)}$ from the
-  Dirichlet series to get $\sum_n (\Lambda(n)/n)\, \varphi(-\log n)$. To be
-  formalised. -/)
+  $\Re(1 - s) = 1 + a > 1$, and use the Dirichlet series
+  $\zeta'/\zeta(1-s) = -\sum_n \Lambda(n) n^{-(1-s)}$ (von Mangoldt with a leading
+  minus). The integrand $\zeta'/\zeta(1-s)\, \Phi(-s)$ thus expands as
+  $-\sum_n \Lambda(n) n^{-(1-s)} \Phi(-s)$. Exchange sum and integral (justified by
+  absolute convergence and the $O(1/|t|)$ decay of $\Phi$); apply
+  \ref{kadiri-thm-3-1-q1-laplace-inversion} at $y = -\log n$ to identify the inner
+  integral as $n^a \varphi(-\log n)$, and combine with the $n^{-(1+a)}$ from the
+  Dirichlet series and the overall minus to get $-\sum_n (\Lambda(n)/n)\,
+  \varphi(-\log n)$. To be formalised. -/)
   (latexEnv := "sublemma")]
 theorem kadiri_thm_3_1_q1_eq_14
     {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
@@ -497,7 +521,7 @@ theorem kadiri_thm_3_1_q1_eq_14
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
     Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I_2 φ a T)
       Filter.atTop
-      (nhds (∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
+      (nhds (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
   sorry
 
 @[blueprint
@@ -575,7 +599,7 @@ Composition of the eleven sublemmas above. -/
   $$ \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n)
      = \Phi(-1) + \Phi(0) - \sum_{\rho \in Z(\zeta)} \Phi(-\rho)
        - \varphi(0)\, \log \pi
-       + \sum_{n \geq 1} \tfrac{\Lambda(n)}{n}\, \varphi(-\log n)
+       - \sum_{n \geq 1} \tfrac{\Lambda(n)}{n}\, \varphi(-\log n)
        + \tfrac{1}{2 \pi i} \int_{1/2 - i\infty}^{1/2 + i\infty}
            \Re \tfrac{\Gamma'}{\Gamma}\!\left( \tfrac{z}{2} \right) \Phi(-z)\, dz, $$
   where the $\rho$-sum runs over the non-trivial zeros of $\zeta$.
@@ -584,8 +608,17 @@ Composition of the eleven sublemmas above. -/
   \cite[Theorem 3.1]{Kadiri2005}. The $\Phi(-1)$ term comes from the simple pole of $\zeta$
   at $z = 1$ (and is absent for non-trivial $\chi$); the $\varphi(0)\log\pi$ term and the
   $\Gamma$-integral come from the gamma factor in the functional equation of $\zeta$; the
-  $\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ term is the contribution from the reflected
-  ($z \leftrightarrow 1 - z$) Dirichlet series. -/)
+  $-\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ term is the contribution from the
+  reflected ($z \leftrightarrow 1 - z$) Dirichlet series.
+
+  \emph{Typo correction:} \cite[Theorem 3.1, p.~11]{Kadiri2005} states this identity with
+  $+\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ (positive sign), but this is a downstream
+  consequence of the sign typo in the paper's functional equation on \cite[p.~12]{Kadiri2005}
+  (see \ref{kadiri-thm-3-1-q1-functional-eq}). Numerical verification (e.g.\ at $s = 2$)
+  confirms the sign here is negative. The paper's downstream applications, including
+  equation (16) and the chapter's main zero-free-region argument, are unaffected by this
+  typo because they specialize to a test function for which $\varphi(-\log n) = 0$ for all
+  $n \geq 1$. -/)
   (proof := /-- Composition of the eleven preceding sublemmas. Pick any
   $0 < a < \min(b, 1)$ and any $T > 0$.
 
@@ -605,7 +638,7 @@ Composition of the eleven sublemmas above. -/
   The $\sigma = -a$ integral equals $I_1(T) + I_2(T) + I_3(T)$ by
   \ref{kadiri-thm-3-1-q1-shifted-eq-I123}, with $T \to \infty$ limits given by
   \ref{kadiri-thm-3-1-q1-eq-13} ($\to -\varphi(0) \log\pi$),
-  \ref{kadiri-thm-3-1-q1-eq-14} ($\to \sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$),
+  \ref{kadiri-thm-3-1-q1-eq-14} ($\to -\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$),
   and \ref{kadiri-thm-3-1-q1-eq-15} ($\to \Phi(0) +
   \tfrac{1}{2\pi i} \int_{(1/2)} \Re[\Gamma'/\Gamma(s/2)]\, \Phi(-s)\, ds$).
 
@@ -630,7 +663,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
       Φ (-1) + Φ 0
         - riemannZeta.zeroes_sum (.Ioo 0 1) (.univ : Set ℝ) (fun ρ ↦ Φ (-ρ))
         - φ 0 * ((Real.log Real.pi : ℝ) : ℂ)
-        + ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n)
+        - ∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n)
         + (1 / (2 * (Real.pi : ℂ))) *
             ∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
@@ -687,7 +720,7 @@ theorem kadiri_thm_3_1_q1 {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
       Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I φ a T) Filter.atTop
         (nhds
           (φ 0 * ((-Real.log Real.pi : ℝ) : ℂ)
-          + (∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))
+          + (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))
           + (Φ 0
             + (1 / (2 * (Real.pi : ℂ))) *
                 ∫ t : ℝ,
