@@ -636,7 +636,14 @@ theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
                   \Phi(-s)\, ds. $$
   Specialization of equation~(15) of \cite{Kadiri2005}, page~13, to $q = 1$
   ($\mathfrak{a} = 0$, so $(1 - \mathfrak{a})\Phi(0) = \Phi(0)$ in Kadiri's
-  $\mathfrak{a}$-dependent form). -/)
+  $\mathfrak{a}$-dependent form).
+
+  The hypothesis on the critical-line integrand makes the Lebesgue integral on the
+  right-hand side agree with Kadiri's symmetric improper integral: hypotheses (A) and (B)
+  alone give only $O(1/|t|)$ decay of $\Phi$ against the $\log|t|$ growth of
+  $\Re[\Gamma'/\Gamma]$, so the integrand need not be Lebesgue integrable, in which case
+  the formalised integral takes the junk value $0$ while $I_3(T)$ still converges (to the
+  improper value). The same hypothesis is carried by \ref{kadiri-thm-3-1-q1}. -/)
   (proof := /-- Shift the contour of $I_3(T)$ from $\sigma = -a$ to $\sigma = 1/2$.
   The integrand $\tfrac{1}{2}\{\Gamma'/\Gamma(s/2) + \Gamma'/\Gamma((1-s)/2)\}\, \Phi(-s)$
   has a simple pole at $s = 0$ from $\Gamma'/\Gamma(s/2) \sim -2/s$ near $s = 0$, with
