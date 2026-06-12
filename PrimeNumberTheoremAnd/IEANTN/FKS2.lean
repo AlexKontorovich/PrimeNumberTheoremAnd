@@ -300,6 +300,164 @@ lemma dawson_pos {x : ℝ} (hx : x > 0) : dawson x > 0 := by
     (intervalIntegral.integral_pos hx (by fun_prop)
       (fun t _ ↦ (exp_pos _).le) ⟨0, Set.mem_Icc.mpr ⟨le_rfl, hx.le⟩, exp_pos _⟩)
 
+/-- Substituted form: `dawson z = ∫₀^z exp (u² − 2zu) du`. -/
+lemma dawson_eq_integral (z : ℝ) :
+    dawson z = ∫ u in (0:ℝ)..z, exp (u ^ 2 - 2 * z * u) := by
+  unfold dawson
+  have hsub : (∫ t in (0:ℝ)..z, exp (t ^ 2)) =
+      ∫ u in (0:ℝ)..z, exp ((z - u) ^ 2) := by
+    have := intervalIntegral.integral_comp_sub_left (a := (0:ℝ)) (b := z)
+      (fun t => exp (t ^ 2)) z
+    simpa using this.symm
+  rw [hsub, ← intervalIntegral.integral_const_mul]
+  apply intervalIntegral.integral_congr
+  intro u _
+  show exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
+  rw [← Real.exp_add]
+  congr 1
+  ring
+
+/-- `∫₀^w e^{−2zu} du ≤ 1/(2z)`. -/
+private lemma integral_exp_neg_mul_le {z w : ℝ} (hz : 0 < z) :
+    (∫ u in (0:ℝ)..w, exp (-(2 * z) * u)) ≤ 1 / (2 * z) := by
+  have hderiv : ∀ u ∈ Set.uIcc (0:ℝ) w,
+      HasDerivAt (fun u => -(exp (-(2 * z) * u) / (2 * z))) (exp (-(2 * z) * u)) u := by
+    intro u _
+    have h1 : HasDerivAt (fun u : ℝ => -(2 * z) * u) (-(2 * z)) u := by
+      simpa using (hasDerivAt_id u).const_mul (-(2 * z))
+    have h2 : HasDerivAt (fun u : ℝ => exp (-(2 * z) * u))
+        (exp (-(2 * z) * u) * (-(2 * z))) u := (Real.hasDerivAt_exp _).comp u h1
+    have h3 := (h2.div_const (2 * z)).neg
+    convert h3 using 1
+    field_simp
+  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
+    (by apply Continuous.intervalIntegrable; continuity)]
+  have hE : 0 ≤ exp (-(2 * z) * w) / (2 * z) :=
+    div_nonneg (exp_nonneg _) (by positivity)
+  have h0 : exp (-(2 * z) * 0) = 1 := by norm_num
+  rw [h0]
+  linarith
+
+/-- `∫₀^w u² e^{−2zu} du ≤ 1/(4z³)` via the explicit antiderivative. -/
+private lemma integral_sq_mul_exp_le {z w : ℝ} (hz : 0 < z) (hw : 0 ≤ w) :
+    (∫ u in (0:ℝ)..w, u ^ 2 * exp (-(2 * z) * u)) ≤ 1 / (4 * z ^ 3) := by
+  have hderiv : ∀ u ∈ Set.uIcc (0:ℝ) w,
+      HasDerivAt
+        (fun u => -(exp (-(2 * z) * u) * (u ^ 2 / (2 * z) + u / (2 * z ^ 2) + 1 / (4 * z ^ 3))))
+        (u ^ 2 * exp (-(2 * z) * u)) u := by
+    intro u _
+    have h1 : HasDerivAt (fun u : ℝ => -(2 * z) * u) (-(2 * z)) u := by
+      simpa using (hasDerivAt_id u).const_mul (-(2 * z))
+    have h2 : HasDerivAt (fun u : ℝ => exp (-(2 * z) * u))
+        (exp (-(2 * z) * u) * (-(2 * z))) u := (Real.hasDerivAt_exp _).comp u h1
+    have hp2 : HasDerivAt (fun u : ℝ => u ^ 2) (2 * u) u := by
+      simpa using hasDerivAt_pow 2 u
+    have h3 : HasDerivAt
+        (fun u : ℝ => u ^ 2 / (2 * z) + u / (2 * z ^ 2) + 1 / (4 * z ^ 3))
+        (2 * u / (2 * z) + 1 / (2 * z ^ 2)) u :=
+      ((hp2.div_const (2 * z)).add ((hasDerivAt_id u).div_const (2 * z ^ 2))).add_const
+        (1 / (4 * z ^ 3))
+    have hprod := (h2.mul h3).neg
+    convert hprod using 1
+    have hz' : z ≠ 0 := hz.ne'
+    field_simp
+    ring
+  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
+    (by apply Continuous.intervalIntegrable; continuity)]
+  have hPw : 0 ≤ exp (-(2 * z) * w) * (w ^ 2 / (2 * z) + w / (2 * z ^ 2) + 1 / (4 * z ^ 3)) := by
+    apply mul_nonneg (exp_nonneg _)
+    have t1 : (0:ℝ) ≤ w ^ 2 / (2 * z) := div_nonneg (sq_nonneg w) (by positivity)
+    have t2 : (0:ℝ) ≤ w / (2 * z ^ 2) := div_nonneg hw (by positivity)
+    have t3 : (0:ℝ) ≤ 1 / (4 * z ^ 3) := by positivity
+    linarith
+  have h0 : exp (-(2 * z) * 0) * ((0:ℝ) ^ 2 / (2 * z) + 0 / (2 * z ^ 2) + 1 / (4 * z ^ 3)) =
+      1 / (4 * z ^ 3) := by
+    norm_num
+  rw [h0]
+  linarith
+
+/-- `e^x ≤ 1 + x e^c` for `0 ≤ x ≤ c` (from `1 − x ≤ e^{−x}`). -/
+private lemma exp_le_one_add_mul_exp {x c : ℝ} (hx : 0 ≤ x) (hxc : x ≤ c) :
+    exp x ≤ 1 + x * exp c := by
+  have h1 : 1 - x ≤ exp (-x) := by
+    have := Real.add_one_le_exp (-x)
+    linarith
+  have h2 : exp x * (1 - x) ≤ 1 := by
+    calc exp x * (1 - x) ≤ exp x * exp (-x) :=
+          mul_le_mul_of_nonneg_left h1 (exp_nonneg _)
+      _ = 1 := by rw [← Real.exp_add]; simp
+  have h3 : exp x ≤ exp c := Real.exp_le_exp.mpr hxc
+  nlinarith [exp_nonneg x, mul_nonneg hx (exp_nonneg x)]
+
+/-- Sharp Dawson upper bound: for `0 ≤ w ≤ z`,
+`dawson z ≤ 1/(2z) + e^{w²}/(4z³) + (z−w)·e^{−w(2z−w)}`.
+
+Refines `dawson x ≤ 1/x` to the true leading term `1/(2z)` with explicitly
+controlled corrections; a moderate `w` makes the last two terms negligible
+for large `z`. This is the estimate behind the numerical bound on
+`μ_asymp` in Corollary 22. -/
+theorem dawson_le_sharp {z w : ℝ} (hw0 : 0 ≤ w) (hwz : w ≤ z) (hz : 0 < z) :
+    dawson z ≤ 1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) +
+      (z - w) * exp (-(w * (2 * z - w))) := by
+  rw [dawson_eq_integral]
+  have hint : ∀ a b : ℝ,
+      IntervalIntegrable (fun u => exp (u ^ 2 - 2 * z * u)) volume a b := by
+    intro a b
+    apply Continuous.intervalIntegrable
+    continuity
+  rw [← intervalIntegral.integral_add_adjacent_intervals (a := (0:ℝ)) (b := w) (c := z)
+    (hint 0 w) (hint w z)]
+  have head : (∫ u in (0:ℝ)..w, exp (u ^ 2 - 2 * z * u)) ≤
+      1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) := by
+    have hptw : ∀ u ∈ Set.Icc (0:ℝ) w,
+        exp (u ^ 2 - 2 * z * u) ≤
+          exp (-(2 * z) * u) + exp (w ^ 2) * (u ^ 2 * exp (-(2 * z) * u)) := by
+      intro u hu
+      have hsplit : exp (u ^ 2 - 2 * z * u) = exp (u ^ 2) * exp (-(2 * z) * u) := by
+        rw [← Real.exp_add]
+        congr 1
+        ring
+      rw [hsplit]
+      have hb := exp_le_one_add_mul_exp (sq_nonneg u)
+        (by nlinarith [hu.1, hu.2] : u ^ 2 ≤ w ^ 2)
+      have hepos : (0:ℝ) ≤ exp (-(2 * z) * u) := exp_nonneg _
+      nlinarith [hb, hepos]
+    have hmono := intervalIntegral.integral_mono_on hw0 (hint 0 w)
+      (by apply Continuous.intervalIntegrable; continuity) hptw
+    have hlin : (∫ u in (0:ℝ)..w,
+          (exp (-(2 * z) * u) + exp (w ^ 2) * (u ^ 2 * exp (-(2 * z) * u)))) =
+        (∫ u in (0:ℝ)..w, exp (-(2 * z) * u)) +
+          exp (w ^ 2) * (∫ u in (0:ℝ)..w, u ^ 2 * exp (-(2 * z) * u)) := by
+      rw [intervalIntegral.integral_add
+        (by apply Continuous.intervalIntegrable; continuity)
+        (by apply Continuous.intervalIntegrable; continuity),
+        intervalIntegral.integral_const_mul]
+    have hgeom := integral_exp_neg_mul_le (w := w) hz
+    have hsq := integral_sq_mul_exp_le (w := w) hz hw0
+    have hew : (0:ℝ) ≤ exp (w ^ 2) := exp_nonneg _
+    calc (∫ u in (0:ℝ)..w, exp (u ^ 2 - 2 * z * u))
+        ≤ _ := hmono
+      _ = _ := hlin
+      _ ≤ 1 / (2 * z) + exp (w ^ 2) * (1 / (4 * z ^ 3)) := by
+          have := mul_le_mul_of_nonneg_left hsq hew
+          linarith
+      _ = 1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) := by ring
+  have tail : (∫ u in w..z, exp (u ^ 2 - 2 * z * u)) ≤
+      (z - w) * exp (-(w * (2 * z - w))) := by
+    have hptw : ∀ u ∈ Set.Icc w z,
+        exp (u ^ 2 - 2 * z * u) ≤ exp (-(w * (2 * z - w))) := by
+      intro u hu
+      apply Real.exp_le_exp.mpr
+      nlinarith [hu.1, hu.2]
+    calc (∫ u in w..z, exp (u ^ 2 - 2 * z * u))
+        ≤ ∫ _u in w..z, exp (-(w * (2 * z - w))) :=
+          intervalIntegral.integral_mono_on hwz (hint w z)
+            _root_.intervalIntegrable_const hptw
+      _ = (z - w) * exp (-(w * (2 * z - w))) := by
+          rw [intervalIntegral.integral_const]
+          ring
+  linarith [head, tail]
+
 private lemma hasDerivAt_exp_sq (x : ℝ) : HasDerivAt (fun t ↦ exp (t^2)) (2 * x * exp (x^2)) x := by
   have h : HasDerivAt (fun t : ℝ ↦ t ^ 2) (2 * x) x := by
     have h := hasDerivAt_pow 2 x; rw [show (2 : ℕ) - 1 = 1 from rfl, pow_one] at h
