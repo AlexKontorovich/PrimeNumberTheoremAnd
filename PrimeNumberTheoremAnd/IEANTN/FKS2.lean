@@ -4330,6 +4330,67 @@ theorem mu_asymp_num_le {A : ℝ} (hA : 1 ≤ A) :
     (2:ℝ) * (1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) + 141 * 1.3e-14) /
       141.4213562 + 1e-11 ≤ 5.01516e-5 from by norm_num]
 
+/-- The substituted profile `A t³ e^{−Ct}` is antitone for `t ≥ 3/C`. -/
+lemma cube_mul_exp_antitoneOn {A C : ℝ} (hA : 0 ≤ A) (hC : 0 < C) :
+    AntitoneOn (fun t => A * t ^ 3 * Real.exp (-C * t)) (Set.Ici (3 / C)) := by
+  have hderiv : ∀ t : ℝ, HasDerivAt (fun t => A * t ^ 3 * Real.exp (-C * t))
+      (A * (3 * t ^ 2) * Real.exp (-C * t) +
+        A * t ^ 3 * (Real.exp (-C * t) * (-C))) t := by
+    intro t
+    have h1 : HasDerivAt (fun t : ℝ => A * t ^ 3) (A * (3 * t ^ 2)) t := by
+      simpa using (hasDerivAt_pow 3 t).const_mul A
+    have h2 : HasDerivAt (fun t : ℝ => -C * t) (-C) t := by
+      simpa using (hasDerivAt_id t).const_mul (-C)
+    have h3 : HasDerivAt (fun t : ℝ => Real.exp (-C * t))
+        (Real.exp (-C * t) * (-C)) t := (Real.hasDerivAt_exp _).comp t h2
+    exact h1.mul h3
+  apply antitoneOn_of_deriv_nonpos (convex_Ici _)
+  · exact (Continuous.continuousOn (by continuity))
+  · intro t ht
+    exact (hderiv t).differentiableAt.differentiableWithinAt
+  · intro t ht
+    rw [interior_Ici] at ht
+    rw [(hderiv t).deriv]
+    have htC : 3 ≤ C * t := by
+      rw [Set.mem_Ioi] at ht
+      have := (div_lt_iff₀ hC).mp ht
+      linarith
+    have hexp : (0:ℝ) ≤ Real.exp (-C * t) := Real.exp_nonneg _
+    have ht0 : (0:ℝ) ≤ t := by
+      rw [Set.mem_Ioi] at ht
+      have : (0:ℝ) < 3 / C := by positivity
+      linarith
+    nlinarith [sq_nonneg t, mul_nonneg (mul_nonneg hA (sq_nonneg t)) hexp,
+      mul_nonneg (mul_nonneg (mul_nonneg hA ht0) (sq_nonneg t)) hexp]
+
+/-- `admissible_bound A 1.5 C 1` is antitone beyond `log x ≥ (3/C)²`:
+the workhorse for step-function interpolation against Tables 4/5. -/
+lemma admissible_bound_anti {A C x y : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
+    (hx : (3 / C) ^ 2 ≤ Real.log x) (hxy : x ≤ y) (hx0 : 0 < x) :
+    admissible_bound A 1.5 C 1 y ≤ admissible_bound A 1.5 C 1 x := by
+  unfold admissible_bound
+  rw [div_one, div_one]
+  have hLx : (0:ℝ) ≤ Real.log x := le_trans (by positivity) hx
+  have hLxy : Real.log x ≤ Real.log y :=
+    Real.log_le_log hx0 hxy
+  have hLy : (0:ℝ) ≤ Real.log y := le_trans hLx hLxy
+  -- rewrite both sides through t = √(log ·)
+  have key : ∀ L : ℝ, 0 ≤ L →
+      A * L ^ (1.5:ℝ) * Real.exp (-C * L ^ ((1:ℝ)/(2:ℝ))) =
+        A * (Real.sqrt L) ^ 3 * Real.exp (-C * Real.sqrt L) := by
+    intro L hL
+    rw [Real.sqrt_eq_rpow, ← Real.rpow_natCast (L ^ ((1:ℝ)/2)) 3,
+      ← Real.rpow_mul hL]
+    norm_num
+  rw [key _ hLx, key _ hLy]
+  have htx : 3 / C ≤ Real.sqrt (Real.log x) := by
+    have h := Real.sqrt_le_sqrt hx
+    rwa [Real.sqrt_sq (by positivity : (0:ℝ) ≤ 3 / C)] at h
+  have hty : Real.sqrt (Real.log x) ≤ Real.sqrt (Real.log y) :=
+    Real.sqrt_le_sqrt hLxy
+  exact cube_mul_exp_antitoneOn hA hC
+    (Set.mem_Ici.mpr htx) (Set.mem_Ici.mpr (le_trans htx hty)) hty
+
 @[blueprint
   "fks2-corollary-22"
   (title := "FKS2 Corollary 22")
