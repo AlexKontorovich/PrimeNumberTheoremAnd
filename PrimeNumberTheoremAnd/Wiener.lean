@@ -387,6 +387,56 @@ theorem vectorMeasure_integral_Ioc_fourierChar_eq_re_add_I_im
   exact vectorMeasure_integral_eq_re_add_I_im_of_integrable hvar.vectorMeasure
     (he.indicator measurableSet_Ioc)
 
+theorem tendsto_vectorMeasure_integral_Ioc_fourierChar
+    (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) :
+    Tendsto
+      (fun n : ℕ => VectorMeasure.integral hvar.vectorMeasure
+        ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ))
+        (ContinuousLinearMap.mul ℝ ℂ))
+      atTop
+      (𝓝 (VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ))) := by
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) := by
+    have hvariation :
+        (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ :=
+      hvar.vectorMeasure_variation_univ_le_eVariationOn
+    exact ne_top_of_le_ne_top hvar hvariation
+  letI : IsFiniteMeasure (hvar.vectorMeasure).variation :=
+    IsFiniteMeasure.mk (lt_top_iff_ne_top.mpr hμ_ne_top)
+  let μv : Measure ℝ := (hvar.vectorMeasure).variation
+  let T : Set ℝ → ℂ →L[ℝ] ℂ :=
+    cbmApplyMeasure hvar.vectorMeasure (ContinuousLinearMap.mul ℝ ℂ)
+  let hT : DominatedFinMeasAdditive μv T 1 :=
+    dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation hvar.vectorMeasure
+  have hf_int : Integrable (e u : ℝ → ℂ) μv :=
+    BoundedContinuousFunction.integrable μv (e u)
+  have hfs_int : ∀ n : ℕ,
+      Integrable ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)) μv := by
+    intro n
+    exact hf_int.indicator measurableSet_Ioc
+  have hcover : AECover μv atTop (fun n : ℕ => Set.Ioc (-(n : ℝ)) (n : ℝ)) :=
+    aecover_Ioc
+      (tendsto_neg_atBot_iff.mpr
+        (tendsto_natCast_atTop_atTop : Tendsto (fun n : ℕ => (n : ℝ)) atTop atTop))
+      (tendsto_natCast_atTop_atTop : Tendsto (fun n : ℕ => (n : ℝ)) atTop atTop)
+  have hset :
+      Tendsto
+        (fun n : ℕ => setToFun μv T hT
+          ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)))
+        atTop
+        (𝓝 (setToFun μv T hT (e u : ℝ → ℂ))) := by
+    refine tendsto_setToFun_of_dominated_convergence hT (fun _ : ℝ => ‖e u‖) ?_ ?_ ?_ ?_
+    · intro n
+      exact ((e u).continuous.aestronglyMeasurable).indicator measurableSet_Ioc
+    · exact integrable_const _
+    · intro n
+      refine ae_of_all μv fun x => ?_
+      exact (norm_indicator_le_norm_self (e u : ℝ → ℂ) x).trans
+        (BoundedContinuousFunction.norm_coe_le_norm (e u) x)
+    · exact hcover.ae_tendsto_indicator (e u : ℝ → ℂ)
+  rw [← setToFun_mul_complex_variation_eq_integral hvar.vectorMeasure hf_int]
+  exact hset.congr' (Eventually.of_forall fun n =>
+    setToFun_mul_complex_variation_eq_integral hvar.vectorMeasure (hfs_int n))
+
 def vectorMeasure_integral_fourierChar_eq_IBP (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
   vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u →
