@@ -1,4 +1,5 @@
 import Mathlib.MeasureTheory.Integral.BoundedContinuousFunction
+import Mathlib.MeasureTheory.Measure.Complex
 import Mathlib.MeasureTheory.VectorMeasure.Integral
 
 open Set MeasureTheory VectorMeasure ContinuousLinearMap
@@ -160,6 +161,87 @@ theorem vectorMeasure_integral_mul_complex_const (μ : VectorMeasure X ℂ)
   rw [← Set.indicator_univ (fun _ : X => x)]
   exact vectorMeasure_integral_mul_complex_indicator_const μ MeasurableSet.univ
     (measure_ne_top _ _) x
+
+namespace Measure
+
+noncomputable abbrev toComplexMeasureZero (μ : Measure X) [IsFiniteMeasure μ] :
+    VectorMeasure X ℂ :=
+  μ.toSignedMeasure.toComplexMeasure 0
+
+theorem toComplexMeasureZero_apply (μ : Measure X) [IsFiniteMeasure μ] {s : Set X}
+    (hs : MeasurableSet s) :
+    μ.toComplexMeasureZero s = (μ.real s : ℂ) := by
+  classical
+  change { re := if MeasurableSet s then μ.real s else 0, im := (0 : ℝ) } =
+    (μ.real s : ℂ)
+  rw [if_pos hs]
+  rfl
+
+theorem toComplexMeasureZero_variation_le (μ : Measure X) [IsFiniteMeasure μ] :
+    μ.toComplexMeasureZero.variation ≤ μ := by
+  refine variation_le_of_forall_enorm_le ?_
+  intro s hs
+  have hnorm : ‖μ.toComplexMeasureZero s‖ ≤ μ.real s := by
+    rw [toComplexMeasureZero_apply μ hs]
+    rw [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (show 0 ≤ μ.real s from measureReal_nonneg)]
+  calc
+    ‖μ.toComplexMeasureZero s‖ₑ = ENNReal.ofReal ‖μ.toComplexMeasureZero s‖ := by
+      exact (ofReal_norm _).symm
+    _ ≤ ENNReal.ofReal (μ.real s) := ENNReal.ofReal_le_ofReal hnorm
+    _ = μ s := ENNReal.ofReal_toReal (measure_ne_top μ s)
+
+end Measure
+
+theorem dominatedFinMeasAdditive_cbmApplyMeasure_toComplexMeasureZero_mul_complex
+    (μ : Measure X) [IsFiniteMeasure μ] :
+    DominatedFinMeasAdditive μ
+      (cbmApplyMeasure μ.toComplexMeasureZero (ContinuousLinearMap.mul ℝ ℂ) :
+        Set X → ℂ →L[ℝ] ℂ) 1 := by
+  refine ⟨fun _s _t hs ht _ _ hdisj =>
+    cbmApplyMeasure_union _ _ hs ht hdisj, fun s hs _hsf => ?_⟩
+  have hnormμ : ‖μ.toComplexMeasureZero s‖ ≤ μ.real s := by
+    rw [Measure.toComplexMeasureZero_apply μ hs]
+    rw [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (show 0 ≤ μ.real s from measureReal_nonneg)]
+  calc
+    ‖cbmApplyMeasure μ.toComplexMeasureZero (ContinuousLinearMap.mul ℝ ℂ) s‖
+        ≤ ‖(ContinuousLinearMap.mul ℝ ℂ : ℂ →L[ℝ] ℂ →L[ℝ] ℂ)‖ *
+            ‖μ.toComplexMeasureZero s‖ :=
+      norm_cbmApplyMeasure_le μ.toComplexMeasureZero (ContinuousLinearMap.mul ℝ ℂ) s
+    _ ≤ 1 * ‖μ.toComplexMeasureZero s‖ := by
+      exact mul_le_mul_of_nonneg_right (ContinuousLinearMap.opNorm_mul_le ℝ ℂ) (norm_nonneg _)
+    _ ≤ 1 * μ.real s :=
+      mul_le_mul_of_nonneg_left hnormμ zero_le_one
+
+theorem vectorMeasure_integral_toComplexMeasureZero_mul_eq_integral
+    (μ : Measure X) [IsFiniteMeasure μ] {g : X → ℂ} (hg : Integrable g μ) :
+    VectorMeasure.integral μ.toComplexMeasureZero g (ContinuousLinearMap.mul ℝ ℂ) =
+      ∫ x, g x ∂μ := by
+  rw [← setToFun_mul_complex_variation_eq_integral μ.toComplexMeasureZero]
+  · rw [integral_eq_setToFun]
+    have hvar_le := Measure.toComplexMeasureZero_variation_le μ
+    have hdomμ := dominatedFinMeasAdditive_cbmApplyMeasure_toComplexMeasureZero_mul_complex μ
+    calc
+      setToFun μ.toComplexMeasureZero.variation
+          (cbmApplyMeasure μ.toComplexMeasureZero (ContinuousLinearMap.mul ℝ ℂ))
+          (dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation
+            μ.toComplexMeasureZero) g
+          = setToFun μ
+              (cbmApplyMeasure μ.toComplexMeasureZero (ContinuousLinearMap.mul ℝ ℂ))
+              hdomμ g := by
+            exact (setToFun_congr_measure_of_integrable 1 ENNReal.one_ne_top
+              (by simpa using hvar_le) hdomμ
+              (dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation
+                μ.toComplexMeasureZero) g hg).symm
+      _ = setToFun μ (weightedSMul μ) (dominatedFinMeasAdditive_weightedSMul μ) g := by
+            exact setToFun_congr_left' hdomμ (dominatedFinMeasAdditive_weightedSMul μ)
+              (fun s hs _hfin => by
+                ext z
+                rw [cbmApplyMeasure_apply, Measure.toComplexMeasureZero_apply μ hs,
+                  weightedSMul_apply]
+                simp [mul_comm]) g
+  · exact hg.mono_measure (Measure.toComplexMeasureZero_variation_le μ)
 
 theorem norm_setToFun_mul_complex_variation_le_of_norm_le (μ : VectorMeasure X ℂ)
     {g : X → ℂ} {C : ℝ} (hg : Integrable g μ.variation) (hC : 0 ≤ C)

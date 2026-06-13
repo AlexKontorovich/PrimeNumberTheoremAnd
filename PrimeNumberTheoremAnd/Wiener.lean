@@ -341,6 +341,22 @@ lemma fourierIntegral_eq_rightLim_of_boundedVariationOn
   exact congr_fun (VectorFourier.fourierIntegral_congr_ae 𝐞 volume (innerₗ ℝ)
     (BoundedVariationOn.ae_eq_rightLim_complex hvar)) u
 
+def vectorMeasure_integral_eq_re_add_I_im (ψ : ℝ → ℂ) (_hψ : Integrable ψ)
+    (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
+  VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ) =
+    VectorMeasure.integral
+        ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0)
+        (e u) (ContinuousLinearMap.mul ℝ ℂ) +
+      VectorMeasure.integral
+        ((0 : SignedMeasure ℝ).toComplexMeasure (ComplexMeasure.im hvar.vectorMeasure))
+        (e u) (ContinuousLinearMap.mul ℝ ℂ)
+
+def vectorMeasure_integral_fourierChar_eq_IBP (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
+  vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u →
+    (((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) * 𝓕 (ψ : ℝ → ℂ) u =
+      VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)
+
 lemma prelim_decay_2_of_vectorMeasure_fourier_identity
     (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) (hu : u ≠ 0)
     (hbridge :
@@ -384,8 +400,11 @@ and the claim then follows from the triangle inequality. -/)
   (latexEnv := "lemma")
   (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
-    (u : ℝ) (hu : u ≠ 0) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by sorry
+    (u : ℝ) (hu : u ≠ 0)
+    (hreim : vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u)
+    (hibp : vectorMeasure_integral_fourierChar_eq_IBP ψ hψ hvar u) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
+  exact prelim_decay_2_of_vectorMeasure_fourier_identity ψ hvar u hu (hibp hreim)
 
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
