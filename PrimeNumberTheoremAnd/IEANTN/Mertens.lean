@@ -996,6 +996,165 @@ private theorem logZetaCoeff_LSeries_eq_integral (s : ℝ) (hs : 1 < s) :
     LSeries_eq_mul_integral_of_nonneg logZetaCoeff hr (s := (((s - 1 : ℝ) : ℂ))) hsr
       (logZetaCoeff_partial_sum_isBigO_rpow (by linarith)) logZetaCoeff_nonneg
 
+private lemma logZetaCoeff_LSeriesSummable (s : ℝ) (hs : 1 < s) :
+    LSeriesSummable (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ)) := by
+  have hr : 0 ≤ (s - 1) / 2 := by linarith
+  have hsr : (s - 1) / 2 < ((((s - 1 : ℝ) : ℂ)) : ℂ).re := by
+    simp
+    linarith
+  exact LSeriesSummable_of_sum_norm_bigO_and_nonneg
+    (logZetaCoeff_partial_sum_isBigO_rpow (by linarith)) logZetaCoeff_nonneg hr hsr
+
+private lemma eulerLogTerm_eq_ofReal {s : ℝ} (hs : 1 < s) (p : Nat.Primes) :
+    -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) =
+      ((-Real.log (1 - (p : ℝ) ^ (-s)) : ℝ) : ℂ) := by
+  have hpow : (p : ℂ) ^ (-(s : ℂ)) = (((p : ℝ) ^ (-s) : ℝ) : ℂ) := by
+    simpa [Complex.ofReal_natCast, Complex.ofReal_neg] using
+      (Complex.ofReal_cpow (show 0 ≤ (p : ℝ) by positivity) (-s)).symm
+  have hpos : 0 ≤ 1 - (p : ℝ) ^ (-s) := by
+    exact (sub_pos.mpr
+      (Real.rpow_lt_one_of_one_lt_of_neg (by exact_mod_cast p.2.one_lt) (by linarith))).le
+  have hsub :
+      (1 : ℂ) - (((p : ℝ) ^ (-s) : ℝ) : ℂ) =
+        ((1 - (p : ℝ) ^ (-s) : ℝ) : ℂ) := by
+    norm_num [Complex.ofReal_sub]
+  rw [hpow, hsub, ← Complex.ofReal_log hpos]
+  norm_num
+
+private lemma summable_eulerLogTerm {s : ℝ} (hs : 1 < s) :
+    Summable fun p : Nat.Primes => -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) := by
+  have h := DirichletCharacter.summable_neg_log_one_sub_mul_prime_cpow
+    (1 : DirichletCharacter ℂ 1) (s := (s : ℂ)) (by simpa using hs)
+  refine h.congr ?_
+  intro p
+  have hχ : (1 : DirichletCharacter ℂ 1) p = 1 := by
+    exact congr_fun (DirichletCharacter.modOne_eq_one (χ := (1 : DirichletCharacter ℂ 1)))
+      (p : ℕ)
+  rw [hχ, one_mul]
+
+private lemma eulerProduct_log_im_zero {s : ℝ} (hs : 1 < s) :
+    (∑' p : Nat.Primes, -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ)))).im = 0 := by
+  rw [Complex.im_tsum (summable_eulerLogTerm hs)]
+  convert tsum_zero with p
+  rw [eulerLogTerm_eq_ofReal hs p]
+  simp
+
+private lemma eulerProduct_log_re_eq_log_zeta {s : ℝ} (hs : 1 < s) :
+    (∑' p : Nat.Primes, -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ)))).re =
+      log (riemannZeta (s : ℂ)).re := by
+  let z : ℂ := ∑' p : Nat.Primes, -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ)))
+  have him : z.im = 0 := by
+    simpa [z] using eulerProduct_log_im_zero hs
+  have hexp : Complex.exp z = riemannZeta (s : ℂ) := by
+    simpa [z] using riemannZeta_eulerProduct_exp_log (s := (s : ℂ)) (by simpa using hs)
+  have hzeta_re : (riemannZeta (s : ℂ)).re = Real.exp z.re := by
+    rw [← hexp, Complex.exp_re, him, Real.cos_zero, mul_one]
+  calc
+    z.re = log (riemannZeta (s : ℂ)).re := by
+      rw [hzeta_re, Real.log_exp]
+
+private lemma logZetaCoeff_prime_pow (p : Nat.Primes) (k : ℕ) :
+    logZetaCoeff (p ^ (k + 1)) =
+      (1 : ℝ) / ((k + 1 : ℝ) * (p : ℝ) ^ (k + 1)) := by
+  have hp : Nat.Prime (p : ℕ) := p.2
+  have hk : k + 1 ≠ 0 := by omega
+  have hlog : Real.log (p : ℝ) ≠ 0 := by
+    exact (Real.log_pos (by exact_mod_cast hp.one_lt)).ne'
+  dsimp [logZetaCoeff]
+  rw [ArithmeticFunction.vonMangoldt_apply_pow hk, ArithmeticFunction.vonMangoldt_apply_prime hp]
+  rw [Nat.cast_pow, Real.log_pow]
+  field_simp [hlog]
+  norm_num [Nat.cast_add, Nat.cast_one]
+
+private lemma cpow_prime_pow_neg (p : Nat.Primes) (k : ℕ) (s : ℝ) :
+    ((p : ℂ) ^ (k + 1)) ^ (-(s : ℂ)) = ((p : ℂ) ^ (-(s : ℂ))) ^ (k + 1) := by
+  have harg : (p : ℂ).arg = 0 := by simp
+  rw [← Complex.cpow_nat_mul']
+  · rw [Complex.cpow_nat_mul]
+  · rw [harg]
+    simpa using Real.pi_pos
+  · rw [harg]
+    nlinarith [Real.pi_pos]
+
+private lemma inv_mul_cpow_one_sub {a : ℂ} (ha : a ≠ 0) (s : ℝ) :
+    a⁻¹ * a ^ (1 - (s : ℂ)) = a ^ (-(s : ℂ)) := by
+  rw [show (1 - (s : ℂ)) = 1 + -(s : ℂ) by ring]
+  rw [Complex.cpow_add _ _ ha, Complex.cpow_one]
+  field_simp [ha]
+
+private lemma logZetaCoeff_LSeries_term_prime_pow {s : ℝ} (p : Nat.Primes) (k : ℕ) :
+    LSeries.term (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ))
+        (p ^ (k + 1)) =
+      ((p : ℂ) ^ (-(s : ℂ))) ^ (k + 1) / ((k + 1 : ℕ) : ℂ) := by
+  have hf0 : (fun n : ℕ => (logZetaCoeff n : ℂ)) 0 = 0 := by simp [logZetaCoeff]
+  have hp_ne : ((p : ℂ) ^ (k + 1)) ≠ 0 := by
+    exact pow_ne_zero _ (by exact_mod_cast p.2.ne_zero)
+  rw [LSeries.term_def₀ hf0]
+  rw [logZetaCoeff_prime_pow]
+  norm_num [Complex.ofReal_div, Complex.ofReal_mul, Complex.ofReal_pow]
+  change
+    ((p : ℂ) ^ (k + 1))⁻¹ * ((k : ℂ) + 1)⁻¹ *
+        ((p : ℂ) ^ (k + 1)) ^ (1 - (s : ℂ)) =
+      ((p : ℂ) ^ (-(s : ℂ))) ^ (k + 1) / ((k : ℂ) + 1)
+  rw [show
+      ((p : ℂ) ^ (k + 1))⁻¹ * ((k : ℂ) + 1)⁻¹ *
+          ((p : ℂ) ^ (k + 1)) ^ (1 - (s : ℂ)) =
+        ((k : ℂ) + 1)⁻¹ *
+          (((p : ℂ) ^ (k + 1))⁻¹ * ((p : ℂ) ^ (k + 1)) ^ (1 - (s : ℂ))) by
+    ring]
+  rw [inv_mul_cpow_one_sub hp_ne s, cpow_prime_pow_neg p k s]
+  ring
+
+private lemma logZetaCoeff_LSeries_inner_tsum_prime_power {s : ℝ} (hs : 1 < s)
+    (p : Nat.Primes) :
+    (∑' k : ℕ, LSeries.term (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ))
+        (p ^ (k + 1))) =
+      -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) := by
+  have hz_norm : ‖(p : ℂ) ^ (-(s : ℂ))‖ < 1 := by
+    have hnorm : ‖(p : ℂ) ^ (-(s : ℂ))‖ = (p : ℝ) ^ (-s) := by
+      simpa [Complex.ofReal_natCast] using
+        (Complex.norm_cpow_eq_rpow_re_of_pos
+          (show 0 < (p : ℝ) by exact_mod_cast p.2.pos) (-(s : ℂ)))
+    rw [hnorm]
+    exact Real.rpow_lt_one_of_one_lt_of_neg (by exact_mod_cast p.2.one_lt) (by linarith)
+  have hsum := Complex.hasSum_taylorSeries_neg_log hz_norm
+  rw [← hsum.tsum_eq]
+  rw [hsum.summable.tsum_eq_zero_add]
+  simp only [pow_zero, Nat.cast_zero, div_zero, zero_add]
+  congr
+  ext k
+  simpa [logZetaCoeff, Complex.ofReal_div, Complex.ofReal_mul,
+    Complex.ofReal_log (Nat.cast_nonneg _)] using
+    logZetaCoeff_LSeries_term_prime_pow (s := s) p k
+
+private lemma support_logZetaCoeff_LSeriesTerm_subset_primePowers {z : ℂ} :
+    Function.support (LSeries.term (fun n : ℕ => (logZetaCoeff n : ℂ)) z) ⊆
+      {n | IsPrimePow n} := by
+  intro n hn
+  rw [Function.mem_support] at hn
+  change IsPrimePow n
+  rw [← vonMangoldt_ne_zero_iff]
+  intro hΛ
+  apply hn
+  rw [LSeries.term]
+  split_ifs with hn0
+  · rfl
+  · simp [logZetaCoeff, hΛ]
+
+private lemma logZetaCoeff_LSeries_eq_eulerProduct_log (s : ℝ) (hs : 1 < s) :
+    LSeries (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ)) =
+      ∑' p : Nat.Primes, -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) := by
+  rw [LSeries]
+  rw [tsum_eq_tsum_primes_of_support_subset_prime_powers
+    (logZetaCoeff_LSeriesSummable s hs) support_logZetaCoeff_LSeriesTerm_subset_primePowers]
+  exact tsum_congr fun p => logZetaCoeff_LSeries_inner_tsum_prime_power hs p
+
+private lemma log_zeta_eq_LSeries_re (s : ℝ) (hs : 1 < s) :
+    log (riemannZeta (s : ℂ)).re =
+      (LSeries (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ))).re := by
+  rw [logZetaCoeff_LSeries_eq_eulerProduct_log s hs]
+  exact (eulerProduct_log_re_eq_log_zeta hs).symm
+
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
   have hsub :
