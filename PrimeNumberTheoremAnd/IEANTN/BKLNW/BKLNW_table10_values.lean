@@ -10,7 +10,7 @@ open Real
 lemma table_10_length_eq : table_10.length = 287 := by
   simpa [table_10_bcol] using table_10_bcol_length
 
-set_option maxRecDepth 100000 in
+set_option maxRecDepth 1000 in
 /-- Per-row value-extraction helper. Given an index `N` together with the row's literal
 contents (witnessed by `rfl` at the call site), conclude the five `B i = value` equalities
 from membership of `(rid, B 1, ..., B 5)` in `table_10`. Factors out the bidx / sorted

@@ -26,341 +26,341 @@ private lemma a1_large_le_two {b : ℝ} (hb : 100 ≤ b) : Inputs.default.a₁ b
 
 private lemma row100_a2_le : Inputs.default.a₂ (100 : ℝ) ≤ (147 : ℝ) := by
   have h := a2_crude_le (100 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(100 : ℝ) / log 2⌋₊ : ℝ) ≤ (100 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (100 : ℝ) / log 2 ≤ 145 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (100 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(100 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (145 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (145 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 147 := by norm_num
 
 
 private lemma row200_a2_le : Inputs.default.a₂ (200 : ℝ) ≤ (291 : ℝ) := by
   have h := a2_crude_le (200 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(200 : ℝ) / log 2⌋₊ : ℝ) ≤ (200 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (200 : ℝ) / log 2 ≤ 289 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (200 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(200 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (289 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (289 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 291 := by norm_num
 
 
 private lemma row300_a2_le : Inputs.default.a₂ (300 : ℝ) ≤ (435 : ℝ) := by
   have h := a2_crude_le (300 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(300 : ℝ) / log 2⌋₊ : ℝ) ≤ (300 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (300 : ℝ) / log 2 ≤ 433 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (300 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(300 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (433 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (433 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 435 := by norm_num
 
 
 private lemma row400_a2_le : Inputs.default.a₂ (400 : ℝ) ≤ (580 : ℝ) := by
   have h := a2_crude_le (400 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(400 : ℝ) / log 2⌋₊ : ℝ) ≤ (400 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (400 : ℝ) / log 2 ≤ 578 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (400 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(400 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (578 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (578 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 580 := by norm_num
 
 
 private lemma row500_a2_le : Inputs.default.a₂ (500 : ℝ) ≤ (724 : ℝ) := by
   have h := a2_crude_le (500 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(500 : ℝ) / log 2⌋₊ : ℝ) ≤ (500 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (500 : ℝ) / log 2 ≤ 722 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (500 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(500 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (722 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (722 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 724 := by norm_num
 
 
 private lemma row600_a2_le : Inputs.default.a₂ (600 : ℝ) ≤ (868 : ℝ) := by
   have h := a2_crude_le (600 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(600 : ℝ) / log 2⌋₊ : ℝ) ≤ (600 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (600 : ℝ) / log 2 ≤ 866 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (600 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(600 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (866 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (866 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 868 := by norm_num
 
 
 private lemma row700_a2_le : Inputs.default.a₂ (700 : ℝ) ≤ (1012 : ℝ) := by
   have h := a2_crude_le (700 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(700 : ℝ) / log 2⌋₊ : ℝ) ≤ (700 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (700 : ℝ) / log 2 ≤ 1010 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (700 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(700 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (1010 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (1010 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1012 := by norm_num
 
 
 private lemma row800_a2_le : Inputs.default.a₂ (800 : ℝ) ≤ (1157 : ℝ) := by
   have h := a2_crude_le (800 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(800 : ℝ) / log 2⌋₊ : ℝ) ≤ (800 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (800 : ℝ) / log 2 ≤ 1155 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (800 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(800 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (1155 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (1155 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1157 := by norm_num
 
 
 private lemma row900_a2_le : Inputs.default.a₂ (900 : ℝ) ≤ (1301 : ℝ) := by
   have h := a2_crude_le (900 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(900 : ℝ) / log 2⌋₊ : ℝ) ≤ (900 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (900 : ℝ) / log 2 ≤ 1299 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (900 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(900 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (1299 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (1299 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1301 := by norm_num
 
 
 private lemma row1000_a2_le : Inputs.default.a₂ (1000 : ℝ) ≤ (1445 : ℝ) := by
   have h := a2_crude_le (1000 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1000 : ℝ) / log 2⌋₊ : ℝ) ≤ (1000 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1000 : ℝ) / log 2 ≤ 1443 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1000 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1000 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (1443 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (1443 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1445 := by norm_num
 
 
 private lemma row1500_a2_le : Inputs.default.a₂ (1500 : ℝ) ≤ (2167 : ℝ) := by
   have h := a2_crude_le (1500 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1500 : ℝ) / log 2⌋₊ : ℝ) ≤ (1500 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1500 : ℝ) / log 2 ≤ 2165 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1500 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1500 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2165 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2165 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2167 := by norm_num
 
 
 private lemma row1600_a2_le : Inputs.default.a₂ (1600 : ℝ) ≤ (2311 : ℝ) := by
   have h := a2_crude_le (1600 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1600 : ℝ) / log 2⌋₊ : ℝ) ≤ (1600 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1600 : ℝ) / log 2 ≤ 2309 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1600 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1600 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2309 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2309 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2311 := by norm_num
 
 
 private lemma row1700_a2_le : Inputs.default.a₂ (1700 : ℝ) ≤ (2455 : ℝ) := by
   have h := a2_crude_le (1700 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1700 : ℝ) / log 2⌋₊ : ℝ) ≤ (1700 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1700 : ℝ) / log 2 ≤ 2453 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1700 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1700 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2453 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2453 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2455 := by norm_num
 
 
 private lemma row1725_a2_le : Inputs.default.a₂ (1725 : ℝ) ≤ (2491 : ℝ) := by
   have h := a2_crude_le (1725 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1725 : ℝ) / log 2⌋₊ : ℝ) ≤ (1725 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1725 : ℝ) / log 2 ≤ 2489 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1725 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1725 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2489 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2489 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2491 := by norm_num
 
 
 private lemma row1750_a2_le : Inputs.default.a₂ (1750 : ℝ) ≤ (2527 : ℝ) := by
   have h := a2_crude_le (1750 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1750 : ℝ) / log 2⌋₊ : ℝ) ≤ (1750 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1750 : ℝ) / log 2 ≤ 2525 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1750 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1750 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2525 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2525 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2527 := by norm_num
 
 
 private lemma row1775_a2_le : Inputs.default.a₂ (1775 : ℝ) ≤ (2563 : ℝ) := by
   have h := a2_crude_le (1775 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1775 : ℝ) / log 2⌋₊ : ℝ) ≤ (1775 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1775 : ℝ) / log 2 ≤ 2561 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1775 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1775 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2561 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2561 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2563 := by norm_num
 
 
 private lemma row1800_a2_le : Inputs.default.a₂ (1800 : ℝ) ≤ (2599 : ℝ) := by
   have h := a2_crude_le (1800 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1800 : ℝ) / log 2⌋₊ : ℝ) ≤ (1800 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1800 : ℝ) / log 2 ≤ 2597 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1800 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1800 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2597 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2597 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2599 := by norm_num
 
 
 private lemma row1825_a2_le : Inputs.default.a₂ (1825 : ℝ) ≤ (2635 : ℝ) := by
   have h := a2_crude_le (1825 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1825 : ℝ) / log 2⌋₊ : ℝ) ≤ (1825 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1825 : ℝ) / log 2 ≤ 2633 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1825 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1825 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2633 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2633 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2635 := by norm_num
 
 
 private lemma row1850_a2_le : Inputs.default.a₂ (1850 : ℝ) ≤ (2671 : ℝ) := by
   have h := a2_crude_le (1850 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1850 : ℝ) / log 2⌋₊ : ℝ) ≤ (1850 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1850 : ℝ) / log 2 ≤ 2669 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1850 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1850 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2669 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2669 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2671 := by norm_num
 
 
 private lemma row1875_a2_le : Inputs.default.a₂ (1875 : ℝ) ≤ (2708 : ℝ) := by
   have h := a2_crude_le (1875 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
   have hfloor : (⌊(1875 : ℝ) / log 2⌋₊ : ℝ) ≤ (1875 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1875 : ℝ) / log 2 ≤ 2706 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
-    nlinarith [hlog2]
+    linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (1875 : ℝ)
       ≤ (1 + Inputs.default.α) * ((⌊(1875 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (2706 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (2706 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2708 := by norm_num
 
 
