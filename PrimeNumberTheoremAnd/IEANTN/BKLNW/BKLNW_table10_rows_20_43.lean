@@ -103,8 +103,8 @@ theorem table_10_row25_k5 : B_8_exact 5 25 26 ≤ (71.434 : ℝ) :=
 
 private lemma floor_26 : ⌊(26 : ℝ) / log 2⌋₊ = 37 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   constructor
   · rw [le_div_iff₀ hlog2]
@@ -170,8 +170,8 @@ theorem table_10_row26_k5 : B_8_exact 5 26 27 ≤ (52.626 : ℝ) :=
 
 private lemma floor_27 : ⌊(27 : ℝ) / log 2⌋₊ = 38 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
@@ -201,8 +201,8 @@ private lemma row27_a2_le : Inputs.default.a₂ (27 : ℝ) ≤ (1.22 : ℝ) := b
 
 private lemma floor_28 : ⌊(28 : ℝ) / log 2⌋₊ = 40 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
@@ -232,8 +232,8 @@ private lemma row28_a2_le : Inputs.default.a₂ (28 : ℝ) ≤ (1.20 : ℝ) := b
 
 private lemma floor_29 : ⌊(29 : ℝ) / log 2⌋₊ = 41 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
@@ -302,136 +302,136 @@ theorem table_10_row29_k5 : B_8_exact 5 29 30 ≤ (20.202 : ℝ) :=
 
 private lemma floor_21 : ⌊(21 : ℝ) / log 2⌋₊ = 30 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_22 : ⌊(22 : ℝ) / log 2⌋₊ = 31 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_23 : ⌊(23 : ℝ) / log 2⌋₊ = 33 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_24 : ⌊(24 : ℝ) / log 2⌋₊ = 34 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_30 : ⌊(30 : ℝ) / log 2⌋₊ = 43 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_31 : ⌊(31 : ℝ) / log 2⌋₊ = 44 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_32 : ⌊(32 : ℝ) / log 2⌋₊ = 46 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_33 : ⌊(33 : ℝ) / log 2⌋₊ = 47 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_34 : ⌊(34 : ℝ) / log 2⌋₊ = 49 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_35 : ⌊(35 : ℝ) / log 2⌋₊ = 50 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_36 : ⌊(36 : ℝ) / log 2⌋₊ = 51 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_37 : ⌊(37 : ℝ) / log 2⌋₊ = 53 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_38 : ⌊(38 : ℝ) / log 2⌋₊ = 54 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_39 : ⌊(39 : ℝ) / log 2⌋₊ = 56 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_40 : ⌊(40 : ℝ) / log 2⌋₊ = 57 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_41 : ⌊(41 : ℝ) / log 2⌋₊ = 59 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
 
 private lemma floor_42 : ⌊(42 : ℝ) / log 2⌋₊ = 60 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩
@@ -1027,8 +1027,8 @@ private lemma r19_le_4375_for_row43 : 19 * log 10 ≤ (43.75 : ℝ) := by
 
 private lemma floor_43 : ⌊(43 : ℝ) / log 2⌋₊ = 62 := by
   have hlog2 : (0 : ℝ) < log 2 := Real.log_pos one_lt_two
-  have hlt : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
-  have hgt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlt : Real.log 2 < 0.6931471808 := LogTables.log_2_lt_d9
+  have hgt : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
   rw [Nat.floor_eq_iff (by positivity)]
   refine ⟨by rw [le_div_iff₀ hlog2]; push_cast; nlinarith [hlt],
           by rw [div_lt_iff₀ hlog2]; push_cast; nlinarith [hgt]⟩

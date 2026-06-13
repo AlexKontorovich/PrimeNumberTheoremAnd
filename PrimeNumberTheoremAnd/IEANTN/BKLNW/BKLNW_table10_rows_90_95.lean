@@ -29,32 +29,32 @@ private lemma row95_a1_le : Inputs.default.a₁ (95 : ℝ) ≤ (2 : ℝ) := by
 
 private lemma row90_a2_le : Inputs.default.a₂ (90 : ℝ) ≤ (132 : ℝ) := by
   have h := a2_crude_le 90 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(90 : ℝ) / log 2⌋₊ : ℝ) ≤ 90 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (90 : ℝ) / log 2 ≤ 130 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 90
       ≤ (1 + Inputs.default.α) * ((⌊(90 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (130 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (130 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 132 := by norm_num
 
 private lemma row95_a2_le : Inputs.default.a₂ (95 : ℝ) ≤ (140 : ℝ) := by
   have h := a2_crude_le 95 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(95 : ℝ) / log 2⌋₊ : ℝ) ≤ 95 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (95 : ℝ) / log 2 ≤ 138 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 95
       ≤ (1 + Inputs.default.α) * ((⌊(95 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (138 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (138 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 140 := by norm_num
 
 private lemma row90_eps_le : Inputs.default.ε (90 : ℝ) ≤ 2.5214e-12 :=

@@ -26,7 +26,7 @@ private lemma a1_large_le_two {b : ℝ} (hb : 100 ≤ b) : Inputs.default.a₁ b
 
 private lemma row100_a2_le : Inputs.default.a₂ (100 : ℝ) ≤ (147 : ℝ) := by
   have h := a2_crude_le (100 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(100 : ℝ) / log 2⌋₊ : ℝ) ≤ (100 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (100 : ℝ) / log 2 ≤ 145 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -43,7 +43,7 @@ private lemma row100_a2_le : Inputs.default.a₂ (100 : ℝ) ≤ (147 : ℝ) := 
 
 private lemma row200_a2_le : Inputs.default.a₂ (200 : ℝ) ≤ (291 : ℝ) := by
   have h := a2_crude_le (200 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(200 : ℝ) / log 2⌋₊ : ℝ) ≤ (200 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (200 : ℝ) / log 2 ≤ 289 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -60,7 +60,7 @@ private lemma row200_a2_le : Inputs.default.a₂ (200 : ℝ) ≤ (291 : ℝ) := 
 
 private lemma row300_a2_le : Inputs.default.a₂ (300 : ℝ) ≤ (435 : ℝ) := by
   have h := a2_crude_le (300 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(300 : ℝ) / log 2⌋₊ : ℝ) ≤ (300 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (300 : ℝ) / log 2 ≤ 433 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -77,7 +77,7 @@ private lemma row300_a2_le : Inputs.default.a₂ (300 : ℝ) ≤ (435 : ℝ) := 
 
 private lemma row400_a2_le : Inputs.default.a₂ (400 : ℝ) ≤ (580 : ℝ) := by
   have h := a2_crude_le (400 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(400 : ℝ) / log 2⌋₊ : ℝ) ≤ (400 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (400 : ℝ) / log 2 ≤ 578 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -94,7 +94,7 @@ private lemma row400_a2_le : Inputs.default.a₂ (400 : ℝ) ≤ (580 : ℝ) := 
 
 private lemma row500_a2_le : Inputs.default.a₂ (500 : ℝ) ≤ (724 : ℝ) := by
   have h := a2_crude_le (500 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(500 : ℝ) / log 2⌋₊ : ℝ) ≤ (500 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (500 : ℝ) / log 2 ≤ 722 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -111,7 +111,7 @@ private lemma row500_a2_le : Inputs.default.a₂ (500 : ℝ) ≤ (724 : ℝ) := 
 
 private lemma row600_a2_le : Inputs.default.a₂ (600 : ℝ) ≤ (868 : ℝ) := by
   have h := a2_crude_le (600 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(600 : ℝ) / log 2⌋₊ : ℝ) ≤ (600 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (600 : ℝ) / log 2 ≤ 866 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -128,7 +128,7 @@ private lemma row600_a2_le : Inputs.default.a₂ (600 : ℝ) ≤ (868 : ℝ) := 
 
 private lemma row700_a2_le : Inputs.default.a₂ (700 : ℝ) ≤ (1012 : ℝ) := by
   have h := a2_crude_le (700 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(700 : ℝ) / log 2⌋₊ : ℝ) ≤ (700 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (700 : ℝ) / log 2 ≤ 1010 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -145,7 +145,7 @@ private lemma row700_a2_le : Inputs.default.a₂ (700 : ℝ) ≤ (1012 : ℝ) :=
 
 private lemma row800_a2_le : Inputs.default.a₂ (800 : ℝ) ≤ (1157 : ℝ) := by
   have h := a2_crude_le (800 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(800 : ℝ) / log 2⌋₊ : ℝ) ≤ (800 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (800 : ℝ) / log 2 ≤ 1155 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -162,7 +162,7 @@ private lemma row800_a2_le : Inputs.default.a₂ (800 : ℝ) ≤ (1157 : ℝ) :=
 
 private lemma row900_a2_le : Inputs.default.a₂ (900 : ℝ) ≤ (1301 : ℝ) := by
   have h := a2_crude_le (900 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(900 : ℝ) / log 2⌋₊ : ℝ) ≤ (900 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (900 : ℝ) / log 2 ≤ 1299 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -179,7 +179,7 @@ private lemma row900_a2_le : Inputs.default.a₂ (900 : ℝ) ≤ (1301 : ℝ) :=
 
 private lemma row1000_a2_le : Inputs.default.a₂ (1000 : ℝ) ≤ (1445 : ℝ) := by
   have h := a2_crude_le (1000 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1000 : ℝ) / log 2⌋₊ : ℝ) ≤ (1000 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1000 : ℝ) / log 2 ≤ 1443 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -196,7 +196,7 @@ private lemma row1000_a2_le : Inputs.default.a₂ (1000 : ℝ) ≤ (1445 : ℝ) 
 
 private lemma row1500_a2_le : Inputs.default.a₂ (1500 : ℝ) ≤ (2167 : ℝ) := by
   have h := a2_crude_le (1500 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1500 : ℝ) / log 2⌋₊ : ℝ) ≤ (1500 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1500 : ℝ) / log 2 ≤ 2165 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -213,7 +213,7 @@ private lemma row1500_a2_le : Inputs.default.a₂ (1500 : ℝ) ≤ (2167 : ℝ) 
 
 private lemma row1600_a2_le : Inputs.default.a₂ (1600 : ℝ) ≤ (2311 : ℝ) := by
   have h := a2_crude_le (1600 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1600 : ℝ) / log 2⌋₊ : ℝ) ≤ (1600 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1600 : ℝ) / log 2 ≤ 2309 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -230,7 +230,7 @@ private lemma row1600_a2_le : Inputs.default.a₂ (1600 : ℝ) ≤ (2311 : ℝ) 
 
 private lemma row1700_a2_le : Inputs.default.a₂ (1700 : ℝ) ≤ (2455 : ℝ) := by
   have h := a2_crude_le (1700 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1700 : ℝ) / log 2⌋₊ : ℝ) ≤ (1700 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1700 : ℝ) / log 2 ≤ 2453 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -247,7 +247,7 @@ private lemma row1700_a2_le : Inputs.default.a₂ (1700 : ℝ) ≤ (2455 : ℝ) 
 
 private lemma row1725_a2_le : Inputs.default.a₂ (1725 : ℝ) ≤ (2491 : ℝ) := by
   have h := a2_crude_le (1725 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1725 : ℝ) / log 2⌋₊ : ℝ) ≤ (1725 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1725 : ℝ) / log 2 ≤ 2489 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -264,7 +264,7 @@ private lemma row1725_a2_le : Inputs.default.a₂ (1725 : ℝ) ≤ (2491 : ℝ) 
 
 private lemma row1750_a2_le : Inputs.default.a₂ (1750 : ℝ) ≤ (2527 : ℝ) := by
   have h := a2_crude_le (1750 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1750 : ℝ) / log 2⌋₊ : ℝ) ≤ (1750 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1750 : ℝ) / log 2 ≤ 2525 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -281,7 +281,7 @@ private lemma row1750_a2_le : Inputs.default.a₂ (1750 : ℝ) ≤ (2527 : ℝ) 
 
 private lemma row1775_a2_le : Inputs.default.a₂ (1775 : ℝ) ≤ (2563 : ℝ) := by
   have h := a2_crude_le (1775 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1775 : ℝ) / log 2⌋₊ : ℝ) ≤ (1775 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1775 : ℝ) / log 2 ≤ 2561 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -298,7 +298,7 @@ private lemma row1775_a2_le : Inputs.default.a₂ (1775 : ℝ) ≤ (2563 : ℝ) 
 
 private lemma row1800_a2_le : Inputs.default.a₂ (1800 : ℝ) ≤ (2599 : ℝ) := by
   have h := a2_crude_le (1800 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1800 : ℝ) / log 2⌋₊ : ℝ) ≤ (1800 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1800 : ℝ) / log 2 ≤ 2597 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -315,7 +315,7 @@ private lemma row1800_a2_le : Inputs.default.a₂ (1800 : ℝ) ≤ (2599 : ℝ) 
 
 private lemma row1825_a2_le : Inputs.default.a₂ (1825 : ℝ) ≤ (2635 : ℝ) := by
   have h := a2_crude_le (1825 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1825 : ℝ) / log 2⌋₊ : ℝ) ≤ (1825 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1825 : ℝ) / log 2 ≤ 2633 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -332,7 +332,7 @@ private lemma row1825_a2_le : Inputs.default.a₂ (1825 : ℝ) ≤ (2635 : ℝ) 
 
 private lemma row1850_a2_le : Inputs.default.a₂ (1850 : ℝ) ≤ (2671 : ℝ) := by
   have h := a2_crude_le (1850 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1850 : ℝ) / log 2⌋₊ : ℝ) ≤ (1850 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1850 : ℝ) / log 2 ≤ 2669 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
@@ -349,7 +349,7 @@ private lemma row1850_a2_le : Inputs.default.a₂ (1850 : ℝ) ≤ (2671 : ℝ) 
 
 private lemma row1875_a2_le : Inputs.default.a₂ (1875 : ℝ) ≤ (2708 : ℝ) := by
   have h := a2_crude_le (1875 : ℝ) (by norm_num)
-  have hlog2 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+  have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
   have hfloor : (⌊(1875 : ℝ) / log 2⌋₊ : ℝ) ≤ (1875 : ℝ) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (1875 : ℝ) / log 2 ≤ 2706 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]
