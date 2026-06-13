@@ -26,6 +26,8 @@ namespace Kadiri
 
 open MeasureTheory Complex
 open ArithmeticFunction hiding log
+open Filter
+open scoped Topology
 
 /-! ## Precursor definitions for Proposition 2.1
 
@@ -369,6 +371,217 @@ theorem kadiri_thm_3_1_q1_bot_horizontal_vanishes
       Filter.atTop (nhds 0) := by
   sorry
 
+private lemma zetaPiFactor_eq_cpow (s : ℂ) :
+    zetaPiFactor s = (Real.pi : ℂ) ^ (-(s / 2)) := by
+  unfold zetaPiFactor
+  rw [Complex.cpow_def_of_ne_zero, Complex.ofReal_log Real.pi_pos.le]
+  · ring_nf
+  · exact_mod_cast Real.pi_ne_zero
+
+private lemma completedZetaFactor_eq_mul_completedRiemannZeta {s : ℂ}
+    (hs0 : s ≠ 0) (hΓhalf : Gamma (s / 2) ≠ 0) :
+    completedZetaFactor s = (s * (s - 1) / 2) * completedRiemannZeta s := by
+  have hGamma :
+      Gamma (s / 2 + 1) = (s / 2) * Gamma (s / 2) := by
+    exact Gamma_add_one (s / 2) (div_ne_zero hs0 two_ne_zero)
+  rw [completedZetaFactor, zetaPoleFactor, zetaGammaFactor, zetaPiFactor_eq_cpow,
+    hGamma, riemannZeta_def_of_ne_zero hs0, Gammaℝ_def]
+  field_simp [hs0, hΓhalf]
+
+private lemma gamma_half_avoid_neg_nat_of_shift {s : ℂ} (hs0 : s ≠ 0)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    ∀ m : ℕ, s / 2 ≠ -m := by
+  intro m hm
+  cases m with
+  | zero =>
+      apply hs0
+      rw [show s = 2 * (s / 2) by ring, hm]
+      ring
+  | succ m =>
+      have hbad : s / 2 + 1 = -(m : ℂ) := by
+        rw [hm]
+        norm_num
+      exact hΓdiff m hbad
+
+private lemma gamma_half_ne_zero_of_shift {s : ℂ} (hs0 : s ≠ 0)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    Gamma (s / 2) ≠ 0 :=
+  Gamma_ne_zero (gamma_half_avoid_neg_nat_of_shift hs0 hΓdiff)
+
+private theorem completedZetaFactor_one_sub {s : ℂ} (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓhalf : Gamma (s / 2) ≠ 0) (hΓhalf_ref : Gamma ((1 - s) / 2) ≠ 0) :
+    completedZetaFactor (1 - s) = completedZetaFactor s := by
+  have h1s0 : 1 - s ≠ 0 := by
+    intro h
+    apply hs1
+    calc
+      s = 1 - (1 - s) := by ring
+      _ = 1 := by rw [h]; ring
+  rw [completedZetaFactor_eq_mul_completedRiemannZeta h1s0 hΓhalf_ref,
+    completedZetaFactor_eq_mul_completedRiemannZeta hs0 hΓhalf, completedRiemannZeta_one_sub]
+  ring
+
+private lemma differentiableAt_completedZetaFactor {s : ℂ}
+    (hs1 : s ≠ 1)
+    (hΓdiff : ∀ m : ℕ, s / 2 + 1 ≠ -m) :
+    DifferentiableAt ℂ completedZetaFactor s := by
+  unfold completedZetaFactor zetaPoleFactor zetaPiFactor zetaGammaFactor
+  exact (((by fun_prop : DifferentiableAt ℂ (fun s : ℂ => s - 1) s).mul
+      (by
+        rw [show (fun s : ℂ => Complex.exp (-(s / 2) * (Real.log Real.pi : ℂ))) =
+          Complex.exp ∘ (fun s : ℂ => -(s / 2) * (Real.log Real.pi : ℂ)) by rfl]
+        exact Complex.differentiableAt_exp.comp s (by fun_prop))).mul
+      ((differentiableAt_Gamma _ hΓdiff).comp s (by fun_prop))).mul
+    (differentiableAt_riemannZeta hs1)
+
+private theorem logDeriv_completedZetaFactor_one_sub {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΓdiff_s : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓdiff_ref : ∀ m : ℕ, (1 - s) / 2 + 1 ≠ -m) :
+    logDeriv completedZetaFactor (1 - s) = -logDeriv completedZetaFactor s := by
+  let R : ℂ → ℂ := fun z => 1 - z
+  have hΓhalf_s : Gamma (s / 2) ≠ 0 :=
+    gamma_half_ne_zero_of_shift hs0 hΓdiff_s
+  have hΓhalf_ref_s : Gamma ((1 - s) / 2) ≠ 0 :=
+    gamma_half_ne_zero_of_shift (by
+      intro h
+      apply hs1
+      calc
+        s = 1 - (1 - s) := by ring
+        _ = 1 := by rw [h]; ring) hΓdiff_ref
+  have hΓhalf_near : ∀ᶠ z in 𝓝 s, Gamma (z / 2) ≠ 0 := by
+    have hdiff : DifferentiableAt ℂ (fun z : ℂ => Gamma (z / 2)) s :=
+      (differentiableAt_Gamma _ (gamma_half_avoid_neg_nat_of_shift hs0 hΓdiff_s)).comp
+        s (by fun_prop)
+    have hcont : ContinuousAt (fun z : ℂ => Gamma (z / 2)) s := hdiff.continuousAt
+    exact (hcont.ne_iff_eventually_ne continuousAt_const).mp hΓhalf_s
+  have hΓhalf_ref_near : ∀ᶠ z in 𝓝 s, Gamma ((1 - z) / 2) ≠ 0 := by
+    have hdiff : DifferentiableAt ℂ (fun z : ℂ => Gamma ((1 - z) / 2)) s :=
+      (differentiableAt_Gamma _ (gamma_half_avoid_neg_nat_of_shift (by
+        intro h
+        apply hs1
+        calc
+          s = 1 - (1 - s) := by ring
+          _ = 1 := by rw [h]; ring) hΓdiff_ref)).comp s (by fun_prop)
+    have hcont : ContinuousAt (fun z : ℂ => Gamma ((1 - z) / 2)) s := hdiff.continuousAt
+    exact (hcont.ne_iff_eventually_ne continuousAt_const).mp hΓhalf_ref_s
+  have hsym_near :
+      (completedZetaFactor ∘ R) =ᶠ[𝓝 s] completedZetaFactor := by
+    filter_upwards [isOpen_ne.mem_nhds hs0, isOpen_ne.mem_nhds hs1, hΓhalf_near,
+      hΓhalf_ref_near] with z hz0 hz1 hΓz hΓrefz
+    exact completedZetaFactor_one_sub hz0 hz1 hΓz hΓrefz
+  have hcomp :
+      logDeriv (completedZetaFactor ∘ R) s =
+        logDeriv completedZetaFactor (R s) * deriv R s := by
+    rw [logDeriv_comp]
+    · exact differentiableAt_completedZetaFactor
+        (by simpa [R] using sub_ne_zero.mpr hs0.symm) hΓdiff_ref
+    · dsimp [R]
+      fun_prop
+  have hderivR : deriv R s = -1 := by
+    dsimp [R]
+    simp
+  have hlog_eq :
+      logDeriv (completedZetaFactor ∘ R) s = logDeriv completedZetaFactor s := by
+    rw [logDeriv_apply, logDeriv_apply]
+    rw [Filter.EventuallyEq.deriv_eq hsym_near]
+    exact congrArg (fun z => deriv completedZetaFactor s / z) hsym_near.eq_of_nhds
+  rw [hcomp, hderivR] at hlog_eq
+  calc
+    logDeriv completedZetaFactor (1 - s)
+        = -(logDeriv completedZetaFactor (R s) * -1) := by simp [R]
+    _ = -logDeriv completedZetaFactor s := by rw [hlog_eq]
+
+private theorem neg_logDeriv_zeta_left_eq_reflected {z : ℂ}
+    (hz0 : z ≠ 0) (hz1 : z ≠ 1)
+    (hζz : riemannZeta z ≠ 0)
+    (hζref : riemannZeta (1 - z) ≠ 0)
+    (hΓz_diff : ∀ m : ℕ, z / 2 + 1 ≠ -m)
+    (hΓref_diff : ∀ m : ℕ, (1 - z) / 2 + 1 ≠ -m)
+    (hΓz : zetaGammaFactor z ≠ 0)
+    (hΓref : zetaGammaFactor (1 - z) ≠ 0) :
+    -deriv riemannZeta z / riemannZeta z =
+      deriv riemannZeta (1 - z) / riemannZeta (1 - z)
+        + 1 / (z - 1) + 1 / ((1 - z) - 1)
+        - (Real.log Real.pi : ℂ)
+        + (1 / 2 : ℂ) * digamma (z / 2 + 1)
+        + (1 / 2 : ℂ) * digamma ((1 - z) / 2 + 1) := by
+  have href1 : 1 - z ≠ 1 := by
+    intro h
+    apply hz0
+    calc
+      z = 1 - (1 - z) := by ring
+      _ = 0 := by rw [h]; ring
+  have hleft := neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv z hz1 hΓz_diff hΓz hζz
+  have hright := neg_zeta_logDeriv_eq_neg_completedZeta_logDeriv (1 - z) href1
+    hΓref_diff hΓref hζref
+  have htransport := logDeriv_completedZetaFactor_one_sub hz0 hz1 hΓz_diff hΓref_diff
+  have hnegLD :
+      -logDeriv completedZetaFactor z =
+        deriv riemannZeta (1 - z) / riemannZeta (1 - z)
+          + 1 / ((1 - z) - 1)
+          - (1 / 2 : ℂ) * Real.log Real.pi
+          + (1 / 2 : ℂ) * digamma ((1 - z) / 2 + 1) := by
+    rw [htransport] at hright
+    have hright' := congrArg Neg.neg hright
+    ring_nf at hright' ⊢
+    rw [hright']
+    ring
+  rw [hleft, hnegLD]
+  ring
+
+private lemma zetaGammaFactor_shift_avoid_of_not_zero {s : ℂ}
+    (hsZ : s ∉ riemannZeta.zeroes) :
+    ∀ m : ℕ, s / 2 + 1 ≠ -m := by
+  intro m hm
+  apply hsZ
+  have hs_eq : s = -2 * ((m : ℂ) + 1) := by
+    calc
+      s = 2 * (s / 2 + 1) - 2 := by ring
+      _ = 2 * (-(m : ℂ)) - 2 := by rw [hm]
+      _ = -2 * ((m : ℂ) + 1) := by ring
+  rw [riemannZeta.zeroes]
+  simpa [hs_eq, Nat.cast_add, Nat.cast_one] using
+    riemannZeta_neg_two_mul_nat_add_one m
+
+private theorem functional_eq_correct_sign {s : ℂ}
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hζs : riemannZeta s ≠ 0)
+    (hζref : riemannZeta (1 - s) ≠ 0)
+    (hΓs_diff : ∀ m : ℕ, s / 2 + 1 ≠ -m)
+    (hΓref_diff : ∀ m : ℕ, (1 - s) / 2 + 1 ≠ -m) :
+    -deriv riemannZeta s / riemannZeta s =
+      ((-Real.log Real.pi : ℝ) : ℂ)
+      + deriv riemannZeta (1 - s) / riemannZeta (1 - s)
+      + (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) := by
+  have h1s0 : (1 : ℂ) - s ≠ 0 := by
+    intro h
+    apply hs1
+    calc
+      s = 1 - (1 - s) := by ring
+      _ = 1 := by rw [h]; ring
+  have hΓs : zetaGammaFactor s ≠ 0 := by
+    unfold zetaGammaFactor
+    exact Gamma_ne_zero hΓs_diff
+  have hΓref : zetaGammaFactor (1 - s) ≠ 0 := by
+    unfold zetaGammaFactor
+    exact Gamma_ne_zero hΓref_diff
+  have hFE := neg_logDeriv_zeta_left_eq_reflected hs0 hs1 hζs hζref
+    hΓs_diff hΓref_diff hΓs hΓref
+  have hψs : digamma (s / 2 + 1) = digamma (s / 2) + (s / 2)⁻¹ :=
+    digamma_apply_add_one _ (gamma_half_avoid_neg_nat_of_shift hs0 hΓs_diff)
+  have hψref : digamma ((1 - s) / 2 + 1) = digamma ((1 - s) / 2) + ((1 - s) / 2)⁻¹ :=
+    digamma_apply_add_one _ (gamma_half_avoid_neg_nat_of_shift h1s0 hΓref_diff)
+  have hcancel :
+      1 / (s - 1) + 1 / (1 - s - 1)
+        + (1 / 2 : ℂ) * (s / 2)⁻¹ + (1 / 2 : ℂ) * ((1 - s) / 2)⁻¹ = 0 := by
+    have hs_sub : s - 1 ≠ 0 := sub_ne_zero.mpr hs1
+    rw [show (1 : ℂ) - s - 1 = -s by ring]
+    field_simp [hs0, hs_sub]
+    ring_nf
+  rw [hFE, hψs, hψref, Complex.ofReal_neg]
+  linear_combination hcancel
+
 @[blueprint
   "kadiri-thm-3-1-q1-functional-eq"
   (title := "Functional equation of $-\\zeta'/\\zeta$ in log-derivative form")
@@ -406,7 +619,11 @@ theorem kadiri_thm_3_1_q1_functional_eq {s : ℂ}
       ((-Real.log Real.pi : ℝ) : ℂ)
       + deriv riemannZeta (1 - s) / riemannZeta (1 - s)
       + (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) := by
-  sorry
+  exact functional_eq_correct_sign _hs0 _hs1 _hζs _hζ1s
+    (zetaGammaFactor_shift_avoid_of_not_zero
+      (by simpa [riemannZeta.zeroes] using _hζs))
+    (zetaGammaFactor_shift_avoid_of_not_zero
+      (by simpa [riemannZeta.zeroes] using _hζ1s))
 
 @[blueprint
   "kadiri-thm-3-1-q1-I-1"
