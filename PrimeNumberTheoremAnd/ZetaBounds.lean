@@ -748,16 +748,14 @@ lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a
   rw [uIcc_of_le (by exact_mod_cast ha.2.le), mem_Icc] at x_in
   linarith [(by exact_mod_cast ha.1 : (0 : ℝ) < a)]
 
-lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := fun hs ↦ s_ne_one <| neg_inj.mp hs
-
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (ha : a ∈ Ioo 0 b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
   convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
   · refine intervalIntegral.integral_congr fun x hx ↦ one_div_cpow_eq ?_
     exact (xpos_of_uIcc ha hx).ne'
-  · norm_cast; rw [(by ring : -s + 1 = 1 - s)]
-  · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
+  · norm_cast; ring_nf
+  · right; refine ⟨(by grind), ?_⟩
     exact fun hx ↦ (lt_self_iff_false 0).mp <| xpos_of_uIcc ha hx
 
 lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
@@ -844,14 +842,8 @@ lemma ZetaSum_aux1_2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   have : 0 ≤ x := (ZetaSum_aux1_1 apos a_lt_b hx).le
   simp [div_rpow_eq_rpow_neg _ _ _ this, sub_eq_add_neg, add_comm]
 
-lemma ZetaSum_aux1_3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
-  norm_num [← add_assoc]; linarith [sub_pos_of_lt (Int.lt_floor_add_one x)]
-
-lemma ZetaSum_aux1_3b (x : ℝ) : ⌊x⌋ + 1/2 - x ≤ 1/2 := by
-  linarith [Int.floor_le x]
-
 lemma ZetaSum_aux1_3 (x : ℝ) : ‖(⌊x⌋ + 1/2 - x)‖ ≤ 1/2 :=
-  abs_le.mpr ⟨le_of_lt (ZetaSum_aux1_3a x), ZetaSum_aux1_3b x⟩
+  abs_le.mpr ⟨(by linarith [Int.lt_floor_add_one x]), (by linarith [Int.floor_le x])⟩
 
 lemma ZetaSum_aux1_4' (x : ℝ) (hx : 0 < x) (s : ℂ) :
       ‖(⌊x⌋ + 1 / 2 - (x : ℝ)) / (x : ℂ) ^ (s + 1)‖ =
@@ -937,11 +929,6 @@ lemma ZetaBnd_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
   refine ZetaSum_aux1_2 (c := s.re) apos a_lt_b ⟨ne_of_gt σpos, ?_⟩
   exact fun h ↦ (lt_self_iff_false 0).mp <| ZetaSum_aux1_1 apos a_lt_b h
 
-
-lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
-    ∑' (n : ℕ), f n = (∑ n ∈ Finset.range N, f n) + ∑' (n : ℕ), f (n + N) := by
-  rw [← Summable.sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
-
 lemma Finset.Ioc_eq_Ico (M N : ℕ) : Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
@@ -956,7 +943,7 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
   have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp hf.hasSum
   have const := tendsto_const_nhds (α := ℕ) (x := ∑ i ∈ Finset.range N, f i) (f := atTop)
   have := Filter.Tendsto.sub this const
-  rw [tsum_eq_partial_add_tail f hf (N := N), add_comm, add_sub_cancel_right] at this
+  rw [← hf.sum_add_tsum_nat_add N, add_comm, add_sub_cancel_right] at this
   apply this.congr'
   filter_upwards [Filter.mem_atTop (N + 1)]
   intro M hM
@@ -1503,18 +1490,6 @@ lemma norm_add₆_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) 
   apply le_trans <| norm_add_le (a + b + c + d + e) f
   simp only [add_le_add_iff_right]; apply norm_add₅_le
 
-lemma add_le_add_le_add {α : Type*} [Add α] [Preorder α]
-    [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
-    [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
-    {a b c d e f : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) : a + c + e ≤ b + d + f :=
-  add_le_add (add_le_add h₁ h₂) h₃
-
-lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
-    [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
-    [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
-    {a b c d e f g h : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (h₄ : g ≤ h) :
-    a + c + e + g ≤ b + d + f + h:= add_le_add (add_le_add_le_add h₁ h₂ h₃) h₄
-
 lemma mul_le_mul₃ {α : Type*} {a b c d e f : α} [MulZeroClass α] [Preorder α] [PosMulMono α]
     [MulPosMono α] (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (c0 : 0 ≤ c) (b0 : 0 ≤ b)
     (e0 : 0 ≤ e) : a * c * e ≤ b * d * f := by
@@ -1717,9 +1692,9 @@ lemma ZetaUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
   · simp only [norm_div, RCLike.norm_ofNat, s]
     congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
   · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t
-    refine add_le_add_le_add_le_add le_rfl h₁ h₂ ?_
+    gcongr
     rw [mul_div_assoc]
-    exact mul_le_mul_iff_right₀ (mul_pos (by norm_num) (by positivity)) |>.mpr h₃
+    gcongr
   · ring_nf; conv => lhs; rhs; lhs; rw [mul_comm |t|]
     rw [← Real.rpow_add_one (by positivity)]; ring_nf
   · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
