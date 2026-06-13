@@ -728,10 +728,11 @@ theorem theorem_5_9b {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
 @[blueprint "Dusart_lemma_5_10a"
   (title := "Dusart Lemma 5.10")
   (statement := /--
-  We have for $k \geq 4$, $p_k \leq k \log p_k$.  (Note: in Lean primes are indexed from $0$, so we have to subtract $1$ from the index.)
+  We have for $k \geq 4$, $p_k \leq k \log p_k$.  (Note: in Lean primes are indexed from $0$, so we use `nth_prime' (k-1)` for $p_k$.)
   -/)
   (latexEnv := "lemma")]
-theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth_prime' k ≤ k * Real.log (nth_prime' k) := by sorry
+theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) :
+    nth_prime' (k - 1) ≤ k * Real.log (nth_prime' (k - 1)) := by sorry
 
 @[blueprint "Dusart_lemma_5_10b"
   (title := "Dusart Lemma 5.10")
