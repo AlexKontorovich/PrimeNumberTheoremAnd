@@ -164,8 +164,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
   AnalyticAt ℂ riemannZeta s := by
   apply Complex.analyticAt_iff_eventually_differentiableAt.mpr
-  filter_upwards [eventually_ne_nhds s_ne_one] with z hz
-  exact differentiableAt_riemannZeta hz
+  filter_upwards [eventually_ne_nhds s_ne_one] with z hz using differentiableAt_riemannZeta hz
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
@@ -198,21 +197,9 @@ theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
     (hU_open : IsOpen U)
     (h_eq : EqOn f g (U \ {p})) :
     EqOn (deriv f) (deriv g) (U \ {p}) := by
-  -- We need to show that for any x ∈ U \ {p}, deriv f x = deriv g x
   intro x hx
-  -- hx : x ∈ U \ {p}, so x ∈ U and x ≠ p
-  have hx_in_U : x ∈ U := hx.1
-  have hx_ne_p : x ≠ p := hx.2
-  -- Since f and g agree on U \ {p} and x ≠ p,
-  -- we can find a neighborhood of x where f = g
-  have h_eq_nhds : ∀ᶠ y in 𝓝 x, f y = g y := by
-    -- Since x ≠ p and U \ {p} is open (as U is open and {p} is closed),
-    -- and f = g on U \ {p}, we have f = g in a neighborhood of x
-    rw [eventually_nhds_iff]
-    use U \ {p}
-    exact ⟨h_eq, hU_open.sdiff isClosed_singleton, hx⟩
-  -- Now use the fact that if f = g in a neighborhood, then deriv f = deriv g
-  exact EventuallyEq.deriv_eq h_eq_nhds
+  apply EventuallyEq.deriv_eq
+  filter_upwards [IsOpen.mem_nhds (hU_open.sdiff isClosed_singleton) hx] with t ht using h_eq ht
 
 /- New two theorems to be proven -/
 
@@ -233,47 +220,22 @@ theorem analytic_deriv_bounded_near_point
 
 theorem derivative_const_plus_product {g : ℂ → ℂ} (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
     deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x := by
+  rw [deriv_add (by fun_prop) (by fun_prop), deriv_const, deriv_mul hg (by fun_prop)]
+  simp
 
-  -- Rewrite the function as a single lambda
-    have h_eq : ((fun _ ↦ A) + g * fun s ↦ s - p) = fun s ↦ A + g s * (s - p) := by rfl
-
-    rw [h_eq]
-
-  -- Apply product rule to g s * (s - p)
-    rw [deriv_const_add',
-      deriv_fun_mul hg (differentiableAt_fun_id.fun_sub (differentiableAt_const p))]
-    simp
-
-
-
-theorem diff_translation (p : ℂ) : deriv (fun x => x - p) = fun _ => 1 := by
-  ext x
-  simp [deriv_id'', deriv_const]
-
-
--- Key lemma: derivative of (x - p)⁻¹
 lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
   deriv (fun z => (z - p)⁻¹) x =  -((x - p) ^ 2)⁻¹ := by
-
-  -- Use chain rule: d/dx[(x-p)⁻¹] = d/du[u⁻¹] * d/dx[x-p] where u = x-p
-  let inv_x := fun (x : ℂ) ↦ x⁻¹
-  let trans_x := fun x ↦ x - p
-
-  let T : (inv_x ∘ trans_x) = fun x ↦ (x - p)⁻¹  := by rfl
-  rw [← T, deriv_comp, deriv_inv', diff_translation]
-  · simp [trans_x]
-  · have := sub_ne_zero_of_ne hp
-    fun_prop (disch := assumption)
-  · fun_prop
+  rw [deriv_fun_inv'' (by fun_prop) (by grind)]
+  simp
+  field
 
 -- Alternative cleaner proof using more direct approach
 theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
     (hf : DifferentiableAt ℂ f x) (hp : x ≠ p) :
     deriv (f  - (fun z ↦ A * (z - p)⁻¹)) x = deriv f x + A * ((x - p) ^ 2)⁻¹ := by
   have h1 : DifferentiableAt ℂ (fun z => (z - p)⁻¹) x := by
-    apply DifferentiableAt.inv (by fun_prop)
-    rwa [sub_ne_zero]
-  rw [deriv_sub hf (DifferentiableAt.const_mul h1 A), deriv_const_mul A h1, deriv_inv_sub hp]
+    fun_prop (disch := grind)
+  rw [deriv_sub hf (h1.const_mul A), deriv_const_mul A h1, deriv_inv_sub hp]
   ring
 
 @[blueprint
@@ -426,9 +388,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     rw [deriv_h_identity _ x_in_u x_not_p, h_identity _ x_in_u x_not_p]
 
     /- This is just an identity at this point -/
-    field_simp [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
-    ring
-
+    field [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
   have h_inv_bounded :
       h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
     have : ContinuousAt h⁻¹ p := by
