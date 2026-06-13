@@ -621,6 +621,506 @@ theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (h
     rw[Complex.sub_re] at hsν
     exact_mod_cast (by linarith)
 
+@[blueprint
+  "LSeriesSummable_two_pow_omega"
+  (title := "LSeriesSummable-two-pow-omega")
+  (statement := /--
+    An L-series is convergent if the absolute value of each term is term wise less than a summable series.
+  -/)
+  (proof := /--
+    Apply triangle inequality and comparison test.
+  -/)]
+lemma LSeriesSummable.of_norm_le_norm {f g : ℕ → ℂ} {s : ℂ}
+  (hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ g n) s n‖ ≤ ‖LSeries.term (fun n ↦ f n) s n‖)
+  (hf : Summable (fun n ↦ ‖LSeries.term (fun n ↦ f n) s n‖)) : LSeriesSummable (fun n ↦ g n) s := by
+  rw [LSeriesSummable, ← summable_norm_iff]
+  exact hf.of_nonneg_of_le (fun n => norm_nonneg _) hgf
+
+@[blueprint
+  "LSeries.term_isMultiplicative_if_fun_isMultiplicative"
+  (title := "LSeries.term-isMultiplicative-if-fun-isMultiplicative")
+  (statement := /--
+    If $f$ is a multiplicative function, then so to is $n\mapsto f(n)/n^s$.
+  -/)
+  (proof := /--
+    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/n^s)(f(n)/n^s)$.
+  -/)]
+lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
+    LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
+  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
+  simp only [or_self, ↓reduceIte]
+  congr 1
+  simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
+
+namespace Ramanujan
+
+/-- `‖σᴿ α n‖ ≤ d(n) · n^(max (Re α) 0)`: the divisor sum is bounded by the number of divisors
+times the largest possible term. -/
+private theorem sigmaR_norm_bound (α : ℂ) (n : ℕ) (hn : n ≠ 0) :
+    ‖σᴿ α n‖ ≤ (n.divisors.card : ℝ) * (n : ℝ) ^ (max α.re 0) := by
+  rw [sigmaR_apply]
+  calc ‖∑ d ∈ n.divisors, (d : ℂ) ^ α‖
+      ≤ ∑ d ∈ n.divisors, ‖(d : ℂ) ^ α‖ := norm_sum_le _ _
+    _ ≤ ∑ d ∈ n.divisors, (n : ℝ) ^ (max α.re 0) := by
+        apply Finset.sum_le_sum
+        intro d hd
+        have hd_pos : 0 < d := Nat.pos_of_mem_divisors hd
+        have hd_le : d ≤ n := Nat.le_of_dvd (Nat.pos_of_ne_zero hn) (Nat.dvd_of_mem_divisors hd)
+        have hd1 : (1 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd_pos
+        rw [Complex.norm_natCast_cpow_of_pos hd_pos]
+        calc (d : ℝ) ^ α.re ≤ (d : ℝ) ^ (max α.re 0) :=
+              Real.rpow_le_rpow_of_exponent_le hd1 (le_max_left _ _)
+          _ ≤ (n : ℝ) ^ (max α.re 0) :=
+              Real.rpow_le_rpow (by positivity) (by exact_mod_cast hd_le) (le_max_right _ _)
+    _ = (n.divisors.card : ℝ) * (n : ℝ) ^ (max α.re 0) := by rw [Finset.sum_const, nsmul_eq_mul]
+
+/-- Prime-power inequality `(a+1)^2 ≤ C(a+3, 3)`, i.e. `τ(p^a)^2 ≤ d_4(p^a)`. -/
+private theorem ppow_ineq (a : ℕ) : (a + 1) ^ 2 ≤ (a + 3).choose 3 := by
+  have hdesc : (a + 3).descFactorial 3 = (a + 3) * (a + 2) * (a + 1) := by
+    simp [Nat.descFactorial]; ring
+  have key : (3 : ℕ).factorial * ((a + 3).choose 3) = (a + 3) * (a + 2) * (a + 1) := by
+    rw [← Nat.descFactorial_eq_factorial_mul_choose, hdesc]
+  rw [show (3 : ℕ).factorial = 6 from by decide] at key
+  nlinarith [key, Nat.le_self_pow (n := 3) (by norm_num) a]
+
+/-- The divisor count squared is bounded by the fourfold divisor function: `τ(n)^2 ≤ d_4(n)`. -/
+private theorem card_sq_le_d4 {n : ℕ} (hn : n ≠ 0) : (n.divisors.card) ^ 2 ≤ (d 4) n := by
+  rw [Nat.card_divisors hn, (d_isMultiplicative 4).multiplicative_factorization _ hn,
+      Finsupp.prod, Nat.support_factorization, ← Finset.prod_pow]
+  apply Finset.prod_le_prod'
+  intro p hp
+  rw [d_apply_prime_pow (by norm_num) (Nat.prime_of_mem_primeFactors hp)]
+  simpa using ppow_ineq (n.factorization p)
+
+/-- The combined pointwise bound `‖σᴿ α n · σᴿ β n‖ ≤ d_4(n) · n^(max(Re α,0)+max(Re β,0))`. -/
+private theorem combined_bound (α β : ℂ) (n : ℕ) (hn : n ≠ 0) :
+    ‖σᴿ α n * σᴿ β n‖ ≤ ((d 4) n : ℝ) * (n : ℝ) ^ (max α.re 0 + max β.re 0) := by
+  rw [norm_mul]
+  have hα := sigmaR_norm_bound α n hn
+  have hβ := sigmaR_norm_bound β n hn
+  have hcard : (n.divisors.card : ℝ) ^ 2 ≤ ((d 4) n : ℝ) := by exact_mod_cast card_sq_le_d4 hn
+  have hnpos : (0 : ℝ) < (n : ℝ) := by positivity
+  calc ‖σᴿ α n‖ * ‖σᴿ β n‖
+      ≤ ((n.divisors.card : ℝ) * (n : ℝ) ^ (max α.re 0)) *
+          ((n.divisors.card : ℝ) * (n : ℝ) ^ (max β.re 0)) :=
+        mul_le_mul hα hβ (norm_nonneg _) (by positivity)
+    _ = (n.divisors.card : ℝ) ^ 2 * ((n : ℝ) ^ (max α.re 0) * (n : ℝ) ^ (max β.re 0)) := by ring
+    _ = (n.divisors.card : ℝ) ^ 2 * (n : ℝ) ^ (max α.re 0 + max β.re 0) := by
+        rw [← Real.rpow_add hnpos]
+    _ ≤ ((d 4) n : ℝ) * (n : ℝ) ^ (max α.re 0 + max β.re 0) :=
+        mul_le_mul_of_nonneg_right hcard (by positivity)
+
+/-- The norm of the dominating term value `d_4(n) · n^c` for a real exponent `c`. -/
+private theorem majorant_norm (c : ℝ) (n : ℕ) (hn : n ≠ 0) :
+    ‖((d 4) n : ℂ) * (n : ℂ) ^ (c : ℂ)‖ = ((d 4) n : ℝ) * (n : ℝ) ^ c := by
+  rw [norm_mul, Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero hn), Complex.norm_natCast,
+      Complex.ofReal_re]
+
+/-- The dominating series `∑ d_4(n) n^c n^(-s)` is norm-summable when `Re s > 1 + c`,
+by a shift to the convergent series for `d_4`. -/
+private theorem majorant_summable (c : ℝ) (s : ℂ) (hc : 1 < s.re - c) :
+    Summable (fun n => ‖LSeries.term (fun m => ((d 4) m : ℂ) * (m : ℂ) ^ (c : ℂ)) s n‖) := by
+  rw [summable_norm_iff]
+  have hsc : 1 < (s - (c : ℂ)).re := by simp; linarith
+  apply (LSeries_d_summable 4 hsc).congr
+  intro n
+  by_cases hn : n = 0
+  · simp [LSeries.term, hn]
+  · rw [LSeries.term_of_ne_zero hn, LSeries.term_of_ne_zero hn,
+        Complex.cpow_sub _ _ (by exact_mod_cast hn)]
+    simp only [ArithmeticFunction.natCoe_apply]
+    field_simp
+
+/-- The exponent `max(Re α,0) + max(Re β,0)` lies strictly below `Re s − 1` under the four
+absolute-convergence hypotheses. -/
+private theorem exponent_lt (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) :
+    1 < s.re - (max α.re 0 + max β.re 0) := by
+  simp only [Complex.sub_re] at h2 h3 h4
+  rcases le_or_gt α.re 0 with ha | ha <;> rcases le_or_gt β.re 0 with hb | hb
+  · rw [max_eq_right ha, max_eq_right hb]; linarith
+  · rw [max_eq_right ha, max_eq_left hb.le]; linarith
+  · rw [max_eq_left ha.le, max_eq_right hb]; linarith
+  · rw [max_eq_left ha.le, max_eq_left hb.le]; linarith
+
+/-- Brick B1: norm-summability of the L-series term for `n ↦ σᴿ α n · σᴿ β n`, the summability
+hypothesis required by the Euler product. -/
+private theorem B1_summable (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) :
+    Summable (fun n : ℕ => ‖LSeries.term (fun n => σᴿ α n * σᴿ β n) s n‖) := by
+  set c : ℝ := max α.re 0 + max β.re 0 with hc_def
+  -- It suffices to prove `LSeriesSummable` (= `Summable` of the term) of the coefficient function.
+  refine summable_norm_iff.mpr ?_
+  -- Dominate by the convergent majorant `m ↦ d_4(m) · m^c`.
+  refine LSeriesSummable.of_norm_le_norm (f := fun m => ((d 4) m : ℂ) * (m : ℂ) ^ (c : ℂ))
+    (g := fun n => σᴿ α n * σᴿ β n) (s := s) ?_ ?_
+  · -- pointwise: ‖term g s n‖ ≤ ‖term f s n‖
+    intro n
+    by_cases hn : n = 0
+    · simp [LSeries.term, hn]
+    · rw [LSeries.term_of_ne_zero hn, LSeries.term_of_ne_zero hn, norm_div, norm_div,
+        majorant_norm c n hn]
+      apply div_le_div_of_nonneg_right (combined_bound α β n hn)
+      rw [Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero hn)]
+      positivity
+  · -- majorant summability
+    exact majorant_summable c s (exponent_lt α β s h1 h2 h3 h4)
+
+private theorem B2_term_mult (α β s : ℂ) {m n : ℕ} (hmn : m.Coprime n) :
+    LSeries.term (fun n => σᴿ α n * σᴿ β n) s (m * n)
+      = LSeries.term (fun n => σᴿ α n * σᴿ β n) s m
+        * LSeries.term (fun n => σᴿ α n * σᴿ β n) s n := by
+  have hmult : (toArithmeticFunction (fun n => σᴿ α n * σᴿ β n)).IsMultiplicative := by
+    have hbridge : toArithmeticFunction (fun n => σᴿ α n * σᴿ β n) = (σᴿ α).pmul (σᴿ β) := by
+      ext k
+      simp only [toArithmeticFunction, ArithmeticFunction.coe_mk, ArithmeticFunction.pmul_apply]
+      by_cases hk : k = 0 <;> simp [hk]
+    rw [hbridge]
+    exact (isMultiplicative_sigmaR).pmul (isMultiplicative_sigmaR)
+  exact LSeries.term_isMultiplicative_if_fun_isMultiplicative hmult s hmn
+
+/-- `∑' n, (n+1) x^n = (1-x)^{-2}`. -/
+private theorem tsum_succ_geom (x : ℂ) (h : ‖x‖ < 1) :
+    ∑' n : ℕ, ((n : ℂ) + 1) * x ^ n = (1 - x)⁻¹ ^ 2 := by
+  have hx : (1 : ℂ) - x ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at h)
+  have h1 : ∀ n : ℕ, ((n : ℂ) + 1) * x ^ n = (n : ℂ) * x ^ n + x ^ n := fun n => by ring
+  simp_rw [h1]
+  rw [Summable.tsum_add ((hasSum_coe_mul_geometric_of_norm_lt_one h).summable)
+      (summable_geometric_of_norm_lt_one h)]
+  rw [tsum_coe_mul_geometric_of_norm_lt_one h, tsum_geometric_of_norm_lt_one h]
+  field_simp; ring
+
+/-- Summability of `n ↦ (n+1) x^n` for `‖x‖ < 1`. -/
+private theorem summable_succ_geom (x : ℂ) (h : ‖x‖ < 1) : Summable (fun n : ℕ => ((n : ℂ) + 1) * x ^ n) := by
+  have h2 : ∀ n : ℕ, ((n : ℂ) + 1) * x ^ n = (n : ℂ) * x ^ n + x ^ n := fun n => by ring
+  simp_rw [h2]
+  exact ((hasSum_coe_mul_geometric_of_norm_lt_one h).summable).add (summable_geometric_of_norm_lt_one h)
+
+/-- Summability of `n ↦ (n+1) c^{n+1} u^n` for `‖c u‖ < 1`. -/
+private theorem summable_succ_shift (c u : ℂ) (h : ‖c * u‖ < 1) :
+    Summable (fun n : ℕ => ((n : ℂ) + 1) * c ^ (n + 1) * u ^ n) := by
+  have h1 : ∀ n : ℕ, ((n : ℂ) + 1) * c ^ (n + 1) * u ^ n = c * (((n : ℂ) + 1) * (c * u) ^ n) :=
+    fun n => by rw [mul_pow]; ring
+  simp_rw [h1]; exact (summable_succ_geom (c * u) h).mul_left c
+
+/-- `∑' n, (n+1) c^{n+1} u^n = c (1 - c u)^{-2}`. -/
+private theorem tsum_succ_shift (c u : ℂ) (h : ‖c * u‖ < 1) :
+    ∑' n : ℕ, ((n : ℂ) + 1) * c ^ (n + 1) * u ^ n = c * (1 - c * u)⁻¹ ^ 2 := by
+  have h1 : ∀ n : ℕ, ((n : ℂ) + 1) * c ^ (n + 1) * u ^ n = c * (((n : ℂ) + 1) * (c * u) ^ n) :=
+    fun n => by rw [mul_pow]; ring
+  simp_rw [h1]; rw [tsum_mul_left, tsum_succ_geom (c * u) h]
+
+/-- `∑' n, (n+1)^2 u^n = (1+u)/(1-u)^3`. -/
+private theorem tsum_succ_sq_geom (u : ℂ) (h : ‖u‖ < 1) :
+    ∑' n : ℕ, ((n : ℂ) + 1) ^ 2 * u ^ n = (1 + u) / (1 - u) ^ 3 := by
+  have hu : (1 : ℂ) - u ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at h)
+  have hcast : ∀ n : ℕ,
+      ((n : ℂ) + 1) ^ 2 * u ^ n = 2 * (((n + 2).choose 2 : ℕ) : ℂ) * u ^ n - ((n : ℂ) + 1) * u ^ n := by
+    intro n; rw [Nat.cast_choose_two ℂ]; push_cast; ring
+  simp_rw [hcast]
+  have s1 : Summable (fun n : ℕ => 2 * (((n + 2).choose 2 : ℕ) : ℂ) * u ^ n) := by
+    have e : ∀ n : ℕ, 2 * (((n + 2).choose 2 : ℕ) : ℂ) * u ^ n
+        = 2 * ((((n + 2).choose 2 : ℕ) : ℂ) * u ^ n) := fun n => by ring
+    simp_rw [e]; exact (hasSum_choose_mul_geometric_of_norm_lt_one 2 h).summable.mul_left 2
+  have s2 : Summable (fun n : ℕ => ((n : ℂ) + 1) * u ^ n) := summable_succ_geom u h
+  rw [Summable.tsum_sub s1 s2]
+  have t1 : ∑' n : ℕ, 2 * (((n + 2).choose 2 : ℕ) : ℂ) * u ^ n = 2 * (1 / (1 - u) ^ 3) := by
+    have e : ∀ n : ℕ, 2 * (((n + 2).choose 2 : ℕ) : ℂ) * u ^ n
+        = 2 * ((((n + 2).choose 2 : ℕ) : ℂ) * u ^ n) := fun n => by ring
+    simp_rw [e]; rw [tsum_mul_left]; congr 1
+    convert tsum_choose_mul_geometric_of_norm_lt_one 2 h using 2
+  have t2 : ∑' n : ℕ, ((n : ℂ) + 1) * u ^ n = (1 - u)⁻¹ ^ 2 := tsum_succ_geom u h
+  rw [t1, t2]; field_simp; ring
+
+/-- Generic case `q ≠ 1`, `r ≠ 1`. -/
+private theorem generic_case (q r u : ℂ) (hu : ‖u‖ < 1) (hqu : ‖q * u‖ < 1) (hru : ‖r * u‖ < 1)
+    (hqru : ‖q * r * u‖ < 1) (hq : q ≠ 1) (hr : r ≠ 1) :
+    ∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), q ^ i) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e
+      = (1 - q * r * u ^ 2) / ((1 - u) * (1 - q * u) * ((1 - r * u) * (1 - q * r * u))) := by
+  have h1q : (1 : ℂ) - q ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
+  have h1r : (1 : ℂ) - r ≠ 0 := sub_ne_zero.mpr (Ne.symm hr)
+  have nu : (1 : ℂ) - u ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at hu)
+  have nqu : (1 : ℂ) - q * u ≠ 0 := sub_ne_zero.mpr (by rintro h; rw [← h] at hqu; simp at hqu)
+  have nru : (1 : ℂ) - r * u ≠ 0 := sub_ne_zero.mpr (by rintro h; rw [← h] at hru; simp at hru)
+  have nqru : (1 : ℂ) - q * r * u ≠ 0 := sub_ne_zero.mpr (by rintro h; rw [← h] at hqru; simp at hqru)
+  have su : Summable (fun e : ℕ => u ^ e) := summable_geometric_of_norm_lt_one hu
+  have sq : Summable (fun e : ℕ => q ^ (e + 1) * u ^ e) := by
+    have h : ∀ e : ℕ, q ^ (e + 1) * u ^ e = q * (q * u) ^ e := fun e => by rw [mul_pow]; ring
+    simp_rw [h]; exact (summable_geometric_of_norm_lt_one hqu).mul_left q
+  have sr : Summable (fun e : ℕ => r ^ (e + 1) * u ^ e) := by
+    have h : ∀ e : ℕ, r ^ (e + 1) * u ^ e = r * (r * u) ^ e := fun e => by rw [mul_pow]; ring
+    simp_rw [h]; exact (summable_geometric_of_norm_lt_one hru).mul_left r
+  have sqr : Summable (fun e : ℕ => (q * r) ^ (e + 1) * u ^ e) := by
+    have h : ∀ e : ℕ, (q * r) ^ (e + 1) * u ^ e = (q * r) * (q * r * u) ^ e :=
+      fun e => by rw [mul_pow]; ring_nf
+    simp_rw [h]; exact (summable_geometric_of_norm_lt_one hqru).mul_left (q * r)
+  have key : ∀ e : ℕ, ((1 - q) * (1 - r)) *
+      (((∑ i ∈ Finset.range (e + 1), q ^ i) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e)
+      = (u ^ e - q ^ (e + 1) * u ^ e - r ^ (e + 1) * u ^ e + (q * r) ^ (e + 1) * u ^ e) := by
+    intro e
+    have hgq := mul_neg_geom_sum q (e + 1)
+    have hgr := mul_neg_geom_sum r (e + 1)
+    calc ((1 - q) * (1 - r)) *
+            (((∑ i ∈ Finset.range (e + 1), q ^ i) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e)
+        = ((1 - q) * (∑ i ∈ Finset.range (e + 1), q ^ i)) *
+            ((1 - r) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e := by ring
+      _ = (1 - q ^ (e + 1)) * (1 - r ^ (e + 1)) * u ^ e := by rw [hgq, hgr]
+      _ = (u ^ e - q ^ (e + 1) * u ^ e - r ^ (e + 1) * u ^ e + (q * r) ^ (e + 1) * u ^ e) := by
+            rw [mul_pow]; ring
+  have tq : ∑' e : ℕ, q ^ (e + 1) * u ^ e = q * (1 - q * u)⁻¹ := by
+    have h : ∀ e : ℕ, q ^ (e + 1) * u ^ e = q * (q * u) ^ e := fun e => by rw [mul_pow]; ring
+    simp_rw [h]; rw [tsum_mul_left, tsum_geometric_of_norm_lt_one hqu]
+  have tr : ∑' e : ℕ, r ^ (e + 1) * u ^ e = r * (1 - r * u)⁻¹ := by
+    have h : ∀ e : ℕ, r ^ (e + 1) * u ^ e = r * (r * u) ^ e := fun e => by rw [mul_pow]; ring
+    simp_rw [h]; rw [tsum_mul_left, tsum_geometric_of_norm_lt_one hru]
+  have tqr : ∑' e : ℕ, (q * r) ^ (e + 1) * u ^ e = (q * r) * (1 - q * r * u)⁻¹ := by
+    have h : ∀ e : ℕ, (q * r) ^ (e + 1) * u ^ e = (q * r) * (q * r * u) ^ e :=
+      fun e => by rw [mul_pow]; ring_nf
+    simp_rw [h]; rw [tsum_mul_left, tsum_geometric_of_norm_lt_one hqru]
+  set F : ℂ := (1 - u)⁻¹ - q * (1 - q * u)⁻¹ - r * (1 - r * u)⁻¹ + (q * r) * (1 - q * r * u)⁻¹ with hF
+  have hSF : ((1 - q) * (1 - r)) *
+      (∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), q ^ i) *
+        (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e) = F := by
+    rw [← tsum_mul_left]
+    simp_rw [key]
+    rw [((su.sub sq).sub sr).tsum_add sqr, (su.sub sq).tsum_sub sr, su.tsum_sub sq]
+    rw [tsum_geometric_of_norm_lt_one hu, tq, tr, tqr, hF]
+  have hFD : F * ((1 - u) * (1 - q * u) * (1 - r * u) * (1 - q * r * u))
+      = (1 - q) * (1 - r) * (1 - q * r * u ^ 2) := by
+    rw [hF]
+    have e1 : (1 - u)⁻¹ * (1 - u) = 1 := inv_mul_cancel₀ nu
+    have e2 : (1 - q * u)⁻¹ * (1 - q * u) = 1 := inv_mul_cancel₀ nqu
+    have e3 : (1 - r * u)⁻¹ * (1 - r * u) = 1 := inv_mul_cancel₀ nru
+    have e4 : (1 - q * r * u)⁻¹ * (1 - q * r * u) = 1 := inv_mul_cancel₀ nqru
+    linear_combination
+      ((1 - q * u) * (1 - r * u) * (1 - q * r * u)) * e1
+      - q * ((1 - u) * (1 - r * u) * (1 - q * r * u)) * e2
+      - r * ((1 - u) * (1 - q * u) * (1 - q * r * u)) * e3
+      + (q * r) * ((1 - u) * (1 - q * u) * (1 - r * u)) * e4
+  apply mul_left_cancel₀ (mul_ne_zero h1q h1r)
+  rw [hSF]
+  have hD : ((1 - u) * (1 - q * u) * ((1 - r * u) * (1 - q * r * u))) ≠ 0 :=
+    mul_ne_zero (mul_ne_zero nu nqu) (mul_ne_zero nru nqru)
+  rw [mul_div_assoc']
+  refine (eq_div_of_mul_eq hD ?_)
+  linear_combination hFD
+
+/-- Case `q = 1`, `r ≠ 1`. -/
+private theorem case_q1 (r u : ℂ) (hu : ‖u‖ < 1) (hru : ‖r * u‖ < 1) (hr : r ≠ 1) :
+    ∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) *
+      (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e
+      = (1 - 1 * r * u ^ 2) / ((1 - u) * (1 - 1 * u) * ((1 - r * u) * (1 - 1 * r * u))) := by
+  have h1r : (1 : ℂ) - r ≠ 0 := sub_ne_zero.mpr (Ne.symm hr)
+  have nu : (1 : ℂ) - u ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at hu)
+  have nru : (1 : ℂ) - r * u ≠ 0 := sub_ne_zero.mpr (by rintro h; rw [← h] at hru; simp at hru)
+  have key : ∀ e : ℕ, ((1 - r)) *
+      (((∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) *
+        (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e)
+      = (((e : ℂ) + 1) * u ^ e - ((e : ℂ) + 1) * r ^ (e + 1) * u ^ e) := by
+    intro e
+    have hg : (1 - r) * (∑ j ∈ Finset.range (e + 1), r ^ j) = 1 - r ^ (e + 1) :=
+      mul_neg_geom_sum r (e + 1)
+    have hone : (∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) = (e : ℂ) + 1 := by
+      simp [one_pow, Finset.sum_const, Finset.card_range]
+    rw [hone]
+    calc (1 - r) * (((e : ℂ) + 1) * (∑ j ∈ Finset.range (e + 1), r ^ j) * u ^ e)
+        = ((e : ℂ) + 1) * ((1 - r) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e := by ring
+      _ = ((e : ℂ) + 1) * (1 - r ^ (e + 1)) * u ^ e := by rw [hg]
+      _ = (((e : ℂ) + 1) * u ^ e - ((e : ℂ) + 1) * r ^ (e + 1) * u ^ e) := by ring
+  set F : ℂ := (1 - u)⁻¹ ^ 2 - r * (1 - r * u)⁻¹ ^ 2 with hF
+  have hSF : (1 - r) * (∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) *
+      (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e) = F := by
+    rw [← tsum_mul_left]
+    simp_rw [key]
+    rw [Summable.tsum_sub (summable_succ_geom u hu) (summable_succ_shift r u hru)]
+    rw [tsum_succ_geom u hu, tsum_succ_shift r u hru, hF]
+  apply mul_left_cancel₀ h1r
+  rw [hSF]
+  have hFD : F * ((1 - u) ^ 2 * (1 - r * u) ^ 2) = (1 - r) * (1 - r * u ^ 2) := by
+    rw [hF]
+    have e1 : (1 - u)⁻¹ ^ 2 * (1 - u) ^ 2 = 1 := by rw [← mul_pow, inv_mul_cancel₀ nu, one_pow]
+    have e2 : (1 - r * u)⁻¹ ^ 2 * (1 - r * u) ^ 2 = 1 := by rw [← mul_pow, inv_mul_cancel₀ nru, one_pow]
+    linear_combination ((1 - r * u) ^ 2) * e1 - r * ((1 - u) ^ 2) * e2
+  have hD : ((1 - u) * (1 - 1 * u) * ((1 - r * u) * (1 - 1 * r * u))) ≠ 0 := by
+    simp only [one_mul]; exact mul_ne_zero (mul_ne_zero nu nu) (mul_ne_zero nru nru)
+  rw [mul_div_assoc']
+  refine (eq_div_of_mul_eq hD ?_)
+  have hassoc : ((1 - u) * (1 - 1 * u) * ((1 - r * u) * (1 - 1 * r * u))) = (1 - u) ^ 2 * (1 - r * u) ^ 2 := by
+    ring
+  rw [hassoc]; linear_combination hFD
+
+/-- Case `q ≠ 1`, `r = 1`. -/
+private theorem case_r1 (q u : ℂ) (hu : ‖u‖ < 1) (hqu : ‖q * u‖ < 1) (hq : q ≠ 1) :
+    ∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), q ^ i) *
+      (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j)) * u ^ e
+      = (1 - q * 1 * u ^ 2) / ((1 - u) * (1 - q * u) * ((1 - 1 * u) * (1 - q * 1 * u))) := by
+  have h1q : (1 : ℂ) - q ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
+  have nu : (1 : ℂ) - u ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at hu)
+  have nqu : (1 : ℂ) - q * u ≠ 0 := sub_ne_zero.mpr (by rintro h; rw [← h] at hqu; simp at hqu)
+  have key : ∀ e : ℕ, ((1 - q)) *
+      (((∑ i ∈ Finset.range (e + 1), q ^ i) *
+        (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j)) * u ^ e)
+      = (((e : ℂ) + 1) * u ^ e - ((e : ℂ) + 1) * q ^ (e + 1) * u ^ e) := by
+    intro e
+    have hg : (1 - q) * (∑ i ∈ Finset.range (e + 1), q ^ i) = 1 - q ^ (e + 1) :=
+      mul_neg_geom_sum q (e + 1)
+    have hone : (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j) = (e : ℂ) + 1 := by
+      simp [one_pow, Finset.sum_const, Finset.card_range]
+    rw [hone]
+    calc (1 - q) * (((∑ i ∈ Finset.range (e + 1), q ^ i) * ((e : ℂ) + 1)) * u ^ e)
+        = ((e : ℂ) + 1) * ((1 - q) * (∑ i ∈ Finset.range (e + 1), q ^ i)) * u ^ e := by ring
+      _ = ((e : ℂ) + 1) * (1 - q ^ (e + 1)) * u ^ e := by rw [hg]
+      _ = (((e : ℂ) + 1) * u ^ e - ((e : ℂ) + 1) * q ^ (e + 1) * u ^ e) := by ring
+  set F : ℂ := (1 - u)⁻¹ ^ 2 - q * (1 - q * u)⁻¹ ^ 2 with hF
+  have hSF : (1 - q) * (∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), q ^ i) *
+      (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j)) * u ^ e) = F := by
+    rw [← tsum_mul_left]
+    simp_rw [key]
+    rw [Summable.tsum_sub (summable_succ_geom u hu) (summable_succ_shift q u hqu)]
+    rw [tsum_succ_geom u hu, tsum_succ_shift q u hqu, hF]
+  apply mul_left_cancel₀ h1q
+  rw [hSF]
+  have hFD : F * ((1 - u) ^ 2 * (1 - q * u) ^ 2) = (1 - q) * (1 - q * u ^ 2) := by
+    rw [hF]
+    have e1 : (1 - u)⁻¹ ^ 2 * (1 - u) ^ 2 = 1 := by rw [← mul_pow, inv_mul_cancel₀ nu, one_pow]
+    have e2 : (1 - q * u)⁻¹ ^ 2 * (1 - q * u) ^ 2 = 1 := by rw [← mul_pow, inv_mul_cancel₀ nqu, one_pow]
+    linear_combination ((1 - q * u) ^ 2) * e1 - q * ((1 - u) ^ 2) * e2
+  have hD : ((1 - u) * (1 - q * u) * ((1 - 1 * u) * (1 - q * 1 * u))) ≠ 0 := by
+    simp only [one_mul, mul_one]; exact mul_ne_zero (mul_ne_zero nu nqu) (mul_ne_zero nu nqu)
+  rw [mul_div_assoc']
+  refine (eq_div_of_mul_eq hD ?_)
+  have hassoc : ((1 - u) * (1 - q * u) * ((1 - 1 * u) * (1 - q * 1 * u))) = (1 - u) ^ 2 * (1 - q * u) ^ 2 := by
+    ring
+  rw [hassoc]; linear_combination hFD
+
+/-- Case `q = 1`, `r = 1`. -/
+private theorem case_qr1 (u : ℂ) (hu : ‖u‖ < 1) :
+    ∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) *
+      (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j)) * u ^ e
+      = (1 - 1 * 1 * u ^ 2) / ((1 - u) * (1 - 1 * u) * ((1 - 1 * u) * (1 - 1 * 1 * u))) := by
+  have nu : (1 : ℂ) - u ≠ 0 := sub_ne_zero.mpr (by rintro rfl; simp at hu)
+  have key : ∀ e : ℕ, ((∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) *
+      (∑ j ∈ Finset.range (e + 1), (1 : ℂ) ^ j)) * u ^ e = ((e : ℂ) + 1) ^ 2 * u ^ e := by
+    intro e
+    have hone : (∑ i ∈ Finset.range (e + 1), (1 : ℂ) ^ i) = (e : ℂ) + 1 := by
+      simp [one_pow, Finset.sum_const, Finset.card_range]
+    rw [hone]; ring
+  simp_rw [key]
+  rw [tsum_succ_sq_geom u hu]
+  rw [eq_div_iff (by simp only [one_mul]; exact mul_ne_zero (mul_ne_zero nu nu) (mul_ne_zero nu nu))]
+  field_simp; ring
+
+/-- The abstract local Euler factor, all cases combined. -/
+private theorem abstract_all (q r u : ℂ) (hu : ‖u‖ < 1) (hqu : ‖q * u‖ < 1) (hru : ‖r * u‖ < 1)
+    (hqru : ‖q * r * u‖ < 1) :
+    ∑' e : ℕ, ((∑ i ∈ Finset.range (e + 1), q ^ i) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e
+      = (1 - q * r * u ^ 2) / ((1 - u) * (1 - q * u) * ((1 - r * u) * (1 - q * r * u))) := by
+  by_cases hq : q = 1
+  · by_cases hr : r = 1
+    · subst hq; subst hr; exact case_qr1 u hu
+    · subst hq; exact case_q1 r u hu hru hr
+  · by_cases hr : r = 1
+    · subst hr; exact case_r1 q u hu hqu hq
+    · exact generic_case q r u hu hqu hru hqru hq hr
+
+/-- For a prime `p` and `Re w > 0`, `‖p^{-w}‖ < 1`. -/
+private theorem norm_p_neg (p : Nat.Primes) (w : ℂ) (hw : 0 < w.re) : ‖((p : ℕ) : ℂ) ^ (-w)‖ < 1 := by
+  rw [Complex.norm_natCast_cpow_of_re_ne_zero _ (by simp; linarith)]
+  simp only [Complex.neg_re]
+  exact Real.rpow_lt_one_of_one_lt_of_neg (by exact_mod_cast p.prop.one_lt) (by linarith)
+
+private theorem B3_local (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) (p : Nat.Primes) :
+    ∑' e : ℕ, LSeries.term (fun n => σᴿ α n * σᴿ β n) s ((p : ℕ) ^ e)
+      = (1 - ((p : ℕ) : ℂ) ^ (-(2 * s - α - β))) /
+        (((1 - ((p : ℕ) : ℂ) ^ (-s)) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α)))) *
+         ((1 - ((p : ℕ) : ℂ) ^ (-(s - β))) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α - β))))) := by
+  have hpne : ((p : ℕ) : ℂ) ≠ 0 := by exact_mod_cast p.prop.ne_zero
+  set q : ℂ := ((p : ℕ) : ℂ) ^ α with hq
+  set r : ℂ := ((p : ℕ) : ℂ) ^ β with hr
+  set u : ℂ := ((p : ℕ) : ℂ) ^ (-s) with hu
+  have hterm : ∀ e : ℕ, LSeries.term (fun n => σᴿ α n * σᴿ β n) s ((p : ℕ) ^ e)
+      = ((∑ i ∈ Finset.range (e + 1), q ^ i) * (∑ j ∈ Finset.range (e + 1), r ^ j)) * u ^ e := by
+    intro e
+    rw [LSeries.term_of_ne_zero (by exact_mod_cast (pow_ne_zero e p.prop.ne_zero))]
+    rw [show (((p : ℕ) ^ e : ℕ) : ℂ) = ((p : ℕ) : ℂ) ^ e by push_cast; ring]
+    rw [div_eq_mul_inv]
+    have hσα : σᴿ α ((p : ℕ) ^ e) = ∑ i ∈ Finset.range (e + 1), q ^ i := by
+      rw [sigmaR_apply_prime_pow p.prop, hq]
+      exact Finset.sum_congr rfl fun j _ => (Complex.cpow_nat_mul _ j α)
+    have hσβ : σᴿ β ((p : ℕ) ^ e) = ∑ j ∈ Finset.range (e + 1), r ^ j := by
+      rw [sigmaR_apply_prime_pow p.prop, hr]
+      exact Finset.sum_congr rfl fun j _ => (Complex.cpow_nat_mul _ j β)
+    rw [hσα, hσβ]
+    congr 1
+    rw [hu, show (((p : ℕ) : ℂ) ^ (-s)) ^ e = ((p : ℕ) : ℂ) ^ ((e : ℂ) * (-s)) from
+        (Complex.cpow_nat_mul _ e (-s)).symm]
+    rw [Complex.natCast_cpow_natCast_mul, Complex.cpow_neg]
+  simp_rw [hterm]
+  have bu : ‖u‖ < 1 := by rw [hu]; exact norm_p_neg p s (by linarith)
+  have bqu : ‖q * u‖ < 1 := by
+    rw [hq, hu, show ((p : ℕ) : ℂ) ^ α * ((p : ℕ) : ℂ) ^ (-s) = ((p : ℕ) : ℂ) ^ (-(s - α)) by
+        rw [← Complex.cpow_add _ _ hpne]; ring_nf]
+    exact norm_p_neg p (s - α) (by linarith)
+  have bru : ‖r * u‖ < 1 := by
+    rw [hr, hu, show ((p : ℕ) : ℂ) ^ β * ((p : ℕ) : ℂ) ^ (-s) = ((p : ℕ) : ℂ) ^ (-(s - β)) by
+        rw [← Complex.cpow_add _ _ hpne]; ring_nf]
+    exact norm_p_neg p (s - β) (by linarith)
+  have bqru : ‖q * r * u‖ < 1 := by
+    rw [hq, hr, hu, show ((p : ℕ) : ℂ) ^ α * ((p : ℕ) : ℂ) ^ β * ((p : ℕ) : ℂ) ^ (-s)
+        = ((p : ℕ) : ℂ) ^ (-(s - α - β)) by
+        rw [← Complex.cpow_add _ _ hpne, ← Complex.cpow_add _ _ hpne]; ring_nf]
+    exact norm_p_neg p (s - α - β) (by linarith)
+  rw [abstract_all q r u bu bqu bru bqru]
+  have equ : q * u = ((p : ℕ) : ℂ) ^ (-(s - α)) := by
+    rw [hq, hu, ← Complex.cpow_add _ _ hpne]; ring_nf
+  have eru : r * u = ((p : ℕ) : ℂ) ^ (-(s - β)) := by
+    rw [hr, hu, ← Complex.cpow_add _ _ hpne]; ring_nf
+  have eqru : q * r * u = ((p : ℕ) : ℂ) ^ (-(s - α - β)) := by
+    rw [hq, hr, hu, ← Complex.cpow_add _ _ hpne, ← Complex.cpow_add _ _ hpne]; ring_nf
+  have eqru2 : q * r * u ^ 2 = ((p : ℕ) : ℂ) ^ (-(2 * s - α - β)) := by
+    rw [hq, hr, hu, sq, ← Complex.cpow_add _ _ hpne, ← Complex.cpow_add _ _ hpne,
+        ← Complex.cpow_add _ _ hpne]; ring_nf
+  rw [eqru2, equ, eru, eqru, hu]
+
+
+/-- B4 (HasProd form): Euler product for L(σ_α·σ_β). -/
+theorem ram_eulerProduct_hasProd (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) :
+    HasProd (fun p : Nat.Primes =>
+        (1 - ((p : ℕ) : ℂ) ^ (-(2 * s - α - β))) /
+        (((1 - ((p : ℕ) : ℂ) ^ (-s)) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α)))) *
+         ((1 - ((p : ℕ) : ℂ) ^ (-(s - β))) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α - β))))))
+      (LSeries (fun n => σᴿ α n * σᴿ β n) s) := by
+  have key := EulerProduct.eulerProduct_hasProd
+      (f := LSeries.term (fun n => σᴿ α n * σᴿ β n) s)
+      (by simp [LSeries.term, sigmaR_one])
+      (fun {m n} h => B2_term_mult α β s h)
+      (B1_summable α β s h1 h2 h3 h4)
+      (LSeries.term_zero _ s)
+  have hfac : (fun p : Nat.Primes =>
+        (1 - ((p : ℕ) : ℂ) ^ (-(2 * s - α - β))) /
+        (((1 - ((p : ℕ) : ℂ) ^ (-s)) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α)))) *
+         ((1 - ((p : ℕ) : ℂ) ^ (-(s - β))) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α - β))))))
+      = (fun p : Nat.Primes => ∑' e : ℕ, LSeries.term (fun n => σᴿ α n * σᴿ β n) s ((p : ℕ) ^ e)) :=
+    funext (fun p => (B3_local α β s h1 h2 h3 h4 p).symm)
+  rw [hfac]
+  exact key
+
+/-- B4 (tprod form). -/
+theorem ram_eulerProduct_tprod (α β s : ℂ) (h1 : 1 < s.re) (h2 : 1 < (s - α).re)
+    (h3 : 1 < (s - β).re) (h4 : 1 < (s - α - β).re) :
+    LSeries (fun n => σᴿ α n * σᴿ β n) s = ∏' p : Nat.Primes,
+        (1 - ((p : ℕ) : ℂ) ^ (-(2 * s - α - β))) /
+        (((1 - ((p : ℕ) : ℂ) ^ (-s)) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α)))) *
+         ((1 - ((p : ℕ) : ℂ) ^ (-(s - β))) * (1 - ((p : ℕ) : ℂ) ^ (-(s - α - β))))) :=
+  (ram_eulerProduct_hasProd α β s h1 h2 h3 h4).tprod_eq.symm
+
+end Ramanujan
+
 /--
 Ramanujan formula:
 `ζ(s)ζ(s-α)ζ(s-β)ζ(s-α-β)=ζ(2s-α-β) ∑ σ_α(n)σ_β(n)n^(-s)`. -/
@@ -640,7 +1140,33 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
     riemannZeta s * riemannZeta (s - α) * riemannZeta (s - β) * riemannZeta (s - α - β) =
       riemannZeta (2 * s - α - β) *
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
-  sorry
+  have h5 : 1 < (2 * s - α - β).re := by
+    have e : (2 * s - α - β).re = (s - α).re + (s - β).re := by
+      simp only [Complex.sub_re, Complex.mul_re]; norm_num; ring
+    rw [e]; linarith
+  have m1 := (riemannZeta_eulerProduct_hasProd h1).multipliable
+  have m2 := (riemannZeta_eulerProduct_hasProd h2).multipliable
+  have m3 := (riemannZeta_eulerProduct_hasProd h3).multipliable
+  have m4 := (riemannZeta_eulerProduct_hasProd h4).multipliable
+  have m5 := (riemannZeta_eulerProduct_hasProd h5).multipliable
+  have mL := (Ramanujan.ram_eulerProduct_hasProd α β s h1 h2 h3 h4).multipliable
+  rw [← riemannZeta_eulerProduct_tprod h1, ← riemannZeta_eulerProduct_tprod h2,
+      ← riemannZeta_eulerProduct_tprod h3, ← riemannZeta_eulerProduct_tprod h4,
+      ← riemannZeta_eulerProduct_tprod h5, Ramanujan.ram_eulerProduct_tprod α β s h1 h2 h3 h4,
+      ← Multipliable.tprod_mul m1 m2, ← Multipliable.tprod_mul (m1.mul m2) m3,
+      ← Multipliable.tprod_mul ((m1.mul m2).mul m3) m4, ← Multipliable.tprod_mul m5 mL]
+  refine tprod_congr (fun p => ?_)
+  have nA := Complex.one_sub_prime_cpow_ne_zero p.2 h1
+  have nB := Complex.one_sub_prime_cpow_ne_zero p.2 h2
+  have nC := Complex.one_sub_prime_cpow_ne_zero p.2 h3
+  have nD := Complex.one_sub_prime_cpow_ne_zero p.2 h4
+  have nE := Complex.one_sub_prime_cpow_ne_zero p.2 h5
+  set a := ((p : ℕ) : ℂ) ^ (-s)
+  set b := ((p : ℕ) : ℂ) ^ (-(s - α))
+  set c := ((p : ℕ) : ℂ) ^ (-(s - β))
+  set d := ((p : ℕ) : ℂ) ^ (-(s - α - β))
+  set e := ((p : ℕ) : ℂ) ^ (-(2 * s - α - β))
+  field_simp
 
 /-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
 @[blueprint
@@ -748,25 +1274,6 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
   "LSeriesSummable_two_pow_omega"
   (title := "LSeriesSummable-two-pow-omega")
   (statement := /--
-    An L-series is convergent if the absolute value of each term is term wise less than a summable series.
-  -/)
-  (proof := /--
-    Apply triangle inequality and comparison test.
-  -/)]
-lemma LSeriesSummable.of_norm_le_norm {f g : ℕ → ℂ} {s : ℂ}
-  (hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ g n) s n‖ ≤ ‖LSeries.term (fun n ↦ f n) s n‖)
-  (hf : Summable (fun n ↦ ‖LSeries.term (fun n ↦ f n) s n‖)) : LSeriesSummable (fun n ↦ g n) s := by
-  have h_fSummable : LSeriesSummable (fun n => f n) s := by
-    rw [LSeriesSummable, ← summable_norm_iff]
-    exact hf
-  rw [LSeriesSummable, ← summable_norm_iff] at *
-  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) h_fSummable
-  exact hgf
-
-@[blueprint
-  "LSeriesSummable_two_pow_omega"
-  (title := "LSeriesSummable-two-pow-omega")
-  (statement := /--
     The $L$-series with coefficients given by $2^{\omega(n)}$ converges on the region $1<\Re(s)$.
   -/)
   (proof := /--
@@ -785,25 +1292,6 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
   rw [summable_norm_iff, ← LSeriesSummable]
   convert LSeries_d_summable 2 hs using 1;
   exact funext fun n => by rw [d_two]; rfl
-
-@[blueprint
-  "LSeries.term_isMultiplicative_if_fun_isMultiplicative"
-  (title := "LSeries.term-isMultiplicative-if-fun-isMultiplicative")
-  (statement := /--
-    If $f$ is a multiplicative function, then so to is $n\mapsto f(n)/n^s$.
-  -/)
-  (proof := /--
-    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/n^s)(f(n)/n^s)$.
-  -/)]
-lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
-    LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
-  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
-  simp only [or_self, ↓reduceIte]
-  congr 1
-  simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
 
 @[blueprint
   "powOfAdditive_isMultiplicative"
