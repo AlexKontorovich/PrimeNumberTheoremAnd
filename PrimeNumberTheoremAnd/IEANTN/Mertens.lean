@@ -2,6 +2,7 @@ import Mathlib.Algebra.Order.Field.GeomSum
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+import Mathlib.NumberTheory.LSeries.SumCoeff
 import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
@@ -10,6 +11,7 @@ import Mathlib.Algebra.Group.Submonoid.BigOperators
 import PrimeNumberTheoremAnd.EulerMaclaurin
 import Architect
 
+open scoped Topology
 
 theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl
 
@@ -905,6 +907,141 @@ theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
 theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun _ ↦ (1:ℝ)) := E₂Λ.bound.trans_isLittleO inv_log_eq_o_one
+
+private noncomputable abbrev logZetaCoeff (n : ℕ) : ℝ := Λ n / (n * log n)
+
+private lemma logZetaCoeff_nonneg (n : ℕ) : 0 ≤ logZetaCoeff n := by
+  dsimp [logZetaCoeff]
+  exact div_nonneg (ArithmeticFunction.vonMangoldt_nonneg (n := n))
+    (mul_nonneg (Nat.cast_nonneg n) (Real.log_natCast_nonneg n))
+
+private lemma mangoldt_div_nonneg (n : ℕ) : 0 ≤ Λ n / (n : ℝ) := by
+  exact div_nonneg (ArithmeticFunction.vonMangoldt_nonneg (n := n)) (Nat.cast_nonneg n)
+
+private lemma logZetaCoeff_le_const_mul_mangoldt_div (n : ℕ) :
+    logZetaCoeff n ≤ (1 / log 2) * (Λ n / (n : ℝ)) := by
+  by_cases hn0 : n = 0
+  · simp [logZetaCoeff, hn0]
+  by_cases hn1 : n = 1
+  · simp [logZetaCoeff, hn1]
+  have hn2 : 2 ≤ n := by omega
+  have hlog2pos : 0 < log 2 := log_pos (by norm_num)
+  have hlognpos : 0 < log (n : ℝ) :=
+    log_pos (by exact_mod_cast (lt_of_lt_of_le (by norm_num : 1 < 2) hn2))
+  have hlog2le : log 2 ≤ log (n : ℝ) :=
+    log_le_log (by norm_num) (by exact_mod_cast hn2)
+  calc
+    logZetaCoeff n = (Λ n / (n : ℝ)) / log n := by
+      dsimp [logZetaCoeff]
+      field
+    _ ≤ (Λ n / (n : ℝ)) / log 2 := by
+      exact div_le_div_of_nonneg_left (mangoldt_div_nonneg n) hlog2pos hlog2le
+    _ = (1 / log 2) * (Λ n / (n : ℝ)) := by ring
+
+private lemma sum_Icc_one_eq_sum_Ioc_zero (f : ℕ → ℝ) (n : ℕ) :
+    ∑ k ∈ Icc 1 n, f k = ∑ k ∈ Ioc 0 n, f k := by
+  refine Finset.sum_congr ?_ fun _ _ ↦ rfl
+  ext k
+  simp [Nat.succ_le_iff]
+
+private lemma logZetaCoeff_partial_sum_isBigO_rpow {r : ℝ} (hr : 0 < r) :
+    (fun n : ℕ ↦ ∑ k ∈ Icc 1 n, logZetaCoeff k) =O[atTop]
+      fun n : ℕ ↦ (n : ℝ) ^ r := by
+  have hcoeff_to_lambda :
+      (fun n : ℕ ↦ ∑ k ∈ Icc 1 n, logZetaCoeff k) =O[atTop]
+        fun n : ℕ ↦ ∑ k ∈ Icc 1 n, Λ k / (k : ℝ) := by
+    refine IsBigO.of_bound (1 / log 2) (Eventually.of_forall ?_)
+    intro n
+    rw [Real.norm_eq_abs, Real.norm_eq_abs]
+    have hleft_nonneg : 0 ≤ ∑ k ∈ Icc 1 n, logZetaCoeff k :=
+      Finset.sum_nonneg fun k _ ↦ logZetaCoeff_nonneg k
+    have hright_nonneg : 0 ≤ ∑ k ∈ Icc 1 n, Λ k / (k : ℝ) :=
+      Finset.sum_nonneg fun k _ ↦ mangoldt_div_nonneg k
+    rw [abs_of_nonneg hleft_nonneg, abs_of_nonneg hright_nonneg]
+    calc
+      ∑ k ∈ Icc 1 n, logZetaCoeff k
+          ≤ ∑ k ∈ Icc 1 n, (1 / log 2) * (Λ k / (k : ℝ)) := by
+        exact Finset.sum_le_sum fun k _ ↦ logZetaCoeff_le_const_mul_mangoldt_div k
+      _ = (1 / log 2) * ∑ k ∈ Icc 1 n, Λ k / (k : ℝ) := by
+        rw [Finset.mul_sum]
+  have hlambda_log_ioc :
+      (fun n : ℕ ↦ ∑ d ∈ Ioc 0 ⌊(n : ℝ)⌋₊, Λ d / (d : ℝ)) =O[atTop]
+        fun n : ℕ ↦ log (n : ℝ) := by
+    simpa [Function.comp_def] using
+      (sum_mangoldt_div_eq_log'.isBigO.comp_tendsto
+        (k := fun n : ℕ ↦ (n : ℝ)) tendsto_natCast_atTop_atTop)
+  have hlambda_log :
+      (fun n : ℕ ↦ ∑ k ∈ Icc 1 n, Λ k / (k : ℝ)) =O[atTop]
+        fun n : ℕ ↦ log (n : ℝ) := by
+    refine (Filter.EventuallyEq.isBigO ?_).trans hlambda_log_ioc
+    filter_upwards with n
+    rw [Nat.floor_natCast, sum_Icc_one_eq_sum_Ioc_zero]
+  have hlog_rpow : (fun n : ℕ ↦ log (n : ℝ)) =O[atTop] fun n : ℕ ↦ (n : ℝ) ^ r := by
+    simpa [Function.comp_def] using
+      ((isLittleO_log_rpow_atTop hr).isBigO.comp_tendsto
+        (k := fun n : ℕ ↦ (n : ℝ)) tendsto_natCast_atTop_atTop)
+  exact hcoeff_to_lambda.trans (hlambda_log.trans hlog_rpow)
+
+private theorem logZetaCoeff_LSeries_eq_integral (s : ℝ) (hs : 1 < s) :
+    LSeries (fun n : ℕ ↦ (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ)) =
+      (((s - 1 : ℝ) : ℂ)) *
+        ∫ t in Set.Ioi (1 : ℝ),
+          (∑ k ∈ Icc 1 ⌊t⌋₊, (logZetaCoeff k : ℂ)) *
+            (t : ℂ) ^ (-((((s - 1 : ℝ) : ℂ)) + 1)) := by
+  have hr : 0 ≤ (s - 1) / 2 := by linarith
+  have hsr : (s - 1) / 2 < ((((s - 1 : ℝ) : ℂ)) : ℂ).re := by
+    simp
+    linarith
+  simpa using
+    LSeries_eq_mul_integral_of_nonneg logZetaCoeff hr (s := (((s - 1 : ℝ) : ℂ))) hsr
+      (logZetaCoeff_partial_sum_isBigO_rpow (by linarith)) logZetaCoeff_nonneg
+
+private lemma zeta_pole_mul_re_tendsto_one :
+    Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
+  have hsub :
+      Tendsto (fun s : ℝ => (riemannZeta (s : ℂ) - 1 / ((s : ℂ) - 1)).re)
+        (𝓝[>] 1) (𝓝 Real.eulerMascheroniConstant) := by
+    exact (Complex.continuous_re.tendsto (Real.eulerMascheroniConstant : ℂ)).comp
+      ZetaAsymptotics.tendsto_riemannZeta_sub_one_div_nhds_right
+  have hmul0 :
+      Tendsto
+        (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ) - 1 / ((s : ℂ) - 1)).re)
+        (𝓝[>] 1) (𝓝 0) := by
+    have hsminus : Tendsto (fun s : ℝ => s - 1) (𝓝[>] 1) (𝓝 0) := by
+      rw [show (0 : ℝ) = 1 - 1 by ring]
+      exact (tendsto_nhdsWithin_of_tendsto_nhds tendsto_id).sub tendsto_const_nhds
+    simpa using hsminus.mul hsub
+  have hsplit :
+      (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) =ᶠ[𝓝[>] 1]
+        fun s : ℝ =>
+          (s - 1) * (riemannZeta (s : ℂ) - 1 / ((s : ℂ) - 1)).re + 1 := by
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    rw [Set.mem_Ioi] at hs
+    have h_inv_re : (1 / ((s : ℂ) - 1)).re = 1 / (s - 1) := by
+      simp [Complex.normSq]
+    rw [Complex.sub_re, h_inv_re]
+    field_simp [sub_ne_zero.mpr (by linarith : s ≠ 1)]
+    ring
+  simpa using (hmul0.add tendsto_const_nhds).congr' (hsplit.mono fun s hs => hs.symm)
+
+private lemma zeta_log_cancel_tendsto_zero :
+    Tendsto (fun s : ℝ => log (riemannZeta (s : ℂ)).re + log (s - 1))
+      (𝓝[>] 1) (𝓝 0) := by
+  have hlog :
+      Tendsto (fun s : ℝ => log ((s - 1) * (riemannZeta (s : ℂ)).re))
+        (𝓝[>] 1) (𝓝 (log 1)) :=
+    zeta_pole_mul_re_tendsto_one.log (by norm_num)
+  have hEq :
+      (fun s : ℝ => log (riemannZeta (s : ℂ)).re + log (s - 1)) =ᶠ[𝓝[>] 1]
+        fun s : ℝ => log ((s - 1) * (riemannZeta (s : ℂ)).re) := by
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    rw [Set.mem_Ioi] at hs
+    have hspos : 0 < s - 1 := by linarith
+    have hzpos : 0 < (riemannZeta (s : ℂ)).re := riemannZeta_re_pos_of_one_lt hs
+    rw [← Real.log_mul hzpos.ne' hspos.ne']
+    congr 1
+    ring
+  simpa using hlog.congr' (hEq.mono fun s hs => hs.symm)
 
 @[blueprint
   "log-zeta-eq"
