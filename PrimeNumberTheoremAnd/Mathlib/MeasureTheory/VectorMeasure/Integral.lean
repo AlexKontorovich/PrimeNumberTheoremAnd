@@ -142,6 +142,25 @@ theorem setToFun_mul_complex_variation_eq_integral (μ : VectorMeasure X ℂ)
     simpa [ofReal_norm] using ENNReal.ofReal_le_ofReal hnorm
   exact henorm.trans (enorm_measure_le_variation μ s)
 
+theorem vectorMeasure_integral_mul_complex_indicator_const (μ : VectorMeasure X ℂ)
+    {s : Set X} (hs : MeasurableSet s) (hμs : μ.variation s ≠ ∞) (x : ℂ) :
+    VectorMeasure.integral μ (s.indicator fun _ => x) (ContinuousLinearMap.mul ℝ ℂ) =
+      x * μ s := by
+  have hg : Integrable (s.indicator fun _ => x) μ.variation :=
+    (integrableOn_const hμs).integrable_indicator hs
+  rw [← setToFun_mul_complex_variation_eq_integral μ hg]
+  rw [setToFun_indicator_const (dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μ)
+    hs hμs]
+  exact cbmApplyMeasure_apply μ (ContinuousLinearMap.mul ℝ ℂ) s x
+
+theorem vectorMeasure_integral_mul_complex_const (μ : VectorMeasure X ℂ)
+    [IsFiniteMeasure μ.variation] (x : ℂ) :
+    VectorMeasure.integral μ (fun _ => x) (ContinuousLinearMap.mul ℝ ℂ) =
+      x * μ Set.univ := by
+  rw [← Set.indicator_univ (fun _ : X => x)]
+  exact vectorMeasure_integral_mul_complex_indicator_const μ MeasurableSet.univ
+    (measure_ne_top _ _) x
+
 theorem norm_setToFun_mul_complex_variation_le_of_norm_le (μ : VectorMeasure X ℂ)
     {g : X → ℂ} {C : ℝ} (hg : Integrable g μ.variation) (hC : 0 ≤ C)
     (hbound : ∀ x, ‖g x‖ ≤ C) (hμ : μ.variation univ ≠ ∞) :

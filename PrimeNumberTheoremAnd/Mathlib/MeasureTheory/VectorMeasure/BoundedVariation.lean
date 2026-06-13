@@ -1,11 +1,13 @@
 import Mathlib.Algebra.Order.Interval.Set.Group
 import Mathlib.Algebra.Order.ToIntervalMod
+import Mathlib.MeasureTheory.Integral.IntegrableOn
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.MeasureTheory.VectorMeasure.AddContent
 import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 import Mathlib.MeasureTheory.VectorMeasure.Variation.Basic
 
-open Set MeasureTheory
-open scoped ENNReal
+open Filter Set MeasureTheory
+open scoped ENNReal Topology
 
 namespace MeasureTheory.VectorMeasure
 
@@ -133,5 +135,65 @@ theorem vectorMeasure_variation_univ_le_eVariationOn (hf : BoundedVariationOn f 
               exact ((eVariationOn.mono _ inter_subset_left).trans_lt hf.rightLim.lt_top).ne
             _ ≤ eVariationOn f.rightLim Set.univ := eVariationOn.mono _ inter_subset_left
             _ ≤ eVariationOn f Set.univ := eVariationOn.eVariationOn_rightLim_le
+
+theorem limUnder_atTop_eq_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    limUnder atTop f = 0 := by
+  apply IntegrableAtFilter.eq_zero_of_tendsto (hfi.integrableAtFilter atTop) ?_
+    hf.tendsto_atTop_limUnder
+  intro s hs
+  rcases mem_atTop_sets.mp hs with ⟨a, ha⟩
+  rw [← top_le_iff]
+  calc
+    ∞ = volume (Set.Ici a) := by rw [Real.volume_Ici]
+    _ ≤ volume s := measure_mono ha
+
+theorem tendsto_atTop_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    Tendsto f atTop (𝓝 0) := by
+  simpa [hf.limUnder_atTop_eq_zero_of_integrable hfi] using hf.tendsto_atTop_limUnder
+
+theorem limUnder_atBot_eq_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    limUnder atBot f = 0 := by
+  apply IntegrableAtFilter.eq_zero_of_tendsto (hfi.integrableAtFilter atBot) ?_
+    hf.tendsto_atBot_limUnder
+  intro s hs
+  rcases mem_atBot_sets.mp hs with ⟨a, ha⟩
+  rw [← top_le_iff]
+  calc
+    ∞ = volume (Set.Iic a) := by rw [Real.volume_Iic]
+    _ ≤ volume s := measure_mono ha
+
+theorem tendsto_atBot_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    Tendsto f atBot (𝓝 0) := by
+  simpa [hf.limUnder_atBot_eq_zero_of_integrable hfi] using hf.tendsto_atBot_limUnder
+
+theorem vectorMeasure_univ_eq_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    hf.vectorMeasure Set.univ = 0 := by
+  rw [hf.vectorMeasure_univ, hf.limUnder_atTop_eq_zero_of_integrable hfi,
+    hf.limUnder_atBot_eq_zero_of_integrable hfi, sub_self]
+
+theorem vectorMeasure_Ici_eq_neg_leftLim_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) (a : ℝ) :
+    hf.vectorMeasure (Set.Ici a) = -f.leftLim a := by
+  rw [hf.vectorMeasure_Ici, hf.limUnder_atTop_eq_zero_of_integrable hfi, zero_sub]
+
+theorem vectorMeasure_Ioi_eq_neg_rightLim_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) (a : ℝ) :
+    hf.vectorMeasure (Set.Ioi a) = -f.rightLim a := by
+  rw [hf.vectorMeasure_Ioi, hf.limUnder_atTop_eq_zero_of_integrable hfi, zero_sub]
+
+theorem vectorMeasure_Iic_eq_rightLim_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) (a : ℝ) :
+    hf.vectorMeasure (Set.Iic a) = f.rightLim a := by
+  rw [hf.vectorMeasure_Iic, hf.limUnder_atBot_eq_zero_of_integrable hfi, sub_zero]
+
+theorem vectorMeasure_Iio_eq_leftLim_of_integrable (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) (a : ℝ) :
+    hf.vectorMeasure (Set.Iio a) = f.leftLim a := by
+  rw [hf.vectorMeasure_Iio, hf.limUnder_atBot_eq_zero_of_integrable hfi, sub_zero]
 
 end BoundedVariationOn

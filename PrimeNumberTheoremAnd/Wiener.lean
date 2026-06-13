@@ -335,6 +335,36 @@ lemma boundedVariationOn_norm_vectorMeasure_integral_fourierChar_le_eVariationOn
     _ = ((hvar.vectorMeasure).variation Set.univ).toReal := one_mul _
     _ ≤ (eVariationOn ψ Set.univ).toReal := ENNReal.toReal_mono hψ_ne_top hvariation
 
+lemma prelim_decay_2_of_vectorMeasure_fourier_identity
+    (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) (hu : u ≠ 0)
+    (hbridge :
+      (((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) * 𝓕 (ψ : ℝ → ℂ) u =
+        VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
+  have hvec := boundedVariationOn_norm_vectorMeasure_integral_fourierChar_le_eVariationOn
+    hvar u
+  have hscalar_norm : ‖(((2 * Real.pi * u : ℝ) : ℂ) * Complex.I)‖ =
+      2 * Real.pi * ‖u‖ := by
+    rw [Complex.norm_mul]
+    simp [Real.norm_eq_abs, abs_of_pos Real.pi_pos]
+  have hpos : 0 < 2 * Real.pi * ‖u‖ := by
+    positivity
+  have hmul_le : (2 * Real.pi * ‖u‖) * ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤
+      (eVariationOn ψ Set.univ).toReal := by
+    calc
+      (2 * Real.pi * ‖u‖) * ‖𝓕 (ψ : ℝ → ℂ) u‖
+          = ‖(((2 * Real.pi * u : ℝ) : ℂ) * Complex.I)‖ *
+              ‖𝓕 (ψ : ℝ → ℂ) u‖ := by
+            rw [hscalar_norm]
+      _ = ‖((((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) * 𝓕 (ψ : ℝ → ℂ) u)‖ := by
+            exact (Complex.norm_mul (((2 * Real.pi * u : ℝ) : ℂ) * Complex.I)
+              (𝓕 (ψ : ℝ → ℂ) u)).symm
+      _ = ‖VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)‖ := by
+            rw [hbridge]
+      _ ≤ (eVariationOn ψ Set.univ).toReal := hvec
+  exact (le_div_iff₀ hpos).mpr (by
+    simpa [mul_comm, mul_left_comm, mul_assoc] using hmul_le)
+
 @[blueprint "prelim-decay-2"
   (title := "Preliminary decay bound II")
   (statement := /--
