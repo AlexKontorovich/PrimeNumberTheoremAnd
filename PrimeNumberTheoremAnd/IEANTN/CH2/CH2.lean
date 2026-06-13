@@ -3266,6 +3266,49 @@ theorem norm_Phi_lambda_neg_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam
   rw [hphi]
   exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
 
+/-- On the upper horizontal ray of `C∞`, `zOf` has real part `1` and height `(1-r)/T`. -/
+theorem LadderParams.zOf_top_hray (l : LadderParams) (r : ℝ) :
+    l.zOf (r + l.T * Complex.I) = 1 + Complex.I * (((1 - r) / l.T : ℝ) : ℂ) := by
+  rw [LadderParams.zOf]
+  field_simp [l.hT.ne']
+  ring_nf
+  simp [Complex.I_sq]
+  field_simp [l.hT.ne']
+  ring
+
+/-- On the lower horizontal ray of `C∞`, `zOf` has real part `-1` and height `(1-r)/T`. -/
+theorem LadderParams.zOf_bot_hray (l : LadderParams) (r : ℝ) :
+    l.zOf (r - l.T * Complex.I) = -1 + Complex.I * (((1 - r) / l.T : ℝ) : ℂ) := by
+  rw [LadderParams.zOf]
+  field_simp [l.hT.ne']
+  ring_nf
+  simp [Complex.I_sq]
+  field_simp [l.hT.ne']
+  ring
+
+/-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
+theorem integral_Iic_one_eq_integral_Ioi_one_sub
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
+    (∫ r in Set.Iic (1 : ℝ), f r) = ∫ t in Set.Ioi (0 : ℝ), f (1 - t) := by
+  have hshift : (∫ x in Set.Iic (0 : ℝ), f (1 + x)) = ∫ x in Set.Iic (1 : ℝ), f x := by
+    have A : MeasurableEmbedding (fun x : ℝ => 1 + x) :=
+      (Homeomorph.addLeft (1 : ℝ)).measurableEmbedding
+    have h := MeasurableEmbedding.setIntegral_map (μ := volume) A f (Set.Iic (1 : ℝ))
+    rw [map_add_left_eq_self volume (1 : ℝ)] at h
+    have hpre : (fun x : ℝ => 1 + x) ⁻¹' Set.Iic (1 : ℝ) = Set.Iic (0 : ℝ) := by
+      ext x
+      simp [Set.mem_Iic]
+    rw [hpre] at h
+    exact h.symm
+  have hneg := integral_comp_neg_Iic (c := (0 : ℝ)) (f := fun t : ℝ => f (1 - t))
+  rw [neg_zero] at hneg
+  rw [← hneg]
+  rw [← hshift]
+  refine setIntegral_congr_fun (measurableSet_Iic : MeasurableSet (Set.Iic (0 : ℝ))) ?_
+  intro x hx
+  congr 1
+  ring
+
 section Proposition52
 
 /- Shared context for Proposition 5.2 and its sub-lemmas: the ladder parameters `l`, the
