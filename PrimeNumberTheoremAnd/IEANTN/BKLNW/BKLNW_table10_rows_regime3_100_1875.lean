@@ -10,49 +10,6 @@ namespace BKLNW
 
 open Real Set Finset
 
-/-! ## Cached exp(-x) bounds shared across this file's k-margin theorems. -/
-
-private lemma exp_neg_50_lt : Real.exp (-(50 : ℝ)) < 1e-20 := by interval_decide
-private lemma exp_neg_200_3_lt : Real.exp (-(200/3 : ℝ)) < 1e-26 := by interval_decide
-private lemma exp_neg_100_lt : Real.exp (-(100 : ℝ)) < 1e-40 := by interval_decide
-private lemma exp_neg_400_3_lt : Real.exp (-(400/3 : ℝ)) < 1e-53 := by interval_decide
-private lemma exp_neg_150_lt : Real.exp (-(150 : ℝ)) < 1e-60 := by interval_decide
-private lemma exp_neg_200_lt : Real.exp (-(200 : ℝ)) < 1e-80 := by interval_decide
-private lemma exp_neg_250_lt : Real.exp (-(250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_800_3_lt : Real.exp (-(800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_300_lt : Real.exp (-(300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1000_3_lt : Real.exp (-(1000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_350_lt : Real.exp (-(350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_400_lt : Real.exp (-(400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_450_lt : Real.exp (-(450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1400_3_lt : Real.exp (-(1400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_500_lt : Real.exp (-(500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1600_3_lt : Real.exp (-(1600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_600_lt : Real.exp (-(600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_2000_3_lt : Real.exp (-(2000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_750_lt : Real.exp (-(750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_800_lt : Real.exp (-(800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_850_lt : Real.exp (-(850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1725_2_lt : Real.exp (-(1725/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_875_lt : Real.exp (-(875 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1775_2_lt : Real.exp (-(1775/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_900_lt : Real.exp (-(900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1825_2_lt : Real.exp (-(1825/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_925_lt : Real.exp (-(925 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1875_2_lt : Real.exp (-(1875/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1000_lt : Real.exp (-(1000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3200_3_lt : Real.exp (-(3200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3400_3_lt : Real.exp (-(3400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1150_lt : Real.exp (-(1150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3500_3_lt : Real.exp (-(3500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3550_3_lt : Real.exp (-(3550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1200_lt : Real.exp (-(1200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3650_3_lt : Real.exp (-(3650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_3700_3_lt : Real.exp (-(3700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-private lemma exp_neg_1250_lt : Real.exp (-(1250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
-
-
-
 private lemma logx1_lt_44 : log Inputs.default.x₁ < 44 := by
   change log (1e19 : ℝ) < 44
   have h : (1e19 : ℝ) = (10 : ℝ) ^ 19 := by norm_num
@@ -64,7 +21,6 @@ private lemma a1_large_le_two {b : ℝ} (hb : 100 ≤ b) : Inputs.default.a₁ b
     change BKLNW_app.table_8_ε (b / 2) ≤ 4.2676e-5
     exact BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_20 (by nlinarith)
   linarith
-
 
 private lemma row100_a2_le : Inputs.default.a₂ (100 : ℝ) ≤ (147 : ℝ) := by
   have h := a2_crude_le (100 : ℝ) (by norm_num)
@@ -82,7 +38,6 @@ private lemma row100_a2_le : Inputs.default.a₂ (100 : ℝ) ≤ (147 : ℝ) := 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 147 := by norm_num
 
-
 private lemma row200_a2_le : Inputs.default.a₂ (200 : ℝ) ≤ (291 : ℝ) := by
   have h := a2_crude_le (200 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -98,7 +53,6 @@ private lemma row200_a2_le : Inputs.default.a₂ (200 : ℝ) ≤ (291 : ℝ) := 
     _ ≤ (1 + 1e-7) * (289 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 291 := by norm_num
-
 
 private lemma row300_a2_le : Inputs.default.a₂ (300 : ℝ) ≤ (435 : ℝ) := by
   have h := a2_crude_le (300 : ℝ) (by norm_num)
@@ -116,7 +70,6 @@ private lemma row300_a2_le : Inputs.default.a₂ (300 : ℝ) ≤ (435 : ℝ) := 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 435 := by norm_num
 
-
 private lemma row400_a2_le : Inputs.default.a₂ (400 : ℝ) ≤ (580 : ℝ) := by
   have h := a2_crude_le (400 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -132,7 +85,6 @@ private lemma row400_a2_le : Inputs.default.a₂ (400 : ℝ) ≤ (580 : ℝ) := 
     _ ≤ (1 + 1e-7) * (578 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 580 := by norm_num
-
 
 private lemma row500_a2_le : Inputs.default.a₂ (500 : ℝ) ≤ (724 : ℝ) := by
   have h := a2_crude_le (500 : ℝ) (by norm_num)
@@ -150,7 +102,6 @@ private lemma row500_a2_le : Inputs.default.a₂ (500 : ℝ) ≤ (724 : ℝ) := 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 724 := by norm_num
 
-
 private lemma row600_a2_le : Inputs.default.a₂ (600 : ℝ) ≤ (868 : ℝ) := by
   have h := a2_crude_le (600 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -166,7 +117,6 @@ private lemma row600_a2_le : Inputs.default.a₂ (600 : ℝ) ≤ (868 : ℝ) := 
     _ ≤ (1 + 1e-7) * (866 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 868 := by norm_num
-
 
 private lemma row700_a2_le : Inputs.default.a₂ (700 : ℝ) ≤ (1012 : ℝ) := by
   have h := a2_crude_le (700 : ℝ) (by norm_num)
@@ -184,7 +134,6 @@ private lemma row700_a2_le : Inputs.default.a₂ (700 : ℝ) ≤ (1012 : ℝ) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1012 := by norm_num
 
-
 private lemma row800_a2_le : Inputs.default.a₂ (800 : ℝ) ≤ (1157 : ℝ) := by
   have h := a2_crude_le (800 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -200,7 +149,6 @@ private lemma row800_a2_le : Inputs.default.a₂ (800 : ℝ) ≤ (1157 : ℝ) :=
     _ ≤ (1 + 1e-7) * (1155 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1157 := by norm_num
-
 
 private lemma row900_a2_le : Inputs.default.a₂ (900 : ℝ) ≤ (1301 : ℝ) := by
   have h := a2_crude_le (900 : ℝ) (by norm_num)
@@ -218,7 +166,6 @@ private lemma row900_a2_le : Inputs.default.a₂ (900 : ℝ) ≤ (1301 : ℝ) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1301 := by norm_num
 
-
 private lemma row1000_a2_le : Inputs.default.a₂ (1000 : ℝ) ≤ (1445 : ℝ) := by
   have h := a2_crude_le (1000 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -234,7 +181,6 @@ private lemma row1000_a2_le : Inputs.default.a₂ (1000 : ℝ) ≤ (1445 : ℝ) 
     _ ≤ (1 + 1e-7) * (1443 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 1445 := by norm_num
-
 
 private lemma row1500_a2_le : Inputs.default.a₂ (1500 : ℝ) ≤ (2167 : ℝ) := by
   have h := a2_crude_le (1500 : ℝ) (by norm_num)
@@ -252,7 +198,6 @@ private lemma row1500_a2_le : Inputs.default.a₂ (1500 : ℝ) ≤ (2167 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2167 := by norm_num
 
-
 private lemma row1600_a2_le : Inputs.default.a₂ (1600 : ℝ) ≤ (2311 : ℝ) := by
   have h := a2_crude_le (1600 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -268,7 +213,6 @@ private lemma row1600_a2_le : Inputs.default.a₂ (1600 : ℝ) ≤ (2311 : ℝ) 
     _ ≤ (1 + 1e-7) * (2309 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2311 := by norm_num
-
 
 private lemma row1700_a2_le : Inputs.default.a₂ (1700 : ℝ) ≤ (2455 : ℝ) := by
   have h := a2_crude_le (1700 : ℝ) (by norm_num)
@@ -286,7 +230,6 @@ private lemma row1700_a2_le : Inputs.default.a₂ (1700 : ℝ) ≤ (2455 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2455 := by norm_num
 
-
 private lemma row1725_a2_le : Inputs.default.a₂ (1725 : ℝ) ≤ (2491 : ℝ) := by
   have h := a2_crude_le (1725 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -302,7 +245,6 @@ private lemma row1725_a2_le : Inputs.default.a₂ (1725 : ℝ) ≤ (2491 : ℝ) 
     _ ≤ (1 + 1e-7) * (2489 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2491 := by norm_num
-
 
 private lemma row1750_a2_le : Inputs.default.a₂ (1750 : ℝ) ≤ (2527 : ℝ) := by
   have h := a2_crude_le (1750 : ℝ) (by norm_num)
@@ -320,7 +262,6 @@ private lemma row1750_a2_le : Inputs.default.a₂ (1750 : ℝ) ≤ (2527 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2527 := by norm_num
 
-
 private lemma row1775_a2_le : Inputs.default.a₂ (1775 : ℝ) ≤ (2563 : ℝ) := by
   have h := a2_crude_le (1775 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -336,7 +277,6 @@ private lemma row1775_a2_le : Inputs.default.a₂ (1775 : ℝ) ≤ (2563 : ℝ) 
     _ ≤ (1 + 1e-7) * (2561 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2563 := by norm_num
-
 
 private lemma row1800_a2_le : Inputs.default.a₂ (1800 : ℝ) ≤ (2599 : ℝ) := by
   have h := a2_crude_le (1800 : ℝ) (by norm_num)
@@ -354,7 +294,6 @@ private lemma row1800_a2_le : Inputs.default.a₂ (1800 : ℝ) ≤ (2599 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2599 := by norm_num
 
-
 private lemma row1825_a2_le : Inputs.default.a₂ (1825 : ℝ) ≤ (2635 : ℝ) := by
   have h := a2_crude_le (1825 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -370,7 +309,6 @@ private lemma row1825_a2_le : Inputs.default.a₂ (1825 : ℝ) ≤ (2635 : ℝ) 
     _ ≤ (1 + 1e-7) * (2633 + 1) :=
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2635 := by norm_num
-
 
 private lemma row1850_a2_le : Inputs.default.a₂ (1850 : ℝ) ≤ (2671 : ℝ) := by
   have h := a2_crude_le (1850 : ℝ) (by norm_num)
@@ -388,7 +326,6 @@ private lemma row1850_a2_le : Inputs.default.a₂ (1850 : ℝ) ≤ (2671 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2671 := by norm_num
 
-
 private lemma row1875_a2_le : Inputs.default.a₂ (1875 : ℝ) ≤ (2708 : ℝ) := by
   have h := a2_crude_le (1875 : ℝ) (by norm_num)
   have hlog2 : (0.6931471803 : ℝ) < log 2 := LogTables.log_2_gt_d9
@@ -405,7 +342,6 @@ private lemma row1875_a2_le : Inputs.default.a₂ (1875 : ℝ) ≤ (2708 : ℝ) 
         mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 2708 := by norm_num
 
-
 set_option maxRecDepth 10000 in
 private lemma row100_table8_mem : (100, 2.4531e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -414,7 +350,6 @@ private lemma row100_eps_le : Inputs.default.ε (100 : ℝ) ≤ 2.4531e-12 := by
   change BKLNW_app.table_8_ε (100 : ℝ) ≤ 2.4531e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 100)
     (ε := 2.4531e-12) row100_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row200_table8_mem : (200, 2.1816e-12) ∈ BKLNW_app.table_8 := by
@@ -425,7 +360,6 @@ private lemma row200_eps_le : Inputs.default.ε (200 : ℝ) ≤ 2.1816e-12 := by
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 200)
     (ε := 2.1816e-12) row200_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row300_table8_mem : (300, 2.0903e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -434,7 +368,6 @@ private lemma row300_eps_le : Inputs.default.ε (300 : ℝ) ≤ 2.0903e-12 := by
   change BKLNW_app.table_8_ε (300 : ℝ) ≤ 2.0903e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 300)
     (ε := 2.0903e-12) row300_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row400_table8_mem : (400, 2.0399e-12) ∈ BKLNW_app.table_8 := by
@@ -445,7 +378,6 @@ private lemma row400_eps_le : Inputs.default.ε (400 : ℝ) ≤ 2.0399e-12 := by
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 400)
     (ε := 2.0399e-12) row400_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row500_table8_mem : (500, 1.9999e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -454,7 +386,6 @@ private lemma row500_eps_le : Inputs.default.ε (500 : ℝ) ≤ 1.9999e-12 := by
   change BKLNW_app.table_8_ε (500 : ℝ) ≤ 1.9999e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 500)
     (ε := 1.9999e-12) row500_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row600_table8_mem : (600, 1.9890e-12) ∈ BKLNW_app.table_8 := by
@@ -465,7 +396,6 @@ private lemma row600_eps_le : Inputs.default.ε (600 : ℝ) ≤ 1.9890e-12 := by
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 600)
     (ε := 1.9890e-12) row600_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row700_table8_mem : (700, 1.9765e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -474,7 +404,6 @@ private lemma row700_eps_le : Inputs.default.ε (700 : ℝ) ≤ 1.9765e-12 := by
   change BKLNW_app.table_8_ε (700 : ℝ) ≤ 1.9765e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 700)
     (ε := 1.9765e-12) row700_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row800_table8_mem : (800, 1.9672e-12) ∈ BKLNW_app.table_8 := by
@@ -485,7 +414,6 @@ private lemma row800_eps_le : Inputs.default.ε (800 : ℝ) ≤ 1.9672e-12 := by
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 800)
     (ε := 1.9672e-12) row800_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row900_table8_mem : (900, 1.9600e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -494,7 +422,6 @@ private lemma row900_eps_le : Inputs.default.ε (900 : ℝ) ≤ 1.9600e-12 := by
   change BKLNW_app.table_8_ε (900 : ℝ) ≤ 1.9600e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 900)
     (ε := 1.9600e-12) row900_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1000_table8_mem : (1000, 1.9476e-12) ∈ BKLNW_app.table_8 := by
@@ -505,7 +432,6 @@ private lemma row1000_eps_le : Inputs.default.ε (1000 : ℝ) ≤ 1.9476e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1000)
     (ε := 1.9476e-12) row1000_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row1500_table8_mem : (1500, 1.9369e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -514,7 +440,6 @@ private lemma row1500_eps_le : Inputs.default.ε (1500 : ℝ) ≤ 1.9369e-12 := 
   change BKLNW_app.table_8_ε (1500 : ℝ) ≤ 1.9369e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1500)
     (ε := 1.9369e-12) row1500_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1600_table8_mem : (1600, 1.9293e-12) ∈ BKLNW_app.table_8 := by
@@ -525,7 +450,6 @@ private lemma row1600_eps_le : Inputs.default.ε (1600 : ℝ) ≤ 1.9293e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1600)
     (ε := 1.9293e-12) row1600_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row1700_table8_mem : (1700, 1.9274e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -534,7 +458,6 @@ private lemma row1700_eps_le : Inputs.default.ε (1700 : ℝ) ≤ 1.9274e-12 := 
   change BKLNW_app.table_8_ε (1700 : ℝ) ≤ 1.9274e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1700)
     (ε := 1.9274e-12) row1700_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1725_table8_mem : (1725, 1.9270e-12) ∈ BKLNW_app.table_8 := by
@@ -545,7 +468,6 @@ private lemma row1725_eps_le : Inputs.default.ε (1725 : ℝ) ≤ 1.9270e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1725)
     (ε := 1.9270e-12) row1725_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row1750_table8_mem : (1750, 1.9266e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -554,7 +476,6 @@ private lemma row1750_eps_le : Inputs.default.ε (1750 : ℝ) ≤ 1.9266e-12 := 
   change BKLNW_app.table_8_ε (1750 : ℝ) ≤ 1.9266e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1750)
     (ε := 1.9266e-12) row1750_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1775_table8_mem : (1775, 1.9261e-12) ∈ BKLNW_app.table_8 := by
@@ -565,7 +486,6 @@ private lemma row1775_eps_le : Inputs.default.ε (1775 : ℝ) ≤ 1.9261e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1775)
     (ε := 1.9261e-12) row1775_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row1800_table8_mem : (1800, 1.9257e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -574,7 +494,6 @@ private lemma row1800_eps_le : Inputs.default.ε (1800 : ℝ) ≤ 1.9257e-12 := 
   change BKLNW_app.table_8_ε (1800 : ℝ) ≤ 1.9257e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1800)
     (ε := 1.9257e-12) row1800_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1825_table8_mem : (1825, 1.9254e-12) ∈ BKLNW_app.table_8 := by
@@ -585,7 +504,6 @@ private lemma row1825_eps_le : Inputs.default.ε (1825 : ℝ) ≤ 1.9254e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1825)
     (ε := 1.9254e-12) row1825_table8_mem (by norm_num)
 
-
 set_option maxRecDepth 10000 in
 private lemma row1850_table8_mem : (1850, 1.9250e-12) ∈ BKLNW_app.table_8 := by
   norm_num [BKLNW_app.table_8]
@@ -594,7 +512,6 @@ private lemma row1850_eps_le : Inputs.default.ε (1850 : ℝ) ≤ 1.9250e-12 := 
   change BKLNW_app.table_8_ε (1850 : ℝ) ≤ 1.9250e-12
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1850)
     (ε := 1.9250e-12) row1850_table8_mem (by norm_num)
-
 
 set_option maxRecDepth 10000 in
 private lemma row1875_table8_mem : (1875, 1.9246e-12) ∈ BKLNW_app.table_8 := by
@@ -605,7 +522,6 @@ private lemma row1875_eps_le : Inputs.default.ε (1875 : ℝ) ≤ 1.9246e-12 := 
   exact BKLNW_app.table_8_ε_le_of_row (b₀ := 1875)
     (ε := 1.9246e-12) row1875_table8_mem (by norm_num)
 
-
 /-- Row 100 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row100_k1_margin :
     B_8_exact 1 (100 : ℝ) (200 : ℝ) ≤ (0.00000000049060 * table_10_margin : ℝ) :=
@@ -614,9 +530,8 @@ theorem table_10_row100_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row100_a2_le row100_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_50_lt, exp_neg_200_3_lt,
+        nlinarith [LogTables.exp_neg_50_lt, LogTables.exp_neg_200_3_lt,
                    Real.exp_pos (-(50:ℝ)), Real.exp_pos (-(200/3:ℝ))])
-
 
 /-- Row 100 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row100_k2_margin :
@@ -626,9 +541,8 @@ theorem table_10_row100_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row100_a2_le row100_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_50_lt, exp_neg_200_3_lt,
+        nlinarith [LogTables.exp_neg_50_lt, LogTables.exp_neg_200_3_lt,
                    Real.exp_pos (-(50:ℝ)), Real.exp_pos (-(200/3:ℝ))])
-
 
 /-- Row 100 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row100_k3_margin :
@@ -638,9 +552,8 @@ theorem table_10_row100_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row100_a2_le row100_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_50_lt, exp_neg_200_3_lt,
+        nlinarith [LogTables.exp_neg_50_lt, LogTables.exp_neg_200_3_lt,
                    Real.exp_pos (-(50:ℝ)), Real.exp_pos (-(200/3:ℝ))])
-
 
 /-- Row 100 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row100_k4_margin :
@@ -650,9 +563,8 @@ theorem table_10_row100_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row100_a2_le row100_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_50_lt, exp_neg_200_3_lt,
+        nlinarith [LogTables.exp_neg_50_lt, LogTables.exp_neg_200_3_lt,
                    Real.exp_pos (-(50:ℝ)), Real.exp_pos (-(200/3:ℝ))])
-
 
 /-- Row 100 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row100_k5_margin :
@@ -662,9 +574,8 @@ theorem table_10_row100_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row100_a2_le row100_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_50_lt, exp_neg_200_3_lt,
+        nlinarith [LogTables.exp_neg_50_lt, LogTables.exp_neg_200_3_lt,
                    Real.exp_pos (-(50:ℝ)), Real.exp_pos (-(200/3:ℝ))])
-
 
 /-- Row 200 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row200_k1_margin :
@@ -674,9 +585,8 @@ theorem table_10_row200_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row200_a2_le row200_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_100_lt, exp_neg_400_3_lt,
+        nlinarith [LogTables.exp_neg_100_lt, LogTables.exp_neg_400_3_lt,
                    Real.exp_pos (-(100:ℝ)), Real.exp_pos (-(400/3:ℝ))])
-
 
 /-- Row 200 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row200_k2_margin :
@@ -686,9 +596,8 @@ theorem table_10_row200_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row200_a2_le row200_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_100_lt, exp_neg_400_3_lt,
+        nlinarith [LogTables.exp_neg_100_lt, LogTables.exp_neg_400_3_lt,
                    Real.exp_pos (-(100:ℝ)), Real.exp_pos (-(400/3:ℝ))])
-
 
 /-- Row 200 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row200_k3_margin :
@@ -698,9 +607,8 @@ theorem table_10_row200_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row200_a2_le row200_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_100_lt, exp_neg_400_3_lt,
+        nlinarith [LogTables.exp_neg_100_lt, LogTables.exp_neg_400_3_lt,
                    Real.exp_pos (-(100:ℝ)), Real.exp_pos (-(400/3:ℝ))])
-
 
 /-- Row 200 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row200_k4_margin :
@@ -710,9 +618,8 @@ theorem table_10_row200_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row200_a2_le row200_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_100_lt, exp_neg_400_3_lt,
+        nlinarith [LogTables.exp_neg_100_lt, LogTables.exp_neg_400_3_lt,
                    Real.exp_pos (-(100:ℝ)), Real.exp_pos (-(400/3:ℝ))])
-
 
 /-- Row 200 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row200_k5_margin :
@@ -722,9 +629,8 @@ theorem table_10_row200_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row200_a2_le row200_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_100_lt, exp_neg_400_3_lt,
+        nlinarith [LogTables.exp_neg_100_lt, LogTables.exp_neg_400_3_lt,
                    Real.exp_pos (-(100:ℝ)), Real.exp_pos (-(400/3:ℝ))])
-
 
 /-- Row 300 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row300_k1_margin :
@@ -734,9 +640,8 @@ theorem table_10_row300_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row300_a2_le row300_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_150_lt, exp_neg_200_lt,
+        nlinarith [LogTables.exp_neg_150_lt, LogTables.exp_neg_200_lt,
                    Real.exp_pos (-(150:ℝ)), Real.exp_pos (-(200:ℝ))])
-
 
 /-- Row 300 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row300_k2_margin :
@@ -746,9 +651,8 @@ theorem table_10_row300_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row300_a2_le row300_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_150_lt, exp_neg_200_lt,
+        nlinarith [LogTables.exp_neg_150_lt, LogTables.exp_neg_200_lt,
                    Real.exp_pos (-(150:ℝ)), Real.exp_pos (-(200:ℝ))])
-
 
 /-- Row 300 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row300_k3_margin :
@@ -758,9 +662,8 @@ theorem table_10_row300_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row300_a2_le row300_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_150_lt, exp_neg_200_lt,
+        nlinarith [LogTables.exp_neg_150_lt, LogTables.exp_neg_200_lt,
                    Real.exp_pos (-(150:ℝ)), Real.exp_pos (-(200:ℝ))])
-
 
 /-- Row 300 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row300_k4_margin :
@@ -770,9 +673,8 @@ theorem table_10_row300_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row300_a2_le row300_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_150_lt, exp_neg_200_lt,
+        nlinarith [LogTables.exp_neg_150_lt, LogTables.exp_neg_200_lt,
                    Real.exp_pos (-(150:ℝ)), Real.exp_pos (-(200:ℝ))])
-
 
 /-- Row 300 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row300_k5_margin :
@@ -782,9 +684,8 @@ theorem table_10_row300_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row300_a2_le row300_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_150_lt, exp_neg_200_lt,
+        nlinarith [LogTables.exp_neg_150_lt, LogTables.exp_neg_200_lt,
                    Real.exp_pos (-(150:ℝ)), Real.exp_pos (-(200:ℝ))])
-
 
 /-- Row 400 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row400_k1_margin :
@@ -794,9 +695,8 @@ theorem table_10_row400_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row400_a2_le row400_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_200_lt, exp_neg_800_3_lt,
+        nlinarith [LogTables.exp_neg_200_lt, LogTables.exp_neg_800_3_lt,
                    Real.exp_pos (-(200:ℝ)), Real.exp_pos (-(800/3:ℝ))])
-
 
 /-- Row 400 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row400_k2_margin :
@@ -806,9 +706,8 @@ theorem table_10_row400_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row400_a2_le row400_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_200_lt, exp_neg_800_3_lt,
+        nlinarith [LogTables.exp_neg_200_lt, LogTables.exp_neg_800_3_lt,
                    Real.exp_pos (-(200:ℝ)), Real.exp_pos (-(800/3:ℝ))])
-
 
 /-- Row 400 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row400_k3_margin :
@@ -818,9 +717,8 @@ theorem table_10_row400_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row400_a2_le row400_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_200_lt, exp_neg_800_3_lt,
+        nlinarith [LogTables.exp_neg_200_lt, LogTables.exp_neg_800_3_lt,
                    Real.exp_pos (-(200:ℝ)), Real.exp_pos (-(800/3:ℝ))])
-
 
 /-- Row 400 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row400_k4_margin :
@@ -830,9 +728,8 @@ theorem table_10_row400_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row400_a2_le row400_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_200_lt, exp_neg_800_3_lt,
+        nlinarith [LogTables.exp_neg_200_lt, LogTables.exp_neg_800_3_lt,
                    Real.exp_pos (-(200:ℝ)), Real.exp_pos (-(800/3:ℝ))])
-
 
 /-- Row 400 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row400_k5_margin :
@@ -842,9 +739,8 @@ theorem table_10_row400_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row400_a2_le row400_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_200_lt, exp_neg_800_3_lt,
+        nlinarith [LogTables.exp_neg_200_lt, LogTables.exp_neg_800_3_lt,
                    Real.exp_pos (-(200:ℝ)), Real.exp_pos (-(800/3:ℝ))])
-
 
 /-- Row 500 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row500_k1_margin :
@@ -854,9 +750,8 @@ theorem table_10_row500_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row500_a2_le row500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_250_lt, exp_neg_1000_3_lt,
+        nlinarith [LogTables.exp_neg_250_lt, LogTables.exp_neg_1000_3_lt,
                    Real.exp_pos (-(250:ℝ)), Real.exp_pos (-(1000/3:ℝ))])
-
 
 /-- Row 500 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row500_k2_margin :
@@ -866,9 +761,8 @@ theorem table_10_row500_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row500_a2_le row500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_250_lt, exp_neg_1000_3_lt,
+        nlinarith [LogTables.exp_neg_250_lt, LogTables.exp_neg_1000_3_lt,
                    Real.exp_pos (-(250:ℝ)), Real.exp_pos (-(1000/3:ℝ))])
-
 
 /-- Row 500 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row500_k3_margin :
@@ -878,9 +772,8 @@ theorem table_10_row500_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row500_a2_le row500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_250_lt, exp_neg_1000_3_lt,
+        nlinarith [LogTables.exp_neg_250_lt, LogTables.exp_neg_1000_3_lt,
                    Real.exp_pos (-(250:ℝ)), Real.exp_pos (-(1000/3:ℝ))])
-
 
 /-- Row 500 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row500_k4_margin :
@@ -890,9 +783,8 @@ theorem table_10_row500_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row500_a2_le row500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_250_lt, exp_neg_1000_3_lt,
+        nlinarith [LogTables.exp_neg_250_lt, LogTables.exp_neg_1000_3_lt,
                    Real.exp_pos (-(250:ℝ)), Real.exp_pos (-(1000/3:ℝ))])
-
 
 /-- Row 500 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row500_k5_margin :
@@ -902,9 +794,8 @@ theorem table_10_row500_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row500_a2_le row500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_250_lt, exp_neg_1000_3_lt,
+        nlinarith [LogTables.exp_neg_250_lt, LogTables.exp_neg_1000_3_lt,
                    Real.exp_pos (-(250:ℝ)), Real.exp_pos (-(1000/3:ℝ))])
-
 
 /-- Row 600 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row600_k1_margin :
@@ -914,9 +805,8 @@ theorem table_10_row600_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row600_a2_le row600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_300_lt, exp_neg_400_lt,
+        nlinarith [LogTables.exp_neg_300_lt, LogTables.exp_neg_400_lt,
                    Real.exp_pos (-(300:ℝ)), Real.exp_pos (-(400:ℝ))])
-
 
 /-- Row 600 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row600_k2_margin :
@@ -926,9 +816,8 @@ theorem table_10_row600_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row600_a2_le row600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_300_lt, exp_neg_400_lt,
+        nlinarith [LogTables.exp_neg_300_lt, LogTables.exp_neg_400_lt,
                    Real.exp_pos (-(300:ℝ)), Real.exp_pos (-(400:ℝ))])
-
 
 /-- Row 600 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row600_k3_margin :
@@ -938,9 +827,8 @@ theorem table_10_row600_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row600_a2_le row600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_300_lt, exp_neg_400_lt,
+        nlinarith [LogTables.exp_neg_300_lt, LogTables.exp_neg_400_lt,
                    Real.exp_pos (-(300:ℝ)), Real.exp_pos (-(400:ℝ))])
-
 
 /-- Row 600 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row600_k4_margin :
@@ -950,9 +838,8 @@ theorem table_10_row600_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row600_a2_le row600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_300_lt, exp_neg_400_lt,
+        nlinarith [LogTables.exp_neg_300_lt, LogTables.exp_neg_400_lt,
                    Real.exp_pos (-(300:ℝ)), Real.exp_pos (-(400:ℝ))])
-
 
 /-- Row 600 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row600_k5_margin :
@@ -962,9 +849,8 @@ theorem table_10_row600_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row600_a2_le row600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_300_lt, exp_neg_400_lt,
+        nlinarith [LogTables.exp_neg_300_lt, LogTables.exp_neg_400_lt,
                    Real.exp_pos (-(300:ℝ)), Real.exp_pos (-(400:ℝ))])
-
 
 /-- Row 700 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row700_k1_margin :
@@ -974,9 +860,8 @@ theorem table_10_row700_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row700_a2_le row700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_350_lt, exp_neg_1400_3_lt,
+        nlinarith [LogTables.exp_neg_350_lt, LogTables.exp_neg_1400_3_lt,
                    Real.exp_pos (-(350:ℝ)), Real.exp_pos (-(1400/3:ℝ))])
-
 
 /-- Row 700 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row700_k2_margin :
@@ -986,9 +871,8 @@ theorem table_10_row700_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row700_a2_le row700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_350_lt, exp_neg_1400_3_lt,
+        nlinarith [LogTables.exp_neg_350_lt, LogTables.exp_neg_1400_3_lt,
                    Real.exp_pos (-(350:ℝ)), Real.exp_pos (-(1400/3:ℝ))])
-
 
 /-- Row 700 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row700_k3_margin :
@@ -998,9 +882,8 @@ theorem table_10_row700_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row700_a2_le row700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_350_lt, exp_neg_1400_3_lt,
+        nlinarith [LogTables.exp_neg_350_lt, LogTables.exp_neg_1400_3_lt,
                    Real.exp_pos (-(350:ℝ)), Real.exp_pos (-(1400/3:ℝ))])
-
 
 /-- Row 700 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row700_k4_margin :
@@ -1010,9 +893,8 @@ theorem table_10_row700_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row700_a2_le row700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_350_lt, exp_neg_1400_3_lt,
+        nlinarith [LogTables.exp_neg_350_lt, LogTables.exp_neg_1400_3_lt,
                    Real.exp_pos (-(350:ℝ)), Real.exp_pos (-(1400/3:ℝ))])
-
 
 /-- Row 700 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row700_k5_margin :
@@ -1022,9 +904,8 @@ theorem table_10_row700_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row700_a2_le row700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_350_lt, exp_neg_1400_3_lt,
+        nlinarith [LogTables.exp_neg_350_lt, LogTables.exp_neg_1400_3_lt,
                    Real.exp_pos (-(350:ℝ)), Real.exp_pos (-(1400/3:ℝ))])
-
 
 /-- Row 800 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row800_k1_margin :
@@ -1034,9 +915,8 @@ theorem table_10_row800_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row800_a2_le row800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_400_lt, exp_neg_1600_3_lt,
+        nlinarith [LogTables.exp_neg_400_lt, LogTables.exp_neg_1600_3_lt,
                    Real.exp_pos (-(400:ℝ)), Real.exp_pos (-(1600/3:ℝ))])
-
 
 /-- Row 800 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row800_k2_margin :
@@ -1046,9 +926,8 @@ theorem table_10_row800_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row800_a2_le row800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_400_lt, exp_neg_1600_3_lt,
+        nlinarith [LogTables.exp_neg_400_lt, LogTables.exp_neg_1600_3_lt,
                    Real.exp_pos (-(400:ℝ)), Real.exp_pos (-(1600/3:ℝ))])
-
 
 /-- Row 800 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row800_k3_margin :
@@ -1058,9 +937,8 @@ theorem table_10_row800_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row800_a2_le row800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_400_lt, exp_neg_1600_3_lt,
+        nlinarith [LogTables.exp_neg_400_lt, LogTables.exp_neg_1600_3_lt,
                    Real.exp_pos (-(400:ℝ)), Real.exp_pos (-(1600/3:ℝ))])
-
 
 /-- Row 800 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row800_k4_margin :
@@ -1070,9 +948,8 @@ theorem table_10_row800_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row800_a2_le row800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_400_lt, exp_neg_1600_3_lt,
+        nlinarith [LogTables.exp_neg_400_lt, LogTables.exp_neg_1600_3_lt,
                    Real.exp_pos (-(400:ℝ)), Real.exp_pos (-(1600/3:ℝ))])
-
 
 /-- Row 800 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row800_k5_margin :
@@ -1082,9 +959,8 @@ theorem table_10_row800_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row800_a2_le row800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_400_lt, exp_neg_1600_3_lt,
+        nlinarith [LogTables.exp_neg_400_lt, LogTables.exp_neg_1600_3_lt,
                    Real.exp_pos (-(400:ℝ)), Real.exp_pos (-(1600/3:ℝ))])
-
 
 /-- Row 900 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row900_k1_margin :
@@ -1094,9 +970,8 @@ theorem table_10_row900_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row900_a2_le row900_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_450_lt, exp_neg_600_lt,
+        nlinarith [LogTables.exp_neg_450_lt, LogTables.exp_neg_600_lt,
                    Real.exp_pos (-(450:ℝ)), Real.exp_pos (-(600:ℝ))])
-
 
 /-- Row 900 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row900_k2_margin :
@@ -1106,9 +981,8 @@ theorem table_10_row900_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row900_a2_le row900_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_450_lt, exp_neg_600_lt,
+        nlinarith [LogTables.exp_neg_450_lt, LogTables.exp_neg_600_lt,
                    Real.exp_pos (-(450:ℝ)), Real.exp_pos (-(600:ℝ))])
-
 
 /-- Row 900 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row900_k3_margin :
@@ -1118,9 +992,8 @@ theorem table_10_row900_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row900_a2_le row900_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_450_lt, exp_neg_600_lt,
+        nlinarith [LogTables.exp_neg_450_lt, LogTables.exp_neg_600_lt,
                    Real.exp_pos (-(450:ℝ)), Real.exp_pos (-(600:ℝ))])
-
 
 /-- Row 900 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row900_k4_margin :
@@ -1130,9 +1003,8 @@ theorem table_10_row900_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row900_a2_le row900_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_450_lt, exp_neg_600_lt,
+        nlinarith [LogTables.exp_neg_450_lt, LogTables.exp_neg_600_lt,
                    Real.exp_pos (-(450:ℝ)), Real.exp_pos (-(600:ℝ))])
-
 
 /-- Row 900 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row900_k5_margin :
@@ -1142,9 +1014,8 @@ theorem table_10_row900_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row900_a2_le row900_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_450_lt, exp_neg_600_lt,
+        nlinarith [LogTables.exp_neg_450_lt, LogTables.exp_neg_600_lt,
                    Real.exp_pos (-(450:ℝ)), Real.exp_pos (-(600:ℝ))])
-
 
 /-- Row 1000 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1000_k1_margin :
@@ -1154,9 +1025,8 @@ theorem table_10_row1000_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1000_a2_le row1000_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_500_lt, exp_neg_2000_3_lt,
+        nlinarith [LogTables.exp_neg_500_lt, LogTables.exp_neg_2000_3_lt,
                    Real.exp_pos (-(500:ℝ)), Real.exp_pos (-(2000/3:ℝ))])
-
 
 /-- Row 1000 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1000_k2_margin :
@@ -1166,9 +1036,8 @@ theorem table_10_row1000_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1000_a2_le row1000_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_500_lt, exp_neg_2000_3_lt,
+        nlinarith [LogTables.exp_neg_500_lt, LogTables.exp_neg_2000_3_lt,
                    Real.exp_pos (-(500:ℝ)), Real.exp_pos (-(2000/3:ℝ))])
-
 
 /-- Row 1000 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1000_k3_margin :
@@ -1178,9 +1047,8 @@ theorem table_10_row1000_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1000_a2_le row1000_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_500_lt, exp_neg_2000_3_lt,
+        nlinarith [LogTables.exp_neg_500_lt, LogTables.exp_neg_2000_3_lt,
                    Real.exp_pos (-(500:ℝ)), Real.exp_pos (-(2000/3:ℝ))])
-
 
 /-- Row 1000 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1000_k4_margin :
@@ -1190,9 +1058,8 @@ theorem table_10_row1000_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1000_a2_le row1000_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_500_lt, exp_neg_2000_3_lt,
+        nlinarith [LogTables.exp_neg_500_lt, LogTables.exp_neg_2000_3_lt,
                    Real.exp_pos (-(500:ℝ)), Real.exp_pos (-(2000/3:ℝ))])
-
 
 /-- Row 1000 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1000_k5_margin :
@@ -1202,9 +1069,8 @@ theorem table_10_row1000_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1000_a2_le row1000_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_500_lt, exp_neg_2000_3_lt,
+        nlinarith [LogTables.exp_neg_500_lt, LogTables.exp_neg_2000_3_lt,
                    Real.exp_pos (-(500:ℝ)), Real.exp_pos (-(2000/3:ℝ))])
-
 
 /-- Row 1500 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1500_k1_margin :
@@ -1214,9 +1080,8 @@ theorem table_10_row1500_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1500_a2_le row1500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_750_lt, exp_neg_1000_lt,
+        nlinarith [LogTables.exp_neg_750_lt, LogTables.exp_neg_1000_lt,
                    Real.exp_pos (-(750:ℝ)), Real.exp_pos (-(1000:ℝ))])
-
 
 /-- Row 1500 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1500_k2_margin :
@@ -1226,9 +1091,8 @@ theorem table_10_row1500_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1500_a2_le row1500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_750_lt, exp_neg_1000_lt,
+        nlinarith [LogTables.exp_neg_750_lt, LogTables.exp_neg_1000_lt,
                    Real.exp_pos (-(750:ℝ)), Real.exp_pos (-(1000:ℝ))])
-
 
 /-- Row 1500 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1500_k3_margin :
@@ -1238,9 +1102,8 @@ theorem table_10_row1500_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1500_a2_le row1500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_750_lt, exp_neg_1000_lt,
+        nlinarith [LogTables.exp_neg_750_lt, LogTables.exp_neg_1000_lt,
                    Real.exp_pos (-(750:ℝ)), Real.exp_pos (-(1000:ℝ))])
-
 
 /-- Row 1500 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1500_k4_margin :
@@ -1250,9 +1113,8 @@ theorem table_10_row1500_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1500_a2_le row1500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_750_lt, exp_neg_1000_lt,
+        nlinarith [LogTables.exp_neg_750_lt, LogTables.exp_neg_1000_lt,
                    Real.exp_pos (-(750:ℝ)), Real.exp_pos (-(1000:ℝ))])
-
 
 /-- Row 1500 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1500_k5_margin :
@@ -1262,9 +1124,8 @@ theorem table_10_row1500_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1500_a2_le row1500_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_750_lt, exp_neg_1000_lt,
+        nlinarith [LogTables.exp_neg_750_lt, LogTables.exp_neg_1000_lt,
                    Real.exp_pos (-(750:ℝ)), Real.exp_pos (-(1000:ℝ))])
-
 
 /-- Row 1600 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1600_k1_margin :
@@ -1274,9 +1135,8 @@ theorem table_10_row1600_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1600_a2_le row1600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_800_lt, exp_neg_3200_3_lt,
+        nlinarith [LogTables.exp_neg_800_lt, LogTables.exp_neg_3200_3_lt,
                    Real.exp_pos (-(800:ℝ)), Real.exp_pos (-(3200/3:ℝ))])
-
 
 /-- Row 1600 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1600_k2_margin :
@@ -1286,9 +1146,8 @@ theorem table_10_row1600_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1600_a2_le row1600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_800_lt, exp_neg_3200_3_lt,
+        nlinarith [LogTables.exp_neg_800_lt, LogTables.exp_neg_3200_3_lt,
                    Real.exp_pos (-(800:ℝ)), Real.exp_pos (-(3200/3:ℝ))])
-
 
 /-- Row 1600 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1600_k3_margin :
@@ -1298,9 +1157,8 @@ theorem table_10_row1600_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1600_a2_le row1600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_800_lt, exp_neg_3200_3_lt,
+        nlinarith [LogTables.exp_neg_800_lt, LogTables.exp_neg_3200_3_lt,
                    Real.exp_pos (-(800:ℝ)), Real.exp_pos (-(3200/3:ℝ))])
-
 
 /-- Row 1600 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1600_k4_margin :
@@ -1310,9 +1168,8 @@ theorem table_10_row1600_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1600_a2_le row1600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_800_lt, exp_neg_3200_3_lt,
+        nlinarith [LogTables.exp_neg_800_lt, LogTables.exp_neg_3200_3_lt,
                    Real.exp_pos (-(800:ℝ)), Real.exp_pos (-(3200/3:ℝ))])
-
 
 /-- Row 1600 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1600_k5_margin :
@@ -1322,9 +1179,8 @@ theorem table_10_row1600_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1600_a2_le row1600_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_800_lt, exp_neg_3200_3_lt,
+        nlinarith [LogTables.exp_neg_800_lt, LogTables.exp_neg_3200_3_lt,
                    Real.exp_pos (-(800:ℝ)), Real.exp_pos (-(3200/3:ℝ))])
-
 
 /-- Row 1700 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1700_k1_margin :
@@ -1334,9 +1190,8 @@ theorem table_10_row1700_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1700_a2_le row1700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_850_lt, exp_neg_3400_3_lt,
+        nlinarith [LogTables.exp_neg_850_lt, LogTables.exp_neg_3400_3_lt,
                    Real.exp_pos (-(850:ℝ)), Real.exp_pos (-(3400/3:ℝ))])
-
 
 /-- Row 1700 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1700_k2_margin :
@@ -1346,9 +1201,8 @@ theorem table_10_row1700_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1700_a2_le row1700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_850_lt, exp_neg_3400_3_lt,
+        nlinarith [LogTables.exp_neg_850_lt, LogTables.exp_neg_3400_3_lt,
                    Real.exp_pos (-(850:ℝ)), Real.exp_pos (-(3400/3:ℝ))])
-
 
 /-- Row 1700 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1700_k3_margin :
@@ -1358,9 +1212,8 @@ theorem table_10_row1700_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1700_a2_le row1700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_850_lt, exp_neg_3400_3_lt,
+        nlinarith [LogTables.exp_neg_850_lt, LogTables.exp_neg_3400_3_lt,
                    Real.exp_pos (-(850:ℝ)), Real.exp_pos (-(3400/3:ℝ))])
-
 
 /-- Row 1700 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1700_k4_margin :
@@ -1370,9 +1223,8 @@ theorem table_10_row1700_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1700_a2_le row1700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_850_lt, exp_neg_3400_3_lt,
+        nlinarith [LogTables.exp_neg_850_lt, LogTables.exp_neg_3400_3_lt,
                    Real.exp_pos (-(850:ℝ)), Real.exp_pos (-(3400/3:ℝ))])
-
 
 /-- Row 1700 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1700_k5_margin :
@@ -1382,9 +1234,8 @@ theorem table_10_row1700_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1700_a2_le row1700_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_850_lt, exp_neg_3400_3_lt,
+        nlinarith [LogTables.exp_neg_850_lt, LogTables.exp_neg_3400_3_lt,
                    Real.exp_pos (-(850:ℝ)), Real.exp_pos (-(3400/3:ℝ))])
-
 
 /-- Row 1725 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1725_k1_margin :
@@ -1394,9 +1245,8 @@ theorem table_10_row1725_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1725_a2_le row1725_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1725_2_lt, exp_neg_1150_lt,
+        nlinarith [LogTables.exp_neg_1725_2_lt, LogTables.exp_neg_1150_lt,
                    Real.exp_pos (-(1725/2:ℝ)), Real.exp_pos (-(1150:ℝ))])
-
 
 /-- Row 1725 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1725_k2_margin :
@@ -1406,9 +1256,8 @@ theorem table_10_row1725_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1725_a2_le row1725_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1725_2_lt, exp_neg_1150_lt,
+        nlinarith [LogTables.exp_neg_1725_2_lt, LogTables.exp_neg_1150_lt,
                    Real.exp_pos (-(1725/2:ℝ)), Real.exp_pos (-(1150:ℝ))])
-
 
 /-- Row 1725 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1725_k3_margin :
@@ -1418,9 +1267,8 @@ theorem table_10_row1725_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1725_a2_le row1725_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1725_2_lt, exp_neg_1150_lt,
+        nlinarith [LogTables.exp_neg_1725_2_lt, LogTables.exp_neg_1150_lt,
                    Real.exp_pos (-(1725/2:ℝ)), Real.exp_pos (-(1150:ℝ))])
-
 
 /-- Row 1725 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1725_k4_margin :
@@ -1430,9 +1278,8 @@ theorem table_10_row1725_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1725_a2_le row1725_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1725_2_lt, exp_neg_1150_lt,
+        nlinarith [LogTables.exp_neg_1725_2_lt, LogTables.exp_neg_1150_lt,
                    Real.exp_pos (-(1725/2:ℝ)), Real.exp_pos (-(1150:ℝ))])
-
 
 /-- Row 1725 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1725_k5_margin :
@@ -1442,9 +1289,8 @@ theorem table_10_row1725_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1725_a2_le row1725_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1725_2_lt, exp_neg_1150_lt,
+        nlinarith [LogTables.exp_neg_1725_2_lt, LogTables.exp_neg_1150_lt,
                    Real.exp_pos (-(1725/2:ℝ)), Real.exp_pos (-(1150:ℝ))])
-
 
 /-- Row 1750 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1750_k1_margin :
@@ -1454,9 +1300,8 @@ theorem table_10_row1750_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1750_a2_le row1750_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_875_lt, exp_neg_3500_3_lt,
+        nlinarith [LogTables.exp_neg_875_lt, LogTables.exp_neg_3500_3_lt,
                    Real.exp_pos (-(875:ℝ)), Real.exp_pos (-(3500/3:ℝ))])
-
 
 /-- Row 1750 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1750_k2_margin :
@@ -1466,9 +1311,8 @@ theorem table_10_row1750_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1750_a2_le row1750_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_875_lt, exp_neg_3500_3_lt,
+        nlinarith [LogTables.exp_neg_875_lt, LogTables.exp_neg_3500_3_lt,
                    Real.exp_pos (-(875:ℝ)), Real.exp_pos (-(3500/3:ℝ))])
-
 
 /-- Row 1750 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1750_k3_margin :
@@ -1478,9 +1322,8 @@ theorem table_10_row1750_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1750_a2_le row1750_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_875_lt, exp_neg_3500_3_lt,
+        nlinarith [LogTables.exp_neg_875_lt, LogTables.exp_neg_3500_3_lt,
                    Real.exp_pos (-(875:ℝ)), Real.exp_pos (-(3500/3:ℝ))])
-
 
 /-- Row 1750 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1750_k4_margin :
@@ -1490,9 +1333,8 @@ theorem table_10_row1750_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1750_a2_le row1750_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_875_lt, exp_neg_3500_3_lt,
+        nlinarith [LogTables.exp_neg_875_lt, LogTables.exp_neg_3500_3_lt,
                    Real.exp_pos (-(875:ℝ)), Real.exp_pos (-(3500/3:ℝ))])
-
 
 /-- Row 1750 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1750_k5_margin :
@@ -1502,9 +1344,8 @@ theorem table_10_row1750_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1750_a2_le row1750_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_875_lt, exp_neg_3500_3_lt,
+        nlinarith [LogTables.exp_neg_875_lt, LogTables.exp_neg_3500_3_lt,
                    Real.exp_pos (-(875:ℝ)), Real.exp_pos (-(3500/3:ℝ))])
-
 
 /-- Row 1775 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1775_k1_margin :
@@ -1514,9 +1355,8 @@ theorem table_10_row1775_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1775_a2_le row1775_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1775_2_lt, exp_neg_3550_3_lt,
+        nlinarith [LogTables.exp_neg_1775_2_lt, LogTables.exp_neg_3550_3_lt,
                    Real.exp_pos (-(1775/2:ℝ)), Real.exp_pos (-(3550/3:ℝ))])
-
 
 /-- Row 1775 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1775_k2_margin :
@@ -1526,9 +1366,8 @@ theorem table_10_row1775_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1775_a2_le row1775_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1775_2_lt, exp_neg_3550_3_lt,
+        nlinarith [LogTables.exp_neg_1775_2_lt, LogTables.exp_neg_3550_3_lt,
                    Real.exp_pos (-(1775/2:ℝ)), Real.exp_pos (-(3550/3:ℝ))])
-
 
 /-- Row 1775 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1775_k3_margin :
@@ -1538,9 +1377,8 @@ theorem table_10_row1775_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1775_a2_le row1775_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1775_2_lt, exp_neg_3550_3_lt,
+        nlinarith [LogTables.exp_neg_1775_2_lt, LogTables.exp_neg_3550_3_lt,
                    Real.exp_pos (-(1775/2:ℝ)), Real.exp_pos (-(3550/3:ℝ))])
-
 
 /-- Row 1775 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1775_k4_margin :
@@ -1550,9 +1388,8 @@ theorem table_10_row1775_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1775_a2_le row1775_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1775_2_lt, exp_neg_3550_3_lt,
+        nlinarith [LogTables.exp_neg_1775_2_lt, LogTables.exp_neg_3550_3_lt,
                    Real.exp_pos (-(1775/2:ℝ)), Real.exp_pos (-(3550/3:ℝ))])
-
 
 /-- Row 1775 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1775_k5_margin :
@@ -1562,9 +1399,8 @@ theorem table_10_row1775_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1775_a2_le row1775_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1775_2_lt, exp_neg_3550_3_lt,
+        nlinarith [LogTables.exp_neg_1775_2_lt, LogTables.exp_neg_3550_3_lt,
                    Real.exp_pos (-(1775/2:ℝ)), Real.exp_pos (-(3550/3:ℝ))])
-
 
 /-- Row 1800 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1800_k1_margin :
@@ -1574,9 +1410,8 @@ theorem table_10_row1800_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1800_a2_le row1800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_900_lt, exp_neg_1200_lt,
+        nlinarith [LogTables.exp_neg_900_lt, LogTables.exp_neg_1200_lt,
                    Real.exp_pos (-(900:ℝ)), Real.exp_pos (-(1200:ℝ))])
-
 
 /-- Row 1800 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1800_k2_margin :
@@ -1586,9 +1421,8 @@ theorem table_10_row1800_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1800_a2_le row1800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_900_lt, exp_neg_1200_lt,
+        nlinarith [LogTables.exp_neg_900_lt, LogTables.exp_neg_1200_lt,
                    Real.exp_pos (-(900:ℝ)), Real.exp_pos (-(1200:ℝ))])
-
 
 /-- Row 1800 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1800_k3_margin :
@@ -1598,9 +1432,8 @@ theorem table_10_row1800_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1800_a2_le row1800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_900_lt, exp_neg_1200_lt,
+        nlinarith [LogTables.exp_neg_900_lt, LogTables.exp_neg_1200_lt,
                    Real.exp_pos (-(900:ℝ)), Real.exp_pos (-(1200:ℝ))])
-
 
 /-- Row 1800 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1800_k4_margin :
@@ -1610,9 +1443,8 @@ theorem table_10_row1800_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1800_a2_le row1800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_900_lt, exp_neg_1200_lt,
+        nlinarith [LogTables.exp_neg_900_lt, LogTables.exp_neg_1200_lt,
                    Real.exp_pos (-(900:ℝ)), Real.exp_pos (-(1200:ℝ))])
-
 
 /-- Row 1800 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1800_k5_margin :
@@ -1622,9 +1454,8 @@ theorem table_10_row1800_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1800_a2_le row1800_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_900_lt, exp_neg_1200_lt,
+        nlinarith [LogTables.exp_neg_900_lt, LogTables.exp_neg_1200_lt,
                    Real.exp_pos (-(900:ℝ)), Real.exp_pos (-(1200:ℝ))])
-
 
 /-- Row 1825 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1825_k1_margin :
@@ -1634,9 +1465,8 @@ theorem table_10_row1825_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1825_a2_le row1825_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1825_2_lt, exp_neg_3650_3_lt,
+        nlinarith [LogTables.exp_neg_1825_2_lt, LogTables.exp_neg_3650_3_lt,
                    Real.exp_pos (-(1825/2:ℝ)), Real.exp_pos (-(3650/3:ℝ))])
-
 
 /-- Row 1825 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1825_k2_margin :
@@ -1646,9 +1476,8 @@ theorem table_10_row1825_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1825_a2_le row1825_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1825_2_lt, exp_neg_3650_3_lt,
+        nlinarith [LogTables.exp_neg_1825_2_lt, LogTables.exp_neg_3650_3_lt,
                    Real.exp_pos (-(1825/2:ℝ)), Real.exp_pos (-(3650/3:ℝ))])
-
 
 /-- Row 1825 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1825_k3_margin :
@@ -1658,9 +1487,8 @@ theorem table_10_row1825_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1825_a2_le row1825_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1825_2_lt, exp_neg_3650_3_lt,
+        nlinarith [LogTables.exp_neg_1825_2_lt, LogTables.exp_neg_3650_3_lt,
                    Real.exp_pos (-(1825/2:ℝ)), Real.exp_pos (-(3650/3:ℝ))])
-
 
 /-- Row 1825 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1825_k4_margin :
@@ -1670,9 +1498,8 @@ theorem table_10_row1825_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1825_a2_le row1825_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1825_2_lt, exp_neg_3650_3_lt,
+        nlinarith [LogTables.exp_neg_1825_2_lt, LogTables.exp_neg_3650_3_lt,
                    Real.exp_pos (-(1825/2:ℝ)), Real.exp_pos (-(3650/3:ℝ))])
-
 
 /-- Row 1825 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1825_k5_margin :
@@ -1682,9 +1509,8 @@ theorem table_10_row1825_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1825_a2_le row1825_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1825_2_lt, exp_neg_3650_3_lt,
+        nlinarith [LogTables.exp_neg_1825_2_lt, LogTables.exp_neg_3650_3_lt,
                    Real.exp_pos (-(1825/2:ℝ)), Real.exp_pos (-(3650/3:ℝ))])
-
 
 /-- Row 1850 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1850_k1_margin :
@@ -1694,9 +1520,8 @@ theorem table_10_row1850_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1850_a2_le row1850_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_925_lt, exp_neg_3700_3_lt,
+        nlinarith [LogTables.exp_neg_925_lt, LogTables.exp_neg_3700_3_lt,
                    Real.exp_pos (-(925:ℝ)), Real.exp_pos (-(3700/3:ℝ))])
-
 
 /-- Row 1850 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1850_k2_margin :
@@ -1706,9 +1531,8 @@ theorem table_10_row1850_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1850_a2_le row1850_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_925_lt, exp_neg_3700_3_lt,
+        nlinarith [LogTables.exp_neg_925_lt, LogTables.exp_neg_3700_3_lt,
                    Real.exp_pos (-(925:ℝ)), Real.exp_pos (-(3700/3:ℝ))])
-
 
 /-- Row 1850 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1850_k3_margin :
@@ -1718,9 +1542,8 @@ theorem table_10_row1850_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1850_a2_le row1850_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_925_lt, exp_neg_3700_3_lt,
+        nlinarith [LogTables.exp_neg_925_lt, LogTables.exp_neg_3700_3_lt,
                    Real.exp_pos (-(925:ℝ)), Real.exp_pos (-(3700/3:ℝ))])
-
 
 /-- Row 1850 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1850_k4_margin :
@@ -1730,9 +1553,8 @@ theorem table_10_row1850_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1850_a2_le row1850_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_925_lt, exp_neg_3700_3_lt,
+        nlinarith [LogTables.exp_neg_925_lt, LogTables.exp_neg_3700_3_lt,
                    Real.exp_pos (-(925:ℝ)), Real.exp_pos (-(3700/3:ℝ))])
-
 
 /-- Row 1850 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1850_k5_margin :
@@ -1742,9 +1564,8 @@ theorem table_10_row1850_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1850_a2_le row1850_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_925_lt, exp_neg_3700_3_lt,
+        nlinarith [LogTables.exp_neg_925_lt, LogTables.exp_neg_3700_3_lt,
                    Real.exp_pos (-(925:ℝ)), Real.exp_pos (-(3700/3:ℝ))])
-
 
 /-- Row 1875 (k = 1), exact Table-10 margin target. -/
 theorem table_10_row1875_k1_margin :
@@ -1754,9 +1575,8 @@ theorem table_10_row1875_k1_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1875_a2_le row1875_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1875_2_lt, exp_neg_1250_lt,
+        nlinarith [LogTables.exp_neg_1875_2_lt, LogTables.exp_neg_1250_lt,
                    Real.exp_pos (-(1875/2:ℝ)), Real.exp_pos (-(1250:ℝ))])
-
 
 /-- Row 1875 (k = 2), exact Table-10 margin target. -/
 theorem table_10_row1875_k2_margin :
@@ -1766,9 +1586,8 @@ theorem table_10_row1875_k2_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1875_a2_le row1875_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1875_2_lt, exp_neg_1250_lt,
+        nlinarith [LogTables.exp_neg_1875_2_lt, LogTables.exp_neg_1250_lt,
                    Real.exp_pos (-(1875/2:ℝ)), Real.exp_pos (-(1250:ℝ))])
-
 
 /-- Row 1875 (k = 3), exact Table-10 margin target. -/
 theorem table_10_row1875_k3_margin :
@@ -1778,9 +1597,8 @@ theorem table_10_row1875_k3_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1875_a2_le row1875_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1875_2_lt, exp_neg_1250_lt,
+        nlinarith [LogTables.exp_neg_1875_2_lt, LogTables.exp_neg_1250_lt,
                    Real.exp_pos (-(1875/2:ℝ)), Real.exp_pos (-(1250:ℝ))])
-
 
 /-- Row 1875 (k = 4), exact Table-10 margin target. -/
 theorem table_10_row1875_k4_margin :
@@ -1790,9 +1608,8 @@ theorem table_10_row1875_k4_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1875_a2_le row1875_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1875_2_lt, exp_neg_1250_lt,
+        nlinarith [LogTables.exp_neg_1875_2_lt, LogTables.exp_neg_1250_lt,
                    Real.exp_pos (-(1875/2:ℝ)), Real.exp_pos (-(1250:ℝ))])
-
 
 /-- Row 1875 (k = 5), exact Table-10 margin target. -/
 theorem table_10_row1875_k5_margin :
@@ -1802,7 +1619,7 @@ theorem table_10_row1875_k5_margin :
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row1875_a2_le row1875_eps_le
     (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
-        nlinarith [exp_neg_1875_2_lt, exp_neg_1250_lt,
+        nlinarith [LogTables.exp_neg_1875_2_lt, LogTables.exp_neg_1250_lt,
                    Real.exp_pos (-(1875/2:ℝ)), Real.exp_pos (-(1250:ℝ))])
 
 end BKLNW
