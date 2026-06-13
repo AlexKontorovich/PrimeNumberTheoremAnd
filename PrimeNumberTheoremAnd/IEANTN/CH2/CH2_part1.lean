@@ -3570,7 +3570,7 @@ set_option maxHeartbeats 800000 in
 /-- At a point `z = -1 + i t` on the vertical line `Re z = -1` (with `t ≥ 0`), the combination
 `Φ_circ - Φ_star` equals `-Φ_star` evaluated on the imaginary axis at `i t`.
 -/
-private lemma shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+theorem shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
     Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t) = -Phi_star ν ε (I * t) := by
   have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
     intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
@@ -3585,7 +3585,7 @@ private lemma shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht 
 /-- At a point `z = 1 + i t` on the vertical line `Re z = +1` (with `t ≥ 0`), the combination
 `Φ_circ + Φ_star` equals `Φ_star` evaluated on the imaginary axis at `i t`.
 -/
-private lemma shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+theorem shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
     Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t) = Phi_star ν ε (I * t) := by
   have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
     intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
@@ -3597,6 +3597,64 @@ private lemma shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht :
   simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at haff
   rw [show 1 + I * ↑t = I * ↑t + 1 by ring, ← h_circ_shift (I * ↑t + 1),
       show I * ↑t + 1 - 1 = I * ↑t by ring, haff]; ring
+
+/-- Away from the pole on the downward line, `Φ_circ - Φ_star` at `-1 - i t`
+equals `-Φ_star` at `-i t`. -/
+theorem shift_downwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ)
+    (ht_pole : t ≠ ν / (2 * π)) :
+    Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 - I * t) = -Phi_star ν ε (-I * t) := by
+  have h_circ_periodic := Phi_circ_periodic ν ε
+  have h_re : (-2 : ℂ) * ↑π * I * (-I * ↑t) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.re at h
+    rw [w_re] at h
+    simp at h
+    apply ht_pole
+    field_simp [Real.pi_pos.ne.symm]
+    linarith [Real.pi_pos]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (-I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.im at h
+    simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ : Phi_circ ν ε (-1 - I * t) = Phi_circ ν ε (-I * t) := by
+    rw [show -I * t = (-1 - I * t) + 1 by ring, h_circ_periodic]
+  have haff : Phi_star ν ε (-1 - I * t) =
+      Phi_star ν ε (-I * t) + Phi_circ ν ε (-I * t) := by
+    have h := phi_star_affine_periodic ν ε hν (-I * t) 1 h_re (h_im 1 (by norm_num))
+    simp only [Int.cast_one, one_mul] at h
+    ring_nf at h ⊢
+    exact h
+  rw [h_circ, haff]
+  ring
+
+/-- Away from the pole on the downward line, `Φ_circ + Φ_star` at `1 - i t`
+equals `Φ_star` at `-i t`. -/
+theorem shift_downwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ)
+    (ht_pole : t ≠ ν / (2 * π)) :
+    Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t) = Phi_star ν ε (-I * t) := by
+  have h_circ_periodic := Phi_circ_periodic ν ε
+  have h_re : (-2 : ℂ) * ↑π * I * (-I * ↑t) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.re at h
+    rw [w_re] at h
+    simp at h
+    apply ht_pole
+    field_simp [Real.pi_pos.ne.symm]
+    linarith [Real.pi_pos]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (-I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.im at h
+    simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ : Phi_circ ν ε (1 - I * t) = Phi_circ ν ε (-I * t) := by
+    rw [show 1 - I * t = -I * t + 1 by ring, h_circ_periodic]
+  have haff : Phi_star ν ε (1 - I * t) =
+      Phi_star ν ε (-I * t) - Phi_circ ν ε (-I * t) := by
+    have h := phi_star_affine_periodic ν ε hν (-I * t) (-1) h_re (h_im (-1) (by norm_num))
+    simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at h
+    ring_nf at h ⊢
+    exact h
+  rw [h_circ, haff]
+  ring
 
 /-- Let `E(z) = exp(2πi z)`. Consider three "vertical" line integrals over `t ∈ [0, T]`, each
 picking up a factor of `I` from parametrizing the imaginary direction:
