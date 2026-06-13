@@ -7,9 +7,10 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
+import Mathlib.Topology.Algebra.InfiniteSum.Field
 import PrimeNumberTheoremAnd.MediumPNT
 
-open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
+open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory Asymptotics
 
 open ArithmeticFunction (vonMangoldt)
 
@@ -140,7 +141,7 @@ lemma cauchy_formula_deriv {r r' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
           \leq\frac{1}{2\pi}\int_0^{2\pi}
           \left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that
+    Now applying Theorem \ref{borelCaratheodory'}, and noting that
     $r'-r\leq|r'e^{it}-z|$, we have that
     $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
       \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
@@ -894,7 +895,7 @@ noncomputable def JBlaschke {r' r R : ℝ} {f : ℂ → ℂ}
       \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
     for all $|z|\leq r$. Note that in the above
     $$0=\log|f(0)|\leq\log|B_f(0)|$$
-    because of Lemma \ref{norm-fOfZero-le-norm-BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
+    because of Lemma \ref{norm_fOfZero_le_norm_BlaschkeOfZero}. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
     for all $|z|\leq r'$.
   -/)
@@ -1100,14 +1101,31 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 blueprint_comment /--
-\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}
-    For all $t\in\mathbb{R}$ one has
-    $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
-\end{theorem}
+  API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm-tprod
 -/
 
-blueprint_comment /--
-\begin{proof}
+variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
+ {f : α → R} {x : R}
+
+lemma HasProd.nnnorm (hfx : HasProd f x) : HasProd (‖f ·‖₊) ‖x‖₊ := by
+  simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter] at ⊢ hfx
+  exact hfx.nnnorm
+
+theorem Multipliable.nnnorm (hf : Multipliable f) : Multipliable (‖f ·‖₊) :=
+  let ⟨x, hx⟩ := hf; ⟨‖x‖₊, hx.nnnorm⟩
+
+lemma Multipliable.nnnorm_tprod (hf : Multipliable f) : ‖∏' i, f i‖₊ = ∏' i, ‖f i‖₊ :=
+  hf.hasProd.nnnorm.tprod_eq.symm
+
+
+
+@[blueprint "ZetaFixedLowerBound"
+  (title := "ZetaFixedLowerBound")
+  (statement := /--
+    For all $t\in\mathbb{R}$ one has
+    $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
+  -/)
+  (proof := /--
     From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
     $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
     Thus, we have that
@@ -1116,26 +1134,70 @@ blueprint_comment /--
     $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}
       \geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
     for all $t\in\mathbb{R}$ as desired.
-\end{proof}
--/
+  -/)
+  (latexEnv := "theorem")]
+lemma ZetaFixedLowerBound (t : ℝ) :
+    ‖ζ (3/2 + I * t)‖₊ ≥ ‖ζ 3 / ζ (3 / 2)‖₊ := by
+  have mp : ∀ {s : ℂ}, 1 < s.re → Multipliable fun p : Primes ↦ (1 - (p : ℂ) ^ (-s))⁻¹ := by
+    intro s hs
+    exact ⟨ζ s, riemannZeta_eulerProduct_hasProd hs⟩
+  have h₁ : 1 < ((3 : ℂ) / 2).re := by norm_num
+  have h₂ : 1 < (3 : ℂ).re := by norm_num
+  have h₃ : 1 < (3 / 2 + I * (t : ℂ)).re := by norm_num
+  rw [nnnorm_div, ge_iff_le,
+    div_le_iff₀ (nnnorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
+    ← riemannZeta_eulerProduct_tprod h₁, ← riemannZeta_eulerProduct_tprod h₂,
+    ← riemannZeta_eulerProduct_tprod h₃, (mp h₁).nnnorm_tprod, (mp h₂).nnnorm_tprod,
+    (mp h₃).nnnorm_tprod, ← (mp h₃).nnnorm.tprod_mul (mp h₁).nnnorm]
+  refine (mp h₂).nnnorm.tprod_le_tprod (fun p ↦ ?_) ((mp h₃).nnnorm.mul (mp h₁).nnnorm)
+  simp only [nnnorm_inv, ← mul_inv]
+  have hfact : ‖1 - (p : ℂ) ^ (-3 : ℂ)‖₊ =
+      ‖1 + (p : ℂ) ^ ((-3 : ℂ) / 2)‖₊ * ‖1 - (p : ℂ) ^ (-((3 : ℂ) / 2))‖₊ := by
+    rw [← nnnorm_mul]; congr 1; ring_nf; rw [← Complex.cpow_nat_mul]; ring_nf
+  have hne : ∀ {s : ℂ}, 1 < s.re → (1 - (p : ℂ) ^ (-s)) ≠ 0 := fun hs ↦ Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  rw [inv_le_inv₀, hfact]
+  · apply _root_.mul_le_mul_left
+    rw [← norm_toNNReal, ← norm_toNNReal]
+    apply Real.toNNReal_le_toNNReal
+    calc ‖1 - (p : ℂ) ^ (-(3 / 2 + I * ↑t))‖
+        ≤ 1 + ‖(p : ℂ) ^ (-(3 / 2 + I * ↑t))‖ := by
+          rw [← Complex.norm_of_nonneg zero_le_one]; exact norm_sub_le _ _
+      _ = ‖1 + (p : ℂ) ^ (-(3 : ℂ) / 2)‖ := by
+          have : 0 ≤ 1 + (p : ℝ) ^ (-(3 : ℝ) / 2) := by linarith [Real.rpow_nonneg (cast_nonneg' ↑p) (-3 / 2)]
+          simp only [Complex.norm_natCast_cpow_of_pos (Nat.Prime.pos p.2), add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
+            sub_self, div_ofNat_re, re_ofNat, neg_div', add_zero]
+          rw [← Real.norm_of_nonneg this, ← Complex.norm_real, Complex.ofReal_add, Complex.ofReal_cpow (cast_nonneg' ↑p)]
+          push_cast; rfl
+  · exact norm_pos_iff.mpr (hne h₂)
+  · exact mul_pos (norm_pos_iff.mpr (hne h₃)) (norm_pos_iff.mpr (hne h₁))
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
+@[blueprint "ZetaZero"
+  (title := "ZetaZero")
+  (statement := /--
     Let
     $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
-    We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
-\end{lemma}
--/
+  -/)]
+noncomputable def ζ₀ (s : ℂ) := 1 + 1 / (s - 1) - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)
 
-blueprint_comment /--
-\begin{proof}
+
+
+@[blueprint "ZetaAltFormula"
+  (title := "ZetaAltFormula")
+  (statement := /--
+    We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
+  -/)
+  (proof := /--
     Note that for $\sigma>1$ we have
     $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n-1}{n^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=0}^\infty\frac{n}{(n+1)^s}
-      =\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n}{(n+1)^s}.$$
+      =\sum_{n=1}^\infty\left(\frac{n}{n^s}-\frac{n-1}{n^s}\right)
+      =1+\sum_{n=1}^\infty\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)
+      =\lim_{k\to\infty}\left(1+\sum_{n=1}^k\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)\right).$$
+    Now note that
+    $$\zeta(s)=\lim_{k\to\infty}\left(1+\sum_{n=1}^k\left(\frac{n+1}{(n+1)^s}-\frac{n}{(n+1)^s}\right)\right)
+      =\lim_{k\to\infty}\left(\frac{k+1}{(k+1)^s}+\sum_{n=1}^k\left(\frac{n}{n^s}-\frac{n}{(n+1)^s}\right)\right).$$
+    Now since $\sigma>1$, the leading term in the limit vanishes.
     Thus
     $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s}).$$
     Now we note that
@@ -1149,45 +1211,249 @@ blueprint_comment /--
     $$\zeta(s)=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}
       =s\int_1^\infty x^{-s}\,dx-s\int_1^\infty \{x\}\,x^{-s}\,\frac{dx}{x}.$$
     Evaluating the first integral completes the result.
-\end{proof}
--/
+  -/)
+  (latexEnv := "theorem")]
+lemma ZetaAltFormula {s : ℂ} (hs : 1 < s.re) :
+    ζ s = ζ₀ s:= by
+  have h_neg_s : (-s).re < -1 := by simp only [neg_re, neg_lt_neg_iff, hs]
+  have s_ne_zero : s ≠ 0 := by
+    intro h; have : s.re = 0 := by simp only [h, zero_re]
+    linarith
+  have s_ne_one : s ≠ 1 := fun h => hs.ne' (h ▸ by simp)
+  have h_neg_s_sub : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
+  have hIntegrable1 : IntegrableOn (fun u : ℝ => (u : ℂ) ^ (-s)) (Ioi 1) := integrableOn_Ioi_cpow_of_lt h_neg_s zero_lt_one
+  have hIntegrable2 : IntegrableOn (fun u : ℝ => (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) (Ioi 1) := by
+    refine MeasureTheory.Integrable.mono' (integrableOn_Ioi_rpow_of_lt (by linarith) (by linarith)) (by fun_prop) ?_ (g := fun u => u ^ ( -s.re - 1 ))
+    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+    norm_num [Complex.norm_cpow_eq_rpow_re_of_pos ( zero_lt_one.trans hx )]
+    exact mul_le_of_le_one_left (Real.rpow_nonneg (by linarith [hx.out]) _) (abs_le.mpr ⟨by linarith [Int.fract_nonneg x], by linarith [Int.fract_lt_one x]⟩)
+  have hIntegrable3 : IntegrableOn (fun u : ℝ => (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) (Ici 1) := by
+    rw [integrableOn_Ici_iff_integrableOn_Ioi]
+    refine hIntegrable1.sub hIntegrable2 |> fun h => h.congr ?_
+    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with u hu
+    simp only [Pi.sub_apply, Int.fract]
+    push_cast; nth_rewrite 2 [← cpow_one (↑u : ℂ)]
+    rw [sub_mul, ← cpow_add _ _ (by exact_mod_cast (by linarith [mem_Ioi.mp hu] : u ≠ 0)), add_sub_cancel, sub_sub_cancel]
+  have hIci : Ici (1 : ℝ) = ⋃ n : ℕ, Ico (↑(n + 1)) (↑(n + 2)) := by
+    ext x; constructor
+    · intro hx; simp only [mem_iUnion, mem_Ico, ← one_add_one_eq_two, ← add_assoc]
+      use (Nat.floor x - 1)
+      nth_rewrite 2 [cast_add]
+      rw [cast_one, ← Nat.floor_eq_iff']
+      repeat rw [Nat.sub_add_cancel (Nat.le_floor (by exact_mod_cast hx))]
+      rw [ne_eq, floor_eq_zero, not_lt]
+      exact hx
+    · simp only [cast_add, cast_one, cast_ofNat, mem_iUnion, mem_Ici, forall_exists_index, mem_Ico]
+      exact fun y hy => by linarith [hy.1]
+  have intervalsPairwiseDisjoint : Pairwise (Disjoint on fun (x : ℕ) ↦ Ico ((x + 1) : ℝ) ((x + 2) : ℝ)) := by
+    intro m n hmn; have h := lt_or_gt_of_ne hmn
+    simp only [Ico_disjoint_Ico, le_sup_iff, inf_le_iff, add_le_add_iff_left, not_ofNat_le_one, false_or, or_false]
+    rcases h with hmn | hnm
+    · have : (m : ℝ) + 1 ≤ (n : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hmn)
+      right; linarith
+    · have : (n : ℝ) + 1 ≤ (m : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt hnm)
+      left; linarith
+  have bringFloorOutIntegral : ∑' (n : ℕ), ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), ((Int.floor x) : ℝ) * (x : ℂ) ^ (-s - 1) =
+      ∑' (n : ℕ), (n + 1 : ℝ) * ∫ (x : ℝ) in Ico ↑(n + 1) ↑(n + 2), (x : ℂ) ^ (-s - 1) := by
+    apply tsum_congr; intro n
+    simp only [ofReal_intCast, ← MeasureTheory.integral_const_mul]
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ico)] with u hu
+    rw[← one_add_one_eq_two, ← add_assoc] at hu
+    have := Int.floor_eq_on_Ico' (n + 1) (u)
+    simp only [mul_eq_mul_right_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq, cast_add, cast_one, mem_Ico, and_imp, ofReal_add, ofReal_natCast, ofReal_one, Int.cast_add, Int.cast_natCast, Int.cast_one] at ⊢ hu this
+    left; exact_mod_cast this hu.1 hu.2
+  have evalIntegral : ∀ (n : ℕ), ∫ (x : ℝ) in ↑n + 1..↑n + 2, (x : ℂ) ^ (-s - 1) =
+      ((n + 1) ^ (-s) - (n + 2) ^ (-s)) / s := by
+    intro n; rw [integral_cpow]
+    · simp only [ofReal_add, ofReal_natCast, ofReal_ofNat, sub_add_cancel, ofReal_one, div_neg, ← neg_div, neg_sub]
+    · right; constructor
+      · simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
+        exact s_ne_zero
+      · simp only [add_le_add_iff_left, one_le_ofNat, uIcc_of_le, mem_Icc, not_and, not_le]
+        intro h; linarith
+  have term_bound (n : ℕ) (x : ℝ) (hx : x ∈ Set.uIoc (n + 1 : ℝ) (n + 2 : ℝ)) :
+      ‖s * x ^ (-s - 1)‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re - 1) := by
+    simp only [uIoc, add_le_add_iff_left, one_le_ofNat, inf_of_le_left, sup_of_le_right, mem_Ioc] at hx
+    rw [norm_mul, Complex.norm_cpow_eq_rpow_re_of_pos (by linarith)]
+    refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg s)
+    rw [sub_re, neg_re, one_re, Real.rpow_le_rpow_iff_of_neg (by linarith) (by linarith) (by linarith)]
+    exact le_of_lt hx.1
+  have integral_bound (n : ℕ) : ‖∫ x in (n + 1 : ℝ).. (n + 2 : ℝ), s * x ^ (-s - 1)‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re - 1) := by
+    have := intervalIntegral.norm_integral_le_of_norm_le_const (term_bound n)
+    norm_num at ⊢ this; exact this
+  have term_bound (n : ℕ) : ‖(n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s))‖ ≤ ‖s‖ * (n + 1 : ℝ) ^ (-s.re) := by
+    convert mul_le_mul_of_nonneg_left (integral_bound n) (norm_nonneg ((n : ℂ) + 1)) using 1
+    · rw [intervalIntegral.integral_const_mul, integral_cpow]
+      · simp only [Complex.norm_mul, ofReal_add, ofReal_natCast, ofReal_ofNat, sub_add_cancel, ofReal_one,
+          Complex.norm_div, norm_neg, norm_sub_rev]; field_simp
+      · simp only [sub_re, neg_re, one_re, neg_lt_sub_iff_lt_add, lt_add_iff_pos_right,
+          Left.neg_pos_iff, ne_eq, sub_eq_neg_self, neg_eq_zero, s_ne_zero, not_false_eq_true,
+          add_le_add_iff_left, one_le_ofNat, uIcc_of_le, mem_Icc, not_and, not_le, true_and]
+        right; exact fun hn => by linarith
+    · rw [show (-s.re : ℝ) = -s.re - 1 + 1 by ring, Real.rpow_add (by linarith)]; norm_cast; norm_num; ring;
+  have h_summable : Summable (fun n : ℕ => (n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s))) := by
+    refine Summable.of_norm (Summable.of_nonneg_of_le (fun _ => norm_nonneg _) (term_bound) (Summable.const_smul ‖s‖ ?_))
+    exact_mod_cast (summable_nat_add_iff 1).mpr (Real.summable_nat_rpow.mpr (by linarith : -s.re < -1))
+  have telescoping (N : ℕ) :
+      ∑ n ∈ Finset.range N, (n + 1 : ℂ) * ((n + 1 : ℂ) ^ (-s) - (n + 2 : ℂ) ^ (-s)) =
+      ∑ n ∈ Finset.range N, (1 : ℂ) / (n + 1 : ℂ) ^ s - N * (N + 1 : ℂ) ^ (-s) := by
+    induction N with
+    | zero => simp only [Finset.range_zero, Finset.sum_empty, one_div, CharP.cast_eq_zero, zero_add,
+      one_cpow, mul_one, sub_self]
+    | succ N h => simp only [Finset.sum_range_succ, h, one_div, cast_add, cast_one, ← Complex.cpow_neg]; ring_nf
+  have tail_bound (N : ℕ) : ‖(N : ℂ) * (N + 1 : ℂ) ^ (-s)‖ ≤ (N + 1 : ℝ) ^ (1 - s.re) := by
+    have hN1 : (0 : ℝ) < (N : ℝ) + 1 := by linarith [Nat.succ_pos N]
+    simp only [Complex.norm_mul, ← Nat.cast_add_one N, RCLike.norm_natCast, RCLike.norm_natCast]
+    rw [Complex.norm_cpow_of_ne_zero (by norm_cast), RCLike.norm_natCast, Complex.natCast_arg, zero_mul, Real.exp_zero, div_one, Nat.cast_add_one, neg_re, Real.rpow_neg hN1.le, rpow_sub hN1, div_eq_mul_inv, rpow_one]
+    exact mul_le_mul (by linarith) (by rfl) (inv_nonneg.mpr (Real.rpow_nonneg hN1.le _)) (hN1.le)
+  have tail_to_zero : Tendsto (fun N : ℕ => N * (N + 1 : ℂ) ^ (-s)) atTop (nhds 0) := squeeze_zero_norm tail_bound (by simpa using tendsto_rpow_neg_atTop (by linarith : 0 < s.re - 1) |> Filter.Tendsto.comp <| Filter.tendsto_atTop_add_const_right _ _ tendsto_natCast_atTop_atTop)
+  suffices h1 : ζ s = s * (∫ u in Ioi (1 : ℝ), (u : ℂ) ^ (-s) - (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+    rw [ζ₀, h1, integral_sub hIntegrable1 hIntegrable2, mul_sub, integral_Ioi_cpow_of_lt h_neg_s zero_lt_one, ofReal_one, one_cpow, one_div, sub_left_inj]
+    field_simp
+    rw [← div_neg, neg_add, neg_neg, ← sub_eq_add_neg, ← same_add_div, sub_add_cancel]
+    exact sub_ne_zero.mpr s_ne_one
+  suffices h2 : ζ s = s * (∫ u in Ioi (1 : ℝ), (Int.floor u : ℝ) * (u : ℂ) ^ (-s - 1)) by
+    simp only [h2, ← Int.self_sub_fract, ofReal_sub, sub_mul, mul_eq_mul_left_iff]
+    left
+    apply MeasureTheory.integral_congr_ae
+    filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with u hu
+    congr 1
+    nth_rewrite 1 [← cpow_one (↑u : ℂ), ← cpow_add _ _ (by exact_mod_cast (by linarith [mem_Ioi.mp hu] : u ≠ 0)), add_sub_cancel]
+    rfl
+  suffices h3 : ζ s = ∑' (x : ℕ), ((x : ℂ) + 1) * (((x : ℂ) + 1) ^ (-s) - ((x : ℂ) + 2) ^ (-s)) by
+    rw [← MeasureTheory.integral_Ici_eq_integral_Ioi, hIci, MeasureTheory.integral_iUnion (fun _ => measurableSet_Ico) (by simp only [cast_add, cast_one, cast_ofNat, intervalsPairwiseDisjoint]), bringFloorOutIntegral]
+    · rw [h3, ← tsum_mul_left]
+      apply tsum_congr; intro n
+      simp only [cast_add, cast_one, cast_ofNat]
+      rw [mul_comm s, mul_assoc, setIntegral_congr_set Ico_ae_eq_Ioc,
+        ← intervalIntegral.integral_of_le (by linarith [Nat.cast_nonneg' (α := ℝ) n]),
+        evalIntegral]
+      simp only [ofReal_natCast, ofReal_add, ofReal_one]
+      rw [div_mul_cancel₀ _ (by exact s_ne_zero)]
+    · rw[← hIci, IntegrableOn]
+      exact hIntegrable3
+  rw [eq_comm, zeta_eq_tsum_one_div_nat_add_one_cpow hs]
+  convert tendsto_nhds_unique h_summable.hasSum.tendsto_sum_nat _ using 1
+  simpa only [telescoping, sub_zero] using (Summable.hasSum (show Summable _ from by simpa using summable_nat_add_iff 1 |>.2 <| show Summable fun n : ℕ => (1 : ℂ) / (n : ℂ) ^ s from Complex.summable_one_div_nat_cpow.mpr hs)).tendsto_sum_nat |>.sub tail_to_zero
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}
+@[blueprint "Int.fract'"
+  (title := "Int.fract'")
+  (statement := /--
+    An auxillary function used to prove the analyticity of \ref{ZetaZero}.
+    We define
+    $$\{x\}'=\{x\}\,\mathbf{1}_{1<x}.$$
+  -/)]
+noncomputable def Int.fract' : ℝ → ℂ := fun (x : ℝ) =>
+  if (1 : ℝ) < x then ((Int.fract x : ℝ) : ℂ) else 0
+
+
+
+@[blueprint "ZetaAltFormulaAnalytic"
+  (title := "ZetaAltFormulaAnalytic")
+  (statement := /--
     We have that $\zeta_0(s)$ is analytic for all $s\in S$ where
     $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$.
-\end{lemma}
--/
+  -/)
+  (proof := /--
+    Recall that if a function is differentiable on a region, then it is analytic on the interior of
+    that region. So, it suffices to prove that $\zeta_0$ is differentiable on $s\in S$. Now note that
+    $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}
+      =1+\frac{1}{s-1}-s\int_0^\infty\{x\}'\,x^{-s}\,\frac{dx}{x}
+      =1+\frac{1}{s-1}-s\,\mathcal{M}(\{\cdot\}')(-s).$$
+    Since $s\neq 1$, all that remains is to verify that $\mathcal{M}(\{\cdot\}')(-s)$ is differentiable on $S$.
+    Using \begin{verbatim}
+      mellin_differentiableAt_of_isBigO_rpow
+    \end{verbatim}
+    it suffices to show that $\{x\}'$ is $O(1)$ as $x\to\infty$. This is true as $|\{x\}'|\leq 1.$
+  -/)]
+lemma ZetaAltFormulaAnalytic :
+    AnalyticOn ℂ ζ₀ ({ s : ℂ | 0 < s.re ∧ s ≠ 1 }) := by
+  have fract'_norm_le_one (x : ℝ) : ‖Int.fract' x‖ ≤ 1 := by
+    simp only [Int.fract']
+    split_ifs
+    · simp only [norm_real, norm_eq_abs, abs_of_nonneg (Int.fract_nonneg u), Int.abs_fract]
+      exact (Int.fract_lt_one x).le
+    · simp only [norm_zero, zero_le_one]
+  have mellin_fract'_neg (s : ℂ) : ∫ u in Ioi (1 : ℝ), (↑(Int.fract u) : ℂ) * (u : ℂ) ^ (-s - 1) =
+    mellin Int.fract' (-s) := by
+    simp only [← MeasureTheory.integral_indicator (measurableSet_Ioi), mellin, Int.fract',
+      smul_eq_mul, mul_ite, mul_zero]
+    norm_num [Set.indicator]
+    congr 1; funext x
+    split_ifs with h1 h2 <;> ring_nf; linarith
+  unfold ζ₀
+  simp only [AnalyticOn, mellin_fract'_neg]
+  intro s hs
+  refine AnalyticAt.analyticWithinAt (AnalyticAt.fun_sub (AnalyticAt.add analyticAt_const (AnalyticAt.div analyticAt_const (analyticAt_id.sub analyticAt_const) ?_)) (AnalyticAt.mul analyticAt_id ?_))
+  · rw [sub_ne_zero]
+    exact hs.2
+  · rw [← IsOpen.mem_nhds_iff (by exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne)] at hs
+    refine DifferentiableOn.analyticAt ?_ hs
+    intro s hs
+    refine DifferentiableAt.differentiableWithinAt (DifferentiableAt.comp (f := fun s => -s) (g := mellin Int.fract') (x := s) (mellin_differentiableAt_of_isBigO_rpow (a := 0) (b := (-s).re - 1) ?_ ?_ ?_ ?_ (by linarith)) (differentiableAt_id.neg))
+    · rw [locallyIntegrableOn_iff isOpen_Ioi.isLocallyClosed]
+      exact (fun K hK hKc => Measure.integrableOn_of_bounded (ne_of_lt hKc.measure_lt_top) (Measurable.ite measurableSet_Ioi (Complex.measurable_ofReal.comp measurable_fract) measurable_const).aestronglyMeasurable (Filter.Eventually.of_forall fun x => fract'_norm_le_one x))
+    · simp only [neg_zero, rpow_zero]
+      exact isBigO_of_le _ (fun x => by simpa using fract'_norm_le_one x)
+    · rw [neg_re]
+      linarith [hs.1]
+    · refine IsBigO.of_bound 1 ?_
+      filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Metric.ball_mem_nhds _ zero_lt_one)] with x _ hx
+      unfold Int.fract'; split_ifs <;> norm_num at *
+      linarith [abs_lt.mp hx]
 
-blueprint_comment /--
-\begin{proof}
-    Note that we have
-    $$\left|\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}\right|
-      \leq\int_1^\infty|\{x\}\,x^{-s-1}|\,dx
-      \leq\int_1^\infty x^{-\sigma-1}\,dx=\frac{1}{\sigma}.$$
-    So this integral converges uniformly on compact subsets of $S$, which tells us that
-    it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$
-    as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term.
-\end{proof}
--/
 
 
-
-blueprint_comment /--
-\begin{lemma}[ZetaExtend]\label{ZetaExtend}
+@[blueprint "ZetaExtend"
+  (title := "ZetaExtend")
+  (statement := /--
     We have that
     $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
     for all $s\in S$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+  -/)
+  (proof := /--
     This is an immediate consequence of the identity theorem.
-\end{proof}
--/
+  -/)]
+lemma ZetaExtend : Set.EqOn ζ ζ₀ {s : ℂ | 0 < s.re ∧ s ≠ 1} := by
+  have asUnion : {s : ℂ | 0 < s.re ∧ s ≠ 1} =
+    {s | 0 < s.re ∧ 0 < s.im} ∪ {s | 1 < s.re} ∪
+    {s | 0 < s.re ∧ s.im < 0} ∪ {s | 0 < s.re ∧ s.re < 1} := by
+    ext s
+    simp only [mem_setOf_eq, mem_union]
+    constructor
+    · intro hs
+      simp only [hs.1, true_and]
+      by_contra h; push Not at h
+      have re_eq := le_antisymm h.2 h.1.1.2
+      have im_eq := le_antisymm h.1.2 h.1.1.1
+      exact hs.2 (Complex.ext re_eq.symm im_eq.symm)
+    · intro hs
+      constructor
+      · rcases hs with (((⟨h, _⟩ | h) | ⟨h, _⟩) | ⟨h, _⟩) <;> linarith
+      · intro heq; simp [heq] at hs
+  apply AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq (𝕜 := ℂ) (z₀ := 3)
+  · simp only [ne_eq, mem_setOf_eq, re_ofNat, ofNat_pos, OfNat.ofNat_ne_one, not_false_eq_true,
+      and_self]
+  · rw [Filter.eventuallyEq_iff_exists_mem]
+    refine ⟨Metric.ball 3 1, ⟨Metric.ball_mem_nhds _ one_pos, ?_⟩⟩
+    simp only [EqOn, mem_ball_iff_norm]
+    intro s hs
+    apply ZetaAltFormula
+    norm_num [Complex.normSq, Complex.norm_def, Real.sqrt_lt'] at hs
+    nlinarith
+  · apply analyticOn_riemannZeta.mono
+    simp only [ne_eq, subset_compl_singleton_iff, mem_setOf_eq, one_re, zero_lt_one,
+      not_true_eq_false, and_false, not_false_eq_true]
+  · rw [← IsOpen.analyticOn_iff_analyticOnNhd (by exact (isOpen_lt continuous_const Complex.continuous_re).inter isOpen_ne)]
+    exact ZetaAltFormulaAnalytic
+  · rw [asUnion]
+    refine IsPreconnected.union' ⟨1 / 2 - I, by simp [two_inv_lt_one]⟩ (IsPreconnected.union' ⟨2 - I, by simp⟩ (IsPreconnected.union' ⟨2 + I, by simp⟩ (Convex.isPreconnected ?_) (Convex.isPreconnected (convex_halfSpace_re_gt 1))) (Convex.isPreconnected ?_)) (Convex.isPreconnected ?_)
+    · convert Convex.inter (convex_halfSpace_re_gt 0) (convex_halfSpace_im_gt 0) using 1
+    · convert convex_halfSpace_re_gt 0 |> Convex.inter <| convex_halfSpace_im_lt 0 using 1
+    · convert convex_halfSpace_re_gt 0 |> Convex.inter <| convex_halfSpace_re_lt 1 using 1
 
 
 
@@ -1223,7 +1489,7 @@ blueprint_comment /--
     Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If
     $f(z)=\zeta(z+3/2+it)$, then for all
     $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we have that
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
 -/
@@ -1236,12 +1502,12 @@ blueprint_comment /--
       \leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
     by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem
     \ref{FinalBound} we have that
-    $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(R')}\frac{m_g(\rho)}{z-\rho}\right|
+    $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(r)}\frac{m_g(\rho)}{z-\rho}\right|
       \leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)
       \left(\log|t|+\log\left(\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\right)\right).$$
-    Now note that $f'/f=g'/g$, $\mathcal{K}_f(R')=\mathcal{K}_g(R')$, and
-    $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(R')$. Thus we have that,
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
+    Now note that $f'/f=g'/g$, $\mathcal{K}_f(r)=\mathcal{K}_g(r)$, and
+    $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(r)$. Thus we have that,
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
     where the implied constant $C$ is taken to be
     $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$
@@ -1252,7 +1518,7 @@ blueprint_comment /--
 
 blueprint_comment /--
 \begin{definition}[ZeroWindows]\label{ZeroWindows}
-    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$.
+    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 3/4\}$.
 \end{definition}
 -/
 
@@ -1273,16 +1539,16 @@ blueprint_comment /--
     $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
     we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let
     $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
     region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
       \ll\log|t|.$$
-    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and
-    $|\rho|\leq 5/6$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that
+    But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$ and
+    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that
     $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us
     that
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
@@ -1414,21 +1680,24 @@ blueprint_comment /--
 
 
 
-blueprint_comment /--
-\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}
+@[blueprint "ThreeFourOneTrigIdentity"
+  (title := "ThreeFourOneTrigIdentity")
+  (statement := /--
     We have that
     $$0\leq 3+4\cos\theta+\cos2\theta$$
     for all $\theta\in\mathbb{R}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
+  -/)
+  (proof := /--
     We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
     $$3+4\cos\theta+\cos2\theta=2+4\cos\theta+2\cos^2\theta=2\,(1+\cos\theta)^2.$$
     Noting that $0\leq 1+\cos\theta$ completes the proof.
-\end{proof}
--/
+  -/)
+  (latexEnv := "lemma")]
+lemma ThreeFourOneTrigIdentity (θ : ℝ) :
+    0 ≤ 3 + 4 * Real.cos θ + Real.cos (2 * θ) := by
+  have : 3 + 4 * Real.cos θ + (2 * Real.cos θ ^ 2 - 1) = 2 * (1 + Real.cos θ) ^ 2 := by ring_nf
+  rw [Real.cos_two_mul, this]
+  exact mul_nonneg zero_le_two (sq_nonneg (1 + Real.cos θ))
 
 
 
