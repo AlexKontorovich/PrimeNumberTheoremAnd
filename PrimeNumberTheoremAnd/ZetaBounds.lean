@@ -725,23 +725,22 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b :
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊, φ n =
-      (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
+      (∫ x in a..b, φ x) + (⌊b⌋₊ + 1 / 2 - b) * φ b - (⌊a⌋₊ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   rw [uIcc_of_le a_lt_b.le] at φDiff
   convert sum_eq_integral_add_integral_deriv apos a_lt_b.le (fun t ht ↦ (φDiff t ht).differentiableAt) derivφCont using 1
-  · unfold B1
-    rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
-    push_cast
-    suffices ∫ (x : ℝ) in a..b, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x = -∫ (t : ℝ) in a..b, deriv φ t * (↑t - ↑⌊t⌋₊ - 1 / 2) by
-      rw [this]
-      ring_nf!
-    rw [← intervalIntegral.integral_neg]
-    refine intervalIntegral.integral_congr fun x hx ↦ ?_
-    rw [uIcc_of_le a_lt_b.le, mem_Icc] at hx
-    rw [← Int.natCast_floor_eq_floor (by linarith)]
-    norm_cast
-    push_cast
-    ring
+  unfold B1
+  push_cast
+  suffices ∫ (x : ℝ) in a..b, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x = -∫ (t : ℝ) in a..b, deriv φ t * (↑t - ↑⌊t⌋₊ - 1 / 2) by
+    rw [this]
+    ring_nf!
+  rw [← intervalIntegral.integral_neg]
+  refine intervalIntegral.integral_congr fun x hx ↦ ?_
+  rw [uIcc_of_le a_lt_b.le, mem_Icc] at hx
+  rw [← Int.natCast_floor_eq_floor (by linarith)]
+  norm_cast
+  push_cast
+  ring
 
 
 lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
@@ -819,7 +818,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero ha
   convert sum_eq_int_deriv (by linarith) (by exact_mod_cast ha.2) φDiff derivφCont using 1
   · congr <;> simp only [Nat.floor_natCast]
-  · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
+  · rw [Nat.floor_natCast, Nat.floor_natCast, ← intervalIntegral.integral_const_mul]
     simp_rw [mul_div, ← mul_div, φ, ZetaSum_aux1₁ s_ne_one ha]
     conv => rhs; rw [sub_eq_add_neg]
     congr; any_goals norm_cast; simp only [one_div, add_sub_cancel_left]
