@@ -8,6 +8,7 @@ import PrimeNumberTheoremAnd.IEANTN.LiSeries
 import LeanCert.Tactic.IntervalAuto
 import PrimeNumberTheoremAnd.EulerMascheroniBounds
 import PrimeNumberTheoremAnd.IEANTN.LnFactorialSeries
+import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 
 blueprint_comment /--
@@ -210,8 +211,8 @@ theorem li.sub_Li (x : ℝ) (h2x : 2 ≤ x) : li x - Li x = li 2 := by
 
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   rw [li_eq_eulerMascheroni_add_log_log_add_tsum (show (1 : ℝ) < 2 by norm_num)]
-  have hll_lo : (-0.366513 : ℝ) ≤ Real.log (Real.log 2) := by interval_decide
-  have hll_hi : Real.log (Real.log 2) ≤ -0.366512 := by interval_decide
+  have hll_lo : (-0.366513 : ℝ) ≤ Real.log (Real.log 2) := LogTables.log_log_2_gt
+  have hll_hi : Real.log (Real.log 2) ≤ -0.366512 := LogTables.log_log_2_lt
 
   constructor <;> linarith [hs_lo, hs_hi, hγ_lo, hγ_hi]
 

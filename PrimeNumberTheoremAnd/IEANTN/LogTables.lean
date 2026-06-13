@@ -51,6 +51,50 @@ lemma log_30_lt : log 30 < 3.401198 := by interval_decide
 lemma log_32_gt : 3.465735 < log 32 := by interval_decide
 lemma log_32_lt : log 32 < 3.465736 := by interval_decide
 
+/-! ## Decompositions of `log N` for small composite `N`
+
+These rewrite `log N` for `N ∈ {4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20}` into log-prime
+components. Useful for chaining with the `log_p_gt`/`log_p_lt` bounds above to derive
+numerical bounds on `log N` (e.g. `log 14 = log 2 + log 7 > 0.693 + 1.945 = 2.638`).
+Not marked `@[simp]` — application is opt-in per call site, since the decomposed form
+isn't always preferred (e.g. when `log N` appears as a single literal in an expression). -/
+
+lemma log_4 : log 4 = 2 * log 2 := by
+  rw [show (4 : ℝ) = 2 ^ (2 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_6 : log 6 = log 2 + log 3 := by
+  rw [show (6 : ℝ) = 2 * 3 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_8 : log 8 = 3 * log 2 := by
+  rw [show (8 : ℝ) = 2 ^ (3 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_9 : log 9 = 2 * log 3 := by
+  rw [show (9 : ℝ) = 3 ^ (2 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_10' : log 10 = log 2 + log 5 := by
+  rw [show (10 : ℝ) = 2 * 5 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_12 : log 12 = 2 * log 2 + log 3 := by
+  rw [show (12 : ℝ) = 4 * 3 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_4]
+
+lemma log_14 : log 14 = log 2 + log 7 := by
+  rw [show (14 : ℝ) = 2 * 7 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_15 : log 15 = log 3 + log 5 := by
+  rw [show (15 : ℝ) = 3 * 5 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_16 : log 16 = 4 * log 2 := by
+  rw [show (16 : ℝ) = 2 ^ (4 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_18 : log 18 = log 2 + 2 * log 3 := by
+  rw [show (18 : ℝ) = 2 * 9 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_9]
+
+lemma log_20 : log 20 = 2 * log 2 + log 5 := by
+  rw [show (20 : ℝ) = 4 * 5 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_4]
+
 /-! ## High-precision bounds for `log 2`
 
 These mirror `Real.log_two_gt_d9` / `Real.log_two_lt_d9` in Mathlib, restated under the
@@ -95,6 +139,98 @@ lemma log_3_2_gt : (1.163 : ℝ) < log 3.2 := by interval_decide
 lemma exp_1_112_lt : exp (1.112 : ℝ) < 3.041 := by interval_decide
 lemma log_6_58_gt : (1.884034 : ℝ) < log 6.58 := by interval_decide
 lemma log_log_6_58_gt : (0.633415 : ℝ) < log (log 6.58) := by interval_decide
+lemma log_log_2_gt : (-0.366513 : ℝ) ≤ log (log 2) := by interval_decide
+lemma log_log_2_lt : log (log 2) ≤ -0.366512 := by interval_decide
+lemma log_11723_lt : log (11723 : ℝ) ≤ 937 / 100 := by interval_decide
+lemma log_5e10_gt : (24.6352888 : ℝ) ≤ log 5e10 := by interval_decide
+lemma log_5e10_lt : log 5e10 ≤ (24.6352889 : ℝ) := by interval_decide
+lemma log_32e12_gt : (31.0967570 : ℝ) ≤ log 32e12 := by interval_decide
+lemma log_32e12_lt : log 32e12 ≤ (31.0967571 : ℝ) := by interval_decide
+
+/-! ## Bounds on `log N` and `(log N)^3` for the Dusart explicit prime cascade
+
+The `Dusart` proof chains a sequence of `(log N)^3 ≤ N_prev` cube bounds for N in
+`{130, 155, 200, 300, 550, 1500, 10000, 10^8, 3*10^10}`. Cached here so the proof
+just reads `LogTables.log_N_cube_lt` instead of an inline `interval_auto`. -/
+
+lemma log_130_lt : log 130 < 4.868 := by interval_decide
+lemma log_155_lt : log 155 < 5.044 := by interval_decide
+lemma log_200_lt : log 200 < 5.299 := by interval_decide
+lemma log_300_lt : log 300 < 5.704 := by interval_decide
+lemma log_550_lt : log 550 < 6.310 := by interval_decide
+lemma log_1500_lt : log 1500 < 7.314 := by interval_decide
+lemma log_10000_lt : log 10000 < 9.211 := by interval_decide
+lemma log_1e8_lt : log ((10 : ℝ)^8) < 18.421 := by interval_decide
+lemma log_3e10_lt : log (3 * (10 : ℝ)^10) < 24.125 := by interval_decide
+
+/-- Helper: from `0 < x` and `x < b`, conclude `x * (x * x) < b * (b * b)` for use as
+a `linarith` hint when chaining a linear log bound to a cube bound. -/
+private lemma cube_lt_of_lt {x b : ℝ} (hpos : 0 < x) (hlt : x < b) :
+    x * (x * x) < b * (b * b) := by
+  have hb_pos : 0 < b := hpos.trans hlt
+  have h_xx : x * x < b * b := by nlinarith [hpos, hlt]
+  have h_xxnn : 0 ≤ x * x := mul_nonneg hpos.le hpos.le
+  nlinarith [h_xx, h_xxnn, hlt, hb_pos]
+
+lemma log_130_cube_lt : log 130 * (log 130 * log 130) < 121 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 130)) log_130_lt
+  linarith [show (4.868 : ℝ) * (4.868 * 4.868) ≤ 121 from by norm_num]
+
+lemma log_155_cube_lt : log 155 * (log 155 * log 155) < 130 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 155)) log_155_lt
+  linarith [show (5.044 : ℝ) * (5.044 * 5.044) ≤ 130 from by norm_num]
+
+lemma log_200_cube_lt : log 200 * (log 200 * log 200) < 155 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 200)) log_200_lt
+  linarith [show (5.299 : ℝ) * (5.299 * 5.299) ≤ 155 from by norm_num]
+
+lemma log_300_cube_lt : log 300 * (log 300 * log 300) < 200 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 300)) log_300_lt
+  linarith [show (5.704 : ℝ) * (5.704 * 5.704) ≤ 200 from by norm_num]
+
+lemma log_550_cube_lt : log 550 * (log 550 * log 550) < 300 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 550)) log_550_lt
+  linarith [show (6.310 : ℝ) * (6.310 * 6.310) ≤ 300 from by norm_num]
+
+lemma log_1500_cube_lt : log 1500 * (log 1500 * log 1500) < 550 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 1500)) log_1500_lt
+  linarith [show (7.314 : ℝ) * (7.314 * 7.314) ≤ 550 from by norm_num]
+
+lemma log_10000_cube_lt : log 10000 * (log 10000 * log 10000) < 1500 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 10000)) log_10000_lt
+  linarith [show (9.211 : ℝ) * (9.211 * 9.211) ≤ 1500 from by norm_num]
+
+lemma log_1e8_cube_lt : log ((10 : ℝ)^8) * (log ((10 : ℝ)^8) * log ((10 : ℝ)^8)) < 10000 :=
+  calc log ((10 : ℝ)^8) * (log ((10 : ℝ)^8) * log ((10 : ℝ)^8))
+      < 18.421 * (18.421 * 18.421) :=
+        cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < (10 : ℝ)^8)) log_1e8_lt
+    _ ≤ 10000 := by norm_num
+
+lemma log_3e10_cube_lt :
+    log (3 * (10 : ℝ)^10) * (log (3 * (10 : ℝ)^10) * log (3 * (10 : ℝ)^10)) < (10 : ℝ)^8 :=
+  calc log (3 * (10 : ℝ)^10) * (log (3 * (10 : ℝ)^10) * log (3 * (10 : ℝ)^10))
+      < 24.125 * (24.125 * 24.125) :=
+        cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 3 * (10 : ℝ)^10)) log_3e10_lt
+    _ ≤ (10 : ℝ)^8 := by norm_num
+
+/-! ## Miscellaneous bounds used by isolated callers
+
+Cached so the relevant files don't need a fresh `interval_decide` per call site. -/
+
+/-- `e^2 < 8` (used in `FKS2`). -/
+lemma exp_two_lt_eight : exp 2 < 8 := by interval_decide
+
+/-- `e^20 ≤ 485165196` (used in `TMEEMT`). -/
+lemma exp_20_le : exp 20 ≤ 485165196 := by interval_decide
+
+/-- `10^9 ≤ e^22` (used in `TMEEMT`'s `θ`-bootstrap). -/
+lemma one_e9_le_exp_22 : (1e9 : ℝ) ≤ exp 22 := by interval_decide
+
+/-- `1 / 900000 ≤ e^{-13.5}` (used in `Ramanujan`). -/
+lemma inv_900000_le_exp_neg_13_5 : (1 / 900000 : ℝ) ≤ exp (-(13.5 : ℝ)) := by interval_decide
+
+/-- `π ≤ 3.15` (used in `Ramanujan`). -/
+lemma pi_le_3_15 : π ≤ (3.15 : ℝ) := by interval_decide
 
 /-! ## Table 10 BKLNW per-arg `exp(-x)` bounds
 

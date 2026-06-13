@@ -182,7 +182,7 @@ private lemma theta_err {x : ℝ} (hx : x ≥ exp 22) :
   have hx_ge_exp_log_1e9 : x ≥ exp (log 1e9) := by
     have h_exp_le : exp (log 1e9 : ℝ) ≤ exp (22 : ℝ) := by
       rw [exp_log (by norm_num : (0 : ℝ) < 1e9)]
-      interval_decide
+      exact LogTables.one_e9_le_exp_22
     linarith
   obtain ⟨hlb, hub⟩ :=
     BKLNW.thm_1b_table (by positivity) htab ⟨2, by norm_num⟩ hx_ge_exp_log_1e9
@@ -404,7 +404,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
   apply hEpsi.trans (mul_le_mul_of_nonneg_right _ hx_pos.le)
   have hlog : (20 : ℝ) ≤ log x := by
     rw [le_log_iff_exp_le hx_pos]
-    exact (show exp 20 ≤ 485165196 from by interval_auto).trans hx
+    exact LogTables.exp_20_le.trans hx
   calc (59.18 : ℝ) / (log x) ^ 4
       ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
           (pow_le_pow_left₀ (by linarith) hlog 4)
