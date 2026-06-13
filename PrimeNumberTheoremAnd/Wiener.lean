@@ -7,6 +7,7 @@ import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.MulChar.Lemmas
 import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 import Mathlib.Topology.EMetricSpace.BoundedVariation
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.VectorMeasure.Integral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
@@ -312,25 +313,25 @@ theorem prelim_decay (ψ : ℝ → ℂ) (u : ℝ) : ‖𝓕 (ψ : ℝ → ℂ) u
   VectorFourier.norm_fourierIntegral_le_integral_norm ..
 
 lemma boundedVariationOn_norm_vectorMeasure_integral_fourierChar_le_eVariationOn
-    {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ)
-    (hvariation : (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ)
-    (u : ℝ) :
+    {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) :
     ‖VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)‖ ≤
       (eVariationOn ψ Set.univ).toReal := by
+  have hvariation : (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ :=
+    hvar.vectorMeasure_variation_univ_le_eVariationOn
   have hψ_ne_top : eVariationOn ψ Set.univ ≠ (∞ : ℝ≥0∞) := hvar
   have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) :=
     ne_top_of_le_ne_top hψ_ne_top hvariation
   letI : IsFiniteMeasure (hvar.vectorMeasure).variation :=
     IsFiniteMeasure.mk (lt_top_iff_ne_top.mpr hμ_ne_top)
-  have hbound : ∀ x, ‖(e u) x‖ ≤ (1 : ℝ) := by
-    intro x
+  have he_norm : ‖e u‖ ≤ (1 : ℝ) := (BoundedContinuousFunction.norm_le zero_le_one).2 fun x ↦ by
     simp [e_apply]
-  have hbase := VectorMeasure.norm_integral_mul_complex_le_of_norm_le hvar.vectorMeasure
-    (BoundedContinuousFunction.integrable (hvar.vectorMeasure).variation (e u)) zero_le_one
-    hbound (measure_ne_top (hvar.vectorMeasure).variation Set.univ)
+  have hbase := VectorMeasure.norm_integral_mul_complex_boundedContinuousFunction_le
+    hvar.vectorMeasure (e u)
   calc
     ‖VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)‖
-        ≤ 1 * ((hvar.vectorMeasure).variation Set.univ).toReal := hbase
+        ≤ ‖e u‖ * ((hvar.vectorMeasure).variation Set.univ).toReal := hbase
+    _ ≤ 1 * ((hvar.vectorMeasure).variation Set.univ).toReal :=
+      mul_le_mul_of_nonneg_right he_norm ENNReal.toReal_nonneg
     _ = ((hvar.vectorMeasure).variation Set.univ).toReal := one_mul _
     _ ≤ (eVariationOn ψ Set.univ).toReal := ENNReal.toReal_mono hψ_ne_top hvariation
 
