@@ -641,11 +641,279 @@ theorem tendsto_vectorMeasure_integral_Ioc_e
   exact hset.congr' (Eventually.of_forall fun n =>
     setToFun_mul_complex_variation_eq_integral μ (hfs_int n))
 
+/-! ### Discharge of the IBP bridge for `prelim_decay_2`
+
+The Fourier identity `2π i u · 𝓕ψ(u) = ∫ e(-tu) dψ(t)` is obtained by splitting the complex
+vector measure `dψ` into its real and imaginary parts, running the real Lebesgue-Stieltjes
+integration by parts on each (via `tendsto_setIntegral_stieltjes_sub_ibp`), and recombining. The
+imaginary part rides the integrand through `toComplexMeasureImagZero`, avoiding the `ℝ`-only
+`setToFun_smul_left`. -/
+
+/-- Restriction commutes with `s ↦ s + i·0`. -/
+theorem signedMeasure_toComplexMeasure_zero_restrict_comm {X : Type*} [MeasurableSpace X]
+    (s : SignedMeasure X) {i : Set X} (hi : MeasurableSet i) :
+    (SignedMeasure.toComplexMeasure s 0).restrict i =
+      SignedMeasure.toComplexMeasure (s.restrict i) 0 := by
+  ext j hj
+  rw [VectorMeasure.restrict_apply _ hi hj, SignedMeasure.toComplexMeasure_apply,
+    SignedMeasure.toComplexMeasure_apply, VectorMeasure.restrict_apply _ hi hj]; rfl
+
+/-- `s ↦ s + i·0` is additive in the real part. -/
+theorem signedMeasure_toComplexMeasure_zero_sub {X : Type*} [MeasurableSpace X]
+    (s t : SignedMeasure X) :
+    SignedMeasure.toComplexMeasure (s - t) 0 =
+      (SignedMeasure.toComplexMeasure s 0) - (SignedMeasure.toComplexMeasure t 0) := by
+  ext j hj
+  rw [VectorMeasure.sub_apply, SignedMeasure.toComplexMeasure_apply,
+    SignedMeasure.toComplexMeasure_apply, SignedMeasure.toComplexMeasure_apply,
+    VectorMeasure.sub_apply]
+  apply Complex.ext <;> simp
+
+/-- Restriction commutes with `t ↦ 0 + i·t`. -/
+theorem zero_toComplexMeasure_restrict_comm {X : Type*} [MeasurableSpace X]
+    (s : SignedMeasure X) {i : Set X} (hi : MeasurableSet i) :
+    (SignedMeasure.toComplexMeasure 0 s).restrict i =
+      SignedMeasure.toComplexMeasure 0 (s.restrict i) := by
+  ext j hj
+  rw [VectorMeasure.restrict_apply _ hi hj, SignedMeasure.toComplexMeasure_apply,
+    SignedMeasure.toComplexMeasure_apply, VectorMeasure.restrict_apply _ hi hj]; rfl
+
+/-- `t ↦ 0 + i·t` is additive in the imaginary part. -/
+theorem zero_toComplexMeasure_sub {X : Type*} [MeasurableSpace X] (s t : SignedMeasure X) :
+    SignedMeasure.toComplexMeasure 0 (s - t) =
+      (SignedMeasure.toComplexMeasure 0 s) - (SignedMeasure.toComplexMeasure 0 t) := by
+  ext j hj
+  rw [VectorMeasure.sub_apply, SignedMeasure.toComplexMeasure_apply,
+    SignedMeasure.toComplexMeasure_apply, SignedMeasure.toComplexMeasure_apply,
+    VectorMeasure.sub_apply]
+  apply Complex.ext <;> simp
+
+/-- The real part of the bounded-variation vector measure of `ψ` is the vector measure of `Re ψ`. -/
+theorem re_vectorMeasure_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ)
+    (hψ : Integrable ψ) :
+    ComplexMeasure.re hvar.vectorMeasure =
+      (Complex.reCLM.lipschitz.comp_boundedVariationOn hvar).vectorMeasure := by
+  have := BoundedVariationOn.mapRange_re_vectorMeasure_eq hvar hψ
+  rw [ComplexMeasure.re]; simpa [VectorMeasure.mapRangeₗ] using this
+
+/-- The imaginary part of the bounded-variation vector measure of `ψ` is the vector measure
+of `Im ψ`. -/
+theorem im_vectorMeasure_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ)
+    (hψ : Integrable ψ) :
+    ComplexMeasure.im hvar.vectorMeasure =
+      (Complex.imCLM.lipschitz.comp_boundedVariationOn hvar).vectorMeasure := by
+  have := BoundedVariationOn.mapRange_im_vectorMeasure_eq hvar hψ
+  rw [ComplexMeasure.im]; simpa [VectorMeasure.mapRangeₗ] using this
+
+/-- Right-limit commutes with `Re`. -/
+theorem reψ_rightLim_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (x : ℝ) :
+    (fun y : ℝ => (ψ y).re).rightLim x = (ψ.rightLim x).re :=
+  tendsto_nhds_unique ((Complex.reCLM.lipschitz.comp_boundedVariationOn hvar).tendsto_rightLim x)
+    (Complex.continuous_re.continuousAt.tendsto.comp (hvar.tendsto_rightLim x))
+
+/-- Right-limit commutes with `Im`. -/
+theorem imψ_rightLim_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (x : ℝ) :
+    (fun y : ℝ => (ψ y).im).rightLim x = (ψ.rightLim x).im :=
+  tendsto_nhds_unique ((Complex.imCLM.lipschitz.comp_boundedVariationOn hvar).tendsto_rightLim x)
+    (Complex.continuous_im.continuousAt.tendsto.comp (hvar.tendsto_rightLim x))
+
+/-- Window restriction of the real-part complex measure as a difference of Stieltjes measures. -/
+theorem μre_restrict_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    {p q : StieltjesFunction ℝ}
+    (hpq : ∀ x : ℝ, (fun y : ℝ => (ψ y).re).rightLim x = p x - q x)
+    {a b : ℝ} (hab : a ≤ b) :
+    ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0).restrict (Set.Ioc a b) =
+      (p.measure.restrict (Set.Ioc a b)).toComplexMeasureZero -
+        (q.measure.restrict (Set.Ioc a b)).toComplexMeasureZero := by
+  rw [re_vectorMeasure_eq hvar hψ,
+    signedMeasure_toComplexMeasure_zero_restrict_comm _ measurableSet_Ioc,
+    BoundedVariationOn.vectorMeasure_restrict_eq_stieltjesFunction_sub_rightLim
+      (Complex.reCLM.lipschitz.comp_boundedVariationOn hvar) hpq hab,
+    signedMeasure_toComplexMeasure_zero_sub]
+
+/-- Window restriction of the imaginary-part complex measure as a difference of Stieltjes
+measures. -/
+theorem μim_restrict_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    {p q : StieltjesFunction ℝ}
+    (hpq : ∀ x : ℝ, (fun y : ℝ => (ψ y).im).rightLim x = p x - q x)
+    {a b : ℝ} (hab : a ≤ b) :
+    ((0 : SignedMeasure ℝ).toComplexMeasure (ComplexMeasure.im hvar.vectorMeasure)).restrict
+        (Set.Ioc a b) =
+      (p.measure.restrict (Set.Ioc a b)).toComplexMeasureImagZero -
+        (q.measure.restrict (Set.Ioc a b)).toComplexMeasureImagZero := by
+  rw [im_vectorMeasure_eq hvar hψ,
+    zero_toComplexMeasure_restrict_comm _ measurableSet_Ioc,
+    BoundedVariationOn.vectorMeasure_restrict_eq_stieltjesFunction_sub_rightLim
+      (Complex.imCLM.lipschitz.comp_boundedVariationOn hvar) hpq hab,
+    zero_toComplexMeasure_sub]
+
+/-- Finiteness of the real-part complex measure's variation. -/
+theorem μre_var_fin {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) :
+    IsFiniteMeasure ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0).variation := by
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) :=
+    ne_top_of_le_ne_top hvar hvar.vectorMeasure_variation_univ_le_eVariationOn
+  have hle : ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0).variation ≤
+      (hvar.vectorMeasure).variation := complexMeasure_re_toComplexMeasure_variation_le _
+  exact ⟨lt_of_le_of_lt (hle Set.univ) (lt_top_iff_ne_top.mpr hμ_ne_top)⟩
+
+/-- Finiteness of the imaginary-part complex measure's variation. -/
+theorem μim_var_fin {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) :
+    IsFiniteMeasure ((0 : SignedMeasure ℝ).toComplexMeasure
+      (ComplexMeasure.im hvar.vectorMeasure)).variation := by
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) :=
+    ne_top_of_le_ne_top hvar hvar.vectorMeasure_variation_univ_le_eVariationOn
+  have hle : ((0 : SignedMeasure ℝ).toComplexMeasure
+      (ComplexMeasure.im hvar.vectorMeasure)).variation ≤
+      (hvar.vectorMeasure).variation := complexMeasure_im_toComplexMeasure_variation_le _
+  exact ⟨lt_of_le_of_lt (hle Set.univ) (lt_top_iff_ne_top.mpr hμ_ne_top)⟩
+
+/-- Per-window real-part integral as a difference of Stieltjes set integrals of `e u`. -/
+theorem μre_window_integral {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    [IsFiniteMeasure ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0).variation]
+    {p q : StieltjesFunction ℝ}
+    (hpq : ∀ x : ℝ, (fun y : ℝ => (ψ y).re).rightLim x = p x - q x)
+    (u : ℝ) {a b : ℝ} (hab : a ≤ b) :
+    VectorMeasure.integral ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0)
+        ((Set.Ioc a b).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ) =
+      (∫ x in Set.Ioc a b, e u x ∂p.measure) - ∫ x in Set.Ioc a b, e u x ∂q.measure := by
+  have hint : Integrable (e u : ℝ → ℂ)
+      ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0).variation :=
+    BoundedContinuousFunction.integrable _ (e u)
+  have hp : IntegrableOn (e u : ℝ → ℂ) (Set.Ioc a b) p.measure :=
+    BoundedContinuousFunction.integrable (p.measure.restrict (Set.Ioc a b)) (e u)
+  have hq : IntegrableOn (e u : ℝ → ℂ) (Set.Ioc a b) q.measure :=
+    BoundedContinuousFunction.integrable (q.measure.restrict (Set.Ioc a b)) (e u)
+  rw [vectorMeasure_integral_indicator_eq_restrict _ measurableSet_Ioc hint,
+    μre_restrict_eq hvar hψ hpq hab]
+  exact vectorMeasure_integral_restrict_toComplexMeasureZero_sub_mul_eq_setIntegral_sub
+    p.measure q.measure hp hq
+
+/-- Per-window imaginary-part integral: `i` times a difference of Stieltjes set integrals. -/
+theorem μim_window_integral {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    [IsFiniteMeasure ((0 : SignedMeasure ℝ).toComplexMeasure
+      (ComplexMeasure.im hvar.vectorMeasure)).variation]
+    {p q : StieltjesFunction ℝ}
+    (hpq : ∀ x : ℝ, (fun y : ℝ => (ψ y).im).rightLim x = p x - q x)
+    (u : ℝ) {a b : ℝ} (hab : a ≤ b) :
+    VectorMeasure.integral ((0 : SignedMeasure ℝ).toComplexMeasure
+        (ComplexMeasure.im hvar.vectorMeasure))
+        ((Set.Ioc a b).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ) =
+      Complex.I * ((∫ x in Set.Ioc a b, e u x ∂p.measure) -
+        ∫ x in Set.Ioc a b, e u x ∂q.measure) := by
+  have hint : Integrable (e u : ℝ → ℂ)
+      ((0 : SignedMeasure ℝ).toComplexMeasure
+        (ComplexMeasure.im hvar.vectorMeasure)).variation :=
+    BoundedContinuousFunction.integrable _ (e u)
+  have hp : IntegrableOn (e u : ℝ → ℂ) (Set.Ioc a b) p.measure :=
+    BoundedContinuousFunction.integrable (p.measure.restrict (Set.Ioc a b)) (e u)
+  have hq : IntegrableOn (e u : ℝ → ℂ) (Set.Ioc a b) q.measure :=
+    BoundedContinuousFunction.integrable (q.measure.restrict (Set.Ioc a b)) (e u)
+  rw [vectorMeasure_integral_indicator_eq_restrict _ measurableSet_Ioc hint,
+    μim_restrict_eq hvar hψ hpq hab]
+  exact vectorMeasure_integral_restrict_toComplexMeasureImagZero_sub_mul_eq_setIntegral_sub
+    p.measure q.measure hp hq
+
+/-- The full real-part integral equals `2π i u · 𝓕(Re ψ)ʳˡ(u)` via the windowed IBP limit. -/
+theorem μre_integral_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    (u : ℝ) :
+    VectorMeasure.integral ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0) (e u)
+        (ContinuousLinearMap.mul ℝ ℂ) =
+      (((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) *
+        𝓕 (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).re) x : ℝ) : ℂ)) u := by
+  haveI := μre_var_fin hvar
+  set μre : MeasureTheory.VectorMeasure ℝ ℂ :=
+    (ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0 with hμre
+  have hgbv : BoundedVariationOn (fun y : ℝ => (ψ y).re) Set.univ :=
+    Complex.reCLM.lipschitz.comp_boundedVariationOn hvar
+  have hgi : Integrable (fun y : ℝ => (ψ y).re) volume := Complex.reCLM.integrable_comp hψ
+  obtain ⟨p, q, hpq⟩ := BoundedVariationOn.exists_stieltjesFunction_sub_rightLim hgbv
+  have hwin := tendsto_vectorMeasure_integral_Ioc_e μre u
+  have hbridge : (fun n : ℕ => VectorMeasure.integral μre
+      ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ)) =
+    (fun n : ℕ => (∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂p.measure) -
+        ∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂q.measure) := by
+    funext n
+    have hnn : (0 : ℝ) ≤ (n : ℝ) := by positivity
+    have hab : (-(n : ℝ)) ≤ (n : ℝ) := by linarith
+    exact μre_window_integral hvar hψ hpq u hab
+  rw [hbridge] at hwin
+  exact tendsto_nhds_unique hwin (tendsto_setIntegral_stieltjes_sub_ibp hgbv hgi u hpq)
+
+/-- The full imaginary-part integral equals `i · 2π i u · 𝓕(Im ψ)ʳˡ(u)`. -/
+theorem μim_integral_eq {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    (u : ℝ) :
+    VectorMeasure.integral ((0 : SignedMeasure ℝ).toComplexMeasure
+        (ComplexMeasure.im hvar.vectorMeasure)) (e u) (ContinuousLinearMap.mul ℝ ℂ) =
+      Complex.I * ((((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) *
+        𝓕 (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).im) x : ℝ) : ℂ)) u) := by
+  haveI := μim_var_fin hvar
+  set μim : MeasureTheory.VectorMeasure ℝ ℂ :=
+    (0 : SignedMeasure ℝ).toComplexMeasure (ComplexMeasure.im hvar.vectorMeasure) with hμim
+  have hgbv : BoundedVariationOn (fun y : ℝ => (ψ y).im) Set.univ :=
+    Complex.imCLM.lipschitz.comp_boundedVariationOn hvar
+  have hgi : Integrable (fun y : ℝ => (ψ y).im) volume := Complex.imCLM.integrable_comp hψ
+  obtain ⟨p, q, hpq⟩ := BoundedVariationOn.exists_stieltjesFunction_sub_rightLim hgbv
+  have hwin := tendsto_vectorMeasure_integral_Ioc_e μim u
+  have hbridge : (fun n : ℕ => VectorMeasure.integral μim
+      ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ)) =
+    (fun n : ℕ => Complex.I * ((∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂p.measure) -
+        ∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂q.measure)) := by
+    funext n
+    have hnn : (0 : ℝ) ≤ (n : ℝ) := by positivity
+    have hab : (-(n : ℝ)) ≤ (n : ℝ) := by linarith
+    exact μim_window_integral hvar hψ hpq u hab
+  rw [hbridge] at hwin
+  exact tendsto_nhds_unique hwin
+    ((tendsto_setIntegral_stieltjes_sub_ibp hgbv hgi u hpq).const_mul Complex.I)
+
+/-- Fourier recombination: `𝓕(Re ψ)ʳˡ + i·𝓕(Im ψ)ʳˡ = 𝓕 ψ`. -/
+theorem fourier_recombine {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (hψ : Integrable ψ)
+    (u : ℝ) :
+    𝓕 (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).re) x : ℝ) : ℂ)) u +
+      Complex.I * 𝓕 (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).im) x : ℝ) : ℂ)) u =
+    𝓕 (ψ : ℝ → ℂ) u := by
+  have hgbvre : BoundedVariationOn (fun y : ℝ => (ψ y).re) Set.univ :=
+    Complex.reCLM.lipschitz.comp_boundedVariationOn hvar
+  have hgbvim : BoundedVariationOn (fun y : ℝ => (ψ y).im) Set.univ :=
+    Complex.imCLM.lipschitz.comp_boundedVariationOn hvar
+  have hgire : Integrable (fun y : ℝ => (ψ y).re) volume := Complex.reCLM.integrable_comp hψ
+  have hgiim : Integrable (fun y : ℝ => (ψ y).im) volume := Complex.imCLM.integrable_comp hψ
+  have hReInt : Integrable (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).re) x : ℝ) : ℂ))
+      volume := by
+    have : Integrable (Function.rightLim (fun y : ℝ => (ψ y).re)) volume :=
+      hgire.congr hgbvre.ae_eq_rightLim_real
+    simpa [Function.comp] using Complex.ofRealCLM.integrable_comp this
+  have hImInt : Integrable (fun x => ((Function.rightLim (fun y : ℝ => (ψ y).im) x : ℝ) : ℂ))
+      volume := by
+    have : Integrable (Function.rightLim (fun y : ℝ => (ψ y).im)) volume :=
+      hgiim.congr hgbvim.ae_eq_rightLim_real
+    simpa [Function.comp] using Complex.ofRealCLM.integrable_comp this
+  have hψrl : 𝓕 (ψ : ℝ → ℂ) u = 𝓕 (ψ.rightLim : ℝ → ℂ) u :=
+    fourierIntegral_eq_rightLim_of_boundedVariationOn hvar u
+  have hpt : (ψ.rightLim : ℝ → ℂ) = fun x =>
+      ((Function.rightLim (fun y : ℝ => (ψ y).re) x : ℝ) : ℂ) +
+        Complex.I * ((Function.rightLim (fun y : ℝ => (ψ y).im) x : ℝ) : ℂ) := by
+    funext x
+    rw [reψ_rightLim_eq hvar x, imψ_rightLim_eq hvar x, mul_comm]
+    exact (Complex.re_add_im (ψ.rightLim x)).symm
+  rw [hψrl, hpt, F_add hReInt (hImInt.const_mul Complex.I), F_mul]
+
 def vectorMeasure_integral_fourierChar_eq_IBP (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
   vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u →
     (((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) * 𝓕 (ψ : ℝ → ℂ) u =
       VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)
+
+/-- The Lebesgue-Stieltjes integration-by-parts identity
+`2π i u · 𝓕ψ(u) = ∫ e(-tu) dψ(t)`, proved unconditionally by splitting `dψ` into real and
+imaginary parts. -/
+theorem vectorMeasure_integral_fourierChar_eq_IBP_proof (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) :
+    vectorMeasure_integral_fourierChar_eq_IBP ψ hψ hvar u := by
+  intro hre_add
+  rw [hre_add, μre_integral_eq hvar hψ u, μim_integral_eq hvar hψ u]
+  rw [← fourier_recombine hvar hψ u]
+  ring
 
 lemma prelim_decay_2_of_vectorMeasure_fourier_identity
     (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) (hu : u ≠ 0)
@@ -690,11 +958,11 @@ and the claim then follows from the triangle inequality. -/)
   (latexEnv := "lemma")
   (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
-    (u : ℝ) (hu : u ≠ 0)
-    (hibp : vectorMeasure_integral_fourierChar_eq_IBP ψ hψ hvar u) :
+    (u : ℝ) (hu : u ≠ 0) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
   exact prelim_decay_2_of_vectorMeasure_fourier_identity ψ hvar u hu
-    (hibp (vectorMeasure_integral_eq_re_add_I_im_proof ψ hψ hvar u))
+    (vectorMeasure_integral_fourierChar_eq_IBP_proof ψ hψ hvar u
+      (vectorMeasure_integral_eq_re_add_I_im_proof ψ hψ hvar u))
 
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
