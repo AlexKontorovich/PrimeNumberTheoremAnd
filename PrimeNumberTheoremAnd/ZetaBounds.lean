@@ -706,74 +706,6 @@ lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
   rw [← cpow_add _ _ <| mod_cast x_ne, neg_add_cancel, cpow_zero]
 
--- No longer used
-lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
-    (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
-  (ContDiffAt.hasStrictDerivAt (φDiff.contDiffAt x_in_s) (by simp)).hasDerivAt
-
--- No longer used
-lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
-    (φDiff : ContDiffOn ℝ 1 φ (uIoo a b)) :
-    ContinuousOn (deriv φ) (uIoo a b) := by
-  apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
-  exact (fun h ↦ ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2.2) φDiff
-
-lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
-  refine HasDerivAt.add_const b ?_
-  convert (ContinuousLinearMap.hasDerivAt Complex.ofRealCLM).const_mul a using 1; simp
-
-lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
-    (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
-    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
-    ∫ (x : ℝ) in a..b, (c - x) * deriv φ x =
-      (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
-  set u := fun (x : ℝ) ↦ c - x
-  set u' := fun (x : ℝ) ↦ (-1 : ℂ)
-  have hu : ∀ x ∈ uIcc a b, HasDerivAt u (u' x) x := by
-    exact fun x _ ↦ by convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
-  have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
-    apply Continuous.intervalIntegrable; continuity
-  have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
-    derivφCont.intervalIntegrable
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u, u']
-
-
-lemma integrability_aux₀ {a b : ℝ} :
-    ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
-      ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
-  apply (MeasureTheory.ae_restrict_iff' measurableSet_Icc).mpr
-  refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
-  simp only [inf_le_iff, le_sup_iff, mem_Icc] at hx
-  simp only [norm_intCast, Real.norm_eq_abs]
-  have : |x| ≤ max |a| |b| := by
-    obtain x_ge_a | x_ge_b := hx.1 <;> obtain x_le_a | x_le_b := hx.2
-    · rw [(by linarith : x = a)]; apply le_max_left
-    · apply abs_le_max_abs_abs x_ge_a x_le_b
-    · rw [max_comm]; apply abs_le_max_abs_abs x_ge_b x_le_a
-    · rw [(by linarith : x = b)]; apply le_max_right
-  obtain hx | hx := abs_cases x
-  · rw [_root_.abs_of_nonneg <| by exact_mod_cast Int.floor_nonneg.mpr hx.2]
-    apply le_trans (Int.floor_le x) <| le_trans (hx.1 ▸ this) (by simp)
-  · rw [_root_.abs_of_nonpos <| by exact_mod_cast Int.floor_nonpos hx.2.le]
-    linarith [(Int.lt_floor_add_one x).le]
-
-lemma integrability_aux₁ {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
-  rw [intervalIntegrable_iff']
-  apply MeasureTheory.Measure.integrableOn_of_bounded ?_ ?_ integrability_aux₀
-  · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
-  · apply Measurable.aestronglyMeasurable
-    apply Measurable.comp (by exact fun ⦃t⦄ _ ↦ trivial) Int.measurable_floor
-
-lemma integrability_aux₂ {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b :=
-  Continuous.continuousOn (by continuity) |>.intervalIntegrable
-
-lemma integrability_aux {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
-  convert integrability_aux₁.add integrability_aux₂ using 2; ring
-
-
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
 /-
@@ -786,7 +718,6 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
     lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "sum-eq-int-deriv")
   (statement := /--
