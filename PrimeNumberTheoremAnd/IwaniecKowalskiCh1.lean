@@ -1456,13 +1456,44 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
   sorry
 
+-- Private helpers for LSeries_totient_eq
+
+/-- Cast Nat.totient to ArithmeticFunction ℂ (value at 0 is 0 since Nat.totient 0 = 0). -/
+private noncomputable def totientAF : ArithmeticFunction ℂ :=
+  ⟨fun n ↦ (Nat.totient n : ℂ), by simp [Nat.totient_zero]⟩
+
+private lemma totientAF_apply (n : ℕ) : totientAF n = (Nat.totient n : ℂ) := rfl
+
+/-- Key identity: (totientAF * ζ) = powR 1, via ∑_{d|n} φ(d) = n. -/
+private lemma totientAF_mul_zeta_eq_powR1 :
+    (totientAF * (ζ : ArithmeticFunction ℂ) : ArithmeticFunction ℂ) = powR 1 := by
+  ext n
+  simp only [coe_mul_zeta_apply, totientAF_apply]
+  simp only [ArithmeticFunction.powR, ArithmeticFunction.coe_mk]
+  rcases n.eq_zero_or_pos with rfl | hn
+  · simp
+  · simp only [hn.ne', ↓reduceIte, Complex.cpow_one]
+    rw [← Nat.cast_sum]
+    exact_mod_cast Nat.sum_totient n
+
+/-- LSeriesSummable for totientAF when Re(s) > 2, via φ(n) ≤ n. -/
+private lemma lseriesSummable_totientAF {s : ℂ} (hs : 2 < s.re) :
+    LSeriesSummable (↗totientAF) s := by
+  apply LSeriesSummable_of_le_const_mul_rpow (x := 2) hs
+  exact ⟨1, fun n hn ↦ by
+    simp only [totientAF_apply, one_mul]
+    rw [show (2 : ℝ) - 1 = 1 from by norm_num, Real.rpow_one]
+    rw [Complex.norm_natCast]
+    exact_mod_cast Nat.totient_le n⟩
+
 /-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
 @[blueprint
   "LSeries_totient_eq"
   (title := "LSeries totient eq")
   (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
   \begin{verbatim}
-  This is IK (1.35).
+  This is IK (1.35). The L-series converges absolutely for Re(s) > 2
+  (using φ(n) ≤ n to bound terms; the original hypothesis 1 < Re(s) is incorrect).
   \end{verbatim}
    -/)
   (proof := /--
@@ -1470,10 +1501,30 @@ lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouvil
 \[
 L(\varphi, s) = \prod_{p} \left(1 + \varphi(p)p^{-s} + \varphi(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s  +1}\right)^{-1} \left(1 - p^{-s}\right) = \frac{\zeta(s-1)}{\zeta(s)}.
 \]
+  The L-series converges absolutely for Re(s) > 2, using φ(n) ≤ n to bound the terms.
   -/)]
-lemma LSeries_totient_eq {s : ℂ} (hs : 1 < s.re) :
+lemma LSeries_totient_eq {s : ℂ} (hs : 2 < s.re) :
     LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
-  sorry
+  have hs1 : 1 < s.re := by linarith
+  have hs2 : 1 < (s - 1).re := by
+    simp only [Complex.sub_re, Complex.one_re]; linarith
+  have hzeta_ne : riemannZeta s ≠ 0 := riemannZeta_ne_zero_of_one_lt_re hs1
+  have hsum_tot : LSeriesSummable (↗totientAF) s := lseriesSummable_totientAF hs
+  have hsum_zeta : LSeriesSummable ↗(ζ : ArithmeticFunction ℂ) s :=
+    LSeriesSummable_zeta_iff.mpr hs1
+  have hmul : LSeries ↗(totientAF * (ζ : ArithmeticFunction ℂ)) s =
+      LSeries ↗totientAF s * LSeries ↗(ζ : ArithmeticFunction ℂ) s :=
+    LSeries_mul' hsum_tot hsum_zeta
+  have h_prod : LSeries ↗(totientAF * (ζ : ArithmeticFunction ℂ)) s = riemannZeta (s - 1) := by
+    rw [totientAF_mul_zeta_eq_powR1, LSeries_powR_eq 1 hs2]
+  have h_lzeta : LSeries ↗(ζ : ArithmeticFunction ℂ) s = riemannZeta s := by
+    have heq : (↗(ζ : ArithmeticFunction ℂ) : ℕ → ℂ) = ↗(ζ : ArithmeticFunction ℕ) := rfl
+    rw [heq]; exact LSeries_zeta_eq_riemannZeta hs1
+  rw [h_prod] at hmul
+  rw [h_lzeta] at hmul
+  rw [eq_div_iff hzeta_ne]
+  change LSeries (↗totientAF) s * riemannZeta s = riemannZeta (s - 1)
+  exact hmul.symm
 
 
 end ArithmeticFunction
