@@ -700,6 +700,217 @@ lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
   apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
   linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
+namespace ZetaCubedAlt
+
+/-- `cf n = τ(n²)`, as an arithmetic function. -/
+noncomputable def cf : ArithmeticFunction ℕ where
+  toFun := fun n => τ (n ^ 2)
+  map_zero' := by simp
+
+lemma cf_apply (n : ℕ) : cf n = τ (n ^ 2) := rfl
+
+lemma isMultiplicative_cf : cf.IsMultiplicative := by
+  constructor
+  · simp [cf_apply]
+  · intro m n hmn
+    simp only [cf_apply, mul_pow]
+    exact (ArithmeticFunction.isMultiplicative_sigma (k := 0)).map_mul_of_coprime
+      (Nat.Coprime.pow _ _ hmn)
+
+/-- Square indicator (`0` at `0`). -/
+noncomputable def sqIndic : ArithmeticFunction ℕ where
+  toFun := fun n => if n ≠ 0 ∧ IsSquare n then 1 else 0
+  map_zero' := by simp
+
+lemma sqIndic_apply (n : ℕ) : sqIndic n = if n ≠ 0 ∧ IsSquare n then 1 else 0 := rfl
+
+/-- For coprime naturals, being a square splits multiplicatively. -/
+lemma isSquare_mul_coprime {m n : ℕ} (hmn : m.Coprime n) :
+    IsSquare (m * n) ↔ IsSquare m ∧ IsSquare n := by
+  constructor
+  · rintro ⟨c, hc⟩
+    have hgcd : IsUnit (GCDMonoid.gcd m n) := Nat.isUnit_iff.mpr hmn
+    have hgcd' : IsUnit (GCDMonoid.gcd n m) := Nat.isUnit_iff.mpr hmn.symm
+    have heq : m * n = c ^ 2 := by rw [hc]; ring
+    obtain ⟨dm, hdm⟩ := exists_associated_pow_of_mul_eq_pow hgcd heq
+    obtain ⟨dn, hdn⟩ := exists_associated_pow_of_mul_eq_pow hgcd'
+      (by rw [mul_comm] at heq; exact heq)
+    rw [associated_iff_eq] at hdm hdn
+    exact ⟨⟨dm, by rw [← hdm]; ring⟩, ⟨dn, by rw [← hdn]; ring⟩⟩
+  · rintro ⟨⟨a, ha⟩, ⟨b, hb⟩⟩
+    exact ⟨a * b, by rw [ha, hb]; ring⟩
+
+lemma isMultiplicative_sqIndic : sqIndic.IsMultiplicative := by
+  constructor
+  · simp [sqIndic_apply]
+  · intro m n hmn
+    simp only [sqIndic_apply]
+    by_cases hm : m = 0
+    · subst hm; simp
+    by_cases hn : n = 0
+    · subst hn; simp
+    have hmn0 : m * n ≠ 0 := Nat.mul_ne_zero hm hn
+    have hiff := isSquare_mul_coprime hmn
+    by_cases hsm : IsSquare m <;> by_cases hsn : IsSquare n <;> simp_all
+
+/-- The coefficient function appearing on the RHS. -/
+noncomputable def G (n : ℕ) : ℕ :=
+  ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)
+
+/-- Arithmetic-progression sum, the key combinatorial step. -/
+lemma ap_gen (k m : ℕ) (hm : 2 * m ≤ k) :
+    ∑ i ∈ range (m + 1), (2 * (k - 2 * i) + 1) = (m + 1) * (2 * k - 2 * m + 1) := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    rw [Finset.sum_range_succ, ih (by omega)]
+    obtain ⟨t, ht⟩ := Nat.le.dest hm
+    subst ht
+    have e1 : 2 * (2 * (m + 1) + t) - 2 * m = 2 * m + 4 + 2 * t := by omega
+    have e2 : 2 * (m + 1) + t - 2 * (m + 1) = t := by omega
+    have e3 : 2 * (2 * (m + 1) + t) - 2 * (m + 1) = 2 * m + 2 + 2 * t := by omega
+    rw [e1, e2, e3]
+    ring
+
+/-- Value of `G` on a prime power as a filtered range sum. -/
+lemma G_prime_pow {p k : ℕ} (hp : p.Prime) :
+    G (p ^ k) = ∑ i ∈ (range (k + 1)).filter (fun i => 2 * i ≤ k), (2 * (k - 2 * i) + 1) := by
+  unfold G
+  apply Finset.sum_nbij' (i := fun dm => (dm.1.factorization p))
+    (j := fun i => (p ^ i, p ^ (k - 2 * i)))
+  · rintro ⟨d, m⟩ hdm
+    rw [mem_filter, mem_product, mem_divisors_prime_pow hp, mem_divisors_prime_pow hp] at hdm
+    obtain ⟨⟨⟨i, hi, rfl⟩, ⟨j, hj, rfl⟩⟩, heq⟩ := hdm
+    simp only [Nat.Prime.factorization_pow hp, Finsupp.single_eq_same]
+    rw [mem_filter, mem_range]
+    rw [← pow_mul, ← pow_add] at heq
+    have hkey : i * 2 + j = k := Nat.pow_right_injective hp.two_le heq
+    omega
+  · intro i hi
+    rw [mem_filter, mem_range] at hi
+    obtain ⟨hik, h2i⟩ := hi
+    rw [mem_filter, mem_product, mem_divisors_prime_pow hp, mem_divisors_prime_pow hp]
+    refine ⟨⟨⟨i, by omega, rfl⟩, ⟨k - 2 * i, by omega, rfl⟩⟩, ?_⟩
+    rw [← pow_mul, ← pow_add]
+    congr 1
+    omega
+  · rintro ⟨d, m⟩ hdm
+    rw [mem_filter, mem_product, mem_divisors_prime_pow hp, mem_divisors_prime_pow hp] at hdm
+    obtain ⟨⟨⟨i, hi, rfl⟩, ⟨j, hj, rfl⟩⟩, heq⟩ := hdm
+    simp only [Nat.Prime.factorization_pow hp, Finsupp.single_eq_same]
+    rw [← pow_mul, ← pow_add] at heq
+    have hkey : i * 2 + j = k := Nat.pow_right_injective hp.two_le heq
+    have : k - 2 * i = j := by omega
+    rw [this]
+  · intro i hi
+    rw [mem_filter, mem_range] at hi
+    simp only [Nat.Prime.factorization_pow hp, Finsupp.single_eq_same]
+  · rintro ⟨d, m⟩ hdm
+    rw [mem_filter, mem_product, mem_divisors_prime_pow hp, mem_divisors_prime_pow hp] at hdm
+    obtain ⟨⟨⟨i, hi, rfl⟩, ⟨j, hj, rfl⟩⟩, heq⟩ := hdm
+    simp only [Nat.Prime.factorization_pow hp, Finsupp.single_eq_same]
+    rw [← pow_mul, ← pow_add] at heq
+    have hkey : i * 2 + j = k := Nat.pow_right_injective hp.two_le heq
+    have hj2 : j = k - 2 * i := by omega
+    rw [← pow_mul, mul_comm j 2,
+      show τ (p ^ (2 * j)) = 2 * j + 1 by
+        simpa [tau] using sigma_zero_apply_prime_pow hp (i := 2 * j), hj2]
+
+/-- `G(p^k) = (k+2).choose 2`. -/
+lemma G_prime_pow_eq_choose {p k : ℕ} (hp : p.Prime) :
+    G (p ^ k) = (k + 2).choose 2 := by
+  rw [G_prime_pow hp]
+  have hfilt : (range (k + 1)).filter (fun i => 2 * i ≤ k) = range (k / 2 + 1) := by
+    ext i; rw [mem_filter, mem_range, mem_range]; omega
+  rw [hfilt, ap_gen k (k / 2) (by omega), Nat.choose_two_right]
+  -- (k/2+1)*(2k - 2*(k/2) + 1) = (k+2)*(k+1)/2
+  rcases Nat.even_or_odd k with ⟨m, rfl⟩ | ⟨m, rfl⟩
+  · have hm : (m + m) / 2 = m := by omega
+    rw [hm]
+    have e1 : 2 * (m + m) - 2 * m + 1 = 2 * m + 1 := by omega
+    have e2 : m + m + 2 - 1 = 2 * m + 1 := by omega
+    rw [e1, e2, show m + m + 2 = 2 * (m + 1) by ring, Nat.mul_assoc,
+      Nat.mul_div_cancel_left _ (by norm_num)]
+  · have hm : (2 * m + 1) / 2 = m := by omega
+    rw [hm]
+    have e1 : 2 * (2 * m + 1) - 2 * m + 1 = 2 * m + 3 := by omega
+    have e2 : 2 * m + 1 + 2 - 1 = 2 * (m + 1) := by omega
+    rw [e1, e2, show (2 * m + 3) * (2 * (m + 1)) = 2 * ((m + 1) * (2 * m + 3)) by ring,
+      Nat.mul_div_cancel_left _ (by norm_num)]
+
+/-- `G` agrees pointwise with the Dirichlet convolution `sqIndic * cf`. -/
+lemma sqIndic_mul_cf_apply {n : ℕ} (hn : n ≠ 0) : (sqIndic * cf) n = G n := by
+  rw [ArithmeticFunction.mul_apply]
+  unfold G
+  rw [← Finset.sum_filter_add_sum_filter_not n.divisorsAntidiagonal (fun ab => IsSquare ab.1)]
+  have hzero : ∑ ab ∈ n.divisorsAntidiagonal.filter (fun ab => ¬ IsSquare ab.1),
+      sqIndic ab.1 * cf ab.2 = 0 := by
+    apply Finset.sum_eq_zero
+    rintro ⟨a, b⟩ hab
+    rw [mem_filter] at hab
+    rw [sqIndic_apply, if_neg (by tauto)]
+    ring
+  rw [hzero, add_zero]
+  symm
+  apply Finset.sum_nbij' (i := fun dm => (dm.1 ^ 2, dm.2))
+    (j := fun ab => (Nat.sqrt ab.1, ab.2))
+  · rintro ⟨d, m⟩ hdm
+    rw [mem_filter, mem_product, mem_divisors, mem_divisors] at hdm
+    obtain ⟨⟨⟨hd, _⟩, ⟨hm, _⟩⟩, heq⟩ := hdm
+    rw [mem_filter, mem_divisorsAntidiagonal]
+    refine ⟨⟨heq, hn⟩, ⟨d, by rw [sq]⟩⟩
+  · rintro ⟨a, b⟩ hab
+    rw [mem_filter, mem_divisorsAntidiagonal] at hab
+    obtain ⟨⟨hab1, _⟩, c, hc⟩ := hab
+    simp only at hab1 hc
+    have hca : Nat.sqrt a = c := by rw [hc, ← Nat.pow_two, Nat.sqrt_eq']
+    rw [mem_filter, mem_product, mem_divisors, mem_divisors]
+    refine ⟨⟨⟨?_, hn⟩, ⟨?_, hn⟩⟩, ?_⟩
+    · rw [hca]; exact ⟨c * b, by rw [← hab1, hc]; ring⟩
+    · exact Dvd.intro_left a hab1
+    · simp only [hca]; rw [sq, ← hc]; exact hab1
+  · rintro ⟨d, m⟩ hdm
+    simp only [Nat.sqrt_eq']
+  · rintro ⟨a, b⟩ hab
+    rw [mem_filter, mem_divisorsAntidiagonal] at hab
+    obtain ⟨⟨hab1, _⟩, c, hc⟩ := hab
+    simp only at hc
+    have hca : Nat.sqrt a = c := by rw [hc, ← Nat.pow_two, Nat.sqrt_eq']
+    simp only [hca, Prod.mk.injEq, and_true]
+    rw [sq, ← hc]
+  · rintro ⟨d, m⟩ hdm
+    rw [mem_filter, mem_product, mem_divisors, mem_divisors] at hdm
+    obtain ⟨⟨⟨hd, _⟩, ⟨hm, _⟩⟩, heq⟩ := hdm
+    rw [sqIndic_apply, cf_apply]
+    have hd0 : d ≠ 0 := by rintro rfl; simp only [ne_eq, zero_pow, OfNat.ofNat_ne_zero,
+      not_false_eq_true, zero_mul] at heq; exact hn heq.symm
+    rw [if_pos ⟨pow_ne_zero 2 hd0, ⟨d, by rw [sq]⟩⟩, one_mul]
+
+/-- The coefficient identity: `d 3 n = G n`. -/
+lemma d_three_eq_G {n : ℕ} (hn : n ≠ 0) : (d 3) n = G n := by
+  have hkey : d 3 = sqIndic * cf := by
+    rw [ArithmeticFunction.IsMultiplicative.eq_iff_eq_on_prime_powers (d 3) (d_isMultiplicative 3)
+      (sqIndic * cf) (isMultiplicative_sqIndic.mul isMultiplicative_cf)]
+    intro p i hp
+    rw [d_apply_prime_pow (by norm_num) hp i, sqIndic_mul_cf_apply (pow_ne_zero i hp.ne_zero),
+      G_prime_pow_eq_choose hp]
+    -- (i + 3 - 1).choose (3 - 1) = (i + 2).choose 2
+    norm_num
+  rw [hkey, sqIndic_mul_cf_apply hn]
+
+theorem zpow3_alt (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 =
+    LSeries (fun n ↦
+      ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
+  rw [← LSeries_d_eq_riemannZeta_pow 3 hs]
+  apply LSeries_congr
+  intro n hn
+  have hcoeff := d_three_eq_G hn
+  unfold G at hcoeff
+  exact_mod_cast hcoeff
+
+end ZetaCubedAlt
+
 /--
 Zeta cubed alt:
 `ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
@@ -719,7 +930,7 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 =
     LSeries (fun n ↦
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
-  sorry
+  exact ZetaCubedAlt.zpow3_alt s hs
 
 @[blueprint
   "two_pow_omega_le_sigma_zero"
