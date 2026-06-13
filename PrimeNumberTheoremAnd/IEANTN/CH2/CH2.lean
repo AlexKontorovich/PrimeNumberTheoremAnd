@@ -3193,6 +3193,79 @@ noncomputable def Phi_lambda (lam ε : ℝ) (z : ℂ) : ℂ :=
   Phi_circ |lam| ε ((Real.sign lam : ℂ) * z) +
     (Real.sign lam : ℂ) * (Real.sign z.re : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * z)
 
+/-- For positive `λ`, `Phi_lambda` on `1 + i y` is bounded by `y`. -/
+theorem norm_Phi_lambda_one_add_I_mul_le_of_pos (lam ε y : ℝ) (hlam : 0 < lam)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) :
+    ‖Phi_lambda lam ε (1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_gt hlam)
+  have hphi :
+      Phi_lambda lam ε (1 + I * (y : ℂ)) = Phi_star |lam| ε (I * (y : ℂ)) := by
+    rw [Phi_lambda]
+    simp [Real.sign_of_pos hlam, Real.sign_of_pos (by norm_num : (0 : ℝ) < 1),
+      shift_upwards_phi_sum |lam| ε hν y hy]
+  rw [hphi]
+  exact (norm_Phi_star_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For positive `λ`, `Phi_lambda` on `-1 + i y` is bounded by `y`. -/
+theorem norm_Phi_lambda_neg_one_add_I_mul_le_of_pos (lam ε y : ℝ) (hlam : 0 < lam)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) :
+    ‖Phi_lambda lam ε (-1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_gt hlam)
+  have hphi :
+      Phi_lambda lam ε (-1 + I * (y : ℂ)) = -Phi_star |lam| ε (I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = 1 := by simp [Real.sign_of_pos hlam]
+    have hsign_re : (Real.sign ((-1 + I * (y : ℂ)).re) : ℂ) = -1 := by
+      simp [Real.sign_of_neg (by norm_num : (-1 : ℝ) < 0)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show Phi_circ |lam| ε (-1 + I * ↑y) + -Phi_star |lam| ε (-1 + I * ↑y) =
+        Phi_circ |lam| ε (-1 + I * ↑y) - Phi_star |lam| ε (-1 + I * ↑y) by ring]
+    exact shift_upwards_phi_diff |lam| ε hν y hy
+  rw [hphi, norm_neg]
+  exact (norm_Phi_star_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For negative `λ`, `Phi_lambda` on `1 + i y` is bounded by `y` away from the downward pole. -/
+theorem norm_Phi_lambda_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam < 0)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) (hpole : y ≠ |lam| / (2 * π)) :
+    ‖Phi_lambda lam ε (1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_lt hlam)
+  have hphi :
+      Phi_lambda lam ε (1 + I * (y : ℂ)) = -Phi_star |lam| ε (-I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = -1 := by simp [Real.sign_of_neg hlam]
+    have hsign_re : (Real.sign ((1 + I * (y : ℂ)).re) : ℂ) = 1 := by
+      simp [Real.sign_of_pos (by norm_num : (0 : ℝ) < 1)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show -(1 + I * ↑y) = -1 - I * ↑y by ring]
+    rw [show Phi_circ |lam| ε (-1 - I * ↑y) + -Phi_star |lam| ε (-1 - I * ↑y) =
+        Phi_circ |lam| ε (-1 - I * ↑y) - Phi_star |lam| ε (-1 - I * ↑y) by ring]
+    convert shift_downwards_phi_diff |lam| ε hν y hpole using 2
+    ring
+  rw [hphi, norm_neg]
+  exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For negative `λ`, `Phi_lambda` on `-1 + i y` is bounded by `y` away from the downward pole. -/
+theorem norm_Phi_lambda_neg_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam < 0)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) (hpole : y ≠ |lam| / (2 * π)) :
+    ‖Phi_lambda lam ε (-1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_lt hlam)
+  have hphi :
+      Phi_lambda lam ε (-1 + I * (y : ℂ)) = Phi_star |lam| ε (-I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = -1 := by simp [Real.sign_of_neg hlam]
+    have hsign_re : (Real.sign ((-1 + I * (y : ℂ)).re) : ℂ) = -1 := by
+      simp [Real.sign_of_neg (by norm_num : (-1 : ℝ) < 0)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show -(-1 + I * ↑y) = 1 - I * ↑y by ring]
+    simp only [neg_neg]
+    convert shift_downwards_phi_sum |lam| ε hν y hpole using 2
+    ring
+  rw [hphi]
+  exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
 section Proposition52
 
 /- Shared context for Proposition 5.2 and its sub-lemmas: the ladder parameters `l`, the
