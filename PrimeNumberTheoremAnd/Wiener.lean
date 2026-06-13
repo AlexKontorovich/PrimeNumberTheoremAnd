@@ -5,7 +5,9 @@ import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.MulChar.Lemmas
+import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 import Mathlib.Topology.EMetricSpace.BoundedVariation
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.VectorMeasure.Integral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
@@ -22,6 +24,7 @@ open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransf
   Asymptotics SchwartzMap
 open Complex hiding log
 open scoped Topology
+open scoped ENNReal
 open scoped ContDiff
 open scoped ComplexConjugate
 
@@ -307,6 +310,29 @@ lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa
   (discussion := 561)]
 theorem prelim_decay (ψ : ℝ → ℂ) (u : ℝ) : ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ :=
   VectorFourier.norm_fourierIntegral_le_integral_norm ..
+
+lemma boundedVariationOn_norm_vectorMeasure_integral_fourierChar_le_eVariationOn
+    {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ)
+    (hvariation : (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ)
+    (u : ℝ) :
+    ‖VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)‖ ≤
+      (eVariationOn ψ Set.univ).toReal := by
+  have hψ_ne_top : eVariationOn ψ Set.univ ≠ (∞ : ℝ≥0∞) := hvar
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) :=
+    ne_top_of_le_ne_top hψ_ne_top hvariation
+  letI : IsFiniteMeasure (hvar.vectorMeasure).variation :=
+    IsFiniteMeasure.mk (lt_top_iff_ne_top.mpr hμ_ne_top)
+  have hbound : ∀ x, ‖(e u) x‖ ≤ (1 : ℝ) := by
+    intro x
+    simp [e_apply]
+  have hbase := VectorMeasure.norm_integral_mul_complex_le_of_norm_le hvar.vectorMeasure
+    (BoundedContinuousFunction.integrable (hvar.vectorMeasure).variation (e u)) zero_le_one
+    hbound (measure_ne_top (hvar.vectorMeasure).variation Set.univ)
+  calc
+    ‖VectorMeasure.integral hvar.vectorMeasure (e u) (ContinuousLinearMap.mul ℝ ℂ)‖
+        ≤ 1 * ((hvar.vectorMeasure).variation Set.univ).toReal := hbase
+    _ = ((hvar.vectorMeasure).variation Set.univ).toReal := one_mul _
+    _ ≤ (eVariationOn ψ Set.univ).toReal := ENNReal.toReal_mono hψ_ne_top hvariation
 
 @[blueprint "prelim-decay-2"
   (title := "Preliminary decay bound II")
