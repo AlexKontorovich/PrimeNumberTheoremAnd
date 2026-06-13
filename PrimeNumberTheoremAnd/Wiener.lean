@@ -335,6 +335,12 @@ lemma boundedVariationOn_norm_vectorMeasure_integral_fourierChar_le_eVariationOn
     _ = ((hvar.vectorMeasure).variation Set.univ).toReal := one_mul _
     _ ≤ (eVariationOn ψ Set.univ).toReal := ENNReal.toReal_mono hψ_ne_top hvariation
 
+lemma fourierIntegral_eq_rightLim_of_boundedVariationOn
+    {ψ : ℝ → ℂ} (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) :
+  𝓕 (ψ : ℝ → ℂ) u = 𝓕 (ψ.rightLim : ℝ → ℂ) u := by
+  exact congr_fun (VectorFourier.fourierIntegral_congr_ae 𝐞 volume (innerₗ ℝ)
+    (BoundedVariationOn.ae_eq_rightLim_complex hvar)) u
+
 lemma prelim_decay_2_of_vectorMeasure_fourier_identity
     (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) (hu : u ≠ 0)
     (hbridge :

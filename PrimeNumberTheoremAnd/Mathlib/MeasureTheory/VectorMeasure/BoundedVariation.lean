@@ -170,6 +170,53 @@ theorem tendsto_atBot_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
     Tendsto f atBot (𝓝 0) := by
   simpa [hf.limUnder_atBot_eq_zero_of_integrable hfi] using hf.tendsto_atBot_limUnder
 
+theorem ae_eq_rightLim_real {f : ℝ → ℝ} (hf : BoundedVariationOn f Set.univ) :
+    f =ᵐ[volume] f.rightLim := by
+  rcases hf.locallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn with
+    ⟨p, q, hp, hq, hpq⟩
+  have hp_mono : Monotone p := monotoneOn_univ.mp hp
+  have hq_mono : Monotone q := monotoneOn_univ.mp hq
+  have h_count : Set.Countable {x | ¬ ContinuousAt f x} := by
+    refine (hp_mono.countable_not_continuousAt.union hq_mono.countable_not_continuousAt).mono ?_
+    intro x hx
+    by_contra hx'
+    have hp_cont : ContinuousAt p x := by
+      by_contra hp_cont'
+      exact hx' (Or.inl hp_cont')
+    have hq_cont : ContinuousAt q x := by
+      by_contra hq_cont'
+      exact hx' (Or.inr hq_cont')
+    exact hx (by rw [hpq]; exact hp_cont.sub hq_cont)
+  have h_null : volume {x | ¬ ContinuousAt f x} = 0 :=
+    h_count.measure_zero volume
+  have h_eq : ∀ x, ContinuousAt f x → f x = f.rightLim x := by
+    intro x hx
+    exact hx.continuousWithinAt.rightLim_eq.symm
+  have h_sub : {x | f x ≠ f.rightLim x} ⊆ {x | ¬ ContinuousAt f x} := by
+    intro x hx
+    by_contra hx'
+    exact hx (h_eq x (not_not.mp hx'))
+  exact ae_iff.mpr (measure_mono_null h_sub h_null)
+
+theorem ae_eq_rightLim_complex {f : ℝ → ℂ} (hf : BoundedVariationOn f Set.univ) :
+    f =ᵐ[volume] f.rightLim := by
+  have hre_bv : BoundedVariationOn (fun x : ℝ => (f x).re) Set.univ :=
+    Complex.reCLM.lipschitz.comp_boundedVariationOn hf
+  have him_bv : BoundedVariationOn (fun x : ℝ => (f x).im) Set.univ :=
+    Complex.imCLM.lipschitz.comp_boundedVariationOn hf
+  have hre_ae := hre_bv.ae_eq_rightLim_real
+  have him_ae := him_bv.ae_eq_rightLim_real
+  have hre_lim (x : ℝ) :
+      (fun y : ℝ => (f y).re).rightLim x = (f.rightLim x).re := by
+    exact tendsto_nhds_unique (hre_bv.tendsto_rightLim x)
+      (Complex.continuous_re.continuousAt.tendsto.comp (hf.tendsto_rightLim x))
+  have him_lim (x : ℝ) :
+      (fun y : ℝ => (f y).im).rightLim x = (f.rightLim x).im := by
+    exact tendsto_nhds_unique (him_bv.tendsto_rightLim x)
+      (Complex.continuous_im.continuousAt.tendsto.comp (hf.tendsto_rightLim x))
+  filter_upwards [hre_ae, him_ae] with x hxre hxim
+  exact Complex.ext (by simpa [hre_lim x] using hxre) (by simpa [him_lim x] using hxim)
+
 theorem vectorMeasure_univ_eq_zero_of_integrable (hf : BoundedVariationOn f Set.univ)
     (hfi : Integrable f volume) :
     hf.vectorMeasure Set.univ = 0 := by
@@ -195,5 +242,65 @@ theorem vectorMeasure_Iio_eq_leftLim_of_integrable (hf : BoundedVariationOn f Se
     (hfi : Integrable f volume) (a : ℝ) :
     hf.vectorMeasure (Set.Iio a) = f.leftLim a := by
   rw [hf.vectorMeasure_Iio, hf.limUnder_atBot_eq_zero_of_integrable hfi, sub_zero]
+
+theorem mapRange_re_vectorMeasure_eq {f : ℝ → ℂ} (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    hf.vectorMeasure.mapRange Complex.reCLM.toAddMonoidHom Complex.continuous_re =
+      (Complex.reCLM.lipschitz.comp_boundedVariationOn hf).vectorMeasure := by
+  let hfre : BoundedVariationOn (fun x : ℝ => (f x).re) Set.univ :=
+    Complex.reCLM.lipschitz.comp_boundedVariationOn hf
+  have hfre_i : Integrable (fun x : ℝ => (f x).re) volume :=
+    ContinuousLinearMap.integrable_comp Complex.reCLM hfi
+  have hre_lim (x : ℝ) :
+      (fun y : ℝ => (f y).re).rightLim x = (f.rightLim x).re := by
+    exact tendsto_nhds_unique (hfre.tendsto_rightLim x)
+      (Complex.continuous_re.continuousAt.tendsto.comp (hf.tendsto_rightLim x))
+  have h_univ :
+      hf.vectorMeasure.mapRange Complex.reCLM.toAddMonoidHom Complex.continuous_re Set.univ =
+        hfre.vectorMeasure Set.univ := by
+    rw [VectorMeasure.mapRange_apply]
+    rw [hf.vectorMeasure_univ_eq_zero_of_integrable hfi,
+      hfre.vectorMeasure_univ_eq_zero_of_integrable hfre_i]
+    simp
+  have hgen : (inferInstance : MeasurableSpace ℝ) =
+      MeasurableSpace.generateFrom {s : Set ℝ | ∃ u v, u < v ∧ Ioc u v = s} := by
+    borelize ℝ
+    exact borel_eq_generateFrom_Ioc ℝ
+  refine MeasureTheory.VectorMeasure.ext_of_generateFrom_of_univ hgen
+    (isPiSystem_Ioc (fun x : ℝ => x) (fun x : ℝ => x)) h_univ ?_
+  rintro s ⟨u, v, huv, rfl⟩
+  rw [VectorMeasure.mapRange_apply, hf.vectorMeasure_Ioc huv.le,
+    (Complex.reCLM.lipschitz.comp_boundedVariationOn hf).vectorMeasure_Ioc huv.le]
+  simp [Function.comp_def, hre_lim u, hre_lim v]
+
+theorem mapRange_im_vectorMeasure_eq {f : ℝ → ℂ} (hf : BoundedVariationOn f Set.univ)
+    (hfi : Integrable f volume) :
+    hf.vectorMeasure.mapRange Complex.imCLM.toAddMonoidHom Complex.continuous_im =
+      (Complex.imCLM.lipschitz.comp_boundedVariationOn hf).vectorMeasure := by
+  let hfim : BoundedVariationOn (fun x : ℝ => (f x).im) Set.univ :=
+    Complex.imCLM.lipschitz.comp_boundedVariationOn hf
+  have hfim_i : Integrable (fun x : ℝ => (f x).im) volume :=
+    ContinuousLinearMap.integrable_comp Complex.imCLM hfi
+  have him_lim (x : ℝ) :
+      (fun y : ℝ => (f y).im).rightLim x = (f.rightLim x).im := by
+    exact tendsto_nhds_unique (hfim.tendsto_rightLim x)
+      (Complex.continuous_im.continuousAt.tendsto.comp (hf.tendsto_rightLim x))
+  have h_univ :
+      hf.vectorMeasure.mapRange Complex.imCLM.toAddMonoidHom Complex.continuous_im Set.univ =
+        hfim.vectorMeasure Set.univ := by
+    rw [VectorMeasure.mapRange_apply]
+    rw [hf.vectorMeasure_univ_eq_zero_of_integrable hfi,
+      hfim.vectorMeasure_univ_eq_zero_of_integrable hfim_i]
+    simp
+  have hgen : (inferInstance : MeasurableSpace ℝ) =
+      MeasurableSpace.generateFrom {s : Set ℝ | ∃ u v, u < v ∧ Ioc u v = s} := by
+    borelize ℝ
+    exact borel_eq_generateFrom_Ioc ℝ
+  refine MeasureTheory.VectorMeasure.ext_of_generateFrom_of_univ hgen
+    (isPiSystem_Ioc (fun x : ℝ => x) (fun x : ℝ => x)) h_univ ?_
+  rintro s ⟨u, v, huv, rfl⟩
+  rw [VectorMeasure.mapRange_apply, hf.vectorMeasure_Ioc huv.le,
+    (Complex.imCLM.lipschitz.comp_boundedVariationOn hf).vectorMeasure_Ioc huv.le]
+  simp [Function.comp_def, him_lim u, him_lim v]
 
 end BoundedVariationOn

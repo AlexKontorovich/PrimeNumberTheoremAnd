@@ -12,6 +12,7 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.SmoothExistence
 
 open MeasureTheory Set Filter Complex ContinuousLinearMap
+open scoped ENNReal
 
 lemma p_sub_p (p : StieltjesFunction ℝ) {a b : ℝ} (hab : a ≤ b) :
     (p b - p a : ℂ) = ∫ _x in Ioc a b, (1 : ℂ) ∂p.measure := by
@@ -153,3 +154,80 @@ theorem integral_stieltjes_fubini_swap (p : StieltjesFunction ℝ) (a b : ℝ) (
   apply integral_congr_ae
   filter_upwards [ae_restrict_mem measurableSet_Ioc] with x hx
   exact (intervalIntegral.integral_of_le hx.2).symm
+
+theorem integral_stieltjes_by_parts_sub_base (p : StieltjesFunction ℝ) (a b : ℝ)
+    (hab : a ≤ b) (g g' : ℝ → ℂ) (hg : Continuous g) (hg' : Continuous g')
+    (hderiv : ∀ x ∈ Icc a b, HasDerivAt g (g' x) x) :
+    ∫ x in Ioc a b, g x ∂p.measure =
+      g b * (p b - p a : ℂ) - ∫ t in a..b, (p t - p a : ℂ) * g' t := by
+  have hswap := integral_stieltjes_fubini_swap p a b hab g' hg'
+  have hinner : ∀ x ∈ Ioc a b, ∫ t in x..b, g' t = g b - g x := by
+    intro x hx
+    refine intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le hx.2 hg.continuousOn ?_ ?_
+    · intro y hy
+      exact hderiv y ⟨hx.1.le.trans hy.1.le, hy.2.le⟩
+    · exact hg'.intervalIntegrable x b
+  have hswap' :
+      ∫ t in a..b, (p t - p a : ℂ) * g' t =
+        ∫ x in Ioc a b, (g b - g x) ∂p.measure := by
+    rw [hswap]
+    apply integral_congr_ae
+    filter_upwards [ae_restrict_mem measurableSet_Ioc] with x hx
+    exact hinner x hx
+  have hfinite : p.measure (Ioc a b) ≠ ∞ := by
+    simp [p.measure_Ioc]
+  have hg_int : Integrable g (p.measure.restrict (Ioc a b)) := by
+    have h_comp : IsCompact (Icc a b) := isCompact_Icc
+    have h_cont_norm : ContinuousOn (fun x => ‖g x‖) (Icc a b) := hg.continuousOn.norm
+    obtain ⟨C, hC⟩ : ∃ C, ∀ x ∈ Icc a b, ‖g x‖ ≤ C := by
+      have : BddAbove ((fun x => ‖g x‖) '' Icc a b) :=
+        h_comp.bddAbove_image h_cont_norm
+      rcases this with ⟨C, hC⟩
+      exact ⟨C, fun x hx => hC (mem_image_of_mem _ hx)⟩
+    exact Measure.integrableOn_of_bounded hfinite hg.aestronglyMeasurable
+      (M := C) (by
+        filter_upwards [ae_restrict_mem measurableSet_Ioc] with x hx
+        exact hC x ⟨hx.1.le, hx.2⟩)
+  haveI : IsFiniteMeasure (p.measure.restrict (Ioc a b)) := ⟨by simp⟩
+  have hconst_int : Integrable (fun _ : ℝ => g b) (p.measure.restrict (Ioc a b)) :=
+    integrable_const _
+  have hsplit :
+      ∫ x in Ioc a b, (g b - g x) ∂p.measure =
+        g b * (p b - p a : ℂ) - ∫ x in Ioc a b, g x ∂p.measure := by
+    rw [integral_sub hconst_int hg_int, integral_const]
+    simp [measureReal_def, p.measure_Ioc, ENNReal.toReal_ofReal,
+      sub_nonneg.mpr (p.mono hab), mul_comm]
+  rw [hswap', hsplit]
+  ring
+
+theorem integral_signed_stieltjes_by_parts_sub_base (p q : StieltjesFunction ℝ) (a b : ℝ)
+    (hab : a ≤ b) (g g' : ℝ → ℂ) (hg : Continuous g) (hg' : Continuous g')
+    (hderiv : ∀ x ∈ Icc a b, HasDerivAt g (g' x) x)
+    (hp_int : IntervalIntegrable (fun t => (p t - p a : ℂ) * g' t) volume a b)
+    (hq_int : IntervalIntegrable (fun t => (q t - q a : ℂ) * g' t) volume a b) :
+    (∫ x in Ioc a b, g x ∂p.measure) - (∫ x in Ioc a b, g x ∂q.measure) =
+      g b * ((p b - p a : ℂ) - (q b - q a : ℂ)) -
+        ∫ t in a..b, ((p t - p a : ℂ) - (q t - q a : ℂ)) * g' t := by
+  have hp := integral_stieltjes_by_parts_sub_base p a b hab g g' hg hg' hderiv
+  have hq := integral_stieltjes_by_parts_sub_base q a b hab g g' hg hg' hderiv
+  rw [hp, hq]
+  let A := g b * (p b - p a : ℂ)
+  let B := g b * (q b - q a : ℂ)
+  let Ip := ∫ t in a..b, (p t - p a : ℂ) * g' t
+  let Iq := ∫ t in a..b, (q t - q a : ℂ) * g' t
+  have hI :
+      Ip - Iq =
+        ∫ t in a..b, ((p t - p a : ℂ) - (q t - q a : ℂ)) * g' t := by
+    dsimp [Ip, Iq]
+    rw [← intervalIntegral.integral_sub]
+    · apply intervalIntegral.integral_congr
+      intro t ht
+      ring
+    · exact hp_int
+    · exact hq_int
+  change (A - Ip) - (B - Iq) =
+    g b * ((p b - p a : ℂ) - (q b - q a : ℂ)) -
+      ∫ t in a..b, ((p t - p a : ℂ) - (q t - q a : ℂ)) * g' t
+  rw [show (A - Ip) - (B - Iq) = (A - B) - (Ip - Iq) by ring, hI]
+  dsimp [A, B]
+  ring
