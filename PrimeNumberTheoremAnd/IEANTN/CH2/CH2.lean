@@ -3193,12 +3193,366 @@ noncomputable def Phi_lambda (lam ε : ℝ) (z : ℂ) : ℂ :=
   Phi_circ |lam| ε ((Real.sign lam : ℂ) * z) +
     (Real.sign lam : ℂ) * (Real.sign z.re : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * z)
 
+/-- For positive `λ`, `Phi_lambda` on `1 + i y` is bounded by `y`. -/
+theorem norm_Phi_lambda_one_add_I_mul_le_of_pos (lam ε y : ℝ) (hlam : 0 < lam)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) :
+    ‖Phi_lambda lam ε (1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_gt hlam)
+  have hphi :
+      Phi_lambda lam ε (1 + I * (y : ℂ)) = Phi_star |lam| ε (I * (y : ℂ)) := by
+    rw [Phi_lambda]
+    simp [Real.sign_of_pos hlam, Real.sign_of_pos (by norm_num : (0 : ℝ) < 1),
+      shift_upwards_phi_sum |lam| ε hν y hy]
+  rw [hphi]
+  exact (norm_Phi_star_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For positive `λ`, `Phi_lambda` on `-1 + i y` is bounded by `y`. -/
+theorem norm_Phi_lambda_neg_one_add_I_mul_le_of_pos (lam ε y : ℝ) (hlam : 0 < lam)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) :
+    ‖Phi_lambda lam ε (-1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_gt hlam)
+  have hphi :
+      Phi_lambda lam ε (-1 + I * (y : ℂ)) = -Phi_star |lam| ε (I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = 1 := by simp [Real.sign_of_pos hlam]
+    have hsign_re : (Real.sign ((-1 + I * (y : ℂ)).re) : ℂ) = -1 := by
+      simp [Real.sign_of_neg (by norm_num : (-1 : ℝ) < 0)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show Phi_circ |lam| ε (-1 + I * ↑y) + -Phi_star |lam| ε (-1 + I * ↑y) =
+        Phi_circ |lam| ε (-1 + I * ↑y) - Phi_star |lam| ε (-1 + I * ↑y) by ring]
+    exact shift_upwards_phi_diff |lam| ε hν y hy
+  rw [hphi, norm_neg]
+  exact (norm_Phi_star_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For negative `λ`, `Phi_lambda` on `1 + i y` is bounded by `y` away from the downward pole. -/
+theorem norm_Phi_lambda_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam < 0)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) (hpole : y ≠ |lam| / (2 * π)) :
+    ‖Phi_lambda lam ε (1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_lt hlam)
+  have hphi :
+      Phi_lambda lam ε (1 + I * (y : ℂ)) = -Phi_star |lam| ε (-I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = -1 := by simp [Real.sign_of_neg hlam]
+    have hsign_re : (Real.sign ((1 + I * (y : ℂ)).re) : ℂ) = 1 := by
+      simp [Real.sign_of_pos (by norm_num : (0 : ℝ) < 1)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show -(1 + I * ↑y) = -1 - I * ↑y by ring]
+    rw [show Phi_circ |lam| ε (-1 - I * ↑y) + -Phi_star |lam| ε (-1 - I * ↑y) =
+        Phi_circ |lam| ε (-1 - I * ↑y) - Phi_star |lam| ε (-1 - I * ↑y) by ring]
+    convert shift_downwards_phi_diff |lam| ε hν y hpole using 2
+    ring
+  rw [hphi, norm_neg]
+  exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- For negative `λ`, `Phi_lambda` on `-1 + i y` is bounded by `y` away from the downward pole. -/
+theorem norm_Phi_lambda_neg_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam < 0)
+    (hε : ε = 1 ∨ ε = -1) (hy : 0 ≤ y) (hpole : y ≠ |lam| / (2 * π)) :
+    ‖Phi_lambda lam ε (-1 + I * (y : ℂ))‖ ≤ y := by
+  have hν : 0 < |lam| := abs_pos.mpr (ne_of_lt hlam)
+  have hphi :
+      Phi_lambda lam ε (-1 + I * (y : ℂ)) = Phi_star |lam| ε (-I * (y : ℂ)) := by
+    have hsign_lam : (Real.sign lam : ℂ) = -1 := by simp [Real.sign_of_neg hlam]
+    have hsign_re : (Real.sign ((-1 + I * (y : ℂ)).re) : ℂ) = -1 := by
+      simp [Real.sign_of_neg (by norm_num : (-1 : ℝ) < 0)]
+    rw [Phi_lambda]
+    rw [hsign_lam, hsign_re]
+    simp only [one_mul, neg_mul]
+    rw [show -(-1 + I * ↑y) = 1 - I * ↑y by ring]
+    simp only [neg_neg]
+    convert shift_downwards_phi_sum |lam| ε hν y hpole using 2
+    ring
+  rw [hphi]
+  exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
+
+/-- On the upper horizontal ray of `C∞`, `zOf` has real part `1` and height `(1-r)/T`. -/
+theorem LadderParams.zOf_top_hray (l : LadderParams) (r : ℝ) :
+    l.zOf (r + l.T * Complex.I) = 1 + Complex.I * (((1 - r) / l.T : ℝ) : ℂ) := by
+  rw [LadderParams.zOf]
+  field_simp [l.hT.ne']
+  ring_nf
+  simp [Complex.I_sq]
+  field_simp [l.hT.ne']
+  ring
+
+/-- On the lower horizontal ray of `C∞`, `zOf` has real part `-1` and height `(1-r)/T`. -/
+theorem LadderParams.zOf_bot_hray (l : LadderParams) (r : ℝ) :
+    l.zOf (r - l.T * Complex.I) = -1 + Complex.I * (((1 - r) / l.T : ℝ) : ℂ) := by
+  rw [LadderParams.zOf]
+  field_simp [l.hT.ne']
+  ring_nf
+  simp [Complex.I_sq]
+  field_simp [l.hT.ne']
+  ring
+
+/-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
+theorem integral_Iic_one_eq_integral_Ioi_one_sub
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
+    (∫ r in Set.Iic (1 : ℝ), f r) = ∫ t in Set.Ioi (0 : ℝ), f (1 - t) := by
+  have hshift : (∫ x in Set.Iic (0 : ℝ), f (1 + x)) = ∫ x in Set.Iic (1 : ℝ), f x := by
+    have A : MeasurableEmbedding (fun x : ℝ => 1 + x) :=
+      (Homeomorph.addLeft (1 : ℝ)).measurableEmbedding
+    have h := MeasurableEmbedding.setIntegral_map (μ := volume) A f (Set.Iic (1 : ℝ))
+    rw [map_add_left_eq_self volume (1 : ℝ)] at h
+    have hpre : (fun x : ℝ => 1 + x) ⁻¹' Set.Iic (1 : ℝ) = Set.Iic (0 : ℝ) := by
+      ext x
+      simp [Set.mem_Iic]
+    rw [hpre] at h
+    exact h.symm
+  have hneg := integral_comp_neg_Iic (c := (0 : ℝ)) (f := fun t : ℝ => f (1 - t))
+  rw [neg_zero] at hneg
+  rw [← hneg]
+  rw [← hshift]
+  refine setIntegral_congr_fun (measurableSet_Iic : MeasurableSet (Set.Iic (0 : ℝ))) ?_
+  intro x hx
+  congr 1
+  ring
+
+/-- Lebesgue measure is invariant under the reflection-translation `r ↦ 1 - r`. -/
+private theorem map_subLeft_one_eq_self : Measure.map (fun x : ℝ => 1 - x) volume = volume := by
+  have hmap : Measure.map (fun x : ℝ => 1 + -x) volume = volume := by
+    have hfun : (fun x : ℝ => 1 + -x) = (fun y : ℝ => 1 + y) ∘ (fun x : ℝ => -x) := rfl
+    rw [hfun, ← Measure.map_map (g := fun y : ℝ => 1 + y) (f := fun x : ℝ => -x)
+      (measurable_const.add measurable_id) measurable_neg]
+    rw [Measure.map_neg_eq_self, map_add_left_eq_self]
+  convert hmap using 1
+
+/-- The weighted exponential majorant needed on the horizontal rays of `C∞`. -/
+private lemma integrableOn_one_sub_mul_exp_mul_Iic (a : ℝ) (ha : 0 < a) :
+    IntegrableOn (fun r : ℝ => (1 - r) * Real.exp (a * r)) (Set.Iic (1 : ℝ)) := by
+  have hmp : MeasurePreserving (fun x : ℝ => 1 - x) volume volume :=
+    ⟨measurable_const.sub measurable_id, map_subLeft_one_eq_self⟩
+  have hpre : (fun x : ℝ => 1 - x) ⁻¹' Set.Ici (0 : ℝ) = Set.Iic (1 : ℝ) := by
+    ext x
+    simp [Set.mem_Iic]
+  have hbase :
+      IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
+        (Set.Ioi (0 : ℝ)) :=
+    integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num : (-1 : ℝ) < 1) le_rfl ha
+  have hbase_Ici :
+      IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
+        (Set.Ici (0 : ℝ)) :=
+    hbase.congr_set_ae (Ioi_ae_eq_Ici : Set.Ioi (0 : ℝ) =ᵐ[volume] Set.Ici (0 : ℝ)).symm
+  have hcomp :=
+    (hmp.integrableOn_comp_preimage (Homeomorph.subLeft (1 : ℝ)).measurableEmbedding).2 hbase_Ici
+  rw [hpre] at hcomp
+  have hscaled :
+      IntegrableOn
+        (fun r : ℝ =>
+          Real.exp a * (((1 - r) ^ (1 : ℝ)) * Real.exp (-a * ((1 - r) ^ (1 : ℝ)))))
+        (Set.Iic (1 : ℝ)) :=
+    hcomp.const_mul (Real.exp a)
+  refine hscaled.congr_fun ?_ measurableSet_Iic
+  intro r hr
+  change
+    Real.exp a * ((1 - r) ^ (1 : ℝ) * Real.exp (-a * (1 - r) ^ (1 : ℝ))) =
+      (1 - r) * Real.exp (a * r)
+  rw [Real.rpow_one]
+  rw [show -a * (1 - r) = -a + a * r by ring]
+  rw [Real.exp_add]
+  ring_nf
+  rw [Real.exp_neg]
+  field_simp [Real.exp_ne_zero]
+
+/-- The affine height `r ↦ (1-r)/T` avoids any prescribed value a.e. on the horizontal ray. -/
+private lemma ae_one_sub_div_ne (T c : ℝ) (hT : T ≠ 0) :
+    ∀ᵐ r ∂volume.restrict (Set.Iic (1 : ℝ)), (1 - r) / T ≠ c := by
+  have hsingleton :
+      {r : ℝ | (1 - r) / T = c} = {1 - T * c} := by
+    ext r
+    constructor
+    · intro hr
+      rw [Set.mem_singleton_iff]
+      have hmul : 1 - r = T * c := by
+        field_simp [hT] at hr
+        exact hr
+      linarith
+    · intro hr
+      rw [Set.mem_singleton_iff] at hr
+      rw [hr]
+      change (1 - (1 - T * c)) / T = c
+      field_simp [hT]
+      ring
+  rw [ae_iff]
+  simpa only [not_not, hsingleton] using
+    (measure_mono_null (by intro r hr; exact hr)
+      (by simp [MeasureTheory.measure_singleton]) :
+        (volume.restrict (Set.Iic (1 : ℝ))) {1 - T * c} = 0)
+
 section Proposition52
 
 /- Shared context for Proposition 5.2 and its sub-lemmas: the ladder parameters `l`, the
 meromorphic function `F`, the parameter `λ` (`lam`) and sign `ε`, and the reals `x₀ ≤ x`. The
 structural (`Prop`) hypotheses stay explicit on each lemma. -/
 variable {l : LadderParams} {F : ℂ → ℂ} {lam ε x₀ x : ℝ}
+
+private lemma ae_norm_Phi_lambda_top_hray_le (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1) :
+    ∀ᵐ r : ℝ ∂volume.restrict (Set.Iic (1 : ℝ)),
+      ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + l.T * Complex.I))‖ ≤ (1 - r) / l.T := by
+  by_cases hpos : 0 < lam
+  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr
+    have hy : 0 ≤ (1 - r) / l.T := div_nonneg (sub_nonneg.mpr (by simpa using hr)) l.hT.le
+    rw [LadderParams.zOf_top_hray]
+    exact norm_Phi_lambda_one_add_I_mul_le_of_pos lam ε ((1 - r) / l.T) hpos hε hy
+  · have hneg : lam < 0 := lt_of_le_of_ne (not_lt.mp hpos) hlam
+    filter_upwards [ae_one_sub_div_ne l.T (|lam| / (2 * π)) l.hT.ne',
+      MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hpole hr
+    have hy : 0 ≤ (1 - r) / l.T := div_nonneg (sub_nonneg.mpr (by simpa using hr)) l.hT.le
+    rw [LadderParams.zOf_top_hray]
+    exact norm_Phi_lambda_one_add_I_mul_le_of_neg lam ε ((1 - r) / l.T) hneg hε hy hpole
+
+private lemma ae_norm_Phi_lambda_bot_hray_le (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1) :
+    ∀ᵐ r : ℝ ∂volume.restrict (Set.Iic (1 : ℝ)),
+      ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + ((-l.T : ℝ) : ℂ) * Complex.I))‖ ≤
+        (1 - r) / l.T := by
+  by_cases hpos : 0 < lam
+  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr
+    have hy : 0 ≤ (1 - r) / l.T := div_nonneg (sub_nonneg.mpr (by simpa using hr)) l.hT.le
+    rw [show (r : ℂ) + ((-l.T : ℝ) : ℂ) * Complex.I = r - (l.T : ℂ) * Complex.I by
+      rw [Complex.ofReal_neg]
+      ring]
+    rw [LadderParams.zOf_bot_hray]
+    exact norm_Phi_lambda_neg_one_add_I_mul_le_of_pos lam ε ((1 - r) / l.T) hpos hε hy
+  · have hneg : lam < 0 := lt_of_le_of_ne (not_lt.mp hpos) hlam
+    filter_upwards [ae_one_sub_div_ne l.T (|lam| / (2 * π)) l.hT.ne',
+      MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hpole hr
+    have hy : 0 ≤ (1 - r) / l.T := div_nonneg (sub_nonneg.mpr (by simpa using hr)) l.hT.le
+    rw [show (r : ℂ) + ((-l.T : ℝ) : ℂ) * Complex.I = r - (l.T : ℂ) * Complex.I by
+      rw [Complex.ofReal_neg]
+      ring]
+    rw [LadderParams.zOf_bot_hray]
+    exact norm_Phi_lambda_neg_one_add_I_mul_le_of_neg lam ε ((1 - r) / l.T) hneg hε hy hpole
+
+private lemma weighted_F_mul_cpow_norm_integrable_hray (h : ℝ)
+    (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_Rbd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) l.Rboundary) :
+    IntegrableOn
+      (fun r : ℝ => ((1 - r) / l.T) *
+        ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖)
+      (Set.Iic (1 : ℝ)) := by
+  obtain ⟨M, hM⟩ := hF_Rbd
+  let C : ℝ := max M 0
+  have hx₀_pos : 0 < x₀ := by linarith
+  have hx_pos : 0 < x := by linarith
+  have hlog_ratio_pos : 0 < Real.log (x / x₀) := by
+    exact Real.log_pos (by rw [one_lt_div hx₀_pos]; linarith)
+  have h_int_bound :
+      IntegrableOn
+        (fun r : ℝ => (C / l.T) * ((1 - r) * Real.exp (Real.log (x / x₀) * r)))
+        (Set.Iic (1 : ℝ)) :=
+    (integrableOn_one_sub_mul_exp_mul_Iic (Real.log (x / x₀)) hlog_ratio_pos).const_mul
+      (C / l.T)
+  have h_order : ∀ z ∈ l.Rboundary, z.im = h → 0 ≤ meromorphicOrderAt F z := by
+    intro z hz_Rbd _hz_im
+    exact meromorphicOrderAt_nonneg_of_bounded hx₀ (hF_mero z (l.Rboundary_subset_R hz_Rbd))
+      ⟨M, hM⟩ hz_Rbd
+  have h_meas_prod :
+      AEStronglyMeasurable
+        (fun r : ℝ ↦ F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I))
+        (volume.restrict (Set.Iic (1 : ℝ))) :=
+    aestronglyMeasurable_hray_of_meromorphic l F x₀ x h hx₀ hx h_abs_h hF_mero h_order
+  have h_meas_weight :
+      AEStronglyMeasurable (fun r : ℝ => (1 - r) / l.T)
+        (volume.restrict (Set.Iic (1 : ℝ))) :=
+    ((measurable_const.sub measurable_id).div_const l.T).aestronglyMeasurable
+  have h_meas :
+      AEStronglyMeasurable
+        (fun r : ℝ => ((1 - r) / l.T) *
+          ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖)
+        (volume.restrict (Set.Iic (1 : ℝ))) :=
+    h_meas_weight.mul h_meas_prod.norm
+  refine h_int_bound.mono' h_meas ?_
+  rw [ae_restrict_iff' measurableSet_Iic]
+  refine ae_of_all _ ?_
+  intro r hr
+  have hr_le : r ≤ 1 := by simpa using hr
+  have hweight_nonneg : 0 ≤ (1 - r) / l.T :=
+    div_nonneg (sub_nonneg.mpr hr_le) l.hT.le
+  have hbound :
+      ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ ≤
+        C * Real.exp (Real.log (x / x₀) * r) := by
+    simpa [C] using
+      bound_G_mul_cpow_hray l F x₀ x h M hx₀ hx h_abs_h (fun z hz => (hM z hz).1) r hr_le
+  have hnorm_nonneg :
+      0 ≤ ((1 - r) / l.T) *
+        ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ :=
+    mul_nonneg hweight_nonneg (norm_nonneg _)
+  rw [Real.norm_eq_abs, abs_of_nonneg hnorm_nonneg]
+  calc
+    ((1 - r) / l.T) *
+        ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖
+        ≤ ((1 - r) / l.T) * (C * Real.exp (Real.log (x / x₀) * r)) :=
+          mul_le_mul_of_nonneg_left hbound hweight_nonneg
+    _ = (C / l.T) * ((1 - r) * Real.exp (Real.log (x / x₀) * r)) := by ring
+
+private lemma norm_intHRay_Phi_lambda_le_weighted (h : ℝ)
+    (hx₀ : 1 ≤ x₀) (hx : x₀ < x) (h_abs_h : |h| = l.T)
+    (hF_mero : MeromorphicOn F l.R)
+    (hF_Rbd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) l.Rboundary)
+    (hPhi :
+      ∀ᵐ r : ℝ ∂volume.restrict (Set.Iic (1 : ℝ)),
+        ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + h * Complex.I))‖ ≤ (1 - r) / l.T) :
+    ‖intHRay h 1 (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s)‖ ≤
+      ∫ r in Set.Iic (1 : ℝ), ((1 - r) / l.T) *
+        ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ := by
+  have h_int_weighted :
+      Integrable
+        (fun r : ℝ => ((1 - r) / l.T) *
+          ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖)
+        (volume.restrict (Set.Iic (1 : ℝ))) := by
+    simpa [IntegrableOn] using
+      weighted_F_mul_cpow_norm_integrable_hray (l := l) (F := F) (x₀ := x₀) (x := x)
+        h hx₀ hx h_abs_h hF_mero hF_Rbd
+  have h_bound :
+      ∀ᵐ r : ℝ ∂volume.restrict (Set.Iic (1 : ℝ)),
+        ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + h * Complex.I)) *
+            F ((r : ℂ) + h * Complex.I) *
+            (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ ≤
+          ((1 - r) / l.T) *
+            ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ := by
+    filter_upwards [hPhi] with r hPhi_r
+    calc
+      ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + h * Complex.I)) *
+          F ((r : ℂ) + h * Complex.I) *
+          (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖
+          = ‖Phi_lambda lam ε (l.zOf ((r : ℂ) + h * Complex.I))‖ *
+              ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ := by
+            rw [mul_assoc, norm_mul]
+      _ ≤ ((1 - r) / l.T) *
+              ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖ :=
+            mul_le_mul_of_nonneg_right hPhi_r (norm_nonneg _)
+  simpa [intHRay] using norm_integral_le_of_norm_le h_int_weighted h_bound
+
+private lemma integral_weighted_F_mul_cpow_hray_eq_Ioi (h : ℝ)
+    (hx_pos : 0 < x) :
+    (∫ r in Set.Iic (1 : ℝ), ((1 - r) / l.T) *
+        ‖F ((r : ℂ) + h * Complex.I) * (x : ℂ) ^ ((r : ℂ) + h * Complex.I)‖) =
+      (1 / l.T) *
+        ∫ t in Set.Ioi (0 : ℝ), t * ‖F ((1 - t : ℝ) + h * Complex.I)‖ * x ^ (1 - t) := by
+  rw [integral_Iic_one_eq_integral_Ioi_one_sub]
+  calc
+    (∫ t in Set.Ioi (0 : ℝ), ((1 - (1 - t)) / l.T) *
+        ‖F (((1 - t : ℝ) : ℂ) + h * Complex.I) *
+          (x : ℂ) ^ (((1 - t : ℝ) : ℂ) + h * Complex.I)‖)
+        = ∫ t in Set.Ioi (0 : ℝ),
+            (1 / l.T) * (t * ‖F ((1 - t : ℝ) + h * Complex.I)‖ * x ^ (1 - t)) := by
+          refine setIntegral_congr_fun measurableSet_Ioi ?_
+          intro t ht
+          have hnorm_x :
+              ‖(x : ℂ) ^ (((1 - t : ℝ) : ℂ) + h * Complex.I)‖ = x ^ (1 - t) := by
+            rw [Complex.norm_cpow_eq_rpow_re_of_pos hx_pos]
+            simp
+          change ((1 - (1 - t)) / l.T) *
+              ‖F (((1 - t : ℝ) : ℂ) + h * Complex.I) *
+                (x : ℂ) ^ (((1 - t : ℝ) : ℂ) + h * Complex.I)‖ =
+            (1 / l.T) * (t * ‖F (((1 - t : ℝ) : ℂ) + h * Complex.I)‖ * x ^ (1 - t))
+          rw [norm_mul, hnorm_x]
+          ring
+    _ = (1 / l.T) *
+        ∫ t in Set.Ioi (0 : ℝ), t * ‖F ((1 - t : ℝ) + h * Complex.I)‖ * x ^ (1 - t) := by
+          rw [integral_const_mul]
 
 @[blueprint
   "ch2-prop-5-2-a"
@@ -3269,7 +3623,70 @@ theorem prop_5_2_b
       (1 / (2 * π)) * ((1 / l.T) *
         ((∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)) +
           ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t))) := by
-  sorry
+  have _ := hF_symm
+  have _ := hfin
+  have _ := hsimple
+  have _ := hsimple_circ
+  let G : ℂ → ℂ := fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s
+  let Itop : ℝ :=
+    ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t + l.T * Complex.I)‖ * x ^ (1 - t)
+  let Ibot : ℝ :=
+    ∫ t in Set.Ioi (0 : ℝ), t * ‖F (1 - t - l.T * Complex.I)‖ * x ^ (1 - t)
+  obtain ⟨M, hM⟩ := hF_bdd
+  have hF_Rbd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) l.Rboundary := by
+    exact ⟨M, fun z hz ↦ hM z (by simp [hz])⟩
+  have hx_pos : 0 < x := by linarith
+  have htop :
+      ‖intHRay l.T 1 G‖ ≤ (1 / l.T) * Itop := by
+    have hweighted :
+        ‖intHRay l.T 1 G‖ ≤
+          ∫ r in Set.Iic (1 : ℝ), ((1 - r) / l.T) *
+            ‖F ((r : ℂ) + l.T * Complex.I) *
+              (x : ℂ) ^ ((r : ℂ) + l.T * Complex.I)‖ := by
+      simpa [G] using
+        norm_intHRay_Phi_lambda_le_weighted (l := l) (F := F) (lam := lam) (ε := ε)
+          (x₀ := x₀) (x := x) l.T hx₀ hx (abs_of_nonneg l.hT.le) hF_mero hF_Rbd
+          (ae_norm_Phi_lambda_top_hray_le (l := l) (lam := lam) (ε := ε) hlam hε)
+    have htransport :=
+      integral_weighted_F_mul_cpow_hray_eq_Ioi (l := l) (F := F) (x := x) l.T hx_pos
+    exact hweighted.trans (le_of_eq (by simpa [Itop] using htransport))
+  have hbot :
+      ‖intHRay (-l.T) 1 G‖ ≤ (1 / l.T) * Ibot := by
+    have hweighted :
+        ‖intHRay (-l.T) 1 G‖ ≤
+          ∫ r in Set.Iic (1 : ℝ), ((1 - r) / l.T) *
+            ‖F ((r : ℂ) + (-l.T) * Complex.I) *
+              (x : ℂ) ^ ((r : ℂ) + (-l.T) * Complex.I)‖ := by
+      simpa [G] using
+        norm_intHRay_Phi_lambda_le_weighted (l := l) (F := F) (lam := lam) (ε := ε)
+          (x₀ := x₀) (x := x) (-l.T) hx₀ hx
+          (by rw [abs_of_nonpos (neg_nonpos.mpr l.hT.le)]; ring)
+          hF_mero hF_Rbd
+          (ae_norm_Phi_lambda_bot_hray_le (l := l) (lam := lam) (ε := ε) hlam hε)
+    have htransport :=
+      integral_weighted_F_mul_cpow_hray_eq_Ioi (l := l) (F := F) (x := x) (-l.T) hx_pos
+    exact hweighted.trans (le_of_eq (by simpa [Ibot, sub_eq_add_neg] using htransport))
+  have hCinf :
+      ‖l.intCinf G‖ ≤ (1 / l.T) * Itop + (1 / l.T) * Ibot := by
+    unfold LadderParams.intCinf
+    calc
+      ‖intHRay l.T 1 G - intHRay (-l.T) 1 G‖
+          ≤ ‖intHRay l.T 1 G‖ + ‖intHRay (-l.T) 1 G‖ := norm_sub_le _ _
+      _ ≤ (1 / l.T) * Itop + (1 / l.T) * Ibot := add_le_add htop hbot
+  have hfactor :
+      ‖(2 * (π : ℂ) * Complex.I)⁻¹‖ = (1 / (2 * π) : ℝ) := by
+    rw [norm_inv, norm_mul, norm_mul, Complex.norm_ofNat, norm_real, Real.norm_eq_abs,
+      Complex.norm_I, mul_one, abs_of_pos Real.pi_pos]
+    ring
+  have hfactor_nonneg : 0 ≤ (1 / (2 * π) : ℝ) := by positivity
+  calc
+    ‖(2 * (π : ℂ) * Complex.I)⁻¹ *
+        l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s)‖
+        = (1 / (2 * π) : ℝ) * ‖l.intCinf G‖ := by
+          rw [norm_mul, hfactor]
+    _ ≤ (1 / (2 * π) : ℝ) * ((1 / l.T) * Itop + (1 / l.T) * Ibot) :=
+      mul_le_mul_of_nonneg_left hCinf hfactor_nonneg
+    _ = (1 / (2 * π)) * ((1 / l.T) * (Itop + Ibot)) := by ring
 
 lemma LadderParams.intC_const_mul (c : ℂ) (F : ℂ → ℂ) :
     l.intC (fun x ↦ c * F x) = c * l.intC (fun x ↦ F x) := by
