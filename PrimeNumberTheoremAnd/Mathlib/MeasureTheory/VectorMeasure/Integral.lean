@@ -162,6 +162,96 @@ theorem vectorMeasure_integral_mul_complex_const (μ : VectorMeasure X ℂ)
   exact vectorMeasure_integral_mul_complex_indicator_const μ MeasurableSet.univ
     (measure_ne_top _ _) x
 
+theorem complexMeasure_re_toComplexMeasure_add_im_toComplexMeasure_eq (μ : VectorMeasure X ℂ) :
+    ((ComplexMeasure.re μ).toComplexMeasure 0) +
+      ((0 : SignedMeasure X).toComplexMeasure (ComplexMeasure.im μ)) = μ := by
+  ext s hs
+  rw [VectorMeasure.add_apply, SignedMeasure.toComplexMeasure_apply,
+    SignedMeasure.toComplexMeasure_apply, ComplexMeasure.re_apply, ComplexMeasure.im_apply,
+    VectorMeasure.mapRange_apply, VectorMeasure.mapRange_apply]
+  exact Complex.ext (by simp) (by simp)
+
+theorem complexMeasure_re_toComplexMeasure_variation_le (μ : VectorMeasure X ℂ) :
+    (((ComplexMeasure.re μ).toComplexMeasure 0).variation) ≤ μ.variation := by
+  refine variation_le_of_forall_enorm_le ?_
+  intro s hs
+  rw [SignedMeasure.toComplexMeasure_apply, ComplexMeasure.re_apply, VectorMeasure.mapRange_apply]
+  have hnorm : ‖({ re := (μ s).re, im := (0 : ℝ) } : ℂ)‖ ≤ ‖μ s‖ := by
+    rw [show ({ re := (μ s).re, im := (0 : ℝ) } : ℂ) = ((μ s).re : ℂ) by rfl,
+      Complex.norm_real]
+    exact Complex.abs_re_le_norm (μ s)
+  calc
+    ‖({ re := (μ s).re, im := (0 : ℝ) } : ℂ)‖ₑ =
+        ENNReal.ofReal ‖({ re := (μ s).re, im := (0 : ℝ) } : ℂ)‖ := by
+      exact (ofReal_norm _).symm
+    _ ≤ ENNReal.ofReal ‖μ s‖ := ENNReal.ofReal_le_ofReal hnorm
+    _ = ‖μ s‖ₑ := by exact ofReal_norm _
+    _ ≤ μ.variation s := enorm_measure_le_variation μ s
+
+theorem complexMeasure_im_toComplexMeasure_variation_le (μ : VectorMeasure X ℂ) :
+    (((0 : SignedMeasure X).toComplexMeasure (ComplexMeasure.im μ)).variation) ≤
+      μ.variation := by
+  refine variation_le_of_forall_enorm_le ?_
+  intro s hs
+  rw [SignedMeasure.toComplexMeasure_apply, ComplexMeasure.im_apply, VectorMeasure.mapRange_apply]
+  have hnorm : ‖({ re := (0 : ℝ), im := (μ s).im } : ℂ)‖ ≤ ‖μ s‖ := by
+    rw [show ({ re := (0 : ℝ), im := (μ s).im } : ℂ) =
+        ((μ s).im : ℂ) * Complex.I by
+      apply Complex.ext <;> simp]
+    rw [Complex.norm_mul, Complex.norm_real]
+    simpa using Complex.abs_im_le_norm (μ s)
+  calc
+    ‖({ re := (0 : ℝ), im := (μ s).im } : ℂ)‖ₑ =
+        ENNReal.ofReal ‖({ re := (0 : ℝ), im := (μ s).im } : ℂ)‖ := by
+      exact (ofReal_norm _).symm
+    _ ≤ ENNReal.ofReal ‖μ s‖ := ENNReal.ofReal_le_ofReal hnorm
+    _ = ‖μ s‖ₑ := by exact ofReal_norm _
+    _ ≤ μ.variation s := enorm_measure_le_variation μ s
+
+theorem vectorMeasure_integral_eq_re_add_I_im_of_integrable (μ : VectorMeasure X ℂ)
+    {g : X → ℂ} (hg : Integrable g μ.variation) :
+    VectorMeasure.integral μ g (ContinuousLinearMap.mul ℝ ℂ) =
+      VectorMeasure.integral ((ComplexMeasure.re μ).toComplexMeasure 0) g
+        (ContinuousLinearMap.mul ℝ ℂ) +
+        VectorMeasure.integral
+          ((0 : SignedMeasure X).toComplexMeasure (ComplexMeasure.im μ)) g
+          (ContinuousLinearMap.mul ℝ ℂ) := by
+  let μre : VectorMeasure X ℂ := (ComplexMeasure.re μ).toComplexMeasure 0
+  let μim : VectorMeasure X ℂ := (0 : SignedMeasure X).toComplexMeasure (ComplexMeasure.im μ)
+  have hsum : μre + μim = μ := by
+    simpa [μre, μim] using complexMeasure_re_toComplexMeasure_add_im_toComplexMeasure_eq μ
+  have hre_le : μre.variation ≤ μ.variation := by
+    simpa [μre] using complexMeasure_re_toComplexMeasure_variation_le μ
+  have him_le : μim.variation ≤ μ.variation := by
+    simpa [μim] using complexMeasure_im_toComplexMeasure_variation_le μ
+  have hgre : Integrable g μre.variation := hg.mono_measure hre_le
+  have hgim : Integrable g μim.variation := hg.mono_measure him_le
+  have hvar_sum : μ.variation ≤ μre.variation + μim.variation := by
+    rw [← hsum]
+    exact VectorMeasure.variation_add_le
+  have hT_eq : ∀ s : Set X, MeasurableSet s →
+      (μre.variation + μim.variation) s < (∞ : ℝ≥0∞) →
+        cbmApplyMeasure μ (ContinuousLinearMap.mul ℝ ℂ) s =
+          (cbmApplyMeasure μre (ContinuousLinearMap.mul ℝ ℂ) +
+            cbmApplyMeasure μim (ContinuousLinearMap.mul ℝ ℂ)) s := by
+    intro s hs _hfin
+    ext z
+    have hmeasure : μ s = μre s + μim s := by
+      rw [← hsum]
+      rfl
+    simp [cbmApplyMeasure_apply, hmeasure, mul_add]
+  change VectorMeasure.integral μ g (ContinuousLinearMap.mul ℝ ℂ) =
+    VectorMeasure.integral μre g (ContinuousLinearMap.mul ℝ ℂ) +
+      VectorMeasure.integral μim g (ContinuousLinearMap.mul ℝ ℂ)
+  rw [← setToFun_mul_complex_variation_eq_integral μ hg]
+  rw [← setToFun_mul_complex_variation_eq_integral μre hgre]
+  rw [← setToFun_mul_complex_variation_eq_integral μim hgim]
+  exact setToFun_add_left''
+    (hT := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μre)
+    (hT' := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μim)
+    (hT'' := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μ)
+    hT_eq hgre hgim hvar_sum zero_le_one zero_le_one zero_le_one
+
 namespace Measure
 
 noncomputable abbrev toComplexMeasureZero (μ : Measure X) [IsFiniteMeasure μ] :
@@ -242,6 +332,76 @@ theorem vectorMeasure_integral_toComplexMeasureZero_mul_eq_integral
                   weightedSMul_apply]
                 simp [mul_comm]) g
   · exact hg.mono_measure (Measure.toComplexMeasureZero_variation_le μ)
+
+theorem vectorMeasure_integral_restrict_toComplexMeasureZero_mul_eq_setIntegral
+    (μ : Measure X) {s : Set X} [IsFiniteMeasure (μ.restrict s)]
+    {g : X → ℂ} (hg : IntegrableOn g s μ) :
+    VectorMeasure.integral (μ.restrict s).toComplexMeasureZero g
+        (ContinuousLinearMap.mul ℝ ℂ) =
+      ∫ x in s, g x ∂μ := by
+  simpa using
+    vectorMeasure_integral_toComplexMeasureZero_mul_eq_integral (μ.restrict s) hg.integrable
+
+theorem vectorMeasure_integral_restrict_toComplexMeasureZero_sub_mul_eq_setIntegral_sub
+    (μ ν : Measure X) {s : Set X}
+    [IsFiniteMeasure (μ.restrict s)] [IsFiniteMeasure (ν.restrict s)]
+    {g : X → ℂ} (hμg : IntegrableOn g s μ) (hνg : IntegrableOn g s ν) :
+    VectorMeasure.integral
+        ((μ.restrict s).toComplexMeasureZero - (ν.restrict s).toComplexMeasureZero)
+        g (ContinuousLinearMap.mul ℝ ℂ) =
+      (∫ x in s, g x ∂μ) - ∫ x in s, g x ∂ν := by
+  let μc : VectorMeasure X ℂ := (μ.restrict s).toComplexMeasureZero
+  let νc : VectorMeasure X ℂ := (ν.restrict s).toComplexMeasureZero
+  let ξ : VectorMeasure X ℂ := μc - νc
+  have hμc_var_le : μc.variation ≤ μ.restrict s := by
+    simpa [μc] using Measure.toComplexMeasureZero_variation_le (μ.restrict s)
+  have hνc_var_le : νc.variation ≤ ν.restrict s := by
+    simpa [νc] using Measure.toComplexMeasureZero_variation_le (ν.restrict s)
+  have hμc_g : Integrable g μc.variation := hμg.integrable.mono_measure hμc_var_le
+  have hνc_g : Integrable g νc.variation := hνg.integrable.mono_measure hνc_var_le
+  have hsum_g : Integrable g (μc.variation + νc.variation) := hμc_g.add_measure hνc_g
+  have hξ_var_le : ξ.variation ≤ μc.variation + νc.variation := by
+    simpa [ξ] using VectorMeasure.variation_sub_le (μ := μc) (ν := νc)
+  have hξ_g : Integrable g ξ.variation := hsum_g.mono_measure hξ_var_le
+  have hdomξ := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation ξ
+  have hdomξ_sum : DominatedFinMeasAdditive (μc.variation + νc.variation)
+      (cbmApplyMeasure ξ (ContinuousLinearMap.mul ℝ ℂ)) 1 :=
+    DominatedFinMeasAdditive.of_measure_le hξ_var_le hdomξ zero_le_one
+  have hdomμ := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μc
+  have hdomν := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation νc
+  have hdom_sub :=
+    DominatedFinMeasAdditive.sub_measure μc.variation νc.variation hdomμ hdomν
+  have hT_eq : ∀ t : Set X, MeasurableSet t →
+      (μc.variation + νc.variation) t < (∞ : ℝ≥0∞) →
+        cbmApplyMeasure ξ (ContinuousLinearMap.mul ℝ ℂ) t =
+          (cbmApplyMeasure μc (ContinuousLinearMap.mul ℝ ℂ) -
+            cbmApplyMeasure νc (ContinuousLinearMap.mul ℝ ℂ)) t := by
+    intro t ht _hfin
+    ext z
+    simp [ξ, cbmApplyMeasure_apply, sub_eq_add_neg, mul_add]
+  change VectorMeasure.integral ξ g (ContinuousLinearMap.mul ℝ ℂ) =
+    (∫ x in s, g x ∂μ) - ∫ x in s, g x ∂ν
+  rw [← setToFun_mul_complex_variation_eq_integral ξ hξ_g]
+  rw [← vectorMeasure_integral_restrict_toComplexMeasureZero_mul_eq_setIntegral μ hμg]
+  rw [← vectorMeasure_integral_restrict_toComplexMeasureZero_mul_eq_setIntegral ν hνg]
+  change setToFun ξ.variation (cbmApplyMeasure ξ (ContinuousLinearMap.mul ℝ ℂ)) hdomξ g =
+    VectorMeasure.integral μc g (ContinuousLinearMap.mul ℝ ℂ) -
+      VectorMeasure.integral νc g (ContinuousLinearMap.mul ℝ ℂ)
+  rw [← setToFun_mul_complex_variation_eq_integral μc hμc_g]
+  rw [← setToFun_mul_complex_variation_eq_integral νc hνc_g]
+  calc
+    setToFun ξ.variation (cbmApplyMeasure ξ (ContinuousLinearMap.mul ℝ ℂ)) hdomξ g =
+        setToFun (μc.variation + νc.variation)
+          (cbmApplyMeasure ξ (ContinuousLinearMap.mul ℝ ℂ)) hdomξ_sum g := by
+          exact (setToFun_congr_measure_of_integrable 1 ENNReal.one_ne_top
+            (by simpa [one_smul] using hξ_var_le) hdomξ_sum hdomξ g hsum_g).symm
+    _ = setToFun (μc.variation + νc.variation)
+          (cbmApplyMeasure μc (ContinuousLinearMap.mul ℝ ℂ) -
+            cbmApplyMeasure νc (ContinuousLinearMap.mul ℝ ℂ)) hdom_sub g := by
+          exact setToFun_congr_left' hdomξ_sum hdom_sub hT_eq g
+    _ = setToFun μc.variation (cbmApplyMeasure μc (ContinuousLinearMap.mul ℝ ℂ)) hdomμ g -
+          setToFun νc.variation (cbmApplyMeasure νc (ContinuousLinearMap.mul ℝ ℂ)) hdomν g := by
+          exact setToFun_sub_measure hdomμ hdomν hμc_g hνc_g
 
 theorem norm_setToFun_mul_complex_variation_le_of_norm_le (μ : VectorMeasure X ℂ)
     {g : X → ℂ} {C : ℝ} (hg : Integrable g μ.variation) (hC : 0 ≤ C)

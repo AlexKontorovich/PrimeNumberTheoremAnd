@@ -351,6 +351,42 @@ def vectorMeasure_integral_eq_re_add_I_im (ψ : ℝ → ℂ) (_hψ : Integrable 
         ((0 : SignedMeasure ℝ).toComplexMeasure (ComplexMeasure.im hvar.vectorMeasure))
         (e u) (ContinuousLinearMap.mul ℝ ℂ)
 
+theorem vectorMeasure_integral_eq_re_add_I_im_proof (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) :
+    vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u := by
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) := by
+    have hvariation :
+        (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ :=
+      hvar.vectorMeasure_variation_univ_le_eVariationOn
+    exact ne_top_of_le_ne_top hvar hvariation
+  letI : IsFiniteMeasure (hvar.vectorMeasure).variation :=
+    IsFiniteMeasure.mk (lt_top_iff_ne_top.mpr hμ_ne_top)
+  have hg : Integrable (e u : ℝ → ℂ) (hvar.vectorMeasure).variation :=
+    BoundedContinuousFunction.integrable (hvar.vectorMeasure).variation (e u)
+  exact vectorMeasure_integral_eq_re_add_I_im_of_integrable hvar.vectorMeasure hg
+
+theorem vectorMeasure_integral_Ioc_fourierChar_eq_re_add_I_im
+    (ψ : ℝ → ℂ) (hvar : BoundedVariationOn ψ Set.univ) (u a b : ℝ) :
+    VectorMeasure.integral hvar.vectorMeasure ((Set.Ioc a b).indicator (e u : ℝ → ℂ))
+        (ContinuousLinearMap.mul ℝ ℂ) =
+      VectorMeasure.integral
+          ((ComplexMeasure.re hvar.vectorMeasure).toComplexMeasure 0)
+          ((Set.Ioc a b).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ) +
+        VectorMeasure.integral
+          ((0 : SignedMeasure ℝ).toComplexMeasure (ComplexMeasure.im hvar.vectorMeasure))
+          ((Set.Ioc a b).indicator (e u : ℝ → ℂ)) (ContinuousLinearMap.mul ℝ ℂ) := by
+  have hμ_ne_top : (hvar.vectorMeasure).variation Set.univ ≠ (∞ : ℝ≥0∞) := by
+    have hvariation :
+        (hvar.vectorMeasure).variation Set.univ ≤ eVariationOn ψ Set.univ :=
+      hvar.vectorMeasure_variation_univ_le_eVariationOn
+    exact ne_top_of_le_ne_top hvar hvariation
+  letI : IsFiniteMeasure (hvar.vectorMeasure).variation :=
+    IsFiniteMeasure.mk (lt_top_iff_ne_top.mpr hμ_ne_top)
+  have he : Integrable (e u : ℝ → ℂ) (hvar.vectorMeasure).variation :=
+    BoundedContinuousFunction.integrable (hvar.vectorMeasure).variation (e u)
+  exact vectorMeasure_integral_eq_re_add_I_im_of_integrable hvar.vectorMeasure
+    (he.indicator measurableSet_Ioc)
+
 def vectorMeasure_integral_fourierChar_eq_IBP (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
   vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u →
@@ -401,10 +437,10 @@ and the claim then follows from the triangle inequality. -/)
   (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
     (u : ℝ) (hu : u ≠ 0)
-    (hreim : vectorMeasure_integral_eq_re_add_I_im ψ hψ hvar u)
     (hibp : vectorMeasure_integral_fourierChar_eq_IBP ψ hψ hvar u) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
-  exact prelim_decay_2_of_vectorMeasure_fourier_identity ψ hvar u hu (hibp hreim)
+  exact prelim_decay_2_of_vectorMeasure_fourier_identity ψ hvar u hu
+    (hibp (vectorMeasure_integral_eq_re_add_I_im_proof ψ hψ hvar u))
 
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
