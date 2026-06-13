@@ -1460,7 +1460,7 @@ lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouvil
 @[blueprint
   "LSeries_totient_eq"
   (title := "LSeries totient eq")
-  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
+  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$ for $\Re(s) > 2$.
   \begin{verbatim}
   This is IK (1.35).
   \end{verbatim}
