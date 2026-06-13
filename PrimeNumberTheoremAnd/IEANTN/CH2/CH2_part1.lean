@@ -1738,7 +1738,129 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
   (latexEnv := "lemma")
   (discussion := 1072)]
 theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
+    meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by
+  set w : ℂ → ℂ := fun z ↦ -2 * π * I * z + ν with hw_def
+  -- `w` is analytic everywhere with `w' = -2πI ≠ 0`.
+  have hw_anal : ∀ ζ, AnalyticAt ℂ w ζ := fun ζ ↦ by dsimp [w]; fun_prop
+  -- The exceptional point: `w z₀ = 0` exactly at the `n = 0` member of the pole family.
+  have hw_eq_zero_iff : ∀ ζ : ℂ, w ζ = 0 ↔ ζ = (0 : ℤ) - I * ν / (2 * π) := by
+    intro ζ
+    have hpi : (π : ℂ) ≠ 0 := by simp [pi_ne_zero]
+    have hden : (2 * (π : ℂ)) ≠ 0 := by simp [pi_ne_zero]
+    have hrhs : ((0 : ℤ) - I * (ν : ℂ) / (2 * π) : ℂ) = -(I * ν) / (2 * π) := by push_cast; ring
+    dsimp [w]
+    rw [hrhs, eq_div_iff hden]
+    constructor
+    · intro h
+      linear_combination I * h + (2 * (π : ℂ) * ζ) * Complex.I_sq
+    · intro h
+      linear_combination -I * h + ((ν : ℂ)) * Complex.I_sq
+  -- Reduce `Phi_star` to `g := w · Phi_circ` minus the constant `B ε ν`, up to the nonzero
+  -- scalar `1/(2πI)`: these agree on the punctured neighbourhood of any point.
+  set g : ℂ → ℂ := fun z ↦ w z * Phi_circ ν ε z with hg_def
+  have hg_mero : ∀ ζ, MeromorphicAt g ζ := fun ζ ↦ (hw_anal ζ).meromorphicAt.mul (Phi_circ.meromorphic ν ε ζ)
+  have h_star_eq : meromorphicOrderAt (Phi_star ν ε) z
+      = meromorphicOrderAt (fun z ↦ g z - B ε ν) z := by
+    have h_const_ne : (2 * π * I : ℂ) ≠ 0 := by simp [pi_ne_zero, I_ne_zero]
+    -- `Phi_star = (1/(2πI)) • (g - B ε ν)` on the punctured nhd, then strip the scalar.
+    have h_evEq : Phi_star ν ε =ᶠ[nhdsWithin z {z}ᶜ]
+        (fun z ↦ (1 / (2 * π * I)) * (g z - B ε ν)) := by
+      -- `w` has its only zero at `z₀`; on the punctured nhd of `z` we have `w ζ ≠ 0`.
+      set z₀ : ℂ := (0 : ℤ) - I * ν / (2 * π) with hz₀_def
+      have hw_cont : ContinuousAt w z := (hw_anal z).continuousAt
+      have h_wne : ∀ᶠ ζ in nhdsWithin z {z}ᶜ, w ζ ≠ 0 := by
+        by_cases hz : z = z₀
+        · -- exclude the centre `z₀`; for ζ ≠ z₀ in the nhd we have `w ζ ≠ 0`
+          subst hz
+          filter_upwards [self_mem_nhdsWithin] with ζ hζ
+          rw [Ne, hw_eq_zero_iff ζ]
+          simpa using hζ
+        · -- away from `z₀`, `w z ≠ 0`, so `w` is nonzero near `z`
+          have hwz : w z ≠ 0 := by
+            rw [Ne, hw_eq_zero_iff z]
+            exact hz
+          exact nhdsWithin_le_nhds (hw_cont.eventually_ne hwz)
+      filter_upwards [h_wne] with ζ hwζ
+      have hB : B ε (w ζ) = w ζ * (coth (w ζ / 2) + ε) / 2 := by
+        unfold B; split_ifs with h_branch
+        · exact False.elim (hwζ h_branch)
+        · rfl
+      dsimp [Phi_star, Phi_circ, g, w]
+      dsimp [w] at hB
+      rw [hB]
+      ring
+    rw [meromorphicOrderAt_congr h_evEq]
+    rw [show (fun z ↦ (1 / (2 * π * I)) * (g z - B ε ν))
+        = (fun _ ↦ (1 / (2 * π * I) : ℂ)) * (fun z ↦ g z - B ε ν) from rfl]
+    rw [meromorphicOrderAt_mul_of_ne_zero (analyticAt_const (v := (1 / (2 * π * I) : ℂ)) (x := z))
+      (by simp [pi_ne_zero, I_ne_zero])]
+  rw [h_star_eq]
+  -- Subtracting the constant `B ε ν` does not change whether the order is negative.
+  have h_const_mero : MeromorphicAt (fun _ ↦ -(B ε ν)) z := MeromorphicAt.const _ z
+  have h_const_nonneg : 0 ≤ meromorphicOrderAt (fun _ ↦ -(B ε ν)) z := by
+    rw [meromorphicOrderAt_const]; split_ifs <;> simp
+  have h_drop : meromorphicOrderAt (fun z ↦ g z - B ε ν) z < 0
+      ↔ meromorphicOrderAt g z < 0 := by
+    have h_sub_eq : (fun z ↦ g z - B ε ν) = g + (fun _ ↦ -(B ε ν)) := by
+      ext z; simp [sub_eq_add_neg]
+    rw [h_sub_eq]
+    constructor
+    · intro h
+      by_contra hge
+      have hge' : 0 ≤ meromorphicOrderAt g z := not_lt.mp hge
+      have := le_trans (le_min hge' h_const_nonneg) (meromorphicOrderAt_add (hg_mero z) h_const_mero)
+      exact absurd h (not_lt.mpr this)
+    · intro h
+      have h_ne : meromorphicOrderAt g z ≠ meromorphicOrderAt (fun _ ↦ -(B ε ν)) z :=
+        ne_of_lt (lt_of_lt_of_le h h_const_nonneg)
+      rw [meromorphicOrderAt_add_of_ne (hg_mero z) h_const_mero h_ne]
+      exact lt_of_le_of_lt (min_le_left _ _) h
+  rw [h_drop]
+  -- Now relate `order g` to `order (Phi_circ)`, distinguishing the `n = 0` point.
+  set z₀ : ℂ := (0 : ℤ) - I * ν / (2 * π) with hz₀_def
+  by_cases hz : z = z₀
+  · -- At the `n = 0` point the simple zero of `w` cancels the simple pole of `Phi_circ`.
+    subst hz
+    have h_circ_ord : meromorphicOrderAt (Phi_circ ν ε) z₀ = -1 :=
+      (Phi_circ.poles_simple ν ε hν z₀).mpr ⟨0, by simp [hz₀_def]⟩
+    have h_w_ord : meromorphicOrderAt w z₀ = (1 : ℤ) := by
+      rw [meromorphicOrderAt_eq_int_iff (hw_anal z₀).meromorphicAt]
+      refine ⟨fun _ ↦ -2 * π * I, analyticAt_const, by simp [pi_ne_zero, I_ne_zero], ?_⟩
+      filter_upwards [self_mem_nhdsWithin] with ζ _
+      have hwz₀ : w z₀ = 0 := (hw_eq_zero_iff z₀).mpr hz₀_def
+      dsimp [w] at hwz₀ ⊢
+      simp only [zpow_one]
+      linear_combination hwz₀
+    have hg_eq : g = w * Phi_circ ν ε := by rw [hg_def]; rfl
+    have hg_ord : meromorphicOrderAt g z₀ = 0 := by
+      rw [hg_eq, meromorphicOrderAt_mul (hw_anal z₀).meromorphicAt (Phi_circ.meromorphic ν ε z₀),
+        h_w_ord, h_circ_ord]
+      decide
+    rw [hg_ord]
+    constructor
+    · intro h; exact absurd h (by decide)
+    · rintro ⟨n, hn, hzn⟩
+      exfalso
+      apply hn
+      have hzn' : ((0 : ℤ) : ℂ) - I * ν / (2 * π) = (n : ℂ) - I * ν / (2 * π) := by
+        rw [← hz₀_def]; exact hzn
+      have : (n : ℂ) = 0 := by push_cast at hzn'; linear_combination -hzn'
+      exact_mod_cast this
+  · -- Away from the `n = 0` point, `w z ≠ 0`, so `order g = order (Phi_circ)`.
+    have hwz : w z ≠ 0 := by rw [Ne, hw_eq_zero_iff z]; exact hz
+    have hg_eq : g = w * Phi_circ ν ε := by rw [hg_def]; rfl
+    have hg_ord : meromorphicOrderAt g z = meromorphicOrderAt (Phi_circ ν ε) z := by
+      rw [hg_eq]
+      exact meromorphicOrderAt_mul_of_ne_zero (hw_anal z) hwz
+    rw [hg_ord, Phi_circ.poles ν ε hν z]
+    constructor
+    · rintro ⟨n, hzn⟩
+      refine ⟨n, ?_, hzn⟩
+      rintro rfl
+      apply hz
+      rw [hz₀_def]; push_cast; simpa using hzn
+    · rintro ⟨n, _, hzn⟩
+      exact ⟨n, hzn⟩
 
 @[blueprint
   "Phi-star-residues"
