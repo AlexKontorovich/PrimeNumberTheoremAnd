@@ -730,9 +730,7 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
   \]
   -/)
-  (proof := /--
-  Specialize Abel summation from Mathlib to the trivial arithmetic function and then manipulate
-  integrals.
+  (proof := /-- This is first order Euler-Maclaurin.
   -/)
   (latexEnv := "lemma")]
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b : a < b)
