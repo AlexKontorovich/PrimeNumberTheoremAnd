@@ -24,17 +24,17 @@ private lemma row60_a1_le : Inputs.default.a₁ (60 : ℝ) ≤ (1.00000002 : ℝ
 
 private lemma row60_a2_le : Inputs.default.a₂ (60 : ℝ) ≤ (89 : ℝ) := by
   have h := a2_crude_le 60 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(60 : ℝ) / log 2⌋₊ : ℝ) ≤ 60 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (60 : ℝ) / log 2 ≤ 87 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 60
       ≤ (1 + Inputs.default.α) * ((⌊(60 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (87 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (87 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 89 := by norm_num
 
 private lemma row60_eps_le : Inputs.default.ε (60 : ℝ) ≤ 1.2216e-11 :=
@@ -121,7 +121,7 @@ private lemma row19_a1_le : Inputs.default.a₁ (19 * log 10) ≤ (1.00000002 : 
 
 private lemma row19_a2_le : Inputs.default.a₂ (19 * log 10) ≤ (66 : ℝ) := by
   have h := a2_crude_le (19 * log 10) (by linarith [r19_ge20])
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(19 * log 10) / log 2⌋₊ : ℝ) ≤ (19 * log 10) / log 2 := Nat.floor_le (by positivity)
   have hdiv : (19 * log 10) / log 2 ≤ 64 := by
     rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [r19_le_4375, hlog2]
@@ -130,8 +130,8 @@ private lemma row19_a2_le : Inputs.default.a₂ (19 * log 10) ≤ (66 : ℝ) := 
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ (19 * log 10)
       ≤ (1 + Inputs.default.α) * ((⌊(19 * log 10) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (64 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (64 + 1) :=
+        mul_le_mul (by linarith) (by linarith [hfloor, hdiv]) (by positivity) (by linarith)
     _ ≤ 66 := by norm_num
 
 private lemma row19_eps_le : Inputs.default.ε (19 * log 10) ≤ (1.9339e-8 : ℝ) := by
