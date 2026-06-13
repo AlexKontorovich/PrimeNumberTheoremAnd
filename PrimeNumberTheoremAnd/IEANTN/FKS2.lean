@@ -1547,10 +1547,10 @@ private lemma nu_asymp_bound_30 : ν_asymp 121.096 (3 / 2 : ℝ) 2 5.5666305 (Re
       (1 / (121.096 : ℝ)) * (5.5666305 / 30) ^ (3 / 2 : ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305)) ≤ 0.06865 := coeff_bound_30
   have ha1 : BKLNW.a₁ 30 ≤ 1 + 1.9339e-8 := bklnw_a1_30_le
   have ha2 : BKLNW.a₂ 30 ≤ 42.42 := bklnw_a2_30_le
-  have h15 : Real.exp (-15 : ℝ) ≤ (1 / 3250000 : ℝ) := by
-    interval_decide
-  have h20 : Real.exp (-20 : ℝ) ≤ (1 / 460000000 : ℝ) := by
-    interval_decide
+  have h15 : Real.exp (-15 : ℝ) ≤ (1 / 3250000 : ℝ) :=
+    (le_of_lt (LogTables.exp_neg_15_lt.trans_le (by norm_num)))
+  have h20 : Real.exp (-20 : ℝ) ≤ (1 / 460000000 : ℝ) :=
+    (le_of_lt (LogTables.exp_neg_20_lt.trans_le (by norm_num)))
   let coeff : ℝ := (1 / (121.096 : ℝ)) * (5.5666305 / 30) ^ (3 / 2 : ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305))
   let c1 : ℝ := 1 + 1.9339e-8
   let c2 : ℝ := 42.42
@@ -3217,10 +3217,7 @@ private lemma integral_one_div_log_sq_le_const {x₁ s : ℝ} (hx₁ : 1 < x₁)
 
 private lemma log_gt_two_of_ge_14 {x₁ : ℝ} (h : 14 ≤ x₁) : 2 < Real.log x₁ := by
   have : (2 : ℝ) < Real.log 14 := by
-    rw [show (2 : ℝ) = Real.log (Real.exp 2) from (Real.log_exp 2).symm]
-    apply Real.log_lt_log (Real.exp_pos 2)
-    have hlt8 : Real.exp 2 < 8 := by interval_decide
-    linarith
+    rw [LogTables.log_14]; linarith [LogTables.log_2_gt, LogTables.log_7_gt]
   exact this.trans_le (Real.log_le_log (by norm_num) h)
 
 lemma hasDerivAt_id_div_log_sq {s : ℝ} (hs : 1 < s) :
@@ -4210,12 +4207,13 @@ theorem mu_asymp_num_le {A : ℝ} (hA : 1 ≤ A) :
   have hs_hi : Real.sqrt 20000 ≤ (141.4213563 : ℝ) := by
     have h := Real.sqrt_le_sqrt (show (20000:ℝ) ≤ 141.4213563 ^ 2 by norm_num)
     rwa [Real.sqrt_sq (by norm_num : (0:ℝ) ≤ 141.4213563)] at h
-  have hexp32 : Real.exp (-(32:ℝ)) ≤ (1.3e-14 : ℝ) := by interval_decide
+  have hexp32 : Real.exp (-(32:ℝ)) ≤ (1.3e-14 : ℝ) :=
+    (le_of_lt (LogTables.exp_neg_32_lt.trans_le (by norm_num)))
   have hexpw : Real.exp ((0.117:ℝ) ^ 2) ≤ (1.0138790 : ℝ) := by
     rw [show ((0.117:ℝ)) ^ 2 = 13689 / 1000000 by norm_num]
     interval_decide
-  have hlog2_lo : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
-  have hlog2_hi : Real.log 2 < (0.6931471808 : ℝ) := Real.log_two_lt_d9
+  have hlog2_lo : (0.6931471803 : ℝ) < Real.log 2 := LogTables.log_2_gt_d9
+  have hlog2_hi : Real.log 2 < (0.6931471808 : ℝ) := LogTables.log_2_lt_d9
   unfold μ_asymp
   rw [Real.log_exp, Real.sqrt_one]
   -- ===== Term 1 =====

@@ -1312,14 +1312,14 @@ theorem table_12_check (b Cb1 Cb2 Cb3 Cb4 Cb5 c C M : ℝ)
   all_goals try
     (refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> (simp only [C_bk_S, RS_prime.c₀]; interval_decide; done))
   · -- row b = Real.log 5e10  (log 5e10 ≈ 24.63528884)
-    have hlo : (24.6352888 : ℝ) ≤ Real.log 5e10 := by interval_decide
-    have hhi : Real.log 5e10 ≤ (24.6352889 : ℝ) := by interval_decide
+    have hlo : (24.6352888 : ℝ) ≤ Real.log 5e10 := LogTables.log_5e10_gt
+    have hhi : Real.log 5e10 ≤ (24.6352889 : ℝ) := LogTables.log_5e10_lt
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
       exact C_bk_log_row_bound 24.6352888 24.6352889 hlo hhi (by norm_num) (by norm_num)
         (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
   · -- row b = Real.log (32e12)  (log 32e12 ≈ 31.09675702)
-    have hlo : (31.0967570 : ℝ) ≤ Real.log (32e12) := by interval_decide
-    have hhi : Real.log (32e12) ≤ (31.0967571 : ℝ) := by interval_decide
+    have hlo : (31.0967570 : ℝ) ≤ Real.log (32e12) := LogTables.log_32e12_gt
+    have hhi : Real.log (32e12) ≤ (31.0967571 : ℝ) := LogTables.log_32e12_lt
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
       exact C_bk_log_row_bound 31.0967570 31.0967571 hlo hhi (by norm_num) (by norm_num)
         (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
