@@ -706,18 +706,6 @@ lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
   rw [← cpow_add _ _ <| mod_cast x_ne, neg_add_cancel, cpow_zero]
 
-lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
-    (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
-/-
-instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
--/
-  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ))) ?_ ?_ ?_ fun _ _ ↦ rfl
-  · intro x hx; simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢; exact hx
-  · intro x₁ _ x₂ _ h; simp only [Nat.cast_inj] at h; exact h
-  · intro x hx
-    simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
-    lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
-
 @[blueprint
   (title := "sum-eq-int-deriv")
   (statement := /--
@@ -736,15 +724,11 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
-    ∑ n ∈ Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
+    ∑ n ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊, φ n =
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   rw [uIcc_of_le a_lt_b.le] at φDiff
   convert sum_eq_integral_add_integral_deriv apos a_lt_b.le (fun t ht ↦ (φDiff t ht).differentiableAt) derivφCont using 1
-  · have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
-    rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
-    rw [← coe]
-    norm_cast
   · unfold B1
     rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
     push_cast
@@ -822,7 +806,7 @@ set_option backward.isDefEq.respectTransparency false in
   (proof := /-- Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$. -/)
   (latexEnv := "lemma")]
 lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠ 0) (ha : a ∈ Ioo 0 b) :
-    ∑ n ∈ Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
+    ∑ n ∈ Finset.Ioc a b, 1 / (n : ℂ) ^ s =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
@@ -834,7 +818,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
     exact fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero (xpos x hx)
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero ha
   convert sum_eq_int_deriv (by linarith) (by exact_mod_cast ha.2) φDiff derivφCont using 1
-  · congr <;> simp only [Int.floor_natCast]
+  · congr <;> simp only [Nat.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
     simp_rw [mul_div, ← mul_div, φ, ZetaSum_aux1₁ s_ne_one ha]
     conv => rhs; rw [sub_eq_add_neg]
@@ -1050,8 +1034,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     · apply Filter.eventually_atTop.mpr
       use N + 1
       intro k hk
-      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
-      convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
+      exact ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩
     · exact ZetaSum_aux3 s_re_gt
   · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
     · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
