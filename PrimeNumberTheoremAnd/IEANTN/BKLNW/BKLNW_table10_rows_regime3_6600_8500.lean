@@ -10,6 +10,50 @@ namespace BKLNW
 
 open Real Set Finset
 
+/-! ## Cached exp(-x) bounds shared across this file's k-margin theorems. -/
+
+private lemma exp_neg_3300_lt : Real.exp (-(3300 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3350_lt : Real.exp (-(3350 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3400_lt : Real.exp (-(3400 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3450_lt : Real.exp (-(3450 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3500_lt : Real.exp (-(3500 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3550_lt : Real.exp (-(3550 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3600_lt : Real.exp (-(3600 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3650_lt : Real.exp (-(3650 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3700_lt : Real.exp (-(3700 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3750_lt : Real.exp (-(3750 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3800_lt : Real.exp (-(3800 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3850_lt : Real.exp (-(3850 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3900_lt : Real.exp (-(3900 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_3950_lt : Real.exp (-(3950 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4000_lt : Real.exp (-(4000 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4050_lt : Real.exp (-(4050 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4100_lt : Real.exp (-(4100 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4150_lt : Real.exp (-(4150 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4200_lt : Real.exp (-(4200 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4250_lt : Real.exp (-(4250 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4400_lt : Real.exp (-(4400 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_13400_3_lt : Real.exp (-(13400/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_13600_3_lt : Real.exp (-(13600/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4600_lt : Real.exp (-(4600 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_14000_3_lt : Real.exp (-(14000/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_14200_3_lt : Real.exp (-(14200/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_4800_lt : Real.exp (-(4800 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_14600_3_lt : Real.exp (-(14600/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_14800_3_lt : Real.exp (-(14800/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_5000_lt : Real.exp (-(5000 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_15200_3_lt : Real.exp (-(15200/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_15400_3_lt : Real.exp (-(15400/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_5200_lt : Real.exp (-(5200 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_15800_3_lt : Real.exp (-(15800/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_16000_3_lt : Real.exp (-(16000/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_5400_lt : Real.exp (-(5400 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_16400_3_lt : Real.exp (-(16400/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_16600_3_lt : Real.exp (-(16600/3 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_5600_lt : Real.exp (-(5600 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_17000_3_lt : Real.exp (-(17000/3 : ℝ)) < 1e-100 := by interval_decide
+
+
 
 private lemma logx1_lt_44 : log Inputs.default.x₁ < 44 := by
   change log (1e19 : ℝ) < 44
@@ -571,7 +615,9 @@ theorem table_10_row6600_k1_margin :
     (0.00000000000000000097287 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6600_a2_le row6600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3300_lt, exp_neg_4400_lt,
+                   Real.exp_pos (-(3300:ℝ)), Real.exp_pos (-(4400:ℝ))])
 
 
 /-- Row 6600 (k = 2), exact Table-10 margin target. -/
@@ -581,7 +627,9 @@ theorem table_10_row6600_k2_margin :
     (0.0000000000000065182 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6600_a2_le row6600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3300_lt, exp_neg_4400_lt,
+                   Real.exp_pos (-(3300:ℝ)), Real.exp_pos (-(4400:ℝ))])
 
 
 /-- Row 6600 (k = 3), exact Table-10 margin target. -/
@@ -591,7 +639,9 @@ theorem table_10_row6600_k3_margin :
     (0.000000000043672 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6600_a2_le row6600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3300_lt, exp_neg_4400_lt,
+                   Real.exp_pos (-(3300:ℝ)), Real.exp_pos (-(4400:ℝ))])
 
 
 /-- Row 6600 (k = 4), exact Table-10 margin target. -/
@@ -601,7 +651,9 @@ theorem table_10_row6600_k4_margin :
     (0.00000029260 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6600_a2_le row6600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3300_lt, exp_neg_4400_lt,
+                   Real.exp_pos (-(3300:ℝ)), Real.exp_pos (-(4400:ℝ))])
 
 
 /-- Row 6600 (k = 5), exact Table-10 margin target. -/
@@ -611,7 +663,9 @@ theorem table_10_row6600_k5_margin :
     (0.0019604 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6600_a2_le row6600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3300_lt, exp_neg_4400_lt,
+                   Real.exp_pos (-(3300:ℝ)), Real.exp_pos (-(4400:ℝ))])
 
 
 /-- Row 6700 (k = 1), exact Table-10 margin target. -/
@@ -621,7 +675,9 @@ theorem table_10_row6700_k1_margin :
     (0.00000000000000000060447 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6700_a2_le row6700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3350_lt, exp_neg_13400_3_lt,
+                   Real.exp_pos (-(3350:ℝ)), Real.exp_pos (-(13400/3:ℝ))])
 
 
 /-- Row 6700 (k = 2), exact Table-10 margin target. -/
@@ -631,7 +687,9 @@ theorem table_10_row6700_k2_margin :
     (0.0000000000000041104 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6700_a2_le row6700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3350_lt, exp_neg_13400_3_lt,
+                   Real.exp_pos (-(3350:ℝ)), Real.exp_pos (-(13400/3:ℝ))])
 
 
 /-- Row 6700 (k = 3), exact Table-10 margin target. -/
@@ -641,7 +699,9 @@ theorem table_10_row6700_k3_margin :
     (0.000000000027951 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6700_a2_le row6700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3350_lt, exp_neg_13400_3_lt,
+                   Real.exp_pos (-(3350:ℝ)), Real.exp_pos (-(13400/3:ℝ))])
 
 
 /-- Row 6700 (k = 4), exact Table-10 margin target. -/
@@ -651,7 +711,9 @@ theorem table_10_row6700_k4_margin :
     (0.00000019007 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6700_a2_le row6700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3350_lt, exp_neg_13400_3_lt,
+                   Real.exp_pos (-(3350:ℝ)), Real.exp_pos (-(13400/3:ℝ))])
 
 
 /-- Row 6700 (k = 5), exact Table-10 margin target. -/
@@ -661,7 +723,9 @@ theorem table_10_row6700_k5_margin :
     (0.0012924 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6700_a2_le row6700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3350_lt, exp_neg_13400_3_lt,
+                   Real.exp_pos (-(3350:ℝ)), Real.exp_pos (-(13400/3:ℝ))])
 
 
 /-- Row 6800 (k = 1), exact Table-10 margin target. -/
@@ -671,7 +735,9 @@ theorem table_10_row6800_k1_margin :
     (0.00000000000000000037651 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6800_a2_le row6800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3400_lt, exp_neg_13600_3_lt,
+                   Real.exp_pos (-(3400:ℝ)), Real.exp_pos (-(13600/3:ℝ))])
 
 
 /-- Row 6800 (k = 2), exact Table-10 margin target. -/
@@ -681,7 +747,9 @@ theorem table_10_row6800_k2_margin :
     (0.0000000000000025979 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6800_a2_le row6800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3400_lt, exp_neg_13600_3_lt,
+                   Real.exp_pos (-(3400:ℝ)), Real.exp_pos (-(13600/3:ℝ))])
 
 
 /-- Row 6800 (k = 3), exact Table-10 margin target. -/
@@ -691,7 +759,9 @@ theorem table_10_row6800_k3_margin :
     (0.000000000017926 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6800_a2_le row6800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3400_lt, exp_neg_13600_3_lt,
+                   Real.exp_pos (-(3400:ℝ)), Real.exp_pos (-(13600/3:ℝ))])
 
 
 /-- Row 6800 (k = 4), exact Table-10 margin target. -/
@@ -701,7 +771,9 @@ theorem table_10_row6800_k4_margin :
     (0.00000012369 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6800_a2_le row6800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3400_lt, exp_neg_13600_3_lt,
+                   Real.exp_pos (-(3400:ℝ)), Real.exp_pos (-(13600/3:ℝ))])
 
 
 /-- Row 6800 (k = 5), exact Table-10 margin target. -/
@@ -711,7 +783,9 @@ theorem table_10_row6800_k5_margin :
     (0.00085344 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6800_a2_le row6800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3400_lt, exp_neg_13600_3_lt,
+                   Real.exp_pos (-(3400:ℝ)), Real.exp_pos (-(13600/3:ℝ))])
 
 
 /-- Row 6900 (k = 1), exact Table-10 margin target. -/
@@ -721,7 +795,9 @@ theorem table_10_row6900_k1_margin :
     (0.00000000000000000023554 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6900_a2_le row6900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3450_lt, exp_neg_4600_lt,
+                   Real.exp_pos (-(3450:ℝ)), Real.exp_pos (-(4600:ℝ))])
 
 
 /-- Row 6900 (k = 2), exact Table-10 margin target. -/
@@ -731,7 +807,9 @@ theorem table_10_row6900_k2_margin :
     (0.0000000000000016488 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6900_a2_le row6900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3450_lt, exp_neg_4600_lt,
+                   Real.exp_pos (-(3450:ℝ)), Real.exp_pos (-(4600:ℝ))])
 
 
 /-- Row 6900 (k = 3), exact Table-10 margin target. -/
@@ -741,7 +819,9 @@ theorem table_10_row6900_k3_margin :
     (0.000000000011542 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6900_a2_le row6900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3450_lt, exp_neg_4600_lt,
+                   Real.exp_pos (-(3450:ℝ)), Real.exp_pos (-(4600:ℝ))])
 
 
 /-- Row 6900 (k = 4), exact Table-10 margin target. -/
@@ -751,7 +831,9 @@ theorem table_10_row6900_k4_margin :
     (0.000000080791 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6900_a2_le row6900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3450_lt, exp_neg_4600_lt,
+                   Real.exp_pos (-(3450:ℝ)), Real.exp_pos (-(4600:ℝ))])
 
 
 /-- Row 6900 (k = 5), exact Table-10 margin target. -/
@@ -761,7 +843,9 @@ theorem table_10_row6900_k5_margin :
     (0.00056554 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row6900_a2_le row6900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3450_lt, exp_neg_4600_lt,
+                   Real.exp_pos (-(3450:ℝ)), Real.exp_pos (-(4600:ℝ))])
 
 
 /-- Row 7000 (k = 1), exact Table-10 margin target. -/
@@ -771,7 +855,9 @@ theorem table_10_row7000_k1_margin :
     (0.00000000000000000014744 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7000_a2_le row7000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3500_lt, exp_neg_14000_3_lt,
+                   Real.exp_pos (-(3500:ℝ)), Real.exp_pos (-(14000/3:ℝ))])
 
 
 /-- Row 7000 (k = 2), exact Table-10 margin target. -/
@@ -781,7 +867,9 @@ theorem table_10_row7000_k2_margin :
     (0.0000000000000010468 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7000_a2_le row7000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3500_lt, exp_neg_14000_3_lt,
+                   Real.exp_pos (-(3500:ℝ)), Real.exp_pos (-(14000/3:ℝ))])
 
 
 /-- Row 7000 (k = 3), exact Table-10 margin target. -/
@@ -791,7 +879,9 @@ theorem table_10_row7000_k3_margin :
     (0.0000000000074322 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7000_a2_le row7000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3500_lt, exp_neg_14000_3_lt,
+                   Real.exp_pos (-(3500:ℝ)), Real.exp_pos (-(14000/3:ℝ))])
 
 
 /-- Row 7000 (k = 4), exact Table-10 margin target. -/
@@ -801,7 +891,9 @@ theorem table_10_row7000_k4_margin :
     (0.000000052769 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7000_a2_le row7000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3500_lt, exp_neg_14000_3_lt,
+                   Real.exp_pos (-(3500:ℝ)), Real.exp_pos (-(14000/3:ℝ))])
 
 
 /-- Row 7000 (k = 5), exact Table-10 margin target. -/
@@ -811,7 +903,9 @@ theorem table_10_row7000_k5_margin :
     (0.00037466 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7000_a2_le row7000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3500_lt, exp_neg_14000_3_lt,
+                   Real.exp_pos (-(3500:ℝ)), Real.exp_pos (-(14000/3:ℝ))])
 
 
 /-- Row 7100 (k = 1), exact Table-10 margin target. -/
@@ -821,7 +915,9 @@ theorem table_10_row7100_k1_margin :
     (0.000000000000000000092826 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7100_a2_le row7100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3550_lt, exp_neg_14200_3_lt,
+                   Real.exp_pos (-(3550:ℝ)), Real.exp_pos (-(14200/3:ℝ))])
 
 
 /-- Row 7100 (k = 2), exact Table-10 margin target. -/
@@ -831,7 +927,9 @@ theorem table_10_row7100_k2_margin :
     (0.00000000000000066834 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7100_a2_le row7100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3550_lt, exp_neg_14200_3_lt,
+                   Real.exp_pos (-(3550:ℝ)), Real.exp_pos (-(14200/3:ℝ))])
 
 
 /-- Row 7100 (k = 3), exact Table-10 margin target. -/
@@ -841,7 +939,9 @@ theorem table_10_row7100_k3_margin :
     (0.0000000000048121 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7100_a2_le row7100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3550_lt, exp_neg_14200_3_lt,
+                   Real.exp_pos (-(3550:ℝ)), Real.exp_pos (-(14200/3:ℝ))])
 
 
 /-- Row 7100 (k = 4), exact Table-10 margin target. -/
@@ -851,7 +951,9 @@ theorem table_10_row7100_k4_margin :
     (0.000000034647 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7100_a2_le row7100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3550_lt, exp_neg_14200_3_lt,
+                   Real.exp_pos (-(3550:ℝ)), Real.exp_pos (-(14200/3:ℝ))])
 
 
 /-- Row 7100 (k = 5), exact Table-10 margin target. -/
@@ -861,7 +963,9 @@ theorem table_10_row7100_k5_margin :
     (0.00024946 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7100_a2_le row7100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3550_lt, exp_neg_14200_3_lt,
+                   Real.exp_pos (-(3550:ℝ)), Real.exp_pos (-(14200/3:ℝ))])
 
 
 /-- Row 7200 (k = 1), exact Table-10 margin target. -/
@@ -871,7 +975,9 @@ theorem table_10_row7200_k1_margin :
     (0.000000000000000000058601 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7200_a2_le row7200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3600_lt, exp_neg_4800_lt,
+                   Real.exp_pos (-(3600:ℝ)), Real.exp_pos (-(4800:ℝ))])
 
 
 /-- Row 7200 (k = 2), exact Table-10 margin target. -/
@@ -881,7 +987,9 @@ theorem table_10_row7200_k2_margin :
     (0.00000000000000042779 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7200_a2_le row7200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3600_lt, exp_neg_4800_lt,
+                   Real.exp_pos (-(3600:ℝ)), Real.exp_pos (-(4800:ℝ))])
 
 
 /-- Row 7200 (k = 3), exact Table-10 margin target. -/
@@ -891,7 +999,9 @@ theorem table_10_row7200_k3_margin :
     (0.0000000000031229 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7200_a2_le row7200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3600_lt, exp_neg_4800_lt,
+                   Real.exp_pos (-(3600:ℝ)), Real.exp_pos (-(4800:ℝ))])
 
 
 /-- Row 7200 (k = 4), exact Table-10 margin target. -/
@@ -901,7 +1011,9 @@ theorem table_10_row7200_k4_margin :
     (0.000000022797 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7200_a2_le row7200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3600_lt, exp_neg_4800_lt,
+                   Real.exp_pos (-(3600:ℝ)), Real.exp_pos (-(4800:ℝ))])
 
 
 /-- Row 7200 (k = 5), exact Table-10 margin target. -/
@@ -911,7 +1023,9 @@ theorem table_10_row7200_k5_margin :
     (0.00016642 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7200_a2_le row7200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3600_lt, exp_neg_4800_lt,
+                   Real.exp_pos (-(3600:ℝ)), Real.exp_pos (-(4800:ℝ))])
 
 
 /-- Row 7300 (k = 1), exact Table-10 margin target. -/
@@ -921,7 +1035,9 @@ theorem table_10_row7300_k1_margin :
     (0.000000000000000000037014 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7300_a2_le row7300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3650_lt, exp_neg_14600_3_lt,
+                   Real.exp_pos (-(3650:ℝ)), Real.exp_pos (-(14600/3:ℝ))])
 
 
 /-- Row 7300 (k = 2), exact Table-10 margin target. -/
@@ -931,7 +1047,9 @@ theorem table_10_row7300_k2_margin :
     (0.00000000000000027390 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7300_a2_le row7300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3650_lt, exp_neg_14600_3_lt,
+                   Real.exp_pos (-(3650:ℝ)), Real.exp_pos (-(14600/3:ℝ))])
 
 
 /-- Row 7300 (k = 3), exact Table-10 margin target. -/
@@ -941,7 +1059,9 @@ theorem table_10_row7300_k3_margin :
     (0.0000000000020269 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7300_a2_le row7300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3650_lt, exp_neg_14600_3_lt,
+                   Real.exp_pos (-(3650:ℝ)), Real.exp_pos (-(14600/3:ℝ))])
 
 
 /-- Row 7300 (k = 4), exact Table-10 margin target. -/
@@ -951,7 +1071,9 @@ theorem table_10_row7300_k4_margin :
     (0.000000014999 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7300_a2_le row7300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3650_lt, exp_neg_14600_3_lt,
+                   Real.exp_pos (-(3650:ℝ)), Real.exp_pos (-(14600/3:ℝ))])
 
 
 /-- Row 7300 (k = 5), exact Table-10 margin target. -/
@@ -961,7 +1083,9 @@ theorem table_10_row7300_k5_margin :
     (0.00011099 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7300_a2_le row7300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3650_lt, exp_neg_14600_3_lt,
+                   Real.exp_pos (-(3650:ℝ)), Real.exp_pos (-(14600/3:ℝ))])
 
 
 /-- Row 7400 (k = 1), exact Table-10 margin target. -/
@@ -971,7 +1095,9 @@ theorem table_10_row7400_k1_margin :
     (0.000000000000000000023488 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7400_a2_le row7400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3700_lt, exp_neg_14800_3_lt,
+                   Real.exp_pos (-(3700:ℝ)), Real.exp_pos (-(14800/3:ℝ))])
 
 
 /-- Row 7400 (k = 2), exact Table-10 margin target. -/
@@ -981,7 +1107,9 @@ theorem table_10_row7400_k2_margin :
     (0.00000000000000017616 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7400_a2_le row7400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3700_lt, exp_neg_14800_3_lt,
+                   Real.exp_pos (-(3700:ℝ)), Real.exp_pos (-(14800/3:ℝ))])
 
 
 /-- Row 7400 (k = 3), exact Table-10 margin target. -/
@@ -991,7 +1119,9 @@ theorem table_10_row7400_k3_margin :
     (0.0000000000013212 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7400_a2_le row7400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3700_lt, exp_neg_14800_3_lt,
+                   Real.exp_pos (-(3700:ℝ)), Real.exp_pos (-(14800/3:ℝ))])
 
 
 /-- Row 7400 (k = 4), exact Table-10 margin target. -/
@@ -1001,7 +1131,9 @@ theorem table_10_row7400_k4_margin :
     (0.0000000099091 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7400_a2_le row7400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3700_lt, exp_neg_14800_3_lt,
+                   Real.exp_pos (-(3700:ℝ)), Real.exp_pos (-(14800/3:ℝ))])
 
 
 /-- Row 7400 (k = 5), exact Table-10 margin target. -/
@@ -1011,7 +1143,9 @@ theorem table_10_row7400_k5_margin :
     (0.000074318 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7400_a2_le row7400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3700_lt, exp_neg_14800_3_lt,
+                   Real.exp_pos (-(3700:ℝ)), Real.exp_pos (-(14800/3:ℝ))])
 
 
 /-- Row 7500 (k = 1), exact Table-10 margin target. -/
@@ -1021,7 +1155,9 @@ theorem table_10_row7500_k1_margin :
     (0.000000000000000000014907 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7500_a2_le row7500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3750_lt, exp_neg_5000_lt,
+                   Real.exp_pos (-(3750:ℝ)), Real.exp_pos (-(5000:ℝ))])
 
 
 /-- Row 7500 (k = 2), exact Table-10 margin target. -/
@@ -1031,7 +1167,9 @@ theorem table_10_row7500_k2_margin :
     (0.00000000000000011330 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7500_a2_le row7500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3750_lt, exp_neg_5000_lt,
+                   Real.exp_pos (-(3750:ℝ)), Real.exp_pos (-(5000:ℝ))])
 
 
 /-- Row 7500 (k = 3), exact Table-10 margin target. -/
@@ -1041,7 +1179,9 @@ theorem table_10_row7500_k3_margin :
     (0.00000000000086105 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7500_a2_le row7500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3750_lt, exp_neg_5000_lt,
+                   Real.exp_pos (-(3750:ℝ)), Real.exp_pos (-(5000:ℝ))])
 
 
 /-- Row 7500 (k = 4), exact Table-10 margin target. -/
@@ -1051,7 +1191,9 @@ theorem table_10_row7500_k4_margin :
     (0.0000000065440 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7500_a2_le row7500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3750_lt, exp_neg_5000_lt,
+                   Real.exp_pos (-(3750:ℝ)), Real.exp_pos (-(5000:ℝ))])
 
 
 /-- Row 7500 (k = 5), exact Table-10 margin target. -/
@@ -1061,7 +1203,9 @@ theorem table_10_row7500_k5_margin :
     (0.000049734 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7500_a2_le row7500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3750_lt, exp_neg_5000_lt,
+                   Real.exp_pos (-(3750:ℝ)), Real.exp_pos (-(5000:ℝ))])
 
 
 /-- Row 7600 (k = 1), exact Table-10 margin target. -/
@@ -1071,7 +1215,9 @@ theorem table_10_row7600_k1_margin :
     (0.0000000000000000000094822 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7600_a2_le row7600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3800_lt, exp_neg_15200_3_lt,
+                   Real.exp_pos (-(3800:ℝ)), Real.exp_pos (-(15200/3:ℝ))])
 
 
 /-- Row 7600 (k = 2), exact Table-10 margin target. -/
@@ -1081,7 +1227,9 @@ theorem table_10_row7600_k2_margin :
     (0.000000000000000073013 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7600_a2_le row7600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3800_lt, exp_neg_15200_3_lt,
+                   Real.exp_pos (-(3800:ℝ)), Real.exp_pos (-(15200/3:ℝ))])
 
 
 /-- Row 7600 (k = 3), exact Table-10 margin target. -/
@@ -1091,7 +1239,9 @@ theorem table_10_row7600_k3_margin :
     (0.00000000000056220 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7600_a2_le row7600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3800_lt, exp_neg_15200_3_lt,
+                   Real.exp_pos (-(3800:ℝ)), Real.exp_pos (-(15200/3:ℝ))])
 
 
 /-- Row 7600 (k = 4), exact Table-10 margin target. -/
@@ -1101,7 +1251,9 @@ theorem table_10_row7600_k4_margin :
     (0.0000000043289 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7600_a2_le row7600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3800_lt, exp_neg_15200_3_lt,
+                   Real.exp_pos (-(3800:ℝ)), Real.exp_pos (-(15200/3:ℝ))])
 
 
 /-- Row 7600 (k = 5), exact Table-10 margin target. -/
@@ -1111,7 +1263,9 @@ theorem table_10_row7600_k5_margin :
     (0.000033333 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7600_a2_le row7600_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3800_lt, exp_neg_15200_3_lt,
+                   Real.exp_pos (-(3800:ℝ)), Real.exp_pos (-(15200/3:ℝ))])
 
 
 /-- Row 7700 (k = 1), exact Table-10 margin target. -/
@@ -1121,7 +1275,9 @@ theorem table_10_row7700_k1_margin :
     (0.0000000000000000000060569 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7700_a2_le row7700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3850_lt, exp_neg_15400_3_lt,
+                   Real.exp_pos (-(3850:ℝ)), Real.exp_pos (-(15400/3:ℝ))])
 
 
 /-- Row 7700 (k = 2), exact Table-10 margin target. -/
@@ -1131,7 +1287,9 @@ theorem table_10_row7700_k2_margin :
     (0.000000000000000047244 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7700_a2_le row7700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3850_lt, exp_neg_15400_3_lt,
+                   Real.exp_pos (-(3850:ℝ)), Real.exp_pos (-(15400/3:ℝ))])
 
 
 /-- Row 7700 (k = 3), exact Table-10 margin target. -/
@@ -1141,7 +1299,9 @@ theorem table_10_row7700_k3_margin :
     (0.00000000000036850 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7700_a2_le row7700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3850_lt, exp_neg_15400_3_lt,
+                   Real.exp_pos (-(3850:ℝ)), Real.exp_pos (-(15400/3:ℝ))])
 
 
 /-- Row 7700 (k = 4), exact Table-10 margin target. -/
@@ -1151,7 +1311,9 @@ theorem table_10_row7700_k4_margin :
     (0.0000000028743 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7700_a2_le row7700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3850_lt, exp_neg_15400_3_lt,
+                   Real.exp_pos (-(3850:ℝ)), Real.exp_pos (-(15400/3:ℝ))])
 
 
 /-- Row 7700 (k = 5), exact Table-10 margin target. -/
@@ -1161,7 +1323,9 @@ theorem table_10_row7700_k5_margin :
     (0.000022420 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7700_a2_le row7700_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3850_lt, exp_neg_15400_3_lt,
+                   Real.exp_pos (-(3850:ℝ)), Real.exp_pos (-(15400/3:ℝ))])
 
 
 /-- Row 7800 (k = 1), exact Table-10 margin target. -/
@@ -1171,7 +1335,9 @@ theorem table_10_row7800_k1_margin :
     (0.0000000000000000000038811 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7800_a2_le row7800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3900_lt, exp_neg_5200_lt,
+                   Real.exp_pos (-(3900:ℝ)), Real.exp_pos (-(5200:ℝ))])
 
 
 /-- Row 7800 (k = 2), exact Table-10 margin target. -/
@@ -1181,7 +1347,9 @@ theorem table_10_row7800_k2_margin :
     (0.000000000000000030661 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7800_a2_le row7800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3900_lt, exp_neg_5200_lt,
+                   Real.exp_pos (-(3900:ℝ)), Real.exp_pos (-(5200:ℝ))])
 
 
 /-- Row 7800 (k = 3), exact Table-10 margin target. -/
@@ -1191,7 +1359,9 @@ theorem table_10_row7800_k3_margin :
     (0.00000000000024222 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7800_a2_le row7800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3900_lt, exp_neg_5200_lt,
+                   Real.exp_pos (-(3900:ℝ)), Real.exp_pos (-(5200:ℝ))])
 
 
 /-- Row 7800 (k = 4), exact Table-10 margin target. -/
@@ -1201,7 +1371,9 @@ theorem table_10_row7800_k4_margin :
     (0.0000000019136 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7800_a2_le row7800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3900_lt, exp_neg_5200_lt,
+                   Real.exp_pos (-(3900:ℝ)), Real.exp_pos (-(5200:ℝ))])
 
 
 /-- Row 7800 (k = 5), exact Table-10 margin target. -/
@@ -1211,7 +1383,9 @@ theorem table_10_row7800_k5_margin :
     (0.000015117 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7800_a2_le row7800_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3900_lt, exp_neg_5200_lt,
+                   Real.exp_pos (-(3900:ℝ)), Real.exp_pos (-(5200:ℝ))])
 
 
 /-- Row 7900 (k = 1), exact Table-10 margin target. -/
@@ -1221,7 +1395,9 @@ theorem table_10_row7900_k1_margin :
     (0.0000000000000000000024928 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7900_a2_le row7900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3950_lt, exp_neg_15800_3_lt,
+                   Real.exp_pos (-(3950:ℝ)), Real.exp_pos (-(15800/3:ℝ))])
 
 
 /-- Row 7900 (k = 2), exact Table-10 margin target. -/
@@ -1231,7 +1407,9 @@ theorem table_10_row7900_k2_margin :
     (0.000000000000000019942 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7900_a2_le row7900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3950_lt, exp_neg_15800_3_lt,
+                   Real.exp_pos (-(3950:ℝ)), Real.exp_pos (-(15800/3:ℝ))])
 
 
 /-- Row 7900 (k = 3), exact Table-10 margin target. -/
@@ -1241,7 +1419,9 @@ theorem table_10_row7900_k3_margin :
     (0.00000000000015954 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7900_a2_le row7900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3950_lt, exp_neg_15800_3_lt,
+                   Real.exp_pos (-(3950:ℝ)), Real.exp_pos (-(15800/3:ℝ))])
 
 
 /-- Row 7900 (k = 4), exact Table-10 margin target. -/
@@ -1251,7 +1431,9 @@ theorem table_10_row7900_k4_margin :
     (0.0000000012763 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7900_a2_le row7900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3950_lt, exp_neg_15800_3_lt,
+                   Real.exp_pos (-(3950:ℝ)), Real.exp_pos (-(15800/3:ℝ))])
 
 
 /-- Row 7900 (k = 5), exact Table-10 margin target. -/
@@ -1261,7 +1443,9 @@ theorem table_10_row7900_k5_margin :
     (0.000010211 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row7900_a2_le row7900_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_3950_lt, exp_neg_15800_3_lt,
+                   Real.exp_pos (-(3950:ℝ)), Real.exp_pos (-(15800/3:ℝ))])
 
 
 /-- Row 8000 (k = 1), exact Table-10 margin target. -/
@@ -1271,7 +1455,9 @@ theorem table_10_row8000_k1_margin :
     (0.0000000000000000000016007 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8000_a2_le row8000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4000_lt, exp_neg_16000_3_lt,
+                   Real.exp_pos (-(4000:ℝ)), Real.exp_pos (-(16000/3:ℝ))])
 
 
 /-- Row 8000 (k = 2), exact Table-10 margin target. -/
@@ -1281,7 +1467,9 @@ theorem table_10_row8000_k2_margin :
     (0.000000000000000012965 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8000_a2_le row8000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4000_lt, exp_neg_16000_3_lt,
+                   Real.exp_pos (-(4000:ℝ)), Real.exp_pos (-(16000/3:ℝ))])
 
 
 /-- Row 8000 (k = 3), exact Table-10 margin target. -/
@@ -1291,7 +1479,9 @@ theorem table_10_row8000_k3_margin :
     (0.00000000000010502 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8000_a2_le row8000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4000_lt, exp_neg_16000_3_lt,
+                   Real.exp_pos (-(4000:ℝ)), Real.exp_pos (-(16000/3:ℝ))])
 
 
 /-- Row 8000 (k = 4), exact Table-10 margin target. -/
@@ -1301,7 +1491,9 @@ theorem table_10_row8000_k4_margin :
     (0.00000000085065 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8000_a2_le row8000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4000_lt, exp_neg_16000_3_lt,
+                   Real.exp_pos (-(4000:ℝ)), Real.exp_pos (-(16000/3:ℝ))])
 
 
 /-- Row 8000 (k = 5), exact Table-10 margin target. -/
@@ -1311,7 +1503,9 @@ theorem table_10_row8000_k5_margin :
     (0.0000068903 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8000_a2_le row8000_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4000_lt, exp_neg_16000_3_lt,
+                   Real.exp_pos (-(4000:ℝ)), Real.exp_pos (-(16000/3:ℝ))])
 
 
 /-- Row 8100 (k = 1), exact Table-10 margin target. -/
@@ -1321,7 +1515,9 @@ theorem table_10_row8100_k1_margin :
     (0.0000000000000000000010326 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8100_a2_le row8100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4050_lt, exp_neg_5400_lt,
+                   Real.exp_pos (-(4050:ℝ)), Real.exp_pos (-(5400:ℝ))])
 
 
 /-- Row 8100 (k = 2), exact Table-10 margin target. -/
@@ -1331,7 +1527,9 @@ theorem table_10_row8100_k2_margin :
     (0.0000000000000000084674 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8100_a2_le row8100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4050_lt, exp_neg_5400_lt,
+                   Real.exp_pos (-(4050:ℝ)), Real.exp_pos (-(5400:ℝ))])
 
 
 /-- Row 8100 (k = 3), exact Table-10 margin target. -/
@@ -1341,7 +1539,9 @@ theorem table_10_row8100_k3_margin :
     (0.000000000000069433 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8100_a2_le row8100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4050_lt, exp_neg_5400_lt,
+                   Real.exp_pos (-(4050:ℝ)), Real.exp_pos (-(5400:ℝ))])
 
 
 /-- Row 8100 (k = 4), exact Table-10 margin target. -/
@@ -1351,7 +1551,9 @@ theorem table_10_row8100_k4_margin :
     (0.00000000056935 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8100_a2_le row8100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4050_lt, exp_neg_5400_lt,
+                   Real.exp_pos (-(4050:ℝ)), Real.exp_pos (-(5400:ℝ))])
 
 
 /-- Row 8100 (k = 5), exact Table-10 margin target. -/
@@ -1361,7 +1563,9 @@ theorem table_10_row8100_k5_margin :
     (0.0000046687 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8100_a2_le row8100_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4050_lt, exp_neg_5400_lt,
+                   Real.exp_pos (-(4050:ℝ)), Real.exp_pos (-(5400:ℝ))])
 
 
 /-- Row 8200 (k = 1), exact Table-10 margin target. -/
@@ -1371,7 +1575,9 @@ theorem table_10_row8200_k1_margin :
     (0.00000000000000000000066828 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8200_a2_le row8200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4100_lt, exp_neg_16400_3_lt,
+                   Real.exp_pos (-(4100:ℝ)), Real.exp_pos (-(16400/3:ℝ))])
 
 
 /-- Row 8200 (k = 2), exact Table-10 margin target. -/
@@ -1381,7 +1587,9 @@ theorem table_10_row8200_k2_margin :
     (0.0000000000000000055467 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8200_a2_le row8200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4100_lt, exp_neg_16400_3_lt,
+                   Real.exp_pos (-(4100:ℝ)), Real.exp_pos (-(16400/3:ℝ))])
 
 
 /-- Row 8200 (k = 3), exact Table-10 margin target. -/
@@ -1391,7 +1599,9 @@ theorem table_10_row8200_k3_margin :
     (0.000000000000046038 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8200_a2_le row8200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4100_lt, exp_neg_16400_3_lt,
+                   Real.exp_pos (-(4100:ℝ)), Real.exp_pos (-(16400/3:ℝ))])
 
 
 /-- Row 8200 (k = 4), exact Table-10 margin target. -/
@@ -1401,7 +1611,9 @@ theorem table_10_row8200_k4_margin :
     (0.00000000038212 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8200_a2_le row8200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4100_lt, exp_neg_16400_3_lt,
+                   Real.exp_pos (-(4100:ℝ)), Real.exp_pos (-(16400/3:ℝ))])
 
 
 /-- Row 8200 (k = 5), exact Table-10 margin target. -/
@@ -1411,7 +1623,9 @@ theorem table_10_row8200_k5_margin :
     (0.0000031716 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8200_a2_le row8200_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4100_lt, exp_neg_16400_3_lt,
+                   Real.exp_pos (-(4100:ℝ)), Real.exp_pos (-(16400/3:ℝ))])
 
 
 /-- Row 8300 (k = 1), exact Table-10 margin target. -/
@@ -1421,7 +1635,9 @@ theorem table_10_row8300_k1_margin :
     (0.00000000000000000000043257 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8300_a2_le row8300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4150_lt, exp_neg_16600_3_lt,
+                   Real.exp_pos (-(4150:ℝ)), Real.exp_pos (-(16600/3:ℝ))])
 
 
 /-- Row 8300 (k = 2), exact Table-10 margin target. -/
@@ -1431,7 +1647,9 @@ theorem table_10_row8300_k2_margin :
     (0.0000000000000000036336 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8300_a2_le row8300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4150_lt, exp_neg_16600_3_lt,
+                   Real.exp_pos (-(4150:ℝ)), Real.exp_pos (-(16600/3:ℝ))])
 
 
 /-- Row 8300 (k = 3), exact Table-10 margin target. -/
@@ -1441,7 +1659,9 @@ theorem table_10_row8300_k3_margin :
     (0.000000000000030522 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8300_a2_le row8300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4150_lt, exp_neg_16600_3_lt,
+                   Real.exp_pos (-(4150:ℝ)), Real.exp_pos (-(16600/3:ℝ))])
 
 
 /-- Row 8300 (k = 4), exact Table-10 margin target. -/
@@ -1451,7 +1671,9 @@ theorem table_10_row8300_k4_margin :
     (0.00000000025639 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8300_a2_le row8300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4150_lt, exp_neg_16600_3_lt,
+                   Real.exp_pos (-(4150:ℝ)), Real.exp_pos (-(16600/3:ℝ))])
 
 
 /-- Row 8300 (k = 5), exact Table-10 margin target. -/
@@ -1461,7 +1683,9 @@ theorem table_10_row8300_k5_margin :
     (0.0000021536 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8300_a2_le row8300_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4150_lt, exp_neg_16600_3_lt,
+                   Real.exp_pos (-(4150:ℝ)), Real.exp_pos (-(16600/3:ℝ))])
 
 
 /-- Row 8400 (k = 1), exact Table-10 margin target. -/
@@ -1471,7 +1695,9 @@ theorem table_10_row8400_k1_margin :
     (0.00000000000000000000028105 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8400_a2_le row8400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4200_lt, exp_neg_5600_lt,
+                   Real.exp_pos (-(4200:ℝ)), Real.exp_pos (-(5600:ℝ))])
 
 
 /-- Row 8400 (k = 2), exact Table-10 margin target. -/
@@ -1481,7 +1707,9 @@ theorem table_10_row8400_k2_margin :
     (0.0000000000000000023889 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8400_a2_le row8400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4200_lt, exp_neg_5600_lt,
+                   Real.exp_pos (-(4200:ℝ)), Real.exp_pos (-(5600:ℝ))])
 
 
 /-- Row 8400 (k = 3), exact Table-10 margin target. -/
@@ -1491,7 +1719,9 @@ theorem table_10_row8400_k3_margin :
     (0.000000000000020306 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8400_a2_le row8400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4200_lt, exp_neg_5600_lt,
+                   Real.exp_pos (-(4200:ℝ)), Real.exp_pos (-(5600:ℝ))])
 
 
 /-- Row 8400 (k = 4), exact Table-10 margin target. -/
@@ -1501,7 +1731,9 @@ theorem table_10_row8400_k4_margin :
     (0.00000000017260 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8400_a2_le row8400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4200_lt, exp_neg_5600_lt,
+                   Real.exp_pos (-(4200:ℝ)), Real.exp_pos (-(5600:ℝ))])
 
 
 /-- Row 8400 (k = 5), exact Table-10 margin target. -/
@@ -1511,7 +1743,9 @@ theorem table_10_row8400_k5_margin :
     (0.0000014671 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8400_a2_le row8400_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4200_lt, exp_neg_5600_lt,
+                   Real.exp_pos (-(4200:ℝ)), Real.exp_pos (-(5600:ℝ))])
 
 
 /-- Row 8500 (k = 1), exact Table-10 margin target. -/
@@ -1521,7 +1755,9 @@ theorem table_10_row8500_k1_margin :
     (0.00000000000000000000018315 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8500_a2_le row8500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4250_lt, exp_neg_17000_3_lt,
+                   Real.exp_pos (-(4250:ℝ)), Real.exp_pos (-(17000/3:ℝ))])
 
 
 /-- Row 8500 (k = 2), exact Table-10 margin target. -/
@@ -1531,7 +1767,9 @@ theorem table_10_row8500_k2_margin :
     (0.0000000000000000015751 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8500_a2_le row8500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4250_lt, exp_neg_17000_3_lt,
+                   Real.exp_pos (-(4250:ℝ)), Real.exp_pos (-(17000/3:ℝ))])
 
 
 /-- Row 8500 (k = 3), exact Table-10 margin target. -/
@@ -1541,7 +1779,9 @@ theorem table_10_row8500_k3_margin :
     (0.000000000000013546 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8500_a2_le row8500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4250_lt, exp_neg_17000_3_lt,
+                   Real.exp_pos (-(4250:ℝ)), Real.exp_pos (-(17000/3:ℝ))])
 
 
 /-- Row 8500 (k = 4), exact Table-10 margin target. -/
@@ -1551,7 +1791,9 @@ theorem table_10_row8500_k4_margin :
     (0.00000000011650 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8500_a2_le row8500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4250_lt, exp_neg_17000_3_lt,
+                   Real.exp_pos (-(4250:ℝ)), Real.exp_pos (-(17000/3:ℝ))])
 
 
 /-- Row 8500 (k = 5), exact Table-10 margin target. -/
@@ -1561,6 +1803,8 @@ theorem table_10_row8500_k5_margin :
     (0.0000010019 * table_10_margin)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
     (a1_large_le_two (by norm_num)) row8500_a2_le row8500_eps_le
-    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]; interval_decide)
+    (by norm_num [table_10_margin, BKLNW_app.table_8_margin]
+        nlinarith [exp_neg_4250_lt, exp_neg_17000_3_lt,
+                   Real.exp_pos (-(4250:ℝ)), Real.exp_pos (-(17000/3:ℝ))])
 
 end BKLNW

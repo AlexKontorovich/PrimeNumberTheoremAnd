@@ -9,7 +9,7 @@ open Real Set Finset
 private lemma logx1_lt_44 : log Inputs.default.x₁ < 44 := by
   change log (1e19 : ℝ) < 44
   have h : (1e19 : ℝ) = (10 : ℝ) ^ 19 := by norm_num
-  rw [h, Real.log_pow]; push_cast; nlinarith [LogTables.log_10_lt]
+  rw [h, Real.log_pow]; push_cast; linarith [LogTables.log_10_lt]
 
 private lemma row90_a1_le : Inputs.default.a₁ (90 : ℝ) ≤ (2 : ℝ) := by
   rw [Inputs.a₁, if_neg (by linarith [logx1_lt_44] : ¬ ((90 : ℝ) ≤ 2 * log Inputs.default.x₁))]
