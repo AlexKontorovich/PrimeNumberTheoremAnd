@@ -300,6 +300,164 @@ lemma dawson_pos {x : ℝ} (hx : x > 0) : dawson x > 0 := by
     (intervalIntegral.integral_pos hx (by fun_prop)
       (fun t _ ↦ (exp_pos _).le) ⟨0, Set.mem_Icc.mpr ⟨le_rfl, hx.le⟩, exp_pos _⟩)
 
+/-- Substituted form: `dawson z = ∫₀^z exp (u² − 2zu) du`. -/
+lemma dawson_eq_integral (z : ℝ) :
+    dawson z = ∫ u in (0:ℝ)..z, exp (u ^ 2 - 2 * z * u) := by
+  unfold dawson
+  have hsub : (∫ t in (0:ℝ)..z, exp (t ^ 2)) =
+      ∫ u in (0:ℝ)..z, exp ((z - u) ^ 2) := by
+    have := intervalIntegral.integral_comp_sub_left (a := (0:ℝ)) (b := z)
+      (fun t => exp (t ^ 2)) z
+    simpa using this.symm
+  rw [hsub, ← intervalIntegral.integral_const_mul]
+  apply intervalIntegral.integral_congr
+  intro u _
+  show exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
+  rw [← Real.exp_add]
+  congr 1
+  ring
+
+/-- `∫₀^w e^{−2zu} du ≤ 1/(2z)`. -/
+private lemma integral_exp_neg_mul_le {z w : ℝ} (hz : 0 < z) :
+    (∫ u in (0:ℝ)..w, exp (-(2 * z) * u)) ≤ 1 / (2 * z) := by
+  have hderiv : ∀ u ∈ Set.uIcc (0:ℝ) w,
+      HasDerivAt (fun u => -(exp (-(2 * z) * u) / (2 * z))) (exp (-(2 * z) * u)) u := by
+    intro u _
+    have h1 : HasDerivAt (fun u : ℝ => -(2 * z) * u) (-(2 * z)) u := by
+      simpa using (hasDerivAt_id u).const_mul (-(2 * z))
+    have h2 : HasDerivAt (fun u : ℝ => exp (-(2 * z) * u))
+        (exp (-(2 * z) * u) * (-(2 * z))) u := (Real.hasDerivAt_exp _).comp u h1
+    have h3 := (h2.div_const (2 * z)).neg
+    convert h3 using 1
+    field_simp
+  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
+    (by apply Continuous.intervalIntegrable; continuity)]
+  have hE : 0 ≤ exp (-(2 * z) * w) / (2 * z) :=
+    div_nonneg (exp_nonneg _) (by positivity)
+  have h0 : exp (-(2 * z) * 0) = 1 := by norm_num
+  rw [h0]
+  linarith
+
+/-- `∫₀^w u² e^{−2zu} du ≤ 1/(4z³)` via the explicit antiderivative. -/
+private lemma integral_sq_mul_exp_le {z w : ℝ} (hz : 0 < z) (hw : 0 ≤ w) :
+    (∫ u in (0:ℝ)..w, u ^ 2 * exp (-(2 * z) * u)) ≤ 1 / (4 * z ^ 3) := by
+  have hderiv : ∀ u ∈ Set.uIcc (0:ℝ) w,
+      HasDerivAt
+        (fun u => -(exp (-(2 * z) * u) * (u ^ 2 / (2 * z) + u / (2 * z ^ 2) + 1 / (4 * z ^ 3))))
+        (u ^ 2 * exp (-(2 * z) * u)) u := by
+    intro u _
+    have h1 : HasDerivAt (fun u : ℝ => -(2 * z) * u) (-(2 * z)) u := by
+      simpa using (hasDerivAt_id u).const_mul (-(2 * z))
+    have h2 : HasDerivAt (fun u : ℝ => exp (-(2 * z) * u))
+        (exp (-(2 * z) * u) * (-(2 * z))) u := (Real.hasDerivAt_exp _).comp u h1
+    have hp2 : HasDerivAt (fun u : ℝ => u ^ 2) (2 * u) u := by
+      simpa using hasDerivAt_pow 2 u
+    have h3 : HasDerivAt
+        (fun u : ℝ => u ^ 2 / (2 * z) + u / (2 * z ^ 2) + 1 / (4 * z ^ 3))
+        (2 * u / (2 * z) + 1 / (2 * z ^ 2)) u :=
+      ((hp2.div_const (2 * z)).add ((hasDerivAt_id u).div_const (2 * z ^ 2))).add_const
+        (1 / (4 * z ^ 3))
+    have hprod := (h2.mul h3).neg
+    convert hprod using 1
+    have hz' : z ≠ 0 := hz.ne'
+    field_simp
+    ring
+  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
+    (by apply Continuous.intervalIntegrable; continuity)]
+  have hPw : 0 ≤ exp (-(2 * z) * w) * (w ^ 2 / (2 * z) + w / (2 * z ^ 2) + 1 / (4 * z ^ 3)) := by
+    apply mul_nonneg (exp_nonneg _)
+    have t1 : (0:ℝ) ≤ w ^ 2 / (2 * z) := div_nonneg (sq_nonneg w) (by positivity)
+    have t2 : (0:ℝ) ≤ w / (2 * z ^ 2) := div_nonneg hw (by positivity)
+    have t3 : (0:ℝ) ≤ 1 / (4 * z ^ 3) := by positivity
+    linarith
+  have h0 : exp (-(2 * z) * 0) * ((0:ℝ) ^ 2 / (2 * z) + 0 / (2 * z ^ 2) + 1 / (4 * z ^ 3)) =
+      1 / (4 * z ^ 3) := by
+    norm_num
+  rw [h0]
+  linarith
+
+/-- `e^x ≤ 1 + x e^c` for `0 ≤ x ≤ c` (from `1 − x ≤ e^{−x}`). -/
+private lemma exp_le_one_add_mul_exp {x c : ℝ} (hx : 0 ≤ x) (hxc : x ≤ c) :
+    exp x ≤ 1 + x * exp c := by
+  have h1 : 1 - x ≤ exp (-x) := by
+    have := Real.add_one_le_exp (-x)
+    linarith
+  have h2 : exp x * (1 - x) ≤ 1 := by
+    calc exp x * (1 - x) ≤ exp x * exp (-x) :=
+          mul_le_mul_of_nonneg_left h1 (exp_nonneg _)
+      _ = 1 := by rw [← Real.exp_add]; simp
+  have h3 : exp x ≤ exp c := Real.exp_le_exp.mpr hxc
+  nlinarith [exp_nonneg x, mul_nonneg hx (exp_nonneg x)]
+
+/-- Sharp Dawson upper bound: for `0 ≤ w ≤ z`,
+`dawson z ≤ 1/(2z) + e^{w²}/(4z³) + (z−w)·e^{−w(2z−w)}`.
+
+Refines `dawson x ≤ 1/x` to the true leading term `1/(2z)` with explicitly
+controlled corrections; a moderate `w` makes the last two terms negligible
+for large `z`. This is the estimate behind the numerical bound on
+`μ_asymp` in Corollary 22. -/
+theorem dawson_le_sharp {z w : ℝ} (hw0 : 0 ≤ w) (hwz : w ≤ z) (hz : 0 < z) :
+    dawson z ≤ 1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) +
+      (z - w) * exp (-(w * (2 * z - w))) := by
+  rw [dawson_eq_integral]
+  have hint : ∀ a b : ℝ,
+      IntervalIntegrable (fun u => exp (u ^ 2 - 2 * z * u)) volume a b := by
+    intro a b
+    apply Continuous.intervalIntegrable
+    continuity
+  rw [← intervalIntegral.integral_add_adjacent_intervals (a := (0:ℝ)) (b := w) (c := z)
+    (hint 0 w) (hint w z)]
+  have head : (∫ u in (0:ℝ)..w, exp (u ^ 2 - 2 * z * u)) ≤
+      1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) := by
+    have hptw : ∀ u ∈ Set.Icc (0:ℝ) w,
+        exp (u ^ 2 - 2 * z * u) ≤
+          exp (-(2 * z) * u) + exp (w ^ 2) * (u ^ 2 * exp (-(2 * z) * u)) := by
+      intro u hu
+      have hsplit : exp (u ^ 2 - 2 * z * u) = exp (u ^ 2) * exp (-(2 * z) * u) := by
+        rw [← Real.exp_add]
+        congr 1
+        ring
+      rw [hsplit]
+      have hb := exp_le_one_add_mul_exp (sq_nonneg u)
+        (by nlinarith [hu.1, hu.2] : u ^ 2 ≤ w ^ 2)
+      have hepos : (0:ℝ) ≤ exp (-(2 * z) * u) := exp_nonneg _
+      nlinarith [hb, hepos]
+    have hmono := intervalIntegral.integral_mono_on hw0 (hint 0 w)
+      (by apply Continuous.intervalIntegrable; continuity) hptw
+    have hlin : (∫ u in (0:ℝ)..w,
+          (exp (-(2 * z) * u) + exp (w ^ 2) * (u ^ 2 * exp (-(2 * z) * u)))) =
+        (∫ u in (0:ℝ)..w, exp (-(2 * z) * u)) +
+          exp (w ^ 2) * (∫ u in (0:ℝ)..w, u ^ 2 * exp (-(2 * z) * u)) := by
+      rw [intervalIntegral.integral_add
+        (by apply Continuous.intervalIntegrable; continuity)
+        (by apply Continuous.intervalIntegrable; continuity),
+        intervalIntegral.integral_const_mul]
+    have hgeom := integral_exp_neg_mul_le (w := w) hz
+    have hsq := integral_sq_mul_exp_le (w := w) hz hw0
+    have hew : (0:ℝ) ≤ exp (w ^ 2) := exp_nonneg _
+    calc (∫ u in (0:ℝ)..w, exp (u ^ 2 - 2 * z * u))
+        ≤ _ := hmono
+      _ = _ := hlin
+      _ ≤ 1 / (2 * z) + exp (w ^ 2) * (1 / (4 * z ^ 3)) := by
+          have := mul_le_mul_of_nonneg_left hsq hew
+          linarith
+      _ = 1 / (2 * z) + exp (w ^ 2) / (4 * z ^ 3) := by ring
+  have tail : (∫ u in w..z, exp (u ^ 2 - 2 * z * u)) ≤
+      (z - w) * exp (-(w * (2 * z - w))) := by
+    have hptw : ∀ u ∈ Set.Icc w z,
+        exp (u ^ 2 - 2 * z * u) ≤ exp (-(w * (2 * z - w))) := by
+      intro u hu
+      apply Real.exp_le_exp.mpr
+      nlinarith [hu.1, hu.2]
+    calc (∫ u in w..z, exp (u ^ 2 - 2 * z * u))
+        ≤ ∫ _u in w..z, exp (-(w * (2 * z - w))) :=
+          intervalIntegral.integral_mono_on hwz (hint w z)
+            _root_.intervalIntegrable_const hptw
+      _ = (z - w) * exp (-(w * (2 * z - w))) := by
+          rw [intervalIntegral.integral_const]
+          ring
+  linarith [head, tail]
+
 private lemma hasDerivAt_exp_sq (x : ℝ) : HasDerivAt (fun t ↦ exp (t^2)) (2 * x * exp (x^2)) x := by
   have h : HasDerivAt (fun t : ℝ ↦ t ^ 2) (2 * x) x := by
     have h := hasDerivAt_pow 2 x; rw [show (2 : ℕ) - 1 = 1 from rfl, pow_one] at h
@@ -4040,6 +4198,218 @@ def Table_5 : List (ℝ × ℝ × ℝ) := [
   (19000, 4.3424e-44, 3.7589e-44),
   (20000, 2.2536e-45, 1.9349e-45)
 ]
+
+/-- Numerical evaluation of `μ_asymp` at the Corollary 22 parameters
+(`B = 1.5`, `C = 0.8476`, `R = 1`, `x₀ = 2`, `x₁ = e^20000`):
+`μ_asymp ≤ 5.01516e-5`, for any `A ≥ 1`. The Dawson term is evaluated with
+`dawson_le_sharp` at `w = 0.117`; the `x₁`-denominator term is below `1e-11`.
+This is the bound quoted in the Corollary 22 blueprint proof. -/
+theorem mu_asymp_num_le {A : ℝ} (hA : 1 ≤ A) :
+    μ_asymp A 1.5 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 := by
+  have hs_lo : (141.4213562 : ℝ) ≤ Real.sqrt 20000 := by interval_decide
+  have hs_hi : Real.sqrt 20000 ≤ (141.4213563 : ℝ) := by
+    have h := Real.sqrt_le_sqrt (show (20000:ℝ) ≤ 141.4213563 ^ 2 by norm_num)
+    rwa [Real.sqrt_sq (by norm_num : (0:ℝ) ≤ 141.4213563)] at h
+  have hexp32 : Real.exp (-(32:ℝ)) ≤ (1.3e-14 : ℝ) := by interval_decide
+  have hexpw : Real.exp ((0.117:ℝ) ^ 2) ≤ (1.0138790 : ℝ) := by
+    rw [show ((0.117:ℝ)) ^ 2 = 13689 / 1000000 by norm_num]
+    interval_decide
+  have hlog2_lo : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have hlog2_hi : Real.log 2 < (0.6931471808 : ℝ) := Real.log_two_lt_d9
+  unfold μ_asymp
+  rw [Real.log_exp, Real.sqrt_one]
+  -- ===== Term 1 =====
+  have hT1 : (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 * Real.log 2)
+      * δ 2 ≤ 1e-11 := by
+    have hpc : Nat.primeCounting 2 = 1 := by decide
+    have hpi2 : pi 2 = 1 := by
+      unfold pi
+      rw [show ⌊(2:ℝ)⌋₊ = 2 from by norm_num, hpc]
+      norm_num
+    have hLi2 : Li 2 = 0 := by
+      unfold Li
+      exact intervalIntegral.integral_same
+    have hθ0 : (0:ℝ) ≤ θ 2 := Chebyshev.theta_nonneg 2
+    have hθ3 : θ 2 ≤ 3 := by
+      have h4 := theta_le_log4_mul_x (by norm_num : (0:ℝ) ≤ 2)
+      have hlog4 : Real.log 4 ≤ 1.4 := by
+        rw [show (4:ℝ) = 2 ^ 2 by norm_num, Real.log_pow]
+        push_cast
+        nlinarith [hlog2_hi]
+      nlinarith [h4, hlog4]
+    have hδ2 : δ 2 ≤ 2 := by
+      unfold δ
+      rw [hpi2, hLi2]
+      have hlogne : Real.log 2 ≠ 0 := (Real.log_pos (by norm_num)).ne'
+      have hform : ((1:ℝ) - 0) / ((2:ℝ) / Real.log 2) = Real.log 2 / 2 := by
+        field_simp
+        norm_num
+      rw [hform, abs_le]
+      constructor
+      · nlinarith [hθ0, hθ3, hlog2_lo, hlog2_hi]
+      · nlinarith [hθ0, hθ3, hlog2_lo, hlog2_hi]
+    have hδ0 : (0:ℝ) ≤ δ 2 := abs_nonneg _
+    have hbig : (2:ℝ) ^ (60:ℕ) ≤
+        admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 := by
+      unfold admissible_bound
+      rw [Real.log_exp, div_one, ← Real.sqrt_eq_rpow]
+      have hP : (1:ℝ) ≤ (20000:ℝ) ^ (1.5:ℝ) :=
+        Real.one_le_rpow (by norm_num) (by norm_num)
+      have hAP : (1:ℝ) ≤ A * (20000:ℝ) ^ (1.5:ℝ) := by nlinarith [hA, hP]
+      have hE : Real.exp (19880:ℝ) ≤
+          Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 := by
+        rw [← Real.exp_add]
+        apply Real.exp_le_exp.mpr
+        nlinarith [hs_hi]
+      have hEpos : (0:ℝ) < Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 :=
+        mul_pos (Real.exp_pos _) (Real.exp_pos _)
+      have hK : (2:ℝ) ^ (60:ℕ) ≤ Real.exp (19880:ℝ) := by
+        have h1 : Real.exp (19880:ℝ) = Real.exp 1 ^ (19880:ℕ) := by
+          rw [← Real.exp_nat_mul]
+          norm_num
+        rw [h1]
+        calc (2:ℝ) ^ (60:ℕ) ≤ (2:ℝ) ^ (19880:ℕ) :=
+              pow_le_pow_right₀ (by norm_num) (by norm_num)
+          _ ≤ Real.exp 1 ^ (19880:ℕ) := by
+              apply pow_le_pow_left₀ (by norm_num)
+              nlinarith [Real.exp_one_gt_d9]
+      have hstep : Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 ≤
+          (A * (20000:ℝ) ^ (1.5:ℝ)) *
+            (Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000) := by
+        nlinarith [mul_nonneg (by linarith [hAP] : (0:ℝ) ≤ A * (20000:ℝ) ^ (1.5:ℝ) - 1)
+          hEpos.le]
+      calc (2:ℝ) ^ (60:ℕ) ≤ Real.exp (19880:ℝ) := hK
+        _ ≤ Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000 := hE
+        _ ≤ (A * (20000:ℝ) ^ (1.5:ℝ)) *
+              (Real.exp (-0.8476 * Real.sqrt 20000) * Real.exp 20000) := hstep
+        _ = A * (20000:ℝ) ^ (1.5:ℝ) * Real.exp (-0.8476 * Real.sqrt 20000) *
+              Real.exp 20000 := by ring
+    have hpow60 : ((2:ℝ) ^ (60:ℕ)) = 1152921504606846976 := by norm_num
+    have hfrac : (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 *
+        Real.log 2) ≤ 40000 / (1152921504606846976 * 0.6931471803) := by
+      gcongr
+      · norm_num
+      · nlinarith [hbig, hlog2_lo, hpow60]
+    calc (2 * 20000) / (admissible_bound A 1.5 0.8476 1 (exp 20000) * exp 20000 *
+        Real.log 2) * δ 2
+        ≤ 40000 / (1152921504606846976 * 0.6931471803) * 2 := by
+          apply mul_le_mul hfrac hδ2 hδ0 (by positivity)
+      _ ≤ 1e-11 := by norm_num
+  -- ===== Term 2: the Dawson term =====
+  have hzform : (0.8476:ℝ) / (2 * 1) = 0.4238 := by norm_num
+  rw [hzform]
+  set z := Real.sqrt 20000 - 0.4238 with hzdef
+  have hz_lo : (140.9975562 : ℝ) ≤ z := by rw [hzdef]; linarith
+  have hz_hi : z ≤ (140.9975563 : ℝ) := by rw [hzdef]; linarith
+  have hz_pos : (0:ℝ) < z := by linarith
+  have hD := dawson_le_sharp (z := z) (w := 0.117) (by norm_num) (by linarith) hz_pos
+  have b1 : 1 / (2 * z) ≤ 1 / (2 * 140.9975562) := by
+    gcongr
+  have b2 : Real.exp ((0.117:ℝ) ^ 2) / (4 * z ^ 3) ≤
+      1.0138790 / (4 * (140.9975562:ℝ) ^ 3) := by
+    gcongr
+  have b3 : (z - 0.117) * Real.exp (-(0.117 * (2 * z - 0.117))) ≤
+      141 * (1.3e-14 : ℝ) := by
+    have hexpo : Real.exp (-(0.117 * (2 * z - 0.117))) ≤ Real.exp (-(32:ℝ)) := by
+      apply Real.exp_le_exp.mpr
+      nlinarith [hz_lo]
+    have hzw : z - 0.117 ≤ 141 := by linarith
+    have hzw0 : (0:ℝ) ≤ z - 0.117 := by linarith
+    calc (z - 0.117) * Real.exp (-(0.117 * (2 * z - 0.117)))
+        ≤ 141 * Real.exp (-(32:ℝ)) := by
+          apply mul_le_mul hzw hexpo (Real.exp_nonneg _) (by norm_num)
+      _ ≤ 141 * 1.3e-14 := by nlinarith [hexp32]
+  have hDb : dawson z ≤ 1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) +
+      141 * 1.3e-14 := by linarith [hD, b1, b2, b3]
+  have hD0 : (0:ℝ) ≤ dawson z := dawson_nonneg hz_pos.le
+  have hT2 : 2 * dawson z / Real.sqrt 20000 ≤
+      2 * (1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) + 141 * 1.3e-14) /
+        141.4213562 := by
+    gcongr
+  linarith [hT1, hT2, show
+    (2:ℝ) * (1 / (2 * 140.9975562) + 1.0138790 / (4 * (140.9975562:ℝ) ^ 3) + 141 * 1.3e-14) /
+      141.4213562 + 1e-11 ≤ 5.01516e-5 from by norm_num]
+
+/-- The substituted profile `A t³ e^{−Ct}` is antitone for `t ≥ 3/C`. -/
+lemma cube_mul_exp_antitoneOn {A C : ℝ} (hA : 0 ≤ A) (hC : 0 < C) :
+    AntitoneOn (fun t => A * t ^ 3 * Real.exp (-C * t)) (Set.Ici (3 / C)) := by
+  have hderiv : ∀ t : ℝ, HasDerivAt (fun t => A * t ^ 3 * Real.exp (-C * t))
+      (A * (3 * t ^ 2) * Real.exp (-C * t) +
+        A * t ^ 3 * (Real.exp (-C * t) * (-C))) t := by
+    intro t
+    have h1 : HasDerivAt (fun t : ℝ => A * t ^ 3) (A * (3 * t ^ 2)) t := by
+      simpa using (hasDerivAt_pow 3 t).const_mul A
+    have h2 : HasDerivAt (fun t : ℝ => -C * t) (-C) t := by
+      simpa using (hasDerivAt_id t).const_mul (-C)
+    have h3 : HasDerivAt (fun t : ℝ => Real.exp (-C * t))
+        (Real.exp (-C * t) * (-C)) t := (Real.hasDerivAt_exp _).comp t h2
+    exact h1.mul h3
+  apply antitoneOn_of_deriv_nonpos (convex_Ici _)
+  · exact (Continuous.continuousOn (by continuity))
+  · intro t ht
+    exact (hderiv t).differentiableAt.differentiableWithinAt
+  · intro t ht
+    rw [interior_Ici] at ht
+    rw [(hderiv t).deriv]
+    have htC : 3 ≤ C * t := by
+      rw [Set.mem_Ioi] at ht
+      have := (div_lt_iff₀ hC).mp ht
+      linarith
+    have hexp : (0:ℝ) ≤ Real.exp (-C * t) := Real.exp_nonneg _
+    have ht0 : (0:ℝ) ≤ t := by
+      rw [Set.mem_Ioi] at ht
+      have : (0:ℝ) < 3 / C := by positivity
+      linarith
+    nlinarith [sq_nonneg t, mul_nonneg (mul_nonneg hA (sq_nonneg t)) hexp,
+      mul_nonneg (mul_nonneg (mul_nonneg hA ht0) (sq_nonneg t)) hexp]
+
+/-- `admissible_bound A 1.5 C 1` is antitone beyond `log x ≥ (3/C)²`:
+the workhorse for step-function interpolation against Tables 4/5. -/
+lemma admissible_bound_anti {A C x y : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
+    (hx : (3 / C) ^ 2 ≤ Real.log x) (hxy : x ≤ y) (hx0 : 0 < x) :
+    admissible_bound A 1.5 C 1 y ≤ admissible_bound A 1.5 C 1 x := by
+  unfold admissible_bound
+  rw [div_one, div_one]
+  have hLx : (0:ℝ) ≤ Real.log x := le_trans (by positivity) hx
+  have hLxy : Real.log x ≤ Real.log y :=
+    Real.log_le_log hx0 hxy
+  have hLy : (0:ℝ) ≤ Real.log y := le_trans hLx hLxy
+  -- rewrite both sides through t = √(log ·)
+  have key : ∀ L : ℝ, 0 ≤ L →
+      A * L ^ (1.5:ℝ) * Real.exp (-C * L ^ ((1:ℝ)/(2:ℝ))) =
+        A * (Real.sqrt L) ^ 3 * Real.exp (-C * Real.sqrt L) := by
+    intro L hL
+    rw [Real.sqrt_eq_rpow, ← Real.rpow_natCast (L ^ ((1:ℝ)/2)) 3,
+      ← Real.rpow_mul hL]
+    norm_num
+  rw [key _ hLx, key _ hLy]
+  have htx : 3 / C ≤ Real.sqrt (Real.log x) := by
+    have h := Real.sqrt_le_sqrt hx
+    rwa [Real.sqrt_sq (by positivity : (0:ℝ) ≤ 3 / C)] at h
+  have hty : Real.sqrt (Real.log x) ≤ Real.sqrt (Real.log y) :=
+    Real.sqrt_le_sqrt hLxy
+  exact cube_mul_exp_antitoneOn hA hC
+    (Set.mem_Ici.mpr htx) (Set.mem_Ici.mpr (le_trans htx hty)) hty
+
+/-- Step-interval bridge for the Table 4/5 interpolation. A constant bound
+`V` on `Eπ` over a grid cell `[x₁, x₂]` (as produced by `theorem_6_alt` with
+`V = εθ_num x₁ * (1 + μ_num_2 …)`), dominated by the admissible curve at the
+right endpoint, yields the classical bound across the whole cell, by
+`admissible_bound_anti`. The mid-range verification is this lemma
+instantiated once per grid cell, with `hrow` a numeric endpoint check. -/
+theorem step_interval_bound {A C V x₁ x₂ : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
+    (hlog : (3 / C) ^ 2 ≤ Real.log x₁) (hx₁ : 0 < x₁)
+    (hV : ∀ x ∈ Set.Icc x₁ x₂, Eπ x ≤ V)
+    (hrow : V ≤ admissible_bound A 1.5 C 1 x₂) :
+    ∀ x ∈ Set.Icc x₁ x₂, Eπ x ≤ admissible_bound A 1.5 C 1 x := by
+  intro x hx
+  have hlogx : (3 / C) ^ 2 ≤ Real.log x :=
+    le_trans hlog (Real.log_le_log hx₁ hx.1)
+  have hx0 : (0:ℝ) < x := lt_of_lt_of_le hx₁ hx.1
+  calc Eπ x ≤ V := hV x hx
+    _ ≤ admissible_bound A 1.5 C 1 x₂ := hrow
+    _ ≤ admissible_bound A 1.5 C 1 x :=
+        admissible_bound_anti hA hC hlogx hx.2 hx0
 
 @[blueprint
   "fks2-corollary-22"
