@@ -29,6 +29,14 @@ lemma ext_of_generateFrom_of_univ {S : Set (Set α)} {μ ν : VectorMeasure α E
 
 end MeasureTheory.VectorMeasure
 
+namespace StieltjesFunction
+
+instance instIsFiniteMeasureRestrictIoc (p : StieltjesFunction ℝ) (a b : ℝ) :
+    IsFiniteMeasure (p.measure.restrict (Set.Ioc a b)) :=
+  ⟨by simp [p.measure_Ioc]⟩
+
+end StieltjesFunction
+
 namespace BoundedVariationOn
 
 variable {E : Type*} [NormedAddCommGroup E] [CompleteSpace E] {f : ℝ → E}
@@ -197,6 +205,72 @@ theorem ae_eq_rightLim_real {f : ℝ → ℝ} (hf : BoundedVariationOn f Set.uni
     by_contra hx'
     exact hx (h_eq x (not_not.mp hx'))
   exact ae_iff.mpr (measure_mono_null h_sub h_null)
+
+theorem exists_stieltjesFunction_sub_rightLim {f : ℝ → ℝ}
+    (hf : BoundedVariationOn f Set.univ) :
+    ∃ p q : StieltjesFunction ℝ, ∀ x : ℝ, f.rightLim x = p x - q x := by
+  rcases hf.locallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn with
+    ⟨p0, q0, hp0, hq0, hpq0⟩
+  have hpmono : Monotone p0 := monotoneOn_univ.mp hp0
+  have hqmono : Monotone q0 := monotoneOn_univ.mp hq0
+  let p : StieltjesFunction ℝ := hpmono.stieltjesFunction
+  let q : StieltjesFunction ℝ := hqmono.stieltjesFunction
+  refine ⟨p, q, fun x => ?_⟩
+  have hf_t : Tendsto f (𝓝[>] x) (𝓝 (f.rightLim x)) := hf.tendsto_rightLim x
+  have hp_t : Tendsto p0 (𝓝[>] x) (𝓝 (p x)) := by
+    simpa [p, Monotone.stieltjesFunction_eq] using hpmono.tendsto_rightLim x
+  have hq_t : Tendsto q0 (𝓝[>] x) (𝓝 (q x)) := by
+    simpa [q, Monotone.stieltjesFunction_eq] using hqmono.tendsto_rightLim x
+  have hsub_t : Tendsto (fun y => p0 y - q0 y) (𝓝[>] x) (𝓝 (p x - q x)) :=
+    hp_t.sub hq_t
+  exact tendsto_nhds_unique hf_t (hsub_t.congr' (Eventually.of_forall fun y =>
+    (congr_fun hpq0 y).symm))
+
+theorem vectorMeasure_restrict_eq_stieltjesFunction_sub_rightLim {f : ℝ → ℝ}
+    (hf : BoundedVariationOn f Set.univ) {p q : StieltjesFunction ℝ}
+    (hpq : ∀ x : ℝ, f.rightLim x = p x - q x) {a b : ℝ} (hab : a ≤ b) :
+    hf.vectorMeasure.restrict (Set.Ioc a b) =
+      (p.measure.restrict (Set.Ioc a b)).toSignedMeasure -
+        (q.measure.restrict (Set.Ioc a b)).toSignedMeasure := by
+  have hgen : (inferInstance : MeasurableSpace ℝ) =
+      MeasurableSpace.generateFrom {s : Set ℝ | ∃ u v, u < v ∧ Ioc u v = s} := by
+    borelize ℝ
+    exact borel_eq_generateFrom_Ioc ℝ
+  refine MeasureTheory.VectorMeasure.ext_of_generateFrom_of_univ hgen
+    (isPiSystem_Ioc (fun x : ℝ => x) (fun x : ℝ => x)) ?_ ?_
+  · rw [VectorMeasure.restrict_apply hf.vectorMeasure measurableSet_Ioc MeasurableSet.univ]
+    simp only [univ_inter]
+    rw [VectorMeasure.sub_apply, Measure.toSignedMeasure_apply_measurable MeasurableSet.univ,
+      Measure.toSignedMeasure_apply_measurable MeasurableSet.univ]
+    simp only [Measure.restrict_apply MeasurableSet.univ, univ_inter, measureReal_def]
+    rw [hf.vectorMeasure_Ioc hab, p.measure_Ioc, q.measure_Ioc]
+    have hpnonneg : 0 ≤ (p b : ℝ) - p a := sub_nonneg.mpr (p.mono hab)
+    have hqnonneg : 0 ≤ (q b : ℝ) - q a := sub_nonneg.mpr (q.mono hab)
+    rw [ENNReal.toReal_ofReal hpnonneg, ENNReal.toReal_ofReal hqnonneg]
+    rw [hpq a, hpq b]
+    ring
+  · rintro s ⟨u, v, _huv, rfl⟩
+    rw [VectorMeasure.restrict_apply hf.vectorMeasure measurableSet_Ioc measurableSet_Ioc]
+    rw [VectorMeasure.sub_apply, Measure.toSignedMeasure_apply_measurable measurableSet_Ioc,
+      Measure.toSignedMeasure_apply_measurable measurableSet_Ioc]
+    simp only [Measure.restrict_apply measurableSet_Ioc, measureReal_def]
+    rw [Set.Ioc_inter_Ioc]
+    let c : ℝ := max u a
+    let d : ℝ := min v b
+    change hf.vectorMeasure (Set.Ioc c d) =
+      ((p.measure (Set.Ioc c d)).toReal : ℝ) - ((q.measure (Set.Ioc c d)).toReal : ℝ)
+    by_cases hcd : c ≤ d
+    · rw [hf.vectorMeasure_Ioc hcd, p.measure_Ioc, q.measure_Ioc]
+      have hpnonneg : 0 ≤ (p d : ℝ) - p c := sub_nonneg.mpr (p.mono hcd)
+      have hqnonneg : 0 ≤ (q d : ℝ) - q c := sub_nonneg.mpr (q.mono hcd)
+      rw [ENNReal.toReal_ofReal hpnonneg, ENNReal.toReal_ofReal hqnonneg]
+      rw [hpq c, hpq d]
+      ring
+    · have hdc : d < c := lt_of_not_ge hcd
+      have hemp : Set.Ioc c d = (∅ : Set ℝ) := by
+        rw [Set.Ioc_eq_empty]
+        linarith
+      simp [hemp]
 
 theorem ae_eq_rightLim_complex {f : ℝ → ℂ} (hf : BoundedVariationOn f Set.univ) :
     f =ᵐ[volume] f.rightLim := by
