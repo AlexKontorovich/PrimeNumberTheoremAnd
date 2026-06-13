@@ -8,7 +8,7 @@ import PrimeNumberTheoremAnd.Auxiliary
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import Mathlib.NumberTheory.AbelSummation
+import PrimeNumberTheoremAnd.EulerMaclaurin
 
 set_option lang.lemmaCmd true
 
@@ -811,41 +811,24 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b :
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   rw [uIcc_of_le a_lt_b.le] at φDiff
-  have : MeasureTheory.IntegrableOn (deriv φ) (Icc a b) := by
-    apply intervalIntegrable_iff_integrableOn_Icc_of_le a_lt_b.le |>.mp
-    exact ContinuousOn.intervalIntegrable derivφCont
-  have := sum_mul_eq_sub_sub_integral_mul (c := fun _ ↦ 1) apos a_lt_b.le
-    (fun x hx ↦ (φDiff x hx).differentiableAt) this
-  simp only [mul_one, Finset.sum_const, Nat.card_Icc, tsub_zero, nsmul_eq_mul, Nat.cast_add,
-    Nat.cast_one] at this
-  have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
-  rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
-  rw [← coe]
-  convert this using 1
-  rw [← intervalIntegral.integral_of_le a_lt_b.le]
-  rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
-  have := by
-    calc ∫ (t : ℝ) in a..b, deriv φ t * (↑⌊t⌋₊ + 1)
-      _ = ∫ (t : ℝ) in a..b, ((↑⌊t⌋ + 1 / 2 - t) * deriv φ t - (-1/2 - t) * deriv φ t) := by
-        apply intervalIntegral.integral_congr
-        intro x hx
-        rw [uIcc_of_le a_lt_b.le] at hx
-        beta_reduce
-        rw [← Int.natCast_floor_eq_floor (by linarith[hx.1])]
-        simp only [Int.cast_natCast]
-        ring
-      _ = (∫ (t : ℝ) in a..b, (↑⌊t⌋ + 1 / 2 - t) * deriv φ t) -
-          (∫ (t : ℝ) in a..b, (-1 / 2 - t) * deriv φ t) := by
-        apply  intervalIntegral.integral_sub
-        · apply integrability_aux.mul_continuousOn derivφCont
-        · apply ContinuousOn.intervalIntegrable
-          exact ContinuousOn.mul (by fun_prop) derivφCont
-      _ = (∫ (t : ℝ) in a..b, (⌊t⌋ + 1 / 2 - t) * deriv φ t) -
-      ((-1 / 2 - b) * φ b - (-1 / 2 - a) * φ a + ∫ (x : ℝ) in a..b, φ x) := by
-        rw [← uIcc_of_le a_lt_b.le] at φDiff
-        rw [sum_eq_int_deriv_aux2 _ φDiff derivφCont]
-  rw [this]
-  ring_nf!
+  convert sum_eq_integral_add_integral_deriv apos a_lt_b.le (fun t ht ↦ (φDiff t ht).differentiableAt) derivφCont using 1
+  · have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
+    rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
+    rw [← coe]
+    norm_cast
+  · unfold B1
+    rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
+    push_cast
+    suffices ∫ (x : ℝ) in a..b, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x = -∫ (t : ℝ) in a..b, deriv φ t * (↑t - ↑⌊t⌋₊ - 1 / 2) by
+      rw [this]
+      ring_nf!
+    rw [← intervalIntegral.integral_neg]
+    refine intervalIntegral.integral_congr fun x hx ↦ ?_
+    rw [uIcc_of_le a_lt_b.le, mem_Icc] at hx
+    rw [← Int.natCast_floor_eq_floor (by linarith)]
+    norm_cast
+    push_cast
+    ring
 
 
 lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
