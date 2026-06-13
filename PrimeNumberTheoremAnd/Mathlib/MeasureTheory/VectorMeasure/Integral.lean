@@ -403,6 +403,139 @@ theorem vectorMeasure_integral_restrict_toComplexMeasureZero_sub_mul_eq_setInteg
           setToFun νc.variation (cbmApplyMeasure νc (ContinuousLinearMap.mul ℝ ℂ)) hdomν g := by
           exact setToFun_sub_measure hdomμ hdomν hμc_g hνc_g
 
+theorem vectorMeasure_restrict_variation_le (μ : VectorMeasure X ℂ) {s : Set X}
+    (hs : MeasurableSet s) : (μ.restrict s).variation ≤ μ.variation := by
+  refine variation_le_of_forall_enorm_le fun E hE => ?_
+  rw [VectorMeasure.restrict_apply μ hs hE]
+  exact (enorm_measure_le_variation μ (E ∩ s)).trans (measure_mono Set.inter_subset_left)
+
+/-- The indicator restriction `f ↦ s.indicator f` as a `1`-Lipschitz self-map of `L¹(m)`. -/
+noncomputable def indicatorL1 (m : Measure X) (s : Set X) (hs : MeasurableSet s) :
+    (X →₁[m] ℂ) → (X →₁[m] ℂ) :=
+  fun f => ((L1.integrable_coeFn f).indicator hs).toL1 (s.indicator ⇑f)
+
+theorem coeFn_indicatorL1 {m : Measure X} {s : Set X} (hs : MeasurableSet s) (f : X →₁[m] ℂ) :
+    ⇑(indicatorL1 m s hs f) =ᵐ[m] s.indicator ⇑f := by
+  rw [indicatorL1]
+  exact Integrable.coeFn_toL1 ((L1.integrable_coeFn f).indicator hs)
+
+theorem lipschitzWith_indicatorL1 {m : Measure X} {s : Set X} (hs : MeasurableSet s) :
+    LipschitzWith 1 (indicatorL1 m s hs) := by
+  intro f g
+  rw [ENNReal.coe_one, one_mul, Lp.edist_eq_eLpNorm_neg_add, Lp.edist_eq_eLpNorm_neg_add]
+  refine eLpNorm_mono_ae ?_
+  filter_upwards [coeFn_indicatorL1 hs f, coeFn_indicatorL1 hs g] with x hxf hxg
+  simp only [Pi.add_apply, Pi.neg_apply, hxf, hxg]
+  by_cases hxs : x ∈ s
+  · simp [Set.indicator_of_mem hxs]
+  · simp [Set.indicator_of_notMem hxs]
+
+/-- The map `f ↦ setToFun m T hT (s.indicator f)` is continuous on `L¹(m)`. The indicator
+restriction `f ↦ s.indicator f` is a `1`-Lipschitz self-map of `L¹(m)`, after which
+`continuous_setToFun` applies. -/
+theorem continuous_setToFun_indicator {m : Measure X} {T : Set X → ℂ →L[ℝ] ℂ} {C : ℝ}
+    (hT : DominatedFinMeasAdditive m T C) {s : Set X} (hs : MeasurableSet s) :
+    Continuous fun f : X →₁[m] ℂ => setToFun m T hT (s.indicator ⇑f) := by
+  have heq : (fun f : X →₁[m] ℂ => setToFun m T hT (s.indicator ⇑f)) =
+      (fun f : X →₁[m] ℂ => setToFun m T hT ⇑f) ∘ (indicatorL1 m s hs) := by
+    funext f
+    exact (setToFun_congr_ae hT (coeFn_indicatorL1 hs f)).symm
+  rw [heq]
+  exact (continuous_setToFun hT).comp (lipschitzWith_indicatorL1 hs).continuous
+
+theorem vectorMeasure_integral_mul_complex_add (μ : VectorMeasure X ℂ) {f g : X → ℂ}
+    (hf : Integrable f μ.variation) (hg : Integrable g μ.variation) :
+    VectorMeasure.integral μ (f + g) (ContinuousLinearMap.mul ℝ ℂ) =
+      VectorMeasure.integral μ f (ContinuousLinearMap.mul ℝ ℂ) +
+        VectorMeasure.integral μ g (ContinuousLinearMap.mul ℝ ℂ) := by
+  rw [← setToFun_mul_complex_variation_eq_integral μ hf,
+    ← setToFun_mul_complex_variation_eq_integral μ hg,
+    ← setToFun_mul_complex_variation_eq_integral μ (hf.add hg)]
+  exact setToFun_add (dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μ) hf hg
+
+theorem vectorMeasure_integral_indicator_eq_restrict (μ : VectorMeasure X ℂ)
+    [IsFiniteMeasure μ.variation] {s : Set X} (hs : MeasurableSet s) {g : X → ℂ}
+    (hg : Integrable g μ.variation) :
+    VectorMeasure.integral μ (s.indicator g) (ContinuousLinearMap.mul ℝ ℂ) =
+      VectorMeasure.integral (μ.restrict s) g (ContinuousLinearMap.mul ℝ ℂ) := by
+  have hvar_le : (μ.restrict s).variation ≤ μ.variation := vectorMeasure_restrict_variation_le μ hs
+  have hfin : IsFiniteMeasure (μ.restrict s).variation :=
+    ⟨lt_of_le_of_lt (hvar_le Set.univ) (measure_lt_top μ.variation Set.univ)⟩
+  -- Reduce to a statement provable by induction over `g` against `μ.variation`.
+  set B := ContinuousLinearMap.mul ℝ ℂ with hB
+  -- The predicate to induct on.
+  set P : (X → ℂ) → Prop := fun g =>
+    VectorMeasure.integral μ (s.indicator g) B = VectorMeasure.integral (μ.restrict s) g B with hP
+  suffices hsuff : ∀ ⦃g : X → ℂ⦄, Integrable g μ.variation → P g from hsuff hg
+  intro g hg
+  refine Integrable.induction P ?_ ?_ ?_ ?_ hg
+  · -- base case: `g = t.indicator (fun _ => c)`
+    intro c t ht htfin
+    have htfin' : μ.variation t ≠ ∞ := htfin.ne
+    have hsint : μ.variation (s ∩ t) ≠ ∞ :=
+      ne_top_of_le_ne_top htfin' (measure_mono Set.inter_subset_right)
+    have hrtfin : (μ.restrict s).variation t ≠ ∞ := (measure_lt_top _ _).ne
+    change VectorMeasure.integral μ (s.indicator (t.indicator fun _ => c)) B =
+      VectorMeasure.integral (μ.restrict s) (t.indicator fun _ => c) B
+    rw [Set.indicator_indicator, hB,
+      vectorMeasure_integral_mul_complex_indicator_const μ (hs.inter ht) hsint c,
+      vectorMeasure_integral_mul_complex_indicator_const (μ.restrict s) ht hrtfin c,
+      VectorMeasure.restrict_apply μ hs ht, Set.inter_comm s t]
+  · -- additivity
+    intro f₁ f₂ _ hf₁ hf₂ hPf₁ hPf₂
+    have hf₁r : Integrable f₁ (μ.restrict s).variation := hf₁.mono_measure hvar_le
+    have hf₂r : Integrable f₂ (μ.restrict s).variation := hf₂.mono_measure hvar_le
+    change VectorMeasure.integral μ (s.indicator (f₁ + f₂)) B =
+      VectorMeasure.integral (μ.restrict s) (f₁ + f₂) B
+    rw [Set.indicator_add', hB,
+      vectorMeasure_integral_mul_complex_add μ (hf₁.indicator hs) (hf₂.indicator hs),
+      vectorMeasure_integral_mul_complex_add (μ.restrict s) hf₁r hf₂r]
+    exact congr_arg₂ (· + ·) hPf₁ hPf₂
+  · -- closedness
+    have hdomμ := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μ
+    have hLHS : Continuous fun f : X →₁[μ.variation] ℂ =>
+        VectorMeasure.integral μ (s.indicator ⇑f) B := by
+      have := continuous_setToFun_indicator hdomμ hs
+      refine this.congr fun f => ?_
+      exact setToFun_mul_complex_variation_eq_integral μ ((L1.integrable_coeFn f).indicator hs)
+    have hdomρ := dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation (μ.restrict s)
+    have hdomρ_up : DominatedFinMeasAdditive μ.variation
+        (cbmApplyMeasure (μ.restrict s) B) 1 :=
+      DominatedFinMeasAdditive.of_measure_le hvar_le hdomρ zero_le_one
+    have hRHS : Continuous fun f : X →₁[μ.variation] ℂ =>
+        VectorMeasure.integral (μ.restrict s) (⇑f) B := by
+      have hcont : Continuous fun f : X →₁[μ.variation] ℂ =>
+          setToFun μ.variation (cbmApplyMeasure (μ.restrict s) B) hdomρ_up ⇑f :=
+        continuous_setToFun hdomρ_up
+      refine hcont.congr fun f => ?_
+      have hfr : Integrable (⇑f) (μ.restrict s).variation :=
+        (L1.integrable_coeFn f).mono_measure hvar_le
+      rw [← setToFun_mul_complex_variation_eq_integral (μ.restrict s) hfr]
+      exact setToFun_congr_measure_of_integrable 1 ENNReal.one_ne_top
+        (by simpa [one_smul] using hvar_le) hdomρ_up hdomρ _ (L1.integrable_coeFn f)
+    exact isClosed_eq hLHS hRHS
+  · -- a.e. congruence
+    intro f₁ f₂ hf₁₂ hf₁ hPf₁
+    have hf₂ : Integrable f₂ μ.variation := hf₁.congr hf₁₂
+    have hf₁r : Integrable f₁ (μ.restrict s).variation := hf₁.mono_measure hvar_le
+    have hf₂r : Integrable f₂ (μ.restrict s).variation := hf₂.mono_measure hvar_le
+    have hf₁₂r : f₁ =ᵐ[(μ.restrict s).variation] f₂ :=
+      (Measure.absolutelyContinuous_of_le hvar_le) hf₁₂
+    have hind₁₂ : s.indicator f₁ =ᵐ[μ.variation] s.indicator f₂ := by
+      filter_upwards [hf₁₂] with x hx
+      by_cases hxs : x ∈ s
+      · simp [Set.indicator_of_mem hxs, hx]
+      · simp [Set.indicator_of_notMem hxs]
+    change VectorMeasure.integral μ (s.indicator f₂) B =
+      VectorMeasure.integral (μ.restrict s) f₂ B
+    rw [← setToFun_mul_complex_variation_eq_integral μ (hf₂.indicator hs),
+      ← setToFun_mul_complex_variation_eq_integral (μ.restrict s) hf₂r,
+      setToFun_congr_ae _ hind₁₂.symm,
+      setToFun_congr_ae _ hf₁₂r.symm,
+      setToFun_mul_complex_variation_eq_integral μ (hf₁.indicator hs),
+      setToFun_mul_complex_variation_eq_integral (μ.restrict s) hf₁r]
+    exact hPf₁
+
 theorem norm_setToFun_mul_complex_variation_le_of_norm_le (μ : VectorMeasure X ℂ)
     {g : X → ℂ} {C : ℝ} (hg : Integrable g μ.variation) (hC : 0 ≤ C)
     (hbound : ∀ x, ‖g x‖ ≤ C) (hμ : μ.variation univ ≠ ∞) :
