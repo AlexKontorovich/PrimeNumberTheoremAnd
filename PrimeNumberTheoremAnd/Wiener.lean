@@ -12,6 +12,7 @@ import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.VectorMeasure.Integral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
+import PrimeNumberTheoremAnd.StieltjesFubini
 import Mathlib.Analysis.Convolution
 
 set_option lang.lemmaCmd true
@@ -436,6 +437,209 @@ theorem tendsto_vectorMeasure_integral_Ioc_fourierChar
   rw [← setToFun_mul_complex_variation_eq_integral hvar.vectorMeasure hf_int]
   exact hset.congr' (Eventually.of_forall fun n =>
     setToFun_mul_complex_variation_eq_integral hvar.vectorMeasure (hfs_int n))
+
+/-- The Fourier transform written through the bounded-continuous kernel `e u`. -/
+theorem fourierIntegral_eq_integral_e (g : ℝ → ℂ) (u : ℝ) :
+    𝓕 g u = ∫ v, (e u v) * g v := by
+  rw [Real.fourier_eq]
+  simp only [e_apply, RCLike.inner_apply', conj_trivial]
+  congr 1
+  ext v
+  rw [Circle.smul_def, neg_mul, smul_eq_mul]
+
+/-- Interval integrability of `fun t => (p t - p c : ℂ)` for a Stieltjes function `p`. -/
+theorem intervalIntegrable_stieltjes_sub_const (p : StieltjesFunction ℝ) (a b c : ℝ) :
+    IntervalIntegrable (fun t => (p t - p c : ℂ)) volume a b := by
+  have hmono : Monotone (fun t => p t - p c) := fun x y hxy => by
+    simpa using sub_le_sub_right (p.mono hxy) (p c)
+  have hreal : IntervalIntegrable (fun t => p t - p c) volume a b :=
+    hmono.intervalIntegrable
+  rw [intervalIntegrable_iff] at hreal ⊢
+  have := Complex.ofRealCLM.integrable_comp hreal
+  simpa [Function.comp] using this
+
+/-- Master integration-by-parts limit: for a real integrable function of bounded variation `g`
+with Stieltjes decomposition `g.rightLim = p - q`, the windowed Stieltjes integral difference of
+`e u` converges to `2π u i · 𝓕 (g.rightLim) u`. -/
+theorem tendsto_setIntegral_stieltjes_sub_ibp {g : ℝ → ℝ}
+    (hg : BoundedVariationOn g Set.univ) (hgi : Integrable g volume) (u : ℝ)
+    {p q : StieltjesFunction ℝ} (hpq : ∀ x : ℝ, Function.rightLim g x = p x - q x) :
+    Tendsto
+      (fun n : ℕ => (∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂p.measure) -
+        ∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂q.measure)
+      atTop
+      (𝓝 ((((2 * Real.pi * u : ℝ) : ℂ) * Complex.I) *
+        𝓕 (fun x => ((Function.rightLim g x : ℝ) : ℂ)) u)) := by
+  classical
+  set G : ℝ → ℂ := fun x => ((Function.rightLim g x : ℝ) : ℂ) with hG
+  have hrl_bv : BoundedVariationOn (Function.rightLim g) Set.univ := hg.rightLim
+  have hrl_int : Integrable (Function.rightLim g) volume := hgi.congr hg.ae_eq_rightLim_real
+  have hG_int : Integrable G volume := by
+    simpa [hG, Function.comp] using (Complex.ofRealCLM.integrable_comp hrl_int)
+  have hrl_top : Tendsto (Function.rightLim g) atTop (𝓝 0) :=
+    hrl_bv.tendsto_atTop_zero_of_integrable hrl_int
+  have hrl_bot : Tendsto (Function.rightLim g) atBot (𝓝 0) :=
+    hrl_bv.tendsto_atBot_zero_of_integrable hrl_int
+  set g' : ℝ → ℂ := fun x => -2 * π * u * I * e u x with hg'def
+  have hg'_cont : Continuous g' := by rw [hg'def]; continuity
+  have he1 : ∀ x : ℝ, ‖(e u x : ℂ)‖ ≤ 1 := by
+    intro x
+    calc ‖(e u x : ℂ)‖ ≤ ‖e u‖ := (e u).norm_coe_le_norm x
+      _ ≤ 1 := (BoundedContinuousFunction.norm_le zero_le_one).2 (fun y => by simp [e_apply])
+  have hg'_bdd : ∀ x : ℝ, ‖g' x‖ ≤ 2 * π * |u| := by
+    intro x
+    have hconst : ‖((-2 * π * u : ℝ) : ℂ) * I‖ = 2 * π * |u| := by
+      rw [norm_mul, Complex.norm_I, mul_one, Complex.norm_real, Real.norm_eq_abs]
+      rw [abs_mul, abs_mul, abs_neg]
+      simp [abs_of_pos Real.pi_pos]
+    have hrw : g' x = (((-2 * π * u : ℝ) : ℂ) * I) * e u x := by
+      rw [hg'def]; push_cast; ring
+    rw [hrw, norm_mul, hconst]
+    calc 2 * π * |u| * ‖(e u x : ℂ)‖ ≤ 2 * π * |u| * 1 := by
+          apply mul_le_mul_of_nonneg_left (he1 x)
+          positivity
+      _ = 2 * π * |u| := by ring
+  have hGg'_int : Integrable (fun t => G t * g' t) volume :=
+    hG_int.mul_bdd hg'_cont.aestronglyMeasurable (ae_of_all _ hg'_bdd)
+  have hibp_n : ∀ n : ℕ,
+      (∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂p.measure) -
+        ∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂q.measure =
+      e u (n : ℝ) * ((p (n : ℝ) - p (-(n : ℝ)) : ℂ) - (q (n : ℝ) - q (-(n : ℝ)) : ℂ)) -
+        ∫ t in (-(n : ℝ))..(n : ℝ),
+          ((p t - p (-(n : ℝ)) : ℂ) - (q t - q (-(n : ℝ)) : ℂ)) * g' t := by
+    intro n
+    have hab : (-(n : ℝ)) ≤ (n : ℝ) := by
+      have : (0:ℝ) ≤ (n : ℝ) := by positivity
+      linarith
+    have hp_int := intervalIntegrable_stieltjes_sub_const p (-(n:ℝ)) (n:ℝ) (-(n:ℝ))
+    have hq_int := intervalIntegrable_stieltjes_sub_const q (-(n:ℝ)) (n:ℝ) (-(n:ℝ))
+    have hp_int' : IntervalIntegrable (fun t => (p t - p (-(n:ℝ)) : ℂ) * g' t) volume
+        (-(n:ℝ)) (n:ℝ) := hp_int.mul_continuousOn hg'_cont.continuousOn
+    have hq_int' : IntervalIntegrable (fun t => (q t - q (-(n:ℝ)) : ℂ) * g' t) volume
+        (-(n:ℝ)) (n:ℝ) := hq_int.mul_continuousOn hg'_cont.continuousOn
+    exact integral_signed_stieltjes_by_parts_sub_base p q (-(n:ℝ)) (n:ℝ) hab (e u) g'
+      (e u).continuous hg'_cont (fun x _ => hasDerivAt_e) hp_int' hq_int'
+  have hclean : ∀ n : ℕ,
+      (∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂p.measure) -
+        ∫ x in Set.Ioc (-(n : ℝ)) (n : ℝ), e u x ∂q.measure =
+      e u (n : ℝ) * G (n : ℝ) - G (-(n : ℝ)) * e u (-(n : ℝ)) -
+        ∫ t in (-(n : ℝ))..(n : ℝ), G t * g' t := by
+    intro n
+    rw [hibp_n n]
+    have hGdiff : ∀ x : ℝ, (p x - p (-(n:ℝ)) : ℂ) - (q x - q (-(n:ℝ)) : ℂ)
+        = G x - G (-(n:ℝ)) := by
+      intro x
+      simp only [hG]
+      rw [hpq x, hpq (-(n:ℝ))]
+      push_cast
+      ring
+    have hsplit : ∫ t in (-(n : ℝ))..(n : ℝ),
+          ((p t - p (-(n : ℝ)) : ℂ) - (q t - q (-(n : ℝ)) : ℂ)) * g' t =
+        (∫ t in (-(n : ℝ))..(n : ℝ), G t * g' t) -
+          G (-(n:ℝ)) * (e u (n:ℝ) - e u (-(n:ℝ))) := by
+      have hftc : ∫ t in (-(n : ℝ))..(n : ℝ), g' t = e u (n:ℝ) - e u (-(n:ℝ)) := by
+        have := intervalIntegral.integral_eq_sub_of_hasDerivAt
+          (f := e u) (f' := g') (a := -(n:ℝ)) (b := (n:ℝ))
+          (fun x _ => hasDerivAt_e) (hg'_cont.intervalIntegrable _ _)
+        simpa using this
+      rw [← hftc, ← intervalIntegral.integral_const_mul (G (-(n:ℝ))) g']
+      rw [← intervalIntegral.integral_sub]
+      · apply intervalIntegral.integral_congr
+        intro t _
+        simp only []
+        rw [hGdiff t]
+        ring
+      · exact hGg'_int.intervalIntegrable
+      · exact (continuous_const.mul hg'_cont).intervalIntegrable _ _
+    rw [hsplit, hGdiff (n:ℝ)]
+    ring
+  rw [tendsto_congr hclean]
+  have hint_id : (∫ t, G t * g' t) = (-((2 * Real.pi * u : ℝ) : ℂ) * I) * 𝓕 G u := by
+    have hrw2 : ∀ t : ℝ, G t * g' t = (-((2 * Real.pi * u : ℝ) : ℂ) * I) * (e u t * G t) := by
+      intro t
+      rw [hg'def]
+      push_cast
+      ring
+    calc (∫ t, G t * g' t) = ∫ t, (-((2 * Real.pi * u : ℝ) : ℂ) * I) * (e u t * G t) := by
+          exact integral_congr_ae (ae_of_all _ hrw2)
+      _ = (-((2 * Real.pi * u : ℝ) : ℂ) * I) * ∫ t, e u t * G t := by
+          rw [integral_const_mul]
+      _ = (-((2 * Real.pi * u : ℝ) : ℂ) * I) * 𝓕 G u := by
+          rw [fourierIntegral_eq_integral_e G u]
+  have hn_top : Tendsto (fun n : ℕ => (n : ℝ)) atTop atTop := tendsto_natCast_atTop_atTop
+  have hn_bot : Tendsto (fun n : ℕ => (-(n : ℝ))) atTop atBot :=
+    tendsto_neg_atBot_iff.mpr hn_top
+  have hlim1 : Tendsto (fun n : ℕ => e u (n : ℝ) * G (n : ℝ)) atTop (𝓝 0) := by
+    have hGtop : Tendsto (fun n : ℕ => G (n : ℝ)) atTop (𝓝 0) := by
+      have : Tendsto G atTop (𝓝 ((0:ℝ):ℂ)) :=
+        (Complex.continuous_ofReal.tendsto 0).comp hrl_top
+      simpa [hG] using this.comp hn_top
+    have hbound : Tendsto (fun n : ℕ => ‖G (n : ℝ)‖) atTop (𝓝 0) :=
+      tendsto_zero_iff_norm_tendsto_zero.mp hGtop
+    refine squeeze_zero_norm (fun n => ?_) hbound
+    rw [norm_mul]
+    exact mul_le_of_le_one_left (norm_nonneg _) (he1 _)
+  have hlim2 : Tendsto (fun n : ℕ => G (-(n : ℝ)) * e u (-(n : ℝ))) atTop (𝓝 0) := by
+    have hGbot : Tendsto (fun n : ℕ => G (-(n : ℝ))) atTop (𝓝 0) := by
+      have : Tendsto G atBot (𝓝 ((0:ℝ):ℂ)) :=
+        (Complex.continuous_ofReal.tendsto 0).comp hrl_bot
+      simpa [hG] using this.comp hn_bot
+    have hbound : Tendsto (fun n : ℕ => ‖G (-(n : ℝ))‖) atTop (𝓝 0) :=
+      tendsto_zero_iff_norm_tendsto_zero.mp hGbot
+    refine squeeze_zero_norm (fun n => ?_) hbound
+    rw [norm_mul]
+    exact mul_le_of_le_one_right (norm_nonneg _) (he1 _)
+  have hlim3 : Tendsto (fun n : ℕ => ∫ t in (-(n : ℝ))..(n : ℝ), G t * g' t) atTop
+      (𝓝 (∫ t, G t * g' t)) :=
+    intervalIntegral_tendsto_integral hGg'_int hn_bot hn_top
+  have hsum := (hlim1.sub hlim2).sub hlim3
+  simp only [sub_zero, zero_sub] at hsum
+  rw [hint_id] at hsum
+  convert hsum using 2
+  ring
+
+/-- General convergence of the windowed indicator integral against an arbitrary
+finite-variation complex vector measure. -/
+theorem tendsto_vectorMeasure_integral_Ioc_e
+    (μ : MeasureTheory.VectorMeasure ℝ ℂ) [IsFiniteMeasure μ.variation] (u : ℝ) :
+    Tendsto
+      (fun n : ℕ => VectorMeasure.integral μ
+        ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ))
+        (ContinuousLinearMap.mul ℝ ℂ))
+      atTop
+      (𝓝 (VectorMeasure.integral μ (e u) (ContinuousLinearMap.mul ℝ ℂ))) := by
+  set μv : Measure ℝ := μ.variation
+  let T : Set ℝ → ℂ →L[ℝ] ℂ := cbmApplyMeasure μ (ContinuousLinearMap.mul ℝ ℂ)
+  let hT : DominatedFinMeasAdditive μv T 1 :=
+    dominatedFinMeasAdditive_cbmApplyMeasure_mul_complex_variation μ
+  have hf_int : Integrable (e u : ℝ → ℂ) μv :=
+    BoundedContinuousFunction.integrable μv (e u)
+  have hfs_int : ∀ n : ℕ,
+      Integrable ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)) μv := fun n =>
+    hf_int.indicator measurableSet_Ioc
+  have hcover : AECover μv atTop (fun n : ℕ => Set.Ioc (-(n : ℝ)) (n : ℝ)) :=
+    aecover_Ioc
+      (tendsto_neg_atBot_iff.mpr
+        (tendsto_natCast_atTop_atTop : Tendsto (fun n : ℕ => (n : ℝ)) atTop atTop))
+      (tendsto_natCast_atTop_atTop : Tendsto (fun n : ℕ => (n : ℝ)) atTop atTop)
+  have hset :
+      Tendsto
+        (fun n : ℕ => setToFun μv T hT
+          ((Set.Ioc (-(n : ℝ)) (n : ℝ)).indicator (e u : ℝ → ℂ)))
+        atTop
+        (𝓝 (setToFun μv T hT (e u : ℝ → ℂ))) := by
+    refine tendsto_setToFun_of_dominated_convergence hT (fun _ : ℝ => ‖e u‖) ?_ ?_ ?_ ?_
+    · intro n
+      exact ((e u).continuous.aestronglyMeasurable).indicator measurableSet_Ioc
+    · exact integrable_const _
+    · intro n
+      refine ae_of_all μv fun x => ?_
+      exact (norm_indicator_le_norm_self (e u : ℝ → ℂ) x).trans
+        (BoundedContinuousFunction.norm_coe_le_norm (e u) x)
+    · exact hcover.ae_tendsto_indicator (e u : ℝ → ℂ)
+  rw [← setToFun_mul_complex_variation_eq_integral μ hf_int]
+  exact hset.congr' (Eventually.of_forall fun n =>
+    setToFun_mul_complex_variation_eq_integral μ (hfs_int n))
 
 def vectorMeasure_integral_fourierChar_eq_IBP (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (hvar : BoundedVariationOn ψ Set.univ) (u : ℝ) : Prop :=
