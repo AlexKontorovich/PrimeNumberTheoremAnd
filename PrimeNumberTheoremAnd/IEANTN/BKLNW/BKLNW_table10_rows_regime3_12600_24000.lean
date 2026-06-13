@@ -15,37 +15,37 @@ Each row's 5 k-margins need the same two `exp(-b/2)` and `exp(-2b/3)` bounds;
 caching them avoids re-running `interval_decide` on the same exp values 5x.
 For the magnitudes used here, `exp(-x) < 1e-100` is trivially loose. -/
 
-private lemma exp_neg_6300_lt : Real.exp (-(6300 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_6350_lt : Real.exp (-(6350 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_6400_lt : Real.exp (-(6400 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_6450_lt : Real.exp (-(6450 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_6500_lt : Real.exp (-(6500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_6750_lt : Real.exp (-(6750 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_7000_lt : Real.exp (-(7000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_7500_lt : Real.exp (-(7500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_8000_lt : Real.exp (-(8000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_8400_lt : Real.exp (-(8400 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_25400_3_lt : Real.exp (-(25400/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_8500_lt : Real.exp (-(8500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_25600_3_lt : Real.exp (-(25600/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_8600_lt : Real.exp (-(8600 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_26000_3_lt : Real.exp (-(26000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_9000_lt : Real.exp (-(9000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_28000_3_lt : Real.exp (-(28000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_9500_lt : Real.exp (-(9500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_10000_lt : Real.exp (-(10000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_10500_lt : Real.exp (-(10500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_32000_3_lt : Real.exp (-(32000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_11000_lt : Real.exp (-(11000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_34000_3_lt : Real.exp (-(34000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_11500_lt : Real.exp (-(11500 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_12000_lt : Real.exp (-(12000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_38000_3_lt : Real.exp (-(38000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_40000_3_lt : Real.exp (-(40000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_14000_lt : Real.exp (-(14000 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_44000_3_lt : Real.exp (-(44000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_46000_3_lt : Real.exp (-(46000/3 : ℝ)) < 1e-100 := by interval_decide
-private lemma exp_neg_16000_lt : Real.exp (-(16000 : ℝ)) < 1e-100 := by interval_decide
+private lemma exp_neg_6300_lt : Real.exp (-(6300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_6350_lt : Real.exp (-(6350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_6400_lt : Real.exp (-(6400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_6450_lt : Real.exp (-(6450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_6500_lt : Real.exp (-(6500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_6750_lt : Real.exp (-(6750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_7000_lt : Real.exp (-(7000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_7500_lt : Real.exp (-(7500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_8000_lt : Real.exp (-(8000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_8400_lt : Real.exp (-(8400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_25400_3_lt : Real.exp (-(25400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_8500_lt : Real.exp (-(8500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_25600_3_lt : Real.exp (-(25600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_8600_lt : Real.exp (-(8600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_26000_3_lt : Real.exp (-(26000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_9000_lt : Real.exp (-(9000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_28000_3_lt : Real.exp (-(28000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_9500_lt : Real.exp (-(9500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_10000_lt : Real.exp (-(10000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_10500_lt : Real.exp (-(10500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_32000_3_lt : Real.exp (-(32000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_11000_lt : Real.exp (-(11000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_34000_3_lt : Real.exp (-(34000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_11500_lt : Real.exp (-(11500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_12000_lt : Real.exp (-(12000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_38000_3_lt : Real.exp (-(38000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_40000_3_lt : Real.exp (-(40000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_14000_lt : Real.exp (-(14000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_44000_3_lt : Real.exp (-(44000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_46000_3_lt : Real.exp (-(46000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+private lemma exp_neg_16000_lt : Real.exp (-(16000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
 
 
 

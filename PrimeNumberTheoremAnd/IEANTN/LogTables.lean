@@ -71,6 +71,23 @@ lemma exp_neg_one_gt : (0.367879441 : ℝ) < exp (-1 : ℝ) := by interval_decid
 lemma exp_neg_half_lt : exp (-(1/2 : ℝ)) < 0.6065307 := by interval_decide
 lemma exp_neg_two_thirds_lt : exp (-(2/3 : ℝ)) < 0.513418 := by interval_decide
 
+/-! ## Tail-decay master lemmas
+
+For computations that need to bound many `exp(-x)` terms at different `x`, prove the
+bound at a single threshold via `interval_decide` and use monotonicity to discharge
+all other instances for free. Saves dozens of `interval_decide` invocations per file in
+contexts like Table 10's regime-3 row certificates. -/
+
+/-- For all `x ≥ 50`, `exp(-x) < 1e-20`. (Bound at the boundary is `exp(-50) ≈ 1.9e-22`.) -/
+lemma exp_neg_lt_1e_neg_20 {x : ℝ} (hx : 50 ≤ x) : Real.exp (-x) < 1e-20 :=
+  have h_boundary : Real.exp (-(50 : ℝ)) < 1e-20 := by interval_decide
+  lt_of_le_of_lt (Real.exp_le_exp.mpr (by linarith)) h_boundary
+
+/-- For all `x ≥ 231`, `exp(-x) < 1e-100`. (Bound at the boundary is `exp(-231) ≈ 9.8e-101`.) -/
+lemma exp_neg_lt_1e_neg_100 {x : ℝ} (hx : 231 ≤ x) : Real.exp (-x) < 1e-100 :=
+  have h_boundary : Real.exp (-(231 : ℝ)) < 1e-100 := by interval_decide
+  lt_of_le_of_lt (Real.exp_le_exp.mpr (by linarith)) h_boundary
+
 /-! ## Bounds for non-integer arguments -/
 
 lemma log_2_353_gt : (0.855 : ℝ) < log 2.353 := by interval_decide
