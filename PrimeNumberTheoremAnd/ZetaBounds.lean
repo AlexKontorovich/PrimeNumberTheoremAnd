@@ -8,7 +8,7 @@ import PrimeNumberTheoremAnd.Auxiliary
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import Mathlib.NumberTheory.AbelSummation
+import PrimeNumberTheoremAnd.EulerMaclaurin
 
 set_option lang.lemmaCmd true
 
@@ -706,74 +706,6 @@ lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
   rw [← cpow_add _ _ <| mod_cast x_ne, neg_add_cancel, cpow_zero]
 
--- No longer used
-lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
-    (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
-  (ContDiffAt.hasStrictDerivAt (φDiff.contDiffAt x_in_s) (by simp)).hasDerivAt
-
--- No longer used
-lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
-    (φDiff : ContDiffOn ℝ 1 φ (uIoo a b)) :
-    ContinuousOn (deriv φ) (uIoo a b) := by
-  apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
-  exact (fun h ↦ ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2.2) φDiff
-
-lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
-  refine HasDerivAt.add_const b ?_
-  convert (ContinuousLinearMap.hasDerivAt Complex.ofRealCLM).const_mul a using 1; simp
-
-lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
-    (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
-    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
-    ∫ (x : ℝ) in a..b, (c - x) * deriv φ x =
-      (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
-  set u := fun (x : ℝ) ↦ c - x
-  set u' := fun (x : ℝ) ↦ (-1 : ℂ)
-  have hu : ∀ x ∈ uIcc a b, HasDerivAt u (u' x) x := by
-    exact fun x _ ↦ by convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
-  have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
-    apply Continuous.intervalIntegrable; continuity
-  have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
-    derivφCont.intervalIntegrable
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u, u']
-
-
-lemma integrability_aux₀ {a b : ℝ} :
-    ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
-      ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
-  apply (MeasureTheory.ae_restrict_iff' measurableSet_Icc).mpr
-  refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
-  simp only [inf_le_iff, le_sup_iff, mem_Icc] at hx
-  simp only [norm_intCast, Real.norm_eq_abs]
-  have : |x| ≤ max |a| |b| := by
-    obtain x_ge_a | x_ge_b := hx.1 <;> obtain x_le_a | x_le_b := hx.2
-    · rw [(by linarith : x = a)]; apply le_max_left
-    · apply abs_le_max_abs_abs x_ge_a x_le_b
-    · rw [max_comm]; apply abs_le_max_abs_abs x_ge_b x_le_a
-    · rw [(by linarith : x = b)]; apply le_max_right
-  obtain hx | hx := abs_cases x
-  · rw [_root_.abs_of_nonneg <| by exact_mod_cast Int.floor_nonneg.mpr hx.2]
-    apply le_trans (Int.floor_le x) <| le_trans (hx.1 ▸ this) (by simp)
-  · rw [_root_.abs_of_nonpos <| by exact_mod_cast Int.floor_nonpos hx.2.le]
-    linarith [(Int.lt_floor_add_one x).le]
-
-lemma integrability_aux₁ {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
-  rw [intervalIntegrable_iff']
-  apply MeasureTheory.Measure.integrableOn_of_bounded ?_ ?_ integrability_aux₀
-  · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
-  · apply Measurable.aestronglyMeasurable
-    apply Measurable.comp (by exact fun ⦃t⦄ _ ↦ trivial) Int.measurable_floor
-
-lemma integrability_aux₂ {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b :=
-  Continuous.continuousOn (by continuity) |>.intervalIntegrable
-
-lemma integrability_aux {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
-  convert integrability_aux₁.add integrability_aux₂ using 2; ring
-
-
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
 /-
@@ -786,7 +718,6 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
     lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
 
-set_option backward.isDefEq.respectTransparency false in
 @[blueprint
   (title := "sum-eq-int-deriv")
   (statement := /--
@@ -799,9 +730,7 @@ set_option backward.isDefEq.respectTransparency false in
     - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
   \]
   -/)
-  (proof := /--
-  Specialize Abel summation from Mathlib to the trivial arithmetic function and then manipulate
-  integrals.
+  (proof := /-- This is first order Euler-Maclaurin.
   -/)
   (latexEnv := "lemma")]
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b : a < b)
@@ -811,41 +740,24 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b :
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   rw [uIcc_of_le a_lt_b.le] at φDiff
-  have : MeasureTheory.IntegrableOn (deriv φ) (Icc a b) := by
-    apply intervalIntegrable_iff_integrableOn_Icc_of_le a_lt_b.le |>.mp
-    exact ContinuousOn.intervalIntegrable derivφCont
-  have := sum_mul_eq_sub_sub_integral_mul (c := fun _ ↦ 1) apos a_lt_b.le
-    (fun x hx ↦ (φDiff x hx).differentiableAt) this
-  simp only [mul_one, Finset.sum_const, Nat.card_Icc, tsub_zero, nsmul_eq_mul, Nat.cast_add,
-    Nat.cast_one] at this
-  have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
-  rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
-  rw [← coe]
-  convert this using 1
-  rw [← intervalIntegral.integral_of_le a_lt_b.le]
-  rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
-  have := by
-    calc ∫ (t : ℝ) in a..b, deriv φ t * (↑⌊t⌋₊ + 1)
-      _ = ∫ (t : ℝ) in a..b, ((↑⌊t⌋ + 1 / 2 - t) * deriv φ t - (-1/2 - t) * deriv φ t) := by
-        apply intervalIntegral.integral_congr
-        intro x hx
-        rw [uIcc_of_le a_lt_b.le] at hx
-        beta_reduce
-        rw [← Int.natCast_floor_eq_floor (by linarith[hx.1])]
-        simp only [Int.cast_natCast]
-        ring
-      _ = (∫ (t : ℝ) in a..b, (↑⌊t⌋ + 1 / 2 - t) * deriv φ t) -
-          (∫ (t : ℝ) in a..b, (-1 / 2 - t) * deriv φ t) := by
-        apply  intervalIntegral.integral_sub
-        · apply integrability_aux.mul_continuousOn derivφCont
-        · apply ContinuousOn.intervalIntegrable
-          exact ContinuousOn.mul (by fun_prop) derivφCont
-      _ = (∫ (t : ℝ) in a..b, (⌊t⌋ + 1 / 2 - t) * deriv φ t) -
-      ((-1 / 2 - b) * φ b - (-1 / 2 - a) * φ a + ∫ (x : ℝ) in a..b, φ x) := by
-        rw [← uIcc_of_le a_lt_b.le] at φDiff
-        rw [sum_eq_int_deriv_aux2 _ φDiff derivφCont]
-  rw [this]
-  ring_nf!
+  convert sum_eq_integral_add_integral_deriv apos a_lt_b.le (fun t ht ↦ (φDiff t ht).differentiableAt) derivφCont using 1
+  · have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
+    rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
+    rw [← coe]
+    norm_cast
+  · unfold B1
+    rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
+    push_cast
+    suffices ∫ (x : ℝ) in a..b, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x = -∫ (t : ℝ) in a..b, deriv φ t * (↑t - ↑⌊t⌋₊ - 1 / 2) by
+      rw [this]
+      ring_nf!
+    rw [← intervalIntegral.integral_neg]
+    refine intervalIntegral.integral_congr fun x hx ↦ ?_
+    rw [uIcc_of_le a_lt_b.le, mem_Icc] at hx
+    rw [← Int.natCast_floor_eq_floor (by linarith)]
+    norm_cast
+    push_cast
+    ring
 
 
 lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :

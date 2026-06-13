@@ -5,6 +5,7 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.Defs
+import PrimeNumberTheoremAnd.EulerMaclaurin
 import PrimeNumberTheoremAnd.EulerMascheroniBounds
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.GeneralMeromorphic
