@@ -1656,6 +1656,83 @@ private lemma E₂Λ_mellin_compact_norm_le {R s : ℝ} (hR1 : 1 ≤ R) (hs : 1 
     _ = R ^ (2 : ℝ) * ∫ x in Set.Ioc (1 : ℝ) R, ‖E₂Λ x * x ^ (-(2 : ℝ))‖ := by
       rw [MeasureTheory.integral_const_mul]
 
+private lemma E₂Λ_mellin_integral_split {R s : ℝ} (hR1 : 1 ≤ R) (hs : 1 < s) :
+    (∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s)) =
+      (∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)) +
+        ∫ x in Set.Ioi R, E₂Λ x * x ^ (-s) := by
+  rw [← Set.Ioc_union_Ioi_eq_Ioi hR1,
+    MeasureTheory.setIntegral_union Set.Ioc_disjoint_Ioi_same measurableSet_Ioi]
+  · exact (integrableOn_Ioi_one_E₂Λ_rpow s hs).mono_set Set.Ioc_subset_Ioi_self
+  · exact (integrableOn_Ioi_one_E₂Λ_rpow s hs).mono_set (Set.Ioi_subset_Ioi hR1)
+
+private lemma E₂Λ_mellin_tail_tendsto_zero :
+    Tendsto
+      (fun s : ℝ => (s - 1) * ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+      (𝓝[>] 1) (𝓝 0) := by
+  rw [Metric.tendsto_nhds]
+  intro ε hε
+  let η : ℝ := ε / 4
+  have hηpos : 0 < η := by dsimp [η]; positivity
+  have hηnonneg : 0 ≤ η := hηpos.le
+  have hsmall_event : ∀ᶠ x in atTop, |E₂Λ x| ≤ η := by
+    have h := isLittleO_iff.mp E₂Λ.bound' hηpos
+    filter_upwards [h] with x hx
+    simpa [η, Real.norm_eq_abs] using hx
+  rcases eventually_atTop.mp hsmall_event with ⟨R₀, hR₀⟩
+  let R : ℝ := max 2 R₀
+  have hR1 : 1 ≤ R := by dsimp [R]; exact (by norm_num : (1 : ℝ) ≤ 2).trans (le_max_left _ _)
+  have hRpos : 0 < R := zero_lt_one.trans_le hR1
+  have hRsmall : ∀ x, R ≤ x → |E₂Λ x| ≤ η := by
+    intro x hx
+    exact hR₀ x ((le_max_right (2 : ℝ) R₀).trans hx)
+  let K : ℝ := R ^ (2 : ℝ) * ∫ x in Set.Ioc (1 : ℝ) R, ‖E₂Λ x * x ^ (-(2 : ℝ))‖
+  have hKnonneg : 0 ≤ K := by
+    dsimp [K]
+    exact mul_nonneg (Real.rpow_nonneg hRpos.le _)
+      (MeasureTheory.setIntegral_nonneg measurableSet_Ioc fun x _ => abs_nonneg _)
+  have hcoef_tendsto : Tendsto (fun s : ℝ => (s - 1) * K) (𝓝[>] 1) (𝓝 0) := by
+    have hsminus : Tendsto (fun s : ℝ => s - 1) (𝓝[>] 1) (𝓝 0) := by
+      rw [show (0 : ℝ) = 1 - 1 by ring]
+      exact (tendsto_nhdsWithin_of_tendsto_nhds tendsto_id).sub tendsto_const_nhds
+    simpa using hsminus.mul tendsto_const_nhds
+  have hcoef_small : ∀ᶠ s in 𝓝[>] 1, (s - 1) * K < ε / 2 := by
+    have hdist := Metric.tendsto_nhds.mp hcoef_tendsto (ε / 2) (by positivity)
+    filter_upwards [hdist, self_mem_nhdsWithin] with s hs_dist hs_mem
+    rw [Set.mem_Ioi] at hs_mem
+    rw [dist_eq_norm, sub_zero, Real.norm_eq_abs, abs_of_nonneg] at hs_dist
+    · exact hs_dist
+    exact mul_nonneg (sub_nonneg.mpr hs_mem.le) hKnonneg
+  have hlt2 : ∀ᶠ s in 𝓝[>] (1 : ℝ), s < 2 :=
+    nhdsWithin_le_nhds (Iio_mem_nhds (by norm_num : (1 : ℝ) < 2))
+  filter_upwards [self_mem_nhdsWithin, hlt2, hcoef_small] with s hs_mem hs2 hcoef_lt
+  rw [Set.mem_Ioi] at hs_mem
+  have hs : 1 < s := hs_mem
+  have hsnonneg : 0 ≤ s - 1 := (sub_pos.mpr hs).le
+  let compact : ℝ := (s - 1) * ∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)
+  let tail : ℝ := (s - 1) * ∫ x in Set.Ioi R, E₂Λ x * x ^ (-s)
+  have hsplit :
+      (s - 1) * ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s) = compact + tail := by
+    dsimp [compact, tail]
+    rw [E₂Λ_mellin_integral_split hR1 hs]
+    ring
+  have hcompact_bound : ‖compact‖ < ε / 2 := by
+    dsimp [compact]
+    calc
+      ‖(s - 1) * ∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)‖ =
+          (s - 1) * ‖∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)‖ := by
+        rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg hsnonneg]
+        rfl
+      _ ≤ (s - 1) * K := by
+        refine mul_le_mul_of_nonneg_left ?_ hsnonneg
+        simpa [K] using E₂Λ_mellin_compact_norm_le hR1 hs hs2
+      _ < ε / 2 := hcoef_lt
+  have htail_bound : ‖tail‖ < ε / 2 := by
+    dsimp [tail]
+    have htail := E₂Λ_mellin_tail_norm_le hηnonneg hR1 hs hRsmall
+    exact lt_of_le_of_lt htail (by dsimp [η]; linarith)
+  rw [dist_eq_norm, sub_zero, hsplit]
+  exact lt_of_le_of_lt (norm_add_le compact tail) (by linarith)
+
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
   have hsub :
@@ -1738,8 +1815,6 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     _ = -Real.log (s - 1) + deriv Real.Gamma 1 + γ + (s - 1) * E := by
       rw [hL, hC]
 
-#check Real.eulerMascheroniConstant_eq_neg_deriv
-
 @[blueprint
   "Euler-Mascheroni-eq"
   (title := "Compatibility with Mathlib Euler-Mascheroni constant")
@@ -1748,7 +1823,35 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
   (latexEnv := "theorem")
   (discussion := 1320)]
-theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by sorry
+theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by
+  have htail := E₂Λ_mellin_tail_tendsto_zero
+  have hright :
+      Tendsto
+        (fun s : ℝ => deriv Gamma 1 + γ +
+          (s - 1) * ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+        (𝓝[>] 1) (𝓝 (deriv Gamma 1 + γ)) := by
+    have hconst :
+        Tendsto (fun _ : ℝ => deriv Gamma 1 + γ) (𝓝[>] 1)
+          (𝓝 (deriv Gamma 1 + γ)) := tendsto_const_nhds
+    simpa [add_assoc] using hconst.add htail
+  have hEq :
+      (fun s : ℝ => log (riemannZeta (s : ℂ)).re + log (s - 1)) =ᶠ[𝓝[>] 1]
+        fun s : ℝ => deriv Gamma 1 + γ +
+          (s - 1) * ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s) := by
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    rw [Set.mem_Ioi] at hs
+    rw [log_zeta_eq s hs]
+    ring
+  have hright_zero :
+      Tendsto
+        (fun s : ℝ => deriv Gamma 1 + γ +
+          (s - 1) * ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+        (𝓝[>] 1) (𝓝 0) :=
+    zeta_log_cancel_tendsto_zero.congr' hEq
+  have hlim : deriv Gamma 1 + γ = 0 := tendsto_nhds_unique hright hright_zero
+  have hEM : eulerMascheroniConstant = -deriv Gamma 1 :=
+    Real.eulerMascheroniConstant_eq_neg_deriv
+  linarith
 
 theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + eulerMascheroniConstant + E₂Λ x := by
     grind [γ.eq_eulerMascheroni]
