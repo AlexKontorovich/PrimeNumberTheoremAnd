@@ -9,7 +9,10 @@ namespace FKS2.Floor
 
 theorem exp10_lt : Real.exp 10 < 22027 := by interval_decide
 
-/-- Eθ ≤ 4/5 on [2, e^10], via the θ engine + ⌊x⌋ stitching. -/
+/-- Eθ ≤ 4/5 on [2, e^10], via the θ engine + ⌊x⌋ stitching.
+`checkAllThetaRelErrorReal start limit` checks real unit intervals for
+`N < limit`; since `exp 10 < 22027`, the relevant floors satisfy
+`N < 22027` and use the `[N, N+1)` real certificate branch. -/
 theorem etheta_le_floor :
     ∀ x ∈ Set.Icc (2:ℝ) (Real.exp 10), Eθ x ≤ (4/5 : ℝ) := by
   have hcheck : checkAllThetaRelErrorReal 2 22027 (4/5) 20 = true := by native_decide
@@ -104,7 +107,9 @@ theorem cover_cmp :
   verify_le_affine_cover fExpr gExpr (by unfold fExpr gExpr Expr.sub; repeat constructor)
     {} (83/100) cbps (by decide) (by native_decide)
 
-/-- The curve comparison: 4/5 + (5/3) log x ≤ admissible_bound, on the floor. -/
+/-- The curve comparison on the floor.  After setting `s = sqrt (log x)`,
+the affine cover verifies `0.8 + (5/3) * s^2 ≤ 9.2211 * s^3 * exp (-0.8476 * s)`,
+which rewrites to `4/5 + (5/3) * log x ≤ admissible_bound ... x`. -/
 theorem linear_le_curve {x : ℝ} (hx2 : 2 ≤ x) (hxe : x ≤ exp 10) :
     4/5 + (5/3) * log x ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x := by
   have hlogx_nn : 0 ≤ log x := log_nonneg (by linarith)
