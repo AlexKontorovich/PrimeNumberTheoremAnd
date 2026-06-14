@@ -4018,9 +4018,10 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   (h_b_start : b 0 = log x₀)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
+  (hx₀ : x₀ ≥ 2) (hε_pos : εθ_num x₁ > 0)
   (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) :
   Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
-  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num x hx₁ le_top
+  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num hx₀ hε_pos x hx₁ le_top
   suffices hsuff : μ_num b εθ_num x₀ x₁ (⊤ : EReal) = μ_num_2 b εθ_num x₀ x₁ by
     have heq : επ_num b εθ_num x₀ x₁ ⊤ = εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
       dsimp [επ_num]; rw [hsuff]
@@ -4159,6 +4160,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     (h_b_end : b' (Fin.last M) = ⊤)
     (h_finite : ∀ j : Fin (M+1), b' j = ⊤ → j = Fin.last M)
     (εθ_num : ℝ → ℝ)
+    (hε_pos : εθ_num x₁ > 0)
     (h_εθ_num : ∀ i : Fin (M+1), Eθ.numericalBound (exp (b' i).toReal) εθ_num)
     (x : ℝ) (hx : x ≥ x₁)
     (i : Fin M)
@@ -4169,7 +4171,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         (if ⟨i.val + 1, by omega⟩ = Fin.last M then ⊤
          else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
   split_ifs <;> simp_all +decide only [Fin.ext_iff];
-  · convert theorem_6_alt _ _ _ _ _ _ _ _ _ using 1;
+  · convert theorem_6_alt _ _ _ _ _ _ _ _ _ _ _ using 1;
     any_goals tauto
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ b' hmono h_b_start ⟨ i, by linarith ⟩ _ using 1 ; aesop;
@@ -4185,7 +4187,9 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         aesop
       generalize_proofs at *; (
       rwa [ Real.exp_log ( by linarith ) ] at h_exp_le);
-  · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ using 1
+    · linarith [hx₁]
+    · exact hε_pos
+  · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ _ _ using 1
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
       all_goals generalize_proofs at *;
@@ -4213,7 +4217,8 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         cases h : b' ⟨ i + 1, by linarith ⟩ <;> aesop)
       generalize_proofs at *; (
       rw [ ← Real.log_le_iff_le_exp ( by linarith ) ] ; linarith [ Real.log_le_log ( by linarith ) hx ] ;);
-
+    · linarith [hx₁]
+    · exact hε_pos
 
 
 @[blueprint
@@ -4236,6 +4241,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     (h_b_end : b' (Fin.last M) = ⊤)
     (h_finite : ∀ j : Fin (M+1), b' j = ⊤ → j = Fin.last M)
     (εθ_num : ℝ → ℝ)
+    (hε_pos : εθ_num x₁ > 0)
     (h_εθ_num : ∀ i : Fin (M+1), Eθ.numericalBound (exp (b' i).toReal) εθ_num) (x : ℝ) (hx : x ≥ x₁) :
     Eπ x ≤ iSup (fun i : Finset.Iio (Fin.last M) ↦
       επ_num (fun j : Fin (i.val.val+1) ↦ (b' ⟨ j.val, by grind ⟩).toReal)
@@ -4244,7 +4250,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     obtain ⟨i, hi⟩ : ∃ i : Fin M, b' ⟨i.val, by omega⟩ ≤ ↑(log x) ∧ ↑(log x) < b' ⟨i.val + 1, by omega⟩ := by
       apply find_ereal_bin b' h_b_end (log x) (by
       exact h_b_start.symm ▸ EReal.coe_le_coe_iff.mpr ( Real.log_le_log ( by linarith ) ( by linarith ) ));
-    convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
+    convert corollary_8_apply_theorem_6 hx₁ b' hmono h_b_start h_b_end h_finite εθ_num hε_pos h_εθ_num x hx i hi.1 hi.2 |> le_trans <| ?_ using 1;
     refine le_csSup ?_ ?_;
     · exact Set.finite_range _ |> Set.Finite.bddAbove;
     · simp +zetaDelta only [ge_iff_le, Set.mem_range, Subtype.exists, Fin.Iio_last_eq_map, Finset.mem_map, Finset.mem_univ,
