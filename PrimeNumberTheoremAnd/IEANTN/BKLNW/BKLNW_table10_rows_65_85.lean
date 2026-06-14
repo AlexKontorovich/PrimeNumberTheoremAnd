@@ -16,17 +16,17 @@ namespace BKLNW
 
 private lemma row65_a2_le : Inputs.default.a₂ (65 : ℝ) ≤ (96 : ℝ) := by
   have h := a2_crude_le 65 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(65 : ℝ) / log 2⌋₊ : ℝ) ≤ 65 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (65 : ℝ) / log 2 ≤ 94 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 65
       ≤ (1 + Inputs.default.α) * ((⌊(65 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (94 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (94 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 96 := by norm_num
 
 private lemma row65_eps_le : Inputs.default.ε (65 : ℝ) ≤ 3.5713e-12 :=
@@ -74,17 +74,17 @@ theorem table_10_row65_k5_margin : B_8_exact 5 65 70 ≤ (0.0060033 * table_10_m
 
 private lemma row70_a2_le : Inputs.default.a₂ (70 : ℝ) ≤ (103 : ℝ) := by
   have h := a2_crude_le 70 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(70 : ℝ) / log 2⌋₊ : ℝ) ≤ 70 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (70 : ℝ) / log 2 ≤ 101 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 70
       ≤ (1 + Inputs.default.α) * ((⌊(70 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (101 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (101 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 103 := by norm_num
 
 private lemma row70_eps_le : Inputs.default.ε (70 : ℝ) ≤ 2.7924e-12 :=
@@ -132,17 +132,17 @@ theorem table_10_row70_k5_margin : B_8_exact 5 70 75 ≤ (0.0066265 * table_10_m
 
 private lemma row75_a2_le : Inputs.default.a₂ (75 : ℝ) ≤ (111 : ℝ) := by
   have h := a2_crude_le 75 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(75 : ℝ) / log 2⌋₊ : ℝ) ≤ 75 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (75 : ℝ) / log 2 ≤ 109 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 75
       ≤ (1 + Inputs.default.α) * ((⌊(75 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (109 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (109 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 111 := by norm_num
 
 private lemma row75_eps_le : Inputs.default.ε (75 : ℝ) ≤ 2.7037e-12 :=
@@ -190,17 +190,17 @@ theorem table_10_row75_k5_margin : B_8_exact 5 75 80 ≤ (0.0088591 * table_10_m
 
 private lemma row80_a2_le : Inputs.default.a₂ (80 : ℝ) ≤ (118 : ℝ) := by
   have h := a2_crude_le 80 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(80 : ℝ) / log 2⌋₊ : ℝ) ≤ 80 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (80 : ℝ) / log 2 ≤ 116 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 80
       ≤ (1 + Inputs.default.α) * ((⌊(80 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (116 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (116 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 118 := by norm_num
 
 private lemma row80_eps_le : Inputs.default.ε (80 : ℝ) ≤ 2.6109e-12 :=
@@ -248,17 +248,17 @@ theorem table_10_row80_k5_margin : B_8_exact 5 80 85 ≤ (0.011584 * table_10_ma
 
 private lemma row85_a2_le : Inputs.default.a₂ (85 : ℝ) ≤ (125 : ℝ) := by
   have h := a2_crude_le 85 (by norm_num)
-  have hlog2 : (0.6931 : ℝ) < log 2 := by linarith [Real.log_two_gt_d9]
+  have hlog2 : (0.6931 : ℝ) < log 2 := LogTables.log_2_gt_d3
   have hfloor : (⌊(85 : ℝ) / log 2⌋₊ : ℝ) ≤ 85 / log 2 := Nat.floor_le (by positivity)
   have hdiv : (85 : ℝ) / log 2 ≤ 123 := by
-    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; nlinarith [hlog2]
+    rw [div_le_iff₀ (by linarith : (0 : ℝ) < log 2)]; linarith [hlog2]
   have hα : Inputs.default.α ≤ 1e-7 := by
     change (1.93378e-8 * BKLNW_app.table_8_margin : ℝ) ≤ 1e-7
     norm_num [BKLNW_app.table_8_margin]
   calc Inputs.default.a₂ 85
       ≤ (1 + Inputs.default.α) * ((⌊(85 : ℝ) / log 2⌋₊ : ℝ) + 1) := h
-    _ ≤ (1 + 1e-7) * (123 + 1) := by
-        apply mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
+    _ ≤ (1 + 1e-7) * (123 + 1) :=
+        mul_le_mul (by linarith) (by linarith) (by positivity) (by linarith)
     _ ≤ 125 := by norm_num
 
 private lemma row85_eps_le : Inputs.default.ε (85 : ℝ) ≤ 2.5693e-12 :=
