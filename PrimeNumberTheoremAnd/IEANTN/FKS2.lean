@@ -3,6 +3,7 @@ import Mathlib.Algebra.Group.Action.Basic
 import Mathlib.Algebra.GroupWithZero.Action.Pi
 import Mathlib.Algebra.GroupWithZero.Action.Prod
 import Mathlib.Algebra.Order.Module.Defs
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 import Mathlib.Data.Rat.Cast.OfScientific
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
@@ -3778,9 +3779,210 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   (h_b_start : b 0 = log x₀)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
-  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ :=
-  sorry
+  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num)
+  (hx₀ : x₀ ≥ 2) (hε_pos : εθ_num x₁ > 0)
+  (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
+  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ := by
+  have hx₁_ge14 : x₁ ≥ 14 := le_trans (le_max_right _ _) h
+  set S := ∑ i ∈ Finset.Iio (Fin.last N),
+    εθ_num (exp (b i)) * (Li (exp (b (i + 1))) - Li (exp (b i)) +
+    exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) with hS_def
+  have h_tight : Eπ x ≤ εθ_num x₁ + (log x / x) * (x₀ / log x₀) * δ x₀ +
+      (log x / x) * S +
+      εθ_num x₁ * (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 := by
+    have hx₀_le_x₁ : x₀ ≤ x₁ := le_trans (le_max_left _ _) h
+    have hx₀_le_x : x₀ ≤ x := le_trans hx₀_le_x₁ hx₁
+    have h30 := eq_30 (show x ≥ x₀ by linarith) hx₀
+    have hEθ_x_le : Eθ x ≤ εθ_num x₁ := by
+      have h_bound_at_x₁ := h_εθ_num (Fin.last N)
+      rw [h_b_end, exp_log (by linarith [h])] at h_bound_at_x₁
+      exact h_bound_at_x₁ x hx₁
+    have hx₀_pos : 0 < x₀ := by linarith
+    have hlogx₀_pos : 0 < log x₀ := log_pos (by linarith)
+    have hx_pos : 0 < x := by linarith [hx₁, h]
+    have hx_gt_1 : 1 < x := by linarith [hx₁, h]
+    have hlogx_pos : 0 < log x := log_pos hx_gt_1
+    have hlogx_x_pos : 0 < log x / x := div_pos hlogx_pos hx_pos
+    have hx₁_ge2 : x₁ ≥ 2 := by linarith [h]
+    have h_int_x₀_x₁ :
+        IntervalIntegrable (fun t ↦ Eθ t / log t ^ 2) volume x₀ x₁ := by
+      unfold Eθ
+      refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 hx₀ hx₀_le_x₁).abs
+      rw [Set.uIoc_of_le hx₀_le_x₁, Set.mem_Ioc] at ht
+      have ht_pos : 0 < t := lt_trans (by linarith [hx₀_pos]) ht.1
+      have hlogt_pos : 0 < log t := log_pos (by linarith [hx₀, ht.1])
+      calc |θ t - t| / t / log t ^ 2 = |θ t - t| / (t * log t ^ 2) := by
+            field_simp [ht_pos.ne', hlogt_pos.ne']
+        _ = |(θ t - t) / (t * log t ^ 2)| := by
+            rw [abs_div, abs_of_nonneg (mul_nonneg (le_of_lt ht_pos) (pow_two_nonneg _))]
+    have h_int_x₁_x :
+        IntervalIntegrable (fun t ↦ Eθ t / log t ^ 2) volume x₁ x := by
+      unfold Eθ
+      refine (intervalIntegrable_congr fun t ht => ?_).2 (l3 hx₁_ge2 hx₁).abs
+      rw [Set.uIoc_of_le hx₁] at ht
+      have ht_pos : 0 < t := lt_trans (by linarith [hx₁_ge2]) ht.1
+      have hlogt_pos : 0 < log t := log_pos (by linarith [hx₁_ge2, ht.1])
+      calc |θ t - t| / t / log t ^ 2 = |θ t - t| / (t * log t ^ 2) := by
+            field_simp [ht_pos.ne', hlogt_pos.ne']
+        _ = |(θ t - t) / (t * log t ^ 2)| := by
+            rw [abs_div, abs_of_nonneg (mul_nonneg (le_of_lt ht_pos) (pow_two_nonneg _))]
+    have hsplit := intervalIntegral.integral_add_adjacent_intervals h_int_x₀_x₁ h_int_x₁_x
+    have h_bound_x1_x : ∫ t in x₁..x, Eθ t / log t ^ 2 ≤
+        εθ_num x₁ * ∫ t in x₁..x, 1 / (log t) ^ 2 := by
+      rw [← intervalIntegral.integral_const_mul]
+      apply_rules [intervalIntegral.integral_mono_on]
+      · apply_rules [ContinuousOn.intervalIntegrable]
+        exact continuousOn_of_forall_continuousAt fun u hu => ContinuousAt.mul continuousAt_const <|
+          ContinuousAt.div continuousAt_const (ContinuousAt.pow (Real.continuousAt_log <| by
+            cases Set.mem_uIcc.mp hu <;> linarith) _) <| ne_of_gt <| sq_pos_of_pos <|
+          Real.log_pos <| by cases Set.mem_uIcc.mp hu <;> linarith
+      · intro t ht; rw [mul_one_div]; gcongr
+        have := h_εθ_num (Fin.last N); simp_all +decide [Eθ.numericalBound]
+        simpa only [Real.exp_log (by linarith : 0 < x₁)] using
+          this t (by rw [Real.exp_log (by linarith)]; linarith)
+    have h_bound_x0_x1 : (∫ t in x₀..x₁, Eθ t / log t ^ 2) ≤ S := by
+      have h_sum_ineq : ∫ t in x₀..x₁, Eθ t / (log t) ^ 2 ≤ ∑ i ∈ Finset.Iio (Fin.last N), ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), Eθ t / (log t) ^ 2 := by
+        have h_rewrite : ∫ t in x₀..x₁, Eθ t / (log t) ^ 2 = ∫ t in (exp (b 0))..(exp (b (Fin.last N))), Eθ t / (log t) ^ 2 := by
+          rw [ h_b_start, h_b_end, Real.exp_log ( by positivity ), Real.exp_log ( by linarith ) ]
+        rw [h_rewrite]
+        have h_telescope : ∀ n : Fin (N + 1), ∫ t in (Real.exp (b 0))..(Real.exp (b n)), Eθ t / (log t) ^ 2 = ∑ i ∈ Finset.Iio n, ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), Eθ t / (log t) ^ 2 := by
+          intro n
+          induction' n using Fin.induction with n ih
+          · norm_num; exact?
+          · rw [ show ( Finset.Iio ( Fin.succ n ) : Finset ( Fin ( N + 1 ) ) ) = Finset.Iio ( Fin.castSucc n ) ∪ { Fin.castSucc n } from ?_, Finset.sum_union ] <;> norm_num [ ih ]
+            · rw [ ← ih, intervalIntegral.integral_add_adjacent_intervals ] <;> apply_rules [ MeasureTheory.IntegrableOn.intervalIntegrable ]
+              · have h_integrable : IntervalIntegrable (fun t => Eθ t / (log t) ^ 2) volume (Real.exp (b 0)) (Real.exp (b (Fin.last N))) := by
+                  rw [ h_b_start, h_b_end, Real.exp_log ( by positivity ), Real.exp_log ( by linarith ) ] ; aesop
+                rw [ intervalIntegrable_iff_integrableOn_Icc_of_le ( Real.exp_le_exp.mpr ( hmono ( Nat.zero_le _ ) ) ) ] at h_integrable
+                exact h_integrable.mono_set ( by rw [ Set.uIcc_of_le ( Real.exp_le_exp.mpr ( hmono ( Nat.zero_le _ ) ) ) ] ; exact Set.Icc_subset_Icc_right ( Real.exp_le_exp.mpr ( hmono ( Fin.le_last _ ) ) ) )
+              · have h_integrable : IntervalIntegrable (fun t => Eθ t / (log t) ^ 2) volume (Real.exp (b 0)) (Real.exp (b (Fin.last N))) := by
+                  rw [ h_b_start, h_b_end, Real.exp_log ( by positivity ), Real.exp_log ( by linarith ) ] ; aesop
+                rw [ intervalIntegrable_iff_integrableOn_Icc_of_le ] at h_integrable
+                · exact h_integrable.mono_set ( by rw [ Set.uIcc_of_le ( Real.exp_le_exp.mpr ( hmono ( Nat.le_succ _ ) ) ) ] ; exact Set.Icc_subset_Icc ( Real.exp_le_exp.mpr ( hmono ( Nat.zero_le _ ) ) ) ( Real.exp_le_exp.mpr ( hmono ( Fin.le_last _ ) ) ) )
+                · exact Real.exp_le_exp.mpr ( hmono ( Nat.zero_le _ ) )
+            · ext i; simp [Fin.lt_def, Fin.le_def]
+        rw [ h_telescope ]
+      refine le_trans h_sum_ineq <| Finset.sum_le_sum fun i hi => ?_
+      have h_interval_bound : ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), Eθ t / (log t) ^ 2 ≤ εθ_num (Real.exp (b i)) * ∫ t in (Real.exp (b i))..(Real.exp (b (i + 1))), 1 / (log t) ^ 2 := by
+        rw [ intervalIntegral.integral_of_le, intervalIntegral.integral_of_le ]
+        · rw [ ← MeasureTheory.integral_const_mul ]
+          refine' MeasureTheory.setIntegral_mono_on _ _ _ _ <;> norm_num
+          · refine' MeasureTheory.IntegrableOn.mono_set _ _
+            any_goals exact Set.Ioc x₀ x₁
+            · exact h_int_x₀_x₁.1
+            · refine' Set.Ioc_subset_Ioc _ _
+              · rw [ ← Real.log_le_iff_le_exp ( by positivity ) ]
+                exact h_b_start ▸ hmono ( Nat.zero_le _ )
+              · rw [ ← Real.log_le_log_iff ( by positivity ) ( by positivity ), Real.log_exp ]
+                exact h_b_end ▸ hmono ( Fin.le_last _ )
+          · refine' ContinuousOn.integrableOn_Icc _ |> fun h => h.mono_set <| Set.Ioc_subset_Icc_self
+            refine' ContinuousOn.mul continuousOn_const ( ContinuousOn.inv₀ _ _ )
+            · exact ContinuousOn.pow ( Real.continuousOn_log.mono <| by intro x hx; exact ne_of_gt <| lt_of_lt_of_le ( by positivity ) hx.1 ) _
+            · exact fun x hx => ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( lt_of_lt_of_le ( by norm_num; linarith [ show 0 < b i from by linarith [ hmono ( show 0 ≤ i from Nat.zero_le _ ) ] ] ) hx.1 ) ) )
+          · intro t ht₁ ht₂; rw [ ← div_eq_mul_inv ] ; gcongr
+            exact h_εθ_num i t ( by linarith [ Real.exp_pos ( b i ) ] )
+        · simp +zetaDelta at *
+          rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] )
+        · simp +zetaDelta at *
+          rcases hi with ⟨ j, rfl ⟩ ; exact hmono ( by simp +decide [ Fin.le_iff_val_le_val ] )
+      convert h_interval_bound using 2
+      rw [ Li_identity' ]
+      · norm_num ; ring
+      · rw [ ← Real.log_le_iff_le_exp ( by positivity ) ]
+        exact le_trans ( by rw [ h_b_start ] ; exact Real.log_le_log ( by linarith ) ( by linarith ) ) ( hmono ( show 0 ≤ i from Nat.zero_le _ ) )
+      · simp +zetaDelta at *
+        exact hmono ( by
+          rcases hi with ⟨ j, rfl ⟩ ; exact Fin.le_iff_val_le_val.mpr ( by simp +decide [ Fin.val_add ] ) )
+    have hlogx_x_nonneg : 0 ≤ log x / x := le_of_lt hlogx_x_pos
+    have h_add_le : ((∫ t in x₀..x₁, Eθ t / log t ^ 2) + ∫ t in x₁..x, Eθ t / log t ^ 2) ≤
+        S + (εθ_num x₁ * ∫ t in x₁..x, 1 / (log t) ^ 2) :=
+      add_le_add h_bound_x0_x1 h_bound_x1_x
+    calc Eπ x
+        ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ +
+          (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := h30
+      _ ≤ εθ_num x₁ + (log x / x) * (x₀ / log x₀) * δ x₀ +
+          (log x / x) * (S + εθ_num x₁ * ∫ t in x₁..x, 1 / (log t) ^ 2) := by
+        gcongr
+        exact le_trans hsplit.symm.le (by linarith [mul_le_mul_of_nonneg_left h_add_le hlogx_x_nonneg])
+      _ = _ := by ring
+  have h_logx_div : log x / x ≤ log x₁ / x₁ := by
+    have he : exp 1 ≤ x₁ := le_trans (by exact Real.exp_one_lt_d9.le) (by linarith)
+    exact Real.log_div_self_antitoneOn he (le_trans he hx₁) hx₁
+  have hε_nonneg : 0 ≤ εθ_num x₁ := le_of_lt hε_pos
+  have hδ_nonneg : 0 ≤ (x₀ / log x₀) * δ x₀ :=
+    mul_nonneg (div_nonneg (by linarith) (Real.log_nonneg (by linarith))) (abs_nonneg _)
+  have hS_nonneg : 0 ≤ S := by
+    apply Finset.sum_nonneg; intro i _
+    apply mul_nonneg
+    · exact le_trans (div_nonneg (abs_nonneg _) (by positivity)) (h_εθ_num i _ le_rfl)
+    ·
+      have h_bi_ge : 2 ≤ exp (b i) := by
+        calc (2 : ℝ) ≤ x₀ := hx₀
+          _ = exp (log x₀) := (exp_log (by linarith)).symm
+          _ = exp (b 0) := by rw [h_b_start]
+          _ ≤ exp (b i) := exp_le_exp.mpr (hmono (Nat.zero_le _))
+      have h_i_lt : i < Fin.last N := Finset.mem_Iio.mp ‹_›
+      have h_bi_le : b i ≤ b (i + 1) := hmono (by
+        show (i : ℕ) ≤ (i + 1 : Fin (N + 1)).val
+        simp [Fin.val_add, Nat.mod_eq_of_lt (by omega : i.val + 1 < N + 1)])
+      have h_bi_mono : exp (b i) ≤ exp (b (i + 1)) := exp_le_exp.mpr h_bi_le
+      have h_int_nn : 0 ≤ ∫ t in (exp (b i))..(exp (b (i + 1))), 1 / (log t) ^ 2 :=
+        intervalIntegral.integral_nonneg h_bi_mono
+          (fun t _ => div_nonneg (by positivity) (sq_nonneg (log t)))
+      have h_li := Li_identity' h_bi_ge h_bi_mono
+      rw [log_exp, log_exp] at h_li
+      linarith
+  have h_term1 : (log x / x) * (x₀ / log x₀) * δ x₀ ≤
+      (log x₁ / x₁) * (x₀ / log x₀) * δ x₀ := by
+    have : (log x / x) * ((x₀ / log x₀) * δ x₀) ≤
+           (log x₁ / x₁) * ((x₀ / log x₀) * δ x₀) :=
+      mul_le_mul_of_nonneg_right h_logx_div hδ_nonneg
+    linarith
+  have h_term2 : (log x / x) * S ≤ (log x₁ / x₁) * S :=
+    mul_le_mul_of_nonneg_right h_logx_div hS_nonneg
+  unfold επ_num μ_num
+  split_ifs with hcase
+  ·
+    have hx₂_ne_top : x₂ ≠ ⊤ := by
+      intro heq; rw [heq] at hcase
+      exact absurd hcase (by simp [EReal.mul_eq_top, EReal.coe_ne_top, EReal.coe_ne_bot])
+    have hx₂_ne_bot : x₂ ≠ ⊥ := ne_bot_of_le_ne_bot (EReal.coe_ne_bot x) hx₂
+    have hx₂_real : x ≤ x₂.toReal := by
+      have := EReal.toReal_le_toReal hx₂ (EReal.coe_ne_bot x) hx₂_ne_top
+      simp at this; exact this
+    have hx₂_ge_x₁ : x₂.toReal ≥ x₁ := by linarith
+    have hx₂_le : x₂.toReal ≤ x₁ * log x₁ := by
+      have := EReal.toReal_le_toReal hcase hx₂_ne_bot (EReal.coe_ne_top _)
+      simp at this; exact this
+    have h_tail : εθ_num x₁ * ((log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2) ≤
+        εθ_num x₁ * ((log x₂.toReal / x₂.toReal) *
+          (Li x₂.toReal - x₂.toReal / log x₂.toReal - Li x₁ + x₁ / log x₁)) := by
+      apply mul_le_mul_of_nonneg_left _ hε_nonneg
+      exact theorem_6_3 hx₁_ge14 x₂.toReal hx₂_ge_x₁ x hx₁ hx₂_real hx₂_le
+    simp only [μ_num_1]
+    have hx₁_pos : (0 : ℝ) < x₁ := by linarith
+    have hlogx₀_pos : (0 : ℝ) < log x₀ := log_pos (by linarith)
+    rw [show εθ_num x₁ * (1 + (x₀ * log x₁ / (εθ_num x₁ * x₁ * log x₀) * δ x₀ +
+        log x₁ / (εθ_num x₁ * x₁) * S +
+        log x₂.toReal / x₂.toReal * (Li x₂.toReal - x₂.toReal / log x₂.toReal - Li x₁ + x₁ / log x₁))) =
+      εθ_num x₁ + log x₁ / x₁ * (x₀ / log x₀) * δ x₀ + log x₁ / x₁ * S +
+        εθ_num x₁ * (log x₂.toReal / x₂.toReal * (Li x₂.toReal - x₂.toReal / log x₂.toReal - Li x₁ + x₁ / log x₁))
+      from by field_simp; ring]
+    linarith [h_tight, h_term1, h_term2, h_tail]
+  ·
+    have h_tail : εθ_num x₁ * ((log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2) ≤
+        εθ_num x₁ * (1 / (log x₁ + log (log x₁) - 1)) := by
+      apply mul_le_mul_of_nonneg_left _ hε_nonneg
+      exact le_of_lt (theorem_6_2 hx₁_ge14 x hx₁)
+    simp only [μ_num_2]
+    have hx₁_pos : (0 : ℝ) < x₁ := by linarith
+    have hlogx₀_pos : (0 : ℝ) < log x₀ := log_pos (by linarith)
+    rw [show εθ_num x₁ * (1 + (x₀ * log x₁ / (εθ_num x₁ * x₁ * log x₀) * δ x₀ +
+        log x₁ / (εθ_num x₁ * x₁) * S + 1 / (log x₁ + log (log x₁) - 1))) =
+      εθ_num x₁ + log x₁ / x₁ * (x₀ / log x₀) * δ x₀ + log x₁ / x₁ * S +
+        εθ_num x₁ * (1 / (log x₁ + log (log x₁) - 1))
+      from by field_simp; ring]
+    linarith [h_tight, h_term1, h_term2, h_tail]
 
 @[blueprint
   "fks2-theorem-6"
