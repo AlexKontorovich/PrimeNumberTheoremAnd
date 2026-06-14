@@ -1200,6 +1200,14 @@ private lemma mul_integral_Ioi_rpow_eq_one (s : ℝ) (hs : 1 < s) :
   rw [show -s + 1 = -(s - 1) by ring]
   field_simp [sub_ne_zero.mpr (by linarith : s ≠ 1)]
 
+private lemma mul_integral_Ioi_rpow_eq_rpow (R s : ℝ) (hR : 0 < R) (hs : 1 < s) :
+    (s - 1) * ∫ x in Set.Ioi R, x ^ (-s) = R ^ (1 - s) := by
+  rw [integral_Ioi_rpow_of_lt (by linarith : -s < -1) hR]
+  rw [show -s + 1 = 1 - s by ring]
+  have h1s : 1 - s ≠ 0 := by linarith
+  field_simp [h1s]
+  ring
+
 private lemma exp_image_Ioi_zero : Real.exp '' Set.Ioi (0 : ℝ) = Set.Ioi (1 : ℝ) := by
   ext x
   constructor
@@ -1551,6 +1559,102 @@ private lemma mul_integral_Ioi_const_rpow_eq (s : ℝ) (hs : 1 < s) :
     _ = γ := by
       rw [mul_integral_Ioi_rpow_eq_one s hs]
       ring
+
+private lemma E₂Λ_mellin_tail_norm_le {η R s : ℝ} (hη : 0 ≤ η) (hR1 : 1 ≤ R)
+    (hs : 1 < s) (hsmall : ∀ x, R ≤ x → |E₂Λ x| ≤ η) :
+    ‖(s - 1) * ∫ x in Set.Ioi R, E₂Λ x * x ^ (-s)‖ ≤ η := by
+  have hRpos : 0 < R := zero_lt_one.trans_le hR1
+  have hsnonneg : 0 ≤ s - 1 := (sub_pos.mpr hs).le
+  have hfint :
+      MeasureTheory.IntegrableOn (fun x : ℝ => E₂Λ x * x ^ (-s)) (Set.Ioi R) :=
+    (integrableOn_Ioi_one_E₂Λ_rpow s hs).mono_set (Set.Ioi_subset_Ioi hR1)
+  have hnorm_int :
+      MeasureTheory.IntegrableOn (fun x : ℝ => ‖E₂Λ x * x ^ (-s)‖) (Set.Ioi R) :=
+    hfint.norm
+  have hrpow_int :
+      MeasureTheory.IntegrableOn (fun x : ℝ => η * x ^ (-s)) (Set.Ioi R) :=
+    (integrableOn_Ioi_rpow_of_lt (by linarith : -s < -1) hRpos).const_mul η
+  calc
+    ‖(s - 1) * ∫ x in Set.Ioi R, E₂Λ x * x ^ (-s)‖ =
+        (s - 1) * ‖∫ x in Set.Ioi R, E₂Λ x * x ^ (-s)‖ := by
+      rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg hsnonneg]
+      rfl
+    _ ≤ (s - 1) * ∫ x in Set.Ioi R, ‖E₂Λ x * x ^ (-s)‖ := by
+      exact mul_le_mul_of_nonneg_left (MeasureTheory.norm_integral_le_integral_norm _) hsnonneg
+    _ ≤ (s - 1) * ∫ x in Set.Ioi R, η * x ^ (-s) := by
+      refine mul_le_mul_of_nonneg_left ?_ hsnonneg
+      refine MeasureTheory.setIntegral_mono_on hnorm_int hrpow_int measurableSet_Ioi ?_
+      intro x hx
+      rw [Set.mem_Ioi] at hx
+      have hxpos : 0 < x := hRpos.trans hx
+      have hxpow_nonneg : 0 ≤ x ^ (-s) := Real.rpow_nonneg hxpos.le _
+      calc
+        ‖E₂Λ x * x ^ (-s)‖ = |E₂Λ x| * x ^ (-s) := by
+          rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg hxpow_nonneg]
+        _ ≤ η * x ^ (-s) :=
+          mul_le_mul_of_nonneg_right (hsmall x hx.le) hxpow_nonneg
+    _ = η * R ^ (1 - s) := by
+      rw [MeasureTheory.integral_const_mul]
+      calc
+        (s - 1) * (η * ∫ (a : ℝ) in Set.Ioi R, a ^ (-s)) =
+            η * ((s - 1) * ∫ (a : ℝ) in Set.Ioi R, a ^ (-s)) := by ring
+        _ = η * R ^ (1 - s) := by
+          rw [mul_integral_Ioi_rpow_eq_rpow R s hRpos hs]
+    _ ≤ η := by
+      have hrpow_le_one : R ^ (1 - s) ≤ 1 :=
+        Real.rpow_le_one_of_one_le_of_nonpos hR1 (by linarith)
+      nlinarith [mul_le_mul_of_nonneg_left hrpow_le_one hη]
+
+private lemma E₂Λ_mellin_compact_norm_le {R s : ℝ} (hR1 : 1 ≤ R) (hs : 1 < s)
+    (hs2 : s < 2) :
+    ‖∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)‖ ≤
+      R ^ (2 : ℝ) * ∫ x in Set.Ioc (1 : ℝ) R, ‖E₂Λ x * x ^ (-(2 : ℝ))‖ := by
+  have hfint :
+      MeasureTheory.IntegrableOn (fun x : ℝ => E₂Λ x * x ^ (-s)) (Set.Ioc (1 : ℝ) R) :=
+    (integrableOn_Ioi_one_E₂Λ_rpow s hs).mono_set Set.Ioc_subset_Ioi_self
+  have hbase :
+      MeasureTheory.IntegrableOn (fun x : ℝ => ‖E₂Λ x * x ^ (-(2 : ℝ))‖)
+        (Set.Ioc (1 : ℝ) R) :=
+    ((integrableOn_Ioi_one_E₂Λ_rpow 2 (by norm_num)).mono_set
+      Set.Ioc_subset_Ioi_self).norm
+  have hdom :
+      MeasureTheory.IntegrableOn
+        (fun x : ℝ => R ^ (2 : ℝ) * ‖E₂Λ x * x ^ (-(2 : ℝ))‖)
+        (Set.Ioc (1 : ℝ) R) := hbase.const_mul (R ^ (2 : ℝ))
+  calc
+    ‖∫ x in Set.Ioc (1 : ℝ) R, E₂Λ x * x ^ (-s)‖
+        ≤ ∫ x in Set.Ioc (1 : ℝ) R, ‖E₂Λ x * x ^ (-s)‖ :=
+      MeasureTheory.norm_integral_le_integral_norm _
+    _ ≤ ∫ x in Set.Ioc (1 : ℝ) R,
+          R ^ (2 : ℝ) * ‖E₂Λ x * x ^ (-(2 : ℝ))‖ := by
+      refine MeasureTheory.setIntegral_mono_on hfint.norm hdom measurableSet_Ioc ?_
+      intro x hx
+      rw [Set.mem_Ioc] at hx
+      have hxpos : 0 < x := zero_lt_one.trans hx.1
+      have hRpos : 0 < R := hxpos.trans_le hx.2
+      have hxpow_nonneg : 0 ≤ x ^ (-s) := Real.rpow_nonneg hxpos.le _
+      have hxpow2_nonneg : 0 ≤ x ^ (-(2 : ℝ)) := Real.rpow_nonneg hxpos.le _
+      have hpow_eq : x ^ (-s) = x ^ (2 - s) * x ^ (-(2 : ℝ)) := by
+        rw [← Real.rpow_add hxpos]
+        ring_nf
+      have hpow_fac_le : x ^ (2 - s) ≤ R ^ (2 : ℝ) := by
+        have hpow_le_R : x ^ (2 - s) ≤ R ^ (2 - s) :=
+          Real.rpow_le_rpow hxpos.le hx.2 (by linarith)
+        have hR_exp_le : R ^ (2 - s) ≤ R ^ (2 : ℝ) :=
+          Real.rpow_le_rpow_of_exponent_le hR1 (by linarith)
+        exact hpow_le_R.trans hR_exp_le
+      calc
+        ‖E₂Λ x * x ^ (-s)‖ = |E₂Λ x| * x ^ (-s) := by
+          rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg hxpow_nonneg]
+        _ = |E₂Λ x| * (x ^ (2 - s) * x ^ (-(2 : ℝ))) := by
+          rw [hpow_eq]
+        _ ≤ |E₂Λ x| * (R ^ (2 : ℝ) * x ^ (-(2 : ℝ))) := by
+          gcongr
+        _ = R ^ (2 : ℝ) * (|E₂Λ x| * x ^ (-(2 : ℝ))) := by ring
+        _ = R ^ (2 : ℝ) * ‖E₂Λ x * x ^ (-(2 : ℝ))‖ := by
+          rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg hxpow2_nonneg]
+    _ = R ^ (2 : ℝ) * ∫ x in Set.Ioc (1 : ℝ) R, ‖E₂Λ x * x ^ (-(2 : ℝ))‖ := by
+      rw [MeasureTheory.integral_const_mul]
 
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
