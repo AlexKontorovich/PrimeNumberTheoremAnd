@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2
+import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
 import LeanCert.Engine.ChebyshevTheta
 import LeanCert.Validity.AffineCover
 import LeanCert.Tactic.IntervalAuto
@@ -193,6 +194,33 @@ theorem corollary_22_floor :
           + log x / x * ((4/5) / (log 2) ^ 2 * (x - 2)) := by gcongr
     _ ≤ 4/5 + (5/3) * log x := by linarith [hbracket]
     _ ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x := linear_le_curve hx2 hxe
+
+/-- Full Corollary 22, reduced to the remaining mid-range table-data theorem.
+The small range is `corollary_22_floor`; the asymptotic tail is
+`FKS2.corollary_22_tail`. -/
+theorem corollary_22_of_midrange
+    (hmid : ∀ x ∈ Set.Icc (exp 10) (exp 20000),
+      Eπ x ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x) :
+    Eπ.classicalBound 9.2211 (3/2) 0.8476 1 2 := by
+  intro x hx
+  by_cases hsmall : x ≤ exp 10
+  · exact corollary_22_floor x ⟨hx, hsmall⟩
+  · by_cases htail : exp 20000 ≤ x
+    · exact _root_.FKS2.corollary_22_tail x htail
+    · have hx_lo : exp 10 ≤ x := le_of_lt (lt_of_not_ge hsmall)
+      have hx_hi : x ≤ exp 20000 := le_of_not_ge htail
+      exact hmid x ⟨hx_lo, hx_hi⟩
+
+/-- Corollary 22, assembled from the small range, the extended Table 4
+mid-range, and the asymptotic tail. The remaining trust boundary is
+`Table4Ext.allCells_trusted`, used by `Table4Ext.Epi_le_admissible_on_midrange`. -/
+theorem corollary_22_from_table4Ext :
+    Eπ.classicalBound 9.2211 (3/2) 0.8476 1 2 :=
+  corollary_22_of_midrange (by
+    intro x hx
+    have h := Table4Ext.Epi_le_admissible_on_midrange hx
+    norm_num [Table4Ext.Aq, Table4Ext.Cq] at h ⊢
+    exact h)
 
 
 end FKS2.Floor
