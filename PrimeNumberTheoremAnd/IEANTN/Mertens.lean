@@ -1373,6 +1373,111 @@ private lemma integrableOn_Ioi_two_E₂Λ_rpow (s : ℝ) (hs : 1 < s) :
       _ ≤ C * x ^ (-s) := by gcongr
       _ = |C| * x ^ (-s) := by rw [abs_of_nonneg hCnonneg]
 
+private lemma integrableOn_Ioc_one_two_rpow (s : ℝ) :
+    MeasureTheory.IntegrableOn (fun x : ℝ => x ^ (-s)) (Set.Ioc (1 : ℝ) 2) := by
+  let D : ℝ := max 1 (2 ^ (-s))
+  apply MeasureTheory.Measure.integrableOn_of_bounded measure_Ioc_lt_top.ne
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioc] with x hx
+    rw [Real.norm_eq_abs]
+    have hxpow_nonneg : 0 ≤ x ^ (-s) := Real.rpow_nonneg (le_of_lt (by linarith [hx.1] : 0 < x)) _
+    rw [abs_of_nonneg hxpow_nonneg]
+    by_cases hsnonneg : 0 ≤ -s
+    · have hle2 : x ^ (-s) ≤ 2 ^ (-s) :=
+        Real.rpow_le_rpow (le_of_lt (by linarith [hx.1] : 0 < x)) hx.2 hsnonneg
+      exact le_trans hle2 (le_max_right 1 (2 ^ (-s)))
+    · have hsnonpos : -s ≤ 0 := le_of_lt (lt_of_not_ge hsnonneg)
+      have hle1 : x ^ (-s) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hx.1.le hsnonpos
+      exact le_trans hle1 (le_max_left 1 (2 ^ (-s)))
+
+private lemma integrableOn_Ioc_one_two_summatory_rpow (s : ℝ) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ => (∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s))
+      (Set.Ioc (1 : ℝ) 2) := by
+  let B : ℝ := ∑ d ∈ Finset.Ioc 0 2, |Λ d / (d * Real.log d)|
+  let D : ℝ := max 1 (2 ^ (-s))
+  apply MeasureTheory.Measure.integrableOn_of_bounded measure_Ioc_lt_top.ne
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioc] with x hx
+    rw [Real.norm_eq_abs, abs_mul]
+    have hsub : (Finset.Ioc 0 ⌊x⌋₊) ⊆ (Finset.Ioc 0 2) := by
+      intro d hd
+      rw [Finset.mem_Ioc] at hd ⊢
+      exact ⟨hd.1, le_trans hd.2 (by
+        have h := Nat.floor_mono hx.2
+        norm_num at h
+        exact h)⟩
+    have hsum_bound : |∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)| ≤ B := by
+      calc
+        |∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)|
+            ≤ ∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, |Λ d / (d * Real.log d)| :=
+          Finset.abs_sum_le_sum_abs _ _
+        _ ≤ ∑ d ∈ Finset.Ioc 0 2, |Λ d / (d * Real.log d)| := by
+          exact Finset.sum_le_sum_of_subset_of_nonneg hsub (by intro d _ _; positivity)
+        _ = B := rfl
+    have hxpow_nonneg : 0 ≤ x ^ (-s) := Real.rpow_nonneg (le_of_lt (by linarith [hx.1] : 0 < x)) _
+    have hxpow_bound : x ^ (-s) ≤ D := by
+      by_cases hsnonneg : 0 ≤ -s
+      · have hle2 : x ^ (-s) ≤ 2 ^ (-s) :=
+          Real.rpow_le_rpow (le_of_lt (by linarith [hx.1] : 0 < x)) hx.2 hsnonneg
+        exact le_trans hle2 (le_max_right 1 (2 ^ (-s)))
+      · have hsnonpos : -s ≤ 0 := le_of_lt (lt_of_not_ge hsnonneg)
+        have hle1 : x ^ (-s) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hx.1.le hsnonpos
+        exact le_trans hle1 (le_max_left 1 (2 ^ (-s)))
+    rw [abs_of_nonneg hxpow_nonneg]
+    calc
+      |∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)| * x ^ (-s) ≤ B * D := by
+        gcongr
+
+private lemma E₂Λ_mul_rpow_eq_sub (s x : ℝ) :
+    E₂Λ x * x ^ (-s) =
+      ((∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s) -
+          Real.log (Real.log x) * x ^ (-s)) - γ * x ^ (-s) := by
+  let G : ℝ := γ
+  unfold E₂Λ
+  change
+    ((∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) -
+        Real.log (Real.log x) - G) * x ^ (-s) =
+      ((∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s) -
+        Real.log (Real.log x) * x ^ (-s)) - G * x ^ (-s)
+  ring
+
+private lemma integrableOn_Ioc_one_two_E₂Λ_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x : ℝ => E₂Λ x * x ^ (-s)) (Set.Ioc (1 : ℝ) 2) := by
+  have hsum := integrableOn_Ioc_one_two_summatory_rpow s
+  have hlog : MeasureTheory.IntegrableOn
+      (fun x : ℝ => Real.log (Real.log x) * x ^ (-s)) (Set.Ioc (1 : ℝ) 2) :=
+    (integrableOn_Ioi_one_loglog_rpow s hs).mono_set (by
+      intro x hx
+      exact Set.mem_Ioi.mpr (Set.mem_Ioc.mp hx).1)
+  have hconst := (integrableOn_Ioc_one_two_rpow s).const_mul γ
+  have hdecomp := (hsum.sub hlog).sub hconst
+  refine hdecomp.congr_fun ?_ measurableSet_Ioc
+  intro x _
+  exact (E₂Λ_mul_rpow_eq_sub s x).symm
+
+private lemma integrableOn_Ioi_one_E₂Λ_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x : ℝ => E₂Λ x * x ^ (-s)) (Set.Ioi (1 : ℝ)) := by
+  have hsplit : Set.Ioi (1 : ℝ) = Set.Ioc 1 2 ∪ Set.Ioi 2 :=
+    (Set.Ioc_union_Ioi_eq_Ioi (by norm_num : (1 : ℝ) ≤ 2)).symm
+  rw [hsplit]
+  exact (integrableOn_Ioc_one_two_E₂Λ_rpow s hs).union (integrableOn_Ioi_two_E₂Λ_rpow s hs)
+
+private lemma integrableOn_Ioi_one_summatory_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ => (∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s))
+      (Set.Ioi (1 : ℝ)) := by
+  have hE := integrableOn_Ioi_one_E₂Λ_rpow s hs
+  have hlog := integrableOn_Ioi_one_loglog_rpow s hs
+  have hconst := (integrableOn_Ioi_rpow_of_lt (by linarith : -s < -1)
+    (by norm_num : (0 : ℝ) < 1)).const_mul γ
+  have hsum := (hE.add hlog).add hconst
+  refine hsum.congr_fun ?_ measurableSet_Ioi
+  intro x _
+  simp only [Pi.add_apply]
+  rw [E₂Λ_mul_rpow_eq_sub]
+  ring_nf
+
 private lemma mul_integral_Ioi_log_exp_neg_mul_eq (a : ℝ) (ha : 0 < a) :
     a * (∫ u in Set.Ioi (0 : ℝ), Real.log u * Real.exp (-a * u)) =
       deriv Real.Gamma 1 - Real.log a := by
