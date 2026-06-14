@@ -4172,6 +4172,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
          else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
   split_ifs <;> simp_all +decide only [Fin.ext_iff];
   · convert theorem_6_alt _ _ _ _ _ _ _ _ _ _ _ using 1;
+    any_goals (first | linarith [hx₁] | exact hε_pos)
     any_goals tauto
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ b' hmono h_b_start ⟨ i, by linarith ⟩ _ using 1 ; aesop;
@@ -4187,9 +4188,8 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         aesop
       generalize_proofs at *; (
       rwa [ Real.exp_log ( by linarith ) ] at h_exp_le);
-    · linarith [hx₁]
-    · exact hε_pos
   · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ _ _ using 1
+    any_goals (first | linarith [hx₁] | exact hε_pos)
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
       all_goals generalize_proofs at *;
@@ -4217,8 +4217,6 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         cases h : b' ⟨ i + 1, by linarith ⟩ <;> aesop)
       generalize_proofs at *; (
       rw [ ← Real.log_le_iff_le_exp ( by linarith ) ] ; linarith [ Real.log_le_log ( by linarith ) hx ] ;);
-    · linarith [hx₁]
-    · exact hε_pos
 
 
 @[blueprint
