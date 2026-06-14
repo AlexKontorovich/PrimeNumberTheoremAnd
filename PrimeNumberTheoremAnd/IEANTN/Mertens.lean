@@ -9,6 +9,7 @@ import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Algebra.Group.Submonoid.BigOperators
 import PrimeNumberTheoremAnd.EulerMaclaurin
+import PrimeNumberTheoremAnd.IEANTN.LiSeries
 import Architect
 
 open scoped Topology
@@ -1198,6 +1199,176 @@ private lemma mul_integral_Ioi_rpow_eq_one (s : ℝ) (hs : 1 < s) :
   rw [Real.one_rpow]
   rw [show -s + 1 = -(s - 1) by ring]
   field_simp [sub_ne_zero.mpr (by linarith : s ≠ 1)]
+
+private lemma exp_image_Ioi_zero : Real.exp '' Set.Ioi (0 : ℝ) = Set.Ioi (1 : ℝ) := by
+  ext x
+  constructor
+  · rintro ⟨u, hu, rfl⟩
+    rw [Set.mem_Ioi] at hu ⊢
+    rw [← Real.exp_zero]
+    exact Real.exp_lt_exp.mpr hu
+  · intro hx
+    rw [Set.mem_Ioi] at hx
+    refine ⟨Real.log x, ?_, Real.exp_log (by linarith : 0 < x)⟩
+    rw [Set.mem_Ioi]
+    rw [← Real.log_one]
+    exact Real.log_lt_log (by norm_num) hx
+
+private lemma exp_injOn_Ioi_zero : Set.InjOn Real.exp (Set.Ioi (0 : ℝ)) := by
+  intro x _ y _ hxy
+  exact Real.exp_injective hxy
+
+private lemma integral_Ioi_one_loglog_rpow_eq_exp (s : ℝ) :
+    (∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s)) =
+      ∫ u in Set.Ioi (0 : ℝ), Real.log u * Real.exp (-(s - 1) * u) := by
+  let g : ℝ → ℝ := fun x => Real.log (Real.log x) * x ^ (-s)
+  have hderiv :
+      ∀ u ∈ Set.Ioi (0 : ℝ), HasDerivWithinAt Real.exp (Real.exp u) (Set.Ioi (0 : ℝ)) u := by
+    intro u _
+    exact (Real.hasDerivAt_exp u).hasDerivWithinAt
+  have hsubst := MeasureTheory.integral_image_eq_integral_abs_deriv_smul
+    (s := Set.Ioi (0 : ℝ)) measurableSet_Ioi hderiv exp_injOn_Ioi_zero g
+  rw [exp_image_Ioi_zero] at hsubst
+  rw [hsubst]
+  refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi ?_
+  intro u hu
+  rw [Set.mem_Ioi] at hu
+  dsimp [g]
+  rw [abs_of_pos (Real.exp_pos u), Real.log_exp]
+  have hpow : (Real.exp u) ^ (-s) = Real.exp (-s * u) := by
+    rw [Real.rpow_def_of_pos (Real.exp_pos u), Real.log_exp]
+    congr 1
+    ring
+  rw [hpow]
+  calc
+    Real.exp u * (Real.log u * Real.exp (-s * u)) =
+        Real.log u * (Real.exp u * Real.exp (-s * u)) := by ring
+    _ = Real.log u * Real.exp (u + (-s * u)) := by rw [Real.exp_add]
+    _ = Real.log u * Real.exp (-(s - 1) * u) := by
+      congr 1
+      ring_nf
+
+private lemma integrableOn_log_mul_exp_neg_Ioi_zero :
+    MeasureTheory.IntegrableOn (fun t : ℝ => Real.log t * Real.exp (-t)) (Set.Ioi (0 : ℝ)) := by
+  have hsplit : Set.Ioi (0 : ℝ) = Set.Ioc 0 1 ∪ Set.Ioi 1 :=
+    (Set.Ioc_union_Ioi_eq_Ioi zero_le_one).symm
+  rw [hsplit]
+  exact LiSeries.FubiniLogExpNeg.integrableOn_log_mul_exp_neg_Ioc.union
+    LiSeries.FubiniLogExpNeg.integrableOn_log_mul_exp_neg_Ioi_one
+
+private lemma deriv_Gamma_one_eq_integral_log_exp_neg :
+    deriv Real.Gamma 1 = ∫ t in Set.Ioi (0 : ℝ), Real.log t * Real.exp (-t) := by
+  have h1 := LiSeries.eulerMascheroni_eq_neg_integral
+  have h2 := Real.eulerMascheroniConstant_eq_neg_deriv
+  linarith
+
+private lemma integral_log_div_mul_exp_neg (a : ℝ) (ha : 0 < a) :
+    (∫ v in Set.Ioi (0 : ℝ), Real.log (v / a) * Real.exp (-v)) =
+      deriv Real.Gamma 1 - Real.log a := by
+  have hcongr :
+      (∫ v in Set.Ioi (0 : ℝ), Real.log (v / a) * Real.exp (-v)) =
+        ∫ v in Set.Ioi (0 : ℝ), (Real.log v * Real.exp (-v) - Real.log a * Real.exp (-v)) := by
+    refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi ?_
+    intro v hv
+    rw [Set.mem_Ioi] at hv
+    dsimp
+    rw [Real.log_div (by linarith : v ≠ 0) ha.ne']
+    ring
+  rw [hcongr]
+  rw [MeasureTheory.integral_sub]
+  · rw [deriv_Gamma_one_eq_integral_log_exp_neg, MeasureTheory.integral_const_mul,
+      integral_exp_neg_Ioi_zero]
+    ring
+  · exact integrableOn_log_mul_exp_neg_Ioi_zero
+  · simpa [mul_comm] using (integrableOn_exp_neg_Ioi 0).const_mul (Real.log a)
+
+private lemma integrableOn_log_div_mul_exp_neg (a : ℝ) (ha : 0 < a) :
+    MeasureTheory.IntegrableOn
+      (fun v : ℝ => Real.log (v / a) * Real.exp (-v)) (Set.Ioi (0 : ℝ)) := by
+  have hsub :
+      MeasureTheory.IntegrableOn
+        (fun v : ℝ => Real.log v * Real.exp (-v) - Real.log a * Real.exp (-v))
+        (Set.Ioi (0 : ℝ)) := by
+    exact integrableOn_log_mul_exp_neg_Ioi_zero.sub
+      (by simpa [mul_comm] using (integrableOn_exp_neg_Ioi 0).const_mul (Real.log a))
+  refine hsub.congr_fun ?_ measurableSet_Ioi
+  intro v hv
+  rw [Set.mem_Ioi] at hv
+  dsimp
+  rw [Real.log_div (by linarith : v ≠ 0) ha.ne']
+  ring
+
+private lemma integrableOn_log_exp_neg_mul (a : ℝ) (ha : 0 < a) :
+    MeasureTheory.IntegrableOn
+      (fun u : ℝ => Real.log u * Real.exp (-a * u)) (Set.Ioi (0 : ℝ)) := by
+  let g : ℝ → ℝ := fun v => Real.log (v / a) * Real.exp (-v)
+  have hscale :
+      MeasureTheory.IntegrableOn (fun u => g (a * u)) (Set.Ioi (0 : ℝ)) :=
+    (MeasureTheory.integrableOn_Ioi_comp_mul_left_iff g 0 ha).mpr (by
+      simpa [g, mul_zero] using integrableOn_log_div_mul_exp_neg a ha)
+  refine hscale.congr_fun ?_ measurableSet_Ioi
+  intro u hu
+  rw [Set.mem_Ioi] at hu
+  dsimp [g]
+  rw [mul_div_cancel_left₀ u ha.ne']
+  ring_nf
+
+private lemma integrableOn_Ioi_one_loglog_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ => Real.log (Real.log x) * x ^ (-s)) (Set.Ioi (1 : ℝ)) := by
+  let g : ℝ → ℝ := fun x => Real.log (Real.log x) * x ^ (-s)
+  have hderiv :
+      ∀ u ∈ Set.Ioi (0 : ℝ), HasDerivWithinAt Real.exp (Real.exp u) (Set.Ioi (0 : ℝ)) u := by
+    intro u _
+    exact (Real.hasDerivAt_exp u).hasDerivWithinAt
+  have hiff := MeasureTheory.integrableOn_image_iff_integrableOn_abs_deriv_smul
+    (s := Set.Ioi (0 : ℝ)) measurableSet_Ioi hderiv exp_injOn_Ioi_zero g
+  rw [exp_image_Ioi_zero] at hiff
+  refine hiff.mpr ?_
+  refine (integrableOn_log_exp_neg_mul (s - 1) (by linarith)).congr_fun ?_ measurableSet_Ioi
+  intro u hu
+  rw [Set.mem_Ioi] at hu
+  dsimp [g]
+  rw [abs_of_pos (Real.exp_pos u), Real.log_exp]
+  have hpow : (Real.exp u) ^ (-s) = Real.exp (-s * u) := by
+    rw [Real.rpow_def_of_pos (Real.exp_pos u), Real.log_exp]
+    congr 1
+    ring
+  rw [hpow]
+  symm
+  calc
+    Real.exp u * (Real.log u * Real.exp (-s * u)) =
+        Real.log u * (Real.exp u * Real.exp (-s * u)) := by ring
+    _ = Real.log u * Real.exp (u + (-s * u)) := by rw [Real.exp_add]
+    _ = Real.log u * Real.exp (-(s - 1) * u) := by
+      congr 1
+      ring_nf
+
+private lemma mul_integral_Ioi_log_exp_neg_mul_eq (a : ℝ) (ha : 0 < a) :
+    a * (∫ u in Set.Ioi (0 : ℝ), Real.log u * Real.exp (-a * u)) =
+      deriv Real.Gamma 1 - Real.log a := by
+  let g : ℝ → ℝ := fun v => Real.log (v / a) * Real.exp (-v)
+  have hscale := MeasureTheory.integral_comp_mul_left_Ioi g 0 ha
+  have hleft :
+      (∫ u in Set.Ioi (0 : ℝ), g (a * u)) =
+        ∫ u in Set.Ioi (0 : ℝ), Real.log u * Real.exp (-a * u) := by
+    refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi ?_
+    intro u hu
+    rw [Set.mem_Ioi] at hu
+    dsimp [g]
+    rw [mul_div_cancel_left₀ u ha.ne']
+    ring_nf
+  rw [hleft, mul_zero] at hscale
+  rw [hscale]
+  rw [smul_eq_mul, ← mul_assoc, mul_inv_cancel₀ ha.ne', one_mul]
+  exact integral_log_div_mul_exp_neg a ha
+
+private lemma mul_integral_Ioi_loglog_rpow_eq (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s) =
+      -Real.log (s - 1) + deriv Real.Gamma 1 := by
+  rw [integral_Ioi_one_loglog_rpow_eq_exp]
+  have h := mul_integral_Ioi_log_exp_neg_mul_eq (s - 1) (by linarith)
+  linarith
 
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
