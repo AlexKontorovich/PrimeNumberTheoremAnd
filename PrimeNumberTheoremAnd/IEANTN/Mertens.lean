@@ -1155,6 +1155,50 @@ private lemma log_zeta_eq_LSeries_re (s : ℝ) (hs : 1 < s) :
   rw [logZetaCoeff_LSeries_eq_eulerProduct_log s hs]
   exact (eulerProduct_log_re_eq_log_zeta hs).symm
 
+private lemma logZetaCoeff_complex_integrand_eq_ofReal (s : ℝ) {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    (∑ k ∈ Icc 1 ⌊t⌋₊, (logZetaCoeff k : ℂ)) *
+        (t : ℂ) ^ (-((((s - 1 : ℝ) : ℂ)) + 1)) =
+      (((∑ d ∈ Ioc 0 ⌊t⌋₊, Λ d / (d * log d)) * ((t : ℝ) ^ (-s)) : ℝ) : ℂ) := by
+  have htpos : 0 < t := by linarith [Set.mem_Ioi.mp ht]
+  have hpow :
+      (t : ℂ) ^ (-((((s - 1 : ℝ) : ℂ)) + 1)) = (((t : ℝ) ^ (-s) : ℝ) : ℂ) := by
+    have hexp : -((((s - 1 : ℝ) : ℂ)) + 1) = ((-s : ℝ) : ℂ) := by
+      norm_num
+    rw [hexp]
+    simpa [Complex.ofReal_neg] using (Complex.ofReal_cpow htpos.le (-s)).symm
+  rw [hpow, ← Complex.ofReal_sum, sum_Icc_one_eq_sum_Ioc_zero]
+  rw [← Complex.ofReal_mul]
+
+private lemma logZetaCoeff_LSeries_re_eq_summatory_integral (s : ℝ) (hs : 1 < s) :
+    (LSeries (fun n : ℕ => (logZetaCoeff n : ℂ)) (((s - 1 : ℝ) : ℂ))).re =
+      (s - 1) * ∫ x in Set.Ioi (1 : ℝ),
+        (∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d / (d * log d)) * ((x : ℝ) ^ (-s)) := by
+  have h := congrArg Complex.re (logZetaCoeff_LSeries_eq_integral s hs)
+  have hInt :
+      (∫ t in Set.Ioi (1 : ℝ),
+          (∑ k ∈ Icc 1 ⌊t⌋₊, (logZetaCoeff k : ℂ)) *
+            (t : ℂ) ^ (-((((s - 1 : ℝ) : ℂ)) + 1))) =
+        ((∫ t in Set.Ioi (1 : ℝ),
+          (((∑ d ∈ Ioc 0 ⌊t⌋₊, Λ d / (d * log d)) *
+            ((t : ℝ) ^ (-s)) : ℝ)) : ℝ) : ℂ) := by
+    rw [MeasureTheory.setIntegral_congr_fun measurableSet_Ioi
+      (fun t ht => logZetaCoeff_complex_integrand_eq_ofReal s ht)]
+    exact (_root_.integral_ofReal (𝕜 := ℂ)
+      (μ := MeasureTheory.volume.restrict (Set.Ioi (1 : ℝ)))
+      (f := fun t : ℝ =>
+        (∑ d ∈ Ioc 0 ⌊t⌋₊, Λ d / (d * log d)) * ((t : ℝ) ^ (-s)))
+      )
+  rw [hInt] at h
+  simpa [Complex.ofReal_mul] using h
+
+private lemma mul_integral_Ioi_rpow_eq_one (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in Set.Ioi (1 : ℝ), x ^ (-s) = 1 := by
+  rw [integral_Ioi_rpow_of_lt (by linarith : -s < -1) zero_lt_one]
+  rw [Real.one_rpow]
+  rw [show -s + 1 = -(s - 1) by ring]
+  field_simp [sub_ne_zero.mpr (by linarith : s ≠ 1)]
+
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
   have hsub :
