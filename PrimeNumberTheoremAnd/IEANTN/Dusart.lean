@@ -733,7 +733,8 @@ theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth_prime' k ≤ k * Real.log (nt
   We have for $k \geq 2$, $\log p_k \leq \log k + \log \log k + 1$.
   -/)
   (latexEnv := "lemma")]
-theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth_prime' k) ≤ Real.log k + Real.log (Real.log k) + 1 := by sorry
+theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) :
+    Real.log (nth_prime' (k - 1)) ≤ Real.log k + Real.log (Real.log k) + 1 := by sorry
 
 @[blueprint "Massias_Robin_thm_Bv"
   (title := "Massias and Robin Theorem B (v)")
