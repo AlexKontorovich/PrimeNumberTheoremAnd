@@ -1344,6 +1344,35 @@ private lemma integrableOn_Ioi_one_loglog_rpow (s : ℝ) (hs : 1 < s) :
       congr 1
       ring_nf
 
+private lemma integrableOn_Ioi_two_E₂Λ_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x : ℝ => E₂Λ x * x ^ (-s)) (Set.Ioi (2 : ℝ)) := by
+  let C : ℝ := (Real.log 4 + 6) / Real.log 2
+  have hbase : MeasureTheory.IntegrableOn (fun x : ℝ => C * x ^ (-s)) (Set.Ioi (2 : ℝ)) := by
+    exact (integrableOn_Ioi_rpow_of_lt (by linarith : -s < -1)
+      (by norm_num : (0 : ℝ) < 2)).const_mul C
+  apply MeasureTheory.Integrable.mono hbase
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+    rw [Set.mem_Ioi] at hx
+    have hx2 : 2 ≤ x := le_of_lt hx
+    have hlog2pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    have hlog2le : Real.log 2 ≤ Real.log x := Real.log_le_log (by norm_num) hx2
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul]
+    have hCnonneg : 0 ≤ C := by
+      dsimp [C]
+      positivity
+    have hxpow_nonneg : 0 ≤ x ^ (-s) := Real.rpow_nonneg (le_of_lt (by linarith : 0 < x)) _
+    rw [abs_of_nonneg hxpow_nonneg]
+    have hCle : (Real.log 4 + 6) / Real.log x ≤ C := by
+      dsimp [C]
+      exact div_le_div_of_nonneg_left (by positivity) hlog2pos hlog2le
+    calc
+      |E₂Λ x| * x ^ (-s) ≤ ((Real.log 4 + 6) / Real.log x) * x ^ (-s) := by
+        gcongr
+        exact E₂Λ.abs_le hx2
+      _ ≤ C * x ^ (-s) := by gcongr
+      _ = |C| * x ^ (-s) := by rw [abs_of_nonneg hCnonneg]
+
 private lemma mul_integral_Ioi_log_exp_neg_mul_eq (a : ℝ) (ha : 0 < a) :
     a * (∫ u in Set.Ioi (0 : ℝ), Real.log u * Real.exp (-a * u)) =
       deriv Real.Gamma 1 - Real.log a := by
