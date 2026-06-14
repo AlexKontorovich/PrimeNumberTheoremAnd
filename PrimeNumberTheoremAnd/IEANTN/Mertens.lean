@@ -1504,6 +1504,54 @@ private lemma mul_integral_Ioi_loglog_rpow_eq (s : ℝ) (hs : 1 < s) :
   have h := mul_integral_Ioi_log_exp_neg_mul_eq (s - 1) (by linarith)
   linarith
 
+private lemma summatory_integral_eq_E₂Λ_add_loglog_add_const (s : ℝ) (hs : 1 < s) :
+    (∫ x in Set.Ioi (1 : ℝ),
+        (∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s)) =
+      (∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+        + (∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s))
+        + (∫ x in Set.Ioi (1 : ℝ), γ * x ^ (-s)) := by
+  have hE := integrableOn_Ioi_one_E₂Λ_rpow s hs
+  have hlog := integrableOn_Ioi_one_loglog_rpow s hs
+  have hconst := (integrableOn_Ioi_rpow_of_lt (by linarith : -s < -1)
+    (by norm_num : (0 : ℝ) < 1)).const_mul γ
+  calc
+    (∫ x in Set.Ioi (1 : ℝ),
+        (∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, Λ d / (d * Real.log d)) * x ^ (-s)) =
+        ∫ x in Set.Ioi (1 : ℝ),
+          (E₂Λ x * x ^ (-s) + Real.log (Real.log x) * x ^ (-s)) + γ * x ^ (-s) := by
+      refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioi ?_
+      intro x _
+      simp only [E₂Λ_mul_rpow_eq_sub]
+      ring_nf
+    _ = ((∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+        + (∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s)))
+        + (∫ x in Set.Ioi (1 : ℝ), γ * x ^ (-s)) := by
+      have hadd_const :
+          (∫ x in Set.Ioi (1 : ℝ),
+              (E₂Λ x * x ^ (-s) + Real.log (Real.log x) * x ^ (-s)) + γ * x ^ (-s)) =
+            (∫ x in Set.Ioi (1 : ℝ),
+              E₂Λ x * x ^ (-s) + Real.log (Real.log x) * x ^ (-s))
+              + (∫ x in Set.Ioi (1 : ℝ), γ * x ^ (-s)) := by
+        simpa only [Pi.add_apply] using MeasureTheory.integral_add (hE.add hlog) hconst
+      have hadd_log :
+          (∫ x in Set.Ioi (1 : ℝ),
+              E₂Λ x * x ^ (-s) + Real.log (Real.log x) * x ^ (-s)) =
+            (∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s))
+              + (∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s)) := by
+        simpa only [Pi.add_apply] using MeasureTheory.integral_add hE hlog
+      rw [hadd_const, hadd_log]
+    _ = _ := by ring
+
+private lemma mul_integral_Ioi_const_rpow_eq (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in Set.Ioi (1 : ℝ), γ * x ^ (-s) = γ := by
+  rw [MeasureTheory.integral_const_mul]
+  calc
+    (s - 1) * (γ * ∫ x in Set.Ioi (1 : ℝ), x ^ (-s)) =
+        γ * ((s - 1) * ∫ x in Set.Ioi (1 : ℝ), x ^ (-s)) := by ring
+    _ = γ := by
+      rw [mul_integral_Ioi_rpow_eq_one s hs]
+      ring
+
 private lemma zeta_pole_mul_re_tendsto_one :
     Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re) (𝓝[>] 1) (𝓝 1) := by
   have hsub :
@@ -1569,7 +1617,22 @@ giving the claim.-/)
   (discussion := 1319)]
 private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
-    sorry
+  rw [log_zeta_eq_LSeries_re s hs, logZetaCoeff_LSeries_re_eq_summatory_integral s hs]
+  rw [summatory_integral_eq_E₂Λ_add_loglog_add_const s hs]
+  let E := ∫ x in Set.Ioi (1 : ℝ), E₂Λ x * x ^ (-s)
+  let L := ∫ x in Set.Ioi (1 : ℝ), Real.log (Real.log x) * x ^ (-s)
+  let C := ∫ x in Set.Ioi (1 : ℝ), γ * x ^ (-s)
+  have hL : (s - 1) * L = -Real.log (s - 1) + deriv Real.Gamma 1 := by
+    simpa [L] using mul_integral_Ioi_loglog_rpow_eq s hs
+  have hC : (s - 1) * C = γ := by
+    simpa [C] using mul_integral_Ioi_const_rpow_eq s hs
+  change (s - 1) * (E + L + C) =
+    -Real.log (s - 1) + deriv Real.Gamma 1 + γ + (s - 1) * E
+  calc
+    (s - 1) * (E + L + C) =
+        (s - 1) * L + (s - 1) * C + (s - 1) * E := by ring
+    _ = -Real.log (s - 1) + deriv Real.Gamma 1 + γ + (s - 1) * E := by
+      rw [hL, hC]
 
 #check Real.eulerMascheroniConstant_eq_neg_deriv
 
