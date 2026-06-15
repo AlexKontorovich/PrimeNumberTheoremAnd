@@ -3766,12 +3766,6 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
         (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
           (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
 
-/-
-Since `θ` depends only on `⌊x⌋₊`, it is constant on `[n, n+1)`, so it cannot agree with
-the identity on a nondegenerate interval.  Hence for any `x₁ > 0` there is some `x ≥ x₁` with
-`Eθ x > 0`.  This is used to show that a numerical bound `εθ_num x₁` (which dominates `Eθ` on
-`[x₁, ∞)`) is strictly positive, which is needed to unfold `μ_num`.
--/
 private lemma exists_Eθ_pos {x₁ : ℝ} (hx₁ : 0 < x₁) : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := by
   set N := Nat.floor x₁ + 1
   set a := (N : ℝ)
