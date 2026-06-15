@@ -3286,6 +3286,26 @@ theorem LadderParams.zOf_bot_hray (l : LadderParams) (r : ℝ) :
   field_simp [l.hT.ne']
   ring
 
+/-- The real part of the rescaling: `Re z(s) = Im s / T`. -/
+theorem LadderParams.zOf_re (l : LadderParams) (s : ℂ) : (l.zOf s).re = s.im / l.T := by
+  have hT : l.T ≠ 0 := l.hT.ne'
+  have e1 : (Complex.I * (l.T : ℂ)).re = 0 := by simp
+  have e2 : (Complex.I * (l.T : ℂ)).im = l.T := by simp
+  have e3 : Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
+    simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
+  rw [LadderParams.zOf, Complex.div_re, e1, e2, e3]
+  simp only [Complex.sub_im, Complex.one_im, sub_zero, mul_zero, zero_div, zero_add]
+  field_simp
+
+/-- The sign of `Re z(s)` agrees with the sign of `Im s` (since `Re z(s) = Im s / T`, `T > 0`). -/
+theorem LadderParams.sign_zOf_re (l : LadderParams) (s : ℂ) :
+    Real.sign (l.zOf s).re = Real.sign s.im := by
+  rw [l.zOf_re]
+  rcases lt_trichotomy s.im 0 with h | h | h
+  · rw [Real.sign_of_neg (div_neg_of_neg_of_pos h l.hT), Real.sign_of_neg h]
+  · rw [h, zero_div]
+  · rw [Real.sign_of_pos (div_pos h l.hT), Real.sign_of_pos h]
+
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
 theorem integral_Iic_one_eq_integral_Ioi_one_sub
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
@@ -3592,7 +3612,29 @@ theorem prop_5_2_a
         sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) +
         l.sumResiduesLim
           (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC := by
-  sorry
+  refine lemma_5_1
+    (G := fun s ↦ Phi_lambda lam ε (l.zOf s) * F s)
+    (G_circ := fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s)
+    (G_star := fun s ↦ (Real.sign lam : ℂ) *
+        Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s)
+    ?hG ?hGc_mero ?hGs_mero ?hGs_symm hx₀ ?hG_bdd ?hGc_L ?hGc_contour ?hGs_L ?hGs_contour hx
+    ?hfin ?hsimple ?hsimple_circ
+  case hfin => exact hfin
+  case hsimple => exact hsimple
+  case hsimple_circ => exact hsimple_circ
+  -- remaining genuine subgoals (to be discharged):
+  case hG =>
+    intro s
+    simp only [Phi_lambda, l.sign_zOf_re]
+    ring
+  case hGc_mero => sorry     -- meromorphicity of Φ°·F on l.R
+  case hGs_mero => sorry     -- meromorphicity of Φ⋆·F on l.R
+  case hGs_symm => sorry     -- ConjAntisymm of sgn(λ)·Φ⋆·F
+  case hG_bdd => sorry       -- boundedness of Φ_λ·F on l.Rboundary
+  case hGc_L => sorry        -- boundedness of Φ°·F on l.L
+  case hGc_contour => sorry  -- boundedness of Φ°·F on l.admissible_contour
+  case hGs_L => sorry        -- boundedness of sgn(λ)·Φ⋆·F on l.L
+  case hGs_contour => sorry  -- boundedness of sgn(λ)·Φ⋆·F on l.admissible_contour
 
 @[blueprint
   "ch2-prop-5-2-b"
