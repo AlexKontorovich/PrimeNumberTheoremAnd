@@ -7,6 +7,7 @@ pp.proofs.withType = false
 autoImplicit = false
 relaxedAutoImplicit = false
 linter.mathlibStandardSet = true
+linter.style.header = false
 linter.style.openClassical = false
 linter.style.longLine = false
 linter.style.emptyLine = false
@@ -15,12 +16,12 @@ linter.flexible = true
 [[require]]
 name = "LeanArchitect"
 git = "https://github.com/hanwenzhu/LeanArchitect.git"
-rev = "v4.29.0"
+rev = "v4.30.0"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "v4.29.0"
+rev = "v4.30.0"
 
 [[require]]
 name = "checkdecls"
@@ -29,12 +30,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "leancert"
 git = "https://github.com/alerad/leancert"
-rev = "v4.29.0"
+rev = "v4.30.0.5"
 
 [[require]]
 name = "PrimeCert"
 git = "https://github.com/b-mehta/PrimeCert"
-rev = "v4.29.0"
+rev = "v4.30.0"
 
 [[lean_lib]]
 name = "PrimeNumberTheoremAnd"

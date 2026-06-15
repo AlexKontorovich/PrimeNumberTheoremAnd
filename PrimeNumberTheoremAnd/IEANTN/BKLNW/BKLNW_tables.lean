@@ -1,0 +1,1327 @@
+import Architect
+import Mathlib.Analysis.Complex.ExponentialBounds
+import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
+import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
+import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+blueprint_comment /--
+\section{Numerical content of BKLNW}
+
+Purely numerical calculations from \cite{BKLNW}.  This is kept in a separate file from the main file to avoid heavy recompilations.  Because of this, this file should not import any other files from the PNT+ project, other than further numerical data files.
+
+-/
+
+namespace BKLNW
+
+open Real
+
+/-- Add a margin to the values in Table 14 to account for numerical errors. -/
+abbrev table_14_margin : ℝ := BKLNW_app.table_8_margin * 1.001
+
+/-- Add a margin to the values in Table 10 to account for numerical errors. -/
+abbrev table_10_margin : ℝ := BKLNW_app.table_8_margin * 1.001
+
+noncomputable def table_14 : List (ℝ × ℝ × ℝ) := [
+  (20, 4.2676e-5 * table_14_margin, 9.1639e-5 * table_14_margin),
+  (25, 3.5031e-6 * table_14_margin, 7.4366e-6 * table_14_margin),
+  (30, 2.8755e-7 * table_14_margin, 6.0751e-7 * table_14_margin),
+  (35, 2.3603e-8 * table_14_margin, 4.9766e-8 * table_14_margin),
+  (40, 1.9338e-8 * table_14_margin, 2.1482e-8 * table_14_margin),
+  (19 * log 10, 1.9338e-8 * table_14_margin, 1.9667e-8 * table_14_margin),
+  (45, 1.0907e-8 * table_14_margin, 1.1084e-8 * table_14_margin),
+  (50, 1.1199e-9 * table_14_margin, 1.1344e-9 * table_14_margin),
+  (60, 1.2215e-11 * table_14_margin, 1.2312e-11 * table_14_margin),
+  (70, 2.7923e-12 * table_14_margin, 2.7930e-12 * table_14_margin),
+  (80, 2.6108e-12 * table_14_margin, 2.6108e-12 * table_14_margin),
+  (90, 2.5213e-12 * table_14_margin, 2.5213e-12 * table_14_margin),
+  (100, 2.4530e-12 * table_14_margin, 2.4530e-12 * table_14_margin),
+  (200, 2.1815e-12 * table_14_margin, 2.1816e-12 * table_14_margin),
+  (300, 2.0902e-12 * table_14_margin, 2.0903e-12 * table_14_margin),
+  (400, 2.0398e-12 * table_14_margin, 2.0399e-12 * table_14_margin),
+  (500, 1.9999e-12 * table_14_margin, 1.9999e-12 * table_14_margin),
+  (700, 1.9764e-12 * table_14_margin, 1.9765e-12 * table_14_margin),
+  (1000, 1.9475e-12 * table_14_margin, 1.9476e-12 * table_14_margin),
+  (2000, 1.9228e-12 * table_14_margin, 1.9228e-12 * table_14_margin),
+  (3000, 4.5997e-14 * table_14_margin, 4.5998e-14 * table_14_margin),
+  (4000, 1.4263e-16 * table_14_margin, 1.4264e-16 * table_14_margin),
+  (5000, 5.6303e-19 * table_14_margin, 5.6303e-19 * table_14_margin),
+  (7000, 2.0765e-23 * table_14_margin, 2.0766e-23 * table_14_margin),
+  (10000, 3.7849e-29 * table_14_margin, 3.7850e-29 * table_14_margin),
+  (11000, 7.1426e-31 * table_14_margin, 7.1427e-31 * table_14_margin),
+  (12000, 1.5975e-32 * table_14_margin, 1.5976e-32 * table_14_margin),
+  (13000, 4.1355e-34 * table_14_margin, 4.1356e-34 * table_14_margin),
+  (13800.7464, 2.5423e-35 * table_14_margin, 2.5424e-35 * table_14_margin),
+  (15000, 4.1070e-37 * table_14_margin, 4.1070e-37 * table_14_margin),
+  (17000, 6.2040e-40 * table_14_margin, 6.2040e-40 * table_14_margin),
+  (20000, 7.1621e-44 * table_14_margin, 7.1621e-44 * table_14_margin),
+  (22000, 2.4392e-46 * table_14_margin, 2.4392e-46 * table_14_margin),
+  (25000, 7.5724e-50 * table_14_margin, 7.5724e-50 * table_14_margin)
+]
+
+def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
+  let (b, M, m) := row
+  20 ≤ b ∧
+  BKLNW_app.table_8_ε b ≤ M ∧
+  BKLNW_app.table_8_ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
+
+/-- Upper bound used for `exp (-1)` in numerical estimates. -/
+abbrev exp_neg_one_ub : ℝ := 0.3678794412
+
+lemma exp_neg_le_rpow (x : ℝ) (hx : 0 ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ x := by
+  have hmul : (-1 : ℝ) * x = -x := by ring
+  have h1 : exp (-x) = exp (-1) ^ x := by
+    simpa [hmul] using (Real.exp_mul (-1) x)
+  have hbase : exp (-1) ≤ exp_neg_one_ub := by
+    exact le_of_lt Real.exp_neg_one_lt_d9
+  have hpos : 0 ≤ exp (-1) := by positivity
+  calc
+    exp (-x) = exp (-1) ^ x := h1
+    _ ≤ exp_neg_one_ub ^ x := by
+      exact rpow_le_rpow hpos hbase hx
+
+lemma exp_neg_le_rpow' (x : ℝ) (hx : 0 ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ x := by
+  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using exp_neg_le_rpow (x:=x) hx
+
+lemma rpow_le_of_pow_le {a c : ℝ} (ha : 0 ≤ a) (hc : 0 ≤ c) {p q : ℕ} (hq : q ≠ 0)
+    (h : a ^ p ≤ c ^ q) : a ^ (p / (q : ℝ)) ≤ c := by
+  have hpow : (a ^ (p / (q : ℝ))) ^ q = a ^ p := by
+    have hq' : (q : ℝ) ≠ 0 := by exact_mod_cast hq
+    calc
+      (a ^ (p / (q : ℝ))) ^ q = a ^ ((p / (q : ℝ)) * q) := by
+        symm
+        exact Real.rpow_mul_natCast ha (p / (q : ℝ)) q
+      _ = a ^ (p : ℝ) := by
+        field_simp [hq']
+      _ = a ^ p := by
+        simp [Real.rpow_natCast]
+  have h' : (a ^ (p / (q : ℝ))) ^ q ≤ c ^ q := by
+    simpa [hpow] using h
+  exact (pow_le_pow_iff_left₀ (by positivity) hc hq).1 h'
+
+lemma exp_neg_le_pow (n : ℕ) {x : ℝ} (hx : (n : ℝ) ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ n := by
+  have h1 : exp (-x) ≤ exp (-(n : ℝ)) := by
+    have : -x ≤ -(n : ℝ) := by linarith
+    exact (Real.exp_le_exp).2 this
+  have hbase : exp (-1) ≤ exp_neg_one_ub := by
+    exact le_of_lt Real.exp_neg_one_lt_d9
+  have hpos : 0 ≤ exp (-1) := by positivity
+  have hExp : exp (-(n : ℝ)) = exp (-1) ^ n := by
+    have hmul : (n : ℝ) * (-1) = -(n : ℝ) := by ring
+    simpa [hmul] using (Real.exp_nat_mul (-1) n)
+  calc
+    exp (-x) ≤ exp (-(n : ℝ)) := h1
+    _ = exp (-1) ^ n := hExp
+    _ ≤ exp_neg_one_ub ^ n := by
+      exact pow_le_pow_left₀ hpos hbase n
+
+lemma exp_neg_le_pow' (n : ℕ) {x : ℝ} (hx : (n : ℝ) ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ n := by
+  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using exp_neg_le_pow (n:=n) (x:=x) hx
+
+lemma check_row_prop_of_bounds {b M m eps c1 c2 c3 : ℝ}
+    (hb : 20 ≤ b)
+    (h_eps : BKLNW_app.table_8_ε b ≤ eps)
+    (h_epsM : eps ≤ M)
+    (h1 : exp (-b / 2) ≤ c1)
+    (h2 : exp (-2 * b / 3) ≤ c2)
+    (h3 : exp (-4 * b / 5) ≤ c3)
+    (hbound : eps + RS_prime.c₀ * (c1 + c2 + c3) ≤ m) :
+    check_row_prop (b, M, m) := by
+  refine ⟨hb, ?_, ?_⟩
+  · exact le_trans h_eps h_epsM
+  · have hc0 : 0 ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+    have hsum : exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5) ≤ c1 + c2 + c3 := by
+      linarith [h1, h2, h3]
+    have hsum' : RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤
+        RS_prime.c₀ * (c1 + c2 + c3) := by
+      exact mul_le_mul_of_nonneg_left hsum hc0
+    have hmain : BKLNW_app.table_8_ε b + RS_prime.c₀ *
+        (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤
+        eps + RS_prime.c₀ * (c1 + c2 + c3) := by
+      linarith [h_eps, hsum']
+    exact hmain.trans hbound
+
+-- This lemma no longer works because we changed the definition of table_8_ε to use sInf.  It may be safely deleted.
+--
+-- lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
+--   norm_num [check_row_prop, BKLNW_app.table_8_ε, RS_prime.c₀]
+--   rw [← neg_one_mul 10, ← neg_one_mul (40 / 3), ← neg_one_mul 16, exp_mul, exp_mul, exp_mul]
+--   grw [exp_neg_one_lt_d9]
+--   suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
+--   rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
+
+set_option maxRecDepth 10000 in
+@[blueprint
+  "bklnw-table-14-check"
+  (statement := /-- The entries in Table 14 obey the criterion in Sublemma \ref{bklnw-thm-1a-checked}. -/)
+  (latexEnv := "sublemma")
+  (discussion := 808)]
+theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_row_prop (b, M, m) := by
+  classical
+  simp only [table_14, List.mem_cons, List.not_mem_nil, or_false] at h_table
+  rcases h_table with h_table | h_table
+  · rcases h_table with ⟨rfl, rfl, rfl⟩
+    have hb : (20 : ℝ) ≤ 20 := by norm_num
+    have hrow : BKLNW_app.table_8_ε 20 ≤ 4.2676e-5 :=
+      BKLNW_app.table_8_ε_le_of_row (b₀ := 20) (ε := 4.2676e-5) (BKLNW_app.table_8_mem_20) (by exact le_rfl)
+    have h_epsM : (4.2676e-5 : ℝ) ≤ 4.2676e-5 * table_14_margin := by norm_num [table_14_margin]
+    have h1 : exp (-20 / 2) ≤ exp_neg_one_ub ^ 10 := by
+      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=10) (x:=20/2) (by norm_num))
+    have h2 : exp (-2 * 20 / 3) ≤ 1.62e-6 := by
+      have h2' : exp (-2 * 20 / 3) ≤ exp_neg_one_ub ^ ((40:ℝ) / 3) := by
+        have hx : (2:ℝ) * 20 / 3 = (40:ℝ) / 3 := by ring
+        simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
+          (exp_neg_le_rpow' (x:=2*20/3) (by norm_num))
+      have h2'' : exp_neg_one_ub ^ ((40:ℝ) / 3) ≤ 1.62e-6 := by
+        have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
+        have hc : 0 ≤ (1.62e-6 : ℝ) := by norm_num
+        refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=1.62e-6) ha hc (p:=40) (q:=3)
+          (by norm_num) ?_
+        norm_num [exp_neg_one_ub]
+      exact h2'.trans h2''
+    have h3 : exp (-4 * 20 / 5) ≤ exp_neg_one_ub ^ 16 := by
+      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=16) (x:=4*20/5) (by norm_num))
+    have hbound : (4.2676e-5 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 10 + 1.62e-6 + exp_neg_one_ub ^ 16) ≤ 9.1639e-5 * table_14_margin := by
+      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+  · rcases h_table with h_table | h_table
+    · rcases h_table with ⟨rfl, rfl, rfl⟩
+      have hb : (20 : ℝ) ≤ 25 := by norm_num
+      have hrow : BKLNW_app.table_8_ε 25 ≤ 3.5032e-6 :=
+        BKLNW_app.table_8_ε_le_of_row (b₀ := 25) (ε := 3.5032e-6) (BKLNW_app.table_8_mem_25) (by exact le_rfl)
+      have h_epsM : (3.5032e-6 : ℝ) ≤ 3.5031e-6 * table_14_margin := by norm_num [table_14_margin]
+      have h1 : exp (-25 / 2) ≤ 3.73e-6 := by
+        have h1' : exp (-25 / 2) ≤ exp_neg_one_ub ^ ((25:ℝ) / 2) := by
+          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=25/2) (by norm_num))
+        have h1'' : exp_neg_one_ub ^ ((25:ℝ) / 2) ≤ 3.73e-6 := by
+          refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=25) (q:=2) (by norm_num) ?_
+          norm_num [exp_neg_one_ub]
+        exact h1'.trans h1''
+      have h2 : exp (-2 * 25 / 3) ≤ 5.78e-8 := by
+        have h2' : exp (-2 * 25 / 3) ≤ exp_neg_one_ub ^ ((50:ℝ) / 3) := by
+          have hx : (2:ℝ) * 25 / 3 = (50:ℝ) / 3 := by ring
+          simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
+            (exp_neg_le_rpow' (x:=2*25/3) (by norm_num))
+        have h2'' : exp_neg_one_ub ^ ((50:ℝ) / 3) ≤ 5.78e-8 := by
+          have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
+          have hc : 0 ≤ (5.78e-8 : ℝ) := by norm_num
+          refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=5.78e-8) ha hc (p:=50) (q:=3)
+            (by norm_num) ?_
+          norm_num [exp_neg_one_ub]
+        exact h2'.trans h2''
+      have h3 : exp (-4 * 25 / 5) ≤ exp_neg_one_ub ^ 20 := by
+        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=4*25/5) (by norm_num))
+      have hbound : (3.5032e-6 : ℝ) + RS_prime.c₀ * (3.73e-6 + 5.78e-8 + exp_neg_one_ub ^ 20) ≤ 7.4366e-6 * table_14_margin := by
+        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+    · rcases h_table with h_table | h_table
+      · rcases h_table with ⟨rfl, rfl, rfl⟩
+        have hb : (20 : ℝ) ≤ 30 := by norm_num
+        have hrow : BKLNW_app.table_8_ε 30 ≤ 2.8756e-7 :=
+          BKLNW_app.table_8_ε_le_of_row (b₀ := 30) (ε := 2.8756e-7) (BKLNW_app.table_8_mem_30) (by exact le_rfl)
+        have h_epsM : (2.8756e-7 : ℝ) ≤ 2.8755e-7 * table_14_margin := by norm_num [table_14_margin]
+        have h1 : exp (-30 / 2) ≤ exp_neg_one_ub ^ 15 := by
+          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=15) (x:=30/2) (by norm_num))
+        have h2 : exp (-2 * 30 / 3) ≤ exp_neg_one_ub ^ 20 := by
+          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=2*30/3) (by norm_num))
+        have h3 : exp (-4 * 30 / 5) ≤ exp_neg_one_ub ^ 24 := by
+          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=24) (x:=4*30/5) (by norm_num))
+        have hbound : (2.8756e-7 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 15 + exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 24) ≤ 6.0751e-7 * table_14_margin := by
+          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+      · rcases h_table with h_table | h_table
+        · rcases h_table with ⟨rfl, rfl, rfl⟩
+          have hb : (20 : ℝ) ≤ 35 := by norm_num
+          have hrow : BKLNW_app.table_8_ε 35 ≤ 2.3604e-8 :=
+            BKLNW_app.table_8_ε_le_of_row (b₀ := 35) (ε := 2.3604e-8) (BKLNW_app.table_8_mem_35) (by exact le_rfl)
+          have h_epsM : (2.3604e-8 : ℝ) ≤ 2.3603e-8 * table_14_margin := by norm_num [table_14_margin]
+          have h1 : exp (-35 / 2) ≤ 2.52e-8 := by
+            have h1' : exp (-35 / 2) ≤ exp_neg_one_ub ^ ((35:ℝ) / 2) := by
+              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=35/2) (by norm_num))
+            have h1'' : exp_neg_one_ub ^ ((35:ℝ) / 2) ≤ 2.52e-8 := by
+              refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=35) (q:=2) (by norm_num) ?_
+              norm_num [exp_neg_one_ub]
+            exact h1'.trans h1''
+          have h2 : exp (-2 * 35 / 3) ≤ 7.36e-11 := by
+            have h2' : exp (-2 * 35 / 3) ≤ exp_neg_one_ub ^ ((70:ℝ) / 3) := by
+              have hx : (2:ℝ) * 35 / 3 = (70:ℝ) / 3 := by ring
+              simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
+                (exp_neg_le_rpow' (x:=2*35/3) (by norm_num))
+            have h2'' : exp_neg_one_ub ^ ((70:ℝ) / 3) ≤ 7.36e-11 := by
+              have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
+              have hc : 0 ≤ (7.36e-11 : ℝ) := by norm_num
+              refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=7.36e-11) ha hc (p:=70) (q:=3)
+                (by norm_num) ?_
+              norm_num [exp_neg_one_ub]
+            exact h2'.trans h2''
+          have h3 : exp (-4 * 35 / 5) ≤ exp_neg_one_ub ^ 28 := by
+            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=28) (x:=4*35/5) (by norm_num))
+          have hbound : (2.3604e-8 : ℝ) + RS_prime.c₀ * (2.52e-8 + 7.36e-11 + exp_neg_one_ub ^ 28) ≤ 4.9766e-8 * table_14_margin := by
+            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+        · rcases h_table with h_table | h_table
+          · rcases h_table with ⟨rfl, rfl, rfl⟩
+            have hb : (20 : ℝ) ≤ 40 := by norm_num
+            have hrow : BKLNW_app.table_8_ε 40 ≤ 1.9339e-8 :=
+              BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8) (BKLNW_app.table_8_mem_40) (by exact le_rfl)
+            have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
+            have h1 : exp (-40 / 2) ≤ exp_neg_one_ub ^ 20 := by
+              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=40/2) (by norm_num))
+            have h2 : exp (-2 * 40 / 3) ≤ exp_neg_one_ub ^ 26 := by
+              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=26) (x:=2*40/3) (by norm_num))
+            have h3 : exp (-4 * 40 / 5) ≤ exp_neg_one_ub ^ 32 := by
+              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=32) (x:=4*40/5) (by norm_num))
+            have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 26 + exp_neg_one_ub ^ 32) ≤ 2.1482e-8 * table_14_margin := by
+              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+          · rcases h_table with h_table | h_table
+            · rcases h_table with ⟨rfl, rfl, rfl⟩
+              have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 :=
+                ⟨by nlinarith [LogTables.log_10_gt], by nlinarith [LogTables.log_10_lt]⟩
+              have hb : (20 : ℝ) ≤ 19 * log 10 := by linarith [h_log_approx.1]
+              have hrow : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.9339e-8 :=
+                BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8)
+                  (BKLNW_app.table_8_mem_40) (by linarith [h_log_approx.1])
+              have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
+              have h1 : exp (-(19 * log 10) / 2) ≤ 3.17e-10 := by
+                have h1' : exp (-(19 * log 10) / 2) = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
+                  have hmul : -(19 * log 10) / 2 = (log 10) * (-(19 : ℝ) / 2) := by ring
+                  calc
+                    exp (-(19 * log 10) / 2) = exp (log 10 * (-(19 : ℝ) / 2)) := by
+                      simp [hmul]
+                    _ = exp (log 10) ^ (-(19 : ℝ) / 2) := by
+                      simpa using (Real.exp_mul (log 10) (-(19 : ℝ) / 2))
+                    _ = exp (log 10) ^ (-( (19:ℝ) / 2)) := by
+                      simp [neg_div]
+                    _ = (10 : ℝ) ^ (-( (19:ℝ) / 2)) := by
+                      have h10 : (0 : ℝ) < 10 := by norm_num
+                      simp [Real.exp_log h10]
+                    _ = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
+                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((19:ℝ) / 2))
+                have h1'' : (1/10 : ℝ) ^ ((19:ℝ) / 2) ≤ 3.17e-10 := by
+                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
+                  have hc : 0 ≤ (3.17e-10 : ℝ) := by norm_num
+                  refine rpow_le_of_pow_le (a:=1/10) (c:=3.17e-10) ha hc (p:=19) (q:=2)
+                    (by norm_num) ?_
+                  norm_num
+                simpa [h1'] using h1''
+              have h2 : exp (-2 * (19 * log 10) / 3) ≤ 2.16e-13 := by
+                have h2' : exp (-2 * (19 * log 10) / 3) = (1/10 : ℝ) ^ ((38:ℝ) / 3) := by
+                  have hmul : -(2 * (19 * log 10)) / 3 = (log 10) * (-(38 : ℝ) / 3) := by ring
+                  calc
+                    exp (-2 * (19 * log 10) / 3) = exp (-(2 * (19 * log 10)) / 3) := by
+                      ring_nf
+                    _ = exp (log 10 * (-(38 : ℝ) / 3)) := by
+                      simp [hmul]
+                    _ = exp (log 10) ^ (-(38 : ℝ) / 3) := by
+                      simpa using (Real.exp_mul (log 10) (-(38 : ℝ) / 3))
+                    _ = exp (log 10) ^ (-( (38:ℝ) / 3)) := by
+                      simp [neg_div]
+                    _ = (10 : ℝ) ^ (-( (38:ℝ) / 3)) := by
+                      have h10 : (0 : ℝ) < 10 := by norm_num
+                      simp [Real.exp_log h10]
+                    _ = (1/10 : ℝ) ^ ((38:ℝ) / 3) := by
+                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((38:ℝ) / 3))
+                have h2'' : (1/10 : ℝ) ^ ((38:ℝ) / 3) ≤ 2.16e-13 := by
+                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
+                  have hc : 0 ≤ (2.16e-13 : ℝ) := by norm_num
+                  refine rpow_le_of_pow_le (a:=1/10) (c:=2.16e-13) ha hc (p:=38) (q:=3)
+                    (by norm_num) ?_
+                  norm_num
+                calc
+                  exp (-2 * (19 * log 10) / 3) = (1/10 : ℝ) ^ ((38:ℝ) / 3) := h2'
+                  _ ≤ 2.16e-13 := h2''
+              have h3 : exp (-4 * (19 * log 10) / 5) ≤ 6.32e-16 := by
+                have h3' : exp (-4 * (19 * log 10) / 5) = (1/10 : ℝ) ^ ((76:ℝ) / 5) := by
+                  have hmul : -(4 * (19 * log 10)) / 5 = (log 10) * (-(76 : ℝ) / 5) := by ring
+                  calc
+                    exp (-4 * (19 * log 10) / 5) = exp (-(4 * (19 * log 10)) / 5) := by
+                      ring_nf
+                    _ = exp (log 10 * (-(76 : ℝ) / 5)) := by
+                      simp [hmul]
+                    _ = exp (log 10) ^ (-(76 : ℝ) / 5) := by
+                      simpa using (Real.exp_mul (log 10) (-(76 : ℝ) / 5))
+                    _ = exp (log 10) ^ (-( (76:ℝ) / 5)) := by
+                      simp [neg_div]
+                    _ = (10 : ℝ) ^ (-( (76:ℝ) / 5)) := by
+                      have h10 : (0 : ℝ) < 10 := by norm_num
+                      simp [Real.exp_log h10]
+                    _ = (1/10 : ℝ) ^ ((76:ℝ) / 5) := by
+                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((76:ℝ) / 5))
+                have h3'' : (1/10 : ℝ) ^ ((76:ℝ) / 5) ≤ 6.32e-16 := by
+                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
+                  have hc : 0 ≤ (6.32e-16 : ℝ) := by norm_num
+                  refine rpow_le_of_pow_le (a:=1/10) (c:=6.32e-16) ha hc (p:=76) (q:=5)
+                    (by norm_num) ?_
+                  norm_num
+                calc
+                  exp (-4 * (19 * log 10) / 5) = (1/10 : ℝ) ^ ((76:ℝ) / 5) := h3'
+                  _ ≤ 6.32e-16 := h3''
+              have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (3.17e-10 + 2.16e-13 + 6.32e-16) ≤ 1.9667e-8 * table_14_margin := by
+                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+            · rcases h_table with h_table | h_table
+              · rcases h_table with ⟨rfl, rfl, rfl⟩
+                have hb : (20 : ℝ) ≤ 45 := by norm_num
+                have hrow : BKLNW_app.table_8_ε 45 ≤ 1.0908e-8 :=
+                  BKLNW_app.table_8_ε_le_of_row (b₀ := 45) (ε := 1.0908e-8) (BKLNW_app.table_8_mem_45) (by exact le_rfl)
+                have h_epsM : (1.0908e-8 : ℝ) ≤ 1.0907e-8 * table_14_margin := by norm_num [table_14_margin]
+                have h1 : exp (-45 / 2) ≤ 1.70e-10 := by
+                  have h1' : exp (-45 / 2) ≤ exp_neg_one_ub ^ ((45:ℝ) / 2) := by
+                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=45/2) (by norm_num))
+                  have h1'' : exp_neg_one_ub ^ ((45:ℝ) / 2) ≤ 1.70e-10 := by
+                    refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=45) (q:=2) (by norm_num) ?_
+                    norm_num [exp_neg_one_ub]
+                  exact h1'.trans h1''
+                have h2 : exp (-2 * 45 / 3) ≤ exp_neg_one_ub ^ 30 := by
+                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=30) (x:=2*45/3) (by norm_num))
+                have h3 : exp (-4 * 45 / 5) ≤ exp_neg_one_ub ^ 36 := by
+                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=36) (x:=4*45/5) (by norm_num))
+                have hbound : (1.0908e-8 : ℝ) + RS_prime.c₀ * (1.70e-10 + exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 36) ≤ 1.1084e-8 * table_14_margin := by
+                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+              · rcases h_table with h_table | h_table
+                · rcases h_table with ⟨rfl, rfl, rfl⟩
+                  have hb : (20 : ℝ) ≤ 50 := by norm_num
+                  have hrow : BKLNW_app.table_8_ε 50 ≤ 1.1200e-9 :=
+                    BKLNW_app.table_8_ε_le_of_row (b₀ := 50) (ε := 1.1200e-9) (BKLNW_app.table_8_mem_50) (by exact le_rfl)
+                  have h_epsM : (1.1200e-9 : ℝ) ≤ 1.1199e-9 * table_14_margin := by norm_num [table_14_margin]
+                  have h1 : exp (-50 / 2) ≤ exp_neg_one_ub ^ 25 := by
+                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=25) (x:=50/2) (by norm_num))
+                  have h2 : exp (-2 * 50 / 3) ≤ exp_neg_one_ub ^ 33 := by
+                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=33) (x:=2*50/3) (by norm_num))
+                  have h3 : exp (-4 * 50 / 5) ≤ exp_neg_one_ub ^ 40 := by
+                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=4*50/5) (by norm_num))
+                  have hbound : (1.1200e-9 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 25 + exp_neg_one_ub ^ 33 + exp_neg_one_ub ^ 40) ≤ 1.1344e-9 * table_14_margin := by
+                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                · rcases h_table with h_table | h_table
+                  · rcases h_table with ⟨rfl, rfl, rfl⟩
+                    have hb : (20 : ℝ) ≤ 60 := by norm_num
+                    have hrow : BKLNW_app.table_8_ε 60 ≤ 1.2216e-11 :=
+                      BKLNW_app.table_8_ε_le_of_row (b₀ := 60) (ε := 1.2216e-11) (BKLNW_app.table_8_mem_60) (by exact le_rfl)
+                    have h_epsM : (1.2216e-11 : ℝ) ≤ 1.2215e-11 * table_14_margin := by norm_num [table_14_margin]
+                    have h1 : exp (-60 / 2) ≤ exp_neg_one_ub ^ 30 := by
+                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=30) (x:=60/2) (by norm_num))
+                    have h2 : exp (-2 * 60 / 3) ≤ exp_neg_one_ub ^ 40 := by
+                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=2*60/3) (by norm_num))
+                    have h3 : exp (-4 * 60 / 5) ≤ exp_neg_one_ub ^ 48 := by
+                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=48) (x:=4*60/5) (by norm_num))
+                    have hbound : (1.2216e-11 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 48) ≤ 1.2312e-11 * table_14_margin := by
+                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                  · rcases h_table with h_table | h_table
+                    · rcases h_table with ⟨rfl, rfl, rfl⟩
+                      have hb : (20 : ℝ) ≤ 70 := by norm_num
+                      have hrow : BKLNW_app.table_8_ε 70 ≤ 2.7924e-12 :=
+                        BKLNW_app.table_8_ε_le_of_row (b₀ := 70) (ε := 2.7924e-12) (BKLNW_app.table_8_mem_70) (by exact le_rfl)
+                      have h_epsM : (2.7924e-12 : ℝ) ≤ 2.7923e-12 * table_14_margin := by norm_num [table_14_margin]
+                      have h1 : exp (-70 / 2) ≤ exp_neg_one_ub ^ 35 := by
+                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=35) (x:=70/2) (by norm_num))
+                      have h2 : exp (-2 * 70 / 3) ≤ exp_neg_one_ub ^ 46 := by
+                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=46) (x:=2*70/3) (by norm_num))
+                      have h3 : exp (-4 * 70 / 5) ≤ exp_neg_one_ub ^ 56 := by
+                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=56) (x:=4*70/5) (by norm_num))
+                      have hbound : (2.7924e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 35 + exp_neg_one_ub ^ 46 + exp_neg_one_ub ^ 56) ≤ 2.7930e-12 * table_14_margin := by
+                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                    · rcases h_table with h_table | h_table
+                      · rcases h_table with ⟨rfl, rfl, rfl⟩
+                        have hb : (20 : ℝ) ≤ 80 := by norm_num
+                        have hrow : BKLNW_app.table_8_ε 80 ≤ 2.6109e-12 :=
+                          BKLNW_app.table_8_ε_le_of_row (b₀ := 80) (ε := 2.6109e-12) (BKLNW_app.table_8_mem_80) (by exact le_rfl)
+                        have h_epsM : (2.6109e-12 : ℝ) ≤ 2.6108e-12 * table_14_margin := by norm_num [table_14_margin]
+                        have h1 : exp (-80 / 2) ≤ exp_neg_one_ub ^ 40 := by
+                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=80/2) (by norm_num))
+                        have h2 : exp (-2 * 80 / 3) ≤ exp_neg_one_ub ^ 53 := by
+                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=53) (x:=2*80/3) (by norm_num))
+                        have h3 : exp (-4 * 80 / 5) ≤ exp_neg_one_ub ^ 64 := by
+                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=64) (x:=4*80/5) (by norm_num))
+                        have hbound : (2.6109e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 53 + exp_neg_one_ub ^ 64) ≤ 2.6108e-12 * table_14_margin := by
+                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                      · rcases h_table with h_table | h_table
+                        · rcases h_table with ⟨rfl, rfl, rfl⟩
+                          have hb : (20 : ℝ) ≤ 90 := by norm_num
+                          have hrow : BKLNW_app.table_8_ε 90 ≤ 2.5214e-12 :=
+                            BKLNW_app.table_8_ε_le_of_row (b₀ := 90) (ε := 2.5214e-12) (BKLNW_app.table_8_mem_90) (by exact le_rfl)
+                          have h_epsM : (2.5214e-12 : ℝ) ≤ 2.5213e-12 * table_14_margin := by norm_num [table_14_margin]
+                          have h1 : exp (-90 / 2) ≤ exp_neg_one_ub ^ 45 := by
+                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=45) (x:=90/2) (by norm_num))
+                          have h2 : exp (-2 * 90 / 3) ≤ exp_neg_one_ub ^ 60 := by
+                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=60) (x:=2*90/3) (by norm_num))
+                          have h3 : exp (-4 * 90 / 5) ≤ exp_neg_one_ub ^ 72 := by
+                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=72) (x:=4*90/5) (by norm_num))
+                          have hbound : (2.5214e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 45 + exp_neg_one_ub ^ 60 + exp_neg_one_ub ^ 72) ≤ 2.5213e-12 * table_14_margin := by
+                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                        · rcases h_table with h_table | h_table
+                          · rcases h_table with ⟨rfl, rfl, rfl⟩
+                            have hb : (20 : ℝ) ≤ 100 := by norm_num
+                            have hrow : BKLNW_app.table_8_ε 100 ≤ 2.4531e-12 :=
+                              BKLNW_app.table_8_ε_le_of_row (b₀ := 100) (ε := 2.4531e-12) (BKLNW_app.table_8_mem_100) (by exact le_rfl)
+                            have h_epsM : (2.4531e-12 : ℝ) ≤ 2.4530e-12 * table_14_margin := by norm_num [table_14_margin]
+                            have h1 : exp (-100 / 2) ≤ exp_neg_one_ub ^ 50 := by
+                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=50) (x:=100/2) (by norm_num))
+                            have h2 : exp (-2 * 100 / 3) ≤ exp_neg_one_ub ^ 66 := by
+                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=66) (x:=2*100/3) (by norm_num))
+                            have h3 : exp (-4 * 100 / 5) ≤ exp_neg_one_ub ^ 80 := by
+                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=80) (x:=4*100/5) (by norm_num))
+                            have hbound : (2.4531e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 50 + exp_neg_one_ub ^ 66 + exp_neg_one_ub ^ 80) ≤ 2.4530e-12 * table_14_margin := by
+                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                          · rcases h_table with h_table | h_table
+                            · rcases h_table with ⟨rfl, rfl, rfl⟩
+                              have hb : (20 : ℝ) ≤ 200 := by norm_num
+                              have hrow : BKLNW_app.table_8_ε 200 ≤ 2.1816e-12 :=
+                                BKLNW_app.table_8_ε_le_of_row (b₀ := 200) (ε := 2.1816e-12) (BKLNW_app.table_8_mem_200) (by exact le_rfl)
+                              have h_epsM : (2.1816e-12 : ℝ) ≤ 2.1815e-12 * table_14_margin := by norm_num [table_14_margin]
+                              have h1 : exp (-200 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=200/2) (by norm_num))
+                              have h2 : exp (-2 * 200 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*200/3) (by norm_num))
+                              have h3 : exp (-4 * 200 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*200/5) (by norm_num))
+                              have hbound : (2.1816e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.1816e-12 * table_14_margin := by
+                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                            · rcases h_table with h_table | h_table
+                              · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                have hb : (20 : ℝ) ≤ 300 := by norm_num
+                                have hrow : BKLNW_app.table_8_ε 300 ≤ 2.0903e-12 :=
+                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 300) (ε := 2.0903e-12) (BKLNW_app.table_8_mem_300) (by exact le_rfl)
+                                have h_epsM : (2.0903e-12 : ℝ) ≤ 2.0902e-12 * table_14_margin := by norm_num [table_14_margin]
+                                have h1 : exp (-300 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=300/2) (by norm_num))
+                                have h2 : exp (-2 * 300 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*300/3) (by norm_num))
+                                have h3 : exp (-4 * 300 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*300/5) (by norm_num))
+                                have hbound : (2.0903e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0903e-12 * table_14_margin := by
+                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                              · rcases h_table with h_table | h_table
+                                · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                  have hb : (20 : ℝ) ≤ 400 := by norm_num
+                                  have hrow : BKLNW_app.table_8_ε 400 ≤ 2.0399e-12 :=
+                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 400) (ε := 2.0399e-12) (BKLNW_app.table_8_mem_400) (by exact le_rfl)
+                                  have h_epsM : (2.0399e-12 : ℝ) ≤ 2.0398e-12 * table_14_margin := by norm_num [table_14_margin]
+                                  have h1 : exp (-400 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=400/2) (by norm_num))
+                                  have h2 : exp (-2 * 400 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*400/3) (by norm_num))
+                                  have h3 : exp (-4 * 400 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*400/5) (by norm_num))
+                                  have hbound : (2.0399e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0399e-12 * table_14_margin := by
+                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                · rcases h_table with h_table | h_table
+                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                    have hb : (20 : ℝ) ≤ 500 := by norm_num
+                                    have hrow : BKLNW_app.table_8_ε 500 ≤ 1.9999e-12 :=
+                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 500) (ε := 1.9999e-12) (BKLNW_app.table_8_mem_500) (by exact le_rfl)
+                                    have h_epsM : (1.9999e-12 : ℝ) ≤ 1.9999e-12 * table_14_margin := by norm_num [table_14_margin]
+                                    have h1 : exp (-500 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=500/2) (by norm_num))
+                                    have h2 : exp (-2 * 500 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*500/3) (by norm_num))
+                                    have h3 : exp (-4 * 500 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*500/5) (by norm_num))
+                                    have hbound : (1.9999e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9999e-12 * table_14_margin := by
+                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                  · rcases h_table with h_table | h_table
+                                    · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                      have hb : (20 : ℝ) ≤ 700 := by norm_num
+                                      have hrow : BKLNW_app.table_8_ε 700 ≤ 1.9765e-12 :=
+                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 700) (ε := 1.9765e-12) (BKLNW_app.table_8_mem_700) (by exact le_rfl)
+                                      have h_epsM : (1.9765e-12 : ℝ) ≤ 1.9764e-12 * table_14_margin := by norm_num [table_14_margin]
+                                      have h1 : exp (-700 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=700/2) (by norm_num))
+                                      have h2 : exp (-2 * 700 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*700/3) (by norm_num))
+                                      have h3 : exp (-4 * 700 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*700/5) (by norm_num))
+                                      have hbound : (1.9765e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9765e-12 * table_14_margin := by
+                                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                    · rcases h_table with h_table | h_table
+                                      · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                        have hb : (20 : ℝ) ≤ 1000 := by norm_num
+                                        have hrow : BKLNW_app.table_8_ε 1000 ≤ 1.9476e-12 :=
+                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 1000) (ε := 1.9476e-12) (BKLNW_app.table_8_mem_1000) (by exact le_rfl)
+                                        have h_epsM : (1.9476e-12 : ℝ) ≤ 1.9475e-12 * table_14_margin := by norm_num [table_14_margin]
+                                        have h1 : exp (-1000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=1000/2) (by norm_num))
+                                        have h2 : exp (-2 * 1000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*1000/3) (by norm_num))
+                                        have h3 : exp (-4 * 1000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*1000/5) (by norm_num))
+                                        have hbound : (1.9476e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9476e-12 * table_14_margin := by
+                                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                      · rcases h_table with h_table | h_table
+                                        · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                          have hb : (20 : ℝ) ≤ 2000 := by norm_num
+                                          have hrow : BKLNW_app.table_8_ε 2000 ≤ 1.9229e-12 :=
+                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 2000) (ε := 1.9229e-12) (BKLNW_app.table_8_mem_2000) (by exact le_rfl)
+                                          have h_epsM : (1.9229e-12 : ℝ) ≤ 1.9228e-12 * table_14_margin := by norm_num [table_14_margin]
+                                          have h1 : exp (-2000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2000/2) (by norm_num))
+                                          have h2 : exp (-2 * 2000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*2000/3) (by norm_num))
+                                          have h3 : exp (-4 * 2000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*2000/5) (by norm_num))
+                                          have hbound : (1.9229e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9228e-12 * table_14_margin := by
+                                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                        · rcases h_table with h_table | h_table
+                                          · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                            have hb : (20 : ℝ) ≤ 3000 := by norm_num
+                                            have hrow : BKLNW_app.table_8_ε 3000 ≤ 4.5998e-14 :=
+                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 3000) (ε := 4.5998e-14) (BKLNW_app.table_8_mem_3000) (by exact le_rfl)
+                                            have h_epsM : (4.5998e-14 : ℝ) ≤ 4.5997e-14 * table_14_margin := by norm_num [table_14_margin]
+                                            have h1 : exp (-3000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=3000/2) (by norm_num))
+                                            have h2 : exp (-2 * 3000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*3000/3) (by norm_num))
+                                            have h3 : exp (-4 * 3000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*3000/5) (by norm_num))
+                                            have hbound : (4.5998e-14 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.5998e-14 * table_14_margin := by
+                                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                          · rcases h_table with h_table | h_table
+                                            · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                              have hb : (20 : ℝ) ≤ 4000 := by norm_num
+                                              have hrow : BKLNW_app.table_8_ε 4000 ≤ 1.4264e-16 :=
+                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 4000) (ε := 1.4264e-16) (BKLNW_app.table_8_mem_4000) (by exact le_rfl)
+                                              have h_epsM : (1.4264e-16 : ℝ) ≤ 1.4263e-16 * table_14_margin := by norm_num [table_14_margin]
+                                              have h1 : exp (-4000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4000/2) (by norm_num))
+                                              have h2 : exp (-2 * 4000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*4000/3) (by norm_num))
+                                              have h3 : exp (-4 * 4000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*4000/5) (by norm_num))
+                                              have hbound : (1.4264e-16 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.4264e-16 * table_14_margin := by
+                                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                            · rcases h_table with h_table | h_table
+                                              · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                have hb : (20 : ℝ) ≤ 5000 := by norm_num
+                                                have hrow : BKLNW_app.table_8_ε 5000 ≤ 5.6304e-19 :=
+                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 5000) (ε := 5.6304e-19) (BKLNW_app.table_8_mem_5000) (by exact le_rfl)
+                                                have h_epsM : (5.6304e-19 : ℝ) ≤ 5.6303e-19 * table_14_margin := by norm_num [table_14_margin]
+                                                have h1 : exp (-5000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=5000/2) (by norm_num))
+                                                have h2 : exp (-2 * 5000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*5000/3) (by norm_num))
+                                                have h3 : exp (-4 * 5000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*5000/5) (by norm_num))
+                                                have hbound : (5.6304e-19 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 5.6303e-19 * table_14_margin := by
+                                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                              · rcases h_table with h_table | h_table
+                                                · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                  have hb : (20 : ℝ) ≤ 7000 := by norm_num
+                                                  have hrow : BKLNW_app.table_8_ε 7000 ≤ 2.0766e-23 :=
+                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 7000) (ε := 2.0766e-23) (BKLNW_app.table_8_mem_7000) (by exact le_rfl)
+                                                  have h_epsM : (2.0766e-23 : ℝ) ≤ 2.0765e-23 * table_14_margin := by norm_num [table_14_margin]
+                                                  have h1 : exp (-7000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=7000/2) (by norm_num))
+                                                  have h2 : exp (-2 * 7000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*7000/3) (by norm_num))
+                                                  have h3 : exp (-4 * 7000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*7000/5) (by norm_num))
+                                                  have hbound : (2.0766e-23 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0766e-23 * table_14_margin := by
+                                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                · rcases h_table with h_table | h_table
+                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                    have hb : (20 : ℝ) ≤ 10000 := by norm_num
+                                                    have hrow : BKLNW_app.table_8_ε 10000 ≤ 3.7850e-29 :=
+                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 10000) (ε := 3.7850e-29) (BKLNW_app.table_8_mem_10000) (by exact le_rfl)
+                                                    have h_epsM : (3.7850e-29 : ℝ) ≤ 3.7849e-29 * table_14_margin := by norm_num [table_14_margin]
+                                                    have h1 : exp (-10000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=10000/2) (by norm_num))
+                                                    have h2 : exp (-2 * 10000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*10000/3) (by norm_num))
+                                                    have h3 : exp (-4 * 10000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*10000/5) (by norm_num))
+                                                    have hbound : (3.7850e-29 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 3.7850e-29 * table_14_margin := by
+                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                  · rcases h_table with h_table | h_table
+                                                    · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                      have hb : (20 : ℝ) ≤ 11000 := by norm_num
+                                                      have hrow : BKLNW_app.table_8_ε 11000 ≤ 7.1427e-31 :=
+                                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 11000) (ε := 7.1427e-31) (BKLNW_app.table_8_mem_11000) (by exact le_rfl)
+                                                      have h_epsM : (7.1427e-31 : ℝ) ≤ 7.1426e-31 * table_14_margin := by norm_num [table_14_margin]
+                                                      have h1 : exp (-11000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=11000/2) (by norm_num))
+                                                      have h2 : exp (-2 * 11000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*11000/3) (by norm_num))
+                                                      have h3 : exp (-4 * 11000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*11000/5) (by norm_num))
+                                                      have hbound : (7.1427e-31 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 7.1427e-31 * table_14_margin := by
+                                                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                    · rcases h_table with h_table | h_table
+                                                      · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                        have hb : (20 : ℝ) ≤ 12000 := by norm_num
+                                                        have hrow : BKLNW_app.table_8_ε 12000 ≤ 1.5976e-32 :=
+                                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 12000) (ε := 1.5976e-32) (BKLNW_app.table_8_mem_12000) (by exact le_rfl)
+                                                        have h_epsM : (1.5976e-32 : ℝ) ≤ 1.5975e-32 * table_14_margin := by norm_num [table_14_margin]
+                                                        have h1 : exp (-12000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=12000/2) (by norm_num))
+                                                        have h2 : exp (-2 * 12000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*12000/3) (by norm_num))
+                                                        have h3 : exp (-4 * 12000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*12000/5) (by norm_num))
+                                                        have hbound : (1.5976e-32 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.5976e-32 * table_14_margin := by
+                                                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                      · rcases h_table with h_table | h_table
+                                                        · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                          have hb : (20 : ℝ) ≤ 13000 := by norm_num
+                                                          have hrow : BKLNW_app.table_8_ε 13000 ≤ 4.1356e-34 :=
+                                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 13000) (ε := 4.1356e-34) (BKLNW_app.table_8_mem_13000) (by exact le_rfl)
+                                                          have h_epsM : (4.1356e-34 : ℝ) ≤ 4.1355e-34 * table_14_margin := by norm_num [table_14_margin]
+                                                          have h1 : exp (-13000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13000/2) (by norm_num))
+                                                          have h2 : exp (-2 * 13000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*13000/3) (by norm_num))
+                                                          have h3 : exp (-4 * 13000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*13000/5) (by norm_num))
+                                                          have hbound : (4.1356e-34 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1356e-34 * table_14_margin := by
+                                                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                        · rcases h_table with h_table | h_table
+                                                          · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                            have hb : (20 : ℝ) ≤ 13800.7464 := by norm_num
+                                                            have hrow : BKLNW_app.table_8_ε 13800.7464 ≤ 2.5423e-35 :=
+                                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 13800) (ε := 2.5423e-35)
+                                                                (BKLNW_app.table_8_mem_13800) (by norm_num)
+                                                            have h_epsM : (2.5423e-35 : ℝ) ≤ 2.5423e-35 * table_14_margin := by norm_num [table_14_margin]
+                                                            have h1 : exp (-13800.7464 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13800.7464/2) (by norm_num))
+                                                            have h2 : exp (-2 * 13800.7464 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*13800.7464/3) (by norm_num))
+                                                            have h3 : exp (-4 * 13800.7464 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*13800.7464/5) (by norm_num))
+                                                            have hbound : (2.5423e-35 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.5424e-35 * table_14_margin := by
+                                                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                          · rcases h_table with h_table | h_table
+                                                            · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                              have hb : (20 : ℝ) ≤ 15000 := by norm_num
+                                                              have hrow : BKLNW_app.table_8_ε 15000 ≤ 4.1071e-37 :=
+                                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 15000) (ε := 4.1071e-37) (BKLNW_app.table_8_mem_15000) (by exact le_rfl)
+                                                              have h_epsM : (4.1071e-37 : ℝ) ≤ 4.1070e-37 * table_14_margin := by norm_num [table_14_margin]
+                                                              have h1 : exp (-15000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=15000/2) (by norm_num))
+                                                              have h2 : exp (-2 * 15000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*15000/3) (by norm_num))
+                                                              have h3 : exp (-4 * 15000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*15000/5) (by norm_num))
+                                                              have hbound : (4.1071e-37 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1070e-37 * table_14_margin := by
+                                                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                            · rcases h_table with h_table | h_table
+                                                              · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                have hb : (20 : ℝ) ≤ 17000 := by norm_num
+                                                                have hrow : BKLNW_app.table_8_ε 17000 ≤ 6.2041e-40 :=
+                                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 17000) (ε := 6.2041e-40) (BKLNW_app.table_8_mem_17000) (by exact le_rfl)
+                                                                have h_epsM : (6.2041e-40 : ℝ) ≤ 6.2040e-40 * table_14_margin := by norm_num [table_14_margin]
+                                                                have h1 : exp (-17000 / 2) ≤ exp_neg_one_ub ^ 100 := by
+                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=17000/2) (by norm_num))
+                                                                have h2 : exp (-2 * 17000 / 3) ≤ exp_neg_one_ub ^ 100 := by
+                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*17000/3) (by norm_num))
+                                                                have h3 : exp (-4 * 17000 / 5) ≤ exp_neg_one_ub ^ 100 := by
+                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*17000/5) (by norm_num))
+                                                                have hbound : (6.2041e-40 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 6.2040e-40 * table_14_margin := by
+                                                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                              · rcases h_table with h_table | h_table
+                                                                · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                  have hb : (20 : ℝ) ≤ 20000 := by norm_num
+                                                                  have hrow : BKLNW_app.table_8_ε 20000 ≤ 7.1622e-44 :=
+                                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 20000) (ε := 7.1622e-44) (BKLNW_app.table_8_mem_20000) (by exact le_rfl)
+                                                                  have h_epsM : (7.1622e-44 : ℝ) ≤ 7.1621e-44 * table_14_margin := by norm_num [table_14_margin]
+                                                                  have h1 : exp (-20000 / 2) ≤ exp_neg_one_ub ^ 125 := by
+                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=20000/2) (by norm_num))
+                                                                  have h2 : exp (-2 * 20000 / 3) ≤ exp_neg_one_ub ^ 125 := by
+                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*20000/3) (by norm_num))
+                                                                  have h3 : exp (-4 * 20000 / 5) ≤ exp_neg_one_ub ^ 125 := by
+                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*20000/5) (by norm_num))
+                                                                  have hbound : (7.1622e-44 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 7.1621e-44 * table_14_margin := by
+                                                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                                · rcases h_table with h_table | h_table
+                                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                    have hb : (20 : ℝ) ≤ 22000 := by norm_num
+                                                                    have hrow : BKLNW_app.table_8_ε 22000 ≤ 2.4393e-46 :=
+                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 22000) (ε := 2.4393e-46) (BKLNW_app.table_8_mem_22000) (by exact le_rfl)
+                                                                    have h_epsM : (2.4393e-46 : ℝ) ≤ 2.4392e-46 * table_14_margin := by norm_num [table_14_margin]
+                                                                    have h1 : exp (-22000 / 2) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=22000/2) (by norm_num))
+                                                                    have h2 : exp (-2 * 22000 / 3) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*22000/3) (by norm_num))
+                                                                    have h3 : exp (-4 * 22000 / 5) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*22000/5) (by norm_num))
+                                                                    have hbound : (2.4393e-46 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 2.4392e-46 * table_14_margin := by
+                                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+                                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                    have hb : (20 : ℝ) ≤ 25000 := by norm_num
+                                                                    have hrow : BKLNW_app.table_8_ε 25000 ≤ 7.5725e-50 :=
+                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 25000) (ε := 7.5725e-50) (BKLNW_app.table_8_mem_25000) (by exact le_rfl)
+                                                                    have h_epsM : (7.5725e-50 : ℝ) ≤ 7.5724e-50 * table_14_margin := by norm_num [table_14_margin]
+                                                                    have h1 : exp (-25000 / 2) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=25000/2) (by norm_num))
+                                                                    have h2 : exp (-2 * 25000 / 3) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*25000/3) (by norm_num))
+                                                                    have h3 : exp (-4 * 25000 / 5) ≤ exp_neg_one_ub ^ 125 := by
+                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*25000/5) (by norm_num))
+                                                                    have hbound : (7.5725e-50 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 7.5724e-50 * table_14_margin := by
+                                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
+                                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+
+
+noncomputable def table_10 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) :=
+  [
+    (20, 1.8077e-3, 3.6154e-2, 7.2309e-1, 1.4462e1, 2.9160e2),
+    (21, 1.1458e-3, 2.4062e-2, 5.0530e-1, 1.0611e1, 2.2284e2),
+    (22, 7.2527e-4, 1.5956e-2, 3.5103e-1, 7.7226e0, 1.6990e2),
+    (23, 4.5848e-4, 1.0545e-2, 2.4254e-1, 5.5783e0, 1.2830e2),
+    (24, 2.8945e-4, 6.9468e-3, 1.6672e-1, 4.0013e0, 9.6032e1),
+    (25, 1.8251e-4, 4.5626e-3, 1.1407e-1, 2.8516e0, 7.1291e1),
+    (26, 1.1493e-4, 2.9882e-3, 7.7694e-2, 2.0200e0, 5.2521e1),
+    (27, 7.2293e-5, 1.9519e-3, 5.2702e-2, 1.4229e0, 3.8419e1),
+    (28, 4.5421e-5, 1.2718e-3, 3.5610e-2, 9.9708e-1, 2.7918e1),
+    (29, 2.8507e-5, 8.2670e-4, 2.3974e-2, 6.9525e-1, 2.0162e1),
+    (30, 1.7873e-5, 5.3619e-4, 1.6086e-2, 4.8257e-1, 1.4477e1),
+    (31, 1.1195e-5, 3.4704e-4, 1.0758e-2, 3.3350e-1, 1.0339e1),
+    (32, 7.0053e-6, 2.2417e-4, 7.1734e-3, 2.2955e-1, 7.3456e0),
+    (33, 4.3798e-6, 1.4453e-4, 4.7696e-3, 1.5740e-1, 5.1941e0),
+    (34, 2.7360e-6, 9.3023e-5, 3.1628e-3, 1.0754e-1, 3.6562e0),
+    (35, 1.7077e-6, 5.9770e-5, 2.0920e-3, 7.3219e-2, 2.5627e0),
+    (36, 1.2459e-6, 4.4852e-5, 1.6147e-3, 5.8128e-2, 2.0926e0),
+    (37, 1.0581e-6, 3.9148e-5, 1.4485e-3, 5.3593e-2, 1.9830e0),
+    (38, 9.4814e-7, 3.6029e-5, 1.3691e-3, 5.2611e-2, 2.0518e0),
+    (39, 8.8692e-7, 3.4590e-5, 1.3697e-3, 5.4788e-2, 2.1915e0),
+    (40, 8.5607e-7, 3.4611e-5, 1.4190e-3, 5.8181e-2, 2.3854e0),
+    (41, 8.4416e-7, 3.5451e-5, 1.4889e-3, 6.2535e-2, 2.6265e0),
+    (42, 8.5132e-7, 3.6607e-5, 1.5741e-3, 6.7686e-2, 2.9105e0),
+    (43, 8.5986e-7, 3.7618e-5, 1.6458e-3, 7.2000e-2, 3.1500e0),
+    (19 * Real.log 10, 8.6315e-7, 3.7978e-5, 1.6711e-3, 7.3526e-2, 3.2352e0),
+    (44, 7.8162e-7, 3.5173e-5, 1.5828e-3, 7.1225e-2, 3.2052e0),
+    (45, 5.0646e-7, 2.3297e-5, 1.0717e-3, 4.9297e-2, 2.2677e0),
+    (46, 3.2935e-7, 1.5479e-5, 7.2752e-4, 3.4194e-2, 1.6071e0),
+    (47, 2.1307e-7, 1.0228e-5, 4.9092e-4, 2.3564e-2, 1.1311e0),
+    (48, 1.3790e-7, 6.7572e-6, 3.3110e-4, 1.6224e-2, 7.9498e-1),
+    (49, 8.9139e-8, 4.4570e-6, 2.2285e-4, 1.1142e-2, 5.5712e-1),
+    (50, 5.7545e-8, 2.9348e-6, 1.4967e-4, 7.6334e-3, 3.8930e-1),
+    (51, 3.7146e-8, 1.9316e-6, 1.0044e-4, 5.2231e-3, 2.7160e-1),
+    (52, 2.3898e-8, 1.2666e-6, 6.7130e-5, 3.5579e-3, 1.8857e-1),
+    (53, 1.5373e-8, 8.3012e-7, 4.4826e-5, 2.4206e-3, 1.3071e-1),
+    (54, 9.8777e-9, 5.4328e-7, 2.9880e-5, 1.6434e-3, 9.0388e-2),
+    (55, 6.3417e-9, 3.5514e-7, 1.9888e-5, 1.1137e-3, 6.2367e-2),
+    (56, 4.0668e-9, 2.3181e-7, 1.3213e-5, 7.5315e-4, 4.2929e-2),
+    (57, 2.6047e-9, 1.5107e-7, 8.7623e-6, 5.0821e-4, 2.9476e-2),
+    (58, 1.6805e-9, 9.9147e-8, 5.8497e-6, 3.4513e-4, 2.0363e-2),
+    (59, 1.1120e-9, 6.6721e-8, 4.0033e-6, 2.4020e-4, 1.4412e-2),
+    (60, 7.9446e-10, 5.1640e-8, 3.3566e-6, 2.1818e-4, 1.4182e-2),
+    (65, 2.5003e-10, 1.7502e-8, 1.2252e-6, 8.5761e-5, 6.0033e-3),
+    (70, 2.0943e-10, 1.5707e-8, 1.1780e-6, 8.8353e-5, 6.6265e-3),
+    (75, 2.1629e-10, 1.7303e-8, 1.3842e-6, 1.1074e-4, 8.8591e-3),
+    (80, 2.2192e-10, 1.8863e-8, 1.6034e-6, 1.3629e-4, 1.1584e-2),
+    (85, 2.3123e-10, 2.0811e-8, 1.8730e-6, 1.6857e-4, 1.5171e-2),
+    (90, 2.3952e-10, 2.2755e-8, 2.1617e-6, 2.0536e-4, 1.9509e-2),
+    (95, 2.4919e-10, 2.4919e-8, 2.4919e-6, 2.4919e-4, 2.4919e-2),
+    (100, 4.9060e-10, 9.8120e-8, 1.9624e-5, 3.9248e-3, 7.8496e-1),
+    (200, 6.5446e-10, 1.9634e-7, 5.8902e-5, 1.7671e-2, 5.3012e0),
+    (300, 8.3609e-10, 3.3444e-7, 1.3378e-4, 5.3510e-2, 2.1404e1),
+    (400, 1.0199e-9, 5.0995e-7, 2.5498e-4, 1.2749e-1, 6.3744e1),
+    (500, 1.1999e-9, 7.1995e-7, 4.3197e-4, 2.5918e-1, 1.5551e2),
+    (600, 1.3923e-9, 9.7458e-7, 6.8221e-4, 4.7755e-1, 3.3428e2),
+    (700, 1.5812e-9, 1.2649e-6, 1.0119e-3, 8.0955e-1, 6.4764e2),
+    (800, 1.7704e-9, 1.5934e-6, 1.4340e-3, 1.2906e0, 1.1616e3),
+    (900, 1.9599e-9, 1.9599e-6, 1.9599e-3, 1.9599e0, 1.9599e3),
+    (1000, 2.9213e-9, 4.3819e-6, 6.5729e-3, 9.8593e0, 1.4789e4),
+    (1500, 3.0988e-9, 4.9581e-6, 7.9330e-3, 1.2693e1, 2.0309e4),
+    (1600, 3.2797e-9, 5.5755e-6, 9.4783e-3, 1.6113e1, 2.7392e4),
+    (1700, 3.3247e-9, 5.7350e-6, 9.8929e-3, 1.7065e1, 2.9438e4),
+    (1725, 3.3721e-9, 5.9011e-6, 1.0327e-2, 1.8072e1, 3.1626e4),
+    (1750, 3.4195e-9, 6.0696e-6, 1.0774e-2, 1.9123e1, 3.3943e4),
+    (1775, 3.4669e-9, 6.2404e-6, 1.1233e-2, 2.0219e1, 3.6394e4),
+    (1800, 3.5143e-9, 6.4136e-6, 1.1705e-2, 2.1361e1, 3.8984e4),
+    (1825, 3.5617e-9, 6.5892e-6, 1.2190e-2, 2.2552e1, 4.1720e4),
+    (1850, 3.6091e-9, 6.7671e-6, 1.2688e-2, 2.3791e1, 4.4608e4),
+    (1875, 3.6566e-9, 6.9475e-6, 1.3200e-2, 2.5080e1, 4.7653e4),
+    (1900, 3.7040e-9, 7.1302e-6, 1.3726e-2, 2.6422e1, 5.0862e4),
+    (1925, 3.7514e-9, 7.3152e-6, 1.4265e-2, 2.7816e1, 5.4241e4),
+    (1950, 3.7988e-9, 7.5026e-6, 1.4818e-2, 2.9265e1, 5.7798e4),
+    (1975, 3.8462e-9, 7.6924e-6, 1.5385e-2, 3.0770e1, 6.1540e4),
+    (2000, 3.8937e-9, 7.8847e-6, 1.5966e-2, 3.2332e1, 6.5472e4),
+    (2025, 3.9411e-9, 8.0792e-6, 1.6562e-2, 3.3953e1, 6.9603e4),
+    (2050, 3.9885e-9, 8.2761e-6, 1.7173e-2, 3.5634e1, 7.3940e4),
+    (2075, 4.0359e-9, 8.4754e-6, 1.7798e-2, 3.7377e1, 7.8491e4),
+    (2100, 4.0833e-9, 8.6771e-6, 1.8439e-2, 3.9182e1, 8.3262e4),
+    (2125, 4.1308e-9, 8.8811e-6, 1.9095e-2, 4.1053e1, 8.8264e4),
+    (2150, 4.1782e-9, 9.0875e-6, 1.9765e-2, 4.2990e1, 9.3503e4),
+    (2175, 4.2256e-9, 9.2963e-6, 2.0452e-2, 4.4994e1, 9.8987e4),
+    (2200, 4.2730e-9, 9.5075e-6, 2.1154e-2, 4.7068e1, 1.0473e5),
+    (2225, 4.3204e-9, 9.7210e-6, 2.1872e-2, 4.9212e1, 1.1073e5),
+    (2250, 4.3679e-9, 9.9369e-6, 2.2607e-2, 5.1430e1, 1.1700e5),
+    (2275, 4.4153e-9, 1.0155e-5, 2.3357e-2, 5.3721e1, 1.2356e5),
+    (2300, 4.4627e-9, 1.0376e-5, 2.4124e-2, 5.6088e1, 1.3040e5),
+    (2325, 4.4062e-9, 1.0355e-5, 2.4333e-2, 5.7184e1, 1.3438e5),
+    (2350, 4.2245e-9, 1.0033e-5, 2.3829e-2, 5.6593e1, 1.3441e5),
+    (2375, 4.0498e-9, 9.7196e-6, 2.3327e-2, 5.5985e1, 1.3436e5),
+    (2400, 3.8820e-9, 9.4139e-6, 2.2829e-2, 5.5360e1, 1.3425e5),
+    (2425, 3.4832e-9, 8.5339e-6, 2.0908e-2, 5.1225e1, 1.2550e5),
+    (2450, 3.0228e-9, 7.4814e-6, 1.8517e-2, 4.5828e1, 1.1343e5),
+    (2475, 2.6278e-9, 6.5696e-6, 1.6424e-2, 4.1060e1, 1.0265e5),
+    (2500, 2.2884e-9, 5.7783e-6, 1.4590e-2, 3.6840e1, 9.3021e4),
+    (2525, 1.9873e-9, 5.0676e-6, 1.2922e-2, 3.2952e1, 8.4027e4),
+    (2550, 1.7270e-9, 4.4470e-6, 1.1451e-2, 2.9487e1, 7.5928e4),
+    (2575, 1.4992e-9, 3.8979e-6, 1.0135e-2, 2.6350e1, 6.8509e4),
+    (2600, 1.3022e-9, 3.4184e-6, 8.9732e-3, 2.3555e1, 6.1831e4),
+    (2625, 1.1314e-9, 2.9981e-6, 7.9449e-3, 2.1054e1, 5.5793e4),
+    (2650, 9.8296e-10, 2.6294e-6, 7.0337e-3, 1.8815e1, 5.0330e4),
+    (2675, 8.5431e-10, 2.3067e-6, 6.2279e-3, 1.6816e1, 4.5402e4),
+    (2700, 7.4234e-10, 2.0229e-6, 5.5123e-3, 1.5021e1, 4.0932e4),
+    (2725, 6.4498e-10, 1.7737e-6, 4.8777e-3, 1.3414e1, 3.6887e4),
+    (2750, 5.6071e-10, 1.5560e-6, 4.3178e-3, 1.1982e1, 3.3250e4),
+    (2775, 4.8730e-10, 1.3644e-6, 3.8204e-3, 1.0697e1, 2.9952e4),
+    (2800, 4.2388e-10, 1.1975e-6, 3.3829e-3, 9.5565e0, 2.6997e4),
+    (2825, 3.6911e-10, 1.0520e-6, 2.9981e-3, 8.5446e0, 2.4352e4),
+    (2850, 3.2167e-10, 9.2481e-7, 2.6588e-3, 7.6442e0, 2.1977e4),
+    (2875, 2.7953e-10, 8.1062e-7, 2.3508e-3, 6.8173e0, 1.9770e4),
+    (2900, 2.4326e-10, 7.1154e-7, 2.0813e-3, 6.0877e0, 1.7806e4),
+    (2925, 2.1140e-10, 6.2363e-7, 1.8397e-3, 5.4272e0, 1.6010e4),
+    (2950, 1.8391e-10, 5.4712e-7, 1.6277e-3, 4.8423e0, 1.4406e4),
+    (2975, 1.6015e-10, 4.8044e-7, 1.4413e-3, 4.3240e0, 1.2972e4),
+    (3000, 1.3914e-10, 4.2090e-7, 1.2732e-3, 3.8515e0, 1.1651e4),
+    (3025, 1.2115e-10, 3.6949e-7, 1.1270e-3, 3.4372e0, 1.0484e4),
+    (3050, 1.0531e-10, 3.2382e-7, 9.9573e-4, 3.0619e0, 9.4152e3),
+    (3075, 9.1684e-11, 2.8422e-7, 8.8108e-4, 2.7314e0, 8.4672e3),
+    (3100, 7.9793e-11, 2.4935e-7, 7.7922e-4, 2.4351e0, 7.6096e3),
+    (3125, 6.9396e-11, 2.1860e-7, 6.8858e-4, 2.1690e0, 6.8325e3),
+    (3150, 6.0410e-11, 1.9180e-7, 6.0897e-4, 1.9335e0, 6.1388e3),
+    (3175, 5.2572e-11, 1.6823e-7, 5.3834e-4, 1.7227e0, 5.5126e3),
+    (3200, 4.5782e-11, 1.4765e-7, 4.7616e-4, 1.5356e0, 4.9524e3),
+    (3225, 3.9901e-11, 1.2968e-7, 4.2146e-4, 1.3697e0, 4.4516e3),
+    (3250, 3.4800e-11, 1.1397e-7, 3.7326e-4, 1.2224e0, 4.0034e3),
+    (3275, 3.0332e-11, 1.0009e-7, 3.3031e-4, 1.0900e0, 3.5971e3),
+    (3300, 2.6412e-11, 8.7820e-8, 2.9200e-4, 9.7090e-1, 3.2283e3),
+    (3325, 2.3015e-11, 7.7100e-8, 2.5829e-4, 8.6525e-1, 2.8986e3),
+    (3350, 2.0043e-11, 6.7644e-8, 2.2830e-4, 7.7051e-1, 2.6005e3),
+    (3375, 1.7453e-11, 5.9340e-8, 2.0176e-4, 6.8597e-1, 2.3323e3),
+    (3400, 1.5212e-11, 5.2099e-8, 1.7844e-4, 6.1116e-1, 2.0932e3),
+    (3425, 1.3266e-11, 4.5768e-8, 1.5790e-4, 5.4476e-1, 1.8794e3),
+    (3450, 1.1554e-11, 4.0151e-8, 1.3953e-4, 4.8485e-1, 1.6849e3),
+    (3475, 1.0059e-11, 3.5206e-8, 1.2322e-4, 4.3127e-1, 1.5095e3),
+    (3500, 8.7646e-12, 3.0895e-8, 1.0891e-4, 3.8389e-1, 1.3532e3),
+    (3525, 7.6403e-12, 2.7123e-8, 9.6287e-5, 3.4182e-1, 1.2135e3),
+    (3550, 6.6608e-12, 2.3812e-8, 8.5129e-5, 3.0434e-1, 1.0880e3),
+    (3575, 5.8042e-12, 2.0895e-8, 7.5222e-5, 2.7080e-1, 9.7488e2),
+    (3600, 5.0621e-12, 1.8350e-8, 6.6520e-5, 2.4113e-1, 8.7411e2),
+    (3625, 4.4165e-12, 1.6120e-8, 5.8839e-5, 2.1476e-1, 7.8388e2),
+    (3650, 3.8475e-12, 1.4140e-8, 5.1963e-5, 1.9096e-1, 7.0179e2),
+    (3675, 3.3560e-12, 1.2417e-8, 4.5944e-5, 1.6999e-1, 6.2897e2),
+    (3700, 2.9296e-12, 1.0913e-8, 4.0649e-5, 1.5142e-1, 5.6404e2),
+    (3725, 2.5580e-12, 9.5924e-9, 3.5971e-5, 1.3489e-1, 5.0585e2),
+    (3750, 2.2346e-12, 8.4357e-9, 3.1845e-5, 1.2022e-1, 4.5381e2),
+    (3775, 1.9513e-12, 7.4151e-9, 2.8177e-5, 1.0707e-1, 4.0688e2),
+    (3800, 1.7020e-12, 6.5099e-9, 2.4901e-5, 9.5244e-2, 3.6431e2),
+    (3825, 1.4854e-12, 5.7189e-9, 2.2018e-5, 8.4768e-2, 3.2636e2),
+    (3850, 1.2972e-12, 5.0267e-9, 1.9478e-5, 7.5479e-2, 2.9248e2),
+    (3875, 1.1314e-12, 4.4124e-9, 1.7208e-5, 6.7112e-2, 2.6174e2),
+    (3900, 9.8800e-13, 3.8779e-9, 1.5221e-5, 5.9741e-2, 2.3449e2),
+    (3925, 8.6323e-13, 3.4098e-9, 1.3469e-5, 5.3201e-2, 2.1014e2),
+    (3950, 7.5449e-13, 2.9991e-9, 1.1922e-5, 4.7388e-2, 1.8837e2),
+    (3975, 6.5788e-13, 2.6315e-9, 1.0526e-5, 4.2104e-2, 1.6842e2),
+    (4000, 5.7409e-13, 2.3107e-9, 9.3007e-6, 3.7435e-2, 1.5068e2),
+    (4025, 5.0264e-13, 2.0357e-9, 8.2446e-6, 3.3391e-2, 1.3523e2),
+    (4050, 4.3803e-13, 1.7850e-9, 7.2737e-6, 2.9640e-2, 1.2078e2),
+    (4075, 3.8285e-13, 1.5697e-9, 6.4356e-6, 2.6386e-2, 1.0818e2),
+    (4100, 3.3428e-13, 1.3789e-9, 5.6879e-6, 2.3463e-2, 9.6783e1),
+    (4125, 2.9206e-13, 1.2120e-9, 5.0299e-6, 2.0874e-2, 8.6628e1),
+    (4150, 2.5566e-13, 1.0674e-9, 4.4563e-6, 1.8605e-2, 7.7676e1),
+    (4175, 2.2309e-13, 9.3698e-10, 3.9353e-6, 1.6528e-2, 6.9419e1),
+    (4200, 1.9496e-13, 8.2370e-10, 3.4801e-6, 1.4704e-2, 6.2122e1),
+    (4225, 1.7047e-13, 7.2449e-10, 3.0791e-6, 1.3086e-2, 5.5616e1),
+    (4250, 1.4913e-13, 6.3751e-10, 2.7254e-6, 1.1651e-2, 4.9808e1),
+    (4275, 1.3036e-13, 5.6056e-10, 2.4104e-6, 1.0365e-2, 4.4568e1),
+    (4300, 1.1396e-13, 4.9288e-10, 2.1317e-6, 9.2195e-3, 3.9875e1),
+    (4325, 9.9670e-14, 4.3356e-10, 1.8860e-6, 8.2041e-3, 3.5688e1),
+    (4350, 8.7210e-14, 3.8154e-10, 1.6693e-6, 7.3030e-3, 3.1951e1),
+    (4375, 7.6274e-14, 3.3561e-10, 1.4767e-6, 6.4973e-3, 2.8588e1),
+    (4400, 6.6744e-14, 2.9534e-10, 1.3069e-6, 5.7829e-3, 2.5590e1),
+    (4425, 5.8436e-14, 2.6004e-10, 1.1572e-6, 5.1495e-3, 2.2915e1),
+    (4450, 5.1174e-14, 2.2901e-10, 1.0248e-6, 4.5860e-3, 2.0522e1),
+    (4475, 4.4832e-14, 2.0174e-10, 9.0785e-7, 4.0853e-3, 1.8384e1),
+    (4500, 3.9290e-14, 1.7779e-10, 8.0450e-7, 3.6403e-3, 1.6473e1),
+    (4525, 3.4446e-14, 1.5673e-10, 7.1312e-7, 3.2447e-3, 1.4763e1),
+    (4550, 3.0155e-14, 1.3796e-10, 6.3117e-7, 2.8876e-3, 1.3211e1),
+    (4575, 2.6404e-14, 1.2146e-10, 5.5870e-7, 2.5700e-3, 1.1822e1),
+    (4600, 2.3157e-14, 1.0710e-10, 4.9535e-7, 2.2910e-3, 1.0596e1),
+    (4625, 2.0259e-14, 9.4206e-11, 4.3806e-7, 2.0370e-3, 9.4719e0),
+    (4650, 1.7753e-14, 8.2997e-11, 3.8801e-7, 1.8140e-3, 8.4802e0),
+    (4675, 1.5563e-14, 7.3144e-11, 3.4378e-7, 1.6158e-3, 7.5941e0),
+    (4700, 1.3648e-14, 6.4486e-11, 3.0470e-7, 1.4397e-3, 6.8026e0),
+    (4725, 1.1976e-14, 5.6887e-11, 2.7021e-7, 1.2835e-3, 6.0967e0),
+    (4750, 1.0491e-14, 5.0095e-11, 2.3920e-7, 1.1422e-3, 5.4540e0),
+    (4775, 9.1894e-15, 4.4109e-11, 2.1172e-7, 1.0163e-3, 4.8781e0),
+    (4800, 8.0537e-15, 3.8859e-11, 1.8750e-7, 9.0466e-4, 4.3650e0),
+    (4825, 7.0614e-15, 3.4248e-11, 1.6610e-7, 8.0560e-4, 3.9072e0),
+    (4850, 6.1951e-15, 3.0201e-11, 1.4723e-7, 7.1775e-4, 3.4990e0),
+    (4875, 5.4361e-15, 2.6637e-11, 1.3052e-7, 6.3955e-4, 3.1338e0),
+    (4900, 4.7720e-15, 2.3502e-11, 1.1575e-7, 5.7006e-4, 2.8076e0),
+    (4925, 4.1878e-15, 2.0729e-11, 1.0261e-7, 5.0792e-4, 2.5142e0),
+    (4950, 3.6731e-15, 1.8274e-11, 9.0911e-8, 4.5228e-4, 2.2501e0),
+    (4975, 3.2229e-15, 1.6114e-11, 8.0571e-8, 4.0286e-4, 2.0143e0),
+    (5000, 2.8715e-15, 1.4645e-11, 7.4687e-8, 3.8090e-4, 1.9426e0),
+    (5100, 1.7087e-15, 8.8850e-12, 4.6202e-8, 2.4025e-4, 1.2493e0),
+    (5200, 1.0185e-15, 5.3980e-12, 2.8610e-8, 1.5163e-4, 8.0364e-1),
+    (5300, 6.0977e-16, 3.2927e-12, 1.7781e-8, 9.6016e-5, 5.1849e-1),
+    (5400, 3.6472e-16, 2.0059e-12, 1.1033e-8, 6.0679e-5, 3.3374e-1),
+    (5500, 2.1916e-16, 1.2273e-12, 6.8727e-9, 3.8487e-5, 2.1553e-1),
+    (5600, 1.3217e-16, 7.5337e-13, 4.2942e-9, 2.4477e-5, 1.3952e-1),
+    (5700, 8.0079e-17, 4.6446e-13, 2.6938e-9, 1.5624e-5, 9.0621e-2),
+    (5800, 4.8518e-17, 2.8626e-13, 1.6889e-9, 9.9646e-6, 5.8791e-2),
+    (5900, 2.9482e-17, 1.7689e-13, 1.0614e-9, 6.3682e-6, 3.8209e-2),
+    (6000, 1.7952e-17, 1.0951e-13, 6.6798e-10, 4.0747e-6, 2.4855e-2),
+    (6100, 1.0987e-17, 6.8120e-14, 4.2234e-10, 2.6185e-6, 1.6235e-2),
+    (6200, 6.7178e-18, 4.2322e-14, 2.6663e-10, 1.6798e-6, 1.0583e-2),
+    (6300, 4.1267e-18, 2.6411e-14, 1.6903e-10, 1.0818e-6, 6.9235e-3),
+    (6400, 2.5481e-18, 1.6563e-14, 1.0766e-10, 6.9977e-7, 4.5485e-3),
+    (6500, 1.5741e-18, 1.0389e-14, 6.8566e-11, 4.5253e-7, 2.9867e-3),
+    (6600, 9.7287e-19, 6.5182e-15, 4.3672e-11, 2.9260e-7, 1.9604e-3),
+    (6700, 6.0447e-19, 4.1104e-15, 2.7951e-11, 1.9007e-7, 1.2924e-3),
+    (6800, 3.7651e-19, 2.5979e-15, 1.7926e-11, 1.2369e-7, 8.5344e-4),
+    (6900, 2.3554e-19, 1.6488e-15, 1.1542e-11, 8.0791e-8, 5.6554e-4),
+    (7000, 1.4744e-19, 1.0468e-15, 7.4322e-12, 5.2769e-8, 3.7466e-4),
+    (7100, 9.2826e-20, 6.6834e-16, 4.8121e-12, 3.4647e-8, 2.4946e-4),
+    (7200, 5.8601e-20, 4.2779e-16, 3.1229e-12, 2.2797e-8, 1.6642e-4),
+    (7300, 3.7014e-20, 2.7390e-16, 2.0269e-12, 1.4999e-8, 1.1099e-4),
+    (7400, 2.3488e-20, 1.7616e-16, 1.3212e-12, 9.9091e-9, 7.4318e-5),
+    (7500, 1.4907e-20, 1.1330e-16, 8.6105e-13, 6.5440e-9, 4.9734e-5),
+    (7600, 9.4822e-21, 7.3013e-17, 5.6220e-13, 4.3289e-9, 3.3333e-5),
+    (7700, 6.0569e-21, 4.7244e-17, 3.6850e-13, 2.8743e-9, 2.2420e-5),
+    (7800, 3.8811e-21, 3.0661e-17, 2.4222e-13, 1.9136e-9, 1.5117e-5),
+    (7900, 2.4928e-21, 1.9942e-17, 1.5954e-13, 1.2763e-9, 1.0211e-5),
+    (8000, 1.6007e-21, 1.2965e-17, 1.0502e-13, 8.5065e-10, 6.8903e-6),
+    (8100, 1.0326e-21, 8.4674e-18, 6.9433e-14, 5.6935e-10, 4.6687e-6),
+    (8200, 6.6828e-22, 5.5467e-18, 4.6038e-14, 3.8212e-10, 3.1716e-6),
+    (8300, 4.3257e-22, 3.6336e-18, 3.0522e-14, 2.5639e-10, 2.1536e-6),
+    (8400, 2.8105e-22, 2.3889e-18, 2.0306e-14, 1.7260e-10, 1.4671e-6),
+    (8500, 1.8315e-22, 1.5751e-18, 1.3546e-14, 1.1650e-10, 1.0019e-6),
+    (8600, 1.1981e-22, 1.0423e-18, 9.0682e-15, 7.8893e-11, 6.8637e-7),
+    (8700, 7.8220e-23, 6.8834e-19, 6.0574e-15, 5.3305e-11, 4.6908e-7),
+    (8800, 5.1585e-23, 4.5910e-19, 4.0860e-15, 3.6366e-11, 3.2365e-7),
+    (8900, 3.3882e-23, 3.0494e-19, 2.7445e-15, 2.4700e-11, 2.2230e-7),
+    (9000, 2.2252e-23, 2.0250e-19, 1.8427e-15, 1.6769e-11, 1.5260e-7),
+    (9100, 1.4641e-23, 1.3470e-19, 1.2392e-15, 1.1401e-11, 1.0489e-7),
+    (9200, 9.6777e-24, 9.0003e-20, 8.3703e-16, 7.7844e-12, 7.2395e-8),
+    (9300, 6.4195e-24, 6.0343e-20, 5.6723e-16, 5.3319e-12, 5.0120e-8),
+    (9400, 4.2972e-24, 4.0823e-20, 3.8782e-16, 3.6843e-12, 3.5001e-8),
+    (9500, 2.8512e-24, 2.7372e-20, 2.6277e-16, 2.5226e-12, 2.4217e-8),
+    (9600, 1.9059e-24, 1.8487e-20, 1.7932e-16, 1.7395e-12, 1.6873e-8),
+    (9700, 1.2689e-24, 1.2435e-20, 1.2187e-16, 1.1943e-12, 1.1704e-8),
+    (9800, 8.4841e-25, 8.3992e-21, 8.3152e-17, 8.2321e-13, 8.1497e-9),
+    (9900, 5.7395e-25, 5.7395e-21, 5.7395e-17, 5.7395e-13, 5.7395e-9),
+    (10000, 3.8228e-25, 3.8610e-21, 3.8996e-17, 3.9386e-13, 3.9780e-9),
+    (10100, 2.5745e-25, 2.6260e-21, 2.6785e-17, 2.7321e-13, 2.7867e-9),
+    (10200, 1.7389e-25, 1.7911e-21, 1.8448e-17, 1.9001e-13, 1.9571e-9),
+    (10300, 1.1734e-25, 1.2203e-21, 1.2691e-17, 1.3199e-13, 1.3727e-9),
+    (10400, 7.9556e-26, 8.3534e-22, 8.7710e-18, 9.2096e-14, 9.6701e-10),
+    (10500, 5.4076e-26, 5.7321e-22, 6.0760e-18, 6.4406e-14, 6.8270e-10),
+    (10600, 3.6845e-26, 3.9424e-22, 4.2184e-18, 4.5136e-14, 4.8296e-10),
+    (10700, 2.5150e-26, 2.7162e-22, 2.9335e-18, 3.1682e-14, 3.4216e-10),
+    (10800, 1.7201e-26, 1.8749e-22, 2.0436e-18, 2.2276e-14, 2.4280e-10),
+    (10900, 1.1639e-26, 1.2803e-22, 1.4083e-18, 1.5492e-14, 1.7041e-10),
+    (11000, 7.9283e-27, 8.8005e-23, 9.7685e-19, 1.0843e-14, 1.2036e-10),
+    (11100, 5.4156e-27, 6.0654e-23, 6.7933e-19, 7.6085e-15, 8.5215e-11),
+    (11200, 3.7120e-27, 4.1945e-23, 4.7398e-19, 5.3560e-15, 6.0522e-11),
+    (11300, 2.5509e-27, 2.9080e-23, 3.3151e-19, 3.7792e-15, 4.3083e-11),
+    (11400, 1.7569e-27, 2.0205e-23, 2.3235e-19, 2.6721e-15, 3.0729e-11),
+    (11500, 1.2102e-27, 1.4039e-23, 1.6285e-19, 1.8890e-15, 2.1913e-11),
+    (11600, 8.3444e-28, 9.7630e-24, 1.1423e-19, 1.3365e-15, 1.5637e-11),
+    (11700, 5.7692e-28, 6.8076e-24, 8.0330e-20, 9.4789e-16, 1.1185e-11),
+    (11800, 3.9987e-28, 4.7584e-24, 5.6625e-20, 6.7384e-16, 8.0187e-12),
+    (11900, 2.7776e-28, 3.3331e-24, 3.9997e-20, 4.7996e-16, 5.7595e-12),
+    (12000, 1.9330e-28, 2.3390e-24, 2.8302e-20, 3.4245e-16, 4.1436e-12),
+    (12100, 1.3477e-28, 1.6442e-24, 2.0060e-20, 2.4473e-16, 2.9857e-12),
+    (12200, 9.3146e-29, 1.1457e-24, 1.4092e-20, 1.7333e-16, 2.1320e-12),
+    (12300, 6.5069e-29, 8.0685e-25, 1.0005e-20, 1.2406e-16, 1.5384e-12),
+    (12400, 4.5539e-29, 5.6924e-25, 7.1155e-21, 8.8944e-17, 1.1118e-12),
+    (12500, 3.1924e-29, 4.0224e-25, 5.0682e-21, 6.3859e-17, 8.0462e-13),
+    (12600, 2.2307e-29, 2.8330e-25, 3.5979e-21, 4.5693e-17, 5.8030e-13),
+    (12700, 1.5599e-29, 1.9967e-25, 2.5558e-21, 3.2714e-17, 4.1873e-13),
+    (12800, 1.0940e-29, 1.4112e-25, 1.8205e-21, 2.3484e-17, 3.0294e-13),
+    (12900, 7.6899e-30, 9.9969e-26, 1.2996e-21, 1.6895e-17, 2.1963e-13),
+    (13000, 5.5830e-30, 7.5370e-26, 1.0175e-21, 1.3736e-17, 1.8544e-13),
+    (13500, 9.9578e-31, 1.3743e-26, 1.8966e-22, 2.6174e-18, 3.6122e-14),
+    (13800.7464, 3.5592e-31, 4.9829e-27, 6.9761e-23, 9.7665e-19, 1.3673e-14),
+    (14000, 1.8398e-31, 2.7597e-27, 4.1396e-23, 6.2094e-19, 9.3141e-15),
+    (15000, 6.5711e-33, 1.0514e-28, 1.6822e-24, 2.6915e-20, 4.3065e-16),
+    (16000, 2.5738e-34, 4.3755e-30, 7.4384e-26, 1.2645e-21, 2.1497e-17),
+    (17000, 1.1167e-35, 2.0101e-31, 3.6182e-27, 6.5127e-23, 1.1723e-18),
+    (18000, 5.3738e-37, 1.0210e-32, 1.9400e-28, 3.6859e-24, 7.0032e-20),
+    (19000, 2.7357e-38, 5.4714e-34, 1.0943e-29, 2.1886e-25, 4.3771e-21),
+    (20000, 1.5040e-39, 3.1585e-35, 6.6328e-31, 1.3929e-26, 2.9251e-22),
+    (21000, 9.0605e-41, 1.9933e-36, 4.3853e-32, 9.6476e-28, 2.1225e-23),
+    (22000, 5.6101e-42, 1.2903e-37, 2.9677e-33, 6.8258e-29, 1.5699e-24),
+    (23000, 3.7554e-43, 9.0129e-39, 2.1631e-34, 5.1914e-30, 1.2460e-25),
+    (24000, 2.6755e-44, 6.6888e-40, 1.6722e-35, 4.1805e-31, 1.0451e-26)
+  ]
+
+def table_11 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
+  (20, 1.6844e-3, 3.3688e-2, 6.7375e-1, 5.7184e1, 1.3441e5),
+  (21, 1.0684e-3, 2.2435e-2, 4.7114e-1, 5.7184e1, 1.3441e5),
+  (22, 6.7654e-4, 1.4884e-2, 3.2746e-1, 5.7184e1, 1.3441e5),
+  (23, 4.2780e-4, 9.8392e-3, 2.2631e-1, 5.7184e1, 1.3441e5),
+  (24, 2.7011e-4, 6.4827e-3, 1.5559e-1, 5.7184e1, 1.3441e5),
+  (25, 1.7500e-4, 4.3750e-3, 1.0938e-1, 5.7184e1, 1.3441e5),
+  (26, 1.1022e-4, 2.8655e-3, 7.4503e-2, 5.7184e1, 1.3441e5),
+  (27, 6.9322e-5, 1.8717e-3, 5.0536e-2, 5.7184e1, 1.3441e5),
+  (28, 4.3555e-5, 1.2196e-3, 3.4148e-2, 5.7184e1, 1.3441e5),
+  (29, 2.7336e-5, 7.9272e-4, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (30, 1.7139e-5, 5.1415e-4, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (43, 8.6315e-7, 3.7979e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (44, 7.8163e-7, 3.5174e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (45, 5.0646e-7, 2.3298e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (46, 3.2935e-7, 1.5480e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (47, 2.1308e-7, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (54, 9.8778e-9, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (55, 6.3417e-9, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (56, 4.4627e-9, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (2275, 4.4627e-9, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (2300, 4.4627e-9, 1.0376e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (2325, 4.4063e-9, 1.0355e-5, 2.4334e-2, 5.7184e1, 1.3441e5),
+  (2350, 4.2245e-9, 1.0034e-5, 2.3829e-2, 5.6594e1, 1.3441e5),
+  (2375, 4.0499e-9, 9.7196e-6, 2.3328e-2, 5.5985e1, 1.3437e5),
+  (2400, 3.8821e-9, 9.4139e-6, 2.2829e-2, 5.5360e1, 1.3425e5),
+  (9800, 8.4841e-25, 8.3993e-21, 8.3153e-17, 8.2321e-13, 8.1498e-9),
+  (9900, 5.7396e-25, 5.7396e-21, 5.7396e-17, 5.7396e-13, 5.7396e-9),
+  (10000, 3.8228e-25, 3.8610e-21, 3.8997e-17, 3.9387e-13, 3.9780e-9),
+  (11100, 7.9284e-27, 8.8005e-23, 9.7685e-19, 1.0844e-14, 1.2036e-10),
+  (12000, 1.9331e-28, 2.3390e-24, 2.8302e-20, 3.4245e-16, 4.1437e-12),
+  (13000, 5.5830e-30, 7.5371e-26, 1.0175e-21, 1.3737e-17, 1.8544e-13),
+  (14000, 1.8399e-31, 2.7598e-27, 4.1396e-23, 6.2094e-19, 9.3141e-15),
+  (15000, 6.5712e-33, 1.0514e-28, 1.6823e-24, 2.6916e-20, 4.3065e-16),
+  (16000, 2.5739e-34, 4.3756e-30, 7.4384e-26, 1.2646e-21, 2.1497e-17),
+  (17000, 1.1168e-35, 2.0101e-31, 3.6182e-27, 6.5127e-23, 1.1723e-18),
+  (18000, 5.3739e-37, 1.0211e-32, 1.9400e-28, 3.6860e-24, 7.0033e-20),
+  (19000, 2.7357e-38, 5.4714e-34, 1.0943e-29, 2.1886e-25, 4.3772e-21),
+  (20000, 1.5041e-39, 3.1585e-35, 6.6329e-31, 1.3929e-26, 2.9251e-22),
+  (21000, 9.0606e-41, 1.9934e-36, 4.3853e-32, 9.6477e-28, 2.1225e-23),
+  (22000, 5.6101e-42, 1.2904e-37, 2.9678e-33, 6.8258e-29, 1.5700e-24),
+  (23000, 3.7554e-43, 9.0129e-39, 2.1631e-34, 5.1915e-30, 1.2460e-25),
+  (24000, 1.3804e-43, 3.4508e-39, 8.6269e-35, 2.1568e-30, 5.3919e-26),
+  (25000, 1.3804e-43, 3.4508e-39, 8.6269e-35, 2.1568e-30, 5.3919e-26)
+]
+
+/-
+This longtable reproduces Table 12 of \cite{BKLNW} verbatim.  Four of its
+boundary-row entries are erroneous; see the correction note on `table_12` above
+for the values actually used in Lean.
+
+\subsubsection{Lower bound for first values of $x \in [e^{J_0},10^{19}]$}
+\quad \\
+{\footnotesize
+\begin{longtable}{ccrrrrrr}
+\caption{$\theta(x) -x >  - \frac{\mathcal{C}_{b,k} x}{(\log x)^k}$ for all $x \in [e^b, 10^{19} )$, where $\mathcal{C}_{b,k}$ is defined in \eqref{defn:mathcalCbk}.}
+ \label{CkValues}
+\\
+\hline
+\multicolumn{1}{c}{\phantom{}} &
+\multicolumn{1}{c}{$b$  } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,1}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,2}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,3}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,4}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,5}$ } &
+\multicolumn{1}{c}{\phantom{}}
+\\ \hline
+\endfirsthead
+\multicolumn{8}{c}%
+{\tablename\ \thetable{} -- continued from previous page} \\
+\hline
+\multicolumn{1}{c}{\phantom{}} &
+\multicolumn{1}{c}{$b$  } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,1}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,2}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,3}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,4}$ } &
+\multicolumn{1}{c}{$\mathcal{C}_{b,5}$ } &
+\multicolumn{1}{c}{\phantom{}}
+\\ \hline
+\endhead
+\hline \multicolumn{8}{r}{Continued on next page} \\ \hline
+\endfoot
+\hline
+\endlastfoot
+&&&&&&& \\[-1em]
+\multicolumn{8}{c}{Calculated using $c=0.8$, $C=0.81$, each value valid up to $5\cdot10^{10}\simeq e^{24.635}$.}\\ \hline
+&&&&&&& \\[-1em]
+& $ 20 $ & $ 1.68440 \cdot 10^{-3} $ & $ 3.36880 \cdot 10^{-2} $ & $ 6.73750 \cdot 10^{-1} $ & $ 1.34750 \cdot 10^{1} $ & $ 2.69500 \cdot 10^{2 } $ & \\
+& $ 21 $ & $ 1.06840 \cdot 10^{-3} $ & $ 2.24350 \cdot 10^{-2} $ & $ 4.71140 \cdot 10^{-1} $ & $ 9.89390 \cdot 10^{0} $ & $ 2.07780 \cdot 10^{2 } $ & \\
+& $ 22 $ & $ 6.76540 \cdot 10^{-4} $ & $ 1.48840 \cdot 10^{-2} $ & $ 3.27450 \cdot 10^{-1} $ & $ 7.20380 \cdot 10^{0} $ & $ 1.58490 \cdot 10^{2 } $ & \\
+& $ 23 $ & $ 4.27800 \cdot 10^{-4} $ & $ 9.83920 \cdot 10^{-3} $ & $ 2.26310 \cdot 10^{-1} $ & $ 5.20500 \cdot 10^{0} $ & $ 1.19720 \cdot 10^{2 } $ & \\
+& $ 24 $ & $ 2.70120 \cdot 10^{-4} $ & $ 6.48290 \cdot 10^{-3} $ & $ 1.55590 \cdot 10^{-1} $ & $ 3.73410 \cdot 10^{0} $ & $ 8.96190 \cdot 10^{1 } $ & \\
+\hline
+&&&&&&& \\[-1em]
+\multicolumn{8}{c}{Calculated using $c=0.88$, $C=0.86$, each value valid up to $32\cdot10^{12}\simeq e^{31.097}$.}\\ \hline
+&&&&&&& \\[-1em]
+& $ \log(5\cdot 10^{10}) $ & $ 2.01560 \cdot 10^{-4} $ & $ 4.96540 \cdot 10^{-3} $ & $ 1.22330 \cdot 10^{-1} $ & $ 3.01350 \cdot 10^{0} $ & $ 7.42380 \cdot 10^{1 } $ & \\
+& $ 25 $ & $ 1.70330 \cdot 10^{-4}$ &$ 4.25830 \cdot 10^{-3} $ & $ 1.06460 \cdot 10^{-1} $ & $ 2.66140 \cdot 10^{0} $ & $ 6.65350 \cdot 10^{1 } $ & \\
+& $ 26 $ & $ 1.10220 \cdot 10^{-4} $ & $ 2.86560 \cdot 10^{-3} $ & $ 7.45050 \cdot 10^{-2} $ & $ 1.93720 \cdot 10^{0} $ & $ 5.03650 \cdot 10^{1 } $ & \\
+& $ 27 $ & $ 6.93270 \cdot 10^{-5} $ & $ 1.87190 \cdot 10^{-3} $ & $ 5.05400 \cdot 10^{-2} $ & $ 1.36460 \cdot 10^{0} $ & $ 3.68430 \cdot 10^{1 } $ & \\
+& $ 28 $ & $ 4.35580 \cdot 10^{-5} $ & $ 1.21970 \cdot 10^{-3} $ & $ 3.41500 \cdot 10^{-2} $ & $ 9.56180 \cdot 10^{-1} $ & $ 2.67730 \cdot 10^{1 } $ & \\
+& $ 29 $ & $ 2.73380 \cdot 10^{-5} $ & $ 7.92780 \cdot 10^{-4} $ & $ 2.29910 \cdot 10^{-2} $ & $ 6.66730 \cdot 10^{-1} $ & $ 1.93360 \cdot 10^{1 } $ & \\
+& $ 30 $ & $ 1.71400 \cdot 10^{-5} $ & $ 5.14180 \cdot 10^{-4} $ & $ 1.54260 \cdot 10^{-2} $ & $ 4.62760 \cdot 10^{-1} $ & $ 1.38830 \cdot 10^{1 } $ & \\
+& $ 31 $ & $ 1.07350 \cdot 10^{-5} $ & $ 3.32790 \cdot 10^{-4} $ & $ 1.03170 \cdot 10^{-2} $ & $ 3.19810 \cdot 10^{-1} $ & $ 9.91400 \cdot 10^{0 } $ & \\
+\hline
+&&&&&&& \\[-1em]
+\multicolumn{8}{c}{Calculated using $c=C=0.94$, each value valid up to $10^{19}\simeq e^{43.749}$.}\\ \hline
+&&&&&&& \\[-1em]
+& $ \log(3.2\cdot10^{13}) $ & $ 1.02600 \cdot 10^{-5} $ & $ 3.19040 \cdot 10^{-4} $ & $ 9.92090 \cdot 10^{-3} $ & $ 3.08510 \cdot 10^{-1} $ & $ 9.59360 \cdot 10^{0 } $ & \\
+& $ 32 $ & $ 6.71750 \cdot 10^{-6} $ & $ 2.14960 \cdot 10^{-4} $ & $ 6.87870 \cdot 10^{-3} $ & $ 2.20120 \cdot 10^{-1} $ & $ 7.04380 \cdot 10^{0 } $ & \\
+& $ 33 $ & $ 4.38000 \cdot 10^{-6} $ & $ 1.44540 \cdot 10^{-4} $ & $ 4.76990 \cdot 10^{-3} $ & $ 1.57410 \cdot 10^{-1} $ & $ 5.19440 \cdot 10^{0 } $ & \\
+& $ 34 $ & $ 2.73610 \cdot 10^{-6} $ & $ 9.30270 \cdot 10^{-5} $ & $ 3.16300 \cdot 10^{-3} $ & $ 1.07540 \cdot 10^{-1} $ & $ 3.65640 \cdot 10^{0 } $ & \\
+& $ 35 $ & $ 1.70780 \cdot 10^{-6} $ & $ 5.97730 \cdot 10^{-5} $ & $ 2.09210 \cdot 10^{-3} $ & $ 7.32220 \cdot 10^{-2} $ & $ 2.56280 \cdot 10^{0 } $ & \\
+& $ 36 $ & $ 1.06520 \cdot 10^{-6} $ & $ 3.83460 \cdot 10^{-5} $ & $ 1.38050 \cdot 10^{-3} $ & $ 4.96960 \cdot 10^{-2} $ & $ 1.78910 \cdot 10^{0 } $ & \\
+& $ 37 $ & $ 6.63850 \cdot 10^{-7} $ & $ 2.45630 \cdot 10^{-5} $ & $ 9.08810 \cdot 10^{-4} $ & $ 3.36260 \cdot 10^{-2} $ & $ 1.24420 \cdot 10^{0 } $ & \\
+& $ 38 $ & $ 4.13450 \cdot 10^{-7} $ & $ 1.57120 \cdot 10^{-5} $ & $ 5.97020 \cdot 10^{-4} $ & $ 2.26870 \cdot 10^{-2} $ & $ 8.62100 \cdot 10^{-1 } $ & \\
+& $ 39 $ & $ 2.57330 \cdot 10^{-7} $ & $ 1.00360 \cdot 10^{-5} $ & $ 3.91400 \cdot 10^{-4} $ & $ 1.52650 \cdot 10^{-2} $ & $ 5.95320 \cdot 10^{-1 } $ & \\
+& $ 40 $ & $ 1.60060 \cdot 10^{-7} $ & $ 6.40240 \cdot 10^{-6} $ & $ 2.56100 \cdot 10^{-4} $ & $ 1.02440 \cdot 10^{-2} $ & $ 4.09750 \cdot 10^{-1 } $ & \\
+& $ 41 $ & $ 9.94970 \cdot 10^{-8} $ & $ 4.07940 \cdot 10^{-6} $ & $ 1.67260 \cdot 10^{-4} $ & $ 6.85740 \cdot 10^{-3} $ & $ 2.81160 \cdot 10^{-1 } $ & \\
+& $ 42 $ & $ 6.18140 \cdot 10^{-8} $ & $ 2.59620 \cdot 10^{-6} $ & $ 1.09040 \cdot 10^{-4} $ & $ 4.57970 \cdot 10^{-3} $ & $ 1.92350 \cdot 10^{-1 } $ & \\
+& $ 43 $ & $ 3.83820 \cdot 10^{-8} $ & $ 1.65050 \cdot 10^{-6} $ & $ 7.09680 \cdot 10^{-5} $ & $ 3.05170 \cdot 10^{-3} $ & $ 1.31220 \cdot 10^{-1 } $ & \\
+\hline
+\end{longtable}
+}-/
+
+/-
+Correction note for `table_12`.  In \cite{BKLNW}, Table 12, the rows
+`b = log(5·10¹⁰)` and `b = 25` are listed under the block `c = 0.88, C = 0.86`,
+and `b = log(3.2·10¹³)` and `b = 32` under `c = 0.94, C = 0.94`.  However, the
+entries printed for these four boundary rows were computed with the *previous*
+block's Buthe constants, so they are smaller than `C_bk` (Corollary 9.1,
+eq. 3.25) evaluated with each row's own stated `(c, C)`.  Their entries below
+are therefore recomputed with the correct `(c, C)` and rounded up.  The paper's
+(too small) values were:
+  `log(5·10¹⁰)` : 2.01560e-4, 4.96540e-3, 1.22330e-1, 3.01350e0, 7.42380e1
+  `25`          : 1.70330e-4, 4.25830e-3, 1.06460e-1, 2.66140e0, 6.65350e1
+  `log(3.2·10¹³)`: 1.02600e-5, 3.19040e-4, 9.92090e-3, 3.08510e-1, 9.59360e0
+  `32`          : 6.71750e-6, 2.14960e-4, 6.87870e-3, 2.20120e-1, 7.04380e0
+The row `b = 31` is additionally raised in columns `k = 3, 4, 5` (paper values
+1.03170e-2, 3.19810e-1, 9.91400e0) so that the column stays pointwise above the
+recomputed `b = log(3.2·10¹³)` row, which `table_12_Cb_bounds` relies on.
+-/
+noncomputable def table_12 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ ) := [
+  (20, 1.68440e-3, 3.36880e-2, 6.73750e-1, 1.34750e1, 2.69500e2, 0.8, 0.81, 5e10),
+  (21, 1.06840e-3, 2.24350e-2, 4.71140e-1, 9.89390e0, 2.07780e2, 0.8, 0.81, 5e10),
+  (22, 6.76540e-4, 1.48840e-2, 3.27450e-1, 7.20380e0, 1.58490e2, 0.8, 0.81, 5e10),
+  (23, 4.27800e-4, 9.83920e-3, 2.26310e-1, 5.20500e0, 1.19720e2, 0.8, 0.81, 5e10),
+  (24, 2.70120e-4, 6.48290e-3, 1.55590e-1, 3.73410e0, 8.96190e1, 0.8, 0.81, 5e10),
+  (Real.log 5e10, 2.070820e-4, 5.101530e-3, 1.256780e-1, 3.096110e0, 7.627340e1, 0.88, 0.86, 32e12),
+  (25, 1.750020e-4, 4.375050e-3, 1.093770e-1, 2.734410e0, 6.836010e1, 0.88, 0.86, 32e12),
+  (26, 1.10220e-4, 2.86560e-3, 7.45050e-2, 1.93720e0, 5.03650e1, 0.88, 0.86, 32e12),
+  (27, 6.93270e-5, 1.87190e-3, 5.05400e-2, 1.36460e0, 3.68430e1, 0.88, 0.86, 32e12),
+  (28, 4.35580e-5, 1.21970e-3, 3.41500e-2, 9.56180e-1, 2.67730e1, 0.88, 0.86, 32e12),
+  (29, 2.73380e-5, 7.92780e-4, 2.29910e-2, 6.66730e-1, 1.93360e1, 0.88, 0.86, 32e12),
+  (30, 1.71400e-5, 5.14180e-4, 1.54260e-2, 4.62760e-1, 1.38830e1, 0.88, 0.86, 32e12),
+  (31, 1.07350e-5, 3.32790e-4, 1.034630e-2, 3.217360e-1, 1.000500e1, 0.88, 0.86, 32e12),
+  (Real.log (32e12), 1.069930e-5, 3.327130e-4, 1.034630e-2, 3.217360e-1, 1.000500e1, 0.94, 0.94, 1e19),
+  (32, 7.005640e-6, 2.241810e-4, 7.173770e-3, 2.295610e-1, 7.345940e0, 0.94, 0.94, 1e19),
+  (33, 4.38000e-6, 1.44540e-4, 4.76990e-3, 1.57410e-1, 5.19440e0, 0.94, 0.94, 1e19),
+  (34, 2.73610e-6, 9.30270e-5, 3.16300e-3, 1.07540e-1, 3.65640e0, 0.94, 0.94, 1e19),
+  (35, 1.70780e-6, 5.97730e-5, 2.09210e-3, 7.32220e-2, 2.56280e0, 0.94, 0.94, 1e19),
+  (36, 1.06520e-6, 3.83460e-5, 1.38050e-3, 4.96960e-2, 1.78910e0, 0.94, 0.94, 1e19),
+  (37, 6.63850e-7, 2.45630e-5, 9.08810e-4, 3.36260e-2, 1.24420e0, 0.94, 0.94, 1e19),
+  (38, 4.13450e-7, 1.57120e-5, 5.97020e-4, 2.26870e-2, 8.62100e-1, 0.94, 0.94, 1e19),
+  (39, 2.57330e-7, 1.00360e-5, 3.91400e-4, 1.52650e-2, 5.95320e-1, 0.94, 0.94, 1e19),
+  (40, 1.60060e-7, 6.40240e-6, 2.56100e-4, 1.02440e-2, 4.09750e-1, 0.94, 0.94, 1e19),
+  (41, 9.94970e-8, 4.07940e-6, 1.67260e-4, 6.85740e-3, 2.81160e-1, 0.94, 0.94, 1e19),
+  (42, 6.18140e-8, 2.59620e-6, 1.09040e-4, 4.57970e-3, 1.92350e-1, 0.94, 0.94, 1e19),
+  (43,3.83820e-8 ,1.65050e-6 ,7.09680e-5 ,3.05170e-3 ,1.31220e-1, 0.94, 0.94, 1e19)
+]
+
+/-- The `k`-independent factor of `BKLNW.C_bk`: one has
+`C_bk b c C RS_prime.c₀ k = b ^ k * C_bk_S b c C`. -/
+noncomputable def C_bk_S (b c C : ℝ) : ℝ :=
+  (C + 1) * exp (-b / 2) + RS_prime.c₀ * exp (-2 * b / 3)
+    + c * exp (-3 * b / 4) + RS_prime.c₀ * exp (-4 * b / 5)
+
+lemma C_bk_S_nonneg {b c C : ℝ} (hc : 0 ≤ c) (hC : 0 ≤ C) : 0 ≤ C_bk_S b c C := by
+  have hc0 : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have t1 := mul_nonneg (by linarith : (0 : ℝ) ≤ C + 1) (exp_pos (-b / 2)).le
+  have t2 := mul_nonneg hc0 (exp_pos (-2 * b / 3)).le
+  have t3 := mul_nonneg hc (exp_pos (-3 * b / 4)).le
+  have t4 := mul_nonneg hc0 (exp_pos (-4 * b / 5)).le
+  unfold C_bk_S; linarith
+
+/-- `C_bk_S` is antitone in `b` (for nonnegative `c, C`): each `exp` term decreases. -/
+lemma C_bk_S_antitone {b b' c C : ℝ} (hbb : b' ≤ b) (hc : 0 ≤ c) (hC : 0 ≤ C) :
+    C_bk_S b c C ≤ C_bk_S b' c C := by
+  have hc0 : (0 : ℝ) ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
+  have m1 := mul_le_mul_of_nonneg_left (exp_le_exp.mpr (by linarith : -b / 2 ≤ -b' / 2))
+    (by linarith : (0 : ℝ) ≤ C + 1)
+  have m2 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -2 * b / 3 ≤ -2 * b' / 3)) hc0
+  have m3 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -3 * b / 4 ≤ -3 * b' / 4)) hc
+  have m4 := mul_le_mul_of_nonneg_left
+    (exp_le_exp.mpr (by linarith : -4 * b / 5 ≤ -4 * b' / 5)) hc0
+  unfold C_bk_S; linarith
+
+/-- For a row with `b = Real.log N`: bracket `Real.log N ∈ [lo, hi]` and use
+monotonicity of `b ↦ b ^ k * C_bk_S b c C` to reduce to a `log`-free bound. -/
+lemma C_bk_log_row_bound {N c C Cbk : ℝ} {k : ℕ} (lo hi : ℝ)
+    (hlo : lo ≤ Real.log N) (hhi : Real.log N ≤ hi)
+    (hlo0 : 0 ≤ lo) (hc : 0 ≤ c) (hC : 0 ≤ C)
+    (hfin : hi ^ k * C_bk_S lo c C ≤ Cbk) :
+    Real.log N ^ k * C_bk_S (Real.log N) c C ≤ Cbk := by
+  have hb0 : 0 ≤ Real.log N := le_trans hlo0 hlo
+  exact le_trans (mul_le_mul (pow_le_pow_left₀ hb0 hhi k) (C_bk_S_antitone hlo hc hC)
+    (C_bk_S_nonneg hc hC) (pow_nonneg (le_trans hb0 hhi) k)) hfin
+
+set_option maxRecDepth 10000 in
+set_option maxHeartbeats 4000000 in
+-- `table_12_check` runs ~135 `interval_decide` numerical checks in a single
+-- declaration, so the default heartbeat budget is raised.
+/-- Verification of the entries of Table 12: every row obeys
+`b ^ k * C_bk_S b c C ≤ Cb k` for `k = 1, …, 5`.  Together with the identity
+`C_bk b c C RS_prime.c₀ k = b ^ k * C_bk_S b c C` this gives
+`bklnw_table_12_verification`.  The bound for each integer-`b` row is a direct
+interval-arithmetic check; the two rows with `b = Real.log N` are handled by
+`C_bk_log_row_bound`. -/
+theorem table_12_check (b Cb1 Cb2 Cb3 Cb4 Cb5 c C M : ℝ)
+    (h : (b, Cb1, Cb2, Cb3, Cb4, Cb5, c, C, M) ∈ table_12) :
+    b ^ 1 * C_bk_S b c C ≤ Cb1 ∧ b ^ 2 * C_bk_S b c C ≤ Cb2 ∧
+      b ^ 3 * C_bk_S b c C ≤ Cb3 ∧ b ^ 4 * C_bk_S b c C ≤ Cb4 ∧
+      b ^ 5 * C_bk_S b c C ≤ Cb5 := by
+  simp only [table_12, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩ := h
+  all_goals try
+    (refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> (simp only [C_bk_S, RS_prime.c₀]; interval_decide; done))
+  · -- row b = Real.log 5e10  (log 5e10 ≈ 24.63528884)
+    have hlo : (24.6352888 : ℝ) ≤ Real.log 5e10 := LogTables.log_5e10_gt
+    have hhi : Real.log 5e10 ≤ (24.6352889 : ℝ) := LogTables.log_5e10_lt
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      exact C_bk_log_row_bound 24.6352888 24.6352889 hlo hhi (by norm_num) (by norm_num)
+        (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
+  · -- row b = Real.log (32e12)  (log 32e12 ≈ 31.09675702)
+    have hlo : (31.0967570 : ℝ) ≤ Real.log (32e12) := LogTables.log_32e12_gt
+    have hhi : Real.log (32e12) ≤ (31.0967571 : ℝ) := LogTables.log_32e12_lt
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      exact C_bk_log_row_bound 31.0967570 31.0967571 hlo hhi (by norm_num) (by norm_num)
+        (by norm_num) (by simp only [C_bk_S, RS_prime.c₀]; interval_decide)
+
+end BKLNW

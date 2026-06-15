@@ -40,7 +40,7 @@ jobs:
           swap-storage: false
 
       - name: Checkout project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
@@ -58,8 +58,7 @@ jobs:
           include-drafts: true
 
       - name: Compile blueprint and documentation
-        # workaround for https://github.com/leanprover-community/docgen-action/issues/28, revert when we're on v4.30
-        uses: dwrensha/docgen-action@a3f8189646977363717917b605e6de25f9704656
+        uses: leanprover-community/docgen-action@main
         with:
           blueprint: true
           homepage: home_page
