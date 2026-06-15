@@ -3286,14 +3286,16 @@ theorem LadderParams.zOf_bot_hray (l : LadderParams) (r : ℝ) :
   field_simp [l.hT.ne']
   ring
 
+/-- The squared norm of the denominator `iT` of the rescaling equals `T²`. -/
+theorem LadderParams.normSq_I_mul_T (l : LadderParams) :
+    Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
+  simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
+
 /-- The real part of the rescaling: `Re z(s) = Im s / T`. -/
 theorem LadderParams.zOf_re (l : LadderParams) (s : ℂ) : (l.zOf s).re = s.im / l.T := by
   have hT : l.T ≠ 0 := l.hT.ne'
-  have e1 : (Complex.I * (l.T : ℂ)).re = 0 := by simp
-  have e2 : (Complex.I * (l.T : ℂ)).im = l.T := by simp
-  have e3 : Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
-    simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
-  rw [LadderParams.zOf, Complex.div_re, e1, e2, e3]
+  rw [LadderParams.zOf, Complex.div_re, (by simp : (Complex.I * (l.T : ℂ)).re = 0),
+    (by simp : (Complex.I * (l.T : ℂ)).im = l.T), l.normSq_I_mul_T]
   simp only [Complex.sub_im, Complex.one_im, sub_zero, mul_zero, zero_div, zero_add]
   field_simp
 
@@ -3338,11 +3340,8 @@ theorem Phi_star_conj_neg (ν ε : ℝ) (w : ℂ) :
 
 /-- The imaginary part of the rescaling: `Im z(s) = (1 - Re s)/T` (hence `≥ 0` on `R`). -/
 theorem LadderParams.zOf_im (l : LadderParams) (s : ℂ) : (l.zOf s).im = (1 - s.re) / l.T := by
-  have e1 : (Complex.I * (l.T : ℂ)).re = 0 := by simp
-  have e2 : (Complex.I * (l.T : ℂ)).im = l.T := by simp
-  have e3 : Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
-    simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
-  rw [LadderParams.zOf, Complex.div_im, e1, e2, e3]
+  rw [LadderParams.zOf, Complex.div_im, (by simp : (Complex.I * (l.T : ℂ)).re = 0),
+    (by simp : (Complex.I * (l.T : ℂ)).im = l.T), l.normSq_I_mul_T]
   simp only [Complex.sub_im, Complex.one_im, sub_zero, Complex.sub_re, Complex.one_re,
     mul_zero]
   field_simp [l.hT.ne']
@@ -3375,6 +3374,20 @@ lemma IsBoundedNoPolesOn.analytic_mul {g h : ℂ → ℂ} {S : Set ℂ} {C : ℝ
       meromorphicOrderAt_mul (hg_an z hz).meromorphicAt (hh_mero z hz)]
     exact add_nonneg (hg_an z hz).meromorphicOrderAt_nonneg (hM z hz).2
 
+/-- Norm arithmetic for a linearly-growing factor: from `‖φ‖ ≤ C(‖w‖+1)`, a bound `‖h‖ ≤ Mh`, and a
+bound `‖w‖·‖h‖ ≤ Mwh` on the weighted product, conclude `‖φ·h‖ ≤ |C|·Mwh + |C|·Mh`. -/
+private lemma norm_mul_le_of_linear_growth {φ w h : ℂ} {C Mh Mwh : ℝ}
+    (hφ : ‖φ‖ ≤ C * (‖w‖ + 1)) (hh : ‖h‖ ≤ Mh) (hwh : ‖w‖ * ‖h‖ ≤ Mwh) :
+    ‖φ * h‖ ≤ |C| * Mwh + |C| * Mh := by
+  have hCnn : (0 : ℝ) ≤ |C| := abs_nonneg C
+  have hb1 : ‖φ‖ ≤ |C| * (‖w‖ + 1) :=
+    hφ.trans (mul_le_mul_of_nonneg_right (le_abs_self C) (by positivity))
+  calc ‖φ * h‖ = ‖φ‖ * ‖h‖ := norm_mul _ _
+    _ ≤ |C| * (‖w‖ + 1) * ‖h‖ := mul_le_mul_of_nonneg_right hb1 (norm_nonneg _)
+    _ = |C| * (‖w‖ * ‖h‖) + |C| * ‖h‖ := by ring
+    _ ≤ |C| * Mwh + |C| * Mh :=
+        add_le_add (mul_le_mul_of_nonneg_left hwh hCnn) (mul_le_mul_of_nonneg_left hh hCnn)
+
 /-- Multiplying a bounded-with-no-poles function `h` by an analytic factor `φ` whose growth is
 controlled by a weight `w` — `‖φ‖ ≤ C(‖w‖+1)` — preserves `IsBoundedNoPolesOn`, provided the
 weighted product `w · h` is itself bounded with no poles. (Used for the `Φ^\star = O(|z|)` factors:
@@ -3387,17 +3400,9 @@ lemma IsBoundedNoPolesOn.linear_mul {φ w h : ℂ → ℂ} {S : Set ℂ} {C : �
   obtain ⟨Mh, hMh⟩ := hh
   obtain ⟨Mwh, hMwh⟩ := hwh
   refine ⟨|C| * Mwh + |C| * Mh, fun z hz ↦ ⟨?_, ?_⟩⟩
-  · have hCnn : (0 : ℝ) ≤ |C| := abs_nonneg C
-    have hb1 : ‖φ z‖ ≤ |C| * (‖w z‖ + 1) :=
-      (hφ_bd z hz).trans (mul_le_mul_of_nonneg_right (le_abs_self C) (by positivity))
-    have hwh_z : ‖w z‖ * ‖h z‖ ≤ Mwh := by
+  · have hwh_z : ‖w z‖ * ‖h z‖ ≤ Mwh := by
       have := (hMwh z hz).1; rwa [norm_mul] at this
-    calc ‖φ z * h z‖ = ‖φ z‖ * ‖h z‖ := norm_mul _ _
-      _ ≤ |C| * (‖w z‖ + 1) * ‖h z‖ := mul_le_mul_of_nonneg_right hb1 (norm_nonneg _)
-      _ = |C| * (‖w z‖ * ‖h z‖) + |C| * ‖h z‖ := by ring
-      _ ≤ |C| * Mwh + |C| * Mh :=
-          add_le_add (mul_le_mul_of_nonneg_left hwh_z hCnn)
-            (mul_le_mul_of_nonneg_left (hMh z hz).1 hCnn)
+    exact norm_mul_le_of_linear_growth (hφ_bd z hz) (hMh z hz).1 hwh_z
   · rw [show (fun s ↦ φ s * h s) = φ * h from rfl,
       meromorphicOrderAt_mul (hφ_an z hz).meromorphicAt (hh_mero z hz)]
     exact add_nonneg (hφ_an z hz).meromorphicOrderAt_nonneg (hMh z hz).2
@@ -3423,6 +3428,28 @@ private lemma norm_sign_le (x : ℝ) : ‖(Real.sign x : ℂ)‖ ≤ 1 := by
   · rw [h, Real.sign_zero]; norm_num
   · rw [Real.sign_of_pos h]; norm_num
 
+/-- For `λ > 0`, the complex sign factor `(sgn λ : ℂ)` is `1`. -/
+private lemma sign_cast_one_of_pos {lam : ℝ} (hlam : 0 < lam) : (Real.sign lam : ℂ) = 1 := by
+  rw [Real.sign_of_pos hlam]; norm_num
+
+/-- For `λ > 0`, `Φ^\circ(|λ| · w)` is uniformly bounded on the closed upper half-plane. -/
+private lemma exists_norm_Phi_circ_bound {lam : ℝ} (hlam : 0 < lam) (ε : ℝ) :
+    ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_circ |lam| ε w‖ ≤ C := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
+    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
+  obtain ⟨C, hC⟩ := ϕ_circ_bound_right |lam| |lam| ε 0 hc
+  exact ⟨C, fun w hw ↦ hC |lam| (by simp) w hw⟩
+
+/-- For `λ > 0`, `Φ^\star(|λ| · w)` grows at most linearly on the closed upper half-plane. -/
+private lemma exists_norm_Phi_star_bound {lam : ℝ} (hlam : 0 < lam) (ε : ℝ) :
+    ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_star |lam| ε w‖ ≤ C * (‖w‖ + 1) := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
+    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
+  obtain ⟨C, hC⟩ := ϕ_star_bound_right |lam| |lam| ε 0 hν le_rfl hc
+  exact ⟨C, fun w hw ↦ hC |lam| (by simp) w hw⟩
+
 /-- Pointwise: `Φ_λ(w)` is bounded by `‖Φ^\circ(sgn λ·w)‖ + ‖Φ^\star(sgn λ·w)‖` (the `sgn` factors
 have norm `≤ 1`). -/
 private lemma norm_Phi_lambda_le_sum (lam ε : ℝ) (w : ℂ) :
@@ -3445,19 +3472,15 @@ private lemma norm_Phi_lambda_le_sum (lam ε : ℝ) (w : ℂ) :
 `‖Φ^\circ(w)‖ + ‖Φ^\star(w)‖` (the `sgn` factors have norm `≤ 1`), each `O(|w|)`. -/
 private lemma norm_Phi_lambda_le_of_im_nonneg {lam ε : ℝ} (hlam : 0 < lam) :
     ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_lambda lam ε w‖ ≤ C * (‖w‖ + 1) := by
-  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
-  have hsign : (Real.sign lam : ℂ) = 1 := by rw [Real.sign_of_pos hlam]; norm_num
-  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
-    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
-  obtain ⟨C₁, hC₁⟩ := ϕ_circ_bound_right |lam| |lam| ε 0 hc
-  obtain ⟨C₂, hC₂⟩ := ϕ_star_bound_right |lam| |lam| ε 0 hν le_rfl hc
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C₁, hC₁⟩ := exists_norm_Phi_circ_bound hlam ε
+  obtain ⟨C₂, hC₂⟩ := exists_norm_Phi_star_bound hlam ε
   refine ⟨|C₁| + |C₂|, fun w hw ↦ ?_⟩
-  have hmem : |lam| ∈ Set.Icc |lam| |lam| := by simp
   have hwim : ((Real.sign lam : ℂ) * w).im ≥ 0 := by rw [hsign, one_mul]; exact hw
   have hwnorm : ‖(Real.sign lam : ℂ) * w‖ = ‖w‖ := by rw [hsign, one_mul]
-  have e1 : ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ ≤ C₁ := hC₁ |lam| hmem _ hwim
+  have e1 : ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ ≤ C₁ := hC₁ _ hwim
   have e2 : ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ ≤ C₂ * (‖w‖ + 1) := by
-    rw [← hwnorm]; exact hC₂ |lam| hmem _ hwim
+    rw [← hwnorm]; exact hC₂ _ hwim
   calc ‖Phi_lambda lam ε w‖
       ≤ ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ +
           ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ := norm_Phi_lambda_le_sum lam ε w
@@ -3480,15 +3503,9 @@ private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → �
       (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
   have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
   have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := by rw [Real.sign_of_pos hlam]; norm_num
-  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
-    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
-  obtain ⟨C, hC⟩ := ϕ_circ_bound_right |lam| |lam| ε 0 hc
-  have heq :
-      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s)
-        = (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * (F s * (x₀ : ℂ) ^ s)) := by
-    funext s; ring
-  rw [heq]
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C, hC⟩ := exists_norm_Phi_circ_bound hlam ε
+  simp only [mul_assoc]
   refine hF_bdd.analytic_mul (C := C)
     (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
     (fun z hz ↦ ?_) (fun z hz ↦ ?_)
@@ -3497,7 +3514,7 @@ private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → �
     exact (Phi_circ.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
       him).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
   · rw [hsign, one_mul]
-    exact hC |lam| (by simp) (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
 
 /-- For `λ > 0`, the factor `sgn λ · Φ^\star(sgn λ · z(s))` is analytic and `O(|z(s)|)` on any
 subset of `R`. Combined with the weighted bound on `z(s) · F · x₀^s` (the strengthened decay
@@ -3513,10 +3530,8 @@ private lemma isBoundedNoPolesOn_Phi_star_mul (l : LadderParams) {F : ℂ → �
         F s * (x₀ : ℂ) ^ s) S := by
   have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
   have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := by rw [Real.sign_of_pos hlam]; norm_num
-  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
-    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
-  obtain ⟨C, hC⟩ := ϕ_star_bound_right |lam| |lam| ε 0 hν le_rfl hc
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C, hC⟩ := exists_norm_Phi_star_bound hlam ε
   have him : ∀ z ∈ S, (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
     intro z hz
     rw [hsign, one_mul]; exact l.zOf_im_nonneg (hS hz).1
@@ -3538,7 +3553,7 @@ private lemma isBoundedNoPolesOn_Phi_star_mul (l : LadderParams) {F : ℂ → �
         (him z hz)).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl)
   · rw [norm_mul, hsign]
     simp only [norm_one, one_mul]
-    exact hC |lam| (by simp) (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
 
 /-- The order of `Φ_λ(z(s)) · F · x₀^s` at a point `z ∈ R` is `≥ 0`: `Φ_λ ∘ z` has a `sgn`
 discontinuity at `Im s = 0` (so the product may be non-meromorphic there, giving junk order `0`),
@@ -3551,7 +3566,7 @@ private lemma meromorphicOrderAt_Phi_lambda_mul_nonneg (l : LadderParams) {F : �
     0 ≤ meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) z := by
   have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
   have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := by rw [Real.sign_of_pos hlam]; norm_num
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
   have hsign_im : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
     rw [hsign, one_mul]; exact l.zOf_im_nonneg hz.1
   have hφc : ContinuousAt (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z :=
@@ -3593,21 +3608,14 @@ private lemma isBoundedNoPolesOn_Phi_lambda_mul (l : LadderParams) {F : ℂ → 
   obtain ⟨Mh, hMh⟩ := hF_bdd
   obtain ⟨Mwh, hMwh⟩ := hFw_bdd
   refine ⟨|Cl| * Mwh + |Cl| * Mh, fun z hz ↦ ⟨?_, ?_⟩⟩
-  · have hb1 : ‖Phi_lambda lam ε (l.zOf z)‖ ≤ |Cl| * (‖l.zOf z‖ + 1) :=
-      (hCl (l.zOf z) (l.zOf_im_nonneg (hS hz).1)).trans
-        (mul_le_mul_of_nonneg_right (le_abs_self Cl) (by positivity))
-    have hwh_z : ‖l.zOf z‖ * ‖F z * (x₀ : ℂ) ^ z‖ ≤ Mwh := by
+  · have hwh_z : ‖l.zOf z‖ * ‖F z * (x₀ : ℂ) ^ z‖ ≤ Mwh := by
       have h := (hMwh z hz).1
       change ‖l.zOf z * F z * (x₀ : ℂ) ^ z‖ ≤ Mwh at h
       rwa [mul_assoc, norm_mul] at h
-    calc ‖Phi_lambda lam ε (l.zOf z) * F z * (x₀ : ℂ) ^ z‖
-        = ‖Phi_lambda lam ε (l.zOf z)‖ * ‖F z * (x₀ : ℂ) ^ z‖ := by rw [mul_assoc, norm_mul]
-      _ ≤ |Cl| * (‖l.zOf z‖ + 1) * ‖F z * (x₀ : ℂ) ^ z‖ :=
-          mul_le_mul_of_nonneg_right hb1 (norm_nonneg _)
-      _ = |Cl| * (‖l.zOf z‖ * ‖F z * (x₀ : ℂ) ^ z‖) + |Cl| * ‖F z * (x₀ : ℂ) ^ z‖ := by ring
-      _ ≤ |Cl| * Mwh + |Cl| * Mh :=
-          add_le_add (mul_le_mul_of_nonneg_left hwh_z (abs_nonneg _))
-            (mul_le_mul_of_nonneg_left (hMh z hz).1 (abs_nonneg _))
+    show ‖Phi_lambda lam ε (l.zOf z) * F z * (x₀ : ℂ) ^ z‖ ≤ |Cl| * Mwh + |Cl| * Mh
+    rw [mul_assoc]
+    exact norm_mul_le_of_linear_growth (hCl (l.zOf z) (l.zOf_im_nonneg (hS hz).1))
+      (hMh z hz).1 hwh_z
   · exact meromorphicOrderAt_Phi_lambda_mul_nonneg l hlam hx₀ hF_mero (hS hz) (hMh z hz).2
 
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
