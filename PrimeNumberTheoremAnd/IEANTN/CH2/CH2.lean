@@ -3336,6 +3336,71 @@ theorem Phi_star_conj_neg (ν ε : ℝ) (w : ℂ) :
         = -(2 * (π : ℂ) * -I * (starRingEnd ℂ) w) + (ν : ℂ) by ring,
     mul_neg, div_neg, neg_neg]
 
+/-- The imaginary part of the rescaling: `Im z(s) = (1 - Re s)/T` (hence `≥ 0` on `R`). -/
+theorem LadderParams.zOf_im (l : LadderParams) (s : ℂ) : (l.zOf s).im = (1 - s.re) / l.T := by
+  have e1 : (Complex.I * (l.T : ℂ)).re = 0 := by simp
+  have e2 : (Complex.I * (l.T : ℂ)).im = l.T := by simp
+  have e3 : Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
+    simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
+  rw [LadderParams.zOf, Complex.div_im, e1, e2, e3]
+  simp only [Complex.sub_im, Complex.one_im, sub_zero, Complex.sub_re, Complex.one_re,
+    mul_zero, zero_mul]
+  field_simp [l.hT.ne']
+  ring
+
+/-- Restriction of `IsBoundedNoPolesOn` to a subset. -/
+lemma IsBoundedNoPolesOn.mono {f : ℂ → ℂ} {S T : Set ℂ} (h : IsBoundedNoPolesOn f T)
+    (hST : S ⊆ T) : IsBoundedNoPolesOn f S := by
+  obtain ⟨M, hM⟩ := h
+  exact ⟨M, fun z hz ↦ hM z (hST hz)⟩
+
+/-- Multiplying a bounded-with-no-poles function by an analytic factor that is uniformly bounded on
+the set preserves `IsBoundedNoPolesOn`. -/
+lemma IsBoundedNoPolesOn.analytic_mul {g h : ℂ → ℂ} {S : Set ℂ} {C : ℝ}
+    (hh : IsBoundedNoPolesOn h S) (hh_mero : ∀ z ∈ S, MeromorphicAt h z)
+    (hg_an : ∀ z ∈ S, AnalyticAt ℂ g z) (hg_bd : ∀ z ∈ S, ‖g z‖ ≤ C) :
+    IsBoundedNoPolesOn (fun s ↦ g s * h s) S := by
+  obtain ⟨M, hM⟩ := hh
+  refine ⟨C * M, fun z hz ↦ ⟨?_, ?_⟩⟩
+  · have hCnn : 0 ≤ C := le_trans (norm_nonneg _) (hg_bd z hz)
+    calc ‖g z * h z‖ = ‖g z‖ * ‖h z‖ := norm_mul _ _
+      _ ≤ C * ‖h z‖ := mul_le_mul_of_nonneg_right (hg_bd z hz) (norm_nonneg _)
+      _ ≤ C * M := mul_le_mul_of_nonneg_left (hM z hz).1 hCnn
+  · rw [show (fun s ↦ g s * h s) = g * h from rfl,
+      meromorphicOrderAt_mul (hg_an z hz).meromorphicAt (hh_mero z hz)]
+    exact add_nonneg (hg_an z hz).meromorphicOrderAt_nonneg (hM z hz).2
+
+/-- For `λ > 0`, the factor `Φ^\circ(sgn λ · z(s))` is analytic and uniformly bounded on any subset
+of `R` (its argument has `Im ≥ 0`, away from the poles, and `coth` is bounded there). Hence on such
+a set `Φ^\circ(sgn λ · z(s)) · F · x₀^s` inherits `IsBoundedNoPolesOn` from `F · x₀^s`. -/
+private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {S : Set ℂ} (hS : S ⊆ l.R)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S) :
+    IsBoundedNoPolesOn
+      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
+  have hsign : (Real.sign lam : ℂ) = 1 := by rw [Real.sign_of_pos hlam]; norm_num
+  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
+    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
+  obtain ⟨C, hC⟩ := ϕ_circ_bound_right |lam| |lam| ε 0 hc
+  have heq :
+      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s)
+        = (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * (F s * (x₀ : ℂ) ^ s)) := by
+    funext s; ring
+  rw [heq]
+  refine hF_bdd.analytic_mul (C := C)
+    (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
+    (fun z hz ↦ ?_) (fun z hz ↦ ?_)
+  · have him : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+      rw [hsign, one_mul, l.zOf_im]
+      exact div_nonneg (by linarith [(hS hz).1]) l.hT.le
+    exact (Phi_circ.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
+      him).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+  · rw [hsign, one_mul]
+    exact hC |lam| (by simp) (l.zOf z) (by rw [l.zOf_im]; exact div_nonneg (by linarith [(hS hz).1]) l.hT.le)
+
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
 theorem integral_Iic_one_eq_integral_Ioi_one_sub
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
@@ -3622,7 +3687,7 @@ private lemma integral_weighted_F_mul_cpow_hray_eq_Ioi (h : ℝ)
 theorem prop_5_2_a
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hlam : 0 < lam) (hε : ε = 1 ∨ ε = -1)
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
@@ -3675,11 +3740,15 @@ theorem prop_5_2_a
         rw [map_mul, Complex.conj_ofReal]; ring,
       Phi_star_conj_neg, map_mul, map_mul, Complex.conj_ofReal]
     ring
-  case hG_bdd => sorry       -- boundedness of Φ_λ·F on l.Rboundary
-  case hGc_L => sorry        -- boundedness of Φ°·F on l.L
-  case hGc_contour => sorry  -- boundedness of Φ°·F on l.admissible_contour
-  case hGs_L => sorry        -- boundedness of sgn(λ)·Φ⋆·F on l.L
-  case hGs_contour => sorry  -- boundedness of sgn(λ)·Φ⋆·F on l.admissible_contour
+  case hG_bdd => sorry       -- boundedness of Φ_λ·F on l.Rboundary (Φ_λ grows linearly; see note)
+  case hGc_L =>
+    exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.L_subset_R
+      (hF_bdd.mono Set.subset_union_right)
+  case hGc_contour =>
+    exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.admissible_contour_subset_R
+      (hF_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
+  case hGs_L => sorry        -- boundedness of sgn(λ)·Φ⋆·F on l.L (Φ⋆ grows linearly; see note)
+  case hGs_contour => sorry  -- boundedness of sgn(λ)·Φ⋆·F on l.admissible_contour (Φ⋆ grows; see note)
 
 @[blueprint
   "ch2-prop-5-2-b"
@@ -3837,7 +3906,7 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
 theorem prop_5_2
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hlam : 0 < lam) (hε : ε = 1 ∨ ε = -1)
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
@@ -3873,8 +3942,8 @@ theorem prop_5_2
   rw [hLHS]
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
-    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
-    (prop_5_2_c hlam)) ?_
+    (prop_5_2_b hF_mero hF_symm hlam.ne' hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
+    (prop_5_2_c hlam.ne')) ?_
   apply le_of_eq
   ring
 
