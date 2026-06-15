@@ -4043,125 +4043,695 @@ private lemma norm_Phi_lambda_le_of_im_nonneg {lam ε : ℝ} (hlam : 0 < lam) :
         · exact le_abs_self C₂
     _ = (|C₁| + |C₂|) * (‖w‖ + 1) := by ring
 
-/-- For `λ > 0`, the factor `Φ^\circ(sgn λ · z(s))` is analytic and uniformly bounded on any subset
-of `R` (its argument has `Im ≥ 0`, away from the poles, and `coth` is bounded there). Hence on such
-a set `Φ^\circ(sgn λ · z(s)) · F · x₀^s` inherits `IsBoundedNoPolesOn` from `F · x₀^s`. -/
-private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
-    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
-    {S : Set ℂ} (hS : S ⊆ l.R)
-    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S) :
-    IsBoundedNoPolesOn
-      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
-  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
-  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
-  obtain ⟨C, hC⟩ := exists_norm_Phi_circ_bound hlam ε
-  simp only [mul_assoc]
-  refine hF_bdd.analytic_mul (C := C)
-    (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
-    (fun z hz ↦ ?_) (fun z hz ↦ ?_)
-  · have him : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
-      rw [hsign, one_mul]; exact l.zOf_im_nonneg (hS hz).1
-    exact (Phi_circ.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
-      him).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
-  · rw [hsign, one_mul]
-    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+/-- A real sequence tending to `-∞` whose values all avoid a point `p` stays a uniform positive
+distance from `p`. (For `λ < 0`, applied to the ladder abscissae `σ n` and the `Φ^\circ` pole column
+`p = 1 + λT/(2π)`: since `σ n → -∞`, only finitely many columns lie near `p`, so `σ n ≠ p` for all
+`n` already forces a uniform gap — no separate margin hypothesis is needed.) -/
+private lemma exists_uniform_dist_of_tendsto_atBot {σ : ℕ → ℝ}
+    (h : Filter.Tendsto σ Filter.atTop Filter.atBot) {p : ℝ} (hne : ∀ n, σ n ≠ p) :
+    ∃ d > 0, ∀ n, d ≤ |σ n - p| := by
+  have hev : ∀ᶠ n in Filter.atTop, σ n < p - 1 :=
+    h.eventually (Filter.eventually_lt_atBot (p - 1))
+  obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp hev
+  classical
+  have hpos : ∀ n ∈ Finset.range N, 0 < |σ n - p| :=
+    fun n _ => abs_pos.mpr (sub_ne_zero.mpr (hne n))
+  rcases (Finset.range N).eq_empty_or_nonempty with hemp | hne'
+  · refine ⟨1, one_pos, fun n => ?_⟩
+    have hN0 : N = 0 := Finset.range_eq_empty_iff.mp hemp
+    have := hN n (by omega)
+    rw [abs_sub_comm, le_abs]; left; linarith
+  · obtain ⟨d0, hd0mem, hd0min⟩ := (Finset.range N).exists_min_image (fun n => |σ n - p|) hne'
+    refine ⟨min 1 (|σ d0 - p|), lt_min one_pos (hpos d0 hd0mem), fun n => ?_⟩
+    rcases lt_or_ge n N with hlt | hge
+    · exact le_trans (min_le_right _ _) (hd0min n (Finset.mem_range.mpr hlt))
+    · have := hN n hge
+      exact le_trans (min_le_left _ _) (by rw [abs_sub_comm, le_abs]; left; linarith)
 
-/-- For `λ > 0`, the factor `sgn λ · Φ^\star(sgn λ · z(s))` is analytic and `O(|z(s)|)` on any
-subset of `R`. Combined with the weighted bound on `z(s) · F · x₀^s` (the strengthened decay
-hypothesis on `F`), the product `sgn λ · Φ^\star(sgn λ · z(s)) · F · x₀^s` is bounded with no
-poles. -/
-private lemma isBoundedNoPolesOn_Phi_star_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
-    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+/-- A point `n - iν/(2π)` (the poles of `Φ^\circ`/`Φ^\star`) has real part the integer `n`. -/
+private lemma pole_re_eq (ν : ℝ) (n : ℤ) : ((n : ℂ) - I * ν / (2 * π)).re = n := by
+  simp [Complex.sub_re, Complex.div_re, Complex.mul_re, Complex.normSq]
+
+/-- A point `n - iν/(2π)` has imaginary part `-ν/(2π)`. -/
+private lemma pole_im_eq (ν : ℝ) (n : ℤ) : ((n : ℂ) - I * ν / (2 * π)).im = -ν / (2 * π) := by
+  rw [show ((n : ℂ) - I * ν / (2 * π)) = ((n : ℝ) : ℂ) + ((-ν / (2 * π) : ℝ) : ℂ) * I by
+    push_cast; ring]
+  rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.ofReal_re, Complex.I_im,
+    Complex.ofReal_im, Complex.I_re]
+  ring
+
+/-- A compact "box" `{re ∈ [a,b], im ∈ [c,d]}` in `ℂ`, used to bound `Φ^\circ`/`Φ^\star` on the
+finitely-many ladder columns / contour segment of the closed lower half-plane that are not yet far
+enough down for the `*_bound_left` estimates. -/
+private def reImBox (a b c d : ℝ) : Set ℂ := (Set.Icc a b) ×ℂ (Set.Icc c d)
+
+private lemma isCompact_reImBox (a b c d : ℝ) : IsCompact (reImBox a b c d) :=
+  isCompact_Icc.reProdIm isCompact_Icc
+
+private lemma mem_reImBox {a b c d : ℝ} {w : ℂ} :
+    w ∈ reImBox a b c d ↔ w.re ∈ Set.Icc a b ∧ w.im ∈ Set.Icc c d := Iff.rfl
+
+/-- The set of points keeping a uniform distance `d` from every pole `n - iν/(2π)` of
+`Φ^\circ`/`Φ^\star` is closed (an intersection of closed complements of open balls). -/
+private lemma isClosed_poleFar (ν d : ℝ) :
+    IsClosed {w : ℂ | ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖} := by
+  rw [show {w : ℂ | ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖}
+        = ⋂ n : ℤ, {w : ℂ | d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖} by ext w; simp]
+  exact isClosed_iInter fun n ↦ isClosed_le continuous_const (by fun_prop)
+
+/-- Core bound: a continuous-on-a-pole-free-compact-set estimate for either `Φ^\circ` or `Φ^\star`
+on a set `W` of the closed lower half-plane whose points keep a uniform distance from every pole
+`n - iν/(2π)` and whose real parts are bounded. Far down (`Im ≤ -ν/(2π) - 1`) the supplied
+`bound_left` estimate `hfar` applies; the rest lands in a compact box intersected with the
+pole-avoiding (hence pole-free, continuous) set. The growth factor `g w` is `1` for `Φ^\circ` and
+`‖w‖ + 1` for `Φ^\star`. -/
+private lemma exists_bound_lower_aux {ν : ℝ} {Φ : ℂ → ℂ} {g : ℂ → ℝ} {W : Set ℂ}
+    (hg_one_le : ∀ w, (1 : ℝ) ≤ g w)
+    (hΦ_an : ∀ w : ℂ, (∀ n : ℤ, w ≠ (n : ℂ) - I * ν / (2 * π)) → AnalyticAt ℂ Φ w)
+    {Cfar : ℝ} (hfar : ∀ w : ℂ, w.im ≤ -ν / (2 * π) - 1 → ‖Φ w‖ ≤ Cfar * g w)
+    (him : ∀ w ∈ W, w.im ≤ 0) (hre : ∀ w ∈ W, |w.re| ≤ 1)
+    (hgap : ∃ d > 0, ∀ w ∈ W, ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖) :
+    ∃ C : ℝ, ∀ w ∈ W, ‖Φ w‖ ≤ C * g w := by
+  obtain ⟨d, hd_pos, hd⟩ := hgap
+  set c : ℝ := -ν / (2 * π) - 1 with hc_def
+  set K : Set ℂ := reImBox (-1) 1 c 0 ∩ {w | ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖}
+    with hK_def
+  have hK_compact : IsCompact K :=
+    (isCompact_reImBox (-1) 1 c 0).inter_right (isClosed_poleFar ν d)
+  have hcont : ContinuousOn Φ K := by
+    intro w hw
+    refine (hΦ_an w ?_).continuousAt.continuousWithinAt
+    intro n hcontra
+    have := hw.2 n
+    rw [hcontra, sub_self, norm_zero] at this
+    linarith
+  obtain ⟨Cbox, hCbox⟩ := hK_compact.exists_bound_of_continuousOn hcont
+  refine ⟨max |Cfar| (max Cbox 0), fun w hw ↦ ?_⟩
+  rcases le_or_gt w.im c with hcase | hcase
+  · calc ‖Φ w‖ ≤ Cfar * g w := hfar w hcase
+      _ ≤ |Cfar| * g w := mul_le_mul_of_nonneg_right (le_abs_self _) (by linarith [hg_one_le w])
+      _ ≤ max |Cfar| (max Cbox 0) * g w :=
+          mul_le_mul_of_nonneg_right (le_max_left _ _) (by linarith [hg_one_le w])
+  · have hwK : w ∈ K := by
+      refine ⟨?_, hd w hw⟩
+      rw [mem_reImBox]
+      exact ⟨by rw [Set.mem_Icc]; exact abs_le.mp (hre w hw),
+        by rw [Set.mem_Icc]; exact ⟨hcase.le, him w hw⟩⟩
+    calc ‖Φ w‖ ≤ Cbox := hCbox w hwK
+      _ ≤ max Cbox 0 * 1 := by rw [mul_one]; exact le_max_left _ _
+      _ ≤ max |Cfar| (max Cbox 0) * g w := by
+          refine mul_le_mul (le_max_right _ _) (hg_one_le w) (by norm_num) ?_
+          exact le_trans (le_max_right _ _) (le_max_right _ _)
+
+/-- For `ν > 0`, `Φ^\circ_ν` is uniformly bounded on a set `W` of the closed lower half-plane whose
+points keep a uniform distance from every pole `n - iν/(2π)` and whose real parts lie in `[-1,1]`.
+(Far down use `ϕ_circ_bound_left`; the rest is a pole-free compact set.) -/
+private lemma exists_norm_Phi_circ_bound_lower {ν ε : ℝ} (_hν : 0 < ν) {W : Set ℂ}
+    (him : ∀ w ∈ W, w.im ≤ 0) (hre : ∀ w ∈ W, |w.re| ≤ 1)
+    (hgap : ∃ d > 0, ∀ w ∈ W, ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖) :
+    ∃ C : ℝ, ∀ w ∈ W, ‖Phi_circ ν ε w‖ ≤ C := by
+  have hc_lt : -ν / (2 * π) - 1 < -ν / (2 * π) := by linarith
+  obtain ⟨Cfar, hCfar⟩ := ϕ_circ_bound_left ν ν ε (-ν / (2 * π) - 1) hc_lt
+  obtain ⟨C, hC⟩ := exists_bound_lower_aux (Φ := Phi_circ ν ε) (g := fun _ ↦ (1 : ℝ)) (W := W)
+    (fun _ ↦ le_rfl)
+    (fun w hw ↦ Phi_circ.analyticAt_of_not_pole ν ε w hw)
+    (Cfar := Cfar) (fun w hw ↦ by rw [mul_one]; exact hCfar ν (by simp) w hw)
+    him hre hgap
+  exact ⟨C, fun w hw ↦ by have := hC w hw; rwa [mul_one] at this⟩
+
+/-- For `ν > 0`, `Φ^\star_ν` is `O(|w|)` on a set `W` of the closed lower half-plane whose points
+keep a uniform distance from every pole and whose real parts lie in `[-1,1]` (companion of
+`exists_norm_Phi_circ_bound_lower`, using `ϕ_star_bound_left` far down). -/
+private lemma exists_norm_Phi_star_bound_lower {ν ε : ℝ} (hν : 0 < ν) {W : Set ℂ}
+    (him : ∀ w ∈ W, w.im ≤ 0) (hre : ∀ w ∈ W, |w.re| ≤ 1)
+    (hgap : ∃ d > 0, ∀ w ∈ W, ∀ n : ℤ, d ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖) :
+    ∃ C : ℝ, ∀ w ∈ W, ‖Phi_star ν ε w‖ ≤ C * (‖w‖ + 1) := by
+  have hc_lt : -ν / (2 * π) - 1 < -ν / (2 * π) := by linarith
+  obtain ⟨Cfar, hCfar⟩ := ϕ_star_bound_left ν ν ε (-ν / (2 * π) - 1) hν le_rfl hc_lt
+  exact exists_bound_lower_aux (Φ := Phi_star ν ε) (g := fun w ↦ ‖w‖ + 1) (W := W)
+    (fun w ↦ by linarith [norm_nonneg w])
+    (fun w hw ↦ Phi_star.analyticAt_of_not_pole ν ε w hw)
+    (Cfar := Cfar) (fun w hw ↦ hCfar ν (by simp) w hw)
+    him hre hgap
+
+/-- The image set `{(sgn λ)·z(s) | s ∈ S}` of the argument map, used to phrase the lower-half-plane
+`Φ^\circ`/`Φ^\star` bounds for `λ < 0`. -/
+private def argImage (l : LadderParams) (lam : ℝ) (S : Set ℂ) : Set ℂ :=
+  (fun s ↦ (Real.sign lam : ℂ) * l.zOf s) '' S
+
+/-- For `λ < 0` and `s ∈ R`, the argument `(sgn λ)·z(s)` lies in the closed lower half-plane. -/
+private lemma argImage_im_nonpos (l : LadderParams) {lam : ℝ} (hlam : lam < 0)
+    {S : Set ℂ} (hS : S ⊆ l.R) : ∀ w ∈ argImage l lam S, w.im ≤ 0 := by
+  rintro w ⟨s, hs, rfl⟩
+  rw [Real.sign_of_neg hlam]
+  simp only [Complex.ofReal_neg, Complex.ofReal_one, neg_mul, one_mul, Complex.neg_im]
+  rw [neg_nonpos]; exact l.zOf_im_nonneg (hS hs).1
+
+/-- For `s ∈ R`, the argument `(sgn λ)·z(s)` has real part in `[-1, 1]`. -/
+private lemma argImage_abs_re_le (l : LadderParams) {lam : ℝ} (hlam : lam < 0)
+    {S : Set ℂ} (hS : S ⊆ l.R) : ∀ w ∈ argImage l lam S, |w.re| ≤ 1 := by
+  rintro w ⟨s, hs, rfl⟩
+  rw [Real.sign_of_neg hlam]
+  simp only [Complex.ofReal_neg, Complex.ofReal_one, neg_mul, one_mul, Complex.neg_re,
+    abs_neg]
+  rw [l.zOf_re, abs_div, abs_of_pos l.hT]
+  rw [div_le_one l.hT]
+  exact (hS hs).2
+
+/-- For `λ > 0` the argument `(sgn λ)·z(s)` lies in the upper half-plane, where `Φ^\circ`/`Φ^\star`
+are analytic; for `λ < 0` it lies in the lower half-plane, analytic away from the poles `n -
+iν/(2π)` (which `s ∈ R` avoids precisely when `(sgn λ)·z(s) ≠ n - iν/(2π)`). -/
+private lemma analyticAt_Phi_circ_comp_zOf (l : LadderParams) {lam ε : ℝ} (hlam : lam ≠ 0)
+    {z : ℂ} (hz : z.re ≤ 1)
+    (hnp : lam < 0 → ∀ n : ℤ, (Real.sign lam : ℂ) * l.zOf z ≠ (n : ℂ) - I * |lam| / (2 * π)) :
+    AnalyticAt ℂ (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z := by
+  rcases hlam.lt_or_gt with hneg | hpos
+  · exact (Phi_circ.analyticAt_of_not_pole |lam| ε _ (hnp hneg)).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+  · have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hpos
+    have him : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+      rw [hsign, one_mul]; exact l.zOf_im_nonneg hz
+    exact (Phi_circ.analyticAt_of_im_nonneg |lam| ε _ (abs_pos.mpr hpos.ne') him).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+
+private lemma analyticAt_Phi_star_comp_zOf (l : LadderParams) {lam ε : ℝ} (hlam : lam ≠ 0)
+    {z : ℂ} (hz : z.re ≤ 1)
+    (hnp : lam < 0 → ∀ n : ℤ, (Real.sign lam : ℂ) * l.zOf z ≠ (n : ℂ) - I * |lam| / (2 * π)) :
+    AnalyticAt ℂ (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z := by
+  rcases hlam.lt_or_gt with hneg | hpos
+  · exact (Phi_star.analyticAt_of_not_pole |lam| ε _ (hnp hneg)).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+  · have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hpos
+    have him : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+      rw [hsign, one_mul]; exact l.zOf_im_nonneg hz
+    exact (Phi_star.analyticAt_of_im_nonneg |lam| ε _ (abs_pos.mpr hpos.ne') him).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+
+/-- For `λ ≠ 0`, the factor `Φ^\circ(sgn λ · z(s))` is analytic and uniformly bounded on a subset
+`S` of `R`: for `λ > 0` the argument has `Im ≥ 0`; for `λ < 0` it has `Im ≤ 0` and keeps a uniform
+distance from the poles (hypothesis `hgap`). Hence `Φ^\circ(sgn λ · z(s)) · F · x₀^s` inherits
+`IsBoundedNoPolesOn` from `F · x₀^s`. -/
+private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : lam ≠ 0) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
     {S : Set ℂ} (hS : S ⊆ l.R)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S)
-    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S) :
+    (hgap : lam < 0 → ∃ d > 0, ∀ s ∈ S, ∀ n : ℤ,
+      d ≤ ‖(Real.sign lam : ℂ) * l.zOf s - ((n : ℂ) - I * |lam| / (2 * π))‖) :
+    IsBoundedNoPolesOn
+      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam
+  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
+  have hnp : lam < 0 → ∀ s ∈ S, ∀ n : ℤ,
+      (Real.sign lam : ℂ) * l.zOf s ≠ (n : ℂ) - I * |lam| / (2 * π) := by
+    intro hneg s hs n
+    obtain ⟨d, hd_pos, hd⟩ := hgap hneg
+    intro hcontra; have := hd s hs n; rw [hcontra, sub_self, norm_zero] at this; linarith
+  obtain ⟨C, hC⟩ : ∃ C : ℝ, ∀ z ∈ S, ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ ≤ C := by
+    rcases hlam.lt_or_gt with hneg | hpos
+    · obtain ⟨C, hC⟩ := exists_norm_Phi_circ_bound_lower (ε := ε) hν
+        (W := argImage l lam S) (argImage_im_nonpos l hneg hS) (argImage_abs_re_le l hneg hS)
+        (by obtain ⟨d, hd_pos, hd⟩ := hgap hneg
+            exact ⟨d, hd_pos, by rintro w ⟨s, hs, rfl⟩ n; exact hd s hs n⟩)
+      exact ⟨C, fun z hz ↦ hC _ ⟨z, hz, rfl⟩⟩
+    · obtain ⟨C, hC⟩ := exists_norm_Phi_circ_bound hpos ε
+      exact ⟨C, fun z hz ↦ by
+        rw [sign_cast_one_of_pos hpos, one_mul]
+        exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)⟩
+  simp only [mul_assoc]
+  exact hF_bdd.analytic_mul (C := C)
+    (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
+    (fun z hz ↦ analyticAt_Phi_circ_comp_zOf l hlam (hS hz).1 (fun hneg n ↦ hnp hneg z hz n))
+    hC
+
+/-- For `λ ≠ 0`, the factor `sgn λ · Φ^\star(sgn λ · z(s))` is analytic and `O(|z(s)|)` on a subset
+`S` of `R` (for `λ < 0` away from the poles, via `hgap`). Combined with the weighted bound on
+`z(s) · F · x₀^s`, the product `sgn λ · Φ^\star(sgn λ · z(s)) · F · x₀^s` is bounded with no
+poles. -/
+private lemma isBoundedNoPolesOn_Phi_star_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : lam ≠ 0) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {S : Set ℂ} (hS : S ⊆ l.R)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S)
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S)
+    (hgap : lam < 0 → ∃ d > 0, ∀ s ∈ S, ∀ n : ℤ,
+      d ≤ ‖(Real.sign lam : ℂ) * l.zOf s - ((n : ℂ) - I * |lam| / (2 * π))‖) :
     IsBoundedNoPolesOn
       (fun s ↦ (Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) *
         F s * (x₀ : ℂ) ^ s) S := by
-  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam
   have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
-  obtain ⟨C, hC⟩ := exists_norm_Phi_star_bound hlam ε
-  have him : ∀ z ∈ S, (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
-    intro z hz
-    rw [hsign, one_mul]; exact l.zOf_im_nonneg (hS hz).1
+  have hnp : lam < 0 → ∀ s ∈ S, ∀ n : ℤ,
+      (Real.sign lam : ℂ) * l.zOf s ≠ (n : ℂ) - I * |lam| / (2 * π) := by
+    intro hneg s hs n
+    obtain ⟨d, hd_pos, hd⟩ := hgap hneg
+    intro hcontra; have := hd s hs n; rw [hcontra, sub_self, norm_zero] at this; linarith
+  obtain ⟨C, hC⟩ : ∃ C : ℝ, ∀ z ∈ S,
+      ‖(Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ ≤
+        C * (‖l.zOf z‖ + 1) := by
+    obtain ⟨C, hC⟩ : ∃ C : ℝ, ∀ z ∈ S,
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ ≤ C * (‖l.zOf z‖ + 1) := by
+      rcases hlam.lt_or_gt with hneg | hpos
+      · obtain ⟨C, hC⟩ := exists_norm_Phi_star_bound_lower (ε := ε) hν
+          (W := argImage l lam S) (argImage_im_nonpos l hneg hS) (argImage_abs_re_le l hneg hS)
+          (by obtain ⟨d, hd_pos, hd⟩ := hgap hneg
+              exact ⟨d, hd_pos, by rintro w ⟨s, hs, rfl⟩ n; exact hd s hs n⟩)
+        refine ⟨C, fun z hz ↦ ?_⟩
+        have := hC _ ⟨z, hz, rfl⟩
+        rwa [show ‖(Real.sign lam : ℂ) * l.zOf z‖ = ‖l.zOf z‖ by
+          rw [Real.sign_of_neg hneg]; simp] at this
+      · obtain ⟨C, hC⟩ := exists_norm_Phi_star_bound hpos ε
+        refine ⟨C, fun z hz ↦ ?_⟩
+        have := hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+        rwa [sign_cast_one_of_pos hpos, one_mul]
+    refine ⟨|C|, fun z hz ↦ ?_⟩
+    rw [norm_mul]
+    calc ‖(Real.sign lam : ℂ)‖ * ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖
+        ≤ 1 * (C * (‖l.zOf z‖ + 1)) :=
+          mul_le_mul (norm_sign_le lam) (hC z hz) (norm_nonneg _) (by norm_num)
+      _ ≤ |C| * (‖l.zOf z‖ + 1) := by
+          rw [one_mul]
+          exact mul_le_mul_of_nonneg_right (le_abs_self C) (by positivity)
   have hwh : IsBoundedNoPolesOn (fun s ↦ l.zOf s * (F s * (x₀ : ℂ) ^ s)) S := by
     simpa only [mul_assoc] using hFw_bdd
   rw [show (fun s ↦ (Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) *
           F s * (x₀ : ℂ) ^ s)
         = (fun s ↦ ((Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) *
           (F s * (x₀ : ℂ) ^ s)) from funext fun s ↦ by ring]
-  refine hF_bdd.linear_mul (w := l.zOf) (C := C) hwh
+  exact hF_bdd.linear_mul (w := l.zOf) (C := C) hwh
     (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
-    (fun z hz ↦ ?_) (fun z hz ↦ ?_)
-  · exact analyticAt_const.mul
-      ((Phi_star.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
-        (him z hz)).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl)
-  · rw [norm_mul, hsign]
-    simp only [norm_one, one_mul]
-    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+    (fun z hz ↦ analyticAt_const.mul
+      (analyticAt_Phi_star_comp_zOf l hlam (hS hz).1 (fun hneg n ↦ hnp hneg z hz n)))
+    hC
+
+/-- The affine `B`-argument `s ↦ -2π·I·(-z(s) - m) + |λ|` as a function of `s`, and its derivative
+`2π/T ≠ 0` at any point: the linear coefficient `2π·I` of `z(s) = (s-1)/(iT)` survives. -/
+private lemma deriv_Barg_comp_zOf_ne (l : LadderParams) {lam : ℝ} (m : ℤ) (z : ℂ) :
+    deriv (fun s ↦ -2 * (π : ℂ) * I * (-(l.zOf s) - m) + ((|lam| : ℝ) : ℂ)) z =
+      2 * (π : ℂ) * I * (1 / (Complex.I * l.T)) := by
+  have hd : HasDerivAt (fun s ↦ -2 * (π : ℂ) * I * (-(l.zOf s) - (m : ℂ)) + ((|lam| : ℝ) : ℂ))
+      (-2 * (π : ℂ) * I * (-(1 / (Complex.I * l.T)))) z := by
+    have hz : HasDerivAt l.zOf (1 / (Complex.I * l.T)) z := by
+      unfold LadderParams.zOf
+      simpa using ((hasDerivAt_id z).sub_const 1).div_const (Complex.I * l.T)
+    have := (((hz.neg).sub_const (m : ℂ)).const_mul (-2 * (π : ℂ) * I)).add_const (((|lam| : ℝ) : ℂ))
+    simpa using this
+  rw [hd.deriv]; ring
+
+/-- The "corner cancellation" identity for `λ < 0`: near a point `z` whose argument `(sgn λ)·z(z) =
+n - i|λ|/(2π)` is a pole of `Φ^\circ`/`Φ^\star` (necessarily `|n| = 1` on `∂R`), the `m = ±1` poles
+cancel in `Φ_λ`, which agrees on a punctured neighborhood with the analytic
+`n·Φ^\star_{|λ|}(-z(s) - n)` (whose argument tends to `-i|λ|/(2π)`, the `m=0` non-pole of `Φ^\star`). -/
+private lemma Phi_lambda_comp_zOf_eq_corner (l : LadderParams) {lam ε : ℝ} (hneg : lam < 0)
+    {z : ℂ} (n : ℤ) (hn_ne : |n| = 1)
+    (hn : (Real.sign lam : ℂ) * l.zOf z = (n : ℂ) - I * |lam| / (2 * π)) :
+    (fun s ↦ Phi_lambda lam ε (l.zOf s)) =ᶠ[nhdsWithin z {z}ᶜ]
+      (fun s ↦ (n : ℂ) * Phi_star |lam| ε (-(l.zOf s) - n)) := by
+  classical
+  set B : ℂ → ℤ → ℂ := fun s m ↦ -2 * (π : ℂ) * I * (-(l.zOf s) - (m : ℂ)) + ((|lam| : ℝ) : ℂ)
+    with hB_def
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hneg.ne
+  have hpi : (π : ℝ) ≠ 0 := pi_ne_zero
+  have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+  rw [hsign, neg_one_mul, neg_eq_iff_eq_neg] at hn
+  have hn_ne' : n ≠ 0 := by
+    rcases abs_eq (by norm_num : (0:ℤ) ≤ 1) |>.mp hn_ne with rfl | rfl <;> norm_num
+  have hnC_ne : (n : ℂ) ≠ 0 := by exact_mod_cast hn_ne'
+  -- `Re z(z) = -n`
+  have hzre : (l.zOf z).re = -(n : ℝ) := by
+    rw [hn]; simp [Complex.sub_re, Complex.div_re, Complex.mul_re, Complex.normSq]
+  have hcz : ContinuousAt l.zOf z := by
+    have h := (l.analyticAt_zOf 1 z).continuousAt
+    simp only [one_mul] at h; exact h
+  have hcont_re : ContinuousAt (fun s ↦ (l.zOf s).re) z :=
+    Complex.continuous_re.continuousAt.comp hcz
+  -- the sign of `Re z(s)` is constant `= -n` near `z`
+  have hsgn_ev : ∀ᶠ s in nhdsWithin z {z}ᶜ,
+      Real.sign ((l.zOf s).re) = -(n : ℝ) := by
+    rcases abs_eq (by norm_num : (0:ℤ) ≤ 1) |>.mp hn_ne with rfl | rfl
+    · have hz0 : (fun s ↦ (l.zOf s).re) z < 0 := by change (l.zOf z).re < 0; rw [hzre]; norm_num
+      filter_upwards [(hcont_re.eventually_lt_const hz0).filter_mono nhdsWithin_le_nhds] with s hs
+      rw [Real.sign_of_neg hs]; push_cast; norm_num
+    · have hz0 : (0 : ℝ) < (fun s ↦ (l.zOf s).re) z := by change (0:ℝ) < (l.zOf z).re; rw [hzre]; norm_num
+      filter_upwards [(hcont_re.eventually_const_lt hz0).filter_mono nhdsWithin_le_nhds] with s hs
+      rw [Real.sign_of_pos hs]; push_cast; norm_num
+  -- analyticity of `s ↦ z(s)` (unfolding the `1 *` from `analyticAt_zOf`)
+  have hzOf_an : AnalyticAt ℂ l.zOf z := by
+    have h := l.analyticAt_zOf 1 z; simp only [one_mul] at h; exact h
+  -- the `B`-arguments are analytic in `s`
+  have hBarg_an (m : ℤ) : AnalyticAt ℂ (fun s ↦ B s m) z := by
+    rw [hB_def]; simp only []
+    exact ((analyticAt_const.mul (hzOf_an.neg.sub analyticAt_const)).add analyticAt_const)
+  -- at `z`: `B z m = 2π·I·(m - n)`, nonzero iff `m ≠ n`
+  have hBarg_at (m : ℤ) (hm : m ≠ n) : B z m ≠ 0 := by
+    have heq : B z m = 2 * (π : ℂ) * I * ((m : ℂ) - n) := by
+      rw [hB_def]; simp only []; rw [hn]
+      have hpiC : (π : ℂ) ≠ 0 := by exact_mod_cast hpi
+      have hI : I * I = -1 := Complex.I_mul_I
+      field_simp
+      linear_combination ((|lam| : ℝ) : ℂ) * hI
+    rw [heq]
+    have : (m : ℂ) - n ≠ 0 := by
+      rw [show ((m : ℂ) - n) = ((m - n : ℤ) : ℂ) by push_cast; ring]
+      exact_mod_cast sub_ne_zero.mpr hm
+    simp [pi_ne_zero, I_ne_zero, this]
+  have hB0_ev : ∀ᶠ s in nhdsWithin z {z}ᶜ, B s 0 ≠ 0 := by
+    have h := (hBarg_an 0).continuousAt.eventually_ne (hBarg_at 0 (by simpa using hn_ne'.symm))
+    exact h.filter_mono nhdsWithin_le_nhds
+  -- the shifted `B`-argument vanishes at `z`, but its zeros are isolated (nonzero derivative)
+  have hBn_ev : ∀ᶠ s in nhdsWithin z {z}ᶜ, B s n ≠ 0 := by
+    rcases (hBarg_an n).eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+    · exfalso
+      have hderiv0 : deriv (fun s ↦ B s n) z = 0 := by
+        rw [Filter.EventuallyEq.deriv_eq (hzero.mono (fun s hs ↦ hs))]; simp
+      rw [hB_def] at hderiv0
+      rw [deriv_Barg_comp_zOf_ne l n z] at hderiv0
+      have hne0 : (2 * (π : ℂ) * I * (1 / (Complex.I * l.T))) ≠ 0 := by
+        simp [pi_ne_zero, I_ne_zero, l.hT.ne']
+      exact hne0 hderiv0
+    · exact hne
+  -- assemble
+  filter_upwards [hsgn_ev, hB0_ev, hBn_ev] with s hsgn hB0 hBn
+  rw [hB_def] at hB0 hBn
+  simp only [Int.cast_zero, sub_zero] at hB0
+  have hsign_s : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+  have haff := phi_star_affine_periodic |lam| ε hν (-(l.zOf s)) n hB0 hBn
+  simp only [Phi_lambda, hsign_s, hsgn]
+  have hn_sq : (n : ℂ) * n = 1 := by
+    rcases abs_eq (by norm_num : (0:ℤ) ≤ 1) |>.mp hn_ne with rfl | rfl <;> push_cast <;> ring
+  push_cast
+  rw [haff]
+  ring_nf
+  linear_combination (-(Phi_circ |lam| ε (-l.zOf s))) * hn_sq
 
 /-- The order of `Φ_λ(z(s)) · F · x₀^s` at a point `z ∈ R` is `≥ 0`: `Φ_λ ∘ z` has a `sgn`
 discontinuity at `Im s = 0` (so the product may be non-meromorphic there, giving junk order `0`),
 but it is bounded near `z` (`Φ^\circ, Φ^\star` are continuous at `z(z)` and `F · x₀^s` converges
 since its order is `≥ 0`), so the order is `≥ 0`. -/
 private lemma meromorphicOrderAt_Phi_lambda_mul_nonneg (l : LadderParams) {F : ℂ → ℂ}
-    {lam ε x₀ : ℝ} (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {lam ε x₀ : ℝ} (hlam : lam ≠ 0) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
     {z : ℂ} (hz : z ∈ l.R)
+    (hn0 : lam < 0 → (Real.sign lam : ℂ) * l.zOf z ≠ -I * |lam| / (2 * π))
     (hFord : 0 ≤ meromorphicOrderAt (fun s ↦ F s * (x₀ : ℂ) ^ s) z) :
     0 ≤ meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) z := by
-  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam
   have hx₀_pos : (0 : ℝ) < x₀ := by linarith
-  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
-  have hsign_im : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
-    rw [hsign, one_mul]; exact l.zOf_im_nonneg hz.1
-  have hφc : ContinuousAt (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z :=
-    ((Phi_circ.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
-      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt
-  have hφs : ContinuousAt (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z :=
-    ((Phi_star.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
-      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt
   have hFp_mero : MeromorphicAt (fun s ↦ F s * (x₀ : ℂ) ^ s) z :=
     (hF_mero z hz).mul (meromorphicAt_rpow hx₀_pos z)
-  obtain ⟨c, hc⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg hFp_mero hFord
-  set L : ℝ := (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ +
-      ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖) * ‖c‖ with hLdef
-  have hg : Filter.Tendsto
-      (fun s ↦ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
-        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖)
-      (nhdsWithin z {z}ᶜ) (nhds L) :=
-    ((((hφc.norm).tendsto.mono_left nhdsWithin_le_nhds).add
-      ((hφs.norm).tendsto.mono_left nhdsWithin_le_nhds)).mul hc.norm)
-  refine meromorphicOrderAt_nonneg_of_eventually_bounded (M := L + 1) ?_
-  filter_upwards [hg.eventually_lt_const (lt_add_one L)] with s hs
-  calc ‖Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s‖
-      = ‖Phi_lambda lam ε (l.zOf s)‖ * ‖F s * (x₀ : ℂ) ^ s‖ := by rw [mul_assoc, norm_mul]
-    _ ≤ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
-          ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖ :=
-        mul_le_mul_of_nonneg_right (norm_Phi_lambda_le_sum lam ε (l.zOf s)) (norm_nonneg _)
-    _ ≤ L + 1 := le_of_lt hs
+  -- the bound-via-continuity argument, given continuity of the two `Φ`-factors at `z`
+  have order_of_cont :
+      (ContinuousAt (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z) →
+      (ContinuousAt (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z) →
+      0 ≤ meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) z := by
+    intro hφc hφs
+    obtain ⟨c, hc⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg hFp_mero hFord
+    set L : ℝ := (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ +
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖) * ‖c‖ with hLdef
+    have hg : Filter.Tendsto
+        (fun s ↦ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
+          ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖)
+        (nhdsWithin z {z}ᶜ) (nhds L) :=
+      ((((hφc.norm).tendsto.mono_left nhdsWithin_le_nhds).add
+        ((hφs.norm).tendsto.mono_left nhdsWithin_le_nhds)).mul hc.norm)
+    refine meromorphicOrderAt_nonneg_of_eventually_bounded (M := L + 1) ?_
+    filter_upwards [hg.eventually_lt_const (lt_add_one L)] with s hs
+    calc ‖Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s‖
+        = ‖Phi_lambda lam ε (l.zOf s)‖ * ‖F s * (x₀ : ℂ) ^ s‖ := by rw [mul_assoc, norm_mul]
+      _ ≤ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
+            ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖ :=
+          mul_le_mul_of_nonneg_right (norm_Phi_lambda_le_sum lam ε (l.zOf s)) (norm_nonneg _)
+      _ ≤ L + 1 := le_of_lt hs
+  rcases hlam.lt_or_gt with hneg | hpos
+  · -- `λ < 0`
+    by_cases hpole : ∃ n : ℤ, (Real.sign lam : ℂ) * l.zOf z = (n : ℂ) - I * |lam| / (2 * π)
+    · -- corner: `Φ_λ` cancels the `m = ±1` poles
+      obtain ⟨n, hn⟩ := hpole
+      have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+      have hn_ne : |n| = 1 := by
+        have hre : (n : ℝ) = ((Real.sign lam : ℂ) * l.zOf z).re := by
+          rw [hn]; simp [Complex.sub_re, Complex.div_re, Complex.mul_re, Complex.normSq]
+        have hle : |(n : ℝ)| ≤ 1 := by
+          rw [hre, hsign, neg_one_mul, Complex.neg_re, abs_neg, l.zOf_re, abs_div, abs_of_pos l.hT,
+            div_le_one l.hT]
+          exact hz.2
+        have hn0' : n ≠ 0 := by
+          rintro rfl; exact hn0 hneg (by rw [hn]; push_cast; ring)
+        have hZle : |n| ≤ 1 := by
+          rw [← Int.cast_le (R := ℝ), Int.cast_abs, Int.cast_one]; exact hle
+        have hZge : (1 : ℤ) ≤ |n| := Int.one_le_abs hn0'
+        omega
+      have heq := Phi_lambda_comp_zOf_eq_corner l (ε := ε) hneg n hn_ne hn
+      have hcongr : (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s)
+          =ᶠ[nhdsWithin z {z}ᶜ]
+          (fun s ↦ (n : ℂ) * Phi_star |lam| ε (-(l.zOf s) - n) * F s * (x₀ : ℂ) ^ s) := by
+        filter_upwards [heq] with s hs; rw [hs]
+      rw [meromorphicOrderAt_congr hcongr]
+      -- the corner replacement is analytic-`Φ` × meromorphic-`F·x₀^s`, so order `≥ 0`
+      have harg : AnalyticAt ℂ (fun s ↦ -(l.zOf s) - (n : ℂ)) z := by
+        have h := l.analyticAt_zOf 1 z; simp only [one_mul] at h
+        exact h.neg.sub analyticAt_const
+      have h0 : -(l.zOf z) - (n : ℂ) = -I * |lam| / (2 * π) := by
+        rw [hsign, neg_one_mul] at hn
+        have hz' : l.zOf z = -((n : ℂ) - I * |lam| / (2 * π)) := by rw [← hn]; ring
+        rw [hz']; ring
+      have hg_an : AnalyticAt ℂ (fun s ↦ (n : ℂ) * Phi_star |lam| ε (-(l.zOf s) - n)) z := by
+        refine analyticAt_const.mul ?_
+        refine (Phi_star.analyticAt_of_not_pole_nz |lam| ε _ ?_).comp_of_eq harg rfl
+        intro m hm hcontra
+        -- `-z(z) - n = -i|λ|/(2π) = m - i|λ|/(2π)` forces `m = 0`, contradicting `hm`
+        rw [h0] at hcontra
+        apply hm
+        have hmC : (m : ℂ) = 0 := by
+          have := sub_eq_zero.mpr hcontra; ring_nf at this ⊢
+          linear_combination -this
+        exact_mod_cast hmC
+      have hmul : (fun s ↦ (n : ℂ) * Phi_star |lam| ε (-(l.zOf s) - n) * F s * (x₀ : ℂ) ^ s)
+          = (fun s ↦ (n : ℂ) * Phi_star |lam| ε (-(l.zOf s) - n)) * (fun s ↦ F s * (x₀ : ℂ) ^ s) :=
+        funext fun s ↦ by simp only [Pi.mul_apply]; ring
+      rw [hmul, meromorphicOrderAt_mul hg_an.meromorphicAt hFp_mero]
+      exact add_nonneg hg_an.meromorphicOrderAt_nonneg hFord
+    · -- non-corner: `Φ^\circ`, `Φ^\star` are analytic (off-pole), continuous
+      simp only [not_exists] at hpole
+      refine order_of_cont
+        ((analyticAt_Phi_circ_comp_zOf l hlam hz.1 (fun _ ↦ hpole)).continuousAt)
+        ((analyticAt_Phi_star_comp_zOf l hlam hz.1 (fun _ ↦ hpole)).continuousAt)
+  · -- `λ > 0`: argument in the closed upper half-plane, both factors analytic there
+    have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hpos
+    have hsign_im : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+      rw [hsign, one_mul]; exact l.zOf_im_nonneg hz.1
+    refine order_of_cont
+      (((Phi_circ.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
+        (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt)
+      (((Phi_star.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
+        (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt)
 
-/-- For `λ > 0`, the factor `Φ_λ(z(s))` is `O(|z(s)|)` on `R` (its argument has `Im ≥ 0`), so on a
-subset of `R` the product `Φ_λ(z(s)) · F · x₀^s` is bounded with no poles, given the bound on
-`F · x₀^s` and the growth-weighted bound on `z(s) · F · x₀^s`. -/
+/-- A real point `w` (with `|Re w| ≤ 1`) keeps distance `≥ ν/(2π)` from every pole `n - iν/(2π)`. -/
+private lemma dist_pole_of_im_zero {ν : ℝ} (_hν : 0 < ν) {w : ℂ} (hw : w.im = 0) (n : ℤ) :
+    ν / (2 * π) ≤ ‖w - ((n : ℂ) - I * ν / (2 * π))‖ := by
+  refine le_trans ?_ (Complex.abs_im_le_norm _)
+  rw [Complex.sub_im, hw, pole_im_eq]
+  rw [show (0 : ℝ) - -ν / (2 * π) = ν / (2 * π) by ring]
+  exact le_abs_self _
+
+/-- For `λ ≠ 0` and `ε = ±1`, `Φ_λ(z(s))` is `O(|z(s)|)` on `∂R`. For `λ > 0` this is the
+upper-half-plane bound `norm_Phi_lambda_le_of_im_nonneg`. For `λ < 0` we split `∂R`:
+* the right edge `Re s = 1` maps to a real `z(s)` (`Im z(s) = 0`), whose argument stays a distance
+  `|λ|/(2π)` from the poles, so the lower-half-plane bounds apply;
+* the top/bottom edges `Im s = ±T` map to `±1 + i·(1-Re s)/T`, where `‖Φ_λ‖ ≤ Im z(s) ≤ ‖z(s)‖` by
+  the corner-cancellation bounds (`norm_Phi_lambda_{one,neg_one}_add_I_mul_le_of_neg`), except at the
+  single corner `(1-|λ|T/(2π)) ± iT`, where the finite value is bounded by `norm_Phi_lambda_le_sum`
+  and absorbed into the constant. -/
+private lemma exists_norm_Phi_lambda_le_Rboundary (l : LadderParams) {lam ε : ℝ} (hlam : lam ≠ 0)
+    (hε : ε = 1 ∨ ε = -1) :
+    ∃ Cl : ℝ, ∀ z ∈ l.Rboundary,
+      ‖Phi_lambda lam ε (l.zOf z)‖ ≤ Cl * (‖l.zOf z‖ + 1) := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam
+  rcases hlam.lt_or_gt with hneg | hpos
+  · -- `λ < 0`
+    have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+    -- (a) bound `Φ^\circ`, `Φ^\star` on the real-axis segment image `{Im = 0, |Re| ≤ 1}`
+    have hseg_gap : ∃ d > 0, ∀ w ∈ {w : ℂ | w.im = 0 ∧ |w.re| ≤ 1}, ∀ n : ℤ,
+        d ≤ ‖w - ((n : ℂ) - I * |lam| / (2 * π))‖ :=
+      ⟨|lam| / (2 * π), by positivity, fun w hw n ↦ dist_pole_of_im_zero hν hw.1 n⟩
+    obtain ⟨Cc, hCc⟩ := exists_norm_Phi_circ_bound_lower (ε := ε) hν
+      (W := {w : ℂ | w.im = 0 ∧ |w.re| ≤ 1}) (fun w hw ↦ le_of_eq hw.1) (fun w hw ↦ hw.2) hseg_gap
+    obtain ⟨Cs, hCs⟩ := exists_norm_Phi_star_bound_lower (ε := ε) hν
+      (W := {w : ℂ | w.im = 0 ∧ |w.re| ≤ 1}) (fun w hw ↦ le_of_eq hw.1) (fun w hw ↦ hw.2) hseg_gap
+    -- the (finite) values at the two corner poles, via the `sum` bound
+    set Vtop : ℝ := ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) *
+          (1 + I * (((1 - (1 - |lam| / (2 * π) * l.T)) / l.T : ℝ) : ℂ)))‖ +
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) *
+          (1 + I * (((1 - (1 - |lam| / (2 * π) * l.T)) / l.T : ℝ) : ℂ)))‖ with hVtop
+    set Vbot : ℝ := ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) *
+          (-1 + I * (((1 - (1 - |lam| / (2 * π) * l.T)) / l.T : ℝ) : ℂ)))‖ +
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) *
+          (-1 + I * (((1 - (1 - |lam| / (2 * π) * l.T)) / l.T : ℝ) : ℂ)))‖ with hVbot
+    -- uniform constant: `≥ |Cc|+|Cs|` (segment), `≥ 1` (edges), `≥` corner values
+    set Cl : ℝ := |Cc| + |Cs| + 1 + Vtop + Vbot with hCl_def
+    have hVtop_nonneg : 0 ≤ Vtop := by rw [hVtop]; positivity
+    have hVbot_nonneg : 0 ≤ Vbot := by rw [hVbot]; positivity
+    have hCl_nonneg : 0 ≤ Cl := by rw [hCl_def]; positivity
+    refine ⟨Cl, fun z hz ↦ ?_⟩
+    have hone_le : (1 : ℝ) ≤ ‖l.zOf z‖ + 1 := by linarith [norm_nonneg (l.zOf z)]
+    rcases hz with ⟨hre1, him_le⟩ | ⟨hre_le, him_eq⟩
+    · -- right edge `Re z = 1`: `z(z)` is real
+      have hzim : (l.zOf z).im = 0 := by rw [l.zOf_im, hre1]; simp
+      have hmem : (Real.sign lam : ℂ) * l.zOf z ∈ {w : ℂ | w.im = 0 ∧ |w.re| ≤ 1} := by
+        refine ⟨by rw [hsign]; simp [hzim], ?_⟩
+        rw [hsign, neg_one_mul, Complex.neg_re, abs_neg, l.zOf_re, abs_div, abs_of_pos l.hT,
+          div_le_one l.hT]
+        exact him_le
+      have hwnorm : ‖(Real.sign lam : ℂ) * l.zOf z‖ = ‖l.zOf z‖ := by rw [hsign]; simp
+      calc ‖Phi_lambda lam ε (l.zOf z)‖
+          ≤ ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ +
+              ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ := norm_Phi_lambda_le_sum lam ε _
+        _ ≤ Cc + Cs * (‖l.zOf z‖ + 1) := add_le_add (hCc _ hmem)
+              (by have := hCs _ hmem; rwa [hwnorm] at this)
+        _ ≤ Cl * (‖l.zOf z‖ + 1) := by
+            have hCcle : Cc ≤ |Cc| * (‖l.zOf z‖ + 1) :=
+              (le_abs_self Cc).trans (le_mul_of_one_le_right (abs_nonneg _) hone_le)
+            have hCsle : Cs * (‖l.zOf z‖ + 1) ≤ |Cs| * (‖l.zOf z‖ + 1) :=
+              mul_le_mul_of_nonneg_right (le_abs_self Cs) (by linarith)
+            have hslack : (1 + Vtop + Vbot) * (‖l.zOf z‖ + 1) ≥ 0 := by positivity
+            rw [hCl_def]; nlinarith [hCcle, hCsle, hslack]
+    · -- top/bottom edge `|Im z| = T`
+      set t : ℝ := (1 - z.re) / l.T with ht_def
+      have ht_nonneg : 0 ≤ t := div_nonneg (by linarith [hre_le]) l.hT.le
+      have hCl_one : (1 : ℝ) ≤ Cl := by rw [hCl_def]; nlinarith [abs_nonneg Cc, abs_nonneg Cs,
+        hVtop_nonneg, hVbot_nonneg]
+      -- the corner abscissa: when `t = |λ|/(2π)`, the `V*` arguments coincide with `t`
+      have htR : t = |lam| / (2 * π) → t = (1 - (1 - |lam| / (2 * π) * l.T)) / l.T := by
+        intro h; rw [h]; rw [eq_div_iff l.hT.ne']; ring
+      have hcorner (V : ℝ) (hV : 0 ≤ V) (hVle : V ≤ Cl) :
+          V ≤ Cl * (‖l.zOf z‖ + 1) := le_trans hVle (le_mul_of_one_le_right hCl_nonneg hone_le)
+      have hedge_le : t ≤ Cl * (‖l.zOf z‖ + 1) := by
+        have htle : t ≤ ‖l.zOf z‖ := by
+          have : t = (l.zOf z).im := by rw [ht_def, l.zOf_im]
+          rw [this]
+          exact le_trans (le_abs_self _) (Complex.abs_im_le_norm _)
+        nlinarith [htle, hCl_one, norm_nonneg (l.zOf z)]
+      rcases abs_eq l.hT.le |>.mp him_eq with hT | hT
+      · -- `Im z = T`: `z(z) = 1 + i t`
+        have hzv : l.zOf z = 1 + I * (t : ℂ) := by
+          have hzeq : z = (z.re : ℂ) + l.T * Complex.I := by apply Complex.ext <;> simp [hT]
+          rw [hzeq, l.zOf_top_hray]
+        by_cases hc : t = |lam| / (2 * π)
+        · refine le_trans (le_of_eq (by rw [hzv])) (le_trans (norm_Phi_lambda_le_sum lam ε _) ?_)
+          have hVeq : ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * (1 + I * (t : ℂ)))‖ +
+              ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * (1 + I * (t : ℂ)))‖ = Vtop := by
+            rw [hVtop, htR hc]
+          rw [hVeq]
+          exact hcorner Vtop hVtop_nonneg (by rw [hCl_def]; nlinarith [abs_nonneg Cc, abs_nonneg Cs,
+            hVbot_nonneg])
+        · refine le_trans (le_of_eq (by rw [hzv])) (le_trans ?_ hedge_le)
+          exact norm_Phi_lambda_one_add_I_mul_le_of_neg lam ε t hneg hε ht_nonneg hc
+      · -- `Im z = -T`: `z(z) = -1 + i t`
+        have hzv : l.zOf z = -1 + I * (t : ℂ) := by
+          have hzeq : z = (z.re : ℂ) - l.T * Complex.I := by apply Complex.ext <;> simp [hT]
+          rw [hzeq, l.zOf_bot_hray]
+        by_cases hc : t = |lam| / (2 * π)
+        · refine le_trans (le_of_eq (by rw [hzv])) (le_trans (norm_Phi_lambda_le_sum lam ε _) ?_)
+          have hVeq : ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * (-1 + I * (t : ℂ)))‖ +
+              ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * (-1 + I * (t : ℂ)))‖ = Vbot := by
+            rw [hVbot, htR hc]
+          rw [hVeq]
+          exact hcorner Vbot hVbot_nonneg (by rw [hCl_def]; nlinarith [abs_nonneg Cc, abs_nonneg Cs,
+            hVtop_nonneg])
+        · refine le_trans (le_of_eq (by rw [hzv])) (le_trans ?_ hedge_le)
+          exact norm_Phi_lambda_neg_one_add_I_mul_le_of_neg lam ε t hneg hε ht_nonneg hc
+  · -- `λ > 0`
+    obtain ⟨C, hC⟩ := norm_Phi_lambda_le_of_im_nonneg (ε := ε) hpos
+    exact ⟨C, fun z hz ↦ hC (l.zOf z) (l.zOf_im_nonneg (l.Rboundary_subset_R hz).1)⟩
+
+/-- For `λ ≠ 0`, the factor `Φ_λ(z(s))` is `O(|z(s)|)` on a subset of `R`, so the product
+`Φ_λ(z(s)) · F · x₀^s` is bounded with no poles, given the bound on `F · x₀^s`, the growth-weighted
+bound on `z(s) · F · x₀^s`, a uniform bound on `Φ_λ(z(s))` (`hCl_bdd`), and (for `λ < 0`) the
+`n = 0` non-pole condition (`hn0`). The latter two are vacuous/automatic for `λ > 0`. -/
 private lemma isBoundedNoPolesOn_Phi_lambda_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
-    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    (hlam : lam ≠ 0) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
     {S : Set ℂ} (hS : S ⊆ l.R)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S)
-    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S) :
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S)
+    (hCl_bdd : ∃ Cl : ℝ, ∀ z ∈ S, ‖Phi_lambda lam ε (l.zOf z)‖ ≤ Cl * (‖l.zOf z‖ + 1))
+    (hn0 : lam < 0 → ∀ z ∈ S,
+      (Real.sign lam : ℂ) * l.zOf z ≠ -I * |lam| / (2 * π)) :
     IsBoundedNoPolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
-  obtain ⟨Cl, hCl⟩ := norm_Phi_lambda_le_of_im_nonneg (ε := ε) hlam
+  obtain ⟨Cl, hCl⟩ := hCl_bdd
   obtain ⟨Mh, hMh⟩ := hF_bdd
   obtain ⟨Mwh, hMwh⟩ := hFw_bdd
   refine ⟨|Cl| * Mwh + |Cl| * Mh, fun z hz ↦ ⟨?_, ?_⟩⟩
   · simp only [mul_assoc]
-    refine norm_mul_le_of_linear_growth (hCl (l.zOf z) (l.zOf_im_nonneg (hS hz).1))
-      (hMh z hz).1 ?_
+    refine norm_mul_le_of_linear_growth (hCl z hz) (hMh z hz).1 ?_
     have h := (hMwh z hz).1
     change ‖l.zOf z * F z * (x₀ : ℂ) ^ z‖ ≤ Mwh at h
     rwa [mul_assoc, norm_mul] at h
-  · exact meromorphicOrderAt_Phi_lambda_mul_nonneg l hlam hx₀ hF_mero (hS hz) (hMh z hz).2
+  · exact meromorphicOrderAt_Phi_lambda_mul_nonneg l hlam hx₀ hF_mero (hS hz)
+      (fun hneg ↦ hn0 hneg z hz) (hMh z hz).2
+
+/-- For `λ < 0`, the imaginary part of the pole-distance: `(sgn λ)·z(s) = -z(s)` has imaginary part
+`-(1 - Re s)/T`, so its distance to any pole `n - i|λ|/(2π)` is at least `|(1 - Re s)/T - |λ|/(2π)|`
+(the gap in the imaginary coordinate). -/
+private lemma pole_dist_ge_im (l : LadderParams) {lam : ℝ} (hneg : lam < 0) (s : ℂ) (n : ℤ) :
+    |(1 - s.re) / l.T - |lam| / (2 * π)| ≤
+      ‖(Real.sign lam : ℂ) * l.zOf s - ((n : ℂ) - I * |lam| / (2 * π))‖ := by
+  refine le_trans (le_of_eq ?_) (Complex.abs_im_le_norm _)
+  have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+  rw [Complex.sub_im, hsign, neg_one_mul, Complex.neg_im, l.zOf_im, pole_im_eq]
+  rw [show -((1 - s.re) / l.T) - -|lam| / (2 * π) = -((1 - s.re) / l.T - |lam| / (2 * π)) by ring,
+    abs_neg]
+
+/-- The `L`-gap for `λ < 0`: on the ladder columns, `(sgn λ)·z(s)` keeps a uniform distance from all
+poles. The `hpole` hypothesis (`σ n ≠ 1 + λT/(2π)`) plus `σ n → -∞` (`exists_uniform_dist`) give a
+uniform gap in the abscissae, which transfers to the imaginary coordinate of the argument. -/
+private lemma gap_L_of_neg (l : LadderParams) {lam : ℝ} (hneg : lam < 0)
+    (hpole : ∀ n, l.σ n ≠ 1 + lam * l.T / (2 * π)) :
+    ∃ d > 0, ∀ s ∈ l.L, ∀ n : ℤ,
+      d ≤ ‖(Real.sign lam : ℂ) * l.zOf s - ((n : ℂ) - I * |lam| / (2 * π))‖ := by
+  obtain ⟨d, hd_pos, hd⟩ := exists_uniform_dist_of_tendsto_atBot l.hlim
+    (p := 1 + lam * l.T / (2 * π)) hpole
+  refine ⟨d / l.T, div_pos hd_pos l.hT, fun s hs n ↦ ?_⟩
+  obtain ⟨m, _, hsre, _⟩ := hs
+  refine le_trans ?_ (pole_dist_ge_im l hneg s n)
+  -- `|(1 - σ m)/T - |λ|/(2π)| = |σ m - (1 + λT/(2π))| / T ≥ d / T`
+  have hkey : (1 - s.re) / l.T - |lam| / (2 * π) = -(l.σ m - (1 + lam * l.T / (2 * π))) / l.T := by
+    rw [hsre, abs_of_neg hneg]; field_simp [l.hT.ne']; ring
+  rw [hkey, abs_div, abs_neg, abs_of_pos l.hT]
+  exact div_le_div_of_nonneg_right (hd m) l.hT.le
+
+/-- The `admissible_contour`-gap for `λ < 0`. On the contour, `(sgn λ)·z(s)` has real part in
+`[-δ/T, 0]` (off every nonzero pole column, since `δ/T < 1/4`) and, when its real part is `0`
+(only at `s = 1`), imaginary part `0 ≠ -|λ|/(2π)`. A uniform gap `min(δ/T, |λ|/(2π))` results. -/
+private lemma gap_contour_of_neg (l : LadderParams) {lam : ℝ} (hneg : lam < 0) :
+    ∃ d > 0, ∀ s ∈ l.admissible_contour, ∀ n : ℤ,
+      d ≤ ‖(Real.sign lam : ℂ) * l.zOf s - ((n : ℂ) - I * |lam| / (2 * π))‖ := by
+  have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+  obtain ⟨hδ0, hδT⟩ := l.hδ
+  have hνpos : (0 : ℝ) < |lam| := abs_pos.mpr hneg.ne
+  refine ⟨min (l.δ / l.T) (|lam| / (2 * π)),
+    lt_min (div_pos hδ0 l.hT) (by positivity), fun s hs n ↦ ?_⟩
+  -- `(sgn λ)·z(s)` has re `= -s.im/T`, im `= -(1-s.re)/T`
+  have hre_eq : ((Real.sign lam : ℂ) * l.zOf s).re = -(s.im / l.T) := by
+    rw [hsign, neg_one_mul, Complex.neg_re, l.zOf_re]
+  have him_eq : ((Real.sign lam : ℂ) * l.zOf s).im = -((1 - s.re) / l.T) := by
+    rw [hsign, neg_one_mul, Complex.neg_im, l.zOf_im]
+  have hδTle : l.δ / l.T ≤ 1 / 4 := by rw [div_le_iff₀ l.hT]; linarith
+  have hδT_pos : (0 : ℝ) < l.δ / l.T := div_pos hδ0 l.hT
+  rcases hs with ⟨hre_le, him⟩ | ⟨hre1, him_mem⟩
+  · -- `Im s = δ`: real part of the argument is `-δ/T ≠ 0`, distance to column `n` is `≥ δ/T`
+    refine le_trans (min_le_left _ _) (le_trans ?_ (Complex.abs_re_le_norm _))
+    rw [Complex.sub_re, hre_eq, pole_re_eq, him]
+    rcases eq_or_ne n 0 with rfl | hn0
+    · rw [Int.cast_zero, sub_zero, abs_neg, abs_of_pos hδT_pos]
+    · have hn1 : (1 : ℝ) ≤ |(n : ℝ)| := by
+        rw [← Int.cast_one, ← Int.cast_abs, Int.cast_le]; exact Int.one_le_abs hn0
+      rcases le_or_gt (0 : ℝ) (n : ℝ) with hnpos | hnneg
+      · rw [le_abs]; right
+        rw [abs_of_nonneg hnpos] at hn1; linarith
+      · rw [le_abs]; left
+        rw [abs_of_neg hnneg] at hn1; linarith
+  · -- `Re s = 1`, `Im s ∈ [0, δ]`: imaginary part of argument is `0`, so the imaginary gap works
+    rw [Set.mem_Icc] at him_mem
+    refine le_trans (min_le_right _ _) (le_trans ?_ (pole_dist_ge_im l hneg s n))
+    -- `(1 - Re s)/T = 0`, so the bound reduces to `|0 - |λ|/(2π)| = |λ|/(2π)`
+    rw [hre1, sub_self, zero_div, zero_sub, abs_neg, abs_of_pos (by positivity : (0:ℝ) < |lam|/(2*π))]
 
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
 theorem integral_Iic_one_eq_integral_Ioi_one_sub
@@ -4451,7 +5021,8 @@ private lemma integral_weighted_F_mul_cpow_hray_eq_Ioi (h : ℝ)
 theorem prop_5_2_a
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : 0 < lam) (_hε : ε = 1 ∨ ε = -1)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hpole : lam < 0 → ∀ n, l.σ n ≠ 1 + lam * l.T / (2 * π))
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
@@ -4520,22 +5091,52 @@ theorem prop_5_2_a
         rw [map_mul, Complex.conj_ofReal]; ring,
       Phi_circ_conj_neg, map_mul]
   case hG_bdd =>
+    -- on `∂R`, `(sgn λ)·z(z)` never hits the `n = 0` pole `-i|λ|/(2π)` (its `re` is `0` only when
+    -- `z.im = 0`, forcing `z.re = 1` and hence argument `im = 0 ≠ -|λ|/(2π)`)
+    have hn0 : lam < 0 → ∀ z ∈ l.Rboundary,
+        (Real.sign lam : ℂ) * l.zOf z ≠ -I * |lam| / (2 * π) := by
+      intro hneg z hz hcontra
+      have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
+      have hpoleeq : -I * ((|lam| : ℝ) : ℂ) / (2 * π) = ((0 : ℤ) : ℂ) - I * |lam| / (2 * π) := by
+        push_cast; ring
+      have him0 : ((Real.sign lam : ℂ) * l.zOf z).im = -((1 - z.re) / l.T) := by
+        rw [hsign, neg_one_mul, Complex.neg_im, l.zOf_im]
+      rw [hcontra, hpoleeq, pole_im_eq, neg_div] at him0
+      have hkey : (1 - z.re) / l.T = |lam| / (2 * π) := by linarith [him0]
+      -- but on `∂R` this forces `z.re = 1 - |λ|T/(2π) < 1` and `|z.im| = T`, impossible with `re = 1`
+      have hre0 : ((Real.sign lam : ℂ) * l.zOf z).re = -(z.im / l.T) := by
+        rw [hsign, neg_one_mul, Complex.neg_re, l.zOf_re]
+      rw [hcontra, hpoleeq, pole_re_eq] at hre0
+      have hzim0 : z.im = 0 := by
+        have hz0 : z.im / l.T = 0 := by push_cast at hre0; linarith [hre0]
+        rw [div_eq_zero_iff] at hz0; rcases hz0 with h | h
+        · exact h
+        · exact absurd h l.hT.ne'
+      rcases hz with ⟨hre1, _⟩ | ⟨_, him_eq⟩
+      · rw [hre1] at hkey; simp only [sub_self, zero_div] at hkey
+        have hpos : (0 : ℝ) < |lam| / (2 * π) := by positivity
+        linarith [hkey, hpos]
+      · rw [hzim0, abs_zero] at him_eq; exact l.hT.ne' him_eq.symm
     exact isBoundedNoPolesOn_Phi_lambda_mul l hlam hx₀ hF_mero l.Rboundary_subset_R
       (hF_bdd.mono (Set.subset_union_left.trans Set.subset_union_left))
       (hFw_bdd.mono (Set.subset_union_left.trans Set.subset_union_left))
+      (exists_norm_Phi_lambda_le_Rboundary l hlam hε) hn0
   case hGc_L =>
     exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.L_subset_R
-      (hF_bdd.mono Set.subset_union_right)
+      (hF_bdd.mono Set.subset_union_right) (fun hneg ↦ gap_L_of_neg l hneg (hpole hneg))
   case hGc_contour =>
     exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.admissible_contour_subset_R
       (hF_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
+      (fun hneg ↦ gap_contour_of_neg l hneg)
   case hGs_L =>
     exact isBoundedNoPolesOn_Phi_star_mul l hlam hx₀ hF_mero l.L_subset_R
       (hF_bdd.mono Set.subset_union_right) (hFw_bdd.mono Set.subset_union_right)
+      (fun hneg ↦ gap_L_of_neg l hneg (hpole hneg))
   case hGs_contour =>
     exact isBoundedNoPolesOn_Phi_star_mul l hlam hx₀ hF_mero l.admissible_contour_subset_R
       (hF_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
       (hFw_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
+      (fun hneg ↦ gap_contour_of_neg l hneg)
 
 @[blueprint
   "ch2-prop-5-2-b"
@@ -4694,7 +5295,8 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
 theorem prop_5_2
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : 0 < lam) (hε : ε = 1 ∨ ε = -1)
+    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hpole : lam < 0 → ∀ n, l.σ n ≠ 1 + lam * l.T / (2 * π))
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
@@ -4732,13 +5334,13 @@ theorem prop_5_2
             l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
           (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
               Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) := by
-    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hFw_bdd hx hfin hsimple hsimple_circ]
+    rw [prop_5_2_a hF_mero hF_symm hlam hε hpole hx₀ hF_bdd hFw_bdd hx hfin hsimple hsimple_circ]
     ring
   rw [hLHS]
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
-    (prop_5_2_b hF_mero hF_symm hlam.ne' hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
-    (prop_5_2_c hlam.ne')) ?_
+    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
+    (prop_5_2_c hlam)) ?_
   apply le_of_eq
   ring
 
