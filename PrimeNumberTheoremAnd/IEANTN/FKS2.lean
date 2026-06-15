@@ -3766,7 +3766,7 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
         (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
           (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
 
-private lemma exists_Eθ_pos {x₁ : ℝ} (hx₁ : 0 < x₁) : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := by
+private lemma exists_Eθ_pos {x₁ : ℝ} : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := by
   set N := Nat.floor x₁ + 1
   set a := (N : ℝ)
   set b := (N : ℝ) + 1 / 2;
@@ -3845,14 +3845,14 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
       · exact mul_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) );
     unfold μ_num_1; ring_nf at *;
     by_cases h : εθ_num x₁ = 0 <;> simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ];
-    · have := exists_Eθ_pos ( by linarith : 0 < x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+    · have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
       exact absurd ( this y hy₁ ) ( by norm_num [ h ] ; linarith );
     · nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
                     have := h_εθ_num ( Fin.last N );
                     rw [ h_b_end, Real.exp_log ( by linarith ) ] at this; exact le_trans ( Eθ_nonneg _ ( by linarith ) ) ( this _ le_rfl ) ; ) ( Ne.symm h ) ];
   · have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁ ; simp_all +decide [ μ_num_2 ];
     have hεθpos : 0 < εθ_num x₁ := by
-      have := exists_Eθ_pos ( show 0 < x₁ by linarith ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) y; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+      have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) y; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
       linarith;
     split_ifs <;> simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
     · exact absurd ‹_› ( not_le_of_gt hc );
