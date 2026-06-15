@@ -4074,11 +4074,11 @@ private lemma pole_re_eq (ν : ℝ) (n : ℤ) : ((n : ℂ) - I * ν / (2 * π)).
 
 /-- A point `n - iν/(2π)` has imaginary part `-ν/(2π)`. -/
 private lemma pole_im_eq (ν : ℝ) (n : ℤ) : ((n : ℂ) - I * ν / (2 * π)).im = -ν / (2 * π) := by
-  rw [show ((n : ℂ) - I * ν / (2 * π)) = ((n : ℝ) : ℂ) + ((-ν / (2 * π) : ℝ) : ℂ) * I by
-    push_cast; ring]
-  rw [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.ofReal_re, Complex.I_im,
-    Complex.ofReal_im, Complex.I_re]
-  ring
+  simp [Complex.sub_im, Complex.div_im, Complex.mul_im, Complex.normSq]; field_simp
+
+/-- `s ↦ z(s)` is analytic at `z` (the `c = 1` specialization of `LadderParams.analyticAt_zOf`). -/
+private lemma analyticAt_zOf_one (l : LadderParams) (z : ℂ) : AnalyticAt ℂ l.zOf z := by
+  simpa only [one_mul] using l.analyticAt_zOf 1 z
 
 /-- A compact "box" `{re ∈ [a,b], im ∈ [c,d]}` in `ℂ`, used to bound `Φ^\circ`/`Φ^\star` on the
 finitely-many ladder columns / contour segment of the closed lower half-plane that are not yet far
@@ -4357,10 +4357,8 @@ private lemma Phi_lambda_comp_zOf_eq_corner (l : LadderParams) {lam ε : ℝ} (h
   have hnC_ne : (n : ℂ) ≠ 0 := by exact_mod_cast hn_ne'
   -- `Re z(z) = -n`
   have hzre : (l.zOf z).re = -(n : ℝ) := by
-    rw [hn]; simp [Complex.sub_re, Complex.div_re, Complex.mul_re, Complex.normSq]
-  have hcz : ContinuousAt l.zOf z := by
-    have h := (l.analyticAt_zOf 1 z).continuousAt
-    simp only [one_mul] at h; exact h
+    rw [hn, Complex.neg_re, pole_re_eq]
+  have hcz : ContinuousAt l.zOf z := (analyticAt_zOf_one l z).continuousAt
   have hcont_re : ContinuousAt (fun s ↦ (l.zOf s).re) z :=
     Complex.continuous_re.continuousAt.comp hcz
   -- the sign of `Re z(s)` is constant `= -n` near `z`
@@ -4373,12 +4371,10 @@ private lemma Phi_lambda_comp_zOf_eq_corner (l : LadderParams) {lam ε : ℝ} (h
     · have hz0 : (0 : ℝ) < (fun s ↦ (l.zOf s).re) z := by change (0:ℝ) < (l.zOf z).re; rw [hzre]; norm_num
       filter_upwards [(hcont_re.eventually_const_lt hz0).filter_mono nhdsWithin_le_nhds] with s hs
       rw [Real.sign_of_pos hs]; push_cast; norm_num
-  -- analyticity of `s ↦ z(s)` (unfolding the `1 *` from `analyticAt_zOf`)
-  have hzOf_an : AnalyticAt ℂ l.zOf z := by
-    have h := l.analyticAt_zOf 1 z; simp only [one_mul] at h; exact h
+  have hzOf_an : AnalyticAt ℂ l.zOf z := analyticAt_zOf_one l z
   -- the `B`-arguments are analytic in `s`
   have hBarg_an (m : ℤ) : AnalyticAt ℂ (fun s ↦ B s m) z := by
-    rw [hB_def]; simp only []
+    rw [hB_def]
     exact ((analyticAt_const.mul (hzOf_an.neg.sub analyticAt_const)).add analyticAt_const)
   -- at `z`: `B z m = 2π·I·(m - n)`, nonzero iff `m ≠ n`
   have hBarg_at (m : ℤ) (hm : m ≠ n) : B z m ≠ 0 := by
@@ -4467,7 +4463,7 @@ private lemma meromorphicOrderAt_Phi_lambda_mul_nonneg (l : LadderParams) {F : �
       have hsign : (Real.sign lam : ℂ) = -1 := by rw [Real.sign_of_neg hneg]; norm_num
       have hn_ne : |n| = 1 := by
         have hre : (n : ℝ) = ((Real.sign lam : ℂ) * l.zOf z).re := by
-          rw [hn]; simp [Complex.sub_re, Complex.div_re, Complex.mul_re, Complex.normSq]
+          rw [hn, pole_re_eq]
         have hle : |(n : ℝ)| ≤ 1 := by
           rw [hre, hsign, neg_one_mul, Complex.neg_re, abs_neg, l.zOf_re, abs_div, abs_of_pos l.hT,
             div_le_one l.hT]
@@ -4485,9 +4481,8 @@ private lemma meromorphicOrderAt_Phi_lambda_mul_nonneg (l : LadderParams) {F : �
         filter_upwards [heq] with s hs; rw [hs]
       rw [meromorphicOrderAt_congr hcongr]
       -- the corner replacement is analytic-`Φ` × meromorphic-`F·x₀^s`, so order `≥ 0`
-      have harg : AnalyticAt ℂ (fun s ↦ -(l.zOf s) - (n : ℂ)) z := by
-        have h := l.analyticAt_zOf 1 z; simp only [one_mul] at h
-        exact h.neg.sub analyticAt_const
+      have harg : AnalyticAt ℂ (fun s ↦ -(l.zOf s) - (n : ℂ)) z :=
+        (analyticAt_zOf_one l z).neg.sub analyticAt_const
       have h0 : -(l.zOf z) - (n : ℂ) = -I * |lam| / (2 * π) := by
         rw [hsign, neg_one_mul] at hn
         have hz' : l.zOf z = -((n : ℂ) - I * |lam| / (2 * π)) := by rw [← hn]; ring
