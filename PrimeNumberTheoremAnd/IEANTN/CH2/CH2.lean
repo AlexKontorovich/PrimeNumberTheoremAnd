@@ -3306,6 +3306,36 @@ theorem LadderParams.sign_zOf_re (l : LadderParams) (s : ℂ) :
   · rw [h, zero_div]
   · rw [Real.sign_of_pos (div_pos h l.hT), Real.sign_of_pos h]
 
+/-- The rescaling intertwines conjugation with negation: `z(s̄) = -\overline{z(s)}`. -/
+theorem LadderParams.zOf_conj (l : LadderParams) (s : ℂ) :
+    l.zOf (starRingEnd ℂ s) = -(starRingEnd ℂ (l.zOf s)) := by
+  simp only [LadderParams.zOf, map_div₀, map_mul, map_sub, map_one, Complex.conj_I,
+    Complex.conj_ofReal]
+  field_simp
+
+/-- The rescaling is analytic everywhere (an affine map divided by the nonzero constant `iT`). -/
+theorem LadderParams.analyticAt_zOf (l : LadderParams) (c s : ℂ) :
+    AnalyticAt ℂ (fun w : ℂ => c * l.zOf w) s := by
+  have hden : (Complex.I * (l.T : ℂ)) ≠ 0 := by
+    simp only [ne_eq, mul_eq_zero, Complex.I_ne_zero, Complex.ofReal_eq_zero, false_or]
+    exact l.hT.ne'
+  unfold LadderParams.zOf
+  exact analyticAt_const.mul ((analyticAt_id.sub analyticAt_const).div analyticAt_const hden)
+
+/-- Conjugation symmetry of `Φ^\star`: `Φ^\star(-\overline{w}) = -\overline{Φ^\star(w)}`. This is the
+complex-argument generalization of `Phi_star_conj_symm`. -/
+theorem Phi_star_conj_neg (ν ε : ℝ) (w : ℂ) :
+    Phi_star ν ε (-(starRingEnd ℂ w)) = -(starRingEnd ℂ (Phi_star ν ε w)) := by
+  dsimp [Phi_star]
+  simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
+  rw [B_conj]
+  simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
+  rw [B_conj]
+  simp only [Complex.conj_ofReal]
+  rw [show -(2 * (π : ℂ) * I * -(starRingEnd ℂ) w) + (ν : ℂ)
+        = -(2 * (π : ℂ) * -I * (starRingEnd ℂ) w) + (ν : ℂ) by ring,
+    mul_neg, div_neg, neg_neg]
+
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
 theorem integral_Iic_one_eq_integral_Ioi_one_sub
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
@@ -3627,9 +3657,24 @@ theorem prop_5_2_a
     intro s
     simp only [Phi_lambda, l.sign_zOf_re]
     ring
-  case hGc_mero => sorry     -- meromorphicity of Φ°·F on l.R
-  case hGs_mero => sorry     -- meromorphicity of Φ⋆·F on l.R
-  case hGs_symm => sorry     -- ConjAntisymm of sgn(λ)·Φ⋆·F
+  case hGc_mero =>
+    intro z hz
+    refine MeromorphicAt.mul ?_ (hF_mero z hz)
+    exact (Phi_circ.meromorphic |lam| ε _).comp_analyticAt (l.analyticAt_zOf _ z)
+  case hGs_mero =>
+    intro z hz
+    refine MeromorphicAt.mul ?_ (hF_mero z hz)
+    exact (MeromorphicAt.const (Real.sign lam : ℂ) z).mul
+      ((Phi_star.meromorphic |lam| ε _).comp_analyticAt (l.analyticAt_zOf _ z))
+  case hGs_symm =>
+    intro s
+    simp only []
+    rw [l.zOf_conj, hF_symm,
+      show (Real.sign lam : ℂ) * -(starRingEnd ℂ (l.zOf s)) =
+          -(starRingEnd ℂ ((Real.sign lam : ℂ) * l.zOf s)) by
+        rw [map_mul, Complex.conj_ofReal]; ring,
+      Phi_star_conj_neg, map_mul, map_mul, Complex.conj_ofReal]
+    ring
   case hG_bdd => sorry       -- boundedness of Φ_λ·F on l.Rboundary
   case hGc_L => sorry        -- boundedness of Φ°·F on l.L
   case hGc_contour => sorry  -- boundedness of Φ°·F on l.admissible_contour
