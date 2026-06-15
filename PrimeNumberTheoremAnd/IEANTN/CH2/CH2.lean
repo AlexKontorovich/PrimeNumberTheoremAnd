@@ -5012,10 +5012,18 @@ private lemma integral_weighted_F_mul_cpow_hray_eq_Ioi (h : ℝ)
   hence Lemma \ref{ch2-lemma-5-1} gives
   $$ \frac{1}{2\pi i}\int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C}\mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C}\mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
   (proof := /-- Apply Lemma \ref{ch2-lemma-5-1}. The $G^\star$ reflection is the conjugation
-  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$. For $\lambda > 0$ the rescaled
-  argument $\mathrm{sgn}(\lambda)\, z(s)$ has $\Im \geq 0$ on $R$, so $\Phi^\circ$, $\Phi^\star$ are
-  pole-free there; $\Phi^\circ$ is bounded and $\Phi^\star, \Phi_\lambda = O(|z|)$ (CH2 Lemma 4.3),
-  the linear growth being absorbed by the assumed bound on $z(s)\, F(s)\, x_0^s$. -/)
+  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$. The rescaled argument
+  $\mathrm{sgn}(\lambda)\, z(s)$ has $\mathrm{sgn}(\lambda)\,\Im \geq 0$ on $R$; $\Phi^\circ$ is bounded
+  and $\Phi^\star, \Phi_\lambda = O(|z|)$ (CH2 Lemma 4.3), the linear growth being absorbed by the
+  assumed bound on $z(s)\, F(s)\, x_0^s$. For $\lambda > 0$ the argument stays away from the poles of
+  $\Phi^\circ$ on $R$. For $\lambda < 0$ the poles of $\Phi^\circ \circ z$ sit at
+  $s = 1 + \frac{\lambda T}{2\pi} + iTm$, $m \in \{-1,0,1\}$: the boundary poles $m = \pm 1$ (on
+  $\partial R$, where $\Im s = \pm T$) cancel in the combination $\Phi_\lambda = \Phi^\circ +
+  \mathrm{sgn}(\Re z)\,\Phi^\star$ (a removable singularity), so $\Phi_\lambda(z(s))$ is bounded on
+  $\partial R$; only the $m = 0$ pole survives, on the real axis in $R_C$, where it is collected by the
+  $\Phi^\circ$ residue sum over $R_C$. The ladder is taken to avoid the pole column
+  $\Re s = 1 + \frac{\lambda T}{2\pi}$ (hypothesis on $\sigma_n$), and the contour, lying in
+  $\Im s = \delta > 0$, avoids it automatically. -/)
   (latexEnv := "sublemma")
   (discussion := 1457)]
 theorem prop_5_2_a
@@ -5269,8 +5277,10 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
   Let $F \colon \mathbb{C} \to \mathbb{C}$ be meromorphic on $R = (-\infty, 1] + i[-T, T]$ with
   $F(\bar s) = \overline{F(s)}$, and suppose for some $x_0 \geq 1$ that both $F(s) x_0^s$ and
   $z(s) F(s) x_0^s$ are bounded with no poles on $\partial R \cup C \cup L$ (the second condition is
-  the extra decay of $F$ that absorbs the $O(|z|)$ growth of $\Phi^\star$). Fix $\lambda > 0$ and
-  $\varepsilon \in \{+1, -1\}$, write $z(s) = \frac{s - 1}{iT}$, and set
+  the extra decay of $F$ that absorbs the $O(|z|)$ growth of $\Phi^\star$). Fix $\lambda \neq 0$ and
+  $\varepsilon \in \{+1, -1\}$ (when $\lambda < 0$, take the ladder $L$ to avoid the pole column
+  $\Re s = 1 + \frac{\lambda T}{2\pi}$ of $\Phi^\circ \circ z$), write $z(s) = \frac{s - 1}{iT}$,
+  and set
   $$ \Phi^\varepsilon_\lambda(z) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z) + \mathrm{sgn}(\lambda)\, \mathrm{sgn}(\Re z)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z). $$
   This is the $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ of Lemma \ref{ch2-lemma-5-1}, with
   $G(s) = \Phi^\varepsilon_\lambda(z(s)) F(s)$,
@@ -5278,7 +5288,7 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
   $G^\star(s) = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$.
   Then, for any $x > x_0$,
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s\, ds = \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s + \frac{1}{2\pi} O^*(E), $$
-  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$ (for $\lambda > 0$, $\Phi^\circ \circ z$ is pole-free on $R$, so these are the poles of $F$), and
+  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$ (for $\lambda > 0$, $\Phi^\circ \circ z$ is pole-free on $R$, so these are the poles of $F$; for $\lambda < 0$, they are the poles of $F$ together with the pole of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$), and
   $$ E = \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt + 2 \left| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right|. $$
   Here $O^*(E)$ is rendered as $\| \cdot \| \leq E$. The first part of $E$ bounds the $C_\infty$
   integral of Lemma \ref{ch2-lemma-5-1} (via $|\Phi^\varepsilon_\lambda(\pm 1 + ir)| \leq |r|$ on
