@@ -4486,6 +4486,149 @@ theorem step_interval_bound {A C V x₁ x₂ : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
     _ ≤ admissible_bound A 1.5 C 1 x :=
         admissible_bound_anti hA hC hlogx hx.2 hx0
 
+/-- Corollary 14, converted to the normalized Corollary 22 coordinates. -/
+theorem corollary_14_normalized :
+    Eθ.classicalBound 9.22023 (3 / 2) 0.8476 1 2 := by
+  intro x hx
+  have hθ := corollary_14 x hx
+  have hxpos : (0 : ℝ) < x := by linarith
+  have hlogpos : 0 < Real.log x := Real.log_pos (by linarith)
+  have hlognn : 0 ≤ Real.log x := hlogpos.le
+  have hsqrtpos : 0 ≤ Real.sqrt (Real.log x) := Real.sqrt_nonneg _
+  have hcoeff :
+      121.0961 / ((5.5666305 : ℝ) ^ (3 / 2 : ℝ)) ≤ 9.22023 := by
+    have hsqrt_lb : (2.35937 : ℝ) ≤ Real.sqrt 5.5666305 := by
+      calc (2.35937 : ℝ) = Real.sqrt ((2.35937 : ℝ) ^ 2) :=
+            (Real.sqrt_sq (by norm_num : (0 : ℝ) ≤ 2.35937)).symm
+        _ ≤ Real.sqrt 5.5666305 := by
+            apply Real.sqrt_le_sqrt
+            norm_num
+    have hpow_base :
+        ((5.5666305 : ℝ) ^ (3 / 2 : ℝ)) = 5.5666305 * Real.sqrt 5.5666305 := by
+      rw [show (3 / 2 : ℝ) = 1 + (1 / 2 : ℝ) by norm_num,
+        Real.rpow_add (by norm_num : (0 : ℝ) < 5.5666305)]
+      simp [Real.sqrt_eq_rpow]
+    rw [hpow_base]
+    rw [div_le_iff₀ (by positivity : (0 : ℝ) < 5.5666305 * Real.sqrt 5.5666305)]
+    calc (121.0961 : ℝ)
+        ≤ 9.22023 * 5.5666305 * 2.35937 := by norm_num
+      _ ≤ 9.22023 * (5.5666305 * Real.sqrt 5.5666305) := by
+          nlinarith [hsqrt_lb]
+  have hC : (0.8476 : ℝ) ≤ 2 / Real.sqrt 5.5666305 := by
+    have hsqrt_ub : Real.sqrt 5.5666305 ≤ (2.3596 : ℝ) := by
+      calc Real.sqrt 5.5666305 ≤ Real.sqrt ((2.3596 : ℝ) ^ 2) := by
+            apply Real.sqrt_le_sqrt
+            norm_num
+        _ = (2.3596 : ℝ) := Real.sqrt_sq (by norm_num)
+    calc (0.8476 : ℝ)
+        ≤ 2 / (2.3596 : ℝ) := by
+            rw [le_div_iff₀ (by norm_num : (0 : ℝ) < 2.3596)]
+            norm_num
+      _ ≤ 2 / Real.sqrt 5.5666305 := by
+          gcongr
+  have hpow :
+      (Real.log x / 5.5666305) ^ (3 / 2 : ℝ) =
+        (Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ) := by
+    rw [Real.div_rpow hlognn (by norm_num : (0 : ℝ) ≤ 5.5666305)]
+  have hsqrt :
+      (Real.log x / 5.5666305) ^ ((1 : ℝ) / 2) =
+        Real.sqrt (Real.log x) / Real.sqrt 5.5666305 := by
+    rw [show ((1 : ℝ) / 2) = (1 / 2 : ℝ) by norm_num,
+      Real.div_rpow hlognn (by norm_num : (0 : ℝ) ≤ 5.5666305)]
+    simp [Real.sqrt_eq_rpow]
+  unfold admissible_bound at hθ ⊢
+  simp only [div_one]
+  rw [hpow, hsqrt] at hθ
+  have hpow_nonneg : 0 ≤ (Real.log x) ^ (3 / 2 : ℝ) :=
+    Real.rpow_nonneg hlognn _
+  have hExp :
+      Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) ≤
+        Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+    apply Real.exp_le_exp.mpr
+    have hmul :
+        0.8476 * Real.sqrt (Real.log x) ≤
+          (2 / Real.sqrt 5.5666305) * Real.sqrt (Real.log x) :=
+      mul_le_mul_of_nonneg_right hC hsqrtpos
+    have hrewrite :
+        (2 / Real.sqrt 5.5666305) * Real.sqrt (Real.log x) =
+          2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305) := by ring
+    rw [← Real.sqrt_eq_rpow]
+    nlinarith [hmul, hrewrite]
+  have hmul :
+      121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) ≤
+        9.22023 * (Real.log x) ^ (3 / 2 : ℝ) *
+          Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+    calc
+      121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305)))
+          = (121.0961 / 5.5666305 ^ (3 / 2 : ℝ)) *
+              (Real.log x) ^ (3 / 2 : ℝ) *
+              Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) := by ring
+      _ ≤ 9.22023 * (Real.log x) ^ (3 / 2 : ℝ) *
+          Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+          gcongr
+  have hθ' :
+      Eθ x ≤ 121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) := by
+    convert hθ using 1
+    ring_nf
+  convert le_trans hθ' hmul using 1
+  ring_nf
+
+/-- Corollary 22 asymptotic tail: from `exp 20000` onward. -/
+theorem corollary_22_tail :
+    ∀ x ≥ exp 20000, Eπ x ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x := by
+  have htail :=
+    theorem_3 9.22023 (3 / 2) 0.8476 1 2 (exp 20000)
+      (by norm_num)
+      (by norm_num)
+      corollary_14_normalized
+      (by
+        rw [ge_iff_le, max_le_iff]
+        constructor
+        · exact le_trans Real.exp_one_gt_two.le
+            (Real.exp_le_exp.mpr (by norm_num : (1 : ℝ) ≤ 20000))
+        · apply Real.exp_le_exp.mpr
+          rw [Real.sqrt_one]
+          norm_num)
+      (by norm_num)
+      (by norm_num)
+      (by norm_num)
+      (by
+        rw [Real.sqrt_one]
+        have hlog2 : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+        have hsq : (0.8325 : ℝ) ^ 2 ≤ Real.log 2 := by
+          norm_num
+          linarith
+        have hsqrt : (0.8325 : ℝ) ≤ Real.sqrt (Real.log 2) := by
+          calc (0.8325 : ℝ) = Real.sqrt ((0.8325 : ℝ) ^ 2) :=
+                (Real.sqrt_sq (by norm_num : (0 : ℝ) ≤ 0.8325)).symm
+            _ ≤ Real.sqrt (Real.log 2) := Real.sqrt_le_sqrt hsq
+        linarith)
+  intro x hx
+  have hμ : μ_asymp 9.22023 1.5 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 :=
+    mu_asymp_num_le (by norm_num : (1 : ℝ) ≤ 9.22023)
+  have hA :
+      9.22023 * (1 + μ_asymp 9.22023 (3 / 2) 0.8476 1 2 (exp 20000)) ≤
+        9.2211 := by
+    have hμ' : μ_asymp 9.22023 (3 / 2) 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 := by
+      norm_num at hμ ⊢
+      exact hμ
+    nlinarith [hμ']
+  have hmain := htail x hx
+  unfold admissible_bound at hmain ⊢
+  rw [div_one] at hmain ⊢
+  have hlognn : 0 ≤ Real.log x := by
+    have hx1 : (1 : ℝ) ≤ x := by
+      exact le_trans (by norm_num : (1 : ℝ) ≤ exp 20000) hx
+    exact Real.log_nonneg hx1
+  have hpow_nonneg : 0 ≤ (Real.log x) ^ (3 / 2 : ℝ) :=
+    Real.rpow_nonneg hlognn _
+  have hexp_nonneg : 0 ≤ Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) :=
+    Real.exp_nonneg _
+  exact le_trans hmain (by gcongr)
+
 @[blueprint
   "fks2-corollary-22"
   (title := "FKS2 Corollary 22")

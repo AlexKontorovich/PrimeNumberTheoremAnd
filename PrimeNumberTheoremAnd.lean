@@ -29,6 +29,7 @@ import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
 import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP_tables
 import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.IEANTN.FKS2
+import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 import PrimeNumberTheoremAnd.IEANTN.Goldbach
 import PrimeNumberTheoremAnd.IEANTN.Kadiri
 import PrimeNumberTheoremAnd.IEANTN.KLN
