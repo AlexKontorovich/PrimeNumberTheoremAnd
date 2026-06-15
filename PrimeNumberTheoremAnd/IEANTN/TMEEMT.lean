@@ -41,18 +41,43 @@ namespace Buthe2
 blueprint_comment /--
 Some results from \cite{Buthe2}-/
 
+@[blueprint
+  "buthe2-chi-star-icc"
+  (title := "Buthe2 Endpoint Weight")
+  (statement := /--
+    The source endpoint weight $\chi^*_{[0,x]}(t)$ is $1/2$ at $t=0$ and $t=x$,
+    $1$ for $0<t<x$, and $0$ otherwise.
+  -/)]
 noncomputable def chiStarIcc (x t : ℝ) : ℝ :=
   if t = 0 ∨ t = x then (1 / 2 : ℝ) else if t ∈ Set.Ioo 0 x then 1 else 0
 
+@[blueprint
+  "buthe2-psi-star"
+  (title := "Buthe2 Source-Normalized Psi")
+  (statement := /--
+    $\psi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\psi(x)=\sum_{n \geq 1}\chi^*_{[0,x]}(n)\Lambda(n)$.
+  -/)]
 noncomputable def psiStar (x : ℝ) : ℝ :=
   ∑' n : ℕ, chiStarIcc x n * (vonMangoldt n : ℝ)
 
-noncomputable def thetaStar (x : ℝ) : ℝ :=
-  ∑' p : ℕ, if Nat.Prime p then chiStarIcc x p * log p else 0
-
+@[blueprint
+  "buthe2-pi"
+  (title := "Buthe2 Source-Normalized Pi")
+  (statement := /--
+    $\pi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\pi(x)=\sum_p \chi^*_{[0,x]}(p)$.
+  -/)]
 noncomputable def pi (x : ℝ) : ℝ :=
   ∑' p : ℕ, if Nat.Prime p then chiStarIcc x p else 0
 
+@[blueprint
+  "buthe2-pi-star"
+  (title := "Buthe2 Source-Normalized Pi Star")
+  (statement := /--
+    $\pi^*(x)$ is formed from the source-normalized $\pi$ by
+    $\pi^*(x)=\sum_{k \geq 1}\pi(x^{1/k})/k$.
+  -/)]
 noncomputable def piStar (x : ℝ) : ℝ :=
   ∑' k : ℕ, pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
 

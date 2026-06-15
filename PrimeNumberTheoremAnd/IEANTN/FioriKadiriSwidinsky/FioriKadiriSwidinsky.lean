@@ -98,7 +98,7 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
   "fks-theorem-2-7"
   (title := "FKS Theorem 2.7")
   (statement := /--
-    Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$,
+    Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $d > 0$,
     $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$,
     and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any
     $T \geq H_0$, one has
