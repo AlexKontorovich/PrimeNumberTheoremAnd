@@ -2,6 +2,7 @@ import PrimeNumberTheoremAnd.Defs
 import LeanCert.Engine.ChebyshevTheta
 import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
 import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
+import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
@@ -717,8 +718,7 @@ theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
     exact div_le_div_of_nonneg_left (by norm_num : (0 : ℝ) ≤ 3.7979e-5)
       (by positivity : 0 < (58 : ℝ) ^ 2) hpow
 
-  have hpi : π ≤ (3.15 : ℝ) := by
-    interval_decide
+  have hpi : π ≤ (3.15 : ℝ) := LogTables.pi_le_3_15
   have hfrac : (8 / (17 * (3.15 : ℝ)) : ℝ) ≤ 8 / (17 * π) := by
     gcongr
   have hsqrt_frac : sqrt (8 / (17 * (3.15 : ℝ)) : ℝ) ≤ sqrt (8 / (17 * π)) :=
@@ -728,8 +728,8 @@ theorem pi_bound_3 (x : ℝ) (hx : x ∈ Set.Ico (exp 58) (exp 1169)) :
     norm_num
   have hA_lb : (0.38 : ℝ) ≤ sqrt (8 / (17 * π)) := le_trans h038 hsqrt_frac
 
-  have hexp13_5 : (1 / (900000 : ℝ)) ≤ exp (-(13.5 : ℝ)) := by
-    interval_decide
+  have hexp13_5 : (1 / (900000 : ℝ)) ≤ exp (-(13.5 : ℝ)) :=
+    LogTables.inv_900000_le_exp_neg_13_5
   have hsqrt_lt13_5 : sqrt (1169 / 6.455 : ℝ) < 13.5 :=
     (sqrt_lt (by positivity) (by positivity)).2 (by norm_num)
   have hexp_const : (1 / (900000 : ℝ)) ≤ exp (-sqrt (1169 / 6.455 : ℝ)) := by

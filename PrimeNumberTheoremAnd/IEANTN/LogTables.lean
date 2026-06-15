@@ -51,6 +51,87 @@ lemma log_30_lt : log 30 < 3.401198 := by interval_decide
 lemma log_32_gt : 3.465735 < log 32 := by interval_decide
 lemma log_32_lt : log 32 < 3.465736 := by interval_decide
 
+/-! ## Decompositions of `log N` for small composite `N`
+
+These rewrite `log N` for `N ∈ {4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20}` into log-prime
+components. Useful for chaining with the `log_p_gt`/`log_p_lt` bounds above to derive
+numerical bounds on `log N` (e.g. `log 14 = log 2 + log 7 > 0.693 + 1.945 = 2.638`).
+Not marked `@[simp]` — application is opt-in per call site, since the decomposed form
+isn't always preferred (e.g. when `log N` appears as a single literal in an expression). -/
+
+lemma log_4 : log 4 = 2 * log 2 := by
+  rw [show (4 : ℝ) = 2 ^ (2 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_6 : log 6 = log 2 + log 3 := by
+  rw [show (6 : ℝ) = 2 * 3 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_8 : log 8 = 3 * log 2 := by
+  rw [show (8 : ℝ) = 2 ^ (3 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_9 : log 9 = 2 * log 3 := by
+  rw [show (9 : ℝ) = 3 ^ (2 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_10' : log 10 = log 2 + log 5 := by
+  rw [show (10 : ℝ) = 2 * 5 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_12 : log 12 = 2 * log 2 + log 3 := by
+  rw [show (12 : ℝ) = 4 * 3 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_4]
+
+lemma log_14 : log 14 = log 2 + log 7 := by
+  rw [show (14 : ℝ) = 2 * 7 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_15 : log 15 = log 3 + log 5 := by
+  rw [show (15 : ℝ) = 3 * 5 from by norm_num, Real.log_mul (by norm_num) (by norm_num)]
+
+lemma log_16 : log 16 = 4 * log 2 := by
+  rw [show (16 : ℝ) = 2 ^ (4 : ℕ) from by norm_num, Real.log_pow]; push_cast; ring
+
+lemma log_18 : log 18 = log 2 + 2 * log 3 := by
+  rw [show (18 : ℝ) = 2 * 9 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_9]
+
+lemma log_20 : log 20 = 2 * log 2 + log 5 := by
+  rw [show (20 : ℝ) = 4 * 5 from by norm_num,
+      Real.log_mul (by norm_num) (by norm_num), log_4]
+
+/-! ## High-precision bounds for `log 2`
+
+These mirror `Real.log_two_gt_d9` / `Real.log_two_lt_d9` in Mathlib, restated under the
+`LogTables` namespace so callers don't have to remember which library they live in. The
+`d3` version is a coarser convenience bound used by several `Table 10` row arguments. -/
+
+lemma log_2_gt_d9 : (0.6931471803 : ℝ) < log 2 := Real.log_two_gt_d9
+lemma log_2_lt_d9 : log 2 < 0.6931471808 := Real.log_two_lt_d9
+lemma log_2_gt_d3 : (0.6931 : ℝ) < log 2 := by linarith [log_2_gt_d9]
+
+/-! ## Bounds on `exp(-x)` for selected `x`
+
+Useful when an analytic-number-theory argument needs a closed-form numerical upper
+bound on a tail term without paying the cost of an in-place `interval_decide`. -/
+
+lemma exp_neg_one_lt : exp (-1 : ℝ) < 0.3678794412 := Real.exp_neg_one_lt_d9
+lemma exp_neg_one_gt : (0.367879441 : ℝ) < exp (-1 : ℝ) := by interval_decide
+lemma exp_neg_half_lt : exp (-(1/2 : ℝ)) < 0.6065307 := by interval_decide
+lemma exp_neg_two_thirds_lt : exp (-(2/3 : ℝ)) < 0.513418 := by interval_decide
+
+/-! ## Tail-decay master lemmas
+
+For computations that need to bound many `exp(-x)` terms at different `x`, prove the
+bound at a single threshold via `interval_decide` and use monotonicity to discharge
+all other instances for free. Saves dozens of `interval_decide` invocations per file in
+contexts like Table 10's regime-3 row certificates. -/
+
+/-- For all `x ≥ 50`, `exp(-x) < 1e-20`. (Bound at the boundary is `exp(-50) ≈ 1.9e-22`.) -/
+lemma exp_neg_lt_1e_neg_20 {x : ℝ} (hx : 50 ≤ x) : Real.exp (-x) < 1e-20 :=
+  have h_boundary : Real.exp (-(50 : ℝ)) < 1e-20 := by interval_decide
+  lt_of_le_of_lt (Real.exp_le_exp.mpr (by linarith)) h_boundary
+
+/-- For all `x ≥ 231`, `exp(-x) < 1e-100`. (Bound at the boundary is `exp(-231) ≈ 9.8e-101`.) -/
+lemma exp_neg_lt_1e_neg_100 {x : ℝ} (hx : 231 ≤ x) : Real.exp (-x) < 1e-100 :=
+  have h_boundary : Real.exp (-(231 : ℝ)) < 1e-100 := by interval_decide
+  lt_of_le_of_lt (Real.exp_le_exp.mpr (by linarith)) h_boundary
+
 /-! ## Bounds for non-integer arguments -/
 
 lemma log_2_353_gt : (0.855 : ℝ) < log 2.353 := by interval_decide
@@ -58,5 +139,586 @@ lemma log_3_2_gt : (1.163 : ℝ) < log 3.2 := by interval_decide
 lemma exp_1_112_lt : exp (1.112 : ℝ) < 3.041 := by interval_decide
 lemma log_6_58_gt : (1.884034 : ℝ) < log 6.58 := by interval_decide
 lemma log_log_6_58_gt : (0.633415 : ℝ) < log (log 6.58) := by interval_decide
+lemma log_log_2_gt : (-0.366513 : ℝ) ≤ log (log 2) := by interval_decide
+lemma log_log_2_lt : log (log 2) ≤ -0.366512 := by interval_decide
+lemma log_11723_lt : log (11723 : ℝ) ≤ 937 / 100 := by interval_decide
+lemma log_5e10_gt : (24.6352888 : ℝ) ≤ log 5e10 := by interval_decide
+lemma log_5e10_lt : log 5e10 ≤ (24.6352889 : ℝ) := by interval_decide
+lemma log_32e12_gt : (31.0967570 : ℝ) ≤ log 32e12 := by interval_decide
+lemma log_32e12_lt : log 32e12 ≤ (31.0967571 : ℝ) := by interval_decide
+
+/-! ## Bounds on `log N` and `(log N)^3` for the Dusart explicit prime cascade
+
+The `Dusart` proof chains a sequence of `(log N)^3 ≤ N_prev` cube bounds for N in
+`{130, 155, 200, 300, 550, 1500, 10000, 10^8, 3*10^10}`. Cached here so the proof
+just reads `LogTables.log_N_cube_lt` instead of an inline `interval_auto`. -/
+
+lemma log_130_lt : log 130 < 4.868 := by interval_decide
+lemma log_155_lt : log 155 < 5.044 := by interval_decide
+lemma log_200_lt : log 200 < 5.299 := by interval_decide
+lemma log_300_lt : log 300 < 5.704 := by interval_decide
+lemma log_550_lt : log 550 < 6.310 := by interval_decide
+lemma log_1500_lt : log 1500 < 7.314 := by interval_decide
+lemma log_10000_lt : log 10000 < 9.211 := by interval_decide
+lemma log_1e8_lt : log ((10 : ℝ)^8) < 18.421 := by interval_decide
+lemma log_3e10_lt : log (3 * (10 : ℝ)^10) < 24.125 := by interval_decide
+
+/-- Helper: from `0 < x` and `x < b`, conclude `x * (x * x) < b * (b * b)` for use as
+a `linarith` hint when chaining a linear log bound to a cube bound. -/
+private lemma cube_lt_of_lt {x b : ℝ} (hpos : 0 < x) (hlt : x < b) :
+    x * (x * x) < b * (b * b) := by
+  have hb_pos : 0 < b := hpos.trans hlt
+  have h_xx : x * x < b * b := by nlinarith [hpos, hlt]
+  have h_xxnn : 0 ≤ x * x := mul_nonneg hpos.le hpos.le
+  nlinarith [h_xx, h_xxnn, hlt, hb_pos]
+
+lemma log_130_cube_lt : log 130 * (log 130 * log 130) < 121 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 130)) log_130_lt
+  linarith [show (4.868 : ℝ) * (4.868 * 4.868) ≤ 121 from by norm_num]
+
+lemma log_155_cube_lt : log 155 * (log 155 * log 155) < 130 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 155)) log_155_lt
+  linarith [show (5.044 : ℝ) * (5.044 * 5.044) ≤ 130 from by norm_num]
+
+lemma log_200_cube_lt : log 200 * (log 200 * log 200) < 155 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 200)) log_200_lt
+  linarith [show (5.299 : ℝ) * (5.299 * 5.299) ≤ 155 from by norm_num]
+
+lemma log_300_cube_lt : log 300 * (log 300 * log 300) < 200 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 300)) log_300_lt
+  linarith [show (5.704 : ℝ) * (5.704 * 5.704) ≤ 200 from by norm_num]
+
+lemma log_550_cube_lt : log 550 * (log 550 * log 550) < 300 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 550)) log_550_lt
+  linarith [show (6.310 : ℝ) * (6.310 * 6.310) ≤ 300 from by norm_num]
+
+lemma log_1500_cube_lt : log 1500 * (log 1500 * log 1500) < 550 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 1500)) log_1500_lt
+  linarith [show (7.314 : ℝ) * (7.314 * 7.314) ≤ 550 from by norm_num]
+
+lemma log_10000_cube_lt : log 10000 * (log 10000 * log 10000) < 1500 := by
+  have h := cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 10000)) log_10000_lt
+  linarith [show (9.211 : ℝ) * (9.211 * 9.211) ≤ 1500 from by norm_num]
+
+lemma log_1e8_cube_lt : log ((10 : ℝ)^8) * (log ((10 : ℝ)^8) * log ((10 : ℝ)^8)) < 10000 :=
+  calc log ((10 : ℝ)^8) * (log ((10 : ℝ)^8) * log ((10 : ℝ)^8))
+      < 18.421 * (18.421 * 18.421) :=
+        cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < (10 : ℝ)^8)) log_1e8_lt
+    _ ≤ 10000 := by norm_num
+
+lemma log_3e10_cube_lt :
+    log (3 * (10 : ℝ)^10) * (log (3 * (10 : ℝ)^10) * log (3 * (10 : ℝ)^10)) < (10 : ℝ)^8 :=
+  calc log (3 * (10 : ℝ)^10) * (log (3 * (10 : ℝ)^10) * log (3 * (10 : ℝ)^10))
+      < 24.125 * (24.125 * 24.125) :=
+        cube_lt_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 3 * (10 : ℝ)^10)) log_3e10_lt
+    _ ≤ (10 : ℝ)^8 := by norm_num
+
+/-! ## Miscellaneous bounds used by isolated callers
+
+Cached so the relevant files don't need a fresh `interval_decide` per call site. -/
+
+/-- `e^2 < 8` (used in `FKS2`). -/
+lemma exp_two_lt_eight : exp 2 < 8 := by interval_decide
+
+/-- `e^20 ≤ 485165196` (used in `TMEEMT`). -/
+lemma exp_20_le : exp 20 ≤ 485165196 := by interval_decide
+
+/-- `10^9 ≤ e^22` (used in `TMEEMT`'s `θ`-bootstrap). -/
+lemma one_e9_le_exp_22 : (1e9 : ℝ) ≤ exp 22 := by interval_decide
+
+/-- `1 / 900000 ≤ e^{-13.5}` (used in `Ramanujan`). -/
+lemma inv_900000_le_exp_neg_13_5 : (1 / 900000 : ℝ) ≤ exp (-(13.5 : ℝ)) := by interval_decide
+
+/-- `π ≤ 3.15` (used in `Ramanujan`). -/
+lemma pi_le_3_15 : π ≤ (3.15 : ℝ) := by interval_decide
+
+/-! ## Table 10 BKLNW per-arg `exp(-x)` bounds
+
+Lifted from the per-file private caches in `BKLNW_table10_rows_*` so future BKLNW-
+style work can reuse them. Each is the tightest bound any current consumer needs;
+where two files used the same arg with different bounds, the tighter one is kept
+(the looser consumer still closes via `nlinarith`). For multiplicatively-related
+args (`exp(-2x) = exp(-x)^2`), a future cleanup could derive bounds from a smaller
+set of anchors. -/
+
+lemma exp_neg_10_lt : exp (-(10 : ℝ)) < 4.541e-5 := by interval_decide
+lemma exp_neg_21_2_lt : exp (-(21/2 : ℝ)) < 2.755e-5 := by interval_decide
+lemma exp_neg_11_lt : exp (-(11 : ℝ)) < 1.672e-5 := by interval_decide
+lemma exp_neg_23_2_lt : exp (-(23/2 : ℝ)) < 1.015e-5 := by interval_decide
+lemma exp_neg_12_lt : exp (-(12 : ℝ)) < 6.146e-6 := by interval_decide
+lemma exp_neg_25_2_lt : exp (-(25/2 : ℝ)) < 3.728e-6 := by interval_decide
+lemma exp_neg_13_lt : exp (-(13 : ℝ)) < 2.262e-6 := by interval_decide
+lemma exp_neg_40_3_lt : exp (-(40/3 : ℝ)) < 1.621e-6 := by interval_decide
+lemma exp_neg_27_2_lt : exp (-(27/2 : ℝ)) < 1.372e-6 := by interval_decide
+lemma exp_neg_14_lt : exp (-(14 : ℝ)) < 8.317e-7 := by interval_decide
+lemma exp_neg_29_2_lt : exp (-(29/2 : ℝ)) < 5.045e-7 := by interval_decide
+lemma exp_neg_44_3_lt : exp (-(44/3 : ℝ)) < 4.271e-7 := by interval_decide
+lemma exp_neg_15_lt : exp (-(15 : ℝ)) < 3.061e-7 := by interval_decide
+lemma exp_neg_46_3_lt : exp (-(46/3 : ℝ)) < 2.193e-7 := by interval_decide
+lemma exp_neg_31_2_lt : exp (-(31/2 : ℝ)) < 1.857e-7 := by interval_decide
+lemma exp_neg_16_lt : exp (-(16 : ℝ)) < 1.127e-7 := by interval_decide
+lemma exp_neg_33_2_lt : exp (-(33/2 : ℝ)) < 6.827e-8 := by interval_decide
+lemma exp_neg_50_3_lt : exp (-(50/3 : ℝ)) < 5.779e-8 := by interval_decide
+lemma exp_neg_17_lt : exp (-(17 : ℝ)) < 4.141e-8 := by interval_decide
+lemma exp_neg_52_3_lt : exp (-(52/3 : ℝ)) < 2.968e-8 := by interval_decide
+lemma exp_neg_35_2_lt : exp (-(35/2 : ℝ)) < 2.512e-8 := by interval_decide
+lemma exp_neg_18_lt : exp (-(18 : ℝ)) < 1.524e-8 := by interval_decide
+lemma exp_neg_37_2_lt : exp (-(37/2 : ℝ)) < 9.239e-9 := by interval_decide
+lemma exp_neg_56_3_lt : exp (-(56/3 : ℝ)) < 7.821e-9 := by interval_decide
+lemma exp_neg_19_lt : exp (-(19 : ℝ)) < 5.604e-9 := by interval_decide
+lemma exp_neg_58_3_lt : exp (-(58/3 : ℝ)) < 4.016e-9 := by interval_decide
+lemma exp_neg_39_2_lt : exp (-(39/2 : ℝ)) < 3.400e-9 := by interval_decide
+lemma exp_neg_20_lt : exp (-(20 : ℝ)) < 2.063e-9 := by interval_decide
+lemma exp_neg_41_2_lt : exp (-(41/2 : ℝ)) < 1.252e-9 := by interval_decide
+lemma exp_neg_62_3_lt : exp (-(62/3 : ℝ)) < 1.060e-9 := by interval_decide
+lemma exp_neg_21_lt : exp (-(21 : ℝ)) < 7.584e-10 := by interval_decide
+lemma exp_neg_64_3_lt : exp (-(64/3 : ℝ)) < 5.435e-10 := by interval_decide
+lemma exp_neg_43_2_lt : exp (-(43/2 : ℝ)) < 4.601e-10 := by interval_decide
+lemma exp_neg_22_lt : exp (-(22 : ℝ)) < 2.791e-10 := by interval_decide
+lemma exp_neg_45_2_lt : exp (-(45/2 : ℝ)) < 1.693e-10 := by interval_decide
+lemma exp_neg_68_3_lt : exp (-(68/3 : ℝ)) < 1.434e-10 := by interval_decide
+lemma exp_neg_23_lt : exp (-(23 : ℝ)) < 1.028e-10 := by interval_decide
+lemma exp_neg_70_3_lt : exp (-(70/3 : ℝ)) < 7.354e-11 := by interval_decide
+lemma exp_neg_47_2_lt : exp (-(47/2 : ℝ)) < 6.226e-11 := by interval_decide
+lemma exp_neg_24_lt : exp (-(24 : ℝ)) < 3.777e-11 := by interval_decide
+lemma exp_neg_49_2_lt : exp (-(49/2 : ℝ)) < 2.291e-11 := by interval_decide
+lemma exp_neg_74_3_lt : exp (-(74/3 : ℝ)) < 1.940e-11 := by interval_decide
+lemma exp_neg_25_lt : exp (-(25 : ℝ)) < 1.390e-11 := by interval_decide
+lemma exp_neg_76_3_lt : exp (-(76/3 : ℝ)) < 9.953e-12 := by interval_decide
+lemma exp_neg_51_2_lt : exp (-(51/2 : ℝ)) < 8.425e-12 := by interval_decide
+lemma exp_neg_26_lt : exp (-(26 : ℝ)) < 5.111e-12 := by interval_decide
+lemma exp_neg_53_2_lt : exp (-(53/2 : ℝ)) < 3.100e-12 := by interval_decide
+lemma exp_neg_80_3_lt : exp (-(80/3 : ℝ)) < 2.625e-12 := by interval_decide
+lemma exp_neg_27_lt : exp (-(27 : ℝ)) < 1.881e-12 := by interval_decide
+lemma exp_neg_82_3_lt : exp (-(82/3 : ℝ)) < 1.348e-12 := by interval_decide
+lemma exp_neg_55_2_lt : exp (-(55/2 : ℝ)) < 1.141e-12 := by interval_decide
+lemma exp_neg_28_lt : exp (-(28 : ℝ)) < 6.916e-13 := by interval_decide
+lemma exp_neg_57_2_lt : exp (-(57/2 : ℝ)) < 4.195e-13 := by interval_decide
+lemma exp_neg_86_3_lt : exp (-(86/3 : ℝ)) < 3.551e-13 := by interval_decide
+lemma exp_neg_29_lt : exp (-(29 : ℝ)) < 2.545e-13 := by interval_decide
+lemma exp_neg_88_3_lt : exp (-(88/3 : ℝ)) < 1.824e-13 := by interval_decide
+lemma exp_neg_59_2_lt : exp (-(59/2 : ℝ)) < 1.544e-13 := by interval_decide
+lemma exp_neg_30_lt : exp (-(30 : ℝ)) < 9.359e-14 := by interval_decide
+lemma exp_neg_92_3_lt : exp (-(92/3 : ℝ)) < 4.806e-14 := by interval_decide
+lemma exp_neg_94_3_lt : exp (-(94/3 : ℝ)) < 2.468e-14 := by interval_decide
+lemma exp_neg_32_lt : exp (-(32 : ℝ)) < 1.268e-14 := by interval_decide
+lemma exp_neg_98_3_lt : exp (-(98/3 : ℝ)) < 6.503e-15 := by interval_decide
+lemma exp_neg_100_3_lt : exp (-(100/3 : ℝ)) < 3.340e-15 := by interval_decide
+lemma exp_neg_34_lt : exp (-(34 : ℝ)) < 1.715e-15 := by interval_decide
+lemma exp_neg_104_3_lt : exp (-(104/3 : ℝ)) < 8.801e-16 := by interval_decide
+lemma exp_neg_106_3_lt : exp (-(106/3 : ℝ)) < 4.519e-16 := by interval_decide
+lemma exp_neg_36_lt : exp (-(36 : ℝ)) < 2.321e-16 := by interval_decide
+lemma exp_neg_110_3_lt : exp (-(110/3 : ℝ)) < 1.192e-16 := by interval_decide
+lemma exp_neg_112_3_lt : exp (-(112/3 : ℝ)) < 6.116e-17 := by interval_decide
+lemma exp_neg_38_lt : exp (-(38 : ℝ)) < 3.141e-17 := by interval_decide
+lemma exp_neg_116_3_lt : exp (-(116/3 : ℝ)) < 1.613e-17 := by interval_decide
+lemma exp_neg_118_3_lt : exp (-(118/3 : ℝ)) < 8.276e-18 := by interval_decide
+lemma exp_neg_40_lt : exp (-(40 : ℝ)) < 4.250e-18 := by interval_decide
+lemma exp_neg_50_lt : exp (-(50 : ℝ)) < 1e-20 := by interval_decide
+lemma exp_neg_200_3_lt : exp (-(200/3 : ℝ)) < 1e-26 := by interval_decide
+lemma exp_neg_100_lt : exp (-(100 : ℝ)) < 1e-40 := by interval_decide
+lemma exp_neg_400_3_lt : exp (-(400/3 : ℝ)) < 1e-53 := by interval_decide
+lemma exp_neg_150_lt : exp (-(150 : ℝ)) < 1e-60 := by interval_decide
+lemma exp_neg_200_lt : exp (-(200 : ℝ)) < 1e-80 := by interval_decide
+lemma exp_neg_250_lt : exp (-(250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_800_3_lt : exp (-(800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_300_lt : exp (-(300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1000_3_lt : exp (-(1000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_350_lt : exp (-(350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_400_lt : exp (-(400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_450_lt : exp (-(450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1400_3_lt : exp (-(1400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_500_lt : exp (-(500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1600_3_lt : exp (-(1600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_600_lt : exp (-(600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2000_3_lt : exp (-(2000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_750_lt : exp (-(750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_800_lt : exp (-(800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_850_lt : exp (-(850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1725_2_lt : exp (-(1725/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_875_lt : exp (-(875 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1775_2_lt : exp (-(1775/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_900_lt : exp (-(900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1825_2_lt : exp (-(1825/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_925_lt : exp (-(925 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1875_2_lt : exp (-(1875/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_950_lt : exp (-(950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1925_2_lt : exp (-(1925/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_975_lt : exp (-(975 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1975_2_lt : exp (-(1975/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1000_lt : exp (-(1000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2025_2_lt : exp (-(2025/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1025_lt : exp (-(1025 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2075_2_lt : exp (-(2075/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1050_lt : exp (-(1050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2125_2_lt : exp (-(2125/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3200_3_lt : exp (-(3200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1075_lt : exp (-(1075 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2175_2_lt : exp (-(2175/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1100_lt : exp (-(1100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2225_2_lt : exp (-(2225/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1125_lt : exp (-(1125 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3400_3_lt : exp (-(3400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2275_2_lt : exp (-(2275/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1150_lt : exp (-(1150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2325_2_lt : exp (-(2325/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3500_3_lt : exp (-(3500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1175_lt : exp (-(1175 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3550_3_lt : exp (-(3550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2375_2_lt : exp (-(2375/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1200_lt : exp (-(1200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2425_2_lt : exp (-(2425/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3650_3_lt : exp (-(3650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1225_lt : exp (-(1225 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3700_3_lt : exp (-(3700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2475_2_lt : exp (-(2475/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1250_lt : exp (-(1250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2525_2_lt : exp (-(2525/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3800_3_lt : exp (-(3800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1275_lt : exp (-(1275 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3850_3_lt : exp (-(3850/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2575_2_lt : exp (-(2575/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1300_lt : exp (-(1300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2625_2_lt : exp (-(2625/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3950_3_lt : exp (-(3950/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1325_lt : exp (-(1325 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4000_3_lt : exp (-(4000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2675_2_lt : exp (-(2675/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1350_lt : exp (-(1350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2725_2_lt : exp (-(2725/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4100_3_lt : exp (-(4100/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1375_lt : exp (-(1375 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4150_3_lt : exp (-(4150/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2775_2_lt : exp (-(2775/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1400_lt : exp (-(1400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2825_2_lt : exp (-(2825/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4250_3_lt : exp (-(4250/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1425_lt : exp (-(1425 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4300_3_lt : exp (-(4300/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2875_2_lt : exp (-(2875/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1450_lt : exp (-(1450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2925_2_lt : exp (-(2925/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4400_3_lt : exp (-(4400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1475_lt : exp (-(1475 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4450_3_lt : exp (-(4450/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2975_2_lt : exp (-(2975/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1500_lt : exp (-(1500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3025_2_lt : exp (-(3025/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4550_3_lt : exp (-(4550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1525_lt : exp (-(1525 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4600_3_lt : exp (-(4600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3075_2_lt : exp (-(3075/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1550_lt : exp (-(1550 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3125_2_lt : exp (-(3125/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4700_3_lt : exp (-(4700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1575_lt : exp (-(1575 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4750_3_lt : exp (-(4750/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3175_2_lt : exp (-(3175/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1600_lt : exp (-(1600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3225_2_lt : exp (-(3225/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4850_3_lt : exp (-(4850/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1625_lt : exp (-(1625 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4900_3_lt : exp (-(4900/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3275_2_lt : exp (-(3275/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1650_lt : exp (-(1650 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3325_2_lt : exp (-(3325/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5000_3_lt : exp (-(5000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1675_lt : exp (-(1675 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5050_3_lt : exp (-(5050/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3375_2_lt : exp (-(3375/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1700_lt : exp (-(1700 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3425_2_lt : exp (-(3425/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5150_3_lt : exp (-(5150/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1725_lt : exp (-(1725 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5200_3_lt : exp (-(5200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3475_2_lt : exp (-(3475/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1750_lt : exp (-(1750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3525_2_lt : exp (-(3525/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5300_3_lt : exp (-(5300/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1775_lt : exp (-(1775 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5350_3_lt : exp (-(5350/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3575_2_lt : exp (-(3575/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1800_lt : exp (-(1800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3625_2_lt : exp (-(3625/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5450_3_lt : exp (-(5450/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1825_lt : exp (-(1825 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5500_3_lt : exp (-(5500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3675_2_lt : exp (-(3675/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1850_lt : exp (-(1850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3725_2_lt : exp (-(3725/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5600_3_lt : exp (-(5600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1875_lt : exp (-(1875 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5650_3_lt : exp (-(5650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3775_2_lt : exp (-(3775/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1900_lt : exp (-(1900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3825_2_lt : exp (-(3825/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5750_3_lt : exp (-(5750/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1925_lt : exp (-(1925 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5800_3_lt : exp (-(5800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3875_2_lt : exp (-(3875/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1950_lt : exp (-(1950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3925_2_lt : exp (-(3925/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5900_3_lt : exp (-(5900/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_1975_lt : exp (-(1975 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5950_3_lt : exp (-(5950/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3975_2_lt : exp (-(3975/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2000_lt : exp (-(2000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4025_2_lt : exp (-(4025/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6050_3_lt : exp (-(6050/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2025_lt : exp (-(2025 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6100_3_lt : exp (-(6100/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4075_2_lt : exp (-(4075/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2050_lt : exp (-(2050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4125_2_lt : exp (-(4125/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6200_3_lt : exp (-(6200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2075_lt : exp (-(2075 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6250_3_lt : exp (-(6250/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4175_2_lt : exp (-(4175/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2100_lt : exp (-(2100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4225_2_lt : exp (-(4225/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6350_3_lt : exp (-(6350/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2125_lt : exp (-(2125 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6400_3_lt : exp (-(6400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4275_2_lt : exp (-(4275/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2150_lt : exp (-(2150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4325_2_lt : exp (-(4325/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6500_3_lt : exp (-(6500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2175_lt : exp (-(2175 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6550_3_lt : exp (-(6550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4375_2_lt : exp (-(4375/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2200_lt : exp (-(2200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4425_2_lt : exp (-(4425/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6650_3_lt : exp (-(6650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2225_lt : exp (-(2225 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6700_3_lt : exp (-(6700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4475_2_lt : exp (-(4475/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2250_lt : exp (-(2250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4525_2_lt : exp (-(4525/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6800_3_lt : exp (-(6800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2275_lt : exp (-(2275 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6850_3_lt : exp (-(6850/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4575_2_lt : exp (-(4575/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2300_lt : exp (-(2300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4625_2_lt : exp (-(4625/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6950_3_lt : exp (-(6950/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2325_lt : exp (-(2325 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7000_3_lt : exp (-(7000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4675_2_lt : exp (-(4675/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2350_lt : exp (-(2350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4725_2_lt : exp (-(4725/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7100_3_lt : exp (-(7100/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2375_lt : exp (-(2375 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7150_3_lt : exp (-(7150/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4775_2_lt : exp (-(4775/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2400_lt : exp (-(2400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4825_2_lt : exp (-(4825/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7250_3_lt : exp (-(7250/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2425_lt : exp (-(2425 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7300_3_lt : exp (-(7300/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4875_2_lt : exp (-(4875/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2450_lt : exp (-(2450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4925_2_lt : exp (-(4925/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7400_3_lt : exp (-(7400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2475_lt : exp (-(2475 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7450_3_lt : exp (-(7450/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4975_2_lt : exp (-(4975/2 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2500_lt : exp (-(2500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7550_3_lt : exp (-(7550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7600_3_lt : exp (-(7600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2550_lt : exp (-(2550 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7700_3_lt : exp (-(7700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7750_3_lt : exp (-(7750/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2600_lt : exp (-(2600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7850_3_lt : exp (-(7850/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7900_3_lt : exp (-(7900/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2650_lt : exp (-(2650 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8000_3_lt : exp (-(8000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8050_3_lt : exp (-(8050/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2700_lt : exp (-(2700 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8150_3_lt : exp (-(8150/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8200_3_lt : exp (-(8200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2750_lt : exp (-(2750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8300_3_lt : exp (-(8300/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8350_3_lt : exp (-(8350/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2800_lt : exp (-(2800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8450_3_lt : exp (-(8450/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8500_3_lt : exp (-(8500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2850_lt : exp (-(2850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8600_3_lt : exp (-(8600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8650_3_lt : exp (-(8650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2900_lt : exp (-(2900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8750_3_lt : exp (-(8750/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8800_3_lt : exp (-(8800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_2950_lt : exp (-(2950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8900_3_lt : exp (-(8900/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8950_3_lt : exp (-(8950/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3000_lt : exp (-(3000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9050_3_lt : exp (-(9050/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9100_3_lt : exp (-(9100/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3050_lt : exp (-(3050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9200_3_lt : exp (-(9200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9250_3_lt : exp (-(9250/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3100_lt : exp (-(3100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9350_3_lt : exp (-(9350/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9400_3_lt : exp (-(9400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3150_lt : exp (-(3150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9500_3_lt : exp (-(9500/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9550_3_lt : exp (-(9550/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3200_lt : exp (-(3200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9650_3_lt : exp (-(9650/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9700_3_lt : exp (-(9700/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3250_lt : exp (-(3250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9800_3_lt : exp (-(9800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9850_3_lt : exp (-(9850/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3300_lt : exp (-(3300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9950_3_lt : exp (-(9950/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_10000_3_lt : exp (-(10000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3350_lt : exp (-(3350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3400_lt : exp (-(3400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3450_lt : exp (-(3450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_10400_3_lt : exp (-(10400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3500_lt : exp (-(3500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_10600_3_lt : exp (-(10600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3550_lt : exp (-(3550 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3600_lt : exp (-(3600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3650_lt : exp (-(3650 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11000_3_lt : exp (-(11000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3700_lt : exp (-(3700 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11200_3_lt : exp (-(11200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3750_lt : exp (-(3750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3800_lt : exp (-(3800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3850_lt : exp (-(3850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11600_3_lt : exp (-(11600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3900_lt : exp (-(3900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11800_3_lt : exp (-(11800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_3950_lt : exp (-(3950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4000_lt : exp (-(4000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4050_lt : exp (-(4050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_12200_3_lt : exp (-(12200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4100_lt : exp (-(4100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_12400_3_lt : exp (-(12400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4150_lt : exp (-(4150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4200_lt : exp (-(4200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4250_lt : exp (-(4250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_12800_3_lt : exp (-(12800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4300_lt : exp (-(4300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_13000_3_lt : exp (-(13000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4350_lt : exp (-(4350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4400_lt : exp (-(4400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4450_lt : exp (-(4450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_13400_3_lt : exp (-(13400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4500_lt : exp (-(4500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_13600_3_lt : exp (-(13600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4550_lt : exp (-(4550 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4600_lt : exp (-(4600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4650_lt : exp (-(4650 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_14000_3_lt : exp (-(14000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4700_lt : exp (-(4700 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_14200_3_lt : exp (-(14200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4750_lt : exp (-(4750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4800_lt : exp (-(4800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4850_lt : exp (-(4850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_14600_3_lt : exp (-(14600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4900_lt : exp (-(4900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_14800_3_lt : exp (-(14800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_4950_lt : exp (-(4950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5000_lt : exp (-(5000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5050_lt : exp (-(5050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_15200_3_lt : exp (-(15200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5100_lt : exp (-(5100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_15400_3_lt : exp (-(15400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5150_lt : exp (-(5150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5200_lt : exp (-(5200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5250_lt : exp (-(5250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_15800_3_lt : exp (-(15800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5300_lt : exp (-(5300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_16000_3_lt : exp (-(16000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5350_lt : exp (-(5350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5400_lt : exp (-(5400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5450_lt : exp (-(5450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_16400_3_lt : exp (-(16400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5500_lt : exp (-(5500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_16600_3_lt : exp (-(16600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5550_lt : exp (-(5550 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5600_lt : exp (-(5600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5650_lt : exp (-(5650 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_17000_3_lt : exp (-(17000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5700_lt : exp (-(5700 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_17200_3_lt : exp (-(17200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5750_lt : exp (-(5750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5800_lt : exp (-(5800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5850_lt : exp (-(5850 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_17600_3_lt : exp (-(17600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5900_lt : exp (-(5900 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_17800_3_lt : exp (-(17800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_5950_lt : exp (-(5950 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6000_lt : exp (-(6000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6050_lt : exp (-(6050 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_18200_3_lt : exp (-(18200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6100_lt : exp (-(6100 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_18400_3_lt : exp (-(18400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6150_lt : exp (-(6150 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6200_lt : exp (-(6200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6250_lt : exp (-(6250 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_18800_3_lt : exp (-(18800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6300_lt : exp (-(6300 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_19000_3_lt : exp (-(19000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6350_lt : exp (-(6350 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6400_lt : exp (-(6400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6450_lt : exp (-(6450 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_19400_3_lt : exp (-(19400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6500_lt : exp (-(6500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_19600_3_lt : exp (-(19600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6600_lt : exp (-(6600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_20000_3_lt : exp (-(20000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_20200_3_lt : exp (-(20200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6750_lt : exp (-(6750 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_6800_lt : exp (-(6800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_20600_3_lt : exp (-(20600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_20800_3_lt : exp (-(20800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7000_lt : exp (-(7000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_21200_3_lt : exp (-(21200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_21400_3_lt : exp (-(21400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7200_lt : exp (-(7200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_21800_3_lt : exp (-(21800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_22000_3_lt : exp (-(22000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7400_lt : exp (-(7400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_22400_3_lt : exp (-(22400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7500_lt : exp (-(7500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_22600_3_lt : exp (-(22600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7600_lt : exp (-(7600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_23000_3_lt : exp (-(23000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_23200_3_lt : exp (-(23200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_7800_lt : exp (-(7800 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_23600_3_lt : exp (-(23600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_23800_3_lt : exp (-(23800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8000_lt : exp (-(8000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_24200_3_lt : exp (-(24200/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_24400_3_lt : exp (-(24400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8200_lt : exp (-(8200 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_24800_3_lt : exp (-(24800/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_25000_3_lt : exp (-(25000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8400_lt : exp (-(8400 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_25400_3_lt : exp (-(25400/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8500_lt : exp (-(8500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_25600_3_lt : exp (-(25600/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_8600_lt : exp (-(8600 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_26000_3_lt : exp (-(26000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9000_lt : exp (-(9000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_28000_3_lt : exp (-(28000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_9500_lt : exp (-(9500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_10000_lt : exp (-(10000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_10500_lt : exp (-(10500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_32000_3_lt : exp (-(32000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11000_lt : exp (-(11000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_34000_3_lt : exp (-(34000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_11500_lt : exp (-(11500 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_12000_lt : exp (-(12000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_38000_3_lt : exp (-(38000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_40000_3_lt : exp (-(40000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_14000_lt : exp (-(14000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_44000_3_lt : exp (-(44000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_46000_3_lt : exp (-(46000/3 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
+lemma exp_neg_16000_lt : exp (-(16000 : ℝ)) < 1e-100 := LogTables.exp_neg_lt_1e_neg_100 (by norm_num)
 
 end LogTables

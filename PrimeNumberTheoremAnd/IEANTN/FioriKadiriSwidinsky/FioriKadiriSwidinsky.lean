@@ -113,6 +113,7 @@ theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
     (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
     (hα : α > 0)
     (hδ : δ ≥ 1)
+    (hd : d > 0)
     (hη₀ : η₀ = 0.23622)
     (hμ : μ ∈ Set.Icc (1 + η₀) (1 + η))
     (hη : η ∈ Set.Ioo η₀ 0.5)
@@ -398,7 +399,7 @@ noncomputable def ε₂ (I : Inputs) (x σ₁ T : ℝ) : ℝ :=
     Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then
     $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
   -/)]
-theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT : T > I.T₀)
+theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Ioo 0.5 1) (hT : T > I.T₀)
     (x : ℝ) :
     riemannZeta.Sigma T x 0 σ₁ ≤ ε₂ I x σ₁ T := by sorry
 
@@ -484,7 +485,8 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
     (x^{-1/R\log t_{k-1}} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) +
     x^{-1/R \log t_{K-1}}/t_{K-1} N(\sigma_2,T))$.
   -/)]
-theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
+theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
+    (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
     (t_seq : Fin (K + 2) → ℝ)
     (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R)))
     (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq) :
@@ -525,7 +527,8 @@ noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : 
     \]
     and $\tilde{N}(\sigma, T)$ satisfy (ZDB) $N(\sigma, T) \leq \tilde{N}(\sigma, T)$.
   -/)]
-theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
+theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
+    (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
     (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R))) (hT : T > t₀)
     (ZDB : zero_density_bound) :
     riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ I t₀ x σ₂ K T := by sorry
