@@ -1464,6 +1464,52 @@ blueprint_comment /--
 \end{theorem}
 -/
 
+theorem GlobalBound
+    {s : ℂ} (hs : ‖s‖ ≤ 1) {t : ℝ} (ht : |t| ≥ 2) :
+    ‖ζ (s + 3 / 2 + I * t)‖ ≤ 7 + 2 * |t| := by
+  have sReLB : -1 ≤ s.re := by linarith [abs_le.mp ((Complex.abs_re_le_norm s).trans hs)]
+  have zIn : s + 3 / 2 + I * ↑t ∈ {s | 0 < s.re ∧ s ≠ 1} := by
+    sorry
+  have leadingTerms : ‖1 + 1 / (s + 3 / 2 + I * ↑t - 1)‖ ≤ 2 := by
+    sorry
+  suffices h1 : ‖ζ (s + 3 / 2 + I * t)‖ ≤ 2 + (2 * ‖s‖ + 3 + 2 * ‖I * t‖) by
+    apply h1.trans
+    simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul]
+    linarith
+  rw [ZetaExtend zIn, ζ₀]
+  apply norm_sub_le_of_le leadingTerms
+  rw [norm_mul]
+  suffices h2 : ‖∫ (u : ℝ) in Ioi 1, ↑(Int.fract u) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 2 by
+    have := mul_le_mul_of_nonneg_left h2 (norm_nonneg (s + 3 / 2 + I * t))
+    apply this.trans
+    rw [← Complex.norm_two, ← norm_mul, add_mul, add_mul, ← Complex.norm_ofNat 3, mul_comm, ← norm_mul, ← norm_mul, div_mul_cancel₀ 3 two_ne_zero]
+    refine norm_add_le_of_le (norm_add_le_of_le (by rfl) (by rfl)) ?_
+    rw [mul_comm]
+  suffices h3 : ∫ (u : ℝ) in Ioi 1, ‖↑(Int.fract u) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 1 / (s + 3 / 2 + I * t).re by
+    refine (MeasureTheory.norm_integral_le_integral_norm _).trans (h3.trans ?_)
+    simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im,
+      mul_zero, sub_self, add_zero]
+    rw [div_le_iff₀ (by linarith), mul_add, mul_div_cancel₀ 3 two_ne_zero]
+    linarith
+  simp only [Complex.norm_mul, norm_real, norm_eq_abs, add_re, div_ofNat_re, re_ofNat,
+    mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero]
+  have := integral_Ioi_rpow_of_lt (a := -(s.re + 3/2) - 1) (by linarith) one_pos
+  simp only [sub_add_cancel, one_rpow, neg_div_neg_eq] at this
+  rw [← this]
+  apply MeasureTheory.integral_mono_ae
+  · sorry
+  · sorry
+  · filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with u hu; simp only [mem_Ioi] at hu
+    rw [Complex.norm_cpow_eq_rpow_re_of_pos (by linarith)]
+    simp only [neg_add_rev, sub_re, add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
+      ofReal_im, mul_zero, sub_self, neg_zero, div_ofNat_re, re_ofNat, zero_add, one_re, Int.abs_fract]
+    refine mul_le_of_le_one_left (by apply Real.rpow_nonneg (by linarith)) ((Int.fract_lt_one u).le)
+
+
+
+
+
+
 blueprint_comment /--
 \begin{proof}
 \uses{ZetaExtend}
