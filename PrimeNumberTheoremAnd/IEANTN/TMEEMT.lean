@@ -182,7 +182,7 @@ private lemma theta_err {x : ℝ} (hx : x ≥ exp 22) :
   have hx_ge_exp_log_1e9 : x ≥ exp (log 1e9) := by
     have h_exp_le : exp (log 1e9 : ℝ) ≤ exp (22 : ℝ) := by
       rw [exp_log (by norm_num : (0 : ℝ) < 1e9)]
-      interval_decide
+      exact LogTables.one_e9_le_exp_22
     linarith
   obtain ⟨hlb, hub⟩ :=
     BKLNW.thm_1b_table (by positivity) htab ⟨2, by norm_num⟩ hx_ge_exp_log_1e9
@@ -404,7 +404,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
   apply hEpsi.trans (mul_le_mul_of_nonneg_right _ hx_pos.le)
   have hlog : (20 : ℝ) ≤ log x := by
     rw [le_log_iff_exp_le hx_pos]
-    exact (show exp 20 ≤ 485165196 from by interval_auto).trans hx
+    exact LogTables.exp_20_le.trans hx
   calc (59.18 : ℝ) / (log x) ^ 4
       ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
           (pow_le_pow_left₀ (by linarith) hlog 4)
@@ -936,7 +936,7 @@ theorem p_n_lower (n : ℕ) (hn : n ≥ 55) :
 @[blueprint
   "thm:rosser1941-pn-upper"
   (title := "Rosser 1941, upper bound on $p_n$")
-  (statement := /-- For $n \geq 1$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
+  (statement := /-- For $n \geq 55$, we have $p_n < n(\log n + \log\log n + 2)$. -/)
   (latexEnv := "theorem")]
 theorem p_n_upper (n : ℕ) (hn : n ≥ 55) :
     nth_prime' n < n * (log n + log (log n) + 2) := by sorry
@@ -998,12 +998,12 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
 @[blueprint
   "thm:massias-robin1996-pn-lower"
   (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
-  (statement := /-- If $p_n < e^{598}$ or $p_n > e^{1800}$, then
-  $p_n > n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- If $n \geq 2$ and either $p_n < e^{598}$ or $p_n > e^{1800}$, then
+  $p_n \geq n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower (n : ℕ)
+theorem p_n_lower (n : ℕ) (hn2 : 2 ≤ n)
     (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
-    nth_prime' n > n * (log n + log (log n) - 1) := by sorry
+    nth_prime' n ≥ n * (log n + log (log n) - 1) := by sorry
 
 end MassiasRobin
 
@@ -1116,12 +1116,12 @@ namespace Schoenfeld1976
   (statement := /--
   If $x > 2010760$, then there is a prime in the interval
   \[
-  \left( x, x\left(1 + \frac{1}{15697}\right) \right].
+  \left( x, x\left(1 + \frac{1}{16597}\right) \right].
   \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval x (x * (1 / 15697)) := by sorry
+    HasPrimeInInterval x (x * (1 / 16597)) := by sorry
 
 end Schoenfeld1976
 

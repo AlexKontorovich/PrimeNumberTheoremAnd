@@ -625,7 +625,7 @@ lemma hlog_y (y : ℝ) (hy : 11723 < y) : log y ≤ log 11723 + (y / 11723 - 1) 
 theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by
   have hlog_large : ∀ y : ℝ, 11723 < y → 5 * log y - 5 ≤ (37 / 10000 : ℝ) * y := by
     intro y hy
-    have hlog_11723 : log (11723 : ℝ) ≤ 937 / 100 := by interval_decide
+    have hlog_11723 : log (11723 : ℝ) ≤ 937 / 100 := LogTables.log_11723_lt
     calc 5 * log y - 5
         ≤ 5 * (937 / 100 + (y / 11723 - 1)) - 5 := by linarith [hlog_y y hy]
       _ = 5 / 11723 * y + 3685 / 100 := by ring

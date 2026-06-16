@@ -30,7 +30,7 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "leancert"
 git = "https://github.com/alerad/leancert"
-rev = "v4.30.0"
+rev = "v4.30.0.5"
 
 [[require]]
 name = "PrimeCert"

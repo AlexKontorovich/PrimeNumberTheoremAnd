@@ -1738,7 +1738,129 @@ theorem Phi_star.meromorphic (ν ε : ℝ) : Meromorphic (Phi_star ν ε) := by
   (latexEnv := "lemma")
   (discussion := 1072)]
 theorem Phi_star.poles (ν ε : ℝ) (hν : ν > 0) (z : ℂ) :
-    meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by sorry
+    meromorphicOrderAt (Phi_star ν ε) z < 0 ↔ ∃ n : ℤ, n ≠ 0 ∧ z = n - I * ν / (2 * π) := by
+  set w : ℂ → ℂ := fun z ↦ -2 * π * I * z + ν with hw_def
+  -- `w` is analytic everywhere with `w' = -2πI ≠ 0`.
+  have hw_anal : ∀ ζ, AnalyticAt ℂ w ζ := fun ζ ↦ by dsimp [w]; fun_prop
+  -- The exceptional point: `w z₀ = 0` exactly at the `n = 0` member of the pole family.
+  have hw_eq_zero_iff : ∀ ζ : ℂ, w ζ = 0 ↔ ζ = (0 : ℤ) - I * ν / (2 * π) := by
+    intro ζ
+    have hpi : (π : ℂ) ≠ 0 := by simp [pi_ne_zero]
+    have hden : (2 * (π : ℂ)) ≠ 0 := by simp [pi_ne_zero]
+    have hrhs : ((0 : ℤ) - I * (ν : ℂ) / (2 * π) : ℂ) = -(I * ν) / (2 * π) := by push_cast; ring
+    dsimp [w]
+    rw [hrhs, eq_div_iff hden]
+    constructor
+    · intro h
+      linear_combination I * h + (2 * (π : ℂ) * ζ) * Complex.I_sq
+    · intro h
+      linear_combination -I * h + ((ν : ℂ)) * Complex.I_sq
+  -- Reduce `Phi_star` to `g := w · Phi_circ` minus the constant `B ε ν`, up to the nonzero
+  -- scalar `1/(2πI)`: these agree on the punctured neighbourhood of any point.
+  set g : ℂ → ℂ := fun z ↦ w z * Phi_circ ν ε z with hg_def
+  have hg_mero : ∀ ζ, MeromorphicAt g ζ := fun ζ ↦ (hw_anal ζ).meromorphicAt.mul (Phi_circ.meromorphic ν ε ζ)
+  have h_star_eq : meromorphicOrderAt (Phi_star ν ε) z
+      = meromorphicOrderAt (fun z ↦ g z - B ε ν) z := by
+    have h_const_ne : (2 * π * I : ℂ) ≠ 0 := by simp [pi_ne_zero, I_ne_zero]
+    -- `Phi_star = (1/(2πI)) • (g - B ε ν)` on the punctured nhd, then strip the scalar.
+    have h_evEq : Phi_star ν ε =ᶠ[nhdsWithin z {z}ᶜ]
+        (fun z ↦ (1 / (2 * π * I)) * (g z - B ε ν)) := by
+      -- `w` has its only zero at `z₀`; on the punctured nhd of `z` we have `w ζ ≠ 0`.
+      set z₀ : ℂ := (0 : ℤ) - I * ν / (2 * π) with hz₀_def
+      have hw_cont : ContinuousAt w z := (hw_anal z).continuousAt
+      have h_wne : ∀ᶠ ζ in nhdsWithin z {z}ᶜ, w ζ ≠ 0 := by
+        by_cases hz : z = z₀
+        · -- exclude the centre `z₀`; for ζ ≠ z₀ in the nhd we have `w ζ ≠ 0`
+          subst hz
+          filter_upwards [self_mem_nhdsWithin] with ζ hζ
+          rw [Ne, hw_eq_zero_iff ζ]
+          simpa using hζ
+        · -- away from `z₀`, `w z ≠ 0`, so `w` is nonzero near `z`
+          have hwz : w z ≠ 0 := by
+            rw [Ne, hw_eq_zero_iff z]
+            exact hz
+          exact nhdsWithin_le_nhds (hw_cont.eventually_ne hwz)
+      filter_upwards [h_wne] with ζ hwζ
+      have hB : B ε (w ζ) = w ζ * (coth (w ζ / 2) + ε) / 2 := by
+        unfold B; split_ifs with h_branch
+        · exact False.elim (hwζ h_branch)
+        · rfl
+      dsimp [Phi_star, Phi_circ, g, w]
+      dsimp [w] at hB
+      rw [hB]
+      ring
+    rw [meromorphicOrderAt_congr h_evEq]
+    rw [show (fun z ↦ (1 / (2 * π * I)) * (g z - B ε ν))
+        = (fun _ ↦ (1 / (2 * π * I) : ℂ)) * (fun z ↦ g z - B ε ν) from rfl]
+    rw [meromorphicOrderAt_mul_of_ne_zero (analyticAt_const (v := (1 / (2 * π * I) : ℂ)) (x := z))
+      (by simp [pi_ne_zero, I_ne_zero])]
+  rw [h_star_eq]
+  -- Subtracting the constant `B ε ν` does not change whether the order is negative.
+  have h_const_mero : MeromorphicAt (fun _ ↦ -(B ε ν)) z := MeromorphicAt.const _ z
+  have h_const_nonneg : 0 ≤ meromorphicOrderAt (fun _ ↦ -(B ε ν)) z := by
+    rw [meromorphicOrderAt_const]; split_ifs <;> simp
+  have h_drop : meromorphicOrderAt (fun z ↦ g z - B ε ν) z < 0
+      ↔ meromorphicOrderAt g z < 0 := by
+    have h_sub_eq : (fun z ↦ g z - B ε ν) = g + (fun _ ↦ -(B ε ν)) := by
+      ext z; simp [sub_eq_add_neg]
+    rw [h_sub_eq]
+    constructor
+    · intro h
+      by_contra hge
+      have hge' : 0 ≤ meromorphicOrderAt g z := not_lt.mp hge
+      have := le_trans (le_min hge' h_const_nonneg) (meromorphicOrderAt_add (hg_mero z) h_const_mero)
+      exact absurd h (not_lt.mpr this)
+    · intro h
+      have h_ne : meromorphicOrderAt g z ≠ meromorphicOrderAt (fun _ ↦ -(B ε ν)) z :=
+        ne_of_lt (lt_of_lt_of_le h h_const_nonneg)
+      rw [meromorphicOrderAt_add_of_ne (hg_mero z) h_const_mero h_ne]
+      exact lt_of_le_of_lt (min_le_left _ _) h
+  rw [h_drop]
+  -- Now relate `order g` to `order (Phi_circ)`, distinguishing the `n = 0` point.
+  set z₀ : ℂ := (0 : ℤ) - I * ν / (2 * π) with hz₀_def
+  by_cases hz : z = z₀
+  · -- At the `n = 0` point the simple zero of `w` cancels the simple pole of `Phi_circ`.
+    subst hz
+    have h_circ_ord : meromorphicOrderAt (Phi_circ ν ε) z₀ = -1 :=
+      (Phi_circ.poles_simple ν ε hν z₀).mpr ⟨0, by simp [hz₀_def]⟩
+    have h_w_ord : meromorphicOrderAt w z₀ = (1 : ℤ) := by
+      rw [meromorphicOrderAt_eq_int_iff (hw_anal z₀).meromorphicAt]
+      refine ⟨fun _ ↦ -2 * π * I, analyticAt_const, by simp [pi_ne_zero, I_ne_zero], ?_⟩
+      filter_upwards [self_mem_nhdsWithin] with ζ _
+      have hwz₀ : w z₀ = 0 := (hw_eq_zero_iff z₀).mpr hz₀_def
+      dsimp [w] at hwz₀ ⊢
+      simp only [zpow_one]
+      linear_combination hwz₀
+    have hg_eq : g = w * Phi_circ ν ε := by rw [hg_def]; rfl
+    have hg_ord : meromorphicOrderAt g z₀ = 0 := by
+      rw [hg_eq, meromorphicOrderAt_mul (hw_anal z₀).meromorphicAt (Phi_circ.meromorphic ν ε z₀),
+        h_w_ord, h_circ_ord]
+      decide
+    rw [hg_ord]
+    constructor
+    · intro h; exact absurd h (by decide)
+    · rintro ⟨n, hn, hzn⟩
+      exfalso
+      apply hn
+      have hzn' : ((0 : ℤ) : ℂ) - I * ν / (2 * π) = (n : ℂ) - I * ν / (2 * π) := by
+        rw [← hz₀_def]; exact hzn
+      have : (n : ℂ) = 0 := by push_cast at hzn'; linear_combination -hzn'
+      exact_mod_cast this
+  · -- Away from the `n = 0` point, `w z ≠ 0`, so `order g = order (Phi_circ)`.
+    have hwz : w z ≠ 0 := by rw [Ne, hw_eq_zero_iff z]; exact hz
+    have hg_eq : g = w * Phi_circ ν ε := by rw [hg_def]; rfl
+    have hg_ord : meromorphicOrderAt g z = meromorphicOrderAt (Phi_circ ν ε) z := by
+      rw [hg_eq]
+      exact meromorphicOrderAt_mul_of_ne_zero (hw_anal z) hwz
+    rw [hg_ord, Phi_circ.poles ν ε hν z]
+    constructor
+    · rintro ⟨n, hzn⟩
+      refine ⟨n, ?_, hzn⟩
+      rintro rfl
+      apply hz
+      rw [hz₀_def]; push_cast; simpa using hzn
+    · rintro ⟨n, _, hzn⟩
+      exact ⟨n, hzn⟩
 
 @[blueprint
   "Phi-star-residues"
@@ -2702,6 +2824,187 @@ theorem B_minus_mono : Antitone (fun t:ℝ ↦ (B (-1) t).re) := by
 
 theorem B_minus_real (t : ℝ) : (B (-1) t).im = 0 := B_im_eq_zero (-1) t
 
+private lemma B_plus_re_eq_of_ne_zero (t : ℝ) (ht : t ≠ 0) :
+    (B 1 (t : ℂ)).re = t * Real.exp t / (Real.exp t - 1) := by
+  unfold B
+  unfold coth; norm_num [Complex.tanh, Complex.exp_re, Complex.exp_im]; ring_nf
+  norm_num [Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im, ht]; ring_nf
+  norm_num [Complex.normSq, Complex.exp_re, Complex.exp_im]; ring_nf
+  field_simp
+  rw [one_add_div, ← add_div, div_eq_div_iff] <;> ring_nf <;>
+    norm_num [sub_ne_zero, ht, Real.exp_ne_zero]
+  · simpa [← Real.exp_add] using by ring_nf
+  · cases lt_or_gt_of_ne ht <;> linarith
+  · exact fun h => ht <| by
+      rw [add_eq_zero_iff_eq_neg] at h
+      replace h := congr_arg Real.log h
+      norm_num at h
+      linarith
+  · cases lt_or_gt_of_ne ht <;> linarith
+
+private lemma deriv_B_plus_real_le_one (t : ℝ) (ht : t ≠ 0) :
+    deriv (fun u : ℝ => (B 1 (u : ℂ)).re) t ≤ 1 := by
+  have h_eq : (fun u : ℝ => (B 1 (u : ℂ)).re) =ᶠ[nhds t]
+      (fun u : ℝ => u * Real.exp u / (Real.exp u - 1)) := by
+    filter_upwards [eventually_ne_nhds ht] with u hu
+    exact B_plus_re_eq_of_ne_zero u hu
+  rw [h_eq.deriv_eq]
+  have hder : deriv (fun u : ℝ => u * Real.exp u / (Real.exp u - 1)) t =
+      Real.exp t * (Real.exp t - 1 - t) / (Real.exp t - 1) ^ 2 := by
+    norm_num [Real.differentiableAt_exp, ht, Real.exp_pos t, sub_ne_zero.mpr,
+      (Real.exp_eq_one_iff t).not.mpr ht]
+    ring
+  rw [hder]
+  have hden_pos : 0 < (Real.exp t - 1) ^ 2 :=
+    sq_pos_of_ne_zero (sub_ne_zero.mpr ((Real.exp_eq_one_iff t).not.mpr ht))
+  rw [div_le_iff₀ hden_pos]
+  nlinarith [Real.exp_pos t, Real.exp_neg t,
+    mul_inv_cancel₀ (ne_of_gt (Real.exp_pos t)),
+    Real.add_one_le_exp t, Real.add_one_le_exp (-t)]
+
+private lemma B_plus_real_diff_le_on_interval {a b : ℝ} (hab : a ≤ b)
+    (hzero : 0 ≤ a ∨ b ≤ 0) :
+    (B 1 (b : ℂ)).re - (B 1 (a : ℂ)).re ≤ b - a := by
+  rcases eq_or_lt_of_le hab with rfl | hlt
+  · simp
+  obtain ⟨c, hc, hc_eq⟩ := exists_deriv_eq_slope (fun u : ℝ => (B 1 (u : ℂ)).re) hlt
+    ((continuous_re.comp (B.continuous_ofReal 1)).continuousOn)
+    (by
+      intro x hx
+      have hx_ne : x ≠ 0 := by
+        rcases hzero with ha | hb
+        · linarith [ha, hx.1]
+        · linarith [hb, hx.2]
+      have h_eq : (fun u : ℝ => (B 1 (u : ℂ)).re) =ᶠ[nhds x]
+          (fun u : ℝ => u * Real.exp u / (Real.exp u - 1)) := by
+        filter_upwards [eventually_ne_nhds hx_ne] with u hu
+        exact B_plus_re_eq_of_ne_zero u hu
+      have hdiff_exp :
+          DifferentiableAt ℝ (fun u : ℝ => u * Real.exp u / (Real.exp u - 1)) x := by
+        fun_prop (disch := exact sub_ne_zero.mpr ((Real.exp_eq_one_iff x).not.mpr hx_ne))
+      exact hdiff_exp.congr_of_eventuallyEq h_eq |>.differentiableWithinAt)
+  have hc_ne : c ≠ 0 := by
+    rcases hzero with ha | hb
+    · linarith [ha, hc.1]
+    · linarith [hb, hc.2]
+  have hle := deriv_B_plus_real_le_one c hc_ne
+  rw [hc_eq] at hle
+  rw [div_le_iff₀ (sub_pos.mpr hlt)] at hle
+  linarith
+
+private lemma B_plus_real_diff_le_of_le {a b : ℝ} (hab : a ≤ b) :
+    (B 1 (b : ℂ)).re - (B 1 (a : ℂ)).re ≤ b - a := by
+  by_cases ha : 0 ≤ a
+  · exact B_plus_real_diff_le_on_interval hab (Or.inl ha)
+  · by_cases hb : b ≤ 0
+    · exact B_plus_real_diff_le_on_interval hab (Or.inr hb)
+    · have ha_le : a ≤ 0 := le_of_lt (not_le.mp ha)
+      have h0b : 0 ≤ b := le_of_lt (not_le.mp hb)
+      have hleft := B_plus_real_diff_le_on_interval ha_le (Or.inr le_rfl)
+      have hright := B_plus_real_diff_le_on_interval h0b (Or.inl le_rfl)
+      linarith
+
+private lemma B_plus_real_lipschitz (a b : ℝ) :
+    |(B 1 (a : ℂ)).re - (B 1 (b : ℂ)).re| ≤ |a - b| := by
+  rcases le_total a b with hab | hba
+  · have hdiff := B_plus_real_diff_le_of_le hab
+    have hmono := B_plus_mono hab
+    rw [abs_of_nonpos (sub_nonpos.mpr hmono), abs_of_nonpos (sub_nonpos.mpr hab)]
+    linarith
+  · have hdiff := B_plus_real_diff_le_of_le hba
+    have hmono := B_plus_mono hba
+    rw [abs_of_nonneg (sub_nonneg.mpr hmono), abs_of_nonneg (sub_nonneg.mpr hba)]
+    linarith
+
+private lemma B_minus_re_eq_B_plus_neg (t : ℝ) :
+    (B (-1) (t : ℂ)).re = (B 1 ((-t : ℝ) : ℂ)).re := by
+  by_cases ht : t = 0
+  · subst ht
+    simp [B]
+  · unfold B coth
+    simp only [ofReal_eq_zero, ht, neg_eq_zero, ↓reduceIte]
+    rw [show ((-t : ℝ) : ℂ) / 2 = -((t : ℂ) / 2) by push_cast; ring]
+    simp [Complex.tanh_neg]
+    ring
+
+private lemma B_minus_real_lipschitz (a b : ℝ) :
+    |(B (-1) (a : ℂ)).re - (B (-1) (b : ℂ)).re| ≤ |a - b| := by
+  rw [B_minus_re_eq_B_plus_neg a, B_minus_re_eq_B_plus_neg b]
+  have h := B_plus_real_lipschitz (-a) (-b)
+  convert h using 1
+  rw [show -a - -b = -(a - b) by ring, abs_neg]
+
+private lemma B_real_lipschitz_of_pm {ε a b : ℝ} (hε : ε = 1 ∨ ε = -1) :
+    |(B ε (a : ℂ)).re - (B ε (b : ℂ)).re| ≤ |a - b| := by
+  rcases hε with rfl | rfl
+  · exact B_plus_real_lipschitz a b
+  · exact B_minus_real_lipschitz a b
+
+private lemma norm_B_sub_ofReal (ε a b : ℝ) :
+    ‖B ε (a : ℂ) - B ε (b : ℂ)‖ =
+      |(B ε (a : ℂ)).re - (B ε (b : ℂ)).re| := by
+  have h_eq : B ε (a : ℂ) - B ε (b : ℂ) =
+      (((B ε (a : ℂ)).re - (B ε (b : ℂ)).re : ℝ) : ℂ) := by
+    apply Complex.ext <;> simp [B_im_eq_zero]
+  rw [h_eq, Complex.norm_real, Real.norm_eq_abs]
+
+/-- On the upward imaginary axis, `Phi_star` is bounded by the height. -/
+theorem norm_Phi_star_I_mul_le (ν ε t : ℝ) (hε : ε = 1 ∨ ε = -1) :
+    ‖Phi_star ν ε (I * (t : ℂ))‖ ≤ |t| := by
+  have hphi : Phi_star ν ε (I * (t : ℂ)) =
+      (B ε ((ν + 2 * π * t : ℝ) : ℂ) - B ε (ν : ℂ)) / (2 * (π : ℂ) * I) := by
+    rw [Phi_star]
+    congr 2
+    · congr 1
+      push_cast
+      ring_nf
+      simp [Complex.I_sq]
+  rw [hphi, norm_div, norm_B_sub_ofReal]
+  have hB := B_real_lipschitz_of_pm (ε := ε) (a := ν + 2 * π * t) (b := ν) hε
+  have hden : ‖(2 : ℂ) * (π : ℂ) * I‖ = 2 * π := by
+    rw [norm_mul, norm_mul, Complex.norm_ofNat, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos Real.pi_pos, Complex.norm_I]
+    norm_num
+  rw [hden]
+  have hden_pos : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+  rw [div_le_iff₀ hden_pos]
+  calc |(B ε ↑(ν + 2 * π * t)).re - (B ε ↑ν).re|
+      ≤ |ν + 2 * π * t - ν| := hB
+    _ = |2 * π * t| := by ring_nf
+    _ = (2 * π) * |t| := by
+      rw [abs_mul, abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 2),
+        abs_of_pos Real.pi_pos]
+    _ = |t| * (2 * π) := by ring
+
+/-- On the downward imaginary axis, `Phi_star` is bounded by the height. -/
+theorem norm_Phi_star_neg_I_mul_le (ν ε t : ℝ) (hε : ε = 1 ∨ ε = -1) :
+    ‖Phi_star ν ε (-I * (t : ℂ))‖ ≤ |t| := by
+  have hphi : Phi_star ν ε (-I * (t : ℂ)) =
+      (B ε ((ν - 2 * π * t : ℝ) : ℂ) - B ε (ν : ℂ)) / (2 * (π : ℂ) * I) := by
+    rw [Phi_star]
+    congr 2
+    · congr 1
+      push_cast
+      ring_nf
+      simp [Complex.I_sq]
+  rw [hphi, norm_div, norm_B_sub_ofReal]
+  have hB := B_real_lipschitz_of_pm (ε := ε) (a := ν - 2 * π * t) (b := ν) hε
+  have hden : ‖(2 : ℂ) * (π : ℂ) * I‖ = 2 * π := by
+    rw [norm_mul, norm_mul, Complex.norm_ofNat, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos Real.pi_pos, Complex.norm_I]
+    norm_num
+  rw [hden]
+  have hden_pos : 0 < 2 * π := mul_pos (by norm_num) Real.pi_pos
+  rw [div_le_iff₀ hden_pos]
+  calc |(B ε ↑(ν - 2 * π * t)).re - (B ε ↑ν).re|
+      ≤ |ν - 2 * π * t - ν| := hB
+    _ = |-(2 * π * t)| := by ring_nf
+    _ = |2 * π * t| := by rw [abs_neg]
+    _ = (2 * π) * |t| := by
+      rw [abs_mul, abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 2),
+        abs_of_pos Real.pi_pos]
+    _ = |t| * (2 * π) := by ring
+
 noncomputable def E (z : ℂ) : ℂ := Complex.exp (2 * π * I * z)
 
 @[fun_prop]
@@ -3389,7 +3692,7 @@ set_option maxHeartbeats 800000 in
 /-- At a point `z = -1 + i t` on the vertical line `Re z = -1` (with `t ≥ 0`), the combination
 `Φ_circ - Φ_star` equals `-Φ_star` evaluated on the imaginary axis at `i t`.
 -/
-private lemma shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+theorem shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
     Phi_circ ν ε (-1 + I * t) - Phi_star ν ε (-1 + I * t) = -Phi_star ν ε (I * t) := by
   have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
     intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
@@ -3404,7 +3707,7 @@ private lemma shift_upwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht 
 /-- At a point `z = 1 + i t` on the vertical line `Re z = +1` (with `t ≥ 0`), the combination
 `Φ_circ + Φ_star` equals `Φ_star` evaluated on the imaginary axis at `i t`.
 -/
-private lemma shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
+theorem shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht : 0 ≤ t) :
     Phi_circ ν ε (1 + I * t) + Phi_star ν ε (1 + I * t) = Phi_star ν ε (I * t) := by
   have h_re : (-2 : ℂ) * ↑π * I * (I * ↑t) + ↑ν ≠ 0 := by
     intro h; apply_fun Complex.re at h; simp at h; nlinarith [Real.pi_pos, ht, hν]
@@ -3416,6 +3719,64 @@ private lemma shift_upwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ) (ht :
   simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at haff
   rw [show 1 + I * ↑t = I * ↑t + 1 by ring, ← h_circ_shift (I * ↑t + 1),
       show I * ↑t + 1 - 1 = I * ↑t by ring, haff]; ring
+
+/-- Away from the pole on the downward line, `Φ_circ - Φ_star` at `-1 - i t`
+equals `-Φ_star` at `-i t`. -/
+theorem shift_downwards_phi_diff (ν ε : ℝ) (hν : ν > 0) (t : ℝ)
+    (ht_pole : t ≠ ν / (2 * π)) :
+    Phi_circ ν ε (-1 - I * t) - Phi_star ν ε (-1 - I * t) = -Phi_star ν ε (-I * t) := by
+  have h_circ_periodic := Phi_circ_periodic ν ε
+  have h_re : (-2 : ℂ) * ↑π * I * (-I * ↑t) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.re at h
+    rw [w_re] at h
+    simp at h
+    apply ht_pole
+    field_simp [Real.pi_pos.ne.symm]
+    linarith [Real.pi_pos]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (-I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.im at h
+    simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ : Phi_circ ν ε (-1 - I * t) = Phi_circ ν ε (-I * t) := by
+    rw [show -I * t = (-1 - I * t) + 1 by ring, h_circ_periodic]
+  have haff : Phi_star ν ε (-1 - I * t) =
+      Phi_star ν ε (-I * t) + Phi_circ ν ε (-I * t) := by
+    have h := phi_star_affine_periodic ν ε hν (-I * t) 1 h_re (h_im 1 (by norm_num))
+    simp only [Int.cast_one, one_mul] at h
+    ring_nf at h ⊢
+    exact h
+  rw [h_circ, haff]
+  ring
+
+/-- Away from the pole on the downward line, `Φ_circ + Φ_star` at `1 - i t`
+equals `Φ_star` at `-i t`. -/
+theorem shift_downwards_phi_sum (ν ε : ℝ) (hν : ν > 0) (t : ℝ)
+    (ht_pole : t ≠ ν / (2 * π)) :
+    Phi_circ ν ε (1 - I * t) + Phi_star ν ε (1 - I * t) = Phi_star ν ε (-I * t) := by
+  have h_circ_periodic := Phi_circ_periodic ν ε
+  have h_re : (-2 : ℂ) * ↑π * I * (-I * ↑t) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.re at h
+    rw [w_re] at h
+    simp at h
+    apply ht_pole
+    field_simp [Real.pi_pos.ne.symm]
+    linarith [Real.pi_pos]
+  have h_im (m : ℤ) (hm : m ≠ 0) : (-2 : ℂ) * ↑π * I * (-I * ↑t - ↑m) + ↑ν ≠ 0 := by
+    intro h
+    apply_fun Complex.im at h
+    simp [Real.pi_pos.ne.symm, hm] at h
+  have h_circ : Phi_circ ν ε (1 - I * t) = Phi_circ ν ε (-I * t) := by
+    rw [show 1 - I * t = -I * t + 1 by ring, h_circ_periodic]
+  have haff : Phi_star ν ε (1 - I * t) =
+      Phi_star ν ε (-I * t) - Phi_circ ν ε (-I * t) := by
+    have h := phi_star_affine_periodic ν ε hν (-I * t) (-1) h_re (h_im (-1) (by norm_num))
+    simp only [Int.cast_neg, Int.cast_one, neg_mul, one_mul, sub_neg_eq_add] at h
+    ring_nf at h ⊢
+    exact h
+  rw [h_circ, haff]
+  ring
 
 /-- Let `E(z) = exp(2πi z)`. Consider three "vertical" line integrals over `t ∈ [0, T]`, each
 picking up a factor of `I` from parametrizing the imaginary direction:

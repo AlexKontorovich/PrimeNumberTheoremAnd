@@ -6,6 +6,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.Topology.Algebra.Module.ModuleTopology
+import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 open Real Finset
 
@@ -490,6 +491,5 @@ lemma hγ_lo : (0.577215 : ℝ) ≤ Real.eulerMascheroniConstant := by
       _ ≤ eulerMascheroniConstant := le_of_lt (γ₃_lower_bound 16 (by norm_num))
   -- γ₃ 16 = H(16) - log 16 - 1/32 + 1/3072 - 1/7864320
   -- We bound log 16 = 4 * log 2 < 4 * 0.6931471808
-  norm_num [γ₃]
-  rw [show (16 : ℝ) = 2 ^ 4 by norm_num]
-  grind [Real.log_pow, Real.log_two_lt_d9]
+  norm_num [γ₃, LogTables.log_16]
+  linarith [LogTables.log_2_lt_d9]

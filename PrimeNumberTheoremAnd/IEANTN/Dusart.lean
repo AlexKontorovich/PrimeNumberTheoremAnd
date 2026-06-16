@@ -4,6 +4,7 @@ import PrimeNumberTheoremAnd.IEANTN.PrimeInInterval
 import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 import LeanCert.Tactic.IntervalAuto
+import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}
@@ -215,23 +216,23 @@ theorem proposition_4_3 {x : ℝ} (hx : x ≥ 121) :
     have hpow3 : ∀ (c d : ℝ), Real.log c * (Real.log c * Real.log c) ≤ d →
         (Real.log c) ^ 3 ≤ d := fun c d h => by nlinarith [show (Real.log c)^3 = Real.log c * (Real.log c * Real.log c) from by ring]
     by_cases! h1 : x ≤ 130
-    · exact hlci 121 130 (by norm_num) (hpow3 130 121 (by linarith [show Real.log 130 * (Real.log 130 * Real.log 130) < 121 from by interval_auto])) hx h1
+    · exact hlci 121 130 (by norm_num) (hpow3 130 121 (by linarith [LogTables.log_130_cube_lt])) hx h1
     · by_cases! h2 : x ≤ 155
-      · exact hlci 130 155 (by norm_num) (hpow3 155 130 (by linarith [show Real.log 155 * (Real.log 155 * Real.log 155) < 130 from by interval_auto])) h1.le h2
+      · exact hlci 130 155 (by norm_num) (hpow3 155 130 (by linarith [LogTables.log_155_cube_lt])) h1.le h2
       · by_cases! h3 : x ≤ 200
-        · exact hlci 155 200 (by norm_num) (hpow3 200 155 (by linarith [show Real.log 200 * (Real.log 200 * Real.log 200) < 155 from by interval_auto])) h2.le h3
+        · exact hlci 155 200 (by norm_num) (hpow3 200 155 (by linarith [LogTables.log_200_cube_lt])) h2.le h3
         · by_cases! h4 : x ≤ 300
-          · exact hlci 200 300 (by norm_num) (hpow3 300 200 (by linarith [show Real.log 300 * (Real.log 300 * Real.log 300) < 200 from by interval_auto])) h3.le h4
+          · exact hlci 200 300 (by norm_num) (hpow3 300 200 (by linarith [LogTables.log_300_cube_lt])) h3.le h4
           · by_cases! h5 : x ≤ 550
-            · exact hlci 300 550 (by norm_num) (hpow3 550 300 (by linarith [show Real.log 550 * (Real.log 550 * Real.log 550) < 300 from by interval_auto])) h4.le h5
+            · exact hlci 300 550 (by norm_num) (hpow3 550 300 (by linarith [LogTables.log_550_cube_lt])) h4.le h5
             · by_cases! h6 : x ≤ 1500
-              · exact hlci 550 1500 (by norm_num) (hpow3 1500 550 (by linarith [show Real.log 1500 * (Real.log 1500 * Real.log 1500) < 550 from by interval_auto])) h5.le h6
+              · exact hlci 550 1500 (by norm_num) (hpow3 1500 550 (by linarith [LogTables.log_1500_cube_lt])) h5.le h6
               · by_cases! h7 : x ≤ 10000
-                · exact hlci 1500 10000 (by norm_num) (hpow3 10000 1500 (by linarith [show Real.log 10000 * (Real.log 10000 * Real.log 10000) < 1500 from by interval_auto])) h6.le h7
+                · exact hlci 1500 10000 (by norm_num) (hpow3 10000 1500 (by linarith [LogTables.log_10000_cube_lt])) h6.le h7
                 · by_cases! h8 : x ≤ (10:ℝ)^8
-                  · exact hlci 10000 ((10:ℝ)^8) (by norm_num) (hpow3 ((10:ℝ)^8) 10000 (by linarith [show Real.log ((10:ℝ)^8) * (Real.log ((10:ℝ)^8) * Real.log ((10:ℝ)^8)) < 10000 from by interval_auto])) h7.le h8
+                  · exact hlci 10000 ((10:ℝ)^8) (by norm_num) (hpow3 ((10:ℝ)^8) 10000 (by linarith [LogTables.log_1e8_cube_lt])) h7.le h8
                   · by_cases! h9 : x ≤ 3 * (10:ℝ)^10
-                    · exact hlci ((10:ℝ)^8) (3 * (10:ℝ)^10) (by norm_num) (hpow3 (3 * (10:ℝ)^10) ((10:ℝ)^8) (by linarith [show Real.log (3 * (10:ℝ)^10) * (Real.log (3 * (10:ℝ)^10) * Real.log (3 * (10:ℝ)^10)) < (10:ℝ)^8 from by interval_auto])) h8.le h9
+                    · exact hlci ((10:ℝ)^8) (3 * (10:ℝ)^10) (by norm_num) (hpow3 (3 * (10:ℝ)^10) ((10:ℝ)^8) (by linarith [LogTables.log_3e10_cube_lt])) h8.le h9
                     · -- Tail: x ≥ 3*10^10, so log x ≥ 24, use exp(t) ≥ t^4/24 ≥ t^3
                       have hlog_nn : 0 ≤ log x := hlog_pos.le
                       have hlog_ge : 24 ≤ log x := le_of_lt (lt_of_lt_of_le
@@ -252,14 +253,7 @@ theorem proposition_4_3 {x : ℝ} (hx : x ≥ 121) :
     have hlog_le : log x ≤ 2 * sqrt x := by
       have h := Real.log_le_rpow_div hx_nonneg (show (0:ℝ) < 1/2 by norm_num)
       rw [← sqrt_eq_rpow] at h; linarith
-    have h2 : (2 : ℝ) ≤ 4 * Real.log 2 := by
-      have : (1 : ℝ) < 2 * Real.log 2 := by
-        have : (1 : ℝ) < Real.log 4 := by
-          rw [show (1:ℝ) = Real.log (Real.exp 1) from (Real.log_exp 1).symm]
-          exact Real.log_lt_log (Real.exp_pos 1) (lt_trans Real.exp_one_lt_three (by norm_num))
-        linarith [show Real.log (4:ℝ) = 2 * Real.log 2 from by
-          rw [show (4:ℝ) = 2^2 from by norm_num, Real.log_pow]; ring]
-      linarith
+    have h2 : (2 : ℝ) ≤ 4 * Real.log 2 := by linarith [LogTables.log_2_gt_d9]
     nlinarith [mul_le_mul_of_nonneg_right h2 hsqrt_pos.le]
   · -- Second bound: ψ x - θ x ≥ sqrt (log³x / x) * θ (x^(1/2))
     -- Since √(log³x/x) ≤ 1 and θ(x^(1/2)) ≥ 0, and ψ-θ ≥ θ(x^(1/2)).
@@ -739,7 +733,8 @@ theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth_prime' k ≤ k * Real.log (nt
   We have for $k \geq 2$, $\log p_k \leq \log k + \log \log k + 1$.
   -/)
   (latexEnv := "lemma")]
-theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth_prime' k) ≤ Real.log k + Real.log (Real.log k) + 1 := by sorry
+theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) :
+    Real.log (nth_prime' (k - 1)) ≤ Real.log k + Real.log (Real.log k) + 1 := by sorry
 
 @[blueprint "Massias_Robin_thm_Bv"
   (title := "Massias and Robin Theorem B (v)")
