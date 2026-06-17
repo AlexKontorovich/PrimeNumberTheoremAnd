@@ -987,6 +987,301 @@ private theorem log_zeta_limit (s : ℝ) (hs : 1 < s) :
     Filter.Tendsto (fun s:ℝ ↦ (riemannZeta (s:ℂ)).re + log (s - 1)) (𝓝[>] 1) (𝓝 0) := by
   sorry
 
+-- Helpers for `deriv_gamma_add_γ_eq_zero` (#1320): take `s → 1⁺` in `log_zeta_eq`.
+section
+open MeasureTheory Set
+
+/-- `E₂Λ` is measurable: its Mangoldt-sum part factors through `⌊·⌋₊` and the rest is
+continuous/measurable. -/
+private lemma measurable_E₂Λ : Measurable E₂Λ := by
+  unfold E₂Λ
+  refine ((Measurable.sub ?_ ?_)).sub measurable_const
+  · exact (measurable_from_top (f := fun n : ℕ =>
+      ∑ d ∈ Finset.Ioc 0 n, (Λ d) / (d * log d))).comp Nat.measurable_floor
+  · exact Real.measurable_log.comp Real.measurable_log
+
+/-- On `(1,2)` the Mangoldt sum is empty (`⌊x⌋₊ = 1`), so `E₂Λ x = - log (log x) - γ`. -/
+private lemma E₂Λ_eq_on_Ioo {x : ℝ} (hx : x ∈ Set.Ioo (1 : ℝ) 2) :
+    E₂Λ x = - log (log x) - γ := by
+  obtain ⟨h1, h2⟩ := hx
+  have hf : ⌊x⌋₊ = 1 := by
+    rw [Nat.floor_eq_iff (by linarith)]
+    exact ⟨by exact_mod_cast h1.le, by exact_mod_cast h2⟩
+  unfold E₂Λ
+  rw [hf]
+  simp
+
+/-- Domination of `|E₂Λ|` near `1`: for `x ∈ (1,2)`, `|E₂Λ x| ≤ |log (x-1)| + log 2 + |γ|`,
+the RHS being integrable on `(1,2)` (the `log (x-1)` is integrable across the singularity at `1`). -/
+private lemma abs_E₂Λ_le_on_Ioo {x : ℝ} (hx : x ∈ Set.Ioo (1 : ℝ) 2) :
+    |E₂Λ x| ≤ |log (x - 1)| + log 2 + |γ| := by
+  obtain ⟨hx1, hx2⟩ := hx
+  have hloglog : |log (log x)| ≤ |log (x - 1)| + log 2 := by
+    have hxpos : (0:ℝ) < x := by linarith
+    have hlogx_pos : 0 < log x := Real.log_pos hx1
+    have hxm1 : 0 < x - 1 := by linarith
+    have hub : log x ≤ x - 1 := by have := Real.log_le_sub_one_of_pos hxpos; linarith
+    have hlb2 : (x - 1) / 2 ≤ log x := by
+      have h := Real.log_le_sub_one_of_pos (x := 1 / x) (by positivity)
+      rw [Real.log_div one_ne_zero (by positivity), Real.log_one] at h
+      simp only [zero_sub] at h
+      have h12 : (x - 1) / 2 ≤ 1 - 1 / x := by
+        rw [← sub_nonneg]
+        have e : (1 - 1 / x) - (x - 1) / 2 = (3 * x - 2 - x ^ 2) / (2 * x) := by field_simp; ring
+        rw [e]; exact div_nonneg (by nlinarith [hx1, hx2]) (by positivity)
+      linarith
+    have hupper : log (log x) ≤ log (x - 1) := Real.log_le_log hlogx_pos hub
+    have hlower : log (x - 1) - log 2 ≤ log (log x) := by
+      have := Real.log_le_log (show (0:ℝ) < (x - 1) / 2 by positivity) hlb2
+      rwa [Real.log_div (by linarith) (by norm_num)] at this
+    have h2 : (0:ℝ) ≤ log 2 := Real.log_nonneg (by norm_num)
+    rw [abs_le]
+    exact ⟨by have := neg_abs_le (log (x - 1)); linarith,
+          by have := le_abs_self (log (x - 1)); linarith⟩
+  rw [E₂Λ_eq_on_Ioo ⟨hx1, hx2⟩]
+  have htri : |(- log (log x) - γ)| ≤ |log (log x)| + |γ| := by
+    have h := abs_sub (-log (log x)) γ
+    rwa [abs_neg] at h
+  linarith
+
+/-- The near-1 dominating function `|log (x-1)| + log 2 + |γ|` is integrable on `(1,2)`
+(it dominates `|E₂Λ|` there, handling the log-log singularity at `1`). -/
+private lemma integrableOn_log_sub_one_bound :
+    IntegrableOn (fun x => |log (x - 1)| + log 2 + |γ|) (Set.Ioo 1 2) volume := by
+  have hlog : IntegrableOn (fun x => |log (x - 1)|) (Set.Ioo 1 2) volume := by
+    have h0 : IntervalIntegrable (fun x => log x) volume 0 1 :=
+      intervalIntegral.intervalIntegrable_log'
+    have h1 : IntervalIntegrable (fun x => log (x - 1)) volume (0 + 1) (1 + 1) :=
+      h0.comp_sub_right 1
+    norm_num at h1
+    exact (h1.1.mono_set Set.Ioo_subset_Ioc_self).abs
+  have hc : IntegrableOn (fun _ : ℝ => log 2 + |γ|) (Set.Ioo (1 : ℝ) 2) volume :=
+    integrableOn_const (measure_Ioo_lt_top).ne (by finiteness)
+  have hsum : IntegrableOn (fun x => |log (x - 1)| + (log 2 + |γ|)) (Set.Ioo 1 2) volume :=
+    hlog.add hc
+  exact hsum.congr_fun (fun x _ => by ring) measurableSet_Ioo
+
+/-- For `s > 1`, `E₂Λ x * x^(-s)` is integrable on `(1,∞)`: integrable near `1` (log-log
+singularity dominated by `|log (x-1)|`), and on `[2,∞)` it is bounded times `x^(-s)`. -/
+private lemma integrableOn_E₂Λ_mul_rpow {s : ℝ} (hs : 1 < s) :
+    IntegrableOn (fun x => E₂Λ x * x ^ (-s)) (Set.Ioi 1) volume := by
+  rw [(Set.Ioo_union_Ici_eq_Ioi (show (1:ℝ) < 2 by norm_num)).symm]
+  apply IntegrableOn.union
+  · -- near `1`: dominate by `|log (x-1)| + log 2 + |γ|`
+    have hg := integrableOn_log_sub_one_bound
+    refine Integrable.mono' hg ?_ ?_
+    · exact measurable_E₂Λ.aestronglyMeasurable.mul (by fun_prop)
+    · filter_upwards [self_mem_ae_restrict measurableSet_Ioo] with x hx
+      rw [Real.norm_eq_abs, abs_mul]
+      have hxpos : (0 : ℝ) < x := by have := hx.1; linarith
+      have hx1 : (1 : ℝ) ≤ x := by have := hx.1; linarith
+      have hle1 : x ^ (-s) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hx1 (by linarith)
+      have hnn : (0 : ℝ) ≤ x ^ (-s) := Real.rpow_nonneg hxpos.le _
+      calc |E₂Λ x| * |x ^ (-s)| = |E₂Λ x| * x ^ (-s) := by rw [abs_of_nonneg hnn]
+        _ ≤ |E₂Λ x| * 1 := by gcongr
+        _ = |E₂Λ x| := mul_one _
+        _ ≤ _ := abs_E₂Λ_le_on_Ioo hx
+  · -- on `[2,∞)`: bounded by `(log 4 + 6)/log 2` times integrable `x^(-s)`
+    have hrpow : IntegrableOn (fun x : ℝ => x ^ (-s)) (Set.Ici 2) volume := by
+      have := integrableOn_Ioi_rpow_of_lt (a := -s) (c := 1) (by linarith) one_pos
+      exact this.mono_set (by intro x hx; simp only [Set.mem_Ici, Set.mem_Ioi] at hx ⊢; linarith)
+    refine Integrable.mono' (hrpow.const_mul ((log 4 + 6) / log 2)) ?_ ?_
+    · exact measurable_E₂Λ.aestronglyMeasurable.mul (by fun_prop)
+    · filter_upwards [self_mem_ae_restrict measurableSet_Ici] with x hx
+      rw [Real.norm_eq_abs, abs_mul]
+      have hx2 : (2 : ℝ) ≤ x := hx
+      have hxpos : (0 : ℝ) < x := by linarith
+      rw [abs_of_nonneg (Real.rpow_nonneg hxpos.le _)]
+      have hb : |E₂Λ x| ≤ (log 4 + 6) / log 2 := by
+        refine (E₂Λ.abs_le hx2).trans ?_
+        have hl2 : 0 < log 2 := Real.log_pos (by norm_num)
+        exact div_le_div_of_nonneg_left (by positivity) hl2 (Real.log_le_log (by norm_num) hx2)
+      gcongr
+
+/-- `E₂Λ` is integrable on every bounded interval `(1, X)` (`X ≥ 2`): log-log singularity near
+`1` plus boundedness on `[2, X]`. -/
+private lemma integrableOn_E₂Λ_Ioo {X : ℝ} (_hX : 2 ≤ X) :
+    IntegrableOn E₂Λ (Set.Ioo 1 X) volume := by
+  have hsub : Set.Ioo (1 : ℝ) X ⊆ Set.Ioo 1 2 ∪ Set.Icc 2 X := by
+    intro x hx; simp only [Set.mem_Ioo, Set.mem_union, Set.mem_Icc] at *
+    rcases lt_or_ge x 2 with h | h
+    · exact Or.inl ⟨hx.1, h⟩
+    · exact Or.inr ⟨h, hx.2.le⟩
+  apply IntegrableOn.mono_set _ hsub
+  apply IntegrableOn.union
+  · have hg := integrableOn_log_sub_one_bound
+    refine Integrable.mono' hg measurable_E₂Λ.aestronglyMeasurable ?_
+    filter_upwards [self_mem_ae_restrict measurableSet_Ioo] with x hx
+    rw [Real.norm_eq_abs]; exact abs_E₂Λ_le_on_Ioo hx
+  · refine Integrable.mono' (g := fun _ => (log 4 + 6) / log 2) ?_
+      measurable_E₂Λ.aestronglyMeasurable ?_
+    · exact integrableOn_const (by rw [Real.volume_Icc]; exact ENNReal.ofReal_ne_top) (by finiteness)
+    · filter_upwards [self_mem_ae_restrict measurableSet_Icc] with x hx
+      rw [Real.norm_eq_abs]
+      refine (E₂Λ.abs_le hx.1).trans ?_
+      have hl2 : 0 < log 2 := Real.log_pos (by norm_num)
+      exact div_le_div_of_nonneg_left (by positivity) hl2 (Real.log_le_log (by norm_num) hx.1)
+
+/-- The CORRECT limiting behaviour of `log ζ`: `log ζ(s).re + log (s-1) → 0` as `s → 1⁺`,
+obtained from the residue of `ζ` at `1` (`riemannZeta_residue_one`).
+(Note: the file's `log_zeta_limit` (#1586) is mis-stated — it lacks the outer `log` on `ζ` and is
+false as written, so we prove the needed limit directly here.) -/
+private lemma log_zeta_re_add_log_tendsto :
+    Filter.Tendsto (fun s : ℝ => Real.log (riemannZeta (s:ℂ)).re + Real.log (s - 1))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+  -- Transfer the residue limit to real `s → 1⁺`.
+  have hofReal : Filter.Tendsto (fun s : ℝ => ((s:ℂ)))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhdsWithin 1 {(1:ℂ)}ᶜ) := by
+    rw [tendsto_nhdsWithin_iff]
+    constructor
+    · have : Filter.Tendsto (fun s : ℝ => ((s:ℂ))) (nhds 1) (nhds 1) :=
+        (Complex.continuous_ofReal.tendsto 1).congr (by simp)
+      exact this.mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with s hs
+      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+      intro h
+      have : (s : ℝ) = 1 := by exact_mod_cast h
+      simp only [Set.mem_Ioi] at hs; linarith
+  have hcomplex : Filter.Tendsto (fun s : ℝ => ((s:ℂ) - 1) * riemannZeta (s:ℂ))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) := riemannZeta_residue_one.comp hofReal
+  -- Take real parts.
+  have hre : Filter.Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s:ℂ)).re)
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) := by
+    have := (Complex.continuous_re.tendsto 1).comp hcomplex
+    simp only [Complex.one_re] at this
+    refine this.congr' ?_
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    simp only [Set.mem_Ioi] at hs
+    have him : (riemannZeta (s:ℂ)).im = 0 := riemannZeta_im_eq_zero_of_one_lt hs
+    simp only [Function.comp_apply, Complex.mul_re, Complex.sub_re, Complex.ofReal_re,
+      Complex.one_re, Complex.sub_im, Complex.ofReal_im, Complex.one_im, him]
+    ring
+  -- Apply `log`, continuous at `1 ≠ 0`.
+  have hlog : Filter.Tendsto (fun s : ℝ => Real.log ((s - 1) * (riemannZeta (s:ℂ)).re))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+    have h := (Real.continuousAt_log (one_ne_zero)).tendsto.comp hre
+    simpa only [Real.log_one, Function.comp_def] using h
+  refine hlog.congr' ?_
+  filter_upwards [self_mem_nhdsWithin] with s hs
+  simp only [Set.mem_Ioi] at hs
+  rw [Real.log_mul (by linarith) (ne_of_gt (riemannZeta_re_pos_of_one_lt hs)), add_comm]
+
+/-- The error integral, scaled by `(s-1)`, vanishes as `s → 1⁺` (uses `E₂Λ =o(1)`). -/
+private lemma sub_one_mul_integral_E₂Λ_tendsto :
+    Filter.Tendsto (fun s : ℝ => (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+  rw [Metric.tendsto_nhdsWithin_nhds]
+  intro ε hε
+  -- Choose `X ≥ 2` so that `|E₂Λ x| ≤ ε/2` for `x ≥ X` (from `E₂Λ =o(1)`).
+  obtain ⟨X₀, hX₀⟩ : ∃ X, ∀ x ≥ X, |E₂Λ x| ≤ ε / 2 := by
+    have := E₂Λ.bound'.def (by positivity : (0:ℝ) < ε / 2)
+    simp only [Real.norm_eq_abs, abs_one, mul_one] at this
+    rw [Filter.eventually_atTop] at this; exact this
+  set X := max X₀ 2 with hXdef
+  have hX2 : 2 ≤ X := le_max_right _ _
+  have hXge : ∀ x ≥ X, |E₂Λ x| ≤ ε / 2 := fun x hx => hX₀ x (le_trans (le_max_left _ _) hx)
+  -- `B` is the (finite) mass of `|E₂Λ|` on `(1, X)`.
+  set B := ∫ x in Set.Ioo 1 X, |E₂Λ x| with hBdef
+  have hB0 : 0 ≤ B := setIntegral_nonneg measurableSet_Ioo (fun x _ => abs_nonneg _)
+  refine ⟨min 1 (ε / 2 / (B + 1)), by positivity, ?_⟩
+  intro s hs hdist
+  simp only [Set.mem_Ioi] at hs
+  rw [Real.dist_eq] at hdist
+  have hs1 : s - 1 < min 1 (ε / 2 / (B + 1)) := by
+    rw [abs_of_pos (by linarith)] at hdist; exact hdist
+  have hsm1 : 0 < s - 1 := by linarith
+  -- `|E₂Λ|·x^(-s)` is integrable on `(1,∞)` and its subintervals.
+  have hintAbs : IntegrableOn (fun x => |E₂Λ x| * x ^ (-s)) (Set.Ioi 1) volume := by
+    have h2 : IntegrableOn (fun x => |E₂Λ x * x ^ (-s)|) (Set.Ioi 1) volume :=
+      (integrableOn_E₂Λ_mul_rpow hs).abs
+    refine h2.congr_fun ?_ measurableSet_Ioi
+    intro x hx; simp only [Set.mem_Ioi] at hx
+    change |E₂Λ x * x ^ (-s)| = |E₂Λ x| * x ^ (-s)
+    rw [abs_mul, abs_of_nonneg (Real.rpow_nonneg (by linarith) _)]
+  have hintAbsIoc : IntegrableOn (fun x => |E₂Λ x| * x ^ (-s)) (Set.Ioc 1 X) volume :=
+    hintAbs.mono_set Set.Ioc_subset_Ioi_self
+  have hintAbsIoiX : IntegrableOn (fun x => |E₂Λ x| * x ^ (-s)) (Set.Ioi X) volume :=
+    hintAbs.mono_set (Set.Ioi_subset_Ioi (by linarith))
+  -- Split `∫_{(1,∞)} = ∫_{(1,X]} + ∫_{(X,∞)}`.
+  have hsplit : ∫ x in Set.Ioi 1, |E₂Λ x| * x ^ (-s) =
+      (∫ x in Set.Ioc 1 X, |E₂Λ x| * x ^ (-s)) + ∫ x in Set.Ioi X, |E₂Λ x| * x ^ (-s) := by
+    have hu : Set.Ioi (1:ℝ) = Set.Ioc 1 X ∪ Set.Ioi X :=
+      (Set.Ioc_union_Ioi_eq_Ioi (by linarith)).symm
+    rw [hu, setIntegral_union (Set.Ioc_disjoint_Ioi le_rfl) measurableSet_Ioi
+      (hintAbs.mono_set (by rw [hu]; exact Set.subset_union_left))
+      (hintAbs.mono_set (by rw [hu]; exact Set.subset_union_right))]
+  -- Piece 1: on `(1,X]`, `x^(-s) ≤ 1`, so the integral is `≤ B`.
+  have hp1 : ∫ x in Set.Ioc 1 X, |E₂Λ x| * x ^ (-s) ≤ B := by
+    rw [hBdef]
+    have ha : IntegrableOn (fun x => |E₂Λ x|) (Set.Ioo 1 X) volume := (integrableOn_E₂Λ_Ioo hX2).abs
+    have habsIoc : IntegrableOn (fun x => |E₂Λ x|) (Set.Ioc 1 X) volume :=
+      ha.congr_set_ae (Ioo_ae_eq_Ioc).symm
+    rw [← integral_Ioc_eq_integral_Ioo]
+    apply setIntegral_mono_on hintAbsIoc habsIoc measurableSet_Ioc
+    intro x hx
+    have hx1 : (1:ℝ) ≤ x := by have := hx.1; linarith
+    have hle1 : x ^ (-s) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hx1 (by linarith)
+    calc |E₂Λ x| * x ^ (-s) ≤ |E₂Λ x| * 1 := by gcongr
+      _ = |E₂Λ x| := mul_one _
+  -- Piece 2: on `(X,∞)`, `|E₂Λ| ≤ ε/2`, and `∫_{(X,∞)} x^(-s) = X^(1-s)/(s-1)`.
+  have hp2 : ∫ x in Set.Ioi X, |E₂Λ x| * x ^ (-s) ≤ (ε / 2) * (X ^ (1 - s) / (s - 1)) := by
+    have hrpow_int : IntegrableOn (fun x : ℝ => x ^ (-s)) (Set.Ioi X) volume :=
+      integrableOn_Ioi_rpow_of_lt (by linarith) (by linarith : (0:ℝ) < X)
+    have hval : ∫ x in Set.Ioi X, x ^ (-s) = X ^ (1 - s) / (s - 1) := by
+      rw [integral_Ioi_rpow_of_lt (by linarith) (by linarith : (0:ℝ) < X),
+        show -s + 1 = 1 - s by ring, show (1:ℝ) - s = -(s - 1) by ring]
+      rw [div_neg, neg_div, neg_neg]
+    rw [← hval, ← integral_const_mul]
+    apply setIntegral_mono_on hintAbsIoiX (hrpow_int.const_mul (ε / 2)) measurableSet_Ioi
+    intro x hx
+    have hxpos : (0:ℝ) < x := by simp only [Set.mem_Ioi] at hx; linarith
+    have hnn : 0 ≤ x ^ (-s) := Real.rpow_nonneg hxpos.le _
+    have hb : |E₂Λ x| ≤ ε / 2 := hXge x (by simp only [Set.mem_Ioi] at hx; linarith)
+    gcongr
+  have hXpow : X ^ (1 - s) ≤ 1 :=
+    Real.rpow_le_one_of_one_le_of_nonpos (by linarith) (by linarith)
+  -- Assemble: `(s-1)·∫|E₂Λ|·x^(-s) ≤ (s-1)·B + ε/2`.
+  have hbound : (s - 1) * ∫ x in Set.Ioi 1, |E₂Λ x| * x ^ (-s) ≤ (s - 1) * B + ε / 2 := by
+    rw [hsplit, mul_add]
+    have ht2 : (s - 1) * ∫ x in Set.Ioi X, |E₂Λ x| * x ^ (-s) ≤ ε / 2 := by
+      calc (s - 1) * ∫ x in Set.Ioi X, |E₂Λ x| * x ^ (-s)
+          ≤ (s - 1) * ((ε / 2) * (X ^ (1 - s) / (s - 1))) :=
+            mul_le_mul_of_nonneg_left hp2 hsm1.le
+        _ = (ε / 2) * X ^ (1 - s) := by
+              have hne : s - 1 ≠ 0 := by linarith
+              field_simp
+        _ ≤ (ε / 2) * 1 := by gcongr
+        _ = ε / 2 := mul_one _
+    have ht1 : (s - 1) * ∫ x in Set.Ioc 1 X, |E₂Λ x| * x ^ (-s) ≤ (s - 1) * B :=
+      mul_le_mul_of_nonneg_left hp1 hsm1.le
+    linarith
+  -- `|(s-1)·∫ E₂Λ·x^(-s)| ≤ (s-1)·∫|E₂Λ|·x^(-s)`.
+  have habs_le : |(s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s)|
+      ≤ (s - 1) * ∫ x in Set.Ioi 1, |E₂Λ x| * x ^ (-s) := by
+    rw [abs_mul, abs_of_pos hsm1]
+    gcongr
+    rw [← Real.norm_eq_abs]
+    refine (norm_integral_le_integral_norm _).trans_eq ?_
+    refine setIntegral_congr_fun measurableSet_Ioi (fun x hx => ?_)
+    simp only [Set.mem_Ioi] at hx
+    change ‖E₂Λ x * x ^ (-s)‖ = |E₂Λ x| * x ^ (-s)
+    rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (Real.rpow_nonneg (by linarith) _)]
+  rw [Real.dist_eq, sub_zero]
+  -- `(s-1)·B + ε/2 < ε` since `s - 1 < ε/2/(B+1)`.
+  have hfin : (s - 1) * B + ε / 2 < ε := by
+    have hlt : s - 1 < ε / 2 / (B + 1) := lt_of_lt_of_le hs1 (min_le_right _ _)
+    have hBp : 0 < B + 1 := by linarith
+    have h1 : (s - 1) * B ≤ (s - 1) * (B + 1) := by nlinarith
+    have h2 : (s - 1) * (B + 1) < (ε / 2 / (B + 1)) * (B + 1) := mul_lt_mul_of_pos_right hlt hBp
+    have h3 : (ε / 2 / (B + 1)) * (B + 1) = ε / 2 := by field_simp
+    linarith
+  calc |(s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s)|
+      ≤ (s - 1) * ∫ x in Set.Ioi 1, |E₂Λ x| * x ^ (-s) := habs_le
+    _ ≤ (s - 1) * B + ε / 2 := hbound
+    _ < ε := hfin
+
+end
+
 @[blueprint
   "Euler-Mascheroni-eq"
   (title := "Compatibility with Mathlib Euler-Mascheroni constant")
@@ -995,7 +1290,26 @@ private theorem log_zeta_limit (s : ℝ) (hs : 1 < s) :
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
   (latexEnv := "theorem")
   (discussion := 1320)]
-theorem deriv_gamma_add_γ_eq_zero : deriv Gamma 1 + γ = 0 := by sorry
+theorem deriv_gamma_add_γ_eq_zero : deriv Gamma 1 + γ = 0 := by
+  -- For `s > 1`, `log_zeta_eq` rearranges to a constant identity.
+  have key : ∀ s : ℝ, 1 < s →
+      (Real.log (riemannZeta (s:ℂ)).re + Real.log (s - 1))
+        - (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s) = deriv Gamma 1 + γ := by
+    intro s hs
+    have h := log_zeta_eq s hs
+    linarith
+  -- The LHS is eventually constant, so its limit is that constant.
+  have hconst : Filter.Tendsto
+      (fun s : ℝ => (Real.log (riemannZeta (s:ℂ)).re + Real.log (s - 1))
+        - (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds (deriv Gamma 1 + γ)) := by
+    refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    exact (key s hs).symm
+  -- But the same function tends to `0 - 0` by the two limit lemmas.
+  have hlim := log_zeta_re_add_log_tendsto.sub sub_one_mul_integral_E₂Λ_tendsto
+  rw [sub_zero] at hlim
+  exact tendsto_nhds_unique hconst hlim
 
 theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by
   linarith [Real.eulerMascheroniConstant_eq_neg_deriv, deriv_gamma_add_γ_eq_zero]
