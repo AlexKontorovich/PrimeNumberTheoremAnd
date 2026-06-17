@@ -48,7 +48,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {C r R : ℝ} {f : ℂ → ℂ} {w
     rw [Metric.closure_closedBall]
     exact AnalyticOn.differentiableOn
       (AnalyticOn.mono analytic
-        (Metric.closedBall_subset_closedBall (by linarith)))
+        (Metric.closedBall_subset_closedBall hyp_r))
   · rw [frontier_closedBall']
     exact cond
   · rw [Metric.closure_closedBall]
