@@ -1516,11 +1516,11 @@ theorem GlobalBound
     have It_norm : ‖I * (↑t : ℂ)‖ = |t| := by rw [norm_mul, norm_I, one_mul, Complex.norm_real, Real.norm_eq_abs]
     have threeHalves_norm : ‖(3 / 2 : ℂ)‖ = 3 / 2 := by rw [norm_div, Complex.norm_ofNat, Complex.norm_ofNat]
     refine (norm_add_le_of_le (norm_add_le_of_le hs (le_of_eq threeHalves_norm)) (le_of_eq It_norm)).trans (by linarith)
-  rw [ZetaExtend hz, ζ₀]
   have hmul : ‖(s + 3 / 2 + I * ↑t) * ∫ (u : ℝ) in Ioi 1, (↑(Int.fract u) : ℂ) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 5 + 2 * |t| := by
     rw [norm_mul]
     have hinv : (1 : ℝ) / (s.re + 3 / 2) ≤ 2 := by rw [div_le_iff₀ (by linarith)]; linarith
     exact (mul_le_mul z_norm (hint.trans hinv) (norm_nonneg _) (by linarith [abs_nonneg t])).trans (by linarith)
+  rw [ZetaExtend hz, ζ₀]
   exact (norm_sub_le_of_le leadingTerms hmul).trans (by linarith)
 
 
