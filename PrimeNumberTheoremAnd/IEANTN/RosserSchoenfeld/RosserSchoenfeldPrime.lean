@@ -518,6 +518,15 @@ theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
     have : log t ≠ 0 := by simp; grind
     fun_prop (disch := grind)
 
+/-- `Ioc a b` minus its open interior is the right endpoint. -/
+private lemma Ioc_diff_Ioo_right {a b : ℝ} (h : a < b) :
+    Set.Ioc a b \ Set.Ioo a b = {b} := by
+  ext t
+  simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_singleton_iff, not_and, not_lt]
+  constructor
+  · rintro ⟨⟨h1, h2⟩, h3⟩; exact le_antisymm h2 (h3 h1)
+  · rintro rfl; exact ⟨⟨h, le_refl _⟩, fun _ => le_refl _⟩
+
 @[blueprint
   "rs-414"
   (title := "RS equation (4.14)")
@@ -537,14 +546,8 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
   let hoc := Set.uIoc_of_le hx
   have hm : Set.Ioo 2 x ∈ ae (volume.restrict (Set.Ioc 2 x)) := by
     by_cases hp : 2 < x
-    · have hset : Set.Ioc 2 x \ Set.Ioo 2 x = {x} := by
-        ext t
-        simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_singleton_iff, not_and, not_lt]
-        constructor
-        · rintro ⟨⟨h1, h2⟩, h3⟩; exact le_antisymm h2 (h3 h1)
-        · rintro rfl; exact ⟨⟨hp, le_refl _⟩, fun _ => le_refl _⟩
-      rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
-        hset, volume_singleton]
+    · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
+        Ioc_diff_Ioo_right hp, volume_singleton]
     · simp_all
   have hae : (fun t ↦ deriv (fun s ↦ f s / log s) t) =ᶠ[ae (volume.restrict (Set.Ioc 2 x))]
     derivWithin (fun t ↦ f t / log t) (Set.uIcc 2 x) := by

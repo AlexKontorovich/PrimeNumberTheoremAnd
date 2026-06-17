@@ -1274,30 +1274,18 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
   have hφ_deriv : ∀ t ∈ Set.Icc a b, deriv φ t = ν - s.im / (2 * π * t) := by
     intro t ht
     have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
-    have hd : HasDerivAt φ (ν - s.im / (2 * π * t)) t := by
-      rw [show φ = fun x ↦ ν * x - s.im / (2 * π) * Real.log x from rfl]
-      have h1 : HasDerivAt (fun x : ℝ ↦ ν * x) ν t := by
-        simpa using (hasDerivAt_id t).const_mul ν
-      have h2 : HasDerivAt (fun x : ℝ ↦ s.im / (2 * π) * Real.log x) (s.im / (2 * π * t)) t := by
-        have h := (Real.hasDerivAt_log ht_pos.ne').const_mul (s.im / (2 * π))
-        rwa [show s.im / (2 * π) * t⁻¹ = s.im / (2 * π * t) by field_simp] at h
-      exact h1.sub h2
-    exact hd.deriv
+    rw [show φ = fun x ↦ ν * x - s.im / (2 * π) * Real.log x from rfl]
+    simpa [div_eq_mul_inv, mul_inv, mul_comm, mul_assoc, mul_left_comm]
+      using deriv_linear_sub_log ν (s.im / (2 * π)) t ht_pos.ne'
   have hφ_deriv2 : ∀ t ∈ Set.Icc a b, deriv (deriv φ) t = s.im / (2 * π * t^2) := by
     intro t ht
     have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
     have h_deriv_φ : ∀ x ∈ Set.Ioi 0, deriv φ x = ν - s.im / (2 * π * x) := by
       intro x hx
       have hxpos : 0 < x := hx
-      have hd : HasDerivAt φ (ν - s.im / (2 * π * x)) x := by
-        rw [show φ = fun y ↦ ν * y - s.im / (2 * π) * Real.log y from rfl]
-        have h1 : HasDerivAt (fun y : ℝ ↦ ν * y) ν x := by
-          simpa using (hasDerivAt_id x).const_mul ν
-        have h2 : HasDerivAt (fun y : ℝ ↦ s.im / (2 * π) * Real.log y) (s.im / (2 * π * x)) x := by
-          have h := (Real.hasDerivAt_log hxpos.ne').const_mul (s.im / (2 * π))
-          rwa [show s.im / (2 * π) * x⁻¹ = s.im / (2 * π * x) by field_simp] at h
-        exact h1.sub h2
-      exact hd.deriv
+      rw [show φ = fun y ↦ ν * y - s.im / (2 * π) * Real.log y from rfl]
+      simpa [div_eq_mul_inv, mul_inv, mul_comm, mul_assoc, mul_left_comm]
+        using deriv_linear_sub_log ν (s.im / (2 * π)) x hxpos.ne'
     have : deriv φ =ᶠ[𝓝 t] fun x ↦ ν - s.im / (2 * π * x) := by
       apply eventuallyEq_of_mem (isOpen_Ioi.mem_nhds ht_pos)
       intro x hx
@@ -1337,12 +1325,7 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
       dsimp only [g_1, f]
       rw [abs_div, abs_pow, abs_rpow_of_nonneg ht_pos.le]
-      have hφ' : deriv φ t = ν - s.im / (2 * π * t) := by
-        rw [show φ = fun x ↦ ν * x - (s.im / (2 * π)) * Real.log x from rfl]
-        convert! HasDerivAt.deriv (HasDerivAt.sub (HasDerivAt.const_mul ν (hasDerivAt_id t))
-          (HasDerivAt.const_mul (s.im / (2 * π)) (Real.hasDerivAt_log ht_pos.ne'))) using 1
-        field_simp
-      rw [hφ']
+      rw [hφ_deriv t ht]
       have h_inner : 2 * π * ν - s.im / t = 2 * π * (ν - s.im / (2 * π * t)) := by
         field_simp [ht_pos.ne', Real.two_pi_pos.ne']
       rw [h_inner]

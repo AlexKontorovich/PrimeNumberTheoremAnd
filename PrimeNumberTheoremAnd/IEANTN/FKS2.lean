@@ -10,6 +10,7 @@ import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.IEANTN.LogTables
+import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
 
 blueprint_comment /--
 \section{The implications of FKS2}\label{fks2-sec}
@@ -2802,34 +2803,8 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
     next => use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
     · norm_num; ring
     · intro x hx
-      have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2)
-          (1 / Real.log x ^ 2) x := by
-        apply_rules [intervalIntegral.integral_hasDerivAt_right]
-        · apply_rules [ContinuousOn.intervalIntegrable]
-          exact continuousOn_of_forall_continuousAt fun y hy =>
-            ContinuousAt.div continuousAt_const
-              (ContinuousAt.pow (Real.continuousAt_log (by
-                cases Set.mem_uIcc.mp hy <;>
-                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)])) _)
-              (ne_of_gt (sq_pos_of_pos (Real.log_pos (by
-                cases Set.mem_uIcc.mp hy <;>
-                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)]))))
-        · exact Measurable.stronglyMeasurable (by
-            exact Measurable.div measurable_const
-              (Measurable.pow_const Real.measurable_log _))
-            |> fun h => h.stronglyMeasurableAtFilter
-        · exact ContinuousAt.div continuousAt_const
-            (ContinuousAt.pow (Real.continuousAt_log
-              (by cases Set.mem_uIcc.mp hx <;> linarith)) _)
-            (ne_of_gt (sq_pos_of_pos (Real.log_pos
-              (by cases Set.mem_uIcc.mp hx <;> linarith))))
-      convert! HasDerivAt.add (HasDerivAt.div (hasDerivAt_id x)
-        (Real.hasDerivAt_log (show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith))
-        (ne_of_gt (Real.log_pos (show x > 1 by
-          cases Set.mem_uIcc.mp hx <;> linarith)))) h_ftc using 1;
-      ring_nf;
-      by_cases hx' : x = 0 <;> simp +decide [sq, mul_assoc, hx'];
-      field_simp
+      exact Ramanujan.hasDerivAt_li_antideriv (by linarith)
+        (by cases Set.mem_uIcc.mp hx <;> linarith)
     · apply_rules [ContinuousOn.intervalIntegrable]
       exact continuousOn_of_forall_continuousAt fun t ht =>
         ContinuousAt.div continuousAt_const

@@ -329,6 +329,28 @@ theorem exp_8_lt_3914 : exp (8 : ℝ) < (3914 : ℝ) :=
   (show ∀ y ∈ Set.Icc (8 : ℝ) 8, exp y < (3914 : ℝ) by interval_bound 20)
     8 ⟨le_refl _, le_refl _⟩
 
+/-- The antiderivative `x ↦ x / log x + ∫ 1 / log² u` appearing in the integration-by-parts
+identity for `Li` has derivative `1 / log t` at any `t > 1`, provided the lower limit `a` of
+the integral also exceeds `1` (so `1 / log² u` is continuous across the interval). -/
+lemma hasDerivAt_li_antideriv {a t : ℝ} (ha : 1 < a) (ht : 1 < t) :
+    HasDerivAt (fun x ↦ x / log x + ∫ u in (a : ℝ)..x, 1 / log u ^ 2) (1 / log t) t := by
+  have ht0 : t ≠ 0 := (one_pos.trans ht).ne'
+  have htlog : log t ≠ 0 := ne_of_gt (log_pos ht)
+  have h_ftc : HasDerivAt (fun x ↦ ∫ u in (a : ℝ)..x, 1 / log u ^ 2) (1 / log t ^ 2) t := by
+    apply_rules [intervalIntegral.integral_hasDerivAt_right]
+    · apply_rules [ContinuousOn.intervalIntegrable]
+      exact continuousOn_of_forall_continuousAt fun u hu ↦
+        ContinuousAt.div continuousAt_const (ContinuousAt.pow
+          (continuousAt_log (by cases Set.mem_uIcc.mp hu <;> linarith)) _)
+            (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp hu <;> linarith))))
+    · exact (measurable_const.div (measurable_log.pow_const _)).stronglyMeasurable.stronglyMeasurableAtFilter
+    · exact ContinuousAt.div continuousAt_const
+        (ContinuousAt.pow (continuousAt_log ht0) _) (ne_of_gt (sq_pos_of_pos (log_pos ht)))
+  convert! (HasDerivAt.div (hasDerivAt_id t) (hasDerivAt_log ht0) htlog).add h_ftc using 1
+  simp only [id_eq]
+  field_simp
+  ring
+
 /-- Integration by parts formula for `Li(x)`. -/
 lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
     Li x = x / log x - 2 / log 2 + ∫ t in Icc 2 x, 1 / log t ^ 2 := by
@@ -338,24 +360,7 @@ lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
   · use fun t ↦ t / log t + ∫ u in (2 : ℝ)..t, 1 / log u ^ 2
   · norm_num; ring
   · intro t ht
-    have ht' := Set.mem_Icc.mp (by simpa [hx] using ht)
-    have h_ftc : HasDerivAt (fun t ↦ ∫ u in (2 : ℝ)..t, 1 / log u ^ 2) (1 / log t ^ 2) t := by
-      apply_rules [intervalIntegral.integral_hasDerivAt_right]
-      · apply_rules [ContinuousOn.intervalIntegrable]
-        exact continuousOn_of_forall_continuousAt fun u hu ↦
-          ContinuousAt.div continuousAt_const (ContinuousAt.pow
-            (continuousAt_log (by cases Set.mem_uIcc.mp hu <;> linarith [ht'])) _)
-              (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp hu <;> linarith [ht']))))
-      · exact (measurable_const.div (measurable_log.pow_const _)).stronglyMeasurable.stronglyMeasurableAtFilter
-      · exact ContinuousAt.div continuousAt_const
-          (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
-            (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
-    convert! HasDerivAt.add
-      (HasDerivAt.div (hasDerivAt_id t) (hasDerivAt_log (show t ≠ 0 by cases Set.mem_uIcc.mp ht <;> linarith))
-        (ne_of_gt (log_pos (show t > 1 by cases Set.mem_uIcc.mp ht <;> linarith))))
-      h_ftc using 1 ; ring_nf
-    by_cases h : t = 0 <;> simp [sq, mul_assoc, h]
-    by_cases h' : log t = 0 <;> aesop
+    exact hasDerivAt_li_antideriv (by norm_num) (by cases Set.mem_uIcc.mp ht <;> linarith)
   · exact ContinuousOn.intervalIntegrable (continuousOn_of_forall_continuousAt fun t ht ↦
       ContinuousAt.div continuousAt_const (continuousAt_log
         (by linarith [Set.mem_Icc.mp (by simpa [hx] using ht)]))
