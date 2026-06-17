@@ -3286,6 +3286,338 @@ theorem LadderParams.zOf_bot_hray (l : LadderParams) (r : ℝ) :
   field_simp [l.hT.ne']
   ring
 
+/-- The squared norm of the denominator `iT` of the rescaling equals `T²`. -/
+theorem LadderParams.normSq_I_mul_T (l : LadderParams) :
+    Complex.normSq (Complex.I * (l.T : ℂ)) = l.T ^ 2 := by
+  simp [Complex.normSq_mul, Complex.normSq_I, Complex.normSq_ofReal, sq]
+
+/-- The real part of the rescaling: `Re z(s) = Im s / T`. -/
+theorem LadderParams.zOf_re (l : LadderParams) (s : ℂ) : (l.zOf s).re = s.im / l.T := by
+  have hT : l.T ≠ 0 := l.hT.ne'
+  rw [LadderParams.zOf, Complex.div_re, (by simp : (Complex.I * (l.T : ℂ)).re = 0),
+    (by simp : (Complex.I * (l.T : ℂ)).im = l.T), l.normSq_I_mul_T]
+  simp only [Complex.sub_im, Complex.one_im, sub_zero, mul_zero, zero_div, zero_add]
+  field_simp
+
+/-- The sign of `Re z(s)` agrees with the sign of `Im s` (since `Re z(s) = Im s / T`, `T > 0`). -/
+theorem LadderParams.sign_zOf_re (l : LadderParams) (s : ℂ) :
+    Real.sign (l.zOf s).re = Real.sign s.im := by
+  rw [l.zOf_re]
+  rcases lt_trichotomy s.im 0 with h | h | h
+  · rw [Real.sign_of_neg (div_neg_of_neg_of_pos h l.hT), Real.sign_of_neg h]
+  · rw [h, zero_div]
+  · rw [Real.sign_of_pos (div_pos h l.hT), Real.sign_of_pos h]
+
+/-- The rescaling intertwines conjugation with negation: `z(s̄) = -\overline{z(s)}`. -/
+theorem LadderParams.zOf_conj (l : LadderParams) (s : ℂ) :
+    l.zOf (starRingEnd ℂ s) = -(starRingEnd ℂ (l.zOf s)) := by
+  simp only [LadderParams.zOf, map_div₀, map_mul, map_sub, map_one, Complex.conj_I,
+    Complex.conj_ofReal]
+  field_simp
+
+/-- The rescaling is analytic everywhere (an affine map divided by the nonzero constant `iT`). -/
+theorem LadderParams.analyticAt_zOf (l : LadderParams) (c s : ℂ) :
+    AnalyticAt ℂ (fun w : ℂ => c * l.zOf w) s := by
+  have hden : (Complex.I * (l.T : ℂ)) ≠ 0 := by
+    simp only [ne_eq, mul_eq_zero, Complex.I_ne_zero, Complex.ofReal_eq_zero, false_or]
+    exact l.hT.ne'
+  unfold LadderParams.zOf
+  exact analyticAt_const.mul ((analyticAt_id.sub analyticAt_const).div analyticAt_const hden)
+
+/-- Conjugation symmetry of `Φ^\star`: `Φ^\star(-\overline{w}) = -\overline{Φ^\star(w)}`. This is the
+complex-argument generalization of `Phi_star_conj_symm`. -/
+theorem Phi_star_conj_neg (ν ε : ℝ) (w : ℂ) :
+    Phi_star ν ε (-(starRingEnd ℂ w)) = -(starRingEnd ℂ (Phi_star ν ε w)) := by
+  dsimp [Phi_star]
+  simp only [neg_mul, map_div₀, map_sub, map_mul, map_ofNat, Complex.conj_ofReal, Complex.conj_I]
+  rw [B_conj]
+  simp only [map_add, map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I, map_ofNat]
+  rw [B_conj]
+  simp only [Complex.conj_ofReal]
+  rw [show -(2 * (π : ℂ) * I * -(starRingEnd ℂ) w) + (ν : ℂ)
+        = -(2 * (π : ℂ) * -I * (starRingEnd ℂ) w) + (ν : ℂ) by ring,
+    mul_neg, div_neg, neg_neg]
+
+/-- The imaginary part of the rescaling: `Im z(s) = (1 - Re s)/T` (hence `≥ 0` on `R`). -/
+theorem LadderParams.zOf_im (l : LadderParams) (s : ℂ) : (l.zOf s).im = (1 - s.re) / l.T := by
+  rw [LadderParams.zOf, Complex.div_im, (by simp : (Complex.I * (l.T : ℂ)).re = 0),
+    (by simp : (Complex.I * (l.T : ℂ)).im = l.T), l.normSq_I_mul_T]
+  simp only [Complex.sub_im, Complex.one_im, sub_zero, Complex.sub_re, Complex.one_re,
+    mul_zero]
+  field_simp [l.hT.ne']
+  ring
+
+/-- The rescaling sends `{Re s ≤ 1}` (in particular `R`) into the closed upper half-plane. -/
+theorem LadderParams.zOf_im_nonneg (l : LadderParams) {s : ℂ} (hs : s.re ≤ 1) :
+    0 ≤ (l.zOf s).im := by
+  rw [l.zOf_im]; exact div_nonneg (by linarith) l.hT.le
+
+/-- Restriction of `IsBoundedNoPolesOn` to a subset. -/
+lemma IsBoundedNoPolesOn.mono {f : ℂ → ℂ} {S T : Set ℂ} (h : IsBoundedNoPolesOn f T)
+    (hST : S ⊆ T) : IsBoundedNoPolesOn f S := by
+  obtain ⟨M, hM⟩ := h
+  exact ⟨M, fun z hz ↦ hM z (hST hz)⟩
+
+/-- Multiplying a bounded-with-no-poles function by an analytic factor that is uniformly bounded on
+the set preserves `IsBoundedNoPolesOn`. -/
+lemma IsBoundedNoPolesOn.analytic_mul {g h : ℂ → ℂ} {S : Set ℂ} {C : ℝ}
+    (hh : IsBoundedNoPolesOn h S) (hh_mero : ∀ z ∈ S, MeromorphicAt h z)
+    (hg_an : ∀ z ∈ S, AnalyticAt ℂ g z) (hg_bd : ∀ z ∈ S, ‖g z‖ ≤ C) :
+    IsBoundedNoPolesOn (fun s ↦ g s * h s) S := by
+  obtain ⟨M, hM⟩ := hh
+  refine ⟨C * M, fun z hz ↦ ⟨?_, ?_⟩⟩
+  · have hCnn : 0 ≤ C := le_trans (norm_nonneg _) (hg_bd z hz)
+    calc ‖g z * h z‖ = ‖g z‖ * ‖h z‖ := norm_mul _ _
+      _ ≤ C * ‖h z‖ := mul_le_mul_of_nonneg_right (hg_bd z hz) (norm_nonneg _)
+      _ ≤ C * M := mul_le_mul_of_nonneg_left (hM z hz).1 hCnn
+  · rw [show (fun s ↦ g s * h s) = g * h from rfl,
+      meromorphicOrderAt_mul (hg_an z hz).meromorphicAt (hh_mero z hz)]
+    exact add_nonneg (hg_an z hz).meromorphicOrderAt_nonneg (hM z hz).2
+
+/-- Norm arithmetic for a linearly-growing factor: from `‖φ‖ ≤ C(‖w‖+1)`, a bound `‖h‖ ≤ Mh`, and a
+bound `‖w‖·‖h‖ ≤ Mwh` on the weighted product, conclude `‖φ·h‖ ≤ |C|·Mwh + |C|·Mh`. -/
+private lemma norm_mul_le_of_linear_growth {φ w h : ℂ} {C Mh Mwh : ℝ}
+    (hφ : ‖φ‖ ≤ C * (‖w‖ + 1)) (hh : ‖h‖ ≤ Mh) (hwh : ‖w‖ * ‖h‖ ≤ Mwh) :
+    ‖φ * h‖ ≤ |C| * Mwh + |C| * Mh := by
+  have hCnn : (0 : ℝ) ≤ |C| := abs_nonneg C
+  have hb1 : ‖φ‖ ≤ |C| * (‖w‖ + 1) :=
+    hφ.trans (mul_le_mul_of_nonneg_right (le_abs_self C) (by positivity))
+  calc ‖φ * h‖ = ‖φ‖ * ‖h‖ := norm_mul _ _
+    _ ≤ |C| * (‖w‖ + 1) * ‖h‖ := mul_le_mul_of_nonneg_right hb1 (norm_nonneg _)
+    _ = |C| * (‖w‖ * ‖h‖) + |C| * ‖h‖ := by ring
+    _ ≤ |C| * Mwh + |C| * Mh :=
+        add_le_add (mul_le_mul_of_nonneg_left hwh hCnn) (mul_le_mul_of_nonneg_left hh hCnn)
+
+/-- Multiplying a bounded-with-no-poles function `h` by an analytic factor `φ` whose growth is
+controlled by a weight `w` — `‖φ‖ ≤ C(‖w‖+1)` — preserves `IsBoundedNoPolesOn`, provided the
+weighted product `w · h` is itself bounded with no poles. (Used for the `Φ^\star = O(|z|)` factors:
+the linear growth is absorbed by the extra decay of `w · h = z(s) · F · x₀^s`.) -/
+lemma IsBoundedNoPolesOn.linear_mul {φ w h : ℂ → ℂ} {S : Set ℂ} {C : ℝ}
+    (hh : IsBoundedNoPolesOn h S) (hwh : IsBoundedNoPolesOn (fun s ↦ w s * h s) S)
+    (hh_mero : ∀ z ∈ S, MeromorphicAt h z)
+    (hφ_an : ∀ z ∈ S, AnalyticAt ℂ φ z) (hφ_bd : ∀ z ∈ S, ‖φ z‖ ≤ C * (‖w z‖ + 1)) :
+    IsBoundedNoPolesOn (fun s ↦ φ s * h s) S := by
+  obtain ⟨Mh, hMh⟩ := hh
+  obtain ⟨Mwh, hMwh⟩ := hwh
+  refine ⟨|C| * Mwh + |C| * Mh, fun z hz ↦ ⟨?_, ?_⟩⟩
+  · have hwh_z : ‖w z‖ * ‖h z‖ ≤ Mwh := by
+      have := (hMwh z hz).1; rwa [norm_mul] at this
+    exact norm_mul_le_of_linear_growth (hφ_bd z hz) (hMh z hz).1 hwh_z
+  · rw [show (fun s ↦ φ s * h s) = φ * h from rfl,
+      meromorphicOrderAt_mul (hφ_an z hz).meromorphicAt (hh_mero z hz)]
+    exact add_nonneg (hφ_an z hz).meromorphicOrderAt_nonneg (hMh z hz).2
+
+/-- If `f` is bounded on a punctured neighborhood of `z`, its meromorphic order there is `≥ 0`.
+(If `f` is not meromorphic at `z` the order is the junk value `0`; otherwise a negative order would
+force `f → ∞`, contradicting the bound.) -/
+lemma meromorphicOrderAt_nonneg_of_eventually_bounded {f : ℂ → ℂ} {z : ℂ} {M : ℝ}
+    (hbdd : ∀ᶠ s in nhdsWithin z {z}ᶜ, ‖f s‖ ≤ M) : 0 ≤ meromorphicOrderAt f z := by
+  by_cases hmero : MeromorphicAt f z
+  · rw [← not_lt, ← tendsto_cobounded_iff_meromorphicOrderAt_neg hmero,
+      ← tendsto_norm_atTop_iff_cobounded]
+    intro htend
+    obtain ⟨s, hs1, hs2⟩ := ((htend.eventually_gt_atTop M).and hbdd).exists
+    exact absurd hs1 (not_lt.mpr hs2)
+  · rw [meromorphicOrderAt_of_not_meromorphicAt hmero]
+
+/-- The complex sign factor `(sgn x : ℂ)` has norm `≤ 1`. -/
+private lemma norm_sign_le (x : ℝ) : ‖(Real.sign x : ℂ)‖ ≤ 1 := by
+  rw [Complex.norm_real, Real.norm_eq_abs]
+  rcases lt_trichotomy x 0 with h | h | h
+  · rw [Real.sign_of_neg h]; norm_num
+  · rw [h, Real.sign_zero]; norm_num
+  · rw [Real.sign_of_pos h]; norm_num
+
+/-- For `λ > 0`, the complex sign factor `(sgn λ : ℂ)` is `1`. -/
+private lemma sign_cast_one_of_pos {lam : ℝ} (hlam : 0 < lam) : (Real.sign lam : ℂ) = 1 := by
+  rw [Real.sign_of_pos hlam]; norm_num
+
+/-- For `λ > 0`, `Φ^\circ(|λ| · w)` is uniformly bounded on the closed upper half-plane. -/
+private lemma exists_norm_Phi_circ_bound {lam : ℝ} (hlam : 0 < lam) (ε : ℝ) :
+    ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_circ |lam| ε w‖ ≤ C := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
+    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
+  obtain ⟨C, hC⟩ := ϕ_circ_bound_right |lam| |lam| ε 0 hc
+  exact ⟨C, fun w hw ↦ hC |lam| (by simp) w hw⟩
+
+/-- For `λ > 0`, `Φ^\star(|λ| · w)` grows at most linearly on the closed upper half-plane. -/
+private lemma exists_norm_Phi_star_bound {lam : ℝ} (hlam : 0 < lam) (ε : ℝ) :
+    ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_star |lam| ε w‖ ≤ C * (‖w‖ + 1) := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hc : (0 : ℝ) > -|lam| / (2 * π) :=
+    div_neg_of_neg_of_pos (by linarith [hν]) (by positivity)
+  obtain ⟨C, hC⟩ := ϕ_star_bound_right |lam| |lam| ε 0 hν le_rfl hc
+  exact ⟨C, fun w hw ↦ hC |lam| (by simp) w hw⟩
+
+/-- Pointwise: `Φ_λ(w)` is bounded by `‖Φ^\circ(sgn λ·w)‖ + ‖Φ^\star(sgn λ·w)‖` (the `sgn` factors
+have norm `≤ 1`). -/
+private lemma norm_Phi_lambda_le_sum (lam ε : ℝ) (w : ℂ) :
+    ‖Phi_lambda lam ε w‖ ≤
+      ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ +
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ := by
+  rw [Phi_lambda]
+  refine (norm_add_le _ _).trans ?_
+  gcongr
+  rw [norm_mul, norm_mul]
+  calc ‖(Real.sign lam : ℂ)‖ * ‖(Real.sign w.re : ℂ)‖ *
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖
+      ≤ 1 * 1 * ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ := by
+        gcongr
+        · exact norm_sign_le lam
+        · exact norm_sign_le w.re
+    _ = ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ := by ring
+
+/-- For `λ > 0`, `Φ_λ(w)` is `O(|w|)` on the closed upper half-plane: it is bounded by
+`‖Φ^\circ(w)‖ + ‖Φ^\star(w)‖` (the `sgn` factors have norm `≤ 1`), each `O(|w|)`. -/
+private lemma norm_Phi_lambda_le_of_im_nonneg {lam ε : ℝ} (hlam : 0 < lam) :
+    ∃ C : ℝ, ∀ w : ℂ, 0 ≤ w.im → ‖Phi_lambda lam ε w‖ ≤ C * (‖w‖ + 1) := by
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C₁, hC₁⟩ := exists_norm_Phi_circ_bound hlam ε
+  obtain ⟨C₂, hC₂⟩ := exists_norm_Phi_star_bound hlam ε
+  refine ⟨|C₁| + |C₂|, fun w hw ↦ ?_⟩
+  have hwim : ((Real.sign lam : ℂ) * w).im ≥ 0 := by rw [hsign, one_mul]; exact hw
+  have hwnorm : ‖(Real.sign lam : ℂ) * w‖ = ‖w‖ := by rw [hsign, one_mul]
+  have e1 : ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ ≤ C₁ := hC₁ _ hwim
+  have e2 : ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ ≤ C₂ * (‖w‖ + 1) := by
+    rw [← hwnorm]; exact hC₂ _ hwim
+  calc ‖Phi_lambda lam ε w‖
+      ≤ ‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * w)‖ +
+          ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * w)‖ := norm_Phi_lambda_le_sum lam ε w
+    _ ≤ C₁ + C₂ * (‖w‖ + 1) := add_le_add e1 e2
+    _ ≤ |C₁| * (‖w‖ + 1) + |C₂| * (‖w‖ + 1) := by
+        gcongr
+        · exact (le_abs_self C₁).trans
+            (le_mul_of_one_le_right (abs_nonneg _) (by linarith [norm_nonneg w]))
+        · exact le_abs_self C₂
+    _ = (|C₁| + |C₂|) * (‖w‖ + 1) := by ring
+
+/-- For `λ > 0`, the factor `Φ^\circ(sgn λ · z(s))` is analytic and uniformly bounded on any subset
+of `R` (its argument has `Im ≥ 0`, away from the poles, and `coth` is bounded there). Hence on such
+a set `Φ^\circ(sgn λ · z(s)) · F · x₀^s` inherits `IsBoundedNoPolesOn` from `F · x₀^s`. -/
+private lemma isBoundedNoPolesOn_Phi_circ_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {S : Set ℂ} (hS : S ⊆ l.R)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S) :
+    IsBoundedNoPolesOn
+      (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C, hC⟩ := exists_norm_Phi_circ_bound hlam ε
+  simp only [mul_assoc]
+  refine hF_bdd.analytic_mul (C := C)
+    (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
+    (fun z hz ↦ ?_) (fun z hz ↦ ?_)
+  · have him : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+      rw [hsign, one_mul]; exact l.zOf_im_nonneg (hS hz).1
+    exact (Phi_circ.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
+      him).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl
+  · rw [hsign, one_mul]
+    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+
+/-- For `λ > 0`, the factor `sgn λ · Φ^\star(sgn λ · z(s))` is analytic and `O(|z(s)|)` on any
+subset of `R`. Combined with the weighted bound on `z(s) · F · x₀^s` (the strengthened decay
+hypothesis on `F`), the product `sgn λ · Φ^\star(sgn λ · z(s)) · F · x₀^s` is bounded with no
+poles. -/
+private lemma isBoundedNoPolesOn_Phi_star_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {S : Set ℂ} (hS : S ⊆ l.R)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S)
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S) :
+    IsBoundedNoPolesOn
+      (fun s ↦ (Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) *
+        F s * (x₀ : ℂ) ^ s) S := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  obtain ⟨C, hC⟩ := exists_norm_Phi_star_bound hlam ε
+  have him : ∀ z ∈ S, (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+    intro z hz
+    rw [hsign, one_mul]; exact l.zOf_im_nonneg (hS hz).1
+  have hwh : IsBoundedNoPolesOn (fun s ↦ l.zOf s * (F s * (x₀ : ℂ) ^ s)) S := by
+    have heqw : (fun s ↦ l.zOf s * (F s * (x₀ : ℂ) ^ s))
+        = (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) := by funext s; ring
+    rw [heqw]; exact hFw_bdd
+  have heq :
+      (fun s ↦ (Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) *
+          F s * (x₀ : ℂ) ^ s)
+        = (fun s ↦ ((Real.sign lam : ℂ) * Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) *
+          (F s * (x₀ : ℂ) ^ s)) := by funext s; ring
+  rw [heq]
+  refine hF_bdd.linear_mul (w := l.zOf) (C := C) hwh
+    (fun z hz ↦ (hF_mero z (hS hz)).mul (meromorphicAt_rpow hx₀_pos z))
+    (fun z hz ↦ ?_) (fun z hz ↦ ?_)
+  · exact analyticAt_const.mul
+      ((Phi_star.analyticAt_of_im_nonneg |lam| ε ((Real.sign lam : ℂ) * l.zOf z) hν
+        (him z hz)).comp_of_eq (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl)
+  · rw [norm_mul, hsign]
+    simp only [norm_one, one_mul]
+    exact hC (l.zOf z) (l.zOf_im_nonneg (hS hz).1)
+
+/-- The order of `Φ_λ(z(s)) · F · x₀^s` at a point `z ∈ R` is `≥ 0`: `Φ_λ ∘ z` has a `sgn`
+discontinuity at `Im s = 0` (so the product may be non-meromorphic there, giving junk order `0`),
+but it is bounded near `z` (`Φ^\circ, Φ^\star` are continuous at `z(z)` and `F · x₀^s` converges
+since its order is `≥ 0`), so the order is `≥ 0`. -/
+private lemma meromorphicOrderAt_Phi_lambda_mul_nonneg (l : LadderParams) {F : ℂ → ℂ}
+    {lam ε x₀ : ℝ} (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {z : ℂ} (hz : z ∈ l.R)
+    (hFord : 0 ≤ meromorphicOrderAt (fun s ↦ F s * (x₀ : ℂ) ^ s) z) :
+    0 ≤ meromorphicOrderAt (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) z := by
+  have hν : (0 : ℝ) < |lam| := abs_pos.mpr hlam.ne'
+  have hx₀_pos : (0 : ℝ) < x₀ := by linarith
+  have hsign : (Real.sign lam : ℂ) = 1 := sign_cast_one_of_pos hlam
+  have hsign_im : (0 : ℝ) ≤ ((Real.sign lam : ℂ) * l.zOf z).im := by
+    rw [hsign, one_mul]; exact l.zOf_im_nonneg hz.1
+  have hφc : ContinuousAt (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z :=
+    ((Phi_circ.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt
+  have hφs : ContinuousAt (fun s ↦ Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)) z :=
+    ((Phi_star.analyticAt_of_im_nonneg |lam| ε _ hν hsign_im).comp_of_eq
+      (l.analyticAt_zOf (Real.sign lam : ℂ) z) rfl).continuousAt
+  have hFp_mero : MeromorphicAt (fun s ↦ F s * (x₀ : ℂ) ^ s) z :=
+    (hF_mero z hz).mul (meromorphicAt_rpow hx₀_pos z)
+  obtain ⟨c, hc⟩ := tendsto_nhds_of_meromorphicOrderAt_nonneg hFp_mero hFord
+  set L : ℝ := (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖ +
+      ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf z)‖) * ‖c‖ with hLdef
+  have hg : Filter.Tendsto
+      (fun s ↦ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
+        ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖)
+      (nhdsWithin z {z}ᶜ) (nhds L) :=
+    ((((hφc.norm).tendsto.mono_left nhdsWithin_le_nhds).add
+      ((hφs.norm).tendsto.mono_left nhdsWithin_le_nhds)).mul hc.norm)
+  refine meromorphicOrderAt_nonneg_of_eventually_bounded (M := L + 1) ?_
+  filter_upwards [hg.eventually_lt_const (lt_add_one L)] with s hs
+  calc ‖Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s‖
+      = ‖Phi_lambda lam ε (l.zOf s)‖ * ‖F s * (x₀ : ℂ) ^ s‖ := by rw [mul_assoc, norm_mul]
+    _ ≤ (‖Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖ +
+          ‖Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s)‖) * ‖F s * (x₀ : ℂ) ^ s‖ :=
+        mul_le_mul_of_nonneg_right (norm_Phi_lambda_le_sum lam ε (l.zOf s)) (norm_nonneg _)
+    _ ≤ L + 1 := le_of_lt hs
+
+/-- For `λ > 0`, the factor `Φ_λ(z(s))` is `O(|z(s)|)` on `R` (its argument has `Im ≥ 0`), so on a
+subset of `R` the product `Φ_λ(z(s)) · F · x₀^s` is bounded with no poles, given the bound on
+`F · x₀^s` and the growth-weighted bound on `z(s) · F · x₀^s`. -/
+private lemma isBoundedNoPolesOn_Phi_lambda_mul (l : LadderParams) {F : ℂ → ℂ} {lam ε x₀ : ℝ}
+    (hlam : 0 < lam) (hx₀ : 1 ≤ x₀) (hF_mero : MeromorphicOn F l.R)
+    {S : Set ℂ} (hS : S ⊆ l.R)
+    (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s) S)
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s) S) :
+    IsBoundedNoPolesOn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x₀ : ℂ) ^ s) S := by
+  obtain ⟨Cl, hCl⟩ := norm_Phi_lambda_le_of_im_nonneg (ε := ε) hlam
+  obtain ⟨Mh, hMh⟩ := hF_bdd
+  obtain ⟨Mwh, hMwh⟩ := hFw_bdd
+  refine ⟨|Cl| * Mwh + |Cl| * Mh, fun z hz ↦ ⟨?_, ?_⟩⟩
+  · have hwh_z : ‖l.zOf z‖ * ‖F z * (x₀ : ℂ) ^ z‖ ≤ Mwh := by
+      have h := (hMwh z hz).1
+      change ‖l.zOf z * F z * (x₀ : ℂ) ^ z‖ ≤ Mwh at h
+      rwa [mul_assoc, norm_mul] at h
+    show ‖Phi_lambda lam ε (l.zOf z) * F z * (x₀ : ℂ) ^ z‖ ≤ |Cl| * Mwh + |Cl| * Mh
+    rw [mul_assoc]
+    exact norm_mul_le_of_linear_growth (hCl (l.zOf z) (l.zOf_im_nonneg (hS hz).1))
+      (hMh z hz).1 hwh_z
+  · exact meromorphicOrderAt_Phi_lambda_mul_nonneg l hlam hx₀ hF_mero (hS hz) (hMh z hz).2
+
 /-- Change variables from the left ray `(-∞, 1]` to the positive half-line by `t = 1-r`. -/
 theorem integral_Iic_one_eq_integral_Ioi_one_sub
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ℝ → E) :
@@ -3565,16 +3897,20 @@ private lemma integral_weighted_F_mul_cpow_hray_eq_Ioi (h : ℝ)
   hence Lemma \ref{ch2-lemma-5-1} gives
   $$ \frac{1}{2\pi i}\int_{1-iT}^{1+iT} G(s) x^s\, ds = \frac{1}{2\pi i}\int_{C_\infty} G(s) x^s\, ds + \frac{1}{\pi}\Im\int_C G^\star(s) x^s\, ds + \sum_{\rho \in R \setminus R_C}\mathrm{Res}_{s=\rho} G(s) x^s + \sum_{\rho \in R_C}\mathrm{Res}_{s=\rho} G^\circ(s) x^s. $$ -/)
   (proof := /-- Apply Lemma \ref{ch2-lemma-5-1}. The $G^\star$ reflection is the conjugation
-  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$; boundedness follows from
-  $\Phi^\circ$ bounded and $\Phi^\star = O(|z|)$ (CH2 Lemma 4.3). -/)
+  symmetry of $\Phi^\star$ together with $F(\bar s) = \overline{F(s)}$. For $\lambda > 0$ the rescaled
+  argument $\mathrm{sgn}(\lambda)\, z(s)$ has $\Im \geq 0$ on $R$, so $\Phi^\circ$, $\Phi^\star$ are
+  pole-free there; $\Phi^\circ$ is bounded and $\Phi^\star, \Phi_\lambda = O(|z|)$ (CH2 Lemma 4.3),
+  the linear growth being absorbed by the assumed bound on $z(s)\, F(s)\, x_0^s$. -/)
   (latexEnv := "sublemma")
   (discussion := 1457)]
 theorem prop_5_2_a
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hlam : 0 < lam) (_hε : ε = 1 ∨ ε = -1)
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
@@ -3592,7 +3928,56 @@ theorem prop_5_2_a
         sumResiduesIn (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) (l.R \ l.RC) +
         l.sumResiduesLim
           (fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s) l.RC := by
-  sorry
+  refine lemma_5_1
+    (G := fun s ↦ Phi_lambda lam ε (l.zOf s) * F s)
+    (G_circ := fun s ↦ Phi_circ |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s)
+    (G_star := fun s ↦ (Real.sign lam : ℂ) *
+        Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s)
+    ?hG ?hGc_mero ?hGs_mero ?hGs_symm hx₀ ?hG_bdd ?hGc_L ?hGc_contour ?hGs_L ?hGs_contour hx
+    ?hfin ?hsimple ?hsimple_circ
+  case hfin => exact hfin
+  case hsimple => exact hsimple
+  case hsimple_circ => exact hsimple_circ
+  -- remaining genuine subgoals (to be discharged):
+  case hG =>
+    intro s
+    simp only [Phi_lambda, l.sign_zOf_re]
+    ring
+  case hGc_mero =>
+    intro z hz
+    refine MeromorphicAt.mul ?_ (hF_mero z hz)
+    exact (Phi_circ.meromorphic |lam| ε _).comp_analyticAt (l.analyticAt_zOf _ z)
+  case hGs_mero =>
+    intro z hz
+    refine MeromorphicAt.mul ?_ (hF_mero z hz)
+    exact (MeromorphicAt.const (Real.sign lam : ℂ) z).mul
+      ((Phi_star.meromorphic |lam| ε _).comp_analyticAt (l.analyticAt_zOf _ z))
+  case hGs_symm =>
+    intro s
+    simp only []
+    rw [l.zOf_conj, hF_symm,
+      show (Real.sign lam : ℂ) * -(starRingEnd ℂ (l.zOf s)) =
+          -(starRingEnd ℂ ((Real.sign lam : ℂ) * l.zOf s)) by
+        rw [map_mul, Complex.conj_ofReal]; ring,
+      Phi_star_conj_neg, map_mul, map_mul, Complex.conj_ofReal]
+    ring
+  case hG_bdd =>
+    exact isBoundedNoPolesOn_Phi_lambda_mul l hlam hx₀ hF_mero l.Rboundary_subset_R
+      (hF_bdd.mono (Set.subset_union_left.trans Set.subset_union_left))
+      (hFw_bdd.mono (Set.subset_union_left.trans Set.subset_union_left))
+  case hGc_L =>
+    exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.L_subset_R
+      (hF_bdd.mono Set.subset_union_right)
+  case hGc_contour =>
+    exact isBoundedNoPolesOn_Phi_circ_mul l hlam hx₀ hF_mero l.admissible_contour_subset_R
+      (hF_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
+  case hGs_L =>
+    exact isBoundedNoPolesOn_Phi_star_mul l hlam hx₀ hF_mero l.L_subset_R
+      (hF_bdd.mono Set.subset_union_right) (hFw_bdd.mono Set.subset_union_right)
+  case hGs_contour =>
+    exact isBoundedNoPolesOn_Phi_star_mul l hlam hx₀ hF_mero l.admissible_contour_subset_R
+      (hF_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
+      (hFw_bdd.mono (Set.subset_union_right.trans Set.subset_union_left))
 
 @[blueprint
   "ch2-prop-5-2-b"
@@ -3723,9 +4108,10 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
   $\varepsilon$ is our $\delta$ (so $C$ is the \texttt{LadderParams} contour at height $\delta$).
 
   Let $F \colon \mathbb{C} \to \mathbb{C}$ be meromorphic on $R = (-\infty, 1] + i[-T, T]$ with
-  $F(\bar s) = \overline{F(s)}$, and suppose for some $x_0 \geq 1$ that $F(s) x_0^s$ is bounded with
-  no poles on $\partial R \cup C \cup L$. Fix $\lambda \neq 0$ and $\varepsilon \in \{+1, -1\}$,
-  write $z(s) = \frac{s - 1}{iT}$, and set
+  $F(\bar s) = \overline{F(s)}$, and suppose for some $x_0 \geq 1$ that both $F(s) x_0^s$ and
+  $z(s) F(s) x_0^s$ are bounded with no poles on $\partial R \cup C \cup L$ (the second condition is
+  the extra decay of $F$ that absorbs the $O(|z|)$ growth of $\Phi^\star$). Fix $\lambda > 0$ and
+  $\varepsilon \in \{+1, -1\}$, write $z(s) = \frac{s - 1}{iT}$, and set
   $$ \Phi^\varepsilon_\lambda(z) = \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z) + \mathrm{sgn}(\lambda)\, \mathrm{sgn}(\Re z)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z). $$
   This is the $G = G^\circ + \mathrm{sgn}(\Im s)\, G^\star$ of Lemma \ref{ch2-lemma-5-1}, with
   $G(s) = \Phi^\varepsilon_\lambda(z(s)) F(s)$,
@@ -3733,7 +4119,7 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
   $G^\star(s) = \mathrm{sgn}(\lambda)\, \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$.
   Then, for any $x > x_0$,
   $$ \frac{1}{2\pi i} \int_{1-iT}^{1+iT} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s\, ds = \sum_{\rho \in R \setminus R_C} \mathrm{Res}_{s=\rho} \Phi^\varepsilon_\lambda(z(s)) F(s) x^s + \sum_{\rho \in R_C} \mathrm{Res}_{s=\rho} \Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s + \frac{1}{2\pi} O^*(E), $$
-  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$, whose poles include that of $\Phi^\circ$ at $1 + \frac{\lambda T}{2\pi}$ when $\lambda < 0$, and
+  where the second sum is the \emph{improper} residue sum (a limit of truncations $R_C \cap \{\Re s > \sigma_n\}$, allowing the infinitely many real-axis poles) of $\Phi^\circ_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s)$ over $R_C$ (for $\lambda > 0$, $\Phi^\circ \circ z$ is pole-free on $R$, so these are the poles of $F$), and
   $$ E = \frac{1}{T} \sum_{\xi = \pm 1} \int_0^\infty t\, |F(1 - t + i\xi T)|\, x^{1-t}\, dt + 2 \left| \int_C \Phi^\star_{|\lambda|, \varepsilon}(\mathrm{sgn}(\lambda) z(s)) F(s) x^s\, ds \right|. $$
   Here $O^*(E)$ is rendered as $\| \cdot \| \leq E$. The first part of $E$ bounds the $C_\infty$
   integral of Lemma \ref{ch2-lemma-5-1} (via $|\Phi^\varepsilon_\lambda(\pm 1 + ir)| \leq |r|$ on
@@ -3750,9 +4136,11 @@ theorem prop_5_2_c (hlam : lam ≠ 0) :
 theorem prop_5_2
     (hF_mero : MeromorphicOn F l.R)
     (hF_symm : ConjSymm F)
-    (hlam : lam ≠ 0) (hε : ε = 1 ∨ ε = -1)
+    (hlam : 0 < lam) (hε : ε = 1 ∨ ε = -1)
     (hx₀ : 1 ≤ x₀)
     (hF_bdd : IsBoundedNoPolesOn (fun s ↦ F s * (x₀ : ℂ) ^ s)
+      (l.Rboundary ∪ l.admissible_contour ∪ l.L))
+    (hFw_bdd : IsBoundedNoPolesOn (fun s ↦ l.zOf s * F s * (x₀ : ℂ) ^ s)
       (l.Rboundary ∪ l.admissible_contour ∪ l.L))
     (hx : x₀ < x)
     (hfin : {z ∈ l.R \ l.RC |
@@ -3781,13 +4169,13 @@ theorem prop_5_2
             l.intCinf (fun s ↦ Phi_lambda lam ε (l.zOf s) * F s * (x : ℂ) ^ s) +
           (↑(π⁻¹ * (l.intC (fun s ↦ (Real.sign lam : ℂ) *
               Phi_star |lam| ε ((Real.sign lam : ℂ) * l.zOf s) * F s * (x : ℂ) ^ s)).im) : ℂ) := by
-    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ]
+    rw [prop_5_2_a hF_mero hF_symm hlam hε hx₀ hF_bdd hFw_bdd hx hfin hsimple hsimple_circ]
     ring
   rw [hLHS]
   refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add
-    (prop_5_2_b hF_mero hF_symm hlam hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
-    (prop_5_2_c hlam)) ?_
+    (prop_5_2_b hF_mero hF_symm hlam.ne' hε hx₀ hF_bdd hx hfin hsimple hsimple_circ)
+    (prop_5_2_c hlam.ne')) ?_
   apply le_of_eq
   ring
 
