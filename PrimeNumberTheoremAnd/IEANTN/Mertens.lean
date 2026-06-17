@@ -94,7 +94,7 @@ The unfinished formalization of Mertens' theorems by Arend Mellendijk in https:/
 -/
 
 
-open Real Finset Filter Asymptotics
+open Real Finset Filter Asymptotics Topology
 open ArithmeticFunction hiding log
 
 lemma sum_Ioc_one_eq_sum_Ioc_zero {f : ℕ → ℝ} {x : ℕ} (hx : 1 ≤ x) (hf : f 1 = 0) :
@@ -209,7 +209,8 @@ theorem sum_log_ge {x : ℝ} (hx : 1 ≤ x) :
     gcongr
     · exact log_nonneg hx
     · linarith [Nat.lt_floor_add_one x]
-  _ ≥ x * log x - x - log x := by simp
+  _ ≥ x * log x - x - log x := by simp only [integral_log, log_one, mul_zero, sub_zero, ge_iff_le,
+    tsub_le_iff_right, sub_add_cancel, le_add_iff_nonneg_right, zero_le_one]
   _ ≥ _ := by linarith [log_le_self (by linarith : 0 ≤ x)]
 
 @[blueprint
@@ -907,26 +908,79 @@ theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
 theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun _ ↦ (1:ℝ)) := E₂Λ.bound.trans_isLittleO inv_log_eq_o_one
 
 @[blueprint
+  "log-zeta-eq-1"
+  (title := "Dirichlet series for $\\log \\zeta(s)$")
+  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E_{2,\Lambda}(x) x^{-s}\ ds$.
+-/)
+  (proof := /-- First use the fundamental theorem of calculus and decay of $\log \zeta(s)$ to write
+  $$ \log \zeta(s) = \int_s^\infty -\frac{\zeta'(u)}{\zeta(u)}\ du.$$
+  Then substitute in the known identity
+  $-\frac{\zeta'(u)}{\zeta(u)} = \sum_n \frac{\Lambda(n)}{n^u}$ and integrate term by term.
+  -/)
+  (latexEnv := "sublemma")]
+theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
+    log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
+  sorry
+
+@[blueprint
+  "log-zeta-eq-2"
+  (title := "Integration by parts identity for $\\log \\zeta(s)$")
+  (statement := /-- If $s > 1$ then $\log\zeta(s) = (s-1) \int_1^\infty (\log \log x + \gamma + E_{2,\Lambda}(x)) x^{-s})\ dx$.
+-/)
+  (proof := /-- Apply the preceding identity then integrate by parts.
+  -/)
+  (latexEnv := "sublemma")]
+private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
+    log (riemannZeta (s:ℂ)).re = (s - 1) * ∫ x in .Ioi 1, (log (log x) + γ + E₂Λ x) * x^(-s) := by
+  sorry
+
+@[blueprint
+  "log-zeta-eq-3"
+  (title := "First integral identity")
+  (statement := /-- If $s > 1$ then $(s-1) \int_1^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$.
+-/)
+  (proof := /-- Writing $t = \log x$, the LHS is $(s-1) \int_0^\infty \log t e^{-(s-1) t}\ dt$.  Now differentiate $\Gamma(z) = (s-1)^z \int_0^\infty t^{z-1} e^{-(s-1)t}\ dt$ in $z$ at $z=1$.
+  -/)
+  (latexEnv := "sublemma")]
+private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in .Ioi 1, log (log x) * x^(-s) = - log (s - 1) + deriv Gamma 1 := by
+  sorry
+
+@[blueprint
+  "log-zeta-eq-4"
+  (title := "Second integral identity")
+  (statement := /-- If $s > 1$ then $(s-1) \int_1^\infty \gamma \cdot x^{-s}\ dx = \gamma$.
+-/)
+  (proof := /-- Apply the fundamental theorem of calculus.
+  -/)
+  (latexEnv := "sublemma")]
+private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
+  sorry
+
+@[blueprint
   "log-zeta-eq"
   (title := "An identity for $\\log \\zeta(s)$")
   (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E_{2,\Lambda}(x) x^{-s}\ ds$.
 -/)
-  (proof := /-- First write
-$$ \log \zeta(s) = \sum_n \frac{\Lambda(n)}{n^s \log n}$$
-and integrate by parts to write this as
-$$ (s-1) \int_0^\infty (\log \log x + \gamma + E_{2,\Lambda}(x)) x^{-s}\ dx.$$
-Standard calculations give
-$$ (s-1) \int_0^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$$
-and
-$$ (s-1) \int_0^\infty \gamma \cdot x^{-s}\ dx = \gamma$$
-giving the claim.-/)
+  (proof := /-- Combine the previous four sublemmas.-/)
   (latexEnv := "theorem")
   (discussion := 1319)]
 private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
     sorry
 
-#check Real.eulerMascheroniConstant_eq_neg_deriv
+@[blueprint
+  "log-zeta-limit"
+  (title := "limiting behavior of log zeta")
+  (statement := /-- One has $\log \zeta(s) = - \log(s-1) + o(1)$ as $s \to 1^+$.
+-/)
+  (proof := /-- Start with the asymptotic $\zeta(s) = \frac{1}{s-1} + O(1)$ and take logarithms.
+  -/)
+  (latexEnv := "sublemma")]
+private theorem log_zeta_limit (s : ℝ) (hs : 1 < s) :
+    Filter.Tendsto (fun s:ℝ ↦ (riemannZeta (s:ℂ)).re + log (s - 1)) (𝓝[>] 1) (𝓝 0) := by
+  sorry
 
 @[blueprint
   "Euler-Mascheroni-eq"
@@ -936,7 +990,10 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   (proof := /-- Take limits as $s \to 1$ in the previous asymptotic using known asymptotics for $\zeta(s)$, and using that $- \Gamma'(1)$ is the Euler--Mascheroni constant. -/)
   (latexEnv := "theorem")
   (discussion := 1320)]
-theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by sorry
+theorem deriv_gamma_add_γ_eq_zero : deriv Gamma 1 + γ = 0 := by sorry
+
+theorem γ.eq_eulerMascheroni : γ = eulerMascheroniConstant := by
+  linarith [Real.eulerMascheroniConstant_eq_neg_deriv, deriv_gamma_add_γ_eq_zero]
 
 theorem sum_mangoldt_div_log_eq (x : ℝ) : ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) = log (log x) + eulerMascheroniConstant + E₂Λ x := by
     grind [γ.eq_eulerMascheroni]
@@ -1383,7 +1440,7 @@ lemma sum_M_eq_summand_le' {x : ℝ} (hx : 2 ≤ x) :
   (statement := /-- For any $x \geq 2$, one has
 $$ E_3(x) = O\left(\frac{1}{\log x}\right) $$
 -/)
-  (proof := /--Estimating the error in \ref{Meissel-Mertens-eq} using the first order Taylor expansion of log one gets 
+  (proof := /--Estimating the error in \ref{Meissel-Mertens-eq} using the first order Taylor expansion of log one gets
 $$\sum_{p \le x}(\log (1-1/p)+1/p) = (M - \gamma) + O(1/x).$$
 The result follows by combining with \ref{Mertens-second-error-prime-abs-le}.
   -/)
