@@ -1856,17 +1856,17 @@ blueprint_comment /--
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$.
     Thus for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$.
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 2$.
     Now if we let $z=\sigma-3/2$, then $z\in(-11/21,0)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by
     Lemma \ref{ZeroInequality} since $\sigma\geq 1-\delta_t/3\geq 1-\delta_t$.
     Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)
-      -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}\right|\ll\log|t|.$$
-    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$
-    and $|\rho|\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$.
-    So changing variables using these facts gives us that
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{\sigma-3/2-\rho}\right|\ll\log|t|.$$
+    But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$
+    and $|\rho|\leq 3/4$ (and the argument works in reverse). Additionally, note that
+    $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
 \end{proof}
@@ -1885,11 +1885,11 @@ blueprint_comment /--
 blueprint_comment /--
 \begin{proof}
 \uses{ZeroInequality}
-    Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-5/6,t+5/6)$.
+    Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-3/4,t+3/4)$.
     Thus, if $t>1$ we have
-    $$\log|t'|\leq\log|t+5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
+    $$\log|t'|\leq\log|t+3/4|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
     And otherwise if $t<-1$ we have
-    $$\log|t'|\leq\log|t-5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
+    $$\log|t'|\leq\log|t-3/4|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
     So by taking reciprocals and multiplying through by a constant we have
     that $\delta_t\leq2\delta_{t'}$. Now note that since $\rho\in\mathcal{Z}_t$
     we know that $\sigma'\leq 1-\delta_{t'}$ by Theorem \ref{ZeroInequality}
@@ -1928,17 +1928,17 @@ blueprint_comment /--
     $$0=\zeta(\rho)=\zeta(\rho'+3/2+it)=f(\rho')$$
     with the same multiplicity of zero, that is $m_\zeta(\rho)=m_f(\rho')$.
     And also if $\rho\in\mathcal{Z}_t$ then
-    $$5/6\geq|\rho-(3/2+it)|=|\rho'|.$$
+    $$3/4\geq|\rho-(3/2+it)|=|\rho'|.$$
     Thus we change variables to have that
     $$\left|\frac{\zeta'}{\zeta}(z)\right|
-      \leq\frac{6}{\delta_t}\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')+C\,\log|t|.$$
+      \leq\frac{6}{\delta_t}\sum_{\rho'\in\mathcal{K}_f(3/4)}m_f(\rho')+C\,\log|t|.$$
     Now note that $f(0)=1$ and for $|z|\leq 8/9$ we have
     $$|f(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}
       \leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
     by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}.
     Thus by Theorem \ref{ZerosBound} we have that
-    $$\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')
-      \leq\frac{\log|t|+\log(13\,\zeta(3/2)/(3\,\zeta(3)))}{\log((8/9)/(5/6))}\leq D\log|t|$$
+    $$\sum_{\rho'\in\mathcal{K}_f(3/4)}m_f(\rho')
+      \leq\frac{\log|t|+\log(13\,\zeta(3/2)/(3\,\zeta(3)))}{\log((8/9)/(3/4))}\leq D\log|t|$$
     where $D$ is taken to be sufficiently large.
     Recall, by definition that, $\delta_t=E/\log|t|$ with $E$ coming from
     Theorem \ref{ZeroInequality}. By using this fact and the above, we have that
