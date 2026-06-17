@@ -917,7 +917,8 @@ theorem E₂Λ.bound' : E₂Λ =o[atTop] (fun _ ↦ (1:ℝ)) := E₂Λ.bound.tra
   Then substitute in the known identity
   $-\frac{\zeta'(u)}{\zeta(u)} = \sum_n \frac{\Lambda(n)}{n^u}$ and integrate term by term.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1582)]
 theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
   sorry
@@ -929,7 +930,8 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
 -/)
   (proof := /-- Apply the preceding identity then integrate by parts.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1583)]
 private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = (s - 1) * ∫ x in .Ioi 1, (log (log x) + γ + E₂Λ x) * x^(-s) := by
   sorry
@@ -941,7 +943,8 @@ private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
 -/)
   (proof := /-- Writing $t = \log x$, the LHS is $(s-1) \int_0^\infty \log t e^{-(s-1) t}\ dt$.  Now differentiate $\Gamma(z) = (s-1)^z \int_0^\infty t^{z-1} e^{-(s-1)t}\ dt$ in $z$ at $z=1$.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1584)]
 private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
     (s - 1) * ∫ x in .Ioi 1, log (log x) * x^(-s) = - log (s - 1) + deriv Gamma 1 := by
   sorry
@@ -953,7 +956,8 @@ private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
 -/)
   (proof := /-- Apply the fundamental theorem of calculus.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1585)]
 private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
     (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
   sorry
@@ -977,7 +981,8 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
 -/)
   (proof := /-- Start with the asymptotic $\zeta(s) = \frac{1}{s-1} + O(1)$ and take logarithms.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 1586)]
 private theorem log_zeta_limit (s : ℝ) (hs : 1 < s) :
     Filter.Tendsto (fun s:ℝ ↦ (riemannZeta (s:ℂ)).re + log (s - 1)) (𝓝[>] 1) (𝓝 0) := by
   sorry
