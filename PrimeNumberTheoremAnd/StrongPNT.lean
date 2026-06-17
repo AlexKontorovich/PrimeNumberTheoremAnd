@@ -1468,15 +1468,33 @@ theorem GlobalBound
     {s : ℂ} (hs : ‖s‖ ≤ 1) {t : ℝ} (ht : |t| ≥ 2) :
     ‖ζ (s + 3 / 2 + I * t)‖ ≤ 7 + 2 * |t| := by
   have sReLB : -1 ≤ s.re := by linarith [abs_le.mp ((Complex.abs_re_le_norm s).trans hs)]
-  have zIn : s + 3 / 2 + I * ↑t ∈ {s | 0 < s.re ∧ s ≠ 1} := by
-    sorry
+  have hz : s + 3 / 2 + I * ↑t ∈ {s | 0 < s.re ∧ s ≠ 1} := by
+    simp only [ne_eq, Complex.ext_iff, one_re, one_im, not_and, mem_setOf_eq, add_re, div_ofNat_re,
+      re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero,
+      add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul, zero_add]
+    refine ⟨by linarith, fun hs => ?_⟩
+    cases abs_cases t <;>  linarith [abs_le.mp (Complex.abs_re_le_norm s), abs_le.mp (Complex.abs_im_le_norm s)]
   have leadingTerms : ‖1 + 1 / (s + 3 / 2 + I * ↑t - 1)‖ ≤ 2 := by
-    sorry
+    rw [← one_add_one_eq_two (R := ℝ)]
+    apply norm_add_le_of_le (norm_one.le)
+    rw [norm_div, norm_one, div_le_one (norm_pos_iff.mpr (sub_ne_zero.mpr hz.2))]
+    simp only [norm_def, normSq, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk, sqrt_le_one, sub_re,
+      add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
+      sub_self, add_zero, one_re, sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul,
+      zero_add, one_im, sub_zero, one_le_sqrt] at ⊢ hs
+    cases abs_cases t <;> nlinarith [sq_nonneg (s.re + 1 / 2), sq_nonneg (s.im + t - 1), sq_nonneg (s.im + t + 1)]
+  have domBound {x : ℝ} (hu : x ∈ Ioi 1) : |Int.fract x| * ‖(x : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ x ^ (-(s.re + 3 / 2) - 1) := by
+    rw [mem_Ioi] at hu
+    rw [Complex.norm_cpow_eq_rpow_re_of_pos (by linarith)]
+    simp only [neg_add_rev, sub_re, add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
+      ofReal_im, mul_zero, sub_self, neg_zero, div_ofNat_re, re_ofNat, zero_add, one_re, Int.abs_fract]
+    refine mul_le_of_le_one_left (by apply Real.rpow_nonneg (by linarith)) ((Int.fract_lt_one x).le)
+  have domIntegral : Integrable (fun x : ℝ => x ^ (-(s.re + 3 / 2) - 1)) (volume.restrict (Set.Ioi 1)) := integrableOn_Ioi_rpow_of_lt (by linarith) zero_lt_one
   suffices h1 : ‖ζ (s + 3 / 2 + I * t)‖ ≤ 2 + (2 * ‖s‖ + 3 + 2 * ‖I * t‖) by
     apply h1.trans
     simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul]
     linarith
-  rw [ZetaExtend zIn, ζ₀]
+  rw [ZetaExtend hz, ζ₀]
   apply norm_sub_le_of_le leadingTerms
   rw [norm_mul]
   suffices h2 : ‖∫ (u : ℝ) in Ioi 1, ↑(Int.fract u) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 2 by
@@ -1496,14 +1514,13 @@ theorem GlobalBound
   have := integral_Ioi_rpow_of_lt (a := -(s.re + 3/2) - 1) (by linarith) one_pos
   simp only [sub_add_cancel, one_rpow, neg_div_neg_eq] at this
   rw [← this]
-  apply MeasureTheory.integral_mono_ae
-  · sorry
-  · sorry
-  · filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with u hu; simp only [mem_Ioi] at hu
-    rw [Complex.norm_cpow_eq_rpow_re_of_pos (by linarith)]
-    simp only [neg_add_rev, sub_re, add_re, neg_re, mul_re, I_re, ofReal_re, zero_mul, I_im,
-      ofReal_im, mul_zero, sub_self, neg_zero, div_ofNat_re, re_ofNat, zero_add, one_re, Int.abs_fract]
-    refine mul_le_of_le_one_left (by apply Real.rpow_nonneg (by linarith)) ((Int.fract_lt_one u).le)
+  refine MeasureTheory.integral_mono_ae ?_ domIntegral ?_
+  · apply MeasureTheory.Integrable.mono' domIntegral (((measurable_fract.abs).mul ((Complex.measurable_ofReal.pow_const _).norm)).aestronglyMeasurable)
+    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+    rw [norm_mul, norm_eq_abs, abs_abs, norm_norm]
+    exact domBound hx
+  · filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with x hx
+    exact domBound hx
 
 
 
