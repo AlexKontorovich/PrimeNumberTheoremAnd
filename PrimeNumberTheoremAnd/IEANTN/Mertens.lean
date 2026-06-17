@@ -6,6 +6,8 @@ import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
+import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
+import Mathlib.Analysis.SpecialFunctions.Integrability.LogMeromorphic
 import Mathlib.Algebra.Group.Submonoid.BigOperators
 import PrimeNumberTheoremAnd.EulerMaclaurin
 import Architect
@@ -962,6 +964,124 @@ private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
     (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
   sorry
 
+-- Integrability helpers for the integral splitting in `log_zeta_eq` (#1319).
+-- Each summand of `(log (log x) + γ + E₂Λ x) * x^(-s)` is separately integrable on `Ioi 1`.
+
+/-- `log (log x) * x ^ (-s)` is integrable on `Ioi 1` for `s > 1`
+(log-log singularity at `1` is integrable; `x^(-s)` gives decay). -/
+private theorem integrableOn_log_log_mul_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x => log (log x) * x ^ (-s)) (Set.Ioi 1) := by
+  rw [← Set.Ioc_union_Ioi_eq_Ioi (by norm_num : (1:ℝ) ≤ 2)]
+  apply MeasureTheory.IntegrableOn.union
+  · -- Near `1`: `log (log x)` is integrable (log-log singularity) and `x^(-s) ≤ 1`.
+    have hll : MeasureTheory.IntegrableOn (fun x => log (log x)) (Set.Ioc 1 2) := by
+      have h : IntervalIntegrable (log ∘ log) MeasureTheory.volume 1 2 := by
+        apply MeromorphicOn.intervalIntegrable_log
+        intro x hx
+        rw [Set.uIcc_of_le (by norm_num : (1:ℝ) ≤ 2)] at hx
+        exact (analyticAt_log (by linarith [hx.1] : 0 < x)).meromorphicAt
+      exact (intervalIntegrable_iff_integrableOn_Ioc_of_le (by norm_num)).mp h
+    have hmul : MeasureTheory.IntegrableOn (fun x => x ^ (-s) * log (log x)) (Set.Ioc 1 2) := by
+      apply hll.bdd_mul (c := 1)
+      · exact (measurable_id.pow_const (-s)).aestronglyMeasurable
+      · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioc] with x hx
+        rw [norm_eq_abs, abs_of_nonneg (Real.rpow_nonneg (by linarith [hx.1] : (0:ℝ) ≤ x) _)]
+        calc x ^ (-s) ≤ (1:ℝ) ^ (-s) :=
+              Real.rpow_le_rpow_of_nonpos (by norm_num) hx.1.le (by linarith)
+          _ = 1 := Real.one_rpow _
+    simpa [mul_comm] using hmul
+  · -- Tail: `log (log x) ≤ log x ≤ x^ε/ε` grows slower than `x^s` decays.
+    set ε := (s - 1) / 2 with hε
+    have hεpos : 0 < ε := by rw [hε]; linarith
+    have hg : MeasureTheory.IntegrableOn
+        (fun x : ℝ => x ^ (ε - s) / ε + |log (log 2)| * x ^ (-s)) (Set.Ioi 2) := by
+      apply MeasureTheory.IntegrableOn.add
+      · have := integrableOn_Ioi_rpow_of_lt (a := ε - s) (c := 2) (by rw [hε]; linarith) (by norm_num)
+        simpa [div_eq_mul_inv, mul_comm] using this.mul_const ε⁻¹
+      · exact (integrableOn_Ioi_rpow_of_lt (a := -s) (c := 2) (by linarith) (by norm_num)).const_mul _
+    apply MeasureTheory.Integrable.mono' hg
+    · exact (Real.measurable_log.comp Real.measurable_log).mul
+        (measurable_id.pow_const (-s)) |>.aestronglyMeasurable
+    · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+      simp only [Set.mem_Ioi] at hx
+      have hxpos : (0:ℝ) < x := by linarith
+      have hxs : 0 < x ^ (-s) := Real.rpow_pos_of_pos hxpos _
+      have hbound : |log (log x)| ≤ x ^ ε / ε + |log (log 2)| := by
+        have hlogx : 0 < log x := Real.log_pos (by linarith)
+        have hlog2 : 0 < log 2 := Real.log_pos (by norm_num)
+        have hmono : log 2 ≤ log x := Real.log_le_log (by norm_num) (by linarith)
+        have hub : log (log x) ≤ x ^ ε / ε :=
+          calc log (log x) ≤ log x := Real.log_le_sub_one_of_pos hlogx |>.trans (by linarith)
+            _ ≤ x ^ ε / ε := Real.log_le_rpow_div (by linarith) hεpos
+        have hlb : log (log 2) ≤ log (log x) := Real.log_le_log hlog2 hmono
+        have hxε : 0 ≤ x ^ ε / ε := by positivity
+        rw [abs_le]
+        exact ⟨by linarith [neg_abs_le (log (log 2)), le_abs_self (log (log 2))],
+          by linarith [le_abs_self (log (log 2)), abs_nonneg (log (log 2))]⟩
+      rw [norm_mul, norm_eq_abs, norm_eq_abs, abs_of_pos hxs]
+      have heq : x ^ (ε - s) / ε = x ^ ε / ε * x ^ (-s) := by
+        rw [show ε - s = ε + (-s) by ring, Real.rpow_add hxpos]; ring
+      calc |log (log x)| * x ^ (-s)
+          ≤ (x ^ ε / ε + |log (log 2)|) * x ^ (-s) :=
+            mul_le_mul_of_nonneg_right hbound hxs.le
+        _ = x ^ (ε - s) / ε + |log (log 2)| * x ^ (-s) := by rw [add_mul, heq]
+
+/-- `γ * x ^ (-s)` is integrable on `Ioi 1` for `s > 1`. -/
+private theorem integrableOn_γ_mul_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x => γ * x ^ (-s)) (Set.Ioi 1) := by
+  exact (integrableOn_Ioi_rpow_of_lt (by linarith : -s < -1) one_pos).const_mul γ
+
+/-- `E₂Λ x * x ^ (-s)` is integrable on `Ioi 1` for `s > 1`
+(`E₂Λ ~ -log(log x)` near `1`, and `E₂Λ = O(1/log x)` at `∞`). -/
+private theorem integrableOn_E₂Λ_mul_rpow (s : ℝ) (hs : 1 < s) :
+    MeasureTheory.IntegrableOn (fun x => E₂Λ x * x ^ (-s)) (Set.Ioi 1) := by
+  rw [← Set.Ioo_union_Ici_eq_Ioi (by norm_num : (1:ℝ) < 2)]
+  apply MeasureTheory.IntegrableOn.union
+  · -- Near `1`: `⌊x⌋₊ = 1`, the sum is `0`, so `E₂Λ x = -log (log x) - γ`.
+    have hsub : Set.Ioo (1:ℝ) 2 ⊆ Set.Ioi 1 := fun x hx => hx.1
+    have h1 := (integrableOn_γ_mul_rpow s hs).mono_set hsub
+    have h2 := (integrableOn_log_log_mul_rpow s hs).mono_set hsub
+    have hb : MeasureTheory.IntegrableOn
+        (fun x => -(log (log x) * x ^ (-s)) - γ * x ^ (-s)) (Set.Ioo 1 2) :=
+      h2.neg.sub h1
+    apply hb.congr_fun _ measurableSet_Ioo
+    intro x hx
+    simp only [Set.mem_Ioo] at hx
+    have hfloor : ⌊ x ⌋₊ = 1 := by
+      rw [Nat.floor_eq_iff (by linarith)]
+      exact ⟨by push_cast; linarith [hx.1], by push_cast; linarith [hx.2]⟩
+    have hsum : (∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / ((d:ℝ) * log d)) = 0 := by rw [hfloor]; norm_num
+    change -(log (log x) * x ^ (-s)) - γ * x ^ (-s)
+        = (∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x) - γ) * x ^ (-s)
+    rw [hsum]; ring
+  · -- Tail: `|E₂Λ x| ≤ (log 4 + 6) / log x ≤ (log 4 + 6) / log 2`, times `x^(-s)` decay.
+    have hmeas : Measurable E₂Λ := by
+      apply Measurable.sub
+      · apply Measurable.sub
+        · have : (fun x : ℝ => ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / ((d:ℝ) * log d))
+              = (fun n : ℕ => ∑ d ∈ Ioc 0 n, (Λ d) / ((d:ℝ) * log d)) ∘ (fun x => ⌊ x ⌋₊) := rfl
+          rw [this]; exact measurable_from_nat.comp Nat.measurable_floor
+        · exact Real.measurable_log.comp Real.measurable_log
+      · exact measurable_const
+    have hrpow : MeasureTheory.IntegrableOn
+        (fun x : ℝ => ((log 4 + 6) / log 2) * x ^ (-s)) (Set.Ici 2) := by
+      have : MeasureTheory.IntegrableOn (fun x : ℝ => x ^ (-s)) (Set.Ici 2) := by
+        rw [← Set.Ioi_union_left, MeasureTheory.integrableOn_union]
+        exact ⟨integrableOn_Ioi_rpow_of_lt (by linarith) (by norm_num),
+          by simp [MeasureTheory.integrableOn_singleton_iff]⟩
+      exact this.const_mul _
+    apply MeasureTheory.Integrable.mono' hrpow
+    · exact (hmeas.mul (measurable_id.pow_const (-s))).aestronglyMeasurable
+    · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ici] with x hx
+      simp only [Set.mem_Ici] at hx
+      have hxs : 0 < x ^ (-s) := Real.rpow_pos_of_pos (by linarith) _
+      have hlog2 : 0 < log 2 := Real.log_pos (by norm_num)
+      have hc : 0 ≤ log 4 + 6 := by positivity
+      rw [norm_mul, norm_eq_abs, norm_eq_abs, abs_of_pos hxs]
+      have hb2 : (log 4 + 6) / log x ≤ (log 4 + 6) / log 2 :=
+        div_le_div_of_nonneg_left hc hlog2 (Real.log_le_log (by norm_num) hx)
+      exact mul_le_mul_of_nonneg_right ((E₂Λ.abs_le hx).trans hb2) hxs.le
+
 @[blueprint
   "log-zeta-eq"
   (title := "An identity for $\\log \\zeta(s)$")
@@ -972,7 +1092,24 @@ private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
   (discussion := 1319)]
 private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
-    sorry
+  -- Start from the integration-by-parts identity (#1583).
+  rw [log_zeta_eq_integ s hs]
+  -- Linearity of the integral: split into the three summands (uses the integrability helpers).
+  have key : (∫ x in Set.Ioi 1, (log (log x) + γ + E₂Λ x) * x ^ (-s))
+      = (∫ x in Set.Ioi 1, log (log x) * x ^ (-s))
+        + (∫ x in Set.Ioi 1, γ * x ^ (-s))
+        + (∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s)) := by
+    rw [← MeasureTheory.integral_add (integrableOn_log_log_mul_rpow s hs)
+      (integrableOn_γ_mul_rpow s hs)]
+    rw [← MeasureTheory.integral_add (f := fun x => log (log x) * x ^ (-s) + γ * x ^ (-s))
+      (g := fun x => E₂Λ x * x ^ (-s))
+      ((integrableOn_log_log_mul_rpow s hs).add (integrableOn_γ_mul_rpow s hs))
+      (integrableOn_E₂Λ_mul_rpow s hs)]
+    apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioi
+    intro x _
+    ring
+  -- Apply sublemmas #1584 and #1585, then finish algebraically.
+  rw [key, mul_add, mul_add, mul_integ_log_log_eq s hs, mul_integ_gamma_eq s hs]
 
 @[blueprint
   "log-zeta-limit"
