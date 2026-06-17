@@ -1581,7 +1581,7 @@ blueprint_comment /--
     we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
       -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 2$. Now if we let
     $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
     region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
@@ -1589,9 +1589,9 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
       \ll\log|t|.$$
     But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$ and
-    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that
-    $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us
-    that
+    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$ (the argument works in reverse as well).
+    Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these
+    facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|
       \ll\log|t|.$$
@@ -1618,15 +1618,16 @@ blueprint_comment /--
           &=\frac{\Re (1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}
             =\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}.
     \end{align*}
-    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So,
-    we have $\Re \rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we
-    have that
-    $$1/3<1+\delta-\Re \rho\qquad\text{and}\qquad
-      (1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
+    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 3/4$. So,
+    we have $\Re \rho\in[3/4,9/4]$ and $\mathfrak{I}\rho\in[2t-3/4,2t+3/4]$. Additionally,
+    we know that $\zeta(\rho)=0$. This implies the stronger condition that $\Re \rho\in[3/4,1]$.
+    Thus,
+    $$\delta\leq 1+\delta-\Re \rho\qquad\text{and}\qquad
+      (1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2\leq 25/16+9/16=17/8.$$
     Which implies that
     \begin{equation}\label{pickupPoint4}
-        0\leq\frac{12}{89}
-          <\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}
+        0<\frac{8}{17}\,\delta
+          \leq\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}
           =\Re \left(\frac{1}{1+\delta+2it-\rho}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
@@ -1666,25 +1667,25 @@ blueprint_comment /--
           &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}
             =\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
     \end{align*}
-    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we
-    have $\Re \rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have
-    that
-    $$1/3<1+\delta-\Re \rho'\qquad\text{and}\qquad
-      (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
+    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho'-(3/2+it)|\leq 3/4$. So, we
+    have $\Re \rho'\in[3/4,9/4]$ and $\mathfrak{I}\rho'\in[t-3/4,t+3/4]$. Additionally, we know
+    that $\zeta(\rho')=0$. This implies the stronger condition that $\Re \rho'\in[3/4,1]$. Thus,
+    $$\delta\leq 1+\delta-\Re \rho'\qquad\text{and}\qquad
+      (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2\leq 25/16+9/16=17/8.$$
     Which implies that
     \begin{equation}\label{pickupPoint5}
-        0\leq\frac{12}{89}
-          <\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}
+        0<\frac{8}{17}\,\delta
+          \leq\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}
           =\Re \left(\frac{1}{1+\delta+it-\rho'}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,
-      \Re \left(\frac{1}{1+\delta+it-\rho}\right)
+    $$\sum_{\rho'\in\mathcal{Z}_t}m_\zeta(\rho')\,
+      \Re \left(\frac{1}{1+\delta+it-\rho'}\right)
       -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
       \leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|
+      -\sum_{\rho'\in\mathcal{Z}_t}\frac{m_\zeta(\rho')}{1+\delta+it-\rho'}\right|
       \ll\log|t|.$$
-    Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from
+    Since $m_\zeta(\rho')\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from
     Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all
     $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
     $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}
