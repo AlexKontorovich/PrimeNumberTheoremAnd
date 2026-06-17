@@ -2,7 +2,6 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Tactic.NormNum.Prime
 import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.CostaPereira
 import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_tables
@@ -106,7 +105,9 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
     RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
   have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by grind [I.hε b hb.le x hx]
   have hψ_upper : ψ x ≤ θ x + ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
-    grind [CostaPereira.theorem_1a hx_pos]
+    have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
+      simpa [one_div] using Chebyshev.psi_sub_theta_le_psi_add_psi_add_psi x
+    grind
   have h_half : x ^ (1 / 2 : ℝ) ≤ x * exp (-b / 2) := by
     rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
         log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
@@ -1596,8 +1597,8 @@ theorem bklnw_lemma_9 (u v : ℝ) (c C c₀ : ℝ)
     have hsqrtv : Real.sqrt v ≤ v := by
       rw [Real.sqrt_le_left (by linarith)]; nlinarith
     exact (Real.sqrt_le_sqrt hx_ub).trans hsqrtv
-  have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) :=
-    CostaPereira.theorem_1a hx_pos
+  have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
+    simpa [one_div] using Chebyshev.psi_sub_theta_le_psi_add_psi_add_psi x
   have hψx_lb : x - C * x ^ (1 / 2 : ℝ) ≤ ψ x := by
     have hbound := (hψ_bound x hx_in_uv).2
     rw [div_le_iff₀ (Real.sqrt_pos.mpr hx_pos), Real.sqrt_eq_rpow] at hbound

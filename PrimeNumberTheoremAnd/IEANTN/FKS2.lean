@@ -2603,7 +2603,9 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
           rw [div_le_iff₀] at hEψ <;>
             cases abs_cases (ψ x - x) <;> nlinarith [show 0 < x by linarith]
         exact hθ_basic.trans' <| sub_le_sub_left
-          (le_trans (by norm_num) (CostaPereira.theorem_1a (by linarith))) _
+          (le_trans (by norm_num)
+            (show ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) by
+              simpa [one_div] using Chebyshev.psi_sub_theta_le_psi_add_psi_add_psi x)) _
       have hψ_bounds :
           ψ (x ^ (1 / 2 : ℝ)) ≤ 1.00000002 * x ^ (1 / 2 : ℝ) + 0.94 * x ^ (1 / 4 : ℝ) ∧
           ψ (x ^ (1 / 3 : ℝ)) ≤ 1.00000002 * x ^ (1 / 3 : ℝ) + 0.94 * x ^ (1 / 6 : ℝ) ∧

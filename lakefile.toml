@@ -35,7 +35,7 @@ rev = "master"
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f"
+rev = "db127794c79fdeb86f6b0cf6ff2c804026fbaff1"
 
 [[lean_lib]]
 name = "PrimeNumberTheoremAnd"
