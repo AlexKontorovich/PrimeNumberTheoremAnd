@@ -1503,37 +1503,25 @@ theorem GlobalBound
       ofReal_im, mul_zero, sub_self, neg_zero, div_ofNat_re, re_ofNat, zero_add, one_re, Int.abs_fract]
     refine mul_le_of_le_one_left (by apply Real.rpow_nonneg (by linarith)) ((Int.fract_lt_one x).le)
   have domIntegral : Integrable (fun x : ℝ => x ^ (-(s.re + 3 / 2) - 1)) (volume.restrict (Set.Ioi 1)) := integrableOn_Ioi_rpow_of_lt (by linarith) zero_lt_one
-  suffices h1 : ‖ζ (s + 3 / 2 + I * t)‖ ≤ 2 + (2 * ‖s‖ + 3 + 2 * ‖I * t‖) by
-    apply h1.trans
-    simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul]
-    linarith
-  rw [ZetaExtend hz, ζ₀]
-  apply norm_sub_le_of_le leadingTerms
-  rw [norm_mul]
-  suffices h2 : ‖∫ (u : ℝ) in Ioi 1, ↑(Int.fract u) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 2 by
-    have := mul_le_mul_of_nonneg_left h2 (norm_nonneg (s + 3 / 2 + I * t))
-    apply this.trans
-    rw [← Complex.norm_two, ← norm_mul, add_mul, add_mul, ← Complex.norm_ofNat 3, mul_comm, ← norm_mul, ← norm_mul, div_mul_cancel₀ 3 two_ne_zero]
-    refine norm_add_le_of_le (norm_add_le_of_le (by rfl) (by rfl)) ?_
-    rw [mul_comm]
-  suffices h3 : ∫ (u : ℝ) in Ioi 1, ‖↑(Int.fract u) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 1 / (s + 3 / 2 + I * t).re by
-    refine (MeasureTheory.norm_integral_le_integral_norm _).trans (h3.trans ?_)
-    simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im,
-      mul_zero, sub_self, add_zero]
-    rw [div_le_iff₀ (by linarith), mul_add, mul_div_cancel₀ 3 two_ne_zero]
-    linarith
-  simp only [Complex.norm_mul, norm_real, norm_eq_abs, add_re, div_ofNat_re, re_ofNat,
-    mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero]
-  have := integral_Ioi_rpow_of_lt (a := -(s.re + 3/2) - 1) (by linarith) one_pos
-  simp only [sub_add_cancel, one_rpow, neg_div_neg_eq] at this
-  rw [← this]
-  refine MeasureTheory.integral_mono_ae ?_ domIntegral ?_
-  · apply MeasureTheory.Integrable.mono' domIntegral (((measurable_fract.abs).mul ((Complex.measurable_ofReal.pow_const _).norm)).aestronglyMeasurable)
-    filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with x hx
+  have hint : ‖∫ (u : ℝ) in Ioi 1, (↑(Int.fract u) : ℂ) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 1 / (s.re + 3 / 2) := by
+    refine (MeasureTheory.norm_integral_le_integral_norm _).trans ?_
+    have hI := integral_Ioi_rpow_of_lt (a := -(s.re + 3 / 2) - 1) (by linarith) one_pos
+    simp only [sub_add_cancel, one_rpow, neg_div_neg_eq] at hI
+    simp only [Complex.norm_mul, norm_real, norm_eq_abs, ← hI]
+    refine integral_mono_ae (domIntegral.mono' (((measurable_fract.abs).mul ((Complex.measurable_ofReal.pow_const _).norm)).aestronglyMeasurable) ?_) domIntegral (by filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with x hx using domBound hx)
+    filter_upwards [ae_restrict_mem measurableSet_Ioi] with x hx
     rw [norm_mul, norm_eq_abs, abs_abs, norm_norm]
     exact domBound hx
-  · filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with x hx
-    exact domBound hx
+  have z_norm : ‖s + 3 / 2 + I * ↑t‖ ≤ 5 / 2 + |t| := by
+    have It_norm : ‖I * (↑t : ℂ)‖ = |t| := by rw [norm_mul, norm_I, one_mul, Complex.norm_real, Real.norm_eq_abs]
+    have threeHalves_norm : ‖(3 / 2 : ℂ)‖ = 3 / 2 := by rw [norm_div, Complex.norm_ofNat, Complex.norm_ofNat]
+    refine (norm_add_le_of_le (norm_add_le_of_le hs (le_of_eq threeHalves_norm)) (le_of_eq It_norm)).trans (by linarith)
+  rw [ZetaExtend hz, ζ₀]
+  have hmul : ‖(s + 3 / 2 + I * ↑t) * ∫ (u : ℝ) in Ioi 1, (↑(Int.fract u) : ℂ) * (u : ℂ) ^ (-(s + 3 / 2 + I * ↑t) - 1)‖ ≤ 5 + 2 * |t| := by
+    rw [norm_mul]
+    have hinv : (1 : ℝ) / (s.re + 3 / 2) ≤ 2 := by rw [div_le_iff₀ (by linarith)]; linarith
+    exact (mul_le_mul z_norm (hint.trans hinv) (norm_nonneg _) (by linarith [abs_nonneg t])).trans (by linarith)
+  exact (norm_sub_le_of_le leadingTerms hmul).trans (by linarith)
 
 
 
