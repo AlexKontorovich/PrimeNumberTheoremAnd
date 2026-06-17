@@ -3,6 +3,7 @@ import Mathlib.Algebra.Group.Action.Basic
 import Mathlib.Algebra.GroupWithZero.Action.Pi
 import Mathlib.Algebra.GroupWithZero.Action.Prod
 import Mathlib.Algebra.Order.Module.Defs
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 import Mathlib.Data.Rat.Cast.OfScientific
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
@@ -3765,6 +3766,27 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
         (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
           (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
 
+private lemma exists_Eθ_pos {x₁ : ℝ} : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := by
+  set N := Nat.floor x₁ + 1
+  set a := (N : ℝ)
+  set b := (N : ℝ) + 1 / 2;
+  have hθ_eq : theta a = theta b := by
+    unfold theta;
+    rw [ show ⌊a⌋₊ = N from ?_, show ⌊b⌋₊ = N from ?_ ];
+    · rw [ Nat.floor_eq_iff ] ; ring;
+      · grind;
+      · positivity;
+    · exact Nat.floor_natCast _;
+  by_cases ha : theta a = a;
+  · refine' ⟨ b, _, _ ⟩;
+    · simp +zetaDelta at *;
+      linarith [ Nat.lt_floor_add_one x₁ ];
+    · refine' div_pos ( abs_pos.mpr _ ) ( by positivity );
+      grind +qlia;
+  · refine' ⟨ a, _, _ ⟩ <;> norm_num [ Eθ ];
+    · exact le_of_lt ( Nat.lt_of_floor_lt ( Nat.lt_succ_self _ ) );
+    · exact div_pos ( abs_pos.mpr ( sub_ne_zero.mpr ha ) ) ( Nat.cast_pos.mpr ( Nat.succ_pos _ ) )
+
 blueprint_comment /--
 This gives us the final result to obtain numerical bounds for $E_\pi$ from numerical bounds on $E_\theta$. -/
 
@@ -3778,9 +3800,64 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   (h_b_start : b 0 = log x₀)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
-  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ :=
-  sorry
+  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) (hx₀ : x₀ ≥ 2) :
+  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ := by
+  -- NOTE: the hypothesis `hx₀ : x₀ ≥ 2` is not present in the original source material
+  have h_key : Eπ x ≤ εθ_num x₁ + (x₀ * log x₁) / (x₁ * log x₀) * δ x₀ + (log x₁ / x₁) * (∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) * (Li (exp (b (i + 1))) - Li (exp (b i)) + exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) + εθ_num x₁ * ((log x / x) * ∫ t in x₁..x, 1 / (Real.log t) ^ 2) := by
+    have h_key : Eπ x ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ + (log x / x) * (∫ t in x₀..x₁, Eθ t / log t ^ 2) + (log x / x) * (∫ t in x₁..x, Eθ t / log t ^ 2) := by
+      have h_split : ∫ t in x₀..x, Eθ t / log t ^ 2 = (∫ t in x₀..x₁, Eθ t / log t ^ 2) + (∫ t in x₁..x, Eθ t / log t ^ 2) := by
+        rw [ intervalIntegral.integral_add_adjacent_intervals ] <;> apply_rules [ Eθ_integrable ] <;> linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ];
+      convert eq_30 ( show x ≥ x₀ by linarith [ le_max_left x₀ 14 ] ) ( show x₀ ≥ 2 by linarith ) using 1 ; rw [ h_split ] ; ring;
+    have h_bound : Eθ x ≤ εθ_num x₁ := by
+      have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Eθ.numericalBound ] ;
+      simpa [ Real.exp_log ( by linarith : 0 < x₁ ) ] using this x ( by rw [ Real.exp_log ( by linarith ) ] ; linarith )
+    have h_bound_integral : ∫ t in x₀..x₁, Eθ t / log t ^ 2 ≤ ∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) * (Li (exp (b (i + 1))) - Li (exp (b i)) + exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) := by
+      apply_rules [ bound_x0_x1 ];
+      linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ]
+    have h_bound_integral_last : ∫ t in x₁..x, Eθ t / log t ^ 2 ≤ εθ_num x₁ * ∫ t in x₁..x, 1 / log t ^ 2 := by
+      apply_rules [ Eθ_bound_integral_last ];
+      · linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ];
+      · convert h_εθ_num ( Fin.last N ) using 1 ; norm_num [ h_b_end, Real.exp_log ( show 0 < x₁ by linarith [ le_max_right x₀ 14 ] ) ];
+    have h_log_div_self_antitone : Real.log x / x ≤ Real.log x₁ / x₁ := by
+      apply Real.log_div_self_antitoneOn;
+      · exact le_trans ( Real.exp_one_lt_d9.le ) ( by norm_num; linarith [ le_max_right x₀ 14 ] );
+      · exact le_trans ( Real.exp_one_lt_d9.le ) ( by norm_num; linarith [ le_max_right x₀ 14 ] );
+      · linarith;
+    refine le_trans h_key ?_;
+    refine' add_le_add ( add_le_add ( add_le_add h_bound _ ) _ ) _;
+    · convert mul_le_mul_of_nonneg_right ( mul_le_mul_of_nonneg_right h_log_div_self_antitone ( show 0 ≤ x₀ / log x₀ by exact div_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) ) ) ( show 0 ≤ δ x₀ by exact delta_nonneg x₀ ) using 1 ; ring;
+    · gcongr;
+      · refine' intervalIntegral.integral_nonneg _ _ <;> norm_num;
+        · linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ];
+        · exact fun u hu₁ hu₂ => div_nonneg ( Eθ_nonneg u ( by linarith ) ) ( sq_nonneg _ );
+      · exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_right x₀ 14 ] );
+    · convert mul_le_mul_of_nonneg_left h_bound_integral_last ( show 0 ≤ log x / x by exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) using 1 ; ring;
+  by_cases hc : x₂ ≤ Real.toEReal ( x₁ * Real.log x₁ ) <;> simp_all +decide [ επ_num, μ_num ];
+  · have h63 := theorem_6_3 ( by linarith : 14 ≤ x₁ ) x₂.toReal ( by
+      cases x₂ <;> norm_num at *;
+      · linarith;
+      · exact absurd hc ( by exact ne_of_lt ( EReal.coe_lt_top _ ) ) ) x hx₁ ( by
+      cases x₂ <;> norm_num at *;
+      · linarith;
+      · exact absurd hc ( by exact ne_of_lt ( EReal.coe_lt_top _ ) ) ) ( by
+      cases x₂ <;> norm_num at *;
+      · exact_mod_cast hc;
+      · exact mul_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) );
+    unfold μ_num_1; ring_nf at *;
+    by_cases h : εθ_num x₁ = 0 <;> simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ];
+    · have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+      exact absurd ( this y hy₁ ) ( by norm_num [ h ] ; linarith );
+    · nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
+                    have := h_εθ_num ( Fin.last N );
+                    rw [ h_b_end, Real.exp_log ( by linarith ) ] at this; exact le_trans ( Eθ_nonneg _ ( by linarith ) ) ( this _ le_rfl ) ; ) ( Ne.symm h ) ];
+  · have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁ ; simp_all +decide [ μ_num_2 ];
+    have hεθpos : 0 < εθ_num x₁ := by
+      have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) y; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+      linarith;
+    split_ifs <;> simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
+    · exact absurd ‹_› ( not_le_of_gt hc );
+    · norm_num [ mul_left_comm ( εθ_num x₁ ), mul_assoc, hεθpos.ne' ];
+      nlinarith [ show 0 ≤ εθ_num x₁ by positivity ]
 
 @[blueprint
   "fks2-theorem-6"
@@ -3816,9 +3893,9 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   (h_b_start : b 0 = log x₀)
   (h_b_end : b (Fin.last N) = log x₁)
   (εθ_num : ℝ → ℝ)
-  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) :
+  (h_εθ_num : ∀ i : Fin (N+1), Eθ.numericalBound (exp (b i)) εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₀ : x₀ ≥ 2) :
   Eπ x ≤ εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
-  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num x hx₁ le_top
+  have h6 := theorem_6 (⊤ : EReal) h b hmono h_b_start h_b_end εθ_num h_εθ_num x hx₁ le_top hx₀
   suffices hsuff : μ_num b εθ_num x₀ x₁ (⊤ : EReal) = μ_num_2 b εθ_num x₀ x₁ by
     have heq : επ_num b εθ_num x₀ x₁ ⊤ = εθ_num x₁ * (1 + μ_num_2 b εθ_num x₀ x₁) := by
       dsimp [επ_num]; rw [hsuff]
@@ -3967,7 +4044,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         (if ⟨i.val + 1, by omega⟩ = Fin.last M then ⊤
          else ↑(exp (b' ⟨i.val + 1, by omega⟩).toReal)) := by
   split_ifs <;> simp_all +decide only [Fin.ext_iff];
-  · convert theorem_6_alt _ _ _ _ _ _ _ _ _ using 1;
+  · convert theorem_6_alt _ _ _ _ _ _ _ _ _ (show (2 : ℝ) ≤ x₁ from by linarith) using 1;
     any_goals tauto
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ b' hmono h_b_start ⟨ i, by linarith ⟩ _ using 1 ; aesop;
@@ -3983,7 +4060,7 @@ lemma corollary_8_apply_theorem_6 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         aesop
       generalize_proofs at *; (
       rwa [ Real.exp_log ( by linarith ) ] at h_exp_le);
-  · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ using 1
+  · convert theorem_6 _ _ _ _ _ _ _ _ _ _ _ (show (2 : ℝ) ≤ x₁ from by linarith) using 1
     all_goals generalize_proofs at *;
     · convert ereal_exp_ge_max hx₁ _ _ _ _ using 1
       all_goals generalize_proofs at *;
@@ -4408,6 +4485,149 @@ theorem step_interval_bound {A C V x₁ x₂ : ℝ} (hA : 0 ≤ A) (hC : 0 < C)
     _ ≤ admissible_bound A 1.5 C 1 x₂ := hrow
     _ ≤ admissible_bound A 1.5 C 1 x :=
         admissible_bound_anti hA hC hlogx hx.2 hx0
+
+/-- Corollary 14, converted to the normalized Corollary 22 coordinates. -/
+theorem corollary_14_normalized :
+    Eθ.classicalBound 9.22023 (3 / 2) 0.8476 1 2 := by
+  intro x hx
+  have hθ := corollary_14 x hx
+  have hxpos : (0 : ℝ) < x := by linarith
+  have hlogpos : 0 < Real.log x := Real.log_pos (by linarith)
+  have hlognn : 0 ≤ Real.log x := hlogpos.le
+  have hsqrtpos : 0 ≤ Real.sqrt (Real.log x) := Real.sqrt_nonneg _
+  have hcoeff :
+      121.0961 / ((5.5666305 : ℝ) ^ (3 / 2 : ℝ)) ≤ 9.22023 := by
+    have hsqrt_lb : (2.35937 : ℝ) ≤ Real.sqrt 5.5666305 := by
+      calc (2.35937 : ℝ) = Real.sqrt ((2.35937 : ℝ) ^ 2) :=
+            (Real.sqrt_sq (by norm_num : (0 : ℝ) ≤ 2.35937)).symm
+        _ ≤ Real.sqrt 5.5666305 := by
+            apply Real.sqrt_le_sqrt
+            norm_num
+    have hpow_base :
+        ((5.5666305 : ℝ) ^ (3 / 2 : ℝ)) = 5.5666305 * Real.sqrt 5.5666305 := by
+      rw [show (3 / 2 : ℝ) = 1 + (1 / 2 : ℝ) by norm_num,
+        Real.rpow_add (by norm_num : (0 : ℝ) < 5.5666305)]
+      simp [Real.sqrt_eq_rpow]
+    rw [hpow_base]
+    rw [div_le_iff₀ (by positivity : (0 : ℝ) < 5.5666305 * Real.sqrt 5.5666305)]
+    calc (121.0961 : ℝ)
+        ≤ 9.22023 * 5.5666305 * 2.35937 := by norm_num
+      _ ≤ 9.22023 * (5.5666305 * Real.sqrt 5.5666305) := by
+          nlinarith [hsqrt_lb]
+  have hC : (0.8476 : ℝ) ≤ 2 / Real.sqrt 5.5666305 := by
+    have hsqrt_ub : Real.sqrt 5.5666305 ≤ (2.3596 : ℝ) := by
+      calc Real.sqrt 5.5666305 ≤ Real.sqrt ((2.3596 : ℝ) ^ 2) := by
+            apply Real.sqrt_le_sqrt
+            norm_num
+        _ = (2.3596 : ℝ) := Real.sqrt_sq (by norm_num)
+    calc (0.8476 : ℝ)
+        ≤ 2 / (2.3596 : ℝ) := by
+            rw [le_div_iff₀ (by norm_num : (0 : ℝ) < 2.3596)]
+            norm_num
+      _ ≤ 2 / Real.sqrt 5.5666305 := by
+          gcongr
+  have hpow :
+      (Real.log x / 5.5666305) ^ (3 / 2 : ℝ) =
+        (Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ) := by
+    rw [Real.div_rpow hlognn (by norm_num : (0 : ℝ) ≤ 5.5666305)]
+  have hsqrt :
+      (Real.log x / 5.5666305) ^ ((1 : ℝ) / 2) =
+        Real.sqrt (Real.log x) / Real.sqrt 5.5666305 := by
+    rw [show ((1 : ℝ) / 2) = (1 / 2 : ℝ) by norm_num,
+      Real.div_rpow hlognn (by norm_num : (0 : ℝ) ≤ 5.5666305)]
+    simp [Real.sqrt_eq_rpow]
+  unfold admissible_bound at hθ ⊢
+  simp only [div_one]
+  rw [hpow, hsqrt] at hθ
+  have hpow_nonneg : 0 ≤ (Real.log x) ^ (3 / 2 : ℝ) :=
+    Real.rpow_nonneg hlognn _
+  have hExp :
+      Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) ≤
+        Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+    apply Real.exp_le_exp.mpr
+    have hmul :
+        0.8476 * Real.sqrt (Real.log x) ≤
+          (2 / Real.sqrt 5.5666305) * Real.sqrt (Real.log x) :=
+      mul_le_mul_of_nonneg_right hC hsqrtpos
+    have hrewrite :
+        (2 / Real.sqrt 5.5666305) * Real.sqrt (Real.log x) =
+          2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305) := by ring
+    rw [← Real.sqrt_eq_rpow]
+    nlinarith [hmul, hrewrite]
+  have hmul :
+      121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) ≤
+        9.22023 * (Real.log x) ^ (3 / 2 : ℝ) *
+          Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+    calc
+      121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305)))
+          = (121.0961 / 5.5666305 ^ (3 / 2 : ℝ)) *
+              (Real.log x) ^ (3 / 2 : ℝ) *
+              Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) := by ring
+      _ ≤ 9.22023 * (Real.log x) ^ (3 / 2 : ℝ) *
+          Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) := by
+          gcongr
+  have hθ' :
+      Eθ x ≤ 121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
+          Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) := by
+    convert hθ using 1
+    ring_nf
+  convert le_trans hθ' hmul using 1
+  ring_nf
+
+/-- Corollary 22 asymptotic tail: from `exp 20000` onward. -/
+theorem corollary_22_tail :
+    ∀ x ≥ exp 20000, Eπ x ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x := by
+  have htail :=
+    theorem_3 9.22023 (3 / 2) 0.8476 1 2 (exp 20000)
+      (by norm_num)
+      (by norm_num)
+      corollary_14_normalized
+      (by
+        rw [ge_iff_le, max_le_iff]
+        constructor
+        · exact le_trans Real.exp_one_gt_two.le
+            (Real.exp_le_exp.mpr (by norm_num : (1 : ℝ) ≤ 20000))
+        · apply Real.exp_le_exp.mpr
+          rw [Real.sqrt_one]
+          norm_num)
+      (by norm_num)
+      (by norm_num)
+      (by norm_num)
+      (by
+        rw [Real.sqrt_one]
+        have hlog2 : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+        have hsq : (0.8325 : ℝ) ^ 2 ≤ Real.log 2 := by
+          norm_num
+          linarith
+        have hsqrt : (0.8325 : ℝ) ≤ Real.sqrt (Real.log 2) := by
+          calc (0.8325 : ℝ) = Real.sqrt ((0.8325 : ℝ) ^ 2) :=
+                (Real.sqrt_sq (by norm_num : (0 : ℝ) ≤ 0.8325)).symm
+            _ ≤ Real.sqrt (Real.log 2) := Real.sqrt_le_sqrt hsq
+        linarith)
+  intro x hx
+  have hμ : μ_asymp 9.22023 1.5 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 :=
+    mu_asymp_num_le (by norm_num : (1 : ℝ) ≤ 9.22023)
+  have hA :
+      9.22023 * (1 + μ_asymp 9.22023 (3 / 2) 0.8476 1 2 (exp 20000)) ≤
+        9.2211 := by
+    have hμ' : μ_asymp 9.22023 (3 / 2) 0.8476 1 2 (exp 20000) ≤ 5.01516e-5 := by
+      norm_num at hμ ⊢
+      exact hμ
+    nlinarith [hμ']
+  have hmain := htail x hx
+  unfold admissible_bound at hmain ⊢
+  rw [div_one] at hmain ⊢
+  have hlognn : 0 ≤ Real.log x := by
+    have hx1 : (1 : ℝ) ≤ x := by
+      exact le_trans (by norm_num : (1 : ℝ) ≤ exp 20000) hx
+    exact Real.log_nonneg hx1
+  have hpow_nonneg : 0 ≤ (Real.log x) ^ (3 / 2 : ℝ) :=
+    Real.rpow_nonneg hlognn _
+  have hexp_nonneg : 0 ≤ Real.exp (-(0.8476 * (Real.log x) ^ ((1 : ℝ) / 2))) :=
+    Real.exp_nonneg _
+  exact le_trans hmain (by gcongr)
 
 @[blueprint
   "fks2-corollary-22"
