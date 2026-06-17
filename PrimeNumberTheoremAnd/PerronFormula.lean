@@ -105,6 +105,107 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral
   · refine hf.mono (diff_subset_diff ?_ subset_rfl)
     simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
+/-- Truncated contour shift through a simple pole. The left vertical side stays as the
+symmetric truncation; only the right vertical side is required to be Bochner integrable. -/
+theorem tendsto_truncated_vertical_shift_with_simple_pole
+    {σ σ' : ℝ} {f : ℂ → ℂ} {p A : ℂ} (hσ : σ < p.re ∧ p.re < σ')
+    (hf : HolomorphicOn f (Icc σ σ' ×ℂ univ \ {p}))
+    (hpole : (f - (fun s ↦ A / (s - p))) =O[𝓝[≠] p] (1 : ℂ → ℂ))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    Tendsto (fun T : ℝ ↦ (1 / (2 * π * I) : ℂ) • VIntegral f σ (-T) T)
+      atTop (𝓝 (VerticalIntegral' f σ' - A)) := by
+  have hrect : ∀ᶠ T : ℝ in atTop,
+      RectangleIntegral' f ((σ : ℂ) - I * (T : ℂ)) ((σ' : ℂ) + I * (T : ℂ)) = A := by
+    filter_upwards [eventually_gt_atTop (|p.im| + 1)] with T hT
+    have hTabs : |p.im| < T := by linarith
+    have hTpos : 0 < T := lt_of_le_of_lt (abs_nonneg p.im) hTabs
+    refine ResidueTheoremOnRectangleWithSimplePole' ?_ ?_ ?_ ?_ hpole
+    · simp [le_of_lt (hσ.1.trans hσ.2)]
+    · simp only [sub_im, ofReal_im, mul_im, I_re, zero_mul, I_im, ofReal_re, one_mul,
+        zero_add, zero_sub, add_im]
+      linarith
+    · rw [rectangle_mem_nhds_iff]
+      simp only [mem_reProdIm, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
+        mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
+        zero_sub, add_im]
+      constructor
+      · rw [uIoo_of_lt (hσ.1.trans hσ.2)]
+        exact ⟨hσ.1, hσ.2⟩
+      · rw [uIoo_of_lt (by linarith)]
+        exact abs_lt.mp hTabs
+    · refine hf.mono (diff_subset_diff ?_ subset_rfl)
+      intro z hz
+      rw [Rectangle] at hz
+      simp only [sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, sub_zero, add_re, add_zero, uIcc_of_le (le_of_lt (hσ.1.trans hσ.2)),
+        mem_reProdIm] at hz
+      exact ⟨hz.1, trivial⟩
+  have hleft_eq : ∀ᶠ T : ℝ in atTop,
+      (1 / (2 * π * I) : ℂ) • VIntegral f σ (-T) T =
+        (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' (-T) -
+          (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' T +
+          (1 / (2 * π * I) : ℂ) • VIntegral f σ' (-T) T - A := by
+    filter_upwards [hrect] with T hT
+    have hT' : (1 / (2 * π * I) : ℂ) •
+        RectangleIntegral f ((σ : ℂ) - I * (T : ℂ)) ((σ' : ℂ) + I * (T : ℂ)) = A := by
+      simpa [RectangleIntegral'] using hT
+    calc
+      (1 / (2 * π * I) : ℂ) • VIntegral f σ (-T) T
+          = (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' (-T) -
+              (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' T +
+              (1 / (2 * π * I) : ℂ) • VIntegral f σ' (-T) T -
+              (1 / (2 * π * I) : ℂ) •
+                RectangleIntegral f ((σ : ℂ) - I * (T : ℂ)) ((σ' : ℂ) + I * (T : ℂ)) := by
+            simp only [RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
+              ofReal_im, mul_zero, sub_self, sub_zero, sub_im, mul_im, one_mul, zero_add,
+              zero_sub, add_re, add_zero, add_im]
+            module
+      _ = (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' (-T) -
+              (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' T +
+              (1 / (2 * π * I) : ℂ) • VIntegral f σ' (-T) T - A := by
+            rw [hT']
+  have hbotT :
+      Tendsto (fun T : ℝ ↦ (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' (-T))
+        atTop (𝓝 0) := by
+    simpa [HIntegral] using
+      (hbot.comp tendsto_neg_atTop_atBot).const_smul (1 / (2 * π * I) : ℂ)
+  have htopT :
+      Tendsto (fun T : ℝ ↦ (1 / (2 * π * I) : ℂ) • HIntegral f σ σ' T)
+        atTop (𝓝 0) := by
+    simpa [HIntegral] using htop.const_smul (1 / (2 * π * I) : ℂ)
+  have hrightT :
+      Tendsto (fun T : ℝ ↦ (1 / (2 * π * I) : ℂ) • VIntegral f σ' (-T) T)
+        atTop (𝓝 (VerticalIntegral' f σ')) := by
+    simpa [VIntegral, VerticalIntegral'] using
+      ((intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul
+        I).const_smul (1 / (2 * π * I) : ℂ)
+  have hA : Tendsto (fun _ : ℝ => A) atTop (𝓝 A) := tendsto_const_nhds
+  have hsum := ((hbotT.sub htopT).add hrightT).sub hA
+  have hleft_eq_symm := hleft_eq.mono (fun _ hT => hT.symm)
+  simpa [sub_eq_add_neg, add_assoc] using (hsum.congr' hleft_eq_symm)
+
+/-- Set-integral form of `tendsto_truncated_vertical_shift_with_simple_pole`, normalized
+as `(2π)⁻¹ ∫ f(σ + it) dt`. -/
+theorem tendsto_truncated_vertical_shift_with_simple_pole_Ioo
+    {σ σ' : ℝ} {f : ℂ → ℂ} {p A : ℂ} (hσ : σ < p.re ∧ p.re < σ')
+    (hf : HolomorphicOn f (Icc σ σ' ×ℂ univ \ {p}))
+    (hpole : (f - (fun s ↦ A / (s - p))) =O[𝓝[≠] p] (1 : ℂ → ℂ))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    Tendsto (fun T : ℝ ↦ (1 / (2 * π) : ℂ) * ∫ t in Set.Ioo (-T) T,
+        f (σ + t * I)) atTop (𝓝 (VerticalIntegral' f σ' - A)) := by
+  have hbase := tendsto_truncated_vertical_shift_with_simple_pole hσ hf hpole hbot htop hright
+  refine hbase.congr' ?_
+  filter_upwards [eventually_ge_atTop (0 : ℝ)] with T hT
+  rw [VIntegral]
+  rw [intervalIntegral.integral_of_le (by linarith : -T ≤ T),
+    MeasureTheory.integral_Ioc_eq_integral_Ioo]
+  simp only [smul_eq_mul]
+  field_simp [Complex.I_ne_zero, Real.pi_ne_zero]
+
 @[blueprint
   (title := "RectangleIntegral-tendsTo-UpperU")
   (statement := /--
