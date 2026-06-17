@@ -923,6 +923,207 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
   sorry
 
+section
+open MeasureTheory Set
+
+-- Helpers for `log_zeta_eq_integ` (#1583): Abel summation / sum-integral interchange.
+namespace LogZetaInteg
+
+/-- The summatory coefficient `Λ d / (d log d)`. -/
+private noncomputable def c (d : ℕ) : ℝ := Λ d / (d * Real.log d)
+
+/-- The per-index integrand: `c d` times the rpow restricted to `Ici (d:ℝ)`. -/
+private noncomputable def f (s : ℝ) (d : ℕ) (x : ℝ) : ℝ :=
+    c d * (Set.Ici (d:ℝ)).indicator (fun x => x ^ (-s)) x
+
+@[simp] private lemma c_zero : c 0 = 0 := by simp [c]
+@[simp] private lemma c_one : c 1 = 0 := by simp [c, vonMangoldt_apply_one]
+
+/-- `c d ≥ 0` for all `d`. -/
+private lemma c_nonneg (d : ℕ) : 0 ≤ c d := by
+  unfold c
+  rcases Nat.eq_zero_or_pos d with hd | hd
+  · subst hd; simp
+  · apply div_nonneg vonMangoldt_nonneg
+    have : (0:ℝ) ≤ (d:ℝ) := Nat.cast_nonneg d
+    have hlog : 0 ≤ Real.log d := Real.log_natCast_nonneg d
+    positivity
+
+/-- Real summability of `Λ n / n^s` for `s > 1`, from `LSeriesSummable_vonMangoldt`. -/
+private lemma summable_vonMangoldt_div_rpow (s : ℝ) (hs : 1 < s) :
+    Summable (fun n : ℕ => (Λ n : ℝ) / (n:ℝ) ^ s) := by
+  have hC : LSeriesSummable (fun n : ℕ => (Λ n : ℂ)) (s : ℂ) :=
+    LSeriesSummable_vonMangoldt (by simpa using hs)
+  rw [LSeriesSummable] at hC
+  apply Summable.of_norm
+  refine hC.norm.congr ?_
+  intro n
+  rcases Nat.eq_zero_or_pos n with hn | hn
+  · subst hn; simp [LSeries.term]
+  · rw [LSeries.term_def, if_neg (by omega : n ≠ 0), norm_div,
+      Real.norm_eq_abs, abs_of_nonneg
+        (div_nonneg vonMangoldt_nonneg (le_of_lt (Real.rpow_pos_of_pos (by exact_mod_cast hn) s)))]
+    rw [Complex.norm_natCast_cpow_of_pos hn]
+    congr 1
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg vonMangoldt_nonneg]
+
+/-- Real summability of `Λ n / (n^s * log n)` for `s > 1` (compare with the previous lemma). -/
+private lemma summable_c_term (s : ℝ) (hs : 1 < s) :
+    Summable (fun d : ℕ => c d * ((d:ℝ) ^ (1 - s) / (s - 1))) := by
+  have hbase := summable_vonMangoldt_div_rpow s hs
+  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hC : (0:ℝ) < Real.log 2 * (s - 1) := by positivity
+  have hmaj : Summable (fun n : ℕ => (1 / (Real.log 2 * (s - 1))) * ((Λ n : ℝ) / (n:ℝ) ^ s)) :=
+    hbase.mul_left _
+  have hnonneg : ∀ d : ℕ, 0 ≤ c d * ((d:ℝ) ^ (1 - s) / (s - 1)) := by
+    intro d
+    apply mul_nonneg (c_nonneg d)
+    rcases Nat.eq_zero_or_pos d with hd | hd
+    · subst hd; simp [Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
+    · have : (0:ℝ) ≤ (d:ℝ) := Nat.cast_nonneg d
+      positivity
+  refine Summable.of_nonneg_of_le hnonneg ?_ hmaj
+  intro d
+  rcases Nat.eq_zero_or_pos d with hd | hd
+  · subst hd; simp [Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
+  rcases eq_or_lt_of_le (Nat.one_le_iff_ne_zero.mpr hd.ne') with hd1 | hd1
+  · have : d = 1 := hd1.symm
+    subst this; simp
+  · have hd2 : (2:ℝ) ≤ (d:ℝ) := by exact_mod_cast hd1
+    have hdR0 : (0:ℝ) < (d:ℝ) := by linarith
+    have hlogpos : 0 < Real.log d := Real.log_pos (by linarith)
+    have hlogge : Real.log 2 ≤ Real.log d := Real.log_le_log (by norm_num) hd2
+    have hsub : (d:ℝ) ^ (1 - s) = (d:ℝ) ^ (-s) * (d:ℝ) := by
+      rw [show (1 - s : ℝ) = -s + 1 by ring, Real.rpow_add hdR0, Real.rpow_one]
+    have hneg : (d:ℝ) ^ (-s) = ((d:ℝ) ^ s)⁻¹ := Real.rpow_neg (le_of_lt hdR0) s
+    have hrpos : (0:ℝ) < (d:ℝ) ^ s := Real.rpow_pos_of_pos hdR0 s
+    have hΛ : 0 ≤ (Λ d : ℝ) := vonMangoldt_nonneg
+    have hval : c d * ((d:ℝ) ^ (1 - s) / (s - 1))
+        = (Λ d / (d:ℝ) ^ s) * (1 / (Real.log d * (s - 1))) := by
+      unfold c
+      rw [hsub, hneg]
+      field_simp
+    have hval2 : (1 / (Real.log 2 * (s - 1))) * ((Λ d : ℝ) / (d:ℝ) ^ s)
+        = (Λ d / (d:ℝ) ^ s) * (1 / (Real.log 2 * (s - 1))) := by ring
+    rw [hval, hval2]
+    apply mul_le_mul_of_nonneg_left _ (div_nonneg hΛ (le_of_lt hrpos))
+    apply one_div_le_one_div_of_le hC
+    apply mul_le_mul_of_nonneg_right hlogge (by linarith)
+
+/-- The integration-by-parts identity (#1583), with explicit qualifiers. -/
+theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
+    Real.log (riemannZeta (s:ℂ)).re =
+      (s - 1) * ∫ x in Set.Ioi 1, (Real.log (Real.log x) + γ + E₂Λ x) * x ^ (-s) := by
+  rw [Mertens.log_zeta_eq_sum s hs]
+  symm
+  have hstep1 : ∀ x ∈ Set.Ioi (1:ℝ),
+      (Real.log (Real.log x) + γ + E₂Λ x) * x ^ (-s)
+        = (∑ d ∈ Finset.Ioc 0 ⌊x⌋₊, c d) * x ^ (-s) := by
+    intro x hx
+    simp only [Mertens.E₂Λ, c]
+    ring
+  have hstep2 : ∀ x ∈ Set.Ioi (1:ℝ),
+      (Real.log (Real.log x) + γ + E₂Λ x) * x ^ (-s) = ∑' d : ℕ, f s d x := by
+    intro x hx
+    rw [hstep1 x hx]
+    simp only [f]
+    rw [Finset.sum_mul]
+    have hx0 : (0:ℝ) ≤ x := by have := hx; simp only [Set.mem_Ioi] at this; linarith
+    rw [tsum_eq_sum (s := Finset.Ioc 0 ⌊x⌋₊) ?_]
+    · apply Finset.sum_congr rfl
+      intro d hd
+      simp only [Finset.mem_Ioc] at hd
+      have hdx : (d:ℝ) ≤ x := by
+        rw [← Nat.le_floor_iff hx0]; exact hd.2
+      rw [Set.indicator_of_mem (by simpa using hdx)]
+    · intro d hd
+      simp only [Finset.mem_Ioc, not_and, not_le] at hd
+      rcases Nat.eq_zero_or_pos d with hd0 | hd0
+      · subst hd0; simp
+      · have hfloor : ⌊x⌋₊ < d := hd hd0
+        have hdx : x < (d:ℝ) := by
+          rw [← Nat.floor_lt hx0]; exact hfloor
+        rw [Set.indicator_of_notMem (by simpa using not_le.mpr hdx)]
+        ring
+  rw [MeasureTheory.setIntegral_congr_fun measurableSet_Ioi hstep2]
+  have hperterm : ∀ d : ℕ, ∫ x in Set.Ioi (1:ℝ), f s d x = c d * ((d:ℝ) ^ (1 - s) / (s - 1)) := by
+    intro d
+    rcases Nat.eq_zero_or_pos d with hd0 | hd0
+    · subst hd0; simp [f]
+    simp only [f]
+    rw [MeasureTheory.integral_const_mul, MeasureTheory.setIntegral_indicator measurableSet_Ici]
+    congr 1
+    have hdR : (1:ℝ) ≤ (d:ℝ) := by exact_mod_cast hd0
+    have hdR0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd0
+    set A : Set ℝ := Set.Ioi (1:ℝ) ∩ Set.Ici (d:ℝ) with hA
+    have hae : A =ᵐ[volume] Set.Ioi (d:ℝ) := by
+      have h1 : A =ᵐ[volume] (Set.Ici (1:ℝ) ∩ Set.Ici (d:ℝ) : Set ℝ) :=
+        MeasureTheory.ae_eq_set_inter MeasureTheory.Ioi_ae_eq_Ici (ae_eq_refl _)
+      rw [Set.Ici_inter_Ici, max_eq_right hdR] at h1
+      exact h1.trans MeasureTheory.Ioi_ae_eq_Ici.symm
+    rw [MeasureTheory.setIntegral_congr_set hae]
+    rw [integral_Ioi_rpow_of_lt (by linarith : (-s:ℝ) < -1) hdR0,
+      show (-s + 1 : ℝ) = 1 - s by ring]
+    have hs1 : (1 - s) ≠ 0 := by linarith
+    have hs2 : (s - 1) ≠ 0 := by linarith
+    field_simp
+    ring
+  have hint : ∀ d : ℕ, MeasureTheory.IntegrableOn (f s d) (Set.Ioi (1:ℝ)) := by
+    intro d
+    unfold f
+    apply MeasureTheory.Integrable.const_mul
+    rw [show MeasureTheory.Integrable ((Set.Ici (d:ℝ)).indicator fun x => x ^ (-s))
+        (volume.restrict (Set.Ioi (1:ℝ)))
+      ↔ MeasureTheory.IntegrableOn ((Set.Ici (d:ℝ)).indicator fun x => x ^ (-s))
+          (Set.Ioi (1:ℝ)) volume from Iff.rfl,
+      MeasureTheory.integrableOn_indicator_iff measurableSet_Ici]
+    apply MeasureTheory.IntegrableOn.mono_set
+      (integrableOn_Ioi_rpow_of_lt (by linarith : (-s:ℝ) < -1) (by norm_num : (0:ℝ) < 1/2))
+    intro x hx
+    simp only [Set.mem_inter_iff, Set.mem_Ici, Set.mem_Ioi] at hx ⊢
+    linarith [hx.2]
+  have hnorm_int : ∀ d : ℕ,
+      ∫ x in Set.Ioi (1:ℝ), ‖f s d x‖ = c d * ((d:ℝ) ^ (1 - s) / (s - 1)) := by
+    intro d
+    rw [← hperterm d]
+    apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioi
+    intro x hx
+    simp only [Set.mem_Ioi] at hx
+    have hfnn : 0 ≤ f s d x := by
+      simp only [f]
+      apply mul_nonneg (c_nonneg d)
+      by_cases hxd : (d:ℝ) ≤ x
+      · rw [Set.indicator_of_mem (by simpa using hxd)]
+        exact le_of_lt (Real.rpow_pos_of_pos (by linarith) _)
+      · rw [Set.indicator_of_notMem (by simpa using hxd)]
+    change ‖f s d x‖ = f s d x
+    rw [Real.norm_eq_abs, abs_of_nonneg hfnn]
+  have hinterchange : ∫ x in Set.Ioi (1:ℝ), ∑' d : ℕ, f s d x
+      = ∑' d : ℕ, ∫ x in Set.Ioi (1:ℝ), f s d x := by
+    refine (MeasureTheory.integral_tsum_of_summable_integral_norm hint ?_).symm
+    apply (summable_c_term s hs).congr
+    intro d
+    exact (hnorm_int d).symm
+  rw [hinterchange]
+  simp_rw [hperterm]
+  rw [← tsum_mul_left]
+  apply tsum_congr
+  intro d
+  rcases Nat.eq_zero_or_pos d with hd0 | hd0
+  · subst hd0; simp
+  · have hdR : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd0
+    have hsub : (d:ℝ) ^ (1 - s) = (d:ℝ) ^ (-s) * (d:ℝ) := by
+      rw [show (1 - s : ℝ) = -s + 1 by ring, Real.rpow_add hdR, Real.rpow_one]
+    have hs1 : s - 1 ≠ 0 := by linarith
+    have hneg : (d:ℝ) ^ (-s) = ((d:ℝ) ^ s)⁻¹ := by
+      rw [Real.rpow_neg (le_of_lt hdR)]
+    unfold c
+    rw [hsub, hneg]
+    field_simp
+
+end LogZetaInteg
+end
+
 @[blueprint
   "log-zeta-eq-2"
   (title := "Integration by parts identity for $\\log \\zeta(s)$")
@@ -933,8 +1134,8 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
   (latexEnv := "sublemma")
   (discussion := 1583)]
 private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
-    log (riemannZeta (s:ℂ)).re = (s - 1) * ∫ x in .Ioi 1, (log (log x) + γ + E₂Λ x) * x^(-s) := by
-  sorry
+    log (riemannZeta (s:ℂ)).re = (s - 1) * ∫ x in .Ioi 1, (log (log x) + γ + E₂Λ x) * x^(-s) :=
+  LogZetaInteg.log_zeta_eq_integ_aux s hs
 
 @[blueprint
   "log-zeta-eq-3"
