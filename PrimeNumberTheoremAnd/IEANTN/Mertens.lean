@@ -73,6 +73,253 @@ theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Ici 0))
 
 end IntegralTest
 
+section Issue1584
+open MeasureTheory Set Filter Topology
+
+/-- The integrand `log v * exp (-v)` is integrable on `Ioi 0`. -/
+private lemma integrableOn_log_mul_exp_neg :
+    IntegrableOn (fun v : ℝ => Real.log v * Real.exp (-v)) (Ioi 0) := by
+  rw [← Set.Ioc_union_Ioi_eq_Ioi (zero_le_one' ℝ), integrableOn_union]
+  constructor
+  · -- On `Ioc 0 1`: dominate by `|log v|`, which is integrable.
+    have hlog : IntegrableOn (fun v : ℝ => Real.log v) (Ioc 0 1) volume := by
+      have := (intervalIntegral.intervalIntegrable_log' (a := 0) (b := 1))
+      rwa [intervalIntegrable_iff_integrableOn_Ioc_of_le (zero_le_one' ℝ)] at this
+    apply Integrable.mono' hlog.norm
+    · apply (Measurable.aestronglyMeasurable ?_)
+      exact (Real.measurable_log.mul (Real.measurable_exp.comp measurable_neg))
+    · filter_upwards [self_mem_ae_restrict measurableSet_Ioc] with v hv
+      rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs]
+      have h1 : |Real.exp (-v)| = Real.exp (-v) := abs_of_pos (Real.exp_pos _)
+      have h2 : Real.exp (-v) ≤ 1 := Real.exp_le_one_iff.mpr (by linarith [hv.1])
+      rw [h1]
+      nlinarith [abs_nonneg (Real.log v), Real.exp_pos (-v)]
+  · -- On `Ioi 1`: dominate by `2 * exp (-v/2)`, integrable.
+    have hexp : IntegrableOn (fun v : ℝ => (2 : ℝ) * Real.exp ((-1/2) * v)) (Ioi 1) volume := by
+      exact (integrableOn_exp_mul_Ioi (by norm_num : (-1/2 : ℝ) < 0) 1).const_mul 2
+    apply Integrable.mono' hexp
+    · apply (Measurable.aestronglyMeasurable ?_)
+      exact (Real.measurable_log.mul (Real.measurable_exp.comp measurable_neg))
+    · filter_upwards [self_mem_ae_restrict measurableSet_Ioi] with v hv
+      have hv1 : (1 : ℝ) ≤ v := le_of_lt hv
+      have hvpos : (0 : ℝ) < v := by linarith
+      rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs]
+      have hlogabs : |Real.log v| = Real.log v :=
+        abs_of_nonneg (Real.log_nonneg hv1)
+      have hexpabs : |Real.exp (-v)| = Real.exp (-v) := abs_of_pos (Real.exp_pos _)
+      rw [hlogabs, hexpabs]
+      -- `log v ≤ v`
+      have hlogv : Real.log v ≤ v := (Real.log_le_sub_one_of_pos hvpos).trans (by linarith)
+      -- `v ≤ 2 * exp (v/2)`
+      have hvexp : v ≤ 2 * Real.exp (v/2) := by
+        have := Real.add_one_le_exp (v/2)
+        nlinarith [Real.exp_pos (v/2)]
+      -- combine: log v * exp(-v) ≤ v * exp(-v) ≤ 2 exp(v/2) exp(-v) = 2 exp(-v/2)
+      have hstep : Real.log v * Real.exp (-v) ≤ 2 * Real.exp (v/2) * Real.exp (-v) := by
+        apply mul_le_mul_of_nonneg_right (hlogv.trans hvexp) (le_of_lt (Real.exp_pos _))
+      have heq : 2 * Real.exp (v/2) * Real.exp (-v) = 2 * Real.exp ((-1/2) * v) := by
+        rw [mul_assoc, ← Real.exp_add]
+        ring_nf
+      rw [heq] at hstep
+      exact hstep
+
+/-- Helper: `∫_0^∞ log t · e^{-t} dt = Γ'(1)` (real). -/
+private lemma integral_log_mul_exp_neg_eq_deriv_Gamma :
+    ∫ t in Ioi (0:ℝ), Real.log t * Real.exp (-t) = deriv Real.Gamma 1 := by
+  set I : ℝ := ∫ t in Ioi (0:ℝ), Real.log t * Real.exp (-t) with hI
+  -- Step 1: derivative of GammaIntegral at 1.
+  have h1 := Complex.hasDerivAt_GammaIntegral (s := (1 : ℂ)) (by norm_num)
+  -- Step 2: simplify the integrand to `↑(log t * exp (-t))` and pull out `ofReal`.
+  have hval : (∫ t : ℝ in Ioi 0, (↑t : ℂ) ^ ((1 : ℂ) - 1) * (↑(Real.log t) * ↑(Real.exp (-t))))
+      = (I : ℂ) := by
+    have key : ∀ t : ℝ, (↑t : ℂ) ^ ((1 : ℂ) - 1) * (↑(Real.log t) * ↑(Real.exp (-t)))
+        = ((Real.log t * Real.exp (-t) : ℝ) : ℂ) := by
+      intro t
+      rw [sub_self, Complex.cpow_zero, one_mul, Complex.ofReal_mul]
+    simp_rw [key]
+    rw [integral_complex_ofReal, hI]
+  rw [hval] at h1
+  -- Step 3: transfer to Complex.Gamma (agrees with GammaIntegral on `{re > 0}`).
+  have h2 : HasDerivAt Complex.Gamma (I : ℂ) 1 := by
+    apply h1.congr_of_eventuallyEq
+    filter_upwards [(isOpen_lt continuous_const Complex.continuous_re).mem_nhds
+      (show (0:ℝ) < (1:ℂ).re by norm_num)] with z hz
+    exact Complex.Gamma_eq_integral hz
+  -- Step 4: transfer ℂ → ℝ.
+  have h3 := h2.real_of_complex
+  have h4 : HasDerivAt Real.Gamma I 1 := by
+    have hcongr : (fun x : ℝ => (Complex.Gamma ↑x).re) = Real.Gamma := by
+      funext x
+      rw [Complex.Gamma_ofReal, Complex.ofReal_re]
+    rw [hcongr, Complex.ofReal_re] at h3
+    exact h3
+  rw [← h4.deriv]
+
+/-- Core of #1584, stated with explicit qualifiers (outside `namespace Mertens`,
+where `Finset` is open and would clash with `Set.Ioi`). -/
+private theorem mul_integ_log_log_eq_aux (s : ℝ) (hs : 1 < s) :
+    (s - 1) * ∫ x in Ioi (1:ℝ), Real.log (Real.log x) * x ^ (-s) =
+      - Real.log (s - 1) + deriv Real.Gamma 1 := by
+  have hs0 : 0 < s - 1 := by linarith
+  set f : ℝ → ℝ := fun x => (s - 1) * Real.log x with hf_def
+  set f' : ℝ → ℝ := fun x => (s - 1) / x with hf'_def
+  set g : ℝ → ℝ := fun u => (Real.log u - Real.log (s - 1)) * Real.exp (-u) with hg_def
+  -- f 1 = 0
+  have hf1 : f 1 = 0 := by simp [hf_def]
+  -- ContinuousOn f (Ici 1)
+  have hf_cont : ContinuousOn f (Ici 1) := by
+    apply ContinuousOn.mul continuousOn_const
+    apply Real.continuousOn_log.mono
+    intro x hx
+    simp only [mem_Ici] at hx
+    simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+    linarith
+  -- Tendsto f atTop atTop
+  have hft : Tendsto f atTop atTop := by
+    apply Filter.Tendsto.const_mul_atTop hs0
+    exact Real.tendsto_log_atTop
+  -- HasDerivWithinAt f (f' x) (Ioi x) x for x ∈ Ioi 1
+  have hff' : ∀ x ∈ Ioi (1:ℝ), HasDerivWithinAt f (f' x) (Ioi x) x := by
+    intro x hx
+    simp only [mem_Ioi] at hx
+    have hxne : x ≠ 0 := by linarith
+    have := (Real.hasDerivAt_log hxne).const_mul (s - 1)
+    have h2 : HasDerivAt f ((s - 1) * x⁻¹) x := this
+    have : (s - 1) * x⁻¹ = f' x := by rw [hf'_def]; field_simp
+    rw [this] at h2
+    exact h2.hasDerivWithinAt
+  -- image facts: f strictly mono on Ici 1
+  have hmono : StrictMonoOn f (Ici 1) := by
+    intro a ha b hb hab
+    simp only [mem_Ici] at ha hb
+    apply mul_lt_mul_of_pos_left _ hs0
+    exact Real.log_lt_log (by linarith) hab
+  have himg_Ioi : f '' Ioi 1 = Ioi 0 := by
+    ext y
+    simp only [Set.mem_image, mem_Ioi]
+    constructor
+    · rintro ⟨x, hx, rfl⟩
+      have : 0 < Real.log x := Real.log_pos hx
+      positivity
+    · intro hy
+      refine ⟨Real.exp (y / (s - 1)), ?_, ?_⟩
+      · exact Real.one_lt_exp_iff.mpr (div_pos hy hs0)
+      · rw [hf_def]
+        simp only [Real.log_exp]
+        field_simp
+  have himg_Ici : f '' Ici 1 = Ici 0 := by
+    ext y
+    simp only [Set.mem_image, mem_Ici]
+    constructor
+    · rintro ⟨x, hx, rfl⟩
+      have : 0 ≤ Real.log x := Real.log_nonneg hx
+      rw [hf_def]; positivity
+    · intro hy
+      refine ⟨Real.exp (y / (s - 1)), ?_, ?_⟩
+      · exact Real.one_le_exp_iff.mpr (div_nonneg hy hs0.le)
+      · rw [hf_def]
+        simp only [Real.log_exp]
+        field_simp
+  -- ContinuousOn g (f '' Ioi 1) = ContinuousOn g (Ioi 0)
+  have hg_cont : ContinuousOn g (f '' Ioi 1) := by
+    rw [himg_Ioi]
+    apply ContinuousOn.mul
+    · apply ContinuousOn.sub _ continuousOn_const
+      apply Real.continuousOn_log.mono
+      intro u hu
+      simp only [mem_Ioi] at hu
+      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+      linarith
+    · exact (Real.continuous_exp.comp continuous_neg).continuousOn
+  -- IntegrableOn g (f '' Ici 1) = IntegrableOn g (Ici 0)
+  have hg1 : IntegrableOn g (f '' Ici 1) := by
+    rw [himg_Ici, integrableOn_Ici_iff_integrableOn_Ioi]
+    have e1 : IntegrableOn (fun u => Real.log u * Real.exp (-u)) (Ioi 0) :=
+      integrableOn_log_mul_exp_neg
+    have e2 : IntegrableOn (fun u => Real.log (s - 1) * Real.exp (-u)) (Ioi 0) :=
+      (integrableOn_exp_neg_Ioi 0).const_mul _
+    have : g = fun u => Real.log u * Real.exp (-u) - Real.log (s - 1) * Real.exp (-u) := by
+      funext u; rw [hg_def]; ring
+    rw [this]
+    exact e1.sub e2
+  -- IntegrableOn (fun x => (g ∘ f) x * f' x) (Ici 1)
+  have hg2 : IntegrableOn (fun x => (g ∘ f) x * f' x) (Ici 1) := by
+    -- HasDerivWithinAt f (f' x) (Ici 1) x for x ∈ Ici 1.
+    have hff'_Ici : ∀ x ∈ Ici (1:ℝ), HasDerivWithinAt f (f' x) (Ici 1) x := by
+      intro x hx
+      simp only [mem_Ici] at hx
+      have hxne : x ≠ 0 := by linarith
+      have hd : HasDerivAt f ((s - 1) * x⁻¹) x := (Real.hasDerivAt_log hxne).const_mul (s - 1)
+      have heq : (s - 1) * x⁻¹ = f' x := by rw [hf'_def]; field_simp
+      rw [heq] at hd
+      exact hd.hasDerivWithinAt
+    -- f injective on Ici 1.
+    have hinj : InjOn f (Ici 1) := hmono.injOn
+    -- transfer hg1 through the integrability change of variables.
+    have hiff := integrableOn_image_iff_integrableOn_abs_deriv_smul
+      (s := Ici (1:ℝ)) (f := f) (f' := f') measurableSet_Ici hff'_Ici hinj g
+    rw [hiff] at hg1
+    -- relate to our integrand on Ici 1.
+    apply hg1.congr
+    filter_upwards [self_mem_ae_restrict measurableSet_Ici] with x hx
+    simp only [mem_Ici] at hx
+    have hxpos : (0:ℝ) < x := by linarith
+    have hf'pos : 0 < f' x := by rw [hf'_def]; positivity
+    simp only [smul_eq_mul, Function.comp, abs_of_pos hf'pos]
+    ring
+  -- Apply change of variables.
+  have hcov := integral_comp_mul_deriv_Ioi hf_cont hft hff' hg_cont hg1 hg2
+  rw [hf1] at hcov
+  -- RHS: ∫ u in Ioi 0, g u = deriv Gamma 1 - log (s-1)
+  have hrhs : ∫ u in Ioi (0:ℝ), g u = deriv Real.Gamma 1 - Real.log (s - 1) := by
+    have e1 : IntegrableOn (fun u => Real.log u * Real.exp (-u)) (Ioi 0) :=
+      integrableOn_log_mul_exp_neg
+    have e2 : IntegrableOn (fun u => Real.log (s - 1) * Real.exp (-u)) (Ioi 0) :=
+      (integrableOn_exp_neg_Ioi 0).const_mul _
+    have hsplit : (fun u => g u)
+        = fun u => Real.log u * Real.exp (-u) - Real.log (s - 1) * Real.exp (-u) := by
+      funext u; rw [hg_def]; ring
+    rw [show (∫ u in Ioi (0:ℝ), g u)
+        = ∫ u in Ioi (0:ℝ), (Real.log u * Real.exp (-u) - Real.log (s - 1) * Real.exp (-u))
+        from by rw [hsplit]]
+    rw [integral_sub e1 e2, integral_log_mul_exp_neg_eq_deriv_Gamma]
+    rw [integral_const_mul, integral_exp_neg_Ioi_zero, mul_one]
+  -- LHS: ∫ x in Ioi 1, (g∘f) x * f' x = (s-1) * ∫ x in Ioi 1, log(log x) * x^(-s)
+  have hlhs : ∫ x in Ioi (1:ℝ), (g ∘ f) x * f' x
+      = (s - 1) * ∫ x in Ioi (1:ℝ), Real.log (Real.log x) * x ^ (-s) := by
+    have hpt : ∀ x ∈ Ioi (1:ℝ), (g ∘ f) x * f' x
+        = (s - 1) * (Real.log (Real.log x) * x ^ (-s)) := by
+      intro x hx
+      simp only [mem_Ioi] at hx
+      have hxpos : (0:ℝ) < x := by linarith
+      have hlogpos : 0 < Real.log x := Real.log_pos hx
+      have hlogne : Real.log x ≠ 0 := ne_of_gt hlogpos
+      have hs1ne : s - 1 ≠ 0 := ne_of_gt hs0
+      simp only [Function.comp, hf_def, hg_def, hf'_def]
+      -- log ((s-1) * log x) - log (s-1) = log (log x)
+      rw [Real.log_mul hs1ne hlogne]
+      -- exp (-((s-1) * log x)) = x ^ (-(s-1))
+      have hexp : Real.exp (-((s - 1) * Real.log x)) = x ^ (-(s - 1)) := by
+        rw [Real.rpow_def_of_pos hxpos]
+        ring_nf
+      rw [hexp]
+      -- x ^ (-(s-1)) * ((s-1)/x) = (s-1) * x^(-s)
+      have hx1 : x ^ (-(s - 1)) * ((s - 1) / x) = (s - 1) * x ^ (-s) := by
+        rw [div_eq_mul_inv, ← Real.rpow_neg_one x]
+        rw [show x ^ (-(s - 1)) * ((s - 1) * x ^ (-1 : ℝ))
+            = (s - 1) * (x ^ (-(s - 1)) * x ^ (-1 : ℝ)) by ring]
+        rw [← Real.rpow_add hxpos]
+        ring_nf
+      rw [show (Real.log (s - 1) + Real.log (Real.log x) - Real.log (s - 1))
+          = Real.log (Real.log x) by ring]
+      linear_combination Real.log (Real.log x) * hx1
+    rw [setIntegral_congr_fun measurableSet_Ioi hpt, integral_const_mul]
+  rw [hlhs, hrhs] at hcov
+  rw [hcov]
+  ring
+
+end Issue1584
+
 namespace Mertens
 
 blueprint_comment /--
@@ -946,8 +1193,8 @@ private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
   (latexEnv := "sublemma")
   (discussion := 1584)]
 private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
-    (s - 1) * ∫ x in .Ioi 1, log (log x) * x^(-s) = - log (s - 1) + deriv Gamma 1 := by
-  sorry
+    (s - 1) * ∫ x in .Ioi 1, log (log x) * x^(-s) = - log (s - 1) + deriv Gamma 1 :=
+  mul_integ_log_log_eq_aux s hs
 
 @[blueprint
   "log-zeta-eq-4"
