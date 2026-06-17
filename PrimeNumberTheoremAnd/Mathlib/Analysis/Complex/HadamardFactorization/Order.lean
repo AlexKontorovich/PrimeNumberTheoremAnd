@@ -55,7 +55,7 @@ lemma analyticOrderNatAt_comp_add_const (f : ℂ → ℂ) (c : ℂ) :
   have h' :
       analyticOrderAt ((fun x : ℂ => f x) ∘ g) 0 = analyticOrderAt f c := by
     simpa [g] using h
-  simpa [analyticOrderNatAt, g] using congrArg ENat.toNat h'
+  simpa [analyticOrderNatAt, g] using! congrArg ENat.toNat h'
 
 /-- Subtracting a constant is the corresponding special case of translation for the origin order. -/
 lemma analyticOrderNatAt_comp_sub_const (f : ℂ → ℂ) (c : ℂ) :

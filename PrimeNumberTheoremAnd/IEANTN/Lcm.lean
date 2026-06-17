@@ -336,7 +336,7 @@ theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by
       have ha0 := hs_nz _ <| mem_insert_self a s
       have hs_nz' := (hs_nz · <| mem_insert_of_mem ·)
       have hs0 := lcm_ne_zero_iff.mpr hs_nz'
-      have := (pow_dvd_lcm_iff _ _ k ha0 hs0).1 <| by simpa using h
+      have := (pow_dvd_lcm_iff _ _ k ha0 hs0).1 <| by simpa using! h
       rcases this with hpa | hps
       · exact ⟨a, mem_insert_self a s, hpa⟩
       · have ⟨m, hmS, hpm⟩ := ih hs_nz' hps
@@ -1261,7 +1261,7 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by positivity [hlog hn]
   apply one_div_le_one_div_of_le
   · positivity
-  · convert this using 1
+  · convert! this using 1
     field_simp
     rw [← rpow_add (hε_pos hn)]
     simp
@@ -1693,7 +1693,7 @@ theorem L_eq_prod (n : ℕ) :
 theorem psi_eq_prod (n : ℕ) :
     Chebyshev.psi n = ∑ p ∈ Finset.filter Nat.Prime (Finset.range (n + 1)),
       ⌊Real.log n / Real.log p⌋₊ * Real.log p := by
-      convert Chebyshev.psi_eq_sum_mul_log_prime n
+      convert! Chebyshev.psi_eq_sum_mul_log_prime n
       rw [←natFloor_logb_natCast, ←log_div_log]
 
 @[blueprint

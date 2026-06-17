@@ -548,7 +548,7 @@ lemma simplePole_sub_residue_isBigO_one {f : ℂ → ℂ} {p : ℂ}
       hcont.norm.isBoundedUnder_le.isBigO_one ℂ
     have hbig_ne : dslope g p =O[nhdsWithin p {p}ᶜ] (1 : ℂ → ℂ) :=
       IsBigO.mono hbig inf_le_left
-    simpa [slope] using hbig_ne.congr' (dslope_eventuallyEq_slope_nhdsNE (f := g) (a := p)) .rfl
+    simpa [slope] using! hbig_ne.congr' (dslope_eventuallyEq_slope_nhdsNE (f := g) (a := p)) .rfl
   refine hdslope.congr' ?_ .rfl
   filter_upwards [hg_eq, self_mem_nhdsWithin] with z hz hz_ne
   simp [hz, hres, div_eq_mul_inv, sub_eq_add_neg]; ring
@@ -719,10 +719,10 @@ private lemma rectangleIntegral'_toMeromorphicNFOn_eq {f : ℂ → ℂ} {z w : �
   have h_eq : {s : ℂ | f s = fNF s} ∈ Filter.codiscreteWithin R := by
     simpa [Filter.EventuallyEq, Filter.Eventually, fNF] using
       (toMeromorphicNFOn_eqOn_codiscrete (f := f) (U := R) f_mero)
-  have hbot := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_left_im z w)
-  have htop := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_right_im z w)
-  have hright := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_right_re z w)
-  have hleft := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_left_re z w)
+  have hbot := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_left_im z w)
+  have htop := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_right_im z w)
+  have hright := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_right_re z w)
+  have hleft := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_left_re z w)
   unfold RectangleIntegral'; congr 1; unfold RectangleIntegral
   rw [hbot, htop, hright, hleft]
 
@@ -854,7 +854,6 @@ private lemma principalPart_borderIntegrable {f : ℂ → ℂ} {z w : ℂ}
   let fNF := toMeromorphicNFOn f R
   let principalPart := fun s ↦ ∑ p ∈ polesFin, residue fNF p / (s - p)
   refine ContinuousOn.rectangleBorder_integrable ?_
-  dsimp [principalPart]
   refine continuousOn_finsetSum _ ?_
   intro p hp s hs
   have hsp : s ≠ p := fun hsp => Set.disjoint_right.mp f_no_poles_boundary
@@ -1035,7 +1034,7 @@ lemma analyticAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : AnalyticAt ℂ (fun t :
   rw [show (fun t : ℂ ↦ (x : ℂ) ^ t) = fun t : ℂ ↦ Complex.exp (Complex.log (x : ℂ) * t) by
     funext t
     rw [Complex.cpow_def_of_ne_zero (Complex.ofReal_ne_zero.mpr hx.ne')]]
-  simpa [mul_comm] using analyticAt_cexp.comp (by fun_prop : AnalyticAt ℂ (fun t : ℂ ↦ Complex.log (x : ℂ) * t) s)
+  simpa [mul_comm] using! analyticAt_cexp.comp (by fun_prop : AnalyticAt ℂ (fun t : ℂ ↦ Complex.log (x : ℂ) * t) s)
 
 lemma meromorphicAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : MeromorphicAt (fun t : ℂ ↦ (x : ℂ) ^ t) s :=
   (analyticAt_rpow hx s).meromorphicAt
@@ -2763,7 +2762,7 @@ private lemma aestronglyMeasurable_horizontal_path_mul_cpow_of_meromorphic
         (fun r : ℝ ↦ Fnf (γ r) * (x : ℂ) ^ (γ r)) := by
     have h_good : ∀ᵐ r ∂ MeasureTheory.volume.restrict (Set.Iic 1), r ∉ γ ⁻¹' ({z : ℂ | AnalyticAt ℂ F z}ᶜ ∩ l.R) := by
       rw [ae_iff]
-      simpa using (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
+      simpa using! (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
     filter_upwards [h_good, MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr_good hr
     have hz_Sh : γ r ∈ S_h := h_path_maps hr
     have hz_R : γ r ∈ l.R := hS_h_sub hz_Sh
@@ -3316,7 +3315,7 @@ private theorem map_subLeft_one_eq_self : Measure.map (fun x : ℝ => 1 - x) vol
     rw [hfun, ← Measure.map_map (g := fun y : ℝ => 1 + y) (f := fun x : ℝ => -x)
       (measurable_const.add measurable_id) measurable_neg]
     rw [Measure.map_neg_eq_self, map_add_left_eq_self]
-  convert hmap using 1
+  convert! hmap using 1
 
 /-- The weighted exponential majorant needed on the horizontal rays of `C∞`. -/
 private lemma integrableOn_one_sub_mul_exp_mul_Iic (a : ℝ) (ha : 0 < a) :

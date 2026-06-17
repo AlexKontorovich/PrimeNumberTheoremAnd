@@ -640,7 +640,7 @@ lemma BoundedAtFilter.add_const {u : ℕ → ℝ} {c : ℝ} :
 lemma BoundedAtFilter.comp_add {u : ℕ → ℝ} {N : ℕ} :
     BoundedAtFilter atTop (fun n => u (n + N)) ↔ BoundedAtFilter atTop u := by
   simp only [BoundedAtFilter, isBigO_iff, norm_eq_abs, Pi.one_apply,
-    eventually_atTop, ]
+    eventually_atTop]
   constructor <;> intro ⟨C, n₀, h⟩ <;> use C
   · refine ⟨n₀ + N, fun n hn => ?_⟩
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le' (m := N) (n := n) (by grind)

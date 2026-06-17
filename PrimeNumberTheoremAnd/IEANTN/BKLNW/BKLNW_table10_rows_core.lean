@@ -55,7 +55,7 @@ set_option maxRecDepth 100000 in
 lemma table_10_bidx_eq_of_get_eq {i : Fin table_10_bcol.length} {j : Fin table_10.length}
     (h : table_10_bcol.get i = (table_10.get j).1) : i = table_10_bidx j := by
   apply table_10_bcol_sortedLT.strictMono_get.injective
-  simpa [table_10_bcol_get_bidx] using h
+  simpa [table_10_bcol_get_bidx] using! h
 
 lemma table_10_bs_mem_iff {z : ℝ} :
     z ∈ table_10_bs ↔ z ∈ table_10_bcol ∨ z = (K : ℝ) := by
@@ -110,7 +110,7 @@ lemma expT_hasDerivAt (c y : ℝ) : HasDerivAt (expT c) (expTd c y) y := by
   have hp : HasDerivAt (fun u : ℝ => u ^ 5) (5 * y ^ 4) y := by simpa using hasDerivAt_pow 5 y
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert hp.mul he using 1
+  convert! hp.mul he using 1
   ring
 
 lemma expTd_hasDerivAt (c y : ℝ) : HasDerivAt (expTd c) (expTdd c y) y := by
@@ -118,11 +118,11 @@ lemma expTd_hasDerivAt (c y : ℝ) : HasDerivAt (expTd c) (expTdd c y) y := by
   have hP : HasDerivAt (fun u : ℝ => 5 * u ^ 4 - c * u ^ 5) (20 * y ^ 3 - 5 * c * y ^ 4) y := by
     have h4 : HasDerivAt (fun u : ℝ => u ^ 4) (4 * y ^ 3) y := by simpa using hasDerivAt_pow 4 y
     have h5 : HasDerivAt (fun u : ℝ => u ^ 5) (5 * y ^ 4) y := by simpa using hasDerivAt_pow 5 y
-    convert (h4.const_mul (5 : ℝ)).sub (h5.const_mul c) using 1
+    convert! (h4.const_mul (5 : ℝ)).sub (h5.const_mul c) using 1
     ring
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert hP.mul he using 1
+  convert! hP.mul he using 1
   ring
 
 /-! Parameterized majorant `Gp A₁ A₂ E` and its convexity on any [b,b'] with 20 ≤ b. -/
@@ -138,7 +138,7 @@ lemma Gp_hasDerivAt (A₁ A₂ E y : ℝ) : HasDerivAt (Gp A₁ A₂ E) (Gp' A�
   have h3 : HasDerivAt (fun u : ℝ => E * u ^ 5) (E * (5 * y ^ 4)) y := by
     have h5 : HasDerivAt (fun u : ℝ => u ^ 5) (5 * y ^ 4) y := by simpa using hasDerivAt_pow 5 y
     exact h5.const_mul _
-  convert (h1.add h2).add h3 using 1
+  convert! (h1.add h2).add h3 using 1
 
 lemma Gp'_hasDerivAt (A₁ A₂ E y : ℝ) : HasDerivAt (Gp' A₁ A₂ E) (Gp'' A₁ A₂ E y) y := by
   unfold Gp' Gp''
@@ -146,9 +146,9 @@ lemma Gp'_hasDerivAt (A₁ A₂ E y : ℝ) : HasDerivAt (Gp' A₁ A₂ E) (Gp'' 
   have h2 := (expTd_hasDerivAt (2 / 3) y).const_mul A₂
   have h3 : HasDerivAt (fun u : ℝ => E * (5 * u ^ 4)) (E * (20 * y ^ 3)) y := by
     have h4 : HasDerivAt (fun u : ℝ => u ^ 4) (4 * y ^ 3) y := by simpa using hasDerivAt_pow 4 y
-    convert (h4.const_mul (5 : ℝ)).const_mul E using 1
+    convert! (h4.const_mul (5 : ℝ)).const_mul E using 1
     ring
-  convert (h1.add h2).add h3 using 1
+  convert! (h1.add h2).add h3 using 1
 
 lemma Gp_continuous (A₁ A₂ E : ℝ) : Continuous (Gp A₁ A₂ E) := by unfold Gp expT; fun_prop
 
@@ -434,17 +434,17 @@ lemma eT_hasDerivAt (c y : ℝ) : HasDerivAt (eT c) (eTd c y) y := by
   unfold eT eTd
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert (hasDerivAt_id y).mul he using 1
+  convert! (hasDerivAt_id y).mul he using 1
   simp only [id_eq]; ring
 
 lemma eTd_hasDerivAt (c y : ℝ) : HasDerivAt (eTd c) (eTdd c y) y := by
   unfold eTd eTdd
   have hP : HasDerivAt (fun u : ℝ => 1 - c * u) (-(c * 1)) y := by
-    convert (hasDerivAt_const y (1 : ℝ)).sub ((hasDerivAt_id y).const_mul c) using 1
+    convert! (hasDerivAt_const y (1 : ℝ)).sub ((hasDerivAt_id y).const_mul c) using 1
     ring
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert hP.mul he using 1
+  convert! hP.mul he using 1
   ring
 
 noncomputable def G1 (A₁ A₂ E y : ℝ) : ℝ := A₁ * eT (1 / 2) y + A₂ * eT (2 / 3) y + E * y
@@ -457,14 +457,14 @@ lemma G1_hasDerivAt (A₁ A₂ E y : ℝ) : HasDerivAt (G1 A₁ A₂ E) (G1' A�
   have h2 := (eT_hasDerivAt (2 / 3) y).const_mul A₂
   have h3 : HasDerivAt (fun u : ℝ => E * u) E y := by
     simpa using (hasDerivAt_id y).const_mul E
-  convert (h1.add h2).add h3 using 1
+  convert! (h1.add h2).add h3 using 1
 
 lemma G1'_hasDerivAt (A₁ A₂ E y : ℝ) : HasDerivAt (G1' A₁ A₂ E) (G1'' A₁ A₂ E y) y := by
   unfold G1' G1''
   have h1 := (eTd_hasDerivAt (1 / 2) y).const_mul A₁
   have h2 := (eTd_hasDerivAt (2 / 3) y).const_mul A₂
   have h3 : HasDerivAt (fun _ : ℝ => E) 0 y := hasDerivAt_const y E
-  convert (h1.add h2).add h3 using 1
+  convert! (h1.add h2).add h3 using 1
   ring
 
 lemma G1_continuous (A₁ A₂ E : ℝ) : Continuous (G1 A₁ A₂ E) := by unfold G1 eT; fun_prop
@@ -545,7 +545,7 @@ lemma pT_hasDerivAt (m : ℕ) (c y : ℝ) : HasDerivAt (pT m c) (pTd m c y) y :=
     hasDerivAt_pow (m + 2) y
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert hp.mul he using 1
+  convert! hp.mul he using 1
   ring
 
 lemma pTd_hasDerivAt (m : ℕ) (c y : ℝ) : HasDerivAt (pTd m c) (pTdd m c y) y := by
@@ -559,7 +559,7 @@ lemma pTd_hasDerivAt (m : ℕ) (c y : ℝ) : HasDerivAt (pTd m c) (pTdd m c y) y
     exact (ha.const_mul _).sub (hb.const_mul _)
   have hlin : HasDerivAt (fun u : ℝ => -(c * u)) (-(c * 1)) y := ((hasDerivAt_id y).const_mul c).neg
   have he : HasDerivAt (fun u : ℝ => Real.exp (-(c * u))) (Real.exp (-(c * y)) * (-(c * 1))) y := hlin.exp
-  convert hP.mul he using 1
+  convert! hP.mul he using 1
   ring
 
 /-! ### Convexity: the second derivative is nonneg on `[20, ∞)` for `m ≤ 3`. -/

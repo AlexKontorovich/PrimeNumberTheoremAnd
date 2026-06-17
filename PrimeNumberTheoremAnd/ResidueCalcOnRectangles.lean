@@ -499,7 +499,7 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) :
   let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
   have e1 {x} := HasDerivAt.add_const (y ^ 2) (by simpa using hasDerivAt_pow 2 x)
   have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
-    convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1
+    convert! (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1
     field_simp
   have e3 : deriv f = fun x => x / (x ^ 2 + y ^ 2) := funext (fun _ => e2.deriv)
   have e4 : Continuous (deriv f) := by simpa only [e3] using continuous_self_div_sq_add_sq hy

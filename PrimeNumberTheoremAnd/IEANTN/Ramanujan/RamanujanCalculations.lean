@@ -350,7 +350,7 @@ lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
       · exact ContinuousAt.div continuousAt_const
           (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
             (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
-    convert HasDerivAt.add
+    convert! HasDerivAt.add
       (HasDerivAt.div (hasDerivAt_id t) (hasDerivAt_log (show t ≠ 0 by cases Set.mem_uIcc.mp ht <;> linarith))
         (ne_of_gt (log_pos (show t > 1 by cases Set.mem_uIcc.mp ht <;> linarith))))
       h_ftc using 1 ; ring_nf
@@ -418,7 +418,7 @@ theorem integrable_theta (x : ℝ) :
     isCompact_Icc
   have l2 : IntegrableOn (fun t ↦ t / (t * log t ^ 2)) (Icc 2 x) volume :=
     monotoneOn_id.integrableOn_isCompact isCompact_Icc |>.mul_continuousOn l0 isCompact_Icc
-  simpa [div_sub_div_same] using l1.sub' l2
+  simpa [div_sub_div_same] using! l1.sub' l2
 
 @[blueprint
   "ramanujan-pi-upper"
@@ -442,6 +442,7 @@ theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, |θ x - x| * log x ^ 5
      rw [pi_error_identity x hx, Li_eq_sub_add_integral x hx]; ring
   _ ≤ _ := by
     gcongr ?_ + ?_ + ?_ + ?_
+    · exact le_rfl
     · calc
       _ = (θ x - x) * log x ^ 5 / log x ^ 6 := by field_simp
       _ ≤ |θ x - x| * log x ^ 5 / log x ^ 6 := by
@@ -449,6 +450,7 @@ theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, |θ x - x| * log x ^ 5
         · exact pow_nonneg (log_nonneg (by grind)) 5
         · exact le_abs_self _
       _ ≤ _ := by grw [htheta x hx, mul_comm]
+    · exact le_rfl
     · refine setIntegral_mono_on (integrable_theta x) ha measurableSet_Icc (fun t ht => ?_)
       calc
       _ = (θ t - t) * log t ^ 5 / (t * log t ^ 7) := by field_simp
@@ -652,7 +654,7 @@ theorem log_8_bound (x : ℝ) (hx : 2 ≤ x) :
         rw [div_le_div_iff₀] <;>
           nlinarith [pow_pos (log_pos (by linarith : 1 < x)) 8,
             pow_le_pow_left₀ (by linarith [log_pos (by linarith : 1 < x)]) hlog_half 8]
-      convert MeasureTheory.setIntegral_mono_on _ _ _ hbd <;> norm_num
+      convert! MeasureTheory.setIntegral_mono_on _ _ _ hbd <;> norm_num
       · exact Or.inl <| sqrt_le_iff.mpr ⟨by positivity, by nlinarith⟩
       · exact ContinuousOn.integrableOn_Icc (continuousOn_of_forall_continuousAt fun t ht =>
           ContinuousAt.inv₀ (ContinuousAt.pow (continuousAt_log (by

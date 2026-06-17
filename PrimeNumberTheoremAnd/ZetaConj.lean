@@ -94,7 +94,7 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
       intro s₁ hs₁
       have hs₁' : conj s₁ ≠ 1 :=
         (map_ne_one_iff (starRingEnd ℂ) (RingHom.injective (starRingEnd ℂ))).mpr hs₁
-      convert (HasDerivAt.conj_conj
+      convert! (HasDerivAt.conj_conj
         (differentiableAt_riemannZeta hs₁').hasDerivAt).differentiableAt.differentiableWithinAt
         (s := U)
       rw [Complex.conj_conj]

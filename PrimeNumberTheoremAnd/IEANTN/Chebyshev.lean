@@ -429,7 +429,7 @@ theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := b
                sum_insert (by decide : (2:ℕ) ∉ ({3,5,30} : Finset ℕ)),
                sum_insert (by decide : (3:ℕ) ∉ ({5,30} : Finset ℕ)),
                sum_insert (by decide : (5:ℕ) ∉ ({30} : Finset ℕ)),
-               sum_singleton, ν, sub_apply, Finsupp.add_apply, single_apply]
+               sum_singleton, ν, Finsupp.sub_apply, Finsupp.add_apply, Finsupp.single_apply]
     norm_num
     ring
   have habs : ν.sum (fun m w ↦ |w|) = 5 := by
@@ -520,7 +520,7 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
   have bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Ico 0 n, (a * x / 6 ^i + 5 * log (x / 6 ^ i) - 5) := by
     rw [telescope]
     refine Finset.sum_le_sum fun i hi ↦ ?_
-    convert psi_diff_upper (x / 6 ^ i) (by grind) using 3
+    convert! psi_diff_upper (x / 6 ^ i) (by grind) using 3
     · field
     · ring
   replace bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Ico 0 n, (a * x / 6 ^i + 5 * log x - 5) := by

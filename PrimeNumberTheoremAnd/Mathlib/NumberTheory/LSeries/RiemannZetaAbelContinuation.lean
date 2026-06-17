@@ -127,7 +127,7 @@ theorem riemannZeta_abel_integral (s : ℂ) (hs : 1 < s.re) :
   set Kseq : ℕ → ℂ := fun _ => (1 + 1 / (s - 1) : ℂ)
   set Iseq : ℕ → ℂ := fun N => s * ∫ u in (1 : ℝ)..N, zetaAbelFractKernel s u
   have hSum : Tendsto (fun N => Aseq N + Kseq N) atTop (𝓝 (1 + 1 / (s - 1))) := by
-    simpa using ((continuous_fst.add continuous_snd).tendsto _).comp (hA.prodMk_nhds hK)
+    simpa using! ((continuous_fst.add continuous_snd).tendsto _).comp (hA.prodMk_nhds hK)
   have hG_limit : Tendsto G atTop
       (𝓝 ((1 + 1 / (s - 1)) - s * ∫ u in Ioi (1 : ℝ), zetaAbelFractKernel s u)) := by
     have hSub : Tendsto (fun N => Aseq N + Kseq N - Iseq N) atTop

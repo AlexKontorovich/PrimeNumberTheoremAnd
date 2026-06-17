@@ -81,7 +81,7 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
   exact and_assoc
 
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
-  simpa [Square] using Rectangle.symm
+  simpa [Square] using! Rectangle.symm
 
 
 theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
@@ -255,7 +255,7 @@ theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Squ
       (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < ·)
         (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p ·)
     by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
-      using this.map equivRealProdCLM.symm.toHomeomorph
+      using! this.map equivRealProdCLM.symm.toHomeomorph
   apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr
   · intro; rfl
   · intros

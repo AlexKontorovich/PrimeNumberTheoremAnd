@@ -103,7 +103,7 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral
   · exact square_mem_nhds p (ne_of_gt hc0)
   · apply RectSubRect' <;> simpa using by linarith
   · refine hf.mono (diff_subset_diff ?_ subset_rfl)
-    simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
+    simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using! fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
 @[blueprint
   (title := "RectangleIntegral-tendsTo-UpperU")
@@ -167,7 +167,7 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
       Tendsto (fun (U : ℝ) ↦ I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop
         (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
     have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
-    convert (this.comp tendsto_neg_atTop_atBot) using 1
+    convert! (this.comp tendsto_neg_atTop_atBot) using 1
   have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
   rw [zero_sub] at this
   simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul,
@@ -481,7 +481,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
         normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
   · rw [mul_comm]
     gcongr
-    · have : 0 ≤ ∫ (t : ℝ), 1 / (sqrt (4⁻¹ + t ^ 2) * sqrt (4⁻¹ + t ^ 2)) :=
+    · have : 0 ≤ ∫ (t : ℝ), 1 / (Real.sqrt (4⁻¹ + t ^ 2) * Real.sqrt (4⁻¹ + t ^ 2)) :=
         by positivity
       rw [← norm_of_nonneg this, ← Complex.norm_real]
       apply le_of_eq; congr; norm_cast
@@ -522,7 +522,7 @@ theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     fun (_, y) ↦ 1 / y^2 := by
   refine (𝓟 (uIoc σ' σ'')).eq_or_neBot.casesOn (fun hbot ↦ by simp [hbot]) (fun _ ↦ ?_)
   haveI : NeBot (atBot (α := ℝ) ⊔ atTop) := sup_neBot.mpr (Or.inl atBot_neBot)
-  exact (isTheta_uniformlyOn_uIcc xpos σ' σ'').mono (by simpa using Ioc_subset_Icc_self)
+  exact (isTheta_uniformlyOn_uIcc xpos σ' σ'').mono (by simpa using! Ioc_subset_Icc_self)
 
 lemma isTheta (xpos : 0 < x) :
     ((fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
@@ -555,7 +555,10 @@ lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ �
   · /-- Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude. -/
     refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
       (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi
-    rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
+    have hy0 : (0 : ℝ) < y := (show (0 : ℝ) < 1 by norm_num).trans hy
+    show (y : ℝ) ^ (-2 : ℝ) = 1 / y ^ 2
+    rw [eq_div_iff (pow_ne_zero 2 hy0.ne'), ← rpow_natCast y 2, ← rpow_add hy0]
+    norm_num
 
 theorem horizontal_integral_isBigO {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) (μ : Measure ℝ)
     [IsLocallyFiniteMeasure μ] :
@@ -569,7 +572,7 @@ theorem horizontal_integral_isBigO {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) (μ
     _ =O[atBot ⊔ atTop] fun y ↦ 1 / y^2 :=
       (isTheta_uniformlyOn_uIoc xpos σ' σ'').isBigO.set_integral_isBigO
         (g := fun x => 1 / (x ^ 2))
-        measurableSet_uIoc measure_Ioc_lt_top
+        measure_Ioc_lt_top
 
 
 @[blueprint
@@ -910,7 +913,7 @@ lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
   refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
   · simpa using cpos.le
   · simpa using cpos.le
-  · convert g_eq_fDiff using 3; simp
+  · convert! g_eq_fDiff using 3; simp
 
 
 @[blueprint

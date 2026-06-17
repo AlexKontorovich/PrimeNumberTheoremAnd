@@ -909,7 +909,7 @@ theorem pi_alt' :
   rw [this]
   convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x))
       (isBigO_refl ..) using 2
-  all_goals first | ring | (ext x; ring) | rfl
+  all_goals first | ring | rfl
 
 
 lemma pi_nth_prime (n : ℕ) :

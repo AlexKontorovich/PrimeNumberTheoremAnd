@@ -268,7 +268,7 @@ theorem LogOfAnalyticFunction {r R : ℝ} {B : ℂ → ℂ}
     have hH_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt H 0 z := by
       intro z hz
       have := (Complex.hasDerivAt_exp _).comp z (hJB_deriv z hz)
-      convert this.div (BanalyticOnNhdOfDR.differentiableOn.differentiableAt
+      convert! this.div (BanalyticOnNhdOfDR.differentiableOn.differentiableAt
         (Metric.closedBall_mem_nhds_of_mem hz) |>.hasDerivAt)
         (Bnonzero z <| Metric.ball_subset_closedBall hz) using 1
       ring_nf!; grind
@@ -2038,7 +2038,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
                       integrableOn_Ioi_rpow_of_lt (by norm_num) (by linarith)
                     norm_num [div_eq_mul_inv] at *
                     exact MeasureTheory.Integrable.const_mul (h_integrable.congr_fun
-                      (fun x hx ↦ by rw [Real.rpow_neg (by linarith [hx.out])])
+                      (fun x hx ↦ by simp only [neg_div]; rw [Real.rpow_neg (by linarith [hx.out])])
                       measurableSet_Ioi) _
                   refine h_integrable.mono' ?_ ?_
                   · refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioi
@@ -2070,7 +2070,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
     refine ⟨by positivity, fun {ε X T} hε hX hT ↦ ?_⟩
     simp_all [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm]
     ring_nf at *
-    convert mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
+    convert! mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
       (show (0 : ℝ) ≤ Real.pi⁻¹ * (1 / 2) by positivity) using 1
     · simp only [I1New, SmoothedChebyshevIntegrand, norm_mul, norm_inv, Complex.norm_I,
         Complex.norm_two, mul_one, one_mul, one_div]

@@ -73,7 +73,7 @@ lemma sum_sq_div_moebius_is_multiplicative_explicit : (sum_sq_div_moebius 1 = 1)
     refine ⟨fun hd ↦ ?_, ?_⟩
     swap
     · rintro ⟨a, b, ⟨⟨⟨ha₁, ha₂⟩, ha₃⟩, ⟨⟨hb₁, hb₂⟩, hb₃⟩⟩, rfl⟩
-      exact ⟨⟨mul_dvd_mul ha₁ hb₁, ha₂, hb₂⟩, by convert mul_dvd_mul ha₃ hb₃ using 1; ring⟩
+      exact ⟨⟨mul_dvd_mul ha₁ hb₁, ha₂, hb₂⟩, by convert! mul_dvd_mul ha₃ hb₃ using 1; ring⟩
     obtain ⟨hd_div, hd_sq_div⟩ := hd
     obtain ⟨a, b, ha, hb, rfl⟩ : ∃ a b : ℕ, a ∣ m ∧ b ∣ n ∧ d = a * b :=
       Exists.imp (by grind) (Nat.dvd_mul.mp hd_div.1)
@@ -160,7 +160,7 @@ lemma sum_sq_div_moebius_eq_squarefree (n : ℕ) (hn : n > 0) :
   "mobius-lemma-1-sub"
   (title := "Mobius Lemma 1, initial step")
   (statement := /--
-    For any $x>0$, $$Q(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right)$$.
+    For any $x>0$, $$Q(x) = \sum_{k\leq x} M\left(\Real.sqrt{\frac{x}{k}}\right)$$.
   -/)
   (proof := /--
     We compute
@@ -170,16 +170,16 @@ lemma sum_sq_div_moebius_eq_squarefree (n : ℕ) (hn : n > 0) :
   (latexEnv := "sublemma")
   (discussion := 526)]
 theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
-    Q x = ∑ k ∈ Ioc 0 ⌊x⌋₊, M (sqrt (x / k)) := by
+    Q x = ∑ k ∈ Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) := by
   have h_exercise : ∑ n ∈ Ioc 0 ⌊x⌋₊, (if Squarefree n then 1 else 0) =
       ∑ k ∈ Ioc 0 ⌊x⌋₊, ∑ d ∈ filter (fun d ↦ d ^ 2 ∣ k) (Nat.divisors k), (moebius d : ℤ) :=
     sum_congr rfl fun n hn ↦ by
       rw [← sum_sq_div_moebius_eq_squarefree n (mem_Ioc.mp hn).1]; rfl
   have h_rewrite : ∑ k ∈ Ioc 0 ⌊x⌋₊, ∑ d ∈ filter (fun d ↦ d ^ 2 ∣ k) (Nat.divisors k),
-      (moebius d : ℤ) = ∑ d ∈ Icc 1 ⌊sqrt x⌋₊, ∑ k ∈ Icc 1 ⌊x / (d ^ 2)⌋₊, (moebius d : ℤ) := by
+      (moebius d : ℤ) = ∑ d ∈ Icc 1 ⌊Real.sqrt x⌋₊, ∑ k ∈ Icc 1 ⌊x / (d ^ 2)⌋₊, (moebius d : ℤ) := by
     have h_reorder : ∑ k ∈ Ioc 0 ⌊x⌋₊, ∑ d ∈ filter (fun d ↦ d ^ 2 ∣ k) (Nat.divisors k),
         (moebius d : ℤ) =
-          ∑ d ∈ Icc 1 ⌊sqrt x⌋₊, ∑ k ∈ filter (fun k ↦ d ^ 2 ∣ k) (Ioc 0 ⌊x⌋₊),
+          ∑ d ∈ Icc 1 ⌊Real.sqrt x⌋₊, ∑ k ∈ filter (fun k ↦ d ^ 2 ∣ k) (Ioc 0 ⌊x⌋₊),
             (moebius d : ℤ) := by
       repeat rw [sum_sigma']
       apply sum_bij (fun p hp ↦ ⟨p.snd, p.fst⟩)
@@ -193,7 +193,7 @@ theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
         exact fun b hb₁ hb₂ hb₃ hb₄ hb₅ ↦
           ⟨b.snd, b.fst, ⟨⟨hb₃, hb₄⟩, ⟨dvd_of_mul_left_dvd hb₅, by grind⟩, hb₅⟩, rfl⟩
       · grind
-    have h_div : ∀ d ∈ Icc 1 ⌊sqrt x⌋₊,
+    have h_div : ∀ d ∈ Icc 1 ⌊Real.sqrt x⌋₊,
         filter (fun k ↦ d ^ 2 ∣ k) (Ioc 0 ⌊x⌋₊) =
           image (fun m ↦ d ^ 2 * m) (Icc 1 ⌊x / (d ^ 2)⌋₊) := by
       intro d hd
@@ -263,15 +263,15 @@ theorem sum_moebius_div_sq : ∑' n, (moebius n) / (n : ℝ) ^ 2 = 1 / (riemannZ
 
 /-- The integral `∫ u in 0..x, M(√(x/u)) = x · ∑' n, μ(n)/n²`. -/
 theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
-    ∫ u in 0..x, (M (sqrt (x / u)) : ℝ) = x * ∑' n : ℕ, (moebius n : ℝ) / (n : ℝ) ^ 2 := by
+    ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) = x * ∑' n : ℕ, (moebius n : ℝ) / (n : ℝ) ^ 2 := by
   have h_abs : ∀ n : ℕ, |(moebius n : ℝ)| ≤ 1 := fun n ↦ by
     simp only [moebius, coe_mk]; split_ifs <;> norm_num
-  have h_integral : ∫ u in (0 : ℝ)..x, (M (sqrt (x / u)) : ℝ) =
-      ∑' n : ℕ, (moebius n : ℝ) * ∫ u in (0 : ℝ)..x, if n ≤ sqrt (x / u) then 1 else 0 := by
-    have h_rewrite : ∫ u in (0 : ℝ)..x, (M (sqrt (x / u)) : ℝ) =
-        ∫ u in (0 : ℝ)..x, ∑' n : ℕ, (moebius n : ℝ) * (if n ≤ sqrt (x / u) then 1 else 0) := by
+  have h_integral : ∫ u in (0 : ℝ)..x, (M (Real.sqrt (x / u)) : ℝ) =
+      ∑' n : ℕ, (moebius n : ℝ) * ∫ u in (0 : ℝ)..x, if n ≤ Real.sqrt (x / u) then 1 else 0 := by
+    have h_rewrite : ∫ u in (0 : ℝ)..x, (M (Real.sqrt (x / u)) : ℝ) =
+        ∫ u in (0 : ℝ)..x, ∑' n : ℕ, (moebius n : ℝ) * (if n ≤ Real.sqrt (x / u) then 1 else 0) := by
       refine intervalIntegral.integral_congr fun u _ ↦ ?_
-      rw [tsum_eq_sum (s := Ioc 0 ⌊sqrt (x / u)⌋₊)]
+      rw [tsum_eq_sum (s := Ioc 0 ⌊Real.sqrt (x / u)⌋₊)]
       · simp only [M, Int.cast_sum]
         refine sum_congr rfl fun i hi ↦ ?_
         rw [mul_ite, mul_one, mul_zero, if_pos]
@@ -296,13 +296,13 @@ theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
         · have hdiv_le : x / (n : ℝ) ^ 2 ≤ x :=
             div_le_self hx.le (mod_cast Nat.one_le_pow _ _ (Nat.pos_of_ne_zero hn))
           calc ∫⁻ u in Set.Ioc 0 x,
-              ‖(moebius n : ℝ) * if n ≤ sqrt (x / u) then 1 else 0‖ₑ
+              ‖(moebius n : ℝ) * if n ≤ Real.sqrt (x / u) then 1 else 0‖ₑ
             _ ≤ ∫⁻ u in Set.Ioc 0 x, (Set.Ioc 0 (x / n ^ 2)).indicator
                   (fun _ ↦ ENNReal.ofReal |(moebius n : ℝ)|) u := by
                 apply lintegral_mono_ae
                 filter_upwards [ae_restrict_mem measurableSet_Ioc] with u hu
                 simp only [Set.mem_Ioc] at hu
-                by_cases h1 : (n : ℝ) ≤ sqrt (x / u)
+                by_cases h1 : (n : ℝ) ≤ Real.sqrt (x / u)
                 · have h2 : u ≤ x / n ^ 2 := by
                     rw [le_sqrt (by positivity) (div_nonneg hx.le hu.1.le)] at h1
                     rwa [le_div_iff₀ hu.1, mul_comm, ← le_div_iff₀ (by positivity)] at h1
@@ -335,13 +335,13 @@ theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
             (Summable.mul_left _ <| summable_nat_pow_inv.2 one_lt_two)
           rw [Int.cast_abs]; exact h_abs n
   have h_inner : ∀ n : ℕ, n ≠ 0 →
-      ∫ u in (0 : ℝ)..x, (if n ≤ sqrt (x / u) then 1 else 0) = x / n ^ 2 := by
+      ∫ u in (0 : ℝ)..x, (if n ≤ Real.sqrt (x / u) then 1 else 0) = x / n ^ 2 := by
     intro n hn_ne
-    have h_equiv : ∀ u ∈ Set.Ioc 0 x, (n : ℝ) ≤ sqrt (x / u) ↔ u ≤ x / n ^ 2 := fun u hu ↦ by
+    have h_equiv : ∀ u ∈ Set.Ioc 0 x, (n : ℝ) ≤ Real.sqrt (x / u) ↔ u ≤ x / n ^ 2 := fun u hu ↦ by
       rw [le_sqrt (by positivity) (div_nonneg hx.le hu.1.le), le_div_iff₀ hu.1, le_div_iff₀
         (by positivity : (0 : ℝ) < n ^ 2)]
       ring_nf
-    have h_inner_eval : ∫ u in (0 : ℝ)..x, (if n ≤ sqrt (x / u) then 1 else 0) =
+    have h_inner_eval : ∫ u in (0 : ℝ)..x, (if n ≤ Real.sqrt (x / u) then 1 else 0) =
         ∫ u in (0 : ℝ)..x / n ^ 2, (1 : ℝ) := by
       rw [intervalIntegral.integral_of_le hx.le, intervalIntegral.integral_of_le (by positivity),
           ← integral_indicator measurableSet_Ioc, ← integral_indicator measurableSet_Ioc]
@@ -372,22 +372,22 @@ theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
   (statement := /--
     For any $x>0$,
     \begin{equation}\label{eq:antenor}
-    R(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) -
-      \int_0^x M\left(\sqrt{\frac{x}{u}}\right) du.
+    R(x) = \sum_{k\leq x} M\left(\Real.sqrt{\frac{x}{k}}\right) -
+      \int_0^x M\left(\Real.sqrt{\frac{x}{u}}\right) du.
     \end{equation}
   -/)
   (proof := /--
     The equality is immediate from Theorem \ref{mobius-lemma-1-sub} and exchanging the order of
     $\sum$ and $\int$, as is justified by
     $\sum_n |\mu(n)|\int_0^{x/n^2} du \leq \sum_n x/n^2 < \infty$)
-    $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\frac{x}{u}}}
+    $$\int_0^x M\left(\Real.sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \Real.sqrt{\frac{x}{u}}}
     \mu(n) du = \sum_n \mu(n) \int_0^{\frac{x}{n^2}} du = x \sum_n \frac{\mu(n)}{n^2}
     = \frac{x}{\zeta(2)}.$$
   -/)
   (latexEnv := "lemma")
   (discussion := 527)]
 theorem mobius_lemma_1 (x : ℝ) (hx : x > 0) :
-    R x = ∑ k ∈ Ioc 0 ⌊x⌋₊, M (sqrt (x / k)) - ∫ u in 0..x, (M (sqrt (x / u)) : ℝ) := by
+    R x = ∑ k ∈ Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) - ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) := by
   unfold R
   congr 1
   · exact mod_cast mobius_lemma_1_sub x hx ▸ rfl
@@ -404,17 +404,17 @@ Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
   (statement := /--
     For any $K \leq x$,
     $$
-    \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)
+    \sum_{k\leq x} M\left(\Real.sqrt{\frac{x}{k}}\right) = \sum_{k\leq K} M\left(\Real.sqrt{\frac{x}{k}}\right)
     + \sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}}
-      M\left(\sqrt{\frac{x}{k}}\right) du.
+      M\left(\Real.sqrt{\frac{x}{k}}\right) du.
     $$
   -/)
   (proof := /-- This is just splitting the sum at $K$. -/)
   (latexEnv := "sublemma")
   (discussion := 528)]
 theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
-    ∑ k ∈ Ioc 0 ⌊x⌋₊, M (sqrt (x / k)) = ∑ k ∈ range (K + 1), M (sqrt (x / k)) +
-      ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ _ in (k - 0.5)..(k + 0.5), (M (sqrt (x / k)) : ℝ) := by
+    ∑ k ∈ Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) = ∑ k ∈ range (K + 1), M (Real.sqrt (x / k)) +
+      ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ _ in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / k)) : ℝ) := by
   norm_num [sum_Ico_eq_sub]
   rw [sum_range_add_sum_Ico]
   · erw [← Icc_succ_left_eq_Ioc, sum_Ico_eq_sub _]
@@ -429,18 +429,18 @@ theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) �
   "mobius-lemma-2-sub-2"
   (title := "Mobius Lemma 2 - second step")
   (statement := /--
-    For any $K \leq x$, for $f(u) = M(\sqrt{x/u})$,
+    For any $K \leq x$, for $f(u) = M(\Real.sqrt{x/u})$,
     \[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du =
       \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du =
       \int_{K+\frac{1}{2}}^x f(u) du,\]
   -/)
   (proof := /--
-    This is just splitting the integral at $K$, since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$.
+    This is just splitting the integral at $K$, since $f(u) = M(\Real.sqrt{x/u}) = 0$ for $x>u$.
   -/)
   (latexEnv := "sublemma")
   (discussion := 529)]
 theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
-    let f : ℝ → ℝ := fun u ↦ (M (sqrt (x / u)) : ℝ)
+    let f : ℝ → ℝ := fun u ↦ (M (Real.sqrt (x / u)) : ℝ)
     ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ u in (k - 0.5)..(k + 0.5), f u =
       ∫ u in (K + 0.5)..(⌊x⌋₊ + 1.5), f u := by
   intro f
@@ -466,10 +466,10 @@ theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
           · have := Nat.lt_floor_add_one (Real.sqrt (x / (K + 1 + k - 1 / 2)))
             rw [sqrt_lt' <| by positivity] at this
             rw [div_lt_iff₀] at this <;>
-              nlinarith [show (⌊sqrt (x / (K + 1 + k - 1 / 2))⌋₊ : ℝ) ≥ 0 by positivity]
+              nlinarith [show (⌊Real.sqrt (x / (K + 1 + k - 1 / 2))⌋₊ : ℝ) ≥ 0 by positivity]
           · linarith
       · refine aestronglyMeasurable ?_
-        have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
+        have h_meas_floor : Measurable (fun u ↦ Nat.floor (Real.sqrt (x / u))) :=
           nat_floor (.sqrt (measurable_const.div measurable_id'))
         have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) :=
           measurable_of_countable _
@@ -479,13 +479,13 @@ theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
         refine le_trans (abs_sum_le_sum_abs ..) ?_
         refine le_trans (sum_le_sum (g := fun _ ↦ 1) fun i hi ↦ ?_) ?_
         · split_ifs <;> norm_num
-        · induction ⌊sqrt (x / u)⌋₊ with
+        · induction ⌊Real.sqrt (x / u)⌋₊ with
           | zero => simp
           | succ n ih =>
             norm_num [Nat.pow_succ', sum_Ioc_succ_top] at *
             rw [pow_succ']
             linarith [show (1 : ℝ) ≤ 2 ^ n by exact one_le_pow₀ (by norm_num)]
-  convert h_split using 2 <;>
+  convert! h_split using 2 <;>
   · push_cast; ring
 
 @[blueprint
@@ -495,10 +495,10 @@ theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
     For any $x>0$ and any integer $K\geq 0$,
     \begin{equation}\label{eq:singdot}
     \begin{aligned}
-    R(x) &= \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)  -
-    \int_0^{K+\frac{1}{2}} M\left(\sqrt{\frac{x}{u}}\right) du \\
+    R(x) &= \sum_{k\leq K} M\left(\Real.sqrt{\frac{x}{k}}\right)  -
+    \int_0^{K+\frac{1}{2}} M\left(\Real.sqrt{\frac{x}{u}}\right) du \\
     &-\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}}
-      \left(M\left(\sqrt{\frac{x}{u}}\right) -M\left(\sqrt{\frac{x}{k}}\right)\right) du
+      \left(M\left(\Real.sqrt{\frac{x}{u}}\right) -M\left(\Real.sqrt{\frac{x}{k}}\right)\right) du
     \end{aligned}
     \end{equation}
   -/)
@@ -516,9 +516,9 @@ theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
     (∫ u in 0..(K + 0.5), (M (Real.sqrt (x / u)) : ℝ)) -
     ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
       ∫ u in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / u)) - M (Real.sqrt (x / k)) : ℝ) := by
-    let f : ℝ → ℝ := fun u ↦ (M (sqrt (x / u)) : ℝ)
+    let f : ℝ → ℝ := fun u ↦ (M (Real.sqrt (x / u)) : ℝ)
     have hM_zero {x y : ℝ} (hx : x > 0) (hxy : x < y):  M (Real.sqrt (x / y)) = 0 := by
-      rw [M, Nat.floor_eq_zero.mpr (show sqrt (x / y) < 1 by exact (sqrt_lt_sqrt (div_pos hx (lt_trans hx hxy)).le ((div_lt_one (lt_trans hx hxy)).mpr hxy)).trans_eq sqrt_one), Finset.Ioc_self]
+      rw [M, Nat.floor_eq_zero.mpr (show Real.sqrt (x / y) < 1 by exact (sqrt_lt_sqrt (div_pos hx (lt_trans hx hxy)).le ((div_lt_one (lt_trans hx hxy)).mpr hxy)).trans_eq sqrt_one), Finset.Ioc_self]
       simp
     have hM_norm_le {t : ℝ} (ht : 0 ≤ t) : ‖(M t : ℝ)‖ ≤ t := by
       have abs_M_le_floor (t : ℝ) : |M t| ≤ (⌊t⌋₊ : ℤ) := by
@@ -552,18 +552,18 @@ theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
         rw [Set.uIoc_of_le hab] at hdom_on
         simpa [MeasureTheory.IntegrableOn] using hdom_on
       · refine aestronglyMeasurable ?_
-        have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
+        have h_meas_floor : Measurable (fun u ↦ Nat.floor (Real.sqrt (x / u))) :=
           nat_floor (.sqrt (measurable_const.div measurable_id'))
         have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) :=
           measurable_of_countable _
         exact Measurable.comp (by fun_prop) (h_meas_sum.comp h_meas_floor)
       · filter_upwards [ae_restrict_mem (measurableSet_Ioc : MeasurableSet (Set.Ioc a b))] with u hu
-        simpa using (hM_norm_le (show sqrt (x / u) ≥ 0 by exact (sqrt_pos.mpr (show (x / u) > 0 by exact div_pos hx (lt_of_le_of_lt ha hu.1))).le))
+        simpa using (hM_norm_le (show Real.sqrt (x / u) ≥ 0 by exact (sqrt_pos.mpr (show (x / u) > 0 by exact div_pos hx (lt_of_le_of_lt ha hu.1))).le))
     by_cases hK : (K > x)
     · have hfloor_K : ⌊x⌋₊ < K := by exact (Nat.floor_lt hx.le).mpr hK
       rw [Ico_eq_empty_iff.mpr (show ¬((⌊x⌋₊ + 2) > (K + 1)) by grind), Finset.sum_empty, sub_zero]
       rw [← Finset.sum_range_add_sum_Ico (m := (⌊x⌋₊ + 1)) (n := (K+1)) (fun (k : ℕ) => M (Real.sqrt (x / (k : ℝ)))) (by linarith)]
-      have : ∀ k ∈ Ico (⌊x⌋₊ + 1) (K + 1), M (sqrt (x / k)) = 0 := by
+      have : ∀ k ∈ Ico (⌊x⌋₊ + 1) (K + 1), M (Real.sqrt (x / k)) = 0 := by
         intro k hk
         exact hM_zero hx (show k > x by exact lt_of_lt_of_le (Nat.lt_floor_add_one x) (by exact_mod_cast (mem_Ico.mp hk).1))
       rw [sum_eq_zero this, add_zero, ← intervalIntegral.integral_add_adjacent_intervals (hM_int (by linarith) (by linarith)) (hM_int (by linarith) (by linarith))]

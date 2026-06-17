@@ -198,7 +198,7 @@ private lemma psi_theta_err {x : ℝ} (hx : x > 0) :
 
 private lemma psi_triangle (x : ℝ) :
     |ψ x - x| ≤ |θ x - x| + (ψ x - θ x) := by
-  convert abs_add_le (θ x - x) (ψ x - θ x) using 1
+  convert! abs_add_le (θ x - x) (ψ x - θ x) using 1
   · ring_nf
   · rw [abs_of_nonneg (sub_nonneg_of_le <| Chebyshev.theta_le_psi x)]
 
@@ -452,7 +452,7 @@ theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
   have h_ineq : |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
     have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
       have := FKS.FKS_corollary_1_4
-      convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+      convert! this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
       norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
     rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
   refine le_trans h_ineq ?_
@@ -499,7 +499,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 2) :
     |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
   have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
     have := FKS.FKS_corollary_1_4
-    convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+    convert! this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
     norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
   rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
 

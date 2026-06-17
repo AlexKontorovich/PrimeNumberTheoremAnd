@@ -49,7 +49,7 @@ theorem pntBigO : (θ - id) =O[atTop] fun (x : ℝ) ↦ x / log x ^ 2 := by
       norm_num at *
       nlinarith
     refine hc.2.trans ?_
-    convert (isBigO_refl (fun x : ℝ => x) atTop).mul h_exp using 2
+    convert! (isBigO_refl (fun x : ℝ => x) atTop).mul h_exp using 2
     simp [field]
   have : θ - id = (ψ - id) + (θ - ψ) := by ring
   refine this ▸ hl.add (isBigO_iff.2 ⟨432, ?_⟩)
@@ -537,8 +537,14 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
   let hoc := Set.uIoc_of_le hx
   have hm : Set.Ioo 2 x ∈ ae (volume.restrict (Set.Ioc 2 x)) := by
     by_cases hp : 2 < x
-    · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
-        Set.Ioc_diff_Ioo_same hp, volume_singleton]
+    · have hset : Set.Ioc 2 x \ Set.Ioo 2 x = {x} := by
+        ext t
+        simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_singleton_iff, not_and, not_lt]
+        constructor
+        · rintro ⟨⟨h1, h2⟩, h3⟩; exact le_antisymm h2 (h3 h1)
+        · rintro rfl; exact ⟨⟨hp, le_refl _⟩, fun _ => le_refl _⟩
+      rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
+        hset, volume_singleton]
     · simp_all
   have hae : (fun t ↦ deriv (fun s ↦ f s / log s) t) =ᶠ[ae (volume.restrict (Set.Ioc 2 x))]
     derivWithin (fun t ↦ f t / log t) (Set.uIcc 2 x) := by
@@ -698,8 +704,8 @@ theorem integrableOn_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.I
   · refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hx).2 (Integrable.mono'
       (Integrable.const_mul (Integrable.add ?_ ?_) C) (aestronglyMeasurable_deriv _ _)
       (ae_restrict_of_ae_restrict_of_subset Set.Ioc_subset_Ioi_self (bound_deriv hf hC)))
-    · simpa using intervalIntegrable_inv_log_pow 2 1 (by linarith : 1 < (2 : ℝ)) x
-    · simpa using intervalIntegrable_inv_log_pow 2 2 (by linarith : 1 < (2 : ℝ)) x
+    · simpa using! intervalIntegrable_inv_log_pow 2 1 (by linarith : 1 < (2 : ℝ)) x
+    · simpa using! intervalIntegrable_inv_log_pow 2 2 (by linarith : 1 < (2 : ℝ)) x
 
 @[blueprint
   "rs-415"
@@ -805,7 +811,7 @@ theorem meisselMertensConstant_identity {x : ℝ} (hx : 2 ≤ x) :
     have {y} (hy : y ∈ Set.uIcc 2 x) : log y ≠ 0 :=
       log_ne_zero_of_pos_of_ne_one (by grind) (by grind)
     refine intervalIntegral.integral_eq_sub_of_hasDerivAt (f := Real.log ∘ log) (fun y hy => ?_) ?_
-    · convert (hasDerivAt_log (this hy)).comp y (hasDerivAt_log (by grind)) using 1
+    · convert! (hasDerivAt_log (this hy)).comp y (hasDerivAt_log (by grind)) using 1
       field_simp
     · exact ContinuousOn.intervalIntegrable_of_Icc hx (by fun_prop (disch := aesop))
   rw [eq_415 (by fun_prop (disch := grind)) hx integrableOn_deriv_inv_div_log.1
