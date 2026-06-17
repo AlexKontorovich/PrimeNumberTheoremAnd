@@ -1457,13 +1457,26 @@ lemma ZetaExtend : Set.EqOn ζ ζ₀ {s : ℂ | 0 < s.re ∧ s ≠ 1} := by
 
 
 
-blueprint_comment /--
-\begin{theorem}[GlobalBound]\label{GlobalBound}
+@[blueprint "GlobalBound"
+  (title := "GlobalBound")
+  (statement := /--
     For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
-\end{theorem}
--/
-
+  -/)
+  (proof := /--
+    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that
+    $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$.
+    So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+    $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}
+      +|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
+    by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
+    $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|
+      \leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx
+      \leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
+    Thus we have that,
+    $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|
+      \leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
+  -/)]
 theorem GlobalBound
     {s : ℂ} (hs : ‖s‖ ≤ 1) {t : ℝ} (ht : |t| ≥ 2) :
     ‖ζ (s + 3 / 2 + I * t)‖ ≤ 7 + 2 * |t| := by
@@ -1521,29 +1534,6 @@ theorem GlobalBound
     exact domBound hx
   · filter_upwards [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi)] with x hx
     exact domBound hx
-
-
-
-
-
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZetaExtend}
-    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that
-    $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$.
-    So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
-    $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}
-      +|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
-    by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
-    $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|
-      \leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx
-      \leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
-    Thus we have that,
-    $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|
-      \leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
-\end{proof}
--/
 
 
 
