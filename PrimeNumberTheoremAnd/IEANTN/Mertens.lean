@@ -960,7 +960,11 @@ private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
   (discussion := 1585)]
 private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
     (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
-  sorry
+  rw [MeasureTheory.integral_const_mul,
+    integral_Ioi_rpow_of_lt (by linarith : (-s : ℝ) < -1) one_pos, Real.one_rpow]
+  have : -s + 1 ≠ 0 := by linarith
+  field_simp
+  ring
 
 @[blueprint
   "log-zeta-eq"
