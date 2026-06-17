@@ -1221,6 +1221,29 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = - log (s - 1) + deriv Gamma 1 + γ + (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x^(-s) := by
     sorry
 
+private lemma zeta_pole_mul_re_tendsto_one :
+    Filter.Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s : ℂ)).re)
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) := by
+  have hofReal :
+      Filter.Tendsto (fun s : ℝ => (s : ℂ)) (nhdsWithin 1 (Set.Ioi 1))
+        (nhdsWithin (1 : ℂ) ({1} : Set ℂ)ᶜ) := by
+    refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ ?_ ?_
+    · exact (Complex.continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with s hs
+      exact Set.mem_compl_singleton_iff.mpr (by
+        norm_num
+        exact ne_of_gt (Set.mem_Ioi.mp hs))
+  have hcomplex :
+      Filter.Tendsto (fun s : ℝ => ((s : ℂ) - 1) * riemannZeta (s : ℂ))
+        (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) :=
+    riemannZeta_residue_one.comp hofReal
+  have hreal :
+      Filter.Tendsto
+        (fun s : ℝ => (((s : ℂ) - 1) * riemannZeta (s : ℂ)).re)
+        (nhdsWithin 1 (Set.Ioi 1)) (nhds (1 : ℝ)) :=
+    (Complex.continuous_re.tendsto (1 : ℂ)).comp hcomplex
+  simpa [Complex.ofReal_sub, Complex.ofReal_mul] using hreal
+
 @[blueprint
   "log-zeta-limit"
   (title := "limiting behavior of log zeta")
@@ -1230,9 +1253,27 @@ private theorem log_zeta_eq (s : ℝ) (hs : 1 < s) :
   -/)
   (latexEnv := "sublemma")
   (discussion := 1586)]
-private theorem log_zeta_limit (s : ℝ) (hs : 1 < s) :
-    Filter.Tendsto (fun s:ℝ ↦ (riemannZeta (s:ℂ)).re + log (s - 1)) (𝓝[>] 1) (𝓝 0) := by
-  sorry
+private theorem log_zeta_limit :
+    Filter.Tendsto
+      (fun s : ℝ => Real.log (riemannZeta (s : ℂ)).re + Real.log (s - 1))
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+  have hlog :
+      Filter.Tendsto
+        (fun s : ℝ => Real.log ((s - 1) * (riemannZeta (s : ℂ)).re))
+        (nhdsWithin 1 (Set.Ioi 1)) (nhds (Real.log 1)) :=
+    (Real.continuousAt_log (by norm_num : (1 : ℝ) ≠ 0)).tendsto.comp
+      zeta_pole_mul_re_tendsto_one
+  have hEq :
+      (fun s : ℝ => Real.log (riemannZeta (s : ℂ)).re + Real.log (s - 1))
+        =ᶠ[nhdsWithin 1 (Set.Ioi 1)]
+      fun s : ℝ => Real.log ((s - 1) * (riemannZeta (s : ℂ)).re) := by
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    have hspos : 0 < s - 1 := sub_pos.mpr (Set.mem_Ioi.mp hs)
+    have hzpos : 0 < (riemannZeta (s : ℂ)).re :=
+      riemannZeta_re_pos_of_one_lt (Set.mem_Ioi.mp hs)
+    rw [Real.log_mul hspos.ne' hzpos.ne']
+    ring
+  simpa using hlog.congr' (hEq.mono fun s hs => hs.symm)
 
 @[blueprint
   "Euler-Mascheroni-eq"
