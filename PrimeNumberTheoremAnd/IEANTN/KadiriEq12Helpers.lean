@@ -376,3 +376,11 @@ theorem residue_neg_zeta_logDeriv_mul {p : ℂ} {m : ℤ} {Φ : ℂ → ℂ}
     (hΦ.comp continuous_neg.continuousAt).tendsto.mono_left nhdsWithin_le_nhds
   refine ((tendsto_sub_mul_neg_zeta_logDeriv hm).mul hΦt).congr (fun z ↦ ?_)
   ring
+
+/-- Finiteness (residue-theorem hyp B1): the rectangle `[-a,1+a]×[-T,T]` meets only finitely
+many zeros of `ζ` (the rectangle is compact). -/
+theorem rectangle_inter_zeroes_finite {a T : ℝ} :
+    (Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) ∩
+      riemannZeta.zeroes).Finite :=
+  riemannZeta.zeroes_on_Compact_finite'
+    (IsCompact.reProdIm isCompact_uIcc isCompact_uIcc)
