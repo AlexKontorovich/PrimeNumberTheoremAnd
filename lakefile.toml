@@ -25,7 +25,7 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "leancert"
 git = "https://github.com/kim-em/leancert.git"
-rev = "6a30b16fbad5ea0d994b461340402e1d976a49d5"
+rev = "91fc20f13d321d743a6c098f7192336a2997df34"
 
 [[require]]
 name = "PrimeCert"
