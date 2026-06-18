@@ -982,32 +982,34 @@ private lemma summable_vonMangoldt_div_rpow (s : ℝ) (hs : 1 < s) :
 private lemma summable_c_term (s : ℝ) (hs : 1 < s) :
     Summable (fun d : ℕ => c d * ((d:ℝ) ^ (1 - s) / (s - 1))) := by
   have hs1 : (0:ℝ) < s - 1 := by linarith
-  -- Majorise by `(1/(s-1))·(1/d^s)`: the `log d` cancels via `Λ d ≤ log d`.
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  -- Majorise by `(1/(log 2·(s-1)))·(Λ d/d^s)`, summable by `summable_vonMangoldt_div_rpow`.
   refine Summable.of_nonneg_of_le (fun d => ?_) (fun d => ?_)
-    ((summable_one_div_nat_rpow.mpr hs).mul_left (1 / (s - 1)))
+    ((summable_vonMangoldt_div_rpow s hs).mul_left (1 / (Real.log 2 * (s - 1))))
   · -- `0 ≤ c d * (d^(1-s)/(s-1))`
     refine mul_nonneg (c_nonneg d) (div_nonneg ?_ hs1.le)
     rcases eq_or_ne (d:ℝ) 0 with hd | hd
     · rw [hd, Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
     · positivity
-  · -- `c d * (d^(1-s)/(s-1)) ≤ (1/(s-1))·(1/d^s)`
+  · -- `c d * (d^(1-s)/(s-1)) ≤ (1/(log 2·(s-1)))·(Λ d/d^s)`
     rcases lt_or_ge d 2 with hd | hd
     · have hc : c d = 0 := by interval_cases d <;> simp
       rw [hc, zero_mul]
-      exact mul_nonneg (le_of_lt (one_div_pos.mpr hs1)) (by positivity)
+      exact mul_nonneg (by positivity) (div_nonneg vonMangoldt_nonneg (by positivity))
     · have hd2 : (2:ℝ) ≤ (d:ℝ) := by exact_mod_cast hd
       have hd0 : (0:ℝ) < (d:ℝ) := by linarith
-      have hlog : 0 < Real.log d := Real.log_pos (by linarith)
+      have hlogge : Real.log 2 ≤ Real.log d := Real.log_le_log (by norm_num) hd2
       have hds : (0:ℝ) < (d:ℝ) ^ s := Real.rpow_pos_of_pos hd0 s
-      have hD : (0:ℝ) < (d:ℝ) ^ s * Real.log d * (s - 1) := by positivity
       have hkey : c d * ((d:ℝ) ^ (1 - s) / (s - 1)) = Λ d / ((d:ℝ) ^ s * Real.log d * (s - 1)) := by
         unfold c
         rw [show (1 - s : ℝ) = -s + 1 by ring, Real.rpow_add hd0, Real.rpow_one, Real.rpow_neg hd0.le]
         field_simp
-      rw [hkey, div_le_iff₀ hD,
-        show (1:ℝ) / (s - 1) * (1 / (d:ℝ) ^ s) * ((d:ℝ) ^ s * Real.log d * (s - 1)) = Real.log d
-          from by field_simp]
-      exact vonMangoldt_le_log
+      -- `Λ d / (d^s·log d·(s-1)) ≤ Λ d / (d^s·log 2·(s-1))` since `log 2 ≤ log d`.
+      have hcb : (d:ℝ) ^ s * Real.log 2 * (s - 1) ≤ (d:ℝ) ^ s * Real.log d * (s - 1) :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hlogge hds.le) hs1.le
+      rw [hkey, show (1 / (Real.log 2 * (s - 1))) * ((Λ d : ℝ) / (d:ℝ) ^ s)
+          = Λ d / ((d:ℝ) ^ s * Real.log 2 * (s - 1)) from by field_simp]
+      exact div_le_div_of_nonneg_left vonMangoldt_nonneg (by positivity) hcb
 
 /-- The integration-by-parts identity (#1583), with explicit qualifiers. -/
 theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
