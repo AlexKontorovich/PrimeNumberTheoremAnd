@@ -101,6 +101,21 @@ theorem meromorphicOrderAt_riemannZeta_ne_top (z : ℂ) : meromorphicOrderAt rie
         (riemannZeta_ne_zero_of_one_le_re (by norm_num))]; simp
     exact riemannZeta_analyticOn_compl_one.analyticOrderAt_ne_top_of_isPreconnected hconn h2 hz1 hord2
 
+/-- The Riemann zeta function has a simple pole at `s = 1`: its meromorphic order there is `-1`. -/
+theorem meromorphicOrderAt_riemannZeta_one : meromorphicOrderAt riemannZeta 1 = (-1 : ℤ) := by
+  have hsub : MeromorphicAt (fun s : ℂ ↦ s - 1) 1 :=
+    (analyticAt_id.sub analyticAt_const).meromorphicAt
+  have h0 : meromorphicOrderAt ((fun s : ℂ ↦ s - 1) * riemannZeta) 1 = 0 :=
+    (tendsto_ne_zero_iff_meromorphicOrderAt_eq_zero
+      (hsub.mul (meromorphicAt_riemannZeta 1))).1 ⟨1, one_ne_zero, riemannZeta_residue_one⟩
+  rw [meromorphicOrderAt_mul hsub (meromorphicAt_riemannZeta 1),
+    meromorphicOrderAt_id_sub_const] at h0
+  obtain ⟨n, hn⟩ := WithTop.ne_top_iff_exists.1 (meromorphicOrderAt_riemannZeta_ne_top 1)
+  rw [← hn] at h0 ⊢
+  have hni : (1 : ℤ) + n = 0 := by exact_mod_cast h0
+  norm_cast
+  omega
+
 /-- The negative logarithmic derivative `-ζ'/ζ` has at most a simple pole at every point. -/
 theorem neg_one_le_meromorphicOrderAt_neg_zeta_logDeriv (z : ℂ) :
     ((-1 : ℤ) : WithTop ℤ) ≤
@@ -384,3 +399,139 @@ theorem rectangle_inter_zeroes_finite {a T : ℝ} :
       riemannZeta.zeroes).Finite :=
   riemannZeta.zeroes_on_Compact_finite'
     (IsCompact.reProdIm isCompact_uIcc isCompact_uIcc)
+
+/-- For `s₀` in the box `[-a,1+a]×[-T,T]` (with `0<a<b`), the reflected point `-s₀` lies in the
+analyticity strip `-(1+b) < Re s < b` of `Φ`. -/
+private lemma eq12_neg_mem_strip {a b T : ℝ} (ha : 0 < a) (hab : a < b) {s₀ : ℂ}
+    (hs₀ : s₀ ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I)) :
+    (-s₀) ∈ {s : ℂ | -(1 + b) < s.re ∧ s.re < b} := by
+  rw [Rectangle, mem_reProdIm] at hs₀
+  have hre := hs₀.1
+  have hz : ((-a : ℝ) - (T : ℂ) * I).re = -a := by simp
+  have hw : (((1 + a : ℝ) : ℂ) + (T : ℂ) * I).re = 1 + a := by simp
+  rw [hz, hw, Set.uIcc_of_le (by linarith)] at hre
+  obtain ⟨hlo, hhi⟩ := hre
+  refine ⟨?_, ?_⟩ <;> simp only [Complex.neg_re] <;> linarith
+
+/-- The eq.(12) integrand `f(s) = (-ζ'/ζ)(s)·Φ(-s)` is meromorphic on the rectangle
+`[-a,1+a]×[-T,T]`. -/
+theorem meromorphicOn_eq12_integrand {Φ : ℂ → ℂ} {b : ℝ}
+    (hΦ : AnalyticOnNhd ℂ Φ {s : ℂ | -(1 + b) < s.re ∧ s.re < b})
+    {a T : ℝ} (ha : 0 < a) (hab : a < b) :
+    MeromorphicOn (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s))
+      (Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I)) := by
+  intro s₀ hs₀
+  have hΦan : AnalyticAt ℂ Φ (-s₀) := hΦ (-s₀) (eq12_neg_mem_strip ha hab hs₀)
+  have hneg : AnalyticAt ℂ (fun s : ℂ ↦ -s) s₀ := analyticAt_id.neg
+  have hΦneg : MeromorphicAt (fun s ↦ Φ (-s)) s₀ := (hΦan.comp hneg).meromorphicAt
+  exact (((meromorphicAt_riemannZeta s₀).deriv.neg).div (meromorphicAt_riemannZeta s₀)).mul hΦneg
+
+/-- The eq.(12) integrand has at most simple poles on the rectangle: its meromorphic order is
+`≥ -1` at every point (the `-ζ'/ζ` factor contributes `≥ -1`, the analytic `Φ(-·)` factor `≥ 0`). -/
+theorem hasSimplePolesOn_eq12_integrand {Φ : ℂ → ℂ} {b : ℝ}
+    (hΦ : AnalyticOnNhd ℂ Φ {s : ℂ | -(1 + b) < s.re ∧ s.re < b})
+    {a T : ℝ} (ha : 0 < a) (hab : a < b) :
+    HasSimplePolesOn (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s))
+      (Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I)) := by
+  intro s₀ hs₀
+  have hΦan : AnalyticAt ℂ Φ (-s₀) := hΦ (-s₀) (eq12_neg_mem_strip ha hab hs₀)
+  have hneg : AnalyticAt ℂ (fun s : ℂ ↦ -s) s₀ := analyticAt_id.neg
+  have hΦneg_an : AnalyticAt ℂ (fun s ↦ Φ (-s)) s₀ := hΦan.comp hneg
+  have hmero1 : MeromorphicAt (fun w ↦ -deriv riemannZeta w / riemannZeta w) s₀ :=
+    (meromorphicAt_riemannZeta s₀).deriv.neg.div (meromorphicAt_riemannZeta s₀)
+  have h1 := neg_one_le_meromorphicOrderAt_neg_zeta_logDeriv s₀
+  have h2 : (0 : WithTop ℤ) ≤ meromorphicOrderAt (fun s ↦ Φ (-s)) s₀ :=
+    hΦneg_an.meromorphicOrderAt_nonneg
+  rw [show (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s))
+      = (fun w ↦ -deriv riemannZeta w / riemannZeta w) * (fun s ↦ Φ (-s)) from rfl,
+    meromorphicOrderAt_mul hmero1 hΦneg_an.meromorphicAt]
+  calc ((-1 : ℤ) : WithTop ℤ) = ((-1 : ℤ) : WithTop ℤ) + 0 := by rw [add_zero]
+    _ ≤ _ := add_le_add h1 h2
+
+/-- At a point of the box where `ζ ≠ 0` and `s ≠ 1`, the eq.(12) integrand is analytic, so its
+meromorphic order is non-negative (no pole). -/
+theorem eq12_meromorphicOrderAt_nonneg_of_ne {Φ : ℂ → ℂ} {b : ℝ}
+    (hΦ : AnalyticOnNhd ℂ Φ {s : ℂ | -(1 + b) < s.re ∧ s.re < b})
+    {a T : ℝ} (ha : 0 < a) (hab : a < b) {s : ℂ}
+    (hsbox : s ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I))
+    (hζ_ne : riemannZeta s ≠ 0) (hs1 : s ≠ 1) :
+    0 ≤ meromorphicOrderAt (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s)) s := by
+  have hζ_an : AnalyticAt ℂ riemannZeta s :=
+    analyticOn_riemannZeta s (Set.mem_compl_singleton_iff.mpr hs1)
+  have hlog_an : AnalyticAt ℂ (fun w ↦ -deriv riemannZeta w / riemannZeta w) s :=
+    (hζ_an.deriv.neg).div hζ_an hζ_ne
+  have hΦneg_an : AnalyticAt ℂ (fun s ↦ Φ (-s)) s :=
+    (hΦ (-s) (eq12_neg_mem_strip ha hab hsbox)).comp analyticAt_id.neg
+  exact (hlog_an.mul hΦneg_an).meromorphicOrderAt_nonneg
+
+/-- No poles on the rectangle border (residue-theorem hyp B2/B3): given that `ζ` is non-zero and
+the point is `≠ 1` on the entire border, the eq.(12) integrand is analytic there, hence has
+non-negative order, so the border is disjoint from the pole set. -/
+theorem eq12_no_border_poles {Φ : ℂ → ℂ} {b : ℝ}
+    (hΦ : AnalyticOnNhd ℂ Φ {s : ℂ | -(1 + b) < s.re ∧ s.re < b})
+    {a T : ℝ} (ha : 0 < a) (hab : a < b)
+    (hborder : ∀ s ∈ RectangleBorder ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I),
+        riemannZeta s ≠ 0 ∧ s ≠ 1) :
+    Disjoint (RectangleBorder ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I))
+      {s | meromorphicOrderAt
+        (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s)) s < 0} := by
+  rw [Set.disjoint_left]
+  intro s hs_border hs_pole
+  simp only [Set.mem_setOf_eq] at hs_pole
+  obtain ⟨hζ_ne, hs1⟩ := hborder s hs_border
+  have hs_rect : s ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) :=
+    rectangleBorder_subset_rectangle _ _ hs_border
+  exact absurd hs_pole
+    (not_lt.mpr (eq12_meromorphicOrderAt_nonneg_of_ne hΦ ha hab hs_rect hζ_ne hs1))
+
+/-- `zeroes_sum` over a finite zero-rectangle is the finite sum over `hfin.toFinset`. -/
+theorem zeroes_sum_eq_toFinset_sum {α : Type*} [RCLike α] {I J : Set ℝ} (g : ℂ → α)
+    (hfin : (riemannZeta.zeroes_rect I J).Finite) :
+    riemannZeta.zeroes_sum I J g = ∑ z ∈ hfin.toFinset, g z * (riemannZeta.order z : α) := by
+  rw [riemannZeta.zeroes_sum, ← Finset.tsum_subtype' hfin.toFinset
+    (fun z => g z * (riemannZeta.order z : α)), hfin.coe_toFinset]
+
+/-- Part 5 (residue bookkeeping): the sum of residues of the eq.(12) integrand `f` over the poles
+inside the rectangle equals `Φ(-1) - zeroes_sum`. The two pole contributions are `s = 1`
+(residue `Φ(-1)`) and the non-trivial zeros `ρ` (residue `-ord(ρ)·Φ(-ρ)`); the set-characterization
+of the pole set and the residue values are supplied at the call site. -/
+theorem sumResiduesIn_eq12_eq {f Φ : ℂ → ℂ} {a T : ℝ}
+    (hf_mero : MeromorphicOn f (Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I)))
+    (hfin : (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)).Finite)
+    (h1mem : (1 : ℂ) ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I))
+    (hZsub : (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T) : Set ℂ) ⊆
+      Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I))
+    (h1notZ : (1 : ℂ) ∉ riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T))
+    (hset : Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) ∩
+          {s | meromorphicOrderAt f s < 0}
+        = insert (1 : ℂ) (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)) ∩
+          {s | meromorphicOrderAt f s < 0})
+    (hres1 : residue f 1 = Φ (-1))
+    (hresZ : ∀ ρ ∈ riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T),
+      residue f ρ = -(riemannZeta.order ρ : ℂ) * Φ (-ρ)) :
+    sumResiduesIn f (Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) ∩
+        {s | meromorphicOrderAt f s < 0})
+      = Φ (-1) - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ Φ (-ρ)) := by
+  have h1notZF : (1 : ℂ) ∉ hfin.toFinset := by rw [hfin.mem_toFinset]; exact h1notZ
+  -- Step 1: replace the pole-set sum by the sum over `{1} ∪ Z`.
+  rw [sumResiduesIn_inter_eq_of_set_eq hset ?_]
+  · -- Step 2: evaluate the finite sum over `insert 1 Z`.
+    rw [show insert (1 : ℂ) (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T))
+          = ((insert (1 : ℂ) hfin.toFinset : Finset ℂ) : Set ℂ) by
+          rw [Finset.coe_insert, hfin.coe_toFinset], sumResiduesIn, Finset.tsum_subtype',
+      Finset.sum_insert h1notZF, hres1,
+      zeroes_sum_eq_toFinset_sum (fun ρ ↦ Φ (-ρ)) hfin]
+    have hsum : ∑ z ∈ hfin.toFinset, residue f z
+        = ∑ z ∈ hfin.toFinset, -(Φ (-z) * (riemannZeta.order z : ℂ)) :=
+      Finset.sum_congr rfl fun z hz => by
+        rw [hresZ z (hfin.mem_toFinset.mp hz)]; ring
+    rw [hsum, Finset.sum_neg_distrib]
+    ring
+  · -- residues vanish at non-pole points of `{1} ∪ Z`.
+    intro s hs hs_not
+    have hsbox : s ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) := by
+      rcases Set.mem_insert_iff.mp hs with h1 | hZ
+      · rw [h1]; exact h1mem
+      · exact hZsub hZ
+    have hord : 0 ≤ meromorphicOrderAt f s := not_lt.mp (by simpa using hs_not)
+    exact residue_eq_zero_of_not_pole_of_meromorphicAt (hf_mero s hsbox) hord
