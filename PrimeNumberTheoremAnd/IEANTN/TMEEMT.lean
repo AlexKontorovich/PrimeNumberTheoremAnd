@@ -30,10 +30,10 @@ blueprint_comment /--
 In the section "A partial prime number theorem" of \cite{Buthe2}, Theorem 2
 uses prime-counting and Chebyshev functions introduced there with the source's
 \(\chi^*_{[0,x]}\) convention, which gives boundary points weight \(1/2\). The
-Lean statements in this block currently use the project's ordinary \(\pi\),
-\(\theta\), \(\psi\), and \(\pi^*\), where endpoints are counted fully. The
-source convention is not implemented here, so care is needed when using these
-statements at endpoints.
+source-normalized \(\psi\), \(\pi\), and \(\pi^*\) functions below use this
+endpoint convention. The theorem for \(\theta\) still uses the project's
+ordinary \(\theta\), because existing downstream Lean code calls that ordinary
+version; care is still needed when using that statement at endpoints.
 -/
 
 namespace Buthe2
@@ -42,15 +42,57 @@ blueprint_comment /--
 Some results from \cite{Buthe2}-/
 
 @[blueprint
+  "buthe2-buthe-chi-star-icc"
+  (title := "Buthe2 Endpoint Weight")
+  (statement := /--
+    The source endpoint weight $\chi^*_{[0,x]}(t)$ is $1/2$ at $t=0$ and $t=x$,
+    $1$ for $0<t<x$, and $0$ otherwise.
+  -/)]
+noncomputable def Buthe_chiStarIcc (x t : ℝ) : ℝ :=
+  if t = 0 ∨ t = x then (1 / 2 : ℝ) else if t ∈ Set.Ioo 0 x then 1 else 0
+
+@[blueprint
+  "buthe2-buthe-psi"
+  (title := "Buthe2 Source-Normalized Psi")
+  (statement := /--
+    $\psi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\psi(x)=\sum_{n \geq 1}\chi^*_{[0,x]}(n)\Lambda(n)$.
+  -/)]
+noncomputable def Buthe_psi (x : ℝ) : ℝ :=
+  ∑' n : ℕ, Buthe_chiStarIcc x n * (vonMangoldt n : ℝ)
+
+@[blueprint
+  "buthe2-buthe-pi"
+  (title := "Buthe2 Source-Normalized Pi")
+  (statement := /--
+    $\pi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\pi(x)=\sum_p \chi^*_{[0,x]}(p)$.
+  -/)]
+noncomputable def Buthe_pi (x : ℝ) : ℝ :=
+  ∑' p : ℕ, if Nat.Prime p then Buthe_chiStarIcc x p else 0
+
+@[blueprint
+  "buthe2-buthe-pi-star"
+  (title := "Buthe2 Source-Normalized Pi Star")
+  (statement := /--
+    $\pi^*(x)$ is formed from the source-normalized $\pi$ by
+    $\pi^*(x)=\sum_{k \geq 1}\pi(x^{1/k})/k$.
+  -/)]
+noncomputable def Buthe_pi_star (x : ℝ) : ℝ :=
+  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
+
+@[blueprint
   "thm:buthe-2a"
   (title := "Buthe Theorem 2, part a")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\psi$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |ψ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
+  |Buthe_psi x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2b"
@@ -66,24 +108,28 @@ theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
 @[blueprint
   "thm:buthe-2c"
   (title := "Buthe Theorem 2, part c")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\pi^*$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |pi_star x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
+  |Buthe_pi_star x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2d"
   (title := "Buthe Theorem 2, part d")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\pi$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
-  |pi x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
+  |Buthe_pi x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 end Buthe2
 

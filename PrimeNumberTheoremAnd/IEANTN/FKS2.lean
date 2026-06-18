@@ -4604,28 +4604,6 @@ theorem corollary_22_tail :
     Real.exp_nonneg _
   exact le_trans hmain (by gcongr)
 
-@[blueprint
-  "fks2-corollary-22"
-  (title := "FKS2 Corollary 22")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-  \]
-  for all $x \geq 2$.
-  -/)
-  (proof := /-- We fix $R = 1$, $x_0 = 2$, $x_1 = e^{100}$, $A_\theta = 9.2211$, $B = 1.5$ and $C = 0.8476$. By Corollary \ref{fks2-corollary-14}, these are admissible for all $x \geq 2$, so we can apply Theorem \ref{fks2-theorem-3} and calculate that
-  \begin{equation}
-  \mu_{asymp}(40.78\ldots, e^{20000}) \leq 5.01516 \cdot 10^{-5}.
-  \end{equation}
-  This implies that $A_\pi = 121.103$ is admissible for all $x \geq e^{20000}$.
-
-  As in the proof of \cite[Lemmas 5.2 and 5.3]{FKS} one may verify that the numerical results obtainable from Theorem \ref{fks2-theorem-6}, using Corollary \ref{fks2-corollary-8}, may be interpolated as a step function to give a bound on $E_\pi(x)$ of the shape $\varepsilon_{\pi,asymp}(x)$. In this way we obtain that $A_\pi = 121.107$ is admissible for $x > 2$. Note that the subdivisions we use are essentially the same as used in \cite[Lemmas 5.2 and 5.3]{FKS}. In Table 5 we give a sampling of the relevant values, more of the values of $\varepsilon_{\pi,num}(x_1)$ can be found in Table 4. Far more detailed versions of these tables will be posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf.
-  -/)
-  (latexEnv := "corollary")
-  (discussion := 721)]
-theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
 def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
                                  [0.826, 0.25, 1.00, 1.000],
                                  [1.41, 0.50, 1.50, 2.000],

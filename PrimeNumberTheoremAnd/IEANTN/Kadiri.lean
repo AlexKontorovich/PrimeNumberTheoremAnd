@@ -4,6 +4,8 @@ import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
+import PrimeNumberTheoremAnd.LaplaceInversion
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -625,6 +627,119 @@ theorem kadiri_thm_3_1_q1_functional_eq {s : ℂ}
     (zetaGammaFactor_shift_avoid_of_not_zero
       (by simpa [riemannZeta.zeroes] using _hζ1s))
 
+private lemma riemannZeta_neg_real_Ioo_ne_zero {a : ℝ} (ha : 0 < a) (ha1 : a < 1) :
+    riemannZeta (((-a : ℝ) : ℂ)) ≠ 0 := by
+  let w : ℂ := ((1 + a : ℝ) : ℂ)
+  have hw_zeta : riemannZeta w ≠ 0 := by
+    apply riemannZeta_ne_zero_of_one_lt_re
+    simp [w]
+    linarith
+  have hw_neg_nat : ∀ n : ℕ, w ≠ -↑n := by
+    intro n hn
+    have hre : w.re = (-(n : ℂ)).re := congrArg Complex.re hn
+    simp [w] at hre
+    have hnnonneg : (0 : ℝ) ≤ n := by exact_mod_cast Nat.zero_le n
+    linarith
+  have hw_ne_one : w ≠ 1 := by
+    intro h
+    have hre : w.re = (1 : ℂ).re := congrArg Complex.re h
+    simp [w] at hre
+    linarith
+  have hpow : (2 * ↑Real.pi : ℂ) ^ (-w) ≠ 0 := by
+    rw [Complex.cpow_ne_zero_iff]
+    left
+    norm_num [Complex.ofReal_ne_zero, Real.pi_ne_zero]
+  have hGamma : Complex.Gamma w ≠ 0 := by
+    apply Complex.Gamma_ne_zero_of_re_pos
+    simp [w]
+    linarith
+  have hcos : Complex.cos (↑Real.pi * w / 2) ≠ 0 := by
+    rw [Complex.cos_ne_zero_iff]
+    intro k hk
+    have hre : (↑Real.pi * w / 2).re =
+        (((2 * (k : ℂ) + 1) * ↑Real.pi / 2).re) :=
+      congrArg Complex.re hk
+    have hmain : 1 + a = (2 * k + 1 : ℝ) := by
+      have hscaled : Real.pi * (1 + a) / 2 =
+          (2 * (k : ℝ) + 1) * Real.pi / 2 := by
+        simpa [w, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hre
+      nlinarith [Real.pi_pos]
+    have haeq : a = (2 * k : ℝ) := by linarith
+    cases le_or_gt k 0 with
+    | inl hk_nonpos =>
+        have hkreal : (2 * k : ℝ) ≤ 0 := by
+          exact_mod_cast
+            (mul_nonpos_of_nonneg_of_nonpos (by norm_num : (0 : ℤ) ≤ 2) hk_nonpos)
+        linarith
+    | inr hk_pos =>
+        have hk_one : (1 : ℤ) ≤ k := by omega
+        have hkreal : (2 : ℝ) ≤ 2 * k := by
+          exact_mod_cast (mul_le_mul_of_nonneg_left hk_one (by norm_num : (0 : ℤ) ≤ 2))
+        linarith
+  have hfactor : 2 * (2 * ↑Real.pi : ℂ) ^ (-w) * Complex.Gamma w *
+      Complex.cos (↑Real.pi * w / 2) * riemannZeta w ≠ 0 := by
+    exact mul_ne_zero
+      (mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hpow) hGamma) hcos)
+      hw_zeta
+  have hfe := riemannZeta_one_sub (s := w) hw_neg_nat hw_ne_one
+  have hone : 1 - w = (((-a : ℝ) : ℂ)) := by
+    dsimp [w]
+    apply Complex.ext <;> simp
+  rw [hone] at hfe
+  rw [hfe]
+  exact hfactor
+
+private theorem kadiri_thm_3_1_q1_shifted_pointwise_functional_eq
+    {φ : ℝ → ℂ} {a T : ℝ} (ha : 0 < a) (ha1 : a < 1) :
+    ∀ t ∈ Set.Ioo (-T) T,
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      (-deriv riemannZeta s / riemannZeta s) * Φ (-s) =
+        ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s)
+          + (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s)
+          + ((1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) * Φ (-s) := by
+  intro t _ht
+  dsimp
+  let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+  have hs1 : s ≠ 1 := by
+    intro h
+    have hre : s.re = (1 : ℂ).re := congrArg Complex.re h
+    simp [s] at hre
+    linarith
+  have hs0 : s ≠ 0 := by
+    intro h
+    have hre : s.re = (0 : ℂ).re := congrArg Complex.re h
+    simp [s] at hre
+    linarith
+  have hζref : riemannZeta (1 - s) ≠ 0 := by
+    apply riemannZeta_ne_zero_of_one_lt_re
+    simp [s]
+    linarith
+  have hζs : riemannZeta s ≠ 0 := by
+    by_cases ht : t = 0
+    · subst ht
+      simpa [s] using riemannZeta_neg_real_Ioo_ne_zero ha ha1
+    · apply riemannZeta_ne_zero_of_re_nonpos_im_ne_zero
+      · simp [s]
+        linarith
+      · simp [s, ht]
+  have hfe := kadiri_thm_3_1_q1_functional_eq (s := s) hs1 hs0 hζs hζref
+  calc
+    (-deriv riemannZeta s / riemannZeta s) *
+        (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume) =
+        (((-Real.log Real.pi : ℝ) : ℂ)
+          + deriv riemannZeta (1 - s) / riemannZeta (1 - s)
+          + (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) *
+          (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume) := by
+      rw [hfe]
+    _ = ((-Real.log Real.pi : ℝ) : ℂ) *
+          (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume)
+        + deriv riemannZeta (1 - s) / riemannZeta (1 - s) *
+          (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume)
+        + (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) *
+          (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume) := by
+      ring
+
 @[blueprint
   "kadiri-thm-3-1-q1-I-1"
   (title := "Kadiri's $I_1(T)$: the constant $\\log(1/\\pi)$ piece")
@@ -692,6 +807,414 @@ noncomputable def kadiri_thm_3_1_q1_I_3 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
          + digamma ((1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2))) *
         Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
 
+/-- The finite-segment continuity of the gamma-factor coefficient on the shifted contour. -/
+private def U1541ShiftedDigammaCoefficientContinuousHypothesis (a T : ℝ) : Prop :=
+  ContinuousOn
+    (fun t : ℝ =>
+      (1 / 2 : ℂ) *
+        (digamma ((((-a : ℝ) : ℂ) + (t : ℂ) * I) / 2)
+         + digamma ((1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2)))
+    (Set.Icc (-T) T)
+
+/-- The shifted contour avoids the digamma poles, so the gamma-factor coefficient is continuous
+on every finite ordinate interval. -/
+private theorem u1541_shifted_digamma_coefficient_continuous {a T : ℝ} (ha : 0 < a) (ha1 : a < 1) :
+    U1541ShiftedDigammaCoefficientContinuousHypothesis a T := by
+  set z : ℝ → ℂ := fun t ↦ (((-a : ℝ) : ℂ) + (t : ℂ) * I) / 2
+  set r : ℝ → ℂ := fun t ↦ (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2
+  have hz_cont : Continuous z := by
+    dsimp [z]
+    fun_prop
+  have hr_cont : Continuous r := by
+    dsimp [r]
+    fun_prop
+  have hz_shift_cont : Continuous fun t : ℝ => z t + 1 := hz_cont.add continuous_const
+  have hψ_shift : Continuous fun t : ℝ => digamma (z t + 1) := by
+    rw [continuous_iff_continuousAt]
+    intro t
+    refine (Complex.continuousAt_digamma_of_re_pos ?_).comp
+      (hz_shift_cont.continuousAt (x := t))
+    dsimp [z]
+    norm_num [Complex.add_re, Complex.mul_re, Complex.div_re]
+    linarith
+  have hψ_ref : Continuous fun t : ℝ => digamma (r t) := by
+    rw [continuous_iff_continuousAt]
+    intro t
+    refine (Complex.continuousAt_digamma_of_re_pos ?_).comp (hr_cont.continuousAt (x := t))
+    dsimp [r]
+    norm_num [Complex.add_re, Complex.mul_re, Complex.div_re]
+    linarith
+  have hz_inv_cont : ContinuousOn (fun t : ℝ => (z t)⁻¹) (Set.Icc (-T) T) := by
+    exact hz_cont.continuousOn.inv₀ fun t _ht hzero => by
+      have hre := congrArg Complex.re hzero
+      dsimp [z] at hre
+      norm_num [Complex.add_re, Complex.mul_re, Complex.div_re] at hre
+      linarith
+  have hrewrite : ContinuousOn
+      (fun t : ℝ =>
+        (1 / 2 : ℂ) * ((digamma (z t + 1) - (z t)⁻¹) + digamma (r t)))
+      (Set.Icc (-T) T) := by
+    exact continuousOn_const.mul ((hψ_shift.continuousOn.sub hz_inv_cont).add hψ_ref.continuousOn)
+  refine hrewrite.congr fun t _ht => ?_
+  have hpoles : ∀ n : ℕ, z t ≠ -n := by
+    intro n h
+    have hre := congrArg Complex.re h
+    dsimp [z] at hre
+    norm_num [Complex.add_re, Complex.mul_re, Complex.div_re] at hre
+    cases n with
+    | zero =>
+        norm_num at hre
+        linarith
+    | succ n =>
+        have hn : (1 : ℝ) ≤ (Nat.succ n : ℝ) := by
+          exact_mod_cast Nat.succ_le_succ (Nat.zero_le n)
+        norm_num at hre
+        linarith
+  have hrec : digamma (z t) = digamma (z t + 1) - (z t)⁻¹ := by
+    have h := digamma_apply_add_one (z t) hpoles
+    rw [h]
+    ring
+  dsimp [z, r]
+  rw [hrec]
+
+private lemma u1541_shifted_I3_summand_integrable_of_transform_continuous {φ : ℝ → ℂ}
+    {a T : ℝ} (ha : 0 < a) (ha1 : a < 1)
+    (hΦ : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        Φ (-s))
+      (Set.Icc (-T) T)) :
+    Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      ((1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) * Φ (-s))
+        (volume.restrict (Set.Ioo (-T) T)) := by
+  have hΓ := u1541_shifted_digamma_coefficient_continuous (T := T) ha ha1
+  have hcont : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        ((1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) * Φ (-s))
+      (Set.Icc (-T) T) := by
+    exact hΓ.mul hΦ
+  exact (hcont.integrableOn_compact isCompact_Icc).mono_set Set.Ioo_subset_Icc_self
+
+private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ : ℝ → ℂ}
+    (hψ : Continuous ψ) {b : ℝ}
+    (hψ_decay : (fun x : ℝ ↦ ψ x * exp ((x : ℂ) / 2))
+        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
+    {a : ℝ} (ha : 0 < a) (hab : a < b) :
+    Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * ψ y) := by
+  let F : ℝ → ℂ := fun y => exp (-((a : ℂ) * (y : ℂ))) * ψ y
+  have hF_cont : Continuous F := by
+    dsimp [F]
+    fun_prop
+  have hF_loc : LocallyIntegrable F volume := hF_cont.locallyIntegrable
+  have hshape : ∀ x : ℝ,
+      ‖F x‖ = Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖ := by
+    intro x
+    dsimp [F]
+    rw [norm_mul, norm_mul, Complex.norm_exp, Complex.norm_exp]
+    have h1 : (-(↑a * ↑x) : ℂ).re = -a * x := by
+      norm_num [Complex.mul_re]
+    have h2 : ((x : ℂ) / 2).re = x / 2 := by
+      norm_num
+    rw [h1, h2]
+    calc
+      Real.exp (-a * x) * ‖ψ x‖
+          = (Real.exp (-(a + 1 / 2) * x) * Real.exp (x / 2)) * ‖ψ x‖ := by
+            rw [← Real.exp_add]
+            congr 1
+            ring_nf
+      _ = Real.exp (-(a + 1 / 2) * x) * (‖ψ x‖ * Real.exp (x / 2)) := by ring_nf
+  have htop_decay := hψ_decay.mono (show Filter.atTop ≤ Filter.cocompact ℝ from
+    atTop_le_cocompact)
+  have hbot_decay := hψ_decay.mono (show Filter.atBot ≤ Filter.cocompact ℝ from
+    atBot_le_cocompact)
+  have htop : F =O[Filter.atTop] fun x : ℝ => Real.exp (-(a + b + 1) * x) := by
+    rw [Asymptotics.isBigO_iff] at htop_decay ⊢
+    obtain ⟨C, hC⟩ := htop_decay
+    refine ⟨C, ?_⟩
+    filter_upwards [hC, Filter.eventually_gt_atTop (0 : ℝ)] with x hxC hxpos
+    rw [hshape]
+    calc
+      Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖
+          ≤ Real.exp (-(a + 1 / 2) * x) *
+              (C * ‖Real.exp (-(1 / 2 + b) * |x|)‖) := by
+            exact mul_le_mul_of_nonneg_left hxC (Real.exp_nonneg _)
+      _ = C * ‖Real.exp (-(a + b + 1) * x)‖ := by
+            rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _),
+              abs_of_pos (Real.exp_pos _), abs_of_pos hxpos]
+            calc
+              Real.exp (-(a + 1 / 2) * x) * (C * Real.exp (-(1 / 2 + b) * x))
+                  = C * (Real.exp (-(a + 1 / 2) * x) *
+                      Real.exp (-(1 / 2 + b) * x)) := by ring_nf
+              _ = C * Real.exp (-(a + 1 / 2) * x + (-(1 / 2 + b) * x)) := by
+                    rw [Real.exp_add]
+              _ = C * Real.exp (-(a + b + 1) * x) := by ring_nf
+  have hbot : F =O[Filter.atBot] fun x : ℝ => Real.exp ((b - a) * x) := by
+    rw [Asymptotics.isBigO_iff] at hbot_decay ⊢
+    obtain ⟨C, hC⟩ := hbot_decay
+    refine ⟨C, ?_⟩
+    filter_upwards [hC, Filter.eventually_lt_atBot (0 : ℝ)] with x hxC hxneg
+    rw [hshape]
+    calc
+      Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖
+          ≤ Real.exp (-(a + 1 / 2) * x) *
+              (C * ‖Real.exp (-(1 / 2 + b) * |x|)‖) := by
+            exact mul_le_mul_of_nonneg_left hxC (Real.exp_nonneg _)
+      _ = C * ‖Real.exp ((b - a) * x)‖ := by
+            rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _),
+              abs_of_pos (Real.exp_pos _), abs_of_neg hxneg]
+            calc
+              Real.exp (-(a + 1 / 2) * x) * (C * Real.exp (-(1 / 2 + b) * -x))
+                  = C * (Real.exp (-(a + 1 / 2) * x) *
+                      Real.exp (-(1 / 2 + b) * -x)) := by ring_nf
+              _ = C * Real.exp (-(a + 1 / 2) * x + (-(1 / 2 + b) * -x)) := by
+                    rw [Real.exp_add]
+              _ = C * Real.exp ((b - a) * x) := by ring_nf
+  have htop_int : IntegrableAtFilter (fun x : ℝ => Real.exp (-(a + b + 1) * x))
+      Filter.atTop volume := by
+    refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
+    exact exp_neg_integrableOn_Ioi 0 (show 0 < a + b + 1 by linarith)
+  have hbot_int : IntegrableAtFilter (fun x : ℝ => Real.exp ((b - a) * x))
+      Filter.atBot volume := by
+    rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
+    have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
+      convert! (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
+    rw [hvol, Function.comp_def]
+    refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
+    convert exp_neg_integrableOn_Ioi 0 (sub_pos.mpr hab) using 1
+    ext x
+    ring_nf
+  exact hF_loc.integrable_of_isBigO_atBot_atTop hbot hbot_int htop htop_int
+
+private lemma kadiri_laplace_positive_line_weight_integrable {φ : ℝ → ℂ}
+    (hφ : ContDiff ℝ 1 φ) {b : ℝ}
+    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
+        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
+    {a : ℝ} (ha : 0 < a) (hab : a < b) :
+    Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * φ y) :=
+  kadiri_laplace_positive_line_weight_integrable_of_continuous hφ.continuous hφ_decay ha hab
+
+private lemma kadiri_laplace_shifted_vertical_segment_continuousOn
+    {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
+    {b : ℝ} (_hb : 0 < b)
+    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
+        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
+    {a T : ℝ} (ha : 0 < a) (hab : a < b) (_ha1 : a < 1) :
+    ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        Φ (-s))
+      (Set.Icc (-T) T) := by
+  have h_weighted :
+      Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * φ y) :=
+    kadiri_laplace_positive_line_weight_integrable hφ hφ_decay ha hab
+  have hcont :=
+    continuous_laplaceIntegral_verticalLine_of_integrable
+      (f := φ) (sigma := a) hφ.continuous h_weighted
+  refine hcont.continuousOn.congr ?_
+  intro t _ht
+  dsimp [laplaceIntegral]
+  apply integral_congr_ae
+  filter_upwards with y
+  apply congrArg (fun z : ℂ => φ y * exp (-z * (y : ℂ)))
+  simp [sub_eq_add_neg, add_comm]
+
+private lemma u1541_shifted_I1_summand_integrable_of_transform_continuous {φ : ℝ → ℂ}
+    {a T : ℝ}
+    (hΦ : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        Φ (-s))
+      (Set.Icc (-T) T)) :
+    Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s)) (volume.restrict (Set.Ioo (-T) T)) := by
+  have hcont : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s))
+      (Set.Icc (-T) T) := by
+    exact continuousOn_const.mul hΦ
+  exact (hcont.integrableOn_compact isCompact_Icc).mono_set Set.Ioo_subset_Icc_self
+
+private lemma u1541_reflected_zeta_logDeriv_continuous {a : ℝ} (ha : 0 < a) :
+    Continuous fun t : ℝ =>
+      deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
+        riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) := by
+  refine continuous_iff_continuousAt.mpr ?_
+  intro t
+  let w : ℂ := 1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)
+  have hw1 : w ≠ 1 := by
+    intro h
+    have hre : w.re = (1 : ℂ).re := congrArg Complex.re h
+    simp [w] at hre
+    linarith
+  have hζw : riemannZeta w ≠ 0 := by
+    apply riemannZeta_ne_zero_of_one_lt_re
+    simp [w]
+    linarith
+  have hquot : ContinuousAt (fun z : ℂ => deriv riemannZeta z / riemannZeta z) w :=
+    (differentiableAt_deriv_riemannZeta hw1).continuousAt.div
+      (differentiableAt_riemannZeta hw1).continuousAt hζw
+  have hpath : ContinuousAt (fun x : ℝ =>
+      1 - (((-a : ℝ) : ℂ) + (x : ℂ) * I)) t := by
+    fun_prop
+  have hcomp := ContinuousAt.comp_of_eq hquot hpath (by simp [w])
+  simpa [Function.comp_def] using hcomp
+
+private lemma u1541_shifted_I2_summand_integrable_of_transform_continuous {φ : ℝ → ℂ}
+    {a T : ℝ} (ha : 0 < a)
+    (hΦ : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        Φ (-s))
+      (Set.Icc (-T) T)) :
+    Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s))
+        (volume.restrict (Set.Ioo (-T) T)) := by
+  have hζ : ContinuousOn
+      (fun t : ℝ =>
+        deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
+          riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)))
+      (Set.Icc (-T) T) :=
+    (u1541_reflected_zeta_logDeriv_continuous ha).continuousOn
+  have hcont : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s))
+      (Set.Icc (-T) T) := by
+    exact hζ.mul hΦ
+  exact (hcont.integrableOn_compact isCompact_Icc).mono_set Set.Ioo_subset_Icc_self
+
+/-- Algebraic split of the shifted contour integral into `I_1 + I_2 + I_3`, once the
+pointwise functional-equation identity and the three finite-segment integrability facts
+are supplied. This isolates the formal content of
+`kadiri_thm_3_1_q1_shifted_eq_I123` from the separate analytic obligations. -/
+private theorem kadiri_thm_3_1_q1_shifted_eq_I123_of_pointwise_integrable
+    {φ : ℝ → ℂ} {a T : ℝ}
+    (hpoint : ∀ t ∈ Set.Ioo (-T) T,
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      (-deriv riemannZeta s / riemannZeta s) * Φ (-s) =
+        ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s)
+          + (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s)
+          + ((1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) * Φ (-s))
+    (hI1 : Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s)) (volume.restrict (Set.Ioo (-T) T)))
+    (hI2 : Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s))
+        (volume.restrict (Set.Ioo (-T) T)))
+    (hI3 : Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      ((1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2))) * Φ (-s))
+        (volume.restrict (Set.Ioo (-T) T))) :
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+    (1 / (2 * (Real.pi : ℂ))) *
+      (∫ t in Set.Ioo (-T) T,
+        (-deriv riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I) /
+            riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I)) *
+          Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))) =
+      kadiri_thm_3_1_q1_I_1 φ a T
+      + kadiri_thm_3_1_q1_I_2 φ a T
+      + kadiri_thm_3_1_q1_I_3 φ a T := by
+  dsimp
+  set S : Set ℝ := Set.Ioo (-T) T
+  set Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+  set c : ℂ := 1 / (2 * (Real.pi : ℂ))
+  set f0 : ℝ → ℂ := fun t ↦
+    (-deriv riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I) /
+        riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I)) *
+      Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
+  set f1 : ℝ → ℂ := fun t ↦
+    ((-Real.log Real.pi : ℝ) : ℂ) *
+      Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
+  set f2 : ℝ → ℂ := fun t ↦
+    (deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
+        riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I))) *
+      Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
+  set f3 : ℝ → ℂ := fun t ↦
+    ((1 / 2 : ℂ) *
+      (digamma ((((-a : ℝ) : ℂ) + (t : ℂ) * I) / 2)
+       + digamma ((1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2))) *
+      Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
+  change c * (∫ t in S, f0 t) =
+    c * (∫ t in S, f1 t) + c * (∫ t in S, f2 t) + c * (∫ t in S, f3 t)
+  have hf1 : Integrable f1 (volume.restrict S) := by
+    simpa [S, Φ, f1] using hI1
+  have hf2 : Integrable f2 (volume.restrict S) := by
+    simpa [S, Φ, f2] using hI2
+  have hf3 : Integrable f3 (volume.restrict S) := by
+    simpa [S, Φ, f3] using hI3
+  have hcong : ∫ t in S, f0 t = ∫ t in S, (f1 t + f2 t) + f3 t := by
+    refine setIntegral_congr_fun (by simp [S]) ?_
+    intro t ht
+    have h := hpoint t (by simpa [S] using ht)
+    simpa [Φ, f0, f1, f2, f3, add_assoc] using h
+  have hadd :
+      ∫ t in S, (f1 t + f2 t) + f3 t =
+        (∫ t in S, f1 t) + (∫ t in S, f2 t) + (∫ t in S, f3 t) := by
+    rw [MeasureTheory.integral_add (f := fun t ↦ f1 t + f2 t) (g := f3)
+        (hf1.add hf2) hf3,
+      MeasureTheory.integral_add (f := f1) (g := f2) hf1 hf2]
+  calc
+    c * (∫ t in S, f0 t) =
+        c * ((∫ t in S, f1 t) + (∫ t in S, f2 t) + (∫ t in S, f3 t)) := by
+      rw [hcong, hadd]
+    _ = c * (∫ t in S, f1 t)
+        + c * (∫ t in S, f2 t)
+        + c * (∫ t in S, f3 t) := by
+      ring
+
+/-- Conditional shifted-contour decomposition with the digamma continuity atom discharged.
+The remaining finite-segment inputs are the Laplace-transform continuity and the `I₁`/`I₂`
+integrability facts supplied by the Laplace side. -/
+private theorem kadiri_thm_3_1_q1_shifted_eq_I123_of_transform_continuous
+    {φ : ℝ → ℂ} {a T : ℝ} (ha : 0 < a) (ha1 : a < 1)
+    (hΦ : ContinuousOn
+      (fun t : ℝ =>
+        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+        Φ (-s))
+      (Set.Icc (-T) T))
+    (hI1 : Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      ((-Real.log Real.pi : ℝ) : ℂ) * Φ (-s)) (volume.restrict (Set.Ioo (-T) T)))
+    (hI2 : Integrable (fun t : ℝ =>
+      let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+      let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
+      (deriv riemannZeta (1 - s) / riemannZeta (1 - s)) * Φ (-s))
+        (volume.restrict (Set.Ioo (-T) T))) :
+    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
+    (1 / (2 * (Real.pi : ℂ))) *
+      (∫ t in Set.Ioo (-T) T,
+        (-deriv riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I) /
+            riemannZeta (((-a : ℝ) : ℂ) + (t : ℂ) * I)) *
+          Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))) =
+      kadiri_thm_3_1_q1_I_1 φ a T
+      + kadiri_thm_3_1_q1_I_2 φ a T
+      + kadiri_thm_3_1_q1_I_3 φ a T := by
+  exact kadiri_thm_3_1_q1_shifted_eq_I123_of_pointwise_integrable
+    (kadiri_thm_3_1_q1_shifted_pointwise_functional_eq ha ha1)
+    hI1 hI2 (u1541_shifted_I3_summand_integrable_of_transform_continuous ha ha1 hΦ)
+
 @[blueprint
   "kadiri-thm-3-1-q1-shifted-eq-I123"
   (title := "Functional-equation decomposition of the $\\sigma = -a$ integral")
@@ -712,13 +1235,13 @@ noncomputable def kadiri_thm_3_1_q1_I_3 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
   (latexEnv := "sublemma")
   (discussion := 1541)]
 theorem kadiri_thm_3_1_q1_shifted_eq_I123
-    {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
-    {b : ℝ} (_hb : 0 < b)
-    (_hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
+    {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
+    {b : ℝ} (hb : 0 < b)
+    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) (T : ℝ) :
+    {a : ℝ} (ha : 0 < a) (hab : a < b) (ha1 : a < 1) (T : ℝ) :
     let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     (1 / (2 * (Real.pi : ℂ))) *
       (∫ t in Set.Ioo (-T) T,
@@ -728,7 +1251,11 @@ theorem kadiri_thm_3_1_q1_shifted_eq_I123
       kadiri_thm_3_1_q1_I_1 φ a T
       + kadiri_thm_3_1_q1_I_2 φ a T
       + kadiri_thm_3_1_q1_I_3 φ a T := by
-  sorry
+  have hΦ := kadiri_laplace_shifted_vertical_segment_continuousOn
+    (φ := φ) hφ hb hφ_decay ha hab ha1 (T := T)
+  exact kadiri_thm_3_1_q1_shifted_eq_I123_of_transform_continuous ha ha1 hΦ
+    (u1541_shifted_I1_summand_integrable_of_transform_continuous hΦ)
+    (u1541_shifted_I2_summand_integrable_of_transform_continuous ha hΦ)
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-13"
