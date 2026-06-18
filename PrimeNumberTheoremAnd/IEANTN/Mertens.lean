@@ -1034,12 +1034,7 @@ open MeasureTheory Set
 
 /-- `E₂Λ` is measurable: its Mangoldt-sum part factors through `⌊·⌋₊` and the rest is
 continuous/measurable. -/
-private lemma measurable_E₂Λ : Measurable E₂Λ := by
-  unfold E₂Λ
-  refine ((Measurable.sub ?_ ?_)).sub measurable_const
-  · exact (measurable_from_top (f := fun n : ℕ =>
-      ∑ d ∈ Finset.Ioc 0 n, (Λ d) / (d * log d))).comp Nat.measurable_floor
-  · exact Real.measurable_log.comp Real.measurable_log
+private lemma measurable_E₂Λ : Measurable E₂Λ := by fun_prop
 
 /-- On `(1,2)` the Mangoldt sum is empty (`⌊x⌋₊ = 1`), so `E₂Λ x = - log (log x) - γ`. -/
 private lemma E₂Λ_eq_on_Ioo {x : ℝ} (hx : x ∈ Set.Ioo (1 : ℝ) 2) :
@@ -1084,6 +1079,12 @@ private lemma abs_E₂Λ_le_on_Ioo {x : ℝ} (hx : x ∈ Set.Ioo (1 : ℝ) 2) :
     have h := abs_sub (-log (log x)) γ
     rwa [abs_neg] at h
   linarith
+
+/-- Constant bound on `|E₂Λ|` for `2 ≤ x`, sharpening `E₂Λ.abs_le` via `log 2 ≤ log x`. -/
+private lemma abs_E₂Λ_le_const {x : ℝ} (hx : 2 ≤ x) :
+    |E₂Λ x| ≤ (log 4 + 6) / log 2 :=
+  (E₂Λ.abs_le hx).trans <| div_le_div_of_nonneg_left (by positivity)
+    (Real.log_pos (by norm_num)) (Real.log_le_log (by norm_num) hx)
 
 /-- The near-1 dominating function `|log (x-1)| + log 2 + |γ|` is integrable on `(1,2)`
 (it dominates `|E₂Λ|` there, handling the log-log singularity at `1`). -/
@@ -1133,10 +1134,7 @@ private lemma integrableOn_E₂Λ_mul_rpow {s : ℝ} (hs : 1 < s) :
       have hx2 : (2 : ℝ) ≤ x := hx
       have hxpos : (0 : ℝ) < x := by linarith
       rw [abs_of_nonneg (Real.rpow_nonneg hxpos.le _)]
-      have hb : |E₂Λ x| ≤ (log 4 + 6) / log 2 := by
-        refine (E₂Λ.abs_le hx2).trans ?_
-        have hl2 : 0 < log 2 := Real.log_pos (by norm_num)
-        exact div_le_div_of_nonneg_left (by positivity) hl2 (Real.log_le_log (by norm_num) hx2)
+      have hb : |E₂Λ x| ≤ (log 4 + 6) / log 2 := abs_E₂Λ_le_const hx2
       gcongr
 
 /-- `E₂Λ` is integrable on every bounded interval `(1, X)` (`X ≥ 2`): log-log singularity near
@@ -1158,10 +1156,7 @@ private lemma integrableOn_E₂Λ_Ioo {X : ℝ} (_hX : 2 ≤ X) :
       measurable_E₂Λ.aestronglyMeasurable ?_
     · exact integrableOn_const (by rw [Real.volume_Icc]; exact ENNReal.ofReal_ne_top) (by finiteness)
     · filter_upwards [self_mem_ae_restrict measurableSet_Icc] with x hx
-      rw [Real.norm_eq_abs]
-      refine (E₂Λ.abs_le hx.1).trans ?_
-      have hl2 : 0 < log 2 := Real.log_pos (by norm_num)
-      exact div_le_div_of_nonneg_left (by positivity) hl2 (Real.log_le_log (by norm_num) hx.1)
+      rw [Real.norm_eq_abs]; exact abs_E₂Λ_le_const hx.1
 
 /-- The error integral, scaled by `(s-1)`, vanishes as `s → 1⁺` (uses `E₂Λ =o(1)`). -/
 private lemma sub_one_mul_integral_E₂Λ_tendsto :
