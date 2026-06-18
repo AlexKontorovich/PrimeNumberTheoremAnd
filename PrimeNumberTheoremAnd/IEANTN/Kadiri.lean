@@ -6,6 +6,7 @@ import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.LaplaceInversion
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -741,22 +742,6 @@ private theorem kadiri_thm_3_1_q1_shifted_pointwise_functional_eq
       ring
 
 @[blueprint
-  "kadiri-thm-3-1-q1-I-1"
-  (title := "Kadiri's $I_1(T)$: the constant $\\log(1/\\pi)$ piece")
-  (statement := /-- Kadiri's $I_1(T)$ from \cite[p.~12]{Kadiri2005}: the constant-prefactor
-  piece of the functional-equation rewrite of the $\sigma = -a$ integral,
-  $$ I_1(T) \;:=\; \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
-                  \log\!\Big(\frac{1}{\pi}\Big)\, \Phi(-s)\, ds. $$
-  Its $T \to \infty$ limit is given by \ref{kadiri-thm-3-1-q1-eq-13}. -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I_1 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      ((-Real.log Real.pi : ℝ) : ℂ) *
-        Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
-
-@[blueprint
   "kadiri-thm-3-1-q1-I-2"
   (title := "Kadiri's $I_2(T)$: the reflected Dirichlet-series piece")
   (statement := /-- Kadiri's $I_2(T)$ from \cite[p.~12]{Kadiri2005}: the reflected
@@ -1283,7 +1268,7 @@ theorem kadiri_thm_3_1_q1_eq_13
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
     Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I_1 φ a T)
       Filter.atTop (nhds (φ 0 * ((-Real.log Real.pi : ℝ) : ℂ))) := by
-  sorry
+  exact kadiri_thm_3_1_q1_eq_13_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-14"
