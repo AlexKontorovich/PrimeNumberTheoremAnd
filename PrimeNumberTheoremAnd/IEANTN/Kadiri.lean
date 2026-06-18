@@ -982,8 +982,7 @@ private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ :
       Filter.atBot volume := by
     rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
     have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1
-      simp
+      convert! (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
     rw [hvol, Function.comp_def]
     refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
     convert exp_neg_integrableOn_Ioi 0 (sub_pos.mpr hab) using 1

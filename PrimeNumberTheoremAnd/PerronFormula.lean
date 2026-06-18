@@ -178,7 +178,7 @@ theorem tendsto_truncated_vertical_shift_with_simple_pole
   have hrightT :
       Tendsto (fun T : ℝ ↦ (1 / (2 * π * I) : ℂ) • VIntegral f σ' (-T) T)
         atTop (𝓝 (VerticalIntegral' f σ')) := by
-    simpa [VIntegral, VerticalIntegral'] using
+    simpa [VIntegral, VerticalIntegral', VerticalIntegral] using
       ((intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul
         I).const_smul (1 / (2 * π * I) : ℂ)
   have hA : Tendsto (fun _ : ℝ => A) atTop (𝓝 A) := tendsto_const_nhds
