@@ -102,7 +102,7 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral
   · simpa using ⟨by linarith, by linarith, by linarith⟩
   · exact square_mem_nhds p (ne_of_gt hc0)
   · apply RectSubRect' <;> simpa using by linarith
-  · refine hf.mono (diff_subset_diff ?_ subset_rfl)
+  · refine hf.mono (Set.sdiff_subset_sdiff ?_ subset_rfl)
     simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using! fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
 @[blueprint
@@ -742,7 +742,7 @@ lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ}
   obtain ⟨t, htf, ht⟩ := eventually_smallSets.mp hf.eventually_bddAbove
   obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square x) {x}ᶜ |>.1 t |>.mp htf
   filter_upwards [Ioo_mem_nhdsGT hε0] with ε' ⟨hε'0, hε'⟩
-  exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
+  exact ht _ <| (Set.sdiff_subset_sdiff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
 
 
 @[blueprint
@@ -777,7 +777,7 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
     by
     apply this.congr'
     filter_upwards
-      [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+      [sdiff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
         (Set.mem_compl_singleton_iff.mpr (by norm_num : (0 : ℂ) ≠ -1))) {0}]
     with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.2 hs.1, cpow_zero]; ring_nf
@@ -821,7 +821,7 @@ lemma diffBddAtNegOne {x : ℝ} (xpos : 0 < x) :
     by
     apply this.congr'
     filter_upwards
-      [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+      [sdiff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
         (Set.mem_compl_singleton_iff.mpr (by norm_num : (-1 : ℂ) ≠ 0))) {-1}]
     with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.1 hs.2]

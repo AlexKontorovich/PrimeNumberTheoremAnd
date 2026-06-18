@@ -1243,7 +1243,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
           rw [this]
           apply DifferentiableOn.neg
           apply holoOn.mono
-          apply diff_subset_diff_left
+          apply Set.sdiff_subset_sdiff_left
           apply reProdIm_subset_iff'.mpr
           left
           simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
@@ -1352,7 +1352,7 @@ theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ} (σ₁lt : σ₁ < 1)
   apply ContinuousOn.neg
   apply holoOn.continuousOn.comp (by fun_prop)
   intro t ht
-  simp only [mem_diff, mem_singleton_iff]
+  simp only [Set.mem_sdiff, mem_singleton_iff]
   constructor
   · apply mem_reProdIm.mpr
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
@@ -1678,7 +1678,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
           apply Set.ext
           intro x
           simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true,
-            mem_setOf_eq, mem_diff, mem_univ, mem_singleton_iff, true_and]
+            mem_setOf_eq, Set.mem_sdiff, mem_univ, mem_singleton_iff, true_and]
 
         rw [U1] at U
         exact ae_volume_of_contains_compl_singleton_zero _ U
@@ -3061,7 +3061,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
       apply h_logDeriv_holo.continuousOn.comp' (by fun_prop)
       unfold MapsTo
       intro x xInIcc
-      simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_diff, mem_singleton_iff]
+      simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_singleton_iff]
       have : ¬↑σ₂ + ↑x * (1 - ↑σ₂) - 3 * I = 1 := by
         by_contra h
         rw[Complex.ext_iff, sub_re, add_re, sub_im, add_im] at h
@@ -3455,7 +3455,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
       Nat.ofNat_nonneg, uIcc_of_le]
     intro z hyp_z
     simp only [mem_reProdIm, mem_singleton_iff, mem_Icc] at hyp_z
-    simp only [mem_diff, mem_reProdIm, mem_Icc, mem_singleton_iff]
+    simp only [Set.mem_sdiff, mem_reProdIm, mem_Icc, mem_singleton_iff]
     constructor
     · constructor
       · rw [hyp_z.1]
@@ -3605,7 +3605,7 @@ lemma LogDerivZetaBoundedAndHolo : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) 
   · intro T hT
     apply (holo _ hT).mono
     intro s hs
-    simp only [mem_diff, mem_singleton_iff, mem_reProdIm] at hs ⊢
+    simp only [Set.mem_sdiff, mem_singleton_iff, mem_reProdIm] at hs ⊢
     refine ⟨?_, hs.2⟩
     refine ⟨?_, hs.1.2⟩
     refine ⟨?_, hs.1.1.2⟩
@@ -3728,7 +3728,7 @@ theorem MediumPNT : ∃ c > 0,
   have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
     apply holo2'.mono
     intro s hs
-    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_diff, mem_reProdIm, mem_Icc,
+    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
       mem_singleton_iff] at hs ⊢
     refine ⟨?_, hs.2⟩
     refine ⟨?_, hs.1.2⟩

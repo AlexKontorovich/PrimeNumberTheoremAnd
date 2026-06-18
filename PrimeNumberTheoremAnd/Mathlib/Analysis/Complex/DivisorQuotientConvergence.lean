@@ -121,7 +121,7 @@ theorem tendstoLocallyUniformlyOn_divisorPartialProduct_div_pow_sub
   have hKz : ∀ z ∈ K, z ≠ z₀ := by
     intro z hzK
     have : z ∈ (Set.univ : Set ℂ) \ {z₀} := hKsub hzK
-    exact by simpa [Set.mem_diff, Set.mem_singleton_iff] using this.2
+    exact by simpa [Set.mem_sdiff, Set.mem_singleton_iff] using this.2
   exact tendstoUniformlyOn_divisorPartialProduct_div_pow_sub
     (m := m) (f := f) h_sum (z₀ := z₀) (k := k) (hK := hK) hKz
 

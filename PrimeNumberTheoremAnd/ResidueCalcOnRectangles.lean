@@ -234,7 +234,7 @@ omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorderNoPIntegrable
     (hf : ContinuousOn f (Rectangle z w \ {p})) (pNotOnBorder : p ∉ RectangleBorder z w) :
     RectangleBorderIntegrable f z w := by
-  refine ContinuousOn.rectangleBorder_integrable (hf.mono (Set.subset_diff.mpr ?_))
+  refine ContinuousOn.rectangleBorder_integrable (hf.mono (Set.subset_sdiff.mpr ?_))
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
 theorem HolomorphicOn.rectangleBorderIntegrable'
@@ -634,7 +634,7 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
   have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (Rectangle z w \ {p}) :=
     fun s hs => by rw [Pi.add_apply, ← principalPart hs, Pi.sub_apply, sub_add_cancel]
   have : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder z w) :=
-    principalPart'.mono <| Set.subset_diff.mpr
+    principalPart'.mono <| Set.subset_sdiff.mpr
       ⟨rectangleBorder_subset_rectangle z w,
         disjoint_singleton_right.mpr
           (not_mem_rectangleBorder_of_rectangle_mem_nhds pInRectInterior)⟩
@@ -671,7 +671,7 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
   · refine bddAbove_def.mpr ?_
     use c
     intro y hy
-    simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+    simp only [Function.comp_apply, mem_image, Set.mem_sdiff, mem_singleton_iff] at hy
     obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
     rw [← fxy]
     simpa [x_not_p] using hU x_in_U
@@ -686,7 +686,7 @@ theorem BddAbove_on_rectangle_of_bdd_near {z w p : ℂ} {f : ℂ → ℂ}
   set U := Rectangle z w
   have : U \ {p} = (U \ W) ∪ ((U ∩ W) \ {p}) := by
     ext x
-    simp only [mem_diff, mem_singleton_iff, mem_union, mem_inter_iff]
+    simp only [Set.mem_sdiff, mem_singleton_iff, mem_union, mem_inter_iff]
     constructor
     · intro ⟨xu, x_not_p⟩
       tauto
@@ -703,10 +703,10 @@ theorem BddAbove_on_rectangle_of_bdd_near {z w p : ℂ} {f : ℂ → ℂ}
     · apply IsCompact.diff _ W_open
       exact IsCompact.reProdIm isCompact_uIcc isCompact_uIcc
     · apply f_cont.norm.mono
-      apply diff_subset_diff_right
+      apply Set.sdiff_subset_sdiff_right
       simpa
   · exact V_prop.mono
-      (image_mono <| diff_subset_diff_left <| subset_trans inter_subset_right W_subset)
+      (image_mono <| Set.sdiff_subset_sdiff_left <| subset_trans inter_subset_right W_subset)
 
 theorem ResidueTheoremOnRectangleWithSimplePole' {f : ℂ → ℂ} {z w p A : ℂ}
     (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)

@@ -488,7 +488,7 @@ lemma Criterion.val_p_M_ge_two (c : Criterion) (i : Fin 3) : (c.M).factorization
       exact ⟨Finset.prod_ne_zero_iff.mpr fun i _ ↦ Nat.Prime.ne_zero (c.hp i),
         Nat.ne_of_gt (c.m_pos)⟩
     · exact Nat.ne_of_gt (Criterion.L'_pos c)
-  simp_all only [Finset.prod_eq_prod_diff_singleton_mul (Finset.mem_univ i),
+  simp_all only [Finset.prod_eq_prod_sdiff_singleton_mul (Finset.mem_univ i),
     ge_iff_le, val_p_L' c i, reduceLeDiff]
   rw [Nat.factorization_mul] <;> norm_num
   · rw [Nat.factorization_mul]

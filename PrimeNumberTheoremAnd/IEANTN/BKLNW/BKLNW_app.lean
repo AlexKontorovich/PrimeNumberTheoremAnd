@@ -940,7 +940,7 @@ private lemma abs_setIntegral_Iic_le {f : ℝ → ℝ} {ε M : ℝ} (hε : 0 < �
     (hf_bound : ∀ x, |f x| ≤ M) (hf_zero : ∀ x, ε < |x| → f x = 0) (u : ℝ) :
     |∫ x in Set.Iic u, f x| ≤ M * (2 * ε) := by
   have heq : ∫ x in Set.Iic u, f x = ∫ x in Set.Iic u ∩ Set.Icc (-ε) ε, f x := by
-    refine MeasureTheory.setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Iic
+    refine MeasureTheory.setIntegral_eq_of_subset_of_forall_sdiff_eq_zero measurableSet_Iic
       Set.inter_subset_left fun x hx ↦ ?_
     refine hf_zero x ?_
     have h3 : x ∉ Set.Icc (-ε) ε := fun hmem ↦ hx.2 ⟨hx.1, hmem⟩

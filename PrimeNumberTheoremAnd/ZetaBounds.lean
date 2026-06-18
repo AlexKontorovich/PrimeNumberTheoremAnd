@@ -91,7 +91,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       Differentiable.differentiableOn (Differentiable.sub_const differentiable_fun_id p)
     have hfW : HolomorphicOn f (W \ {p}) := by
       apply hf.mono
-      exact diff_subset_diff_left inter_subset_right
+      exact Set.sdiff_subset_sdiff_left inter_subset_right
     simpa using! h_id.mul hfW
   have h_bdd_W : BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (W \ {p})) :=
     h_bdd.mono (image_mono h_subset_V₀)
@@ -101,7 +101,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_event_eq :
       (fun z ↦ g z) =ᶠ[𝓝[≠] p] fun z ↦ (z - p) * f z := by
     have hW_diff_mem : (W \ {p} : Set ℂ) ∈ 𝓝[≠] p :=
-      diff_mem_nhdsWithin_compl hW_mem {p}
+      sdiff_mem_nhdsWithin_compl hW_mem {p}
     exact (hg_eq.eventuallyEq_of_mem hW_diff_mem).symm
   have h_tendsto_gA : Tendsto g (𝓝[≠] p) (𝓝 A) :=
       h_limit.congr' (id (EventuallyEq.symm h_event_eq))
@@ -349,9 +349,9 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
     intro x x_in_u_not_p
-    have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
+    have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff x_in_u_not_p
     have x_not_p : x ≠ p := by
-      exact ((Set.mem_diff x).mp x_in_u_not_p).2
+      exact ((Set.mem_sdiff x).mp x_in_u_not_p).2
 
     have weird : U ∈ 𝓝 x := by
       exact IsOpen.mem_nhds (U_is_open) (x_in_u)
@@ -370,20 +370,20 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
     intro x x_in_u_not_p
     have hyp_x_not_p : x ≠ p := by
-      exact ((Set.mem_diff x).mp x_in_u_not_p).2
+      exact ((Set.mem_sdiff x).mp x_in_u_not_p).2
     simp only [h, Pi.add_apply, Pi.mul_apply]
     rw [← g_is_f_minus_pole x_in_u_not_p]
     simp only [Pi.sub_apply]
     field [sub_ne_zero.mpr hyp_x_not_p]
   have log_deriv_f_plus_pole_equal_log_deriv_h :
       EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by
-    simp only [mem_diff, mem_singleton_iff, ne_eq, and_imp, Function.comp_apply, Pi.sub_apply,
+    simp only [Set.mem_sdiff, mem_singleton_iff, ne_eq, and_imp, Function.comp_apply, Pi.sub_apply,
       DifferentiableOn.sub_iff_right, differentiableOn_const, DifferentiableOn.fun_sub_iff_left,
       holc] at *
     intro x hyp_x
     have x_not_p : x ≠ p := by
-      exact ((Set.mem_diff x).mp hyp_x).2
-    have x_in_u : x ∈ U := by exact mem_of_mem_diff hyp_x
+      exact ((Set.mem_sdiff x).mp hyp_x).2
+    have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff hyp_x
     simp only [Pi.add_apply, Pi.mul_apply, Pi.inv_apply]
     rw [deriv_h_identity _ x_in_u x_not_p, h_identity _ x_in_u x_not_p]
 
@@ -408,7 +408,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact IsBigO.of_const_mul_right T
 
   have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
-    exact diff_mem_nhdsWithin_compl U_in_nhds {p}
+    exact sdiff_mem_nhdsWithin_compl U_in_nhds {p}
   have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
   exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
@@ -441,17 +441,17 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     by
       let ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
       have W : (U' \ {p}) ⊆ U' := by
-        exact diff_subset
+        exact Set.sdiff_subset
 
       have T : (U' \ {p}) ⊆ (U \ {p}) := by
-        exact diff_subset_diff a (subset_refl _)
+        exact Set.sdiff_subset_sdiff a (subset_refl _)
 
 
       refine logDerivResidue' b ?_ ?_ (IsOpen.mem_nhds b c) A_ne_zero ?_
       · intro x hyp_x
         exact non_zero x <| T hyp_x
       · exact DifferentiableOn.mono holc T
-      · exact (f_near_p.mono (image_mono (diff_subset_diff a (subset_refl _))))
+      · exact (f_near_p.mono (image_mono (Set.sdiff_subset_sdiff a (subset_refl _))))
 
 
 
@@ -477,7 +477,7 @@ lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
   rw [Asymptotics.isBigO_iff]
   use C
   rw [eventually_nhdsWithin_iff]
-  simp only [mem_diff, mem_singleton_iff, and_imp, mem_compl_iff, Pi.one_apply, one_mem,
+  simp only [Set.mem_sdiff, mem_singleton_iff, and_imp, mem_compl_iff, Pi.one_apply, one_mem,
     CStarRing.norm_of_mem_unitary, mul_one] at h ⊢
   filter_upwards [hU] using h
 
@@ -598,7 +598,7 @@ theorem riemannZetaLogDerivResidue :
     exact hV s s_in_V_diff
   have ζ_holc: HolomorphicOn ζ (W \ {1}) := by
     intro y hy
-    simp only [mem_diff, mem_singleton_iff] at hy
+    simp only [Set.mem_sdiff, mem_singleton_iff] at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
   have W_in_nhds : W ∈ 𝓝 1 := by
@@ -3085,7 +3085,7 @@ lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
   apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
   apply DifferentiableAt.continuousAt (𝕜 := ℂ)
   convert differentiableAt_riemannZeta ?_
-  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  simp only [Set.mem_sdiff, mem_univ, mem_singleton_iff, true_and] at hx
   exact hx
 
 blueprint_comment /--
@@ -3256,7 +3256,7 @@ theorem LogDerivZetaHolcSmallT :
   let U := ([[σ₂, 2]] ×ℂ [[-3, 3]]) \ {1}
   have s_in_U_im_le3 : ∀ s ∈ U, |s.im| ≤ 3 := by
     intro s hs
-    rw [mem_diff_singleton] at hs
+    rw [Set.mem_sdiff_singleton] at hs
     rcases hs with ⟨hbox, _hne⟩
     rcases hbox with ⟨hre, him⟩
     simp only [Set.mem_preimage] at him
@@ -3268,7 +3268,7 @@ theorem LogDerivZetaHolcSmallT :
 
   have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
     intro s hs
-    rw [mem_diff_singleton] at hs
+    rw [Set.mem_sdiff_singleton] at hs
     rcases hs with ⟨hbox, _hne⟩
     rcases hbox with ⟨hre, _him⟩
     simp only [Set.mem_preimage] at hre
@@ -3279,7 +3279,7 @@ theorem LogDerivZetaHolcSmallT :
     rwa [← this]
 
   apply LogDerivZetaHoloOn
-  · exact notMem_diff_of_mem rfl
+  · exact Set.notMem_sdiff_of_mem rfl
   · intro s hs
     rw[← re_add_im s]
     apply hζ_ne_zero
@@ -3315,7 +3315,7 @@ theorem LogDerivZetaHolcLargeT :
     · exact le_trans (min_le_left _ _) A_inter.2
   intro T hT
   apply LogDerivZetaHoloOn
-  · exact notMem_diff_of_mem rfl
+  · exact Set.notMem_sdiff_of_mem rfl
   intro s hs
   rcases le_or_gt 1 s.re with one_le|lt_one
   · exact riemannZeta_ne_zero_of_one_le_re one_le
@@ -3494,7 +3494,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         _ < ε.toReal := Z0
 
     have σ₀_in_U : (↑σ₀ : ℂ) ∈ (U \ {1}) := by
-      refine mem_diff_singleton.mpr ?_
+      refine Set.mem_sdiff_singleton.mpr ?_
       constructor
       · exact metric_ball_around_1_is_in_U σ₀_in_ball
       · by_contra a
@@ -3549,7 +3549,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         _ < ε.toReal := Z0
 
     have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
-      refine mem_diff_singleton.mpr ?_
+      refine Set.mem_sdiff_singleton.mpr ?_
       constructor
       · exact metric_ball_around_1_is_in_U boundary_in_ball
       · by_contra a
