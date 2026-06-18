@@ -112,7 +112,7 @@ theorem cover_cmp :
 the affine cover verifies `0.8 + (5/3) * s^2 ≤ 9.2211 * s^3 * exp (-0.8476 * s)`,
 which rewrites to `4/5 + (5/3) * log x ≤ admissible_bound ... x`. -/
 theorem linear_le_curve {x : ℝ} (hx2 : 2 ≤ x) (hxe : x ≤ exp 10) :
-    4/5 + (5/3) * log x ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x := by
+    4/5 + (5/3) * log x ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x := by
   have hlogx_nn : 0 ≤ log x := log_nonneg (by linarith)
   have hlogx_lo : log 2 ≤ log x := log_le_log (by norm_num) hx2
   have hlogx_hi : log x ≤ 10 := by
@@ -156,7 +156,7 @@ theorem linear_le_curve {x : ℝ} (hx2 : 2 ≤ x) (hxe : x ≤ exp 10) :
 ungated — via the Chebyshev θ engine (Eθ bound), eq_30, and the affine-cover
 curve comparison. -/
 theorem corollary_22_floor :
-    ∀ x ∈ Set.Icc (2:ℝ) (exp 10), Eπ x ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x := by
+    ∀ x ∈ Set.Icc (2:ℝ) (exp 10), Eπ x ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x := by
   intro x hx
   obtain ⟨hx2, hxe⟩ := hx
   have hxpos : (0:ℝ) < x := by linarith
@@ -193,15 +193,15 @@ theorem corollary_22_floor :
     _ ≤ 4/5 + log x / x * (2 / log 2) * 1
           + log x / x * ((4/5) / (log 2) ^ 2 * (x - 2)) := by gcongr
     _ ≤ 4/5 + (5/3) * log x := by linarith [hbracket]
-    _ ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x := linear_le_curve hx2 hxe
+    _ ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x := linear_le_curve hx2 hxe
 
 /-- Full Corollary 22, reduced to the remaining mid-range table-data theorem.
 The small range is `corollary_22_floor`; the asymptotic tail is
 `FKS2.corollary_22_tail`. -/
 theorem corollary_22_of_midrange
     (hmid : ∀ x ∈ Set.Icc (exp 10) (exp 20000),
-      Eπ x ≤ admissible_bound 9.2211 (3/2) 0.8476 1 x) :
-    Eπ.classicalBound 9.2211 (3/2) 0.8476 1 2 := by
+      Eπ x ≤ admissible_bound 9.2211 (3 / 2) 0.8476 1 x) :
+    Eπ.classicalBound 9.2211 (3 / 2) 0.8476 1 2 := by
   intro x hx
   by_cases hsmall : x ≤ exp 10
   · exact corollary_22_floor x ⟨hx, hsmall⟩
@@ -215,7 +215,7 @@ theorem corollary_22_of_midrange
 mid-range, and the asymptotic tail. The remaining trust boundary is
 `Table4Ext.allCells_trusted`, used by `Table4Ext.Epi_le_admissible_on_midrange`. -/
 theorem corollary_22_from_table4Ext :
-    Eπ.classicalBound 9.2211 (3/2) 0.8476 1 2 :=
+    Eπ.classicalBound 9.2211 (3 / 2) 0.8476 1 2 :=
   corollary_22_of_midrange (by
     intro x hx
     have h := Table4Ext.Epi_le_admissible_on_midrange hx
@@ -224,3 +224,26 @@ theorem corollary_22_from_table4Ext :
 
 
 end FKS2.Floor
+
+namespace FKS2
+
+@[blueprint
+  "fks2-corollary-22"
+  (title := "FKS2 Corollary 22")
+  (statement := /--
+  One has
+  \[
+  |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
+  \]
+  for all $x \geq 2$.
+  -/)
+  (proof := /-- This is assembled from the certified small range
+  `[2, exp 10]`, the extended Table 4 mid-range `[exp 10, exp 20000]`,
+  and the asymptotic tail from `exp 20000` onward. -/)
+  (latexEnv := "corollary")
+  (discussion := 721)]
+theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := by
+  simpa [show (1.5 : ℝ) = 3 / 2 by norm_num] using
+    Floor.corollary_22_from_table4Ext
+
+end FKS2

@@ -2095,3 +2095,204 @@ theorem eventually_norm_intervalIntegral_sin_div_kernel_scalar_mass_le_two
     _ ≤ 2 := by
       norm_num at hnorm_sub ⊢
       linarith
+
+/-- Windowed principal-value convergence for the sinc kernel. This avoids
+treating the non-integrable constant kernel mass as a whole-line Bochner
+integral: the remaining analytic work is split into a finite-window mass limit,
+a finite-window local error limit, and a tail-control limit. -/
+theorem sinc_kernel_tendsto_of_windowed_pv
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ}
+    (hconst : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+        volume (-R) R)
+    (herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R)
+    (hmass : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+      Filter.atTop (nhds (f x)))
+    (herror : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+      Filter.atTop (nhds 0))
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have hsplit : (fun T : ℝ =>
+      ∫ u in (-R)..R,
+        (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+          f (x - u)) =ᶠ[Filter.atTop]
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x +
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x)) := by
+    filter_upwards [hconst, herrInt] with T hconstT herrT
+    exact intervalIntegral_sin_div_kernel_split (E := E) f x T R hconstT herrT
+  have hwindowSum : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x +
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x))
+      Filter.atTop (nhds (f x)) := by
+    simpa using hmass.add herror
+  have hwindow : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u))
+      Filter.atTop (nhds (f x)) := by
+    exact hwindowSum.congr' hsplit.symm
+  have hwhole : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u))
+      Filter.atTop (nhds (f x)) := by
+    have hsum : Filter.Tendsto
+        (fun T : ℝ =>
+          (∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u)) +
+            ((∫ u : ℝ,
+              (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+                f (x - u)) -
+              ∫ u in (-R)..R,
+                (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+                  f (x - u)))
+        Filter.atTop (nhds (f x)) := by
+      simpa using hwindow.add htail
+    refine hsum.congr' ?_
+    filter_upwards with T
+    abel
+  refine hwhole.congr' ?_
+  filter_upwards with T
+  exact (normalized_sinc_kernel_integral_comp_sub_left_sin_div_ae (E := E) f x T).symm
+
+/-- Windowed principal-value convergence with the finite-window mass discharged
+by the scalar sinc limit. -/
+theorem sinc_kernel_tendsto_of_windowed_pv_of_pos_radius
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ} (hR : 0 < R)
+    (herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R)
+    (herror : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+      Filter.atTop (nhds 0))
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have hmass : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+      Filter.atTop (nhds (f x)) :=
+    tendsto_intervalIntegral_sin_div_kernel_smul_of_scalar_mass (E := E) (f x)
+      (tendsto_intervalIntegral_sin_div_kernel_scalar_mass hR)
+  have hconst : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+        volume (-R) R := by
+    exact Filter.Eventually.of_forall fun T =>
+      intervalIntegrable_sin_div_kernel_smul_const (E := E) (f x) T (-R) R
+  exact sinc_kernel_tendsto_of_windowed_pv (E := E) hconst herrInt hmass herror htail
+
+/-- Windowed principal-value convergence from local quotient integrability and
+tail control. -/
+theorem sinc_kernel_tendsto_of_windowed_pv_of_local_quotient
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ} (hR : 0 < R)
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x))
+      volume (-R) R)
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R := by
+    exact Filter.Eventually.of_forall
+      (intervalIntegrable_sin_div_kernel_error_of_intervalIntegrable_quotient
+        (E := E) hq)
+  have herror :
+      Filter.Tendsto
+        (fun T : ℝ =>
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x))
+        Filter.atTop (nhds 0) :=
+    tendsto_intervalIntegral_sin_div_kernel_error_of_intervalIntegrable_quotient
+      (E := E) hR hq
+  exact sinc_kernel_tendsto_of_windowed_pv_of_pos_radius (E := E) hR
+    herrInt herror htail
+
+/-- Principal-value convergence for the sinc kernel from source integrability
+and local quotient integrability at the target point. -/
+theorem sinc_kernel_tendsto_of_integrable_local_quotient
+    [CompleteSpace E] {f : ℝ → E} (hf : Integrable f) {x R : ℝ} (hR : 0 < R)
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x))
+      volume (-R) R) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  exact sinc_kernel_tendsto_of_windowed_pv_of_local_quotient (E := E) hR hq
+    (tendsto_sin_div_kernel_tail_of_integrable (E := E) hf hR)

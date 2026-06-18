@@ -98,7 +98,7 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
   "fks-theorem-2-7"
   (title := "FKS Theorem 2.7")
   (statement := /--
-    Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$,
+    Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $d > 0$,
     $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$,
     and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any
     $T \geq H_0$, one has
@@ -360,14 +360,14 @@ theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X
   "fks-theorem-3-2"
   (title := "FKS Theorem 3.2")
   (statement := /--
-    For any $\alpha \in (0,1/2]$ and $\omega \in [0,1]$ there exist $M, x_M$ such that for
-    $\max(51, \log x) < T < (x^\alpha-2)/5$ and some $T^* \in [T, 2.45 T]$,
+    For any $\alpha \in (0,1/2]$ and $\omega \in [0,1]$ there exist $M, x_M$ such that for every
+    $x \geq x_M$ and $\max(51, \log x) < T < (x^\alpha-2)/5$, for some
+    $T^* \in [T, 2.45 T]$,
     $$ |\psi(x) - (x - \sum_{|\gamma| \leq T^*} x^\rho/\rho)| ≤ M x / T * log^{1-\omega} x  $$
-    for all $x ≥ x_M$.
   -/)]
 theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1 / 2)) (hω : ω ∈ Set.Icc 0 1) :
-    ∃ M xM : ℝ, ∀ x, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x ^ α - 2) / 5),
-    ∃ Tstar ∈ Set.Icc T (2.45 * T), ∀ x ≥ xM,
+    ∃ M xM : ℝ, ∀ x ≥ xM, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x ^ α - 2) / 5),
+    ∃ Tstar ∈ Set.Icc T (2.45 * T),
     ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar)
       (fun ρ ↦ x ^ ρ / ρ))‖ ≤ M * x / T * (log x) ^ (1 - ω) := by sorry
 
@@ -448,7 +448,7 @@ theorem remark_3_7 {H₀ R σ : ℝ} (hH₀ : H₀ > 1) (hR : R > 0)
 
 noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) : ℝ :=
     2 * x ^ (-(1 - σ₁) + (σ₂ - σ₁) / N) * (I.B₀ σ₁ (Hσ I.H₀ I.R σ₁) T) +
-      2 * x ^ (1 - σ₁) * (1 - x ^ (-(σ₂ - σ₁) / N)) *
+      2 * x ^ (-(1 - σ₁)) * (1 - x ^ (-(σ₂ - σ₁) / N)) *
         ∑ n ∈ Finset.Ico 1 N, (I.B₀ (σn σ₁ σ₂ n N) (Hn I.H₀ I.R σ₁ σ₂ n N) T) *
           x ^ ((σ₂ - σ₁) * (n + 1) / N)
 
@@ -458,12 +458,12 @@ noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) :
   (statement := /--
     Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then
     $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1,
-    H_{\sigma_1}, T) + 2 x^{(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N})
+    H_{\sigma_1}, T) + 2 x^{-(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N})
     \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.
   -/)]
 theorem proposition_3_8 (I : Inputs) (x : ℝ) {σ₁ σ₂ : ℝ} (N : ℕ) (T : ℝ)
     (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1)
-    (hσ : Set.Icc σ₁ σ₂ ⊆ I.ZDB.σ_range) (hT : T ≥ I.H₀) :
+    (hσ : Set.Icc σ₁ σ₂ ⊆ I.ZDB.σ_range) (hT : T ≥ I.H₀) (hN : 2 ≤ N) :
     riemannZeta.Sigma T x σ₁ σ₂ ≤ ε₃ I x σ₁ σ₂ N T := by sorry
 
 @[blueprint
