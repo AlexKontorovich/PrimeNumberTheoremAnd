@@ -1163,50 +1163,6 @@ private lemma integrableOn_E₂Λ_Ioo {X : ℝ} (_hX : 2 ≤ X) :
       have hl2 : 0 < log 2 := Real.log_pos (by norm_num)
       exact div_le_div_of_nonneg_left (by positivity) hl2 (Real.log_le_log (by norm_num) hx.1)
 
-/-- The CORRECT limiting behaviour of `log ζ`: `log ζ(s).re + log (s-1) → 0` as `s → 1⁺`,
-obtained from the residue of `ζ` at `1` (`riemannZeta_residue_one`).
-(Note: the file's `log_zeta_limit` (#1586) is mis-stated — it lacks the outer `log` on `ζ` and is
-false as written, so we prove the needed limit directly here.) -/
-private lemma log_zeta_re_add_log_tendsto :
-    Filter.Tendsto (fun s : ℝ => Real.log (riemannZeta (s:ℂ)).re + Real.log (s - 1))
-      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
-  -- Transfer the residue limit to real `s → 1⁺`.
-  have hofReal : Filter.Tendsto (fun s : ℝ => ((s:ℂ)))
-      (nhdsWithin 1 (Set.Ioi 1)) (nhdsWithin 1 {(1:ℂ)}ᶜ) := by
-    rw [tendsto_nhdsWithin_iff]
-    constructor
-    · have : Filter.Tendsto (fun s : ℝ => ((s:ℂ))) (nhds 1) (nhds 1) :=
-        (Complex.continuous_ofReal.tendsto 1).congr (by simp)
-      exact this.mono_left nhdsWithin_le_nhds
-    · filter_upwards [self_mem_nhdsWithin] with s hs
-      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
-      intro h
-      have : (s : ℝ) = 1 := by exact_mod_cast h
-      simp only [Set.mem_Ioi] at hs; linarith
-  have hcomplex : Filter.Tendsto (fun s : ℝ => ((s:ℂ) - 1) * riemannZeta (s:ℂ))
-      (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) := riemannZeta_residue_one.comp hofReal
-  -- Take real parts.
-  have hre : Filter.Tendsto (fun s : ℝ => (s - 1) * (riemannZeta (s:ℂ)).re)
-      (nhdsWithin 1 (Set.Ioi 1)) (nhds 1) := by
-    have := (Complex.continuous_re.tendsto 1).comp hcomplex
-    simp only [Complex.one_re] at this
-    refine this.congr' ?_
-    filter_upwards [self_mem_nhdsWithin] with s hs
-    simp only [Set.mem_Ioi] at hs
-    have him : (riemannZeta (s:ℂ)).im = 0 := riemannZeta_im_eq_zero_of_one_lt hs
-    simp only [Function.comp_apply, Complex.mul_re, Complex.sub_re, Complex.ofReal_re,
-      Complex.one_re, Complex.sub_im, Complex.ofReal_im, Complex.one_im, him]
-    ring
-  -- Apply `log`, continuous at `1 ≠ 0`.
-  have hlog : Filter.Tendsto (fun s : ℝ => Real.log ((s - 1) * (riemannZeta (s:ℂ)).re))
-      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
-    have h := (Real.continuousAt_log (one_ne_zero)).tendsto.comp hre
-    simpa only [Real.log_one, Function.comp_def] using h
-  refine hlog.congr' ?_
-  filter_upwards [self_mem_nhdsWithin] with s hs
-  simp only [Set.mem_Ioi] at hs
-  rw [Real.log_mul (by linarith) (ne_of_gt (riemannZeta_re_pos_of_one_lt hs)), add_comm]
-
 /-- The error integral, scaled by `(s-1)`, vanishes as `s → 1⁺` (uses `E₂Λ =o(1)`). -/
 private lemma sub_one_mul_integral_E₂Λ_tendsto :
     Filter.Tendsto (fun s : ℝ => (s - 1) * ∫ x in Set.Ioi 1, E₂Λ x * x ^ (-s))
@@ -1348,7 +1304,7 @@ theorem deriv_gamma_add_γ_eq_zero : deriv Gamma 1 + γ = 0 := by
     filter_upwards [self_mem_nhdsWithin] with s hs
     exact (key s hs).symm
   -- But the same function tends to `0 - 0` by the two limit lemmas.
-  have hlim := log_zeta_re_add_log_tendsto.sub sub_one_mul_integral_E₂Λ_tendsto
+  have hlim := log_zeta_limit.sub sub_one_mul_integral_E₂Λ_tendsto
   rw [sub_zero] at hlim
   exact tendsto_nhds_unique hconst hlim
 
