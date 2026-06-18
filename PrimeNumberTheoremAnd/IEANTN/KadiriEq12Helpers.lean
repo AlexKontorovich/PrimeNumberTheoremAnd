@@ -374,13 +374,6 @@ theorem rectangleIntegral'_eq12 (f : ℂ → ℂ) {a T : ℝ} (hTT : -T ≤ T) (
   field_simp
   ring
 
-/-- Residue value (Part 4): the residue of the log-derivative `-ζ'/ζ` at `p` equals
-`-order(ζ, p)`. -/
-theorem residue_neg_zeta_logDeriv {p : ℂ} {m : ℤ}
-    (hm : meromorphicOrderAt riemannZeta p = m) :
-    residue (fun z ↦ -deriv riemannZeta z / riemannZeta z) p = -(m : ℂ) :=
-  residue_eq_of_tendsto (tendsto_sub_mul_neg_zeta_logDeriv hm)
-
 /-- Residue value (Part 4, with the analytic cofactor `Φ(-·)`): the residue of
 `s ↦ (-ζ'/ζ)(s)·Φ(-s)` at `p` equals `-order(ζ, p)·Φ(-p)`. -/
 theorem residue_neg_zeta_logDeriv_mul {p : ℂ} {m : ℤ} {Φ : ℂ → ℂ}
