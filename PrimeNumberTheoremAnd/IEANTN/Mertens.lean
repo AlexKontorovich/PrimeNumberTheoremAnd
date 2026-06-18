@@ -1481,40 +1481,6 @@ private lemma integrableOn_log_sub_one_bound :
     hlog.add hc
   exact hsum.congr_fun (fun x _ => by ring) measurableSet_Ioo
 
-/-- For `s > 1`, `E₂Λ x * x^(-s)` is integrable on `(1,∞)`: integrable near `1` (log-log
-singularity dominated by `|log (x-1)|`), and on `[2,∞)` it is bounded times `x^(-s)`. -/
-private lemma integrableOn_E₂Λ_mul_rpow {s : ℝ} (hs : 1 < s) :
-    IntegrableOn (fun x => E₂Λ x * x ^ (-s)) (Set.Ioi 1) volume := by
-  rw [(Set.Ioo_union_Ici_eq_Ioi (show (1:ℝ) < 2 by norm_num)).symm]
-  apply IntegrableOn.union
-  · -- near `1`: dominate by `|log (x-1)| + log 2 + |γ|`
-    have hg := integrableOn_log_sub_one_bound
-    refine Integrable.mono' hg ?_ ?_
-    · exact measurable_E₂Λ.aestronglyMeasurable.mul (by fun_prop)
-    · filter_upwards [self_mem_ae_restrict measurableSet_Ioo] with x hx
-      rw [Real.norm_eq_abs, abs_mul]
-      have hxpos : (0 : ℝ) < x := by have := hx.1; linarith
-      have hx1 : (1 : ℝ) ≤ x := by have := hx.1; linarith
-      have hle1 : x ^ (-s) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hx1 (by linarith)
-      have hnn : (0 : ℝ) ≤ x ^ (-s) := Real.rpow_nonneg hxpos.le _
-      calc |E₂Λ x| * |x ^ (-s)| = |E₂Λ x| * x ^ (-s) := by rw [abs_of_nonneg hnn]
-        _ ≤ |E₂Λ x| * 1 := by gcongr
-        _ = |E₂Λ x| := mul_one _
-        _ ≤ _ := abs_E₂Λ_le_on_Ioo hx
-  · -- on `[2,∞)`: bounded by `(log 4 + 6)/log 2` times integrable `x^(-s)`
-    have hrpow : IntegrableOn (fun x : ℝ => x ^ (-s)) (Set.Ici 2) volume := by
-      have := integrableOn_Ioi_rpow_of_lt (a := -s) (c := 1) (by linarith) one_pos
-      exact this.mono_set (by intro x hx; simp only [Set.mem_Ici, Set.mem_Ioi] at hx ⊢; linarith)
-    refine Integrable.mono' (hrpow.const_mul ((log 4 + 6) / log 2)) ?_ ?_
-    · exact measurable_E₂Λ.aestronglyMeasurable.mul (by fun_prop)
-    · filter_upwards [self_mem_ae_restrict measurableSet_Ici] with x hx
-      rw [Real.norm_eq_abs, abs_mul]
-      have hx2 : (2 : ℝ) ≤ x := hx
-      have hxpos : (0 : ℝ) < x := by linarith
-      rw [abs_of_nonneg (Real.rpow_nonneg hxpos.le _)]
-      have hb : |E₂Λ x| ≤ (log 4 + 6) / log 2 := abs_E₂Λ_le_const hx2
-      gcongr
-
 /-- `E₂Λ` is integrable on every bounded interval `(1, X)` (`X ≥ 2`): log-log singularity near
 `1` plus boundedness on `[2, X]`. -/
 private lemma integrableOn_E₂Λ_Ioo {X : ℝ} (_hX : 2 ≤ X) :
@@ -1563,7 +1529,7 @@ private lemma sub_one_mul_integral_E₂Λ_tendsto :
   -- `|E₂Λ|·x^(-s)` is integrable on `(1,∞)` and its subintervals.
   have hintAbs : IntegrableOn (fun x => |E₂Λ x| * x ^ (-s)) (Set.Ioi 1) volume := by
     have h2 : IntegrableOn (fun x => |E₂Λ x * x ^ (-s)|) (Set.Ioi 1) volume :=
-      (integrableOn_E₂Λ_mul_rpow hs).abs
+      (integrableOn_E₂Λ_mul_rpow s hs).abs
     refine h2.congr_fun ?_ measurableSet_Ioi
     intro x hx; simp only [Set.mem_Ioi] at hx
     change |E₂Λ x * x ^ (-s)| = |E₂Λ x| * x ^ (-s)
