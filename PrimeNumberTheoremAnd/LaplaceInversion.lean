@@ -2303,3 +2303,160 @@ theorem sinc_kernel_tendsto_of_integrable_local_quotient
       Filter.atTop (nhds (f x)) := by
   exact sinc_kernel_tendsto_of_windowed_pv_of_local_quotient (E := E) hR hq
     (tendsto_sin_div_kernel_tail_of_integrable (E := E) hf hR)
+
+theorem laplaceInvLineTrunc_laplaceTransformBilateral_eq_fourierInvTrunc
+    (sigma : ℝ) (f : ℝ → E) (x T : ℝ) :
+    laplaceInvLineTrunc sigma (laplaceTransformBilateral f) x T =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y)) x T := by
+  let g : ℝ → E := fun y => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y
+  unfold laplaceInvLineTrunc fourierInvTrunc
+  simp_rw [laplaceTransformBilateral_eq_fourier]
+  simp only [one_div, mul_inv_rev, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
+    I_im, mul_one, sub_self, add_zero, neg_mul, add_im, mul_im, zero_add]
+  rw [show (π⁻¹ * 2⁻¹ : ℝ) = (1 / (2 * π) : ℝ) by ring]
+  change (1 / (2 * π) : ℝ) •
+      ∫ t in (-T)..T, Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) •
+        𝓕 g (t / (2 * π)) =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+        ((1 / (2 * π) : ℝ) •
+          ∫ t in (-T)..T, Complex.exp (((t * x : ℝ) : ℂ) * I) •
+            𝓕 g (t / (2 * π)))
+  have hsplit :
+      (∫ t in (-T)..T, Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) •
+          𝓕 g (t / (2 * π))) =
+        Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+          ∫ t in (-T)..T, Complex.exp (((t * x : ℝ) : ℂ) * I) • 𝓕 g (t / (2 * π)) := by
+    rw [← intervalIntegral.integral_smul]
+    congr with t
+    rw [← smul_assoc]
+    congr 1
+    change Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) * Complex.exp (((t * x : ℝ) : ℂ) * I)
+    rw [← Complex.exp_add]
+    congr 1
+    push_cast
+    ring_nf
+  rw [hsplit]
+  rw [SMulCommClass.smul_comm (M := ℝ) (N := ℂ) (α := E)]
+
+/-- Principal-value Laplace inversion reduced to the corresponding truncated
+Fourier convergence theorem for the exponentially weighted source. -/
+theorem laplaceInvLineTrunc_tendsto_laplaceTransformBilateral_eq
+    (sigma : ℝ) (f : ℝ → E) {x : ℝ}
+    (hlim : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y)) x T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (x : ℂ))) • f x))) :
+    Filter.Tendsto
+      (fun T : ℝ => laplaceInvLineTrunc sigma (laplaceTransformBilateral f) x T)
+      Filter.atTop (nhds (f x)) := by
+  let g : ℝ → E := fun y => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y
+  have hlim' : Filter.Tendsto (fun T : ℝ => fourierInvTrunc (𝓕 g) x T)
+      Filter.atTop (nhds (g x)) := by
+    simpa [g] using hlim
+  have hscaled : Filter.Tendsto
+      (fun T : ℝ =>
+        Complex.exp ((sigma : ℂ) * (x : ℂ)) • fourierInvTrunc (𝓕 g) x T)
+      Filter.atTop (nhds (Complex.exp ((sigma : ℂ) * (x : ℂ)) • g x)) :=
+    hlim'.const_smul (Complex.exp ((sigma : ℂ) * (x : ℂ)))
+  have htarget : Complex.exp ((sigma : ℂ) * (x : ℂ)) • g x = f x := by
+    simp [g, ← smul_assoc, ← Complex.exp_add]
+  rw [htarget] at hscaled
+  refine hscaled.congr' ?_
+  filter_upwards with T
+  exact (laplaceInvLineTrunc_laplaceTransformBilateral_eq_fourierInvTrunc sigma f x T).symm
+
+theorem Complex.exp_mul_log_of_pos_eq_cpow {x : ℝ} (hx : 0 < x) (s : ℂ) :
+    Complex.exp (s * (Real.log x : ℂ)) = (x : ℂ) ^ s := by
+  rw [Complex.cpow_def_of_ne_zero (Complex.ofReal_ne_zero.mpr hx.ne')]
+  rw [Complex.ofReal_log hx.le]
+  congr 1
+  ring
+
+/-- The truncated multiplication-form inverse Laplace integral is the truncated
+vector-valued inverse Laplace line integral at `log x`. -/
+theorem laplaceIntegralCpowTrunc_eq_laplaceInvLineTrunc
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x) (T : ℝ) :
+    laplaceIntegralCpowTrunc f sigma x T =
+      laplaceInvLineTrunc sigma (laplaceTransformBilateral f) (Real.log x) T := by
+  unfold laplaceIntegralCpowTrunc laplaceInvLineTrunc
+  simp_rw [laplaceIntegral_eq_laplaceTransformBilateral, smul_eq_mul]
+  rw [RCLike.real_smul_eq_coe_mul]
+  congr 1
+  · push_cast
+    field_simp [Real.pi_ne_zero]
+    rfl
+  · apply intervalIntegral.integral_congr
+    intro t _ht
+    change laplaceTransformBilateral f ((sigma : ℂ) + (t : ℂ) * I) *
+        (x : ℂ) ^ ((sigma : ℂ) + (t : ℂ) * I) =
+      Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (Real.log x : ℂ)) *
+        laplaceTransformBilateral f ((sigma : ℂ) + (t : ℂ) * I)
+    rw [← Complex.exp_mul_log_of_pos_eq_cpow hx ((sigma : ℂ) + (t : ℂ) * I)]
+    ring
+
+/-- Principal-value Laplace inversion in the multiplication `x^s` form, reduced
+to truncated Fourier convergence for the exponentially weighted source. -/
+theorem laplaceIntegralCpowTrunc_tendsto_of_fourierInvTrunc
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x)
+    (hlim : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+          (Real.log x) T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  have hlim' : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y))
+          (Real.log x) T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) • f (Real.log x))) := by
+    simpa [smul_eq_mul] using hlim
+  have hcore := laplaceInvLineTrunc_tendsto_laplaceTransformBilateral_eq
+    (E := ℂ) sigma f (x := Real.log x) hlim'
+  refine hcore.congr' ?_
+  filter_upwards with T
+  exact (laplaceIntegralCpowTrunc_eq_laplaceInvLineTrunc sigma f hx T).symm
+
+theorem laplaceIntegralCpowTrunc_tendsto_of_sinc_kernel
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x)
+    (hg : Integrable (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+    (hdir : Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ,
+            (2 * T * Real.sinc (T * (Real.log x - y)) : ℂ) •
+              (Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  exact laplaceIntegralCpowTrunc_tendsto_of_fourierInvTrunc sigma f hx
+    (fourierInvTrunc_tendsto_of_sinc_kernel (E := ℂ)
+      (f := fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y) hg hdir)
+
+theorem laplaceIntegralCpowTrunc_tendsto_of_integrable_local_quotient
+    (sigma : ℝ) (f : ℝ → ℂ) {x R : ℝ} (hx : 0 < x) (hR : 0 < R)
+    (hg : Integrable (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else
+          (1 / (π * u) : ℂ) •
+            (Complex.exp (-((sigma : ℂ) * ((Real.log x - u : ℝ) : ℂ))) *
+                f (Real.log x - u) -
+              Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))
+      volume (-R) R) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  exact laplaceIntegralCpowTrunc_tendsto_of_sinc_kernel sigma f hx hg
+    (sinc_kernel_tendsto_of_integrable_local_quotient (E := ℂ)
+      (f := fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y)
+      (x := Real.log x) (R := R) hg hR hq)
