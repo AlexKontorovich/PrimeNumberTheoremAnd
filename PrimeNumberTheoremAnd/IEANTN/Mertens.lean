@@ -949,66 +949,65 @@ private lemma c_nonneg (d : ℕ) : 0 ≤ c d := by
     have hlog : 0 ≤ Real.log d := Real.log_natCast_nonneg d
     positivity
 
-/-- Real summability of `Λ n / n^s` for `s > 1`, from `LSeriesSummable_vonMangoldt`. -/
+/-- General comparison majorant: `(log n)^a / n^s` is summable for any real `a` and `s > 1`,
+since `(log x)^a = o(x^ε)` for every `ε > 0`. All the summability conditions below reduce to
+this by domination. -/
+private lemma summable_log_rpow_div_rpow (a : ℝ) {s : ℝ} (hs : 1 < s) :
+    Summable (fun n : ℕ => (Real.log n) ^ a / (n:ℝ) ^ s) := by
+  have hε : (0:ℝ) < (s - 1) / 2 := by linarith
+  refine summable_of_isBigO_nat (g := fun n : ℕ => (n:ℝ) ^ ((s - 1) / 2 - s)) ?_ ?_
+  · rw [Real.summable_nat_rpow]; linarith
+  · have ho : (fun x : ℝ => (Real.log x) ^ a) =O[atTop] (fun x : ℝ => x ^ ((s - 1) / 2)) :=
+      (isLittleO_log_rpow_rpow_atTop a hε).isBigO
+    have hmul : (fun x : ℝ => (Real.log x) ^ a / x ^ s)
+        =O[atTop] (fun x : ℝ => x ^ ((s - 1) / 2) / x ^ s) := by
+      simpa only [div_eq_mul_inv] using ho.mul (isBigO_refl (fun x : ℝ => (x ^ s)⁻¹) atTop)
+    have heq : (fun x : ℝ => x ^ ((s - 1) / 2) / x ^ s)
+        =ᶠ[atTop] (fun x : ℝ => x ^ ((s - 1) / 2 - s)) := by
+      filter_upwards [eventually_gt_atTop 0] with x hx
+      rw [← Real.rpow_sub hx]
+    exact (hmul.trans_eventuallyEq heq).natCast_atTop
+
+/-- Real summability of `Λ n / n^s` for `s > 1`: dominated by `log n / n^s` via `Λ n ≤ log n`. -/
 private lemma summable_vonMangoldt_div_rpow (s : ℝ) (hs : 1 < s) :
     Summable (fun n : ℕ => (Λ n : ℝ) / (n:ℝ) ^ s) := by
-  have hC : LSeriesSummable (fun n : ℕ => (Λ n : ℂ)) (s : ℂ) :=
-    LSeriesSummable_vonMangoldt (by simpa using hs)
-  rw [LSeriesSummable] at hC
-  apply Summable.of_norm
-  refine hC.norm.congr ?_
+  refine Summable.of_nonneg_of_le (fun n => div_nonneg vonMangoldt_nonneg (by positivity)) ?_
+    (summable_log_rpow_div_rpow 1 hs)
   intro n
-  rcases Nat.eq_zero_or_pos n with hn | hn
-  · subst hn; simp [LSeries.term]
-  · rw [LSeries.term_def, if_neg (by omega : n ≠ 0), norm_div,
-      Real.norm_eq_abs, abs_of_nonneg
-        (div_nonneg vonMangoldt_nonneg (le_of_lt (Real.rpow_pos_of_pos (by exact_mod_cast hn) s)))]
-    rw [Complex.norm_natCast_cpow_of_pos hn]
-    congr 1
-    rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg vonMangoldt_nonneg]
+  rw [Real.rpow_one]
+  gcongr
+  exact vonMangoldt_le_log
 
 /-- Real summability of `Λ n / (n^s * log n)` for `s > 1` (compare with the previous lemma). -/
 private lemma summable_c_term (s : ℝ) (hs : 1 < s) :
     Summable (fun d : ℕ => c d * ((d:ℝ) ^ (1 - s) / (s - 1))) := by
-  have hbase := summable_vonMangoldt_div_rpow s hs
-  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
-  have hC : (0:ℝ) < Real.log 2 * (s - 1) := by positivity
-  have hmaj : Summable (fun n : ℕ => (1 / (Real.log 2 * (s - 1))) * ((Λ n : ℝ) / (n:ℝ) ^ s)) :=
-    hbase.mul_left _
-  have hnonneg : ∀ d : ℕ, 0 ≤ c d * ((d:ℝ) ^ (1 - s) / (s - 1)) := by
-    intro d
-    apply mul_nonneg (c_nonneg d)
-    rcases Nat.eq_zero_or_pos d with hd | hd
-    · subst hd; simp [Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
-    · have : (0:ℝ) ≤ (d:ℝ) := Nat.cast_nonneg d
-      positivity
-  refine Summable.of_nonneg_of_le hnonneg ?_ hmaj
-  intro d
-  rcases Nat.eq_zero_or_pos d with hd | hd
-  · subst hd; simp [Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
-  rcases eq_or_lt_of_le (Nat.one_le_iff_ne_zero.mpr hd.ne') with hd1 | hd1
-  · have : d = 1 := hd1.symm
-    subst this; simp
-  · have hd2 : (2:ℝ) ≤ (d:ℝ) := by exact_mod_cast hd1
-    have hdR0 : (0:ℝ) < (d:ℝ) := by linarith
-    have hlogpos : 0 < Real.log d := Real.log_pos (by linarith)
-    have hlogge : Real.log 2 ≤ Real.log d := Real.log_le_log (by norm_num) hd2
-    have hsub : (d:ℝ) ^ (1 - s) = (d:ℝ) ^ (-s) * (d:ℝ) := by
-      rw [show (1 - s : ℝ) = -s + 1 by ring, Real.rpow_add hdR0, Real.rpow_one]
-    have hneg : (d:ℝ) ^ (-s) = ((d:ℝ) ^ s)⁻¹ := Real.rpow_neg (le_of_lt hdR0) s
-    have hrpos : (0:ℝ) < (d:ℝ) ^ s := Real.rpow_pos_of_pos hdR0 s
-    have hΛ : 0 ≤ (Λ d : ℝ) := vonMangoldt_nonneg
-    have hval : c d * ((d:ℝ) ^ (1 - s) / (s - 1))
-        = (Λ d / (d:ℝ) ^ s) * (1 / (Real.log d * (s - 1))) := by
-      unfold c
-      rw [hsub, hneg]
-      field_simp
-    have hval2 : (1 / (Real.log 2 * (s - 1))) * ((Λ d : ℝ) / (d:ℝ) ^ s)
-        = (Λ d / (d:ℝ) ^ s) * (1 / (Real.log 2 * (s - 1))) := by ring
-    rw [hval, hval2]
-    apply mul_le_mul_of_nonneg_left _ (div_nonneg hΛ (le_of_lt hrpos))
-    apply one_div_le_one_div_of_le hC
-    apply mul_le_mul_of_nonneg_right hlogge (by linarith)
+  have hs1 : (0:ℝ) < s - 1 := by linarith
+  -- Majorise by `(1/(s-1))·(1/d^s)`: the `log d` cancels via `Λ d ≤ log d`.
+  refine Summable.of_nonneg_of_le (fun d => ?_) (fun d => ?_)
+    ((summable_one_div_nat_rpow.mpr hs).mul_left (1 / (s - 1)))
+  · -- `0 ≤ c d * (d^(1-s)/(s-1))`
+    refine mul_nonneg (c_nonneg d) (div_nonneg ?_ hs1.le)
+    rcases eq_or_ne (d:ℝ) 0 with hd | hd
+    · rw [hd, Real.zero_rpow (by linarith : (1 - s) ≠ 0)]
+    · positivity
+  · -- `c d * (d^(1-s)/(s-1)) ≤ (1/(s-1))·(1/d^s)`
+    rcases lt_or_ge d 2 with hd | hd
+    · have hc : c d = 0 := by interval_cases d <;> simp
+      rw [hc, zero_mul]
+      exact mul_nonneg (le_of_lt (one_div_pos.mpr hs1)) (by positivity)
+    · have hd2 : (2:ℝ) ≤ (d:ℝ) := by exact_mod_cast hd
+      have hd0 : (0:ℝ) < (d:ℝ) := by linarith
+      have hlog : 0 < Real.log d := Real.log_pos (by linarith)
+      have hds : (0:ℝ) < (d:ℝ) ^ s := Real.rpow_pos_of_pos hd0 s
+      have hD : (0:ℝ) < (d:ℝ) ^ s * Real.log d * (s - 1) := by positivity
+      have hkey : c d * ((d:ℝ) ^ (1 - s) / (s - 1)) = Λ d / ((d:ℝ) ^ s * Real.log d * (s - 1)) := by
+        unfold c
+        rw [show (1 - s : ℝ) = -s + 1 by ring, Real.rpow_add hd0, Real.rpow_one, Real.rpow_neg hd0.le]
+        field_simp
+      rw [hkey, div_le_iff₀ hD,
+        show (1:ℝ) / (s - 1) * (1 / (d:ℝ) ^ s) * ((d:ℝ) ^ s * Real.log d * (s - 1)) = Real.log d
+          from by field_simp]
+      exact vonMangoldt_le_log
 
 /-- The integration-by-parts identity (#1583), with explicit qualifiers. -/
 theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
