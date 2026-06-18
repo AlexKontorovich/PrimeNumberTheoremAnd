@@ -72,15 +72,15 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
   constructor
   · rw [differentiableOn_congr (fun x hyp_x => by
       apply Function.update_of_ne
-      rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x
+      rw [Set.mem_sdiff, Set.mem_singleton_iff] at hyp_x
       exact hyp_x.right)]
     exact DifferentiableOn.fun_div
       (AnalyticOn.differentiableOn
-        (AnalyticOn.mono analytic Set.diff_subset))
+        (AnalyticOn.mono analytic Set.sdiff_subset))
       (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
         (Set.subset_univ (s \ {0})))
       (fun x hyp_x => by
-        rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x
+        rw [Set.mem_sdiff, Set.mem_singleton_iff] at hyp_x
         exact hyp_x.right)
   · have U :=
       HasDerivAt.continuousAt_div (c := 0) (a := deriv f 0)

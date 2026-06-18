@@ -7,7 +7,7 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
 import Mathlib.Data.Int.Star
 import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.RingTheory.SimpleRing.Principal
 import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener

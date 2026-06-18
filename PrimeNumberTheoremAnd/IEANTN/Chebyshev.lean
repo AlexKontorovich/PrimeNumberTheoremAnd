@@ -1,7 +1,7 @@
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.Tactic.NormNum.BigOperators
 import PrimeNumberTheoremAnd.IEANTN.LogTables

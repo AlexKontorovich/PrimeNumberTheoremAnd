@@ -42,7 +42,7 @@ lemma finite_divisorZeroIndex₀_subtype_norm_le {f : ℂ → ℂ} {U : Set ℂ}
     MeromorphicOn.divisor_support_inter_compact_finite (f := f) (U := U)
       (K := Metric.closedBall (0 : ℂ) B) hK hBU
   set pts : Set ℂ := ((Metric.closedBall (0 : ℂ) B) ∩ D.support) \ {0}
-  have hpts : pts.Finite := hpts0.diff
+  have hpts : pts.Finite := hpts0.sdiff
   letI : Fintype pts := hpts.fintype
   let T : Type := Σ z : pts, Fin (Int.toNat (D z.1))
   haveI : Finite T := by infer_instance

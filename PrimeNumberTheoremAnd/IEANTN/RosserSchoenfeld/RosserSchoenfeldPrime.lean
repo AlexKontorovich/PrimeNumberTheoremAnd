@@ -305,7 +305,7 @@ lemma pre_413_measure_inter {x : ℝ} (hx : 2 ≤ x) (y : Finset.Ico 1 ⌊x⌋�
       equals ↑(1: ℕ) + (1: ℝ) => norm_num
     rw [leftLim_theta_succ]
     simp [Real.log_nonneg]
-  · rw [Measure.real_def, MeasureTheory.measure_eq_measure_of_null_diff (t := Set.Ioc (↑↑y) (↑↑y + 1))]
+  · rw [Measure.real_def, MeasureTheory.measure_eq_measure_of_null_sdiff (t := Set.Ioc (↑↑y) (↑↑y + 1))]
     · simp only [«θ».Stieltjes, StieltjesFunction.measure_Ioc, theta_succ_sub,
       ENNReal.toReal_ofReal_eq_iff]
       split_ifs
@@ -318,7 +318,7 @@ lemma pre_413_measure_inter {x : ℝ} (hx : 2 ≤ x) (y : Finset.Ico 1 ⌊x⌋�
         arg 2
         equals ∅ =>
           ext a
-          simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Icc, not_and, not_le,
+          simp only [Set.mem_sdiff, Set.mem_Ioc, Set.mem_Icc, not_and, not_le,
             Set.mem_empty_iff_false, iff_false, Classical.not_imp, not_lt, and_imp]
           intro ha hb
           have y_prop := y.property
@@ -522,7 +522,7 @@ theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
 private lemma Ioc_diff_Ioo_right {a b : ℝ} (h : a < b) :
     Set.Ioc a b \ Set.Ioo a b = {b} := by
   ext t
-  simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_singleton_iff, not_and, not_lt]
+  simp only [Set.mem_sdiff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_singleton_iff, not_and, not_lt]
   constructor
   · rintro ⟨⟨h1, h2⟩, h3⟩; exact le_antisymm h2 (h3 h1)
   · rintro rfl; exact ⟨⟨h, le_refl _⟩, fun _ => le_refl _⟩
@@ -546,7 +546,7 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
   let hoc := Set.uIoc_of_le hx
   have hm : Set.Ioo 2 x ∈ ae (volume.restrict (Set.Ioc 2 x)) := by
     by_cases hp : 2 < x
-    · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
+    · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.sdiff_eq_compl_inter,
         Ioc_diff_Ioo_right hp, volume_singleton]
     · simp_all
   have hae : (fun t ↦ deriv (fun s ↦ f s / log s) t) =ᶠ[ae (volume.restrict (Set.Ioc 2 x))]

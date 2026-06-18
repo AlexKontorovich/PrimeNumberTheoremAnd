@@ -47,7 +47,7 @@ theorem differentiableOn_divisorPartialProduct_div_pow_sub
   · have hne : ∀ z ∈ ((Set.univ : Set ℂ) \ {z₀}), (fun z : ℂ => (z - z₀) ^ k) z ≠ 0 := by
       intro z hz
       have hz' : z ≠ z₀ := by
-        simpa [Set.mem_diff, Set.mem_singleton_iff] using hz.2
+        simpa [Set.mem_sdiff, Set.mem_singleton_iff] using hz.2
       exact pow_ne_zero _ (sub_ne_zero.mpr hz')
     have hdiff_inv :
         DifferentiableOn ℂ (fun z : ℂ => ((z - z₀) ^ k)⁻¹) ((Set.univ : Set ℂ) \ {z₀}) :=

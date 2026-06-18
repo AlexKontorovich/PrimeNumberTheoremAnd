@@ -1133,7 +1133,7 @@ private lemma laplaceTransform_eq_interval_of_tsupport_subset_Ico {d : ℝ} (hd 
       ∫ t in (0 : ℝ)..d, exp (-w * (t : ℂ)) * (f t : ℂ) := by
   unfold laplaceTransform
   rw [intervalIntegral.integral_of_le hd.le]
-  exact setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Ioi
+  exact MeasureTheory.setIntegral_eq_of_subset_of_forall_sdiff_eq_zero measurableSet_Ioi
     Set.Ioc_subset_Ioi_self (fun x hx => by
       have hxpos : 0 < x := hx.1
       have hdx : d ≤ x := by
@@ -1148,7 +1148,7 @@ private lemma laplaceTransform_deriv_deriv_eq_interval_of_tsupport_subset_Ico {d
         exp (-w * (t : ℂ)) * ((deriv (deriv f) t : ℝ) : ℂ) := by
   unfold laplaceTransform
   rw [intervalIntegral.integral_of_le hd.le]
-  exact setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Ioi
+  exact MeasureTheory.setIntegral_eq_of_subset_of_forall_sdiff_eq_zero measurableSet_Ioi
     Set.Ioc_subset_Ioi_self (fun x hx => by
       have hxpos : 0 < x := hx.1
       have hdx : d ≤ x := by

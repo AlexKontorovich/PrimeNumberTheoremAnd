@@ -3,7 +3,7 @@ import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.Topology.Algebra.Module.ModuleTopology
 import PrimeNumberTheoremAnd.IEANTN.LogTables
