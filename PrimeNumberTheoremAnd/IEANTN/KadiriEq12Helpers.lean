@@ -36,7 +36,8 @@ theorem deriv_zpow_mul_eventuallyEq {f : ℂ → ℂ} {x : ℂ} {n : ℤ}
     filter_upwards [(hV_open.sdiff isClosed_singleton).mem_nhds ⟨hz₀V, hz₀ne⟩] with z hz
     rw [hV_sub z hz.1 hz.2, smul_eq_mul]
   have hd1 : HasDerivAt (fun z : ℂ ↦ (z - x) ^ n) ((n : ℂ) * (z₀ - x) ^ (n - 1)) z₀ := by
-    simpa using (hasDerivAt_zpow n (z₀ - x) (Or.inl hz₀x)).comp z₀ ((hasDerivAt_id z₀).sub_const x)
+    convert! (hasDerivAt_zpow n (z₀ - x) (Or.inl hz₀x)).comp z₀ ((hasDerivAt_id z₀).sub_const x) using 1
+    ring
   have hprod : HasDerivAt f ((n : ℂ) * (z₀ - x) ^ (n - 1) * g z₀ + (z₀ - x) ^ n * deriv g z₀) z₀ :=
     (hd1.mul hg_an_z₀.differentiableAt.hasDerivAt).congr_of_eventuallyEq hloc
   rw [hprod.deriv]; simp only [Pi.mul_apply]
@@ -221,7 +222,7 @@ theorem laplace_integrand_integrable {φ : ℝ → ℂ} {b σ : ℝ} (hφ : Cont
       ⟨Ioi 0, Ioi_mem_atTop 0, by simpa only [neg_mul] using exp_neg_integrableOn_Ioi 0 hα⟩
     rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
     have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
+      convert! (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
     rw [hvol, Function.comp_def]; simp only [mul_neg]; exact h_top
   exact h_loc.integrable_of_isBigO_atBot_atTop hbig_bot hint_bot hbig_top hint_top
 
@@ -309,7 +310,7 @@ theorem Phi_differentiableAt {φ : ℝ → ℂ} {b : ℝ} (hφc : Continuous φ)
     have h1 : HasDerivAt (fun s : ℂ ↦ -s * (y:ℂ)) (-1 * (y:ℂ)) s :=
       ((hasDerivAt_id s).neg).mul_const (y:ℂ)
     have h2 := (h1.cexp).const_mul (φ y)
-    convert h2 using 1; ring
+    convert! h2 using 1; ring
 
 /-- The bilateral Laplace transform is analytic on the strip `-(1+b) < Re s < b`. -/
 theorem Phi_analyticOnNhd {φ : ℝ → ℂ} {b : ℝ} (hφc : Continuous φ)
