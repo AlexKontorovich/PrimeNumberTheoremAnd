@@ -86,7 +86,7 @@ theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 
     rfl
   have := strictConcaveOn_log_Ioi.2 (y := 1) (x := 1 - t₀) (by grind) (by grind) (by linarith)
   simp only [smul_eq_mul, log_one, mul_zero, add_zero, mul_one] at this
-  convert this (a := t / t₀) (b := 1 - t / t₀) (by bound) (by bound) (by ring) |>.le using 2
+  convert! this (a := t / t₀) (b := 1 - t / t₀) (by bound) (by bound) (by ring) |>.le using 2
   field [show t₀ ≠ 0 by linarith]
 
 @[blueprint

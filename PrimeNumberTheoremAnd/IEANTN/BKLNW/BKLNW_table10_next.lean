@@ -2306,7 +2306,7 @@ theorem table_10_next_cert_24000 : table_10_next (24000) = (25000) := by
           (⟨286, by rw [table_10_bcol_length]; norm_num⟩ : Fin table_10_bcol.length) := by
         simp only [Fin.le_def]
         have hjlt : (j : ℕ) < 287 := by
-          simpa [table_10_bcol_length] using j.2
+          simpa [table_10_bcol_length] using! j.2
         omega
       have hle_last : table_10_bcol.get j ≤
           table_10_bcol.get ⟨286, by rw [table_10_bcol_length]; norm_num⟩ :=

@@ -119,7 +119,7 @@ lemma hasDerivAt_partialLogSum (m : ℕ) (z : ℂ) :
                 rw [← pow_add, show j + j = 2 * j by omega, pow_mul]
                 norm_num
       rw [hsum]
-      simpa [partialLogSum] using
+      simpa [partialLogSum] using!
         (((hasDerivAt_logTaylor (m + 1) (-z)).comp z (hasDerivAt_neg z)).neg)
 
 lemma differentiable_partialLogSum (m : ℕ) :

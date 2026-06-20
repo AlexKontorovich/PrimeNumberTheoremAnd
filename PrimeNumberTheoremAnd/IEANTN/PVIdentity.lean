@@ -1,4 +1,4 @@
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.MeasureTheory.Integral.Gamma
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 

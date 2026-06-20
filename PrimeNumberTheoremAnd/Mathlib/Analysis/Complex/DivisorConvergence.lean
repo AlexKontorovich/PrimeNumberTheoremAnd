@@ -42,7 +42,7 @@ lemma finite_divisorZeroIndex₀_subtype_norm_le {f : ℂ → ℂ} {U : Set ℂ}
     MeromorphicOn.divisor_support_inter_compact_finite (f := f) (U := U)
       (K := Metric.closedBall (0 : ℂ) B) hK hBU
   set pts : Set ℂ := ((Metric.closedBall (0 : ℂ) B) ∩ D.support) \ {0}
-  have hpts : pts.Finite := hpts0.diff
+  have hpts : pts.Finite := hpts0.sdiff
   letI : Fintype pts := hpts.fintype
   let T : Type := Σ z : pts, Fin (Int.toNat (D z.1))
   haveI : Finite T := by infer_instance
@@ -236,7 +236,7 @@ theorem hasProdUniformlyOn_divisorCanonicalProduct_univ
     have hcontE : Continuous (fun z : ℂ => weierstrassFactor m z) :=
       (differentiable_weierstrassFactor m).continuous
     have hdiv : Continuous fun z : ℂ => z / divisorZeroIndex₀_val p := by
-      simpa [div_eq_mul_inv] using (continuous_id.mul continuous_const)
+      simpa [div_eq_mul_inv] using! (continuous_id.mul continuous_const)
     have hcont : Continuous fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p) :=
       hcontE.comp hdiv
     simpa [g] using hcont.continuousOn.sub continuous_const.continuousOn
@@ -245,7 +245,7 @@ theorem hasProdUniformlyOn_divisorCanonicalProduct_univ
     simpa using
       Summable.hasProdUniformlyOn_one_add (f := g) (u := u) (K := K) hK hu hBound hcts
   simpa [g, divisorCanonicalProduct, sub_eq_add_neg, add_assoc, add_left_comm, add_comm]
-    using hprod
+    using! hprod
 
 /-!
 ## Entire-ness (holomorphy) of the divisor-indexed canonical product
@@ -372,7 +372,7 @@ theorem logDeriv_divisorCanonicalProduct_one_eq_tsum
   calc
     logDeriv (divisorCanonicalProduct 1 f (Set.univ : Set ℂ)) z
         = ∑' p, logDeriv (Φ p) z := by
-          simpa [Φ, divisorCanonicalProduct] using hlog
+          simpa [Φ, divisorCanonicalProduct] using! hlog
     _ = ∑' p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
           (1 / (z - divisorZeroIndex₀_val p) + 1 / divisorZeroIndex₀_val p) := by
           refine tsum_congr fun p => ?_

@@ -1297,7 +1297,9 @@ theorem intervalIntegral_sinc_tail_eq_ibp {a b : ℝ} (ha : 0 < a) (hab : a ≤ 
   have hv : ∀ x ∈ Set.uIcc a b,
       HasDerivAt (fun y : ℝ => -Real.cos y) (Real.sin x) x := by
     intro x _hx
-    simpa using (Real.hasDerivAt_cos x).neg
+    have h : HasDerivAt (fun y : ℝ => -Real.cos y) (-(-Real.sin x)) x :=
+      (Real.hasDerivAt_cos x).neg
+    rwa [neg_neg] at h
   have hu' : IntervalIntegrable (fun x : ℝ => -(x ^ 2)⁻¹) volume a b := by
     apply ContinuousOn.intervalIntegrable_of_Icc hab
     exact ((continuousOn_pow 2).inv₀ fun x hx => by
@@ -1327,9 +1329,9 @@ theorem intervalIntegral_inv_sq_of_pos {a b : ℝ} (ha : 0 < a) (hab : a ≤ b) 
   have hderiv : ∀ x ∈ Set.uIcc a b,
       HasDerivAt (fun y : ℝ => -y⁻¹) ((x ^ 2)⁻¹) x := by
     intro x hx
-    have h := (hasDerivAt_inv (hpos_uIcc x hx).ne').neg
-    convert h using 1
-    ring
+    have h : HasDerivAt (fun y : ℝ => -y⁻¹) (-(-(x ^ 2)⁻¹)) x :=
+      (hasDerivAt_inv (hpos_uIcc x hx).ne').neg
+    rwa [neg_neg] at h
   have hint : IntervalIntegrable (fun x : ℝ => (x ^ 2)⁻¹) volume a b := by
     apply ContinuousOn.intervalIntegrable_of_Icc hab
     exact (continuousOn_pow 2).inv₀ fun x hx => by
@@ -1475,9 +1477,8 @@ theorem intervalIntegral_exp_neg_mul_const_mul_self (a R B : ℝ) :
     have hlin : HasDerivAt (fun y : ℝ => -a * y) (-a) x := by
       simpa using (hasDerivAt_id x).const_mul (-a)
     have h := (Real.hasDerivAt_exp (-a * x)).comp x hlin
-    have hneg := h.neg
-    convert hneg using 1
-    ring_nf
+    rw [show a * Real.exp (-a * x) = -(Real.exp (-a * x) * -a) from by ring]
+    exact h.neg
   have hint : IntervalIntegrable (fun x : ℝ => a * Real.exp (-a * x)) volume R B := by
     apply Continuous.intervalIntegrable
     fun_prop
@@ -1515,13 +1516,15 @@ theorem norm_intervalIntegral_exp_neg_mul_sinc_tail_le
     have hexp := (Real.hasDerivAt_exp (-a * x)).comp x hlin
     have hinv := hasDerivAt_inv hx0
     have hmul := hexp.mul hinv
-    convert hmul using 1
-    simp
-    ring_nf
+    rw [show -(a * Real.exp (-a * x) * x⁻¹) - Real.exp (-a * x) * (x ^ 2)⁻¹
+        = Real.exp (-a * x) * -a * x⁻¹ + Real.exp (-a * x) * -(x ^ 2)⁻¹ from by ring]
+    exact hmul
   have hv : ∀ x ∈ Set.uIcc R B,
       HasDerivAt (fun y : ℝ => -Real.cos y) (Real.sin x) x := by
     intro x _hx
-    simpa using (Real.hasDerivAt_cos x).neg
+    have h : HasDerivAt (fun y : ℝ => -Real.cos y) (-(-Real.sin x)) x :=
+      (Real.hasDerivAt_cos x).neg
+    rwa [neg_neg] at h
   have hu' : IntervalIntegrable
       (fun x : ℝ => -(a * Real.exp (-a * x) * x⁻¹) -
         Real.exp (-a * x) * (x ^ 2)⁻¹) volume R B := by
@@ -1744,6 +1747,7 @@ theorem integrableOn_exp_neg_mul_sinc (a : ℝ) (ha : 0 < a) :
     (volume.restrict (Set.Ioi 0))
   have h_exp : Integrable (fun x : ℝ => Real.exp (-a * x))
       (volume.restrict (Set.Ioi 0)) := by
+    show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
     simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
   refine h_exp.mono ?_ ?_
   · exact (by fun_prop : AEStronglyMeasurable
@@ -1980,10 +1984,12 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
     change Integrable (fun u : ℝ => Real.exp (-u * x) * Real.sin x) ν
     have h_exp : Integrable (fun u : ℝ => Real.exp (-u * x)) ν := by
       dsimp [ν]
+      show IntegrableOn (fun u : ℝ => Real.exp (-u * x)) (Set.Ioi a)
       simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx) a
     exact h_exp.mul_const (Real.sin x)
   · have h_exp_a : Integrable (fun x : ℝ => Real.exp (-a * x)) μ := by
       dsimp [μ]
+      show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
       simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
     refine h_exp_a.mono ?_ ?_
     · exact hsm.norm.integral_prod_right'
@@ -1991,6 +1997,7 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
       have hx0 : 0 < x := hx
       have h_exp_x : Integrable (fun y : ℝ => Real.exp (-y * x)) ν := by
         dsimp [ν]
+        show IntegrableOn (fun y : ℝ => Real.exp (-y * x)) (Set.Ioi a)
         simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx0) a
       have h_lhs : Integrable
           (fun y : ℝ => ‖Function.uncurry
@@ -2095,3 +2102,361 @@ theorem eventually_norm_intervalIntegral_sin_div_kernel_scalar_mass_le_two
     _ ≤ 2 := by
       norm_num at hnorm_sub ⊢
       linarith
+
+/-- Windowed principal-value convergence for the sinc kernel. This avoids
+treating the non-integrable constant kernel mass as a whole-line Bochner
+integral: the remaining analytic work is split into a finite-window mass limit,
+a finite-window local error limit, and a tail-control limit. -/
+theorem sinc_kernel_tendsto_of_windowed_pv
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ}
+    (hconst : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+        volume (-R) R)
+    (herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R)
+    (hmass : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+      Filter.atTop (nhds (f x)))
+    (herror : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+      Filter.atTop (nhds 0))
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have hsplit : (fun T : ℝ =>
+      ∫ u in (-R)..R,
+        (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+          f (x - u)) =ᶠ[Filter.atTop]
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x +
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x)) := by
+    filter_upwards [hconst, herrInt] with T hconstT herrT
+    exact intervalIntegral_sin_div_kernel_split (E := E) f x T R hconstT herrT
+  have hwindowSum : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x +
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x))
+      Filter.atTop (nhds (f x)) := by
+    simpa using hmass.add herror
+  have hwindow : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u))
+      Filter.atTop (nhds (f x)) := by
+    exact hwindowSum.congr' hsplit.symm
+  have hwhole : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u))
+      Filter.atTop (nhds (f x)) := by
+    have hsum : Filter.Tendsto
+        (fun T : ℝ =>
+          (∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u)) +
+            ((∫ u : ℝ,
+              (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+                f (x - u)) -
+              ∫ u in (-R)..R,
+                (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+                  f (x - u)))
+        Filter.atTop (nhds (f x)) := by
+      simpa using hwindow.add htail
+    refine hsum.congr' ?_
+    filter_upwards with T
+    abel
+  refine hwhole.congr' ?_
+  filter_upwards with T
+  exact (normalized_sinc_kernel_integral_comp_sub_left_sin_div_ae (E := E) f x T).symm
+
+/-- Windowed principal-value convergence with the finite-window mass discharged
+by the scalar sinc limit. -/
+theorem sinc_kernel_tendsto_of_windowed_pv_of_pos_radius
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ} (hR : 0 < R)
+    (herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R)
+    (herror : Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ u in (-R)..R,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+      Filter.atTop (nhds 0))
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have hmass : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u in (-R)..R,
+          if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+      Filter.atTop (nhds (f x)) :=
+    tendsto_intervalIntegral_sin_div_kernel_smul_of_scalar_mass (E := E) (f x)
+      (tendsto_intervalIntegral_sin_div_kernel_scalar_mass hR)
+  have hconst : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • f x)
+        volume (-R) R := by
+    exact Filter.Eventually.of_forall fun T =>
+      intervalIntegrable_sin_div_kernel_smul_const (E := E) (f x) T (-R) R
+  exact sinc_kernel_tendsto_of_windowed_pv (E := E) hconst herrInt hmass herror htail
+
+/-- Windowed principal-value convergence from local quotient integrability and
+tail control. -/
+theorem sinc_kernel_tendsto_of_windowed_pv_of_local_quotient
+    [CompleteSpace E] {f : ℝ → E} {x R : ℝ} (hR : 0 < R)
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x))
+      volume (-R) R)
+    (htail : Filter.Tendsto
+      (fun T : ℝ =>
+        (∫ u : ℝ,
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            f (x - u)) -
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              f (x - u))
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  have herrInt : ∀ᶠ T in Filter.atTop,
+      IntervalIntegrable
+        (fun u : ℝ =>
+          (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+            (f (x - u) - f x))
+        volume (-R) R := by
+    exact Filter.Eventually.of_forall
+      (intervalIntegrable_sin_div_kernel_error_of_intervalIntegrable_quotient
+        (E := E) hq)
+  have herror :
+      Filter.Tendsto
+        (fun T : ℝ =>
+          ∫ u in (-R)..R,
+            (if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) •
+              (f (x - u) - f x))
+        Filter.atTop (nhds 0) :=
+    tendsto_intervalIntegral_sin_div_kernel_error_of_intervalIntegrable_quotient
+      (E := E) hR hq
+  exact sinc_kernel_tendsto_of_windowed_pv_of_pos_radius (E := E) hR
+    herrInt herror htail
+
+/-- Principal-value convergence for the sinc kernel from source integrability
+and local quotient integrability at the target point. -/
+theorem sinc_kernel_tendsto_of_integrable_local_quotient
+    [CompleteSpace E] {f : ℝ → E} (hf : Integrable f) {x R : ℝ} (hR : 0 < R)
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x))
+      volume (-R) R) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ, (2 * T * Real.sinc (T * (x - y)) : ℂ) • f y)
+      Filter.atTop (nhds (f x)) := by
+  exact sinc_kernel_tendsto_of_windowed_pv_of_local_quotient (E := E) hR hq
+    (tendsto_sin_div_kernel_tail_of_integrable (E := E) hf hR)
+
+theorem laplaceInvLineTrunc_laplaceTransformBilateral_eq_fourierInvTrunc
+    (sigma : ℝ) (f : ℝ → E) (x T : ℝ) :
+    laplaceInvLineTrunc sigma (laplaceTransformBilateral f) x T =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y)) x T := by
+  let g : ℝ → E := fun y => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y
+  unfold laplaceInvLineTrunc fourierInvTrunc
+  simp_rw [laplaceTransformBilateral_eq_fourier]
+  simp only [one_div, mul_inv_rev, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
+    I_im, mul_one, sub_self, add_zero, neg_mul, add_im, mul_im, zero_add]
+  rw [show (π⁻¹ * 2⁻¹ : ℝ) = (1 / (2 * π) : ℝ) by ring]
+  change (1 / (2 * π) : ℝ) •
+      ∫ t in (-T)..T, Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) •
+        𝓕 g (t / (2 * π)) =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+        ((1 / (2 * π) : ℝ) •
+          ∫ t in (-T)..T, Complex.exp (((t * x : ℝ) : ℂ) * I) •
+            𝓕 g (t / (2 * π)))
+  have hsplit :
+      (∫ t in (-T)..T, Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) •
+          𝓕 g (t / (2 * π))) =
+        Complex.exp ((sigma : ℂ) * (x : ℂ)) •
+          ∫ t in (-T)..T, Complex.exp (((t * x : ℝ) : ℂ) * I) • 𝓕 g (t / (2 * π)) := by
+    rw [← intervalIntegral.integral_smul]
+    congr with t
+    rw [← smul_assoc]
+    congr 1
+    change Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (x : ℂ)) =
+      Complex.exp ((sigma : ℂ) * (x : ℂ)) * Complex.exp (((t * x : ℝ) : ℂ) * I)
+    rw [← Complex.exp_add]
+    congr 1
+    push_cast
+    ring_nf
+  rw [hsplit]
+  rw [SMulCommClass.smul_comm (M := ℝ) (N := ℂ) (α := E)]
+
+/-- Principal-value Laplace inversion reduced to the corresponding truncated
+Fourier convergence theorem for the exponentially weighted source. -/
+theorem laplaceInvLineTrunc_tendsto_laplaceTransformBilateral_eq
+    (sigma : ℝ) (f : ℝ → E) {x : ℝ}
+    (hlim : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y)) x T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (x : ℂ))) • f x))) :
+    Filter.Tendsto
+      (fun T : ℝ => laplaceInvLineTrunc sigma (laplaceTransformBilateral f) x T)
+      Filter.atTop (nhds (f x)) := by
+  let g : ℝ → E := fun y => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y
+  have hlim' : Filter.Tendsto (fun T : ℝ => fourierInvTrunc (𝓕 g) x T)
+      Filter.atTop (nhds (g x)) := by
+    simpa [g] using hlim
+  have hscaled : Filter.Tendsto
+      (fun T : ℝ =>
+        Complex.exp ((sigma : ℂ) * (x : ℂ)) • fourierInvTrunc (𝓕 g) x T)
+      Filter.atTop (nhds (Complex.exp ((sigma : ℂ) * (x : ℂ)) • g x)) :=
+    hlim'.const_smul (Complex.exp ((sigma : ℂ) * (x : ℂ)))
+  have htarget : Complex.exp ((sigma : ℂ) * (x : ℂ)) • g x = f x := by
+    simp [g, ← smul_assoc, ← Complex.exp_add]
+  rw [htarget] at hscaled
+  refine hscaled.congr' ?_
+  filter_upwards with T
+  exact (laplaceInvLineTrunc_laplaceTransformBilateral_eq_fourierInvTrunc sigma f x T).symm
+
+theorem Complex.exp_mul_log_of_pos_eq_cpow {x : ℝ} (hx : 0 < x) (s : ℂ) :
+    Complex.exp (s * (Real.log x : ℂ)) = (x : ℂ) ^ s := by
+  rw [Complex.cpow_def_of_ne_zero (Complex.ofReal_ne_zero.mpr hx.ne')]
+  rw [Complex.ofReal_log hx.le]
+  congr 1
+  ring
+
+/-- The truncated multiplication-form inverse Laplace integral is the truncated
+vector-valued inverse Laplace line integral at `log x`. -/
+theorem laplaceIntegralCpowTrunc_eq_laplaceInvLineTrunc
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x) (T : ℝ) :
+    laplaceIntegralCpowTrunc f sigma x T =
+      laplaceInvLineTrunc sigma (laplaceTransformBilateral f) (Real.log x) T := by
+  unfold laplaceIntegralCpowTrunc laplaceInvLineTrunc
+  simp_rw [laplaceIntegral_eq_laplaceTransformBilateral, smul_eq_mul]
+  rw [RCLike.real_smul_eq_coe_mul]
+  congr 1
+  · push_cast
+    field_simp [Real.pi_ne_zero]
+    rfl
+  · apply intervalIntegral.integral_congr
+    intro t _ht
+    change laplaceTransformBilateral f ((sigma : ℂ) + (t : ℂ) * I) *
+        (x : ℂ) ^ ((sigma : ℂ) + (t : ℂ) * I) =
+      Complex.exp (((sigma : ℂ) + (t : ℂ) * I) * (Real.log x : ℂ)) *
+        laplaceTransformBilateral f ((sigma : ℂ) + (t : ℂ) * I)
+    rw [← Complex.exp_mul_log_of_pos_eq_cpow hx ((sigma : ℂ) + (t : ℂ) * I)]
+    ring
+
+/-- Principal-value Laplace inversion in the multiplication `x^s` form, reduced
+to truncated Fourier convergence for the exponentially weighted source. -/
+theorem laplaceIntegralCpowTrunc_tendsto_of_fourierInvTrunc
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x)
+    (hlim : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+          (Real.log x) T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  have hlim' : Filter.Tendsto
+      (fun T : ℝ =>
+        fourierInvTrunc
+          (𝓕 (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) • f y))
+          (Real.log x) T)
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) • f (Real.log x))) := by
+    simpa [smul_eq_mul] using hlim
+  have hcore := laplaceInvLineTrunc_tendsto_laplaceTransformBilateral_eq
+    (E := ℂ) sigma f (x := Real.log x) hlim'
+  refine hcore.congr' ?_
+  filter_upwards with T
+  exact (laplaceIntegralCpowTrunc_eq_laplaceInvLineTrunc sigma f hx T).symm
+
+theorem laplaceIntegralCpowTrunc_tendsto_of_sinc_kernel
+    (sigma : ℝ) (f : ℝ → ℂ) {x : ℝ} (hx : 0 < x)
+    (hg : Integrable (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+    (hdir : Filter.Tendsto
+      (fun T : ℝ =>
+        (1 / (2 * π) : ℝ) •
+          ∫ y : ℝ,
+            (2 * T * Real.sinc (T * (Real.log x - y)) : ℂ) •
+              (Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+      Filter.atTop
+      (nhds (Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  exact laplaceIntegralCpowTrunc_tendsto_of_fourierInvTrunc sigma f hx
+    (fourierInvTrunc_tendsto_of_sinc_kernel (E := ℂ)
+      (f := fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y) hg hdir)
+
+theorem laplaceIntegralCpowTrunc_tendsto_of_integrable_local_quotient
+    (sigma : ℝ) (f : ℝ → ℂ) {x R : ℝ} (hx : 0 < x) (hR : 0 < R)
+    (hg : Integrable (fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y))
+    (hq : IntervalIntegrable
+      (fun u : ℝ =>
+        if u = 0 then 0 else
+          (1 / (π * u) : ℂ) •
+            (Complex.exp (-((sigma : ℂ) * ((Real.log x - u : ℝ) : ℂ))) *
+                f (Real.log x - u) -
+              Complex.exp (-((sigma : ℂ) * (Real.log x : ℂ))) * f (Real.log x)))
+      volume (-R) R) :
+    Filter.Tendsto (fun T : ℝ => laplaceIntegralCpowTrunc f sigma x T)
+      Filter.atTop (nhds (f (Real.log x))) := by
+  exact laplaceIntegralCpowTrunc_tendsto_of_sinc_kernel sigma f hx hg
+    (sinc_kernel_tendsto_of_integrable_local_quotient (E := ℂ)
+      (f := fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y)
+      (x := Real.log x) (R := R) hg hR hq)

@@ -237,7 +237,7 @@ lemma ibp_Ioi_one :
   have hlog_deriv : ∀ t ∈ Set.Ioi (1 : ℝ), HasDerivAt log (t⁻¹) t :=
     fun t ht => Real.hasDerivAt_log (ne_of_gt (lt_trans one_pos ht))
   have hv_deriv : ∀ t ∈ Set.Ioi (1 : ℝ), HasDerivAt (fun t => -exp (-t)) (exp (-t)) t := by
-    intro t _; have h := (hasDerivAt_neg t).exp.neg; convert h using 1; simp [mul_comm]
+    intro t _; have h := (hasDerivAt_neg t).exp.neg; convert! h using 1; simp [mul_comm]
   have h_uv'_int : IntegrableOn (log * fun t => exp (-t)) (Set.Ioi 1) :=
     integrableOn_log_mul_exp_neg_Ioi_one
   have h_u'v_int : IntegrableOn ((fun t => t⁻¹) * fun t => -exp (-t)) (Set.Ioi 1) := by
@@ -295,7 +295,7 @@ private lemma ibp_eps {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1) :
     intro x hx; rw [Set.uIcc_of_le hε1.le] at hx
     exact hasDerivAt_log (ne_of_gt (lt_of_lt_of_le hε0 hx.1))
   have hv_deriv : ∀ x ∈ Set.uIcc ε 1, HasDerivAt (fun t => -exp (-t)) (exp (-x)) x := by
-    intro x _; have h := (hasDerivAt_neg x).exp; convert h.neg using 1; simp [mul_comm]
+    intro x _; have h := (hasDerivAt_neg x).exp; convert! h.neg using 1; simp [mul_comm]
   have h_u'_int : IntervalIntegrable (fun x => x⁻¹) volume ε 1 :=
     (continuousOn_inv₀.mono fun x hx => hne x hx).intervalIntegrable_of_Icc hε1.le
   have h_v'_int : IntervalIntegrable (fun x => exp (-x)) volume ε 1 :=
@@ -496,7 +496,7 @@ private lemma li_setDiff_eq_split {x ε : ℝ} (hx : 1 < x) (hε : 0 < ε)
   have h1mε : 0 < 1 - ε := by linarith
   -- Decompose the set: Ioc 0 x \ Ioo (1-ε) (1+ε) = Ioc 0 (1-ε) ∪ Icc (1+ε) x
   have hdecomp : Ioc 0 x \ Ioo (1 - ε) (1 + ε) = Ioc 0 (1 - ε) ∪ Icc (1 + ε) x := by
-    ext t; simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_union, Set.mem_Icc]
+    ext t; simp only [Set.mem_sdiff, Set.mem_Ioc, Set.mem_Ioo, Set.mem_union, Set.mem_Icc]
     constructor
     · intro ⟨⟨h0, hx'⟩, hnotin⟩
       push Not at hnotin

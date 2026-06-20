@@ -485,7 +485,7 @@ theorem zetaTimesSMinusOne_entire_differentiableOn_compl_singleton :
   have h1 : DifferentiableAt ℂ (fun s => s - 1) s := differentiableAt_id.sub_const 1
   have h2 : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta hs1
   have hmul : DifferentiableAt ℂ (fun s => (s - 1) * riemannZeta s) s := by
-    simpa [mul_assoc, mul_left_comm, mul_comm] using (h1.mul h2)
+    simpa [mul_assoc, mul_left_comm, mul_comm] using! (h1.mul h2)
   refine (hmul.differentiableWithinAt.congr (fun x hx => ?_) ?_)
   · have hx1 : x ≠ (1 : ℂ) := by
       simpa [Set.mem_singleton_iff] using hx.2
@@ -518,7 +518,7 @@ theorem zetaTimesSMinusOne_entire_differentiable :
     hiff.1
       ⟨zetaTimesSMinusOne_entire_differentiableOn_compl_singleton,
         zetaTimesSMinusOne_entire_continuousAt_one⟩
-  simpa [DifferentiableOn, differentiableWithinAt_univ, zetaTimesSMinusOne_entire] using this
+  simpa [DifferentiableOn, differentiableWithinAt_univ, zetaTimesSMinusOne_entire] using! this
 
 /-- A coarse global growth bound for the removable extension of `(s - 1)ζ(s)`.
 
