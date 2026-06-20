@@ -3157,7 +3157,6 @@ theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     exact (pairProd_prod f.a.toList).symm
   · have ht_bound : ((pairProd f.a.toList).length : ℝ) ≤
         n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by
-      change ((pairProd f.a.toList).length : ℝ) ≤ _
       rw [pairProd_length f.a.toList, length_toList f.a]
       calc (((f.a.card + 1) / 2 : ℕ) : ℝ) ≤ (f.a.card + 1 : ℕ) / 2 := cast_div_le
         _ = (f.a.card : ℝ) / 2 + 1 / 2 := by simp only [cast_add, cast_one]; ring

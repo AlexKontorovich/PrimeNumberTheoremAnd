@@ -1747,7 +1747,7 @@ theorem integrableOn_exp_neg_mul_sinc (a : ℝ) (ha : 0 < a) :
     (volume.restrict (Set.Ioi 0))
   have h_exp : Integrable (fun x : ℝ => Real.exp (-a * x))
       (volume.restrict (Set.Ioi 0)) := by
-    show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
+    change IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
     simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
   refine h_exp.mono ?_ ?_
   · exact (by fun_prop : AEStronglyMeasurable
@@ -1984,12 +1984,12 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
     change Integrable (fun u : ℝ => Real.exp (-u * x) * Real.sin x) ν
     have h_exp : Integrable (fun u : ℝ => Real.exp (-u * x)) ν := by
       dsimp [ν]
-      show IntegrableOn (fun u : ℝ => Real.exp (-u * x)) (Set.Ioi a)
+      change IntegrableOn (fun u : ℝ => Real.exp (-u * x)) (Set.Ioi a)
       simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx) a
     exact h_exp.mul_const (Real.sin x)
   · have h_exp_a : Integrable (fun x : ℝ => Real.exp (-a * x)) μ := by
       dsimp [μ]
-      show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
+      change IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
       simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
     refine h_exp_a.mono ?_ ?_
     · exact hsm.norm.integral_prod_right'
@@ -1997,7 +1997,7 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
       have hx0 : 0 < x := hx
       have h_exp_x : Integrable (fun y : ℝ => Real.exp (-y * x)) ν := by
         dsimp [ν]
-        show IntegrableOn (fun y : ℝ => Real.exp (-y * x)) (Set.Ioi a)
+        change IntegrableOn (fun y : ℝ => Real.exp (-y * x)) (Set.Ioi a)
         simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx0) a
       have h_lhs : Integrable
           (fun y : ℝ => ‖Function.uncurry
