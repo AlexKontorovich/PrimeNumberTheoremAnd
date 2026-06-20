@@ -1328,9 +1328,8 @@ private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
   -/)
   (latexEnv := "sublemma")
   (discussion := 1585)]
-private theorem mul_integ_gamma_eq (s : ℝ) (hs : 1 < s) :
-    (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
-  sorry
+private theorem mul_integ_gamma_eq (s) (hs : 1 < s) : (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
+  grind [MeasureTheory.integral_const_mul γ (· ^ (-s)), @integral_Ioi_rpow_of_lt (-s), one_rpow]
 
 -- Integrability helpers for the integral splitting in `log_zeta_eq` (#1319).
 -- Each summand of `(log (log x) + γ + E₂Λ x) * x^(-s)` is separately integrable on `Ioi 1`.
