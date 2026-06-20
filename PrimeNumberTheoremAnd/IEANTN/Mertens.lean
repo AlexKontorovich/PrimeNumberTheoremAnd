@@ -1149,7 +1149,7 @@ theorem E₂Λ.abs_le {x : ℝ} (hx : 2 ≤ x) :
 @[blueprint
   "Mertens-second-error-mangoldt-bound"]
 theorem E₂Λ.bound : E₂Λ =O[atTop] (fun x ↦ 1 / log x) := by
-    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop, ge_iff_le]
+    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop]
     use log 4 + 6, 2
     intro x hx
     convert E₂Λ.abs_le hx using 1
@@ -1243,7 +1243,7 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
   -- summability of ∑ p, -log(1 - z p)
   have hsummable_prime : Summable (fun p : Nat.Primes => -Real.log (1 - z p)) := by
     have := Real.summable_log_one_add_of_summable hsummable_z.neg
-    simpa using this.neg
+    convert! this.neg using 1
   -- summability of g over the product
   have hg_nonneg : ∀ pk : Nat.Primes × ℕ, 0 ≤ (z pk.1) ^ (pk.2 + 1) / (pk.2 + 1) := by
     intro pk; positivity [hz_pos pk.1]
@@ -1329,7 +1329,8 @@ private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
   (latexEnv := "sublemma")
   (discussion := 1585)]
 private theorem mul_integ_gamma_eq (s) (hs : 1 < s) : (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
-  grind [MeasureTheory.integral_const_mul γ (· ^ (-s)), @integral_Ioi_rpow_of_lt (-s), one_rpow]
+  rw [MeasureTheory.integral_const_mul γ (· ^ (-s)), @integral_Ioi_rpow_of_lt (-s), one_rpow] <;>
+    grind
 
 -- Integrability helpers for the integral splitting in `log_zeta_eq` (#1319).
 -- Each summand of `(log (log x) + γ + E₂Λ x) * x^(-s)` is separately integrable on `Ioi 1`.
