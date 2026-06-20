@@ -2,6 +2,7 @@ import Architect
 import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Helpers
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
@@ -282,7 +283,8 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
     (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
     {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1)
-    {T : ℝ} (_hT : 0 < T) :
+    {T : ℝ} (_hT : 0 < T)
+    (hT_noz : ∀ ρ : ℂ, riemannZeta ρ = 0 → |ρ.im| ≠ T) :
     let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
     kadiri_thm_3_1_q1_I φ a T =
       -- (1/(2πi)) ∫ on σ = -a from -iT to +iT
@@ -305,7 +307,143 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
             Φ (-((σ : ℂ) + ((-T : ℝ) : ℂ) * I)))
       + Φ (-1)
       - riemannZeta.zeroes_sum (.Ioo 0 1) (.Ioo (-T) T) (fun ρ ↦ Φ (-ρ)) := by
-  sorry
+  intro Φ
+  have hφc : Continuous φ := _hφ.continuous
+  have hΦ_an : AnalyticOnNhd ℂ Φ {s : ℂ | -(1 + b) < s.re ∧ s.re < b} :=
+    Phi_analyticOnNhd hφc _hφ_decay
+  set f : ℂ → ℂ := fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s) with hf
+  have hTT : -T ≤ T := by linarith
+  have haa : -a ≤ 1 + a := by linarith
+  have hre_le : (((-a : ℝ) : ℂ) - (T : ℂ) * I).re ≤ (((1 + a : ℝ) : ℂ) + (T : ℂ) * I).re := by
+    simp; linarith
+  have him_le : (((-a : ℝ) : ℂ) - (T : ℂ) * I).im ≤ (((1 + a : ℝ) : ℂ) + (T : ℂ) * I).im := by
+    simp; linarith
+  have hbounds : ∀ s : ℂ, s ∈ Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I) (((1 + a : ℝ) : ℂ) +
+      (T : ℂ) * I) → -a ≤ s.re ∧ s.re ≤ 1 + a ∧ -T ≤ s.im ∧ s.im ≤ T := by
+    intro s hs
+    rw [mem_Rect hre_le him_le] at hs
+    simpa using hs
+  -- Φ is continuous on the strip.
+  have hΦcont : ∀ x : ℂ, -(1 + b) < x.re → x.re < b → ContinuousAt Φ x :=
+    fun x h1 h2 => (hΦ_an x ⟨h1, h2⟩).continuousAt
+  -- The membership facts for `1` and the zero rectangle `Z`.
+  have h1mem : (1 : ℂ) ∈ Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I)
+      (((1 + a : ℝ) : ℂ) + (T : ℂ) * I) := by
+    rw [mem_Rect hre_le him_le]; refine ⟨?_, ?_, ?_, ?_⟩ <;> simp <;> linarith
+  have hZsub : (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T) : Set ℂ) ⊆
+      Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I) (((1 + a : ℝ) : ℂ) + (T : ℂ) * I) := by
+    intro ρ hρ
+    obtain ⟨⟨hre0, hre1⟩, ⟨himl, himr⟩, _⟩ := hρ
+    rw [mem_Rect hre_le him_le]; refine ⟨?_, ?_, ?_, ?_⟩ <;> simp <;> linarith
+  have h1notZ : (1 : ℂ) ∉ riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T) := by
+    intro h; have := h.1; simp at this
+  have hZfin : (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)).Finite :=
+    Set.Finite.subset rectangle_inter_zeroes_finite fun ρ hρ => ⟨hZsub hρ, hρ.2.2⟩
+  -- Meromorphy and simple-pole structure.
+  have hmero : MeromorphicOn f (Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I)
+      (((1 + a : ℝ) : ℂ) + (T : ℂ) * I)) := meromorphicOn_eq12_integrand hΦ_an _ha _hab
+  have hsimple : HasSimplePolesOn f (Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I)
+      (((1 + a : ℝ) : ℂ) + (T : ℂ) * I)) := hasSimplePolesOn_eq12_integrand hΦ_an _ha _hab
+  -- No zeros (and not `s = 1`) on the rectangle border.
+  have hborder : ∀ s ∈ RectangleBorder (((-a : ℝ) : ℂ) - (T : ℂ) * I)
+      (((1 + a : ℝ) : ℂ) + (T : ℂ) * I), riemannZeta s ≠ 0 ∧ s ≠ 1 := by
+    intro s hs
+    have hzim : (((-a : ℝ) : ℂ) - (T : ℂ) * I).im = -T := by simp
+    have hwim : (((1 + a : ℝ) : ℂ) + (T : ℂ) * I).im = T := by simp
+    have hzre : (((-a : ℝ) : ℂ) - (T : ℂ) * I).re = -a := by simp
+    have hwre : (((1 + a : ℝ) : ℂ) + (T : ℂ) * I).re = 1 + a := by simp
+    rw [RectangleBorder, Set.mem_union, Set.mem_union, Set.mem_union] at hs
+    rcases hs with ((hE1 | hE2) | hE3) | hE4
+    · rw [mem_reProdIm] at hE1
+      have him : s.im = -T := by
+        have := hE1.2; rwa [Set.mem_singleton_iff, hzim] at this
+      exact ⟨fun hz0 => hT_noz s hz0 (by rw [him, abs_neg, abs_of_pos _hT]),
+        fun h => by rw [h] at him; simp at him; linarith⟩
+    · rw [mem_reProdIm] at hE2
+      have hre : s.re = -a := by
+        have := hE2.1; rwa [Set.mem_singleton_iff, hzre] at this
+      refine ⟨?_, fun h => by rw [h] at hre; simp at hre; linarith⟩
+      by_cases him0 : s.im = 0
+      · have hsr : s = ((-a : ℝ) : ℂ) := by apply Complex.ext <;> simp [hre, him0]
+        rw [hsr]; exact riemannZeta_ne_zero_of_real_neg (by linarith) (by linarith)
+      · exact riemannZeta_ne_zero_of_re_nonpos_im_ne_zero (by rw [hre]; linarith) him0
+    · rw [mem_reProdIm] at hE3
+      have him : s.im = T := by
+        have := hE3.2; rwa [Set.mem_singleton_iff, hwim] at this
+      exact ⟨fun hz0 => hT_noz s hz0 (by rw [him, abs_of_pos _hT]),
+        fun h => by rw [h] at him; simp at him; linarith⟩
+    · rw [mem_reProdIm] at hE4
+      have hre : s.re = 1 + a := by
+        have := hE4.1; rwa [Set.mem_singleton_iff, hwre] at this
+      exact ⟨riemannZeta_ne_zero_of_one_le_re (by rw [hre]; linarith),
+        fun h => by rw [h] at hre; simp at hre; linarith⟩
+  have hno_border : Disjoint (RectangleBorder (((-a : ℝ) : ℂ) - (T : ℂ) * I)
+      (((1 + a : ℝ) : ℂ) + (T : ℂ) * I)) {s | meromorphicOrderAt f s < 0} :=
+    eq12_no_border_poles hΦ_an _ha _hab hborder
+  -- The set-characterization of the poles enclosed by the rectangle.
+  have hset : Rectangle (((-a : ℝ) : ℂ) - (T : ℂ) * I) (((1 + a : ℝ) : ℂ) + (T : ℂ) * I) ∩
+        {s | meromorphicOrderAt f s < 0}
+      = insert (1 : ℂ) (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)) ∩
+        {s | meromorphicOrderAt f s < 0} := by
+    ext s
+    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_insert_iff]
+    refine and_congr_left fun hord => ?_
+    constructor
+    · intro hsbox
+      by_cases hs1 : s = 1
+      · exact Or.inl hs1
+      by_cases hζ : riemannZeta s = 0
+      · refine Or.inr ?_
+        obtain ⟨hre_lo, hre_hi, him_lo, him_hi⟩ := hbounds s hsbox
+        refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, hζ⟩
+        · by_contra hle; rw [not_lt] at hle
+          by_cases him0 : s.im = 0
+          · have hsr : s = ((s.re : ℝ) : ℂ) := by apply Complex.ext <;> simp [him0]
+            rw [hsr] at hζ
+            exact riemannZeta_ne_zero_of_real_neg (by linarith) hle hζ
+          · exact riemannZeta_ne_zero_of_re_nonpos_im_ne_zero hle him0 hζ
+        · by_contra hge; rw [not_lt] at hge
+          exact riemannZeta_ne_zero_of_one_le_re hge hζ
+        · have habs : |s.im| ≠ T := hT_noz s hζ
+          rcases lt_or_eq_of_le him_lo with h | h
+          · exact h
+          · exact absurd (by rw [← h, abs_neg, abs_of_pos _hT]) habs
+        · have habs : |s.im| ≠ T := hT_noz s hζ
+          rcases lt_or_eq_of_le him_hi with h | h
+          · exact h
+          · exact absurd (by rw [h, abs_of_pos _hT]) habs
+      · exact absurd hord (not_lt.mpr
+          (eq12_meromorphicOrderAt_nonneg_of_ne hΦ_an _ha _hab hsbox hζ hs1))
+    · intro hs
+      rcases hs with h1 | hZ
+      · rw [h1]; exact h1mem
+      · exact hZsub hZ
+  -- Residue values: `Φ(-1)` at `s = 1` and `-ord(ρ)·Φ(-ρ)` at each zero.
+  have hres1 : residue f 1 = Φ (-1) := by
+    have hcont : ContinuousAt Φ (-1) := hΦcont (-1) (by simp; linarith) (by simp; linarith)
+    rw [hf, residue_neg_zeta_logDeriv_mul meromorphicOrderAt_riemannZeta_one hcont]
+    push_cast; ring
+  have hresZ : ∀ ρ ∈ riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T),
+      residue f ρ = -(riemannZeta.order ρ : ℂ) * Φ (-ρ) := by
+    intro ρ hρ
+    obtain ⟨⟨hre0, hre1⟩, _, _⟩ := hρ
+    have hcont : ContinuousAt Φ (-ρ) :=
+      hΦcont (-ρ) (by simp; linarith) (by simp; linarith)
+    have hm : meromorphicOrderAt riemannZeta ρ = (riemannZeta.order ρ : ℤ) := by
+      obtain ⟨n, hn⟩ := WithTop.ne_top_iff_exists.1 (meromorphicOrderAt_riemannZeta_ne_top ρ)
+      rw [riemannZeta.order, ← hn, WithTop.untopD_coe]
+    rw [hf, residue_neg_zeta_logDeriv_mul hm hcont]
+  -- Assemble the residue theorem.
+  have key := RectangleIntegral'_eq_sumResiduesIn hre_le him_le hmero hno_border
+    (by rw [hset]; exact (hZfin.insert 1).inter_of_left _) hsimple
+  rw [rectangleIntegral'_eq12 f hTT haa,
+    sumResiduesIn_eq12_eq hmero hZfin h1mem hZsub h1notZ hset hres1 hresZ] at key
+  have hkadiri : kadiri_thm_3_1_q1_I φ a T
+      = (1 / (2 * (Real.pi : ℂ))) *
+        (∫ t in Set.Ioo (-T) T, f (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) := rfl
+  rw [hkadiri]
+  simp only [hf] at key ⊢
+  linear_combination key
 
 @[blueprint
   "kadiri-thm-3-1-q1-top-horizontal-vanishes"
