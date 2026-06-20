@@ -83,7 +83,7 @@ lemma intervalIntegrable (s : ℂ) {a b : ℝ} (ha : 1 ≤ a) (hab : a ≤ b) :
       simp [g, Complex.norm_cpow_eq_rpow_re_of_pos hu0, sub_eq_add_neg]
     exact (norm_zetaAbelFractKernel_le u (ha.trans huIcc.1) s).trans (le_of_eq hg_eq.symm)
   have hg : Integrable g μ := by
-    simpa [μ, g] using
+    simpa [μ, g] using!
       (Complex.continuousOn_ofReal_cpow (ha := one_pos.trans_le ha)).norm.integrableOn_compact
         isCompact_Icc
   have hf0 : Integrable (fun _ : ℝ => (0 : ℂ)) μ := by simp [μ]

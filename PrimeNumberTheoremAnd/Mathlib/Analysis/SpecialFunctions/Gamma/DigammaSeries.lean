@@ -432,8 +432,8 @@ lemma hasSum_digamma_of_re_pos {z₀ : ℂ} (hz₀ : 0 < z₀.re) :
         have : (0 : ℝ) ≤ m := Nat.cast_nonneg m
         linarith
       have hinner : HasDerivAt (fun w : ℂ => w + (m : ℂ)) 1 x := (hasDerivAt_id x).add_const _
-      simpa using (hasDerivAt_log hmem).comp x hinner
-    simpa only [logGammaSeq] using h1.sub h2
+      simpa using! (hasDerivAt_log hmem).comp x hinner
+    simpa only [logGammaSeq] using! h1.sub h2
   -- pointwise convergence to the limit function
   have hptw : ∀ x : ℂ, x ∈ s →
       Tendsto (fun n => logGammaSeq x n) atTop (𝓝 (limUnder atTop (logGammaSeq x))) :=
@@ -562,7 +562,7 @@ theorem hasSum_digamma {z : ℂ} (hz : ∀ n : ℕ, z ≠ -n) :
         push_cast
         ring
       rw [e2] at hfin
-      convert hfin using 1
+      convert! hfin using 1
       ring
 
 /-- The series representation of the digamma function, written as a formula:

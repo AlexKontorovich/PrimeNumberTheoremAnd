@@ -92,7 +92,7 @@ theorem g_intervalIntegrable_full : IntervalIntegrable g volume 0 1 := by
       fun_prop)
   · filter_upwards [self_mem_ae_restrict (by measurability)] with t ht
     have habs : |g t| = g t := abs_of_pos <| Li2.g_pos t ht.1 ht.2
-    simpa [Real.norm_eq_abs, habs] using Li2.g_le_two t ht.1 ht.2
+    simpa [Real.norm_eq_abs, habs] using! Li2.g_le_two t ht.1 ht.2
 
 /-- g is integrable on any subinterval [a, b] ⊆ (0, 1). -/
 theorem g_intervalIntegrable (a b : ℝ) (ha : 0 < a) (hb : b < 1) (hab : a ≤ b) :

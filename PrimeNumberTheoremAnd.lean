@@ -22,7 +22,6 @@ import PrimeNumberTheoremAnd.IEANTN.Buthe
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2_part1
 import PrimeNumberTheoremAnd.IEANTN.Chebyshev
-import PrimeNumberTheoremAnd.IEANTN.CostaPereira
 import PrimeNumberTheoremAnd.IEANTN.Dusart
 import PrimeNumberTheoremAnd.IEANTN.Erdos392
 import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP

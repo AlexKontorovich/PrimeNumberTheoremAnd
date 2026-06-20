@@ -282,8 +282,8 @@ theorem remark_2_6_a (x : ℝ) (hx : 0 ≤ x) :
     · ring_nf
       simp [sub_eq_add_neg, integral_neg, ← integral_const_mul, mul_assoc, mul_comm]
     · exact fun t ht ↦ hasDerivAt_rpow_const (by grind)
-    · exact fun t _ ↦ by convert (hasDerivAt_neg t).exp.neg using 1; norm_num
-    · simpa [mul_comm] using integrableOn_Ioi (s + 1) (by grind) (by grind : 0 ≤ y)
+    · exact fun t _ ↦ by convert! (hasDerivAt_neg t).exp.neg using 1; norm_num
+    · simpa [mul_comm] using! integrableOn_Ioi (s + 1) (by grind) (by grind : 0 ≤ y)
     · refine ((integrableOn_Ioi s hs hy).const_mul (-s)).congr ?_
       filter_upwards [ae_restrict_mem measurableSet_Ioi] with t _; norm_num; ring
     · convert Filter.Tendsto.mul

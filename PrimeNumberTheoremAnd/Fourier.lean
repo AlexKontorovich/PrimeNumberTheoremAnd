@@ -29,7 +29,7 @@ noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
 theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by
     simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
-  convert (hasDerivAt_fourierChar (-x * u)).scomp x l2 using 1
+  convert! (hasDerivAt_fourierChar (-x * u)).scomp x l2 using 1
   change _ = ((-u : ℝ) : ℂ) * _ -- `scomp` introduces ℝ-smul on ℂ, which we undo
   simp ; ring
 

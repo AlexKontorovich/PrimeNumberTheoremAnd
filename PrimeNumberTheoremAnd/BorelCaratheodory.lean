@@ -71,11 +71,11 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     ← Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0]
   constructor
   · have (x) (hx : x ∈ s \ {0}) : x ≠ 0 := by
-      rw [Set.mem_diff, Set.mem_singleton_iff] at hx
+      rw [Set.mem_sdiff, Set.mem_singleton_iff] at hx
       exact hx.right
     rw [differentiableOn_congr (fun x hyp_x => Function.update_of_ne (this x hyp_x) _ _)]
     exact
-      (analytic.mono Set.diff_subset).differentiableOn.fun_div
+      (analytic.mono Set.sdiff_subset).differentiableOn.fun_div
       (differentiableOn_id.mono (Set.subset_univ (s \ {0})))
       this
   · have U :=
@@ -327,8 +327,12 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
         _ = 2 * M * r / R + (r / R) * ‖f z‖ := by
           ring_nf
     rw [← tsub_le_iff_right, ← one_sub_mul, ← le_div_iff₀'] at U0
-    · convert U0 using 1
-      field
+    · have hR : (R : ℝ) ≠ 0 := Rpos.ne'
+      have hRr : R - r ≠ 0 := sub_ne_zero.mpr (ne_of_lt hyp_r).symm
+      have heq : 2 * M * r / (R - r) = 2 * M * r / R / (1 - r / R) := by
+        rw [one_sub_div hR]; field_simp
+      rw [heq]
+      exact U0
     · rwa [sub_pos, div_lt_one₀ Rpos]
   have maxBoundForF
       (r) (hyp_r : r < R) (pos_r : 0 < r)

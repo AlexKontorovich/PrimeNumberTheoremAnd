@@ -43,7 +43,7 @@ theorem hasProdLocallyUniformlyOn_canonicalProduct {m : ℕ} {a : ℕ → ℂ}
     (h_sum : Summable (fun n : ℕ => ‖a n‖⁻¹ ^ (m + 1))) (h_nonzero : ∀ n, a n ≠ 0) :
     HasProdLocallyUniformlyOn (fun n z ↦ weierstrassFactor m (z / a n))
       (canonicalProduct m a) Set.univ := by
-  simpa [canonicalProduct] using
+  simpa [canonicalProduct] using!
     hasProdLocallyUniformlyOn_weierstrassFactor_div_of_summable_inv_pow
       (m := m) (a := a) h_sum h_nonzero
 
@@ -87,7 +87,7 @@ theorem differentiable_canonicalProduct {m : ℕ} {a : ℕ → ℂ}
       (hasProdLocallyUniformlyOn_canonicalProduct h_sum h_nonzero)
   have hfactor : ∀ i : ℕ, Differentiable ℂ (fun z ↦ weierstrassFactor m (z / a i)) := by
     intro i
-    simpa using (differentiable_weierstrassFactor m).comp (differentiable_id.div_const (a i))
+    simpa using! (differentiable_weierstrassFactor m).comp (differentiable_id.div_const (a i))
   have hpartial :
       ∀ᶠ N in Filter.atTop,
         DifferentiableOn ℂ (fun z ↦ ∏ n ∈ Finset.range N, weierstrassFactor m (z / a n))
@@ -210,7 +210,7 @@ private theorem tendsto_deriv_canonicalPartialProduct {m : ℕ} {a : ℕ → ℂ
           (fun z ↦ ∏ k ∈ Finset.range N, weierstrassFactor m (z / a k)) Set.univ := by
     filter_upwards with N
     exact differentiableOn_canonicalPartialProduct m a N
-  simpa [canonicalProduct] using
+  simpa [canonicalProduct] using!
     (hloc.deriv hpartial isOpen_univ).tendsto_at (by simp)
 
 /-- The zero set of the canonical product is exactly `Set.range a`. -/
@@ -269,7 +269,7 @@ theorem logDeriv_canonicalProduct_one_eq_tsum {a : ℕ → ℂ}
       hf hd hm' htend hnez
   calc
     logDeriv (canonicalProduct 1 a) z = ∑' n, logDeriv (Φ n) z := by
-      simpa [Φ, canonicalProduct] using hlog
+      simpa [Φ, canonicalProduct] using! hlog
     _ = ∑' n : ℕ, (1 / (z - a n) + 1 / a n) := by
       refine tsum_congr fun n => ?_
       have hza : z ≠ a n := by
