@@ -1389,9 +1389,7 @@ lemma cancel_main {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
     cumsum (f * g) n ≤ C * cumsum g n := by
   convert! cancel_aux' hf hg hf' hg' n using 1
   match n with
-  | n + 2 => simp only [cumsum_succ, show 2 + n - 1 = n + 1 from by omega,
-      show 2 + n - 1 - 1 = n from by omega, show 2 + n = n + 2 from by omega,
-      show 1 + n = n + 1 from by omega] ; push_cast ; ring
+  | n + 2 => simp only [cumsum_succ] ; push_cast ; ring
 
 lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :

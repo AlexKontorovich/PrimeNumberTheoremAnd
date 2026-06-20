@@ -744,7 +744,7 @@ theorem bernsteinApproximation_monotone (n : ℕ) (f : C(I, ℝ)) (hf : Monotone
     Monotone (bernsteinApproximation n f) := by
   intro x y hxy
   simp only [bernsteinApproximation, smul_eq_mul, ContinuousMap.coe_sum, ContinuousMap.coe_mul,
-    ContinuousMap.coe_const, _root_.sum_apply, Pi.mul_apply, Function.const_apply]
+    ContinuousMap.coe_const]
   have hmono : ∀ i j : Fin (n + 1), i ≤ j → f (bernstein.z i) ≤ f (bernstein.z j) :=
     fun i j hij ↦ hf <| Subtype.mk_le_mk.mpr <| by simpa [bernstein.z] using by gcongr; aesop
   have hsum : ∑ i : Fin (n + 1), ∑ j : Fin (n + 1),
@@ -821,7 +821,7 @@ theorem bernsteinApproximation_monotone (n : ℕ) (f : C(I, ℝ)) (hf : Monotone
     one_mul, sub_neg]
   simp_all only [← mul_assoc, ← sum_comm, ← sum_mul, ← Finset.mul_sum _ _ _, bernstein.probability,
     mul_one]
-  simp only [ContinuousMap.coe_sum, ContinuousMap.coe_mul, ContinuousMap.coe_const,
+  simp only [
     Finset.sum_apply, Pi.mul_apply, Function.const_apply, mul_comm] at hsum
   linarith
 
