@@ -957,6 +957,11 @@ private theorem E₁f_div_integrable
     IntegrableOn (fun t ↦ (t * log t^2)⁻¹ * E₁f f t) (.Ioi x) volume := by
   sorry
 
+/-- move to InvLog.lean -/
+@[simp]
+theorem deriv_inv_log' : deriv (fun x ↦ (log x)⁻¹) = fun x ↦ -x⁻¹ / (log x ^ 2) :=
+  funext fun _ ↦ deriv_inv_log
+
 private theorem E₂f.eq {x : ℝ} (hx : 2 ≤ x) (hbound : ∀ t ≥ 1, |E₁f f t| ≤ C)
     (h0 : f 0 = 0) (h1 : f 1 = 0) :
     E₂f f x = (log x)⁻¹ * E₁f f x - ∫ t in .Ioi x, (t * log t^2)⁻¹ * E₁f f t := by
@@ -976,13 +981,13 @@ private theorem E₂f.eq {x : ℝ} (hx : 2 ≤ x) (hbound : ∀ t ≥ 1, |E₁f 
     rw [← intervalIntegral.integral_neg, intervalIntegral.integral_of_le hx]
     apply setIntegral_congr_fun (by measurability)
     intro t ht
-    simp [deriv_inv_log]; field_simp
+    simp [field]
   · intro t ht
     simp at ht
     exact DifferentiableAt.fun_inv (by simp; linarith) (by simp; grind)
   · refine ContinuousOn.integrableOn_Icc fun t ht ↦ ContinuousAt.continuousWithinAt ?_
     simp only [Set.mem_Icc] at ht
-    conv => arg 1; ext x; rw [deriv_inv_log]
+    simp only [deriv_inv_log']
     have : log t ^2 ≠ 0 := by simp; grind
     fun_prop (disch := grind)
   · sorry
