@@ -239,7 +239,7 @@ theorem sublemma_1_5 {x : ℝ} (hx : 0 < x) :
   have eventually_theta_eq_zero {x : ℝ} (hx : 0 < x) :
       ∀ᶠ k : ℕ in atTop, θ (x ^ (1 / (3 * (2 * k : ℝ)))) = 0 := by
     have h_lim : Tendsto (fun k : ℕ ↦ x ^ (1 / (6 * k) : ℝ)) atTop (nhds 1) := by
-      simpa using tendsto_const_nhds.rpow
+      simpa using! tendsto_const_nhds.rpow
         (tendsto_inv_atTop_nhds_zero_nat.comp (tendsto_id.nsmul_atTop (by norm_num)))
         (by grind)
     filter_upwards [h_lim.eventually (gt_mem_nhds one_lt_two)] with k hk
@@ -282,7 +282,7 @@ theorem sublemma_1_5 {x : ℝ} (hx : 0 < x) :
   have : Summable (fun n : ℕ ↦ θ (x ^ (1 / (3 * n) : ℝ))) := by
     apply summable_of_eventually_zero
     have h_lim : Tendsto (fun n : ℕ ↦ x ^ (1 / (3 * n) : ℝ)) atTop (nhds 1) := by
-      simpa using tendsto_const_nhds.rpow
+      simpa using! tendsto_const_nhds.rpow
         (tendsto_inv_atTop_nhds_zero_nat.comp (tendsto_id.nsmul_atTop (by positivity)))
         (by grind)
     filter_upwards [h_lim.eventually (gt_mem_nhds one_lt_two)] with n hn

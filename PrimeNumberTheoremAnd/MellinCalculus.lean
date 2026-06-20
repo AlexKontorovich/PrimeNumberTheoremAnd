@@ -551,7 +551,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
           have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
           have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
           exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs₂
-        convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
+        convert! mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
   have Cnonneg : 0 ≤ C := by
     have hh := mainBnd 1 (by norm_num) ((3 : ℂ) / 2) (by norm_num) (by norm_num)
     have hhh : 0 ≤ ‖𝓜 (fun x ↦ (ν x : ℂ)) ((3 : ℂ) / 2)‖ := by positivity
@@ -752,9 +752,16 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
       rwa [ν.support_ofReal]
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
-  convert this
+  convert! this using 1
   simp only [mellin, zero_sub, cpow_neg_one, smul_eq_mul]
-  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp; simp
+  funext ε
+  congr 1
+  symm
+  calc (∫ (t : ℝ) in Ioi 0, (↑t)⁻¹ * ↑(ν t) : ℂ)
+      = ∫ (t : ℝ) in Ioi 0, ((ν t / t : ℝ) : ℂ) :=
+        integral_congr_ae (Filter.Eventually.of_forall fun t => by push_cast; ring)
+    _ = ((∫ t in Ioi 0, ν t / t : ℝ) : ℂ) := integral_ofReal
+    _ = 1 := by rw [mass_one, ofReal_one]
 
 
 
@@ -853,7 +860,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       dsimp only [f]
-      rw [deriv_fun_sub, deriv_fun_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]
+      rw [deriv_fun_sub, deriv_fun_mul, Real.deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]
       · simp [log_pos hx]
       · linarith
       · simp only [differentiableAt_fun_id]
@@ -965,12 +972,13 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
   · field_simp
     exact Smooth1Properties_estimate hε.1
   · have : (2 : ℝ) ^ ε < 2 := by
-      nth_rewrite 1 [← pow_one 2]
-      convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) hε.2 <;> norm_num
+      have h := rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) hε.2
+      rwa [Real.rpow_one] at h
     have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
       refine div_pos ?_ hε.1
       rw [sub_pos]
-      convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr hε.1); norm_num
+      have h := rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr hε.1)
+      rwa [Real.rpow_zero] at h
     have := (mul_lt_mul_iff_left₀ pos).mpr this
     ring_nf at this ⊢
     exact this
@@ -1117,7 +1125,7 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {ν : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
       _ = ∫ (y : ℝ) in Ioi 0, ν y / y := ?_
       _ = 1 := mass_one
     · have := integral_comp_div_I0i_haar (fun y ↦ ν ((x / y) ^ (1 / ε)) / ε) xpos
-      convert this.symm using 1
+      convert! this.symm using 1
       congr; funext y; congr; field_simp [mul_comm]
     · have := integral_comp_rpow_I0i_haar_real (fun y ↦ ν y) (one_div_ne_zero εpos.ne')
       rw [← this, abs_of_pos <| one_div_pos.mpr εpos]
@@ -1305,8 +1313,8 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     dsimp [mellin]; rw [setIntegral_congr_fun (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
 
-  convert this using 1
-  · congr; funext x; convert integral_ofReal.symm
+  convert! this using 1
+  · congr; funext x; convert! integral_ofReal.symm
     simp only [MellinConvolution, RCLike.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
       algebraMap.coe_zero, g]; rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike ν εpos s]
@@ -1343,7 +1351,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
         ‖s⁻¹‖ * ‖𝓜 (fun x ↦ (ν x : ℂ)) (ε * s)‖ := by simp
     _                        ≤ ‖s⁻¹‖ * (C * (ε * ‖s‖)⁻¹) := by
       gcongr
-      convert hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
+      convert! hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
       simp [abs_eq_self.mpr εpos.le]
     _                        = C * (ε * ‖s‖ ^ 2)⁻¹ := by
       simp only [norm_inv, mul_inv_rev]

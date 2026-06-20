@@ -327,8 +327,12 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ}
         _ = 2 * M * r / R + (r / R) * ‖f z‖ := by
           ring_nf
     rw [← tsub_le_iff_right, ← one_sub_mul, ← le_div_iff₀'] at U0
-    · convert U0 using 1
-      field
+    · have hR : (R : ℝ) ≠ 0 := Rpos.ne'
+      have hRr : R - r ≠ 0 := sub_ne_zero.mpr (ne_of_lt hyp_r).symm
+      have heq : 2 * M * r / (R - r) = 2 * M * r / R / (1 - r / R) := by
+        rw [one_sub_div hR]; field_simp
+      rw [heq]
+      exact U0
     · rwa [sub_pos, div_lt_one₀ Rpos]
   have maxBoundForF
       (r) (hyp_r : r < R) (pos_r : 0 < r)

@@ -612,7 +612,7 @@ theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
 theorem sum_mangoldt_div_eq_log' :
     (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / d) ~[atTop] (fun x ↦ log x) := by
     apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
-    convert E₁Λ.bounded using 1
+    convert! E₁Λ.bounded using 1
 
 @[blueprint
   "Mertens-first-error-prime"
@@ -727,10 +727,10 @@ private lemma log_div_sq_is_deriv :
   intro t ht
   simp at ht
   apply HasDerivAt.comp_add_const (f := (fun t ↦ (-log t - 1)/ t)) t 2
-  convert HasDerivAt.fun_div (c' := -1 / (t + 2)) (d' := (1 : ℝ)) _ _  _ using 1
+  convert! HasDerivAt.fun_div (c' := -1 / (t + 2)) (d' := (1 : ℝ)) _ _  _ using 1
   · field
   · apply HasDerivAt.sub_const
-    convert (hasDerivAt_log (by linarith : t + 2 ≠ 0)).neg using 1
+    convert! (hasDerivAt_log (by linarith : t + 2 ≠ 0)).neg using 1
     ring_nf
   · exact hasDerivAt_id _
   · linarith
@@ -739,10 +739,10 @@ private lemma tendsto_antideriv_log_div_sq :
     Tendsto (fun t ↦ (-log (t + 2) - 1) / (t + 2)) atTop (nhds 0) := by
   have : Tendsto (fun (t : ℝ) ↦ t + 2) atTop atTop := by exact tendsto_atTop_add_const_right atTop 2 tendsto_id
   apply Tendsto.comp (g := (fun t ↦ (-log t - 1) / t)) _ this
-  convert Tendsto.sub (f := (fun t ↦ -log t / t)) (a := 0) _ tendsto_inv_atTop_zero using 1
+  convert! Tendsto.sub (f := (fun t ↦ -log t / t)) (a := 0) _ tendsto_inv_atTop_zero using 1
   · ring_nf
   · ring_nf
-  · convert (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)).neg using 1
+  · convert! (Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by linarith)).neg using 1
     · ext; ring
     · simp
 
@@ -759,7 +759,7 @@ private lemma summable_log_div_sq :
     Summable (fun (n : ℕ)↦ log (n + 3) / (n + 3) ^ 2) := by
   let g : ℝ → ℝ := (fun n ↦ log (n + 2) / (n + 2) ^ 2)
   suffices Summable (fun (n : ℕ) ↦ g n ) by
-    convert summable_nat_add_iff 1|>.mpr this using 2
+    convert! summable_nat_add_iff 1|>.mpr this using 2
     unfold g
     push_cast
     ring_nf
@@ -795,7 +795,7 @@ theorem E₁.le : E₁ ≤ (5 * log 2 + 3) / 4 := by
     ring_nf
   _ ≤ log 2 / 2 + ∑' (n : ℕ), (3 / 2) * (log (n + 3) / (n + 3) ^ 2) := by
     gcongr with n
-    · convert summable_nat_add_iff 3|>.mpr E₁.summable using 4
+    · convert! summable_nat_add_iff 3|>.mpr E₁.summable using 4
       · norm_cast
       · push_cast; ring
     · exact summable_log_div_sq.mul_left _
@@ -908,7 +908,7 @@ theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (log p) / p) ~[atTop] (fun x ↦ log x) := by
     apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log)
-    convert sum_log_prime_div_eq_log' using 1
+    convert! sum_log_prime_div_eq_log' using 1
 
 @[blueprint
   "Euler-Mascheroni-const-alt"
@@ -990,7 +990,7 @@ private theorem integrable_const_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ 
     have : log t ≠ 0 := by simp; grind
     have : DifferentiableAt ℝ (fun t ↦ -(log t)⁻¹) t := by
       fun_prop (disch := grind)
-    convert this.hasDerivAt using 1
+    convert! this.hasDerivAt using 1
     simp [deriv_inv_log]
     field
   · intro t ht
@@ -1094,14 +1094,14 @@ theorem E₂Λ.eq {x : ℝ} (hx : 2 ≤ x) :
 
 private theorem integ_div_mul_log_sq {x : ℝ} (c : ℝ) (hx : 2 ≤ x) :
     ∫ t in Set.Ioi x, c / (t * log t^2) = c / log x := by
-    convert MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' (m := 0) (f := fun x ↦ - c / log x) ?_
+    convert! MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' (m := 0) (f := fun x ↦ - c / log x) ?_
       (integrable_const_div_mul_log_sq c hx) ?_ using 1
     · grind
     · intro t ht; simp at ht
-      convert HasDerivAt.fun_div (hasDerivAt_const _ (-c)) (hasDerivAt_log (by linarith)) ?_ using 1
+      convert! HasDerivAt.fun_div (hasDerivAt_const _ (-c)) (hasDerivAt_log (by linarith)) ?_ using 1
       · grind
       simp; grind
-    convert tendsto_log_atTop.inv_tendsto_atTop.const_mul (-c) using 1
+    convert! tendsto_log_atTop.inv_tendsto_atTop.const_mul (-c) using 1
     simp
 
 @[blueprint
@@ -1805,7 +1805,7 @@ theorem sum_mangoldt_div_log_eq_log_log' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋�
   "Mertens-second-theorem-mangoldt-weak"]
 theorem sum_mangoldt_div_log_eq_log_log'' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d)) ~[atTop] (fun x ↦ log (log x)) := by
     apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log_log)
-    convert sum_mangoldt_div_log_eq_log_log' using 1
+    convert! sum_mangoldt_div_log_eq_log_log' using 1
 
 @[blueprint
   "Meissel-Mertens-constant"
@@ -1992,11 +1992,11 @@ theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p
   "Mertens-second-theorem-prime-weak"]
 theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p) ~[atTop] (fun x ↦ log (log x)) := by
     apply IsLittleO.isEquivalent (IsBigO.trans_isLittleO _ one_eq_o_log_log)
-    convert sum_prime_div_eq_log_log' using 1
+    convert! sum_prime_div_eq_log_log' using 1
 
 lemma HasSum_log_one_sub_one_div_prime {p : ℕ} (hp : p.Prime) :
     HasSum (fun n : ℕ ↦ (-1 : ℝ) / (( n + 1) * p ^ (n + 1))) (log (1 - 1 / p)) := by
-  convert Real.hasSum_pow_div_log_of_abs_lt_one (x := 1 / p) _|>.neg using 1
+  convert! Real.hasSum_pow_div_log_of_abs_lt_one (x := 1 / p) _|>.neg using 1
   · ext
     rw [div_pow, one_pow, div_div]
     ring
@@ -2052,12 +2052,12 @@ lemma M_eq_f.HasSum :
 
 lemma M_eq_f.sum_primes :
     ∑' (p : Nat.Primes), M_eq_f p = 0 := by
-  convert tsum_zero with p
+  convert! tsum_zero with p
   grind
 
 lemma tsum_primes_eq_tsum_ite (f : ℕ → ℝ) :
     ∑' (n : Nat.Primes), f n = ∑' (n : ℕ), if n.Prime then f n else 0 := by
-  convert _root_.tsum_subtype Nat.Prime f using 2
+  convert! _root_.tsum_subtype Nat.Prime f using 2
   ext
   simp [Set.indicator]
   congr
@@ -2160,7 +2160,7 @@ lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
   grw [AntitoneOn.tsum_le_integral (f := (fun t ↦ 1 / (t + N) ^ 2))]
   · have hd : ∀ x ∈ Set.Ici 0, HasDerivAt (fun t ↦ -1 / (t + N)) (1 / (x + N) ^ 2) x := by
       intro t ht
-      convert HasDerivAt.fun_div (d' := (1 : ℝ)) (hasDerivAt_const ..) _ _ using 1
+      convert! HasDerivAt.fun_div (d' := (1 : ℝ)) (hasDerivAt_const ..) _ _ using 1
       · ring
       · simpa using hasDerivAt_id' t
       · simp at ht
@@ -2178,7 +2178,7 @@ lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
     beta_reduce
     simp at ha hb
     gcongr
-  · convert integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
+  · convert! integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
     simp
     rfl
   · exact fun _ _ ↦ (by positivity)

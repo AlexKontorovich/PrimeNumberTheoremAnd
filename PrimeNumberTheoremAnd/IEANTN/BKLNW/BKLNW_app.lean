@@ -775,7 +775,7 @@ lemma besselI0_nonneg (x : ℝ) : 0 ≤ besselI0 x :=
 
 lemma besselI0_one_le (x : ℝ) : 1 ≤ besselI0 x := by
   have h := (besselI0_summable x).le_tsum 0 fun j _ ↦ by rw [pow_mul]; positivity
-  simpa [Nat.factorial] using h
+  simpa [Nat.factorial] using! h
 
 lemma besselI0_pos (x : ℝ) : 0 < besselI0 x :=
   lt_of_lt_of_le one_pos (besselI0_one_le x)

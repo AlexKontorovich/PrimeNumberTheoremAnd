@@ -893,7 +893,7 @@ lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     · unfold LSeries.term
       simp [Nat.Prime.ne_zero p.prop]
     · have := LSeriesSummable_two_pow_omega hs;
-      convert this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
+      convert! this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
   have h_term_eval : ∀ e : ℕ, LSeries.term (fun n : ℕ => 2 ^ ω n) s (p.val ^ (e + 1)) = 2 * (p.val : ℂ) ^ (-(e + 1) * s) := by
     intro e
     simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
@@ -951,13 +951,13 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  convert HasProd.tprod_eq ( EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _ ) |> Eq.symm using 1
+  convert! HasProd.tprod_eq ( EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _ ) |> Eq.symm using 1
   · apply tprod_congr
     simp only [← two_pow_omega_tsum_prime_pow hs, sumOnPrimePows_apply, implies_true]
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
   · intro m n mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
+  · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -976,12 +976,12 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ (2 ^ ω n)) s) := by
-  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (2 ^ ω n)) s) using 1;
+  convert! EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (2 ^ ω n)) s) using 1;
   · funext p; exact Eq.symm (two_pow_omega_tsum_prime_pow hs p)
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
   · intro _ _ mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
+  · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
   Zeta squared:
@@ -1139,14 +1139,14 @@ lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ (μ n) ^ 2) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) := by
-  convert (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _).tprod_eq.symm using 1
+  convert! (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _).tprod_eq.symm using 1
   · apply tprod_congr
     simp only [← moebius_sq_tsum_prime_pow, sumOnPrimePows_apply, implies_true]
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
       IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
       Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
   · intro m n mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_moebius_sq hs).norm using 1
+  · convert! (LSeriesSummable_moebius_sq hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -1165,13 +1165,13 @@ lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s))) (L (fun n ↦ (μ n) ^ 2) s) := by
-  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
+  convert! EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
   · funext p; exact Eq.symm (moebius_sq_tsum_prime_pow p)
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
       IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
       Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
   · intro _ _ mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_moebius_sq hs).norm using 1
+  · convert! (LSeriesSummable_moebius_sq hs).norm using 1
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.

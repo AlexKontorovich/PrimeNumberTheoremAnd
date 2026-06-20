@@ -500,7 +500,7 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) :
   let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
   have e1 {x} := HasDerivAt.add_const (y ^ 2) (by simpa using hasDerivAt_pow 2 x)
   have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
-    convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1
+    convert! (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1
     field_simp
   have e3 : deriv f = fun x => x / (x ^ 2 + y ^ 2) := funext (fun _ => e2.deriv)
   have e4 : Continuous (deriv f) := by simpa only [e3] using continuous_self_div_sq_add_sq hy
@@ -799,7 +799,7 @@ lemma simplePole_sub_residue_isBigO_one {f : ℂ → ℂ} {p : ℂ}
       hcont.norm.isBoundedUnder_le.isBigO_one ℂ
     have hbig_ne : dslope g p =O[nhdsWithin p {p}ᶜ] (1 : ℂ → ℂ) :=
       IsBigO.mono hbig inf_le_left
-    simpa [slope] using hbig_ne.congr' (dslope_eventuallyEq_slope_nhdsNE (f := g) (a := p)) .rfl
+    simpa [slope] using! hbig_ne.congr' (dslope_eventuallyEq_slope_nhdsNE (f := g) (a := p)) .rfl
   refine hdslope.congr' ?_ .rfl
   filter_upwards [hg_eq, self_mem_nhdsWithin] with z hz hz_ne
   simp [hz, hres, div_eq_mul_inv, sub_eq_add_neg]; ring
@@ -922,10 +922,10 @@ private lemma rectangleIntegral'_toMeromorphicNFOn_eq {f : ℂ → ℂ} {z w : �
   have h_eq : {s : ℂ | f s = fNF s} ∈ Filter.codiscreteWithin R := by
     simpa [Filter.EventuallyEq, Filter.Eventually, fNF] using
       (toMeromorphicNFOn_eqOn_codiscrete (f := f) (U := R) f_mero)
-  have hbot := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_left_im z w)
-  have htop := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_right_im z w)
-  have hright := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_right_re z w)
-  have hleft := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using mapsTo_rectangle_left_re z w)
+  have hbot := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_left_im z w)
+  have htop := HIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_right_im z w)
+  have hright := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_right_re z w)
+  have hleft := VIntegral_congr_codiscreteWithin h_eq (by simpa [R] using! mapsTo_rectangle_left_re z w)
   unfold RectangleIntegral'; congr 1; unfold RectangleIntegral
   rw [hbot, htop, hright, hleft]
 
@@ -1057,7 +1057,6 @@ private lemma principalPart_borderIntegrable {f : ℂ → ℂ} {z w : ℂ}
   let fNF := toMeromorphicNFOn f R
   let principalPart := fun s ↦ ∑ p ∈ polesFin, residue fNF p / (s - p)
   refine ContinuousOn.rectangleBorder_integrable ?_
-  dsimp [principalPart]
   refine continuousOn_finsetSum _ ?_
   intro p hp s hs
   have hsp : s ≠ p := fun hsp => Set.disjoint_right.mp f_no_poles_boundary

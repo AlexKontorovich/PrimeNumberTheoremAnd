@@ -40,7 +40,7 @@ theorem tendstoLocallyUniformlyOn_divisorPartialProduct_univ
         (divisorCanonicalProduct m f (Set.univ : Set ℂ))
         (Set.univ : Set ℂ) :=
     hasProdLocallyUniformlyOn_divisorCanonicalProduct_univ (m := m) (f := f) h_sum
-  simpa [HasProdLocallyUniformlyOn, divisorPartialProduct] using hprod
+  simpa [HasProdLocallyUniformlyOn, divisorPartialProduct] using! hprod
 
 /-!
 ## Quotient convergence on compacts avoiding `z₀`
@@ -498,7 +498,7 @@ theorem eventually_eq_punctured_quotient_of_factorization
         fun z : ℂ => (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card • g z :=
     hEq.filter_mono nhdsWithin_le_nhds
   have hne : ∀ᶠ z : ℂ in 𝓝[≠] z₀, z ≠ z₀ := by
-    simpa [Filter.Eventually] using (self_mem_nhdsWithin : {z : ℂ | z ≠ z₀} ∈ 𝓝[≠] z₀)
+    simpa [Filter.Eventually] using! (self_mem_nhdsWithin : {z : ℂ | z ≠ z₀} ∈ 𝓝[≠] z₀)
   filter_upwards [hEq', hne] with z hz hzne
   have hz0 : (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card ≠ 0 :=
     pow_ne_zero _ (sub_ne_zero.mpr hzne)

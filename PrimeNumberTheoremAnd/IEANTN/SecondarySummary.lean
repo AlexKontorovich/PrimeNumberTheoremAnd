@@ -157,7 +157,7 @@ theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
       92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
         235 * log x ^ (38 / 25 - 3 / 2 : ℝ)
     by
-    convert mul_le_mul_of_nonneg_right h_div
+    convert! mul_le_mul_of_nonneg_right h_div
         (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
@@ -299,7 +299,7 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
         4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
         959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ)
     by
-    convert mul_le_mul_of_nonneg_right h_div
+    convert! mul_le_mul_of_nonneg_right h_div
         (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;>
       ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]

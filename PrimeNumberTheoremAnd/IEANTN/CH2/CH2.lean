@@ -539,7 +539,7 @@ lemma analyticAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : AnalyticAt ℂ (fun t :
   rw [show (fun t : ℂ ↦ (x : ℂ) ^ t) = fun t : ℂ ↦ Complex.exp (Complex.log (x : ℂ) * t) by
     funext t
     rw [Complex.cpow_def_of_ne_zero (Complex.ofReal_ne_zero.mpr hx.ne')]]
-  simpa [mul_comm] using analyticAt_cexp.comp (by fun_prop : AnalyticAt ℂ (fun t : ℂ ↦ Complex.log (x : ℂ) * t) s)
+  simpa [mul_comm] using! analyticAt_cexp.comp (by fun_prop : AnalyticAt ℂ (fun t : ℂ ↦ Complex.log (x : ℂ) * t) s)
 
 lemma meromorphicAt_rpow {x : ℝ} (hx : 0 < x) (s : ℂ) : MeromorphicAt (fun t : ℂ ↦ (x : ℂ) ^ t) s :=
   (analyticAt_rpow hx s).meromorphicAt
@@ -2241,7 +2241,7 @@ private lemma aestronglyMeasurable_horizontal_path_mul_cpow_of_meromorphic
         (fun r : ℝ ↦ Fnf (γ r) * (x : ℂ) ^ (γ r)) := by
     have h_good : ∀ᵐ r ∂ MeasureTheory.volume.restrict (Set.Iic 1), r ∉ γ ⁻¹' ({z : ℂ | AnalyticAt ℂ F z}ᶜ ∩ l.R) := by
       rw [ae_iff]
-      simpa using (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
+      simpa using! (hF_mero.countable_compl_analyticAt_inter.preimage hγ_inj).measure_zero (MeasureTheory.volume.restrict (Set.Iic 1))
     filter_upwards [h_good, MeasureTheory.ae_restrict_mem measurableSet_Iic] with r hr_good hr
     have hz_Sh : γ r ∈ S_h := h_path_maps hr
     have hz_R : γ r ∈ l.R := hS_h_sub hz_Sh
@@ -3126,7 +3126,7 @@ private theorem map_subLeft_one_eq_self : Measure.map (fun x : ℝ => 1 - x) vol
     rw [hfun, ← Measure.map_map (g := fun y : ℝ => 1 + y) (f := fun x : ℝ => -x)
       (measurable_const.add measurable_id) measurable_neg]
     rw [Measure.map_neg_eq_self, map_add_left_eq_self]
-  convert hmap using 1
+  convert! hmap using 1
 
 /-- The weighted exponential majorant needed on the horizontal rays of `C∞`. -/
 private lemma integrableOn_one_sub_mul_exp_mul_Iic (a : ℝ) (ha : 0 < a) :

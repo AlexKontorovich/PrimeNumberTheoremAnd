@@ -69,7 +69,7 @@ theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
   · simp
   · have := ArithmeticFunction.LSeriesSummable_vonMangoldt hs
     dsimp [LSeriesSummable] at this
-    convert this; rename ℕ => n
+    convert! this; rename ℕ => n
     by_cases h : n = 0 <;> simp [LSeries.term, h]
 
 blueprint_comment /--
@@ -362,7 +362,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       ?_ ?_ ?_ ?_
     · beta_reduce at this
       dsimp [mellinInv, VerticalIntegral] at this
-      convert this using 4
+      convert! this using 4
       · norm_cast
       · rw [mul_comm]
         norm_cast
@@ -1064,7 +1064,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     intro t
     simp only [Complex.norm_mul, c]
     gcongr
-    · convert hC t using 1
+    · convert! hC t using 1
       simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
@@ -2526,7 +2526,7 @@ lemma log_pow_over_xsq_integral_bounded :
         have fun2 : (↑d + 1) * Real.log x ^ d / x =  (↑d + 1) * Real.log x ^ d * x⁻¹:= by
           exact rfl
         rw [fun2]
-        convert deriv2 using 1
+        convert! deriv2 using 1
         rw [Nat.add_sub_cancel,
           Nat.cast_add, Nat.cast_one]
 
@@ -2547,7 +2547,7 @@ lemma log_pow_over_xsq_integral_bounded :
         have fun2 : -(x ^ 2)⁻¹ = - 1 / x ^ 2 := by
           field_simp
         rw [fun2] at deriv1
-        convert HasDerivAt.neg deriv1 using 1
+        convert! HasDerivAt.neg deriv1 using 1
         · ext x
           rw [neg_eq_neg_one_mul]
           field_simp
@@ -4241,7 +4241,7 @@ theorem MediumPNT : ∃ c > 0,
                   + c₈ * X / (ε * T)
                   + c₉ * X * Real.log X / (ε * T)) := by
       gcongr
-      convert h_close using 1
+      convert! h_close using 1
       rw [← norm_neg]
       congr
       ring

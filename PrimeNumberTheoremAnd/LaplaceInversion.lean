@@ -1297,7 +1297,9 @@ theorem intervalIntegral_sinc_tail_eq_ibp {a b : ℝ} (ha : 0 < a) (hab : a ≤ 
   have hv : ∀ x ∈ Set.uIcc a b,
       HasDerivAt (fun y : ℝ => -Real.cos y) (Real.sin x) x := by
     intro x _hx
-    simpa using (Real.hasDerivAt_cos x).neg
+    have h : HasDerivAt (fun y : ℝ => -Real.cos y) (-(-Real.sin x)) x :=
+      (Real.hasDerivAt_cos x).neg
+    rwa [neg_neg] at h
   have hu' : IntervalIntegrable (fun x : ℝ => -(x ^ 2)⁻¹) volume a b := by
     apply ContinuousOn.intervalIntegrable_of_Icc hab
     exact ((continuousOn_pow 2).inv₀ fun x hx => by
@@ -1327,9 +1329,9 @@ theorem intervalIntegral_inv_sq_of_pos {a b : ℝ} (ha : 0 < a) (hab : a ≤ b) 
   have hderiv : ∀ x ∈ Set.uIcc a b,
       HasDerivAt (fun y : ℝ => -y⁻¹) ((x ^ 2)⁻¹) x := by
     intro x hx
-    have h := (hasDerivAt_inv (hpos_uIcc x hx).ne').neg
-    convert h using 1
-    ring
+    have h : HasDerivAt (fun y : ℝ => -y⁻¹) (-(-(x ^ 2)⁻¹)) x :=
+      (hasDerivAt_inv (hpos_uIcc x hx).ne').neg
+    rwa [neg_neg] at h
   have hint : IntervalIntegrable (fun x : ℝ => (x ^ 2)⁻¹) volume a b := by
     apply ContinuousOn.intervalIntegrable_of_Icc hab
     exact (continuousOn_pow 2).inv₀ fun x hx => by
@@ -1475,9 +1477,8 @@ theorem intervalIntegral_exp_neg_mul_const_mul_self (a R B : ℝ) :
     have hlin : HasDerivAt (fun y : ℝ => -a * y) (-a) x := by
       simpa using (hasDerivAt_id x).const_mul (-a)
     have h := (Real.hasDerivAt_exp (-a * x)).comp x hlin
-    have hneg := h.neg
-    convert hneg using 1
-    ring_nf
+    rw [show a * Real.exp (-a * x) = -(Real.exp (-a * x) * -a) from by ring]
+    exact h.neg
   have hint : IntervalIntegrable (fun x : ℝ => a * Real.exp (-a * x)) volume R B := by
     apply Continuous.intervalIntegrable
     fun_prop
@@ -1515,13 +1516,15 @@ theorem norm_intervalIntegral_exp_neg_mul_sinc_tail_le
     have hexp := (Real.hasDerivAt_exp (-a * x)).comp x hlin
     have hinv := hasDerivAt_inv hx0
     have hmul := hexp.mul hinv
-    convert hmul using 1
-    simp
-    ring_nf
+    rw [show -(a * Real.exp (-a * x) * x⁻¹) - Real.exp (-a * x) * (x ^ 2)⁻¹
+        = Real.exp (-a * x) * -a * x⁻¹ + Real.exp (-a * x) * -(x ^ 2)⁻¹ from by ring]
+    exact hmul
   have hv : ∀ x ∈ Set.uIcc R B,
       HasDerivAt (fun y : ℝ => -Real.cos y) (Real.sin x) x := by
     intro x _hx
-    simpa using (Real.hasDerivAt_cos x).neg
+    have h : HasDerivAt (fun y : ℝ => -Real.cos y) (-(-Real.sin x)) x :=
+      (Real.hasDerivAt_cos x).neg
+    rwa [neg_neg] at h
   have hu' : IntervalIntegrable
       (fun x : ℝ => -(a * Real.exp (-a * x) * x⁻¹) -
         Real.exp (-a * x) * (x ^ 2)⁻¹) volume R B := by
@@ -1744,6 +1747,7 @@ theorem integrableOn_exp_neg_mul_sinc (a : ℝ) (ha : 0 < a) :
     (volume.restrict (Set.Ioi 0))
   have h_exp : Integrable (fun x : ℝ => Real.exp (-a * x))
       (volume.restrict (Set.Ioi 0)) := by
+    show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
     simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
   refine h_exp.mono ?_ ?_
   · exact (by fun_prop : AEStronglyMeasurable
@@ -1980,10 +1984,12 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
     change Integrable (fun u : ℝ => Real.exp (-u * x) * Real.sin x) ν
     have h_exp : Integrable (fun u : ℝ => Real.exp (-u * x)) ν := by
       dsimp [ν]
+      show IntegrableOn (fun u : ℝ => Real.exp (-u * x)) (Set.Ioi a)
       simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx) a
     exact h_exp.mul_const (Real.sin x)
   · have h_exp_a : Integrable (fun x : ℝ => Real.exp (-a * x)) μ := by
       dsimp [μ]
+      show IntegrableOn (fun x : ℝ => Real.exp (-a * x)) (Set.Ioi 0)
       simpa [mul_comm] using exp_neg_integrableOn_Ioi (0 : ℝ) (b := a) ha
     refine h_exp_a.mono ?_ ?_
     · exact hsm.norm.integral_prod_right'
@@ -1991,6 +1997,7 @@ theorem integrable_exp_neg_mul_sin_prod_Ioi (a : ℝ) (ha : 0 < a) :
       have hx0 : 0 < x := hx
       have h_exp_x : Integrable (fun y : ℝ => Real.exp (-y * x)) ν := by
         dsimp [ν]
+        show IntegrableOn (fun y : ℝ => Real.exp (-y * x)) (Set.Ioi a)
         simpa [mul_comm] using integrableOn_exp_mul_Ioi (a := -x) (neg_lt_zero.mpr hx0) a
       have h_lhs : Integrable
           (fun y : ℝ => ‖Function.uncurry

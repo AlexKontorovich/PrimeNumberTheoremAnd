@@ -43,7 +43,7 @@ theorem differentiableOn_divisorPartialProduct_div_pow_sub
     exact this.differentiableOn
   by_cases hk : k = 0
   · subst hk
-    simpa [pow_zero] using (hdiff_prod.mono (by intro z hz; exact hz.1))
+    simpa [pow_zero] using! (hdiff_prod.mono (by intro z hz; exact hz.1))
   · have hne : ∀ z ∈ ((Set.univ : Set ℂ) \ {z₀}), (fun z : ℂ => (z - z₀) ^ k) z ≠ 0 := by
       intro z hz
       have hz' : z ≠ z₀ := by
@@ -52,7 +52,7 @@ theorem differentiableOn_divisorPartialProduct_div_pow_sub
     have hdiff_inv :
         DifferentiableOn ℂ (fun z : ℂ => ((z - z₀) ^ k)⁻¹) ((Set.univ : Set ℂ) \ {z₀}) :=
       hdiff_den.inv hne
-    simpa [div_eq_mul_inv] using (hdiff_prod.mono (by intro z hz; exact hz.1)).mul hdiff_inv
+    simpa [div_eq_mul_inv] using! (hdiff_prod.mono (by intro z hz; exact hz.1)).mul hdiff_inv
 
 theorem differentiableOn_divisorCanonicalProduct_div_pow_sub
     (m : ℕ) (f : ℂ → ℂ) (h_sum : Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>

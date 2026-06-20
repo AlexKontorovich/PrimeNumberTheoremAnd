@@ -1105,8 +1105,7 @@ private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ :
       Filter.atBot volume := by
     rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
     have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1
-      simp
+      convert! (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
     rw [hvol, Function.comp_def]
     refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
     convert exp_neg_integrableOn_Ioi 0 (sub_pos.mpr hab) using 1
@@ -1743,7 +1742,7 @@ private lemma laplaceKernel_antideriv_hasDerivAt {w : ℂ} (hw : w ≠ 0) (x : �
     HasDerivAt (fun y : ℝ => -exp (-w * (y : ℂ)) / w)
       (exp (-w * (x : ℂ))) x := by
   have h := (laplaceKernel_hasDerivAt w x).neg.div_const w
-  convert h using 1
+  convert! h using 1
   field_simp [hw]
 
 private lemma eq_zero_of_tsupport_subset_Ico_right {d : ℝ} {f : ℝ → ℝ} {x : ℝ}
@@ -1830,13 +1829,13 @@ theorem laplaceTransform_ibp {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
     have hdf_cont : ContinuousOn (fun t => (df t : ℂ)) (Set.uIcc (0 : ℝ) d) := by
       have hreal : ContinuousOn df I :=
         hdf_C1.continuousOn
-      simpa [I, Set.uIcc_of_le hd.le] using continuous_ofReal.comp_continuousOn hreal
+      simpa [I, Set.uIcc_of_le hd.le] using! continuous_ofReal.comp_continuousOn hreal
     exact hdf_cont.intervalIntegrable
   have hd2f_int : IntervalIntegrable (fun t => (d2f t : ℂ)) volume 0 d := by
     have hd2f_cont : ContinuousOn (fun t => (d2f t : ℂ)) (Set.uIcc (0 : ℝ) d) := by
       have hreal : ContinuousOn d2f I := by
         simpa [d2f] using hdf_C1.continuousOn_derivWithin (uniqueDiffOn_Icc hd) (by norm_num)
-      simpa [I, Set.uIcc_of_le hd.le] using continuous_ofReal.comp_continuousOn hreal
+      simpa [I, Set.uIcc_of_le hd.le] using! continuous_ofReal.comp_continuousOn hreal
     exact hd2f_cont.intervalIntegrable
   have hA_deriv : ∀ x ∈ Set.uIcc (0 : ℝ) d, HasDerivWithinAt A (K x) (Set.uIcc (0 : ℝ) d) x := by
     intro x _hx
@@ -2117,7 +2116,7 @@ private lemma kadiriTestFnRightTail_hasDerivWithinAt_d {d : ℝ} {f : ℝ → �
       HasDerivWithinAt (fun y : ℝ => exp (-s * (y : ℂ)))
         (-s * exp (-s * (d : ℂ))) (Set.Ici d) d := by
     simpa using (laplaceKernel_hasDerivAt s d).hasDerivWithinAt
-  simpa [kadiriTestFnRightTail] using hexp.const_mul (f 0 : ℂ)
+  simpa [kadiriTestFnRightTail] using! hexp.const_mul (f 0 : ℂ)
 
 private theorem kadiriTestFn_H1_seam_derivatives {d : ℝ} (hd : 0 < d)
     {f : ℝ → ℝ} (hf : KadiriH1 d f) (s : ℂ) :
@@ -2313,7 +2312,7 @@ private lemma kadiriTestFn_H1_deriv_eq_rightTail_near_d {d : ℝ} (hd : 0 < d)
       have hright_deriv :
           HasDerivAt (kadiriTestFnRightTail f s)
             ((f 0 : ℂ) * (-s * exp (-s * (d : ℂ)))) d := by
-        simpa [kadiriTestFnRightTail] using
+        simpa [kadiriTestFnRightTail] using!
           (laplaceKernel_hasDerivAt s d).const_mul (f 0 : ℂ)
       exact hright_deriv.deriv
     exact hglobal.trans hright.symm
@@ -2582,7 +2581,7 @@ theorem kadiriTestFn_laplaceTransform {d : ℝ} (_hd : 0 < d) {f : ℝ → ℝ}
   have hiexp : IntegrableOn (fun y : ℝ => exp (-w * (y : ℂ))) (Set.Ioi 0) := by
     refine (integrable_norm_iff (Measurable.aestronglyMeasurable <| by fun_prop)).mp ?_
     suffices h : IntegrableOn (fun y : ℝ => Real.exp (-w.re * y)) (Set.Ioi 0) by
-      simpa [Complex.norm_exp, neg_mul] using h
+      simpa [Complex.norm_exp, neg_mul] using! h
     exact exp_neg_integrableOn_Ioi 0 hsz
   have hiA : IntegrableOn (fun y : ℝ => (f 0 : ℂ) * exp (-w * (y : ℂ))) (Set.Ioi 0) :=
     hiexp.const_mul _
