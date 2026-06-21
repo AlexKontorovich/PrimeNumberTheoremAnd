@@ -1243,10 +1243,11 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
 end SecondTheorem
 
 theorem log_zeta_eq_sum' {s : ℝ} (hs : 1 < s) :
-    log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := calc
+    log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
+  have hpow_le (p : Nat.Primes) : (↑p : ℝ) ^ (-s) < 1 :=
+    rpow_lt_one_of_one_lt_of_neg (mod_cast p.property.one_lt) (by linarith)
+  calc
   _ = ∑' p : Nat.Primes, -log (1 - p ^ (-s)) := by
-    have hpow_le (p : Nat.Primes) : (↑p : ℝ) ^ (-s) < 1 :=
-      rpow_lt_one_of_one_lt_of_neg (mod_cast p.property.one_lt) (by linarith)
     rw [← riemannZeta_eulerProduct_exp_log (by simpa using hs)]
     convert log_exp _
     convert Complex.exp_ofReal_re _
