@@ -7,10 +7,9 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
-import Mathlib.Topology.Algebra.InfiniteSum.Field
 import PrimeNumberTheoremAnd.MediumPNT
 
-open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory Asymptotics
+open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
 
 open ArithmeticFunction (vonMangoldt)
 
