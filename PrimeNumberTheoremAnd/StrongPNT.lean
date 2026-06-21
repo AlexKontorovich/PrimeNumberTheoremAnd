@@ -4,7 +4,7 @@ import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
@@ -268,7 +268,7 @@ theorem LogOfAnalyticFunction {r R : ℝ} {B : ℂ → ℂ}
     have hH_deriv : ∀ z ∈ Metric.ball 0 R, HasDerivAt H 0 z := by
       intro z hz
       have := (Complex.hasDerivAt_exp _).comp z (hJB_deriv z hz)
-      convert this.div (BanalyticOnNhdOfDR.differentiableOn.differentiableAt
+      convert! this.div (BanalyticOnNhdOfDR.differentiableOn.differentiableAt
         (Metric.closedBall_mem_nhds_of_mem hz) |>.hasDerivAt)
         (Bnonzero z <| Metric.ball_subset_closedBall hz) using 1
       ring_nf!; grind
@@ -501,7 +501,7 @@ lemma CfAnalytic {r R : ℝ} {f : ℂ → ℂ}
             exact absurd hfz (mul_ne_zero (pow_ne_zero _ (sub_ne_zero_of_ne h)) hz')
           rw [dif_neg z_not_in, hz]
           have hw_mem : w ∈ finite_zeros_mono.toFinset := finite_zeros_mono.mem_toFinset.mpr w_in_zeros
-          rw [Finset.prod_eq_prod_diff_singleton_mul hw_mem (fun ρ => (z - ρ) ^ analyticOrderNatAt f ρ)]
+          rw [Finset.prod_eq_prod_sdiff_singleton_mul hw_mem (fun ρ => (z - ρ) ^ analyticOrderNatAt f ρ)]
           rw [mul_comm ((z - w) ^ analyticOrderNatAt f w) (h_w z)]
           rw [mul_div_mul_right _ _ (pow_ne_zero _ (sub_ne_zero_of_ne h))]
       apply hh_w_analytic.div _ _ |> fun h => h.congr _;
@@ -1025,7 +1025,7 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     apply (norm_sum_le _ _).trans (Finset.sum_le_sum (fun ρ hρ => ?_))
     rw [norm_div, RCLike.norm_natCast]
     apply div_le_div_of_nonneg_left (Nat.cast_nonneg _) hpos
-    simp only [mem_diff, Metric.mem_closedBall, dist_zero_right, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ hz
+    simp only [Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right, SetOfZeros, Finite.mem_toFinset, mem_setOf_eq] at hρ hz
     rw [norm_sub_rev]
     calc R ^ 2 / R' - R'
         ≤ ‖↑R ^ 2 / conj ρ‖ - ‖z‖ := by
@@ -2038,7 +2038,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
                       integrableOn_Ioi_rpow_of_lt (by norm_num) (by linarith)
                     norm_num [div_eq_mul_inv] at *
                     exact MeasureTheory.Integrable.const_mul (h_integrable.congr_fun
-                      (fun x hx ↦ by rw [Real.rpow_neg (by linarith [hx.out])])
+                      (fun x hx ↦ by simp only [neg_div]; rw [Real.rpow_neg (by linarith [hx.out])])
                       measurableSet_Ioi) _
                   refine h_integrable.mono' ?_ ?_
                   · refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioi
@@ -2070,7 +2070,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
     refine ⟨by positivity, fun {ε X T} hε hX hT ↦ ?_⟩
     simp_all [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm]
     ring_nf at *
-    convert mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
+    convert! mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
       (show (0 : ℝ) ≤ Real.pi⁻¹ * (1 / 2) by positivity) using 1
     · simp only [I1New, SmoothedChebyshevIntegrand, norm_mul, norm_inv, Complex.norm_I,
         Complex.norm_two, mul_one, one_mul, one_div]
@@ -2379,7 +2379,7 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
                 ·   simp only [re_add_im]
                     have : (fun z ↦ -ζ' z / ζ z) = -(ζ' / ζ) := by ext; simp; ring
                     rw [this]; apply DifferentiableOn.neg; apply holoOn.mono
-                    apply diff_subset_diff_left; apply reProdIm_subset_iff'.mpr; left
+                    apply Set.sdiff_subset_sdiff_left; apply reProdIm_subset_iff'.mpr; left
                     simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
                         sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
                         div_self_mul_self', add_zero, sub_im, mul_im, zero_sub, add_im, one_im, inv_im,

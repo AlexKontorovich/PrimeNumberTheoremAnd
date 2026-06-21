@@ -64,11 +64,11 @@ private lemma neg_log_le_sqrt_two_div {x : ℝ} (hx : 0 < x) (hxle : x ≤ 1) :
       have hderiv : deriv g u = Real.exp u - u := by
         have hExp : HasDerivAt Real.exp (Real.exp u) u := Real.hasDerivAt_exp u
         have hpow2 : HasDerivAt (fun z : ℝ => z ^ 2) (2 * u) u := by
-          simpa using ((hasDerivAt_id u).pow 2)
+          simpa using! ((hasDerivAt_id u).pow 2)
         have hpow2_div : HasDerivAt (fun z : ℝ => z ^ 2 / 2) u u := by
           simpa using (hpow2.div_const (2 : ℝ))
         have hG : HasDerivAt g (Real.exp u - u) u := by
-          simpa [g] using hExp.sub hpow2_div
+          simpa [g] using! hExp.sub hpow2_div
         exact hG.deriv
       have hu_le : u ≤ Real.exp u := by
         have h1 : u + 1 ≤ Real.exp u := Real.add_one_le_exp u
@@ -604,8 +604,8 @@ lemma volume_Ioc_two_mul_diff_finset_ne_zero (bad : Finset ℝ) {R : ℝ} (hR : 
   have hdiff :
       (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R) \ (bad : Set ℝ))
         = (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) := by
-    simpa [Set.diff_eq, Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
-      (MeasureTheory.measure_diff_null (s := Set.Ioc R (2 * R)) (t := (bad : Set ℝ))
+    simpa [Set.sdiff_eq, Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
+      (MeasureTheory.measure_sdiff_null (s := Set.Ioc R (2 * R)) (t := (bad : Set ℝ))
         hbad_meas)
   simpa [hdiff] using volume_Ioc_two_mul_ne_zero hR
 

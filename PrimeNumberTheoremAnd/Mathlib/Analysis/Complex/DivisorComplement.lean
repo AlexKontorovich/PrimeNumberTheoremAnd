@@ -107,7 +107,7 @@ theorem differentiable_divisorPartialProduct (m : ℕ) (f : ℂ → ℂ)
   have hΦ : ∀ p ∈ s, Differentiable ℂ (Φ p) := by
     intro p _hp
     exact differentiable_weierstrassFactor_divisorZeroIndex₀ m p
-  simpa [divisorPartialProduct, Φ] using
+  simpa [divisorPartialProduct, Φ] using!
     (Differentiable.fun_finsetProd (𝕜 := ℂ) (f := Φ) (u := s) hΦ)
 
 theorem analyticAt_divisorPartialProduct (m : ℕ) (f : ℂ → ℂ)
@@ -284,7 +284,7 @@ theorem hasProdUniformlyOn_divisorComplementCanonicalProduct_univ
       have hcontE : Continuous (fun z : ℂ => weierstrassFactor m z) :=
         (differentiable_weierstrassFactor m).continuous
       have hdiv : Continuous fun z : ℂ => z / divisorZeroIndex₀_val p := by
-        simpa [div_eq_mul_inv] using (continuous_id.mul continuous_const)
+        simpa [div_eq_mul_inv] using! (continuous_id.mul continuous_const)
       have hcont : Continuous fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p) :=
         hcontE.comp hdiv
       have : ContinuousOn (fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p) - 1) K :=

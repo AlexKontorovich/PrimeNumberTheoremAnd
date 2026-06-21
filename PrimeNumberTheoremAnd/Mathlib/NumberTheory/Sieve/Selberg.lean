@@ -243,7 +243,7 @@ theorem weight_one_of_selberg : γ 1 = 1 := by
     cardFactors_one, _root_.pow_zero, Int.cast_one, selbergBoundingSum, one_mul,
     coprime_one_right_eq_true, and_true, cast_one]
   rw [inv_mul_cancel₀]
-  convert s.selbergBoundingSum_ne_zero
+  convert! s.selbergBoundingSum_ne_zero
 
 theorem selbergμPlus_eq_zero (d : ℕ) (hd : ¬d ≤ y) : μ⁺ d = 0 := by
   apply lambdaSquared_eq_zero_of_support _ y _ d hd
@@ -416,8 +416,7 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
         (s.selberg_bound_weights d2)
     rw [if_neg h, if_neg h]
   · rw [← Finset.sum_product']
-  · dsimp only
-    rw [← sum_filter, Finset.sum_const, smul_one_eq_cast]
+  · rw [← sum_filter, Finset.sum_const, smul_one_eq_cast]
   · norm_cast
     simp [← card_pair_lcm_eq (squarefree_of_mem_divisors_prodPrimes hn), eq_comm]
   norm_num
