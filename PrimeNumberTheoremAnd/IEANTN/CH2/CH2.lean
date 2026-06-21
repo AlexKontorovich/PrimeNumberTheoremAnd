@@ -2719,7 +2719,7 @@ theorem norm_Phi_lambda_one_add_I_mul_le_of_neg (lam ε y : ℝ) (hlam : lam < 0
     rw [show -(1 + I * ↑y) = -1 - I * ↑y by ring]
     rw [show Phi_circ |lam| ε (-1 - I * ↑y) + -Phi_star |lam| ε (-1 - I * ↑y) =
         Phi_circ |lam| ε (-1 - I * ↑y) - Phi_star |lam| ε (-1 - I * ↑y) by ring]
-    convert shift_downwards_phi_diff |lam| ε hν y hpole using 2
+    convert shift_downwards_phi_diff |lam| ε hν y hpole using 3
     ring
   rw [hphi, norm_neg]
   exact (norm_Phi_star_neg_I_mul_le |lam| ε y hε).trans_eq (abs_of_nonneg hy)
@@ -3090,7 +3090,7 @@ private lemma isBoundedNoPolesOn_Phi_lambda_mul (l : LadderParams) {F : ℂ → 
       have h := (hMwh z hz).1
       change ‖l.zOf z * F z * (x₀ : ℂ) ^ z‖ ≤ Mwh at h
       rwa [mul_assoc, norm_mul] at h
-    show ‖Phi_lambda lam ε (l.zOf z) * F z * (x₀ : ℂ) ^ z‖ ≤ |Cl| * Mwh + |Cl| * Mh
+    change ‖Phi_lambda lam ε (l.zOf z) * F z * (x₀ : ℂ) ^ z‖ ≤ |Cl| * Mwh + |Cl| * Mh
     rw [mul_assoc]
     exact norm_mul_le_of_linear_growth (hCl (l.zOf z) (l.zOf_im_nonneg (hS hz).1))
       (hMh z hz).1 hwh_z

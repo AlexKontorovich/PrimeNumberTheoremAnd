@@ -744,7 +744,7 @@ theorem bernsteinApproximation_monotone (n : ℕ) (f : C(I, ℝ)) (hf : Monotone
     Monotone (bernsteinApproximation n f) := by
   intro x y hxy
   simp only [bernsteinApproximation, smul_eq_mul, ContinuousMap.coe_sum, ContinuousMap.coe_mul,
-    ContinuousMap.coe_const, _root_.sum_apply, Pi.mul_apply, Function.const_apply]
+    ContinuousMap.coe_const]
   have hmono : ∀ i j : Fin (n + 1), i ≤ j → f (bernstein.z i) ≤ f (bernstein.z j) :=
     fun i j hij ↦ hf <| Subtype.mk_le_mk.mpr <| by simpa [bernstein.z] using by gcongr; aesop
   have hsum : ∑ i : Fin (n + 1), ∑ j : Fin (n + 1),
@@ -821,7 +821,7 @@ theorem bernsteinApproximation_monotone (n : ℕ) (f : C(I, ℝ)) (hf : Monotone
     one_mul, sub_neg]
   simp_all only [← mul_assoc, ← sum_comm, ← sum_mul, ← Finset.mul_sum _ _ _, bernstein.probability,
     mul_one]
-  simp only [ContinuousMap.coe_sum, ContinuousMap.coe_mul, ContinuousMap.coe_const,
+  simp only [
     Finset.sum_apply, Pi.mul_apply, Function.const_apply, mul_comm] at hsum
   linarith
 
@@ -2569,7 +2569,8 @@ lemma cosine_integral_by_parts_cpow {a b : ℝ} (ha : 0 < a) (hab : a < b)
         simpa [u, Set.uIcc_of_le hab.le] using
           (Complex.continuousOn_ofReal_cpow (r := -s) (a := a) (b := b) ha))
       (by
-        simp [v, Set.uIcc_of_le hab.le]
+        simp only [ofReal_sin, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
+          Set.uIcc_of_le hab.le, v]
         fun_prop)
       (by
         intro x hx
@@ -2591,7 +2592,8 @@ lemma cosine_integral_by_parts_cpow {a b : ℝ} (ha : 0 < a) (hab : a < b)
         exact hcont.intervalIntegrable)
       (by
         apply ContinuousOn.intervalIntegrable
-        simp [v', Set.uIcc_of_le hab.le]
+        simp only [ofReal_cos, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
+          Set.uIcc_of_le hab.le, v']
         fun_prop)
   have h_lhs :
       ∫ y in a..b, u y * v' y =
@@ -2809,7 +2811,8 @@ lemma deriv_kernel_integral_by_parts_cpow {a b : ℝ} (ha : 0 < a) (hab : a < b)
         simpa [u, Set.uIcc_of_le hab.le] using
           (Complex.continuousOn_deriv_ofReal_cpow_neg (s := s) (a := a) (b := b) ha))
       (by
-        simp [v, Set.uIcc_of_le hab.le]
+        simp only [ofReal_cos, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
+          Set.uIcc_of_le hab.le, v]
         fun_prop)
       (by
         intro x hx
@@ -2825,7 +2828,8 @@ lemma deriv_kernel_integral_by_parts_cpow {a b : ℝ} (ha : 0 < a) (hab : a < b)
         exact hcont.intervalIntegrable)
       (by
         apply ContinuousOn.intervalIntegrable
-        simp [v', Set.uIcc_of_le hab.le]
+        simp only [ofReal_sin, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one,
+          Set.uIcc_of_le hab.le, v']
         fun_prop)
   simpa [u, v, u', v'] using h_ibp
 
@@ -2955,7 +2959,7 @@ lemma hasSum_second_ibp_integral_series {a b : ℝ} (ha : 0 < a) (hab : a < b)
     refine ContinuousOn.aestronglyMeasurable_of_subset_isCompact ?_
       isCompact_uIcc measurableSet_uIoc Set.uIoc_subset_uIcc
     refine hH_cont.mul ?_
-    simp [W]
+    simp only [ofReal_cos, ofReal_mul, ofReal_ofNat, ofReal_add, ofReal_natCast, ofReal_one, W]
     fun_prop
   · intro n
     filter_upwards with y hy
@@ -3061,7 +3065,8 @@ lemma continuous_bernoulli2_primitive :
         (((-(Int.fract y ^ 2 - Int.fract y + 1 / 6) / 2) : ℝ) : ℂ)) := by
   let p : ℝ → ℂ := fun x ↦ (((-(x ^ 2 - x + 1 / 6) / 2) : ℝ) : ℂ)
   have hp_cont : ContinuousOn p (Set.Icc (0 : ℝ) 1) := by
-    simp [p]
+    simp only [one_div, neg_add_rev, neg_sub, ofReal_div, ofReal_add, ofReal_neg, ofReal_inv,
+      ofReal_ofNat, ofReal_sub, ofReal_pow, p]
     fun_prop
   have hp_end : p 0 = p 1 := by
     norm_num [p]
@@ -3076,7 +3081,7 @@ lemma intervalIntegrable_B1_complex {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     change deriv Complex.ofReal t * ↑(B1 t) = ↑(B1 t)
     rw [Complex.deriv_ofReal]
     simp
-  · simp [Set.uIcc_of_le hab]
+  · simp only [_root_.deriv_ofReal, Set.uIcc_of_le hab]
     fun_prop
 
 lemma second_ibp_limit_eq_neg_B1_integral_on_unit {u v : ℝ}

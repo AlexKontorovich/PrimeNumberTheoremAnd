@@ -356,7 +356,7 @@ private lemma prop_2_3_fourier_integral_ici_eq
       rw [show (∫ v in Set.Ici (-log x / (2 * π)), (T : ℂ) * 𝓕 φ (T * v)) =
           (T : ℂ) * ∫ v in Set.Ici (-log x / (2 * π)), 𝓕 φ (T * v) from
         MeasureTheory.integral_const_mul _ _, setIntegral_Ici_const_mul hT]
-      congr 2; ring
+      congr 4; ring
     _ = (2 * π : ℂ) * ((∫ y, 𝓕 φ y) - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ y) := by
       congr 1
       rw [← MeasureTheory.setIntegral_univ, MeasureTheory.setIntegral_univ]

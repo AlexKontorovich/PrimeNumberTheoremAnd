@@ -2038,7 +2038,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
                       integrableOn_Ioi_rpow_of_lt (by norm_num) (by linarith)
                     norm_num [div_eq_mul_inv] at *
                     exact MeasureTheory.Integrable.const_mul (h_integrable.congr_fun
-                      (fun x hx ↦ by simp only [neg_div]; rw [Real.rpow_neg (by linarith [hx.out])])
+                      (fun x hx ↦ by simp only []; rw [Real.rpow_neg (by linarith [hx.out])])
                       measurableSet_Ioi) _
                   refine h_integrable.mono' ?_ ?_
                   · refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioi

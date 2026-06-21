@@ -599,7 +599,7 @@ theorem E₁Λ.bounded' : ∃ c > 0, ∀ x ≥ 1, |E₁Λ x| ≤ c := by
   (discussion := 1309)]
 theorem E₁Λ.bounded : E₁Λ =O[atTop] (fun _ ↦ (1:ℝ)) := by
   simp only [isBigO_iff, norm_eq_abs, norm_one, mul_one,
-    eventually_atTop, ge_iff_le]
+    eventually_atTop]
   exact ⟨log 4 + 4, 1, fun _ hx ↦ sum_mangoldt_div_eq_log hx⟩
 
 theorem one_eq_o_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log x) := by
@@ -901,7 +901,7 @@ theorem E₁p.bounded : ∃ c > 0, ∀ x ≥ 1, |E₁p x| ≤ c := by
   "Mertens-first-theorem-prime-bounded"]
 theorem sum_log_prime_div_eq_log' : E₁p =O[atTop] (fun _ ↦ (1:ℝ)) := by
     simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
-      eventually_atTop, ge_iff_le, E₁p]
+      eventually_atTop, E₁p]
     exact ⟨ log 4 + 4, 1, fun _ ↦ sum_log_prime_div_eq_log ⟩
 
 @[blueprint
@@ -1999,7 +1999,7 @@ theorem sum_mangoldt_div_log_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
   "Mertens-second-theorem-mangoldt-weak"]
 theorem sum_mangoldt_div_log_eq_log_log' : (fun x ↦ ∑ d ∈ Ioc 0 ⌊ x ⌋₊, (Λ d) / (d * log d) - log (log x)) =O[atTop] (fun _ ↦ (1:ℝ)) := by
     simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
-      eventually_atTop, ge_iff_le]
+      eventually_atTop]
     obtain ⟨ C, _ ⟩ := sum_mangoldt_div_log_eq_log_log
     use C, 2
 
@@ -2150,7 +2150,7 @@ theorem E₂p.abs_le {x : ℝ} (hx : 2 ≤ x) :
 @[blueprint
   "Mertens-second-error-prime-abs-le"]
 theorem E₂p.bound : E₂p =O[atTop] (fun x ↦ 1 / log x) := by
-    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop, ge_iff_le]
+    simp only [one_div, isBigO_iff, norm_eq_abs, norm_inv, eventually_atTop]
     use log 4 + 6 + E₁, 2
     intro x hx
     convert E₂p.abs_le hx using 1
@@ -2187,7 +2187,7 @@ theorem sum_prime_div_eq_log_log : ∃ C, ∀ x, 2 ≤ x →
   "Mertens-second-theorem-prime-weak"]
 theorem sum_prime_div_eq_log_log' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with p.Prime, (1:ℝ) / p - log (log x)) =O[atTop] (fun _ ↦ (1:ℝ)) := by
     simp only [isBigO_iff, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
-      eventually_atTop, ge_iff_le]
+      eventually_atTop]
     obtain ⟨ C, hC ⟩ := sum_prime_div_eq_log_log
     use C, 2
 
@@ -2449,7 +2449,7 @@ theorem E₃.abs_le : ∃ C, ∀ x, 2 ≤ x → |E₃ x| ≤ C / log x := by
 @[blueprint
   "Mertens-third-theorem-error-le"]
 theorem E₃.bound : E₃ =O[atTop] (fun x ↦ 1 / log x) := by
-    simp only [isBigO_iff, norm_eq_abs, eventually_atTop, ge_iff_le]
+    simp only [isBigO_iff, norm_eq_abs, eventually_atTop]
     obtain ⟨ C, hC ⟩ := E₃.abs_le
     use C, 2
     convert hC using 3 with x hx
@@ -2467,7 +2467,7 @@ theorem E₃.bound'' : (fun x ↦ ∏ p ∈ Ioc 0 ⌊ x ⌋₊ with p.Prime, (1 
    rw [isEquivalent_iff_tendsto_one]
    · convert Tendsto.congr' ?_ (Tendsto.rexp ((isLittleO_one_iff ℝ).mp E₃.bound')) using 2 with x
      · simp
-     simp only [EventuallyEq.iff_eventually, Pi.div_apply, eventually_atTop, ge_iff_le]; use 2; intro x hx
+     simp only [EventuallyEq.iff_eventually, Pi.div_apply, eventually_atTop]; use 2; intro x hx
      rw [prod_one_minus_div_prime_eq (by linarith)]
      have : 0 < log x := by apply log_pos; linarith
      field_simp
