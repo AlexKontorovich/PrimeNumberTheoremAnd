@@ -1040,14 +1040,14 @@ private lemma BKLNW_a1_nonneg (t : ℝ) (ht : t ≥ 1000) : 0 ≤ BKLNW.a₁ t :
   unfold BKLNW.a₁ BKLNW.Inputs.a₁ BKLNW.Inputs.default BKLNW.Pre_inputs.default
   by_cases hif : t ≤ 2 * Real.log (1e19 : ℝ)
   · simp [hif]
-    have hx1_nonneg : 0 ≤ Real.log (1e19 : ℝ) := Real.log_nonneg (by norm_num)
+    have hx1_pos : 0 < Real.log (1e19 : ℝ) := Real.log_pos (by norm_num)
     have hε : 0 ≤ BKLNW_app.table_8_ε (Real.log (1e19 : ℝ)) :=
-      BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Pre_inputs.default hx1_nonneg
+      BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Pre_inputs.default hx1_pos
     linarith
   · simp [hif]
-    have hhalf_nonneg : 0 ≤ t / 2 := by linarith
+    have hhalf_pos : 0 < t / 2 := by linarith
     have hε : 0 ≤ BKLNW_app.table_8_ε (t / 2) :=
-      BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Pre_inputs.default hhalf_nonneg
+      BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Pre_inputs.default hhalf_pos
     linarith
 
 private lemma BKLNW_a2_nonneg (t : ℝ) : 0 ≤ BKLNW.a₂ t := by
@@ -1262,10 +1262,11 @@ theorem proposition_13
     linarith)
   have ha₁_nonneg : 0 ≤ BKLNW.a₁ (log x₀) := by
     unfold BKLNW.a₁ BKLNW.Inputs.a₁; split_ifs
-    · have hx₁_ge_one : 1 ≤ BKLNW.Inputs.default.x₁ := (one_le_exp (by positivity)).trans BKLNW.Inputs.default.hx₁
-      have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (Real.log_nonneg hx₁_ge_one)
+    · have hx₁_gt_one : 1 < BKLNW.Inputs.default.x₁ :=
+        (one_lt_exp_iff.2 (by norm_num)).trans_le BKLNW.Inputs.default.hx₁
+      have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (Real.log_pos hx₁_gt_one)
       linarith
-    · have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (by linarith : 0 ≤ log x₀ / 2)
+    · have hε := BKLNW.Pre_inputs.epsilon_nonneg BKLNW.Inputs.default.toPre_inputs (by linarith : 0 < log x₀ / 2)
       linarith
   have ha₂_nonneg : 0 ≤ BKLNW.a₂ (log x₀) := by
     unfold BKLNW.a₂ BKLNW.Inputs.a₂
@@ -4158,9 +4159,9 @@ theorem corollary_21
     unfold BKLNW.Inputs.a₁
     split_ifs
     · have : 0 < log BKLNW.Inputs.default.x₁ := by linarith [BKLNW.Inputs.default.hx₁]
-      linarith [BKLNW.Inputs.default.epsilon_nonneg this.le]
+      linarith [BKLNW.Inputs.default.epsilon_nonneg this]
     · have : 0 < log x₀ / 2 := by linarith
-      linarith [BKLNW.Inputs.default.epsilon_nonneg this.le]
+      linarith [BKLNW.Inputs.default.epsilon_nonneg this]
   have hBKLNW2pos : BKLNW.a₂ (log x₀) ≥ 0 := by
     simp only [BKLNW.a₂]
     unfold BKLNW.Inputs.a₂

@@ -1177,7 +1177,7 @@ when formalizing this result.
   using Theorem \ref{bklnw-thm-13}.
   For $b > 25000$ we use
   Theorem \ref{bklnw-thm-14}. -/)]
-theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
+theorem theorem_2 : ∀ b > 0, ∀ x ≥ exp b,
     |ψ x - x| ≤ table_8_ε b * x := by
   sorry
 
@@ -1212,7 +1212,7 @@ theorem bklnw_cor_15_1' (b : ℝ)
       grw [Eψ,
         div_le_iff₀
           (lt_of_lt_of_le (by positivity) hx),
-        theorem_2 b₀ hb₀.le x hx]) x hx]
+        theorem_2 b₀ hb₀ x hx]) x hx]
   apply max_le_max_left
   suffices 43 < 19 * Real.log 10 ∧
       19 * Real.log 10 < 44 by
