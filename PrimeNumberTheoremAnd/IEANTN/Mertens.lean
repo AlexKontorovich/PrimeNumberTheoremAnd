@@ -1242,20 +1242,25 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
 
 end SecondTheorem
 
+theorem log_zeta_eq_sum' {s : ℝ} (hs : 1 < s) :
+    log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := calc
+  _ = ∑' p : Nat.Primes, -log (1 - p ^ (-s)) := by
+    have hpow_le (p : Nat.Primes) : (↑p : ℝ) ^ (-s) < 1 :=
+      rpow_lt_one_of_one_lt_of_neg (mod_cast p.property.one_lt) (by linarith)
+    rw [← riemannZeta_eulerProduct_exp_log (by simpa using hs)]
+    convert log_exp _
+    convert Complex.exp_ofReal_re _
+    push_cast
+    congr! with p
+    convert (Complex.ofReal_log _).symm
+    · push_cast; congr
+      rw [Complex.ofReal_cpow (by positivity)]
+      norm_cast
+    linarith [hpow_le p]
+  _ = _ := by
+    sorry
 
 
-@[blueprint
-  "log-zeta-eq-1"
-  (title := "Dirichlet series for $\\log \\zeta(s)$")
-  (statement := /-- If $s > 1$ then $\log\zeta(s) = - \log (s-1) + \Gamma'(1) + \gamma + (s-1) \int_1^\infty E_{2,\Lambda}(x) x^{-s}\ ds$.
--/)
-  (proof := /-- First use the fundamental theorem of calculus and decay of $\log \zeta(s)$ to write
-  $$ \log \zeta(s) = \int_s^\infty -\frac{\zeta'(u)}{\zeta(u)}\ du.$$
-  Then substitute in the known identity
-  $-\frac{\zeta'(u)}{\zeta(u)} = \sum_n \frac{\Lambda(n)}{n^u}$ and integrate term by term.
-  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1582)]
 theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
   have hsc : (1 : ℝ) < ((s : ℂ)).re := by simpa using hs
@@ -1579,41 +1584,14 @@ theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
 end LogZetaInteg
 end
 
-@[blueprint
-  "log-zeta-eq-2"
-  (title := "Integration by parts identity for $\\log \\zeta(s)$")
-  (statement := /-- If $s > 1$ then $\log\zeta(s) = (s-1) \int_1^\infty (\log \log x + \gamma + E_{2,\Lambda}(x)) x^{-s})\ dx$.
--/)
-  (proof := /-- Apply the preceding identity then integrate by parts.
-  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1583)]
 private theorem log_zeta_eq_integ (s : ℝ) (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = (s - 1) * ∫ x in .Ioi 1, (log (log x) + γ + E₂Λ x) * x^(-s) :=
   LogZetaInteg.log_zeta_eq_integ_aux s hs
 
-@[blueprint
-  "log-zeta-eq-3"
-  (title := "First integral identity")
-  (statement := /-- If $s > 1$ then $(s-1) \int_1^\infty \log \log x \cdot x^{-s}\ dx = -\log (s-1) + \Gamma'(1)$.
--/)
-  (proof := /-- Writing $t = \log x$, the LHS is $(s-1) \int_0^\infty \log t e^{-(s-1) t}\ dt$.  Now differentiate $\Gamma(z) = (s-1)^z \int_0^\infty t^{z-1} e^{-(s-1)t}\ dt$ in $z$ at $z=1$.
-  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1584)]
 private theorem mul_integ_log_log_eq (s : ℝ) (hs : 1 < s) :
     (s - 1) * ∫ x in .Ioi 1, log (log x) * x^(-s) = - log (s - 1) + deriv Gamma 1 :=
   mul_integ_log_log_eq_aux s hs
 
-@[blueprint
-  "log-zeta-eq-4"
-  (title := "Second integral identity")
-  (statement := /-- If $s > 1$ then $(s-1) \int_1^\infty \gamma \cdot x^{-s}\ dx = \gamma$.
--/)
-  (proof := /-- Apply the fundamental theorem of calculus.
-  -/)
-  (latexEnv := "sublemma")
-  (discussion := 1585)]
 private theorem mul_integ_gamma_eq (s) (hs : 1 < s) : (s - 1) * ∫ x in .Ioi 1, γ * x^(-s) = γ := by
   rw [MeasureTheory.integral_const_mul γ (· ^ (-s)), @integral_Ioi_rpow_of_lt (-s), one_rpow] <;>
     grind
