@@ -1172,23 +1172,23 @@ lemma ZetaFixedLowerBound (t : ℝ) :
 
 
 
-@[blueprint "riemannZeta01"
-  (title := "riemannZeta01")
+@[blueprint "riemannZeta1"
+  (title := "riemannZeta1")
   (statement := /--
     Let
-    $$\zeta_{01}(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
+    $$\zeta_1(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
   -/)]
-noncomputable def riemannZeta01 (s : ℂ) := 1 + 1 / (s - 1) - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)
+noncomputable def riemannZeta1 (s : ℂ) := 1 + 1 / (s - 1) - s * ∫ u in Ioi (1 : ℝ), (Int.fract u : ℝ) * (u : ℂ) ^ (-s - 1)
 
-local notation "ζ₀₁" => riemannZeta01
+local notation "ζ₁" => riemannZeta1
 
 
 
-@[blueprint "Zeta01AltFormula"
-  (title := "Zeta01AltFormula")
+@[blueprint "Zeta1AltFormula"
+  (title := "Zeta1AltFormula")
   (statement := /--
     We have that
-    $$\zeta_{01}(s)=\zeta_0(1,s)$$
+    $$\zeta_1(s)=\zeta_0(1,s)$$
     where $\zeta_0(1,s)$ comes from Definition \ref{riemannZeta0}.
   -/)
   (proof := /--
@@ -1196,15 +1196,15 @@ local notation "ζ₀₁" => riemannZeta01
     $$\zeta_0(1,s)=1+\frac{-1}{1-s}+\frac{-1}{2}+s\int_1^\infty\frac{\lfloor x\rfloor+1/2-x}{x^{s+1}}\,dx.$$
     With minor simplifications we have
     $$\zeta_0(1,s)=1+\frac{1}{s-1}-\frac{1}{2}+\frac{s}{2}\int_1^\infty x^{-s-1}\,dx-s\int_1^\infty\{x\}\,x^{-s-1}\,dx.$$
-    The first integral evaluates to $1/s$ (when $0<\mathfrak{R}s$), so this term when multiplied by the $s/2$ cancels with the $-1/2$. This exactly gives $\zeta_{01}$.
+    The first integral evaluates to $1/s$ (when $0<\mathfrak{R}s$), so this term when multiplied by the $s/2$ cancels with the $-1/2$. This exactly gives $\zeta_1$.
   -/)]
-lemma Zeta01AltFormula {s : ℂ} (hs : 0 < s.re) :
-    ζ₀₁ s = riemannZeta0 1 s := by
+lemma Zeta1AltFormula {s : ℂ} (hs : 0 < s.re) :
+    ζ₁ s = riemannZeta0 1 s := by
   have := Int.self_sub_floor (R := ℝ)
   have s_ne_zero : s ≠ 0 := by
     intro h; have : s.re = 0 := by simp only [h, zero_re]
     linarith
-  simp only [riemannZeta01, riemannZeta0, Finset.sum_range_succ, Finset.sum_range_zero, div_zero,
+  simp only [riemannZeta1, riemannZeta0, Finset.sum_range_succ, Finset.sum_range_zero, div_zero,
     CharP.cast_eq_zero, zero_add, cast_one, one_cpow, ne_eq, one_ne_zero, not_false_eq_true,
     div_self, Complex.zero_cpow s_ne_zero, zero_add, ← div_neg_eq_neg_div', neg_sub, Int.fract]
   rw [sub_eq_add_neg, ← mul_neg, ← MeasureTheory.integral_neg]
@@ -1239,15 +1239,15 @@ lemma Zeta01AltFormula {s : ℂ} (hs : 0 < s.re) :
   (title := "ZetaAltFormula")
   (statement := /--
     We have that
-    $$\zeta(s)=\zeta_{01}(s)$$
+    $$\zeta(s)=\zeta_1(s)$$
     for all $s\in S$ with $S=\{s\in\mathbb{C}:0<\mathfrak{R}s,\,s\neq 1\}$.
   -/)
   (proof := /--
-    This immediately follows from Lemmas \ref{Zeta01AltFormula} and \ref{Zeta0EqZeta}.
+    This immediately follows from Lemmas \ref{Zeta1AltFormula} and \ref{Zeta0EqZeta}.
   -/)]
 lemma ZetaAltFormula {s : ℂ} (hs : 0 < s.re) (hs' : s ≠ 1) :
-    ζ s = ζ₀₁ s:= by
-  rw [Zeta01AltFormula hs, ← Zeta0EqZeta zero_lt_one hs hs']
+    ζ s = ζ₁ s:= by
+  rw [Zeta1AltFormula hs, ← Zeta0EqZeta zero_lt_one hs hs']
 
 
 
