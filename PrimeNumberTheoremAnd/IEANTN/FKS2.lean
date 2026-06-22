@@ -4635,14 +4635,14 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   "fks2-corollary-23"
   (title := "FKS2 Corollary 23")
   (statement := /--
-  $A_\pi, B, C, x_0$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound for $E_\pi$ with
-  $R = 5.5666305$.
+  $A_\pi, B, C, \log(x_0)$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound
+  for $E_\pi$ with $R = 5.5666305$ and threshold $x_0 = \exp(\log(x_0))$.
   -/)
   (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks2-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$. -/)
   (latexEnv := "corollary")
   (discussion := 722)]
-theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
-    Eπ.classicalBound Aπ B C 5.5666305 x₀ := sorry
+theorem corollary_23 (Aπ B C log_x₀ : ℝ) (h : [Aπ, B, C, log_x₀] ∈ table6) :
+    Eπ.classicalBound Aπ B C 5.5666305 (exp log_x₀) := sorry
 
 noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   [ (fun x ↦ 2 * log x * x^(-(1:ℝ)/2), Set.Icc 1 57),
@@ -4714,7 +4714,7 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   \[
   |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
   \]
-  for all $x \geq 2$.
+  for all $x \geq e$ using the Table 6 row with $\log(x_0)=1$.
   -/)
   (proof := /-- We numerically verify that the inequality holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
   \[
@@ -4731,9 +4731,11 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   -/)
   (latexEnv := "corollary")
   (discussion := 723)]
-theorem corollary_26 : Eπ.bound 0.4298 2 := by
+theorem corollary_26 : Eπ.bound 0.4298 (exp 1.000) := by
   intro x hx
   have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
-  exact le_trans (h1 x (by linarith)) (admissible_bound_le_0826 x (by linarith))
+  have hx1 : x ≥ 1 := by
+    exact le_trans (Real.one_le_exp (by norm_num : (0 : ℝ) ≤ 1.000)) hx
+  exact le_trans (h1 x hx) (admissible_bound_le_0826 x hx1)
 
 end FKS2
