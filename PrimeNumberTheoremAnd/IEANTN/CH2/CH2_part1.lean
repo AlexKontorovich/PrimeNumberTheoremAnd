@@ -2,8 +2,10 @@ import Mathlib.Algebra.Order.Field.Pointwise
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Meromorphic
 import Mathlib.Data.Int.Star
 import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
@@ -1140,17 +1142,10 @@ In this section we construct extremal approximants to the truncated exponential 
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
 
-theorem sinh_add_pi_I (z : ℂ) : sinh (z + π * I) = -sinh z := by
-    simp [Complex.sinh_add, sinh_mul_I, cosh_mul_I]
-
-@[simp]
-theorem cosh_add_pi_I (z : ℂ) : cosh (z + π * I) = -cosh z := by
-    simp [Complex.cosh_add, cosh_mul_I, sinh_mul_I]
-
 theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh z := by
   have step (w : ℂ) : tanh (w + π * I) = tanh w := by
     rw [Complex.tanh_eq_sinh_div_cosh, Complex.tanh_eq_sinh_div_cosh,
-      sinh_add_pi_I, cosh_add_pi_I]; field_simp
+      sinh_add_pi_mul_I, cosh_add_pi_mul_I]; field_simp
   induction m using Int.induction_on with
   | zero => simp
   | succ n ih =>
@@ -1161,10 +1156,6 @@ theorem tanh_add_int_mul_pi_I (z : ℂ) (m : ℤ) : tanh (z + π * I * m) = tanh
     have h := step (z + π * I * (-n - 1))
     rw [show z + π * I * (-n - 1) + π * I = z + π * I * -n from by ring] at h
     rw [← h]; exact ih
-
-@[simp]
-public theorem tanh_add_pi_I (z : ℂ) : tanh (z + π * I) = tanh z := by
-  simp
 
 lemma coth_add_pi_mul_I (z : ℂ) : coth (z + π * I) = coth z := by
   simp [coth]
@@ -1183,26 +1174,14 @@ noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
   let w := -2 * π * I * z + (ν : ℂ)
   (1 / 2) * (coth (w / 2) + ε)
 
-attribute [fun_prop] MeromorphicAt.comp_analyticAt
-
 @[fun_prop]
 theorem analyticAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : AnalyticAt ℂ Complex.tanh z := by
   simpa [Complex.tanh_eq_sinh_div_cosh] using!
     (Complex.analyticAt_sinh.div Complex.analyticAt_cosh hz :
       AnalyticAt ℂ (fun z => Complex.sinh z / Complex.cosh z) z)
 
-@[fun_prop]
-theorem continuousAt_tanh (z : ℂ) (hz : Complex.cosh z ≠ 0) : ContinuousAt Complex.tanh z := by
-  exact (analyticAt_tanh z hz).continuousAt
-
 lemma _root_.Complex.cosh_ne_zero_of_sinh_zero {z : ℂ} (h : Complex.sinh z = 0) : Complex.cosh z ≠ 0 := by
   intro hc; have := Complex.cosh_sq_sub_sinh_sq z; simp [h, hc] at this
-
-
-
-
-@[fun_prop]
-theorem meromorphicAt_tanh (z : ℂ) : MeromorphicAt Complex.tanh z := by fun_prop [Complex.tanh]
 
 @[fun_prop]
 theorem meromorphicAt_coth (z : ℂ) : MeromorphicAt coth z := by fun_prop [CH2.coth]
@@ -1609,14 +1588,6 @@ noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
   -/)
   (proof := /-- This follows from the definition of $B^\pm$ and the fact that $B^\pm(0) = 1$. -/)]
 theorem Phi_star_zero (ν ε : ℝ) : Phi_star ν ε 0 = 0 := by simp [Phi_star]
-
-@[fun_prop]
-lemma meromorphic_tanh : Meromorphic Complex.tanh := fun z => meromorphicAt_tanh z
-
-lemma meromorphic_coth : Meromorphic coth := fun z => meromorphicAt_coth z
-
-lemma meromorphic_coth' : Meromorphic (fun s : ℂ => Complex.cosh s / Complex.sinh s) := by
-  intro z; apply MeromorphicAt.div <;> fun_prop
 
 lemma meromorphic_coth'' : Meromorphic (fun s : ℂ => Complex.cosh (s / 2) / Complex.sinh (s / 2)) := by
   intro z; apply MeromorphicAt.div <;> fun_prop
