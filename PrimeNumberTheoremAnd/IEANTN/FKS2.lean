@@ -4713,7 +4713,7 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   \[
   |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
   \]
-  for all $x \geq e$ using the Table 6 row with $\log(x_0)=1$.
+  for all $x \geq 2$.
   -/)
   (proof := /-- We numerically verify that the inequality holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
   \[
@@ -4730,11 +4730,13 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   -/)
   (latexEnv := "corollary")
   (discussion := 723)]
-theorem corollary_26 : Eπ.bound 0.4298 (exp 1.000) := by
+theorem corollary_26 : Eπ.bound 0.4298 2 := by
   intro x hx
-  have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
-  have hx1 : x ≥ 1 := by
-    exact le_trans (Real.one_le_exp (by norm_num : (0 : ℝ) ≤ 1.000)) hx
-  exact le_trans (h1 x hx) (admissible_bound_le_0826 x hx1)
+  by_cases hx_exp : x ≥ exp 1.000
+  · have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
+    have hx1 : x ≥ 1 := by linarith
+    exact le_trans (h1 x hx_exp) (admissible_bound_le_0826 x hx1)
+  · -- Source proof uses a separate numerical verification on the remaining range `2 ≤ x < e`.
+    sorry
 
 end FKS2
