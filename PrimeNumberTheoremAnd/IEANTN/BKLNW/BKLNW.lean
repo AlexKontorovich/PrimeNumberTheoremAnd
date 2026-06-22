@@ -1663,7 +1663,7 @@ private lemma exp_half_mem_Icc_of_exp_mem (k : ℕ) (v b : ℝ)
   have hexpb_ge_e2k : exp (2 * (k : ℝ)) ≤ exp b := le_of_max_le_right hb_lb
   have hbk : b ≥ 2 * (k : ℝ) := by
     have := Real.exp_le_exp.mp hexpb_ge_e2k
-    push_cast at this ⊢; linarith
+    linarith
   have hu_ge_100 : (100 : ℝ) ≤ u := by
     dsimp [u]
     rw [← Real.exp_log (by norm_num : (0:ℝ) < 100)]

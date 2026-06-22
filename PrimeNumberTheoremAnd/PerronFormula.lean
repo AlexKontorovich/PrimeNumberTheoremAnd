@@ -135,7 +135,7 @@ theorem tendsto_truncated_vertical_shift_with_simple_pole
         exact ⟨hσ.1, hσ.2⟩
       · rw [uIoo_of_lt (by linarith)]
         exact abs_lt.mp hTabs
-    · refine hf.mono (diff_subset_diff ?_ subset_rfl)
+    · refine hf.mono (sdiff_subset_sdiff ?_ subset_rfl)
       intro z hz
       rw [Rectangle] at hz
       simp only [sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
@@ -657,7 +657,7 @@ lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ �
     refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
       (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi
     have hy0 : (0 : ℝ) < y := (show (0 : ℝ) < 1 by norm_num).trans hy
-    show (y : ℝ) ^ (-2 : ℝ) = 1 / y ^ 2
+    change (y : ℝ) ^ (-2 : ℝ) = 1 / y ^ 2
     rw [eq_div_iff (pow_ne_zero 2 hy0.ne'), ← rpow_natCast y 2, ← rpow_add hy0]
     norm_num
 

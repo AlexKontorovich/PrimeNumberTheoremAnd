@@ -314,7 +314,7 @@ lemma dawson_eq_integral (z : ℝ) :
   rw [hsub, ← intervalIntegral.integral_const_mul]
   apply intervalIntegral.integral_congr
   intro u _
-  show exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
+  change exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
   rw [← Real.exp_add]
   congr 1
   ring
@@ -3751,17 +3751,17 @@ private lemma exists_Eθ_pos {x₁ : ℝ} : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := b
   have hθ_eq : theta a = theta b := by
     unfold theta;
     rw [ show ⌊a⌋₊ = N from ?_, show ⌊b⌋₊ = N from ?_ ];
-    · rw [ Nat.floor_eq_iff ] ; ring;
+    · rw [ Nat.floor_eq_iff ]
       · grind;
       · positivity;
     · exact Nat.floor_natCast _;
   by_cases ha : theta a = a;
-  · refine' ⟨ b, _, _ ⟩;
+  · refine ⟨ b, ?_, ?_ ⟩;
     · simp +zetaDelta at *;
       linarith [ Nat.lt_floor_add_one x₁ ];
-    · refine' div_pos ( abs_pos.mpr _ ) ( by positivity );
+    · refine div_pos ( abs_pos.mpr ?_ ) ( by positivity );
       grind +qlia;
-  · refine' ⟨ a, _, _ ⟩ <;> norm_num [ Eθ ];
+  · refine ⟨ a, ?_, ?_ ⟩ <;> norm_num [ Eθ ];
     · exact le_of_lt ( Nat.lt_of_floor_lt ( Nat.lt_succ_self _ ) );
     · exact div_pos ( abs_pos.mpr ( sub_ne_zero.mpr ha ) ) ( Nat.cast_pos.mpr ( Nat.succ_pos _ ) )
 
@@ -3802,16 +3802,18 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
       · exact le_trans ( Real.exp_one_lt_d9.le ) ( by norm_num; linarith [ le_max_right x₀ 14 ] );
       · linarith;
     refine le_trans h_key ?_;
-    refine' add_le_add ( add_le_add ( add_le_add h_bound _ ) _ ) _;
+    refine add_le_add ( add_le_add ( add_le_add h_bound ?_ ) ?_ ) ?_;
     · convert mul_le_mul_of_nonneg_right ( mul_le_mul_of_nonneg_right h_log_div_self_antitone ( show 0 ≤ x₀ / log x₀ by exact div_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) ) ) ( show 0 ≤ δ x₀ by exact delta_nonneg x₀ ) using 1 ; ring;
     · gcongr;
-      · refine' intervalIntegral.integral_nonneg _ _ <;> norm_num;
+      · refine intervalIntegral.integral_nonneg ?_ ?_ <;> norm_num;
         · linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ];
         · exact fun u hu₁ hu₂ => div_nonneg ( Eθ_nonneg u ( by linarith ) ) ( sq_nonneg _ );
       · exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_right x₀ 14 ] );
     · convert mul_le_mul_of_nonneg_left h_bound_integral_last ( show 0 ≤ log x / x by exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) using 1 ; ring;
-  by_cases hc : x₂ ≤ Real.toEReal ( x₁ * Real.log x₁ ) <;> simp_all +decide [ επ_num, μ_num ];
-  · have h63 := theorem_6_3 ( by linarith : 14 ≤ x₁ ) x₂.toReal ( by
+  by_cases hc : x₂ ≤ Real.toEReal ( x₁ * Real.log x₁ )
+  · simp_all +decide only [ge_iff_le, sup_le_iff, Fin.Iio_last_eq_map, Finset.sum_map,
+    Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, one_div, EReal.coe_mul, επ_num, μ_num, ↓reduceIte]
+    have h63 := theorem_6_3 ( by linarith : 14 ≤ x₁ ) x₂.toReal ( by
       cases x₂ <;> norm_num at *;
       · linarith;
       · exact absurd hc ( by exact ne_of_lt ( EReal.coe_lt_top _ ) ) ) x hx₁ ( by
@@ -3822,19 +3824,31 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
       · exact_mod_cast hc;
       · exact mul_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) );
     unfold μ_num_1; ring_nf at *;
-    by_cases h : εθ_num x₁ = 0 <;> simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ];
-    · have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+    by_cases h : εθ_num x₁ = 0
+    · simp_all +decide only [mul_comm, inv_pow, mul_assoc, mul_left_comm, zero_mul, mul_zero,
+      add_zero, zero_add, Finset.sum_sub_distrib, inv_zero, Fin.Iio_last_eq_map, Finset.sum_map,
+      Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, sub_self, ge_iff_le];
+      have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ;
+      simp_all +decide only [gt_iff_lt, Real.exp_log (by linarith : 0 < x₁), ge_iff_le] ;
       exact absurd ( this y hy₁ ) ( by norm_num [ h ] ; linarith );
-    · nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
+    · simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ]
+      nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
                     have := h_εθ_num ( Fin.last N );
                     rw [ h_b_end, Real.exp_log ( by linarith ) ] at this; exact le_trans ( Eθ_nonneg _ ( by linarith ) ) ( this _ le_rfl ) ; ) ( Ne.symm h ) ];
-  · have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁ ; simp_all +decide [ μ_num_2 ];
+  · simp_all +decide only [ge_iff_le, sup_le_iff, Fin.Iio_last_eq_map, Finset.sum_map,
+    Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, one_div, EReal.coe_mul, not_le, επ_num, μ_num]
+    have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁
+    simp_all +decide only [one_div, μ_num_2, Fin.Iio_last_eq_map, Finset.sum_map,
+      Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, ge_iff_le];
     have hεθpos : 0 < εθ_num x₁ := by
       have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) y; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
       linarith;
-    split_ifs <;> simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
-    · exact absurd ‹_› ( not_le_of_gt hc );
-    · norm_num [ mul_left_comm ( εθ_num x₁ ), mul_assoc, hεθpos.ne' ];
+    split_ifs
+    · simp_all +decide only [div_eq_mul_inv, mul_inv_rev, mul_comm, mul_left_comm, mul_assoc,
+      mul_add, mul_one, ge_iff_le];
+      exact absurd ‹_› ( not_le_of_gt hc );
+    · simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
+      norm_num [ mul_left_comm ( εθ_num x₁ ), mul_assoc, hεθpos.ne' ];
       nlinarith [ show 0 ≤ εθ_num x₁ by positivity ]
 
 @[blueprint
