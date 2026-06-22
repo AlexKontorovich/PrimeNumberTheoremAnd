@@ -27,12 +27,12 @@ We also assume a numerical verification $\theta(x) < x$ for $x \leq x_1$ for som
 
 structure Pre_inputs where
   ε : ℝ → ℝ
-  hε : ∀ b > 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
+  hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
   hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
 
-lemma Pre_inputs.epsilon_nonneg (I : Pre_inputs) {b : ℝ} (hb : 0 < b) : 0 ≤ I.ε b := by
+lemma Pre_inputs.epsilon_nonneg (I : Pre_inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by
   have := I.hε b hb (exp b) (by grind)
   grw [←abs_nonneg] at this
   apply nonneg_of_mul_nonneg_left this (by positivity)
@@ -79,10 +79,10 @@ noncomputable def Pre_inputs.default : Pre_inputs := {
   (latexEnv := "lemma")
   (discussion := 788)]
 theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) : θ x ≤ (1 + I.ε (log I.x₁)) * x := by
-  have hx₁_pos : 1 < I.x₁ := (one_lt_exp_iff.2 (by norm_num)).trans_le I.hx₁
+  have hx₁_pos : 1 ≤ I.x₁ := (one_le_exp (7).ofNat_nonneg).trans I.hx₁
   by_cases h : x ≤ I.x₁
-  · grw [I.hx₁' x ⟨hx, h⟩, ← I.epsilon_nonneg (Real.log_pos hx₁_pos), add_zero, one_mul]
-  · grw [add_mul, theta_le_psi, ← I.hε _ (Real.log_pos hx₁_pos)] <;> grind [exp_log]
+  · grw [I.hx₁' x ⟨hx, h⟩, ← I.epsilon_nonneg (Real.log_nonneg hx₁_pos), add_zero, one_mul]
+  · grw [add_mul, theta_le_psi, ← I.hε _ (Real.log_nonneg hx₁_pos)] <;> grind [exp_log]
 
 @[blueprint
   "bklnw-lemma-11b"
@@ -103,7 +103,7 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
     RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
   have hψ_fifth : ψ (x ^ (1 / 5 : ℝ)) < RS_prime.c₀ * x ^ (1 / 5 : ℝ) :=
     RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
-  have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by grind [I.hε b hb x hx]
+  have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by grind [I.hε b hb.le x hx]
   have hψ_upper : ψ x ≤ θ x + ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
     have hCP : ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
       simpa [one_div] using Chebyshev.psi_sub_theta_le_psi_add_psi_add_psi x
@@ -146,7 +146,7 @@ theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ e
   have hX₀' : X₀ > 1 := by linarith [add_one_le_exp 20]
   have hX₁' : X₁ > 1 := by linarith [add_one_le_exp 20]
   have h_psi_bounds : ψ x ≤ x * (1 + Pre_inputs.default.ε (log X₁)) := by
-    have := BKLNW_app.theorem_2 (log X₁) (log_pos hX₁') x (by rw [exp_log (by linarith)]; linarith)
+    have := BKLNW_app.theorem_2 (log X₁) (log_nonneg hX₁'.le) x (by rw [exp_log (by linarith)]; linarith)
     rw [mul_add, mul_one, abs_le] at *
     linarith!
   have h_theta_bounds : θ x ≥ (1 - Pre_inputs.default.ε (log X₀) -
@@ -652,12 +652,12 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hx : exp b ≤ x) :
     refine (I.hx₁' (x ^ (1 / 2 : ℝ)) ⟨hq, hp⟩).le.trans ?_
     nth_rw 1 [← one_mul (x ^ (1 / 2 : ℝ))]
     gcongr
-    linarith [I.epsilon_nonneg hb]
+    linarith [I.epsilon_nonneg hb.le]
   · calc
     _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
     _ ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
       have := (le_abs_self (ψ (x ^ (1 / 2 : ℝ)) - x ^ (1 / 2 : ℝ))).trans <|
-        I.hε (log I.x₁) hb (x ^ (1 / 2 : ℝ)) (exp_log (by linarith : 0 < I.x₁) ▸ hp).le
+        I.hε (log I.x₁) hb.le (x ^ (1 / 2 : ℝ)) (exp_log (by linarith : 0 < I.x₁) ▸ hp).le
       linarith
 
 @[blueprint
@@ -914,9 +914,9 @@ theorem cor_14_1 {A B C R x₀ : ℝ} (hB : B > 0) (hC : C ∈ Set.Ioc 0 (sqrt (
           unfold Inputs.a₁
           split_ifs
           · have : 0 < log Inputs.default.x₁ := by linarith [Inputs.default.hx₁]
-            linarith [Inputs.default.epsilon_nonneg this]
+            linarith [Inputs.default.epsilon_nonneg this.le]
           · have : 0 < x₀ / 2 := by linarith
-            linarith [Inputs.default.epsilon_nonneg this]
+            linarith [Inputs.default.epsilon_nonneg this.le]
       have ha₂_pos : a₂ x₀ ≥ 0 := by
         unfold a₂
         unfold Inputs.a₂
@@ -1302,10 +1302,10 @@ theorem bklnw_cor_8_1a (k : ℕ) (b b' : ℝ) (hk : 1 ≤ k ∧ k ≤ 5) (hb : b
   let a : ℕ → ℝ := fun ℓ ↦ if ℓ = 1 then Inputs.default.a₁ b else if ℓ = 2 then Inputs.default.a₂ b else 0
   have hb_ge_7 : b ≥ 7 := le_of_max_le_left hbk
   have hb_ge_2k : b ≥ 2 * (k : ℝ) := le_of_max_le_right hbk
-  have hx₁_gt_one : 1 < Inputs.default.x₁ :=
-    (one_lt_exp_iff.2 (by norm_num)).trans_le Inputs.default.hx₁
+  have hx₁_ge_one : 1 ≤ Inputs.default.x₁ :=
+    (one_le_exp (by positivity)).trans Inputs.default.hx₁
   have hε_nonneg_log_x₁ : 0 ≤ Inputs.default.ε (log Inputs.default.x₁) :=
-    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_pos hx₁_gt_one)
+    Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (log_nonneg hx₁_ge_one)
   have hε_nonneg_b_half : 0 ≤ Inputs.default.ε (b / 2) :=
     Pre_inputs.epsilon_nonneg Inputs.default.toPre_inputs (by positivity)
   have hα_pos : 0 < 1 + Inputs.default.α := by
