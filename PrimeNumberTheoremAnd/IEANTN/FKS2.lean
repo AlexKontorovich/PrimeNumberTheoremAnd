@@ -4704,6 +4704,83 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   simpa [one_div] using (Real.pow_rpow_inv_natCast (x := √(Real.log x) / (√11133261 / √2000000)) (n := 2) hnonneg (by decide))
 
 
+lemma corollary_26_gap {x : ℝ} (hx : 2 ≤ x) (hxe : ¬ x ≥ exp 1.000) : Eπ x ≤ 0.4298 := by
+  have hxlt : x < 3 := by
+    have hxlt_exp : x < exp 1.000 := lt_of_not_ge hxe
+    have hexp : exp (1.000 : ℝ) < 3 := by
+      rw [show (1.000 : ℝ) = 1 by norm_num]
+      exact Real.exp_one_lt_three
+    linarith
+  have hxpos : 0 < x := by linarith
+  have hlogpos : 0 < log x := log_pos (by linarith)
+  have hpi : pi x = 1 := by
+    have hfloor : ⌊x⌋₊ = 2 := by
+      rw [Nat.floor_eq_iff (by linarith : 0 ≤ x)]
+      constructor
+      · exact_mod_cast hx
+      · norm_num
+        exact hxlt
+    unfold pi
+    rw [hfloor]
+    norm_num [Nat.primeCounting, Nat.primeCounting']
+    decide
+  have hLi_nonneg : 0 ≤ Li x := by
+    unfold Li
+    apply intervalIntegral.integral_nonneg hx
+    intro t ht
+    have ht2 : 2 ≤ t := ht.1
+    have hlogt_pos : 0 < log t := log_pos (by linarith)
+    positivity
+  have hLi_le : Li x ≤ 2 := by
+    have hlog2 : 0 < log 2 := log_pos (by norm_num)
+    have hfint : IntervalIntegrable (fun t : ℝ => 1 / log t) volume 2 x := by
+      apply ContinuousOn.intervalIntegrable
+      intro t ht
+      rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
+      exact (ContinuousAt.div continuousAt_const (Real.continuousAt_log (by linarith [ht.1]))
+        (ne_of_gt (log_pos (by linarith [ht.1])))).continuousWithinAt
+    unfold Li
+    calc ∫ (t : ℝ) in 2..x, 1 / log t
+        ≤ ∫ (_t : ℝ) in 2..x, 1 / log 2 := by
+          apply intervalIntegral.integral_mono_on hx hfint intervalIntegral.intervalIntegrable_const
+          intro t ht
+          have ht2 : 2 ≤ t := ht.1
+          have hlogt : log 2 ≤ log t := log_le_log (by norm_num) ht2
+          exact one_div_le_one_div_of_le hlog2 hlogt
+      _ = (x - 2) * (1 / log 2) := by
+          rw [intervalIntegral.integral_const]
+          simp
+      _ ≤ 2 := by
+          have hxsub : x - 2 < 1 := by linarith
+          have hconst : 1 / log 2 < 2 := by
+            rw [one_div_lt hlog2 (by norm_num : (0 : ℝ) < 2)]
+            nlinarith [Real.log_two_gt_d9]
+          nlinarith
+  have habs : |pi x - Li x| ≤ 1 := by
+    rw [hpi, abs_le]
+    constructor <;> linarith
+  have hlog_div : log x / x ≤ 0.4298 := by
+    have hlog_le : log x ≤ x / exp 1 := by
+      have hpos : 0 < x / exp 1 := div_pos hxpos (exp_pos 1)
+      have h := Real.log_le_sub_one_of_pos hpos
+      rw [Real.log_div (ne_of_gt hxpos) (ne_of_gt (exp_pos 1)), Real.log_exp] at h
+      linarith
+    have hdiv : log x / x ≤ 1 / exp 1 := by
+      calc log x / x ≤ (x / exp 1) / x := by
+            exact div_le_div_of_nonneg_right hlog_le hxpos.le
+        _ = 1 / exp 1 := by field_simp [ne_of_gt hxpos, ne_of_gt (exp_pos 1)]
+    have hinv : 1 / exp 1 ≤ 0.4298 := by
+      rw [div_le_iff₀ (exp_pos 1)]
+      nlinarith [Real.exp_one_gt_d9]
+    exact le_trans hdiv hinv
+  have hlog_div_nonneg : 0 ≤ log x / x := div_nonneg hlogpos.le hxpos.le
+  calc Eπ x
+      = |pi x - Li x| * (log x / x) := by
+        unfold Eπ
+        field_simp [ne_of_gt hxpos, ne_of_gt hlogpos]
+    _ ≤ 1 * (log x / x) := mul_le_mul_of_nonneg_right habs hlog_div_nonneg
+    _ ≤ 0.4298 := by simpa using hlog_div
+
 
 @[blueprint
   "fks2-corollary-26"
@@ -4736,7 +4813,6 @@ theorem corollary_26 : Eπ.bound 0.4298 2 := by
   · have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
     have hx1 : x ≥ 1 := by linarith
     exact le_trans (h1 x hx_exp) (admissible_bound_le_0826 x hx1)
-  · -- Source proof uses a separate numerical verification on the remaining range `2 ≤ x < e`.
-    sorry
+  · exact corollary_26_gap hx hx_exp
 
 end FKS2
