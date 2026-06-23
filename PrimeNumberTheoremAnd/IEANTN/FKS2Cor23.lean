@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
+import PrimeNumberTheoremAnd.IEANTN.Buthe
 
 /-!
 # FKS2 Corollary 23 — per-row proofs
@@ -24,7 +25,7 @@ upstream of both — exactly as `corollary_22` lives in `Cor22Floor.lean`.
 -/
 
 namespace FKS2
-open Real Table4Ext
+open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp
 
 /-! ## Row 5 (`A=2.22, B=3/2, C=3/2`, threshold `exp 3`) -/
 
@@ -70,27 +71,6 @@ theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
         Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
       simp [Real.sqrt_eq_rpow]
     rw [hpow]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
-
-/-- Row-5 floor `[exp 3, e^10]`: `Eπ ≤` the row-5 curve on the sub-`e^10` range.
-
-**Trusted numerical boundary** (one `sorry`), analogous to
-`Table4Ext.allCells_trusted` (which covers `x ≥ e^10`): there is no tight
-sub-`e^10` `Eπ` envelope in the library, and the row-5 curve is too sharp here
-for the available bounds —
-* Buthe `theorem_2e/2f` give `Eπ ≤ (1.0452 + B(x))·(log x / x)` which sits below
-  the curve only for `x ≥ e^5` (`B(x) = (√x/log x)(1.95 + 3.9/log x + 19.5/log²x)`);
-* on `[e^3, e^5]` (`x ∈ [20, 148]`) every available bound (Buthe, and the `eq_30`
-  θ→π conversion whose fixed overhead alone exceeds the curve at `x = 20`) is too
-  loose, so this segment rests on the direct `π`/`Li` interpolation of
-  \cite[Lemmas 5.2, 5.3]{FKS} — the verification the Corollary 23 blueprint
-  proof itself invokes.
-
-TODO: shrink this trusted segment to `[e^3, e^5]` by discharging `[e^5, e^10]`
-via Buthe (`theorem_2e/2f` + `li.sub_Li`, `li.two_approx`), and ultimately to ∅
-by a direct `π`/`Li` interval certificate. -/
-theorem floor_row5 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
-    Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
-  sorry
 
 /-- `admissible_bound A (3/2) C R x` in terms of `s = √(log x)`:
 `= (A / R^{3/2}) · s³ · exp(−(C/√R)·s)`.  Reusable for tail domination. -/
@@ -190,6 +170,260 @@ theorem tail_row5 : ∀ x ≥ exp (20000:ℝ),
         mul_le_mul_of_nonneg_right hfinal hs3
     _ = 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
         ring
+
+/-! ## Row-5 floor `[e^5, e^10]` via Buthe (dyadic slab cover in `s = √(log x)`)
+
+The numerical-envelope route covers `x ≥ e^10`; for the floor we instead bound
+`Eπ x ≤ (B(x) + li 2)·(log x / x)` (Buthe `theorem_2e/2f`, `li.sub_Li`,
+`li.two_approx`) and dominate the row-5 curve by a dyadic slab cover in the
+variable `s = √(log x)` over `[√5, √10] ⊂ [2.236, 3.163]`. -/
+namespace FloorButhe
+
+def sqx (e : Expr) : Expr := Expr.mul e e
+def pow8 (e : Expr) : Expr := sqx (sqx (sqx e))
+def s2 : Expr := Expr.mul (Expr.var 0) (Expr.var 0)
+def s4 : Expr := Expr.mul s2 s2
+def s3 : Expr := Expr.mul s2 (Expr.var 0)
+def e2 : Expr := Expr.exp (Expr.mul (Expr.const (-1/16)) s2)
+
+def lhsE : Expr :=
+  Expr.add
+    (Expr.mul
+      (Expr.add (Expr.const (195/100))
+        (Expr.add (Expr.mul (Expr.const (39/10)) (Expr.inv s2))
+          (Expr.mul (Expr.const (195/10)) (Expr.inv s4))))
+      (pow8 e2))
+    (Expr.mul (Expr.const (10452/10000)) (Expr.mul s2 (sqx (pow8 e2))))
+
+def eR : Expr := Expr.exp (Expr.mul (Expr.const (-63577/800000)) (Expr.var 0))
+def rhsE : Expr := Expr.mul (Expr.const (169029/1000000)) (Expr.mul s3 (pow8 eR))
+
+def slabs : List IntervalRat :=
+  (List.range 19).map (fun (k : ℕ) => ⟨2236/1000 + (k:ℚ)*50/1000, 2236/1000 + ((k:ℚ)+1)*50/1000, by
+    have hk : (0:ℚ) ≤ (k:ℚ) := by exact_mod_cast Nat.zero_le k
+    linarith⟩)
+
+theorem slabs_checked : checkExprLeOnSlabsDyadic lhsE rhsE slabs (-50) 6 = true := by
+  native_decide
+
+theorem eval_lhsE (s : ℝ) :
+    Expr.eval (fun _ => s) lhsE
+      = (195/100 + (39/10) * (s*s)⁻¹ + (195/10) * ((s*s)*(s*s))⁻¹) * Real.exp (-(s*s)/2)
+        + (10452/10000) * (s*s) * Real.exp (-(s*s)) := by
+  have h8 : Real.exp (s^2 * (-1/16 : ℝ)) ^ 8 = Real.exp (s^2 * (-1/2 : ℝ)) := by
+    rw [← Real.exp_nat_mul]; congr 1; push_cast; ring
+  have h16 : Real.exp (s^2 * (-1/16 : ℝ)) ^ 16 = Real.exp (-s^2) := by
+    rw [← Real.exp_nat_mul]; congr 1; push_cast; ring
+  simp only [lhsE, pow8, sqx, s2, s4, e2, Expr.eval_add, Expr.eval_mul, Expr.eval_const,
+    Expr.eval_inv, Expr.eval_exp, Expr.eval_var]
+  push_cast
+  ring_nf
+  rw [h8, h16]
+
+theorem eval_rhsE (s : ℝ) :
+    Expr.eval (fun _ => s) rhsE
+      = (169029/1000000) * (s*s*s) * Real.exp (-(63577/100000) * s) := by
+  have h8 : Real.exp (s * (-63577/800000 : ℝ)) ^ 8 = Real.exp (s * (-63577/100000 : ℝ)) := by
+    rw [← Real.exp_nat_mul]; congr 1; push_cast; ring
+  simp only [rhsE, pow8, sqx, s3, s2, eR, Expr.eval_mul, Expr.eval_const,
+    Expr.eval_exp, Expr.eval_var]
+  push_cast
+  ring_nf
+  rw [h8]
+
+theorem support : ExprSupportedWithInv (Expr.sub lhsE rhsE) := by
+  simp only [Expr.sub, lhsE, rhsE, pow8, sqx, s2, s3, s4, e2, eR]
+  repeat constructor
+
+theorem slab_ineq : ∀ I ∈ slabs, ∀ s ∈ Set.Icc (I.lo : ℝ) I.hi,
+    Expr.eval (fun _ => s) lhsE ≤ Expr.eval (fun _ => s) rhsE :=
+  verify_expr_le_on_slabs_dyadic lhsE rhsE slabs (-50) 6 support (by norm_num) slabs_checked
+
+theorem cover (s : ℝ) (h : s ∈ Set.Icc (2.236 : ℝ) 3.163) :
+    ∃ I ∈ slabs, s ∈ Set.Icc (I.lo : ℝ) I.hi := by
+  obtain ⟨hlo, hhi⟩ := h
+  set k : ℕ := ⌊(s - 2.236) / 0.05⌋₊ with hk_def
+  have hsub_nn : (0:ℝ) ≤ (s - 2.236) / 0.05 := by
+    apply div_nonneg <;> linarith
+  have hk_lt : k < 19 := by
+    have hub : (s - 2.236) / 0.05 < 19 := by
+      rw [div_lt_iff₀ (by norm_num)]; linarith
+    rw [hk_def]
+    exact Nat.floor_lt hsub_nn |>.mpr (by exact_mod_cast hub)
+  refine ⟨⟨2236/1000 + (k:ℚ)*50/1000, 2236/1000 + ((k:ℚ)+1)*50/1000, by
+    have hknn : (0:ℚ) ≤ (k:ℚ) := by exact_mod_cast Nat.zero_le k
+    linarith⟩, ?_, ?_⟩
+  · rw [slabs, List.mem_map]
+    exact ⟨k, List.mem_range.mpr hk_lt, rfl⟩
+  · have hfloor_le : (k : ℝ) ≤ (s - 2.236) / 0.05 := by
+      have := Nat.floor_le hsub_nn
+      rwa [← hk_def] at this
+    have hlt_floor : (s - 2.236) / 0.05 < (k : ℝ) + 1 := by
+      have := Nat.lt_floor_add_one ((s - 2.236) / 0.05)
+      rwa [← hk_def] at this
+    constructor
+    · push_cast
+      rw [le_div_iff₀ (by norm_num)] at hfloor_le
+      norm_num
+      linarith [hfloor_le]
+    · push_cast
+      rw [div_lt_iff₀ (by norm_num)] at hlt_floor
+      norm_num
+      linarith [hlt_floor]
+
+theorem dyadic_floor (s : ℝ) (h : s ∈ Set.Icc (2.236 : ℝ) 3.163) :
+    Expr.eval (fun _ => s) lhsE ≤ Expr.eval (fun _ => s) rhsE := by
+  obtain ⟨I, hI, hmem⟩ := cover s h
+  exact slab_ineq I hI s hmem
+
+theorem rhsE_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
+    Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE
+      ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
+  have hLnn : (0:ℝ) ≤ Real.log x := le_trans (by norm_num) hL
+  rw [eval_rhsE, admissible_three_halves_eq 2.22 1.5 5.5666305 x hLnn (by norm_num)]
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hs_nn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
+  have hsss : s * s * s = s ^ 3 := by ring
+  have hsqrtR_lb : (2.359370:ℝ) ≤ Real.sqrt 5.5666305 := by
+    rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
+    exact Real.sqrt_le_sqrt (by norm_num)
+  have hsqrtR_ub : Real.sqrt 5.5666305 ≤ (2.359379:ℝ) := by
+    rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
+    exact Real.sqrt_le_sqrt (by norm_num)
+  have hsqrtR_pos : (0:ℝ) < Real.sqrt 5.5666305 := by positivity
+  have hR15_ub : (5.5666305:ℝ) ^ (1.5:ℝ) ≤ 13.1338 := by
+    have hpow : (5.5666305:ℝ) ^ (1.5:ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
+      rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
+        Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
+      simp [Real.sqrt_eq_rpow]
+    rw [hpow]; nlinarith [hsqrtR_ub, hsqrtR_pos]
+  have hR15_pos : (0:ℝ) < (5.5666305:ℝ) ^ (1.5:ℝ) := by positivity
+  have hcoeff : (169029/1000000:ℝ) ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) := by
+    have h1 : (169029/1000000:ℝ) ≤ 2.22 / 13.1338 := by norm_num
+    have h2 : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
+      div_le_div_of_nonneg_left (by norm_num) hR15_pos hR15_ub
+    linarith
+  have hCR : (1.5:ℝ) / Real.sqrt 5.5666305 ≤ 63577/100000 := by
+    rw [div_le_iff₀ hsqrtR_pos]; nlinarith [hsqrtR_lb]
+  have hexpRHS : Real.exp (-(63577/100000:ℝ) * s) ≤ Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
+    apply Real.exp_le_exp.mpr
+    have hCRs : (1.5 / Real.sqrt 5.5666305) * s ≤ (63577/100000) * s :=
+      mul_le_mul_of_nonneg_right hCR hs_nn
+    simp only [neg_mul]; linarith [hCRs]
+  have hs3 : (0:ℝ) ≤ s ^ 3 := by positivity
+  rw [hsss]
+  calc (169029/1000000:ℝ) * s ^ 3 * Real.exp (-(63577/100000) * s)
+      = ((169029/1000000:ℝ) * Real.exp (-(63577/100000) * s)) * s ^ 3 := by ring
+    _ ≤ ((2.22 / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s)) * s ^ 3 :=
+        mul_le_mul_of_nonneg_right
+          (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) (by positivity)) hs3
+    _ = 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
+        ring
+
+theorem Epi_le_evalLhsE (x : ℝ) (h5 : Real.exp 5 ≤ x) (h10 : x ≤ Real.exp 10) :
+    Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) lhsE := by
+  have he5 : (2:ℝ) ≤ Real.exp 5 := by
+    have := Real.add_one_le_exp (5:ℝ); linarith
+  have hx2 : (2:ℝ) ≤ x := le_trans he5 h5
+  have hxpos : (0:ℝ) < x := by linarith
+  have hLge5 : (5:ℝ) ≤ Real.log x := by
+    rw [← Real.log_exp 5]; exact Real.log_le_log (Real.exp_pos _) h5
+  have hLpos : (0:ℝ) < Real.log x := by linarith
+  have hLnn : (0:ℝ) ≤ Real.log x := le_of_lt hLpos
+  have hx19 : x ≤ 10 ^ 19 := by
+    have h2 : Real.exp 10 < (3:ℝ) ^ 10 := by
+      calc Real.exp 10 = Real.exp 1 ^ 10 := by rw [← Real.exp_nat_mul]; norm_num
+        _ < 3 ^ 10 := by
+            have h1 := Real.exp_one_lt_d9
+            have hlt : Real.exp 1 < 3 := by linarith
+            gcongr
+    have h3 : (3:ℝ) ^ 10 ≤ 10 ^ 19 := by norm_num
+    linarith [h10]
+  have h2e := Buthe.theorem_2e hx2 hx19
+  have h2f := Buthe.theorem_2f hx2 hx19
+  have hsub := li.sub_Li x hx2
+  have hli2 := li.two_approx
+  have hli2_le : li 2 ≤ 1.0452 := hli2.2
+  have hpiLi : pi x - Li x = li 2 - (li x - pi x) := by linarith [hsub]
+  have habs : |pi x - Li x| ≤ (li x - pi x) + li 2 := by
+    rw [hpiLi, abs_le]
+    constructor <;> linarith [h2f, hli2.1]
+  have hEpi_eq : Eπ x = |pi x - Li x| * (Real.log x / x) := by
+    unfold Eπ
+    rw [div_div_eq_mul_div, mul_div_assoc]
+  rw [hEpi_eq]
+  set B := Real.sqrt x / Real.log x * (1.95 + 3.9 / Real.log x + 19.5 / (Real.log x) ^ 2) with hB_def
+  have hfactor_nn : (0:ℝ) ≤ Real.log x / x := by positivity
+  have hstep1 : |pi x - Li x| * (Real.log x / x) ≤ (B + 1.0452) * (Real.log x / x) := by
+    apply mul_le_mul_of_nonneg_right _ hfactor_nn
+    calc |pi x - Li x| ≤ (li x - pi x) + li 2 := habs
+      _ ≤ B + 1.0452 := by
+          apply add_le_add
+          · rw [hB_def]; exact h2e
+          · exact hli2_le
+  refine le_trans hstep1 (le_of_eq ?_)
+  have hxne : x ≠ 0 := ne_of_gt hxpos
+  have hLne : Real.log x ≠ 0 := ne_of_gt hLpos
+  have hxinv : x⁻¹ = Real.exp (-(Real.log x)) := by
+    rw [Real.exp_neg, Real.exp_log hxpos]
+  have hsqrtx : Real.sqrt x = Real.exp (Real.log x / 2) := by
+    rw [← Real.exp_log (Real.sqrt_pos.mpr hxpos), Real.log_sqrt (le_of_lt hxpos)]
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hss : s * s = Real.log x := by rw [hs_def]; exact Real.mul_self_sqrt hLnn
+  rw [eval_lhsE, hss]
+  set L := Real.log x with hL_def
+  have hLx : L / x = L * Real.exp (-L) := by
+    rw [div_eq_mul_inv, hxinv]
+  have hsqrtxE2 : Real.sqrt x * Real.exp (-L) = Real.exp (-L / 2) := by
+    rw [hsqrtx, ← Real.exp_add]; congr 1; ring
+  rw [hB_def, hLx]
+  rw [show (Real.sqrt x / L * (1.95 + 3.9 / L + 19.5 / L ^ 2) + 1.0452) * (L * Real.exp (-L))
+      = (Real.sqrt x * Real.exp (-L)) * (1.95 + 3.9 / L + 19.5 / L ^ 2)
+        + 1.0452 * (L * Real.exp (-L)) by
+        field_simp]
+  rw [hsqrtxE2]
+  ring
+
+/-- Row-5 floor, Buthe segment `[e^5, e^10]`: `Eπ ≤` the row-5 curve, via the
+dyadic slab cover (`dyadic_floor`) + Buthe reconciliation (`Epi_le_evalLhsE`)
++ curve domination (`rhsE_le_rowcurve`). Bottoms out only at Buthe's accepted
+`theorem_2e/2f` and `li.two_approx`. -/
+theorem floor_buthe : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),
+    Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
+  intro x hx
+  obtain ⟨h5, h10⟩ := hx
+  have hxpos : (0:ℝ) < x := lt_of_lt_of_le (Real.exp_pos _) h5
+  have hLge5 : (5:ℝ) ≤ Real.log x := by
+    rw [← Real.log_exp 5]; exact Real.log_le_log (Real.exp_pos _) h5
+  have hLle10 : Real.log x ≤ 10 := by
+    rw [← Real.log_exp 10]; exact Real.log_le_log hxpos h10
+  have hs_mem : Real.sqrt (Real.log x) ∈ Set.Icc (2.236 : ℝ) 3.163 := by
+    constructor
+    · rw [show (2.236:ℝ) = Real.sqrt (2.236^2) from (Real.sqrt_sq (by norm_num)).symm]
+      exact Real.sqrt_le_sqrt (by nlinarith [hLge5])
+    · rw [show (3.163:ℝ) = Real.sqrt (3.163^2) from (Real.sqrt_sq (by norm_num)).symm]
+      exact Real.sqrt_le_sqrt (by nlinarith [hLle10])
+  calc Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) lhsE := Epi_le_evalLhsE x h5 h10
+    _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE := dyadic_floor _ hs_mem
+    _ ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := rhsE_le_rowcurve x hLge5
+
+end FloorButhe
+
+/-- Row-5 floor `[exp 3, e^10]`. Split at `e^5`:
+* `[e^5, e^10]`: proven via `FloorButhe.floor_buthe` (Buthe `2e/2f` + dyadic cover);
+* `[e^3, e^5]` (`x ∈ [20, 148]`): **trusted numerical boundary** — the direct
+  `π`/`Li` interpolation of \cite[Lemmas 5.2, 5.3]{FKS} that the blueprint proof
+  invokes; no tight sub-`e^10` `Eπ` envelope exists in the library (Buthe `2e` is
+  too loose below `e^5`, and the `eq_30` θ→π overhead exceeds the curve at `x=20`).
+  This `sorry` is the same class of accepted numerical-data trust as
+  `Table4Ext.allCells_trusted` (`x ≥ e^10`). -/
+theorem floor_row5 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
+    Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
+  intro x hx
+  obtain ⟨h3, h10⟩ := hx
+  by_cases h5 : Real.exp 5 ≤ x
+  · exact FloorButhe.floor_buthe x ⟨h5, h10⟩
+  · sorry
 
 /-- **Corollary 23, row 5** `(A=2.22, B=3/2, C=3/2, x₀=3)`. -/
 theorem corollary_23_row5 : Eπ.classicalBound 2.22 1.5 1.5 5.5666305 (exp 3) := by
