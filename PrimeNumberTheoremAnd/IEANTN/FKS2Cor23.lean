@@ -76,10 +76,104 @@ theorem floor_row5 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
     Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
   sorry
 
-/-- Row-5 tail `[e^20000, ∞)`: domination by the Corollary 22 curve. **WIP.** -/
+/-- `admissible_bound A (3/2) C R x` in terms of `s = √(log x)`:
+`= (A / R^{3/2}) · s³ · exp(−(C/√R)·s)`.  Reusable for tail domination. -/
+lemma admissible_three_halves_eq (A C R x : ℝ) (hL : 0 ≤ Real.log x) (hR : 0 < R) :
+    admissible_bound A 1.5 C R x
+      = (A / R ^ (1.5:ℝ)) * Real.sqrt (Real.log x) ^ 3
+        * Real.exp (-(C / Real.sqrt R) * Real.sqrt (Real.log x)) := by
+  unfold admissible_bound
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hs : s = Real.log x ^ ((1:ℝ)/2) := by rw [hs_def, Real.sqrt_eq_rpow]
+  have e1 : (Real.log x / R) ^ (1.5:ℝ) = s ^ 3 / R ^ (1.5:ℝ) := by
+    rw [Real.div_rpow hL hR.le]
+    congr 1
+    rw [hs, ← Real.rpow_natCast (Real.log x ^ ((1:ℝ)/2)) 3, ← Real.rpow_mul hL]
+    norm_num
+  have e2 : (Real.log x / R) ^ ((1:ℝ)/2) = s / Real.sqrt R := by
+    rw [Real.div_rpow hL hR.le, ← hs, Real.sqrt_eq_rpow R]
+  rw [e1, e2, show -C * (s / Real.sqrt R) = -(C / Real.sqrt R) * s by ring]
+  ring
+
+/-- Row-5 tail `[e^20000, ∞)`: `Eπ ≤` the row-5 curve, by domination of the
+(looser) Corollary 22 curve `Eπ ≤ 9.2211·…` (which crosses below the row-5 curve
+well before `e^20000`). -/
 theorem tail_row5 : ∀ x ≥ exp (20000:ℝ),
     Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
-  sorry
+  intro x hx
+  have he2 : (2:ℝ) ≤ Real.exp 20000 := by
+    have := Real.add_one_le_exp (20000:ℝ); linarith
+  have hx2 : (2:ℝ) ≤ x := le_trans he2 hx
+  have hcor := corollary_22 x hx2
+  refine le_trans hcor ?_
+  have hL : (20000:ℝ) ≤ Real.log x := by
+    rw [← Real.log_exp 20000]; exact Real.log_le_log (Real.exp_pos _) hx
+  have hLnn : (0:ℝ) ≤ Real.log x := le_trans (by norm_num) hL
+  rw [admissible_three_halves_eq 9.2211 0.8476 1 x hLnn (by norm_num),
+      admissible_three_halves_eq 2.22 1.5 5.5666305 x hLnn (by norm_num)]
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hs_nn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
+  have hs141 : (141:ℝ) ≤ s := by
+    rw [hs_def, show (141:ℝ) = Real.sqrt (141^2) from (Real.sqrt_sq (by norm_num)).symm]
+    exact Real.sqrt_le_sqrt (by nlinarith [hL])
+  have hsqrtR_lb : (2.359370:ℝ) ≤ Real.sqrt 5.5666305 := by
+    rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
+    exact Real.sqrt_le_sqrt (by norm_num)
+  have hsqrtR_ub : Real.sqrt 5.5666305 ≤ (2.359379:ℝ) := by
+    rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
+    exact Real.sqrt_le_sqrt (by norm_num)
+  have hsqrtR_pos : (0:ℝ) < Real.sqrt 5.5666305 := by positivity
+  have hR15_ub : (5.5666305:ℝ) ^ (1.5:ℝ) ≤ 13.1338 := by
+    have hpow : (5.5666305:ℝ) ^ (1.5:ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
+      rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
+        Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
+      simp [Real.sqrt_eq_rpow]
+    rw [hpow]; nlinarith [hsqrtR_ub, hsqrtR_pos]
+  have hR15_pos : (0:ℝ) < (5.5666305:ℝ) ^ (1.5:ℝ) := by positivity
+  have hcoeff : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
+    div_le_div_of_nonneg_left (by norm_num) hR15_pos hR15_ub
+  have hCR : (1.5:ℝ) / Real.sqrt 5.5666305 ≤ 0.63577 := by
+    rw [div_le_iff₀ hsqrtR_pos]; nlinarith [hsqrtR_lb]
+  have hexpRHS : Real.exp (-(0.63577:ℝ) * s) ≤ Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
+    apply Real.exp_le_exp.mpr
+    have hCRs : (1.5 / Real.sqrt 5.5666305) * s ≤ 0.63577 * s :=
+      mul_le_mul_of_nonneg_right hCR hs_nn
+    simp only [neg_mul]; linarith [hCRs]
+  have hexp4 : (54.598:ℝ) ≤ Real.exp 4 := by
+    have he : Real.exp 4 = (Real.exp 1) ^ (4:ℕ) := by rw [← Real.exp_nat_mul]; norm_num
+    rw [he]
+    calc (54.598:ℝ) ≤ (2.7182818283:ℝ) ^ (4:ℕ) := by norm_num
+      _ ≤ (Real.exp 1) ^ (4:ℕ) := by gcongr; exact Real.exp_one_gt_d9.le
+  have h4le : (4:ℝ) ≤ 0.21183 * s := by nlinarith [hs141]
+  have hexp_small : Real.exp (-(0.21183:ℝ) * s) ≤ Real.exp (-4) := by
+    apply Real.exp_le_exp.mpr; simp only [neg_mul]; linarith [h4le]
+  have hexp_neg4 : Real.exp (-(4:ℝ)) ≤ 1 / 54.598 := by
+    rw [Real.exp_neg, inv_eq_one_div]; exact one_div_le_one_div_of_le (by norm_num) hexp4
+  have hscalar : (9.2211:ℝ) * Real.exp (-(0.8476) * s)
+      ≤ (2.22 / 13.1338) * Real.exp (-(0.63577:ℝ) * s) := by
+    have hsplit : Real.exp (-(0.8476:ℝ) * s)
+        = Real.exp (-(0.21183:ℝ) * s) * Real.exp (-(0.63577:ℝ) * s) := by
+      rw [← Real.exp_add]; congr 1; ring
+    rw [hsplit,
+      show (9.2211:ℝ) * (Real.exp (-(0.21183) * s) * Real.exp (-(0.63577) * s))
+        = (9.2211 * Real.exp (-(0.21183) * s)) * Real.exp (-(0.63577) * s) by ring]
+    apply mul_le_mul_of_nonneg_right _ (Real.exp_nonneg _)
+    calc (9.2211:ℝ) * Real.exp (-(0.21183) * s)
+        ≤ 9.2211 * (1 / 54.598) :=
+          mul_le_mul_of_nonneg_left (le_trans hexp_small hexp_neg4) (by norm_num)
+      _ ≤ 2.22 / 13.1338 := by norm_num
+  have hfinal : (9.2211:ℝ) * Real.exp (-(0.8476) * s)
+      ≤ (2.22 / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) :=
+    le_trans hscalar (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) (by positivity))
+  have hs3 : (0:ℝ) ≤ s ^ 3 := by positivity
+  rw [show (1:ℝ) ^ (1.5:ℝ) = 1 by norm_num, Real.sqrt_one]
+  simp only [div_one]
+  calc (9.2211:ℝ) * s ^ 3 * Real.exp (-(0.8476) * s)
+      = (9.2211 * Real.exp (-(0.8476) * s)) * s ^ 3 := by ring
+    _ ≤ ((2.22 / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s)) * s ^ 3 :=
+        mul_le_mul_of_nonneg_right hfinal hs3
+    _ = 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
+        ring
 
 /-- **Corollary 23, row 5** `(A=2.22, B=3/2, C=3/2, x₀=3)`. -/
 theorem corollary_23_row5 : Eπ.classicalBound 2.22 1.5 1.5 5.5666305 (exp 3) := by
