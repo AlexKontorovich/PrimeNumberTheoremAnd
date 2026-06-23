@@ -27,6 +27,33 @@ upstream of both — exactly as `corollary_22` lives in `Cor22Floor.lean`.
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp
 
+/-! ## Shared `R = 5.5666305` numeric enclosures (used by every row-5 segment) -/
+
+/-- `√5.5666305 ≥ 2.359370`. -/
+lemma sqrtR5_lb : (2.359370 : ℝ) ≤ Real.sqrt 5.5666305 := by
+  rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
+  exact Real.sqrt_le_sqrt (by norm_num)
+
+/-- `√5.5666305 ≤ 2.359379`. -/
+lemma sqrtR5_ub : Real.sqrt 5.5666305 ≤ (2.359379 : ℝ) := by
+  rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
+  exact Real.sqrt_le_sqrt (by norm_num)
+
+lemma sqrtR5_pos : (0 : ℝ) < Real.sqrt 5.5666305 := by positivity
+
+/-- `R^{3/2} = R·√R` for `R = 5.5666305`. -/
+lemma R5_rpow_three_halves_eq :
+    (5.5666305 : ℝ) ^ (1.5 : ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
+  rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
+    Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
+  simp [Real.sqrt_eq_rpow]
+
+/-- `R^{3/2} ≤ 13.1338` for `R = 5.5666305`. -/
+lemma R5_rpow_three_halves_le : (5.5666305 : ℝ) ^ (1.5 : ℝ) ≤ 13.1338 := by
+  rw [R5_rpow_three_halves_eq]; nlinarith [sqrtR5_ub, sqrtR5_pos]
+
+lemma R5_rpow_three_halves_pos : (0 : ℝ) < (5.5666305 : ℝ) ^ (1.5 : ℝ) := by positivity
+
 /-! ## Row 5 (`A=2.22, B=3/2, C=3/2`, threshold `exp 3`) -/
 
 /-- Row-5 cell-check parameters: `k = 2B = 3`, `ĉ = 0.6358 ≥ C/√R = 0.635763`
@@ -50,12 +77,8 @@ theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
   obtain ⟨c, hcmem, hcx⟩ :=
     cover_of_chainOk allCells 10 allCells_ne_nil allCells_chain hx_lo hx_hi
   have hck : checkCellGen P5 c = true := List.all_eq_true.mp allCells_checked_row5 c hcmem
-  have hsqrtR_lb : (2.359370:ℝ) ≤ Real.sqrt 5.5666305 := by
-    rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
-  have hsqrtR_ub : Real.sqrt 5.5666305 ≤ (2.359379:ℝ) := by
-    rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
+  have hsqrtR_lb := sqrtR5_lb
+  have hsqrtR_ub := sqrtR5_ub
   refine cell_Epi_le_admissible_gen P5 2.22 1.5 1.5 5.5666305
     (by norm_num [P5]) (by norm_num) (by norm_num) (by norm_num) (by norm_num [P5])
     ?_ ?_ c hck (allCells_trusted c hcmem) x hcx
@@ -66,11 +89,7 @@ theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
   · -- hrB : R^{1.5} ≤ (P5.rB : ℝ) = 13.1338
     have hrhs : (((P5.rB : ℚ)):ℝ) = 131338/10000 := by norm_num [P5]
     rw [hrhs]
-    have hpow : (5.5666305:ℝ) ^ (1.5:ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
-      rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
-        Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
-      simp [Real.sqrt_eq_rpow]
-    rw [hpow]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
+    rw [R5_rpow_three_halves_eq]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
 
 /-- `admissible_bound A (3/2) C R x` in terms of `s = √(log x)`:
 `= (A / R^{3/2}) · s³ · exp(−(C/√R)·s)`.  Reusable for tail domination. -/
@@ -112,20 +131,11 @@ theorem tail_row5 : ∀ x ≥ exp (20000:ℝ),
   have hs141 : (141:ℝ) ≤ s := by
     rw [hs_def, show (141:ℝ) = Real.sqrt (141^2) from (Real.sqrt_sq (by norm_num)).symm]
     exact Real.sqrt_le_sqrt (by nlinarith [hL])
-  have hsqrtR_lb : (2.359370:ℝ) ≤ Real.sqrt 5.5666305 := by
-    rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
-  have hsqrtR_ub : Real.sqrt 5.5666305 ≤ (2.359379:ℝ) := by
-    rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
-  have hsqrtR_pos : (0:ℝ) < Real.sqrt 5.5666305 := by positivity
-  have hR15_ub : (5.5666305:ℝ) ^ (1.5:ℝ) ≤ 13.1338 := by
-    have hpow : (5.5666305:ℝ) ^ (1.5:ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
-      rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
-        Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
-      simp [Real.sqrt_eq_rpow]
-    rw [hpow]; nlinarith [hsqrtR_ub, hsqrtR_pos]
-  have hR15_pos : (0:ℝ) < (5.5666305:ℝ) ^ (1.5:ℝ) := by positivity
+  have hsqrtR_lb := sqrtR5_lb
+  have hsqrtR_ub := sqrtR5_ub
+  have hsqrtR_pos := sqrtR5_pos
+  have hR15_ub := R5_rpow_three_halves_le
+  have hR15_pos := R5_rpow_three_halves_pos
   have hcoeff : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
     div_le_div_of_nonneg_left (by norm_num) hR15_pos hR15_ub
   have hCR : (1.5:ℝ) / Real.sqrt 5.5666305 ≤ 0.63577 := by
@@ -284,20 +294,11 @@ theorem rhsE_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
   set s := Real.sqrt (Real.log x) with hs_def
   have hs_nn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
   have hsss : s * s * s = s ^ 3 := by ring
-  have hsqrtR_lb : (2.359370:ℝ) ≤ Real.sqrt 5.5666305 := by
-    rw [show (2.359370:ℝ) = Real.sqrt (2.359370^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
-  have hsqrtR_ub : Real.sqrt 5.5666305 ≤ (2.359379:ℝ) := by
-    rw [show (2.359379:ℝ) = Real.sqrt (2.359379^2) from (Real.sqrt_sq (by norm_num)).symm]
-    exact Real.sqrt_le_sqrt (by norm_num)
-  have hsqrtR_pos : (0:ℝ) < Real.sqrt 5.5666305 := by positivity
-  have hR15_ub : (5.5666305:ℝ) ^ (1.5:ℝ) ≤ 13.1338 := by
-    have hpow : (5.5666305:ℝ) ^ (1.5:ℝ) = 5.5666305 * Real.sqrt 5.5666305 := by
-      rw [show (1.5:ℝ) = 1 + 1/2 by norm_num,
-        Real.rpow_add (by norm_num : (0:ℝ) < 5.5666305), Real.rpow_one]
-      simp [Real.sqrt_eq_rpow]
-    rw [hpow]; nlinarith [hsqrtR_ub, hsqrtR_pos]
-  have hR15_pos : (0:ℝ) < (5.5666305:ℝ) ^ (1.5:ℝ) := by positivity
+  have hsqrtR_lb := sqrtR5_lb
+  have hsqrtR_ub := sqrtR5_ub
+  have hsqrtR_pos := sqrtR5_pos
+  have hR15_ub := R5_rpow_three_halves_le
+  have hR15_pos := R5_rpow_three_halves_pos
   have hcoeff : (169029/1000000:ℝ) ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) := by
     have h1 : (169029/1000000:ℝ) ≤ 2.22 / 13.1338 := by norm_num
     have h2 : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
