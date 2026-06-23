@@ -516,7 +516,7 @@ lemma Factorization.addFactor_submultiset_total_imbalance {n : ℕ} (f : Factori
       simp only [Multiset.card_cons, Multiset.count_cons]
       rw [ih (fun p hp ↦ hM p (Multiset.mem_cons_of_mem hp)), Finset.sum_add_distrib,
           Finset.sum_ite_eq' _ a, if_pos (hM a (Multiset.mem_cons_self a M))]
-  convert h_sum using 2
+  convert! h_sum using 2
   · simp only [total_imbalance]
     exact Finset.sum_congr rfl fun p hp ↦ congrArg Int.natAbs (h_bal p hp)
   · exact h_card_eq fun p hp ↦ by
@@ -735,10 +735,9 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
       (if f.balance q > 0 then (f.balance q : ℝ) * Real.log q
        else if q ≤ L then (-f.balance q) * Real.log L else (-f.balance q) * Real.log (n / q)) -
       Real.log (n / p) := by
-    rw [Finset.sum_eq_add_sum_diff_singleton_of_mem hp_mem, Finset.sum_eq_add_sum_diff_singleton_of_mem hp_mem]
+    rw [← Finset.add_sum_erase _ _ hp_mem, ← Finset.add_sum_erase _ _ hp_mem]
     have h_rest := Finset.sum_congr rfl fun x hx ↦
-      h_sum_q x (Finset.mem_sdiff.mp hx).1
-        (fun h ↦ (Finset.mem_sdiff.mp hx).2 (Finset.mem_singleton.mpr h))
+      h_sum_q x (Finset.mem_erase.mp hx).2 (Finset.mem_erase.mp hx).1
     linarith
   have h_penalty : (if f'.total_imbalance > 0 then Real.log n else 0) ≤
       (if f.total_imbalance > 0 then Real.log n else 0) := by
@@ -1350,7 +1349,7 @@ lemma Params.initial.sum_valuation_le (P : Params) (p : ℕ) :
     intro s t hst
     obtain ⟨u, rfl⟩ := Multiset.le_iff_exists_add.mp hst
     simp
-  convert h_sum_le h_subset using 1
+  convert! h_sum_le h_subset using 1
   simp [Multiset.bind]
 
 @[blueprint
@@ -2208,7 +2207,7 @@ private lemma Params.initial.score_bound_aux_imbalanced (P : Params)
           Real.log_le_log (by linarith) (div_le_self (by linarith) (by norm_cast; omega))
         calc -(↑(P.initial.balance x) * Real.log (↑n / ↑x))
             ≤ (M * Real.log n / Real.log 2) * Real.log n := by
-                      convert mul_le_mul hneg_bal hlog_np hlog_np_nn (by positivity) using 1
+                      convert! mul_le_mul hneg_bal hlog_np hlog_np_nn (by positivity) using 1
                       ring
           _ = M * Real.log n * Real.log n / Real.log 2 := by ring
   have hA4 : A4 ≤ RHS3 := by
@@ -2591,7 +2590,7 @@ lemma prod_one_sub_one_div_prime_tendsto_zero :
       have h_primes : ¬Summable (fun p : Nat.Primes ↦ (1 / p : ℝ)) := by
         convert Primes.not_summable_one_div
       contrapose! h_primes
-      convert h_primes.comp_injective (fun a b h ↦ Subtype.ext h) using 1
+      convert! h_primes.comp_injective (fun a b h ↦ Subtype.ext h) using 1
       ext ⟨p, hp⟩
       simp [hp]
     have h_diverge : Filter.Tendsto
@@ -2856,7 +2855,7 @@ lemma tendsto_primeCounting_div_id_zero :
         Real.sqrt n / n + (2 * Real.log 4) / Real.log n := by
     intro n hn
     rw [div_le_iff₀ (by positivity)]
-    convert primeCounting_le_bound n hn using 1
+    convert! primeCounting_le_bound n hn using 1
     · ring_nf; norm_num [show n ≠ 0 by positivity]
   have h_tendsto : Filter.Tendsto
       (fun n : ℕ ↦ .sqrt n / n + (2 * Real.log 4) / Real.log n)
@@ -2901,7 +2900,7 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
     Filter.eventually_gt_atTop 0] with n hn hn' P hM hL hn''
   rw [div_lt_iff₀ (by positivity)] at hn
   simp_all only [gt_iff_lt, mul_comm, mul_left_comm, mul_add, mul_assoc, sum_const]
-  convert hn.le using 1
+  convert! hn.le using 1
   · norm_num [primeCounting]
     ring_nf
     rw [primeCounting', count_eq_card_filter_range]
@@ -3158,7 +3157,6 @@ theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     exact (pairProd_prod f.a.toList).symm
   · have ht_bound : ((pairProd f.a.toList).length : ℝ) ≤
         n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by
-      change ((pairProd f.a.toList).length : ℝ) ≤ _
       rw [pairProd_length f.a.toList, length_toList f.a]
       calc (((f.a.card + 1) / 2 : ℕ) : ℝ) ≤ (f.a.card + 1 : ℕ) / 2 := cast_div_le
         _ = (f.a.card : ℝ) / 2 + 1 / 2 := by simp only [cast_add, cast_one]; ring

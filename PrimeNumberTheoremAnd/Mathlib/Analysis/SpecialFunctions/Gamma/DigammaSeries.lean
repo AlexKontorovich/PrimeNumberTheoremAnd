@@ -12,6 +12,7 @@ public import Mathlib.NumberTheory.Harmonic.Defs
 public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 
 import Mathlib.Analysis.Calculus.UniformLimitsDeriv
+import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Mathlib.Analysis.Normed.Group.FunctionSeries
 import Mathlib.Analysis.PSeries
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
@@ -431,8 +432,8 @@ lemma hasSum_digamma_of_re_pos {z₀ : ℂ} (hz₀ : 0 < z₀.re) :
         have : (0 : ℝ) ≤ m := Nat.cast_nonneg m
         linarith
       have hinner : HasDerivAt (fun w : ℂ => w + (m : ℂ)) 1 x := (hasDerivAt_id x).add_const _
-      simpa using (hasDerivAt_log hmem).comp x hinner
-    simpa only [logGammaSeq] using h1.sub h2
+      simpa using! (hasDerivAt_log hmem).comp x hinner
+    simpa only [logGammaSeq] using! h1.sub h2
   -- pointwise convergence to the limit function
   have hptw : ∀ x : ℂ, x ∈ s →
       Tendsto (fun n => logGammaSeq x n) atTop (𝓝 (limUnder atTop (logGammaSeq x))) :=
@@ -561,7 +562,7 @@ theorem hasSum_digamma {z : ℂ} (hz : ∀ n : ℕ, z ≠ -n) :
         push_cast
         ring
       rw [e2] at hfin
-      convert hfin using 1
+      convert! hfin using 1
       ring
 
 /-- The series representation of the digamma function, written as a formula:
@@ -642,6 +643,81 @@ theorem continuousAt_digamma_of_re_pos {z₀ : ℂ} (hz₀ : 0 < z₀.re) :
       · exact le_of_lt hleft
       · exact le_of_lt hright
   exact hcont.continuousAt hs_mem
+
+/-- The digamma function is differentiable on bounded open substrips of the right half-plane. -/
+theorem differentiableOn_digamma_of_re_gt_norm_lt {a R : ℝ} (ha : 0 < a) (ha1 : a ≤ 1) :
+    DifferentiableOn ℂ digamma ({z : ℂ | a < z.re} ∩ {z : ℂ | ‖z‖ < R}) := by
+  set s : Set ℂ := {z : ℂ | a < z.re} ∩ {z : ℂ | ‖z‖ < R}
+  have hs_open : IsOpen s :=
+    (isOpen_lt continuous_const continuous_re).inter
+      (isOpen_lt continuous_norm continuous_const)
+  have hu : Summable (fun m : ℕ => (R + 1) / (a * ((m : ℝ) + 1) ^ 2)) := by
+    refine (summable_one_div_natCast_add_one_sq.mul_left ((R + 1) / a)).congr fun m => ?_
+    rw [mul_one_div, div_div]
+  have hseries : DifferentiableOn ℂ
+      (fun z : ℂ => -(Real.eulerMascheroniConstant : ℂ)
+        + ∑' m : ℕ, (((m : ℂ) + 1)⁻¹ - (z + m)⁻¹)) s := by
+    refine (differentiableOn_const (-(Real.eulerMascheroniConstant : ℂ))).add ?_
+    refine differentiableOn_tsum_of_summable_norm hu ?hterm hs_open ?hbound
+    · intro m z hz
+      refine DifferentiableAt.differentiableWithinAt ?_
+      have hden : z + (m : ℂ) ≠ 0 := by
+        intro hzero
+        have hza : a < z.re := hz.1
+        have hpos : 0 < (z + (m : ℂ)).re := by
+          rw [add_re, natCast_re]
+          have hm_nonneg : 0 ≤ (m : ℝ) := by positivity
+          linarith [hza, hm_nonneg]
+        rw [hzero] at hpos
+        norm_num at hpos
+      have hc : DifferentiableAt ℂ (fun _ : ℂ => (((m : ℂ) + 1)⁻¹ : ℂ)) z :=
+        differentiableAt_const _
+      have hinv : DifferentiableAt ℂ (fun w : ℂ => (w + (m : ℂ))⁻¹) z :=
+        (differentiableAt_id.add_const (m : ℂ)).inv hden
+      simpa [one_div, add_comm] using hc.sub hinv
+    · intro m z hz
+      exact norm_inv_add_one_sub_inv_le ha ha1 (le_of_lt hz.1) (le_of_lt hz.2) m
+  refine hseries.congr fun z hz => ?_
+  have hpoles : ∀ n : ℕ, z ≠ -(n : ℂ) := by
+    intro n hzn
+    have hre := congrArg Complex.re hzn
+    simp only [neg_re, natCast_re] at hre
+    have hzpos : 0 < z.re := lt_trans ha hz.1
+    have hn : 0 ≤ (n : ℝ) := by positivity
+    linarith
+  rw [digamma_eq_tsum hpoles]
+  congr 1
+  apply tsum_congr
+  intro n
+  rw [one_div, one_div, add_comm z (n : ℂ)]
+
+/-- The digamma function is differentiable at every point of the open right half-plane. -/
+theorem differentiableAt_digamma_of_re_pos {z₀ : ℂ} (hz₀ : 0 < z₀.re) :
+    DifferentiableAt ℂ digamma z₀ := by
+  set a : ℝ := min (z₀.re / 2) 1 with ha_def
+  set R : ℝ := ‖z₀‖ + 1 with hR_def
+  have ha : 0 < a := by
+    rw [ha_def]
+    exact lt_min (by linarith) one_pos
+  have ha1 : a ≤ 1 := by
+    rw [ha_def]
+    exact min_le_right _ _
+  have hdiff := differentiableOn_digamma_of_re_gt_norm_lt (a := a) (R := R) ha ha1
+  have hs_mem :
+      ({z : ℂ | a < z.re} ∩ {z : ℂ | ‖z‖ < R}) ∈ 𝓝 z₀ := by
+    have hopen : IsOpen ({z : ℂ | a < z.re} ∩ {z : ℂ | ‖z‖ < R}) :=
+      (isOpen_lt continuous_const continuous_re).inter
+        (isOpen_lt continuous_norm continuous_const)
+    have hzopen : z₀ ∈ ({z : ℂ | a < z.re} ∩ {z : ℂ | ‖z‖ < R}) := by
+      constructor
+      · have hale : a ≤ z₀.re / 2 := by
+          rw [ha_def]
+          exact min_le_left _ _
+        exact lt_of_le_of_lt hale (by linarith)
+      · rw [hR_def]
+        exact lt_add_of_pos_right ‖z₀‖ (by norm_num : (0 : ℝ) < 1)
+    exact hopen.mem_nhds hzopen
+  exact hdiff.differentiableAt hs_mem
 
 /-! ## The growth bound on vertical strips -/
 

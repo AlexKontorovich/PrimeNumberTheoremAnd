@@ -12,7 +12,7 @@ public import Mathlib.Analysis.Real.Pi.Bounds
 public import Mathlib.Analysis.SpecialFunctions.Gamma.BohrMollerup
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 public import Mathlib.Analysis.SpecialFunctions.Stirling
-public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.Algebra.Order.Star.Real
 
 /-!
 # Bounds for `Complex.Gammaℝ`

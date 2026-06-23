@@ -52,7 +52,7 @@ theorem analyticOrderAt_finset_prod_weierstrassFactor_divisorZeroIndex₀
         exact (differentiable_weierstrassFactor_divisorZeroIndex₀ m p).analyticAt z₀
       have han_rest : AnalyticAt ℂ (fun z : ℂ => ∏ q ∈ s, weierstrassFactor m
           (z / divisorZeroIndex₀_val q)) z₀ := by
-        simpa [divisorPartialProduct] using analyticAt_divisorPartialProduct m f s z₀
+        simpa [divisorPartialProduct] using! analyticAt_divisorPartialProduct m f s z₀
       let fac : ℂ → ℂ := fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p)
       let rest : ℂ → ℂ := fun z : ℂ => ∏ q ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val q)
       have hmul :
@@ -106,7 +106,7 @@ theorem analyticOrderAt_finset_prod_weierstrassFactor_divisorZeroIndex₀
         simp [hEq, Finset.filter_insert]
       have han_rest : AnalyticAt ℂ (fun z : ℂ => ∏ q ∈ s, weierstrassFactor m
           (z / divisorZeroIndex₀_val q)) z₀ := by
-        simpa [divisorPartialProduct] using analyticAt_divisorPartialProduct m f s z₀
+        simpa [divisorPartialProduct] using! analyticAt_divisorPartialProduct m f s z₀
       let fac : ℂ → ℂ := fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p)
       let rest : ℂ → ℂ := fun z : ℂ => ∏ q ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val q)
       have hmul :
@@ -184,7 +184,7 @@ theorem exists_analyticAt_eq_pow_smul_of_partialProduct_contains_fiber
           fun z : ℂ => (z - z₀) ^ (divisorZeroIndex₀_fiberFinset (f := f) z₀).card • g z := by
   let F : ℂ → ℂ := fun z : ℂ => ∏ p ∈ s, weierstrassFactor m (z / divisorZeroIndex₀_val p)
   have hF_ana : AnalyticAt ℂ F z₀ := by
-    simpa [F, divisorPartialProduct] using analyticAt_divisorPartialProduct m f s z₀
+    simpa [F, divisorPartialProduct] using! analyticAt_divisorPartialProduct m f s z₀
   have hOrder :
       analyticOrderAt F z₀ =
         ((divisorZeroIndex₀_fiberFinset (f := f) z₀).card : ℕ∞) := by
