@@ -71,7 +71,23 @@ theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
       simp [Real.sqrt_eq_rpow]
     rw [hpow]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
 
-/-- Row-5 floor `[exp 3, e^10]`: tight small-`x` `Eπ` bound via Buthe. **WIP.** -/
+/-- Row-5 floor `[exp 3, e^10]`: `Eπ ≤` the row-5 curve on the sub-`e^10` range.
+
+**Trusted numerical boundary** (one `sorry`), analogous to
+`Table4Ext.allCells_trusted` (which covers `x ≥ e^10`): there is no tight
+sub-`e^10` `Eπ` envelope in the library, and the row-5 curve is too sharp here
+for the available bounds —
+* Buthe `theorem_2e/2f` give `Eπ ≤ (1.0452 + B(x))·(log x / x)` which sits below
+  the curve only for `x ≥ e^5` (`B(x) = (√x/log x)(1.95 + 3.9/log x + 19.5/log²x)`);
+* on `[e^3, e^5]` (`x ∈ [20, 148]`) every available bound (Buthe, and the `eq_30`
+  θ→π conversion whose fixed overhead alone exceeds the curve at `x = 20`) is too
+  loose, so this segment rests on the direct `π`/`Li` interpolation of
+  \cite[Lemmas 5.2, 5.3]{FKS} — the verification the Corollary 23 blueprint
+  proof itself invokes.
+
+TODO: shrink this trusted segment to `[e^3, e^5]` by discharging `[e^5, e^10]`
+via Buthe (`theorem_2e/2f` + `li.sub_Li`, `li.two_approx`), and ultimately to ∅
+by a direct `π`/`Li` interval certificate. -/
 theorem floor_row5 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
     Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
   sorry
