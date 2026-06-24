@@ -24,25 +24,13 @@ theorem allCells_checked_row7 : allCells.all (fun c => checkCellGen P7 c) = true
 /-- Row-7 mid-range `[e^10, e^20000]` via the `allCells` envelope transported by
 `cell_Epi_le_admissible_gen` (`k = 3`). -/
 theorem mid_row7 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
-    Eπ x ≤ admissible_bound 38.8 1.5 1.95 5.5666305 x := by
-  intro x hx
-  have hx_lo : exp ((10:ℕ):ℝ) ≤ x := by simpa using hx.1
-  have hx_hi : x ≤ exp ((lastB 10 allCells : ℕ):ℝ) := by
-    rw [allCells_last]; simpa using hx.2
-  obtain ⟨c, hcmem, hcx⟩ :=
-    cover_of_chainOk allCells 10 allCells_ne_nil allCells_chain hx_lo hx_hi
-  have hck : checkCellGen P7 c = true := List.all_eq_true.mp allCells_checked_row7 c hcmem
-  have hsqrtR_lb := sqrtR5_lb
-  have hsqrtR_ub := sqrtR5_ub
-  refine cell_Epi_le_admissible_gen P7 38.8 1.5 1.95 5.5666305
-    (by norm_num [P7]) (by norm_num) (by norm_num) (by norm_num) (by norm_num [P7])
-    ?_ ?_ c hck (allCells_trusted c hcmem) x hcx
-  · have hrhs : (((P7.c64 * 64 : ℚ)):ℝ) = 4133/5000 := by norm_num [P7]
-    rw [hrhs, div_le_iff₀ (Real.sqrt_pos.mpr (by norm_num))]
-    nlinarith [hsqrtR_lb]
-  · have hrhs : (((P7.rB : ℚ)):ℝ) = 131338/10000 := by norm_num [P7]
-    rw [hrhs]
-    rw [R5_rpow_three_halves_eq]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
+    Eπ x ≤ admissible_bound 38.8 1.5 1.95 5.5666305 x :=
+  mid_of P7 38.8 1.5 1.95 (by norm_num [P7]) (by norm_num) (by norm_num) (by norm_num [P7])
+    (by have hrhs : (((P7.c64 * 64 : ℚ)):ℝ) = 4133/5000 := by norm_num [P7]
+        rw [hrhs, div_le_iff₀ sqrtR5_pos]; nlinarith [sqrtR5_lb])
+    (by have hrhs : (((P7.rB : ℚ)):ℝ) = 131338/10000 := by norm_num [P7]
+        rw [hrhs, R5_rpow_three_halves_eq]; nlinarith [sqrtR5_ub, Real.sqrt_nonneg (5.5666305:ℝ)])
+    allCells_checked_row7
 
 /-- Row-7 tail `[e^20000, ∞)` via the generic `B=3/2` Cor-22 domination
 (`rateUB = 0.8266 ≥ 1.95/√R`, `coeffLB = 2.954 ≤ 38.8/R^{3/2}`, gap `0.021`). -/

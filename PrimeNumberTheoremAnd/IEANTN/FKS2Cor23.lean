@@ -66,30 +66,37 @@ dyadic interval kernel over all 13590 cells). -/
 theorem allCells_checked_row5 : allCells.all (fun c => checkCellGen P5 c) = true := by
   native_decide
 
-/-- Row-5 mid-range: `Eπ ≤` the row-5 admissible curve on `[e^10, e^20000]`,
-via the envelope `allCells_trusted` transported by `cell_Epi_le_admissible_gen`. -/
-theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
-    Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
+/-- Generic mid-range: every row's `[e^10, e^20000]` segment via the `allCells`
+envelope transported by `cell_Epi_le_admissible_gen`.  Rows supply `P`, the curve
+params `(A,B,C)`, the cell-param numeric witnesses, and the `native_decide` check.
+Shared by every row's `mid_row` (the `cover_of_chainOk` plumbing was identical). -/
+theorem mid_of (P : CellParams) (A B C : ℝ)
+    (hk : (P.k : ℝ) = 2 * B) (hB : 0 ≤ B) (hAnn : 0 ≤ A)
+    (hAq : ((P.Aq : ℚ) : ℝ) = A)
+    (hCge : C / Real.sqrt 5.5666305 ≤ ((P.c64 * 64 : ℚ) : ℝ))
+    (hrB : (5.5666305:ℝ) ^ B ≤ ((P.rB : ℚ) : ℝ))
+    (hchecked : allCells.all (fun c => checkCellGen P c) = true) :
+    ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
+      Eπ x ≤ admissible_bound A B C 5.5666305 x := by
   intro x hx
   have hx_lo : exp ((10:ℕ):ℝ) ≤ x := by simpa using hx.1
   have hx_hi : x ≤ exp ((lastB 10 allCells : ℕ):ℝ) := by
     rw [allCells_last]; simpa using hx.2
   obtain ⟨c, hcmem, hcx⟩ :=
     cover_of_chainOk allCells 10 allCells_ne_nil allCells_chain hx_lo hx_hi
-  have hck : checkCellGen P5 c = true := List.all_eq_true.mp allCells_checked_row5 c hcmem
-  have hsqrtR_lb := sqrtR5_lb
-  have hsqrtR_ub := sqrtR5_ub
-  refine cell_Epi_le_admissible_gen P5 2.22 1.5 1.5 5.5666305
-    (by norm_num [P5]) (by norm_num) (by norm_num) (by norm_num) (by norm_num [P5])
-    ?_ ?_ c hck (allCells_trusted c hcmem) x hcx
-  · -- hCge : 1.5 / √R ≤ (P5.c64 * 64 : ℝ) = 0.6358
-    have hrhs : (((P5.c64 * 64 : ℚ)):ℝ) = 3179/5000 := by norm_num [P5]
-    rw [hrhs, div_le_iff₀ (Real.sqrt_pos.mpr (by norm_num))]
-    nlinarith [hsqrtR_lb]
-  · -- hrB : R^{1.5} ≤ (P5.rB : ℝ) = 13.1338
-    have hrhs : (((P5.rB : ℚ)):ℝ) = 131338/10000 := by norm_num [P5]
-    rw [hrhs]
-    rw [R5_rpow_three_halves_eq]; nlinarith [hsqrtR_ub, Real.sqrt_nonneg (5.5666305:ℝ)]
+  have hck : checkCellGen P c = true := List.all_eq_true.mp hchecked c hcmem
+  exact cell_Epi_le_admissible_gen P A B C 5.5666305 hk hB (by norm_num) hAnn hAq hCge hrB
+    c hck (allCells_trusted c hcmem) x hcx
+
+/-- Row-5 mid-range `[e^10, e^20000]` via the generic `mid_of`. -/
+theorem mid_row5 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
+    Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x :=
+  mid_of P5 2.22 1.5 1.5 (by norm_num [P5]) (by norm_num) (by norm_num) (by norm_num [P5])
+    (by have hrhs : (((P5.c64 * 64 : ℚ)):ℝ) = 3179/5000 := by norm_num [P5]
+        rw [hrhs, div_le_iff₀ sqrtR5_pos]; nlinarith [sqrtR5_lb])
+    (by have hrhs : (((P5.rB : ℚ)):ℝ) = 131338/10000 := by norm_num [P5]
+        rw [hrhs, R5_rpow_three_halves_eq]; nlinarith [sqrtR5_ub, Real.sqrt_nonneg (5.5666305:ℝ)])
+    allCells_checked_row5
 
 /-- `admissible_bound A (3/2) C R x` in terms of `s = √(log x)`:
 `= (A / R^{3/2}) · s³ · exp(−(C/√R)·s)`.  Reusable for tail domination. -/

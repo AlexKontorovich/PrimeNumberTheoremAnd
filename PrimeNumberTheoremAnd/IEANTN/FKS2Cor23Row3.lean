@@ -29,27 +29,13 @@ theorem allCells_checked_row3 : allCells.all (fun c => checkCellGen P3 c) = true
 /-- Row-3 mid-range `[e^10, e^20000]` via the `allCells` envelope transported by
 `cell_Epi_le_admissible_gen` at `k = 1`. -/
 theorem mid_row3 : ∀ x ∈ Set.Icc (exp (10:ℝ)) (exp (20000:ℝ)),
-    Eπ x ≤ admissible_bound 1.41 0.5 1.5 5.5666305 x := by
-  intro x hx
-  have hx_lo : exp ((10:ℕ):ℝ) ≤ x := by simpa using hx.1
-  have hx_hi : x ≤ exp ((lastB 10 allCells : ℕ):ℝ) := by
-    rw [allCells_last]; simpa using hx.2
-  obtain ⟨c, hcmem, hcx⟩ :=
-    cover_of_chainOk allCells 10 allCells_ne_nil allCells_chain hx_lo hx_hi
-  have hck : checkCellGen P3 c = true := List.all_eq_true.mp allCells_checked_row3 c hcmem
-  have hsqrtR_lb := sqrtR5_lb
-  have hsqrtR_ub := sqrtR5_ub
-  refine cell_Epi_le_admissible_gen P3 1.41 0.5 1.5 5.5666305
-    (by norm_num [P3]) (by norm_num) (by norm_num) (by norm_num) (by norm_num [P3])
-    ?_ ?_ c hck (allCells_trusted c hcmem) x hcx
-  · -- hCge : 1.5/√R ≤ (P3.c64 * 64 : ℝ) = 0.6358
-    have hrhs : (((P3.c64 * 64 : ℚ)):ℝ) = 3179/5000 := by norm_num [P3]
-    rw [hrhs, div_le_iff₀ (Real.sqrt_pos.mpr (by norm_num))]
-    nlinarith [hsqrtR_lb]
-  · -- hrB : R^{1/2} = √R ≤ (P3.rB : ℝ) = 2.35938
-    have hrhs : (((P3.rB : ℚ)):ℝ) = 235938/100000 := by norm_num [P3]
-    rw [hrhs, show (0.5:ℝ) = 1/2 by norm_num, ← Real.sqrt_eq_rpow]
-    linarith [sqrtR5_ub]
+    Eπ x ≤ admissible_bound 1.41 0.5 1.5 5.5666305 x :=
+  mid_of P3 1.41 0.5 1.5 (by norm_num [P3]) (by norm_num) (by norm_num) (by norm_num [P3])
+    (by have hrhs : (((P3.c64 * 64 : ℚ)):ℝ) = 3179/5000 := by norm_num [P3]
+        rw [hrhs, div_le_iff₀ sqrtR5_pos]; nlinarith [sqrtR5_lb])
+    (by have hrhs : (((P3.rB : ℚ)):ℝ) = 235938/100000 := by norm_num [P3]
+        rw [hrhs, show (0.5:ℝ) = 1/2 by norm_num, ← Real.sqrt_eq_rpow]; linarith [sqrtR5_ub])
+    allCells_checked_row3
 
 /-- Row-3 tail `[e^20000, ∞)`: Cor 22 domination, B=1/2.  Surplus `s²` over the
 Cor 22 `s³` absorbed via `s²·e^{-0.1 s} = (s·e^{-0.05 s})² ≤ (20 e^{-1})²`. -/
