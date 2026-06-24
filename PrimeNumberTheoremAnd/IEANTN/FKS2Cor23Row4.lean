@@ -207,16 +207,6 @@ theorem slabs_checked4 :
     checkExprLeOnSlabsDyadic FloorButhe.lhsE rhsE4 FloorButhe.slabs (-50) 6 = true := by
   native_decide
 
-theorem slab_ineq4 : ∀ I ∈ FloorButhe.slabs, ∀ s ∈ Set.Icc (I.lo : ℝ) I.hi,
-    Expr.eval (fun _ => s) FloorButhe.lhsE ≤ Expr.eval (fun _ => s) rhsE4 :=
-  verify_expr_le_on_slabs_dyadic FloorButhe.lhsE rhsE4 FloorButhe.slabs (-50) 6
-    support4 (by norm_num) slabs_checked4
-
-theorem dyadic_floor4 (s : ℝ) (h : s ∈ Set.Icc (2.236 : ℝ) 3.163) :
-    Expr.eval (fun _ => s) FloorButhe.lhsE ≤ Expr.eval (fun _ => s) rhsE4 := by
-  obtain ⟨I, hI, hmem⟩ := FloorButhe.cover s h
-  exact slab_ineq4 I hI s hmem
-
 theorem rhsE4_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
     Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE4
       ≤ admissible_bound 1.76 1 1.5 5.5666305 x := by
@@ -245,25 +235,10 @@ theorem rhsE4_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
           (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) (by positivity)) hs2
     _ = 1.76 / 5.5666305 * s ^ 2 * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by ring
 
+/-- Row-4 floor segment `[e^5, e^10]` via the shared `floor_buthe_of_curve`. -/
 theorem floor_buthe4 : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),
-    Eπ x ≤ admissible_bound 1.76 1 1.5 5.5666305 x := by
-  intro x hx
-  obtain ⟨h5, h10⟩ := hx
-  have hxpos : (0:ℝ) < x := lt_of_lt_of_le (Real.exp_pos _) h5
-  have hLge5 : (5:ℝ) ≤ Real.log x := by
-    rw [← Real.log_exp 5]; exact Real.log_le_log (Real.exp_pos _) h5
-  have hLle10 : Real.log x ≤ 10 := by
-    rw [← Real.log_exp 10]; exact Real.log_le_log hxpos h10
-  have hs_mem : Real.sqrt (Real.log x) ∈ Set.Icc (2.236 : ℝ) 3.163 := by
-    constructor
-    · rw [show (2.236:ℝ) = Real.sqrt (2.236^2) from (Real.sqrt_sq (by norm_num)).symm]
-      exact Real.sqrt_le_sqrt (by nlinarith [hLge5])
-    · rw [show (3.163:ℝ) = Real.sqrt (3.163^2) from (Real.sqrt_sq (by norm_num)).symm]
-      exact Real.sqrt_le_sqrt (by nlinarith [hLle10])
-  calc Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE :=
-        FloorButhe.Epi_le_evalLhsE x h5 h10
-    _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE4 := dyadic_floor4 _ hs_mem
-    _ ≤ admissible_bound 1.76 1 1.5 5.5666305 x := rhsE4_le_rowcurve x hLge5
+    Eπ x ≤ admissible_bound 1.76 1 1.5 5.5666305 x :=
+  FloorButhe.floor_buthe_of_curve rhsE4 1.76 1 1.5 support4 slabs_checked4 rhsE4_le_rowcurve
 
 end FloorButhe4
 
