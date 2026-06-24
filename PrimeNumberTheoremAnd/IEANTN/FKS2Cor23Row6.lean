@@ -104,35 +104,14 @@ theorem rhsE6_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
     Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE6
       ≤ admissible_bound 12.4 1.5 1.9 5.5666305 x := by
   have hLnn : (0:ℝ) ≤ Real.log x := le_trans (by norm_num) hL
-  rw [eval_rhsE6, admissible_three_halves_eq 12.4 1.9 5.5666305 x hLnn (by norm_num)]
-  set s := Real.sqrt (Real.log x) with hs_def
-  have hs_nn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
-  have hsss : s * s * s = s ^ 3 := by ring
-  have hsqrtR_lb := sqrtR5_lb
-  have hsqrtR_pos := sqrtR5_pos
-  have hR15_ub := R5_rpow_three_halves_le
-  have hR15_pos := R5_rpow_three_halves_pos
-  have hcoeff : (944/1000:ℝ) ≤ 12.4 / (5.5666305:ℝ) ^ (1.5:ℝ) := by
-    have h1 : (944/1000:ℝ) ≤ 12.4 / 13.1338 := by norm_num
-    have h2 : (12.4:ℝ) / 13.1338 ≤ 12.4 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
-      div_le_div_of_nonneg_left (by norm_num) hR15_pos hR15_ub
-    linarith
-  have hCR : (1.9:ℝ) / Real.sqrt 5.5666305 ≤ 8054/10000 := by
-    rw [div_le_iff₀ hsqrtR_pos]; nlinarith [hsqrtR_lb]
-  have hexpRHS : Real.exp (-(8054/10000:ℝ) * s) ≤ Real.exp (-(1.9 / Real.sqrt 5.5666305) * s) := by
-    apply Real.exp_le_exp.mpr
-    have hCRs : (1.9 / Real.sqrt 5.5666305) * s ≤ (8054/10000) * s :=
-      mul_le_mul_of_nonneg_right hCR hs_nn
-    simp only [neg_mul]; linarith [hCRs]
-  have hs3 : (0:ℝ) ≤ s ^ 3 := by positivity
-  rw [hsss]
-  calc (944/1000:ℝ) * s ^ 3 * Real.exp (-(8054/10000) * s)
-      = ((944/1000:ℝ) * Real.exp (-(8054/10000) * s)) * s ^ 3 := by ring
-    _ ≤ ((12.4 / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(1.9 / Real.sqrt 5.5666305) * s)) * s ^ 3 :=
-        mul_le_mul_of_nonneg_right
-          (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) (by positivity)) hs3
-    _ = 12.4 / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(1.9 / Real.sqrt 5.5666305) * s) := by
-        ring
+  rw [eval_rhsE6]
+  exact rowcurve_dom_three_halves 12.4 1.9 (944/1000) (8054/10000) x hLnn
+    (by have h2 := R5_rpow_three_halves_le; have h3 := R5_rpow_three_halves_pos
+        have h1 : (944/1000:ℝ) ≤ 12.4 / 13.1338 := by norm_num
+        have h4 : (12.4:ℝ) / 13.1338 ≤ 12.4 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
+          div_le_div_of_nonneg_left (by norm_num) h3 h2
+        linarith)
+    (by rw [div_le_iff₀ sqrtR5_pos]; nlinarith [sqrtR5_lb]) (by norm_num)
 
 /-- Row-6 floor segment `[e^5, e^10]` via the shared `floor_buthe_of_curve`. -/
 theorem floor_buthe6 : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),

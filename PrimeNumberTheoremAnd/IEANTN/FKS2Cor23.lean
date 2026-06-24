@@ -110,6 +110,36 @@ lemma admissible_three_halves_eq (A C R x : ℝ) (hL : 0 ≤ Real.log x) (hR : 0
   rw [e1, e2, show -C * (s / Real.sqrt R) = -(C / Real.sqrt R) * s by ring]
   ring
 
+/-- Generic `B = 3/2` floor-curve domination: the evaluated dyadic floor curve
+`coeff·s³·exp(−rate·s)` (`s = √(log x)`) is below the row's admissible curve when
+`coeff ≤ A/R^{3/2}` and `rate ≥ C/√R`.  Shared by every `B = 3/2` row's
+`rhsE_le_rowcurve` (rows 5/6/7). -/
+lemma rowcurve_dom_three_halves (A C coeff rate : ℝ) (x : ℝ)
+    (hL : (0:ℝ) ≤ Real.log x)
+    (hcoeff : coeff ≤ A / (5.5666305:ℝ) ^ (1.5:ℝ))
+    (hrate : C / Real.sqrt 5.5666305 ≤ rate)
+    (hcoeffnn : 0 ≤ coeff) :
+    coeff * (Real.sqrt (Real.log x) * Real.sqrt (Real.log x) * Real.sqrt (Real.log x))
+        * Real.exp (-rate * Real.sqrt (Real.log x))
+      ≤ admissible_bound A 1.5 C 5.5666305 x := by
+  rw [admissible_three_halves_eq A C 5.5666305 x hL (by norm_num)]
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hsnn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
+  have hsss : s * s * s = s ^ 3 := by ring
+  have hAnn : (0:ℝ) ≤ A / (5.5666305:ℝ) ^ (1.5:ℝ) := le_trans hcoeffnn hcoeff
+  have hexpRHS : Real.exp (-rate * s) ≤ Real.exp (-(C / Real.sqrt 5.5666305) * s) := by
+    apply Real.exp_le_exp.mpr
+    have := mul_le_mul_of_nonneg_right hrate hsnn
+    simp only [neg_mul]; linarith
+  have hs3 : (0:ℝ) ≤ s ^ 3 := by positivity
+  rw [hsss]
+  calc coeff * s ^ 3 * Real.exp (-rate * s)
+      = (coeff * Real.exp (-rate * s)) * s ^ 3 := by ring
+    _ ≤ ((A / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(C / Real.sqrt 5.5666305) * s)) * s ^ 3 :=
+        mul_le_mul_of_nonneg_right
+          (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) hAnn) hs3
+    _ = A / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(C / Real.sqrt 5.5666305) * s) := by ring
+
 /-- Generic `B = 3/2` tail: Corollary 22 dominates any `(A, 3/2, C)` row curve for
 `x ≥ e^20000`.  Inputs: a rational rate upper bound `rateUB ≥ C/√R`, a rational
 coefficient lower bound `coeffLB ≤ A/R^{3/2}`, that the gap `0.8476 − rateUB` is
@@ -301,36 +331,14 @@ theorem rhsE_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
     Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE
       ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
   have hLnn : (0:ℝ) ≤ Real.log x := le_trans (by norm_num) hL
-  rw [eval_rhsE, admissible_three_halves_eq 2.22 1.5 5.5666305 x hLnn (by norm_num)]
-  set s := Real.sqrt (Real.log x) with hs_def
-  have hs_nn : (0:ℝ) ≤ s := Real.sqrt_nonneg _
-  have hsss : s * s * s = s ^ 3 := by ring
-  have hsqrtR_lb := sqrtR5_lb
-  have hsqrtR_ub := sqrtR5_ub
-  have hsqrtR_pos := sqrtR5_pos
-  have hR15_ub := R5_rpow_three_halves_le
-  have hR15_pos := R5_rpow_three_halves_pos
-  have hcoeff : (169029/1000000:ℝ) ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) := by
-    have h1 : (169029/1000000:ℝ) ≤ 2.22 / 13.1338 := by norm_num
-    have h2 : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
-      div_le_div_of_nonneg_left (by norm_num) hR15_pos hR15_ub
-    linarith
-  have hCR : (1.5:ℝ) / Real.sqrt 5.5666305 ≤ 63577/100000 := by
-    rw [div_le_iff₀ hsqrtR_pos]; nlinarith [hsqrtR_lb]
-  have hexpRHS : Real.exp (-(63577/100000:ℝ) * s) ≤ Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
-    apply Real.exp_le_exp.mpr
-    have hCRs : (1.5 / Real.sqrt 5.5666305) * s ≤ (63577/100000) * s :=
-      mul_le_mul_of_nonneg_right hCR hs_nn
-    simp only [neg_mul]; linarith [hCRs]
-  have hs3 : (0:ℝ) ≤ s ^ 3 := by positivity
-  rw [hsss]
-  calc (169029/1000000:ℝ) * s ^ 3 * Real.exp (-(63577/100000) * s)
-      = ((169029/1000000:ℝ) * Real.exp (-(63577/100000) * s)) * s ^ 3 := by ring
-    _ ≤ ((2.22 / (5.5666305:ℝ) ^ (1.5:ℝ)) * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s)) * s ^ 3 :=
-        mul_le_mul_of_nonneg_right
-          (mul_le_mul hcoeff hexpRHS (Real.exp_nonneg _) (by positivity)) hs3
-    _ = 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) * s ^ 3 * Real.exp (-(1.5 / Real.sqrt 5.5666305) * s) := by
-        ring
+  rw [eval_rhsE]
+  exact rowcurve_dom_three_halves 2.22 1.5 (169029/1000000) (63577/100000) x hLnn
+    (by have h2 := R5_rpow_three_halves_le; have h3 := R5_rpow_three_halves_pos
+        have h1 : (169029/1000000:ℝ) ≤ 2.22 / 13.1338 := by norm_num
+        have h4 : (2.22:ℝ) / 13.1338 ≤ 2.22 / (5.5666305:ℝ) ^ (1.5:ℝ) :=
+          div_le_div_of_nonneg_left (by norm_num) h3 h2
+        linarith)
+    (by rw [div_le_iff₀ sqrtR5_pos]; nlinarith [sqrtR5_lb]) (by norm_num)
 
 theorem Epi_le_evalLhsE (x : ℝ) (h5 : Real.exp 5 ≤ x) (h10 : x ≤ Real.exp 10) :
     Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) lhsE := by
