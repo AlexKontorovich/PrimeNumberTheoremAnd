@@ -4634,14 +4634,15 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   "fks2-corollary-23"
   (title := "FKS2 Corollary 23")
   (statement := /--
-  $A_\pi, B, C, \log(x_0)$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound
-  for $E_\pi$ with $R = 5.5666305$ and threshold $x_0 = \exp(\log(x_0))$.
+  $A_\pi$, $B$, $C$, and $x_0$ as in \cite[Table 6]{FKS2} provide an asymptotic
+  bound \eqref{bnd-asymp-E-eps} for $E_\pi$ with $R = 5.5666305$; Table 6
+  displays its fourth column as $\log(x_0)$ and the bound holds for all $x \ge x_0$.
   -/)
   (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks2-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$. -/)
   (latexEnv := "corollary")
   (discussion := 722)]
-theorem corollary_23 (Aπ B C log_x₀ : ℝ) (h : [Aπ, B, C, log_x₀] ∈ table6) :
-    Eπ.classicalBound Aπ B C 5.5666305 (Real.exp log_x₀) := sorry
+theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
+    Eπ.classicalBound Aπ B C 5.5666305 (Real.exp x₀) := sorry
 
 noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   [ (fun x ↦ 2 * log x * x^(-(1:ℝ)/2), Set.Icc 1 57),
@@ -4766,6 +4767,7 @@ lemma Eπ_le_on_two_e {x : ℝ} (hx2 : 2 ≤ x) (hxe : x < Real.exp 1) : Eπ x �
   rw [div_le_iff₀ (by positivity)]
   calc |pi x - Li x| ≤ 1 := habs
     _ ≤ 0.4298 * (x / Real.log x) := by nlinarith [hxlogx]
+
 
 
 @[blueprint
