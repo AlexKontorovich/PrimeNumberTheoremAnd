@@ -110,6 +110,54 @@ lemma admissible_three_halves_eq (A C R x : ℝ) (hL : 0 ≤ Real.log x) (hR : 0
   rw [e1, e2, show -C * (s / Real.sqrt R) = -(C / Real.sqrt R) * s by ring]
   ring
 
+/-- `admissible_bound A (1/2) C R x` in terms of `s = √(log x)`:
+`= (A/√R)·s·exp(−(C/√R)·s)`.  The `B = 1/2` analogue of
+`admissible_three_halves_eq` (used by row 3). -/
+lemma admissible_half_eq (A C R x : ℝ) (hL : 0 ≤ Real.log x) (hR : 0 < R) :
+    admissible_bound A 0.5 C R x
+      = (A / Real.sqrt R) * Real.sqrt (Real.log x)
+        * Real.exp (-(C / Real.sqrt R) * Real.sqrt (Real.log x)) := by
+  unfold admissible_bound
+  set s := Real.sqrt (Real.log x) with hs_def
+  have hs : s = Real.log x ^ ((1:ℝ)/2) := by rw [hs_def, Real.sqrt_eq_rpow]
+  have e1 : (Real.log x / R) ^ (0.5:ℝ) = s / Real.sqrt R := by
+    rw [show (0.5:ℝ) = (1:ℝ)/2 by norm_num, Real.div_rpow hL hR.le, ← hs, Real.sqrt_eq_rpow R]
+  have e2 : (Real.log x / R) ^ ((1:ℝ)/2) = s / Real.sqrt R := by
+    rw [Real.div_rpow hL hR.le, ← hs, Real.sqrt_eq_rpow R]
+  rw [e1, e2, show -C * (s / Real.sqrt R) = -(C / Real.sqrt R) * s by ring]
+  ring
+
+/-- Width-`0.05` slab list of `n` slabs starting at `lo` (generalizes
+`FloorButhe.slabs = slabsFrom (2236/1000) 19`; row 3 uses `slabsFrom (2449/1000) 15`). -/
+def slabsFrom (lo : ℚ) (n : ℕ) : List IntervalRat :=
+  (List.range n).map (fun (k : ℕ) => ⟨lo + (k:ℚ)*50/1000, lo + ((k:ℚ)+1)*50/1000, by
+    have hk : (0:ℚ) ≤ (k:ℚ) := by exact_mod_cast Nat.zero_le k
+    linarith⟩)
+
+/-- Any `s ∈ [lo, lo + n·0.05)` lands in some slab of `slabsFrom lo n`. -/
+theorem coverFrom (lo : ℚ) (n : ℕ) (s : ℝ)
+    (hlo : (lo:ℝ) ≤ s) (hhi : s < (lo:ℝ) + (n:ℝ) * 0.05) :
+    ∃ I ∈ slabsFrom lo n, s ∈ Set.Icc (I.lo : ℝ) I.hi := by
+  set k : ℕ := ⌊(s - (lo:ℝ)) / 0.05⌋₊ with hk_def
+  have hsub_nn : (0:ℝ) ≤ (s - (lo:ℝ)) / 0.05 := by apply div_nonneg <;> linarith
+  have hk_lt : k < n := by
+    have hub : (s - (lo:ℝ)) / 0.05 < n := by rw [div_lt_iff₀ (by norm_num)]; linarith
+    rw [hk_def]; exact Nat.floor_lt hsub_nn |>.mpr (by exact_mod_cast hub)
+  refine ⟨⟨lo + (k:ℚ)*50/1000, lo + ((k:ℚ)+1)*50/1000, by
+    have hknn : (0:ℚ) ≤ (k:ℚ) := by exact_mod_cast Nat.zero_le k
+    linarith⟩, ?_, ?_⟩
+  · rw [slabsFrom, List.mem_map]
+    exact ⟨k, List.mem_range.mpr hk_lt, rfl⟩
+  · have hfloor_le : (k : ℝ) ≤ (s - (lo:ℝ)) / 0.05 := by
+      have := Nat.floor_le hsub_nn; rwa [← hk_def] at this
+    have hlt_floor : (s - (lo:ℝ)) / 0.05 < (k : ℝ) + 1 := by
+      have := Nat.lt_floor_add_one ((s - (lo:ℝ)) / 0.05); rwa [← hk_def] at this
+    rw [le_div_iff₀ (by norm_num)] at hfloor_le
+    rw [div_lt_iff₀ (by norm_num)] at hlt_floor
+    constructor
+    · push_cast; linarith [hfloor_le]
+    · push_cast; linarith [hlt_floor]
+
 /-- Generic `B = 3/2` floor-curve domination: the evaluated dyadic floor curve
 `coeff·s³·exp(−rate·s)` (`s = √(log x)`) is below the row's admissible curve when
 `coeff ≤ A/R^{3/2}` and `rate ≥ C/√R`.  Shared by every `B = 3/2` row's
@@ -441,6 +489,40 @@ theorem floor_buthe : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),
   floor_buthe_of_curve rhsE 2.22 1.5 1.5 support slabs_checked rhsE_le_rowcurve
 
 end FloorButhe
+
+/-- Generalized Buthe floor assembler: like `FloorButhe.floor_buthe_of_curve` but
+with an arbitrary split point `xlo ≥ 5` and slab list `slabsFrom slabLo n`, so the
+slab interval can start above `√5` for rows whose curve the Buthe bound only clears
+higher up (e.g. row 3 at `√6`).  `xlo ≥ 5` keeps `Epi_le_evalLhsE` applicable. -/
+theorem floor_buthe_of_curve_gen (rE : Expr) (A B C : ℝ) (xlo : ℝ) (slabLo : ℚ) (n : ℕ)
+    (hxlo : (5:ℝ) ≤ xlo)
+    (hslo : (slabLo:ℝ) ≤ Real.sqrt xlo)
+    (hshi : Real.sqrt 10 < (slabLo:ℝ) + (n:ℝ) * 0.05)
+    (hsupp : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rE))
+    (hchk : checkExprLeOnSlabsDyadic FloorButhe.lhsE rE (slabsFrom slabLo n) (-50) 6 = true)
+    (hcurve : ∀ x, xlo ≤ Real.log x →
+        Expr.eval (fun _ => Real.sqrt (Real.log x)) rE ≤ admissible_bound A B C 5.5666305 x) :
+    ∀ x ∈ Set.Icc (Real.exp xlo) (Real.exp 10),
+      Eπ x ≤ admissible_bound A B C 5.5666305 x := by
+  intro x hx
+  obtain ⟨hlo, h10⟩ := hx
+  have h5 : Real.exp 5 ≤ x := le_trans (Real.exp_le_exp.mpr hxlo) hlo
+  have hxpos : (0:ℝ) < x := lt_of_lt_of_le (Real.exp_pos _) h5
+  have hLgexlo : xlo ≤ Real.log x := by
+    rw [← Real.log_exp xlo]; exact Real.log_le_log (Real.exp_pos _) hlo
+  have hLle10 : Real.log x ≤ 10 := by
+    rw [← Real.log_exp 10]; exact Real.log_le_log hxpos h10
+  have hcov_lo : (slabLo:ℝ) ≤ Real.sqrt (Real.log x) :=
+    le_trans hslo (Real.sqrt_le_sqrt hLgexlo)
+  have hcov_hi : Real.sqrt (Real.log x) < (slabLo:ℝ) + (n:ℝ) * 0.05 :=
+    lt_of_le_of_lt (Real.sqrt_le_sqrt hLle10) hshi
+  obtain ⟨I, hI, hmem⟩ := coverFrom slabLo n _ hcov_lo hcov_hi
+  calc Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE :=
+        FloorButhe.Epi_le_evalLhsE x h5 h10
+    _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rE :=
+        verify_expr_le_on_slabs_dyadic FloorButhe.lhsE rE (slabsFrom slabLo n) (-50) 6
+          hsupp (by norm_num) hchk I hI _ hmem
+    _ ≤ admissible_bound A B C 5.5666305 x := hcurve x hLgexlo
 
 /-- Row-5 floor `[exp 3, e^10]`. Split at `e^5`:
 * `[e^5, e^10]`: proven via `FloorButhe.floor_buthe` (Buthe `2e/2f` + dyadic cover);
