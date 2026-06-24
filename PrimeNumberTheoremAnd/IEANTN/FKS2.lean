@@ -4634,24 +4634,10 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   "fks2-corollary-23"
   (title := "FKS2 Corollary 23")
   (statement := /--
-  The rows of \cite[Table 6]{FKS2} give bounds of the form
-  \[
-    E_\pi(x) \le A_\pi\left(\frac{\log x}{R}\right)^B
-      \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
-  \]
-  with $R = 5.5666305$, valid for all $x \ge x_0$.  The fourth column printed in
-  Table 6 is $\log(x_0)$; hence a row whose fourth entry is $t$ has threshold
-  $x_0 = \exp(t)$.
+  $A_\pi, B, C, \log x_0$ as in \cite[Table 6]{FKS2} give an admissible
+  asymptotic bound for $E_\pi$ with $R = 5.5666305$.
   -/)
-  (proof := /--
-  This is Corollary \ref{cor:alt1}.  The proof uses the construction preceding
-  Table \ref{table:alt1}: Corollary \ref{fks-corollary-22} supplies the large
-  asymptotic comparison, a derivative check as in Lemma \ref{fks-lemma-10}
-  verifies the needed decay, and the lower ranges are checked by interpolation
-  from the numerical bounds as in \cite[Lemmas 5.2 and 5.3]{FKS}, together with
-  direct checks for small $x$.  In the Lean statement, the fourth table entry is
-  the printed value $t = \log(x_0)$, so the actual threshold is `Real.exp t`.
-  -/)
+  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks2-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$. -/)
   (latexEnv := "corollary")
   (discussion := 722)]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
