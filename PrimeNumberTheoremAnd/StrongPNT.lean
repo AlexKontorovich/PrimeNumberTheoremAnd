@@ -1329,6 +1329,49 @@ blueprint_comment /--
 \end{theorem}
 -/
 
+theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
+    (r'_pos : 0 < r') (r'_lt_r : r' < r) (r_lt_one : r < 1) (r_lt_R' : r < R') (R'_lt_R : R' < R) (R_lt_one : R < 1) (ht : |t| ≥ 2)
+    (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) (finiteZeros : (SetOfZeros 1 f).Finite)
+    (hz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f) :
+    ∃ (C : ℝ), ‖(deriv f z / f z) - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ / (z - ρ)‖ ≤
+      (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * (C * Real.log |t|) := by
+    set g : ℂ → ℂ := fun z ↦ f z / f 0 with g_def
+    set B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) with B_def
+    have one_lt_zeta_div : (1 : ℝ) < ‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ := by
+      sorry
+    have one_lt_B : 1 < B := one_lt_mul (by linarith) one_lt_zeta_div
+    have one_le_C : (1 : ℝ) ≤ 11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := le_of_lt (one_lt_mul (by linarith) one_lt_zeta_div)
+    have gAnalytic : AnalyticOnNhd ℂ g (Metric.closedBall (0 : ℂ) 1) := by
+      sorry
+    have g0_eq_one : g 0 = 1 := by
+      simp only [g_def, hf, zero_add, div_self_eq_one₀, ne_eq]
+      exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
+    have gFiniteZeros : (SetOfZeros 1 g).Finite := by
+      sorry
+    have gBound : ∀ z : ℂ, ‖z‖ ≤ R → ‖g z‖ ≤ B := by
+      intro z' hz'
+      simp only [B_def, g_def, hf, zero_add, Complex.norm_div]
+      rw [div_eq_mul_one_div]
+      refine mul_le_mul (GlobalBound (le_trans hz' R_lt_one.le) ht) ?_ (one_div_nonneg.mpr (norm_nonneg _)) (by linarith)
+      rw [one_div_le (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num))), one_div, inv_div, ← toReal_coe_nnnorm, ENNReal.coe_toReal, ← NNReal.coe_div, ← nnnorm_div]
+      · exact_mod_cast ZetaFixedLowerBound t
+      · simp only [coe_nnnorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
+        exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num), riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
+    have ghz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' g := by
+      sorry
+    have gFinalBound := FinalBound one_lt_B r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one gAnalytic g0_eq_one gFiniteZeros gBound ghz
+    suffices h1 : ∃ (C : ℝ), Real.log B ≤ C * Real.log |t| by
+      obtain ⟨C, hC⟩ := h1
+      use C
+
+      sorry
+    use 1 + Real.log (11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 2
+    rw [add_mul, one_mul, div_mul_eq_mul_div, mul_div_assoc]
+    suffices h2 : Real.log B ≤ Real.log |t| + Real.log (11 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) by exact le_trans h2 ((add_le_add_iff_left _).mpr (le_mul_of_one_le_right (Real.log_nonneg one_le_C) ((one_le_div (Real.log_pos one_lt_two)).mpr (log_le_log zero_lt_two (RCLike.ofReal_le_ofReal.mp ht)))))
+    rw [← Real.log_mul (by linarith) (by linarith), log_le_log_iff (by linarith) (mul_pos (by linarith) (by linarith))]
+    simp only [← mul_assoc, B_def, coe_nnnorm]
+    exact mul_le_mul_of_nonneg_right (by linarith) (div_nonneg (norm_nonneg _) (norm_nonneg _))
+
 blueprint_comment /--
 \begin{proof}
 \uses{ZetaFixedLowerBound, GlobalBound, FinalBound}
@@ -1345,7 +1388,7 @@ blueprint_comment /--
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(r)}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
     where the implied constant $C$ is taken to be
-    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$
+    $$C\geq 1+\frac{\log(11\,\zeta(3/2)/\zeta(3))}{\log 2}.$$
 \end{proof}
 -/
 
