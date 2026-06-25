@@ -1,4 +1,4 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row2
+import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenQuarterCore
 
 /-!
@@ -18,122 +18,7 @@ Cor 22 tail `[e^20000, ∞)`.
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp
 
-/-- Buthe `Eπ`-upper-bound reconciliation over the WIDE range `[e^5, e^40]`
-(vs `FloorButhe.Epi_le_evalLhsE`'s `[e^5,e^10]`): identical proof, only the
-`x ≤ 10^19` derivation uses `x ≤ e^40` (`e^40 ≈ 2.4e17 < 10^19`).  Needed for
-row 1's near-threshold boundary `[e^22.955, e^40]`. -/
-theorem Epi_le_evalLhsE_wide (x : ℝ) (h5 : Real.exp 5 ≤ x) (h40 : x ≤ Real.exp 40) :
-    Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE := by
-  have he5 : (2:ℝ) ≤ Real.exp 5 := by
-    have := Real.add_one_le_exp (5:ℝ); linarith
-  have hx2 : (2:ℝ) ≤ x := le_trans he5 h5
-  have hxpos : (0:ℝ) < x := by linarith
-  have hLge5 : (5:ℝ) ≤ Real.log x := by
-    rw [← Real.log_exp 5]; exact Real.log_le_log (Real.exp_pos _) h5
-  have hLpos : (0:ℝ) < Real.log x := by linarith
-  have hLnn : (0:ℝ) ≤ Real.log x := le_of_lt hLpos
-  have hx19 : x ≤ 10 ^ 19 := by
-    have h2 : Real.exp 40 ≤ (2.72:ℝ) ^ 40 := by
-      have he : Real.exp 40 = Real.exp 1 ^ 40 := by rw [← Real.exp_nat_mul]; norm_num
-      rw [he]; gcongr
-      linarith [Real.exp_one_lt_d9]
-    have h3 : (2.72:ℝ) ^ 40 ≤ 10 ^ 19 := by norm_num
-    linarith [h40]
-  have h2e := Buthe.theorem_2e hx2 hx19
-  have h2f := Buthe.theorem_2f hx2 hx19
-  have hsub := li.sub_Li x hx2
-  have hli2 := li.two_approx
-  have hli2_le : li 2 ≤ 1.0452 := hli2.2
-  have hpiLi : pi x - Li x = li 2 - (li x - pi x) := by linarith [hsub]
-  have habs : |pi x - Li x| ≤ (li x - pi x) + li 2 := by
-    rw [hpiLi, abs_le]
-    constructor <;> linarith [h2f, hli2.1]
-  have hEpi_eq : Eπ x = |pi x - Li x| * (Real.log x / x) := by
-    unfold Eπ
-    rw [div_div_eq_mul_div, mul_div_assoc]
-  rw [hEpi_eq]
-  set B := Real.sqrt x / Real.log x * (1.95 + 3.9 / Real.log x + 19.5 / (Real.log x) ^ 2) with hB_def
-  have hfactor_nn : (0:ℝ) ≤ Real.log x / x := by positivity
-  have hstep1 : |pi x - Li x| * (Real.log x / x) ≤ (B + 1.0452) * (Real.log x / x) := by
-    apply mul_le_mul_of_nonneg_right _ hfactor_nn
-    calc |pi x - Li x| ≤ (li x - pi x) + li 2 := habs
-      _ ≤ B + 1.0452 := by
-          apply add_le_add
-          · rw [hB_def]; exact h2e
-          · exact hli2_le
-  refine le_trans hstep1 (le_of_eq ?_)
-  have hxne : x ≠ 0 := ne_of_gt hxpos
-  have hLne : Real.log x ≠ 0 := ne_of_gt hLpos
-  have hxinv : x⁻¹ = Real.exp (-(Real.log x)) := by
-    rw [Real.exp_neg, Real.exp_log hxpos]
-  have hsqrtx : Real.sqrt x = Real.exp (Real.log x / 2) := by
-    rw [← Real.exp_log (Real.sqrt_pos.mpr hxpos), Real.log_sqrt (le_of_lt hxpos)]
-  set s := Real.sqrt (Real.log x) with hs_def
-  have hss : s * s = Real.log x := by rw [hs_def]; exact Real.mul_self_sqrt hLnn
-  rw [FloorButhe.eval_lhsE, hss]
-  set L := Real.log x with hL_def
-  have hLx : L / x = L * Real.exp (-L) := by
-    rw [div_eq_mul_inv, hxinv]
-  have hsqrtxE2 : Real.sqrt x * Real.exp (-L) = Real.exp (-L / 2) := by
-    rw [hsqrtx, ← Real.exp_add]; congr 1; ring
-  rw [hB_def, hLx]
-  rw [show (Real.sqrt x / L * (1.95 + 3.9 / L + 19.5 / L ^ 2) + 1.0452) * (L * Real.exp (-L))
-      = (Real.sqrt x * Real.exp (-L)) * (1.95 + 3.9 / L + 19.5 / L ^ 2)
-        + 1.0452 * (L * Real.exp (-L)) by
-        field_simp]
-  rw [hsqrtxE2]
-  ring
-
-/-- Wide quarter Buthe floor assembler over `[e^xlo, e^xhi]` (`5 ≤ xlo`, `xhi ≤ 40`),
-using `Epi_le_evalLhsE_wide`.  Squared slab check + outside-kernel sqrt, as
-`floor_buthe_quarter_of_curve` but with arbitrary upper `xhi` (for row 1's
-near-threshold boundary). -/
-theorem floor_buthe_quarter_wide (rhsE2 : Expr) (A C : ℝ) (xlo xhi : ℝ) (slabLo : ℚ) (n : ℕ)
-    (hApos : 0 < A)
-    (hxlo5 : (5:ℝ) ≤ xlo) (hxhi40 : xhi ≤ 40)
-    (hslo : (slabLo:ℝ) ≤ Real.sqrt xlo)
-    (hshi : Real.sqrt xhi < (slabLo:ℝ) + (n:ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2))
-    (hchk : checkExprLeOnSlabsDyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
-        (slabsFrom slabLo n) (-50) 8 = true)
-    (hcurve2 : ∀ x, xlo ≤ Real.log x →
-        Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE2
-          ≤ (admissible_bound A 0.25 C 5.5666305 x) ^ 2) :
-    ∀ x ∈ Set.Icc (Real.exp xlo) (Real.exp xhi),
-      Eπ x ≤ admissible_bound A 0.25 C 5.5666305 x := by
-  intro x hx
-  obtain ⟨hlo, hhi⟩ := hx
-  have h5 : Real.exp 5 ≤ x := le_trans (Real.exp_le_exp.mpr hxlo5) hlo
-  have h40 : x ≤ Real.exp 40 := le_trans hhi (Real.exp_le_exp.mpr hxhi40)
-  have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (Real.exp_pos _) h5
-  have hLgexlo : xlo ≤ Real.log x := by
-    rw [← Real.log_exp xlo]; exact Real.log_le_log (Real.exp_pos _) hlo
-  have hLlexhi : Real.log x ≤ xhi := by
-    rw [← Real.log_exp xhi]; exact Real.log_le_log hxpos hhi
-  have hLpos : (0:ℝ) < Real.log x := lt_of_lt_of_le (by linarith) hLgexlo
-  have hcov_lo : (slabLo:ℝ) ≤ Real.sqrt (Real.log x) :=
-    le_trans hslo (Real.sqrt_le_sqrt hLgexlo)
-  have hcov_hi : Real.sqrt (Real.log x) < (slabLo:ℝ) + (n:ℝ) * 0.05 :=
-    lt_of_le_of_lt (Real.sqrt_le_sqrt hLlexhi) hshi
-  obtain ⟨I, hI, hmem⟩ := coverFrom slabLo n _ hcov_lo hcov_hi
-  have hslab2 := verify_expr_le_on_slabs_dyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
-    (slabsFrom slabLo n) (-50) 8 hsupp (by norm_num) hchk I hI _ hmem
-  rw [Expr.eval_mul] at hslab2
-  set Lh := Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE with hLh_def
-  have hLh_nn : (0:ℝ) ≤ Lh := by
-    rw [hLh_def, FloorButhe.eval_lhsE]; positivity
-  have hadm_nn : (0:ℝ) ≤ admissible_bound A 0.25 C 5.5666305 x := by
-    rw [admissible_quarter_eq A C 5.5666305 x hLpos.le (by norm_num)]; positivity
-  have hsq : Lh ^ 2 ≤ (admissible_bound A 0.25 C 5.5666305 x) ^ 2 := by
-    calc Lh ^ 2 = Lh * Lh := sq Lh
-      _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE2 := hslab2
-      _ ≤ (admissible_bound A 0.25 C 5.5666305 x) ^ 2 := hcurve2 x hLgexlo
-  have hLh_le : Lh ≤ admissible_bound A 0.25 C 5.5666305 x := by
-    have := Real.sqrt_le_sqrt hsq
-    rwa [Real.sqrt_sq hLh_nn, Real.sqrt_sq hadm_nn] at this
-  exact le_trans (Epi_le_evalLhsE_wide x h5 h40) hLh_le
-
-/-- Row-1 squared floor curve `(6103/10⁹)·s·exp(−(8477/10000)s)`. -/
+/-- Row-1 squared floor curve `(6102/10¹²)·s·exp(−(8477/10000)s)`. -/
 def eR1 : Expr := Expr.exp (Expr.mul (Expr.const (-8477/80000)) (Expr.var 0))
 def rhsE2_row1 : Expr :=
   Expr.mul (Expr.const (6102/1000000000000)) (Expr.mul (Expr.var 0) (FloorButhe.pow8 eR1))
