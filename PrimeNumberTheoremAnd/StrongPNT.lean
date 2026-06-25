@@ -1280,6 +1280,7 @@ theorem GlobalBound
       re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero,
       add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul, zero_add]
     refine ⟨by linarith, fun hs => ?_⟩
+
     cases abs_cases t <;>  linarith [abs_le.mp (Complex.abs_re_le_norm s), abs_le.mp (Complex.abs_im_le_norm s)]
   have leadingTerms : ‖1 + 1 / (s + 3 / 2 + I * ↑t - 1)‖ ≤ 2 := by
     rw [← one_add_one_eq_two (R := ℝ)]
@@ -1338,16 +1339,32 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
     set g : ℂ → ℂ := fun z ↦ f z / f 0 with g_def
     set B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) with B_def
     have one_lt_zeta_div : (1 : ℝ) < ‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ := by
+      simp only [coe_nnnorm]
+      apply (one_lt_div (by exact norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))).mpr
+      repeat rw [zeta_eq_tsum_one_div_nat_cpow (by norm_num)]
       sorry
     have one_lt_B : 1 < B := one_lt_mul (by linarith) one_lt_zeta_div
     have one_le_C : (1 : ℝ) ≤ 11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := le_of_lt (one_lt_mul (by linarith) one_lt_zeta_div)
-    have gAnalytic : AnalyticOnNhd ℂ g (Metric.closedBall (0 : ℂ) 1) := by
-      sorry
-    have g0_eq_one : g 0 = 1 := by
-      simp only [g_def, hf, zero_add, div_self_eq_one₀, ne_eq]
+    have f0nonzero : ¬f 0 = 0 := by
+      simp only [hf, zero_add]
       exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
+    have gAnalytic : AnalyticOnNhd ℂ g (Metric.closedBall (0 : ℂ) 1) := by
+      simp only [g_def, hf, zero_add]
+      intro z hz; rw [Metric.mem_closedBall, dist_zero_right, ← sq_le_one_iff₀ (norm_nonneg _), Complex.sq_norm, Complex.normSq_apply] at hz
+      refine AnalyticAt.div_const (AnalyticAt.fun_comp (AnalyticAt.comp (analyticAt_riemannZeta ?_) analyticAt_id) (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const) analyticAt_const))
+      simp only [Pi.add_apply, id_eq, ne_eq, Complex.ext_iff, add_re, div_ofNat_re, re_ofNat,
+        mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re,
+        add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul, zero_add, one_im, not_and]
+      intro hre him
+      have hre' : z.re = -(1/2 : ℝ) := by linarith
+      have him' : z.im = -t := by linarith
+      simp only [hre', him', neg_mul_neg] at hz
+      rw [← abs_two, ge_iff_le, ← sq_le_sq] at ht
+      nlinarith [hz, ht]
+    have g0_eq_one : g 0 = 1 := by simp only [g_def, div_self_eq_one₀, ne_eq, f0nonzero, not_false_eq_true]
     have gFiniteZeros : (SetOfZeros 1 g).Finite := by
-      sorry
+      simp only [SetOfZeros, g_def, div_eq_zero_iff, or_iff_left f0nonzero] at ⊢ finiteZeros
+      exact finiteZeros
     have gBound : ∀ z : ℂ, ‖z‖ ≤ R → ‖g z‖ ≤ B := by
       intro z' hz'
       simp only [B_def, g_def, hf, zero_add, Complex.norm_div]
@@ -1358,12 +1375,12 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
       · simp only [coe_nnnorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
         exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num), riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
     have ghz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' g := by
-      sorry
+      simp only [Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right, SetOfZeros, mem_setOf_eq, not_and, g_def, div_eq_zero_iff, not_or] at ⊢ hz
+      refine ⟨hz.1, fun hz' => ⟨hz.2 hz', f0nonzero⟩⟩
     have gFinalBound := FinalBound one_lt_B r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one gAnalytic g0_eq_one gFiniteZeros gBound ghz
     suffices h1 : ∃ (C : ℝ), Real.log B ≤ C * Real.log |t| by
       obtain ⟨C, hC⟩ := h1
       use C
-
       sorry
     use 1 + Real.log (11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 2
     rw [add_mul, one_mul, div_mul_eq_mul_div, mul_div_assoc]
