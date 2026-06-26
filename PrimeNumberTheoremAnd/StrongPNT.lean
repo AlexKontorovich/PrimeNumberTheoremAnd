@@ -1335,24 +1335,21 @@ lemma norm_zeta_strict_mono_ofReal {a b : ℝ} (hb : 1 < b) (hab : b < a) :
     push_cast; congr; funext n
     rw [Complex.ofReal_cpow (by linarith)]
     push_cast; rfl
-  simp only [zeta_rw (lt_trans hb hab), rpow_eq_pow, one_div, norm_real, norm_eq_abs, zeta_rw hb, gt_iff_lt]
+  have hsum {c : ℝ} (hc : 1 < c) : Summable (fun n : ℕ => ((n + 2 : ℝ) ^ c)⁻¹) := by
+    exact_mod_cast (summable_nat_add_iff 2).2 (Real.summable_nat_rpow_inv.2 hc)
+  simp only [zeta_rw (hb.trans hab), rpow_eq_pow, one_div, norm_real, norm_eq_abs, zeta_rw hb, gt_iff_lt]
   repeat rw [abs_of_nonneg]
-  · rw [tsum_eq_zero_add' (f := fun n : ℕ => (_^ a)⁻¹), tsum_eq_zero_add' (f := fun n : ℕ => (_ ^ b)⁻¹)]
+  · rw [tsum_eq_zero_add' (f := fun n : ℕ => (_ ^ a)⁻¹),
+        tsum_eq_zero_add' (f := fun n : ℕ => (_ ^ b)⁻¹)]
     · simp only [CharP.cast_eq_zero, zero_add, one_rpow, inv_one, cast_add, cast_one,
         add_lt_add_iff_left, add_assoc, one_add_one_eq_two]
-      apply Summable.tsum_strict_mono (by exact_mod_cast summable_nat_add_iff 2 |>.2 <| Real.summable_nat_rpow_inv.2 <| (lt_trans hb hab)) (by exact_mod_cast summable_nat_add_iff 2 |>.2 <| Real.summable_nat_rpow_inv.2 <| hb)
-      suffices h : ∀ (n : ℕ), ((n + 2 : ℝ) ^ a)⁻¹ < ((n + 2 : ℝ) ^ b)⁻¹ by
-        rw [Pi.lt_def]
-        exact ⟨fun n => (h n).le, 0, h 0⟩
-      exact fun _ => inv_strictAnti₀ (Real.rpow_pos_of_pos (by linarith) b) (Real.rpow_lt_rpow_of_exponent_lt (by linarith) hab)
-    · push_cast
-      simp only [add_assoc, one_add_one_eq_two]
-      exact_mod_cast summable_nat_add_iff 2 |>.2 <| Real.summable_nat_rpow_inv.2 <| hb
-    · push_cast
-      simp only [add_assoc, one_add_one_eq_two]
-      exact_mod_cast summable_nat_add_iff 2 |>.2 <| Real.summable_nat_rpow_inv.2 <| (lt_trans hb hab)
-  · exact tsum_nonneg (fun n => inv_nonneg.mpr (rpow_nonneg (by linarith) _))
-  · exact tsum_nonneg (fun n => inv_nonneg.mpr (rpow_nonneg (by linarith) _))
+      have h : ∀ n : ℕ, ((n + 2 : ℝ) ^ a)⁻¹ < ((n + 2 : ℝ) ^ b)⁻¹ := fun _ =>
+        inv_strictAnti₀ (Real.rpow_pos_of_pos (by positivity) b)
+          (Real.rpow_lt_rpow_of_exponent_lt (by linarith) hab)
+      exact Summable.tsum_strict_mono (hsum (hb.trans hab)) (hsum hb) (Pi.lt_def.mpr ⟨fun n => (h n).le, 0, h 0⟩)
+    · push_cast; simpa [add_assoc, one_add_one_eq_two] using hsum hb
+    · push_cast; simpa [add_assoc, one_add_one_eq_two] using hsum (hb.trans hab)
+  all_goals exact tsum_nonneg fun n => inv_nonneg.mpr (rpow_nonneg (by positivity) _)
 
 
 
@@ -1362,7 +1359,7 @@ lemma analyticOrderNatAt_fun_div_const {c z : ℂ} {f : ℂ → ℂ} (hc : c ≠
     analyticOrderNatAt (fun z => f z / c) z = analyticOrderNatAt f z := by
   simp only [analyticOrderNatAt, div_eq_inv_mul, ← Pi.mul_def]
   rw [analyticOrderAt_mul analyticAt_const hfAnalytic, analyticOrderAt_eq_zero.mpr, zero_add]
-  right; exact inv_ne_zero hc
+  exact .inr (inv_ne_zero hc)
 
 
 
@@ -1398,22 +1395,16 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
     ∃ (C : ℝ), ‖(deriv f z / f z) - ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ / (z - ρ)‖ ≤
       (16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * (C * Real.log |t|) := by
   set g : ℂ → ℂ := f / (fun z ↦ f 0) with g_def
-  have g_def' : g = fun z ↦ f z / f 0 := by
-    funext; simp only [g_def, Pi.div_apply]
+  have g_def' : g = fun z ↦ f z / f 0 := rfl
   set B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) with B_def
   have one_lt_zeta_div : (1 : ℝ) < ‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ := by
-    rw [coe_nnnorm, coe_nnnorm, one_lt_div]
-    · exact norm_zeta_strict_mono_ofReal (by linarith) (by linarith)
-    · rw [norm_pos_iff]
-      exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
-  have one_lt_B : 1 < B := by
-    apply one_lt_mul (by linarith)
-    simp only [ofReal_div, ofReal_ofNat] at ⊢ one_lt_zeta_div
-    exact one_lt_zeta_div
-  have one_le_C : (1 : ℝ) ≤ 11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := by
-    refine le_of_lt (one_lt_mul (by linarith) ?_)
-    simp only [ofReal_div, ofReal_ofNat] at ⊢ one_lt_zeta_div
-    exact one_lt_zeta_div
+    rw [coe_nnnorm, coe_nnnorm,
+      one_lt_div (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))]
+    exact norm_zeta_strict_mono_ofReal (by linarith) (by linarith)
+  have hzd : (1 : ℝ) < (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
+    simpa only [ofReal_div, ofReal_ofNat] using one_lt_zeta_div
+  have one_lt_B : 1 < B := one_lt_mul (by linarith) hzd
+  have one_le_C : (1 : ℝ) ≤ 11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := (one_lt_mul (by linarith) hzd).le
   have f0nonzero : ¬f 0 = 0 := by
     simp only [hf, zero_add]
     exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
@@ -1449,7 +1440,7 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
       exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num), riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
   have ghz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' g := by
     simp only [Set.mem_sdiff, Metric.mem_closedBall, _root_.dist_zero_right, SetOfZeros, mem_setOf_eq, not_and, g_def, Pi.div_apply, div_eq_zero_iff, not_or] at ⊢ hz
-    refine ⟨hz.1, fun hz' => ⟨hz.2 hz', f0nonzero⟩⟩
+    exact ⟨hz.1, fun hz' => ⟨hz.2 hz', f0nonzero⟩⟩
   have gFinalBound := FinalBound one_lt_B r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one gAnalytic g0_eq_one gFiniteZeros gBound ghz
   have gFiniteZeros' : (finiteSetOfZeros_mono r_lt_one gFiniteZeros).toFinset = (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset := by simp only [SetOfZeros, g_def, Pi.div_apply, div_eq_zero_iff, or_iff_left f0nonzero]
   suffices h1 : ∃ (C : ℝ), Real.log B ≤ C * Real.log |t| by
@@ -1459,8 +1450,7 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
       rw [gFiniteZeros']
       congr 1
       · simp only [g_def', deriv_div_const, div_div_div_cancel_right₀ f0nonzero]
-      · apply Finset.sum_congr rfl
-        intro ρ hρ
+      · refine Finset.sum_congr rfl fun ρ hρ => ?_
         rw [div_left_inj', Nat.cast_inj, g_def', analyticOrderNatAt_fun_div_const f0nonzero]
         · rw [hf]
           refine AnalyticAt.comp (analyticAt_riemannZeta ?_) ( AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const) (AnalyticAt.mul analyticAt_const analyticAt_const))
@@ -1468,14 +1458,14 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
             mem_setOf_eq, ne_eq, add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul,
             I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re, add_im, div_ofNat_im, im_ofNat,
             zero_div, mul_im, one_mul, zero_add, one_im, not_and] at ⊢ hρ
-          apply ifInStripNotOne (le_trans hρ.1 r_lt_one.le)
-        · simp only [SetOfZeros, Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right,
+          exact ifInStripNotOne (le_trans hρ.1 r_lt_one.le)
+        · simp only [SetOfZeros, Set.mem_sdiff, Metric.mem_closedBall, _root_.dist_zero_right,
             mem_setOf_eq, not_and, Finite.mem_toFinset] at hz hρ
           intro h; rw [sub_eq_zero] at h; rw [h] at hz
           exact (hz.2 (le_trans hρ.1 r_lt_R'.le)) hρ.2
     · refine mul_le_mul (by rfl) hC (Real.log_nonneg one_lt_B.le) (add_nonneg ( div_nonneg (mul_nonneg (by linarith) (pow_nonneg (lt_trans r'_pos r'_lt_r).le _)) (pow_nonneg (by linarith) _)) (div_nonneg zero_le_one (mul_nonneg (sub_nonneg.mpr ((le_div_iff₀ (by linarith)).mpr ?_)) (Real.log_nonneg ((one_le_div (by linarith)).mpr R'_lt_R.le)))))
       nlinarith
-  use 1 + Real.log (11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 2
+  refine ⟨1 + Real.log (11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 2, ?_⟩
   rw [add_mul, one_mul, div_mul_eq_mul_div, mul_div_assoc]
   suffices h2 : Real.log B ≤ Real.log |t| + Real.log (11 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) by exact le_trans h2 ((add_le_add_iff_left _).mpr (le_mul_of_one_le_right (Real.log_nonneg one_le_C) ((one_le_div (Real.log_pos one_lt_two)).mpr (log_le_log zero_lt_two (RCLike.ofReal_le_ofReal.mp ht)))))
   rw [← Real.log_mul (by linarith) (by linarith), log_le_log_iff (by linarith) (mul_pos (by linarith) (by linarith))]
