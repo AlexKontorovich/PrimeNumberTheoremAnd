@@ -1242,146 +1242,52 @@ theorem sum_prime_div_eq_log_log'' : (fun x ↦ ∑ p ∈ Ioc 0 ⌊x⌋₊ with 
 
 end SecondTheorem
 
-theorem log_zeta_eq_sum' {s : ℝ} (hs : 1 < s) :
+theorem log_zeta_eq_sum {s : ℝ} (hs : 1 < s) :
     log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
   have hpow_le (p : Nat.Primes) : (↑p : ℝ) ^ (-s) < 1 :=
     rpow_lt_one_of_one_lt_of_neg (mod_cast p.property.one_lt) (by linarith)
+  have htaylor (p : Nat.Primes) :
+    HasSum (fun n : ℕ ↦ ((p : ℝ) ^ (-s)) ^ (n + 1) / (n + 1)) (-Real.log (1 - p ^ (-s))) := by
+    apply hasSum_pow_div_log_of_abs_lt_one
+    have : 0 < (p : ℝ) := mod_cast p.prop.pos
+    rw [abs_of_pos (by positivity)]; exact hpow_le p
   calc
-  _ = ∑' p : Nat.Primes, -log (1 - p ^ (-s)) := by
-    rw [← riemannZeta_eulerProduct_exp_log (by simpa using hs)]
-    convert log_exp _
-    convert Complex.exp_ofReal_re _
-    push_cast
-    congr! with p
-    convert (Complex.ofReal_log _).symm
-    · push_cast; congr
-      rw [Complex.ofReal_cpow (by positivity)]
-      norm_cast
-    linarith [hpow_le p]
-  _ = _ := by
-    sorry
+    _ = ∑' (p : Nat.Primes) (n : ℕ), ((p : ℝ) ^ (-s)) ^ (n + 1) / (↑n + 1) := by
+      rw [← tsum_congr (fun p ↦ (htaylor p).tsum_eq.symm),
+        ← riemannZeta_eulerProduct_exp_log (by simpa using hs)]
+      convert log_exp _
+      convert Complex.exp_ofReal_re _
+      push_cast
+      congr! with p
+      convert (Complex.ofReal_log _).symm
+      · push_cast; congr
+        rw [Complex.ofReal_cpow (by positivity)]
+        norm_cast
+      linarith [hpow_le p]
+    _ = ∑' (p : Nat.Primes × ℕ), ((p.1 : ℝ) ^ (-s)) ^ (p.2 + 1) / (↑p.2 + 1) := by
+      rw [Summable.tsum_prod']
+      · rw [summable_prod_of_nonneg (fun _ ↦ by positivity)]
+        refine ⟨fun p ↦ (htaylor p).summable, ?_⟩
+        refine Summable.congr ?_ (fun p ↦ ((htaylor p).tsum_eq).symm)
+        have := Nat.Primes.summable_rpow.mpr (by linarith : -s < -1)
+        convert! (summable_log_one_add_of_summable this.neg).neg using 1
+      exact fun p ↦ (htaylor p).summable
+    _ =  ∑' n : {n : ℕ // IsPrimePow n}, Λ n / ((n : ℝ) ^ s * Real.log n) := by
+      rw [← Equiv.tsum_eq Nat.Primes.prodNatEquiv (fun n ↦ Λ n / ((n : ℝ) ^ s * Real.log n))]
+      apply tsum_congr; rintro ⟨p, n⟩
+      have : 0 < log (p : ℝ) := log_pos (mod_cast p.prop.one_lt)
+      rw [Nat.Primes.coe_prodNatEquiv_apply, vonMangoldt_apply_pow (Nat.succ_ne_zero n),
+        vonMangoldt_apply_prime p.prop, Nat.cast_pow, log_pow, ← rpow_natCast,
+        ← rpow_mul (by positivity), mul_comm, rpow_mul (by positivity), rpow_natCast,
+        rpow_neg (by positivity)]
+      grind
+    _ = _ := by
+      suffices (Function.support fun n ↦ Λ n / (↑n ^ s * log ↑n)) ⊆ {n | IsPrimePow n} from
+        tsum_subtype_eq_of_support_subset this
+      intro n hn
+      contrapose! hn
+      simp [vonMangoldt_eq_zero_iff.mpr hn]
 
-
-theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
-    log (riemannZeta (s:ℂ)).re = ∑' n, Λ n / (n^s * log n) := by
-  have hsc : (1 : ℝ) < ((s : ℂ)).re := by simpa using hs
-  -- (II) Euler log product
-  have hep := riemannZeta_eulerProduct_exp_log (s := (s : ℂ)) hsc
-  set S : ℂ := ∑' p : Nat.Primes, -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) with hS
-  -- bridge: prime cpow equals real rpow
-  have hcpow : ∀ p : Nat.Primes, (p : ℂ) ^ (-(s : ℂ)) = (((p : ℝ) ^ (-s) : ℝ) : ℂ) := by
-    intro p
-    rw [Complex.ofReal_cpow (by positivity)]
-    push_cast; ring_nf
-  -- the real value of each prime term
-  set z : Nat.Primes → ℝ := fun p => (p : ℝ) ^ (-s) with hz
-  -- z p ∈ (0,1)
-  have hz_pos : ∀ p : Nat.Primes, 0 < z p := fun p => by
-    have : (0 : ℝ) < (p : ℝ) := by exact_mod_cast p.prop.pos
-    positivity
-  have hz_lt_one : ∀ p : Nat.Primes, z p < 1 := by
-    intro p
-    have hp1 : (1 : ℝ) < (p : ℝ) := by exact_mod_cast p.prop.one_lt
-    change (p : ℝ) ^ (-s) < 1
-    rw [Real.rpow_neg (by positivity), inv_lt_one_iff₀]
-    right
-    exact (Real.one_lt_rpow_iff_of_pos (by positivity)).mpr (Or.inl ⟨hp1, by linarith⟩)
-  -- each summand is the ofReal of a real number
-  have hterm : ∀ p : Nat.Primes,
-      -Complex.log (1 - (p : ℂ) ^ (-(s : ℂ))) = ((-Real.log (1 - z p) : ℝ) : ℂ) := by
-    intro p
-    rw [hcpow p]
-    have h1z : (0 : ℝ) < 1 - z p := by have := hz_lt_one p; linarith
-    rw [show (1 : ℂ) - ((z p : ℝ) : ℂ) = (((1 - z p : ℝ)) : ℂ) by push_cast; ring]
-    rw [← Complex.ofReal_log h1z.le]
-    push_cast; ring
-  -- (III) S is real: S = (Sr : ℂ) with Sr the real sum
-  set Sr : ℝ := ∑' p : Nat.Primes, -Real.log (1 - z p) with hSr
-  have hSeq : S = (Sr : ℂ) := by
-    rw [hS, hSr, Complex.ofReal_tsum]
-    exact tsum_congr hterm
-  have hSim : S.im = 0 := by rw [hSeq]; exact Complex.ofReal_im _
-  have hSre : S.re = Sr := by rw [hSeq]; exact Complex.ofReal_re _
-  -- (IV) invert exp: log ζ = S
-  have hlog_zeta : Complex.log (riemannZeta (s : ℂ)) = S := by
-    rw [← hep, Complex.log_exp (by rw [hSim]; exact neg_lt_zero.mpr Real.pi_pos)
-      (by rw [hSim]; exact Real.pi_pos.le)]
-  -- relate Real.log ζ.re to S.re = Sr
-  have hkey : Real.log (riemannZeta (s : ℂ)).re = Sr := by
-    have hζim : (riemannZeta (s : ℂ)).im = 0 := riemannZeta_im_eq_zero_of_one_lt hs
-    have hζeq : riemannZeta (s : ℂ) = ((riemannZeta (s : ℂ)).re : ℂ) := by
-      apply Complex.ext <;> simp [hζim]
-    have : Real.log (riemannZeta (s : ℂ)).re
-        = (Complex.log (riemannZeta (s : ℂ))).re := by
-      conv_rhs => rw [hζeq]
-      rw [Complex.log_ofReal_re]
-    rw [this, hlog_zeta, hSre]
-  rw [hkey]
-  -- now goal: Sr = ∑' n, Λ n / (n^s * log n)
-  -- (V) expand each prime term via real Taylor series
-  have habs : ∀ p : Nat.Primes, |z p| < 1 := by
-    intro p
-    rw [abs_of_pos (hz_pos p)]; exact hz_lt_one p
-  have htaylor : ∀ p : Nat.Primes,
-      HasSum (fun n : ℕ => (z p) ^ (n + 1) / (n + 1)) (-Real.log (1 - z p)) :=
-    fun p => hasSum_pow_div_log_of_abs_lt_one (habs p)
-  have hSr_double : Sr = ∑' (p : Nat.Primes) (n : ℕ), (z p) ^ (n + 1) / (n + 1) := by
-    rw [hSr]
-    exact tsum_congr fun p => ((htaylor p).tsum_eq).symm
-  -- summability of the prime sum ∑ z p
-  have hsummable_z : Summable z := Nat.Primes.summable_rpow.mpr (by linarith)
-  -- summability of ∑ p, -log(1 - z p)
-  have hsummable_prime : Summable (fun p : Nat.Primes => -Real.log (1 - z p)) := by
-    have := Real.summable_log_one_add_of_summable hsummable_z.neg
-    convert! this.neg using 1
-  -- summability of g over the product
-  have hg_nonneg : ∀ pk : Nat.Primes × ℕ, 0 ≤ (z pk.1) ^ (pk.2 + 1) / (pk.2 + 1) := by
-    intro pk; positivity [hz_pos pk.1]
-  have hsummable_g : Summable (fun pk : Nat.Primes × ℕ => (z pk.1) ^ (pk.2 + 1) / (pk.2 + 1)) := by
-    rw [summable_prod_of_nonneg hg_nonneg]
-    refine ⟨fun p => (htaylor p).summable, ?_⟩
-    refine hsummable_prime.congr (fun p => ?_)
-    exact ((htaylor p).tsum_eq).symm
-  -- pointwise: F (p^(n+1)) = g (p, n)
-  have hpoint : ∀ (p : Nat.Primes) (n : ℕ),
-      Λ ((p : ℕ) ^ (n + 1)) /
-        ((((p : ℕ) ^ (n + 1) : ℕ) : ℝ) ^ s * Real.log (((p : ℕ) ^ (n + 1) : ℕ) : ℝ))
-      = (z p) ^ (n + 1) / (n + 1) := by
-    intro p n
-    have hp1 : (1 : ℝ) < (p : ℝ) := by exact_mod_cast p.prop.one_lt
-    have hlogp : 0 < Real.log (p : ℝ) := Real.log_pos hp1
-    rw [vonMangoldt_apply_pow (Nat.succ_ne_zero n), vonMangoldt_apply_prime p.prop]
-    have hcast : (((p : ℕ) ^ (n + 1) : ℕ) : ℝ) = (p : ℝ) ^ (n + 1) := by push_cast; ring
-    rw [hcast, Real.log_pow]
-    rw [show (z p) ^ (n + 1) = ((p : ℝ) ^ (n + 1)) ^ (-s) by
-      rw [hz]; rw [← Real.rpow_natCast ((p : ℝ) ^ (-s)) (n + 1),
-        ← Real.rpow_natCast ((p : ℝ)) (n + 1), ← Real.rpow_mul (by positivity),
-        ← Real.rpow_mul (by positivity)]; ring_nf]
-    rw [Real.rpow_neg (by positivity)]
-    field_simp
-    push_cast
-    ring
-  -- (VI) reindex via the prime-power equivalence
-  set F : ℕ → ℝ := fun n => Λ n / ((n : ℝ) ^ s * Real.log n) with hF
-  -- support of F is contained in prime powers
-  have hsupp : Function.support F ⊆ {n : ℕ | IsPrimePow n} := by
-    intro n hn
-    rw [Function.mem_support] at hn
-    simp only [Set.mem_setOf_eq]
-    by_contra hpp
-    apply hn
-    simp only [hF, vonMangoldt_eq_zero_iff.mpr hpp, zero_div]
-  -- the product sum equals the subtype sum
-  have hprod_eq : (∑' pk : Nat.Primes × ℕ, (z pk.1) ^ (pk.2 + 1) / (pk.2 + 1))
-      = ∑' m : {n : ℕ // IsPrimePow n}, F m.val := by
-    rw [← Equiv.tsum_eq Nat.Primes.prodNatEquiv (fun m : {n : ℕ // IsPrimePow n} => F m.val)]
-    apply tsum_congr
-    intro pk
-    rw [Nat.Primes.coe_prodNatEquiv_apply, hF]
-    exact (hpoint pk.1 pk.2).symm
-  -- assemble
-  rw [hSr_double, ← hsummable_g.tsum_prod' (fun p => (htaylor p).summable), hprod_eq]
-  exact tsum_subtype_eq_of_support_subset hsupp
 
 section
 open MeasureTheory Set
@@ -1475,7 +1381,7 @@ private lemma summable_c_term (s : ℝ) (hs : 1 < s) :
 theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
     Real.log (riemannZeta (s:ℂ)).re =
       (s - 1) * ∫ x in Set.Ioi 1, (Real.log (Real.log x) + γ + E₂Λ x) * x ^ (-s) := by
-  rw [Mertens.log_zeta_eq_sum s hs]
+  rw [Mertens.log_zeta_eq_sum hs]
   symm
   have hstep1 : ∀ x ∈ Set.Ioi (1:ℝ),
       (Real.log (Real.log x) + γ + E₂Λ x) * x ^ (-s)
