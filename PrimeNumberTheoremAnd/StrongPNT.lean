@@ -1099,9 +1099,7 @@ theorem FinalBound {B r' r R' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
-blueprint_comment /--
-  API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm-tprod
--/
+/- API analogous to HasProd.norm, Multipliable.norm, Multipliable.norm-tprod -/
 
 variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
  {f : α → R} {x : R}
@@ -1319,6 +1317,16 @@ theorem GlobalBound
 
 
 
+@[blueprint "norm_zeta_strict_mono_ofReal"
+  (title := "norm-zeta-strict-mono-ofReal")
+  (statement := /--
+    If $a,b\in\mathbb{R}$ with $1<b<a$, then
+    $$\norm{\zeta(a)}<\norm{\zeta(b)}.$$
+  -/)
+  (proof := /--
+    Expand out $\zeta$ as a summation (we can do this as we are in the region of convergence) and
+    ignore the norm as every term is positive and real. Comparing term by term proves the result.
+  -/)]
 lemma norm_zeta_strict_mono_ofReal {a b : ℝ} (hb : 1 < b) (hab : b < a) :
     ‖ζ a‖ < ‖ζ b‖ := by
   have zeta_rw {c : ℝ} (hc : 1 < c) : ζ c = ((∑' (n : ℕ), (1 : ℝ) / (n + 1 : ℝ).rpow c) : ℝ) := by
@@ -1347,6 +1355,8 @@ lemma norm_zeta_strict_mono_ofReal {a b : ℝ} (hb : 1 < b) (hab : b < a) :
   · exact tsum_nonneg (fun n => inv_nonneg.mpr (rpow_nonneg (by linarith) _))
 
 
+
+/- API for analyticOrderNatAt -/
 
 lemma analyticOrderNatAt_fun_div_const {c z : ℂ} {f : ℂ → ℂ} (hc : c ≠ 0) (hfAnalytic : AnalyticAt ℂ f z) :
     analyticOrderNatAt (fun z => f z / c) z = analyticOrderNatAt f z := by
