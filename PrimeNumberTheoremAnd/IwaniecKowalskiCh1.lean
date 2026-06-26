@@ -1454,7 +1454,10 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
   -/)]
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
-  sorry
+  have hn0 : n ≠ 0 := fun h => not_squarefree_zero (h ▸ hn)
+  unfold liouville toArithmeticFunction
+  simp only [ArithmeticFunction.coe_mk, hn0, ↓reduceIte]
+  rw [moebius_apply_of_squarefree hn]
 
 /-- Euler totient series: `∑ φ(n) n^-s = ζ(s-1)/ζ(s)`. -/
 @[blueprint
