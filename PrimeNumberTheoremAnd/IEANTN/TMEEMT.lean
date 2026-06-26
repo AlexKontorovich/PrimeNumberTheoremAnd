@@ -17,7 +17,9 @@ Some of these results are already stated elsewhere.  In such cases, we can fill 
 -/
 
 open Real Chebyshev
+open Filter
 open ArithmeticFunction hiding log
+open scoped Topology
 
 
 blueprint_comment /--
@@ -30,10 +32,9 @@ blueprint_comment /--
 In the section "A partial prime number theorem" of \cite{Buthe2}, Theorem 2
 uses prime-counting and Chebyshev functions introduced there with the source's
 \(\chi^*_{[0,x]}\) convention, which gives boundary points weight \(1/2\). The
-source-normalized \(\psi\), \(\pi\), and \(\pi^*\) functions below use this
-endpoint convention. The theorem for \(\theta\) still uses the project's
-ordinary \(\theta\), because existing downstream Lean code calls that ordinary
-version; care is still needed when using that statement at endpoints.
+source-normalized \(\psi\), \(\vartheta\), \(\pi\), and \(\pi^*\) functions
+below use this endpoint convention. Downstream ordinary-\(\theta\) bounds need
+a separate right-limit bridge at endpoints.
 -/
 
 namespace Buthe2
@@ -62,6 +63,17 @@ noncomputable def Buthe_psi (x : ℝ) : ℝ :=
   ∑' n : ℕ, Buthe_chiStarIcc x n * (vonMangoldt n : ℝ)
 
 @[blueprint
+  "buthe2-buthe-theta"
+  (title := "Buthe2 Source-Normalized Theta")
+  (statement := /--
+    $\vartheta(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint
+    convention:
+    $\vartheta(x)=\sum_p \chi^*_{[0,x]}(p)\log p$.
+  -/)]
+noncomputable def Buthe_theta (x : ℝ) : ℝ :=
+  ∑ p ∈ Finset.Icc 0 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
+
+@[blueprint
   "buthe2-buthe-pi"
   (title := "Buthe2 Source-Normalized Pi")
   (statement := /--
@@ -81,6 +93,47 @@ noncomputable def Buthe_pi (x : ℝ) : ℝ :=
 noncomputable def Buthe_pi_star (x : ℝ) : ℝ :=
   ∑' k : ℕ, Buthe_pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
 
+lemma Buthe_chiStarIcc_nonneg (x t : ℝ) : 0 ≤ Buthe_chiStarIcc x t := by
+  unfold Buthe_chiStarIcc
+  split_ifs <;> norm_num
+
+lemma Buthe_chiStarIcc_le_one (x t : ℝ) : Buthe_chiStarIcc x t ≤ 1 := by
+  unfold Buthe_chiStarIcc
+  split_ifs <;> norm_num
+
+lemma Buthe_chiStarIcc_eq_one_of_pos_lt {x t : ℝ} (ht0 : 0 < t) (htx : t < x) :
+    Buthe_chiStarIcc x t = 1 := by
+  unfold Buthe_chiStarIcc
+  simp [ht0.ne', htx.ne, ht0, htx]
+
+lemma Buthe_theta_le_theta (x : ℝ) : Buthe_theta x ≤ θ x := by
+  rw [Chebyshev.theta_eq_sum_Icc]
+  unfold Buthe_theta
+  refine Finset.sum_le_sum ?_
+  intro p hp
+  have hpprime : p.Prime := (Finset.mem_filter.mp hp).2
+  have hlog_nonneg : 0 ≤ log (p : ℝ) := by
+    exact log_nonneg (by exact_mod_cast le_of_lt hpprime.one_lt)
+  exact mul_le_of_le_one_left hlog_nonneg (Buthe_chiStarIcc_le_one x p)
+
+lemma eventually_Buthe_theta_eq_theta (x : ℝ) (hx : 0 ≤ x) :
+    (fun y => Buthe_theta y) =ᶠ[𝓝[>] x] fun _ => θ x := by
+  filter_upwards [self_mem_nhdsWithin,
+    Ico_mem_nhdsGT_of_mem ⟨Nat.floor_le hx, Nat.lt_floor_add_one x⟩] with y hygt hyfloor
+  rw [Chebyshev.theta_eq_sum_Icc]
+  unfold Buthe_theta
+  have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico ⌊x⌋₊ y hyfloor
+  rw [hfloor]
+  refine Finset.sum_congr rfl ?_
+  intro p hp
+  have hpprime : p.Prime := (Finset.mem_filter.mp hp).2
+  have hp_pos : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpprime.pos
+  have hpy : (p : ℝ) < y := by
+    have hp_le_floor : p ≤ ⌊x⌋₊ := (Finset.mem_Icc.mp (Finset.mem_filter.mp hp).1).2
+    have hpx : (p : ℝ) ≤ x := le_trans (by exact_mod_cast hp_le_floor) (Nat.floor_le hx)
+    exact lt_of_le_of_lt hpx hygt
+  rw [Buthe_chiStarIcc_eq_one_of_pos_lt hp_pos hpy, one_mul]
+
 @[blueprint
   "thm:buthe-2a"
   (title := "Buthe Theorem 2, part a")
@@ -97,13 +150,15 @@ theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
 @[blueprint
   "thm:buthe-2b"
   (title := "Buthe Theorem 2, part b")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\vartheta$, under the
+  condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
-  |θ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
+  |Buthe_theta x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2c"
