@@ -1426,7 +1426,7 @@ The Liouville function is completely multiplicative. -/
   (proof := /--
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
-lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
+lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative ↗liouville := by
   sorry
 
 /--
@@ -1434,7 +1434,7 @@ The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
 @[blueprint
   "LSeries_liouville_eq"
   (title := "LSeries liouville eq")
-  (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$. -/)
+  (statement := /-- The Dirichlet series of the Liouville function is $\zeta(2s)/\zeta(s)$ for $\Re(s) > 1$. -/)
   (proof := /--
   The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
 \[
