@@ -627,7 +627,7 @@ Ramanujan formula:
 @[blueprint
   "zeta_mul_zeta_mul_zeta_mul_zeta_eq"
   (title := "zeta mul zeta mul zeta mul zeta eq")
-  (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$.
+  (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$ for $\Re(s) > 1$, $\Re(s-\alpha) > 1$, $\Re(s-\beta) > 1$, and $\Re(s-\alpha-\beta) > 1$.
   \begin{verbatim}
   This is IK (1.28).
   \end{verbatim}
@@ -646,7 +646,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
 @[blueprint
   "zeta_pow_four_eq"
   (title := "zeta pow four eq")
-  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$.
+  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   This is IK (1.29).
   \end{verbatim}
@@ -669,7 +669,7 @@ Baby Rankin-Selberg:
 @[blueprint
   "zeta_mul_tau_square_eq"
   (title := "zeta mul tau square eq")
-  (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$.
+  (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   Precursor to IK (1.30).
   \end{verbatim}
@@ -687,7 +687,7 @@ Zeta cubed:
 @[blueprint
   "zeta_pow_three_eq"
   (title := "zeta pow three eq")
-  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   This is IK (1.30).
   \end{verbatim}
@@ -707,7 +707,7 @@ Zeta cubed alt:
   "zeta_pow_three_eq_alt"
   (title := "zeta pow three eq alt")
   (statement := /-- symmetric square $L$-function for $\zeta^2$:
-  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}.$$
+  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}$$ for $\Re(s) > 1$.
   \begin{verbatim}
   Alternative expression for `ζ^3`, in IK between (1.30) and (1.31).
   \end{verbatim}
