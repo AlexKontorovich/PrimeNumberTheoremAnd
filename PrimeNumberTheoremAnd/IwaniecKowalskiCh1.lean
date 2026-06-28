@@ -992,7 +992,7 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   "zeta_pow_two"
   (title := "zeta pow two")
   (statement := /--
-  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}.$$
+  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}$$ for $\Re(s) > 1$.
   \begin{verbatim}
     An expression for `ζ^2`, in IK (1.31).
   \end{verbatim}
@@ -1442,7 +1442,7 @@ L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ld
 \]
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
-    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+    LSeries ↗liouville s = riemannZeta (2 * s) / riemannZeta s := by
   sorry
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
