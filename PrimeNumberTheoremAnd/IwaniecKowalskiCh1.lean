@@ -663,6 +663,76 @@ theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     · ring_nf
     · simp [tau, sigma, sigmaR, pow_two]
 
+class IsCoprimePreserving (f : ℕ → ℕ) : Prop where
+  map_coprime : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (f m) (f n)
+
+instance instIsCoprimePreservingPow (k : ℕ) :
+    IsCoprimePreserving (· ^ k : ℕ → ℕ) :=
+  ⟨fun h ↦ h.pow k k⟩
+
+/-- The monoid hom `powMonoidHom k` preserves coprimality (specialization). -/
+instance instIsCoprimePreservingPowMonoidHom (k : ℕ) :
+    IsCoprimePreserving ((powMonoidHom k : ℕ →* ℕ) : ℕ → ℕ) :=
+  inferInstanceAs (IsCoprimePreserving (· ^ k : ℕ → ℕ))
+
+lemma IsMultiplicative.of_map_mulHom {f h : ArithmeticFunction ℕ}
+    (hf : f.IsMultiplicative) (g : ℕ →* ℕ) (hh : ∀ n, h n = g (f n)) :
+    h.IsMultiplicative := by
+  refine ⟨by rw [hh, hf.1, g.map_one], fun m n hmn => ?_⟩
+  rw [hh, hh, hh, hf.2 hmn, g.map_mul]
+
+lemma IsMultiplicative.of_comp_mulHom {f h : ArithmeticFunction ℕ}
+    (hf : f.IsMultiplicative) (g : ℕ →* ℕ)
+    [hg : IsCoprimePreserving (g : ℕ → ℕ)]
+    (hh : ∀ n, h n = f (g n)) : h.IsMultiplicative := by
+  refine ⟨by rw [hh, g.map_one, hf.1], fun m n hmn => ?_⟩
+  rw [hh, hh, hh, g.map_mul, hf.2 (hg.map_coprime hmn)]
+
+/-- `τ(p^m) = m + 1` for prime `p`. -/
+lemma tau_prime_pow {p : ℕ} (hp : p.Prime) (m : ℕ) : τ (p ^ m) = m + 1 :=  by
+  have h : τ (p ^ m) = d 2 (p ^ m) := by rw [d_two]
+  rw [h, d_apply_prime_pow (by norm_num) hp]
+  simp [Nat.choose_one_right]
+
+/-- `∑_{j=0}^{k} (2j+1) = (k+1)²`. -/
+lemma sum_two_mul_add_one (k : ℕ) :
+    ∑ j ∈ Finset.range (k + 1), (2 * j + 1) = (k + 1) ^ 2 := by
+  induction k with
+  | zero => simp
+  | succ n ih => rw [Finset.sum_range_succ, ih]; ring
+
+/-- The arithmetic function `n ↦ τ(n²)`. -/
+abbrev tauSq : ArithmeticFunction ℕ := ⟨fun n ↦ τ (n ^ 2), by simp⟩
+
+/-- The arithmetic function `n ↦ τ(n)²`. -/
+abbrev sqTau : ArithmeticFunction ℕ := ⟨fun n ↦ (τ n) ^ 2, by simp⟩
+
+lemma isMultiplicative_tauSq : tauSq.IsMultiplicative :=
+  isMultiplicative_tau.of_comp_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
+
+lemma isMultiplicative_sqTau : sqTau.IsMultiplicative :=
+  isMultiplicative_tau.of_map_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
+
+/-- `τ(n²) ≤ d_3(n)` pointwise.  Used for L-series summability of `n ↦ τ(n²)`. -/
+lemma tau_sq_le_d_three (n : ℕ) : tauSq n ≤ d 3 n := by
+  rcases eq_or_ne n 0 with rfl | hn
+  · change τ ((0 : ℕ) ^ 2) ≤ _
+    simp
+  rw [isMultiplicative_tauSq.multiplicative_factorization _ hn,
+      prod_factorization_eq_prod_primeFactors,
+      (d_isMultiplicative 3).multiplicative_factorization _ hn,
+      prod_factorization_eq_prod_primeFactors]
+  refine Finset.prod_le_prod (fun _ _ ↦ Nat.zero_le _) fun p hp ↦ ?_
+  have hp' := Nat.prime_of_mem_primeFactors hp
+  set k := n.factorization p
+  change τ ((p ^ k) ^ 2) ≤ d 3 (p ^ k)
+  rw [← pow_mul, mul_comm k 2, tau_prime_pow hp',
+      d_apply_prime_pow (by norm_num) hp']
+  change 2 * k + 1 ≤ Nat.choose (k + 2) 2
+  rw [Nat.choose_two_right, show k + 2 - 1 = k + 1 from rfl,
+      Nat.le_div_iff_mul_le (by norm_num : (0:ℕ) < 2)]
+  nlinarith [Nat.zero_le k, sq_nonneg k]
+
 /--
 Baby Rankin-Selberg:
 `ζ(s)∑τ(n^2)n^-s = ∑τ(n)^2 n^-s`. -/
@@ -678,9 +748,74 @@ Baby Rankin-Selberg:
   This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
   -/)]
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
-  sorry
-
+    riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s
+      = LSeries (fun n ↦ (τ n) ^ 2) s := by
+  have hzf_mul : ((ζ : ArithmeticFunction ℕ) * tauSq).IsMultiplicative :=
+    isMultiplicative_zeta.mul isMultiplicative_tauSq
+  -- (a) Convolution identity  ζ * tauSq = sqTau  in  ArithmeticFunction ℕ.
+  have hconv : (ζ : ArithmeticFunction ℕ) * tauSq = sqTau := by
+    ext n
+    rcases eq_or_ne n 0 with rfl | hn
+    · simp
+    rw [hzf_mul.multiplicative_factorization _ hn,
+        prod_factorization_eq_prod_primeFactors,
+        isMultiplicative_sqTau.multiplicative_factorization _ hn,
+        prod_factorization_eq_prod_primeFactors]
+    refine Finset.prod_congr rfl fun p hp ↦ ?_
+    have hp' := Nat.prime_of_mem_primeFactors hp
+    set k := n.factorization p
+    rw [show (ζ : ArithmeticFunction ℕ) * tauSq = tauSq * ζ from mul_comm _ _,
+        mul_zeta_apply, sum_divisors_prime_pow hp']
+    have key : ∀ j ∈ Finset.range (k + 1), tauSq (p ^ j) = 2 * j + 1 := by
+      intro j _
+      change τ ((p ^ j) ^ 2) = 2 * j + 1
+      rw [← pow_mul, mul_comm j 2, tau_prime_pow hp']
+    rw [Finset.sum_congr rfl key, sum_two_mul_add_one]
+    change (k + 1) ^ 2 = τ (p ^ k) ^ 2
+    rw [tau_prime_pow hp']
+  -- (b) Summability of  ↗tauSq  at  s  via domination by  ↗(d 3).
+  have hsumm : LSeriesSummable (↗(tauSq : ArithmeticFunction ℂ)) s := by
+    refine Summable.of_norm_bounded ((LSeries_d_summable 3 hs).norm) ?_
+    intro n
+    by_cases hn : n = 0
+    · simp [hn, LSeries.term]
+    rw [LSeries.term_of_ne_zero hn, LSeries.term_of_ne_zero hn,
+        norm_div, norm_div]
+    gcongr
+    change ‖((tauSq n : ℕ) : ℂ)‖ ≤ ‖((d 3 n : ℕ) : ℂ)‖
+    simp only [Complex.norm_natCast, Nat.cast_le]
+    exact tau_sq_le_d_three n
+  -- (c) Lift to L-series.
+  have h1 : LSeries (↗((ζ : ArithmeticFunction ℂ) * (tauSq : ArithmeticFunction ℂ))) s
+          = LSeries (↗(ζ : ArithmeticFunction ℂ)) s
+              * LSeries (↗(tauSq : ArithmeticFunction ℂ)) s :=
+    LSeries_mul' (LSeriesSummable_zeta_iff.mpr hs) hsumm
+  have h2 : LSeries (↗(((ζ : ArithmeticFunction ℕ) * tauSq : ArithmeticFunction ℕ)
+                       : ArithmeticFunction ℂ)) s
+          = LSeries (↗((ζ : ArithmeticFunction ℂ)
+                         * (tauSq : ArithmeticFunction ℂ))) s := by
+    apply LSeries_congr
+    intro n _hn
+    simp [natCoe_mul]
+  have key : LSeries (↗(sqTau : ArithmeticFunction ℂ)) s
+           = riemannZeta s * LSeries (↗(tauSq : ArithmeticFunction ℂ)) s := by
+    rw [← hconv, h2, h1]
+    congr 1
+    exact LSeries_zeta_eq_riemannZeta hs
+  -- Bridge original goal's cast forms to AF form.
+  have lhs_bridge : LSeries (fun n : ℕ ↦ ((τ (n ^ 2) : ℕ) : ℂ)) s
+                  = LSeries (↗(tauSq : ArithmeticFunction ℂ)) s := by
+    apply LSeries_congr
+    intro n _hn
+    rfl
+  have rhs_bridge : LSeries (fun n : ℕ ↦ ((τ n : ℕ) : ℂ) ^ 2) s
+                  = LSeries (↗(sqTau : ArithmeticFunction ℂ)) s := by
+    apply LSeries_congr
+    intro n _hn
+    change ((τ n : ℕ) : ℂ) ^ 2 = (((τ n) ^ 2 : ℕ) : ℂ)
+    push_cast
+    rfl
+  rw [lhs_bridge, rhs_bridge, key]
 /--
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
