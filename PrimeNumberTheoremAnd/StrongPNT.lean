@@ -1353,6 +1353,21 @@ lemma norm_zeta_strict_mono_ofReal {a b : ℝ} (hb : 1 < b) (hab : b < a) :
 
 
 
+@[blueprint "ZetaShiftFiniteZeros"
+  (title := "ZetaShiftFiniteZeros")
+  (statement := /--
+    For all $|t|\geq 2$, if $f(z)=\zeta(z+3/2+it)$, then $f(z)$ has a finite number of zeros in $\overline{\mathbb{D}_1}$.
+  -/)
+  (proof := /--
+    If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then $f\equiv 0$ by the identity theorem.
+    This is a contradiction, so the statement must be true.
+  -/)]
+lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
+    {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
+  /-- put this inside of LogDerivZetaFinalBound when proven -/
+  sorry
+
+
 /- API for analyticOrderNatAt -/
 
 lemma analyticOrderNatAt_fun_div_const {c z : ℂ} {f : ℂ → ℂ} (hc : c ≠ 0) (hfAnalytic : AnalyticAt ℂ f z) :
@@ -1480,21 +1495,6 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
     Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 3/4\}$.
   -/)]
 def ZeroWindow (t : ℝ) : Set ℂ := {ρ : ℂ | ζ ρ = 0 ∧ ‖ρ - (3 / 2 + I * t)‖ ≤ 3 / 4}
-
-
-
-@[blueprint "ZetaShiftFiniteZeros"
-  (title := "ZetaShiftFiniteZeros")
-  (statement := /--
-    For all $|t|\geq 2$, if $f(z)=\zeta(z+3/2+it)$, then $f(z)$ has a finite number of zeros in $\overline{\mathbb{D}_1}$.
-  -/)
-  (proof := /--
-    If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then $f\equiv 0$ by the identity theorem.
-    This is a contradiction, so the statement must be true.
-  -/)]
-lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
-    {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
-  sorry
 
 
 
@@ -1794,8 +1794,6 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 -/
-
-/- NOTE TO SELF: DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
 
 blueprint_comment /--
 \begin{proof}
