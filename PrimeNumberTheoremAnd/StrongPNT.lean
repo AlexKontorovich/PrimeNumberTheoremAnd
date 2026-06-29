@@ -1445,7 +1445,7 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
   have gFiniteZeros' : (finiteSetOfZeros_mono r_lt_one gFiniteZeros).toFinset = (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset := by simp only [SetOfZeros, g_def, Pi.div_apply, div_eq_zero_iff, or_iff_left f0nonzero]
   suffices h1 : ∃ (C : ℝ), Real.log B ≤ C * Real.log |t| by
     obtain ⟨C, hC⟩ := h1
-    refine ⟨C, le_trans (le_of_eq ?_) ( gFinalBound.trans ?_ )⟩
+    refine ⟨C, le_trans (le_of_eq ?_) (gFinalBound.trans ?_)⟩
     · apply congrArg norm
       rw [gFiniteZeros']
       congr 1
@@ -1474,11 +1474,12 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
 
 
 
-blueprint_comment /--
-\begin{definition}[ZeroWindows]\label{ZeroWindows}
+@[blueprint "ZeroWindow"
+  (title := "ZeroWindow")
+  (statement := /--
     Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 3/4\}$.
-\end{definition}
--/
+  -/)]
+def ZeroWindow (t : ℝ) : Set ℂ := {ρ : ℂ | ζ ρ = 0 ∧ ‖ρ - (3 / 2 + I * t)‖ ≤ 3 / 4}
 
 
 
@@ -1489,6 +1490,43 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 -/
+
+lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow t).Finite) :
+    ∃ (C : ℝ), ‖ζ' (1 + δ + I * t) / ζ (1 + δ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, analyticOrderNatAt ζ ρ / (1 + δ + I * t - ρ)‖ ≤ C * Real.log |t| := by
+  have hd' : ‖(δ : ℂ) - 1 / 2‖ < 1 / 2 := by
+    obtain ⟨h0, h1⟩ := hd
+    simp only [← Complex.ofReal_one, ← Complex.ofReal_ofNat, ← Complex.ofReal_div, ← Complex.ofReal_sub, Complex.norm_real, Real.norm_eq_abs, abs_lt]
+    exact ⟨by linarith, by linarith⟩
+  let r' : ℝ := 2 / 3
+  let r : ℝ := 3 / 4
+  let R' : ℝ := 4 / 5
+  let R : ℝ := 5 / 6
+  set f : ℂ → ℂ := fun z ↦ ζ (z + 3 / 2 + I * t) with hf
+  set z : ℂ := δ - 1 / 2 with hz
+  have r'_pos : 0 < r' := by norm_num
+  have r'_lt_r : r' < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R' : r < R' := by norm_num
+  have R'_lt_R : R' < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    simp only [SetOfZeros, hf]
+    sorry
+  have hz' : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f := by
+    simp only [SetOfZeros, hf, Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right, mem_setOf_eq, not_and]
+    refine ⟨le_of_lt (lt_trans hd' (by linarith)), fun _ => riemannZeta_ne_zero_of_one_lt_re ?_⟩
+    simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im,
+      mul_zero, sub_self, add_zero]
+    linarith [abs_lt.mp (lt_of_le_of_lt (Complex.abs_re_le_norm z) hd')]
+  obtain ⟨C, LogDerivBound⟩ := LogDerivZetaFinalBound r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one ht hf finiteZeros' hz'
+  refine ⟨(16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * C, le_trans (le_of_eq ?_) (LogDerivBound.trans (by rw [mul_assoc]))⟩
+  apply congrArg norm
+  congr 1
+  · simp only [hf, hz, add_assoc, deriv_comp_add_const]
+    ring_nf
+  · sorry
+
+
 
 blueprint_comment /--
 \begin{proof}
