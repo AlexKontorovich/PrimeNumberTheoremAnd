@@ -1488,7 +1488,7 @@ lemma tsum_liouvilleSummand {s : ℂ} :
   rcases eq_or_ne n 0 with rfl | hn
   · rw [LSeries.term_zero, _root_.map_zero]
   · rw [LSeries.term_of_ne_zero hn]
-    show (liouville n : ℂ) * (n : ℂ) ^ (-s) = (liouville n : ℂ) / (n : ℂ) ^ s
+    change (liouville n : ℂ) * (n : ℂ) ^ (-s) = (liouville n : ℂ) / (n : ℂ) ^ s
     rw [Complex.cpow_neg, div_eq_mul_inv]
 
 /--
@@ -1509,7 +1509,7 @@ The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
   $L(\lambda, s) = \zeta(2s)/\zeta(s)$ since $\zeta(s) \neq 0$ for $\operatorname{Re}(s) > 1$.
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
-    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+    LSeries ↗liouville s = riemannZeta (2 * s) / riemannZeta s := by
   have hs2 : 1 < (2 * s).re := by
     have h2 : ((2 : ℂ) * s).re = 2 * s.re := by simp [Complex.mul_re]
     rw [h2]; linarith
