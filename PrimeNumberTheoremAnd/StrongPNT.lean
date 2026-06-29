@@ -1483,6 +1483,21 @@ def ZeroWindow (t : ℝ) : Set ℂ := {ρ : ℂ | ζ ρ = 0 ∧ ‖ρ - (3 / 2 +
 
 
 
+@[blueprint "ZetaShiftFiniteZeros"
+  (title := "ZetaShiftFiniteZeros")
+  (statement := /--
+    For all $|t|\geq 2$, if $f(z)=\zeta(z+3/2+it)$, then $f(z)$ has a finite number of zeros in $\overline{\mathbb{D}_1}$.
+  -/)
+  (proof := /--
+    If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then $f\equiv 0$ by the identity theorem.
+    This is a contradiction, so the statement must be true.
+  -/)]
+lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
+    {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
+  sorry
+
+
+
 blueprint_comment /--
 \begin{lemma}[SumBoundI]\label{SumBoundI}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
@@ -1494,7 +1509,7 @@ blueprint_comment /--
 lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow t).Finite) :
     ∃ (C : ℝ), ‖ζ' (1 + δ + I * t) / ζ (1 + δ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, analyticOrderNatAt ζ ρ / (1 + δ + I * t - ρ)‖ ≤ C * Real.log |t| := by
   have hd' : ‖(δ : ℂ) - 1 / 2‖ < 1 / 2 := by
-    obtain ⟨h0, h1⟩ := hd
+    obtain ⟨d0, d1⟩ := hd
     simp only [← Complex.ofReal_one, ← Complex.ofReal_ofNat, ← Complex.ofReal_div, ← Complex.ofReal_sub, Complex.norm_real, Real.norm_eq_abs, abs_lt]
     exact ⟨by linarith, by linarith⟩
   let r' : ℝ := 2 / 3
@@ -1509,9 +1524,7 @@ lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros
   have r_lt_R' : r < R' := by norm_num
   have R'_lt_R : R' < R := by norm_num
   have R_lt_one : R < 1 := by norm_num
-  have finiteZeros' : (SetOfZeros 1 f).Finite := by
-    simp only [SetOfZeros, hf]
-    sorry
+  have finiteZeros' : (SetOfZeros 1 f).Finite := ZetaShiftFiniteZeros ht hf
   have hz' : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f := by
     simp only [SetOfZeros, hf, Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right, mem_setOf_eq, not_and]
     refine ⟨le_of_lt (lt_trans hd' (by linarith)), fun _ => riemannZeta_ne_zero_of_one_lt_re ?_⟩
@@ -1781,6 +1794,8 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 -/
+
+/- NOTE TO SELF: DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
 
 blueprint_comment /--
 \begin{proof}
