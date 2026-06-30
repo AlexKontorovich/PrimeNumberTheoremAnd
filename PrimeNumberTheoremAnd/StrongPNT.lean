@@ -1521,14 +1521,45 @@ def ZeroWindow (t : ℝ) : Set ℂ := {ρ : ℂ | ζ ρ = 0 ∧ ‖ρ - (3 / 2 +
 
 
 
-blueprint_comment /--
-\begin{lemma}[SumBoundI]\label{SumBoundI}
+/- API for analyticOrderNatAt -/
+
+lemma analyticOrderNatAt_fun_comp_add_left (g : ℂ → ℂ) (c z : ℂ) :
+    analyticOrderNatAt (fun z : ℂ => g (c + z)) z = analyticOrderNatAt g (c + z) := by
+  have asComp : analyticOrderAt (g ∘ fun z : ℂ => c + z) z = analyticOrderAt g (c + z) := by
+    apply analyticOrderAt_comp_of_deriv_ne_zero (AnalyticAt.add analyticAt_const analyticAt_id)
+    simp only [differentiableAt_const, differentiableAt_id, deriv_add, deriv_const', deriv_id',
+      zero_add, ne_eq, one_ne_zero, not_false_eq_true]
+  simp only [analyticOrderNatAt, ← asComp, comp_def]
+
+
+
+@[blueprint "SumBoundI"
+  (title := "SumBoundI")
+  (statement := /--
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
-\end{lemma}
--/
-
+      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$  -/)
+  (proof := /--
+    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and
+    $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
+    we have that
+    $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 2$. Now if we let
+    $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
+    Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
+    region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
+      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
+      \ll\log|t|.$$
+    But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$ and
+    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$ (the argument works in reverse as well).
+    Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these
+    facts gives us that
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
+      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|
+      \ll\log|t|.$$
+  -/)]
 lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow t).Finite) :
     ∃ (C : ℝ), ‖ζ' (1 + δ + I * t) / ζ (1 + δ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, analyticOrderNatAt ζ ρ / (1 + δ + I * t - ρ)‖ ≤ C * Real.log |t| := by
   have hd' : ‖(δ : ℂ) - 1 / 2‖ < 1 / 2 := by
@@ -1560,34 +1591,20 @@ lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros
   congr 1
   · simp only [hf, hz, add_assoc, deriv_comp_add_const]
     ring_nf
-  · sorry
-
-
-
-blueprint_comment /--
-\begin{proof}
-\uses{LogDerivZetaFinalBound}
-    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and
-    $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
-    we have that
-    $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
-      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 2$. Now if we let
-    $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
-    Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
-    region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
-    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{K}_f(3/4)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|
-      \ll\log|t|.$$
-    But now note that if $\rho\in\mathcal{K}_f(3/4)$, then $\zeta(\rho+3/2+it)=0$ and
-    $|\rho|\leq 3/4$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$ (the argument works in reverse as well).
-    Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these
-    facts gives us that
-    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|
-      \ll\log|t|.$$
-\end{proof}
--/
+  · simp only [hf, hz]
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring_nf) (fun ρ hρ => by ring_nf) (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [r, hρ.2]
+      · simp only [add_assoc, sub_add_cancel, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [← add_assoc, hρ.2]
+      · simp only [add_sub_cancel_right, r, hρ.1]
+    · ring_nf
+      rw [mul_comm, analyticOrderNatAt_fun_comp_add_left]
+      ring_nf
 
 
 
