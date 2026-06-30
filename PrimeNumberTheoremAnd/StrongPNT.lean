@@ -1486,30 +1486,25 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
 lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
     {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
   by_contra hinf; rw [Set.not_finite] at hinf
-  have zerosSubset : SetOfZeros 1 f ⊆ Metric.closedBall (0 : ℂ) 1 := fun _ hx => by simpa only [Metric.mem_closedBall, _root_.dist_zero_right] using hx.1
+  have zerosSubset : SetOfZeros 1 f ⊆ Metric.closedBall (0 : ℂ) 1 := fun _ hx => by simpa only [Metric.mem_closedBall, dist_zero_right] using hx.1
   obtain ⟨x, hxK, hacc⟩ := hinf.exists_accPt_of_subset_isCompact (isCompact_closedBall 0 1) zerosSubset
   have hfAnalytic : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 2) := by
     intro z hz; simp only [Metric.mem_ball, Complex.dist_eq, sub_zero] at hz
     simp only [hf, add_assoc]
-    refine AnalyticAt.fun_comp (analyticAt_riemannZeta (fun h => ?_)) (AnalyticAt.fun_add (analyticAt_id) (analyticAt_const))
-    have hre : z.re = - (1 : ℝ) / 2 := by
-      have := congr_arg Complex.re h; simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re,
-        ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re] at this
-      linarith
+    refine AnalyticAt.fun_comp (analyticAt_riemannZeta fun h => ?_) (analyticAt_id.fun_add analyticAt_const)
     have him : z.im = -t := by
       have := congr_arg Complex.im h; simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im,
         I_re, ofReal_im, mul_zero, I_im, ofReal_re, one_mul, zero_add, one_im] at this
       linarith
-    rw [← sq_lt_sq₀ (norm_nonneg _) zero_le_two, ← Complex.normSq_eq_norm_sq, Complex.normSq_apply, hre, him] at hz
-    rw [← abs_two, ge_iff_le, ← sq_le_sq] at ht
-    nlinarith [hz, ht]
+    have abs_z_im := Complex.abs_im_le_norm z
+    rw [him, abs_neg] at abs_z_im
+    linarith
   have hfeq : Set.EqOn f 0 (Metric.ball (0 : ℂ) 2) := by
-    apply AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic (Metric.isPreconnected_ball)
-    · simp only [Metric.mem_ball, Metric.mem_closedBall, dist_zero_right] at ⊢ hxK
+    refine AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic Metric.isPreconnected_ball (z₀ := x) ?_ ?_
+    · simp only [Metric.mem_ball, Metric.mem_closedBall, dist_zero_right] at hxK ⊢
       linarith
     · simp only [mem_closure_iff_clusterPt, ← accPt_principal_iff_clusterPt]
-      refine hacc.mono (principal_mono.mpr ?_)
-      simp only [SetOfZeros, setOf_subset_setOf, and_imp, imp_self, implies_true]
+      exact hacc.mono (principal_mono.mpr fun _ h => h.2)
   have hne : f 0 ≠ 0 := by
     simp only [hf, zero_add, ne_eq]
     exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
