@@ -1463,8 +1463,8 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
             mem_setOf_eq, not_and, Finite.mem_toFinset] at hz hρ
           intro h; rw [sub_eq_zero] at h; rw [h] at hz
           exact (hz.2 (le_trans hρ.1 r_lt_R'.le)) hρ.2
-    · refine mul_le_mul (by rfl) hC.2 (Real.log_nonneg one_lt_B.le) (add_nonneg ( div_nonneg (mul_nonneg (by linarith) (pow_nonneg (lt_trans r'_pos r'_lt_r).le _)) (pow_nonneg (by linarith) _)) (div_nonneg zero_le_one (mul_nonneg (sub_nonneg.mpr ((le_div_iff₀ (by linarith)).mpr ?_)) (Real.log_nonneg ((one_le_div (by linarith)).mpr R'_lt_R.le)))))
-      nlinarith
+    · refine mul_le_mul (by rfl) hC.2 (Real.log_nonneg one_lt_B.le) (add_nonneg (div_nonneg (mul_nonneg (ofNat_nonneg' _) (sq_nonneg _)) (pow_nonneg (sub_nonneg.mpr r'_lt_r.le) _)) (div_nonneg zero_le_one (mul_nonneg (sub_nonneg.mpr ?_) (Real.log_nonneg ((one_le_div (by linarith)).mpr R'_lt_R.le)))))
+      rw [le_div_iff₀ (by linarith)]; nlinarith
   refine ⟨1 + Real.log (11 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 2, ?_, ?_⟩
   · rw [Real.log_mul (Ne.symm (OfNat.zero_ne_ofNat 11)) (by linarith)]
     exact add_pos zero_lt_one (div_pos (add_pos (Real.log_pos one_lt_ofNat) (Real.log_pos hzd)) (Real.log_pos one_lt_two))
@@ -1534,13 +1534,15 @@ lemma analyticOrderNatAt_fun_comp_add_left (g : ℂ → ℂ) (c z : ℂ) :
   simp only [analyticOrderNatAt, ← asComp, comp_def]
 
 
-/- NEED TO REVISE PROOFS WITH UPDATED r', r, R', R -/
+/- NEED TO REVISE PROOFS WITH UPDATED r', r, R', R FROM HERE DOWN -/
+
 @[blueprint "SumBoundI"
   (title := "SumBoundI")
   (statement := /--
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$  -/)
+      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
+  -/)
   (proof := /--
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and
     $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
@@ -1610,37 +1612,13 @@ lemma SumBoundI {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros
 
 
 
-blueprint_comment /--
-\begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}
+@[blueprint "ShiftTwoBound"
+  (title := "ShiftTwoBound")
+  (statement := /--
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
-\end{lemma}
--/
-
-lemma ShiftTwoBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow (2 * t)).Finite) :
-    ∃ (C : ℝ), (ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re ≤ C * log |t| := by
-  have ht' : |2 * t| ≥ 2 := by
-    simp only [abs_mul, abs_ofNat, ofNat_pos, le_mul_iff_one_le_right]
-    linarith
-  have logIneq : Real.log 2 * Real.log |t| ≤ Real.log |2 * t| := by
-    sorry
-  suffices h1 : ∃ (C : ℝ), (ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re ≤ C * log |2 * t| by
-    obtain ⟨C, reBound⟩ := h1
-    refine ⟨C * 2, le_trans reBound ?_⟩
-    rw [mul_assoc C]
-    apply mul_le_mul (by rfl)
-    · sorry
-    · sorry
-    · sorry
-  obtain ⟨C, SumBound⟩ := SumBoundI hd ht' finiteZeros
-  refine ⟨C * Real.log 2, ?_⟩
-  rw [mul_assoc C _ _]
-  -- refine le_trans ?_ (mul_le_mul_of_nonneg_left logIneq ?_)
-  sorry
-
-blueprint_comment /--
-\begin{proof}
-\uses{SumBoundI}
+  -/)
+  (proof := /--
     Note that, for $\rho\in\mathcal{Z}_{2t}$
     \begin{align*}
         \Re \left(\frac{1}{1+\delta+2it-\rho}\right)
@@ -1673,8 +1651,31 @@ blueprint_comment /--
     we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
     Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof.
-\end{proof}
--/
+  -/)]
+lemma ShiftTwoBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow (2 * t)).Finite) :
+    ∃ (C : ℝ), C > 0 ∧ -(ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re ≤ C * log |t| := by
+  have ht' : |2 * t| ≥ 2 := by
+    simp only [abs_mul, abs_ofNat, ofNat_pos, le_mul_iff_one_le_right]
+    linarith
+  suffices h1 : ∃ (C : ℝ), C > 0 ∧ - (ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re ≤ C * log |2 * t| by
+    obtain ⟨C, reBound⟩ := h1
+    refine ⟨C * 2, by linarith [pow_pos reBound.1 2], le_trans reBound.2 ?_⟩
+    rw [mul_assoc C, abs_mul, Real.log_mul (by norm_num) (by linarith [ht]), two_mul]
+    exact mul_le_mul (by rfl) (add_le_add (log_le_log (by norm_num) (by norm_num [ht])) (by rfl)) (add_nonneg (Real.log_nonneg (by norm_num)) (Real.log_nonneg (by linarith [ht]))) (reBound.1.le)
+  obtain ⟨C, SumBound⟩ := SumBoundI hd ht' finiteZeros; rw [← Complex.norm_neg', neg_sub] at SumBound
+  refine ⟨C, SumBound.1, le_trans ?_ (le_trans (Complex.re_le_norm _) SumBound.2)⟩
+  simp only [ofReal_mul, ofReal_ofNat, sub_re, re_sum, ← mul_assoc, mul_comm]
+  rw [sub_eq_add_neg, le_add_iff_nonneg_left]
+  refine Finset.sum_nonneg (fun ρ hρ => ?_); simp only [ZeroWindow, ofReal_mul, ofReal_ofNat,
+    Finite.mem_toFinset, mem_setOf_eq] at hρ
+  have hρ_re: ρ.re ≤ 1 := by
+    by_contra hre; simp only [not_le] at hre
+    exact riemannZeta_ne_zero_of_one_lt_re hre hρ.1
+  simp only [div_re, natCast_re, sub_re, add_re, one_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
+    ofReal_im, mul_zero, sub_self, re_ofNat, mul_im, ← sq, ne_eq, OfNat.ofNat_ne_zero,
+    not_false_eq_true, zero_pow, one_mul, zero_add, im_ofNat, add_zero, normSq_apply, sub_im,
+    add_im, one_im, natCast_im, zero_div]
+  exact div_nonneg (mul_nonneg (cast_nonneg' _) (by linarith [hd.1])) (add_nonneg (sq_nonneg _) (sq_nonneg _))
 
 
 
