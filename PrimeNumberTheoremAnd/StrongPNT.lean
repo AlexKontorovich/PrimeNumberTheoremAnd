@@ -1353,21 +1353,6 @@ lemma norm_zeta_strict_mono_ofReal {a b : ℝ} (hb : 1 < b) (hab : b < a) :
 
 
 
-@[blueprint "ZetaShiftFiniteZeros"
-  (title := "ZetaShiftFiniteZeros")
-  (statement := /--
-    For all $|t|\geq 2$, if $f(z)=\zeta(z+3/2+it)$, then $f(z)$ has a finite number of zeros in $\overline{\mathbb{D}_1}$.
-  -/)
-  (proof := /--
-    If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then $f\equiv 0$ by the identity theorem.
-    This is a contradiction, so the statement must be true.
-  -/)]
-lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
-    {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
-  /-- put this inside of LogDerivZetaFinalBound when proven -/
-  sorry
-
-
 /- API for analyticOrderNatAt -/
 
 lemma analyticOrderNatAt_fun_div_const {c z : ℂ} {f : ℂ → ℂ} (hc : c ≠ 0) (hfAnalytic : AnalyticAt ℂ f z) :
@@ -1486,6 +1471,49 @@ theorem LogDerivZetaFinalBound {r' r R' R t : ℝ} {f : ℂ → ℂ} {z : ℂ}
   rw [← Real.log_mul (by linarith) (by linarith), log_le_log_iff (by linarith) (mul_pos (by linarith) (by linarith))]
   simp only [← mul_assoc, B_def, coe_nnnorm]
   exact mul_le_mul_of_nonneg_right (by linarith) (div_nonneg (norm_nonneg _) (norm_nonneg _))
+
+
+
+@[blueprint "ZetaShiftFiniteZeros"
+  (title := "ZetaShiftFiniteZeros")
+  (statement := /--
+    For all $|t|\geq 2$, if $f(z)=\zeta(z+3/2+it)$, then $f(z)$ has a finite number of zeros in $\overline{\mathbb{D}_1}$.
+  -/)
+  (proof := /--
+    If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then $f\equiv 0$ by the identity theorem.
+    This is a contradiction, so the statement must be true.
+  -/)]
+lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
+    {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
+  by_contra hinf; rw [Set.not_finite] at hinf
+  have zerosSubset : SetOfZeros 1 f ⊆ Metric.closedBall (0 : ℂ) 1 := fun _ hx => by simpa only [Metric.mem_closedBall, _root_.dist_zero_right] using hx.1
+  obtain ⟨x, hxK, hacc⟩ := hinf.exists_accPt_of_subset_isCompact (isCompact_closedBall 0 1) zerosSubset
+  have hfAnalytic : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 2) := by
+    intro z hz; simp only [Metric.mem_ball, Complex.dist_eq, sub_zero] at hz
+    simp only [hf, add_assoc]
+    refine AnalyticAt.fun_comp (analyticAt_riemannZeta (fun h => ?_)) (AnalyticAt.fun_add (analyticAt_id) (analyticAt_const))
+    have hre : z.re = - (1 : ℝ) / 2 := by
+      have := congr_arg Complex.re h; simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re,
+        ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re] at this
+      linarith
+    have him : z.im = -t := by
+      have := congr_arg Complex.im h; simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im,
+        I_re, ofReal_im, mul_zero, I_im, ofReal_re, one_mul, zero_add, one_im] at this
+      linarith
+    rw [← sq_lt_sq₀ (norm_nonneg _) zero_le_two, ← Complex.normSq_eq_norm_sq, Complex.normSq_apply, hre, him] at hz
+    rw [← abs_two, ge_iff_le, ← sq_le_sq] at ht
+    nlinarith [hz, ht]
+  have hfeq : Set.EqOn f 0 (Metric.ball (0 : ℂ) 2) := by
+    apply AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic (Metric.isPreconnected_ball)
+    · simp only [Metric.mem_ball, Metric.mem_closedBall, dist_zero_right] at ⊢ hxK
+      linarith
+    · simp only [mem_closure_iff_clusterPt, ← accPt_principal_iff_clusterPt]
+      refine hacc.mono (principal_mono.mpr ?_)
+      simp only [SetOfZeros, setOf_subset_setOf, and_imp, imp_self, implies_true]
+  have hne : f 0 ≠ 0 := by
+    simp only [hf, zero_add, ne_eq]
+    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
+  exact hne (hfeq (Metric.mem_ball_self (by linarith)))
 
 
 
@@ -1794,6 +1822,8 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 -/
+
+/- DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
 
 blueprint_comment /--
 \begin{proof}
