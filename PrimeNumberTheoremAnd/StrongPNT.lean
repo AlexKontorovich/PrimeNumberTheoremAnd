@@ -1682,53 +1682,47 @@ lemma ShiftTwoBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZ
 blueprint_comment /--
 \begin{lemma}[ShiftOneBound]\label{ShiftOneBound}
     There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with
-    $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
+    $|t|\geq 2$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
       \leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
 \end{lemma}
 -/
+
+lemma ShiftOneBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow t).Finite)
+    {ρ : ℂ} (hρzero : ζ ρ = 0) (hρim : ρ.im = t) : ∃ (C : ℝ), C > 0 ∧ -(ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)).re ≤ C * Real.log |t| - 1 / (1 + δ - ρ.re) := by
+  obtain ⟨C, SumBound⟩ := SumBoundI hd ht finiteZeros; rw [← Complex.norm_neg', neg_sub] at SumBound
+  have := le_trans (Complex.re_le_norm _) SumBound.2
+  refine ⟨1 + C, by linarith, ?_⟩
+  sorry
 
 blueprint_comment /--
 \begin{proof}
 \uses{SumBoundI}
     Note that for $\rho'\in\mathcal{Z}_t$
     \begin{align*}
-        \Re \left(\frac{1}{1+\delta+it-\rho'}\right)
-          &=\Re \left(\frac{1+\delta-it-\overline{\rho'}}
-            {(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
-          &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}
-            =\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
+        \mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right)&=\mathfrak{R}\left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
+        &=\frac{\mathfrak{R}(1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}.
     \end{align*}
-    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho'-(3/2+it)|\leq 3/4$. So, we
-    have $\Re \rho'\in[3/4,9/4]$ and $\mathfrak{I}\rho'\in[t-3/4,t+3/4]$. Additionally, we know
-    that $\zeta(\rho')=0$. This implies the stronger condition that $\Re \rho'\in[3/4,1]$. Thus,
-    $$\delta\leq 1+\delta-\Re \rho'\qquad\text{and}\qquad
-      (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2\leq 25/16+9/16=17/8.$$
+    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho'-(3/2+it)|\leq 3/4$. So, we have $\mathfrak{R}\rho'\in[3/4,9/4]$ and $\mathfrak{I}\rho'\in[t-3/4,t+3/4]$. Additionally, we know that $\zeta(\rho')=0$. This implies the stronger condition that $\mathfrak{R}\rho'\in[3/4,1]$. Thus,
+    $$\delta\leq 1+\delta-\mathfrak{R}\rho'\qquad\text{and}\qquad (1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2\leq 25/16+9/16=17/8.$$
     Which implies that
     \begin{equation}\label{pickupPoint5}
-        0<\frac{8}{17}\,\delta
-          \leq\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}
-          =\Re \left(\frac{1}{1+\delta+it-\rho'}\right).
+        0<\frac{8}{17}\,\delta\leq\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}=\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right).
     \end{equation}
-    Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho'\in\mathcal{Z}_t}m_\zeta(\rho')\,
-      \Re \left(\frac{1}{1+\delta+it-\rho'}\right)
-      -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
-      \leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)
-      -\sum_{\rho'\in\mathcal{Z}_t}\frac{m_\zeta(\rho')}{1+\delta+it-\rho'}\right|
-      \ll\log|t|.$$
-    Since $m_\zeta(\rho')\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from
-    Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all
-    $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
-    $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}
-      -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
-    But of course we have that $\Re (1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting
-    this term from both sides and recalling the implied constant we have
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
-      \leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
-    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane
-    $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that
-    $1\leq m_\zeta(\rho)$ completes the proof.
+    Note that, from Lemma \ref{494}, we have
+    $$\sum_{\rho'\in\mathcal{Z}_t}m_\zeta(\rho')\,\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho'\in\mathcal{Z}_t}\frac{m_\zeta(\rho')}{1+\delta+it-\rho'}\right|\ll\log|t|.$$
+
+    Now we proceed via cases. If $\rho\in\mathcal{Z}_t$, then $\mathcal{Z}_t=\rho\sqcup(\mathcal{Z}_t\setminus\rho)$ and the inequality from Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
+    $$\frac{m_\zeta(\rho)}{\mathfrak{R}(1+\delta+it-\rho)}-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
+    But of course we have that $\mathfrak{R}(1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
+    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ gives us that
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|\leq-\frac{1}{1+\delta-\rho}+(1+C)\log|t|.$$
+
+    Now if $\rho\not\in\mathcal{Z}_t$, then $|\sigma-3/2|=|\rho-(3/2+it)|>3/4$ since $\zeta(\rho)=0$. Additionally, $\sigma\leq 1$ since $\zeta(\rho)=0$, thus $3/2-\sigma=|\sigma-3/2|>3/4$. So it follows that
+    $$\frac{1}{1+\delta-\sigma}<\frac{4}{13}<\log 2\leq\log|t|.$$
+    Thus, by subtracting the sum over $\rho'\in\mathcal{Z}_t$ from both sides we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq C\log|t|\leq-\frac{1}{1+\delta-\rho}+(1+C)\log|t|.$$
 \end{proof}
 -/
 
