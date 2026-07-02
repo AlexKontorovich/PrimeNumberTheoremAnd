@@ -116,7 +116,8 @@ theorem kadiri_laplace_full_strip_weight_integrable_of_continuous {ψ : ℝ → 
       Filter.atBot volume := by
     rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
     have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1
+      have he : ((MeasurableEquiv.neg ℝ).symm : ℝ → ℝ) = Neg.neg := rfl
+      rw [← he, (MeasurableEquiv.neg ℝ).comap_symm]
       simp
     rw [hvol, Function.comp_def]
     refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
@@ -297,13 +298,18 @@ theorem kadiri_laplace_full_strip_exp_interval_moment_integrable_of_continuous
         integrableOn_rpow_mul_exp_neg_mul_rpow
           (s := 1) (p := 1) (b := 1 + b - hi) (by norm_num) (by norm_num)
           (by linarith)
-    convert h1.add h2 using 1
-    ext x
-    simp [topBound, Real.rpow_one, mul_comm]
+    have hfun : topBound = fun x : ℝ =>
+        x ^ (1 : ℝ) * Real.exp (-(1 + b - lo) * x) +
+          x ^ (1 : ℝ) * Real.exp (-(1 + b - hi) * x) := by
+      funext x
+      simp [topBound, Real.rpow_one, mul_comm]
+    rw [hfun]
+    exact h1.add h2
   have hbot_int : IntegrableAtFilter botBound Filter.atBot volume := by
     rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
     have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert (MeasurableEquiv.neg ℝ).map_symm.symm using 1
+      have he : ((MeasurableEquiv.neg ℝ).symm : ℝ → ℝ) = Neg.neg := rfl
+      rw [← he, (MeasurableEquiv.neg ℝ).comap_symm]
       simp
     rw [hvol, Function.comp_def]
     have h1 : IntegrableAtFilter
@@ -322,10 +328,14 @@ theorem kadiri_laplace_full_strip_exp_interval_moment_integrable_of_continuous
         integrableOn_rpow_mul_exp_neg_mul_rpow
           (s := 1) (p := 1) (b := b + hi) (by norm_num) (by norm_num)
           (by linarith)
-    convert h1.add h2 using 1
-    ext x
-    simp [botBound, Real.rpow_one, mul_comm]
-    ring_nf
+    have hfun : (fun x : ℝ => botBound (-x)) = fun x : ℝ =>
+        x ^ (1 : ℝ) * Real.exp (-(b + lo) * x) +
+          x ^ (1 : ℝ) * Real.exp (-(b + hi) * x) := by
+      funext x
+      simp [botBound, Real.rpow_one, mul_comm]
+      ring_nf
+    rw [hfun]
+    exact h1.add h2
   exact hF_loc.integrable_of_isBigO_atBot_atTop hbot hbot_int htop htop_int
 
 theorem kadiri_laplace_exp_hasDerivAt_of_full_strip {φ : ℝ → ℂ}
@@ -666,7 +676,11 @@ theorem kadiri_logDeriv_analytic_zero_principal_part_remainder_bound
     have hmul_bounded :
         (deriv g * g⁻¹) =O[𝓝 p] ((1 : ℂ → ℂ) * (1 : ℂ → ℂ)) :=
       Asymptotics.IsBigO.mul hderiv_bounded hinv_bounded
-    simpa [logDeriv_apply, Pi.div_apply, Pi.mul_apply, div_eq_mul_inv] using hmul_bounded
+    have hfun : logDeriv g = deriv g * g⁻¹ := by
+      funext z
+      simp [logDeriv_apply, Pi.mul_apply, Pi.inv_apply, div_eq_mul_inv]
+    rw [hfun]
+    simpa using hmul_bounded
   exact hlog_eq.trans_isBigO (hlog_bounded.mono nhdsWithin_le_nhds)
 
 
