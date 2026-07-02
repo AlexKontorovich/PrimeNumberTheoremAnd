@@ -1573,6 +1573,10 @@ Composition of the eleven sublemmas above. -/
   $-\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ term is the contribution from the
   reflected ($z \leftrightarrow 1 - z$) Dirichlet series.
 
+  The convention for $\delta_{q,1}$ in the paper's displayed statement is printed in the
+  opposite direction from its use in equation (12) and in the later $q = 1$ specialization:
+  here $\delta_{q,1}=1$.
+
   \emph{Typo correction:} \cite[Theorem 3.1, p.~11]{Kadiri2005} states this identity with
   $+\sum_n \tfrac{\Lambda(n)}{n}\varphi(-\log n)$ (positive sign), but this is a downstream
   consequence of the sign typo in the paper's functional equation on \cite[p.~12]{Kadiri2005}
