@@ -1,0 +1,9 @@
+import PrimeNumberTheoremAnd.RectangleArgumentPrinciple
+
+#check logDeriv_residue_eq_meromorphicOrderAt
+#check rectangleIntegral_logDeriv_eq_sum_meromorphicOrderAt
+#check rectangle_argumentChange_eq_two_pi_sum_meromorphicOrderAt
+
+#print axioms logDeriv_residue_eq_meromorphicOrderAt
+#print axioms rectangleIntegral_logDeriv_eq_sum_meromorphicOrderAt
+#print axioms rectangle_argumentChange_eq_two_pi_sum_meromorphicOrderAt
