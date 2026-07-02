@@ -1716,13 +1716,8 @@ lemma ShiftTwoBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZ
   -/)]
 lemma ShiftOneBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZeros : (ZeroWindow t).Finite)
     {ρ : ℂ} (hρzero : ζ ρ = 0) (hρim : ρ.im = t) : ∃ (C : ℝ), C > 0 ∧ -(ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)).re ≤ C * Real.log |t| - 1 / (1 + δ - ρ.re) := by
-  have hρre : ρ.re < 1 := by
-    by_contra h; push Not at h
-    exact riemannZeta_ne_zero_of_one_le_re h hρzero
-  have ρ_ne_one : ρ ≠ 1 := by
-    intro h
-    have hρre' := congr_arg Complex.re h; simp only [one_re] at hρre'
-    linarith
+  have hρre : ρ.re < 1 := lt_of_not_ge fun h => riemannZeta_ne_zero_of_one_le_re h hρzero
+  have ρ_ne_one : ρ ≠ 1 := by rintro rfl; simp only [one_re, lt_self_iff_false] at hρre
   have analyticOnNhdZeta : AnalyticOnNhd ℂ ζ {z : ℂ | z ≠ 1} := by
     intro z hz; simp only [ne_eq, mem_setOf_eq] at hz
     exact DifferentiableOn.analyticAt (s := {z : ℂ | z ≠ 1}) (fun z' hz' => (differentiableAt_riemannZeta hz').differentiableWithinAt) ((isOpen_ne).mem_nhds hz)
@@ -1730,11 +1725,10 @@ lemma ShiftOneBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZ
     simp only [div_re, natCast_re, add_re, one_re, ofReal_re, sub_re, mul_re, I_re, zero_mul, I_im,
       ofReal_im, mul_zero, sub_self, natCast_im, add_im, one_im, add_zero, sub_im, mul_im,
       one_mul, zero_add, zero_div]
-    refine div_nonneg (mul_nonneg ?_ ?_) (normSq_nonneg _)
-    · simp only [cast_nonneg]
-    · by_contra h; push Not at h
-      simp only [ZeroWindow, Finite.mem_toFinset, mem_setOf_eq] at hρ'
-      exact riemannZeta_ne_zero_of_one_le_re (by linarith [hd.1]) hρ'.1
+    refine div_nonneg (mul_nonneg (by positivity) ?_) (normSq_nonneg _)
+    by_contra h; push Not at h
+    simp only [ZeroWindow, Finite.mem_toFinset, mem_setOf_eq] at hρ'
+    exact riemannZeta_ne_zero_of_one_le_re (by linarith [hd.1]) hρ'.1
   obtain ⟨C, SumBound⟩ := SumBoundI hd ht finiteZeros; rw [← Complex.norm_neg', neg_sub] at SumBound
   have SumBound := le_trans (Complex.re_le_norm _) SumBound.2
   refine ⟨7 + C, by linarith, ?_⟩
@@ -1749,15 +1743,13 @@ lemma ShiftOneBound {δ t : ℝ} (hd : δ ∈ Ioo 0 1) (ht : |t| ≥ 2) (finiteZ
       one_mul, zero_add, zero_div, normSq_apply, mul_div_assoc, div_self_mul_self', ← one_div] at SumBound
     refine le_sub_left_of_add_le (le_trans (add_le_add ?_ ?_) SumBound)
     · rw [← mul_div_assoc, mul_one]
-      refine div_le_div_of_nonneg_right ?_ ?_
-      · simp only [one_le_cast, Nat.one_le_iff_ne_zero, analyticOrderNatAt, ne_eq, ENat.toNat_eq_zero, analyticOrderAt_eq_zero, analyticOrderAt_eq_top, not_or, not_not]
-        refine ⟨⟨DifferentiableOn.analyticAt (s := {z : ℂ | z ≠ 1}) (fun z hz => (differentiableAt_riemannZeta hz).differentiableWithinAt) ((isOpen_ne).mem_nhds ρ_ne_one), hρzero⟩, (fun h => riemannZeta_ne_zero_of_one_le_re (s := 2) (by norm_num) (AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero analyticOnNhdZeta (z₀ := ρ) ((isConnected_compl_singleton_of_one_lt_rank ?_ 1).isPreconnected) ?_ ?_ ?_))⟩
-        · simp only [rank_real_complex, one_lt_ofNat]
-        · simp only [ne_eq, mem_setOf_eq, ρ_ne_one, not_false_eq_true]
-        · simp only [EventuallyEq, Pi.zero_apply, h]
-        · simp only [ne_eq, mem_setOf_eq, OfNat.ofNat_ne_one, not_false_eq_true]
-      · by_contra h; push Not at h
-        exact riemannZeta_ne_zero_of_one_le_re (by linarith [hd.1]) hρzero
+      refine div_le_div_of_nonneg_right ?_ (by linarith [hd.1])
+      simp only [one_le_cast, Nat.one_le_iff_ne_zero, analyticOrderNatAt, ne_eq, ENat.toNat_eq_zero, analyticOrderAt_eq_zero, analyticOrderAt_eq_top, not_or, not_not]
+      refine ⟨⟨DifferentiableOn.analyticAt (s := {z : ℂ | z ≠ 1}) (fun z hz => (differentiableAt_riemannZeta hz).differentiableWithinAt) ((isOpen_ne).mem_nhds ρ_ne_one), hρzero⟩, (fun h => riemannZeta_ne_zero_of_one_le_re (s := 2) (by norm_num) (AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero analyticOnNhdZeta (z₀ := ρ) ((isConnected_compl_singleton_of_one_lt_rank ?_ 1).isPreconnected) ?_ ?_ ?_))⟩
+      · simp only [rank_real_complex, one_lt_ofNat]
+      · simp only [ne_eq, mem_setOf_eq, ρ_ne_one, not_false_eq_true]
+      · simp only [EventuallyEq, Pi.zero_apply, h]
+      · simp only [ne_eq, mem_setOf_eq, OfNat.ofNat_ne_one, not_false_eq_true]
     · simp only [← add_sub_assoc, neg_le_sub_iff_le_add, le_add_iff_nonneg_left]
       refine Finset.sum_nonneg (fun ρ' hρ' => hTermNonneg ?_)
       simp only [Finset.mem_sdiff] at hρ'
@@ -1788,6 +1780,20 @@ blueprint_comment /--
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
 \end{lemma}
 -/
+
+lemma ShiftZeroBound {δ : ℝ} (hd : δ ∈ Ioo 0 1) :
+    ∃ (C : ℝ), C > 0 ∧ -(ζ' (1 + δ) / ζ (1 + δ)).re ≤ 1 / δ + C := by
+  obtain ⟨C, hC⟩ := riemannZetaLogDerivResidueBigO.bound
+  rw [eventually_nhdsWithin_iff, Metric.eventually_nhds_iff] at hC
+  obtain ⟨ε, hε, hC'⟩ := hC; simp only [mem_compl_iff, mem_singleton_iff, Pi.sub_apply, Pi.div_apply, Pi.neg_apply,
+    Pi.one_apply, norm_one, mul_one] at hC'
+  have hC'_delta := hC' (y := 1 + δ)
+  simp only [dist_self_add_left, norm_real, norm_eq_abs, add_eq_left, ofReal_eq_zero,
+    ne_of_gt hd.1, neg_div, add_sub_cancel_left, not_false_eq_true, forall_const,
+    abs_of_nonneg (hd.1.le), ← one_div] at hC'_delta
+  have alternate := ZetaNear1BndFilter
+
+  sorry
 
 blueprint_comment /--
 \begin{proof}
