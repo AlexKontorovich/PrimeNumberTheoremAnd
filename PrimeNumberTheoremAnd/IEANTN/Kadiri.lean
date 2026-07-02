@@ -8,6 +8,8 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.LaplaceInversion
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
+import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -186,60 +188,29 @@ theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff 
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-11"
-  (title := "Equation (11) of \\cite{Kadiri2005}: LHS as a Mellin contour integral")
+  (title := "Equation (11) of \\cite{Kadiri2005}: truncated contour limit")
   (statement := /-- For $\varphi$ satisfying (A) and (B) of \ref{kadiri-thm-3-1-q1},
   and any real $a$ with $0 < a < b$ and $a < 1$,
-  $$ \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n)
-     = \frac{1}{2 \pi i}
-       \int_{1 + a - i\infty}^{1 + a + i\infty}
-         \left(-\frac{\zeta'}{\zeta}\right)(s)\, \Phi(-s)\, ds, $$
+  $$ I(T) \xrightarrow[T \to \infty]{}
+     \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n), $$
   with $\Phi$ as in \ref{kadiri-thm-3-1-q1-laplace-inversion}. This is equation~(11) of
-  \cite{Kadiri2005}, page~11, specialized to $q = 1$. -/)
-  (proof := /-- Corollary of \ref{kadiri-thm-3-1-q1-laplace-inversion}: multiply that
-  identity by $\Lambda(n)$, sum over $n \geq 1$, and exchange sum and integral
-  (justified by absolute convergence of the Dirichlet series for $-\zeta'/\zeta$ on
-  $\sigma > 1$ combined with the $O(1/|t|)$ decay of $\Phi$ from (B)). The Dirichlet
-  series identity $-\zeta'/\zeta(s) = \sum_n \Lambda(n) n^{-s}$ converts the sum into a
-  factor of $-\zeta'/\zeta(s)$ in the integrand. Finally, change of variable
-  $s \mapsto -s$ maps the contour $\sigma = -(1 + a)$ to $\sigma = 1 + a$ (with the
-  orientation-flip cancelling the sign from $ds$). To be formalised. -/)
+  \cite{Kadiri2005}, page~11, specialized to $q = 1$, in truncated-limit form. -/)
+  (proof := /-- This follows from pointwise Laplace inversion, the finite-window sum and
+  integral exchange, and the limiting argument for the truncated contour integral $I(T)$. -/)
   (latexEnv := "sublemma")
   (discussion := 1536)]
-theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
-    {b : ℝ} (_hb : 0 < b)
-    (_hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
+theorem kadiri_thm_3_1_q1_eq_11
+    {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
+    {b : ℝ} (hb : 0 < b)
+    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
+    (hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-    (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
-      (1 / (2 * (Real.pi : ℂ))) *
-        ∫ t : ℝ,
-          (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-              riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-            Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) := by
-  sorry
-
-@[blueprint
-  "kadiri-thm-3-1-q1-I"
-  (title := "Truncated contour integral $I(T)$ on $\\sigma = 1 + a$")
-  (statement := /-- Kadiri's $I(T)$ from \cite[p.~12]{Kadiri2005}: the truncated contour
-  integral
-  $$ I(T) \;:=\; \frac{1}{2\pi i} \int_{1+a-iT}^{1+a+iT}
-              \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds, $$
-  where $\Phi(s) := \int_0^\infty \varphi(y) e^{-sy}\, dy$ is the Laplace transform of
-  $\varphi$. The $T \to \infty$ limit of $I(T)$ is the Mellin-contour identity of
-  \ref{kadiri-thm-3-1-q1-eq-11}, and its rectangle decomposition is equation~(12) of
-  \cite{Kadiri2005} (\ref{kadiri-thm-3-1-q1-eq-12}). -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-          riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-        Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I))
+    {a : ℝ} (ha : 0 < a) (hab : a < b) (ha1 : a < 1) :
+    Tendsto (fun T : ℝ => kadiri_thm_3_1_q1_I φ a T) atTop
+      (𝓝 (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n))) :=
+  kadiri_thm_3_1_q1_eq_11_truncated_limit
+    (φ := φ) hφ (b := b) hb hφ_decay hφ'_decay (a := a) ha hab ha1
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-12"
@@ -1022,130 +993,6 @@ private lemma u1541_shifted_I3_summand_integrable_of_transform_continuous {φ : 
       (Set.Icc (-T) T) := by
     exact hΓ.mul hΦ
   exact (hcont.integrableOn_compact isCompact_Icc).mono_set Set.Ioo_subset_Icc_self
-
-private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ : ℝ → ℂ}
-    (hψ : Continuous ψ) {b : ℝ}
-    (hψ_decay : (fun x : ℝ ↦ ψ x * exp ((x : ℂ) / 2))
-        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (ha : 0 < a) (hab : a < b) :
-    Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * ψ y) := by
-  let F : ℝ → ℂ := fun y => exp (-((a : ℂ) * (y : ℂ))) * ψ y
-  have hF_cont : Continuous F := by
-    dsimp [F]
-    fun_prop
-  have hF_loc : LocallyIntegrable F volume := hF_cont.locallyIntegrable
-  have hshape : ∀ x : ℝ,
-      ‖F x‖ = Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖ := by
-    intro x
-    dsimp [F]
-    rw [norm_mul, norm_mul, Complex.norm_exp, Complex.norm_exp]
-    have h1 : (-(↑a * ↑x) : ℂ).re = -a * x := by
-      norm_num [Complex.mul_re]
-    have h2 : ((x : ℂ) / 2).re = x / 2 := by
-      norm_num
-    rw [h1, h2]
-    calc
-      Real.exp (-a * x) * ‖ψ x‖
-          = (Real.exp (-(a + 1 / 2) * x) * Real.exp (x / 2)) * ‖ψ x‖ := by
-            rw [← Real.exp_add]
-            congr 1
-            ring_nf
-      _ = Real.exp (-(a + 1 / 2) * x) * (‖ψ x‖ * Real.exp (x / 2)) := by ring_nf
-  have htop_decay := hψ_decay.mono (show Filter.atTop ≤ Filter.cocompact ℝ from
-    atTop_le_cocompact)
-  have hbot_decay := hψ_decay.mono (show Filter.atBot ≤ Filter.cocompact ℝ from
-    atBot_le_cocompact)
-  have htop : F =O[Filter.atTop] fun x : ℝ => Real.exp (-(a + b + 1) * x) := by
-    rw [Asymptotics.isBigO_iff] at htop_decay ⊢
-    obtain ⟨C, hC⟩ := htop_decay
-    refine ⟨C, ?_⟩
-    filter_upwards [hC, Filter.eventually_gt_atTop (0 : ℝ)] with x hxC hxpos
-    rw [hshape]
-    calc
-      Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖
-          ≤ Real.exp (-(a + 1 / 2) * x) *
-              (C * ‖Real.exp (-(1 / 2 + b) * |x|)‖) := by
-            exact mul_le_mul_of_nonneg_left hxC (Real.exp_nonneg _)
-      _ = C * ‖Real.exp (-(a + b + 1) * x)‖ := by
-            rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _),
-              abs_of_pos (Real.exp_pos _), abs_of_pos hxpos]
-            calc
-              Real.exp (-(a + 1 / 2) * x) * (C * Real.exp (-(1 / 2 + b) * x))
-                  = C * (Real.exp (-(a + 1 / 2) * x) *
-                      Real.exp (-(1 / 2 + b) * x)) := by ring_nf
-              _ = C * Real.exp (-(a + 1 / 2) * x + (-(1 / 2 + b) * x)) := by
-                    rw [Real.exp_add]
-              _ = C * Real.exp (-(a + b + 1) * x) := by ring_nf
-  have hbot : F =O[Filter.atBot] fun x : ℝ => Real.exp ((b - a) * x) := by
-    rw [Asymptotics.isBigO_iff] at hbot_decay ⊢
-    obtain ⟨C, hC⟩ := hbot_decay
-    refine ⟨C, ?_⟩
-    filter_upwards [hC, Filter.eventually_lt_atBot (0 : ℝ)] with x hxC hxneg
-    rw [hshape]
-    calc
-      Real.exp (-(a + 1 / 2) * x) * ‖ψ x * exp ((x : ℂ) / 2)‖
-          ≤ Real.exp (-(a + 1 / 2) * x) *
-              (C * ‖Real.exp (-(1 / 2 + b) * |x|)‖) := by
-            exact mul_le_mul_of_nonneg_left hxC (Real.exp_nonneg _)
-      _ = C * ‖Real.exp ((b - a) * x)‖ := by
-            rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _),
-              abs_of_pos (Real.exp_pos _), abs_of_neg hxneg]
-            calc
-              Real.exp (-(a + 1 / 2) * x) * (C * Real.exp (-(1 / 2 + b) * -x))
-                  = C * (Real.exp (-(a + 1 / 2) * x) *
-                      Real.exp (-(1 / 2 + b) * -x)) := by ring_nf
-              _ = C * Real.exp (-(a + 1 / 2) * x + (-(1 / 2 + b) * -x)) := by
-                    rw [Real.exp_add]
-              _ = C * Real.exp ((b - a) * x) := by ring_nf
-  have htop_int : IntegrableAtFilter (fun x : ℝ => Real.exp (-(a + b + 1) * x))
-      Filter.atTop volume := by
-    refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
-    exact exp_neg_integrableOn_Ioi 0 (show 0 < a + b + 1 by linarith)
-  have hbot_int : IntegrableAtFilter (fun x : ℝ => Real.exp ((b - a) * x))
-      Filter.atBot volume := by
-    rw [← Filter.map_neg_atTop, measurableEmbedding_neg.integrableAtFilter_iff_comap]
-    have hvol : (volume : Measure ℝ).comap Neg.neg = volume := by
-      convert! (MeasurableEquiv.neg ℝ).map_symm.symm using 1; simp
-    rw [hvol, Function.comp_def]
-    refine ⟨Set.Ioi 0, Filter.Ioi_mem_atTop 0, ?_⟩
-    convert exp_neg_integrableOn_Ioi 0 (sub_pos.mpr hab) using 1
-    ext x
-    ring_nf
-  exact hF_loc.integrable_of_isBigO_atBot_atTop hbot hbot_int htop htop_int
-
-private lemma kadiri_laplace_positive_line_weight_integrable {φ : ℝ → ℂ}
-    (hφ : ContDiff ℝ 1 φ) {b : ℝ}
-    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
-        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (ha : 0 < a) (hab : a < b) :
-    Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * φ y) :=
-  kadiri_laplace_positive_line_weight_integrable_of_continuous hφ.continuous hφ_decay ha hab
-
-private lemma kadiri_laplace_shifted_vertical_segment_continuousOn
-    {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
-    {b : ℝ} (_hb : 0 < b)
-    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
-        =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a T : ℝ} (ha : 0 < a) (hab : a < b) (_ha1 : a < 1) :
-    ContinuousOn
-      (fun t : ℝ =>
-        let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-        let s : ℂ := ((-a : ℝ) : ℂ) + (t : ℂ) * I
-        Φ (-s))
-      (Set.Icc (-T) T) := by
-  have h_weighted :
-      Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * φ y) :=
-    kadiri_laplace_positive_line_weight_integrable hφ hφ_decay ha hab
-  have hcont :=
-    continuous_laplaceIntegral_verticalLine_of_integrable
-      (f := φ) (sigma := a) hφ.continuous h_weighted
-  refine hcont.continuousOn.congr ?_
-  intro t _ht
-  dsimp [laplaceIntegral]
-  apply integral_congr_ae
-  filter_upwards with y
-  apply congrArg (fun z : ℂ => φ y * exp (-z * (y : ℂ)))
-  simp [sub_eq_add_neg, add_comm]
 
 private lemma u1541_shifted_I1_summand_integrable_of_transform_continuous {φ : ℝ → ℂ}
     {a T : ℝ}
@@ -3585,17 +3432,6 @@ theorem identity_16 {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [htsum_re, tsum_congr hpt, hsplit, Complex.re_ofReal_mul, Complex.sub_re,
     re_shifted_sum_eq_paired_sub_re_inv s]
   ring
-
-
-/-- The raw von Mangoldt Dirichlet sum is `-ζ'/ζ` on `1 < Re s` (the tsum form of
-`ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div`). -/
-lemma tsum_vonMangoldt_eq {s : ℂ} (hs : 1 < s.re) :
-    (∑' n : ℕ, (Λ n : ℂ) / (n : ℂ) ^ s) = -deriv riemannZeta s / riemannZeta s := by
-  rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, LSeries]
-  refine tsum_congr fun n ↦ ?_
-  rcases eq_or_ne n 0 with rfl | hn
-  · simp
-  · rw [LSeries.term_of_ne_zero hn]
 
 @[blueprint
   "kadiri-re-inner-eq"
