@@ -2460,3 +2460,116 @@ theorem laplaceIntegralCpowTrunc_tendsto_of_integrable_local_quotient
     (sinc_kernel_tendsto_of_integrable_local_quotient (E := ℂ)
       (f := fun y : ℝ => Complex.exp (-((sigma : ℂ) * (y : ℂ))) * f y)
       (x := Real.log x) (R := R) hg hR hq)
+
+/-- A continuous function that decays like a negative exponential at `+∞` and is
+controlled by a positive exponential at `-∞` is globally bounded. -/
+private lemma bounded_of_continuous_of_isBigO_exp_atBot_atTop
+    {f : ℝ → ℂ} (hf_cont : Continuous f) {cTop cBot : ℝ}
+    (hcTop : cTop < 0) (hcBot : 0 < cBot)
+    (htop : f =O[Filter.atTop] fun y : ℝ => Real.exp (cTop * y))
+    (hbot : f =O[Filter.atBot] fun y : ℝ => Real.exp (cBot * y)) :
+    ∃ B : ℝ, 0 ≤ B ∧ ∀ y : ℝ, ‖f y‖ ≤ B := by
+  obtain ⟨Ctop, hCtop⟩ := htop.bound
+  let Ctop' : ℝ := max Ctop 0
+  have hCtop'_nonneg : 0 ≤ Ctop' := le_max_right _ _
+  have htop_ev : ∀ᶠ y in Filter.atTop, ‖f y‖ ≤ Ctop' := by
+    filter_upwards [hCtop, Filter.eventually_ge_atTop (0 : ℝ)] with y hCy hy0
+    have hnorm : ‖Real.exp (cTop * y)‖ = Real.exp (cTop * y) := by
+      rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    have hexp_le : Real.exp (cTop * y) ≤ 1 := by
+      rw [← Real.exp_zero]
+      exact Real.exp_le_exp.mpr (mul_nonpos_of_nonpos_of_nonneg hcTop.le hy0)
+    calc
+      ‖f y‖ ≤ Ctop * ‖Real.exp (cTop * y)‖ := hCy
+      _ = Ctop * Real.exp (cTop * y) := by rw [hnorm]
+      _ ≤ Ctop' * Real.exp (cTop * y) := by
+        exact mul_le_mul_of_nonneg_right (le_max_left _ _) (Real.exp_nonneg _)
+      _ ≤ Ctop' * 1 := by
+        exact mul_le_mul_of_nonneg_left hexp_le hCtop'_nonneg
+      _ = Ctop' := by ring
+  obtain ⟨Ytop, hYtop⟩ := Filter.eventually_atTop.mp htop_ev
+  obtain ⟨Cbot, hCbot⟩ := hbot.bound
+  let Cbot' : ℝ := max Cbot 0
+  have hCbot'_nonneg : 0 ≤ Cbot' := le_max_right _ _
+  have hbot_ev : ∀ᶠ y in Filter.atBot, ‖f y‖ ≤ Cbot' := by
+    filter_upwards [hCbot, Filter.eventually_le_atBot (0 : ℝ)] with y hCy hy0
+    have hnorm : ‖Real.exp (cBot * y)‖ = Real.exp (cBot * y) := by
+      rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    have hexp_le : Real.exp (cBot * y) ≤ 1 := by
+      rw [← Real.exp_zero]
+      exact Real.exp_le_exp.mpr (mul_nonpos_of_nonneg_of_nonpos hcBot.le hy0)
+    calc
+      ‖f y‖ ≤ Cbot * ‖Real.exp (cBot * y)‖ := hCy
+      _ = Cbot * Real.exp (cBot * y) := by rw [hnorm]
+      _ ≤ Cbot' * Real.exp (cBot * y) := by
+        exact mul_le_mul_of_nonneg_right (le_max_left _ _) (Real.exp_nonneg _)
+      _ ≤ Cbot' * 1 := by
+        exact mul_le_mul_of_nonneg_left hexp_le hCbot'_nonneg
+      _ = Cbot' := by ring
+  obtain ⟨Ybot, hYbot⟩ := Filter.eventually_atBot.mp hbot_ev
+  let lo : ℝ := min Ybot Ytop
+  let hi : ℝ := max Ybot Ytop
+  obtain ⟨Cmid, hCmid⟩ := isCompact_Icc.exists_bound_of_continuousOn
+    (s := Set.Icc lo hi) hf_cont.continuousOn
+  let B : ℝ := max Ctop' (max Cbot' (max Cmid 0))
+  refine ⟨B, ?_, ?_⟩
+  · exact le_max_of_le_right (le_max_of_le_right (le_max_right _ _))
+  · intro y
+    by_cases htop_case : Ytop ≤ y
+    · exact (hYtop y htop_case).trans (le_max_left _ _)
+    · by_cases hbot_case : y ≤ Ybot
+      · exact (hYbot y hbot_case).trans
+          ((le_max_left _ _).trans (le_max_right _ _))
+      · have hy_gt_bot : Ybot < y := lt_of_not_ge hbot_case
+        have hy_lt_top : y < Ytop := lt_of_not_ge htop_case
+        have hylo : lo ≤ y :=
+          (min_le_left Ybot Ytop).trans hy_gt_bot.le
+        have hyhi : y ≤ hi :=
+          hy_lt_top.le.trans (le_max_right Ybot Ytop)
+        exact (hCmid y ⟨hylo, hyhi⟩).trans
+          ((le_max_left _ _).trans ((le_max_right _ _).trans (le_max_right _ _)))
+
+/-- Continuity of the bilateral Laplace integral along the `σ + tI` vertical line,
+under integrability of the exponentially weighted source. Companion to
+`continuous_laplaceIntegral_verticalLine_of_integrable` (the `σ - tI` form). -/
+theorem continuous_laplaceIntegral_verticalLine_add_of_integrable
+    {φ : ℝ → ℂ} {σ : ℝ} (hφ_cont : Continuous φ)
+    (hφ_int : Integrable (fun y : ℝ => exp (-((σ : ℂ) * (y : ℂ))) * φ y)) :
+    Continuous
+      (fun t : ℝ => ∫ y : ℝ, φ y * exp (-(((σ : ℂ) + (t : ℂ) * I) * (y : ℂ)))) := by
+  rw [continuous_iff_continuousAt]
+  intro t0
+  let bound : ℝ → ℝ := fun y => ‖exp (-((σ : ℂ) * (y : ℂ))) * φ y‖
+  let F : ℝ → ℝ → ℂ := fun t y =>
+    φ y * exp (-(((σ : ℂ) + (t : ℂ) * I) * (y : ℂ)))
+  have hbound_int : Integrable bound := by
+    simpa [bound, mul_comm] using hφ_int.norm
+  have hF_meas : ∀ᶠ t in 𝓝 t0, AEStronglyMeasurable (F t) volume := by
+    refine Eventually.of_forall ?_
+    intro t
+    dsimp [F]
+    exact (hφ_cont.mul (continuous_exp.comp (by fun_prop))).aestronglyMeasurable
+  have h_bound : ∀ᶠ t in 𝓝 t0, ∀ᵐ y ∂volume, ‖F t y‖ ≤ bound y := by
+    refine Eventually.of_forall ?_
+    intro t
+    filter_upwards with y
+    dsimp [F, bound]
+    rw [norm_mul, norm_mul, norm_exp, norm_exp]
+    have hsig : (-(↑σ * ↑y) : ℂ).re = -σ * y := by
+      norm_num [Complex.mul_re]
+    have ht : (-((↑σ + ↑t * I) * ↑y) : ℂ).re = -σ * y := by
+      norm_num [Complex.mul_re, Complex.I_re, Complex.I_im]
+    rw [hsig, ht]
+    rw [mul_comm]
+  have h_lim : ∀ᵐ y ∂volume, Tendsto (fun t => F t y) (𝓝 t0) (𝓝 (F t0 y)) := by
+    filter_upwards with y
+    dsimp [F]
+    have hcont : Continuous
+        (fun t : ℝ => φ y * exp (-(((σ : ℂ) + (t : ℂ) * I) * (y : ℂ)))) := by
+      fun_prop
+    exact hcont.continuousAt
+  have h_tendsto :=
+    tendsto_integral_filter_of_dominated_convergence
+      (μ := volume) bound hF_meas h_bound hbound_int h_lim
+  unfold ContinuousAt
+  simpa [F] using h_tendsto
