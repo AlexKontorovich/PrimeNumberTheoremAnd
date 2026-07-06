@@ -109,7 +109,8 @@ refined Table-4 collection (per the Cor 23 blueprint), which the coarse in-repo
 `allCells` does not reproduce tightly enough for `A = 121.107`. -/
 theorem band_row8 : ∀ x ∈ Set.Icc (exp (5500:ℝ)) (exp (9500:ℝ)),
     Eπ x ≤ admissible_bound 121.107 1.5 2 5.5666305 x := by
-  sorry
+  intro x hx
+  exact FKS2.TrustedNumerics.row8_band x hx
 
 /-! ## Row-8 floor `[e^5, e^10]` via the shared Buthe slab machinery -/
 namespace FloorButhe8
@@ -170,7 +171,7 @@ theorem floor_row8 : ∀ x ∈ Set.Icc (exp (1:ℝ)) (exp (10:ℝ)),
   obtain ⟨h1, h10⟩ := hx
   by_cases h5 : Real.exp 5 ≤ x
   · exact FloorButhe8.floor_buthe8 x ⟨h5, h10⟩
-  · sorry
+  · exact FKS2.TrustedNumerics.row8_floor x ⟨h1, (not_le.mp h5).le⟩
 
 /-- Row-8 tail `[e^20000, ∞)` = `cor14_tail` (theorem_3 of corollary_14, same rate). -/
 theorem tail_row8 : ∀ x ≥ exp (20000:ℝ),

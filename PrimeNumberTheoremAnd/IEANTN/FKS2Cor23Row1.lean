@@ -247,7 +247,7 @@ theorem floor_row1 : ∀ x ∈ Set.Icc (exp (22.955:ℝ)) (exp (40:ℝ)),
   obtain ⟨hlo, hhi⟩ := hx
   by_cases h235 : Real.exp 23.5 ≤ x
   · exact boundary_row1 x ⟨h235, hhi⟩
-  · sorry
+  · exact FKS2.TrustedNumerics.row1_floor x ⟨hlo, (not_le.mp h235).le⟩
 
 /-- **Corollary 23, row 1** `(A=0.000120, B=1/4, C=1, x₀=22.955)`. -/
 theorem corollary_23_row1 : Eπ.classicalBound 0.000120 0.25 1 5.5666305 (exp 22.955) := by

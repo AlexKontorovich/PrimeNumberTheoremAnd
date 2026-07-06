@@ -146,7 +146,7 @@ theorem floor_row9 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
   obtain ⟨h3, h10⟩ := hx
   by_cases h5 : Real.exp 5 ≤ x
   · exact FloorButhe9.floor_buthe9 x ⟨h5, h10⟩
-  · sorry
+  · exact FKS2.TrustedNumerics.row9_floor x ⟨h3, (not_le.mp h5).le⟩
 
 /-- Row-9 tail `[e^20000, ∞)`: `cor14_tail` gives `Eπ ≤ admissible 121.107 (3/2) 2 R`
 (a `B=3/2`, rate-`2/√R` curve), which DOMINATES the row-9 `B=2` curve here because

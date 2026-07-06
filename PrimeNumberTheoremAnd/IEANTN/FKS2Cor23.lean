@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
 import PrimeNumberTheoremAnd.IEANTN.Buthe
+import PrimeNumberTheoremAnd.IEANTN.FKS2TrustedNumerics
 
 /-!
 # FKS2 Corollary 23 — per-row proofs
@@ -26,6 +27,14 @@ upstream of both — exactly as `corollary_22` lives in `Cor22Floor.lean`.
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp
+
+/- Guards for the `exact` bridges to `FKS2.TrustedNumerics` below: the expanded local
+defs there are definitionally equal to these root-namespace defs.  If `Eπ` or
+`admissible_bound` (`Defs.lean`) ever changes, these `rfl`s break *here* — pointing at
+the duplicated defs — instead of failing obscurely at each `exact` call site. -/
+example (x : ℝ) : Eπ x = FKS2.TrustedNumerics.Epi x := rfl
+example (A B C R x : ℝ) :
+    admissible_bound A B C R x = FKS2.TrustedNumerics.classicalCurve A B C R x := rfl
 
 /-! ## Shared `R = 5.5666305` numeric enclosures (used by every row-5 segment) -/
 
@@ -728,15 +737,16 @@ theorem floor_buthe_quarter_wide (rhsE2 : Expr) (A C : ℝ) (xlo xhi : ℝ) (sla
   `π`/`Li` interpolation of \cite[Lemmas 5.2, 5.3]{FKS} that the blueprint proof
   invokes; no tight sub-`e^10` `Eπ` envelope exists in the library (Buthe `2e` is
   too loose below `e^5`, and the `eq_30` θ→π overhead exceeds the curve at `x=20`).
-  This `sorry` is the same class of accepted numerical-data trust as
-  `Table4Ext.allCells_trusted` (`x ≥ e^10`). -/
+  This is the same class of accepted numerical-data trust as
+  `Table4Ext.allCells_trusted` (`x ≥ e^10`), discharged by the trusted lemma
+  `FKS2.TrustedNumerics.row5_floor`. -/
 theorem floor_row5 : ∀ x ∈ Set.Icc (exp (3:ℝ)) (exp (10:ℝ)),
     Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x := by
   intro x hx
   obtain ⟨h3, h10⟩ := hx
   by_cases h5 : Real.exp 5 ≤ x
   · exact FloorButhe.floor_buthe x ⟨h5, h10⟩
-  · sorry
+  · exact FKS2.TrustedNumerics.row5_floor x ⟨h3, (not_le.mp h5).le⟩
 
 /-- **Corollary 23, row 5** `(A=2.22, B=3/2, C=3/2, x₀=3)`. -/
 theorem corollary_23_row5 : Eπ.classicalBound 2.22 1.5 1.5 5.5666305 (exp 3) := by
