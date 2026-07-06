@@ -1910,23 +1910,24 @@ lemma ShiftZeroBound :
   (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound",
     "ThreeFourOneTrigIdentity", "ShiftZeroBound"])
   (latexEnv := "theorem")]
-theorem ZeroInequality : ∃ (C : ℝ) (EinIoo : C ∈ Ioo (0 : ℝ) 1),
+theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
     ∀ (ρ : ℂ), ζ ρ = 0 →
       ∀ (σ : ℝ), σ = ρ.re →
         ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
-          σ ≤ 1 - C / log |t| := by
+          σ ≤ 1 - E / log |t| := by
   sorry
 
 
 
 noncomputable def E : ℝ := ZeroInequality.choose
 lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := ZeroInequality.choose_spec.1
-theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ) (σ t : ℝ),
-    ζ ρ = 0 →
-        σ = ρ.re →
-            t = ρ.im →
-                |t| ≥ 2 →
-                    σ ≤ 1 - E / log |t| := ZeroInequality.choose_spec.2
+theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ), ζ ρ = 0 →
+    ∀ (σ : ℝ), σ = ρ.re →
+      ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
+        σ ≤ 1 - E / log |t| := ZeroInequality.choose_spec.2
+
+
+
 @[blueprint
   (title := "DeltaT")
   (statement := /--
@@ -1959,7 +1960,7 @@ noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
   (latexEnv := "lemma")]
 lemma DeltaRange : ∀ (t : ℝ),
     |t| ≥ 2 →
-        DeltaT t < (1 : ℝ) / 14 := by
+      DeltaT t < (1 : ℝ) / 14 := by
     sorry
 
 
