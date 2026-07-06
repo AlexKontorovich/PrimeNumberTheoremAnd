@@ -2463,7 +2463,7 @@ theorem laplaceIntegralCpowTrunc_tendsto_of_integrable_local_quotient
 
 /-- A continuous function that decays like a negative exponential at `+∞` and is
 controlled by a positive exponential at `-∞` is globally bounded. -/
-lemma bounded_of_continuous_of_isBigO_exp_atBot_atTop
+private lemma bounded_of_continuous_of_isBigO_exp_atBot_atTop
     {f : ℝ → ℂ} (hf_cont : Continuous f) {cTop cBot : ℝ}
     (hcTop : cTop < 0) (hcBot : 0 < cBot)
     (htop : f =O[Filter.atTop] fun y : ℝ => Real.exp (cTop * y))
