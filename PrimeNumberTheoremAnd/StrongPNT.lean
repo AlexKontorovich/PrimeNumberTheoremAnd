@@ -1802,13 +1802,19 @@ lemma ShiftOneBound :
 
 
 
-blueprint_comment /--
-\begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}
+@[blueprint "ShiftOneBound"
+  (title := "ShiftOneBound")
+  (statement := /--
     For all $\delta\in(0,1)$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
-\end{lemma}
--/
-
+  -/)
+  (proof := /--
+    From Theorem \ref{riemannZetaLogDerivResidueBigO} we know that
+    $$-\frac{\zeta'}{\zeta}(s)=\frac{1}{s-1}+O(1).$$
+    Changing variables $s\mapsto 1+\delta$ and applying the triangle inequality we have that
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|
+      -\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
+  -/)]
 lemma ShiftZeroBound :
     ∃ (C : ℝ), C > 0 ∧
       ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
@@ -1861,17 +1867,6 @@ lemma ShiftZeroBound :
     apply le_trans (boundCompact δ δIn)
     simp only [one_div, add_le_add_iff_left]
     linarith [le_abs_self C₁, le_max_right |C₀| |C₁|]
-
-blueprint_comment /--
-\begin{proof}
-\uses{riemannZetaLogDerivResidue}
-    From Theorem \ref{riemannZetaLogDerivResidue} we know that
-    $$-\frac{\zeta'}{\zeta}(s)=\frac{1}{s-1}+O(1).$$
-    Changing variables $s\mapsto 1+\delta$ and applying the triangle inequality we have that
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|
-      -\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
-\end{proof}
--/
 
 
 
