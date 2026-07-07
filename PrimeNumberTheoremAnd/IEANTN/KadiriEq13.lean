@@ -35,7 +35,7 @@ noncomputable def kadiri_thm_3_1_q1_I_1 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
         Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
 
 
-private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ : ℝ → ℂ}
+lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ : ℝ → ℂ}
     (hψ : Continuous ψ) {b : ℝ}
     (hψ_decay : (fun x : ℝ ↦ ψ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
@@ -125,7 +125,7 @@ private lemma kadiri_laplace_positive_line_weight_integrable_of_continuous {ψ :
     ring_nf
   exact hF_loc.integrable_of_isBigO_atBot_atTop hbot hbot_int htop htop_int
 
-private lemma kadiri_laplace_positive_line_weight_integrable {φ : ℝ → ℂ}
+lemma kadiri_laplace_positive_line_weight_integrable {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ) {b : ℝ}
     (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
@@ -133,7 +133,7 @@ private lemma kadiri_laplace_positive_line_weight_integrable {φ : ℝ → ℂ}
     Integrable (fun y : ℝ => exp (-((a : ℂ) * (y : ℂ))) * φ y) :=
   kadiri_laplace_positive_line_weight_integrable_of_continuous hφ.continuous hφ_decay ha hab
 
-private lemma kadiri_laplace_shifted_vertical_segment_continuousOn
+lemma kadiri_laplace_shifted_vertical_segment_continuousOn
     {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
     {b : ℝ} (_hb : 0 < b)
     (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
@@ -160,7 +160,7 @@ private lemma kadiri_laplace_shifted_vertical_segment_continuousOn
   simp [sub_eq_add_neg, add_comm]
 
 
-private lemma kadiri_laplace_line_weight_differentiable {φ : ℝ → ℂ}
+lemma kadiri_laplace_line_weight_differentiable {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ) (sigma : ℝ) :
     Differentiable ℝ (fun z : ℝ => exp (-((sigma : ℂ) * (z : ℂ))) * φ z) := by
   intro y
@@ -170,7 +170,7 @@ private lemma kadiri_laplace_line_weight_differentiable {φ : ℝ → ℂ}
     simpa only [neg_mul] using hofReal.const_mul (-(sigma : ℂ))
   exact hlin.cexp.mul ((hφ.differentiable (by norm_num)).differentiableAt)
 
-private lemma kadiri_laplace_line_local_quotient_integrable {φ : ℝ → ℂ}
+lemma kadiri_laplace_line_local_quotient_integrable {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ) (sigma x : ℝ) {R : ℝ} (hR : 0 < R) :
     IntervalIntegrable
       (fun u : ℝ =>
@@ -317,7 +317,7 @@ private theorem kadiri_laplaceIntegralCpowTrunc_tendsto_of_integrable_local_quot
   filter_upwards with T
   exact (kadiri_laplaceIntegralCpowTrunc_eq_laplaceInvLineTrunc sigma f hx T).symm
 
-private lemma kadiri_laplace_positive_line_pv {φ : ℝ → ℂ}
+lemma kadiri_laplace_positive_line_pv {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ) {b : ℝ} (_hb : 0 < b)
     (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
