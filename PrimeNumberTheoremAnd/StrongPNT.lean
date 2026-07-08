@@ -1767,7 +1767,7 @@ lemma ShiftOneBound :
     simp only [sub_re, add_re, re_sum, add_sub_assoc] at SumBound
     rw [div_re] at SumBound
     simp only [natCast_re, add_re, one_re, ofReal_re, sub_re, mul_re, I_re, zero_mul, I_im, add_im,
-      ofReal_im, mul_zero, sub_self, zero_sub, natCast_im, one_im, add_zero, sub_im, mul_im, hρim,
+      ofReal_im, mul_zero, sub_self, zero_sub, natCast_im, one_im, add_zero, sub_im, mul_im, ← hρim,
       one_mul, zero_add, zero_div, normSq_apply, mul_div_assoc, div_self_mul_self', ← one_div] at SumBound
     refine le_sub_left_of_add_le (le_trans (add_le_add ?_ ?_) SumBound)
     · rw [← mul_div_assoc, mul_one]
@@ -1921,22 +1921,21 @@ theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
   set D : ℝ := 5 * A + 4 * B + C with D_def
   set E : ℝ := (14 * D)⁻¹ with E_def
   have Dge1 : 1 ≤ D := by linarith
-  refine ⟨E, ⟨?_, ?_⟩, ?_⟩
+  refine ⟨E, ⟨?_, ?_⟩, fun ρ hρzero σ ρre t ρim ht => ?_⟩
   · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr ofNat_pos'), inv_pos]
     linarith
   · rw [E_def, D_def, inv_lt_one₀ (mul_pos ofNat_pos' (by linarith))]
     exact one_lt_mul one_le_ofNat (by linarith)
-  · intro ρ hρzero σ ρre t ρim ht
-    have ZeroWindowOneFinite : (ZeroWindow t).Finite := by
-      sorry
-    have ZeroWindowTwoFinite : (ZeroWindow (2 * t)).Finite := by
-      sorry
-    have hugeStatement1 : ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
+  · set δ : ℝ := 1 / (2 * D * Real.log |t|) with δ_def
+    have δrange : δ ∈ Ioo 0 1 := by
+      simp only [mem_Ioo, δ_def, one_div_pos]
+      rw [div_lt_one (by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9])]
+      exact ⟨by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9], by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9]⟩
+    have hugeStatement1 :
         3 * (-ζ' (1 + δ) / ζ (1 + δ)) +
         4 * (-ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)) +
         (-ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t))
       = ∑' (n : ℕ), Λ (n) * n ^ (-(1 : ℂ) - δ) * ((3 : ℂ) + 4 * n ^ (-I * t) + n ^ (-2 * I * t)) := by
-      intro δ δrange
       rw [LogDerivativeDirichlet (s := 1 + δ), LogDerivativeDirichlet (s := 1 + δ + I * t), LogDerivativeDirichlet (s := 1 + δ + 2 * I * t)]
       · simp only [← tsum_mul_left, ← neg_add', mul_add]
         repeat rw [← Summable.tsum_add]
@@ -1961,13 +1960,12 @@ theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
       · simp only [add_re, one_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
         sub_self, add_zero, lt_add_iff_pos_right, δrange.1]
       · simp only [add_re, one_re, ofReal_re, lt_add_iff_pos_right, δrange.1]
-    have hugeStatement2 : ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
+    have hugeStatement2 :
         3 * -(ζ' (1 + δ) / ζ (1 + δ)).re +
         4 * -(ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)).re +
         -(ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re
       = 2 * ∑' (n : ℕ), Λ (n) * n ^ (-1 - δ) * (1 + Real.cos (-t * Real.log n)) ^ 2 := by
-      intro δ δrange
-      have re_eq := congr_arg Complex.re (hugeStatement1 δ δrange)
+      have re_eq := congr_arg Complex.re hugeStatement1
       simp only [add_re, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero, neg_mul, neg_div, Complex.neg_re] at re_eq
       rw [re_eq, Complex.re_tsum, ← tsum_mul_left]
       · congr 1; funext n; by_cases heq0 : n = 0
@@ -1979,28 +1977,26 @@ theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
           ring_nf
           sorry
       · sorry
-    set δ : ℝ := 1 / (2 * D * Real.log |t|) with δ_def
-    have δrange : δ ∈ Ioo 0 1 := by
-      simp only [mem_Ioo, δ_def, one_div_pos]
-      rw [div_lt_one (by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9])]
-      exact ⟨by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9], by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9]⟩
+    have hugeStatement3 := hugeStatement2
+    have ZeroWindowOneFinite : (ZeroWindow t).Finite := by
+      sorry
+    have ZeroWindowTwoFinite : (ZeroWindow (2 * t)).Finite := by
+      sorry
     have ShiftZero := ShiftZero δ δrange
     have ShiftOne := ShiftOne δ δrange t ht ZeroWindowOneFinite ρ hρzero ρim
     have ShiftTwo := ShiftTwo δ δrange t ht ZeroWindowTwoFinite
-    have hugeStatement3 := hugeStatement2 δ δrange
-    suffices h1 : 1 ≤ 14 * D * Real.log |t| * (1 - σ) by
-      rw [E_def]
-      sorry
-    suffices h2 : 4 / (1 + δ - σ) ≤ 3 / δ + D * Real.log |t| by
-      simp only [δ_def, div_eq_mul_inv, mul_inv_rev, one_mul, inv_inv] at h2
-      rw [mul_inv_le_iff₀] at h2
-      · ring_nf at h2
-        field_simp at h2
-        ring_nf at h2
-        field_simp at h2
-        rw [mul_div_cancel_left₀ _ (Real.log_ne_zero_of_pos_of_ne_one (by linarith) (by linarith))] at h2
+    suffices h1 : 4 / (1 + δ - σ) ≤ 3 / δ + D * Real.log |t| by
+      simp only [δ_def, div_eq_mul_inv, mul_inv_rev, one_mul, inv_inv] at h1
+      rw [mul_inv_le_iff₀] at h1
+      · ring_nf at h1; field_simp at h1; ring_nf at h1; field_simp at h1
+        rw [mul_div_cancel_left₀ _ (Real.log_ne_zero_of_pos_of_ne_one (by linarith) (by linarith))] at h1
+        rw [E_def, ← inv_mul', le_sub_comm, inv_le_iff_one_le_mul₀' (mul_pos (by linarith) (Real.log_pos (by linarith)))]
         linarith
-      · sorry
+      · rw [add_sub_right_comm]
+        apply add_pos_of_nonneg_of_pos
+        · by_contra hσ; simp only [sub_nonneg, not_le, ρre] at hσ
+          exact (riemannZeta_ne_zero_of_one_lt_re hσ) hρzero
+        · exact mul_pos (inv_pos.mpr (Real.log_pos (by linarith))) (by positivity)
     sorry
 
 
