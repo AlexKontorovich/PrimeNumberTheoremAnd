@@ -1740,7 +1740,7 @@ lemma ShiftOneBound :
         ∀ (t : ℝ), |t| ≥ 2 →
           (ZeroWindow t).Finite →
             ∀ (ρ : ℂ), ζ ρ = 0 →
-              ρ.im = t →
+              t = ρ.im →
     -(ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)).re ≤ C * Real.log |t| - 1 / (1 + δ - ρ.re) := by
   obtain ⟨C, hC, SumBound⟩ := SumBoundI
   refine ⟨7 + C, by linarith, ?_⟩
@@ -1816,7 +1816,7 @@ lemma ShiftOneBound :
       -\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
   -/)]
 lemma ShiftZeroBound :
-    ∃ (C : ℝ), C > 0 ∧
+    ∃ (C : ℝ), C ≥ 1 ∧
       ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
         -(ζ' (1 + δ) / ζ (1 + δ)).re ≤ 1 / δ + C := by
   have zetaAnalyticOnNhd : AnalyticOnNhd ℂ ζ {(1 : ℂ)}ᶜ := DifferentiableOn.analyticOnNhd (fun _ hs => (differentiableAt_riemannZeta hs).differentiableWithinAt) isOpen_compl_singleton
@@ -1857,16 +1857,17 @@ lemma ShiftZeroBound :
     · simp only [ne_eq]
       exact fun x hx => by linarith [rIn.1, hx.1]
   obtain ⟨C₁, boundCompact⟩ := ShiftZeroBoundCompact
-  refine ⟨1 + max |C₀| |C₁|, by positivity, fun δ δrange => ?_⟩
-  by_cases δ_lt_r : δ < r
-  · have δIn : δ ∈ Ioo 0 r := by simp only [mem_Ioo, δrange.1, δ_lt_r, and_self]
-    apply le_trans (boundNear δ δIn)
-    simp only [one_div, add_le_add_iff_left]
-    linarith [le_abs_self C₀, le_max_left |C₀| |C₁|]
-  · have δIn : δ ∈ Icc r 1 := by simp only [mem_Icc, δrange.2.le, ← not_lt, δ_lt_r, not_false_eq_true, and_self]
-    apply le_trans (boundCompact δ δIn)
-    simp only [one_div, add_le_add_iff_left]
-    linarith [le_abs_self C₁, le_max_right |C₀| |C₁|]
+  refine ⟨1 + max |C₀| |C₁|, ?_, fun δ δrange => ?_⟩
+  · simp only [ge_iff_le, le_add_iff_nonneg_right, le_sup_iff, abs_nonneg, or_self]
+  · by_cases δ_lt_r : δ < r
+    · have δIn : δ ∈ Ioo 0 r := by simp only [mem_Ioo, δrange.1, δ_lt_r, and_self]
+      apply le_trans (boundNear δ δIn)
+      simp only [one_div, add_le_add_iff_left]
+      linarith [le_abs_self C₀, le_max_left |C₀| |C₁|]
+    · have δIn : δ ∈ Icc r 1 := by simp only [mem_Icc, δrange.2.le, ← not_lt, δ_lt_r, not_false_eq_true, and_self]
+      apply le_trans (boundCompact δ δIn)
+      simp only [one_div, add_le_add_iff_left]
+      linarith [le_abs_self C₁, le_max_right |C₀| |C₁|]
 
 
 
@@ -1891,7 +1892,7 @@ lemma ShiftZeroBound :
             -4\,\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
             -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right) \\
         &\qquad\qquad\qquad=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}
-            \left(3+4\cos(-it\log n)+\cos(-2it\log n)\right)
+            \left(3+4\cos(-t\log n)+\cos(-2t\log n)\right)
     \end{align*}
     By Lemma \ref{ThreeFourOneTrigIdentity} we know that the series on the right hand side
     is bounded below by $0$, and by Lemmas \ref{ShiftTwoBound}, \ref{ShiftOneBound},
@@ -1907,15 +1908,100 @@ lemma ShiftZeroBound :
     $$\sigma\leq 1-\frac{1}{14D\log|t|}.$$
     This is exactly the desired result with the constant $E=(14D)^{-1}$
   -/)
-  (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound",
-    "ThreeFourOneTrigIdentity", "ShiftZeroBound"])
   (latexEnv := "theorem")]
 theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
     ∀ (ρ : ℂ), ζ ρ = 0 →
       ∀ (σ : ℝ), σ = ρ.re →
         ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
           σ ≤ 1 - E / log |t| := by
-  sorry
+  obtain ⟨C, Cge, ShiftZero⟩ := ShiftZeroBound
+  obtain ⟨B, Bpos, ShiftOne⟩ := ShiftOneBound
+  obtain ⟨A, Apos, ShiftTwo⟩ := ShiftTwoBound
+  -- set D : ℝ := 3 * A / Real.log 2 + 4 * B + C with D_def
+  set D : ℝ := 5 * A + 4 * B + C with D_def
+  set E : ℝ := (14 * D)⁻¹ with E_def
+  have Dge1 : 1 ≤ D := by linarith
+  refine ⟨E, ⟨?_, ?_⟩, ?_⟩
+  · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr ofNat_pos'), inv_pos]
+    linarith
+  · rw [E_def, D_def, inv_lt_one₀ (mul_pos ofNat_pos' (by linarith))]
+    exact one_lt_mul one_le_ofNat (by linarith)
+  · intro ρ hρzero σ ρre t ρim ht
+    have ZeroWindowOneFinite : (ZeroWindow t).Finite := by
+      sorry
+    have ZeroWindowTwoFinite : (ZeroWindow (2 * t)).Finite := by
+      sorry
+    have hugeStatement1 : ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
+        3 * (-ζ' (1 + δ) / ζ (1 + δ)) +
+        4 * (-ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)) +
+        (-ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t))
+      = ∑' (n : ℕ), Λ (n) * n ^ (-(1 : ℂ) - δ) * ((3 : ℂ) + 4 * n ^ (-I * t) + n ^ (-2 * I * t)) := by
+      intro δ δrange
+      rw [LogDerivativeDirichlet (s := 1 + δ), LogDerivativeDirichlet (s := 1 + δ + I * t), LogDerivativeDirichlet (s := 1 + δ + 2 * I * t)]
+      · simp only [← tsum_mul_left, ← neg_add', mul_add]
+        repeat rw [← Summable.tsum_add]
+        · congr 1; funext n; by_cases heq0 : n = 0
+          · simp only [heq0, ArithmeticFunction.map_zero, ofReal_zero, CharP.cast_eq_zero,
+              zero_div, mul_zero, add_zero, neg_add_rev, zero_mul, neg_mul]
+          · simp only [div_eq_mul_inv, mul_assoc, neg_mul]
+            congr 2
+            · simp only [← cpow_neg, neg_add_rev]
+              ring_nf
+            · simp only [← cpow_neg, neg_add_rev]
+              rw [cpow_add _ _ ((cast_ne_zero (R := ℂ)).mpr heq0), mul_comm]
+              ring_nf
+            · simp only [← cpow_neg, neg_add_rev]
+              rw [cpow_add _ _ ((cast_ne_zero (R := ℂ)).mpr heq0), mul_comm]
+        · sorry
+        · sorry
+        · sorry
+        · sorry
+      · simp only [add_re, one_re, ofReal_re, mul_re, re_ofNat, I_re, mul_zero, im_ofNat, I_im,
+        mul_one, sub_self, zero_mul, mul_im, add_zero, ofReal_im, lt_add_iff_pos_right, δrange.1]
+      · simp only [add_re, one_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, add_zero, lt_add_iff_pos_right, δrange.1]
+      · simp only [add_re, one_re, ofReal_re, lt_add_iff_pos_right, δrange.1]
+    have hugeStatement2 : ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
+        3 * -(ζ' (1 + δ) / ζ (1 + δ)).re +
+        4 * -(ζ' (1 + δ + I * t) / ζ (1 + δ + I * t)).re +
+        -(ζ' (1 + δ + 2 * I * t) / ζ (1 + δ + 2 * I * t)).re
+      = 2 * ∑' (n : ℕ), Λ (n) * n ^ (-1 - δ) * (1 + Real.cos (-t * Real.log n)) ^ 2 := by
+      intro δ δrange
+      have re_eq := congr_arg Complex.re (hugeStatement1 δ δrange)
+      simp only [add_re, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero, neg_mul, neg_div, Complex.neg_re] at re_eq
+      rw [re_eq, Complex.re_tsum, ← tsum_mul_left]
+      · congr 1; funext n; by_cases heq0 : n = 0
+        · simp only [heq0, ArithmeticFunction.map_zero, ofReal_zero, CharP.cast_eq_zero, zero_mul,
+          zero_re, Real.log_zero, mul_zero, Real.cos_zero]
+        · simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero, add_re, re_ofNat, im_ofNat,
+          mul_im, add_zero, add_im, zero_add, neg_mul, Real.cos_neg, add_sq, one_pow, mul_one,
+          Real.cos_sq, one_div]
+          ring_nf
+          sorry
+      · sorry
+    set δ : ℝ := 1 / (2 * D * Real.log |t|) with δ_def
+    have δrange : δ ∈ Ioo 0 1 := by
+      simp only [mem_Ioo, δ_def, one_div_pos]
+      rw [div_lt_one (by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9])]
+      exact ⟨by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9], by nlinarith [Real.log_le_log zero_lt_two ht, Real.log_two_gt_d9]⟩
+    have ShiftZero := ShiftZero δ δrange
+    have ShiftOne := ShiftOne δ δrange t ht ZeroWindowOneFinite ρ hρzero ρim
+    have ShiftTwo := ShiftTwo δ δrange t ht ZeroWindowTwoFinite
+    have hugeStatement3 := hugeStatement2 δ δrange
+    suffices h1 : 1 ≤ 14 * D * Real.log |t| * (1 - σ) by
+      rw [E_def]
+      sorry
+    suffices h2 : 4 / (1 + δ - σ) ≤ 3 / δ + D * Real.log |t| by
+      simp only [δ_def, div_eq_mul_inv, mul_inv_rev, one_mul, inv_inv] at h2
+      rw [mul_inv_le_iff₀] at h2
+      · ring_nf at h2
+        field_simp at h2
+        ring_nf at h2
+        field_simp at h2
+        rw [mul_div_cancel_left₀ _ (Real.log_ne_zero_of_pos_of_ne_one (by linarith) (by linarith))] at h2
+        linarith
+      · sorry
+    sorry
 
 
 
