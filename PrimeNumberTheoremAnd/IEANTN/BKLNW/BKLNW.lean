@@ -1516,8 +1516,20 @@ theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
   (proof := /-- TODO: Implement a margin and verify the entries of Table 11. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean`-/)
   (latexEnv := "proposition")
   (discussion := 1257)]
-theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ) (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) : ∀ k ∈ Finset.Icc 1 5, B_8_1' k b₀ ≤ B k := by
-  sorry
+theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ)
+    (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) :
+    ∀ k ∈ Finset.Icc 1 5, ∀ x ∈ Set.Icc (exp b₀) (exp K),
+      |θ x - x| ≤ B k * x / (log x) ^ k := by
+  intro k hk x hx
+  by_cases hsplit : x ≤ (10 : ℝ) ^ 19
+  · -- Below 10^19: Corollary 9.1 (`bklnw_corollary_9_1`) gives the sharper
+    -- `|θ x - x| ≤ C_bk(b₀,k)·x/(log x)^k` on `[exp b₀, 10^19]`; the per-row
+    -- interval-arithmetic obligation is `C_bk(b₀,k) ≤ B k`.
+    sorry
+  · -- Above 10^19: the strip bound `bklnw_cor_8_1b k (log (10^19))` gives
+    -- `|θ x - x| ≤ B_8_1' k (log (10^19))·x/(log x)^k` on `[10^19, exp K]`; the
+    -- per-row interval-arithmetic obligation is `B_8_1' k (log (10^19)) ≤ B k`.
+    sorry
 
 
 blueprint_comment /--
