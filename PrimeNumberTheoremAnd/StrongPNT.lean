@@ -1321,7 +1321,7 @@ theorem GlobalBound
   (title := "norm-zeta-strict-mono-ofReal")
   (statement := /--
     If $a,b\in\mathbb{R}$ with $1<b<a$, then
-    $$\norm{\zeta(a)}<\norm{\zeta(b)}.$$
+    $$|\zeta(a)|<|\zeta(b)|.$$
   -/)
   (proof := /--
     Expand out $\zeta$ as a summation (we can do this as we are in the region of convergence) and
