@@ -1538,6 +1538,7 @@ lemma analyticOrderNatAt_fun_comp_add_left (g : ℂ → ℂ) (c z : ℂ) :
   simp only [analyticOrderNatAt, ← asComp, comp_def]
 
 
+
 /- NEED TO REVISE PROOFS WITH UPDATED r', r, R', R FROM HERE DOWN -/
 
 @[blueprint "SumBoundI"
@@ -1802,8 +1803,8 @@ lemma ShiftOneBound :
 
 
 
-@[blueprint "ShiftOneBound"
-  (title := "ShiftOneBound")
+@[blueprint "ShiftZeroBound"
+  (title := "ShiftZeroBound")
   (statement := /--
     For all $\delta\in(0,1)$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
@@ -1871,8 +1872,8 @@ lemma ShiftZeroBound :
 
 
 
-@[blueprint "vonMangoldtSummable"
-  (title := "vonMangoldtSummable")
+@[blueprint "vonMangoldtLSeriesSummable"
+  (title := "vonMangoldtLSeriesSummable")
   (statement := /--
     The series
     $$\sum_{n=1}^\infty\frac{\Lambda(n)}{n^s}$$
@@ -1883,7 +1884,7 @@ lemma ShiftZeroBound :
     $$\left|\sum_{n=1}^\infty\frac{\Lambda(n)}{n^s}\right|\leq\sum_{n=1}^\infty\left|\frac{\Lambda(n)}{n^s}\right|\ll\sum_{n=1}^\infty\frac{1}{n^{\mathfrak{R}(s)-\varepsilon}}.$$
     Since $\varepsilon$ can be arbitrarily small, we know the left hand side converges by the $p$-test.
   -/)]
-lemma vonMangoldtSummable {s : ℂ} (hs : 1 < s.re) :
+lemma vonMangoldtLSeriesSummable {s : ℂ} (hs : 1 < s.re) :
     Summable (fun n : ℕ => (Λ n : ℂ) / (n : ℂ) ^ s) := by
   refine (ArithmeticFunction.LSeriesSummable_vonMangoldt hs).congr (fun n => ?_)
   by_cases heq0 : n = 0 <;> simp only [LSeries.term, heq0, ↓reduceIte, ArithmeticFunction.map_zero,
@@ -2009,16 +2010,16 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
             ring_nf
           · simp only [← cpow_neg, neg_add_rev]
             rw [cpow_add _ _ ((cast_ne_zero (R := ℂ)).mpr heq0), mul_comm]
-      · refine Summable.add (Summable.mul_left _ (vonMangoldtSummable ?_)) (Summable.mul_left _ (vonMangoldtSummable ?_))
+      · refine Summable.add (Summable.mul_left _ (vonMangoldtLSeriesSummable ?_)) (Summable.mul_left _ (vonMangoldtLSeriesSummable ?_))
         · simp only [add_re, one_re, ofReal_re, lt_add_iff_pos_right, δrange.1]
         · simp only [add_re, one_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
             sub_self, add_zero, lt_add_iff_pos_right, δrange.1]
-      · refine vonMangoldtSummable ?_
+      · refine vonMangoldtLSeriesSummable ?_
         simp only [add_re, one_re, ofReal_re, mul_re, re_ofNat, I_re, mul_zero, im_ofNat, I_im,
           mul_one, sub_self, zero_mul, mul_im, add_zero, ofReal_im, lt_add_iff_pos_right, δrange.1]
-      · refine Summable.mul_left _ (vonMangoldtSummable ?_)
+      · refine Summable.mul_left _ (vonMangoldtLSeriesSummable ?_)
         simp only [add_re, one_re, ofReal_re, lt_add_iff_pos_right, δrange.1]
-      · refine Summable.mul_left _ (vonMangoldtSummable ?_)
+      · refine Summable.mul_left _ (vonMangoldtLSeriesSummable ?_)
         simp only [add_re, one_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
           sub_self, add_zero, lt_add_iff_pos_right, δrange.1]
     have hugeEqRe :
