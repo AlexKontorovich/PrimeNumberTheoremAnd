@@ -65,12 +65,8 @@ theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
   -/)]
 theorem riemannZetaResidue :
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
-  have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
-    intro y hy
-    exact DifferentiableAt.differentiableWithinAt <| differentiableAt_riemannZeta hy.2
-  convert ResidueOfTendsTo univ_mem zeta_holc riemannZeta_residue_one using 6
+  convert ResidueOfTendsTo univ_mem (compl_eq_univ_sdiff _ ▸ differentiableOn_riemannZeta) riemannZeta_residue_one using 6
   simp
-
 
 blueprint_comment /--
 As a corollary, the log derivative of the Riemann zeta function has a simple pole at $s=1$:
@@ -97,31 +93,23 @@ theorem riemannZetaLogDerivResidue :
     have s_in_V_diff : s ∈ V \ {1} := ⟨hs.1.1, hs.2⟩
     exact hV s s_in_V_diff
   have ζ_holc: HolomorphicOn ζ (W \ {1}) := by
-    intro y hy
-    simp only [Set.mem_sdiff, mem_singleton_iff] at hy
-    refine DifferentiableAt.differentiableWithinAt ?_
-    apply differentiableAt_riemannZeta hy.2
+    exact differentiableOn_riemannZeta.mono <| sdiff_subset_compl ..
   have W_in_nhds : W ∈ 𝓝 1 := by
     refine inter_mem V_in_nhds ?_
     exact interior_mem_nhds.mpr U_in_nhds
   have := logDerivResidue'' hW ζ_holc W_in_nhds one_ne_zero
-  have HW : BddAbove (norm ∘ (ζ - fun s ↦ (s - 1)⁻¹) '' (W \ {1})) := by
-    obtain ⟨c, hc⟩ := bddAbove_def.mp hU
+  simp only [one_mul] at this
+  convert this _ using 5
+  · simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply, Pi.add_apply,
+      Pi.mul_apply, Pi.inv_apply]
+    rw [sub_eq_add_neg, ← neg_add, norm_neg]
+    ring_nf
+  · obtain ⟨c, hc⟩ := bddAbove_def.mp hU
     apply bddAbove_def.mpr
     use c
     rintro y ⟨x, x_in_W, fxy⟩
     apply hc
     exact ⟨x, ⟨interior_subset x_in_W.1.2, x_in_W.2⟩, fxy⟩
-  simp only [one_mul] at this
-  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
-    intro a
-    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
-         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
-       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
-  simp only [Function.comp_apply, Pi.sub_apply] at hU
-  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply, aux]
-  apply this HW
-
 
 theorem riemannZetaLogDerivResidueBigO :
     (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by

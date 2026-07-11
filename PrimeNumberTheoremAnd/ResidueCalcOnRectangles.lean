@@ -889,8 +889,8 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     have weird : U ∈ 𝓝 x := by
       exact IsOpen.mem_nhds (U_is_open) (x_in_u)
     have := g_is_holomorphic.differentiableAt weird
-    rw [deriv_add (by fun_prop) (by fun_prop (disch := grind)), deriv_mul this (by fun_prop)]
-    rw [← g_is_f_minus_pole x_in_u_not_p,
+    rw [deriv_add (by fun_prop) (by fun_prop (disch := grind)), deriv_mul this (by fun_prop),
+      ← g_is_f_minus_pole x_in_u_not_p,
       ← deriv_eqOn_of_eqOn_punctured p U_is_open g_is_f_minus_pole x_in_u_not_p,
       deriv_sub _ (by fun_prop (disch := grind)), deriv_const_mul _ (by fun_prop (disch := grind)), deriv_fun_inv'' (by fun_prop) (by grind)]
     · simp
@@ -914,31 +914,19 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff hyp_x
     simp only [Pi.add_apply, Pi.mul_apply, Pi.inv_apply]
     rw [deriv_h_identity _ x_in_u x_not_p, h_identity _ x_in_u x_not_p]
-
-    /- This is just an identity at this point -/
     field [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
   have h_inv_bounded :
       h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
     have : ContinuousAt h⁻¹ p := by
       apply ContinuousOn.continuousAt h_continuous U_in_nhds |>.inv₀
       simp [h, A_ne_zero]
-    exact Asymptotics.IsBigO.mono (this.norm.isBoundedUnder_le.isBigO_one ℂ) inf_le_left
-
-  have h_deriv_bounded :
-        (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
-          analytic_deriv_bounded_near_point U_is_open
-            (by exact mem_of_mem_nhds U_in_nhds) h_is_holomorphic
-
-
-  have h_log_deriv_bounded :
-    ((deriv h) * h⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
-      have T := Asymptotics.IsBigO.mul h_deriv_bounded h_inv_bounded
-      exact IsBigO.of_const_mul_right T
-
+    exact (this.norm.isBoundedUnder_le.isBigO_one ℂ).mono inf_le_left
+  have h_deriv_bounded := analytic_deriv_bounded_near_point U_is_open
+    (mem_of_mem_nhds U_in_nhds) h_is_holomorphic
   have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
     exact sdiff_mem_nhdsWithin_compl U_in_nhds {p}
   have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
-  exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
+  exact T.trans_isBigO <|  IsBigO.of_const_mul_right <| h_deriv_bounded.mul h_inv_bounded
 
 @[blueprint
   (title := "logDerivResidue")
@@ -1031,15 +1019,11 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
   -- Add and subtract a term
-  have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
-      = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
-    ext; simp; ring
-  -- Apply to goal
-  rw[this]
+  rw [(by ext; simp; ring : (f * g - fun s ↦ A * g p * (s - p)⁻¹) = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)))]
   have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
-  refine Asymptotics.IsBigO.add ?_ ?_
+  refine IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
-    refine Asymptotics.IsBigO.mul f_near_p (IsBigO.mono ?_ inf_le_left)
+    refine f_near_p.mul (IsBigO.mono ?_ inf_le_left)
     refine IsBoundedUnder.isBigO_one ℂ ?_
     refine Tendsto.isBoundedUnder_le (ContinuousAt.tendsto ?_)
     exact ContinuousAt.norm (g_holc.differentiableAt U_in_nhds).continuousAt
