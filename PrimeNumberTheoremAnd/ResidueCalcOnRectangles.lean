@@ -864,25 +864,6 @@ theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     simp_all
     grind
 
-theorem derivative_const_plus_product {g : ℂ → ℂ} (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
-    deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x := by
-  rw [deriv_add (by fun_prop) (by fun_prop), deriv_const, deriv_mul hg (by fun_prop)]
-  simp
-
-lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
-  deriv (fun z => (z - p)⁻¹) x =  -((x - p) ^ 2)⁻¹ := by
-  rw [deriv_fun_inv'' (by fun_prop) (by grind)]
-  simp
-  field
-
-theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
-    (hf : DifferentiableAt ℂ f x) (hp : x ≠ p) :
-    deriv (f  - (fun z ↦ A * (z - p)⁻¹)) x = deriv f x + A * ((x - p) ^ 2)⁻¹ := by
-  have h1 : DifferentiableAt ℂ (fun z => (z - p)⁻¹) x := by
-    fun_prop (disch := grind)
-  rw [deriv_sub hf (h1.const_mul A), deriv_const_mul A h1, deriv_inv_sub hp]
-  ring
-
 theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_is_open : IsOpen U)
     (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
@@ -890,57 +871,31 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-
-
-  have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
-    apply DifferentiableOn.mono (t := {p}ᶜ)
-    · apply DifferentiableOn.div
-      · exact differentiableOn_const _
-      · exact DifferentiableOn.sub differentiableOn_id (differentiableOn_const _)
-      · exact fun x hx => by rw [sub_ne_zero]; exact hx
-    · rintro s ⟨_, hs⟩ ; exact hs
-
   have f_minus_pole_is_holomorphic : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
-    exact (DifferentiableOn.sub_iff_right holc).mpr simpleHolo
-
-  let ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove
+    unfold HolomorphicOn
+    fun_prop (disch := grind)
+  obtain ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove
     U_in_nhds f_minus_pole_is_holomorphic f_near_p
-
-      /- TODO: Assert that the derivatives match too -/
-
   let h := (fun _ ↦ A) + g * (fun (s : ℂ) ↦ (s - p))
-
-
-  have linear_is_holomorphic : HolomorphicOn (fun (s : ℂ ) ↦ (s - p)) U := by
-    exact DifferentiableOn.sub_const differentiableOn_id p
-
   have h_is_holomorphic : HolomorphicOn h U := by
-    have T := DifferentiableOn.mul g_is_holomorphic linear_is_holomorphic
-    exact DifferentiableOn.const_add A T
-
-  have h_continuous : ContinuousOn h U :=
-    by exact DifferentiableOn.continuousOn h_is_holomorphic
-
+    unfold HolomorphicOn
+    fun_prop
+  have h_continuous := h_is_holomorphic.continuousOn
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
     intro x x_in_u_not_p
     have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff x_in_u_not_p
     have x_not_p : x ≠ p := by
       exact ((Set.mem_sdiff x).mp x_in_u_not_p).2
-
     have weird : U ∈ 𝓝 x := by
       exact IsOpen.mem_nhds (U_is_open) (x_in_u)
-
-    rw [derivative_const_plus_product, ← g_is_f_minus_pole x_in_u_not_p,
+    have := g_is_holomorphic.differentiableAt weird
+    rw [deriv_add (by fun_prop) (by fun_prop (disch := grind)), deriv_mul this (by fun_prop)]
+    rw [← g_is_f_minus_pole x_in_u_not_p,
       ← deriv_eqOn_of_eqOn_punctured p U_is_open g_is_f_minus_pole x_in_u_not_p,
-      deriv_f_minus_A_inv_sub_clean]
-    · simp only [Pi.sub_apply]
-      have := sub_ne_zero_of_ne x_not_p
-      field_simp
-      ring
-    · apply holc.differentiableAt
-      exact Filter.inter_mem weird <| compl_singleton_mem_nhds x_not_p
-    · exact x_not_p
-    · exact g_is_holomorphic.differentiableAt weird
+      deriv_sub _ (by fun_prop (disch := grind)), deriv_const_mul _ (by fun_prop (disch := grind)), deriv_fun_inv'' (by fun_prop) (by grind)]
+    · simp
+      field [sub_ne_zero_of_ne x_not_p]
+    · apply holc.differentiableAt <| inter_mem weird <| compl_singleton_mem_nhds x_not_p
   have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
     intro x x_in_u_not_p
     have hyp_x_not_p : x ≠ p := by
@@ -952,8 +907,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have log_deriv_f_plus_pole_equal_log_deriv_h :
       EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by
     simp only [Set.mem_sdiff, mem_singleton_iff, ne_eq, and_imp, Function.comp_apply, Pi.sub_apply,
-      DifferentiableOn.sub_iff_right, differentiableOn_const, DifferentiableOn.fun_sub_iff_left,
-      holc] at *
+      DifferentiableOn.sub_iff_right, holc] at *
     intro x hyp_x
     have x_not_p : x ≠ p := by
       exact ((Set.mem_sdiff x).mp hyp_x).2
