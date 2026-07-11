@@ -965,21 +965,11 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-  let ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
-  have W : (U' \ {p}) ⊆ U' := by
-    exact Set.sdiff_subset
-
+  obtain ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
   have T : (U' \ {p}) ⊆ (U \ {p}) := by
     exact Set.sdiff_subset_sdiff a (subset_refl _)
-
-
-  refine logDerivResidue' b ?_ ?_ (IsOpen.mem_nhds b c) A_ne_zero ?_
-  · intro x hyp_x
-    exact non_zero x <| T hyp_x
-  · exact DifferentiableOn.mono holc T
-  · exact (f_near_p.mono (image_mono (Set.sdiff_subset_sdiff a (subset_refl _))))
-
-
+  exact logDerivResidue' b (fun _ hx ↦ non_zero _ (T hx)) (holc.mono T) (IsOpen.mem_nhds b c)
+    A_ne_zero (f_near_p.mono (image_mono T))
 
 @[blueprint
   (title := "BddAbove-to-IsBigO")
@@ -991,22 +981,12 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
     {U : Set ℂ} (hU : U ∈ 𝓝 p) (bdd : BddAbove (norm ∘ f '' (U \ {p}))) :
     f =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
-  dsimp [BddAbove, upperBounds] at bdd
+  rw [isBigO_iff]
   rcases bdd with ⟨C, hC⟩
-
-  have h : ∀ x ∈ U \ {p}, ‖f x‖ ≤ C := by
-    intro x hx
-    have fx_is_norm : ‖f x‖ ∈ norm ∘ f ''(U \ {p}) := by
-      exact ⟨x, hx, rfl⟩
-    exact hC fx_is_norm
-
-  rw [Asymptotics.isBigO_iff]
   use C
-  rw [eventually_nhdsWithin_iff]
-  simp only [Set.mem_sdiff, mem_singleton_iff, and_imp, mem_compl_iff, Pi.one_apply, one_mem,
-    CStarRing.norm_of_mem_unitary, mul_one] at h ⊢
-  filter_upwards [hU] using h
-
+  filter_upwards [sdiff_mem_nhdsWithin_compl hU {p}] with x hx
+  specialize hC ⟨x, hx, rfl⟩
+  simp_all
 
 theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
@@ -1059,26 +1039,18 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
   refine Asymptotics.IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
-    refine Asymptotics.IsBigO.mul f_near_p ?_
-    -- Show g is bounded near p
-    have g_cont : ContinuousAt g p := by
-      -- g is holomorphic on U, p ∈ U, so g is continuous at p
-      exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
-    -- Use continuity to get boundedness
-    have := g_cont.norm.isBoundedUnder_le.isBigO_one ℂ
-    exact IsBigO.mono this inf_le_left
+    refine Asymptotics.IsBigO.mul f_near_p (IsBigO.mono ?_ inf_le_left)
+    refine IsBoundedUnder.isBigO_one ℂ ?_
+    refine Tendsto.isBoundedUnder_le (ContinuousAt.tendsto ?_)
+    exact ContinuousAt.norm (g_holc.differentiableAt U_in_nhds).continuousAt
   · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
-
     suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
       convert! this using 2
-      rw[div_eq_mul_inv]
-      ring
-    apply Asymptotics.IsBigO.const_mul_left
-
+      field
+    apply IsBigO.const_mul_left
     -- g is differentiable at p since it's holomorphic on U
     have g_diff : HasDerivAt g (deriv g p) p :=
         (DifferentiableOn.differentiableAt g_holc U_in_nhds).hasDerivAt
-
     rw [hasDerivAt_iff_isLittleO] at g_diff
     apply Asymptotics.IsLittleO.isBigO at g_diff
     have : (fun x' ↦ deriv g p * (x' - p)) =O[𝓝 p] fun x' ↦ x' - p := by
@@ -1096,7 +1068,6 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     · simp only [div_inv_eq_mul]
       refine Asymptotics.IsBigO.mono ?_ inf_le_left
       simpa
-
 
 /-! ## Residue calculus: residues, simple poles, and the rectangle residue theorem
 
