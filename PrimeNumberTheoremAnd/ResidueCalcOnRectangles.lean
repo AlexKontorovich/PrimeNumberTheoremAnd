@@ -756,19 +756,18 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_bound :
       ∀ s, s ∈ V₀ \ {p} → ‖(s - p) * f s‖ ≤ ‖A‖ + 1 := by
     intro s hs
-    rcases hs with ⟨hV₀, hsne⟩
     calc ‖(s - p) * f s‖ = ‖((s - p) * f s - A) + A‖ := by
           ring_nf
-        _ ≤ ‖(s - p) * f s - A‖ + ‖A‖ := norm_add_le ((s - p) * f s - A) A
-        _ ≤ 1 + ‖A‖ := add_le_add_left (le_of_lt (hV₀_mem s hV₀ hsne)) ‖A‖
-        _ = ‖A‖ + 1 := add_comm 1 ‖A‖
+        _ ≤ ‖(s - p) * f s - A‖ + ‖A‖ := norm_add_le ..
+        _ ≤ 1 + ‖A‖ := add_le_add_left (le_of_lt (hV₀_mem s hs.1 hs.2)) ‖A‖
+        _ = ‖A‖ + 1 := by ring
   have h_bdd :
       BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (V₀ \ {p})) := by
     refine ⟨‖A‖ + 1, ?_⟩
     rintro _ ⟨s, hs, rfl⟩
     exact h_bound s hs
   -- From now on work inside `W = V₀ ∩ U`,   still a nbhd of `p`.
-  set W : Set ℂ := V₀ ∩ U with hW_def
+  set W : Set ℂ := V₀ ∩ U
   have hW_mem : (W : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₀_prop.1 hV₀_prop.2) hU
   have h_subset_V₀ : (W \ {p}) ⊆ (V₀ \ {p}) := by
     intro z hz; exact ⟨hz.1.1, hz.2⟩
@@ -778,40 +777,25 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact hf.mono (by grind)
     fun_prop
   -- Step 2.  Extend the product across `p`; obtain holomorphic `g`.
-  obtain ⟨g, hg_holo, hg_eq⟩ :=
-    existsDifferentiableOn_of_bddAbove hW_mem h_prod_holo (h_bdd.mono (image_mono h_subset_V₀))
-  have h_event_eq :
-      (fun z ↦ g z) =ᶠ[𝓝[≠] p] fun z ↦ (z - p) * f z := by
-    filter_upwards [sdiff_mem_nhdsWithin_compl hW_mem {p}] with z hz using (hg_eq hz)|>.symm
-  have h_tendsto_gA : Tendsto g (𝓝[≠] p) (𝓝 A) :=
-      h_limit.congr' (id (EventuallyEq.symm h_event_eq))
-  have hpW : p ∈ W := by
-    exact mem_of_mem_nhds hW_mem
+  have hg_holo := differentiableOn_update_limUnder_of_bddAbove hW_mem h_prod_holo (h_bdd.mono (image_mono h_subset_V₀))
+  set g := (Function.update (fun z ↦ (z - p) * f z) p ((𝓝[≠] p).limUnder fun z ↦ (z - p) * f z))
   have g_p_eq : g p = A := by
-    refine tendsto_nhds_unique' (NormedField.nhdsNE_neBot p) ?_ h_tendsto_gA
-    refine ContinuousAt.tendsto ?_|>.mono_left  inf_le_left
-    exact (hg_holo.continuousOn.continuousWithinAt hpW).continuousAt hW_mem
+    simp [g, h_limit.limUnder_eq]
   let q : ℂ → ℂ := fun z ↦ (g z - A) / (z - p)
   have h_event_q : ∀ᶠ z in 𝓝[≠] p, ‖q z - deriv g p‖ < 1 := by
     simp_rw [← dist_eq_norm_sub]
     apply Tendsto.eventually _ (Metric.ball_mem_nhds _ (by norm_num))
-    have h_deriv := DifferentiableOn.hasDerivAt hg_holo hW_mem
-    convert hasDerivAt_iff_tendsto_slope.mp h_deriv
+    convert hasDerivAt_iff_tendsto_slope.mp <| DifferentiableOn.hasDerivAt hg_holo hW_mem
     simp [q, g_p_eq, slope_fun_def]
     field_simp
   -- Step 4.  Relate `f` to `q` and pass the bound.
   have h_eq_diff :
       EqOn (fun z ↦ f z - A * (z - p)⁻¹) q (W \ {p}) := by
     intro z hz
-    simp only
-    have hz_ne : (z - p) ≠ 0 := sub_ne_zero.mpr hz.2
-    have hgz : g z = (z - p) * f z := by
-      exact id (EqOn.symm hg_eq) hz
-    simp only [hgz, q]
-    field_simp
+    simp_all [g, q]
+    field [sub_ne_zero.mpr hz.2]
   rw [isBigO_iff]
   use ‖deriv g p‖ + 1
-  --apply eventually_nhdsWithin_iff.mpr
   filter_upwards [mem_nhdsWithin_of_mem_nhds hW_mem, h_event_q, eventually_mem_nhdsWithin] with z hW q_lt hz_ne_p
   specialize h_eq_diff ⟨ hW, hz_ne_p⟩
   simp only [Pi.sub_apply, Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary,
