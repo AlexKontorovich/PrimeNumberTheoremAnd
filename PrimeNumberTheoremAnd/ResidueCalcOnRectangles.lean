@@ -1048,26 +1048,11 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       convert! this using 2
       field
     apply IsBigO.const_mul_left
-    -- g is differentiable at p since it's holomorphic on U
-    have g_diff : HasDerivAt g (deriv g p) p :=
-        (DifferentiableOn.differentiableAt g_holc U_in_nhds).hasDerivAt
-    rw [hasDerivAt_iff_isLittleO] at g_diff
-    apply Asymptotics.IsLittleO.isBigO at g_diff
-    have : (fun x' ↦ deriv g p * (x' - p)) =O[𝓝 p] fun x' ↦ x' - p := by
-      apply Asymptotics.IsBigO.const_mul_left
-      exact Asymptotics.isBigO_refl (fun x ↦ x - p) (𝓝 p)
-    have h1 := g_diff.add this
-    have h2 : (fun x ↦ g x - g p) =O[𝓝 p] fun x' ↦ x' - p := by
-      convert! h1 using 2
-      simp
-      ring
-    refine (Asymptotics.isBigO_mul_iff_isBigO_div ?_).mpr ?_
+    refine (isBigO_mul_iff_isBigO_div ?_).mpr ?_
     · filter_upwards [self_mem_nhdsWithin] with x hx
-      simp only [mem_compl_iff, mem_singleton_iff] at hx
-      exact inv_ne_zero (sub_ne_zero.mpr hx)
-    · simp only [div_inv_eq_mul]
-      refine Asymptotics.IsBigO.mono ?_ inf_le_left
-      simpa
+      grind
+    · simp only [div_inv_eq_mul, Pi.one_apply, one_mul]
+      exact (g_holc.differentiableAt U_in_nhds).hasDerivAt.isBigO_sub.mono inf_le_left
 
 /-! ## Residue calculus: residues, simple poles, and the rectangle residue theorem
 
