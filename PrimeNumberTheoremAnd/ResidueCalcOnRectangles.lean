@@ -839,54 +839,30 @@ theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
-  -- Step 1: Rewrite f as the sum of two parts
-  have h_decomp : ∀ s, f s = (f s - A * (s - p)⁻¹) + A * (s - p)⁻¹ := by
-    intro s
-    ring
-  -- Get a bound for the first summand
+  suffices ∀ᶠ z in 𝓝[≠] p, f z ≠ 0 by
+    rw [eventually_nhdsWithin_iff] at this
+    obtain ⟨V, hv1, hv2, hv3⟩ := eventually_nhds_iff.mp this
+    exact ⟨V, hv2.mem_nhds hv3, hv2, fun s hs ↦ hv1 s hs.1 hs.2⟩
   obtain ⟨M, hM⟩ := f_near_p
-  -- Step 2: The second summand A * (s - p)⁻¹ goes to ∞ as s → p
-  -- We need to find a neighborhood where |A * (s - p)⁻¹| > M + 1
-  -- Choose δ such that for |s - p| < δ, we have |A * (s - p)⁻¹| > M + 1
-  let δ := ‖A‖ / (‖M‖ + 1)
-  have δ_pos : 0 < δ := by positivity
-
-  -- Find an open neighborhood V contained in both U and the δ-ball around p
-  obtain ⟨V, hV_open, hV_mem, hV_sub⟩ : ∃ V, IsOpen V ∧ p ∈ V ∧ V ⊆ U ∩ Metric.ball p δ := by
-    obtain ⟨W, hW_sub, hW_open, hW_mem⟩ := mem_nhds_iff.mp U_in_nhds
-    let V := W ∩ Metric.ball p δ
-    have VNp : V ∈ 𝓝 p := (𝓝 p).inter_mem (IsOpen.mem_nhds hW_open hW_mem)
-      (Metric.ball_mem_nhds p δ_pos)
-    exact ⟨V, IsOpen.inter hW_open Metric.isOpen_ball, mem_of_mem_nhds VNp,
-      inter_subset_inter_left _ hW_sub⟩
-  use V, mem_nhds_iff.mpr ⟨V, subset_refl V, hV_open, hV_mem⟩, hV_open
-  -- Show f ≠ 0 on V
-  intro s hs
-  have hs_in_U : s ∈ U := hV_sub hs.1 |>.1
-  have hs_near_p : dist s p < δ := hV_sub hs.1 |>.2
-  have hs_ne_p : s ≠ p := hs.2
-  -- Step 3: Therefore the sum of the two terms has large norm
-  rw [h_decomp s]
-  -- The first summand is bounded
-  have bound_first : ‖f s - A * (s - p)⁻¹‖ ≤ M := by
-    apply hM
-    exact ⟨s, ⟨hs_in_U, hs_ne_p⟩, rfl⟩
-  -- The second summand has large norm
-  have large_second : ‖M‖ + 1 < ‖A * (s - p)⁻¹‖ := by
-    rw [norm_mul, norm_inv, ← div_eq_mul_inv]
-    rw [lt_div_iff₀ (norm_pos_iff.mpr (sub_ne_zero.mpr hs_ne_p))]
-    rw [mul_comm, ← lt_div_iff₀ (add_pos_of_nonneg_of_pos (norm_nonneg M) one_pos)]
-    rw [dist_eq_norm_sub] at hs_near_p
-    exact hs_near_p
-  -- Step 4: Therefore the sum is nonzero near p
-  by_contra h_zero
-  -- If f s = 0, then the two summands are negatives of each other
-  rw [add_eq_zero_iff_eq_neg] at h_zero
-  rw [h_zero, norm_neg] at bound_first
-  -- But this contradicts our bounds
-  have : ‖M‖ + 1 < ‖M‖ := (lt_of_lt_of_le (lt_of_lt_of_le large_second bound_first)
-    (Real.le_norm_self M))
-  norm_num at this
+  suffices ∀ᶠ z in 𝓝[≠] p, ‖M‖ + 1 < ‖A * (z - p)⁻¹‖ by
+    filter_upwards [this, mem_nhdsWithin_of_mem_nhds U_in_nhds, self_mem_nhdsWithin] with z eventually_ge z_in_U z_ne_p
+    rw [(by ring : f z = (f z - A * (z - p)⁻¹) + A * (z - p)⁻¹)]
+    specialize hM ⟨z, ⟨z_in_U, (by simp_all)⟩, rfl⟩
+    simp only [Function.comp_apply, Pi.sub_apply] at hM
+    by_contra! h
+    rw [add_eq_zero_iff_eq_neg] at h
+    rw [h, norm_neg] at hM
+    linarith [Real.le_norm_self M]
+  apply Tendsto.eventually_gt_atTop
+  simp_rw [norm_mul, norm_inv]
+  apply Tendsto.const_mul_atTop (norm_pos_iff.mpr A_ne_zero)
+  refine Tendsto.inv_tendsto_nhdsGT_zero (tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩)
+  · convert Continuous.tendsto ?_ p|>.mono_left nhdsWithin_le_nhds
+    · simp
+    · fun_prop
+  · filter_upwards [self_mem_nhdsWithin] with x hx
+    simp_all
+    grind
 
 theorem derivative_const_plus_product {g : ℂ → ℂ} (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
     deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x := by
