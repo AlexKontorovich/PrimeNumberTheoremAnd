@@ -144,11 +144,6 @@ lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) 
   apply DifferentiableAt.comp_ofReal (e := fun z ↦ z ^ s)
   apply DifferentiableAt.cpow (by simp) (by simp) (by simp [xpos])
 
-lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
-    1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
-  refine (eq_one_div_of_mul_eq_one_left ?_).symm
-  rw [← cpow_add _ _ <| mod_cast x_ne, neg_add_cancel, cpow_zero]
-
 @[blueprint
   (title := "sum-eq-int-deriv")
   (statement := /--
@@ -195,8 +190,7 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (ha : a ∈ Ioo
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
   convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
-  · refine intervalIntegral.integral_congr fun x hx ↦ one_div_cpow_eq ?_
-    exact (xpos_of_uIcc ha hx).ne'
+  · refine intervalIntegral.integral_congr fun x hx ↦ one_div_cpow_eq_cpow_neg ..
   · norm_cast; ring_nf
   · right; refine ⟨(by grind), ?_⟩
     exact fun hx ↦ (lt_self_iff_false 0).mp <| xpos_of_uIcc ha hx
