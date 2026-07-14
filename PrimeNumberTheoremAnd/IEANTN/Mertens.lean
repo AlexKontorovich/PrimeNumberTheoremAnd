@@ -35,50 +35,6 @@ theorem one_eq_o_log_log : (fun _ ↦ (1:ℝ)) =o[atTop] (fun x ↦ log (log x))
 
 end Real
 
-section IntegralTest
-
-/-! The integral test for convergence. -/
-
-open MeasureTheory Set
-
-variable {f : ℝ → ℝ}
-
-theorem AntitoneOn.sum_range_le_integral (N : ℕ) (anti : AntitoneOn f (Icc 0 (N : ℝ)))
-    (integrable : IntegrableOn f (Ioi 0) volume) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
-    ∑ n ∈ Finset.range N, f ((n + 1 : ℕ)) ≤ ∫ x in Ioi 0, f x := by
-  trans ∫ x in 0..N, f x
-  · convert AntitoneOn.sum_le_integral (x₀ := 0) (a := N) (f := f) (by simpa) using 2
-    · simp
-    · ring
-  · rw [intervalIntegral.integral_of_le (by simp)]
-    apply setIntegral_mono_set integrable _ (Ioc_subset_Ioi_self.eventuallyLE)
-    · filter_upwards [ae_restrict_mem (by measurability)] with t ht using nonneg t ht
-
-theorem AntitoneOn.summable_of_integrable (anti : AntitoneOn f (Ici 0))
-    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
-    Summable (fun (n : ℕ) ↦ f n ) := by
-  rw [← summable_nat_add_iff 1]
-  apply summable_of_sum_range_le
-  · exact fun n ↦ nonneg _ (by simp; grind)
-  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
-
-theorem AntitoneOn.tsum_add_one_le_integral (anti : AntitoneOn f (Ici 0))
-    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
-    ∑' (n : ℕ),  f (n + 1 : ℕ) ≤ ∫ x in Ioi 0, f x  := by
-  apply Summable.tsum_le_of_sum_range_le
-  · exact summable_nat_add_iff _|>.mpr (anti.summable_of_integrable integrable nonneg)
-  · exact fun N ↦ (anti.mono Icc_subset_Ici_self).sum_range_le_integral _ integrable nonneg
-
-theorem AntitoneOn.tsum_le_integral (anti : AntitoneOn f (Ici 0))
-    (integrable : IntegrableOn f (Ioi 0)) (nonneg : ∀ t ∈ Ioi 0, 0 ≤ f t) :
-    ∑' (n : ℕ),  f n ≤ f 0 + ∫ x in Ioi 0, f x  := by
-  rw [(anti.summable_of_integrable integrable nonneg).tsum_eq_zero_add]
-  gcongr
-  · simp
-  · exact anti.tsum_add_one_le_integral integrable nonneg
-
-end IntegralTest
-
 section Issue1584
 open MeasureTheory Set Filter Topology
 
@@ -535,8 +491,7 @@ theorem E₁Λ.ge {x : ℝ} (hx : 1 ≤ x) :
     ring_nf
   _ ≥ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * ⌊x / d⌋₊ := by
     gcongr
-    · exact vonMangoldt_nonneg
-    · exact Nat.floor_le <| div_nonneg (by linarith) (by linarith)
+    exact Nat.floor_le <| div_nonneg (by linarith) (by linarith)
   _ ≥ x * log x - 2 * x :=
     sum_log_eq_sum_mangoldt ▸ sum_log_ge hx
   _ = _ := by ring
@@ -564,8 +519,7 @@ theorem E₁Λ.le {x : ℝ} (hx : 1 ≤ x) :
     ring_nf
   _ ≤ ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d * (⌊x / d⌋₊ + 1) := by
     gcongr
-    · exact vonMangoldt_nonneg
-    · exact Nat.lt_floor_add_one _|>.le
+    exact Nat.lt_floor_add_one _|>.le
   _ = (∑ d ∈ Ioc 0 ⌊x⌋₊, log d) + ∑ d ∈ Ioc 0 ⌊x⌋₊, Λ d := by
     simp_rw [mul_add, mul_one]
     rw [Finset.sum_add_distrib, sum_log_eq_sum_mangoldt]
@@ -763,7 +717,7 @@ private lemma summable_log_div_sq :
     unfold g
     push_cast
     ring_nf
-  exact antitoneOn_log_div_sq.summable_of_integrable integrableOn_log_div_sq log_div_sq_nonneg
+  exact antitoneOn_log_div_sq.summable_of_integrableOn_Ioi_zero integrableOn_log_div_sq log_div_sq_nonneg
 
 private lemma sum_log_div_sq_le :
     ∑' (n : ℕ), log (n + 3) / (n + 3) ^2 ≤ (log 2 + 1) / 2 := by
