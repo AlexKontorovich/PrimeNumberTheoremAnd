@@ -1448,3 +1448,117 @@ theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
       x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
 
 end RamareSaouter2003
+
+blueprint_comment /--
+\subsection{Bounds on the Riemann zeta function}
+
+The results below are taken from
+\url{https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art06.html}.
+Results in the source involving Dirichlet $L$-functions or general
+$L$-functions are omitted here; only the results stated for the Riemann
+zeta function $\zeta(s)$ are recorded.  Formal blueprint metadata and Lean
+statements will be filled in later; this section currently records only the
+prose statements together with their bibliographic attributions.
+-/
+
+blueprint_comment /--
+\paragraph{Approximating $\zeta(s)$ in the critical strip.}
+\cite{Kadiri2013}: for $t > t_0 > 0$, $c > 1/(2\pi)$, and $s = \sigma + it$
+with $\sigma \geq 1/2$,
+\[
+  \zeta(s) = \sum_{n < c t} \frac{1}{n^s} + O^*(\ldots),
+\]
+with an explicit error term.
+-/
+
+blueprint_comment /--
+\paragraph{Bounds on $|\zeta(1/2 + it)|$ on the critical line.}
+\cite{Lehman1970}: for $t \geq 1/5$,
+$|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$.
+
+\cite{ChengGraham2004}: for $0 \leq t \leq e$, $|\zeta(1/2 + it)| \leq 2.657$;
+for $t \geq e$, $|\zeta(1/2 + it)| \leq 3\, t^{1/6}\, \log t$.
+
+\cite{Hiary2016}: for $t \geq 3$,
+$|\zeta(1/2 + it)| \leq 0.63\, t^{1/6}\, \log t$.
+-/
+
+blueprint_comment /--
+\paragraph{Bounds on $|\zeta(\sigma + it)|$ in the critical strip and beyond.}
+\cite{Backlund1918}: for $t \geq 50$,
+\begin{itemize}
+  \item if $\sigma \geq 1$, then $|\zeta(\sigma + it)| \leq \log t - 0.048$;
+  \item if $0 \leq \sigma \leq 1$, then
+        $|\zeta(\sigma + it)| \leq \dfrac{t^2}{t^2 - 4}
+                                    \left(\dfrac{t}{2\pi}\right)^{(1 - \sigma)/2}
+                                    \log t$;
+  \item if $-1/2 \leq \sigma \leq 0$, then
+        $|\zeta(\sigma + it)| \leq \left(\dfrac{t}{2\pi}\right)^{1/2 - \sigma}
+                                    \log t$.
+\end{itemize}
+
+\cite{Trudgian2014_zeta}: for $t \geq 3$,
+$|\zeta(1 + it)| \leq \tfrac{3}{4}\, \log t$.
+
+\cite{Patel2022}: for $t \geq 3$,
+\[
+  |\zeta(1 + it)| \leq
+  \min\!\left(\tfrac{3}{4}\log t,\;
+              \tfrac{1}{2}\log t + 1.93,\;
+              \tfrac{1}{5}\log t + 44.02\right).
+\]
+
+\cite{Ford2002}: for $t \geq 3$ and $1/2 \leq \sigma \leq 1$,
+\[
+  |\zeta(\sigma + it)| \leq
+  76.2\, t^{4.45 (1 - \sigma)^{3/2}} (\log t)^{2/3}.
+\]
+-/
+
+blueprint_comment /--
+\paragraph{The zero-counting function $N(T)$.}
+Write $N(T)$ for the number of non-trivial zeros of $\zeta$ with imaginary
+part in $(0, T]$.
+
+\cite{rosser1941}: for $T \geq 2$,
+\[
+  N(T) = \frac{T}{2\pi}\log\frac{T}{2\pi} - \frac{T}{2\pi} + \frac{7}{8}
+       + O^*\!\left(0.137\log T + 0.443\log\log T + 1.588\right).
+\]
+
+\cite{Trudgian2014_argument}: for $T \geq e$, the same identity holds with
+error $O^*\!\left(0.112\log T + 0.278\log\log T + 2.510 + 1/(5T)\right)$.
+
+\cite{HSW2022}: for $T \geq e$, the same identity holds with either
+$O^*\!\left(0.1038\log T + 0.2573\log\log T + 9.3675\right)$ or
+$O^*\!\left(0.1095\log T + 0.2042\log\log T + 3.0305\right)$.
+-/
+
+blueprint_comment /--
+\paragraph{$L^2$-averages of $|\zeta(\sigma + it)|$.}
+\cite{Kadiri2013}: for $0.5208 < \sigma < 0.9723$, $10^3 \leq H \leq 10^{10}$,
+and $T \geq H$,
+\[
+  \int_H^T |\zeta(\sigma + i t)|^2 \, dt
+    \leq (T - H)\bigl(\zeta(2\sigma) + E_1(\sigma, H)\bigr),
+\]
+for an explicit function $E_1(\sigma, H)$ given in the paper.
+
+\cite{Helfgott2019} records further complex-integral tail bounds for $\zeta$
+on vertical lines.
+-/
+
+blueprint_comment /--
+\paragraph{Bounds on the region $\{\mathrm{Re}\, s > 1\}$.}
+\cite{ramare2016}: for $\sigma > 1$ and any real $t$,
+\[
+  |\zeta(\sigma + it)| \leq \frac{e^{\gamma(\sigma - 1)}}{\sigma - 1},
+\]
+where $\gamma$ is the Euler--Mascheroni constant.
+
+\cite{Delange1987}: for $\sigma > 1$ and any real $t$,
+\[
+  - \mathrm{Re}\!\left(\frac{\zeta'}{\zeta}\right)\!(\sigma + it)
+    \leq \frac{1}{\sigma - 1} - \frac{1}{2\sigma^2}.
+\]
+-/
