@@ -2172,7 +2172,7 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   For $x_0,x_1 > 0$, we define
   $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{2D_+\bigl(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}\bigr)}{\sqrt{\log x_1}}$.
+    \frac{2D_+\bigl(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}\bigr)}{\sqrt{\log x_1}}$$.
   -/)]
 noncomputable def μ_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
   (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * δ x₀ +
