@@ -2674,7 +2674,7 @@ theorem Li_identity' {a b : ℝ} (ha : 2 ≤ a) (hb : a ≤ b) :
     refine ((((continuousOn_id' _).log ?_).pow 2).inv₀ (fun t ht => ?_)).intervalIntegrable
     · rw [Set.uIcc_of_le hx]; grind
     · rw [Set.uIcc_of_le hx] at ht
-      positivity [log_pos (by grind : 1 < t)]
+      exact pow_ne_zero 2 (log_pos (by grind : 1 < t)).ne'
   calc
   _ = (∫ t in 2..b, 1 / log t ^ 2) - ∫ t in 2..a, 1 / log t ^ 2 :=
     (intervalIntegral.integral_interval_sub_left (this (ha.trans hb)) (this ha)).symm
@@ -2747,7 +2747,7 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₀ < x₁) (hx₀ : x₀ ≥ 2)
         grind
       · intro t ht
         rw [Set.uIcc_of_le h2] at ht
-        positivity [log_pos (by grind : 1 < t)]
+        exact pow_ne_zero 2 (log_pos (by grind : 1 < t)).ne'
     · gcongr
       exact h_εθ_num i hi t ht.1
   _ = ∑ i ∈ Finset.Ico 0 N, εθ_num (exp (b i)) *

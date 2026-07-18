@@ -118,7 +118,8 @@ lemma aestronglyMeasurable_param_deriv (z : ℂ) :
       (volume.restrict (Ioi (1 : ℝ))) := by
   have hmeas : Measurable (fun u : ℝ => zetaAbelFractKernel z u) :=
     (measurable_fract.complex_ofReal.mul <| by simpa using Complex.measurable_ofReal.pow_const (-z - 1))
-  simpa using (Real.measurable_log.complex_ofReal.mul hmeas).neg.aestronglyMeasurable
+  simpa only [neg_mul] using
+    (Real.measurable_log.complex_ofReal.fun_mul hmeas).fun_neg.aestronglyMeasurable
 
 lemma eventually_aestronglyMeasurable_param (s : ℂ) :
     ∀ᶠ z in 𝓝 s,

@@ -411,7 +411,7 @@ lemma hasProdUniformlyOn_weierstrassFactor_div_of_bound {K : Set ℂ} (hK : IsCo
   have hcts :
       ∀ n, ContinuousOn (fun z ↦ weierstrassFactor (m n) (z / a n) - 1) K := by
     intro n
-    simpa using (continuousOn_weierstrassFactor_div (m n) (a n) K).sub continuousOn_const
+    exact (continuousOn_weierstrassFactor_div (m n) (a n) K).fun_sub continuousOn_const
   simpa using hsumm.hasProdUniformlyOn_nat_one_add (K := K)
     (f := fun n z ↦ weierstrassFactor (m n) (z / a n) - 1) hK hbound hcts
 

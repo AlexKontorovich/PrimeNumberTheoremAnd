@@ -844,10 +844,10 @@ lemma continuous_besselI0 : Continuous besselI0 := by
   have hb : |x / 2| ≤ (|x₀| + 1) / 2 := by
     rw [abs_div, abs_two]
     linarith
-  rw [Real.norm_eq_abs, abs_div, abs_pow,
-    abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((m.factorial : ℝ)) ^ 2)]
+  simp only [Pi.pow_apply, id_eq]
+  rw [Real.norm_eq_abs, abs_div, abs_pow, abs_pow,
+    abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((m.factorial : ℝ)))]
   gcongr
-  exact hb
 
 lemma measurable_η (c ε : ℝ) : Measurable (η c ε) := by
   unfold η

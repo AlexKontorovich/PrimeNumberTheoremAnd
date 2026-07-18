@@ -2886,7 +2886,8 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
         (.map (1 / ·) .atTop) (nhds 0) by
       exact (h.comp (Filter.map_mono tendsto_natCast_atTop_atTop)).congr fun _ ↦ by grind
     norm_num at *
-    exact tendsto_nhdsWithin_of_tendsto_nhds (by simpa using Real.continuous_mul_log.neg.tendsto 0)
+    exact tendsto_nhdsWithin_of_tendsto_nhds
+      (by simpa using Real.continuous_mul_log.fun_neg.tendsto 0)
   have h_pi_div_n_zero : Filter.Tendsto (fun n : ℕ ↦ (Nat.primeCounting n : ℝ) / n)
       .atTop (nhds 0) := tendsto_primeCounting_div_id_zero
   have h_sum_bound : Filter.Tendsto (fun n : ℕ ↦
@@ -2904,9 +2905,9 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
   · norm_num [primeCounting]
     ring_nf
     rw [primeCounting', count_eq_card_filter_range]
-    norm_num [add_comm, sum_range_succ]
+    norm_num [add_comm, Finset.sum_range_succ]
     ring_nf
-    rw [show count Nat.Prime (1 + L) = (Finset.filter Prime (Iic L)).card from ?_]
+    rw [show count Nat.Prime (1 + L) = (Finset.filter Nat.Prime (Iic L)).card from ?_]
     · ring_nf
     · rw [count_eq_card_filter_range, add_comm, range_eq_Ico]; rfl
 

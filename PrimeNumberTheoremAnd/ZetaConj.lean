@@ -104,18 +104,6 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
     · exact (isConnected_compl_singleton_of_one_lt_rank (by simp) 1).isPreconnected
 
 @[blueprint
-  (title := "riemannZeta-conj")
-  (statement := /--
-    Conjugation symmetry of the Riemann zeta function. Let $s \in \mathbb{C}$. Then
-    $$\zeta(\overline{s}) = \overline{\zeta(s)}.$$
-  -/)
-  (proof := /--
-    This follows as an immediate corollary of Theorem \ref{conj_riemannZeta_conj}.
-  -/)]
-theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
-  rw [← conj_riemannZeta_conj, Complex.conj_conj]
-
-@[blueprint
   (title := "deriv-riemannZeta-conj")
   (statement := /--
     Conjugation symmetry of the derivative of the Riemann zeta function. Let $s \in \mathbb{C}$.
