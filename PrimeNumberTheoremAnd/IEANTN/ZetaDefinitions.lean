@@ -122,7 +122,7 @@ noncomputable def riemannZeta.RH_up_to (T : ℝ) : Prop :=
   (title := "Section 1.1, FKS2")
   (statement := /--
     We say that one has a classical zero-free region with parameter $R$ if $\zeta(s)$ has no zeroes
-    in the region $\Re(s) \geq 1 - 1/(R \log |\Im s|)$ for $|\Im(s)| > 3$.
+    in the region $\Re(s) \geq 1 - 1/(R \log |\Im s|)$ for $\Im(s) \geq 3$.
   -/)]
 noncomputable def riemannZeta.classicalZeroFree (R : ℝ) :=
   ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 - 1 / (R * log t) →
