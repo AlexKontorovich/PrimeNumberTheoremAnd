@@ -580,10 +580,13 @@ blueprint_comment /-- Some results from \cite{PT2021}-/
 @[blueprint
   "thm:pt2021-psi"
   (title := "Platt-Trudgian 2021 $\\psi$ bound")
-  (statement := /-- For $x \geq e^{2000}$, we have $|\psi(x) - x| \leq x \cdot 235\, (\log x)^{0.52} \exp\!\left(-\sqrt{\frac{\log x}{5.573412}}\right)$. -/)
+  (statement := /-- For $x \geq e^{2000}$, we have
+  $|\psi(x) - x| \leq x \cdot 411.4\, (\log x / R)^{1.52}
+  \exp\!\left(-1.89\sqrt{\frac{\log x}{R}}\right)$ with $R = 5.573412$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ exp 2000) :
-    |ψ x - x| ≤ x * 235 * (log x) ^ (0.52 : ℝ) * exp (-sqrt (log x / 5.573412)) := by sorry
+    |ψ x - x| ≤ x * 411.4 * (log x / 5.573412) ^ (1.52 : ℝ) *
+      exp (-1.89 * sqrt (log x / 5.573412)) := by sorry
 
 end PT
 
