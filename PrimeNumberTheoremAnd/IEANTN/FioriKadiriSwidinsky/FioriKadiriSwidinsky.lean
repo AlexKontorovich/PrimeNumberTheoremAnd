@@ -479,7 +479,7 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
   (statement := /--
     Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2,x) = \max(H_{\sigma_2},
     \exp( \sqrt{\log x}/R))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing
-    sequence $(t_k)_{k=0}^K$ such that $t_k = T$.  Then
+    sequence $(t_k)_{k=0}^K$ such that $t_K = T$.  Then
     $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/R\log t_0}/t_0$ and
     $\Sigma_{\sigma_2}^1 ≤ 2 ((\sum_{k=1}^{K-1} N(\sigma_2, t_k)
     (x^{-1/R\log t_{k-1}} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) +
