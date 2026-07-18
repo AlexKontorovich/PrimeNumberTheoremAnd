@@ -1319,7 +1319,7 @@ namespace Dusart
 def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
 
 def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
-    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
+    HasPrimeInInterval x (x / (5000 * (log x) ^ 2)) :=
   _root_.Dusart.corollary_5_5 hx
 
 end Dusart
