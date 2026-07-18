@@ -140,7 +140,7 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (_hβ : 1 < β)
     continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [hx])
   have hPole_aesm :
       AEStronglyMeasurable (fun t : ℝ ↦ (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) :=
-    (((by simpa [one_div] using Continuous.inv₀ (by fun_prop) (hPole_denom_ne) :
+    (((by simpa [one_div, Pi.inv_def] using Continuous.inv₀ (by fun_prop) (hPole_denom_ne) :
       Continuous (fun t : ℝ => (1 / (sig + t * I - 1) : ℂ))).measurable.mul hphiScaled_meas).mul
         hcontX.measurable).aestronglyMeasurable
   have hPole_int : Integrable (fun t : ℝ ↦ (1 / (sig + t * I - 1)) * phiScaled t * x ^ (t * I)) :=
