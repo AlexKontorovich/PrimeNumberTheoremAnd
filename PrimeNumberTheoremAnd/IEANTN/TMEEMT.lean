@@ -528,11 +528,11 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ exp 5000) :
 @[blueprint
   "thm:jy-psi-2"
   (title := "Johnston-Yang $\\psi$ bound 2")
-  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
+  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.515} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
-  have h_exp : (log x) ^ (0.01 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
+    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.515 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
+  have h_exp : (log x) ^ (0.015 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
     by_cases h₂ : log x ≤ 1 <;> by_cases h₃ : log x ≥ 1
     · norm_num [show log x = 1 by grind] at *
     · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
