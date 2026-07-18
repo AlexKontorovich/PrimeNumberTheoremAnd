@@ -241,7 +241,8 @@ theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
-    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by
+    |pi x - li x| ≤ 0.2795 * x / (log x) ^ ((3 : ℝ) / 4) *
+      exp (-sqrt (log x / 6.455)) := by
   sorry
 
 
