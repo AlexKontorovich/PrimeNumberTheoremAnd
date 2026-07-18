@@ -2172,7 +2172,7 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   For $x_0,x_1 > 0$, we define
   $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
+    \frac{2D_+\bigl(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}\bigr)}{\sqrt{\log x_1}}$.
   -/)]
 noncomputable def μ_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
   (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * δ x₀ +
@@ -2450,7 +2450,7 @@ lemma theorem_3_easy_preconditions
   with parameters $A,B,C,x_0$ for $E_\theta$, and
   $$ x_1 \geq \max( x_0, \exp( (1 + \frac{C}{2\sqrt{R}}))^2),$$
   then
-  $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x_1) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
+  $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
   -/)
@@ -4141,7 +4141,7 @@ By merging together the above tools with various parameter choices, we can obtai
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3})$$
   and
   $$ \mu_{asymp}(x_0,x_1) = \frac{x_0 \log x_1}{\eps_{\theta,asymp}(x_1)x_1 \log x_0}
-    |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}
+    |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+\bigl(\sqrt{\log x_1} - \frac{C}{2\sqrt{R}}\bigr)}
     {\sqrt{\log x_1}}.$$
   -/)
   (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.  The hypothesis $B > C^2/8R$ is not present in original source.-/)
