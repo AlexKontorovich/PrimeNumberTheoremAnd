@@ -397,7 +397,7 @@ noncomputable def ε₂ (I : Inputs) (x σ₁ T : ℝ) : ℝ :=
   (title := "FKS Proposition 3.6")
   (statement := /--
     Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then
-    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
+    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
   -/)]
 theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Ioo 0.5 1) (hT : T > I.T₀)
     (x : ℝ) :
@@ -417,7 +417,7 @@ theorem riemannZeta.Hσ_zeroes (H₀ R σ : ℝ) (hH₀ : riemannZeta.RH_up_to H
   -/)]
 theorem eq_13 {H₀ R a b T x : ℝ} (hH₀ : riemannZeta.RH_up_to H₀)
     (hR : riemannZeta.classicalZeroFree R) :
-    riemannZeta.Sigma T x a b = 2 * riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioc (Hσ H₀ R a) T)
+    riemannZeta.Sigma T x a b = 2 * riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ico (Hσ H₀ R a) T)
       (fun ρ ↦ x ^ (ρ.re - 1) / ρ.im) := by sorry
 
 noncomputable def σn (σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := σ₁ + (σ₂ - σ₁) * n / N
