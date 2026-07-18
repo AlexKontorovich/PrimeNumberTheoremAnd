@@ -457,7 +457,7 @@ noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) :
   (title := "FKS Proposition 3.8")
   (statement := /--
     Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then
-    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1,
+    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1)/N}B_0(\sigma_1,
     H_{\sigma_1}, T) + 2 x^{-(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N})
     \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.
   -/)]
@@ -478,7 +478,7 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
   (title := "FKS Proposition 3.11")
   (statement := /--
     Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2,x) = \max(H_{\sigma_2},
-    \exp( \sqrt{\log x}/R))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing
+    \exp( \sqrt{\log x / R}))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing
     sequence $(t_k)_{k=0}^K$ such that $t_k = T$.  Then
     $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/R\log t_0}/t_0$ and
     $\Sigma_{\sigma_2}^1 ≤ 2 ((\sum_{k=1}^{K-1} N(\sigma_2, t_k)
@@ -488,7 +488,7 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
 theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
     (t_seq : Fin (K + 2) → ℝ)
-    (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R)))
+    (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x / I.R))))
     (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq) :
     riemannZeta.Sigma T x σ₂ 1 ≤
       2 * (riemannZeta.N' σ₂ T) * x ^ (-1 / (I.R * log (t_seq 0))) / (t_seq 0)
@@ -501,7 +501,7 @@ theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
         (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
 
 noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : ℝ :=
-    let t : Fin (K + 2) → ℝ := fun k ↦ t₀ * (T / t₀) ^ (k / K)
+    let t : Fin (K + 2) → ℝ := fun k ↦ t₀ * (T / t₀) ^ ((k : ℝ) / K)
     2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K + 1)),
       (x ^ (-1 / (I.R * log (t k))) / (t k)) *
         (I.ZDB.N σ₂ (t (k + 1)) - I.ZDB.N σ₂ (t k)) +
@@ -529,7 +529,7 @@ noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : 
   -/)]
 theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
-    (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R))) (hT : T > t₀)
+    (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x / I.R)))) (hT : T > t₀)
     (ZDB : zero_density_bound) :
     riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ I t₀ x σ₂ K T := by sorry
 
@@ -555,7 +555,7 @@ theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hK : 2 ≤
     $x > \exp(Re^2)$.
   -/)]
 theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K ≥ 2) :
-    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x) / I.R)
+    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x / I.R))
     let T : ℝ → ℝ := fun x ↦ (t₀ x) ^ c
     let σ₂ : ℝ → ℝ := fun x ↦ 1 - 2 / (I.R * log (t₀ x))
     let w₁ : ℝ := 1 + (c - 1) / K
@@ -567,7 +567,7 @@ theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K �
         (Set.Ioi (exp (I.R * exp 2))) := by sorry
 
 noncomputable def ε (I : Inputs) (x₀ σ₂ c : ℝ) (N K : ℕ) : ℝ :=
-    let t₀ := max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x₀) / I.R))
+    let t₀ := max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x₀ / I.R)))
     let T := t₀ ^ c
     ε₁ x₀ T + ε₂ I x₀ 0.9 T + ε₃ I x₀ 0.9 σ₂ N T + ε₄ I t₀ x₀ σ₂ K T
 
