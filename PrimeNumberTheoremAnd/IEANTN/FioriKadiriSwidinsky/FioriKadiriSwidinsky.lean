@@ -103,11 +103,11 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
     and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any
     $T \geq H_0$, one has
     $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) *
-      \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) )
-      + CC_2 * \log^2 T / 2 \pi d$$
+      \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{\frac{8}{3}(1-\sigma)} / (T-H) )
+      + CC_2 \log^2 T / (2 \pi d)$$
     and
-    $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma}
-      T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$.
+    $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4\sigma}
+      T^{\frac{8}{3}(1-\sigma)} + CC_2 \log^2 T / (2 \pi d)$$.
   -/)]
 theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
     (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
@@ -348,7 +348,7 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) :
   "fks-theorem-3-1"
   (title := "FKS Theorem 3.1")
   (statement := /--
-    Let $x > e^{50}$ and $50 < T < x$.  Then
+    Let $x > e^{50}$ be half an odd integer and $50 < T < x$.  Then
     $E_\psi(x) \leq \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T$.
   -/)]
 theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X / 2)
@@ -368,7 +368,7 @@ theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X
 theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1 / 2)) (hω : ω ∈ Set.Icc 0 1) :
     ∃ M xM : ℝ, ∀ x ≥ xM, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x ^ α - 2) / 5),
     ∃ Tstar ∈ Set.Icc T (2.45 * T),
-    ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar)
+    ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Icc (-Tstar) Tstar)
       (fun ρ ↦ x ^ ρ / ρ))‖ ≤ M * x / T * (log x) ^ (1 - ω) := by sorry
 
 noncomputable def ε₁ (x T : ℝ) : ℝ := 2 * (log x) ^ 2 / T
@@ -397,7 +397,7 @@ noncomputable def ε₂ (I : Inputs) (x σ₁ T : ℝ) : ℝ :=
   (title := "FKS Proposition 3.6")
   (statement := /--
     Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then
-    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
+    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
   -/)]
 theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Ioo 0.5 1) (hT : T > I.T₀)
     (x : ℝ) :
@@ -417,7 +417,7 @@ theorem riemannZeta.Hσ_zeroes (H₀ R σ : ℝ) (hH₀ : riemannZeta.RH_up_to H
   -/)]
 theorem eq_13 {H₀ R a b T x : ℝ} (hH₀ : riemannZeta.RH_up_to H₀)
     (hR : riemannZeta.classicalZeroFree R) :
-    riemannZeta.Sigma T x a b = 2 * riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioc (Hσ H₀ R a) T)
+    riemannZeta.Sigma T x a b = 2 * riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ico (Hσ H₀ R a) T)
       (fun ρ ↦ x ^ (ρ.re - 1) / ρ.im) := by sorry
 
 noncomputable def σn (σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := σ₁ + (σ₂ - σ₁) * n / N
@@ -457,7 +457,7 @@ noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) :
   (title := "FKS Proposition 3.8")
   (statement := /--
     Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then
-    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1,
+    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1)/N}B_0(\sigma_1,
     H_{\sigma_1}, T) + 2 x^{-(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N})
     \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.
   -/)]
@@ -478,18 +478,19 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
   (title := "FKS Proposition 3.11")
   (statement := /--
     Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2,x) = \max(H_{\sigma_2},
-    \exp( \sqrt{\log x}/R))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing
-    sequence $(t_k)_{k=0}^K$ such that $t_k = T$.  Then
-    $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/R\log t_0}/t_0$ and
+    \exp( \sqrt{\log x / R}))$ and $T > t_0$.  Let $K \geq 2$ and consider a strictly increasing
+    sequence $(t_k)_{k=0}^K$ such that $t_K = T$.  Then
+    $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/(R\log t_0)}/t_0$ and
     $\Sigma_{\sigma_2}^1 ≤ 2 ((\sum_{k=1}^{K-1} N(\sigma_2, t_k)
-    (x^{-1/R\log t_{k-1}} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) +
-    x^{-1/R \log t_{K-1}}/t_{K-1} N(\sigma_2,T))$.
+    (x^{-1/(R\log t_{k-1})} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) +
+    x^{-1/(R \log t_{K-1})}/t_{K-1} N(\sigma_2,T))$.
   -/)]
 theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
     (t_seq : Fin (K + 2) → ℝ)
-    (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R)))
-    (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq) :
+    (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x / I.R))))
+    (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq)
+    (hT : T > t_seq 0) :
     riemannZeta.Sigma T x σ₂ 1 ≤
       2 * (riemannZeta.N' σ₂ T) * x ^ (-1 / (I.R * log (t_seq 0))) / (t_seq 0)
     ∧
@@ -501,7 +502,7 @@ theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
         (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
 
 noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : ℝ :=
-    let t : Fin (K + 2) → ℝ := fun k ↦ t₀ * (T / t₀) ^ (k / K)
+    let t : Fin (K + 2) → ℝ := fun k ↦ t₀ * (T / t₀) ^ ((k : ℝ) / (K + 1))
     2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K + 1)),
       (x ^ (-1 / (I.R * log (t k))) / (t k)) *
         (I.ZDB.N σ₂ (t (k + 1)) - I.ZDB.N σ₂ (t k)) +
@@ -529,7 +530,7 @@ noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : 
   -/)]
 theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
-    (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R))) (hT : T > t₀)
+    (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x / I.R)))) (hT : T > t₀)
     (ZDB : zero_density_bound) :
     riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ I t₀ x σ₂ K T := by sorry
 
@@ -555,7 +556,7 @@ theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hK : 2 ≤
     $x > \exp(Re^2)$.
   -/)]
 theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K ≥ 2) :
-    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x) / I.R)
+    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x / I.R))
     let T : ℝ → ℝ := fun x ↦ (t₀ x) ^ c
     let σ₂ : ℝ → ℝ := fun x ↦ 1 - 2 / (I.R * log (t₀ x))
     let w₁ : ℝ := 1 + (c - 1) / K
@@ -567,7 +568,7 @@ theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K �
         (Set.Ioi (exp (I.R * exp 2))) := by sorry
 
 noncomputable def ε (I : Inputs) (x₀ σ₂ c : ℝ) (N K : ℕ) : ℝ :=
-    let t₀ := max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x₀) / I.R))
+    let t₀ := max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x₀ / I.R)))
     let T := t₀ ^ c
     ε₁ x₀ T + ε₂ I x₀ 0.9 T + ε₃ I x₀ 0.9 σ₂ N T + ε₄ I t₀ x₀ σ₂ K T
 
@@ -646,7 +647,7 @@ theorem theorem_1_1b {log_x0 σ2 c N K ε1 ε2 ε3 ε4 ε_total : ℝ}
     E_\psi(x) \leq 2(\log x)^{3/2} \exp\left(-0.8476836\sqrt{\log x}\right).
     \]
   -/)]
-theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
+theorem lemma_5_2 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
     Eψ x ≤ 2 * (log x) ^ (3 / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
 
 @[blueprint
@@ -658,7 +659,7 @@ theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
     E_\psi(x) \leq 9.22022(\log x)^{3/2} \exp\left(-0.8476836\sqrt{\log x}\right).
     \]
   -/)]
-theorem lemma_5_4 {x : ℝ} (h : log x ∈ Set.Ioc 2100 200000) :
+theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 2100 200000) :
     Eψ x ≤ 9.22022 * (log x) ^ (3 / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
