@@ -121,8 +121,8 @@ noncomputable def riemannZeta.RH_up_to (T : ℝ) : Prop :=
   "classical-zero-free-region"
   (title := "Section 1.1, FKS2")
   (statement := /--
-    We say that one has a classical zero-free region with parameter $R$ if $zeta(s)$ has no zeroes
-    in the region $Re(s) \geq 1 - 1 / R * \log |\Im s|$ for $\Im(s) > 3$.
+    We say that one has a classical zero-free region with parameter $R$ if $\zeta(s)$ has no zeroes
+    in the region $\Re(s) \geq 1 - 1/(R \log |\Im s|)$ for $|\Im(s)| > 3$.
   -/)]
 noncomputable def riemannZeta.classicalZeroFree (R : ℝ) :=
   ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 - 1 / (R * log t) →
@@ -155,7 +155,7 @@ noncomputable def riemannZeta.RvM (b₁ b₂ b₃ T : ℝ) : ℝ :=
   (title := "Riemann von Mangoldt estimate")
   (statement := /--
     An estimate of the form
-    $N(T) - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| \leq b_1 \log T + b_2 \log\log T
+    $\bigl|N(T) - \frac{T}{2\pi} \log \frac{T}{2\pi e} - \frac{7}{8}\bigr| \leq b_1 \log T + b_2 \log\log T
     + b_3$ for $T \geq 2$.
   -/)]
 def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
@@ -166,9 +166,8 @@ def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
   "zero-density-bound"
   (title := "Zero density bound")
   (statement := /--
-    An estimate of the form $N(\sigma,T) \leq c₁ T^p \log^q T + c₂ \log^2 T -
-    \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| \leq b_1 \log T + b_2 \log\log T + b_3$
-    for $T \geq 2$.
+    An estimate of the form $N(\sigma,T) \leq c_1(\sigma)\, T^{p(\sigma)} (\log T)^{q(\sigma)} + c_2(\sigma)\, (\log T)^2$
+    for $T \geq T_0$ and $\sigma$ in a given range.
   -/)]
 structure zero_density_bound where
   T₀ : ℝ
