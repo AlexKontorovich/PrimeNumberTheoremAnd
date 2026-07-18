@@ -122,7 +122,7 @@ def Eψ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
   (title := "Equation (1) of FKS2")
   (statement := /--
   $E_\pi(x) = |\pi(x) - \mathrm{Li}(x)| /
-  \mathrm{Li}(x)$. -/)]
+  (x / \log x)$. -/)]
 noncomputable def Eπ (x : ℝ) : ℝ :=
   |pi x - Li x| / (x / log x)
 
