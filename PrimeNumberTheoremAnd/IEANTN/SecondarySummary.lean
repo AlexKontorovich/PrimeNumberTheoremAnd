@@ -130,7 +130,7 @@ theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Ta
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
+  |\pi(x) - \mathrm{li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
   \]
   for all $x \geq \exp(2000)$.
   -/)
@@ -270,7 +270,7 @@ blueprint_comment /-- results from \cite{johnston-yang}-/
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
+  |\pi(x) - \mathrm{li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
   \]
   for all $x \geq 2$.
   -/)
