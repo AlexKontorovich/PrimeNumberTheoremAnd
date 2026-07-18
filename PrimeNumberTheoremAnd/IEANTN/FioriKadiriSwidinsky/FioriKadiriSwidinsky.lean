@@ -368,7 +368,7 @@ theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X
 theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1 / 2)) (hω : ω ∈ Set.Icc 0 1) :
     ∃ M xM : ℝ, ∀ x ≥ xM, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x ^ α - 2) / 5),
     ∃ Tstar ∈ Set.Icc T (2.45 * T),
-    ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar)
+    ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Icc (-Tstar) Tstar)
       (fun ρ ↦ x ^ ρ / ρ))‖ ≤ M * x / T * (log x) ^ (1 - ω) := by sorry
 
 noncomputable def ε₁ (x T : ℝ) : ℝ := 2 * (log x) ^ 2 / T
