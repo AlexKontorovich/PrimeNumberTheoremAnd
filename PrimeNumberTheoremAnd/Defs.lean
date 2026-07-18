@@ -63,12 +63,11 @@ noncomputable def pi (x : ℝ) : ℝ :=
 
 @[blueprint
   "pi-star-def"
-  (title := "pi")
+  (title := "pi star")
   (statement := /--
-  $\pi^*(x)$ is the sum of $\Lambda(n)/n$ for $n$ up to
-  $x$. -/)]
+  $\pi^*(x) = \sum_{k \geq 1} \pi(x^{1/k}) / k$. -/)]
 noncomputable def pi_star (x : ℝ) : ℝ :=
-  ∑ n ∈ Finset.Ioc 1 ⌊x⌋₊, (Λ n : ℝ) / n
+  ∑' (k : ℕ), pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
 
 @[blueprint
   "li-def"
