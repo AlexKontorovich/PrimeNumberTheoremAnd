@@ -330,12 +330,12 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   One has
   \[
   |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801}
-    \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5}))
+    \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5})
   \]
-  for all $x \geq 2$.
+  for all $x \geq 23$.
   -/)
   (latexEnv := "theorem")]
-theorem theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+theorem theorem_1_4 : Eπ.vinogradovBound 0.028 1.801 0.1853 23 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
