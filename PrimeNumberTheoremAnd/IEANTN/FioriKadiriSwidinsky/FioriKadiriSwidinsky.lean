@@ -348,7 +348,7 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) :
   "fks-theorem-3-1"
   (title := "FKS Theorem 3.1")
   (statement := /--
-    Let $x > e^{50}$ and $50 < T < x$.  Then
+    Let $x > e^{50}$ be half an odd integer and $50 < T < x$.  Then
     $E_\psi(x) \leq \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T$.
   -/)]
 theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X / 2)
