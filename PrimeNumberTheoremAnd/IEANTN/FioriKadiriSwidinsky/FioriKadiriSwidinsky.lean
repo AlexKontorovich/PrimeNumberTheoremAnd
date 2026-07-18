@@ -647,7 +647,7 @@ theorem theorem_1_1b {log_x0 σ2 c N K ε1 ε2 ε3 ε4 ε_total : ℝ}
     \]
   -/)]
 theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
-    Eψ x ≤ 2 * (log x) ^ (3 / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
+    Eψ x ≤ 2 * (log x) ^ ((3 : ℝ) / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
 
 @[blueprint
   "fks-lemma-5-3"
@@ -659,7 +659,7 @@ theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
     \]
   -/)]
 theorem lemma_5_4 {x : ℝ} (h : log x ∈ Set.Ioc 2100 200000) :
-    Eψ x ≤ 9.22022 * (log x) ^ (3 / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
+    Eψ x ≤ 9.22022 * (log x) ^ ((3 : ℝ) / 2) * exp (-0.8476836 * sqrt (log x)) := by sorry
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value

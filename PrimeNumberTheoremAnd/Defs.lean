@@ -181,7 +181,7 @@ def Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
 
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ x ≤
-    A * (log x) ^ B * exp (-C * (log x) ^ (3 / 5) / (log (log x)) ^ (1 / 5))
+    A * (log x) ^ B * exp (-C * (log x) ^ ((3 : ℝ) / 5) / (log (log x)) ^ ((1 : ℝ) / 5))
 
 def Eπ_star.classicalBound (A B C R x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ_star x ≤ admissible_bound A B C R x
@@ -194,7 +194,7 @@ def Eπ_star.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
 
 def Eπ_star.vinogradovBound (A B C x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ_star x ≤
-    A * (log x) ^ B * exp (-C * (log x) ^ (3 / 5) / (log (log x)) ^ (1 / 5))
+    A * (log x) ^ B * exp (-C * (log x) ^ ((3 : ℝ) / 5) / (log (log x)) ^ ((1 : ℝ) / 5))
 
 @[blueprint
   "admissible-bound-monotone"
