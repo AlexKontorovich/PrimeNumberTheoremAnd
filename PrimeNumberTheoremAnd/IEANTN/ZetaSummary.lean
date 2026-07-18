@@ -82,7 +82,7 @@ theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
   "pt_theorem_1"
   (title := "PT Theorem 1")
   (statement := /--
-    By \cite{PT2021}, the Riemann hypothesis is verified up to
+    By \cite{PT2021_RH}, the Riemann hypothesis is verified up to
     $H_0 = 3 \times 10^{12}$.
   -/)
   (latexEnv := "theorem")]
