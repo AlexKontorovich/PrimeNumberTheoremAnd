@@ -103,11 +103,11 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
     and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any
     $T \geq H_0$, one has
     $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) *
-      \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) )
-      + CC_2 * \log^2 T / 2 \pi d$$
+      \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{\frac{8}{3}(1-\sigma)} / (T-H) )
+      + CC_2 \log^2 T / (2 \pi d)$$
     and
-    $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma}
-      T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$.
+    $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4\sigma}
+      T^{\frac{8}{3}(1-\sigma)} + CC_2 \log^2 T / (2 \pi d)$$.
   -/)]
 theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
     (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
