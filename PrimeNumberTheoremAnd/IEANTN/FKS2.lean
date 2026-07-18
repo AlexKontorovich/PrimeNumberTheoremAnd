@@ -2448,7 +2448,7 @@ lemma theorem_3_easy_preconditions
   (statement := /--
   If $B \geq \max(3/2, 1 + C^2/16 R)$, $x_0 > 0$, and one has an admissible asymptotic bound
   with parameters $A,B,C,x_0$ for $E_\theta$, and
-  $$ x_1 \geq \max( x_0, \exp( (1 + \frac{C}{2\sqrt{R}}))^2),$$
+  $$ x_1 \geq \max( x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2 )),$$
   then
   $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x_1) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
