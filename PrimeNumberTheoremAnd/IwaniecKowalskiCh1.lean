@@ -793,7 +793,7 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     If $f$ is a multiplicative function, then so to is $n\mapsto f(n)/n^s$.
   -/)
   (proof := /--
-    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/n^s)(f(n)/n^s)$.
+    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/m^s)(f(n)/n^s)$.
   -/)]
 lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
@@ -845,7 +845,7 @@ lemma two_pow_omega_isMultiplicative :
   "two_pow_omega_LSeries.term_isMultiplicative"
   (title := "two-pow-omega-LSeries.term-isMultiplicative")
   (statement := /--
-    We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
+    We have that $n\mapsto 2^{\omega(n)}/n^{s}$ is a multiplicative function.
   -/)
   (proof := /--
     Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
@@ -1073,7 +1073,7 @@ lemma powOfMultiplicative_isMultiplicative {R : Type u_1} [CommMonoidWithZero R]
   "moebius_sq_LSeries.term_isMultiplicative"
   (title := "moebius-sq-LSeries.term-isMultiplicative")
   (statement := /--
-    We have that $n\mapsto \mu^2(n)/n^{-s}$ is a multiplicative function.
+    We have that $n\mapsto \mu^2(n)/n^{s}$ is a multiplicative function.
   -/)
   (proof := /--
     Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
@@ -1214,16 +1214,14 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
   "pow_divisors_mul"
   (title := "pow-divisors-mul")
   (statement := /--
-    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The divisors of $mn$ that
-    can be expressed as perfect $k$-powers are exactly the product of the divisors of $m$ and $n$
-    that can be expressed as perfect $k$-powers.
+    Let $m$ and $n$ be coprime natural numbers and let $k$ be fixed. The divisors $x$ of $mn$ with
+    $x^k \mid mn$ are exactly the products $ab$ where $a \mid m$, $a^k \mid m$, $b \mid n$, and
+    $b^k \mid n$.
   -/)
   (proof := /--
-    Since $m$ and $n$ are coprime, they share no common prime factors. Therefore, any divisor of
-    $mn$ can be uniquely expressed as a product of a divisor of $m$ and a divisor of $n$. The
-    condition that a divisor is a perfect $k$-power can be checked separately for the divisors of
-    $m$ and $n$. Thus, the divisors of $mn$ that are perfect $k$-powers correspond exactly to the
-    products of divisors of $m$ and $n$ that are perfect $k$-powers.
+    Since $m$ and $n$ are coprime, every divisor of $mn$ factors uniquely as $ab$ with $a \mid m$
+    and $b \mid n$. For such a factorization, $x^k \mid mn$ is equivalent to $a^k \mid m$ and
+    $b^k \mid n$, again by coprimality.
   -/)]
 lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
     (m * n).divisors.filter (fun x => x ^ k ∣ m * n) =
@@ -1265,14 +1263,12 @@ lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
   "pow_divisors_mul_injective"
   (title := "pow-divisors-mul-injective")
   (statement := /--
-    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The function
-    $(a,b) \mapsto ab$ is injective on the product of the divisors of $m$ and $n$ that can be
-    expressed as perfect $k$-powers.
+    Let $m$ and $n$ be coprime natural numbers and let $k$ be fixed. The map $(a,b) \mapsto ab$ is
+    injective on the product of $\{a \mid m : a^k \mid m\}$ and $\{b \mid n : b^k \mid n\}$.
   -/)
   (proof := /--
-    This follows from the injectivity of the function on the product of all divisors, as shown in
-    the previous lemma. Since we are restricting to a subset of the divisors, the injectivity still
-    holds.
+    This is the restriction of Lemma \ref{divisors-mul-injective} to a subset of the divisor
+    product, so injectivity is preserved.
   -/)]
 lemma pow_divisors_mul_injective {m n k : ℕ} (hmn : Nat.Coprime m n) :
     Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2) (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
@@ -1302,10 +1298,9 @@ lemma sum_moebius_sq_divisors_apply (n : ℕ) :
   (statement := /-- The function $n \mapsto \sum_{d^2|n} \mu(d)$ is multiplicative. -/)
   (proof := /--
     We will show that for coprime $m$ and $n$, we have
-    $\sum_{d^2|mn} \mu(d) = \sum_{d^2|m} \mu(d) \cdot \sum_{d^2|n} \mu(d)$. This follows from the
-    fact that the divisors of $mn$ that are perfect squares correspond to the products of divisors
-    of $m$ and $n$ that are perfect squares, as shown in the previous lemmas. The multiplicativity
-    of the Möbius function then allows us to factor the sum accordingly.
+    $\sum_{d^2|mn} \mu(d) = \sum_{d^2|m} \mu(d) \cdot \sum_{d^2|n} \mu(d)$. This follows from
+    Lemma \ref{pow-divisors-mul}: the divisors $d$ of $mn$ with $d^2 \mid mn$ factor uniquely as
+    $d=ab$ with $a^2 \mid m$ and $b^2 \mid n$. Multiplicativity of $\mu$ then factors the sum.
   -/)]
 lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMultiplicative := by
   unfold sum_moebius_sq_divisors
