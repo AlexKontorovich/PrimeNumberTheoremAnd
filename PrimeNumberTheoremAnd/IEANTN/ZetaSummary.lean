@@ -12,17 +12,6 @@ blueprint_comment /--
 Here we list some papers that we plan to incorporate into this
 section in the future, and list some results that have not yet been
 moved into dedicated paper sections.
-
-References to add:
-
-MT: M. J. Mossinghoff and T. S. Trudgian, Nonnegative trigonometric
-polynomials and a zero-free region for the Riemann zeta-function,
-J. Number Theory. 157 (2015), 329–349.
-
-MTY: M. J. Mossinghoff, T. S. Trudgian, and A. Yang, Nonnegative
-trigonometric polynomials and a zero-free region for the Riemann
-zeta-function, arXiv:2212.06867.
-
 -/
 
 @[blueprint
@@ -38,10 +27,10 @@ theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9
   "mt_theorem_1"
   (title := "MT Theorem 1")
   (statement := /--
-    One has a classical zero-free region with $R = 5.5666305$.
-    (A more conservative value of $R = 5.573412$ was announced in
-    the paper using weaker numerical verification of the Riemann
-    hypothesis.)
+    Following \cite{MT2015}, one has a classical zero-free region with
+    $R = 5.5666305$. (A more conservative value of $R = 5.573412$ was
+    announced in the paper using weaker numerical verification of the
+    Riemann hypothesis.)
   -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
@@ -51,17 +40,29 @@ theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
   "mty_theorem"
   (title := "MTY")
   (statement := /--
-    One has a classical zero-free region with $R = 5.558691$.
+    Following \cite{MTY2024}, one has a classical zero-free region with
+    $R = 5.558691$.
   -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 @[blueprint
+  "bty_theorem"
+  (title := "BTY")
+  (statement := /--
+    Following \cite{BTY2026}, one has a classical zero-free region with
+    $R = 4.896$.
+  -/)
+  (uses := ["classical-zero-free-region"])
+  (latexEnv := "theorem")]
+theorem BTY_theorem : riemannZeta.classicalZeroFree 4.896 := sorry
+
+@[blueprint
   "platt_RH"
   (title := "Platt's numerical verification of RH")
   (statement := /--
-    The Riemann hypothesis is verified up to
+    By \cite{Platt2017}, the Riemann hypothesis is verified up to
     $H_0 = 3.061 \times 10^{10}$.
   -/)
   (latexEnv := "theorem")]
@@ -71,7 +72,7 @@ theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
   "gourdon_wedeniwski"
   (title := "Gourdon-Wedeniwski")
   (statement := /--
-    The Riemann hypothesis is verified up to
+    By \cite{Gourdon2004}, the Riemann hypothesis is verified up to
     $H_0 = 2445999556030$.
   -/)
   (latexEnv := "theorem")]
@@ -81,7 +82,7 @@ theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
   "pt_theorem_1"
   (title := "PT Theorem 1")
   (statement := /--
-    The Riemann hypothesis is verified up to
+    By \cite{PT2021}, the Riemann hypothesis is verified up to
     $H_0 = 3 \times 10^{12}$.
   -/)
   (latexEnv := "theorem")]
