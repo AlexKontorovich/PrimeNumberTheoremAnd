@@ -1639,14 +1639,14 @@ namespace Trudgian2014_argument
   "art06-trudgian-argument-N"
   (title := "Trudgian 2014 bound on \\(N(T)\\)")
   (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.112$, $b_2 = 0.278$, $b_3 = 2.510$.  The
-    original paper actually proves a slightly stronger bound, valid
-    for $T \geq e$, in which the constant term $b_3$ is refined by an
-    additional $1/(5T)$. -/)
+    parameters $b_1 = 0.112$, $b_2 = 0.278$, $b_3 = 2.510$, for $T \geq e$, with
+    an additional error of $1/(5T)$. -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{Trudgian2014_argument}. -/)
   (latexEnv := "theorem")]
-theorem N_bound : riemannZeta.Riemann_vonMangoldt_bound 0.112 0.278 2.510 := by
+theorem N_bound :
+  ∀ T ≥ exp 1, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+    0.112 * log T + 0.278 * log (log T) + 2.510 + 1 / (5 * T) := by
   sorry
 
 end Trudgian2014_argument
@@ -1661,8 +1661,8 @@ namespace HSW2022
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{HSW2022}. -/)
   (latexEnv := "theorem")]
-theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := by
-  sorry
+theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 :=
+  HSW.main_theorem
 
 @[blueprint
   "art06-hsw-N-v2"
