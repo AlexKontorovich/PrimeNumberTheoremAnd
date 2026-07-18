@@ -685,8 +685,9 @@ theorem theorem_5_6 {x : ℝ} (hx : x ≥ 2278383) : ∃ E,
   (statement := /--
   We have for $x \geq 912560$,
   \[
-  \sum_{p \leq x} \frac{\log p}{p} = \log x + E + O^*\Bigl(\frac{0.3}{\log^2 x}\Bigr).
+  \sum_{p \leq x} \frac{\log p}{p} = \log x - B_3 + O^*\Bigl(\frac{0.3}{\log^2 x}\Bigr),
   \]
+  where $B_3 \approx 1.33258$ is the constant from \cite[Theorem 5.7]{Dusart2018}.
   -/)
   (latexEnv := "theorem")]
 theorem theorem_5_7 {x : ℝ} (hx : x ≥ 912560) : ∃ E,
