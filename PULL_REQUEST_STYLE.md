@@ -151,6 +151,44 @@ Concretely:
 - Reusable summability-of-zeros infrastructure lives in
   `KadiriZeroCounting.lean`. Reach for that too before re-deriving.
 
+**Scope helper lemmas by intended reach.** After you've introduced a
+helper, decide honestly whether it's local scaffolding or reusable API:
+
+- If the helper is only used to prove one target result and has no
+  plausible use elsewhere, mark it `private`. That keeps it out of the
+  file's public namespace and out of the blueprint, so downstream code
+  and reviewers aren't tempted to depend on it or wonder what it's for.
+- If the helper could plausibly apply to other targets in the project
+  — a small numerical fact, a general topology / measure-theory lemma,
+  a shape that recurs across papers — leave it public *and* attach a
+  `@[blueprint]` node so the blueprint surfaces it as a discoverable
+  building block. Public unblueprinted helpers are invisible to
+  contributors reading the paper's blueprint page, which defeats the
+  purpose of leaving them public.
+- The choice isn't about hiding "ugly" internals — it's about the
+  project's mental model of what's reusable. Every public unmarked
+  helper is one more thing a future contributor has to notice and
+  decide whether to use.
+
+**Actively de-duplicate across targets.** If two related tasks would
+each need a very similar computation, don't write two independent
+proofs. Isolate a single proposition — general enough to cover both
+call sites — and use it in both. Two indications that you should be
+extracting:
+
+- You've written or generated proof A, and the proof of the next
+  target reads like a copy of A with two constants changed. The
+  extracted lemma should abstract over those constants.
+- Two different sorries have the same rough shape (same tactic chain,
+  same auxiliary bounds, same numerical estimate). One proposition
+  can usually cover both.
+
+Failing to de-duplicate is a common AI-assistance failure mode: the
+tool has full visibility into the goal in front of it but no incentive
+to look sideways for similar goals it could share machinery with.
+When accepting an AI-suggested proof, ask: "does another sorry in this
+file want the same helper?" — and if so, extract before merging.
+
 Reviewers will ask "why not use `<existing lemma>`?" and a satisfying answer
 must exist. "The AI suggested it this way" isn't one.
 
@@ -368,6 +406,13 @@ politely close/reject PRs exhibiting them and request re-submission:
 - **Heavy computation inlined into a proof file**. Ask the author to
   factor it into a sibling `*_tables.lean` (or a new shard) so downstream
   edits don't pay for the recomputation.
+- **Public helper with no `@[blueprint]` tag**. If it's project-scope
+  reusable, tag it; if it's local scaffolding, mark it `private`.
+  Ask the author to pick.
+- **Parallel proofs of parallel computations**. Two nearby sorries
+  closed by near-identical proofs (or two similar theorems each with
+  their own bespoke helpers) — ask the author to extract the shared
+  proposition instead.
 
 ---
 
