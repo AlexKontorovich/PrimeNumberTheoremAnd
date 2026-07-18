@@ -397,7 +397,7 @@ noncomputable def ε₂ (I : Inputs) (x σ₁ T : ℝ) : ℝ :=
   (title := "FKS Proposition 3.6")
   (statement := /--
     Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then
-    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
+    $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.
   -/)]
 theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Ioo 0.5 1) (hT : T > I.T₀)
     (x : ℝ) :
@@ -457,7 +457,7 @@ noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) :
   (title := "FKS Proposition 3.8")
   (statement := /--
     Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then
-    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1,
+    $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1)/N}B_0(\sigma_1,
     H_{\sigma_1}, T) + 2 x^{-(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N})
     \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.
   -/)]
