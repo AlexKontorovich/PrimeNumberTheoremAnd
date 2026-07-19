@@ -330,11 +330,16 @@ Convert to "ready for review" only after CI is green.
 
 ## 12. Contributing formalizations of new material (not yet in the blueprint)
 
-Sometimes a contributor has independently formalised a result that
-isn't currently a `sorry` in the repo — a theorem from the IEANTN
-literature the blueprint hasn't reached yet, or an alternate route to
-something already partially covered. That's welcome, but the mechanism
-matters.
+**Pull requests contributing formalisations of results in explicit
+analytic number theory are welcome even when they don't correspond to
+an already-issued task**, provided they adhere to the style guidelines
+in this document. If you've formalised (or partially formalised) a
+result from the IEANTN literature that the blueprint hasn't reached
+yet, an alternate route to something already partially covered, or a
+helpful piece of infrastructure the project could reuse — please open
+a PR. You don't have to wait for a maintainer to file an issue first.
+
+The mechanism matters, though.
 
 **What to do**:
 
