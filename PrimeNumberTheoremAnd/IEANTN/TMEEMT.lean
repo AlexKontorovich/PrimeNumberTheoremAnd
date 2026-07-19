@@ -1514,20 +1514,23 @@ theorem zeta_half_bound_large : ∀ t : ℝ, t ≥ exp 1 →
 
 end ChengGraham2004
 
-namespace Hiary2016
+namespace HiaryPatelYang2022
 
 @[blueprint
   "art06-hiary-zeta-half"
-  (title := "Hiary 2016 bound on \\(|\\zeta(1/2 + it)|\\)")
+  (title := "Hiary--Patel--Yang bound on \\(|\\zeta(1/2 + it)|\\)")
   (statement := /-- For $t \geq 3$,
-    $|\zeta(1/2 + it)| \leq 0.63\, t^{1/6}\, \log t$. -/)
-  (proof := /-- See \cite{Hiary2016}. -/)
+    $|\zeta(1/2 + it)| \leq 0.618\, t^{1/6}\, \log t$.
+    (The constant $0.63$ in \cite{Hiary2016} relied on an incorrect Kusmin--Landau
+    lemma; after correction that constant becomes $0.77$.  The bound recorded here
+    is the improved explicit result of \cite{HiaryPatelYang2022}.) -/)
+  (proof := /-- See \cite{HiaryPatelYang2022}. -/)
   (latexEnv := "theorem")]
 theorem zeta_half_bound : ∀ t : ℝ, t ≥ 3 →
-    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.63 * t ^ (1/6 : ℝ) * log t := by
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.618 * t ^ (1/6 : ℝ) * log t := by
   sorry
 
-end Hiary2016
+end HiaryPatelYang2022
 
 namespace Backlund1918
 
@@ -1658,22 +1661,23 @@ namespace HSW2022
 
 @[blueprint
   "art06-hsw-N-v1"
-  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), first form")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 9.3675$. -/)
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
+    estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 8.3675$
+    (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$). -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
-  (proof := /-- See \cite{HSW2022}. -/)
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
-theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 :=
+theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 8.3675 :=
   HSW.main_theorem
 
 @[blueprint
   "art06-hsw-N-v2"
-  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), second form")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), alternate $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
+    estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
-  (proof := /-- See \cite{HSW2022}. -/)
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
 theorem N_bound_v2 : riemannZeta.Riemann_vonMangoldt_bound 0.1095 0.2042 3.0305 := by
   sorry

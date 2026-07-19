@@ -15,26 +15,60 @@ moved into dedicated paper sections.
 -/
 
 @[blueprint
-  "Hasanalizade-Shen-Wang"
-  (title := "Hasanalizade-Shen-Wang")
+  "Hasanalizade-Shen-Wong"
+  (title := "Hasanalizade--Shen--Wong, Corollary 1.4")
   (statement := /--
-    One has a Riemann von Mangoldt estimate with parameters
-    0.1038, 0.2573, and 9.3675.
+    Following \cite{HSW2022}, Corollary~1.4, one has
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.1038\log T+0.2573\log\log T+8.3675
+    \]
+    for $T\ge 2$ (the paper states the bound for $T\ge e$; we record it under the
+    project's classical Riemann--von Mangoldt predicate, which starts at $T\ge 2$).
   --/)]
-theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
+theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 8.3675 := sorry
+
+@[blueprint
+  "Hasanalizade-Shen-Wong-cor-1-2"
+  (title := "Hasanalizade--Shen--Wong, Corollary 1.2")
+  (statement := /--
+    Following \cite{HSW2022}, Corollary~1.2, for $T\ge e$ one has
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}\bigr|
+    \le 0.1038\log T+0.2573\log\log T+9.3675
+    \]
+    (no $7/8$ term in the main term).
+  --/)
+  (latexEnv := "theorem")]
+theorem HSW.corollary_1_2 :
+    ∀ T ≥ (Real.exp 1),
+      |riemannZeta.N T - (T / (2 * Real.pi) * Real.log (T / (2 * Real.pi)) - T / (2 * Real.pi))| ≤
+        0.1038 * Real.log T + 0.2573 * Real.log (Real.log T) + 9.3675 := by
+  sorry
 
 @[blueprint
   "mt_theorem_1"
   (title := "MT Theorem 1")
   (statement := /--
-    Following \cite{MT2015}, one has a classical zero-free region with
-    $R = 5.5666305$. (A more conservative value of $R = 5.573412$ was
-    announced in the paper using weaker numerical verification of the
-    Riemann hypothesis.)
+    Following \cite{MT2015}, Theorem~1, one has a classical zero-free region with
+    $R = 5.573412$.
   -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
-theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
+theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.573412 := sorry
+
+@[blueprint
+  "mt_R0_55666305"
+  (title := "MT sharper $R_0$ under stronger RH verification")
+  (statement := /--
+    Following the remark in \cite{MT2015} after the $F_{16}$ analysis, the sharper
+    constant $R = 5.5666305$ is permissible when the Riemann hypothesis is known to a
+    sufficiently large height (the paper cites an announced verification to
+    $3\cdot 10^{11}$).  This is the value used in \cite{FKS}.
+  -/)
+  (uses := ["classical-zero-free-region"])
+  (latexEnv := "theorem")]
+theorem MT_R0_55666305 : riemannZeta.classicalZeroFree 5.5666305 := sorry
 
 @[blueprint
   "mty_theorem"
