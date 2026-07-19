@@ -142,10 +142,7 @@ private lemma cpow_integral (s : ℂ) (hs : s ≠ 1) (N : ℕ) (hN : 1 ≤ N) :
       = s * (((N : ℂ) ^ ((-s) + 1) - (1 : ℂ) ^ ((-s) + 1)) / ((-s) + 1)) := by
         simpa using congrArg (s * ·) hint
       _ = s * (((N : ℂ) ^ (1 - s) - 1) / (1 - s)) := by
-        congr 1
-        field_simp
-        ring_nf
-        simp [sub_eq_add_neg]
+        rw [one_cpow, show (1 : ℂ) - s = -s + 1 from by ring]
       _ = s / (1 - s) * ((N : ℂ) ^ (1 - s) - 1) := by field_simp
 
 private lemma abel_sub_fract (s : ℂ) (N : ℕ) (hN : 1 ≤ N) :
