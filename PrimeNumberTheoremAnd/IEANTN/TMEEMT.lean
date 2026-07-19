@@ -1731,16 +1731,20 @@ namespace Delange1987
 
 @[blueprint
   "art06-delange"
-  (title := "Delange 1987 bound on \\(-\\Re(\\zeta'/\\zeta)(\\sigma + it)\\)")
-  (statement := /-- For $\sigma > 1$ and any real $t$,
-    $- \mathrm{Re}\!\left(\dfrac{\zeta'}{\zeta}\right)\!(\sigma + it)
-      \leq \dfrac{1}{\sigma - 1} - \dfrac{1}{2\sigma^2}$. -/)
+  (title := "Delange 1987 bound on \\(-(\\zeta'/\\zeta)(s)\\) for real $s>1$")
+  (statement := /-- For real $s > 1$,
+    \[
+    -\dfrac{\zeta'}{\zeta}(s)
+      \leq \dfrac{1}{s - 1} - \dfrac{1}{2s^2},
+    \]
+    equivalently $\zeta'/\zeta(s)+1/(s-1)>1/(2s^2)$.
+    (Art06 states a complex form for $\sigma+it$; \cite{Delange1987} is for
+    real $s>1$.) -/)
   (proof := /-- See \cite{Delange1987}. -/)
   (latexEnv := "theorem")]
-theorem zeta_log_deriv_bound : ∀ σ t : ℝ, σ > 1 →
-    -(deriv riemannZeta ((σ : ℂ) + t * Complex.I) /
-       riemannZeta ((σ : ℂ) + t * Complex.I)).re ≤
-      1 / (σ - 1) - 1 / (2 * σ^2) := by
+theorem zeta_log_deriv_bound : ∀ s : ℝ, s > 1 →
+    -(deriv riemannZeta (s : ℂ) / riemannZeta (s : ℂ)).re ≤
+      1 / (s - 1) - 1 / (2 * s^2) := by
   sorry
 
 end Delange1987
