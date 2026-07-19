@@ -21,10 +21,8 @@ private lemma tendsto_mul_self_of_sub_principal_isBigO_one
     (h : (f - fun z : ℂ => c / (z - p)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     Tendsto (fun z : ℂ => (z - p) * f z) (𝓝[≠] p) (𝓝 c) := by
   have hp_tendsto :
-      Tendsto (fun z : ℂ => z - p) (𝓝[≠] p) (𝓝 0) := by
-    simpa using
-      ((continuous_id.sub continuous_const).continuousAt.continuousWithinAt.tendsto :
-        Tendsto (fun z : ℂ => z - p) (𝓝[≠] p) (𝓝 (p - p)))
+      Tendsto (fun z : ℂ => z - p) (𝓝[≠] p) (𝓝 0) :=
+    tendsto_sub_nhds_zero_iff.mpr (tendsto_id.mono_left nhdsWithin_le_nhds)
   have hp_small :
       (fun z : ℂ => z - p) =o[𝓝[≠] p] (1 : ℂ → ℂ) :=
     (isLittleO_one_iff ℂ).2 hp_tendsto

@@ -122,7 +122,7 @@ lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     rwa [closure_Icc] at this
 
 lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {μ : Measure ℝ}
-    [NoAtoms μ] {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    [NullSingletonClass μ] {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {f : ℝ → E} (h : f.support ⊆ Icc a b) :
     ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ := by
   rcases le_total a b with hab | hab

@@ -2301,11 +2301,8 @@ lemma sum_mobius_floor_tail_isLittleO (K : ℕ) (hK : 0 < K) :
       have h_M_x_over_k : ∀ k : ℕ, 1 ≤ k → k < K → (fun x : ℝ => ∑ n ∈ Finset.Ioc ⌊x / (k + 1 : ℝ)⌋₊ ⌊x / (k : ℝ)⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
         have h_M : (fun x : ℝ => ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
           have h_M : (fun x : ℝ => ∑ n ∈ Finset.range ⌊x⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
-            convert mu_pnt using 1
-            norm_cast
-            ext; simp [Asymptotics.IsLittleO]
-            norm_num [Asymptotics.IsBigOWith]
-            norm_num [Norm.norm]
+            refine Asymptotics.IsLittleO.of_norm_left ?_
+            simpa only [← Int.norm_cast_real, Int.cast_sum] using mu_pnt.norm_left
           have h_M : (fun x : ℝ => ∑ n ∈ Finset.range (⌊x⌋₊ + 1), (μ n : ℝ)) =o[atTop] (fun x => x) := by
             simp_all +decide only [ge_iff_le, Finset.sum_range_succ]
             refine h_M.add ?_

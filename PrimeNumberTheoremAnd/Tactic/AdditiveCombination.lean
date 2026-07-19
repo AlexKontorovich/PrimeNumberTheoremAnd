@@ -69,7 +69,7 @@ partial def expandAdditiveCombo (ty : Expr) (stx : Syntax.Term) : TermElabM Expa
     match ← expandAdditiveCombo ty e with
     | .const c => .const <$> `(-$c)
     | .proof p => .proof <$> ``(neg_pf $p)
-  | `(← $e) => do
+  | `(← $e:term) => do
     match ← expandAdditiveCombo ty e with
     | .const c => return .const c
     | .proof p => .proof <$> ``(Eq.symm $p)

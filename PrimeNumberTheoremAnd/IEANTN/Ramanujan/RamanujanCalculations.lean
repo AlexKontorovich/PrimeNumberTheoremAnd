@@ -660,7 +660,7 @@ theorem log_8_bound (x : ℝ) (hx : 2 ≤ x) :
           nlinarith [pow_pos (log_pos (by linarith : 1 < x)) 8,
             pow_le_pow_left₀ (by linarith [log_pos (by linarith : 1 < x)]) hlog_half 8]
       convert! MeasureTheory.setIntegral_mono_on _ _ _ hbd <;> norm_num
-      · exact Or.inl <| sqrt_le_iff.mpr ⟨by positivity, by nlinarith⟩
+      · exact Or.inl <| Or.inr <| by linarith
       · exact ContinuousOn.integrableOn_Icc (continuousOn_of_forall_continuousAt fun t ht =>
           ContinuousAt.inv₀ (ContinuousAt.pow (continuousAt_log (by
             nlinarith [ht.1, sqrt_nonneg x, sq_sqrt (show 0 ≤ x by linarith)])) _)

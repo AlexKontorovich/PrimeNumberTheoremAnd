@@ -8,6 +8,7 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.LaplaceInversion
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
 import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -881,32 +882,6 @@ private theorem kadiri_thm_3_1_q1_shifted_pointwise_functional_eq
       ring
 
 @[blueprint
-  "kadiri-thm-3-1-q1-I-2"
-  (title := "Kadiri's $I_2(T)$: the reflected Dirichlet-series piece")
-  (statement := /-- Kadiri's $I_2(T)$ from \cite[p.~12]{Kadiri2005}: the reflected
-  Dirichlet-series piece of the functional-equation rewrite of the $\sigma = -a$
-  integral,
-  $$ I_2(T) \;:=\; \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
-                  \frac{\zeta'}{\zeta}(1-s)\, \Phi(-s)\, ds. $$
-
-  \emph{Sign:} the $+\zeta'/\zeta(1-s)$ integrand comes from substituting the
-  (corrected) functional equation
-  $-\zeta'/\zeta(s) = -\log\pi + \zeta'/\zeta(1-s) + \tfrac{1}{2}\{\Gamma'/\Gamma(s/2)
-  + \Gamma'/\Gamma((1-s)/2)\}$ (see \ref{kadiri-thm-3-1-q1-functional-eq}) into the
-  integrand of the $\sigma = -a$ integral and reading off the middle term. The paper
-  states the integrand with a leading minus, which is a typo (matching the sign typo
-  in the functional equation on \cite[p.~12]{Kadiri2005}). Its $T \to \infty$ limit
-  is given by \ref{kadiri-thm-3-1-q1-eq-14}. -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I_2 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      (deriv riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) /
-          riemannZeta (1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I))) *
-        Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
-
-@[blueprint
   "kadiri-thm-3-1-q1-I-3"
   (title := "Kadiri's $I_3(T)$: the gamma-factor piece")
   (statement := /-- Kadiri's $I_3(T)$ from \cite[p.~12]{Kadiri2005}: the gamma-factor
@@ -1327,7 +1302,7 @@ theorem kadiri_thm_3_1_q1_eq_14
     Filter.Tendsto (fun T : ℝ ↦ kadiri_thm_3_1_q1_I_2 φ a T)
       Filter.atTop
       (nhds (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
-  sorry
+  exact kadiri_thm_3_1_q1_eq_14_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1
 
 /-- The digamma function commutes with complex conjugation. Mathlib's junk-value
 conventions make this unconditional: `Complex.Gamma_conj` holds at every point,
