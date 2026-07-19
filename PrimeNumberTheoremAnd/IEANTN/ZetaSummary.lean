@@ -62,11 +62,11 @@ theorem BTY_theorem : riemannZeta.classicalZeroFree 4.896 := sorry
   "platt_RH"
   (title := "Platt's numerical verification of RH")
   (statement := /--
-    By \cite{Platt2017}, the Riemann hypothesis is verified up to
-    $H_0 = 3.061 \times 10^{10}$.
+    By \cite[Theorem 5.1]{Platt2017}, the Riemann hypothesis is verified up to
+    $H_0 = 30{,}610{,}046{,}000 = 3.0610046 \times 10^{10}$.
   -/)
   (latexEnv := "theorem")]
-theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
+theorem Platt_theorem : riemannZeta.RH_up_to 30610046000 := sorry
 
 @[blueprint
   "gourdon_wedeniwski"
