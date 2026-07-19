@@ -1336,11 +1336,12 @@ namespace Dudek2014
 @[blueprint
   "thm:dudek2014"
   (title := "Dudek 2014")
-  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
+  (statement := /-- If $x^{1/3} > \exp(\exp(33.217))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
+  (Equivalently $x > \exp(3\exp(33.217))$; see \cite{Dudek}.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ^ ((1 : ℝ) / 3) > exp (exp 33.217)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end Dudek2014
@@ -1350,11 +1351,11 @@ namespace CullyHugill2021
 @[blueprint
   "thm:cully-hugill2021"
   (title := "Cully-Hugill 2021")
-  (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
+  (statement := /-- If $x \geq \exp(\exp(33.990))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ exp (exp 33.990)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end CullyHugill2021

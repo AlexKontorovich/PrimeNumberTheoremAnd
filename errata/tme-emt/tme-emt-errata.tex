@@ -189,6 +189,38 @@ Ramanujan J.\ 39 (2016); arXiv:1401.2689, Corollary~2: $x\ge 2{,}898{,}239$.
 Replace $2{,}898{,}242$ by $2{,}898{,}239$, and use the non-strict
 threshold $x\ge\cdots$ as in the paper.
 
+\subsection{Dudek 2014/2016, short-interval threshold}
+\label{err:dudek-threshold}
+\paragraph{Wiki.}
+Art09 quotes Dudek for a prime in $(x,x+3x^{2/3}]$ when
+$x\ge\exp(\exp(34.32))$.
+\paragraph{Source.}
+Dudek, \emph{An explicit result for primes between cubes},
+Funct.\ Approx.\ Comment.\ Math.\ 55 (2016); arXiv:1401.4233, proves the
+short-interval claim under
+\[
+x^{1/3}>\exp(\exp(33.217))
+\]
+(equivalently $x>\exp(3\exp(33.217))$), as the $x$-form of the main
+cubes theorem $n\ge\exp(\exp(33.217))$.  The wiki value $34.32$ is a
+rounded stand-in for $\ln 3+33.217\approx 34.3156$ and is slightly too
+large.
+\paragraph{Proposed correction.}
+Replace the hypothesis by $x^{1/3}>\exp(\exp(33.217))$ (or the exact
+equivalent $x>\exp(3\exp(33.217))$).
+
+\subsection{Cully--Hugill 2021, short-interval threshold}
+\label{err:cully-hugill-threshold}
+\paragraph{Wiki.}
+Art09 quotes Cully--Hugill for $(x,x+3x^{2/3}]$ when
+$x\ge\exp(\exp(33.99))$.
+\paragraph{Source.}
+Cully--Hugill, \emph{Primes between consecutive powers},
+arXiv:2107.14468, states $x\ge\exp(\exp(33.990))$ for that interval
+(with $m=3$).
+\paragraph{Proposed correction.}
+Replace $33.99$ by $33.990$.
+
 \section{Art06 --- Bounds on $|\zeta(s)|$}
 No high-confidence statement mismatches with the cited papers were found
 among the $\zeta$-only results recorded in Art06 (Lehman, Cheng--Graham,
@@ -202,14 +234,16 @@ The corresponding statements in
 \texttt{SecondarySummary.lean} have been aligned with the source papers
 for items~\ref{err:dn-11181}, \ref{err:pt2021-psi}, \ref{err:jy-1515},
 \ref{err:dkl-loglog}, \ref{err:axler-mandl}, \ref{err:cms-orientation},
-and~\ref{err:trudgian-cor2}.
+\ref{err:trudgian-cor2}, \ref{err:dudek-threshold}, and
+\ref{err:cully-hugill-threshold}.
 Item~\ref{err:dn-11181} also required restoring the factor $2$ in the
 $\pi_2$ main term $\frac{2x^3}{27\log^3 x}$, which Art01 already had
 correctly but which had been dropped in an earlier transcription into Lean.
 Item~\ref{err:axler-mandl} was likewise present as a Lean transcription
 error (copied from the wiki); the formal statements now bound Mandl's
 $B_n$ as in Theorems~1.6--1.7 of Axler.
-Items~\ref{err:cms-orientation} and~\ref{err:trudgian-cor2} were present
-both on Art09 and in Lean; both now follow the papers.
+Items~\ref{err:cms-orientation}, \ref{err:trudgian-cor2},
+\ref{err:dudek-threshold}, and~\ref{err:cully-hugill-threshold} were
+present both on Art09 and in Lean; all now follow the papers.
 
 \end{document}
