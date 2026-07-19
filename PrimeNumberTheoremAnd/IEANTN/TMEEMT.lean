@@ -1478,11 +1478,13 @@ namespace Lehman1970
 @[blueprint
   "art06-lehman-zeta-half"
   (title := "Lehman 1970 bound on \\(|\\zeta(1/2 + it)|\\)")
-  (statement := /-- For $t \geq 1/5$,
-    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$. -/)
+  (statement := /-- For $t \geq 64/(2\pi)$,
+    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$.
+    (Art06 writes $t\ge 1/5$ after a modern computational extension;
+    Lehman's lemma is stated for $t\ge 64/(2\pi)$.) -/)
   (proof := /-- See \cite{Lehman1970}. -/)
   (latexEnv := "theorem")]
-theorem zeta_half_bound : ∀ t : ℝ, t ≥ 1/5 →
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 64 / (2 * π) →
     ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 4 * (t / (2 * π)) ^ (1/4 : ℝ) := by
   sorry
 
@@ -1630,13 +1632,19 @@ namespace Rosser1941
 @[blueprint
   "art06-rosser-N"
   (title := "Rosser 1941 bound on \\(N(T)\\)")
-  (statement := /-- For $T \geq 2$, the zero-counting function $N(T)$
-    satisfies the Riemann--von Mangoldt estimate with parameters
-    $b_1 = 0.137$, $b_2 = 0.443$, $b_3 = 1.588$. -/)
+  (statement := /-- For $T \geq 1467$,
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.137\log T+0.443\log\log T+1.588.
+    \]
+    (Art06 writes $T\ge 2$; Rosser's theorem is for $T\ge 1467$.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{rosser1941}. -/)
   (latexEnv := "theorem")]
-theorem N_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 1.588 := by
+theorem N_bound :
+    ∀ T ≥ (1467 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.137 * log T + 0.443 * log (log T) + 1.588 := by
   sorry
 
 end Rosser1941
@@ -1646,15 +1654,20 @@ namespace Trudgian2014_argument
 @[blueprint
   "art06-trudgian-argument-N"
   (title := "Trudgian 2014 bound on \\(N(T)\\)")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.112$, $b_2 = 0.278$, $b_3 = 2.510$, for $T \geq e$, with
-    an additional error of $1/(5T)$. -/)
+  (statement := /-- Following \cite{Trudgian2014_argument} (J.\ Number Theory 134),
+    for $T \geq e$ one has
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.112\log T+0.278\log\log T+2.510.
+    \]
+    (Art06 appends an extra $1/(5T)$ term; the published bound on $S(T)$ has
+    no such summand.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{Trudgian2014_argument}. -/)
   (latexEnv := "theorem")]
 theorem N_bound :
   ∀ T ≥ exp 1, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
-    0.112 * log T + 0.278 * log (log T) + 2.510 + 1 / (5 * T) := by
+    0.112 * log T + 0.278 * log (log T) + 2.510 := by
   sorry
 
 end Trudgian2014_argument
