@@ -492,11 +492,13 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
 
 @[blueprint
   "thm:faber-kadiri-psi"
-  (title := "Faber-Kadiri $\\psi$ bound")
-  (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
+  (title := "Faber--Kadiri Corollary 1.2")
+  (statement := /-- For $x \geq e^{20}$, we have $|\psi(x) - x| \leq 5.3688\cdot 10^{-4}\, x$.
+    (Following \cite{faber-kadiri}, Corollary~1.2.  The Lean hypothesis uses the
+    integer threshold $485{,}165{,}196=\lceil e^{20}\rceil$.) -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
-    |ψ x - x| ≤ 0.00053699 * x := by
+    |ψ x - x| ≤ 5.3688e-4 * x := by
   have hx_pos : (0 : ℝ) < x := by linarith
   have hmem : (4, (59.18 : ℝ)) ∈ Dusart.Table_3_3 := by simp [Dusart.Table_3_3]
   have hEpsi := Dusart.theorem_3_3 hmem (show x ≥ 2 by linarith)
@@ -509,7 +511,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
   calc (59.18 : ℝ) / (log x) ^ 4
       ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
           (pow_le_pow_left₀ (by linarith) hlog 4)
-      _ ≤ 0.00053699 := by norm_num
+      _ ≤ 5.3688e-4 := by norm_num
 
 end FaberKadiri
 

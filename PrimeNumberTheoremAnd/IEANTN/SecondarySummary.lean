@@ -330,7 +330,7 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801}
+  |\pi(x) - \mathrm{li}(x)| \leq 0.028 x (\log x)^{0.801}
     \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5})
   \]
   for all $x \geq 23$.

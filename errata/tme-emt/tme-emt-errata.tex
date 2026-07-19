@@ -223,7 +223,7 @@ Replace $33.99$ by $33.990$.
 
 \section{Art01 --- Ramaré 2013 (additional)}
 
-\subsection{Ramaré, $0.0067/\log x$ threshold and the $0.01$ line}
+\subsection{Ramaré, original corollary versus 2023 corrigendum}
 \label{err:ramare-thresholds}
 \paragraph{Wiki.}
 Art01, after noting that ``there was an error in this paper which is
@@ -231,23 +231,38 @@ corrected below'', quotes for $x\ge 1\,520\,000$ the error
 $O^*(0.0067/\log x)$, and for $x\ge 468\,000$ the error
 $O^*(0.01/\log x)$.
 \paragraph{Source.}
-Ramaré, \emph{Explicit estimates for the summatory function of
-$\Lambda(n)/n$}, Acta Arith.\ 159 (2013), Corollary: for $x\ge 23$,
-\[
-\widetilde\psi(x)=\log x-\gamma+O^*(0.0067/\log x),
-\]
-with companion bounds $O^*(1.833/\log^2 x)$ ($x>1$) and
-$O^*(1.31/\sqrt x)$ ($1\le x\le 10^{10}$).  There is no $0.01/\log x$
-line in that corollary.  A later corrigendum (Acta Arith., 2023)
-corrects sign errors and a computer-program typo affecting checks for
-$x\le 10\,000$; the wiki's $1\,520\,000$ / $468\,000$ figures do not
-appear in the published corollary itself.
+The original Ramaré corollary (Acta Arith.\ 159 (2013)) stated
+$O^*(0.0067/\log x)$ for $x\ge 23$, with no $0.01/\log x$ line.
+The 2023 corrigendum (sign errors and a computer-program typo for
+checks with $x\le 10\,000$) revises the small-$x$ ranges; the wiki's
+$1\,520\,000$ / $468\,000$ figures match that corrected statement
+rather than the 2013 corollary.
 \paragraph{Proposed correction.}
-Quote the published corollary ($x\ge 23$ for $0.0067/\log x$; omit the
-$0.01$ line), and add a footnote pointing to the 2023 corrigendum for the
-status of the small-$x$ verification.
+Cite the 2023 corrigendum explicitly next to the revised thresholds,
+and mention that the 2013 printed corollary had $x\ge 23$ for
+$0.0067/\log x$.
 
 \section{Art06 --- Bounds on $|\zeta(s)|$}
+
+\subsection{Patel 2022, first term $(3/4)\log t$ versus $\log t$}
+\label{err:patel-log}
+\paragraph{Wiki.}
+Art06 quotes
+\[
+|\zeta(1+it)|\le\min\Bigl(\tfrac34\log t,\;
+\tfrac12\log t+1.93,\;\tfrac15\log t+44.02\Bigr)
+\qquad(t\ge 3).
+\]
+\paragraph{Source.}
+Patel, arXiv:2009.00769, Theorem~1.1:
+\[
+|\zeta(1+it)|\le\min\bigl(\log t,\;
+\tfrac12\log t+1.93,\;\tfrac15\log t+44.02\bigr).
+\]
+The factor $\tfrac34$ belongs to Trudgian's earlier bound, also listed
+on Art06.
+\paragraph{Proposed correction.}
+Replace $\tfrac34\log t$ by $\log t$ in the Patel display.
 
 \subsection{Hiary 2016 constant $0.63$}
 \label{err:hiary-063}
@@ -340,11 +355,10 @@ Items~\ref{err:art08-log-plus-two} and~\ref{err:art08-kadiri-r0} are
 wiki-only: the project's \texttt{riemannZeta.classicalZeroFree} already
 uses $\log|\Im s|$ without the spurious $+2$, matching the papers and
 Fiori--Kadiri--Swaminathan.
-Items~\ref{err:hiary-063} and~\ref{err:hsw-forms} are aligned in Lean in
-a companion pull request (Hiary--Patel--Yang $0.618$; HSW Cor.~1.4 with
-$b_3=8.3675$ for the $+7/8$ form, Cor.~1.2 recorded separately).
-Item~\ref{err:ramare-thresholds} is left as wiki documentation for now:
-the Lean stubs still follow the wiki thresholds pending a careful reading
-of the 2023 corrigendum against the original corollary.
+Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, and~\ref{err:patel-log}
+are aligned in Lean in a companion pull request (Hiary--Patel--Yang
+$0.618$; HSW Cor.~1.4 with $b_3=8.3675$; Patel with $\log t$).
+Item~\ref{err:ramare-thresholds}: Lean follows the wiki / 2023
+corrigendum thresholds; the note above is for wiki citation clarity.
 
 \end{document}
