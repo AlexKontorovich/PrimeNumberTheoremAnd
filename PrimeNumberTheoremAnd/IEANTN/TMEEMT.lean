@@ -614,7 +614,9 @@ end FKS
 
 namespace Ramare2013
 
-blueprint_comment /-- Some results from \cite{ramare2013} -/
+blueprint_comment /-- Some results from \cite{ramare2013}; ranges below follow the
+2023 corrigendum (the 2013 printed corollary had $x\ge 23$ for the
+$0.0067/\log x$ bound). -/
 
 @[blueprint
   "thm:ramare2013-vms-1a"
@@ -627,8 +629,10 @@ theorem von_mangoldt_sum_1a (x : ℝ) (hx : x > 1) :
 
 @[blueprint
   "thm:ramare2013-vms-1b"
-  (title := "Ramare 2013, von Mangoldt sum 1b")
-  (statement := /-- For $x \geq 1520000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1b")
+  (statement := /-- For $x \geq 1.52\cdot 10^6$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$
+    (2023 corrigendum; the 2013 corollary had $x\ge 23$). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
@@ -636,12 +640,25 @@ theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
 
 @[blueprint
   "thm:ramare2013-vms-1c"
-  (title := "Ramare 2013, von Mangoldt sum 1c")
-  (statement := /-- For $x \geq 468000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1c")
+  (statement := /-- For $x \geq 468{,}000$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$
+    (2023 corrigendum). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1c (x : ℝ) (hx : x ≥ 468000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
       0.01 / log x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1e"
+  (title := "Ramare 2023 corrigendum, von Mangoldt sum 1e")
+  (statement := /-- For $x \geq 115$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 1/(4\log x)$
+    (2023 corrigendum). -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1e (x : ℝ) (hx : x ≥ 115) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      1 / (4 * log x) := by sorry
 
 @[blueprint
   "thm:ramare2013-vms-1d"

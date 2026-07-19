@@ -234,13 +234,15 @@ $O^*(0.01/\log x)$.
 The original Ramaré corollary (Acta Arith.\ 159 (2013)) stated
 $O^*(0.0067/\log x)$ for $x\ge 23$, with no $0.01/\log x$ line.
 The 2023 corrigendum (sign errors and a computer-program typo for
-checks with $x\le 10\,000$) revises the small-$x$ ranges; the wiki's
-$1\,520\,000$ / $468\,000$ figures match that corrected statement
-rather than the 2013 corollary.
+checks with $x\le 10\,000$) restates the corollary with
+$x\ge 1.52\cdot 10^6$ for $0.0067/\log x$, $x\ge 468\,000$ for
+$0.01/\log x$, and an additional line $O^*(1/(4\log x))$ for
+$x\ge 115$.  The wiki matches the corrigendum (but omits the
+$x\ge 115$ line).
 \paragraph{Proposed correction.}
-Cite the 2023 corrigendum explicitly next to the revised thresholds,
-and mention that the 2013 printed corollary had $x\ge 23$ for
-$0.0067/\log x$.
+Cite the 2023 corrigendum next to the revised thresholds, mention that
+the 2013 printed corollary had $x\ge 23$ for $0.0067/\log x$, and add
+the $x\ge 115$ bound.
 
 \section{Art06 --- Bounds on $|\zeta(s)|$}
 
@@ -358,7 +360,7 @@ Fiori--Kadiri--Swaminathan.
 Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, and~\ref{err:patel-log}
 are aligned in Lean in a companion pull request (Hiary--Patel--Yang
 $0.618$; HSW Cor.~1.4 with $b_3=8.3675$; Patel with $\log t$).
-Item~\ref{err:ramare-thresholds}: Lean follows the wiki / 2023
-corrigendum thresholds; the note above is for wiki citation clarity.
+Item~\ref{err:ramare-thresholds}: Lean follows the 2023 corrigendum
+thresholds (including the $x\ge 115$ line omitted on the wiki).
 
 \end{document}
