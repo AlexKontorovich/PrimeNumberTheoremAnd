@@ -6,7 +6,7 @@
 \usepackage{xcolor}
 
 \title{Errata for the TME--EMT Wiki\\
-\large(Art01, Art08, Art09)}
+\large(Art01, Art06, Art08, Art09)}
 \author{Compiled during formalization work in\\
 \texttt{AlexKontorovich/PrimeNumberTheoremAnd}}
 \date{19 July 2026}
@@ -221,12 +221,63 @@ arXiv:2107.14468, states $x\ge\exp(\exp(33.990))$ for that interval
 \paragraph{Proposed correction.}
 Replace $33.99$ by $33.990$.
 
+\section{Art01 --- Ramaré 2013 (additional)}
+
+\subsection{Ramaré, $0.0067/\log x$ threshold and the $0.01$ line}
+\label{err:ramare-thresholds}
+\paragraph{Wiki.}
+Art01, after noting that ``there was an error in this paper which is
+corrected below'', quotes for $x\ge 1\,520\,000$ the error
+$O^*(0.0067/\log x)$, and for $x\ge 468\,000$ the error
+$O^*(0.01/\log x)$.
+\paragraph{Source.}
+Ramaré, \emph{Explicit estimates for the summatory function of
+$\Lambda(n)/n$}, Acta Arith.\ 159 (2013), Corollary: for $x\ge 23$,
+\[
+\widetilde\psi(x)=\log x-\gamma+O^*(0.0067/\log x),
+\]
+with companion bounds $O^*(1.833/\log^2 x)$ ($x>1$) and
+$O^*(1.31/\sqrt x)$ ($1\le x\le 10^{10}$).  There is no $0.01/\log x$
+line in that corollary.  A later corrigendum (Acta Arith., 2023)
+corrects sign errors and a computer-program typo affecting checks for
+$x\le 10\,000$; the wiki's $1\,520\,000$ / $468\,000$ figures do not
+appear in the published corollary itself.
+\paragraph{Proposed correction.}
+Quote the published corollary ($x\ge 23$ for $0.0067/\log x$; omit the
+$0.01$ line), and add a footnote pointing to the 2023 corrigendum for the
+status of the small-$x$ verification.
+
 \section{Art06 --- Bounds on $|\zeta(s)|$}
-No high-confidence statement mismatches with the cited papers were found
-among the $\zeta$-only results recorded in Art06 (Lehman, Cheng--Graham,
-Hiary, Backlund, Trudgian, Patel, Ford, Rosser, Hasanalizade--Shen--Wong,
-Ramaré, Delange).  Year labels on some theorem heads (``2001'', ``2012'')
-are citation noise only and do not affect the displayed inequalities.
+
+\subsection{Hiary 2016 constant $0.63$}
+\label{err:hiary-063}
+\paragraph{Wiki.}
+Art06 quotes $|\zeta(1/2+it)|\le 0.63\,t^{1/6}\log t$ for $t\ge 3$,
+citing Hiary~(2016).
+\paragraph{Source.}
+That constant used an incorrect form of the Kusmin--Landau lemma.
+Hiary--Patel--Yang, arXiv:2207.02366, note that the corrected Hiary
+constant is $0.77$, and prove the improved bound with constant
+$\mathbf{0.618}$.
+\paragraph{Proposed correction.}
+Replace $0.63$ by $0.618$ and cite Hiary--Patel--Yang, or else state
+explicitly the corrected Hiary constant $0.77$.
+
+\subsection{Hasanalizade--Shen--Wong $N(T)$ forms}
+\label{err:hsw-forms}
+\paragraph{Wiki / transcription risk.}
+Art06 lists HSW parameters $0.1038$, $0.2573$, $9.3675$ in the shape that
+includes the classical $7/8$ term.
+\paragraph{Source.}
+Hasanalizade--Shen--Wong, arXiv:2107.06506:
+\begin{itemize}[leftmargin=*]
+\item Corollary~1.2 (no $7/8$): constant term $9.3675$, for $T\ge e$;
+\item Corollary~1.4 (bound on $S(T)=N(T)-\mathrm{main}-7/8$): constant
+  terms $8.3675$ and $3.0305$.
+\end{itemize}
+Pairing $9.3675$ with the $+7/8$ form conflates the two corollaries.
+\paragraph{Proposed correction.}
+Display Cor.~1.2 and Cor.~1.4 separately, with the matching main terms.
 
 \section{Art08 --- Zero-free regions and related results}
 
@@ -289,5 +340,11 @@ Items~\ref{err:art08-log-plus-two} and~\ref{err:art08-kadiri-r0} are
 wiki-only: the project's \texttt{riemannZeta.classicalZeroFree} already
 uses $\log|\Im s|$ without the spurious $+2$, matching the papers and
 Fiori--Kadiri--Swaminathan.
+Items~\ref{err:hiary-063} and~\ref{err:hsw-forms} are aligned in Lean in
+a companion pull request (Hiary--Patel--Yang $0.618$; HSW Cor.~1.4 with
+$b_3=8.3675$ for the $+7/8$ form, Cor.~1.2 recorded separately).
+Item~\ref{err:ramare-thresholds} is left as wiki documentation for now:
+the Lean stubs still follow the wiki thresholds pending a careful reading
+of the 2023 corrigendum against the original corollary.
 
 \end{document}
