@@ -4023,8 +4023,7 @@ theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : 
   have h_summable : ∀ s : ℝ, 1 < s → Summable (fun n ↦ (if n % q = a then Λ n else 0) / n ^ s) := by
     intro s hs
     refine .of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ ?_) (summable_vonMangoldt_div_rpow hs)
-    · split_ifs <;> first | positivity | exact div_nonneg (not_not.mp fun h ↦ by
-        have := Nat.Prime.pos (by contrapose! h; aesop : n.Prime); aesop) (rpow_nonneg (Nat.cast_nonneg _) _)
+    · split_ifs <;> positivity
     · split_ifs <;> norm_num; exact div_nonneg vonMangoldt_nonneg (by positivity)
   obtain ⟨G, hG₁, hG₂⟩ := WeakPNT_AP_prelim hq ha ha'
   convert WienerIkeharaTheorem'' _ _ _ _ using 1
