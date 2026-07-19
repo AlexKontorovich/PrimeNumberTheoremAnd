@@ -820,23 +820,23 @@ theorem theorem_b (x : ℝ) (hx : x ≥ 110117910) :
   "thm:dn-pi2-lower"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ lower bound")
   (statement := /-- For $x \geq 1{,}091{,}239$,
-  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right)$. -/)
+  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right)$. -/)
   (latexEnv := "theorem")]
 theorem theorem_c (x : ℝ) (hx : x ≥ 1091239) :
     -(1069 * x ^ 3 / (648 * (log x) ^ 4)) ≤
       pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) := by sorry
 
 @[blueprint
   "thm:dn-pi2-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ upper bound")
   (statement := /-- For $x \geq 60{,}173$,
-  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right) \leq \frac{11181\, x^3}{648\log^4 x}$. -/)
+  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right) \leq \frac{1181\, x^3}{648\log^4 x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x ≥ 60173) :
     pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) ≤
-      11181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) ≤
+      1181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
 
 @[blueprint
   "thm:dn-pi3-upper"
@@ -857,8 +857,7 @@ theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
 @[blueprint
   "thm:dn-pi5-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_5$ upper bound")
-  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$.
-  (Note: the wiki page lists $x^5$ here, but the consistent pattern $x^{r+1}$ and the general bound require $x^6$.) -/)
+  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_g (x : ℝ) (hx : x ≥ 44) :
     pi_r 5 x ≤ 0.226 * x ^ 6 / log x := by sorry

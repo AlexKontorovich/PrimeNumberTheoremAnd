@@ -1,0 +1,151 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\title{Errata for the TME--EMT Wiki\\
+\large(Art01 and related pages)}
+\author{Compiled during formalization work in\\
+\texttt{AlexKontorovich/PrimeNumberTheoremAnd}}
+\date{19 July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note collects discrepancies found while matching statements on the
+\href{https://archimede.pages.math.cnrs.fr/tme-emt-wiki/index.html}{TME--EMT wiki}
+against the cited source papers, in the course of formalizing those
+statements in Lean.  Items are grouped by wiki page.  Only high-confidence
+mismatches are listed; each entry gives the wiki text, the source, and a
+proposed correction.
+\end{abstract}
+
+\section*{How to read this note}
+Citations of the form ``Art01'' refer to
+\href{https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art01.html}{Art01.html}
+(``Explicit bounds on primes'').  Page numbers for papers are from the
+versions available at the URLs recorded in the wiki bibliography.
+
+\section{Art01 --- Explicit bounds on primes}
+
+\subsection{Del\'eglise--Nicolas 2019, $\pi_2$ upper error constant}
+\label{err:dn-11181}
+\paragraph{Wiki.}
+Art01 quotes, for $x\ge 60173$,
+\[
+\pi_2(x)-\Bigl(\tfrac{x^3}{3\log x}+\tfrac{x^3}{9\log^2 x}+\tfrac{2x^3}{27\log^3 x}\Bigr)
+\le \tfrac{11181\,x^3}{648\log^4 x}.
+\]
+\paragraph{Source.}
+Del\'eglise--Nicolas, \emph{The Landau function and the Riemann hypothesis},
+arXiv:1907.07664, Corollary~2.7, display~(2.21), uses the constant
+\textbf{1181} (not 11181).  The same constant appears in the simplification
+leading to~(2.22), as the coefficient $1181/216$.
+\paragraph{Proposed correction.}
+Replace $11181$ by $1181$.
+
+\subsection{Platt--Trudgian 2021, $\psi$ versus $\pi$}
+\label{err:pt2021-psi}
+\paragraph{Wiki.}
+Art01 attributes to Platt--Trudgian~(2021) the bound
+\[
+\Bigl|\tfrac{\psi(x)-x}{x}\Bigr|
+\le 235\,(\log x)^{0.52}\exp\Bigl(-\sqrt{\tfrac{\log x}{5.573412}}\Bigr)
+\qquad(x\ge e^{2000}).
+\]
+\paragraph{Source.}
+Platt--Trudgian, \emph{The Riemann hypothesis is true up to}~$3\cdot 10^{12}$,
+Table~1 at $X=2000$ and Theorem~1 give a $\psi$-bound of the shape
+\[
+\Bigl|\tfrac{\psi(x)-x}{x}\Bigr|
+\le 411.4\,\Bigl(\tfrac{\log x}{R}\Bigr)^{1.52}
+\exp\bigl(-1.89\sqrt{\log x/R}\bigr),\qquad R=5.573412.
+\]
+The constants $235$ and exponent $0.52$ belong to the companion $\pi$-bound
+(Corollary~2), not to the $\psi$-bound.
+\paragraph{Proposed correction.}
+Quote the $\psi$-bound from Table~1 / Theorem~1, or explicitly relabel the
+displayed estimate as a $\pi$-bound and cite Corollary~2.
+
+\subsection{Johnston--Yang 2023, exponent on $\log x$}
+\label{err:jy-1515}
+\paragraph{Wiki.}
+Art01 quotes
+\[
+\Bigl|\tfrac{\psi(x)-x}{x}\Bigr|
+\le 9.39\,(\log x)^{1.51}\exp\bigl(-0.8274\sqrt{\log x}\bigr)
+\qquad(x\ge 2).
+\]
+\paragraph{Source.}
+Johnston--Yang, Theorem~1.1, uses the exponent $\mathbf{1.515}$.
+\paragraph{Proposed correction.}
+Replace $1.51$ by $1.515$.
+
+\subsection{De~Koninck--Letendre 2020, missing $k$ in $\log\log k$}
+\label{err:dkl-loglog}
+\paragraph{Wiki.}
+Art01, \S4, writes
+\[
+\sum_{i\le k}\log\log p_i
+\ge k\Biggl(\log\log k+\frac{\log\log - 3/2}{\log k}\Biggr)
+\qquad(k\ge 6),
+\]
+with a bare $\log\log$ in the numerator.
+\paragraph{Source.}
+De~Koninck--Letendre, arXiv:1812.09950, Lemma~4.8~(4.21):
+\[
+\sum_{i\le k}\log\log p_i
+\ge k\Biggl(\log\log k+\frac{\log\log k - 3/2}{\log k}\Biggr)
+\qquad(k\ge 6).
+\]
+\paragraph{Proposed correction.}
+Replace the bare $\log\log$ by $\log\log k$.
+
+\subsection{B\"uthe 2016, omitted $\pi^*$ bound}
+\label{err:buthe-pistar}
+\paragraph{Wiki.}
+Art01, \S1, under B\"uthe~(2016), lists RH-conditional bounds for
+$\psi$, $\vartheta$, and $\pi$ only.
+\paragraph{Source.}
+B\"uthe also states
+\[
+\bigl|\pi^*(x)-\mathrm{li}(x)\bigr|
+\le \tfrac{\sqrt{x}}{8\pi}\log x
+\qquad(x>59),
+\]
+under the same height hypothesis.
+\paragraph{Proposed correction.}
+Add the $\pi^*$ bound to the displayed list.
+
+\subsection{Cosmetic / typesetting (lower priority)}
+\begin{itemize}[leftmargin=*]
+\item Art01 opening paragraph: ``van Mangold'' $\to$ ``von Mangoldt'';
+  ``direction verifications'' $\to$ ``direct verifications''.
+\item Art01, Ramaré~(2013) second display: unmatched parenthesis in the
+  $O^*$ term.
+\item Art01, Cipolla expansion: mixes $\ln$ and $\log$.
+\item Art01, Kadiri~(2008) table (\S6): the entry under
+  $\epsilon=1$, $q_0=10^{25}$ is rendered as ``$.5116$''; almost certainly
+  ``$4.5116$''.
+\end{itemize}
+
+\section{Art06 --- Bounds on $|\zeta(s)|$}
+No high-confidence statement mismatches with the cited papers were found
+among the $\zeta$-only results recorded in Art06 (Lehman, Cheng--Graham,
+Hiary, Backlund, Trudgian, Patel, Ford, Rosser, Hasanalizade--Shen--Wong,
+Ramaré, Delange).  Year labels on some theorem heads (``2001'', ``2012'')
+are citation noise only and do not affect the displayed inequalities.
+
+\section*{Status in the Lean formalization}
+The corresponding statements in
+\texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} have been aligned with the
+source papers for items~\ref{err:dn-11181}, \ref{err:pt2021-psi},
+\ref{err:jy-1515}, and~\ref{err:dkl-loglog}.  Item~\ref{err:dn-11181} also
+required restoring the factor $2$ in the $\pi_2$ main term
+$\frac{2x^3}{27\log^3 x}$, which Art01 already had correctly but which had
+been dropped in an earlier transcription into Lean.
+
+\end{document}
