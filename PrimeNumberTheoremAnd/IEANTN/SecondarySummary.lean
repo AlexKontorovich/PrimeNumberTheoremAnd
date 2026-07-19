@@ -202,7 +202,7 @@ noncomputable def eps_0 (x : ℝ) : ℝ :=
   For $x \geq 149$ one has $|\theta(x) - x| \leq x \epsilon_{0}(x)$.-/)
   (latexEnv := "theorem")]
 theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
-    Eθ.numericalBound x eps_0 := by sorry
+    Eθ x ≤ eps_0 x := by sorry
 
 @[blueprint
   "trudgian:theorem 1-psi"
@@ -212,7 +212,7 @@ theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
-    Eψ.numericalBound x eps_0 := by sorry
+    Eψ x ≤ eps_0 x := by sorry
 
 
 @[blueprint
@@ -226,7 +226,7 @@ theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
   -/)
   (latexEnv := "lemma")]
 theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
-    Eθ.numericalBound x (fun x ↦ 0.0045 / log x ^ 2) := by sorry
+    Eθ x ≤ 0.0045 / (log x) ^ 2 := by sorry
 
 
 @[blueprint
@@ -249,12 +249,12 @@ theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
 @[blueprint
   "thm:trudgian2016"
   (title := "Trudgian Corollary 2")
-  (statement := /-- If $x > 2,898,242$, then there
+  (statement := /-- If $x \geq 2{,}898{,}239$, then there
   is a prime in the interval
   \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2898239) :
     HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
 
 
@@ -330,7 +330,7 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801}
+  |\pi(x) - \mathrm{li}(x)| \leq 0.028 x (\log x)^{0.801}
     \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5})
   \]
   for all $x \geq 23$.

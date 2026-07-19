@@ -492,11 +492,13 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
 
 @[blueprint
   "thm:faber-kadiri-psi"
-  (title := "Faber-Kadiri $\\psi$ bound")
-  (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
+  (title := "Faber--Kadiri Corollary 1.2")
+  (statement := /-- For $x \geq e^{20}$, we have $|\psi(x) - x| \leq 5.3688\cdot 10^{-4}\, x$.
+    (Following \cite{faber-kadiri}, Corollary~1.2.  The Lean hypothesis uses the
+    integer threshold $485{,}165{,}196=\lceil e^{20}\rceil$.) -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
-    |ψ x - x| ≤ 0.00053699 * x := by
+    |ψ x - x| ≤ 5.3688e-4 * x := by
   have hx_pos : (0 : ℝ) < x := by linarith
   have hmem : (4, (59.18 : ℝ)) ∈ Dusart.Table_3_3 := by simp [Dusart.Table_3_3]
   have hEpsi := Dusart.theorem_3_3 hmem (show x ≥ 2 by linarith)
@@ -509,7 +511,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
   calc (59.18 : ℝ) / (log x) ^ 4
       ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
           (pow_le_pow_left₀ (by linarith) hlog 4)
-      _ ≤ 0.00053699 := by norm_num
+      _ ≤ 5.3688e-4 := by norm_num
 
 end FaberKadiri
 
@@ -612,7 +614,9 @@ end FKS
 
 namespace Ramare2013
 
-blueprint_comment /-- Some results from \cite{ramare2013} -/
+blueprint_comment /-- Some results from \cite{ramare2013}; ranges below follow the
+2023 corrigendum (the 2013 printed corollary had $x\ge 23$ for the
+$0.0067/\log x$ bound). -/
 
 @[blueprint
   "thm:ramare2013-vms-1a"
@@ -625,8 +629,10 @@ theorem von_mangoldt_sum_1a (x : ℝ) (hx : x > 1) :
 
 @[blueprint
   "thm:ramare2013-vms-1b"
-  (title := "Ramare 2013, von Mangoldt sum 1b")
-  (statement := /-- For $x \geq 1520000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1b")
+  (statement := /-- For $x \geq 1.52\cdot 10^6$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$
+    (2023 corrigendum; the 2013 corollary had $x\ge 23$). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
@@ -634,12 +640,25 @@ theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
 
 @[blueprint
   "thm:ramare2013-vms-1c"
-  (title := "Ramare 2013, von Mangoldt sum 1c")
-  (statement := /-- For $x \geq 468000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1c")
+  (statement := /-- For $x \geq 468{,}000$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$
+    (2023 corrigendum). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1c (x : ℝ) (hx : x ≥ 468000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
       0.01 / log x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1e"
+  (title := "Ramare 2023 corrigendum, von Mangoldt sum 1e")
+  (statement := /-- For $x \geq 115$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 1/(4\log x)$
+    (2023 corrigendum). -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1e (x : ℝ) (hx : x ≥ 115) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      1 / (4 * log x) := by sorry
 
 @[blueprint
   "thm:ramare2013-vms-1d"
@@ -820,23 +839,23 @@ theorem theorem_b (x : ℝ) (hx : x ≥ 110117910) :
   "thm:dn-pi2-lower"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ lower bound")
   (statement := /-- For $x \geq 1{,}091{,}239$,
-  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right)$. -/)
+  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right)$. -/)
   (latexEnv := "theorem")]
 theorem theorem_c (x : ℝ) (hx : x ≥ 1091239) :
     -(1069 * x ^ 3 / (648 * (log x) ^ 4)) ≤
       pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) := by sorry
 
 @[blueprint
   "thm:dn-pi2-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ upper bound")
   (statement := /-- For $x \geq 60{,}173$,
-  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right) \leq \frac{11181\, x^3}{648\log^4 x}$. -/)
+  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right) \leq \frac{1181\, x^3}{648\log^4 x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x ≥ 60173) :
     pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) ≤
-      11181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) ≤
+      1181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
 
 @[blueprint
   "thm:dn-pi3-upper"
@@ -857,8 +876,7 @@ theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
 @[blueprint
   "thm:dn-pi5-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_5$ upper bound")
-  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$.
-  (Note: the wiki page lists $x^5$ here, but the consistent pattern $x^{r+1}$ and the general bound require $x^6$.) -/)
+  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_g (x : ℝ) (hx : x ≥ 44) :
     pi_r 5 x ≤ 0.226 * x ^ 6 / log x := by sorry
@@ -1153,31 +1171,39 @@ end CMS
 
 namespace Axler
 
-blueprint_comment /-- Some results from \cite{Axler} -/
+blueprint_comment /-- Some results from \cite{Axler}.
+Mandl's quantity is $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$;
+Theorems~1.6 and~1.7 of \cite{Axler} bound $B_n$, not $\sum p_k$. -/
+
+/-- Mandl's quantity \(B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k\). -/
+noncomputable def mandlB (n : ℕ) : ℝ :=
+  (n : ℝ) * nth_prime' n / 2 - ∑ i ∈ Finset.Icc 1 n, (nth_prime' i : ℝ)
 
 @[blueprint
-  "thm:axler2019-sum-prime-lower"
-  (title := "Axler 2019, lower bound for sum of first k primes")
-  (statement := /-- For $k \geq 6{,}309{,}751$, we have
-  $\sum_{i \leq k} p_i \geq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 2.9)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-lower"
+  (title := "Axler 2019, lower bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 6{,}309{,}751$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n > \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 2.9)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_lower (k : ℕ) (hk : k ≥ 6309751) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≥
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 2.9) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_lower (n : ℕ) (hn : n ≥ 6309751) :
+    mandlB n >
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 2.9) / (4 * (log n) ^ 2) := by sorry
 
 @[blueprint
-  "thm:axler2019-sum-prime-upper"
-  (title := "Axler 2019, upper bound for sum of first k primes")
-  (statement := /-- For $k \geq 256{,}376$, we have
-  $\sum_{i \leq k} p_i \leq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 4.42)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-upper"
+  (title := "Axler 2019, upper bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 256{,}376$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n < \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 4.42)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_upper (k : ℕ) (hk : k ≥ 256376) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≤
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 4.42) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_upper (n : ℕ) (hn : n ≥ 256376) :
+    mandlB n <
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 4.42) / (4 * (log n) ^ 2) := by sorry
 
 end Axler
 
@@ -1329,11 +1355,12 @@ namespace Dudek2014
 @[blueprint
   "thm:dudek2014"
   (title := "Dudek 2014")
-  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
+  (statement := /-- If $x^{1/3} > \exp(\exp(33.217))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
+  (Equivalently $x > \exp(3\exp(33.217))$; see \cite{Dudek}.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ^ ((1 : ℝ) / 3) > exp (exp 33.217)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end Dudek2014
@@ -1343,11 +1370,11 @@ namespace CullyHugill2021
 @[blueprint
   "thm:cully-hugill2021"
   (title := "Cully-Hugill 2021")
-  (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
+  (statement := /-- If $x \geq \exp(\exp(33.990))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ exp (exp 33.990)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end CullyHugill2021
@@ -1386,11 +1413,11 @@ namespace CarneiroEtAl2019RH
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
+  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+    HasPrimeInInterval x ((22 / 25) * sqrt x * log x) := by sorry
 
 end CarneiroEtAl2019RH
 
