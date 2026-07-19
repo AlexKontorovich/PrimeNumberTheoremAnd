@@ -1593,14 +1593,16 @@ namespace Patel2022
   "art06-patel-zeta-1-plus-it"
   (title := "Patel 2022 bound on \\(|\\zeta(1 + it)|\\)")
   (statement := /-- For $t \geq 3$,
-    $|\zeta(1 + it)| \leq \min\!\left(\tfrac{3}{4}\log t,\;
+    $|\zeta(1 + it)| \leq \min\!\left(\log t,\;
       \tfrac{1}{2}\log t + 1.93,\;
-      \tfrac{1}{5}\log t + 44.02\right)$. -/)
-  (proof := /-- See \cite{Patel2022}. -/)
+      \tfrac{1}{5}\log t + 44.02\right)$.
+    (Art06 writes $\tfrac34\log t$ in the first slot, conflating Trudgian's
+    earlier bound; \cite{Patel2022}, Theorem~1.1, has $\log t$.) -/)
+  (proof := /-- See \cite{Patel2022}, Theorem~1.1. -/)
   (latexEnv := "theorem")]
 theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
     ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤
-      min ((3/4 : ℝ) * log t) (min ((1/2 : ℝ) * log t + 1.93)
+      min (log t) (min ((1/2 : ℝ) * log t + 1.93)
                                     ((1/5 : ℝ) * log t + 44.02)) := by
   sorry
 
