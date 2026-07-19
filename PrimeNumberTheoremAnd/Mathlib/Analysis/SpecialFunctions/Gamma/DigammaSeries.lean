@@ -597,7 +597,7 @@ theorem continuousOn_digamma_of_re_ge_norm_le {a R : ℝ} (ha : 0 < a) (ha1 : a 
           linarith [ha, hza, hm_nonneg]
         rw [hzero] at hzpos
         norm_num at hzpos
-      simpa [one_div] using continuousOn_const.sub hden
+      simpa only [one_div] using continuousOn_const.fun_sub hden
     · intro m z hz
       have h := norm_inv_add_one_sub_inv_le ha ha1 hz.1 hz.2 m
       simpa [one_div, add_comm] using h

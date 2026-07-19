@@ -5061,7 +5061,8 @@ lemma proposition_dadaro_b_tendsto_zero_atTop {s : ℂ} (hsigma : 0 < s.re) : Te
           rw [norm_div, norm_pow]; norm_num
         have h2 : ‖x ^ 3 / 6 - (x - Complex.sin x)‖ ≤ ‖x‖ ^ 4 * (5 / 96) := by
           have heq : x ^ 3 / 6 - (x - Complex.sin x) = Complex.sin x - (x - x ^ 3 / 6) := by ring
-          exact heq ▸ hbound
+          rw [heq]
+          exact hbound.trans (by nlinarith [pow_nonneg (norm_nonneg x) 4, hxn])
         linarith
       linarith [htri]
     have hsqueeze : Tendsto (fun x : ℂ ↦ ‖x‖ / 6 + ‖x‖ ^ 2 * (5 / 96)) (𝓝[≠] 0) (𝓝 0) := by
@@ -5072,7 +5073,7 @@ lemma proposition_dadaro_b_tendsto_zero_atTop {s : ℂ} (hsigma : 0 < s.re) : Te
         exact tendsto_norm_zero
       · apply Filter.Tendsto.mul_const
         exact tendsto_nhdsWithin_of_tendsto_nhds (by
-          simpa [norm_zero] using (continuous_norm.pow 2).tendsto (0 : ℂ))
+          simpa using tendsto_norm_zero.pow 2)
     apply squeeze_zero_norm' _ hsqueeze
     rw [eventually_nhdsWithin_iff]
     apply eventually_of_mem (Metric.ball_mem_nhds 0 one_pos)

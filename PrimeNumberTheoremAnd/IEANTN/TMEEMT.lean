@@ -528,11 +528,11 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ exp 5000) :
 @[blueprint
   "thm:jy-psi-2"
   (title := "Johnston-Yang $\\psi$ bound 2")
-  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
+  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.515} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
-  have h_exp : (log x) ^ (0.01 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
+    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.515 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
+  have h_exp : (log x) ^ (0.015 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
     by_cases h₂ : log x ≤ 1 <;> by_cases h₃ : log x ≥ 1
     · norm_num [show log x = 1 by grind] at *
     · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
@@ -580,10 +580,13 @@ blueprint_comment /-- Some results from \cite{PT2021}-/
 @[blueprint
   "thm:pt2021-psi"
   (title := "Platt-Trudgian 2021 $\\psi$ bound")
-  (statement := /-- For $x \geq e^{2000}$, we have $|\psi(x) - x| \leq x \cdot 235\, (\log x)^{0.52} \exp\!\left(-\sqrt{\frac{\log x}{5.573412}}\right)$. -/)
+  (statement := /-- For $x \geq e^{2000}$, we have
+  $|\psi(x) - x| \leq x \cdot 411.4\, (\log x / R)^{1.52}
+  \exp\!\left(-1.89\sqrt{\frac{\log x}{R}}\right)$ with $R = 5.573412$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ exp 2000) :
-    |ψ x - x| ≤ x * 235 * (log x) ^ (0.52 : ℝ) * exp (-sqrt (log x / 5.573412)) := by sorry
+    |ψ x - x| ≤ x * 411.4 * (log x / 5.573412) ^ (1.52 : ℝ) *
+      exp (-1.89 * sqrt (log x / 5.573412)) := by sorry
 
 end PT
 
@@ -1316,7 +1319,7 @@ namespace Dusart
 def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
 
 def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
-    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
+    HasPrimeInInterval x (x / (5000 * (log x) ^ 2)) :=
   _root_.Dusart.corollary_5_5 hx
 
 end Dusart
@@ -1448,3 +1451,277 @@ theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
       x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
 
 end RamareSaouter2003
+
+blueprint_comment /--
+\subsection{Bounds on the Riemann zeta function}
+
+The results below are taken from
+\url{https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art06.html}.
+Results in the source involving Dirichlet $L$-functions or general
+$L$-functions are omitted here; only the results stated for the Riemann
+zeta function $\zeta(s)$ are recorded.
+-/
+
+blueprint_comment /--
+\paragraph{Approximating $\zeta(s)$ in the critical strip.}
+\cite{Kadiri2013} gives an explicit approximation of the form
+\[
+  \zeta(s) = \sum_{n < c t} \frac{1}{n^s} + O^*(\ldots),
+\]
+valid when $t > t_0 > 0$, $c > 1/(2\pi)$, and $s = \sigma + i t$ with
+$\sigma \geq 1/2$. The full explicit error term from the paper has not
+yet been transcribed here; a formal stub is left for later.
+-/
+
+namespace Lehman1970
+
+@[blueprint
+  "art06-lehman-zeta-half"
+  (title := "Lehman 1970 bound on \\(|\\zeta(1/2 + it)|\\)")
+  (statement := /-- For $t \geq 1/5$,
+    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$. -/)
+  (proof := /-- See \cite{Lehman1970}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 1/5 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 4 * (t / (2 * π)) ^ (1/4 : ℝ) := by
+  sorry
+
+end Lehman1970
+
+namespace ChengGraham2004
+
+@[blueprint
+  "art06-cheng-graham-zeta-half-small"
+  (title := "Cheng--Graham 2004 bound on \\(|\\zeta(1/2 + it)|\\), small \\(t\\)")
+  (statement := /-- For $0 \leq t \leq e$,
+    $|\zeta(1/2 + it)| \leq 2.657$. -/)
+  (proof := /-- See \cite{ChengGraham2004}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound_small : ∀ t : ℝ, 0 ≤ t → t ≤ exp 1 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 2.657 := by
+  sorry
+
+@[blueprint
+  "art06-cheng-graham-zeta-half-large"
+  (title := "Cheng--Graham 2004 bound on \\(|\\zeta(1/2 + it)|\\), large \\(t\\)")
+  (statement := /-- For $t \geq e$,
+    $|\zeta(1/2 + it)| \leq 3\, t^{1/6}\, \log t$. -/)
+  (proof := /-- See \cite{ChengGraham2004}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound_large : ∀ t : ℝ, t ≥ exp 1 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 3 * t ^ (1/6 : ℝ) * log t := by
+  sorry
+
+end ChengGraham2004
+
+namespace Hiary2016
+
+@[blueprint
+  "art06-hiary-zeta-half"
+  (title := "Hiary 2016 bound on \\(|\\zeta(1/2 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1/2 + it)| \leq 0.63\, t^{1/6}\, \log t$. -/)
+  (proof := /-- See \cite{Hiary2016}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.63 * t ^ (1/6 : ℝ) * log t := by
+  sorry
+
+end Hiary2016
+
+namespace Backlund1918
+
+@[blueprint
+  "art06-backlund-strip-1"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(\\sigma \\geq 1\\)")
+  (statement := /-- For $t \geq 50$ and $\sigma \geq 1$,
+    $|\zeta(\sigma + it)| \leq \log t - 0.048$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_1 : ∀ σ t : ℝ, t ≥ 50 → σ ≥ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤ log t - 0.048 := by
+  sorry
+
+@[blueprint
+  "art06-backlund-strip-2"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(0 \\leq \\sigma \\leq 1\\)")
+  (statement := /-- For $t \geq 50$ and $0 \leq \sigma \leq 1$,
+    $|\zeta(\sigma + it)| \leq
+      \dfrac{t^2}{t^2 - 4} \left(\dfrac{t}{2\pi}\right)^{(1 - \sigma)/2} \log t$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_2 : ∀ σ t : ℝ, t ≥ 50 → 0 ≤ σ → σ ≤ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      t^2 / (t^2 - 4) * (t / (2 * π)) ^ ((1 - σ) / 2 : ℝ) * log t := by
+  sorry
+
+@[blueprint
+  "art06-backlund-strip-3"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(-1/2 \\leq \\sigma \\leq 0\\)")
+  (statement := /-- For $t \geq 50$ and $-1/2 \leq \sigma \leq 0$,
+    $|\zeta(\sigma + it)| \leq \left(\dfrac{t}{2\pi}\right)^{1/2 - \sigma} \log t$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_3 : ∀ σ t : ℝ, t ≥ 50 → -1/2 ≤ σ → σ ≤ 0 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      (t / (2 * π)) ^ (1/2 - σ : ℝ) * log t := by
+  sorry
+
+end Backlund1918
+
+namespace Trudgian2014_zeta
+
+@[blueprint
+  "art06-trudgian-zeta-1-plus-it"
+  (title := "Trudgian 2014 bound on \\(|\\zeta(1 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1 + it)| \leq \tfrac{3}{4}\, \log t$. -/)
+  (proof := /-- See \cite{Trudgian2014_zeta}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤ (3/4 : ℝ) * log t := by
+  sorry
+
+end Trudgian2014_zeta
+
+namespace Patel2022
+
+@[blueprint
+  "art06-patel-zeta-1-plus-it"
+  (title := "Patel 2022 bound on \\(|\\zeta(1 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1 + it)| \leq \min\!\left(\tfrac{3}{4}\log t,\;
+      \tfrac{1}{2}\log t + 1.93,\;
+      \tfrac{1}{5}\log t + 44.02\right)$. -/)
+  (proof := /-- See \cite{Patel2022}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤
+      min ((3/4 : ℝ) * log t) (min ((1/2 : ℝ) * log t + 1.93)
+                                    ((1/5 : ℝ) * log t + 44.02)) := by
+  sorry
+
+end Patel2022
+
+namespace Ford2002
+
+@[blueprint
+  "art06-ford-zeta-strip"
+  (title := "Ford 2002 bound on \\(|\\zeta(\\sigma + it)|\\)")
+  (statement := /-- For $t \geq 3$ and $1/2 \leq \sigma \leq 1$,
+    $|\zeta(\sigma + it)| \leq
+      76.2\, t^{4.45(1 - \sigma)^{3/2}}\, (\log t)^{2/3}$. -/)
+  (proof := /-- See \cite{Ford2002}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound : ∀ σ t : ℝ, t ≥ 3 → 1/2 ≤ σ → σ ≤ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      76.2 * t ^ (4.45 * (1 - σ) ^ (3/2 : ℝ) : ℝ) * (log t) ^ (2/3 : ℝ) := by
+  sorry
+
+end Ford2002
+
+namespace Rosser1941
+
+@[blueprint
+  "art06-rosser-N"
+  (title := "Rosser 1941 bound on \\(N(T)\\)")
+  (statement := /-- For $T \geq 2$, the zero-counting function $N(T)$
+    satisfies the Riemann--von Mangoldt estimate with parameters
+    $b_1 = 0.137$, $b_2 = 0.443$, $b_3 = 1.588$. -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{rosser1941}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 1.588 := by
+  sorry
+
+end Rosser1941
+
+namespace Trudgian2014_argument
+
+@[blueprint
+  "art06-trudgian-argument-N"
+  (title := "Trudgian 2014 bound on \\(N(T)\\)")
+  (statement := /-- One has the Riemann--von Mangoldt estimate with
+    parameters $b_1 = 0.112$, $b_2 = 0.278$, $b_3 = 2.510$, for $T \geq e$, with
+    an additional error of $1/(5T)$. -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{Trudgian2014_argument}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound :
+  ∀ T ≥ exp 1, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+    0.112 * log T + 0.278 * log (log T) + 2.510 + 1 / (5 * T) := by
+  sorry
+
+end Trudgian2014_argument
+
+namespace HSW2022
+
+@[blueprint
+  "art06-hsw-N-v1"
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), first form")
+  (statement := /-- One has the Riemann--von Mangoldt estimate with
+    parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 9.3675$. -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{HSW2022}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 :=
+  HSW.main_theorem
+
+@[blueprint
+  "art06-hsw-N-v2"
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), second form")
+  (statement := /-- One has the Riemann--von Mangoldt estimate with
+    parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{HSW2022}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound_v2 : riemannZeta.Riemann_vonMangoldt_bound 0.1095 0.2042 3.0305 := by
+  sorry
+
+end HSW2022
+
+blueprint_comment /--
+\paragraph{$L^2$-averages of $|\zeta(\sigma + it)|$.}
+\cite{Kadiri2013} gives an $L^2$ bound for $\int_H^T |\zeta(\sigma + i t)|^2 dt$
+in terms of $\zeta(2 \sigma)$ plus an explicit function $E_1(\sigma, H)$,
+valid for $0.5208 < \sigma < 0.9723$, $10^3 \leq H \leq 10^{10}$, and
+$T \geq H$; \cite{Helfgott2019} records further complex-integral tail
+bounds for $\zeta$ on vertical lines.  Formal statements to be filled in
+once the explicit form of $E_1$ (and the Helfgott expressions) has been
+transcribed from the sources.
+-/
+
+namespace Ramare2016
+
+@[blueprint
+  "art06-ramare-real-line"
+  (title := "Ramar\\'e 2016 bound on \\(|\\zeta(\\sigma + it)|\\) for \\(\\sigma > 1\\)")
+  (statement := /-- For $\sigma > 1$ and any real $t$,
+    $|\zeta(\sigma + it)| \leq \dfrac{e^{\gamma(\sigma - 1)}}{\sigma - 1}$,
+    where $\gamma$ is the Euler--Mascheroni constant. -/)
+  (proof := /-- See \cite{ramare2016}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_bound : ∀ σ t : ℝ, σ > 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      Real.exp (Real.eulerMascheroniConstant * (σ - 1)) / (σ - 1) := by
+  sorry
+
+end Ramare2016
+
+namespace Delange1987
+
+@[blueprint
+  "art06-delange"
+  (title := "Delange 1987 bound on \\(-\\Re(\\zeta'/\\zeta)(\\sigma + it)\\)")
+  (statement := /-- For $\sigma > 1$ and any real $t$,
+    $- \mathrm{Re}\!\left(\dfrac{\zeta'}{\zeta}\right)\!(\sigma + it)
+      \leq \dfrac{1}{\sigma - 1} - \dfrac{1}{2\sigma^2}$. -/)
+  (proof := /-- See \cite{Delange1987}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_log_deriv_bound : ∀ σ t : ℝ, σ > 1 →
+    -(deriv riemannZeta ((σ : ℂ) + t * Complex.I) /
+       riemannZeta ((σ : ℂ) + t * Complex.I)).re ≤
+      1 / (σ - 1) - 1 / (2 * σ^2) := by
+  sorry
+
+end Delange1987
