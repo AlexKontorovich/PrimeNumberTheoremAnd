@@ -1393,11 +1393,11 @@ namespace CarneiroEtAl2019RH
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
+  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+    HasPrimeInInterval x ((22 / 25) * sqrt x * log x) := by sorry
 
 end CarneiroEtAl2019RH
 

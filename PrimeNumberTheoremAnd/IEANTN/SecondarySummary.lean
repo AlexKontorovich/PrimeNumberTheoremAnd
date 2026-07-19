@@ -249,12 +249,12 @@ theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
 @[blueprint
   "thm:trudgian2016"
   (title := "Trudgian Corollary 2")
-  (statement := /-- If $x > 2,898,242$, then there
+  (statement := /-- If $x \geq 2{,}898{,}239$, then there
   is a prime in the interval
   \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2898239) :
     HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
 
 

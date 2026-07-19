@@ -156,6 +156,39 @@ quote Theorems~1.8--1.9 for the prime-sum bounds.
   ``$4.5116$''.
 \end{itemize}
 
+\section{Art09 --- Short intervals containing primes}
+
+\subsection{Carneiro--Milinovich--Soundararajan 2019, interval orientation}
+\label{err:cms-orientation}
+\paragraph{Wiki.}
+Art09 quotes, under RH and for $x\ge4$, a prime in
+\[
+\bigl]x-\tfrac{22}{25}\sqrt{x}\log x,\,x\bigr].
+\]
+\paragraph{Source.}
+Carneiro--Milinovich--Soundararajan, \emph{Fourier optimization and prime
+gaps}, Comment.\ Math.\ Helv.\ 94 (2019); arXiv:1708.04122, Theorem~5:
+\[
+\bigl[x,\,x+\tfrac{22}{25}\sqrt{x}\log x\bigr].
+\]
+(The backward interval of that shape is Dudek's earlier result with
+constant $4/\pi$; Carneiro et al.\ improve the constant and reverse the
+orientation.)
+\paragraph{Proposed correction.}
+Replace the displayed interval by
+$[x,\,x+\tfrac{22}{25}\sqrt{x}\log x]$.
+
+\subsection{Trudgian 2016, Corollary~2 threshold}
+\label{err:trudgian-cor2}
+\paragraph{Wiki.}
+Art09 quotes Trudgian~(2016) for $x>2{,}898{,}242$.
+\paragraph{Source.}
+Trudgian, \emph{Updating the error term in the prime number theorem},
+Ramanujan J.\ 39 (2016); arXiv:1401.2689, Corollary~2: $x\ge 2{,}898{,}239$.
+\paragraph{Proposed correction.}
+Replace $2{,}898{,}242$ by $2{,}898{,}239$, and use the non-strict
+threshold $x\ge\cdots$ as in the paper.
+
 \section{Art06 --- Bounds on $|\zeta(s)|$}
 No high-confidence statement mismatches with the cited papers were found
 among the $\zeta$-only results recorded in Art06 (Lehman, Cheng--Graham,
@@ -165,14 +198,18 @@ are citation noise only and do not affect the displayed inequalities.
 
 \section*{Status in the Lean formalization}
 The corresponding statements in
-\texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} have been aligned with the
-source papers for items~\ref{err:dn-11181}, \ref{err:pt2021-psi},
-\ref{err:jy-1515}, \ref{err:dkl-loglog}, and~\ref{err:axler-mandl}.
+\texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} and
+\texttt{SecondarySummary.lean} have been aligned with the source papers
+for items~\ref{err:dn-11181}, \ref{err:pt2021-psi}, \ref{err:jy-1515},
+\ref{err:dkl-loglog}, \ref{err:axler-mandl}, \ref{err:cms-orientation},
+and~\ref{err:trudgian-cor2}.
 Item~\ref{err:dn-11181} also required restoring the factor $2$ in the
 $\pi_2$ main term $\frac{2x^3}{27\log^3 x}$, which Art01 already had
 correctly but which had been dropped in an earlier transcription into Lean.
 Item~\ref{err:axler-mandl} was likewise present as a Lean transcription
 error (copied from the wiki); the formal statements now bound Mandl's
 $B_n$ as in Theorems~1.6--1.7 of Axler.
+Items~\ref{err:cms-orientation} and~\ref{err:trudgian-cor2} were present
+both on Art09 and in Lean; both now follow the papers.
 
 \end{document}
