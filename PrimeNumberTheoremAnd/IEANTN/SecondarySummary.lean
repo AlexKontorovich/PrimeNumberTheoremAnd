@@ -202,7 +202,7 @@ noncomputable def eps_0 (x : ℝ) : ℝ :=
   For $x \geq 149$ one has $|\theta(x) - x| \leq x \epsilon_{0}(x)$.-/)
   (latexEnv := "theorem")]
 theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
-    Eθ.numericalBound x eps_0 := by sorry
+    Eθ x ≤ eps_0 x := by sorry
 
 @[blueprint
   "trudgian:theorem 1-psi"
@@ -212,7 +212,7 @@ theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
-    Eψ.numericalBound x eps_0 := by sorry
+    Eψ x ≤ eps_0 x := by sorry
 
 
 @[blueprint
@@ -226,7 +226,7 @@ theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
   -/)
   (latexEnv := "lemma")]
 theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
-    Eθ.numericalBound x (fun x ↦ 0.0045 / log x ^ 2) := by sorry
+    Eθ x ≤ 0.0045 / (log x) ^ 2 := by sorry
 
 
 @[blueprint

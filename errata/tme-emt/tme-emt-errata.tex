@@ -280,6 +280,41 @@ $\mathbf{0.618}$.
 Replace $0.63$ by $0.618$ and cite Hiary--Patel--Yang, or else state
 explicitly the corrected Hiary constant $0.77$.
 
+\subsection{Rosser 1941, threshold $T\ge 2$ versus $T\ge 1467$}
+\label{err:rosser-threshold}
+\paragraph{Wiki.}
+Art06 quotes Rosser's $N(T)$ bound for $T\ge 2$.
+\paragraph{Source.}
+Rosser (1941), as recorded e.g.\ in Trudgian's tables, proves
+$|S(T)|\le 0.137\log T+0.443\log\log T+1.588$ for
+$\mathbf{T\ge 1467}$.
+\paragraph{Proposed correction.}
+Replace $T\ge 2$ by $T\ge 1467$.
+
+\subsection{Trudgian 2014, extraneous $1/(5T)$}
+\label{err:trudgian-N-5T}
+\paragraph{Wiki.}
+Art06 appends $+1/(5T)$ to the $N(T)$ error for Trudgian~(2014).
+\paragraph{Source.}
+The published result (J.\ Number Theory 134) is
+$|S(T)|\le 0.112\log T+0.278\log\log T+2.510$ for $T\ge e$, with no
+$1/(5T)$ term.  (An arXiv corollary has a constant $0.2/T_0$ when
+$T\ge T_0\ge e$, which is not $1/(5T)$.)
+\paragraph{Proposed correction.}
+Drop the $1/(5T)$ summand (or replace it by the parameterized
+$0.2/T_0$ form, citing the corollary carefully).
+
+\subsection{Lehman 1970, $t\ge 1/5$ versus $64/(2\pi)$}
+\label{err:lehman-threshold}
+\paragraph{Wiki.}
+Art06 states Lehman's bound for $t\ge 1/5$, noting that Lehman wrote
+$t\ge 64/(2\pi)$ and that $1/5$ is a modern computational extension.
+\paragraph{Source.}
+Lehman, Lemma~2: $t\ge 64/(2\pi)$.
+\paragraph{Proposed correction.}
+Quote $t\ge 64/(2\pi)$ for the paper statement; keep $t\ge 1/5$ only if
+explicitly labelled as a verified extension.
+
 \subsection{Hasanalizade--Shen--Wong $N(T)$ forms}
 \label{err:hsw-forms}
 \paragraph{Wiki / transcription risk.}
@@ -357,9 +392,10 @@ Items~\ref{err:art08-log-plus-two} and~\ref{err:art08-kadiri-r0} are
 wiki-only: the project's \texttt{riemannZeta.classicalZeroFree} already
 uses $\log|\Im s|$ without the spurious $+2$, matching the papers and
 Fiori--Kadiri--Swaminathan.
-Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, and~\ref{err:patel-log}
-are aligned in Lean in a companion pull request (Hiary--Patel--Yang
-$0.618$; HSW Cor.~1.4 with $b_3=8.3675$; Patel with $\log t$).
+Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, \ref{err:patel-log},
+\ref{err:rosser-threshold}, \ref{err:trudgian-N-5T}, and
+\ref{err:lehman-threshold} are aligned in Lean in a companion pull
+request.
 Item~\ref{err:ramare-thresholds}: Lean follows the 2023 corrigendum
 thresholds (including the $x\ge 115$ line omitted on the wiki).
 
