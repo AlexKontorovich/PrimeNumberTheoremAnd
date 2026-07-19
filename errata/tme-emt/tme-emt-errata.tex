@@ -120,6 +120,30 @@ under the same height hypothesis.
 \paragraph{Proposed correction.}
 Add the $\pi^*$ bound to the displayed list.
 
+\subsection{Axler 2019, Mandl $B_n$ mislabelled as $\sum p_i$}
+\label{err:axler-mandl}
+\paragraph{Wiki.}
+Art01, \S4, attributes to Axler~(2019) the bounds
+\[
+\sum_{i\le k}p_i
+\;\gtrless\;
+\frac{k^2}{4}+\frac{k^2}{4\log k}
+-\frac{k^2(\log\log k-c)}{4(\log k)^2}
+\]
+(with $c=2.9$ for the lower bound at $k\ge 6309751$, and $c=4.42$ for the
+upper bound at $k\ge 256376$).
+\paragraph{Source.}
+Axler, \emph{On the sum of the first $n$ prime numbers},
+arXiv:1606.06874, Theorems~1.6 and~1.7 bound Mandl's quantity
+\[
+B_n=\frac{n\,p_n}{2}-\sum_{k\le n}p_k,
+\]
+not $\sum p_k$.  The actual prime-sum estimates are Theorems~1.8 and~1.9
+(leading factor $n^2/(2\log n)$, different constants and ranges).
+\paragraph{Proposed correction.}
+Replace $\sum_{i\le k}p_i$ by $B_k$ (and cite Theorems~1.6--1.7), or else
+quote Theorems~1.8--1.9 for the prime-sum bounds.
+
 \subsection{Cosmetic / typesetting (lower priority)}
 \begin{itemize}[leftmargin=*]
 \item Art01 opening paragraph: ``van Mangold'' $\to$ ``von Mangoldt'';
@@ -143,9 +167,12 @@ are citation noise only and do not affect the displayed inequalities.
 The corresponding statements in
 \texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} have been aligned with the
 source papers for items~\ref{err:dn-11181}, \ref{err:pt2021-psi},
-\ref{err:jy-1515}, and~\ref{err:dkl-loglog}.  Item~\ref{err:dn-11181} also
-required restoring the factor $2$ in the $\pi_2$ main term
-$\frac{2x^3}{27\log^3 x}$, which Art01 already had correctly but which had
-been dropped in an earlier transcription into Lean.
+\ref{err:jy-1515}, \ref{err:dkl-loglog}, and~\ref{err:axler-mandl}.
+Item~\ref{err:dn-11181} also required restoring the factor $2$ in the
+$\pi_2$ main term $\frac{2x^3}{27\log^3 x}$, which Art01 already had
+correctly but which had been dropped in an earlier transcription into Lean.
+Item~\ref{err:axler-mandl} was likewise present as a Lean transcription
+error (copied from the wiki); the formal statements now bound Mandl's
+$B_n$ as in Theorems~1.6--1.7 of Axler.
 
 \end{document}

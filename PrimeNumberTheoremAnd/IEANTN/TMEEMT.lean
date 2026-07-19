@@ -1152,31 +1152,39 @@ end CMS
 
 namespace Axler
 
-blueprint_comment /-- Some results from \cite{Axler} -/
+blueprint_comment /-- Some results from \cite{Axler}.
+Mandl's quantity is $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$;
+Theorems~1.6 and~1.7 of \cite{Axler} bound $B_n$, not $\sum p_k$. -/
+
+/-- Mandl's quantity \(B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k\). -/
+noncomputable def mandlB (n : ℕ) : ℝ :=
+  (n : ℝ) * nth_prime' n / 2 - ∑ i ∈ Finset.Icc 1 n, (nth_prime' i : ℝ)
 
 @[blueprint
-  "thm:axler2019-sum-prime-lower"
-  (title := "Axler 2019, lower bound for sum of first k primes")
-  (statement := /-- For $k \geq 6{,}309{,}751$, we have
-  $\sum_{i \leq k} p_i \geq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 2.9)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-lower"
+  (title := "Axler 2019, lower bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 6{,}309{,}751$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n > \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 2.9)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_lower (k : ℕ) (hk : k ≥ 6309751) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≥
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 2.9) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_lower (n : ℕ) (hn : n ≥ 6309751) :
+    mandlB n >
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 2.9) / (4 * (log n) ^ 2) := by sorry
 
 @[blueprint
-  "thm:axler2019-sum-prime-upper"
-  (title := "Axler 2019, upper bound for sum of first k primes")
-  (statement := /-- For $k \geq 256{,}376$, we have
-  $\sum_{i \leq k} p_i \leq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 4.42)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-upper"
+  (title := "Axler 2019, upper bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 256{,}376$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n < \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 4.42)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_upper (k : ℕ) (hk : k ≥ 256376) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≤
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 4.42) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_upper (n : ℕ) (hn : n ≥ 256376) :
+    mandlB n <
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 4.42) / (4 * (log n) ^ 2) := by sorry
 
 end Axler
 
