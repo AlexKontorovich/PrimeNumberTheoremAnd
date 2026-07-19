@@ -1478,11 +1478,13 @@ namespace Lehman1970
 @[blueprint
   "art06-lehman-zeta-half"
   (title := "Lehman 1970 bound on \\(|\\zeta(1/2 + it)|\\)")
-  (statement := /-- For $t \geq 1/5$,
-    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$. -/)
+  (statement := /-- For $t \geq 64/(2\pi)$,
+    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$.
+    (Art06 writes $t\ge 1/5$ after a modern computational extension;
+    Lehman's lemma is stated for $t\ge 64/(2\pi)$.) -/)
   (proof := /-- See \cite{Lehman1970}. -/)
   (latexEnv := "theorem")]
-theorem zeta_half_bound : ∀ t : ℝ, t ≥ 1/5 →
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 64 / (2 * π) →
     ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 4 * (t / (2 * π)) ^ (1/4 : ℝ) := by
   sorry
 
@@ -1514,20 +1516,23 @@ theorem zeta_half_bound_large : ∀ t : ℝ, t ≥ exp 1 →
 
 end ChengGraham2004
 
-namespace Hiary2016
+namespace HiaryPatelYang2022
 
 @[blueprint
   "art06-hiary-zeta-half"
-  (title := "Hiary 2016 bound on \\(|\\zeta(1/2 + it)|\\)")
+  (title := "Hiary--Patel--Yang bound on \\(|\\zeta(1/2 + it)|\\)")
   (statement := /-- For $t \geq 3$,
-    $|\zeta(1/2 + it)| \leq 0.63\, t^{1/6}\, \log t$. -/)
-  (proof := /-- See \cite{Hiary2016}. -/)
+    $|\zeta(1/2 + it)| \leq 0.618\, t^{1/6}\, \log t$.
+    (The constant $0.63$ in \cite{Hiary2016} relied on an incorrect Kusmin--Landau
+    lemma; after correction that constant becomes $0.77$.  The bound recorded here
+    is the improved explicit result of \cite{HiaryPatelYang2022}.) -/)
+  (proof := /-- See \cite{HiaryPatelYang2022}. -/)
   (latexEnv := "theorem")]
 theorem zeta_half_bound : ∀ t : ℝ, t ≥ 3 →
-    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.63 * t ^ (1/6 : ℝ) * log t := by
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.618 * t ^ (1/6 : ℝ) * log t := by
   sorry
 
-end Hiary2016
+end HiaryPatelYang2022
 
 namespace Backlund1918
 
@@ -1590,14 +1595,16 @@ namespace Patel2022
   "art06-patel-zeta-1-plus-it"
   (title := "Patel 2022 bound on \\(|\\zeta(1 + it)|\\)")
   (statement := /-- For $t \geq 3$,
-    $|\zeta(1 + it)| \leq \min\!\left(\tfrac{3}{4}\log t,\;
+    $|\zeta(1 + it)| \leq \min\!\left(\log t,\;
       \tfrac{1}{2}\log t + 1.93,\;
-      \tfrac{1}{5}\log t + 44.02\right)$. -/)
-  (proof := /-- See \cite{Patel2022}. -/)
+      \tfrac{1}{5}\log t + 44.02\right)$.
+    (Art06 writes $\tfrac34\log t$ in the first slot, conflating Trudgian's
+    earlier bound; \cite{Patel2022}, Theorem~1.1, has $\log t$.) -/)
+  (proof := /-- See \cite{Patel2022}, Theorem~1.1. -/)
   (latexEnv := "theorem")]
 theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
     ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤
-      min ((3/4 : ℝ) * log t) (min ((1/2 : ℝ) * log t + 1.93)
+      min (log t) (min ((1/2 : ℝ) * log t + 1.93)
                                     ((1/5 : ℝ) * log t + 44.02)) := by
   sorry
 
@@ -1625,13 +1632,19 @@ namespace Rosser1941
 @[blueprint
   "art06-rosser-N"
   (title := "Rosser 1941 bound on \\(N(T)\\)")
-  (statement := /-- For $T \geq 2$, the zero-counting function $N(T)$
-    satisfies the Riemann--von Mangoldt estimate with parameters
-    $b_1 = 0.137$, $b_2 = 0.443$, $b_3 = 1.588$. -/)
+  (statement := /-- For $T \geq 1467$,
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.137\log T+0.443\log\log T+1.588.
+    \]
+    (Art06 writes $T\ge 2$; Rosser's theorem is for $T\ge 1467$.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{rosser1941}. -/)
   (latexEnv := "theorem")]
-theorem N_bound : riemannZeta.Riemann_vonMangoldt_bound 0.137 0.443 1.588 := by
+theorem N_bound :
+    ∀ T ≥ (1467 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.137 * log T + 0.443 * log (log T) + 1.588 := by
   sorry
 
 end Rosser1941
@@ -1641,15 +1654,20 @@ namespace Trudgian2014_argument
 @[blueprint
   "art06-trudgian-argument-N"
   (title := "Trudgian 2014 bound on \\(N(T)\\)")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.112$, $b_2 = 0.278$, $b_3 = 2.510$, for $T \geq e$, with
-    an additional error of $1/(5T)$. -/)
+  (statement := /-- Following \cite{Trudgian2014_argument} (J.\ Number Theory 134),
+    for $T \geq e$ one has
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.112\log T+0.278\log\log T+2.510.
+    \]
+    (Art06 appends an extra $1/(5T)$ term; the published bound on $S(T)$ has
+    no such summand.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{Trudgian2014_argument}. -/)
   (latexEnv := "theorem")]
 theorem N_bound :
   ∀ T ≥ exp 1, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
-    0.112 * log T + 0.278 * log (log T) + 2.510 + 1 / (5 * T) := by
+    0.112 * log T + 0.278 * log (log T) + 2.510 := by
   sorry
 
 end Trudgian2014_argument
@@ -1658,22 +1676,23 @@ namespace HSW2022
 
 @[blueprint
   "art06-hsw-N-v1"
-  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), first form")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 9.3675$. -/)
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
+    estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 8.3675$
+    (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$). -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
-  (proof := /-- See \cite{HSW2022}. -/)
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
-theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 :=
+theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 8.3675 :=
   HSW.main_theorem
 
 @[blueprint
   "art06-hsw-N-v2"
-  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), second form")
-  (statement := /-- One has the Riemann--von Mangoldt estimate with
-    parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), alternate $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
+    estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
-  (proof := /-- See \cite{HSW2022}. -/)
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
 theorem N_bound_v2 : riemannZeta.Riemann_vonMangoldt_bound 0.1095 0.2042 3.0305 := by
   sorry
@@ -1712,16 +1731,20 @@ namespace Delange1987
 
 @[blueprint
   "art06-delange"
-  (title := "Delange 1987 bound on \\(-\\Re(\\zeta'/\\zeta)(\\sigma + it)\\)")
-  (statement := /-- For $\sigma > 1$ and any real $t$,
-    $- \mathrm{Re}\!\left(\dfrac{\zeta'}{\zeta}\right)\!(\sigma + it)
-      \leq \dfrac{1}{\sigma - 1} - \dfrac{1}{2\sigma^2}$. -/)
+  (title := "Delange 1987 bound on \\(-(\\zeta'/\\zeta)(s)\\) for real $s>1$")
+  (statement := /-- For real $s > 1$,
+    \[
+    -\dfrac{\zeta'}{\zeta}(s)
+      \leq \dfrac{1}{s - 1} - \dfrac{1}{2s^2},
+    \]
+    equivalently $\zeta'/\zeta(s)+1/(s-1)>1/(2s^2)$.
+    (Art06 states a complex form for $\sigma+it$; \cite{Delange1987} is for
+    real $s>1$.) -/)
   (proof := /-- See \cite{Delange1987}. -/)
   (latexEnv := "theorem")]
-theorem zeta_log_deriv_bound : ∀ σ t : ℝ, σ > 1 →
-    -(deriv riemannZeta ((σ : ℂ) + t * Complex.I) /
-       riemannZeta ((σ : ℂ) + t * Complex.I)).re ≤
-      1 / (σ - 1) - 1 / (2 * σ^2) := by
+theorem zeta_log_deriv_bound : ∀ s : ℝ, s > 1 →
+    -(deriv riemannZeta (s : ℂ) / riemannZeta (s : ℂ)).re ≤
+      1 / (s - 1) - 1 / (2 * s^2) := by
   sorry
 
 end Delange1987
