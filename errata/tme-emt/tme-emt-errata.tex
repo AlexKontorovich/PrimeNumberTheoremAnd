@@ -6,7 +6,7 @@
 \usepackage{xcolor}
 
 \title{Errata for the TME--EMT Wiki\\
-\large(Art01 and related pages)}
+\large(Art01, Art08, Art09)}
 \author{Compiled during formalization work in\\
 \texttt{AlexKontorovich/PrimeNumberTheoremAnd}}
 \date{19 July 2026}
@@ -228,6 +228,46 @@ Hiary, Backlund, Trudgian, Patel, Ford, Rosser, Hasanalizade--Shen--Wong,
 Ramaré, Delange).  Year labels on some theorem heads (``2001'', ``2012'')
 are citation noise only and do not affect the displayed inequalities.
 
+\section{Art08 --- Zero-free regions and related results}
+
+\subsection{Classical zero-free region written with $\log(|\Im s|+2)$}
+\label{err:art08-log-plus-two}
+\paragraph{Wiki.}
+Art08 quotes Kadiri~(2005), Mossinghoff--Trudgian~(2015), and the later
+refinement with $R_0=5.558691$, all in the shape
+\[
+\Re s\ge 1-\frac1{R_0\log(|\Im s|+2)}.
+\]
+\paragraph{Source.}
+The cited papers use $\log|\Im s|$ (equivalently $\log|t|$), not
+$\log(|t|+2)$:
+\begin{itemize}[leftmargin=*]
+\item Kadiri, \emph{Une r\'egion explicite sans z\'ero pour la fonction
+  Zeta de Riemann}, arXiv:math/0401238: main theorem
+  $\Re s\ge 1-1/(5.70176\log|\Im s|)$ for $|\Im s|\ge 2$.
+\item Mossinghoff--Trudgian, arXiv:1410.3926, Theorem~1:
+  $\sigma\ge 1-1/(5.573412\log|t|)$ for $|t|\ge 2$.
+\item Mossinghoff--Trudgian--Yang, arXiv:2212.06867:
+  $\sigma\ge 1-1/(5.558691\log|t|)$ for $|t|\ge 2$.
+\end{itemize}
+(The same $\log|t|$ form is the one used for the classical zero-free
+region predicate in the Lean formalization, following Fiori--Kadiri--Swaminathan.)
+\paragraph{Proposed correction.}
+Replace $\log(|\Im s|+2)$ by $\log|\Im s|$ in each of these displays
+(keeping the stated ranges $|t|\ge 2$).
+
+\subsection{Kadiri $R_0$: $5.70175$ versus $5.70176$}
+\label{err:art08-kadiri-r0}
+\paragraph{Wiki.}
+Art08 attributes to Kadiri~(2002/2005) the constant $R_0=5.70175$.
+\paragraph{Source.}
+Kadiri, arXiv:math/0401238, states the main theorem with
+$R_0=\mathbf{5.70176}$.  (The digit $5.70175$ appears elsewhere in
+numerical tables in that paper, but is not the constant of the theorem
+statement quoted on Art08.)
+\paragraph{Proposed correction.}
+Replace $5.70175$ by $5.70176$.
+
 \section*{Status in the Lean formalization}
 The corresponding statements in
 \texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} and
@@ -245,5 +285,9 @@ $B_n$ as in Theorems~1.6--1.7 of Axler.
 Items~\ref{err:cms-orientation}, \ref{err:trudgian-cor2},
 \ref{err:dudek-threshold}, and~\ref{err:cully-hugill-threshold} were
 present both on Art09 and in Lean; all now follow the papers.
+Items~\ref{err:art08-log-plus-two} and~\ref{err:art08-kadiri-r0} are
+wiki-only: the project's \texttt{riemannZeta.classicalZeroFree} already
+uses $\log|\Im s|$ without the spurious $+2$, matching the papers and
+Fiori--Kadiri--Swaminathan.
 
 \end{document}
