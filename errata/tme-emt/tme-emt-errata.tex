@@ -315,6 +315,25 @@ Lehman, Lemma~2: $t\ge 64/(2\pi)$.
 Quote $t\ge 64/(2\pi)$ for the paper statement; keep $t\ge 1/5$ only if
 explicitly labelled as a verified extension.
 
+\subsection{Delange 1987, complex versus real}
+\label{err:delange-real}
+\paragraph{Wiki.}
+Art06 quotes, for $\sigma>1$ and any real $t$,
+\[
+-\Re\frac{\zeta'}{\zeta}(\sigma+it)
+\le \frac1{\sigma-1}-\frac1{2\sigma^2}.
+\]
+\paragraph{Source.}
+Delange, Colloq.\ Math.\ 53 (1987), proves for \textbf{real} $s>1$
+\[
+\frac{\zeta'}{\zeta}(s)+\frac1{s-1}>\frac1{2s^2}
+\]
+(equivalently the displayed upper bound on $-\zeta'/\zeta(s)$ on the
+real line).  The complex form is not in that note.
+\paragraph{Proposed correction.}
+Restrict the statement to real $s>1$, or cite a different source for
+the complex claim.
+
 \subsection{Hasanalizade--Shen--Wong $N(T)$ forms}
 \label{err:hsw-forms}
 \paragraph{Wiki / transcription risk.}
@@ -393,9 +412,9 @@ wiki-only: the project's \texttt{riemannZeta.classicalZeroFree} already
 uses $\log|\Im s|$ without the spurious $+2$, matching the papers and
 Fiori--Kadiri--Swaminathan.
 Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, \ref{err:patel-log},
-\ref{err:rosser-threshold}, \ref{err:trudgian-N-5T}, and
-\ref{err:lehman-threshold} are aligned in Lean in a companion pull
-request.
+\ref{err:rosser-threshold}, \ref{err:trudgian-N-5T},
+\ref{err:lehman-threshold}, and~\ref{err:delange-real} are aligned in
+Lean in a companion pull request.
 Item~\ref{err:ramare-thresholds}: Lean follows the 2023 corrigendum
 thresholds (including the $x\ge 115$ line omitted on the wiki).
 
