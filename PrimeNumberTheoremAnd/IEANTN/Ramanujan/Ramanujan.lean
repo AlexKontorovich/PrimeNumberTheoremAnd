@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
-import LeanCert.Engine.ChebyshevTheta
+import LeanCert.CertifiedBounds.Chebyshev
 import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
 import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
 import PrimeNumberTheoremAnd.IEANTN.LogTables
@@ -495,12 +495,12 @@ theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
 
 -- Native-decide lemma for the computational [3, 599) range
 set_option linter.style.nativeDecide false in
-open LeanCert.Engine.ChebyshevTheta in
+open LeanCert.CertifiedBounds.Chebyshev in
 private theorem allThetaChecks_3_599 :
     checkAllThetaRelErrorReal 3 599 (768 / 1000) 20 = true := by native_decide
 
 set_option linter.style.nativeDecide false in
-open LeanCert.Engine.ChebyshevTheta in
+open LeanCert.CertifiedBounds.Chebyshev in
 private theorem thetaCheck599 :
     checkThetaRelErrorReal 599 (65 / 1000) 20 = true := by native_decide
 
@@ -538,13 +538,14 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
     have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
     have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
     have hpointwise :=
-      LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
+      LeanCert.CertifiedBounds.Chebyshev.checkAllThetaRelErrorReal_implies
+        3 599 (768 / 1000) 20
         allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_lt.le
     rw [if_pos hfloor_lt] at hpointwise
     have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
     have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
     have habs :=
-      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+      LeanCert.CertifiedBounds.Chebyshev.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
         ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
     calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
       _ ≤ (1 - log 2 / 3) * x := by
@@ -654,7 +655,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
     subst hx_eq
     unfold Eθ
     have habs :=
-      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+      LeanCert.CertifiedBounds.Chebyshev.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
         599 20 (65 / 1000) (by norm_num) (by norm_num) thetaCheck599 (599 : ℝ) (by norm_num)
         (by push_cast; norm_num)
     have hEθ : |θ (599 : ℝ) - 599| / 599 ≤ 65 / 1000 := by

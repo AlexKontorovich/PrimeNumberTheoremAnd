@@ -1,10 +1,10 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
-import LeanCert.Engine.ChebyshevTheta
+import LeanCert.CertifiedBounds.Chebyshev
 import LeanCert.Validity.AffineCover
-import LeanCert.Tactic.IntervalAuto
+import LeanCert.Tactic
 
-open LeanCert.Engine.ChebyshevTheta
+open LeanCert.CertifiedBounds.Chebyshev
 open Real MeasureTheory Chebyshev LeanCert.Core LeanCert.Validity
 namespace FKS2.Floor
 
@@ -30,7 +30,8 @@ theorem etheta_le_floor :
   have himpl := checkAllThetaRelErrorReal_implies 2 22027 (4/5) 20 hcheck N hNpos hN2
     (by omega : N ≤ 22027)
   rw [if_pos hNlim] at himpl
-  have h := verify_theta_rel_error_real N 20 (4/5) (by norm_num) (by norm_num) himpl x hNlo hNhi
+  have h := abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+    N 20 (4/5) (by norm_num) (by norm_num) himpl x hNlo hNhi
   have hcast : ((4/5 : ℚ) : ℝ) = (4/5 : ℝ) := by norm_num
   rw [hcast] at h
   unfold Eθ

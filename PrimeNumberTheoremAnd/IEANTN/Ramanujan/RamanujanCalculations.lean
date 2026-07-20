@@ -1,6 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
-import LeanCert.Tactic.IntervalAuto
-import LeanCert.Engine.ChebyshevTheta
+import LeanCert.Tactic
 
 namespace Ramanujan
 

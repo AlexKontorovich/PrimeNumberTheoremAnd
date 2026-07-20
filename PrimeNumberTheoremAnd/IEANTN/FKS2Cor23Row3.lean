@@ -156,11 +156,6 @@ theorem eval_rhsE3 (s : ℝ) :
   ring_nf
   rw [h8]
 
-theorem support3 : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rhsE3) := by
-  simp only [Expr.sub, FloorButhe.lhsE, rhsE3, FloorButhe.pow8, FloorButhe.sqx,
-    FloorButhe.s2, FloorButhe.s4, FloorButhe.e2, FloorButhe.eR]
-  repeat constructor
-
 theorem slabs_checked3 :
     checkExprLeOnSlabsDyadic FloorButhe.lhsE rhsE3 (slabsFrom (2449/1000) 15) (-50) 6 = true := by
   native_decide
@@ -201,7 +196,7 @@ theorem floor_buthe3 : ∀ x ∈ Set.Icc (Real.exp 6) (Real.exp 10),
           rw [show (3.17:ℝ) = Real.sqrt (3.17^2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h317])
-    support3 slabs_checked3 rhsE3_le_rowcurve
+    slabs_checked3 rhsE3_le_rowcurve
 
 end FloorButhe3
 

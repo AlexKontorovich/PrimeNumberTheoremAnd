@@ -355,10 +355,6 @@ theorem eval_rhsE (s : ℝ) :
   ring_nf
   rw [h8]
 
-theorem support : ExprSupportedWithInv (Expr.sub lhsE rhsE) := by
-  simp only [Expr.sub, lhsE, rhsE, pow8, sqx, s2, s3, s4, e2, eR]
-  repeat constructor
-
 theorem cover (s : ℝ) (h : s ∈ Set.Icc (2.236 : ℝ) 3.163) :
     ∃ I ∈ slabs, s ∈ Set.Icc (I.lo : ℝ) I.hi := by
   obtain ⟨hlo, hhi⟩ := h
@@ -474,7 +470,6 @@ gives `Eπ ≤` that curve there.  The Buthe `Eπ`-upper-bound (`lhsE`,
 `Epi_le_evalLhsE`) and the slab cover (`slabs`, `cover`) are curve-independent and
 reused by every row.  Bottoms out only at Buthe `theorem_2e/2f` + `li.two_approx`. -/
 theorem floor_buthe_of_curve (rE : Expr) (A B C : ℝ)
-    (hsupp : ExprSupportedWithInv (Expr.sub lhsE rE))
     (hchk : checkExprLeOnSlabsDyadic lhsE rE slabs (-50) 6 = true)
     (hcurve : ∀ x, (5:ℝ) ≤ Real.log x →
         Expr.eval (fun _ => Real.sqrt (Real.log x)) rE ≤ admissible_bound A B C 5.5666305 x) :
@@ -496,13 +491,13 @@ theorem floor_buthe_of_curve (rE : Expr) (A B C : ℝ)
   obtain ⟨I, hI, hmem⟩ := cover _ hs_mem
   calc Eπ x ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) lhsE := Epi_le_evalLhsE x h5 h10
     _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rE :=
-        verify_expr_le_on_slabs_dyadic lhsE rE slabs (-50) 6 hsupp (by norm_num) hchk I hI _ hmem
+        verify_expr_le_on_slabs_dyadic lhsE rE slabs (-50) 6 (by norm_num) hchk I hI _ hmem
     _ ≤ admissible_bound A B C 5.5666305 x := hcurve x hLge5
 
 /-- Row-5 floor, Buthe segment `[e^5, e^10]`, via the generic assembler. -/
 theorem floor_buthe : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),
     Eπ x ≤ admissible_bound 2.22 1.5 1.5 5.5666305 x :=
-  floor_buthe_of_curve rhsE 2.22 1.5 1.5 support slabs_checked rhsE_le_rowcurve
+  floor_buthe_of_curve rhsE 2.22 1.5 1.5 slabs_checked rhsE_le_rowcurve
 
 end FloorButhe
 
@@ -514,7 +509,6 @@ theorem floor_buthe_of_curve_gen (rE : Expr) (A B C : ℝ) (xlo : ℝ) (slabLo :
     (hxlo : (5:ℝ) ≤ xlo)
     (hslo : (slabLo:ℝ) ≤ Real.sqrt xlo)
     (hshi : Real.sqrt 10 < (slabLo:ℝ) + (n:ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rE))
     (hchk : checkExprLeOnSlabsDyadic FloorButhe.lhsE rE (slabsFrom slabLo n) (-50) 6 = true)
     (hcurve : ∀ x, xlo ≤ Real.log x →
         Expr.eval (fun _ => Real.sqrt (Real.log x)) rE ≤ admissible_bound A B C 5.5666305 x) :
@@ -537,7 +531,7 @@ theorem floor_buthe_of_curve_gen (rE : Expr) (A B C : ℝ) (xlo : ℝ) (slabLo :
         FloorButhe.Epi_le_evalLhsE x h5 h10
     _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rE :=
         verify_expr_le_on_slabs_dyadic FloorButhe.lhsE rE (slabsFrom slabLo n) (-50) 6
-          hsupp (by norm_num) hchk I hI _ hmem
+          (by norm_num) hchk I hI _ hmem
     _ ≤ admissible_bound A B C 5.5666305 x := hcurve x hLgexlo
 
 /-! ## Shared `B = 1/4` helpers (rows 1/2) -/
@@ -645,7 +639,6 @@ theorem floor_buthe_quarter_of_curve (rhsE2 : Expr) (A C : ℝ) (xlo : ℝ) (sla
     (hxlo : (5:ℝ) ≤ xlo)
     (hslo : (slabLo:ℝ) ≤ Real.sqrt xlo)
     (hshi : Real.sqrt 10 < (slabLo:ℝ) + (n:ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2))
     (hchk : checkExprLeOnSlabsDyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
         (slabsFrom slabLo n) (-50) 6 = true)
     (hcurve2 : ∀ x, xlo ≤ Real.log x →
@@ -668,7 +661,7 @@ theorem floor_buthe_quarter_of_curve (rhsE2 : Expr) (A C : ℝ) (xlo : ℝ) (sla
     lt_of_le_of_lt (Real.sqrt_le_sqrt hLle10) hshi
   obtain ⟨I, hI, hmem⟩ := coverFrom slabLo n _ hcov_lo hcov_hi
   have hslab2 := verify_expr_le_on_slabs_dyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
-    (slabsFrom slabLo n) (-50) 6 hsupp (by norm_num) hchk I hI _ hmem
+    (slabsFrom slabLo n) (-50) 6 (by norm_num) hchk I hI _ hmem
   rw [Expr.eval_mul] at hslab2
   set L := Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE with hL_def
   have hL_nn : (0:ℝ) ≤ L := by
@@ -691,7 +684,6 @@ theorem floor_buthe_quarter_wide (rhsE2 : Expr) (A C : ℝ) (xlo xhi : ℝ) (sla
     (hxlo5 : (5:ℝ) ≤ xlo) (hxhi40 : xhi ≤ 40)
     (hslo : (slabLo:ℝ) ≤ Real.sqrt xlo)
     (hshi : Real.sqrt xhi < (slabLo:ℝ) + (n:ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2))
     (hchk : checkExprLeOnSlabsDyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
         (slabsFrom slabLo n) (-50) 8 = true)
     (hcurve2 : ∀ x, xlo ≤ Real.log x →
@@ -715,7 +707,7 @@ theorem floor_buthe_quarter_wide (rhsE2 : Expr) (A C : ℝ) (xlo xhi : ℝ) (sla
     lt_of_le_of_lt (Real.sqrt_le_sqrt hLlexhi) hshi
   obtain ⟨I, hI, hmem⟩ := coverFrom slabLo n _ hcov_lo hcov_hi
   have hslab2 := verify_expr_le_on_slabs_dyadic (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2
-    (slabsFrom slabLo n) (-50) 8 hsupp (by norm_num) hchk I hI _ hmem
+    (slabsFrom slabLo n) (-50) 8 (by norm_num) hchk I hI _ hmem
   rw [Expr.eval_mul] at hslab2
   set Lh := Expr.eval (fun _ => Real.sqrt (Real.log x)) FloorButhe.lhsE with hLh_def
   have hLh_nn : (0:ℝ) ≤ Lh := by
