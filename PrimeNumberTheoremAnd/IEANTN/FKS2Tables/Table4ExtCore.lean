@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import LeanCert.ANT.Asymp
+import LeanCert.ANT
 
 /-!
 # Extended Table 4 cell certificates (FKS2, towards Corollary 22)
@@ -77,11 +77,6 @@ def checkCell (c : Cell) : Bool :=
       ⟨c.slo, c.shi, h⟩ (-50) 8
   else false
 
-lemma expSplit_supported (q : ℚ) :
-    ExprSupportedWithInv (Expr.sub expSplit (cubeRhs q)) := by
-  simp only [Expr.sub, expSplit, cubeRhs, sqE]
-  repeat constructor
-
 lemma eval_sqE (ρ : ℕ → ℝ) (e : Expr) :
     Expr.eval ρ (sqE e) = (Expr.eval ρ e) ^ (2 : ℕ) := by
   simp [sqE, Expr.eval_mul, sq]
@@ -114,7 +109,7 @@ theorem cell_eps_le_admissible (c : Cell) (hc : checkCell c = true) :
     -- the slab inequality, semantically
     have hslab := verify_expr_le_on_interval_dyadic expSplit
       (cubeRhs (Aq / c.eps)) ⟨c.slo, c.shi, hle⟩ (-50) 8
-      (expSplit_supported _) (by norm_num) hcheck
+      (by norm_num) hcheck
     intro x hx
     obtain ⟨hx_lo, hx_hi⟩ := hx
     have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (exp_pos _) hx_lo

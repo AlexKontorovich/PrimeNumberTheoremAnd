@@ -1,7 +1,7 @@
 import Mathlib.Analysis.Convex.Deriv
 import Mathlib.Analysis.Convex.Jensen
 import Mathlib.Data.List.Sort
-import LeanCert.Tactic.IntervalAuto
+import LeanCert.Tactic
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
 

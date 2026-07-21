@@ -6,8 +6,8 @@ import Mathlib.NumberTheory.Chebyshev
 import Mathlib.Tactic.NormNum.BigOperators
 import PrimeNumberTheoremAnd.IEANTN.LogTables
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import LeanCert.Engine.ChebyshevPsi
-import LeanCert.Tactic.IntervalAuto
+import LeanCert.CertifiedBounds.Chebyshev
+import LeanCert.Tactic
 
 blueprint_comment /--
 \section{Chebyshev's estimates}\label{chebyshev-estimates-sec}
@@ -578,7 +578,7 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
     · exact Nat.floor_le (by bound)
 
 set_option linter.style.nativeDecide false in
-open LeanCert.Engine.ChebyshevPsi in
+open LeanCert.CertifiedBounds.Chebyshev in
 /-- The incremental checker verifies ψ(N) ≤ 1.11 N for all N = 1, …, 11723.
     Note: the sparse checkpoint ladder indicated in the blueprint is not needed;
     brute-force enumeration via `native_decide` suffices. -/
@@ -592,7 +592,7 @@ private theorem allChecks_11723 : checkAllPsiLeMulWith 11723 (111 / 100) 20 = tr
   (proof := /-- Verified by brute-force: an $O(N)$ incremental checker confirms $\psi(N) \leq 1.11 N$ for every integer $N = 1, \ldots, 11723$ via \texttt{native\_decide}. The sparse checkpoint ladder originally described here is not needed. The real-variable case follows by monotonicity of $\psi$. -/)
   (latexEnv := "sublemma")]
 theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x := by
-  open LeanCert.Engine.ChebyshevPsi in
+  open LeanCert.CertifiedBounds.Chebyshev in
   rw [psi_eq_psi_coe_floor x]
   have hnn : (0 : ℝ) ≤ x := le_of_lt hx
   have hfloor_le : ⌊x⌋₊ ≤ 11723 := Nat.floor_le_of_le hx2

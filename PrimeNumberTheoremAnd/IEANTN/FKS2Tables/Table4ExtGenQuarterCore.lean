@@ -54,7 +54,7 @@ theorem cell_eps_le_admissible_quarter
     obtain ⟨⟨⟨⟨⟨heps, hslo0⟩, hrBpos⟩, hslo⟩, hshi⟩, hcheck⟩ := hc
     have hslab := verify_expr_le_on_interval_dyadic (expSplitC P.c64)
       (powRhs (P.Aq * P.Aq / (c.eps * c.eps * P.rB)) 1) ⟨c.slo, c.shi, hle⟩ (-50) 8
-      (sub_supported _ _ _) (by norm_num) hcheck
+      (by norm_num) hcheck
     intro x hx
     obtain ⟨hx_lo, hx_hi⟩ := hx
     have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (exp_pos _) hx_lo

@@ -1,4 +1,4 @@
-import LeanCert.Tactic.IntervalAuto
+import LeanCert.Tactic
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
