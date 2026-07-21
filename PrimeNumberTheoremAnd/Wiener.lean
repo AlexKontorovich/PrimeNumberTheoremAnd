@@ -4235,6 +4235,16 @@ For any nontrivial character $\chi$ of $G$,
 (Equivalently, writing $\Lambda_\chi$ for the von Mangoldt-type coefficients of $-\frac{L'}{L}(\chi,s)$,
 one has $\sum_{n\leq x} \Lambda_\chi(n) = o(x)$.)
 \end{lemma}
+
+\emph{Remark on prime powers.}
+Expanding $-\frac{L'}{L}(\chi,s)$ as a Dirichlet series selects coefficients supported on
+prime powers $\mathfrak{p}^j$ with weight $\chi(\varphi_{\mathfrak{p}})^j\log N\mathfrak{p}$.
+Thus an \emph{exact} identity expressing $-\sum_\chi \chi(\sigma)^{-1}\frac{L'}{L}(\chi,s)$ as a
+sum over primes with Frobenius $\sigma$ should use the condition $\varphi_{\mathfrak{p}}^j=\sigma$
+rather than $\varphi_{\mathfrak{p}}=\sigma$.  For the density statement in
+Proposition~\ref{Chebotarev-cyclotomic-density} this distinction is immaterial: the $j=1$ terms
+agree with the Frobenius condition, while the $j\geq 2$ terms converge absolutely for
+$\Re(s)>1/2$ and do not affect the residue at $s=1$.
 -/
 
 blueprint_comment /--
@@ -4244,9 +4254,9 @@ and nonvanishing on $\Re(s)\geq 1$, so $-\frac{L'}{L}(\chi,s)$ extends continuou
 $\Re(s)\geq 1$.  The claimed prime-sum estimate then follows by the same Wiener--Ikehara /
 Ingham contour argument used for Dirichlet $L$-functions in the prime-number theorem in
 arithmetic progressions (cf.\ the material already formalised for Dirichlet $L$-functions
-earlier in this file).  Working with $\Lambda_\chi$ rather than the bare
-$\chi(\mathfrak{p})\log N\mathfrak{p}$ absorbs the prime-power terms harmlessly for
-$\Re(s)>1/2$.
+earlier in this file).  Passing through $\Lambda_\chi$ (rather than the bare prime sum) makes
+the $j\geq 2$ prime-power contributions explicit and shows they are $O(x^{1/2}\log x)$,
+hence absorbable in the $o(x)$ error; cf.\ the remark after the statement.
 \end{proof}
 -/
 
