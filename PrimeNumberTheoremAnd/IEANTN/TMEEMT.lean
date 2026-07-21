@@ -1559,10 +1559,9 @@ theorem zeta_half_bound_small : ∀ t : ℝ, 0 ≤ t → t ≤ exp 1 →
     \textbf{Caveat.} This large-$t$ corollary of \cite{ChengGraham2004} relies on
     their Kusmin--Landau lemmas.  The same $1/\pi$ versus $2/\pi$ error that
     forced replacing Hiary's constant $0.63$ by $0.77$\,/\,$0.618$
-    (cf.\ \cite{HiaryPatelYang2022}, and the annotation on
-    `HiaryPatelYang2022.zeta_half_bound` above) affects this estimate; the
-    published constant $3$ should be treated as provisional until a corrected
-    derivation is recorded.
+    (cf.\ \cite{HiaryPatelYang2022}, and the annotation on the Hiary--Patel--Yang
+    half-plane bound above) affects this estimate; the published constant $3$
+    should be treated as provisional until a corrected derivation is recorded.
   -/)
   (proof := /-- See \cite{ChengGraham2004}; treat the constant as provisional pending
     the Kusmin--Landau correction discussed in \cite{HiaryPatelYang2022}. -/)
@@ -1738,7 +1737,7 @@ namespace HSW2022
     Riemann--von Mangoldt estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$,
     $b_3 = 8.3675$
     (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$).
-    \textbf{Note.} The shared predicate `Riemann_vonMangoldt_bound` hard-codes
+    \textbf{Note.} The shared Riemann--von~Mangoldt predicate hard-codes
     $T\geq 2$; the paper's threshold is $T\geq e$.  The Lean declaration below
     therefore uses an explicit $T\geq e$ quantifier.
   -/)
@@ -1756,7 +1755,7 @@ theorem N_bound_v1 :
   (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), alternate $+7/8$ form")
   (statement := /-- Following \cite{HSW2022}, Corollary~1.4, for $T \geq e$ one has the
     Riemann--von Mangoldt estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$,
-    $b_3 = 3.0305$.  (Same threshold caveat as `N_bound_v1`.) -/)
+    $b_3 = 3.0305$.  (Same threshold caveat as the previous $N(T)$ bound.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
