@@ -4050,71 +4050,322 @@ theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of cyclotomic extensions}
 
-In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and
-$G = Gal(K/L)$.
+Throughout this section, $K$ is a number field, $m \geq 1$ is a fixed integer,
+$L = K(\mu_m)$, and $G = \mathrm{Gal}(L/K)$.  (In particular $G$ is abelian, and for
+$K=\mathbb{Q}$ one recovers $G \cong (\mathbb{Z}/m\mathbb{Z})^\times$.)
+Write $\zeta_K$ and $\zeta_L$ for the Dedekind zeta functions of $K$ and $L$, and for
+an abelian character $\chi : G \to \mathbb{C}^\times$ write $L(\chi,s)$ for the associated
+Artin $L$-function (equivalently, the Hecke $L$-function of the ideal character attached to
+$\chi$; cf.\ Notation~7.1.17 and Proposition~7.1.18 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}).
 
-The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
+The goal of this section is to prove the Chebotarev density theorem in the cyclotomic case
+(Proposition~\ref{Chebotarev-cyclotomic-density} below), following the classical argument via
+Artin $L$-functions as in Sharifi, Propositions~7.1.16--7.1.19 and Proposition~7.2.1.  The
+abelian and general cases are then reduced to this one in the subsequent sections.
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}  We have
-$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
-for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the
-Artin $L$-function.
+\begin{lemma}[Artin $L$-function as Euler product]\label{Artin-L-euler}
+Let $\chi : G \to \mathbb{C}^\times$ be an abelian character.  For $\Re(s) > 1$ one has
+\[
+L(\chi,s) \;=\; \prod_{\mathfrak{p}} \bigl(1 - \chi(\mathfrak{p})\, N\mathfrak{p}^{-s}\bigr)^{-1}
+\;=\; \sum_{\mathfrak{a} \subseteq \mathcal{O}_K} \chi(\mathfrak{a})\, N\mathfrak{a}^{-s},
+\]
+where the product runs over nonzero prime ideals of $\mathcal{O}_K$, with the convention
+$\chi(\mathfrak{p}) = 0$ if $\mathfrak{p}$ ramifies in the fixed field of $\ker\chi$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof} See Propositions 7.1.16, 7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
+\begin{proof}
+This is the specialisation of the Artin Euler product (Definition~7.1.15 of Sharifi) to
+abelian characters; see Proposition~7.1.18 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.  Absolute convergence for $\Re(s)>1$
+follows from comparison with $\zeta_K(s)$.
 \end{proof}
 -/
 
 blueprint_comment /--
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
+\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}
+For $\Re(s) > 1$ one has
+\[
+\zeta_L(s) \;=\; \prod_{\chi : G \to \mathbb{C}^\times} L(\chi,s),
+\]
+where the product runs over all (necessarily one-dimensional) irreducible characters of $G$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof} See Theorem 7.1.12 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
+\begin{proof}\uses{Artin-L-euler}
+In general, for a Galois extension $L/K$ and characters $\chi$ of irreducible representations of
+$\mathrm{Gal}(L/K)$, Proposition~7.1.16 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf} gives
+$\zeta_L(s) = \prod_\chi L(\chi,s)^{\chi(1)}$ for $\Re(s)>1$.  In the present abelian
+(cyclotomic) setting every irreducible character is one-dimensional, so $\chi(1)=1$ and the
+exponents disappear.  Alternatively, comparing Euler factors at an unramified prime
+$\mathfrak{p}$: the primes of $L$ above $\mathfrak{p}$ contribute the factor
+$(1 - N\mathfrak{p}^{-fs})^{-g}$ to $\zeta_L$, while the Artin factors multiply to the same
+quantity by the usual identity $\prod_\chi (1 - \chi(\varphi_{\mathfrak{p}}) X) = 1 - X^f$
+(with $X = N\mathfrak{p}^{-s}$ and $f$ the residue degree).
 \end{proof}
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character
-$\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\begin{lemma}[Simple pole]\label{Dedekind-pole}
+The Dedekind zeta function $\zeta_L$ admits a meromorphic continuation to a neighbourhood of
+the line $\Re(s)=1$ with a single simple pole at $s=1$ (and is otherwise holomorphic and
+nonvanishing on that line after removing the pole).  In particular
+$\log \zeta_L(s) \sim \log(s-1)^{-1}$ as $s \to 1^+$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from
-Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to
-adapt the arguments for the Dirichet L-function.
+\begin{proof}
+This is the standard analytic continuation of Dedekind zeta (Theorem~7.1.12 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}): absolute convergence of the ideal
+Dirichlet series and Euler product for $\Re(s)>1$, meromorphic continuation across
+$\Re(s)>1-[L:\mathbb{Q}]^{-1}$, and a simple pole at $s=1$.  The logarithmic asymptotic is
+immediate from the simple pole.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Continuation of nontrivial Artin $L$-functions]\label{Artin-L-continuation}
+Let $\chi : G \to \mathbb{C}^\times$ be a nontrivial character.  Then $L(\chi,s)$ extends to an
+analytic function on the half-plane $\Re(s) > 1 - [K:\mathbb{Q}]^{-1}$, and in particular is
+holomorphic at $s=1$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Following Proposition~7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}: let $n$
+be the order of $\chi$.  Geometry of numbers supplies the estimate that, for each $n$th root of
+unity $\zeta$, the number of ideals $\mathfrak{a}$ with $N\mathfrak{a} \leq N$ and
+$\chi(\mathfrak{a})=\zeta$ is $CN + O\bigl(N^{1-[K:\mathbb{Q}]^{-1}}\bigr)$ with $C$ independent of
+$\zeta$.  Summing against $\zeta$ cancels the main terms, so
+$\sum_{N\mathfrak{a}\leq N} \chi(\mathfrak{a}) = O\bigl(N^{1-[K:\mathbb{Q}]^{-1}}\bigr)$.
+Lemma~7.1.5 of Sharifi then yields absolute uniform convergence of
+$\sum_{\mathfrak{a}} \chi(\mathfrak{a})\, N\mathfrak{a}^{-s}$ on compact subsets of
+$\Re(s) > 1 - [K:\mathbb{Q}]^{-1}$.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}
+For any nontrivial character $\chi$ of $G = \mathrm{Gal}(L/K)$, one has $L(\chi,1) \neq 0$.
+Moreover $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole, Artin-L-continuation}
+For the value at $s=1$: write $\log\zeta_L(t) = \sum_\chi \log L(\chi,t)$ for real $t>1$.
+As $t\to 1^+$, the left side is $\sim \log(t-1)^{-1}$ by Lemma~\ref{Dedekind-pole}.  If some
+nontrivial $L(\chi,\cdot)$ had a zero of order $m_\chi \geq 1$ at $s=1$, the right side would
+behave like $\bigl(1 - \sum_\chi m_\chi\bigr)\log(t-1)^{-1}$ up to a bounded error
+(the trivial character contributes the pole of $\zeta_K$, absorbed into the factorisation),
+forcing $1-\sum m_\chi \leq 0$, a contradiction.  Hence $L(\chi,1)\neq 0$ for all nontrivial
+$\chi$ (Sharifi, Proposition~7.1.19).
+
+For the rest of the line $\Re(s)=1$, $s\neq 1$: adapt the classical nonvanishing argument for
+Dirichlet $L$-functions (comparison of $\zeta_L(s)$, $\zeta_L(s)^3\,|L(\chi,s)|^4$, or the
+$3+4\operatorname{Re}$ inequality) using the Euler product of Lemma~\ref{Artin-L-euler} and the
+absence of poles of nontrivial $L(\chi,\cdot)$ on $\Re(s)=1$ from
+Lemma~\ref{Artin-L-continuation}.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Orthogonality for Frobenius classes]\label{Chebotarev-orthogonality}
+Fix $\sigma \in G$.  For every prime ideal $\mathfrak{p}$ of $\mathcal{O}_K$ unramified in $L$,
+\[
+\sum_{\chi : G \to \mathbb{C}^\times} \chi(\sigma)^{-1}\,\chi(\varphi_{\mathfrak{p}})
+\;=\;
+\begin{cases}
+|G| & \text{if }\varphi_{\mathfrak{p}} = \sigma,\\
+0 & \text{otherwise.}
+\end{cases}
+\]
+Equivalently, if $\sigma(\zeta_m) = \zeta_m^a$ with $\gcd(a,m)=1$, the sum equals $|G|$
+precisely when $N\mathfrak{p} \equiv a \pmod{m}$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Standard character orthogonality on the finite abelian group $G$.  The reformulation in terms
+of $N\mathfrak{p} \bmod m$ uses that $\varphi_{\mathfrak{p}}(\zeta_m) = \zeta_m^{N\mathfrak{p}}$
+for the cyclotomic character.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{proposition}[Cyclotomic Chebotarev density]\label{Chebotarev-cyclotomic-density}
+For every $\sigma \in G$, the set of prime ideals $\mathfrak{p}$ of $K$ unramified in $L$ with
+Frobenius $\varphi_{\mathfrak{p}} = \sigma$ has Dirichlet density $1/|G|$.
+\end{proposition}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole, Dedekind-nonvanishing, Artin-L-euler,
+Chebotarev-orthogonality}
+This is Proposition~7.2.1 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.  For
+$\Re(s)>1$ one has $\log L(\chi,s) \sim \sum_{\mathfrak{p}} \chi(\mathfrak{p})\, N\mathfrak{p}^{-s}$.
+Summing against $\chi(\sigma)^{-1}$ and applying Lemma~\ref{Chebotarev-orthogonality} yields
+\[
+\sum_{\chi} \chi(\sigma)^{-1} \log L(\chi,s)
+\;\sim\;
+|G| \sum_{\varphi_{\mathfrak{p}}=\sigma} N\mathfrak{p}^{-s}.
+\]
+On the other hand, by Lemmas~\ref{Dedekind-factor} and~\ref{Dedekind-nonvanishing} the left
+side is $\sim \log\zeta_K(s) \sim \log(s-1)^{-1}$ as $s\to 1^+$ (only the trivial character
+contributes a pole).  Comparing the two asymptotics gives the asserted Dirichlet density.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}
+For any nontrivial character $\chi$ of $G$,
+\[
+\sum_{N\mathfrak{p} \leq x} \chi(\mathfrak{p})\, \log N\mathfrak{p} \;=\; o(x)
+\qquad(x\to\infty).
+\]
+(Equivalently, writing $\Lambda_\chi$ for the von Mangoldt-type coefficients of $-\frac{L'}{L}(\chi,s)$,
+one has $\sum_{n\leq x} \Lambda_\chi(n) = o(x)$.)
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-nonvanishing, Artin-L-continuation}
+By Lemmas~\ref{Artin-L-continuation} and~\ref{Dedekind-nonvanishing}, $L(\chi,s)$ is holomorphic
+and nonvanishing on $\Re(s)\geq 1$, so $-\frac{L'}{L}(\chi,s)$ extends continuously to
+$\Re(s)\geq 1$.  The claimed prime-sum estimate then follows by the same Wiener--Ikehara /
+Ingham contour argument used for Dirichlet $L$-functions in the prime-number theorem in
+arithmetic progressions (cf.\ the material already formalised for Dirichlet $L$-functions
+earlier in this file).  Working with $\Lambda_\chi$ rather than the bare
+$\chi(\mathfrak{p})\log N\mathfrak{p}$ absorbs the prime-power terms harmlessly for
+$\Re(s)>1/2$.
 \end{proof}
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
-(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
-previous results to abelian extensions (actually just cyclic extensions would suffice))
+Now let $L/K$ be an arbitrary finite abelian extension with Galois group $G$, and fix
+$\sigma \in G$.  The goal is to show that the primes of $K$ with Frobenius $\sigma$ still have
+Dirichlet density $1/|G|$, by reducing to the cyclotomic case already treated.
+(Cf.\ Theorem~7.2.2, Step~2, of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}; cyclic
+extensions already suffice for the later reduction to the general case.)
+-/
+
+blueprint_comment /--
+\begin{lemma}[Cyclotomic crossing]\label{Chebotarev-abelian-crossing}
+Choose an integer $m\geq 1$ not dividing the discriminant of $L/K$, large enough that
+$H := \mathrm{Gal}(L(\mu_m)/L) \cong (\mathbb{Z}/m\mathbb{Z})^\times$ via the cyclotomic character
+and $\mathrm{Gal}(L(\mu_m)/K) \cong G \times H$.  For $\sigma\in G$ and $\tau\in H$ write
+$S_{\sigma,\tau}$ for the set of primes of $K$ unramified in $L(\mu_m)$ with Frobenius
+$(\sigma,\tau)\in G\times H$, and $S_\sigma$ for the set of primes of $K$ unramified in $L$
+with Frobenius $\sigma$ in $G$.  Then
+\[
+\delta_{\mathrm{inf}}(S_\sigma) \;=\; \sum_{\tau\in H} \delta_{\mathrm{inf}}(S_{\sigma,\tau}).
+\]
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Every prime counted in $S_\sigma$ lifts to primes in the various $S_{\sigma,\tau}$ according to
+the Frobenius in the cyclotomic layer; the identity of lower densities is the usual additivity
+of Dirichlet densities over a finite partition (up to the finitely many ramified primes).
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Density after cyclotomic crossing]\label{Chebotarev-abelian-density}
+In the notation of Lemma~\ref{Chebotarev-abelian-crossing}, if the order of $\tau\in H$ is
+divisible by $|G|$, then $\langle(\sigma,\tau)\rangle \cap (G\times\{1\}) = \{1\}$, so
+$L(\mu_m)$ is obtained by adjoining $\mu_m$ to the fixed field
+$F := L(\mu_m)^{\langle(\sigma,\tau)\rangle}$.  Applying Proposition~\ref{Chebotarev-cyclotomic-density}
+to the cyclotomic extension $F(\mu_m)/F$ and transporting densities as in the reduction step
+of Theorem~7.2.2 yields $\delta(S_{\sigma,\tau}) = 1/(|G|\,|H|)$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-cyclotomic-density, Chebotarev-abelian-crossing}
+See Sharifi, Theorem~7.2.2, Step~2 (display after ``Now suppose that $|G|$ divides the order of
+$\tau$'').
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{proposition}[Abelian Chebotarev]\label{Chebotarev-abelian}
+Let $L/K$ be finite abelian with Galois group $G$.  For every $\sigma\in G$, the Dirichlet
+density of primes of $K$ with Frobenius $\sigma$ exists and equals $1/|G|$.
+\end{proposition}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-abelian-crossing, Chebotarev-abelian-density,
+Chebotarev-cyclotomic-density}
+Let $H_n \subset H$ be the set of elements whose order is divisible by $n$.  Summing the
+densities of Lemma~\ref{Chebotarev-abelian-density} over $\tau\in H_n$ gives
+$\delta_{\mathrm{inf}}(S_\sigma) \geq |H_n|/(|G|\,|H|)$.  Choosing $m$ so that $|H_n|/|H|$ is
+arbitrarily close to $1$ (possible since there are primes $m\equiv 1\pmod{n^j}$ by the
+cyclotomic case already proved, and $|H_n|/|H|$ tends to $1$ as $j\to\infty$), one obtains
+$\delta_{\mathrm{inf}}(S_\sigma) \geq 1/|G|$.  Summing over $\sigma\in G$ forces equality
+throughout, so each density exists and equals $1/|G|$.
+\end{proof}
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the general case}
 
-(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
-previous results to arbitrary extensions
+Finally let $L/K$ be an arbitrary finite Galois extension with group $G$, and let $C\subset G$
+be a conjugacy class.  The theorem reduces to the abelian (indeed cyclic) case already proved,
+by passing to the fixed field of an element of $C$.
 -/
 
 blueprint_comment /--
-\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of
-$Gal(K/L)$, $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\begin{lemma}[Reduction to a cyclic subextension]\label{Chebotarev-reduction}
+Fix $\sigma\in C$ and let $E$ be the fixed field of $\langle\sigma\rangle$, so $L/E$ is cyclic of
+degree $f = |\langle\sigma\rangle|$.  Write $S$ for the set of primes of $K$ unramified in $L$
+whose Frobenius class equals $C$, and $T_\sigma$ for the set of primes $\mathfrak{P}$ of $E$
+unramified in $L$ (and lying over $K$) with Frobenius equal to $\sigma$.  Then
+\[
+\delta(S) \;=\; \frac{f\,|C|}{|G|}\,\delta(T_\sigma),
+\]
+whenever either density exists.  In particular, the Chebotarev statement for $L/K$ and $C$
+follows from the abelian statement for the cyclic extension $L/E$ and the element $\sigma$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing}
-and the arguments for the Dirichlet L-function. (It may be more convenient to work with a
-von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\begin{proof}
+If $\mathfrak{P}\in T_\sigma$, then $\varphi_{\mathfrak{P}}=\sigma$ fixes $E$, so $\mathfrak{P}$ has
+residue degree one over $K$.  There are exactly $|G|/f$ primes of $L$ over $\mathfrak{P}\cap K$,
+and their Frobenii are equidistributed among the $|C|$ elements of the conjugacy class $C$;
+exactly $|G|/(f\,|C|)$ of them have Frobenius $\sigma$.  Comparing the Dirichlet series
+$\sum N\mathfrak{p}^{-s}$ over $S$ with $\sum N\mathfrak{P}^{-s}$ over $T_\sigma$ (and using
+$\sum_{\mathfrak{p}} N\mathfrak{p}^{-s} \sim \sum_{\mathfrak{P}} N\mathfrak{P}^{-s}$) yields the
+displayed identity.  See Sharifi, Theorem~7.2.2, Step~1.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{theorem}[Chebotarev density theorem]\label{Chebotarev-general}
+Let $L/K$ be a finite Galois extension of number fields with Galois group $G$, and let
+$C\subset G$ be a conjugacy class.  The set of prime ideals $\mathfrak{p}$ of $K$ unramified in
+$L$ whose Frobenius conjugacy class equals $C$ has Dirichlet density $|C|/|G|$.
+\end{theorem}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-reduction, Chebotarev-abelian}
+Combine Lemma~\ref{Chebotarev-reduction} with Proposition~\ref{Chebotarev-abelian} applied to
+the cyclic extension $L/E$: the latter gives $\delta(T_\sigma) = 1/f$, whence
+$\delta(S) = |C|/|G|$.
 \end{proof}
 -/
