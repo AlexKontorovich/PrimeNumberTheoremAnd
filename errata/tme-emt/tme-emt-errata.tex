@@ -390,6 +390,65 @@ statement quoted on Art08.)
 \paragraph{Proposed correction.}
 Replace $5.70175$ by $5.70176$.
 
+\subsection{Gourdon--Demichel 2004 stated unconditionally}
+\label{err:gourdon-conditional}
+\paragraph{Wiki.}
+Art09 lists ``Theorem (2004, conditional)'' for a prime in
+$(x(1-1/14500755538),x]$ when $x>\exp(60)$, but the Lean transcription
+previously omitted the RH hypothesis.
+\paragraph{Source.}
+The Art09 heading itself marks the result as conditional on the
+Gourdon--Demichel verification of RH up to height
+$T_0\approx 2.44\cdot 10^{12}$.
+\paragraph{Proposed correction.}
+Record the RH-up-to-$T_0$ hypothesis explicitly alongside the short-interval
+claim.
+
+\subsection{Schoenfeld 1976 open versus closed right endpoint}
+\label{err:schoenfeld-open}
+\paragraph{Wiki / Lean.}
+Art09 and the previous Lean statement used a closed interval
+$(x,\,x(1+1/16597)]$.
+\paragraph{Source.}
+Schoenfeld, \emph{Math.\ Comp.}\ 30 (1976), Theorem~12, asserts a prime in
+the \textbf{open} interval $(x,\,x+x/16597)$ for $x>2{,}010{,}759.9$.
+\paragraph{Proposed correction.}
+Use a strict upper bound $p<x+x/16597$.
+
+\subsection{Kadiri--Lumley open right endpoint}
+\label{err:kadiri-lumley-open}
+\paragraph{Wiki / Lean.}
+The previous Lean statement used \texttt{HasPrimeInInterval}, giving
+$(1-\Delta^{-1})x < p \le x$.
+\paragraph{Source.}
+Kadiri--Lumley, arXiv:1407.7902, Theorem~1.1, has
+$(1-\Delta^{-1})x < p < x$.
+\paragraph{Proposed correction.}
+Use a strict upper bound $p<x$.
+
+\subsection{Cheng--Graham large-$t$ constant and Kusmin--Landau}
+\label{err:cheng-graham-kusmin}
+\paragraph{Wiki / Lean.}
+Art06 records $|\zeta(1/2+it)|\le 3\,t^{1/6}\log t$ for $t\ge e$ after
+Cheng--Graham~(2004).
+\paragraph{Source.}
+The same Kusmin--Landau $1/\pi$ versus $2/\pi$ error that invalidated
+Hiary's constant $0.63$ (Hiary--Patel--Yang, arXiv:2207.02366) affects the
+Cheng--Graham lemmas underlying this large-$t$ bound.
+\paragraph{Proposed correction.}
+Flag the constant $3$ as provisional (as already done for Hiary on Art06)
+until a corrected derivation is available.
+
+\subsection{\texorpdfstring{HSW 2022 threshold $T\ge e$ versus $T\ge 2$}{HSW 2022 threshold T>=e versus T>=2}}
+\label{err:hsw-threshold}
+\paragraph{Lean.}
+The shared predicate \texttt{Riemann\_vonMangoldt\_bound} quantifies over $T\ge 2$.
+\paragraph{Source.}
+Hasanalizade--Shen--Wong, arXiv:2107.06506, Corollary~1.4, states the
+$|S(T)|$ bounds for $T\ge e$.
+\paragraph{Proposed correction.}
+State the HSW corollaries with an explicit $T\ge e$ quantifier.
+
 \section*{Status in the Lean formalization}
 The corresponding statements in
 \texttt{PrimeNumberTheoremAnd/IEANTN/TMEEMT.lean} and
@@ -417,5 +476,8 @@ Items~\ref{err:hiary-063}, \ref{err:hsw-forms}, \ref{err:patel-log},
 Lean in a companion pull request.
 Item~\ref{err:ramare-thresholds}: Lean follows the 2023 corrigendum
 thresholds (including the $x\ge 115$ line omitted on the wiki).
+Items~\ref{err:gourdon-conditional}, \ref{err:schoenfeld-open},
+\ref{err:kadiri-lumley-open}, \ref{err:cheng-graham-kusmin}, and
+\ref{err:hsw-threshold} are aligned in the present update.
 
 \end{document}

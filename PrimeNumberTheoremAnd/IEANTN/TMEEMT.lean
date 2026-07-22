@@ -263,8 +263,10 @@ Some results from \cite{Dusart1999}-/
   (statement := /-- For $x \geq 5393$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
-    pi x ≥ x / (log x - 1) :=
-  Dusart.corollary_5_3_a hx
+    pi x > x / (log x - 1) := by
+  -- Paper / Art01 use a strict inequality; `Dusart.corollary_5_3_a` is currently
+  -- stubbed as non-strict, so keep the paper-faithful statement here.
+  sorry
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
   calc (22 : ℝ) = log (exp 22) := (log_exp 22).symm
@@ -1244,14 +1246,17 @@ namespace Schoenfeld1976
   "thm:schoenfeld1976"
   (title := "Schoenfeld 1976")
   (statement := /--
-  If $x > 2010760$, then there is a prime in the interval
+  If $x > 2{,}010{,}759.9$, then there is a prime in the \emph{open} interval
   \[
-  \left( x, x\left(1 + \frac{1}{16597}\right) \right].
+  \left( x,\, x + \frac{x}{16597} \right)
   \]
+  (Schoenfeld, Math.\ Comp.\ 30 (1976), Theorem~12; Art09 also writes an open
+  right endpoint.  The shared predicate `HasPrimeInInterval` is closed on the
+  right, so this statement is written directly.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval x (x * (1 / 16597)) := by sorry
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2010759.9) :
+    ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ (p : ℝ) < x + x / 16597 := by sorry
 
 end Schoenfeld1976
 
@@ -1273,12 +1278,16 @@ namespace GourdonDemichel2004
 
 @[blueprint
   "thm:gourdon-demichel2004"
-  (title := "Gourdon-Demichel 2004")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  (title := "Gourdon-Demichel 2004 (conditional)")
+  (statement := /-- Assuming RH up to height $T_0 \approx 2.44\cdot 10^{12}$
+  (Gourdon--Demichel), if $x > \exp(60)$ then there is a prime in the interval
   \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
+  (Art09 labels this ``Theorem (2004, conditional)''; the previous Lean
+  transcription omitted the RH hypothesis.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+    (hT : T ≥ 2.44e12) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
 end GourdonDemichel2004
@@ -1294,8 +1303,10 @@ namespace PrimeGaps2014
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
-  obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
-  exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
+  -- Previously deduced from the Gourdon--Demichel short-interval result; that
+  -- source is conditional on RH up to $\approx 2.44\cdot 10^{12}$, so the reduction
+  -- is deferred until the present statement's hypotheses are aligned.
+  sorry
 
 end PrimeGaps2014
 
@@ -1448,11 +1459,14 @@ noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ 
 @[blueprint
   "thm:prime_gaps_KL"
   (title := "Kadiri-Lumley Prime Gaps")
-  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$, there is a prime between $x(1-\Delta^{-1})$ and $x$.
+  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row of
+  \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$ there is a prime $p$ with
+  $(1-\Delta^{-1})x < p < x$ (open on the right; cf.\ the theorem display in the paper).
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
-    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
+theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀)
+    (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
+    ∃ p : ℕ, Nat.Prime p ∧ x * (1 - 1 / Δ) < p ∧ (p : ℝ) < x := by sorry
 
 end KadiriLumley
 
@@ -1473,9 +1487,16 @@ theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
       List.mem_nil_iff, or_false]; norm_num
   obtain ⟨p, hp, hlo, hhi⟩ := KadiriLumley.has_prime_in_interval (exp 53) x 48 4.088e-9
     18290358817 0.93 0.4301 1524171138 hx.le hrow
-  exact ⟨p, hp, by nlinarith [exp_pos (53 : ℝ)],
-    by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
-      x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
+  refine ⟨p, hp, ?_, ?_⟩
+  · have hxpos : 0 < x := lt_trans (exp_pos _) hx
+    have : x * (1 - 1 / 204879661) ≤ x * (1 - 1 / 1524171138) := by
+      apply mul_le_mul_of_nonneg_left _ hxpos.le
+      apply sub_le_sub_left
+      exact one_div_le_one_div_of_le (by norm_num) (by norm_num : (204879661:ℝ) ≤ 1524171138)
+    exact lt_of_le_of_lt this hlo
+  · have heq : x * (1 - 1 / 204879661) + x / 204879661 = x := by ring
+    rw [heq]
+    exact le_of_lt hhi
 
 end RamareSaouter2003
 
@@ -1534,8 +1555,16 @@ theorem zeta_half_bound_small : ∀ t : ℝ, 0 ≤ t → t ≤ exp 1 →
   "art06-cheng-graham-zeta-half-large"
   (title := "Cheng--Graham 2004 bound on \\(|\\zeta(1/2 + it)|\\), large \\(t\\)")
   (statement := /-- For $t \geq e$,
-    $|\zeta(1/2 + it)| \leq 3\, t^{1/6}\, \log t$. -/)
-  (proof := /-- See \cite{ChengGraham2004}. -/)
+    $|\zeta(1/2 + it)| \leq 3\, t^{1/6}\, \log t$.
+    \textbf{Caveat.} This large-$t$ corollary of \cite{ChengGraham2004} relies on
+    their Kusmin--Landau lemmas.  The same $1/\pi$ versus $2/\pi$ error that
+    forced replacing Hiary's constant $0.63$ by $0.77$\,/\,$0.618$
+    (cf.\ \cite{HiaryPatelYang2022}, and the annotation on the Hiary--Patel--Yang
+    half-plane bound above) affects this estimate; the published constant $3$
+    should be treated as provisional until a corrected derivation is recorded.
+  -/)
+  (proof := /-- See \cite{ChengGraham2004}; treat the constant as provisional pending
+    the Kusmin--Landau correction discussed in \cite{HiaryPatelYang2022}. -/)
   (latexEnv := "theorem")]
 theorem zeta_half_bound_large : ∀ t : ℝ, t ≥ exp 1 →
     ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 3 * t ^ (1/6 : ℝ) * log t := by
@@ -1704,24 +1733,36 @@ namespace HSW2022
 @[blueprint
   "art06-hsw-N-v1"
   (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), $+7/8$ form")
-  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
-    estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$, $b_3 = 8.3675$
-    (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$). -/)
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, for $T \geq e$ one has the
+    Riemann--von Mangoldt estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$,
+    $b_3 = 8.3675$
+    (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$).
+    \textbf{Note.} The shared Riemann--von~Mangoldt predicate hard-codes
+    $T\geq 2$; the paper's threshold is $T\geq e$.  The Lean declaration below
+    therefore uses an explicit $T\geq e$ quantifier.
+  -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
-theorem N_bound_v1 : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 8.3675 :=
-  HSW.main_theorem
+theorem N_bound_v1 :
+    ∀ T ≥ (exp 1 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.1038 * log T + 0.2573 * log (log T) + 8.3675 := by
+  sorry
 
 @[blueprint
   "art06-hsw-N-v2"
   (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), alternate $+7/8$ form")
-  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, one has the Riemann--von Mangoldt
-    estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$, $b_3 = 3.0305$. -/)
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, for $T \geq e$ one has the
+    Riemann--von Mangoldt estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$,
+    $b_3 = 3.0305$.  (Same threshold caveat as the previous $N(T)$ bound.) -/)
   (uses := ["Riemann-von-Mangoldt-estimate"])
   (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
   (latexEnv := "theorem")]
-theorem N_bound_v2 : riemannZeta.Riemann_vonMangoldt_bound 0.1095 0.2042 3.0305 := by
+theorem N_bound_v2 :
+    ∀ T ≥ (exp 1 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.1095 * log T + 0.2042 * log (log T) + 3.0305 := by
   sorry
 
 end HSW2022
