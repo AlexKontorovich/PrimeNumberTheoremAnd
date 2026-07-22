@@ -681,6 +681,34 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
   sorry
 
+/-- `2a + 1 ≤ (a + 2).choose 2`. -/
+private lemma two_mul_add_one_le_choose2 (a : ℕ) : 2 * a + 1 ≤ (a + 2).choose 2 := by
+  have h : 2 * (2 * a + 1) ≤ (a + 2) * (a + 1) := by
+    zify; nlinarith [sq_nonneg ((a : ℤ) - 1)]
+  have hch : 2 * (a + 2).choose 2 = (a + 2) * (a + 1) := by
+    rw [Nat.choose_two_right]
+    exact Nat.mul_div_cancel' (by
+      simpa [mul_comm, ← even_iff_two_dvd] using Nat.even_mul_succ_self (a + 1))
+  exact Nat.le_of_mul_le_mul_left (hch ▸ h) (by decide : 0 < 2)
+
+/-- ∑ (2k+1) xᵏ = (1+x)/(1-x)² for ‖x‖ < 1. -/
+private lemma tsum_two_mul_add_one_mul_geometric {x : ℂ} (hx : ‖x‖ < 1) :
+    ∑' k : ℕ, ((2 * (k : ℂ) + 1) * x ^ k) = (1 + x) / (1 - x) ^ 2 := by
+  have h1 := tsum_choose_mul_geometric_of_norm_lt_one (k := 1) (𝕜 := ℂ) hx
+  have h2 := tsum_coe_mul_geometric_of_norm_lt_one (𝕜 := ℂ) hx
+  have hs_c := summable_choose_mul_geometric_of_norm_lt_one (R := ℂ) 1 hx
+  have hs_n := summable_pow_mul_geometric_of_norm_lt_one (R := ℂ) 1 hx
+  have hcongr :
+      (fun k : ℕ ↦ (2 * (k : ℂ) + 1) * x ^ k) =
+        fun k ↦ (((k + 1 : ℕ).choose 1 : ℂ) * x ^ k + (k : ℂ) ^ 1 * x ^ k) := by
+    ext k
+    rw [Nat.choose_one_right]
+    push_cast
+    ring
+  rw [hcongr, Summable.tsum_add hs_c hs_n, h1]
+  simp only [pow_one]
+  rw [h2, ← add_div]
+
 /--
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
@@ -693,12 +721,117 @@ Zeta cubed:
   \end{verbatim}
   -/)
   (proof := /--
-  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
+  Direct Euler-product proof (independent of Baby Rankin--Selberg / Ramanujan).
+  Locally $\tau((p^k)^2)=\tau(p^{2k})=2k+1$, and $\sum_{k\ge 0}(2k+1)x^k=(1+x)/(1-x)^2$ for $|x|<1$.
+  Multiplying by the local factor of $\zeta(2s)$ recovers $1/(1-x)^3$.
+  Absolute convergence for $\Re(s)>1$ follows by comparing $\tau(n^2)\le d_3(n)$.
   -/)]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
-  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
+  have hpow (p a : ℕ) (hp : p.Prime) : τ ((p ^ a) ^ 2) ≤ d 3 (p ^ a) := by
+    have hpa : (p ^ a) ^ 2 = p ^ (2 * a) := by rw [← pow_mul, mul_comm]
+    rw [hpa, tau, sigma_zero_apply_prime_pow hp,
+      d_apply_prime_pow (by norm_num : 0 < 3) hp]
+    simpa using two_mul_add_one_le_choose2 a
+  have hτ : IsMultiplicative τ := by simpa [tau] using isMultiplicative_sigma (k := 0)
+  have hd3 : IsMultiplicative (d 3) := by dsimp [d]; exact isMultiplicative_zeta.pow
+  have hτsq : IsMultiplicative (toArithmeticFunction fun n ↦ τ (n ^ 2)) := by
+    refine ⟨by simp [toArithmeticFunction, tau], ?_⟩
+    intro m n hmn
+    simp only [toArithmeticFunction]
+    by_cases hm : m = 0 <;> by_cases hn : n = 0 <;> simp [hm, hn]
+    have hmn2 : (m ^ 2).Coprime (n ^ 2) := hmn.pow 2 2
+    simp [mul_pow, hτ.map_mul_of_coprime hmn2]
+  have hle (n : ℕ) : τ (n ^ 2) ≤ d 3 n := by
+    rcases eq_or_ne n 0 with rfl | hn
+    · simp [tau, d]
+    · rw [show τ (n ^ 2) = (toArithmeticFunction fun k ↦ τ (k ^ 2)) n by
+        simp [toArithmeticFunction, hn]]
+      rw [hτsq.multiplicative_factorization _ hn, hd3.multiplicative_factorization _ hn]
+      simp_rw [Finsupp.prod]
+      refine Finset.prod_le_prod (fun _ _ => Nat.zero_le _) fun p hp => ?_
+      simpa [toArithmeticFunction, pow_eq_zero_iff',
+        (prime_of_mem_primeFactors (by simpa [Nat.support_factorization] using hp)).ne_zero]
+        using hpow p (n.factorization p)
+          (prime_of_mem_primeFactors (by simpa [Nat.support_factorization] using hp))
+  have hsum : LSeriesSummable (fun n ↦ (τ (n ^ 2) : ℂ)) s := by
+    have hgf (n : ℕ) :
+        ‖LSeries.term (fun k ↦ (τ (k ^ 2) : ℂ)) s n‖ ≤
+          ‖LSeries.term (fun k ↦ (d 3 k : ℂ)) s n‖ := by
+      by_cases hn : n = 0
+      · simp [LSeries.term, hn]
+      · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
+        exact div_le_div_of_nonneg_right (by exact_mod_cast hle n) (norm_nonneg _)
+    have hf : Summable fun n ↦ ‖LSeries.term (fun k ↦ (d 3 k : ℂ)) s n‖ := by
+      have h := (LSeries_d_summable 3 hs).norm
+      convert h using 1
+      ext n; simp only [LSeries.term]; by_cases hn : n = 0 <;> simp [hn]
+    refine (Summable.of_nonneg_of_le (fun _ => norm_nonneg _) hgf hf).of_norm
+  have hterm_mul (s' : ℂ) {m n : ℕ} (hmn : m.Coprime n) :
+      LSeries.term (fun k ↦ (τ (k ^ 2) : ℂ)) s' (m * n) =
+        LSeries.term (fun k ↦ (τ (k ^ 2) : ℂ)) s' m *
+          LSeries.term (fun k ↦ (τ (k ^ 2) : ℂ)) s' n := by
+    simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
+    by_cases hm : m = 0 <;> simp [hm]
+    by_cases hn : n = 0 <;> simp [hn]
+    rw [← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
+    congr 1
+    have : τ ((m * n) ^ 2) = τ (m ^ 2) * τ (n ^ 2) := by
+      simpa [toArithmeticFunction, hm, hn, mul_pow] using hτsq.2 hmn
+    exact_mod_cast this
+  have hlocal (p : Nat.Primes) :
+      (∑' k : ℕ, LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s (p.val ^ k)) =
+        (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2 := by
+    set x : ℂ := (p.val : ℂ) ^ (-s)
+    have hx : ‖x‖ < 1 :=
+      (Complex.norm_prime_cpow_le_one_half ⟨p.val, p.prop⟩ hs).trans_lt (by norm_num)
+    have hterm (k : ℕ) :
+        LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s (p.val ^ k) =
+          (2 * (k : ℂ) + 1) * x ^ k := by
+      have hpow' : ((p.val : ℂ) ^ ((k : ℂ) * s))⁻¹ = x ^ k := by
+        unfold x
+        rw [← Complex.cpow_neg, show -((k : ℂ) * s) = (-s) * (k : ℂ) by ring,
+          Complex.cpow_mul_nat]
+      simp only [LSeries.term, pow_eq_zero_iff', p.prop.ne_zero, false_and, ↓reduceIte,
+        Nat.cast_pow]
+      have hsq : (p.val ^ k) ^ 2 = p.val ^ (2 * k) := by rw [← pow_mul, mul_comm]
+      rw [hsq, tau, sigma_zero_apply_prime_pow p.prop]
+      simp only [div_eq_mul_inv, ← Complex.natCast_cpow_natCast_mul, hpow']
+      push_cast; ring
+    simp_rw [hterm]
+    exact tsum_two_mul_add_one_mul_geometric hx
+  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have hprod_has :
+      HasProd (fun p : Nat.Primes ↦ (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2)
+        (LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s) := by
+    convert! EulerProduct.eulerProduct_hasProd (R := ℂ)
+      (by simp [LSeries.term])
+      (fun {_ _} h => hterm_mul s h) ?_ (by simp [LSeries.term]) using 1
+    · funext p; exact (hlocal p).symm
+    · simpa [LSeriesSummable, ← summable_norm_iff] using hsum
+  have mulζ := (riemannZeta_eulerProduct_hasProd hs).multipliable
+  have mulζ2 := (riemannZeta_eulerProduct_hasProd hs').multipliable
+  have mulL : Multipliable fun p : Nat.Primes ↦
+      (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2 := hprod_has.multipliable
+  have hadd (p : Nat.Primes) : 1 + (p : ℂ) ^ (-s) ≠ 0 := by
+    intro h
+    have : ‖(p : ℂ) ^ (-s)‖ = 1 := by
+      simpa using congr_arg norm (neg_eq_of_add_eq_zero_left h)
+    linarith [Complex.norm_prime_cpow_le_one_half ⟨p.val, p.prop⟩ hs]
+  rw [show riemannZeta s ^ 3 = riemannZeta s * (riemannZeta s * riemannZeta s) by ring,
+    ← riemannZeta_eulerProduct_tprod hs, ← Multipliable.tprod_mul mulζ mulζ,
+    ← Multipliable.tprod_mul mulζ (mulζ.mul mulζ),
+    ← riemannZeta_eulerProduct_tprod hs', ← hprod_has.tprod_eq,
+    ← Multipliable.tprod_mul mulζ2 mulL]
+  apply tprod_congr; intro p
+  have hsub := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  have hsq : 1 - ((p : ℂ) ^ (-s)) ^ 2 ≠ 0 := by
+    rw [show 1 - ((p : ℂ) ^ (-s)) ^ 2 =
+      (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) by ring]
+    exact mul_ne_zero hsub (hadd p)
+  rw [show (-(2 * s) : ℂ) = -s + -s by ring,
+    Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
+  field_simp [hsub, hsq]; ring
 
 /--
 Zeta cubed alt:
