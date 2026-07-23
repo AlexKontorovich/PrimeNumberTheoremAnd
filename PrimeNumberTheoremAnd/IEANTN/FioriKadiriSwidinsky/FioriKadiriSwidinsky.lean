@@ -494,12 +494,12 @@ theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     riemannZeta.Sigma T x σ₂ 1 ≤
       2 * (riemannZeta.N' σ₂ T) * x ^ (-1 / (I.R * log (t_seq 0))) / (t_seq 0)
     ∧
-    riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last K),
+    riemannZeta.Sigma T x σ₂ 1 ≤ 2 * ((∑ k ∈ Finset.Ioo 0 (Fin.last K),
       riemannZeta.N' σ₂ (t_seq k) *
         (x ^ (-1 / (I.R * log (t_seq (k - 1)))) / (t_seq (k - 1)) -
           x ^ (-1 / (I.R * log (t_seq k))) / (t_seq k))) +
       x ^ (-1 / (I.R * log (t_seq ⟨K - 1, by omega⟩))) /
-        (t_seq ⟨K - 1, by omega⟩) * riemannZeta.N' σ₂ T := by sorry
+        (t_seq ⟨K - 1, by omega⟩) * riemannZeta.N' σ₂ T) := by sorry
 
 /-- Geometric heights for Cor.~3.12: \(t_k = t_0\lambda^k\) with \(\lambda=(T/t_0)^{1/K}\),
     \(k=0,\ldots,K\) (so \(t_K=T\)). -/
