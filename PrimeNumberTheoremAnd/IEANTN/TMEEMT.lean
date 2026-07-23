@@ -1108,9 +1108,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:robin1983-pn-lower-const1"
   (title := "Robin 1983, lower bound on $p_n$ with constant 1 for small primes")
-  (statement := /-- For $p_n \leq 10^{11}$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- For $n \geq 2$ with $p_n \leq 10^{11}$, we have
+  $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower_const1 (n : ℕ) (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
+theorem p_n_lower_const1 (n : ℕ) (hn2 : n ≥ 2)
+    (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
     nth_prime' n > n * (log n + log (log n) - 1) := by sorry
 
 end Robin
