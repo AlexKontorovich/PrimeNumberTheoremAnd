@@ -229,7 +229,7 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   The odd Goldbach conjecture is verified up to $1966196911 \times 4 \times 10^{18}$. -/)
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext},
   Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with
-  $x_0 = e^{60}$ and $\Delta = 1966090061$.  (Actually, if one is only allowed to use the
+  $x_0 = e^{60}$ and $\Delta = 1966196911$.  (Actually, if one is only allowed to use the
   previous results listed here, one first needs to use the values $x_0 = e^{59}$ and
   $\Delta = 1946282821$ to cover an intermediate range of values.)-/)
   (latexEnv := "proposition")
