@@ -1150,11 +1150,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:dusart1999-pn-upper"
   (title := "Dusart 1999, upper bound on $p_n$")
-  (statement := /-- For $n > 39017$ (i.e., $p_n > 467473$), we have
-  $p_n < n(\log n + \log\log n - 0.9484)$. -/)
+  (statement := /-- For $n \geq 39017$ (i.e., $p_n > 467473$), we have
+  $p_n \leq n(\log n + \log\log n - 0.9484)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n > 39017) :
-    nth_prime' n < n * (log n + log (log n) - 0.9484) := by sorry
+theorem p_n_upper (n : ℕ) (hn : n ≥ 39017) :
+    nth_prime' n ≤ n * (log n + log (log n) - 0.9484) := by sorry
 
 end Dusart1999
 
