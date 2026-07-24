@@ -1427,12 +1427,15 @@ namespace CarneiroEtAl2019RH
 @[blueprint
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]. \]
-  -/)
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the
+  \emph{closed} interval
+  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]
+  \]
+  (\cite{CMS2019}, Theorem~5). The shared predicate `HasPrimeInInterval` is open on the
+  left, so this statement is written directly. -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval x ((22 / 25) * sqrt x * log x) := by sorry
+    ∃ p : ℕ, Nat.Prime p ∧ x ≤ p ∧ (p : ℝ) ≤ x + (22 / 25) * sqrt x * log x := by sorry
 
 end CarneiroEtAl2019RH
 
