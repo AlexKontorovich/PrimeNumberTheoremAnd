@@ -2147,22 +2147,6 @@ lemma I9I1 {SmoothingF : ℝ → ℝ} {ε X T : ℝ} (Xpos : 0 < X) :
     rw[← smoothedChebyshevIntegrand_conj Xpos]
     simp
 
-theorem I9Bound
-    {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ C > 0, ∀{ε : ℝ} (_ : 0 < ε)
-    (_ : ε < 1)
-    (X : ℝ) (_ : 3 < X)
-    {T : ℝ} (_ : 3 < T),
-    ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
-  obtain ⟨C, Cpos, bound⟩ := I1Bound suppSmoothingF ContDiffSmoothingF SmoothingFnonneg mass_one
-  refine ⟨C, Cpos, ?_⟩
-  intro ε εpos ε_lt_one X X_gt T T_gt
-  specialize bound ε εpos ε_lt_one X X_gt T_gt
-  rwa [I9I1 (by linarith), norm_conj]
-
 lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X) : (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
   refine (add_lt_add_iff_left 1).mpr ?_
@@ -2375,37 +2359,6 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
     rw[← smoothedChebyshevIntegrand_conj]
     · simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
     · exact lt_trans (by norm_num) T_gt
-
-@[blueprint
-  (title := "I8Bound")
-  (statement := /--
-  We have that
-  $$
-  \left|I_{8}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
-  .
-  $$
-  -/)
-  (proof := /--
-  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
-  -/)
-  (latexEnv := "lemma")]
-lemma I8Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 < C),
-    ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_: 0 < ε)
-    (_ : ε < 1)
-    {T : ℝ} (_ : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
-
-  obtain ⟨C, hC, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF has_bound C₂_pos A_in
-  use C, hC
-  intro X hX ε hε0 hε1 T hT σ₁
-  let i2Bound := i2Bound X hX hε0 hε1 hT
-  rw[I8I2 hX, norm_neg, norm_conj]
-  exact i2Bound
 
 @[blueprint
   (title := "log-pow-over-xsq-integral-bounded")
@@ -2987,21 +2940,6 @@ lemma I7I3 {SmoothingF : ℝ → ℝ} {ε X T σ₁ : ℝ} (Xpos : 0 < X) :
     rw [← smoothedChebyshevIntegrand_conj Xpos]
     simp
 
-lemma I7Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2))
-    : ∃ (C : ℝ) (_ : 0 < C),
-    ∀ (X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
-    (_ : ε < 1) {T : ℝ} (_ : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₇ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  obtain ⟨C, Cpos, bound⟩ := I3Bound suppSmoothingF ContDiffSmoothingF hCζ Cζpos hA
-  refine ⟨C, Cpos, fun X X_gt ε εpos ε_lt_one T T_gt ↦ ?_⟩
-  specialize bound X X_gt εpos ε_lt_one T_gt
-  intro σ₁
-  rwa [I7I3 (by linarith), norm_conj]
-
 @[blueprint
   (title := "I4Bound")
   (statement := /--
@@ -3406,23 +3344,6 @@ lemma I6I4 {SmoothingF : ℝ → ℝ} {ε X σ₁ σ₂ : ℝ} (Xpos : 0 < X) :
     simp only
     rw[← smoothedChebyshevIntegrand_conj Xpos]
     simp [conj_ofNat]
-
-lemma I6Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
-    ∀ (X : ℝ) (_ : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
-    {T : ℝ} (_ : Tlb < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  obtain ⟨C, Cpos, Tlb, Tlb_gt, bound⟩ := I4Bound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ hA
-  refine ⟨C, Cpos, Tlb, Tlb_gt, fun X X_gt ε εpos ε_lt_one T T_gt ↦ ?_⟩
-  specialize bound X X_gt εpos ε_lt_one T_gt
-  intro σ₁
-  rwa [I6I4 (by linarith), norm_neg, norm_conj]
 
 @[blueprint
   (title := "I5Bound")
