@@ -1108,9 +1108,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:robin1983-pn-lower-const1"
   (title := "Robin 1983, lower bound on $p_n$ with constant 1 for small primes")
-  (statement := /-- For $p_n \leq 10^{11}$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- For $n \geq 2$ with $p_n \leq 10^{11}$, we have
+  $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower_const1 (n : ℕ) (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
+theorem p_n_lower_const1 (n : ℕ) (hn2 : n ≥ 2)
+    (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
     nth_prime' n > n * (log n + log (log n) - 1) := by sorry
 
 end Robin
@@ -1122,11 +1124,13 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
 @[blueprint
   "thm:massias-robin1996-pn-lower"
   (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
-  (statement := /-- If $n \geq 2$ and either $p_n < e^{598}$ or $p_n > e^{1800}$, then
-  $p_n \geq n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- If $n \geq 2$ and either $n \leq e^{598}$ or $n \geq e^{1800}$, then
+  $p_n \geq n(\log n + \log\log n - 1)$.
+  (Art01 writes the thresholds on $p_n$; Dusart, Math.\ Comp.\ 68 (1999),
+  citing \cite{massias-robin}, places them on the index $n$.) -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn2 : 2 ≤ n)
-    (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
+    (hn : (n : ℝ) ≤ exp 598 ∨ (n : ℝ) ≥ exp 1800) :
     nth_prime' n ≥ n * (log n + log (log n) - 1) := by sorry
 
 end MassiasRobin
@@ -1146,11 +1150,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:dusart1999-pn-upper"
   (title := "Dusart 1999, upper bound on $p_n$")
-  (statement := /-- For $n > 39017$ (i.e., $p_n > 467473$), we have
-  $p_n < n(\log n + \log\log n - 0.9484)$. -/)
+  (statement := /-- For $n \geq 39017$ (i.e., $p_n > 467473$), we have
+  $p_n \leq n(\log n + \log\log n - 0.9484)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n > 39017) :
-    nth_prime' n < n * (log n + log (log n) - 0.9484) := by sorry
+theorem p_n_upper (n : ℕ) (hn : n ≥ 39017) :
+    nth_prime' n ≤ n * (log n + log (log n) - 0.9484) := by sorry
 
 end Dusart1999
 

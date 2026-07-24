@@ -144,6 +144,20 @@ not $\sum p_k$.  The actual prime-sum estimates are Theorems~1.8 and~1.9
 Replace $\sum_{i\le k}p_i$ by $B_k$ (and cite Theorems~1.6--1.7), or else
 quote Theorems~1.8--1.9 for the prime-sum bounds.
 
+\subsection{Massias--Robin 1996, thresholds on $p_n$ versus $n$}
+\label{err:massias-robin-index}
+\paragraph{Wiki.}
+Art01, \S4, writes that Massias--Robin~(1996) make the constant~$1$ admissible
+for $p_k < e^{598}$ and $p_k > e^{1800}$.
+\paragraph{Source.}
+Dusart, \emph{The $k^{\mathrm{th}}$ prime is greater than
+$k(\ln k+\ln\ln k-1)$ for $k\ge 2$}, Math.\ Comp.\ 68 (1999), citing
+Massias--Robin, states the ranges on the \emph{index}:
+$2\le k\le\exp(598)$ and $k\ge\exp(1800)$.
+\paragraph{Proposed correction.}
+Replace $p_k < e^{598}$ / $p_k > e^{1800}$ by
+$k\le e^{598}$ / $k\ge e^{1800}$.
+
 \subsection{Cosmetic / typesetting (lower priority)}
 \begin{itemize}[leftmargin=*]
 \item Art01 opening paragraph: ``van Mangold'' $\to$ ``von Mangoldt'';
@@ -479,5 +493,7 @@ thresholds (including the $x\ge 115$ line omitted on the wiki).
 Items~\ref{err:gourdon-conditional}, \ref{err:schoenfeld-open},
 \ref{err:kadiri-lumley-open}, \ref{err:cheng-graham-kusmin}, and
 \ref{err:hsw-threshold} are aligned in the present update.
+Item~\ref{err:massias-robin-index} is aligned in Lean in the present
+update (thresholds on the index $n$, not on $p_n$).
 
 \end{document}

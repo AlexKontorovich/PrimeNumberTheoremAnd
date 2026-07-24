@@ -487,23 +487,25 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
   -/)]
 theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hK : 2 ≤ K)
     (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1)
-    (t_seq : Fin (K + 2) → ℝ)
+    (t_seq : Fin (K + 1) → ℝ)
     (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x / I.R))))
-    (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq)
+    (htK : t_seq (Fin.last K) = T) (ht_incr : StrictMono t_seq)
     (hT : T > t_seq 0) :
     riemannZeta.Sigma T x σ₂ 1 ≤
       2 * (riemannZeta.N' σ₂ T) * x ^ (-1 / (I.R * log (t_seq 0))) / (t_seq 0)
     ∧
-    riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K + 1)),
+    riemannZeta.Sigma T x σ₂ 1 ≤ 2 * ((∑ k ∈ Finset.Ioo 0 (Fin.last K),
       riemannZeta.N' σ₂ (t_seq k) *
         (x ^ (-1 / (I.R * log (t_seq (k - 1)))) / (t_seq (k - 1)) -
           x ^ (-1 / (I.R * log (t_seq k))) / (t_seq k))) +
-      x ^ (-1 / (I.R * log (t_seq (Fin.last K).castSucc))) /
-        (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
+      x ^ (-1 / (I.R * log (t_seq ⟨K - 1, by omega⟩))) /
+        (t_seq ⟨K - 1, by omega⟩) * riemannZeta.N' σ₂ T) := by sorry
 
+/-- Geometric heights for Cor.~3.12: \(t_k = t_0\lambda^k\) with \(\lambda=(T/t_0)^{1/K}\),
+    \(k=0,\ldots,K\) (so \(t_K=T\)). -/
 noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : ℝ :=
-    let t : Fin (K + 2) → ℝ := fun k ↦ t₀ * (T / t₀) ^ ((k : ℝ) / (K + 1))
-    2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K + 1)),
+    let t : Fin (K + 1) → ℝ := fun k ↦ t₀ * (T / t₀) ^ ((k : ℝ) / K)
+    2 * ∑ k ∈ Finset.Ioo 0 (Fin.last K),
       (x ^ (-1 / (I.R * log (t k))) / (t k)) *
         (I.ZDB.N σ₂ (t (k + 1)) - I.ZDB.N σ₂ (t k)) +
       2 * (I.ZDB.N σ₂ (t 1)) * x ^ (-1 / (I.R * log (t 0))) / (t 0)
