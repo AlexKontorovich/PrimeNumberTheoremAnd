@@ -295,11 +295,11 @@ theorem corollary_5_2_f {x : ℝ} (hx : x > 1) : pi x ≤ x / log x * (1 + 1 / l
   (statement := /--
   For $x \geq 5393$, we have
   \[
-  \frac{x}{\log x - 1} \leq \pi(x)
+  \pi(x) > \frac{x}{\log x - 1}.
   \]
   -/)
   (latexEnv := "corollary")]
-theorem corollary_5_3_a {x : ℝ} (hx : x ≥ 5393) : pi x ≥ x / (log x - 1) := by sorry
+theorem corollary_5_3_a {x : ℝ} (hx : x ≥ 5393) : pi x > x / (log x - 1) := by sorry
 
 @[blueprint "Dusart_cor_5_3_b"
   (title := "Dusart Corollary 5.3 (b)")
