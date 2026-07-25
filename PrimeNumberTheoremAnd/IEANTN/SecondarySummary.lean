@@ -130,9 +130,10 @@ theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Ta
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
+  |\pi(x) - \mathrm{Li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
   \]
-  for all $x \geq \exp(2000)$.
+  for all $x \geq \exp(2000)$
+  (equivalently $E_\pi$ classical bound with $A=235$, $B=1.52$, $C=0.8$, $R=1$).
   -/)
   (latexEnv := "theorem")]
 theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
@@ -271,9 +272,10 @@ blueprint_comment /-- results from \cite{johnston-yang}-/
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
+  |\pi(x) - \mathrm{Li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
   \]
-  for all $x \geq 2$.
+  for all $x \geq 2$
+  (equivalently $E_\pi$ classical bound with $A=9.59$, $B=1.515$, $C=0.8274$, $R=1$).
   -/)
   (latexEnv := "theorem")]
 theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
