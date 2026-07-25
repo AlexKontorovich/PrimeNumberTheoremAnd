@@ -60,7 +60,7 @@ noncomputable def Buthe_chiStarIcc (x t : ℝ) : ℝ :=
     $\psi(x)=\sum_{n \geq 1}\chi^*_{[0,x]}(n)\Lambda(n)$.
   -/)]
 noncomputable def Buthe_psi (x : ℝ) : ℝ :=
-  ∑' n : ℕ, Buthe_chiStarIcc x n * (vonMangoldt n : ℝ)
+  ∑' n : ℕ, Buthe_chiStarIcc x (n + 1) * (vonMangoldt (n + 1) : ℝ)
 
 @[blueprint
   "buthe2-buthe-theta"
@@ -91,7 +91,7 @@ noncomputable def Buthe_pi (x : ℝ) : ℝ :=
     $\pi^*(x)=\sum_{k \geq 1}\pi(x^{1/k})/k$.
   -/)]
 noncomputable def Buthe_pi_star (x : ℝ) : ℝ :=
-  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
+  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k + 1 : ℝ))) / (k + 1 : ℝ)
 
 lemma Buthe_chiStarIcc_nonneg (x t : ℝ) : 0 ≤ Buthe_chiStarIcc x t := by
   unfold Buthe_chiStarIcc
