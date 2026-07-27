@@ -1519,16 +1519,29 @@ theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
 theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) :
     ∀ k ∈ Finset.Icc 1 5, ∀ x ∈ Set.Icc (exp b₀) (exp K),
-      |θ x - x| ≤ B k * x / (log x) ^ k := by
+      |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
   intro k hk x hx
   by_cases hsplit : x ≤ (10 : ℝ) ^ 19
-  · -- Below 10^19: Corollary 9.1 (`bklnw_corollary_9_1`) gives the sharper
-    -- `|θ x - x| ≤ C_bk(b₀,k)·x/(log x)^k` on `[exp b₀, 10^19]`; the per-row
-    -- interval-arithmetic obligation is `C_bk(b₀,k) ≤ B k`.
+  · -- Below 10^19: the Table-11 entries in this regime are the Corollary-9.1 constants,
+    -- so the bound comes from `bklnw_corollary_9_1` / `bklnw_corollary_9_1_explicit`,
+    -- which give `|θ x - x| ≤ C_bk b₀ c C c₀ k · x/(log x)^k` on `[exp b₀, v]` for a
+    -- Butzer row `(100, v, c, C) ∈ table_from_buthe` with `v ≥ 10^19`. The residual
+    -- per-row obligation is the all-rational `C_bk b₀ c C RS_prime.c₀ k ≤ B k * table_11_margin`,
+    -- of exactly the shape already discharged by `bklnw_table_12_verification`.
+    -- Note this branch is vacuous for rows with `b₀ ≥ 19 * log 10`.
     sorry
-  · -- Above 10^19: the strip bound `bklnw_cor_8_1b k (log (10^19))` gives
-    -- `|θ x - x| ≤ B_8_1' k (log (10^19))·x/(log x)^k` on `[10^19, exp K]`; the
-    -- per-row interval-arithmetic obligation is `B_8_1' k (log (10^19)) ≤ B k`.
+  · -- Above 10^19: route through the *exact* Lemma-8 supremum, not the endpoint surrogate
+    -- `B_8_1'` — Table 10's printed values are provably exceeded by `B_8_1` (issue #1255),
+    -- so only `B_8_exact` chains into the tables. For `x > 10^19` we have
+    -- `log x ≥ max b₀ (19 * log 10)`, so `table_10_coverage` picks a Table-10 strip
+    -- `b ≥ max b₀ 43` with `x ∈ [exp b, exp (table_10_next b)]`; then
+    -- `bklnw_cor_8_1a_exact k b (table_10_next b)` bounds `|θ x - x|` by
+    -- `B_8_exact k b (table_10_next b) · x/(log x)^k`, and the proven
+    -- `bklnw_table_10_verification` bounds that by `B^{t10} k b · table_10_margin`.
+    -- The residual per-row obligation is the all-rational
+    -- `(⨆ b ∈ table_10_entries, b ≥ max b₀ 43) B^{t10} k b * table_10_margin ≤ B k * table_11_margin`,
+    -- i.e. a max over a *suffix* of Table 10 — needs a `table_11_check` evaluator in
+    -- `BKLNW_tables.lean`, mirroring `table_12_check`.
     sorry
 
 
