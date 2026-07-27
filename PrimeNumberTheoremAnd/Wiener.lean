@@ -462,7 +462,7 @@ set_option backward.isDefEq.respectTransparency false in
 lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
     Integrable fun u ↦ 𝓕 (ψ : ℝ → ℂ) (u / c) := by
   have l1 (C) : Integrable (fun u ↦ C / (1 + (u / c) ^ 2)) volume := by
-    simpa using (integrable_inv_one_add_sq.comp_div hc).const_mul C
+    simpa using! (integrable_inv_one_add_sq.comp_div hc).const_mul C
   have l2 : AEStronglyMeasurable (fun u ↦ 𝓕 (ψ : ℝ → ℂ) (u / c)) volume := by
     apply Continuous.aestronglyMeasurable ; fun_prop
   obtain ⟨C, h⟩ := decay_bounds_cor ψ
@@ -479,7 +479,7 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
   have l1 i : Continuous fun x : ℝ ↦ term f (σ' + x * I) i := by
     by_cases h : i = 0
     · simpa [h] using continuous_const
-    · simpa [h] using continuous_const.div (continuous_const.cpow (by fun_prop) (by simp [h]))
+    · simpa [h] using! continuous_const.div (continuous_const.cpow (by fun_prop) (by simp [h]))
         (fun x => by simp [h])
   have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
     by_cases h : n = 0
@@ -607,7 +607,7 @@ lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabl
 
 lemma summation_by_parts' {E : Type*} [Ring E] {a b : ℕ → E} {n : ℕ} :
     cumsum (a * b) (n + 1) = cumsum a (n + 1) * b n - cumsum (shift (cumsum a) * nabla b) n := by
-  simpa using summation_by_parts (a := a) (b := b) (A := cumsum a) (by simp)
+  simpa using! summation_by_parts (a := a) (b := b) (A := cumsum a) (by simp)
 
 lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
     shift (cumsum (a * b)) = shift (cumsum a) * b - cumsum (shift (cumsum a) * nabla b) := by
@@ -639,8 +639,8 @@ lemma BoundedAtFilter.add_const {u : ℕ → ℝ} {c : ℝ} :
 
 lemma BoundedAtFilter.comp_add {u : ℕ → ℝ} {N : ℕ} :
     BoundedAtFilter atTop (fun n => u (n + N)) ↔ BoundedAtFilter atTop u := by
-  simp only [BoundedAtFilter, isBigO_iff, norm_eq_abs, Pi.one_apply, one_mem,
-    CStarRing.norm_of_mem_unitary, mul_one, eventually_atTop, ge_iff_le]
+  simp only [BoundedAtFilter, isBigO_iff, norm_eq_abs, Pi.one_apply,
+    eventually_atTop]
   constructor <;> intro ⟨C, n₀, h⟩ <;> use C
   · refine ⟨n₀ + N, fun n hn => ?_⟩
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le' (m := N) (n := n) (by grind)
@@ -662,7 +662,7 @@ lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
   refine ⟨C, N + 1, fun n hn => ?_⟩
   simp only [shift] at hC
   have r1 : n - 1 ≥ N := Nat.le_sub_one_of_lt hn
-  have r2 : n - 1 + 1 = n := Nat.sub_add_cancel <| NeZero.one_le.trans hn.le
+  have r2 : n - 1 + 1 = n := Nat.sub_add_cancel (by omega)
   simpa [r2] using hC (n - 1) r1
 
 lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
@@ -670,7 +670,7 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
     (h : Summable (shift (cumsum a) * nnabla b)) : Summable (a * b) := by
   have l1 : ∀ᶠ n in atTop, 0 ≤ (shift (cumsum a) * nnabla b) n := by
     filter_upwards [hbb] with n hb
-    exact mul_nonneg (by simpa [shift] using Finset.sum_nonneg' ha) (sub_nonneg.mpr hb)
+    exact mul_nonneg (by simpa [shift] using! Finset.sum_nonneg' ha) (sub_nonneg.mpr hb)
   rw [summable_iff_bounded (mul_nonneg ha hb)]
   rw [summable_iff_bounded' l1] at h
   apply bounded_of_shift
@@ -747,7 +747,7 @@ lemma log_mul_add_isBigO_log {a : ℝ} (ha : 0 < a) (b : ℝ) :
 
 lemma isBigO_log_mul_add {a : ℝ} (ha : 0 < a) (b : ℝ) :
     Real.log =O[atTop] (fun x => Real.log (a * x + b)) := by
-  convert (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto
+  convert! (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto
     (tendsto_mul_add_atTop (b := b) ha) using 1
   ext x
   simp only [Function.comp_apply]
@@ -825,7 +825,7 @@ lemma nnabla_mul_log_sq (a : ℝ) {b : ℝ} (hb : 0 < b) :
     filter_upwards [eventually_ge_atTop 1] with x hx using by field_simp
   have l5 : (fun n ↦ n * (Real.log n * (1 / n))) =O[atTop] (fun n ↦ (Real.log n) ^ 2) :=
     e2.trans_isBigO
-      (by simpa using (isLittleO_mul_add_sq 1 0).isBigO.comp_tendsto Real.tendsto_log_atTop)
+      (by simpa using! (isLittleO_mul_add_sq 1 0).isBigO.comp_tendsto Real.tendsto_log_atTop)
 
   simp_rw [l1, _root_.sq_sub_sq]
   exact ((l2.add l3).add (isBigO_refl (·) atTop |>.mul (l4.mul (nabla_log hb)) |>.trans l5))
@@ -888,7 +888,7 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
     gcongr
 
   have l6 : (fun n => d (n + 1) - d n) =O[atTop] (fun n => (Real.log n) ^ 2) := by
-    simpa [d, nabla] using (nnabla_mul_log_sq ((2 * π) ^ 2) hx)
+    simpa [d, nabla] using! (nnabla_mul_log_sq ((2 * π) ^ 2) hx)
 
   apply EventuallyEq.trans_isBigO l1
 
@@ -940,7 +940,7 @@ lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 
     apply le_add_of_le_of_nonneg le_rfl
     positivity
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := by
-    simpa [a] using IsBigO.mul l5 (isBigO_refl (fun n : ℕ => 1 / (n : ℝ)) _)
+    simpa [a] using! IsBigO.mul l5 (isBigO_refl (fun n : ℕ => 1 / (n : ℝ)) _)
   have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
     convert (nnabla_bound C hx).natCast ; simp [nnabla, a]
 
@@ -991,7 +991,7 @@ theorem limiting_fourier_lim1 (hcheby : cheby f) (ψ : W21) (hx : 0 < x) :
     rw [norm_mul, ← nterm_eq_norm_term]
     refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (Nat.cast_nonneg _))
     by_cases h : n = 0 <;> simp only [nterm, h, ↓reduceIte, CharP.cast_eq_zero, div_zero, le_refl]
-    have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
+    have : 1 ≤ (n : ℝ) := by simpa using! Nat.pos_iff_ne_zero.mpr h
     refine div_le_div₀ (norm_nonneg _) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
     simpa using Real.rpow_le_rpow_of_exponent_le this hσ'.le
 
@@ -1137,7 +1137,7 @@ lemma limiting_fourier (hcheby : cheby f)
   have l2 := limiting_fourier_lim2 A ψ hx
   have l3 := limiting_fourier_lim3 hG ψ hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
-  simpa [eventuallyEq_nhdsWithin_iff] using Eventually.of_forall (limiting_fourier_aux hG' hf ψ hx)
+  simpa [eventuallyEq_nhdsWithin_iff] using! Eventually.of_forall (limiting_fourier_aux hG' hf ψ hx)
 
 
 
@@ -1249,7 +1249,7 @@ lemma pp_deriv_eq (a : ℝ) : deriv (pp a) = pp' a := by
   ext x ; exact pp_deriv a x |>.deriv
 
 lemma pp'_deriv (a x : ℝ) : HasDerivAt (pp' a) (a ^ 2 * 2) x := by
-  simpa using hasDerivAt_id x |>.add_const 1 |>.const_mul 2 |>.const_mul (a ^ 2)
+  simpa using! hasDerivAt_id x |>.add_const 1 |>.const_mul 2 |>.const_mul (a ^ 2)
 
 lemma pp'_deriv_eq (a : ℝ) : deriv (pp' a) = fun _ => a ^ 2 * 2 := by
   ext x ; exact pp'_deriv a x |>.deriv
@@ -1266,7 +1266,7 @@ lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   replace ht : 0 < t := lt_of_le_of_ne ht (by tauto)
   unfold hh
   rw [abs_inv, inv_le_inv₀ (by positivity) ht, abs_mul, abs_eq_self.mpr ht.le]
-  convert_to t * 1 ≤ _
+  convert_to! t * 1 ≤ _
   · simp
   apply mul_le_mul le_rfl ?_ zero_le_one ht.le
   rw [abs_eq_self.mpr (by positivity)]
@@ -1278,13 +1278,13 @@ lemma hh_deriv (a : ℝ) {t : ℝ} (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) 
   have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht
   have l4 : HasDerivAt (fun t : ℝ => a * log t) (a * t⁻¹) t := l5.const_mul _
   have l3 : HasDerivAt (fun t : ℝ => (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t := by
-    convert l4.pow 2 using 1 ; ring
+    convert! l4.pow 2 using 1 ; ring
   have l2 : HasDerivAt (fun t : ℝ => 1 + (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t :=
     l3.const_add _
   have l1 : HasDerivAt (fun t : ℝ => t * (1 + (a * log t) ^ 2))
       (1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) t := by
-    convert (hasDerivAt_id' t).mul l2 using 1; field_simp; ring
-  convert l1.inv e1 using 1; simp only [hh', pp, hh]; field_simp; ring
+    convert! (hasDerivAt_id' t).mul l2 using 1; field_simp; ring
+  convert! l1.inv e1 using 1; simp only [hh', pp, hh]; field_simp; ring
 
 lemma hh_continuous (a : ℝ) : ContinuousOn (hh a) (Ioi 0) :=
   fun t (ht : 0 < t) => (hh_deriv a ht.ne.symm).continuousAt.continuousWithinAt
@@ -1329,7 +1329,7 @@ lemma one_div_two_pi_mem_Ioo : 1 / (2 * π) ∈ Ioo (-1) 1 := by
     · linarith
     · positivity
   · rw [div_lt_iff₀ (by positivity)]
-    convert_to 1 * 1 < 2 * π
+    convert_to! 1 * 1 < 2 * π
     · simp
     · simp
     apply mul_lt_mul one_lt_two ?_ zero_lt_one zero_le_two
@@ -1348,7 +1348,7 @@ lemma cancel_aux {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
 
   have l1 (n : ℕ) :
       (g n - g (n + 1)) * ∑ i ∈ Finset.range (n + 1), f i ≤ (g n - g (n + 1)) * (C * (n + 1)) := by
-    apply mul_le_mul le_rfl (by simpa using hf' (n + 1)) (Finset.sum_nonneg' hf) ?_
+    apply mul_le_mul le_rfl (by simpa using! hf' (n + 1)) (Finset.sum_nonneg' hf) ?_
     simp only [sub_nonneg] ; apply hg' ; simp
   have l2 (x : ℕ) : C * (↑(x + 1) + 1) - C * (↑x + 1) = C := by simp ; ring
   have l3 (n : ℕ) : 0 ≤ cumsum f n := Finset.sum_nonneg' hf
@@ -1360,7 +1360,7 @@ lemma cancel_aux {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
   apply _root_.add_le_add
   · exact mul_le_mul le_rfl (hf' n) (l3 n) (hg _)
   · apply Finset.sum_le_sum (fun n _ => l1 n) |>.trans
-    convert_to ∑ i ∈ Finset.range (n - 1), (C * (↑i + 1)) • (g i - g (i + 1)) ≤ _
+    convert_to! ∑ i ∈ Finset.range (n - 1), (C * (↑i + 1)) • (g i - g (i + 1)) ≤ _
     · congr ; ext i ; simp ; ring
     rw [Finset.sum_range_by_parts]
     simp_rw [Finset.sum_range_sub', l2, smul_sub, smul_eq_mul, Finset.sum_sub_distrib,
@@ -1387,10 +1387,9 @@ lemma cancel_aux' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
 lemma cancel_main {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) (hn : 2 ≤ n) :
     cumsum (f * g) n ≤ C * cumsum g n := by
-  convert cancel_aux' hf hg hf' hg' n using 1
+  convert! cancel_aux' hf hg hf' hg' n using 1
   match n with
-  | n + 2 => simp only [cumsum_succ, Nat.cast_add, Nat.cast_ofNat, Nat.add_one_sub_one,
-    add_tsub_cancel_right] ; ring
+  | n + 2 => simp only [cumsum_succ] ; push_cast ; ring
 
 lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :
@@ -1400,7 +1399,7 @@ lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) 
   | 1 => specialize hg 0 ; specialize hf' 1 ; simp only [cumsum, Finset.range_one,
     Finset.sum_singleton, hf0, Nat.cast_one, mul_one, Pi.zero_apply, Pi.mul_apply, zero_mul,
     ge_iff_le] at hf' hg ⊢ ; positivity
-  | n + 2 => convert cancel_aux' hf hg hf' hg' (n + 2) using 1 ; simp [cumsum_succ] ; ring
+  | n + 2 => convert! cancel_aux' hf hg hf' hg' (n + 2) using 1 ; simp [cumsum_succ] ; ring
 
 theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneOn f (Ioc x₀ (x₀ + n)))
     (hfi : IntegrableOn f (Icc x₀ (x₀ + n))) :
@@ -1431,7 +1430,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   have l1 : f (x₀ + 1) ≤ ∫ x in x₀..x₀ + 1, f x := by
     rw [← l6] ; apply intervalIntegral.integral_mono_ae_restrict (by linarith) (by simp) l4
     apply eventually_of_mem _ l5
-    have : (Ioc x₀ (x₀ + 1))ᶜ ∩ Icc x₀ (x₀ + 1) = {x₀} := by simp [← diff_eq_compl_inter]
+    have : (Ioc x₀ (x₀ + 1))ᶜ ∩ Icc x₀ (x₀ + 1) = {x₀} := by simp [← sdiff_eq_compl_inter]
     simp [ae, this]
 
   have l2 : AntitoneOn (fun x ↦ f (x₀ + x)) (Icc 1 ↑(n + 1)) := by
@@ -1442,7 +1441,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (by simpa using l2)
 
   simp only [Nat.cast_add, Nat.cast_one, intervalIntegral.integral_comp_add_left] at l3
-  convert _root_.add_le_add l1 l3
+  convert! _root_.add_le_add l1 l3
 
   have := @intervalIntegral.integral_comp_mul_add ℝ _ _ 1 (n + 1) 1 f one_ne_zero x₀
   rw [intervalIntegral.integral_add_adjacent_intervals]
@@ -1469,11 +1468,11 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   have l4 (x) : HasDerivAt (fun t => t / c) (1 / c) x := (hasDerivAt_id x).div_const c
   have l2 (x) (hx : 0 < x) : HasDerivAt (fun t => log (t / c)) x⁻¹ x := by
     have := @HasDerivAt.comp _ _ _ _ _ _ (fun t => t / c) _ _ _  (l3 (x / c) (by positivity)) (l4 x)
-    convert this using 1 ; field_simp
+    convert! this using 1 ; field_simp
   have l5 (x) (hx : 0 < x) := (l2 x hx).const_mul b
   have l1 (x) (hx : 0 < x) := (l5 x hx).arctan
   have l6 (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
-    convert (l1 x hx).const_mul (a * c / b) using 1
+    convert! (l1 x hx).const_mul (a * c / b) using 1
     simp only [g']
     field_simp
   have key (x) (hx : 0 < x) : HasDerivAt g₀ (g' x) x := by
@@ -1583,7 +1582,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
       (hh_integrable (by positivity) (by positivity) (by positivity)) Icc_subset_Ici_self
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
-  convert_to ∑ i ∈ Finset.range n, ‖f i‖ * ggg i ≤ _
+  convert_to! ∑ i ∈ Finset.range n, ‖f i‖ * ggg i ≤ _
   · congr ; ext i
     by_cases hi : i = 0
     · simp [hi, hf0]
@@ -1600,7 +1599,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
   simp only [this, Finset.singleton_union, Finset.mem_Ico, nonpos_iff_eq_zero, one_ne_zero,
     false_and, not_false_eq_true, Finset.sum_insert, ↓reduceIte, add_le_add_iff_left, ge_iff_le]
-  convert_to ∑ x_1 ∈ Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
+  convert_to! ∑ x_1 ∈ Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
   · apply Finset.sum_congr rfl (fun i hi => ?_)
     simp at hi
     have : i ≠ 0 := by omega
@@ -1622,7 +1621,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
     intro x (hx : 0 < x)
     apply hh_nonneg _ hx.le
   · have := (@hh_integrable 1 (1 / (2 * π)) 1 (by positivity) (by positivity) (by positivity))
-    simpa using this.mono_set Ioi_subset_Ici_self
+    simpa using! this.mono_set Ioi_subset_Ici_self
 
 lemma bound_sum_log0 {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤
@@ -1643,7 +1642,7 @@ variable (f x) in
 lemma summable_fourier_aux (ψ : W21) (i : ℕ) :
     ‖f i / i * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * Real.log (i / x))‖ ≤
       W21.norm ψ * (‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹) := by
-  convert mul_le_mul_of_nonneg_left (decay_bounds_key ψ (1 / (2 * π) * log (i / x)))
+  convert! mul_le_mul_of_nonneg_left (decay_bounds_key ψ (1 / (2 * π) * log (i / x)))
     (norm_nonneg (f i / i)) using 1
   · simp
   · change _ = _ * (W21.norm ψ * _)
@@ -1668,7 +1667,7 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : W21) (hcheby : cheby f) :
   have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * Real.log (↑i / x))‖ := by
     exact summable_fourier x hx ψ hcheby
   apply (norm_tsum_le_tsum_norm l1).trans
-  simpa only [← Summable.tsum_const_smul _ l5] using
+  simpa only [← Summable.tsum_const_smul _ l5] using!
     Summable.tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
 lemma bound_I1' {C : ℝ} (x : ℝ) (hx : 1 ≤ x) (ψ : W21) (hcheby : chebyWith C f) :
@@ -1753,7 +1752,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     apply this.trans_lt
     apply (mul_le_mul (d := 1 + M) le_rfl (by simp) (by positivity) W21.norm_nonneg).trans_lt
     have : 0 < 1 + M := by positivity
-    convert (mul_lt_mul_iff_left₀ this).mpr hRψ using 1 ; field_simp
+    convert! (mul_lt_mul_iff_left₀ this).mpr hRψ using 1 ; field_simp
 
   -- Conclude the proof
   have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 (ψ : ℝ → ℂ) x - 𝓕 ⇑(Ψ R) x := by
@@ -1774,7 +1773,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       simpa using this
     · have := summable_fourier x (by positivity) (Ψ R) ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
-      simpa using this
+      simpa using! this
 
   have S2_sub : S2 x (ψ - Ψ R) = S2 x ψ - S2 x (Ψ R) := by
     simp only [S1_sub_1, S2] ; rw [integral_sub]
@@ -1974,7 +1973,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     exact (contDiff_ofReal.comp this).mul (hsmooth.comp this)
   have h2 : HasCompactSupport h := by
     have : 2 * π ≠ 0 := by simp [pi_ne_zero]
-    simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
+    simpa using! (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
   have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
@@ -2215,8 +2214,8 @@ theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
     have r3 : Ico 1 2 ⊆ Function.support ψ := by intro x hx ; have := h4 x ; simp [hx] at this ⊢ ; linarith
     have r4 : Ico 1 2 ⊆ Function.support ψ ∩ Ioi 0 := by
       simp only [subset_inter_iff, r3, true_and] ; apply Ico_subset_Icc_self.trans ; rw [Icc_subset_Ioi_iff] <;> linarith
-    have r5 : 1 ≤ volume ((Function.support fun y ↦ ψ y) ∩ Ioi 0) := by convert volume.mono r4 ; norm_num
-    simpa [setIntegral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
+    have r5 : 1 ≤ volume ((Function.support fun y ↦ ψ y) ∩ Ioi 0) := by convert! volume.mono r4 ; norm_num
+    simpa [setIntegral_pos_iff_support_of_nonneg_ae r1 r2] using! zero_lt_one.trans_le r5
   have := div_nonneg l3 l4.le ; field_simp at this ; exact this
 
 blueprint_comment /--
@@ -2388,7 +2387,7 @@ lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
     simp only [norm_real, norm_of_nonneg (hpos _), norm_div,
       norm_of_nonneg r2, Real.norm_natCast] at r1 ⊢
     apply div_le_div_of_nonneg_right r1 (by positivity)
-  simpa [← S_sub_S h2.2] using l2.trans_lt h1
+  simpa [← S_sub_S h2.2] using! l2.trans_lt h1
 
 @[blueprint "WienerIkehara"
   (title := "Wiener-Ikehara Theorem (1)")
@@ -2410,7 +2409,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f)
   · have L0 : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
     apply eventually_of_mem L0
     · intro ε hε
-      simpa using WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
+      simpa using! WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
   · have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
     simpa using (this.const_sub 1).const_mul A
 
@@ -2880,7 +2879,7 @@ theorem limiting_fourier_variant_lim1
               (𝓝[>] (1 : ℝ)) (𝓝 ((f n : ℂ) / (n : ℂ))) := by
           have hnC : (n : ℂ) ≠ 0 := by
             exact_mod_cast hn
-          simpa [term, LSeries.term, hn] using
+          simpa [term, LSeries.term, hn] using!
             (tendsto_const_nhds.div hden' hnC)
         exact hterm
 
@@ -3052,7 +3051,7 @@ lemma limiting_fourier_variant
     intro σ' hσ'
     have hσ' : (1 : ℝ) < σ' := by
       simpa [Set.mem_Ioi] using hσ'
-    simpa using (limiting_fourier_aux_gt_zero (G := G) (f := f) (A := A) hG' hf ψ hx σ' hσ')
+    simpa using! (limiting_fourier_aux_gt_zero (G := G) (f := f) (A := A) hG' hf ψ hx σ' hσ')
 
   have haux' :
     (fun σ' : ℝ => S σ') =ᶠ[𝓝[>] (1 : ℝ)] (fun σ' : ℝ => RHS σ' + Pole σ') := by
@@ -3155,7 +3154,7 @@ lemma limiting_fourier_variant
   have hlim :=
     tendsto_nhds_unique_of_eventuallyEq (l1S.sub l2) l3 haux_sub
 
-  simpa [Pole₁, RHS₁] using hlim
+  simpa [Pole₁, RHS₁] using! hlim
 
 
 lemma norm_mul_integral_Ici_le_integral_norm
@@ -3215,7 +3214,7 @@ lemma fourier_decay_of_CS2
     simpa using (decay_bounds_cor (ψ := ψ'))
   refine ⟨C, ?_⟩
   intro u
-  simpa [ψ'] using (hC u)
+  simpa [ψ'] using! (hC u)
 
 lemma integrable_norm_fourier_scaled_of_CS2
     (ψ : CS 2 ℂ) :
@@ -3272,7 +3271,7 @@ lemma integrable_norm_fourier_scaled_of_CS2
   have hmeas :
       AEStronglyMeasurable (fun u : ℝ => ‖𝓕 (ψ : ℝ → ℂ) (u / (2 * Real.pi))‖) := by
     have hcont : Continuous fun u : ℝ => 𝓕 (ψ : ℝ → ℂ) u := by
-      simpa using continuous_FourierIntegral (ψ : W21)
+      simpa using! continuous_FourierIntegral (ψ : W21)
     have hcont_scaled : Continuous fun u : ℝ => 𝓕 (ψ : ℝ → ℂ) (u / (2 * Real.pi)) :=
       hcont.comp (by continuity)
     exact hcont_scaled.aestronglyMeasurable.norm
@@ -3352,7 +3351,7 @@ lemma norm_error_integral_le
       have hcont : Continuous fun t : ℝ => ((x : ℂ) ^ ((t : ℂ) * Complex.I)) :=
         hcontℂ.comp (by
           have h : Continuous fun t : ℝ => (t : ℂ) * Complex.I := by
-            simpa using (continuous_ofReal.mul continuous_const)
+            simpa using! (continuous_ofReal.mul continuous_const)
           simpa [mul_comm] using h)
       exact hcont.measurable.aemeasurable
     have hGψ_meas : AEMeasurable fun t : ℝ => (G (1 + t * Complex.I)) * (ψ t) := hG'.mul hψ_meas'
@@ -3433,7 +3432,7 @@ lemma crude_upper_bound
       simp
     have hcont : Continuous (G ∘ fun t : ℝ => (1 : ℂ) + t * Complex.I) :=
       hG.comp_continuous hline_cont hmem
-    simpa [Function.comp] using hcont.measurable
+    simpa [Function.comp] using! hcont.measurable
 
   -- L¹ bound for the scaled Fourier transform norm
   have hF_norm_int :
@@ -3443,7 +3442,7 @@ lemma crude_upper_bound
       MeasureTheory.AEStronglyMeasurable
         (fun u : ℝ => 𝓕 (ψ : ℝ → ℂ) (u / (2 * Real.pi))) := by
     have hcont : Continuous fun u : ℝ => 𝓕 (ψ : ℝ → ℂ) u := by
-      simpa using continuous_FourierIntegral (ψ : W21)
+      simpa using! continuous_FourierIntegral (ψ : W21)
     have hcont_scaled : Continuous fun u : ℝ => 𝓕 (ψ : ℝ → ℂ) (u / (2 * Real.pi)) :=
       hcont.comp (by continuity)
     exact hcont_scaled.aestronglyMeasurable
@@ -3593,7 +3592,7 @@ lemma auto_cheby_exists_smooth_nonneg_fourier_kernel :
   have hφInt : Integrable φ := hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact'
   have hφRevInt : Integrable φ_rev := hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact
   have hψSmooth : ContDiff ℝ ∞ ψ_fun := by
-    convert hφRevCompact.contDiff_convolution_right (ContinuousLinearMap.mul ℝ ℂ)
+    convert! hφRevCompact.contDiff_convolution_right (ContinuousLinearMap.mul ℝ ℂ)
       (hφSmooth'.continuous.locallyIntegrable (μ := volume)) hφRevSmooth
   have hψCompact : HasCompactSupport ψ_fun :=
     HasCompactSupport.convolution (ContinuousLinearMap.mul ℂ ℂ) hφCompact' hφRevCompact
@@ -3642,10 +3641,10 @@ lemma auto_cheby_fourier_summable (hpos : 0 ≤ f) (hf : ∀ σ', 1 < σ' → Su
   have l2 := limiting_fourier_lim2 (A := A) (x := x) ψCS hx
   have l3 := limiting_fourier_lim3 (G := G) hG ψCS hx
   have haux : (fun σ' ↦ S σ' - Pole σ') =ᶠ[𝓝[>] 1] RHS := eventually_nhdsWithin_of_forall fun σ' hσ' ↦ by
-    simpa [S, Pole, RHS] using limiting_fourier_aux hG' hf ψCS hx σ' hσ'
+    simpa [S, Pole, RHS] using! limiting_fourier_aux hG' hf ψCS hx σ' hσ'
   have hS_tendsto : Tendsto S (𝓝[>] 1) (𝓝 (RHS 1 + A * ∫ u in Set.Ici (-Real.log x),
       𝓕 (W21.ofCS2 ψCS).toFun (u / (2 * π)))) := by
-    convert (l3.congr' haux.symm).add l2 using 1; ext σ'; simp [S, Pole]
+    convert! (l3.congr' haux.symm).add l2 using 1; ext σ'; simp [S, Pole]
   have hbounded : BoundedAtFilter (𝓝[>] 1) (fun σ' ↦ ‖S σ'‖) := by
     simp only [BoundedAtFilter]
     let L := ‖RHS 1 + A * ∫ u in Set.Ici (-Real.log x), 𝓕 (W21.ofCS2 ψCS).toFun (u / (2 * π))‖
@@ -4024,8 +4023,7 @@ theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : 
   have h_summable : ∀ s : ℝ, 1 < s → Summable (fun n ↦ (if n % q = a then Λ n else 0) / n ^ s) := by
     intro s hs
     refine .of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ ?_) (summable_vonMangoldt_div_rpow hs)
-    · split_ifs <;> first | positivity | exact div_nonneg (not_not.mp fun h ↦ by
-        have := Nat.Prime.pos (by contrapose! h; aesop : n.Prime); aesop) (rpow_nonneg (Nat.cast_nonneg _) _)
+    · split_ifs <;> positivity
     · split_ifs <;> norm_num; exact div_nonneg vonMangoldt_nonneg (by positivity)
   obtain ⟨G, hG₁, hG₂⟩ := WeakPNT_AP_prelim hq ha ha'
   convert WienerIkeharaTheorem'' _ _ _ _ using 1
@@ -4052,71 +4050,332 @@ theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of cyclotomic extensions}
 
-In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and
-$G = Gal(K/L)$.
+Throughout this section, $K$ is a number field, $m \geq 1$ is a fixed integer,
+$L = K(\mu_m)$, and $G = \mathrm{Gal}(L/K)$.  (In particular $G$ is abelian, and for
+$K=\mathbb{Q}$ one recovers $G \cong (\mathbb{Z}/m\mathbb{Z})^\times$.)
+Write $\zeta_K$ and $\zeta_L$ for the Dedekind zeta functions of $K$ and $L$, and for
+an abelian character $\chi : G \to \mathbb{C}^\times$ write $L(\chi,s)$ for the associated
+Artin $L$-function (equivalently, the Hecke $L$-function of the ideal character attached to
+$\chi$; cf.\ Notation~7.1.17 and Proposition~7.1.18 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}).
 
-The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
+The goal of this section is to prove the Chebotarev density theorem in the cyclotomic case
+(Proposition~\ref{Chebotarev-cyclotomic-density} below), following the classical argument via
+Artin $L$-functions as in Sharifi, Propositions~7.1.16--7.1.19 and Proposition~7.2.1.  The
+abelian and general cases are then reduced to this one in the subsequent sections.
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}  We have
-$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
-for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the
-Artin $L$-function.
+\begin{lemma}[Artin $L$-function as Euler product]\label{Artin-L-euler}
+Let $\chi : G \to \mathbb{C}^\times$ be an abelian character.  For $\Re(s) > 1$ one has
+\[
+L(\chi,s) \;=\; \prod_{\mathfrak{p}} \bigl(1 - \chi(\mathfrak{p})\, N\mathfrak{p}^{-s}\bigr)^{-1}
+\;=\; \sum_{\mathfrak{a} \subseteq \mathcal{O}_K} \chi(\mathfrak{a})\, N\mathfrak{a}^{-s},
+\]
+where the product runs over nonzero prime ideals of $\mathcal{O}_K$, with the convention
+$\chi(\mathfrak{p}) = 0$ if $\mathfrak{p}$ ramifies in the fixed field of $\ker\chi$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof} See Propositions 7.1.16, 7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
+\begin{proof}
+This is the specialisation of the Artin Euler product (Definition~7.1.15 of Sharifi) to
+abelian characters; see Proposition~7.1.18 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.  Absolute convergence for $\Re(s)>1$
+follows from comparison with $\zeta_K(s)$.
 \end{proof}
 -/
 
 blueprint_comment /--
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
+\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}
+For $\Re(s) > 1$ one has
+\[
+\zeta_L(s) \;=\; \prod_{\chi : G \to \mathbb{C}^\times} L(\chi,s),
+\]
+where the product runs over all (necessarily one-dimensional) irreducible characters of $G$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof} See Theorem 7.1.12 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
+\begin{proof}\uses{Artin-L-euler}
+In general, for a Galois extension $L/K$ and characters $\chi$ of irreducible representations of
+$\mathrm{Gal}(L/K)$, Proposition~7.1.16 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf} gives
+$\zeta_L(s) = \prod_\chi L(\chi,s)^{\chi(1)}$ for $\Re(s)>1$.  In the present abelian
+(cyclotomic) setting every irreducible character is one-dimensional, so $\chi(1)=1$ and the
+exponents disappear.  Alternatively, comparing Euler factors at an unramified prime
+$\mathfrak{p}$: the primes of $L$ above $\mathfrak{p}$ contribute the factor
+$(1 - N\mathfrak{p}^{-fs})^{-g}$ to $\zeta_L$, while the Artin factors multiply to the same
+quantity by the usual identity $\prod_\chi (1 - \chi(\varphi_{\mathfrak{p}}) X) = 1 - X^f$
+(with $X = N\mathfrak{p}^{-s}$ and $f$ the residue degree).
 \end{proof}
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character
-$\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\begin{lemma}[Simple pole]\label{Dedekind-pole}
+The Dedekind zeta function $\zeta_L$ admits a meromorphic continuation to a neighbourhood of
+the line $\Re(s)=1$ with a single simple pole at $s=1$ (and is otherwise holomorphic and
+nonvanishing on that line after removing the pole).  In particular
+$\log \zeta_L(s) \sim \log(s-1)^{-1}$ as $s \to 1^+$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from
-Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to
-adapt the arguments for the Dirichet L-function.
+\begin{proof}
+This is the standard analytic continuation of Dedekind zeta (Theorem~7.1.12 of
+\url{https://www.math.ucla.edu/~sharifi/algnum.pdf}): absolute convergence of the ideal
+Dirichlet series and Euler product for $\Re(s)>1$, meromorphic continuation across
+$\Re(s)>1-[L:\mathbb{Q}]^{-1}$, and a simple pole at $s=1$.  The logarithmic asymptotic is
+immediate from the simple pole.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Continuation of nontrivial Artin $L$-functions]\label{Artin-L-continuation}
+Let $\chi : G \to \mathbb{C}^\times$ be a nontrivial character.  Then $L(\chi,s)$ extends to an
+analytic function on the half-plane $\Re(s) > 1 - [K:\mathbb{Q}]^{-1}$, and in particular is
+holomorphic at $s=1$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Following Proposition~7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}: let $n$
+be the order of $\chi$.  Geometry of numbers supplies the estimate that, for each $n$th root of
+unity $\zeta$, the number of ideals $\mathfrak{a}$ with $N\mathfrak{a} \leq N$ and
+$\chi(\mathfrak{a})=\zeta$ is $CN + O\bigl(N^{1-[K:\mathbb{Q}]^{-1}}\bigr)$ with $C$ independent of
+$\zeta$.  Summing against $\zeta$ cancels the main terms, so
+$\sum_{N\mathfrak{a}\leq N} \chi(\mathfrak{a}) = O\bigl(N^{1-[K:\mathbb{Q}]^{-1}}\bigr)$.
+Lemma~7.1.5 of Sharifi then yields absolute uniform convergence of
+$\sum_{\mathfrak{a}} \chi(\mathfrak{a})\, N\mathfrak{a}^{-s}$ on compact subsets of
+$\Re(s) > 1 - [K:\mathbb{Q}]^{-1}$.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}
+For any nontrivial character $\chi$ of $G = \mathrm{Gal}(L/K)$, one has $L(\chi,1) \neq 0$.
+Moreover $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole, Artin-L-continuation}
+For the value at $s=1$: write $\log\zeta_L(t) = \sum_\chi \log L(\chi,t)$ for real $t>1$.
+As $t\to 1^+$, the left side is $\sim \log(t-1)^{-1}$ by Lemma~\ref{Dedekind-pole}.  If some
+nontrivial $L(\chi,\cdot)$ had a zero of order $m_\chi \geq 1$ at $s=1$, the right side would
+behave like $\bigl(1 - \sum_\chi m_\chi\bigr)\log(t-1)^{-1}$ up to a bounded error
+(the trivial character contributes the pole of $\zeta_K$, absorbed into the factorisation),
+forcing $1-\sum m_\chi \leq 0$, a contradiction.  Hence $L(\chi,1)\neq 0$ for all nontrivial
+$\chi$ (Sharifi, Proposition~7.1.19).
+
+For the rest of the line $\Re(s)=1$, $s\neq 1$: adapt the classical nonvanishing argument for
+Dirichlet $L$-functions (comparison of $\zeta_L(s)$, $\zeta_L(s)^3\,|L(\chi,s)|^4$, or the
+$3+4\operatorname{Re}$ inequality) using the Euler product of Lemma~\ref{Artin-L-euler} and the
+absence of poles of nontrivial $L(\chi,\cdot)$ on $\Re(s)=1$ from
+Lemma~\ref{Artin-L-continuation}.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Orthogonality for Frobenius classes]\label{Chebotarev-orthogonality}
+Fix $\sigma \in G$.  For every prime ideal $\mathfrak{p}$ of $\mathcal{O}_K$ unramified in $L$,
+\[
+\sum_{\chi : G \to \mathbb{C}^\times} \chi(\sigma)^{-1}\,\chi(\varphi_{\mathfrak{p}})
+\;=\;
+\begin{cases}
+|G| & \text{if }\varphi_{\mathfrak{p}} = \sigma,\\
+0 & \text{otherwise.}
+\end{cases}
+\]
+Equivalently, if $\sigma(\zeta_m) = \zeta_m^a$ with $\gcd(a,m)=1$, the sum equals $|G|$
+precisely when $N\mathfrak{p} \equiv a \pmod{m}$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Standard character orthogonality on the finite abelian group $G$.  The reformulation in terms
+of $N\mathfrak{p} \bmod m$ uses that $\varphi_{\mathfrak{p}}(\zeta_m) = \zeta_m^{N\mathfrak{p}}$
+for the cyclotomic character.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{proposition}[Cyclotomic Chebotarev density]\label{Chebotarev-cyclotomic-density}
+For every $\sigma \in G$, the set of prime ideals $\mathfrak{p}$ of $K$ unramified in $L$ with
+Frobenius $\varphi_{\mathfrak{p}} = \sigma$ has Dirichlet density $1/|G|$.
+\end{proposition}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole, Dedekind-nonvanishing, Artin-L-euler,
+Chebotarev-orthogonality}
+This is Proposition~7.2.1 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.  For
+$\Re(s)>1$ one has $\log L(\chi,s) \sim \sum_{\mathfrak{p}} \chi(\mathfrak{p})\, N\mathfrak{p}^{-s}$.
+Summing against $\chi(\sigma)^{-1}$ and applying Lemma~\ref{Chebotarev-orthogonality} yields
+\[
+\sum_{\chi} \chi(\sigma)^{-1} \log L(\chi,s)
+\;\sim\;
+|G| \sum_{\varphi_{\mathfrak{p}}=\sigma} N\mathfrak{p}^{-s}.
+\]
+On the other hand, by Lemmas~\ref{Dedekind-factor} and~\ref{Dedekind-nonvanishing} the left
+side is $\sim \log\zeta_K(s) \sim \log(s-1)^{-1}$ as $s\to 1^+$ (only the trivial character
+contributes a pole).  Comparing the two asymptotics gives the asserted Dirichlet density.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}
+For any nontrivial character $\chi$ of $G$,
+\[
+\sum_{N\mathfrak{p} \leq x} \chi(\mathfrak{p})\, \log N\mathfrak{p} \;=\; o(x)
+\qquad(x\to\infty).
+\]
+(Equivalently, writing $\Lambda_\chi$ for the von Mangoldt-type coefficients of $-\frac{L'}{L}(\chi,s)$,
+one has $\sum_{n\leq x} \Lambda_\chi(n) = o(x)$.)
+\end{lemma}
+
+\emph{Remark on prime powers.}
+Expanding $-\frac{L'}{L}(\chi,s)$ as a Dirichlet series selects coefficients supported on
+prime powers $\mathfrak{p}^j$ with weight $\chi(\varphi_{\mathfrak{p}})^j\log N\mathfrak{p}$.
+Thus an \emph{exact} identity expressing $-\sum_\chi \chi(\sigma)^{-1}\frac{L'}{L}(\chi,s)$ as a
+sum over primes with Frobenius $\sigma$ should use the condition $\varphi_{\mathfrak{p}}^j=\sigma$
+rather than $\varphi_{\mathfrak{p}}=\sigma$.  For the density statement in
+Proposition~\ref{Chebotarev-cyclotomic-density} this distinction is immaterial: the $j=1$ terms
+agree with the Frobenius condition, while the $j\geq 2$ terms converge absolutely for
+$\Re(s)>1/2$ and do not affect the residue at $s=1$.
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-nonvanishing, Artin-L-continuation}
+By Lemmas~\ref{Artin-L-continuation} and~\ref{Dedekind-nonvanishing}, $L(\chi,s)$ is holomorphic
+and nonvanishing on $\Re(s)\geq 1$, so $-\frac{L'}{L}(\chi,s)$ extends continuously to
+$\Re(s)\geq 1$.  The claimed prime-sum estimate then follows by the same Wiener--Ikehara /
+Ingham contour argument used for Dirichlet $L$-functions in the prime-number theorem in
+arithmetic progressions (cf.\ the material already formalised for Dirichlet $L$-functions
+earlier in this file).  Passing through $\Lambda_\chi$ (rather than the bare prime sum) makes
+the $j\geq 2$ prime-power contributions explicit and shows they are $O(x^{1/2}\log x)$,
+hence absorbable in the $o(x)$ error; cf.\ the remark after the statement.
 \end{proof}
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
-(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
-previous results to abelian extensions (actually just cyclic extensions would suffice))
+Now let $L/K$ be an arbitrary finite abelian extension with Galois group $G$, and fix
+$\sigma \in G$.  The goal is to show that the primes of $K$ with Frobenius $\sigma$ still have
+Dirichlet density $1/|G|$, by reducing to the cyclotomic case already treated.
+(Cf.\ Theorem~7.2.2, Step~2, of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}; cyclic
+extensions already suffice for the later reduction to the general case.)
+-/
+
+blueprint_comment /--
+\begin{lemma}[Cyclotomic crossing]\label{Chebotarev-abelian-crossing}
+Choose an integer $m\geq 1$ not dividing the discriminant of $L/K$, large enough that
+$H := \mathrm{Gal}(L(\mu_m)/L) \cong (\mathbb{Z}/m\mathbb{Z})^\times$ via the cyclotomic character
+and $\mathrm{Gal}(L(\mu_m)/K) \cong G \times H$.  For $\sigma\in G$ and $\tau\in H$ write
+$S_{\sigma,\tau}$ for the set of primes of $K$ unramified in $L(\mu_m)$ with Frobenius
+$(\sigma,\tau)\in G\times H$, and $S_\sigma$ for the set of primes of $K$ unramified in $L$
+with Frobenius $\sigma$ in $G$.  Then
+\[
+\delta_{\mathrm{inf}}(S_\sigma) \;=\; \sum_{\tau\in H} \delta_{\mathrm{inf}}(S_{\sigma,\tau}).
+\]
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}
+Every prime counted in $S_\sigma$ lifts to primes in the various $S_{\sigma,\tau}$ according to
+the Frobenius in the cyclotomic layer; the identity of lower densities is the usual additivity
+of Dirichlet densities over a finite partition (up to the finitely many ramified primes).
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{lemma}[Density after cyclotomic crossing]\label{Chebotarev-abelian-density}
+In the notation of Lemma~\ref{Chebotarev-abelian-crossing}, if the order of $\tau\in H$ is
+divisible by $|G|$, then $\langle(\sigma,\tau)\rangle \cap (G\times\{1\}) = \{1\}$, so
+$L(\mu_m)$ is obtained by adjoining $\mu_m$ to the fixed field
+$F := L(\mu_m)^{\langle(\sigma,\tau)\rangle}$.  Applying Proposition~\ref{Chebotarev-cyclotomic-density}
+to the cyclotomic extension $F(\mu_m)/F$ and transporting densities as in the reduction step
+of Theorem~7.2.2 yields $\delta(S_{\sigma,\tau}) = 1/(|G|\,|H|)$.
+\end{lemma}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-cyclotomic-density, Chebotarev-abelian-crossing}
+See Sharifi, Theorem~7.2.2, Step~2 (display after ``Now suppose that $|G|$ divides the order of
+$\tau$'').
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{proposition}[Abelian Chebotarev]\label{Chebotarev-abelian}
+Let $L/K$ be finite abelian with Galois group $G$.  For every $\sigma\in G$, the Dirichlet
+density of primes of $K$ with Frobenius $\sigma$ exists and equals $1/|G|$.
+\end{proposition}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-abelian-crossing, Chebotarev-abelian-density,
+Chebotarev-cyclotomic-density}
+Let $H_n \subset H$ be the set of elements whose order is divisible by $n$.  Summing the
+densities of Lemma~\ref{Chebotarev-abelian-density} over $\tau\in H_n$ gives
+$\delta_{\mathrm{inf}}(S_\sigma) \geq |H_n|/(|G|\,|H|)$.  Choosing $m$ so that $|H_n|/|H|$ is
+arbitrarily close to $1$ (possible since there are primes $m\equiv 1\pmod{n^j}$ by the
+cyclotomic case already proved, and $|H_n|/|H|$ tends to $1$ as $j\to\infty$), one obtains
+$\delta_{\mathrm{inf}}(S_\sigma) \geq 1/|G|$.  Summing over $\sigma\in G$ forces equality
+throughout, so each density exists and equals $1/|G|$.
+\end{proof}
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the general case}
 
-(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
-previous results to arbitrary extensions
+Finally let $L/K$ be an arbitrary finite Galois extension with group $G$, and let $C\subset G$
+be a conjugacy class.  The theorem reduces to the abelian (indeed cyclic) case already proved,
+by passing to the fixed field of an element of $C$.
 -/
 
 blueprint_comment /--
-\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of
-$Gal(K/L)$, $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\begin{lemma}[Reduction to a cyclic subextension]\label{Chebotarev-reduction}
+Fix $\sigma\in C$ and let $E$ be the fixed field of $\langle\sigma\rangle$, so $L/E$ is cyclic of
+degree $f = |\langle\sigma\rangle|$.  Write $S$ for the set of primes of $K$ unramified in $L$
+whose Frobenius class equals $C$, and $T_\sigma$ for the set of primes $\mathfrak{P}$ of $E$
+unramified in $L$ (and lying over $K$) with Frobenius equal to $\sigma$.  Then
+\[
+\delta(S) \;=\; \frac{f\,|C|}{|G|}\,\delta(T_\sigma),
+\]
+whenever either density exists.  In particular, the Chebotarev statement for $L/K$ and $C$
+follows from the abelian statement for the cyclic extension $L/E$ and the element $\sigma$.
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing}
-and the arguments for the Dirichlet L-function. (It may be more convenient to work with a
-von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\begin{proof}
+If $\mathfrak{P}\in T_\sigma$, then $\varphi_{\mathfrak{P}}=\sigma$ fixes $E$, so $\mathfrak{P}$ has
+residue degree one over $K$.  There are exactly $|G|/f$ primes of $L$ over $\mathfrak{P}\cap K$,
+and their Frobenii are equidistributed among the $|C|$ elements of the conjugacy class $C$;
+exactly $|G|/(f\,|C|)$ of them have Frobenius $\sigma$.  Comparing the Dirichlet series
+$\sum N\mathfrak{p}^{-s}$ over $S$ with $\sum N\mathfrak{P}^{-s}$ over $T_\sigma$ (and using
+$\sum_{\mathfrak{p}} N\mathfrak{p}^{-s} \sim \sum_{\mathfrak{P}} N\mathfrak{P}^{-s}$) yields the
+displayed identity.  See Sharifi, Theorem~7.2.2, Step~1.
+\end{proof}
+-/
+
+blueprint_comment /--
+\begin{theorem}[Chebotarev density theorem]\label{Chebotarev-general}
+Let $L/K$ be a finite Galois extension of number fields with Galois group $G$, and let
+$C\subset G$ be a conjugacy class.  The set of prime ideals $\mathfrak{p}$ of $K$ unramified in
+$L$ whose Frobenius conjugacy class equals $C$ has Dirichlet density $|C|/|G|$.
+\end{theorem}
+-/
+
+blueprint_comment /--
+\begin{proof}\uses{Chebotarev-reduction, Chebotarev-abelian}
+Combine Lemma~\ref{Chebotarev-reduction} with Proposition~\ref{Chebotarev-abelian} applied to
+the cyclic extension $L/E$: the latter gives $\delta(T_\sigma) = 1/f$, whence
+$\delta(S) = |C|/|G|$.
 \end{proof}
 -/

@@ -3,6 +3,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.NumberTheory.Bertrand
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 import PrimeNumberTheoremAnd.IEANTN.FKS2
+import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 import PrimeNumberTheoremAnd.IEANTN.Dusart
 import PrimeNumberTheoremAnd.IEANTN.TMEEMT
 
@@ -129,7 +130,7 @@ theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Ta
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
+  |\pi(x) - \mathrm{li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
   \]
   for all $x \geq \exp(2000)$.
   -/)
@@ -156,7 +157,7 @@ theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
       92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
         235 * log x ^ (38 / 25 - 3 / 2 : ℝ)
     by
-    convert mul_le_mul_of_nonneg_right h_div
+    convert! mul_le_mul_of_nonneg_right h_div
         (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
@@ -201,7 +202,7 @@ noncomputable def eps_0 (x : ℝ) : ℝ :=
   For $x \geq 149$ one has $|\theta(x) - x| \leq x \epsilon_{0}(x)$.-/)
   (latexEnv := "theorem")]
 theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
-    Eθ.numericalBound x eps_0 := by sorry
+    Eθ x ≤ eps_0 x := by sorry
 
 @[blueprint
   "trudgian:theorem 1-psi"
@@ -211,7 +212,7 @@ theorem theorem_1_theta (x : ℝ) (hx : x ≥ 149) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
-    Eψ.numericalBound x eps_0 := by sorry
+    Eψ x ≤ eps_0 x := by sorry
 
 
 @[blueprint
@@ -225,7 +226,7 @@ theorem theorem_1_psi (x : ℝ) (hx : x ≥ 23) :
   -/)
   (latexEnv := "lemma")]
 theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
-    Eθ.numericalBound x (fun x ↦ 0.0045 / log x ^ 2) := by sorry
+    Eθ x ≤ 0.0045 / (log x) ^ 2 := by sorry
 
 
 @[blueprint
@@ -240,19 +241,20 @@ theorem lemma_1 (x : ℝ) (hx : x ≥ exp 35) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2 (x : ℝ) (hx : x ≥ 229) :
-    Eπ.numericalBound x (fun x ↦ 0.2795 * (log x)^(1/4) * exp (-sqrt (log x / 6.455))) := by
+    |pi x - li x| ≤ 0.2795 * x / (log x) ^ ((3 : ℝ) / 4) *
+      exp (-sqrt (log x / 6.455)) := by
   sorry
 
 
 @[blueprint
   "thm:trudgian2016"
   (title := "Trudgian Corollary 2")
-  (statement := /-- If $x > 2,898,242$, then there
+  (statement := /-- If $x \geq 2{,}898{,}239$, then there
   is a prime in the interval
   \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 2898239) :
     HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
 
 
@@ -269,7 +271,7 @@ blueprint_comment /-- results from \cite{johnston-yang}-/
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
+  |\pi(x) - \mathrm{li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
   \]
   for all $x \geq 2$.
   -/)
@@ -298,7 +300,7 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
         4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
         959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ)
     by
-    convert mul_le_mul_of_nonneg_right h_div
+    convert! mul_le_mul_of_nonneg_right h_div
         (rpow_nonneg (log_nonneg (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;>
       ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
@@ -328,17 +330,16 @@ theorem corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801}
-    \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5}))
+  |\pi(x) - \mathrm{li}(x)| \leq 0.028 x (\log x)^{0.801}
+    \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5})
   \]
-  for all $x \geq 2$.
+  for all $x \geq 23$.
   -/)
   (latexEnv := "theorem")]
-theorem theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
+theorem theorem_1_4 : Eπ.vinogradovBound 0.028 1.801 0.1853 23 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
 end JY
-
 
 

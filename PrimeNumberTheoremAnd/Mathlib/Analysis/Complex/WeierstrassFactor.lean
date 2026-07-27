@@ -103,20 +103,20 @@ lemma weierstrassFactor_div_ne_zero_iff (m : ℕ) {a z : ℂ} (ha : a ≠ 0) :
 
 lemma differentiable_weierstrassFactor (m : ℕ) :
     Differentiable ℂ (fun z : ℂ => weierstrassFactor m z) := by
-  simpa [weierstrassFactor] using
+  simpa [weierstrassFactor] using!
     ((differentiable_const (c := (1 : ℂ))).sub differentiable_id).mul
       (differentiable_exp.comp (differentiable_partialLogSum m))
 
 lemma hasDerivAt_weierstrassFactor_at_one (m : ℕ) :
     HasDerivAt (weierstrassFactor m) (-Complex.exp (partialLogSum m 1)) 1 := by
   have hsub : HasDerivAt (fun z : ℂ => 1 - z) (-1) 1 := by
-    simpa using (hasDerivAt_const (1 : ℂ) (c := (1 : ℂ))).sub (hasDerivAt_id 1)
+    simpa using! (hasDerivAt_const (1 : ℂ) (c := (1 : ℂ))).sub (hasDerivAt_id 1)
   have hexp :
       HasDerivAt (fun z : ℂ => Complex.exp (partialLogSum m z))
         ((∑ j ∈ Finset.range m, (1 : ℂ) ^ j) * Complex.exp (partialLogSum m 1)) 1 := by
-    simpa [mul_comm] using
+    simpa [mul_comm] using!
       (Complex.hasDerivAt_exp (partialLogSum m 1)).comp 1 (hasDerivAt_partialLogSum m 1)
-  simpa [weierstrassFactor] using hsub.mul hexp
+  simpa [weierstrassFactor] using! hsub.mul hexp
 
 @[simp]
 lemma deriv_weierstrassFactor_at_one (m : ℕ) :
@@ -136,7 +136,7 @@ lemma hasDerivAt_weierstrassFactor_div_at_self (m : ℕ) {a : ℂ} (ha : a ≠ 0
     HasDerivAt.comp (x := a) (h := fun z : ℂ ↦ z / a) (h₂ := weierstrassFactor m)
       (by simpa [ha] using hasDerivAt_weierstrassFactor_at_one m)
       ((hasDerivAt_id a).div_const a)
-  simpa [Function.comp, div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using hcomp
+  simpa [Function.comp, div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using! hcomp
 
 @[simp]
 lemma deriv_weierstrassFactor_div_at_self (m : ℕ) {a : ℂ} (ha : a ≠ 0) :
@@ -357,7 +357,7 @@ private lemma summable_scaled_bound_of_summable_inv_pow {m : ℕ} {a : ℕ → �
 
 lemma continuousOn_weierstrassFactor_div (m : ℕ) (a : ℂ) (s : Set ℂ) :
     ContinuousOn (fun z : ℂ ↦ weierstrassFactor m (z / a)) s := by
-  simpa using (differentiable_weierstrassFactor m).continuous.continuousOn.comp
+  simpa using! (differentiable_weierstrassFactor m).continuous.continuousOn.comp
     (continuous_id.div_const a).continuousOn (mapsTo_univ (fun z : ℂ ↦ z / a) s)
 
 lemma norm_weierstrassFactor_div_sub_one_le_pow_div (m : ℕ) {a z : ℂ}
@@ -411,7 +411,7 @@ lemma hasProdUniformlyOn_weierstrassFactor_div_of_bound {K : Set ℂ} (hK : IsCo
   have hcts :
       ∀ n, ContinuousOn (fun z ↦ weierstrassFactor (m n) (z / a n) - 1) K := by
     intro n
-    simpa using (continuousOn_weierstrassFactor_div (m n) (a n) K).sub continuousOn_const
+    exact (continuousOn_weierstrassFactor_div (m n) (a n) K).fun_sub continuousOn_const
   simpa using hsumm.hasProdUniformlyOn_nat_one_add (K := K)
     (f := fun n z ↦ weierstrassFactor (m n) (z / a n) - 1) hK hbound hcts
 

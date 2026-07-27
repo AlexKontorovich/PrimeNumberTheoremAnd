@@ -83,7 +83,7 @@ lemma intervalIntegrable (s : ℂ) {a b : ℝ} (ha : 1 ≤ a) (hab : a ≤ b) :
       simp [g, Complex.norm_cpow_eq_rpow_re_of_pos hu0, sub_eq_add_neg]
     exact (norm_zetaAbelFractKernel_le u (ha.trans huIcc.1) s).trans (le_of_eq hg_eq.symm)
   have hg : Integrable g μ := by
-    simpa [μ, g] using
+    simpa [μ, g] using!
       (Complex.continuousOn_ofReal_cpow (ha := one_pos.trans_le ha)).norm.integrableOn_compact
         isCompact_Icc
   have hf0 : Integrable (fun _ : ℝ => (0 : ℂ)) μ := by simp [μ]
@@ -118,7 +118,8 @@ lemma aestronglyMeasurable_param_deriv (z : ℂ) :
       (volume.restrict (Ioi (1 : ℝ))) := by
   have hmeas : Measurable (fun u : ℝ => zetaAbelFractKernel z u) :=
     (measurable_fract.complex_ofReal.mul <| by simpa using Complex.measurable_ofReal.pow_const (-z - 1))
-  simpa using (Real.measurable_log.complex_ofReal.mul hmeas).neg.aestronglyMeasurable
+  simpa only [neg_mul] using
+    (Real.measurable_log.complex_ofReal.fun_mul hmeas).fun_neg.aestronglyMeasurable
 
 lemma eventually_aestronglyMeasurable_param (s : ℂ) :
     ∀ᶠ z in 𝓝 s,

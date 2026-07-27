@@ -454,15 +454,26 @@ theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hg' : 0 < g)
   "exists-prime-gap"
   (title := "Existence of prime gap")
   (statement := /--
-  Every gap $g < 1346$ that is even or one occurs as a prime
+  Every gap $g < 1307$ that is even or one occurs as a prime
   gap with first prime at most $3278018069102480227$. -/)
-  (proof := /-- If not, then there would be an entry in
-  Table 8 with $P > 3278018069102480227$, which can be
-  verified not to be the case. -/)
+  (proof := /-- This follows from the Table 9 row for
+  $(1306, 3278018069102480227)$, which gives the bound for
+  every smaller even gap or the gap $1$. -/)
   (latexEnv := "proposition")
   (discussion := 951)]
-theorem exists_prime_gap (g : ℕ) (hg : g ∈ Set.Ico 1 1476) (hg' : Even g ∨ g = 1) :
+theorem exists_prime_gap (g : ℕ) (hg : g ∈ Set.Ico 1 1307) (hg' : Even g ∨ g = 1) :
     first_gap g ≤ 3278018069102480227 := by
-  sorry
+  have hrec : first_gap_record 1306 3278018069102480227 := by
+    exact table_9_prime_gap 1306 3278018069102480227 (by decide)
+  rcases hrec with ⟨hfg1306, hprev⟩
+  have hcases : g < 1306 ∨ g = 1306 := by
+    have hg_upper : g < 1307 := hg.2
+    omega
+  rcases hcases with hglt | rfl
+  · have hmem : g ∈ Finset.Ico 1 1306 := by
+      exact Finset.mem_Ico.mpr ⟨hg.1, hglt⟩
+    have hfg_mem := hprev g hmem hg'
+    exact le_of_lt hfg_mem.2
+  · rw [hfg1306]
 
 end eSHP

@@ -3,10 +3,8 @@ Copyright (c) 2026 LeanCert Contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LeanCert Contributors
 -/
-import LeanCert.Tactic.IntervalAuto
-import LeanCert.Examples.BKLNW_a2_pow2
-import LeanCert.Examples.BKLNW_a2_bounds
-import LeanCert.Examples.BKLNW_a2_reflective
+import LeanCert.Tactic
+import LeanCert.CertifiedBounds.BKLNW
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 
 /-!
@@ -17,15 +15,14 @@ certified bounds.  Proves `cor_5_1_rem` from `PrimeNumberTheoremAnd.IEANTN.BKLNW
 
 Uses:
 - `f` and `a₂` from `PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW`
-- Numerical certificates from `LeanCert.Examples.BKLNW_a2_bounds`
-  and `LeanCert.Examples.BKLNW_a2_pow2`
+- Numerical certificates from `LeanCert.CertifiedBounds.BKLNW`
 - `interval_decide` tactic from LeanCert
 -/
 
 open Real BKLNW
 
 private lemma f_eq_leancert_f :
-    BKLNW.f = LeanCert.Examples.BKLNW_a2_pow2.f := rfl
+    BKLNW.f = LeanCert.CertifiedBounds.BKLNW.f := rfl
 
 private lemma rpow_neg_nat (n : ℕ) :
     (10 : ℝ) ^ (-(↑n : ℝ)) = (1 : ℝ) / 10 ^ n := by
@@ -46,19 +43,19 @@ private lemma floor_20 : ⌊(20 : ℝ) / log 2⌋₊ = 28 := by
 private lemma a2_20_exp_lower :
     (1.4262 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (20 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_20_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_20_exp_lower
 
 private lemma a2_20_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (20 : ℝ)) ≤
       (1.4262 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_20_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_20_exp_upper
 
 private lemma cert_pow29_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (29 : ℕ)) ≤
       (1.4262 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow29_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow29_upper
 
 private lemma a2_20_lower :
     (1.4262 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -97,19 +94,19 @@ private lemma floor_25 : ⌊(25 : ℝ) / log 2⌋₊ = 36 := by
 private lemma a2_25_exp_lower :
     (1.2195 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (25 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_25_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_25_exp_lower
 
 private lemma a2_25_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (25 : ℝ)) ≤
       (1.2195 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_25_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_25_exp_upper
 
 private lemma cert_pow37_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (37 : ℕ)) ≤
       (1.2195 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow37_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow37_upper
 
 private lemma a2_25_lower :
     (1.2195 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -148,19 +145,19 @@ private lemma floor_30 : ⌊(30 : ℝ) / log 2⌋₊ = 43 := by
 private lemma a2_30_exp_lower :
     (1.1210 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (30 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_30_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_30_exp_lower
 
 private lemma a2_30_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (30 : ℝ)) ≤
       (1.1210 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_30_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_30_exp_upper
 
 private lemma cert_pow44_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (44 : ℕ)) ≤
       (1.1210 : ℝ) + (1 : ℝ) / 10 ^ 4 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow44_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow44_upper
 
 private lemma a2_30_lower :
     (1.1210 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -199,19 +196,19 @@ private lemma floor_35 : ⌊(35 : ℝ) / log 2⌋₊ = 50 := by
 private lemma a2_35_exp_lower :
     (1.07086 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (35 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_35_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_35_exp_lower
 
 private lemma a2_35_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (35 : ℝ)) ≤
       (1.07086 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_35_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_35_exp_upper
 
 private lemma cert_pow51_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (51 : ℕ)) ≤
       (1.07086 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow51_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow51_upper
 
 private lemma a2_35_lower :
     (1.07086 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -250,19 +247,19 @@ private lemma floor_40 : ⌊(40 : ℝ) / log 2⌋₊ = 57 := by
 private lemma a2_40_exp_lower :
     (1.04319 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (40 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_40_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_40_exp_lower
 
 private lemma a2_40_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (40 : ℝ)) ≤
       (1.04319 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_40_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_40_exp_upper
 
 private lemma cert_pow58_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (58 : ℕ)) ≤
       (1.04319 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow58_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow58_upper
 
 private lemma a2_40_lower :
     (1.04319 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -301,19 +298,19 @@ private lemma floor_43 : ⌊(43 : ℝ) / log 2⌋₊ = 62 := by
 private lemma a2_43_exp_lower :
     (1.03252 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (43 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_43_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_43_exp_lower
 
 private lemma a2_43_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (43 : ℝ)) ≤
       (1.03252 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_43_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_43_exp_upper
 
 private lemma cert_pow63_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (63 : ℕ)) ≤
       (1.03252 : ℝ) + (1 : ℝ) / 10 ^ 5 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow63_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow63_upper
 
 private lemma a2_43_lower :
     (1.03252 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -352,19 +349,19 @@ private lemma floor_100 : ⌊(100 : ℝ) / log 2⌋₊ = 144 := by
 private lemma a2_100_exp_lower :
     (1.0002420 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (100 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_100_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_100_exp_lower
 
 private lemma a2_100_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (100 : ℝ)) ≤
       (1.0002420 : ℝ) + (1 : ℝ) / 10 ^ 7 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_100_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_100_exp_upper
 
 private lemma cert_pow145_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (145 : ℕ)) ≤
       (1.0002420 : ℝ) + (1 : ℝ) / 10 ^ 7 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow145_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow145_upper
 
 private lemma a2_100_lower :
     (1.0002420 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -402,19 +399,19 @@ private lemma floor_150 : ⌊(150 : ℝ) / log 2⌋₊ = 216 := by
 private lemma a2_150_exp_lower :
     (1.000003748 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (150 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_150_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_150_exp_lower
 
 private lemma a2_150_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (150 : ℝ)) ≤
       (1.000003748 : ℝ) + (1 : ℝ) / 10 ^ 8 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_150_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_150_exp_upper
 
 private lemma cert_pow217_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (217 : ℕ)) ≤
       (1.000003748 : ℝ) + (1 : ℝ) / 10 ^ 8 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow217_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow217_upper
 
 private lemma a2_150_lower :
     (1.000003748 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -452,19 +449,19 @@ private lemma floor_200 : ⌊(200 : ℝ) / log 2⌋₊ = 288 := by
 private lemma a2_200_exp_lower :
     (1.00000007713 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (200 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_200_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_200_exp_lower
 
 private lemma a2_200_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (200 : ℝ)) ≤
       (1.00000007713 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_200_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_200_exp_upper
 
 private lemma cert_pow289_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (289 : ℕ)) ≤
       (1.00000007713 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow289_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow289_upper
 
 private lemma a2_200_lower :
     (1.00000007713 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -502,19 +499,19 @@ private lemma floor_250 : ⌊(250 : ℝ) / log 2⌋₊ = 360 := by
 private lemma a2_250_exp_lower :
     (1.00000002025 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (250 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_250_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_250_exp_lower
 
 private lemma a2_250_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (250 : ℝ)) ≤
       (1.00000002025 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_250_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_250_exp_upper
 
 private lemma cert_pow361_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (361 : ℕ)) ≤
       (1.00000002025 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
   rw [f_eq_leancert_f]
-  exact LeanCert.Examples.BKLNW_a2_pow2.pow361_upper
+  exact LeanCert.CertifiedBounds.BKLNW.pow361_upper
 
 private lemma a2_250_lower :
     (1.00000002025 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) *
@@ -552,20 +549,20 @@ private lemma floor_300 : ⌊(300 : ℝ) / log 2⌋₊ = 432 := by
 private lemma a2_300_exp_lower :
     (1.00000001937 : ℝ) ≤ (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (300 : ℝ)) := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_300_exp_lower
+    LeanCert.CertifiedBounds.BKLNW.a2_300_exp_lower
 
 private lemma a2_300_exp_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f (exp (300 : ℝ)) ≤
       (1.00000001937 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
   simpa [f_eq_leancert_f] using
-    LeanCert.Examples.BKLNW_a2_reflective.a2_300_exp_upper
+    LeanCert.CertifiedBounds.BKLNW.a2_300_exp_upper
 
 private lemma cert_pow433_upper :
     (1 + 193571378 / (10 : ℝ) ^ 16) * f ((2 : ℝ) ^ (433 : ℕ)) ≤
       (1.00000001937 : ℝ) + (1 : ℝ) / 10 ^ 8 := by
   calc _ ≤ (1.00000001938 : ℝ) + (1 : ℝ) / 10 ^ 9 := by
         rw [f_eq_leancert_f]
-        exact LeanCert.Examples.BKLNW_a2_pow2.pow433_upper
+        exact LeanCert.CertifiedBounds.BKLNW.pow433_upper
     _ ≤ (1.00000001937 : ℝ) + (1 : ℝ) / 10 ^ 8 := by
         norm_num
 

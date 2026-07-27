@@ -627,7 +627,7 @@ Ramanujan formula:
 @[blueprint
   "zeta_mul_zeta_mul_zeta_mul_zeta_eq"
   (title := "zeta mul zeta mul zeta mul zeta eq")
-  (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$.
+  (statement := /-- Ramanujan formula: $\zeta(s)\zeta(s-\alpha)\zeta(s-\beta)\zeta(s-\alpha-\beta)=\zeta(2s-\alpha-\beta) \sum_{n=1}^{\infty} \sigma_\alpha(n)\sigma_\beta(n)n^{-s}$ for $\Re(s) > 1$, $\Re(s-\alpha) > 1$, $\Re(s-\beta) > 1$, and $\Re(s-\alpha-\beta) > 1$.
   \begin{verbatim}
   This is IK (1.28).
   \end{verbatim}
@@ -646,7 +646,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
 @[blueprint
   "zeta_pow_four_eq"
   (title := "zeta pow four eq")
-  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$.
+  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   This is IK (1.29).
   \end{verbatim}
@@ -669,7 +669,7 @@ Baby Rankin-Selberg:
 @[blueprint
   "zeta_mul_tau_square_eq"
   (title := "zeta mul tau square eq")
-  (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$.
+  (statement := /-- Baby Rankin-Selberg: $\zeta(s)\sum_{n=1}^{\infty}\tau(n^2)n^{-s} = \sum_{n=1}^{\infty}\tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   Precursor to IK (1.30).
   \end{verbatim}
@@ -687,7 +687,7 @@ Zeta cubed:
 @[blueprint
   "zeta_pow_three_eq"
   (title := "zeta pow three eq")
-  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$ for $\Re(s) > 1$.
   \begin{verbatim}
   This is IK (1.30).
   \end{verbatim}
@@ -707,7 +707,7 @@ Zeta cubed alt:
   "zeta_pow_three_eq_alt"
   (title := "zeta pow three eq alt")
   (statement := /-- symmetric square $L$-function for $\zeta^2$:
-  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}.$$
+  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}$$ for $\Re(s) > 1$.
   \begin{verbatim}
   Alternative expression for `ζ^3`, in IK between (1.30) and (1.31).
   \end{verbatim}
@@ -793,7 +793,7 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     If $f$ is a multiplicative function, then so to is $n\mapsto f(n)/n^s$.
   -/)
   (proof := /--
-    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/n^s)(f(n)/n^s)$.
+    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/m^s)(f(n)/n^s)$.
   -/)]
 lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
     LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
@@ -845,7 +845,7 @@ lemma two_pow_omega_isMultiplicative :
   "two_pow_omega_LSeries.term_isMultiplicative"
   (title := "two-pow-omega-LSeries.term-isMultiplicative")
   (statement := /--
-    We have that $n\mapsto 2^{\omega(n)}/n^{-s}$ is a multiplicative function.
+    We have that $n\mapsto 2^{\omega(n)}/n^{s}$ is a multiplicative function.
   -/)
   (proof := /--
     Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
@@ -893,7 +893,7 @@ lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     · unfold LSeries.term
       simp [Nat.Prime.ne_zero p.prop]
     · have := LSeriesSummable_two_pow_omega hs;
-      convert this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
+      convert! this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
   have h_term_eval : ∀ e : ℕ, LSeries.term (fun n : ℕ => 2 ^ ω n) s (p.val ^ (e + 1)) = 2 * (p.val : ℂ) ^ (-(e + 1) * s) := by
     intro e
     simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
@@ -951,13 +951,13 @@ lemma Complex.one_add_prime_cpow_ne_zero {p : ℕ} (hp : Nat.Prime p) {s : ℂ} 
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ 2 ^ (ω n)) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  convert HasProd.tprod_eq ( EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _ ) |> Eq.symm using 1
+  convert! HasProd.tprod_eq ( EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _ ) |> Eq.symm using 1
   · apply tprod_congr
     simp only [← two_pow_omega_tsum_prime_pow hs, sumOnPrimePows_apply, implies_true]
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
   · intro m n mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
+  · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -976,12 +976,12 @@ lemma two_pow_omega_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s)) / (1 - ↑↑p ^ (-s))) (L (fun n ↦ (2 ^ ω n)) s) := by
-  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (2 ^ ω n)) s) using 1;
+  convert! EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (2 ^ ω n)) s) using 1;
   · funext p; exact Eq.symm (two_pow_omega_tsum_prime_pow hs p)
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero,
       cardDistinctFactors_one, pow_zero, cast_one, Complex.one_cpow, div_self]
   · intro _ _ mCn; exact two_pow_omega_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_two_pow_omega hs).norm using 1
+  · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
   Zeta squared:
@@ -992,7 +992,7 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   "zeta_pow_two"
   (title := "zeta pow two")
   (statement := /--
-  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}.$$
+  $$\zeta(s)^2 =\zeta(2s) \sum_{n=1}^{\infty} 2^{\omega(n)} n^{-s}$$ for $\Re(s) > 1$.
   \begin{verbatim}
     An expression for `ζ^2`, in IK (1.31).
   \end{verbatim}
@@ -1073,7 +1073,7 @@ lemma powOfMultiplicative_isMultiplicative {R : Type u_1} [CommMonoidWithZero R]
   "moebius_sq_LSeries.term_isMultiplicative"
   (title := "moebius-sq-LSeries.term-isMultiplicative")
   (statement := /--
-    We have that $n\mapsto \mu^2(n)/n^{-s}$ is a multiplicative function.
+    We have that $n\mapsto \mu^2(n)/n^{s}$ is a multiplicative function.
   -/)
   (proof := /--
     Follows as a consequence of Lemma \ref{LSeries.term-isMultiplicative-if-fun-isMultiplicative}
@@ -1139,14 +1139,14 @@ lemma moebius_sq_tsum_prime_pow {s : ℂ} (p : Nat.Primes) :
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
     LSeries (fun n ↦ (μ n) ^ 2) s = ∏' (p : Primes), (1 + (p : ℂ) ^ (-s)) := by
-  convert (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _).tprod_eq.symm using 1
+  convert! (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _).tprod_eq.symm using 1
   · apply tprod_congr
     simp only [← moebius_sq_tsum_prime_pow, sumOnPrimePows_apply, implies_true]
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
       IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
       Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
   · intro m n mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_moebius_sq hs).norm using 1
+  · convert! (LSeriesSummable_moebius_sq hs).norm using 1
   · unfold LSeries.term; simp only [↓reduceIte]
 
 @[blueprint
@@ -1165,13 +1165,13 @@ lemma moebius_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
   -/)]
 lemma moebius_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
     HasProd (fun (p : Primes) ↦ (1 + ↑↑p ^ (-s))) (L (fun n ↦ (μ n) ^ 2) s) := by
-  convert EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
+  convert! EulerProduct.eulerProduct_hasProd _ _ _ (LSeries.term_zero (fun n ↦ (μ n) ^ 2) s) using 1;
   · funext p; exact Eq.symm (moebius_sq_tsum_prime_pow p)
   · simp only [ne_eq, one_ne_zero, not_false_eq_true, LSeries.term_of_ne_zero, isUnit_iff_eq_one,
       IsUnit.squarefree, moebius_apply_of_squarefree, Int.reduceNeg, cardFactors_one, pow_zero,
       Int.cast_one, one_pow, cast_one, Complex.one_cpow, div_self]
   · intro _ _ mCn; exact moebius_sq_LSeries.term_isMultiplicative s mCn
-  · convert (LSeriesSummable_moebius_sq hs).norm using 1
+  · convert! (LSeriesSummable_moebius_sq hs).norm using 1
 
 -- **Zulip question** Do we want `|μ n| = μ^2 (n)` to be a standalone function? It is the indicator
 -- of `n` being squarefree.
@@ -1214,16 +1214,14 @@ lemma zeta_alt (s : ℂ) (hs : 1 < s.re) :
   "pow_divisors_mul"
   (title := "pow-divisors-mul")
   (statement := /--
-    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The divisors of $mn$ that
-    can be expressed as perfect $k$-powers are exactly the product of the divisors of $m$ and $n$
-    that can be expressed as perfect $k$-powers.
+    Let $m$ and $n$ be coprime natural numbers and let $k$ be fixed. The divisors $x$ of $mn$ with
+    $x^k \mid mn$ are exactly the products $ab$ where $a \mid m$, $a^k \mid m$, $b \mid n$, and
+    $b^k \mid n$.
   -/)
   (proof := /--
-    Since $m$ and $n$ are coprime, they share no common prime factors. Therefore, any divisor of
-    $mn$ can be uniquely expressed as a product of a divisor of $m$ and a divisor of $n$. The
-    condition that a divisor is a perfect $k$-power can be checked separately for the divisors of
-    $m$ and $n$. Thus, the divisors of $mn$ that are perfect $k$-powers correspond exactly to the
-    products of divisors of $m$ and $n$ that are perfect $k$-powers.
+    Since $m$ and $n$ are coprime, every divisor of $mn$ factors uniquely as $ab$ with $a \mid m$
+    and $b \mid n$. For such a factorization, $x^k \mid mn$ is equivalent to $a^k \mid m$ and
+    $b^k \mid n$, again by coprimality.
   -/)]
 lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
     (m * n).divisors.filter (fun x => x ^ k ∣ m * n) =
@@ -1265,14 +1263,12 @@ lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
   "pow_divisors_mul_injective"
   (title := "pow-divisors-mul-injective")
   (statement := /--
-    Let $m$ and $n$ be coprime natural numbers, with a fixed power $k$. The function
-    $(a,b) \mapsto ab$ is injective on the product of the divisors of $m$ and $n$ that can be
-    expressed as perfect $k$-powers.
+    Let $m$ and $n$ be coprime natural numbers and let $k$ be fixed. The map $(a,b) \mapsto ab$ is
+    injective on the product of $\{a \mid m : a^k \mid m\}$ and $\{b \mid n : b^k \mid n\}$.
   -/)
   (proof := /--
-    This follows from the injectivity of the function on the product of all divisors, as shown in
-    the previous lemma. Since we are restricting to a subset of the divisors, the injectivity still
-    holds.
+    This is the restriction of Lemma \ref{divisors-mul-injective} to a subset of the divisor
+    product, so injectivity is preserved.
   -/)]
 lemma pow_divisors_mul_injective {m n k : ℕ} (hmn : Nat.Coprime m n) :
     Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2) (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
@@ -1302,10 +1298,9 @@ lemma sum_moebius_sq_divisors_apply (n : ℕ) :
   (statement := /-- The function $n \mapsto \sum_{d^2|n} \mu(d)$ is multiplicative. -/)
   (proof := /--
     We will show that for coprime $m$ and $n$, we have
-    $\sum_{d^2|mn} \mu(d) = \sum_{d^2|m} \mu(d) \cdot \sum_{d^2|n} \mu(d)$. This follows from the
-    fact that the divisors of $mn$ that are perfect squares correspond to the products of divisors
-    of $m$ and $n$ that are perfect squares, as shown in the previous lemmas. The multiplicativity
-    of the Möbius function then allows us to factor the sum accordingly.
+    $\sum_{d^2|mn} \mu(d) = \sum_{d^2|m} \mu(d) \cdot \sum_{d^2|n} \mu(d)$. This follows from
+    Lemma \ref{pow-divisors-mul}: the divisors $d$ of $mn$ with $d^2 \mid mn$ factor uniquely as
+    $d=ab$ with $a^2 \mid m$ and $b^2 \mid n$. Multiplicativity of $\mu$ then factors the sum.
   -/)]
 lemma sum_moebius_sq_divisors_IsMultiplicative : sum_moebius_sq_divisors.IsMultiplicative := by
   unfold sum_moebius_sq_divisors
@@ -1426,7 +1421,7 @@ The Liouville function is completely multiplicative. -/
   (proof := /--
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
-lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℤ) := by
+lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℝ) := by
   sorry
 
 /--
@@ -1438,11 +1433,11 @@ The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
   (proof := /--
   The Liouville function $\lambda(n)$ is multiplicative, and its value at prime powers is given by $\lambda(p^k) = (-1)^k$. The Dirichlet series of $\lambda$ can be expressed as an Euler product over primes:
 \[
-L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right)^{-1} \left(1 - p^{-2s}\right) = \frac{\zeta(2s)}{\zeta(s)}.
+L(\lambda, s) = \prod_{p} \left(1 + \lambda(p)p^{-s} + \lambda(p^2)p^{-2s} + \ldots\right) = \prod_{p} \left(1 - p^{-s}\right) \left(1 - p^{-2s}\right)^{-1} = \frac{\zeta(2s)}{\zeta(s)}.
 \]
   -/)]
 lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
-    LSeries (↗(liouville : ArithmeticFunction ℤ)) s = riemannZeta (2 * s) / riemannZeta s := by
+    LSeries ↗liouville s = riemannZeta (2 * s) / riemannZeta s := by
   sorry
 
 /-- `liouville` agrees with `moebius` on square-free numbers -/
@@ -1490,7 +1485,7 @@ private lemma lseriesSummable_totientAF {s : ℂ} (hs : 2 < s.re) :
 @[blueprint
   "LSeries_totient_eq"
   (title := "LSeries totient eq")
-  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$.
+  (statement := /-- Euler totient series: $\sum_{n=1}^{\infty} \varphi(n) n^{-s} = \zeta(s-1)/\zeta(s)$ for $\Re(s) > 2$.
   \begin{verbatim}
   This is IK (1.35). The L-series converges absolutely for Re(s) > 2
   (using φ(n) ≤ n to bound terms; the original hypothesis 1 < Re(s) is incorrect).

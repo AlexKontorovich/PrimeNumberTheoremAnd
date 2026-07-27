@@ -3,7 +3,7 @@ import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 import Mathlib.Topology.Algebra.Module.ModuleTopology
 import PrimeNumberTheoremAnd.IEANTN.LogTables
@@ -256,7 +256,7 @@ private lemma log_ineq_4 (u : ℝ) (hu : 0 < u) :
 private lemma hasDerivAt_log_one_add (x : ℝ) (h : (0 : ℝ) < 1 + x) :
     HasDerivAt (fun u => Real.log (1 + u)) (1 / (1 + x)) x := by
   have := (Real.hasDerivAt_log h.ne').comp x ((hasDerivAt_id x).const_add 1)
-  convert this using 1; ring
+  convert! this using 1; ring
 
 private lemma hasDerivAt_one_add_mul_log (x : ℝ) (h1p : (0 : ℝ) < 1 + x) :
     HasDerivAt (fun u => (1 + u) * Real.log (1 + u)) (Real.log (1 + x) + 1) x := by

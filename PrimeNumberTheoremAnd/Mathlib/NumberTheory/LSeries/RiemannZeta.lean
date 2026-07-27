@@ -267,7 +267,7 @@ private lemma multipliable_toNNReal {ι : Type*} (f : ι → ℝ) (hf₀ : ∀ i
     (hf : Multipliable f) : Multipliable fun i => (⟨f i, (hf₀ i).le⟩ : NNReal) := by
   obtain ⟨a, ha⟩ := hf
   let a_nnreal : NNReal := ⟨a, hasProd_nonneg_of_pos f hf₀ a ha⟩
-  exact ⟨a_nnreal, hasProd_nnreal_of_coe _ _ (by simpa [a_nnreal] using ha)⟩
+  exact ⟨a_nnreal, hasProd_nnreal_of_coe _ _ (by simpa [a_nnreal] using! ha)⟩
 
 private lemma nnreal_coe_tprod {ι : Type*} (f : ι → NNReal) (hf : Multipliable f) :
     ∏' i, (↑(f i) : ℝ) = ↑(∏' i, f i) :=

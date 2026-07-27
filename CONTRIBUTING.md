@@ -3,6 +3,16 @@
 Thank you for your interest in contributing to the PNT+ Project!
 This guide provides detailed instructions on how to effectively and efficiently contribute to the project.
 
+> **Also read [`PULL_REQUEST_STYLE.md`](PULL_REQUEST_STYLE.md)** before opening a PR.
+> It's a work-in-progress style guide covering how to *shape* a reviewable PR
+> (this document covers process — claim / propose / review; the style guide
+> covers scope, motivation, paper-matching, reuse, and reviewer-friendly
+> conventions). AI-assisted contributors especially should read the
+> "AI-assisted contributions" section there. When in doubt about how to
+> structure a submission, ask on the project Zulip
+> ([`#PrimeNumberTheorem+`](https://leanprover.zulipchat.com/#narrow/channel/423402-PrimeNumberTheorem.2B))
+> before opening the PR.
+
 ## Project Coordination
 
 The project is managed using a [GitHub project dashboard](https://github.com/users/AlexKontorovich/projects/1), which tracks tasks through various stages, from assignment to completion.

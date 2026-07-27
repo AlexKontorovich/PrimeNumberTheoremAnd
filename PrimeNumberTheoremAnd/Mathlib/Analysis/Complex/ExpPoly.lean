@@ -55,7 +55,7 @@ theorem zero_free_polynomial_growth_is_exp_poly {H : ℂ → ℂ} {n : ℕ}
     intro z
     exact ((hH.analyticAt z).deriv).differentiableAt
   have hL : Differentiable ℂ L := by
-    simpa [L] using (hderivH.div hH h_nonzero)
+    simpa [L] using! (hderivH.div hH h_nonzero)
   let h : ℂ → ℂ := fun z => Complex.wedgeIntegral (0 : ℂ) z L
   have hh_deriv : ∀ z, HasDerivAt h (L z) z := by
     intro z
@@ -88,7 +88,7 @@ theorem zero_free_polynomial_growth_is_exp_poly {H : ℂ → ℂ} {n : ℕ}
       have :
           deriv F z =
             ((Complex.exp (k z) * L z) * H z - Complex.exp (k z) * deriv H z) / (H z) ^ 2 := by
-        simpa [F] using hDiv.deriv
+        simpa [F] using! hDiv.deriv
       rw [this]
       have hnum :
           (Complex.exp (k z) * L z) * H z - Complex.exp (k z) * deriv H z = 0 := by
@@ -238,7 +238,7 @@ theorem zero_free_polynomial_growth_is_exp_poly {H : ℂ → ℂ} {n : ℕ}
             (tendsto_id.atTop_div_const (r := (2 : ℝ)) (by norm_num : (0 : ℝ) < 2))
           have hpow : Tendsto (fun R : ℝ => (R / 2) ^ m) atTop atTop :=
             (Filter.tendsto_pow_atTop (α := ℝ) (n := m) hm0).comp hdiv
-          simpa using hpow.inv_tendsto_atTop
+          simpa using! hpow.inv_tendsto_atTop
         have hdiv : Tendsto (fun R : ℝ => (1 + R) / R) atTop (𝓝 (1 : ℝ)) := by
           have hinv' : Tendsto (fun R : ℝ => (R : ℝ)⁻¹) atTop (𝓝 (0 : ℝ)) := tendsto_inv_atTop_zero
           have hadd : Tendsto (fun R : ℝ => (1 : ℝ) + (R : ℝ)⁻¹) atTop (𝓝 (1 : ℝ)) := by
@@ -320,7 +320,7 @@ theorem zero_free_polynomial_growth_is_exp_poly {H : ℂ → ℂ} {n : ℕ}
     have hsub :
         iteratedDeriv m f 0 =
           iteratedDeriv m k 0 - iteratedDeriv m (fun _ : ℂ => k 0) 0 := by
-      simpa [f] using (iteratedDeriv_sub (n := m) (x := (0 : ℂ)) hkcd hccd)
+      simpa [f] using! (iteratedDeriv_sub (n := m) (x := (0 : ℂ)) hkcd hccd)
     have hconst0 : iteratedDeriv m (fun _ : ℂ => k 0) 0 = 0 := by
       simp [iteratedDeriv_const, hm0]
     have hf_eq : iteratedDeriv m f 0 = iteratedDeriv m k 0 := by

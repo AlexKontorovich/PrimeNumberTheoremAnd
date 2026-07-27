@@ -17,7 +17,9 @@ Some of these results are already stated elsewhere.  In such cases, we can fill 
 -/
 
 open Real Chebyshev
+open Filter
 open ArithmeticFunction hiding log
+open scoped Topology
 
 
 blueprint_comment /--
@@ -30,10 +32,9 @@ blueprint_comment /--
 In the section "A partial prime number theorem" of \cite{Buthe2}, Theorem 2
 uses prime-counting and Chebyshev functions introduced there with the source's
 \(\chi^*_{[0,x]}\) convention, which gives boundary points weight \(1/2\). The
-Lean statements in this block currently use the project's ordinary \(\pi\),
-\(\theta\), \(\psi\), and \(\pi^*\), where endpoints are counted fully. The
-source convention is not implemented here, so care is needed when using these
-statements at endpoints.
+source-normalized \(\psi\), \(\vartheta\), \(\pi\), and \(\pi^*\) functions
+below use this endpoint convention. Downstream ordinary-\(\theta\) bounds need
+a separate right-limit bridge at endpoints.
 -/
 
 namespace Buthe2
@@ -42,48 +43,148 @@ blueprint_comment /--
 Some results from \cite{Buthe2}-/
 
 @[blueprint
+  "buthe2-buthe-chi-star-icc"
+  (title := "Buthe2 Endpoint Weight")
+  (statement := /--
+    The source endpoint weight $\chi^*_{[0,x]}(t)$ is $1/2$ at $t=0$ and $t=x$,
+    $1$ for $0<t<x$, and $0$ otherwise.
+  -/)]
+noncomputable def Buthe_chiStarIcc (x t : ℝ) : ℝ :=
+  if t = 0 ∨ t = x then (1 / 2 : ℝ) else if t ∈ Set.Ioo 0 x then 1 else 0
+
+@[blueprint
+  "buthe2-buthe-psi"
+  (title := "Buthe2 Source-Normalized Psi")
+  (statement := /--
+    $\psi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\psi(x)=\sum_{n \geq 1}\chi^*_{[0,x]}(n)\Lambda(n)$.
+  -/)]
+noncomputable def Buthe_psi (x : ℝ) : ℝ :=
+  ∑' n : ℕ, Buthe_chiStarIcc x n * (vonMangoldt n : ℝ)
+
+@[blueprint
+  "buthe2-buthe-theta"
+  (title := "Buthe2 Source-Normalized Theta")
+  (statement := /--
+    $\vartheta(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint
+    convention:
+    $\vartheta(x)=\sum_p \chi^*_{[0,x]}(p)\log p$.
+  -/)]
+noncomputable def Buthe_theta (x : ℝ) : ℝ :=
+  ∑ p ∈ Finset.Icc 0 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
+
+@[blueprint
+  "buthe2-buthe-pi"
+  (title := "Buthe2 Source-Normalized Pi")
+  (statement := /--
+    $\pi(x)$ is interpreted with the source's $\chi^*_{[0,x]}$ endpoint convention:
+    $\pi(x)=\sum_p \chi^*_{[0,x]}(p)$.
+  -/)]
+noncomputable def Buthe_pi (x : ℝ) : ℝ :=
+  ∑' p : ℕ, if Nat.Prime p then Buthe_chiStarIcc x p else 0
+
+@[blueprint
+  "buthe2-buthe-pi-star"
+  (title := "Buthe2 Source-Normalized Pi Star")
+  (statement := /--
+    $\pi^*(x)$ is formed from the source-normalized $\pi$ by
+    $\pi^*(x)=\sum_{k \geq 1}\pi(x^{1/k})/k$.
+  -/)]
+noncomputable def Buthe_pi_star (x : ℝ) : ℝ :=
+  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
+
+lemma Buthe_chiStarIcc_nonneg (x t : ℝ) : 0 ≤ Buthe_chiStarIcc x t := by
+  unfold Buthe_chiStarIcc
+  split_ifs <;> norm_num
+
+lemma Buthe_chiStarIcc_le_one (x t : ℝ) : Buthe_chiStarIcc x t ≤ 1 := by
+  unfold Buthe_chiStarIcc
+  split_ifs <;> norm_num
+
+lemma Buthe_chiStarIcc_eq_one_of_pos_lt {x t : ℝ} (ht0 : 0 < t) (htx : t < x) :
+    Buthe_chiStarIcc x t = 1 := by
+  unfold Buthe_chiStarIcc
+  simp [ht0.ne', htx.ne, ht0, htx]
+
+lemma Buthe_theta_le_theta (x : ℝ) : Buthe_theta x ≤ θ x := by
+  rw [Chebyshev.theta_eq_sum_Icc]
+  unfold Buthe_theta
+  refine Finset.sum_le_sum ?_
+  intro p hp
+  have hpprime : p.Prime := (Finset.mem_filter.mp hp).2
+  have hlog_nonneg : 0 ≤ log (p : ℝ) := by
+    exact log_nonneg (by exact_mod_cast le_of_lt hpprime.one_lt)
+  exact mul_le_of_le_one_left hlog_nonneg (Buthe_chiStarIcc_le_one x p)
+
+lemma eventually_Buthe_theta_eq_theta (x : ℝ) (hx : 0 ≤ x) :
+    (fun y => Buthe_theta y) =ᶠ[𝓝[>] x] fun _ => θ x := by
+  filter_upwards [self_mem_nhdsWithin,
+    Ico_mem_nhdsGT_of_mem ⟨Nat.floor_le hx, Nat.lt_floor_add_one x⟩] with y hygt hyfloor
+  rw [Chebyshev.theta_eq_sum_Icc]
+  unfold Buthe_theta
+  have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico ⌊x⌋₊ y hyfloor
+  rw [hfloor]
+  refine Finset.sum_congr rfl ?_
+  intro p hp
+  have hpprime : p.Prime := (Finset.mem_filter.mp hp).2
+  have hp_pos : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpprime.pos
+  have hpy : (p : ℝ) < y := by
+    have hp_le_floor : p ≤ ⌊x⌋₊ := (Finset.mem_Icc.mp (Finset.mem_filter.mp hp).1).2
+    have hpx : (p : ℝ) ≤ x := le_trans (by exact_mod_cast hp_le_floor) (Nat.floor_le hx)
+    exact lt_of_le_of_lt hpx hygt
+  rw [Buthe_chiStarIcc_eq_one_of_pos_lt hp_pos hpy, one_mul]
+
+@[blueprint
   "thm:buthe-2a"
   (title := "Buthe Theorem 2, part a")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\psi$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\psi(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>59$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2a (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |ψ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
+  |Buthe_psi x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2b"
   (title := "Buthe Theorem 2, part b")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\vartheta$, under the
+  condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\vartheta(x) - x| \leq \frac{\sqrt{x}}{8\pi}\log(x)^2 \text{for $x>599$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2b (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 599) :
-  |θ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
+  |Buthe_theta x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2c"
   (title := "Buthe Theorem 2, part c")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\pi^*$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\pi^*(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>59$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2c (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 59) :
-  |pi_star x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
+  |Buthe_pi_star x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 @[blueprint
   "thm:buthe-2d"
   (title := "Buthe Theorem 2, part d")
-  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$. Then, under the condition $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
+  (statement := /-- Let $T>0$ such that the Riemann hypothesis holds for $0<\Im(\rho)\leq T$.
+  With the source's $\chi^*_{[0,x]}$ endpoint convention for $\pi$, under the condition
+  $4.92 \sqrt{\frac{x}{\log x}} \leq T$, one has
   $$|\pi(x) - \li(x)| \leq \frac{\sqrt{x}}{8\pi}\log(x) \text{for $x>2657$}.$$
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2d (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
   (hT : 4.92 * sqrt (x / log x) ≤ T) (hx : x > 2657) :
-  |pi x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
+  |Buthe_pi x - li x| ≤ (sqrt x) * log x / (8 * π) := by sorry
 
 end Buthe2
 
@@ -162,8 +263,10 @@ Some results from \cite{Dusart1999}-/
   (statement := /-- For $x \geq 5393$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
-    pi x ≥ x / (log x - 1) :=
-  Dusart.corollary_5_3_a hx
+    pi x > x / (log x - 1) := by
+  -- Paper / Art01 use a strict inequality; `Dusart.corollary_5_3_a` is currently
+  -- stubbed as non-strict, so keep the paper-faithful statement here.
+  sorry
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
   calc (22 : ℝ) = log (exp 22) := (log_exp 22).symm
@@ -198,7 +301,7 @@ private lemma psi_theta_err {x : ℝ} (hx : x > 0) :
 
 private lemma psi_triangle (x : ℝ) :
     |ψ x - x| ≤ |θ x - x| + (ψ x - θ x) := by
-  convert abs_add_le (θ x - x) (ψ x - θ x) using 1
+  convert! abs_add_le (θ x - x) (ψ x - θ x) using 1
   · ring_nf
   · rw [abs_of_nonneg (sub_nonneg_of_le <| Chebyshev.theta_le_psi x)]
 
@@ -391,11 +494,13 @@ blueprint_comment /-- Some results from \cite{faber-kadiri}, \cite{faber-kadiri-
 
 @[blueprint
   "thm:faber-kadiri-psi"
-  (title := "Faber-Kadiri $\\psi$ bound")
-  (statement := /-- For $x \geq 485{,}165{,}196$, we have $|\psi(x) - x| \leq 0.00053699\, x$. -/)
+  (title := "Faber--Kadiri Corollary 1.2")
+  (statement := /-- For $x \geq e^{20}$, we have $|\psi(x) - x| \leq 5.3688\cdot 10^{-4}\, x$.
+    (Following \cite{faber-kadiri}, Corollary~1.2.  The Lean hypothesis uses the
+    integer threshold $485{,}165{,}196=\lceil e^{20}\rceil$.) -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
-    |ψ x - x| ≤ 0.00053699 * x := by
+    |ψ x - x| ≤ 5.3688e-4 * x := by
   have hx_pos : (0 : ℝ) < x := by linarith
   have hmem : (4, (59.18 : ℝ)) ∈ Dusart.Table_3_3 := by simp [Dusart.Table_3_3]
   have hEpsi := Dusart.theorem_3_3 hmem (show x ≥ 2 by linarith)
@@ -408,7 +513,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 485165196) :
   calc (59.18 : ℝ) / (log x) ^ 4
       ≤ 59.18 / 20 ^ 4 := div_le_div_of_nonneg_left (by norm_num) (by norm_num)
           (pow_le_pow_left₀ (by linarith) hlog 4)
-      _ ≤ 0.00053699 := by norm_num
+      _ ≤ 5.3688e-4 := by norm_num
 
 end FaberKadiri
 
@@ -427,11 +532,11 @@ theorem psi_bound_1 (x : ℝ) (hx : x ≥ exp 5000) :
 @[blueprint
   "thm:jy-psi-2"
   (title := "Johnston-Yang $\\psi$ bound 2")
-  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.51} \exp(-0.8274\sqrt{\log x})$. -/)
+  (statement := /-- For $x \geq 2$, we have $|\psi(x) - x| \leq x \cdot 9.39\, (\log x)^{1.515} \exp(-0.8274\sqrt{\log x})$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
-    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.51 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
-  have h_exp : (log x) ^ (0.01 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
+    |ψ x - x| ≤ x * 9.39 * (log x) ^ (1.515 : ℝ) * exp (-0.8274 * sqrt (log x)) := by
+  have h_exp : (log x) ^ (0.015 : ℝ) * exp (0.0202836 * sqrt (log x)) ≥ 1 := by
     by_cases h₂ : log x ≤ 1 <;> by_cases h₃ : log x ≥ 1
     · norm_num [show log x = 1 by grind] at *
     · simp_all only [ge_iff_le, not_le, rpow_def_of_pos (log_pos <| show 1 < x by grind)]
@@ -452,7 +557,7 @@ theorem psi_bound_2 (x : ℝ) (hx : x ≥ 2) :
   have h_ineq : |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
     have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
       have := FKS.FKS_corollary_1_4
-      convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+      convert! this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
       norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
     rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
   refine le_trans h_ineq ?_
@@ -479,10 +584,13 @@ blueprint_comment /-- Some results from \cite{PT2021}-/
 @[blueprint
   "thm:pt2021-psi"
   (title := "Platt-Trudgian 2021 $\\psi$ bound")
-  (statement := /-- For $x \geq e^{2000}$, we have $|\psi(x) - x| \leq x \cdot 235\, (\log x)^{0.52} \exp\!\left(-\sqrt{\frac{\log x}{5.573412}}\right)$. -/)
+  (statement := /-- For $x \geq e^{2000}$, we have
+  $|\psi(x) - x| \leq x \cdot 411.4\, (\log x / R)^{1.52}
+  \exp\!\left(-1.89\sqrt{\frac{\log x}{R}}\right)$ with $R = 5.573412$. -/)
   (latexEnv := "theorem")]
 theorem psi_bound (x : ℝ) (hx : x ≥ exp 2000) :
-    |ψ x - x| ≤ x * 235 * (log x) ^ (0.52 : ℝ) * exp (-sqrt (log x / 5.573412)) := by sorry
+    |ψ x - x| ≤ x * 411.4 * (log x / 5.573412) ^ (1.52 : ℝ) *
+      exp (-1.89 * sqrt (log x / 5.573412)) := by sorry
 
 end PT
 
@@ -499,7 +607,7 @@ theorem psi_bound (x : ℝ) (hx : x ≥ 2) :
     |ψ x - x| ≤ x * 9.22022 * (log x) ^ (1.5 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
   have h_ineq : |ψ x - x| / x ≤ 9.22022 * (log x) ^ (3 / 2 : ℝ) * exp (-0.8476836 * sqrt (log x)) := by
     have := FKS.FKS_corollary_1_4
-    convert this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
+    convert! this x hx using 1; norm_num [exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
     norm_num [admissible_bound, exp_neg, sqrt_eq_rpow, rpow_neg, div_eq_mul_inv]; ring_nf
   rw [div_le_iff₀] at h_ineq <;> ring_nf at * <;> grind
 
@@ -508,7 +616,9 @@ end FKS
 
 namespace Ramare2013
 
-blueprint_comment /-- Some results from \cite{ramare2013} -/
+blueprint_comment /-- Some results from \cite{ramare2013}; ranges below follow the
+2023 corrigendum (the 2013 printed corollary had $x\ge 23$ for the
+$0.0067/\log x$ bound). -/
 
 @[blueprint
   "thm:ramare2013-vms-1a"
@@ -521,8 +631,10 @@ theorem von_mangoldt_sum_1a (x : ℝ) (hx : x > 1) :
 
 @[blueprint
   "thm:ramare2013-vms-1b"
-  (title := "Ramare 2013, von Mangoldt sum 1b")
-  (statement := /-- For $x \geq 1520000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1b")
+  (statement := /-- For $x \geq 1.52\cdot 10^6$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.0067 / \log x$
+    (2023 corrigendum; the 2013 corollary had $x\ge 23$). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
@@ -530,12 +642,25 @@ theorem von_mangoldt_sum_1b (x : ℝ) (hx : x ≥ 1520000) :
 
 @[blueprint
   "thm:ramare2013-vms-1c"
-  (title := "Ramare 2013, von Mangoldt sum 1c")
-  (statement := /-- For $x \geq 468000$, we have $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$. -/)
+  (title := "Ramare 2013/2023, von Mangoldt sum 1c")
+  (statement := /-- For $x \geq 468{,}000$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 0.01 / \log x$
+    (2023 corrigendum). -/)
   (latexEnv := "theorem")]
 theorem von_mangoldt_sum_1c (x : ℝ) (hx : x ≥ 468000) :
     |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
       0.01 / log x := by sorry
+
+@[blueprint
+  "thm:ramare2013-vms-1e"
+  (title := "Ramare 2023 corrigendum, von Mangoldt sum 1e")
+  (statement := /-- For $x \geq 115$, we have
+    $|\sum_{n \leq x} \Lambda(n)/n - \log x + \gamma| \leq 1/(4\log x)$
+    (2023 corrigendum). -/)
+  (latexEnv := "theorem")]
+theorem von_mangoldt_sum_1e (x : ℝ) (hx : x ≥ 115) :
+    |∑ n ∈ Finset.Iic ⌊x⌋₊, Λ n / n - log x + eulerMascheroniConstant| ≤
+      1 / (4 * log x) := by sorry
 
 @[blueprint
   "thm:ramare2013-vms-1d"
@@ -716,23 +841,23 @@ theorem theorem_b (x : ℝ) (hx : x ≥ 110117910) :
   "thm:dn-pi2-lower"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ lower bound")
   (statement := /-- For $x \geq 1{,}091{,}239$,
-  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right)$. -/)
+  $-\frac{1069\, x^3}{648\log^4 x} \leq \pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right)$. -/)
   (latexEnv := "theorem")]
 theorem theorem_c (x : ℝ) (hx : x ≥ 1091239) :
     -(1069 * x ^ 3 / (648 * (log x) ^ 4)) ≤
       pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) := by sorry
 
 @[blueprint
   "thm:dn-pi2-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_2$ upper bound")
   (statement := /-- For $x \geq 60{,}173$,
-  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{x^3}{27\log^3 x}\right) \leq \frac{11181\, x^3}{648\log^4 x}$. -/)
+  $\pi_2(x) - \left(\frac{x^3}{3\log x} + \frac{x^3}{9\log^2 x} + \frac{2x^3}{27\log^3 x}\right) \leq \frac{1181\, x^3}{648\log^4 x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_d (x : ℝ) (hx : x ≥ 60173) :
     pi_r 2 x - (x ^ 3 / (3 * log x) + x ^ 3 / (9 * (log x) ^ 2) +
-        x ^ 3 / (27 * (log x) ^ 3)) ≤
-      11181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
+        2 * x ^ 3 / (27 * (log x) ^ 3)) ≤
+      1181 * x ^ 3 / (648 * (log x) ^ 4) := by sorry
 
 @[blueprint
   "thm:dn-pi3-upper"
@@ -753,8 +878,7 @@ theorem theorem_f (x : ℝ) (hx : x ≥ 200) :
 @[blueprint
   "thm:dn-pi5-upper"
   (title := "Del\\'eglise-Nicolas 2019, $\\pi_5$ upper bound")
-  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$.
-  (Note: the wiki page lists $x^5$ here, but the consistent pattern $x^{r+1}$ and the general bound require $x^6$.) -/)
+  (statement := /-- For $x \geq 44$, $\pi_5(x) \leq 0.226\, x^6 / \log x$. -/)
   (latexEnv := "theorem")]
 theorem theorem_g (x : ℝ) (hx : x ≥ 44) :
     pi_r 5 x ≤ 0.226 * x ^ 6 / log x := by sorry
@@ -984,9 +1108,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:robin1983-pn-lower-const1"
   (title := "Robin 1983, lower bound on $p_n$ with constant 1 for small primes")
-  (statement := /-- For $p_n \leq 10^{11}$, we have $p_n > n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- For $n \geq 2$ with $p_n \leq 10^{11}$, we have
+  $p_n > n(\log n + \log\log n - 1)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_lower_const1 (n : ℕ) (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
+theorem p_n_lower_const1 (n : ℕ) (hn2 : n ≥ 2)
+    (hn : (nth_prime' n : ℝ) ≤ (10 : ℝ) ^ 11) :
     nth_prime' n > n * (log n + log (log n) - 1) := by sorry
 
 end Robin
@@ -998,11 +1124,13 @@ blueprint_comment /-- Some results from \cite{massias-robin} -/
 @[blueprint
   "thm:massias-robin1996-pn-lower"
   (title := "Massias-Robin 1996, lower bound on $p_n$ with constant 1")
-  (statement := /-- If $n \geq 2$ and either $p_n < e^{598}$ or $p_n > e^{1800}$, then
-  $p_n \geq n(\log n + \log\log n - 1)$. -/)
+  (statement := /-- If $n \geq 2$ and either $n \leq e^{598}$ or $n \geq e^{1800}$, then
+  $p_n \geq n(\log n + \log\log n - 1)$.
+  (Art01 writes the thresholds on $p_n$; Dusart, Math.\ Comp.\ 68 (1999),
+  citing \cite{massias-robin}, places them on the index $n$.) -/)
   (latexEnv := "theorem")]
 theorem p_n_lower (n : ℕ) (hn2 : 2 ≤ n)
-    (hn : (nth_prime' n : ℝ) < exp 598 ∨ (nth_prime' n : ℝ) > exp 1800) :
+    (hn : (n : ℝ) ≤ exp 598 ∨ (n : ℝ) ≥ exp 1800) :
     nth_prime' n ≥ n * (log n + log (log n) - 1) := by sorry
 
 end MassiasRobin
@@ -1022,11 +1150,11 @@ theorem p_n_lower (n : ℕ) (hn : n > 1) :
 @[blueprint
   "thm:dusart1999-pn-upper"
   (title := "Dusart 1999, upper bound on $p_n$")
-  (statement := /-- For $n > 39017$ (i.e., $p_n > 467473$), we have
-  $p_n < n(\log n + \log\log n - 0.9484)$. -/)
+  (statement := /-- For $n \geq 39017$ (i.e., $p_n > 467473$), we have
+  $p_n \leq n(\log n + \log\log n - 0.9484)$. -/)
   (latexEnv := "theorem")]
-theorem p_n_upper (n : ℕ) (hn : n > 39017) :
-    nth_prime' n < n * (log n + log (log n) - 0.9484) := by sorry
+theorem p_n_upper (n : ℕ) (hn : n ≥ 39017) :
+    nth_prime' n ≤ n * (log n + log (log n) - 0.9484) := by sorry
 
 end Dusart1999
 
@@ -1049,31 +1177,39 @@ end CMS
 
 namespace Axler
 
-blueprint_comment /-- Some results from \cite{Axler} -/
+blueprint_comment /-- Some results from \cite{Axler}.
+Mandl's quantity is $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$;
+Theorems~1.6 and~1.7 of \cite{Axler} bound $B_n$, not $\sum p_k$. -/
+
+/-- Mandl's quantity \(B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k\). -/
+noncomputable def mandlB (n : ℕ) : ℝ :=
+  (n : ℝ) * nth_prime' n / 2 - ∑ i ∈ Finset.Icc 1 n, (nth_prime' i : ℝ)
 
 @[blueprint
-  "thm:axler2019-sum-prime-lower"
-  (title := "Axler 2019, lower bound for sum of first k primes")
-  (statement := /-- For $k \geq 6{,}309{,}751$, we have
-  $\sum_{i \leq k} p_i \geq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 2.9)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-lower"
+  (title := "Axler 2019, lower bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 6{,}309{,}751$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n > \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 2.9)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_lower (k : ℕ) (hk : k ≥ 6309751) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≥
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 2.9) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_lower (n : ℕ) (hn : n ≥ 6309751) :
+    mandlB n >
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 2.9) / (4 * (log n) ^ 2) := by sorry
 
 @[blueprint
-  "thm:axler2019-sum-prime-upper"
-  (title := "Axler 2019, upper bound for sum of first k primes")
-  (statement := /-- For $k \geq 256{,}376$, we have
-  $\sum_{i \leq k} p_i \leq \frac{k^2}{4} + \frac{k^2}{4\log k} -
-  \frac{k^2(\log\log k - 4.42)}{4(\log k)^2}$. -/)
+  "thm:axler2019-mandlB-upper"
+  (title := "Axler 2019, upper bound for Mandl $B_n$")
+  (statement := /-- For $n \geq 256{,}376$, Mandl's quantity
+  $B_n = \frac{n\,p_n}{2} - \sum_{k\leq n}p_k$ satisfies
+  $B_n < \frac{n^2}{4} + \frac{n^2}{4\log n} -
+  \frac{n^2(\log\log n - 4.42)}{4(\log n)^2}$. -/)
   (latexEnv := "theorem")]
-theorem sum_prime_upper (k : ℕ) (hk : k ≥ 256376) :
-    ∑ i ∈ Finset.Icc 1 k, (nth_prime' i : ℝ) ≤
-      (k : ℝ) ^ 2 / 4 + (k : ℝ) ^ 2 / (4 * log k) -
-      (k : ℝ) ^ 2 * (log (log k) - 4.42) / (4 * (log k) ^ 2) := by sorry
+theorem mandlB_upper (n : ℕ) (hn : n ≥ 256376) :
+    mandlB n <
+      (n : ℝ) ^ 2 / 4 + (n : ℝ) ^ 2 / (4 * log n) -
+      (n : ℝ) ^ 2 * (log (log n) - 4.42) / (4 * (log n) ^ 2) := by sorry
 
 end Axler
 
@@ -1114,14 +1250,17 @@ namespace Schoenfeld1976
   "thm:schoenfeld1976"
   (title := "Schoenfeld 1976")
   (statement := /--
-  If $x > 2010760$, then there is a prime in the interval
+  If $x > 2{,}010{,}759.9$, then there is a prime in the \emph{open} interval
   \[
-  \left( x, x\left(1 + \frac{1}{16597}\right) \right].
+  \left( x,\, x + \frac{x}{16597} \right)
   \]
+  (Schoenfeld, Math.\ Comp.\ 30 (1976), Theorem~12; Art09 also writes an open
+  right endpoint.  The shared predicate `HasPrimeInInterval` is closed on the
+  right, so this statement is written directly.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval x (x * (1 / 16597)) := by sorry
+theorem has_prime_in_interval (x : ℝ) (hx : x > 2010759.9) :
+    ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ (p : ℝ) < x + x / 16597 := by sorry
 
 end Schoenfeld1976
 
@@ -1143,12 +1282,16 @@ namespace GourdonDemichel2004
 
 @[blueprint
   "thm:gourdon-demichel2004"
-  (title := "Gourdon-Demichel 2004")
-  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  (title := "Gourdon-Demichel 2004 (conditional)")
+  (statement := /-- Assuming RH up to height $T_0 \approx 2.44\cdot 10^{12}$
+  (Gourdon--Demichel), if $x > \exp(60)$ then there is a prime in the interval
   \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
+  (Art09 labels this ``Theorem (2004, conditional)''; the previous Lean
+  transcription omitted the RH hypothesis.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+theorem has_prime_in_interval (x T : ℝ) (hRH : riemannZeta.RH_up_to T)
+    (hT : T ≥ 2.44e12) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
 end GourdonDemichel2004
@@ -1164,8 +1307,10 @@ namespace PrimeGaps2014
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by
-  obtain ⟨p, hp, hlo, hhi⟩ := GourdonDemichel2004.has_prime_in_interval x hx
-  exact ⟨p, hp, by nlinarith [exp_pos 60], by nlinarith⟩
+  -- Previously deduced from the Gourdon--Demichel short-interval result; that
+  -- source is conditional on RH up to $\approx 2.44\cdot 10^{12}$, so the reduction
+  -- is deferred until the present statement's hypotheses are aligned.
+  sorry
 
 end PrimeGaps2014
 
@@ -1215,7 +1360,7 @@ namespace Dusart
 def proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := _root_.Dusart.proposition_5_4
 
 def corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) :
-    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) :=
+    HasPrimeInInterval x (x / (5000 * (log x) ^ 2)) :=
   _root_.Dusart.corollary_5_5 hx
 
 end Dusart
@@ -1225,11 +1370,12 @@ namespace Dudek2014
 @[blueprint
   "thm:dudek2014"
   (title := "Dudek 2014")
-  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
+  (statement := /-- If $x^{1/3} > \exp(\exp(33.217))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
+  (Equivalently $x > \exp(3\exp(33.217))$; see \cite{Dudek}.)
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ^ ((1 : ℝ) / 3) > exp (exp 33.217)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end Dudek2014
@@ -1239,11 +1385,11 @@ namespace CullyHugill2021
 @[blueprint
   "thm:cully-hugill2021"
   (title := "Cully-Hugill 2021")
-  (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
+  (statement := /-- If $x \geq \exp(\exp(33.990))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+theorem has_prime_in_interval (x : ℝ) (hx : x ≥ exp (exp 33.990)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 end CullyHugill2021
@@ -1282,11 +1428,11 @@ namespace CarneiroEtAl2019RH
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
+  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+    HasPrimeInInterval x ((22 / 25) * sqrt x * log x) := by sorry
 
 end CarneiroEtAl2019RH
 
@@ -1317,11 +1463,14 @@ noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ 
 @[blueprint
   "thm:prime_gaps_KL"
   (title := "Kadiri-Lumley Prime Gaps")
-  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$, there is a prime between $x(1-\Delta^{-1})$ and $x$.
+  (statement := /-- \cite[Theorem 1.1]{kadiri-lumley} If $(\log x_0, m, \delta, T_1, \sigma_0, a, \Delta)$ is a row of
+  \cite[Table 2]{kadiri-lumley}, then for all $x \geq x_0$ there is a prime $p$ with
+  $(1-\Delta^{-1})x < p < x$ (open on the right; cf.\ the theorem display in the paper).
   -/)
   (latexEnv := "theorem")]
-theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
-    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
+theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀)
+    (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
+    ∃ p : ℕ, Nat.Prime p ∧ x * (1 - 1 / Δ) < p ∧ (p : ℝ) < x := by sorry
 
 end KadiriLumley
 
@@ -1342,8 +1491,332 @@ theorem has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
       List.mem_nil_iff, or_false]; norm_num
   obtain ⟨p, hp, hlo, hhi⟩ := KadiriLumley.has_prime_in_interval (exp 53) x 48 4.088e-9
     18290358817 0.93 0.4301 1524171138 hx.le hrow
-  exact ⟨p, hp, by nlinarith [exp_pos (53 : ℝ)],
-    by linarith [show x * (1 - 1 / 1524171138) + x / 1524171138 =
-      x * (1 - 1 / 204879661) + x / 204879661 from by ring]⟩
+  refine ⟨p, hp, ?_, ?_⟩
+  · have hxpos : 0 < x := lt_trans (exp_pos _) hx
+    have : x * (1 - 1 / 204879661) ≤ x * (1 - 1 / 1524171138) := by
+      apply mul_le_mul_of_nonneg_left _ hxpos.le
+      apply sub_le_sub_left
+      exact one_div_le_one_div_of_le (by norm_num) (by norm_num : (204879661:ℝ) ≤ 1524171138)
+    exact lt_of_le_of_lt this hlo
+  · have heq : x * (1 - 1 / 204879661) + x / 204879661 = x := by ring
+    rw [heq]
+    exact le_of_lt hhi
 
 end RamareSaouter2003
+
+blueprint_comment /--
+\subsection{Bounds on the Riemann zeta function}
+
+The results below are taken from
+\url{https://archimede.pages.math.cnrs.fr/tme-emt-wiki/Art06.html}.
+Results in the source involving Dirichlet $L$-functions or general
+$L$-functions are omitted here; only the results stated for the Riemann
+zeta function $\zeta(s)$ are recorded.
+-/
+
+blueprint_comment /--
+\paragraph{Approximating $\zeta(s)$ in the critical strip.}
+\cite{Kadiri2013} gives an explicit approximation of the form
+\[
+  \zeta(s) = \sum_{n < c t} \frac{1}{n^s} + O^*(\ldots),
+\]
+valid when $t > t_0 > 0$, $c > 1/(2\pi)$, and $s = \sigma + i t$ with
+$\sigma \geq 1/2$. The full explicit error term from the paper has not
+yet been transcribed here; a formal stub is left for later.
+-/
+
+namespace Lehman1970
+
+@[blueprint
+  "art06-lehman-zeta-half"
+  (title := "Lehman 1970 bound on \\(|\\zeta(1/2 + it)|\\)")
+  (statement := /-- For $t \geq 64/(2\pi)$,
+    $|\zeta(1/2 + it)| \leq 4 \left(\dfrac{t}{2\pi}\right)^{1/4}$.
+    (Art06 writes $t\ge 1/5$ after a modern computational extension;
+    Lehman's lemma is stated for $t\ge 64/(2\pi)$.) -/)
+  (proof := /-- See \cite{Lehman1970}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 64 / (2 * π) →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 4 * (t / (2 * π)) ^ (1/4 : ℝ) := by
+  sorry
+
+end Lehman1970
+
+namespace ChengGraham2004
+
+@[blueprint
+  "art06-cheng-graham-zeta-half-small"
+  (title := "Cheng--Graham 2004 bound on \\(|\\zeta(1/2 + it)|\\), small \\(t\\)")
+  (statement := /-- For $0 \leq t \leq e$,
+    $|\zeta(1/2 + it)| \leq 2.657$. -/)
+  (proof := /-- See \cite{ChengGraham2004}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound_small : ∀ t : ℝ, 0 ≤ t → t ≤ exp 1 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 2.657 := by
+  sorry
+
+@[blueprint
+  "art06-cheng-graham-zeta-half-large"
+  (title := "Cheng--Graham 2004 bound on \\(|\\zeta(1/2 + it)|\\), large \\(t\\)")
+  (statement := /-- For $t \geq e$,
+    $|\zeta(1/2 + it)| \leq 3\, t^{1/6}\, \log t$.
+    \textbf{Caveat.} This large-$t$ corollary of \cite{ChengGraham2004} relies on
+    their Kusmin--Landau lemmas.  The same $1/\pi$ versus $2/\pi$ error that
+    forced replacing Hiary's constant $0.63$ by $0.77$\,/\,$0.618$
+    (cf.\ \cite{HiaryPatelYang2022}, and the annotation on the Hiary--Patel--Yang
+    half-plane bound above) affects this estimate; the published constant $3$
+    should be treated as provisional until a corrected derivation is recorded.
+  -/)
+  (proof := /-- See \cite{ChengGraham2004}; treat the constant as provisional pending
+    the Kusmin--Landau correction discussed in \cite{HiaryPatelYang2022}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound_large : ∀ t : ℝ, t ≥ exp 1 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 3 * t ^ (1/6 : ℝ) * log t := by
+  sorry
+
+end ChengGraham2004
+
+namespace HiaryPatelYang2022
+
+@[blueprint
+  "art06-hiary-zeta-half"
+  (title := "Hiary--Patel--Yang bound on \\(|\\zeta(1/2 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1/2 + it)| \leq 0.618\, t^{1/6}\, \log t$.
+    (The constant $0.63$ in \cite{Hiary2016} relied on an incorrect Kusmin--Landau
+    lemma; after correction that constant becomes $0.77$.  The bound recorded here
+    is the improved explicit result of \cite{HiaryPatelYang2022}.) -/)
+  (proof := /-- See \cite{HiaryPatelYang2022}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_half_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1/2 : ℂ) + t * Complex.I)‖ ≤ 0.618 * t ^ (1/6 : ℝ) * log t := by
+  sorry
+
+end HiaryPatelYang2022
+
+namespace Backlund1918
+
+@[blueprint
+  "art06-backlund-strip-1"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(\\sigma \\geq 1\\)")
+  (statement := /-- For $t \geq 50$ and $\sigma \geq 1$,
+    $|\zeta(\sigma + it)| \leq \log t - 0.048$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_1 : ∀ σ t : ℝ, t ≥ 50 → σ ≥ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤ log t - 0.048 := by
+  sorry
+
+@[blueprint
+  "art06-backlund-strip-2"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(0 \\leq \\sigma \\leq 1\\)")
+  (statement := /-- For $t \geq 50$ and $0 \leq \sigma \leq 1$,
+    $|\zeta(\sigma + it)| \leq
+      \dfrac{t^2}{t^2 - 4} \left(\dfrac{t}{2\pi}\right)^{(1 - \sigma)/2} \log t$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_2 : ∀ σ t : ℝ, t ≥ 50 → 0 ≤ σ → σ ≤ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      t^2 / (t^2 - 4) * (t / (2 * π)) ^ ((1 - σ) / 2 : ℝ) * log t := by
+  sorry
+
+@[blueprint
+  "art06-backlund-strip-3"
+  (title := "Backlund 1918 bound on \\(|\\zeta(\\sigma + it)|\\), \\(-1/2 \\leq \\sigma \\leq 0\\)")
+  (statement := /-- For $t \geq 50$ and $-1/2 \leq \sigma \leq 0$,
+    $|\zeta(\sigma + it)| \leq \left(\dfrac{t}{2\pi}\right)^{1/2 - \sigma} \log t$. -/)
+  (proof := /-- See \cite{Backlund1918}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound_3 : ∀ σ t : ℝ, t ≥ 50 → -1/2 ≤ σ → σ ≤ 0 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      (t / (2 * π)) ^ (1/2 - σ : ℝ) * log t := by
+  sorry
+
+end Backlund1918
+
+namespace Trudgian2014_zeta
+
+@[blueprint
+  "art06-trudgian-zeta-1-plus-it"
+  (title := "Trudgian 2014 bound on \\(|\\zeta(1 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1 + it)| \leq \tfrac{3}{4}\, \log t$. -/)
+  (proof := /-- See \cite{Trudgian2014_zeta}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤ (3/4 : ℝ) * log t := by
+  sorry
+
+end Trudgian2014_zeta
+
+namespace Patel2022
+
+@[blueprint
+  "art06-patel-zeta-1-plus-it"
+  (title := "Patel 2022 bound on \\(|\\zeta(1 + it)|\\)")
+  (statement := /-- For $t \geq 3$,
+    $|\zeta(1 + it)| \leq \min\!\left(\log t,\;
+      \tfrac{1}{2}\log t + 1.93,\;
+      \tfrac{1}{5}\log t + 44.02\right)$.
+    (Art06 writes $\tfrac34\log t$ in the first slot, conflating Trudgian's
+    earlier bound; \cite{Patel2022}, Theorem~1.1, has $\log t$.) -/)
+  (proof := /-- See \cite{Patel2022}, Theorem~1.1. -/)
+  (latexEnv := "theorem")]
+theorem zeta_one_plus_bound : ∀ t : ℝ, t ≥ 3 →
+    ‖riemannZeta ((1 : ℂ) + t * Complex.I)‖ ≤
+      min (log t) (min ((1/2 : ℝ) * log t + 1.93)
+                                    ((1/5 : ℝ) * log t + 44.02)) := by
+  sorry
+
+end Patel2022
+
+namespace Ford2002
+
+@[blueprint
+  "art06-ford-zeta-strip"
+  (title := "Ford 2002 bound on \\(|\\zeta(\\sigma + it)|\\)")
+  (statement := /-- For $t \geq 3$ and $1/2 \leq \sigma \leq 1$,
+    $|\zeta(\sigma + it)| \leq
+      76.2\, t^{4.45(1 - \sigma)^{3/2}}\, (\log t)^{2/3}$. -/)
+  (proof := /-- See \cite{Ford2002}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_strip_bound : ∀ σ t : ℝ, t ≥ 3 → 1/2 ≤ σ → σ ≤ 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      76.2 * t ^ (4.45 * (1 - σ) ^ (3/2 : ℝ) : ℝ) * (log t) ^ (2/3 : ℝ) := by
+  sorry
+
+end Ford2002
+
+namespace Rosser1941
+
+@[blueprint
+  "art06-rosser-N"
+  (title := "Rosser 1941 bound on \\(N(T)\\)")
+  (statement := /-- For $T \geq 1467$,
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.137\log T+0.443\log\log T+1.588.
+    \]
+    (Art06 writes $T\ge 2$; Rosser's theorem is for $T\ge 1467$.) -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{rosser1941}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound :
+    ∀ T ≥ (1467 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.137 * log T + 0.443 * log (log T) + 1.588 := by
+  sorry
+
+end Rosser1941
+
+namespace Trudgian2014_argument
+
+@[blueprint
+  "art06-trudgian-argument-N"
+  (title := "Trudgian 2014 bound on \\(N(T)\\)")
+  (statement := /-- Following \cite{Trudgian2014_argument} (J.\ Number Theory 134),
+    for $T \geq e$ one has
+    \[
+    \bigl|N(T)-\tfrac{T}{2\pi}\log\tfrac{T}{2\pi e}-\tfrac78\bigr|
+    \le 0.112\log T+0.278\log\log T+2.510.
+    \]
+    (Art06 appends an extra $1/(5T)$ term; the published bound on $S(T)$ has
+    no such summand.) -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{Trudgian2014_argument}. -/)
+  (latexEnv := "theorem")]
+theorem N_bound :
+  ∀ T ≥ exp 1, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+    0.112 * log T + 0.278 * log (log T) + 2.510 := by
+  sorry
+
+end Trudgian2014_argument
+
+namespace HSW2022
+
+@[blueprint
+  "art06-hsw-N-v1"
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, for $T \geq e$ one has the
+    Riemann--von Mangoldt estimate with parameters $b_1 = 0.1038$, $b_2 = 0.2573$,
+    $b_3 = 8.3675$
+    (the form with $N(T)-\frac{T}{2\pi}\log\frac{T}{2\pi e}-\frac78$).
+    \textbf{Note.} The shared Riemann--von~Mangoldt predicate hard-codes
+    $T\geq 2$; the paper's threshold is $T\geq e$.  The Lean declaration below
+    therefore uses an explicit $T\geq e$ quantifier.
+  -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
+  (latexEnv := "theorem")]
+theorem N_bound_v1 :
+    ∀ T ≥ (exp 1 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.1038 * log T + 0.2573 * log (log T) + 8.3675 := by
+  sorry
+
+@[blueprint
+  "art06-hsw-N-v2"
+  (title := "Hasanalizade--Shen--Wong 2022 bound on \\(N(T)\\), alternate $+7/8$ form")
+  (statement := /-- Following \cite{HSW2022}, Corollary~1.4, for $T \geq e$ one has the
+    Riemann--von Mangoldt estimate with parameters $b_1 = 0.1095$, $b_2 = 0.2042$,
+    $b_3 = 3.0305$.  (Same threshold caveat as the previous $N(T)$ bound.) -/)
+  (uses := ["Riemann-von-Mangoldt-estimate"])
+  (proof := /-- See \cite{HSW2022}, Corollary~1.4. -/)
+  (latexEnv := "theorem")]
+theorem N_bound_v2 :
+    ∀ T ≥ (exp 1 : ℝ),
+      |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7 / 8)| ≤
+        0.1095 * log T + 0.2042 * log (log T) + 3.0305 := by
+  sorry
+
+end HSW2022
+
+blueprint_comment /--
+\paragraph{$L^2$-averages of $|\zeta(\sigma + it)|$.}
+\cite{Kadiri2013} gives an $L^2$ bound for $\int_H^T |\zeta(\sigma + i t)|^2 dt$
+in terms of $\zeta(2 \sigma)$ plus an explicit function $E_1(\sigma, H)$,
+valid for $0.5208 < \sigma < 0.9723$, $10^3 \leq H \leq 10^{10}$, and
+$T \geq H$; \cite{Helfgott2019} records further complex-integral tail
+bounds for $\zeta$ on vertical lines.  Formal statements to be filled in
+once the explicit form of $E_1$ (and the Helfgott expressions) has been
+transcribed from the sources.
+-/
+
+namespace Ramare2016
+
+@[blueprint
+  "art06-ramare-real-line"
+  (title := "Ramar\\'e 2016 bound on \\(|\\zeta(\\sigma + it)|\\) for \\(\\sigma > 1\\)")
+  (statement := /-- For $\sigma > 1$ and any real $t$,
+    $|\zeta(\sigma + it)| \leq \dfrac{e^{\gamma(\sigma - 1)}}{\sigma - 1}$,
+    where $\gamma$ is the Euler--Mascheroni constant. -/)
+  (proof := /-- See \cite{ramare2016}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_bound : ∀ σ t : ℝ, σ > 1 →
+    ‖riemannZeta ((σ : ℂ) + t * Complex.I)‖ ≤
+      Real.exp (Real.eulerMascheroniConstant * (σ - 1)) / (σ - 1) := by
+  sorry
+
+end Ramare2016
+
+namespace Delange1987
+
+@[blueprint
+  "art06-delange"
+  (title := "Delange 1987 bound on \\(-(\\zeta'/\\zeta)(s)\\) for real $s>1$")
+  (statement := /-- For real $s > 1$,
+    \[
+    -\dfrac{\zeta'}{\zeta}(s)
+      \leq \dfrac{1}{s - 1} - \dfrac{1}{2s^2},
+    \]
+    equivalently $\zeta'/\zeta(s)+1/(s-1)>1/(2s^2)$.
+    (Art06 states a complex form for $\sigma+it$; \cite{Delange1987} is for
+    real $s>1$.) -/)
+  (proof := /-- See \cite{Delange1987}. -/)
+  (latexEnv := "theorem")]
+theorem zeta_log_deriv_bound : ∀ s : ℝ, s > 1 →
+    -(deriv riemannZeta (s : ℂ) / riemannZeta (s : ℂ)).re ≤
+      1 / (s - 1) - 1 / (2 * s^2) := by
+  sorry
+
+end Delange1987

@@ -10,6 +10,7 @@ import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.IEANTN.LogTables
+import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
 
 blueprint_comment /--
 \section{The implications of FKS2}\label{fks2-sec}
@@ -313,7 +314,7 @@ lemma dawson_eq_integral (z : ℝ) :
   rw [hsub, ← intervalIntegral.integral_const_mul]
   apply intervalIntegral.integral_congr
   intro u _
-  show exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
+  change exp (-z ^ 2) * exp ((z - u) ^ 2) = exp (u ^ 2 - 2 * z * u)
   rw [← Real.exp_add]
   congr 1
   ring
@@ -329,7 +330,7 @@ private lemma integral_exp_neg_mul_le {z w : ℝ} (hz : 0 < z) :
     have h2 : HasDerivAt (fun u : ℝ => exp (-(2 * z) * u))
         (exp (-(2 * z) * u) * (-(2 * z))) u := (Real.hasDerivAt_exp _).comp u h1
     have h3 := (h2.div_const (2 * z)).neg
-    convert h3 using 1
+    convert! h3 using 1
     field_simp
   rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
     (by apply Continuous.intervalIntegrable; continuity)]
@@ -359,7 +360,7 @@ private lemma integral_sq_mul_exp_le {z w : ℝ} (hz : 0 < z) (hw : 0 ≤ w) :
       ((hp2.div_const (2 * z)).add ((hasDerivAt_id u).div_const (2 * z ^ 2))).add_const
         (1 / (4 * z ^ 3))
     have hprod := (h2.mul h3).neg
-    convert hprod using 1
+    convert! hprod using 1
     have hz' : z ≠ 0 := hz.ne'
     field_simp
     ring
@@ -1845,9 +1846,9 @@ theorem Li_identity {x} (hx : 2 ≤ x) :
     ring_nf
     rw [mul_inv_cancel₀ (hnt ht), one_mul]
   · intro t ht
-    simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
+    simpa using! HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
   · simp only [neg_div, div_div]
-    simpa using (l0 (refl 2) hx).intervalIntegrable.neg
+    simpa using! (l0 (refl 2) hx).intervalIntegrable.neg
 
 theorem l1 {x y} (hx : 2 ≤ x) (hy : x ≤ y) :
     IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume x y := by
@@ -2069,7 +2070,7 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     · intro t ht
       have := hasDerivAt_pow 2 t
       simp only [Nat.cast_ofNat, Nat.add_one_sub_one, pow_one] at this
-      convert hasDerivAt_exp (t ^ 2) |>.comp t this using 1
+      convert! hasDerivAt_exp (t ^ 2) |>.comp t this using 1
       ring
     · fun_prop
     · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
@@ -2171,7 +2172,7 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   For $x_0,x_1 > 0$, we define
   $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
+    \frac{2D_+\bigl(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}\bigr)}{\sqrt{\log x_1}}$$.
   -/)]
 noncomputable def μ_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
   (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * δ x₀ +
@@ -2282,7 +2283,7 @@ lemma logx_over_x_bound {A B C R x₁ x : ℝ}
     (hB : B ≥ 1 + C ^ 2 / (16 * R)) (hR : R > 0) (hA : A > 0)
     (hx1_gt1 : x₁ > 1) (hx : x ≥ x₁) :
     log x / x ≤ (log x₁ / (x₁ * admissible_bound A B C R x₁)) * admissible_bound A B C R x := by
-  convert mul_le_mul_of_nonneg_right ( ratio_mono hB hR hx1_gt1 hx hA ) ( admissible_bound_pos hA hR ( Real.log_pos <| show 1 < x by linarith ) |> le_of_lt ) using 1 ; ring_nf;
+  convert! mul_le_mul_of_nonneg_right ( ratio_mono hB hR hx1_gt1 hx hA ) ( admissible_bound_pos hA hR ( Real.log_pos <| show 1 < x by linarith ) |> le_of_lt ) using 1 ; ring_nf;
   norm_num [ ne_of_gt ( admissible_bound_pos hA hR ( Real.log_pos <| show 1 < x by linarith ) ) ]
 
 /-
@@ -2402,7 +2403,7 @@ lemma integral_term_bound {A B C R x₀ x₁ x : ℝ}
   have h_integral_mul : (log x / x) * ∫ t in x₀..x, Eθ t / Real.log t ^ 2 ≤
       2 * (max ((Real.log x₀) ^ ((2 * B - 3) / 2)) ((Real.log x) ^ ((2 * B - 3) / 2))) * (Real.log x) ^ (1 - B) *
       dawson (Real.sqrt (Real.log x) - C / (2 * Real.sqrt R)) * admissible_bound A B C R x := by
-        convert mul_le_mul_of_nonneg_left h_integral_bound ( show 0 ≤ Real.log x / x from div_nonneg ( Real.log_nonneg <| by linarith ) <| by linarith ) using 1 ; ring_nf;
+        convert! mul_le_mul_of_nonneg_left h_integral_bound ( show 0 ≤ Real.log x / x from div_nonneg ( Real.log_nonneg <| by linarith ) <| by linarith ) using 1 ; ring_nf;
         unfold admissible_bound; ring_nf;
         rw [ Real.mul_rpow ( by linarith [ Real.log_nonneg ( by linarith : ( 1:ℝ ) ≤ x ) ] ) ( by positivity ), Real.inv_rpow ( by positivity ) ] ; ring_nf;
         by_cases hxtemp : x = 0
@@ -2447,9 +2448,9 @@ lemma theorem_3_easy_preconditions
   (statement := /--
   If $B \geq \max(3/2, 1 + C^2/16 R)$, $x_0 > 0$, and one has an admissible asymptotic bound
   with parameters $A,B,C,x_0$ for $E_\theta$, and
-  $$ x_1 \geq \max( x_0, \exp( (1 + \frac{C}{2\sqrt{R}}))^2),$$
+  $$ x_1 \geq \max( x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2 )),$$
   then
-  $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x_1) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
+  $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
   -/)
@@ -2602,7 +2603,9 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
           rw [div_le_iff₀] at hEψ <;>
             cases abs_cases (ψ x - x) <;> nlinarith [show 0 < x by linarith]
         exact hθ_basic.trans' <| sub_le_sub_left
-          (le_trans (by norm_num) (CostaPereira.theorem_1a (by linarith))) _
+          (le_trans (by norm_num)
+            (show ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) by
+              simpa [one_div] using Chebyshev.psi_sub_theta_le_psi_add_psi_add_psi x)) _
       have hψ_bounds :
           ψ (x ^ (1 / 2 : ℝ)) ≤ 1.00000002 * x ^ (1 / 2 : ℝ) + 0.94 * x ^ (1 / 4 : ℝ) ∧
           ψ (x ^ (1 / 3 : ℝ)) ≤ 1.00000002 * x ^ (1 / 3 : ℝ) + 0.94 * x ^ (1 / 6 : ℝ) ∧
@@ -2671,7 +2674,7 @@ theorem Li_identity' {a b : ℝ} (ha : 2 ≤ a) (hb : a ≤ b) :
     refine ((((continuousOn_id' _).log ?_).pow 2).inv₀ (fun t ht => ?_)).intervalIntegrable
     · rw [Set.uIcc_of_le hx]; grind
     · rw [Set.uIcc_of_le hx] at ht
-      positivity [log_pos (by grind : 1 < t)]
+      exact pow_ne_zero 2 (log_pos (by grind : 1 < t)).ne'
   calc
   _ = (∫ t in 2..b, 1 / log t ^ 2) - ∫ t in 2..a, 1 / log t ^ 2 :=
     (intervalIntegral.integral_interval_sub_left (this (ha.trans hb)) (this ha)).symm
@@ -2744,7 +2747,7 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₀ < x₁) (hx₀ : x₀ ≥ 2)
         grind
       · intro t ht
         rw [Set.uIcc_of_le h2] at ht
-        positivity [log_pos (by grind : 1 < t)]
+        exact pow_ne_zero 2 (log_pos (by grind : 1 < t)).ne'
     · gcongr
       exact h_εθ_num i hi t ht.1
   _ = ∑ i ∈ Finset.Ico 0 N, εθ_num (exp (b i)) *
@@ -2802,40 +2805,14 @@ private lemma Li_ibp {x : ℝ} (hx : x > 2) :
     next => use fun x => x / Real.log x + ∫ t in a..x, 1 / Real.log t ^ 2
     · norm_num; ring
     · intro x hx
-      have h_ftc : HasDerivAt (fun x => ∫ t in a..x, (1 : ℝ) / Real.log t ^ 2)
-          (1 / Real.log x ^ 2) x := by
-        apply_rules [intervalIntegral.integral_hasDerivAt_right]
-        · apply_rules [ContinuousOn.intervalIntegrable]
-          exact continuousOn_of_forall_continuousAt fun y hy =>
-            ContinuousAt.div continuousAt_const
-              (ContinuousAt.pow (Real.continuousAt_log (by
-                cases Set.mem_uIcc.mp hy <;>
-                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)])) _)
-              (ne_of_gt (sq_pos_of_pos (Real.log_pos (by
-                cases Set.mem_uIcc.mp hy <;>
-                  linarith [Set.mem_Icc.mp (by simpa [le_of_lt, *] using hx)]))))
-        · exact Measurable.stronglyMeasurable (by
-            exact Measurable.div measurable_const
-              (Measurable.pow_const Real.measurable_log _))
-            |> fun h => h.stronglyMeasurableAtFilter
-        · exact ContinuousAt.div continuousAt_const
-            (ContinuousAt.pow (Real.continuousAt_log
-              (by cases Set.mem_uIcc.mp hx <;> linarith)) _)
-            (ne_of_gt (sq_pos_of_pos (Real.log_pos
-              (by cases Set.mem_uIcc.mp hx <;> linarith))))
-      convert HasDerivAt.add (HasDerivAt.div (hasDerivAt_id x)
-        (Real.hasDerivAt_log (show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith))
-        (ne_of_gt (Real.log_pos (show x > 1 by
-          cases Set.mem_uIcc.mp hx <;> linarith)))) h_ftc using 1;
-      ring_nf;
-      by_cases hx' : x = 0 <;> simp +decide [sq, mul_assoc, hx'];
-      field_simp
+      exact Ramanujan.hasDerivAt_li_antideriv (by linarith)
+        (by cases Set.mem_uIcc.mp hx <;> linarith)
     · apply_rules [ContinuousOn.intervalIntegrable]
       exact continuousOn_of_forall_continuousAt fun t ht =>
         ContinuousAt.div continuousAt_const
           (Real.continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith))
           (ne_of_gt (Real.log_pos (by cases Set.mem_uIcc.mp ht <;> linarith)))
-  convert congr_arg (fun y => y - x / Real.log x) (h_parts 2 x (by norm_num) hx) using 1
+  convert! congr_arg (fun y => y - x / Real.log x) (h_parts 2 x (by norm_num) hx) using 1
   ring!
 
 
@@ -2853,7 +2830,7 @@ lemma hasDerivAt_Li_sub_div_log {t : ℝ} (ht : 1 < t) :
     · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( Real.measurable_log ) ) |> fun h => h.stronglyMeasurableAtFilter;
     · exact ContinuousAt.div continuousAt_const ( Real.continuousAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) )
   generalize_proofs at *; (
-  convert HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring_nf! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring_nf!;
+  convert! HasDerivAt.sub h_deriv_Li ( HasDerivAt.div ( hasDerivAt_id t ) ( Real.hasDerivAt_log ( by positivity ) ) ( ne_of_gt ( Real.log_pos ht ) ) ) using 1 ; ring_nf! ; norm_num [ ne_of_gt, Real.log_pos ht ] ; ring_nf!;
   grind)
 
 private lemma summable_li_series_658 :
@@ -3226,7 +3203,7 @@ lemma hasDerivAt_id_div_log_sq {s : ℝ} (hs : 1 < s) :
   have hlog : Real.log s ≠ 0 := ne_of_gt (Real.log_pos hs)
   have h_deriv := HasDerivAt.div (hasDerivAt_id s)
       (HasDerivAt.pow (Real.hasDerivAt_log (by linarith)) 2) (pow_ne_zero 2 hlog)
-  convert h_deriv using 1; field_simp [hlog]; simp; ring
+  convert! h_deriv using 1; field_simp [hlog]; simp; ring
 
 lemma integral_one_div_log_sq_le_of_ge {x₁ : ℝ} (hx₁ : 14 ≤ x₁) {y : ℝ} (hy : x₁ ≤ y) :
     ∫ s in x₁..y, 1 / (Real.log s) ^ 2 ≤ (Real.log x₁ / (Real.log x₁ - 2)) * (y / (Real.log y) ^ 2) := by
@@ -3329,7 +3306,7 @@ private lemma integral_sub_div_self {x₁ t : ℝ} (hx₁ : 0 < x₁) (ht : x₁
   rotate_right;
   next => use fun x => x - x₁ * Real.log x;
   · rw [ Real.log_div ] <;> linarith
-  · intro x hx; convert HasDerivAt.sub ( hasDerivAt_id x ) ( HasDerivAt.const_mul x₁ ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) using 1 ; ring_nf;
+  · intro x hx; convert! HasDerivAt.sub ( hasDerivAt_id x ) ( HasDerivAt.const_mul x₁ ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith ) ) ) using 1 ; ring_nf;
     rw [ mul_inv_cancel₀ ( by cases Set.mem_uIcc.mp hx <;> linarith ) ];
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun s hs => ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id ( by cases Set.mem_uIcc.mp hs <;> linarith );
@@ -3356,7 +3333,7 @@ private lemma integral_I_div_self_le {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : 
   · apply_rules [ ContinuousOn.intervalIntegrable ];
     exact continuousOn_of_forall_continuousAt fun x hx => ContinuousAt.mul continuousAt_const <| ContinuousAt.div ( continuousAt_id.sub continuousAt_const ) continuousAt_id <| by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ;
   · intro s hs₁ hs₂
-    convert mul_le_mul_of_nonneg_right ( h_bound s ⟨ hs₁, hs₂ ⟩ ) ( inv_nonneg.mpr ( by linarith : 0 ≤ s ) ) using 1
+    convert! mul_le_mul_of_nonneg_right ( h_bound s ⟨ hs₁, hs₂ ⟩ ) ( inv_nonneg.mpr ( by linarith : 0 ≤ s ) ) using 1
     · ring_nf
     · field_simp
 
@@ -3373,7 +3350,7 @@ private lemma u_eq_sub_integral {x₁ t : ℝ} (hx₁ : 14 ≤ x₁) (ht : t ∈
           exact continuousOn_of_forall_continuousAt fun y hy => ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hy <;> linarith [ Set.mem_Icc.mp ( show x ∈ Set.Icc x₁ ( x₁ * Real.log x₁ ) from by cases Set.mem_uIcc.mp hx <;> constructor <;> linarith [ ht.1, ht.2 ] ) ] ) ) ) );
         · exact Measurable.stronglyMeasurable ( by exact Measurable.div measurable_const ( by exact Measurable.pow_const ( Real.measurable_log ) _ ) ) |> fun h => h.stronglyMeasurableAtFilter;
         · exact ContinuousAt.div continuousAt_const ( ContinuousAt.pow ( Real.continuousAt_log ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) _ ) ( ne_of_gt ( sq_pos_of_pos ( Real.log_pos ( by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) );
-      convert HasDerivAt.sub ( HasDerivAt.mul ( HasDerivAt.sub ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( hasDerivAt_const _ _ ) ) hI_deriv ) ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) ) using 1 ; ring_nf;
+      convert! HasDerivAt.sub ( HasDerivAt.mul ( HasDerivAt.sub ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( hasDerivAt_const _ _ ) ) hI_deriv ) ( HasDerivAt.div ( hasDerivAt_id x ) ( Real.hasDerivAt_log ( show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ( ne_of_gt ( Real.log_pos ( show x > 1 by cases Set.mem_uIcc.mp hx <;> linarith [ ht.1, ht.2 ] ) ) ) ) using 1 ; ring_nf;
       by_cases h : x = 0
       · simp [h]
       simp +decide [h, sq, mul_comm]; ring;
@@ -3429,7 +3406,7 @@ lemma hasDerivAt_log_div_self_mul_integral {x₁ : ℝ} (hx₁ : 1 < x₁) {t : 
   have ht20 : t ^ 2 ≠ 0 := pow_ne_zero 2 ht0
   have hlogt20 : Real.log t ^ 2 ≠ 0 := pow_ne_zero 2 hlogt0
   have h_deriv_I := hasDerivAt_integral_one_div_log_sq hx₁ ht.le
-  convert HasDerivAt.mul ( HasDerivAt.div ( Real.hasDerivAt_log ht0 ) ( hasDerivAt_id t ) ht0 ) h_deriv_I using 1
+  convert! HasDerivAt.mul ( HasDerivAt.div ( Real.hasDerivAt_log ht0 ) ( hasDerivAt_id t ) ht0 ) h_deriv_I using 1
   dsimp; field_simp [ht0, hlogt0, ht20, hlogt20]; ring_nf
 
 -- Proves the derivative of $(log t / t) * I t$.
@@ -3755,7 +3732,7 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
     · exact fun x ↦ Li x - x / log x
     · ring_nf
     · intro x hx
-      convert HasDerivAt.sub (hasDerivAt_Li _) (HasDerivAt.div (hasDerivAt_id x)
+      convert! HasDerivAt.sub (hasDerivAt_Li _) (HasDerivAt.div (hasDerivAt_id x)
         (hasDerivAt_log _) _) using 1 <;>
         ring_nf <;> norm_num [show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith,
           show log x ≠ 0 by exact ne_of_gt <| log_pos <| by cases Set.mem_uIcc.mp hx <;> linarith]
@@ -3773,17 +3750,17 @@ private lemma exists_Eθ_pos {x₁ : ℝ} : ∃ x, x₁ ≤ x ∧ Eθ x > 0 := b
   have hθ_eq : theta a = theta b := by
     unfold theta;
     rw [ show ⌊a⌋₊ = N from ?_, show ⌊b⌋₊ = N from ?_ ];
-    · rw [ Nat.floor_eq_iff ] ; ring;
+    · rw [ Nat.floor_eq_iff ]
       · grind;
       · positivity;
     · exact Nat.floor_natCast _;
   by_cases ha : theta a = a;
-  · refine' ⟨ b, _, _ ⟩;
+  · refine ⟨ b, ?_, ?_ ⟩;
     · simp +zetaDelta at *;
       linarith [ Nat.lt_floor_add_one x₁ ];
-    · refine' div_pos ( abs_pos.mpr _ ) ( by positivity );
+    · refine div_pos ( abs_pos.mpr ?_ ) ( by positivity );
       grind +qlia;
-  · refine' ⟨ a, _, _ ⟩ <;> norm_num [ Eθ ];
+  · refine ⟨ a, ?_, ?_ ⟩ <;> norm_num [ Eθ ];
     · exact le_of_lt ( Nat.lt_of_floor_lt ( Nat.lt_succ_self _ ) );
     · exact div_pos ( abs_pos.mpr ( sub_ne_zero.mpr ha ) ) ( Nat.cast_pos.mpr ( Nat.succ_pos _ ) )
 
@@ -3824,16 +3801,18 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
       · exact le_trans ( Real.exp_one_lt_d9.le ) ( by norm_num; linarith [ le_max_right x₀ 14 ] );
       · linarith;
     refine le_trans h_key ?_;
-    refine' add_le_add ( add_le_add ( add_le_add h_bound _ ) _ ) _;
+    refine add_le_add ( add_le_add ( add_le_add h_bound ?_ ) ?_ ) ?_;
     · convert mul_le_mul_of_nonneg_right ( mul_le_mul_of_nonneg_right h_log_div_self_antitone ( show 0 ≤ x₀ / log x₀ by exact div_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) ) ) ( show 0 ≤ δ x₀ by exact delta_nonneg x₀ ) using 1 ; ring;
     · gcongr;
-      · refine' intervalIntegral.integral_nonneg _ _ <;> norm_num;
+      · refine intervalIntegral.integral_nonneg ?_ ?_ <;> norm_num;
         · linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ];
         · exact fun u hu₁ hu₂ => div_nonneg ( Eθ_nonneg u ( by linarith ) ) ( sq_nonneg _ );
       · exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_right x₀ 14 ] );
     · convert mul_le_mul_of_nonneg_left h_bound_integral_last ( show 0 ≤ log x / x by exact div_nonneg ( Real.log_nonneg ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) ( by linarith [ le_max_left x₀ 14, le_max_right x₀ 14 ] ) ) using 1 ; ring;
-  by_cases hc : x₂ ≤ Real.toEReal ( x₁ * Real.log x₁ ) <;> simp_all +decide [ επ_num, μ_num ];
-  · have h63 := theorem_6_3 ( by linarith : 14 ≤ x₁ ) x₂.toReal ( by
+  by_cases hc : x₂ ≤ Real.toEReal ( x₁ * Real.log x₁ )
+  · simp_all +decide only [ge_iff_le, sup_le_iff, Fin.Iio_last_eq_map, Finset.sum_map,
+    Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, one_div, EReal.coe_mul, επ_num, μ_num, ↓reduceIte]
+    have h63 := theorem_6_3 ( by linarith : 14 ≤ x₁ ) x₂.toReal ( by
       cases x₂ <;> norm_num at *;
       · linarith;
       · exact absurd hc ( by exact ne_of_lt ( EReal.coe_lt_top _ ) ) ) x hx₁ ( by
@@ -3844,19 +3823,31 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
       · exact_mod_cast hc;
       · exact mul_nonneg ( by linarith ) ( Real.log_nonneg ( by linarith ) ) );
     unfold μ_num_1; ring_nf at *;
-    by_cases h : εθ_num x₁ = 0 <;> simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ];
-    · have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
+    by_cases h : εθ_num x₁ = 0
+    · simp_all +decide only [mul_comm, inv_pow, mul_assoc, mul_left_comm, zero_mul, mul_zero,
+      add_zero, zero_add, Finset.sum_sub_distrib, inv_zero, Fin.Iio_last_eq_map, Finset.sum_map,
+      Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, sub_self, ge_iff_le];
+      have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) ;
+      simp_all +decide only [gt_iff_lt, Real.exp_log (by linarith : 0 < x₁), ge_iff_le] ;
       exact absurd ( this y hy₁ ) ( by norm_num [ h ] ; linarith );
-    · nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
+    · simp_all +decide [ mul_assoc, mul_comm, mul_left_comm ]
+      nlinarith [ show 0 < εθ_num x₁ from lt_of_le_of_ne ( by
                     have := h_εθ_num ( Fin.last N );
                     rw [ h_b_end, Real.exp_log ( by linarith ) ] at this; exact le_trans ( Eθ_nonneg _ ( by linarith ) ) ( this _ le_rfl ) ; ) ( Ne.symm h ) ];
-  · have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁ ; simp_all +decide [ μ_num_2 ];
+  · simp_all +decide only [ge_iff_le, sup_le_iff, Fin.Iio_last_eq_map, Finset.sum_map,
+    Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, one_div, EReal.coe_mul, not_le, επ_num, μ_num]
+    have h62 := theorem_6_2 ( by linarith : 14 ≤ x₁ ) x hx₁
+    simp_all +decide only [one_div, μ_num_2, Fin.Iio_last_eq_map, Finset.sum_map,
+      Fin.coe_castSuccEmb, Fin.coeSucc_eq_succ, ge_iff_le];
     have hεθpos : 0 < εθ_num x₁ := by
       have := exists_Eθ_pos ( x₁ := x₁ ) ; obtain ⟨ y, hy₁, hy₂ ⟩ := this; have := h_εθ_num ( Fin.last N ) y; simp_all +decide [ Real.exp_log ( by linarith : 0 < x₁ ) ] ;
       linarith;
-    split_ifs <;> simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
-    · exact absurd ‹_› ( not_le_of_gt hc );
-    · norm_num [ mul_left_comm ( εθ_num x₁ ), mul_assoc, hεθpos.ne' ];
+    split_ifs
+    · simp_all +decide only [div_eq_mul_inv, mul_inv_rev, mul_comm, mul_left_comm, mul_assoc,
+      mul_add, mul_one, ge_iff_le];
+      exact absurd ‹_› ( not_le_of_gt hc );
+    · simp_all +decide [ mul_add, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ];
+      norm_num [ mul_left_comm ( εθ_num x₁ ), mul_assoc, hεθpos.ne' ];
       nlinarith [ show 0 ≤ εθ_num x₁ by positivity ]
 
 @[blueprint
@@ -4150,7 +4141,7 @@ By merging together the above tools with various parameter choices, we can obtai
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3})$$
   and
   $$ \mu_{asymp}(x_0,x_1) = \frac{x_0 \log x_1}{\eps_{\theta,asymp}(x_1)x_1 \log x_0}
-    |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}
+    |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+\bigl(\sqrt{\log x_1} - \frac{C}{2\sqrt{R}}\bigr)}
     {\sqrt{\log x_1}}.$$
   -/)
   (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.  The hypothesis $B > C^2/8R$ is not present in original source.-/)
@@ -4571,9 +4562,9 @@ theorem corollary_14_normalized :
   have hθ' :
       Eθ x ≤ 121.0961 * ((Real.log x) ^ (3 / 2 : ℝ) / 5.5666305 ^ (3 / 2 : ℝ)) *
           Real.exp (-(2 * (Real.sqrt (Real.log x) / Real.sqrt 5.5666305))) := by
-    convert hθ using 1
+    convert! hθ using 1
     ring_nf
-  convert le_trans hθ' hmul using 1
+  convert! le_trans hθ' hmul using 1
   ring_nf
 
 /-- Corollary 22 asymptotic tail: from `exp 20000` onward. -/
@@ -4629,28 +4620,6 @@ theorem corollary_22_tail :
     Real.exp_nonneg _
   exact le_trans hmain (by gcongr)
 
-@[blueprint
-  "fks2-corollary-22"
-  (title := "FKS2 Corollary 22")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-  \]
-  for all $x \geq 2$.
-  -/)
-  (proof := /-- We fix $R = 1$, $x_0 = 2$, $x_1 = e^{100}$, $A_\theta = 9.2211$, $B = 1.5$ and $C = 0.8476$. By Corollary \ref{fks2-corollary-14}, these are admissible for all $x \geq 2$, so we can apply Theorem \ref{fks2-theorem-3} and calculate that
-  \begin{equation}
-  \mu_{asymp}(40.78\ldots, e^{20000}) \leq 5.01516 \cdot 10^{-5}.
-  \end{equation}
-  This implies that $A_\pi = 121.103$ is admissible for all $x \geq e^{20000}$.
-
-  As in the proof of \cite[Lemmas 5.2 and 5.3]{FKS} one may verify that the numerical results obtainable from Theorem \ref{fks2-theorem-6}, using Corollary \ref{fks2-corollary-8}, may be interpolated as a step function to give a bound on $E_\pi(x)$ of the shape $\varepsilon_{\pi,asymp}(x)$. In this way we obtain that $A_\pi = 121.107$ is admissible for $x > 2$. Note that the subdivisions we use are essentially the same as used in \cite[Lemmas 5.2 and 5.3]{FKS}. In Table 5 we give a sampling of the relevant values, more of the values of $\varepsilon_{\pi,num}(x_1)$ can be found in Table 4. Far more detailed versions of these tables will be posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf.
-  -/)
-  (latexEnv := "corollary")
-  (discussion := 721)]
-theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
 def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
                                  [0.826, 0.25, 1.00, 1.000],
                                  [1.41, 0.50, 1.50, 2.000],
@@ -4665,18 +4634,18 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   "fks2-corollary-23"
   (title := "FKS2 Corollary 23")
   (statement := /--
-  $A_\pi, B, C, x_0$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound for $E_\pi$ with
-  $R = 5.5666305$.
+  $A_\pi, B, C, \log x_0$ as in \cite[Table 6]{FKS2} give an admissible
+  asymptotic bound for $E_\pi$ with $R = 5.5666305$.
   -/)
   (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks2-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$. -/)
   (latexEnv := "corollary")
   (discussion := 722)]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
-    Eπ.classicalBound Aπ B C 5.5666305 x₀ := sorry
+    Eπ.classicalBound Aπ B C 5.5666305 (Real.exp x₀) := sorry
 
 noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   [ (fun x ↦ 2 * log x * x^(-(1:ℝ)/2), Set.Icc 1 57),
-    (fun x ↦ (log x)^(3/2) * x^(-(1:ℝ)/2), Set.Icc 1 65.65),
+    (fun x ↦ (log x)^((3:ℝ)/2) * x^(-(1:ℝ)/2), Set.Icc 1 65.65),
     (fun x ↦ (1 / (8 * π)) * (log x)^2 * x^(-(1:ℝ)/2), Set.Icc 8 60.8),
     (fun x ↦ (log x)^2 * x^(-(1:ℝ)/2), Set.Icc 1 70.6),
     (fun x ↦ (log x)^3 * x^(-(1:ℝ)/2), Set.Icc 1 80),
@@ -4734,6 +4703,70 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   have hnonneg: 0 ≤ (Real.sqrt (Real.log x)) / (Real.sqrt 11133261 / Real.sqrt 2000000) := by positivity
   simpa [one_div] using (Real.pow_rpow_inv_natCast (x := √(Real.log x) / (√11133261 / √2000000)) (n := 2) hnonneg (by decide))
 
+/-- On `[2, e)` the only prime `≤ x` is `2`, so `pi x = 1`. Used to patch the
+`[2, exp 1)` gap left by Corollary 23 row 2 (whose threshold is now `exp 1`). -/
+lemma pi_eq_one_lt_e {x : ℝ} (hx2 : 2 ≤ x) (hxe : x < Real.exp 1) : pi x = 1 := by
+  have hfl : ⌊x⌋₊ = 2 := by
+    have he3 : Real.exp 1 < 3 := by nlinarith [Real.exp_one_lt_d9]
+    rw [Nat.floor_eq_iff (by linarith)]
+    exact ⟨by exact_mod_cast hx2, by push_cast; linarith⟩
+  unfold pi; rw [hfl]; norm_num [Nat.primeCounting, Nat.primeCounting']; decide
+
+/-- `Li x ≥ 0` for `x ≥ 2` (integrand `1/log t > 0`). -/
+lemma Li_nonneg_two {x : ℝ} (hx2 : 2 ≤ x) : (0:ℝ) ≤ Li x := by
+  unfold Li
+  apply intervalIntegral.integral_nonneg hx2
+  intro t ht
+  simp only [Set.mem_Icc] at ht
+  have : 0 < Real.log t := Real.log_pos (by linarith [ht.1])
+  positivity
+
+/-- `Li x ≤ 2` on `[2, e)`: the integrand `1/log t ≤ 1/log 2`, integrated over a
+length `< 1.04` interval. -/
+lemma Li_le_two_lt_e {x : ℝ} (hx2 : 2 ≤ x) (hxe : x < Real.exp 1) : Li x ≤ 2 := by
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hint : IntervalIntegrable (fun t => 1 / Real.log t) MeasureTheory.volume 2 x := by
+    apply ContinuousOn.intervalIntegrable
+    apply continuousOn_of_forall_continuousAt
+    intro t ht
+    rw [Set.uIcc_of_le hx2, Set.mem_Icc] at ht
+    exact ContinuousAt.div continuousAt_const
+      (Real.continuousAt_log (by linarith [ht.1])) (Real.log_pos (by linarith [ht.1])).ne'
+  have hmono : Li x ≤ ∫ _t in (2:ℝ)..x, 1 / Real.log 2 := by
+    unfold Li
+    apply intervalIntegral.integral_mono_on hx2 hint intervalIntegrable_const
+    intro t ht
+    simp only [Set.mem_Icc] at ht
+    exact div_le_div_of_nonneg_left (by norm_num) hlog2 (Real.log_le_log (by norm_num) ht.1)
+  rw [intervalIntegral.integral_const, smul_eq_mul] at hmono
+  have he3 : Real.exp 1 < 3 := by nlinarith [Real.exp_one_lt_d9]
+  have : (x - 2) * (1 / Real.log 2) ≤ 2 := by
+    rw [mul_one_div, div_le_iff₀ hlog2]; nlinarith [Real.log_two_gt_d9, hxe, he3]
+  linarith [hmono]
+
+/-- The direct `Eπ` bound on `[2, e)`: `|pi x − Li x| ≤ 1` and `x/log x ≥ e`. -/
+lemma Eπ_le_on_two_e {x : ℝ} (hx2 : 2 ≤ x) (hxe : x < Real.exp 1) : Eπ x ≤ 0.4298 := by
+  have hxpos : (0:ℝ) < x := by linarith
+  have hlogx : (0:ℝ) < Real.log x := Real.log_pos (by linarith)
+  have hpi  := pi_eq_one_lt_e hx2 hxe
+  have hLi0 := Li_nonneg_two hx2
+  have hLi2 := Li_le_two_lt_e hx2 hxe
+  have habs : |pi x - Li x| ≤ 1 := by rw [hpi, abs_le]; constructor <;> linarith
+  have hloge : Real.log x ≤ x / Real.exp 1 := by
+    have h := Real.log_le_sub_one_of_pos (show 0 < x / Real.exp 1 by positivity)
+    rwa [Real.log_div (ne_of_gt hxpos) (ne_of_gt (Real.exp_pos 1)),
+         Real.log_exp, sub_le_sub_iff_right] at h
+  have he9 : (2.7182818283:ℝ) < Real.exp 1 := Real.exp_one_gt_d9
+  have hxlogx : (2.7182818283:ℝ) ≤ x / Real.log x := by
+    rw [le_div_iff₀ hlogx]
+    have hcleared : Real.log x * Real.exp 1 ≤ x := by
+      rwa [le_div_iff₀ (Real.exp_pos 1)] at hloge
+    nlinarith [hcleared, he9, hlogx]
+  unfold Eπ
+  rw [div_le_iff₀ (by positivity)]
+  calc |pi x - Li x| ≤ 1 := habs
+    _ ≤ 0.4298 * (x / Real.log x) := by nlinarith [hxlogx]
+
 
 
 @[blueprint
@@ -4746,24 +4779,29 @@ lemma admissible_bound_le_0826 (x : ℝ) (hx : x ≥ 1) : admissible_bound 0.826
   \]
   for all $x \geq 2$.
   -/)
-  (proof := /-- We numerically verify that the inequality holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
-  \[
-  \left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
-  \]
-  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use Theorems \ref{buthe-theorem-2e}, \ref{buthe-theorem-2f} and verify
-  \[
-  \mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
-  \]
-  For $x > 10^{19}$, we use Theorem \ref{fks-theorem-6} as well as values for $\varepsilon_{\pi,num}(x)$ found in Table 4 to conclude
-  \[
-  \varepsilon_{\pi,num}(x) \leq 0.4298.
-  \]
+  (proof := /--
+  The paper verifies this by combining explicit small-prime checks, Buthe's
+  estimates up to $10^{19}$, and the numerical/asymptotic FKS2 bounds above
+  $10^{19}$.  In this formal proof, after the Table 6 threshold convention in
+  Corollary \ref{cor:alt1}, the row
+  $[0.826, 0.25, 1.00, 1.000]$ only applies for $x \ge \exp(1)$.
+
+  We therefore split at $e$.  For $2 \le x < e$, one has $\pi(x)=1$, and the
+  integral definition gives $0 \le \Li(x) \le 2$; together with
+  $\log x / x \le 1/e \le 0.4298$, this gives $E_\pi(x) \le 0.4298$.  For
+  $x \ge e$, we apply Corollary \ref{cor:alt1} with the row
+  $[0.826,0.25,1.00,1.000]$ and then compare the resulting admissible bound to
+  $0.4298$.
   -/)
   (latexEnv := "corollary")
   (discussion := 723)]
 theorem corollary_26 : Eπ.bound 0.4298 2 := by
   intro x hx
-  have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
-  exact le_trans (h1 x (by linarith)) (admissible_bound_le_0826 x (by linarith))
+  by_cases hsmall : x < Real.exp 1
+  · exact Eπ_le_on_two_e hx hsmall
+  · have hxe : Real.exp (1.000 : ℝ) ≤ x := by
+      rw [show (1.000 : ℝ) = 1 by norm_num]; exact not_lt.mp hsmall
+    have h1 := corollary_23 0.826 0.25 1.00 1.000 table6_mem
+    exact le_trans (h1 x hxe) (admissible_bound_le_0826 x (by linarith))
 
 end FKS2

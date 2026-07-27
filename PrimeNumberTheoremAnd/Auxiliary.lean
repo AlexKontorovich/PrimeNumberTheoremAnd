@@ -22,9 +22,6 @@ lemma deriv_ofReal (x : ℝ) : deriv ofReal x = 1 :=
 lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal x :=
   (hasDerivAt_ofReal x).differentiableAt
 
-lemma differentiable_ofReal : Differentiable ℝ ofReal :=
-  ofRealCLM.differentiable
-
 end Complex
 
 lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
@@ -56,7 +53,7 @@ lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
     simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
     rwa [eq_comm, comp_apply, imCLM_apply, toSpanSingleton_apply_one] at H
   refine ⟨u, rfl, ?_⟩
-  convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
+  convert! (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
   rw [comp_apply, toSpanSingleton_apply_one, reCLM_apply, ofReal_re]
 
 lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :

@@ -64,11 +64,11 @@ private lemma neg_log_le_sqrt_two_div {x : ℝ} (hx : 0 < x) (hxle : x ≤ 1) :
       have hderiv : deriv g u = Real.exp u - u := by
         have hExp : HasDerivAt Real.exp (Real.exp u) u := Real.hasDerivAt_exp u
         have hpow2 : HasDerivAt (fun z : ℝ => z ^ 2) (2 * u) u := by
-          simpa using ((hasDerivAt_id u).pow 2)
+          simpa using! ((hasDerivAt_id u).pow 2)
         have hpow2_div : HasDerivAt (fun z : ℝ => z ^ 2 / 2) u u := by
           simpa using (hpow2.div_const (2 : ℝ))
         have hG : HasDerivAt g (Real.exp u - u) u := by
-          simpa [g] using hExp.sub hpow2_div
+          simpa [g] using! hExp.sub hpow2_div
         exact hG.deriv
       have hu_le : u ≤ Real.exp u := by
         have h1 : u + 1 ≤ Real.exp u := Real.add_one_le_exp u
@@ -386,7 +386,7 @@ lemma intervalIntegrable_phi_dyadic_small {A : ℝ} (hA0 : 0 ≤ A)
     IntervalIntegrable φ volume A (2 * A) := by
   have hA_le : A ≤ 2 * A := by nlinarith
   have hconst : IntervalIntegrable (fun _ : ℝ => (Real.log 2 : ℝ)) volume A (2 * A) :=
-    intervalIntegral.intervalIntegrable_const
+    intervalIntegrable_const
   have hmeas :
       AEStronglyMeasurable (fun t : ℝ => φ t) (volume.restrict (Set.uIoc A (2 * A))) :=
     (measurable_phi.aestronglyMeasurable : _)
@@ -409,7 +409,7 @@ lemma intervalIntegrable_phi_dyadic_large {A : ℝ} (hA : (2 : ℝ) ≤ A) :
       simpa [Set.uIoc_of_le hA_le] using ht
     exact phi_eq_zero_of_two_le (le_trans hA (le_of_lt htIoc.1))
   have hz : IntervalIntegrable (fun _ : ℝ => (0 : ℝ)) volume A (2 * A) :=
-    intervalIntegral.intervalIntegrable_const
+    intervalIntegrable_const
   exact (IntervalIntegrable.congr (a := A) (b := (2 * A))
     (μ := (volume : MeasureTheory.Measure ℝ))
     (f := fun _ => (0 : ℝ)) (g := fun t => φ t) (by
@@ -490,7 +490,7 @@ lemma integral_phi_le_Cφ_mul_small {A : ℝ} (hA0 : 0 ≤ A) (hA : A ≤ (1 / 4
   have hφ_int : IntervalIntegrable φ volume A (2 * A) :=
     intervalIntegrable_phi_dyadic_small hA0 hA
   have hconst : IntervalIntegrable (fun _ : ℝ => (Real.log 2 : ℝ)) volume A (2 * A) :=
-    intervalIntegral.intervalIntegrable_const
+    intervalIntegrable_const
   have hle_int :
       (∫ (t : ℝ) in A..(2 * A), φ t ∂volume)
         ≤ ∫ (t : ℝ) in A..(2 * A), (Real.log 2 : ℝ) ∂volume := by
@@ -604,8 +604,8 @@ lemma volume_Ioc_two_mul_diff_finset_ne_zero (bad : Finset ℝ) {R : ℝ} (hR : 
   have hdiff :
       (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R) \ (bad : Set ℝ))
         = (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) := by
-    simpa [Set.diff_eq, Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
-      (MeasureTheory.measure_diff_null (s := Set.Ioc R (2 * R)) (t := (bad : Set ℝ))
+    simpa [Set.sdiff_eq, Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
+      (MeasureTheory.measure_sdiff_null (s := Set.Ioc R (2 * R)) (t := (bad : Set ℝ))
         hbad_meas)
   simpa [hdiff] using volume_Ioc_two_mul_ne_zero hR
 
@@ -713,7 +713,7 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
     simpa [g] using intervalIntegrable_sum_mul_phi_div s w a ha hR.le
   have hconst_int :
       IntervalIntegrable (fun _r : ℝ => Cφ * (∑ i ∈ s, w i)) volume R (2 * R) :=
-    intervalIntegral.intervalIntegrable_const
+    intervalIntegrable_const
   have hlt_meas :
       (volume.restrict (Set.Ioc R (2 * R)))
         {r | Cφ * (∑ i ∈ s, w i) < g r} ≠ 0 := by

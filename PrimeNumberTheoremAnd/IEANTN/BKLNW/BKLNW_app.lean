@@ -29,8 +29,9 @@ structure Inputs where
 noncomputable def Inputs.default : Inputs where
   H := 2445999556030
   hH := GW_theorem
-  R := 5.5666305  -- a slightly more conservative value of 5.573412 was used in the paper
-  hR := MT_theorem_1
+  -- MT2015 Theorem 1 has R = 5.573412; the sharper 5.5666305 is the F₁₆ remark
+  R := 5.5666305
+  hR := MT_R0_55666305
   ZDB := FKS.corollary_2_9_merged -- stronger than the Kadiri-Lumley-Ng input used here
 
 @[blueprint
@@ -775,7 +776,7 @@ lemma besselI0_nonneg (x : ℝ) : 0 ≤ besselI0 x :=
 
 lemma besselI0_one_le (x : ℝ) : 1 ≤ besselI0 x := by
   have h := (besselI0_summable x).le_tsum 0 fun j _ ↦ by rw [pow_mul]; positivity
-  simpa [Nat.factorial] using h
+  simpa [Nat.factorial] using! h
 
 lemma besselI0_pos (x : ℝ) : 0 < besselI0 x :=
   lt_of_lt_of_le one_pos (besselI0_one_le x)
@@ -844,10 +845,10 @@ lemma continuous_besselI0 : Continuous besselI0 := by
   have hb : |x / 2| ≤ (|x₀| + 1) / 2 := by
     rw [abs_div, abs_two]
     linarith
-  rw [Real.norm_eq_abs, abs_div, abs_pow,
-    abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((m.factorial : ℝ)) ^ 2)]
+  simp only [Pi.pow_apply, id_eq]
+  rw [Real.norm_eq_abs, abs_div, abs_pow, abs_pow,
+    abs_of_nonneg (by positivity : (0 : ℝ) ≤ ((m.factorial : ℝ)))]
   gcongr
-  exact hb
 
 lemma measurable_η (c ε : ℝ) : Measurable (η c ε) := by
   unfold η
@@ -940,7 +941,7 @@ private lemma abs_setIntegral_Iic_le {f : ℝ → ℝ} {ε M : ℝ} (hε : 0 < �
     (hf_bound : ∀ x, |f x| ≤ M) (hf_zero : ∀ x, ε < |x| → f x = 0) (u : ℝ) :
     |∫ x in Set.Iic u, f x| ≤ M * (2 * ε) := by
   have heq : ∫ x in Set.Iic u, f x = ∫ x in Set.Iic u ∩ Set.Icc (-ε) ε, f x := by
-    refine MeasureTheory.setIntegral_eq_of_subset_of_forall_diff_eq_zero measurableSet_Iic
+    refine MeasureTheory.setIntegral_eq_of_subset_of_forall_sdiff_eq_zero measurableSet_Iic
       Set.inter_subset_left fun x hx ↦ ?_
     refine hf_zero x ?_
     have h3 : x ∉ Set.Icc (-ε) ε := fun hmem ↦ hx.2 ⟨hx.1, hmem⟩

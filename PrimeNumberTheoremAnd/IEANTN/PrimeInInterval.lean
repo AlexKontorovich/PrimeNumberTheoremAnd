@@ -34,7 +34,7 @@ lemma HasPrimeInInterval.iff_pi_ge (x h : ℝ) : HasPrimeInInterval x h ↔ pi (
       simpa [Nat.primeCounting'] using
         (Nat.count_lt_count_succ_iff (p := Nat.Prime) (n := p)).2 hpprime
     have hpstep : Nat.primeCounting (p - 1) < Nat.primeCounting p := by
-      simpa [Nat.primeCounting_sub_one] using hpstep'
+      simpa [Nat.primeCounting_sub_one] using! hpstep'
     have hnat : Nat.primeCounting ⌊x⌋₊ < Nat.primeCounting ⌊x + h⌋₊ := by
       exact lt_of_le_of_lt (Nat.monotone_primeCounting hfloorx_pred)
         (lt_of_lt_of_le hpstep (Nat.monotone_primeCounting hfloorxh))

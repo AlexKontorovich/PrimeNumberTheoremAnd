@@ -253,36 +253,62 @@ lemma riemannZeta_one_le_order_positiveHeightZero {T : ℝ}
     (1 : ℤ) ≤ riemannZeta.order (rho : ℂ) := by
   exact_mod_cast riemannZeta_order_pos_positiveHeightZero rho
 
-lemma riemannZeta_ne_zero_of_re_nonpos_im_ne_zero {z : ℂ}
-    (hre : z.re ≤ 0) (him : z.im ≠ 0) : riemannZeta z ≠ 0 := by
-  let w : ℂ := 1 - z
-  have hw_im : w.im ≠ 0 := by
-    dsimp [w]
-    simp [him]
-  have hw_re : 1 ≤ w.re := by
-    dsimp [w]
-    simp
-    linarith
-  have hzeta_w : riemannZeta w ≠ 0 :=
-    riemannZeta_ne_zero_of_one_le_re hw_re
+/-- Shared functional-equation factorization: if `1 ≤ Re w` and `cos(π w / 2) ≠ 0`, then the
+reflected value `ζ(1 - w)` is non-zero. (The factors `2`, `(2π)^{-w}`, `Γ(w)`, `ζ(w)` are all
+non-zero for `Re w ≥ 1`, so only the cosine factor can vanish.) -/
+lemma riemannZeta_one_sub_ne_zero_of_one_le_re {w : ℂ}
+    (hw_re : 1 ≤ w.re) (hcos : Complex.cos (↑Real.pi * w / 2) ≠ 0) :
+    riemannZeta (1 - w) ≠ 0 := by
   have hw_neg_nat : ∀ n : ℕ, w ≠ -↑n := by
     intro n hn
-    have : w.im = 0 := by
-      rw [hn]
-      simp
-    exact hw_im this
+    have hre' : w.re = -(n : ℝ) := by rw [hn]; simp
+    have : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+    rw [hre'] at hw_re; linarith
   have hw_ne_one : w ≠ 1 := by
-    intro h
-    have : w.im = 0 := by
-      rw [h]
-      simp
-    exact hw_im this
+    rintro rfl
+    refine hcos ?_
+    have h2 : (↑Real.pi * (1 : ℂ) / 2) = ((Real.pi / 2 : ℝ) : ℂ) := by push_cast; ring
+    rw [h2, ← Complex.ofReal_cos, Real.cos_pi_div_two, Complex.ofReal_zero]
   have hpow : (2 * ↑Real.pi : ℂ) ^ (-w) ≠ 0 := by
-    rw [Complex.cpow_ne_zero_iff]
-    left
+    rw [Complex.cpow_ne_zero_iff]; left
     norm_num [Complex.ofReal_ne_zero, Real.pi_ne_zero]
-  have hGamma : Complex.Gamma w ≠ 0 :=
-    Complex.Gamma_ne_zero hw_neg_nat
+  have hGamma : Complex.Gamma w ≠ 0 := Complex.Gamma_ne_zero hw_neg_nat
+  have hzeta_w : riemannZeta w ≠ 0 := riemannZeta_ne_zero_of_one_le_re hw_re
+  have hfe := riemannZeta_one_sub (s := w) hw_neg_nat hw_ne_one
+  rw [hfe]
+  exact mul_ne_zero
+    (mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hpow) hGamma) hcos) hzeta_w
+
+/-- `ζ` does not vanish on the real segment `(-1, 0]`. (The non-trivial zeros lie in the
+critical strip and the trivial zeros are at `-2, -4, …`; `ζ(0) = -1/2`.) Reusable for the left
+edge / real point of the eq.(12) rectangle. -/
+lemma riemannZeta_ne_zero_of_real_neg {σ : ℝ} (h1 : -1 < σ) (h2 : σ ≤ 0) :
+    riemannZeta ((σ : ℝ) : ℂ) ≠ 0 := by
+  rcases lt_or_eq_of_le h2 with hlt | h0
+  · have hrw : ((σ : ℝ) : ℂ) = 1 - ((1 - σ : ℝ) : ℂ) := by push_cast; ring
+    rw [hrw]
+    refine riemannZeta_one_sub_ne_zero_of_one_le_re ?_ ?_
+    · simp only [Complex.ofReal_re]; linarith
+    · have harg : (↑Real.pi * ((1 - σ : ℝ) : ℂ) / 2) = ((Real.pi * (1 - σ) / 2 : ℝ) : ℂ) := by
+        push_cast; ring
+      rw [harg, ← Complex.ofReal_cos, Complex.ofReal_ne_zero, Real.cos_ne_zero_iff]
+      intro k hk
+      have hk2 : Real.pi * (1 - σ) = Real.pi * (2 * (k : ℝ) + 1) := by
+        have h2' : Real.pi * (1 - σ) / 2 = Real.pi * (2 * (k : ℝ) + 1) / 2 := by rw [hk]; ring
+        linarith
+      have heq : 1 - σ = 2 * (k : ℝ) + 1 := mul_left_cancel₀ Real.pi_ne_zero hk2
+      have hk_pos : (0 : ℝ) < (k : ℝ) := by linarith
+      have hk_lt : (k : ℝ) < 1 := by linarith
+      have : 0 < k := by exact_mod_cast hk_pos
+      have : k < 1 := by exact_mod_cast hk_lt
+      omega
+  · rw [h0, show ((0 : ℝ) : ℂ) = 0 by norm_num, riemannZeta_zero]; norm_num
+
+lemma riemannZeta_ne_zero_of_re_nonpos_im_ne_zero {z : ℂ}
+    (hre : z.re ≤ 0) (him : z.im ≠ 0) : riemannZeta z ≠ 0 := by
+  set w : ℂ := 1 - z with hw
+  have hw_im : w.im ≠ 0 := by rw [hw]; simp [him]
+  have hw_re : 1 ≤ w.re := by rw [hw]; simp; linarith
   have hcos : Complex.cos (↑Real.pi * w / 2) ≠ 0 := by
     rw [Complex.cos_ne_zero_iff]
     intro k hk
@@ -293,18 +319,8 @@ lemma riemannZeta_ne_zero_of_re_nonpos_im_ne_zero {z : ℂ}
     have hright : (((2 * (k : ℂ) + 1) * (Real.pi : ℂ) / 2).im) = 0 := by
       simp [div_eq_mul_inv, mul_assoc]
     exact hleft (by rw [hk, hright])
-  have hfactor : 2 * (2 * ↑Real.pi : ℂ) ^ (-w) * Complex.Gamma w *
-      Complex.cos (↑Real.pi * w / 2) * riemannZeta w ≠ 0 := by
-    exact mul_ne_zero
-      (mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hpow) hGamma) hcos)
-      hzeta_w
-  have hfe := riemannZeta_one_sub (s := w) hw_neg_nat hw_ne_one
-  have hone : 1 - w = z := by
-    dsimp [w]
-    ring
-  rw [hone] at hfe
-  rw [hfe]
-  exact hfactor
+  have hres := riemannZeta_one_sub_ne_zero_of_one_le_re hw_re hcos
+  rwa [show (1 : ℂ) - w = z by rw [hw]; ring] at hres
 
 lemma positiveHeightZero_re_mem_Ioo {T : ℝ}
     (rho : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T)) :
@@ -2042,7 +2058,7 @@ theorem weighted_cumulative_count_le (k : ℕ) :
     · have h1 : |(x.1 : ℂ).im| < (2 : ℝ) ^ (k + 1) := x.property
       rw [abs_of_neg hx2] at h1
       simpa [Complex.conj_im] using h1
-    · show riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
+    · change riemannZeta ((starRingEnd ℂ) (x.1 : ℂ)) = 0
       rw [riemannZeta_conj, x.1.property.2.2, map_zero]
   have hzero : (∑ x ∈ ((Finset.univ : Finset {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)}).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ 0 < (x.1 : ℂ).im)).filter (fun x : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} ↦ ¬ (x.1 : ℂ).im < 0),
       ((riemannZeta.order ((x : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤

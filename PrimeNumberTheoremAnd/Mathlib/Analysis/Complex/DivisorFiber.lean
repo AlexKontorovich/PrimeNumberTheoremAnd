@@ -104,7 +104,7 @@ lemma divisorZeroIndex₀_fiberFinset_card_eq_toNat_divisor (f : ℂ → ℂ) {z
           intro x
           rcases x with ⟨p, hp⟩
           rcases p with ⟨⟨z, q⟩, hz⟩
-          have hzEq : z = z₀ := by simpa [divisorZeroIndex₀_val] using hp
+          have hzEq : z = z₀ := by simpa [divisorZeroIndex₀_val] using! hp
           subst hzEq
           simpa [n] using q
         invFun := by
@@ -115,7 +115,7 @@ lemma divisorZeroIndex₀_fiberFinset_card_eq_toNat_divisor (f : ℂ → ℂ) {z
         left_inv := by
           rintro ⟨p, hp⟩
           rcases p with ⟨⟨z, q⟩, hz⟩
-          have hzEq : z = z₀ := by simpa [divisorZeroIndex₀_val] using hp
+          have hzEq : z = z₀ := by simpa [divisorZeroIndex₀_val] using! hp
           subst hzEq
           (ext; rfl)
         right_inv := by

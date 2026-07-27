@@ -22,7 +22,6 @@ import PrimeNumberTheoremAnd.IEANTN.Buthe
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2
 import PrimeNumberTheoremAnd.IEANTN.CH2.CH2_part1
 import PrimeNumberTheoremAnd.IEANTN.Chebyshev
-import PrimeNumberTheoremAnd.IEANTN.CostaPereira
 import PrimeNumberTheoremAnd.IEANTN.Dusart
 import PrimeNumberTheoremAnd.IEANTN.Erdos392
 import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
@@ -32,6 +31,9 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2
 import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 import PrimeNumberTheoremAnd.IEANTN.Goldbach
 import PrimeNumberTheoremAnd.IEANTN.Kadiri
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
+import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 import PrimeNumberTheoremAnd.IEANTN.KLN
 import PrimeNumberTheoremAnd.IEANTN.Lcm
 import PrimeNumberTheoremAnd.IEANTN.Li2Bounds
@@ -51,6 +53,7 @@ import PrimeNumberTheoremAnd.IEANTN.ZetaAppendix
 import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
 import PrimeNumberTheoremAnd.IwaniecKowalskiCh1
+import PrimeNumberTheoremAnd.LaplaceInversion
 import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
 import PrimeNumberTheoremAnd.Mathlib.Algebra.Order.Floor.Ring
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Calculus.Deriv.Polynomial
@@ -93,6 +96,7 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.CompletedXi
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Exp
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.GammaStirlingAux
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.IntegralBounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StripBounds
@@ -126,7 +130,9 @@ import PrimeNumberTheoremAnd.MediumPNT
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.PerronFormula
 import PrimeNumberTheoremAnd.Rectangle
+import PrimeNumberTheoremAnd.RectangleArgumentPrinciple
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import PrimeNumberTheoremAnd.SincKernelErrorBounds
 import PrimeNumberTheoremAnd.SmoothExistence
 import PrimeNumberTheoremAnd.Sobolev
 import PrimeNumberTheoremAnd.StrongPNT

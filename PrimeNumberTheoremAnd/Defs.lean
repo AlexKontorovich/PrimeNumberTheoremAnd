@@ -63,12 +63,11 @@ noncomputable def pi (x : ℝ) : ℝ :=
 
 @[blueprint
   "pi-star-def"
-  (title := "pi")
+  (title := "pi star")
   (statement := /--
-  $\pi^*(x)$ is the sum of $\Lambda(n)/n$ for $n$ up to
-  $x$. -/)]
+  $\pi^*(x) = \sum_{k \geq 1} \pi(x^{1/k}) / k$. -/)]
 noncomputable def pi_star (x : ℝ) : ℝ :=
-  ∑ n ∈ Finset.Ioc 1 ⌊x⌋₊, (Λ n : ℝ) / n
+  ∑' (k : ℕ), pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
 
 @[blueprint
   "li-def"
@@ -122,7 +121,7 @@ def Eψ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
   (title := "Equation (1) of FKS2")
   (statement := /--
   $E_\pi(x) = |\pi(x) - \mathrm{Li}(x)| /
-  \mathrm{Li}(x)$. -/)]
+  (x / \log x)$. -/)]
 noncomputable def Eπ (x : ℝ) : ℝ :=
   |pi x - Li x| / (x / log x)
 
@@ -181,7 +180,7 @@ def Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
 
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ x ≤
-    A * (log x) ^ B * exp (-C * (log x) ^ (3 / 5) / (log (log x)) ^ (1 / 5))
+    A * (log x) ^ B * exp (-C * (log x) ^ ((3 : ℝ) / 5) / (log (log x)) ^ ((1 : ℝ) / 5))
 
 def Eπ_star.classicalBound (A B C R x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ_star x ≤ admissible_bound A B C R x
@@ -194,7 +193,7 @@ def Eπ_star.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop :=
 
 def Eπ_star.vinogradovBound (A B C x₀ : ℝ) : Prop :=
   ∀ x ≥ x₀, Eπ_star x ≤
-    A * (log x) ^ B * exp (-C * (log x) ^ (3 / 5) / (log (log x)) ^ (1 / 5))
+    A * (log x) ^ B * exp (-C * (log x) ^ ((3 : ℝ) / 5) / (log (log x)) ^ ((1 : ℝ) / 5))
 
 @[blueprint
   "admissible-bound-monotone"
