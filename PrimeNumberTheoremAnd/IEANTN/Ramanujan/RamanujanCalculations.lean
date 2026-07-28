@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
-import LeanCert.Tactic
+import LeanCert.Tactic.IntervalAuto
 
 namespace Ramanujan
 
