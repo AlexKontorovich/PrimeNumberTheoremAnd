@@ -5,7 +5,7 @@ import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
 import PrimeNumberTheoremAnd.IEANTN.Li2Bounds
 import PrimeNumberTheoremAnd.IEANTN.LiSeries
-import LeanCert.Tactic
+import LeanCert.Tactic.IntervalAuto
 import PrimeNumberTheoremAnd.EulerMascheroniBounds
 import PrimeNumberTheoremAnd.IEANTN.LnFactorialSeries
 import PrimeNumberTheoremAnd.IEANTN.LogTables

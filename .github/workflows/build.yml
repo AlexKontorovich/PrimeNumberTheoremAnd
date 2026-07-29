@@ -44,6 +44,17 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
+      # LeanCert is a source dependency (no cloud olean cache, unlike Mathlib),
+      # so cache its package directory keyed on the resolved dependency
+      # revisions and toolchain. The git checkout must be cached together with
+      # .lake/build: if Lake has to re-clone the package it rebuilds from
+      # scratch even when build artifacts are present.
+      - name: Restore LeanCert package cache
+        uses: actions/cache@v4
+        with:
+          path: .lake/packages/leancert
+          key: leancert-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
+
       - name: Build the project
         uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1.5.0
         with:
