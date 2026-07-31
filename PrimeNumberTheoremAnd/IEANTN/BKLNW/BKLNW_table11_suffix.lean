@@ -4280,6 +4280,9 @@ private lemma table_11_suffix_from_19log10 :
     exact ⟨h1.trans (by norm_num), h2.trans (by norm_num),
       h3.trans (by norm_num), h4.trans (by norm_num), h5.trans (by norm_num)⟩
 
+-- The row dispatch below enumerates all 43 Table-11 rows and, inside each, all five
+-- k-cases, so both the elaboration and the recursion budgets have to be raised — the
+-- same reason `BKLNW_table10_dispatch.lean` raises them for its 287-row enumeration.
 set_option maxHeartbeats 4000000 in
 set_option maxRecDepth 40000 in
 lemma table_11_suffix_dominates (b₀ : ℝ) (B : ℕ → ℝ)
@@ -4888,5 +4891,28 @@ lemma table_11_suffix_dominates (b₀ : ℝ) (B : ℕ → ℝ)
     have hK := table_10_entry_lt_K b hb
     norm_num [K] at hK
     linarith
+
+/-- The degenerate top Table-11 row `b₀ = K`, whose domain is the single point `e^K`.
+It is not itself a Table-10 entry, so it is served by the last real strip, `[24000, K]`. -/
+lemma table_11_top_row_dominates (B : ℕ → ℝ) (k : ℕ) (hk : k ∈ Finset.Icc 1 5)
+    (v1 : B 1 = 1.3804e-43) (v2 : B 2 = 3.4508e-39) (v3 : B 3 = 8.6269e-35)
+    (v4 : B 4 = 2.1568e-30) (v5 : B 5 = 5.3919e-26) :
+    ∀ b ∈ table_10_entries, ∀ Bt : ℕ → ℝ, (b, Bt 1, Bt 2, Bt 3, Bt 4, Bt 5) ∈ table_10 →
+      (24000 : ℝ) ≤ b → Bt k * table_10_margin ≤ B k * table_11_margin := by
+  obtain ⟨hk1, hk5⟩ := Finset.mem_Icc.mp hk
+  have hm : (0 : ℝ) ≤ table_10_margin := by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin]
+  intro b hb Bt hBt hge
+  obtain ⟨c1, c2, c3, c4, c5⟩ := table_11_suffix_from_24000 b hb hge Bt hBt
+  interval_cases k
+  · rw [v1]
+    exact (mul_le_mul_of_nonneg_right c1 hm).trans (by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin])
+  · rw [v2]
+    exact (mul_le_mul_of_nonneg_right c2 hm).trans (by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin])
+  · rw [v3]
+    exact (mul_le_mul_of_nonneg_right c3 hm).trans (by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin])
+  · rw [v4]
+    exact (mul_le_mul_of_nonneg_right c4 hm).trans (by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin])
+  · rw [v5]
+    exact (mul_le_mul_of_nonneg_right c5 hm).trans (by norm_num [table_10_margin, table_11_margin, BKLNW_app.table_8_margin])
 
 end BKLNW

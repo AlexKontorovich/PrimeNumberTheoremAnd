@@ -85,6 +85,52 @@ lemma theta_bound_of_table_10_suffix (k : ℕ) (hk : 1 ≤ k ∧ k ≤ 5) (b₀'
     div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_right hchain hx_pos.le)
       (pow_nonneg (log_pos hx_gt_one).le k)
 
+/-- Below `10^19` the absolute value collapses to a single side: `bklnw_eq_3_17` (from
+Buthe) gives `θ x < x - 0.05 √x < x` throughout. This is what makes the one-sided
+Corollary 9.1 sufficient here — on its own it bounds only `x - θ x`. -/
+lemma abs_theta_sub_of_le_1e19 {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) :
+    |θ x - x| = x - θ x := by
+  have h := bklnw_eq_3_17 hx1 hx2
+  have hs : 0 ≤ Real.sqrt x := Real.sqrt_nonneg x
+  rw [abs_of_nonpos (by linarith)]; ring
+
+/-- Table-11 rows starting above the `10^19` node have an empty below-`10^19` range. -/
+private lemma below_vacuous {b₀ x : ℝ} (hb₀ : 19 * log 10 < b₀)
+    (hx : exp b₀ ≤ x) (hlt : x < (10 : ℝ) ^ 19) : False := by
+  have h19 : ((10 : ℝ) ^ 19) = exp (19 * log 10) := by
+    rw [mul_comm, exp_mul, exp_log (by norm_num : (0 : ℝ) < 10)]; norm_num
+  rw [h19] at hlt
+  exact absurd (exp_lt_exp.mp (lt_of_le_of_lt hx hlt)) (by linarith)
+
+/-- The below-`10^19` engine: Corollary 9.1 with a Table-12 row, turned into a bound on
+`|θ x - x|` by `abs_theta_sub_of_le_1e19`, then widened to the Table-11 entry. -/
+lemma theta_bound_below_engine (b₀ c C M : ℝ) (Cb B : ℕ → ℝ)
+    (ht12 : (b₀, Cb 1, Cb 2, Cb 3, Cb 4, Cb 5, c, C, M) ∈ BKLNW.table_12)
+    (hb₀ : (20 : ℝ) ≤ b₀)
+    (h1 : Cb 1 ≤ B 1 * table_11_margin) (h2 : Cb 2 ≤ B 2 * table_11_margin)
+    (h3 : Cb 3 ≤ B 3 * table_11_margin) (h4 : Cb 4 ≤ B 4 * table_11_margin)
+    (h5 : Cb 5 ≤ B 5 * table_11_margin)
+    (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
+    ∀ x ∈ Set.Icc (exp b₀) (exp K), x < (10 : ℝ) ^ 19 →
+      |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
+  obtain ⟨hk1, hk5⟩ := Finset.mem_Icc.mp hk
+  intro x hx hlt
+  have hxpos : (0 : ℝ) < x := (exp_pos b₀).trans_le hx.1
+  have hlogx : b₀ ≤ log x := by simpa using log_le_log (exp_pos b₀) hx.1
+  have hx1 : (1 : ℝ) ≤ x := by
+    have : (1 : ℝ) < exp b₀ := by simpa using exp_strictMono (by linarith : (0 : ℝ) < b₀)
+    linarith [hx.1]
+  have hpow : (0 : ℝ) < (log x) ^ k := pow_pos (by linarith) k
+  have hq : (0 : ℝ) ≤ x / (log x) ^ k := le_of_lt (div_pos hxpos hpow)
+  have hcor := bklnw_corollary_9_1_explicit b₀ c C M Cb ht12 x ⟨hx.1, hlt⟩ k hk
+  rw [abs_theta_sub_of_le_1e19 hx1 hlt.le]
+  have hstep : x - θ x ≤ Cb k * x / (log x) ^ k := by
+    rw [ge_iff_le, neg_mul, neg_div, neg_le] at hcor; linarith
+  refine hstep.trans ?_
+  rw [mul_div_assoc, mul_div_assoc]
+  refine mul_le_mul_of_nonneg_right ?_ hq
+  interval_cases k <;> assumption
+
 /-- **Numeric obligation, below `10^19`.** On `[e^{b₀}, 10^19]` the Table-11 entries are the
 Corollary-9.1 constants `C_{b₀,k}` of Table 12, so this branch is discharged from
 `bklnw_corollary_9_1` exactly as `bklnw_table_12_verification` is.
@@ -99,7 +145,163 @@ lemma table_11_below_bound (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
     ∀ x ∈ Set.Icc (exp b₀) (exp K), x < (10 : ℝ) ^ 19 →
       |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
-  sorry
+  have hgt := LogTables.log_10_gt
+  have hlt := LogTables.log_10_lt
+  simp only [table_11, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals obtain ⟨rfl, e1, e2, e3, e4, e5⟩ := h
+  · exact theta_bound_below_engine 20 0.8 0.81 5e10
+      (fun i => if i = 1 then 1.68440e-3 else if i = 2 then 3.36880e-2 else
+        if i = 3 then 6.73750e-1 else if i = 4 then 1.34750e1 else 2.69500e2) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 21 0.8 0.81 5e10
+      (fun i => if i = 1 then 1.06840e-3 else if i = 2 then 2.24350e-2 else
+        if i = 3 then 4.71140e-1 else if i = 4 then 9.89390e0 else 2.07780e2) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 22 0.8 0.81 5e10
+      (fun i => if i = 1 then 6.76540e-4 else if i = 2 then 1.48840e-2 else
+        if i = 3 then 3.27450e-1 else if i = 4 then 7.20380e0 else 1.58490e2) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 23 0.8 0.81 5e10
+      (fun i => if i = 1 then 4.27800e-4 else if i = 2 then 9.83920e-3 else
+        if i = 3 then 2.26310e-1 else if i = 4 then 5.20500e0 else 1.19720e2) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 24 0.8 0.81 5e10
+      (fun i => if i = 1 then 2.70120e-4 else if i = 2 then 6.48290e-3 else
+        if i = 3 then 1.55590e-1 else if i = 4 then 3.73410e0 else 8.96190e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 25 0.88 0.86 32e12
+      (fun i => if i = 1 then 1.750020e-4 else if i = 2 then 4.375050e-3 else
+        if i = 3 then 1.093770e-1 else if i = 4 then 2.734410e0 else 6.836010e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 26 0.88 0.86 32e12
+      (fun i => if i = 1 then 1.10220e-4 else if i = 2 then 2.86560e-3 else
+        if i = 3 then 7.45050e-2 else if i = 4 then 1.93720e0 else 5.03650e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 27 0.88 0.86 32e12
+      (fun i => if i = 1 then 6.93270e-5 else if i = 2 then 1.87190e-3 else
+        if i = 3 then 5.05400e-2 else if i = 4 then 1.36460e0 else 3.68430e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 28 0.88 0.86 32e12
+      (fun i => if i = 1 then 4.35580e-5 else if i = 2 then 1.21970e-3 else
+        if i = 3 then 3.41500e-2 else if i = 4 then 9.56180e-1 else 2.67730e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 29 0.88 0.86 32e12
+      (fun i => if i = 1 then 2.73380e-5 else if i = 2 then 7.92780e-4 else
+        if i = 3 then 2.29910e-2 else if i = 4 then 6.66730e-1 else 1.93360e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 30 0.88 0.86 32e12
+      (fun i => if i = 1 then 1.71400e-5 else if i = 2 then 5.14180e-4 else
+        if i = 3 then 1.54260e-2 else if i = 4 then 4.62760e-1 else 1.38830e1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact theta_bound_below_engine 43 0.94 0.94 1e19
+      (fun i => if i = 1 then 3.83820e-8 else if i = 2 then 1.65050e-6 else
+        if i = 3 then 7.09680e-5 else if i = 4 then 3.05170e-3 else 1.31220e-1) B
+      (by norm_num [table_12]) (by norm_num)
+      (by rw [e1]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e2]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e3]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e4]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      (by rw [e5]; norm_num [table_11_margin, table_10_margin, BKLNW_app.table_8_margin])
+      k hk
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
+  · exact fun x hx hx19 ↦ (below_vacuous (by linarith) hx.1 hx19).elim
 
 /-- **Above-`10^19` dispatch.** `max b₀ (19 log 10)` is a Table-10 entry for every Table-11
 row except the last (`b₀ = K = 25000`, whose domain is the single point `e^K`), so the
@@ -131,13 +333,15 @@ range and is *not* a Table-10 entry (Table 10 stops at `24000`, with `K` supplie
 separately by `table_10_bs`). Proved by enumerating the rows. -/
 lemma table_11_entry_or_top (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) :
-    max b₀ (19 * log 10) ∈ table_10_entries ∨ b₀ = (K : ℝ) := by
+    max b₀ (19 * log 10) ∈ table_10_entries ∨
+      (b₀ = (K : ℝ) ∧ B 1 = 1.3804e-43 ∧ B 2 = 3.4508e-39 ∧ B 3 = 8.6269e-35 ∧
+        B 4 = 2.1568e-30 ∧ B 5 = 5.3919e-26) := by
   have hgt := LogTables.log_10_gt
   have hlt := LogTables.log_10_lt
   simp only [table_11, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
   casesm* _ ∨ _
   all_goals try contradiction
-  all_goals obtain ⟨rfl, -⟩ := h
+  all_goals obtain ⟨rfl, _e1, _e2, _e3, _e4, _e5⟩ := h
   · refine Or.inl ?_
     rw [max_eq_right (by linarith : (20:ℝ) ≤ 19 * log 10)]
     exact mem_entries_19log10
@@ -264,17 +468,24 @@ lemma table_11_entry_or_top (b₀ : ℝ) (B : ℕ → ℝ)
   · refine Or.inl ?_
     rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 24000)]
     exact mem_entries_idx 286 (by norm_num) _ rfl
-  · exact Or.inr (by norm_num [K])
+  · exact Or.inr ⟨by norm_num [K], _e1, _e2, _e3, _e4, _e5⟩
 
 /-- The last Table-11 row, `b₀ = K`, has the degenerate domain `[e^K, e^K] = {e^K}`. That
 single point sits in the final Table-10 strip `[e^{24000}, e^{25000}]`, so the bound comes
 from row `24000` directly rather than from the suffix engine. -/
-lemma table_11_top_row_bound (b₀ : ℝ) (B : ℕ → ℝ)
-    (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (hb₀ : b₀ = (K : ℝ))
+lemma table_11_top_row_bound (b₀ : ℝ) (B : ℕ → ℝ) (hb₀ : b₀ = (K : ℝ))
+    (v1 : B 1 = 1.3804e-43) (v2 : B 2 = 3.4508e-39) (v3 : B 3 = 8.6269e-35)
+    (v4 : B 4 = 2.1568e-30) (v5 : B 5 = 5.3919e-26)
     (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
     ∀ x ∈ Set.Icc (exp b₀) (exp K),
       |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
-  sorry
+  intro x hx
+  have hx' : x ∈ Set.Icc (exp 24000) (exp K) :=
+    ⟨le_trans (exp_le_exp.mpr (by norm_num [K] : (24000 : ℝ) ≤ (K : ℝ))) (hb₀ ▸ hx.1), hx.2⟩
+  have := theta_bound_of_table_10_suffix k (Finset.mem_Icc.mp hk) 24000
+    (B k * table_11_margin) (mem_entries_idx 286 (by norm_num) _ rfl)
+    (table_11_top_row_dominates B k hk v1 v2 v3 v4 v5) x hx'
+  simpa [mul_div_assoc] using this
 
 @[blueprint
   "bklnw-table-11-verification"
@@ -296,6 +507,7 @@ theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ)
   · rcases lt_or_ge x ((10 : ℝ) ^ 19) with hsplit | hsplit
     · exact table_11_below_bound b₀ B h k hk x hx hsplit
     · exact table_11_above_bound b₀ B h k hk hentry x hx hsplit
-  · exact table_11_top_row_bound b₀ B h htop k hk x hx
+  · obtain ⟨htop, v1, v2, v3, v4, v5⟩ := htop
+    exact table_11_top_row_bound b₀ B htop v1 v2 v3 v4 v5 k hk x hx
 
 end BKLNW
