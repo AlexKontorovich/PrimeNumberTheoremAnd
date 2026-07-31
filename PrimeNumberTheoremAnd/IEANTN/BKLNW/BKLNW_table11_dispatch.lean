@@ -1,4 +1,4 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_dispatch
+import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table11_suffix
 
 /-! # Verification of Table 11
 
@@ -44,57 +44,6 @@ namespace BKLNW
 
 open Chebyshev Finset Real
 
-/-- Recover a full Table-10 row from one of its `b`-entries. `table_10_entries` only
-remembers the first component, but every consumer of a strip bound
-(`bklnw_table_10_verification`) needs the row's five printed values as a function
-`B : ℕ → ℝ`. -/
-lemma table_10_row_of_entry {b : ℝ} (hb : b ∈ table_10_entries) :
-    ∃ B : ℕ → ℝ, (b, B 1, B 2, B 3, B 4, B 5) ∈ table_10 := by
-  simp only [List.mem_toFinset, List.mem_map] at hb
-  obtain ⟨p, hp, rfl⟩ := hb
-  refine ⟨fun i ↦ if i = 1 then p.2.1 else if i = 2 then p.2.2.1 else
-    if i = 3 then p.2.2.2.1 else if i = 4 then p.2.2.2.2.1 else p.2.2.2.2.2, ?_⟩
-  simpa using hp
-
-/-- Membership of a Table-10 row's `b`-entry in `table_10_entries`, addressed by list
-index. Addressing rows by index (rather than searching the 287-element list with `simp`)
-is what keeps the per-row certificates below cheap; it is the same device
-`table_10_values_of_mem_aux` uses. -/
-lemma mem_entries_get (N : ℕ) (hN : N < table_10.length) :
-    (table_10.get ⟨N, hN⟩).1 ∈ table_10_entries := by
-  simp only [List.mem_toFinset, List.mem_map]
-  exact ⟨_, List.get_mem _ _, rfl⟩
-
-/-- `mem_entries_get` with the row contents supplied by `rfl` at the call site. -/
-lemma mem_entries_idx (N : ℕ) (hN : N < 287) (b : ℝ)
-    (hb : (table_10.get ⟨N, table_10_length_eq ▸ hN⟩).1 = b) : b ∈ table_10_entries :=
-  hb ▸ mem_entries_get N _
-
-/-- `10^19 = e^{19 log 10}` is itself a Table-10 grid node (row 24), sitting between the
-rows `43` and `44`. This is what makes the split at `10^19` land on a strip boundary
-instead of cutting a strip in half. -/
-lemma mem_entries_19log10 : (19 : ℝ) * log 10 ∈ table_10_entries :=
-  mem_entries_idx 24 (by norm_num) _ rfl
-
-lemma table_10_next_le_of_mem {b b' : ℝ} (hb' : b' ∈ table_10_bs) (hlt : b < b') :
-    table_10_next b ≤ b' := by
-  have hmem : b' ∈ table_10_bs.filter (b < ·) := Finset.mem_filter.mpr ⟨hb', hlt⟩
-  rw [table_10_next_eq_min' b ⟨b', hmem⟩]
-  exact Finset.min'_le _ _ hmem
-
-/-- **Gap principle.** There is no Table-10 entry strictly between `b` and
-`table_10_next b` — immediate from `table_10_next` being an infimum. So an entry `≥ b` is
-either `b` itself or already at the next grid node.
-
-This is what makes a suffix bound over the 287-row grid provable by a *chain* of 287 cheap
-steps (each row versus the next) instead of a quadratic sweep of every row against every
-Table-11 row. -/
-lemma eq_or_ge_next {b b' : ℝ} (hb' : b' ∈ table_10_entries) (hge : b ≤ b') :
-    b' = b ∨ table_10_next b ≤ b' := by
-  rcases eq_or_lt_of_le hge with h | h
-  · exact Or.inl h.symm
-  · exact Or.inr (table_10_next_le_of_mem (Finset.mem_union_left _ hb') h)
-
 /-- The above-`10^19` engine, stated once and reused by every Table-11 row.
 
 Given a Table-10 entry `b₀'` and a constant `C` dominating `B_k^{t10}(b) * table_10_margin`
@@ -135,18 +84,6 @@ lemma theta_bound_of_table_10_suffix (k : ℕ) (hk : 1 ≤ k ∧ k ≤ 5) (b₀'
   exact hsub.trans <|
     div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_right hchain hx_pos.le)
       (pow_nonneg (log_pos hx_gt_one).le k)
-
-/-- **Numeric obligation, above `10^19`.** For each Table-11 row `(b₀, B 1, …, B 5)` and
-each `k`, the Table-10 printed values over the suffix `b ≥ max b₀ (19 log 10)`, inflated by
-`table_10_margin`, stay under the Table-11 value inflated by `table_11_margin`.
-
-All quantities here are decimal literals: this is a pure rational-arithmetic check, with no
-`log`/`exp` left in it. -/
-lemma table_11_suffix_dominates (b₀ : ℝ) (B : ℕ → ℝ)
-    (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
-    ∀ b ∈ table_10_entries, ∀ Bt : ℕ → ℝ, (b, Bt 1, Bt 2, Bt 3, Bt 4, Bt 5) ∈ table_10 →
-      max b₀ (19 * log 10) ≤ b → Bt k * table_10_margin ≤ B k * table_11_margin := by
-  sorry
 
 /-- **Numeric obligation, below `10^19`.** On `[e^{b₀}, 10^19]` the Table-11 entries are the
 Corollary-9.1 constants `C_{b₀,k}` of Table 12, so this branch is discharged from
