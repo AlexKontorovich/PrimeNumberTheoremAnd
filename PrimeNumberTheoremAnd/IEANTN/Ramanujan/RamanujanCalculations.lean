@@ -57,34 +57,34 @@ theorem not_mem_Ico_of_ge_exp3000
 
 theorem styleVal_bound_3914_1311 :
     ∀ y ∈ Set.Icc (3914 : ℝ) 3914, styleVal y ≤ (1311 : ℝ) := by
-  exact styleVal_bound (L := (3914 : ℝ)) (C := (1311 : ℝ)) (by interval_bound 20)
+  exact styleVal_bound (L := (3914 : ℝ)) (C := (1311 : ℝ)) (by certify_bound 20)
 
 theorem styleVal_bound_3870_1800 :
     ∀ y ∈ Set.Icc (3870 : ℝ) 3870, styleVal y ≤ (1800 : ℝ) := by
-  exact styleVal_bound (L := (3870 : ℝ)) (C := (1800 : ℝ)) (by interval_bound 20)
+  exact styleVal_bound (L := (3870 : ℝ)) (C := (1800 : ℝ)) (by certify_bound 20)
 
 theorem styleVal_bound_3915_13042_div_10 :
     ∀ y ∈ Set.Icc (3915 : ℝ) 3915, styleVal y ≤ (13042 / 10 : ℝ) := by
   exact
-    styleVal_bound (L := (3915 : ℝ)) (C := (13042 / 10 : ℝ)) (by interval_bound 20)
+    styleVal_bound (L := (3915 : ℝ)) (C := (13042 / 10 : ℝ)) (by certify_bound 20)
 
 theorem tail_small :
     7 * (3914 : ℝ) ^ 6 * exp (-(1957 : ℝ)) / (log 2) ^ 8 ≤ (1 : ℝ) / 1000000 := by
   have h := (show ∀ y ∈ Set.Icc (3914 : ℝ) 3914,
       7 * y ^ 6 * exp (-y / 2) / (log 2) ^ 8 ≤ (1 : ℝ) / 1000000 by
-    interval_bound 20) 3914 ⟨le_refl _, le_refl _⟩
+    certify_bound 20) 3914 ⟨le_refl _, le_refl _⟩
   simpa [show (-(3914 : ℝ) / 2) = -(1957 : ℝ) by ring] using h
 
 theorem exp_3914_poly_small :
     2 * (3914 : ℝ) ^ 6 * exp (-(3914 : ℝ)) ≤ (1 : ℝ) / 1000000 :=
   (show ∀ y ∈ Set.Icc (3914 : ℝ) 3914, 2 * y ^ 6 * exp (-y) ≤ (1 : ℝ) / 1000000 by
-    interval_bound 20) 3914 ⟨le_refl _, le_refl _⟩
+    certify_bound 20) 3914 ⟨le_refl _, le_refl _⟩
 
 theorem exp_1169_small :
     exp (-(1.89 : ℝ) * sqrt ((1169 : ℝ) / 5.573412)) ≤ (1 : ℝ) / 10000000 :=
   (show ∀ z ∈ Set.Icc (1169 : ℝ) 1169,
       exp (-(1.89 : ℝ) * sqrt (z / 5.573412)) ≤ (1 : ℝ) / 10000000 by
-    interval_bound 20) 1169 ⟨le_refl _, le_refl _⟩
+    certify_bound 20) 1169 ⟨le_refl _, le_refl _⟩
 
 theorem high_branch_aux {t c : ℝ}
     (ht : t ∈ Set.Icc (exp 1169) (exp 3870))
@@ -202,18 +202,18 @@ lemma integral_Icc_split
 theorem exp_neg44_small :
     exp (-(44 : ℝ)) ≤ (1 : ℝ) / 1000000000000000000 :=
   (show ∀ z ∈ Set.Icc (44 : ℝ) 44,
-      exp (-z) ≤ (1 : ℝ) / 1000000000000000000 by interval_bound 20) 44 ⟨le_refl _, le_refl _⟩
+      exp (-z) ≤ (1 : ℝ) / 1000000000000000000 by certify_bound 20) 44 ⟨le_refl _, le_refl _⟩
 
 theorem exp_neg1979_small :
     exp (-(1979 : ℝ))
       ≤ (1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000 :=
   (show ∀ z ∈ Set.Icc (1979 : ℝ) 1979, exp (-z)
       ≤ (1 : ℝ) / 100000000000000000000000000000000000000000000000000000000000000000000000000000000 by
-    interval_bound 20) 1979 ⟨le_refl _, le_refl _⟩
+    certify_bound 20) 1979 ⟨le_refl _, le_refl _⟩
 
 theorem inv_log2_pow8_le_1000 : 1 / (log 2) ^ 8 ≤ (1000 : ℝ) := by
   have hhalf : (1 / 2 : ℝ) ≤ log 2 :=
-    (show ∀ z ∈ Set.Icc (2 : ℝ) 2, (1 / 2 : ℝ) ≤ log z by interval_bound 20)
+    (show ∀ z ∈ Set.Icc (2 : ℝ) 2, (1 / 2 : ℝ) ≤ log z by certify_bound 20)
       2 ⟨le_refl _, le_refl _⟩
   calc 1 / (log 2) ^ 8
       ≤ 1 / (1 / 2 : ℝ) ^ 8 :=
@@ -321,11 +321,11 @@ theorem low_contrib_raw_le_three_tenths :
   exact low_contrib_le_three_tenths
 
 theorem exp_23_gt_4e9 : (4000000000 : ℝ) < exp (23 : ℝ) :=
-  (show ∀ y ∈ Set.Icc (23 : ℝ) 23, (4000000000 : ℝ) < exp y by interval_bound 20)
+  (show ∀ y ∈ Set.Icc (23 : ℝ) 23, (4000000000 : ℝ) < exp y by certify_bound 20)
     23 ⟨le_refl _, le_refl _⟩
 
 theorem exp_8_lt_3914 : exp (8 : ℝ) < (3914 : ℝ) :=
-  (show ∀ y ∈ Set.Icc (8 : ℝ) 8, exp y < (3914 : ℝ) by interval_bound 20)
+  (show ∀ y ∈ Set.Icc (8 : ℝ) 8, exp y < (3914 : ℝ) by certify_bound 20)
     8 ⟨le_refl _, le_refl _⟩
 
 /-- The antiderivative `x ↦ x / log x + ∫ 1 / log² u` appearing in the integration-by-parts
