@@ -50,7 +50,7 @@ jobs:
       # .lake/build: if Lake has to re-clone the package it rebuilds from
       # scratch even when build artifacts are present.
       - name: Restore LeanCert package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .lake/packages/leancert
           key: leancert-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
