@@ -1096,6 +1096,86 @@ private lemma LSeriesSummable_tau_sq {s : ℂ} (hs : 1 < s.re) :
   rw [summable_norm_iff, ← LSeriesSummable]
   exact LSeries_d_summable 3 hs
 
+private lemma tau_sq_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (hmn : m.Coprime n) :
+    LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s (m * n) =
+      LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s m *
+        LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s n :=
+  LSeries.term_isMultiplicative_if_fun_isMultiplicative tau_sq_isMultiplicative s hmn
+
+/-- Local Euler factor: $\sum_e \tau((p^e)^2)\,p^{-es}=(1+p^{-s})/(1-p^{-s})^2$. -/
+private lemma tau_sq_tsum_prime_pow {s : ℂ} (hs : 1 < s.re) (p : Primes) :
+    sumOnPrimePows (LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s) p =
+      (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2 := by
+  have hsub : 1 - (p : ℂ) ^ (-s) ≠ 0 := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  set x : ℂ := (p : ℂ) ^ (-s)
+  have hx : ‖x‖ < 1 := by
+    dsimp only [x]
+    rw [Complex.norm_cpow_of_ne_zero (Nat.cast_ne_zero.mpr p.2.ne_zero)]
+    · norm_num
+      exact lt_of_lt_of_le
+        (Real.rpow_lt_rpow_of_exponent_lt (mod_cast p.2.one_lt) (neg_lt_zero.mpr (by linarith)))
+        (by norm_num)
+  have hx0 : 1 - x ≠ 0 := by simpa [x] using hsub
+  have hxpow : ∀ e : ℕ, (p.val : ℂ) ^ (-(e : ℂ) * s) = x ^ e := by
+    intro e
+    simp only [x]
+    rw [← Complex.cpow_nat_mul]
+    ring_nf
+  have h_term : ∀ e : ℕ,
+      LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s (p.val ^ e) =
+        (2 * (e : ℂ) + 1) * x ^ e := by
+    intro e
+    calc
+      LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s (p.val ^ e)
+          = (↑(2 * e + 1) : ℂ) * (p.val : ℂ) ^ (-(e : ℂ) * s) := by
+            simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow,
+              Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
+            rw [tau_sq_apply_prime_pow p.prop]
+            simp only [Complex.cpow_neg, div_eq_mul_inv, ← Complex.natCast_cpow_natCast_mul,
+              cast_add, cast_mul, cast_one]
+      _ = (2 * (e : ℂ) + 1) * x ^ e := by
+            rw [hxpow]
+            push_cast
+            ring
+  have hid : 2 * (x / (1 - x) ^ 2) + (1 - x)⁻¹ = (1 + x) / (1 - x) ^ 2 := by
+    field_simp [hx0]
+    ring
+  have hsum' :
+      HasSum (fun e : ℕ ↦ 2 * ((e : ℂ) * x ^ e) + x ^ e)
+        (2 * (x / (1 - x) ^ 2) + (1 - x)⁻¹) :=
+    ((hasSum_coe_mul_geometric_of_norm_lt_one hx).mul_left (2 : ℂ)).add
+      (hasSum_geometric_of_norm_lt_one hx)
+  have hfun : (fun e : ℕ ↦ (2 * (e : ℂ) + 1) * x ^ e) =
+      (fun e : ℕ ↦ 2 * ((e : ℂ) * x ^ e) + x ^ e) := by
+    ext e; ring
+  have hsum : HasSum (fun e : ℕ ↦ (2 * (e : ℂ) + 1) * x ^ e)
+      ((1 + x) / (1 - x) ^ 2) := by
+    rw [hfun, ← hid]
+    exact hsum'
+  simpa [sumOnPrimePows_apply, h_term] using hsum.tsum_eq
+
+private lemma tau_sq_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
+    LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s =
+      ∏' p : Primes, (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2 := by
+  convert! HasProd.tprod_eq
+      (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _) |>.symm using 1
+  · apply tprod_congr
+    simp only [← tau_sq_tsum_prime_pow hs, sumOnPrimePows_apply, implies_true]
+  · simp [LSeries.term, tau]
+  · intro m n hmn; exact tau_sq_LSeries.term_isMultiplicative s hmn
+  · convert! (LSeriesSummable_tau_sq hs).norm using 1
+  · unfold LSeries.term; simp only [↓reduceIte]
+
+private lemma tau_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
+    HasProd (fun p : Primes ↦ (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2)
+      (LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s) := by
+  convert! EulerProduct.eulerProduct_hasProd _ _ _
+      (LSeries.term_zero (fun n ↦ (τ (n ^ 2) : ℂ)) s) using 1
+  · funext p; exact Eq.symm (tau_sq_tsum_prime_pow hs p)
+  · simp [LSeries.term, tau]
+  · intro _ _ hmn; exact tau_sq_LSeries.term_isMultiplicative s hmn
+  · convert! (LSeriesSummable_tau_sq hs).norm using 1
+
 @[blueprint
   "LSeriesSummable_moebius_sq"
   (title := "LSeriesSummable-moebius-sq")
