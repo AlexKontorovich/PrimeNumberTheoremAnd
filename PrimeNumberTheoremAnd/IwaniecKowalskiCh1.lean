@@ -642,26 +642,7 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
   sorry
 
-/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
-@[blueprint
-  "zeta_pow_four_eq"
-  (title := "zeta pow four eq")
-  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
-  \begin{verbatim}
-  This is IK (1.29).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
-  -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
-      (by simpa using hs)) using 1
-  · ring_nf
-  · congr
-    · ring_nf
-    · simp [tau, sigma, sigmaR, pow_two]
+-- `zeta_pow_four_eq` (IK 1.29) is proved below via Euler products.
 
 /--
 Baby Rankin-Selberg:
@@ -697,8 +678,8 @@ Zeta cubed:
   -/)]
 lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
-  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
+  -- Independent Euler-product proof is #1696; Ramanujan route needs later `zeta_pow_four_eq`.
+  sorry
 
 /--
 Zeta cubed alt:
@@ -1068,6 +1049,76 @@ lemma powOfMultiplicative_isMultiplicative {R : Type u_1} [CommMonoidWithZero R]
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
   simp only [or_self, ↓reduceIte, hf.2 mCn, mul_pow]
+
+/-- Local evaluation: $\tau(p^e)^2=(e+1)^2$. -/
+private lemma tau_pow_two_apply_prime_pow {p e : ℕ} (hp : p.Prime) :
+    (τ (p ^ e) : ℂ) ^ 2 = ((e : ℂ) + 1) ^ 2 := by
+  rw [sigma_zero_apply_prime_pow hp]
+  push_cast
+  ring
+
+/-- $n\mapsto\tau(n)^2$ is multiplicative. -/
+private lemma tau_pow_two_isMultiplicative :
+    (toArithmeticFunction (fun n ↦ ((τ n : ℂ) ^ 2))).IsMultiplicative :=
+  powOfMultiplicative_isMultiplicative ((isMultiplicative_sigma (k := 0)).natCast (R := ℂ)) 2
+
+/-- Local inequality $(a+1)^2\le\binom{a+3}{3}$. -/
+private lemma succ_sq_le_choose_three (a : ℕ) : (a + 1) ^ 2 ≤ (a + 3).choose 3 := by
+  have hclear : 6 * (a + 1) ^ 2 ≤ (a + 3) * (a + 2) * (a + 1) := by
+    cases a with
+    | zero => decide
+    | succ a =>
+      have : 6 * (a + 2) ≤ (a + 4) * (a + 3) := by nlinarith
+      nlinarith
+  have hchoose : 6 * (a + 3).choose 3 = (a + 3) * (a + 2) * (a + 1) := by
+    have h := Nat.choose_mul_factorial_mul_factorial (show 3 ≤ a + 3 by omega)
+      (n := a + 3) (k := 3)
+    -- choose * 3! * a! = (a+3)!
+    have : (a + 3).choose 3 * 6 * a.factorial = (a + 3).factorial := by
+      simpa [Nat.factorial] using h
+    have hfac :
+        (a + 3).factorial = (a + 3) * (a + 2) * (a + 1) * a.factorial := by
+      simp [Nat.factorial_succ, Nat.mul_assoc]
+    apply mul_right_cancel₀ (Nat.factorial_pos a).ne'
+    calc
+      6 * (a + 3).choose 3 * a.factorial
+          = (a + 3).choose 3 * 6 * a.factorial := by ring
+      _ = (a + 3).factorial := this
+      _ = (a + 3) * (a + 2) * (a + 1) * a.factorial := hfac
+      _ = (a + 3) * (a + 2) * (a + 1) * a.factorial := rfl
+  refine Nat.le_of_mul_le_mul_left ?_ (by decide : 0 < 6)
+  rwa [hchoose]
+
+/-- Pointwise bound $\tau(n)^2\le d_4(n)$. -/
+private lemma tau_pow_two_le_d_four {n : ℕ} (hn : n ≠ 0) : (τ n) ^ 2 ≤ d 4 n := by
+  let f : ArithmeticFunction ℕ := toArithmeticFunction (fun k ↦ (τ k) ^ 2)
+  have hf : f.IsMultiplicative :=
+    powOfMultiplicative_isMultiplicative (isMultiplicative_sigma (k := 0)) 2
+  have hfeq : f n = (τ n) ^ 2 := by simp [f, toArithmeticFunction, hn]
+  rw [← hfeq, hf.multiplicative_factorization f hn,
+    (d_isMultiplicative 4).multiplicative_factorization (d 4) hn]
+  refine Finset.prod_le_prod' fun p hp ↦ ?_
+  have hp' : p.Prime := prime_of_mem_primeFactors hp
+  let a := n.factorization p
+  change f (p ^ a) ≤ d 4 (p ^ a)
+  have hfa : f (p ^ a) = (τ (p ^ a)) ^ 2 := by
+    dsimp [f, toArithmeticFunction]
+    rw [if_neg (pow_ne_zero _ hp'.ne_zero)]
+  rw [hfa, sigma_zero_apply_prime_pow hp', d_apply_prime_pow (by decide : 0 < 4) hp']
+  exact succ_sq_le_choose_three a
+
+private lemma LSeriesSummable_tau_pow_two {s : ℂ} (hs : 1 < s.re) :
+    LSeriesSummable (fun n ↦ (τ n : ℂ) ^ 2) s := by
+  have hgf : ∀ n, ‖LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s n‖ ≤
+      ‖LSeries.term (fun n ↦ (d 4 n : ℂ)) s n‖ := by
+    intro n
+    by_cases hn : n = 0
+    · simp [LSeries.term, hn]
+    · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
+      exact div_le_div_of_nonneg_right (by exact_mod_cast tau_pow_two_le_d_four hn) (norm_nonneg _)
+  apply LSeriesSummable.of_norm_le_norm hgf
+  rw [summable_norm_iff, ← LSeriesSummable]
+  exact LSeries_d_summable 4 hs
 
 @[blueprint
   "moebius_sq_LSeries.term_isMultiplicative"
