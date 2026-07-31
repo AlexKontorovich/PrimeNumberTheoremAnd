@@ -207,6 +207,16 @@ Concretely:
   `BKLNW_app_tables.lean`). These files build once and cache; downstream
   paper files consume them as opaque theorems. Follow that pattern for any
   new bulk numeric evidence.
+- **`LogTables.lean` and `PrimeTables.lean` are the project-wide, general-
+  purpose homes** (the other `*_tables.lean` files are scoped to specific
+  papers). Any purely numerical bound *on logarithms, exponentials,
+  elementary constants of the form $\log n$, $\exp(-x)$, $\pi$, $\gamma$,
+  etc.* belongs in `LogTables.lean`; any purely numerical bound about
+  primes or prime-counting quantities belongs in `PrimeTables.lean`.
+  Don't inline such facts into a proof file even if you only need them
+  once — the next contributor with a similar need should find them there.
+  Blueprint them with `@[blueprint]` so they surface in the blueprint
+  index (§4).
 - **Very large certificate corpora get sharded across many small files**
   — the BKLNW Table 10 architecture (~22 files
   `BKLNW_table10_rows_*` + `_dispatch` + `_next` + `_values`) is the
@@ -404,7 +414,27 @@ rules as any other contribution — but they should also:
 
 1. **Disclose the tool** in the PR body (e.g. "Made with Cursor", or
    the auto-generated footer produced by these tools). Doesn't need to
-   be a manifesto — one line is fine.
+   be a manifesto — one line is fine. **Also apply the `ai` label**
+   (umbrella "Formalised using AI") to the PR, plus the tool-specific
+   label if one exists in the repo's label set. The current tool
+   labels are:
+
+   | Label         | Tool                                    |
+   |---------------|-----------------------------------------|
+   | `aristotle`   | Aristotle by Harmonic                   |
+   | `alpha-proof` | AlphaProof by Google DeepMind           |
+   | `claude`      | Claude models by Anthropic              |
+   | `cursor`      | Cursor                                  |
+   | `gemini`      | Gemini models                           |
+   | `gpt`         | GPT models by OpenAI                    |
+   | `seed`        | Seed by Bytedance                       |
+
+   Apply all that apply (e.g. Claude used inside Cursor gets both
+   `claude` and `cursor` in addition to `ai`). If the tool you used
+   isn't listed, mention it in the PR body and either request a new
+   label or use the umbrella `ai` alone. Labels let maintainers filter
+   the PR queue by tool and calibrate review effort — the disclosure
+   in prose is easy to miss when scanning `github.com/…/pulls`.
 2. **Consolidate before submitting**, per §1. If your assistant proposes
    twelve one-line changes to a single file, open one PR, not twelve.
    Reviewer bandwidth doesn't scale with your ease of generating diffs.
