@@ -681,7 +681,8 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
   sorry
 
--- `zeta_pow_three_eq` (IK 1.30) proved below via Euler products.
+-- `zeta_pow_three_eq` (IK 1.30) is proved below via Euler products, after the
+-- `two_pow_omega` / `sumOnPrimePows` infrastructure (independent of Ramanujan).
 
 /--
 Zeta cubed alt:
@@ -1175,6 +1176,50 @@ private lemma tau_sq_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · simp [LSeries.term, tau]
   · intro _ _ hmn; exact tau_sq_LSeries.term_isMultiplicative s hmn
   · convert! (LSeriesSummable_tau_sq hs).norm using 1
+
+/--
+Zeta cubed:
+`ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
+@[blueprint
+  "zeta_pow_three_eq"
+  (title := "zeta pow three eq")
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$ for $\Re(s) > 1$.
+  \begin{verbatim}
+  This is IK (1.30).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  Direct Euler-product proof (independent of Ramanujan / Baby Rankin--Selberg).
+  Locally $\tau((p^k)^2)=\tau(p^{2k})=2k+1$, and $\sum_k(2k+1)x^k=(1+x)/(1-x)^2$ for $|x|<1$.
+  Multiplying by the local factor $1/(1-x^2)$ of $\zeta(2s)$ recovers $1/(1-x)^3$, the local
+  factor of $\zeta(s)^3$. Absolute convergence follows by comparing $\tau(n^2)\le d_3(n)$.
+  -/)]
+lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
+  have hs' : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have mulζ := (riemannZeta_eulerProduct_hasProd hs).multipliable
+  change riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s
+  have hRHS :
+      riemannZeta (2 * s) * LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s =
+        ∏' p : Primes,
+          (1 - (p : ℂ) ^ (-(2 * s)))⁻¹ *
+            ((1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 2) := by
+    rw [← riemannZeta_eulerProduct_tprod hs', tau_sq_LSeries_eulerProduct_tprod s hs,
+      ← Multipliable.tprod_mul]
+    · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
+    · exact ⟨LSeries (fun n ↦ (τ (n ^ 2) : ℂ)) s, tau_sq_LSeries_eulerProduct_hasProd s hs⟩
+  rw [hRHS, ← riemannZeta_eulerProduct_tprod hs, ← mulζ.tprod_pow 3]
+  refine tprod_congr fun p ↦ ?_
+  have hsub := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  have hadd := Complex.one_add_prime_cpow_ne_zero p.2 hs
+  have hsq : 1 - ((p : ℂ) ^ (-s)) ^ 2 ≠ 0 := by
+    rw [show 1 - ((p : ℂ) ^ (-s)) ^ 2 =
+        (1 - (p : ℂ) ^ (-s)) * (1 + (p : ℂ) ^ (-s)) from by ring]
+    exact mul_ne_zero hsub hadd
+  rw [show (-(2 * s) : ℂ) = -s + -s from by ring,
+    Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
+  field_simp
+  ring
 
 @[blueprint
   "LSeriesSummable_moebius_sq"
