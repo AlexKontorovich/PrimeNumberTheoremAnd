@@ -31,13 +31,26 @@ obligation, the tightest are
 * below `10^19`: `b₀ = 25, k = 1`, needing `≥ 1.000107` (Table 12's row 25 was itself
   corrected upward from the paper — see the correction note on `table_12`).
 
-The repo's standard chained margin
-`table_11_margin = table_10_margin * 1.001 = 1.003003001` clears both.
+So the minimal viable margin is exactly `table_10_margin` itself, and
+`table_11_margin = table_10_margin` would already suffice. The value used here is the
+repo's standard chained one, `table_11_margin = table_10_margin * 1.001 = 1.003003001`
+(mirroring `table_10_margin = table_8_margin * 1.001`): it keeps the per-table chaining
+convention and leaves headroom, since the tight choice would make the `b₀ = 20, k = 4`
+obligation an exact equality and so break on any re-rounding of a table entry. The cost is
+a constant 0.1% weaker than strictly necessary.
 
 This file sits downstream of `BKLNW_table10_dispatch.lean` because the above-`10^19`
 branch consumes `bklnw_table_10_verification`, while the Table-10 row files already
 import `BKLNW.lean` (for `B_8_exact`). `bklnw_table_10_verification` lives here for the
 same reason.
+
+Axiom surface: nothing here is `sorry`, and `table_11_suffix_dominates` (the generated
+chain in `BKLNW_table11_suffix.lean` and its dispatch) needs no axioms beyond `propext` /
+`Classical.choice` / `Quot.sound` — not even `native_decide`, since it only compares
+printed values against printed values. The theorem as a whole still reports `sorryAx`, but
+entirely from pre-existing upstream stubs it inherits, on both branches: `cor_5_1` (via
+`bklnw_cor_8_1a_exact`) above `10^19`, and `Buthe.theorem_2a` / `2c` (via `bklnw_eq_3_17`)
+below it. `bklnw_table_10_verification` already carried the same contingency.
 -/
 
 namespace BKLNW
