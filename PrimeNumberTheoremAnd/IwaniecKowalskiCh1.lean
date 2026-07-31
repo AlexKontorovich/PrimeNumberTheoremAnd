@@ -681,24 +681,7 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
   sorry
 
-/--
-Zeta cubed:
-`ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
-@[blueprint
-  "zeta_pow_three_eq"
-  (title := "zeta pow three eq")
-  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$ for $\Re(s) > 1$.
-  \begin{verbatim}
-  This is IK (1.30).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
-  -/)]
-lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
-  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
+-- `zeta_pow_three_eq` (IK 1.30) proved below via Euler products.
 
 /--
 Zeta cubed alt:
@@ -1026,6 +1009,92 @@ lemma zeta_pow_two (s : ℂ) (hs : 1 < s.re) :
     ring
   · exact ⟨LSeries (fun n ↦ 2 ^ (ω n)) s, two_pow_omega_LSeries_eulerProduct_hasProd s hs⟩
   · exact ⟨riemannZeta (2 * s), riemannZeta_eulerProduct_hasProd hs'⟩
+
+/-- Local evaluation: $\tau((p^e)^2)=\tau(p^{2e})=2e+1$. -/
+private lemma tau_sq_apply_prime_pow {p e : ℕ} (hp : p.Prime) :
+    τ ((p ^ e) ^ 2) = 2 * e + 1 := by
+  rw [← pow_mul, mul_comm e, sigma_zero_apply_prime_pow hp]
+
+/-- $n\mapsto\tau(n^2)$ is multiplicative (as a complex-valued arithmetic function). -/
+private lemma tau_sq_isMultiplicative :
+    (toArithmeticFunction (fun n ↦ (τ (n ^ 2) : ℂ))).IsMultiplicative := by
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte,
+    _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul, one_pow]
+  refine ⟨by simp [tau], ?_⟩
+  intro m n hmn
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte, Nat.cast_inj]
+  have hcop : (m ^ 2).Coprime (n ^ 2) := by
+    rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
+      Nat.coprime_pow_right_iff (by decide : 0 < 2)]
+    exact hmn
+  rw [mul_pow]
+  exact_mod_cast (isMultiplicative_sigma (k := 0)).map_mul_of_coprime hcop
+
+/-- Same multiplicativity without the complex cast, for comparison at prime powers. -/
+private lemma tau_sq_nat_isMultiplicative :
+    (toArithmeticFunction (fun n ↦ τ (n ^ 2))).IsMultiplicative := by
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte,
+    _root_.mul_eq_zero]
+  refine ⟨by simp [tau], ?_⟩
+  intro m n hmn
+  by_cases m_eq_zero : m = 0
+  · simp [m_eq_zero]
+  by_cases n_eq_zero : n = 0
+  · simp [n_eq_zero]
+  simp only [m_eq_zero, n_eq_zero, ↓reduceIte, mul_ite, mul_zero, ite_mul, zero_mul, or_self]
+  have hcop : (m ^ 2).Coprime (n ^ 2) := by
+    rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
+      Nat.coprime_pow_right_iff (by decide : 0 < 2)]
+    exact hmn
+  rw [mul_pow]
+  exact (isMultiplicative_sigma (k := 0)).map_mul_of_coprime hcop
+
+/-- Local inequality $2a+1\le\binom{a+2}{2}$. -/
+private lemma two_mul_add_one_le_choose_two (a : ℕ) :
+    2 * a + 1 ≤ (a + 2).choose 2 := by
+  rw [Nat.choose_two_right]
+  refine (Nat.le_div_iff_mul_le (by decide : 0 < 2)).2 ?_
+  -- Goal: $(2a+1)*2 \le (a+2)(a+2-1)$. Note $a+2-1=a+1`.
+  have hsub : a + 2 - 1 = a + 1 := by cases a <;> rfl
+  rw [hsub, show (2 * a + 1) * 2 = 4 * a + 2 from by ring,
+    show (a + 2) * (a + 1) = a * a + 3 * a + 2 from by ring]
+  have : 4 * a ≤ a * a + 3 * a := by
+    cases a with
+    | zero => decide
+    | succ a => nlinarith
+  exact Nat.add_le_add_right this 2
+
+/-- Pointwise bound $\tau(n^2)\le d_3(n)$ (used for absolute convergence). -/
+private lemma tau_sq_le_d_three {n : ℕ} (hn : n ≠ 0) : τ (n ^ 2) ≤ d 3 n := by
+  let f : ArithmeticFunction ℕ := toArithmeticFunction (fun k ↦ τ (k ^ 2))
+  have hf : f.IsMultiplicative := tau_sq_nat_isMultiplicative
+  have hfeq : f n = τ (n ^ 2) := by simp [f, toArithmeticFunction, hn]
+  rw [← hfeq, hf.multiplicative_factorization f hn,
+    (d_isMultiplicative 3).multiplicative_factorization (d 3) hn]
+  refine Finset.prod_le_prod' fun p hp ↦ ?_
+  have hp' : p.Prime := prime_of_mem_primeFactors hp
+  let a := n.factorization p
+  change f (p ^ a) ≤ d 3 (p ^ a)
+  have hfa : f (p ^ a) = τ ((p ^ a) ^ 2) := by
+    dsimp [f, toArithmeticFunction]
+    rw [if_neg (pow_ne_zero _ hp'.ne_zero)]
+  rw [hfa, tau_sq_apply_prime_pow hp', d_apply_prime_pow (by decide : 0 < 3) hp']
+  exact two_mul_add_one_le_choose_two a
+
+private lemma LSeriesSummable_tau_sq {s : ℂ} (hs : 1 < s.re) :
+    LSeriesSummable (fun n ↦ (τ (n ^ 2) : ℂ)) s := by
+  have hgf : ∀ n, ‖LSeries.term (fun n ↦ (τ (n ^ 2) : ℂ)) s n‖ ≤
+      ‖LSeries.term (fun n ↦ (d 3 n : ℂ)) s n‖ := by
+    intro n
+    by_cases hn : n = 0
+    · simp [LSeries.term, hn]
+    · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
+      exact div_le_div_of_nonneg_right (by exact_mod_cast tau_sq_le_d_three hn) (norm_nonneg _)
+  apply LSeriesSummable.of_norm_le_norm hgf
+  rw [summable_norm_iff, ← LSeriesSummable]
+  exact LSeries_d_summable 3 hs
 
 @[blueprint
   "LSeriesSummable_moebius_sq"
