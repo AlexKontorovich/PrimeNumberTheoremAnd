@@ -21,9 +21,18 @@ smaller Corollary-9.1 constant is the one that applies. The statement below is t
 split-domain repair, greenlit by the maintainer on 2026-07-07.
 
 As with Table 10 (see `table_10_margin`), the printed values are attained only up to
-rounding, so the bound carries a `table_11_margin` factor. The binding row is
-`b₀ = 44, k = 1`, which needs `≥ 1.001983`; the repo's standard chained margin
-`table_11_margin = table_10_margin * 1.001 = 1.003003001` clears it.
+rounding, so the bound carries a `table_11_margin` factor, and it is genuinely needed: the
+printed values are *not* upper bounds for the unrounded quantities. Sweeping every
+obligation, the tightest are
+
+* above `10^19`: `b₀ = 20, k = 4`, where the Table-10 suffix supremum and the Table-11
+  entry are the same printed number `5.7184e1`, so the requirement is exactly
+  `table_10_margin ≤ table_11_margin`;
+* below `10^19`: `b₀ = 25, k = 1`, needing `≥ 1.000107` (Table 12's row 25 was itself
+  corrected upward from the paper — see the correction note on `table_12`).
+
+The repo's standard chained margin
+`table_11_margin = table_10_margin * 1.001 = 1.003003001` clears both.
 
 This file sits downstream of `BKLNW_table10_dispatch.lean` because the above-`10^19`
 branch consumes `bklnw_table_10_verification`, while the Table-10 row files already
@@ -143,10 +152,15 @@ lemma table_11_suffix_dominates (b₀ : ℝ) (B : ℕ → ℝ)
 Corollary-9.1 constants `C_{b₀,k}` of Table 12, so this branch is discharged from
 `bklnw_corollary_9_1` exactly as `bklnw_table_12_verification` is.
 
+The absolute value collapses to one side here: `bklnw_eq_3_17` gives `θ x < x` throughout
+`x ≤ 10^19`, so `|θ x - x| = x - θ x`, which is exactly what Corollary 9.1 bounds. (Cor 9.1
+is a one-sided statement — it has no upper bound on `θ x - x` — so without `eq_3_17` this
+branch would not close.)
+
 Vacuous for the rows with `b₀ ≥ 19 log 10`. -/
 lemma table_11_below_bound (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
-    ∀ x ∈ Set.Icc (exp b₀) (exp K), x ≤ (10 : ℝ) ^ 19 →
+    ∀ x ∈ Set.Icc (exp b₀) (exp K), x < (10 : ℝ) ^ 19 →
       |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
   sorry
 
@@ -156,7 +170,7 @@ suffix engine applies verbatim. -/
 lemma table_11_above_bound (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (k : ℕ) (hk : k ∈ Finset.Icc 1 5)
     (hentry : max b₀ (19 * log 10) ∈ table_10_entries) :
-    ∀ x ∈ Set.Icc (exp b₀) (exp K), (10 : ℝ) ^ 19 < x →
+    ∀ x ∈ Set.Icc (exp b₀) (exp K), (10 : ℝ) ^ 19 ≤ x →
       |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
   intro x hx hsplit
   have hk' : 1 ≤ k ∧ k ≤ 5 := Finset.mem_Icc.mp hk
@@ -164,7 +178,7 @@ lemma table_11_above_bound (b₀ : ℝ) (B : ℕ → ℝ)
     have : exp (19 * log 10) = (10 : ℝ) ^ 19 := by
       rw [mul_comm, exp_mul, exp_log (by norm_num : (0:ℝ) < 10)]
       norm_num
-    exact this ▸ hsplit.le
+    exact this ▸ hsplit
   have hx' : x ∈ Set.Icc (exp (max b₀ (19 * log 10))) (exp K) := by
     refine ⟨?_, hx.2⟩
     rcases max_choice b₀ (19 * log 10) with hm | hm <;> rw [hm]
@@ -342,7 +356,7 @@ theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ)
       |θ x - x| ≤ B k * table_11_margin * x / (log x) ^ k := by
   intro k hk x hx
   rcases table_11_entry_or_top b₀ B h with hentry | htop
-  · rcases le_or_gt x ((10 : ℝ) ^ 19) with hsplit | hsplit
+  · rcases lt_or_ge x ((10 : ℝ) ^ 19) with hsplit | hsplit
     · exact table_11_below_bound b₀ B h k hk x hx hsplit
     · exact table_11_above_bound b₀ B h k hk hentry x hx hsplit
   · exact table_11_top_row_bound b₀ B h htop k hk x hx
