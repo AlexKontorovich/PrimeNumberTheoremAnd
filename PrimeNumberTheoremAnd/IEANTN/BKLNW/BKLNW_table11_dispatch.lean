@@ -47,6 +47,45 @@ lemma table_10_row_of_entry {b : ℝ} (hb : b ∈ table_10_entries) :
     if i = 3 then p.2.2.2.1 else if i = 4 then p.2.2.2.2.1 else p.2.2.2.2.2, ?_⟩
   simpa using hp
 
+/-- Membership of a Table-10 row's `b`-entry in `table_10_entries`, addressed by list
+index. Addressing rows by index (rather than searching the 287-element list with `simp`)
+is what keeps the per-row certificates below cheap; it is the same device
+`table_10_values_of_mem_aux` uses. -/
+lemma mem_entries_get (N : ℕ) (hN : N < table_10.length) :
+    (table_10.get ⟨N, hN⟩).1 ∈ table_10_entries := by
+  simp only [List.mem_toFinset, List.mem_map]
+  exact ⟨_, List.get_mem _ _, rfl⟩
+
+/-- `mem_entries_get` with the row contents supplied by `rfl` at the call site. -/
+lemma mem_entries_idx (N : ℕ) (hN : N < 287) (b : ℝ)
+    (hb : (table_10.get ⟨N, table_10_length_eq ▸ hN⟩).1 = b) : b ∈ table_10_entries :=
+  hb ▸ mem_entries_get N _
+
+/-- `10^19 = e^{19 log 10}` is itself a Table-10 grid node (row 24), sitting between the
+rows `43` and `44`. This is what makes the split at `10^19` land on a strip boundary
+instead of cutting a strip in half. -/
+lemma mem_entries_19log10 : (19 : ℝ) * log 10 ∈ table_10_entries :=
+  mem_entries_idx 24 (by norm_num) _ rfl
+
+lemma table_10_next_le_of_mem {b b' : ℝ} (hb' : b' ∈ table_10_bs) (hlt : b < b') :
+    table_10_next b ≤ b' := by
+  have hmem : b' ∈ table_10_bs.filter (b < ·) := Finset.mem_filter.mpr ⟨hb', hlt⟩
+  rw [table_10_next_eq_min' b ⟨b', hmem⟩]
+  exact Finset.min'_le _ _ hmem
+
+/-- **Gap principle.** There is no Table-10 entry strictly between `b` and
+`table_10_next b` — immediate from `table_10_next` being an infimum. So an entry `≥ b` is
+either `b` itself or already at the next grid node.
+
+This is what makes a suffix bound over the 287-row grid provable by a *chain* of 287 cheap
+steps (each row versus the next) instead of a quadratic sweep of every row against every
+Table-11 row. -/
+lemma eq_or_ge_next {b b' : ℝ} (hb' : b' ∈ table_10_entries) (hge : b ≤ b') :
+    b' = b ∨ table_10_next b ≤ b' := by
+  rcases eq_or_lt_of_le hge with h | h
+  · exact Or.inl h.symm
+  · exact Or.inr (table_10_next_le_of_mem (Finset.mem_union_left _ hb') h)
+
 /-- The above-`10^19` engine, stated once and reused by every Table-11 row.
 
 Given a Table-10 entry `b₀'` and a constant `C` dominating `B_k^{t10}(b) * table_10_margin`
@@ -142,7 +181,139 @@ separately by `table_10_bs`). Proved by enumerating the rows. -/
 lemma table_11_entry_or_top (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) :
     max b₀ (19 * log 10) ∈ table_10_entries ∨ b₀ = (K : ℝ) := by
-  sorry
+  have hgt := LogTables.log_10_gt
+  have hlt := LogTables.log_10_lt
+  simp only [table_11, List.mem_cons, List.not_mem_nil, Prod.mk.injEq] at h
+  casesm* _ ∨ _
+  all_goals try contradiction
+  all_goals obtain ⟨rfl, -⟩ := h
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (20:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (21:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (22:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (23:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (24:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (25:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (26:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (27:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (28:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (29:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (30:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_right (by linarith : (43:ℝ) ≤ 19 * log 10)]
+    exact mem_entries_19log10
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 44)]
+    exact mem_entries_idx 25 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 45)]
+    exact mem_entries_idx 26 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 46)]
+    exact mem_entries_idx 27 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 47)]
+    exact mem_entries_idx 28 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 54)]
+    exact mem_entries_idx 35 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 55)]
+    exact mem_entries_idx 36 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 56)]
+    exact mem_entries_idx 37 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2275)]
+    exact mem_entries_idx 84 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2300)]
+    exact mem_entries_idx 85 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2325)]
+    exact mem_entries_idx 86 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2350)]
+    exact mem_entries_idx 87 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2375)]
+    exact mem_entries_idx 88 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 2400)]
+    exact mem_entries_idx 89 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 9800)]
+    exact mem_entries_idx 241 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 9900)]
+    exact mem_entries_idx 242 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 10000)]
+    exact mem_entries_idx 243 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 11000)]
+    exact mem_entries_idx 253 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 12000)]
+    exact mem_entries_idx 263 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 13000)]
+    exact mem_entries_idx 273 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 14000)]
+    exact mem_entries_idx 276 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 15000)]
+    exact mem_entries_idx 277 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 16000)]
+    exact mem_entries_idx 278 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 17000)]
+    exact mem_entries_idx 279 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 18000)]
+    exact mem_entries_idx 280 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 19000)]
+    exact mem_entries_idx 281 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 20000)]
+    exact mem_entries_idx 282 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 21000)]
+    exact mem_entries_idx 283 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 22000)]
+    exact mem_entries_idx 284 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 23000)]
+    exact mem_entries_idx 285 (by norm_num) _ rfl
+  · refine Or.inl ?_
+    rw [max_eq_left (by linarith : (19:ℝ) * log 10 ≤ 24000)]
+    exact mem_entries_idx 286 (by norm_num) _ rfl
+  · exact Or.inr (by norm_num [K])
 
 /-- The last Table-11 row, `b₀ = K`, has the degenerate domain `[e^K, e^K] = {e^K}`. That
 single point sits in the final Table-10 strip `[e^{24000}, e^{25000}]`, so the bound comes
