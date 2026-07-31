@@ -539,7 +539,8 @@ def cumsum [AddCommMonoid E] (u : ℕ → E) (n : ℕ) : E := ∑ i ∈ Finset.r
 
 def nabla [Sub E] (u : α → E) (n : α) : E := u (n + 1) - u n
 
-/- TODO nnabla is redundant -/
+/- `nnabla` is the backward difference `u n - u (n+1)`; kept alongside `nabla`
+   for summation-by-parts identities that prefer that orientation. -/
 def nnabla [Sub E] (u : α → E) (n : α) : E := u n - u (n + 1)
 
 def shift (u : α → E) (n : α) : E := u (n + 1)
