@@ -4,6 +4,7 @@ import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Helpers
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq15
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.LaplaceInversion
@@ -851,31 +852,6 @@ private theorem kadiri_thm_3_1_q1_shifted_pointwise_functional_eq
           (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume) := by
       ring
 
-@[blueprint
-  "kadiri-thm-3-1-q1-I-3"
-  (title := "Kadiri's $I_3(T)$: the gamma-factor piece")
-  (statement := /-- Kadiri's $I_3(T)$ from \cite[p.~12]{Kadiri2005}: the gamma-factor
-  piece of the functional-equation rewrite of the $\sigma = -a$ integral,
-  $$ I_3(T) \;:=\; \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
-                  \frac{1}{2}\Big\{
-                    \frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)
-                  + \frac{\Gamma'}{\Gamma}\!\Big(\frac{1-s}{2}\Big)
-                  \Big\}\, \Phi(-s)\, ds. $$
-  Its $T \to \infty$ limit is given by \ref{kadiri-thm-3-1-q1-eq-15}: shifting the
-  contour to the critical line $\Re s = 1/2$ picks up a $+\Phi(0)$ residue at $s = 0$
-  (from the pole of $\Gamma'/\Gamma(s/2)$ at the origin), and the
-  $\Gamma'/\Gamma$-symmetrization (\ref{kadiri-thm-3-1-q1-gamma-symmetrization}) on
-  $\Re s = 1/2$ collapses the two gamma terms into $\Re[\Gamma'/\Gamma(s/2)]$. -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I_3 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      ((1 / 2 : ℂ) *
-        (digamma ((((-a : ℝ) : ℂ) + (t : ℂ) * I) / 2)
-         + digamma ((1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2))) *
-        Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
-
 /-- The finite-segment continuity of the gamma-factor coefficient on the shifted contour. -/
 private def U1541ShiftedDigammaCoefficientContinuousHypothesis (a T : ℝ) : Prop :=
   ContinuousOn
@@ -1274,54 +1250,6 @@ theorem kadiri_thm_3_1_q1_eq_14
       (nhds (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
   exact kadiri_thm_3_1_q1_eq_14_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1
 
-/-- The digamma function commutes with complex conjugation. Mathlib's junk-value
-conventions make this unconditional: `Complex.Gamma_conj` holds at every point,
-`deriv` returns `0` at non-differentiable points on both sides of the symmetry,
-and `conj` fixes `0`. In the application below the argument `s / 2` has real
-part `1 / 4`, away from the poles of `Γ` in any case. -/
-private lemma digamma_conj (z : ℂ) :
-    digamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (digamma z) := by
-  have hΓ : (starRingEnd ℂ) ∘ Gamma ∘ (starRingEnd ℂ) = Gamma := by
-    funext w
-    simp [Function.comp_apply, Gamma_conj]
-  have hd : deriv Gamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (deriv Gamma z) := by
-    conv_lhs => rw [← hΓ, deriv_conj_conj]
-    simp [Function.comp_apply]
-  rw [digamma_def, logDeriv_apply, logDeriv_apply, hd, Gamma_conj, ← map_div₀]
-
-@[blueprint
-  "kadiri-thm-3-1-q1-gamma-symmetrization"
-  (title := "$\\Gamma'/\\Gamma$ symmetrization on the critical line")
-  (statement := /-- For every $s \in \mathbb{C}$ with $\Re s = 1/2$,
-  $$ \frac{1}{2}\!\left\{
-       \frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)
-     + \frac{\Gamma'}{\Gamma}\!\Big(\frac{1-s}{2}\Big)
-       \right\}
-     \;=\; \Re\!\left[\frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)\right]. $$
-  Used to identify the integrand of $I_3$ after shifting to the critical line
-  (\cite[p.~13]{Kadiri2005}, displayed equation between (14) and (15)). -/)
-  (proof := /-- On $\Re s = 1/2$, $1 - s = \bar s$, hence $(1 - s)/2 = \overline{s/2}$.
-  Since $\Gamma'/\Gamma$ has real Taylor coefficients away from its poles, it commutes
-  with complex conjugation: $\Gamma'/\Gamma((1-s)/2) = \overline{\Gamma'/\Gamma(s/2)}$.
-  Then $\tfrac{1}{2}(z + \bar z) = \Re z$ with $z = \Gamma'/\Gamma(s/2)$. To be
-  formalised. -/)
-  (latexEnv := "sublemma")
-  (discussion := 1544)]
-theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
-    (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) =
-      ((digamma (s / 2)).re : ℂ) := by
-  have h1s : 1 - s = (starRingEnd ℂ) s := by
-    apply Complex.ext
-    · rw [Complex.sub_re, Complex.one_re, Complex.conj_re, _hs]
-      norm_num
-    · rw [Complex.sub_im, Complex.one_im, Complex.conj_im]
-      ring
-  have hconj : (1 - s) / 2 = (starRingEnd ℂ) (s / 2) := by
-    rw [map_div₀, map_ofNat, h1s]
-  rw [hconj, digamma_conj, Complex.add_conj]
-  push_cast
-  ring
-
 @[blueprint
   "kadiri-thm-3-1-q1-eq-15"
   (title := "Equation (15) of \\cite{Kadiri2005}: limit of $I_3(T)$")
@@ -1345,7 +1273,7 @@ theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
   value is well-defined precisely under the explicit integrability hypothesis on the
   $\Gamma$-contour integrand (otherwise the integral evaluates to $0$ by Mathlib's
   convention and the statement is vacuous); this same hypothesis is carried by
-  \ref{kadiri-thm-3-1-q1}. To be formalised. -/)
+  \ref{kadiri-thm-3-1-q1}. -/)
   (latexEnv := "sublemma")
   (discussion := 1545)]
 theorem kadiri_thm_3_1_q1_eq_15
@@ -1367,7 +1295,7 @@ theorem kadiri_thm_3_1_q1_eq_15
             ∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 Φ (-(1 / 2 + (t : ℂ) * I)))) := by
-  sorry
+  exact kadiri_thm_3_1_q1_eq_15_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1 _hΓ_int
 
 /-! ## Theorem 3.1 of \cite{Kadiri2005}, specialized to $q = 1$, $\chi$ trivial
 
