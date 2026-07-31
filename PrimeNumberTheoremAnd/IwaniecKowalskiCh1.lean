@@ -1120,6 +1120,107 @@ private lemma LSeriesSummable_tau_pow_two {s : ℂ} (hs : 1 < s.re) :
   rw [summable_norm_iff, ← LSeriesSummable]
   exact LSeries_d_summable 4 hs
 
+private lemma tau_pow_two_LSeries.term_isMultiplicative (s : ℂ) {m n : ℕ} (hmn : m.Coprime n) :
+    LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s (m * n) =
+      LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s m *
+        LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s n :=
+  LSeries.term_isMultiplicative_if_fun_isMultiplicative tau_pow_two_isMultiplicative s hmn
+
+/-- Local Euler factor: $\sum_e \tau(p^e)^2 p^{-es}=(1+p^{-s})/(1-p^{-s})^3$. -/
+private lemma tau_pow_two_tsum_prime_pow {s : ℂ} (hs : 1 < s.re) (p : Primes) :
+    sumOnPrimePows (LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s) p =
+      (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 3 := by
+  have hsub : 1 - (p : ℂ) ^ (-s) ≠ 0 := Complex.one_sub_prime_cpow_ne_zero p.2 hs
+  set x : ℂ := (p : ℂ) ^ (-s)
+  have hx : ‖x‖ < 1 := by
+    dsimp only [x]
+    rw [Complex.norm_cpow_of_ne_zero (Nat.cast_ne_zero.mpr p.2.ne_zero)]
+    · norm_num
+      exact lt_of_lt_of_le
+        (Real.rpow_lt_rpow_of_exponent_lt (mod_cast p.2.one_lt) (neg_lt_zero.mpr (by linarith)))
+        (by norm_num)
+  have hx0 : 1 - x ≠ 0 := by simpa [x] using hsub
+  have hxpow : ∀ e : ℕ, (p.val : ℂ) ^ (-(e : ℂ) * s) = x ^ e := by
+    intro e
+    simp only [x]
+    rw [← Complex.cpow_nat_mul]
+    ring_nf
+  have h_term : ∀ e : ℕ,
+      LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s (p.val ^ e) =
+        ((e : ℂ) + 1) ^ 2 * x ^ e := by
+    intro e
+    calc
+      LSeries.term (fun n ↦ (τ n : ℂ) ^ 2) s (p.val ^ e)
+          = ((e : ℂ) + 1) ^ 2 * (p.val : ℂ) ^ (-(e : ℂ) * s) := by
+            simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow,
+              Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
+            rw [tau_pow_two_apply_prime_pow p.prop]
+            simp only [Complex.cpow_neg, div_eq_mul_inv, ← Complex.natCast_cpow_natCast_mul]
+      _ = ((e : ℂ) + 1) ^ 2 * x ^ e := by rw [hxpow]
+  have hbin (e : ℕ) : 2 * Nat.choose (e + 2) 2 = (e + 1) * (e + 2) := by
+    rw [Nat.choose_two_right, show e + 2 - 1 = e + 1 from by cases e <;> rfl]
+    convert Nat.mul_div_cancel'
+      (even_iff_two_dvd.mp (Nat.even_mul_succ_self (e + 1))) using 1 <;> ring
+  have hid :
+      HasSum (fun e : ℕ ↦ ((e : ℂ) + 1) ^ 2 * x ^ e)
+        ((1 + x) / (1 - x) ^ 3) := by
+    have h2 := hasSum_choose_mul_geometric_of_norm_lt_one (k := 2) (r := x) hx
+    have h1' : HasSum (fun e : ℕ ↦ ((e : ℂ) + 1) * x ^ e) (1 / (1 - x) ^ 2) := by
+      have hsum_val : x / (1 - x) ^ 2 + (1 - x)⁻¹ = 1 / (1 - x) ^ 2 := by
+        have : (1 - x)⁻¹ = (1 - x) / (1 - x) ^ 2 := by field_simp [hx0]
+        rw [this]; ring
+      have hcomb :=
+        (hasSum_coe_mul_geometric_of_norm_lt_one hx).add (hasSum_geometric_of_norm_lt_one hx)
+      have hfun : (fun e : ℕ ↦ ((e : ℂ) + 1) * x ^ e) =
+          fun e : ℕ ↦ (e : ℂ) * x ^ e + x ^ e := by
+        funext e; ring
+      rwa [hfun, ← hsum_val]
+    have hcomb :
+        HasSum
+          (fun e : ℕ ↦ 2 * ((Nat.choose (e + 2) 2 : ℂ) * x ^ e) - ((e : ℂ) + 1) * x ^ e)
+          (2 * (1 / (1 - x) ^ 3) - 1 / (1 - x) ^ 2) :=
+      (h2.mul_left (2 : ℂ)).sub h1'
+    have hfun :
+        (fun e : ℕ ↦ ((e : ℂ) + 1) ^ 2 * x ^ e) =
+          fun e ↦ 2 * ((Nat.choose (e + 2) 2 : ℂ) * x ^ e) - ((e : ℂ) + 1) * x ^ e := by
+      ext e
+      have hb := congrArg (Nat.cast : ℕ → ℂ) (hbin e)
+      push_cast at hb
+      -- hb : 2 * ↑(choose (e+2) 2) = (↑e+1)*(↑e+2)
+      have : ((e : ℂ) + 1) ^ 2 =
+          2 * (Nat.choose (e + 2) 2 : ℂ) - ((e : ℂ) + 1) := by
+        calc
+          ((e : ℂ) + 1) ^ 2
+              = ((e : ℂ) + 1) * ((e : ℂ) + 2) - ((e : ℂ) + 1) := by ring
+          _ = 2 * (Nat.choose (e + 2) 2 : ℂ) - ((e : ℂ) + 1) := by rw [← hb]
+      rw [this]; ring
+    rw [hfun]
+    convert hcomb using 1
+    · field_simp [hx0]; ring
+  simpa [sumOnPrimePows_apply, h_term] using hid.tsum_eq
+
+private lemma tau_pow_two_LSeries_eulerProduct_tprod (s : ℂ) (hs : 1 < s.re) :
+    LSeries (fun n ↦ (τ n : ℂ) ^ 2) s =
+      ∏' p : Primes, (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 3 := by
+  convert! HasProd.tprod_eq
+      (EulerProduct.eulerProduct_hasProd (R := ℂ) ?_ ?_ _ _) |>.symm using 1
+  · apply tprod_congr
+    simp only [← tau_pow_two_tsum_prime_pow hs, sumOnPrimePows_apply, implies_true]
+  · simp [LSeries.term, tau]
+  · intro m n hmn; exact tau_pow_two_LSeries.term_isMultiplicative s hmn
+  · convert! (LSeriesSummable_tau_pow_two hs).norm using 1
+  · unfold LSeries.term; simp only [↓reduceIte]
+
+private lemma tau_pow_two_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
+    HasProd (fun p : Primes ↦ (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) ^ 3)
+      (LSeries (fun n ↦ (τ n : ℂ) ^ 2) s) := by
+  convert! EulerProduct.eulerProduct_hasProd _ _ _
+      (LSeries.term_zero (fun n ↦ (τ n : ℂ) ^ 2) s) using 1
+  · funext p; exact Eq.symm (tau_pow_two_tsum_prime_pow hs p)
+  · simp [LSeries.term, tau]
+  · intro _ _ hmn; exact tau_pow_two_LSeries.term_isMultiplicative s hmn
+  · convert! (LSeriesSummable_tau_pow_two hs).norm using 1
+
 @[blueprint
   "moebius_sq_LSeries.term_isMultiplicative"
   (title := "moebius-sq-LSeries.term-isMultiplicative")
