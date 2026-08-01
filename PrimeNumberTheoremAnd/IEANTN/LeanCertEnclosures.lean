@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
-import LeanCert.Tactic
+import LeanCert.Tactic.Extension
 import LeanCert.Validity.Integration
 import Mathlib.Data.Rat.Floor
 
