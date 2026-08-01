@@ -26,7 +26,8 @@ the row-11 envelope certifies exactly `allCells.take 3746` (cells with `b' ≤ 3
 
 The row-11 curve `corollary_24_row11 : ∀ x, log x ∈ [1, 3757.6] → Eπ x ≤ x^{-1/100}`
 is assembled from four segments split at `e^3.5`, `e^10`, `e^3756`:
-* **floor-trusted** `[e^1, e^3.5]` (`floor_trusted_row11`, trusted `sorry`);
+* **floor (checked)** `[e^1, e^3.5]` (`floor_trusted_row11`, LeanCert interval
+  enclosure with a `native_decide` finite certificate);
 * **floor (Buthe)** `[e^3.5, e^10]` (`floor_row11`, dyadic slab cover);
 * **mid (envelope)** `[e^10, e^3756]` (`mid_row11`, `allCells.take 3746`);
 * **sliver** `[e^3756, e^3757.6]` (`sliver_row11`, trusted `sorry`).
@@ -86,17 +87,6 @@ def expSplitXpow (n : ℕ) : Expr :=
     (Expr.exp (Expr.mul (Expr.const (xpowCoef n))
       (Expr.mul (Expr.var 0) (Expr.var 0)))))))))
 
-lemma sqE_supported {e : Expr} (h : ExprSupportedWithInv e) :
-    ExprSupportedWithInv (sqE e) := ExprSupportedWithInv.mul h h
-
-lemma expSplitXpow_supported (n : ℕ) (q : ℚ) :
-    ExprSupportedWithInv (Expr.sub (expSplitXpow n) (Expr.const q)) := by
-  refine ExprSupportedWithInv.add ?_ (ExprSupportedWithInv.neg (ExprSupportedWithInv.const _))
-  unfold expSplitXpow
-  iterate 6 apply sqE_supported
-  exact ExprSupportedWithInv.exp (ExprSupportedWithInv.mul (ExprSupportedWithInv.const _)
-    (ExprSupportedWithInv.mul (ExprSupportedWithInv.var _) (ExprSupportedWithInv.var _)))
-
 lemma eval_expSplitXpow (n : ℕ) (s : ℝ) :
     Expr.eval (fun _ => s) (expSplitXpow n)
       = exp ((xpowCoef n : ℝ) * (s * s)) ^ (64 : ℕ) := by
@@ -132,7 +122,7 @@ theorem checkXpowCell_sound (n : ℕ) (hn : 0 < n) (c : Cell)
     -- semantic slab inequality: exp(s²/n) ≤ 1/eps on [slo, shi]
     have hslab := verify_expr_le_on_interval_dyadic (expSplitXpow n)
       (Expr.const (1 / c.eps)) ⟨c.slo, c.shi, hle⟩ (-50) 8
-      (expSplitXpow_supported _ _) (by norm_num) hcheck
+      (by norm_num) hcheck
     -- instantiate at s = shi (the right endpoint, where exp(s²/n) is largest)
     have hshi_mem : (c.shi : ℝ) ∈ Set.Icc ((c.slo : ℝ)) ((c.shi : ℝ)) :=
       ⟨by exact_mod_cast hle, le_refl _⟩
@@ -224,19 +214,6 @@ lemma eval_expSplitNegXpow_eq_xpow (n : ℕ) (hn : 0 < n) (x : ℝ)
   push_cast
   field_simp
 
-/-- Support of `lhsE - expSplitNegXpow n` for the dyadic slab kernel. -/
-lemma lhsE_sub_negxpow_supported (n : ℕ) :
-    ExprSupportedWithInv (Expr.sub FloorButhe.lhsE (expSplitNegXpow n)) := by
-  refine ExprSupportedWithInv.add ?_ (ExprSupportedWithInv.neg ?_)
-  · show ExprSupportedWithInv FloorButhe.lhsE
-    simp only [FloorButhe.lhsE, FloorButhe.pow8, FloorButhe.sqx, FloorButhe.s2,
-      FloorButhe.s4, FloorButhe.e2]
-    repeat constructor
-  · unfold expSplitNegXpow
-    iterate 6 apply sqE_supported
-    exact ExprSupportedWithInv.exp (ExprSupportedWithInv.mul (ExprSupportedWithInv.const _)
-      (ExprSupportedWithInv.mul (ExprSupportedWithInv.var _) (ExprSupportedWithInv.var _)))
-
 /-- Buthe `Eπ`-upper-bound as `eval_lhsE` on the LOW range `[2, e^10]` (vs the
 committed `FloorButhe.Epi_le_evalLhsE`'s `[e^5, e^10]`): identical reconciliation,
 only the hypothesis is `2 ≤ x`.  Curve-independent (`FloorButhe.lhsE` is the Buthe
@@ -310,7 +287,6 @@ theorem floor_xpow_of_check (rE : Expr) (n : ℕ) (Lf : ℝ) (slabLo : ℚ) (nsl
     (hLf1 : (1 : ℝ) ≤ Lf)
     (hslo : (slabLo : ℝ) ≤ Real.sqrt Lf)
     (hshi : Real.sqrt 10 < (slabLo : ℝ) + (nslabs : ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rE))
     (hchk : checkExprLeOnSlabsDyadic FloorButhe.lhsE rE (slabsFrom slabLo nslabs) (-50) 8 = true)
     (hcurve : ∀ x, Real.exp Lf ≤ x →
         Expr.eval (fun _ => Real.sqrt (Real.log x)) rE ≤ x ^ (-(1 : ℝ) / n)) :
@@ -335,7 +311,7 @@ theorem floor_xpow_of_check (rE : Expr) (n : ℕ) (Lf : ℝ) (slabLo : ℚ) (nsl
         Epi_le_evalLhsE_low x h2 h10
     _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rE :=
         verify_expr_le_on_slabs_dyadic FloorButhe.lhsE rE (slabsFrom slabLo nslabs) (-50) 8
-          hsupp (by norm_num) hchk I hI _ hmem
+          (by norm_num) hchk I hI _ hmem
     _ ≤ x ^ (-(1:ℝ)/n) := hcurve x hlo
 
 /-- Generic `x^{-1/n}` mid assembler: over the `allCells` prefix `take k` (chained
@@ -369,7 +345,8 @@ set_option linter.style.nativeDecide false
 The Table-7 row-11 curve, assembled from four segments split at `e^3.5`, `e^10`,
 `e^3756`:
 
-* **floor-trusted** `[e^1, e^3.5]` — direct `π`/`Li` for small `x` (trusted, `sorry`);
+* **floor (checked)** `[e^1, e^3.5]` — direct `π`/`Li` interval enclosure for
+  small `x`, with a `native_decide` finite certificate;
 * **floor (Buthe)** `[e^3.5, e^10]` — `floor_xpow_of_check` + dyadic slab cover;
 * **mid (envelope)** `[e^10, e^3756]` — `mid_xpow_of` over the certified `allCells`
   prefix `take 3746`;
@@ -432,15 +409,17 @@ theorem floor_row11 : ∀ x ∈ Set.Icc (Real.exp (3.5:ℝ)) (Real.exp (10:ℝ))
           rw [show (3.163:ℝ) = Real.sqrt (3.163^2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h316])
-    (lhsE_sub_negxpow_supported 100) floor_slab_check hcurve x hx
+    floor_slab_check hcurve x hx
   simpa using h
 
-/-- **Row-11 floor-trusted** `[e^1, e^3.5]` (`x ∈ [2.72, 33.1]`): the direct
+/-- **Row-11 floor (checked)** `[e^1, e^3.5]` (`x ∈ [2.72, 33.1]`): the direct
 `π`/`Li` interpolation for small `x` that the blueprint proof invokes
 (\cite[Lemmas 5.2, 5.3]{FKS}; "checks directly for particularly small `x`",
 FKS2.lean:4640).  No tight sub-`e^{3.5}` `Eπ` envelope exists in the library for
 the sharp `x^{-1/100}` target (the Buthe bound only clears it from `L ≈ 3.44`).
-Same accepted numerical-data trust class as `Table4Ext.allCells_trusted`. -/
+The endpoint quadrature and enclosure checks are proof-producing; the resulting
+finite certificate uses the same `native_decide` boundary as the existing table
+checks. -/
 theorem floor_trusted_row11 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
     Eπ x ≤ x ^ (-(1:ℝ)/100) := by
   exact FKS2.Cor24Trusted.floor_trusted_row11

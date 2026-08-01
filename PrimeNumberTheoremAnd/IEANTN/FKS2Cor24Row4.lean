@@ -25,7 +25,7 @@ segments:
 * `Epi_le_evalLhsE_wide` — the Buthe `Eπ`-bound reread as `eval FloorButhe.lhsE (√(log x))`
   on the FULL `[2, e^43]` range (vs `Epi_le_evalLhsE_low`'s `[2, e^10]`);
 * `xhalfCurveE c twoK` — the target expression `c·s^{2K}·exp(-s²/2)` (`= c·s^{2K}·x^{-1/2}`
-  at `s = √(log x)`), with `eval_xhalfCurveE` and support lemma `xhalfCurve_sub_supported`;
+  at `s = √(log x)`), with semantic bridge `eval_xhalfCurveE`;
 * `floor_xhalf_of_check` — the generic Buthe-floor assembler on `[e^{Lf}, e^43]`.
 
 Row 4 (`c = 1`, `K = 2`, `2K = 4`) is the template.
@@ -114,22 +114,6 @@ lemma eval_xhalfCurveE (c : ℚ) (twoK : ℕ) (x : ℝ) (hxpos : 0 < x) (hL : 0 
   simp only [xhalfCurveE, Expr.eval_mul, Expr.eval_const, Expr.eval_pow, Expr.eval_var, h2]
   ring
 
-/-- Support of `lhsE - xhalfCurveE c twoK` for the dyadic slab kernel. -/
-lemma xhalfCurve_sub_supported (c : ℚ) (twoK : ℕ) :
-    ExprSupportedWithInv (Expr.sub FloorButhe.lhsE (xhalfCurveE c twoK)) := by
-  refine ExprSupportedWithInv.add ?_ (ExprSupportedWithInv.neg ?_)
-  · show ExprSupportedWithInv FloorButhe.lhsE
-    simp only [FloorButhe.lhsE, FloorButhe.pow8, FloorButhe.sqx, FloorButhe.s2,
-      FloorButhe.s4, FloorButhe.e2]
-    repeat constructor
-  · unfold xhalfCurveE
-    refine ExprSupportedWithInv.mul (ExprSupportedWithInv.const _) ?_
-    refine ExprSupportedWithInv.mul (pow_supported (ExprSupportedWithInv.var 0) twoK) ?_
-    unfold expSplitNegXpow
-    iterate 6 apply sqE_supported
-    exact ExprSupportedWithInv.exp (ExprSupportedWithInv.mul (ExprSupportedWithInv.const _)
-      (ExprSupportedWithInv.mul (ExprSupportedWithInv.var _) (ExprSupportedWithInv.var _)))
-
 /-- Generic `x^{-1/2}` **Buthe-floor** assembler on `[e^{Lf}, e^43]` (`1 ≤ Lf`): the Buthe
 `Eπ`-bound (`Epi_le_evalLhsE_wide`, valid from `x ≥ 2` up to `e^43 < 10^19`) below a
 dyadic slab curve `rE` that dominates the row curve (`hcurve`).  Slabs
@@ -139,7 +123,6 @@ theorem floor_xhalf_of_check (rE : Expr) (curve : ℝ → ℝ) (Lf : ℝ) (slabL
     (hLf1 : (1 : ℝ) ≤ Lf)
     (hslo : (slabLo : ℝ) ≤ Real.sqrt Lf)
     (hshi : Real.sqrt 43 < (slabLo : ℝ) + (nslabs : ℝ) * 0.05)
-    (hsupp : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rE))
     (hchk : checkExprLeOnSlabsDyadic FloorButhe.lhsE rE (slabsFrom slabLo nslabs) (-50) 8 = true)
     (hcurve : ∀ x, Real.exp Lf ≤ x →
         Expr.eval (fun _ => Real.sqrt (Real.log x)) rE ≤ curve x) :
@@ -172,7 +155,7 @@ theorem floor_xhalf_of_check (rE : Expr) (curve : ℝ → ℝ) (Lf : ℝ) (slabL
         Epi_le_evalLhsE_wide x h2 h19
     _ ≤ Expr.eval (fun _ => Real.sqrt (Real.log x)) rE :=
         verify_expr_le_on_slabs_dyadic FloorButhe.lhsE rE (slabsFrom slabLo nslabs) (-50) 8
-          hsupp (by norm_num) hchk I hI _ hmem
+          (by norm_num) hchk I hI _ hmem
     _ ≤ curve x := hcurve x hlo
 
 end Table4Ext
@@ -225,7 +208,7 @@ theorem floor_row4 : ∀ x ∈ Set.Icc (Real.exp (3:ℝ)) (Real.exp (43:ℝ)),
           rw [show (6.56:ℝ) = Real.sqrt (6.56 ^ 2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h656])
-    (xhalfCurve_sub_supported 1 4) floor_slab_check_row4 hcurve
+    floor_slab_check_row4 hcurve
 
 /-- **Row-4 floor-trusted** `[e^1, e^3]` (`x ∈ [2.72, 20.1]`): the direct `π`/`Li`
 interpolation for small `x` that the blueprint proof invokes
