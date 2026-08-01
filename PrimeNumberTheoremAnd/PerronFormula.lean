@@ -641,7 +641,7 @@ lemma isTheta (xpos : 0 < x) :
   (latexEnv := "lemma")]
 lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     Integrable fun (t : ℝ) ↦ f x (σ + t * I) := by
-  /-- By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval.-/
+  /-- By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval. -/
   have : Continuous (fun (y : ℝ) ↦ f x (σ + y * I)) := by
     refine (isHolomorphicOn xpos).continuousOn.comp_continuous (by continuity) fun x ↦
       not_or.mpr ?_

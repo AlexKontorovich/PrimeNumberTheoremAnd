@@ -3,7 +3,7 @@ import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.IEANTN.PrimeInInterval
 import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
 import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
-import LeanCert.Tactic
+import LeanCert.Tactic.IntervalAuto
 import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 blueprint_comment /--

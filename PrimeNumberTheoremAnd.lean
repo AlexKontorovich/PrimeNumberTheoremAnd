@@ -33,6 +33,9 @@ import PrimeNumberTheoremAnd.IEANTN.Goldbach
 import PrimeNumberTheoremAnd.IEANTN.Kadiri
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq15
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq15GammaFactor
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq15LaplaceStrip
 import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 import PrimeNumberTheoremAnd.IEANTN.KLN
 import PrimeNumberTheoremAnd.IEANTN.Lcm

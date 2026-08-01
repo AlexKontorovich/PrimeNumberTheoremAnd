@@ -7,7 +7,7 @@ import Mathlib.Tactic.NormNum.BigOperators
 import PrimeNumberTheoremAnd.IEANTN.LogTables
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 import LeanCert.CertifiedBounds.Chebyshev
-import LeanCert.Tactic
+import LeanCert.Tactic.IntervalAuto
 
 blueprint_comment /--
 \section{Chebyshev's estimates}\label{chebyshev-estimates-sec}

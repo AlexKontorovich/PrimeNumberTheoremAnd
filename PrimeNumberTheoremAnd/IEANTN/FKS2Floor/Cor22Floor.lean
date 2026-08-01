@@ -2,7 +2,7 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
 import LeanCert.CertifiedBounds.Chebyshev
 import LeanCert.Validity.AffineCover
-import LeanCert.Tactic
+import LeanCert.Tactic.IntervalAuto
 
 open LeanCert.CertifiedBounds.Chebyshev
 open Real MeasureTheory Chebyshev LeanCert.Core LeanCert.Validity
