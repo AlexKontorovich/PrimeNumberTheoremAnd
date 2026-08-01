@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24
+import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
 import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
 
 /-!
@@ -26,7 +27,7 @@ the row-11 envelope certifies exactly `allCells.take 3746` (cells with `b' ≤ 3
 
 The row-11 curve `corollary_24_row11 : ∀ x, log x ∈ [1, 3757.6] → Eπ x ≤ x^{-1/100}`
 is assembled from four segments split at `e^3.5`, `e^10`, `e^3756`:
-* **floor (checked)** `[e^1, e^3.5]` (`floor_trusted_row11`, LeanCert interval
+* **floor (checked)** `[e^1, e^3.5]` (`floor_checked_row11`, LeanCert interval
   enclosure with a `native_decide` finite certificate);
 * **floor (Buthe)** `[e^3.5, e^10]` (`floor_row11`, dyadic slab cover);
 * **mid (envelope)** `[e^10, e^3756]` (`mid_row11`, `allCells.take 3746`);
@@ -420,9 +421,9 @@ the sharp `x^{-1/100}` target (the Buthe bound only clears it from `L ≈ 3.44`)
 The endpoint quadrature and enclosure checks are proof-producing; the resulting
 finite certificate uses the same `native_decide` boundary as the existing table
 checks. -/
-theorem floor_trusted_row11 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
+theorem floor_checked_row11 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
     Eπ x ≤ x ^ (-(1:ℝ)/100) := by
-  exact FKS2.Cor24Trusted.floor_trusted_row11
+  exact FKS2.Cor24Checked.floor_row11
 
 /-- **Row-11 sliver** `[e^3756, e^3757.6]` (width `≈ 1.6` in `log x`, at the
 threshold): the `x^{-1/100}` curve is `≤ 0.6%` above the `allCells` envelope on
@@ -463,7 +464,7 @@ theorem corollary_24_row11 :
       exact ⟨by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr ha,
              by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr hb⟩
     rcases le_total (Real.log x) 3.5 with h1 | h1
-    · exact floor_trusted_row11 x (cvt 1 3.5 hlo h1)
+    · exact floor_checked_row11 x (cvt 1 3.5 hlo h1)
     · rcases le_total (Real.log x) 10 with h2 | h2
       · exact floor_row11 x (cvt 3.5 10 h1 h2)
       · rcases le_total (Real.log x) 3756 with h3 | h3

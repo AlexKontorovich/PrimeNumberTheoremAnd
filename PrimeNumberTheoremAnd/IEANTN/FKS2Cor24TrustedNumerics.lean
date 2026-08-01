@@ -2,7 +2,6 @@ import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
 
 /-!
 # Trusted numerical boundaries introduced by FKS2 Corollary 24
@@ -218,14 +217,11 @@ theorem sliver_row10 : ∀ x ∈ Set.Icc (Real.exp (1358:ℝ)) (Real.exp (1358.6
     Epi x ≤ x ^ (-(1:ℝ)/50) := by
   sorry
 
-/-! ### Row 11 — curve `x^{-1/100}` -/
+/-! ### Row 11 — curve `x^{-1/100}`
 
-/-- **Row 11 floor** `[e^1, e^3.5]` (`x ∈ [2.72, 33.1]`): direct, checked
-`π`/`Li` interval computation (FKS2 §5.2–§5.3), using the same `native_decide`
-trust boundary as the existing finite table checks; `E_π(x) ≤ x^{-1/100}`. -/
-theorem floor_trusted_row11 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
-    Epi x ≤ x ^ (-(1:ℝ)/100) := by
-  simpa [Epi, Eπ, pi, Li] using FKS2.Cor24Checked.floor_row11
+The Row 11 floor is checked in `FKS2Cor24CheckedNumerics`; only the trusted
+large-`x` sliver remains here.
+-/
 
 /-- **Row 11 sliver** `[e^3756, e^3757.6]` (`x` astronomically large): trusted **tabular**
 boundary at the Table-7 threshold — FKS2's refined Theorem-6 interpolation, far beyond
