@@ -12,8 +12,8 @@ Importing it registers checked enclosures for the project definitions `pi`, `Li`
 the interval facts consumed by LeanCert.
 
 The default `Li` enclosure uses `liPanels = 128` checked quadrature panels at each
-endpoint.  Candidates wider than one are deliberately rejected so LeanCert's semantic
-solver subdivides before composing the endpoint bounds into an `Eπ` enclosure.
+endpoint. Candidates wider than one are deliberately rejected so LeanCert's focused
+enclosure tactic subdivides before composing the endpoint bounds into an `Eπ` enclosure.
 -/
 
 open MeasureTheory

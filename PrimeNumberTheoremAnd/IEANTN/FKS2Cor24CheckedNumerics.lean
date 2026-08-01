@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.IEANTN.LeanCertEnclosures
-import LeanCert.Tactic.LeanCert
+import LeanCert.Tactic.Enclosure
+import LeanCert.Tactic.IntervalAuto
 
 /-!
 # Checked small-window numerics for FKS2 Corollary 24
@@ -22,13 +23,17 @@ set_option maxHeartbeats 1000000 in
 /-- The former trusted row-11 floor calculation, discharged by checked interval arithmetic. -/
 theorem floor_row11 : ∀ x ∈ Set.Icc (Real.exp (1 : ℝ)) (Real.exp (3.5 : ℝ)),
     Eπ x ≤ x ^ (-(1 : ℝ) / 100) := by
-  have hexpLo : (2 : ℝ) ≤ Real.exp 1 := by leancert
-  have hexpHi : Real.exp (3.5 : ℝ) ≤ 34 := by leancert
+  have hexpLo : (2 : ℝ) ≤ Real.exp 1 := by
+    have h := Real.add_one_le_exp (1 : ℝ)
+    norm_num at h
+    exact h
+  have hexpHi : Real.exp (3.5 : ℝ) ≤ 34 := by
+    interval_decide (trust := kernel)
   have hEpi : ∀ x ∈ Set.Icc (2 : ℝ) 34, Eπ x ≤ (19 / 20 : ℚ) := by
-    leancert (budget := 10) (subdivisions := 8) (trust := native)
+    enclosure_bound (subdivisions := 8) (trust := native)
   have hCurve : ∀ x ∈ Set.Icc (2 : ℝ) 34, (19 / 20 : ℚ) ≤
       Real.exp (Real.log x * (-(1 : ℝ) / 100)) := by
-    leancert (trust := kernel)
+    certify_bound (trust := kernel)
   intro x hx
   have hx' : x ∈ Set.Icc (2 : ℝ) 34 :=
     ⟨hexpLo.trans hx.1, hx.2.trans hexpHi⟩
