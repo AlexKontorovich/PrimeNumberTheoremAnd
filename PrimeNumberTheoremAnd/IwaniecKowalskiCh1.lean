@@ -968,10 +968,9 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
-  Zeta squared:
-  `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
-  where omega is the number of distinct prime factors.
--/
+Zeta squared:
+`ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_pow_two"
   (title := "zeta pow two")
@@ -1023,9 +1022,11 @@ private lemma tau_sq_isMultiplicative :
     _root_.mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul, one_pow]
   refine ⟨by simp [tau], ?_⟩
   intro m n hmn
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte]
+  by_cases m_eq_zero : m = 0
+  · simp [m_eq_zero]
+  by_cases n_eq_zero : n = 0
+  · simp [n_eq_zero]
+  simp only [m_eq_zero, n_eq_zero, or_self, ↓reduceIte]
   have hcop : (m ^ 2).Coprime (n ^ 2) := by
     rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
       Nat.coprime_pow_right_iff (by decide : 0 < 2)]
@@ -1040,9 +1041,11 @@ private lemma tau_sq_nat_isMultiplicative :
     _root_.mul_eq_zero]
   refine ⟨by simp [tau], ?_⟩
   intro m n hmn
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte]
+  by_cases m_eq_zero : m = 0
+  · simp [m_eq_zero]
+  by_cases n_eq_zero : n = 0
+  · simp [n_eq_zero]
+  simp only [m_eq_zero, n_eq_zero, or_self, ↓reduceIte]
   have hcop : (m ^ 2).Coprime (n ^ 2) := by
     rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
       Nat.coprime_pow_right_iff (by decide : 0 < 2)]
