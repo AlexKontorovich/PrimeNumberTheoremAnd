@@ -652,7 +652,9 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
   \end{verbatim}
   -/)
   (proof := /--
-  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
+  Special case $\alpha=\beta=0$ of Ramanujan (1.28), or — independently —
+  an Euler-product proof using $\tau(p^k)^2=(k+1)^2$ and
+  $\sum_k(k+1)^2 x^k=(1+x)/(1-x)^3$ (#1690).
   -/)]
 theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
