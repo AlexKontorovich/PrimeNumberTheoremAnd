@@ -1435,7 +1435,12 @@ The Liouville function is completely multiplicative. -/
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. To show that $\lambda$ is completely multiplicative, we need to verify that $\lambda(1) = 1$ and that $\lambda(ab) = \lambda(a)\lambda(b)$ for all natural numbers $a$ and $b$.
   -/)]
 lemma isCompletelyMultiplicative_liouville : IsCompletelyMultiplicative (liouville : ArithmeticFunction ℝ) := by
-  sorry
+  refine ⟨?_, fun a b => ?_⟩
+  · simp [liouville_apply_one]
+  · have h := congrArg (fun z : ℤ => (z : ℝ)) (liouville_apply_mul a b)
+    -- h : ↑(λ(ab)) = ↑(λ a * λ b)
+    simpa [Int.cast_mul] using h
+
 
 /--
 The Dirichlet series of the Liouville function is `ζ(2s)/ζ(s)`. -/
