@@ -1399,7 +1399,9 @@ theorem liouville_apply_mul (m n : ℕ) : liouville (m * n) = liouville m * liou
   · simp [hm]
   by_cases hn : n = 0
   · simp [hn]
-  simp [liouville_apply hm, liouville_apply hn, cardFactors_mul hm hn, pow_add]
+  have hmn : m * n ≠ 0 := Nat.mul_ne_zero hm hn
+  simp [liouville_apply hmn, liouville_apply hm, liouville_apply hn, cardFactors_mul hm hn,
+    pow_add]
 
 -- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
 --  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
