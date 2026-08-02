@@ -1025,7 +1025,7 @@ private lemma tau_sq_isMultiplicative :
   intro m n hmn
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
   by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  simp only [or_self, ↓reduceIte, Nat.cast_inj]
+  simp only [or_self, ↓reduceIte]
   have hcop : (m ^ 2).Coprime (n ^ 2) := by
     rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
       Nat.coprime_pow_right_iff (by decide : 0 < 2)]
@@ -1040,11 +1040,9 @@ private lemma tau_sq_nat_isMultiplicative :
     _root_.mul_eq_zero]
   refine ⟨by simp [tau], ?_⟩
   intro m n hmn
-  by_cases m_eq_zero : m = 0
-  · simp [m_eq_zero]
-  by_cases n_eq_zero : n = 0
-  · simp [n_eq_zero]
-  simp only [m_eq_zero, n_eq_zero, ↓reduceIte, mul_ite, mul_zero, ite_mul, zero_mul, or_self]
+  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
+  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
+  simp only [or_self, ↓reduceIte]
   have hcop : (m ^ 2).Coprime (n ^ 2) := by
     rw [Nat.coprime_pow_left_iff (by decide : 0 < 2),
       Nat.coprime_pow_right_iff (by decide : 0 < 2)]
