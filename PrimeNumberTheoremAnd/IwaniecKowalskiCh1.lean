@@ -984,10 +984,9 @@ lemma two_pow_omega_LSeries_eulerProduct_hasProd (s : ℂ) (hs : 1 < s.re) :
   · convert! (LSeriesSummable_two_pow_omega hs).norm using 1
 
 /--
-  Zeta squared:
-  `ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
-  where omega is the number of distinct prime factors.
--/
+Zeta squared:
+`ζ(s)^2 = ζ(2*s) * ∑_n (2^omega(n)) n^(-s)`,
+where omega is the number of distinct prime factors. -/
 @[blueprint
   "zeta_pow_two"
   (title := "zeta pow two")
@@ -1389,18 +1388,18 @@ Liouville function:
 def liouville : ArithmeticFunction ℤ :=
   toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
 
-theorem liouville_apply {n : ℕ} : liouville n = (-1 : ℤ) ^ Ω n := by
-  simp [liouville, toArithmeticFunction]
+theorem liouville_apply {n : ℕ} (hn : n ≠ 0) : liouville n = (-1 : ℤ) ^ Ω n := by
+  simp [liouville, toArithmeticFunction, hn]
 
 @[simp] theorem liouville_apply_one : liouville 1 = 1 := by
-  simp [liouville_apply, cardFactors_one]
+  simp [liouville_apply one_ne_zero, cardFactors_one]
 
 theorem liouville_apply_mul (m n : ℕ) : liouville (m * n) = liouville m * liouville n := by
   by_cases hm : m = 0
   · simp [hm]
   by_cases hn : n = 0
   · simp [hn]
-  simp [liouville_apply, cardFactors_mul hm hn, pow_add]
+  simp [liouville_apply hm, liouville_apply hn, cardFactors_mul hm hn, pow_add]
 
 -- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
 --  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
