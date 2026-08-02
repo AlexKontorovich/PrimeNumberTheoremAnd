@@ -1389,6 +1389,19 @@ Liouville function:
 def liouville : ArithmeticFunction ℤ :=
   toArithmeticFunction (fun n => (-1 : ℤ) ^ Ω n)
 
+theorem liouville_apply {n : ℕ} : liouville n = (-1 : ℤ) ^ Ω n := by
+  simp [liouville, toArithmeticFunction]
+
+@[simp] theorem liouville_apply_one : liouville 1 = 1 := by
+  simp [liouville_apply, cardFactors_one]
+
+theorem liouville_apply_mul (m n : ℕ) : liouville (m * n) = liouville m * liouville n := by
+  by_cases hm : m = 0
+  · simp [hm]
+  by_cases hn : n = 0
+  · simp [hn]
+  simp [liouville_apply, cardFactors_mul hm hn, pow_add]
+
 -- **NOTE:** `def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop :=
 --  f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b` exists in the `SelbergBound` file.
 
