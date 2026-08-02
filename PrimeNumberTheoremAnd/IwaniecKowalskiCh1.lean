@@ -677,7 +677,11 @@ Baby Rankin-Selberg:
   \end{verbatim}
   -/)
   (proof := /--
-  This follows from the multiplicative properties of the divisor function $\tau$ and the definition of the L-series. The left-hand side can be expressed as a product of L-series corresponding to $\zeta$ and the function $n \mapsto \tau(n^2)$. The right-hand side is the L-series of the function $n \mapsto \tau(n)^2$. By analyzing the Euler products and using the fact that $\tau(n)$ counts divisors, we can derive the stated equality.
+  Baby Rankin–Selberg: compare Euler products. Locally $\tau(p^k)=k+1$, so
+  $\sum_k \tau(p^k)^2 p^{-ks}=(1+p^{-s})/(1-p^{-s})^3$ while
+  $\sum_k \tau(p^{2k}) p^{-ks}=\sum_j j\, p^{-js}=(1-p^{-s})^{-2}$.
+  Alternatively, this follows from Ramanujan (1.28) at $\alpha=\beta=0$ once
+  `zeta_mul_zeta_mul_zeta_mul_zeta_eq` is available (#1688).
   -/)]
 lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s = LSeries (fun n ↦ (τ n) ^ 2) s := by
