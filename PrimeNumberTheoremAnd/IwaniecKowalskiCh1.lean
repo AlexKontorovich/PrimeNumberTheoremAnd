@@ -294,7 +294,7 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
       rw [d_succ]
       exact ih.mul isMultiplicative_zeta
 
-/- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
+/- MOVE HELPER LEMMA ELSEWHERE?? Not used in this file, but seems potentially useful? -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
   sorry
