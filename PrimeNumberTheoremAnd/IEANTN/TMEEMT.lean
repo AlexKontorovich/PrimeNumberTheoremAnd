@@ -71,7 +71,7 @@ noncomputable def Buthe_psi (x : ℝ) : ℝ :=
     $\vartheta(x)=\sum_p \chi^*_{[0,x]}(p)\log p$.
   -/)]
 noncomputable def Buthe_theta (x : ℝ) : ℝ :=
-  ∑ p ∈ Finset.Icc 0 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
+  ∑ p ∈ Finset.Icc 1 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
 
 @[blueprint
   "buthe2-buthe-pi"
@@ -106,8 +106,18 @@ lemma Buthe_chiStarIcc_eq_one_of_pos_lt {x t : ℝ} (ht0 : 0 < t) (htx : t < x) 
   unfold Buthe_chiStarIcc
   simp [ht0.ne', htx.ne, ht0, htx]
 
+/-- Primes in `Icc 0 n` and `Icc 1 n` agree (no prime is `0`). -/
+private lemma prime_filter_Icc_zero_eq_one (n : ℕ) :
+    (Finset.Icc 0 n).filter Nat.Prime = (Finset.Icc 1 n).filter Nat.Prime := by
+  ext p
+  simp only [Finset.mem_filter, Finset.mem_Icc]
+  exact ⟨fun h => ⟨⟨h.2.one_le, h.1.2⟩, h.2⟩,
+    fun h => ⟨⟨Nat.zero_le p, h.1.2⟩, h.2⟩⟩
+
 lemma Buthe_theta_le_theta (x : ℝ) : Buthe_theta x ≤ θ x := by
   rw [Chebyshev.theta_eq_sum_Icc]
+  -- θ sums over `Icc 0 ⌊x⌋₊`; primes start at 2, so this matches `Icc 1`.
+  rw [prime_filter_Icc_zero_eq_one]
   unfold Buthe_theta
   refine Finset.sum_le_sum ?_
   intro p hp
@@ -121,6 +131,7 @@ lemma eventually_Buthe_theta_eq_theta (x : ℝ) (hx : 0 ≤ x) :
   filter_upwards [self_mem_nhdsWithin,
     Ico_mem_nhdsGT_of_mem ⟨Nat.floor_le hx, Nat.lt_floor_add_one x⟩] with y hygt hyfloor
   rw [Chebyshev.theta_eq_sum_Icc]
+  rw [prime_filter_Icc_zero_eq_one]
   unfold Buthe_theta
   have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico ⌊x⌋₊ y hyfloor
   rw [hfloor]
