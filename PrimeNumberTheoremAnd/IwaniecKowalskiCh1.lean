@@ -1451,10 +1451,8 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
   have hn0 : n ≠ 0 := fun h => not_squarefree_zero (h ▸ hn)
   simp only [liouville, toArithmeticFunction, ArithmeticFunction.coe_mk, hn0, ↓reduceIte]
-  rw [moebius_apply_of_squarefree hn]
-  -- μ n = (-1)^ω n on squarefree; λ n = (-1)^Ω n, and ω = Ω ↔ squarefree
-  congr 1
-  exact ((cardDistinctFactors_eq_cardFactors_iff_squarefree hn0).2 hn).symm
+  rw [moebius_apply_of_squarefree hn,
+    ← ((cardDistinctFactors_eq_cardFactors_iff_squarefree hn0).2 hn)]
 
 -- Private helpers for LSeries_totient_eq
 
