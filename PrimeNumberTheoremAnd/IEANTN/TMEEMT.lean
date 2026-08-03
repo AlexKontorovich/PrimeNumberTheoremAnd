@@ -111,9 +111,12 @@ lemma Buthe_theta_le_theta (x : ℝ) : Buthe_theta x ≤ θ x := by
   -- θ sums over `Icc 0 ⌊x⌋₊`; primes start at 2, so this matches `Icc 1`.
   have hset : (Finset.Icc 0 ⌊x⌋₊).filter Nat.Prime = (Finset.Icc 1 ⌊x⌋₊).filter Nat.Prime := by
     ext p
-    simp only [Finset.mem_filter, Finset.mem_Icc, and_congr_left_iff, and_imp]
-    intro hp
-    exact ⟨fun _ => Nat.Prime.one_le hp, fun _ => Nat.zero_le _⟩
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · intro h
+      exact ⟨⟨Nat.Prime.one_le h.2, h.1.2⟩, h.2⟩
+    · intro h
+      exact ⟨⟨Nat.zero_le p, h.1.2⟩, h.2⟩
   rw [hset]
   unfold Buthe_theta
   refine Finset.sum_le_sum ?_
@@ -130,9 +133,12 @@ lemma eventually_Buthe_theta_eq_theta (x : ℝ) (hx : 0 ≤ x) :
   rw [Chebyshev.theta_eq_sum_Icc]
   have hset : (Finset.Icc 0 ⌊x⌋₊).filter Nat.Prime = (Finset.Icc 1 ⌊x⌋₊).filter Nat.Prime := by
     ext p
-    simp only [Finset.mem_filter, Finset.mem_Icc, and_congr_left_iff, and_imp]
-    intro hp
-    exact ⟨fun _ => Nat.Prime.one_le hp, fun _ => Nat.zero_le _⟩
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · intro h
+      exact ⟨⟨Nat.Prime.one_le h.2, h.1.2⟩, h.2⟩
+    · intro h
+      exact ⟨⟨Nat.zero_le p, h.1.2⟩, h.2⟩
   rw [hset]
   unfold Buthe_theta
   have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico ⌊x⌋₊ y hyfloor
