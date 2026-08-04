@@ -295,9 +295,20 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
       exact ih.mul isMultiplicative_zeta
 
 /- MOVE HELPER LEMMA ELSEWHERE?? Not used in this file, but seems potentially useful? -/
+/-- Proof route (#1686): `sum_divisorsAntidiagonal`, then `sum_divisors_prime_pow`, then `Nat.pow_div`. -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
-  sorry
+  calc ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x
+      = ∑ x ∈ (p ^ k).divisorsAntidiagonal, (fun a b => f (a, b)) x.1 x.2 := rfl
+    _ = ∑ d ∈ (p ^ k).divisors, (fun a b => f (a, b)) d (p ^ k / d) :=
+          sum_divisorsAntidiagonal (fun a b => f (a, b))
+    _ = ∑ i ∈ Finset.range (k + 1), (fun a b => f (a, b)) (p ^ i) (p ^ k / p ^ i) := by
+          rw [sum_divisors_prime_pow h]
+    _ = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
+          apply Finset.sum_congr rfl
+          intro i hi
+          congr 1
+          exact Nat.pow_div (Nat.lt_succ_iff.mp (Finset.mem_range.mp hi)) h.pos
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
