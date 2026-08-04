@@ -294,7 +294,7 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
       rw [d_succ]
       exact ih.mul isMultiplicative_zeta
 
-/- MOVE HELPER LEMMA ESLEWHERE?? Not used in this file, but seems potentially useful? -/
+/- MOVE HELPER LEMMA ELSEWHERE?? Not used in this file, but seems potentially useful? -/
 /-- Proof route (#1686): `sum_divisorsAntidiagonal`, then `sum_divisors_prime_pow`, then `Nat.pow_div`. -/
 theorem Nat.sum_divisorsAntidiagonal_prime_pow {α : Type u_1} [AddCommMonoid α] [HMul α α α] {k p : ℕ} {f : ℕ × ℕ → α} (h : Nat.Prime p) :
 ∑ x ∈ (p ^ k).divisorsAntidiagonal, f x = ∑ n ∈ Finset.range (k + 1), f (p ^ n, p ^ (k - n)) := by
@@ -1460,7 +1460,10 @@ lemma LSeries_liouville_eq {s : ℂ} (hs : 1 < s.re) :
   The Liouville function $\lambda(n)$ is defined as $(-1)^{\Omega(n)}$, where $\Omega(n)$ counts the total number of prime factors of $n$ with multiplicity. The Möbius function $\mu(n)$ is defined as $0$ if $n$ has a squared prime factor, and otherwise it is $(-1)^{\omega(n)}$, where $\omega(n)$ counts the number of distinct prime factors of $n$. For square-free numbers, we have $\Omega(n) = \omega(n)$, since there are no repeated prime factors. Therefore, for square-free numbers, we have $\lambda(n) = (-1)^{\omega(n)} = \mu(n)$, which shows that the Liouville function agrees with the Möbius function on square-free numbers.
   -/)]
 lemma liouville_eq_moebius_on_squarefree (n : ℕ) (hn : Squarefree n) : liouville n = μ n := by
-  sorry
+  have hn0 : n ≠ 0 := fun h => not_squarefree_zero (h ▸ hn)
+  simp only [liouville, toArithmeticFunction, ArithmeticFunction.coe_mk, hn0, ↓reduceIte]
+  rw [moebius_apply_of_squarefree hn,
+    ← ((cardDistinctFactors_eq_cardFactors_iff_squarefree hn0).2 hn)]
 
 -- Private helpers for LSeries_totient_eq
 
