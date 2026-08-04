@@ -82,8 +82,8 @@ lemma divisorZeroIndex₀_norm_le_finite {f : ℂ → ℂ} {U : Set ℂ} (B : �
     (hBU : Metric.closedBall (0 : ℂ) B ⊆ U) :
     ({p : divisorZeroIndex₀ f U | ‖divisorZeroIndex₀_val p‖ ≤ B} : Set _).Finite := by
   let s : Set (divisorZeroIndex₀ f U) := {p | ‖divisorZeroIndex₀_val p‖ ≤ B}
-  haveI : Finite (↥s) := by
-    simpa [s] using (finite_divisorZeroIndex₀_subtype_norm_le (f := f) (U := U) B hBU)
+  haveI : Finite (↥s) :=
+    finite_divisorZeroIndex₀_subtype_norm_le (f := f) (U := U) B hBU
   exact Set.toFinite s
 
 /-!
@@ -239,7 +239,7 @@ theorem hasProdUniformlyOn_divisorCanonicalProduct_univ
       simpa [div_eq_mul_inv] using! (continuous_id.mul continuous_const)
     have hcont : Continuous fun z : ℂ => weierstrassFactor m (z / divisorZeroIndex₀_val p) :=
       hcontE.comp hdiv
-    simpa [g] using hcont.continuousOn.sub continuous_const.continuousOn
+    simpa only [g] using hcont.continuousOn.fun_sub continuous_const.continuousOn
   have hprod :
       HasProdUniformlyOn (fun p z ↦ 1 + g p z) (fun z ↦ ∏' p, (1 + g p z)) K := by
     simpa using

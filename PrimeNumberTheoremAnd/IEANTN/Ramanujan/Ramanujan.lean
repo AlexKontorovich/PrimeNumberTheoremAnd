@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
-import LeanCert.Engine.ChebyshevTheta
+import LeanCert.CertifiedBounds.Chebyshev
 import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
 import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
 import PrimeNumberTheoremAnd.IEANTN.LogTables
@@ -16,6 +16,8 @@ namespace Ramanujan
 
 
 open Real Set MeasureTheory intervalIntegral Chebyshev
+open Filter
+open scoped Topology
 
 noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (4 * M + 288) / (log x)^2 + (12 * M + 576) / (log x)^3 + (48 * M) / (log x)^4 + (M^2) / (log x)^5
 
@@ -493,12 +495,12 @@ theorem criterion (mₐ Mₐ xₐ x₀ : ℝ)
 
 -- Native-decide lemma for the computational [3, 599) range
 set_option linter.style.nativeDecide false in
-open LeanCert.Engine.ChebyshevTheta in
+open LeanCert.CertifiedBounds.Chebyshev in
 private theorem allThetaChecks_3_599 :
     checkAllThetaRelErrorReal 3 599 (768 / 1000) 20 = true := by native_decide
 
 set_option linter.style.nativeDecide false in
-open LeanCert.Engine.ChebyshevTheta in
+open LeanCert.CertifiedBounds.Chebyshev in
 private theorem thetaCheck599 :
     checkThetaRelErrorReal 599 (65 / 1000) 20 = true := by native_decide
 
@@ -536,13 +538,14 @@ theorem pi_bound_1 (x : ℝ) (hx : x ∈ Set.Ico 2 599) :
     have hfloor_ge3 : 3 ≤ ⌊x⌋₊ := Nat.le_floor hx3
     have hfloor_lt : ⌊x⌋₊ < 599 := (Nat.floor_lt hnn).mpr (by exact_mod_cast hx599)
     have hpointwise :=
-      LeanCert.Engine.ChebyshevTheta.checkAllThetaRelErrorReal_implies 3 599 (768 / 1000) 20
+      LeanCert.CertifiedBounds.Chebyshev.checkAllThetaRelErrorReal_implies
+        3 599 (768 / 1000) 20
         allThetaChecks_3_599 ⌊x⌋₊ hfloor_pos hfloor_ge3 hfloor_lt.le
     rw [if_pos hfloor_lt] at hpointwise
     have hxlo : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hnn
     have hxhi : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
     have habs :=
-      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+      LeanCert.CertifiedBounds.Chebyshev.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
         ⌊x⌋₊ 20 (768 / 1000) (by norm_num) (by norm_num) hpointwise x hxlo hxhi
     calc |θ x - x| ≤ ((768 / 1000 : ℚ) : ℝ) * x := habs
       _ ≤ (1 - log 2 / 3) * x := by
@@ -573,16 +576,17 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
           _ < 599 := by norm_num
           _ < x := hx_gt
       exact (Real.lt_log_iff_exp_lt hx_pos).mpr hexp6_lt
-    have hrh : 4.92 * sqrt (x / log x) ≤ 3e12 := by
-      suffices h : 4.92 ^ 2 * x ≤ (3e12) ^ 2 * log x by
-        have h1 : 4.92 ^ 2 * (x / log x) ≤ (3e12) ^ 2 := by
+    have hrh : 4.92 * sqrt (x / log x) < 3e12 := by
+      suffices h : 4.92 ^ 2 * x < (3e12) ^ 2 * log x by
+        have h1 : 4.92 ^ 2 * (x / log x) < (3e12) ^ 2 := by
           rw [show 4.92 ^ 2 * (x / log x) = 4.92 ^ 2 * x / log x from by ring]
-          exact div_le_of_le_mul₀ hlog_pos.le (by positivity) h
-        have h2 := sqrt_le_sqrt h1
+          rw [div_lt_iff₀ hlog_pos]
+          exact h
+        have h2 := sqrt_lt_sqrt (by positivity : 0 ≤ 4.92 ^ 2 * (x / log x)) h1
         rw [sqrt_sq (by positivity : (0 : ℝ) ≤ 3e12)] at h2
         calc 4.92 * sqrt (x / log x) = sqrt (4.92 ^ 2 * (x / log x)) := by
               rw [sqrt_mul (by positivity : (0 : ℝ) ≤ 4.92 ^ 2), sqrt_sq (by positivity : (0 : ℝ) ≤ 4.92)]
-          _ ≤ 3e12 := h2
+          _ < 3e12 := h2
       by_cases! hx45 : x ≤ exp 45
       · have hexp45 : exp (45 : ℝ) < 2 * 10^20 := by
           have : exp (45 : ℝ) = exp (1 : ℝ) ^ (45 : ℕ) := by rw [← exp_nat_mul]; ring_nf
@@ -611,7 +615,30 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
         have : 4.92 ^ 2 * (16 * (10 : ℝ) ^ 24) ≤ (3e12) ^ 2 * 45 := by norm_num
         have : (3e12) ^ 2 * 45 < (3e12 : ℝ) ^ 2 * log x := by gcongr
         linarith
-    have hbuthe := Buthe2.theorem_2b x (3e12) PT_theorem_1 hrh hx_gt
+    have hbuthe : |θ x - x| ≤ (sqrt x) * (log x) ^ 2 / (8 * π) := by
+      have hx_nonneg : 0 ≤ x := by linarith
+      have hx_ne : x ≠ 0 := by linarith
+      have hlog_ne : log x ≠ 0 := ne_of_gt hlog_pos
+      have hden_ne : 8 * π ≠ (0 : ℝ) := by positivity
+      have harg_near : ∀ᶠ y in 𝓝[>] x, 4.92 * sqrt (y / log y) < 3e12 := by
+        have hcont : ContinuousAt (fun y : ℝ => 4.92 * sqrt (y / log y)) x := by
+          fun_prop (disch := assumption)
+        exact (hcont.tendsto.mono_left nhdsWithin_le_nhds).eventually (Iio_mem_nhds hrh)
+      have hleft : Tendsto (fun y : ℝ => |θ x - y|) (𝓝[>] x) (𝓝 |θ x - x|) := by
+        have hcont : ContinuousAt (fun y : ℝ => |θ x - y|) x := by fun_prop
+        exact hcont.tendsto.mono_left nhdsWithin_le_nhds
+      have hright : Tendsto (fun y : ℝ => (sqrt y) * (log y) ^ 2 / (8 * π)) (𝓝[>] x)
+          (𝓝 ((sqrt x) * (log x) ^ 2 / (8 * π))) := by
+        have hcont : ContinuousAt (fun y : ℝ => (sqrt y) * (log y) ^ 2 / (8 * π)) x := by
+          fun_prop (disch := assumption)
+        exact hcont.tendsto.mono_left nhdsWithin_le_nhds
+      refine le_of_tendsto_of_tendsto hleft hright ?_
+      filter_upwards [Buthe2.eventually_Buthe_theta_eq_theta x hx_nonneg, harg_near,
+        self_mem_nhdsWithin] with y hy_eq hyT hygt
+      rw [← hy_eq]
+      exact Buthe2.theorem_2b y (3e12) PT_theorem_1 hyT.le (by
+        have hygt' : x < y := hygt
+        linarith)
     unfold Eθ
     have hsqrt_pos : (0 : ℝ) < sqrt x := sqrt_pos.mpr hx_pos
     have hsqx : sqrt x * sqrt x = x := Real.mul_self_sqrt hx_pos.le
@@ -628,7 +655,7 @@ theorem pi_bound_2 (x : ℝ) (hx : x ∈ Set.Ico 599 (exp 58)) :
     subst hx_eq
     unfold Eθ
     have habs :=
-      LeanCert.Engine.ChebyshevTheta.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
+      LeanCert.CertifiedBounds.Chebyshev.abs_theta_sub_le_mul_of_checkThetaRelErrorReal
         599 20 (65 / 1000) (by norm_num) (by norm_num) thetaCheck599 (599 : ℝ) (by norm_num)
         (by push_cast; norm_num)
     have hEθ : |θ (599 : ℝ) - 599| / 599 ≤ 65 / 1000 := by

@@ -2301,11 +2301,8 @@ lemma sum_mobius_floor_tail_isLittleO (K : ℕ) (hK : 0 < K) :
       have h_M_x_over_k : ∀ k : ℕ, 1 ≤ k → k < K → (fun x : ℝ => ∑ n ∈ Finset.Ioc ⌊x / (k + 1 : ℝ)⌋₊ ⌊x / (k : ℝ)⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
         have h_M : (fun x : ℝ => ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
           have h_M : (fun x : ℝ => ∑ n ∈ Finset.range ⌊x⌋₊, (μ n : ℝ)) =o[atTop] (fun x => x) := by
-            convert mu_pnt using 1
-            norm_cast
-            ext; simp [Asymptotics.IsLittleO]
-            norm_num [Asymptotics.IsBigOWith]
-            norm_num [Norm.norm]
+            refine Asymptotics.IsLittleO.of_norm_left ?_
+            simpa only [← Int.norm_cast_real, Int.cast_sum] using mu_pnt.norm_left
           have h_M : (fun x : ℝ => ∑ n ∈ Finset.range (⌊x⌋₊ + 1), (μ n : ℝ)) =o[atTop] (fun x => x) := by
             simp_all +decide only [ge_iff_le, Finset.sum_range_succ]
             refine h_M.add ?_
@@ -2542,13 +2539,28 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
-$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
-\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
+\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}
+Let $m\geq 1$ and $G = \mathrm{Gal}(\mathbb{Q}(\mu_m)/\mathbb{Q}) \cong (\mathbb{Z}/m\mathbb{Z})^\times$.
+For any $a$ coprime to $m$,
+\[
+\sum_{\substack{N\mathfrak{p}\leq x\\ N\mathfrak{p}\equiv a\pmod{m}}} \log N\mathfrak{p}
+\;=\;
+\frac{1}{|G|} \sum_{N\mathfrak{p}\leq x} \log N\mathfrak{p}
+\;+\; o\Bigl(\sum_{N\mathfrak{p}\leq x} \log N\mathfrak{p}\Bigr).
+\]
+In particular the primes in the progression $a\pmod{m}$ have natural density $1/\varphi(m)$
+(Dirichlet's theorem).
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-PNT, WeakPNT-AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+\begin{proof}\uses{Chebotarev-cyclotomic-density, Dedekind-PNT, WeakPNT-AP}
+Specialise Proposition~\ref{Chebotarev-cyclotomic-density} to $K=\mathbb{Q}$ and
+$L=\mathbb{Q}(\mu_m)$: the Frobenius condition $\varphi_p=\sigma_a$ with
+$\sigma_a(\zeta_m)=\zeta_m^a$ is exactly $p\equiv a\pmod{m}$.  The asymptotic form with
+$\log N\mathfrak{p}$ follows by Fourier expansion of the indicator of the progression against
+characters of $G$, using Lemma~\ref{Dedekind-PNT} to kill the nontrivial character sums and
+the prime-number theorem in AP (Lemma~\ref{WeakPNT-AP}) for the main term.  Cf.\ also
+Corollary~7.2.3 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
 -/

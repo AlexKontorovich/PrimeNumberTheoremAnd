@@ -109,7 +109,7 @@ lemma tendsto_integral_one_sub_exp_neg_div :
     have h_cont : ContinuousOn (fun ε => ∫ t in (1 : ℝ)..ε, (1 - Real.exp (-t)) / t) (Set.Icc 0 1) := by
       intro ε hε; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
       rw [ intervalIntegrable_iff_integrableOn_Ioc_of_le ] <;> aesop;
-    exact ContinuousOn.congr ( h_cont.neg ) fun x hx => by rw [ ← intervalIntegral.integral_symm ] ;
+    exact ContinuousOn.congr ( h_cont.fun_neg ) fun x hx => by rw [ ← intervalIntegral.integral_symm ] ;
   have := h_cont 0 ( by norm_num );
   convert this.tendsto.mono_left _ using 2 ; norm_num [ Set.Ioi_subset_Ici_self ];
   exact nhdsWithin_mono _ <| Set.Ioi_subset_Ici_self
@@ -151,7 +151,7 @@ lemma tendsto_integral_exp_sub_one_div {y : ℝ} (hy : 0 < y) :
     have h_cont : ContinuousOn (fun ε => ∫ u in (y)..ε, (Real.exp u - 1) / u) (Set.Icc 0 M) := by
       intro ε hε; apply_rules [ intervalIntegral.continuousWithinAt_primitive ] ; aesop;
       rw [ min_eq_right hy.le, max_eq_right hM.1.le ] ; rw [ intervalIntegrable_iff_integrableOn_Ioc_of_le ( by linarith ) ] ; aesop;
-    exact ContinuousOn.congr ( h_cont.neg ) fun x hx => by rw [ ← intervalIntegral.integral_symm ] ;
+    exact ContinuousOn.congr ( h_cont.fun_neg ) fun x hx => by rw [ ← intervalIntegral.integral_symm ] ;
   have := h_cont 0 ⟨ by norm_num, by linarith ⟩;
   convert this.tendsto.mono_left _ using 2;
   norm_num [ nhdsWithin, Filter.mem_inf_principal ];

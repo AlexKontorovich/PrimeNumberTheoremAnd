@@ -99,7 +99,6 @@ theorem pnt : ∃ C ≥ 0, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by
       _ ≤ (θ N + N) * log x ^ 2 / x := by gcongr
       _ ≤ (θ N + N) * (x ^ (1 / 2 : ℝ) / (1 / 2)) ^ 2 / x := by
         gcongr
-        · exact add_nonneg (theta_nonneg _) (by linarith)
         · exact log_nonneg (by linarith)
         · exact log_le_rpow_div (by linarith) (by linarith)
       _ = _ := by rw [← sqrt_eq_rpow, div_pow, sq_sqrt (by linarith)]; field_simp; ring
@@ -139,7 +138,6 @@ lemma theta_two : θ 2 = Real.log 2 := by
 
 lemma leftLim_theta_succ (k : ℕ) : Function.leftLim θ (k + 1) = θ k := by
   rw [leftLim_eq_of_tendsto (y := θ ↑k)]
-  · exact Filter.NeBot.ne'
   · rw [nhdsWithin_restrict (t := Set.Ioo ↑k ↑(k + 2))]
     · rw [Set.Iio_inter_Ioo]
       apply tendsto_nhdsWithin_congr (f := fun _ => θ ↑k)
@@ -585,7 +583,7 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
     · refine fun y hy ↦ (hf y (hcc ▸ hy)|>.fun_div ?_ ?_).differentiableWithinAt.hasDerivWithinAt
       · exact differentiableAt_log (by simp_all; linarith)
       · linarith [Real.log_pos (by simp_all; linarith)]
-    · exact intervalIntegral.intervalIntegrable_const
+    · exact intervalIntegrable_const
     · exact hd.congr_ae (hoc ▸ hae)
   _ = f x * (θ x - x) / log x +
     ((∫ y in 2..x, f y / log y) + (∫ y in 2..x, y * deriv (fun t ↦ f t / log t) y) +

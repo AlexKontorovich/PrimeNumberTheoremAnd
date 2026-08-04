@@ -22,9 +22,6 @@ lemma deriv_ofReal (x : ℝ) : deriv ofReal x = 1 :=
 lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal x :=
   (hasDerivAt_ofReal x).differentiableAt
 
-lemma differentiable_ofReal : Differentiable ℝ ofReal :=
-  ofRealCLM.differentiable
-
 end Complex
 
 lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :

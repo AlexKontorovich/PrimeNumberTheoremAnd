@@ -122,7 +122,7 @@ lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     rwa [closure_Icc] at this
 
 lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {μ : Measure ℝ}
-    [NoAtoms μ] {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    [NullSingletonClass μ] {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {f : ℝ → E} (h : f.support ⊆ Icc a b) :
     ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ := by
   rcases le_total a b with hab | hab
@@ -1290,7 +1290,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
-      · apply MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
+      · apply MeasureTheory.Measure.restrict_mono' SsubT.eventuallyLE le_rfl
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
       conv => rw [this]; lhs; intro; rw [mul_comm]

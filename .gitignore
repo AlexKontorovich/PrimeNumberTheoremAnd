@@ -44,6 +44,7 @@
 
 ## PDF
 *.pdf
+!errata/**/*.pdf
 
 ## Lean
 *.olean

@@ -1,5 +1,5 @@
 import Architect
-import LeanCert.Examples.Li2Bounds
+import LeanCert.CertifiedBounds.Li2
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.Topology.Order.Basic
 
@@ -10,10 +10,9 @@ This file provides bounds on the logarithmic integral li(2) ≈ 1.0451
 using the symmetric form which makes the principal value integral
 absolutely convergent.
 
-This file imports only the lightweight `LeanCert.Examples.Li2Bounds`
-module, which compiles in seconds. The heavy numerical verification
-(~20 min) is in `LeanCert.Examples.Li2Verified` and is only needed
-for LeanCert's CI.
+This file imports only the lightweight `LeanCert.CertifiedBounds.Li2`
+interface, which compiles in seconds. The separate machine-checked numerical
+verification target is built by LeanCert's CI and is not on PNT+'s build path.
 
 See: https://github.com/alerad/leancert
 -/
@@ -21,7 +20,6 @@ See: https://github.com/alerad/leancert
 open Real MeasureTheory Set
 open scoped Interval
 
-open LeanCert.Engine.TaylorModel
 open Topology
 
 namespace Li2Bounds
@@ -43,14 +41,15 @@ noncomputable def li (x : ℝ) : ℝ :=
 
 /-- The symmetric log combination g(t) = 1/log(1+t) + 1/log(1-t).
     This has a removable singularity at t=0 with limit 1. -/
-noncomputable def g (t : ℝ) : ℝ := symmetricLogCombination t
+noncomputable def g (t : ℝ) : ℝ := LeanCert.CertifiedBounds.Li2.integrand t
 
 /-- li(2) via the symmetric integral form.
     This equals the principal value integral ∫₀² dt/log(t). -/
 noncomputable def li2_symmetric : ℝ := ∫ t in (0 : ℝ)..1, g t
 
-/-- Our li2_symmetric equals LeanCert's Li2.li2 (both are ∫₀¹ symmetricLogCombination). -/
-theorem li2_symmetric_eq_Li2_li2 : li2_symmetric = Li2.li2 := rfl
+/-- Our symmetric value is LeanCert's certified `li(2)` value. -/
+theorem li2_symmetric_eq_Li2_li2 :
+    li2_symmetric = LeanCert.CertifiedBounds.Li2.value := rfl
 
 /-! ### Integrability Lemmas -/
 
@@ -88,11 +87,14 @@ theorem g_intervalIntegrable_full : IntervalIntegrable g volume 0 1 := by
   apply (intervalIntegrable_iff_integrableOn_Ioo_of_le (by linarith)).2
   apply Measure.integrableOn_of_bounded measure_Ioo_lt_top.ne
   · exact Measurable.aestronglyMeasurable (by
-      unfold g symmetricLogCombination
+      unfold g
+      change Measurable fun t : ℝ => 1 / log (1 + t) + 1 / log (1 - t)
       fun_prop)
   · filter_upwards [self_mem_ae_restrict (by measurability)] with t ht
-    have habs : |g t| = g t := abs_of_pos <| Li2.g_pos t ht.1 ht.2
-    simpa [Real.norm_eq_abs, habs] using! Li2.g_le_two t ht.1 ht.2
+    have habs : |g t| = g t := abs_of_pos <|
+      LeanCert.CertifiedBounds.Li2.integrand_pos t ht.1 ht.2
+    simpa [Real.norm_eq_abs, habs] using!
+      LeanCert.CertifiedBounds.Li2.integrand_le_two t ht.1 ht.2
 
 /-- g is integrable on any subinterval [a, b] ⊆ (0, 1). -/
 theorem g_intervalIntegrable (a b : ℝ) (ha : 0 < a) (hb : b < 1) (hab : a ≤ b) :
@@ -111,7 +113,7 @@ theorem g_intervalIntegrable (a b : ℝ) (ha : 0 < a) (hb : b < 1) (hab : a ≤ 
   (discussion := 759)]
 theorem li2_symmetric_lower : (1039 : ℚ) / 1000 ≤ li2_symmetric := by
   rw [li2_symmetric_eq_Li2_li2]
-  exact Li2.li2_lower
+  exact LeanCert.CertifiedBounds.Li2.lower
 
 @[blueprint
   "li2-upper"
@@ -121,7 +123,7 @@ theorem li2_symmetric_lower : (1039 : ℚ) / 1000 ≤ li2_symmetric := by
   (discussion := 759)]
 theorem li2_symmetric_upper : li2_symmetric ≤ (106 : ℚ) / 100 := by
   rw [li2_symmetric_eq_Li2_li2]
-  exact Li2.li2_upper
+  exact LeanCert.CertifiedBounds.Li2.upper
 
 @[blueprint
   "li2-bounds"
@@ -159,7 +161,9 @@ theorem pv_integral_eq_symmetric (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
     ← intervalIntegral.integral_add (log_one_minus_integrable ε hε hε1)
       (log_one_plus_integrable ε hε hε1)]
   exact intervalIntegral.integral_congr fun u _ ↦ by
-    simp [g, symmetricLogCombination, add_comm]
+    change 1 / log (1 - u) + 1 / log (1 + u) =
+      1 / log (1 + u) + 1 / log (1 - u)
+    exact add_comm _ _
 
 /-- The limit as ε → 0⁺ of ∫_ε^1 g(u) du equals ∫_0^1 g(u) du. -/
 theorem limit_integral_g :
