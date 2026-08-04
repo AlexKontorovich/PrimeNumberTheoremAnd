@@ -832,7 +832,7 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
 @[blueprint
-  "zeta_pow_three_eq"
+  "zeta_pow_three_eq'"
   (title := "zeta pow three eq")
   (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
   \begin{verbatim}
