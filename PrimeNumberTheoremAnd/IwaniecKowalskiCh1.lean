@@ -689,14 +689,14 @@ instance instIsCoprimePreservingPowMonoidHom (k : ℕ) :
 lemma IsMultiplicative.of_map_mulHom {f h : ArithmeticFunction ℕ}
     (hf : f.IsMultiplicative) (g : ℕ →* ℕ) (hh : ∀ n, h n = g (f n)) :
     h.IsMultiplicative := by
-  refine ⟨by rw [hh, hf.1, g.map_one], fun m n hmn => ?_⟩
+  refine ⟨by rw [hh, hf.1, g.map_one], fun {m n} hmn => ?_⟩
   rw [hh, hh, hh, hf.2 hmn, g.map_mul]
 
 lemma IsMultiplicative.of_comp_mulHom {f h : ArithmeticFunction ℕ}
     (hf : f.IsMultiplicative) (g : ℕ →* ℕ)
     [hg : IsCoprimePreserving (g : ℕ → ℕ)]
     (hh : ∀ n, h n = f (g n)) : h.IsMultiplicative := by
-  refine ⟨by rw [hh, g.map_one, hf.1], fun m n hmn => ?_⟩
+  refine ⟨by rw [hh, g.map_one, hf.1], fun {m n} hmn => ?_⟩
   rw [hh, hh, hh, g.map_mul, hf.2 (hg.map_coprime hmn)]
 
 /-- `τ(p^m) = m + 1` for prime `p`. -/
@@ -718,11 +718,13 @@ abbrev tauSq : ArithmeticFunction ℕ := ⟨fun n ↦ τ (n ^ 2), by simp⟩
 /-- The arithmetic function `n ↦ τ(n)²`. -/
 abbrev sqTau : ArithmeticFunction ℕ := ⟨fun n ↦ (τ n) ^ 2, by simp⟩
 
+lemma isMultiplicative_tau : IsMultiplicative τ := isMultiplicative_sigma (k := 0)
+
 lemma isMultiplicative_tauSq : tauSq.IsMultiplicative :=
-  isMultiplicative_tau.of_comp_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
+  IsMultiplicative.of_comp_mulHom isMultiplicative_tau (powMonoidHom 2) (fun _ ↦ rfl)
 
 lemma isMultiplicative_sqTau : sqTau.IsMultiplicative :=
-  isMultiplicative_tau.of_map_mulHom (powMonoidHom 2) (fun _ ↦ rfl)
+  IsMultiplicative.of_map_mulHom isMultiplicative_tau (powMonoidHom 2) (fun _ ↦ rfl)
 
 /-- `τ(n²) ≤ d_3(n)` pointwise.  Used for L-series summability of `n ↦ τ(n²)`. -/
 lemma tau_sq_le_d_three (n : ℕ) : tauSq n ≤ d 3 n := by
@@ -1235,8 +1237,9 @@ private lemma two_mul_add_one_le_choose_two (a : ℕ) :
     | succ a => nlinarith
   exact Nat.add_le_add_right this 2
 
-/-- Pointwise bound $\tau(n^2)\le d_3(n)$ (used for absolute convergence). -/
-private lemma tau_sq_le_d_three {n : ℕ} (hn : n ≠ 0) : τ (n ^ 2) ≤ d 3 n := by
+/-- Pointwise bound $\tau(n^2)\le d_3(n)$ (used for absolute convergence).
+Renamed to avoid clashing with the public `tau_sq_le_d_three` above. -/
+private lemma tau_sq_le_d_three_of_ne {n : ℕ} (hn : n ≠ 0) : τ (n ^ 2) ≤ d 3 n := by
   let f : ArithmeticFunction ℕ := toArithmeticFunction (fun k ↦ τ (k ^ 2))
   have hf : f.IsMultiplicative := tau_sq_nat_isMultiplicative
   have hfeq : f n = τ (n ^ 2) := by simp [f, toArithmeticFunction, hn]
@@ -1260,7 +1263,7 @@ private lemma LSeriesSummable_tau_sq {s : ℂ} (hs : 1 < s.re) :
     by_cases hn : n = 0
     · simp [LSeries.term, hn]
     · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, RCLike.norm_natCast]
-      exact div_le_div_of_nonneg_right (by exact_mod_cast tau_sq_le_d_three hn) (norm_nonneg _)
+      exact div_le_div_of_nonneg_right (by exact_mod_cast tau_sq_le_d_three_of_ne hn) (norm_nonneg _)
   apply LSeriesSummable.of_norm_le_norm hgf
   rw [summable_norm_iff, ← LSeriesSummable]
   exact LSeries_d_summable 3 hs
