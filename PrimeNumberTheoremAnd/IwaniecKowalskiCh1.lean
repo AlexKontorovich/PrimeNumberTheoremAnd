@@ -90,9 +90,11 @@ lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣
   -/)]
 theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
-    {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+    {a b : ℕ} (hab : Coprime a b) (_ha : a ≠ 0) (_hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  have hzf : ((zeta : ArithmeticFunction R) * f).IsMultiplicative :=
+    isMultiplicative_zeta.natCast.mul hf
+  simpa only [coe_zeta_mul_apply] using hzf.map_mul_of_coprime hab
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -1621,8 +1623,16 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  rintro ⟨dm₁, dn₁⟩ h₁ ⟨dm₂, dn₂⟩ h₂ hd
+  simp only [Set.mem_prod, Finset.mem_coe, mem_divisors] at h₁ h₂
+  simp only at hd
+  suffices dm₁ = dm₂ from Prod.ext this <| by
+    rwa [this, Nat.mul_right_inj (by simp [·] at h₂)] at hd
+  exact dvd_antisymm
+    (hmn.coprime_dvd_left h₁.1.1 |>.coprime_dvd_right h₂.2.1
+      |>.dvd_of_dvd_mul_right (hd ▸ dm₁.dvd_mul_right dn₁))
+    (hmn.coprime_dvd_left h₂.1.1 |>.coprime_dvd_right h₁.2.1
+      |>.dvd_of_dvd_mul_right (hd ▸ dm₂.dvd_mul_right dn₂))
 
 @[blueprint
   "pow_divisors_mul_injective"
