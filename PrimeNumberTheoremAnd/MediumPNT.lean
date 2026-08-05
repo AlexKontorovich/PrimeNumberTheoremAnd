@@ -2147,22 +2147,6 @@ lemma I9I1 {SmoothingF : ℝ → ℝ} {ε X T : ℝ} (Xpos : 0 < X) :
     rw[← smoothedChebyshevIntegrand_conj Xpos]
     simp
 
-theorem I9Bound
-    {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ C > 0, ∀{ε : ℝ} (_ : 0 < ε)
-    (_ : ε < 1)
-    (X : ℝ) (_ : 3 < X)
-    {T : ℝ} (_ : 3 < T),
-    ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
-  obtain ⟨C, Cpos, bound⟩ := I1Bound suppSmoothingF ContDiffSmoothingF SmoothingFnonneg mass_one
-  refine ⟨C, Cpos, ?_⟩
-  intro ε εpos ε_lt_one X X_gt T T_gt
-  specialize bound ε εpos ε_lt_one X X_gt T_gt
-  rwa [I9I1 (by linarith), norm_conj]
-
 lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X) : (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
   refine (add_lt_add_iff_left 1).mpr ?_
@@ -2375,37 +2359,6 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
     rw[← smoothedChebyshevIntegrand_conj]
     · simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
     · exact lt_trans (by norm_num) T_gt
-
-@[blueprint
-  (title := "I8Bound")
-  (statement := /--
-  We have that
-  $$
-  \left|I_{8}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
-  .
-  $$
-  -/)
-  (proof := /--
-  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
-  -/)
-  (latexEnv := "lemma")]
-lemma I8Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 < C),
-    ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_: 0 < ε)
-    (_ : ε < 1)
-    {T : ℝ} (_ : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
-
-  obtain ⟨C, hC, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF has_bound C₂_pos A_in
-  use C, hC
-  intro X hX ε hε0 hε1 T hT σ₁
-  let i2Bound := i2Bound X hX hε0 hε1 hT
-  rw[I8I2 hX, norm_neg, norm_conj]
-  exact i2Bound
 
 @[blueprint
   (title := "log-pow-over-xsq-integral-bounded")
@@ -2987,21 +2940,6 @@ lemma I7I3 {SmoothingF : ℝ → ℝ} {ε X T σ₁ : ℝ} (Xpos : 0 < X) :
     rw [← smoothedChebyshevIntegrand_conj Xpos]
     simp
 
-lemma I7Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2))
-    : ∃ (C : ℝ) (_ : 0 < C),
-    ∀ (X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
-    (_ : ε < 1) {T : ℝ} (_ : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₇ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  obtain ⟨C, Cpos, bound⟩ := I3Bound suppSmoothingF ContDiffSmoothingF hCζ Cζpos hA
-  refine ⟨C, Cpos, fun X X_gt ε εpos ε_lt_one T T_gt ↦ ?_⟩
-  specialize bound X X_gt εpos ε_lt_one T_gt
-  intro σ₁
-  rwa [I7I3 (by linarith), norm_conj]
-
 @[blueprint
   (title := "I4Bound")
   (statement := /--
@@ -3407,23 +3345,6 @@ lemma I6I4 {SmoothingF : ℝ → ℝ} {ε X σ₁ σ₂ : ℝ} (Xpos : 0 < X) :
     rw[← smoothedChebyshevIntegrand_conj Xpos]
     simp [conj_ofNat]
 
-lemma I6Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
-    ∀ (X : ℝ) (_ : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
-    {T : ℝ} (_ : Tlb < T),
-    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-    ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  obtain ⟨C, Cpos, Tlb, Tlb_gt, bound⟩ := I4Bound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ hA
-  refine ⟨C, Cpos, Tlb, Tlb_gt, fun X X_gt ε εpos ε_lt_one T T_gt ↦ ?_⟩
-  specialize bound X X_gt εpos ε_lt_one T_gt
-  intro σ₁
-  rwa [I6I4 (by linarith), norm_neg, norm_conj]
-
 @[blueprint
   (title := "I5Bound")
   (statement := /--
@@ -3697,8 +3618,6 @@ blueprint_comment /--
 \section{MediumPNT}
 
 -/
-set_option maxHeartbeats 400000 in
--- Slow
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
 @[blueprint
   (title := "MediumPNT")
@@ -3746,19 +3665,12 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₅, c₅pos, hc₅⟩ := I5Bound ν_supp ContDiff1ν holo2  ⟨σ₂_pos, σ₂_lt_one⟩
-  obtain ⟨c₇, c₇pos, hc₇⟩ := I7Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-
   obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4Bound ν_supp ContDiff1ν
     holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
 
-  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6Bound ν_supp ContDiff1ν
-    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-
   let C' := c_close + C_main
-  let C'' := c₁ + c₂ + c₈ + c₉
-  let C''' := c₃ + c₄ + c₆ + c₇
+  let C'' := 2 * (c₁ + c₂)
+  let C''' := 2 * (c₃ + c₄)
 
   let c : ℝ := A ^ ((1 : ℝ) / 10) / 4
   have cpos : 0 < c := by
@@ -3819,9 +3731,6 @@ theorem MediumPNT : ∃ c > 0,
 
   have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by
     exact Tx_to_inf.eventually_gt_atTop _
-  have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by
-    exact Tx_to_inf.eventually_gt_atTop _
-
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by
     apply (tendsto_order.mp ?_).1
     · exact σ₂_lt_one
@@ -4102,13 +4011,13 @@ theorem MediumPNT : ∃ c > 0,
       ring_nf
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
-    eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
+    eventually_T_gt_3, eventually_T_gt_Tlb₄,
       eventually_σ₂_lt_σ₁, eventually_ε_lt_ε_main, event_logX_ge, event_1, event_2,
-      event_3, event_4] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
+      event_3, event_4] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄
       σ₂_lt_σ₁ ε_lt_ε_main logX_ge event_1 event_2 event_3 event_4
 
   clear eventually_εx_lt_one eventually_2_lt eventually_T_gt_3 eventually_T_gt_Tlb₄
-    eventually_T_gt_Tlb₆ eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge zeta_bnd
+    eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge zeta_bnd
 
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
@@ -4147,23 +4056,17 @@ theorem MediumPNT : ∃ c > 0,
       left
       norm_cast
       linarith
-  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X‖ ≤ ‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖
-    + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
-    + ‖I₈ ν ε T X σ₁‖ + ‖I₉ ν ε X T‖ := by
+  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X‖ ≤ 2 * (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖
+    + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖) + ‖I₅ ν ε X σ₂‖ := by
     unfold ψ_ε_of_X
     rw [SmoothedChebyshevPull1 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith)
       σ₁pos σ₁_lt_one holo1 ν_supp ν_nonneg ν_massOne ContDiff1ν]
     rw [SmoothedChebyshevPull2 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith)
       σ₂_pos σ₁_lt_one σ₂_lt_σ₁ holo1 holo2a ν_supp ν_nonneg ν_massOne ContDiff1ν]
     ring_nf
-    iterate 5
-      apply le_trans (by apply norm_add_le)
-      gcongr
-    rw [(by ring : I₁ ν ε X T - I₂ ν ε T X σ₁ + I₃ ν ε T X σ₁ - I₄ ν ε X σ₁ σ₂ = (I₁ ν ε X T - I₂ ν ε T X σ₁) + (I₃ ν ε T X σ₁ - I₄ ν ε X σ₁ σ₂))]
-    apply le_trans (by apply norm_add_le)
-    rw [(by ring : ‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ =
-      (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖) + (‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖))]
-    gcongr <;> apply le_trans (by apply norm_sub_le) <;> rfl
+    grw [norm_add_le, norm_add_le, norm_add_le, norm_add_le, norm_add_le, norm_sub_le, norm_add_le, norm_sub_le]
+    rw [I9I1 (by linarith), I8I2 (by linarith), I7I3 (by linarith), I6I4 (by linarith)]
+    exact le_of_eq (by simp; ring)
   specialize h_main ε ⟨ε_pos, ε_lt_ε_main⟩
   have main : ‖𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X - X‖ ≤ C_main * ε * X := by
     nth_rewrite 2 [← one_mul X]
@@ -4175,12 +4078,7 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₂ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₃ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₅ X X_gt_3 ε_pos ε_lt_one
-  specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
-  specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
-  specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
   specialize hc₄ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₄
-  specialize hc₆ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₆
-
   clear ν_nonneg ν_massOne ContDiff1ν ν_supp holo2
 
   have C'bnd : c_close * ε * X * Real.log X + C_main * ε * X ≤ C' * ε * X * Real.log X := by
@@ -4188,29 +4086,18 @@ theorem MediumPNT : ∃ c > 0,
       gcongr
     linarith
 
-  have C''bnd : c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T) + c₈ * X / (ε * T)
-    + c₉ * X * Real.log X / (ε * T) ≤ C'' * X * Real.log X / (ε * T) := by
+  have C''bnd : 2 * (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)) ≤ C'' * X * Real.log X / (ε * T) := by
     unfold C''
-    rw [(by ring : (c₁ + c₂ + c₈ + c₉) * X * Real.log X / (ε * T)
-      = c₁ * X * Real.log X / (ε * T) + c₂ * X * Real.log X / (ε * T)
-        + c₈ * X * Real.log X / (ε * T) + c₉ * X * Real.log X / (ε * T))]
+    rw [(by ring : 2 * (c₁ + c₂) * X * Real.log X / (ε * T)
+      = 2 * (c₁ * X * Real.log X / (ε * T) + c₂ * X * Real.log X / (ε * T)))]
     have : c₂ * X / (ε * T) * 1 ≤ c₂ * X / (ε * T) * Real.log X := by
       gcongr
     have : c₂ * X / (ε * T) ≤ c₂ * X * Real.log X / (ε * T) := by
       ring_nf at this ⊢
       linarith
     grw [this]
-    have : c₈ * X / (ε * T) * 1 ≤ c₈ * X / (ε * T) * Real.log X := by
-      gcongr
-    have : c₈ * X / (ε * T) ≤ c₈ * X * Real.log X / (ε * T) := by
-      ring_nf at this ⊢
-      linarith
-    grw [this]
-
-  have C'''bnd : c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
+  have C'''bnd : 2 * (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε)
                   ≤ C''' * X * X ^ (-A / Real.log T ^ 9) / ε := by
     apply le_of_eq
     ring
@@ -4228,31 +4115,22 @@ theorem MediumPNT : ∃ c > 0,
     _         = ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X - X‖
                   + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X‖ := by ring
     _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 * X - X‖
-                  + (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
-                  + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
-                  + ‖I₉ ν ε X T‖) := by gcongr
+                  + (2 * (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖)
+                  + ‖I₅ ν ε X σ₂‖) := by gcongr
     _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
-                  + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
+                  + (2 * (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
                   + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₅ * X ^ σ₂ / ε
-                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₈ * X / (ε * T)
-                  + c₉ * X * Real.log X / (ε * T)) := by
+                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε)
+                  + c₅ * X ^ σ₂ / ε) := by
       gcongr
       convert! h_close using 1
       rw [← norm_neg]
       congr
       ring
     _         =  (c_close * ε * X * Real.log X + C_main * ε * X)
-                  + ((c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                  + c₈ * X / (ε * T)
-                  + c₉ * X * Real.log X / (ε * T))
-                  + (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε)
+                  + (2 * (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T))
+                  + 2 * (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε)
                   + c₅ * X ^ σ₂ / ε
                   ) := by ring
     _         ≤ C' * ε * X * Real.log X
