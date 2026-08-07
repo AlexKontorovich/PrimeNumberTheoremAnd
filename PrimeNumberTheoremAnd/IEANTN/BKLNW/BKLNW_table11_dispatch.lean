@@ -56,10 +56,14 @@ lemmas (`BKLNW_table10_next.lean`). Collapsing the chain into a single induction
 grid would mean re-encoding Table 10, i.e. changing merged code, so it is deliberately out
 of scope here.
 
-Axiom surface: nothing here is `sorry`, and `table_11_suffix_dominates` (the generated
-chain in `BKLNW_table11_suffix.lean` and its dispatch) needs no axioms beyond `propext` /
-`Classical.choice` / `Quot.sound` — not even `native_decide`, since it only compares
-printed values against printed values. The theorem as a whole still reports `sorryAx`, but
+Axiom surface: nothing here is `sorry`. The generated chain in `BKLNW_table11_suffix.lean`
+together with its dispatch (`table_11_suffix_dominates`, `table_11_top_row_dominates`)
+needs exactly `propext` / `Classical.choice` / `Quot.sound` plus two `native_decide`
+axioms, and those two come from the pre-existing `LogTables.log_10_gt` / `log_10_lt`:
+placing the `10^19` node `19 log 10` on the Table-10 grid needs numeric bounds on `log 10`.
+No new `native_decide` obligation is introduced here — the grid walk itself is clean
+(`eq_or_ge_next` needs none), since it only compares printed values against printed values.
+The theorem as a whole still reports `sorryAx`, but
 entirely from pre-existing upstream stubs it inherits, on both branches: `cor_5_1` (via
 `bklnw_cor_8_1a_exact`) above `10^19`, and `Buthe.theorem_2a` / `2c` (via `bklnw_eq_3_17`)
 below it. `bklnw_table_10_verification` already carried the same contingency.

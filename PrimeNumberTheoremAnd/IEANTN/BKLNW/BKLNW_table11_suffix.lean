@@ -4280,10 +4280,10 @@ private lemma table_11_suffix_from_19log10 :
     exact ⟨h1.trans (by norm_num), h2.trans (by norm_num),
       h3.trans (by norm_num), h4.trans (by norm_num), h5.trans (by norm_num)⟩
 
+set_option maxHeartbeats 4000000 in
 -- The row dispatch below enumerates all 43 Table-11 rows and, inside each, all five
 -- k-cases, so both the elaboration and the recursion budgets have to be raised — the
 -- same reason `BKLNW_table10_dispatch.lean` raises them for its 287-row enumeration.
-set_option maxHeartbeats 4000000 in
 set_option maxRecDepth 40000 in
 lemma table_11_suffix_dominates (b₀ : ℝ) (B : ℕ → ℝ)
     (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) (k : ℕ) (hk : k ∈ Finset.Icc 1 5) :
