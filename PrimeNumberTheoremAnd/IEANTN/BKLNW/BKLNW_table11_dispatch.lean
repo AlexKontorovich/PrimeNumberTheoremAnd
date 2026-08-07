@@ -44,6 +44,18 @@ branch consumes `bklnw_table_10_verification`, while the Table-10 row files alre
 import `BKLNW.lean` (for `B_8_exact`). `bklnw_table_10_verification` lives here for the
 same reason.
 
+File layout: the dispatch/suffix split is the intended long-term shape, not scaffolding to
+be inlined later. It mirrors Table 10, where `BKLNW_table10_dispatch.lean` is a generated
+dispatch sitting over the row certificates of `BKLNW_table10_rows_*.lean`; here
+`BKLNW_table11_suffix.lean` holds the generated certificate chain and this file holds the
+hand-written statement and dispatch. The 263 `table_11_suffix_from_<b>` lemmas are data
+rather than boilerplate — each carries the running suffix maximum of the five printed
+columns at its own node — and they are consumed one node at a time because the grid's
+successor function is itself encoded upstream as 287 separate `table_10_next_cert_<b>`
+lemmas (`BKLNW_table10_next.lean`). Collapsing the chain into a single induction over the
+grid would mean re-encoding Table 10, i.e. changing merged code, so it is deliberately out
+of scope here.
+
 Axiom surface: nothing here is `sorry`, and `table_11_suffix_dominates` (the generated
 chain in `BKLNW_table11_suffix.lean` and its dispatch) needs no axioms beyond `propext` /
 `Classical.choice` / `Quot.sound` — not even `native_decide`, since it only compares
