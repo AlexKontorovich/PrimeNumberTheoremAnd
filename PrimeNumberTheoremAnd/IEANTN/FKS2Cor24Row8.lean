@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
 Row 8 (`n = 5`) of Table-7, cloned from the complete row 11 (`n = 100`) via the
 generic `n`-parameterized helpers of `FKS2Cor24Row11`
 (`Table4Ext.expSplitNegXpow`, `Table4Ext.eval_expSplitNegXpow_eq_xpow`,
-`Table4Ext.lhsE_sub_negxpow_supported`, `Table4Ext.Epi_le_evalLhsE_low`,
+`Table4Ext.Epi_le_evalLhsE_low`,
 `Table4Ext.floor_xpow_of_check`, `Table4Ext.mid_xpow_of`, `Table4Ext.checkXpowCell`,
 `Table4Ext.cell_Epi_le_xpow_of_check`), all instantiated here at `n = 5`.
 
@@ -92,7 +92,7 @@ theorem floor_row8 : ∀ x ∈ Set.Icc (Real.exp (5:ℝ)) (Real.exp (10:ℝ)),
           rw [show (3.163:ℝ) = Real.sqrt (3.163^2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h316])
-    (lhsE_sub_negxpow_supported 5) floor_slab_check_row8 hcurve x hx
+    floor_slab_check_row8 hcurve x hx
   simpa using h
 
 /-- **Row-8 floor-trusted** `[e^1, e^5]` (`x ∈ [2.72, 148.4]`): the direct

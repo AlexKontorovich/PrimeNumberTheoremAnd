@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 `table7` entry `(x ↦ 2 * log x * x^(-1/2), Icc 1 57)`.  Clone of row 4
 (`FKS2Cor24Row4.lean`), reusing the generic `x^{-1/2}`-curve machinery in
 `Table4Ext` (`Epi_le_evalLhsE_wide`, `xhalfCurveE`, `eval_xhalfCurveE`,
-`xhalfCurve_sub_supported`, `floor_xhalf_of_check`).
+`floor_xhalf_of_check`).
 
 Unlike row 4/5, the Buthe floor threshold `Lf = 3` used by rows 4/5 does **not**
 certify here: at `L = 3` the Buthe polynomial (`≈ 6.12`) exceeds `c·L = 2·3 = 6`.
@@ -63,7 +63,7 @@ theorem floor_row1 : ∀ x ∈ Set.Icc (Real.exp (4:ℝ)) (Real.exp (43:ℝ)),
           rw [show (6.56:ℝ) = Real.sqrt (6.56 ^ 2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h656])
-    (xhalfCurve_sub_supported 2 2) floor_slab_check_row1 hcurve
+    floor_slab_check_row1 hcurve
 
 /-- **Row-1 floor-trusted** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): the direct `π`/`Li`
 interpolation for small `x` that the blueprint proof invokes
