@@ -60,7 +60,7 @@ noncomputable def Buthe_chiStarIcc (x t : ℝ) : ℝ :=
     $\psi(x)=\sum_{n \geq 1}\chi^*_{[0,x]}(n)\Lambda(n)$.
   -/)]
 noncomputable def Buthe_psi (x : ℝ) : ℝ :=
-  ∑' n : ℕ, Buthe_chiStarIcc x n * (vonMangoldt n : ℝ)
+  ∑' n : ℕ, Buthe_chiStarIcc x (n + 1) * (vonMangoldt (n + 1) : ℝ)
 
 @[blueprint
   "buthe2-buthe-theta"
@@ -71,7 +71,7 @@ noncomputable def Buthe_psi (x : ℝ) : ℝ :=
     $\vartheta(x)=\sum_p \chi^*_{[0,x]}(p)\log p$.
   -/)]
 noncomputable def Buthe_theta (x : ℝ) : ℝ :=
-  ∑ p ∈ Finset.Icc 0 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
+  ∑ p ∈ Finset.Icc 1 ⌊x⌋₊ with p.Prime, Buthe_chiStarIcc x p * log (p : ℝ)
 
 @[blueprint
   "buthe2-buthe-pi"
@@ -91,7 +91,7 @@ noncomputable def Buthe_pi (x : ℝ) : ℝ :=
     $\pi^*(x)=\sum_{k \geq 1}\pi(x^{1/k})/k$.
   -/)]
 noncomputable def Buthe_pi_star (x : ℝ) : ℝ :=
-  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
+  ∑' k : ℕ, Buthe_pi (x ^ (1 / (k + 1 : ℝ))) / (k + 1 : ℝ)
 
 lemma Buthe_chiStarIcc_nonneg (x t : ℝ) : 0 ≤ Buthe_chiStarIcc x t := by
   unfold Buthe_chiStarIcc
@@ -106,8 +106,18 @@ lemma Buthe_chiStarIcc_eq_one_of_pos_lt {x t : ℝ} (ht0 : 0 < t) (htx : t < x) 
   unfold Buthe_chiStarIcc
   simp [ht0.ne', htx.ne, ht0, htx]
 
+/-- Primes in `Icc 0 n` and `Icc 1 n` agree (no prime is `0`). -/
+private lemma prime_filter_Icc_zero_eq_one (n : ℕ) :
+    (Finset.Icc 0 n).filter Nat.Prime = (Finset.Icc 1 n).filter Nat.Prime := by
+  ext p
+  simp only [Finset.mem_filter, Finset.mem_Icc]
+  exact ⟨fun h => ⟨⟨h.2.one_le, h.1.2⟩, h.2⟩,
+    fun h => ⟨⟨Nat.zero_le p, h.1.2⟩, h.2⟩⟩
+
 lemma Buthe_theta_le_theta (x : ℝ) : Buthe_theta x ≤ θ x := by
   rw [Chebyshev.theta_eq_sum_Icc]
+  -- θ sums over `Icc 0 ⌊x⌋₊`; primes start at 2, so this matches `Icc 1`.
+  rw [prime_filter_Icc_zero_eq_one]
   unfold Buthe_theta
   refine Finset.sum_le_sum ?_
   intro p hp
@@ -121,6 +131,7 @@ lemma eventually_Buthe_theta_eq_theta (x : ℝ) (hx : 0 ≤ x) :
   filter_upwards [self_mem_nhdsWithin,
     Ico_mem_nhdsGT_of_mem ⟨Nat.floor_le hx, Nat.lt_floor_add_one x⟩] with y hygt hyfloor
   rw [Chebyshev.theta_eq_sum_Icc]
+  rw [prime_filter_Icc_zero_eq_one]
   unfold Buthe_theta
   have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico ⌊x⌋₊ y hyfloor
   rw [hfloor]
@@ -264,8 +275,7 @@ Some results from \cite{Dusart1999}-/
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
     pi x > x / (log x - 1) := by
-  -- Paper / Art01 use a strict inequality; `Dusart.corollary_5_3_a` is currently
-  -- stubbed as non-strict, so keep the paper-faithful statement here.
+  -- Art01 / Dusart1999 use a strict inequality. Dusart2018 Cor 5.3(a) is non-strict.
   sorry
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
@@ -1427,12 +1437,15 @@ namespace CarneiroEtAl2019RH
 @[blueprint
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
-  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]. \]
-  -/)
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the
+  \emph{closed} interval
+  \[ \left[ x, x + \frac{22}{25}\sqrt{x}\log x \right]
+  \]
+  (\cite{CMS2019}, Theorem~5). Written with an explicit existential because
+  \texttt{HasPrimeInInterval} is open on the left. -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval x ((22 / 25) * sqrt x * log x) := by sorry
+    ∃ p : ℕ, Nat.Prime p ∧ x ≤ p ∧ (p : ℝ) ≤ x + (22 / 25) * sqrt x * log x := by sorry
 
 end CarneiroEtAl2019RH
 
