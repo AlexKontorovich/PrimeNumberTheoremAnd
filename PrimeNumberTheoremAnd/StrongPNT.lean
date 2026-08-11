@@ -2393,20 +2393,15 @@ lemma DeltaRange : ∀ (t : ℝ),
 
 
 
-blueprint_comment /--
-\begin{lemma}[SumBoundII]\label{SumBoundII}
+@[blueprint "SumBoundII"
+  (title := "SumBoundII")
+  (statement := /--
     For all $t\in\mathbb{R}$ with $|t|\geq 2$ and $z=\sigma+it$
     where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
-\end{lemma}
--/
-
-/- DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
-
-blueprint_comment /--
-\begin{proof}
-\uses{DeltaRange, LogDerivZetaFinalBound, ZeroInequality}
+  -/)
+  (proof := /--
     By Lemma \ref{DeltaRange} we have that
     $$-29/54<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=4/5$, and $R=5/6$.
@@ -2425,8 +2420,78 @@ blueprint_comment /--
     $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
-\end{proof}
--/
+  -/)]
+lemma SumBoundII :
+    ∃ (C : ℝ), C > 0 ∧
+      ∀ (δ : ℝ), δ ∈ Ioo 0 1 →
+        ∀ (t : ℝ), |t| ≥ 2 →
+          ∀ (z : ℂ), (hzIm : t = z.im) → (hzRe : z.re ∈ Icc (1 - DeltaT t / 3) (3 / 2)) →
+            ∀ (finiteZeros : (ZeroWindow t).Finite),
+    ‖ζ' (z) / ζ (z) - ∑ ρ ∈ finiteZeros.toFinset,
+      analyticOrderNatAt ζ ρ / (z - ρ)‖ ≤ C * Real.log |t| := by
+  let r' : ℝ := 2 / 3
+  let r : ℝ := 3 / 4
+  let R' : ℝ := 4 / 5
+  let R : ℝ := 5 / 6
+  have r'_pos : 0 < r' := by norm_num
+  have r'_lt_r : r' < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R' : r < R' := by norm_num
+  have R'_lt_R : R' < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  obtain ⟨C, hC, LogDerivBound⟩ :=
+    LogDerivZetaFinalBound r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one
+  refine ⟨(16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * C,
+    by positivity, ?_⟩
+  intro δ hd t ht z hzIm hzRe finiteZeros
+  have LogDerivBound := LogDerivBound t ht
+  extract_lets f at LogDerivBound
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    apply ZetaShiftFiniteZeros ht
+    simp only [f]
+  have hz : I * t + z.re = z := by
+    rw [← Complex.re_add_im z]
+    simp only [hzIm, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, mul_comm, add_comm]
+  set Z : ℂ := z.re - 3 / 2 with hZ
+  have hZ' : Z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f := by
+    simp only [SetOfZeros, f, Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right, mem_setOf_eq,
+      not_and, hZ]
+    ring_nf
+    refine ⟨?_, fun _ => ?_⟩
+    · suffices h1 : ‖-3 / 2 + z.re‖ ≤ r' by exact_mod_cast h1
+      rw [Real.norm_eq_abs, abs_le]
+      exact ⟨by linarith [hzRe.1, DeltaRange t ht], by linarith [hzRe.2]⟩
+    · rw [add_comm, hz]
+      by_contra zZetaZero
+      suffices h1 : 1 - E / Real.log |t| < 1 - DeltaT t / 3 by
+        linarith [hzRe.1, ZeroInequalitySpec z zZetaZero z.re rfl t hzIm ht]
+      simp only [DeltaT, sub_lt_sub_iff_left]
+      exact _root_.div_lt_self (_root_.div_pos EinIoo.1 (Real.log_pos (by linarith))) one_lt_ofNat
+  have LogDerivBound := LogDerivBound finiteZeros' Z hZ'
+  refine le_trans (le_of_eq ?_) (LogDerivBound.trans (by rw [mul_assoc]))
+  apply congrArg norm
+  congr 1
+  · simp only [f, hZ, add_assoc, deriv_comp_add_const]
+    ring_nf
+    rw [add_comm, hz]
+  · simp only [f]
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring_nf) (fun ρ hρ => by ring_nf)
+      (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [r, hρ.2]
+      · simp only [add_assoc, sub_add_cancel, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [← add_assoc, hρ.2]
+      · simp only [add_sub_cancel_right, r, hρ.1]
+    · ring_nf
+      simp only [add_assoc _ _ (I * t), add_comm _ (I * t), ← add_assoc _ (I * t) _]
+      rw [mul_comm, analyticOrderNatAt_fun_comp_add_left, hZ]
+      ring_nf
+      simp only [add_assoc, hz, neg_add_eq_sub ρ z, mul_comm]
 
 
 
