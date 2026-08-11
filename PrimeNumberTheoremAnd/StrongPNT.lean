@@ -2388,8 +2388,7 @@ lemma DeltaRange : ∀ (t : ℝ),
       DeltaT t < (1 : ℝ) / 9 := by
   intro t ht
   rw [DeltaT, div_lt_div_iff₀ (Real.log_pos (by linarith)) (ofNat_pos'), one_mul]
-  have : E * 9 < Real.log 2 := by linarith [EinIoo.2, Real.log_two_gt_d9]
-  exact lt_of_lt_of_le this (Real.log_le_log zero_lt_two ht)
+  exact lt_of_lt_of_le (by linarith [EinIoo.2, Real.log_two_gt_d9]) (Real.log_le_log zero_lt_two ht)
 
 
 
@@ -2495,17 +2494,14 @@ lemma SumBoundII :
 
 
 
-blueprint_comment /--
-\begin{lemma}[GapSize]\label{GapSize}
-   Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$.
+@[blueprint "GapSize"
+  (title := "GapSize")
+  (statement := /--
+    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$.
    Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
    $$|z-\rho|\geq\delta_t/6.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroInequality}
+  -/)
+  (proof := /--
     Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-3/4,t+3/4)$.
     Thus, if $t>1$ we have
     $$\log|t'|\leq\log|t+3/4|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
@@ -2517,8 +2513,34 @@ blueprint_comment /--
     (here we use the fact that $|t|\geq 3$ to give us that $|t'|\geq 2$). Thus,
     $$\delta_t/6\leq\delta_{t'}-\delta_t/3
       =1-\delta_t/3-(1-\delta_{t'})\leq\sigma-\sigma'\leq|z-\rho|.$$
-\end{proof}
--/
+  -/)]
+lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
+    (z : ℂ) (hzRe : z.re ∈ Icc (1 - DeltaT t / 3) (3 / 2))
+    (ρ : ℂ) (hρ : ρ ∈ ZeroWindow t) :
+    ‖z - ρ‖ ≥ DeltaT t / 6 := by
+  simp only [ZeroWindow, mem_setOf_eq] at hρ
+  have := abs_sub_abs_le_abs_sub t ρ.im; rw [abs_sub_comm] at this
+  have ρImDiffBound : |ρ.im - t| ≤ 3 / 4 := by
+    have h := Complex.abs_im_le_norm (ρ - (3 / 2 + I * t))
+    simp only [sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im, mul_zero,
+      I_im, ofReal_re, one_mul, zero_add] at h
+    exact h.trans hρ.2
+  have ρImAbsUpperBound : Real.log |ρ.im| ≤ 2 * Real.log |t| := by
+    have moveTwo : Real.log (2 * |t|) ≤ 2 * Real.log |t| := by
+      rw [← Real.log_rpow (by linarith)]
+      have := mul_le_mul_of_nonneg_right ht (abs_nonneg t); rw [← sq, ← Real.rpow_two] at this
+      exact Real.log_le_log (by linarith) (by linarith)
+    refine le_trans (Real.log_le_log (by linarith) ?_) moveTwo
+    linarith [abs_sub_abs_le_abs_sub ρ.im t]
+  have deltaRelation : DeltaT t ≤ 2 * (DeltaT ρ.im) := by
+    simp only [DeltaT, mul_div, mul_comm]
+    rw [div_le_div_iff₀ (Real.log_pos (by linarith)) (Real.log_pos (by linarith)), mul_assoc]
+    nlinarith [EinIoo.1, EinIoo.2]
+  have hρRe := ZeroInequalitySpec ρ hρ.1 ρ.re rfl ρ.im rfl (by linarith); rw [← DeltaT] at hρRe
+  calc DeltaT t / 6 ≤ (1 - DeltaT t / 3) - (1 - DeltaT ρ.im) := by linarith
+    _ ≤ z.re - ρ.re := by linarith [hzRe.1, hρRe]
+    _ = (z - ρ).re := by rw [Complex.sub_re]
+    _ ≤ ‖z - ρ‖ := Complex.re_le_norm _
 
 
 
@@ -2583,10 +2605,10 @@ noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
 lemma Fequ : F = E / 3 := LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
 lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 ≤ C),
     ∀ (σ t : ℝ),
-    3 ≤ |t| →
+      3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
-            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
-    by exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
+          ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
+            LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
 lemma FLogTtoDeltaT : ∀ (t : ℝ),
     DeltaT t / 3 = F / Real.log |t| := fun _ ↦ by simp [DeltaT, Fequ]; ring
 
