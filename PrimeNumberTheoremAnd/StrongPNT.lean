@@ -2597,8 +2597,8 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
     We know that the RHS is bounded above by $\ll\log^2|t|$; so the result follows.
   -/)
   (latexEnv := "lemma")]
-lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
-    (C : ℝ) (Cnonneg : 0 ≤ C),
+lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
+    (C : ℝ) (_ : 0 ≤ C),
       ∀ (t : ℝ), 3 ≤ |t| →
         ∀ (σ : ℝ), σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
           ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
@@ -2638,7 +2638,19 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
   set g : ℂ → ℂ := fun z ↦ ζ (z + 3 / 2 + I * t) with hg
   set f : ℂ → ℂ := fun z ↦ g z / ζ (3 / 2 + I * t) with hf
   have fAnalytic : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) 1) := by
-    sorry
+    intro z hz; simp only [Metric.mem_closedBall, dist_zero_right] at hz
+    simp only [hf, hg]
+    refine AnalyticAt.div_const (AnalyticAt.comp (DifferentiableOn.analyticAt (s := {z : ℂ | z ≠ 1})
+      (fun z' hz' => (differentiableAt_riemannZeta hz').differentiableWithinAt)
+      ((isOpen_ne).mem_nhds ?_)) (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const)
+      analyticAt_const))
+    simp only [ne_eq, Pi.add_apply, id_eq, mem_setOf_eq]
+    by_contra h; rw [Complex.ext_iff] at h
+    obtain ⟨_, hIm⟩ := h; simp only [add_im, div_ofNat_im, im_ofNat, zero_div, add_zero, mul_im,
+      I_re, ofReal_im, mul_zero, I_im, ofReal_re, one_mul, zero_add, one_im] at hIm
+    rw [add_eq_zero_iff_eq_neg] at hIm
+    have h := Complex.abs_im_le_norm z; rw [hIm, abs_neg] at h
+    linarith
   have zetaThreeHalfNonzero : ¬ζ (3 / 2 + I * ↑t) = 0 := by
     exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
   have f0_1 : f 0 = 1 := by
@@ -2651,7 +2663,15 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
   have finite0s := ZeroWindowFinite (t := t) (by linarith)
   have fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B := by
     intro z hz
-    sorry
+    simp only [hf, hg, Complex.norm_div, hB, hd, Complex.norm_mul, Complex.norm_ofNat]
+    rw [mul_comm 3 _, div_mul_eq_div_mul_one_div, mul_comm _ |t|, mul_comm _ (1 / 3), ← mul_div,
+      ← mul_assoc, ← mul_assoc]
+    refine mul_le_mul (le_trans (GlobalBound (s := z) (t := t) (by linarith) (by linarith)) (by linarith)) ?_ (inv_nonneg.mpr (Complex.norm_nonneg _)) (by linarith)
+    rw [← inv_le_inv₀ (_root_.div_pos (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))
+      (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))) (inv_pos.mpr (norm_pos_iff.mpr zetaThreeHalfNonzero)), inv_div, inv_inv]
+    have zetaLowerBound := ZetaFixedLowerBound t
+    simp only [nnnorm_div, ge_iff_le] at zetaLowerBound
+    exact_mod_cast zetaLowerBound
   have ZerosBound := ZerosBound r_pos r_lt_one r_lt_R R_lt_one fAnalytic f0_1 finiteSetOf0s fz_bound
   rw [hB, one_div_mul_eq_div, cast_sum, R_over_r,
     Real.log_mul (by linarith) (by linarith), add_div] at ZerosBound
@@ -2680,8 +2700,17 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
       intro z hzZero hzBound
       rw [analyticOrderNatAt_fun_div_const zetaThreeHalfNonzero]
       · simp only [add_assoc, analyticOrderNatAt_fun_comp_add_right, sub_add_cancel]
-      ·
-        sorry
+      · apply AnalyticAt.comp (DifferentiableOn.analyticAt (s := {z : ℂ | z ≠ 1})
+          (fun z' hz' => (differentiableAt_riemannZeta hz').differentiableWithinAt)
+          ((isOpen_ne).mem_nhds ?_))
+          (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const) analyticAt_const)
+        simp only [ne_eq, Pi.add_apply, id_eq, mem_setOf_eq]; ring_nf
+        by_contra z1
+        simp [z1] at hzBound; ring_nf at hzBound
+        have h := Complex.abs_im_le_norm (-1 / 2 - I * t); simp only [sub_im, div_ofNat_im, neg_im,
+          one_im, neg_zero, zero_div, mul_im, I_re, ofReal_im, mul_zero, I_im, ofReal_re, one_mul,
+          zero_add, zero_sub, abs_neg] at h
+        linarith
   set z : ℂ := σ + t * I with hz
   have zIm : t = z.im := by
     simp only [hz, add_im, ofReal_im, mul_im, ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero,
@@ -2690,7 +2719,9 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
     simp only [hz, DeltaT, div_right_comm, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
       ofReal_im, mul_zero, sub_self, add_zero, hσ]
   have one_le_logt : 1 ≤ Real.log |t| := by
-    sorry
+    rw [← Real.log_exp 1]
+    apply Real.log_le_log (Real.exp_pos _)
+    linarith [Real.exp_one_lt_three]
   calc ‖ζ' z / ζ z‖ ≤ _ := norm_le_norm_sub_add _ (∑ ρ ∈ finite0s.toFinset, analyticOrderNatAt ζ ρ / (z - ρ))
     _ ≤ ‖∑ ρ ∈ finite0s.toFinset, ↑(analyticOrderNatAt ζ ρ) / (z - ρ)‖ + C * Real.log |t| := by
       linarith [SumBoundII t (by linarith) z zIm zRe finite0s]
