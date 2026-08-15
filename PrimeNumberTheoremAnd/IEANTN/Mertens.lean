@@ -975,18 +975,12 @@ private theorem integrable_E₁p_div_mul_log_sq {x : ℝ} (hx : 2 ≤ x) :
     gcongr
     exact hc2 t (by linarith)
 
-lemma deriv_log_log {x : ℝ} (hx : 1 < x) :
-    deriv (fun t ↦ log (log t)) x = 1 / (x * log x) := by
-  rw [deriv.log (differentiableAt_log (by linarith)) (by simp; grind), deriv_log]
-  field
-
 lemma integral_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
     ∫ t in 2..x, 1 / (t * log t) = log (log x) - log (log 2) := by
   rw [← intervalIntegral.integral_deriv_eq_sub (f := fun t ↦ log (log t))]
   · refine intervalIntegral.integral_congr fun t ht ↦ ?_
-    rw [deriv_log_log]
-    rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
-    linarith
+    simp
+    ring
   · intro t ht
     rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
     have : log t ≠ 0 := by simp; grind
@@ -999,7 +993,8 @@ lemma integral_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
       fun_prop (disch := grind)
     · intro t ht
       rw [Set.uIcc_of_le hx, Set.mem_Icc] at ht
-      exact deriv_log_log (by linarith)
+      simp
+      ring
 
 lemma intervalIntegrable_one_div_mul_log {x : ℝ} (hx : 2 ≤ x) :
     IntervalIntegrable (fun t ↦ 1 / (t * log t)) MeasureTheory.volume 2 x := by
@@ -1231,7 +1226,7 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
   have hsupp : Function.support F ⊆ {n : ℕ | IsPrimePow n} := by
     intro n hn
     rw [Function.mem_support] at hn
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     by_contra hpp
     apply hn
     simp only [hF, vonMangoldt_eq_zero_iff.mpr hpp, zero_div]
@@ -2337,7 +2332,6 @@ lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
     gcongr
   · convert! integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
     simp
-    rfl
   · exact fun _ _ ↦ (by positivity)
 
 lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :
