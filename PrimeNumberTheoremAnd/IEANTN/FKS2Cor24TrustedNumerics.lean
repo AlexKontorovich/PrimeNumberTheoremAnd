@@ -6,10 +6,11 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 /-!
 # Trusted numerical boundaries introduced by FKS2 Corollary 24
 
-This file collects, in one place and with **minimal imports**, the trusted numerical
+This file collects, in one place, the trusted numerical
 `sorry`s that the formalisation of FKS2 Corollary 24 (`corollary_24_all`) **introduces**:
-twenty-two bounds on compact windows `x ∈ [eᵃ, eᵇ]`, two per Table-7 row — a small-`x`
-*floor* and a large-`x` *sliver*/*band* at the threshold.  Each is a finite-range
+twenty-one bounds on compact windows `x ∈ [eᵃ, eᵇ]`.  Row 11's small-`x` floor is
+now checked in `FKS2Cor24CheckedNumerics`; the remaining facts are small-`x`
+*floors* and large-`x` *slivers*/*bands* at the threshold.  Each is a finite-range
 numerical datum taken from the published computations of
 
 > M. Cully-Hugill, D. R. Johnston, T. S. Trudgian, A. Yang (FKS2),
@@ -17,7 +18,7 @@ numerical datum taken from the published computations of
 
 ## Scope
 
-These twenty-two are the trust that Corollary 24 adds *on top of* the existing
+These twenty-one are the remaining trust that Corollary 24 adds *on top of* the existing
 development.  `corollary_24_all` additionally relies on trusted numerical `sorry`s that
 already live elsewhere in the repository and are **not** reproduced here:
 
@@ -216,13 +217,11 @@ theorem sliver_row10 : ∀ x ∈ Set.Icc (Real.exp (1358:ℝ)) (Real.exp (1358.6
     Epi x ≤ x ^ (-(1:ℝ)/50) := by
   sorry
 
-/-! ### Row 11 — curve `x^{-1/100}` -/
+/-! ### Row 11 — curve `x^{-1/100}`
 
-/-- **Row 11 floor** `[e^1, e^3.5]` (`x ∈ [2.72, 33.1]`): direct `π`/`Li` check for small
-`x` (FKS2 §5.2–§5.3); `E_π(x) ≤ x^{-1/100}`.  Purely computational. -/
-theorem floor_trusted_row11 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
-    Epi x ≤ x ^ (-(1:ℝ)/100) := by
-  sorry
+The Row 11 floor is checked in `FKS2Cor24CheckedNumerics`; only the trusted
+large-`x` sliver remains here.
+-/
 
 /-- **Row 11 sliver** `[e^3756, e^3757.6]` (`x` astronomically large): trusted **tabular**
 boundary at the Table-7 threshold — FKS2's refined Theorem-6 interpolation, far beyond
