@@ -359,7 +359,7 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
       = insert (1 : ℂ) (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)) ∩
         {s | meromorphicOrderAt f s < 0} := by
     ext s
-    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_insert_iff]
+    simp only [Set.mem_inter_iff, Set.mem_ofPred_eq, Set.mem_insert_iff]
     refine and_congr_left fun hord => ?_
     constructor
     · intro hsbox
@@ -2854,7 +2854,7 @@ theorem summable_lap_sub_pole_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -2886,7 +2886,7 @@ theorem summable_re_one_div_at_zeros (s : ℂ) :
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -2945,8 +2945,8 @@ theorem summable_one_div_add_one_div_at_zeros (s : ℂ) :
     (nontrivialZeros_abs_im_lt_one_finite.union
       (nontrivialZeros_shifted_abs_im_lt_one_finite s))
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad
-  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  rw [Set.mem_ofPred_eq] at hbad
+  rw [Set.mem_union, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
   by_contra hsmall
   rw [not_or] at hsmall
   obtain ⟨h1, h2⟩ := hsmall
@@ -3068,7 +3068,7 @@ theorem summable_kadiriTestFn_weighted_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ 
     rw [Filter.eventually_cofinite]
     apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
     intro ρ hbad
-    rw [Set.mem_setOf_eq] at hbad ⊢
+    rw [Set.mem_ofPred_eq] at hbad ⊢
     by_contra hsmall
     have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
     have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -3166,7 +3166,7 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1

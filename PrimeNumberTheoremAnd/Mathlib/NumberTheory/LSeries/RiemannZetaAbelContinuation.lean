@@ -185,7 +185,7 @@ theorem norm_zetaAbelContinuationFormula_le (s : ℂ) (hs : s ∈ zetaAbelContin
 /-- The Abel continuation formula is analytic on `zetaAbelContinuationDomain`. -/
 theorem analyticOn_zetaAbelContinuationFormula :
     AnalyticOn ℂ zetaAbelContinuationFormula zetaAbelContinuationDomain := by
-  simp only [AnalyticOn, zetaAbelContinuationDomain, Set.mem_setOf_eq]
+  simp only [AnalyticOn, zetaAbelContinuationDomain, Set.mem_ofPred_eq]
   intro s ⟨hs_ne, hs_re⟩
   apply AnalyticAt.analyticWithinAt
   refine analyticAt_const.add (analyticAt_const.div (analyticAt_id.sub analyticAt_const) ?_) |>.sub

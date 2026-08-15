@@ -957,7 +957,7 @@ theorem p_n_gt_1 (n : ℕ) (hn : n ≥ 2) :
         intro n hn
         induction n, hn using Nat.le_induction with
         | base => exact Nat.Prime.two_le (Nat.prime_nth_prime 0) |> Nat.succ_le_of_lt
-        | succ n _ ih => exact Nat.succ_le_of_lt (lt_of_le_of_lt ih (Nat.nth_strictMono Nat.infinite_setOf_prime (Nat.pred_lt (by positivity))))
+        | succ n _ ih => exact Nat.succ_le_of_lt (lt_of_le_of_lt ih (Nat.nth_strictMono Nat.infinite_setOfPred_prime (Nat.pred_lt (by positivity))))
       exact this n (by omega)
     have h_dusart : (nth_prime' n : ℝ) ≥ n * (log (nth_prime' n) - 1.112) := by
       have h_pi_le : (n : ℝ) ≤ (nth_prime' n : ℝ) / (log (nth_prime' n) - 1.112) := by

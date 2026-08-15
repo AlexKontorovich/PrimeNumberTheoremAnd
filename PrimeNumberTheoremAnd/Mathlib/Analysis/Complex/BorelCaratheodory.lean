@@ -31,7 +31,7 @@ public theorem borelCaratheodory_zero_closedBall {f : ℂ → ℂ} {M r R : ℝ}
     exact (hf w hw').differentiableAt.differentiableWithinAt
   have hf_map : Set.MapsTo f (Metric.ball (0 : ℂ) R) {w | w.re ≤ M} := by
     intro w hw
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     have hw' : ‖w‖ < R := by simpa [Metric.mem_ball, dist_zero_right] using hw
     exact hf_re w hw'.le
   have hbc :=
