@@ -1870,14 +1870,11 @@ lemma LSeries_totient_eq {s : ℂ} (hs : 2 < s.re) :
     LSeries (↗totient) s = riemannZeta (s - 1) / riemannZeta s := by
   have hs1 : 1 < s.re := by linarith
   have hs2 : 1 < (s - 1).re := by
-    simp only [Complex.sub_re, Complex.one_re]; linarith
-  have hzeta_ne : riemannZeta s ≠ 0 := riemannZeta_ne_zero_of_one_lt_re hs1
-  have hsum_tot : LSeriesSummable (↗totientAF) s := lseriesSummable_totientAF hs
-  have hsum_zeta : LSeriesSummable ↗(ζ : ArithmeticFunction ℂ) s :=
-    LSeriesSummable_zeta_iff.mpr hs1
+    simp only [Complex.sub_re, Complex.one_re]
+    linarith
   have hmul : LSeries ↗(totientAF * (ζ : ArithmeticFunction ℂ)) s =
       LSeries ↗totientAF s * LSeries ↗(ζ : ArithmeticFunction ℂ) s :=
-    LSeries_mul' hsum_tot hsum_zeta
+    LSeries_mul' (lseriesSummable_totientAF hs) (LSeriesSummable_zeta_iff.mpr hs1)
   have h_prod : LSeries ↗(totientAF * (ζ : ArithmeticFunction ℂ)) s = riemannZeta (s - 1) := by
     rw [totientAF_mul_zeta_eq_powR1, LSeries_powR_eq 1 hs2]
   have h_lzeta : LSeries ↗(ζ : ArithmeticFunction ℂ) s = riemannZeta s := by
@@ -1885,7 +1882,7 @@ lemma LSeries_totient_eq {s : ℂ} (hs : 2 < s.re) :
     rw [heq]; exact LSeries_zeta_eq_riemannZeta hs1
   rw [h_prod] at hmul
   rw [h_lzeta] at hmul
-  rw [eq_div_iff hzeta_ne]
+  rw [eq_div_iff (riemannZeta_ne_zero_of_one_lt_re hs1)]
   change LSeries (↗totientAF) s * riemannZeta s = riemannZeta (s - 1)
   exact hmul.symm
 
