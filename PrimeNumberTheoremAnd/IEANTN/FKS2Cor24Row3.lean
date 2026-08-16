@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 `table7` entry `(x ↦ (1/(8*π)) * (log x)^2 * x^(-1/2), Icc 8 60.8)`.  Clone of row 4
 (`FKS2Cor24Row4.lean`), reusing the generic `x^{-1/2}`-curve machinery in
 `Table4Ext` (`Epi_le_evalLhsE_wide`, `xhalfCurveE`, `eval_xhalfCurveE`,
-`xhalfCurve_sub_supported`, `floor_xhalf_of_check`).
+`floor_xhalf_of_check`).
 
 Two features distinguish this row from rows 1/2/4/5:
 
@@ -84,7 +84,7 @@ theorem floor_row3 : ∀ x ∈ Set.Icc (Real.exp (9:ℝ)) (Real.exp (43:ℝ)),
           rw [show (6.56:ℝ) = Real.sqrt (6.56 ^ 2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h656])
-    (xhalfCurve_sub_supported (79/2000) 4) floor_slab_check_row3 hcurve
+    floor_slab_check_row3 hcurve
 
 /-- **Row-3 floor-trusted** `[e^8, e^9]` (`x ∈ [2981, 8103]`): the direct `π`/`Li`
 interpolation for small `x` that the blueprint proof invokes
