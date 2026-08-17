@@ -73,7 +73,31 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  obtain ⟨d₁, d₂, hd₁, hd₂, rfl⟩ := exists_dvd_and_dvd_of_dvd_mul hd
+  -- the first component of any such pair is forced to be `gcd d a`
+  have key : ∀ x y : ℕ, x ∣ a → y ∣ b → Nat.gcd (x * y) a = x := by
+    intro x y hx hy
+    have hcop : Nat.Coprime y a := Nat.Coprime.coprime_dvd_left hy hab.symm
+    rw [Nat.Coprime.gcd_mul_right_cancel _ hcop, Nat.gcd_eq_left hx]
+  refine ⟨(d₁, d₂), ⟨hd₁, hd₂, rfl⟩, ?_⟩
+  rintro ⟨e₁, e₂⟩ ⟨he₁, he₂, he⟩
+  simp only at he₁ he₂ he ⊢
+  have h₁ : e₁ = d₁ := by
+    have h := key e₁ e₂ he₁ he₂
+    rw [he] at h
+    rw [← h, key d₁ d₂ hd₁ hd₂]
+  subst h₁
+  rcases Nat.eq_zero_or_pos e₁ with rfl | hpos
+  · -- `a` is then zero, so `b = 1` by coprimality and both second components are 1
+    have hb : b = 1 := by
+      have : a = 0 := Nat.eq_zero_of_zero_dvd he₁
+      subst this
+      simpa [Nat.coprime_zero_left] using hab
+    subst hb
+    simp only [Nat.dvd_one] at he₂ hd₂
+    simp [he₂, hd₂]
+  · have : e₂ = d₂ := Nat.eq_of_mul_eq_mul_left hpos he
+    simp [this]
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
@@ -92,7 +116,12 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  -- the divisor sum of `f` is the convolution `ζ * f`, and a convolution of multiplicative
+  -- functions is multiplicative
+  have hmul : ((ArithmeticFunction.zeta : ArithmeticFunction R) * f).IsMultiplicative :=
+    (ArithmeticFunction.isMultiplicative_zeta.natCast).mul hf
+  have := hmul.map_mul_of_coprime hab
+  simpa only [ArithmeticFunction.coe_zeta_mul_apply] using this
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -1621,8 +1650,13 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  rintro ⟨a₁, a₂⟩ ha ⟨b₁, b₂⟩ hb hab
+  simp only [Set.mem_prod, Finset.mem_coe, Nat.mem_divisors] at ha hb
+  simp only at hab
+  -- both pairs decompose the same divisor of `m * n`, and that decomposition is unique
+  have hdvd : a₁ * a₂ ∣ m * n := Nat.mul_dvd_mul ha.1.1 ha.2.1
+  exact ExistsUnique.unique (unique_divisor_decomposition (d := a₁ * a₂) hmn hdvd)
+    (y₁ := (a₁, a₂)) (y₂ := (b₁, b₂)) ⟨ha.1.1, ha.2.1, rfl⟩ ⟨hb.1.1, hb.2.1, hab.symm⟩
 
 @[blueprint
   "pow_divisors_mul_injective"
