@@ -653,26 +653,9 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
   sorry
 
-/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
-@[blueprint
-  "zeta_pow_four_eq"
-  (title := "zeta pow four eq")
-  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
-  \begin{verbatim}
-  This is IK (1.29).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
-  -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
-      (by simpa using hs)) using 1
-  · ring_nf
-  · congr
-    · ring_nf
-    · simp [tau, sigma, sigmaR, pow_two]
+-- `zeta_pow_four_eq` (IK 1.29) is proved below, once `zeta_pow_three_eq` is
+-- available: it is that identity multiplied by `ζ(s)` and rewritten with the
+-- Baby Rankin--Selberg identity, so it does not go through Ramanujan's formula.
 
 class IsCoprimePreserving (f : ℕ → ℕ) : Prop where
   map_coprime : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (f m) (f n)
@@ -830,49 +813,9 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     rfl
   rw [lhs_bridge, rhs_bridge, key]
   
-/--
-Zeta cubed:
-`ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
-@[blueprint
-  "zeta_pow_three_eq'"
-  (title := "zeta pow three eq")
-  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
-  \begin{verbatim}
-  This is IK (1.30).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
-  -/)]
--- See also `zeta_pow_three_eq` below for a different proof
-lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
-  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
-  
--- `zeta_pow_three_eq` (IK 1.30) is proved below via Euler products, after the
--- `two_pow_omega` / `sumOnPrimePows` infrastructure (independent of Ramanujan).
-
-/--
-Zeta cubed alt:
-`ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
-@[blueprint
-  "zeta_pow_three_eq_alt"
-  (title := "zeta pow three eq alt")
-  (statement := /-- symmetric square $L$-function for $\zeta^2$:
-  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}$$ for $\Re(s) > 1$.
-  \begin{verbatim}
-  Alternative expression for `ζ^3`, in IK between (1.30) and (1.31).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This is an alternative expression for $\zeta(s)^3$ that can be derived from the previous results. By expressing $\zeta(s)^3$ in terms of the L-series of $\tau(n^2)$ and using the properties of Dirichlet convolutions, we can rewrite the sum in a way that involves summing over divisors $d$ and corresponding $m$ such that $d^2 m = n$. This rearrangement of the series allows us to express $\zeta(s)^3$ in the desired form.
-  -/)]
-lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 3 =
-    LSeries (fun n ↦
-      ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
-  sorry
+-- `zeta_pow_three_eq` (IK 1.30) and its variant `zeta_pow_three_eq'` are proved below via
+-- Euler products, after the `two_pow_omega` / `sumOnPrimePows` infrastructure
+-- (independent of Ramanujan).
 
 @[blueprint
   "two_pow_omega_le_sigma_zero"
@@ -1391,6 +1334,163 @@ lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
   field_simp
   ring
+
+/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
+@[blueprint
+  "zeta_pow_four_eq"
+  (title := "zeta pow four eq")
+  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
+  \begin{verbatim}
+  This is IK (1.29).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  Multiply the identity $\zeta(s)^3 = \zeta(2s)\sum_{n=1}^\infty \tau(n^2)n^{-s}$ (IK (1.30))
+  by $\zeta(s)$ and rewrite the right-hand side with the Baby Rankin--Selberg identity
+  $\zeta(s)\sum_{n=1}^\infty \tau(n^2)n^{-s} = \sum_{n=1}^\infty \tau(n)^2 n^{-s}$.  This
+  route is independent of Ramanujan's formula, which is still open.
+  -/)]
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
+  have h3 := zeta_pow_three_eq s hs
+  have hRS := zeta_mul_tau_square_eq s hs
+  calc riemannZeta s ^ 4 = riemannZeta s * riemannZeta s ^ 3 := by ring
+    _ = riemannZeta (2 * s) * (riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s) := by
+        rw [h3]; ring
+    _ = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by rw [hRS]
+
+/-- The indicator function of the perfect squares. -/
+private noncomputable def sqIndicator : ℕ → ℂ := fun n ↦ if IsSquare n then 1 else 0
+
+private lemma term_sqIndicator_sq {s : ℂ} (d : ℕ) :
+    LSeries.term sqIndicator s (d ^ 2) = LSeries.term 1 (2 * s) d := by
+  rcases eq_or_ne d 0 with rfl | hd
+  · simp [LSeries.term]
+  have hd2 : (d ^ 2 : ℕ) ≠ 0 := pow_ne_zero _ hd
+  rw [LSeries.term_of_ne_zero hd2, LSeries.term_of_ne_zero hd]
+  have hsq : sqIndicator (d ^ 2) = 1 := by
+    have : IsSquare (d ^ 2) := ⟨d, by ring⟩
+    simp [sqIndicator, this]
+  rw [hsq]
+  congr 1
+  push_cast [sq]
+  rw [Complex.natCast_mul_natCast_cpow, two_mul,
+    Complex.cpow_add _ _ (by exact_mod_cast hd : (d : ℂ) ≠ 0)]
+
+private lemma term_sqIndicator_eq_zero {s : ℂ} {n : ℕ}
+    (hn : n ∉ Set.range (fun d : ℕ ↦ d ^ 2)) : LSeries.term sqIndicator s n = 0 := by
+  have hns : ¬ IsSquare n := by
+    rintro ⟨r, rfl⟩
+    exact hn ⟨r, by ring⟩
+  rcases eq_or_ne n 0 with rfl | h0
+  · simp [LSeries.term]
+  · simp [LSeries.term_of_ne_zero h0, sqIndicator, hns]
+
+private lemma sq_injective : Function.Injective (fun d : ℕ ↦ d ^ 2) := fun a b hab ↦ by
+  simpa using Nat.pow_left_injective (by norm_num) hab
+
+private lemma hasSum_term_sqIndicator {s : ℂ} (hs : 1 < (2 * s).re) :
+    HasSum (LSeries.term sqIndicator s) (riemannZeta (2 * s)) := by
+  have h1 : HasSum (fun d : ℕ ↦ LSeries.term 1 (2 * s) d) (riemannZeta (2 * s)) :=
+    LSeriesHasSum_one hs
+  refine (sq_injective.hasSum_iff ?_).mp ?_
+  · intro n hn; exact term_sqIndicator_eq_zero hn
+  · simpa only [Function.comp_def, term_sqIndicator_sq] using h1
+
+/-- `∑_n [n a square] n^{-s} = ζ(2s)`: the squares are indexed by `d ↦ d ^ 2`. -/
+private lemma LSeries_sqIndicator {s : ℂ} (hs : 1 < (2 * s).re) :
+    LSeries sqIndicator s = riemannZeta (2 * s) :=
+  (hasSum_term_sqIndicator hs).tsum_eq
+
+private lemma LSeriesSummable_sqIndicator {s : ℂ} (hs : 1 < (2 * s).re) :
+    LSeriesSummable sqIndicator s :=
+  (hasSum_term_sqIndicator hs).summable
+
+/--
+Zeta cubed alt:
+`ζ(s)^3 =  ∑_n (∑ d^2 m = n, τ (m^2)) n^(-s)`. -/
+@[blueprint
+  "zeta_pow_three_eq_alt"
+  (title := "zeta pow three eq alt")
+  (statement := /-- symmetric square $L$-function for $\zeta^2$:
+  $$\zeta(s)^3 = \sum_{n=1}^{\infty} \left( \sum_{d^2 m = n} \tau(m^2) \right) n^{-s}$$ for $\Re(s) > 1$.
+  \begin{verbatim}
+  Alternative expression for `ζ^3`, in IK between (1.30) and (1.31).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This is an alternative expression for $\zeta(s)^3$ that can be derived from the previous results. By expressing $\zeta(s)^3$ in terms of the L-series of $\tau(n^2)$ and using the properties of Dirichlet convolutions, we can rewrite the sum in a way that involves summing over divisors $d$ and corresponding $m$ such that $d^2 m = n$. This rearrangement of the series allows us to express $\zeta(s)^3$ in the desired form.
+  -/)]
+lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 =
+    LSeries (fun n ↦
+      ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
+  classical
+  have hs2 : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have hsq : LSeriesSummable sqIndicator s := LSeriesSummable_sqIndicator hs2
+  have htau : LSeriesSummable (fun n ↦ ((τ (n ^ 2) : ℕ) : ℂ)) s := LSeriesSummable_tau_sq hs
+  rw [zeta_pow_three_eq s hs, ← LSeries_sqIndicator hs2, ← LSeries_convolution' hsq htau]
+  refine LSeries_congr (fun {n} hn ↦ ?_) s
+  simp only [LSeries.convolution_def]
+  rw [Nat.sum_divisorsAntidiagonal (f := fun a b ↦ sqIndicator a * ((τ (b ^ 2) : ℕ) : ℂ))]
+  rw [Finset.sum_congr rfl (g := fun a ↦ if IsSquare a then ((τ ((n / a) ^ 2) : ℕ) : ℂ) else 0)
+    (fun a _ ↦ by by_cases h : IsSquare a <;> simp [sqIndicator, h]), ← Finset.sum_filter]
+  refine Finset.sum_nbij' (i := fun a : ℕ ↦ (a.sqrt, n / a)) (j := fun p : ℕ × ℕ ↦ p.1 ^ 2)
+    ?_ ?_ ?_ ?_ ?_
+  · -- a square divisor `a` gives the pair `(√a, n / a)`
+    intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    obtain ⟨⟨hdvd, -⟩, hsq⟩ := ha
+    have hsqrt : a.sqrt ^ 2 = a := by
+      obtain ⟨r, rfl⟩ := hsq
+      rw [show r * r = r ^ 2 from (sq r).symm, Nat.sqrt_eq']
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors]
+    have hsub : a.sqrt ∣ n := by
+      have : a.sqrt ∣ a := by
+        conv_rhs => rw [← hsqrt]
+        exact dvd_pow_self _ two_ne_zero
+      exact this.trans hdvd
+    refine ⟨⟨⟨hsub, hn⟩, Nat.div_dvd_of_dvd hdvd, hn⟩, ?_⟩
+    · rw [hsqrt, Nat.mul_div_cancel' hdvd]
+  · -- conversely a pair `(d, m)` with `d ^ 2 * m = n` gives the square divisor `d ^ 2`
+    rintro ⟨d, m⟩ hp
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hp
+    simp only [Finset.mem_filter, Nat.mem_divisors]
+    exact ⟨⟨Dvd.intro m hp.2, hn⟩, ⟨d, (sq d).symm ▸ rfl⟩⟩
+  · intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    obtain ⟨-, r, rfl⟩ := ha
+    rw [show r * r = r ^ 2 from (sq r).symm, Nat.sqrt_eq']
+  · rintro ⟨d, m⟩ hp
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hp
+    have hd : d ^ 2 ∣ n := Dvd.intro m hp.2
+    have : Nat.sqrt (d ^ 2) = d := by rw [show d ^ 2 = d * d from sq d, Nat.sqrt_eq]
+    have hdpos : 0 < d ^ 2 := by
+      rcases Nat.eq_zero_or_pos d with rfl | hd0
+      · simp at hp
+      · positivity
+    simp only [Prod.mk.injEq]
+    exact ⟨this, by rw [← hp.2, Nat.mul_div_cancel_left _ hdpos]⟩
+  · intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    rfl
+
+@[blueprint
+  "zeta_pow_three_eq'"
+  (title := "zeta pow three eq")
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
+  \begin{verbatim}
+  This is IK (1.30).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
+  -/)]
+-- See also `zeta_pow_three_eq` above for the Euler-product proof
+lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
+  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
+  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
 @[blueprint
   "LSeriesSummable_moebius_sq"
