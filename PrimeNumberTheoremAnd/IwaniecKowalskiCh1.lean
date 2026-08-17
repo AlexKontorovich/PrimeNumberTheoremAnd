@@ -1391,7 +1391,7 @@ theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
   (proof := /--
   This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
   -/)]
--- See also `zeta_pow_three_eq` below for a different proof
+-- See also `zeta_pow_three_eq` above for the Euler-product proof
 lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
   apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
