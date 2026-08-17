@@ -898,8 +898,8 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     (dvd_of_mem_primeFactors hp)
 
 @[blueprint
-  "LSeriesSummable_two_pow_omega"
-  (title := "LSeriesSummable-two-pow-omega")
+  "LSeriesSummable_of_norm_le_norm"
+  (title := "LSeriesSummable-of-norm-le-norm")
   (statement := /--
     An L-series is convergent if the absolute value of each term is term wise less than a summable series.
   -/)
