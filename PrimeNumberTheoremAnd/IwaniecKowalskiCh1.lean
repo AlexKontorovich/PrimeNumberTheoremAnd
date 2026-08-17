@@ -1425,7 +1425,55 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 =
     LSeries (fun n ↦
       ∑ dm ∈ n.divisors ×ˢ n.divisors with dm.1 ^ 2 * dm.2 = n, τ (dm.2 ^ 2)) s := by
-  sorry
+  classical
+  have hs2 : 1 < (2 * s).re := by rw [Complex.mul_re]; norm_num; linarith
+  have hsq : LSeriesSummable sqIndicator s := LSeriesSummable_sqIndicator hs2
+  have htau : LSeriesSummable (fun n ↦ ((τ (n ^ 2) : ℕ) : ℂ)) s := LSeriesSummable_tau_sq hs
+  rw [zeta_pow_three_eq s hs, ← LSeries_sqIndicator hs2, ← LSeries_convolution' hsq htau]
+  refine LSeries_congr (fun {n} hn ↦ ?_) s
+  simp only [LSeries.convolution_def]
+  rw [Nat.sum_divisorsAntidiagonal (f := fun a b ↦ sqIndicator a * ((τ (b ^ 2) : ℕ) : ℂ))]
+  rw [Finset.sum_congr rfl (g := fun a ↦ if IsSquare a then ((τ ((n / a) ^ 2) : ℕ) : ℂ) else 0)
+    (fun a _ ↦ by by_cases h : IsSquare a <;> simp [sqIndicator, h]), ← Finset.sum_filter]
+  refine Finset.sum_nbij' (i := fun a : ℕ ↦ (a.sqrt, n / a)) (j := fun p : ℕ × ℕ ↦ p.1 ^ 2)
+    ?_ ?_ ?_ ?_ ?_
+  · -- a square divisor `a` gives the pair `(√a, n / a)`
+    intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    obtain ⟨⟨hdvd, -⟩, hsq⟩ := ha
+    have hsqrt : a.sqrt ^ 2 = a := by
+      obtain ⟨r, rfl⟩ := hsq
+      rw [show r * r = r ^ 2 from (sq r).symm, Nat.sqrt_eq']
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors]
+    have hsub : a.sqrt ∣ n := by
+      have : a.sqrt ∣ a := by
+        conv_rhs => rw [← hsqrt]
+        exact dvd_pow_self _ two_ne_zero
+      exact this.trans hdvd
+    refine ⟨⟨⟨hsub, hn⟩, Nat.div_dvd_of_dvd hdvd, hn⟩, ?_⟩
+    · rw [hsqrt, Nat.mul_div_cancel' hdvd]
+  · -- conversely a pair `(d, m)` with `d ^ 2 * m = n` gives the square divisor `d ^ 2`
+    rintro ⟨d, m⟩ hp
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hp
+    simp only [Finset.mem_filter, Nat.mem_divisors]
+    exact ⟨⟨Dvd.intro m hp.2, hn⟩, ⟨d, (sq d).symm ▸ rfl⟩⟩
+  · intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    obtain ⟨-, r, rfl⟩ := ha
+    rw [show r * r = r ^ 2 from (sq r).symm, Nat.sqrt_eq']
+  · rintro ⟨d, m⟩ hp
+    simp only [Finset.mem_filter, Finset.mem_product, Nat.mem_divisors] at hp
+    have hd : d ^ 2 ∣ n := Dvd.intro m hp.2
+    have : Nat.sqrt (d ^ 2) = d := by rw [show d ^ 2 = d * d from sq d, Nat.sqrt_eq]
+    have hdpos : 0 < d ^ 2 := by
+      rcases Nat.eq_zero_or_pos d with rfl | hd0
+      · simp at hp
+      · positivity
+    simp only [Prod.mk.injEq]
+    exact ⟨this, by rw [← hp.2, Nat.mul_div_cancel_left _ hdpos]⟩
+  · intro a ha
+    simp only [Finset.mem_filter, Nat.mem_divisors] at ha
+    rfl
 
 @[blueprint
   "zeta_pow_three_eq'"
