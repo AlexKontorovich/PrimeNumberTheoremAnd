@@ -2762,41 +2762,25 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
 
 
 
-/-- The logarithmic derivative of the Riemann zeta function is bounded in the half-plane
-`Re(s) >= 3/2`. -/
+@[blueprint
+  (title := "LogDerivZetaBdd_of_Re_ge_three_halves")
+  (statement := /--
+    There exists a uniform constant $C$ such that for $z=\sigma+it$ one has
+    $$3/2\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(z)\right|\leq C.$$
+  -/)
+  (proof := /--
+    Note that
+    $$\abs{\frac{\zeta'}{\zeta}(z)}=\abs{\sum_{n=1}^\infty\frac{\Lambda(n)}{n^z}}\leq\sum_{n=1}^\infty\frac{\Lambda(n)}{|n^z|}=\sum_{n=1}^\infty\frac{\Lambda(n)}{n^\sigma}\leq\sum_{n=1}^\infty\frac{\Lambda(n)}{n^{3/2}}<\infty$$
+    by \ref{vonMangoldtLSeriesSummable}.
+  -/)]
 lemma LogDerivZetaBdd_of_Re_ge_three_halves :
     ∃ C, ∀ (s : ℂ), 3/2 ≤ s.re → ‖deriv riemannZeta s / riemannZeta s‖ ≤ C := by
+  have threeHalvesRe : 1 < ((3 / 2) : ℂ).re := by norm_num
   have h_sum_converges : Summable (fun n : ℕ ↦ vonMangoldt n / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-    have h_summable : Summable (fun n : ℕ ↦ (Real.log n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-      obtain ⟨C, hC_pos, hC⟩ : ∃ C > 0, ∀ n : ℕ, n ≥ 2 → Real.log n ≤ C * (n : ℝ) ^ (1/4 : ℝ) := by
-        use 4, by grind, fun n hn ↦ by
-          have := Real.log_le_sub_one_of_pos (by positivity : 0 < (n : ℝ) ^ (1/4 : ℝ))
-          rw [Real.log_rpow (by positivity)] at this
-          nlinarith [Real.rpow_pos_of_pos (by positivity : 0 < (n : ℝ)) (1/4 : ℝ)]
-      have hBound : ∀ n : ℕ, n ≥ 2 →
-          (Real.log n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) ≤ C / (n : ℝ) ^ (5 / 4 : ℝ) := fun n hn ↦ by
-        rw [div_le_div_iff₀ (by positivity) (by positivity)]
-        convert mul_le_mul_of_nonneg_right (hC n hn)
-          (by positivity : 0 ≤ (n : ℝ) ^ (5 / 4 : ℝ)) using 1
-        rw [mul_assoc, ← Real.rpow_add (by positivity)]
-        grind
-      rw [← summable_nat_add_iff 2]
-      exact Summable.of_nonneg_of_le
-        (fun n ↦ div_nonneg (Real.log_nonneg (by grind))
-          (Real.rpow_nonneg (Nat.cast_nonneg _) _))
-        (fun n ↦ hBound _ (by grind))
-        (Summable.mul_left _ <| by simpa using summable_nat_add_iff 2 |>.2 <|
-          Real.summable_one_div_nat_rpow.2 <| by grind)
-    refine .of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ ?_) h_summable
-    · exact div_nonneg (by exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg)
-        (by positivity)
-    · rcases eq_or_ne n 0 with (rfl | hn) <;>
-        simp_all [ArithmeticFunction.vonMangoldt]
-      field_simp
-      split_ifs
-      · exact Real.log_le_log (Nat.cast_pos.mpr (Nat.minFac_pos _))
-          (Nat.cast_le.mpr (Nat.minFac_le (Nat.pos_of_ne_zero hn)))
-      · exact Real.log_nonneg (Nat.one_le_cast.mpr (Nat.pos_of_ne_zero hn))
+    apply Complex.summable_ofReal.mp
+    convert (vonMangoldtLSeriesSummable threeHalvesRe) using 2 with n
+    rw [ofReal_div, Complex.ofReal_cpow, ofReal_natCast, ofReal_div, ofReal_ofNat 3, ofReal_ofNat 2]
+    exact cast_nonneg' n
   have h_log_deriv_sum : ∀ s : ℂ, 3 / 2 ≤ s.re →
       deriv riemannZeta s / riemannZeta s = -∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s := by
     intro s hs; have h := LogDerivativeDirichlet s (by grind); linear_combination -h
@@ -2829,7 +2813,7 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
 @[blueprint
   (title := "LogDerivZetaUniformLogSquaredBound")
   (statement := /--
-    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
+    There exists a constant $F$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
   -/)
