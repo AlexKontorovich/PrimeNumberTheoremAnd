@@ -653,26 +653,9 @@ theorem zeta_mul_zeta_mul_zeta_mul_zeta_eq (α β s : ℂ) (h1 : 1 < s.re) (h2 :
       LSeries (fun n ↦ σᴿ α n * σᴿ β n) s := by
   sorry
 
-/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
-@[blueprint
-  "zeta_pow_four_eq"
-  (title := "zeta pow four eq")
-  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
-  \begin{verbatim}
-  This is IK (1.29).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
-  -/)]
-theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
-      (by simpa using hs)) using 1
-  · ring_nf
-  · congr
-    · ring_nf
-    · simp [tau, sigma, sigmaR, pow_two]
+-- `zeta_pow_four_eq` (IK 1.29) is proved below, once `zeta_pow_three_eq` is
+-- available: it is that identity multiplied by `ζ(s)` and rewritten with the
+-- Baby Rankin--Selberg identity, so it does not go through Ramanujan's formula.
 
 class IsCoprimePreserving (f : ℕ → ℕ) : Prop where
   map_coprime : ∀ {m n : ℕ}, Nat.Coprime m n → Nat.Coprime (f m) (f n)
@@ -830,28 +813,9 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     rfl
   rw [lhs_bridge, rhs_bridge, key]
   
-/--
-Zeta cubed:
-`ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
-@[blueprint
-  "zeta_pow_three_eq'"
-  (title := "zeta pow three eq")
-  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
-  \begin{verbatim}
-  This is IK (1.30).
-  \end{verbatim}
-  -/)
-  (proof := /--
-  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
-  -/)]
--- See also `zeta_pow_three_eq` below for a different proof
-lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
-    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
-  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
-  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
-  
--- `zeta_pow_three_eq` (IK 1.30) is proved below via Euler products, after the
--- `two_pow_omega` / `sumOnPrimePows` infrastructure (independent of Ramanujan).
+-- `zeta_pow_three_eq` (IK 1.30) and its variant `zeta_pow_three_eq'` are proved below via
+-- Euler products, after the `two_pow_omega` / `sumOnPrimePows` infrastructure
+-- (independent of Ramanujan).
 
 /--
 Zeta cubed alt:
@@ -1391,6 +1355,44 @@ lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
     Complex.cpow_add _ _ (Nat.cast_ne_zero.mpr p.2.ne_zero)]
   field_simp
   ring
+
+/-- Corollary:  `ζ(s)^4=ζ(2s) ∑ τ(n)^2 n^(-s)` -/
+@[blueprint
+  "zeta_pow_four_eq"
+  (title := "zeta pow four eq")
+  (statement := /-- Corollary: $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$ for $\Re(s) > 1$.
+  \begin{verbatim}
+  This is IK (1.29).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
+  -/)]
+theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
+  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
+      (by simpa using hs)) using 1
+  · ring_nf
+  · congr
+    · ring_nf
+    · simp [tau, sigma, sigmaR, pow_two]
+
+@[blueprint
+  "zeta_pow_three_eq'"
+  (title := "zeta pow three eq")
+  (statement := /-- Zeta cubed: $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty}\tau(n^2) n^{-s}$.
+  \begin{verbatim}
+  This is IK (1.30).
+  \end{verbatim}
+  -/)
+  (proof := /--
+  This follows from the previous two theorems. From the corollary of Ramanujan's formula, we have $\zeta(s)^4 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. From the Baby Rankin-Selberg result, we have $\zeta(s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s} = \sum_{n=1}^{\infty} \tau(n)^2 n^{-s}$. Combining these two results, we can express $\zeta(s)^4$ in terms of $\zeta(s)$ and $\sum_{n=1}^{\infty} \tau(n^    2) n^{-s}$, which leads to the conclusion that $\zeta(s)^3 = \zeta(2s) \sum_{n=1}^{\infty} \tau(n^2) n^{-s}$.
+  -/)]
+-- See also `zeta_pow_three_eq` below for a different proof
+lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
+    riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
+  apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
+  linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
 
 @[blueprint
   "LSeriesSummable_moebius_sq"
