@@ -1366,16 +1366,19 @@ lemma zeta_pow_three_eq (s : ℂ) (hs : 1 < s.re) :
   \end{verbatim}
   -/)
   (proof := /--
-  This is a special case of the previous theorem where we set $\alpha = \beta = 0$.
+  Multiply the identity $\zeta(s)^3 = \zeta(2s)\sum_{n=1}^\infty \tau(n^2)n^{-s}$ (IK (1.30))
+  by $\zeta(s)$ and rewrite the right-hand side with the Baby Rankin--Selberg identity
+  $\zeta(s)\sum_{n=1}^\infty \tau(n^2)n^{-s} = \sum_{n=1}^\infty \tau(n)^2 n^{-s}$.  This
+  route is independent of Ramanujan's formula, which is still open.
   -/)]
 theorem zeta_pow_four_eq (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 4 = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by
-  convert (zeta_mul_zeta_mul_zeta_mul_zeta_eq 0 0 s hs (by simpa using hs) (by simpa using hs)
-      (by simpa using hs)) using 1
-  · ring_nf
-  · congr
-    · ring_nf
-    · simp [tau, sigma, sigmaR, pow_two]
+  have h3 := zeta_pow_three_eq s hs
+  have hRS := zeta_mul_tau_square_eq s hs
+  calc riemannZeta s ^ 4 = riemannZeta s * riemannZeta s ^ 3 := by ring
+    _ = riemannZeta (2 * s) * (riemannZeta s * LSeries (fun n ↦ τ (n ^ 2)) s) := by
+        rw [h3]; ring
+    _ = riemannZeta (2 * s) * LSeries (fun n ↦ (τ n) ^ 2) s := by rw [hRS]
 
 @[blueprint
   "zeta_pow_three_eq'"
