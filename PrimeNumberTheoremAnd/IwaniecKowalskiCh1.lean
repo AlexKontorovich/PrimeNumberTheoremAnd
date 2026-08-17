@@ -116,7 +116,12 @@ theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
     {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
     {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
     ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
-  sorry -- UPSTREAMED TO MATHLIB #36495
+  -- the divisor sum of `f` is the convolution `ζ * f`, and a convolution of multiplicative
+  -- functions is multiplicative
+  have hmul : ((ArithmeticFunction.zeta : ArithmeticFunction R) * f).IsMultiplicative :=
+    (ArithmeticFunction.isMultiplicative_zeta.natCast).mul hf
+  have := hmul.map_mul_of_coprime hab
+  simpa only [ArithmeticFunction.coe_zeta_mul_apply] using this
 
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
     $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
@@ -1645,8 +1650,13 @@ lemma pow_divisors_mul {m n k : ℕ} (hmn : Nat.Coprime m n) :
   -/)]
 lemma divisors_mul_injective {m n : ℕ} (hmn : m.Coprime n) :
     Set.InjOn (fun p : ℕ × ℕ => p.1 * p.2) (m.divisors ×ˢ n.divisors) := by
-  /-- comes from mathlib PR #36495 -/
-  sorry
+  rintro ⟨a₁, a₂⟩ ha ⟨b₁, b₂⟩ hb hab
+  simp only [Set.mem_prod, Finset.mem_coe, Nat.mem_divisors] at ha hb
+  simp only at hab
+  -- both pairs decompose the same divisor of `m * n`, and that decomposition is unique
+  have hdvd : a₁ * a₂ ∣ m * n := Nat.mul_dvd_mul ha.1.1 ha.2.1
+  exact ExistsUnique.unique (unique_divisor_decomposition (d := a₁ * a₂) hmn hdvd)
+    (y₁ := (a₁, a₂)) (y₂ := (b₁, b₂)) ⟨ha.1.1, ha.2.1, rfl⟩ ⟨hb.1.1, hb.2.1, hab.symm⟩
 
 @[blueprint
   "pow_divisors_mul_injective"
