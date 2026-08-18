@@ -2207,8 +2207,7 @@ lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
     $$\sigma\leq 1-\frac{1}{14D\log|t|}.$$
     This is exactly the desired result with the constant $E=(14D)^{-1}$. Since
     $D\geq 5A+4B+C\geq 1$ we have that $E\in(0,1/14)$.
-  -/)
-  (latexEnv := "theorem")]
+  -/)]
 theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) (1 / 14 : ℝ) ∧
     ∀ (ρ : ℂ), ζ ρ = 0 →
       ∀ (σ : ℝ), σ = ρ.re →
@@ -2364,7 +2363,7 @@ theorem ZeroInequalitySpec : ∀ (ρ : ℂ), ζ ρ = 0 →
 
 
 
-@[blueprint
+@[blueprint "DeltaT"
   (title := "DeltaT")
   (statement := /--
     Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{ZeroInequality}.
@@ -2373,7 +2372,7 @@ noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
 
 
 
-@[blueprint
+@[blueprint "DeltaRange"
   (title := "DeltaRange")
   (statement := /--
     For all $t\in\mathbb{R}$ with $|t|\geq 2$ we have that $$\delta_t<1/9.$$
@@ -2387,10 +2386,7 @@ noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
     But note that $A\geq 1$, $B>0$, and $C>0$ by Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound},
     and \ref{ShiftTwoBound} respectively. So, by a very lazy estimate we have $E\leq 1/14$. Thus,
     $$\delta_t=\frac{E}{\log|t|}\leq\frac{1}{14\,\log2}<\frac{1}{9}.$$
-  -/)
-  (proofUses := ["LogDerivZetaFinalBound", "SumBoundI", "ShiftTwoBound", "ZeroInequality",
-    "ShiftOneBound", "ShiftZeroBound"])
-  (latexEnv := "lemma")]
+  -/)]
 lemma DeltaRange : ∀ (t : ℝ),
     |t| ≥ 2 →
       DeltaT t < (1 : ℝ) / 9 := by
@@ -2551,7 +2547,7 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
 
 
 
-@[blueprint
+@[blueprint "LogDerivZetaUniformLogSquaredBoundStrip"
   (title := "LogDerivZetaUniformLogSquaredBoundStrip")
   (statement := /--
     There exists a constant $F\in(0,1/2)$ such that
@@ -2595,8 +2591,7 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
     $$\left|\frac{\zeta'}{\zeta}(z)\right|\ll\log^2|t|+\log|t|$$
     where the implied constant is taken to be bigger than $6D/E+C$.
     We know that the RHS is bounded above by $\ll\log^2|t|$; so the result follows.
-  -/)
-  (latexEnv := "lemma")]
+  -/)]
 lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
     (C : ℝ) (_ : 0 ≤ C),
       ∀ (t : ℝ), 3 ≤ |t| →
@@ -2762,8 +2757,8 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
 
 
 
-@[blueprint
-  (title := "LogDerivZetaBdd_of_Re_ge_three_halves")
+@[blueprint "LogDerivZetaBdd_of_Re_ge_three_halves"
+  (title := "LogDerivZetaBdd-of-Re-ge-three-halves")
   (statement := /--
     There exists a uniform constant $C$ such that for $z=\sigma+it$ one has
     $$3/2\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(z)\right|\leq C.$$
@@ -2819,9 +2814,7 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
   -/)
   (proof := /--
     Put the previous two Lemmas together.
-  -/)
-  (proofUses := ["riemannZetaLogDerivResidue", "LogDerivZetaUniformLogSquaredBoundStrip"])
-  (latexEnv := "theorem")]
+  -/)]
 theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
     ∀ (σ t : ℝ), 3 < |t| → σ ∈ Set.Ici (1 - F / Real.log |t|) →
       ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
