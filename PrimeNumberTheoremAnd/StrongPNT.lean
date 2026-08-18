@@ -2765,7 +2765,9 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   -/)
   (proof := /--
     Note that
-    $$\abs{\frac{\zeta'}{\zeta}(z)}=\abs{\sum_{n=1}^\infty\frac{\Lambda(n)}{n^z}}\leq\sum_{n=1}^\infty\frac{\Lambda(n)}{|n^z|}=\sum_{n=1}^\infty\frac{\Lambda(n)}{n^\sigma}\leq\sum_{n=1}^\infty\frac{\Lambda(n)}{n^{3/2}}<\infty$$
+    $$\left|\frac{\zeta'}{\zeta}(z)\right|=\left|\sum_{n=1}^\infty\frac{\Lambda(n)}{n^z}\right|\leq
+      \sum_{n=1}^\infty\frac{\Lambda(n)}{|n^z|}=\sum_{n=1}^\infty\frac{\Lambda(n)}{n^\sigma}\leq
+      \sum_{n=1}^\infty\frac{\Lambda(n)}{n^{3/2}}<\infty$$
     by \ref{vonMangoldtLSeriesSummable}.
   -/)]
 lemma LogDerivZetaBdd_of_Re_ge_three_halves :
