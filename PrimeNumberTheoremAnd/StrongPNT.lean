@@ -2818,18 +2818,7 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
     where the implied constant is uniform in $\sigma$.
   -/)
   (proof := /--
-    Note that
-    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|
-      =\sum_{1\leq n}\frac{\Lambda(n)}{|n^{\sigma+it}|}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}
-      =-\frac{\zeta'}{\zeta}(\sigma)\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|.$$
-    From Theorem \ref{riemannZetaLogDerivResidue}, and applying the triangle inequality we know that
-    $$\left|\frac{\zeta'}{\zeta}(s)\right|\leq\frac{1}{|s-1|}+C.$$
-    where $C>0$ is some constant. Thus, for $\sigma\geq 3/2$ we have that
-    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|
-      \leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|
-      \leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2|t|.$$
-    Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip}
-    completes the proof.
+    Put the previous two Lemmas together.
   -/)
   (proofUses := ["riemannZetaLogDerivResidue", "LogDerivZetaUniformLogSquaredBoundStrip"])
   (latexEnv := "theorem")]
@@ -2872,14 +2861,15 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
       \leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)
       \leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)
       \ll\log^2(2+T).$$
-  -/)
-  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "riemannZetaLogDerivResidue"])
-  (latexEnv := "theorem")]
+  -/)]
 theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
-    ∀ (σ t T : ℝ) (Tpos: T > 0),
-    |t| ≤ T →
-        σ = 1 - F / Real.log T →
-            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
+    ∀ (T : ℝ) (Tpos: T > 0),
+      ∀ (t : ℝ), |t| ≤ T →
+        ∀ (σ : ℝ), σ = 1 - F / Real.log T →
+          ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
+  obtain ⟨C1, C1_nonneg, hC1⟩ := LogDerivZetaUniformLogSquaredBound
+  obtain ⟨C2, hC2⟩ := riemannZetaLogDerivResidueBigO.bound
+  simp only [Pi.sub_apply, Pi.div_apply, Pi.neg_apply, Pi.one_apply, norm_one, mul_one] at hC2
   sorry
 
 
