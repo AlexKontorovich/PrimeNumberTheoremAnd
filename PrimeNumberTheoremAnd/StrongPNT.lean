@@ -3238,7 +3238,13 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     exact mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _)
   · push Not at ht_large
     have h_bound_res : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C_final * Real.log (2 + T) ^ 2 := by
-      sorry
+      have h_C_small_le : C_small ≤ C_final := (le_max_left _ _).trans (le_max_right _ _)
+      have h_alg := residue_algebra_bound T Tpos hF_pos C_res
+      have h_zeta_le : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ Real.log T / F + C_res := by
+        sorry
+      have h_step := h_zeta_le.trans h_alg
+      refine h_step.trans ?_
+      exact mul_le_mul_of_nonneg_right h_C_small_le (sq_nonneg _)
     exact h_bound_res
 
 
