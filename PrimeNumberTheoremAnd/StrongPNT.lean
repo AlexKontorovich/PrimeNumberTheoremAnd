@@ -2682,12 +2682,12 @@ lemma zeta_zeros_count_bound (t : ℝ) (ht : |t| ≥ 2) :
     let r : ℝ := 3 / 4;
     let R : ℝ := 5 / 6;
     let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
-    let g : ℂ → ℂ := f / fun _ => f 0;
     let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
     ∀ (finiteZeros : (SetOfZeros 1 f).Finite),
     ∑ ρ ∈ (finiteSetOfZeros_mono (by norm_num : (3 / 4 : ℝ) < 1) finiteZeros).toFinset,
       (analyticOrderNatAt f ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
-  intro r R f g B finiteZeros
+  intro r R f B finiteZeros
+  let g : ℂ → ℂ := f / fun _ => f 0;
   have r_pos : 0 < r := by norm_num
   have r_lt_one : r < 1 := by norm_num
   have r_lt_R : r < R := by norm_num
@@ -2762,11 +2762,11 @@ lemma zeta_zeros_count_bound (t : ℝ) (ht : |t| ≥ 2) :
 lemma zeta_window_sum_eq_zeros_bound (t : ℝ) (ht : |t| ≥ 2) :
     let r : ℝ := 3 / 4;
     let R : ℝ := 5 / 6;
-    let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
     let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
     ∀ (finiteZeros : (ZeroWindow t).Finite),
     ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
-  intro r R f B finiteZeros
+  intro r R B finiteZeros
+  let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
   have finiteZeros' : (SetOfZeros 1 f).Finite := by
     apply ZetaShiftFiniteZeros ht
     simp only [f]
@@ -2802,8 +2802,8 @@ lemma zeta_window_sum_eq_zeros_bound (t : ℝ) (ht : |t| ≥ 2) :
   rw [sum_eq]
   exact count_bound
 
-lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3) (C : ℝ)
-    (Cnonneg : 0 ≤ C), ∀ (σ t : ℝ),
+lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3) (C : ℝ)
+    (_ : 0 ≤ C), ∀ (σ t : ℝ),
     3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
@@ -3162,6 +3162,40 @@ lemma norm_inv_sub_one_le (σ t T : ℝ) (hσ : σ = 1 - F / Real.log T)
   rw [inv_div] at h_inv
   exact h_inv
 
+lemma residue_algebra_bound (T : ℝ) (Tpos : 0 < T)
+    (hF_pos : 0 < F) (C_res : ℝ) :
+    Real.log T / F + C_res ≤
+      ((1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))) * Real.log (2 + T) ^ 2 := by
+  have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog_2T_pos : 0 < Real.log (2 + T) := Real.log_pos (by linarith)
+  have hlog2_le_log2T : Real.log 2 ≤ Real.log (2 + T) := Real.log_le_log (by norm_num) (by linarith)
+  have hlogT_le_log2T : Real.log T ≤ Real.log (2 + T) := Real.log_le_log Tpos (by linarith)
+  have h1 : Real.log T / F ≤ (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 := by
+    have : Real.log T ≤ (1 / Real.log 2) * Real.log (2 + T) ^ 2 := by
+      calc Real.log T ≤ Real.log (2 + T) := hlogT_le_log2T
+        _ = 1 * Real.log (2 + T) := by ring
+        _ ≤ (Real.log (2 + T) / Real.log 2) * Real.log (2 + T) := by
+          gcongr
+          exact (one_le_div hlog2_pos).mpr hlog2_le_log2T
+        _ = (1 / Real.log 2) * Real.log (2 + T) ^ 2 := by ring
+    calc Real.log T / F = (1 / F) * Real.log T := by ring
+      _ ≤ (1 / F) * ((1 / Real.log 2) * Real.log (2 + T) ^ 2) := by
+        apply mul_le_mul_of_nonneg_left this (one_div_nonneg.mpr hF_pos.le)
+      _ = (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 := by ring
+  have h2 : C_res ≤ ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := by
+    have h_sq : Real.log 2 ^ 2 ≤ Real.log (2 + T) ^ 2 := by gcongr
+    have h_one_le : 1 ≤ Real.log (2 + T) ^ 2 / Real.log 2 ^ 2 :=
+      (one_le_div (by positivity)).mpr h_sq
+    have h_pos : 0 ≤ |C_res| + 1 := by linarith [le_abs_self C_res, abs_nonneg C_res]
+    have h_C_le : C_res ≤ |C_res| + 1 := by linarith [le_abs_self C_res]
+    calc C_res ≤ |C_res| + 1 := h_C_le
+      _ = (|C_res| + 1) * 1 := (mul_one _).symm
+      _ ≤ (|C_res| + 1) * (Real.log (2 + T) ^ 2 / Real.log 2 ^ 2) := mul_le_mul_of_nonneg_left h_one_le h_pos
+      _ = ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := by ring
+  calc Real.log T / F + C_res ≤
+      (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 + ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := add_le_add h1 h2
+    _ = ((1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))) * Real.log (2 + T) ^ 2 := by ring
+
 @[blueprint
   (title := "LogDerivZetaLogSquaredBoundSmallt")
   (statement := /--
@@ -3193,7 +3227,7 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
   have hF_pos : 0 < F := by rw [Fequ]; exact div_pos EinIoo.1 (by norm_num)
   have hF_nonneg : 0 ≤ F := hF_pos.le
   have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
-  set C_small : ℝ := (1 / (F * Real.log 2) + C_res / Real.log 2) / Real.log 2
+  set C_small : ℝ := (1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))
   set C_final : ℝ := max C1 (max C_small 0)
   have C_final_nonneg : 0 ≤ C_final := le_max_of_le_right (le_max_right _ _)
   refine ⟨C_final, C_final_nonneg, ?_⟩
@@ -3203,9 +3237,6 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     refine h_large.trans ?_
     exact mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _)
   · push Not at ht_large
-    have h_log_2T_pos : 0 < Real.log (2 + T) := Real.log_pos (by linarith)
-    have h_log2_le_log2T : Real.log 2 ≤ Real.log (2 + T) := Real.log_le_log (by norm_num) (by linarith)
-    have h_logT_le_log2T : Real.log T ≤ Real.log (2 + T) := Real.log_le_log Tpos (by linarith)
     have h_bound_res : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C_final * Real.log (2 + T) ^ 2 := by
       sorry
     exact h_bound_res
