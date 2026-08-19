@@ -3144,7 +3144,28 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     |t| ≤ T →
         σ = 1 - F / Real.log T →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
-    sorry
+  obtain ⟨C1, hC1nonneg, hC1⟩ := LogDerivZetaUniformLogSquaredBound
+  obtain ⟨C_big, h_big⟩ := riemannZetaLogDerivResidueBigO.bound
+  rcases Metric.mem_nhdsWithin_iff.mp h_big with ⟨ε, εpos, hε⟩
+  have hF_pos : 0 < F := by rw [Fequ]; exact div_pos EinIoo.1 (by norm_num)
+  have hF_nonneg : 0 ≤ F := hF_pos.le
+  have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  set C_small : ℝ := (1 / (F * Real.log 2) + C_big / Real.log 2) / Real.log 2
+  set C_final : ℝ := max C1 (max C_small 0)
+  have C_final_nonneg : 0 ≤ C_final := le_max_of_le_right (le_max_right _ _)
+  refine ⟨C_final, C_final_nonneg, ?_⟩
+  intro σ t T Tpos ht_le hσ
+  by_cases ht_large : 3 < |t|
+  · have h_large := bound_for_large_t C1 hC1nonneg hC1 σ t T ht_large ht_le hσ
+    refine h_large.trans ?_
+    exact mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _)
+  · push_neg at ht_large
+    have h_log_2T_pos : 0 < Real.log (2 + T) := Real.log_pos (by linarith)
+    have h_log2_le_log2T : Real.log 2 ≤ Real.log (2 + T) := Real.log_le_log (by norm_num) (by linarith)
+    have h_logT_le_log2T : Real.log T ≤ Real.log (2 + T) := Real.log_le_log Tpos (by linarith)
+    have h_bound_res : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C_final * Real.log (2 + T) ^ 2 := by
+      sorry
+    exact h_bound_res
 
 
 
@@ -3815,11 +3836,160 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (latexEnv := "lemma")]
 lemma I3NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (_ : 0 ≤ C),
+    ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
     let σ' := 1 - F / Real.log T
-    ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
-    sorry
+    ‖I3New SmoothingF ε T X σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * (Real.sqrt T * T)) / ε := by
+  have log2T_sq_le_sqrt_T : ∀ (T : ℝ), 3 ≤ T → Real.log (2 + T) ^ 2 ≤ 64 * Real.sqrt T := by
+    intro T hT
+    have h_le : 2 + T ≤ 2 * T := by linarith
+    have h_log_le : Real.log (2 + T) ≤ Real.log (2 * T) :=
+      Real.log_le_log (by linarith) h_le
+    have h_log_mul : Real.log (2 * T) = Real.log 2 + Real.log T :=
+      Real.log_mul (by norm_num) (by linarith)
+    rw [h_log_mul] at h_log_le
+    have h_log2_lt : Real.log 2 ≤ Real.log T := Real.log_le_log (by norm_num) (by linarith)
+    have h_log_sum : Real.log 2 + Real.log T ≤ 2 * Real.log T := by linarith
+    have h_log_tot : Real.log (2 + T) ≤ 2 * Real.log T := h_log_le.trans h_log_sum
+    have h_sq := pow_le_pow_left₀ (Real.log_nonneg (by linarith)) h_log_tot 2
+    refine h_sq.trans ?_
+    have : (2 * Real.log T) ^ 2 = 4 * (Real.log T ^ 2) := by ring
+    rw [this]
+    have h_sqrt : Real.log T ^ 2 ≤ 16 * Real.sqrt T := by
+      have h_log : Real.log T ≤ 4 * T ^ (1 / 4 : ℝ) := by
+        have := Real.log_le_sub_one_of_pos (by positivity : 0 < T ^ (1 / 4 : ℝ))
+        rw [Real.log_rpow (by positivity)] at this
+        linarith
+      have h_sq2 := pow_le_pow_left₀ (Real.log_nonneg (by linarith)) h_log 2
+      refine h_sq2.trans ?_
+      have : (4 * T ^ (1 / 4 : ℝ)) ^ 2 = 16 * (T ^ (1 / 4 : ℝ)) ^ 2 := by ring
+      rw [this]
+      have h_exp : (T ^ (1 / 4 : ℝ)) ^ (2 : ℕ) = T ^ (1 / 2 : ℝ) := by
+        rw [← Real.rpow_natCast, ← Real.rpow_mul (by linarith)]
+        norm_num
+      rw [h_exp, ← Real.sqrt_eq_rpow]
+    nlinarith
+  have norm_I3New_eq : ∀ {ε T X σ' : ℝ},
+      ‖I3New SmoothingF ε T X σ'‖ =
+      (1 / (2 * π)) * ‖∫ t in (-T)..T, SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)‖ := by
+    intro ε T X σ'
+    unfold I3New
+    have h1 : ‖(1 : ℂ) / (2 * π * I)‖ = 1 / (2 * Real.pi) := by
+      rw [norm_div, norm_one, norm_mul, norm_mul, Complex.norm_two, Complex.norm_I, mul_one]
+      have : ‖(π : ℂ)‖ = Real.pi := by
+        rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
+      rw [this]
+    rw [norm_mul, norm_mul, Complex.norm_I, one_mul, h1]
+  obtain ⟨C_small, hC_small_nonneg, h_zeta_small⟩ := LogDerivZetaLogSquaredBoundSmallt
+  obtain ⟨CM, hCM_pos, hCM⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  set C' : ℝ := (1 / (2 * Real.pi)) * (C_small * CM * 64 * 2 * (42 / 41) ^ 2)
+  have C'nonneg : 0 ≤ C' := by positivity
+  refine ⟨C', C'nonneg, ?_⟩
+  intro ε X T εinIoo Xgt3 Tgt3 σ'
+  have Xpos : 0 < X := by linarith
+  have Tpos : 0 < T := by linarith
+  have hT_ge3 : 3 ≤ T := Tgt3.le
+  have hF_nonneg : 0 ≤ F := by rw [Fequ]; exact div_nonneg EinIoo.1.le (by norm_num)
+  have h_logT_pos : 0 < Real.log T := Real.log_pos (by linarith)
+  have h_sig_prime_pos : 0 < σ' := by
+    dsimp [σ']
+    have h_F_div : F / Real.log T < 1 := by
+      have : F < 1 := by rw [Fequ]; linarith [EinIoo.2]
+      have : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+      exact (div_lt_one₀ h_logT_pos).mpr (by linarith)
+    linarith
+  have h_sig_prime_ge_41_42 : 41 / 42 ≤ σ' := by
+    dsimp [σ']
+    have h_F_div_le : F / Real.log T ≤ 1 / 42 := by
+      have hF_le : F ≤ 1 / 42 := by
+        rw [Fequ]
+        have : E < 1 / 14 := EinIoo.2
+        linarith
+      have h_logT_ge_one : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+      calc F / Real.log T ≤ (1 / 42) / Real.log T := div_le_div_of_nonneg_right hF_le h_logT_pos.le
+        _ ≤ (1 / 42) / 1 := div_le_div_of_nonneg_left (by norm_num) zero_lt_one h_logT_ge_one
+        _ = 1 / 42 := by ring
+    linarith
+  have h_sig_prime_le_one : σ' ≤ 1 := by
+    dsimp [σ']
+    linarith [div_nonneg hF_nonneg h_logT_pos.le]
+  rw [norm_I3New_eq]
+  have h_integrand_le : ∀ t ∈ Ioc (-T) T,
+      ‖SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)‖ ≤
+      (C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹ := by
+    intro t ht
+    unfold SmoothedChebyshevIntegrand
+    rw [norm_mul, norm_mul]
+    have h_neg_norm : ‖-ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ = ‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ := by
+      rw [neg_div, norm_neg]
+    rw [h_neg_norm]
+    have ht_abs : |t| ≤ T := by
+      rw [abs_le]
+      exact ⟨ht.1.le, ht.2⟩
+    have h_zeta := h_zeta_small σ' t T Tpos ht_abs rfl
+    have h_mellin := hCM σ' h_sig_prime_pos (σ' + t * I) (by simp) (by simp; linarith) ε εinIoo.1 εinIoo.2
+    have h_xpow : ‖(X : ℂ) ^ ((σ' : ℂ) + t * I)‖ = X ^ σ' := by
+      rw [Complex.norm_cpow_eq_rpow_re_of_pos Xpos]
+      simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero]
+    rw [h_xpow]
+    have h_denom_ge : (41 / 42 : ℝ) ^ 2 ≤ ‖(σ' : ℂ) + t * I‖ ^ 2 := by
+      rw [Complex.norm_add_mul_I]
+      have : 0 ≤ σ' ^ 2 + t ^ 2 := by positivity
+      rw [Real.sq_sqrt this]
+      have : (41 / 42 : ℝ) ^ 2 ≤ σ' ^ 2 := by nlinarith [h_sig_prime_ge_41_42]
+      linarith [sq_nonneg t]
+    have h_mellin_le' : ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖ ≤
+        CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := by
+      have h_inv : (ε * ‖(σ' : ℂ) + t * I‖ ^ 2)⁻¹ ≤ (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := by
+        have h1 : 0 < ε * (41 / 42 : ℝ) ^ 2 := mul_pos εinIoo.1 (by positivity)
+        have h2 : ε * (41 / 42 : ℝ) ^ 2 ≤ ε * ‖(σ' : ℂ) + t * I‖ ^ 2 :=
+          mul_le_mul_of_nonneg_left h_denom_ge (by linarith [εinIoo.1])
+        exact (inv_le_inv₀ (h1.trans_le h2) h1).mpr h2
+      have h_step := mul_le_mul_of_nonneg_left h_inv hCM_pos.le
+      exact h_mellin.trans h_step
+    have h_step1 : ‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖ ≤
+        (C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹) := by
+      have h_mellin_nonneg : 0 ≤ CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := mul_nonneg hCM_pos.le (inv_nonneg.mpr (mul_nonneg εinIoo.1.le (by positivity)))
+      have h_zeta_nonneg : 0 ≤ C_small * Real.log (2 + T) ^ 2 := mul_nonneg hC_small_nonneg (sq_nonneg _)
+      exact mul_le_mul h_zeta h_mellin_le' (norm_nonneg _) h_zeta_nonneg
+    have h_step2 : (‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖) * (X ^ σ') ≤
+        ((C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹)) * (X ^ σ') := by
+      apply mul_le_mul_of_nonneg_right h_step1 (by positivity)
+    refine h_step2.trans ?_
+    have : ((C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹)) * (X ^ σ') =
+        (C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹ := by ring
+    rw [this]
+  have h_int_bound : ‖∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I)‖ ≤
+      ((C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹) * |T - -T| := by
+    refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+    intro t ht
+    rw [uIoc_of_le (by linarith)] at ht
+    exact h_integrand_le t ht
+  have h_len : |T - -T| = 2 * T := by
+    rw [sub_neg_eq_add]
+    have : T + T = 2 * T := by ring
+    rw [this, abs_of_pos (by linarith)]
+  rw [h_len] at h_int_bound
+  have h_log_bound := log2T_sq_le_sqrt_T T hT_ge3
+  have h_alg : ((C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹) * (2 * T) =
+      (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * (Real.log (2 + T) ^ 2 * T) := by ring
+  rw [h_alg] at h_int_bound
+  have h_pos_const : 0 ≤ C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε) := by
+    apply mul_nonneg (mul_nonneg (mul_nonneg (mul_nonneg hC_small_nonneg hCM_pos.le) (by norm_num)) (by positivity))
+    exact div_nonneg (by positivity) (by linarith [εinIoo.1])
+  have h_bound_step : (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * (Real.log (2 + T) ^ 2 * T) ≤
+      (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T) := by
+    apply mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right h_log_bound Tpos.le) h_pos_const
+  have h_int_le_final := h_int_bound.trans h_bound_step
+  have h_bound_final : (1 / (2 * Real.pi)) * ‖∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I)‖ ≤
+      (1 / (2 * Real.pi)) * ((C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T)) := by
+    exact mul_le_mul_of_nonneg_left h_int_le_final (by positivity)
+  refine h_bound_final.trans ?_
+  have h_ring_eq : (1 / (2 * Real.pi)) * ((C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T)) =
+      (C' * (X ^ (1 - F / Real.log T) * (Real.sqrt T * T))) / ε := by
+    dsimp [C', σ']
+    ring
+  rw [h_ring_eq]
 
 
 
