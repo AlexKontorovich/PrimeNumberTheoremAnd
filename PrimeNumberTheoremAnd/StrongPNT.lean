@@ -2403,20 +2403,15 @@ lemma DeltaRange : ∀ (t : ℝ),
 
 
 
-blueprint_comment /--
-\begin{lemma}[SumBoundII]\label{SumBoundII}
+@[blueprint "SumBoundII"
+  (title := "SumBoundII")
+  (statement := /--
     For all $t\in\mathbb{R}$ with $|t|\geq 2$ and $z=\sigma+it$
     where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
-\end{lemma}
--/
-
-/- DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
-
-blueprint_comment /--
-\begin{proof}
-\uses{DeltaRange, LogDerivZetaFinalBound, ZeroInequality}
+  -/)
+  (proof := /--
     By Lemma \ref{DeltaRange} we have that
     $$-11/21<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=4/5$, and $R=5/6$.
@@ -2435,8 +2430,108 @@ blueprint_comment /--
     $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
-\end{proof}
--/
+  -/)
+  (proofUses := ["DeltaRange", "LogDerivZetaFinalBound", "ZeroInequality"])
+  (latexEnv := "lemma")]
+lemma SumBoundII :
+    ∃ (C : ℝ), C > 0 ∧
+      ∀ (t : ℝ), |t| ≥ 2 →
+        ∀ (σ : ℝ), σ ∈ Icc (1 - DeltaT t / 3) (3 / 2) →
+          ∀ (finiteZeros : (ZeroWindow t).Finite),
+    ‖ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset,
+      analyticOrderNatAt ζ ρ / (σ + I * t - ρ)‖ ≤ C * Real.log |t| := by
+  let r' : ℝ := 2 / 3
+  let r : ℝ := 3 / 4
+  let R' : ℝ := 4 / 5
+  let R : ℝ := 5 / 6
+  have r'_pos : 0 < r' := by norm_num
+  have r'_lt_r : r' < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R' : r < R' := by norm_num
+  have R'_lt_R : R' < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  obtain ⟨C, hC, LogDerivBound⟩ :=
+    LogDerivZetaFinalBound r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one
+  refine ⟨(16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * C,
+    by positivity, ?_⟩
+  intro t ht σ hσ finiteZeros
+  have LogDerivBound := LogDerivBound t ht
+  extract_lets f at LogDerivBound
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    apply ZetaShiftFiniteZeros ht
+    simp only [f]
+  set z : ℂ := ((σ - 3 / 2 : ℝ) : ℂ) with hz
+  have hdel := DeltaRange t ht
+  have hσ_lo : 1 - (1 : ℝ) / 27 ≤ σ := by
+    calc 1 - (1 : ℝ) / 27 = 1 - ((1 : ℝ) / 9) / 3 := by ring
+      _ ≤ 1 - DeltaT t / 3 := by
+        have : DeltaT t / 3 ≤ (1 : ℝ) / 27 := by linarith [hdel]
+        linarith
+      _ ≤ σ := hσ.1
+  have hz_norm : ‖z‖ ≤ r' := by
+    rw [hz, Complex.norm_real, Real.norm_eq_abs, abs_le]
+    constructor
+    · linarith [hσ_lo]
+    · linarith [hσ.2]
+  have hz_not_in_zeros : z ∉ SetOfZeros R' f := by
+    intro hz_zero
+    simp only [SetOfZeros, mem_setOf_eq, f] at hz_zero
+    have h_eval : z + 3 / 2 + I * t = (σ : ℂ) + I * t := by
+      rw [hz]
+      push_cast
+      ring
+    have h_zero : ζ (σ + I * t) = 0 := by
+      have := hz_zero.2
+      rwa [h_eval] at this
+    have h_re : σ = (↑σ + I * ↑t : ℂ).re := by
+      simp only [add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero]
+    have h_im : t = (↑σ + I * ↑t : ℂ).im := by
+      simp only [add_im, ofReal_im, mul_im, I_re, ofReal_im, zero_mul, I_im, ofReal_re, one_mul, zero_add]
+    have h_contra : σ ≤ 1 - DeltaT t := by
+      apply ZeroInequalitySpecialized (σ + I * t) h_zero σ h_re t h_im ht
+    have h_pos_del : 0 < DeltaT t := by
+      unfold DeltaT
+      exact div_pos EinIoo.1 (Real.log_pos (by linarith [ht]))
+    linarith [hσ.1]
+  have hz' : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f := by
+    simp only [Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right]
+    exact ⟨hz_norm, hz_not_in_zeros⟩
+  have LogDerivBound := LogDerivBound finiteZeros' z hz'
+  refine le_trans (le_of_eq ?_) (LogDerivBound.trans (by rw [mul_assoc]))
+  apply congrArg norm
+  congr 1
+  · simp only [f, hz]
+    have h_eval : (↑(σ - 3 / 2) + 3 / 2 + I * ↑t : ℂ) = ↑σ + I * ↑t := by push_cast; ring
+    have h_deriv_eq : deriv (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) ↑(σ - 3 / 2) = ζ' (↑σ + I * ↑t) := by
+      have hd := deriv_comp_add_const ζ (3 / 2 + I * ↑t) ↑(σ - 3 / 2)
+      rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (z + (3 / 2 + I * ↑t))) by { funext w; ring_nf }]
+      rw [hd]
+      congr 1
+      push_cast; ring
+    rw [h_deriv_eq]
+    congr 1
+    rw [show (↑(σ - 3 / 2) + 3 / 2 + I * ↑t : ℂ) = (↑σ + I * ↑t) by { push_cast; ring }]
+  · simp only [f, hz]
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring) (fun ρ hρ => by ring)
+      (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [r, hρ.2]
+      · simp only [add_assoc, sub_add_cancel, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [← add_assoc, hρ.2]
+      · simp only [add_sub_cancel_right, r, hρ.1]
+    · have h_ord : analyticOrderNatAt (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) (ρ - (3 / 2 + I * ↑t)) =
+          analyticOrderNatAt ζ ρ := by
+        have := analyticOrderNatAt_fun_comp_add_left ζ (3 / 2 + I * ↑t) (ρ - (3 / 2 + I * ↑t))
+        have h_sum : 3 / 2 + I * ↑t + (ρ - (3 / 2 + I * ↑t)) = ρ := by ring
+        rw [h_sum] at this
+        rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (3 / 2 + I * ↑t + z)) by { funext w; ring_nf }]
+        exact this
+      have h_denom : ↑(σ - 3 / 2) - (ρ - (3 / 2 + I * ↑t)) = (↑σ + I * ↑t - ρ : ℂ) := by push_cast; ring
+      rw [h_ord, h_denom]
 
 
 
