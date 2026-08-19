@@ -2678,12 +2678,305 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3) (σ : ℝ) (hσ : σ ∈ Icc (1 - Delta
   (proofUses := ["ZetaFixedLowerBound", "ZerosBound", "GlobalBound", "SumBoundII", "ZeroInequality",
     "GapSize"])
   (latexEnv := "lemma")]
+lemma zeta_zeros_count_bound (t : ℝ) (ht : |t| ≥ 2) :
+    let r : ℝ := 3 / 4;
+    let R : ℝ := 5 / 6;
+    let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
+    let g : ℂ → ℂ := f / fun _ => f 0;
+    let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
+    ∀ (finiteZeros : (SetOfZeros 1 f).Finite),
+    ∑ ρ ∈ (finiteSetOfZeros_mono (by norm_num : (3 / 4 : ℝ) < 1) finiteZeros).toFinset,
+      (analyticOrderNatAt f ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
+  intro r R f g B finiteZeros
+  have r_pos : 0 < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R : r < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  have f0nonzero : ¬f 0 = 0 := by
+    simp only [f, zero_add]
+    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
+  have ifInStripNotOne {z : ℂ} (hnorm: ‖z‖ ≤ 1) : (z.re + 3 / 2 = 1 → ¬z.im + t = 0) := by
+    rw [← sq_le_one_iff₀ (norm_nonneg _), ← Complex.normSq_eq_norm_sq,
+      Complex.normSq_apply] at hnorm
+    intro hre him
+    have hre' : z.re = -(1/2 : ℝ) := by linarith
+    have him' : z.im = -t := by linarith
+    simp only [hre', him', neg_mul_neg] at hnorm
+    rw [← abs_two, ge_iff_le, ← sq_le_sq] at ht
+    nlinarith [hnorm, ht]
+  have fAnalytic (z : ℂ) (hz : ‖z‖ ≤ 1) : AnalyticAt ℂ f z := by
+    dsimp [f]
+    refine AnalyticAt.comp (analyticAt_riemannZeta ?_)
+      (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const)
+        (AnalyticAt.mul analyticAt_const analyticAt_const))
+    intro h
+    have hre := congr_arg Complex.re h
+    have him := congr_arg Complex.im h
+    simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im,
+      mul_zero, sub_self, add_zero, one_re] at hre
+    simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im, zero_mul, I_im,
+      ofReal_re, one_mul, zero_add, one_im] at him
+    have him' : z.im + t = 0 := by linarith [him]
+    exact (ifInStripNotOne hz hre) him'
+  have gAnalytic : AnalyticOnNhd ℂ g (Metric.closedBall (0 : ℂ) 1) := by
+    intro z hz
+    rw [Metric.mem_closedBall, _root_.dist_zero_right] at hz
+    exact AnalyticAt.div_const (fAnalytic z hz)
+  have g0_eq_one : g 0 = 1 := by
+    simp only [g, Pi.div_apply, ne_eq, f0nonzero, not_false_eq_true, div_self]
+  have gFiniteZeros : (SetOfZeros 1 g).Finite := by
+    simp only [SetOfZeros, g, Pi.div_apply, div_eq_zero_iff,
+      or_iff_left f0nonzero] at ⊢ finiteZeros
+    exact finiteZeros
+  have gBound : ∀ z : ℂ, ‖z‖ ≤ R → ‖g z‖ ≤ B := by
+    intro z' hz'
+    simp only [B, g, f, zero_add, Pi.div_apply, Complex.norm_div]
+    rw [div_eq_mul_one_div]
+    refine mul_le_mul (GlobalBound (le_trans hz' R_lt_one.le) ht) ?_
+      (one_div_nonneg.mpr (norm_nonneg _)) (by linarith)
+    rw [one_div_le (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num))), one_div,
+      inv_div, ← toReal_coe_nnnorm, ENNReal.coe_toReal, ← NNReal.coe_div, ← nnnorm_div]
+    · exact_mod_cast ZetaFixedLowerBound t
+    · simp only [coe_nnnorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
+      exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num),
+        riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
+  have zBound := ZerosBound r_pos r_lt_one r_lt_R R_lt_one gAnalytic g0_eq_one gFiniteZeros gBound
+  have gFiniteZeros' : (finiteSetOfZeros_mono r_lt_one gFiniteZeros).toFinset =
+    (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset := by
+    simp only [SetOfZeros, g, Pi.div_apply, div_eq_zero_iff, or_iff_left f0nonzero]
+  have g_analytic_order (ρ : ℂ) (hρ : ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset) :
+      analyticOrderNatAt g ρ = analyticOrderNatAt f ρ := by
+    have hρ_norm : ‖ρ‖ ≤ 1 := by
+      have : ρ ∈ SetOfZeros (3 / 4) f := (Set.Finite.mem_toFinset _).mp hρ
+      exact le_trans this.1 r_lt_one.le
+    change analyticOrderNatAt (fun z => f z / f 0) ρ = analyticOrderNatAt f ρ
+    exact analyticOrderNatAt_fun_div_const f0nonzero (fAnalytic ρ hρ_norm)
+  rw [gFiniteZeros'] at zBound
+  have : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt g ρ =
+         ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ := by
+    refine Finset.sum_congr rfl fun ρ hρ => g_analytic_order ρ hρ
+  rw [this] at zBound
+  push_cast at zBound
+  exact zBound
+
+lemma zeta_window_sum_eq_zeros_bound (t : ℝ) (ht : |t| ≥ 2) :
+    let r : ℝ := 3 / 4;
+    let R : ℝ := 5 / 6;
+    let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
+    let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
+    ∀ (finiteZeros : (ZeroWindow t).Finite),
+    ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
+  intro r R f B finiteZeros
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    apply ZetaShiftFiniteZeros ht
+    simp only [f]
+  have count_bound := zeta_zeros_count_bound t ht finiteZeros'
+  dsimp [r, R, f, B] at count_bound ⊢
+  have sum_eq : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) =
+      ∑ ρ ∈ (finiteSetOfZeros_mono (by norm_num : (3 / 4 : ℝ) < 1) finiteZeros').toFinset,
+        (analyticOrderNatAt f ρ : ℝ) := by
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring) (fun ρ hρ => by ring)
+      (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq, f] at hρ ⊢
+      refine ⟨hρ.2, ?_⟩
+      have : ρ - (3 / 2 + I * t) + 3 / 2 + I * t = ρ := by ring
+      rw [this, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq, f] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · have : ζ (ρ + (3 / 2 + I * t)) = ζ (ρ + 3 / 2 + I * t) := by ring_nf
+        rw [this]
+        exact hρ.2
+      · have : ‖ρ + (3 / 2 + I * t) - (3 / 2 + I * t)‖ = ‖ρ‖ := by
+          congr 1; ring
+        rw [this]
+        exact hρ.1
+    · have h_ord : analyticOrderNatAt (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) (ρ - (3 / 2 + I * ↑t)) =
+          analyticOrderNatAt ζ ρ := by
+        have := analyticOrderNatAt_fun_comp_add_left ζ (3 / 2 + I * ↑t) (ρ - (3 / 2 + I * ↑t))
+        have h_sum : 3 / 2 + I * ↑t + (ρ - (3 / 2 + I * ↑t)) = ρ := by ring
+        rw [h_sum] at this
+        rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (3 / 2 + I * ↑t + z)) by { funext w; ring_nf }]
+        exact this
+      rw [h_ord]
+  rw [sum_eq]
+  exact count_bound
+
 lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3) (C : ℝ)
     (Cnonneg : 0 ≤ C), ∀ (σ t : ℝ),
     3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
-    exact ⟨E / 3, rfl, sorry⟩
+  refine ⟨E / 3, rfl, ?_⟩
+  obtain ⟨C_sum, hC_sum_pos, hSumBoundII⟩ := SumBoundII
+  have hE_pos : 0 < E := EinIoo.1
+  let r : ℝ := 3 / 4
+  let R : ℝ := 5 / 6
+  have h_log_R_div_r_pos : 0 < Real.log (R / r) := by
+    rw [Real.log_pos_iff (by norm_num)]
+    norm_num
+  have h_log3_pos : 0 < Real.log 3 := Real.log_pos (by norm_num)
+  set D_const : ℝ := (1 / Real.log (R / r)) * (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3)
+  have one_lt_zeta_div : (1 : ℝ) < ‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ := by
+    rw [coe_nnnorm, coe_nnnorm,
+      one_lt_div (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))]
+    exact norm_zeta_strict_mono_ofReal (by linarith) (by linarith)
+  have h_zeta_ratio_pos : 0 < (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ : ℝ) := by linarith
+  have h_arg_pos : (1 : ℝ) < 13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := by
+    simpa only [ofReal_div, ofReal_ofNat] using (by linarith : (1 : ℝ) < 13 * (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊))
+  have h_log_pos : 0 < Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) := Real.log_pos h_arg_pos
+  have D_nonneg : 0 ≤ D_const := by
+    apply mul_nonneg (one_div_nonneg.mpr h_log_R_div_r_pos.le)
+    exact add_nonneg zero_le_one (div_nonneg h_log_pos.le h_log3_pos.le)
+  set C_tot : ℝ := C_sum / Real.log 3 + (6 / E) * D_const
+  have C_tot_nonneg : 0 ≤ C_tot := by
+    apply add_nonneg (div_nonneg hC_sum_pos.le h_log3_pos.le)
+    exact mul_nonneg (div_nonneg (by norm_num) hE_pos.le) D_nonneg
+  refine ⟨C_tot, C_tot_nonneg, fun σ t ht hσ => ?_⟩
+  have ht_ge2 : |t| ≥ 2 := by linarith
+  have hlog_t_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+  have hlog_3_le : Real.log 3 ≤ Real.log |t| := Real.log_le_log (by norm_num) ht
+  have h_del_equ : 1 - (E / 3) / Real.log |t| = 1 - DeltaT t / 3 := by
+    unfold DeltaT; ring
+  have hσ_in_delta : σ ∈ Icc (1 - DeltaT t / 3) (3 / 2) := by
+    rwa [← h_del_equ]
+  have finiteZeros : (ZeroWindow t).Finite := ZeroWindowFinite ht_ge2
+  have h_sum_approx := hSumBoundII t ht_ge2 σ hσ_in_delta finiteZeros
+  have h_gap (ρ : ℂ) (hρ : ρ ∈ finiteZeros.toFinset) :
+      DeltaT t / 6 ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+    have hρ_win : ρ ∈ ZeroWindow t := (Set.Finite.mem_toFinset _).mp hρ
+    exact GapSize t ht σ hσ_in_delta ρ hρ_win
+  have h_sum_zeros_bound := zeta_window_sum_eq_zeros_bound t ht_ge2 finiteZeros
+  have h_zeros_le_D_log : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) ≤ D_const * Real.log |t| := by
+    dsimp [r, R] at h_sum_zeros_bound
+    refine h_sum_zeros_bound.trans ?_
+    have h_B_le : Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) ≤
+        (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t| := by
+      have h1 : 7 + 2 * |t| ≤ 13 / 3 * |t| := by linarith
+      have h2 : (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) ≤ (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) * (|t| / 3) := by
+        calc (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) ≤ (13 / 3 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by gcongr
+          _ = (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) * (|t| / 3) := by ring
+      have h3 : Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) ≤
+          Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) + Real.log (|t| / 3) := by
+        have h_posA : 0 < (13 : ℝ) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by linarith [h_arg_pos]
+        have h_posB : 0 < |t| / 3 := by positivity
+        have h_pos_prod : 0 < (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
+          have h_term_pos : 0 < 7 + 2 * |t| := by linarith
+          have h_rat_pos : 0 < (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
+            have : (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) = (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ : ℝ) := by
+              simp only [ofReal_div, ofReal_ofNat]
+            rw [this]
+            exact h_zeta_ratio_pos
+          exact mul_pos h_term_pos h_rat_pos
+        have := Real.log_le_log h_pos_prod h2
+        refine this.trans (le_of_eq (Real.log_mul (ne_of_gt h_posA) (ne_of_gt h_posB)))
+      have h4 : Real.log (|t| / 3) = Real.log |t| - Real.log 3 := by
+        rw [Real.log_div (by positivity) (by norm_num)]
+      rw [h4] at h3
+      have h5 : Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) - Real.log 3 ≤
+          (Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t| - Real.log 3 := by
+        have : 1 ≤ Real.log |t| / Real.log 3 := by
+          rw [one_le_div h_log3_pos]
+          exact hlog_3_le
+        have : Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) ≤
+            (Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) / Real.log 3) * Real.log |t| := by
+          rw [div_mul_eq_mul_div, le_div_iff₀ h_log3_pos]
+          have : Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) * Real.log 3 ≤
+              Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) * Real.log |t| := by
+            exact mul_le_mul_of_nonneg_left hlog_3_le h_log_pos.le
+          linarith
+        linarith
+      linarith
+    dsimp [D_const]
+    have h_factor_nonneg : 0 ≤ 1 / Real.log (5 / 6 / (3 / 4)) := one_div_nonneg.mpr h_log_R_div_r_pos.le
+    calc 1 / Real.log (5 / 6 / (3 / 4)) * Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊))
+      _ ≤ 1 / Real.log (5 / 6 / (3 / 4)) * ((1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t|) := by
+        exact mul_le_mul_of_nonneg_left h_B_le h_factor_nonneg
+      _ = (1 / Real.log (5 / 6 / (3 / 4)) * (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3)) * Real.log |t| := by ring
+  have h_sum_pole_le : ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+      (6 / E * D_const) * (Real.log |t|) ^ 2 := by
+    have h1 : ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+        ∑ ρ ∈ finiteZeros.toFinset, ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := norm_sum_le _ _
+    have h2 (ρ : ℂ) (hρ : ρ ∈ finiteZeros.toFinset) :
+        ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤ (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) := by
+      rw [Complex.norm_div, Complex.norm_natCast]
+      have h_gap_pos : 0 < ‖(σ : ℂ) + I * t - ρ‖ := by
+        have : 0 < DeltaT t / 6 := by
+          unfold DeltaT
+          positivity
+        exact this.trans_le (h_gap ρ hρ)
+      have h_gap_ge := h_gap ρ hρ
+      have h_ord_nonneg' : 0 ≤ (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) := by
+        have : 0 ≤ 6 / DeltaT t := by
+          unfold DeltaT
+          exact div_nonneg (by norm_num) (div_pos hE_pos hlog_t_pos).le
+        positivity
+      have h_delta_ne : DeltaT t ≠ 0 := by
+        unfold DeltaT
+        exact ne_of_gt (div_pos hE_pos hlog_t_pos)
+      have h_cancel : 6 / DeltaT t * (DeltaT t / 6) = 1 := by
+        have : (6 / DeltaT t) * (DeltaT t / 6) = (6 * DeltaT t) / (DeltaT t * 6) :=
+          (mul_div_mul_comm 6 (DeltaT t) (DeltaT t) 6).symm
+        rw [this, mul_comm (DeltaT t) 6]
+        exact div_self (mul_ne_zero (by norm_num) h_delta_ne)
+      have h_id : (analyticOrderNatAt ζ ρ : ℝ) / ‖(σ : ℂ) + I * t - ρ‖ =
+          (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) * ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) := by
+        calc (analyticOrderNatAt ζ ρ : ℝ) / ‖(σ : ℂ) + I * t - ρ‖
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * 1 / ‖(σ : ℂ) + I * t - ρ‖ := by ring
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t * (DeltaT t / 6)) / ‖(σ : ℂ) + I * t - ρ‖ := by rw [h_cancel]
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) * ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) := by ring
+      rw [h_id]
+      have h_le_one : ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) ≤ 1 := (div_le_one₀ h_gap_pos).mpr h_gap_ge
+      have h_bound := mul_le_mul_of_nonneg_left h_le_one h_ord_nonneg'
+      rw [mul_one] at h_bound
+      exact h_bound
+    have h3 : ∑ ρ ∈ finiteZeros.toFinset, ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+        ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) :=
+      Finset.sum_le_sum fun ρ hρ => h2 ρ hρ
+    have h4 : 6 / DeltaT t = (6 / E) * Real.log |t| := by
+      unfold DeltaT
+      field_simp
+    have h5 : (∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ)) * ((6 / E) * Real.log |t|) ≤
+        (D_const * Real.log |t|) * ((6 / E) * Real.log |t|) := by
+      have h_factor : 0 ≤ (6 / E) * Real.log |t| := by
+        apply mul_nonneg (div_nonneg (by norm_num) hE_pos.le) hlog_t_pos.le
+      exact mul_le_mul_of_nonneg_right h_zeros_le_D_log h_factor
+    have h6 : (D_const * Real.log |t|) * ((6 / E) * Real.log |t|) = (6 / E * D_const) * (Real.log |t|) ^ 2 := by ring
+    have h_mid : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) =
+        (∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ)) * (6 / DeltaT t) := by
+      rw [← Finset.sum_mul]
+    rw [h_mid, h4] at h3
+    exact le_trans h1 (le_trans h3 (le_trans h5 (le_of_eq h6)))
+  have h_comm_t : (σ : ℂ) + t * I = (σ : ℂ) + I * t := by ring
+  have h_final_tri : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      ‖ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ +
+      ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := by
+    rw [h_comm_t]
+    have : ‖ζ' (σ + I * t) / ζ (σ + I * t)‖ =
+      ‖(ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)) +
+        ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := by
+      congr 1; ring
+    rw [this]
+    exact norm_add_le _ _
+  refine h_final_tri.trans ?_
+  have h_sum_le_sq : C_sum * Real.log |t| ≤ (C_sum / Real.log 3) * (Real.log |t|) ^ 2 := by
+    have : Real.log |t| ≤ (Real.log |t| ^ 2) / Real.log 3 := by
+      rw [sq, mul_div_assoc, le_mul_iff_one_le_right hlog_t_pos]
+      rw [one_le_div h_log3_pos]
+      exact hlog_3_le
+    have h_mul := mul_le_mul_of_nonneg_left this hC_sum_pos.le
+    have h_eq : C_sum * (Real.log |t| ^ 2 / Real.log 3) = (C_sum / Real.log 3) * (Real.log |t|) ^ 2 := by ring
+    linarith
+  have h_step : ‖ζ' (↑σ + I * ↑t) / ζ (↑σ + I * ↑t) - ∑ ρ ∈ finiteZeros.toFinset, ↑(analyticOrderNatAt ζ ρ) / (↑σ + I * ↑t - ρ)‖ +
+       ‖∑ ρ ∈ finiteZeros.toFinset, ↑(analyticOrderNatAt ζ ρ) / (↑σ + I * ↑t - ρ)‖ ≤
+       (C_sum / Real.log 3) * (Real.log |t|) ^ 2 + (6 / E * D_const) * (Real.log |t|) ^ 2 := by
+    linarith [h_sum_approx, h_sum_pole_le, h_sum_le_sq]
+  have h_step_eq : (C_sum / Real.log 3) * (Real.log |t|) ^ 2 + (6 / E * D_const) * (Real.log |t|) ^ 2 =
+      C_tot * (Real.log |t|) ^ 2 := by
+    dsimp [C_tot]
+    ring
+  rw [h_step_eq] at h_step
+  exact h_step
 
 
 
