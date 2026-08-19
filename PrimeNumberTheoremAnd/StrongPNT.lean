@@ -2535,17 +2535,14 @@ lemma SumBoundII :
 
 
 
-blueprint_comment /--
-\begin{lemma}[GapSize]\label{GapSize}
+@[blueprint "GapSize"
+  (title := "GapSize")
+  (statement := /--
    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$.
    Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
    $$|z-\rho|\geq\delta_t/6.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroInequality}
+  -/)
+  (proof := /--
     Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-3/4,t+3/4)$.
     Thus, if $t>1$ we have
     $$\log|t'|\leq\log|t+3/4|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
@@ -2557,8 +2554,79 @@ blueprint_comment /--
     (here we use the fact that $|t|\geq 3$ to give us that $|t'|\geq 2$). Thus,
     $$\delta_t/6\leq\delta_{t'}-\delta_t/3
       =1-\delta_t/3-(1-\delta_{t'})\leq\sigma-\sigma'\leq|z-\rho|.$$
-\end{proof}
--/
+  -/)
+  (proofUses := ["ZeroInequality"])
+  (latexEnv := "lemma")]
+lemma GapSize (t : ℝ) (ht : |t| ≥ 3) (σ : ℝ) (hσ : σ ∈ Icc (1 - DeltaT t / 3) (3 / 2))
+    (ρ : ℂ) (hρ : ρ ∈ ZeroWindow t) :
+    DeltaT t / 6 ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+  have hρ_zero : ζ ρ = 0 := hρ.1
+  have hρ_ball : ‖ρ - (3 / 2 + I * t)‖ ≤ 3 / 4 := hρ.2
+  have ht_im : |ρ.im - t| ≤ 3 / 4 := by
+    have h_im_le := Complex.abs_im_le_norm (ρ - (3 / 2 + I * t))
+    simp only [sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im, mul_zero,
+      I_im, ofReal_re, one_mul, zero_add] at h_im_le
+    linarith [h_im_le, hρ_ball]
+  have ht'_ge2 : 2 ≤ |ρ.im| := by
+    rcases le_total 0 t with ht_pos | ht_neg
+    · rw [abs_of_nonneg ht_pos] at ht
+      have : t - 3 / 4 ≤ ρ.im := by linarith [abs_le.mp ht_im]
+      have h_pos : 0 < ρ.im := by linarith
+      rw [abs_of_pos h_pos]
+      linarith
+    · rw [abs_of_nonpos ht_neg] at ht
+      have : ρ.im ≤ t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h_neg : ρ.im < 0 := by linarith
+      rw [abs_of_neg h_neg]
+      linarith
+  have h_rho_re_le : ρ.re ≤ 1 - DeltaT ρ.im := by
+    apply ZeroInequalitySpecialized ρ hρ_zero ρ.re rfl ρ.im rfl ht'_ge2
+  have h_log_im_le : Real.log |ρ.im| ≤ 2 * Real.log |t| := by
+    have h_log2_le : Real.log 2 ≤ Real.log |t| := Real.log_le_log (by norm_num) (by linarith)
+    rcases le_total 0 t with ht_pos | ht_neg
+    · rw [abs_of_nonneg ht_pos] at ht
+      have h1 : ρ.im ≤ t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h2 : t + 3 / 4 ≤ 2 * t := by linarith
+      have h_pos : 0 < ρ.im := by linarith [abs_le.mp ht_im]
+      have h3 : |ρ.im| ≤ 2 * |t| := by
+        rw [abs_of_pos h_pos, abs_of_pos (by linarith [ht_pos])]
+        linarith
+      have h4 : Real.log |ρ.im| ≤ Real.log (2 * |t|) := by
+        have : 0 < |ρ.im| := by positivity
+        exact Real.log_le_log this h3
+      rw [Real.log_mul (by norm_num) (by linarith)] at h4
+      linarith
+    · rw [abs_of_nonpos ht_neg] at ht
+      have h1 : -ρ.im ≤ -t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h2 : -t + 3 / 4 ≤ 2 * -t := by linarith
+      have h_neg : ρ.im < 0 := by linarith [abs_le.mp ht_im]
+      have h3 : |ρ.im| ≤ 2 * |t| := by
+        rw [abs_of_neg h_neg, abs_of_neg (by linarith [ht_neg])]
+        linarith
+      have h4 : Real.log |ρ.im| ≤ Real.log (2 * |t|) := by
+        have : 0 < |ρ.im| := by positivity
+        exact Real.log_le_log this h3
+      rw [Real.log_mul (by norm_num) (by linarith)] at h4
+      linarith
+  have h_delta_t_le : DeltaT t ≤ 2 * DeltaT ρ.im := by
+    unfold DeltaT
+    have hE_nonneg : 0 ≤ E := EinIoo.1.le
+    have h_log_t_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+    have h_log_im_pos : 0 < Real.log |ρ.im| := Real.log_pos (by linarith)
+    rw [mul_div_assoc', div_le_div_iff₀ h_log_t_pos (by positivity)]
+    nlinarith
+  have h_gap_re : DeltaT t / 6 ≤ σ - ρ.re := by
+    calc DeltaT t / 6 = DeltaT t / 2 - DeltaT t / 3 := by ring
+      _ ≤ DeltaT ρ.im - DeltaT t / 3 := by linarith [h_delta_t_le]
+      _ = (1 - DeltaT t / 3) - (1 - DeltaT ρ.im) := by ring
+      _ ≤ σ - ρ.re := by linarith [hσ.1, h_rho_re_le]
+  have h_re_le_norm : σ - ρ.re ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+    have h_re_eq : σ - ρ.re = ((σ : ℂ) + I * t - ρ).re := by
+      simp only [sub_re, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, add_zero]
+    rw [h_re_eq]
+    exact Complex.re_le_norm _
+  exact h_gap_re.trans h_re_le_norm
 
 
 
