@@ -2198,7 +2198,7 @@ lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
     This is exactly the desired result with the constant $E=(14D)^{-1}$
   -/)
   (latexEnv := "theorem")]
-theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
+theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) (1 / 14) ∧
     ∀ (ρ : ℂ), ζ ρ = 0 →
       ∀ (σ : ℝ), σ = ρ.re →
         ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
@@ -2209,11 +2209,17 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
   set D : ℝ := 5 * A + 4 * B + C with D_def
   set E : ℝ := (14 * D)⁻¹ with E_def
   have Dge1 : 1 ≤ D := by linarith
+  have Dgt1 : 1 < D := by linarith
   refine ⟨E, ⟨?_, ?_⟩, fun ρ hρzero σ ρre t ρim ht => ?_⟩
-  · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr ofNat_pos'), inv_pos]
+  · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr (by norm_num)), inv_pos]
     linarith
-  · rw [E_def, D_def, inv_lt_one₀ (mul_pos ofNat_pos' (by linarith))]
-    exact one_lt_mul one_le_ofNat (by linarith)
+  · rw [E_def, mul_inv_rev]
+    have hDinv : D⁻¹ < 1 := by
+      rw [inv_lt_one_iff₀]
+      exact Or.inr Dgt1
+    have h14 : 0 < (14 : ℝ)⁻¹ := by norm_num
+    have := mul_lt_mul_of_pos_left hDinv h14
+    simpa using this
   · set δ : ℝ := 1 / (2 * D * Real.log |t|) with δ_def
     have δrange : δ ∈ Ioo 0 1 := by
       simp only [mem_Ioo, δ_def, one_div_pos]
@@ -2345,7 +2351,7 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
 
 
 noncomputable def E : ℝ := ZeroInequality.choose
-lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := ZeroInequality.choose_spec.1
+lemma EinIoo : E ∈ Ioo (0 : ℝ) (1 / 14) := ZeroInequality.choose_spec.1
 theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ), ζ ρ = 0 →
     ∀ (σ : ℝ), σ = ρ.re →
       ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
@@ -2383,7 +2389,17 @@ noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
 lemma DeltaRange : ∀ (t : ℝ),
     |t| ≥ 2 →
       DeltaT t < (1 : ℝ) / 9 := by
-    sorry
+  intro t ht
+  unfold DeltaT
+  have hlog2_gt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have ht_log : Real.log 2 ≤ Real.log |t| := Real.log_le_log (by norm_num) ht
+  have hlogt_gt : (0.6931471803 : ℝ) < Real.log |t| := hlog2_gt.trans_le ht_log
+  have hpos : 0 < Real.log |t| := by positivity
+  calc E / Real.log |t| ≤ (1 / 14) / Real.log |t| := by
+        gcongr
+        exact EinIoo.2.le
+    _ < (1 / 14) / 0.6931471803 := by gcongr
+    _ < (1 : ℝ) / 9 := by norm_num
 
 
 
@@ -2622,6 +2638,29 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
         (one_le_pow₀ (by
           rw [Real.le_log_iff_exp_le (by grind)]
           exact Real.exp_one_lt_d9.le.trans (by grind))))
+
+lemma bound_for_large_t (C1 : ℝ) (hC1nonneg : 0 ≤ C1)
+    (hC1 : ∀ (σ t : ℝ), 3 < |t| → σ ∈ Ici (1 - F / Real.log |t|) → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C1 * Real.log |t| ^ 2)
+    (σ t T : ℝ) (ht_large : 3 < |t|) (ht_le_T : |t| ≤ T) (hσ : σ = 1 - F / Real.log T) :
+    ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C1 * Real.log (2 + T) ^ 2 := by
+  have ht_pos : 0 < |t| := by linarith
+  have hT_pos : 0 < T := by linarith
+  have hlog_t_le_T : Real.log |t| ≤ Real.log T := Real.log_le_log ht_pos ht_le_T
+  have hlogt_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+  have hF_nonneg : 0 ≤ F := by
+    rw [Fequ]
+    exact div_nonneg EinIoo.1.le (by norm_num)
+  have h_sigma_in : σ ∈ Ici (1 - F / Real.log |t|) := by
+    simp only [mem_Ici, hσ]
+    rw [sub_le_sub_iff_left]
+    exact div_le_div_of_nonneg_left hF_nonneg hlogt_pos hlog_t_le_T
+  have hbound := hC1 σ t ht_large h_sigma_in
+  refine hbound.trans ?_
+  have hlog_T_le_2addT : Real.log T ≤ Real.log (2 + T) := by
+    apply Real.log_le_log hT_pos (by linarith)
+  have hlog_t_le_2addT : Real.log |t| ≤ Real.log (2 + T) := hlog_t_le_T.trans hlog_T_le_2addT
+  have hlog_t_nonneg : 0 ≤ Real.log |t| := hlogt_pos.le
+  gcongr
 
 @[blueprint
   (title := "LogDerivZetaLogSquaredBoundSmallt")
