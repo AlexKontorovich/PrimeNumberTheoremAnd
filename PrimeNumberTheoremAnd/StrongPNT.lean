@@ -3118,6 +3118,50 @@ lemma bound_for_large_t (C1 : ℝ) (hC1nonneg : 0 ≤ C1)
   have hlog_t_nonneg : 0 ≤ Real.log |t| := hlogt_pos.le
   gcongr
 
+lemma log_deriv_residue_bound :
+    ∃ (C : ℝ) (ε : ℝ) (_ : 0 < ε),
+      ∀ (s : ℂ), s ∈ Metric.ball (1 : ℂ) ε \ {1} →
+        ‖ζ' s / ζ s‖ ≤ ‖(s - 1)⁻¹‖ + C := by
+  obtain ⟨C, hC⟩ := riemannZetaLogDerivResidueBigO.bound
+  rcases Metric.mem_nhdsWithin_iff.mp hC with ⟨ε, εpos, hε⟩
+  exact ⟨C, ε, εpos, fun s hs => by
+    have h_in : s ∈ Metric.ball (1 : ℂ) ε ∩ {1}ᶜ := by
+      simp only [mem_inter_iff, mem_compl_iff, mem_singleton_iff]
+      exact ⟨hs.1, hs.2⟩
+    have hb := hε h_in
+    simp only [mem_setOf_eq, Pi.sub_apply, Pi.div_apply, Pi.neg_apply, Pi.one_apply, norm_one, mul_one] at hb
+    have h_tri : ‖-ζ' s / ζ s‖ ≤
+        ‖-ζ' s / ζ s - (s - 1)⁻¹‖ + ‖(s - 1)⁻¹‖ := by
+      have h_split : (-ζ' s / ζ s : ℂ) =
+          (-ζ' s / ζ s - (s - 1)⁻¹) + (s - 1)⁻¹ := by ring
+      nth_rewrite 1 [h_split]
+      exact norm_add_le (-ζ' s / ζ s - (s - 1)⁻¹) (s - 1)⁻¹
+    have h_neg : ‖-ζ' s / ζ s‖ = ‖ζ' s / ζ s‖ := by
+      rw [neg_div, norm_neg]
+    rw [h_neg] at h_tri
+    linarith [h_tri, hb]⟩
+
+
+lemma norm_inv_sub_one_le (σ t T : ℝ) (hσ : σ = 1 - F / Real.log T)
+    (hF_pos : 0 < F) (hlogT_pos : 0 < Real.log T) :
+    ‖((σ : ℂ) + t * I - 1)⁻¹‖ ≤ Real.log T / F := by
+  rw [norm_inv]
+  have h_dist : F / Real.log T ≤ ‖(σ : ℂ) + t * I - 1‖ := by
+    have h_re : ((σ : ℂ) + t * I - 1).re = σ - 1 := by
+      simp only [sub_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, one_re]
+    have h_abs_re : |σ - 1| ≤ ‖(σ : ℂ) + t * I - 1‖ := by
+      rw [← h_re]
+      exact Complex.abs_re_le_norm _
+    have h_diff : σ - 1 = - (F / Real.log T) := by
+      rw [hσ]
+      ring
+    rw [h_diff, abs_neg, abs_of_pos (div_pos hF_pos hlogT_pos)] at h_abs_re
+    exact h_abs_re
+  have h_pos : 0 < F / Real.log T := div_pos hF_pos hlogT_pos
+  have h_inv := (inv_le_inv₀ (h_pos.trans_le h_dist) h_pos).mpr h_dist
+  rw [inv_div] at h_inv
+  exact h_inv
+
 @[blueprint
   (title := "LogDerivZetaLogSquaredBoundSmallt")
   (statement := /--
@@ -3145,12 +3189,11 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
         σ = 1 - F / Real.log T →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
   obtain ⟨C1, hC1nonneg, hC1⟩ := LogDerivZetaUniformLogSquaredBound
-  obtain ⟨C_big, h_big⟩ := riemannZetaLogDerivResidueBigO.bound
-  rcases Metric.mem_nhdsWithin_iff.mp h_big with ⟨ε, εpos, hε⟩
+  obtain ⟨C_res, ε, εpos, h_res⟩ := log_deriv_residue_bound
   have hF_pos : 0 < F := by rw [Fequ]; exact div_pos EinIoo.1 (by norm_num)
   have hF_nonneg : 0 ≤ F := hF_pos.le
   have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
-  set C_small : ℝ := (1 / (F * Real.log 2) + C_big / Real.log 2) / Real.log 2
+  set C_small : ℝ := (1 / (F * Real.log 2) + C_res / Real.log 2) / Real.log 2
   set C_final : ℝ := max C1 (max C_small 0)
   have C_final_nonneg : 0 ≤ C_final := le_max_of_le_right (le_max_right _ _)
   refine ⟨C_final, C_final_nonneg, ?_⟩
@@ -3159,7 +3202,7 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
   · have h_large := bound_for_large_t C1 hC1nonneg hC1 σ t T ht_large ht_le hσ
     refine h_large.trans ?_
     exact mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _)
-  · push_neg at ht_large
+  · push Not at ht_large
     have h_log_2T_pos : 0 < Real.log (2 + T) := Real.log_pos (by linarith)
     have h_log2_le_log2T : Real.log 2 ≤ Real.log (2 + T) := Real.log_le_log (by norm_num) (by linarith)
     have h_logT_le_log2T : Real.log T ≤ Real.log (2 + T) := Real.log_le_log Tpos (by linarith)
