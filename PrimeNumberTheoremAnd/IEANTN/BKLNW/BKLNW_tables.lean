@@ -22,6 +22,17 @@ abbrev table_14_margin : ℝ := BKLNW_app.table_8_margin * 1.001
 /-- Add a margin to the values in Table 10 to account for numerical errors. -/
 abbrev table_10_margin : ℝ := BKLNW_app.table_8_margin * 1.001
 
+/-- Add a margin to the values in Table 11 to account for numerical errors.
+
+Table 11's entries are *not* reachable from Table 10's without a margin of their own: the
+Table-11 value can sit a single unit-in-the-last-place above the Table-10 value it must
+dominate (at `b₀ = 44, k = 1`: Table 11 lists `7.8163e-7` against Table 10's `7.8162e-7`,
+a ratio of `1.0000128`), while the bound routed through `bklnw_table_10_verification`
+already carries the factor `table_10_margin = 1.002001`. Chaining one further `1.001`, as
+Tables 10 and 14 do off Table 8, leaves the needed slack (the binding row requires
+`≥ 1.001983`). -/
+abbrev table_11_margin : ℝ := table_10_margin * 1.001
+
 noncomputable def table_14 : List (ℝ × ℝ × ℝ) := [
   (20, 4.2676e-5 * table_14_margin, 9.1639e-5 * table_14_margin),
   (25, 3.5031e-6 * table_14_margin, 7.4366e-6 * table_14_margin),

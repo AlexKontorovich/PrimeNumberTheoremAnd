@@ -6,7 +6,7 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 `table7` entry `(x ↦ (log x)^(3/2) * x^(-1/2), Icc 1 65.65)`.  Clone of row 4
 (`FKS2Cor24Row4.lean`), reusing the generic `x^{-1/2}`-curve machinery in
 `Table4Ext` (`Epi_le_evalLhsE_wide`, `xhalfCurveE`, `eval_xhalfCurveE`,
-`xhalfCurve_sub_supported`, `floor_xhalf_of_check`).
+`floor_xhalf_of_check`).
 
 The exponent `3/2` here is stated as `Real.rpow` (`(3/2 : ℝ)`), matching the
 mathematical Table-7 entry: `(log x)^{3/2}` (a fractional power, not the `Nat`
@@ -69,7 +69,7 @@ theorem floor_row2 : ∀ x ∈ Set.Icc (Real.exp (8:ℝ)) (Real.exp (43:ℝ)),
           rw [show (6.56:ℝ) = Real.sqrt (6.56 ^ 2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h656])
-    (xhalfCurve_sub_supported 1 3) floor_slab_check_row2 hcurve
+    floor_slab_check_row2 hcurve
 
 /-- **Row-2 floor-trusted** `[e^1, e^8]` (`x ∈ [2.72, 2981]`): the direct `π`/`Li`
 interpolation for small `x` that the blueprint proof invokes

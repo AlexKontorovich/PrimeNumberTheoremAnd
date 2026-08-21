@@ -1509,15 +1509,12 @@ theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
       (mul_le_mul_of_nonneg_right hB hx_pos.le)
       (pow_nonneg (log_pos hx_gt_one).le k)
 
-@[blueprint
-  "bklnw-table-11-verification"
-  (title := "BKLNW Table 11 verification")
-  (statement := /--  Verification of the entries of Table 11. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 11. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean`-/)
-  (latexEnv := "proposition")
-  (discussion := 1257)]
-theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ) (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) : ∀ k ∈ Finset.Icc 1 5, B_8_1' k b₀ ≤ B k := by
-  sorry
+-- `bklnw_table_11_verification` is stated and proved in
+-- `BKLNW_table11_dispatch.lean`. It has to live downstream of
+-- `BKLNW_table10_dispatch.lean`, because its above-`10^19` branch consumes
+-- `bklnw_table_10_verification`, and the Table-10 row files already import the
+-- present file (for `B_8_exact`). This mirrors where
+-- `bklnw_table_10_verification` itself lives.
 
 
 blueprint_comment /--
