@@ -60,6 +60,47 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
 
 -- **Think about more API for additive/completely additive functions, e.g. `f (p^k) = k * f p` for prime p, etc.**
 
+/-- A completely additive arithmetic function vanishes at `1`. -/
+@[blueprint
+  "IsCompletelyAdditive.map_one"
+  (title := "IsCompletelyAdditive.map_one")
+  (statement := /-- A completely additive arithmetic function satisfies $f(1) = 0$. -/)]
+lemma IsCompletelyAdditive.map_one [AddCancelMonoid R] {f : ArithmeticFunction R}
+    (hf : IsCompletelyAdditive f) : f 1 = 0 := by
+  have h : f 1 + f 1 = f 1 + 0 := by
+    simpa [Nat.one_mul] using (hf (by omega : 1 ≠ 0) (by omega : 1 ≠ 0)).symm
+  exact add_left_cancel h
+
+/-- For a completely additive arithmetic function and a prime `p`, `f (p ^ k) = k • f p`. -/
+@[blueprint
+  "IsCompletelyAdditive.map_prime_pow"
+  (title := "IsCompletelyAdditive.map_prime_pow")
+  (statement := /-- If $f$ is completely additive and $p$ is prime, then $f(p^k) = k f(p)$. -/)]
+lemma IsCompletelyAdditive.map_prime_pow [AddCancelMonoid R] {f : ArithmeticFunction R}
+    (hf : IsCompletelyAdditive f) {p : ℕ} (hp : p.Prime) {k : ℕ} :
+    f (p ^ k) = k • f p := by
+  induction k with
+  | zero =>
+      simp [map_one hf]
+  | succ k ih =>
+      rw [Nat.pow_succ, hf (pow_ne_zero k hp.ne_zero) hp.ne_zero, ih, add_nsmul, one_nsmul]
+
+/-- A multiplicative arithmetic function with positive values on nonzero inputs becomes
+    additive after taking logarithms: `log ∘ f` satisfies `f(mn) = f m + f n` for coprime
+    `m`, `n`. -/
+@[blueprint
+  "ArithmeticFunction.IsMultiplicative.isAdditive_log"
+  (title := "ArithmeticFunction.IsMultiplicative.isAdditive_log")
+  (statement := /-- If $f$ is multiplicative with $f(n) > 0$ for all $n \neq 0$, then $\log \circ f$ is additive. -/)]
+theorem ArithmeticFunction.IsMultiplicative.isAdditive_log {f : ArithmeticFunction ℝ}
+    (hf : f.IsMultiplicative) (hpos : ∀ n ≠ 0, 0 < f n) :
+    IsAdditive (toArithmeticFunction (fun n => Real.log (f n))) := by
+  intro m n hm hn hmn
+  simp only [toArithmeticFunction, coe_mk, mul_eq_zero]
+  rw [hf.map_mul_of_coprime hmn]
+  rw [Real.log_mul (by linarith [hpos m hm]) (by linarith [hpos n hn])]
+  simp [hm, hn]
+
 @[blueprint
   "unique_divisor_decomposition"
   (title := "unique divisor decomposition")
