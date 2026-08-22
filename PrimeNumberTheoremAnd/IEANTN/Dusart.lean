@@ -489,14 +489,14 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
                 omega
               have hm_lt_q : m < q := by
                 have : m + 1 ≤ q :=
-                  (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1
+                  (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOfPred_prime).1
                     (by simp [hk_def, Nat.primeCounting, Nat.primeCounting'])
                 omega
               have hq_prime : Nat.Prime q := by simp [q]
               have hprev_le_m : nth_prime (k - 1) ≤ m := by
                 have hk1 : k - 1 < k := Nat.sub_lt (Nat.succ_le_of_lt hk_pos) (by norm_num)
                 have : nth_prime (k - 1) < m + 1 :=
-                  (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOf_prime).1
+                  (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOfPred_prime).1
                     (by simpa [hk_def, Nat.primeCounting, Nat.primeCounting'] using hk1)
                 omega
               have hprev_bound : nth_prime (k - 1) ≤ 4 * 10 ^ 18 := by
@@ -508,7 +508,7 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
               have hk' : k - 1 + 1 = k := Nat.sub_add_cancel (Nat.succ_le_of_lt hk_pos)
               have hmono : nth_prime (k - 1) ≤ q := by
                 calc nth_prime (k - 1) ≤ nth_prime (k - 1 + 1) :=
-                      (nth_strictMono infinite_setOf_prime).monotone (Nat.le_succ _)
+                      (nth_strictMono infinite_setOfPred_prime).monotone (Nat.le_succ _)
                   _ = q := by simp [q, hk']
               have hq_le : q ≤ m + 1476 := by
                 calc q = nth_prime (k - 1) + (q - nth_prime (k - 1)) :=

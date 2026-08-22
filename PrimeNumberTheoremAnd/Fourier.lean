@@ -12,6 +12,7 @@ local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
 
 section lemmas
 
+set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
 
@@ -19,6 +20,7 @@ theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 := NNReal.coe_
 theorem nnnorm_circle_smul (z : Circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
   simp [show z • s = z.val * s from rfl]
 
+set_option backward.isDefEq.respectTransparency.types false in
 noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
   toFun v := 𝐞 (-v * u)
   map_bounded' :=

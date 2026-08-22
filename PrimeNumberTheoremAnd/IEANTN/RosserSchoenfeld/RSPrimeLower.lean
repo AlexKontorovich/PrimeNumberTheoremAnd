@@ -9,9 +9,9 @@ namespace RS_prime_helper
 lemma count_prime_le_imp_le_nth (m k : ℕ) (h : Nat.count Nat.Prime m ≤ k) :
     m ≤ Nat.nth Nat.Prime k := by
   by_contra! hlt
-  have hp := Nat.nth_mem_of_infinite Nat.infinite_setOf_prime k
+  have hp := Nat.nth_mem_of_infinite Nat.infinite_setOfPred_prime k
   have h1 : Nat.count Nat.Prime (Nat.nth Nat.Prime k + 1) = k + 1 := by
-    rw [Nat.count_succ, if_pos hp, Nat.count_nth_of_infinite Nat.infinite_setOf_prime]
+    rw [Nat.count_succ, if_pos hp, Nat.count_nth_of_infinite Nat.infinite_setOfPred_prime]
   linarith [h1 ▸ Nat.count_monotone Nat.Prime hlt]
 
 lemma nth_prime_gt_bound (n m : ℕ)
@@ -60,7 +60,7 @@ lemma pi_nth_prime' (n : ℕ) (hn : n ≥ 1) :
   have h_prime_counting : primeCounting (nth_prime' n) = count Nat.Prime (nth_prime' n + 1) :=
     add_zero (List.countP.go (fun b ↦ decide (Nat.Prime b)) (List.range (nth_prime' n + 1)) 0)
   have h_count : count Nat.Prime (nth_prime' n) = n - 1 := by
-    convert count_nth_of_infinite (infinite_setOf_prime) (n - 1) using 1
+    convert count_nth_of_infinite (infinite_setOfPred_prime) (n - 1) using 1
   rcases n <;> simp_all [count_succ]
 
 lemma p_n_lower_large (n : ℕ) (hn : n ≥ 32) :
@@ -78,7 +78,7 @@ lemma p_n_lower_large (n : ℕ) (hn : n ≥ 32) :
             | base =>
               exact Prime.two_le (prime_nth_prime 0) |> succ_le_of_lt |> le_trans <| le_refl _
             | succ n _ ih =>
-              exact succ_le_of_lt (lt_of_le_of_lt ih (nth_strictMono (infinite_setOf_prime) (pred_lt (by positivity))))
+              exact succ_le_of_lt (lt_of_le_of_lt ih (nth_strictMono (infinite_setOfPred_prime) (pred_lt (by positivity))))
           exact h_step1 n (by linarith)
         generalize_proofs at *
         have h_exp_approx : Real.exp 1.112 < 33 := by linarith [LogTables.exp_1_112_lt]
@@ -99,7 +99,7 @@ lemma p_n_lower_large (n : ℕ) (hn : n ≥ 32) :
       refine Nat.le_induction ?_ ?_ n (show n ≥ 1 from by linarith) <;>
         intros <;> simp_all only [nth_prime']
       · exact Prime.pos (prime_nth_prime 0) |> one_le_of_lt
-      · exact nth_strictMono (infinite_setOf_prime) (by omega) |> lt_of_le_of_lt (by omega))
+      · exact nth_strictMono (infinite_setOfPred_prime) (by omega) |> lt_of_le_of_lt (by omega))
     have h_log_gt : Real.log n > 1.112 := by
       have : Real.log 32 > 1.112 := by linarith [LogTables.log_32_gt]
       exact this.trans_le (Real.log_le_log (by norm_num) (mod_cast hn)) |> lt_of_lt_of_le <| le_rfl

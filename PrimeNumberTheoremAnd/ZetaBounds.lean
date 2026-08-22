@@ -1073,7 +1073,7 @@ lemma ZetaBnd_aux1p (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2)
   use 2
   rw [Asymptotics.isBigOWith_principal]
   intro t ht
-  simp only [mem_setOf_eq] at ht
+  simp only [mem_ofPred_eq] at ht
   rw [norm_norm, norm_mul, mul_div_assoc, norm_mul]
   have : 2 * (‖|t|‖ * ‖↑N ^ (-σ) / σ‖) = (2 * |t|) * ((N : ℝ) ^ (-σ) / σ) := by
     simp only [Real.norm_eq_abs, _root_.abs_abs, norm_div]
@@ -1166,7 +1166,7 @@ open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
   HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-z - 1))
     (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x)) s := by
-  simp only [mem_setOf_eq] at hs
+  simp only [mem_ofPred_eq] at hs
   set f : ℝ → ℂ := fun x ↦ (⌊x⌋ : ℂ) + 1 / 2 - x
   set F : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * f x
   set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x
@@ -1315,7 +1315,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
 lemma HolomorphicOn_riemannZeta :
     HolomorphicOn ζ {s : ℂ | s ≠ 1} := by
   intro z hz
-  simp only [mem_setOf_eq] at hz
+  simp only [mem_ofPred_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 @[blueprint
@@ -1329,13 +1329,13 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
   use (2 : ℂ)
   constructor
   · simp
-  intro w hw; simp only [ne_eq, mem_setOf_eq] at hw
+  intro w hw; simp only [ne_eq, mem_ofPred_eq] at hw
   by_cases w_im : w.im = 0
   · apply JoinedIn.trans (y := 1 + I)
     · let f : ℝ → ℂ := fun t ↦ (1 + I) * t + 2 * (1 - t)
       have cont : Continuous f := by continuity
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, one_re,
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re, one_re,
         I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im, zero_add, ofReal_im, mul_zero,
         sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f]
       intro x hx; simp only [mem_Icc] at hx
@@ -1345,11 +1345,11 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
     · let f : ℝ → ℂ := fun t ↦ w * t + (1 + I) * (1 - t)
       have cont : Continuous f := by continuity
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re,
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re,
         ofReal_re, ofReal_im, mul_zero, sub_zero, one_re, I_re, add_zero, sub_re, one_mul, add_im,
         one_im, I_im, zero_add, sub_im, sub_self, f]
       intro x hx; simp only [mem_Icc] at hx
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       constructor
       · intro h
         refine hw.1 ?_
@@ -1365,7 +1365,7 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
   · let f : ℝ → ℂ := fun t ↦ w * t + 2 * (1 - t)
     have cont : Continuous f := by continuity
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-    simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, ofReal_re,
+    simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re, ofReal_re,
       ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re, im_ofNat, sub_im, one_im, sub_self,
       f]
     intro x hx; simp only [mem_Icc] at hx
@@ -1397,7 +1397,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have f_an : AnalyticOnNhd ℂ f U := by
     apply (HolomorphicOn_riemannZeta.analyticOnNhd isOpen_ne).mono
-    simp only [ne_eq, setOf_subset_setOf, and_imp, U]
+    simp only [ne_eq, ofPred_subset_ofPred, and_imp, U]
     exact fun a ha _ ↦ ha
   have g_an : AnalyticOnNhd ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOnNhd isOpen_aux
   have preconU : IsPreconnected U := by
@@ -1409,7 +1409,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
     apply mem_nhds_iff.mpr
     use {z : ℂ | 1 < z.re}
-    simp only [setOf_subset_setOf, imp_self, forall_const, mem_setOf_eq, re_ofNat,
+    simp only [ofPred_subset_ofPred, imp_self, forall_const, mem_ofPred_eq, re_ofNat,
       Nat.one_lt_ofNat, and_true, true_and]
     exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
@@ -1425,7 +1425,7 @@ lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s
     deriv (ζ₀ N) s = ζ' s := by
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
-    simp only [mem_setOf_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
+    simp only [mem_ofPred_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
   refine deriv_eqOn isOpen_aux ?_ (by simp [s_ne_one, reS_pos])
   intro x hx
   have hζ := HolomorphicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <|
@@ -2185,16 +2185,16 @@ lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
     simp only [mem_nhdsWithin]
     use t
     simp only [subset_inter_iff, inter_subset_left, inter_subset_right, and_self,
-      and_true, t, mem_setOf_eq]
+      and_true, t, mem_ofPred_eq]
     refine ⟨?_, by simp [hu2]⟩
-    simp only [Metric.isOpen_iff, gt_iff_lt, mem_setOf_eq] at hu ⊢
+    simp only [Metric.isOpen_iff, gt_iff_lt, mem_ofPred_eq] at hu ⊢
     intro x hx
     obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
-    simp only [Metric.ball, setOf_subset_setOf] at hε ⊢
+    simp only [Metric.ball, ofPred_subset_ofPred] at hε ⊢
     exact ⟨ε, εpos, fun _ hy ↦ hε (by simp [isometry_iff_dist_eq.mp f_iso, hy])⟩
   filter_upwards [this]
   intro b hb
-  simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, t] at hb
+  simp only [mem_inter_iff, mem_ofPred_eq, mem_Ioi, t] at hb
   refine hu3 ?_
   simp only [mem_inter_iff, mem_Ioi, add_lt_add_iff_right]
   exact ⟨hb.1, f_mono hb.2⟩
@@ -2278,13 +2278,13 @@ lemma ZetaNear1BndExact :
     intro σ hσ
     simp only [lt_max_iff, C']
     have := hC σ
-    simp only [mem_setOf_eq, ofReal_inj, exists_eq_right] at this
+    simp only [mem_ofPred_eq, ofReal_inj, exists_eq_right] at this
     exact Or.inl <| lt_of_le_of_lt (this hσ) (by norm_num)
   have Cpos : 0 < C' := by simp [C']
   use max (2 * C') c, (by simp [Cpos])
   intro σ ⟨σ_ge, σ_le⟩
   by_cases hσ : σ ∈ U ∩ V
-  · simp only [← h, mem_setOf_eq] at hσ
+  · simp only [← h, mem_ofPred_eq] at hσ
     apply le_trans hσ ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
@@ -2502,7 +2502,7 @@ lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Ioi (a : ℝ) ∪ I
 
 lemma lt_abs_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : {t | a < |t|} ∈ cocompact ℝ := by
   convert Ioi_union_Iio_mem_cocompact ha using 1; ext t
-  simp only [mem_setOf_eq, mem_union, mem_Ioi, mem_Iio, lt_abs, lt_neg]
+  simp only [mem_ofPred_eq, mem_union, mem_Ioi, mem_Iio, lt_abs, lt_neg]
 
 @[blueprint
   (title := "ZetaInvBound2")
@@ -3477,7 +3477,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold Metric.eball
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ σ₀ - 1 := by linarith
@@ -3533,7 +3533,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   · have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold Metric.eball
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ boundary - 1 := by linarith
