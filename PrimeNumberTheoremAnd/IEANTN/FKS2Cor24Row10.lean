@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
+import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
 
 /-!
 # FKS2 Corollary 24 — row 10 (`x^{-1/50}`) mid-range envelope
@@ -15,9 +16,9 @@ generic `n`-parameterized helpers of `FKS2Cor24Row11`
 `allCells.take 1348` (cells with `b' ≤ 1358`).
 
 The row-10 curve `corollary_24_row10 : ∀ x, log x ∈ [1, 1358.6] → Eπ x ≤ x^{-1/50}`
-is assembled from four segments split at `e^4`, `e^10`, `e^1358`:
-* **floor-trusted** `[e^1, e^4]` (`floor_trusted_row10`, trusted `sorry`);
-* **floor (Buthe)** `[e^4, e^10]` (`floor_row10`, dyadic slab cover);
+is assembled from four segments split at `e^3.5`, `e^10`, `e^1358`:
+* **floor (checked)** `[e^1, e^3.5]` (`floor_checked_row10`);
+* **floor (Buthe)** `[e^3.5, e^10]` (`floor_row10`, dyadic slab cover);
 * **mid (envelope)** `[e^10, e^1358]` (`mid_row10`, `allCells.take 1348`);
 * **sliver** `[e^1358, e^1358.6]` (`sliver_row10`, trusted `sorry`).
 -/
@@ -64,29 +65,29 @@ theorem mid_row10 : ∀ x ∈ Set.Icc (Real.exp (10:ℝ)) (Real.exp (1358:ℝ)),
   simpa using h
 
 /-- Row-10 floor slab certificate: `lhsE ≤ expSplitNegXpow 50` (the Buthe
-`x^{-1/2}` bound `≤ x^{-1/50}`) over the 24 width-`0.05` slabs covering
-`[√4, √10] = [2, 3.1623]`, verified by the dyadic interval kernel. -/
+`x^{-1/2}` bound `≤ x^{-1/50}`) over the 26 width-`0.05` slabs covering
+`[√3.5, √10]`, verified by the dyadic interval kernel. -/
 theorem floor_slab_check_row10 :
     checkExprLeOnSlabsDyadic FloorButhe.lhsE (expSplitNegXpow 50)
-      (slabsFrom 2 24) (-50) 8 = true := by native_decide
+      (slabsFrom (187/100) 26) (-50) 8 = true := by native_decide
 
-/-- **Row-10 floor (Buthe)** `[e^4, e^10]` via `floor_xpow_of_check`. -/
-theorem floor_row10 : ∀ x ∈ Set.Icc (Real.exp (4:ℝ)) (Real.exp (10:ℝ)),
+/-- **Row-10 floor (Buthe)** `[e^3.5, e^10]` via `floor_xpow_of_check`. -/
+theorem floor_row10 : ∀ x ∈ Set.Icc (Real.exp (3.5:ℝ)) (Real.exp (10:ℝ)),
     Eπ x ≤ x ^ (-(1:ℝ)/50) := by
   intro x hx
-  have hcurve : ∀ y, Real.exp (4:ℝ) ≤ y →
+  have hcurve : ∀ y, Real.exp (3.5:ℝ) ≤ y →
       Expr.eval (fun _ => Real.sqrt (Real.log y)) (expSplitNegXpow 50)
         ≤ y ^ (-(1:ℝ)/(50:ℕ)) := by
     intro y hy
     have hypos : (0:ℝ) < y := lt_of_lt_of_le (Real.exp_pos _) hy
     have hyL : (0:ℝ) ≤ Real.log y := by
-      have h4 : (4:ℝ) ≤ Real.log y := by
-        rw [← Real.log_exp (4:ℝ)]; exact Real.log_le_log (Real.exp_pos _) hy
+      have h35 : (3.5:ℝ) ≤ Real.log y := by
+        rw [← Real.log_exp (3.5:ℝ)]; exact Real.log_le_log (Real.exp_pos _) hy
       linarith
     exact le_of_eq (eval_expSplitNegXpow_eq_xpow 50 (by norm_num) y hypos hyL)
-  have h := floor_xpow_of_check (expSplitNegXpow 50) 50 (4:ℝ) 2 24 (by norm_num)
-    (by rw [show ((2:ℚ):ℝ) = 2 by norm_num,
-          show (2:ℝ) = Real.sqrt (2^2) from (Real.sqrt_sq (by norm_num)).symm]
+  have h := floor_xpow_of_check (expSplitNegXpow 50) 50 (3.5:ℝ) (187/100) 26 (by norm_num)
+    (by rw [show ((187/100:ℚ):ℝ) = 1.87 by norm_num,
+          show (1.87:ℝ) = Real.sqrt (1.87^2) from (Real.sqrt_sq (by norm_num)).symm]
         exact Real.sqrt_le_sqrt (by norm_num))
     (by have h316 : Real.sqrt 10 ≤ 3.163 := by
           rw [show (3.163:ℝ) = Real.sqrt (3.163^2) from (Real.sqrt_sq (by norm_num)).symm]
@@ -95,15 +96,15 @@ theorem floor_row10 : ∀ x ∈ Set.Icc (Real.exp (4:ℝ)) (Real.exp (10:ℝ)),
     floor_slab_check_row10 hcurve x hx
   simpa using h
 
-/-- **Row-10 floor-trusted** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): the direct
+/-- **Row-10 floor (checked)** `[e^1, e^3.5]` (`x ∈ [2.72, 33.2]`): the direct
 `π`/`Li` interpolation for small `x` that the blueprint proof invokes
 (\cite[Lemmas 5.2, 5.3]{FKS}; "checks directly for particularly small `x`",
-FKS2.lean:4640). No tight sub-`e^{4}` `Eπ` envelope exists in the library for the
-sharp `x^{-1/50}` target (the Buthe bound only clears it from `L ≈ 3.49`). Same
-accepted numerical-data trust class as `Table4Ext.allCells_trusted`. -/
-theorem floor_trusted_row10 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (4:ℝ)),
+FKS2.lean:4640). The endpoint quadrature and enclosure checks are proof-producing;
+the resulting finite certificate uses the same `native_decide` boundary as the existing
+table checks. -/
+theorem floor_checked_row10 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (3.5:ℝ)),
     Eπ x ≤ x ^ (-(1:ℝ)/50) := by
-  exact FKS2.Cor24Trusted.floor_trusted_row10
+  exact FKS2.Cor24Checked.floor_row10
 
 /-- **Row-10 sliver** `[e^1358, e^1358.6]` (width `≈ 0.6` in `log x`, at the
 threshold): the `x^{-1/50}` curve is close to the `allCells` envelope on this
@@ -143,10 +144,10 @@ theorem corollary_24_row10 :
       intro a b ha hb
       exact ⟨by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr ha,
              by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr hb⟩
-    rcases le_total (Real.log x) 4 with h1 | h1
-    · exact floor_trusted_row10 x (cvt 1 4 hlo h1)
+    rcases le_total (Real.log x) 3.5 with h1 | h1
+    · exact floor_checked_row10 x (cvt 1 3.5 hlo h1)
     · rcases le_total (Real.log x) 10 with h2 | h2
-      · exact floor_row10 x (cvt 4 10 h1 h2)
+      · exact floor_row10 x (cvt 3.5 10 h1 h2)
       · rcases le_total (Real.log x) 1358 with h3 | h3
         · exact mid_row10 x (cvt 10 1358 h2 h3)
         · exact sliver_row10 x (cvt 1358 1358.6 h3 hhi)

@@ -8,17 +8,17 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 This file collects, in one place, the trusted numerical
 `sorry`s that the formalisation of FKS2 Corollary 24 (`corollary_24_all`) **introduces**:
-twenty bounds on compact windows `x ∈ [eᵃ, eᵇ]`.  The row 1 and row 11 small-`x`
-floors are now checked in `FKS2Cor24CheckedNumerics`; the remaining facts are small-`x`
-*floors* and large-`x` *slivers*/*bands* at the threshold.  Each is a finite-range
-numerical datum taken from the published computations of
+nineteen bounds on compact windows `x ∈ [eᵃ, eᵇ]`.  The row 1, row 10, and row 11
+small-`x` floors are now checked in `FKS2Cor24CheckedNumerics`; the remaining facts are
+small-`x` *floors* and large-`x` *slivers*/*bands* at the threshold.  Each is a
+finite-range numerical datum taken from the published computations of
 
 > M. Cully-Hugill, D. R. Johnston, T. S. Trudgian, A. Yang (FKS2),
 > *Explicit bounds for `π(x)` and related functions* (arXiv:2206.12557).
 
 ## Scope
 
-These twenty are the remaining trust that Corollary 24 adds *on top of* the existing
+These nineteen are the remaining trust that Corollary 24 adds *on top of* the existing
 development.  `corollary_24_all` additionally relies on trusted numerical `sorry`s that
 already live elsewhere in the repository and are **not** reproduced here:
 
@@ -32,7 +32,7 @@ the facts gathered here.
 
 ## What the facts are
 
-The eleven *floor* windows are small-`x` (`x ≲ 10⁴`): there `π(x)` is an exact prime
+The eight remaining *floor* windows are small-`x` (`x ≲ 10⁴`): there `π(x)` is an exact prime
 count and `Li(x) = ∫_2^x dt / log t` a certified quadrature, so the bound is a direct
 finite check with no analytic input — the "checks directly for particularly small `x`"
 step of FKS2 §5.2–§5.3.  The eleven *sliver*/*band* windows sit at the Table-7 threshold
@@ -201,12 +201,6 @@ theorem sliver_row9 : ∀ x ∈ Set.Icc (Real.exp (270:ℝ)) (Real.exp (270.8:�
   sorry
 
 /-! ### Row 10 — curve `x^{-1/50}` -/
-
-/-- **Row 10 floor** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): direct `π`/`Li` check for small
-`x` (FKS2 §5.2–§5.3); `E_π(x) ≤ x^{-1/50}`.  Purely computational. -/
-theorem floor_trusted_row10 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (4:ℝ)),
-    Epi x ≤ x ^ (-(1:ℝ)/50) := by
-  sorry
 
 /-- **Row 10 sliver** `[e^1358, e^1358.6]` (`x` astronomically large): trusted **tabular**
 boundary at the Table-7 threshold — FKS2's refined Theorem-6 interpolation, far beyond
