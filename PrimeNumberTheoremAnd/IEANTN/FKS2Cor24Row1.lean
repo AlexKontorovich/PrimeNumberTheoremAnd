@@ -1,3 +1,4 @@
+import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
 import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 
 /-!
@@ -24,7 +25,7 @@ set_option linter.style.nativeDecide false
 
 The Table-7 row-1 curve, assembled from three segments split at `e^4`, `e^43`:
 
-* **floor-trusted** `[e^1, e^4]` — direct `π`/`Li` for small `x` (trusted, `sorry`);
+* **floor (checked)** `[e^1, e^4]` — direct `π`/`Li` interval enclosure for small `x`;
 * **Buthe floor** `[e^4, e^43]` — `floor_xhalf_of_check` + a dyadic slab cover of `[√4, √43]
   = [2, √43]` (`slabsFrom 2 93`);
 * **trusted band** `[e^43, e^57]` — Theorem-6 refined interpolation for `log x > log(10^19)`
@@ -65,14 +66,14 @@ theorem floor_row1 : ∀ x ∈ Set.Icc (Real.exp (4:ℝ)) (Real.exp (43:ℝ)),
         push_cast; linarith [h656])
     floor_slab_check_row1 hcurve
 
-/-- **Row-1 floor-trusted** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): the direct `π`/`Li`
+/-- **Row-1 floor (checked)** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): the direct `π`/`Li`
 interpolation for small `x` that the blueprint proof invokes
 (\cite[Lemmas 5.2, 5.3]{FKS}; "checks directly for particularly small `x`", FKS2.lean:4640).
-Same accepted numerical-data trust class as `Table4Ext.allCells_trusted` and
-`floor_trusted_row4`. -/
-theorem floor_trusted_row1 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (4:ℝ)),
+The endpoint quadrature and enclosure checks are proof-producing; the resulting finite
+certificate uses the same `native_decide` boundary as the existing table checks. -/
+theorem floor_checked_row1 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (4:ℝ)),
     Eπ x ≤ 2 * Real.log x * x ^ (-(1:ℝ) / 2) := by
-  exact FKS2.Cor24Trusted.floor_trusted_row1
+  exact FKS2.Cor24Checked.floor_row1
 
 /-- **Row-1 trusted band** `[e^43, e^57]` (`log x ∈ (log 10^19, 57]`): the blueprint's
 Theorem-6 interpolation for `log x > log(10^19)` — "one simply proceeds as in
@@ -112,7 +113,7 @@ theorem corollary_24_row1 :
       exact ⟨by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr ha,
              by rw [← Real.exp_log hxpos]; exact Real.exp_le_exp.mpr hb⟩
     rcases le_total (Real.log x) 4 with h1 | h1
-    · exact floor_trusted_row1 x (cvt 1 4 hlo h1)
+    · exact floor_checked_row1 x (cvt 1 4 hlo h1)
     · rcases le_total (Real.log x) 43 with h2 | h2
       · exact floor_row1 x (cvt 4 43 h1 h2)
       · exact band_row1 x (cvt 43 57 h2 hhi)
