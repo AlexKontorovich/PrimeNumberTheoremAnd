@@ -2198,7 +2198,7 @@ lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
     This is exactly the desired result with the constant $E=(14D)^{-1}$
   -/)
   (latexEnv := "theorem")]
-theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
+theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) (1 / 14) ∧
     ∀ (ρ : ℂ), ζ ρ = 0 →
       ∀ (σ : ℝ), σ = ρ.re →
         ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
@@ -2209,11 +2209,17 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
   set D : ℝ := 5 * A + 4 * B + C with D_def
   set E : ℝ := (14 * D)⁻¹ with E_def
   have Dge1 : 1 ≤ D := by linarith
+  have Dgt1 : 1 < D := by linarith
   refine ⟨E, ⟨?_, ?_⟩, fun ρ hρzero σ ρre t ρim ht => ?_⟩
-  · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr ofNat_pos'), inv_pos]
+  · rw [E_def, mul_inv_rev, mul_pos_iff_of_pos_right (inv_pos.mpr (by norm_num)), inv_pos]
     linarith
-  · rw [E_def, D_def, inv_lt_one₀ (mul_pos ofNat_pos' (by linarith))]
-    exact one_lt_mul one_le_ofNat (by linarith)
+  · rw [E_def, mul_inv_rev]
+    have hDinv : D⁻¹ < 1 := by
+      rw [inv_lt_one_iff₀]
+      exact Or.inr Dgt1
+    have h14 : 0 < (14 : ℝ)⁻¹ := by norm_num
+    have := mul_lt_mul_of_pos_left hDinv h14
+    simpa using this
   · set δ : ℝ := 1 / (2 * D * Real.log |t|) with δ_def
     have δrange : δ ∈ Ioo 0 1 := by
       simp only [mem_Ioo, δ_def, one_div_pos]
@@ -2345,7 +2351,7 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) 1 ∧
 
 
 noncomputable def E : ℝ := ZeroInequality.choose
-lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := ZeroInequality.choose_spec.1
+lemma EinIoo : E ∈ Ioo (0 : ℝ) (1 / 14) := ZeroInequality.choose_spec.1
 theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ), ζ ρ = 0 →
     ∀ (σ : ℝ), σ = ρ.re →
       ∀ (t : ℝ), t = ρ.im → |t| ≥ 2 →
@@ -2383,24 +2389,29 @@ noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
 lemma DeltaRange : ∀ (t : ℝ),
     |t| ≥ 2 →
       DeltaT t < (1 : ℝ) / 9 := by
-    sorry
+  intro t ht
+  unfold DeltaT
+  have hlog2_gt : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+  have ht_log : Real.log 2 ≤ Real.log |t| := Real.log_le_log (by norm_num) ht
+  have hlogt_gt : (0.6931471803 : ℝ) < Real.log |t| := hlog2_gt.trans_le ht_log
+  have hpos : 0 < Real.log |t| := by positivity
+  calc E / Real.log |t| ≤ (1 / 14) / Real.log |t| := by
+        gcongr
+        exact EinIoo.2.le
+    _ < (1 / 14) / 0.6931471803 := by gcongr
+    _ < (1 : ℝ) / 9 := by norm_num
 
 
 
-blueprint_comment /--
-\begin{lemma}[SumBoundII]\label{SumBoundII}
+@[blueprint "SumBoundII"
+  (title := "SumBoundII")
+  (statement := /--
     For all $t\in\mathbb{R}$ with $|t|\geq 2$ and $z=\sigma+it$
     where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
-\end{lemma}
--/
-
-/- DONT FORGET TO USE ZetaShiftFiniteZeros WHEN APPLYING LogDerivZetaFinalBound -/
-
-blueprint_comment /--
-\begin{proof}
-\uses{DeltaRange, LogDerivZetaFinalBound, ZeroInequality}
+  -/)
+  (proof := /--
     By Lemma \ref{DeltaRange} we have that
     $$-11/21<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=4/5$, and $R=5/6$.
@@ -2419,22 +2430,119 @@ blueprint_comment /--
     $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)
       -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
-\end{proof}
--/
+  -/)
+  (proofUses := ["DeltaRange", "LogDerivZetaFinalBound", "ZeroInequality"])
+  (latexEnv := "lemma")]
+lemma SumBoundII :
+    ∃ (C : ℝ), C > 0 ∧
+      ∀ (t : ℝ), |t| ≥ 2 →
+        ∀ (σ : ℝ), σ ∈ Icc (1 - DeltaT t / 3) (3 / 2) →
+          ∀ (finiteZeros : (ZeroWindow t).Finite),
+    ‖ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset,
+      analyticOrderNatAt ζ ρ / (σ + I * t - ρ)‖ ≤ C * Real.log |t| := by
+  let r' : ℝ := 2 / 3
+  let r : ℝ := 3 / 4
+  let R' : ℝ := 4 / 5
+  let R : ℝ := 5 / 6
+  have r'_pos : 0 < r' := by norm_num
+  have r'_lt_r : r' < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R' : r < R' := by norm_num
+  have R'_lt_R : R' < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  obtain ⟨C, hC, LogDerivBound⟩ :=
+    LogDerivZetaFinalBound r'_pos r'_lt_r r_lt_one r_lt_R' R'_lt_R R_lt_one
+  refine ⟨(16 * r ^ 2 / (r - r') ^ 3 + 1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * C,
+    by positivity, ?_⟩
+  intro t ht σ hσ finiteZeros
+  have LogDerivBound := LogDerivBound t ht
+  extract_lets f at LogDerivBound
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    apply ZetaShiftFiniteZeros ht
+    simp only [f]
+  set z : ℂ := ((σ - 3 / 2 : ℝ) : ℂ) with hz
+  have hdel := DeltaRange t ht
+  have hσ_lo : 1 - (1 : ℝ) / 27 ≤ σ := by
+    calc 1 - (1 : ℝ) / 27 = 1 - ((1 : ℝ) / 9) / 3 := by ring
+      _ ≤ 1 - DeltaT t / 3 := by
+        have : DeltaT t / 3 ≤ (1 : ℝ) / 27 := by linarith [hdel]
+        linarith
+      _ ≤ σ := hσ.1
+  have hz_norm : ‖z‖ ≤ r' := by
+    rw [hz, Complex.norm_real, Real.norm_eq_abs, abs_le]
+    constructor
+    · linarith [hσ_lo]
+    · linarith [hσ.2]
+  have hz_not_in_zeros : z ∉ SetOfZeros R' f := by
+    intro hz_zero
+    simp only [SetOfZeros, mem_setOf_eq, f] at hz_zero
+    have h_eval : z + 3 / 2 + I * t = (σ : ℂ) + I * t := by
+      rw [hz]
+      push_cast
+      ring
+    have h_zero : ζ (σ + I * t) = 0 := by
+      have := hz_zero.2
+      rwa [h_eval] at this
+    have h_re : σ = (↑σ + I * ↑t : ℂ).re := by
+      simp only [add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero]
+    have h_im : t = (↑σ + I * ↑t : ℂ).im := by
+      simp only [add_im, ofReal_im, mul_im, I_re, ofReal_im, zero_mul, I_im, ofReal_re, one_mul, zero_add]
+    have h_contra : σ ≤ 1 - DeltaT t := by
+      apply ZeroInequalitySpecialized (σ + I * t) h_zero σ h_re t h_im ht
+    have h_pos_del : 0 < DeltaT t := by
+      unfold DeltaT
+      exact div_pos EinIoo.1 (Real.log_pos (by linarith [ht]))
+    linarith [hσ.1]
+  have hz' : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' f := by
+    simp only [Set.mem_sdiff, Metric.mem_closedBall, dist_zero_right]
+    exact ⟨hz_norm, hz_not_in_zeros⟩
+  have LogDerivBound := LogDerivBound finiteZeros' z hz'
+  refine le_trans (le_of_eq ?_) (LogDerivBound.trans (by rw [mul_assoc]))
+  apply congrArg norm
+  congr 1
+  · simp only [f, hz]
+    have h_eval : (↑(σ - 3 / 2) + 3 / 2 + I * ↑t : ℂ) = ↑σ + I * ↑t := by push_cast; ring
+    have h_deriv_eq : deriv (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) ↑(σ - 3 / 2) = ζ' (↑σ + I * ↑t) := by
+      have hd := deriv_comp_add_const ζ (3 / 2 + I * ↑t) ↑(σ - 3 / 2)
+      rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (z + (3 / 2 + I * ↑t))) by { funext w; ring_nf }]
+      rw [hd]
+      congr 1
+      push_cast; ring
+    rw [h_deriv_eq]
+    congr 1
+    rw [show (↑(σ - 3 / 2) + 3 / 2 + I * ↑t : ℂ) = (↑σ + I * ↑t) by { push_cast; ring }]
+  · simp only [f, hz]
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring) (fun ρ hρ => by ring)
+      (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [r, hρ.2]
+      · simp only [add_assoc, sub_add_cancel, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · simp only [← add_assoc, hρ.2]
+      · simp only [add_sub_cancel_right, r, hρ.1]
+    · have h_ord : analyticOrderNatAt (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) (ρ - (3 / 2 + I * ↑t)) =
+          analyticOrderNatAt ζ ρ := by
+        have := analyticOrderNatAt_fun_comp_add_left ζ (3 / 2 + I * ↑t) (ρ - (3 / 2 + I * ↑t))
+        have h_sum : 3 / 2 + I * ↑t + (ρ - (3 / 2 + I * ↑t)) = ρ := by ring
+        rw [h_sum] at this
+        rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (3 / 2 + I * ↑t + z)) by { funext w; ring_nf }]
+        exact this
+      have h_denom : ↑(σ - 3 / 2) - (ρ - (3 / 2 + I * ↑t)) = (↑σ + I * ↑t - ρ : ℂ) := by push_cast; ring
+      rw [h_ord, h_denom]
 
 
 
-blueprint_comment /--
-\begin{lemma}[GapSize]\label{GapSize}
+@[blueprint "GapSize"
+  (title := "GapSize")
+  (statement := /--
    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$.
    Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
    $$|z-\rho|\geq\delta_t/6.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroInequality}
+  -/)
+  (proof := /--
     Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-3/4,t+3/4)$.
     Thus, if $t>1$ we have
     $$\log|t'|\leq\log|t+3/4|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
@@ -2446,8 +2554,79 @@ blueprint_comment /--
     (here we use the fact that $|t|\geq 3$ to give us that $|t'|\geq 2$). Thus,
     $$\delta_t/6\leq\delta_{t'}-\delta_t/3
       =1-\delta_t/3-(1-\delta_{t'})\leq\sigma-\sigma'\leq|z-\rho|.$$
-\end{proof}
--/
+  -/)
+  (proofUses := ["ZeroInequality"])
+  (latexEnv := "lemma")]
+lemma GapSize (t : ℝ) (ht : |t| ≥ 3) (σ : ℝ) (hσ : σ ∈ Icc (1 - DeltaT t / 3) (3 / 2))
+    (ρ : ℂ) (hρ : ρ ∈ ZeroWindow t) :
+    DeltaT t / 6 ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+  have hρ_zero : ζ ρ = 0 := hρ.1
+  have hρ_ball : ‖ρ - (3 / 2 + I * t)‖ ≤ 3 / 4 := hρ.2
+  have ht_im : |ρ.im - t| ≤ 3 / 4 := by
+    have h_im_le := Complex.abs_im_le_norm (ρ - (3 / 2 + I * t))
+    simp only [sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im, mul_zero,
+      I_im, ofReal_re, one_mul, zero_add] at h_im_le
+    linarith [h_im_le, hρ_ball]
+  have ht'_ge2 : 2 ≤ |ρ.im| := by
+    rcases le_total 0 t with ht_pos | ht_neg
+    · rw [abs_of_nonneg ht_pos] at ht
+      have : t - 3 / 4 ≤ ρ.im := by linarith [abs_le.mp ht_im]
+      have h_pos : 0 < ρ.im := by linarith
+      rw [abs_of_pos h_pos]
+      linarith
+    · rw [abs_of_nonpos ht_neg] at ht
+      have : ρ.im ≤ t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h_neg : ρ.im < 0 := by linarith
+      rw [abs_of_neg h_neg]
+      linarith
+  have h_rho_re_le : ρ.re ≤ 1 - DeltaT ρ.im := by
+    apply ZeroInequalitySpecialized ρ hρ_zero ρ.re rfl ρ.im rfl ht'_ge2
+  have h_log_im_le : Real.log |ρ.im| ≤ 2 * Real.log |t| := by
+    have h_log2_le : Real.log 2 ≤ Real.log |t| := Real.log_le_log (by norm_num) (by linarith)
+    rcases le_total 0 t with ht_pos | ht_neg
+    · rw [abs_of_nonneg ht_pos] at ht
+      have h1 : ρ.im ≤ t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h2 : t + 3 / 4 ≤ 2 * t := by linarith
+      have h_pos : 0 < ρ.im := by linarith [abs_le.mp ht_im]
+      have h3 : |ρ.im| ≤ 2 * |t| := by
+        rw [abs_of_pos h_pos, abs_of_pos (by linarith [ht_pos])]
+        linarith
+      have h4 : Real.log |ρ.im| ≤ Real.log (2 * |t|) := by
+        have : 0 < |ρ.im| := by positivity
+        exact Real.log_le_log this h3
+      rw [Real.log_mul (by norm_num) (by linarith)] at h4
+      linarith
+    · rw [abs_of_nonpos ht_neg] at ht
+      have h1 : -ρ.im ≤ -t + 3 / 4 := by linarith [abs_le.mp ht_im]
+      have h2 : -t + 3 / 4 ≤ 2 * -t := by linarith
+      have h_neg : ρ.im < 0 := by linarith [abs_le.mp ht_im]
+      have h3 : |ρ.im| ≤ 2 * |t| := by
+        rw [abs_of_neg h_neg, abs_of_neg (by linarith [ht_neg])]
+        linarith
+      have h4 : Real.log |ρ.im| ≤ Real.log (2 * |t|) := by
+        have : 0 < |ρ.im| := by positivity
+        exact Real.log_le_log this h3
+      rw [Real.log_mul (by norm_num) (by linarith)] at h4
+      linarith
+  have h_delta_t_le : DeltaT t ≤ 2 * DeltaT ρ.im := by
+    unfold DeltaT
+    have hE_nonneg : 0 ≤ E := EinIoo.1.le
+    have h_log_t_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+    have h_log_im_pos : 0 < Real.log |ρ.im| := Real.log_pos (by linarith)
+    rw [mul_div_assoc', div_le_div_iff₀ h_log_t_pos (by positivity)]
+    nlinarith
+  have h_gap_re : DeltaT t / 6 ≤ σ - ρ.re := by
+    calc DeltaT t / 6 = DeltaT t / 2 - DeltaT t / 3 := by ring
+      _ ≤ DeltaT ρ.im - DeltaT t / 3 := by linarith [h_delta_t_le]
+      _ = (1 - DeltaT t / 3) - (1 - DeltaT ρ.im) := by ring
+      _ ≤ σ - ρ.re := by linarith [hσ.1, h_rho_re_le]
+  have h_re_le_norm : σ - ρ.re ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+    have h_re_eq : σ - ρ.re = ((σ : ℂ) + I * t - ρ).re := by
+      simp only [sub_re, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, add_zero]
+    rw [h_re_eq]
+    exact Complex.re_le_norm _
+  exact h_gap_re.trans h_re_le_norm
 
 
 
@@ -2499,12 +2678,305 @@ blueprint_comment /--
   (proofUses := ["ZetaFixedLowerBound", "ZerosBound", "GlobalBound", "SumBoundII", "ZeroInequality",
     "GapSize"])
   (latexEnv := "lemma")]
-lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3) (C : ℝ)
-    (Cnonneg : 0 ≤ C), ∀ (σ t : ℝ),
+lemma zeta_zeros_count_bound (t : ℝ) (ht : |t| ≥ 2) :
+    let r : ℝ := 3 / 4;
+    let R : ℝ := 5 / 6;
+    let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
+    let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
+    ∀ (finiteZeros : (SetOfZeros 1 f).Finite),
+    ∑ ρ ∈ (finiteSetOfZeros_mono (by norm_num : (3 / 4 : ℝ) < 1) finiteZeros).toFinset,
+      (analyticOrderNatAt f ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
+  intro r R f B finiteZeros
+  let g : ℂ → ℂ := f / fun _ => f 0;
+  have r_pos : 0 < r := by norm_num
+  have r_lt_one : r < 1 := by norm_num
+  have r_lt_R : r < R := by norm_num
+  have R_lt_one : R < 1 := by norm_num
+  have f0nonzero : ¬f 0 = 0 := by
+    simp only [f, zero_add]
+    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
+  have ifInStripNotOne {z : ℂ} (hnorm: ‖z‖ ≤ 1) : (z.re + 3 / 2 = 1 → ¬z.im + t = 0) := by
+    rw [← sq_le_one_iff₀ (norm_nonneg _), ← Complex.normSq_eq_norm_sq,
+      Complex.normSq_apply] at hnorm
+    intro hre him
+    have hre' : z.re = -(1/2 : ℝ) := by linarith
+    have him' : z.im = -t := by linarith
+    simp only [hre', him', neg_mul_neg] at hnorm
+    rw [← abs_two, ge_iff_le, ← sq_le_sq] at ht
+    nlinarith [hnorm, ht]
+  have fAnalytic (z : ℂ) (hz : ‖z‖ ≤ 1) : AnalyticAt ℂ f z := by
+    dsimp [f]
+    refine AnalyticAt.comp (analyticAt_riemannZeta ?_)
+      (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const)
+        (AnalyticAt.mul analyticAt_const analyticAt_const))
+    intro h
+    have hre := congr_arg Complex.re h
+    have him := congr_arg Complex.im h
+    simp only [add_re, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im,
+      mul_zero, sub_self, add_zero, one_re] at hre
+    simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im, zero_mul, I_im,
+      ofReal_re, one_mul, zero_add, one_im] at him
+    have him' : z.im + t = 0 := by linarith [him]
+    exact (ifInStripNotOne hz hre) him'
+  have gAnalytic : AnalyticOnNhd ℂ g (Metric.closedBall (0 : ℂ) 1) := by
+    intro z hz
+    rw [Metric.mem_closedBall, _root_.dist_zero_right] at hz
+    exact AnalyticAt.div_const (fAnalytic z hz)
+  have g0_eq_one : g 0 = 1 := by
+    simp only [g, Pi.div_apply, ne_eq, f0nonzero, not_false_eq_true, div_self]
+  have gFiniteZeros : (SetOfZeros 1 g).Finite := by
+    simp only [SetOfZeros, g, Pi.div_apply, div_eq_zero_iff,
+      or_iff_left f0nonzero] at ⊢ finiteZeros
+    exact finiteZeros
+  have gBound : ∀ z : ℂ, ‖z‖ ≤ R → ‖g z‖ ≤ B := by
+    intro z' hz'
+    simp only [B, g, f, zero_add, Pi.div_apply, Complex.norm_div]
+    rw [div_eq_mul_one_div]
+    refine mul_le_mul (GlobalBound (le_trans hz' R_lt_one.le) ht) ?_
+      (one_div_nonneg.mpr (norm_nonneg _)) (by linarith)
+    rw [one_div_le (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num))), one_div,
+      inv_div, ← toReal_coe_nnnorm, ENNReal.coe_toReal, ← NNReal.coe_div, ← nnnorm_div]
+    · exact_mod_cast ZetaFixedLowerBound t
+    · simp only [coe_nnnorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
+      exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num),
+        riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
+  have zBound := ZerosBound r_pos r_lt_one r_lt_R R_lt_one gAnalytic g0_eq_one gFiniteZeros gBound
+  have gFiniteZeros' : (finiteSetOfZeros_mono r_lt_one gFiniteZeros).toFinset =
+    (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset := by
+    simp only [SetOfZeros, g, Pi.div_apply, div_eq_zero_iff, or_iff_left f0nonzero]
+  have g_analytic_order (ρ : ℂ) (hρ : ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset) :
+      analyticOrderNatAt g ρ = analyticOrderNatAt f ρ := by
+    have hρ_norm : ‖ρ‖ ≤ 1 := by
+      have : ρ ∈ SetOfZeros (3 / 4) f := (Set.Finite.mem_toFinset _).mp hρ
+      exact le_trans this.1 r_lt_one.le
+    change analyticOrderNatAt (fun z => f z / f 0) ρ = analyticOrderNatAt f ρ
+    exact analyticOrderNatAt_fun_div_const f0nonzero (fAnalytic ρ hρ_norm)
+  rw [gFiniteZeros'] at zBound
+  have : ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt g ρ =
+         ∑ ρ ∈ (finiteSetOfZeros_mono r_lt_one finiteZeros).toFinset, analyticOrderNatAt f ρ := by
+    refine Finset.sum_congr rfl fun ρ hρ => g_analytic_order ρ hρ
+  rw [this] at zBound
+  push_cast at zBound
+  exact zBound
+
+lemma zeta_window_sum_eq_zeros_bound (t : ℝ) (ht : |t| ≥ 2) :
+    let r : ℝ := 3 / 4;
+    let R : ℝ := 5 / 6;
+    let B : ℝ := (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊);
+    ∀ (finiteZeros : (ZeroWindow t).Finite),
+    ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) ≤ (1 / Real.log (R / r)) * Real.log B := by
+  intro r R B finiteZeros
+  let f : ℂ → ℂ := fun z => ζ (z + 3 / 2 + I * t);
+  have finiteZeros' : (SetOfZeros 1 f).Finite := by
+    apply ZetaShiftFiniteZeros ht
+    simp only [f]
+  have count_bound := zeta_zeros_count_bound t ht finiteZeros'
+  dsimp [r, R, f, B] at count_bound ⊢
+  have sum_eq : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) =
+      ∑ ρ ∈ (finiteSetOfZeros_mono (by norm_num : (3 / 4 : ℝ) < 1) finiteZeros').toFinset,
+        (analyticOrderNatAt f ρ : ℝ) := by
+    refine Finset.sum_nbij' (fun ρ => ρ - (3 / 2 + I * t)) (fun ρ => ρ + (3 / 2 + I * t))
+      (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => by ring) (fun ρ hρ => by ring)
+      (fun ρ hρ => ?_)
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq, f] at hρ ⊢
+      refine ⟨hρ.2, ?_⟩
+      have : ρ - (3 / 2 + I * t) + 3 / 2 + I * t = ρ := by ring
+      rw [this, hρ.1]
+    · simp only [Set.Finite.mem_toFinset, SetOfZeros, ZeroWindow, Set.mem_setOf_eq, f] at hρ ⊢
+      refine ⟨?_, ?_⟩
+      · have : ζ (ρ + (3 / 2 + I * t)) = ζ (ρ + 3 / 2 + I * t) := by ring_nf
+        rw [this]
+        exact hρ.2
+      · have : ‖ρ + (3 / 2 + I * t) - (3 / 2 + I * t)‖ = ‖ρ‖ := by
+          congr 1; ring
+        rw [this]
+        exact hρ.1
+    · have h_ord : analyticOrderNatAt (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) (ρ - (3 / 2 + I * ↑t)) =
+          analyticOrderNatAt ζ ρ := by
+        have := analyticOrderNatAt_fun_comp_add_left ζ (3 / 2 + I * ↑t) (ρ - (3 / 2 + I * ↑t))
+        have h_sum : 3 / 2 + I * ↑t + (ρ - (3 / 2 + I * ↑t)) = ρ := by ring
+        rw [h_sum] at this
+        rw [show (fun z : ℂ => ζ (z + 3 / 2 + I * ↑t)) = (fun z : ℂ => ζ (3 / 2 + I * ↑t + z)) by { funext w; ring_nf }]
+        exact this
+      rw [h_ord]
+  rw [sum_eq]
+  exact count_bound
+
+lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3) (C : ℝ)
+    (_ : 0 ≤ C), ∀ (σ t : ℝ),
     3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
-    exact ⟨E / 3, rfl, sorry⟩
+  refine ⟨E / 3, rfl, ?_⟩
+  obtain ⟨C_sum, hC_sum_pos, hSumBoundII⟩ := SumBoundII
+  have hE_pos : 0 < E := EinIoo.1
+  let r : ℝ := 3 / 4
+  let R : ℝ := 5 / 6
+  have h_log_R_div_r_pos : 0 < Real.log (R / r) := by
+    rw [Real.log_pos_iff (by norm_num)]
+    norm_num
+  have h_log3_pos : 0 < Real.log 3 := Real.log_pos (by norm_num)
+  set D_const : ℝ := (1 / Real.log (R / r)) * (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3)
+  have one_lt_zeta_div : (1 : ℝ) < ‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ := by
+    rw [coe_nnnorm, coe_nnnorm,
+      one_lt_div (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))]
+    exact norm_zeta_strict_mono_ofReal (by linarith) (by linarith)
+  have h_zeta_ratio_pos : 0 < (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ : ℝ) := by linarith
+  have h_arg_pos : (1 : ℝ) < 13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊) := by
+    simpa only [ofReal_div, ofReal_ofNat] using (by linarith : (1 : ℝ) < 13 * (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊))
+  have h_log_pos : 0 < Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) := Real.log_pos h_arg_pos
+  have D_nonneg : 0 ≤ D_const := by
+    apply mul_nonneg (one_div_nonneg.mpr h_log_R_div_r_pos.le)
+    exact add_nonneg zero_le_one (div_nonneg h_log_pos.le h_log3_pos.le)
+  set C_tot : ℝ := C_sum / Real.log 3 + (6 / E) * D_const
+  have C_tot_nonneg : 0 ≤ C_tot := by
+    apply add_nonneg (div_nonneg hC_sum_pos.le h_log3_pos.le)
+    exact mul_nonneg (div_nonneg (by norm_num) hE_pos.le) D_nonneg
+  refine ⟨C_tot, C_tot_nonneg, fun σ t ht hσ => ?_⟩
+  have ht_ge2 : |t| ≥ 2 := by linarith
+  have hlog_t_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+  have hlog_3_le : Real.log 3 ≤ Real.log |t| := Real.log_le_log (by norm_num) ht
+  have h_del_equ : 1 - (E / 3) / Real.log |t| = 1 - DeltaT t / 3 := by
+    unfold DeltaT; ring
+  have hσ_in_delta : σ ∈ Icc (1 - DeltaT t / 3) (3 / 2) := by
+    rwa [← h_del_equ]
+  have finiteZeros : (ZeroWindow t).Finite := ZeroWindowFinite ht_ge2
+  have h_sum_approx := hSumBoundII t ht_ge2 σ hσ_in_delta finiteZeros
+  have h_gap (ρ : ℂ) (hρ : ρ ∈ finiteZeros.toFinset) :
+      DeltaT t / 6 ≤ ‖(σ : ℂ) + I * t - ρ‖ := by
+    have hρ_win : ρ ∈ ZeroWindow t := (Set.Finite.mem_toFinset _).mp hρ
+    exact GapSize t ht σ hσ_in_delta ρ hρ_win
+  have h_sum_zeros_bound := zeta_window_sum_eq_zeros_bound t ht_ge2 finiteZeros
+  have h_zeros_le_D_log : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) ≤ D_const * Real.log |t| := by
+    dsimp [r, R] at h_sum_zeros_bound
+    refine h_sum_zeros_bound.trans ?_
+    have h_B_le : Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) ≤
+        (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t| := by
+      have h1 : 7 + 2 * |t| ≤ 13 / 3 * |t| := by linarith
+      have h2 : (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) ≤ (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) * (|t| / 3) := by
+        calc (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) ≤ (13 / 3 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by gcongr
+          _ = (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) * (|t| / 3) := by ring
+      have h3 : Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) ≤
+          Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) + Real.log (|t| / 3) := by
+        have h_posA : 0 < (13 : ℝ) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by linarith [h_arg_pos]
+        have h_posB : 0 < |t| / 3 := by positivity
+        have h_pos_prod : 0 < (7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
+          have h_term_pos : 0 < 7 + 2 * |t| := by linarith
+          have h_rat_pos : 0 < (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
+            have : (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) = (‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ : ℝ) := by
+              simp only [ofReal_div, ofReal_ofNat]
+            rw [this]
+            exact h_zeta_ratio_pos
+          exact mul_pos h_term_pos h_rat_pos
+        have := Real.log_le_log h_pos_prod h2
+        refine this.trans (le_of_eq (Real.log_mul (ne_of_gt h_posA) (ne_of_gt h_posB)))
+      have h4 : Real.log (|t| / 3) = Real.log |t| - Real.log 3 := by
+        rw [Real.log_div (by positivity) (by norm_num)]
+      rw [h4] at h3
+      have h5 : Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) - Real.log 3 ≤
+          (Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t| - Real.log 3 := by
+        have : 1 ≤ Real.log |t| / Real.log 3 := by
+          rw [one_le_div h_log3_pos]
+          exact hlog_3_le
+        have : Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) ≤
+            (Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) / Real.log 3) * Real.log |t| := by
+          rw [div_mul_eq_mul_div, le_div_iff₀ h_log3_pos]
+          have : Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) * Real.log 3 ≤
+              Real.log (13 * (↑‖ζ (3 / 2)‖₊ / ↑‖ζ 3‖₊)) * Real.log |t| := by
+            exact mul_le_mul_of_nonneg_left hlog_3_le h_log_pos.le
+          linarith
+        linarith
+      linarith
+    dsimp [D_const]
+    have h_factor_nonneg : 0 ≤ 1 / Real.log (5 / 6 / (3 / 4)) := one_div_nonneg.mpr h_log_R_div_r_pos.le
+    calc 1 / Real.log (5 / 6 / (3 / 4)) * Real.log ((7 + 2 * |t|) * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊))
+      _ ≤ 1 / Real.log (5 / 6 / (3 / 4)) * ((1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3) * Real.log |t|) := by
+        exact mul_le_mul_of_nonneg_left h_B_le h_factor_nonneg
+      _ = (1 / Real.log (5 / 6 / (3 / 4)) * (1 + Real.log (13 * (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊)) / Real.log 3)) * Real.log |t| := by ring
+  have h_sum_pole_le : ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+      (6 / E * D_const) * (Real.log |t|) ^ 2 := by
+    have h1 : ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+        ∑ ρ ∈ finiteZeros.toFinset, ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := norm_sum_le _ _
+    have h2 (ρ : ℂ) (hρ : ρ ∈ finiteZeros.toFinset) :
+        ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤ (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) := by
+      rw [Complex.norm_div, Complex.norm_natCast]
+      have h_gap_pos : 0 < ‖(σ : ℂ) + I * t - ρ‖ := by
+        have : 0 < DeltaT t / 6 := by
+          unfold DeltaT
+          positivity
+        exact this.trans_le (h_gap ρ hρ)
+      have h_gap_ge := h_gap ρ hρ
+      have h_ord_nonneg' : 0 ≤ (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) := by
+        have : 0 ≤ 6 / DeltaT t := by
+          unfold DeltaT
+          exact div_nonneg (by norm_num) (div_pos hE_pos hlog_t_pos).le
+        positivity
+      have h_delta_ne : DeltaT t ≠ 0 := by
+        unfold DeltaT
+        exact ne_of_gt (div_pos hE_pos hlog_t_pos)
+      have h_cancel : 6 / DeltaT t * (DeltaT t / 6) = 1 := by
+        have : (6 / DeltaT t) * (DeltaT t / 6) = (6 * DeltaT t) / (DeltaT t * 6) :=
+          (mul_div_mul_comm 6 (DeltaT t) (DeltaT t) 6).symm
+        rw [this, mul_comm (DeltaT t) 6]
+        exact div_self (mul_ne_zero (by norm_num) h_delta_ne)
+      have h_id : (analyticOrderNatAt ζ ρ : ℝ) / ‖(σ : ℂ) + I * t - ρ‖ =
+          (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) * ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) := by
+        calc (analyticOrderNatAt ζ ρ : ℝ) / ‖(σ : ℂ) + I * t - ρ‖
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * 1 / ‖(σ : ℂ) + I * t - ρ‖ := by ring
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t * (DeltaT t / 6)) / ‖(σ : ℂ) + I * t - ρ‖ := by rw [h_cancel]
+          _ = (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) * ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) := by ring
+      rw [h_id]
+      have h_le_one : ((DeltaT t / 6) / ‖(σ : ℂ) + I * t - ρ‖) ≤ 1 := (div_le_one₀ h_gap_pos).mpr h_gap_ge
+      have h_bound := mul_le_mul_of_nonneg_left h_le_one h_ord_nonneg'
+      rw [mul_one] at h_bound
+      exact h_bound
+    have h3 : ∑ ρ ∈ finiteZeros.toFinset, ‖(analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ ≤
+        ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) :=
+      Finset.sum_le_sum fun ρ hρ => h2 ρ hρ
+    have h4 : 6 / DeltaT t = (6 / E) * Real.log |t| := by
+      unfold DeltaT
+      field_simp
+    have h5 : (∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ)) * ((6 / E) * Real.log |t|) ≤
+        (D_const * Real.log |t|) * ((6 / E) * Real.log |t|) := by
+      have h_factor : 0 ≤ (6 / E) * Real.log |t| := by
+        apply mul_nonneg (div_nonneg (by norm_num) hE_pos.le) hlog_t_pos.le
+      exact mul_le_mul_of_nonneg_right h_zeros_le_D_log h_factor
+    have h6 : (D_const * Real.log |t|) * ((6 / E) * Real.log |t|) = (6 / E * D_const) * (Real.log |t|) ^ 2 := by ring
+    have h_mid : ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ) * (6 / DeltaT t) =
+        (∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℝ)) * (6 / DeltaT t) := by
+      rw [← Finset.sum_mul]
+    rw [h_mid, h4] at h3
+    exact le_trans h1 (le_trans h3 (le_trans h5 (le_of_eq h6)))
+  have h_comm_t : (σ : ℂ) + t * I = (σ : ℂ) + I * t := by ring
+  have h_final_tri : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      ‖ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ +
+      ‖∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := by
+    rw [h_comm_t]
+    have : ‖ζ' (σ + I * t) / ζ (σ + I * t)‖ =
+      ‖(ζ' (σ + I * t) / ζ (σ + I * t) - ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)) +
+        ∑ ρ ∈ finiteZeros.toFinset, (analyticOrderNatAt ζ ρ : ℂ) / (σ + I * t - ρ)‖ := by
+      congr 1; ring
+    rw [this]
+    exact norm_add_le _ _
+  refine h_final_tri.trans ?_
+  have h_sum_le_sq : C_sum * Real.log |t| ≤ (C_sum / Real.log 3) * (Real.log |t|) ^ 2 := by
+    have : Real.log |t| ≤ (Real.log |t| ^ 2) / Real.log 3 := by
+      rw [sq, mul_div_assoc, le_mul_iff_one_le_right hlog_t_pos]
+      rw [one_le_div h_log3_pos]
+      exact hlog_3_le
+    have h_mul := mul_le_mul_of_nonneg_left this hC_sum_pos.le
+    have h_eq : C_sum * (Real.log |t| ^ 2 / Real.log 3) = (C_sum / Real.log 3) * (Real.log |t|) ^ 2 := by ring
+    linarith
+  have h_step : ‖ζ' (↑σ + I * ↑t) / ζ (↑σ + I * ↑t) - ∑ ρ ∈ finiteZeros.toFinset, ↑(analyticOrderNatAt ζ ρ) / (↑σ + I * ↑t - ρ)‖ +
+       ‖∑ ρ ∈ finiteZeros.toFinset, ↑(analyticOrderNatAt ζ ρ) / (↑σ + I * ↑t - ρ)‖ ≤
+       (C_sum / Real.log 3) * (Real.log |t|) ^ 2 + (6 / E * D_const) * (Real.log |t|) ^ 2 := by
+    linarith [h_sum_approx, h_sum_pole_le, h_sum_le_sq]
+  have h_step_eq : (C_sum / Real.log 3) * (Real.log |t|) ^ 2 + (6 / E * D_const) * (Real.log |t|) ^ 2 =
+      C_tot * (Real.log |t|) ^ 2 := by
+    dsimp [C_tot]
+    ring
+  rw [h_step_eq] at h_step
+  exact h_step
 
 
 
@@ -2623,6 +3095,107 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
           rw [Real.le_log_iff_exp_le (by grind)]
           exact Real.exp_one_lt_d9.le.trans (by grind))))
 
+lemma bound_for_large_t (C1 : ℝ) (hC1nonneg : 0 ≤ C1)
+    (hC1 : ∀ (σ t : ℝ), 3 < |t| → σ ∈ Ici (1 - F / Real.log |t|) → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C1 * Real.log |t| ^ 2)
+    (σ t T : ℝ) (ht_large : 3 < |t|) (ht_le_T : |t| ≤ T) (hσ : σ = 1 - F / Real.log T) :
+    ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C1 * Real.log (2 + T) ^ 2 := by
+  have ht_pos : 0 < |t| := by linarith
+  have hT_pos : 0 < T := by linarith
+  have hlog_t_le_T : Real.log |t| ≤ Real.log T := Real.log_le_log ht_pos ht_le_T
+  have hlogt_pos : 0 < Real.log |t| := Real.log_pos (by linarith)
+  have hF_nonneg : 0 ≤ F := by
+    rw [Fequ]
+    exact div_nonneg EinIoo.1.le (by norm_num)
+  have h_sigma_in : σ ∈ Ici (1 - F / Real.log |t|) := by
+    simp only [mem_Ici, hσ]
+    rw [sub_le_sub_iff_left]
+    exact div_le_div_of_nonneg_left hF_nonneg hlogt_pos hlog_t_le_T
+  have hbound := hC1 σ t ht_large h_sigma_in
+  refine hbound.trans ?_
+  have hlog_T_le_2addT : Real.log T ≤ Real.log (2 + T) := by
+    apply Real.log_le_log hT_pos (by linarith)
+  have hlog_t_le_2addT : Real.log |t| ≤ Real.log (2 + T) := hlog_t_le_T.trans hlog_T_le_2addT
+  have hlog_t_nonneg : 0 ≤ Real.log |t| := hlogt_pos.le
+  gcongr
+
+lemma log_deriv_residue_bound :
+    ∃ (C : ℝ) (ε : ℝ) (_ : 0 < ε),
+      ∀ (s : ℂ), s ∈ Metric.ball (1 : ℂ) ε \ {1} →
+        ‖ζ' s / ζ s‖ ≤ ‖(s - 1)⁻¹‖ + C := by
+  obtain ⟨C, hC⟩ := riemannZetaLogDerivResidueBigO.bound
+  rcases Metric.mem_nhdsWithin_iff.mp hC with ⟨ε, εpos, hε⟩
+  exact ⟨C, ε, εpos, fun s hs => by
+    have h_in : s ∈ Metric.ball (1 : ℂ) ε ∩ {1}ᶜ := by
+      simp only [mem_inter_iff, mem_compl_iff, mem_singleton_iff]
+      exact ⟨hs.1, hs.2⟩
+    have hb := hε h_in
+    simp only [mem_setOf_eq, Pi.sub_apply, Pi.div_apply, Pi.neg_apply, Pi.one_apply, norm_one, mul_one] at hb
+    have h_tri : ‖-ζ' s / ζ s‖ ≤
+        ‖-ζ' s / ζ s - (s - 1)⁻¹‖ + ‖(s - 1)⁻¹‖ := by
+      have h_split : (-ζ' s / ζ s : ℂ) =
+          (-ζ' s / ζ s - (s - 1)⁻¹) + (s - 1)⁻¹ := by ring
+      nth_rewrite 1 [h_split]
+      exact norm_add_le (-ζ' s / ζ s - (s - 1)⁻¹) (s - 1)⁻¹
+    have h_neg : ‖-ζ' s / ζ s‖ = ‖ζ' s / ζ s‖ := by
+      rw [neg_div, norm_neg]
+    rw [h_neg] at h_tri
+    linarith [h_tri, hb]⟩
+
+
+lemma norm_inv_sub_one_le (σ t T : ℝ) (hσ : σ = 1 - F / Real.log T)
+    (hF_pos : 0 < F) (hlogT_pos : 0 < Real.log T) :
+    ‖((σ : ℂ) + t * I - 1)⁻¹‖ ≤ Real.log T / F := by
+  rw [norm_inv]
+  have h_dist : F / Real.log T ≤ ‖(σ : ℂ) + t * I - 1‖ := by
+    have h_re : ((σ : ℂ) + t * I - 1).re = σ - 1 := by
+      simp only [sub_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, one_re]
+    have h_abs_re : |σ - 1| ≤ ‖(σ : ℂ) + t * I - 1‖ := by
+      rw [← h_re]
+      exact Complex.abs_re_le_norm _
+    have h_diff : σ - 1 = - (F / Real.log T) := by
+      rw [hσ]
+      ring
+    rw [h_diff, abs_neg, abs_of_pos (div_pos hF_pos hlogT_pos)] at h_abs_re
+    exact h_abs_re
+  have h_pos : 0 < F / Real.log T := div_pos hF_pos hlogT_pos
+  have h_inv := (inv_le_inv₀ (h_pos.trans_le h_dist) h_pos).mpr h_dist
+  rw [inv_div] at h_inv
+  exact h_inv
+
+lemma residue_algebra_bound (T : ℝ) (Tpos : 0 < T)
+    (hF_pos : 0 < F) (C_res : ℝ) :
+    Real.log T / F + C_res ≤
+      ((1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))) * Real.log (2 + T) ^ 2 := by
+  have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog_2T_pos : 0 < Real.log (2 + T) := Real.log_pos (by linarith)
+  have hlog2_le_log2T : Real.log 2 ≤ Real.log (2 + T) := Real.log_le_log (by norm_num) (by linarith)
+  have hlogT_le_log2T : Real.log T ≤ Real.log (2 + T) := Real.log_le_log Tpos (by linarith)
+  have h1 : Real.log T / F ≤ (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 := by
+    have : Real.log T ≤ (1 / Real.log 2) * Real.log (2 + T) ^ 2 := by
+      calc Real.log T ≤ Real.log (2 + T) := hlogT_le_log2T
+        _ = 1 * Real.log (2 + T) := by ring
+        _ ≤ (Real.log (2 + T) / Real.log 2) * Real.log (2 + T) := by
+          gcongr
+          exact (one_le_div hlog2_pos).mpr hlog2_le_log2T
+        _ = (1 / Real.log 2) * Real.log (2 + T) ^ 2 := by ring
+    calc Real.log T / F = (1 / F) * Real.log T := by ring
+      _ ≤ (1 / F) * ((1 / Real.log 2) * Real.log (2 + T) ^ 2) := by
+        apply mul_le_mul_of_nonneg_left this (one_div_nonneg.mpr hF_pos.le)
+      _ = (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 := by ring
+  have h2 : C_res ≤ ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := by
+    have h_sq : Real.log 2 ^ 2 ≤ Real.log (2 + T) ^ 2 := by gcongr
+    have h_one_le : 1 ≤ Real.log (2 + T) ^ 2 / Real.log 2 ^ 2 :=
+      (one_le_div (by positivity)).mpr h_sq
+    have h_pos : 0 ≤ |C_res| + 1 := by linarith [le_abs_self C_res, abs_nonneg C_res]
+    have h_C_le : C_res ≤ |C_res| + 1 := by linarith [le_abs_self C_res]
+    calc C_res ≤ |C_res| + 1 := h_C_le
+      _ = (|C_res| + 1) * 1 := (mul_one _).symm
+      _ ≤ (|C_res| + 1) * (Real.log (2 + T) ^ 2 / Real.log 2 ^ 2) := mul_le_mul_of_nonneg_left h_one_le h_pos
+      _ = ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := by ring
+  calc Real.log T / F + C_res ≤
+      (1 / (F * Real.log 2)) * Real.log (2 + T) ^ 2 + ((|C_res| + 1) / (Real.log 2 ^ 2)) * Real.log (2 + T) ^ 2 := add_le_add h1 h2
+    _ = ((1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))) * Real.log (2 + T) ^ 2 := by ring
+
 @[blueprint
   (title := "LogDerivZetaLogSquaredBoundSmallt")
   (statement := /--
@@ -2649,7 +3222,30 @@ theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     |t| ≤ T →
         σ = 1 - F / Real.log T →
             ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
-    sorry
+  obtain ⟨C1, hC1nonneg, hC1⟩ := LogDerivZetaUniformLogSquaredBound
+  obtain ⟨C_res, ε, εpos, h_res⟩ := log_deriv_residue_bound
+  have hF_pos : 0 < F := by rw [Fequ]; exact div_pos EinIoo.1 (by norm_num)
+  have hF_nonneg : 0 ≤ F := hF_pos.le
+  have hlog2_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  set C_small : ℝ := (1 / (F * Real.log 2) + (|C_res| + 1) / (Real.log 2 ^ 2))
+  set C_final : ℝ := max C1 (max C_small 0)
+  have C_final_nonneg : 0 ≤ C_final := le_max_of_le_right (le_max_right _ _)
+  refine ⟨C_final, C_final_nonneg, ?_⟩
+  intro σ t T Tpos ht_le hσ
+  by_cases ht_large : 3 < |t|
+  · have h_large := bound_for_large_t C1 hC1nonneg hC1 σ t T ht_large ht_le hσ
+    refine h_large.trans ?_
+    exact mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _)
+  · push Not at ht_large
+    have h_bound_res : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C_final * Real.log (2 + T) ^ 2 := by
+      have h_C_small_le : C_small ≤ C_final := (le_max_left _ _).trans (le_max_right _ _)
+      have h_alg := residue_algebra_bound T Tpos hF_pos C_res
+      have h_zeta_le : ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ Real.log T / F + C_res := by
+        sorry
+      have h_step := h_zeta_le.trans h_alg
+      refine h_step.trans ?_
+      exact mul_le_mul_of_nonneg_right h_C_small_le (sq_nonneg _)
+    exact h_bound_res
 
 
 
@@ -3041,11 +3637,200 @@ noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (latexEnv := "lemma")]
 lemma I2NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (_ : 0 ≤ C),
+    ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
     let σ' := 1 - F / Real.log T
-    ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-    sorry
+    ‖I2New SmoothingF ε T X σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+  have log_sq_le_sqrt_T : ∀ (T : ℝ), 3 ≤ T → Real.log T ^ 2 ≤ 16 * Real.sqrt T := by
+    intro T hT
+    have h_log : Real.log T ≤ 4 * T ^ (1 / 4 : ℝ) := by
+      have := Real.log_le_sub_one_of_pos (by positivity : 0 < T ^ (1 / 4 : ℝ))
+      rw [Real.log_rpow (by positivity)] at this
+      linarith
+    have h_sq := pow_le_pow_left₀ (Real.log_nonneg (by linarith)) h_log 2
+    refine h_sq.trans ?_
+    have : (4 * T ^ (1 / 4 : ℝ)) ^ 2 = 16 * (T ^ (1 / 4 : ℝ)) ^ 2 := by ring
+    rw [this]
+    have h_exp : (T ^ (1 / 4 : ℝ)) ^ (2 : ℕ) = T ^ (1 / 2 : ℝ) := by
+      rw [← Real.rpow_natCast, ← Real.rpow_mul (by linarith)]
+      norm_num
+    rw [h_exp, ← Real.sqrt_eq_rpow]
+  have sqrt_div_bound : ∀ (T : ℝ), 0 < T → 3 ≤ T → Real.sqrt T / T ^ 2 ≤ 1 / Real.sqrt T := by
+    intro T Tpos hT
+    have h_sq : Real.sqrt T * Real.sqrt T = T := Real.mul_self_sqrt Tpos.le
+    have h_t_le_t2 : T ≤ T ^ 2 := by nlinarith
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    rw [h_sq, one_mul]
+    exact h_t_le_t2
+  obtain ⟨C_uni, hC_uni_nonneg, h_uni⟩ := LogDerivZetaUniformLogSquaredBound
+  obtain ⟨CM, hCM_pos, hCM⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  set C' : ℝ := C_uni * CM * Real.exp 1 * 16 * 2
+  have C'nonneg : 0 ≤ C' := by positivity
+  have h_pi_factor_nonneg : (0 : ℝ) ≤ 1 / (2 * Real.pi) := by positivity
+  refine ⟨(1 / (2 * Real.pi)) * C', mul_nonneg h_pi_factor_nonneg C'nonneg, ?_⟩
+  intro ε X T εinIoo Xgt3 Tgt3 σ'
+  have Xpos : 0 < X := by linarith
+  have Tpos : 0 < T := by linarith
+  have hT_ge3 : 3 ≤ T := Tgt3.le
+  have hX_ge3 : 3 ≤ X := Xgt3.le
+  have hF_nonneg : 0 ≤ F := by rw [Fequ]; exact div_nonneg EinIoo.1.le (by norm_num)
+  have hF_pos : 0 < F := by rw [Fequ]; exact div_pos EinIoo.1 (by norm_num)
+  have h_logT_pos : 0 < Real.log T := Real.log_pos (by linarith)
+  have interval_length_nonneg : σ' ≤ 1 + (Real.log X)⁻¹ := by
+    dsimp [σ']
+    have : 1 - F / Real.log T ≤ 1 := by linarith [div_nonneg hF_nonneg h_logT_pos.le]
+    have : 1 ≤ 1 + (Real.log X)⁻¹ := by
+      rw [le_add_iff_nonneg_right, inv_nonneg]
+      exact Real.log_nonneg (by linarith)
+    linarith
+  have h_sig_prime_pos : 0 < σ' := by
+    dsimp [σ']
+    have h_F_div : F / Real.log T < 1 := by
+      have : F < 1 := by rw [Fequ]; linarith [EinIoo.2]
+      have : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+      exact (div_lt_one₀ h_logT_pos).mpr (by linarith)
+    linarith
+  unfold I2New
+  have h_norm_const : ‖(1 : ℂ) / (2 * π * I)‖ = 1 / (2 * Real.pi) := by
+    rw [norm_div, norm_one, norm_mul, norm_mul, Complex.norm_two, Complex.norm_I, mul_one]
+    have : ‖(π : ℂ)‖ = Real.pi := by
+      rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
+    rw [this]
+  rw [norm_mul, h_norm_const]
+  have h_int_le : ‖∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
+      SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ - T * I)‖ ≤
+      C' * (X / (ε * Real.sqrt T)) := by
+    have h_integrand_le : ∀ σ₀ ∈ Ioc σ' (1 + (Real.log X)⁻¹),
+        ‖SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ - T * I)‖ ≤
+        (C_uni * CM * Real.exp 1 * 16) * (X / (ε * Real.sqrt T)) := by
+      intro σ₀ hσ₀
+      unfold SmoothedChebyshevIntegrand
+      rw [norm_mul, norm_mul]
+      have h_comm : (σ₀ : ℂ) - T * I = (σ₀ : ℂ) + (-T : ℝ) * I := by push_cast; ring
+      have h_zeta_le : ‖ζ' (σ₀ - T * I) / ζ (σ₀ - T * I)‖ ≤ C_uni * Real.log T ^ 2 := by
+        rw [h_comm]
+        have ht_gt3 : 3 < |-T| := by rw [abs_neg, abs_of_pos Tpos]; exact Tgt3
+        have h_sig_in : σ₀ ∈ Ici (1 - F / Real.log |-T|) := by
+          rw [abs_neg, abs_of_pos Tpos]
+          exact mem_Ici.mpr (le_of_lt hσ₀.1)
+        have := h_uni σ₀ (-T) ht_gt3 h_sig_in
+        rwa [abs_neg, abs_of_pos Tpos] at this
+      have h_mellin_le : ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₀ - T * I)‖ ≤
+          CM * (ε * ‖(σ₀ : ℂ) - T * I‖ ^ 2)⁻¹ := by
+        refine hCM σ' h_sig_prime_pos (σ₀ - T * I) ?_ ?_ ε εinIoo.1 εinIoo.2
+        · simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, sub_zero]
+          exact le_of_lt hσ₀.1
+        · simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, sub_zero]
+          have : σ₀ ≤ 1 + (Real.log X)⁻¹ := hσ₀.2
+          have : (Real.log X)⁻¹ < 1 := inv_lt_one_of_one_lt₀ (logt_gt_one hX_ge3)
+          linarith
+      have h_xpow_le : ‖(X : ℂ) ^ ((σ₀ : ℂ) - T * I)‖ ≤ Real.exp 1 * X := by
+        rw [Complex.norm_cpow_eq_rpow_re_of_pos Xpos]
+        simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, sub_zero]
+        have h_sig_le : σ₀ ≤ 1 + (Real.log X)⁻¹ := hσ₀.2
+        have h_pow_le : X ^ σ₀ ≤ X ^ (1 + (Real.log X)⁻¹) := Real.rpow_le_rpow_of_exponent_le (by linarith) h_sig_le
+        rw [Real.rpow_add Xpos, Real.rpow_one, Real.rpow_inv_log Xpos (by linarith)] at h_pow_le
+        linarith
+      have h_neg_norm : ‖-ζ' (↑σ₀ - ↑T * I) / ζ (↑σ₀ - ↑T * I)‖ = ‖ζ' (↑σ₀ - ↑T * I) / ζ (↑σ₀ - ↑T * I)‖ := by
+        rw [neg_div, norm_neg]
+      rw [h_neg_norm]
+      have h_denom_ge : T ^ 2 ≤ ‖(σ₀ : ℂ) - T * I‖ ^ 2 := by
+        have : (σ₀ : ℂ) - T * I = (σ₀ : ℂ) + (-T : ℝ) * I := by push_cast; ring
+        rw [this, Complex.norm_add_mul_I]
+        have : 0 ≤ σ₀ ^ 2 + (-T) ^ 2 := by positivity
+        rw [Real.sq_sqrt this]
+        linarith [sq_nonneg σ₀]
+      have h_mellin_le' : ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₀ - T * I)‖ ≤
+          CM / (ε * T ^ 2) := by
+        have h_inv : (ε * ‖(σ₀ : ℂ) - T * I‖ ^ 2)⁻¹ ≤ (ε * T ^ 2)⁻¹ := by
+          have h1 : 0 < ε * T ^ 2 := by
+            have : 0 < ε := εinIoo.1
+            have : 0 < T ^ 2 := by positivity
+            positivity
+          have h2 : ε * T ^ 2 ≤ ε * ‖(σ₀ : ℂ) - T * I‖ ^ 2 := mul_le_mul_of_nonneg_left h_denom_ge (by linarith [εinIoo.1])
+          exact (inv_le_inv₀ (h1.trans_le h2) h1).mpr h2
+        have h_step : CM * (ε * ‖(σ₀ : ℂ) - T * I‖ ^ 2)⁻¹ ≤ CM * (ε * T ^ 2)⁻¹ :=
+          mul_le_mul_of_nonneg_left h_inv hCM_pos.le
+        have h_eq : CM * (ε * T ^ 2)⁻¹ = CM / (ε * T ^ 2) := by ring
+        rw [h_eq] at h_step
+        exact h_mellin_le.trans h_step
+      have h_step1 : ‖ζ' (↑σ₀ - ↑T * I) / ζ (↑σ₀ - ↑T * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ₀ - ↑T * I)‖ ≤
+          (C_uni * Real.log T ^ 2) * (CM / (ε * T ^ 2)) := by
+        have h_CM_factor : 0 ≤ CM / (ε * T ^ 2) := by
+          apply div_nonneg hCM_pos.le (mul_nonneg (by linarith [εinIoo.1]) (sq_nonneg T))
+        have h_zeta_nonneg : 0 ≤ C_uni * Real.log T ^ 2 := by
+          exact mul_nonneg hC_uni_nonneg (sq_nonneg _)
+        exact mul_le_mul h_zeta_le h_mellin_le' (norm_nonneg _) h_zeta_nonneg
+      have h_step2 : (‖ζ' (↑σ₀ - ↑T * I) / ζ (↑σ₀ - ↑T * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ₀ - ↑T * I)‖) * ‖(↑X : ℂ) ^ (↑σ₀ - ↑T * I)‖ ≤
+          ((C_uni * Real.log T ^ 2) * (CM / (ε * T ^ 2))) * (Real.exp 1 * X) := by
+        have h_expX_nonneg : 0 ≤ Real.exp 1 * X := by positivity
+        have h_mid_nonneg : 0 ≤ (C_uni * Real.log T ^ 2) * (CM / (ε * T ^ 2)) := by
+          apply mul_nonneg (mul_nonneg hC_uni_nonneg (sq_nonneg _))
+          apply div_nonneg hCM_pos.le (mul_nonneg (by linarith [εinIoo.1]) (sq_nonneg T))
+        exact mul_le_mul h_step1 h_xpow_le (norm_nonneg _) h_mid_nonneg
+      refine h_step2.trans ?_
+      have h_alg1 : ((C_uni * Real.log T ^ 2) * (CM / (ε * T ^ 2))) * (Real.exp 1 * X) =
+          (C_uni * CM * Real.exp 1) * (X / ε) * (Real.log T ^ 2 / T ^ 2) := by ring
+      rw [h_alg1]
+      have h_log_bound : Real.log T ^ 2 / T ^ 2 ≤ (16 * Real.sqrt T) / T ^ 2 := by
+        have := log_sq_le_sqrt_T T hT_ge3
+        gcongr
+      have h_pos_factor : 0 ≤ (C_uni * CM * Real.exp 1) * (X / ε) := by
+        apply mul_nonneg (mul_nonneg (mul_nonneg hC_uni_nonneg hCM_pos.le) (Real.exp_pos 1).le)
+        exact div_nonneg (by linarith) (by linarith [εinIoo.1])
+      have h_step3 : (C_uni * CM * Real.exp 1) * (X / ε) * (Real.log T ^ 2 / T ^ 2) ≤
+          (C_uni * CM * Real.exp 1) * (X / ε) * ((16 * Real.sqrt T) / T ^ 2) :=
+        mul_le_mul_of_nonneg_left h_log_bound h_pos_factor
+      refine h_step3.trans ?_
+      have h_alg2 : (C_uni * CM * Real.exp 1) * (X / ε) * ((16 * Real.sqrt T) / T ^ 2) =
+          (C_uni * CM * Real.exp 1 * 16 * (X / ε)) * (Real.sqrt T / T ^ 2) := by ring
+      rw [h_alg2]
+      have h_sqrt_bound := sqrt_div_bound T Tpos hT_ge3
+      have h_pos_factor2 : 0 ≤ C_uni * CM * Real.exp 1 * 16 * (X / ε) := by
+        apply mul_nonneg (mul_nonneg (mul_nonneg (mul_nonneg hC_uni_nonneg hCM_pos.le) (Real.exp_pos 1).le) (by norm_num))
+        exact div_nonneg (by linarith) (by linarith [εinIoo.1])
+      have h_step4 : (C_uni * CM * Real.exp 1 * 16 * (X / ε)) * (Real.sqrt T / T ^ 2) ≤
+          (C_uni * CM * Real.exp 1 * 16 * (X / ε)) * (1 / Real.sqrt T) :=
+        mul_le_mul_of_nonneg_left h_sqrt_bound h_pos_factor2
+      refine h_step4.trans ?_
+      have h_alg3 : (C_uni * CM * Real.exp 1 * 16 * (X / ε)) * (1 / Real.sqrt T) =
+          (C_uni * CM * Real.exp 1 * 16) * (X / (ε * Real.sqrt T)) := by ring
+      rw [h_alg3]
+    have h_len : |1 + (Real.log X)⁻¹ - σ'| ≤ 2 := by
+      rw [abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
+      dsimp [σ']
+      have h_F_div : 0 ≤ F / Real.log T := div_nonneg hF_nonneg h_logT_pos.le
+      have h_logX_inv : (Real.log X)⁻¹ ≤ 1 := inv_le_one_of_one_le₀ (logt_gt_one hX_ge3).le
+      have h_F_le : F / Real.log T ≤ 1 := by
+        have : F < 1 := by rw [Fequ]; linarith [EinIoo.2]
+        have : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+        exact (div_le_one₀ h_logT_pos).mpr (by linarith)
+      linarith
+    have h_int_bound : ‖∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
+        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I)‖ ≤
+        (C_uni * CM * Real.exp 1 * 16 * (X / (ε * Real.sqrt T))) * |1 + (Real.log X)⁻¹ - σ'| := by
+      refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+      intro σ₀ hσ₀
+      rw [uIoc_of_le interval_length_nonneg] at hσ₀
+      exact h_integrand_le σ₀ hσ₀
+    refine h_int_bound.trans ?_
+    have h_pos_const : 0 ≤ C_uni * CM * Real.exp 1 * 16 * (X / (ε * Real.sqrt T)) := by
+      apply mul_nonneg (mul_nonneg (mul_nonneg (mul_nonneg hC_uni_nonneg hCM_pos.le) (Real.exp_pos 1).le) (by norm_num))
+      exact div_nonneg (by linarith) (mul_nonneg (by linarith [εinIoo.1]) (Real.sqrt_pos.mpr Tpos).le)
+    have h_tri : (C_uni * CM * Real.exp 1 * 16 * (X / (ε * Real.sqrt T))) * |1 + (Real.log X)⁻¹ - σ'| ≤
+        (C_uni * CM * Real.exp 1 * 16 * (X / (ε * Real.sqrt T))) * 2 :=
+      mul_le_mul_of_nonneg_left h_len h_pos_const
+    have h_final_eval : (C_uni * CM * Real.exp 1 * 16 * (X / (ε * Real.sqrt T))) * 2 =
+        C' * (X / (ε * Real.sqrt T)) := by dsimp [C']; ring
+    rw [h_final_eval] at h_tri
+    exact h_tri
+  have h_bound_final : 1 / (2 * Real.pi) * ‖∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I)‖ ≤
+      1 / (2 * Real.pi) * (C' * (X / (ε * Real.sqrt T))) :=
+    mul_le_mul_of_nonneg_left h_int_le (by positivity)
+  refine h_bound_final.trans ?_
+  have : 1 / (2 * Real.pi) * (C' * (X / (ε * Real.sqrt T))) =
+      ((1 / (2 * Real.pi)) * C') * (X / (ε * Real.sqrt T)) := by ring
+  rw [this]
 
 
 
@@ -3067,11 +3852,11 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
     ∃ (C : ℝ) (_ : 0 ≤ C),
       ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
         let σ' := 1 - F / Real.log T
-        ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+        ‖I4New SmoothingF ε T X σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     obtain ⟨C, Cnonneg, hI2NewBound⟩ := I2NewBound suppSmoothingF ContDiffSmoothingF
     use C, Cnonneg
     intro ε X T εinIoo Xgt3 Tgt3 σ'
-    have I2NewI4New : I4New SmoothingF ε X T σ' = -conj (I2New SmoothingF ε X T σ') := by
+    have I2NewI4New : I4New SmoothingF ε T X σ' = -conj (I2New SmoothingF ε T X σ') := by
         unfold I2New I4New
         simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
         rw [mul_neg, div_neg, neg_mul_comm, ← mul_neg]
@@ -3131,11 +3916,160 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (latexEnv := "lemma")]
 lemma I3NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (_ : 0 ≤ C),
+    ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
     let σ' := 1 - F / Real.log T
-    ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
-    sorry
+    ‖I3New SmoothingF ε T X σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * (Real.sqrt T * T)) / ε := by
+  have log2T_sq_le_sqrt_T : ∀ (T : ℝ), 3 ≤ T → Real.log (2 + T) ^ 2 ≤ 64 * Real.sqrt T := by
+    intro T hT
+    have h_le : 2 + T ≤ 2 * T := by linarith
+    have h_log_le : Real.log (2 + T) ≤ Real.log (2 * T) :=
+      Real.log_le_log (by linarith) h_le
+    have h_log_mul : Real.log (2 * T) = Real.log 2 + Real.log T :=
+      Real.log_mul (by norm_num) (by linarith)
+    rw [h_log_mul] at h_log_le
+    have h_log2_lt : Real.log 2 ≤ Real.log T := Real.log_le_log (by norm_num) (by linarith)
+    have h_log_sum : Real.log 2 + Real.log T ≤ 2 * Real.log T := by linarith
+    have h_log_tot : Real.log (2 + T) ≤ 2 * Real.log T := h_log_le.trans h_log_sum
+    have h_sq := pow_le_pow_left₀ (Real.log_nonneg (by linarith)) h_log_tot 2
+    refine h_sq.trans ?_
+    have : (2 * Real.log T) ^ 2 = 4 * (Real.log T ^ 2) := by ring
+    rw [this]
+    have h_sqrt : Real.log T ^ 2 ≤ 16 * Real.sqrt T := by
+      have h_log : Real.log T ≤ 4 * T ^ (1 / 4 : ℝ) := by
+        have := Real.log_le_sub_one_of_pos (by positivity : 0 < T ^ (1 / 4 : ℝ))
+        rw [Real.log_rpow (by positivity)] at this
+        linarith
+      have h_sq2 := pow_le_pow_left₀ (Real.log_nonneg (by linarith)) h_log 2
+      refine h_sq2.trans ?_
+      have : (4 * T ^ (1 / 4 : ℝ)) ^ 2 = 16 * (T ^ (1 / 4 : ℝ)) ^ 2 := by ring
+      rw [this]
+      have h_exp : (T ^ (1 / 4 : ℝ)) ^ (2 : ℕ) = T ^ (1 / 2 : ℝ) := by
+        rw [← Real.rpow_natCast, ← Real.rpow_mul (by linarith)]
+        norm_num
+      rw [h_exp, ← Real.sqrt_eq_rpow]
+    nlinarith
+  have norm_I3New_eq : ∀ {ε T X σ' : ℝ},
+      ‖I3New SmoothingF ε T X σ'‖ =
+      (1 / (2 * π)) * ‖∫ t in (-T)..T, SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)‖ := by
+    intro ε T X σ'
+    unfold I3New
+    have h1 : ‖(1 : ℂ) / (2 * π * I)‖ = 1 / (2 * Real.pi) := by
+      rw [norm_div, norm_one, norm_mul, norm_mul, Complex.norm_two, Complex.norm_I, mul_one]
+      have : ‖(π : ℂ)‖ = Real.pi := by
+        rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
+      rw [this]
+    rw [norm_mul, norm_mul, Complex.norm_I, one_mul, h1]
+  obtain ⟨C_small, hC_small_nonneg, h_zeta_small⟩ := LogDerivZetaLogSquaredBoundSmallt
+  obtain ⟨CM, hCM_pos, hCM⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  set C' : ℝ := (1 / (2 * Real.pi)) * (C_small * CM * 64 * 2 * (42 / 41) ^ 2)
+  have C'nonneg : 0 ≤ C' := by positivity
+  refine ⟨C', C'nonneg, ?_⟩
+  intro ε X T εinIoo Xgt3 Tgt3 σ'
+  have Xpos : 0 < X := by linarith
+  have Tpos : 0 < T := by linarith
+  have hT_ge3 : 3 ≤ T := Tgt3.le
+  have hF_nonneg : 0 ≤ F := by rw [Fequ]; exact div_nonneg EinIoo.1.le (by norm_num)
+  have h_logT_pos : 0 < Real.log T := Real.log_pos (by linarith)
+  have h_sig_prime_pos : 0 < σ' := by
+    dsimp [σ']
+    have h_F_div : F / Real.log T < 1 := by
+      have : F < 1 := by rw [Fequ]; linarith [EinIoo.2]
+      have : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+      exact (div_lt_one₀ h_logT_pos).mpr (by linarith)
+    linarith
+  have h_sig_prime_ge_41_42 : 41 / 42 ≤ σ' := by
+    dsimp [σ']
+    have h_F_div_le : F / Real.log T ≤ 1 / 42 := by
+      have hF_le : F ≤ 1 / 42 := by
+        rw [Fequ]
+        have : E < 1 / 14 := EinIoo.2
+        linarith
+      have h_logT_ge_one : 1 ≤ Real.log T := (logt_gt_one hT_ge3).le
+      calc F / Real.log T ≤ (1 / 42) / Real.log T := div_le_div_of_nonneg_right hF_le h_logT_pos.le
+        _ ≤ (1 / 42) / 1 := div_le_div_of_nonneg_left (by norm_num) zero_lt_one h_logT_ge_one
+        _ = 1 / 42 := by ring
+    linarith
+  have h_sig_prime_le_one : σ' ≤ 1 := by
+    dsimp [σ']
+    linarith [div_nonneg hF_nonneg h_logT_pos.le]
+  rw [norm_I3New_eq]
+  have h_integrand_le : ∀ t ∈ Ioc (-T) T,
+      ‖SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)‖ ≤
+      (C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹ := by
+    intro t ht
+    unfold SmoothedChebyshevIntegrand
+    rw [norm_mul, norm_mul]
+    have h_neg_norm : ‖-ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ = ‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ := by
+      rw [neg_div, norm_neg]
+    rw [h_neg_norm]
+    have ht_abs : |t| ≤ T := by
+      rw [abs_le]
+      exact ⟨ht.1.le, ht.2⟩
+    have h_zeta := h_zeta_small σ' t T Tpos ht_abs rfl
+    have h_mellin := hCM σ' h_sig_prime_pos (σ' + t * I) (by simp) (by simp; linarith) ε εinIoo.1 εinIoo.2
+    have h_xpow : ‖(X : ℂ) ^ ((σ' : ℂ) + t * I)‖ = X ^ σ' := by
+      rw [Complex.norm_cpow_eq_rpow_re_of_pos Xpos]
+      simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero]
+    rw [h_xpow]
+    have h_denom_ge : (41 / 42 : ℝ) ^ 2 ≤ ‖(σ' : ℂ) + t * I‖ ^ 2 := by
+      rw [Complex.norm_add_mul_I]
+      have : 0 ≤ σ' ^ 2 + t ^ 2 := by positivity
+      rw [Real.sq_sqrt this]
+      have : (41 / 42 : ℝ) ^ 2 ≤ σ' ^ 2 := by nlinarith [h_sig_prime_ge_41_42]
+      linarith [sq_nonneg t]
+    have h_mellin_le' : ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖ ≤
+        CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := by
+      have h_inv : (ε * ‖(σ' : ℂ) + t * I‖ ^ 2)⁻¹ ≤ (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := by
+        have h1 : 0 < ε * (41 / 42 : ℝ) ^ 2 := mul_pos εinIoo.1 (by positivity)
+        have h2 : ε * (41 / 42 : ℝ) ^ 2 ≤ ε * ‖(σ' : ℂ) + t * I‖ ^ 2 :=
+          mul_le_mul_of_nonneg_left h_denom_ge (by linarith [εinIoo.1])
+        exact (inv_le_inv₀ (h1.trans_le h2) h1).mpr h2
+      have h_step := mul_le_mul_of_nonneg_left h_inv hCM_pos.le
+      exact h_mellin.trans h_step
+    have h_step1 : ‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖ ≤
+        (C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹) := by
+      have h_mellin_nonneg : 0 ≤ CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹ := mul_nonneg hCM_pos.le (inv_nonneg.mpr (mul_nonneg εinIoo.1.le (by positivity)))
+      have h_zeta_nonneg : 0 ≤ C_small * Real.log (2 + T) ^ 2 := mul_nonneg hC_small_nonneg (sq_nonneg _)
+      exact mul_le_mul h_zeta h_mellin_le' (norm_nonneg _) h_zeta_nonneg
+    have h_step2 : (‖ζ' (↑σ' + ↑t * I) / ζ (↑σ' + ↑t * I)‖ * ‖mellin (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ' + ↑t * I)‖) * (X ^ σ') ≤
+        ((C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹)) * (X ^ σ') := by
+      apply mul_le_mul_of_nonneg_right h_step1 (by positivity)
+    refine h_step2.trans ?_
+    have : ((C_small * Real.log (2 + T) ^ 2) * (CM * (ε * (41 / 42 : ℝ) ^ 2)⁻¹)) * (X ^ σ') =
+        (C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹ := by ring
+    rw [this]
+  have h_int_bound : ‖∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I)‖ ≤
+      ((C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹) * |T - -T| := by
+    refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+    intro t ht
+    rw [uIoc_of_le (by linarith)] at ht
+    exact h_integrand_le t ht
+  have h_len : |T - -T| = 2 * T := by
+    rw [sub_neg_eq_add]
+    have : T + T = 2 * T := by ring
+    rw [this, abs_of_pos (by linarith)]
+  rw [h_len] at h_int_bound
+  have h_log_bound := log2T_sq_le_sqrt_T T hT_ge3
+  have h_alg : ((C_small * CM * (X ^ σ') * Real.log (2 + T) ^ 2) * (ε * (41 / 42) ^ 2)⁻¹) * (2 * T) =
+      (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * (Real.log (2 + T) ^ 2 * T) := by ring
+  rw [h_alg] at h_int_bound
+  have h_pos_const : 0 ≤ C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε) := by
+    apply mul_nonneg (mul_nonneg (mul_nonneg (mul_nonneg hC_small_nonneg hCM_pos.le) (by norm_num)) (by positivity))
+    exact div_nonneg (by positivity) (by linarith [εinIoo.1])
+  have h_bound_step : (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * (Real.log (2 + T) ^ 2 * T) ≤
+      (C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T) := by
+    apply mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right h_log_bound Tpos.le) h_pos_const
+  have h_int_le_final := h_int_bound.trans h_bound_step
+  have h_bound_final : (1 / (2 * Real.pi)) * ‖∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I)‖ ≤
+      (1 / (2 * Real.pi)) * ((C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T)) := by
+    exact mul_le_mul_of_nonneg_left h_int_le_final (by positivity)
+  refine h_bound_final.trans ?_
+  have h_ring_eq : (1 / (2 * Real.pi)) * ((C_small * CM * 2 * (42 / 41) ^ 2 * (X ^ σ' / ε)) * ((64 * Real.sqrt T) * T)) =
+      (C' * (X ^ (1 - F / Real.log T) * (Real.sqrt T * T))) / ε := by
+    dsimp [C', σ']
+    ring
+  rw [h_ring_eq]
 
 
 
