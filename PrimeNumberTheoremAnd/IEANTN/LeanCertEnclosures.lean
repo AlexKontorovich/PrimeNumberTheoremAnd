@@ -11,7 +11,7 @@ Importing it registers checked enclosures for the project definitions `pi`, `Li`
 `Eπ`.  The candidate generators are untrusted; the associated checker theorems establish
 the interval facts consumed by LeanCert.
 
-The default `Li` enclosure uses `liPanels = 128` checked quadrature panels at each
+The default `Li` enclosure uses `liPanels = 192` checked quadrature panels at each
 endpoint. Candidates wider than one are deliberately rejected so LeanCert's focused
 enclosure tactic subdivides before composing the endpoint bounds into an `Eπ` enclosure.
 -/
@@ -86,7 +86,7 @@ theorem pi_mem
 /-! ## Checked logarithmic-integral enclosure -/
 
 /-- Default panel count for checked `Li` endpoint quadrature. -/
-def liPanels : ℕ := 128
+def liPanels : ℕ := 192
 
 /-- LeanCert expression for the logarithmic-integral integrand `1 / log x`. -/
 def liIntegrandExpr : LeanCert.Core.Expr :=
