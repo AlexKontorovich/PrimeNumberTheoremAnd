@@ -109,4 +109,38 @@ theorem floor_row11 : ∀ x ∈ Set.Icc (Real.exp (1 : ℝ)) (Real.exp (3.5 : �
     _ ≤ Real.exp (Real.log x * (-(1 : ℝ) / 100)) := hCurve x hx'
     _ = x ^ (-(1 : ℝ) / 100) := by rw [Real.rpow_def_of_pos hxpos]
 
+set_option maxHeartbeats 1000000 in
+-- Reifying the 192-panel quadrature certificates needs more than the project default.
+/-- The former trusted row-10 floor calculation, discharged by checked interval arithmetic. -/
+theorem floor_row10 : ∀ x ∈ Set.Icc (Real.exp (1 : ℝ)) (Real.exp (3.5 : ℝ)),
+    Eπ x ≤ x ^ (-(1 : ℝ) / 50) := by
+  have hexpLo : (27 / 10 : ℝ) ≤ Real.exp 1 := by
+    interval_decide (trust := kernel)
+  have hexpHi : Real.exp (3.5 : ℝ) ≤ 34 := by
+    interval_decide (trust := kernel)
+  have hEpiFirst : ∀ x ∈ Set.Icc (27 / 10 : ℝ) 3, Eπ x ≤ (923 / 1000 : ℝ) := by
+    enclosure_bound (subdivisions := 8) (trust := native)
+  have hEpiRest : ∀ x ∈ Set.Icc (3 : ℝ) 34, Eπ x ≤ (923 / 1000 : ℝ) := by
+    enclosure_bound (subdivisions := 8) (trust := native)
+  intro x hx
+  have hx' : x ∈ Set.Icc (27 / 10 : ℝ) 34 :=
+    ⟨hexpLo.trans hx.1, hx.2.trans hexpHi⟩
+  have hxpos : 0 < x := lt_of_lt_of_le (by norm_num) hx'.1
+  have hlogHi : Real.log x ≤ (3.5 : ℝ) := by
+    rw [← Real.log_exp (3.5 : ℝ)]
+    exact Real.log_le_log hxpos hx.2
+  have hCurve : (923 / 1000 : ℝ) ≤
+      Real.exp (Real.log x * (-(1 : ℝ) / 50)) := by
+    have hconst : (923 / 1000 : ℝ) ≤ Real.exp (-(7 / 100 : ℝ)) := by
+      interval_decide (trust := kernel)
+    exact hconst.trans (Real.exp_le_exp.mpr (by linarith))
+  have hEpi : Eπ x ≤ (923 / 1000 : ℝ) := by
+    rcases le_total x 3 with hx3 | hx3
+    · exact hEpiFirst x ⟨hx'.1, hx3⟩
+    · exact hEpiRest x ⟨hx3, hx'.2⟩
+  calc
+    Eπ x ≤ (923 / 1000 : ℝ) := hEpi
+    _ ≤ Real.exp (Real.log x * (-(1 : ℝ) / 50)) := hCurve
+    _ = x ^ (-(1 : ℝ) / 50) := by rw [Real.rpow_def_of_pos hxpos]
+
 end FKS2.Cor24Checked
