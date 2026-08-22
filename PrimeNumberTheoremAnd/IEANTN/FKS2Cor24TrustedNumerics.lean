@@ -8,8 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 This file collects, in one place, the trusted numerical
 `sorry`s that the formalisation of FKS2 Corollary 24 (`corollary_24_all`) **introduces**:
-twenty-one bounds on compact windows `x ∈ [eᵃ, eᵇ]`.  Row 11's small-`x` floor is
-now checked in `FKS2Cor24CheckedNumerics`; the remaining facts are small-`x`
+twenty bounds on compact windows `x ∈ [eᵃ, eᵇ]`.  The row 1 and row 11 small-`x`
+floors are now checked in `FKS2Cor24CheckedNumerics`; the remaining facts are small-`x`
 *floors* and large-`x` *slivers*/*bands* at the threshold.  Each is a finite-range
 numerical datum taken from the published computations of
 
@@ -18,7 +18,7 @@ numerical datum taken from the published computations of
 
 ## Scope
 
-These twenty-one are the remaining trust that Corollary 24 adds *on top of* the existing
+These twenty are the remaining trust that Corollary 24 adds *on top of* the existing
 development.  `corollary_24_all` additionally relies on trusted numerical `sorry`s that
 already live elsewhere in the repository and are **not** reproduced here:
 
@@ -67,13 +67,11 @@ the main development's root-namespace `Eπ` (`Defs.lean`). -/
 noncomputable def Epi (x : ℝ) : ℝ :=
   |(Nat.primeCounting ⌊x⌋₊ : ℝ) - ∫ t in (2 : ℝ)..x, 1 / Real.log t| / (x / Real.log x)
 
-/-! ### Row 1 — curve `2·log x·x^{-1/2}` -/
+/-! ### Row 1 — curve `2·log x·x^{-1/2}`
 
-/-- **Row 1 floor** `[e^1, e^4]` (`x ∈ [2.72, 54.6]`): direct `π`/`Li` check for small
-`x` (FKS2 §5.2–§5.3); `E_π(x) ≤ 2·log x·x^{-1/2}`.  Purely computational. -/
-theorem floor_trusted_row1 : ∀ x ∈ Set.Icc (Real.exp (1:ℝ)) (Real.exp (4:ℝ)),
-    Epi x ≤ 2 * Real.log x * x ^ (-(1:ℝ) / 2) := by
-  sorry
+The Row 1 floor is checked in `FKS2Cor24CheckedNumerics`; only the trusted
+large-`x` band remains here.
+-/
 
 /-- **Row 1 band** `[e^43, e^57]` (`x` from `≈5·10¹⁸`): trusted **tabular** boundary at
 the Table-7 threshold — FKS2's Theorem-6 interpolation, no direct prime count.
