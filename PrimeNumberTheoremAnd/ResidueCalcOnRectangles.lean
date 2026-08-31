@@ -724,6 +724,320 @@ theorem ResidueTheoremOnRectangleWithSimplePole' {f : ℂ → ℂ} {z w p A : �
   obtain ⟨h, ⟨hHolo, hEq⟩⟩ := existsDifferentiableOn_of_bddAbove pInRectInterior gHolo this
   exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectInterior hHolo hEq
 
+@[blueprint
+  (title := "ResidueOfTendsTo")
+  (statement := /--
+  If a function $f$ is holomorphic in a neighborhood of $p$ and
+  $\lim_{s\to p} (s-p)f(s) = A$, then
+  $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
+  -/)
+  (proof := /--
+  The function $(s - p)\cdot f(s)$ bounded, so by Theorem
+  \ref{existsDifferentiableOn_of_bddAbove}, there is a holomorphic function, $g$, say, so that
+  $(s-p)f(s) = g(s)$ in a neighborhood of $s=p$, and $g(p)=A$. Now because $g$ is holomorphic,
+  near $s=p$, we have $g(s)=A+O(s-p)$. Then when you divide by $(s-p)$, you get
+  $f(s) = A/(s-p) + O(1)$.
+  -/)]
+theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (hU : U ∈ 𝓝 p)
+    (hf : HolomorphicOn f (U \ {p}))
+    {A : ℂ}
+    (h_limit : Tendsto (fun s ↦ (s - p) * f s) (𝓝[≠] p) (𝓝 A)) :
+    ∃ V ∈ 𝓝 p,
+    BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (V \ {p})) := by
+  apply IsBigO_to_BddAbove
+  -- Step 1.  `(s-p) f s` is bounded on some punctured nbhd `V`.
+  have h_event_nhds :
+      ∀ᶠ s in 𝓝 p, s ≠ p → ‖(s - p) * f s - A‖ < 1 := by
+    refine (eventually_nhdsWithin_iff).1 ?_
+    simp_rw [← dist_eq_norm_sub]
+    exact h_limit.eventually (Metric.ball_mem_nhds _ (by norm_num))
+  rcases (eventually_nhds_iff.1 h_event_nhds) with ⟨V₀, hV₀_mem, hV₀_prop⟩
+  have h_bound :
+      ∀ s, s ∈ V₀ \ {p} → ‖(s - p) * f s‖ ≤ ‖A‖ + 1 := by
+    intro s hs
+    calc ‖(s - p) * f s‖ = ‖((s - p) * f s - A) + A‖ := by
+          ring_nf
+        _ ≤ ‖(s - p) * f s - A‖ + ‖A‖ := norm_add_le ..
+        _ ≤ 1 + ‖A‖ := add_le_add_left (le_of_lt (hV₀_mem s hs.1 hs.2)) ‖A‖
+        _ = ‖A‖ + 1 := by ring
+  have h_bdd :
+      BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (V₀ \ {p})) := by
+    refine ⟨‖A‖ + 1, ?_⟩
+    rintro _ ⟨s, hs, rfl⟩
+    exact h_bound s hs
+  -- From now on work inside `W = V₀ ∩ U`,   still a nbhd of `p`.
+  set W : Set ℂ := V₀ ∩ U
+  have hW_mem : (W : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₀_prop.1 hV₀_prop.2) hU
+  have h_subset_V₀ : (W \ {p}) ⊆ (V₀ \ {p}) := by
+    intro z hz; exact ⟨hz.1.1, hz.2⟩
+  have h_prod_holo : HolomorphicOn (fun z ↦ (z - p) * f z) (W \ {p}) := by
+    unfold HolomorphicOn
+    have hfW : HolomorphicOn f (W \ {p}) := by
+      exact hf.mono (by grind)
+    fun_prop
+  -- Step 2.  Extend the product across `p`; obtain holomorphic `g`.
+  have hg_holo := differentiableOn_update_limUnder_of_bddAbove hW_mem h_prod_holo (h_bdd.mono (image_mono h_subset_V₀))
+  set g := (Function.update (fun z ↦ (z - p) * f z) p ((𝓝[≠] p).limUnder fun z ↦ (z - p) * f z))
+  have g_p_eq : g p = A := by
+    simp [g, h_limit.limUnder_eq]
+  let q : ℂ → ℂ := fun z ↦ (g z - A) / (z - p)
+  have h_event_q : ∀ᶠ z in 𝓝[≠] p, ‖q z - deriv g p‖ < 1 := by
+    simp_rw [← dist_eq_norm_sub]
+    apply Tendsto.eventually _ (Metric.ball_mem_nhds _ (by norm_num))
+    convert hasDerivAt_iff_tendsto_slope.mp <| DifferentiableOn.hasDerivAt hg_holo hW_mem
+    simp [q, g_p_eq, slope_fun_def]
+    field_simp
+  -- Step 4.  Relate `f` to `q` and pass the bound.
+  have h_eq_diff :
+      EqOn (fun z ↦ f z - A * (z - p)⁻¹) q (W \ {p}) := by
+    intro z hz
+    simp_all [g, q]
+    field [sub_ne_zero.mpr hz.2]
+  rw [isBigO_iff]
+  use ‖deriv g p‖ + 1
+  filter_upwards [mem_nhdsWithin_of_mem_nhds hW_mem, h_event_q, eventually_mem_nhdsWithin] with z hW q_lt hz_ne_p
+  specialize h_eq_diff ⟨ hW, hz_ne_p⟩
+  simp only [Pi.sub_apply, Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary,
+    mul_one] at h_eq_diff ⊢
+  rw [h_eq_diff]
+  calc
+  _ = ‖(q z - deriv g p) + (deriv g p)‖ := by ring_nf
+  _ ≤ ‖q z - deriv g p‖ + ‖deriv g p‖ := norm_add_le ..
+  _ ≤ 1 + ‖deriv g p‖ := by gcongr
+  _ = ‖deriv g p‖ + 1 := by ring
+
+theorem deriv_eqOn_of_eqOn_punctured {f g : ℂ → ℂ} {U : Set ℂ} (p : ℂ)
+    (hU_open : IsOpen U)
+    (h_eq : EqOn f g (U \ {p})) :
+    EqOn (deriv f) (deriv g) (U \ {p}) := by
+  refine fun x hx ↦ EventuallyEq.deriv_eq ?_
+  filter_upwards [IsOpen.mem_nhds (hU_open.sdiff isClosed_singleton) hx] with t ht using h_eq ht
+
+theorem analytic_deriv_bounded_near_point
+    {f : ℂ → ℂ} {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
+    (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  refine Asymptotics.IsBigO.mono ?_ inf_le_left
+  refine IsBoundedUnder.isBigO_one ℂ <| Tendsto.isBoundedUnder_le (ContinuousAt.norm ?_)
+  refine hf.contDiffOn (n := 1) hU|>.continuousOn_deriv_of_isOpen hU (by norm_num) p hp|>.continuousAt ?_
+  exact hU.mem_nhds hp
+
+@[blueprint
+  (title := "nonZeroOfBddAbove")
+  (statement := /--
+  If a function $f$ has a simple pole at a point $p$ with residue $A \neq 0$, then
+  $f$ is nonzero in a punctured neighborhood of $p$.
+  -/)
+  (proof := /--
+  We know that $f(s) = \frac{A}{s-p} + O(1)$ near $p$, so we can write
+  $$f(s) = \left(f(s) - \frac{A}{s-p}\right) + \frac{A}{s-p}.$$
+  The first term is bounded, say by $M$, and the second term goes to $\infty$ as $s \to p$.
+  Therefore, there exists a neighborhood $V$ of $p$ such that for all $s \in V \setminus \{p\}$,
+  we have $f(s) \neq 0$.
+  -/)]
+theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
+  suffices ∀ᶠ z in 𝓝[≠] p, f z ≠ 0 by
+    rw [eventually_nhdsWithin_iff] at this
+    obtain ⟨V, hv1, hv2, hv3⟩ := eventually_nhds_iff.mp this
+    exact ⟨V, hv2.mem_nhds hv3, hv2, fun s hs ↦ hv1 s hs.1 hs.2⟩
+  obtain ⟨M, hM⟩ := f_near_p
+  suffices ∀ᶠ z in 𝓝[≠] p, ‖M‖ + 1 < ‖A * (z - p)⁻¹‖ by
+    filter_upwards [this, mem_nhdsWithin_of_mem_nhds U_in_nhds, self_mem_nhdsWithin] with z eventually_ge z_in_U z_ne_p
+    rw [(by ring : f z = (f z - A * (z - p)⁻¹) + A * (z - p)⁻¹)]
+    specialize hM ⟨z, ⟨z_in_U, (by simp_all)⟩, rfl⟩
+    simp only [Function.comp_apply, Pi.sub_apply] at hM
+    by_contra! h
+    rw [add_eq_zero_iff_eq_neg] at h
+    rw [h, norm_neg] at hM
+    linarith [Real.le_norm_self M]
+  apply Tendsto.eventually_gt_atTop
+  simp_rw [norm_mul, norm_inv]
+  apply Tendsto.const_mul_atTop (norm_pos_iff.mpr A_ne_zero)
+  refine Tendsto.inv_tendsto_nhdsGT_zero (tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩)
+  · convert Continuous.tendsto ?_ p|>.mono_left nhdsWithin_le_nhds
+    · simp
+    · fun_prop
+  · filter_upwards [self_mem_nhdsWithin] with x hx
+    simp_all
+    grind
+
+theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (U_is_open : IsOpen U)
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  have f_minus_pole_is_holomorphic : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
+    unfold HolomorphicOn
+    fun_prop (disch := grind)
+  obtain ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove
+    U_in_nhds f_minus_pole_is_holomorphic f_near_p
+  let h := (fun _ ↦ A) + g * (fun (s : ℂ) ↦ (s - p))
+  have h_is_holomorphic : HolomorphicOn h U := by
+    unfold HolomorphicOn
+    fun_prop
+  have h_continuous := h_is_holomorphic.continuousOn
+  have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
+    intro x x_in_u_not_p
+    have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff x_in_u_not_p
+    have x_not_p : x ≠ p := by
+      exact ((Set.mem_sdiff x).mp x_in_u_not_p).2
+    have weird : U ∈ 𝓝 x := by
+      exact IsOpen.mem_nhds (U_is_open) (x_in_u)
+    have := g_is_holomorphic.differentiableAt weird
+    rw [deriv_add (by fun_prop) (by fun_prop (disch := grind)), deriv_mul this (by fun_prop),
+      ← g_is_f_minus_pole x_in_u_not_p,
+      ← deriv_eqOn_of_eqOn_punctured p U_is_open g_is_f_minus_pole x_in_u_not_p,
+      deriv_sub _ (by fun_prop (disch := grind)), deriv_const_mul _ (by fun_prop (disch := grind)), deriv_fun_inv'' (by fun_prop) (by grind)]
+    · simp
+      field [sub_ne_zero_of_ne x_not_p]
+    · apply holc.differentiableAt <| inter_mem weird <| compl_singleton_mem_nhds x_not_p
+  have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
+    intro x x_in_u_not_p
+    have hyp_x_not_p : x ≠ p := by
+      exact ((Set.mem_sdiff x).mp x_in_u_not_p).2
+    simp only [h, Pi.add_apply, Pi.mul_apply]
+    rw [← g_is_f_minus_pole x_in_u_not_p]
+    simp only [Pi.sub_apply]
+    field [sub_ne_zero.mpr hyp_x_not_p]
+  have log_deriv_f_plus_pole_equal_log_deriv_h :
+      EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by
+    simp only [Set.mem_sdiff, mem_singleton_iff, ne_eq, and_imp, Function.comp_apply, Pi.sub_apply,
+      DifferentiableOn.sub_iff_right, holc] at *
+    intro x hyp_x
+    have x_not_p : x ≠ p := by
+      exact ((Set.mem_sdiff x).mp hyp_x).2
+    have x_in_u : x ∈ U := by exact Set.mem_of_mem_sdiff hyp_x
+    simp only [Pi.add_apply, Pi.mul_apply, Pi.inv_apply]
+    rw [deriv_h_identity _ x_in_u x_not_p, h_identity _ x_in_u x_not_p]
+    field [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
+  have h_inv_bounded :
+      h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    have : ContinuousAt h⁻¹ p := by
+      apply ContinuousOn.continuousAt h_continuous U_in_nhds |>.inv₀
+      simp [h, A_ne_zero]
+    exact (this.norm.isBoundedUnder_le.isBigO_one ℂ).mono inf_le_left
+  have h_deriv_bounded := analytic_deriv_bounded_near_point U_is_open
+    (mem_of_mem_nhds U_in_nhds) h_is_holomorphic
+  have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
+    exact sdiff_mem_nhdsWithin_compl U_in_nhds {p}
+  have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+  exact T.trans_isBigO <|  IsBigO.of_const_mul_right <| h_deriv_bounded.mul h_inv_bounded
+
+@[blueprint
+  (title := "logDerivResidue")
+  (statement := /--
+  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/
+  f$ has a simple pole at $p$ with residue $-1$:
+  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
+  -/)
+  (proof := /--
+  Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic
+  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which
+  is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
+  Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
+  $$
+  \frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
+  =
+  \frac{h'(s)}{h(s)}.
+  $$
+  Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
+  -/)]
+theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  obtain ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
+  have T : (U' \ {p}) ⊆ (U \ {p}) := by
+    exact Set.sdiff_subset_sdiff a (subset_refl _)
+  exact logDerivResidue' b (fun _ hx ↦ non_zero _ (T hx)) (holc.mono T) (IsOpen.mem_nhds b c)
+    A_ne_zero (f_near_p.mono (image_mono T))
+
+@[blueprint
+  (title := "BddAbove-to-IsBigO")
+  (statement := /--
+  If $f$ is bounded above in a punctured neighborhood of $p$, then $f$ is $O(1)$ in that
+  neighborhood.
+  -/)
+  (proof := /-- Elementary. -/)]
+lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
+    {U : Set ℂ} (hU : U ∈ 𝓝 p) (bdd : BddAbove (norm ∘ f '' (U \ {p}))) :
+    f =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
+  rw [isBigO_iff]
+  rcases bdd with ⟨C, hC⟩
+  use C
+  filter_upwards [sdiff_mem_nhdsWithin_compl hU {p}] with x hx
+  specialize hC ⟨x, hx, rfl⟩
+  simp_all
+
+theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    ∃ V ∈ 𝓝 p, BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (V \ {p})) := by
+  apply IsBigO_to_BddAbove
+  exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
+
+blueprint_comment /--
+Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is
+holomorphic near $p$, then the residue of $f \cdot g$ is $A \cdot g(p)$.
+-/
+
+@[blueprint
+  (title := "ResidueMult")
+  (statement := /--
+  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the
+  residue of $f \cdot g$ at $p$ is $A \cdot g(p)$. That is, we assume that
+  $$
+  f(s) = \frac{A}{s - p} + O(1)$$
+  near $p$, and that $g$ is holomorphic near $p$. Then
+  $$
+  f(s) \cdot g(s) = \frac{A \cdot g(p)}{s - p} + O(1).$$
+  -/)
+  (proof := /--
+  Elementary calculation.
+  $$
+  f(s) * g(s) - \frac{A * g(p)}{s - p} =
+  \left(f(s) * g(s) - \frac{A * g(s)}{s - p}\right)
+  + \left(\frac{A * g(s) - A * g(p)}{s - p}\right).
+  $$
+  The first term is $g(s)(f(s) - \frac{A}{s - p})$, which is bounded near $p$ by the assumption
+  on $f$
+   and the fact that $g$ is holomorphic near $p$.
+  The second term is $A$ times the log derivative of $g$ at $p$, which is bounded by the assumption
+  that  $g$ is holomorphic.
+  -/)]
+theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ}
+    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  -- Add and subtract a term
+  rw [(by ext; simp; ring : (f * g - fun s ↦ A * g p * (s - p)⁻¹) = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)))]
+  have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
+  refine IsBigO.add ?_ ?_
+  · rw[← mul_one (1 : ℂ → ℂ)]
+    refine f_near_p.mul (IsBigO.mono ?_ inf_le_left)
+    refine IsBoundedUnder.isBigO_one ℂ ?_
+    refine Tendsto.isBoundedUnder_le (ContinuousAt.tendsto ?_)
+    exact ContinuousAt.norm (g_holc.differentiableAt U_in_nhds).continuousAt
+  · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
+    suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
+      convert! this using 2
+      field
+    apply IsBigO.const_mul_left
+    refine (isBigO_mul_iff_isBigO_div ?_).mpr ?_
+    · filter_upwards [self_mem_nhdsWithin] with x hx
+      grind
+    · simp only [div_inv_eq_mul, Pi.one_apply, one_mul]
+      exact (g_holc.differentiableAt U_in_nhds).hasDerivAt.isBigO_sub.mono inf_le_left
+
 /-! ## Residue calculus: residues, simple poles, and the rectangle residue theorem
 
 The simple-pole `residue`, `sumResiduesIn`, the `HasSimplePolesOn` scaffold, and the rectangle
