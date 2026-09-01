@@ -337,11 +337,11 @@ Some results from \cite{Dusart1999}-/
   "thm:dusart1999-pi"
   (title := "Dusart 1999, $\\pi$ inequality")
   (statement := /-- For $x \geq 5393$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
+  (proof := /-- Immediate from the strict form of \ref{Dusart_cor_5_3_a}. -/)
+  (proofUses := ["Dusart_cor_5_3_a"])
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
-    pi x > x / (log x - 1) := by
-  -- Matches `Dusart.corollary_5_3_a` (strict), Art01 / Dusart1999.
-  sorry
+    pi x > x / (log x - 1) := Dusart.corollary_5_3_a hx
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
   calc (22 : ℝ) = log (exp 22) := (log_exp 22).symm
