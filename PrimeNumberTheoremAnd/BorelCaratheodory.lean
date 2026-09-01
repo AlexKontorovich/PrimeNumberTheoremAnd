@@ -125,7 +125,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
     · simp [Rpos]
     · have (x₂) (hyp_x₂ : x₂ ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2)) : x₂ ≠ 0 := by
         rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
-          Set.mem_setOf_eq] at hyp_x₂
+          Set.mem_ofPred_eq] at hyp_x₂
         rw [← norm_pos_iff]
         calc 0
           _ < R - ‖x₂ - x‖ := by
@@ -142,7 +142,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ}
   | inr h =>
     use Metric.ball 0 R
     refine ⟨Metric.isOpen_ball, ?_, ?_⟩
-    · simp only [ball_eq, sub_zero, Set.mem_setOf_eq, h]
+    · simp only [ball_eq, sub_zero, Set.mem_ofPred_eq, h]
     · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R =
         Metric.ball (0 : ℂ) R := by
         apply Set.inter_eq_self_of_subset_right

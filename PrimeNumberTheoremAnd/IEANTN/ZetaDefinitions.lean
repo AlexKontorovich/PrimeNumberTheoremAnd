@@ -26,7 +26,7 @@ noncomputable def riemannZeta.zeroes_rect (I J : Set ℝ) : Set ℂ :=
 
 lemma riemannZeta.zeroes_rect_eq (I J : Set ℝ) :
     zeroes_rect I J = (Complex.re ⁻¹' I ∩ Complex.im ⁻¹' J) ∩ zeroes := by
-  ext x; simp only [zeroes_rect, Set.mem_setOf_eq, Set.mem_inter_iff,
+  ext x; simp only [zeroes_rect, Set.mem_ofPred_eq, Set.mem_inter_iff,
     Set.mem_preimage, and_assoc]
 
 lemma riemannZeta.zeroes_rect_disjoint₁ (I₁ I₂ J : Set ℝ) (h : Disjoint I₁ I₂) :
@@ -35,7 +35,7 @@ lemma riemannZeta.zeroes_rect_disjoint₁ (I₁ I₂ J : Set ℝ) (h : Disjoint 
 
 lemma riemannZeta.zeroes_rect_union (I₁ I₂ J : Set ℝ) :
     (zeroes_rect I₁ J) ∪ (zeroes_rect I₂ J) = zeroes_rect (I₁ ∪ I₂) J := by
-  ext x; simp only [zeroes_rect, Set.mem_union, Set.mem_setOf_eq]; tauto
+  ext x; simp only [zeroes_rect, Set.mem_union, Set.mem_ofPred_eq]; tauto
 
 -- should this be in mathlib?
 section

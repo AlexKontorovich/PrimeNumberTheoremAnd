@@ -1220,7 +1220,7 @@ theorem bklnw_eq_3_11 (k n : ℕ) (hk : 1 ≤ k) (a : ℕ → ℝ) (ε : ℝ →
   (hbb : b < b') (hbk : b ≥ 2 * k) :
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
   unfold B Btilde
-  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+  have h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
     use exp b
     simp only [Set.mem_Icc, le_refl, true_and]
     exact exp_le_exp.mpr hbb.le
@@ -1403,7 +1403,7 @@ lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b
     simpa only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_filter, mem_insert,
       List.mem_toFinset, List.mem_map, Prod.exists, exists_and_right, exists_eq_right, true_or,
       true_and]
-  rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
+  rw [table_10_next_eq_min' b (Finset.nonempty_def.mpr ⟨(K : ℝ), h2⟩)]
   simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
 
 -- The unabridged 287-row `table_10` makes the per-entry membership enumeration below

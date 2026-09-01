@@ -111,7 +111,7 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
         infer_instance
       rw [eventually_iff]
       simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets,
-        Set.mem_setOf_eq]
+        Set.mem_ofPred_eq]
       use 1
       simp only [imp_self, implies_true]
     apply IsLittleO.isEquivalent
@@ -197,7 +197,7 @@ theorem chebyshev_asymptotic_finsum :
           = ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), log (p : ℝ) :=
             finsum_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
         _ = ∑ p ∈ hfin.toFinset, log (p : ℝ) := finsum_mem_eq_finite_toFinset_sum _ hfin
-        _ = _ := sum_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+        _ = _ := sum_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
             mem_filter, mem_Icc, and_congr_left_iff]; exact fun hp ↦
             ⟨fun hpx ↦ ⟨Nat.zero_le _, Nat.le_floor hpx⟩, fun ⟨_, hpn⟩ ↦
               (le_or_gt 0 x).elim
@@ -311,7 +311,7 @@ theorem primorial_bounds_finprod :
         = ∏ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), p :=
       finprod_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
       _ = ∏ p ∈ hfin.toFinset, p := finprod_mem_eq_finite_toFinset_prod _ hfin
-      _ = _ := prod_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+      _ = _ := prod_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
           mem_filter, mem_Iic, and_congr_left_iff]; exact fun hp ↦
           ⟨le_floor, fun hpn ↦ (le_or_gt 0 x).elim
           (fun hx ↦ (Nat.floor_le hx).trans' (cast_le.mpr hpn)) fun hx ↦
@@ -914,10 +914,10 @@ theorem pi_alt' :
 
 lemma pi_nth_prime (n : ℕ) :
     primeCounting (nth_prime n) = n + 1 := by
-  rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOf_prime]
+  rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOfPred_prime]
 
 lemma tendsto_nth_prime_atTop : Tendsto nth_prime atTop atTop :=
-  nth_strictMono infinite_setOf_prime |>.tendsto_atTop
+  nth_strictMono infinite_setOfPred_prime |>.tendsto_atTop
 
 lemma pi_nth_prime_asymp :
     (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
@@ -1445,7 +1445,7 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       tactic =>
         simp only [ne_eq, _root_.mul_eq_zero, log_eq_zero, not_or]
         have x_pos := x.property
-        simp_rw [Set.Ioi, Set.mem_setOf_eq] at x_pos
+        simp_rw [Set.Ioi, Set.mem_ofPred_eq] at x_pos
         refine ⟨?_, by linarith, by linarith, by linarith⟩
         have log_num_pos: 0 < log (1 + ε) := by
           exact Real.log_pos (by linarith)
@@ -2016,7 +2016,7 @@ lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
             apply ArithmeticFunction.IsMultiplicative.map_mul_of_coprime;
             · exact ArithmeticFunction.isMultiplicative_moebius;
             · exact Nat.Coprime.coprime_dvd_left ( Nat.div_dvd_of_dvd <| Finset.mem_filter.mp hx |>.2 ) <| Nat.Coprime.coprime_dvd_right ( Nat.div_dvd_of_dvd <| Finset.mem_filter.mp hy |>.2 ) h_coprime;
-          · intros x hx y hy; simp +contextual only [ne_eq, coe_product, coe_filter, mem_Icc, Set.mem_prod, Set.mem_setOf_eq] at *;
+          · intros x hx y hy; simp +contextual only [ne_eq, coe_product, coe_filter, mem_Icc, Set.mem_prod, Set.mem_ofPred_eq] at *;
             intro hxy
             have h_eq1 : x.1 = y.1 := by
               exact Nat.dvd_antisymm ( by exact Nat.Coprime.dvd_of_dvd_mul_right ( show Nat.Coprime ( x.1 ) ( y.2 ) from Nat.Coprime.coprime_dvd_left ( dvd_of_mul_left_dvd hx.1.2 ) <| Nat.Coprime.coprime_dvd_right ( dvd_of_mul_left_dvd hy.2.2 ) h_coprime ) <| hxy.symm ▸ dvd_mul_right _ _ ) ( by exact Nat.Coprime.dvd_of_dvd_mul_right ( show Nat.Coprime ( y.1 ) ( x.2 ) from Nat.Coprime.coprime_dvd_left ( dvd_of_mul_left_dvd hy.1.2 ) <| Nat.Coprime.coprime_dvd_right ( dvd_of_mul_left_dvd hx.2.2 ) h_coprime ) <| hxy.symm ▸ dvd_mul_right _ _ )
@@ -2524,7 +2524,7 @@ theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) 
     Infinite { p // p.Prime ∧ p % q = a } := by
   have : {p | p.Prime ∧ p % q = a}.Infinite := by
     have : {p | p.Prime ∧ p ≡ a [MOD q]}.Infinite := by
-      have := @infinite_setOf_prime_and_eq_mod
+      have := @infinite_setOfPred_prime_and_eq_mod
       specialize @this q <| NeZero.of_pos hq
       simp_all only [isUnit_iff_exists_inv, forall_exists_index, ← ZMod.natCast_eq_natCast_iff]
       exact this (IsUnit.exists_right_inv (show IsUnit (a : ZMod q) from by

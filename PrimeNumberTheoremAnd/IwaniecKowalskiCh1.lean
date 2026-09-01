@@ -155,15 +155,7 @@ theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
   which is exactly the number of divisors of $n$, i.e., $\tau(n)$.
   -/)]
 theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
-  ext n; unfold zeta tau sigma
-  simp only [mul_apply, coe_mk, mul_ite, mul_zero, mul_one, pow_zero, sum_const, smul_eq_mul]
-  have key : ∀ x ∈ n.divisorsAntidiagonal, (if x.2 = 0 then 0 else if x.1 = 0 then 0 else 1) = 1 := by
-    intro ⟨a, b⟩ hx
-    have := Nat.mem_divisorsAntidiagonal.mp hx
-    simp [mul_ne_zero_iff.mp (this.1 ▸ this.2)]
-  simp_rw [Finset.sum_congr rfl key, Finset.card_eq_sum_ones, Finset.sum_const]
-  simp only [smul_eq_mul, mul_one, ← Nat.map_div_right_divisors]
-  exact card_map { toFun := fun d ↦ (d, n / d), inj' := fun x x_1 ↦ congr_arg Prod.fst }
+  rw [tau, ← zeta_mul_pow_eq_sigma, pow_zero_eq_zeta]
 
 /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/
 @[blueprint
@@ -532,12 +524,10 @@ theorem isMultiplicative_powR {ν : ℂ} : IsMultiplicative (powR ν) := by
   The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
   -/)]
 lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunction ℂ) * powR ν := by
-  ext n;
-  by_cases hn : n = 0 <;> simp only [ hn, ArithmeticFunction.sigmaR, ArithmeticFunction.powR,
-  ArithmeticFunction.zeta, map_zero, coe_mk, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero,
-  cast_one, mul_ite, mul_zero, ite_mul, zero_mul, one_mul]
-  rw [ Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if x = 0 then 0 else ( y : ℂ ) ^ ν, ← Nat.sum_div_divisors ];
-  exact Finset.sum_congr rfl fun x hx => by rw [ if_neg ( Nat.ne_of_gt ( Nat.div_pos ( Nat.le_of_dvd ( Nat.pos_of_ne_zero hn ) ( Nat.dvd_of_mem_divisors hx ) ) ( Nat.pos_of_mem_divisors hx ) ) ), if_neg ( Nat.ne_of_gt ( Nat.pos_of_mem_divisors hx ) ) ] ;
+  ext n
+  rw [coe_zeta_mul_apply, sigmaR_apply]
+  refine Finset.sum_congr rfl fun d hd ↦ ?_
+  simp only [powR, ArithmeticFunction.coe_mk, if_neg (Nat.pos_of_mem_divisors hd).ne']
 
 @[blueprint
   "isMultiplicative_sigmaR"
@@ -1639,7 +1629,7 @@ lemma pow_divisors_mul_injective {m n k : ℕ} (hmn : Nat.Coprime m n) :
     Set.InjOn (fun (p : ℕ × ℕ) => p.1 * p.2) (m.divisors.filter (fun x => x ^ k ∣ m) ×ˢ n.divisors.filter (fun x => x ^ k ∣ n)) := by
   apply Set.InjOn.mono _ (divisors_mul_injective hmn)
   intro ⟨_, _⟩ hab
-  simp only [Finset.coe_filter, Set.mem_prod, Set.mem_setOf_eq, Finset.mem_coe] at hab ⊢
+  simp only [Finset.coe_filter, Set.mem_prod, Set.mem_ofPred_eq, Finset.mem_coe] at hab ⊢
   exact ⟨hab.1.1, hab.2.1⟩
 
 @[blueprint

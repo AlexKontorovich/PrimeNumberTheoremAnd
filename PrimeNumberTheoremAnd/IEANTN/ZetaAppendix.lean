@@ -3797,7 +3797,7 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         exact (Set.finite_Icc _ _).subset h_sub
       apply hS.subset
       intro n hn
-      rw [Set.mem_setOf_eq] at hn
+      rw [Set.mem_ofPred_eq] at hn
       by_contra h_n_not_le
       dsimp [S] at h_n_not_le
       rw [not_le] at h_n_not_le

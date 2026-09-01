@@ -986,7 +986,7 @@ lemma zetaCounting_le_surrogate_mass :
   have hseteq : riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T) =
       riemannZeta.zeroes_rect (Set.Icc 0 1) (Set.Ioo 0 T) := by
     ext ρ
-    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_ofPred_eq,
       Set.mem_univ, true_and, Set.mem_Icc, Set.mem_Ioo]
     constructor
     · rintro ⟨him, hzero⟩
@@ -1005,7 +1005,7 @@ lemma zetaCounting_le_surrogate_mass :
       riemannZeta ρ = 0 ∧ 0 < ρ.im ∧ ρ.im < T ∧ 0 ≤ ρ.re ∧ ρ.re ≤ 1 ∧ ρ ≠ 1 := by
     intro ρ hρ
     rw [hseteq] at hρ
-    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_ofPred_eq,
       Set.mem_Icc, Set.mem_Ioo] at hρ
     obtain ⟨⟨hre0, hre1⟩, ⟨him0, himT⟩, hzero⟩ := hρ
     refine ⟨hzero, him0, himT, hre0, hre1, fun h ↦ ?_⟩

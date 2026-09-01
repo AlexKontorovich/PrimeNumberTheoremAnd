@@ -372,7 +372,7 @@ theorem differentiableOn_divisorComplementCanonicalProduct_univ
     refine Filter.Eventually.of_forall ?_
     intro s
     exact (differentiable_divisorComplementPartialProduct m f z₀ s).differentiableOn
-  haveI : (Filter.atTop : Filter (Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)))).NeBot :=
+  have : (Filter.atTop : Filter (Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)))).NeBot :=
     Filter.atTop_neBot
   exact hloc.differentiableOn hF isOpen_univ
 

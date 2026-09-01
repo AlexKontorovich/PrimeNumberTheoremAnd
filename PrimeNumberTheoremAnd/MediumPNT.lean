@@ -211,7 +211,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩
         SmoothingFpos mass_one hz).continuousAt
     · fun_prop
-    · simp only [mapsTo_univ_iff, mem_setOf_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    · simp only [mapsTo_univ_iff, mem_ofPred_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
         ofReal_im, I_im, mul_one, sub_self, add_zero, forall_const]; linarith
 
   have abs_two : ∀ a : ℝ, ∀ i : ℕ, ‖(i : ℂ) ^ ((σ : ℂ) + ↑a * I)‖₊ = i ^ σ := by
@@ -1671,14 +1671,14 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     refine mem_inf_of_left ?_
     · refine Filter.mem_sets.mp ?_
       · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
-          rw [Set.setOf_subset_setOf]
+          rw [ofPred_subset_ofPred]
           intro t hyp_t
           exact T0 x t hyp_t
         have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
           apply Set.ext
           intro x
-          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true,
-            mem_setOf_eq, Set.mem_sdiff, mem_univ, mem_singleton_iff, true_and]
+          simp_all only [ne_eq, ofPred_subset_ofPred, not_false_eq_true, implies_true,
+            mem_ofPred_eq, Set.mem_sdiff, mem_univ, mem_singleton_iff, true_and]
 
         rw [U1] at U
         exact ae_volume_of_contains_compl_singleton_zero _ U
@@ -2447,7 +2447,6 @@ lemma log_pow_over_xsq_integral_bounded :
         apply intervalIntegral.integral_congr
         intro x hx
         simp
-        rfl
       rw [change_int_power, integral]
       have : T ^ (-1 : ℤ) > 0 := by
         refine zpow_pos ?_ (-1)
@@ -3627,7 +3626,7 @@ lemma MellinOfSmooth1cExplicit {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   rcases hc with ⟨ε₀, ε₀pos, h⟩
   refine ⟨ε₀, c, ε₀pos, cpos, fun ε hε ↦ ?_⟩
   specialize h hε
-  rw [mem_setOf_eq, id_eq, norm_of_nonneg hε.1.le] at h
+  rw [mem_ofPred_eq, id_eq, norm_of_nonneg hε.1.le] at h
   exact h
 
 open Filter Topology

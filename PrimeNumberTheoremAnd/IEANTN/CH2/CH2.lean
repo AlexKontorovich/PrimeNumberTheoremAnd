@@ -141,7 +141,7 @@ that the contour-shifting results will rely on. -/
 /-- The boundary of the rectangle lies inside the rectangle. -/
 lemma LadderParams.Rboundary_subset_R (l : LadderParams) : l.Rboundary ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.Rboundary, LadderParams.R, Set.mem_setOf_eq] at hz ⊢
+  simp only [LadderParams.Rboundary, LadderParams.R, Set.mem_ofPred_eq] at hz ⊢
   rcases hz with ⟨h1, h2⟩ | ⟨h1, h2⟩
   · exact ⟨h1.le, h2⟩
   · exact ⟨h1, h2.le⟩
@@ -149,7 +149,7 @@ lemma LadderParams.Rboundary_subset_R (l : LadderParams) : l.Rboundary ⊆ l.R :
 /-- The upper quarter-rectangle lies inside the rectangle. -/
 lemma LadderParams.R4_subset_R (l : LadderParams) : l.R4 ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.R4, LadderParams.R, Set.mem_setOf_eq, Set.mem_Icc] at hz ⊢
+  simp only [LadderParams.R4, LadderParams.R, Set.mem_ofPred_eq, Set.mem_Icc] at hz ⊢
   obtain ⟨hre, h0, h4⟩ := hz
   refine ⟨hre, ?_⟩
   rw [abs_of_nonneg h0]
@@ -160,7 +160,7 @@ lemma LadderParams.R4_subset_R (l : LadderParams) : l.R4 ⊆ l.R := by
 lemma LadderParams.admissible_contour_subset_R4 (l : LadderParams) :
     l.admissible_contour ⊆ l.R4 := by
   intro z hz
-  simp only [LadderParams.admissible_contour, LadderParams.R4, Set.mem_setOf_eq, Set.mem_Icc] at hz ⊢
+  simp only [LadderParams.admissible_contour, LadderParams.R4, Set.mem_ofPred_eq, Set.mem_Icc] at hz ⊢
   obtain ⟨h0δ, hδT⟩ := l.hδ
   rcases hz with ⟨hre, him⟩ | ⟨hre, h0, hδ'⟩
   · exact ⟨hre, by rw [him]; exact h0δ.le, by rw [him]; exact hδT.le⟩
@@ -174,7 +174,7 @@ lemma LadderParams.admissible_contour_subset_R (l : LadderParams) :
 /-- The boundary of the rectangle is part of the ladder (the right edge is the `σ 0 = 1` rung). -/
 lemma LadderParams.Rboundary_subset_ladder (l : LadderParams) : l.Rboundary ⊆ l.ladder := by
   intro z hz
-  simp only [LadderParams.Rboundary, LadderParams.ladder, Set.mem_setOf_eq] at hz ⊢
+  simp only [LadderParams.Rboundary, LadderParams.ladder, Set.mem_ofPred_eq] at hz ⊢
   rcases hz with ⟨h1, h2⟩ | ⟨h1, h2⟩
   · exact Or.inl ⟨0, h1.trans l.h0.symm, h2⟩
   · exact Or.inr ⟨h1, h2⟩
@@ -182,21 +182,21 @@ lemma LadderParams.Rboundary_subset_ladder (l : LadderParams) : l.Rboundary ⊆ 
 /-- The ladder columns `L` lie in the rectangle (uses `σ n ≤ 1`). -/
 lemma LadderParams.L_subset_R (l : LadderParams) : l.L ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.L, LadderParams.R, Set.mem_setOf_eq] at hz ⊢
+  simp only [LadderParams.L, LadderParams.R, Set.mem_ofPred_eq] at hz ⊢
   obtain ⟨n, _, hre, him⟩ := hz
   exact ⟨by rw [hre]; exact l.hσ n, him⟩
 
 /-- The columns `L` are part of the page-2 ladder. -/
 lemma LadderParams.L_subset_ladder (l : LadderParams) : l.L ⊆ l.ladder := by
   intro z hz
-  simp only [LadderParams.L, LadderParams.ladder, Set.mem_setOf_eq] at hz ⊢
+  simp only [LadderParams.L, LadderParams.ladder, Set.mem_ofPred_eq] at hz ⊢
   obtain ⟨n, _, hre, him⟩ := hz
   exact Or.inl ⟨n, hre, him⟩
 
 /-- The base point `1` of the contour. -/
 lemma LadderParams.one_mem_admissible_contour (l : LadderParams) :
     (1 : ℂ) ∈ l.admissible_contour := by
-  simp only [LadderParams.admissible_contour, Set.mem_setOf_eq, Complex.one_re, Complex.one_im,
+  simp only [LadderParams.admissible_contour, Set.mem_ofPred_eq, Complex.one_re, Complex.one_im,
     Set.mem_Icc]
   exact Or.inr ⟨trivial, le_rfl, l.hδ.1.le⟩
 
@@ -205,13 +205,13 @@ lemma LadderParams.one_add_I_mul_delta_mem_admissible_contour (l : LadderParams)
     (1 + Complex.I * (l.δ : ℂ)) ∈ l.admissible_contour := by
   have hre : (1 + Complex.I * (l.δ : ℂ)).re = 1 := by simp
   have him : (1 + Complex.I * (l.δ : ℂ)).im = l.δ := by simp
-  simp only [LadderParams.admissible_contour, Set.mem_setOf_eq]
+  simp only [LadderParams.admissible_contour, Set.mem_ofPred_eq]
   exact Or.inl ⟨le_of_eq hre, him⟩
 
 private lemma LadderParams.mem_admissible_contour_of_re_eq_one_of_im_nonneg (l : LadderParams)
     {z : ℂ} (hz_re : z.re = 1) (hz_im : z.im ∈ Set.Icc 0 l.δ) :
     z ∈ l.admissible_contour := by
-  simp only [LadderParams.admissible_contour, Set.mem_setOf_eq]
+  simp only [LadderParams.admissible_contour, Set.mem_ofPred_eq]
   exact Or.inr ⟨hz_re, hz_im⟩
 
 private lemma LadderParams.star_mem_admissible_contour_of_re_eq_one_of_im_nonpos
@@ -229,17 +229,17 @@ paper's conjugate contour `C̄` and the conjugate-pairing of poles available. -/
 /-- The rectangle `R` is invariant under conjugation. -/
 lemma LadderParams.conj_mem_R_iff (l : LadderParams) {z : ℂ} :
     (starRingEnd ℂ) z ∈ l.R ↔ z ∈ l.R := by
-  simp only [LadderParams.R, Set.mem_setOf_eq, Complex.conj_re, Complex.conj_im, abs_neg]
+  simp only [LadderParams.R, Set.mem_ofPred_eq, Complex.conj_re, Complex.conj_im, abs_neg]
 
 /-- The ladder is invariant under conjugation. -/
 lemma LadderParams.conj_mem_ladder_iff (l : LadderParams) {z : ℂ} :
     (starRingEnd ℂ) z ∈ l.ladder ↔ z ∈ l.ladder := by
-  simp only [LadderParams.ladder, Set.mem_setOf_eq, Complex.conj_re, Complex.conj_im, abs_neg]
+  simp only [LadderParams.ladder, Set.mem_ofPred_eq, Complex.conj_re, Complex.conj_im, abs_neg]
 
 /-- The boundary `∂R` is invariant under conjugation. -/
 lemma LadderParams.conj_mem_Rboundary_iff (l : LadderParams) {z : ℂ} :
     (starRingEnd ℂ) z ∈ l.Rboundary ↔ z ∈ l.Rboundary := by
-  simp only [LadderParams.Rboundary, Set.mem_setOf_eq, Complex.conj_re, Complex.conj_im, abs_neg]
+  simp only [LadderParams.Rboundary, Set.mem_ofPred_eq, Complex.conj_re, Complex.conj_im, abs_neg]
 
 /-! The strip `belowContour` (where `HasGoodPoles` forbids poles) sits inside the upper
 quarter-rectangle, and is disjoint from the contour itself. -/
@@ -247,7 +247,7 @@ quarter-rectangle, and is disjoint from the contour itself. -/
 /-- `belowContour` lies in the upper quarter-rectangle (since `δ < T/4`). -/
 lemma LadderParams.belowContour_subset_R4 (l : LadderParams) : l.belowContour ⊆ l.R4 := by
   intro z hz
-  simp only [LadderParams.belowContour, LadderParams.R4, Set.mem_setOf_eq, Set.mem_Ioo,
+  simp only [LadderParams.belowContour, LadderParams.R4, Set.mem_ofPred_eq, Set.mem_Ioo,
     Set.mem_Icc] at hz ⊢
   obtain ⟨hre, h0, hδ'⟩ := hz
   obtain ⟨-, hδT⟩ := l.hδ
@@ -262,7 +262,7 @@ lemma LadderParams.belowContour_disjoint_admissible_contour (l : LadderParams) :
     Disjoint l.belowContour l.admissible_contour := by
   rw [Set.disjoint_left]
   intro z hz hz'
-  simp only [LadderParams.belowContour, LadderParams.admissible_contour, Set.mem_setOf_eq,
+  simp only [LadderParams.belowContour, LadderParams.admissible_contour, Set.mem_ofPred_eq,
     Set.mem_Ioo, Set.mem_Icc] at hz hz'
   obtain ⟨hre, _, hδ'⟩ := hz
   rcases hz' with ⟨_, him⟩ | ⟨hre', _⟩
@@ -276,7 +276,7 @@ conjugate symmetry, and how `belowContour` and the contour itself relate to `RC`
 /-- `Rpos` lies in the rectangle. -/
 lemma LadderParams.Rpos_subset_R (l : LadderParams) : l.Rpos ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.Rpos, LadderParams.R, Set.mem_setOf_eq, Set.mem_Icc] at hz ⊢
+  simp only [LadderParams.Rpos, LadderParams.R, Set.mem_ofPred_eq, Set.mem_Icc] at hz ⊢
   obtain ⟨hre, hδ, hT⟩ := hz
   refine ⟨hre, ?_⟩
   rw [abs_of_nonneg (l.hδ.1.le.trans hδ)]
@@ -285,7 +285,7 @@ lemma LadderParams.Rpos_subset_R (l : LadderParams) : l.Rpos ⊆ l.R := by
 /-- `RposBar` lies in the rectangle. -/
 lemma LadderParams.RposBar_subset_R (l : LadderParams) : l.RposBar ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.RposBar, LadderParams.R, Set.mem_setOf_eq, Set.mem_Icc] at hz ⊢
+  simp only [LadderParams.RposBar, LadderParams.R, Set.mem_ofPred_eq, Set.mem_Icc] at hz ⊢
   obtain ⟨hre, hT, hδ⟩ := hz
   refine ⟨hre, ?_⟩
   have hz_nonpos : z.im ≤ 0 := hδ.trans (neg_nonpos.mpr l.hδ.1.le)
@@ -295,7 +295,7 @@ lemma LadderParams.RposBar_subset_R (l : LadderParams) : l.RposBar ⊆ l.R := by
 /-- `RC` lies in the rectangle. -/
 lemma LadderParams.RC_subset_R (l : LadderParams) : l.RC ⊆ l.R := by
   intro z hz
-  simp only [LadderParams.RC, LadderParams.R, Set.mem_setOf_eq] at hz ⊢
+  simp only [LadderParams.RC, LadderParams.R, Set.mem_ofPred_eq] at hz ⊢
   obtain ⟨hre, h⟩ := hz
   refine ⟨hre, ?_⟩
   have := l.hδ.2
@@ -305,19 +305,19 @@ lemma LadderParams.RC_subset_R (l : LadderParams) : l.RC ⊆ l.R := by
 /-- `RC` is invariant under conjugation (the strip `|im| ≤ δ` is symmetric about the real axis). -/
 lemma LadderParams.conj_mem_RC_iff (l : LadderParams) {z : ℂ} :
     (starRingEnd ℂ) z ∈ l.RC ↔ z ∈ l.RC := by
-  simp only [LadderParams.RC, Set.mem_setOf_eq, Complex.conj_re, Complex.conj_im, abs_neg]
+  simp only [LadderParams.RC, Set.mem_ofPred_eq, Complex.conj_re, Complex.conj_im, abs_neg]
 
 /-- Conjugation swaps `Rpos` and `RposBar`. -/
 lemma LadderParams.conj_mem_Rpos_iff_mem_RposBar (l : LadderParams) {z : ℂ} :
     (starRingEnd ℂ) z ∈ l.Rpos ↔ z ∈ l.RposBar := by
-  simp only [LadderParams.Rpos, LadderParams.RposBar, Set.mem_setOf_eq,
+  simp only [LadderParams.Rpos, LadderParams.RposBar, Set.mem_ofPred_eq,
     Complex.conj_re, Complex.conj_im, Set.mem_Icc]
   constructor <;> rintro ⟨hre, h1, h2⟩ <;> exact ⟨hre, by linarith, by linarith⟩
 
 /-- The open strip below the contour lies in the closed strip between `C` and `C̄`. -/
 lemma LadderParams.belowContour_subset_RC (l : LadderParams) : l.belowContour ⊆ l.RC := by
   intro z hz
-  simp only [LadderParams.belowContour, LadderParams.RC, Set.mem_setOf_eq, Set.mem_Ioo] at hz ⊢
+  simp only [LadderParams.belowContour, LadderParams.RC, Set.mem_ofPred_eq, Set.mem_Ioo] at hz ⊢
   obtain ⟨hre, h0, hδ'⟩ := hz
   refine ⟨hre.le, ?_⟩
   rw [abs_of_nonneg h0.le]
@@ -327,7 +327,7 @@ lemma LadderParams.belowContour_subset_RC (l : LadderParams) : l.belowContour �
 lemma LadderParams.admissible_contour_subset_RC (l : LadderParams) :
     l.admissible_contour ⊆ l.RC := by
   intro z hz
-  simp only [LadderParams.admissible_contour, LadderParams.RC, Set.mem_setOf_eq,
+  simp only [LadderParams.admissible_contour, LadderParams.RC, Set.mem_ofPred_eq,
     Set.mem_Icc] at hz ⊢
   rcases hz with ⟨hre, him⟩ | ⟨hre, h0, hδ'⟩
   · refine ⟨hre, ?_⟩
@@ -352,7 +352,7 @@ lemma LadderParams.upperRectangle_subset_Rpos (l : LadderParams) (n : ℕ) :
       (zRe_lt_wRe := by simpa using l.hσ n)
       (zIm_lt_wIm := by simpa using hδ_le_T)).1 hz with
     ⟨hz_re_left, hz_re_right, hz_im_bot, hz_im_top⟩
-  simp only [LadderParams.Rpos, Set.mem_setOf_eq, Set.mem_Icc]
+  simp only [LadderParams.Rpos, Set.mem_ofPred_eq, Set.mem_Icc]
   exact ⟨by simpa using hz_re_right, ⟨by simpa using hz_im_bot, by simpa using hz_im_top⟩⟩
 
 /-! ## Contour integrals for Lemma 5.1 (Stage 2)
@@ -795,7 +795,7 @@ private lemma sumResiduesIn_eq_of_inter_poles_eq_and_subset {F : ℂ → ℂ} {R
   refine sumResiduesIn_inter_eq_of_set_eq h_set_eq ?_
   intro s hs_S2 hs_not_pole
   have hs_not_pole' : ¬ meromorphicOrderAt F s < 0 := by
-    simpa only [Set.mem_setOf_eq] using hs_not_pole
+    simpa only [Set.mem_ofPred_eq] using hs_not_pole
   exact residue_eq_zero_of_not_pole_of_meromorphicAt (hRn_mero s (hS2_subset hs_S2))
     (le_of_not_gt hs_not_pole')
 
@@ -928,7 +928,7 @@ lemma upperRectangle_no_poles_boundary (l : LadderParams) (n : ℕ)
       {z | meromorphicOrderAt (fun s ↦ G s * (x : ℂ) ^ s) z < 0} := by
   rw [Set.disjoint_left]
   rintro z hz hz_pole
-  simp only [Set.mem_setOf_eq] at hz_pole
+  simp only [Set.mem_ofPred_eq] at hz_pole
   have h_rect_subset_Rpos :
       Rectangle ((l.σ n : ℂ) + (l.δ : ℂ) * Complex.I) (1 + (l.T : ℂ) * Complex.I) ⊆ l.Rpos :=
     l.upperRectangle_subset_Rpos n
@@ -1158,7 +1158,7 @@ private lemma G_mul_cpow_integrable_vseg (l : LadderParams)
     intro t ht
     refine ⟨mapsTo_vseg_Rboundary l ha_gen hb_le_T ht, ?_⟩
     simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
-      Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
+      Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_ofPred_eq]
     linarith [ht.1]
   exact (ContinuousOn.comp h_cont_sum_NF (Continuous.continuousOn (by fun_prop)) h_maps_rb).mul
     (continuousOn_cpow_vertical_path hx₀ hx 1 _) |>.mul_const Complex.I
@@ -1174,7 +1174,7 @@ private lemma G_circ_star_no_poles_at_one (l : LadderParams)
   have hpow0_mero : MeromorphicAt (fun s : ℂ ↦ (x₀ : ℂ) ^ s) 1 := meromorphicAt_rpow hx₀_pos 1
   have hpow0_order : meromorphicOrderAt (fun s : ℂ ↦ (x₀ : ℂ) ^ s) 1 = 0 := meromorphicOrderAt_rpow hx₀_pos 1
   have h1_R : (1 : ℂ) ∈ l.R := by
-    simp only [LadderParams.R, Set.mem_setOf_eq, one_re, one_im, le_refl, true_and]
+    simp only [LadderParams.R, Set.mem_ofPred_eq, one_re, one_im, le_refl, true_and]
     rw [abs_zero]
     exact l.hT.le
   have hGc_mero : MeromorphicAt G_circ 1 := hG_circ_mero 1 h1_R
@@ -1209,7 +1209,7 @@ private lemma upper_Rboundary_no_poles (l : LadderParams)
   · have hs_im_zero : s.im = 0 := by linarith [hs_im, hs_im_pos]
     have hs_re : s.re = 1 := by
       have h_Rbd : s ∈ l.Rboundary := hs
-      simp only [LadderParams.Rboundary, Set.mem_setOf_eq] at h_Rbd
+      simp only [LadderParams.Rboundary, Set.mem_ofPred_eq] at h_Rbd
       rcases h_Rbd with ⟨hre, _⟩ | ⟨_, him⟩
       · exact hre
       · rw [hs_im_zero, abs_zero] at him
@@ -1301,7 +1301,7 @@ private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
     have h3 : MeasureTheory.volume {t ∈ Set.Ioc a b | ¬(t < 0)} = 0 := measure_mono_null h2 (MeasureTheory.measure_singleton 0)
     rw [MeasureTheory.ae_restrict_iff' measurableSet_Ioc, MeasureTheory.ae_iff]
     have h4 : {a_1 | ¬(a_1 ∈ Set.Ioc a b → a_1 < 0)} = {t ∈ Set.Ioc a b | ¬(t < 0)} := by
-      ext t; simp only [Set.mem_Ioc, Set.mem_setOf_eq]; tauto
+      ext t; simp only [Set.mem_Ioc, Set.mem_ofPred_eq]; tauto
     rw [h4]
     exact h3
   have h_ae : (fun t : ℝ ↦ G ((1:ℂ) + t * Complex.I) * (x : ℂ) ^ ((1:ℂ) + t * Complex.I) * Complex.I) =ᵐ[MeasureTheory.volume.restrict (Set.uIoc a b)] H_lower := by
@@ -1321,7 +1321,7 @@ private lemma G_mul_cpow_integrable_vseg_lower (l : LadderParams)
     intro t ht
     refine ⟨mapsTo_vseg_Rboundary l ha_ge_negT hb_gen ht, ?_⟩
     simp only [Complex.add_im, Complex.one_im, Complex.mul_im, Complex.ofReal_im, Complex.I_im,
-      Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_setOf_eq]
+      Complex.ofReal_re, Complex.I_re, mul_one, add_zero, mul_zero, zero_add, Set.mem_ofPred_eq]
     linarith [ht.2]
   exact (ContinuousOn.comp h_cont_sum_NF (Continuous.continuousOn (by fun_prop)) h_maps_rb).mul
     (continuousOn_cpow_vertical_path hx₀ hx 1 _) |>.mul_const Complex.I
@@ -1380,7 +1380,7 @@ lemma LadderParams.lowerRectangle_subset_RposBar (l : LadderParams) (n : ℕ) :
       (w := (1 - (l.δ : ℂ) * Complex.I)) (p := z)
       (zRe_lt_wRe := by simpa using l.hσ n) (zIm_lt_wIm := by simpa using hδ_le_T)).1 hz with
     ⟨hz_re_left, hz_re_right, hz_im_bot, hz_im_top⟩
-  simp only [LadderParams.RposBar, Set.mem_setOf_eq, Set.mem_Icc]
+  simp only [LadderParams.RposBar, Set.mem_ofPred_eq, Set.mem_Icc]
   exact ⟨by simpa using hz_re_right, ⟨by simpa using hz_im_bot, by simpa using hz_im_top⟩⟩
 
 lemma lowerRectangle_meromorphicOn (n : ℕ)
@@ -1713,7 +1713,7 @@ private lemma lower_Rboundary_no_poles (l : LadderParams)
   · have hs_im_zero : s.im = 0 := by linarith [hs_im, hs_im_neg]
     have hs_re : s.re = 1 := by
       have h_Rbd : s ∈ l.Rboundary := hs
-      simp only [LadderParams.Rboundary, Set.mem_setOf_eq] at h_Rbd
+      simp only [LadderParams.Rboundary, Set.mem_ofPred_eq] at h_Rbd
       rcases h_Rbd with ⟨hre, _⟩ | ⟨_, him⟩
       · exact hre
       · rw [hs_im_zero, abs_zero] at him
@@ -1858,7 +1858,7 @@ lemma centralRectangle_subset_RC (l : LadderParams) (n : ℕ) :
           zero_add, add_zero, zero_sub, sub_zero, one_mul, mul_one, neg_le_self_iff] using
           l.hδ.1.le)).1 hz with
     ⟨_, hz_re_right, hz_im_low, hz_im_high⟩
-  simp only [LadderParams.RC, Set.mem_setOf_eq]
+  simp only [LadderParams.RC, Set.mem_ofPred_eq]
   refine ⟨by simpa using hz_re_right, ?_⟩
   exact abs_le.mpr ⟨by simpa using hz_im_low, by simpa using hz_im_high⟩
 
@@ -1892,7 +1892,7 @@ private lemma mem_RectangleBorder_central_cases (l : LadderParams) (n : ℕ) (hn
   rcases hz with (((⟨hz_re, hz_im⟩ | ⟨hz_re, hz_im⟩) | ⟨hz_re, hz_im⟩) | ⟨hz_re, hz_im⟩)
   · right
     left
-    rw [LadderParams.admissible_contour, Set.mem_setOf_eq]
+    rw [LadderParams.admissible_contour, Set.mem_ofPred_eq]
     left
     constructor
     · rw [starRingEnd_apply, star_def, Complex.conj_re]
@@ -1901,16 +1901,16 @@ private lemma mem_RectangleBorder_central_cases (l : LadderParams) (n : ℕ) (hn
       simp
   · right
     right
-    rw [LadderParams.L, Set.mem_setOf_eq]
+    rw [LadderParams.L, Set.mem_ofPred_eq]
     have abs_zim_le : |z.im| ≤ l.T := (abs_le.mpr ⟨hz_im.1, hz_im.2⟩).trans hδ_le_T
     exact ⟨n, hn, hz_re, abs_zim_le⟩
   · left
-    rw [LadderParams.admissible_contour, Set.mem_setOf_eq]
+    rw [LadderParams.admissible_contour, Set.mem_ofPred_eq]
     left
     exact ⟨hz_re.2, hz_im⟩
   · by_cases hz_im_nonneg : 0 ≤ z.im
     · left
-      rw [LadderParams.admissible_contour, Set.mem_setOf_eq]
+      rw [LadderParams.admissible_contour, Set.mem_ofPred_eq]
       right
       constructor
       · exact hz_re
@@ -1918,7 +1918,7 @@ private lemma mem_RectangleBorder_central_cases (l : LadderParams) (n : ℕ) (hn
         exact ⟨hz_im_nonneg, hz_im.2⟩
     · right
       left
-      rw [LadderParams.admissible_contour, Set.mem_setOf_eq]
+      rw [LadderParams.admissible_contour, Set.mem_ofPred_eq]
       right
       have hz_im_neg : z.im < 0 := lt_of_not_ge hz_im_nonneg
       constructor
@@ -1971,7 +1971,7 @@ private lemma centralRectangle_poles_finite (l : LadderParams) (n : ℕ) (G_circ
   intro z hz
   rcases hz with ⟨hz_rect, hz_pole⟩
   have hz_pole_lt : meromorphicOrderAt (fun s ↦ G_circ s * (x : ℂ) ^ s) z < 0 := by
-    simpa only [Set.mem_setOf_eq] using hz_pole
+    simpa only [Set.mem_ofPred_eq] using hz_pole
   simp only [Function.mem_support, ne_eq]
   rw [MeromorphicOn.divisor_apply h_rect_mero hz_rect]
   rw [WithTop.untop₀_eq_zero]
@@ -1993,7 +1993,7 @@ lemma centralRectangle_no_poles_boundary (l : LadderParams) (n : ℕ) (G_circ : 
   exact not_lt_of_ge
     (centralRectangle_boundary_order_nonneg l n G_circ x x₀ hn hG_circ_mero hG_circ_symm hx₀
       hGc_L hGc_contour hx z hz)
-    (by simpa only [Set.mem_setOf_eq] using hz_pole)
+    (by simpa only [Set.mem_ofPred_eq] using hz_pole)
 
 lemma centralRectangleIntegral'_eq_sumResiduesIn (l : LadderParams) (n : ℕ) (G_circ : ℂ → ℂ) (x : ℝ)
     (h_rect_mero : MeromorphicOn (fun s ↦ G_circ s * (x : ℂ) ^ s) (Rectangle ((l.σ n : ℂ) - (l.δ : ℂ) * Complex.I) (1 + (l.δ : ℂ) * Complex.I)))
@@ -2552,7 +2552,7 @@ theorem lemma_5_1_g (f : ℂ → ℂ) (S : Set ℂ)
       (nhds (sumResiduesIn f S)) := by
   let P : Set ℂ := {z | meromorphicOrderAt f z < 0}
   have hP_fin : (S ∩ P).Finite := by
-    simpa [P, Set.setOf_and] using hfin
+    simpa [P, Set.ofPred_and] using hfin
   obtain ⟨B, hB⟩ : ∃ B : ℝ, ∀ z ∈ S ∩ P, B ≤ z.re := by
     obtain ⟨B, hB⟩ := (hP_fin.image Complex.re).exists_ge
     exact ⟨B, fun z hz ↦ hB z.re ⟨z, hz, rfl⟩⟩
@@ -2787,7 +2787,7 @@ private lemma sumResiduesIn_Rpos_add_RposBar (l : LadderParams) (f : ℂ → ℂ
     linarith [hz_pos.2.1, hz_neg.2.2, l.hδ.1]
   have h_union : (l.Rpos ∩ P) ∪ (l.RposBar ∩ P) = (l.R \ l.RC) ∩ P := by
     ext z
-    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_sdiff, hP, Set.mem_setOf_eq,
+    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_sdiff, hP, Set.mem_ofPred_eq,
       LadderParams.Rpos, LadderParams.RposBar, LadderParams.R, LadderParams.RC, Set.mem_Icc]
     constructor
     · rintro (⟨⟨hre, him1, him2⟩, hpole⟩ | ⟨⟨hre, him1, him2⟩, hpole⟩)
@@ -3758,7 +3758,7 @@ private lemma integrableOn_one_sub_mul_exp_mul_Iic (a : ℝ) (ha : 0 < a) :
   have hbase :
       IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
         (Set.Ioi (0 : ℝ)) :=
-    integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num : (-1 : ℝ) < 1) le_rfl ha
+    integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num : (-1 : ℝ) < 1) one_pos ha
   have hbase_Ici :
       IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
         (Set.Ici (0 : ℝ)) :=

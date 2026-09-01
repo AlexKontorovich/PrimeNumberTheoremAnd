@@ -1279,7 +1279,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · simp only [F, F', f, g, mul_ite, mul_one, mul_zero]
       intro ⟨x, y⟩ hz
       by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise]
-      <;> simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS
+      <;> simp only [mem_prod, mem_Ioi, mem_ofPred_eq, not_and, not_le, S] at hz hS
       · simp [div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
       · by_cases hxy : x / y ≤ 1
         swap

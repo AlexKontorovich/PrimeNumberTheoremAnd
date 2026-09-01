@@ -751,22 +751,19 @@ lemma BKLNW_a1_le_two_of_ge_1000 (t : ℝ) (ht : t ≥ 1000) :
   have h20_log : (20 : ℝ) ≤ log (1e19 : ℝ) := by
     have := log_le_log (exp_pos (20 : ℝ)) h_exp20
     simpa [log_exp] using this
-  have hmain :
-      (if t ≤ 2 * log (1e19 : ℝ) then 1 + BKLNW_app.table_8_ε (log (1e19 : ℝ))
-       else 1 + BKLNW_app.table_8_ε (t / 2)) ≤ 2 := by
-    by_cases hif : t ≤ 2 * log (1e19 : ℝ)
-    · have h_eps : BKLNW_app.table_8_ε (log (1e19 : ℝ)) ≤ 4.2676e-5 := by
-        exact BKLNW_app.table_8_ε_le_of_row
-          (b₀ := 20) (ε := 4.2676e-5) BKLNW_app.table_8_mem_20 h20_log
-      simp [hif]
-      linarith
-    · have h20 : (20 : ℝ) ≤ t / 2 := by linarith [ht]
-      have h_eps : BKLNW_app.table_8_ε (t / 2) ≤ 4.2676e-5 := by
-        exact BKLNW_app.table_8_ε_le_of_row
-          (b₀ := 20) (ε := 4.2676e-5) BKLNW_app.table_8_mem_20 h20
-      simp [hif]
-      linarith
-  simpa [BKLNW.a₁, BKLNW.Inputs.a₁, BKLNW.Inputs.default, BKLNW.Pre_inputs.default] using hmain
+  simp only [BKLNW.a₁, BKLNW.Inputs.a₁, BKLNW.Inputs.default, BKLNW.Pre_inputs.default]
+  split_ifs with hif
+  · have h_eps : BKLNW_app.table_8_ε (log (1e19 : ℝ)) ≤ 4.2676e-5 :=
+      BKLNW_app.table_8_ε_le_of_row
+        (b₀ := 20) (ε := 4.2676e-5) BKLNW_app.table_8_mem_20 h20_log
+    simp [hif]
+    linarith
+  · have h20 : (20 : ℝ) ≤ t / 2 := by linarith [ht]
+    have h_eps : BKLNW_app.table_8_ε (t / 2) ≤ 4.2676e-5 :=
+      BKLNW_app.table_8_ε_le_of_row
+        (b₀ := 20) (ε := 4.2676e-5) BKLNW_app.table_8_mem_20 h20
+    simp [hif]
+    linarith
 
 /--
 A crude linear bound on `BKLNW.a₂` at large `t`.
@@ -1429,11 +1426,12 @@ private lemma bklnw_a1_30_le : BKLNW.a₁ 30 ≤ 1 + 1.9339e-8 := by
     rw [h1e19, Real.log_pow]
     norm_num
     nlinarith [LogTables.log_10_gt]
-  have hif : (30 : ℝ) ≤ 2 * Real.log (1e19) := by linarith [h40]
   have htable : BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1.9339e-8 :=
     BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40 h40
-  have hgoal : 1 + BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1 + 1.9339e-8 := by linarith
-  simpa [BKLNW.Inputs.default, BKLNW.Pre_inputs.default, if_pos hif] using hgoal
+  simp only [BKLNW.Inputs.default, BKLNW.Pre_inputs.default]
+  split_ifs with hif
+  · simp [hif]; linarith
+  · exact absurd (by linarith [h40] : (30 : ℝ) ≤ 2 * Real.log (1e19)) hif
 
 -- Helper bounding BKLNW.f (exp 30).
 private lemma bklnw_f_exp30_le : BKLNW.f (Real.exp 30) ≤ 41 := by
@@ -3490,7 +3488,7 @@ lemma exists_larger_than_boundary_val {x₁ : ℝ} (h : x₁ ≥ 14) :
     Filter.Eventually.filter_mono (nhdsWithin_mono (x₁ * log x₁) (fun _ h ↦ ne_of_gt h))
       (Filter.Tendsto.eventually_const_lt h_deriv h_tendsto)
   have h_exists : ∃ t > x₁ * log x₁, slope (fun t ↦ (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2) (x₁ * log x₁) t > 0 := by
-    haveI : Filter.NeBot (nhdsWithin (x₁ * log x₁) {x | (fun x ↦ x > x₁ * log x₁) x}) := nhdsWithin_Ioi_neBot le_rfl
+    have : Filter.NeBot (nhdsWithin (x₁ * log x₁) {x | (fun x ↦ x > x₁ * log x₁) x}) := nhdsWithin_Ioi_neBot le_rfl
     exact Filter.Eventually.exists (Filter.Eventually.and self_mem_nhdsWithin h_slope_pos)
   obtain ⟨t, ht_gt, ht_slope⟩ := h_exists
   have h_val : (log t / t) * ∫ s in x₁..t, 1 / (log s) ^ 2 >

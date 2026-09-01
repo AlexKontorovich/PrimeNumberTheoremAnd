@@ -372,7 +372,7 @@ theorem bklnw_thm_15 (I : Inputs)
       refine tsum_nonneg fun ρ ↦ ?_
       suffices h : (0 : ℤ) ≤ riemannZeta.order ↑ρ by exact_mod_cast h
       have hmem := ρ.2
-      simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+      simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_ofPred_eq,
         Set.mem_Ioo] at hmem
       have hne : (↑ρ : ℂ) ≠ 1 := by
         intro h1
@@ -593,7 +593,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   intro x hx
   by_cases! hcases : x ≤ B
   · have hlb : B₀ < x := by linarith [hx, hb.1]
-    simp only [Set.Ioc, Set.mem_setOf_eq, and_imp] at hbound
+    simp only [Set.Ioc, Set.mem_ofPred_eq, and_imp] at hbound
     have hb : Eψ x ≤ c / sqrt x :=
       hbound x hlb hcases
     have hsqrtcomp : sqrt (exp b) ≤ sqrt x :=

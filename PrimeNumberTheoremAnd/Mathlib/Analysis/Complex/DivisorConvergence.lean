@@ -43,9 +43,9 @@ lemma finite_divisorZeroIndex₀_subtype_norm_le {f : ℂ → ℂ} {U : Set ℂ}
       (K := Metric.closedBall (0 : ℂ) B) hK hBU
   set pts : Set ℂ := ((Metric.closedBall (0 : ℂ) B) ∩ D.support) \ {0}
   have hpts : pts.Finite := hpts0.sdiff
-  letI : Fintype pts := hpts.fintype
+  let : Fintype pts := hpts.fintype
   let T : Type := Σ z : pts, Fin (Int.toNat (D z.1))
-  haveI : Finite T := by infer_instance
+  have : Finite T := by infer_instance
   let F :
       {p : divisorZeroIndex₀ f U // ‖divisorZeroIndex₀_val p‖ ≤ B} → T := fun p =>
     ⟨⟨divisorZeroIndex₀_val p.1, by
@@ -82,7 +82,7 @@ lemma divisorZeroIndex₀_norm_le_finite {f : ℂ → ℂ} {U : Set ℂ} (B : �
     (hBU : Metric.closedBall (0 : ℂ) B ⊆ U) :
     ({p : divisorZeroIndex₀ f U | ‖divisorZeroIndex₀_val p‖ ≤ B} : Set _).Finite := by
   let s : Set (divisorZeroIndex₀ f U) := {p | ‖divisorZeroIndex₀_val p‖ ≤ B}
-  haveI : Finite (↥s) :=
+  have : Finite (↥s) :=
     finite_divisorZeroIndex₀_subtype_norm_le (f := f) (U := U) B hBU
   exact Set.toFinite s
 
@@ -303,7 +303,7 @@ theorem differentiableOn_divisorCanonicalProduct_univ
         exact (differentiable_weierstrassFactor m).comp hdiv
       simpa [F] using (Differentiable.fun_finsetProd (𝕜 := ℂ) (f := F) (u := s) hF')
     simpa using hdiff.differentiableOn
-  haveI : (Filter.atTop : Filter (Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)))).NeBot :=
+  have : (Filter.atTop : Filter (Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)))).NeBot :=
     Filter.atTop_neBot
   exact hloc.differentiableOn hF isOpen_univ
 

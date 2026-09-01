@@ -737,7 +737,7 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
       (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume)
         < ∫ r in R..(2 * R), g r ∂volume := by
     have hab : R ≤ 2 * R := by nlinarith [hR.le]
-    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOf_lt_ne_zero (μ := volume)
+    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOfPred_lt_ne_zero (μ := volume)
       (a := R) (b := 2 * R) (f := fun _ => (Cφ * (∑ i ∈ s, w i))) (g := g)
       hab hconst_int hg_int ?_ hlt_meas
     have hmem : ∀ᵐ r ∂ (volume.restrict (Set.Ioc R (2 * R))), r ∈ Set.Ioc R (2 * R) :=
