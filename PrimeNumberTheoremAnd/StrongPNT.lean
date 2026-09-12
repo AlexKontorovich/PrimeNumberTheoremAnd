@@ -2841,6 +2841,14 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_ : 0 < C),
 
 
 
+/-- A wrapper for the above theorem -/
+lemma LogDerivZetaBndUnif12 : LogDerivZetaBndUnifGenProp 1 2 := by
+  unfold LogDerivZetaBndUnifGenProp
+  refine ⟨F, ⟨FinIoo.1, by linarith [FinIoo.2]⟩, ?_⟩
+  simp only [pow_one, LogDerivZetaUniformLogSquaredBound]
+
+
+
 blueprint_comment /--
 From here we closely follow our previous proof of the Medium PNT and we modify it using our new
 estimate in Theorem \ref{LogDerivZetaUniformLogSquaredBound}. Recall Definition
@@ -3045,12 +3053,8 @@ lemma I6StrongBound {SmoothingF : ℝ → ℝ}
 
 
 -- analouge from ZetaBounds
-lemma ZetaZeroFree12 :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
-    ∀ (σ : ℝ)
-    (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t| ^ 1)) 1),
-    ζ (σ + t * I) ≠ 0 := by
+lemma ZetaZeroFree1 :
+    ZetaZeroFreeGenProp 1 := by
   refine ⟨F, ⟨FinIoo.1, by linarith [FinIoo.2]⟩, ?_⟩
   intro σ t ht hσ
   by_contra h
@@ -3066,84 +3070,14 @@ lemma ZetaZeroFree12 :
 
 
 -- analouge from ZetaBounds
-theorem LogDerivZetaHolcLargeT12 :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 ≤ T),
-    HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( (Icc ((1 : ℝ) - A / Real.log T ^ 1) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
-  obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree12
-  obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 3
-  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ 1)
-  refine ⟨A₀, ?_, ?_⟩
-  · constructor
-    · apply lt_min A_inter.1
-      bound
-    · exact le_trans (min_le_left _ _) A_inter.2
-  intro T hT
-  apply LogDerivZetaHoloOn
-  · exact Set.notMem_sdiff_of_mem rfl
-  intro s hs
-  rcases le_or_gt 1 s.re with one_le|lt_one
-  · exact riemannZeta_ne_zero_of_one_le_re one_le
-  rw [← re_add_im s]
-  have := Complex.mem_reProdIm.mp hs.1
-  rcases lt_or_ge 3 |s.im| with gt3 | le3
-  · apply restOfZetaZeroFree _ _ gt3
-    refine ⟨?_, lt_one⟩
-    calc
-      _ ≤ 1 - A₀ / Real.log T ^ 1 := by
-        gcongr
-        · exact A_inter.1.le
-        · bound
-        · bound
-        · apply Real.log_nonneg
-          linarith
-        · exact abs_le.mpr ⟨this.2.1, this.2.2⟩
-      _ ≤ _:= by exact this.1.1
+theorem LogDerivZetaHolcLargeT1 : LogDerivZetaHolcLargeTGenProp 1 := by
+  exact LogDerivZetaHolcLargeTGen ZetaZeroFree1
 
-
-  · apply noZerosInBox _ le3
-    calc
-      _ ≥ 1 - A₀ / Real.log T ^ 1 := by exact this.1.1
-      _ ≥ 1 - A₀ / Real.log 3 ^ 1 := by
-        gcongr
-        apply le_min A_inter.1.le
-        bound
-      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ 1)) / Real.log 3 ^ 1 := by
-        gcongr
-        apply min_le_right
-      _ = _ := by field_simp; simp
 
 
 -- analouge from MediumPNT
-lemma LogDerivZetaBoundedAndHolo12 : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound 1 2 A C
-    ∧ ∀ (T : ℝ) (_ : 3 ≤ T),
-    HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-    (( (Icc ((1 : ℝ) - A / Real.log T ^ 1) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
-  obtain ⟨C, C_pos, zeta_bnd⟩ := LogDerivZetaUniformLogSquaredBound
-  obtain ⟨A₂, A₂_in, holo⟩ := LogDerivZetaHolcLargeT12
-  refine ⟨min F A₂, C, C_pos, ?_, ?_, ?_⟩
-  · exact ⟨lt_min FinIoo.1 A₂_in.1, le_trans (min_le_left _ _) (by linarith [FinIoo.2])⟩
-  · intro σ T hT hσ
-    apply zeta_bnd _ _ hT
-    apply mem_Ici.mpr (le_trans _ hσ)
-    gcongr
-    · exact FinIoo.1.le
-    · apply Real.log_pos
-      linarith
-    · apply min_le_left
-    · simp only [log_abs, pow_one, Std.le_refl]
-  · intro T hT
-    apply (holo _ hT).mono
-    intro s hs
-    simp only [Set.mem_sdiff, mem_singleton_iff, mem_reProdIm] at hs ⊢
-    refine ⟨?_, hs.2⟩
-    refine ⟨?_, hs.1.2⟩
-    refine ⟨?_, hs.1.1.2⟩
-    apply le_trans _ hs.1.1.1
-    gcongr
-    · rw [pow_one]
-      exact Real.log_nonneg (le_trans one_le_ofNat hT)
-    · apply min_le_right
+lemma LogDerivZetaBoundedAndHolo12 : LogDerivZetaBoundedAndHoloGenProp 1 2 := by
+  exact LogDerivZetaBoundedAndHoloGen LogDerivZetaBndUnif12 LogDerivZetaHolcLargeT1
 
 
 

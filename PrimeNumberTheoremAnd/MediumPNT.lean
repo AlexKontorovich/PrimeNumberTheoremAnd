@@ -3649,10 +3649,15 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   simp only [← S, ge_iff_le]
   linear_combination (|π|⁻¹ * 2⁻¹ * Z)
 
-lemma LogDerivZetaBoundedAndHolo99 : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound 9 9 A C
+def LogDerivZetaBoundedAndHoloGenProp (n₁ n₂ : ℕ) : Prop := ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound n₁ n₂ A C
     ∧ ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-    (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
+    (( (Icc ((1 : ℝ) - A / Real.log T ^ n₁) 2)  ×ℂ (Icc (-T) T) ) \ {1})
+
+lemma LogDerivZetaBoundedAndHoloGen {n₁ n₂ : ℕ}
+  (LogDerivZetaBndUnif : LogDerivZetaBndUnifGenProp n₁ n₂)
+  (LogDerivZetaHolcLargeT : LogDerivZetaHolcLargeTGenProp n₁) :
+  LogDerivZetaBoundedAndHoloGenProp n₁ n₂ := by
   obtain ⟨A₁, A₁_in, C, C_pos, zeta_bnd⟩ := LogDerivZetaBndUnif
   obtain ⟨A₂, A₂_in, holo⟩ := LogDerivZetaHolcLargeT
   refine ⟨min A₁ A₂, C, C_pos, ?_, ?_, ?_⟩
@@ -3674,6 +3679,9 @@ lemma LogDerivZetaBoundedAndHolo99 : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2
     gcongr
     · bound
     · apply min_le_right
+
+lemma LogDerivZetaBoundedAndHolo99 : LogDerivZetaBoundedAndHoloGenProp 9 9 := by
+  exact LogDerivZetaBoundedAndHoloGen LogDerivZetaBndUnif99 LogDerivZetaHolcLargeT9
 
 lemma MellinOfSmooth1cExplicit {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Icc (1 / 2) 2)

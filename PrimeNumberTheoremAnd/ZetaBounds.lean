@@ -2960,8 +2960,13 @@ lemma ZetaLowerBnd :
 blueprint_comment /--
 Now we get a zero free region.
 -/
+
+def ZetaZeroFreeGenProp (n : ℕ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ n) 1),
+    ζ (σ + t * I) ≠ 0
+
 @[blueprint
-  (title := "ZetaZeroFree")
+  (title := "ZetaZeroFree9")
   (statement := /--
   There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
   $$
@@ -2970,12 +2975,7 @@ Now we get a zero free region.
   -/)
   (proof := /-- Apply Lemma \ref{ZetaLowerBnd}. -/)
   (latexEnv := "lemma")]
-lemma ZetaZeroFree :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
-    ∀ (σ : ℝ)
-    (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    ζ (σ + t * I) ≠ 0 := by
+lemma ZetaZeroFree9 : ZetaZeroFreeGenProp 9 := by
   obtain ⟨A, hA, c, hc, h_lower⟩ := ZetaLowerBnd
 
   -- Use the same A for our result
@@ -2993,7 +2993,6 @@ lemma ZetaZeroFree :
     apply Real.rpow_pos_of_pos
     apply Real.log_pos
     linarith
-
   linarith
 
 
@@ -3286,28 +3285,16 @@ theorem LogDerivZetaHolcSmallT :
     · apply s_in_U_im_le3 _ hs
     · apply s_in_U_re_ges2 _ hs
 
-
-@[blueprint
-  (title := "LogDerivZetaHolcLargeT")
-  (statement := /--
-  There is an $A>0$ so that for all $T>3$, the function
-  $
-  \frac {\zeta'}{\zeta}(s)
-  $
-  is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
-  -/)
-  (proof := /--
-  The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
-  in this range by Lemma \ref{ZetaZeroFree}.
-  -/)
-  (latexEnv := "lemma")]
-theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 ≤ T),
+def LogDerivZetaHolcLargeTGenProp (n : ℕ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
+      (( (Icc ((1 : ℝ) - A / Real.log T ^ n) 2)  ×ℂ (Icc (-T) T) ) \ {1})
+
+lemma LogDerivZetaHolcLargeTGen {n : ℕ} (ZetaZeroFree : ZetaZeroFreeGenProp n) :
+  LogDerivZetaHolcLargeTGenProp n := by
   obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
   obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 3
-  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ 9)
+  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ n)
   refine ⟨A₀, ?_, ?_⟩
   · constructor
     · apply lt_min A_inter.1
@@ -3325,7 +3312,7 @@ theorem LogDerivZetaHolcLargeT :
   · apply restOfZetaZeroFree _ _ gt3
     refine ⟨?_, lt_one⟩
     calc
-      _ ≤ 1 - A₀ / Real.log T ^ 9 := by
+      _ ≤ 1 - A₀ / Real.log T ^ n := by
         gcongr
         · exact A_inter.1.le
         · bound
@@ -3333,19 +3320,34 @@ theorem LogDerivZetaHolcLargeT :
         · bound
         · exact abs_le.mpr ⟨this.2.1, this.2.2⟩
       _ ≤ _:= by exact this.1.1
-
   · apply noZerosInBox _ le3
     calc
-      _ ≥ 1 - A₀ / Real.log T ^ 9 := by exact this.1.1
-      _ ≥ 1 - A₀ / Real.log 3 ^ 9 := by
+      _ ≥ 1 - A₀ / Real.log T ^ n := by exact this.1.1
+      _ ≥ 1 - A₀ / Real.log 3 ^ n := by
         gcongr
         apply le_min A_inter.1.le
         bound
-      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ 9)) / Real.log 3 ^ 9:= by
+      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ n)) / Real.log 3 ^ n := by
         gcongr
         apply min_le_right
       _ = _ := by field_simp; simp
 
+@[blueprint
+  (title := "LogDerivZetaHolcLargeT9")
+  (statement := /--
+  There is an $A>0$ so that for all $T>3$, the function
+  $
+  \frac {\zeta'}{\zeta}(s)
+  $
+  is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
+  -/)
+  (proof := /--
+  The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+  in this range by Lemma \ref{ZetaZeroFree9}.
+  -/)
+  (latexEnv := "lemma")]
+theorem LogDerivZetaHolcLargeT9 : LogDerivZetaHolcLargeTGenProp 9 := by
+  exact LogDerivZetaHolcLargeTGen ZetaZeroFree9
 
 theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
     (h : Summable f) : Summable (fun n ↦ (f n).re) := by
@@ -3586,8 +3588,13 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       _ = final_const := by rfl
       _ ≤ _ := by bound
 
+def LogDerivZetaBndUnifGenProp (n₁ n₂ : ℕ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2))
+  (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ n₁)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log |t| ^ n₂
+
 @[blueprint
-  (title := "LogDerivZetaBndUnif")
+  (title := "LogDerivZetaBndUnif99")
   (statement := /--
   There exist $A, C > 0$ such that
   $$|\frac{\zeta'}{\zeta}(\sigma + it)|\leq C \log |t|^9$$
@@ -3597,10 +3604,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   For $\sigma$ close to $1$ use Lemma \ref{LogDerivZetaBnd}, otherwise estimate trivially.
   -/)
   (latexEnv := "lemma")]
-lemma LogDerivZetaBndUnif :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
-      C * Real.log |t| ^ 9 := by
+lemma LogDerivZetaBndUnif99 : LogDerivZetaBndUnifGenProp 9 9 := by
   let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd
   let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
   have T0 : A > 0 := pf_A.1
