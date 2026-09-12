@@ -3780,8 +3780,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
   (A_in_Ioc : A ∈ Ioc 0 (1 / 2))
   (holo1 : ∀ (T : ℝ), 3 ≤ T → HolomorphicOn (fun s ↦ ζ' s / ζ s) (Icc (1 - A / Real.log T ^ n₁) 2 ×ℂ Icc (-T) T \ {1}))
   {σ₂ : ℝ}
-  (σ₂_pos : 0 < σ₂)
-  (σ₂_lt_one : σ₂ < 1)
+  (σ₂InIoo : σ₂ ∈ Ioo 0 1)
   (holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}))
   (I1Bound : I1BoundGenProp ν)
   (I2Bound : I2BoundGenProp n₁ ν A)
@@ -3880,7 +3879,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
 
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ n₁ := by
     apply (tendsto_order.mp ?_).1
-    · exact σ₂_lt_one
+    · exact σ₂InIoo.2
     have := tendsto_inv_atTop_zero.comp ((tendsto_rpow_atTop (Nat.cast_pos'.mpr n₁_pos)).comp
       (tendsto_log_atTop.comp Tx_to_inf))
     have := Tendsto.const_mul (b := A) this
@@ -4106,7 +4105,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
   have event_4_aux : ∀ᶠ (x : ℝ) in atTop,
       c₅ * rexp (σ₂ * Real.log x + (A ^ ((1 : ℝ) / (1 + n₁)) / 2) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) ≤
       c₅ * rexp (Real.log x - (A ^ ((1 : ℝ) / (1 + n₁)) / 4) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
-    filter_upwards [eventually_gt_atTop 3, event_4_aux1 σ₂_lt_one (A ^ ((1 : ℝ) / (1 + n₁)) / 2)
+    filter_upwards [eventually_gt_atTop 3, event_4_aux1 σ₂InIoo.2 (A ^ ((1 : ℝ) / (1 + n₁)) / 2)
       (A ^ ((1 : ℝ) / (1 + n₁)) / 4) one_div_succ_n₁_lt_one] with x x_gt hx
     rw [mul_le_mul_iff_right₀ c₅pos]
     apply Real.exp_monotone
@@ -4172,7 +4171,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
       · intro s hs
         apply DifferentiableAt.differentiableWithinAt
         apply Smooth1MellinDifferentiable ContDiff1ν ν_supp ⟨ε_pos, ε_lt_one⟩ ν_nonneg ν_massOne
-        linarith[mem_reProdIm.mp hs.1 |>.1.1]
+        linarith [mem_reProdIm.mp hs.1 |>.1.1, σ₂InIoo.1]
     · intro s hs
       apply DifferentiableAt.differentiableWithinAt
       apply DifferentiableAt.const_cpow (by fun_prop)
@@ -4186,7 +4185,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
     rw [SmoothedChebyshevPull1 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith)
       σ₁pos σ₁_lt_one holo1 ν_supp ν_nonneg ν_massOne ContDiff1ν]
     rw [SmoothedChebyshevPull2 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith)
-      σ₂_pos σ₁_lt_one σ₂_lt_σ₁ holo1 holo2a ν_supp ν_nonneg ν_massOne ContDiff1ν]
+      σ₂InIoo.1 σ₁_lt_one σ₂_lt_σ₁ holo1 holo2a ν_supp ν_nonneg ν_massOne ContDiff1ν]
     ring_nf
     iterate 5
       apply le_trans (by apply norm_add_le)
@@ -4329,33 +4328,16 @@ theorem MediumPNT : ∃ c > 0,
   have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
   obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo99
-  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
-  let σ₂ : ℝ := max σ₂' (1 / 2)
-  have σ₂_pos : 0 < σ₂ := by bound
-  have σ₂_lt_one : σ₂ < 1 := by bound
-  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
-    apply holo2'.mono
-    intro s hs
-    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
-      mem_singleton_iff] at hs ⊢
-    refine ⟨?_, hs.2⟩
-    refine ⟨?_, hs.1.2⟩
-    rcases hs.1.1 with ⟨left, right⟩
-    constructor
-    · apply le_trans _ left
-      apply min_le_min_right
-      apply le_max_left
-    · rw [max_eq_right (by linarith)] at right ⊢
-      exact right
-  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (Nat.zero_lt_succ 8) A_in_Ioc holo1 σ₂_pos σ₂_lt_one holo2
-  · exact I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-  · exact I2MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I3MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I4MediumBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-  · exact I5Bound ν_supp ContDiff1ν holo2  ⟨σ₂_pos, σ₂_lt_one⟩
-  · exact I6MediumBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-  · exact I7MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I8MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  obtain ⟨σ₂, σ₂InIoo, holo2⟩ := LogDerivZetaHolcSmallT'
+  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (by linarith) A_in_Ioc holo1 σ₂InIoo holo2
+    (I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
+    (I2MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I3MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I4MediumBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
+    (I5Bound ν_supp ContDiff1ν holo2  σ₂InIoo)
+    (I6MediumBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
+    (I7MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I8MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
 
 #print axioms MediumPNT

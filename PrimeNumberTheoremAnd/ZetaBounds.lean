@@ -3285,6 +3285,26 @@ theorem LogDerivZetaHolcSmallT :
     · apply s_in_U_im_le3 _ hs
     · apply s_in_U_re_ges2 _ hs
 
+lemma LogDerivZetaHolcSmallT' : ∃ (σ₂ : ℝ)
+  (_ : σ₂ ∈ Ioo 0 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
+    (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
+  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max σ₂' (1 / 2)
+  have σ₂_pos : 0 < σ₂ := by bound
+  have σ₂_lt_one : σ₂ < 1 := by bound
+  refine ⟨σ₂, ⟨σ₂_pos, σ₂_lt_one⟩, holo2'.mono (fun s hs ↦ ?_)⟩
+  simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
+    mem_singleton_iff] at hs ⊢
+  refine ⟨?_, hs.2⟩
+  refine ⟨?_, hs.1.2⟩
+  rcases hs.1.1 with ⟨left, right⟩
+  constructor
+  · apply le_trans _ left
+    apply min_le_min_right
+    apply le_max_left
+  · rw [max_eq_right (by linarith)] at right ⊢
+    exact right
+
 def LogDerivZetaHolcLargeTGenProp (n : ℕ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
     ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))

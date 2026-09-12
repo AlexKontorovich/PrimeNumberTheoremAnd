@@ -3112,33 +3112,16 @@ theorem StrongPNT : ∃ c > 0,
   have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
   obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo12
-  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
-  let σ₂ : ℝ := max σ₂' (1 / 2)
-  have σ₂_pos : 0 < σ₂ := by bound
-  have σ₂_lt_one : σ₂ < 1 := by bound
-  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
-    apply holo2'.mono
-    intro s hs
-    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
-      mem_singleton_iff] at hs ⊢
-    refine ⟨?_, hs.2⟩
-    refine ⟨?_, hs.1.2⟩
-    rcases hs.1.1 with ⟨left, right⟩
-    constructor
-    · apply le_trans _ left
-      apply min_le_min_right
-      apply le_max_left
-    · rw [max_eq_right (by linarith)] at right ⊢
-      exact right
-  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (Nat.zero_lt_succ 0) A_in_Ioc holo1 σ₂_pos σ₂_lt_one holo2
-  · exact I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-  · exact I2StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I3StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I4StrongBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-  · exact I5Bound ν_supp ContDiff1ν holo2  ⟨σ₂_pos, σ₂_lt_one⟩
-  · exact I6StrongBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-  · exact I7StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I8StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  · exact I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  obtain ⟨σ₂, σ₂InIoo, holo2⟩ := LogDerivZetaHolcSmallT'
+  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (by linarith) A_in_Ioc holo1 σ₂InIoo holo2
+    (I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
+    (I2StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I3StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I4StrongBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
+    (I5Bound ν_supp ContDiff1ν holo2  σ₂InIoo)
+    (I6StrongBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
+    (I7StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I8StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
+    (I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
 
 #print axioms MediumPNT
