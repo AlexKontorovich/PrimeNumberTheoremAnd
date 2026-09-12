@@ -3768,73 +3768,55 @@ blueprint_comment /--
 -/
 set_option maxHeartbeats 400000 in
 -- Slow
-/-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
-@[blueprint
-  (title := "MediumPNT")
-  (statement := /--
-    We have
-  $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
-  -/)
-  (proof := /-- Evaluate the integrals. -/)]
-theorem MediumPNT : ∃ c > 0,
-    (ψ - id) =O[atTop]
-      fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
-  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
-  have ContDiff1ν : ContDiff ℝ 1 ν := by
-    exact ContDiffν.of_le (by simp)
-  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
-  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
-    rwa [← integral_Ici_eq_integral_Ioi]
-  clear ContDiffν ν_nonneg'  ν_massOne'
-  obtain ⟨c_close, c_close_pos, h_close⟩ :=
-    SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
+
+lemma GenStrengthPNT {ν : ℝ → ℝ}
+  (ContDiff1ν : ContDiff ℝ 1 ν)
+  (ν_nonneg : ∀ x > 0, 0 ≤ ν x)
+  (ν_supp : support ν ⊆ Icc (1 / 2) 2)
+  (ν_massOne : ∫ (x : ℝ) in Ioi 0, ν x / x = 1)
+  {n₁ : ℕ}
+  (n₁_pos : 0 < n₁)
+  {A : ℝ}
+  (A_in_Ioc : A ∈ Ioc 0 (1 / 2))
+  (holo1 : ∀ (T : ℝ), 3 ≤ T → HolomorphicOn (fun s ↦ ζ' s / ζ s) (Icc (1 - A / Real.log T ^ n₁) 2 ×ℂ Icc (-T) T \ {1}))
+  {σ₂ : ℝ}
+  (σ₂_pos : 0 < σ₂)
+  (σ₂_lt_one : σ₂ < 1)
+  (holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}))
+  (I1Bound : I1BoundGenProp ν)
+  (I2Bound : I2BoundGenProp n₁ ν A)
+  (I3Bound : I3BoundGenProp n₁ ν A)
+  (I4Bound : I4BoundGenProp n₁ ν A σ₂)
+  (I5Bound : I5BoundGenProp ν σ₂)
+  (I6Bound : I6BoundGenProp n₁ ν A σ₂)
+  (I7Bound : I7BoundGenProp n₁ ν A)
+  (I8Bound : I8BoundGenProp n₁ ν A)
+  (I9Bound : I9BoundGenProp ν) : ∃ c > 0,
+  (ψ - id) =O[atTop]
+    fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / (1 + n₁))) := by
+  obtain ⟨c_close, c_close_pos, h_close⟩ := SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
   obtain ⟨ε_main, C_main, ε_main_pos, C_main_pos, h_main⟩  := MellinOfSmooth1cExplicit ContDiff1ν ν_supp ν_massOne
-  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo99
-  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
-  let σ₂ : ℝ := max σ₂' (1 / 2)
-  have σ₂_pos : 0 < σ₂ := by bound
-  have σ₂_lt_one : σ₂ < 1 := by bound
-  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
-    apply holo2'.mono
-    intro s hs
-    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
-      mem_singleton_iff] at hs ⊢
-    refine ⟨?_, hs.2⟩
-    refine ⟨?_, hs.1.2⟩
-    rcases hs.1.1 with ⟨left, right⟩
-    constructor
-    · apply le_trans _ left
-      apply min_le_min_right
-      apply le_max_left
-    · rw [max_eq_right (by linarith)] at right ⊢
-      exact right
 
-  clear holo2' σ₂'_lt_one
+  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound
+  obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound
+  obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound
+  obtain ⟨c₅, c₅pos, hc₅⟩ := I5Bound
+  obtain ⟨c₇, c₇pos, hc₇⟩ := I7Bound
+  obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound
+  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound
 
-  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-  obtain ⟨c₂, c₂pos, hc₂⟩ := I2MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₃, c₃pos, hc₃⟩ := I3MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₅, c₅pos, hc₅⟩ := I5Bound ν_supp ContDiff1ν holo2  ⟨σ₂_pos, σ₂_lt_one⟩
-  obtain ⟨c₇, c₇pos, hc₇⟩ := I7MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₈, c₈pos, hc₈⟩ := I8MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
-  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-
-  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4MediumBound ν_supp ContDiff1ν
-    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
-
-  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6MediumBound ν_supp ContDiff1ν
-    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
+  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4Bound
+  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6Bound
 
   let C' := c_close + C_main
   let C'' := c₁ + c₂ + c₈ + c₉
   let C''' := c₃ + c₄ + c₆ + c₇
 
-  let c : ℝ := A ^ ((1 : ℝ) / 10) / 4
+  let c : ℝ := A ^ ((1 : ℝ) / (1 + n₁)) / 4
   have cpos : 0 < c := by
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
-      mem_Ioc, lt_sup_iff,
-      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
-      div_pos_iff_of_pos_right, σ₂, c]
+      mem_Ioc, Nat.ofNat_pos, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, c]
     obtain ⟨left, right⟩ := A_in_Ioc
     positivity
   refine ⟨c, cpos, ?_⟩
@@ -3842,45 +3824,50 @@ theorem MediumPNT : ∃ c > 0,
   let C : ℝ := C' + C'' + C''' + c₅
   refine ⟨C, ?_⟩
 
-  let c_εx : ℝ := A ^ ((1 : ℝ) / 10) / 2
+  let c_εx : ℝ := A ^ ((1 : ℝ) / (1 + n₁)) / 2
   have c_εx_pos : 0 < c_εx := by
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
-      mem_Ioc, lt_sup_iff,
-      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
-      div_pos_iff_of_pos_right, σ₂, c, c_εx]
-  let c_Tx : ℝ := A ^ ((1 : ℝ) / 10)
+      mem_Ioc, Nat.ofNat_pos, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, c, c_εx]
+  let c_Tx : ℝ := A ^ ((1 : ℝ) / (1 + n₁))
   have c_Tx_pos : 0 < c_Tx := by
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
-      mem_Ioc, lt_sup_iff,
-      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
-      div_pos_iff_of_pos_right, σ₂, c, c_εx, c_Tx]
+      mem_Ioc, Nat.ofNat_pos, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, c, c_εx, c_Tx]
 
-  let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / 10)))
-  let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / 10)))
+  let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / (1 + n₁))))
+  let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / (1 + n₁))))
+
+  have one_div_succ_n₁_pos : 0 < (1 : ℝ) / (1 + n₁) := by
+    simp only [one_div, inv_pos]
+    linarith
+
+  have one_div_succ_n₁_lt_one : (1 : ℝ) / (1 + n₁) < 1 := by
+    rw [one_div, inv_lt_one₀ (one_div_pos.mp one_div_succ_n₁_pos)]
+    norm_num [n₁_pos]
 
   have Tx_to_inf : Tendsto Tx atTop atTop := by
     unfold Tx
     apply tendsto_exp_atTop.comp
     apply Tendsto.pos_mul_atTop c_Tx_pos tendsto_const_nhds
-    exact (tendsto_rpow_atTop (by norm_num : 0 < (1 : ℝ) / 10)).comp Real.tendsto_log_atTop
+    exact (tendsto_rpow_atTop one_div_succ_n₁_pos).comp Real.tendsto_log_atTop
 
   have ex_to_zero : Tendsto εx atTop (𝓝 0) := by
     unfold εx
     apply Real.tendsto_exp_atBot.comp
-    have this (x) : -c_εx * Real.log x ^ ((1 : ℝ) / 10) = -(c_εx * Real.log x ^ ((1 : ℝ) / 10)) := by
+    have this (x) : -c_εx * Real.log x ^ ((1 : ℝ) / (1 + n₁)) = -(c_εx * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
       ring
     simp_rw [this]
     rw [tendsto_neg_atBot_iff]
     apply Tendsto.const_mul_atTop c_εx_pos
-    apply (tendsto_rpow_atTop (by norm_num)).comp
-    exact tendsto_log_atTop
+    exact (tendsto_rpow_atTop one_div_succ_n₁_pos).comp tendsto_log_atTop
 
   have eventually_εx_lt_one : ∀ᶠ (x : ℝ) in atTop, εx x < 1 := by
     apply (tendsto_order.mp ex_to_zero).2
     norm_num
 
   have eventually_2_lt : ∀ᶠ (x : ℝ) in atTop, 2 < x * εx x := by
-    have := x_ε_to_inf c_εx (by norm_num : (1 : ℝ) / 10 < 1)
+    have := x_ε_to_inf c_εx one_div_succ_n₁_lt_one
     exact this.eventually_gt_atTop 2
 
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by
@@ -3891,14 +3878,14 @@ theorem MediumPNT : ∃ c > 0,
   have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by
     exact Tx_to_inf.eventually_gt_atTop _
 
-  have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by
+  have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ n₁ := by
     apply (tendsto_order.mp ?_).1
     · exact σ₂_lt_one
-    have := tendsto_inv_atTop_zero.comp ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 9)).comp
+    have := tendsto_inv_atTop_zero.comp ((tendsto_rpow_atTop (Nat.cast_pos'.mpr n₁_pos)).comp
       (tendsto_log_atTop.comp Tx_to_inf))
     have := Tendsto.const_mul (b := A) this
     convert (tendsto_const_nhds (x := (1 : ℝ))).sub this using 2
-    · simp only [rpow_ofNat, comp_apply, div_eq_mul_inv]
+    · simp only [comp_apply, div_eq_mul_inv, rpow_natCast]
     · simp
 
   have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by
@@ -3961,23 +3948,22 @@ theorem MediumPNT : ∃ c > 0,
       simp
 
   have event_1 : ∀ᶠ (x : ℝ) in atTop, C' * (εx x) * x * Real.log x ≤
-      C' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+      C' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
     unfold c εx c_εx
-    have const1bnd : (A ^ ((1 : ℝ) / 10) / 4) < (A ^ ((1 : ℝ) / 10) / 2) := by
+    have const1bnd : (A ^ ((1 : ℝ) / (1 + n₁)) / 4) < (A ^ ((1 : ℝ) / (1 + n₁)) / 2) := by
         linarith
-    have const2bnd : (0 : ℝ) < 1 / 10 := by norm_num
     have this (x) :
-      C' * rexp (-(A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) * x * Real.log x =
-      C' * x * (rexp (-(A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x) := by ring
+      C' * rexp (-(A ^ ((1 : ℝ) / (1 + n₁)) / 2) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) * x * Real.log x =
+      C' * x * (rexp (-(A ^ ((1 : ℝ) / (1 + n₁)) / 2) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) * Real.log x) := by ring
     simp_rw [this]
-    filter_upwards [event_1_aux const1bnd const2bnd, eventually_gt_atTop 3] with x x_bnd x_gt
+    filter_upwards [event_1_aux const1bnd one_div_succ_n₁_pos, eventually_gt_atTop 3] with x x_bnd x_gt
     grw [x_bnd]
 
   have event_2 : ∀ᶠ (x : ℝ) in atTop, C'' * x * Real.log x / (εx x * Tx x) ≤
-      C'' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+      C'' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
     unfold c εx c_εx Tx c_Tx
-    set const2 : ℝ := 1 / 10
-    have const2bnd : 0 < const2 := by norm_num
+    set const2 : ℝ := 1 / (1 + n₁)
+    have const2bnd : 0 < const2 := one_div_succ_n₁_pos
     set const1 := (A ^ const2 / 2)
     set const1' := (A ^ const2 / 4)
     have this (x) : -(-const1 * Real.log x ^ const2 + A ^ const2 * Real.log x ^ const2) =
@@ -3993,10 +3979,10 @@ theorem MediumPNT : ∃ c > 0,
       rw [mul_comm]
     grw [x_bnd]
 
-  have event_3_aux {const1 const1' const2 : ℝ} (const2_eq : const2 = 1 / 10)
+  have event_3_aux {const1 const1' const2 : ℝ} (const2_eq : const2 = 1 / (1 + n₁))
     (const1_eq : const1 = (A ^ const2 / 2)) (const1'_eq : const1' = (A ^ const2 / 4)) :
     ∀ᶠ (x : ℝ) in atTop,
-      x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ (9 : ℝ)) *
+      x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ (n₁ : ℝ)) *
       rexp (-(-const1 * Real.log x ^ const2)) ≤
       rexp (-const1' * Real.log x ^ const2) := by
     have : ∀ᶠ (x : ℝ) in atTop, x = rexp (Real.log x) := by
@@ -4007,11 +3993,8 @@ theorem MediumPNT : ∃ c > 0,
     conv =>
       enter [1, 1, 1]
       rw [hx]
-    rw [← Real.exp_mul,
-      Real.log_exp]
-
-    rw [Real.mul_rpow]
-    · have {y : ℝ} (ypos : 0 < y) : y / (y ^ const2) ^ (9 : ℝ) = y ^ const2 := by
+    rw [← Real.exp_mul, Real.log_exp, Real.mul_rpow]
+    · have {y : ℝ} (ypos : 0 < y) : y / (y ^ const2) ^ (n₁ : ℝ) = y ^ const2 := by
         rw [← Real.rpow_mul ypos.le,
           div_eq_mul_inv]
 
@@ -4019,31 +4002,19 @@ theorem MediumPNT : ∃ c > 0,
         conv =>
           enter [1, 1]
           rw [← Real.rpow_one y]
-        rw [← Real.rpow_add ypos,
-          (by linarith : 1 + -(const2 * 9) = const2)]
-
-      rw [div_mul_eq_div_div,
-        neg_div]
-
-      rw [this (A_in_Ioc.1)]
-
-      rw [mul_div]
+        rw [← Real.rpow_add ypos, const2_eq]
+        field_simp
+        ring_nf
+      rw [div_mul_eq_div_div, neg_div, this (A_in_Ioc.1), mul_div]
       conv =>
         enter [1, 1, 1, 1]
         rw [mul_comm]
-      rw [← mul_div]
-
-      rw [this (y := Real.log x) logxpos]
-
-      rw [← Real.exp_add]
+      rw [← mul_div, this (y := Real.log x) logxpos, ← Real.exp_add]
       apply Real.exp_monotone
-
       have : -A ^ const2 * Real.log x ^ const2 + -(-const1 * Real.log x ^ const2)
        = (-(A ^ const2 - const1) * Real.log x ^ const2) := by ring
       rw [this]
-
       gcongr
-
       rw [const1'_eq, const1_eq]
       have : 0 ≤ A ^ const2 := by
         apply Real.rpow_nonneg A_in_Ioc.1.le
@@ -4054,26 +4025,20 @@ theorem MediumPNT : ∃ c > 0,
       apply Real.log_nonneg
       linarith
 
-  have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ 9) / (εx x) ≤
-      C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+  have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ n₁) / (εx x) ≤
+      C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
     unfold c Tx c_Tx εx c_εx
-    set const2 : ℝ := 1 / 10
-    have const2eq : const2 = 1 / 10 := rfl
-    set const1 := (A ^ const2 / 2)
-    have const1eq : const1 = (A ^ const2 / 2) := rfl
-    set const1' := (A ^ const2 / 4)
-    have const1'eq : const1' = (A ^ const2 / 4) := rfl
-
+    set const2 : ℝ := 1 / (1 + n₁) with const2eq
+    set const1 := (A ^ const2 / 2) with const1eq
+    set const1' := (A ^ const2 / 4) with const1'eq
     conv =>
       enter [1, x, 1]
       rw [div_eq_mul_inv, ← Real.exp_neg]
-
     filter_upwards [event_3_aux const2eq const1eq const1'eq,
       eventually_gt_atTop 3] with x x_bnd x_gt
-
-    have this (x) : C''' * x * x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ 9)
+    have this (x) : C''' * x * x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ n₁)
         * rexp (-(-const1 * Real.log x ^ const2))
-      = C''' * x * (x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ (9 : ℝ))
+      = C''' * x * (x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ (n₁ : ℝ))
         * rexp (-(-const1 * Real.log x ^ const2))) := by
       norm_cast
       ring
@@ -4110,11 +4075,10 @@ theorem MediumPNT : ∃ c > 0,
         ≤ Real.log x - const3 * Real.log x ^ pow1 := by
     filter_upwards [event_4_aux2 (by linarith : 0 < 1 - const1) (const2 + const3) pow1_lt,
       eventually_gt_atTop 3] with x hx x_gt
-    rw [← sub_nonneg]
     have :
       Real.log x - const3 * Real.log x ^ pow1 - (const1 * Real.log x + const2 * Real.log x ^ pow1)
       = (1 - const1) * Real.log x - (const2 + const3) * Real.log x ^ pow1 := by ring
-    rw [this]
+    rw [← sub_nonneg, this]
     convert hx using 1
     ring_nf
     congr! 1
@@ -4140,16 +4104,16 @@ theorem MediumPNT : ∃ c > 0,
     rw [this]
 
   have event_4_aux : ∀ᶠ (x : ℝ) in atTop,
-      c₅ * rexp (σ₂ * Real.log x + (A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) ≤
-      c₅ * rexp (Real.log x - (A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) := by
-    filter_upwards [eventually_gt_atTop 3, event_4_aux1 σ₂_lt_one (A ^ ((1 : ℝ) / 10) / 2)
-      (A ^ ((1 : ℝ) / 10) / 4) (by norm_num : (1 : ℝ) / 10 < 1)] with x x_gt hx
+      c₅ * rexp (σ₂ * Real.log x + (A ^ ((1 : ℝ) / (1 + n₁)) / 2) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) ≤
+      c₅ * rexp (Real.log x - (A ^ ((1 : ℝ) / (1 + n₁)) / 4) * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
+    filter_upwards [eventually_gt_atTop 3, event_4_aux1 σ₂_lt_one (A ^ ((1 : ℝ) / (1 + n₁)) / 2)
+      (A ^ ((1 : ℝ) / (1 + n₁)) / 4) one_div_succ_n₁_lt_one] with x x_gt hx
     rw [mul_le_mul_iff_right₀ c₅pos]
     apply Real.exp_monotone
     convert hx
 
   have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
-      c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+      c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / (1 + n₁))) := by
     unfold εx c_εx c
     filter_upwards [event_4_aux, eventually_gt_atTop 0] with x hx xpos
     convert hx using 1
@@ -4161,7 +4125,6 @@ theorem MediumPNT : ∃ c > 0,
         rw [← Real.exp_log xpos]
       rw [← exp_mul, ← Real.exp_add]
       ring_nf
-
     · rw [mul_assoc]
       congr! 1
       conv =>
@@ -4177,7 +4140,7 @@ theorem MediumPNT : ∃ c > 0,
       σ₂_lt_σ₁ ε_lt_ε_main logX_ge event_1 event_2 event_3 event_4
 
   clear eventually_εx_lt_one eventually_2_lt eventually_T_gt_3 eventually_T_gt_Tlb₄
-    eventually_T_gt_Tlb₆ eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge zeta_bnd
+    eventually_T_gt_Tlb₆ eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge
 
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
@@ -4186,9 +4149,9 @@ theorem MediumPNT : ∃ c > 0,
 
   let T : ℝ := Tx X
   specialize holo1 T T_gt_3.le
-  let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+  let σ₁ : ℝ := 1 - A / (Real.log T) ^ n₁
   have σ₁pos : 0 < σ₁ := by calc
-    1 - A / (Real.log T)^9 >= 1 - (1/2) / 1 ^ 9:= by
+    1 - A / (Real.log T) ^ n₁ >= 1 - (1/2) / 1 ^ n₁ := by
       gcongr
       · exact A_in_Ioc.2
       · exact (logt_gt_one T_gt_3.le).le
@@ -4276,11 +4239,11 @@ theorem MediumPNT : ∃ c > 0,
       linarith
     grw [this]
 
-  have C'''bnd : c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  ≤ C''' * X * X ^ (-A / Real.log T ^ 9) / ε := by
+  have C'''bnd : c₃ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                    + c₄ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                    + c₆ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                    + c₇ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  ≤ C''' * X * X ^ (-A / Real.log T ^ n₁) / ε := by
     apply le_of_eq
     ring
 
@@ -4302,11 +4265,11 @@ theorem MediumPNT : ∃ c > 0,
                   + ‖I₉ ν ε X T‖) := by gcongr
     _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
                   + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                  + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₃ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  + c₄ * X * X ^ (-A / Real.log T ^ n₁) / ε
                   + c₅ * X ^ σ₂ / ε
-                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₆ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  + c₇ * X * X ^ (-A / Real.log T ^ n₁) / ε
                   + c₈ * X / (ε * T)
                   + c₉ * X * Real.log X / (ε * T)) := by
       gcongr
@@ -4318,34 +4281,81 @@ theorem MediumPNT : ∃ c > 0,
                   + ((c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
                   + c₈ * X / (ε * T)
                   + c₉ * X * Real.log X / (ε * T))
-                  + (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε)
+                  + (c₃ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  + c₄ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  + c₆ * X * X ^ (-A / Real.log T ^ n₁) / ε
+                  + c₇ * X * X ^ (-A / Real.log T ^ n₁) / ε)
                   + c₅ * X ^ σ₂ / ε
                   ) := by ring
     _         ≤ C' * ε * X * Real.log X
                   + (C'' * X * Real.log X / (ε * T)
-                  + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + C''' * X * X ^ (-A / Real.log T ^ n₁) / ε
                   + c₅ * X ^ σ₂ / ε
                   ) := by
       gcongr
     _        = C' * ε * X * Real.log X
                   + C'' * X * Real.log X / (ε * T)
-                  + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + C''' * X * X ^ (-A / Real.log T ^ n₁) / ε
                   + c₅ * X ^ σ₂ / ε
                     := by ring
-    _        ≤ C' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
-                  + C'' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
-                  + C''' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
-                  + c₅ * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+    _        ≤ C' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / (1 + n₁)))
+                  + C'' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / (1 + n₁)))
+                  + C''' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / (1 + n₁)))
+                  + c₅ * X * rexp (-c * Real.log X ^ ((1 : ℝ) / (1 + n₁)))
                     := by
       gcongr
-    _        = C * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+    _        = C * X * rexp (-c * Real.log X ^ ((1 : ℝ) / (1 + n₁)))
                     := by ring
     _        = _ := by
       rw [Real.norm_of_nonneg]
       · rw [← mul_assoc]
       · positivity
+
+/-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
+@[blueprint
+  (title := "MediumPNT")
+  (statement := /--
+    We have
+  $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
+  -/)
+  (proof := /-- Evaluate the integrals. -/)]
+theorem MediumPNT : ∃ c > 0,
+    (ψ - id) =O[atTop]
+      fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
+  have : (10 : ℝ) = 1 + 9 := by ring_nf
+  rw [this]
+  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
+  have ContDiff1ν : ContDiff ℝ 1 ν := by exact ContDiffν.of_le (by simp)
+  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
+  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
+  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo99
+  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max σ₂' (1 / 2)
+  have σ₂_pos : 0 < σ₂ := by bound
+  have σ₂_lt_one : σ₂ < 1 := by bound
+  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
+    apply holo2'.mono
+    intro s hs
+    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
+      mem_singleton_iff] at hs ⊢
+    refine ⟨?_, hs.2⟩
+    refine ⟨?_, hs.1.2⟩
+    rcases hs.1.1 with ⟨left, right⟩
+    constructor
+    · apply le_trans _ left
+      apply min_le_min_right
+      apply le_max_left
+    · rw [max_eq_right (by linarith)] at right ⊢
+      exact right
+  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (Nat.zero_lt_succ 8) A_in_Ioc holo1 σ₂_pos σ₂_lt_one holo2
+  · exact I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  · exact I2MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  · exact I3MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  · exact I4MediumBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
+  · exact I5Bound ν_supp ContDiff1ν holo2  ⟨σ₂_pos, σ₂_lt_one⟩
+  · exact I6MediumBound ν_supp ContDiff1ν holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
+  · exact I7MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  · exact I8MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  · exact I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
 
 #print axioms MediumPNT
