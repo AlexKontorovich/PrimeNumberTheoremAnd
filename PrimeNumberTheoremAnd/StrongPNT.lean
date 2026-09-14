@@ -3105,23 +3105,7 @@ set_option maxHeartbeats 400000 in
 theorem StrongPNT : ∃ c > 0,
     (ψ - id) =O[atTop]
       fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 2)) := by
-  have : (2 : ℝ) = 1 + succ 0 := by ring_nf
-  rw [this]
-  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
-  have ContDiff1ν : ContDiff ℝ 1 ν := by exact ContDiffν.of_le (by simp)
-  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
-  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
-  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo12
-  obtain ⟨σ₂, σ₂InIoo, holo2⟩ := LogDerivZetaHolcSmallT'
-  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (by linarith) A_in_Ioc holo1 σ₂InIoo holo2
-    (I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
-    (I2StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I3StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I4StrongBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
-    (I5Bound ν_supp ContDiff1ν holo2  σ₂InIoo)
-    (I6StrongBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
-    (I7StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I8StrongBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
+  have := GenStrengthPNT LogDerivZetaBoundedAndHolo12 (by linarith) (by linarith); ring_nf at this
+  simpa only [gt_iff_lt, one_div, neg_mul] using this
 
 #print axioms MediumPNT

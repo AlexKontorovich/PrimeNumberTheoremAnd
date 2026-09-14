@@ -3769,43 +3769,30 @@ blueprint_comment /--
 set_option maxHeartbeats 400000 in
 -- Slow
 
-lemma GenStrengthPNT {ν : ℝ → ℝ}
-  (ContDiff1ν : ContDiff ℝ 1 ν)
-  (ν_nonneg : ∀ x > 0, 0 ≤ ν x)
-  (ν_supp : support ν ⊆ Icc (1 / 2) 2)
-  (ν_massOne : ∫ (x : ℝ) in Ioi 0, ν x / x = 1)
-  {n₁ : ℕ}
-  (n₁_pos : 0 < n₁)
-  {A : ℝ}
-  (A_in_Ioc : A ∈ Ioc 0 (1 / 2))
-  (holo1 : ∀ (T : ℝ), 3 ≤ T → HolomorphicOn (fun s ↦ ζ' s / ζ s) (Icc (1 - A / Real.log T ^ n₁) 2 ×ℂ Icc (-T) T \ {1}))
-  {σ₂ : ℝ}
-  (σ₂InIoo : σ₂ ∈ Ioo 0 1)
-  (holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}))
-  (I1Bound : I1BoundGenProp ν)
-  (I2Bound : I2BoundGenProp n₁ ν A)
-  (I3Bound : I3BoundGenProp n₁ ν A)
-  (I4Bound : I4BoundGenProp n₁ ν A σ₂)
-  (I5Bound : I5BoundGenProp ν σ₂)
-  (I6Bound : I6BoundGenProp n₁ ν A σ₂)
-  (I7Bound : I7BoundGenProp n₁ ν A)
-  (I8Bound : I8BoundGenProp n₁ ν A)
-  (I9Bound : I9BoundGenProp ν) : ∃ c > 0,
+lemma GenStrengthPNT {n₁ n₂ : ℕ}
+  (LogDerivZetaBoundedAndHolo : LogDerivZetaBoundedAndHoloGenProp n₁ n₂)
+  (n₁_pos : 0 < n₁) (n₂_pos : 0 < n₂) : ∃ c > 0,
   (ψ - id) =O[atTop]
     fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / (1 + n₁))) := by
+  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
+  have ContDiff1ν : ContDiff ℝ 1 ν := by exact ContDiffν.of_le (by simp)
+  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
+  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
+  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo
+  obtain ⟨σ₂, σ₂InIoo, holo2⟩ := LogDerivZetaHolcSmallT'
   obtain ⟨c_close, c_close_pos, h_close⟩ := SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
   obtain ⟨ε_main, C_main, ε_main_pos, C_main_pos, h_main⟩  := MellinOfSmooth1cExplicit ContDiff1ν ν_supp ν_massOne
 
-  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound
-  obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound
-  obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound
-  obtain ⟨c₅, c₅pos, hc₅⟩ := I5Bound
-  obtain ⟨c₇, c₇pos, hc₇⟩ := I7Bound
-  obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound
-  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound
+  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  obtain ⟨c₂, c₂pos, hc₂⟩ := I2GenBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₃, c₃pos, hc₃⟩ := I3GenBound ν_supp ContDiff1ν n₁_pos n₂_pos zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₅, c₅pos, hc₅⟩ := I5Bound ν_supp ContDiff1ν holo2  σ₂InIoo
+  obtain ⟨c₇, c₇pos, hc₇⟩ := I7GenBound ν_supp ContDiff1ν n₁_pos n₂_pos zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₈, c₈pos, hc₈⟩ := I8GenBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
 
-  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4Bound
-  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6Bound
+  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4GenBound ν_supp ContDiff1ν holo2 σ₂InIoo n₁_pos A_in_Ioc
+  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6GenBound ν_supp ContDiff1ν holo2 σ₂InIoo n₁_pos A_in_Ioc
 
   let C' := c_close + C_main
   let C'' := c₁ + c₂ + c₈ + c₉
@@ -4321,23 +4308,7 @@ lemma GenStrengthPNT {ν : ℝ → ℝ}
 theorem MediumPNT : ∃ c > 0,
     (ψ - id) =O[atTop]
       fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
-  have : (10 : ℝ) = 1 + 9 := by ring_nf
-  rw [this]
-  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
-  have ContDiff1ν : ContDiff ℝ 1 ν := by exact ContDiffν.of_le (by simp)
-  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
-  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by rwa [← integral_Ici_eq_integral_Ioi]
-  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo99
-  obtain ⟨σ₂, σ₂InIoo, holo2⟩ := LogDerivZetaHolcSmallT'
-  apply GenStrengthPNT ContDiff1ν ν_nonneg ν_supp ν_massOne (by linarith) A_in_Ioc holo1 σ₂InIoo holo2
-    (I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
-    (I2MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I3MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I4MediumBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
-    (I5Bound ν_supp ContDiff1ν holo2  σ₂InIoo)
-    (I6MediumBound ν_supp ContDiff1ν holo2 σ₂InIoo A_in_Ioc)
-    (I7MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I8MediumBound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc)
-    (I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne)
+  have := GenStrengthPNT LogDerivZetaBoundedAndHolo99 (by linarith) (by linarith); ring_nf at this
+  simpa only [gt_iff_lt, one_div, neg_mul] using this
 
 #print axioms MediumPNT
