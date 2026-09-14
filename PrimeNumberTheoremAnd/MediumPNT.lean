@@ -3764,10 +3764,7 @@ lemma x_ε_to_inf (c : ℝ) {B : ℝ} (B_le : B < 1) : Tendsto
 
 blueprint_comment /--
 \section{MediumPNT}
-
 -/
-set_option maxHeartbeats 400000 in
--- Slow
 
 lemma GenStrengthPNT {n₁ n₂ : ℕ}
   (LogDerivZetaBoundedAndHolo : LogDerivZetaBoundedAndHoloGenProp n₁ n₂)

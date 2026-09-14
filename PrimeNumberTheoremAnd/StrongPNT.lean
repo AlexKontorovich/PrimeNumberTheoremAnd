@@ -3080,9 +3080,6 @@ lemma LogDerivZetaBoundedAndHolo12 : LogDerivZetaBoundedAndHoloGenProp 1 2 := by
 
 
 
-set_option maxHeartbeats 400000 in
--- Slow
-
 @[blueprint "StrongPNT"
   (title := "StrongPNT")
   (statement := /--
