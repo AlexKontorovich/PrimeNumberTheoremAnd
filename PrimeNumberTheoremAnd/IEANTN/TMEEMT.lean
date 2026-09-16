@@ -574,7 +574,7 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
 
 @[blueprint
   "thm:dusart2018-theta-improv-3"
-  (title := "Dusart 2018, $\vartheta$ improvement 3")
+  (title := "Dusart 2018, $\\vartheta$ improvement 3")
   (statement := /-- For $x \geq 122{,}568{,}683$, we have
   $|\vartheta(x) - x| \leq \frac{0.05\, x}{\log^2 x}$. -/)
   (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
@@ -595,7 +595,7 @@ theorem theta_improv_3 (x : ℝ) (hx : x ≥ 122568683) :
 
 @[blueprint
   "thm:dusart2018-theta-improv-4"
-  (title := "Dusart 2018, $\vartheta$ improvement 4")
+  (title := "Dusart 2018, $\\vartheta$ improvement 4")
   (statement := /-- For $x \geq 7{,}713{,}133{,}853$, we have
   $|\vartheta(x) - x| \leq \frac{0.01\, x}{\log^2 x}$. -/)
   (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
