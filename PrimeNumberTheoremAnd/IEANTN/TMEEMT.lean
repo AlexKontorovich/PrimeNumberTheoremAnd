@@ -572,6 +572,28 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
   rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
   rwa [le_div_iff₀' hlog3_pos, mul_comm]
 
+@[blueprint
+  "thm:dusart2018-theta-improv-7"
+  (title := "Dusart 2018, $\\vartheta$ improvement 7")
+  (statement := /-- For $x \geq 908{,}994{,}923$, we have
+  $|\vartheta(x) - x| \leq \frac{0.001\, x}{\log x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(1,0.001,908994923)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_7 (x : ℝ) (hx : x ≥ 908994923) :
+    |θ x - x| ≤ 0.001 * x / log x := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hmem : (1, (0.001 : ℝ), (908994923 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  -- Table_4_2 uses (log x)^k with k=1, so simplify before canceling.
+  simp only [pow_one] at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog_pos] at hEθ
+  rwa [le_div_iff₀ hlog_pos]
+
 end Dusart
 
 namespace FaberKadiri
