@@ -572,6 +572,48 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
   rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
   rwa [le_div_iff₀' hlog3_pos, mul_comm]
 
+@[blueprint
+  "thm:dusart2018-theta-improv-3"
+  (title := "Dusart 2018, $\vartheta$ improvement 3")
+  (statement := /-- For $x \geq 122{,}568{,}683$, we have
+  $|\vartheta(x) - x| \leq \frac{0.05\, x}{\log^2 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(2,0.05,122568683)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_3 (x : ℝ) (hx : x ≥ 122568683) :
+    |θ x - x| ≤ 0.05 * x / (log x) ^ 2 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog2_pos : (0 : ℝ) < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hmem : (2, (0.05 : ℝ), (122568683 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog2_pos] at hEθ
+  rwa [le_div_iff₀ hlog2_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-4"
+  (title := "Dusart 2018, $\vartheta$ improvement 4")
+  (statement := /-- For $x \geq 7{,}713{,}133{,}853$, we have
+  $|\vartheta(x) - x| \leq \frac{0.01\, x}{\log^2 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(2,0.01,7713133853)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_4 (x : ℝ) (hx : x ≥ 7713133853) :
+    |θ x - x| ≤ 0.01 * x / (log x) ^ 2 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog2_pos : (0 : ℝ) < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hmem : (2, (0.01 : ℝ), (7713133853 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog2_pos] at hEθ
+  rwa [le_div_iff₀ hlog2_pos]
+
 end Dusart
 
 namespace FaberKadiri
