@@ -572,6 +572,48 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
   rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
   rwa [le_div_iff₀' hlog3_pos, mul_comm]
 
+@[blueprint
+  "thm:dusart2018-theta-improv-5"
+  (title := "Dusart 2018, $\vartheta$ improvement 5")
+  (statement := /-- For $x \geq 158{,}822{,}621$, we have
+  $|\vartheta(x) - x| \leq \frac{0.78\, x}{\log^3 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(3,0.78,158822621)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_5 (x : ℝ) (hx : x ≥ 158822621) :
+    |θ x - x| ≤ 0.78 * x / (log x) ^ 3 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos hlog_pos 3
+  have hmem : (3, (0.78 : ℝ), (158822621 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+  rwa [le_div_iff₀ hlog3_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-6"
+  (title := "Dusart 2018, $\vartheta$ improvement 6")
+  (statement := /-- For $x \geq 767{,}135{,}587$, we have
+  $|\vartheta(x) - x| \leq \frac{0.5\, x}{\log^3 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(3,0.5,767135587)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_6 (x : ℝ) (hx : x ≥ 767135587) :
+    |θ x - x| ≤ 0.5 * x / (log x) ^ 3 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos hlog_pos 3
+  have hmem : (3, (0.5 : ℝ), (767135587 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+  rwa [le_div_iff₀ hlog3_pos]
+
 end Dusart
 
 namespace FaberKadiri
