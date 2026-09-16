@@ -574,7 +574,7 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
 
 @[blueprint
   "thm:dusart2018-theta-improv-7"
-  (title := "Dusart 2018, $\vartheta$ improvement 7")
+  (title := "Dusart 2018, $\\vartheta$ improvement 7")
   (statement := /-- For $x \geq 908{,}994{,}923$, we have
   $|\vartheta(x) - x| \leq \frac{0.001\, x}{\log x}$. -/)
   (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
