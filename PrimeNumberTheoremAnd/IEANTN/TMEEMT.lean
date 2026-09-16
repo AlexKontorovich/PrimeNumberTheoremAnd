@@ -589,6 +589,8 @@ theorem theta_improv_7 (x : ℝ) (hx : x ≥ 908994923) :
     simp [Dusart.Table_4_2]
   have hEθ := Dusart.theorem_4_2 hmem hx
   unfold Eθ at hEθ
+  -- Table_4_2 uses (log x)^k with k=1, so simplify before canceling.
+  simp only [pow_one] at hEθ
   rw [div_le_div_iff₀ hx_pos hlog_pos] at hEθ
   rwa [le_div_iff₀ hlog_pos]
 
