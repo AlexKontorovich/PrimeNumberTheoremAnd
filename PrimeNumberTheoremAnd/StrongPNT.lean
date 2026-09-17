@@ -2822,30 +2822,32 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
   -/)]
 theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_ : 0 < C),
     ∀ (σ t : ℝ), 3 < |t| → σ ∈ Set.Ici (1 - F / Real.log |t|) →
-      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ (2 : ℝ) := by
   obtain ⟨C1, hC1⟩ := LogDerivZetaUniformLogSquaredBoundStripSpec
   obtain ⟨C2, hC2⟩ := LogDerivZetaBdd_of_Re_ge_three_halves
+  have hC2pos := (norm_nonneg _).trans (hC2 2 (by norm_num))
   use max C1 C2, lt_max_of_lt_left hC1.1
   intro σ t ht hσ
   by_cases hσ' : σ ≤ 3 / 2
-  · exact (hC1.2 t (by grind) σ ⟨hσ, hσ'⟩).trans
-      (mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _))
+  · apply (hC1.2 t (by grind) σ ⟨hσ, hσ'⟩).trans
+    gcongr
+    · exact le_max_left _ _
+    · simp only [log_abs, rpow_ofNat, Std.le_refl]
   · refine (hC2 _ ?_).trans ?_
     · norm_num; linarith
-    · have hC2pos := (norm_nonneg _).trans (hC2 2 (by norm_num))
-      exact (le_max_right _ _).trans (le_mul_of_one_le_right
-        (le_max_of_le_right (by grind))
-        (one_le_pow₀ (by
-          rw [Real.le_log_iff_exp_le (by grind)]
-          exact Real.exp_one_lt_d9.le.trans (by grind))))
+    · nth_rewrite 1 [← mul_one C2, ← mul_one 1, ← sq]
+      refine mul_le_mul (le_max_right _ _) ?_ (sq_nonneg _) ?_
+      · rw [one_pow, rpow_ofNat, one_le_sq_iff_one_le_abs, abs_of_pos (Real.log_pos (by linarith)), Real.le_log_iff_exp_le (by linarith)]
+        linarith [Real.exp_one_lt_d9]
+      · linarith [le_max_right C1 C2]
 
 
 
 /-- A wrapper for the above theorem -/
 lemma LogDerivZetaBndUnif12 : LogDerivZetaBndUnifGenProp 1 2 := by
   refine ⟨F, ⟨FinIoo.1, by linarith [FinIoo.2]⟩, ?_⟩
-  simp only [pow_one, LogDerivZetaUniformLogSquaredBound]
-
+  simp only [rpow_one]
+  apply LogDerivZetaUniformLogSquaredBound
 
 
 blueprint_comment /--
@@ -2920,7 +2922,7 @@ lemma I2StrongBound {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound 1 2 A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
     I2BoundGenProp 1 SmoothingF A := by
-  exact I2GenBound suppSmoothingF ContDiffSmoothingF has_bound C₂pos A_in
+  exact I2GenBound suppSmoothingF ContDiffSmoothingF zero_lt_one zero_lt_two has_bound C₂pos A_in
 
 
 
@@ -2940,7 +2942,7 @@ lemma I8StrongBound {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound 1 2 A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
     I8BoundGenProp 1 SmoothingF A := by
-  exact I8GenBound suppSmoothingF ContDiffSmoothingF has_bound C₂_pos A_in
+  exact I8GenBound suppSmoothingF ContDiffSmoothingF zero_lt_one zero_lt_two has_bound C₂_pos A_in
 
 
 
@@ -2978,8 +2980,7 @@ theorem I3StrongBound {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound 1 2 A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
     I3BoundGenProp 1 SmoothingF A := by
-  exact I3GenBound suppSmoothingF ContDiffSmoothingF
-    (Nat.zero_lt_succ 0) (Nat.zero_lt_succ 1) hCζ Cζpos hA
+  exact I3GenBound suppSmoothingF ContDiffSmoothingF zero_lt_one zero_lt_two hCζ Cζpos hA
 
 
 
@@ -3000,8 +3001,7 @@ lemma I7StrongBound {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound 1 2 A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
     I7BoundGenProp 1 SmoothingF A := by
-  exact I7GenBound suppSmoothingF ContDiffSmoothingF
-    (Nat.zero_lt_succ 0) (Nat.zero_lt_succ 1) hCζ Cζpos hA
+  exact I7GenBound suppSmoothingF ContDiffSmoothingF zero_lt_one zero_lt_two hCζ Cζpos hA
 
 
 
@@ -3025,7 +3025,7 @@ lemma I4StrongBound {SmoothingF : ℝ → ℝ}
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
     {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
     I4BoundGenProp 1 SmoothingF A σ₂ := by
-  exact I4GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ (Nat.zero_lt_succ 0) hA
+  exact I4GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ zero_lt_one hA
 
 
 
@@ -3047,7 +3047,7 @@ lemma I6StrongBound {SmoothingF : ℝ → ℝ}
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
     {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
     I6BoundGenProp 1 SmoothingF A σ₂ := by
-  exact I6GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ (Nat.zero_lt_succ 0) hA
+  exact I6GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ zero_lt_one hA
 
 
 
@@ -3063,14 +3063,14 @@ lemma ZetaZeroFree1 :
   have contra := hσ.1; rw [Fequ] at contra
   have contra := le_trans contra (ZeroInequalityThing (by linarith))
   have log_pos : 0 < Real.log |t| := by exact Real.log_pos (by linarith)
-  rw [pow_one, sub_le_sub_iff_left, div_div, div_le_div_iff_of_pos_left EinIoo.1 log_pos (mul_pos three_pos (Real.log_pos (lt_trans one_lt_ofNat ht)))] at contra
+  rw [rpow_one, sub_le_sub_iff_left, div_div, div_le_div_iff_of_pos_left EinIoo.1 log_pos (mul_pos three_pos (Real.log_pos (lt_trans one_lt_ofNat ht)))] at contra
   linarith
 
 
 
 -- analouge from ZetaBounds
 theorem LogDerivZetaHolcLargeT1 : LogDerivZetaHolcLargeTGenProp 1 := by
-  exact LogDerivZetaHolcLargeTGen ZetaZeroFree1
+  exact LogDerivZetaHolcLargeTGen ZetaZeroFree1 zero_lt_one
 
 
 
@@ -3105,4 +3105,4 @@ theorem StrongPNT : ∃ c > 0,
   have := GenStrengthPNT LogDerivZetaBoundedAndHolo12 (by linarith) (by linarith); ring_nf at this
   simpa only [gt_iff_lt, one_div, neg_mul] using this
 
-#print axioms MediumPNT
+#print axioms StrongPNT
