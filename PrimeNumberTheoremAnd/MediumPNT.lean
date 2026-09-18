@@ -2430,6 +2430,12 @@ lemma I8MediumBound {SmoothingF : ℝ → ℝ}
     I8BoundGenProp 9 SmoothingF A := by
   exact I8GenBound suppSmoothingF ContDiffSmoothingF Nat.ofNat_pos' Nat.ofNat_pos' has_bound C₂_pos A_in
 
+lemma Real.log_le_const_mul_rpow {c x : ℝ} (hc : 0 < c) (hx : 0 < x) :
+    Real.log x ≤ c * x ^ (1 / c) := by
+  have h := Real.log_le_sub_one_of_pos (Real.rpow_pos_of_pos hx (1 / c)); rw [Real.log_rpow hx] at h
+  have h' := mul_le_mul_of_nonneg_left h hc.le; field_simp at h'
+  nlinarith [Real.rpow_pos_of_pos hx (1 / c)]
+
 @[blueprint
   (title := "log-pow-over-xsq-integral-bounded")
   (statement := /--
@@ -2441,258 +2447,46 @@ lemma I8MediumBound {SmoothingF : ℝ → ℝ}
   (proof := /-- Induct on n and just integrate by parts. -/)
   (latexEnv := "lemma")]
 lemma log_pow_over_xsq_integral_bounded :
-  ∀ n : ℕ, ∃ C : ℝ, 0 < C ∧ ∀ T > 3, ∫ x in Ioo 3 T, (Real.log x) ^ n / x ^ 2 < C := by
-  have log3gt1: 1 < Real.log 3 := logt_gt_one le_rfl
-  intro n
-  induction n with
-  | zero =>
-    use 1
-    constructor
-    · norm_num
-    · intro T hT
-      simp only [pow_zero]
-      have h1 :(0 ≤ (-2) ∨ (-2) ≠ (-1) ∧ 0 ∉ Set.uIcc 3 T) := by
-        right
-        constructor
-        · linarith
-        · refine notMem_uIcc_of_lt ?_ ?_
-          · exact three_pos
-          · linarith
-      have integral := integral_zpow h1
-      ring_nf at integral
-
-      have swap_int_kind : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), 1 / x ^ 2 = ∫ (x : ℝ) in Ioo 3 T, 1 / x ^ 2 := by
-        rw [intervalIntegral.integral_of_le (by linarith)]
-        exact MeasureTheory.integral_Ioc_eq_integral_Ioo
-      rw [← swap_int_kind]
-      have change_int_power : ∫ (x : ℝ) in (3 : ℝ)..T, (1 : ℝ) / x ^ (↑ 2)
-                            = ∫ (x : ℝ) in (3 : ℝ).. T, x ^ (-2 : ℤ) := by
-        apply intervalIntegral.integral_congr
-        intro x hx
-        simp
-        rfl
-      rw [change_int_power, integral]
-      have : T ^ (-1 : ℤ) > 0 := by
-        refine zpow_pos ?_ (-1)
-        linarith
-      linarith
-  | succ d ih =>
-    obtain ⟨Cd, Cdpos, IH⟩ := ih
-    use ((Real.log 3)^(d+1) / 3) + (d+1) * Cd
-    constructor
-    · have logpowpos : (Real.log 3) ^ (d + 1) > 0 := by
-        refine pow_pos ?_ (d + 1)
-        linarith
-      have : Real.log 3 ^ (d + 1) / 3 + (↑d + 1) * Cd > 0 / 3 + 0 := by
-        have term2_pos : 0 < (↑d + 1) * Cd := by
-          refine (mul_pos_iff_of_pos_right Cdpos).mpr ?_
-          exact Nat.cast_add_one_pos d
-        refine add_lt_add ?_ term2_pos
-        refine div_lt_div₀ logpowpos ?_ ?_ ?_
-        · linarith
-        · linarith
-        · linarith
-      ring_nf at this
-      ring_nf
-      exact this
-    · intro T Tgt3
-      let u := fun x : ℝ ↦ (Real.log x) ^ (d + 1)
-      let v := fun x : ℝ ↦ -1 / x
-      let u' := fun x : ℝ ↦ (d + 1 : ℝ) * (Real.log x)^d / x
-      let v' := fun x : ℝ ↦ 1 / x^2
-
-      have swap_int_type : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), Real.log x ^ (d + 1) / x ^ 2
-                          = ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ (d + 1) / x ^ 2 := by
-        rw [intervalIntegral.integral_of_le (by linarith)]
-        exact MeasureTheory.integral_Ioc_eq_integral_Ioo
-
-      rw [← swap_int_type]
-
-      have uIcc_is_Icc : Set.uIcc 3 T = Set.Icc 3 T := by
-        exact uIcc_of_lt Tgt3
-
-      have cont_u : ContinuousOn u (Set.uIcc 3 T) := by
-        unfold u
-        rw[uIcc_is_Icc]
-        refine ContinuousOn.pow ?_ (d + 1)
-        refine continuousOn_of_forall_continuousAt ?_
-        intro x hx
-        refine continuousAt_log ?_
-        linarith [hx.1]
-
-      have cont_v : ContinuousOn v (Set.uIcc 3 T) := by
-        unfold v
-        rw[uIcc_is_Icc]
-        refine continuousOn_of_forall_continuousAt ?_
-        intro x hx
-        have cont2 : ContinuousAt (fun (x : ℝ) ↦ 1 / x) (-x) := by
-          refine ContinuousAt.div₀ ?_ (fun ⦃U⦄ a ↦ a) ?_
-          · exact continuousAt_const
-          · linarith [hx.1]
-        have fun1 : (fun (x : ℝ) ↦ -1 / x) = (fun (x : ℝ) ↦ 1 / (-x)) := by
-          ext x
-          ring_nf
-        rw [fun1]
-        exact ContinuousAt.comp cont2 (HasDerivAt.neg (hasDerivAt_id x)).continuousAt
-
-      have deriv_u :
-          (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt u (u' x) x) := by
-        intro x hx
-        have min3t : min 3 T = 3 := by
-          exact min_eq_left_of_lt Tgt3
-        have max3t : max 3 T = T := by
-          exact max_eq_right_of_lt Tgt3
-        rw[min3t, max3t] at hx
-        unfold u u'
-        have xne0 : x ≠ 0 := by linarith [hx.1]
-        have deriv2 := (Real.hasDerivAt_log xne0).pow (d + 1)
-        have fun2 : (↑d + 1) * Real.log x ^ d / x =  (↑d + 1) * Real.log x ^ d * x⁻¹:= by
-          exact rfl
-        rw [fun2]
-        convert! deriv2 using 1
-        rw [Nat.add_sub_cancel,
-          Nat.cast_add, Nat.cast_one]
-
-      have deriv_v : (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt v (v' x) x) := by
-        intro x hx
-        have min3t : min 3 T = 3 := by
-          exact min_eq_left_of_lt Tgt3
-        have max3t : max 3 T = T := by
-          exact max_eq_right_of_lt Tgt3
-        rw[min3t, max3t] at hx
-        have xne0 : x ≠ 0 := by linarith [hx.1]
-        unfold v v'
-        have deriv1 := hasDerivAt_inv xne0
-        have fun1 : (fun (x : ℝ) ↦ x⁻¹) = (fun (x : ℝ) ↦ 1 / x) := by
-          ext x
-          exact inv_eq_one_div x
-        rw [fun1] at deriv1
-        have fun2 : -(x ^ 2)⁻¹ = - 1 / x ^ 2 := by
-          field_simp
-        rw [fun2] at deriv1
-        convert! HasDerivAt.neg deriv1 using 1
-        · ext x
-          rw [neg_eq_neg_one_mul]
-          field_simp
-          simp
-        · field_simp
-
-      have cont_u' : ContinuousOn u' (Set.uIcc 3 T) := by
-        rw[uIcc_is_Icc]
-        unfold u'
-        refine ContinuousOn.div₀ ?_ ?_ ?_
-        · refine ContinuousOn.mul ?_ ?_
-          · exact continuousOn_const
-          · refine ContinuousOn.pow ?_ d
-            refine continuousOn_of_forall_continuousAt ?_
-            intro x hx
-            refine continuousAt_log ?_
-            linarith [hx.1]
-        · exact continuousOn_id' (Icc 3 T)
-        · intro x hx
-          linarith [hx.1]
-
-      have cont_v' : ContinuousOn v' (Set.uIcc 3 T) := by
-        rw[uIcc_is_Icc]
-        unfold v'
-        refine ContinuousOn.div₀ ?_ ?_ ?_
-        · exact continuousOn_const
-        · exact continuousOn_pow 2
-        · intro x hx
-          refine pow_ne_zero 2 ?_
-          linarith [hx.1]
-
-      have int_u': IntervalIntegrable u' MeasureTheory.volume 3 T := by
-        exact ContinuousOn.intervalIntegrable cont_u'
-
-      have int_v': IntervalIntegrable v' MeasureTheory.volume 3 T := by
-        exact ContinuousOn.intervalIntegrable cont_v'
-
-      have IBP := intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt cont_u cont_v deriv_u deriv_v int_u' int_v'
-
-      unfold u u' v v' at IBP
-
-      have int1 : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), Real.log x ^ (d + 1) * (1 / x ^ 2)
-                = ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), Real.log x ^ (d + 1) / x ^ 2 := by
-          refine intervalIntegral.integral_congr ?_
-          intro x hx
-          field_simp
-
-      rw[int1] at IBP
-      rw[IBP]
-
-      have int2 : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), (↑d + 1) * Real.log x ^ d / x * (-1 / x)
-                = -(↑d + 1) * ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), Real.log x ^ d / x ^ 2 := by
-        have : ∀ x, (↑d + 1) * Real.log x ^ d / x * (-1 / x)
-         = -((↑d + 1) * Real.log x ^ d / x ^ 2) := by
-          intro x
-          field_simp
-        have : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), (↑d + 1) * Real.log x ^ d / x * (-1 / x)
-                = ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), -((↑d + 1) * Real.log x ^ d / x ^ 2) := by
-          exact intervalIntegral.integral_congr fun ⦃x⦄ a ↦ this x
-        rw [this,
-          ←intervalIntegral.integral_const_mul]
-
-        ring_nf
-
-      rw[int2]
-
-      have int3 : ∫ (x : ℝ) in (3 : ℝ)..(T : ℝ), Real.log x ^ d / x ^ 2
-                = ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d / x ^ 2 := by
-        rw [intervalIntegral.integral_of_le (by linarith)]
-        exact MeasureTheory.integral_Ioc_eq_integral_Ioo
-
-      rw[int3]
-
-      have IHbound : ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d / x ^ 2 < Cd := by
-        exact IH T Tgt3
-
-      ring_nf
-      have bound2 : (Real.log T * Real.log T ^ d * T⁻¹) ≥ 0 := by
-        have logTpos : Real.log T ≥ 0 := by
-          refine log_nonneg ?_
-          linarith
-        apply mul_nonneg
-        · apply mul_nonneg
-          · exact logTpos
-          · exact pow_nonneg logTpos d
-        · field_simp
-          simp
-      let S := Real.log T * Real.log T ^ d * T⁻¹
-      have : (-(Real.log T * Real.log T ^ d * T⁻¹) + Real.log 3 * Real.log 3 ^ d * (1 / 3) +
-                ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2) +
-              ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2 = (-S + Real.log 3 * Real.log 3 ^ d * (1 / 3) +
-                ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2) +
-              ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2 := by
-        unfold S
-        rfl
-      rw [this]
-
-      have GetRidOfS : (-S + Real.log 3 * Real.log 3 ^ d * (1 / 3)
-                      + ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2)
-                      + ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2
-                      ≤ ( Real.log 3 * Real.log 3 ^ d * (1 / 3)
-                      + ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2)
-                      + ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2 := by
-        linarith
-      apply lt_of_le_of_lt GetRidOfS
-      rw [add_assoc]
-
-      have bound4 : ∫ x in Ioo 3 T, Real.log x ^ d / x ^ 2 < Cd := IHbound
-
-      have bound5 : ↑d * ∫ x in Ioo 3 T, Real.log x ^ d / x ^ 2 ≤ ↑d * Cd := by
-        apply (mul_le_mul_of_nonneg_left bound4.le)
-        exact Nat.cast_nonneg d
-
-      rw[add_assoc]
-      apply add_lt_add_right
-      field_simp
-      linarith
-
-lemma Real.log_pow_over_xsq_integral_bounded :
   ∀ n : ℝ, (n_pos : 0 < n) →
     ∃ C : ℝ, 0 < C ∧ ∀ T > 3, ∫ x in Ioo 3 T, (Real.log x) ^ n / x ^ 2 < C := by
-  sorry
+  intro n n_pos
+  set c : ℝ := 2 * n with cDef
+  have cpos : 0 < c := by linarith
+  set g : ℝ → ℝ := fun x => c ^ n * x ^ (-(3 / 2) : ℝ) with gDef
+  have g_nonneg : ∀ x ∈ Ioi (3 : ℝ), 0 ≤ g x := by
+    intro x hx; simp only [mem_Ioi] at hx
+    exact mul_nonneg (Real.rpow_nonneg (by linarith) _) (Real.rpow_nonneg (by linarith) _)
+  have gInt_nonneg : 0 ≤ ∫ x in Ioi (3 : ℝ), g x := setIntegral_nonneg measurableSet_Ioi g_nonneg
+  have g_integrable : IntegrableOn g (Ioi 3) :=
+    Integrable.const_mul (integrableOn_Ioi_rpow_of_lt (by linarith) (by linarith)) _
+  have g_mono : ∀ x ∈ Ioi (3 : ℝ), Real.log x ^ n / x ^ 2 ≤ g x := by
+    intro x hx; simp only [mem_Ioi] at hx
+    have xpos : 0 < x := by linarith
+    have logxPos : 0 < Real.log x := by
+      rw [Real.log_pos_iff xpos.le]
+      linarith
+    have logBnd := Real.rpow_le_rpow logxPos.le (Real.log_le_const_mul_rpow cpos xpos) n_pos.le
+    rw [Real.mul_rpow cpos.le (Real.rpow_nonneg xpos.le _), ← Real.rpow_mul xpos.le, cDef] at logBnd
+    field_simp at logBnd
+    have : - ((3 : ℝ) / 2) = (1 / 2) - 2 := by norm_num
+    simp only [cDef, gDef, this, Real.rpow_sub xpos, ← mul_div_assoc, rpow_ofNat]
+    exact (div_le_div_iff_of_pos_right (sq_pos_iff.mpr (ne_of_gt xpos))).mpr logBnd
+  refine ⟨1 + (∫ x in Ioi (3 : ℝ), g x), by linarith, fun T _ => ?_⟩
+  calc
+    _ ≤ ∫ (x : ℝ) in Ioo 3 T, g x := by
+      refine setIntegral_mono_on (IntegrableOn.mono_set (ContinuousOn.integrableOn_Icc
+        (ContinuousOn.div (ContinuousOn.rpow_const (ContinuousOn.log (continuousOn_id' _)
+        (fun x hx ↦ ?_)) ?_) (ContinuousOn.fun_pow (continuousOn_id' _) _)
+        (fun x hx ↦ pow_ne_zero _ ?_))) Ioo_subset_Icc_self)
+        (IntegrableOn.mono_set g_integrable Ioo_subset_Ioi_self) measurableSet_Ioo
+        (fun x hx ↦ g_mono x hx.1)
+      · linarith [hx.1]
+      · simp only [mem_Icc, ne_eq, log_eq_zero, not_or, n_pos.le, or_true, implies_true]
+      · linarith [hx.1]
+    _ ≤ ∫ (x : ℝ) in Ioi 3, g x := by
+      refine setIntegral_mono_set g_integrable ?_ (LE.le.eventuallyLE Ioo_subset_Ioi_self)
+      exact MeasureTheory.ae_restrict_of_forall_mem measurableSet_Ioi (fun x hx ↦ g_nonneg x hx)
+  linarith
 
 def I3BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A : ℝ) : Prop := ∃ (C : ℝ) (_ : 0 < C),
     ∀ (X : ℝ) (_ : 3 < X)
@@ -2709,7 +2503,7 @@ theorem I3GenBound {SmoothingF : ℝ → ℝ}
     {n₁ n₂ : ℝ} (n₁_pos : 0 < n₁) (n₂_pos : 0 < n₂) {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound n₁ n₂ A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
     I3BoundGenProp n₁ SmoothingF A := by
   obtain ⟨CM, CMpos, CMhyp⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
-  obtain ⟨Cint, Cintpos, Cinthyp⟩ := Real.log_pow_over_xsq_integral_bounded n₂ n₂_pos
+  obtain ⟨Cint, Cintpos, Cinthyp⟩ := log_pow_over_xsq_integral_bounded n₂ n₂_pos
   use Cint * CM * Cζ
   have : Cint * CM > 0 := mul_pos Cintpos CMpos
   have : Cint * CM * Cζ > 0 := mul_pos this Cζpos
