@@ -2850,40 +2850,6 @@ lemma LogDerivZetaBndUnif12 : LogDerivZetaBndUnifGenProp 1 2 := by
   apply LogDerivZetaUniformLogSquaredBound
 
 
-blueprint_comment /--
-From here we closely follow our previous proof of the Medium PNT and we modify it using our new
-estimate in Theorem \ref{LogDerivZetaUniformLogSquaredBound}. Recall Definition
-\ref{SmoothedChebyshev}; for fixed $\varepsilon>0$ and a bump function $\nu$ supported on $[1/2,2]$
-we have
-$$\psi_\varepsilon(X)=\frac{1}{2\pi i}\int_{(\sigma_0)}\left(-\frac{\zeta'}{\zeta}(s)\right)
-  \mathcal{M}(\tilde{1}_\varepsilon)(s)\,X^s\,ds$$
-where $\sigma_0=1+1/\log X$. Let $T>3$ be a large constant to be chosen later, and we take
-$\sigma_1=1-A/\log T$ (where $A$ is a constant depending on $F$ coming from Theorem \ref{620}) with
-$\sigma_2$ a constant such that $\sigma_2<\sigma_1$. We integrate along the $\sigma_0$ vertical
-line, and we pull contours twice accumulating the pole at $s=1$. We now integrate along the curves
-\begin{itemize}
-    \item $I_1$: $\sigma_0-i\infty$ to $\sigma_0-iT$
-    \item $I_2$: $\sigma_1-iT$ to $\sigma_1+iT$
-    \item $I_3$: $\sigma_1-iT$ to $\sigma_1-3i$
-    \item $I_4$: $\sigma_2-3i$ to $\sigma_1-3i$
-    \item $I_5$: $\sigma_2-3i$ to $\sigma_2+3i$
-    \item $I_6$: $\sigma_2+3i$ to $\sigma_1+3i$
-    \item $I_7$: $\sigma_1+3i$ to $\sigma_1+iT$
-    \item $I_8$: $\sigma_1+iT$ to $\sigma_0+iT$
-    \item $I_9$: $\sigma_0+iT$ to $\sigma_0+i\infty$.
-\end{itemize}
-Now by combining Lemmas \ref{SmoothedChebyshevPull1} and \ref{SmoothedChebyshevPull2} we have that
-$$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_{37}+I_8+I_9=
-  \mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3-I_4+I_5+I_6+I_7+I_8+I_9.$$
-Recalling Theorem \ref{SmoothedChebyshevClose} we have that
-$$\psi(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1
-  +I_1-I_2+I_3-I_4+I_5+I_6+I_7+I_8+I_9+O(\varepsilon X\log X).$$
-We have estimates for four of these terms in Lemmas \ref{I1Bound}, \ref{I5Bound}, \ref{I9Bound},
-and \ref{MellinOfSmooth1c}. The remaining seven terms depend on our zero-free region in some way
-(be it the actual estimate or our new choice of $\sigma_1$), so we re-estimate these terms below.
--/
-
-
 
 -- analouge from ZetaBounds
 lemma ZetaZeroFree1 :
@@ -2917,21 +2883,11 @@ lemma LogDerivZetaBoundedAndHolo12 : LogDerivZetaBoundedAndHoloGenProp 1 2 := by
 @[blueprint "StrongPNT"
   (title := "StrongPNT")
   (statement := /--
-  We have that
-  $$
-  \left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll \frac{X}{\epsilon}\,
-   X^{-\frac{A}{(\log T)^9}}
-  .
-  $$
-  Same with $I_6$.
+    We have
+    $$\sum_{n \leq x}\Lambda(n)=x+O(x \exp(-c(\log x)^{1/2})).$$
   -/)
-  (proof := /--
-  The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
-  Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
-  Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
-  And $X^s$ is bounded by $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$.
-  Putting these together gives the result.
-  -/)
+  (proof := /-- This follows as a corollary of
+    Theorems \ref{GenStrengthPNT} and \ref{LogDerivZetaUniformLogSquaredBound}. -/)
   (latexEnv := "theorem")]
 theorem StrongPNT : ∃ c > 0,
     (ψ - id) =O[atTop]

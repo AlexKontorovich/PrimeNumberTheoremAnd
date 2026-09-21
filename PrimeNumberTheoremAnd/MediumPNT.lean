@@ -804,10 +804,22 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     ε_pos ε_lt_one X X_pos X_gt_three X_bound_1 X_bound_2 smooth1BddAbove smooth1BddBelow
     smoothIs1 smoothIs0
 
+@[blueprint "LogDerivZetaHasBound"
+  (title := "LogDerivZetaHasBound")
+  (statement := /--
+  For constants $A$, $C$, $n_1$, and $n_2$ this is true if for all $3<|t|$ one has
+  $$1-\frac{A}{\log|t|^{n_1}}\leq\sigma\implies|(\zeta'/\zeta)(\sigma+it)|\leq C\,\log|t|^{n_2}.$$
+  -/)]
+def LogDerivZetaHasBound (n₁ n₂ : ℝ) (A C : ℝ) : Prop := ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ n₁)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+    C * Real.log |t| ^ n₂
+
 blueprint_comment /--
-Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and set
+Suppose we have an estimate of the form in Definition \ref{LogDerivZetaHasBound}. Returning to the
+definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and set
 $\sigma_0 = 1 + 1 / log X$,
-$\sigma_1 = 1- A/ \log T^9$, and
+$\sigma_1 = 1- A/ \log T^{n_1}$ (where $n_1$ comes from our estimate from Definition
+\ref{LogDerivZetaHasBound}), and
 $\sigma_2<\sigma_1$ a constant.
 Pull
 contours (via rectangles!) to go
@@ -995,10 +1007,6 @@ theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   apply ContinuousAt.comp _ (by fun_prop)
   convert hf.continuousAt
   simp
-
-def LogDerivZetaHasBound (n₁ n₂ : ℝ) (A C : ℝ) : Prop := ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ n₁)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
-    C * Real.log |t| ^ n₂
 
 def LogDerivZetaIsHoloSmall (σ₂ : ℝ) : Prop :=
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
@@ -1780,10 +1788,9 @@ def I1BoundGenProp (SmoothingF : ℝ → ℝ) : Prop := ∃ C > 0, ∀(ε : ℝ)
   We have that
   $$
   \left|I_{1}(\nu, \epsilon, X, T)\
-  \right| \ll \frac{X}{\epsilon T}
+  \right| \ll \frac{X\log X}{\epsilon T}
   .
   $$
-  Same with $I_9$.
   -/)
   (proof := /--
     Unfold the definitions and apply the triangle inequality.
@@ -1799,7 +1806,7 @@ def I1BoundGenProp (SmoothingF : ℝ → ℝ) : Prop := ∃ C > 0, ∀(ε : ℝ)
   \ i \ dt
   \right|
   $$
-  By Theorem \ref{dlog_riemannZeta_bdd_on_vertical_lines} (once fixed!!),
+  By Theorem \ref{dlog_riemannZeta_bdd_on_vertical_lines},
   $\zeta'/\zeta (\sigma_0 + t i)$ is bounded by $\zeta'/\zeta(\sigma_0)$, and
   Theorem \ref{riemannZetaLogDerivResidue} gives $\ll 1/(\sigma_0-1)$ for the latter. This gives:
   $$
@@ -2158,6 +2165,20 @@ def I9BoundGenProp (SmoothingF : ℝ → ℝ) : Prop := ∃ C > 0, ∀{ε : ℝ}
     {T : ℝ} (_ : 3 < T),
     ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T)
 
+@[blueprint "I9Bound"
+  (title := "I9Bound")
+  (statement := /--
+  We have that
+  $$
+  \left|I_{1}(\nu, \epsilon, X, T)\
+  \right| \ll \frac{X}{\epsilon T}
+  .
+  $$
+  -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_1$, using the symmetry between $I_1$ and $I_9$.
+  -/)
+  (latexEnv := "lemma")]
 theorem I9Bound
     {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -2181,6 +2202,41 @@ def I2BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A : ℝ) : Prop := ∃ 
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ n
     ‖I₂ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T)
 
+@[blueprint "I2GenBound"
+  (title := "I2GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound} we have that
+  $$
+  \left|I_2(\nu,\epsilon,X,T)\right|\ll\frac{X}{\epsilon T}.
+  $$
+  -/)
+  (proof := /--
+  Unfold the definitions and apply the triangle inequality.
+  $$
+  \left|I_2(\nu, \epsilon, X, T, \sigma_1)\right|=
+  \left|\frac{1}{2\pi i}\int_{\sigma_1}^{\sigma_0}
+  \left(\frac{-\zeta'}\zeta(\sigma - T i) \right) \cdot
+  \mathcal M(\widetilde 1_\epsilon)(\sigma - T i) \cdot
+  X^{\sigma - T i}
+   \ d\sigma
+  \right|
+  $$
+  $$\leq
+  \frac{1}{2\pi}
+  \int_{\sigma_1}^{\sigma_0}
+  C \cdot \log T ^{n_2}
+  \frac{C'}{\epsilon|\sigma - T i|^2}
+  X^{\sigma_0}
+   \ d\sigma
+   \leq
+  C'' \cdot \frac{X\log T^{n_2}}{\epsilon T^2}
+  ,
+  $$
+  where we used Theorems \ref{MellinOfSmooth1b}, the hypothesised bound on zeta and the fact that
+  $X^\sigma \le X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
+  Since $T>3$, we have $\log T^{n_2} \leq C''' T$.
+  -/)
+  (latexEnv := "lemma")]
 lemma I2GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -2323,49 +2379,6 @@ lemma I2GenBound {SmoothingF : ℝ → ℝ}
           field_simp
 
 @[blueprint
-  (title := "I2MediumBound")
-  (statement := /--
-  Assuming a bound of the form of Lemma \ref{LogDerivZetaBndUnif} we have that
-  $$
-  \left|I_{2}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
-  .
-  $$
-  -/)
-  (proof := /--
-  Unfold the definitions and apply the triangle inequality.
-  $$
-  \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
-  \left|\frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
-  \left(\frac{-\zeta'}\zeta(\sigma - T i) \right) \cdot
-  \mathcal M(\widetilde 1_\epsilon)(\sigma - T i) \cdot
-  X^{\sigma - T i}
-   \ d\sigma
-  \right|
-  $$
-  $$\leq
-  \frac{1}{2\pi}
-  \int_{\sigma_1}^{\sigma_0}
-  C \cdot \log T ^ 9
-  \frac{C'}{\epsilon|\sigma - T i|^2}
-  X^{\sigma_0}
-   \ d\sigma
-   \leq
-  C'' \cdot \frac{X\log T^9}{\epsilon T^2}
-  ,
-  $$
-  where we used Theorems \ref{MellinOfSmooth1b}, the hypothesised bound on zeta and the fact that
-  $X^\sigma \le X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
-  Since $T>3$, we have $\log T^9 \leq C''' T$.
-  -/)
-  (latexEnv := "lemma")]
-lemma I2MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound 9 9 A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
-    I2BoundGenProp 9 SmoothingF A := by
-  apply I2GenBound suppSmoothingF ContDiffSmoothingF Nat.ofNat_pos' Nat.ofNat_pos' has_bound  C₂pos A_in
-
-@[blueprint
   (title := "I8I2")
   (statement := /--
   Symmetry between $I_2$ and $I_8$:
@@ -2398,6 +2411,18 @@ def I8BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A : ℝ) : Prop := ∃ 
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ n
     ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T)
 
+@[blueprint "I8GenBound"
+  (title := "I8GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+  $$
+  \left|I_8(\nu,\epsilon,X,T)\right|\ll\frac{X}{\epsilon T}.
+  $$
+  -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+  -/)
+  (latexEnv := "lemma")]
 lemma I8GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -2410,26 +2435,20 @@ lemma I8GenBound {SmoothingF : ℝ → ℝ}
   rw[I8I2 hX, norm_neg, norm_conj]
   exact i2Bound
 
-@[blueprint
-  (title := "I8MediumBound")
+@[blueprint "Real.log_le_const_mul_rpow"
+  (title := "Real.log-le-const-mul-rpow")
   (statement := /--
-  We have that
-  $$
-  \left|I_{8}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
-  .
-  $$
+  For all $0<c$ and $0<x$ we have that
+  $$\log x\leq cx^{1/c}.$$
   -/)
   (proof := /--
-  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+  By Real.log_le_sub_one_of_pos we know that $\log y\leq y-1$. If we set $y=x^{1/c}$ this becomes
+  $$\frac{\log x}{c}\leq x^{1/c}-1.$$
+  Multiplying through by $c$ we have
+  $$\log x\leq cx^{1/c}-c\leq cx^{1/c}$$
+  as desired.
   -/)
   (latexEnv := "lemma")]
-lemma I8MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound 9 9 A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
-    I8BoundGenProp 9 SmoothingF A := by
-  exact I8GenBound suppSmoothingF ContDiffSmoothingF Nat.ofNat_pos' Nat.ofNat_pos' has_bound C₂_pos A_in
-
 lemma Real.log_le_const_mul_rpow {c x : ℝ} (hc : 0 < c) (hx : 0 < x) :
     Real.log x ≤ c * x ^ (1 / c) := by
   have h := Real.log_le_sub_one_of_pos (Real.rpow_pos_of_pos hx (1 / c)); rw [Real.log_rpow hx] at h
@@ -2439,12 +2458,18 @@ lemma Real.log_le_const_mul_rpow {c x : ℝ} (hc : 0 < c) (hx : 0 < x) :
 @[blueprint
   (title := "log-pow-over-xsq-integral-bounded")
   (statement := /--
-  For every natural $n$ there is some absolute constant $C>0$ such that
+  For every $0<n$ there exists a constant $C>0$ (depending on $n$) such that
   $$
-  \int_3^T \frac{(\log x)^9}{x^2}dx < C
+  \int_3^T\frac{(\log x)^n}{x^2}dx < C
   $$
   -/)
-  (proof := /-- Induct on n and just integrate by parts. -/)
+  (proof := /--
+  Using the previous lemma, we know for all $0<c$ and $0<x$ that
+  $$(\log x)^n\leq (cx^{1/c})^n=c^nx^{n/c}.$$
+  Now if we choose $c=2n$ then
+  $$\frac{(\log x)^n}{x^2}\leq (2n)^nx^{-3/2}.$$
+  This function is dominates the integrand and is integrable in $x$ by the $p$-test.
+  -/)
   (latexEnv := "lemma")]
 lemma log_pow_over_xsq_integral_bounded :
   ∀ n : ℝ, (n_pos : 0 < n) →
@@ -2497,6 +2522,39 @@ def I3BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A : ℝ) : Prop := ∃ 
 
 set_option maxHeartbeats 400000 in
 -- Slow
+
+@[blueprint "I3GenBound"
+  (title := "I3GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+  $$
+  \left|I_3(\nu,\epsilon,X,T)\right|\ll\frac{X}{\epsilon}\, X^{-\frac{A}{(\log T)^{n_1}}}.
+  $$
+  -/)
+  (proof := /--
+  Unfold the definitions and apply the triangle inequality.
+  $$
+  \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
+  \left|\frac{1}{2\pi i} \int_{-T}^3
+  \left(\frac{-\zeta'}\zeta(\sigma_1 + t i) \right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+  X^{\sigma_1 + t i}
+  \ i \ dt
+  \right|
+  $$
+  $$\leq
+  \frac{1}{2\pi}
+  \int_{-T}^3
+  C \cdot\log t^{n_2}
+  \frac{C'}{\epsilon|\sigma_1 + t i|^2}
+  X^{\sigma_1}
+   \ dt
+  ,
+  $$
+  where we used Theorems \ref{MellinOfSmooth1b} and the hypothesised bound on zeta.
+  Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^{n_1}}$, and the integral is absolutely bounded.
+  -/)
+  (latexEnv := "lemma")]
 theorem I3GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -2758,47 +2816,6 @@ theorem I3GenBound {SmoothingF : ℝ → ℝ}
   field_simp
   rfl
 
-@[blueprint
-  (title := "I3MediumBound")
-  (statement := /--
-  Assuming a bound of the form of Lemma \ref{LogDerivZetaBndUnif} we have that
-  $$
-  \left|I_{3}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon}\, X^{-\frac{A}{(\log T)^9}}
-  .
-  $$
-  Same with $I_7$.
-  -/)
-  (proof := /--
-  Unfold the definitions and apply the triangle inequality.
-  $$
-  \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
-  \left|\frac{1}{2\pi i} \int_{-T}^3
-  \left(\frac{-\zeta'}\zeta(\sigma_1 + t i) \right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
-  X^{\sigma_1 + t i}
-  \ i \ dt
-  \right|
-  $$
-  $$\leq
-  \frac{1}{2\pi}
-  \int_{-T}^3
-  C \cdot \log t ^ 9
-  \frac{C'}{\epsilon|\sigma_1 + t i|^2}
-  X^{\sigma_1}
-   \ dt
-  ,
-  $$
-  where we used Theorems \ref{MellinOfSmooth1b} and the hypothesised bound on zeta.
-  Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is absolutely bounded.
-  -/)
-  (latexEnv := "lemma")]
-theorem I3MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound 9 9 A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    I3BoundGenProp 9 SmoothingF A := by
-  exact I3GenBound suppSmoothingF ContDiffSmoothingF Nat.ofNat_pos' Nat.ofNat_pos' hCζ Cζpos hA
-
 lemma I7I3 {SmoothingF : ℝ → ℝ} {ε X T σ₁ : ℝ} (Xpos : 0 < X) :
     I₇ SmoothingF ε T X σ₁ = conj (I₃ SmoothingF ε T X σ₁) := by
   unfold I₃ I₇
@@ -2820,6 +2837,18 @@ def I7BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A : ℝ) : Prop := ∃ 
       let σ₁ : ℝ := 1 - A / (Real.log T) ^ n
       ‖I₇ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ n)) / ε
 
+@[blueprint "I7GenBound"
+  (title := "I7GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+  $$
+  \left|I_7(\nu,\epsilon,X,T)\right|\ll\frac{X}{\epsilon}\, X^{-\frac{A}{(\log T)^{n_1}}}.
+  $$
+  -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_3$, using the symmetry between $I_3$ and $I_7$.
+  -/)
+  (latexEnv := "lemma")]
 theorem I7GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -2831,13 +2860,6 @@ theorem I7GenBound {SmoothingF : ℝ → ℝ}
   intro σ₁
   rwa [I7I3 (by linarith), norm_conj]
 
-lemma I7MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound 9 9 A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    I7BoundGenProp 9 SmoothingF A := by
-  exact I7GenBound suppSmoothingF ContDiffSmoothingF Nat.ofNat_pos' Nat.ofNat_pos' hCζ Cζpos hA
-
 def I4BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A σ₂ : ℝ) : Prop := ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
     ∀ (X : ℝ) (_ : 3 < X)
     {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
@@ -2845,6 +2867,23 @@ def I4BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A σ₂ : ℝ) : Prop :
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ n
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ n)) / ε
 
+@[blueprint
+  (title := "I4GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+  $$
+  \left|I_4(\nu,\epsilon,X,\sigma_1,\sigma_2)\right|
+    \ll\frac{X}{\epsilon}\,X^{-\frac{A}{(\log T)^{n_1}}}.
+  $$
+  -/)
+  (proof := /--
+    The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
+    Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$
+    (this curve is compact, and away from the pole at $s=1$). Apply Theorem \ref{MellinOfSmooth1b}
+    to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$. And $X^s$ is bounded
+    by $X^{\sigma_1}=X \cdot X^{-A/ \log T^{n_1}}$. Putting these together gives the result.
+  -/)
+  (latexEnv := "lemma")]
 lemma I4GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -3210,33 +3249,6 @@ lemma I4GenBound {SmoothingF : ℝ → ℝ}
   · simp only [norm_nonneg]
   norm_num
 
-@[blueprint
-  (title := "I4MediumBound")
-  (statement := /--
-  We have that
-  $$
-  \left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll \frac{X}{\epsilon}\,
-   X^{-\frac{A}{(\log T)^9}}
-  .
-  $$
-  Same with $I_6$.
-  -/)
-  (proof := /--
-  The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
-  Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
-  Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
-  And $X^s$ is bounded by $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$.
-  Putting these together gives the result.
-  -/)
-  (latexEnv := "lemma")]
-lemma I4MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
-    I4BoundGenProp 9 SmoothingF A σ₂ := by
-  apply I4GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ Nat.ofNat_pos' hA
-
 lemma I6I4 {SmoothingF : ℝ → ℝ} {ε X σ₁ σ₂ : ℝ} (Xpos : 0 < X) :
     I₆ SmoothingF ε X σ₁ σ₂ = -conj (I₄ SmoothingF ε X σ₁ σ₂) := by
   unfold I₆ I₄
@@ -3258,6 +3270,19 @@ def I6BoundGenProp (n : ℝ) (SmoothingF : ℝ → ℝ) (A σ₂ : ℝ) : Prop :
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ n
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ n)) / ε
 
+@[blueprint "I6GenBound"
+  (title := "I6GenBound")
+  (statement := /--
+  Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+  $$
+  \left|I_6(\nu,\epsilon,X,\sigma_1,\sigma_2)\right|
+    \ll\frac{X}{\epsilon}\,X^{-\frac{A}{(\log T)^{n_1}}}.
+  $$
+  -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_4$, using the symmetry between $I_4$ and $I_6$.
+  -/)
+  (latexEnv := "lemma")]
 lemma I6GenBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -3270,14 +3295,6 @@ lemma I6GenBound {SmoothingF : ℝ → ℝ}
   intro σ₁
   rwa [I6I4 (by linarith), norm_neg, norm_conj]
 
-lemma I6MediumBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
-    I6BoundGenProp 9 SmoothingF A σ₂ := by
-  exact I6GenBound suppSmoothingF ContDiffSmoothingF h_logDeriv_holo hσ₂ Nat.ofNat_pos' hA
-
 def I5BoundGenProp (SmoothingF : ℝ → ℝ) (σ₂ : ℝ) : Prop := ∃ (C : ℝ) (_ : 0 < C),
     ∀ (X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε) (_ : ε < 1),
     ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε
@@ -3287,13 +3304,13 @@ def I5BoundGenProp (SmoothingF : ℝ → ℝ) (σ₂ : ℝ) : Prop := ∃ (C : �
   (statement := /--
   We have that
   $$
-  \left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll \frac{X^{\sigma_2}}{\epsilon}.
+  \left|I_5(\nu,\epsilon,X,\sigma_2)\right|\ll\frac{X^{\sigma_2}}{\epsilon}.
   $$
   -/)
   (proof := /--
   Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
-  $X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
-  Putting these together gives the result.
+  $X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound
+  $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$. Putting these together gives the result.
   -/)
   (latexEnv := "lemma")]
 lemma I5Bound {SmoothingF : ℝ → ℝ}
@@ -3559,6 +3576,26 @@ blueprint_comment /--
 \section{MediumPNT}
 -/
 
+@[blueprint "GenStrengthPNT"
+  (title := "GenStrengthPNT")
+  (statement := /--
+    Assuming a bound of the form of Definition \ref{LogDerivZetaHasBound}, we have that
+    $$\sum_{n \leq x}\Lambda(n)=x+O(x\exp(-c(\log x)^{1/(1+n_1)})).$$
+  -/)
+  (proof := /--
+    By Theorems \ref{SmoothedChebyshevPull1}, \ref{SmoothedChebyshevPull2},
+    and \ref{SmoothedChebyshevClose} we have that
+    $$\mathcal{M}(\tilde{1}_\varepsilon)(1)\,x^1+I_1-I_2+I_3-I_4+I_5+I_6+I_7+I_8+I_9
+      =\psi(x)+O(\varepsilon x\log x).$$
+    Applying Theorems \ref{I1Bound}, \ref{I2GenBound}, \ref{I3GenBound}, \ref{I4GenBound},
+    \ref{I5Bound}, \ref{I6GenBound}, \ref{I7GenBound}, \ref{I8GenBound}, \ref{I9Bound},
+    and \ref{MellinOfSmooth1c} we have
+    $$\psi(x)=x+O(\varepsilon x)+O(\varepsilon x\log x)+O\left(\frac{X}{\varepsilon T}\right)+
+      O\left(\frac{X\log X}{\varepsilon T}\right)+
+      O\left(\frac{X}{\varepsilon}\,X^{-A/(\log T)^{n_1}}\right)+
+      O\left(\frac{X^{\sigma_2}}{\varepsilon}\right).$$
+    Evaluate the integrals.
+  -/)]
 lemma GenStrengthPNT {n₁ n₂ : ℝ}
   (LogDerivZetaBoundedAndHolo : LogDerivZetaBoundedAndHoloGenProp n₁ n₂)
   (n₁_pos : 0 < n₁) (n₂_pos : 0 < n₂) : ∃ c > 0,
@@ -4091,9 +4128,10 @@ lemma GenStrengthPNT {n₁ n₂ : ℝ}
   (title := "MediumPNT")
   (statement := /--
     We have
-  $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
+    $$\sum_{n \leq x}\Lambda(n)=x+O(x \exp(-c(\log x)^{1/10})).$$
   -/)
-  (proof := /-- Evaluate the integrals. -/)]
+  (proof := /--
+    This follows as a corollary of Theorems \ref{GenStrengthPNT} and \ref{LogDerivZetaBnd}. -/)]
 theorem MediumPNT : ∃ c > 0,
     (ψ - id) =O[atTop]
       fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
