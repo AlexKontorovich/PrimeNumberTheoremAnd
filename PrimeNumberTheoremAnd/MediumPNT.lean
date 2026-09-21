@@ -3594,7 +3594,7 @@ blueprint_comment /--
       O\left(\frac{X\log X}{\varepsilon T}\right)+
       O\left(\frac{X}{\varepsilon}\,X^{-A/(\log T)^{n_1}}\right)+
       O\left(\frac{X^{\sigma_2}}{\varepsilon}\right).$$
-    Evaluate the integrals.
+    Balancing the error terms in $\varepsilon$ and $T$ completes the proof.
   -/)]
 lemma GenStrengthPNT {n₁ n₂ : ℝ}
   (LogDerivZetaBoundedAndHolo : LogDerivZetaBoundedAndHoloGenProp n₁ n₂)
