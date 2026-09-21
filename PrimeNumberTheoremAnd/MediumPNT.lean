@@ -2442,7 +2442,7 @@ lemma I8GenBound {SmoothingF : ℝ → ℝ}
   $$\log x\leq cx^{1/c}.$$
   -/)
   (proof := /--
-  By \texttt{Real.log_le_sub_one_of_pos} we know that $\log y\leq y-1$. If we set $y=x^{1/c}$ this becomes
+  By \texttt{Real.log\_le\_sub\_one\_of\_pos} we know that $\log y\leq y-1$. If we set $y=x^{1/c}$ this becomes
   $$\frac{\log x}{c}\leq x^{1/c}-1.$$
   Multiplying through by $c$ we have
   $$\log x\leq cx^{1/c}-c\leq cx^{1/c}$$
