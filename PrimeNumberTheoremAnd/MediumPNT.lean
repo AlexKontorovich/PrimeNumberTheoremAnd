@@ -2447,7 +2447,6 @@ lemma log_pow_over_xsq_integral_bounded :
         apply intervalIntegral.integral_congr
         intro x hx
         simp
-        rfl
       rw [change_int_power, integral]
       have : T ^ (-1 : ℤ) > 0 := by
         refine zpow_pos ?_ (-1)

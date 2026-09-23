@@ -168,7 +168,7 @@ lemma exists_r0_le_norm_divisorZeroIndex₀_val {f : ℂ → ℂ}
         have hm : meromorphicOrderAt f (0 : ℂ) = (analyticOrderAt f (0 : ℂ)).map (↑) :=
           (hf.analyticAt 0).meromorphicOrderAt_eq (𝕜 := ℂ)
         cases h : analyticOrderAt f (0 : ℂ) with
-        | top => exact Ne.elim hA0 h
+        | top => exact absurd h hA0
         | coe n =>
             have : (analyticOrderAt f (0 : ℂ)).map (↑) ≠ (⊤ : WithTop ℤ) := by
               simp [h]

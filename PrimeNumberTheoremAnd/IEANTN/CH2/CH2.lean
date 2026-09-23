@@ -3758,7 +3758,7 @@ private lemma integrableOn_one_sub_mul_exp_mul_Iic (a : ℝ) (ha : 0 < a) :
   have hbase :
       IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
         (Set.Ioi (0 : ℝ)) :=
-    integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num : (-1 : ℝ) < 1) le_rfl ha
+    integrableOn_rpow_mul_exp_neg_mul_rpow (by norm_num : (-1 : ℝ) < 1) one_pos ha
   have hbase_Ici :
       IntegrableOn (fun t : ℝ => t ^ (1 : ℝ) * Real.exp (-a * t ^ (1 : ℝ)))
         (Set.Ici (0 : ℝ)) :=

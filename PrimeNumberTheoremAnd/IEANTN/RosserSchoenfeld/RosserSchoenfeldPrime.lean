@@ -500,7 +500,7 @@ theorem eq_413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : ∀ t ∈ Set.Ic
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
       ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
   rw [sum_filter, Iic_eq_Icc, bot_eq_zero]
-  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n ↦ log n)
+  let a : ℕ → ℝ := Set.indicator {n | Nat.Prime n} (fun n ↦ log n)
   trans ∑ n ∈ Icc 0 ⌊x⌋₊, (f n / Real.log n) * a n
   · refine sum_congr rfl fun n hn ↦ ?_
     split_ifs with h
