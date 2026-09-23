@@ -9,7 +9,7 @@ import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
 
-open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
+open Nat Filter Topology Set Function Complex Real ComplexConjugate MeasureTheory
 
 open ArithmeticFunction (vonMangoldt)
 
@@ -2550,7 +2550,7 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
 @[blueprint "LogDerivZetaUniformLogSquaredBoundStrip"
   (title := "LogDerivZetaUniformLogSquaredBoundStrip")
   (statement := /--
-    There exists a constant $F\in(0,1/2)$ such that
+    There exists a constant $F\in(0,1/42)$ such that
     for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\leq 3/2
       \implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
@@ -2593,7 +2593,7 @@ lemma GapSize (t : ℝ) (ht : |t| ≥ 3)
     We know that the RHS is bounded above by $\ll\log^2|t|$; so the result follows.
   -/)]
 lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
-    (C : ℝ) (_ : 0 ≤ C),
+    (C : ℝ) (_ : 0 < C),
       ∀ (t : ℝ), 3 ≤ |t| →
         ∀ (σ : ℝ), σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
           ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
@@ -2620,7 +2620,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
     · rw [one_lt_div ofNat_pos']
       linarith
   refine ⟨E / 3, rfl, ⟨6 * D / E + C,
-    add_nonneg (div_nonneg (mul_nonneg (ofNat_nonneg' _) Dpos.le) EinIoo.1.le) Cpos.le, ?_⟩⟩
+    add_pos (mul_pos (mul_pos ofNat_pos' Dpos) (inv_pos.mpr EinIoo.1)) Cpos, ?_⟩⟩
   intro t ht σ hσ
   set r : ℝ := 3 / 4 with rwr
   set R : ℝ := 5 / 6 with rwR
@@ -2747,7 +2747,10 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
 
 noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
 lemma Fequ : F = E / 3 := LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
-lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 ≤ C),
+lemma FinIoo : F ∈ Ioo (0 : ℝ) (1 / 42 : ℝ) := by
+  simp only [one_div, Fequ, mem_Ioo, EinIoo.1, div_pos_iff_of_pos_left, ofNat_pos, true_and]
+  linarith [EinIoo.2]
+lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 < C),
     ∀ (t : ℝ), 3 ≤ |t| →
       ∀ (σ : ℝ), σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
           ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
@@ -2807,745 +2810,89 @@ lemma LogDerivZetaBdd_of_Re_ge_three_halves :
 
 
 
-@[blueprint
+@[blueprint "LogDerivZetaUniformLogSquaredBound"
   (title := "LogDerivZetaUniformLogSquaredBound")
   (statement := /--
-    There exists a constant $F$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
+    There exists a constant $F\in(0,1/42)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
   -/)
   (proof := /--
     Put the previous two Lemmas together.
   -/)]
-theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
+theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_ : 0 < C),
     ∀ (σ t : ℝ), 3 < |t| → σ ∈ Set.Ici (1 - F / Real.log |t|) →
-      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ (2 : ℝ) := by
   obtain ⟨C1, hC1⟩ := LogDerivZetaUniformLogSquaredBoundStripSpec
   obtain ⟨C2, hC2⟩ := LogDerivZetaBdd_of_Re_ge_three_halves
-  use max C1 C2, le_max_of_le_left hC1.1
+  have hC2pos := (norm_nonneg _).trans (hC2 2 (by norm_num))
+  use max C1 C2, lt_max_of_lt_left hC1.1
   intro σ t ht hσ
   by_cases hσ' : σ ≤ 3 / 2
-  · exact (hC1.2 t (by grind) σ ⟨hσ, hσ'⟩).trans
-      (mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _))
+  · apply (hC1.2 t (by grind) σ ⟨hσ, hσ'⟩).trans
+    gcongr
+    · exact le_max_left _ _
+    · simp only [log_abs, rpow_ofNat, Std.le_refl]
   · refine (hC2 _ ?_).trans ?_
     · norm_num; linarith
-    · have hC2pos := (norm_nonneg _).trans (hC2 2 (by norm_num))
-      exact (le_max_right _ _).trans (le_mul_of_one_le_right
-        (le_max_of_le_right (by grind))
-        (one_le_pow₀ (by
-          rw [Real.le_log_iff_exp_le (by grind)]
-          exact Real.exp_one_lt_d9.le.trans (by grind))))
+    · nth_rewrite 1 [← mul_one C2, ← mul_one 1, ← sq]
+      refine mul_le_mul (le_max_right _ _) ?_ (sq_nonneg _) ?_
+      · rw [one_pow, rpow_ofNat, one_le_sq_iff_one_le_abs, abs_of_pos (Real.log_pos (by linarith)), Real.le_log_iff_exp_le (by linarith)]
+        linarith [Real.exp_one_lt_d9]
+      · linarith [le_max_right C1 C2]
 
 
 
-@[blueprint
-  (title := "LogDerivZetaLogSquaredBoundSmallt")
+/-- A wrapper for the above theorem -/
+lemma LogDerivZetaBndUnif12 : LogDerivZetaBndUnifGenProp 1 2 := by
+  refine ⟨F, ⟨FinIoo.1, by linarith [FinIoo.2]⟩, ?_⟩
+  simp only [rpow_one]
+  apply LogDerivZetaUniformLogSquaredBound
+
+
+
+-- analouge from ZetaBounds
+lemma ZetaZeroFree1 :
+    ZetaZeroFreeGenProp 1 := by
+  refine ⟨F, ⟨FinIoo.1, by linarith [FinIoo.2]⟩, ?_⟩
+  intro σ t ht hσ
+  by_contra h
+  have ZeroInequalityThing := ZeroInequalitySpec (σ + t * I) h
+  simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+    add_zero, add_im, mul_im, zero_add, ge_iff_le, forall_eq] at ZeroInequalityThing
+  have contra := hσ.1; rw [Fequ] at contra
+  have contra := le_trans contra (ZeroInequalityThing (by linarith))
+  have log_pos : 0 < Real.log |t| := by exact Real.log_pos (by linarith)
+  rw [rpow_one, sub_le_sub_iff_left, div_div, div_le_div_iff_of_pos_left EinIoo.1 log_pos (mul_pos three_pos (Real.log_pos (lt_trans one_lt_ofNat ht)))] at contra
+  linarith
+
+
+
+-- analouge from ZetaBounds
+theorem LogDerivZetaHolcLargeT1 : LogDerivZetaHolcLargeTGenProp 1 := by
+  exact LogDerivZetaHolcLargeTGen ZetaZeroFree1 zero_lt_one
+
+
+
+-- analouge from MediumPNT
+lemma LogDerivZetaBoundedAndHolo12 : LogDerivZetaBoundedAndHoloGenProp 1 2 := by
+  exact LogDerivZetaBoundedAndHoloGen LogDerivZetaBndUnif12 LogDerivZetaHolcLargeT1
+
+
+
+@[blueprint "StrongPNT"
+  (title := "StrongPNT")
   (statement := /--
-    For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $|t|\leq T$ then we have that
-    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2(2+T).$$
-  -/)
-  (proof := /--
-    Note that if $|t|\geq 3$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
-    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2|t|\leq\log^2T\leq\log^2(2+T).$$
-    Otherwise, if $|t|\leq 3$, then from Theorem \ref{riemannZetaLogDerivResidue}
-    and applying the triangle inequality we know
-    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|
-      \leq\frac{1}{|(\sigma'-1)+it|}+C\leq\frac{\log T}{F}+C$$
-    where $C\geq 0$. Thus, we have that
-    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|
-      \leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)
-      \leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)
-      \ll\log^2(2+T).$$
-  -/)]
-theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
-    ∀ (T : ℝ) (Tpos: T > 0),
-      ∀ (t : ℝ), |t| ≤ T →
-        ∀ (σ : ℝ), σ = 1 - F / Real.log T →
-          ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
-  obtain ⟨C1, C1_nonneg, hC1⟩ := LogDerivZetaUniformLogSquaredBound
-  obtain ⟨C2, hC2⟩ := riemannZetaLogDerivResidueBigO.bound
-  simp only [Pi.sub_apply, Pi.div_apply, Pi.neg_apply, Pi.one_apply, norm_one, mul_one] at hC2
-  sorry
-
-
-
-blueprint_comment /--
-From here out we closely follow our previous proof of the Medium PNT and we modify it
-using our new estimate in Theorem \ref{LogDerivZetaUniformLogSquaredBound}.
-Recall Definition \ref{SmoothedChebyshev}; for fixed $\varepsilon>0$
-and a bump function $\nu$ supported on $[1/2,2]$ we have
-$$\psi_\varepsilon(X)
-  =\frac{1}{2\pi i}\int_{(\sigma)}\left(-\frac{\zeta'}{\zeta}(s)\right)
-  \,\mathcal{M}(\tilde{1}_\varepsilon)(s)\,X^s\,ds$$
-where $\sigma=1+1/\log X$. Let $T>3$ be a large constant to be chosen later,
-and we take $\sigma'=1-\delta_T/3=1-F/\log T$ with $F$ coming from
-Theorem \ref{LogDerivZetaUniformLogSquaredBound}. We integrate along the $\sigma$ vertical line,
-and we pull contours  accumulating the pole at $s=1$ when we integrate along the curves
-\begin{itemize}
-    \item $I_1$: $\sigma-i\infty$ to $\sigma-iT$
-    \item $I_2$: $\sigma'-iT$ to $\sigma-iT$
-    \item $I_3$: $\sigma'-iT$ to $\sigma'+iT$
-    \item $I_4$: $\sigma'+iT$ to $\sigma+iT$
-    \item $I_5$: $\sigma+iT$ to $\sigma+i\infty$.
-\end{itemize}
--/
-
-
-
-@[blueprint
-  (title := "I1New")
-  (statement := /--
-    Let
-    $$I_1(\nu,\varepsilon,X,T)=
-      \frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
-  -/)]
-noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
-      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
-
-
-
-@[blueprint
-  (title := "I5New")
-  (statement := /--
-    Let
-    $$I_5(\nu,\varepsilon,X,T)=
-      \frac{1}{2\pi i}\int_T^\infty\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
-  -/)]
-noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
-      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
-
-
-
-lemma IntegralLogSqOverTSqBound : ∃ C > 0, ∀ T, 3 < T →
-    ∫ t in Set.Ici T, (Real.log t)^2 / t^2 ≤ C / Real.sqrt T := by
-  have h_log_sq_le_t_fourth_pow :
-      ∃ C > 0, ∀ t : ℝ, 3 ≤ t → (Real.log t)^2 / t^2 ≤ C / t^(3/2 : ℝ) := by
-    have h_log_sq_le_sqrt :
-        ∃ C > 0, ∀ t : ℝ, 3 ≤ t → Real.log t ^ 2 ≤ C * t ^ (1 / 2 : ℝ) := by
-      have h_log_sq_le_sqrt : ∃ C > 0, ∀ t : ℝ, 3 ≤ t → Real.log t ≤ C * t ^ (1 / 4 : ℝ) := by
-        use 4, by grind, fun t ht ↦ ?_
-        have := Real.log_le_sub_one_of_pos (by positivity : 0 < t ^ (1 / 4 : ℝ))
-        rw [Real.log_rpow (by positivity)] at this; linarith
-      obtain ⟨C, hC₀, hC⟩ := h_log_sq_le_sqrt; use C^2
-      exact ⟨sq_pos_of_pos hC₀, fun t ht ↦
-        (pow_le_pow_left₀ (Real.log_nonneg <| by linarith) (hC t ht) 2).trans <| by
-          rw [mul_pow, ← Real.rpow_natCast, ← Real.rpow_natCast, ← Real.rpow_mul (by linarith)]
-          grind⟩
-    obtain ⟨C, hC_pos, hC⟩ := h_log_sq_le_sqrt; use C
-    refine ⟨hC_pos, fun t ht ↦ ?_⟩; rw [div_le_div_iff₀] <;> try positivity
-    convert mul_le_mul_of_nonneg_right (hC t ht)
-      (Real.rpow_nonneg (by linarith : 0 ≤ t) (3 / 2)) using 1
-    rw [mul_assoc, ← Real.rpow_natCast, ← Real.rpow_add (by linarith)]; grind
-  obtain ⟨C, hC_pos, hC_bound⟩ := h_log_sq_le_t_fourth_pow
-  use C * 2
-  have h_integral_bound :
-      ∀ T : ℝ, 3 < T → ∫ t in Set.Ici T, C / t^(3/2 : ℝ) = C * 2 / Real.sqrt T := by
-    have h_integral_eval :
-        ∀ T : ℝ, 3 < T → ∫ t in Set.Ici T, t ^ (-3 / 2 : ℝ) = 2 / Real.sqrt T := by
-      intro T hT
-      rw [MeasureTheory.integral_Ici_eq_integral_Ioi, integral_Ioi_rpow_of_lt] <;> norm_num
-      · rw [Real.sqrt_eq_rpow, Real.rpow_neg] <;> ring_nf; linarith
-      · linarith
-    intro T hT; convert congr_arg (fun x ↦ C * x) (h_integral_eval T hT) using 1 <;> ring_nf
-    rw [← MeasureTheory.integral_const_mul]
-    refine MeasureTheory.setIntegral_congr_fun measurableSet_Ici fun x hx ↦ ?_
-    rw [← Real.rpow_neg (by linarith [Set.mem_Ici.mp hx])]; ring_nf
-  refine ⟨by positivity, fun T hT ↦ (MeasureTheory.setIntegral_mono_on ?_ ?_ measurableSet_Ici
-      fun t ht ↦ hC_bound t <| by linarith [ht.out]).trans (h_integral_bound T hT |> le_of_eq)⟩
-  · have hInteg : IntegrableOn (fun t ↦ C / t ^ (3 / 2 : ℝ)) (Set.Ici T) := by
-      have := h_integral_bound T hT
-      contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
-    have hMeas : AEStronglyMeasurable (fun t ↦ Real.log t ^ 2 / t ^ 2)
-        (MeasureTheory.volume.restrict (Set.Ici T)) :=
-      Measurable.aestronglyMeasurable <| Measurable.mul
-        (Measurable.pow_const Real.measurable_log _)
-        (Measurable.inv (measurable_id.pow_const _))
-    have hBound : ∀ᵐ t ∂MeasureTheory.volume.restrict (Set.Ici T),
-        ‖Real.log t ^ 2 / t ^ 2‖ ≤ C / t ^ (3 / 2 : ℝ) := by
-      filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ici] with t ht
-      rw [Real.norm_of_nonneg (by positivity)]
-      exact hC_bound t (by linarith [ht.out])
-    exact MeasureTheory.Integrable.mono' hInteg hMeas hBound
-  · have := h_integral_bound T hT
-    contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
-
-
-
-lemma NormXPowS {X : ℝ} (X_gt_one : 1 < X) {s : ℂ} (hs : s.re = 1 + (Real.log X)⁻¹) :
-    ‖(X : ℂ) ^ s‖ = X * Real.exp 1 := by
-  simp [Complex.norm_cpow_eq_rpow_re_of_pos (by positivity : 0 < X), hs,
-    Real.rpow_add (by positivity : 0 < X), Real.rpow_inv_log (by positivity) X_gt_one.ne']
-
-
-
-lemma LogDerivZetaBoundForI1 : ∃ C > 0, ∀ {X T : ℝ} (_Xgt3 : 3 < X) (_Tgt3 : 3 < T)
-    (t : ℝ) (_ht : t ≤ -T),
-    let σ := 1 + (Real.log X)⁻¹
-    ‖deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)‖ ≤ C * (Real.log (-t))^2 := by
-  obtain ⟨C, hC⟩ := LogDerivZetaUniformLogSquaredBound
-  field_simp
-  use C + 1
-  refine ⟨by grind, fun {X T} hX hT t ht ↦ (hC.2 _ _ ?_ ?_).trans ?_⟩
-  · cases abs_cases t <;> grind
-  · apply Set.mem_Ici.mpr
-    have hX' : 0 ≤ 1 / Real.log X := one_div_nonneg.mpr (Real.log_nonneg (by grind))
-    have ht' : 0 ≤ F / Real.log |t| := by
-      apply div_nonneg (Fequ ▸ div_nonneg (le_of_lt EinIoo.1) zero_le_three)
-      exact Real.log_nonneg (by cases abs_cases t <;> grind)
-    grind
-  · simp only [abs_of_nonpos (by grind : t ≤ 0)]
-    nlinarith [hC.1, sq_nonneg (Real.log (-t))]
-
-
-
-lemma I1NewIntegrandBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Set.Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ C > 0, ∀ {ε X T : ℝ} (_εinIoo : ε ∈ Set.Ioo 0 1) (_Xgt3 : 3 < X) (_Tgt3 : 3 < T)
-    (t : ℝ) (_ht : t ≤ -T),
-    ‖SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
-    C * (X / ε) * (Real.log (-t)) ^ 2 / (-t) ^ 2 := by
-  obtain ⟨C₁, hC₁₀, hC₁⟩ := @LogDerivZetaBoundForI1
-  obtain ⟨C₂, hC₂₀, hC₂⟩ := @MellinOfSmooth1b SmoothingF ContDiffSmoothingF suppSmoothingF
-  refine ⟨C₁ * C₂ * Real.exp 1, by positivity, fun {ε X T} hε hX hT t ht ↦ ?_⟩
-  specialize hC₁ hX hT t ht
-  specialize hC₂ 1 zero_lt_one (1 + (Real.log X)⁻¹ + t * Complex.I) ?_ ?_ ε hε.1 hε.2 <;> norm_num at *
-  · exact Real.log_nonneg (by linarith)
-  · linarith [inv_le_one_of_one_le₀ (show 1 ≤ Real.log X from by
-      rw [Real.le_log_iff_exp_le (by linarith)]
-      exact Real.exp_one_lt_d9.le.trans (by grind))]
-  · refine (mul_le_mul_of_nonneg_right
-        (mul_le_mul hC₁ hC₂ (by positivity) (by positivity)) (by positivity)).trans ?_
-    rw [Complex.norm_cpow_of_ne_zero (by norm_cast; linarith)]
-    norm_num [Complex.normSq, Complex.sq_norm]
-    ring_nf
-    norm_num
-    rw [abs_of_pos (by positivity)]
-    norm_num [Complex.arg]
-    ring_nf
-    norm_num
-    rw [if_pos (by positivity)]
-    norm_num [Real.rpow_add (by positivity : 0 < X), Real.rpow_one]
-    ring_nf
-    norm_num
-    rw [show X ^ (Real.log X)⁻¹ = Real.exp 1 by
-      rw [Real.rpow_def_of_pos (by positivity)]
-      norm_num [Real.exp_ne_zero, ne_of_gt (Real.log_pos (by linarith : 1 < X))]]
-    ring_nf
-    norm_num
-    field_simp
-    gcongr
-    · exact mul_pos (sq_pos_of_neg (by linarith)) hε.1
-    · linarith
-    · exact le_add_of_nonneg_left <| add_nonneg (add_nonneg zero_le_one
-          (div_nonneg zero_le_two (Real.log_nonneg (by linarith))))
-          (div_nonneg zero_le_one (sq_nonneg _))
-
-
-
-@[blueprint
-  (title := "I1NewBound")
-  (statement := /--
-    We have that
-    $$|I_1(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
-  -/)
-  (proof := /--
-    Note that $|I_1(\nu,\varepsilon,X,T)|=$
-    $$\left|\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt\right|
-      \ll\int_{-\infty}^{-T}\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|
-      \cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)|\cdot X^\sigma\,dt.$$
-    Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b},
-    we have that
-    $$|I_1(\nu,\varepsilon,X,T)|
-      \ll\int_{-\infty}^{-T}\log^2|t|\cdot\frac{X^\sigma}{\varepsilon\,|\sigma+it|^2}\,dt
-      \ll\frac{X}{\varepsilon}\int_T^\infty\frac{\sqrt{t}\,dt}{t^2}
-      \ll\frac{X}{\varepsilon\sqrt{T}}.$$
-    Here we are using the fact that $\log^2 t$ grows slower than $\sqrt{t}$,
-    $|\sigma+it|^2\geq t^2$, and $X^\sigma=X\cdot X^{1/\log X}=eX$.
-  -/)
-  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "MellinOfSmooth1b"])
-  (latexEnv := "lemma")]
-lemma I1NewBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (_εinIoo : ε ∈ Ioo 0 1) (_Xgt3 : 3 < X) (_Tgt3 : 3 < T),
-    ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-  have h_I1New_bound : ∃ C > 0, ∀ {ε X T : ℝ} (εinIoo : ε ∈ Set.Ioo 0 1) (Xgt3 : 3 < X)
-      (Tgt3 : 3 < T),
-      ‖∫ t in Set.Iic (-T),
-        SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
-        C * (X / ε) * (1 / Real.sqrt T) := by
-          obtain ⟨C₁, hC₁_pos, hC₁⟩ : ∃ C₁ > 0, ∀ {ε X T : ℝ} (εinIoo : ε ∈ Set.Ioo 0 1)
-              (Xgt3 : 3 < X) (Tgt3 : 3 < T)
-              (t : ℝ) (ht : t ≤ -T),
-              ‖SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
-              C₁ * (X / ε) * (Real.log (-t))^2 / (-t)^2 :=
-            I1NewIntegrandBound suppSmoothingF ContDiffSmoothingF
-          obtain ⟨C₂, hC₂_pos, hC₂⟩ : ∃ C₂ > 0, ∀ {T : ℝ} (Tgt3 : 3 < T),
-              ∫ t in Set.Ici T, (Real.log t)^2 / t^2 ≤ C₂ / Real.sqrt T :=
-                IntegralLogSqOverTSqBound
-          refine ⟨C₁ * C₂, mul_pos hC₁_pos hC₂_pos,
-            fun {ε X T} εinIoo Xgt3 Tgt3 ↦
-              (MeasureTheory.norm_integral_le_integral_norm _).trans ?_⟩
-          refine (MeasureTheory.integral_mono_of_nonneg
-            (g := fun t ↦ C₁ * (X / ε) * Real.log (-t) ^ 2 / (-t) ^ 2) ?_ ?_ ?_).trans ?_
-          · exact Filter.Eventually.of_forall fun x ↦ norm_nonneg _
-          · have h_integrable :
-                MeasureTheory.IntegrableOn (fun t ↦ (Real.log t)^2 / t^2) (Set.Ici T) := by
-              have h_integrable :
-                  MeasureTheory.IntegrableOn
-                    (fun t ↦ (Real.log t)^2 / t^2) (Set.Ioi T) := by
-                have h_bound : ∀ t, t > T → (Real.log t)^2 / t^2 ≤ 4 / t^(3/2 : ℝ) := by
-                  intro t ht
-                  have h_log_bound : Real.log t ≤ 2 * t^(1/4 : ℝ) := by
-                    have := Real.log_le_sub_one_of_pos (show 0 < t ^ (1 / 4 : ℝ) / 2 by
-                      exact div_pos (Real.rpow_pos_of_pos (by linarith) _) zero_lt_two)
-                    rw [Real.log_div (by exact ne_of_gt (Real.rpow_pos_of_pos (by linarith) _))
-                      (by norm_num), Real.log_rpow (by linarith)] at this
-                    have := Real.log_two_lt_d9; norm_num at *; linarith
-                  rw [div_le_div_iff₀ (by nlinarith)
-                    (Real.rpow_pos_of_pos (by linarith) (3 / 2))]
-                  refine (mul_le_mul_of_nonneg_right (pow_le_pow_left₀
-                    (Real.log_nonneg (by linarith)) h_log_bound 2)
-                    (by exact Real.rpow_nonneg (by linarith) _)).trans ?_
-                  ring_nf
-                  norm_num
-                  rw [← Real.rpow_natCast, ← Real.rpow_mul (by linarith),
-                    ← Real.rpow_add (by linarith)]
-                  norm_num
-                have h_integrable :
-                    MeasureTheory.IntegrableOn (fun t ↦ 4 / t^(3/2 : ℝ)) (Set.Ioi T) := by
-                  have h_integrable :
-                      MeasureTheory.IntegrableOn (fun t ↦ t ^ (-3 / 2 : ℝ)) (Set.Ioi T) :=
-                    integrableOn_Ioi_rpow_of_lt (by norm_num) (by linarith)
-                  norm_num [div_eq_mul_inv] at *
-                  exact MeasureTheory.Integrable.const_mul (h_integrable.congr_fun
-                    (fun x hx ↦ by simp only []; rw [Real.rpow_neg (by linarith [hx.out])])
-                    measurableSet_Ioi) _
-                refine h_integrable.mono' ?_ ?_
-                · refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioi
-                  have hne : ∀ t ∈ Set.Ioi T, t ≠ 0 := fun t ht ↦ by linarith [ht.out]
-                  have hsq : ∀ t ∈ Set.Ioi T, t ^ 2 ≠ 0 := fun t ht ↦ pow_ne_zero 2 (hne t ht)
-                  fun_prop (discharger := assumption)
-                · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi]
-                    with t ht using by
-                      rw [Real.norm_of_nonneg (by positivity)]
-                      exact h_bound t ht
-              rw [MeasureTheory.IntegrableOn, MeasureTheory.Measure.restrict_congr_set
-                MeasureTheory.Ioi_ae_eq_Ici] at *
-              simp_all only [one_div, mem_Ioo, ofReal_inv, Complex.norm_mul, Complex.norm_div,
-                norm_neg, log_neg_eq_log, even_two, Even.neg_pow]
-            have h_integrable : MeasureTheory.IntegrableOn (fun t ↦
-                (Real.log (-t))^2 / (-t)^2) (Set.Iic (-T)) := by
-              convert h_integrable.comp_neg using 1; norm_num [Set.indicator]
-            simpa only [mul_div_assoc] using h_integrable.const_mul _
-          · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Iic] with t ht
-              using hC₁ εinIoo Xgt3 Tgt3 t ht
-          · convert mul_le_mul_of_nonneg_left (hC₂ Tgt3) (show 0 ≤ C₁ * (X / ε) by
-              exact mul_nonneg hC₁_pos.le
-                (div_nonneg (by positivity) (by linarith [εinIoo.1]))) using 1 <;> ring_nf
-            rw [← MeasureTheory.integral_const_mul, MeasureTheory.integral_Ici_eq_integral_Ioi,
-              ← neg_neg T, ← integral_comp_neg_Iic]
-            norm_num
-            ring_nf
-  obtain ⟨C, hC₀, hC⟩ := h_I1New_bound; use C / (2 * Real.pi)
-  refine ⟨by positivity, fun {ε X T} hε hX hT ↦ ?_⟩
-  simp_all [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm]
-  ring_nf at *
-  convert! mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
-    (show (0 : ℝ) ≤ Real.pi⁻¹ * (1 / 2) by positivity) using 1
-  · simp only [I1New, SmoothedChebyshevIntegrand, norm_mul, norm_inv, Complex.norm_I,
-      Complex.norm_two, mul_one, one_mul, one_div]
-    rw [show ∀ a b : ℝ, (2 * a)⁻¹ * b = b * (a⁻¹ * 2⁻¹) by intro _ _; ring]
-    congr 1
-    · apply congr_arg
-      apply MeasureTheory.setIntegral_congr_fun measurableSet_Iic fun t _ ↦ by
-        rw [show (↑t : ℂ) * I = I * ↑t by ring, div_eq_mul_inv, neg_mul,
-            show (↑(Real.log X)⁻¹ : ℂ) = (↑(Real.log X))⁻¹ from Complex.ofReal_inv _]
-        ring
-    · rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
-  · ring
-
-set_option backward.isDefEq.respectTransparency false in
-@[blueprint
-  (title := "I5NewBound")
-  (statement := /--
-    We have that
-    $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
-  -/)
-  (proof := /--
-    By symmetry, note that
-    $$|I_1(\nu,\varepsilon,X,T)|=|\overline{I_5(\nu,\varepsilon,X,T)}|=|I_5(\nu,\varepsilon,X,T)|.$$
-    Applying Lemma \ref{I1NewBound} completes the proof.
-  -/)
-  (latexEnv := "lemma")]
-lemma I5NewBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-      ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
-        ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-  obtain ⟨C, Cnonneg, hI1NewBound⟩ := I1NewBound suppSmoothingF ContDiffSmoothingF
-  use C, Cnonneg
-  intro ε X T εinIoo Xgt3 Tgt3
-  have I1NewI5New : I5New SmoothingF ε X T = conj (I1New SmoothingF ε X T) := by
-      unfold I1New I5New
-      simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
-      rw [neg_mul, mul_neg, ← neg_mul]
-      congr
-      · ring
-      · rw [← integral_conj, ← integral_comp_neg_Ioi, integral_Ici_eq_integral_Ioi]
-        apply setIntegral_congr_fun <| measurableSet_Ioi
-        intro x hx; simp only []
-        rw [← smoothedChebyshevIntegrand_conj (by linarith)]
-        simp [ofReal_inv, ofReal_neg, neg_mul, map_add, map_one, map_inv₀, conj_ofReal,
-          map_neg, map_mul, conj_I, mul_neg, neg_neg]
-  rw [I1NewI5New, RCLike.norm_conj]
-  exact hI1NewBound εinIoo Xgt3 Tgt3
-
-
-
-@[blueprint
-  (title := "I2New")
-  (statement := /--
-    Let
-    $$I_2(\nu,\varepsilon,X,T)
-      =\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0.$$
-  -/)]
-noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ - T * I)))
-
-
-
-@[blueprint
-  (title := "I4New")
-  (statement := /--
-    Let
-    $$I_4(\nu,\varepsilon,X,T)
-    =\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0+iT)\right)
-    \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0+iT)\,X^{\sigma_0+iT}\,d\sigma_0.$$
-  -/)]
-noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + T * I)))
-
-
-
-@[blueprint
-  (title := "I2NewBound")
-  (statement := /--
-    We have that
-    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
-  -/)
-  (proof := /--
-    Note that $|I_2(\nu,\varepsilon,X,T)|=$
-    $$\left|\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0\right|
-      \ll\int_{\sigma'}^\sigma\left|\frac{\zeta'}{\zeta}(\sigma_0-iT)\right|
-      \cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)|\cdot X^{\sigma_0}\,d\sigma_0.$$
-    Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b},
-    we have that
-    $$|I_2(\nu,\varepsilon,X,T)|\ll\int_{\sigma'}^\sigma\log^2 T
-      \cdot\frac{X^{\sigma_0}}{\varepsilon\,|\sigma_0-iT|^2}\,d\sigma_0
-      \ll\frac{X\,\log^2T}{\varepsilon\,T^2}\int_{\sigma'}^\sigma d\,\sigma_0
-      =\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma').$$
-    Here we are using the fact that $X^{\sigma_0}\leq X^\sigma=X\cdot X^{1/\log X}=eX$
-    and $|\sigma_0-iT|^2\geq T^2$. Now note that
-    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma')
-      =\frac{X\,\log^2T}{\varepsilon\,T^2\,\log X}+\frac{FX\,\log T}{\varepsilon\,T^2}
-      \ll\frac{X}{\varepsilon\sqrt{T}}.$$
-    Here we are using the fact that $\log T\ll T^{3/2}$, $\log^2T\ll T^{3/2}$, and $X/\log X\ll X$.
-  -/)
-  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "MellinOfSmooth1b"])
-  (latexEnv := "lemma")]
-lemma I2NewBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
-    let σ' := 1 - F / Real.log T
-    ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-  sorry
-
-
-
-@[blueprint
-  (title := "I4NewBound")
-  (statement := /--
-    We have that
-    $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
-  -/)
-  (proof := /--
-    By symmetry, note that
-    $$|I_2(\nu,\varepsilon,X,T)|=|\overline{I_4(\nu,\varepsilon,X,T)}|=|I_4(\nu,\varepsilon,X,T)|.$$
-    Applying Lemma \ref{I2NewBound} completes the proof.
-  -/)
-  (latexEnv := "lemma")]
-lemma I4NewBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-      ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
-        let σ' := 1 - F / Real.log T
-        ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-  obtain ⟨C, Cnonneg, hI2NewBound⟩ := I2NewBound suppSmoothingF ContDiffSmoothingF
-  use C, Cnonneg
-  intro ε X T εinIoo Xgt3 Tgt3 σ'
-  have I2NewI4New : I4New SmoothingF ε X T σ' = -conj (I2New SmoothingF ε X T σ') := by
-      unfold I2New I4New
-      simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
-      rw [mul_neg, div_neg, neg_mul_comm, ← mul_neg]
-      congr
-      rw [← intervalIntegral_conj, neg_neg]
-      exact intervalIntegral.integral_congr fun x hx ↦ by
-        rw [← smoothedChebyshevIntegrand_conj (by linarith)]
-        simp [map_sub, map_mul, conj_I, mul_neg, sub_neg_eq_add]
-  rw [I2NewI4New, norm_neg, RCLike.norm_conj]
-  exact hI2NewBound εinIoo Xgt3 Tgt3
-
-
-
-@[blueprint
-  (title := "I3New")
-  (statement := /--
-    Let
-    $$I_3(\nu,\varepsilon,X,T)
-      =\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt.$$
-  -/)]
-noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)))
-
-
-
-@[blueprint
-  (title := "I3NewBound")
-  (statement := /--
-    We have that
-    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
-  -/)
-  (proof := /--
-    Note that $|I_3(\nu,\varepsilon,X,T)|=$
-    $$\left|\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)
-      \,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt\right|
-      \ll\int_{-T}^T\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|
-      \cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)|\cdot X^{\sigma'}\,dt.$$
-    Applying Theorem \ref{LogDerivZetaLogSquaredBoundSmallt} and Lemma \ref{MellinOfSmooth1b},
-    we have that
-    $$|I_3(\nu,\varepsilon,X,T)|\ll\int_{-T}^T\log^2(2+T)
-      \cdot\frac{X^{\sigma'}}{\varepsilon\,|\sigma'+it|^2}\,dt
-      \ll\frac{X^{1-F/\log T}\,\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}.$$
-    Here we are using the fact that this integrand is symmetric in $t$ about $0$
-    and that $\log^2(2+T)\ll\sqrt{T}$ for sufficiently large $T$. Now note that,
-    by Lemma \ref{DeltaRange}, we have
-    $$\frac{1}{|\sigma'+it|^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(41/42)^2+t^2}.$$
-    Thus,
-    $$|I_3(\nu,\varepsilon,X,T)|
-      \ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}
-      \leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(41/42)^2+t^2}.$$
-    The integral on the right hand side evaluates to $21\pi/41$, which is just a constant,
-    so the desired result follows.
-  -/)
-  (proofUses := ["MellinOfSmooth1b", "DeltaRange", "LogDerivZetaLogSquaredBoundSmallt"])
-  (latexEnv := "lemma")]
-lemma I3NewBound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
-    let σ' := 1 - F / Real.log T
-    ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
-  sorry
-
-
-
-@[blueprint
-  (title := "SmoothedChebyshevPull3")
-  (statement := /--
-    We have that
-    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
-  -/)
-  (proof := /--
-    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
-  -/)]
-theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_pos : 0 < T) {σ' : ℝ}
-    (σ'_pos : 0 < σ') (σ'_lt_one : σ' < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ' 2) ×ℂ (Icc (-T) T) \ {1}))
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    SmoothedChebyshev SmoothingF ε X =
-      I1New SmoothingF ε X T -
-      I2New SmoothingF ε T X σ' +
-      I3New SmoothingF ε T X σ' +
-      I4New SmoothingF ε T X σ' +
-      I5New SmoothingF ε X T
-      + 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) 1 * X := by
-  unfold SmoothedChebyshev VerticalIntegral'
-  have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by nth_rewrite 1 [← add_zero 1]; bound
-  have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
-      rw [← one_add_one_eq_two]; gcongr; exact inv_lt_one_of_one_lt₀ <| logt_gt_one X_gt.le
-  have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
-  rw [verticalIntegral_split_three (a := -T) (b := T)]
-  swap
-  · exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
-        X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
-  · have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by simp
-    unfold I1New; simp only [smul_eq_mul, mul_add, temp, sub_eq_add_neg, add_assoc,
-      add_left_cancel_iff]
-    unfold I5New; nth_rewrite 6 [add_comm]; simp only [← add_assoc]
-    rw [add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
-        -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
-        ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
-    unfold VIntegral I2New I3New I4New
-    simp only [smul_eq_mul, temp, ← add_assoc, ← mul_neg, ← mul_add]
-    let fTempRR : ℝ → ℝ → ℂ := fun x ↦ fun y ↦
-        SmoothedChebyshevIntegrand SmoothingF ε X ((x : ℝ) + (y : ℝ) * I)
-    let fTempC : ℂ → ℂ := fun z ↦ fTempRR z.re z.im
-    have : ∫ (y : ℝ) in -T..T,
-        SmoothedChebyshevIntegrand SmoothingF ε X (1 + ↑(Real.log X)⁻¹ + ↑y * I) =
-        ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by unfold fTempRR; simp [temp]
-    rw [this]
-    have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
-        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I) =
-        ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
-        unfold fTempRR; simp [ofReal_neg, neg_mul, sub_eq_add_neg]
-    rw [this]
-    have : ∫ (t : ℝ) in -T..T,
-        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I) =
-        ∫ (y : ℝ) in -T..T, fTempRR σ' y := rfl
-    rw [this]
-    have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
-        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑T * I) =
-        ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T := rfl
-    rw [this]
-    have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
-        -∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
-        I * ∫ (y : ℝ) in -T..T, fTempRR σ' y) +
-        ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T =
-        -(2 * ↑π * I) * RectangleIntegral' fTempC (σ' - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
-        unfold RectangleIntegral' RectangleIntegral HIntegral VIntegral fTempC
-        simp only [mul_neg, one_div, mul_inv_rev, inv_I, neg_mul, sub_im, ofReal_im, mul_im,
-          ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero, zero_sub, ofReal_neg, add_re,
-          neg_re, mul_re, sub_self, neg_zero, add_im, neg_im, zero_add, sub_re, sub_zero,
-          ofReal_inv, one_re, inv_re, normSq_ofReal, div_self_mul_self', one_im, inv_im,
-          zero_div, ofReal_add, ofReal_one, smul_eq_mul, neg_neg]
-        ring_nf
-        simp only [I_sq, neg_mul, one_mul, ne_eq, ofReal_eq_zero, pi_ne_zero, not_false_eq_true,
-          mul_inv_cancel_right₀, sub_neg_eq_add, I_pow_three]
-        ring_nf
-    rw [this]
-    field_simp
-    rw [mul_comm, eq_comm, neg_add_eq_zero]
-    have pInRectangleInterior : (Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
-        refine rectangle_mem_nhds_iff.mpr <| mem_reProdIm.mpr ?_
-        simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-            sub_zero, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero,
-            sub_im, mul_im, zero_sub, add_im, one_im, inv_im, neg_zero, zero_div, zero_add]
-        constructor
-        · unfold uIoo; rw [min_eq_left (by linarith), max_eq_right (by linarith)]
-          exact mem_Ioo.mpr ⟨σ'_lt_one, by linarith⟩
-        · unfold uIoo; rw [min_eq_left (by linarith), max_eq_right (by linarith)]
-          exact mem_Ioo.mpr ⟨by linarith, by linarith⟩
-    apply ResidueTheoremOnRectangleWithSimplePole'
-    · simp; linarith
-    · simp; linarith
-    · simp only [one_div]; exact pInRectangleInterior
-    ·   apply DifferentiableOn.mul
-        ·   apply DifferentiableOn.mul
-            ·   simp only [re_add_im]
-                have : (fun z ↦ -ζ' z / ζ z) = -(ζ' / ζ) := by ext; simp; ring
-                rw [this]; apply DifferentiableOn.neg; apply holoOn.mono
-                apply Set.sdiff_subset_sdiff_left; apply reProdIm_subset_iff'.mpr; left
-                simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-                    sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
-                    div_self_mul_self', add_zero, sub_im, mul_im, zero_sub, add_im, one_im, inv_im,
-                    neg_zero, zero_div, zero_add]
-                constructor <;> apply uIcc_subset_Icc <;> constructor <;> linarith
-            ·   intro s hs; apply DifferentiableAt.differentiableWithinAt; simp only [re_add_im]
-                apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
-                have := mem_reProdIm.mp hs.1 |>.1
-                simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-                    sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
-                    div_self_mul_self', add_zero] at this
-                rw [uIcc_of_le (by linarith)] at this; linarith [this.1]
-        ·   intro s hs; apply DifferentiableAt.differentiableWithinAt; simp only [re_add_im]
-            apply DifferentiableAt.const_cpow (by fun_prop); left; norm_cast; linarith
-    ·   let U : Set ℂ := Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I)
-        let f : ℂ → ℂ := fun z ↦ -ζ' z / ζ z
-        let g : ℂ → ℂ := fun z ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) z * ↑X ^ z
-        unfold fTempC fTempRR SmoothedChebyshevIntegrand
-        simp only [re_add_im]
-        have g_holc : HolomorphicOn g U := by
-            intro u uInU
-            apply DifferentiableAt.differentiableWithinAt; simp only [g]
-            apply DifferentiableAt.mul
-            ·   apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
-                simp only [ofReal_inv, U] at uInU; unfold Rectangle at uInU
-                rw[Complex.mem_reProdIm] at uInU; have := uInU.1
-                simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-                    sub_zero, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero] at this
-                rw [uIcc_of_le (by linarith)] at this; linarith [this.1]
-            ·   unfold HPow.hPow instHPow
-                apply DifferentiableAt.const_cpow differentiableAt_fun_id
-                left; norm_cast; linarith
-        have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
-            simp only [one_mul, f]; exact riemannZetaLogDerivResidueBigO
-        convert ResidueMult g_holc pInRectangleInterior f_near_p using 1
-        ext; simp [f, g]; ring
-
-
-
-blueprint_comment /--
-\begin{theorem}[StrongPNT]\label{StrongPNT}
     We have
-    $$\sum_{n\leq x}\Lambda(n)=x+O\left(x\exp(-c\sqrt{\log x})\right).$$
-\end{theorem}
--/
+    $$\sum_{n \leq x}\Lambda(n)=x+O(x \exp(-c(\log x)^{1/2})).$$
+  -/)
+  (proof := /-- This follows as a corollary of
+    Theorems \ref{GenStrengthPNT} and \ref{LogDerivZetaUniformLogSquaredBound}. -/)
+  (latexEnv := "theorem")]
+theorem StrongPNT : ∃ c > 0,
+    (ψ - id) =O[atTop]
+      fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 2)) := by
+  have := GenStrengthPNT LogDerivZetaBoundedAndHolo12 (by linarith) (by linarith); ring_nf at this
+  simpa only [gt_iff_lt, one_div, neg_mul] using this
 
-blueprint_comment /--
-\begin{proof}
-\uses{SmoothedChebyshevClose, SmoothedChebyshevPull3, MellinOfSmooth1c, I1NewBound, I2NewBound,
-  I3NewBound, I4NewBound, I5NewBound}
-    By Theorem \ref{SmoothedChebyshevClose} and \ref{SmoothedChebyshevPull3} we have that
-    $$\mathcal{M}(\tilde{1}_\varepsilon)(1)\,x^1+I_1-I_2+I_3+I_4+I_5
-      =\psi(x)+O(\varepsilon x\log x).$$
-    Applying Theorem \ref{MellinOfSmooth1c} and Lemmas \ref{I1NewBound}, \ref{I2NewBound},
-    \ref{I3NewBound}, \ref{I4NewBound}, and \ref{I5NewBound} we have that
-    $$\psi(x)=x+O(\varepsilon x)+O(\varepsilon x\log x)
-      +O\left(\frac{x}{\varepsilon\sqrt{T}}\right)
-      +O\left(\frac{x^{1-F/\log T}\sqrt{T}}{\varepsilon}\right).$$
-    We absorb the $O(\varepsilon x)$ term into the $O(\varepsilon x\log x)$ term and
-    balance the last two terms in $T$.
-    $$\frac{x}{\varepsilon\sqrt{T}}
-      =\frac{x^{1-F/\log T}\sqrt{T}}{\varepsilon}\implies T
-      =\exp(\sqrt{F\log x}).$$
-    Thus,
-    $$\psi(x)=x+O(\varepsilon x\log x)
-      +O\left(\frac{x}{\displaystyle\varepsilon\exp((1/2)\cdot\sqrt{F\log x})}\right).$$
-    Now we balance the last two terms in $\varepsilon$.
-    $$\varepsilon x\log x
-      =\frac{x}{\displaystyle\varepsilon\exp((1/2)\cdot\sqrt{F\log x})}
-      \implies\varepsilon\log x
-      =\frac{\displaystyle\sqrt{\log x}}{\displaystyle\exp((1/4)\cdot\sqrt{F\log x})}.$$
-    Thus,
-    $$\psi(x)=x+O\left(x\exp(-(\sqrt{F}/4)\cdot\sqrt{\log x})\sqrt{\log x}\right).$$
-    Absorbing the $\displaystyle\sqrt{\log x}$ into the
-    $\displaystyle\exp(-(\sqrt{F}/4)\cdot\sqrt{\log x})$ completes the proof.
-\end{proof}
--/
-
--- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`.
--- theorem PrimeNumberTheorem : ∃ (c : ℝ) (hc : c > 0),
---     (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * Real.sqrt (Real.log x))) := by
---  sorry
+#print axioms StrongPNT
