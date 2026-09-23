@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+import PrimeNumberTheoremAnd.IEANTN.Buthe
 import PrimeNumberTheoremAnd.IEANTN.Dusart
 import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RSPrimeLower
 import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
@@ -208,18 +209,36 @@ Some results from \cite{Buthe}-/
   "thm:buthe-a"
   (title := "Buthe Theorem a")
   (statement := /-- We have $|\psi(x) - x| \leq 0.94\sqrt{x}$ when $11 < x \leq 10^{19}$. -/)
+  (proof := /-- Absolute-error form of \ref{buthe-theorem-2a}:
+    $|\psi(x)-x|/x = E\psi(x) \leq 0.94/\sqrt{x}$. -/)
+  (proofUses := ["buthe-theorem-2a"])
   (latexEnv := "theorem")]
 theorem theorem_a (x : ℝ) (hx1 : x > 11) (hx2 : x ≤ (10 : ℝ) ^ 19) :
-    |ψ x - x| ≤ 0.94 * sqrt x := by sorry
+    |ψ x - x| ≤ 0.94 * sqrt x := by
+  have hxpos : (0 : ℝ) < x := lt_trans (by norm_num) hx1
+  have hsqrt_pos : 0 < sqrt x := Real.sqrt_pos.mpr hxpos
+  have h : Eψ x ≤ 0.94 / sqrt x := theorem_2a hx1 hx2
+  rw [show Eψ x = |ψ x - x| / x from rfl] at h
+  have hmul : |ψ x - x| ≤ (0.94 / sqrt x) * x := (div_le_iff₀ hxpos).mp h
+  -- Same rewrite as `Buthe.normalized_bounds_of_Eψ`.
+  have hdiv : x / sqrt x = sqrt x := by
+    rw [div_eq_iff hsqrt_pos.ne', ← sq, Real.sq_sqrt hxpos.le]
+  calc
+    |ψ x - x| ≤ (0.94 / sqrt x) * x := hmul
+    _ = 0.94 * (x / sqrt x) := by ring
+    _ = 0.94 * sqrt x := by rw [hdiv]
 
 @[blueprint
   "thm:buthe-b"
   (title := "Buthe Theorem b")
   (statement := /-- We have $0 < \mathrm{li}(x) - \pi(x) \leq \frac{\sqrt{x}}{\log x}\left(1.95 + \frac{3.9}{\log x} + \frac{19.5}{\log^2 x}\right)$ when $2 \leq x \leq 10^{19}$. -/)
+  (proof := /-- Conjunction of \ref{buthe-theorem-2f} and \ref{buthe-theorem-2e}. -/)
+  (proofUses := ["buthe-theorem-2e", "buthe-theorem-2f"])
   (latexEnv := "theorem")]
 theorem theorem_b (x : ℝ) (hx1 : x ≥ 2) (hx2 : x ≤ (10 : ℝ) ^ 19) :
     0 < li x - pi x ∧
-    li x - pi x ≤ sqrt x / log x * (1.95 + 3.9 / log x + 19.5 / (log x)^2) := by sorry
+    li x - pi x ≤ sqrt x / log x * (1.95 + 3.9 / log x + 19.5 / (log x)^2) :=
+  ⟨theorem_2f hx1 hx2, theorem_2e hx1 hx2⟩
 
 end Buthe
 
@@ -241,9 +260,55 @@ theorem theorem_a (x : ℝ) (hx : x > 0) :
   "thm:rs-1962-b"
   (title := "Rosser-Schoenfeld 1962, part b")
   (statement := /-- For $x \geq 17$, we have $\pi(x) > x / \log x$. -/)
+  (proof := /-- Non-strict form is \ref{Dusart_cor_5_2_a}. Upgrade to a strict
+    inequality because $\pi$ is constant on each $[n,n+1)$ while $x/\log x$ is
+    strictly increasing for $x>e$. -/)
+  (proofUses := ["Dusart_cor_5_2_a"])
   (latexEnv := "theorem")]
 theorem theorem_b (x : ℝ) (hx : x ≥ 17) :
-    pi x > x / log x := by sorry
+    _root_.pi x > x / log x := by
+  have hx0 : (0 : ℝ) ≤ x := by linarith
+  have hx1 : (1 : ℝ) < x := by linarith
+  have hxpos : (0 : ℝ) < x := by linarith
+  -- Midpoint of [⌊x⌋₊, ⌊x⌋₊+1): π is constant there while x/log x rises for x>e.
+  set y := (x + (⌊x⌋₊ + 1 : ℝ)) / 2
+  have hx_lt_succ : x < (⌊x⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one x
+  have hfle : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hx0
+  have hxy : x < y := by dsimp [y]; linarith
+  have hyu : y < (⌊x⌋₊ : ℝ) + 1 := by dsimp [y]; linarith
+  have hyl : (⌊x⌋₊ : ℝ) ≤ y := by dsimp [y]; linarith
+  have hfloor : ⌊y⌋₊ = ⌊x⌋₊ := Nat.floor_eq_on_Ico _ _ ⟨hyl, hyu⟩
+  have hpi : _root_.pi x = _root_.pi y := by
+    unfold _root_.pi
+    rw [hfloor]
+  have hy17 : y ≥ 17 := by linarith
+  have hypos : (0 : ℝ) < y := by linarith
+  have hge := Dusart.corollary_5_2_a hy17
+  have hlogx := log_pos hx1
+  have hlogy := log_pos (show (1 : ℝ) < y by linarith)
+  have hz : (1 : ℝ) < y / x := (one_lt_div hxpos).mpr hxy
+  have hlogz : log (y / x) < y / x - 1 :=
+    log_lt_sub_one_of_pos (div_pos hypos hxpos) (ne_of_gt hz)
+  have hlog_div : log (y / x) = log y - log x := log_div hypos.ne' hxpos.ne'
+  have hlogx1 : (1 : ℝ) < log x := by
+    have hexp : exp 1 < x :=
+      lt_of_lt_of_le (lt_trans exp_one_lt_d9 (by norm_num : (2.7182818286 : ℝ) < 3))
+        (by linarith : (3 : ℝ) ≤ x)
+    rwa [← log_exp 1, log_lt_log_iff (exp_pos _) hxpos]
+  have hstrict : x / log x < y / log y := by
+    rw [div_lt_div_iff₀ hlogx hlogy]
+    -- goal: x * log y < y * log x
+    have hstep : log y < log x + y / x - 1 := by linarith [hlog_div, hlogz]
+    have hmul : x * log y < x * (log x + y / x - 1) :=
+      mul_lt_mul_of_pos_left hstep hxpos
+    have hrw : x * (log x + y / x - 1) = x * log x + y - x := by
+      simp [mul_add, mul_sub, mul_div_cancel₀ _ hxpos.ne']
+    have h1 : x * log y < x * log x + y - x := by rwa [hrw] at hmul
+    -- x ≤ y and log x > 1 ⇒ x * log x + y - x ≤ y * log x
+    have h2 : x * log x + y - x ≤ y * log x := by nlinarith [hlogx1, hxy]
+    linarith
+  rw [hpi]
+  exact lt_of_lt_of_le hstrict hge
 
 @[blueprint
   "thm:rs-1962-c"
@@ -275,7 +340,7 @@ Some results from \cite{Dusart1999}-/
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
     pi x > x / (log x - 1) := by
-  -- Art01 / Dusart1999 use a strict inequality. Dusart2018 Cor 5.3(a) is non-strict.
+  -- Matches `Dusart.corollary_5_3_a` (strict), Art01 / Dusart1999.
   sorry
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
@@ -404,9 +469,20 @@ theorem theorem_b (x : ℝ) (hx : x ≥ 10544111) :
   "thm:dusart1999-c"
   (title := "Dusart 1999, part c")
   (statement := /-- For $x \geq 3{,}594{,}641$, we have $|\vartheta(x) - x| \leq \frac{0.2\, x}{\log^2 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row $(k,\eta_k,x_k)=(2,0.2,3594641)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
   (latexEnv := "theorem")]
 theorem theorem_c (x : ℝ) (hx : x ≥ 3594641) :
-    |θ x - x| ≤ 0.2 * x / (log x) ^ 2 := by sorry
+    |θ x - x| ≤ 0.2 * x / (log x) ^ 2 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog2_pos : (0 : ℝ) < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hmem : (2, (0.2 : ℝ), (3594641 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog2_pos] at hEθ
+  rwa [le_div_iff₀ hlog2_pos]
 
 @[blueprint
   "thm:dusart1999-d"
