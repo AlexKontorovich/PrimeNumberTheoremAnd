@@ -1347,7 +1347,8 @@ theorem zeroImagDyadicNPrimeToNSource_of_order_summable
     have hmap :
         (∑ rho : Crit, (riemannZeta.order (rho : ℂ) : ℝ)) =
           ∑ rho ∈ Finset.univ.map inc, fAll rho := by
-      simp [inc, fAll]
+      rw [Finset.sum_map]
+      rfl
     rw [hmap]
     exact Summable.sum_le_tsum (Finset.univ.map inc)
       (fun rho _ => hnonnegAll rho) hsumAll

@@ -1687,11 +1687,15 @@ lemma Params.initial_balance_eq (P : Params) (p : ℕ) :
 lemma Params.exists_large_prime_of_rough (P : Params) (m : ℕ) (hm : m ∈ rough_set P) :
     ∃ q, q.Prime ∧ q ≥ P.n / P.L ∧ q ∣ m := by
   unfold rough_set at hm
-  by_cases hq : m = 0 <;> simp_all only [smoothNumbers, ne_eq, mem_primeFactorsList', and_imp,
-    Set.mem_setOf_eq, not_and, not_forall, not_lt, Finset.mem_filter]
-  · have := Nat.exists_infinite_primes (P.n / P.L)
-    aesop
-  · tauto
+  rw [Finset.mem_filter] at hm
+  obtain ⟨-, hm⟩ := hm
+  by_cases hq : m = 0
+  · obtain ⟨q, hq1, hq2⟩ := Nat.exists_infinite_primes (P.n / P.L)
+    exact ⟨q, hq2, hq1, hq ▸ dvd_zero q⟩
+  · rw [Nat.mem_smoothNumbers] at hm
+    push_neg at hm
+    obtain ⟨p, hp, hpn⟩ := hm hq
+    exact ⟨p, Nat.prime_of_mem_primeFactorsList hp, hpn, Nat.dvd_of_mem_primeFactorsList hp⟩
 
 /-- If a prime `q ≥ n / L` divides `m < n`, then its valuation in `m` is `1`. -/
 lemma Params.valuation_eq_one_of_large_prime (P : Params) (m q : ℕ) (hm : m < P.n)

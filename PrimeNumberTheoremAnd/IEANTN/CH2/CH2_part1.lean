@@ -721,17 +721,18 @@ theorem S_eq_I (a : ℕ → ℝ) (s x T : ℝ) (hs : s ≠ 1) (hT : 0 < T) (hx :
       · congr 1; rw [← Finset.sum_filter]; field_simp
         refine Finset.sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
         · simp only [Finset.mem_filter, Finset.mem_Icc, pnat_one_le, true_and, and_imp]
-          exact fun _ _ _ h ↦ h
+          exact fun _ _ h ↦ h
         · exact fun _ _ _ _ h ↦ Subtype.val_injective h
-        · simp only [Finset.mem_Icc, Finset.mem_filter,
-            exists_prop, and_imp]
-          exact fun b hb₁ hb₂ ↦
-            ⟨⟨b, hb₁⟩, ⟨⟨pnat_one_le _, Nat.le_succ_of_le hb₂⟩, hb₂⟩, rfl⟩
+        · simp only [Finset.mem_Icc, Finset.mem_filter, exists_prop, and_imp]
+          intro b hb₁ hb₂
+          refine ⟨⟨b, hb₁⟩, ⟨?_, hb₂⟩, rfl⟩
+          exact Finset.mem_Icc.mpr ⟨PNat.one_le _, Nat.le_succ_of_le hb₂⟩
         · simp only [Finset.mem_filter, Finset.mem_Icc,
             mul_assoc, mul_comm, implies_true]
       · simp +zetaDelta only [Finset.mem_Icc, ite_eq_right_iff,
           mul_eq_zero, div_eq_zero_iff, Nat.cast_eq_zero, PNat.ne_zero, or_false] at *
-        exact fun n hn₁ hn₂ ↦ False.elim (hn₁ ⟨pnat_one_le _, Nat.le_succ_of_le hn₂⟩)
+        exact fun n hn₁ hn₂ ↦
+          False.elim (hn₁ (Finset.mem_Icc.mpr ⟨PNat.one_le _, Nat.le_succ_of_le hn₂⟩))
     simp_all only [ne_eq, div_eq_mul_inv, rpow_neg hx.le, mul_left_comm, mul_comm,
       mul_inv_rev, mul_assoc, Finset.mul_sum ..]
     refine Finset.sum_congr rfl fun n hn ↦ ?_

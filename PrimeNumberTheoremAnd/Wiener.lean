@@ -185,9 +185,11 @@ lemma second_fourier_integrable_aux1 (hcont : Measurable ψ) (hsupp : Integrable
   intro ν
   constructor
   · apply Measurable.aestronglyMeasurable
-    -- TODO: find out why fun_prop does not play well with Multiplicative.ofAdd
-    simp only [neg_mul, ofReal_exp, ofReal_neg, ofReal_mul, ofReal_sub, ofReal_one,
-      Multiplicative.ofAdd, Equiv.coe_fn_mk, smul_eq_mul]
+    -- `Multiplicative.ofAdd x` is definitionally `x`; unfold it by `change` since `fun_prop`
+    -- does not see through it.
+    change Measurable (Function.uncurry fun (u : ℝ) (a : ℝ) ↦ ((rexp (-u * (σ' - 1))) : ℂ) •
+      (𝐞 (-(a * (u / (2 * π)))) : ℂ) • ψ a)
+    simp only [neg_mul, ofReal_exp, ofReal_neg, ofReal_mul, ofReal_sub, ofReal_one, smul_eq_mul]
     fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ‖cexp (-(↑a1 * (↑σ' - 1)))‖ₑ
     let f2 : ℝ → ENNReal := fun a2 ↦ ‖ψ a2‖ₑ
@@ -1432,7 +1434,8 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     rw [← l6] ; apply intervalIntegral.integral_mono_ae_restrict (by linarith) (by simp) l4
     apply eventually_of_mem _ l5
     have : (Ioc x₀ (x₀ + 1))ᶜ ∩ Icc x₀ (x₀ + 1) = {x₀} := by simp [← sdiff_eq_compl_inter]
-    simp [ae, this]
+    rw [mem_ae_iff, Measure.restrict_apply measurableSet_Ioc.compl, this]
+    simp
 
   have l2 : AntitoneOn (fun x ↦ f (x₀ + x)) (Icc 1 ↑(n + 1)) := by
     intro u ⟨hu1, _⟩ v ⟨_, hv2⟩ huv ; push_cast at hv2

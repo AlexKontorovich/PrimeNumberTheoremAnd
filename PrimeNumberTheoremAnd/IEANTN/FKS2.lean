@@ -766,7 +766,8 @@ lemma BKLNW_a1_le_two_of_ge_1000 (t : ℝ) (ht : t ≥ 1000) :
           (b₀ := 20) (ε := 4.2676e-5) BKLNW_app.table_8_mem_20 h20
       simp [hif]
       linarith
-  simpa [BKLNW.a₁, BKLNW.Inputs.a₁, BKLNW.Inputs.default, BKLNW.Pre_inputs.default] using hmain
+  unfold BKLNW.a₁ BKLNW.Inputs.a₁
+  exact hmain
 
 /--
 A crude linear bound on `BKLNW.a₂` at large `t`.
@@ -1433,7 +1434,9 @@ private lemma bklnw_a1_30_le : BKLNW.a₁ 30 ≤ 1 + 1.9339e-8 := by
   have htable : BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1.9339e-8 :=
     BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40 h40
   have hgoal : 1 + BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1 + 1.9339e-8 := by linarith
-  simpa [BKLNW.Inputs.default, BKLNW.Pre_inputs.default, if_pos hif] using hgoal
+  split_ifs with h
+  · exact hgoal
+  · exact absurd hif h
 
 -- Helper bounding BKLNW.f (exp 30).
 private lemma bklnw_f_exp30_le : BKLNW.f (Real.exp 30) ≤ 41 := by
