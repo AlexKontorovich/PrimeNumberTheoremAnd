@@ -7,6 +7,11 @@ assignees: ''
 
 ---
 
+<!-- NOTE: If this task is for IEANTN material (papers formalized under
+     PrimeNumberTheoremAnd/IEANTN/), please open the issue against
+     teorth/IEANTN instead — the IEANTN material is being ported to its
+     own repository. Legacy in-flight IEANTN tasks may continue here. -->
+
 ## Description
 
 <!-- Describe the task clearly and concisely. -->
