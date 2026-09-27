@@ -150,9 +150,9 @@ lemma zeroes_rect_positive_height_card_le_zeroes_sum_order (T : ℝ) :
     (Nat.card (riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo 0 T)) : ℝ) ≤
       riemannZeta.zeroes_sum (.Ioo 0 1) (.Ioo 0 T) (fun _ ↦ (1 : ℝ)) := by
   classical
-  haveI : Finite (riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo 0 T)) :=
+  have : Finite (riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo 0 T)) :=
     Set.finite_coe_iff.mpr (zeroes_rect_Ioo_critical_positive_height_finite T)
-  letI := Fintype.ofFinite (riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo 0 T))
+  let := Fintype.ofFinite (riemannZeta.zeroes_rect (.Ioo 0 1) (.Ioo 0 T))
   unfold riemannZeta.zeroes_sum
   rw [tsum_fintype]
   calc
@@ -352,7 +352,7 @@ theorem zeroImagDyadicNOrderSummableSource_of_positive_height_zero_free :
           (.Ioo 0 ((2 : ℝ) ^ (k + 1))) =>
         (riemannZeta.order (rho : ℂ) : ℝ)) := by
   intro k
-  haveI : Finite (riemannZeta.zeroes_rect (.univ : Set ℝ)
+  have : Finite (riemannZeta.zeroes_rect (.univ : Set ℝ)
       (.Ioo 0 ((2 : ℝ) ^ (k + 1)))) :=
     Set.finite_coe_iff.mpr
       (zeroes_rect_univ_positive_height_finite ((2 : ℝ) ^ (k + 1)))
@@ -397,7 +397,7 @@ lemma zeroes_rect_Ioo_critical_zero_height_finite :
   exact ⟨⟨Set.Ioo_subset_Icc_self hre, him⟩, hzeta⟩
 
 lemma zeroHeightNontrivialZeros_finite : Finite ZeroHeightNontrivialZeros := by
-  haveI : Finite (riemannZeta.zeroes_rect (.Ioo (0 : ℝ) 1) (.Icc 0 0)) :=
+  have : Finite (riemannZeta.zeroes_rect (.Ioo (0 : ℝ) 1) (.Icc 0 0)) :=
     Set.finite_coe_iff.mpr zeroes_rect_Ioo_critical_zero_height_finite
   exact Finite.of_equiv _ zeroHeightNontrivialZeroEquivZeroesRectZero.symm
 
@@ -772,9 +772,9 @@ lemma zeroHeightDyadicShellMass_le_count_inv_sq (k : ℕ) :
       (Nat.card {rho : NontrivialZeros // zeroHeightDyadicShell k rho} : ℝ) *
         (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
   classical
-  haveI : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
+  have : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
     Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
-  letI := Fintype.ofFinite {rho : NontrivialZeros // zeroHeightDyadicShell k rho}
+  let := Fintype.ofFinite {rho : NontrivialZeros // zeroHeightDyadicShell k rho}
   unfold zeroHeightDyadicShellMass
   rw [tsum_fintype]
   calc
@@ -794,7 +794,7 @@ lemma zeroHeightDyadicShellCount_le_cumulative_count (k : ℕ) :
       Nat.card {rho : NontrivialZeros //
         |(rho : ℂ).im| < (2 : ℝ) ^ (k + 1)} := by
   classical
-  haveI : Finite {rho : NontrivialZeros //
+  have : Finite {rho : NontrivialZeros //
       |(rho : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
     Set.finite_coe_iff.mpr
       (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1)))
@@ -1063,7 +1063,7 @@ theorem zeroImagDyadicShellSummableSource_of_mass_bound
   rw [summable_sigma_of_nonneg]
   · constructor
     · intro k
-      haveI : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
+      have : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
         Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
       exact Summable.of_finite
     · exact Summable.of_nonneg_of_le
@@ -1219,11 +1219,11 @@ theorem zeroImagDyadicAbsToPositiveCountWithZeroHeightSource_of_conj
   let Abs := {rho : NontrivialZeros // |(rho : ℂ).im| < T}
   let Pos := {rho : NontrivialZeros // 0 < (rho : ℂ).im ∧ (rho : ℂ).im < T}
   let Z := ZeroHeightNontrivialZeros
-  haveI : Finite Pos := by
-    haveI : Finite (riemannZeta.zeroes_rect (.Ioo (0 : ℝ) 1) (.Ioo 0 T)) :=
+  have : Finite Pos := by
+    have : Finite (riemannZeta.zeroes_rect (.Ioo (0 : ℝ) 1) (.Ioo 0 T)) :=
       Set.finite_coe_iff.mpr (zeroes_rect_Ioo_critical_positive_height_finite T)
     exact Finite.of_equiv _ (positiveHeightNontrivialZeroEquivZeroesRect T).symm
-  haveI : Finite Z := zeroHeightNontrivialZeros_finite
+  have : Finite Z := zeroHeightNontrivialZeros_finite
   let toBucket : Abs → ((Pos ⊕ Pos) ⊕ Z) := fun rho =>
     if hpos : 0 < (rho.1 : ℂ).im then
       Sum.inl (Sum.inl
@@ -1314,7 +1314,7 @@ theorem zeroImagDyadicNPrimeToNSource_of_order_summable
   let All := riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T)
   have hcrit_finite : Finite Crit := by
     exact Set.finite_coe_iff.mpr (zeroes_rect_Ioo_critical_positive_height_finite T)
-  letI : Fintype Crit := Fintype.ofFinite Crit
+  let : Fintype Crit := Fintype.ofFinite Crit
   let inc : Crit ↪ All := {
     toFun := fun rho =>
       ⟨(rho : ℂ), Set.mem_univ _, rho.property.2.1, rho.property.2.2⟩
@@ -1580,7 +1580,7 @@ theorem zeroImagSquareTailSummable_of_dyadic_shell_source
     intro rho hrho
     rw [Set.mem_ofPred_eq] at hrho ⊢
     exact lt_of_not_ge hrho
-  haveI : Finite {rho : NontrivialZeros // ¬ 1 ≤ |(rho : ℂ).im|} :=
+  have : Finite {rho : NontrivialZeros // ¬ 1 ≤ |(rho : ℂ).im|} :=
     Set.finite_coe_iff.mpr hlow_set
   have hlow : Summable
       (fun rho : {rho : NontrivialZeros // ¬ 1 ≤ |(rho : ℂ).im|} =>
@@ -1756,7 +1756,7 @@ theorem zeroImagSquareTailSummable_of_cumulative_count_le {g : ℕ → ℝ}
   rw [summable_sigma_of_nonneg]
   · constructor
     · intro k
-      haveI : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
+      have : Finite {rho : NontrivialZeros // zeroHeightDyadicShell k rho} :=
         Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
       exact Summable.of_finite
     · refine Summable.of_nonneg_of_le
@@ -1968,11 +1968,11 @@ theorem weighted_cumulative_count_le (k : ℕ) :
         ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ)) ≤
       2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket := by
   classical
-  haveI hXf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+  have hXf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
     (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
-  haveI hRf : Fintype (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1)))) :=
+  have hRf : Fintype (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1)))) :=
     (zeroes_rect_univ_positive_height_finite ((2 : ℝ) ^ (k + 1))).fintype
-  haveI hZf : Fintype ZeroHeightNontrivialZeros :=
+  have hZf : Fintype ZeroHeightNontrivialZeros :=
     @Fintype.ofFinite _ zeroHeightNontrivialZeros_finite
   have hRnonneg : ∀ z ∈ Finset.univ.image (fun ρ : riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 ((2 : ℝ) ^ (k + 1))) ↦ (ρ : ℂ)), (0 : ℝ) ≤ ((riemannZeta.order z : ℤ) : ℝ) := by
     intro z hz
@@ -2103,9 +2103,9 @@ private lemma weighted_shell_mass_le (k : ℕ) :
       (2 * |riemannZeta.N ((2 : ℝ) ^ (k + 1))| + weightedZeroHeightBucket) *
         (((2 : ℝ) ^ k)⁻¹) ^ (2 : ℕ) := by
   classical
-  haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+  have : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
     Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
-  haveI : Finite {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+  have : Finite {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
     Set.finite_coe_iff.mpr (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1)))
   have hstep1 : (∑' ρ : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
       ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *
@@ -2129,9 +2129,9 @@ private lemma weighted_shell_mass_le (k : ℕ) :
       ∑' ρ : {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)},
         ((riemannZeta.order ((ρ : NontrivialZeros) : ℂ) : ℤ) : ℝ) := by
     classical
-    haveI hSf : Fintype {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+    have hSf : Fintype {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
       (nontrivialZeros_dyadic_shell_finite k).fintype
-    haveI hCf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
+    have hCf : Fintype {ρ : NontrivialZeros // |(ρ : ℂ).im| < (2 : ℝ) ^ (k + 1)} :=
       (nontrivialZeros_abs_im_lt_finite ((2 : ℝ) ^ (k + 1))).fintype
     rw [tsum_fintype, tsum_fintype]
     have himgS : (∑ x : {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ},
@@ -2180,7 +2180,7 @@ private lemma weighted_shell_sigma_summable :
   rw [summable_sigma_of_nonneg]
   · constructor
     · intro k
-      haveI : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
+      have : Finite {ρ : NontrivialZeros // zeroHeightDyadicShell k ρ} :=
         Set.finite_coe_iff.mpr (nontrivialZeros_dyadic_shell_finite k)
       exact Summable.of_finite
     · obtain ⟨E, hE0, hE⟩ := zetaCountingDyadic_abs_N_le_geometric
@@ -2236,7 +2236,7 @@ theorem weighted_zeroImagSquareTail_summable :
     intro ρ hρ
     rw [Set.mem_ofPred_eq] at hρ ⊢
     exact lt_of_not_ge hρ
-  haveI : Finite {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} :=
+  have : Finite {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} :=
     Set.finite_coe_iff.mpr hlow_set
   have hlow : Summable (fun ρ : {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} ↦
       ((riemannZeta.order ((ρ.1 : NontrivialZeros) : ℂ) : ℤ) : ℝ) *

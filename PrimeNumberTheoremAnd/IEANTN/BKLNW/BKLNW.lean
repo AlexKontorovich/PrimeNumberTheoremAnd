@@ -1220,7 +1220,7 @@ theorem bklnw_eq_3_11 (k n : ℕ) (hk : 1 ≤ k) (a : ℕ → ℝ) (ε : ℝ →
   (hbb : b < b') (hbk : b ≥ 2 * k) :
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
   unfold B Btilde
-  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+  have h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
     use exp b
     simp only [Set.mem_Icc, le_refl, true_and]
     exact exp_le_exp.mpr hbb.le

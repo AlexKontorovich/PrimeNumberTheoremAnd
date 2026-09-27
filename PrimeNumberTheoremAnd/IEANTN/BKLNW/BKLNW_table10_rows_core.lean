@@ -187,7 +187,7 @@ private lemma B_le_of_forall_log (k n : ℕ) (a : ℕ → ℝ) (ε : ℝ → ℝ
         (∑ ℓ ∈ Finset.Icc 1 n, a ℓ * y ^ k * Real.exp (-((ℓ : ℝ) / (ℓ + 1) * y))) + ε b * y ^ k ≤ C) :
     B k n a ε b b' ≤ C := by
   unfold B
-  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+  have h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
     refine ⟨exp b, ?_⟩
     simp only [Set.mem_Icc, le_refl, true_and]
     exact exp_le_exp.mpr hbb'

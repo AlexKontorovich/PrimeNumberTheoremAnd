@@ -2579,7 +2579,7 @@ lemma tendsto_tsum_of_monotone_convergence
     (hmono : ∀ k, Monotone (fun n => f n k))
     (hlim : ∀ k, Tendsto (fun n => f n k) atTop (𝓝 (g k))) :
     Tendsto (fun n => ∑' k, f n k) atTop (𝓝 (∑' k, g k)) := by
-  letI : MeasurableSpace β := ⊤
+  let : MeasurableSpace β := ⊤
   let μ : Measure β := Measure.count
   have hg_iSup (k : β) : (⨆ n : ℕ, f n k) = g k := iSup_eq_of_tendsto (hmono k) (hlim k)
   have h_tend_lint : Tendsto (fun n => ∫⁻ k, f n k ∂μ) atTop (𝓝 (∫⁻ k, (⨆ n, f n k) ∂μ)) := by
@@ -3348,7 +3348,7 @@ lemma norm_error_integral_le
     have hG' : AEMeasurable fun t : ℝ => G (1 + t * Complex.I) := hGline_meas.aemeasurable
     have hψ_meas' : AEMeasurable ψ := hψ_meas.aemeasurable
     have hx_ne : (x : ℂ) ≠ 0 := by exact_mod_cast (ne_of_gt hx)
-    haveI hx_ne' : NeZero (x : ℂ) := ⟨hx_ne⟩
+    have hx_ne' : NeZero (x : ℂ) := ⟨hx_ne⟩
     have hxpow_meas : AEMeasurable fun t : ℝ => ((x : ℂ) ^ (t * Complex.I)) := by
       have hcontℂ : Continuous fun z : ℂ => ((x : ℂ) ^ z) :=
         continuous_const_cpow (z := (x : ℂ))

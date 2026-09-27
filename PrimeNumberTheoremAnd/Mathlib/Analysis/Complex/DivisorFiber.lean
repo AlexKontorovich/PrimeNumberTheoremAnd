@@ -97,7 +97,7 @@ lemma divisorZeroIndex₀_fiberFinset_card_eq_toNat_divisor (f : ℂ → ℂ) {z
   set n : ℕ := Int.toNat (MeromorphicOn.divisor f (Set.univ : Set ℂ) z₀)
   have hcard : Nat.card S = n := by
     classical
-    haveI : Fintype S := hS.fintype
+    have : Fintype S := hS.fintype
     -- `S` is the fiber over `z₀`, hence equivalent to `Fin (Int.toNat (divisor z₀))`.
     let e : S ≃ Fin n :=
       { toFun := by
