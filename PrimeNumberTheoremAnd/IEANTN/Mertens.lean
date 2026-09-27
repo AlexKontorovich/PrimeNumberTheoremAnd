@@ -1231,7 +1231,7 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
   have hsupp : Function.support F ⊆ {n : ℕ | IsPrimePow n} := by
     intro n hn
     rw [Function.mem_support] at hn
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     by_contra hpp
     apply hn
     simp only [hF, vonMangoldt_eq_zero_iff.mpr hpp, zero_div]
