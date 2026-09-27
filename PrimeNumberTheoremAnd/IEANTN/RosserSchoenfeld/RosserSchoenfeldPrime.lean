@@ -176,8 +176,8 @@ theorem summable_pre413 {f : ℝ → ℝ} {s : Set ℝ} (hs : Bornology.IsBounde
       rw [Measure.restrict_apply']
       · simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc,
           and_imp, Classical.not_imp]
-        rw [Set.setOf_and]
-        rw [Set.setOf_and]
+        rw [Set.ofPred_and]
+        rw [Set.ofPred_and]
         rw [← Set.inter_assoc]
         nth_rw 1 [Set.inter_assoc]
         rw [Set.inter_comm]
@@ -188,7 +188,7 @@ theorem summable_pre413 {f : ℝ → ℝ} {s : Set ℝ} (hs : Bornology.IsBounde
             arg 2
             equals ∅ =>
               ext c
-              simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false,
+              simp only [Set.mem_inter_iff, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false,
                 not_and, not_le]
               intro c_mem a_lt
               simp only [coe_Icc, Set.mem_Icc, not_and_or] at this

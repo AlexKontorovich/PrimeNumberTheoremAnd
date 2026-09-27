@@ -105,7 +105,7 @@ lemma riemannZeta_order_pos_nontrivialZero (rho : NontrivialZeros) :
         exact Nat.pos_of_ne_zero (by
           intro hn
           exact hanOrder_ne_zero (by simp [hO, hn]))
-      rw [han.meromorphicOrderAt_eq, hO, ENat.map_coe, WithTop.untopD_coe]
+      rw [han.meromorphicOrderAt_eq, hO, ENat.map_natCast, WithTop.untopD_coe]
       exact_mod_cast hn_pos
 
 lemma riemannZeta_one_le_order_nontrivialZero (rho : NontrivialZeros) :
@@ -245,7 +245,7 @@ lemma riemannZeta_order_pos_positiveHeightZero {T : ℝ}
         exact Nat.pos_of_ne_zero (by
           intro hn
           exact hanOrder_ne_zero (by simp [hO, hn]))
-      rw [han.meromorphicOrderAt_eq, hO, ENat.map_coe, WithTop.untopD_coe]
+      rw [han.meromorphicOrderAt_eq, hO, ENat.map_natCast, WithTop.untopD_coe]
       exact_mod_cast hn_pos
 
 lemma riemannZeta_one_le_order_positiveHeightZero {T : ℝ}
@@ -588,7 +588,7 @@ lemma nontrivialZeros_abs_im_lt_one_finite :
     ({rho : NontrivialZeros | |(rho : ℂ).im| < 1} : Set NontrivialZeros).Finite := by
   apply Set.Finite.subset (nontrivialZeros_norm_lt_finite 2)
   intro rho hrho
-  rw [Set.mem_setOf_eq] at hrho ⊢
+  rw [Set.mem_ofPred_eq] at hrho ⊢
   have hre_nonneg : 0 ≤ (rho : ℂ).re := le_of_lt rho.property.1.1
   have hre_abs_lt_one : |(rho : ℂ).re| < 1 := by
     rw [abs_of_nonneg hre_nonneg]
@@ -602,7 +602,7 @@ lemma nontrivialZeros_abs_im_lt_finite (T : ℝ) :
     ({rho : NontrivialZeros | |(rho : ℂ).im| < T} : Set NontrivialZeros).Finite := by
   apply Set.Finite.subset (nontrivialZeros_norm_lt_finite (T + 1))
   intro rho hrho
-  rw [Set.mem_setOf_eq] at hrho ⊢
+  rw [Set.mem_ofPred_eq] at hrho ⊢
   have hre_nonneg : 0 ≤ (rho : ℂ).re := le_of_lt rho.property.1.1
   have hre_abs_lt_one : |(rho : ℂ).re| < 1 := by
     rw [abs_of_nonneg hre_nonneg]
@@ -616,7 +616,7 @@ lemma nontrivialZeros_dyadic_shell_finite (k : ℕ) :
     ({rho : NontrivialZeros | zeroHeightDyadicShell k rho} : Set NontrivialZeros).Finite := by
   apply Set.Finite.subset (nontrivialZeros_norm_lt_finite (((2 : ℝ) ^ (k + 1)) + 1))
   intro rho hrho
-  rw [Set.mem_setOf_eq] at hrho ⊢
+  rw [Set.mem_ofPred_eq] at hrho ⊢
   have hre_nonneg : 0 ≤ (rho : ℂ).re := le_of_lt rho.property.1.1
   have hre_abs_lt_one : |(rho : ℂ).re| < 1 := by
     rw [abs_of_nonneg hre_nonneg]
@@ -632,7 +632,7 @@ lemma nontrivialZeros_shifted_abs_im_lt_one_finite (s : ℂ) :
       Set NontrivialZeros).Finite := by
   apply Set.Finite.subset (nontrivialZeros_norm_lt_finite (|s.im| + 2))
   intro rho hrho
-  rw [Set.mem_setOf_eq] at hrho ⊢
+  rw [Set.mem_ofPred_eq] at hrho ⊢
   have hre_nonneg : 0 ≤ (rho : ℂ).re := le_of_lt rho.property.1.1
   have hre_abs_lt_one : |(rho : ℂ).re| < 1 := by
     rw [abs_of_nonneg hre_nonneg]
@@ -711,7 +711,7 @@ theorem zeroSquareTailSummable_shift_of_zero {s : ℂ}
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_norm_lt_finite (2 * ‖s‖))
   intro rho hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have hlarge : 2 * ‖s‖ ≤ ‖(rho : ℂ)‖ := le_of_not_gt hsmall
   have hle := zeroSquareTail_shift_le_four_zero (s := s) (rho := rho) hlarge
@@ -742,7 +742,7 @@ theorem zeroSquareTailSummable_of_imag_tail
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset nontrivialZeros_abs_im_lt_one_finite
   intro rho hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have hlarge : 1 ≤ |(rho : ℂ).im| := le_of_not_gt hsmall
   have hle := zeroSquareTail_le_imagSquareTail_of_large_im (rho := rho) hlarge
@@ -1578,7 +1578,7 @@ theorem zeroImagSquareTailSummable_of_dyadic_shell_source
       Set NontrivialZeros).Finite := by
     apply Set.Finite.subset nontrivialZeros_abs_im_lt_one_finite
     intro rho hrho
-    rw [Set.mem_setOf_eq] at hrho ⊢
+    rw [Set.mem_ofPred_eq] at hrho ⊢
     exact lt_of_not_ge hrho
   haveI : Finite {rho : NontrivialZeros // ¬ 1 ≤ |(rho : ℂ).im|} :=
     Set.finite_coe_iff.mpr hlow_set
@@ -1708,7 +1708,7 @@ theorem summable_zeroImagSquareTail_shifted
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_abs_im_lt_finite (2 * |s.im| + 2))
   intro rho hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have hlarge : 2 * |s.im| + 2 ≤ |(rho : ℂ).im| := le_of_not_gt hsmall
   have hle := zeroImagSquareTail_shifted_le_four (s := s) (rho := rho) hlarge
@@ -1940,7 +1940,7 @@ lemma riemannZeta_order_nonneg {ρ : ℂ} (hρ : ρ ≠ 1) :
   cases h : analyticOrderAt riemannZeta ρ with
   | top => simp
   | coe n =>
-      simp only [ENat.map_coe, WithTop.untopD_coe]
+      simp only [ENat.map_natCast, WithTop.untopD_coe]
       exact_mod_cast Nat.zero_le n
 
 /-- `N` is the order sum over its own window. -/
@@ -2234,7 +2234,7 @@ theorem weighted_zeroImagSquareTail_summable :
       Set NontrivialZeros).Finite := by
     apply Set.Finite.subset nontrivialZeros_abs_im_lt_one_finite
     intro ρ hρ
-    rw [Set.mem_setOf_eq] at hρ ⊢
+    rw [Set.mem_ofPred_eq] at hρ ⊢
     exact lt_of_not_ge hρ
   haveI : Finite {ρ : NontrivialZeros // ¬ 1 ≤ |(ρ : ℂ).im|} :=
     Set.finite_coe_iff.mpr hlow_set
@@ -2253,7 +2253,7 @@ theorem weighted_zeroImagSquareTail_shifted_summable (s : ℂ) :
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_abs_im_lt_finite (2 * |s.im| + 2))
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have hlarge : 2 * |s.im| + 2 ≤ |(ρ : ℂ).im| := le_of_not_gt hsmall
   apply hbad

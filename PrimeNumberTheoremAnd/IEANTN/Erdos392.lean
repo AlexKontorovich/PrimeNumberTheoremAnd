@@ -1693,7 +1693,7 @@ lemma Params.exists_large_prime_of_rough (P : Params) (m : ℕ) (hm : m ∈ roug
   · obtain ⟨q, hq1, hq2⟩ := Nat.exists_infinite_primes (P.n / P.L)
     exact ⟨q, hq2, hq1, hq ▸ dvd_zero q⟩
   · rw [Nat.mem_smoothNumbers] at hm
-    push_neg at hm
+    push Not at hm
     obtain ⟨p, hp, hpn⟩ := hm hq
     exact ⟨p, Nat.prime_of_mem_primeFactorsList hp, hpn, Nat.dvd_of_mem_primeFactorsList hp⟩
 

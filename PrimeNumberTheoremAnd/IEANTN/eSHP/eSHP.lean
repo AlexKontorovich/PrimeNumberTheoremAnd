@@ -47,7 +47,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8)
     refine ⟨1, by simp [nth_prime], by simp [nth_prime_gap, nth_prime], fun k hk => ?_⟩
     have hk' : k < 1 := by
       have hkn : nth_prime k < nth_prime 1 := by simpa [nth_prime] using hk
-      exact (Nat.nth_lt_nth Nat.infinite_setOf_prime).1 hkn
+      exact (Nat.nth_lt_nth Nat.infinite_setOfPred_prime).1 hkn
     have hk0 : k = 0 := Nat.lt_one_iff.mp hk'
     subst hk0
     simp [nth_prime_gap, nth_prime]
@@ -55,7 +55,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8)
     refine ⟨3, by simp [nth_prime], by simp [nth_prime_gap, nth_prime], fun k hk => ?_⟩
     have hk' : k < 3 := by
       have hkn : nth_prime k < nth_prime 3 := by simpa [nth_prime] using hk
-      exact (Nat.nth_lt_nth Nat.infinite_setOf_prime).1 hkn
+      exact (Nat.nth_lt_nth Nat.infinite_setOfPred_prime).1 hkn
     interval_cases k <;> simp [nth_prime_gap, nth_prime]
   · obtain ⟨rfl, rfl⟩ := h23
     have h13 : nth_prime 5 = 13 := nth_prime_eq_of_count (by decide) (by decide)
@@ -66,7 +66,7 @@ theorem table_8_prime_gap_test (p g : ℕ) (h : (p, g) ∈ table_8)
     refine ⟨8, h23', by simp [nth_prime_gap, h23', h29], fun k hk => ?_⟩
     have hk' : k < 8 := by
       have hkn : nth_prime k < nth_prime 8 := by simpa [nth_prime, h23'] using hk
-      exact (Nat.nth_lt_nth Nat.infinite_setOf_prime).1 hkn
+      exact (Nat.nth_lt_nth Nat.infinite_setOfPred_prime).1 hkn
     interval_cases k <;>
       simp [nth_prime_gap, nth_prime, h13, h17, h19, h23']
 
@@ -114,7 +114,7 @@ theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30)
       have := hn₃ 9
       simp +decide [*] at *
   · have h10 := nth_eq (show Nat.Prime 31 by decide) (show count Nat.Prime 31 = 10 by decide)
-    linarith [nth_monotone Nat.infinite_setOf_prime (show 10 ≤ n by omega), hn₁]
+    linarith [nth_monotone Nat.infinite_setOfPred_prime (show 10 ≤ n by omega), hn₁]
 
 @[blueprint
   "table-8-prime-gap-complete"
@@ -140,9 +140,9 @@ lemma exists_prime_gap_record_le (n : ℕ) :
       Nat.find_spec <| show S.Nonempty from ⟨n, le_rfl, le_rfl⟩,
       fun k hk ↦ Nat.find_min' _ hk⟩
   refine ⟨m, ?_, hm_mem.2, m, rfl, rfl, fun k hk ↦ ?_⟩
-  · exact monotone_nat_of_le_succ (fun n ↦ nth_monotone infinite_setOf_prime n.le_succ) hm_mem.1
+  · exact monotone_nat_of_le_succ (fun n ↦ nth_monotone infinite_setOfPred_prime n.le_succ) hm_mem.1
   · contrapose! hk
-    exact monotone_nat_of_le_succ (fun n ↦ nth_monotone infinite_setOf_prime n.le_succ)
+    exact monotone_nat_of_le_succ (fun n ↦ nth_monotone infinite_setOfPred_prime n.le_succ)
       (le_of_not_gt fun h ↦ not_lt_of_ge
         (hm_min _ ⟨by linarith [hm_mem.1], by linarith [hm_mem.2]⟩) h)
 
@@ -315,7 +315,7 @@ lemma nth_prime_vals : nth_prime 0 = 2 ∧ nth_prime 1 = 3 ∧ nth_prime 2 = 5 �
   · rw [eq_comm, nth_eq_sInf]
     refine le_antisymm ?_ ?_
     · refine le_csInf ?_ ?_ <;> norm_num
-      · exact ⟨_, prime_nth_prime 5, fun k hk ↦ nth_strictMono infinite_setOf_prime hk⟩
+      · exact ⟨_, prime_nth_prime 5, fun k hk ↦ nth_strictMono infinite_setOfPred_prime hk⟩
       · intro b hb hb'
         contrapose! hb'
         use count Nat.Prime b
@@ -346,7 +346,7 @@ lemma first_gap_odd_gt_1 {g : ℕ} (hg : Odd g) (hg1 : 1 < g) : first_gap g = 0 
   have : ∀ n > 0, Odd (nth_prime n) := fun n hn ↦ Prime.odd_of_ne_two (prime_nth_prime n) (by
     grind [Prime.two_le (prime_nth_prime n),
       show nth_prime n > 2 from lt_of_le_of_lt (Prime.two_le <| prime_nth_prime 0) <|
-        nth_strictMono infinite_setOf_prime hn])
+        nth_strictMono infinite_setOfPred_prime hn])
   have : Even (nth_prime (n + 1) - nth_prime n) :=
     Nat.Odd.sub_odd (this _ n.succ_pos) <| this n (pos_of_ne_zero (by
       rintro rfl; unfold nth_prime_gap at hn; aesop))
