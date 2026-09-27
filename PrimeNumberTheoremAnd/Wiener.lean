@@ -2455,7 +2455,7 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
     simp only [F, this, vonMangoldt.residueClass, Nat.totient_one, Nat.cast_one, inv_one, one_div, sub_left_inj]
     apply LSeries_congr
     intro n _
-    simp only [ofReal_inj, indicator_apply_eq_self, mem_setOf_eq]
+    simp only [ofReal_inj, indicator_apply_eq_self, mem_ofPred_eq]
     exact fun hn ↦ absurd (Subsingleton.eq_one _) hn
   have l3 : ContinuousOn F {s | 1 ≤ s.re} := vonMangoldt.continuousOn_LFunctionResidueClassAux 1
   have l4 : cheby Λ := vonMangoldt_cheby
