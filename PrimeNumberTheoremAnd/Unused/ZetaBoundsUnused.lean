@@ -35,15 +35,15 @@ lemma LogDerivZetaBndAlt :
     fun ⦃a⦄ a ↦ a, fun t ⟨t_ge, ht⟩ ↦ ?_⟩
   · rw [mem_sup]
     refine ⟨?_, ?_⟩
-    · simp only [mem_atBot_sets, mem_setOf_eq]
+    · simp only [mem_atBot_sets, mem_ofPred_eq]
       refine ⟨-4, fun b hb ↦ ?_⟩
       rw [_root_.abs_of_nonpos (by linarith)]
       linarith
-    · simp only [mem_atTop_sets, ge_iff_le, mem_setOf_eq]
+    · simp only [mem_atTop_sets, ge_iff_le, mem_ofPred_eq]
       refine ⟨4, fun b hb ↦ ?_⟩
       rwa [_root_.abs_of_nonneg (by linarith)]
-  simp only [mem_setOf_eq] at ht
+  simp only [mem_ofPred_eq] at ht
   convert h σ t (by linarith [mem_Ici.mp t_ge]) ⟨ht.le, (by bound)⟩
-  simp only [mem_setOf_eq] at t_ge
+  simp only [mem_ofPred_eq] at t_ge
   have := Real.log_nonneg (by linarith : 1 ≤ |t|)
   simp only [Real.norm_eq_abs, norm_pow, abs_eq_self.mpr, this]

@@ -28,15 +28,15 @@ theorem isPathConnected_halfSpace_re_gt_diff_singleton (a : ℝ) (p : ℂ) (hp :
   have hS1conv : Convex ℝ S1 := by
     have h1 : Convex ℝ {z : ℂ | a < z.re} := convex_halfSpace_re_gt (r := a)
     have h2 : Convex ℝ {z : ℂ | z.im < p.im} := convex_halfSpace_im_lt (r := p.im)
-    simpa [S1, Set.setOf_and] using h1.inter h2
+    simpa [S1, Set.ofPred_and] using h1.inter h2
   have hS2conv : Convex ℝ S2 := by
     have h1 : Convex ℝ {z : ℂ | a < z.re} := convex_halfSpace_re_gt (r := a)
     have h2 : Convex ℝ {z : ℂ | z.re < p.re} := convex_halfSpace_re_lt (r := p.re)
-    simpa [S2, Set.setOf_and] using h1.inter h2
+    simpa [S2, Set.ofPred_and] using h1.inter h2
   have hS3conv : Convex ℝ S3 := by
     have h1 : Convex ℝ {z : ℂ | a < z.re} := convex_halfSpace_re_gt (r := a)
     have h2 : Convex ℝ {z : ℂ | p.im < z.im} := convex_halfSpace_im_gt (r := p.im)
-    simpa [S3, Set.setOf_and] using h1.inter h2
+    simpa [S3, Set.ofPred_and] using h1.inter h2
   have hS4conv : Convex ℝ S4 := by
     simpa [S4] using (convex_halfSpace_re_gt (r := p.re))
   have hS1ne : S1.Nonempty := by

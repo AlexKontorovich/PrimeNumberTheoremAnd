@@ -464,7 +464,7 @@ private theorem kadiri_laplace_full_strip_isOpen {b : ℝ} :
     isOpen_lt continuous_const Complex.continuous_re
   have hright : IsOpen {s : ℂ | s.re < 1 + b} :=
     isOpen_lt Complex.continuous_re continuous_const
-  simpa [Set.setOf_and] using hleft.inter hright
+  simpa [Set.ofPred_and] using hleft.inter hright
 
 theorem kadiri_laplace_exp_differentiableOn_full_strip {φ : ℝ → ℂ}
     (hφ : ContDiff ℝ 1 φ) {b : ℝ}
