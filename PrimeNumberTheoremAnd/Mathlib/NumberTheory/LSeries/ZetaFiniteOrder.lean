@@ -681,13 +681,7 @@ theorem zeta_minus_pole_entire_growth :
                 calc
                   ‖π * w / 2‖ = ‖(π / 2) * w‖ := by simp [hrew]
                   _ = ‖(π / 2)‖ * ‖w‖ := by simp
-                  _ = (Real.pi / 2) * ‖w‖ := by
-                    have hpi0 : 0 ≤ Real.pi / 2 := by nlinarith [Real.pi_pos.le]
-                    have hnorm_pi : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = ‖(Real.pi / 2 : ℝ)‖ := by
-                      simp
-                    have hnorm_pi' : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = (Real.pi / 2 : ℝ) := by
-                      simpa [Real.norm_of_nonneg hpi0] using hnorm_pi
-                    simpa using congrArg (fun t => t * ‖w‖) hnorm_pi'
+                  _ = (Real.pi / 2) * ‖w‖ := by simp
               have hpi : (Real.pi / 2 : ℝ) ≤ 2 := by
                 have : (Real.pi : ℝ) ≤ 4 := by linarith [Real.pi_lt_four.le]
                 nlinarith

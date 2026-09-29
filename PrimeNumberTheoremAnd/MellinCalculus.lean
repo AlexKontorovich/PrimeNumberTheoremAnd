@@ -829,7 +829,7 @@ lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
   simp +contextual only [mem_Ioi, true_and, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id,
     id_eq, mul_ite, mul_zero]
   intro y ypos
-  rw [eq_comm, if_neg (by push Not; positivity)]
+  rw [eq_comm, ite_eq_right (by push Not; positivity)]
 
 /-% ** Wrong delimiters on purpose, no need to include this in blueprint
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -1461,7 +1461,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
         have : x ∈ Ioi 0 := by
           apply mem_Ioi.mpr
           apply lt_of_lt_of_le (by bound) hx.1
-        rw [indicator, if_pos this]
+        rw [indicator, ite_eq_left this]
     · unfold indicator
       simp_rw [mem_Ioi]
       apply Function.support_subset_iff.mpr

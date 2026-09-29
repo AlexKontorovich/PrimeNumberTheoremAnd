@@ -33,7 +33,7 @@ variable {α : Type*}
 /-- A function supported on a finite set is summable. -/
 private lemma summable_ite_mem_finset [DecidableEq α] (s : Finset α) (u : α → ℝ) :
     Summable (fun a => if a ∈ s then u a else 0) :=
-  summable_of_ne_finset_zero (s := s) fun a ha => by simp [if_neg ha]
+  summable_of_ne_finset_zero (s := s) fun a ha => by simp [ite_eq_right ha]
 
 /-- The tsum of a finset-supported function is the finset sum. -/
 private lemma tsum_ite_mem_finset [DecidableEq α] (s : Finset α) (u : α → ℝ) :
@@ -41,7 +41,7 @@ private lemma tsum_ite_mem_finset [DecidableEq α] (s : Finset α) (u : α → �
   classical
   simpa [Finset.sum_ite] using
     (hasSum_sum_of_ne_finset_zero (s := s) (f := fun a => if a ∈ s then u a else 0)
-      fun a ha => by simp [if_neg ha]).tsum_eq
+      fun a ha => by simp [ite_eq_right ha]).tsum_eq
 
 /-- Split a tsum of four summable summands. -/
 private lemma tsum_add_four (u₁ u₂ u₃ u₄ : α → ℝ)

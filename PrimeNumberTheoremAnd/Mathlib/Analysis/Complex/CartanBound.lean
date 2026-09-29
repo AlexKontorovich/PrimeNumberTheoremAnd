@@ -139,7 +139,7 @@ lemma posLog_one_div_norm_one_sub_le_posLog_one_div_abs_one_sub_norm (w : ℂ) (
   have hdiv :
       (1 / ‖(1 : ℂ) - w‖ : ℝ) ≤ (1 / |1 - ‖w‖| : ℝ) :=
     one_div_le_one_div_of_le hpos hrev'
-  exact Real.posLog_le_posLog (by positivity) hdiv
+  exact Real.posLog_le_posLog (neg_one_lt_zero.le.trans (by positivity)) hdiv
 
 lemma posLog_one_div_norm_one_sub_le_posLog_one_div_abs_one_sub
     {t : ℝ} (ht : t ≠ 1) (w : ℂ) (hw : ‖w‖ = t) :
@@ -169,7 +169,7 @@ lemma phi_le_log_two_of_le_half {t : ℝ} (ht : t ≤ (1 / 2 : ℝ)) : φ t ≤ 
     have := one_div_le_one_div_of_le hhalfpos hden
     simpa [one_div, div_eq_mul_inv] using this
   have hposLog : log⁺ (1 / |1 - t|) ≤ log⁺ (2 : ℝ) :=
-    Real.posLog_le_posLog (by positivity) hfrac
+    Real.posLog_le_posLog (neg_one_lt_zero.le.trans (by positivity)) hfrac
   have habs : (1 : ℝ) ≤ |(2 : ℝ)| := by
     simp
   have hposLog2 : (log⁺ (2 : ℝ)) = Real.log 2 := by
