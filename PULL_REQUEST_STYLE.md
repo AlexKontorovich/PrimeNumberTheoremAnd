@@ -14,6 +14,17 @@ to AI-assisted contributors equally — but AI-assisted contributors should read
 the "AI-assisted contributions" section, which addresses failure modes
 specific to that context.
 
+> **⚠️ IEANTN porting notice (2026-08).** The IEANTN Lean material is being
+> ported to its own repository, [teorth/IEANTN](https://github.com/teorth/IEANTN).
+> Tasks already claimed against open issues in this repo may continue here for
+> now; **new IEANTN contributions — new paper subprojects, or new results
+> within existing IEANTN paper files — should be opened against `teorth/IEANTN`
+> instead.** This guide continues to describe the conventions used by both
+> projects; sections referring to `PrimeNumberTheoremAnd/IEANTN/` paths,
+> chapter placement in `blueprint/src/blueprint.tex`, and the
+> `pnt-plus-ieantn` skill apply to legacy work here — the new repo has its
+> own equivalents.
+
 ## Guiding principle
 
 **Reviewer time is the scarcest resource on this project. Every PR should be
@@ -339,6 +350,14 @@ Open a PR as **draft** if any of the following are true:
 Convert to "ready for review" only after CI is green.
 
 ## 12. Contributing formalizations of new material (not yet in the blueprint)
+
+> **Note (2026-08): net-new IEANTN material belongs in
+> [teorth/IEANTN](https://github.com/teorth/IEANTN), not here.** This section
+> describes the workflow both for the PNT+ core (non-IEANTN) and for finishing
+> off in-flight IEANTN work already claimed against an issue in this repo. For
+> a fresh IEANTN paper subproject, or for adding to an existing IEANTN paper
+> file that hasn't been claimed yet, open against `teorth/IEANTN` under its
+> conventions.
 
 **Pull requests contributing formalisations of results in explicit
 analytic number theory are welcome even when they don't correspond to
