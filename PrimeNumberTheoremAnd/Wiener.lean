@@ -1518,10 +1518,10 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   have k3 : ContinuousWithinAt g₀ (Ici 0) 0 := by
     rw [Metric.continuousWithinAt_iff]
     rw [Metric.tendsto_nhdsWithin_nhds] at k2
-    intro ε hε
-    obtain ⟨δ, hδ, h⟩ := k2 ε hε
-    refine ⟨δ, hδ, fun x (hx : 0 ≤ x) ↦ ?_⟩
-    cases le_iff_lt_or_eq.mp hx with
+    gconvert k2 using 5 with ε hε δ hδ x h
+    intro (hx : 0 ≤ x)
+    have := le_iff_lt_or_eq.mp hx
+    cases this with
     | inl hx => exact h hx
     | inr hx => simp [g₀, hx.symm, hε]
 
