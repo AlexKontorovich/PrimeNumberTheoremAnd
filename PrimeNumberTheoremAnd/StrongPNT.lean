@@ -7,6 +7,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Algebra.Order.Star.Real
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
+import Mathlib.NumberTheory.LSeries.ZetaZeros
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Topology Set Function Complex Real ComplexConjugate MeasureTheory
@@ -1650,38 +1651,14 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
     If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then
     $f\equiv 0$ by the identity theorem. This is a contradiction, so the statement must be true.
   -/)]
-lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
+lemma ZetaShiftFiniteZeros {t : ℝ}
     {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
-  by_contra hinf; rw [Set.not_finite] at hinf
-  have zerosSubset : SetOfZeros 1 f ⊆ Metric.closedBall (0 : ℂ) 1 := fun _ hx => by
-    simpa only [Metric.mem_closedBall, dist_zero_right] using hx.1
-  obtain ⟨x, hxK, hacc⟩ :=
-    hinf.exists_accPt_of_subset_isCompact (isCompact_closedBall 0 1) zerosSubset
-  have hfAnalytic : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 2) := by
-    intro z hz; simp only [Metric.mem_ball, Complex.dist_eq, sub_zero] at hz
-    simp only [hf, add_assoc]
-    refine AnalyticAt.fun_comp (analyticAt_riemannZeta fun h => ?_)
-      (analyticAt_id.fun_add analyticAt_const)
-    have him : z.im = -t := by
-      have := congr_arg Complex.im h; simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im,
-        I_re, ofReal_im, mul_zero, I_im, ofReal_re, one_mul, zero_add, one_im] at this
-      linarith
-    have abs_z_im := Complex.abs_im_le_norm z
-    rw [him, abs_neg] at abs_z_im
-    linarith
-  have hfeq : Set.EqOn f 0 (Metric.ball (0 : ℂ) 2) := by
-    refine AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic
-      Metric.isPreconnected_ball (z₀ := x) ?_ ?_
-    · simp only [Metric.mem_ball, Metric.mem_closedBall, dist_zero_right] at hxK ⊢
-      linarith
-    · simp only [mem_closure_iff_clusterPt, ← accPt_principal_iff_clusterPt]
-      exact hacc.mono (principal_mono.mpr fun _ h => h.2)
-  have hne : f 0 ≠ 0 := by
-    simp only [hf, zero_add, ne_eq]
-    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
-  exact hne (hfeq (Metric.mem_ball_self (by linarith)))
-
-
+  have :=  IsCompact.inter_riemannZetaZeros_finite (isCompact_closedBall (3 / 2 + I * t) 1)
+  refine this.of_injOn (f := fun s ↦ s + (3 / 2 + I * t)) (fun s hs ↦ ?_) (by simp)
+  simp only [SetOfZeros, hf, mem_ofPred_eq] at hs
+  simp only [mem_inter_iff, Metric.mem_closedBall, dist_eq_norm_sub, add_sub_cancel_right, hs,
+    mem_riemannZetaZeros, true_and]
+  rw [← add_assoc, hs.2]
 
 @[blueprint "ZeroWindow"
   (title := "ZeroWindow")
@@ -1765,7 +1742,7 @@ lemma SumBoundI :
   have LogDerivBound := LogDerivBound t ht
   extract_lets f at LogDerivBound
   have finiteZeros' : (SetOfZeros 1 f).Finite := by
-    apply ZetaShiftFiniteZeros ht
+    apply ZetaShiftFiniteZeros (t := t)
     simp only [f]
   have hd' : ‖(δ : ℂ) - 1 / 2‖ < 1 / 2 := by
     obtain ⟨d0, d1⟩ := hd
@@ -2134,39 +2111,11 @@ lemma vonMangoldtLSeriesSummable {s : ℂ} (hs : 1 < s.re) :
     then $\zeta\equiv 0$ by the identity theorem. This is a contradiction, so the statement must be
     true.
   -/)]
-lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
-  by_contra hinf; rw [Set.not_finite] at hinf
-  have zerosSubset : ZeroWindow t ⊆ Metric.closedBall (3 / 2 + I * t) (3 / 4) := fun _ hx => by
-    simpa only [dist_eq_norm, Metric.mem_closedBall, ge_iff_le] using hx.2
-  obtain ⟨x, hxK, hacc⟩ :=
-    hinf.exists_accPt_of_subset_isCompact (isCompact_closedBall (3 / 2 + I * t) (3 / 4)) zerosSubset
-  have hfAnalytic : AnalyticOnNhd ℂ ζ (Metric.ball (3 / 2 + I * t) 1) := by
-    intro z hz; simp only [Metric.mem_ball, Complex.dist_eq] at hz
-    have him : |z.im| > 1 := by
-      have := abs_lt.mp (lt_of_le_of_lt (Complex.abs_im_le_norm (z - (3 / 2 + I * ↑t))) hz)
-      simp only [sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im,
-        mul_zero, I_im, ofReal_re, one_mul, zero_add, neg_lt_sub_iff_lt_add] at this
-      simp only [gt_iff_lt, lt_abs]
-      by_cases tpos : 0 < t
-      · rw [abs_of_pos tpos] at ht
-        exact Or.inl (by linarith)
-      · rw [abs_of_nonpos (not_lt.mp tpos)] at ht
-        exact Or.inr (by linarith)
-    refine analyticAt_riemannZeta (fun h => ?_)
-    simp only [h, one_im, gt_iff_lt, abs_zero] at him
-    linarith
-  have hfeq : Set.EqOn ζ 0 (Metric.ball (3 / 2 + I * t) 1) := by
-    refine AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic
-      Metric.isPreconnected_ball (z₀ := x) ?_ ?_
-    · simp only [Metric.mem_ball, Metric.mem_closedBall] at hxK ⊢
-      linarith
-    · simp only [mem_closure_iff_clusterPt, ← accPt_principal_iff_clusterPt]
-      refine hacc.mono (principal_mono.mpr fun _ h => h.1)
-  have hne : ζ (3 / 2 + I * t) ≠ 0 := by
-    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
-  exact hne (hfeq (Metric.mem_ball_self (by linarith)))
-
-
+lemma ZeroWindowFinite {t : ℝ} : (ZeroWindow t).Finite := by
+  unfold ZeroWindow
+  convert IsCompact.inter_riemannZetaZeros_finite (isCompact_closedBall (3 / 2 + I * t) (3 / 4))
+  ext
+  constructor <;> simp +contextual [← mem_riemannZetaZeros, dist_eq_norm_sub]
 
 @[blueprint "ZeroInequality"
   (title := "ZeroInequality")
@@ -2312,11 +2261,9 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) (1 / 14 : ℝ) ∧
             rw [div_eq_mul_inv, ← Complex.cpow_neg, neg_add,
               Complex.cpow_add _  _ ((cast_ne_zero (R := ℂ)).mpr heq0)]
             ring_nf
-    have ZeroWindowOneFinite : (ZeroWindow t).Finite := ZeroWindowFinite ht
+    have ZeroWindowOneFinite : (ZeroWindow t).Finite := ZeroWindowFinite
     have ZeroWindowTwoFinite : (ZeroWindow (2 * t)).Finite := by
       apply ZeroWindowFinite
-      simp only [abs_mul, abs_ofNat, ge_iff_le, ofNat_pos, le_mul_iff_one_le_right]
-      linarith
     have ShiftZero := ShiftZero δ δrange
     have ShiftOne := ShiftOne δ δrange t ht ZeroWindowOneFinite ρ hρzero ρim
     have ShiftTwo := ShiftTwo δ δrange t ht ZeroWindowTwoFinite
@@ -2449,7 +2396,7 @@ lemma SumBoundII :
   have LogDerivBound := LogDerivBound t ht
   extract_lets f at LogDerivBound
   have finiteZeros' : (SetOfZeros 1 f).Finite := by
-    apply ZetaShiftFiniteZeros ht
+    apply ZetaShiftFiniteZeros (t := t)
     simp only [f]
   have hz : I * t + z.re = z := by
     rw [← Complex.re_add_im z]
@@ -2651,11 +2598,11 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
   have f0_1 : f 0 = 1 := by
     simp only [hg, hf, zero_add, div_self_eq_one₀, ne_eq, zetaThreeHalfNonzero, not_false_eq_true]
   have finiteSetOf0s : (SetOfZeros 1 f).Finite := by
-    have gFiniteSetOf0s := ZetaShiftFiniteZeros (t := t) (by linarith) hg
+    have gFiniteSetOf0s := ZetaShiftFiniteZeros (t := t) hg
     simp only [SetOfZeros, hf, div_eq_zero_iff, zetaThreeHalfNonzero, or_false] at gFiniteSetOf0s ⊢
     exact gFiniteSetOf0s
   have rFinite0s:= finiteSetOfZeros_mono r_lt_one finiteSetOf0s
-  have finite0s := ZeroWindowFinite (t := t) (by linarith)
+  have finite0s := ZeroWindowFinite (t := t)
   have fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B := by
     intro z hz
     simp only [hf, hg, Complex.norm_div, hB, hd, Complex.norm_mul, Complex.norm_ofNat]
@@ -2775,38 +2722,8 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   -/)]
 lemma LogDerivZetaBdd_of_Re_ge_three_halves :
     ∃ C, ∀ (s : ℂ), 3/2 ≤ s.re → ‖deriv riemannZeta s / riemannZeta s‖ ≤ C := by
-  have threeHalvesRe : 1 < ((3 / 2) : ℂ).re := by norm_num
-  have h_sum_converges : Summable (fun n : ℕ ↦ vonMangoldt n / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-    apply Complex.summable_ofReal.mp
-    convert (vonMangoldtLSeriesSummable threeHalvesRe) using 2 with n
-    rw [ofReal_div, Complex.ofReal_cpow, ofReal_natCast, ofReal_div, ofReal_ofNat 3, ofReal_ofNat 2]
-    exact cast_nonneg' n
-  have h_log_deriv_sum : ∀ s : ℂ, 3 / 2 ≤ s.re →
-      deriv riemannZeta s / riemannZeta s = -∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s := by
-    intro s hs; have h := LogDerivativeDirichlet s (by grind); linear_combination -h
-  have h_triangle : ∀ s : ℂ,
-      ‖∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤
-        ∑' n : ℕ, ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ := fun s ↦ by
-    by_cases h : Summable fun n ↦ (ArithmeticFunction.vonMangoldt n : ℂ) / (n : ℂ) ^ s
-    · exact norm_tsum_le_tsum_norm h.norm
-    · simp only [tsum_eq_zero_of_not_summable h, norm_zero]
-      exact tsum_nonneg fun _ ↦ by positivity
-  have h_norm_summand : ∀ s : ℂ, 3 / 2 ≤ s.re → ∀ n : ℕ,
-      ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤ (vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) := by
-    intro s hs n
-    by_cases hn : n = 0 <;> simp_all [Complex.norm_cpow_of_ne_zero]
-    ring_nf; norm_num
-    rw [abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
-    exact mul_le_mul_of_nonneg_left (inv_anti₀ (by positivity)
-      (Real.rpow_le_rpow_of_exponent_le (mod_cast Nat.one_le_iff_ne_zero.mpr hn) hs))
-      ArithmeticFunction.vonMangoldt_nonneg
-  refine ⟨∑' n : ℕ, (ArithmeticFunction.vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ),
-    fun s hs ↦ ?_⟩
-  have hSum : Summable fun n ↦ ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ :=
-    Summable.of_nonneg_of_le (fun n ↦ by positivity)
-      (fun n ↦ h_norm_summand s hs n) h_sum_converges
-  simpa [neg_div, h_log_deriv_sum s hs] using (h_triangle s).trans
-    (hSum.tsum_le_tsum (fun n ↦ h_norm_summand s hs n) h_sum_converges)
+  refine ⟨‖ζ' (3 / 2) / ζ (3 / 2)‖, fun s hs ↦ ?_⟩
+  convert dlog_riemannZeta_bdd_on_vertical_lines_generalized (3 / 2) s.re s.im (by norm_num) hs using 1 <;> simp
 
 
 
