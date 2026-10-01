@@ -63,7 +63,10 @@ lemma MeasureTheory.integral_comp_rpow_I0i_haar (f : ℝ → 𝕂) {p : ℝ} (hp
   have ypos : 0 < y := mem_Ioi.mp hy
   simp only [rpow_sub_one ypos.ne', RCLike.real_smul_eq_coe_mul,
     RCLike.ofReal_mul, RCLike.ofReal_div]
-  field_simp
+  have hy0 : (y : 𝕂) ≠ 0 := RCLike.ofReal_ne_zero.mpr ypos.ne'
+  have hyp0 : ((y ^ p : ℝ) : 𝕂) ≠ 0 :=
+    RCLike.ofReal_ne_zero.mpr (rpow_pos_of_pos ypos p).ne'
+  field_simp [hy0, hyp0] <;> ring
 
 lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
     ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y :=
