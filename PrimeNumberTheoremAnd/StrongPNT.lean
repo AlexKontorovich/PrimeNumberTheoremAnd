@@ -1651,7 +1651,7 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
     If we suppose the opposite, i.e. that there are an infinite number of zeros in this region, then
     $f\equiv 0$ by the identity theorem. This is a contradiction, so the statement must be true.
   -/)]
-lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
+lemma ZetaShiftFiniteZeros {t : ℝ}
     {f : ℂ → ℂ} (hf : f = fun z ↦ ζ (z + 3 / 2 + I * t)) : (SetOfZeros 1 f).Finite := by
   have :=  IsCompact.inter_riemannZetaZeros_finite (isCompact_closedBall (3 / 2 + I * t) 1)
   refine this.of_injOn (f := fun s ↦ s + (3 / 2 + I * t)) (fun s hs ↦ ?_) (by simp)
@@ -1742,7 +1742,7 @@ lemma SumBoundI :
   have LogDerivBound := LogDerivBound t ht
   extract_lets f at LogDerivBound
   have finiteZeros' : (SetOfZeros 1 f).Finite := by
-    apply ZetaShiftFiniteZeros ht
+    apply ZetaShiftFiniteZeros (t := t)
     simp only [f]
   have hd' : ‖(δ : ℂ) - 1 / 2‖ < 1 / 2 := by
     obtain ⟨d0, d1⟩ := hd
@@ -2396,7 +2396,7 @@ lemma SumBoundII :
   have LogDerivBound := LogDerivBound t ht
   extract_lets f at LogDerivBound
   have finiteZeros' : (SetOfZeros 1 f).Finite := by
-    apply ZetaShiftFiniteZeros ht
+    apply ZetaShiftFiniteZeros (t := t)
     simp only [f]
   have hz : I * t + z.re = z := by
     rw [← Complex.re_add_im z]
@@ -2598,7 +2598,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
   have f0_1 : f 0 = 1 := by
     simp only [hg, hf, zero_add, div_self_eq_one₀, ne_eq, zetaThreeHalfNonzero, not_false_eq_true]
   have finiteSetOf0s : (SetOfZeros 1 f).Finite := by
-    have gFiniteSetOf0s := ZetaShiftFiniteZeros (t := t) (by linarith) hg
+    have gFiniteSetOf0s := ZetaShiftFiniteZeros (t := t) hg
     simp only [SetOfZeros, hf, div_eq_zero_iff, zetaThreeHalfNonzero, or_false] at gFiniteSetOf0s ⊢
     exact gFiniteSetOf0s
   have rFinite0s:= finiteSetOfZeros_mono r_lt_one finiteSetOf0s
