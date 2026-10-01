@@ -550,7 +550,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     ‖(∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt : ℂ))‖
   intro σ hσ
   simp only [VerticalIntegral', smul_eq_mul, norm_mul]
-  rw [(by simp [pi_nonneg] : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
+  rw [(by simp : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
   apply (mul_le_mul_iff_right₀ (by simp [pi_pos])).mpr
   calc
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_

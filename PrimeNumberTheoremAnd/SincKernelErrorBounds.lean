@@ -26,7 +26,7 @@ theorem sin_div_error_pointwise_bound
         (g (x - u) - g x)‖ ≤ D / Real.pi := by
   by_cases hu : u = 0
   · simp [hu, div_nonneg hD Real.pi_pos.le]
-  · rw [if_neg hu, norm_smul]
+  · rw [ite_eq_right hu, norm_smul]
     have hscalar :
         ‖(Real.sin (T * u) / (Real.pi * u) : ℂ)‖ ≤ 1 / (Real.pi * |u|) := by
       rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_real, Complex.norm_real]

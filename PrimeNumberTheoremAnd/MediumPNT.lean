@@ -409,7 +409,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     simp only [Nat.ceil_pos, n₀]
     subst C_eq
     simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos]
-    exact mul_lt_one_of_nonneg_of_lt_one_left c₁_pos.le c₁_lt ε_lt_one.le
+    exact (mul_le_of_le_one_right c₁_pos.le ε_lt_one.le).trans_lt c₁_lt
 
   have n₀_inside_le_X : X * (1 - c₁ * ε) ≤ X := by
     nth_rewrite 2 [← mul_one X]

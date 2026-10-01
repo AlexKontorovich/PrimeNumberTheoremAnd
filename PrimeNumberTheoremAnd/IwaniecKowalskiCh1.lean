@@ -513,7 +513,7 @@ theorem isMultiplicative_powR {ν : ℂ} : IsMultiplicative (powR ν) := by
   rcases Nat.eq_zero_or_pos n with rfl | hn
   · simp only [mul_zero, ↓reduceIte]
   have hmn_pos : m * n ≠ 0 := Nat.mul_ne_zero hm.ne' hn.ne'
-  simp only [hm.ne', hn.ne', hmn_pos, if_false]
+  simp only [hm.ne', hn.ne', hmn_pos, ite_false]
   push_cast
   exact Complex.natCast_mul_natCast_cpow m n ν
 
@@ -530,7 +530,7 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
   · simp [hn]
   rw [sigmaR_apply, coe_zeta_mul_apply]
   exact Finset.sum_congr rfl fun d hd => by
-    simp only [powR, coe_mk, if_neg (Nat.pos_of_mem_divisors hd).ne']
+    simp only [powR, coe_mk, ite_eq_right (Nat.pos_of_mem_divisors hd).ne']
 
 @[blueprint
   "isMultiplicative_sigmaR"
@@ -728,7 +728,7 @@ lemma tau_sq_le_d_three (n : ℕ) : tauSq n ≤ d 3 n := by
       prod_factorization_eq_prod_primeFactors,
       (d_isMultiplicative 3).multiplicative_factorization _ hn,
       prod_factorization_eq_prod_primeFactors]
-  refine Finset.prod_le_prod (fun _ _ ↦ Nat.zero_le _) fun p hp ↦ ?_
+  refine Finset.prod_le_prod₀ (fun _ _ ↦ Nat.zero_le _) fun p hp ↦ ?_
   have hp' := Nat.prime_of_mem_primeFactors hp
   set k := n.factorization p
   change τ ((p ^ k) ^ 2) ≤ d 3 (p ^ k)
@@ -884,7 +884,7 @@ lemma zeta_pow_three_eq_alt (s : ℂ) (hs : 1 < s.re) :
 lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     2 ^ (ω n) ≤ σ 0 n := by
   rw [show ω n = (Nat.primeFactors n).card from rfl, ArithmeticFunction.sigma_zero_apply, Nat.card_divisors hn, ← Finset.prod_const]
-  apply Finset.prod_le_prod'
+  apply Finset.prod_le_prod
   intro p hp
   simpa [two_mul] using
   (Nat.Prime.dvd_iff_one_le_factorization (prime_of_mem_primeFactors hp) hn).mp
@@ -1238,13 +1238,13 @@ private lemma tau_sq_le_d_three_of_ne {n : ℕ} (hn : n ≠ 0) : τ (n ^ 2) ≤ 
   have hfeq : f n = τ (n ^ 2) := by simp [f, toArithmeticFunction, hn]
   rw [← hfeq, hf.multiplicative_factorization f hn,
     (d_isMultiplicative 3).multiplicative_factorization (d 3) hn]
-  refine Finset.prod_le_prod' fun p hp ↦ ?_
+  refine Finset.prod_le_prod fun p hp ↦ ?_
   have hp' : p.Prime := prime_of_mem_primeFactors hp
   let a := n.factorization p
   change f (p ^ a) ≤ d 3 (p ^ a)
   have hfa : f (p ^ a) = τ ((p ^ a) ^ 2) := by
     dsimp [f, toArithmeticFunction]
-    rw [if_neg (pow_ne_zero _ hp'.ne_zero)]
+    rw [ite_eq_right (pow_ne_zero _ hp'.ne_zero)]
   rw [hfa, tau_sq_apply_prime_pow hp', d_apply_prime_pow (by decide : 0 < 3) hp']
   exact two_mul_add_one_le_choose_two a
 

@@ -31,7 +31,7 @@ def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z) : SelbergSieve where
   nu := (ζ : ArithmeticFunction ℝ).pdiv .id
   nu_mult := by arith_mult
   nu_pos_of_prime := fun p hp _ ↦ by
-    simp [if_neg hp.ne_zero, Nat.pos_of_ne_zero hp.ne_zero]
+    simp [ite_eq_right hp.ne_zero, Nat.pos_of_ne_zero hp.ne_zero]
   nu_lt_one_of_prime := fun p hp _ ↦ by
     simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
       ArithmeticFunction.zeta_apply, hp.ne_zero, ↓reduceIte, Nat.cast_one,
@@ -135,7 +135,7 @@ theorem rem_eq (d : ℕ) (hd : d ≠ 0) :
       ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) - (↑d)⁻¹ * y := by
   unfold rem
   rw [multSum_eq x y z hx hz d hd]
-  simp [primeInterSieve, if_neg hd]
+  simp [primeInterSieve, ite_eq_right hd]
 
 theorem Nat.ceil_le_self_add_one (x : ℝ) (hx : 0 ≤ x) : Nat.ceil x ≤ x + 1 := by
   trans Nat.floor x + 1
@@ -509,7 +509,7 @@ theorem card_range_filter_isPrimePow_le :
   convert_to (fun N ↦ ((Finset.range N).filter IsPrimePow).card : ℕ → ℝ) =O[⊤]
       (fun N ↦ (N / Real.log N))
   · simp only [isBigO_top, RCLike.norm_natCast, norm_div, Real.norm_eq_abs]
-    peel with C N
+    congr! 3 with C N
     by_cases hN : N = 0
     · simp [hN]
     rw [abs_of_nonneg]

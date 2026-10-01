@@ -14,7 +14,7 @@ section lemmas
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 :=
-  NNReal.coe_eq_one.mp (by simp [Circle.norm_coe])
+  NNReal.coe_eq_one.mp (by simp)
 
 @[simp]
 theorem nnnorm_circle_smul (z : Circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
