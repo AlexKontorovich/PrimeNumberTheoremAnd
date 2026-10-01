@@ -3404,7 +3404,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized
   have hbound := LSeries.norm_le_of_nonneg (σ := σ₀) (s := σ₁ + t * I) hnonneg
     (ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one) (by simpa using σ₀_lt_σ₁)
   simpa only [ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hσ₁,
-    ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div σ₀_gt_one,
+    ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div (s := (σ₀ : ℂ)) σ₀_gt_one,
     neg_div, norm_neg] using hbound
 
 theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
