@@ -53,25 +53,29 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
--- TODO: generalize to `RCLike`
-lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
-    ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+/-- Power substitution for multiplicative Haar measure, with Jacobian `|p|`.
+This applies to both real- and complex-valued integrands. -/
+@[blueprint]
+lemma MeasureTheory.integral_comp_rpow_I0i_haar (f : ℝ → 𝕂) {p : ℝ} (hp : p ≠ 0) :
+    ∫ (y : ℝ) in Ioi 0, ((|p| : ℝ) : 𝕂) * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, setIntegral_congr_fun (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
-  simp only [rpow_sub_one ypos.ne', smul_eq_mul]
-  field_simp
+  simp only [rpow_sub_one ypos.ne', RCLike.real_smul_eq_coe_mul,
+    RCLike.ofReal_mul, RCLike.ofReal_div]
+  have hy0 : (y : 𝕂) ≠ 0 := RCLike.ofReal_ne_zero.mpr ypos.ne'
+  have hyp0 : ((y ^ p : ℝ) : 𝕂) ≠ 0 :=
+    RCLike.ofReal_ne_zero.mpr (rpow_pos_of_pos ypos p).ne'
+  field_simp [hy0, hyp0]
+
+lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
+    ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y :=
+  integral_comp_rpow_I0i_haar f hp
 
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  have := integral_comp_rpow_Ioi (fun y ↦ f y / y) (p := -1) (by simp)
-  rw [← this, setIntegral_congr_fun (by simp)]
-  intro y hy
-  have : (y : 𝕂) ≠ 0 := (RCLike.ofReal_ne_zero).mpr <| LT.lt.ne' hy
-  simp only [abs_neg, abs_one, rpow_neg_one, map_inv₀, div_inv_eq_mul,
-    RCLike.real_smul_eq_coe_mul, RCLike.algebraMap_eq_ofReal]
-  ring_nf
-  simp [field]
+  simpa only [abs_neg, abs_one, RCLike.ofReal_one, one_mul, rpow_neg_one, one_div] using
+    (integral_comp_rpow_I0i_haar f (p := -1) (by norm_num))
 
 lemma MeasureTheory.integral_comp_div_I0i_haar
     (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
