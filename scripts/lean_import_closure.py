@@ -10,11 +10,11 @@ Given a target module name (e.g. `PrimeNumberTheoremAnd.Lcm`) or a path to a
 - Prints:
   - required `.lean` files (internal modules needed for compilation)
   - external modules (imports that do not resolve to a repo file)
-  - safe-to-delete `.lean` files (repo `.lean` files not in the closure)
+  - unreachable `.lean` files (repo `.lean` files not in the closure)
 
 Notes / limitations:
-- This is a best-effort *deterministic* parser. It ignores comments and then
-  tokenizes; it does not run Lean.
+- This is a best-effort *deterministic* parser. It reads header tokens without elaborating
+  Lean. A file outside the closure may still be used by another build target.
 - It only follows `import` statements.
 """
 
@@ -40,9 +40,8 @@ EXCLUDED_DIRS = {
 }
 
 
-_MODULE_TOKEN_RE = re.compile(
-    r"^(?:[A-Za-z_][A-Za-z0-9_]*|«[^»]+»)(?:\.(?:[A-Za-z_][A-Za-z0-9_]*|«[^»]+»))*$"
-)
+_MODULE_COMPONENT = r"(?:[^\W\d][\w']*|«[^»]+»)"
+_MODULE_TOKEN_RE = re.compile(_MODULE_COMPONENT + r"(?:\." + _MODULE_COMPONENT + r")*")
 
 
 @dataclass(frozen=True)
@@ -100,93 +99,71 @@ def detect_repo_config_files(repo_root: Path) -> List[str]:
     return found
 
 
-def _strip_comments(text: str) -> str:
-    """Remove Lean line comments (`-- ...`) and nested block comments (`/- ... -/`).
+def _header_tokens(text: str) -> Iterator[str]:
+    """Lex only as much of the header as the caller consumes.
 
-    This is a deterministic, best-effort stripper. It does not attempt to be a
-    complete Lean lexer, but it handles nested block comments.
+    Lean comments are whitespace, may nest, and line comments take precedence
+    over block-comment delimiters on that line. Escaped identifiers are atomic.
     """
-
-    # First remove nested block comments.
-    out_chars: List[str] = []
     i = 0
-    n = len(text)
-    depth = 0
-
-    while i < n:
-        if depth == 0 and text.startswith("/-", i):
+    while i < len(text):
+        if text[i].isspace():
+            i += 1
+        elif text.startswith("--", i):
+            end = text.find("\n", i)
+            i = len(text) if end < 0 else end + 1
+        elif text.startswith("/-", i):
             depth = 1
             i += 2
-            continue
-        if depth > 0:
-            if text.startswith("/-", i):
-                depth += 1
-                i += 2
-                continue
-            if text.startswith("-/", i):
-                depth -= 1
-                i += 2
-                continue
-            i += 1
-            continue
-
-        out_chars.append(text[i])
-        i += 1
-
-    no_block = "".join(out_chars)
-
-    # Then remove line comments.
-    lines = []
-    for line in no_block.splitlines(True):
-        idx = line.find("--")
-        if idx != -1:
-            lines.append(line[:idx] + ("\n" if line.endswith("\n") else ""))
+            while depth and i < len(text):
+                if text.startswith("/-", i):
+                    depth += 1
+                    i += 2
+                elif text.startswith("-/", i):
+                    depth -= 1
+                    i += 2
+                else:
+                    i += 1
+            if depth:
+                raise ValueError("Unterminated block comment in Lean import header")
         else:
-            lines.append(line)
-    return "".join(lines)
-
-
-def _tokenize(text: str) -> List[str]:
-    """Tokenize enough to recognize `import` commands.
-
-    Strategy: after stripping comments, split on whitespace and on common
-    separators. We keep `.` inside module tokens.
-    """
-
-    # Replace some separators with whitespace, but keep '.'
-    cleaned = re.sub(r"[(){}\[\],;]", " ", text)
-    return cleaned.split()
+            match = _MODULE_TOKEN_RE.match(text, i)
+            if match:
+                yield match.group()
+                i = match.end()
+            else:
+                yield text[i]
+                i += 1
 
 
 def parse_imported_modules(file_path: Path) -> List[str]:
-    try:
-        text = file_path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        text = file_path.read_text(encoding="utf-8", errors="replace")
+    """Read Lean's header grammar, stopping at the first body command.
 
-    text = _strip_comments(text)
-    tokens = _tokenize(text)
-
+    Each import command has one module, optionally preceded by public/meta
+    and followed by the import-all modifier before the module name.
+    """
+    tokens = iter(_header_tokens(file_path.read_text(encoding="utf-8")))
+    token = next(tokens, None)
+    if token == "module":
+        token = next(tokens, None)
+    if token == "prelude":
+        token = next(tokens, None)
     imported: List[str] = []
-    i = 0
-    while i < len(tokens):
-        if tokens[i] != "import":
-            i += 1
-            continue
-
-        i += 1
-        while i < len(tokens) and _MODULE_TOKEN_RE.match(tokens[i]):
-            imported.append(tokens[i])
-            i += 1
-
-    # Deterministic order, de-dupe preserving first appearance
-    seen: Set[str] = set()
-    result: List[str] = []
-    for m in imported:
-        if m not in seen:
-            seen.add(m)
-            result.append(m)
-    return result
+    while token is not None:
+        if token == "public":
+            token = next(tokens, None)
+        if token == "meta":
+            token = next(tokens, None)
+        if token != "import":
+            break
+        token = next(tokens, None)
+        if token == "all":
+            token = next(tokens, None)
+        if token is None or not _MODULE_TOKEN_RE.fullmatch(token):
+            raise ValueError(f"Missing module name in import header: {file_path}")
+        imported.append(token)
+        token = next(tokens, None)
+    return list(dict.fromkeys(imported))
 
 
 def resolve_target(index: RepoIndex, target: str) -> Tuple[str, Path]:
@@ -245,6 +222,8 @@ def compute_import_closure(index: RepoIndex, start_module: str) -> Tuple[Set[str
             continue
 
         for imported in parse_imported_modules(file_path):
+            # Escapes belong to Lean syntax, not filesystem component names.
+            imported = re.sub(r"«([^»]+)»", r"\1", imported)
             if imported in index.module_to_file:
                 if imported not in internal:
                     stack.append(imported)
@@ -260,7 +239,7 @@ def _rel(index: RepoIndex, path: Path) -> str:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Trace Lean `import` closure for a target module/file and compute deletable files.",
+        description="Trace Lean `import` closure for a target module/file and report files outside that closure.",
     )
     parser.add_argument(
         "target",
@@ -282,6 +261,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         help="Include external modules list in text output.",
     )
 
+    parser.add_argument(
+        "--check-prefix", action="append", default=[], metavar="MODULE",
+        help="Fail if a module in this namespace is outside the closure (repeatable).",
+    )
+    parser.add_argument(
+        "--exclude-prefix", action="append", default=[], metavar="MODULE",
+        help="Exclude an intentional namespace from the coverage check (repeatable).",
+    )
+
     args = parser.parse_args(argv)
 
     repo_root = Path(args.repo).resolve()
@@ -292,6 +280,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     start_module, start_file = resolve_target(index, args.target)
 
     internal_modules, external_modules = compute_import_closure(index, start_module)
+
+    if args.check_prefix:
+        def matches(module: str, prefixes: Sequence[str]) -> bool:
+            return any(module == prefix or module.startswith(prefix + ".") for prefix in prefixes)
+
+        missing = sorted(
+            module for module in index.module_to_file
+            if matches(module, args.check_prefix)
+            and not matches(module, args.exclude_prefix)
+            and module not in internal_modules
+        )
+        if args.json:
+            print(json.dumps({"missing": missing}, indent=2))
+        elif missing:
+            print("Modules outside the root import closure:", file=sys.stderr)
+            for module in missing:
+                print(module, file=sys.stderr)
+        else:
+            print("Import coverage check passed.")
+        return 1 if missing else 0
 
     build_config_files = detect_repo_config_files(repo_root)
 
@@ -344,7 +352,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(m)
 
     print("")
-    print(f"Safe-to-delete internal .lean files ({len(deletable_files)}):")
+    print(f"Internal .lean files outside this closure ({len(deletable_files)}):")
     for p in deletable_files:
         print(p)
 
