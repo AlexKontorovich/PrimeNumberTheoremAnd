@@ -3372,55 +3372,40 @@ theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
 
 open ArithmeticFunction (vonMangoldt)
 local notation "Λ" => vonMangoldt
---TODO generalize to any LSeries with nonnegative coefficients
+open scoped ComplexOrder in
+/-- A convergent L-series with nonnegative coefficients bounds its values to the right
+of the real point of convergence. -/
+@[blueprint]
+theorem LSeries.norm_le_of_nonneg {f : ℕ → ℂ} (hf : ∀ n, 0 ≤ f n)
+    {σ : ℝ} {s : ℂ} (hσ : LSeriesSummable f σ) (hs : σ ≤ s.re) :
+    ‖LSeries f s‖ ≤ ‖LSeries f σ‖ := by
+  have hsummable : LSeriesSummable f s := hσ.of_re_le_re hs
+  calc
+    ‖LSeries f s‖ ≤ ∑' n, ‖LSeries.term f s n‖ := norm_tsum_le_tsum_norm hsummable.norm
+    _ ≤ ∑' n, ‖LSeries.term f σ n‖ :=
+      Summable.tsum_mono hsummable.norm hσ.norm
+        (fun n ↦ LSeries.norm_term_le_of_re_le_re f hs n)
+    _ = (LSeries f σ).re := by
+      rw [LSeries, re_tsum hσ]
+      apply tsum_congr
+      intro n
+      exact (re_eq_norm.mpr (LSeries.term_nonneg (hf n) σ)).symm
+    _ = ‖LSeries f σ‖ := re_eq_norm.mpr (tsum_nonneg fun n ↦ LSeries.term_nonneg (hf n) σ)
+
 open scoped ComplexOrder in
 theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized
     (σ₀ σ₁ t : ℝ) (σ₀_gt_one : 1 < σ₀) (σ₀_lt_σ₁ : σ₀ ≤ σ₁) :
     ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
-  let s₁ := σ₁ + t * I
-  have s₁_re_eq_sigma : s₁.re = σ₁ := by
-    rw [add_re, ofReal_re, mul_I_re, ofReal_im]
-    ring
-
-  have s₀_re_eq_sigma : (↑σ₀ : ℂ).re = σ₀ := by
-    rw [ofReal_re]
-
-  let s₀ := σ₀
-
-  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
-  have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
-
-  have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
-  rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
-  unfold LSeries
-
-  have summable_von_mangoldt_at_σ₀ : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i) := by
-    exact ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one
-
-  have summable_re_von_mangoldt_at_σ₀ :
-      Summable (fun i ↦ (LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i).re) := by
-    exact summable_complex_then_summable_real_part (LSeries.term (fun n ↦ ↑(Λ n)) σ₀)
-      summable_von_mangoldt_at_σ₀
-
-  have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
-    rw [summable_norm_iff]
-    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
-  apply le_trans <| norm_tsum_le_tsum_norm summable_abs_value
-  rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one]
-  unfold LSeries
-  rw [← re_eq_norm.mpr, re_tsum summable_von_mangoldt_at_σ₀]
-  · apply Summable.tsum_mono summable_abs_value summable_re_von_mangoldt_at_σ₀
+  have hσ₁ : 1 < (σ₁ + t * I).re := by
+    simpa using lt_of_lt_of_le σ₀_gt_one σ₀_lt_σ₁
+  have hnonneg : ∀ n, 0 ≤ (Λ n : ℂ) := by
     intro n
-    beta_reduce
-    apply le_trans <| LSeries.norm_term_le_of_re_le_re (s := σ₀) _ _ _
-    · rw [re_eq_norm.mpr]
-      apply LSeries.term_nonneg
-      exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
-    · rwa [s₁_re_eq_sigma, s₀_re_eq_sigma]
-  · apply tsum_nonneg
-    intro n
-    apply LSeries.term_nonneg
-    exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+    exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg (n := n)
+  have hbound := LSeries.norm_le_of_nonneg (σ := σ₀) (s := σ₁ + t * I) hnonneg
+    (ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one) (by simpa using σ₀_lt_σ₁)
+  simpa only [ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hσ₁,
+    ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div (s := (σ₀ : ℂ)) σ₀_gt_one,
+    neg_div, norm_neg] using hbound
 
 theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C := by
