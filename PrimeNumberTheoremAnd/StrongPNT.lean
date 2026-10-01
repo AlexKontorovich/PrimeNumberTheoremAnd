@@ -1568,11 +1568,11 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
       simp only [g_def, f, zero_add]
       intro z hz; rw [Metric.mem_closedBall, _root_.dist_zero_right] at hz
       refine AnalyticAt.div_const
-        (AnalyticAt.comp (AnalyticAt.comp (analyticAt_riemannZeta ?_) analyticAt_id)
+        (AnalyticAt.comp (AnalyticAt.comp (analyticOn_riemannZeta _ ?_) analyticAt_id)
           (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const) analyticAt_const))
       simp only [Pi.add_apply, id_eq, ne_eq, Complex.ext_iff, add_re, div_ofNat_re, re_ofNat,
         mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re,
-        add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul, zero_add, one_im, not_and]
+        add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, one_mul, zero_add, one_im, not_and, mem_compl_singleton_iff]
       exact ifInStripNotOne hz
     have g0_eq_one : g 0 = 1 := by
       simp only [g_def, Pi.div_apply, ne_eq, f0nonzero, not_false_eq_true, div_self]
@@ -1610,13 +1610,13 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
         · refine Finset.sum_congr rfl fun ρ hρ => ?_
           rw [div_left_inj', Nat.cast_inj, g_def', analyticOrderNatAt_fun_div_const f0nonzero]
           · simp only [f]
-            refine AnalyticAt.comp (analyticAt_riemannZeta ?_)
+            refine AnalyticAt.comp (analyticOn_riemannZeta _ ?_)
               (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const)
                 (AnalyticAt.mul analyticAt_const analyticAt_const))
             simp only [SetOfZeros, Complex.ext_iff, zero_re, zero_im, Finite.mem_toFinset, add_re,
               mem_ofPred_eq, ne_eq, div_ofNat_re, re_ofNat, mul_re, I_re, ofReal_re, zero_mul,
               I_im, ofReal_im, mul_zero, sub_self, add_zero, one_re, add_im, div_ofNat_im, im_ofNat,
-              zero_div, mul_im, one_mul, zero_add, one_im, not_and] at ⊢ hρ
+              zero_div, mul_im, one_mul, zero_add, one_im, not_and, mem_compl_singleton_iff] at ⊢ hρ
             exact ifInStripNotOne (le_trans hρ.1 r_lt_one.le)
           · simp only [SetOfZeros, Set.mem_sdiff, Metric.mem_closedBall, _root_.dist_zero_right,
               mem_ofPred_eq, not_and, Finite.mem_toFinset] at hz hρ
@@ -1660,7 +1660,7 @@ lemma ZetaShiftFiniteZeros {t : ℝ} (ht : |t| ≥ 2)
   have hfAnalytic : AnalyticOnNhd ℂ f (Metric.ball (0 : ℂ) 2) := by
     intro z hz; simp only [Metric.mem_ball, Complex.dist_eq, sub_zero] at hz
     simp only [hf, add_assoc]
-    refine AnalyticAt.fun_comp (analyticAt_riemannZeta fun h => ?_)
+    refine AnalyticAt.fun_comp (analyticOn_riemannZeta _ fun h ↦ ?_)
       (analyticAt_id.fun_add analyticAt_const)
     have him : z.im = -t := by
       have := congr_arg Complex.im h; simp only [add_im, div_ofNat_im, im_ofNat, zero_div, mul_im,
@@ -2152,7 +2152,8 @@ lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
         exact Or.inl (by linarith)
       · rw [abs_of_nonpos (not_lt.mp tpos)] at ht
         exact Or.inr (by linarith)
-    refine analyticAt_riemannZeta (fun h => ?_)
+    refine analyticOn_riemannZeta _ (fun h => ?_)
+    simp only [mem_singleton_iff] at h
     simp only [h, one_im, gt_iff_lt, abs_zero] at him
     linarith
   have hfeq : Set.EqOn ζ 0 (Metric.ball (3 / 2 + I * t) 1) := by
