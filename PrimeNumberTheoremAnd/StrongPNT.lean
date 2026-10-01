@@ -2135,7 +2135,7 @@ lemma vonMangoldtLSeriesSummable {s : ℂ} (hs : 1 < s.re) :
     then $\zeta\equiv 0$ by the identity theorem. This is a contradiction, so the statement must be
     true.
   -/)]
-lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
+lemma ZeroWindowFinite {t : ℝ} : (ZeroWindow t).Finite := by
   unfold ZeroWindow
   convert IsCompact.inter_riemannZetaZeros_finite (isCompact_closedBall (3 / 2 + I * t) (3 / 4))
   ext
@@ -2285,11 +2285,9 @@ theorem ZeroInequality : ∃ (E : ℝ), E ∈ Ioo (0 : ℝ) (1 / 14 : ℝ) ∧
             rw [div_eq_mul_inv, ← Complex.cpow_neg, neg_add,
               Complex.cpow_add _  _ ((cast_ne_zero (R := ℂ)).mpr heq0)]
             ring_nf
-    have ZeroWindowOneFinite : (ZeroWindow t).Finite := ZeroWindowFinite ht
+    have ZeroWindowOneFinite : (ZeroWindow t).Finite := ZeroWindowFinite
     have ZeroWindowTwoFinite : (ZeroWindow (2 * t)).Finite := by
       apply ZeroWindowFinite
-      simp only [abs_mul, abs_ofNat, ge_iff_le, ofNat_pos, le_mul_iff_one_le_right]
-      linarith
     have ShiftZero := ShiftZero δ δrange
     have ShiftOne := ShiftOne δ δrange t ht ZeroWindowOneFinite ρ hρzero ρim
     have ShiftTwo := ShiftTwo δ δrange t ht ZeroWindowTwoFinite
@@ -2628,7 +2626,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
     simp only [SetOfZeros, hf, div_eq_zero_iff, zetaThreeHalfNonzero, or_false] at gFiniteSetOf0s ⊢
     exact gFiniteSetOf0s
   have rFinite0s:= finiteSetOfZeros_mono r_lt_one finiteSetOf0s
-  have finite0s := ZeroWindowFinite (t := t) (by linarith)
+  have finite0s := ZeroWindowFinite (t := t)
   have fz_bound : ∀ z : ℂ, ‖z‖ ≤ R → ‖f z‖ ≤ B := by
     intro z hz
     simp only [hf, hg, Complex.norm_div, hB, hd, Complex.norm_mul, Complex.norm_ofNat]
