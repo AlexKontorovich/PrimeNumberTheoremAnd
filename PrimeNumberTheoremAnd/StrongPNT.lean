@@ -2775,38 +2775,8 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   -/)]
 lemma LogDerivZetaBdd_of_Re_ge_three_halves :
     ∃ C, ∀ (s : ℂ), 3/2 ≤ s.re → ‖deriv riemannZeta s / riemannZeta s‖ ≤ C := by
-  have threeHalvesRe : 1 < ((3 / 2) : ℂ).re := by norm_num
-  have h_sum_converges : Summable (fun n : ℕ ↦ vonMangoldt n / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-    apply Complex.summable_ofReal.mp
-    convert (vonMangoldtLSeriesSummable threeHalvesRe) using 2 with n
-    rw [ofReal_div, Complex.ofReal_cpow, ofReal_natCast, ofReal_div, ofReal_ofNat 3, ofReal_ofNat 2]
-    exact cast_nonneg' n
-  have h_log_deriv_sum : ∀ s : ℂ, 3 / 2 ≤ s.re →
-      deriv riemannZeta s / riemannZeta s = -∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s := by
-    intro s hs; have h := LogDerivativeDirichlet s (by grind); linear_combination -h
-  have h_triangle : ∀ s : ℂ,
-      ‖∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤
-        ∑' n : ℕ, ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ := fun s ↦ by
-    by_cases h : Summable fun n ↦ (ArithmeticFunction.vonMangoldt n : ℂ) / (n : ℂ) ^ s
-    · exact norm_tsum_le_tsum_norm h.norm
-    · simp only [tsum_eq_zero_of_not_summable h, norm_zero]
-      exact tsum_nonneg fun _ ↦ by positivity
-  have h_norm_summand : ∀ s : ℂ, 3 / 2 ≤ s.re → ∀ n : ℕ,
-      ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤ (vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) := by
-    intro s hs n
-    by_cases hn : n = 0 <;> simp_all [Complex.norm_cpow_of_ne_zero]
-    ring_nf; norm_num
-    rw [abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
-    exact mul_le_mul_of_nonneg_left (inv_anti₀ (by positivity)
-      (Real.rpow_le_rpow_of_exponent_le (mod_cast Nat.one_le_iff_ne_zero.mpr hn) hs))
-      ArithmeticFunction.vonMangoldt_nonneg
-  refine ⟨∑' n : ℕ, (ArithmeticFunction.vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ),
-    fun s hs ↦ ?_⟩
-  have hSum : Summable fun n ↦ ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ :=
-    Summable.of_nonneg_of_le (fun n ↦ by positivity)
-      (fun n ↦ h_norm_summand s hs n) h_sum_converges
-  simpa [neg_div, h_log_deriv_sum s hs] using (h_triangle s).trans
-    (hSum.tsum_le_tsum (fun n ↦ h_norm_summand s hs n) h_sum_converges)
+  refine ⟨‖ζ' (3 / 2) / ζ (3 / 2)‖, fun s hs ↦ ?_⟩
+  convert dlog_riemannZeta_bdd_on_vertical_lines_generalized (3 / 2) s.re s.im (by norm_num) hs using 1 <;> simp
 
 
 
