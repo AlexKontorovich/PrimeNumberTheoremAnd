@@ -168,7 +168,7 @@ lemma exists_r0_le_norm_divisorZeroIndex₀_val {f : ℂ → ℂ}
         have hm : meromorphicOrderAt f (0 : ℂ) = (analyticOrderAt f (0 : ℂ)).map (↑) :=
           (hf.analyticAt 0).meromorphicOrderAt_eq (𝕜 := ℂ)
         cases h : analyticOrderAt f (0 : ℂ) with
-        | top => exact Ne.elim hA0 h
+        | top => exact absurd h hA0
         | coe n =>
             have : (analyticOrderAt f (0 : ℂ)).map (↑) ≠ (⊤ : WithTop ℤ) := by
               simp [h]
@@ -239,7 +239,7 @@ lemma card_ball_le_divisorMassClosedBall₀
       ≤ divisorMassClosedBall₀ f R := by
   set U : Set ℂ := (Set.univ : Set ℂ)
   set D : Function.locallyFinsuppWithin U ℤ := MeromorphicOn.divisor f U
-  haveI :
+  have :
       Fintype {p : divisorZeroIndex₀ f U // ‖divisorZeroIndex₀_val p‖ ≤ R} := by
     have : Finite {p : divisorZeroIndex₀ f U // ‖divisorZeroIndex₀_val p‖ ≤ R} := by
       have : Metric.closedBall (0 : ℂ) R ⊆ U := by simp [U]
@@ -338,7 +338,7 @@ lemma card_subtype_le_divisorMassClosedBall₀_of_norm_le
     (Fintype.card s : ℝ) ≤ divisorMassClosedBall₀ f R := by
   let Aball : Type :=
     {p : divisorZeroIndex₀ f (Set.univ : Set ℂ) // ‖divisorZeroIndex₀_val p‖ ≤ R}
-  haveI : Fintype Aball := by
+  have : Fintype Aball := by
     have : Finite Aball := by
       have : Metric.closedBall (0 : ℂ) R ⊆ (Set.univ : Set ℂ) := by simp
       simpa [Aball] using
@@ -428,10 +428,10 @@ lemma tsum_divisorZeroIndex₀_dyadicShell_inv_rpow_le_geometric_of_growth
   let Rk : ℝ := r0 * (2 : ℝ) ^ ((k : ℝ) + 1)
   have hrk_pos : 0 < rk := mul_pos hr0pos (Real.rpow_pos_of_pos (by norm_num) _)
   have hrk0 : 0 ≤ rk := le_of_lt hrk_pos
-  haveI : Finite S := by
+  have : Finite S := by
     simpa [S, kfun] using (finite_divisorZeroIndex₀_dyadicShell
       (f := f) hr0pos hr0 k).to_subtype
-  haveI : Fintype S := Fintype.ofFinite S
+  have : Fintype S := Fintype.ofFinite S
   have hk_upper : ∀ p : S, ‖divisorZeroIndex₀_val p.1‖ ≤ Rk := by
     intro p
     have hk' : kfun p.1 = k := p.2
@@ -506,7 +506,7 @@ theorem summable_norm_inv_rpow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {
     exact Real.rpow_nonneg (inv_nonneg.2 (norm_nonneg _)) _
   have hSk_summable : ∀ k : ℕ, Summable fun p : S k => ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ := by
     intro k
-    haveI : Finite (S k) := by
+    have : Finite (S k) := by
       simpa [S, kfun] using (finite_divisorZeroIndex₀_dyadicShell
         (f := f) hr0pos hr0 k).to_subtype
     exact Summable.of_finite

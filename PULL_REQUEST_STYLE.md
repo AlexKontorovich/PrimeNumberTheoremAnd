@@ -14,6 +14,17 @@ to AI-assisted contributors equally — but AI-assisted contributors should read
 the "AI-assisted contributions" section, which addresses failure modes
 specific to that context.
 
+> **⚠️ IEANTN porting notice (2026-08).** The IEANTN Lean material is being
+> ported to its own repository, [teorth/IEANTN](https://github.com/teorth/IEANTN).
+> Tasks already claimed against open issues in this repo may continue here for
+> now; **new IEANTN contributions — new paper subprojects, or new results
+> within existing IEANTN paper files — should be opened against `teorth/IEANTN`
+> instead.** This guide continues to describe the conventions used by both
+> projects; sections referring to `PrimeNumberTheoremAnd/IEANTN/` paths,
+> chapter placement in `blueprint/src/blueprint.tex`, and the
+> `pnt-plus-ieantn` skill apply to legacy work here — the new repo has its
+> own equivalents.
+
 ## Guiding principle
 
 **Reviewer time is the scarcest resource on this project. Every PR should be
@@ -207,6 +218,16 @@ Concretely:
   `BKLNW_app_tables.lean`). These files build once and cache; downstream
   paper files consume them as opaque theorems. Follow that pattern for any
   new bulk numeric evidence.
+- **`LogTables.lean` and `PrimeTables.lean` are the project-wide, general-
+  purpose homes** (the other `*_tables.lean` files are scoped to specific
+  papers). Any purely numerical bound *on logarithms, exponentials,
+  elementary constants of the form $\log n$, $\exp(-x)$, $\pi$, $\gamma$,
+  etc.* belongs in `LogTables.lean`; any purely numerical bound about
+  primes or prime-counting quantities belongs in `PrimeTables.lean`.
+  Don't inline such facts into a proof file even if you only need them
+  once — the next contributor with a similar need should find them there.
+  Blueprint them with `@[blueprint]` so they surface in the blueprint
+  index (§4).
 - **Very large certificate corpora get sharded across many small files**
   — the BKLNW Table 10 architecture (~22 files
   `BKLNW_table10_rows_*` + `_dispatch` + `_next` + `_values`) is the
@@ -261,7 +282,14 @@ Minimum checks:
    or `references.bib`**: run the xelatex check documented in the
    pnt-plus-ieantn skill / `CLAUDE.md` — the LaTeX errors surface only
    there, not in `lake build :blueprint`.
-4. **CI green on the PR** before commenting `awaiting-review`. If CI is
+4. **No new warnings other than `declaration uses 'sorry'`.** Linter
+   warnings (unused variables, deprecated names, `Try this:` autofix
+   suggestions, docstring nits, …) are cheap to silence; the fix is
+   almost always mechanical. Leaving them in a PR shifts a chore onto
+   the reviewer. If a warning is intentional (rare) and can't be
+   suppressed with a small local `set_option`, explain it in the PR
+   body — otherwise clear it.
+5. **CI green on the PR** before commenting `awaiting-review`. If CI is
    red, either it's your fault (fix it) or a genuine main-was-broken
    situation (say so on the PR).
 
@@ -315,13 +343,89 @@ Open a PR as **draft** if any of the following are true:
   infrastructure in `*_tables.lean` — reviewers may want to steer the
   shape before you build downstream on it.
 - You're refactoring a widely-used definition.
-- You're proposing a new file for a new paper (the "bootstrapping"
+- You're proposing a new file for a new paper (see also §12, and the "bootstrapping"
   workflow in the pnt-plus-ieantn skill).
 - You're bulk-editing many files with mechanical similar changes.
 
 Convert to "ready for review" only after CI is green.
 
-## 12. AI-assisted contributions
+## 12. Contributing formalizations of new material (not yet in the blueprint)
+
+> **Note (2026-08): net-new IEANTN material belongs in
+> [teorth/IEANTN](https://github.com/teorth/IEANTN), not here.** This section
+> describes the workflow both for the PNT+ core (non-IEANTN) and for finishing
+> off in-flight IEANTN work already claimed against an issue in this repo. For
+> a fresh IEANTN paper subproject, or for adding to an existing IEANTN paper
+> file that hasn't been claimed yet, open against `teorth/IEANTN` under its
+> conventions.
+
+**Pull requests contributing formalisations of results in explicit
+analytic number theory are welcome even when they don't correspond to
+an already-issued task**, provided they adhere to the style guidelines
+in this document. If you've formalised (or partially formalised) a
+result from the IEANTN literature that the blueprint hasn't reached
+yet, an alternate route to something already partially covered, or a
+helpful piece of infrastructure the project could reuse — please open
+a PR. You don't have to wait for a maintainer to file an issue first.
+
+The mechanism matters, though.
+
+**What to do**:
+
+- Open a pull request against `main` that adds the material as one or
+  more `.lean` files under `PrimeNumberTheoremAnd/IEANTN/`. If the
+  contribution is a single file, add it at the folder root; if it's
+  multiple files (a paper subproject), create a subfolder for them
+  (matching the existing `BKLNW/`, `CH2/`, `eSHP/`,
+  `FioriKadiriSwidinsky/`, `Ramanujan/`, `RosserSchoenfeld/`
+  convention).
+- Integrate the files with LeanArchitect the same way existing IEANTN
+  files do (see the "Bootstrapping a new paper file" recipe in the
+  `pnt-plus-ieantn` skill and the existing files as templates):
+  `import Architect`, `@[blueprint …]` metadata on the main results,
+  `blueprint_comment` for section prose, `\cite{…}` referring to
+  entries you've also added to `blueprint/src/references.bib`.
+- Tag the **main results** with `@[blueprint]` — that surfaces them in
+  the blueprint so the maintainers and other contributors can see the
+  scope of what you've formalised without having to open every Lean
+  file. Supporting sublemmas follow the §4 scoping rule
+  (`private` for local scaffolding; public + `@[blueprint]` for
+  reusable helpers).
+- The PR description should explain what the material is, cite the
+  source paper (with a bibkey added to `references.bib` if the paper
+  isn't already there), and mention any dependencies on unfinished
+  parts of the blueprint. Consider posting on the Zulip channel
+  (§2) before opening the PR — that gives maintainers a chance to
+  flag overlap with in-flight work.
+- Maintainers may later wire the new material into the wider IEANTN
+  build (updating `blueprint/src/blueprint.tex` chapter placement,
+  `PrimeNumberTheoremAnd.lean`'s umbrella imports, and downstream
+  consumers). You don't have to do this yourself — a clean PR with
+  the material in the right folder and the blueprints in the right
+  shape is enough.
+
+**What NOT to do**:
+
+- **Don't submit formalisations as zip files, tarballs, patches
+  attached to Zulip messages, or links to external repositories in
+  place of a PR.** The project's review, CI, blueprint-generation, and
+  history-tracking machinery all run on PR-shaped contributions;
+  attachments and off-repo drops sit outside all of that and have no
+  path to being adopted. If the work already lives in an external
+  repo, the productive move is to open a PR that ports it into
+  `PrimeNumberTheoremAnd/IEANTN/` under this repo's conventions —
+  even if that reformatting is most of the work.
+- Don't PR just the `.lean` file body without `@[blueprint]`
+  metadata on the headline results. Without that, the material lands
+  in the codebase but is invisible on the blueprint page, which
+  defeats a large part of the point.
+
+Supplementing a formalisation PR with LeanArchitect links (e.g. to
+the rendered blueprint page or the LeanArchitect-generated
+declaration index) is welcome and helps reviewers orient — but the
+material itself belongs in Lean files in the repo.
+
+## 13. AI-assisted contributions
 
 Contributions produced with the aid of an AI coding assistant (Cursor,
 Claude Code, Copilot, Codex, aider, …) are welcome and follow the same
@@ -329,7 +433,35 @@ rules as any other contribution — but they should also:
 
 1. **Disclose the tool** in the PR body (e.g. "Made with Cursor", or
    the auto-generated footer produced by these tools). Doesn't need to
-   be a manifesto — one line is fine.
+   be a manifesto — one line is fine. A CI workflow scans the PR body
+   for common disclosure phrases ("Made with *Tool*", "Generated by
+   *Tool*", or the standard `Co-Authored-By: *Tool*` footers) and
+   applies the `ai` umbrella label (meaning "Formalised using AI")
+   together with the matching tool-specific label automatically — so
+   first-time contributors, who cannot select labels themselves, just
+   need to write the disclosure line. Maintainers may still apply
+   labels by hand. The current tool labels are:
+
+   | Label         | Tool                                    |
+   |---------------|-----------------------------------------|
+   | `aristotle`   | Aristotle by Harmonic                   |
+   | `alpha-proof` | AlphaProof by Google DeepMind           |
+   | `claude`      | Claude models by Anthropic              |
+   | `cursor`      | Cursor                                  |
+   | `gemini`      | Gemini models                           |
+   | `gpt`         | GPT models by OpenAI                    |
+   | `seed`        | Seed by Bytedance                       |
+
+   Apply all that apply — e.g. Claude used inside Cursor should show
+   both "Made with Cursor" and "Made with Claude" (or a
+   `Co-Authored-By: Claude` footer) in the body, so both labels are
+   added. If the tool you used isn't listed, mention it in the PR body
+   and either request a new label or use the umbrella `ai` alone.
+   Labels let maintainers filter the PR queue by tool and calibrate
+   review effort — the disclosure in prose is easy to miss when
+   scanning `github.com/…/pulls`. The auto-labeler lives in
+   `.github/workflows/auto-label-ai-disclosure.yml`; extend the
+   `RULES` table there when new tool labels are added.
 2. **Consolidate before submitting**, per §1. If your assistant proposes
    twelve one-line changes to a single file, open one PR, not twelve.
    Reviewer bandwidth doesn't scale with your ease of generating diffs.
@@ -353,7 +485,7 @@ rules as any other contribution — but they should also:
    them.** As a rough guideline, don't have more than 3 open AI-assisted
    PRs from you at a time.
 
-## 13. Portions bound for Mathlib
+## 14. Portions bound for Mathlib
 
 Code intended for upstream Mathlib follows Mathlib's own style manual
 (golfing standards, naming conventions, docstring rules, `_root_`
@@ -366,7 +498,7 @@ If you notice a small helper lemma in this repository that plausibly
 belongs upstream, flag it in the PR description; the maintainers can
 decide whether to route it via a separate Mathlib PR.
 
-## 14. What NOT to do
+## 15. What NOT to do
 
 - **Don't edit files under `.lake/` or `docbuild/`** — these are build
   artefacts.
@@ -413,6 +545,14 @@ politely close/reject PRs exhibiting them and request re-submission:
   closed by near-identical proofs (or two similar theorems each with
   their own bespoke helpers) — ask the author to extract the shared
   proposition instead.
+- **Linter warnings left in the diff.** Anything beyond
+  `declaration uses 'sorry'`. Ask the author to clear them (§8).
+- **Off-repo formalisation drop**. A contribution offered as a zip
+  file, tarball, patch attached to a Zulip message, or a pointer to
+  an external repository, in lieu of a PR that lands the material
+  inside `PrimeNumberTheoremAnd/IEANTN/` with proper LeanArchitect
+  integration and `@[blueprint]` metadata. Ask the contributor to
+  re-shape it as a PR against this repo (§12).
 
 ---
 

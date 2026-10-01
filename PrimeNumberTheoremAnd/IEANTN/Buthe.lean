@@ -19,7 +19,8 @@ open MeasureTheory Real Chebyshev
   (title := "Buthe Equation (1.4)")
   (statement := /--
     $\pi^*(x) = \sum_{k \geq 1} \pi(x^{1/k}) / k$. -/)]
-noncomputable def pi_star (x : ℝ) : ℝ := ∑' (k : ℕ), pi (x ^ (1 / (k : ℝ))) / (k : ℝ)
+noncomputable def pi_star (x : ℝ) : ℝ :=
+  ∑' (k : ℕ), pi (x ^ (1 / (k + 1 : ℝ))) / (k + 1 : ℝ)
 
 @[blueprint
   "buthe-theorem-2a"

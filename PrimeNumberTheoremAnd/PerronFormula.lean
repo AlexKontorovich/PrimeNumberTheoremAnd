@@ -550,7 +550,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     ‖(∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt : ℂ))‖
   intro σ hσ
   simp only [VerticalIntegral', smul_eq_mul, norm_mul]
-  rw [(by simp [pi_nonneg] : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
+  rw [(by simp : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
   apply (mul_le_mul_iff_right₀ (by simp [pi_pos])).mpr
   calc
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
@@ -622,7 +622,7 @@ theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
     fun (_, y) ↦ 1 / y^2 := by
   refine (𝓟 (uIoc σ' σ'')).eq_or_neBot.casesOn (fun hbot ↦ by simp [hbot]) (fun _ ↦ ?_)
-  haveI : NeBot (atBot (α := ℝ) ⊔ atTop) := sup_neBot.mpr (Or.inl atBot_neBot)
+  have : NeBot (atBot (α := ℝ) ⊔ atTop) := sup_neBot.mpr (Or.inl atBot_neBot)
   exact (isTheta_uniformlyOn_uIcc xpos σ' σ'').mono (by simpa using! Ioc_subset_Icc_self)
 
 lemma isTheta (xpos : 0 < x) :
@@ -641,7 +641,7 @@ lemma isTheta (xpos : 0 < x) :
   (latexEnv := "lemma")]
 lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     Integrable fun (t : ℝ) ↦ f x (σ + t * I) := by
-  /-- By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval.-/
+  /-- By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval. -/
   have : Continuous (fun (y : ℝ) ↦ f x (σ + y * I)) := by
     refine (isHolomorphicOn xpos).continuousOn.comp_continuous (by continuity) fun x ↦
       not_or.mpr ?_

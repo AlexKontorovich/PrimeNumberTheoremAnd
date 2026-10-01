@@ -1231,7 +1231,7 @@ theorem log_zeta_eq_sum (s : ℝ) (hs : 1 < s) :
   have hsupp : Function.support F ⊆ {n : ℕ | IsPrimePow n} := by
     intro n hn
     rw [Function.mem_support] at hn
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     by_contra hpp
     apply hn
     simp only [hF, vonMangoldt_eq_zero_iff.mpr hpp, zero_div]
@@ -2337,7 +2337,6 @@ lemma sum_one_div_sq_le {N : ℝ} (hN : 1 ≤ N) :
     gcongr
   · convert! integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2
     simp
-    rfl
   · exact fun _ _ ↦ (by positivity)
 
 lemma sum_M_eq_summand_le {N : ℕ} (hN : 0 < N) :

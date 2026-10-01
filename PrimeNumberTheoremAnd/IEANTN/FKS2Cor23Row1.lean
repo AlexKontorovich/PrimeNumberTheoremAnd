@@ -33,12 +33,6 @@ theorem eval_rhsE2_row1 (s : ℝ) :
   ring_nf
   rw [h8]
 
-theorem support1 :
-    ExprSupportedWithInv (Expr.sub (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2_row1) := by
-  simp only [Expr.sub, rhsE2_row1, eR1, FloorButhe.lhsE, FloorButhe.pow8, FloorButhe.sqx,
-    FloorButhe.s2, FloorButhe.s4, FloorButhe.e2]
-  repeat constructor
-
 theorem rhsE2_row1_le_sq (x : ℝ) (hL : (22.955 : ℝ) ≤ Real.log x) :
     Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE2_row1
       ≤ (admissible_bound 0.000120 0.25 1 5.5666305 x) ^ 2 := by
@@ -236,7 +230,7 @@ theorem boundary_row1 : ∀ x ∈ Set.Icc (Real.exp 23.5) (Real.exp 40),
           rw [show (6.33:ℝ) = Real.sqrt (6.33^2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h635])
-    support1 slabs_checked1 (fun x h => rhsE2_row1_le_sq x (by linarith))
+    slabs_checked1 (fun x h => rhsE2_row1_le_sq x (by linarith))
 
 /-- Row-1 near-threshold range `[exp 22.955, e^40]`, split at `e^23.5`: Buthe on
 `[e^23.5, e^40]`; trusted numerical boundary `[e^22.955, e^23.5]`

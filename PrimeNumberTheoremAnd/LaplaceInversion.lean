@@ -218,10 +218,10 @@ theorem integral_exp_mul_I_scaled (a T : ℝ) :
       if a = 0 then (2 * T : ℂ) else (2 * Real.sin (T * a) : ℂ) / (a : ℂ) := by
   by_cases ha : a = 0
   · subst a
-    rw [if_pos rfl]
+    rw [ite_eq_left rfl]
     simp [intervalIntegral.integral_const]
     ring
-  · rw [if_neg ha]
+  · rw [ite_eq_right ha]
     exact integral_exp_mul_I_scaled_of_ne ha
 
 /-- Scaled finite-height exponential integral, written with the normalized
@@ -235,9 +235,9 @@ theorem integral_exp_mul_I_scaled_sinc (a T : ℝ) :
     simp
   by_cases ha : a = 0
   · subst a
-    rw [if_pos rfl]
+    rw [ite_eq_left rfl]
     simp [Real.sinc_zero]
-  · rw [if_neg ha]
+  · rw [ite_eq_right ha]
     have hTa : T * a ≠ 0 := mul_ne_zero hT ha
     rw [Real.sinc_of_ne_zero hTa]
     push_cast
@@ -293,7 +293,7 @@ theorem normalized_sinc_smul_eq_sin_div (T u : ℝ) (z : E) :
       (if u = 0 then (T / π : ℂ) else (Real.sin (T * u) / (π * u) : ℂ)) • z := by
   by_cases hu : u = 0
   · subst u
-    rw [if_pos rfl]
+    rw [ite_eq_left rfl]
     simp only [one_div, mul_inv_rev, mul_zero, Real.sinc_zero, ofReal_one, mul_one]
     rw [← smul_assoc]
     congr 1
@@ -302,7 +302,7 @@ theorem normalized_sinc_smul_eq_sin_div (T u : ℝ) (z : E) :
     field_simp [Real.pi_ne_zero]
     ring_nf
     rfl
-  · rw [if_neg hu]
+  · rw [ite_eq_right hu]
     by_cases hT : T = 0
     · subst T
       simp
@@ -341,7 +341,7 @@ theorem normalized_sinc_kernel_integral_comp_sub_left_sin_div_ae
   rw [normalized_sinc_kernel_integral_comp_sub_left_sin_div]
   refine integral_congr_ae ?_
   filter_upwards [show ∀ᵐ u : ℝ, u ≠ 0 by simp [ae_iff, measure_singleton]] with u hu
-  rw [if_neg hu, if_neg hu]
+  rw [ite_eq_right hu, ite_eq_right hu]
 
 /-- The scaled positive-frequency ray `T / (2π)` tends to the cocompact filter. -/
 lemma tendsto_div_two_pi_atTop_cocompact :
@@ -479,7 +479,7 @@ theorem sin_div_kernel_sub_eq_sin_smul_quotient
         (if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x)) := by
   by_cases hu : u = 0
   · simp [hu]
-  · rw [if_neg hu, if_neg hu, ← smul_assoc]
+  · rw [ite_eq_right hu, ite_eq_right hu, ← smul_assoc]
     congr 1
     simp only [div_eq_mul_inv]
     ring
@@ -488,7 +488,7 @@ theorem local_quotient_eq_dslope
     (f : ℝ → E) (x : ℝ) {u : ℝ} (hu : u ≠ 0) :
     ((-1 / π : ℂ) • dslope f x (x - u)) =
       (if u = 0 then 0 else (1 / (π * u) : ℂ) • (f (x - u) - f x)) := by
-  rw [if_neg hu]
+  rw [ite_eq_right hu]
   have hne : x - u ≠ x := by
     intro h
     have : u = 0 := by linarith
@@ -613,9 +613,9 @@ theorem norm_sin_div_kernel_le_abs_height (T u : ℝ) :
     ‖(if u = 0 then (0 : ℂ) else (Real.sin (T * u) / (π * u) : ℂ))‖ ≤
       |T| / π := by
   by_cases hu : u = 0
-  · rw [if_pos hu]
+  · rw [ite_eq_left hu]
     simpa using (div_nonneg (abs_nonneg T) Real.pi_pos.le)
-  · rw [if_neg hu]
+  · rw [ite_eq_right hu]
     rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_real, Complex.norm_real]
     simp only [Real.norm_eq_abs]
     have hsin : |Real.sin (T * u)| ≤ |T| * |u| := by
@@ -686,7 +686,7 @@ lemma norm_tail_quotient_le
       have hzmem : (0 : ℝ) ∈ Set.Ioc (-R) R := by
         exact ⟨by linarith, hR.le⟩
       simpa [h0] using hzmem
-    rw [if_neg hu_ne, norm_smul]
+    rw [ite_eq_right hu_ne, norm_smul]
     have hscalar : ‖(1 / (π * u) : ℂ)‖ ≤ 1 / (π * R) := by
       rw [norm_div, norm_one, norm_mul, Complex.norm_real, Complex.norm_real]
       simp only [Real.norm_eq_abs, one_div]
@@ -747,7 +747,7 @@ lemma tail_indicator_sin_div_eq_sin_smul_quotient
       have hzmem : (0 : ℝ) ∈ Set.Ioc (-R) R := by
         exact ⟨by linarith, hR.le⟩
       simpa [h0] using hzmem
-    rw [if_neg hu_ne, if_neg hu_ne, ← smul_assoc]
+    rw [ite_eq_right hu_ne, ite_eq_right hu_ne, ← smul_assoc]
     congr 1
     simp only [div_eq_mul_inv]
     ring
@@ -850,7 +850,7 @@ theorem norm_sin_div_kernel_tail_le_integral_norm
       apply hu_not
       have hzmem : (0 : ℝ) ∈ Set.Ioc (-R) R := ⟨by linarith, hR.le⟩
       simpa [h0] using hzmem
-    rw [if_neg hu_ne, norm_smul]
+    rw [ite_eq_right hu_ne, norm_smul]
     have hscalar : ‖(Real.sin (T * u) / (π * u) : ℂ)‖ ≤ C := by
       dsimp [C]
       rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_real, Complex.norm_real]

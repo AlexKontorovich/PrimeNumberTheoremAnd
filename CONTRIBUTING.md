@@ -13,6 +13,12 @@ This guide provides detailed instructions on how to effectively and efficiently 
 > ([`#PrimeNumberTheorem+`](https://leanprover.zulipchat.com/#narrow/channel/423402-PrimeNumberTheorem.2B))
 > before opening the PR.
 
+> **IEANTN porting notice (2026-08).** The IEANTN Lean material is being
+> ported to [teorth/IEANTN](https://github.com/teorth/IEANTN). New IEANTN
+> contributions should be opened against that repository. In-flight tasks
+> already claimed against open issues in this repo may continue here. The
+> blueprint-integration instructions below cover both.
+
 ## Project Coordination
 
 The project is managed using a [GitHub project dashboard](https://github.com/users/AlexKontorovich/projects/1), which tracks tasks through various stages, from assignment to completion.

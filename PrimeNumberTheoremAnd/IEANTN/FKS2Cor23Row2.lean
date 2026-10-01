@@ -137,11 +137,6 @@ theorem eval_rhsE2 (s : ℝ) :
   ring_nf
   rw [h8]
 
-theorem support2 : ExprSupportedWithInv (Expr.sub (Expr.mul FloorButhe.lhsE FloorButhe.lhsE) rhsE2) := by
-  simp only [Expr.sub, rhsE2, eR2, FloorButhe.lhsE, FloorButhe.pow8, FloorButhe.sqx,
-    FloorButhe.s2, FloorButhe.s4, FloorButhe.e2]
-  repeat constructor
-
 theorem rhsE2_le_rowcurve_sq (x : ℝ) (hL : (6 : ℝ) ≤ Real.log x) :
     Expr.eval (fun _ => Real.sqrt (Real.log x)) rhsE2
       ≤ (admissible_bound 0.826 0.25 1 5.5666305 x) ^ 2 := by
@@ -227,7 +222,7 @@ theorem floor_buthe2 : ∀ x ∈ Set.Icc (Real.exp 6) (Real.exp 10),
           rw [show (3.17:ℝ) = Real.sqrt (3.17^2) from (Real.sqrt_sq (by norm_num)).symm]
           exact Real.sqrt_le_sqrt (by norm_num)
         push_cast; linarith [h317])
-    support2 slabs_checked2 rhsE2_le_rowcurve_sq
+    slabs_checked2 rhsE2_le_rowcurve_sq
 
 /-- Row-2 floor `[exp 1, e^10]`, split at `e^6`: Buthe on `[e^6,e^10]`; trusted
 numerical boundary `[e^1, e^6]` (`x ∈ [2.72, 403]`, FKS2 blueprint small-x). -/

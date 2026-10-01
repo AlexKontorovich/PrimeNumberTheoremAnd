@@ -146,7 +146,7 @@ theorem norm_inv_hadamardDenominator_le_exp_on_cartan_circle
       HasProd fac (divisorCanonicalProduct m f (Set.univ : Set ℂ) u) :=
     hloc.hasProd (by simp : u ∈ (Set.univ : Set ℂ))
   let ap : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ := fun p => ‖divisorZeroIndex₀_val p‖
-  haveI : DecidablePred (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) => p ∈ small) :=
+  have : DecidablePred (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) => p ∈ small) :=
     Classical.decPred _
   let b : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ :=
     fun p =>

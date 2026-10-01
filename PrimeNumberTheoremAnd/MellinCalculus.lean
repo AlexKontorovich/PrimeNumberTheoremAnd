@@ -829,7 +829,7 @@ lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
   simp +contextual only [mem_Ioi, true_and, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id,
     id_eq, mul_ite, mul_zero]
   intro y ypos
-  rw [eq_comm, if_neg (by push Not; positivity)]
+  rw [eq_comm, ite_eq_right (by push Not; positivity)]
 
 /-% ** Wrong delimiters on purpose, no need to include this in blueprint
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -1279,7 +1279,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · simp only [F, F', f, g, mul_ite, mul_one, mul_zero]
       intro ⟨x, y⟩ hz
       by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise]
-      <;> simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS
+      <;> simp only [mem_prod, mem_Ioi, mem_ofPred_eq, not_and, not_le, S] at hz hS
       · simp [div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
       · by_cases hxy : x / y ≤ 1
         swap
@@ -1290,10 +1290,10 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
-      · apply MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
+      · apply MeasureTheory.Measure.restrict_mono' SsubT.eventuallyLE le_rfl
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
-      conv => rw [this]; lhs; intro; rw [mul_comm]
+      erw [this]; conv => lhs; intro; rw [mul_comm]
       apply MeasureTheory.Integrable.mul_prod (f := fun x ↦ (x : ℂ) ^ (s - 1))
         (μ := Measure.restrict volume Tx)
       · simp only [Tx]
@@ -1461,7 +1461,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
         have : x ∈ Ioi 0 := by
           apply mem_Ioi.mpr
           apply lt_of_lt_of_le (by bound) hx.1
-        rw [indicator, if_pos this]
+        rw [indicator, ite_eq_left this]
     · unfold indicator
       simp_rw [mem_Ioi]
       apply Function.support_subset_iff.mpr

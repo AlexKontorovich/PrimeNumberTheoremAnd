@@ -231,14 +231,14 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ}
     exact (not_le_of_gt hm_ge_two) hm_le_one
   have hm_lt_q : m < q := by
     have hmq : m + 1 ≤ q := by
-      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1 (by simp [hk_count])
+      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOfPred_prime).1 (by simp [hk_count])
     exact lt_of_lt_of_le (Nat.lt_succ_self m) hmq
   have hq_prime : Nat.Prime q := by simp [q]
   have hq_le_m_add_g : q ≤ m + g := by
     have hk1 : k - 1 < k := Nat.sub_lt (Nat.succ_le_of_lt hk_pos) (by norm_num)
     have hprev_le_m : nth_prime (k - 1) ≤ m := by
       have hprev_lt : nth_prime (k - 1) < m + 1 := by
-        exact (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOf_prime).1
+        exact (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOfPred_prime).1
           (by simpa [hk_count] using hk1)
       exact Nat.lt_succ_iff.mp hprev_lt
     have hm_le_p : m ≤ p := by
@@ -250,11 +250,11 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ}
       · exact Nat.le_of_lt (hrec (k - 1) hlt)
       · have heq : nth_prime (k - 1) = p := le_antisymm hprev_le_p (le_of_not_gt hlt)
         have hk1_eq_n : k - 1 = n := by
-          apply (nth_strictMono infinite_setOf_prime).injective
+          apply (nth_strictMono infinite_setOfPred_prime).injective
           simpa [hn_p] using heq
         simp [nth_prime_gap, hk1_eq_n, hn_g]
     have hmono : nth_prime (k - 1) ≤ nth_prime (k - 1 + 1) :=
-      (nth_strictMono infinite_setOf_prime).monotone (Nat.le_succ _)
+      (nth_strictMono infinite_setOfPred_prime).monotone (Nat.le_succ _)
     have : q = nth_prime (k - 1) + nth_prime_gap (k - 1) := by
       have hk' : k - 1 + 1 = k := Nat.sub_add_cancel (Nat.succ_le_of_lt hk_pos)
       calc

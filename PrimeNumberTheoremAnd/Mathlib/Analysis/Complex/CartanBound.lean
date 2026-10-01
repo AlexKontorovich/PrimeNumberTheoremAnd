@@ -139,7 +139,7 @@ lemma posLog_one_div_norm_one_sub_le_posLog_one_div_abs_one_sub_norm (w : ℂ) (
   have hdiv :
       (1 / ‖(1 : ℂ) - w‖ : ℝ) ≤ (1 / |1 - ‖w‖| : ℝ) :=
     one_div_le_one_div_of_le hpos hrev'
-  exact Real.posLog_le_posLog (by positivity) hdiv
+  exact Real.posLog_le_posLog (neg_one_lt_zero.le.trans (by positivity)) hdiv
 
 lemma posLog_one_div_norm_one_sub_le_posLog_one_div_abs_one_sub
     {t : ℝ} (ht : t ≠ 1) (w : ℂ) (hw : ‖w‖ = t) :
@@ -169,7 +169,7 @@ lemma phi_le_log_two_of_le_half {t : ℝ} (ht : t ≤ (1 / 2 : ℝ)) : φ t ≤ 
     have := one_div_le_one_div_of_le hhalfpos hden
     simpa [one_div, div_eq_mul_inv] using this
   have hposLog : log⁺ (1 / |1 - t|) ≤ log⁺ (2 : ℝ) :=
-    Real.posLog_le_posLog (by positivity) hfrac
+    Real.posLog_le_posLog (neg_one_lt_zero.le.trans (by positivity)) hfrac
   have habs : (1 : ℝ) ≤ |(2 : ℝ)| := by
     simp
   have hposLog2 : (log⁺ (2 : ℝ)) = Real.log 2 := by
@@ -737,7 +737,7 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
       (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume)
         < ∫ r in R..(2 * R), g r ∂volume := by
     have hab : R ≤ 2 * R := by nlinarith [hR.le]
-    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOf_lt_ne_zero (μ := volume)
+    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOfPred_lt_ne_zero (μ := volume)
       (a := R) (b := 2 * R) (f := fun _ => (Cφ * (∑ i ∈ s, w i))) (g := g)
       hab hconst_int hg_int ?_ hlt_meas
     have hmem : ∀ᵐ r ∂ (volume.restrict (Set.Ioc R (2 * R))), r ∈ Set.Ioc R (2 * R) :=

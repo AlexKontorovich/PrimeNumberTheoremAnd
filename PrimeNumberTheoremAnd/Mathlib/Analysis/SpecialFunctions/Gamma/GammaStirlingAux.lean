@@ -62,7 +62,7 @@ lemma prod_norm_le_pow {s : ℂ} {m : ℕ} (h : ∀ k < m, (k : ℝ) + 1 < s.re)
   calc ‖∏ k ∈ Finset.range m, (s - 1 - k)‖
       = ∏ k ∈ Finset.range m, ‖s - 1 - k‖ := norm_prod _ _
     _ ≤ ∏ _k ∈ Finset.range m, ‖s‖ := by
-        apply Finset.prod_le_prod (fun k _ => norm_nonneg _)
+        apply Finset.prod_le_prod₀ (fun k _ => norm_nonneg _)
         intro k hk; exact norm_shift_le (h k (Finset.mem_range.mp hk))
     _ = ‖s‖ ^ m := by rw [Finset.prod_const, Finset.card_range]
 

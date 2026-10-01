@@ -35,7 +35,7 @@ lemma Finset.prod_le_exp_sum {α : Type} (s : Finset α) (a : α → ℝ) (b : �
     (ha : ∀ x ∈ s, 0 ≤ a x) (hab : ∀ x ∈ s, a x ≤ Real.exp (b x)) :
     (∏ x ∈ s, a x) ≤ Real.exp (∑ x ∈ s, b x) := by
   calc
-    (∏ x ∈ s, a x) ≤ ∏ x ∈ s, Real.exp (b x) := Finset.prod_le_prod ha hab
+    (∏ x ∈ s, a x) ≤ ∏ x ∈ s, Real.exp (b x) := Finset.prod_le_prod₀ ha hab
     _ = Real.exp (∑ x ∈ s, b x) := by
       simpa using (Real.exp_sum (s := s) (f := b)).symm
 

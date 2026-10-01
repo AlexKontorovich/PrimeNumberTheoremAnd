@@ -111,7 +111,7 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
         infer_instance
       rw [eventually_iff]
       simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets,
-        Set.mem_setOf_eq]
+        Set.mem_ofPred_eq]
       use 1
       simp only [imp_self, implies_true]
     apply IsLittleO.isEquivalent
@@ -197,7 +197,7 @@ theorem chebyshev_asymptotic_finsum :
           = ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), log (p : ℝ) :=
             finsum_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
         _ = ∑ p ∈ hfin.toFinset, log (p : ℝ) := finsum_mem_eq_finite_toFinset_sum _ hfin
-        _ = _ := sum_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+        _ = _ := sum_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
             mem_filter, mem_Icc, and_congr_left_iff]; exact fun hp ↦
             ⟨fun hpx ↦ ⟨Nat.zero_le _, Nat.le_floor hpx⟩, fun ⟨_, hpn⟩ ↦
               (le_or_gt 0 x).elim
@@ -311,7 +311,7 @@ theorem primorial_bounds_finprod :
         = ∏ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), p :=
       finprod_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
       _ = ∏ p ∈ hfin.toFinset, p := finprod_mem_eq_finite_toFinset_prod _ hfin
-      _ = _ := prod_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+      _ = _ := prod_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
           mem_filter, mem_Iic, and_congr_left_iff]; exact fun hp ↦
           ⟨le_floor, fun hpn ↦ (le_or_gt 0 x).elim
           (fun hx ↦ (Nat.floor_le hx).trans' (cast_le.mpr hpn)) fun hx ↦
@@ -384,7 +384,7 @@ lemma integral_log_inv' (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
     ((log b)⁻¹ * b) - ((log a)⁻¹ * a) +
       ∫ t in Set.Icc a b, ((log t)^2)⁻¹ := by
   have := integral_log_inv a b ha hb
-  simp only [intervalIntegral.intervalIntegral_eq_integral_uIoc, if_pos hb, Set.uIoc_of_le hb,
+  simp only [intervalIntegral.intervalIntegral_eq_integral_uIoc, ite_eq_left hb, Set.uIoc_of_le hb,
     smul_eq_mul, one_mul] at this
   rw [integral_Icc_eq_integral_Ioc, integral_Icc_eq_integral_Ioc]
   rw [this]
@@ -909,15 +909,15 @@ theorem pi_alt' :
   rw [this]
   convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x))
       (isBigO_refl ..) using 2
-  all_goals first | ring | rfl
+  all_goals ring
 
 
 lemma pi_nth_prime (n : ℕ) :
     primeCounting (nth_prime n) = n + 1 := by
-  rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOf_prime]
+  rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOfPred_prime]
 
 lemma tendsto_nth_prime_atTop : Tendsto nth_prime atTop atTop :=
-  nth_strictMono infinite_setOf_prime |>.tendsto_atTop
+  nth_strictMono infinite_setOfPred_prime |>.tendsto_atTop
 
 lemma pi_nth_prime_asymp :
     (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
@@ -1445,7 +1445,7 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       tactic =>
         simp only [ne_eq, _root_.mul_eq_zero, log_eq_zero, not_or]
         have x_pos := x.property
-        simp_rw [Set.Ioi, Set.mem_setOf_eq] at x_pos
+        simp_rw [Set.Ioi, Set.mem_ofPred_eq] at x_pos
         refine ⟨?_, by linarith, by linarith, by linarith⟩
         have log_num_pos: 0 < log (1 + ε) := by
           exact Real.log_pos (by linarith)
@@ -2016,7 +2016,7 @@ lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
             apply ArithmeticFunction.IsMultiplicative.map_mul_of_coprime;
             · exact ArithmeticFunction.isMultiplicative_moebius;
             · exact Nat.Coprime.coprime_dvd_left ( Nat.div_dvd_of_dvd <| Finset.mem_filter.mp hx |>.2 ) <| Nat.Coprime.coprime_dvd_right ( Nat.div_dvd_of_dvd <| Finset.mem_filter.mp hy |>.2 ) h_coprime;
-          · intros x hx y hy; simp +contextual only [ne_eq, coe_product, coe_filter, mem_Icc, Set.mem_prod, Set.mem_setOf_eq] at *;
+          · intros x hx y hy; simp +contextual only [ne_eq, coe_product, coe_filter, mem_Icc, Set.mem_prod, Set.mem_ofPred_eq] at *;
             intro hxy
             have h_eq1 : x.1 = y.1 := by
               exact Nat.dvd_antisymm ( by exact Nat.Coprime.dvd_of_dvd_mul_right ( show Nat.Coprime ( x.1 ) ( y.2 ) from Nat.Coprime.coprime_dvd_left ( dvd_of_mul_left_dvd hx.1.2 ) <| Nat.Coprime.coprime_dvd_right ( dvd_of_mul_left_dvd hy.2.2 ) h_coprime ) <| hxy.symm ▸ dvd_mul_right _ _ ) ( by exact Nat.Coprime.dvd_of_dvd_mul_right ( show Nat.Coprime ( y.1 ) ( x.2 ) from Nat.Coprime.coprime_dvd_left ( dvd_of_mul_left_dvd hy.1.2 ) <| Nat.Coprime.coprime_dvd_right ( dvd_of_mul_left_dvd hx.2.2 ) h_coprime ) <| hxy.symm ▸ dvd_mul_right _ _ )
@@ -2091,7 +2091,7 @@ lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
       rw [ Finset.prod_pow_eq_pow_sum ];
       rw [ ArithmeticFunction.cardFactors_apply ];
       rw [ ← Multiset.coe_card, ← Multiset.toFinset_sum_count_eq ];
-      norm_num +zetaDelta
+      norm_num +zetaDelta [Nat.primeFactorsList_count_eq]
 
 lemma sum_lambda_eq_sum_mu_div_sq (N : ℕ) :
     ∑ n ∈ Finset.Icc 1 N, ((-1 : ℝ) ^ (Ω n)) =
@@ -2360,7 +2360,7 @@ lemma sum_mobius_div_approx (x : ℝ) (K : ℕ) (hK : 0 < K) (hx : 1 ≤ x) :
     have h_bound : |∑ n ∈ Finset.Icc 1 ⌊x / (K : ℝ)⌋₊, (μ n : ℝ) * (x / (n : ℝ) - ⌊x / (n : ℝ)⌋)| ≤ ⌊x / (K : ℝ)⌋₊ := by
       have h_bound : ∀ n ∈ Finset.Icc 1 ⌊x / (K : ℝ)⌋₊, |(μ n : ℝ) * (x / (n : ℝ) - ⌊x / (n : ℝ)⌋)| ≤ 1 := by
         norm_num [abs_mul]
-        exact fun n hn₁ hn₂ => mul_le_one₀ (mod_cast by exact abs_moebius_le_one) (abs_nonneg _) (abs_le.mpr ⟨by linarith [Int.fract_nonneg (x / n)], by linarith [Int.fract_lt_one (x / n)]⟩)
+        exact fun n hn₁ hn₂ => (mul_le_of_le_one_left (abs_nonneg _) (mod_cast by exact abs_moebius_le_one)).trans (abs_le.mpr ⟨by linarith [Int.fract_nonneg (x / n)], by linarith [Int.fract_lt_one (x / n)]⟩)
       exact le_trans (Finset.abs_sum_le_sum_abs _ _) (le_trans (Finset.sum_le_sum h_bound) (by norm_num))
     have h_sum_floor : ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / (n : ℝ)⌋ = 1 := by
       convert sum_mobius_floor x hx using 1
@@ -2524,7 +2524,7 @@ theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) 
     Infinite { p // p.Prime ∧ p % q = a } := by
   have : {p | p.Prime ∧ p % q = a}.Infinite := by
     have : {p | p.Prime ∧ p ≡ a [MOD q]}.Infinite := by
-      have := @infinite_setOf_prime_and_eq_mod
+      have := @infinite_setOfPred_prime_and_eq_mod
       specialize @this q <| NeZero.of_pos hq
       simp_all only [isUnit_iff_exists_inv, forall_exists_index, ← ZMod.natCast_eq_natCast_iff]
       exact this (IsUnit.exists_right_inv (show IsUnit (a : ZMod q) from by
@@ -2539,13 +2539,28 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
-$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
-\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
+\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}
+Let $m\geq 1$ and $G = \mathrm{Gal}(\mathbb{Q}(\mu_m)/\mathbb{Q}) \cong (\mathbb{Z}/m\mathbb{Z})^\times$.
+For any $a$ coprime to $m$,
+\[
+\sum_{\substack{N\mathfrak{p}\leq x\\ N\mathfrak{p}\equiv a\pmod{m}}} \log N\mathfrak{p}
+\;=\;
+\frac{1}{|G|} \sum_{N\mathfrak{p}\leq x} \log N\mathfrak{p}
+\;+\; o\Bigl(\sum_{N\mathfrak{p}\leq x} \log N\mathfrak{p}\Bigr).
+\]
+In particular the primes in the progression $a\pmod{m}$ have natural density $1/\varphi(m)$
+(Dirichlet's theorem).
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-PNT, WeakPNT-AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+\begin{proof}\uses{Chebotarev-cyclotomic-density, Dedekind-PNT, WeakPNT-AP}
+Specialise Proposition~\ref{Chebotarev-cyclotomic-density} to $K=\mathbb{Q}$ and
+$L=\mathbb{Q}(\mu_m)$: the Frobenius condition $\varphi_p=\sigma_a$ with
+$\sigma_a(\zeta_m)=\zeta_m^a$ is exactly $p\equiv a\pmod{m}$.  The asymptotic form with
+$\log N\mathfrak{p}$ follows by Fourier expansion of the indicator of the progression against
+characters of $G$, using Lemma~\ref{Dedekind-PNT} to kill the nontrivial character sums and
+the prime-number theorem in AP (Lemma~\ref{WeakPNT-AP}) for the main term.  Cf.\ also
+Corollary~7.2.3 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
 -/

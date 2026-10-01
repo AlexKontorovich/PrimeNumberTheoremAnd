@@ -7,6 +7,8 @@
 
 The objective of this project is to formalize in Lean the Prime Number Theorem (with classical error term), as well as related results such as the Prime Number Theorem in Arithmetic Progressions.  A stretch goal would be to obtain the Chebotarev density theorem.  We are also hosting the [Integrated Explicit Analytic Number Theory network](https://www.ipam.ucla.edu/news-research/special-projects/integrated-explicit-analytic-number-theory-network/).  A personal log describing the latter project may be [found here](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/wiki/Terence-Tao's-personal-log).
 
+> **IEANTN porting notice (2026-08).** The IEANTN Lean material is being ported to its own repository, [teorth/IEANTN](https://github.com/teorth/IEANTN); the code presently under `PrimeNumberTheoremAnd/IEANTN/` here will be trimmed once the port is complete. In-flight tasks already claimed against open issues in this repo may continue here, but any new IEANTN contribution should be made to [teorth/IEANTN](https://github.com/teorth/IEANTN) instead.
+
 [Here is the blueprint](https://alexkontorovich.github.io/PrimeNumberTheoremAnd/blueprint/) for the project.
 
 ## Zulip

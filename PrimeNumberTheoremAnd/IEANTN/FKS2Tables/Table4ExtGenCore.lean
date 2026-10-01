@@ -48,22 +48,6 @@ lemma eval_powRhs (q : ℚ) (k : ℕ) (s : ℝ) :
     Expr.eval (fun _ => s) (powRhs q k) = (q : ℝ) * s ^ k := by
   simp only [powRhs, Expr.eval_mul, Expr.eval_const, Expr.eval_pow, Expr.eval_var]
 
-/-- Integer powers of a supported expression are supported. -/
-lemma pow_supported {e : Expr} (he : ExprSupportedWithInv e) :
-    ∀ k, ExprSupportedWithInv (Expr.pow e k)
-  | 0 => ExprSupportedWithInv.const 1
-  | (n + 1) => ExprSupportedWithInv.mul he (pow_supported he n)
-
-lemma sub_supported (c64 q : ℚ) (k : ℕ) :
-    ExprSupportedWithInv (Expr.sub (expSplitC c64) (powRhs q k)) := by
-  have hL : ExprSupportedWithInv (expSplitC c64) := by
-    simp only [expSplitC, sqE]; repeat constructor
-  have hR : ExprSupportedWithInv (powRhs q k) :=
-    ExprSupportedWithInv.mul (ExprSupportedWithInv.const q)
-      (pow_supported (ExprSupportedWithInv.var 0) k)
-  rw [Expr.sub]
-  exact ExprSupportedWithInv.add hL (ExprSupportedWithInv.neg hR)
-
 /-- Parameters of a generalized (row) cell check: the rational exp coefficient
 `c64 = ĉ/64`, the integer power `k = 2B`, a rational `rB ≥ R^B`, and the row
 `Aq = A`. -/
@@ -110,7 +94,7 @@ theorem cell_eps_le_admissible_gen
     obtain ⟨⟨⟨⟨⟨heps, hslo0⟩, hrBpos⟩, hslo⟩, hshi⟩, hcheck⟩ := hc
     have hslab := verify_expr_le_on_interval_dyadic (expSplitC P.c64)
       (powRhs (P.Aq / (c.eps * P.rB)) P.k) ⟨c.slo, c.shi, hle⟩ (-50) 8
-      (sub_supported _ _ _) (by norm_num) hcheck
+      (by norm_num) hcheck
     intro x hx
     obtain ⟨hx_lo, hx_hi⟩ := hx
     have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (exp_pos _) hx_lo

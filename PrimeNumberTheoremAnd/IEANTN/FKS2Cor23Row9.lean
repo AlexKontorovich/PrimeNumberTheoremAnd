@@ -113,11 +113,6 @@ theorem eval_rhsE9 (s : ℝ) :
   ring_nf
   rw [h8]
 
-theorem support9 : ExprSupportedWithInv (Expr.sub FloorButhe.lhsE rhsE9) := by
-  simp only [Expr.sub, FloorButhe.lhsE, rhsE9, eR9, FloorButhe.pow8, FloorButhe.sqx,
-    FloorButhe.s2, FloorButhe.s3, FloorButhe.s4, FloorButhe.e2]
-  repeat constructor
-
 theorem slabs_checked9 :
     checkExprLeOnSlabsDyadic FloorButhe.lhsE rhsE9 FloorButhe.slabs (-50) 6 = true := by
   native_decide
@@ -134,7 +129,7 @@ theorem rhsE9_le_rowcurve (x : ℝ) (hL : (5 : ℝ) ≤ Real.log x) :
 /-- Row-9 floor segment `[e^5, e^10]` via the shared `floor_buthe_of_curve`. -/
 theorem floor_buthe9 : ∀ x ∈ Set.Icc (Real.exp 5) (Real.exp 10),
     Eπ x ≤ admissible_bound 6.60 2 2 5.5666305 x :=
-  FloorButhe.floor_buthe_of_curve rhsE9 6.60 2 2 support9 slabs_checked9 rhsE9_le_rowcurve
+  FloorButhe.floor_buthe_of_curve rhsE9 6.60 2 2 slabs_checked9 rhsE9_le_rowcurve
 
 end FloorButhe9
 

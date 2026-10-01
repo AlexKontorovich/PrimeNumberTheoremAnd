@@ -136,7 +136,7 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
   and
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
-  (proof := /-- Combine Lemmas \ref{bklnw-lemma-11a} with $b = \log X_1$ for the upper bound, and and \ref{bklnw-lemma-11b} with $b = \log X_0$ for the lower bound. -/)
+  (proof := /-- Combine Lemmas \ref{bklnw-lemma-11a} with $b = \log X_1$ for the upper bound, and \ref{bklnw-lemma-11b} with $b = \log X_0$ for the lower bound. -/)
   (latexEnv := "theorem")
   (discussion := 790)]
 theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
@@ -1220,7 +1220,7 @@ theorem bklnw_eq_3_11 (k n : ℕ) (hk : 1 ≤ k) (a : ℕ → ℝ) (ε : ℝ →
   (hbb : b < b') (hbk : b ≥ 2 * k) :
   B k n a ε b b' ≤ Btilde k n a ε b b' := by
   unfold B Btilde
-  haveI h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
+  have h_nonempty : Nonempty (Set.Icc (exp b) (exp b')) := by
     use exp b
     simp only [Set.mem_Icc, le_refl, true_and]
     exact exp_le_exp.mpr hbb.le
@@ -1403,7 +1403,8 @@ lemma table_10_next_gt (b : ℝ) (hb_lt_K : b < (K : ℝ)) : b < table_10_next b
     simpa only [table_10_bs, Nat.cast_ofNat, union_singleton, mem_filter, mem_insert,
       List.mem_toFinset, List.mem_map, Prod.exists, exists_and_right, exists_eq_right, true_or,
       true_and]
-  rw [table_10_next_eq_min' b ⟨(K : ℝ), h2⟩]
+  have hne : (table_10_bs.filter (b < ·)).Nonempty := ⟨(K : ℝ), h2⟩
+  rw [table_10_next_eq_min' b hne]
   simp only [lt_min'_iff, mem_filter, and_imp, imp_self, implies_true]
 
 -- The unabridged 287-row `table_10` makes the per-entry membership enumeration below
@@ -1509,15 +1510,12 @@ theorem bklnw_cor_8_1b (k : ℕ) (b₀ : ℝ) (hk : 1 ≤ k ∧ k ≤ 5)
       (mul_le_mul_of_nonneg_right hB hx_pos.le)
       (pow_nonneg (log_pos hx_gt_one).le k)
 
-@[blueprint
-  "bklnw-table-11-verification"
-  (title := "BKLNW Table 11 verification")
-  (statement := /--  Verification of the entries of Table 11. -/)
-  (proof := /-- TODO: Implement a margin and verify the entries of Table 11. Any lengthy numerical calculations should be moved to `BKLNW\_tables.lean`-/)
-  (latexEnv := "proposition")
-  (discussion := 1257)]
-theorem bklnw_table_11_verification (b₀ : ℝ) (B : ℕ → ℝ) (h : (b₀, B 1, B 2, B 3, B 4, B 5) ∈ BKLNW.table_11) : ∀ k ∈ Finset.Icc 1 5, B_8_1' k b₀ ≤ B k := by
-  sorry
+-- `bklnw_table_11_verification` is stated and proved in
+-- `BKLNW_table11_dispatch.lean`. It has to live downstream of
+-- `BKLNW_table10_dispatch.lean`, because its above-`10^19` branch consumes
+-- `bklnw_table_10_verification`, and the Table-10 row files already import the
+-- present file (for `B_8_exact`). This mirrors where
+-- `bklnw_table_10_verification` itself lives.
 
 
 blueprint_comment /--

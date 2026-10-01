@@ -66,7 +66,7 @@ lemma zetaSurrogate_differentiable : Differentiable ℂ zetaSurrogate := by
     have hd : DifferentiableAt ℂ (fun w : ℂ ↦ (w - 1) * riemannZeta w) s :=
       (differentiableAt_id.sub_const 1).mul (differentiableAt_riemannZeta hs1)
     exact (hd.congr_of_eventuallyEq (zetaSurrogate_eventuallyEq hs1)).differentiableWithinAt
-  · have h1 : zetaSurrogate 1 = 1 := if_pos rfl
+  · have h1 : zetaSurrogate 1 = 1 := ite_eq_left rfl
     have hev : (fun w : ℂ ↦ (w - 1) * riemannZeta w) =ᶠ[nhdsWithin 1 {(1 : ℂ)}ᶜ]
         zetaSurrogate := by
       filter_upwards [self_mem_nhdsWithin] with w hw
@@ -141,7 +141,7 @@ private lemma surrogate_growth_right :
       norm_num [Complex.one_re] at hz
     have hzn : (0 : ℝ) ≤ ‖z‖ := norm_nonneg z
     have hg : ‖zetaSurrogate z‖ ≤ M * (1 + ‖z‖) := by
-      rw [zetaSurrogate, if_neg hz1, norm_mul]
+      rw [zetaSurrogate, ite_eq_right hz1, norm_mul]
       have h1 : ‖z - 1‖ ≤ 1 + ‖z‖ := by
         calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
           _ = 1 + ‖z‖ := by rw [norm_one]; ring
@@ -463,7 +463,7 @@ private lemma surrogate_growth_left :
     have hgz : ‖zetaSurrogate z‖ ≤
         (1 + ‖z‖) * ((4 * M * ((n + 1).factorial : ℝ)) *
           Real.exp (Real.pi * ‖w‖ / 2)) := by
-      rw [zetaSurrogate, if_neg hz1, norm_mul]
+      rw [zetaSurrogate, ite_eq_right hz1, norm_mul]
       have hz1n : ‖z - 1‖ ≤ 1 + ‖z‖ := by
         calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
           _ = 1 + ‖z‖ := by rw [norm_one]; ring
@@ -651,7 +651,7 @@ private lemma surrogate_growth_band :
           rw [h] at him
           norm_num [Complex.one_im] at him
         have hg : ‖zetaSurrogate z‖ ≤ (3 * (1 + ‖z‖)) * (1 + ‖z‖) := by
-          rw [zetaSurrogate, if_neg hz1, norm_mul]
+          rw [zetaSurrogate, ite_eq_right hz1, norm_mul]
           have ha : ‖z - 1‖ ≤ 1 + ‖z‖ := by
             calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
               _ = 1 + ‖z‖ := by rw [norm_one]; ring
@@ -745,7 +745,7 @@ private lemma surrogate_growth_band :
         have hζw := zeta_norm_le_subband hwre1 hwim
         have hg : ‖zetaSurrogate z‖ ≤
             (1 + ‖z‖) * ((64 * (1 + ‖z‖)) * Real.exp (Real.pi * ‖w‖ / 2)) := by
-          rw [zetaSurrogate, if_neg hz1, norm_mul]
+          rw [zetaSurrogate, ite_eq_right hz1, norm_mul]
           have ha : ‖z - 1‖ ≤ 1 + ‖z‖ := by
             calc ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z 1
               _ = 1 + ‖z‖ := by rw [norm_one]; ring
@@ -986,7 +986,7 @@ lemma zetaCounting_le_surrogate_mass :
   have hseteq : riemannZeta.zeroes_rect Set.univ (Set.Ioo 0 T) =
       riemannZeta.zeroes_rect (Set.Icc 0 1) (Set.Ioo 0 T) := by
     ext ρ
-    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_ofPred_eq,
       Set.mem_univ, true_and, Set.mem_Icc, Set.mem_Ioo]
     constructor
     · rintro ⟨him, hzero⟩
@@ -1005,7 +1005,7 @@ lemma zetaCounting_le_surrogate_mass :
       riemannZeta ρ = 0 ∧ 0 < ρ.im ∧ ρ.im < T ∧ 0 ≤ ρ.re ∧ ρ.re ≤ 1 ∧ ρ ≠ 1 := by
     intro ρ hρ
     rw [hseteq] at hρ
-    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_setOf_eq,
+    simp only [riemannZeta.zeroes_rect, riemannZeta.zeroes, Set.mem_ofPred_eq,
       Set.mem_Icc, Set.mem_Ioo] at hρ
     obtain ⟨⟨hre0, hre1⟩, ⟨him0, himT⟩, hzero⟩ := hρ
     refine ⟨hzero, him0, himT, hre0, hre1, fun h ↦ ?_⟩

@@ -471,7 +471,7 @@ theorem eq12_no_border_poles {Φ : ℂ → ℂ} {b : ℝ}
         (fun s ↦ (-deriv riemannZeta s / riemannZeta s) * Φ (-s)) s < 0} := by
   rw [Set.disjoint_left]
   intro s hs_border hs_pole
-  simp only [Set.mem_setOf_eq] at hs_pole
+  simp only [Set.mem_ofPred_eq] at hs_pole
   obtain ⟨hζ_ne, hs1⟩ := hborder s hs_border
   have hs_rect : s ∈ Rectangle ((-a : ℝ) - (T : ℂ) * I) ((1 + a : ℝ) + (T : ℂ) * I) :=
     rectangleBorder_subset_rectangle _ _ hs_border

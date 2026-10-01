@@ -4,10 +4,12 @@ import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Helpers
 import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq15
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 import PrimeNumberTheoremAnd.LaplaceInversion
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
+import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
 import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
 import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
@@ -188,60 +190,29 @@ theorem kadiri_thm_3_1_q1_laplace_inversion {φ : ℝ → ℂ} (_hφ : ContDiff 
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-11"
-  (title := "Equation (11) of \\cite{Kadiri2005}: LHS as a Mellin contour integral")
+  (title := "Equation (11) of \\cite{Kadiri2005}: truncated contour limit")
   (statement := /-- For $\varphi$ satisfying (A) and (B) of \ref{kadiri-thm-3-1-q1},
   and any real $a$ with $0 < a < b$ and $a < 1$,
-  $$ \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n)
-     = \frac{1}{2 \pi i}
-       \int_{1 + a - i\infty}^{1 + a + i\infty}
-         \left(-\frac{\zeta'}{\zeta}\right)(s)\, \Phi(-s)\, ds, $$
+  $$ I(T) \xrightarrow[T \to \infty]{}
+     \sum_{n \geq 1} \Lambda(n)\, \varphi(\log n), $$
   with $\Phi$ as in \ref{kadiri-thm-3-1-q1-laplace-inversion}. This is equation~(11) of
-  \cite{Kadiri2005}, page~11, specialized to $q = 1$. -/)
-  (proof := /-- Corollary of \ref{kadiri-thm-3-1-q1-laplace-inversion}: multiply that
-  identity by $\Lambda(n)$, sum over $n \geq 1$, and exchange sum and integral
-  (justified by absolute convergence of the Dirichlet series for $-\zeta'/\zeta$ on
-  $\sigma > 1$ combined with the $O(1/|t|)$ decay of $\Phi$ from (B)). The Dirichlet
-  series identity $-\zeta'/\zeta(s) = \sum_n \Lambda(n) n^{-s}$ converts the sum into a
-  factor of $-\zeta'/\zeta(s)$ in the integrand. Finally, change of variable
-  $s \mapsto -s$ maps the contour $\sigma = -(1 + a)$ to $\sigma = 1 + a$ (with the
-  orientation-flip cancelling the sign from $ds$). To be formalised. -/)
+  \cite{Kadiri2005}, page~11, specialized to $q = 1$, in truncated-limit form. -/)
+  (proof := /-- This follows from pointwise Laplace inversion, the finite-window sum and
+  integral exchange, and the limiting argument for the truncated contour integral $I(T)$. -/)
   (latexEnv := "sublemma")
   (discussion := 1536)]
-theorem kadiri_thm_3_1_q1_eq_11 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
-    {b : ℝ} (_hb : 0 < b)
-    (_hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
+theorem kadiri_thm_3_1_q1_eq_11
+    {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
+    {b : ℝ} (hb : 0 < b)
+    (hφ_decay : (fun x : ℝ ↦ φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    (_hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
+    (hφ'_decay : (fun x : ℝ ↦ deriv φ x * exp ((x : ℂ) / 2))
         =O[Filter.cocompact ℝ] fun x : ℝ ↦ Real.exp (-(1/2 + b) * |x|))
-    {a : ℝ} (_ha : 0 < a) (_hab : a < b) (_ha1 : a < 1) :
-    let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-    (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n)) =
-      (1 / (2 * (Real.pi : ℂ))) *
-        ∫ t : ℝ,
-          (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-              riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-            Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) := by
-  sorry
-
-@[blueprint
-  "kadiri-thm-3-1-q1-I"
-  (title := "Truncated contour integral $I(T)$ on $\\sigma = 1 + a$")
-  (statement := /-- Kadiri's $I(T)$ from \cite[p.~12]{Kadiri2005}: the truncated contour
-  integral
-  $$ I(T) \;:=\; \frac{1}{2\pi i} \int_{1+a-iT}^{1+a+iT}
-              \!\!\!\! \left(-\frac{\zeta'}{\zeta}\right)\!(s)\, \Phi(-s)\, ds, $$
-  where $\Phi(s) := \int_0^\infty \varphi(y) e^{-sy}\, dy$ is the Laplace transform of
-  $\varphi$. The $T \to \infty$ limit of $I(T)$ is the Mellin-contour identity of
-  \ref{kadiri-thm-3-1-q1-eq-11}, and its rectangle decomposition is equation~(12) of
-  \cite{Kadiri2005} (\ref{kadiri-thm-3-1-q1-eq-12}). -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      (-deriv riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I) /
-          riemannZeta (((1 + a : ℝ) : ℂ) + (t : ℂ) * I)) *
-        Φ (-(((1 + a : ℝ) : ℂ) + (t : ℂ) * I))
+    {a : ℝ} (ha : 0 < a) (hab : a < b) (ha1 : a < 1) :
+    Tendsto (fun T : ℝ => kadiri_thm_3_1_q1_I φ a T) atTop
+      (𝓝 (∑' n : ℕ, (Λ n : ℂ) * φ (Real.log n))) :=
+  kadiri_thm_3_1_q1_eq_11_truncated_limit
+    (φ := φ) hφ (b := b) hb hφ_decay hφ'_decay (a := a) ha hab ha1
 
 @[blueprint
   "kadiri-thm-3-1-q1-eq-12"
@@ -388,7 +359,7 @@ theorem kadiri_thm_3_1_q1_eq_12 {φ : ℝ → ℂ} (_hφ : ContDiff ℝ 1 φ)
       = insert (1 : ℂ) (riemannZeta.zeroes_rect (Set.Ioo 0 1) (Set.Ioo (-T) T)) ∩
         {s | meromorphicOrderAt f s < 0} := by
     ext s
-    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_insert_iff]
+    simp only [Set.mem_inter_iff, Set.mem_ofPred_eq, Set.mem_insert_iff]
     refine and_congr_left fun hord => ?_
     constructor
     · intro hsbox
@@ -881,31 +852,6 @@ private theorem kadiri_thm_3_1_q1_shifted_pointwise_functional_eq
           (∫ y, φ y * exp (-(-s) * (y : ℂ)) ∂volume) := by
       ring
 
-@[blueprint
-  "kadiri-thm-3-1-q1-I-3"
-  (title := "Kadiri's $I_3(T)$: the gamma-factor piece")
-  (statement := /-- Kadiri's $I_3(T)$ from \cite[p.~12]{Kadiri2005}: the gamma-factor
-  piece of the functional-equation rewrite of the $\sigma = -a$ integral,
-  $$ I_3(T) \;:=\; \frac{1}{2\pi i} \int_{-a - iT}^{-a + iT}
-                  \frac{1}{2}\Big\{
-                    \frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)
-                  + \frac{\Gamma'}{\Gamma}\!\Big(\frac{1-s}{2}\Big)
-                  \Big\}\, \Phi(-s)\, ds. $$
-  Its $T \to \infty$ limit is given by \ref{kadiri-thm-3-1-q1-eq-15}: shifting the
-  contour to the critical line $\Re s = 1/2$ picks up a $+\Phi(0)$ residue at $s = 0$
-  (from the pole of $\Gamma'/\Gamma(s/2)$ at the origin), and the
-  $\Gamma'/\Gamma$-symmetrization (\ref{kadiri-thm-3-1-q1-gamma-symmetrization}) on
-  $\Re s = 1/2$ collapses the two gamma terms into $\Re[\Gamma'/\Gamma(s/2)]$. -/)
-  (latexEnv := "definition")]
-noncomputable def kadiri_thm_3_1_q1_I_3 (φ : ℝ → ℂ) (a T : ℝ) : ℂ :=
-  let Φ : ℂ → ℂ := fun s ↦ ∫ y, φ y * exp (-s * (y : ℂ)) ∂volume
-  (1 / (2 * (Real.pi : ℂ))) *
-    ∫ t in Set.Ioo (-T) T,
-      ((1 / 2 : ℂ) *
-        (digamma ((((-a : ℝ) : ℂ) + (t : ℂ) * I) / 2)
-         + digamma ((1 - (((-a : ℝ) : ℂ) + (t : ℂ) * I)) / 2))) *
-        Φ (-(((-a : ℝ) : ℂ) + (t : ℂ) * I))
-
 /-- The finite-segment continuity of the gamma-factor coefficient on the shifted contour. -/
 private def U1541ShiftedDigammaCoefficientContinuousHypothesis (a T : ℝ) : Prop :=
   ContinuousOn
@@ -1304,54 +1250,6 @@ theorem kadiri_thm_3_1_q1_eq_14
       (nhds (-∑' n : ℕ, ((Λ n : ℂ) / (n : ℂ)) * φ (-Real.log n))) := by
   exact kadiri_thm_3_1_q1_eq_14_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1
 
-/-- The digamma function commutes with complex conjugation. Mathlib's junk-value
-conventions make this unconditional: `Complex.Gamma_conj` holds at every point,
-`deriv` returns `0` at non-differentiable points on both sides of the symmetry,
-and `conj` fixes `0`. In the application below the argument `s / 2` has real
-part `1 / 4`, away from the poles of `Γ` in any case. -/
-private lemma digamma_conj (z : ℂ) :
-    digamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (digamma z) := by
-  have hΓ : (starRingEnd ℂ) ∘ Gamma ∘ (starRingEnd ℂ) = Gamma := by
-    funext w
-    simp [Function.comp_apply, Gamma_conj]
-  have hd : deriv Gamma ((starRingEnd ℂ) z) = (starRingEnd ℂ) (deriv Gamma z) := by
-    conv_lhs => rw [← hΓ, deriv_conj_conj]
-    simp [Function.comp_apply]
-  rw [digamma_def, logDeriv_apply, logDeriv_apply, hd, Gamma_conj, ← map_div₀]
-
-@[blueprint
-  "kadiri-thm-3-1-q1-gamma-symmetrization"
-  (title := "$\\Gamma'/\\Gamma$ symmetrization on the critical line")
-  (statement := /-- For every $s \in \mathbb{C}$ with $\Re s = 1/2$,
-  $$ \frac{1}{2}\!\left\{
-       \frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)
-     + \frac{\Gamma'}{\Gamma}\!\Big(\frac{1-s}{2}\Big)
-       \right\}
-     \;=\; \Re\!\left[\frac{\Gamma'}{\Gamma}\!\Big(\frac{s}{2}\Big)\right]. $$
-  Used to identify the integrand of $I_3$ after shifting to the critical line
-  (\cite[p.~13]{Kadiri2005}, displayed equation between (14) and (15)). -/)
-  (proof := /-- On $\Re s = 1/2$, $1 - s = \bar s$, hence $(1 - s)/2 = \overline{s/2}$.
-  Since $\Gamma'/\Gamma$ has real Taylor coefficients away from its poles, it commutes
-  with complex conjugation: $\Gamma'/\Gamma((1-s)/2) = \overline{\Gamma'/\Gamma(s/2)}$.
-  Then $\tfrac{1}{2}(z + \bar z) = \Re z$ with $z = \Gamma'/\Gamma(s/2)$. To be
-  formalised. -/)
-  (latexEnv := "sublemma")
-  (discussion := 1544)]
-theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
-    (1 / 2 : ℂ) * (digamma (s / 2) + digamma ((1 - s) / 2)) =
-      ((digamma (s / 2)).re : ℂ) := by
-  have h1s : 1 - s = (starRingEnd ℂ) s := by
-    apply Complex.ext
-    · rw [Complex.sub_re, Complex.one_re, Complex.conj_re, _hs]
-      norm_num
-    · rw [Complex.sub_im, Complex.one_im, Complex.conj_im]
-      ring
-  have hconj : (1 - s) / 2 = (starRingEnd ℂ) (s / 2) := by
-    rw [map_div₀, map_ofNat, h1s]
-  rw [hconj, digamma_conj, Complex.add_conj]
-  push_cast
-  ring
-
 @[blueprint
   "kadiri-thm-3-1-q1-eq-15"
   (title := "Equation (15) of \\cite{Kadiri2005}: limit of $I_3(T)$")
@@ -1375,7 +1273,7 @@ theorem kadiri_thm_3_1_q1_gamma_symmetrization {s : ℂ} (_hs : s.re = 1 / 2) :
   value is well-defined precisely under the explicit integrability hypothesis on the
   $\Gamma$-contour integrand (otherwise the integral evaluates to $0$ by Mathlib's
   convention and the statement is vacuous); this same hypothesis is carried by
-  \ref{kadiri-thm-3-1-q1}. To be formalised. -/)
+  \ref{kadiri-thm-3-1-q1}. -/)
   (latexEnv := "sublemma")
   (discussion := 1545)]
 theorem kadiri_thm_3_1_q1_eq_15
@@ -1397,7 +1295,7 @@ theorem kadiri_thm_3_1_q1_eq_15
             ∫ t : ℝ,
               ((digamma ((1 / 2 + (t : ℂ) * I) / 2)).re : ℂ) *
                 Φ (-(1 / 2 + (t : ℂ) * I)))) := by
-  sorry
+  exact kadiri_thm_3_1_q1_eq_15_core _hφ _hb _hφ_decay _hφ'_decay _ha _hab _ha1 _hΓ_int
 
 /-! ## Theorem 3.1 of \cite{Kadiri2005}, specialized to $q = 1$, $\chi$ trivial
 
@@ -2956,7 +2854,7 @@ theorem summable_lap_sub_pole_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -2988,7 +2886,7 @@ theorem summable_re_one_div_at_zeros (s : ℂ) :
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -3047,8 +2945,8 @@ theorem summable_one_div_add_one_div_at_zeros (s : ℂ) :
     (nontrivialZeros_abs_im_lt_one_finite.union
       (nontrivialZeros_shifted_abs_im_lt_one_finite s))
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad
-  rw [Set.mem_union, Set.mem_setOf_eq, Set.mem_setOf_eq]
+  rw [Set.mem_ofPred_eq] at hbad
+  rw [Set.mem_union, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
   by_contra hsmall
   rw [not_or] at hsmall
   obtain ⟨h1, h2⟩ := hsmall
@@ -3170,7 +3068,7 @@ theorem summable_kadiriTestFn_weighted_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ 
     rw [Filter.eventually_cofinite]
     apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
     intro ρ hbad
-    rw [Set.mem_setOf_eq] at hbad ⊢
+    rw [Set.mem_ofPred_eq] at hbad ⊢
     by_contra hsmall
     have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
     have him0 : (s - (ρ : ℂ)).im ≠ 0 := by
@@ -3268,7 +3166,7 @@ theorem summable_lap_re_at_zeros {d : ℝ} (hd : 0 < d) {f : ℝ → ℝ}
   rw [Filter.eventually_cofinite]
   apply Set.Finite.subset (nontrivialZeros_shifted_abs_im_lt_one_finite s)
   intro ρ hbad
-  rw [Set.mem_setOf_eq] at hbad ⊢
+  rw [Set.mem_ofPred_eq] at hbad ⊢
   by_contra hsmall
   have him : 1 ≤ |(s - (ρ : ℂ)).im| := le_of_not_gt hsmall
   have hre : (ρ : ℂ).re ∈ Set.Ioo (0 : ℝ) 1 := ρ.property.1

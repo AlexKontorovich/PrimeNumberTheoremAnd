@@ -550,7 +550,7 @@ lemma ZetaBnd_aux1p (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2)
   use 2
   rw [Asymptotics.isBigOWith_principal]
   intro t ht
-  simp only [mem_setOf_eq] at ht
+  simp only [mem_ofPred_eq] at ht
   rw [norm_norm, norm_mul, mul_div_assoc, norm_mul]
   have : 2 * (‖|t|‖ * ‖↑N ^ (-σ) / σ‖) = (2 * |t|) * ((N : ℝ) ^ (-σ) / σ) := by
     simp only [Real.norm_eq_abs, _root_.abs_abs, norm_div]
@@ -643,7 +643,7 @@ open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
   HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-z - 1))
     (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x)) s := by
-  simp only [mem_setOf_eq] at hs
+  simp only [mem_ofPred_eq] at hs
   set f : ℝ → ℂ := fun x ↦ (⌊x⌋ : ℂ) + 1 / 2 - x
   set F : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * f x
   set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x
@@ -792,7 +792,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
 lemma HolomorphicOn_riemannZeta :
     HolomorphicOn ζ {s : ℂ | s ≠ 1} := by
   intro z hz
-  simp only [mem_setOf_eq] at hz
+  simp only [mem_ofPred_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 @[blueprint
@@ -806,13 +806,13 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
   use (2 : ℂ)
   constructor
   · simp
-  intro w hw; simp only [ne_eq, mem_setOf_eq] at hw
+  intro w hw; simp only [ne_eq, mem_ofPred_eq] at hw
   by_cases w_im : w.im = 0
   · apply JoinedIn.trans (y := 1 + I)
     · let f : ℝ → ℂ := fun t ↦ (1 + I) * t + 2 * (1 - t)
       have cont : Continuous f := by continuity
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, one_re,
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re, one_re,
         I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im, zero_add, ofReal_im, mul_zero,
         sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f]
       intro x hx; simp only [mem_Icc] at hx
@@ -822,11 +822,11 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
     · let f : ℝ → ℂ := fun t ↦ w * t + (1 + I) * (1 - t)
       have cont : Continuous f := by continuity
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re,
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re,
         ofReal_re, ofReal_im, mul_zero, sub_zero, one_re, I_re, add_zero, sub_re, one_mul, add_im,
         one_im, I_im, zero_add, sub_im, sub_self, f]
       intro x hx; simp only [mem_Icc] at hx
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       constructor
       · intro h
         refine hw.1 ?_
@@ -842,7 +842,7 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
   · let f : ℝ → ℂ := fun t ↦ w * t + 2 * (1 - t)
     have cont : Continuous f := by continuity
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-    simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, ofReal_re,
+    simp only [unitInterval, ne_eq, image_subset_iff, preimage_ofPred_eq, add_re, mul_re, ofReal_re,
       ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re, im_ofNat, sub_im, one_im, sub_self,
       f]
     intro x hx; simp only [mem_Icc] at hx
@@ -874,7 +874,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have f_an : AnalyticOnNhd ℂ f U := by
     apply (HolomorphicOn_riemannZeta.analyticOnNhd isOpen_ne).mono
-    simp only [ne_eq, setOf_subset_setOf, and_imp, U]
+    simp only [ne_eq, ofPred_subset_ofPred, and_imp, U]
     exact fun a ha _ ↦ ha
   have g_an : AnalyticOnNhd ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOnNhd isOpen_aux
   have preconU : IsPreconnected U := by
@@ -886,7 +886,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
     apply mem_nhds_iff.mpr
     use {z : ℂ | 1 < z.re}
-    simp only [setOf_subset_setOf, imp_self, forall_const, mem_setOf_eq, re_ofNat,
+    simp only [ofPred_subset_ofPred, imp_self, forall_const, mem_ofPred_eq, re_ofNat,
       Nat.one_lt_ofNat, and_true, true_and]
     exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
@@ -902,7 +902,7 @@ lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s
     deriv (ζ₀ N) s = ζ' s := by
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
-    simp only [mem_setOf_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
+    simp only [mem_ofPred_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
   refine deriv_eqOn isOpen_aux ?_ (by simp [s_ne_one, reS_pos])
   intro x hx
   have hζ := HolomorphicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <|
@@ -1662,16 +1662,16 @@ lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
     simp only [mem_nhdsWithin]
     use t
     simp only [subset_inter_iff, inter_subset_left, inter_subset_right, and_self,
-      and_true, t, mem_setOf_eq]
+      and_true, t, mem_ofPred_eq]
     refine ⟨?_, by simp [hu2]⟩
-    simp only [Metric.isOpen_iff, gt_iff_lt, mem_setOf_eq] at hu ⊢
+    simp only [Metric.isOpen_iff, gt_iff_lt, mem_ofPred_eq] at hu ⊢
     intro x hx
     obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
-    simp only [Metric.ball, setOf_subset_setOf] at hε ⊢
+    simp only [Metric.ball, ofPred_subset_ofPred] at hε ⊢
     exact ⟨ε, εpos, fun _ hy ↦ hε (by simp [isometry_iff_dist_eq.mp f_iso, hy])⟩
   filter_upwards [this]
   intro b hb
-  simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, t] at hb
+  simp only [mem_inter_iff, mem_ofPred_eq, mem_Ioi, t] at hb
   refine hu3 ?_
   simp only [mem_inter_iff, mem_Ioi, add_lt_add_iff_right]
   exact ⟨hb.1, f_mono hb.2⟩
@@ -1755,13 +1755,13 @@ lemma ZetaNear1BndExact :
     intro σ hσ
     simp only [lt_max_iff, C']
     have := hC σ
-    simp only [mem_setOf_eq, ofReal_inj, exists_eq_right] at this
+    simp only [mem_ofPred_eq, ofReal_inj, exists_eq_right] at this
     exact Or.inl <| lt_of_le_of_lt (this hσ) (by norm_num)
   have Cpos : 0 < C' := by simp [C']
   use max (2 * C') c, (by simp [Cpos])
   intro σ ⟨σ_ge, σ_le⟩
   by_cases hσ : σ ∈ U ∩ V
-  · simp only [← h, mem_setOf_eq] at hσ
+  · simp only [← h, mem_ofPred_eq] at hσ
     apply le_trans hσ ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
@@ -1979,7 +1979,7 @@ lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Ioi (a : ℝ) ∪ I
 
 lemma lt_abs_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : {t | a < |t|} ∈ cocompact ℝ := by
   convert Ioi_union_Iio_mem_cocompact ha using 1; ext t
-  simp only [mem_setOf_eq, mem_union, mem_Ioi, mem_Iio, lt_abs, lt_neg]
+  simp only [mem_ofPred_eq, mem_union, mem_Ioi, mem_Iio, lt_abs, lt_neg]
 
 @[blueprint
   (title := "ZetaInvBound2")
@@ -2153,11 +2153,11 @@ lemma Zeta_diff_Bnd :
   · intro σ hσ; rw [uIoc_of_le σ₁_lt_σ₂.le, mem_Ioc] at hσ
     exact hC σ t t_gt ⟨le_trans σ₁_ge hσ.1.le, le_trans hσ.2 σ₂_le⟩
 
-lemma ZetaInvBnd_aux' {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| < Real.log |t| ^ 9 := by
+lemma ZetaInvBnd_aux' {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| < Real.log |t| ^ (9 : ℝ) := by
   nth_rewrite 1 [← Real.rpow_one <| Real.log |t|]
   exact mod_cast Real.rpow_lt_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
 
-lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| ≤ Real.log |t| ^ 9 :=
+lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| ≤ Real.log |t| ^ (9 : ℝ) :=
     ZetaInvBnd_aux' logt_gt_one |>.le
 
 lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C₂pos : 0 < C₂)
@@ -2211,7 +2211,7 @@ lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C
   (latexEnv := "lemma")]
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) (1 + A / (Real.log |t|) ^ 9)),
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ (9 : ℝ)) (1 + A / (Real.log |t|) ^ (9 : ℝ))),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
   obtain ⟨C', C'pos, hC₁⟩ := ZetaInvBound2
   obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
@@ -2228,14 +2228,14 @@ lemma ZetaInvBnd :
   have logt_gt_one := logt_gt_one t_gt.le
   have σ_ge : 1 - A / Real.log |t| ≤ σ := by
     apply le_trans ?_ hσ.1
-    suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
+    suffices A / Real.log |t| ^ (9 : ℝ) ≤ A / Real.log |t| by linarith
     exact div_le_div₀ Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   obtain ⟨_, _, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
-  set σ' := 1 + A / Real.log |t| ^ 9
+  set σ' := 1 + A / Real.log |t| ^ (9 : ℝ)
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
   have σ'_le : σ' ≤ 2 := by
     simp only [σ']
-    suffices A / Real.log |t| ^ 9 < 1 by linarith
+    suffices A / Real.log |t| ^ (9 : ℝ) < 1 by linarith
     apply div_lt_one (by positivity) |>.mpr
     exact lt_trans₄ (by linarith) logt_gt_one <| ZetaInvBnd_aux' logt_gt_one
   set s := σ + t * I
@@ -2271,9 +2271,9 @@ lemma ZetaInvBnd :
   · apply sub_le_sub (by simp only [add_sub_cancel_left, σ']; exact_mod_cast le_rfl) ?_
     rw [mul_div_assoc, mul_assoc _ 2 _]
     apply mul_le_mul (by exact_mod_cast le_rfl) ?_ (by linarith [hσ.2]) (by positivity)
-    suffices h : σ' + (1 - A / Real.log |t| ^ 9) ≤ (1 + A / Real.log |t| ^ 9) + σ by
+    suffices h : σ' + (1 - A / Real.log |t| ^ (9 : ℝ)) ≤ (1 + A / Real.log |t| ^ (9 : ℝ)) + σ by
       simp only [tsub_le_iff_right]
-      convert! le_sub_right_of_add_le h using 1; ring_nf; norm_cast; simp
+      convert! le_sub_right_of_add_le h using 1; ring_nf
     exact add_le_add (by linarith) (by linarith [hσ.1])
   · simp_rw [tsub_le_iff_right, div_eq_mul_inv _ (Real.log |t| ^ (9 : ℝ))]
     rw [← Real.rpow_neg (by positivity), Real.mul_rpow (by positivity) (by positivity)]
@@ -2311,7 +2311,7 @@ lemma ZetaLowerBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c),
     ∀ (σ : ℝ)
     (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ (9 : ℝ)) 1),
     c / (Real.log |t|) ^ (7 : ℝ) ≤ ‖ζ (σ + t * I)‖ := by
   obtain ⟨C₁, C₁pos, hC₁⟩ := ZetaLowerBound3
   obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
@@ -2366,11 +2366,12 @@ lemma ZetaLowerBnd :
         have : ζ (↑σ + ↑t * I) - ζ (↑σ' + ↑t * I) =
             - (ζ (↑σ' + ↑t * I) - ζ (↑σ + ↑t * I)) := by ring
         rw [this, norm_neg]
-    · have : 1 - A' / Real.log |t| ≤ 1 - A / (Real.log |t|) ^ 9 := by
+    · have : 1 - A' / Real.log |t| ≤ (1 : ℝ) - A / (Real.log |t|) ^ (9 : ℝ) := by
         gcongr
         · exact hA'.1.le
         · bound
-        · bound
+        · rw [← Real.rpow_one (Real.log |t|), ← Real.rpow_mul (by linarith), one_mul]
+          exact Real.rpow_le_rpow_of_exponent_le one_leLogT Nat.one_le_ofNat
       linarith
     · have : σ' ≤ 1 + A := by
         simp_all only [gt_iff_lt, mem_Ioc, Real.log_abs, one_div, and_imp, tsub_le_iff_right,
@@ -2378,10 +2379,7 @@ lemma ZetaLowerBnd :
           and_self, inf_le_iff, true_or, sub_pos, mem_Ico, and_true, ofReal_add, ofReal_one,
           ofReal_div, ge_iff_le, le_add_iff_nonneg_right, add_le_add_iff_left, le_inf_iff,
           σ', A, C]
-        have : 1 ≤ Real.log t ^ (9 : ℕ) := by
-          bound
-        have : 1 ≤ Real.log t ^ (9 : ℝ) := by
-          exact_mod_cast this
+        have : 1 ≤ Real.log t ^ (9 : ℝ) := Real.one_le_rpow one_leLogT (Nat.ofNat_nonneg' 9)
         refine ⟨?_, ?_⟩
         · rw [← min_div_div_right]
           · rw [min_le_iff]
@@ -2437,8 +2435,13 @@ lemma ZetaLowerBnd :
 blueprint_comment /--
 Now we get a zero free region.
 -/
+
+def ZetaZeroFreeGenProp (n : ℝ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ n) 1),
+    ζ (σ + t * I) ≠ 0
+
 @[blueprint
-  (title := "ZetaZeroFree")
+  (title := "ZetaZeroFree9")
   (statement := /--
   There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
   $$
@@ -2447,12 +2450,7 @@ Now we get a zero free region.
   -/)
   (proof := /-- Apply Lemma \ref{ZetaLowerBnd}. -/)
   (latexEnv := "lemma")]
-lemma ZetaZeroFree :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
-    ∀ (σ : ℝ)
-    (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    ζ (σ + t * I) ≠ 0 := by
+lemma ZetaZeroFree9 : ZetaZeroFreeGenProp 9 := by
   obtain ⟨A, hA, c, hc, h_lower⟩ := ZetaLowerBnd
 
   -- Use the same A for our result
@@ -2470,7 +2468,6 @@ lemma ZetaZeroFree :
     apply Real.rpow_pos_of_pos
     apply Real.log_pos
     linarith
-
   linarith
 
 
@@ -2489,37 +2486,35 @@ lemma ZetaZeroFree :
   (latexEnv := "lemma")]
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
-      C * Real.log |t| ^ 9 := by
+    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ (9 : ℝ)) (1 + A / Real.log |t| ^ (9 : ℝ))),
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ (9 : ℝ) := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
   use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
   intro σ t t_gt ⟨σ_ge, σ_lt⟩
   have logt_gt : (1 : ℝ) < Real.log |t| := logt_gt_one t_gt.le
-  have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
+  have σ_ge' : 1 - A / Real.log |t| ^ (9 : ℝ) ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div_of_nonneg_right (min_le_left A A')
-    exact pow_nonneg (zero_le_one.trans logt_gt.le) _
+    apply Real.rpow_nonneg
+    linarith
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div₀ hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
-    exact le_self_pow₀ logt_gt.le (by norm_num)
+    rw [← Real.rpow_one (Real.log |t|), ← Real.rpow_mul (by linarith), one_mul]
+    exact Real.rpow_le_rpow_of_exponent_le logt_gt.le Nat.one_le_ofNat
   replace h := h σ t t_gt ⟨σ_ge', by calc
-    σ < 1 + min A A' / Real.log |t| ^ 9 := σ_lt
-    _ ≤ 1 + A / Real.log |t| ^ 9 := by gcongr; simp⟩
+    σ < 1 + min A A' / Real.log |t| ^ (9 : ℝ) := σ_lt
+    _ ≤ 1 + A / Real.log |t| ^ (9 : ℝ) := by gcongr; simp⟩
   replace h' := h' σ t t_gt ⟨σ_ge'', by
    calc
-    σ ≤ 1 + min A A' / Real.log |t| ^ 9 := by linarith [σ_lt]
-
-    _ ≤ 1 + (1/2) / Real.log |t| ^ 9 := by gcongr; simp [Set.mem_Ioc] at hA' hA ⊢ ; simp [hA.2]
-
+    σ ≤ 1 + min A A' / Real.log |t| ^ (9 : ℝ) := by linarith [σ_lt]
+    _ ≤ 1 + (1/2) / Real.log |t| ^ (9 : ℝ) := by gcongr; simp [Set.mem_Ioc] at hA' hA ⊢ ; simp [hA.2]
     _ ≤ 1 + (1/2) / 1 := by
           gcongr
           calc
             1 ≤ Real.log |t| := by linarith
-            _ ≤ (Real.log |t|)^9 := Real.self_le_rpow_of_one_le (by linarith) (by linarith)
-          norm_cast
-
+            _ ≤ (Real.log |t|) ^ (9 : ℝ) := Real.self_le_rpow_of_one_le (by linarith) (by linarith)
     _ ≤ 2 := by linarith
     ⟩
   simp only [norm_div]
@@ -2763,28 +2758,36 @@ theorem LogDerivZetaHolcSmallT :
     · apply s_in_U_im_le3 _ hs
     · apply s_in_U_re_ges2 _ hs
 
+lemma LogDerivZetaHolcSmallT' : ∃ (σ₂ : ℝ)
+  (_ : σ₂ ∈ Ioo 0 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
+    (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
+  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max σ₂' (1 / 2)
+  have σ₂_pos : 0 < σ₂ := by bound
+  have σ₂_lt_one : σ₂ < 1 := by bound
+  refine ⟨σ₂, ⟨σ₂_pos, σ₂_lt_one⟩, holo2'.mono (fun s hs ↦ ?_)⟩
+  simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, Set.mem_sdiff, mem_reProdIm, mem_Icc,
+    mem_singleton_iff] at hs ⊢
+  refine ⟨?_, hs.2⟩
+  refine ⟨?_, hs.1.2⟩
+  rcases hs.1.1 with ⟨left, right⟩
+  constructor
+  · apply le_trans _ left
+    apply min_le_min_right
+    apply le_max_left
+  · rw [max_eq_right (by linarith)] at right ⊢
+    exact right
 
-@[blueprint
-  (title := "LogDerivZetaHolcLargeT")
-  (statement := /--
-  There is an $A>0$ so that for all $T>3$, the function
-  $
-  \frac {\zeta'}{\zeta}(s)
-  $
-  is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
-  -/)
-  (proof := /--
-  The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
-  in this range by Lemma \ref{ZetaZeroFree}.
-  -/)
-  (latexEnv := "lemma")]
-theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 ≤ T),
+def LogDerivZetaHolcLargeTGenProp (n : ℝ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
+      (( (Icc ((1 : ℝ) - A / Real.log T ^ n) 2)  ×ℂ (Icc (-T) T) ) \ {1})
+
+lemma LogDerivZetaHolcLargeTGen {n : ℝ} (ZetaZeroFree : ZetaZeroFreeGenProp n) (n_pos : 0 < n) :
+  LogDerivZetaHolcLargeTGenProp n := by
   obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
   obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 3
-  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ 9)
+  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ n)
   refine ⟨A₀, ?_, ?_⟩
   · constructor
     · apply lt_min A_inter.1
@@ -2802,7 +2805,7 @@ theorem LogDerivZetaHolcLargeT :
   · apply restOfZetaZeroFree _ _ gt3
     refine ⟨?_, lt_one⟩
     calc
-      _ ≤ 1 - A₀ / Real.log T ^ 9 := by
+      _ ≤ 1 - A₀ / Real.log T ^ n := by
         gcongr
         · exact A_inter.1.le
         · bound
@@ -2810,19 +2813,34 @@ theorem LogDerivZetaHolcLargeT :
         · bound
         · exact abs_le.mpr ⟨this.2.1, this.2.2⟩
       _ ≤ _:= by exact this.1.1
-
   · apply noZerosInBox _ le3
     calc
-      _ ≥ 1 - A₀ / Real.log T ^ 9 := by exact this.1.1
-      _ ≥ 1 - A₀ / Real.log 3 ^ 9 := by
+      _ ≥ 1 - A₀ / Real.log T ^ n := by exact this.1.1
+      _ ≥ 1 - A₀ / Real.log 3 ^ n := by
         gcongr
         apply le_min A_inter.1.le
         bound
-      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ 9)) / Real.log 3 ^ 9:= by
+      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ n)) / Real.log 3 ^ n := by
         gcongr
         apply min_le_right
       _ = _ := by field_simp; simp
 
+@[blueprint
+  (title := "LogDerivZetaHolcLargeT9")
+  (statement := /--
+  There is an $A>0$ so that for all $T>3$, the function
+  $
+  \frac {\zeta'}{\zeta}(s)
+  $
+  is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
+  -/)
+  (proof := /--
+  The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+  in this range by Lemma \ref{ZetaZeroFree9}.
+  -/)
+  (latexEnv := "lemma")]
+theorem LogDerivZetaHolcLargeT9 : LogDerivZetaHolcLargeTGenProp 9 := by
+  apply LogDerivZetaHolcLargeTGen ZetaZeroFree9 Nat.ofNat_pos'
 
 theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
     (h : Summable f) : Summable (fun n ↦ (f n).re) := by
@@ -2954,7 +2972,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold Metric.eball
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ σ₀ - 1 := by linarith
@@ -3010,7 +3028,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   · have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold Metric.eball
-      simp only [mem_setOf_eq]
+      simp only [mem_ofPred_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ boundary - 1 := by linarith
@@ -3063,8 +3081,13 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       _ = final_const := by rfl
       _ ≤ _ := by bound
 
+def LogDerivZetaBndUnifGenProp (n₁ n₂ : ℝ) : Prop := ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2))
+  (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ n₁)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log |t| ^ n₂
+
 @[blueprint
-  (title := "LogDerivZetaBndUnif")
+  (title := "LogDerivZetaBndUnif99")
   (statement := /--
   There exist $A, C > 0$ such that
   $$|\frac{\zeta'}{\zeta}(\sigma + it)|\leq C \log |t|^9$$
@@ -3074,10 +3097,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   For $\sigma$ close to $1$ use Lemma \ref{LogDerivZetaBnd}, otherwise estimate trivially.
   -/)
   (latexEnv := "lemma")]
-lemma LogDerivZetaBndUnif :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
-      C * Real.log |t| ^ 9 := by
+lemma LogDerivZetaBndUnif99 : LogDerivZetaBndUnifGenProp 9 9 := by
   let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd
   let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
   have T0 : A > 0 := pf_A.1
@@ -3089,30 +3109,30 @@ lemma LogDerivZetaBndUnif :
     linarith
 
   refine ⟨A, pf_A, ((1 + C + C_triv) * A⁻¹), (by positivity), fun σ t hyp_t hyp_σ ↦ ?_⟩
-  have logt_gt' : (1 : ℝ) < Real.log |t| ^ 9 := by
+  have logt_gt' : (1 : ℝ) < Real.log |t| ^ (9 : ℝ) := by
     calc
       1 < Real.log |t| := logt_gt_one hyp_t.le
-      _ ≤ (Real.log |t|) ^ 9 := ZetaInvBnd_aux (logt_gt_one hyp_t.le)
+      _ ≤ (Real.log |t|) ^ (9 : ℝ) := ZetaInvBnd_aux (logt_gt_one hyp_t.le)
 
-  have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ 9 := by
+  have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ (9 : ℝ) := by
     simp only [lt_add_iff_pos_right, div_pos_iff_of_pos_left, T0]
     positivity
 
-  have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → 1 < σ := by
+  have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ (9 : ℝ) ≤ σ → 1 < σ := by
     intros
     linarith
 
-  have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
+  have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ (9 : ℝ) ≤ σ → A / Real.log |t| ^ (9 : ℝ) ≤ σ - 1 := by
     intro σ' hyp_σ'
     calc
-      A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
+      A / Real.log |t| ^ (9 : ℝ) = (1 + A / Real.log |t| ^ (9 : ℝ)) - 1 := by ring_nf
       _ ≤ σ' - 1 := by gcongr
 
 
-  by_cases h : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)
+  by_cases h : σ ∈ Ico (1 - A / Real.log |t| ^ (9 : ℝ)) (1 + A / Real.log |t| ^ (9 : ℝ))
   · calc
       ‖ζ' (↑σ + ↑t * I) / ζ (↑σ + ↑t * I)‖ ≤ C * Real.log |t| ^ 9 := ζbd_in σ t hyp_t h
-      _ ≤ ((1 + C + C_triv) * A⁻¹) * Real.log |t| ^ 9 := by
+      _ ≤ ((1 + C + C_triv) * A⁻¹) * Real.log |t| ^ (9 : ℝ) := by
           gcongr
           · calc
               C ≤ 1 + C := by simp only [le_add_iff_nonneg_left, zero_le_one]
@@ -3124,22 +3144,17 @@ lemma LogDerivZetaBndUnif :
     calc
       ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by simp only [Complex.norm_div,
         norm_neg]
-
       _ ≤ (σ - 1)⁻¹ + C_triv := ζbd_out σ t (by exact T1 h)
-
-      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv := by
+      _ ≤ (A / Real.log |t| ^ (9 : ℝ))⁻¹ + C_triv := by
           gcongr
           · exact T2 h
-
-      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv * A⁻¹ := by
+      _ ≤ (A / Real.log |t| ^ (9 : ℝ))⁻¹ + C_triv * A⁻¹ := by
           gcongr
           exact le_mul_of_one_le_right pf_C_triv ha
-
-      _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by
+      _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ (9 : ℝ) := by
           simp only [inv_div]
           ring_nf
           gcongr
           · simp only [inv_pos, le_mul_iff_one_le_left, T0]
             linarith
-
-      _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by gcongr; simp only [le_add_iff_nonneg_right]; positivity
+      _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ (9 : ℝ) := by gcongr; simp only [le_add_iff_nonneg_right]; positivity

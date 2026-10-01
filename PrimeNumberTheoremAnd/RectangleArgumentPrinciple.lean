@@ -152,7 +152,7 @@ private lemma meromorphicOrderAt_eq_neg_one_of_sub_principal_isBigO_one
     dsimp [principal]
     change meromorphicOrderAt ((fun _ : ℂ => c) / fun z : ℂ => z - p) p = (-1 : ℤ)
     rw [meromorphicOrderAt_div hconst_mero hlin_mero, meromorphicOrderAt_const,
-      if_neg hc, meromorphicOrderAt_id_sub_const]
+      ite_eq_right hc, meromorphicOrderAt_id_sub_const]
     norm_num
   have hlt : meromorphicOrderAt principal p < meromorphicOrderAt rem p := by
     rw [hprincipal_order]
