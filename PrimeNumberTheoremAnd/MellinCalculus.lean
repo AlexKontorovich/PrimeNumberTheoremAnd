@@ -53,11 +53,11 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
-/-- Multiplicative Haar measure is invariant under a nonzero real power, with Jacobian `|p|`.
+/-- Power substitution for multiplicative Haar measure, with Jacobian `|p|`.
 This applies to both real- and complex-valued integrands. -/
 @[blueprint]
 lemma MeasureTheory.integral_comp_rpow_I0i_haar (f : ℝ → 𝕂) {p : ℝ} (hp : p ≠ 0) :
-    ∫ (y : ℝ) in Ioi 0, (|p| : 𝕂) * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+    ∫ (y : ℝ) in Ioi 0, ((|p| : ℝ) : 𝕂) * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, setIntegral_congr_fun (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
