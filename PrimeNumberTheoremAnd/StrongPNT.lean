@@ -7,6 +7,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Algebra.Order.Star.Real
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Analysis.Complex.BorelCaratheodory
+import Mathlib.NumberTheory.LSeries.ZetaZeros
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Topology Set Function Complex Real ComplexConjugate MeasureTheory
@@ -2135,38 +2136,10 @@ lemma vonMangoldtLSeriesSummable {s : ℂ} (hs : 1 < s.re) :
     true.
   -/)]
 lemma ZeroWindowFinite {t : ℝ} (ht : |t| ≥ 2) : (ZeroWindow t).Finite := by
-  by_contra hinf; rw [Set.not_finite] at hinf
-  have zerosSubset : ZeroWindow t ⊆ Metric.closedBall (3 / 2 + I * t) (3 / 4) := fun _ hx => by
-    simpa only [dist_eq_norm, Metric.mem_closedBall, ge_iff_le] using hx.2
-  obtain ⟨x, hxK, hacc⟩ :=
-    hinf.exists_accPt_of_subset_isCompact (isCompact_closedBall (3 / 2 + I * t) (3 / 4)) zerosSubset
-  have hfAnalytic : AnalyticOnNhd ℂ ζ (Metric.ball (3 / 2 + I * t) 1) := by
-    intro z hz; simp only [Metric.mem_ball, Complex.dist_eq] at hz
-    have him : |z.im| > 1 := by
-      have := abs_lt.mp (lt_of_le_of_lt (Complex.abs_im_le_norm (z - (3 / 2 + I * ↑t))) hz)
-      simp only [sub_im, add_im, div_ofNat_im, im_ofNat, zero_div, mul_im, I_re, ofReal_im,
-        mul_zero, I_im, ofReal_re, one_mul, zero_add, neg_lt_sub_iff_lt_add] at this
-      simp only [gt_iff_lt, lt_abs]
-      by_cases tpos : 0 < t
-      · rw [abs_of_pos tpos] at ht
-        exact Or.inl (by linarith)
-      · rw [abs_of_nonpos (not_lt.mp tpos)] at ht
-        exact Or.inr (by linarith)
-    refine analyticAt_riemannZeta (fun h => ?_)
-    simp only [h, one_im, gt_iff_lt, abs_zero] at him
-    linarith
-  have hfeq : Set.EqOn ζ 0 (Metric.ball (3 / 2 + I * t) 1) := by
-    refine AnalyticOnNhd.eqOn_zero_of_preconnected_of_mem_closure hfAnalytic
-      Metric.isPreconnected_ball (z₀ := x) ?_ ?_
-    · simp only [Metric.mem_ball, Metric.mem_closedBall] at hxK ⊢
-      linarith
-    · simp only [mem_closure_iff_clusterPt, ← accPt_principal_iff_clusterPt]
-      refine hacc.mono (principal_mono.mpr fun _ h => h.1)
-  have hne : ζ (3 / 2 + I * t) ≠ 0 := by
-    exact riemannZeta_ne_zero_of_one_lt_re (by norm_num)
-  exact hne (hfeq (Metric.mem_ball_self (by linarith)))
-
-
+  unfold ZeroWindow
+  convert IsCompact.inter_riemannZetaZeros_finite (isCompact_closedBall (3 / 2 + I * t) (3 / 4))
+  ext
+  constructor <;> simp +contextual [← mem_riemannZetaZeros, dist_eq_norm_sub]
 
 @[blueprint "ZeroInequality"
   (title := "ZeroInequality")
