@@ -24,21 +24,21 @@ end Function
 open Complex Set
 
 /-- Taking the norm preserves the support. -/
+@[simp]
 @[blueprint "Function.support_abs"
   (title := "Support of the norm")
   (statement := /-- The support of $x\mapsto\lVert f(x)\rVert$ is the support of $f$. -/)
   (proof := /-- A vector has zero norm exactly when it is zero. -/)]
-@[simp]
 lemma Function.support_abs {α E : Type*} [NormedAddGroup E] (f : α → E) :
     (fun x ↦ ‖f x‖).support = f.support := by
   simp only [support, ne_eq]; simp_rw [norm_ne_zero_iff]
 
 /-- Embedding a real-valued function into the complex numbers preserves its support. -/
+@[simp]
 @[blueprint "Function.support_ofReal"
   (title := "Support under real-to-complex embedding")
   (statement := /-- The real and complex interpretations of $f$ have the same support. -/)
   (proof := /-- The real-to-complex embedding is injective and preserves zero. -/)]
-@[simp]
 lemma Function.support_ofReal {α : Type*} {f : α → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
   apply Function.support_comp_eq (g := ofReal); simp
