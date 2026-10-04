@@ -7,6 +7,7 @@ public import Mathlib.Analysis.Complex.RemovableSingularity
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.Analysis.Meromorphic.NormalForm
 public import Mathlib.MeasureTheory.Integral.Asymptotics
+public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 public import PrimeNumberTheoremAnd.Rectangle
 public import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
 
