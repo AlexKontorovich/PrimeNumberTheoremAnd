@@ -124,7 +124,7 @@ lemma limitOfConstant {E : Type*} [TopologicalSpace E] [T2Space E] [Zero E]
 @[blueprint
   (title := "limitOfConstantLeft")
   (statement := /--
-  Let $a:\R\to\C$ be a function, and let $\sigma\le -3/2$ be a real number. Suppose that, for all
+  Let $a:\R\to E$ be a function, and let $\sigma\le -3/2$ be a real number. Suppose that, for all
   $\sigma, \sigma'\le -3/2$, we have $a(\sigma')=a(\sigma)$, and that
   $\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
   -/)
