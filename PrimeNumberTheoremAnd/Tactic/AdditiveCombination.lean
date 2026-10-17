@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abby J. Goldberg, Mario Carneiro, Heather Macbeth
 -/
 import Mathlib.Tactic.Abel
-import Mathlib.Tactic.LinearCombinationPrime
 
 /-!
 # additive_combination Tactic
@@ -35,12 +34,36 @@ namespace Mathlib.Tactic.LinearCombinationPrime
 open Lean
 open Elab Meta Term
 
-variable {α β : Type*}
+variable {α β : Type*} {a a' a₁ a₂ b b' b₁ b₂ c : α}
+
+theorem pf_add_c [Add α] (p : a = b) (c : α) : a + c = b + c := p ▸ rfl
+theorem c_add_pf [Add α] (p : b = c) (a : α) : a + b = a + c := p ▸ rfl
+theorem add_pf [Add α] (p₁ : (a₁ : α) = b₁) (p₂ : a₂ = b₂) : a₁ + a₂ = b₁ + b₂ := p₁ ▸ p₂ ▸ rfl
+theorem pf_sub_c [Sub α] (p : a = b) (c : α) : a - c = b - c := p ▸ rfl
+theorem c_sub_pf [Sub α] (p : b = c) (a : α) : a - b = a - c := p ▸ rfl
+theorem sub_pf [Sub α] (p₁ : (a₁ : α) = b₁) (p₂ : a₂ = b₂) : a₁ - a₂ = b₁ - b₂ := p₁ ▸ p₂ ▸ rfl
+theorem neg_pf [Neg α] (p : (a : α) = b) : -a = -b := p ▸ rfl
+
+theorem eq_trans₃ (p : (a : α) = b) (p₁ : a = a') (p₂ : b = b') : a' = b' := p₁ ▸ p₂ ▸ p
+
+theorem eq_of_add [AddGroup α] (p : (a : α) = b) (H : (a' - b') - (a - b) = 0) : a' = b' := by
+  rw [← sub_eq_zero] at p ⊢; rwa [sub_eq_zero, p] at H
+
+theorem eq_of_add_pow [Ring α] [IsReduced α] (n : ℕ) (p : (a : α) = b)
+    (H : (a' - b') ^ n - (a - b) = 0) : a' = b' := by
+  rw [← sub_eq_zero] at p ⊢; apply eq_zero_of_pow_eq_zero (n := n); rwa [sub_eq_zero, p] at H
 
 theorem pf_smul_c [SMul α β] {a b : α} (p : a = b) (c : β) : a • c = b • c := p ▸ rfl
 theorem c_smul_pf [SMul α β] {b c : β} (p : b = c) (a : α) : a • b = a • c := p ▸ rfl
 theorem smul_pf [SMul α β] {a₁ b₁ : α} (p₁ : (a₁ : α) = b₁) {a₂ b₂ : β} (p₂ : a₂ = b₂) :
     a₁ • a₂ = b₁ • b₂ := p₁ ▸ p₂ ▸ rfl
+
+/-- Result of `expandAdditiveCombo`, either an equality proof or a value. -/
+inductive Expanded
+  /-- A proof of `a = b`. -/
+  | proof (pf : Syntax.Term)
+  /-- A value, equivalently a proof of `c = c`. -/
+  | const (c : Syntax.Term)
 
 /--
 Performs macro expansion of a additive combination expression,
@@ -52,7 +75,7 @@ using `+`/`-`/`*`/`/` on equations and values.
 -/
 partial def expandAdditiveCombo (ty : Expr) (stx : Syntax.Term) : TermElabM Expanded := withRef stx do
   match stx with
-  | `(($e)) => expandLinearCombo ty e
+  | `(($e)) => expandAdditiveCombo ty e
   | `($e₁ + $e₂) => do
     match ← expandAdditiveCombo ty e₁, ← expandAdditiveCombo ty e₂ with
     | .const c₁, .const c₂ => .const <$> ``($c₁ + $c₂)
@@ -116,6 +139,18 @@ def elabAdditiveCombination (tk : Syntax)
       else `(tactic| (refine eq_of_add_pow $n $p ?a; case' a => $norm:tactic))
     | _ => `(tactic| (refine eq_of_add $p ?a; case' a => $norm:tactic))
 
+
+/--
+The `(norm := $tac)` syntax says to use `tac` as a normalization postprocessor for
+`additive_combination`.
+-/
+syntax normStx := atomic(" (" &"norm" " := ") withoutPosition(tactic) ")"
+
+/--
+The `(exp := n)` syntax for `additive_combination` says to take the goal to the `n`th power before
+subtracting the given combination of hypotheses.
+-/
+syntax expStx := atomic(" (" &"exp" " := ") withoutPosition(num) ")"
 
 /--
 `additive_combination` attempts to simplify the target by creating a additive combination

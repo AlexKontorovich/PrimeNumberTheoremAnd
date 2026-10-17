@@ -1287,7 +1287,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
         have hy : y ∉ Icc (2 ^ (-ε)) (2 ^ ε) := by
           simp only [mem_Icc, not_and, not_le]; exact hS hz.1 <| (div_le_one hz.2).mp hxy
         simp [DeltaSpikeSupport εpos hz.2.le suppν hy]
-    · apply Integrable.piecewise Smeas ?_ integrableOn_zero
+    · apply Integrable.piecewise Smeas.nullMeasurableSet ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
       · apply MeasureTheory.Measure.restrict_mono' SsubT.eventuallyLE le_rfl
