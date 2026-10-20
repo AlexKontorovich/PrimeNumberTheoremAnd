@@ -6,6 +6,7 @@ import Mathlib.MeasureTheory.Integral.IntegrableOn
 import Mathlib.Tactic.Bound
 import Mathlib.Tactic.GCongr
 import PrimeNumberTheoremAnd.Auxiliary
+import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
 
 open scoped ContDiff
 
@@ -88,30 +89,6 @@ theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
   rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
     Complex.cpow_def_of_ne_zero]
   simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
-
-@[simp]
-lemma Function.support_abs {α : Type*} (f : α → 𝕂) :
-    (fun x ↦ ‖f x‖).support = f.support := by
-  simp only [support, ne_eq]; simp_rw [norm_ne_zero_iff]
-
-@[simp]
-lemma Function.support_ofReal {f : ℝ → ℝ} :
-    (fun x ↦ ((f x) : ℂ)).support = f.support := by
-  apply Function.support_comp_eq (g := ofReal); simp
-
-lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂}
-    (fSupp : f.support ⊆ s) : (f * g).support ⊆ s := by
-  simp_rw [support_mul', inter_subset, subset_union_of_subset_right fSupp]
-
-lemma Function.support_of_along_fiber_subset_subset {α β M : Type*} [Zero M]
-    {f : α × β → M} {s : Set α} {t : Set β}
-    (hx : ∀ (y : β), (fun x ↦ f (x, y)).support ⊆ s)
-    (hy : ∀ (x : α), (fun y ↦ f (x, y)).support ⊆ t) :
-    f.support ⊆ s ×ˢ t := by
-  intro ⟨x, y⟩ hxy
-  constructor
-  · exact hx y (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
-  · exact hy x (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
 
 lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     (fSupp : f.support ⊆ Set.Icc a b) :
