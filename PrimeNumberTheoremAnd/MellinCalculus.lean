@@ -6,23 +6,11 @@ import Mathlib.MeasureTheory.Integral.IntegrableOn
 import Mathlib.Tactic.Bound
 import Mathlib.Tactic.GCongr
 import PrimeNumberTheoremAnd.Auxiliary
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegrableOn
 
 open scoped ContDiff
 
 set_option lang.lemmaCmd true
-
--- TODO: move near `MeasureTheory.setIntegral_prod`
-theorem MeasureTheory.setIntegral_integral_swap {α : Type*} {β : Type*} {E : Type*}
-    [MeasurableSpace α] [MeasurableSpace β] {μ : MeasureTheory.Measure α}
-    {ν : MeasureTheory.Measure β} [NormedAddCommGroup E]
-    [MeasureTheory.SigmaFinite ν] [NormedSpace ℝ E] [MeasureTheory.SigmaFinite μ]
-    (f : α → β → E) {s : Set α} {t : Set β}
-    (hf : IntegrableOn (f.uncurry) (s ×ˢ t) (μ.prod ν)) :
-    (∫ (x : α) in s, ∫ (y : β) in t, f x y ∂ν ∂μ)
-      = ∫ (y : β) in t, ∫ (x : α) in s, f x y ∂μ ∂ν := by
-  apply integral_integral_swap
-  convert hf.integrable
-  exact Measure.prod_restrict s t
 
 -- How to deal with this coercion?... Ans: (f ·)
 --- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
@@ -137,19 +125,6 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
       rw [this, integral_singleton]; simp [Measure.real]
     · rw [Icc_eq_empty_iff.mpr <| by exact fun x ↦ hab2 <| le_antisymm hab x, subset_empty_iff,
           Function.support_eq_empty_iff] at h; simp [h]
-
-lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t) :
-    ∫ x in s, f x ∂μ = ∫ x in s ∩ t, f x ∂μ := by
-  rw [← setIntegral_indicator ht, indicator_eq_self.2 h]
-
-lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : Measure ℝ}
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {s : Set ℝ} {f : ℝ → E} (h : f.support ⊆ Icc a b) (hs : Icc a b ⊆ s) :
-    ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
-  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc,
-      inter_eq_self_of_subset_right hs]
 
 lemma intervalIntegral.norm_integral_le_of_norm_le_const' {a b C : ℝ}
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
