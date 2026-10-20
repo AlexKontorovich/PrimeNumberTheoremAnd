@@ -1019,6 +1019,31 @@ noncomputable def sumOnPrimePows (f : ℕ → ℂ) (p : Primes) : ℂ := ∑' e,
 lemma sumOnPrimePows_apply (f : ℕ → ℂ) (p : Primes) :
   sumOnPrimePows f p = ∑' e, f (p ^ e) := by rfl
 
+/-- An absolutely convergent L-series remains summable along powers of a prime. -/
+@[blueprint "LSeriesSummable.on_prime_powers"
+  (title := "L-series summability on prime powers")
+  (statement := /-- If the L-series of $f$ converges at $s$ and $p$ is prime,
+    then $\sum_{k \ge 0} f(p^k)/p^{ks}$ converges absolutely. -/)
+  (proof := /-- Restrict the summable series along the injective map $k \mapsto p^k$. -/)]
+lemma LSeriesSummable.on_prime_powers {f : ℕ → ℂ} {s : ℂ}
+    (hf : LSeriesSummable f s) (p : Primes) :
+    Summable (fun k : ℕ ↦ LSeries.term f s (p.val ^ k)) :=
+  hf.comp_injective (fun _ _ h ↦ Nat.pow_right_injective p.prop.one_lt h)
+
+/-- Split the constant term from a convergent prime-power L-series. -/
+@[blueprint "LSeriesSummable.sumOnPrimePows_eq"
+  (title := "Split a prime-power L-series")
+  (statement := /-- For an L-series convergent at $s$ and a prime $p$,
+    $\sum_{k \ge 0} f(p^k)/p^{ks}=f(1)+\sum_{k \ge 0} f(p^{k+1})/p^{(k+1)s}$. -/)
+  (proof := /-- Separate the zeroth term of the absolutely convergent series. -/)
+  (proofUses := ["sumOnPrimePows", "LSeriesSummable.on_prime_powers"])]
+lemma LSeriesSummable.sumOnPrimePows_eq {f : ℕ → ℂ} {s : ℂ}
+    (hf : LSeriesSummable f s) (p : Primes) :
+    sumOnPrimePows (LSeries.term f s) p =
+      f 1 + ∑' k : ℕ, LSeries.term f s (p.val ^ (k + 1)) := by
+  rw [sumOnPrimePows_apply, (hf.on_prime_powers p).tsum_eq_zero_add]
+  simp
+
 @[blueprint
   "two_pow_omega_tsum_prime_pow"
   (title := "two-pow-omega-tsum-prime-pow")
@@ -1034,12 +1059,8 @@ lemma sumOnPrimePows_apply (f : ℕ → ℂ) (p : Primes) :
   -/)]
 lemma two_pow_omega_tsum_prime_pow {s : ℂ} (hs : 1 < s.re)
     (p : Primes) : sumOnPrimePows (LSeries.term (fun n ↦ 2 ^ (ω n)) s) p = (1 + (p : ℂ) ^ (-s)) / (1 - (p : ℂ) ^ (-s)) := by
-  have h_rw : sumOnPrimePows (LSeries.term (fun n ↦ 2 ^ (ω n)) s) p = 1 + ∑' e : ℕ, LSeries.term (fun n : ℕ => 2 ^ (ω n)) s (p.val ^ (e + 1)) := by
-    rw [sumOnPrimePows_apply, Summable.tsum_eq_zero_add];
-    · unfold LSeries.term
-      simp [Nat.Prime.ne_zero p.prop]
-    · have := LSeriesSummable_two_pow_omega hs;
-      convert! this.comp_injective (show Function.Injective (fun e : ℕ => p.val ^ e) from fun a b h => Nat.pow_right_injective p.prop.one_lt h) using 1
+  have h_rw := (LSeriesSummable_two_pow_omega hs).sumOnPrimePows_eq p
+  simp only [ArithmeticFunction.cardDistinctFactors_one, pow_zero] at h_rw
   have h_term_eval : ∀ e : ℕ, LSeries.term (fun n : ℕ => 2 ^ ω n) s (p.val ^ (e + 1)) = 2 * (p.val : ℂ) ^ (-(e + 1) * s) := by
     intro e
     simp only [neg_mul, LSeries.term, Nat.pow_eq_zero, ne_eq, cast_pow, Nat.Prime.ne_zero p.prop, false_and, ↓reduceIte]
