@@ -1,4 +1,5 @@
 import Architect
+import PrimeNumberTheoremAnd.Auxiliary
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
@@ -20,19 +21,6 @@ blueprint_comment /--
 The following is preparatory material used in the proof of the Perron formula, see Lemma
 \ref{formulaLtOne}.
 -/
-
-/- TODO: move to general section. -/
-@[blueprint
-  (title := "zeroTendstoDiff")
-  (statement := /--
-  If the limit of $0$ is $L_1 - L_2$, then $L_1 = L_2$.
-  -/)
-  (proof := /-- Obvious. -/)
-  (latexEnv := "lemma")]
-lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop, f T = 0)
-    (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
-  rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
-  exact tendsto_nhds_unique (EventuallyEq.tendsto h) h'
 
 /- TODO: Move this to general section. -/
 @[blueprint
@@ -286,53 +274,6 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     ring_nf
   exact final ▸ this
 --%\end{proof}
-
-blueprint_comment /--
-TODO : Move to general section
--/
-@[blueprint
-  (title := "limitOfConstant")
-  (statement := /--
-  Let $a:\R\to\C$ be a function, and let $\sigma>0$ be a real number. Suppose that, for all
-  $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
-  $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
-  -/)
-  (latexEnv := "lemma")]
-lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
-    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : 0 < σ') (_ : 0 < σ''), a σ' = a σ'')
-    (ha' : Tendsto a atTop (𝓝 0)) : a σ = 0 := by
-  /--
-  \begin{align*}
-  \lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
-  &= 0
-  \end{align*}
-  -/
-  have := eventuallyEq_of_mem (mem_atTop σ) fun σ' h ↦ ha σ' σ (σpos.trans_le h) σpos
-  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
-
-
-
-@[blueprint
-  (title := "limitOfConstantLeft")
-  (statement := /--
-  Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
-  $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
-  $\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
-  -/)
-  (latexEnv := "lemma")]
-lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3 / 2)
-    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3 / 2) (_ : σ'' ≤ -3 / 2), a σ' = a σ'')
-    (ha' : Tendsto a atBot (𝓝 0)) : a σ = 0 := by
-  /--
-  \begin{align*}
-    \lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
-    &= 0
-  \end{align*}
-  -/
-  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
-  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
-
-
 
 @[blueprint
   (title := "tendsto-rpow-atTop-nhds-zero-of-norm-lt-one")
