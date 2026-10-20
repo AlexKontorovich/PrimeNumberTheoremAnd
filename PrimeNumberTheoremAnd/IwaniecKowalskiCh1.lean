@@ -932,24 +932,37 @@ lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
   convert LSeries_d_summable 2 hs using 1;
   exact funext fun n => by rw [d_two]; rfl
 
+/-- The L-series term function, packaged as an arithmetic function, is multiplicative. -/
+@[blueprint "LSeries.term_isMultiplicative"
+  (title := "Multiplicativity of L-series terms")
+  (statement := /-- If $f$ is multiplicative, then the arithmetic function
+    $n \mapsto f(n)/n^s$ is multiplicative for every complex $s$. Its value at zero is zero. -/)
+  (proof := /-- Take the pointwise product of the coefficient arithmetic function
+    with the multiplicative power function $n \mapsto n^{-s}$. -/)
+  (proofUses := ["powR", "isMultiplicative_powR"])]
+lemma LSeries.term_isMultiplicative {f : ℕ → ℂ}
+    (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) :
+    IsMultiplicative (⟨LSeries.term f s, LSeries.term_zero f s⟩ : ArithmeticFunction ℂ) := by
+  have hterm : (⟨LSeries.term f s, LSeries.term_zero f s⟩ : ArithmeticFunction ℂ) =
+      (toArithmeticFunction f).pmul (powR (-s)) := by
+    ext n
+    change LSeries.term f s n = toArithmeticFunction f n * powR (-s) n
+    by_cases hn : n = 0 <;>
+      simp [toArithmeticFunction, powR, LSeries.term, hn, Complex.cpow_neg, div_eq_mul_inv]
+  rw [hterm]
+  exact hf.pmul isMultiplicative_powR
+
 @[blueprint
   "LSeries.term_isMultiplicative_if_fun_isMultiplicative"
   (title := "LSeries.term-isMultiplicative-if-fun-isMultiplicative")
-  (statement := /--
-    If $f$ is a multiplicative function, then so to is $n\mapsto f(n)/n^s$.
-  -/)
-  (proof := /--
-    Note that $f(mn)/(mn)^s=f(m)f(n)/(m^sn^s)=(f(m)/m^s)(f(n)/n^s)$.
-  -/)]
-lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ} (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ) {m n : ℕ} (mCn : m.Coprime n) :
-    LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n := by
-  simp only [LSeries.term, _root_.mul_eq_zero, cast_mul, mul_ite, mul_zero, ite_mul, zero_mul]
-  by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
-  by_cases n_eq_zero : n = 0 <;> simp only [n_eq_zero, or_true, ↓reduceIte]
-  rw[← mul_div_mul_comm, Complex.natCast_mul_natCast_cpow]
-  simp only [or_self, ↓reduceIte]
-  congr 1
-  simpa [toArithmeticFunction, m_eq_zero, n_eq_zero] using hf.2 mCn
+  (statement := /-- If $f$ is a multiplicative function, then so too is $n\mapsto f(n)/n^s$. -/)
+  (proof := /-- Evaluate the multiplicative arithmetic function of L-series terms. -/)
+  (proofUses := ["LSeries.term_isMultiplicative"])]
+lemma LSeries.term_isMultiplicative_if_fun_isMultiplicative {f : ℕ → ℂ}
+    (hf : (toArithmeticFunction f).IsMultiplicative) (s : ℂ)
+    {m n : ℕ} (mCn : m.Coprime n) :
+    LSeries.term f s (m * n) = LSeries.term f s m * LSeries.term f s n :=
+  (LSeries.term_isMultiplicative hf s).map_mul_of_coprime mCn
 
 @[blueprint
   "powOfAdditive_isMultiplicative"
