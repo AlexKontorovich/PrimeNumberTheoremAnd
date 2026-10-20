@@ -4,6 +4,8 @@ import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.Meromorphic.NormalForm
+import Mathlib.MeasureTheory.Integral.Asymptotics
+import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import PrimeNumberTheoremAnd.Rectangle
 
 open Complex BigOperators Nat Classical Real Topology Filter
@@ -1255,3 +1257,143 @@ lemma sumResiduesIn_inter_eq_of_set_eq {F : ℂ → ℂ} {Rn S2 P : Set ℂ}
       simp [hs_S2, hs_not_rect_pole, hres0]
   · have hs_not_rect_pole : s ∉ Rn ∩ P := fun hs => hs_S2 (h_set_eq ▸ hs).1
     simp [hs_S2, hs_not_rect_pole]
+
+
+/-! ## Limits of rectangle contours and vanishing U-shaped contours -/
+
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-VerticalIntegral")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+  Then the limit of rectangle integrals
+  $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
+  \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral"])
+  (latexEnv := "lemma")]
+lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
+      (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
+  simp only [RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
+    mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add, zero_sub,
+    add_im]
+  apply Tendsto.sub
+  · rewrite [← zero_add (VerticalIntegral _ _), ← zero_sub_zero]
+    apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
+    exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
+  · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
+
+
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-UpperU")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+  Then the limit of rectangle integrals
+  $$\int_{\sigma+iT}^{\sigma'+iU}f(s)ds$$
+  as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral", "UpperUIntegral"])
+  (latexEnv := "lemma")]
+lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
+      (𝓝 (UpperUIntegral f σ σ' T)) := by
+  have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
+  have hbot : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop
+      (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by exact tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) ↦ I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop
+        (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
+    exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
+  have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero,
+    ← integral_Ici_eq_integral_Ioi]
+
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-LowerU")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to -\infty$.
+  Then the limit of rectangle integrals
+  $$\int_{\sigma-iU}^{\sigma'-iT}f(s)ds$$
+  as $U\to\infty$ is the ``LowerUIntegral'' of $f$.
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral", "LowerUIntegral"])
+  (latexEnv := "lemma")]
+lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
+      (𝓝 (- LowerUIntegral f σ σ' T)) := by
+  have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
+  have hbot' :
+      Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
+    convert (hbot.comp tendsto_neg_atTop_atBot) using 1
+    ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
+  have htop : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop
+      (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) := tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) ↦ I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop
+        (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
+    have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
+    convert! (this.comp tendsto_neg_atTop_atBot) using 1
+  have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  rw [zero_sub] at this
+  simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul,
+    neg_add_rev, neg_sub]
+  have final :
+      (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) +
+          I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+          I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) =
+      (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
+        ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+          ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
+    ring_nf
+    congr
+    ext
+    ring_nf
+  exact final ▸ this
+
+theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ T ≤ z.im})
+    (htop : Tendsto (fun y : ℝ ↦ ∫ (x : ℝ) in σ..σ', f (↑x + ↑y * I)) atTop (𝓝 0))
+    (hleft : Integrable fun y : ℝ ↦ f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ ↦ f (↑σ' + ↑y * I)) :
+    UpperUIntegral f σ σ' T = 0 := by
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_UpperU htop hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
+
+theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ z.im ≤ -T})
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hleft : Integrable fun y : ℝ ↦ f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ ↦ f (↑σ' + ↑y * I)) :
+    LowerUIntegral f σ σ' T = 0 := by
+  suffices h : - LowerUIntegral f σ σ' T = 0 by exact neg_eq_zero.mp h
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
