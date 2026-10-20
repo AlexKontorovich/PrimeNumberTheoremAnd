@@ -2984,7 +2984,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
         _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
         _ = ENNReal.toReal (ε_div_two) := by
-          simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq,
+          simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne_top, ne_eq,
             ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
         _ < ε.toReal := Z0
 
@@ -3039,7 +3039,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
         _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
         _ = ENNReal.toReal (ε_div_two) := by
-          simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq,
+          simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne_top, ne_eq,
             ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
         _ < ε.toReal := Z0
 
