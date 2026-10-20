@@ -891,23 +891,34 @@ lemma two_pow_omega_le_sigma_zero {n : ℕ} (hn : n ≠ 0) :
     (dvd_of_mem_primeFactors hp)
 
 @[blueprint
-  "LSeriesSummable_two_pow_omega"
-  (title := "LSeriesSummable-two-pow-omega")
-  (statement := /--
-    An L-series is convergent if the absolute value of each term is term wise less than a summable series.
-  -/)
-  (proof := /--
-    Apply triangle inequality and comparison test.
-  -/)]
+  "LSeriesSummable.of_coeff_norm_le"
+  (title := "L-series coefficient comparison")
+  (statement := /-- If $\lvert g(n)\rvert \le \lvert f(n)\rvert$ for all nonzero $n$
+    and the L-series of $f$ converges at $s$, then the L-series of $g$ does too.
+    The values at zero are irrelevant. -/)
+  (proof := /-- Divide the coefficient bound by $\lvert n^s\rvert$ and apply
+    the comparison test for absolutely convergent series. -/)]
+lemma LSeriesSummable.of_coeff_norm_le {f g : ℕ → ℂ} {s : ℂ}
+    (hf : LSeriesSummable f s) (hgf : ∀ n ≠ 0, ‖g n‖ ≤ ‖f n‖) :
+    LSeriesSummable g s := by
+  apply Summable.of_norm
+  apply hf.norm.of_nonneg_of_le (fun _ ↦ norm_nonneg _)
+  intro n
+  by_cases hn : n = 0
+  · simp [hn]
+  · simp only [LSeries.term_of_ne_zero hn, norm_div]
+    exact div_le_div_of_nonneg_right (hgf n hn) (norm_nonneg _)
+
+@[blueprint
+  "LSeriesSummable.of_norm_le_norm"
+  (title := "L-series term comparison")
+  (statement := /-- An L-series converges if the norm of each term is bounded
+    by the norm of the corresponding term of an absolutely convergent series. -/)
+  (proof := /-- Apply the comparison test. -/)]
 lemma LSeriesSummable.of_norm_le_norm {f g : ℕ → ℂ} {s : ℂ}
-  (hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ g n) s n‖ ≤ ‖LSeries.term (fun n ↦ f n) s n‖)
-  (hf : Summable (fun n ↦ ‖LSeries.term (fun n ↦ f n) s n‖)) : LSeriesSummable (fun n ↦ g n) s := by
-  have h_fSummable : LSeriesSummable (fun n => f n) s := by
-    rw [LSeriesSummable, ← summable_norm_iff]
-    exact hf
-  rw [LSeriesSummable, ← summable_norm_iff] at *
-  apply Summable.of_nonneg_of_le (fun n => norm_nonneg _) (fun n => _) h_fSummable
-  exact hgf
+    (hgf : ∀ n, ‖LSeries.term g s n‖ ≤ ‖LSeries.term f s n‖)
+    (hf : Summable (fun n ↦ ‖LSeries.term f s n‖)) : LSeriesSummable g s :=
+  Summable.of_norm (hf.of_nonneg_of_le (fun _ ↦ norm_nonneg _) hgf)
 
 @[blueprint
   "LSeriesSummable_two_pow_omega"
@@ -916,21 +927,19 @@ lemma LSeriesSummable.of_norm_le_norm {f g : ℕ → ℂ} {s : ℂ}
     The $L$-series with coefficients given by $2^{\omega(n)}$ converges on the region $1<\Re(s)$.
   -/)
   (proof := /--
-    This follows by comparison test against the $L$-series with coefficients given by $\sigma_0(n)$.
-  -/)]
+    This follows by comparison against the $L$-series with coefficients $\sigma_0(n)$.
+  -/)
+  (proofUses := ["LSeriesSummable.of_coeff_norm_le", "two_pow_omega_le_sigma_zero",
+    "LSeries_d_summable"])]
 lemma LSeriesSummable_two_pow_omega {s : ℂ} (hs : 1 < s.re) :
     LSeriesSummable (fun n ↦ 2 ^ (ω n)) s := by
-  have hgf : ∀ (n : ℕ), ‖LSeries.term (fun n ↦ 2 ^ ω n) s n‖ ≤ ‖LSeries.term (fun n ↦ σ 0 n) s n‖ := by
-    intro n
-    by_cases hn : n = 0
-    · simp only [LSeries.term, hn, ↓reduceIte, norm_zero, Std.le_refl]
-    · simp only [LSeries.term, hn, ↓reduceIte, Complex.norm_div, norm_pow, Complex.norm_ofNat,
-        RCLike.norm_natCast]
-      exact div_le_div_of_nonneg_right (by exact_mod_cast two_pow_omega_le_sigma_zero hn) (norm_nonneg _)
-  apply LSeriesSummable.of_norm_le_norm hgf
-  rw [summable_norm_iff, ← LSeriesSummable]
-  convert LSeries_d_summable 2 hs using 1;
-  exact funext fun n => by rw [d_two]; rfl
+  have hsum : LSeriesSummable (fun n ↦ (σ 0 n : ℂ)) s := by
+    convert LSeries_d_summable 2 hs using 1
+    exact funext fun n ↦ by rw [d_two]; rfl
+  apply hsum.of_coeff_norm_le
+  intro n hn
+  simp only [norm_pow, Complex.norm_ofNat, RCLike.norm_natCast]
+  exact_mod_cast two_pow_omega_le_sigma_zero hn
 
 @[blueprint
   "LSeries.term_isMultiplicative_if_fun_isMultiplicative"
