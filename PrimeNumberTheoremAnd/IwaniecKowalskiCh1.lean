@@ -58,7 +58,63 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
     (hf : IsCompletelyAdditive f) : IsAdditive f :=
   fun hm hn _ ↦ hf hm hn
 
--- **Think about more API for additive/completely additive functions, e.g. `f (p^k) = k * f p` for prime p, etc.**
+/-- An additive arithmetic function vanishes at one. -/
+@[blueprint "IsAdditive.map_one"
+  (title := "Additive functions at one")
+  (statement := /-- An additive arithmetic function satisfies $f(1)=0$. -/)
+  (proof := /-- Apply additivity to $1 \cdot 1$ and cancel. -/)]
+lemma IsAdditive.map_one [AddCancelMonoid R] {f : ArithmeticFunction R}
+    (hf : f.IsAdditive) : f 1 = 0 := by
+  have h := hf one_ne_zero one_ne_zero (coprime_one_right 1)
+  simpa only [mul_one, left_eq_add] using h
+
+/-- A completely additive arithmetic function vanishes at one. -/
+@[blueprint "IsCompletelyAdditive.map_one"
+  (title := "Completely additive functions at one")
+  (statement := /-- A completely additive arithmetic function satisfies $f(1)=0$. -/)
+  (proof := /-- Use additivity at one. -/)
+  (proofUses := ["IsCompletelyAdditive.isAdditive", "IsAdditive.map_one"])]
+lemma IsCompletelyAdditive.map_one [AddCancelMonoid R] {f : ArithmeticFunction R}
+    (hf : f.IsCompletelyAdditive) : f 1 = 0 :=
+  IsAdditive.map_one hf.isAdditive
+
+/-- Complete additivity turns powers of a nonzero argument into natural multiples. -/
+@[blueprint "IsCompletelyAdditive.map_pow"
+  (title := "Completely additive functions on powers")
+  (statement := /-- For $n \ne 0$ and $k \ge 0$, a completely additive arithmetic
+    function satisfies $f(n^k)=k f(n)$. In particular this applies to prime powers. -/)
+  (proof := /-- Induct on $k$, using complete additivity at the successor step. -/)
+  (proofUses := ["IsCompletelyAdditive.map_one"])]
+lemma IsCompletelyAdditive.map_pow [AddCancelMonoid R] {f : ArithmeticFunction R}
+    (hf : f.IsCompletelyAdditive) {n : ℕ} (hn : n ≠ 0) (k : ℕ) :
+    f (n ^ k) = k • f n := by
+  induction k with
+  | zero => simpa using hf.map_one
+  | succ k ih => rw [pow_succ, hf (pow_ne_zero _ hn) hn, ih, succ_nsmul]
+
+/-- Pointwise sums preserve additivity. -/
+@[blueprint "IsAdditive.add"
+  (title := "Sums of additive arithmetic functions")
+  (statement := /-- The sum of two additive arithmetic functions is additive. -/)
+  (proof := /-- Apply additivity to each summand and rearrange. -/)]
+lemma IsAdditive.add [AddCommMonoid R] {f g : ArithmeticFunction R}
+    (hf : f.IsAdditive) (hg : g.IsAdditive) : (f + g).IsAdditive := by
+  intro m n hm hn hmn
+  simp only [ArithmeticFunction.add_apply, hf hm hn hmn, hg hm hn hmn]
+  ac_rfl
+
+/-- Pointwise sums preserve complete additivity. -/
+@[blueprint "IsCompletelyAdditive.add"
+  (title := "Sums of completely additive arithmetic functions")
+  (statement := /-- The sum of two completely additive arithmetic functions is
+    completely additive. -/)
+  (proof := /-- Apply complete additivity to each summand and rearrange. -/)]
+lemma IsCompletelyAdditive.add [AddCommMonoid R] {f g : ArithmeticFunction R}
+    (hf : f.IsCompletelyAdditive) (hg : g.IsCompletelyAdditive) :
+    (f + g).IsCompletelyAdditive := by
+  intro m n hm hn
+  simp only [ArithmeticFunction.add_apply, hf hm hn, hg hm hn]
+  ac_rfl
 
 @[blueprint
   "unique_divisor_decomposition"
@@ -964,10 +1020,8 @@ lemma powOfAdditive_isMultiplicative
     {R : Type u_1} [CommMonoidWithZero R] (k : R)
     {f : ArithmeticFunction ℕ} (hf : f.IsAdditive) :
     (toArithmeticFunction (fun n ↦ k ^ (f n))).IsMultiplicative := by
-  simp only [IsAdditive, ne_eq] at hf
-  have := hf one_ne_zero one_ne_zero (coprime_one_right 1)
-  rw [mul_one, left_eq_add] at this
-  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, this,
+  have h_one := hf.map_one
+  simp only [IsMultiplicative, toArithmeticFunction, coe_mk, one_ne_zero, ↓reduceIte, h_one,
     pow_zero, mul_eq_zero, mul_ite, mul_zero, ite_mul, zero_mul, true_and]
   intro m n mCn
   by_cases m_eq_zero : m = 0 <;> simp only [m_eq_zero, true_or, ↓reduceIte, ite_self]
