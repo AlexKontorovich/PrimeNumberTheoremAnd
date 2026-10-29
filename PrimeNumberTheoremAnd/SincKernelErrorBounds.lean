@@ -1,4 +1,8 @@
-import PrimeNumberTheoremAnd.LaplaceInversion
+module
+
+public import PrimeNumberTheoremAnd.LaplaceInversion
+
+@[expose] public section
 
 /-!
 # Window error bounds for the sin-div sinc kernel

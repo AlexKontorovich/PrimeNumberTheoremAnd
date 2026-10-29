@@ -1,7 +1,11 @@
-import Mathlib.Analysis.Calculus.LogDeriv
-import Mathlib.Analysis.Meromorphic.Divisor
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+module
+
+public import Mathlib.Analysis.Calculus.LogDeriv
+public import Mathlib.Analysis.Meromorphic.Divisor
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+
+@[expose] public section
 
 /-!
 # Rectangle argument-principle infrastructure

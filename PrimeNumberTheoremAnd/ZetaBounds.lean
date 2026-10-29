@@ -1,14 +1,18 @@
-import Architect
-import Batteries.Tactic.Lemma
-import Mathlib.MeasureTheory.Function.Floor
-import Mathlib.MeasureTheory.Order.Group.Lattice
-import Mathlib.NumberTheory.Harmonic.Bounds
-import Mathlib.NumberTheory.LSeries.Nonvanishing
-import PrimeNumberTheoremAnd.Auxiliary
-import PrimeNumberTheoremAnd.Fourier
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import PrimeNumberTheoremAnd.EulerMaclaurin
+module
+
+public import Architect
+public import Batteries.Tactic.Lemma
+public import Mathlib.MeasureTheory.Function.Floor
+public import Mathlib.MeasureTheory.Order.Group.Lattice
+public import Mathlib.NumberTheory.Harmonic.Bounds
+public import Mathlib.NumberTheory.LSeries.Nonvanishing
+public import PrimeNumberTheoremAnd.Auxiliary
+public import PrimeNumberTheoremAnd.Fourier
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+public import PrimeNumberTheoremAnd.EulerMaclaurin
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 

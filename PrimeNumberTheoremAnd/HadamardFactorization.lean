@@ -1,5 +1,9 @@
-import Architect
-import Mathlib.Init
+module
+
+public import Architect
+public import Mathlib.Init
+
+@[expose] public section
 
 blueprint_comment /--
 

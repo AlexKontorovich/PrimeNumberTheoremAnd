@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.NumberTheory.Primorial
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
+module
+
+public import Mathlib.NumberTheory.Primorial
+public import Mathlib.Analysis.Asymptotics.Lemmas
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
+
+@[expose] public section
+
 /-!
 # Bounds for the Selberg sieve
 This file proves a number of results to help bound `Sieve.selbergSum`

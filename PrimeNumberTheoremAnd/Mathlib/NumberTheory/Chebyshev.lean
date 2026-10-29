@@ -1,5 +1,11 @@
-import Mathlib.NumberTheory.Chebyshev
-import Mathlib.Analysis.SpecialFunctions.Log.Base
+module
+
+public import Mathlib.Algebra.GCDMonoid.FinsetLemmas
+public import Mathlib.Data.Nat.Prime.Factorial
+public import Mathlib.NumberTheory.Chebyshev
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
+
+@[expose] public section
 
 namespace Chebyshev
 

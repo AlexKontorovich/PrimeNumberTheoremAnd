@@ -1,15 +1,19 @@
-import Architect
-import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
-import Mathlib.Analysis.Normed.Group.Tannery
-import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.NumberTheory.Chebyshev
-import Mathlib.NumberTheory.LSeries.PrimesInAP
-import Mathlib.NumberTheory.MulChar.Lemmas
-import Mathlib.Topology.EMetricSpace.BoundedVariation
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
-import PrimeNumberTheoremAnd.Fourier
-import PrimeNumberTheoremAnd.SmoothExistence
-import Mathlib.Analysis.Convolution
+module
+
+public import Architect
+public import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
+public import Mathlib.Analysis.Normed.Group.Tannery
+public import Mathlib.Analysis.SumIntegralComparisons
+public import Mathlib.NumberTheory.Chebyshev
+public import Mathlib.NumberTheory.LSeries.PrimesInAP
+public import Mathlib.NumberTheory.MulChar.Lemmas
+public import Mathlib.Topology.EMetricSpace.BoundedVariation
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
+public import PrimeNumberTheoremAnd.Fourier
+public import PrimeNumberTheoremAnd.SmoothExistence
+public import Mathlib.Analysis.Convolution
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 set_option linter.style.header false

@@ -1,6 +1,10 @@
-import Architect
-import Mathlib.Analysis.Meromorphic.Basic
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+module
+
+public import Architect
+public import Mathlib.Analysis.Meromorphic.Basic
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+
+@[expose] public section
 
 open Complex BigOperators
 

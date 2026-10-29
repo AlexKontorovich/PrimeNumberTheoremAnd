@@ -1,9 +1,13 @@
-import Architect
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Integral.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import PrimeNumberTheoremAnd.Wiener
+module
+
+public import Architect
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+public import Mathlib.MeasureTheory.Integral.Asymptotics
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+public import PrimeNumberTheoremAnd.Wiener
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 
@@ -520,11 +524,13 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
     · have := integralPosAux
       contrapose! this
       simp_rw [integral_undef this, le_rfl]
-    rw [Pi.le_def]
+    simp only [Pi.le_def, Complex.norm_add_mul_I]
     intro t
-    gcongr <;> apply sqrt_le_sqrt
-    · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow₀ σ_gt_one.le]
-    · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+    gcongr
+    · nlinarith
+    · rw [add_right_comm]
+      simp only [← ofReal_one, ← ofReal_add, norm_add_mul_I]
+      apply sqrt_le_sqrt
       nlinarith
   rfl
 
@@ -574,12 +580,14 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     · have := integralPosAux' (4⁻¹) (4⁻¹) (by norm_num) (by norm_num)
       contrapose! this
       simp_rw [integral_undef this, le_rfl]
-    rw [Pi.le_def]
+    simp only [Pi.le_def, Complex.norm_add_mul_I]
     intro t
-    gcongr <;> apply sqrt_le_sqrt
-    · rw [normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
-    · rw [(by push_cast; ring : σ + t * I + 1 = ofReal (σ + 1) + t * I),
-        normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
+    gcongr
+    · nlinarith
+    · rw [add_right_comm]
+      simp only [← ofReal_one, ← ofReal_add, norm_add_mul_I]
+      apply sqrt_le_sqrt
+      nlinarith
   · rw [mul_comm]
     gcongr
     · have : 0 ≤ ∫ (t : ℝ), 1 / (Real.sqrt (4⁻¹ + t ^ 2) * Real.sqrt (4⁻¹ + t ^ 2)) :=

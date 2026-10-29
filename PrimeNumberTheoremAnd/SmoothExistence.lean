@@ -1,8 +1,12 @@
-import Architect
-import Batteries.Tactic.Lemma
-import Mathlib.Geometry.Manifold.PartitionOfUnity
-import Mathlib.Tactic.Bound
-import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
+module
+
+public import Architect
+public import Batteries.Tactic.Lemma
+public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import Mathlib.Tactic.Bound
+public import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 
@@ -82,12 +86,15 @@ lemma SmoothExistence :
   · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
     · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply',
-        hνSupport, Function.support_id']
+        hνSupport]
       have : (Ioo (1 / 2 : ℝ) 2 ∩ {0}ᶜ ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
-        simp only [one_div, mem_inter_iff, mem_Ioo, mem_compl_iff, mem_singleton_iff, mem_Ici]
-        bound
-      simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
+        simp only [one_div, mem_inter_iff, mem_Ioo, mem_Ici, mem_compl_iff, mem_singleton_iff]
+        constructor
+        · exact fun hx ↦ hx.1.1
+        · exact fun hx ↦ ⟨⟨hx, by linarith⟩, by linarith⟩
+      simp only [Function.support_eq_preimage, preimage_compl, preimage_id', this, volume_Ioo,
+        ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
       linarith
     · simp_rw [Pi.le_def, Pi.zero_apply]
       intro y

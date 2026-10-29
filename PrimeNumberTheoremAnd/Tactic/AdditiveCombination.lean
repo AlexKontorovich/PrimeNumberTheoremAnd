@@ -3,8 +3,13 @@ Copyright (c) 2022 Abby J. Goldberg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abby J. Goldberg, Mario Carneiro, Heather Macbeth
 -/
-import Mathlib.Tactic.Abel
-import Mathlib.Tactic.LinearCombinationPrime
+
+module
+
+public import Mathlib.Tactic.Abel
+public meta import Mathlib.Tactic.LinearCombinationPrime
+
+@[expose] public section
 
 /-!
 # additive_combination Tactic
@@ -31,6 +36,8 @@ Lastly, calls a normalization tactic on this target.
 
 -/
 
+public section
+
 namespace Mathlib.Tactic.LinearCombinationPrime
 open Lean
 open Elab Meta Term
@@ -41,6 +48,8 @@ theorem pf_smul_c [SMul α β] {a b : α} (p : a = b) (c : β) : a • c = b •
 theorem c_smul_pf [SMul α β] {b c : β} (p : b = c) (a : α) : a • b = a • c := p ▸ rfl
 theorem smul_pf [SMul α β] {a₁ b₁ : α} (p₁ : (a₁ : α) = b₁) {a₂ b₂ : β} (p₂ : a₂ = b₂) :
     a₁ • a₂ = b₁ • b₂ := p₁ ▸ p₂ ▸ rfl
+
+meta section
 
 /--
 Performs macro expansion of a additive combination expression,
@@ -181,5 +190,7 @@ syntax (name := AdditiveCombination) "additive_combination"
 elab_rules : tactic
   | `(tactic| additive_combination%$tk $[(norm := $tac)]? $[(exp := $n)]? $(e)?) =>
     elabAdditiveCombination tk tac n e
+
+end
 
 end Mathlib.Tactic.LinearCombinationPrime
