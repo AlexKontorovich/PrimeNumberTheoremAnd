@@ -5,8 +5,13 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module sieve
 -/
-import Mathlib.NumberTheory.SelbergSieve
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
+
+module
+
+public import Mathlib.NumberTheory.SelbergSieve
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
+
+@[expose] public section
 
 noncomputable section
 

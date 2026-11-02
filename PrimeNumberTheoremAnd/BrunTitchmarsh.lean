@@ -4,14 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.Algebra.Order.Floor.Semifield
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import Mathlib.Analysis.SpecialFunctions.Log.Base
-import Mathlib.NumberTheory.Primorial
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
+module
+
+public import Mathlib.Algebra.Order.Floor.Semifield
+public import Mathlib.Analysis.Asymptotics.Lemmas
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
+public import Mathlib.NumberTheory.Primorial
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
+
+@[expose] public section
 
 open Sieve SelbergSieve BoundingSieve
 open Filter Asymptotics

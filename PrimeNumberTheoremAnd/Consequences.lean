@@ -1,9 +1,14 @@
-import Architect
-import Mathlib.NumberTheory.Harmonic.Bounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
-import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.Wiener
+module
 
+public import Architect
+public import Mathlib.NumberTheory.Harmonic.Bounds
+public import Mathlib.Algebra.Order.Floor.Ring
+public import Mathlib.Algebra.Order.Floor.Semifield
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import PrimeNumberTheoremAnd.Defs
+public import PrimeNumberTheoremAnd.Wiener
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 

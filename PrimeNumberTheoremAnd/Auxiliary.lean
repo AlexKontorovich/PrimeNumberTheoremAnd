@@ -3,8 +3,13 @@ Copyright (c) 2024 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import Mathlib.Analysis.Complex.RealDeriv
-import Mathlib.Analysis.InnerProductSpace.Basic
+
+module
+
+public import Mathlib.Analysis.Complex.RealDeriv
+public import Mathlib.Analysis.InnerProductSpace.Basic
+
+@[expose] public section
 
 /-!
 ### Auxiliary lemmas

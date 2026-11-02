@@ -1,6 +1,10 @@
-import Architect
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import Mathlib.NumberTheory.LSeries.Nonvanishing
+module
+
+public import Architect
+public import Mathlib.NumberTheory.LSeries.Dirichlet
+public import Mathlib.NumberTheory.LSeries.Nonvanishing
+
+@[expose] public section
 
 open ArithmeticFunction hiding log
 
@@ -822,7 +826,7 @@ lemma zeta_mul_tau_square_eq (s : ℂ) (hs : 1 < s.re) :
     push_cast
     rfl
   rw [lhs_bridge, rhs_bridge, key]
-  
+
 /--
 Zeta cubed:
 `ζ(s)^3 = ζ(2s) ∑ τ(n^2) n^(-s)`. -/
@@ -842,7 +846,7 @@ lemma zeta_pow_three_eq' (s : ℂ) (hs : 1 < s.re) :
     riemannZeta s ^ 3 = riemannZeta (2 * s) * LSeries (fun n ↦ τ (n ^ 2)) s := by
   apply mul_left_cancel₀ (riemannZeta_ne_zero_of_one_lt_re hs)
   linear_combination (zeta_pow_four_eq s hs) - riemannZeta (2 * s) * (zeta_mul_tau_square_eq s hs)
-  
+
 -- `zeta_pow_three_eq` (IK 1.30) is proved below via Euler products, after the
 -- `two_pow_omega` / `sumOnPrimePows` infrastructure (independent of Ramanujan).
 
