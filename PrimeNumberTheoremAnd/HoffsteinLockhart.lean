@@ -1,18 +1,24 @@
-import Architect
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.ArithmeticFunction.Defs
-import Mathlib.NumberTheory.ArithmeticFunction.Misc
-import Mathlib.NumberTheory.ArithmeticFunction.Moebius
-import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
-import Mathlib.NumberTheory.ArithmeticFunction.Zeta
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.Analysis.Meromorphic.Basic
+module
+
+public import Architect
+public import Mathlib.Analysis.Complex.CauchyIntegral
+public import Mathlib.NumberTheory.ArithmeticFunction.Defs
+public import Mathlib.NumberTheory.ArithmeticFunction.Misc
+public import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+public import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+public import Mathlib.NumberTheory.ArithmeticFunction.Zeta
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+public import Mathlib.Analysis.Meromorphic.Basic
+
+@[expose] public section
 
 open Complex BigOperators Finset Nat Classical
 
 open scoped ArithmeticFunction Interval
 
 blueprint_comment /--
+
+THIS SECTION IS NO LONGER NEEDED.
 
 In this file, we use the Hoffstein-Lockhart construction to prove a zero-free region for zeta.
 

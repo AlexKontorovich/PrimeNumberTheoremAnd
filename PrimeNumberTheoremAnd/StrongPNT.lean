@@ -1,13 +1,17 @@
-import Architect
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Analysis.Complex.HasPrimitives
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.RingTheory.SimpleRing.Principal
-import Mathlib.Analysis.Complex.BorelCaratheodory
-import PrimeNumberTheoremAnd.MediumPNT
+module
+
+public import Architect
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+public import Mathlib.Analysis.CStarAlgebra.Classes
+public import Mathlib.Analysis.Complex.HasPrimitives
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.RingTheory.SimpleRing.Principal
+public import Mathlib.Analysis.Complex.BorelCaratheodory
+public import PrimeNumberTheoremAnd.MediumPNT
+
+@[expose] public section
 
 open Nat Filter Topology Set Function Complex Real ComplexConjugate MeasureTheory
 
@@ -30,10 +34,19 @@ local notation "ψ" => ChebyshevPsi
 @[blueprint "AnalyticOn.norm_le_of_norm_le_on_sphere"
   (title := "AnalyticOn.norm-le-of-norm-le-on-sphere")
   (statement := /--
-    An application of the Maximum modulus principle.
+    An application of the maximum modulus principle.
+
+    Let $r\leq R$. If $f$ is analytic on $\overline{\mathbb{D}_R}$ and $\|f(z)\|\leq C$ for all $z$
+    on the boundary of $\overline{\mathbb{D}_r}$, then $\|f(z)\|\leq C$
+    for all $z$ in $\overline{\mathbb{D}_r}$.
   -/)
   (proof := /--
-    This is standard in the literature.
+    By the mean value theorem for holomorphic functions, we know that for any
+    $z$ in $\overline{\mathbb{D}_r}$, one has
+    $$f(z)=\frac{1}{2\pi}\int_0^{2\pi}f(z+re^{i\theta})\,d\theta.$$
+    Thus,
+    $$|f(z)|\leq\frac{1}{2\pi}\int_0^{2\pi}|f(z+re^{i\theta})|\,d\theta
+    \leq\max_{\theta\in[0,2\pi)}|f(z+re^{i\theta})|\leq C.$$
   -/)
   (latexEnv := "lemma")]
 lemma AnalyticOn.norm_le_of_norm_le_on_sphere {C r R : ℝ} {f : ℂ → ℂ} {w : ℂ}
@@ -59,41 +72,52 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {C r R : ℝ} {f : ℂ → ℂ} {w
 @[blueprint "borelCaratheodory'"
   (title := "borelCaratheodory'")
   (statement := /--
-    An application of
-    \begin{verbatim}
-      Complex.borelCaratheodory_zero.
-    \end{verbatim}
+    An application of \texttt{Complex.borelCaratheodory\_zero}.
+
+    Let $0<M$ and $0<r<R$ with $f$ analytic on $\mathbb{D}_R$ with $f(0)=0$ s.t. for all $|z|<R$
+    we have $\mathfrak{R}(f(z))\leq M$. Then for all $|z|\leq r$ we have
+    $$|f(z)|\leq\frac{2Mr}{R-r}.$$
   -/)
   (proof := /--
-    This is standard in the literature.
+    Let
+    $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
+    Note that $2M-f(z)\neq 0$ because
+    $\Re (2M-f(z))=2M-\Re f(z)\geq M>0$. Additionally, since
+    $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic
+    on $|z|\leq R'$ for all $r<R'<R$. Likewise, $f_M(z)$ is analytic on
+    $|z|\leq R'$.
+    Now note that $|f(z)|\leq|2M-f(z)|$ since $\Re f(z)\leq M$.
+    Thus we have that
+    $$|f_M(z)|=\frac{|f(z)|/|z|}{|2M-f(z)|}
+      \leq\frac{1}{|z|}.$$
+    Now by the maximum modulus principle, we know the maximum of
+    $|f_M|$ must occur on the boundary where $|z|=R'$. Thus,
+    $|f_M(z)|\leq 1/R'$ for all $|z|\leq R'$. So for $|z|=r$ we
+    have
+    $$|f_M(z)|=\frac{|f(z)|/r}{|2M-f(z)|}\leq\frac{1}{R'}
+    \qquad\implies\qquad R'\,|f(z)|\leq r\,|2M-f(z)|\leq 2Mr+r\,|f(z)|.$$
+    Which by algebraic manipulation gives
+    $$|f(z)|\leq\frac{2Mr}{R'-r}.$$
+    Once more, by the maximum modulus principle, we know the
+    maximum of $|f|$ must occur on the boundary $|z|=r$.
+    Now by taking the limit $R'\to R$, the desired result immediately follows.
   -/)
   (latexEnv := "theorem")]
 theorem borelCaratheodory' {M r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
-    (Mpos : 0 < M) (Rpos : 0 < R) (hyp_r : r < R)
+    (Mpos : 0 < M) (rpos : 0 < r) (hyp_r : r < R)
     (analytic : AnalyticOn ℂ f (Metric.ball 0 R))
     (zeroAtZero : f 0 = 0)
     (realPartBounded : ∀ z ∈ Metric.ball 0 R, (f z).re ≤ M)
     (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖f z‖ ≤ (2 * M * r) / (R - r) := by
-  have h_borelCaratheodory : ∀ ε > 0, ‖f z‖ ≤ (2 * (M + ε) * ‖z‖) / (R - ‖z‖) := by
-    intro ε εpos;
-    apply Complex.borelCaratheodory_zero;
-    exacts [by linarith, analytic.differentiableOn,
-      fun z hz => by rw [Set.mem_ofPred_eq]; linarith [realPartBounded z hz],
-      Rpos, by exact Metric.mem_ball.mpr (lt_of_le_of_lt (Metric.mem_closedBall.mp hyp_z) hyp_r),
-      zeroAtZero]
-  have h_limit : ‖f z‖ ≤ (2 * M * ‖z‖) / (R - ‖z‖) := by
-    have h_limit : Filter.Tendsto (fun ε => (2 * (M + ε) * ‖z‖) / (R - ‖z‖))
-        (nhdsWithin 0 (Set.Ioi 0)) (nhds ((2 * M * ‖z‖) / (R - ‖z‖))) := by
-      refine tendsto_nhdsWithin_of_tendsto_nhds (Continuous.tendsto' ?_ _ _ (by ring_nf))
-      exact Continuous.div_const
-        ((continuous_const.mul (continuous_const.add continuous_id)).mul continuous_const) _
-    refine le_of_tendsto_of_tendsto tendsto_const_nhds h_limit ?_
-    exact Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_borelCaratheodory ε hε
-  rw [mem_closedBall_iff_norm, sub_zero] at hyp_z
-  refine le_trans h_limit ?_;
-  gcongr
-  exact mul_nonneg (mul_nonneg (zero_le_two) (le_of_lt Mpos)) (le_trans (norm_nonneg z) hyp_z)
+  simp only [Metric.mem_closedBall, dist_zero_right] at hyp_z
+  refine le_trans (Complex.borelCaratheodory_zero
+    Mpos (AnalyticOn.differentiableOn analytic) ?_ (by linarith) ?_ zeroAtZero) ?_
+  · intro z hz
+    simp only [mem_ofPred_eq, realPartBounded z hz]
+  · simp only [Metric.mem_ball, dist_zero_right]
+    linarith
+  · gcongr
 
 
 
@@ -167,7 +191,7 @@ lemma DerivativeBound {M r r' R : ℝ} {f : ℂ → ℂ} {z : ℂ}
   · exact le_of_eq (by ring)
   · intro z' hz'
     rw [smul_eq_mul, norm_mul]
-    grw[borelCaratheodory' Mpos (by grind) r'_lt_R analytic_f f_zero_at_zero  re_f_le_M
+    grw[borelCaratheodory' Mpos (by grind) r'_lt_R analytic_f f_zero_at_zero re_f_le_M
       (Metric.sphere_subset_closedBall hz')]
     suffices ‖(z' - z)⁻¹ ^ 2‖ ≤ 1 / (r' - r) ^ 2 by
       grw [this]
@@ -205,10 +229,7 @@ theorem BorelCaratheodoryDeriv {M r R : ℝ} {f : ℂ → ℂ} {z : ℂ}
     (hyp_z : z ∈ Metric.closedBall 0 r) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
   have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
-      4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
-    rw [div_eq_div_iff (mul_ne_zero (by linarith) (pow_ne_zero _ (by linarith)))
-      (pow_ne_zero _ (by linarith))]
-    ring
+      4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by ring_nf; field_simp; ring_nf
   calc ‖deriv f z‖
     _ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := hr' ▸
       DerivativeBound Mpos rpos (by linarith) (by linarith)
@@ -2843,6 +2864,12 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_ : 0 < C),
       · rw [one_pow, rpow_ofNat, one_le_sq_iff_one_le_abs, abs_of_pos (Real.log_pos (by linarith)), Real.le_log_iff_exp_le (by linarith)]
         linarith [Real.exp_one_lt_d9]
       · linarith [le_max_right C1 C2]
+
+
+
+blueprint_comment /--
+\section{StrongPNT}
+-/
 
 
 

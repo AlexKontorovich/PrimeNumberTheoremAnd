@@ -1,6 +1,11 @@
-import Architect
-import PrimeNumberTheoremAnd.Fourier
-import Mathlib.NumberTheory.Chebyshev
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.Fourier
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Mathlib.NumberTheory.Chebyshev
+
+@[expose] public section
 
 open ArithmeticFunction hiding log
 open Nat hiding log

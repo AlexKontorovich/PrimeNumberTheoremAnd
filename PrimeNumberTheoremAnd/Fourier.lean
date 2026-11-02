@@ -1,9 +1,13 @@
-import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
-import Mathlib.MeasureTheory.Integral.IntegralEqImproper
-import Mathlib.Topology.ContinuousMap.Bounded.Basic
-import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
-import Mathlib.Analysis.Fourier.FourierTransformDeriv
-import PrimeNumberTheoremAnd.Sobolev
+module
+
+public import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
+public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
+public import Mathlib.Topology.ContinuousMap.Bounded.Basic
+public import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
+public import Mathlib.Analysis.Fourier.FourierTransformDeriv
+public import PrimeNumberTheoremAnd.Sobolev
+
+@[expose] public section
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction
   SchwartzMap VectorFourier BigOperators

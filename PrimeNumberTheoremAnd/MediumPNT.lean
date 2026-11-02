@@ -1,12 +1,16 @@
-import Architect
-import PrimeNumberTheoremAnd.MellinCalculus
-import PrimeNumberTheoremAnd.ZetaBounds
-import PrimeNumberTheoremAnd.ZetaConj
-import PrimeNumberTheoremAnd.SmoothExistence
-import Mathlib.Algebra.Group.Support
-import Mathlib.Analysis.MellinInversion
-import Mathlib.Analysis.Real.Pi.Bounds
-import Mathlib.NumberTheory.Chebyshev
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.MellinCalculus
+public import PrimeNumberTheoremAnd.ZetaBounds
+public import PrimeNumberTheoremAnd.ZetaConj
+public import PrimeNumberTheoremAnd.SmoothExistence
+public import Mathlib.Algebra.Group.Support
+public import Mathlib.Analysis.MellinInversion
+public import Mathlib.Analysis.Real.Pi.Bounds
+public import Mathlib.NumberTheory.Chebyshev
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 
@@ -2294,7 +2298,7 @@ lemma I2GenBound {SmoothingF : ℝ → ℝ}
           C' * X / (ε * T) * |1 + (Real.log X)⁻¹ - σ₁| := by
         refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
         convert this using 3
-        apply uIoc_of_le
+        rw [uIoc_of_le]
         exact interval_length_nonneg
       _ ≤ C' * X / (ε * T) * 2 := by
         apply mul_le_mul_of_nonneg_left
@@ -2578,8 +2582,9 @@ theorem I3GenBound {SmoothingF : ℝ → ℝ}
     have : |t| = -t := by
       refine abs_of_neg ?_
       exact ht.2.trans (by norm_num)
-    rw [← Set.neg_mem_Ioo_iff, mem_Ioo] at ht
-    rwa [this]
+    rw [Set.mem_Ioo, lt_neg, neg_lt] at ht
+    rw [this]
+    refine ⟨ht.2, ht.1⟩
 
   have logt2gt1_bounds :
       ∀ t, t ∈ Set.Icc (-T) (-3) → Real.log |t| ^ n₂ > 1 := by

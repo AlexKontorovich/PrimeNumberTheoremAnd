@@ -1,5 +1,11 @@
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Topology.Order.Compact
+module
+
+public import Mathlib.Analysis.Asymptotics.Lemmas
+public import Mathlib.Analysis.Normed.Group.Bounded
+public import Mathlib.Order.Filter.AtTopBot.Archimedean
+public import Mathlib.Topology.Order.Compact
+
+@[expose] public section
 
 open Filter Topology
 

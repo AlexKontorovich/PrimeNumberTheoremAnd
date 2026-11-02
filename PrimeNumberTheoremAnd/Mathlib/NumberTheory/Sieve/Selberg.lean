@@ -5,8 +5,13 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module selberg
 -/
-import Batteries.Tactic.Lemma
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
+
+module
+
+public import Batteries.Tactic.Lemma
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
+
+@[expose] public section
 
 /-!
 # The Selberg Sieve
