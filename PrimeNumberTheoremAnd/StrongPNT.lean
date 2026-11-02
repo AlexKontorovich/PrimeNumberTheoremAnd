@@ -72,7 +72,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {C r R : ℝ} {f : ℂ → ℂ} {w
 @[blueprint "borelCaratheodory'"
   (title := "borelCaratheodory'")
   (statement := /--
-    An application of \tttext{Complex.borelCaratheodory\_zero}.
+    An application of \texttt{Complex.borelCaratheodory\_zero}.
 
     Let $0<M$ and $0<r<R$ with $f$ analytic on $\mathbb{D}_R$ with $f(0)=0$ s.t. for all $|z|<R$
     we have $\mathfrak{R}(f(z))\leq M$. Then for all $|z|\leq r$ we have
