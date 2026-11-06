@@ -1,0 +1,11 @@
+import RSBounds.QuarticMellin
+
+#check TernaryGoldbach.RSBounds.QuarticMellin.hasMellin_weight
+#check TernaryGoldbach.RSBounds.QuarticMellin.mellinConvergent_weight
+#check TernaryGoldbach.RSBounds.QuarticMellin.mellin_weight
+
+#print axioms TernaryGoldbach.RSBounds.QuarticMellin.continuous_weight
+#print axioms TernaryGoldbach.RSBounds.QuarticMellin.weight_eq_zero_of_one_le
+#print axioms TernaryGoldbach.RSBounds.QuarticMellin.hasMellin_weight
+#print axioms TernaryGoldbach.RSBounds.QuarticMellin.mellinConvergent_weight
+#print axioms TernaryGoldbach.RSBounds.QuarticMellin.mellin_weight

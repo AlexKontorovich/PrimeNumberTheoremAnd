@@ -5,3 +5,4 @@ import RSBounds.BacklundPhase
 import RSBounds.TotientAnalyticReduction
 import RSBounds.PolynomialSmoothing
 import RSBounds.PolynomialPsi
+import RSBounds.QuarticMellin

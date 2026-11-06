@@ -12,6 +12,7 @@ proved.**
 | Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual zeta zero-count bound remains an input |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
 | Quartic kernel bounds, fourth-difference identities, and the upper/lower psi sandwich | Proved |
+| Mellin transform of the truncated quartic, with its exact five-factor denominator | Proved for Re(s) > 0 |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
 | Moderate-error psi row b = 23; full RS62 Mertens/totient bounds; requested theta estimate | Unfinished |
 
