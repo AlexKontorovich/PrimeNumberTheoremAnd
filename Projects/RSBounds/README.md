@@ -68,8 +68,13 @@ freshly compiles and its public transitive audit uses only the standard three
 axioms. A separate full native Comparator replay for this new theorem has
 not yet been run; do not conflate this status with the completed psi replay.
 
-**The requested global theta estimate and the full RS62 Mertens/totient
-bounds remain unfinished.** The stronger 1976 b = 23 coefficient 0.00020171,
+**The exact Schoenfeld II targets and the full RS62 Mertens/totient
+bounds remain unfinished.** The active theta targets are Theorem 7*,
+(5.6*) and (5.6b*), with constants 0.0239922 and 0.0077629 at their published
+thresholds. Theorem 11's exact exponential error is the analytic step toward
+them; the former proposed constant 0.1 is superseded. See the
+[checked statements and dependency map](docs/Schoenfeld1976Plan.md).
+The stronger 1976 b = 23 coefficient 0.00020171,
 the strict count error through height 280, and a certified first-1000 zero
 table also remain unproved here. The proposed finite square-root psi bound
 on `[1500,10^10]` is not proved here yet; see the
@@ -85,8 +90,10 @@ quantitative zero-free-region target is a separate problem.
 | RS62 totient coefficient 2.50637 for at most twenty distinct prime factors | Proved |
 | Its corollary for 3 ≤ q ≤ 10^27 | Proved |
 | Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
+| Existing calr finite Mertens-product certificate for every prime from 5 through 100000 | Fresh kernel replay and four standard-axiom audits passed; its larger-cutoff all-n adapter remains in progress |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
+| Signed finite-interval degree-two explicit formula | Proved unconditionally for actual multiplicity zero sums; the left remainder is explicit. Passage to infinity and numerical RS62 bounds remain unfinished |
 | Weighted zero-sum partial summation and envelope transfers | Proved for the actual zeta zeros with analytic multiplicity, using the unconditional Rosser estimate |
 | Reciprocal-zero head through 100 | Proved: the complete first-29 head has sum of reciprocal norms less than 0.592316 |
 | Elementary reciprocal and fifth-power integrals | Proved with explicit logarithmic upper bounds for 7 ≤ a ≤ b |

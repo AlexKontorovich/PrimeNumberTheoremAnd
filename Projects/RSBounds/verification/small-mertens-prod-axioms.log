@@ -1,0 +1,4 @@
+'TernaryGoldbach.Prelim.MertProd.gamma_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.Prelim.MertProd.walkP_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.Prelim.MertProd.inv_100000' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.Prelim.MertProd.mertens_product_kernel' depends on axioms: [propext, Classical.choice, Quot.sound]

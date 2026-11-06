@@ -1,0 +1,39 @@
+{
+  "kind": "fresh-mertens-interval-decay-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:06:43.361748+00:00",
+  "source_sha256": {
+    "RSBounds/MertensIntervalDecay.lean": "bde513c3e1d3ff44fbbedc81bf403f9bbba2f987370fdfd63a1be6977388dc6d",
+    "RSBounds/MertensIntervalKernel.lean": "e93cd81fd46ee00291c1932e1a914e68caad985995ce14c3801ff9efa503ab29",
+    "RSBounds/QuadraticContourLimit.lean": "b984412c4b6a6100c5b379a6e458bf5f52e78d365f72472eaceb582afd838f7b",
+    "verification/MertensIntervalDecayAudit.lean": "372cdbbca73d29e348c322d8c6de87d181a07b1f98a4171a4d44851d5514c696",
+    "verification/run_mertens_interval_decay_check.py": "fc96f8d626f527a99bed7dd24dafb9a2e0f776115f0cf40d24aff9797aa8cdf2"
+  },
+  "stdin_recipe": "Exact source plus six fully qualified #print axioms commands.",
+  "stdin_sha256": "3773acd4a6528d11ffe7a2d8af9828e6cd9601154c007cbd2c68187667bdfe93",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensIntervalDecay.olean",
+        "RSBounds/MertensIntervalDecay.lean"
+      ],
+      "log": "verification/mertens-interval-decay-build.log",
+      "exit_code": 0,
+      "seconds": 9.304692159996193
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 6,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "a10fdf6d0a198087c96c24b77727df873472d8161df4c745bdf35671027f4f52",
+  "finished_utc": "2026-11-06T18:06:52.668848+00:00"
+}

@@ -1,0 +1,192 @@
+import took 6.43s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 127ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 195ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 418ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 664ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 554ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 183ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 200ms
+type checking took 108ms
+TernaryGoldbach/Prelim/SmallMertensProd.lean:420:6: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:420:6: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:447:31: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:468:8: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:468:8: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:469:62: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+TernaryGoldbach/Prelim/SmallMertensProd.lean:490:8: warning: Unused tactic linter: `simp only at hw` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+type checking took 5.08s
+type checking took 4.8s
+type checking took 5.09s
+type checking took 4.62s
+type checking took 4.29s
+type checking took 4.55s
+type checking took 4.79s
+type checking took 4.74s
+type checking took 4.87s
+type checking took 5.87s
+type checking took 5.36s
+type checking took 5.5s
+type checking took 5.22s
+type checking took 5.52s
+type checking took 5.9s
+type checking took 5.6s
+type checking took 5.61s
+type checking took 6.75s
+type checking took 6.39s
+type checking took 7.12s
+type checking took 6.62s
+type checking took 7.64s
+type checking took 7.45s
+type checking took 7.22s
+type checking took 7.15s
+type checking took 7.69s
+type checking took 7.84s
+type checking took 7.83s
+type checking took 8.9s
+type checking took 8.68s
+interpretation of Batteries.Linter.UnreachableTactic.unreachableTacticLinter._lam_0._boxed took 104ms
+type checking took 10s
+type checking took 8.25s
+type checking took 9.66s
+type checking took 8.3s
+type checking took 8.08s
+type checking took 7.79s
+type checking took 8.09s
+type checking took 7.84s
+type checking took 7.94s
+type checking took 8.24s
+type checking took 8.09s
+type checking took 9.12s
+type checking took 8.77s
+type checking took 8.1s
+type checking took 9.13s
+type checking took 8.05s
+type checking took 9.01s
+type checking took 8.97s
+type checking took 10.5s
+type checking took 9.72s
+type checking took 8.87s
+type checking took 9.74s
+type checking took 9.51s
+type checking took 9.23s
+type checking took 9.09s
+type checking took 9.11s
+type checking took 9.71s
+type checking took 11s
+type checking took 10s
+interpretation of Batteries.Linter.UnreachableTactic.unreachableTacticLinter._lam_0._boxed took 141ms
+declTypeLinter took 122ms
+type checking took 10.8s
+type check.olean serialization took 1.1s
+ing took 10.3s
+type checking took 10.1s
+type checking took 10.6s
+type checking took 11.1s
+type checking took 10.2s
+type checking took 13.5s
+type checking took 11.9s
+type checking took 11.7s
+type checking took 10.9s
+type checking took 10.7s
+type checking took 13.1s
+type checking took 12.6s
+type checking took 13.8s
+type checking took 13.4s
+interpretation of Batteries.Linter.UnreachableTactic.unreachableTacticLinter._lam_0._boxed took 174ms
+interpretation of _private.Mathlib.Tactic.Linter.AuxLemma.0.Mathlib.Linter.AuxLemma.auxLemmaLinter._lam_1._boxed took 120ms
+declTypeLinter took 184ms
+type checking took 15.3s
+interpretation of _private.Mathlib.Tactic.Linter.Style.0.Mathlib.Linter.Style.nameCheck.doubleUnderscore._lam_2._boxed took 204ms
+interpretation of _private.Mathlib.Tactic.Linter.UnusedTactic.0.Mathlib.Linter.UnusedTactic.unusedTacticLinter._lam_0._boxed took 311ms
+type checking took 22.7s
+tactic execution of Lean.Parser.Tactic.decide took 167ms
+process pre-definitions took 317ms
+type checking took 13.3s
+type checking took 36.7s
+type checking took 18.3s
+type checking took 25.5s
+type checking took 17.3s
+type checking took 13.8s
+type checking took 13.5s
+type checking took 13.6s
+type checking took 12.9s
+interpretation of Batteries.Linter.UnreachableTactic.unreachableTacticLinter._lam_0._boxed took 207ms
+declTypeLinter took 211ms
+type checking took 14.1s
+interpretation of _private.Mathlib.Tactic.Linter.AuxLemma.0.Mathlib.Linter.AuxLemma.auxLemmaLinter._lam_1._boxed took 114ms
+type checking took 15.4s
+type checking took 17.2s
+type checking took 14.6s
+type checking took 14.3s
+type checking took 26.4s
+type checking took 13.5s
+type checking took 14.5s
+interpretation of Batteries.Linter.UnreachableTactic.unreachableTacticLinter._lam_0._boxed took 125ms
+type checking took 18s
+type checking took 25.5s
+type checking took 44.9s
+type checking took 33.9s
+type checking took 25.1s
+type checking took 32.4s
+type checking took 27.1s
+type checking took 169ms
+type checking took 102ms
+type checking took 126ms
+'TernaryGoldbach.Prelim.MertProd.gamma_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+elaboration took 131ms
+'TernaryGoldbach.Prelim.MertProd.walkP_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+elaboration took 328ms
+'TernaryGoldbach.Prelim.MertProd.inv_100000' depends on axioms: [propext, Classical.choice, Quot.sound]
+elaboration took 362ms
+'TernaryGoldbach.Prelim.MertProd.mertens_product_kernel' depends on axioms: [propext, Classical.choice, Quot.sound]
+elaboration took 426ms
+cumulative profiling times:
+	.olean serialization 1.1s
+	attribute application 7.92ms
+	blocked (unaccounted) 4.34e+04s
+	compilation (IR) 1.55ms
+	compilation (LCNF base) 16.9ms
+	compilation (LCNF impure) 6.43ms
+	compilation (LCNF mono) 10.3ms
+	congr simp thm 91.9ms
+	declTypeLinter 3.04s
+	dsimp 1.68ms
+	elaboration 3.03s
+	fix level params 23.4ms
+	import 6.43s
+	initialization 32.9ms
+	instantiate metavars 40.1ms
+	interpretation 22.4s
+	let-to-have transformation 27.5ms
+	linting 2.11s
+	module linting 3.6ms
+	norm_num 2.75s
+	parsing 107ms
+	process pre-definitions 2.04s
+	ring 340ms
+	share common exprs 188ms
+	simp 1.59s
+	tactic execution 3.61s
+	tacticAnalysis 1.25s
+	type checking 1.16e+03s
+	typeclass inference 4.27s

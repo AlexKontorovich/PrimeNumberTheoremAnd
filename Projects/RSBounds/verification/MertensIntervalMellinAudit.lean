@@ -1,0 +1,5 @@
+import RSBounds.MertensIntervalMellin
+
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_sub_log_eq_signed_integral
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalMellin.prime_sum_eq_right_line

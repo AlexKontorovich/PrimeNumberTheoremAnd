@@ -1,0 +1,10 @@
+import RSBounds.RosserCubicTail
+
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_reciprocal_cube
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_neg_cubicPrimitive
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.integral_upperDensity_div_cube
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.integral_density_div_cube_le
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le_head
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.cubicAllowance_A_lt
+#print axioms TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_A_lt

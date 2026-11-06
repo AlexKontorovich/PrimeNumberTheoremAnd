@@ -1,0 +1,9 @@
+import RSBounds.QuadraticSubOne
+
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.HkD_poleB_ge_one
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.tendsto_HkD_poleB_div_sq
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.norm_logDeriv_sub_one_horizontal
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.goodHeights_sub_one
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.integrable_sub_one_contour_left
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.explicit_formula_sub_one_pole_zero_at_heights
+#print axioms TernaryGoldbach.RSBounds.QuadraticSubOne.sub_one_contour_difference
