@@ -15,3 +15,12 @@ other dependencies retain their own licenses in their pinned repositories.
 
 The new proof modules cite the mathematical literature in their documentation.
 Statements of historical theorems are not substitutes for formal proofs.
+
+`RSBounds/IEANTNGamma/` vendors the eight-module dependency closure of the
+Gauss-series theorem from `teorth/IEANTN`, commit
+`466b41b28ecc224398cf53a99c5fe9618131398b`, solution
+`GammaAsymptotics.v2`. These files retain their original author and Apache 2.0
+notices and are governed by that license, included alongside the sources and
+in `licenses/IEANTN-LICENSE`. Only import paths were changed. The provenance
+record is `verification/ieantn-gamma-provenance.json`; fresh verification is
+documented in `docs/IEANTNGammaPort.md`.

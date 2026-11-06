@@ -48,7 +48,21 @@ estimates are the fourfold-integral bound and the bound from the rational
 kernel's denominator. The upper and lower averaged formulas are now proved in
 `PolynomialAveragedFormula.lean`, with main terms `x+2h` and `x-2h`,
 the exact constant `-log(2*pi)`, and their explicit left remainders.
-The assembly into a numerical estimate is separate from these formulas.
+The kernel scaling and actual averaged remainder estimate are now checked:
+with `h = 0.0000211*x`, both smoothing directions satisfy
+
+\[
+|\Delta_h^4 E_4(x)/h^4|,\quad
+|\Delta_h^4 E_4(x-4h)/h^4|
+\le \frac{25000}{\pi\sqrt{x}}<0.1\qquad(x\ge e^{23}).
+\]
+
+This is unconditional and is an absolute error bound. The exact integral
+interchange is in `PolynomialRemainderIntegral.lean`; the end-to-end bound
+is in `PolynomialRemainderBound.lean`. It uses a proved integrable majorant,
+not an assumed evaluation of the integral.
+The numerical estimate of the sum over actual zeros remains separate and
+unfinished. In particular, the full psi table row is not proved.
 
 ## Remaining numerical work
 
@@ -57,7 +71,6 @@ The assembly into a numerical estimate is separate from these formulas.
   how to use such an envelope; it does not prove the envelope itself.
 - Certify the finite low-zero data used in the numerical bound, or replace
   those data by another proved estimate.
-- Bound the fourth difference of the left remainder.
 - Combine these estimates with finite RH and certify all numerical
   inequalities uniformly for `x >= exp 23`.
 

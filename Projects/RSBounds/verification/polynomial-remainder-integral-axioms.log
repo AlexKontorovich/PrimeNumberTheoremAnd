@@ -1,0 +1,27 @@
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftLine_re' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftLine_ne_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.zeta_leftLine_ne_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_zeta_contour_left' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.primitiveIntegrand_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_primitiveIntegrand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.psi4LeftRemainder_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftRemainder_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_averagedIntegrand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,6 @@
+import RSBounds.MertensTailReduction
+
+#print axioms TernaryGoldbach.PNTMertens.E₂Λ.eq
+#print axioms TernaryGoldbach.RSBounds.mertensError_eq_neg_centered_tail
+#print axioms TernaryGoldbach.RSBounds.mertensError_abs_le_of_tail_variation
+#check TernaryGoldbach.RSBounds.mertensError_abs_le_of_tail_variation

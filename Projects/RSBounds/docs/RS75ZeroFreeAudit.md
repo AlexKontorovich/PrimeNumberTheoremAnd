@@ -93,3 +93,10 @@ The outstanding analytic work is therefore the sharp gamma and real-axis
 estimates, followed by the numerical assembly. The optimized polynomial is now checked. The Stechkin specialization and
 difference positivity remain smaller algebraic components. None of these outstanding obligations is being hidden behind a
 new axiom or represented here as completed.
+
+The Gauss-series representation for digamma is now reused directly from
+IEANTN's proved `GammaAsymptotics.v2` solution. Its eight proof modules compile
+unchanged apart from imports on the present toolchain, and their exported
+results pass the transitive axiom audit. See [the port record](IEANTNGammaPort.md).
+This supplies an existing representation for the gamma work; the sharp
+uniform remainder needed by RS75 remains to be proved.

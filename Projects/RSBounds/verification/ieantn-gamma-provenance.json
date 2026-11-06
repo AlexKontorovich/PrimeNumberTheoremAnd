@@ -1,0 +1,40 @@
+{
+  "source_repository": "https://github.com/teorth/IEANTN",
+  "source_commit": "466b41b28ecc224398cf53a99c5fe9618131398b",
+  "source_directory": "Solutions/GammaAsymptotics.v2",
+  "initial_changes": "Only local import paths rewritten to RSBounds.IEANTNGamma; original proof text, namespace and copyright headers retained.",
+  "files": {
+    "GaussSeries": {
+      "source_sha256": "6e947437b267b5dbb2c3299b93a8ca477c487579f084817a13d2881ce5f6b7d0",
+      "initial_port_sha256": "6e947437b267b5dbb2c3299b93a8ca477c487579f084817a13d2881ce5f6b7d0"
+    },
+    "Recurrence": {
+      "source_sha256": "1181d39b1bbc89c50cf3779765db95a110dd92ccbc26f9bcc9311adbdb150e66",
+      "initial_port_sha256": "beb41cd5f74097866293bec987620ea42fe0a53c4628d5be7442347f4e3d0826"
+    },
+    "Periodic": {
+      "source_sha256": "2242fc4f9284f7d08c2e98df269edb2f211d00090d6315219b037c9cca4f1692",
+      "initial_port_sha256": "2242fc4f9284f7d08c2e98df269edb2f211d00090d6315219b037c9cca4f1692"
+    },
+    "RealAsymptotic": {
+      "source_sha256": "289bf36620d96d8d10eec86bac6bcfaa0619f8dfe354e48a9644cdd5aa8b24db",
+      "initial_port_sha256": "289bf36620d96d8d10eec86bac6bcfaa0619f8dfe354e48a9644cdd5aa8b24db"
+    },
+    "ComplexToReal": {
+      "source_sha256": "ec2ae426aca56223a17f9bd568c2191685dcca7632918d3bc626879920e45c31",
+      "initial_port_sha256": "2b76291513e7b931bd11a6b13879dac77dba1c5084bcc7713cb6ccb7c86e7b85"
+    },
+    "Oscillation": {
+      "source_sha256": "b65e0827a00f2542913424f39f593a1a01042d4a8537bdd783cd3b70c168db52",
+      "initial_port_sha256": "05de86112f30519eed5ca9387b9806e7f19ea9a38d97c743908dcf8a56ec69d3"
+    },
+    "RealIdentity": {
+      "source_sha256": "ad1ed50ac37f6f1b82fa468b486163f80b994e0b07e4eede9e56c918c7a19b2b",
+      "initial_port_sha256": "c03c7b7d0d2cd772f5e472c9e52d90e9cbf21ac7eb49744233de26553beb4abe"
+    },
+    "Analytic": {
+      "source_sha256": "998a44738939152ea62a75be9b6b8009abd9190ea972b12633e4cc332c35c4b6",
+      "initial_port_sha256": "4033e326dad84e08a6ef903ea792c693ec4515158fa56bb927355cbf01212d38"
+    }
+  }
+}

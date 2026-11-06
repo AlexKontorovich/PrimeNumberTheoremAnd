@@ -1,0 +1,34 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T09:49:40.428779+00:00",
+  "source_sha256": {
+    "RSBounds/TotientGlobalReduction.lean": "5c8d3dd9462c6a4d7873b836126ca06a725b87a14e1e7ae9d3758f1224192e0c",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "RSBounds/TotientAnalyticReduction.lean": "86071667af8b4d2a6a0e30e467cec22edd5ff1f79c8362489deb980273db5bac",
+    "RSBounds/SmallTotientProduct.lean": "441e7b4741a27148478caba16cfbafa0d1632ecb01e3d1ebe5f1c72b18769460",
+    "verification/TotientGlobalReductionAudit.lean": "0ca881673f84f8eaaf579be5ca91f42838b9e4105a1444aa3b70f22550bac9b4"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.TotientGlobalReduction"
+      ],
+      "log": "totient-global-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/TotientGlobalReductionAudit.lean"
+      ],
+      "log": "totient-global-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T09:49:56.937305+00:00",
+  "exit_code": 0
+}

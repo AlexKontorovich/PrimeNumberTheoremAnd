@@ -1,0 +1,19 @@
+⚠ [2926/2937] Replayed RSBounds.IEANTNGamma.GaussSeries
+warning: RSBounds/IEANTNGamma/GaussSeries.lean: imports `Mathlib.Analysis.SpecialFunctions.Gamma.Digamma` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/GaussSeries.lean: imports `Mathlib.Analysis.PSeries` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2928/2937] Replayed RSBounds.IEANTNGamma.RealAsymptotic
+warning: RSBounds/IEANTNGamma/RealAsymptotic.lean: imports `Mathlib.Analysis.SpecialFunctions.Gamma.BohrMollerup` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/RealAsymptotic.lean: imports `Mathlib.Analysis.SpecialFunctions.Gamma.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/RealAsymptotic.lean: imports `Mathlib.Analysis.Convex.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/RealAsymptotic.lean: imports `Mathlib.Analysis.Calculus.Deriv.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2929/2937] Replayed RSBounds.IEANTNGamma.ComplexToReal
+warning: RSBounds/IEANTNGamma/ComplexToReal.lean: imports `Mathlib.Analysis.SpecialFunctions.Gamma.Digamma` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2931/2937] Replayed RSBounds.IEANTNGamma.Periodic
+warning: RSBounds/IEANTNGamma/Periodic.lean: imports `Mathlib.Analysis.Normed.Group.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/Periodic.lean: imports `Mathlib.Analysis.SpecificLimits.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2936/2937] Replayed RSBounds.IEANTNGamma.Analytic
+warning: RSBounds/IEANTNGamma/Analytic.lean: imports `Mathlib.Analysis.Complex.LocallyUniformLimit` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/Analytic.lean: imports `Mathlib.Analysis.Analytic.IsolatedZeros` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/IEANTNGamma/Analytic.lean: imports `Mathlib.Analysis.Complex.Convex` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [2937/2937] Built RSBounds.IEANTNDigamma (2.2s)
+Build completed successfully (2937 jobs).

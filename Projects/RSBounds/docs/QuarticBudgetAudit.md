@@ -4,8 +4,9 @@ This is a mathematical and source audit of
 [`rs75-budget-diagnostic.py`](../verification/rs75-budget-diagnostic.py),
 not a proof of the table row. Its 60-digit `mpmath` output is **not interval
 arithmetic or a Lean certificate**. The corrected fixed-parameter diagnostic
-is below the target, but the zero-count input, finite head data, remainder
-bound, and assembly still require proofs.
+is below the target, but the zero-count input, finite head data, and numerical
+assembly still require proofs. The averaged contour remainder is now bounded
+in Lean; it has not yet been assembled with the actual zero sum.
 
 The individual upper/lower kernel bounds and the cancellation estimate
 described below now have checked Lean proofs. The
@@ -130,17 +131,20 @@ The total uses \(2aB/\sqrt{x}\), the high term above, and
 \frac{2(a-0.931)}{U\sqrt{x}}
  [F(U)-R(U)-F(L)-R(L)].
 \]
-The last main-term expression requires a remainder bound. The checked
-[quartic explicit formula](QuarticProof.md) retains a left-line integral;
-its fourth difference is not bounded by this diagnostic. Alternatively,
+The displayed diagnostic values omit the left-line remainder. That remainder
+has now been bounded in Lean by `25000/(pi sqrt(x)) < 0.1` for both smoothing
+directions at the fixed historical delta and `x >= exp 23`; in the relative
+error budget its contribution is at most `0.1/x`. See
+[`PolynomialRemainderBound.lean`](../RSBounds/PolynomialRemainderBound.lean).
+The diagnostic is still not a certified numerical assembly. Alternatively,
 an exact classical remainder
 \(-\log(2\pi)-\tfrac12\log(1-t^{-2})\) would give the claimed bound after
 proving its averaged absolute value is at most \(\log(2\pi)\) over the
-relevant interval. Neither route may be omitted. A derivation from a
+relevant interval; that alternative exact evaluation was not used. A derivation from a
 midpoint version of psi must also handle its jump-point convention.
 
 The remaining obligations are therefore the sharp count envelope; head
-certificates; the contour-zero/count/multiplicity bridges; the remainder;
+certificates; the contour-zero/count/multiplicity bridges;
 and rigorous numerical assembly for every \(x\ge e^{23}\). Evaluating at
 \(e^{23}\) additionally needs monotonicity of the combined bound (in
 particular positivity of the coefficient of \(x^{-1/2}\) after subtraction).
