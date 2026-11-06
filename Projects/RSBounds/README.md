@@ -17,6 +17,11 @@ proved.**
 | Finite rectangular residue identity, including the quartic kernel's pole at zero | Proved |
 | Prime-sum Mellin inversion using only hypotheses on the right vertical line | Proved |
 | Fourfold integrated explicit formula for the actual finite sum Psi4, using one common sequence of rectangle heights | Proved, with the left vertical remainder explicit |
+| Upper and lower averaged explicit formulas, including the exact main terms and constant at zero | Proved, with the left remainders explicit |
+| Logarithmic bound for zeta'/zeta on Re(s) = -1/2 | Proved; integration of the remainder bound remains unfinished |
+| Lower kernel bounds and a sharper cancellation bound for both smoothing signs on a finite ordinate band | Proved; does not certify the total numerical row |
+| RS75 Theorem 1: zero-free region with R = 9.645908801 and log(abs(t)/17) | Separate target; not proved |
+| RS75's exact degree-four cosine polynomial and its nonnegativity | Proved |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
 | Moderate-error psi row b = 23; full RS62 Mertens/totient bounds; requested theta estimate | Unfinished |
 
@@ -37,12 +42,21 @@ of psi(x), with main terms x+2h and x−2h. The zero contribution has denominato
 `rho*(rho+1)*(rho+2)*(rho+3)*(rho+4)`. The parameters remain `m = 4`,
 `delta = 0.0000211`, with finite RH through 1894439. The polynomial smoothing
 and its finite psi comparisons are checked, as are the bounds for an individual
-zero's contribution. The contour is an ordinary fixed rectangle with vertical
+zero's contribution, for both smoothing signs. The contour is an ordinary fixed rectangle with vertical
 sides at Re(s) = -1/2 and Re(s) = 3/2; no quantitative zero-free boundary is
 used for it. The integrated formula is now checked, with the residue at zero
 evaluated and the left vertical remainder retained. Quantitative estimates for
 that remainder and the zero sums remain to be completed. See
 [the exact formula and its remaining inputs](docs/QuarticProof.md).
+
+RS75's zero-free region is now a separate target in `RSBounds/Targets.lean`:
+assuming the finite RH verification through 1894439, zeta has no zeros where
+`abs(t) >= 21` and `sigma >= 1 - 1/(9.645908801 * log(abs(t)/17))`.
+This is Theorem 1 of RS75, whose proof uses the finite verification. Its use
+in the high-zero tail is distinct from the ordinary contour calculation.
+The zero-free theorem itself remains unproved here. Its exact trigonometric
+polynomial is checked in `RS75Polynomial.lean`; the remaining analytic inputs
+are tracked separately in [the zero-free-region audit](docs/RS75ZeroFreeAudit.md).
 
 The needed zero-count estimate exists in Rosser (1941), Theorem 19, p. 223:
 

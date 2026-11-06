@@ -13,3 +13,8 @@ import RSBounds.PolynomialPsiMellin
 import RSBounds.PolynomialExplicitFormula
 import RSBounds.PolynomialQuarticFormula
 import RSBounds.PolynomialZetaFormula
+import RSBounds.PolynomialAveragedFormula
+import RSBounds.PolynomialLeftRemainder
+import RSBounds.PolynomialZeroCancellation
+import RSBounds.PolynomialLowerKernel
+import RSBounds.RS75Polynomial

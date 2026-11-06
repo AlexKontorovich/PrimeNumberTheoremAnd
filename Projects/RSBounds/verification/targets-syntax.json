@@ -1,0 +1,14 @@
+{
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "RSBounds/Targets.lean"
+  ],
+  "started_utc": "2026-11-06T09:15:39.802691+00:00",
+  "source_sha256": {
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89"
+  },
+  "finished_utc": "2026-11-06T09:15:43.138430+00:00",
+  "exit_code": 0
+}

@@ -8,7 +8,8 @@ SmallTotientProduct, Mertens, WeightedZeroSums, BacklundPhase,
 TotientAnalyticReduction, PolynomialSmoothing, PolynomialPsi, QuarticMellin,
 PolynomialZeroKernel, PolynomialResidue, PolynomialPrimeSum,
 PolynomialPsiMellin, PolynomialExplicitFormula, PolynomialQuarticFormula,
-and PolynomialZetaFormula. The audited
+PolynomialZetaFormula, PolynomialAveragedFormula, PolynomialLeftRemainder,
+PolynomialZeroCancellation, PolynomialLowerKernel, and RS75Polynomial. The audited
 theorems use only `propext`, `Classical.choice`, and `Quot.sound`.
 
 The native Comparator passed with exit code 0. It compared the two restricted
@@ -27,3 +28,7 @@ The polynomial modules prove the integrated explicit formula, with an explicit
 left vertical remainder, and supporting smoothing identities. They do not yet
 prove the numerical b = 23 bound. The actual-zeta formula has no RH or numerical
 zero-count premise; its quantitative application is unfinished.
+
+After these additions, the aggregate `lake build` passed with exit code 0;
+see `aggregate-build-rs75-polynomial.{log,json}`. `Targets.lean` also passes
+syntax checking. Definitions of target propositions assert no proof of them.

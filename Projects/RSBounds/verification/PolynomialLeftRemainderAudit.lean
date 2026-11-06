@@ -1,0 +1,8 @@
+import RSBounds.PolynomialLeftRemainder
+
+#check TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftRemainder.log_BPz2_le_log_max
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zetaF_left_log
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log_500

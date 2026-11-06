@@ -1,0 +1,15 @@
+{
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "verification/RS75PolynomialAudit.lean"
+  ],
+  "started_utc": "2026-11-06T09:15:36.690885+00:00",
+  "source_sha256": {
+    "RSBounds/RS75Polynomial.lean": "1d4ff3aeffcf701b685634b3522cc270663e386dbb38bfbfd810da203de3e1b7",
+    "verification/RS75PolynomialAudit.lean": "53231bbd7524a0f494405ac2a790954b50fe4a2535f1658333c1b32a6e2c48ed"
+  },
+  "finished_utc": "2026-11-06T09:15:39.802370+00:00",
+  "exit_code": 0
+}

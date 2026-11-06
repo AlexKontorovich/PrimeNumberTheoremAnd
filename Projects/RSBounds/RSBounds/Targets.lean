@@ -14,6 +14,13 @@ def FiniteRH (A : ℝ) : Prop :=
   ∀ ρ : ℂ, riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 →
     |ρ.im| ≤ A → ρ.re = 1 / 2
 
+/-- RS75, Theorem 1, with the finite RH verification kept as an explicit
+premise. This is a target proposition, not a proof or an axiom. -/
+def ZeroFreeRegion1975 : Prop :=
+  FiniteRH 1894439 → ∀ s : ℂ, 21 ≤ |s.im| →
+    1 - 1 / (9.645908801 * Real.log (|s.im| / 17)) ≤ s.re →
+    riemannZeta s ≠ 0
+
 def PsiTable1975 : Prop :=
   FiniteRH 1894439 → ∀ x : ℝ, Real.exp 23 ≤ x →
     |Chebyshev.psi x - x| < 0.00020211 * x

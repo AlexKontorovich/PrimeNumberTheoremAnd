@@ -1,0 +1,15 @@
+{
+  "command": [
+    "lake",
+    "build",
+    "RSBounds.PolynomialAveragedFormula"
+  ],
+  "started_utc": "2026-11-06T09:07:02.569210+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialAveragedFormula.lean": "d6fea4b8db2b26721cd665da71ba1c3baf415ce1c27242da7cf64dd487668627",
+    "RSBounds/PolynomialZetaFormula.lean": "52c6ccb12385d82dcdde851907428ebb16f13fb4fadbe64bbb708e236a902ccc",
+    "RSBounds/PolynomialZeroKernel.lean": "62c44199fe2f4ab1334fbaaed1a84adad2c0f745cfdc1d3ff3640d54af3cbb19"
+  },
+  "finished_utc": "2026-11-06T09:07:13.919002+00:00",
+  "exit_code": 0
+}

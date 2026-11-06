@@ -1,0 +1,14 @@
+TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log (t : ℝ) :
+  ‖logDeriv riemannZeta (↑(-1 / 2) + ↑t * Complex.I)‖ ≤ 340 + 80 * Real.log (max 1 |t|)
+'TernaryGoldbach.RSBounds.PolynomialLeftRemainder.log_BPz2_le_log_max' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zetaF_left_log' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftRemainder.norm_logDeriv_zeta_left_log_500' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

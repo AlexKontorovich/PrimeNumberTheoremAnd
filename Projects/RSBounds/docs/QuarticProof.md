@@ -45,8 +45,10 @@ No quantitative zero-free boundary is used in this contour step.
 The checked finite-difference identities give upper and lower smoothings
 of psi with main terms `x+2h` and `x-2h`. The checked individual-zero
 estimates are the fourfold-integral bound and the bound from the rational
-kernel's denominator. The assembly of these facts into a numerical estimate
-is separate from the formula.
+kernel's denominator. The upper and lower averaged formulas are now proved in
+`PolynomialAveragedFormula.lean`, with main terms `x+2h` and `x-2h`,
+the exact constant `-log(2*pi)`, and their explicit left remainders.
+The assembly into a numerical estimate is separate from these formulas.
 
 ## Remaining numerical work
 
@@ -65,6 +67,18 @@ Theorem 1 at that point. That is a separate quantitative step from the
 ordinary rectangular contour. Replacing it requires a justified tail
 estimate, rather than simply dropping that factor while claiming the same
 printed coefficient.
+
+At the user's request, RS75 Theorem 1 is an explicit separate target,
+`Goals.ZeroFreeRegion1975`: under the finite RH verification through 1894439,
+there are no zeta zeros in
+
+\[
+\sigma\ge 1-\frac1{9.645908801\log(|t|/17)},\qquad |t|\ge21.
+\]
+
+This target is not yet a proved theorem. Existing Stechkin machinery can be
+reused, but the weaker existing `R = 11` region above height `10^9` does not
+supply these constants or this height range.
 
 ## Verification and sources
 
