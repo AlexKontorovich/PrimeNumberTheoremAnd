@@ -1,0 +1,25 @@
+'TernaryGoldbach.RSBounds.QuarticBudgetNumerics.Expr.sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_checked' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_checked' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_positive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_eval' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_eval' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.sqrtCoefficient_pos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.scalarBudget_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

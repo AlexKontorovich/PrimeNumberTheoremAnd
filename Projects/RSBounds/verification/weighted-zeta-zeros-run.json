@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:10:46.772284+00:00",
+  "source_sha256": {
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "verification/WeightedZetaZerosAudit.lean": "9c1fc9a7e09f3e8c6b735625a0115a2c10ce8d7ecb36cc54caa43ceaade3ad01",
+    "verification/run_weighted_zeta_zeros_check.py": "e7065cfc9c154a424df8b6f153d2b70027f0a11a8159463d6f617dbceabdb9d1"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/WeightedZetaZeros.olean",
+        "RSBounds/WeightedZetaZeros.lean"
+      ],
+      "log": "weighted-zeta-zeros-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 224.79539850400033
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/WeightedZetaZerosAudit.lean"
+      ],
+      "log": "weighted-zeta-zeros-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 201.18502446300045
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T14:17:52.754010+00:00",
+  "exit_code": 0
+}

@@ -32,12 +32,18 @@ invokes Comparator on those exports. This avoids redundantly rebuilding the
 large finite certificates. It records hashes and every command in
 `verification/zero-count-run.json`. Process sandboxing is disabled in this
 workspace because `bwrap` cannot mount its temporary filesystem; statement,
-definition, axiom, and kernel checks remain enabled.
+definition, axiom, and kernel checks remain enabled. This is not a sandboxed
+attestation.
 
 The full zero-count theorem has compiled, and all five public axiom audits
-have passed. The independent Comparator run is still pending at this update;
-these are separate verification stages. Consult the recorded exit codes for
-the final outcome. The zero-count configuration covers its two displayed
+have passed. Both zero-count targets also passed Comparator's statement and
+definition matching, allowed-axiom checks, and full replay with Lean's
+default kernel. Only `propext`, `Classical.choice`, and `Quot.sound` were
+permitted. The native Comparator command exited 0 after 2747.55 seconds;
+this duration excludes the preceding Lean builds, axiom audit, and exports.
+See the [completed receipt](../verification/zero-count-run.json) and
+[final log](../verification/zero-count-comparator.log).
+The zero-count configuration covers its two displayed
 theorems, not every export of `ZetaZeroTable`. It does not claim the stronger
 height-280 bound, a first-1000-zero certificate, or any unfinished
 psi/theta/Mertens goal.

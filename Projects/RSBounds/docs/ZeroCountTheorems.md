@@ -157,8 +157,18 @@ $$
 The final theorem compiled, and its transitive axiom audit passed with
 only `propext`, `Classical.choice`, and `Quot.sound`. Its only hypothesis
 is $2\le T$: there is no RH, zero-count, finite-certificate, or
-analytic-estimate premise. The separate independent Comparator check is
-still running at this update; its completion is not asserted here.
+analytic-estimate premise.
+
+Comparator also passed for both `zero_count_bounds` and
+`zero_count_error_lt_one_to_100`: statement and definition matching,
+allowed-axiom checks, and full replay with Lean's default kernel all
+succeeded. Only the same three standard axioms were permitted. The native
+Comparator command took 2747.55 seconds and exited 0; see the
+[completed receipt](../verification/zero-count-run.json) and
+[final log](../verification/zero-count-comparator.log).
+Process sandboxing was disabled because `bwrap` could not mount its required
+filesystem in this workspace; no sandboxed attestation is claimed. This timing
+is for the Comparator command, not source imports or tactic elaboration.
 
 ## Reusable zero-table interface: checked
 

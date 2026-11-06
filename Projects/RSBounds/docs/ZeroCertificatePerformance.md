@@ -31,6 +31,30 @@ of the already completed `Box9883` receipt. The runner uses per-module
 locks and signatures of source, dependencies, toolchain, and options to
 avoid duplicating completed work.
 
+## Recorded Comparator verification
+
+The native Comparator command for the full Rosser count bound and the
+strict error bound through height 100 completed successfully in
+**2747.55 elapsed seconds**. Both targets passed statement and definition
+matching, allowed-axiom checks, and full replay with Lean's default kernel.
+Only `propext`, `Classical.choice`, and `Quot.sound` were permitted.
+The [final receipt](../verification/zero-count-run.json) records each stage
+separately, and the [final log](../verification/zero-count-comparator.log)
+records acceptance.
+
+This is the elapsed time of the native Comparator command, including its
+matching, axiom checks, and kernel replay. It is not an import-time or
+tactic-elaboration measurement, and it excludes the preceding compiler,
+axiom-audit, and export commands. The kernel replay starts from the exported
+proof declarations and checks their dependency closure, including numerical
+proof terms; it does not simply reuse acceptance of the compiled modules.
+No per-declaration timing breakdown was collected during this run.
+
+Process sandboxing was disabled because `bwrap` cannot mount its required
+filesystem in this workspace. Statement, definition, axiom, and default-kernel
+checks all ran and passed, but this is not a sandboxed attestation. No optional
+additional kernel replay (`--paranoid`) is claimed.
+
 ## What one box checks
 
 [`Box8291.lean`](../vendor/rh100/RHHeight100/Box8291.lean) is a generated

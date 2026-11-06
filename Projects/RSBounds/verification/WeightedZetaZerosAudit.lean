@@ -1,0 +1,10 @@
+import RSBounds.WeightedZetaZeros
+
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.sum_zeroCopies
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.filter_closedPositiveZeros
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.ordinateCount_zeroCopies
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.window_sum_zeroCopies
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_eq
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.intervalIntegrable_count_mul
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_le_decreasing
+#print axioms TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_le_decreasing_head

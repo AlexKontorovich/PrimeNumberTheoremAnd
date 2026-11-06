@@ -22,9 +22,13 @@ bounds on counts at rational thresholds. The [exact table data](data/zeta-zeros-
 is also readable without Lean. See [the public theorem guide](docs/ZeroCountTheorems.md)
 for precise statements, imports, citations, and verification records.
 
-The ordinary compiler has checked the full theorem. The independent Comparator
-run is still pending; its eventual result is recorded separately in
-`verification/zero-count-run.json`.
+Both count theorems passed Comparator's statement and definition matching,
+allowed-axiom checks, and full replay with Lean's default kernel. Only
+`propext`, `Classical.choice`, and `Quot.sound` are permitted. The native
+Comparator command took 2747.55 seconds; see the
+[completed receipt](verification/zero-count-run.json).
+Process sandboxing was disabled because `bwrap` could not mount its required
+filesystem in this workspace; this is not a sandboxed attestation.
 
 **The four requested global Rosser–Schoenfeld estimates remain unfinished.**
 The stricter error bound through height **280** and a certified first-1000
@@ -32,11 +36,13 @@ zero table also remain unproved in this package.
 
 In particular, **the full bound on `abs(psi(x)-x)` for `x >= exp 23` is
 not proved**, even with finite RH supplied. The averaged contour remainder
-and the zero-count estimate for every `T >= 2` are now proved. The finite zero
-head, the zero/count/multiplicity bridges, and the final quantitative
-zero-sum assembly remain unfinished. The alternative fixed-quartic budget
-uses the checked 0.931 cancellation bound and does not require the separate
-quantitative zero-free-region target; its numerical assembly is not yet certified.
+and the zero-count estimate for every `T >= 2` are now proved. The finite reciprocal-zero head through 100, actual-zero partial summation,
+contour/count/multiplicity bridges, elementary integral bounds, and the scalar
+eight-band budget are now proved. The final domination of the actual zero
+sums and its assembly with the psi formula remain unfinished. The alternative
+fixed-quartic budget uses the checked 0.931 cancellation bound and does not
+require the separate quantitative zero-free-region target. See the
+[first-29 budget and proof status](docs/QuarticFirst29Budget.md).
 
 | Result | Freshly checked status |
 | --- | --- |
@@ -45,7 +51,11 @@ quantitative zero-free-region target; its numerical assembly is not yet certifie
 | Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
-| Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual count estimate is now proved for T ≥ 2, while the required RS75 finite head and final zero-sum assembly remain |
+| Weighted zero-sum partial summation and envelope transfers | Proved for the actual zeta zeros with analytic multiplicity, using the unconditional Rosser estimate |
+| Reciprocal-zero head through 100 | Proved: the complete first-29 head has sum of reciprocal norms less than 0.592316 |
+| Elementary reciprocal and fifth-power integrals | Proved with explicit logarithmic upper bounds for 7 ≤ a ≤ b |
+| Contour/count/multiplicity conversions | Proved, including strict/inclusive endpoints and conjugation/reflection multiplicity symmetries |
+| Eight-band scalar budget | Proved below 0.00020211, with positive coefficient of 1/sqrt(x); its domination of the actual psi error remains to be assembled |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
 | Angular Jensen inequality, constructive reflected pairing, and the limit along phase-aligned powers | Proved, including the reflection loss E/(2 pi) and the actual horizontal zeta argument bound |
 | Exact zeta/digamma reflection identity and constructive first/last crossings | Proved by selective reuse; no zero-count premise |
@@ -165,7 +175,9 @@ and all 28 pinned axiom audits passed. Its complete table and the resulting
 finite-range error theorem are public exports. It is not imported by the
 separate analytic `T >= 100` theorem. See [the finite-height audit](docs/LowHeightCertificateAudit.md).
 The older RS75 row uses a finite head of 57 zeros; the improved 1976 row uses
-a larger head. These numerical zero certificates also remain to be formalized.
+a larger head. Those larger numerical zero certificates remain to be formalized. The new
+[first-29 route](docs/QuarticFirst29Budget.md) supplies a checked smaller head
+and scalar budget; it avoids those larger heads in the proposed b=23 assembly.
 
 ## Reuse from IEANTN
 

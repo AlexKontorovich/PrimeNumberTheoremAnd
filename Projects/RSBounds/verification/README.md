@@ -174,13 +174,43 @@ unchanged and did not require another replay.
 `Rosser1941.zero_count_bounds`, for every `T >= 2`, and its guarded five-entry
 public axiom audit. The independent Mathlib-only challenge fixes both the
 count definition and the two count theorem statements; no definition holes
-are permitted. The Comparator export/run result is recorded separately in
-that same receipt and must finish successfully before a Comparator pass is
-claimed. Its process sandbox is disabled because this workspace cannot mount
-the required bwrap filesystem. The statement, axiom and kernel checks are
-still required. Exact fresh export hashes are recorded; a previously prepared
+are permitted. Both targets passed statement and definition matching,
+allowed-axiom checks, and full replay with Lean's default kernel. The native
+Comparator command exited 0 after 2747.55 seconds, separately from the
+preceding compiler, axiom-audit, and export steps. Its final log is
+`zero-count-comparator.log`; the only permitted axioms were `propext`,
+`Classical.choice`, and `Quot.sound`.
+
+Process sandboxing was disabled because this workspace cannot mount the
+required `bwrap` filesystem. This is not a sandboxed attestation; statement,
+definition, axiom, and kernel checks all ran and passed. Exact fresh export
+hashes are recorded; a previously prepared
 challenge export is reused only after its source, toolchain, manifest,
 configuration, object and export hashes all match.
 
 The height-280 strict error bound and a certified first-1000 table are not
 proved by these results.
+
+## Checked components for the first-29 quartic budget
+
+`weighted-zeta-zeros-run.json` records actual multiplicity-weighted finite
+partial summation and the Rosser decreasing-weight bound, with eight
+standard-axiom audits. `zeta-zero-table-head-run.json` records the first-29
+reciprocal-norm bound below 0.592316 (four audits);
+`zeta-zero-head-bound-run.json` identifies it with the actual zero sum
+through 100 and proves subset bounds (six audits).
+
+`rosser-tail-integrals-run.json` records both elementary finite integral
+bounds and their explicit primitives (thirteen audits).
+`polynomial-zero-count-bridge-run.json` records the contour/count/analytic
+multiplicity conversion, strict/inclusive endpoint bridges, and both
+conjugation/reflection symmetries (sixteen audits).
+
+`quartic-first29-scalar-run.json` records the literal eight-band budget
+below 0.00020211 and positivity of its square-root coefficient (nine
+audits). Rational arithmetic and logarithm bounds are kernel checked;
+the generated expression is proved equal to the explicit mathematical
+formula. These checks do not yet prove domination of the actual psi error.
+All listed audits use only `propext`, `Classical.choice`, and `Quot.sound`.
+These component checks are separate from the two count-theorem targets
+of the completed Comparator run.

@@ -1,0 +1,42 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:29:56.342226+00:00",
+  "source_sha256": {
+    "RSBounds/ZetaZeroHeadBound.lean": "60d4f4a102dc485d964e463f1a0e3f23ee998966607c2813468a905c83d712b7",
+    "RSBounds/ZetaZeroTableHead.lean": "f6ea0a146bc09e268865b9c881f1e0fc786fc10265c70774a2a4e4eff0d12d13",
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "verification/ZetaZeroHeadBoundAudit.lean": "04df0b00bce54bd97d0ecd18638e4baf86234ca0e247c3534691c34afb991d20",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/ZetaZeroHeadBound.olean",
+        "RSBounds/ZetaZeroHeadBound.lean"
+      ],
+      "log": "zeta-zero-head-bound-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 44.39798645200062
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/ZetaZeroHeadBoundAudit.lean"
+      ],
+      "log": "zeta-zero-head-bound-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 28.03319529500004
+    }
+  ],
+  "finished_utc": "2026-11-06T14:31:08.774448+00:00",
+  "exit_code": 0
+}
