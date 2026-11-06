@@ -1,0 +1,48 @@
+import took 9.55s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 117ms
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.upperPoint_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.lowerPoint_slope_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_gt_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_slope_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_deriv_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.logDerivative_lt_tangent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.shifted_real_axis_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 43.8ms
+	attribute application 0.077ms
+	blocked (unaccounted) 1.79s
+	congr simp thm 1.41ms
+	declTypeLinter 6.37ms
+	elaboration 55.6ms
+	fix level params 1.53ms
+	import 9.55s
+	initialization 35ms
+	instantiate metavars 0.724ms
+	interpretation 1.03s
+	let-to-have transformation 0.372ms
+	linting 11.7ms
+	module linting 0.00811ms
+	norm_num 361ms
+	parsing 5.53ms
+	process pre-definitions 19.9ms
+	ring 57.5ms
+	share common exprs 22.2ms
+	simp 7.31ms
+	tactic execution 119ms
+	tacticAnalysis 2.79ms
+	type checking 114ms
+	typeclass inference 499ms

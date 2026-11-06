@@ -1,0 +1,89 @@
+import took 3.48s
+RSBounds/RS75MomentCalculus.lean:44:2: warning: Unused tactic linter: `all_goals
+  try { funext u; rfl
+  }` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75MomentCalculus.lean:44:28: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/RS75MomentCalculus.lean:179:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75MomentCalculus.lean:179:10: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75MomentCalculus.lean:187:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75MomentCalculus.lean:196:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75MomentCalculus.lean:179:10: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/RS75MomentCalculus.lean:187:6: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS75MomentCalculus.lean:196:6: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.InfiniteTrapezoid.finite_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.InfiniteTrapezoid.infinite_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentDeriv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.momentSecond_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.continuousOn_momentSecond' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentDeriv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_neg_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.integrableOn_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.integral_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.moment_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 29.9ms
+	attribute application 0.145ms
+	blocked (unaccounted) 2.78s
+	congr simp thm 4.21ms
+	declTypeLinter 5.81ms
+	dsimp 10.8ms
+	elaboration 103ms
+	fix level params 2.64ms
+	import 3.48s
+	initialization 28.1ms
+	instantiate metavars 6.07ms
+	interpretation 1.33s
+	let-to-have transformation 0.214ms
+	linting 50.8ms
+	module linting 0.00944ms
+	norm_num 287ms
+	parsing 16.3ms
+	process pre-definitions 37.4ms
+	ring 106ms
+	share common exprs 40.4ms
+	simp 64.2ms
+	tactic execution 283ms
+	tacticAnalysis 5.53ms
+	type checking 210ms
+	typeclass inference 637ms

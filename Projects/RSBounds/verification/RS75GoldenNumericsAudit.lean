@@ -1,0 +1,8 @@
+import RSBounds.RS75GoldenNumerics
+#print axioms TernaryGoldbach.RSBounds.GoldenScalar.Expr.sound
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.upperPoint_zero_upper
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.upperPoint_one_lower
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_zero_lower
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_zero_upper
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_one_lower
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_two_upper

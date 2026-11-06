@@ -1,0 +1,5 @@
+import RSBounds.PsiSieveBlockReduction
+
+#print axioms TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le
+#print axioms TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le_of_guards
+#print axioms TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le_four_fifths_of_guards

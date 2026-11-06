@@ -1,0 +1,58 @@
+{
+  "kind": "fresh-actual-radical-and-logarithm-scalar-assembly",
+  "started_utc": "2026-11-06T16:34:10.653196+00:00",
+  "source_sha256": {
+    "RSBounds/RS75ScalarNumericsBase.lean": "e40669ecf99db638daaceecba76780f4dc0a3bd3c83b0b7be36875af98bd04ba",
+    "RSBounds/RS75ZeroFreeNumerics.lean": "442d6148e42581aff6d959f40d50aaf3aef2cb93996f1179c81cb545b3e77d5f",
+    "RSBounds/RS75ZeroFreeScalars.lean": "ddc4429e1bd1c913a4d9b9fd6d2309b2b959d2d8175f6707983f1d0e86a51ddd",
+    "RSBounds/RS75Parameters.lean": "8646e6c330a39b10f3fadf2591be2a8881a700b90aecf504cc8ce164c8d4b826",
+    "verification/RS75ZeroFreeScalarsAudit.lean": "faf83816fbcac7cf09523b8c202cd3705ddebaba6f6f9026bd78506f26ee369a",
+    "verification/run_rs75_zero_free_scalars_check.py": "db0044d006cb034c47cd5bd6579bd8c853d3dd204149e0352d1c143265a3adcb",
+    "scripts/generate_rs75_zero_free_scalars.py": "3b5bbcd5224ccfd16380a7cbd241091f68ca978271496eac2222fc4ab4875ff7"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ScalarNumericsBase.olean",
+        "RSBounds/RS75ScalarNumericsBase.lean"
+      ],
+      "log": "rs75-zero-free-RS75ScalarNumericsBase-build.log",
+      "exit_code": 0,
+      "seconds": 1244.3639035959968
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroFreeNumerics.olean",
+        "RSBounds/RS75ZeroFreeNumerics.lean"
+      ],
+      "log": "rs75-zero-free-RS75ZeroFreeNumerics-build.log",
+      "exit_code": 0,
+      "seconds": 796.7277835689965
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroFreeScalars.olean",
+        "RSBounds/RS75ZeroFreeScalars.lean"
+      ],
+      "log": "rs75-zero-free-RS75ZeroFreeScalars-build.log",
+      "exit_code": 1,
+      "seconds": 325.95010990100127
+    }
+  ],
+  "exit_code": 1
+}

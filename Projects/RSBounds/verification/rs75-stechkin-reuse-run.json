@@ -1,0 +1,80 @@
+{
+  "kind": "fresh-unchanged-upstream-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T16:16:38.603572+00:00",
+  "upstream": "calr3/ternary-goldbach",
+  "pinned_revision": "ce82a5b2a4ed5039c4750c0d062f0b0f2b833be0",
+  "checked_source_git_status": "",
+  "source_sha256": {
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/XiPartial.lean": "d5c7c512e06b21a1d07d150cd8174138df2cd80bb0de6aaa05a9508a0ebe6207",
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/Digamma.lean": "eaaab1415167e813d1e322a23c2ad7e07425b003e49859add10326d3fe081ea1",
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFree.lean": "9a692113f718dd9f2851228ebc84695d34e545fb6c643023b895152bafbcf6f2",
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFreeRegion.lean": "dc3b5c8627bfc8b0cea172eddbae757d2ceb727c1987d4311b05d206cad95497",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    ".lake/packages/TernaryGoldbach/lakefile.lean": "8abf1ae6b56475454249015e6161da1f5753d99bf7476db0dfbc91ef7f7aa599",
+    "verification/RS75StechkinReuseAudit.lean": "3e97d1c41ccb64af32d645c888690caecceb4cfc2c13a83247772930326f3cc7",
+    "verification/run_rs75_stechkin_reuse_check.py": "3c94c695b81360c61d670782ba83a9d0f9e25973533587ed14f485f6bf66b3a8"
+  },
+  "imported_object_sha256": {
+    ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/XiPartial.olean": "d15452b344fb8a3f56b8b4b1fd07eefb4bec7b67312644c777d5378cb4c44746",
+    ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/Digamma.olean": "23d68c3cf8b45bfd5d90f1ae88d86f92479a148bfefe0f5c45542349fb3382eb"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dlinter.unusedSectionVars=false",
+        "-R",
+        ".lake/packages/TernaryGoldbach",
+        "-o",
+        ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/ZeroFree.olean",
+        ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFree.lean"
+      ],
+      "log": "rs75-stechkin-zerofree-fresh-build.log",
+      "exit_code": 0,
+      "seconds": 369.4157716230002
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dlinter.unusedSectionVars=false",
+        "-R",
+        ".lake/packages/TernaryGoldbach",
+        "-o",
+        ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/ZeroFreeRegion.olean",
+        ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFreeRegion.lean"
+      ],
+      "log": "rs75-stechkin-zerofreeregion-fresh-build.log",
+      "exit_code": 0,
+      "seconds": 995.8213409290001
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75StechkinReuseAudit.lean"
+      ],
+      "log": "rs75-stechkin-reuse-axioms.log",
+      "exit_code": 0,
+      "seconds": 1443.4588099619978
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 18,
+    "only_standard_axioms": true
+  },
+  "object_sha256": {
+    ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/ZeroFree.olean": "9cb516c6ecee16937d32fba31fa3bc47bd81073ee90826945566df99daa16cf6",
+    ".lake/packages/TernaryGoldbach/.lake/build/lib/lean/TernaryGoldbach/Explicit/ZeroFreeRegion.olean": "b2e0f099a0a66a946dfd419ffec2ce3109562f25531a9db73feb2dd994143adb"
+  },
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:03:27.322489+00:00"
+}

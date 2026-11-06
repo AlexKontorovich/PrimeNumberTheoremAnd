@@ -1,10 +1,13 @@
 # A scalar route using weaker real-axis bounds
 
 This note checks the numerical assembly for the separate RS75 zero-free-region
-proof. **It is not a Lean proof of that theorem.** The exact-rational Python
+proof. **It is not a Lean proof of that theorem.** The complete scalar assembly is now checked in
+[`RS75ZeroFreeScalars`](../RSBounds/RS75ZeroFreeScalars.lean), with
+[16 standard-axiom audits](../verification/rs75-zero-free-scalars-final-run.json).
+The independent exact-rational Python
 [diagnostic](../verification/rs75-residual-diagnostic.py) and its
 [output](../verification/rs75-residual-diagnostic.json) check the arithmetic
-below. The analytic inputs and their Lean assembly remain separate obligations.
+below. The zeta estimates and their final analytic assembly remain separate obligations.
 Nothing here changes the completed [b = 23 psi proof](PsiTable1975.md).
 
 The primary source is Rosser–Schoenfeld (1975), §1, especially Lemma 2,
@@ -43,8 +46,8 @@ The second follows from the three sufficient inputs
 together with monotonic decrease of the positive Dirichlet series for
 \((\zeta'/\zeta)'\) on the real interval to the right of \(r\).
 The product \(2.5\cdot1.34424=3.3606\) is exact.
-These golden-ratio value and derivative estimates are still to be formalized;
-the diagnostic does not certify evaluations of zeta.
+The golden-ratio value and derivative estimates have separate proof obligations;
+this scalar module and its diagnostic do not certify evaluations of zeta.
 
 For each nonzero frequency it is enough to prove the proposed bound with
 remainder \(15/t^2\), followed by the usual Stechkin nonnegativity and
@@ -226,7 +229,8 @@ by integer squaring. Much less precision is enough, but no numerical axiom is
 needed.
 
 The separate handoff for \(21\le|t|\le1894439\), and the case \(\beta=1/2\),
-still need the elementary check that the target boundary exceeds \(1/2\).
+use the now-proved elementary check that the target boundary exceeds \(1/2\)
+in `RS75FiniteHandoff.boundary_gt_half`.
 For example \(\log(21/17)>0.21\) and \(9.645908801\cdot0.21>2\) suffice.
 Finite RH supplies the critical-line location in the bounded range; conjugation
 handles negative ordinates.
@@ -236,17 +240,20 @@ handles negative ordinates.
 1. **Completed:** the polynomial identity and positive lower bound proving (1),
    together with the elementary parameter and golden-ratio transfer lemmas,
    are checked in `RS75Parameters`.
-2. Certify the short list of square-root/logarithm enclosures for \(v,R_1,\ell\),
+2. **Completed:** certify the short list of square-root/logarithm enclosures for \(v,R_1,\ell\),
    the cutoff \(x<0.029172\), and \(D\). Existing `LogCert`, gamma and pi bounds
    supply the needed numerical framework.
-3. Derive the five coefficient bounds and finish with the displayed single
+3. **Completed:** derive the five coefficient bounds and finish with the displayed single
    rational inequality. This requires no grid search or transcendental
    monotonicity calculation for the residual.
-4. Prove the golden-ratio value and derivative bounds, near-pole inequality,
-   frequency estimate, and Stechkin/difference assembly (*). These are the
-   substantive analytic obligations; the scalar diagnostic cannot replace them.
+4. **Completed:** the golden-ratio value and derivative bounds, near-pole
+   inequality, frequency estimate, and Stechkin/difference assembly (*) are
+   now proved and assembled in `RS75ZeroFree1975`. These analytic proofs are
+   separate from the scalar diagnostic.
 
-The polynomial residual and final radical/logarithm certificate have not yet
-been encoded in Lean. The separate `RS75Parameters` module has compiled and
-passed its full transitive axiom audits; the Python diagnostic remains an
-independent exact-rational calculation rather than a proof oracle.
+The polynomial residual, final radical/logarithm certificate, and actual-kappa/
+Euler-constant substitution are now checked in `RS75ZeroFreeScalars`. Its final
+`chosen_residual_lt` theorem has only the height condition `1894439 ≤ t`. The
+parameter module has 21 standard-axiom audits; the scalar assembly has 16.
+The Python diagnostic remains an independent exact-rational calculation rather
+than a proof oracle.

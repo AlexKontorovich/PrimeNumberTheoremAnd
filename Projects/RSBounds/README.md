@@ -57,10 +57,23 @@ Comparator command took 2747.55 seconds; see the
 Process sandboxing was disabled because `bwrap` could not mount its required
 filesystem in this workspace; this is not a sandboxed attestation.
 
+The separate **RS75 quantitative zero-free region is now proved**:
+assuming `FiniteRH 1894439`, zeta is nonzero whenever `abs(Im(s)) >= 21` and
+`Re(s) >= 1 - 1/(9.645908801 * log(abs(Im(s))/17))`.
+The high-height theorem for `abs(Im(s)) >= 1894439` is unconditional;
+finite RH is used only for the bounded-height handoff. The closed boundary
+is excluded. The [proof and dependency guide](docs/RS75ZeroFreeAudit.md)
+records the exact statement and all component checks. The final theorem
+freshly compiles and its public transitive audit uses only the standard three
+axioms. A separate full native Comparator replay for this new theorem has
+not yet been run; do not conflate this status with the completed psi replay.
+
 **The requested global theta estimate and the full RS62 Mertens/totient
-bounds remain unfinished.** The separate RS75 quantitative zero-free region,
-the stronger 1976 b = 23 coefficient 0.00020171, the strict count error through
-height 280, and a certified first-1000 zero table also remain unproved here.
+bounds remain unfinished.** The stronger 1976 b = 23 coefficient 0.00020171,
+the strict count error through height 280, and a certified first-1000 zero
+table also remain unproved here. The proposed finite square-root psi bound
+on `[1500,10^10]` is not proved here yet; see the
+[feasibility and reuse investigation](docs/FinitePsiCertification.md).
 
 The completed b = 23 proof assembles the actual finite complex zero sums,
 including analytic multiplicities, with the averaged explicit formula.
@@ -107,8 +120,8 @@ quantitative zero-free-region target is a separate problem.
 | Logarithmic bound for zeta'/zeta on Re(s) = -1/2 | Proved |
 | Both actual averaged left-line remainders, with delta = 0.0000211 | Proved: at most 25000/(pi sqrt(x)), and less than 0.1 for x >= exp 23; no RH premise |
 | Lower kernel bounds and a sharper cancellation bound for both smoothing signs on a finite ordinate band | Proved; used in the completed b = 23 row |
-| RS75 Theorem 1: zero-free region with R = 9.645908801 and log(abs(t)/17) | Separate target; not proved |
-| RS75 real-axis xi/Gamma increments and variable Stechkin parameters | Proved and audited as separate components; the full zero-free theorem remains unfinished |
+| RS75 Theorem 1: zero-free region with R = 9.645908801 and log(abs(t)/17) | Proved for absolute ordinate at least 21 under finite RH through 1894439; unconditional above 1894439 |
+| RS75 real-axis xi/Gamma increments and variable Stechkin parameters | Proved, audited, and assembled into the full zero-free theorem |
 | RS75's exact degree-four cosine polynomial and its nonnegativity | Proved |
 | Gauss series for digamma and its summability on Re(s) > 0 | Reused from IEANTN GammaAsymptotics.v2; freshly compiled and audited on this toolchain |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
@@ -148,17 +161,17 @@ The quantitative zero-sum estimate and its final assembly are now proved.
 See the [completed proof guide](docs/PsiTable1975.md); the older
 [quartic formula note](docs/QuarticProof.md) records the earlier construction.
 
-RS75's zero-free region is now a separate target in `RSBounds/Targets.lean`:
+RS75's zero-free region is now proved in `RSBounds/RS75ZeroFree1975.lean`:
 assuming the finite RH verification through 1894439, zeta has no zeros where
 `abs(t) >= 21` and `sigma >= 1 - 1/(9.645908801 * log(abs(t)/17))`.
-This is Theorem 1 of RS75, whose proof uses the finite verification. It remains
-a separate requested target. The alternative fixed-parameter b=23 budget in
+This is Theorem 1 of RS75, whose proof uses the finite verification only
+below height 1894439. The fixed-parameter b=23 budget in
 `docs/QuarticBudgetAudit.md` uses only the critical strip above the finite RH
 height, and therefore does not require this quantitative zero-free region.
 It does not itself provide a globally decaying `c/log(x)` relative error.
-The zero-free theorem itself remains unproved here. Its exact trigonometric
-polynomial is checked in `RS75Polynomial.lean`; the remaining analytic inputs
-are tracked separately in [the zero-free-region audit](docs/RS75ZeroFreeAudit.md).
+The zero-free theorem and all its analytic inputs are proved and audited;
+their dependency chain is documented in
+[the zero-free-region guide](docs/RS75ZeroFreeAudit.md).
 
 The needed zero-count estimate is Rosser (1941), Theorem 19, p. 223:
 

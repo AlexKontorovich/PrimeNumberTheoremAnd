@@ -34,6 +34,7 @@ import RSBounds.PolynomialLeftRemainder
 import RSBounds.PolynomialZeroCancellation
 import RSBounds.PolynomialLowerKernel
 import RSBounds.RS75Polynomial
+import RSBounds.RS75ZeroFree1975
 import RSBounds.PolynomialKernelScaling
 import RSBounds.PolynomialLeftKernel
 import RSBounds.PolynomialRemainderIntegral

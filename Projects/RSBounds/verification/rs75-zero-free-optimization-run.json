@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-optimization-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:18:31.796494+00:00",
+  "source_sha256": {
+    "RSBounds/RS75ZeroFreeOptimization.lean": "75daabf40fc1aba48cf223b1b80123fb59d9fbde843a37275e010786039a91e0",
+    "RSBounds/RS75ZeroFreeScalars.lean": "c12a1e0750a2dd75c5e72d5635dd823392c33dd8aeab4e87a8ea9c6ca09332b1",
+    "RSBounds/RS75ZeroFreeNumerics.lean": "442d6148e42581aff6d959f40d50aaf3aef2cb93996f1179c81cb545b3e77d5f",
+    "verification/RS75ZeroFreeOptimizationAudit.lean": "84cff8175410774c5b9d657fde54c66b6093a19d74ba88aa75dd111a802d131a",
+    "verification/run_rs75_zero_free_optimization_check.py": "e701981e67640e99ccde51b25101626646395d67100f6972bf4682cce2c452ea"
+  },
+  "stdin_recipe": "Exact source plus eight fully qualified #print axioms commands.",
+  "stdin_sha256": "50886411b7ad9eea0ffeb32c62f15f599d35738a61e980cf5c66f394a8aac90f",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroFreeOptimization.olean",
+        "RSBounds/RS75ZeroFreeOptimization.lean"
+      ],
+      "log": "verification/rs75-zero-free-optimization-build.log",
+      "exit_code": 0,
+      "seconds": 9.426063767001324
+    }
+  ],
+  "build_exit_code": 0,
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:18:41.223576+00:00"
+}

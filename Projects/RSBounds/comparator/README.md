@@ -75,3 +75,15 @@ successful result is recorded separately in
 ends with `Lean default kernel accepts the solution` and
 `Your solution is okay!`. All recorded source/object/export hashes were
 validated before that replay.
+# RS75 zero-free Comparator preparation
+
+`RSZeroFreeChallenge.lean` states both the unconditional high-height theorem
+and the finite-RH theorem independently, importing Mathlib only. The matching
+solution imports the proved RS75 module. Both sources compile and both solution
+axiom audits pass with only the standard three axioms. Configuration:
+`../comparator-zero-free.json`; preparation receipt:
+`../verification/zero-free-comparator-prep-run.json`.
+
+**No native Comparator replay for these two new targets has run yet.**
+The passed count and psi Comparator records below concern their own targets.
+

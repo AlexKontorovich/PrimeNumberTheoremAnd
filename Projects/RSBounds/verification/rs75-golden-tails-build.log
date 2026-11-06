@@ -1,0 +1,41 @@
+import took 13.4s
+'TernaryGoldbach.RSBounds.RS75GoldenTails.sum_range_eq_momentSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenTails.tailPrimitive_eq_tailIntegral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenTails.center_le_moment_le_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenTails.center_le_moment' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenTails.moment_le_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 17.1ms
+	attribute application 0.0381ms
+	blocked (unaccounted) 403ms
+	compilation (IR) 0.165ms
+	compilation (LCNF base) 1.36ms
+	compilation (LCNF impure) 0.794ms
+	compilation (LCNF mono) 1.07ms
+	congr simp thm 1.92ms
+	declTypeLinter 2.72ms
+	elaboration 28.1ms
+	fix level params 0.641ms
+	import 13.4s
+	initialization 29.3ms
+	instantiate metavars 0.97ms
+	interpretation 719ms
+	let-to-have transformation 0.0517ms
+	linting 8.47ms
+	module linting 0.00997ms
+	norm_num 22ms
+	parsing 2.95ms
+	process pre-definitions 5.34ms
+	ring 39ms
+	share common exprs 8.35ms
+	simp 48ms
+	tactic execution 53ms
+	tacticAnalysis 1.62ms
+	type checking 35.5ms
+	typeclass inference 67.8ms

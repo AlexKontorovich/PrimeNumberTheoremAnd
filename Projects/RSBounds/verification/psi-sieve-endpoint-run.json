@@ -1,0 +1,32 @@
+{
+  "kind": "single-pass-source-compilation-and-appended-axiom-audits",
+  "started_utc": "2026-11-06T17:30:13.745508+00:00",
+  "source_sha256": {
+    "RSBounds/PsiSieveEndpointReduction.lean": "82a4b68b286af10511fdf65362d792f0bd0295ef8dcbaeded70015a499e159bf",
+    "verification/PsiSieveEndpointReductionAudit.lean": "221cba9dea249d9c6cda4629eca1601e547ea6f5e2d45144fd35b69aa186aa73",
+    "verification/psi-sieve-endpoint-check-input.lean": "4bd615305922f30581ed6d7f35042aa1f36c3e1ad61de65319b565c2141f04c1",
+    "verification/run_psi_sieve_endpoint_check.py": "4e59943594afb62b2b2529af6b7273ace5d51c52f666f629bc0e4582106b4a67",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7"
+  },
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "--stdin",
+    "RSBounds/PsiSieveEndpointReduction.lean",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/PsiSieveEndpointReduction.olean"
+  ],
+  "stdin": "verification/psi-sieve-endpoint-check-input.lean",
+  "log": "verification/psi-sieve-endpoint-check.log",
+  "exit_code": 0,
+  "elapsed_seconds": 4.871311710005102,
+  "finished_utc": "2026-11-06T17:30:18.617169+00:00",
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  }
+}

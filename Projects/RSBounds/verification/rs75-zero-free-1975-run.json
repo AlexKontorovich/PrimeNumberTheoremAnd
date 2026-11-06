@@ -1,0 +1,54 @@
+{
+  "kind": "fresh-local-compilation-and-public-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:25:00.756049+00:00",
+  "source_sha256": {
+    "RSBounds/RS75ZeroFree1975.lean": "e09f31b984976d75c0a773b6c41d3d671ee2ac7aebe2c5466212ba1253a768cb",
+    "RSBounds/RS75DirichletPositivity.lean": "6559a3c4dc8038a7d1a35af64aaa0e8e2ae698647a1d029effae4fb2ffa641cf",
+    "RSBounds/RS75RealAxisLogDerivative.lean": "f89d82fbbe19f339f2f039a7f36819d0da862dd144cdf536f5a73fafcc81d51e",
+    "RSBounds/RS75GoldenRatio.lean": "289e9dc352c7254339f7349c0aecbe7371c234a699f7bc3ba66d1f4a7579a16d",
+    "RSBounds/RS75Frequency.lean": "b7422c8e782c85a801a5f9b80647f705a90bc37eb241bb602de1fca33a6f05d4",
+    "RSBounds/RS75ZeroFreeOptimization.lean": "75daabf40fc1aba48cf223b1b80123fb59d9fbde843a37275e010786039a91e0",
+    "RSBounds/RS75ZeroFreeScalars.lean": "c12a1e0750a2dd75c5e72d5635dd823392c33dd8aeab4e87a8ea9c6ca09332b1",
+    "RSBounds/RS75Parameters.lean": "8646e6c330a39b10f3fadf2591be2a8881a700b90aecf504cc8ce164c8d4b826",
+    "RSBounds/RS75FiniteHandoff.lean": "661b196fc78aafb51803915033c427fb37c660017edb7cc18ae053a264d7377e",
+    "verification/RS75ZeroFree1975Audit.lean": "3f037361cace3359933de4deac9e856c0b904345e53cea3d4a30f15c208b78cf",
+    "verification/run_rs75_zero_free_1975_check.py": "3a1b0a0569c068fcc77e2d0a6d08172105a7583c060f8ea12b9335f4cb4b790d",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroFree1975.olean",
+        "RSBounds/RS75ZeroFree1975.lean"
+      ],
+      "log": "rs75-zero-free-1975-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 10.652129349997267
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75ZeroFree1975Audit.lean"
+      ],
+      "log": "rs75-zero-free-1975-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 6.047781066001335
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "79bd057c71437c2cc83f65d926f73bb12ee1cacd51b227cb2b583aec5cdb857f",
+  "finished_utc": "2026-11-06T17:25:17.459173+00:00",
+  "exit_code": 0
+}

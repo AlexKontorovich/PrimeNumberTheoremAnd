@@ -251,3 +251,16 @@ source, configuration, object, and export hashes before replaying the exact
 same exports. Its successful result is recorded in `psi-resume-run.json` and
 `psi-comparator-resume.log`. The combined root import also compiled successfully;
 see `aggregate-psi-run.json`.
+# Completed RS75 zero-free theorem
+
+`rs75-zero-free-1975-run.json` records the fresh full theorem build and four
+successful public transitive axiom audits. Its only mathematical assumption
+for heights at least21 is finite RH through1894439; the high-height theorem
+is unconditional. The allowed axioms are the standard three only.
+`aggregate-rs75-zero-free-run.json` records the successful aggregate import.
+
+`zero-free-comparator-prep-run.json` records independent Mathlib-only challenge
+and solution preparation and the two solution audits. **A full native
+Comparator replay for these new targets has not run.** This is distinct from
+the completed count and psi Comparator receipts described below.
+

@@ -1,0 +1,6 @@
+import RSBounds.RS75FiniteHandoff
+
+#print axioms TernaryGoldbach.RSBounds.RS75FiniteHandoff.log_twentyone_seventeen_gt
+#print axioms TernaryGoldbach.RSBounds.RS75FiniteHandoff.boundary_gt_half
+#print axioms TernaryGoldbach.RSBounds.RS75FiniteHandoff.zero_free_low
+#print axioms TernaryGoldbach.RSBounds.RS75FiniteHandoff.of_high
