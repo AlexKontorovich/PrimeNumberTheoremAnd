@@ -1,0 +1,24 @@
+{
+  "module": "ZetaLean.Rigor",
+  "source_sha256": "ed0337e17a0a02d5390ee565850ba6ff2a58cbcbb9fd1355561bf527bf38ced6",
+  "upstream_sha256": "ed0337e17a0a02d5390ee565850ba6ff2a58cbcbb9fd1355561bf527bf38ced6",
+  "adapted": false,
+  "signature": "2c54b6456af75dd98222d24f01e7d8eb71b98f7f94f3d5ec82128c7a4ce92cf8",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "ZetaLean/Rigor.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/ZetaLean/Rigor.olean"
+  ],
+  "started_utc": "2026-11-06T12:06:16.502751+00:00",
+  "finished_utc": "2026-11-06T12:06:20.705988+00:00",
+  "elapsed_seconds": 4.203,
+  "peak_rss_kib": 3593516,
+  "log": "verification/rh100-replay/ZetaLean.Rigor.log",
+  "resources": "verification/rh100-replay/ZetaLean.Rigor.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "5968d6e9f452bb19894a885cc262663a4e4e1b9d7a113e2ccd50a96e5b279b4f",
+  "reused_from_previous_replay": true
+}

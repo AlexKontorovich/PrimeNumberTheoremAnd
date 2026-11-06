@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.FromPNTPlus.EulerMaclaurin",
+  "source_sha256": "dff20198b3538c4502943efe3f3b74d3ea8f34877b209f2d7df7030e6a274acd",
+  "upstream_sha256": "0e2b201e2a99db8650c565f14c2d4c65ff54a59a29f81137a63a00f2d1776ab6",
+  "adapted": true,
+  "signature": "88b2e1658ee905553f2a873da2ddd05b01d55c8bea3c502caf44ae90dd262444",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/FromPNTPlus/EulerMaclaurin.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/FromPNTPlus/EulerMaclaurin.olean"
+  ],
+  "started_utc": "2026-11-06T12:02:11.183131+00:00",
+  "finished_utc": "2026-11-06T12:02:13.726331+00:00",
+  "elapsed_seconds": 2.543,
+  "peak_rss_kib": 1685196,
+  "log": "verification/rh100-replay/Zeta23.FromPNTPlus.EulerMaclaurin.log",
+  "resources": "verification/rh100-replay/Zeta23.FromPNTPlus.EulerMaclaurin.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "c25b95603529840e13f853c4a7bcb16c9ab75756b1ae46c909ca6b9f929ef208",
+  "reused_from_previous_replay": true
+}

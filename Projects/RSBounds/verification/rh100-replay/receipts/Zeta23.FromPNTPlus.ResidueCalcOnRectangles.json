@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.FromPNTPlus.ResidueCalcOnRectangles",
+  "source_sha256": "43c018e48238ebab163b1c20183929b42c269d525d98d16388a1565550ea4900",
+  "upstream_sha256": "43c018e48238ebab163b1c20183929b42c269d525d98d16388a1565550ea4900",
+  "adapted": false,
+  "signature": "a238f80b28d1b3b603cb12adc59188f729a06970aa88e51e9be11a10fc387236",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/FromPNTPlus/ResidueCalcOnRectangles.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/FromPNTPlus/ResidueCalcOnRectangles.olean"
+  ],
+  "started_utc": "2026-11-06T11:57:28.045276+00:00",
+  "finished_utc": "2026-11-06T11:57:41.142907+00:00",
+  "elapsed_seconds": 13.097,
+  "peak_rss_kib": 1792744,
+  "log": "verification/rh100-replay/Zeta23.FromPNTPlus.ResidueCalcOnRectangles.log",
+  "resources": "verification/rh100-replay/Zeta23.FromPNTPlus.ResidueCalcOnRectangles.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "22896b2c2655c65d6df9764ff08319834a7d7d5ba843d18517396aa67213ea7a",
+  "reused_from_previous_replay": true
+}

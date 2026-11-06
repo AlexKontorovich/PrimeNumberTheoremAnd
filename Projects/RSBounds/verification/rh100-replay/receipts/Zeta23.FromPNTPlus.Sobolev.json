@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.FromPNTPlus.Sobolev",
+  "source_sha256": "82f6053d4a003291b6db6a3db186b7da96267faca6ffecbb23fe5a214f223be2",
+  "upstream_sha256": "82f6053d4a003291b6db6a3db186b7da96267faca6ffecbb23fe5a214f223be2",
+  "adapted": false,
+  "signature": "82d3dba97587affe96c38f9f3eeab8c22de6c6e27543a30e9959fdb7d8087a7d",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/FromPNTPlus/Sobolev.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/FromPNTPlus/Sobolev.olean"
+  ],
+  "started_utc": "2026-11-06T11:55:29.325918+00:00",
+  "finished_utc": "2026-11-06T11:55:35.717110+00:00",
+  "elapsed_seconds": 6.391,
+  "peak_rss_kib": 1727152,
+  "log": "verification/rh100-replay/Zeta23.FromPNTPlus.Sobolev.log",
+  "resources": "verification/rh100-replay/Zeta23.FromPNTPlus.Sobolev.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "854264a10a06197cdf8768c8b86b7d29047b75a2de984857625978cc3826b771",
+  "reused_from_previous_replay": true
+}

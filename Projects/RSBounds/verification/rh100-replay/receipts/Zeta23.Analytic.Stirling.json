@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.Analytic.Stirling",
+  "source_sha256": "e8928ea1017d822d1d09d13ca41ebf0b98d4a3e9a611d90d8f688c284e75c6ba",
+  "upstream_sha256": "e8928ea1017d822d1d09d13ca41ebf0b98d4a3e9a611d90d8f688c284e75c6ba",
+  "adapted": false,
+  "signature": "c8496e0e8cfd54cfd6cb09aa74aa1a924909720981559277453c69c7b7078ede",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/Analytic/Stirling.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/Analytic/Stirling.olean"
+  ],
+  "started_utc": "2026-11-06T12:05:40.162113+00:00",
+  "finished_utc": "2026-11-06T12:05:44.368742+00:00",
+  "elapsed_seconds": 4.206,
+  "peak_rss_kib": 1715384,
+  "log": "verification/rh100-replay/Zeta23.Analytic.Stirling.log",
+  "resources": "verification/rh100-replay/Zeta23.Analytic.Stirling.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "be806d1ec63ef0845972797974f3b31eb85224d5d9c5031cddb9f23f2a9eba09",
+  "reused_from_previous_replay": true
+}

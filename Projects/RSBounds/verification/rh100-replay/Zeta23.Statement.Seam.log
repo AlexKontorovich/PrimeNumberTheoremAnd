@@ -1,0 +1,4 @@
+Zeta23/Statement/Seam.lean:63:13: warning: `ENat.toNat_coe` has been deprecated: Use `ENat.toNat_natCast` instead
+
+Hint: Replace the deprecated name:
+  ENat.toNat_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲

@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.Hypotheses",
+  "source_sha256": "cc35b644c3511cf610ea81b0be6cf4a299c4f3093b76b743ddbd9b0786a84a69",
+  "upstream_sha256": "cc35b644c3511cf610ea81b0be6cf4a299c4f3093b76b743ddbd9b0786a84a69",
+  "adapted": false,
+  "signature": "5ddc3adf90ac47dbd9328a1452bbaf5e7df3623f9ccfd7b3902a0830f5d2c19b",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/Hypotheses.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/Hypotheses.olean"
+  ],
+  "started_utc": "2026-11-06T11:51:57.349016+00:00",
+  "finished_utc": "2026-11-06T11:51:59.357167+00:00",
+  "elapsed_seconds": 2.007,
+  "peak_rss_kib": 1667572,
+  "log": "verification/rh100-replay/Zeta23.Hypotheses.log",
+  "resources": "verification/rh100-replay/Zeta23.Hypotheses.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "4ffba82961f7ebf221db02236e7042378cd464eb7c613bcd163d02fd635eafc0",
+  "reused_from_previous_replay": true
+}

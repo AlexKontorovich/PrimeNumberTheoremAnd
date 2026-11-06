@@ -1,40 +1,60 @@
 # Public finite-height certificate for the Rosser handoff
 
-## Checked scalar certificates; zero-certificate replay in progress
+## Checked zero-certificate replay and count bridge
 
-The current public tree of [teal-sea/zeta-lab](https://github.com/teal-sea/zeta-lab),
-pinned at `b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`, contains a complete
-height-100 theorem and explicit rational brackets for all 29 zeros. The
-99-file non-Mathlib import closure of `RHHeight100.Main100` has been
-materialized at `sources/zeta-lab-rh100`. Every file matches its upstream
-Git blob hash; `source-manifest.json` additionally records SHA-256 hashes.
-This directory preserves the original upstream snapshot. Local replay against
-this project's Lean and Mathlib is now in progress from the separate working
-copy at `vendor/rh100`. Compatibility edits are recorded, with original and
-adapted hashes and patch files, in `verification/rh100-adaptations.json`.
-They include explicit imports, namespaces avoiding duplicate PNT+/Mathlib
-helper names, and replacement of an obsolete proof-producing tactic API.
-The original snapshot is not changed to conceal these adaptations.
+The pinned source of [teal-sea/zeta-lab](https://github.com/teal-sea/zeta-lab/tree/b09fa4dd2f2182cf14b248e7ffc64ff03df2c534),
+commit `b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`, has now been replayed
+locally: **all 99 modules compiled**, and **all 28 final theorem closures**
+have only `propext`, `Classical.choice`, and `Quot.sound`. The final audit
+completed on 2026-11-06 at 13:00:07 UTC. It pins the conclusions to
+Mathlib's actual `riemannZeta`, including completeness, simplicity and the
+29 individual ordinate brackets. No numerical certificate literals or
+bracket statements were changed.
 
-`verification/rh100-replay-run.json` records the sequential 99-module replay,
-and `verification/rh100-replay/` contains per-module logs and resource data.
-At this update the replay is still running: successful intermediate modules
-are not a completed replay of `RHHeight100.Main100`, its transitive axiom
-audit, or the final finite-height handoff. The independent scalar part of
-that handoff is already checked, as detailed below.
+`RSBounds.BacklundRH100Bridge` was then freshly compiled and all **five**
+exported theorem closures were audited, again with exactly the standard
+three axioms. It identifies the upstream zero set with this project's
+inclusive positive-ordinate count and proves `N_le 100 = 29`, including
+analytic multiplicities. This part is complete. The final all-heights
+scalar assembly in `BacklundLowCount` remains pending at this document's
+update; it must not be inferred merely from the existence of its source.
 
-Upstream pins Lean `v4.35.0-rc2` and Mathlib
-`065356127b1dc0016f66b7283ce0ce2c4055aa55`. Its
-[RESULTS.md](https://github.com/teal-sea/zeta-lab/blob/b09fa4dd2f2182cf14b248e7ffc64ff03df2c534/hunts/rh_height_lean/RESULTS.md)
-reports a clean source build and standard-three-axiom audit, plus an
-independent `con-ron --verified` replay. The underlying raw logs and
-receipts are described there as retained locally rather than published;
-we have not inspected those unpublished artifacts. The source build
-report covers approximately 2 hours 8 minutes. Its build script gates on
-30 GiB free memory, exceeding this workspace's available memory, so the
-script cannot simply be run unchanged here. The local replay instead compiles
-modules sequentially and records actual memory use; it uses Lean `4.35.0`
-and Mathlib `56a005855ea17e0b0958f73ec801ae140b0a1679`.
+The replay uses Lean `4.35.0` and Mathlib
+`56a005855ea17e0b0958f73ec801ae140b0a1679`. Upstream pins Lean
+`v4.35.0-rc2` and Mathlib `065356127b1dc0016f66b7283ce0ce2c4055aa55`.
+Seven source files needed compatibility adaptations: explicit imports,
+isolation of generic PNT+/Hardy-Z helpers to avoid name collisions, a
+rational-identity normalization, and replacement of an obsolete
+proof-producing tactic API. Original and adapted hashes and exact unified
+patches are in `verification/rh100-adaptations.json`. The original working
+snapshot remains unchanged at `../sources/zeta-lab-rh100`.
+
+The portable published sources are under `vendor/rh100`, together with the
+original source manifest, licenses, and upstream version pins. The six
+library roots are registered in `lakefile.lean`; their globs cover exactly
+the checked 99 modules. No duplicate raw snapshot or compiled objects are
+required for publication. The replay runner uses the preserved external
+snapshot for additional source-hash checks when available; without it,
+the runner records its absence and freshly checks the vendored Lean proofs.
+
+Verification evidence:
+
+| Artifact | Content |
+|---|---|
+| `verification/rh100-replay-run.json` | Complete 99-module ledger, source/dependency/output hashes, commands and successful final audit |
+| `verification/rh100-replay/receipts/` | Individual validated receipts for all 99 modules |
+| `verification/rh100-replay/CheckMain100.log` | All 28 transitive axiom reports |
+| `verification/rh100-replay-slot-{b,c,d,e,f}.json` | Independent worker records for selected box modules |
+| `verification/backlund-rh100-bridge-run.json` | Fresh count-bridge build and five successful audits |
+| `verification/backlund-rh100-bridge-axioms.log` | Standard-three-axiom reports for every bridge export |
+
+The default runner is sequential. Selected independent box modules were
+also checked by workers using exclusive per-module locks and atomic
+receipts; the main ledger validated every reused source, dependency and
+object hash. The largest observed per-process peak RSS was 4,363,908 KiB.
+The upstream build script's 30-GiB memory gate was not used. A receipt
+alone is never accepted as a proof cache: a matching local compiled object
+must also be present, otherwise the module is compiled again.
 
 ## Actual declarations
 
@@ -66,10 +86,10 @@ line-zero witnesses and the total multiplicity count provide the needed
 enumeration and simplicity; the handoff does not require an independent RH
 assumption, at height 100 or at any larger height.
 
-No active `axiom`, `sorry`, or `native_decide` was found in the inspected
-closure. Two `axiom` lines in the additive-combination tactic file are
-inside a documentation example, not declarations. This textual fact
-does not replace the pending transitive axiom audit.
+The completed transitive axiom audit, rather than a textual source scan,
+is the evidence that the final theorem closures contain no additional
+axioms or admissions. All 28 reported closures use only the standard
+three axioms.
 
 ## Brackets and scalar handoff
 
@@ -142,17 +162,29 @@ reports only `propext`, `Classical.choice`, and `Quot.sound`. The earlier
 Python exploration in `verification/low-height-scalar-conditions.json`
 is no longer the sole evidence for these scalar inequalities.
 
-The remaining finite handoff must connect the replayed zero enumeration
-and multiplicities to this project's right-closed count
-`N(T) = sum_{0 < Im rho <= T} multiplicity(rho)`, and combine it with the
-checked scalar inequalities. Monotonicity of `F` above `2*pi` then gives
-`|N(T)-F(T)|<1` for `14.13 <= T <= 100`, including zero ordinates and
-heights inside the narrow brackets. Below the first bracket the count is
-zero; `x log x-x >= -1`, and monotonicity above `x=1`, bound `F` between
-`-1/8` and a value below 1. Finally the Rosser envelope is greater than 1
-for `T >= 2`. This paragraph describes the remaining mathematical assembly;
-it does not assert that the count-convention bridge or full finite theorem
-has already passed Lean.
+The count-convention bridge is already checked. Its exports in
+`TernaryGoldbach.RSBounds.BacklundCountIdentity` are:
+
+| Theorem | Conclusion |
+|---|---|
+| `coe_closedPositiveZeros_eq_stripZerosUpTo` | Exact equality of this project's finite zero set and the upstream strip-zero set |
+| `zero_simple_below_hundred` | Every actual zeta zero with `0 < Im rho <= 100` lies on the line and has analytic order one |
+| `closed_count_eq_card` | Multiplicity count equals distinct-zero cardinality for `0 < T <= 100` |
+| `closed_count_hundred` | `N_le 100 = 29` |
+
+No strip-location hypothesis is left on the simplicity conclusion:
+`zeta_zero_re_strip` proves the required strip restriction for every
+nonreal zeta zero using the already checked xi bridge.
+
+The remaining finite handoff combines these checked results with the
+29 brackets, the checked scalar inequalities, and monotonicity of `F`.
+Its intended public result is
+`Rosser1941.zero_count_error_lt_one_to_100`, asserting
+`|N(T)-F(T)| < 1` for `0 <= T <= 100`, including zero ordinates and the
+continuous-extension value at zero. The final `BacklundLowCount`
+compilation and axiom audit are still pending at this update. The
+corresponding Rosser envelope is greater than one for `T >= 2`, so this
+finite bound will supply the lower range of the full Rosser theorem.
 
 The independent analytic theorem for `T >= 100` is now freshly compiled
 and axiom-audited, including heights equal to zero ordinates. Its public
@@ -173,9 +205,60 @@ assumptions. The bounded current public search did not locate the
 user-mentioned forthcoming Lean verification through `10^8`; that is
 not evidence that it is unpublished or nonexistent.
 
+
+## Separate reusable target through height 280
+
+Rosser (1941), Theorem 17, p. 223, states the stronger finite-range result
+`abs(N(T)-F(T)) < 1` for `0 <= T <= 280`, using the same inclusive upper
+endpoint convention. The actual printed page was inspected, not merely
+its OCR. At zero, `F(0)=7/8` is understood by continuous extension, which
+agrees with the Lean expression. Rosser attributes the computation to
+J. I. Hutchinson, *On the roots of the Riemann zeta function*, Transactions
+of the AMS 27 (1925), pp. 49–60. Theorem 18 is a different result: an error
+less than 2 through `A` defined by `F(A)=1041`, with
+`A = 1467.47747...`, together with a complete count and critical-line
+verification there.
+
+This sharper finite theorem is independently useful. Chirre–Helfgott,
+[*Optimal bounds for sums of non-negative arithmetic functions*,
+arXiv:2512.15709v1](https://arxiv.org/pdf/2512.15709), Appendix B, Lemma B.1,
+p. 43, uses the error less than 1 through 280. Corollary B.3 uses it to
+bound counts in short ordinate intervals, including intervals reaching
+below height 1. The separate bound `abs(N(t)-F(t)) <= (1/5)*log(t)+2` in
+that lemma also uses a finite computation through 5400; the height-280
+result alone does not supply that second assertion.
+
+The height-280 theorem is **not part of the presently checked finite
+certificate**. Exploratory floating-point computation locates 126 zeros
+below 280, with the 126th near `279.2292509277` and the 127th near
+`282.4651147651`. A formal extension of the current approach would need a
+complete count through 280 and 126 disjoint ordinate brackets, then 253
+scalar certificates (two endpoints per bracket and height 280). These
+exploratory zero values are not proof evidence. Critical-line location is
+still unnecessary for the resulting counting theorem.
+
+There is a concrete scalar-precision issue to address before extending
+the certificate list. The current `MainCert.Valid` checker deliberately
+weakens the available pi bounds to `3.14 < pi < 22/7`. Even with exact
+logarithms, its lower envelope at `t=279.229` is approximately
+`124.940886`, too small to certify `125 < F(t)`, although the actual value
+is approximately `125.049143`. More rows in the unchanged checker cannot
+fix that loss.
+
+A small improvement is sufficient in this example: use the existing
+Mathlib theorems `Real.pi_gt_d4` and `Real.pi_lt_d4` directly, giving
+`3.1415 < pi < 3.1416`. At the lower bracket endpoint `279.22`, the same
+scalar lower envelope is then approximately `125.041900`. Thus no new
+pi computation is needed. A separate finer checker would preserve the
+already checked 59-row artifact; its complete extended list must still
+be generated and kernel-checked. The decimal evaluations in this
+paragraph diagnose certificate precision only and are not formal claims
+that all 253 prospective rows already succeed.
+
 ## Attribution
 
 The root zeta-lab license is MIT, copyright 2026 Thomas Lince. The
 vendored `Zeta23` portion is Apache-2.0 and retains its original notices.
-Both license texts and upstream build metadata accompany the local
-source snapshot.
+Both license texts and the upstream toolchain, Mathlib manifest and source
+manifest are included in the portable `vendor/rh100` directory. The seven
+exact adaptation patches are included under `verification/rh100-replay`.

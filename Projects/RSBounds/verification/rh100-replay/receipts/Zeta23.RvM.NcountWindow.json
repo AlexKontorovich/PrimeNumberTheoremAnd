@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.RvM.NcountWindow",
+  "source_sha256": "18cf3db903aef8694132f9c353aab830357a2bb970765553e349173fd1b536a4",
+  "upstream_sha256": "18cf3db903aef8694132f9c353aab830357a2bb970765553e349173fd1b536a4",
+  "adapted": false,
+  "signature": "396b88fc9963104400c103b4c836678f4a3e8bdd6a40a89ba317a75bbe1ddb42",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/RvM/NcountWindow.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/RvM/NcountWindow.olean"
+  ],
+  "started_utc": "2026-11-06T12:01:25.981870+00:00",
+  "finished_utc": "2026-11-06T12:01:27.823236+00:00",
+  "elapsed_seconds": 1.841,
+  "peak_rss_kib": 1921076,
+  "log": "verification/rh100-replay/Zeta23.RvM.NcountWindow.log",
+  "resources": "verification/rh100-replay/Zeta23.RvM.NcountWindow.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "accf2f04477aae337fd7f98b07c83fdc820d21573797902ba40649291800638b",
+  "reused_from_previous_replay": true
+}

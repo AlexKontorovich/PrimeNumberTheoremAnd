@@ -1,0 +1,7 @@
+Zeta23/FromPNTPlus/Fourier.lean:33:94: warning: This simp argument is unused:
+  Circle.norm_coe
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
