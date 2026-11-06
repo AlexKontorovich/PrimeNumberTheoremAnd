@@ -457,8 +457,8 @@ could not mount its filesystem; this is not a sandboxed attestation.
 
 The downstream quartic remainder bound and the `b=23` psi theorem are now
 also compiled and axiom-audited. The psi theorem assumes only finite RH through
-1894439 and `x >= exp 23`; its separate native Comparator replay remains
-pending. See [the psi theorem guide](PsiTable1975.md) for its complete statement
+1894439 and `x >= exp 23`; its separate native Comparator has passed,
+including full Lean default-kernel replay. See [the psi theorem guide](PsiTable1975.md) for its complete statement
 and proof. The stronger count error less than one through 280, a first-1000-zero
 table, and the quantitative RS75 zero-free region remain separate unproved
 goals.

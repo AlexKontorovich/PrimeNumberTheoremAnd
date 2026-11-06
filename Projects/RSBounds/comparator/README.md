@@ -55,17 +55,23 @@ theta/Mertens goals.
 
 The [b = 23 psi theorem](../docs/PsiTable1975.md) has compiled, and its public
 transitive axiom audit uses only the standard three axioms. Its separate
-Comparator run is in progress; **native kernel replay is pending**. The
+Comparator has passed exact statement and definition matching, the allowed
+axioms, and full replay with Lean's default kernel. The
 [psi runner](../verification/run_psi_check.py) directly compiles the challenge
 and solution modules, exports their exact environments, and invokes Comparator
 on those exports, after the recorded dependency closure has been built.
 It avoids an extra Lake library registration and a redundant rebuild of the
 numerical certificates. Commands and source/object/export hashes are recorded
 in [psi-run.json](../verification/psi-run.json). Process sandboxing is disabled
-for the same bwrap limitation described above; no sandboxed attestation or
-completed psi Comparator result is claimed while replay is pending.
+for the same bwrap limitation described above; no sandboxed attestation is
+claimed. The independent mathematical checks are complete.
 
 The first psi replay left no final verdict after session loss. The original
 log is retained; `verification/resume_psi_comparator.py` validates the saved
 source/object/export hashes and restarts only the final Comparator. Its
-result is recorded separately in `verification/psi-resume-run.json`.
+successful result is recorded separately in
+[psi-resume-run.json](../verification/psi-resume-run.json): exit code 0 after
+3143.89 seconds. The [final log](../verification/psi-comparator-resume.log)
+ends with `Lean default kernel accepts the solution` and
+`Your solution is okay!`. All recorded source/object/export hashes were
+validated before that replay.

@@ -21,5 +21,8 @@
     "/workspace/scratch/99a161e7c02e/recovery/.lake/psi-exports/RSPsiSolution.export",
     "--inadvisably-no-sandbox"
   ],
-  "log": "verification/psi-comparator-resume.log"
+  "log": "verification/psi-comparator-resume.log",
+  "exit_code": 0,
+  "seconds": 3143.8882891719986,
+  "finished_utc": "2026-11-06T17:01:10.018253+00:00"
 }

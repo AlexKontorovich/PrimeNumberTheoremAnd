@@ -3,7 +3,8 @@
 The RS75 row at `b = 23` is now compiled and axiom-audited, with `m = 4`,
 `delta = 0.0000211`, and RH assumed only through height `1894439`.
 It gives `abs(psi(x)-x) < 0.00020211*x` for every `x >= exp 23`.
-The independent native Comparator replay for this psi theorem remains pending.
+The independent Comparator for this psi theorem has passed, including full
+replay with Lean's default kernel.
 See [the current psi theorem guide](PsiTable1975.md) for the exact API and
 verification records. The formula development below is retained as a record
 of the four-integration construction.

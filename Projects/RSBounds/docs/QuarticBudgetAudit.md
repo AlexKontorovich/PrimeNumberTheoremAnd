@@ -1,7 +1,7 @@
 # Historical audit of the proposed RS75 quartic budget
 
 The `b = 23` psi theorem is now compiled and axiom-audited under finite RH
-through 1894439; its independent native Comparator replay remains pending.
+through 1894439; its independent native Comparator replay has passed.
 The completed proof uses a certified 29-zero head through 100 and eight
 cancellation subbands. See [the current psi theorem guide](PsiTable1975.md)
 for the exact theorem, proof, and verification records.

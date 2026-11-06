@@ -19,9 +19,13 @@ zeros, and eight cancellation subintervals. See the
 
 The complete theorem has freshly compiled and its transitive axiom audit
 uses only `propext`, `Classical.choice`, and `Quot.sound`. Its independent
-Comparator replay is pending. The original fresh build/export record is
-`verification/psi-run.json`; after session loss, the exact saved exports are
-being rechecked under `verification/psi-resume-run.json`.
+Comparator has passed statement and definition matching, the allowed-axiom
+check, and full replay with Lean's default kernel. The successful replay took
+3143.89 seconds; see [the completed receipt](verification/psi-resume-run.json)
+and [final log](verification/psi-comparator-resume.log). The original fresh
+build/export record is `verification/psi-run.json`. Process sandboxing was
+disabled for the workspace's recorded bwrap limitation; this is not a
+sandboxed attestation.
 
 The project also proves **Rosser (1941), Theorem 19,
 unconditionally for every real `T >= 2`, including zero ordinates**:
@@ -240,7 +244,8 @@ the full Rosser count theorem and the strict finite-range error bound, and
 `comparator-psi.json` for the b = 23 psi theorem under finite RH. Use the
 Python driver shown above for the psi check; it compiles the independent
 challenge and solution directly and passes their fresh exports to Comparator.
-The first two configurations have passed; the psi replay is pending.
+All three configurations have passed their independent statement/definition,
+allowed-axiom, and default-kernel checks.
 None asserts the unfinished global theta, full RS62, or zero-free-region
 goals. All completed public theorems have fresh Lean builds and transitive
 axiom audits, using only `propext`, `Classical.choice`, and `Quot.sound`.

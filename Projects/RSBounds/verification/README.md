@@ -145,7 +145,7 @@ Stirling remainder, and horizontal integration; see
 `aggregate-backlund-high-run.json` records the successful root-module build
 including this analytic theorem. That checkpoint has now been extended to the
 full range, as recorded below. The later b=23 psi assembly is also compiled
-and axiom-audited; its separate native Comparator replay remains pending.
+and axiom-audited; its separate native Comparator has also passed.
 
 ## Completed finite table and full Rosser theorem
 
@@ -238,15 +238,16 @@ definition holes. Run `python verification/run_psi_check.py` after building
 the recorded dependency closure. It directly compiles the two comparator
 modules, exports their exact environments, and passes the fresh exports to
 Comparator; no extra Lake library registration or repeated numerical-source
-build is needed. The independent run is currently in progress, with exact
-source/object/export hashes in `psi-run.json`. Its native kernel replay is
-pending; compilation and export success do not establish a completed Comparator
-result. Process sandboxing is disabled for the same recorded bwrap limitation
-as the earlier count check; no sandboxed attestation is claimed.
+build is needed. Exact source/object/export hashes are in `psi-run.json`.
+The successful independent Comparator replay is recorded separately in
+`psi-resume-run.json`: exit code 0 after 3143.89 seconds. Exact statement and
+definition matching, the permitted-axiom check, and full Lean default-kernel
+replay all passed. Process sandboxing was disabled for the same recorded
+bwrap limitation as the earlier count check; no sandboxed attestation is claimed.
 
 The first psi Comparator session became inaccessible without a completion
 verdict. Its log is preserved. `resume_psi_comparator.py` validates all recorded
 source, configuration, object, and export hashes before replaying the exact
-same exports. Its pending result is recorded in `psi-resume-run.json` and
+same exports. Its successful result is recorded in `psi-resume-run.json` and
 `psi-comparator-resume.log`. The combined root import also compiled successfully;
 see `aggregate-psi-run.json`.

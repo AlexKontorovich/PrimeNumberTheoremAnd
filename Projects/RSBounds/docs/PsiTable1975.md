@@ -14,9 +14,9 @@ in the imported Lean development.
 
 The main theorem has compiled, and its transitive axiom audit reports only
 `propext`, `Classical.choice`, and `Quot.sound`. **The independent native
-Comparator for this psi theorem is pending at the time of this guide.**
-Its result must be read from the completed verification record, not inferred
-from compilation or export success.
+Comparator has also passed:** exact statement and definition matching, the
+allowed-axiom check, and full replay with Lean's default kernel. The final
+log explicitly reports that the kernel accepts the solution.
 
 ## Exact statement and API
 
@@ -227,8 +227,13 @@ with the [axiom output](../verification/rosser-schoenfeld-1975-axioms.log).
 The independently run psi Comparator is tracked in
 [`psi-run.json`](../verification/psi-run.json). The first session left no
 final verdict; the replay of the same hash-validated exports is tracked in
-[`psi-resume-run.json`](../verification/psi-resume-run.json). **Its completion
-is pending in this guide**.
+[`psi-resume-run.json`](../verification/psi-resume-run.json). **That replay
+passed with exit code 0**, after 3143.89 seconds. It validated 226 recorded
+source/configuration hashes, 221 object hashes, and both export hashes before
+starting. The [final log](../verification/psi-comparator-resume.log) records
+acceptance by Lean's default kernel. Process sandboxing was disabled because
+bwrap could not mount the required filesystem; statement, definition, axiom,
+and kernel checks remained enabled. No sandboxed attestation is claimed.
 
 Selected component records are:
 
