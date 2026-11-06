@@ -1,0 +1,36 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:49:25.439990+00:00",
+  "lean_version": "Lean 4.35.0",
+  "source_sha256": {
+    "RSBounds/BacklundGammaBaseline.lean": "83fd2c65bf52df7404827850049b92636b99fd825f9485ac1f8ad44179814053",
+    "RSBounds/BacklundFunctionalMultiplier.lean": "874344d5ceba67d76fcc0d3faab527ecf276ed29bf30d232150c64bae9bfc951",
+    "RSBounds/BacklundHyperbolicFactor.lean": "ac5695ee0477102031dfb3197ca3012baffb1faa58f4a94b8440c9acda7f015a",
+    "verification/BacklundGammaBaselineAudit.lean": "9d0d0392cd67136e9f4288edc36b955a96929e494977fe435a5b27ad92ba9ea1"
+  },
+  "build_commands": [
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaBaseline.olean RSBounds/BacklundGammaBaseline.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundFunctionalMultiplier.olean RSBounds/BacklundFunctionalMultiplier.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundHyperbolicFactor.olean RSBounds/BacklundHyperbolicFactor.lean"
+  ],
+  "build_exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "audit_command": "lake env lean verification/BacklundGammaBaselineAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundGammaBaseline.norm_Gamma_one_add_mul_I_sq",
+    "TernaryGoldbach.RSBounds.BacklundGammaBaseline.norm_Gamma_one_add_mul_I_sq_exp",
+    "TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_multiplier_imaginary_le",
+    "TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_zeta_imaginary_le",
+    "TernaryGoldbach.RSBounds.BacklundHyperbolicFactor.sqrt_exp_ratio_le"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "result": "Exact Gamma baseline from Mathlib reflection/recurrence, sigma-zero zeta functional-equation endpoint, and exp-small hyperbolic allowance are checked with no additional analytical assumptions."
+}

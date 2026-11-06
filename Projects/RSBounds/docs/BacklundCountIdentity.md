@@ -61,3 +61,22 @@ Every audit contains exactly `propext`, `Classical.choice`, and `Quot.sound`.
 The exact source hashes, commands, and exit codes are in
 `verification/backlund-count-identity-run.json`. The reproducible sequential
 runner is `verification/run_backlund_count_identity_check.py`.
+
+## Inclusive endpoint extension
+
+`RSBounds/BacklundCountEndpoint.lean` now defines `N_le(T)` with the
+convention `0 < Im(rho) <= T`, retaining actual zeta analytic multiplicities.
+The theorem `exists_right_interval_good_count` proves that, for every
+positive T, there is a nonempty interval immediately above T on which every
+height is good and the open count equals `N_le(T)`. This follows from the
+finite zero set below `T+1`; it requires no RH certificate.
+
+`closed_count_abs_le_of_good_height_bound` transfers a bound
+`|N(S)-M(S)| <= B(S)` at good heights `S>T` to the inclusive count at T,
+provided M and B are continuous at T. The `_abs_lt_` variant preserves a
+strict target bound by using a positive margin. One-sided variants are
+also supplied.
+
+Six fresh transitive axiom audits passed, each with exactly the standard
+three axioms. Evidence: `verification/backlund-count-endpoint-run.json`
+and `verification/backlund-count-endpoint-axioms.log`; finished at 2026-11-06T11:50:41.340294+00:00.

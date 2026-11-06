@@ -258,12 +258,12 @@ and
 
 This supplies the center-phase step for Rosser's use of powers of zeta.
 Fresh compilation and all five theorem axiom audits passed; see
-`verification/backlund-phase-run.json` and the corresponding logs. It does
-not establish the zero-count estimate. The sharp argument still needs the
-reflected crossing and argument-count assembly and explicit boundary-integral
-bounds. Mathlib already supplies the exact circle-average Jensen identity
-and a divisor-count inequality in `Analysis/Complex/JensenFormula.lean`;
-those general complex-analysis tools need not be reproved.
+`verification/backlund-phase-run.json` and the corresponding logs. This
+phase component alone does not establish the zero-count estimate; it is
+now connected to the reflected crossing, argument-count assembly, and
+explicit boundary-integral bounds described below. Mathlib supplies the
+exact circle-average Jensen identity and a divisor-count inequality in
+`Analysis/Complex/JensenFormula.lean`; the formal proof reuses those tools.
 
 ### Further completed components
 
@@ -328,9 +328,108 @@ logarithm bound, and `BacklundZetaPhase.lean` specializes the constructive
 Jensen theorem to the actual horizontal zeta argument. Their nine and eleven
 audits, respectively, use only the standard three axioms.
 
-These components do not yet establish Rosser's Theorem 19. Proving the sharp
-zeta boundary majorants and their numerical angular integral, and completing
-the finite-height handoff remain necessary. A public finite-height source
-certificate through 100 is documented in
+The sharp zeta boundary majorants, numerical angular integral, and endpoint
+extension are now connected to these components. The resulting unconditional
+estimate with Rosser's original constants is checked for every `T >= 100`,
+including zero ordinates; see the final status section below. The full
+`T >= 2` range still awaits the finite-height handoff. A public finite-height
+source certificate through 100 is documented in
 [`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md); its local
-replay is still pending.
+replay is in progress and its 59 scalar certificates are already checked.
+
+### Checked sharp right-edge estimate and Euler--Maclaurin remainder
+
+`BacklundEulerMaclaurin.lean` proves the complex second-order quadrature
+identity, its sharp `1/12` integral remainder, and finite and regularized
+infinite forms. `BacklundZetaRegularization.lean` supplies the regularized
+Dirichlet-sum limit throughout `Re s > 0`, reusing the existing first-order
+Euler--Maclaurin theorem from `Prelim.PNTMertens` and the already proved
+sawtooth continuation in `Explicit.ZetaGrowth`.
+
+Consequently `BacklundZetaBoundary.zeta_second_order_remainder_explicit_of_pos`
+proves, for `Re s > 0`, `s != 1`, and an integer `N >= 1`,
+
+\[
+\left|\zeta(s)-\sum_{1\le n<N}n^{-s}-\frac{N^{-s}}2
+-\frac{N^{1-s}}{s-1}-\frac{sN^{-s-1}}{12}\right|
+\le \frac{|s(s+1)|}{12(\Re s+1)}N^{-\Re s-1}.
+\]
+
+The same file now proves Backlund's right-edge estimate (54):
+
+\[
+ |\zeta(\sigma+it)|\le\log t-0.048
+ \qquad(\sigma\ge1,\ t\ge50).
+\]
+
+This theorem is unconditional. The proof uses `N=floor(t/3)+1`, the existing
+Ramaré harmonic-number bound, the previously checked Euler-constant
+enclosure, and elementary rational estimates. Its limiting argument at
+`sigma=1` uses continuity of zeta. All three modules were freshly compiled;
+all six exported theorem audits use only `propext`, `Classical.choice`, and
+`Quot.sound`. See `verification/backlund-zeta-boundary-run.json` and
+`verification/backlund-zeta-boundary-axioms.log`.
+
+
+### Checked finite bottom edge at height 50
+
+`BacklundBottomCertificates.lean`, `BacklundBottomData.lean`, and
+`BacklundBottomFiniteSum.lean` prove the unconditional bound
+
+\[
+ |\zeta(\sigma+50i)|\le 3.75
+ \qquad(1/2\le\sigma\le1).
+\]
+
+The exported theorem is
+`BacklundBottomCertificates.norm_zeta_height_fifty_le` (within the
+`TernaryGoldbach.RSBounds` namespace). The proof applies the checked
+second-order Euler--Maclaurin formula above with `N=20`. Rational
+logarithm, quarter-turn, and Taylor certificates enclose the real and
+imaginary parts of the entire finite sum uniformly in `sigma` and show
+that its norm is at most `2.03`. The remaining analytic terms are bounded
+by `0.08946`, `0.047`, and `1.555` respectively. Thus this is a concrete
+finite calculation, not a premise asserting a bottom-edge bound.
+
+The historical proof in Backlund uses `N=10` with a fourth-order
+Euler--Maclaurin correction. Using `N=20` lets this formalization reuse
+its proved second-order remainder without changing height 50.
+`scripts/gen_backlund_bottom_data.py` merely selects rational witnesses;
+Lean checks all rows and aggregate inequalities by kernel reduction.
+The generated floating-point report is explicitly not proof evidence.
+Fresh compile hashes and five exported axiom audits are recorded in
+`verification/backlund-bottom-run.json` and
+`verification/backlund-bottom-axioms.log`.
+
+
+### Checked unconditional analytic zero count, `T >= 100`
+
+`BacklundHighCount.lean` now proves
+`Rosser1941.zero_count_bounds_high`: for every real `T >= 100`,
+
+\[
+\left|N(T)-\left(\frac{T}{2\pi}\log\frac{T}{2\pi}
+-\frac{T}{2\pi}+\frac78\right)\right|
+<0.137\log T+0.443\log\log T+1.588.
+\]
+
+Here `Rosser1941.positiveZeroCount` is defined directly from Mathlib's
+`riemannZeta` and `analyticOrderAt`, counting multiplicities with
+`0 < Im rho <= T`. Its equality with the finite count used by the
+argument-principle proof is itself proved. The endpoint theorem extends
+the analytic estimate to heights equal to zero ordinates.
+
+There are no RH, numerical zero-certificate, zero-count estimate, or
+unproved analytic-bound premises. The three sharp zeta boundary estimates,
+angular integration, and rational scalar rounding are proved components.
+`verification/backlund-high-count-run.json` records fresh compilation and
+five successful axiom audits, all using only `propext`, `Classical.choice`,
+and `Quot.sound`. `verification/aggregate-backlund-high-run.json` records
+the successful root-module build on 2026-11-06.
+
+The full `T >= 2` statement remains pending until the separate finite
+zero-certificate replay, count-convention bridge, and low-height assembly
+are checked. Its 59 scalar endpoint certificates are already compiled and
+audited. This status does not assert completion of the downstream quartic
+smoothing integral estimate, the `b=23` psi table entry, or the quantitative
+RS75 zero-free region merely from the count theorem.

@@ -1,0 +1,7 @@
+import RSBounds.BacklundBottomFiniteSum
+
+#print axioms TernaryGoldbach.RSBounds.BacklundBottomCertificates.trig_approx
+#print axioms TernaryGoldbach.RSBounds.BacklundBottomCertificates.all_rows_checked
+#print axioms TernaryGoldbach.RSBounds.BacklundBottomCertificates.aggregate_checked
+#print axioms TernaryGoldbach.RSBounds.BacklundBottomCertificates.finitePart_norm_le
+#print axioms TernaryGoldbach.RSBounds.BacklundBottomCertificates.norm_zeta_height_fifty_le

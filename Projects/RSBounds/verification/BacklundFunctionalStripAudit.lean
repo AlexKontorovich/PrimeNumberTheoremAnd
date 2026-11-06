@@ -1,0 +1,5 @@
+import RSBounds.BacklundFunctionalStrip
+
+#print axioms TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.gamma_cosh_ratio_eq
+#print axioms TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_multiplier_strip_le
+#print axioms TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_zeta_reflected_strip_le

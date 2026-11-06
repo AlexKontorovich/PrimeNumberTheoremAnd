@@ -1,0 +1,86 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:52:39.568063+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundDigammaSeriesAdapter.lean": "6fa8b4a62900db6d30ecf081ca090ca4d1bbb6b89cebdc66ac33b234a92f2b24",
+    "RSBounds/BacklundDigammaStirling.lean": "d7749a51a30fda68f1b128de71ac83bc03e71cd6e698ecded950bf3c0ceebd01",
+    "RSBounds/BacklundGammaModulusDigamma.lean": "9225845bae795a9229ca87f570a634be5f881239299c827188e64949ee5c75f5",
+    "RSBounds/BacklundGammaModulusHorizontal.lean": "60229c9ae786efb5efdbaf6729165a659da31e84d55095f2d62ed32ad8ef9985",
+    "RSBounds/BacklundGammaModulusAbsorption.lean": "96c963c3c7080171dbbacea2c95bed5b48b99131bbc541035d1bb3f56e4fcce5",
+    "verification/BacklundGammaModulusAudit.lean": "6380a3713bae9bbc717909f2961afe44e31f695c0101779dd1d8a33a7ab2a672"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundDigammaSeriesAdapter.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundDigammaSeriesAdapter.olean"
+      ],
+      "log": "backlund-gamma-modulus-BacklundDigammaSeriesAdapter-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundDigammaStirling.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundDigammaStirling.olean"
+      ],
+      "log": "backlund-gamma-modulus-BacklundDigammaStirling-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundGammaModulusDigamma.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaModulusDigamma.olean"
+      ],
+      "log": "backlund-gamma-modulus-BacklundGammaModulusDigamma-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundGammaModulusHorizontal.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaModulusHorizontal.olean"
+      ],
+      "log": "backlund-gamma-modulus-BacklundGammaModulusHorizontal-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundGammaModulusAbsorption.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaModulusAbsorption.olean"
+      ],
+      "log": "backlund-gamma-modulus-BacklundGammaModulusAbsorption-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundGammaModulusAudit.lean"
+      ],
+      "log": "backlund-gamma-modulus-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:53:11.566856+00:00",
+  "exit_code": 0
+}

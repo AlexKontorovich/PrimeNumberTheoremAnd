@@ -49,3 +49,38 @@ retained. The selective extraction and fresh audits are described in
 (Terence Tao; copyright 2026 IEANTN contributors) is retained. Apache 2.0
 applies, with the license text in `licenses/IEANTN-LICENSE`. Only imports
 were adapted to the already-vendored Gauss-series proof.
+
+`RSBounds/BacklundDigammaStirling.lean` adapts the `Seq` section of
+[`Zeta23/GammaFacts/StirlingVert.lean`](https://github.com/teal-sea/zeta-lab/blob/b09fa4dd2f2182cf14b248e7ffc64ff03df2c534/lean/vendor/zeta23/Zeta23/GammaFacts/StirlingVert.lean)
+from `teal-sea/zeta-lab`, commit
+`b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`.
+Copyright (c) 2026 Anthropic, PBC; Apache 2.0. The original copyright and
+license notice are retained in the module, and the complete license text is
+included in `licenses/Zeta23-Apache-2.0`. The local
+`BacklundDigammaSeriesAdapter.lean` supplies the shifted series from the
+already-proved IEANTN Gauss formula. No Zeta23 analytic hypothesis is assumed.
+The adapted proof, its horizontal Gamma-modulus consequences, and their
+fresh axiom audits are documented in `docs/BacklundGammaModulusAudit.md`.
+This small quantitative Gamma port is independent of the separate, unfinished
+local replay of the height-100 finite zero certificate from the same repository.
+
+`RSBounds/BacklundHalfStrip.lean` adapts the rectangle-and-Gaussian-damping
+argument from Mathlib's
+[`Analysis/Complex/PhragmenLindelof.lean`](https://github.com/leanprover-community/mathlib4/blob/56a005855ea17e0b0958f73ec801ae140b0a1679/Mathlib/Analysis/Complex/PhragmenLindelof.lean),
+at the project's pinned Mathlib revision
+`56a005855ea17e0b0958f73ec801ae140b0a1679`.
+Copyright (c) 2022 Yury Kudryashov; Apache 2.0. The source header retains the
+author and license attribution. A copy of the Apache 2.0 license is retained
+at `licenses/PrimeNumberTheoremAnd-LICENSE`; Mathlib also retains its own
+license in the pinned dependency. The local extension keeps the lower
+horizontal edge and proves the upper half-strip principle from a quadratic
+growth bound. Its use for zeta includes the checked finite bottom-edge
+certificate; no interpolation principle or boundary estimate is assumed.
+
+The mathematical sources for the completed analytic zero-count chain are
+[Backlund (1918), equations (54), (56), and (77)](https://doi.org/10.1007/BF02422950)
+and [Rosser (1941), Theorem 19](https://doi.org/10.2307/2371291).
+The implementation uses a proved center denominator of `3.426` and verifies
+the final numerical budget in Lean. These literature citations identify the
+estimates and method; the local proofs and transitive axiom audits establish
+the formal results.

@@ -1,0 +1,131 @@
+{
+  "kind": "witness-generation-only-not-a-Lean-proof",
+  "aggregate_bounds_decimal": [
+    "-1.2557893296091514240626786011022516050775242705846983365400032066698733365400032",
+    "1.5761494588126269931806117586493184082828747177167689242614874709817950272026639",
+    "-1.2372462610640926797588164488422266737192259214206412650794856308640769793651999",
+    "0.60129459184201146216648976628404806521327645053924307500778089013383131030189854"
+  ],
+  "rows": [
+    {
+      "n": 1,
+      "quarter_turns": 0,
+      "angle": "0",
+      "amplitude_numerator": 1000000
+    },
+    {
+      "n": 2,
+      "quarter_turns": 22,
+      "angle": "312/3125",
+      "amplitude_numerator": 707107
+    },
+    {
+      "n": 3,
+      "quarter_turns": 35,
+      "angle": "-47257/1000000",
+      "amplitude_numerator": 577351
+    },
+    {
+      "n": 4,
+      "quarter_turns": 44,
+      "angle": "624/3125",
+      "amplitude_numerator": 500000
+    },
+    {
+      "n": 5,
+      "quarter_turns": 51,
+      "angle": "361283/1000000",
+      "amplitude_numerator": 447214
+    },
+    {
+      "n": 6,
+      "quarter_turns": 57,
+      "angle": "52583/1000000",
+      "amplitude_numerator": 408249
+    },
+    {
+      "n": 7,
+      "quarter_turns": 62,
+      "angle": "-18773/200000",
+      "amplitude_numerator": 377965
+    },
+    {
+      "n": 8,
+      "quarter_turns": 66,
+      "angle": "936/3125",
+      "amplitude_numerator": 353554
+    },
+    {
+      "n": 9,
+      "quarter_turns": 70,
+      "angle": "-47257/500000",
+      "amplitude_numerator": 333334
+    },
+    {
+      "n": 10,
+      "quarter_turns": 73,
+      "angle": "461123/1000000",
+      "amplitude_numerator": 316228
+    },
+    {
+      "n": 11,
+      "quarter_turns": 76,
+      "angle": "514243/1000000",
+      "amplitude_numerator": 301512
+    },
+    {
+      "n": 12,
+      "quarter_turns": 79,
+      "angle": "152423/1000000",
+      "amplitude_numerator": 288676
+    },
+    {
+      "n": 13,
+      "quarter_turns": 82,
+      "angle": "-557831/1000000",
+      "amplitude_numerator": 277351
+    },
+    {
+      "n": 14,
+      "quarter_turns": 84,
+      "angle": "239/40000",
+      "amplitude_numerator": 267262
+    },
+    {
+      "n": 15,
+      "quarter_turns": 86,
+      "angle": "157013/500000",
+      "amplitude_numerator": 258199
+    },
+    {
+      "n": 16,
+      "quarter_turns": 88,
+      "angle": "399359/1000000",
+      "amplitude_numerator": 250000
+    },
+    {
+      "n": 17,
+      "quarter_turns": 90,
+      "angle": "144499/500000",
+      "amplitude_numerator": 242536
+    },
+    {
+      "n": 18,
+      "quarter_turns": 92,
+      "angle": "2663/500000",
+      "amplitude_numerator": 235703
+    },
+    {
+      "n": 19,
+      "quarter_turns": 94,
+      "angle": "-216453/500000",
+      "amplitude_numerator": 229416
+    },
+    {
+      "n": 20,
+      "quarter_turns": 95,
+      "angle": "560963/1000000",
+      "amplitude_numerator": 223607
+    }
+  ]
+}

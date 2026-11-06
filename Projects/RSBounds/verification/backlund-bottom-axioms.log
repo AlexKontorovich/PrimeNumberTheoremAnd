@@ -1,0 +1,15 @@
+'TernaryGoldbach.RSBounds.BacklundBottomCertificates.trig_approx' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundBottomCertificates.all_rows_checked' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundBottomCertificates.aggregate_checked' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundBottomCertificates.finitePart_norm_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundBottomCertificates.norm_zeta_height_fifty_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

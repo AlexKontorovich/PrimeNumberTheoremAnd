@@ -1,13 +1,28 @@
 # Explicit Rosser–Schoenfeld estimates: partial formalization
 
-This standalone Lean 4.35 project contains checked progress toward explicit
-Rosser–Schoenfeld estimates. **The four requested global estimates are not yet
-proved.**
+This standalone Lean 4.35 project now proves **Rosser's explicit zero-count
+bound unconditionally for every real `T >= 100`, including zero ordinates**:
+
+`abs(N(T)-F(T)) < .137 log(T) + .443 log(log(T)) + 1.588`,
+
+where `N(T)` counts the actual zeros of Mathlib's Riemann zeta function with
+`0 < Im(rho) <= T`, with analytic multiplicity, and
+`F(T) = T/(2*pi)*log(T/(2*pi)) - T/(2*pi) + 7/8`.
+The public theorem is
+[`Rosser1941.zero_count_bounds_high`](RSBounds/BacklundHighCount.lean).
+It uses no RH hypothesis, finite zero certificate, assumed zero-count bound,
+or assumed circle majorant. The fresh build and axiom audit are recorded in
+[`verification/backlund-high-count-run.json`](verification/backlund-high-count-run.json).
+
+**The full range `T >= 2` and the four requested global Rosser–Schoenfeld
+estimates are not yet proved.** The finite-height certificate replay and
+handoff remain unfinished.
 
 In particular, **the full bound on `abs(psi(x)-x)` for `x >= exp 23` is
 not proved**, even with finite RH supplied. The averaged contour remainder
-is now bounded, but the quantitative sum over actual zeros still needs its
-counting theorem, low-zero certificates, and final assembly.
+and the zero-count estimate for `T >= 100` are now proved. The finite zero
+head, the RS75 zero-free-region input for the tail, and the final quantitative
+zero-sum assembly remain unfinished.
 
 | Result | Freshly checked status |
 | --- | --- |
@@ -16,9 +31,9 @@ counting theorem, low-zero certificates, and final assembly.
 | Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
-| Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual zeta zero-count bound remains an input |
+| Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual count estimate is now proved for T ≥ 100, while the finite head and final zero-sum assembly remain |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
-| Angular Jensen inequality, constructive reflected pairing, and the limit along phase-aligned powers | Proved, including the reflection loss E/(2 pi) and the actual horizontal zeta argument bound; the sharp numerical boundary estimates remain unfinished |
+| Angular Jensen inequality, constructive reflected pairing, and the limit along phase-aligned powers | Proved, including the reflection loss E/(2 pi) and the actual horizontal zeta argument bound |
 | Exact zeta/digamma reflection identity and constructive first/last crossings | Proved by selective reuse; no zero-count premise |
 | Actual horizontal reflection-error integral | Proved: at most 4 delta^2/T, hence less than 8/T, for T >= 1 and 0 <= delta <= 3/4, at nonvanishing horizontal segments |
 | Euler-product center lower bound | Proved in Lean: 3.425 < zeta(5/4)/zeta(5/2) < 3.426, hence norm(zeta(5/4+it)) >= 1/3.426 for every real t |
@@ -26,6 +41,13 @@ counting theorem, low-zero certificates, and final assembly.
 | Trapezoidal error via the positive Peano kernel | Proved, including the finite error-sum identity |
 | Continuous zeta branch on the anchor line Re(s) = 5/4 | Proved via the Euler logarithm; the vertical argument integral equals the principal argument and has absolute value at most pi/2 |
 | Exact Riemann–von Mangoldt count identity | Proved for positive heights off zero ordinates, with the actual positive-ordinate zeta multiplicities and the continuous gamma phase |
+| Backlund (54) | Proved: norm(zeta(sigma+it)) ≤ log(t) − 0.048 for sigma ≥ 1, t ≥ 50 |
+| Backlund (56) | Proved: norm(zeta(sigma+it)) ≤ t²/(t²−4) · (t/(2 pi))^((1−sigma)/2) · log(t), for 0 ≤ sigma ≤ 1, t ≥ 50 |
+| Backlund (77) | Proved: norm(zeta(sigma+it)) < (t/(2 pi))^(1/2−sigma) · log(t), for −1/2 ≤ sigma ≤ 0, t ≥ 50 |
+| Upper half-strip maximum principle and finite bottom-edge certificate | Proved; used with the actual normalized zeta function to establish (56) |
+| Quantitative digamma and horizontal Gamma-modulus bounds | Proved by adapting Zeta23's quantitative estimate to IEANTN's checked Gauss series |
+| Actual common circle majorant at radius 1.32 and its angular integral | Proved, including nonnegativity, integrability, both translated zeta bounds, and numerical coefficients |
+| Rosser's .137/.443/1.588 zero-count estimate | Proved unconditionally for every T ≥ 100, including zero ordinates; full T ≥ 2 still unfinished |
 | Quartic kernel bounds, fourth-difference identities, and the upper/lower psi sandwich | Proved |
 | Mellin transform of the truncated quartic, with its exact five-factor denominator | Proved for Re(s) > 0 |
 | Fourfold integral identity and low/high bounds for an individual zero's quartic contribution | Proved |
@@ -42,7 +64,8 @@ counting theorem, low-zero certificates, and final assembly.
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
 | Moderate-error psi row b = 23; full RS62 Mertens/totient bounds; requested theta estimate | Unfinished |
 
-The unconditional finite totient results assume neither RH, Buethe nor Ramare's sum estimate.
+The unconditional zero-count and finite totient results assume neither RH,
+Buethe nor Ramare's sum estimate.
 The finite arithmetic through the twentieth prime, 71, is checked by the
 ordinary Lean kernel. The checked theorems use only `propext`,
 `Classical.choice`, and `Quot.sound`.
@@ -82,19 +105,31 @@ The zero-free theorem itself remains unproved here. Its exact trigonometric
 polynomial is checked in `RS75Polynomial.lean`; the remaining analytic inputs
 are tracked separately in [the zero-free-region audit](docs/RS75ZeroFreeAudit.md).
 
-The needed zero-count estimate exists in Rosser (1941), Theorem 19, p. 223:
+The needed zero-count estimate is Rosser (1941), Theorem 19, p. 223:
 
 `abs(N(T)-F(T)) < .137 log(T) + .443 log(log(T)) + 1.588`, for T ≥ 2,
 
 where `F(T) = T/(2*pi)*log(T/(2*pi)) - T/(2*pi) + 7/8`.
-Its proof cites Backlund. Our weighted-sum lemmas do not prove this estimate.
-The angular Jensen/powers step, constructive first/last crossings, exact
-reflection identity, and quantitative reflection-error integral are now
-checked. The last uses the actual proved IEANTN digamma-difference estimate.
-The reflected crossing assembly, actual count/argument-principle connection,
-horizontal zeta argument bound, and branch-correct gamma phase remainder are
-also checked. The sharp zeta boundary integral and finite low-height handoff
-remain unfinished. See
+**The analytic range `T >= 100` is now proved with these exact constants.**
+The public count is an unconditional sum of Mathlib's analytic zero orders,
+with the inclusive upper endpoint. The endpoint extension is also proved;
+the result is not restricted to heights avoiding zeros.
+
+The checked proof includes the angular Jensen/powers step, constructive
+reflected crossings, the actual reflection-error integral, the continuous
+anchor argument, the exact count/argument-principle identity, and the
+branch-correct gamma phase remainder. Backlund's three zeta estimates
+(54), (56), and (77) are proved at their original height threshold 50.
+The proof of (56) includes its half-strip maximum principle and finite
+bottom-edge computation. An actual nonnegative circle majorant is integrated
+over all four sectors; the right-arc quadrature and the final constants are
+certified in Lean. The rounded envelope is strictly below Rosser's target
+for every `T >= 100`.
+
+No finite RH result is used in that analytic theorem. **The range
+`2 <= T < 100` still awaits completion of the finite certificate replay and
+handoff.** See [the circle-majorant audit](docs/BacklundCircleMajorantAudit.md),
+[the Gamma-modulus audit](docs/BacklundGammaModulusAudit.md),
 [the primary-source audit](docs/BacklundCountAudit.md) and
 [the current IEANTN/PNT+ reuse audit](docs/ZeroCountReuseAudit.md).
 
@@ -105,8 +140,9 @@ the center lower bound with denominator `3.426`; the 625-term sums and their
 integral-test tails use no numerical axiom. This does not assert
 a failure of the final counting theorem. See [the center audit](docs/BacklundCenterAudit.md).
 An unconditional public source certificate for all 29 zeros through height
-100 has been located; its separate 99-module proof has not yet been replayed
-against this project's toolchain. See [the finite-height audit](docs/LowHeightCertificateAudit.md).
+100 has been located in `teal-sea/zeta-lab`. Its separate 99-module local
+replay is in progress and is not yet complete. It is not imported by the
+proved `T >= 100` theorem. See [the finite-height audit](docs/LowHeightCertificateAudit.md).
 The older RS75 row uses a finite head of 57 zeros; the improved 1976 row uses
 a larger head. These numerical zero certificates also remain to be formalized.
 
@@ -118,6 +154,14 @@ proof modules compile unchanged apart from import paths; attribution, license,
 upstream hashes, and fresh audits are retained. See
 [the port record](docs/IEANTNGammaPort.md) and
 [the targeted reuse audit](docs/IEANTNReuseAudit.md).
+
+The quantitative vertical digamma estimate is adapted from Zeta23's
+`GammaFacts/StirlingVert.lean` in `teal-sea/zeta-lab`, pinned at
+`b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`, with IEANTN supplying the
+proved series input. The half-strip maximum principle adapts Mathlib's
+Phragmén–Lindelöf argument. These are checked proof ports, distinct from the
+pending finite-height replay. Original notices, pinned source links, and
+licenses are recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Reproduction
 
@@ -133,7 +177,10 @@ lake comparator
 propositions, not proofs or axioms. Other source files may be under development.
 
 The independent Comparator challenge covers the two restricted totient
-statements, not the four unfinished goals. Fresh build logs, axiom audits,
+statements; it does not yet cover the new analytic zero-count theorem or the
+four unfinished goals. The zero-count theorem has a fresh Lean build and
+transitive axiom audit, using only `propext`, `Classical.choice`, and
+`Quot.sound`. Fresh build logs, axiom audits,
 and exact source hashes are in `verification/`. Comparator outcomes and any
 sandbox limitation are recorded there.
 

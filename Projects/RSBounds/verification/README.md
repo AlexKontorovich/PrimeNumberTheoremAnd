@@ -113,4 +113,36 @@ quantitative input is a common circle majorant for zeta at the two translates.
 
 The combined root build after these components is recorded in
 `aggregate-backlund-run.json`, with exact toolchain, manifest, and source
-hashes. None of these component audits asserts the sharp zero-count theorem.
+hashes. Those earlier component audits alone did not assert the sharp zero-count theorem.
+
+## Completed analytic zero-count theorem
+
+`backlund-high-count-run.json` now records the fresh proof of
+`Rosser1941.zero_count_bounds_high`: for every real `T >= 100`, the actual
+positive-ordinate zeta zero count, with multiplicities and the inclusive
+upper endpoint, satisfies Rosser's bound with constants `.137`, `.443`,
+and `1.588`. Its only hypothesis is the height range. In particular it has
+no RH, finite-zero-table, zero-count, circle-majorant, or numerical-integral
+assumption. All five audited declarations use only the standard three axioms.
+
+`RosserCountDefinition.lean` defines that public count directly as a finite-support
+sum of `analyticOrderAt riemannZeta`, independently of the rectangle machinery,
+and proves equality with its closed-endpoint count. `BacklundCountEndpoint.lean`
+handles heights equal to zero ordinates. The scalar comparison is recorded in
+`backlund-scalar-run.json`; the actual circle majorant and its integral are
+recorded in `backlund-circle-majorant-run.json` and
+`backlund-angular-assembly-run.json`.
+
+The boundary estimates are now actual proved zeta bounds. Their receipts are
+`backlund-zeta-boundary-run.json`, `backlund-bottom-run.json`,
+`backlund-strip-run.json`, and `backlund-left-zeta-boundary-run.json`.
+The gamma modulus proof uses the separately recorded IEANTN Gauss series,
+Stirling remainder, and horizontal integration; see
+`backlund-gamma-modulus-run.json` and `backlund-functional-strip-run.json`.
+
+`aggregate-backlund-high-run.json` records the successful root-module build
+including this theorem. The full range `T >= 2` still awaits the independently
+checked small-height count handoff. The 59 required scalar endpoint certificates
+are already checked; the 99-module public zero certificate is being replayed
+on this project's toolchain. No result for the full range is claimed by this
+analytic checkpoint, and the separate b=23 psi estimate remains unfinished.

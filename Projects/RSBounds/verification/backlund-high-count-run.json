@@ -1,0 +1,50 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T12:32:35.331826+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundHighCount.lean": "4486c310f866463b5f69d57f3b6d879b8470a1b955e03f01deaca2b38c5f99ba",
+    "RSBounds/RosserCountDefinition.lean": "22131d13d140f1d959ec41d069480a2268832b3f1147798373d89f0ec29db1ed",
+    "verification/BacklundHighCountAudit.lean": "dafe4022a600bd2279fe59a1ca6d46a3d0df7f354e340cd0759e5b2350efdcf0"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserCountDefinition.olean",
+        "RSBounds/RosserCountDefinition.lean"
+      ],
+      "log": "backlund-high-count-RosserCountDefinition-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundHighCount.olean",
+        "RSBounds/BacklundHighCount.lean"
+      ],
+      "log": "backlund-high-count-BacklundHighCount-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundHighCountAudit.lean"
+      ],
+      "log": "backlund-high-count-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T12:32:51.169783+00:00",
+  "exit_code": 0
+}

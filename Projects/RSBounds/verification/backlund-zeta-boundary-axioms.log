@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.local_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.finite_error_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.regularized_infinite_error_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaRegularization.regularized_sum_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaBoundary.zeta_second_order_remainder_explicit_of_pos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaBoundary.zeta_norm_le_log_sub' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

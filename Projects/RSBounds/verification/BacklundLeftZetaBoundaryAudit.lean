@@ -1,0 +1,3 @@
+import RSBounds.BacklundLeftZetaBoundary
+
+#print axioms TernaryGoldbach.RSBounds.BacklundLeftZetaBoundary.norm_zeta_left_strip_lt

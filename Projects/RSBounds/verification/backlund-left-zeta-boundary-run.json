@@ -1,0 +1,34 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:54:45.850850+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundLeftZetaBoundary.lean": "b2ec03f8282387134a01f18ad29bf44d1346fc0c943ff306ac675a613df051a7",
+    "verification/BacklundLeftZetaBoundaryAudit.lean": "a61f5178e9ce1a166d4ebc65f99c307c25091a7ff45d317fd88511a9f2963f57"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundLeftZetaBoundary.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLeftZetaBoundary.olean"
+      ],
+      "log": "backlund-left-zeta-boundary-BacklundLeftZetaBoundary-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundLeftZetaBoundaryAudit.lean"
+      ],
+      "log": "backlund-left-zeta-boundary-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:54:56.947841+00:00",
+  "exit_code": 0
+}

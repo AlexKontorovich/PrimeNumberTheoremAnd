@@ -1,0 +1,50 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T12:13:29.047422+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundHalfStrip.lean": "001f344f9f7ba459940c631f36053d63c3a2ac124a5a6ddde293345b8f462faf",
+    "RSBounds/BacklundStripNormalizer.lean": "1d2772a7ea925142fc804cc66218338da91f2b815b6e5d33b309d60acae75f12",
+    "verification/BacklundStripCoreAudit.lean": "c50541e83dfd6d759a376b65fbad8d6b1fcfac171e3ec649d961a3cc7be3bebd"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundHalfStrip.olean",
+        "RSBounds/BacklundHalfStrip.lean"
+      ],
+      "log": "backlund-strip-core-BacklundHalfStrip-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundStripNormalizer.olean",
+        "RSBounds/BacklundStripNormalizer.lean"
+      ],
+      "log": "backlund-strip-core-BacklundStripNormalizer-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundStripCoreAudit.lean"
+      ],
+      "log": "backlund-strip-core-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T12:13:48.389024+00:00",
+  "exit_code": 0
+}

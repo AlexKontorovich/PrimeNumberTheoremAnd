@@ -1,0 +1,11 @@
+import RSBounds.BacklundAngularAssembly
+
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_one
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_two
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_three
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_four
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_integrable
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.intervalIntegrable_scalar_arc
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_raw
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_eq
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_le

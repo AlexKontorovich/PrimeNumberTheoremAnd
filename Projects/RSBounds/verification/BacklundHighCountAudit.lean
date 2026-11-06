@@ -1,0 +1,8 @@
+import RSBounds.BacklundHighCount
+import RSBounds.RosserCountDefinition
+
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.continuous_roundedEnvelope
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.rosser_bound_high
+#print axioms TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds_high
+#print axioms TernaryGoldbach.RSBounds.Rosser1941.positiveZeroCount
+#print axioms TernaryGoldbach.RSBounds.Rosser1941.positiveZeroCount_eq
