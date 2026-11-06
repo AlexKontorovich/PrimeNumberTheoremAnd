@@ -1,0 +1,28 @@
+{
+  "kind": "fresh-source-and-transitive-axiom-audit",
+  "finished_utc": "2026-11-06T18:55:47.417005+00:00",
+  "source_sha256": {
+    "RSBounds/MertensLimitNormalization.lean": "b7a165d5d6479ec944553b74ae7c423c91d68970ba7f45aa68bd33a24fe7a2df",
+    "RSBounds/MertensAbelianNormalization.lean": "69548eae7c8177123aa2da58bd48bc386e1feaa8e314a18b6e4a5bd3006e29da",
+    "RSBounds/MellinAbelianLimit.lean": "c32894fb13e0a9fffd8b0115c84cf6da016ce7e2defe0a5e87974c2c2693eaff",
+    "RSBounds/MertensAbelIdentity.lean": "743f7aff4f26e7344e3cbef14fe811c22802b0ee8a56fa3e6f7267bade38df8e",
+    "verification/MertensLimitNormalizationAudit.lean": "e3977d6519abb2823a84cbccbe7ba875139f47a3a6c6ee9bcf3347637a8f19bc"
+  },
+  "stdin_sha256": "57bac61bc19432311f1e5d79db9e24e767ddaf3b8fe69d7188a65772d20467ab",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensLimitNormalization.olean",
+    "RSBounds/MertensLimitNormalization.lean"
+  ],
+  "log": "verification/mertens-limit-normalization-build.log",
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 1,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "94c5de68b306d3008f14732720e6576b512a6fc823f70072af0dd2347ed8735e"
+}

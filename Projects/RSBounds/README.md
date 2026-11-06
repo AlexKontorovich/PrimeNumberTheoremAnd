@@ -90,10 +90,14 @@ quantitative zero-free-region target is a separate problem.
 | RS62 totient coefficient 2.50637 for at most twenty distinct prime factors | Proved |
 | Its corollary for 3 ≤ q ≤ 10^27 | Proved |
 | Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
-| Existing calr finite Mertens-product certificate for every prime from 5 through 100000 | Fresh kernel replay and four standard-axiom audits passed; its larger-cutoff all-n adapter remains in progress |
+| Existing calr finite Mertens-product certificate for every prime from 5 through 100000 | Fresh kernel replay passed; the unrestricted all-n totient adapter is also checked, with only the analytic prime-product tail from a cutoff at most 100001 left as an explicit hypothesis |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
 | Signed finite-interval degree-two explicit formula | Proved unconditionally for actual multiplicity zero sums; the left remainder is explicit. Passage to infinity and numerical RS62 bounds remain unfinished |
+| First-Mertens Abel identities and Euler normalization | Proved unconditionally, reusing the existing Laurent expansion and boundedness; identification of a limit has convergence as an explicit premise. See [normalization guide](docs/MertensNormalization.md) |
+| Global reciprocal-square zero allowance | Proved unconditionally for arbitrary finite actual-zero sets with analytic multiplicities: sum m/gamma^2 < 0.0463; inclusive positive-ordinate cutoffs have bound 0.02315 |
+| Reciprocal-square tail above A = 1894439 | Proved: each positive-ordinate finite tail is below 0.0000012, using the unconditional Rosser count estimate |
+| Schoenfeld II Theorem 11 Laplace integrals and weight calculus | Exact near/far integral bounds, logarithmic substitution, Phi monotonicity, and the density allowance are checked. The weighted-zero assembly, smoothing, numerical parameters, and smaller ranges remain unfinished |
 | Weighted zero-sum partial summation and envelope transfers | Proved for the actual zeta zeros with analytic multiplicity, using the unconditional Rosser estimate |
 | Reciprocal-zero head through 100 | Proved: the complete first-29 head has sum of reciprocal norms less than 0.592316 |
 | Elementary reciprocal and fifth-power integrals | Proved with explicit logarithmic upper bounds for 7 ≤ a ≤ b |

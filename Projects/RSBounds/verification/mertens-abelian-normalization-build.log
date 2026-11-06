@@ -1,0 +1,42 @@
+import took 183s
+interpretation of Mathlib.Meta.FunProp.funPropTac._boxed took 176ms
+aesop took 182ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 560ms
+type checking took 111ms
+RSBounds/MertensAbelianNormalization.lean:108:14: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensAbelianNormalization.lean:108:14: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+cumulative profiling times:
+	.olean serialization 79.5ms
+	aesop 182ms
+	attribute application 0.0288ms
+	blocked (unaccounted) 170ms
+	compilation (IR) 0.0724ms
+	compilation (LCNF base) 0.555ms
+	compilation (LCNF impure) 0.259ms
+	compilation (LCNF mono) 1.73ms
+	congr simp thm 5.9ms
+	declTypeLinter 20.3ms
+	dsimp 4.24ms
+	elaboration 171ms
+	fix level params 0.656ms
+	import 183s
+	initialization 203ms
+	instantiate metavars 3.42ms
+	interpretation 2.49s
+	let-to-have transformation 0.0441ms
+	linting 43.4ms
+	module linting 0.54ms
+	norm_num 126ms
+	parsing 42ms
+	process pre-definitions 24.1ms
+	ring 99.9ms
+	share common exprs 23.5ms
+	simp 117ms
+	tactic execution 988ms
+	tacticAnalysis 6.07ms
+	type checking 145ms
+	typeclass inference 842ms

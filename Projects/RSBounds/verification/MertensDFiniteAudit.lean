@@ -1,0 +1,5 @@
+import RSBounds.MertensDFinite
+
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral

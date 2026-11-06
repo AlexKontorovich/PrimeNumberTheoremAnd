@@ -1,0 +1,41 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:11:43.181576+00:00",
+  "source_sha256": {
+    "RSBounds/SchoenfeldZeroWeights.lean": "0ba9ce8d44fdde42c7d24e024246ee401c10ac21b07997c5472452a49461e1fb",
+    "RSBounds/SchoenfeldLaplaceTails.lean": "3012da5493e4ad782e5c8ed4cf760fa914a1c68777fcff0f5d7ce8444ac80923",
+    "RSBounds/SchoenfeldLaplacePhysical.lean": "df4a389d998baaafa5d149e649724bf757474107f3e0b6a89a20e498000e2c51",
+    "verification/SchoenfeldZeroWeightsAudit.lean": "848c99af87953a85ca0d6eebc729e6675cee9e2211645eaf252b4e0b67de5811",
+    "verification/run_schoenfeld_zero_weights_check.py": "a737e9f7f98a0efcad38040c0e6907da1bc2bfea1a060fdf480c4411f9c6ceee",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldZeroWeights.olean",
+        "RSBounds/SchoenfeldZeroWeights.lean"
+      ],
+      "log": "schoenfeld-zero-weights-build.log",
+      "exit_code": 0,
+      "seconds": 99.81792804800352
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/SchoenfeldZeroWeights.lean",
+    "verification/SchoenfeldZeroWeightsAudit.lean"
+  ],
+  "stdin_sha256": "de01eadedc91a46757e7d275a09bbee3838e6e489449d970fab5a6466f8a9173",
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T19:13:23.005168+00:00",
+  "exit_code": 0
+}

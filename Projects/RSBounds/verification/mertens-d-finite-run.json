@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-source-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:08:41.090585+00:00",
+  "lean_version": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+  "source_sha256": {
+    "RSBounds/MertensDFinite.lean": "f58876dc7981544962ab12f0c347d9d1c24644fda6ac5edccb01f8c85e0e843e",
+    "verification/MertensDFiniteAudit.lean": "523523026be057409aa3bf8110b67469f5bf9841410fd5803940969cfc7bd300",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "verification/run_fresh_module_check.py": "fad671602d7fc5babc872e0102e8d9767ccba34700fe74c0228a37df38bc414d"
+  },
+  "stdin_sha256": "e388fbb285a568977b3a5ccde7ffd2bad71f7f33a5ac72a8e0cc981d2121b39f",
+  "stdin_recipe": "Exact source followed by the listed fully qualified axiom commands.",
+  "audited_declarations": [
+    "TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum",
+    "TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral",
+    "TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral"
+  ],
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensDFinite.olean",
+    "RSBounds/MertensDFinite.lean"
+  ],
+  "log": "verification/mertens-d-finite-build.log",
+  "exit_code": 0,
+  "seconds": 133.01070967199485,
+  "finished_utc": "2026-11-06T19:10:54.365094+00:00",
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "9e5eb1b4e1e2089960f975e08065baf457c085c0bac43a266a0f1204b0ac5ee6"
+}

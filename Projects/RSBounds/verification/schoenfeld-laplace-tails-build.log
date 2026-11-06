@@ -1,0 +1,125 @@
+interpretation of Batteries.Tactic.Alias.aliasExt took 478ms
+import took 187s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Convert___elabRules_Mathlib_Tactic_convert_1._boxed took 104ms
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 107ms
+type checking took 135ms
+RSBounds/SchoenfeldLaplaceTails.lean:46:95: warning: This simp argument is unused:
+  Pi.add_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [integrand, zero_mul, zero_add, id_eq, Pi.pow_apply, Pi.mul_apply, Pi.div_apply, Pi.neg_apply,
+    neg_div]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldLaplaceTails.lean:46:109: warning: This simp argument is unused:
+  Pi.neg_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [integrand, zero_mul, zero_add, id_eq, Pi.pow_apply, Pi.mul_apply, Pi.div_apply, Pi.add_apply,
+    neg_div]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldLaplaceTails.lean:48:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:48:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 152ms
+interpretation of Mathlib.Tactic.RingNF._aux_Mathlib_Tactic_Ring_RingNF___elabRules_Mathlib_Tactic_RingNF_ringNF_1._boxed took 113ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 1.1s
+share common exprs took 169ms
+type checking took 134ms
+RSBounds/SchoenfeldLaplaceTails.lean:66:103: warning: This simp argument is unused:
+  neg_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [integrand, id_eq, Pi.pow_apply, Pi.mul_apply, Pi.div_apply, Pi.add_apply, Pi.neg_apply]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldLaplaceTails.lean:63:41: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:63:41: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+interpretation of Mathlib.Meta.FunProp.funPropTac._boxed took 265ms
+tactic execution of Lean.Parser.Tactic.refine took 103ms
+RSBounds/SchoenfeldLaplaceTails.lean:134:58: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:134:62: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:137:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:137:6: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:134:62: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:137:6: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 103ms
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 172ms
+RSBounds/SchoenfeldLaplaceTails.lean:153:15: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:153:19: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:157:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:153:19: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/SchoenfeldLaplaceTails.lean:157:2: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.hasDerivAt_nearPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.hasDerivAt_neg_farPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_near_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_far_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_near_Xv_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_far_Xv_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 83.9ms
+	attribute application 0.211ms
+	blocked (unaccounted) 10.8s
+	congr simp thm 4.56ms
+	declTypeLinter 27.2ms
+	elaboration 572ms
+	fix level params 5.16ms
+	import 187s
+	initialization 54ms
+	instantiate metavars 27.5ms
+	interpretation 5.41s
+	let-to-have transformation 0.341ms
+	linting 178ms
+	module linting 0.624ms
+	norm_num 401ms
+	parsing 33.8ms
+	process pre-definitions 84ms
+	ring 310ms
+	share common exprs 213ms
+	simp 134ms
+	tactic execution 903ms
+	tacticAnalysis 8.99ms
+	type checking 443ms
+	typeclass inference 1.79s

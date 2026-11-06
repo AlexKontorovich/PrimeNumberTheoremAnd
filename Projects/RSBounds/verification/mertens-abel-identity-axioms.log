@@ -1,0 +1,24 @@
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.sum_Icc_mangoldt_div' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.weighted_sum_isBigO_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.LSeries_mangoldt_div_shift' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_error_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_log_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integral_log_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.logDeriv_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.error_abel_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

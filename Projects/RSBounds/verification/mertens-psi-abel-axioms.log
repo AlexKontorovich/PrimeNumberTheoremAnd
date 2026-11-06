@@ -1,0 +1,16 @@
+'TernaryGoldbach.RSBounds.MertensPsiAbel.sum_Icc_mangoldt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.sum_mangoldt_isBigO' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.psi_ratio_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.measurable_D' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.D_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.integrableOn_psi_ratio_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.logDeriv_eq_psi_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.psi_abel_identity' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.integrableOn_D_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPsiAbel.D_abel_identity' depends on axioms: [propext, Classical.choice, Quot.sound]

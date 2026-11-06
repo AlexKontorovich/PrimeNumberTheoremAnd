@@ -1,0 +1,53 @@
+import took 2.55s
+RSBounds/SchoenfeldLaplacePhysical.lean:29:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplacePhysical.lean:29:6: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplacePhysical.lean:29:6: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/SchoenfeldLaplacePhysical.lean:43:108: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldLaplacePhysical.lean:43:108: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integrand_log_mul_inv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_near_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_far_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 32.6ms
+	attribute application 0.0819ms
+	blocked (unaccounted) 1.52s
+	congr simp thm 2.08ms
+	declTypeLinter 3.85ms
+	elaboration 53.6ms
+	fix level params 0.705ms
+	import 2.55s
+	initialization 39.1ms
+	instantiate metavars 2.15ms
+	interpretation 867ms
+	let-to-have transformation 0.121ms
+	linting 17.8ms
+	module linting 0.0132ms
+	norm_num 55.9ms
+	parsing 7.84ms
+	process pre-definitions 15.9ms
+	ring 36.1ms
+	share common exprs 14.1ms
+	simp 32.6ms
+	tactic execution 142ms
+	tacticAnalysis 4.59ms
+	type checking 98.1ms
+	typeclass inference 292ms
