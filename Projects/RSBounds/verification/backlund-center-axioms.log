@@ -1,0 +1,2 @@
+'TernaryGoldbach.RSBounds.zeta_norm_lower_euler_ratio' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.zeta_norm_lower_five_fourths_ratio' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,0 +1,42 @@
+{
+  "kind": "independent-rational-integral-test-audit-not-Lean",
+  "terms": 10000,
+  "fixed_point_bits": 80,
+  "zeta_5_over_4_interval": [
+    {
+      "numerator": "86799113848102337635273",
+      "denominator": "18889465931478580854784"
+    },
+    {
+      "numerator": "1388788843695305945373489",
+      "denominator": "302231454903657293676544"
+    }
+  ],
+  "zeta_5_over_2_interval": [
+    {
+      "numerator": "4865275745742636738211157",
+      "denominator": "3626777458843887524118528"
+    },
+    {
+      "numerator": "4865275746105269154695767",
+      "denominator": "3626777458843887524118528"
+    }
+  ],
+  "ratio_interval": [
+    {
+      "numerator": "16665429858835648825972416",
+      "denominator": "4865275746105269154695767"
+    },
+    {
+      "numerator": "16665466124343671344481868",
+      "denominator": "4865275745742636738211157"
+    }
+  ],
+  "simplified_ratio_interval": [
+    "3.425382",
+    "3.425390"
+  ],
+  "strictly_above_3_425": true,
+  "strictly_below_3_426": true,
+  "method": "positive decreasing Dirichlet series; integral-test tail; exact integer roots"
+}

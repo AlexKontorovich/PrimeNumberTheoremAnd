@@ -52,3 +52,27 @@ The combined build including these additions passes; exact commands and
 hashes are in `aggregate-complete-remainder-run.json`. That run also audits
 the centered Mertens tail identity and conditional variation bound in
 `MertensTailReduction.lean`, reusing the existing unconditional identity.
+
+`backlund-jensen-run.json` records the fresh build and eight standard-axiom
+audits for angular Jensen and its limit along powers. This is a component
+of Rosser's zero-count proof, not the sharp zero-count theorem itself.
+
+`backlund-reflection-run.json` records the build and twelve standard-axiom
+audits for the exact reflected logarithmic derivative and the constructive
+first/last crossing lemmas. These small ports import Mathlib only; they do
+not import the external project's full zero-count development.
+
+`backlund-gamma-reflection-run.json` records seventeen standard-axiom audits
+and the build for the reused IEANTN digamma bound and the new quantitative
+reflection integral. Its actual zeta integral is proved integrable and at
+most `4*delta^2/T`, hence less than `8/T`, under explicit local nonvanishing.
+
+`backlund-center-run.json` checks the exact Euler-product ratio lower bound.
+The separate `backlund-center-rational.json` is an exact Python integer/
+rational integral-test computation, not a Lean certificate. It shows why
+`3.426`, rather than the printed `3.425`, is a safe upward rounding for this
+ratio. No decimal center bound has been silently inserted into a Lean proof.
+
+The combined root build after these components is recorded in
+`aggregate-backlund-run.json`, with exact toolchain, manifest, and source
+hashes. None of these component audits asserts the sharp zero-count theorem.

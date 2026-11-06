@@ -1,0 +1,33 @@
+{
+  "kind": "fresh-local-build-and-axiom-audit",
+  "source_sha256": {
+    "RSBounds/BacklundJensen.lean": "4f2d99921b4e50e81455c8f99d64a8fc7055bc3119b47dd0e73fe1ec0f41e558",
+    "verification/BacklundJensenAudit.lean": "533219d60bb6c918d3ad79061eb8e133226416c39ff50c7818499df833f02f7d",
+    "RSBounds/BacklundPhase.lean": "fa9d615046e417cef78a903890e1e46b8bc72cff712513d21a5500aa3a5762e0"
+  },
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.BacklundJensen"
+      ],
+      "started_utc": "2026-11-06T10:11:43.452569+00:00",
+      "finished_utc": "2026-11-06T10:11:49.221679+00:00",
+      "exit_code": 0,
+      "log": "verification/backlund-jensen-build.log"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundJensenAudit.lean"
+      ],
+      "started_utc": "2026-11-06T10:11:49.221747+00:00",
+      "finished_utc": "2026-11-06T10:11:52.189837+00:00",
+      "exit_code": 0,
+      "log": "verification/backlund-jensen-axioms.log"
+    }
+  ]
+}

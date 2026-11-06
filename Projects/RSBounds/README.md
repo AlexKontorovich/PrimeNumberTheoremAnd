@@ -18,6 +18,10 @@ counting theorem, low-zero certificates, and final assembly.
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
 | Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual zeta zero-count bound remains an input |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
+| Angular Jensen inequality and its limit along phase-aligned powers | Proved; the reflected argument-count bridge and numerical zeta boundary estimates remain unfinished |
+| Exact zeta/digamma reflection identity and constructive first/last crossings | Proved by selective reuse; no zero-count premise |
+| Actual horizontal reflection-error integral | Proved: at most 4 delta^2/T, hence less than 8/T, for T >= 1 and 0 <= delta <= 3/4, at nonvanishing horizontal segments |
+| Euler-product center lower bound | Exact symbolic zeta ratio proved; its numerical enclosure is separately checked in Python, not yet in Lean |
 | Quartic kernel bounds, fourth-difference identities, and the upper/lower psi sandwich | Proved |
 | Mellin transform of the truncated quartic, with its exact five-factor denominator | Proved for Re(s) > 0 |
 | Fourfold integral identity and low/high bounds for an individual zero's quartic contribution | Proved |
@@ -80,6 +84,18 @@ The needed zero-count estimate exists in Rosser (1941), Theorem 19, p. 223:
 
 where `F(T) = T/(2*pi)*log(T/(2*pi)) - T/(2*pi) + 7/8`.
 Its proof cites Backlund. Our weighted-sum lemmas do not prove this estimate.
+The angular Jensen/powers step, constructive first/last crossings, exact
+reflection identity, and quantitative reflection-error integral are now
+checked. The last uses the actual proved IEANTN digamma-difference estimate.
+The reflected crossing assembly, count/argument-principle connection, sharp
+zeta boundary integral, gamma phase remainder, and finite low-height checks
+remain unfinished. See [the primary-source audit](docs/BacklundCountAudit.md).
+
+The printed center denominator `3.425` needs care: an independent exact
+rational computation puts `zeta(5/4)/zeta(5/2)` between `3.425382` and
+`3.425390`. The formal proof retains the exact symbolic ratio. The proposed
+numerical replacement is the upward rounding `3.426`; this does not assert
+a failure of the final counting theorem. See [the center audit](docs/BacklundCenterAudit.md).
 The older RS75 row uses a finite head of 57 zeros; the improved 1976 row uses
 a larger head. These numerical zero certificates also remain to be formalized.
 
