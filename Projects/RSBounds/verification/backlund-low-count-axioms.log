@@ -1,0 +1,26 @@
+'TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_monotone' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.one_lt_rosserR' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.le_iff_lt_card' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.finite_count_error_lt_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros_with_brackets' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.count_eq_indicesBelow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.listed_zeros_eq_closedPositiveZeros' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.count_error_lt_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowCount.rosser_bound_low' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -21,7 +21,7 @@ theorem abs_digamma_re_sub_log_le {a t : ℝ}
   have him : w.im = t := by simp [w]
   have hw : 0 < w.re := by simpa [hre] using ha0
   have hD : 0 < a ^ 2 + t ^ 2 := by positivity
-  have hmain := Zeta23.StirlingVert.digamma_stirling hw
+  have hmain := TernaryGoldbach.RSBounds.BacklundZeta23.StirlingVert.digamma_stirling hw
     (by rw [him, abs_of_pos ht0]; linarith)
   rw [him] at hmain
   have hlogre : (Complex.log w).re = Real.log (a ^ 2 + t ^ 2) / 2 := by

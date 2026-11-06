@@ -1,0 +1,9 @@
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.continuous_roundedEnvelope' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.rosser_bound_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds_high' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.positiveZeroCount' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.positiveZeroCount_eq' depends on axioms: [propext, Classical.choice, Quot.sound]

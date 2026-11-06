@@ -135,8 +135,11 @@ changing `3.425` to `3.426` adds
 to the constant term. The explored constant increases from approximately
 `1.580688317` to `1.580946517`, both below the tentative round upper bound
 `1.581`. Thus that rounding change does not consume the margin in the
-explored `T >= 150` comparison using `1.581`. **Neither this comparison
-nor the proposed lower analytic cutoff is proved yet.**
+explored `T >= 150` comparison using `1.581`. This paragraph records an
+initial numerical exploration, not the final proof certificate. The
+completed analytic proof now establishes Rosser's original envelope for
+`T >= 100`, using the proved center bound `1/3.426` and kernel-checked
+angular and scalar inequalities; see the final status section.
 
 Concrete analytic components visible in Backlund's proof are:
 
@@ -331,11 +334,14 @@ audits, respectively, use only the standard three axioms.
 The sharp zeta boundary majorants, numerical angular integral, and endpoint
 extension are now connected to these components. The resulting unconditional
 estimate with Rosser's original constants is checked for every `T >= 100`,
-including zero ordinates; see the final status section below. The full
-`T >= 2` range still awaits the finite-height handoff. A public finite-height
-source certificate through 100 is documented in
-[`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md); its local
-replay is in progress and its 59 scalar certificates are already checked.
+including zero ordinates; see the final status section below. The
+finite-height handoff through 100 is also compiled and audited, and the
+combined full `T >= 2` theorem has compiled with five successful public
+axiom audits. The public finite-height source and its completed 99-module
+replay are documented in
+[`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md). Independent
+Comparator verification is a separate stage and remains pending at this
+update.
 
 ### Checked sharp right-edge estimate and Euler--Maclaurin remainder
 
@@ -427,9 +433,24 @@ five successful axiom audits, all using only `propext`, `Classical.choice`,
 and `Quot.sound`. `verification/aggregate-backlund-high-run.json` records
 the successful root-module build on 2026-11-06.
 
-The full `T >= 2` statement remains pending until the separate finite
-zero-certificate replay, count-convention bridge, and low-height assembly
-are checked. Its 59 scalar endpoint certificates are already compiled and
-audited. This status does not assert completion of the downstream quartic
-smoothing integral estimate, the `b=23` psi table entry, or the quantitative
-RS75 zero-free region merely from the count theorem.
+### Full Rosser statement compiled and axiom-audited
+
+The 99-module finite zero-certificate replay, count-convention bridge,
+59 scalar endpoint certificates, and low-height assembly have all passed
+their recorded checks. `Rosser1941.zero_count_error_lt_one_to_100` proves
+`abs(N(T)-F(T)) < 1` for every `0 <= T <= 100`.
+
+`Rosser1941.zero_count_bounds` in `RSBounds/Rosser1941.lean` combines that
+result with the analytic range to prove Rosser's exact strict inequality
+for every `T >= 2`. The combined module has compiled, and all five public
+axiom audits use only `propext`, `Classical.choice`, and `Quot.sound`.
+See `verification/zero-count-run.json` for the successful build and audits.
+The independent Mathlib-only Comparator challenge contains the full count
+definition and the two public target statements. Its separate Comparator
+run remains pending at this update; compilation and axiom auditing are not
+being represented as a completed Comparator result.
+
+Neither this count theorem nor the table of 29 zeros asserts completion of
+the stronger error less than one through 280, a first-1000-zero table, the
+downstream quartic smoothing integral estimate, the `b=23` psi table entry,
+or the quantitative RS75 zero-free region.

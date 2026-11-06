@@ -11,7 +11,7 @@ analytic hypothesis or theorem is assumed.
 
 open Complex
 
-namespace Zeta23.DigammaSeries
+namespace TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries
 
 lemma harmonic_cast_eq (N : ℕ) :
     ((harmonic N : ℚ) : ℝ) = ∑ m ∈ Finset.range N, (1 : ℝ) / ((m : ℝ) + 1) := by
@@ -39,4 +39,4 @@ theorem hasSum_digamma_series {z : ℂ} (hz : 0 < z.re) :
   simpa only [GammaSolution.gaussTerm, one_div, add_assoc, add_comm,
     add_left_comm] using hs
 
-end Zeta23.DigammaSeries
+end TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries

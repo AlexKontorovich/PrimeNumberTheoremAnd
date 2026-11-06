@@ -141,8 +141,46 @@ Stirling remainder, and horizontal integration; see
 `backlund-gamma-modulus-run.json` and `backlund-functional-strip-run.json`.
 
 `aggregate-backlund-high-run.json` records the successful root-module build
-including this theorem. The full range `T >= 2` still awaits the independently
-checked small-height count handoff. The 59 required scalar endpoint certificates
-are already checked; the 99-module public zero certificate is being replayed
-on this project's toolchain. No result for the full range is claimed by this
-analytic checkpoint, and the separate b=23 psi estimate remains unfinished.
+including this analytic theorem. That checkpoint has now been extended to the
+full range, as recorded below. The separate b=23 psi estimate remains unfinished.
+
+## Completed finite table and full Rosser theorem
+
+`rh100-replay-run.json` records all 99 freshly checked modules and 28
+standard-three-axiom audits of the pinned public zero certificate.
+`backlund-rh100-bridge-run.json` records five further audits connecting its
+count to our actual inclusive zeta multiplicity count. Per-module source,
+toolchain, dependency and object hashes allow compatible completed checks to
+be reused. No numerical certificate was rerun for the subsequent wrappers.
+
+`backlund-low-count-run.json` checks the strict bound `abs(N(T)-F(T)) < 1`
+for every `0 <= T <= 100`, including zero ordinates and `T=0`.
+`zeta-zero-table-run.json` checks the reusable `first29` table: all entries
+are actual simple zeros, they are strictly ordered and lie in their rational
+brackets, and they exhaust all positive-ordinate zeros through 100. It also
+checks exact real-threshold counts and computable rational bracket-count
+bounds. All twelve finite-bound audits and seven table audits use only the
+three standard axioms. `zero-table-data.json` separately verifies that the
+public JSON reproduces the exact rational endpoints in the Lean source.
+
+The first joint import exposed duplicate names in two independent Gamma
+ports. `backlund-namespace-adaptation.json` records a namespace-only change;
+reversing it reproduces the original source hashes. The eleven affected
+analytic modules and aggregate were rebuilt, with 21 standard-axiom checks;
+see `backlund-namespace-integration-run.json`. The RH100 certificates were
+unchanged and did not require another replay.
+
+`zero-count-run.json` now records the freshly compiled full theorem
+`Rosser1941.zero_count_bounds`, for every `T >= 2`, and its guarded five-entry
+public axiom audit. The independent Mathlib-only challenge fixes both the
+count definition and the two count theorem statements; no definition holes
+are permitted. The Comparator export/run result is recorded separately in
+that same receipt and must finish successfully before a Comparator pass is
+claimed. Its process sandbox is disabled because this workspace cannot mount
+the required bwrap filesystem. The statement, axiom and kernel checks are
+still required. Exact fresh export hashes are recorded; a previously prepared
+challenge export is reused only after its source, toolchain, manifest,
+configuration, object and export hashes all match.
+
+The height-280 strict error bound and a certified first-1000 table are not
+proved by these results.

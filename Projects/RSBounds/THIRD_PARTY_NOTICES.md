@@ -16,6 +16,16 @@ other dependencies retain their own licenses in their pinned repositories.
 The new proof modules cite the mathematical literature in their documentation.
 Statements of historical theorems are not substitutes for formal proofs.
 
+`vendor/rh100/` contains the exact 99-module dependency closure of the
+height-100 certificate from `teal-sea/zeta-lab`, pinned at
+`b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`, with the documented compatibility
+adaptations. The zeta-lab portions are MIT, copyright 2026 Thomas Lince;
+the embedded Zeta23 files retain their original Apache-2.0 notices.
+Both license texts, the original manifest, and adaptation patches are retained
+beside the sources. See `docs/RH100Replay.md` and `vendor/rh100/README.md`.
+The reusable table and count theorems reuse these certificates without
+repeating their numerical proofs.
+
 `RSBounds/IEANTNGamma/` vendors the eight-module dependency closure of the
 Gauss-series theorem from `teorth/IEANTN`, commit
 `466b41b28ecc224398cf53a99c5fe9618131398b`, solution
@@ -61,7 +71,7 @@ included in `licenses/Zeta23-Apache-2.0`. The local
 already-proved IEANTN Gauss formula. No Zeta23 analytic hypothesis is assumed.
 The adapted proof, its horizontal Gamma-modulus consequences, and their
 fresh axiom audits are documented in `docs/BacklundGammaModulusAudit.md`.
-This small quantitative Gamma port is independent of the separate, unfinished
+This small quantitative Gamma port is independent of the separate, completed
 local replay of the height-100 finite zero certificate from the same repository.
 
 `RSBounds/BacklundHalfStrip.lean` adapts the rectangle-and-Gaussian-damping

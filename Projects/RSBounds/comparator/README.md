@@ -1,15 +1,43 @@
-# Independent totient statements
+# Independent theorem statements
 
-`RSTotientChallenge.lean` imports only Mathlib and specifies the two propositions
-to be checked. Its deliberate `by sorry` theorem stubs specify the challenge;
-they are not imported by the solution. The solution may not use `sorryAx`.
-`RSTotientSolution.lean` imports the actual proofs.
+Each challenge imports only Mathlib and states its target propositions using
+fully specified definitions. Deliberate `by sorry` theorem stubs occur only in
+the challenge; solutions do not import them, and `sorryAx` is not permitted.
+The solution files import the actual proofs.
 
-Run `lake comparator` from the package directory. It checks statement and
-definition matching, the allowed axioms, and the exported proof with Lean's
-kernel. `--paranoid` adds optional independent kernels and may require much
-larger computation limits for the finite arithmetic certificate.
+| Configuration | Challenge and solution | Targets |
+|---|---|---|
+| `comparator.json` | `RSTotientChallenge`, `RSTotientSolution` | The two restricted totient results |
+| `comparator-zero-count.json` | `RSZeroCountChallenge`, `RSZeroCountSolution` | Rosser's bound for every `T >= 2`, and the strict error `< 1` for `0 <= T <= 100` |
 
-Actual runs and their limitations are documented in `../verification/`.
-The Comparator covers these two restricted totient results only, not the
-unfinished psi/theta/Mertens goals.
+The zero-count challenge independently defines the actual positive-ordinate
+zeta zero count, with analytic multiplicities and the inclusive condition
+`0 < Im rho <= T`. It has no definition hole or RH hypothesis. Both
+configurations permit only `propext`, `Classical.choice`, and `Quot.sound`.
+
+From the package directory, run:
+
+```sh
+lake comparator --config comparator.json
+lake comparator --config comparator-zero-count.json
+```
+
+Comparator checks statement and definition matching, the allowed axioms, and
+the exported proof with Lean's kernel. `--paranoid` adds optional independent
+kernels; no such additional replay is claimed here.
+
+For the recorded zero-count run, `verification/run_zero_count_check.py`
+builds the public assembly, audits five exports, creates proof exports, and
+invokes Comparator on those exports. This avoids redundantly rebuilding the
+large finite certificates. It records hashes and every command in
+`verification/zero-count-run.json`. Process sandboxing is disabled in this
+workspace because `bwrap` cannot mount its temporary filesystem; statement,
+definition, axiom, and kernel checks remain enabled.
+
+The full zero-count theorem has compiled, and all five public axiom audits
+have passed. The independent Comparator run is still pending at this update;
+these are separate verification stages. Consult the recorded exit codes for
+the final outcome. The zero-count configuration covers its two displayed
+theorems, not every export of `ZetaZeroTable`. It does not claim the stronger
+height-280 bound, a first-1000-zero certificate, or any unfinished
+psi/theta/Mertens goal.

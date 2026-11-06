@@ -4,8 +4,9 @@ This is a mathematical and source audit of
 [`rs75-budget-diagnostic.py`](../verification/rs75-budget-diagnostic.py),
 not a proof of the table row. Its 60-digit `mpmath` output is **not interval
 arithmetic or a Lean certificate**. The corrected fixed-parameter diagnostic
-is below the target, but the zero-count input, finite head data, and numerical
-assembly still require proofs. The averaged contour remainder is now bounded
+is below the target. The actual Rosser zero-count input is now proved in
+[`Rosser1941.lean`](../RSBounds/Rosser1941.lean); the finite head data and
+numerical assembly still require proofs. The averaged contour remainder is now bounded
 in Lean; it has not yet been assembled with the actual zero sum.
 
 The individual upper/lower kernel bounds and the cancellation estimate
@@ -25,7 +26,7 @@ Here \(N(t)\) must count nontrivial zeta zeros with
 \(0<\Im\rho\le t\), **with multiplicity**, and the head input is
 \(\sum_{0<\Im\rho\le D}m_\rho/|\rho|\le S\).
 These are independent finite-data obligations, not consequences of finite RH.
-Assume finite RH for \(|\Im\rho|\le A\), and the two-sided envelope
+Assume finite RH for \(|\Im\rho|\le A\), and use the now-proved two-sided envelope
 \[
 |N(t)-F(t)|\le R(t)\quad(t\ge2),\qquad
 F(t)=\frac{t}{2\pi}\left(\log\frac{t}{2\pi}-1\right)+\frac78,
@@ -143,12 +144,34 @@ proving its averaged absolute value is at most \(\log(2\pi)\) over the
 relevant interval; that alternative exact evaluation was not used. A derivation from a
 midpoint version of psi must also handle its jump-point convention.
 
-The remaining obligations are therefore the sharp count envelope; head
+The remaining obligations are therefore the head
 certificates; the contour-zero/count/multiplicity bridges;
 and rigorous numerical assembly for every \(x\ge e^{23}\). Evaluating at
 \(e^{23}\) additionally needs monotonicity of the combined bound (in
 particular positivity of the coefficient of \(x^{-1/2}\) after subtraction).
 The optimizer in the script is unnecessary for the fixed-parameter target.
+
+No quantitative zero-free region is a premise of this alternative budget.
+The checked high-kernel estimates require only `0 <= Re(rho) <= 1`, and
+the reflection inequality above supplies the high-tail factor. The checked
+0.931 cancellation saving is essential to the displayed diagnostic margin;
+simply dropping the historical zero-free factor without that saving misses
+the target. RS75's quantitative zero-free region remains a separate theorem
+requested for formalization.
+
+Writing `K = R4 * delta^(-4) * H`, the proposed full relative-error expression
+has the form
+\[
+2\delta+K+\frac{Q}{\sqrt{x}}+
+\frac{K+\log(2\pi)+0.1}{x},
+\quad Q=2aB-\frac{2(a-0.931)}{U}
+ [F(U)-R(U)-F(L)-R(L)].
+\]
+Once its constants and `Q >= 0` are certified, this expression decreases
+for `x >= exp(23)`. Its positive limiting constant also explains why this
+fixed-delta argument does not itself give a global `c/log(x)` relative
+error. Such a bound needs additional effective decay; a quantitative
+zero-free region is one route, rather than a premise of this moderate row.
 
 Some bridges already have substantial source support. In the pinned calr
 revision `ce82a5b2a4ed5039c4750c0d062f0b0f2b833be0`,

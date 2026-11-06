@@ -1,28 +1,42 @@
 # Explicit Rosser–Schoenfeld estimates: partial formalization
 
-This standalone Lean 4.35 project now proves **Rosser's explicit zero-count
-bound unconditionally for every real `T >= 100`, including zero ordinates**:
+This standalone Lean 4.35 project proves **Rosser (1941), Theorem 19,
+unconditionally for every real `T >= 2`, including zero ordinates**:
 
-`abs(N(T)-F(T)) < .137 log(T) + .443 log(log(T)) + 1.588`,
+$$
+|N(T)-F(T)| < 0.137\log T + 0.443\log\log T + 1.588.
+$$
 
-where `N(T)` counts the actual zeros of Mathlib's Riemann zeta function with
+Here `N(T)` counts actual zeros of Mathlib's Riemann zeta function with
 `0 < Im(rho) <= T`, with analytic multiplicity, and
 `F(T) = T/(2*pi)*log(T/(2*pi)) - T/(2*pi) + 7/8`.
 The public theorem is
-[`Rosser1941.zero_count_bounds_high`](RSBounds/BacklundHighCount.lean).
-It uses no RH hypothesis, finite zero certificate, assumed zero-count bound,
-or assumed circle majorant. The fresh build and axiom audit are recorded in
-[`verification/backlund-high-count-run.json`](verification/backlund-high-count-run.json).
+[`Rosser1941.zero_count_bounds`](RSBounds/Rosser1941.lean).
+There is no RH or numerical-count premise.
 
-**The full range `T >= 2` and the four requested global Rosser–Schoenfeld
-estimates are not yet proved.** The finite-height certificate replay and
-handoff remain unfinished.
+The stronger finite-range estimate **`abs(N(T)-F(T)) < 1` for
+`0 <= T <= 100`** is separately proved, with `F(0)=7/8`.
+A reusable [certified table](docs/CertifiedZeroTable.md) provides all 29 zeros
+through 100, their rational brackets, simplicity, completeness, and inexpensive
+bounds on counts at rational thresholds. The [exact table data](data/zeta-zeros-to-100.json)
+is also readable without Lean. See [the public theorem guide](docs/ZeroCountTheorems.md)
+for precise statements, imports, citations, and verification records.
+
+The ordinary compiler has checked the full theorem. The independent Comparator
+run is still pending; its eventual result is recorded separately in
+`verification/zero-count-run.json`.
+
+**The four requested global Rosser–Schoenfeld estimates remain unfinished.**
+The stricter error bound through height **280** and a certified first-1000
+zero table also remain unproved in this package.
 
 In particular, **the full bound on `abs(psi(x)-x)` for `x >= exp 23` is
 not proved**, even with finite RH supplied. The averaged contour remainder
-and the zero-count estimate for `T >= 100` are now proved. The finite zero
-head, the RS75 zero-free-region input for the tail, and the final quantitative
-zero-sum assembly remain unfinished.
+and the zero-count estimate for every `T >= 2` are now proved. The finite zero
+head, the zero/count/multiplicity bridges, and the final quantitative
+zero-sum assembly remain unfinished. The alternative fixed-quartic budget
+uses the checked 0.931 cancellation bound and does not require the separate
+quantitative zero-free-region target; its numerical assembly is not yet certified.
 
 | Result | Freshly checked status |
 | --- | --- |
@@ -31,7 +45,7 @@ zero-sum assembly remain unfinished.
 | Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
 | Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
-| Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual count estimate is now proved for T ≥ 100, while the finite head and final zero-sum assembly remain |
+| Finite weighted zero-sum partial summation and envelope transfers | Proved; the actual count estimate is now proved for T ≥ 2, while the required RS75 finite head and final zero-sum assembly remain |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
 | Angular Jensen inequality, constructive reflected pairing, and the limit along phase-aligned powers | Proved, including the reflection loss E/(2 pi) and the actual horizontal zeta argument bound |
 | Exact zeta/digamma reflection identity and constructive first/last crossings | Proved by selective reuse; no zero-count premise |
@@ -47,7 +61,9 @@ zero-sum assembly remain unfinished.
 | Upper half-strip maximum principle and finite bottom-edge certificate | Proved; used with the actual normalized zeta function to establish (56) |
 | Quantitative digamma and horizontal Gamma-modulus bounds | Proved by adapting Zeta23's quantitative estimate to IEANTN's checked Gauss series |
 | Actual common circle majorant at radius 1.32 and its angular integral | Proved, including nonnegativity, integrability, both translated zeta bounds, and numerical coefficients |
-| Rosser's .137/.443/1.588 zero-count estimate | Proved unconditionally for every T ≥ 100, including zero ordinates; full T ≥ 2 still unfinished |
+| Rosser's .137/.443/1.588 zero-count estimate | Proved unconditionally for every T ≥ 2, including zero ordinates |
+| Uniform zero-count error < 1 through height 100 | Proved for 0 ≤ T ≤ 100, including T=0 and zero ordinates |
+| Complete first-29 zero table | Proved; rational brackets, exact multiplicities, completeness, and computable bracket-count bounds |
 | Quartic kernel bounds, fourth-difference identities, and the upper/lower psi sandwich | Proved |
 | Mellin transform of the truncated quartic, with its exact five-factor denominator | Proved for Re(s) > 0 |
 | Fourfold integral identity and low/high bounds for an individual zero's quartic contribution | Proved |
@@ -99,8 +115,11 @@ The quantitative zero-sum estimate remains to be completed. See
 RS75's zero-free region is now a separate target in `RSBounds/Targets.lean`:
 assuming the finite RH verification through 1894439, zeta has no zeros where
 `abs(t) >= 21` and `sigma >= 1 - 1/(9.645908801 * log(abs(t)/17))`.
-This is Theorem 1 of RS75, whose proof uses the finite verification. Its use
-in the high-zero tail is distinct from the ordinary contour calculation.
+This is Theorem 1 of RS75, whose proof uses the finite verification. It remains
+a separate requested target. The alternative fixed-parameter b=23 budget in
+`docs/QuarticBudgetAudit.md` uses only the critical strip above the finite RH
+height, and therefore does not require this quantitative zero-free region.
+It does not itself provide a globally decaying `c/log(x)` relative error.
 The zero-free theorem itself remains unproved here. Its exact trigonometric
 polynomial is checked in `RS75Polynomial.lean`; the remaining analytic inputs
 are tracked separately in [the zero-free-region audit](docs/RS75ZeroFreeAudit.md).
@@ -126,9 +145,10 @@ over all four sectors; the right-arc quadrature and the final constants are
 certified in Lean. The rounded envelope is strictly below Rosser's target
 for every `T >= 100`.
 
-No finite RH result is used in that analytic theorem. **The range
-`2 <= T < 100` still awaits completion of the finite certificate replay and
-handoff.** See [the circle-majorant audit](docs/BacklundCircleMajorantAudit.md),
+No finite RH result is used in that analytic theorem. The finite handoff is
+also complete: an independently replayed certificate gives all 29 zeros through
+100, and the checked rational endpoint inequalities prove the stronger error
+`< 1` throughout `[0,100]`. Combining the ranges proves the full theorem. See [the circle-majorant audit](docs/BacklundCircleMajorantAudit.md),
 [the Gamma-modulus audit](docs/BacklundGammaModulusAudit.md),
 [the primary-source audit](docs/BacklundCountAudit.md) and
 [the current IEANTN/PNT+ reuse audit](docs/ZeroCountReuseAudit.md).
@@ -139,10 +159,11 @@ rational computation puts `zeta(5/4)/zeta(5/2)` between `3.425382` and
 the center lower bound with denominator `3.426`; the 625-term sums and their
 integral-test tails use no numerical axiom. This does not assert
 a failure of the final counting theorem. See [the center audit](docs/BacklundCenterAudit.md).
-An unconditional public source certificate for all 29 zeros through height
-100 has been located in `teal-sea/zeta-lab`. Its separate 99-module local
-replay is in progress and is not yet complete. It is not imported by the
-proved `T >= 100` theorem. See [the finite-height audit](docs/LowHeightCertificateAudit.md).
+The unconditional certificate for all 29 zeros through height 100 is reused
+from `teal-sea/zeta-lab`. All 99 modules have been replayed on this toolchain,
+and all 28 pinned axiom audits passed. Its complete table and the resulting
+finite-range error theorem are public exports. It is not imported by the
+separate analytic `T >= 100` theorem. See [the finite-height audit](docs/LowHeightCertificateAudit.md).
 The older RS75 row uses a finite head of 57 zeros; the improved 1976 row uses
 a larger head. These numerical zero certificates also remain to be formalized.
 
@@ -159,8 +180,9 @@ The quantitative vertical digamma estimate is adapted from Zeta23's
 `GammaFacts/StirlingVert.lean` in `teal-sea/zeta-lab`, pinned at
 `b09fa4dd2f2182cf14b248e7ffc64ff03df2c534`, with IEANTN supplying the
 proved series input. The half-strip maximum principle adapts Mathlib's
-Phragmén–Lindelöf argument. These are checked proof ports, distinct from the
-pending finite-height replay. Original notices, pinned source links, and
+Phragmén–Lindelöf argument. These are checked proof ports, distinct from the completed finite-height
+replay. The local Gamma ports have isolated namespaces so both developments
+can be imported together; the affected dependency chain was rebuilt and audited. Original notices, pinned source links, and
 licenses are recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Reproduction
@@ -171,16 +193,19 @@ Run from this directory, using its own toolchain:
 lake exe cache get
 lake build
 lake comparator
+lake comparator --config comparator-zero-count.json
 ```
 
 `RSBounds.lean` imports completed modules only. `RSBounds/Targets.lean` defines
 propositions, not proofs or axioms. Other source files may be under development.
 
-The independent Comparator challenge covers the two restricted totient
-statements; it does not yet cover the new analytic zero-count theorem or the
-four unfinished goals. The zero-count theorem has a fresh Lean build and
-transitive axiom audit, using only `propext`, `Classical.choice`, and
-`Quot.sound`. Fresh build logs, axiom audits,
+Two independent Comparator configurations are provided: `comparator.json`
+for the restricted totient statements, and `comparator-zero-count.json` for
+the full Rosser count theorem and the strict finite-range error bound.
+Neither asserts the four unfinished Rosser–Schoenfeld goals. The count
+theorems and reusable table have fresh Lean builds and transitive axiom
+audits, using only `propext`, `Classical.choice`, and `Quot.sound`.
+Fresh build logs, axiom audits,
 and exact source hashes are in `verification/`. Comparator outcomes and any
 sandbox limitation are recorded there.
 

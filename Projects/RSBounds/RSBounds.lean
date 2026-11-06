@@ -16,6 +16,8 @@ import RSBounds.BacklundCountIdentity
 import RSBounds.BacklundZetaPhase
 import RSBounds.BacklundCountJensen
 import RSBounds.BacklundHighCount
+import RSBounds.Rosser1941
+import RSBounds.ZetaZeroTable
 import RSBounds.TotientAnalyticReduction
 import RSBounds.PolynomialSmoothing
 import RSBounds.PolynomialPsi

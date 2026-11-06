@@ -15,9 +15,13 @@ bracket statements were changed.
 exported theorem closures were audited, again with exactly the standard
 three axioms. It identifies the upstream zero set with this project's
 inclusive positive-ordinate count and proves `N_le 100 = 29`, including
-analytic multiplicities. This part is complete. The final all-heights
-scalar assembly in `BacklundLowCount` remains pending at this document's
-update; it must not be inferred merely from the existence of its source.
+analytic multiplicities. The scalar assembly in `BacklundLowCount` has also
+compiled and passed all twelve associated axiom audits. Its public theorem
+proves the strict error less than one at every `0 <= T <= 100`.
+`ZetaZeroTable.first29` packages the complete table for reuse and has passed
+its seven export audits. The full Rosser theorem for `T >= 2` has now
+compiled, and its five public axiom audits have passed; the independent
+Comparator stage remains pending at this update.
 
 The replay uses Lean `4.35.0` and Mathlib
 `56a005855ea17e0b0958f73ec801ae140b0a1679`. Upstream pins Lean
@@ -176,15 +180,16 @@ No strip-location hypothesis is left on the simplicity conclusion:
 `zeta_zero_re_strip` proves the required strip restriction for every
 nonreal zeta zero using the already checked xi bridge.
 
-The remaining finite handoff combines these checked results with the
+The completed finite handoff combines these checked results with the
 29 brackets, the checked scalar inequalities, and monotonicity of `F`.
-Its intended public result is
-`Rosser1941.zero_count_error_lt_one_to_100`, asserting
+Its public result is `Rosser1941.zero_count_error_lt_one_to_100`, asserting
 `|N(T)-F(T)| < 1` for `0 <= T <= 100`, including zero ordinates and the
-continuous-extension value at zero. The final `BacklundLowCount`
-compilation and axiom audit are still pending at this update. The
-corresponding Rosser envelope is greater than one for `T >= 2`, so this
-finite bound will supply the lower range of the full Rosser theorem.
+continuous-extension value at zero. Fresh compilation and all twelve
+associated axiom audits passed; see
+`verification/backlund-low-count-run.json`. The Rosser envelope is greater
+than one for `T >= 2`, so this finite bound supplies the lower range of the
+full Rosser theorem. The reusable table and its seven successful audits are
+documented in [CertifiedZeroTable.md](CertifiedZeroTable.md).
 
 The independent analytic theorem for `T >= 100` is now freshly compiled
 and axiom-audited, including heights equal to zero ordinates. Its public
@@ -195,9 +200,15 @@ zeta zeros: its inputs are proved analytic estimates and checked scalar
 inequalities. `verification/backlund-high-count-run.json` records the
 successful builds and five standard-three-axiom audits, and
 `verification/aggregate-backlund-high-run.json` records the successful
-root-module build. Combining this checked theorem with the still-pending
-finite handoff would give the full range `T >= 2`; the existence of a
-source file for that final assembly is not itself a successful build.
+root-module build. The combined public theorem
+`Rosser1941.zero_count_bounds`, in `RSBounds/Rosser1941.lean`, has now
+compiled with the full range `T >= 2` and no additional premise. Its five
+public axiom audits passed with only the standard three axioms. The
+successful build and audits are recorded in `verification/zero-count-run.json`;
+the independent Comparator stage in that same run is still pending at this
+update. The earlier joint-import namespace collision was resolved by
+isolating local gamma helper names, without changing certificate literals
+or mathematical statements.
 
 The inspected PNT+/gersh sources did not supply an unconditional finite
 enumeration; their large-height numerical inputs remain external

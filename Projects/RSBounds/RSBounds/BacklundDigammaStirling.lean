@@ -28,7 +28,7 @@ import Mathlib.Analysis.PSeries
 
 noncomputable section
 
-namespace Zeta23
+namespace TernaryGoldbach.RSBounds.BacklundZeta23
 namespace StirlingVert
 
 open Complex Filter Topology MeasureTheory intervalIntegral Set
@@ -399,7 +399,7 @@ theorem tendsto_harmonic_sub_clog (hw : 0 < w.re) :
       congr 1
       push_cast
       field_simp
-    rw [hlog, Zeta23.DigammaSeries.harmonic_cast_eq]
+    rw [hlog, TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries.harmonic_cast_eq]
     push_cast
     ring
   simp_rw [hdecomp]
@@ -438,7 +438,7 @@ theorem tendsto_inv_natp1 (hw : 0 < w.re) :
 theorem digamma_eq (hw : 0 < w.re) (ht : 1 / 2 ≤ |w.im|) :
     Complex.digamma w = Complex.log (1 + w) - 1 / w - (1 / 2 : ℂ) * (1 + w)⁻¹
       - (1 / 2 : ℂ) * (∑' n, rho w n) + ∑' n : ℕ, eps w ((n : ℝ) + 1) := by
-  have hL := (Zeta23.DigammaSeries.hasSum_digamma_series hw).tendsto_sum_nat
+  have hL := (TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries.hasSum_digamma_series hw).tendsto_sum_nat
   -- the same partial sums, rearranged
   have hR : Tendsto (fun N : ℕ => ∑ n ∈ Finset.range N, (1 / ((n : ℂ) + 1) - 1 / (w + n + 1)))
       atTop (𝓝 ((Real.eulerMascheroniConstant : ℂ) + Complex.log (1 + w)
@@ -544,4 +544,4 @@ theorem digamma_stirling (hw : 0 < w.re) (ht : 1 / 2 ≤ |w.im|) :
 end Seq
 
 end StirlingVert
-end Zeta23
+end TernaryGoldbach.RSBounds.BacklundZeta23
