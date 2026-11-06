@@ -1,0 +1,11 @@
+import RSBounds.RS75RealAxisNumerics
+
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.summable_oddSquareTerm
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.tsum_oddSquareTerm_tail_le
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.oddFiniteUpper_le
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.tsum_oddSquareTerm_le
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.headCoefficient_lower
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.headCoefficient_cast
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.headCoefficient_lower_real
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.odd_sum_sub_headCoefficient_le
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisNumerics.odd_sum_sub_headCoefficient_lt

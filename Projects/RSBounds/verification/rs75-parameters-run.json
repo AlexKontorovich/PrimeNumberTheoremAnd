@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-elementary-parameters-build-and-axiom-audit",
+  "started_utc": "2026-11-06T16:21:01.189913+00:00",
+  "source_sha256": {
+    "RSBounds/RS75Parameters.lean": "8646e6c330a39b10f3fadf2591be2a8881a700b90aecf504cc8ce164c8d4b826",
+    "verification/RS75ParametersAudit.lean": "9a4b710ca1a7b049e8a5fa5ed6a0f407013c678690b9bd0a3589dd04c8fac1cd",
+    "verification/run_rs75_parameters_check.py": "b035dfc4e0fe0e281116ac73920161e6b5ee5d238dd255f6c3635c96aba1d39c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75Parameters.olean",
+        "RSBounds/RS75Parameters.lean"
+      ],
+      "log": "rs75-parameters-build.log",
+      "exit_code": 0,
+      "seconds": 102.37824721900324
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75ParametersAudit.lean"
+      ],
+      "log": "rs75-parameters-axioms.log",
+      "exit_code": 0,
+      "seconds": 70.9722887450007
+    }
+  ],
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T16:23:54.543046+00:00",
+  "axiom_audit": {
+    "declarations": 21,
+    "only_standard_axioms": true
+  }
+}

@@ -1,0 +1,10 @@
+import RSBounds.RS75XiIncrement
+
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.first29_height_lower
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.xi_zero_height_lower
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.kernel_increment_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.headRate_antitone
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.kernel_line_increment_lower
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.finite_increment_le
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.xi_logDeriv_increment_lower_head
+#print axioms TernaryGoldbach.RSBounds.RS75XiIncrement.xi_logDeriv_increment_lower

@@ -104,6 +104,7 @@ quantitative zero-free-region target is a separate problem.
 | Both actual averaged left-line remainders, with delta = 0.0000211 | Proved: at most 25000/(pi sqrt(x)), and less than 0.1 for x >= exp 23; no RH premise |
 | Lower kernel bounds and a sharper cancellation bound for both smoothing signs on a finite ordinate band | Proved; used in the completed b = 23 row |
 | RS75 Theorem 1: zero-free region with R = 9.645908801 and log(abs(t)/17) | Separate target; not proved |
+| RS75 real-axis xi/Gamma increments and variable Stechkin parameters | Proved and audited as separate components; the full zero-free theorem remains unfinished |
 | RS75's exact degree-four cosine polynomial and its nonnegativity | Proved |
 | Gauss series for digamma and its summability on Re(s) > 0 | Reused from IEANTN GammaAsymptotics.v2; freshly compiled and audited on this toolchain |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |

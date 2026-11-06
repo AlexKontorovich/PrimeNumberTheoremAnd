@@ -1,0 +1,44 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T16:16:44.937469+00:00",
+  "source_sha256": {
+    "RSBounds/RS75RealAxisGamma.lean": "34ebddcd8772c994536c626eff6930e17d0eaeaaedc613c2e209e1b88df1bc67",
+    "RSBounds/IEANTNDigammaDifference.lean": "f82d8bae9ee3edf522112976d59539616115fdd3c4e16fd71ea4bfb33de9aff0",
+    "RSBounds/RS75RealAxisNumerics.lean": "7adc2289d758e76496c1af6554417ce657706ff5f66d46286624cf68375e0b2a",
+    "verification/RS75RealAxisGammaAudit.lean": "5d4e6b667edaa7560688b6a9bf50a62e19627eec0de76444d4553cd1035fd540"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/RS75RealAxisGamma.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75RealAxisGamma.olean"
+      ],
+      "log": "rs75-real-axis-gamma-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 341.7764139630017
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75RealAxisGammaAudit.lean"
+      ],
+      "log": "rs75-real-axis-gamma-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 600.0110819340007
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T16:32:26.726677+00:00",
+  "exit_code": 0
+}

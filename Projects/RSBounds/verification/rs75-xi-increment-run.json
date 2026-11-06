@@ -1,0 +1,47 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T16:16:09.357151+00:00",
+  "source_sha256": {
+    "RSBounds/RS75XiIncrement.lean": "600d40a40e50b763ab002c6a599b2f6401f4f4959a9b0e34eab3f3424a098bd0",
+    "RSBounds/RS75RealAxisNumerics.lean": "7adc2289d758e76496c1af6554417ce657706ff5f66d46286624cf68375e0b2a",
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "verification/RS75XiIncrementAudit.lean": "6b53c31f9689bc4d9534ce8c4146c61c2191cb0e2ad1af8082f8be5f230d4190",
+    "verification/run_rs75_xi_increment_check.py": "2352360c8e8e67b2900ae7b0be31ae0a41636b105ce80978113885d615f56279",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75XiIncrement.olean",
+        "RSBounds/RS75XiIncrement.lean"
+      ],
+      "log": "rs75-xi-increment-build.log",
+      "exit_code": 0,
+      "seconds": 385.46942157300145
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75XiIncrementAudit.lean"
+      ],
+      "log": "rs75-xi-increment-axioms.log",
+      "exit_code": 0,
+      "seconds": 591.8861491159987
+    }
+  ],
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T16:32:26.717004+00:00"
+}
