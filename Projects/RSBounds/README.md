@@ -13,6 +13,9 @@ proved.**
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
 | Quartic kernel bounds, fourth-difference identities, and the upper/lower psi sandwich | Proved |
 | Mellin transform of the truncated quartic, with its exact five-factor denominator | Proved for Re(s) > 0 |
+| Fourfold integral identity and low/high bounds for an individual zero's quartic contribution | Proved |
+| Finite rectangular residue identity, including the quartic kernel's pole at zero | Proved |
+| Prime-sum Mellin inversion using only hypotheses on the right vertical line | Proved |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
 | Moderate-error psi row b = 23; full RS62 Mertens/totient bounds; requested theta estimate | Unfinished |
 
@@ -32,8 +35,11 @@ Normalized fourth differences at x and x−4h give upper and lower smoothings
 of psi(x), with main terms x+2h and x−2h. The zero contribution has denominator
 `rho*(rho+1)*(rho+2)*(rho+3)*(rho+4)`. The parameters remain `m = 4`,
 `delta = 0.0000211`, with finite RH through 1894439. The polynomial smoothing
-and its finite psi comparisons are checked. The ordinary integrated explicit
-formula and its quantitative zero-sum estimate remain to be completed.
+and its finite psi comparisons are checked, as are the bounds for an individual
+zero's contribution. The contour is an ordinary fixed rectangle with vertical
+sides at Re(s) = -1/2 and Re(s) = 3/2; no quantitative zero-free boundary is
+used for it. The full integrated formula and its quantitative zero-sum estimate
+remain to be completed.
 
 The needed zero-count estimate exists in Rosser (1941), Theorem 19, p. 223:
 

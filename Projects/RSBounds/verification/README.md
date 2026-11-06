@@ -5,7 +5,8 @@ checks, not reconstructions of lost logs from an earlier workspace.
 
 Successful builds and axiom audits are recorded for Totient,
 SmallTotientProduct, Mertens, WeightedZeroSums, BacklundPhase,
-TotientAnalyticReduction, PolynomialSmoothing, PolynomialPsi, and QuarticMellin. The audited
+TotientAnalyticReduction, PolynomialSmoothing, PolynomialPsi, QuarticMellin,
+PolynomialZeroKernel, PolynomialResidue, and PolynomialPrimeSum. The audited
 theorems use only `propext`, `Classical.choice`, and `Quot.sound`.
 
 The native Comparator passed with exit code 0. It compared the two restricted

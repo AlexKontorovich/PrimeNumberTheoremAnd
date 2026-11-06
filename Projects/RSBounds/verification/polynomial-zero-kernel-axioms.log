@@ -1,0 +1,42 @@
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.forwardDiff_four' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.iteratedIntegral_eq_forwardDiff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.antiderivative_hasDerivAt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.zero_term_fourfold_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_iteratedIntegral_le_affine' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_fourth_difference_le_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_upperKernel_le_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_upperKernel_le_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.antiderivative_hasDerivAt_of_neg_one_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.zero_term_fourfold_identity_of_neg_one_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_zero_term_le_affine_of_ne_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_fourth_difference_le_low_of_neg_one_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_normalized_fourth_difference_le_low_of_neg_one_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroKernel.norm_upperKernel_le_low_of_neg_one_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

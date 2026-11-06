@@ -6,3 +6,6 @@ import RSBounds.TotientAnalyticReduction
 import RSBounds.PolynomialSmoothing
 import RSBounds.PolynomialPsi
 import RSBounds.QuarticMellin
+import RSBounds.PolynomialZeroKernel
+import RSBounds.PolynomialResidue
+import RSBounds.PolynomialPrimeSum

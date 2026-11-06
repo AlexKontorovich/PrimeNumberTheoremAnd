@@ -1,0 +1,2 @@
+'TernaryGoldbach.RSBounds.rectIntegrable_logDeriv_mul' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.rectInt_logDeriv_mul_div_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
