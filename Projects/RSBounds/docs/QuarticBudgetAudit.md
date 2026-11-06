@@ -1,13 +1,19 @@
-# Audit of the proposed RS75 quartic budget
+# Historical audit of the proposed RS75 quartic budget
 
-This is a mathematical and source audit of
+The `b = 23` psi theorem is now compiled and axiom-audited under finite RH
+through 1894439; its independent native Comparator replay remains pending.
+The completed proof uses a certified 29-zero head through 100 and eight
+cancellation subbands. See [the current psi theorem guide](PsiTable1975.md)
+for the exact theorem, proof, and verification records.
+
+The material below preserves the earlier mathematical and source audit of
 [`rs75-budget-diagnostic.py`](../verification/rs75-budget-diagnostic.py),
-not a proof of the table row. Its 60-digit `mpmath` output is **not interval
-arithmetic or a Lean certificate**. The corrected fixed-parameter diagnostic
-is below the target. The actual Rosser zero-count input is now proved in
-[`Rosser1941.lean`](../RSBounds/Rosser1941.lean); the finite head data and
-numerical assembly still require proofs. The averaged contour remainder is now bounded
-in Lean; it has not yet been assembled with the actual zero sum.
+which instead proposed a 57-zero head. That diagnostic is not the proof
+certificate used by the completed theorem. Its 60-digit `mpmath` output is
+**not interval arithmetic or a Lean certificate**. The corrected
+fixed-parameter diagnostic is below the target. The actual Rosser zero-count
+input is proved in [`Rosser1941.lean`](../RSBounds/Rosser1941.lean), and the
+averaged remainder and actual-zero-sum assembly are now also proved.
 
 The individual upper/lower kernel bounds and the cancellation estimate
 described below now have checked Lean proofs. The
@@ -114,7 +120,7 @@ numerical majorant; it does **not** assume RH above \(A\). The separately
 added high term then overcounts conservatively. The saving band lies below
 \(A\), where finite RH justifies the cancellation estimate.
 
-## Diagnostic values and remaining work
+## Historical diagnostic values and proof obligations
 
 For the fixed parameters, the current output is:
 
@@ -144,12 +150,13 @@ proving its averaged absolute value is at most \(\log(2\pi)\) over the
 relevant interval; that alternative exact evaluation was not used. A derivation from a
 midpoint version of psi must also handle its jump-point convention.
 
-The remaining obligations are therefore the head
-certificates; the contour-zero/count/multiplicity bridges;
-and rigorous numerical assembly for every \(x\ge e^{23}\). Evaluating at
-\(e^{23}\) additionally needs monotonicity of the combined bound (in
-particular positivity of the coefficient of \(x^{-1/2}\) after subtraction).
-The optimizer in the script is unnecessary for the fixed-parameter target.
+At this diagnostic checkpoint the remaining obligations were the head
+certificates, contour-zero/count/multiplicity bridges, and rigorous numerical
+assembly for every \(x\ge e^{23}\). The completed proof discharges them using
+the 29-zero head and eight subbands described in
+[the current guide](PsiTable1975.md). It also proves positivity of the combined
+\(x^{-1/2}\) coefficient and the uniform scalar bound. The optimizer in this
+historical script is not used by the formal proof.
 
 No quantitative zero-free region is a premise of this alternative budget.
 The checked high-kernel estimates require only `0 <= Re(rho) <= 1`, and
@@ -183,8 +190,10 @@ lemma, not a new general real-axis zero-free theorem.
 [`XiPartial.lean`](https://github.com/calr3/ternary-goldbach/blob/ce82a5b2a4ed5039c4750c0d062f0b0f2b833be0/TernaryGoldbach/Explicit/XiPartial.lean)
 proves `xiF_conj`; Mathlib also has `riemannZeta_conj` and
 `analyticOrderAt_comp_of_deriv_ne_zero`. Exact multiplicity-preserving
-reindexing lemmas were not identified in this limited search; function
-symmetries alone are not yet that interface.
+reindexing lemmas were not identified in that historical limited search.
+The required actual-zero and multiplicity-preserving interfaces are now proved
+in [`PolynomialZeroCountBridge.lean`](../RSBounds/PolynomialZeroCountBridge.lean)
+and [`PolynomialZeroPairing.lean`](../RSBounds/PolynomialZeroPairing.lean).
 
 Sources: [Rosser–Schoenfeld (1975), Section 3 and Lemma 8](https://doi.org/10.1090/S0025-5718-1975-0457373-7);
 [Rosser (1941), Theorem 19, pp. 223–224](https://doi.org/10.2307/2371291).

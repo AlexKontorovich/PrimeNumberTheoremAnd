@@ -1,0 +1,14 @@
+import RSBounds.PolynomialZeroPairing
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_eq_two_sum_positive
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_ordinate_weight_eq_two
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_norm_low_eq_two_closed
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_low_sum_le_two_closed
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.rpow_pair_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_rpow_ordinate_weight_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_rpow_high_le_weightedSum
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_zeroCoefficient_upper_le_high
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_zeroCoefficient_lower_le_high
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_le_of_bound
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_upper_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_lower_le

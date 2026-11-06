@@ -1,0 +1,66 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:47:21.015657+00:00",
+  "source_sha256": {
+    "RSBounds/ZeroWindowFiniteSum.lean": "504bed963219cbb797cd3d470751bfd8056d6d7f4da4382dfe48407380758806",
+    "RSBounds/QuarticLowZeroBounds.lean": "290276bf0f420a230bf0fc0f0a1534e24ed316ae81e255c99fc1faa8b2bbe385",
+    "verification/QuarticLowZeroBoundsAudit.lean": "c0a0edf32b1f6c28d059ff8648569d697de858092e2d249ddf08326f24ee7143",
+    "verification/run_quartic_low_zero_check.py": "e2c2aa1941fdc760bd8a60daf8adeee9fc4853d886655ec966e52d0b56a3c765",
+    "RSBounds/PolynomialZeroMajorants.lean": "a7937f054295f21f7222edb6b4ee9c3dc49b37f3d3e1cf0320920c261369766c",
+    "RSBounds/QuarticFirst29BudgetBridges.lean": "013a89634f20666d3003fbda7102a501b2b583692402296448942444b57e1a7a",
+    "RSBounds/QuarticFirst29BudgetNumerics.lean": "948dc49713c143847c32f955e3ca2fcd4adc52d36a29d671f66c94a15b50d6ae",
+    "RSBounds/RosserWeightedSplit.lean": "b29cef0e5c426b2f19eeaba4a37fb8f93d1d2c37f876313bed46102bafcad4a3",
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "RSBounds/ZetaZeroHeadBound.lean": "60d4f4a102dc485d964e463f1a0e3f23ee998966607c2813468a905c83d712b7",
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/ZeroWindowFiniteSum.olean",
+        "RSBounds/ZeroWindowFiniteSum.lean"
+      ],
+      "log": "zero-window-finite-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 133.51124757399884
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/QuarticLowZeroBounds.olean",
+        "RSBounds/QuarticLowZeroBounds.lean"
+      ],
+      "log": "quartic-low-zero-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 106.8679475659992
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/QuarticLowZeroBoundsAudit.lean"
+      ],
+      "log": "quartic-low-zero-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 24.768554280999524
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 6,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T14:51:46.169126+00:00",
+  "exit_code": 0
+}

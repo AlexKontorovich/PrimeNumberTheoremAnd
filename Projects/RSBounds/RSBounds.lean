@@ -49,3 +49,5 @@ import RSBounds.ZetaZeroHeadBound
 import RSBounds.RosserTailIntegrals
 import RSBounds.PolynomialZeroCountBridge
 import RSBounds.QuarticFirst29BudgetNumerics
+
+import RSBounds.RosserSchoenfeld1975

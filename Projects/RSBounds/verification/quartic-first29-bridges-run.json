@@ -1,0 +1,38 @@
+{
+  "kind": "scalar-analytic-bridge-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:46:50.013399+00:00",
+  "source_sha256": {
+    "RSBounds/QuarticFirst29BudgetBridges.lean": "013a89634f20666d3003fbda7102a501b2b583692402296448942444b57e1a7a",
+    "verification/QuarticFirst29BudgetBridgesAudit.lean": "a507050e45248723a2893a389862d34cc35cf4d9585864f5f962ce41195f12cf"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/QuarticFirst29BudgetBridges.olean",
+        "RSBounds/QuarticFirst29BudgetBridges.lean"
+      ],
+      "log": "quartic-first29-bridges-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/QuarticFirst29BudgetBridgesAudit.lean"
+      ],
+      "log": "quartic-first29-bridges-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "printed_axiom_sets": 16,
+  "only_standard_axioms": true,
+  "status": "verified",
+  "finished_utc": "2026-11-06T14:51:11.553368+00:00"
+}

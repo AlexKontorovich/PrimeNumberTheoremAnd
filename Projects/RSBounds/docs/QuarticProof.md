@@ -1,8 +1,12 @@
-# The four-integration proof: checked formula and remaining estimates
+# The four-integration proof
 
-The target remains the RS75 row at `b = 23`, with `m = 4`,
+The RS75 row at `b = 23` is now compiled and axiom-audited, with `m = 4`,
 `delta = 0.0000211`, and RH assumed only through height `1894439`.
-The numerical row itself is not proved by this project yet.
+It gives `abs(psi(x)-x) < 0.00020211*x` for every `x >= exp 23`.
+The independent native Comparator replay for this psi theorem remains pending.
+See [the current psi theorem guide](PsiTable1975.md) for the exact API and
+verification records. The formula development below is retained as a record
+of the four-integration construction.
 
 ## Checked formula
 
@@ -61,25 +65,31 @@ This is unconditional and is an absolute error bound. The exact integral
 interchange is in `PolynomialRemainderIntegral.lean`; the end-to-end bound
 is in `PolynomialRemainderBound.lean`. It uses a proved integrable majorant,
 not an assumed evaluation of the integral.
-The numerical estimate of the sum over actual zeros remains separate and
-unfinished. In particular, the full psi table row is not proved.
+The numerical estimate of the actual zero sums is now assembled with these
+formulas in [`RosserSchoenfeld1975.lean`](../RSBounds/RosserSchoenfeld1975.lean).
+Its public transitive axiom audit uses only `propext`, `Classical.choice`,
+and `Quot.sound`.
 
-## Remaining numerical work
+## Numerical obligations now discharged
 
-- Prove an adequate zero-count envelope for actual zeta zeros, including
-  multiplicities and endpoint conventions. `WeightedZeroSums.lean` proves
-  how to use such an envelope; it does not prove the envelope itself.
-- Certify the finite low-zero data used in the numerical bound, or replace
-  those data by another proved estimate.
-- Combine these estimates with finite RH and certify all numerical
-  inequalities uniformly for `x >= exp 23`.
+- `Rosser1941.zero_count_bounds` supplies the unconditional envelope for
+  actual zeta zeros, with analytic multiplicities and inclusive endpoints.
+- The replayed first-29 table proves completeness through height 100 and
+  the actual reciprocal-norm head bound below `0.592316`.
+- The actual weighted sums, eight cancellation subbands, high-zero pairing,
+  and scalar certificate establish the bound uniformly for `x >= exp 23`.
+
+These later steps and their checked modules are detailed in
+[the psi theorem guide](PsiTable1975.md).
 
 RS75's historical estimate of the off-line high-zero tail uses its
 zero-free inequality in equations (3.9)-(3.10); the proof explicitly invokes
 Theorem 1 at that point. That is a separate quantitative step from the
 ordinary rectangular contour. Replacing it requires a justified tail
 estimate, rather than simply dropping that factor while claiming the same
-printed coefficient.
+printed coefficient. The completed proof supplies such an alternative using
+the certified 29-zero head, eight cancellation subbands, and reflection for
+the high tail; the separate zero-free-region target below remains unproved.
 
 At the user's request, RS75 Theorem 1 is an explicit separate target,
 `Goals.ZeroFreeRegion1975`: under the finite RH verification through 1894439,

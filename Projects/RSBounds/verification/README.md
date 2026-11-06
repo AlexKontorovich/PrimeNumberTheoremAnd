@@ -25,9 +25,11 @@ sandboxing; it does not disable statement comparison, axiom checks, or Lean
 kernel replay. It is not a sandboxed IEANTN receipt.
 
 The polynomial modules prove the integrated explicit formula, with an explicit
-left vertical remainder, and supporting smoothing identities. They do not yet
-prove the numerical b = 23 bound. The actual-zeta formula has no RH or numerical
-zero-count premise; its quantitative application is unfinished.
+left vertical remainder, and supporting smoothing identities. At that historical
+checkpoint the numerical b = 23 application was unfinished; it is now compiled
+and axiom-audited, as recorded below and in the
+[psi theorem guide](../docs/PsiTable1975.md). The actual-zeta formula itself
+has no RH or numerical zero-count premise.
 
 After these additions, the aggregate `lake build` passed with exit code 0;
 see `aggregate-build-rs75-polynomial.{log,json}`. `Targets.lean` also passes
@@ -142,7 +144,8 @@ Stirling remainder, and horizontal integration; see
 
 `aggregate-backlund-high-run.json` records the successful root-module build
 including this analytic theorem. That checkpoint has now been extended to the
-full range, as recorded below. The separate b=23 psi estimate remains unfinished.
+full range, as recorded below. The later b=23 psi assembly is also compiled
+and axiom-audited; its separate native Comparator replay remains pending.
 
 ## Completed finite table and full Rosser theorem
 
@@ -210,7 +213,40 @@ conjugation/reflection symmetries (sixteen audits).
 below 0.00020211 and positivity of its square-root coefficient (nine
 audits). Rational arithmetic and logarithm bounds are kernel checked;
 the generated expression is proved equal to the explicit mathematical
-formula. These checks do not yet prove domination of the actual psi error.
+formula. These were component checks; the completed actual-zero-sum and
+psi assembly is recorded in the next section.
 All listed audits use only `propext`, `Classical.choice`, and `Quot.sound`.
 These component checks are separate from the two count-theorem targets
 of the completed Comparator run.
+
+## Completed b = 23 psi theorem
+
+`rosser-schoenfeld-1975-run.json` records the completed proof of
+`RosserSchoenfeld1975.psi_error_b23`: finite RH through 1894439 implies
+`abs(Chebyshev.psi x - x) < 0.00020211*x` for every `x >= exp 23`.
+Its public theorem's full transitive axiom audit contains only the standard
+three axioms. Finite RH and the displayed x range are its only hypotheses.
+The actual finite complex zero sums, their analytic multiplicities, both
+smoothing directions, and the limiting explicit-formula step are included.
+See the [psi theorem guide](../docs/PsiTable1975.md) for the exact API,
+finite-RH definition, proof structure, and remaining separate goals.
+
+The independent Mathlib-only challenge is `comparator/RSPsiChallenge.lean`;
+its finite-RH definition is compared as well as the theorem statement.
+`comparator-psi.json` permits only the standard three axioms and has no
+definition holes. Run `python verification/run_psi_check.py` after building
+the recorded dependency closure. It directly compiles the two comparator
+modules, exports their exact environments, and passes the fresh exports to
+Comparator; no extra Lake library registration or repeated numerical-source
+build is needed. The independent run is currently in progress, with exact
+source/object/export hashes in `psi-run.json`. Its native kernel replay is
+pending; compilation and export success do not establish a completed Comparator
+result. Process sandboxing is disabled for the same recorded bwrap limitation
+as the earlier count check; no sandboxed attestation is claimed.
+
+The first psi Comparator session became inaccessible without a completion
+verdict. Its log is preserved. `resume_psi_comparator.py` validates all recorded
+source, configuration, object, and export hashes before replaying the exact
+same exports. Its pending result is recorded in `psi-resume-run.json` and
+`psi-comparator-resume.log`. The combined root import also compiled successfully;
+see `aggregate-psi-run.json`.

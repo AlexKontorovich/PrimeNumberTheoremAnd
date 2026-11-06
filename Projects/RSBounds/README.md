@@ -1,6 +1,29 @@
 # Explicit Rosser–Schoenfeld estimates: partial formalization
 
-This standalone Lean 4.35 project proves **Rosser (1941), Theorem 19,
+This standalone Lean 4.35 project now proves the requested **RS75 b = 23 psi
+entry**:
+
+$$
+\mathrm{FiniteRH}(1894439)\;\Longrightarrow\;
+|\psi(x)-x|<0.00020211\,x\qquad(x\ge e^{23}).
+$$
+
+The public theorem is
+[`RosserSchoenfeld1975.psi_error_b23`](RSBounds/RosserSchoenfeld1975.lean).
+Finite RH means that every zero in the open critical strip with absolute
+ordinate at most 1894439 lies on the critical line. This is the sole
+mathematical premise apart from the displayed range of x. The proof uses
+four integrations, the historical delta 0.0000211, the certified first 29
+zeros, and eight cancellation subintervals. See the
+[statement and proof guide](docs/PsiTable1975.md).
+
+The complete theorem has freshly compiled and its transitive axiom audit
+uses only `propext`, `Classical.choice`, and `Quot.sound`. Its independent
+Comparator replay is pending. The original fresh build/export record is
+`verification/psi-run.json`; after session loss, the exact saved exports are
+being rechecked under `verification/psi-resume-run.json`.
+
+The project also proves **Rosser (1941), Theorem 19,
 unconditionally for every real `T >= 2`, including zero ordinates**:
 
 $$
@@ -30,19 +53,15 @@ Comparator command took 2747.55 seconds; see the
 Process sandboxing was disabled because `bwrap` could not mount its required
 filesystem in this workspace; this is not a sandboxed attestation.
 
-**The four requested global Rosser–Schoenfeld estimates remain unfinished.**
-The stricter error bound through height **280** and a certified first-1000
-zero table also remain unproved in this package.
+**The requested global theta estimate and the full RS62 Mertens/totient
+bounds remain unfinished.** The separate RS75 quantitative zero-free region,
+the stronger 1976 b = 23 coefficient 0.00020171, the strict count error through
+height 280, and a certified first-1000 zero table also remain unproved here.
 
-In particular, **the full bound on `abs(psi(x)-x)` for `x >= exp 23` is
-not proved**, even with finite RH supplied. The averaged contour remainder
-and the zero-count estimate for every `T >= 2` are now proved. The finite reciprocal-zero head through 100, actual-zero partial summation,
-contour/count/multiplicity bridges, elementary integral bounds, and the scalar
-eight-band budget are now proved. The final domination of the actual zero
-sums and its assembly with the psi formula remain unfinished. The alternative
-fixed-quartic budget uses the checked 0.931 cancellation bound and does not
-require the separate quantitative zero-free-region target. See the
-[first-29 budget and proof status](docs/QuarticFirst29Budget.md).
+The completed b = 23 proof assembles the actual finite complex zero sums,
+including analytic multiplicities, with the averaged explicit formula.
+The high-zero estimate uses conjugation and critical-line reflection; the
+quantitative zero-free-region target is a separate problem.
 
 | Result | Freshly checked status |
 | --- | --- |
@@ -55,7 +74,7 @@ require the separate quantitative zero-free-region target. See the
 | Reciprocal-zero head through 100 | Proved: the complete first-29 head has sum of reciprocal norms less than 0.592316 |
 | Elementary reciprocal and fifth-power integrals | Proved with explicit logarithmic upper bounds for 7 ≤ a ≤ b |
 | Contour/count/multiplicity conversions | Proved, including strict/inclusive endpoints and conjugation/reflection multiplicity symmetries |
-| Eight-band scalar budget | Proved below 0.00020211, with positive coefficient of 1/sqrt(x); its domination of the actual psi error remains to be assembled |
+| Eight-band budget and its actual zero-sum domination | Proved; assembled with the explicit formula to give the b = 23 psi bound |
 | Backlund's phase-aligned subsequence for powers of a nonzero complex number | Proved |
 | Angular Jensen inequality, constructive reflected pairing, and the limit along phase-aligned powers | Proved, including the reflection loss E/(2 pi) and the actual horizontal zeta argument bound |
 | Exact zeta/digamma reflection identity and constructive first/last crossings | Proved by selective reuse; no zero-count premise |
@@ -83,12 +102,13 @@ require the separate quantitative zero-free-region target. See the
 | Upper and lower averaged explicit formulas, including the exact main terms and constant at zero | Proved, with the left remainders explicit |
 | Logarithmic bound for zeta'/zeta on Re(s) = -1/2 | Proved |
 | Both actual averaged left-line remainders, with delta = 0.0000211 | Proved: at most 25000/(pi sqrt(x)), and less than 0.1 for x >= exp 23; no RH premise |
-| Lower kernel bounds and a sharper cancellation bound for both smoothing signs on a finite ordinate band | Proved; does not certify the total numerical row |
+| Lower kernel bounds and a sharper cancellation bound for both smoothing signs on a finite ordinate band | Proved; used in the completed b = 23 row |
 | RS75 Theorem 1: zero-free region with R = 9.645908801 and log(abs(t)/17) | Separate target; not proved |
 | RS75's exact degree-four cosine polynomial and its nonnegativity | Proved |
 | Gauss series for digamma and its summability on Re(s) > 0 | Reused from IEANTN GammaAsymptotics.v2; freshly compiled and audited on this toolchain |
 | Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
-| Moderate-error psi row b = 23; full RS62 Mertens/totient bounds; requested theta estimate | Unfinished |
+| Moderate-error psi row b = 23 | Proved for every x ≥ exp 23, assuming only finite RH through 1894439 |
+| Full RS62 Mertens/totient bounds and requested global theta estimate | Unfinished |
 
 The unconditional zero-count and finite totient results assume neither RH,
 Buethe nor Ramare's sum estimate.
@@ -119,8 +139,9 @@ sides at Re(s) = -1/2 and Re(s) = 3/2; no quantitative zero-free boundary is
 used for it. The integrated formula is now checked, with the residue at zero
 evaluated. The actual averaged left remainder is bounded unconditionally by
 `25000/(pi sqrt(x)) < 0.1` for `x >= exp 23` at the historical delta.
-The quantitative zero-sum estimate remains to be completed. See
-[the exact formula and its remaining inputs](docs/QuarticProof.md).
+The quantitative zero-sum estimate and its final assembly are now proved.
+See the [completed proof guide](docs/PsiTable1975.md); the older
+[quartic formula note](docs/QuarticProof.md) records the earlier construction.
 
 RS75's zero-free region is now a separate target in `RSBounds/Targets.lean`:
 assuming the finite RH verification through 1894439, zeta has no zeros where
@@ -177,7 +198,7 @@ separate analytic `T >= 100` theorem. See [the finite-height audit](docs/LowHeig
 The older RS75 row uses a finite head of 57 zeros; the improved 1976 row uses
 a larger head. Those larger numerical zero certificates remain to be formalized. The new
 [first-29 route](docs/QuarticFirst29Budget.md) supplies a checked smaller head
-and scalar budget; it avoids those larger heads in the proposed b=23 assembly.
+and scalar budget and completes the b=23 assembly using that smaller head.
 
 ## Reuse from IEANTN
 
@@ -206,17 +227,22 @@ lake exe cache get
 lake build
 lake comparator
 lake comparator --config comparator-zero-count.json
+python verification/run_psi_check.py
 ```
 
 `RSBounds.lean` imports completed modules only. `RSBounds/Targets.lean` defines
 propositions, not proofs or axioms. Other source files may be under development.
 
-Two independent Comparator configurations are provided: `comparator.json`
-for the restricted totient statements, and `comparator-zero-count.json` for
-the full Rosser count theorem and the strict finite-range error bound.
-Neither asserts the four unfinished Rosser–Schoenfeld goals. The count
-theorems and reusable table have fresh Lean builds and transitive axiom
-audits, using only `propext`, `Classical.choice`, and `Quot.sound`.
+Three independent Comparator configurations are provided: `comparator.json`
+for the restricted totient statements, `comparator-zero-count.json` for
+the full Rosser count theorem and the strict finite-range error bound, and
+`comparator-psi.json` for the b = 23 psi theorem under finite RH. Use the
+Python driver shown above for the psi check; it compiles the independent
+challenge and solution directly and passes their fresh exports to Comparator.
+The first two configurations have passed; the psi replay is pending.
+None asserts the unfinished global theta, full RS62, or zero-free-region
+goals. All completed public theorems have fresh Lean builds and transitive
+axiom audits, using only `propext`, `Classical.choice`, and `Quot.sound`.
 Fresh build logs, axiom audits,
 and exact source hashes are in `verification/`. Comparator outcomes and any
 sandbox limitation are recorded there.

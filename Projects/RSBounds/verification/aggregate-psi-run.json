@@ -1,0 +1,24 @@
+{
+  "kind": "fresh-combined-root-compilation",
+  "started_utc": "2026-11-06T15:30:10.229677+00:00",
+  "source_sha256": {
+    "RSBounds.lean": "3f041e9cb23f1f205a53d2b2d002895b9b5b90e5d4b02a0ce8798d5841a5ebcd",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "RSBounds/RosserSchoenfeld1975.lean": "78b8e4f89e0648714ac276ed0539045d9eb009725460b108b9a0278b0966ca3b"
+  },
+  "main_proof_receipt": "verification/rosser-schoenfeld-1975-run.json",
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds.olean",
+    "RSBounds.lean"
+  ],
+  "exit_code": 0,
+  "seconds": 317.5802126979979,
+  "finished_utc": "2026-11-06T15:35:27.813627+00:00"
+}

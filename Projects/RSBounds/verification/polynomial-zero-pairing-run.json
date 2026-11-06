@@ -1,0 +1,38 @@
+{
+  "checked_at_utc": "2026-11-06T14:43:06.188606+00:00",
+  "lean_version": "4.35.0",
+  "build_command": "lake env lean -j1 -o .lake/build/lib/lean/RSBounds/PolynomialZeroPairing.olean RSBounds/PolynomialZeroPairing.lean",
+  "build_exit_code": 0,
+  "audit_command": "lake env lean -j1 verification/PolynomialZeroPairingAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_eq_two_sum_positive",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_ordinate_weight_eq_two",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_norm_low_eq_two_closed",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_low_sum_le_two_closed",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.rpow_pair_le",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_rpow_ordinate_weight_le",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.sum_rpow_high_le_weightedSum",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_zeroCoefficient_upper_le_high",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_zeroCoefficient_lower_le_high",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_le_of_bound",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_upper_le",
+    "TernaryGoldbach.RSBounds.PolynomialZeroPairing.norm_high_sum_lower_le"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "sha256": {
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "verification/PolynomialZeroPairingAudit.lean": "1f3f043d42d70330ab387ad0b7b0aa5c1bddc18c7edfe4e831d494ce4ee41e32",
+    "docs/PolynomialZeroPairing.md": "bcbf237840237c79307460b9746d0f2f90509672ce62bb262cecbd3bd434f960",
+    "verification/polynomial-zero-pairing-build.log": "298379c217adabe58dfa9937932c48bd3dbfb44e1d04cc3c93c9ac000570ee83",
+    "verification/polynomial-zero-pairing-axioms.log": "650d033b6c38fa16c64499c885d6b9773ddf79517008f137cc58ace38e2eef5a"
+  },
+  "olean_sha256": "a82f605f89a48e7d307e9958a23080c23c8ffa7213bc95aaf0572c4e0c89971a",
+  "assumptions": "No RH, quantitative zero-free-region, simplicity, or assumed multiplicity symmetry. Explicit height conditions, x/delta inequalities, and generic coefficient hypotheses as displayed.",
+  "scope": "Finite actual conjugation/reflection pairing, low closed-cutoff norm bridge, high x+1 fifth-power bound, and actual upper/lower coefficient specializations. No final psi row asserted.",
+  "native_comparator_status": "No separate native Comparator for this new module."
+}

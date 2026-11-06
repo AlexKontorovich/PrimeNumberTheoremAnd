@@ -1,0 +1,7 @@
+import RSBounds.QuarticLowZeroBounds
+#print axioms TernaryGoldbach.RSBounds.ZeroWindowFiniteSum.weightedSum_lift
+#print axioms TernaryGoldbach.RSBounds.ZeroWindowFiniteSum.sum_le_windows
+#print axioms TernaryGoldbach.RSBounds.QuarticLowZeroBounds.low_zero_re
+#print axioms TernaryGoldbach.RSBounds.QuarticLowZeroBounds.bandMass_le_reciprocal
+#print axioms TernaryGoldbach.RSBounds.QuarticLowZeroBounds.head_and_tail_le_lineWeight
+#print axioms TernaryGoldbach.RSBounds.QuarticLowZeroBounds.positive_low_sum_le

@@ -77,8 +77,10 @@ proved in [`ZetaZeroTableHead.lean`](../RSBounds/ZetaZeroTableHead.lean),
 with four fresh audits using only `propext`, `Classical.choice`, and
 `Quot.sound`; see
 [`zeta-zero-table-head-run.json`](../verification/zeta-zero-table-head-run.json).
-The identification of this indexed head with the contour's counted zero
-sum remains part of the separate assembly.
+The indexed head is identified with the actual positive counted zero sum in
+[`ZetaZeroHeadBound.lean`](../RSBounds/ZetaZeroHeadBound.lean), whose six
+exports have fresh standard-axiom audits. The contour/count conversion is
+also proved in `PolynomialZeroCountBridge.lean`.
 
 For comparison with the earlier, unproved 57-zero head at
 \(D_0=158.84998\), \(N(D_0)=57\), \(S_0=0.8113925\), switching to
@@ -214,12 +216,12 @@ without changing the smoothing degree, delta, threshold, or RH height.
 
 This audit supplies a feasible replacement for the missing 57-zero head.
 **That larger head is not necessary if the proposed assembly is certified.**
-It does not assert the final psi inequality. The remaining proof obligations
-include the head/count/contour multiplicity bridges, conjugation and
-reflection reindexing, the weighted-tail limit arguments, the displayed
-elementary integral bounds, and certified scalar arithmetic and monotonicity.
-Some of these may be proved independently after this audit was written;
-their actual Lean declarations and audit records determine their status.
+It does not assert the final psi inequality. The remaining assembly links
+the pointwise kernels, conjugation/reflection pairing, finite weighted zero
+sums, and the already proved explicit-formula limit. The finite head/count
+bridges, displayed integral bounds, weighted count estimates, and scalar
+arithmetic and monotonicity are now checked components, listed below.
+Their actual Lean declarations and audit records determine their status.
 
 The high-zero estimate still uses the ordinary critical-strip restriction
 and multiplicity-preserving symmetries, yielding the factor \(1+1/x\).
@@ -238,11 +240,22 @@ by this fixed-relative-error calculation.
   with thirteen standard-axiom audits in `verification/rosser-tail-integrals-run.json`.
 - [Contour/count/multiplicity bridges](../RSBounds/PolynomialZeroCountBridge.lean),
   with sixteen standard-axiom audits, including both multiplicity symmetries.
+- [Finite conjugation/reflection pairing](../RSBounds/PolynomialZeroPairing.lean),
+  with twelve standard-axiom audits. This proves the actual high-zero factor
+  `x+1` and the low closed-cutoff norm-sum bridge.
 - [Literal scalar certificate](../RSBounds/QuarticFirst29BudgetNumerics.lean):
   `scalarBudget_lt` proves the displayed eight-band rational-denominator
   expression is strictly below `0.00020211`; `sqrtCoefficient_pos` proves
   the required coefficient is positive. Its nine standard-axiom audits are
   recorded in `verification/quartic-first29-scalar-run.json`.
+
+- [Scalar application for every `x ≥ exp 23`](../RSBounds/QuarticFirst29BudgetApplication.lean):
+  `relativeBudget_lt` proves the literal expression is strictly below
+  `0.00020211` throughout this range; its eight standard-axiom audits are
+  recorded in `verification/quartic-first29-application-run.json`.
+- [Actual weighted reciprocal/fifth-power estimates](../RSBounds/RosserWeightedBounds.lean)
+  and [split/band assembly](../RSBounds/RosserWeightedSplit.lean), with
+  thirteen and six standard-axiom audits respectively.
 
 The scalar expression is identified with the displayed `W`, `K`, `M_8`, and
 `Q_8` formulas in Lean. This certifies arithmetic and logarithm enclosures;

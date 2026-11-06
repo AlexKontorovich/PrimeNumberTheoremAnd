@@ -1,0 +1,11 @@
+import RSBounds.PolynomialZeroMajorants
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.coefficient_eq
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_eq
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.coefficient_conj
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_conj
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_low
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_high
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_high_line
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_band_pos
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_band

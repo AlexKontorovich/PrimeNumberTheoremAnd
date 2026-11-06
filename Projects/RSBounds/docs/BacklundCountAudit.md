@@ -339,9 +339,10 @@ finite-height handoff through 100 is also compiled and audited, and the
 combined full `T >= 2` theorem has compiled with five successful public
 axiom audits. The public finite-height source and its completed 99-module
 replay are documented in
-[`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md). Independent
-Comparator verification is a separate stage and remains pending at this
-update.
+[`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md). Both public
+count targets have also passed independent Comparator statement/definition
+matching, allowed-axiom checks, and default-kernel replay; see the final
+status section below.
 
 ### Checked sharp right-edge estimate and Euler--Maclaurin remainder
 
@@ -433,7 +434,7 @@ five successful axiom audits, all using only `propext`, `Classical.choice`,
 and `Quot.sound`. `verification/aggregate-backlund-high-run.json` records
 the successful root-module build on 2026-11-06.
 
-### Full Rosser statement compiled and axiom-audited
+### Full Rosser statement checked by Comparator
 
 The 99-module finite zero-certificate replay, count-convention bridge,
 59 scalar endpoint certificates, and low-height assembly have all passed
@@ -446,11 +447,18 @@ for every `T >= 2`. The combined module has compiled, and all five public
 axiom audits use only `propext`, `Classical.choice`, and `Quot.sound`.
 See `verification/zero-count-run.json` for the successful build and audits.
 The independent Mathlib-only Comparator challenge contains the full count
-definition and the two public target statements. Its separate Comparator
-run remains pending at this update; compilation and axiom auditing are not
-being represented as a completed Comparator result.
+definition and the two public target statements. Both targets passed statement
+and definition matching, allowed-axiom checks, and full replay with Lean's
+default kernel. The native Comparator command exited 0 after 2747.55 seconds;
+see the [completed record](../verification/zero-count-run.json) and
+[final log](../verification/zero-count-comparator.log). Only the standard
+three axioms were permitted. Process sandboxing was disabled because bwrap
+could not mount its filesystem; this is not a sandboxed attestation.
 
-Neither this count theorem nor the table of 29 zeros asserts completion of
-the stronger error less than one through 280, a first-1000-zero table, the
-downstream quartic smoothing integral estimate, the `b=23` psi table entry,
-or the quantitative RS75 zero-free region.
+The downstream quartic remainder bound and the `b=23` psi theorem are now
+also compiled and axiom-audited. The psi theorem assumes only finite RH through
+1894439 and `x >= exp 23`; its separate native Comparator replay remains
+pending. See [the psi theorem guide](PsiTable1975.md) for its complete statement
+and proof. The stronger count error less than one through 280, a first-1000-zero
+table, and the quantitative RS75 zero-free region remain separate unproved
+goals.

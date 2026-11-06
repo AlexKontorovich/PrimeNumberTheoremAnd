@@ -1,0 +1,48 @@
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.delta_cast_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.a_cast_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.C_cast_eq_R4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.Y_cast_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.saving_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_range' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_monotone' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_eight_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.split_coefficient_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.F_eq_rosserF' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.R_eq_rosserR' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.fifthTail_eq_J' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.lowIntegral_eq_I' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.lineWeight_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.highWeight_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.bandMass_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

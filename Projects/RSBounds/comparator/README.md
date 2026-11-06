@@ -9,17 +9,22 @@ The solution files import the actual proofs.
 |---|---|---|
 | `comparator.json` | `RSTotientChallenge`, `RSTotientSolution` | The two restricted totient results |
 | `comparator-zero-count.json` | `RSZeroCountChallenge`, `RSZeroCountSolution` | Rosser's bound for every `T >= 2`, and the strict error `< 1` for `0 <= T <= 100` |
+| `comparator-psi.json` | `RSPsiChallenge`, `RSPsiSolution` | `abs(psi(x)-x) < 0.00020211*x` for `x >= exp 23`, assuming finite RH through 1894439 |
 
 The zero-count challenge independently defines the actual positive-ordinate
 zeta zero count, with analytic multiplicities and the inclusive condition
-`0 < Im rho <= T`. It has no definition hole or RH hypothesis. Both
-configurations permit only `propext`, `Classical.choice`, and `Quot.sound`.
+`0 < Im rho <= T`. It has no definition hole or RH hypothesis. The psi
+challenge independently specifies finite RH for the actual zeta function;
+that definition is compared along with the psi theorem statement. All three
+configurations permit only `propext`, `Classical.choice`, and `Quot.sound`,
+with no definition holes.
 
 From the package directory, run:
 
 ```sh
 lake comparator --config comparator.json
 lake comparator --config comparator-zero-count.json
+python verification/run_psi_check.py
 ```
 
 Comparator checks statement and definition matching, the allowed axioms, and
@@ -43,7 +48,24 @@ permitted. The native Comparator command exited 0 after 2747.55 seconds;
 this duration excludes the preceding Lean builds, axiom audit, and exports.
 See the [completed receipt](../verification/zero-count-run.json) and
 [final log](../verification/zero-count-comparator.log).
-The zero-count configuration covers its two displayed
-theorems, not every export of `ZetaZeroTable`. It does not claim the stronger
-height-280 bound, a first-1000-zero certificate, or any unfinished
-psi/theta/Mertens goal.
+The zero-count configuration covers its two displayed theorems, not every
+export of `ZetaZeroTable` or the separate psi target. It does not claim the
+stronger height-280 bound, a first-1000-zero certificate, or the remaining
+theta/Mertens goals.
+
+The [b = 23 psi theorem](../docs/PsiTable1975.md) has compiled, and its public
+transitive axiom audit uses only the standard three axioms. Its separate
+Comparator run is in progress; **native kernel replay is pending**. The
+[psi runner](../verification/run_psi_check.py) directly compiles the challenge
+and solution modules, exports their exact environments, and invokes Comparator
+on those exports, after the recorded dependency closure has been built.
+It avoids an extra Lake library registration and a redundant rebuild of the
+numerical certificates. Commands and source/object/export hashes are recorded
+in [psi-run.json](../verification/psi-run.json). Process sandboxing is disabled
+for the same bwrap limitation described above; no sandboxed attestation or
+completed psi Comparator result is claimed while replay is pending.
+
+The first psi replay left no final verdict after session loss. The original
+log is retained; `verification/resume_psi_comparator.py` validates the saved
+source/object/export hashes and restarts only the final Comparator. Its
+result is recorded separately in `verification/psi-resume-run.json`.
