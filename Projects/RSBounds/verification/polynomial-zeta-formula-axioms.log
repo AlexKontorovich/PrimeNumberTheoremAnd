@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.PolynomialZeta.logDeriv_riemannZeta_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeta.prime_sum_eq_right_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_zeta_quartic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_Psi4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_zeta_quartic_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_Psi4_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

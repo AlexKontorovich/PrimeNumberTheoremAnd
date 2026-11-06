@@ -6,7 +6,9 @@ checks, not reconstructions of lost logs from an earlier workspace.
 Successful builds and axiom audits are recorded for Totient,
 SmallTotientProduct, Mertens, WeightedZeroSums, BacklundPhase,
 TotientAnalyticReduction, PolynomialSmoothing, PolynomialPsi, QuarticMellin,
-PolynomialZeroKernel, PolynomialResidue, and PolynomialPrimeSum. The audited
+PolynomialZeroKernel, PolynomialResidue, PolynomialPrimeSum,
+PolynomialPsiMellin, PolynomialExplicitFormula, PolynomialQuarticFormula,
+and PolynomialZetaFormula. The audited
 theorems use only `propext`, `Classical.choice`, and `Quot.sound`.
 
 The native Comparator passed with exit code 0. It compared the two restricted
@@ -21,5 +23,7 @@ uses `--inadvisably-no-sandbox` on the reviewed sources. This disables process
 sandboxing; it does not disable statement comparison, axiom checks, or Lean
 kernel replay. It is not a sandboxed IEANTN receipt.
 
-The polynomial smoothing proofs are supporting results. They do not yet prove
-the integrated explicit formula or the numerical b = 23 zero-sum bound.
+The polynomial modules prove the integrated explicit formula, with an explicit
+left vertical remainder, and supporting smoothing identities. They do not yet
+prove the numerical b = 23 bound. The actual-zeta formula has no RH or numerical
+zero-count premise; its quantitative application is unfinished.

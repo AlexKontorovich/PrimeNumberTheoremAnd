@@ -9,3 +9,7 @@ import RSBounds.QuarticMellin
 import RSBounds.PolynomialZeroKernel
 import RSBounds.PolynomialResidue
 import RSBounds.PolynomialPrimeSum
+import RSBounds.PolynomialPsiMellin
+import RSBounds.PolynomialExplicitFormula
+import RSBounds.PolynomialQuarticFormula
+import RSBounds.PolynomialZetaFormula
