@@ -31,7 +31,9 @@ Apache 2.0. Its source header retains that attribution; the local extension
 retains an angular majorant and passes to phase-aligned powers.
 
 `RSBounds/BacklundFirstCrossing.lean` and
-`RSBounds/BacklundReflection.lean` contain proofs adapted from
+`RSBounds/BacklundReflection.lean`, `RSBounds/BacklundGammaPhaseBase.lean`,
+`RSBounds/BacklundGammaPhaseArctan.lean`, and `RSBounds/BacklundAnchor.lean`
+contain proofs adapted from
 `gersh/ternary-goldbach-lean`, commit
 `27df23af6a712895f22204d0d81102baa74f0ebe`.
 Copyright (c) 2026 Gershon Bialer. Licensed under Apache 2.0; the complete

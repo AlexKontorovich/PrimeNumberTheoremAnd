@@ -293,9 +293,44 @@ use only `propext`, `Classical.choice`, and `Quot.sound`.
 including the specialization at `5/4`. Its two axiom audits pass; the
 independent numerical enclosure is explained in `BacklundCenterAudit.md`.
 
-These results do not yet establish Rosser's Theorem 19. In particular,
-constructing reflected paired crossings from the argument sweep, connecting
-that sweep to the actual multiplicity count, proving the sharp zeta boundary
-majorants and gamma phase remainder, and completing the finite-height
-extension remain necessary. The `8/T` reflection-error integral itself is
-no longer an assumed input.
+### Further checked components
+
+`BacklundPairedJensen.lean`, `BacklundPairedCrossing.lean`, and
+`BacklundPairedPower.lean` now construct the reflected crossings and prove
+the limiting argument bound. Retaining the unmatched right-hand zeros
+gives reflection loss `E/(2*pi)`. The radius condition is only `R > 3/4`,
+so the theorem applies to Rosser's `R = 1.32`; it does not assume that every
+reflected partner lies in the disk. Ten exported theorem audits use only
+the standard three axioms.
+
+`BacklundCenterNumerics.lean` now proves
+`3.425 < zeta(5/4)/zeta(5/2) < 3.426` and the center lower bound `1/3.426`
+in Lean. The finite root certificates and integral-test tails are checked
+without an external numerical axiom.
+
+`BacklundGammaPhaseEstimate.lean` proves the stronger unconditional bound
+`abs(S_Gamma(T)) <= 1/(4*T)` for every `T > 0`, and hence the requested
+`25/(48*T)` bound. The phase is the continuous digamma integral, with a
+proved rectangle identity connecting it to the argument principle.
+The proof uses the actual IEANTN Gauss series and the positive
+trapezoidal Peano kernel, not a stipulated Stirling remainder. Seven fresh
+audits use only the standard three axioms. See
+[`BacklundGammaPhase.md`](BacklundGammaPhase.md).
+
+`BacklundCountIdentity.lean` now proves the exact Riemann–von Mangoldt
+identity for every positive height not equal to a zero ordinate. Its count
+is explicitly identified with the sum of actual zeta multiplicities at
+`0 < Im rho < T`. The rectangle argument and symmetry reduction have no
+counting premise. Eighteen fresh audits use only the standard three axioms.
+
+`BacklundAnchor.lean` fixes the vertical logarithm branch through the Euler
+logarithm bound, and `BacklundZetaPhase.lean` specializes the constructive
+Jensen theorem to the actual horizontal zeta argument. Their nine and eleven
+audits, respectively, use only the standard three axioms.
+
+These components do not yet establish Rosser's Theorem 19. Proving the sharp
+zeta boundary majorants and their numerical angular integral, and completing
+the finite-height handoff remain necessary. A public finite-height source
+certificate through 100 is documented in
+[`LowHeightCertificateAudit.md`](LowHeightCertificateAudit.md); its local
+replay is still pending.

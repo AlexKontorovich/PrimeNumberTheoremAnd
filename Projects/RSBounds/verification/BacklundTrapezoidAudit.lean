@@ -1,0 +1,8 @@
+import RSBounds.BacklundTrapezoid
+
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_nonneg
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_le
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.hasDerivAt_kernel
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.error_eq_integral_kernel
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.error_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundTrapezoid.sum_error_eq

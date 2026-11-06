@@ -1,0 +1,9 @@
+import RSBounds.BacklundGammaPhaseEstimate
+
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.digamma_rectangle
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.norm_digamma_sub_le_of_re_ge
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_phaseAt_quarter_shift
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_arctan_gauss_phase
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_arctanPrimitive_sub_log
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.gamma_phase_remainder_bound
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaPhase.backlund_gamma_phase_remainder_bound

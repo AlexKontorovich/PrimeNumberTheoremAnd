@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:41:59.680972+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundTrapezoid.lean": "1293c3bb601bd07df72843b3afe312f14ded8140864bfc95f7d74264c680ee8c",
+    "verification/BacklundTrapezoidAudit.lean": "fd8aa9009b3b5fbf0f501cc6b189b4c9fbbcc789bbe64792e98925ee54bcfc5b"
+  },
+  "build_command": [
+    "lake",
+    "env",
+    "lean",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/BacklundTrapezoid.olean",
+    "RSBounds/BacklundTrapezoid.lean"
+  ],
+  "build_exit_code": 0,
+  "audit_command": [
+    "lake",
+    "env",
+    "lean",
+    "verification/BacklundTrapezoidAudit.lean"
+  ],
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_nonneg",
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_le",
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.hasDerivAt_kernel",
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.error_eq_integral_kernel",
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.error_bounds",
+    "TernaryGoldbach.RSBounds.BacklundTrapezoid.sum_error_eq"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "build_output_note": "Successful direct compilation was observed in the interactive tool record; six separate axiom reports are saved."
+}

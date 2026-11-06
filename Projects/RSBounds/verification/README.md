@@ -73,6 +73,44 @@ rational integral-test computation, not a Lean certificate. It shows why
 `3.426`, rather than the printed `3.425`, is a safe upward rounding for this
 ratio. No decimal center bound has been silently inserted into a Lean proof.
 
+The later `backlund-center-numerics-run.json` records the completed Lean
+certificate for `3.425 < zeta(5/4)/zeta(5/2) < 3.426` and the resulting
+center lower bound `1/3.426`. Its 1250 finite root checks use the ordinary
+kernel, and its tails use the proved integral test. This supersedes the
+earlier absence of a Lean numerical enclosure; the tighter Python interval
+remains a separate diagnostic.
+
+`backlund-paired-run.json` records the constructive reflected pairing and
+power-limit argument. All three modules compile and all ten audits use
+only the standard three axioms. The bound retains the unmatched right-hand
+zeros, obtaining reflection loss `E/(2*pi)`.
+
+`BacklundTrapezoidAudit.lean` and `backlund-trapezoid-axioms.log` record the
+six standard-axiom checks for the unit Peano-kernel identity, derivative
+variation bound, and finite error-sum identity.
+
+`backlund-gamma-phase-run.json` records the five-module gamma phase proof,
+seven standard-axiom audits, and source hashes. The main unconditional
+bound is `abs(S_Gamma(T)) <= 1/(4*T)` for `T > 0`; the historical
+`25/(48*T)` allowance is a checked corollary. The continuous branch and
+its relation to the rectangle integral are proved explicitly.
+
+`backlund-anchor-run.json` records nine standard-axiom audits for the Euler
+logarithm bound, positivity of the real part of zeta on `Re(s)=5/4`, and
+the vertical argument integral identity. The certified upper bound
+`zeta(5/4)<23/5` fixes the branch without an argument or winding assumption.
+
+`backlund-count-identity-run.json` records the actual rectangle count,
+symmetry reduction, equivalence with zeta multiplicities, and exact
+Riemann–von Mangoldt identity. All eighteen audits use the standard three
+axioms. The only height conditions are positivity and exclusion of zero
+ordinates; no numerical count or RH premise is used.
+
+`backlund-zeta-phase-run.json` records eleven standard-axiom audits for the
+actual horizontal zeta argument bound. It discharges the abstract phase,
+crossing, reflection, and disk analyticity hypotheses; its remaining
+quantitative input is a common circle majorant for zeta at the two translates.
+
 The combined root build after these components is recorded in
 `aggregate-backlund-run.json`, with exact toolchain, manifest, and source
 hashes. None of these component audits asserts the sharp zero-count theorem.
