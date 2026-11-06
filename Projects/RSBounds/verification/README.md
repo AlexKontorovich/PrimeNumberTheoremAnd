@@ -8,10 +8,11 @@ SmallTotientProduct, Mertens, WeightedZeroSums, BacklundPhase,
 TotientAnalyticReduction, PolynomialSmoothing, and PolynomialPsi. The audited
 theorems use only `propext`, `Classical.choice`, and `Quot.sound`.
 
-The native Comparator checks the two restricted totient statements against a
-separate Mathlib-only challenge. Its current command and actual exit code are
-recorded in `totient-run.json`; no final success is implied until that record
-contains `exit_code: 0` and the transcript ends successfully.
+The native Comparator passed with exit code 0. It compared the two restricted
+totient statements with a separate Mathlib-only challenge, checked the permitted
+axioms, and replayed the exported solution with Lean's default kernel. The
+transcript ends with `Your solution is okay!`. Exact inputs and the command are
+recorded in `totient-run.json`.
 
 The default sandbox launch failed with `bwrap: Failed to mount tmpfs`.
 That attempt is preserved in `totient-sandbox-attempt.*`. The subsequent run
