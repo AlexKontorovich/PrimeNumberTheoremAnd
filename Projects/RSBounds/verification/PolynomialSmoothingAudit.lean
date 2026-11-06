@@ -1,0 +1,10 @@
+import RSBounds.PolynomialSmoothing
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_sum
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.W_add_reflect
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_zero_of_nonpos
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_one_of_four_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.W_bounds
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.continuous_W
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.fourth_difference_main_term
+#print axioms TernaryGoldbach.RSBounds.PolynomialSmoothing.fourth_difference_main_term_lower

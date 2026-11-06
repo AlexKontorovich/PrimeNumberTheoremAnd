@@ -1,0 +1,17 @@
+import RSBounds.Mertens
+import RSBounds.WeightedZeroSums
+
+#print axioms TernaryGoldbach.RSBounds.primeWeightedSum_eq_theta_div_add_integral
+#print axioms TernaryGoldbach.RSBounds.primeWeightedSum_sub_eq_theta_div_sub_add_integral
+#print axioms TernaryGoldbach.RSBounds.integral_theta_error_div_sq
+#print axioms TernaryGoldbach.RSBounds.primeWeightedSum_sub_log_eq_anchor
+#print axioms TernaryGoldbach.RSBounds.mangoldtWeightedSum_eq_psi_div_add_integral
+#print axioms TernaryGoldbach.RSBounds.integral_psi_error_div_sq
+#print axioms TernaryGoldbach.RSBounds.mangoldtWeightedSum_sub_log_eq_anchor
+#print axioms TernaryGoldbach.RSBounds.weighted_ordinate_sum_eq
+#print axioms TernaryGoldbach.RSBounds.intervalIntegrable_ordinateCount_mul
+#print axioms TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_increasing
+#print axioms TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_decreasing
+#print axioms TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_unimodal
+#print axioms TernaryGoldbach.RSBounds.hasDerivAt_rosserF
+#print axioms TernaryGoldbach.RSBounds.hasDerivAt_rosserR

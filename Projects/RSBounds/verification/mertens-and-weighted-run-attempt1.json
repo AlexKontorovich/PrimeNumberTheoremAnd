@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:08:51.697282+00:00",
+  "source_sha256": {
+    "RSBounds/Mertens.lean": "d731c1303f4d86e292220534a804d92d0b534a216a230e1046fb4d54f150e573",
+    "RSBounds/WeightedZeroSums.lean": "29f23e1d37cc0f436dd9cf020c2beed1e014db2e95faaa4bcc3859caad31d28b",
+    "verification/AuditMertens.lean": "8b494569ea243e8261662cc201ecdea1fbb2c3b9ec58472e87c6ff1c7a24638c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.Mertens"
+      ],
+      "log": "mertens-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.WeightedZeroSums"
+      ],
+      "log": "weighted-zero-sums-build.log",
+      "exit_code": 1
+    }
+  ],
+  "finished_utc": "2026-11-06T08:09:07.483420+00:00",
+  "exit_code": 1
+}

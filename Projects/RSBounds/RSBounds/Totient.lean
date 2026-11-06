@@ -115,6 +115,31 @@ theorem image_nth (k : ℕ) (hk : 1 ≤ k) :
       rw [Nat.count_succ]; simp [hpp]
     omega
 
+theorem exp_gamma_ge : 1.625 ≤ Real.exp Real.eulerMascheroniConstant := by
+  have h1 := Real.quadratic_le_exp_of_nonneg (x := 1 / 2) (by norm_num)
+  have h2 : Real.exp (1 / 2) ≤ Real.exp Real.eulerMascheroniConstant :=
+    Real.exp_le_exp.2 Real.one_half_lt_eulerMascheroniConstant.le
+  norm_num at h1; linarith
+
+theorem bigF_gt {r : ℝ} (hr : 3 ≤ r) :
+    3.75 < Real.exp Real.eulerMascheroniConstant * Real.log (Real.log r) +
+      2.50637 / Real.log (Real.log r) := by
+  have hl1 : 1 < Real.log r := by
+    rw [Real.lt_log_iff_exp_lt (by linarith)]
+    exact Real.exp_one_lt_d9.trans_le (by linarith)
+  set t := Real.log (Real.log r)
+  have ht : 0 < t := Real.log_pos hl1
+  have hG := exp_gamma_ge
+  have h1 : 1.625 * t ≤ Real.exp Real.eulerMascheroniConstant * t :=
+    mul_le_mul_of_nonneg_right hG ht.le
+  have h2 : 3.75 < 1.625 * t + 2.50637 / t := by
+    rw [← sub_pos]
+    have e : 1.625 * t + 2.50637 / t - 3.75 = (1.625 * t ^ 2 - 3.75 * t + 2.50637) / t := by
+      field_simp; ring
+    rw [e]; apply div_pos _ ht
+    nlinarith [sq_nonneg (t - 1.15385)]
+  linarith
+
 theorem totient_ratio_lt_of_prime_product_at_rank {q : ℕ} (hq : 1 ≤ q)
     {r : ℝ} (hr : 3 ≤ r) (hqr : (q : ℝ) ≤ r)
     (hproduct : 4 ≤ q.primeFactors.card →

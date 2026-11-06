@@ -1,0 +1,14 @@
+{
+  "command": [
+    "lake",
+    "build",
+    "RSBounds.Totient"
+  ],
+  "started_utc": "2026-11-06T08:06:49.701759+00:00",
+  "source_sha256": {
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "RSBounds/SmallTotientProduct.lean": "441e7b4741a27148478caba16cfbafa0d1632ecb01e3d1ebe5f1c72b18769460"
+  },
+  "finished_utc": "2026-11-06T08:07:38.622552+00:00",
+  "exit_code": 0
+}

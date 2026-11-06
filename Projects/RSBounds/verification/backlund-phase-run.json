@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:12:02.686109+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundPhase.lean": "fa9d615046e417cef78a903890e1e46b8bc72cff712513d21a5500aa3a5762e0",
+    "verification/BacklundPhaseAudit.lean": "61c4eebd59dd20801561eae1db78128f4ac568306a692e0f7a7804b650fa64a8"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.BacklundPhase"
+      ],
+      "log": "backlund-phase-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundPhaseAudit.lean"
+      ],
+      "log": "backlund-phase-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:12:08.911672+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,14 @@
+'TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_card_le_twenty' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_le_1e27' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_self_of_le_1e27' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_card_le_twenty {q : ℕ} (hq : 1 ≤ q)
+  (hcard : q.primeFactors.card ≤ 20) {r : ℝ} (hr : 3 ≤ r) (hqr : ↑q ≤ r) :
+  ↑q / ↑q.totient < Real.exp Real.eulerMascheroniConstant * Real.log (Real.log r) + 2.50637 / Real.log (Real.log r)
+TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_self_of_le_1e27 {q : ℕ} (hq : 3 ≤ q) (hmax : q ≤ 10 ^ 27) :
+  ↑q / ↑q.totient < Real.exp Real.eulerMascheroniConstant * Real.log (Real.log ↑q) + 2.50637 / Real.log (Real.log ↑q)

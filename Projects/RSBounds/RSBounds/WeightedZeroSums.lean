@@ -266,9 +266,10 @@ theorem hasDerivAt_rosserF {t : ℝ} (ht : 0 < t) :
   have hdiv := (hasDerivAt_id t).div_const (2 * Real.pi)
   have hh := ((hdiv.mul (hdiv.log hq)).sub hdiv).add_const (7 / 8 : ℝ)
   convert hh using 1
-  dsimp only [id_eq]
-  field_simp
-  <;> ring
+  · rfl
+  · dsimp only [id_eq]
+    field_simp [hp, ht.ne']
+    <;> ring
 
 /-- Exact derivative of the logarithmic error envelope. -/
 theorem hasDerivAt_rosserR (C : ℝ) {t : ℝ} (ht : 1 < t) :
@@ -278,7 +279,8 @@ theorem hasDerivAt_rosserR (C : ℝ) {t : ℝ} (ht : 1 < t) :
   have hlog := Real.hasDerivAt_log ht0.ne'
   have hh := ((hlog.const_mul 0.137).add ((hlog.log hl0.ne').const_mul 0.443)).add_const C
   convert hh using 1
-  field_simp
-  <;> ring
+  · rfl
+  · field_simp [ht0.ne', hl0.ne']
+    <;> ring
 
 end TernaryGoldbach.RSBounds

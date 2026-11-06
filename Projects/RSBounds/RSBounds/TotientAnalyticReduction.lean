@@ -32,7 +32,7 @@ theorem rs62_totient_scalar {G t s : ℝ} (hG : 1 ≤ G) (hG' : G ≤ 1.7811)
       G * (1 / (2 * t) + 1 / (2 * t - 1)) * u
           ≤ G * (1 / (2 * t) + 1 / (2 * t - 1)) * t :=
         mul_le_mul_of_nonneg_left hut hnonneg
-      _ = G * (1 / 2 + t / (2 * t - 1)) := by field_simp; ring
+      _ = G * (1 / 2 + t / (2 * t - 1)) := by field_simp
       _ ≤ 1.7811 * (1 / 2 + 6 / 11) := by gcongr
       _ < 2.50637 := by norm_num
   have hfirst : G * (t + 1 / (2 * t)) < G * u + 2.50637 / u := by
@@ -70,7 +70,12 @@ theorem rs62_primeProduct_bound_of_inputs {G x θ P : ℝ}
     field_simp
     <;> ring
   rw [heq] at hlow
-  have hs : log x - 1 / (2 * log x - 1) ≤ log θ := by linarith
+  have hs : log x - 1 / (2 * log x - 1) ≤ log θ := by
+    calc
+      log x - 1 / (2 * log x - 1) = log x + (-1 / (2 * log x - 1)) := by ring
+      _ ≤ log x + log (1 - 1 / (2 * log x)) := by
+        simpa only [add_comm] using add_le_add_left hlow (log x)
+      _ ≤ log θ := hlo
   exact hP.trans (rs62_totient_scalar hG hG' hxlog hs)
 
 end TernaryGoldbach.RSBounds

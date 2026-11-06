@@ -38,7 +38,7 @@ theorem gamma_bounds : (0.5772156646 : ℝ) ≤ eulerMascheroniConstant ∧
     eulerMascheroniConstant ≤ 0.577215666 := by
   obtain ⟨b1, b2⟩ := harm_bounds (n := 20000) (by norm_num)
   rw [harmonic_eq_Hn] at b1 b2
-  obtain ⟨l1, l2, h1, h2, -⟩ := RamPf.inv_20000
+  obtain ⟨l1, l2, h1, h2, -⟩ := TernaryGoldbach.Prelim.RamPf.inv_20000
   dsimp only at l1 l2 h1 h2
   push_cast at b1 b2 l1 l2 h1 h2
   constructor <;> linarith

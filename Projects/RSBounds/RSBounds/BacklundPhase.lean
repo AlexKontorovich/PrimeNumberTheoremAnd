@@ -32,7 +32,8 @@ theorem circle_powers_subsequence_one (u : Circle) :
   refine ⟨n, hn, ?_⟩
   have hc : Continuous ((↑) : Circle → ℂ) := continuous_subtype_val
   have h := (hc.tendsto (1 : Circle)).comp ht
-  simpa only [Function.comp_def, Circle.coe_pow, Circle.coe_one] using h
+  change Tendsto (fun j => ((u ^ n j : Circle) : ℂ)) atTop (𝓝 (1 : ℂ)) at h
+  exact h
 
 /-- Backlund's phase-aligned subsequence for an arbitrary nonzero center value. -/
 theorem complex_powers_phase_subsequence {z : ℂ} (hz : z ≠ 0) :
@@ -65,8 +66,12 @@ theorem log_real_pow_div_tendsto {z : ℂ} (hz : z ≠ 0) {n : ℕ → ℕ}
   have hpow (m : ℕ) : (z ^ m).re = ‖z‖ ^ m * (w ^ m).re := by
     calc (z ^ m).re = (((‖z‖ : ℂ) * w) ^ m).re := congrArg (fun t : ℂ => (t ^ m).re) hdecomp
       _ = ‖z‖ ^ m * (w ^ m).re := by
-        rw [mul_pow, ← Complex.ofReal_pow]
-        simp [Complex.mul_re]
+        rw [mul_pow]
+        have hc : (‖z‖ : ℂ) ^ m = ((‖z‖ ^ m : ℝ) : ℂ) :=
+          (Complex.ofReal_pow ‖z‖ m).symm
+        rw [hc]
+        simp only [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+          zero_mul, sub_zero]
   have hre : Tendsto (fun j => (w ^ n j).re) atTop (𝓝 (1 : ℝ)) := by
     simpa only [Function.comp_def, Complex.one_re] using
       (Complex.continuous_re.tendsto (1 : ℂ)).comp hp
