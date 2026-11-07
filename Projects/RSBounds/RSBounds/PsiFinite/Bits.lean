@@ -276,13 +276,13 @@ theorem sieve_testBit_iff_prime {lo L hi top : ℕ} {l : List ℕ} {E : List (�
 theorem primeBits_testBit {lo L hi top : ℕ} {l : List ℕ} {E : List (ℕ × ℕ)}
     (hl : l.Pairwise (· < ·)) (hodd : ∀ d ∈ l, d % 2 = 1 ∧ 3 ≤ d)
     (hcomp : ∀ p, p.Prime → p % 2 = 1 → p * p ≤ hi → p ∈ l)
-    (hlo : lo % 2 = 1) (hlo3 : 3 ≤ lo) (hLhi : lo + 2 * (L - 1) ≤ hi) (i : ℕ) :
+    (hlo : lo % 2 = 1) (hlo3 : 3 ≤ lo) (hLhi : ∀ i < L, lo + 2 * i ≤ hi) (i : ℕ) :
     (Nat.xor (2 ^ L - 1) (Nat.land (sieveK lo L hi top l 0 E).1 (2 ^ L - 1))).testBit i = true ↔
       i < L ∧ (lo + 2 * i).Prime := by
   change ((2 ^ L - 1) ^^^ ((sieveK lo L hi top l 0 E).1 &&& (2 ^ L - 1))).testBit i = true ↔ _
   rw [Nat.testBit_xor, Nat.testBit_and, Nat.testBit_two_pow_sub_one]
   by_cases hiL : i < L
-  · rw [← sieve_testBit_iff_prime (top := top) (E := E) hl hodd hcomp hlo hlo3 hiL (by omega)]
+  · rw [← sieve_testBit_iff_prime (top := top) (E := E) hl hodd hcomp hlo hlo3 hiL (hLhi i hiL)]
     cases (sieveK lo L hi top l 0 E).1.testBit i <;> simp [hiL]
   · simp [hiL]
 
