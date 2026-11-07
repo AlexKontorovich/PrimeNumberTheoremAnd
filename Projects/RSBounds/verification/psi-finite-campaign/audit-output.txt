@@ -1,0 +1,3 @@
+'audit_psi_abs_sub_le_four_fifths_sqrt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'audit_psi_abs_sub_le_sqrt' depends on axioms: [propext, Classical.choice, Quot.sound]
+4.01 s wall 7018488 KB

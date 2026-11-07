@@ -50,3 +50,7 @@ lean_lib HardyFirstZero where
 lean_lib HardyTenZeros where
   srcDir := "vendor/rh100"
   globs := #[.submodules `HardyTenZeros]
+
+-- Untrusted compiled generator for the PsiFinite campaign (docs/PsiFiniteCheck.md).
+lean_exe psi_gen where
+  root := `tools.psi_planner.GenCampaign

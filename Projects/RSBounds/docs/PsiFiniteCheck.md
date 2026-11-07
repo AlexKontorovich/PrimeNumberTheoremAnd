@@ -1,24 +1,36 @@
 # Kernel-checked |ψ(x) − x| ≤ (4/5)√x on [1500, 10^10]: record
 
 Status on 7 November 2026, branch `psi-finite-check` (from
-`rs-bounds-progress-2026-11-06` at `24554b9`). Phases A–D of
-`PsiCert-Claude-Handoff/CLAUDE_HANDOFF.md` are done. **The campaign (phase E)
-has not been started**; it waits for Harald's go-ahead after the benchmark
-gate below.
+`rs-bounds-progress-2026-11-06` at `24554b9`). Phases A–F of
+`PsiCert-Claude-Handoff/CLAUDE_HANDOFF.md` are done. Phase G (Comparator) and
+the stretch goal (5·10^10) were not run.
 
-Proved so far, kernel-checked, axioms `propext`, `Classical.choice`,
-`Quot.sound` only:
+Proved, kernel-checked, axioms `propext`, `Classical.choice`, `Quot.sound`
+only (`RSBounds/PsiFinite/Final.lean`):
 
 ```lean
-theorem PsiFinite.psi_abs_sub_le_four_fifths_sqrt_le_1e6 {x : ℝ}
-    (h₁ : 1500 ≤ x) (h₂ : x ≤ 10 ^ 6) :
-    |Chebyshev.psi x - x| ≤ (4 / 5 : ℝ) * Real.sqrt x      -- RSBounds/PsiFinite/E6Check.lean
-theorem PsiFinite.small_sqrt {x : ℝ} (h1 : 8 ≤ x) (h2 : x < 10000) :
-    |Chebyshev.psi x - x| ≤ Real.sqrt x                     -- RSBounds/PsiFinite/SmallRange.lean
+theorem PsiFinite.psi_abs_sub_le_four_fifths_sqrt {x : ℝ}
+    (h₁ : 1500 ≤ x) (h₂ : x ≤ 10 ^ 10) :
+    |Chebyshev.psi x - x| ≤ (4 / 5 : ℝ) * Real.sqrt x          -- T1
+theorem PsiFinite.psi_abs_sub_le_sqrt {x : ℝ}
+    (h₁ : 8 < x) (h₂ : x ≤ 10 ^ 10) :
+    |Chebyshev.psi x - x| ≤ Real.sqrt x                         -- T2
 ```
 
-`psi_abs_sub_le_four_fifths_sqrt_le_1e6` is the phase C target: T1 restricted
-to [1500, 10^6]. It uses every component of the final proof.
+`verification/PsiFiniteCheckAudit.lean` restates both from scratch and prints
+their axioms; its output is in `verification/psi-finite-campaign/audit-output.txt`.
+No file the theorems depend on uses `native_decide`, `Lean.ofReduceBool`,
+`Lean.trustCompiler`, `implemented_by`, `extern`, `sorry` or a new axiom.
+
+The bounds hold for every real `x` in the range, not just integers: each block
+`[A, A']` is closed by `psi_block_abs_le_of_guards` (upper guard: an upper
+bound for ψ(A') against the left end A; lower guard: a lower bound for ψ(A)
+against the right end A'; `x − k√x` is increasing), and each unit gap of the
+small walk by `psi_gap_abs_le` (lower guard with the pre-jump value ψ(n) at
+n + 1).
+
+Earlier milestones, still in the tree: `E6Check.psi_abs_sub_le_four_fifths_sqrt_le_1e6`
+(phase C: T1 on [1500, 10^6]) and `SmallRange.small_sqrt`.
 
 ## Design
 
@@ -188,18 +200,90 @@ near 5·10^10, or about 116 CPU-h at 2^17. That exceeds the 24 CPU-hour limit,
 so it would need a faster sieve first: for example a 6k±1 wheel (1/3 of the
 bits instead of 1/2), and fewer kernel steps per prime.
 
+## Phase E: campaign
+
+Layout: 2^16-bit segments below 10^7, 2^17 above (Harald's choice at the
+gate). Plan and generation (scratch paths abbreviated as `$P`):
+
+    gcc -O2 -march=native -o $P/psi_planner tools/psi_planner/psi_planner.c -lm
+    $P/psi_planner 10000000000 10000 10013.396693263160 10013.396693262983 17 $P/planT1.txt \
+        0.8 1.0 0.03 1.3e8 0.15 16 10000000
+    lake build psi_gen
+    .lake/build/bin/psi_gen T1 10001 10000000000 17 40 \
+        10013396693262983521053440538486993 10013396693263160145856910841316409 \
+        9210340371976077481578637322766 9210340371976219110227839171900 \
+        $P/planT1.txt 16 10000000 1000
+
+The four numbers are `stTenK` (`SmallRange.lean`), the walk's enclosures of
+`D·ψ(10^4)` and `D·log 10^4`. The compiled generator (`lean_exe psi_gen`,
+added to `lakefile.lean`) took about 2 minutes. The exact twin accepted every
+planned `w`: 0 retries.
+
+Result: 38,186 segments (w from 2 to 12; 26,813 segments at w = 12), in 955
+Mathlib-free modules `Campaign/T1/M0..M954` of 40 theorems each, 39 assembly
+modules `Campaign/T1/Asm/G0..G38` of 1000 segments each, and
+`Campaign/T1/Assembly.lean`. The segments used are in
+`Campaign/T1/segments.txt` (`lo w B`). Generated source: 32.6 MB (M: 15.7 MB,
+Asm: 16.8 MB).
+
+End state at 10^10, scale D = 10^30:
+
+    ψ(10^10) ∈ [10000041663.657…, 10000042576.031…]
+
+so the kernel enclosure of ψ(10^10) − 10^10 is [41,663.66, 42,576.03]; the
+reference value is 42,119.83.
+
+Assembly: `Chain.lean` defines `Step a s b t := Encl a s → Encl b t ∧ BoundOn 4 5 a b`
+and `Step.comp`. Each `Asm/G<g>` has one theorem `st<i>` per segment
+(`step_of_seg baseFacts seg<i> rfl rfl (by decide)`), chunks of 40 composed
+steps and a group theorem; `Assembly.chain : Step 10000 stTenK 10^10 ⟨…⟩`. A
+first version, one tactic proof per group, ran into the heartbeat limit
+(context growing with each step).
+
+## Phase F: build
+
+All under `nice -n 19 taskset -c 0-5`, with the zeta-zero certification
+running alongside.
+
+| step | wall | CPU | peak RSS / process |
+|---|---|---|---|
+| M0..M954 (`tools/psi_planner/build_campaign.sh T1 955 <log> 6 9`) | 4 h 25 min | 24.3 h user + 0.5 h sys | 5.3 GB |
+| Asm/G0..G38, 6 per `lake build` | 4 min 12 s | 0.3 h | 6.9 GB (mostly mmapped Mathlib) |
+| Assembly, Final | 10 s | | 7.0 GB (same) |
+| audit | 4 s | | |
+
+Logs: `verification/psi-finite-campaign/build-M.log` (160 batches, all status
+0), `build-M.time`, `build-Asm.log`.
+
+The module build cost about 1.9× the gate's estimate of ≈ 13 CPU-h. Per
+module (40 segments) the kernel took 85–125 s, rising with x, against the
+≈ 50–90 s implied by the single-theorem benchmarks. The concurrent zeta-zero
+job and the per-module overhead may account for part of it; I did not isolate
+the cause.
+
+Hashes: `verification/psi-finite-campaign/T1-sha256.txt` lists the SHA-256 of
+all 996 generated files (`*.lean`, `segments.txt`) relative to
+`Campaign/T1`; the SHA-256 of that list is
+`0331653addba5ac169a789982058e517bf6b06032b9f034854aec1472848c2ce`.
+
 ## Not done
 
-* Phase E (campaign) and phase F (T1, T2, audit file): waiting for approval.
-* The generator runs interpreted (`lake env lean --run`), about 1 h for the
-  full plan. A `lean_exe` target in `lakefile.lean` would make it much faster
-  (one added target; nothing existing changes).
 * Comparator (phase G): only on request.
+* Stretch goal 5·10^10: only on request; see the extrapolation above (≈ 70+
+  CPU-h with the present sieve, so it would need a faster sieve first).
+* The deprecation warnings (`if_neg`) in `SmallRange.lean` are left as is.
 
-## Reproduce (current state)
+## Reproduce
 
     cd Projects/RSBounds
-    lake build RSBounds.PsiFinite.E6Check          # phases B–C
-    lake env lean <file with: import RSBounds.PsiFinite.E6Check
-                   #print axioms PsiFinite.psi_abs_sub_le_four_fifths_sqrt_le_1e6>
-    lake env lean --run tools/psi_planner/GenBench.lean <dir>   # gate files
+    (cd RSBounds/PsiFinite/Campaign/T1 && find . -type f \( -name '*.lean' -o -name '*.txt' \) \
+        | LC_ALL=C sort | xargs sha256sum) | diff - verification/psi-finite-campaign/T1-sha256.txt
+    tools/psi_planner/build_campaign.sh T1 955 /tmp/build-M.log 6 9   # ≈ 25 CPU-h; or simply:
+    lake build RSBounds.PsiFinite.Final
+    lake env lean verification/PsiFiniteCheckAudit.lean
+
+An independent checker needs only the last two commands (the first build does
+everything, ~25 CPU-h, ~5.3 GB per job plus mmapped Mathlib). The planner and
+generator are untrusted and need not be rerun; rerunning them with the
+commands of phase E reproduces the files byte for byte (checked once for the
+M modules).

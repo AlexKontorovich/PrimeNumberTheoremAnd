@@ -20,6 +20,8 @@
  * well below the slack 0.0094 sqrt(x) at x = 110102617.
  *
  * Usage: psi_planner N A0 U0 V0 s plan.txt [k=0.8] [margin=1.0] [c1=0.03] [X1=1.3e8] [c2=0.15]
+ *                    [sEarly=s] [Xs=0]
+ *   segments have 2^sEarly bits while lo < Xs, 2^s bits afterwards.
  *   U0, V0: psi(A0) upper/lower (A0 must be even; the small walk gives psi(10^4)).
  */
 #include <math.h>
@@ -45,6 +47,8 @@ int main(int argc, char **argv) {
     double kk = argc > 7 ? atof(argv[7]) : 0.8, margin = argc > 8 ? atof(argv[8]) : 1.0;
     double c1 = argc > 9 ? atof(argv[9]) : 0.03, X1 = argc > 10 ? atof(argv[10]) : 1.3e8;
     double c2 = argc > 11 ? atof(argv[11]) : 0.15;
+    int sEarly = argc > 12 ? atoi(argv[12]) : sbits;
+    double Xs = argc > 13 ? atof(argv[13]) : 0;
     if (A0 % 2 || N % 2 || !plan) { fprintf(stderr, "A0 and N must be even\n"); return 1; }
 
     uint64_t root = (uint64_t)sqrtl((long double)N) + 2;
@@ -81,7 +85,8 @@ int main(int argc, char **argv) {
     double worst = 1e300, tight = 1e300; uint64_t worstA = 0, tightA = 0;
     while (lo - 1 < N) {
         uint64_t bits = (N - (lo - 1)) / 2;
-        if (bits > S) bits = S;
+        uint64_t Sx = (double)lo < Xs ? (1ULL << sEarly) : S;
+        if (bits > Sx) bits = Sx;
         memset(comp, 0, bits);
         uint64_t hi = lo + 2 * (bits - 1);
         for (size_t i = 1; i < nbp; i++) {
