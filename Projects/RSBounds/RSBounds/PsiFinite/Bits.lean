@@ -286,4 +286,15 @@ theorem primeBits_testBit {lo L hi top : ℕ} {l : List ℕ} {E : List (ℕ × �
     cases (sieveK lo L hi top l 0 E).1.testBit i <;> simp [hiL]
   · simp [hiL]
 
+/-- The prime bitset of a sieve, as a constant applied to its parameters. -/
+noncomputable def primeBitsOf (lo L hi top : ℕ) (l : List ℕ) (E : List (ℕ × ℕ)) : ℕ :=
+  Nat.xor (2 ^ L - 1) (Nat.land (sieveK lo L hi top l 0 E).1 (2 ^ L - 1))
+
+theorem primeBitsOf_testBit {lo L hi top : ℕ} {l : List ℕ} {E : List (ℕ × ℕ)}
+    (hl : l.Pairwise (· < ·)) (hodd : ∀ d ∈ l, d % 2 = 1 ∧ 3 ≤ d)
+    (hcomp : ∀ p, p.Prime → p % 2 = 1 → p * p ≤ hi → p ∈ l)
+    (hlo : lo % 2 = 1) (hlo3 : 3 ≤ lo) (hLhi : ∀ i < L, lo + 2 * i ≤ hi) (i : ℕ) :
+    (primeBitsOf lo L hi top l E).testBit i = true ↔ i < L ∧ (lo + 2 * i).Prime :=
+  primeBits_testBit hl hodd hcomp hlo hlo3 hLhi i
+
 end PsiFinite
