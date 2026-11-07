@@ -333,4 +333,13 @@ theorem checkSegK_sound (hb : BaseFacts) {num den lo w B : ℕ} {s s' : St}
   simp only [mul_zero, add_zero, zero_add] at hloop
   exact hloop
 
+/-- The form used by the generated assembly modules. -/
+theorem seg_chain (hb : BaseFacts) {num den lo w B : ℕ} {s s' : St}
+    (h : checkSegK num den lo w B s = some s') {A A' : ℕ} (hA : lo - 1 = A)
+    (hA' : A + 2 * 2 ^ w * B = A') (hB : 0 < B) (hs : Encl A s)
+    (hnum : 0 < num := by decide) (hden : 0 < den := by decide) :
+    Encl A' s' ∧ BoundOn num den A A' := by
+  subst hA hA'
+  exact ⟨(checkSegK_sound hb hnum hden h hs).1, (checkSegK_sound hb hnum hden h hs).2 hB⟩
+
 end PsiFinite
