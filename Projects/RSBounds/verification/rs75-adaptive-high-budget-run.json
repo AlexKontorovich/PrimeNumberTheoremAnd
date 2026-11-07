@@ -1,0 +1,35 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:10:59.415267+00:00",
+  "source_sha256": {
+    "RSBounds/RS75AdaptiveHighBudget.lean": "9f4ec2ed651c16f1aadd406b540a591b9fe85e64fa02382c009a9560e76cde6e",
+    "RSBounds/RS75DecayingHighZeros.lean": "4d5cb1d69b3a8237324463b67f044e1193eba7815a84b5fe8729e9e227ede213",
+    "RSBounds/RS75ZeroPowerDecay.lean": "70c56234aedad791bed3663d1fdbce70e85998daf8a3f6bc19a5546d8c1eed4b",
+    "RSBounds/RosserCubicTail.lean": "7b59799dd8863873e9bc7cfe7d638ea09e25b21e59239eedefc8269b3785a2aa",
+    "verification/RS75AdaptiveHighBudgetAudit.lean": "de10258d17da02a04e188e403e319fd83ec680c6b280901e344edc0c46581048",
+    "verification/run_rs75_adaptive_high_budget_check.py": "ea9e458b100264c2a447f87b25855515ee43bc25d3a9cf0f7aa4001f78d9110e",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75AdaptiveHighBudget.olean",
+        "RSBounds/RS75AdaptiveHighBudget.lean"
+      ],
+      "log": "rs75-adaptive-high-budget-build.log",
+      "exit_code": 0,
+      "seconds": 97.33418628600339
+    }
+  ],
+  "axiom_audit": {
+    "status": "interrupted-before-output",
+    "reason": "Deferred after more than five minutes to prioritize the authorized exact Schoenfeld Theorem 11 proof."
+  },
+  "exit_code": 130
+}

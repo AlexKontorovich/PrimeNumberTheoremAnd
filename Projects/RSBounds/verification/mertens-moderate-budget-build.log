@@ -1,0 +1,33 @@
+import took 83.7s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 217ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 104ms
+'TernaryGoldbach.RSBounds.MertensModerateBudget.error_mul_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensModerateBudget.budget_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensModerateBudget.b23_budget_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 32ms
+	attribute application 0.0769ms
+	blocked (unaccounted) 4.43s
+	congr simp thm 1.91ms
+	declTypeLinter 30.8ms
+	elaboration 111ms
+	fix level params 4.5ms
+	import 83.7s
+	initialization 129ms
+	instantiate metavars 2.48ms
+	interpretation 2.7s
+	let-to-have transformation 0.127ms
+	linting 67ms
+	module linting 1.08ms
+	norm_num 1.36s
+	parsing 18.2ms
+	process pre-definitions 59ms
+	ring 172ms
+	share common exprs 35.8ms
+	simp 22.2ms
+	tactic execution 445ms
+	tacticAnalysis 6.84ms
+	type checking 185ms
+	typeclass inference 864ms

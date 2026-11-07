@@ -1,5 +1,16 @@
 # Explicit Rosser–Schoenfeld estimates: partial formalization
 
+The **full-range RS62 weighted Mertens and totient inequalities are now
+proved**, assuming only `FiniteRH 1894439`. The weighted bound holds for
+every real `x > 1`, with the exact constant `E`; the totient bound holds for
+every integer `n >= 3`, with no upper restriction on `n`. See the
+[exact statements, proof route and receipts](docs/RS62Global.md).
+Both final source checks and their transitive axiom audits passed using only
+`propext`, `Classical.choice`, and `Quot.sound`. The independent joint
+Comparator workflow is running locally; no completed native verdict is
+claimed yet. These are standalone Lean 4.35 results, not official IEANTN
+verification receipts.
+
 This standalone Lean 4.35 project now proves the requested **RS75 b = 23 psi
 entry**:
 
@@ -68,8 +79,8 @@ freshly compiles and its public transitive audit uses only the standard three
 axioms. A separate full native Comparator replay for this new theorem has
 not yet been run; do not conflate this status with the completed psi replay.
 
-**The exact Schoenfeld II targets and the full RS62 Mertens/totient
-bounds remain unfinished.** The active theta targets are Theorem 7*,
+**The exact Schoenfeld II targets remain unfinished.** The full RS62
+Mertens/totient conclusions are now checked with finite RH explicit. The active theta targets are Theorem 7*,
 (5.6*) and (5.6b*), with constants 0.0239922 and 0.0077629 at their published
 thresholds. Theorem 11's exact exponential error is the analytic step toward
 them; the former proposed constant 0.1 is superseded. See the
@@ -89,12 +100,12 @@ quantitative zero-free-region target is a separate problem.
 | --- | --- |
 | RS62 totient coefficient 2.50637 for at most twenty distinct prime factors | Proved |
 | Its corollary for 3 ≤ q ≤ 10^27 | Proved |
-| Finite prime-product certificate through 557, followed by an unrestricted all-n totient reduction | Proved; the two analytic RS62 inputs above 563 remain explicit, unproved hypotheses |
-| Existing calr finite Mertens-product certificate for every prime from 5 through 100000 | Fresh kernel replay passed; the unrestricted all-n totient adapter is also checked, with only the analytic prime-product tail from a cutoff at most 100001 left as an explicit hypothesis |
+| Finite prime-product certificate through 557 and the earlier all-n reduction | Proved as an implication; the completed global proof uses the larger finite handoff below |
+| Existing calr finite Mertens-product certificate for every prime from 5 through 100000 | Fresh kernel replay passed; the analytic tail is now supplied under finite RH, closing the all-n totient theorem |
 | Exact finite-anchor Abel identities for weighted prime and von Mangoldt sums | Proved |
-| Centered Mertens tail identity and variation-to-tail bound | Proved from the existing PNT/Mertens identity; the required quantitative variation bound remains an input |
-| Signed finite-interval degree-two explicit formula | Proved unconditionally for actual multiplicity zero sums; the left remainder is explicit. Passage to infinity and numerical RS62 bounds remain unfinished |
-| First-Mertens Abel identities and Euler normalization | Proved unconditionally, reusing the existing Laurent expansion and boundedness; identification of a limit has convergence as an explicit premise. See [normalization guide](docs/MertensNormalization.md) |
+| Centered Mertens tail identity and variation-to-tail bound | Generic identities and implications proved; the completed RS62 proof uses the separately checked signed J identity and quantitative bounds |
+| Signed degree-two explicit formula and passage to infinity | Proved unconditionally for actual multiplicity zero sums; the exact Euler-normalized signed-tail identity is checked |
+| First-Mertens Abel identities and Euler normalization | Proved unconditionally; convergence is supplied by the actual zero potential. See [normalized identity](docs/MertensDLimit.md) |
 | Global reciprocal-square zero allowance | Proved unconditionally for arbitrary finite actual-zero sets with analytic multiplicities: sum m/gamma^2 < 0.0463; inclusive positive-ordinate cutoffs have bound 0.02315 |
 | Reciprocal-square tail above A = 1894439 | Proved: each positive-ordinate finite tail is below 0.0000012, using the unconditional Rosser count estimate |
 | Schoenfeld II Theorem 11 Laplace integrals and weight calculus | Exact near/far integral bounds, logarithmic substitution, Phi monotonicity, and the density allowance are checked. The weighted-zero assembly, smoothing, numerical parameters, and smaller ranges remain unfinished |
@@ -135,9 +146,10 @@ quantitative zero-free-region target is a separate problem.
 | RS75 real-axis xi/Gamma increments and variable Stechkin parameters | Proved, audited, and assembled into the full zero-free theorem |
 | RS75's exact degree-four cosine polynomial and its nonnegativity | Proved |
 | Gauss series for digamma and its summability on Re(s) > 0 | Reused from IEANTN GammaAsymptotics.v2; freshly compiled and audited on this toolchain |
-| Scalar reduction from stated RS62 analytic inputs to the totient product bound | Proved as an implication; those inputs remain unproved |
+| RS62 analytic inputs and the scalar totient reduction | The scalar implication is proved, and its actual inputs above 100000 are now supplied under finite RH |
 | Moderate-error psi row b = 23 | Proved for every x ≥ exp 23, assuming only finite RH through 1894439 |
-| Full RS62 Mertens/totient bounds and requested global theta estimate | Unfinished |
+| Full RS62 weighted Mertens and all-n totient inequalities | Proved under only FiniteRH 1894439; independent native Comparator verdict pending |
+| Exact Schoenfeld II global theta targets | Unfinished; distinct from the completed RS62 estimates |
 
 The unconditional zero-count and finite totient results assume neither RH,
 Buethe nor Ramare's sum estimate.
@@ -145,11 +157,12 @@ The finite arithmetic through the twentieth prime, 71, is checked by the
 ordinary Lean kernel. The checked theorems use only `propext`,
 `Classical.choice`, and `Quot.sound`.
 
-The unrestricted totient inequality is the goal. The earlier `10^27`
-corollary is not an adequate final range. `TotientGlobalReduction.lean`
-now checks the prime-product inequality through prime cutoff 557 and proves
-the all-n implication from the RS62 product and theta estimates at every
-integer cutoff at least 563. Those two analytic estimates still need proofs.
+The unrestricted totient inequality is now proved in
+`RS62TotientFromFiniteRH.totient_bound_of_finiteRH`, under the sole finite-RH
+premise. The finite prime-product check ends at 100000, where the proved
+analytic inputs take over; the conclusion covers every integer `n >= 3`.
+The earlier unconditional `10^27` corollary remains a historical finite
+result, not the final range of the new theorem.
 
 ## The b = 23 proof
 

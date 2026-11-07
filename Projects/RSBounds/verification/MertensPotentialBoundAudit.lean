@@ -1,0 +1,20 @@
+import RSBounds.MertensPotentialBound
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.tailMoment_nonneg
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.tailMoment_le
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.summable_tailMoment
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.sum_tailMoment_zeroFinset
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.sum_tailMoment_le
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.tsum_tailMoment_le
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.norm_coefficient_le_head_add_tail
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.norm_potential_le
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.squareAllowance_A_lt
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.norm_potential_A_lt
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.norm_signedLimit_A_lt
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.norm_signedLimit_A_lt_uniform
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.abs_J_A_lt_uniform
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.mertens_lower_of_moderate_psi
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialBound.mertens_lower_of_b23_psi

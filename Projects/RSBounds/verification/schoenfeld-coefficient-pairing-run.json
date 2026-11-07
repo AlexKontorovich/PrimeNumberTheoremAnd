@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:25:58.153865+00:00",
+  "source_sha256": {
+    "RSBounds/SchoenfeldCoefficientPairing.lean": "9251d6117e987a4a231122deb91e45b171d5940efec3da693c61e15abcf7f038",
+    "RSBounds/SchoenfeldZeroSymmetry.lean": "291b02438482b671045cea21788614655468b72c75accf501867b36093c7e84b",
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "RSBounds/RS75ZeroPowerDecay.lean": "70c56234aedad791bed3663d1fdbce70e85998daf8a3f6bc19a5546d8c1eed4b",
+    "RSBounds/RS75ZeroFree1975.lean": "e09f31b984976d75c0a773b6c41d3d671ee2ac7aebe2c5466212ba1253a768cb",
+    "verification/SchoenfeldCoefficientPairingAudit.lean": "f434c686f8dc56f6717a1ed02fb1c4cce5220d79514099ed19fd8981d2a49d87",
+    "verification/run_schoenfeld_coefficient_pairing_check.py": "146383a4e9921b90f5b7f43a1721eb9c326b2ef5cfccc4530c5847d2a7efc2c4",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldCoefficientPairing.olean",
+        "RSBounds/SchoenfeldCoefficientPairing.lean"
+      ],
+      "log": "schoenfeld-coefficient-pairing-build.log",
+      "exit_code": 0,
+      "seconds": 207.35597858499386
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/SchoenfeldCoefficientPairing.lean",
+    "verification/SchoenfeldCoefficientPairingAudit.lean"
+  ],
+  "stdin_sha256": "a6bcd402672f802d406bfd2b74093d94a6f48edadfc3174656d5bec7d3efe858",
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T20:29:25.514629+00:00",
+  "exit_code": 0
+}

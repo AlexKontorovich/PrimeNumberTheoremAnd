@@ -2,7 +2,9 @@
 
 This work targets the common signed-integral input behind Rosser and Schoenfeld
 (1962), Section 8, Lemmas 7 and 8. It does not assume a prime-number estimate or
-finite RH. It does not yet prove the two original Mertens/totient bounds.
+finite RH. It is the unconditional foundation of the now checked
+[full-range Mertens/totient derivations](RS62Global.md), which retain their
+separate finite-RH premise.
 
 ## Checked arithmetic checkpoint
 
@@ -76,11 +78,26 @@ Final assembly receipt: `verification/mertens-signed-interval-run.json`.
 Reproduce it with `python verification/run_mertens_signed_interval_check.py`
 after sourcing `../lean-env.sh`.
 
-The following remain explicit subsequent obligations: evaluating or bounding
-that left remainder, justifying passage to `b → ∞` with the degree-two zero
-sum, and identifying the limiting weighted-Mertens normalization. Any later
-corollary using finite RH must keep it visible; the original RS62 target is
-unconditional.
+The left remainder now has the checked bound
+`‖L(a,b)‖ ≤ 6000 (a^(-3/2) + b^(-3/2))` in
+`MertensIntervalLeftBound` (eight standard-three audits). The separate
+`MertensCenteredNormalization.centered_limit_eq` theorem also identifies any
+limit of `D(x)=E₁Λ(x)-ψ(x)/x` as `-γ-1`, using its proved Mellin transform.
+Neither result assumes finite RH or a pointwise PNT.
+
+`MertensEndpointLeft` now also proves `L(a,b)=F(b)-F(a)`,
+`‖F(c)‖≤6000 c^(-3/2)`, and `F(c)→0` (ten standard-three audits).
+`MertensZeroPotential` now proves absolute convergence of the actual
+multiplicity-weighted degree-two series, its decay at infinity, and its
+rectangle-sum limit (17 standard-three audits; see `MertensZeroPotential.md`).
+`MertensSignedLimit` now also proves existence and the exact zero-potential
+formula for the improper signed tail (five standard-three audits; see
+`MertensSignedLimit.md`). The Euler-normalized first-Mertens identity is in
+its separate assembly check; the numerical RS62 goals still require their
+quantitative estimates and final range handoffs. The original
+RS62 numerical inequalities are not proved by the finite-interval formula
+alone. Any later corollary using finite RH must keep it visible; the original
+RS62 target is unconditional.
 
 Source: J. Barkley Rosser and Lowell Schoenfeld, *Approximate formulas for some
 functions of prime numbers*, Illinois J. Math. **6** (1962), 64–94,

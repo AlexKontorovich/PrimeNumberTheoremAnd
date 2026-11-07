@@ -1,0 +1,76 @@
+import took 353s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 111ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 109ms
+'TernaryGoldbach.RSBounds.MertensZeroPotential.mem_zeroFinset' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.zero_re_strip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.sum_zeroFinset' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.tendsto_zeroFinset' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.zetaGoodHeight_of_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.moment_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.momentAllowance_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.tsum_moment_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.sum_moment_le_allowance' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.tsum_moment_le_allowance' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.summable_moment' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.norm_coefficient_le_power_moment' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.norm_coefficient_le_moment' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.summable_coefficient' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.coefficient_tendsto_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.potential_tendsto_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensZeroPotential.sum_tendsto_potential' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 41.5ms
+	attribute application 0.273ms
+	blocked (unaccounted) 3.06s
+	congr simp thm 4.03ms
+	declTypeLinter 27.7ms
+	dsimp 5.12ms
+	elaboration 460ms
+	fix level params 1.09ms
+	import 353s
+	initialization 107ms
+	instantiate metavars 3.05ms
+	interpretation 2.77s
+	let-to-have transformation 0.299ms
+	linting 50.8ms
+	module linting 0.0205ms
+	norm_num 52.4ms
+	parsing 44ms
+	process pre-definitions 36.7ms
+	ring 95.5ms
+	share common exprs 41.6ms
+	simp 130ms
+	tactic execution 907ms
+	tacticAnalysis 10.1ms
+	type checking 130ms
+	typeclass inference 882ms

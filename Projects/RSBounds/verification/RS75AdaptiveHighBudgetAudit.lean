@@ -1,0 +1,11 @@
+import RSBounds.RS75AdaptiveHighBudget
+
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.adaptiveDelta_pos
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.four_adaptiveDelta_lt_one
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.R4_le_seventeen
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.power_exp_le_at_twenty
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.endpoint_budget_lt
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.powerBudget_lt
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.highConstant_budget_lt
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.norm_high_sum_upper_lt
+#print axioms TernaryGoldbach.RSBounds.RS75AdaptiveHighBudget.norm_high_sum_lower_lt

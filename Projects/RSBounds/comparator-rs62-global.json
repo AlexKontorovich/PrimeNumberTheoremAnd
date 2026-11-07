@@ -1,0 +1,9 @@
+{
+  "challenge_module": "RS62GlobalChallenge",
+  "solution_module": "RS62GlobalSolution",
+  "theorem_names": [
+    "TernaryGoldbach.RSBounds.RS62MertensFromFiniteRH.mertens_lower_of_finiteRH",
+    "TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.totient_bound_of_finiteRH"
+  ],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"]
+}

@@ -1,0 +1,88 @@
+import took 90.7s
+RSBounds/RS62ProductBudget.lean:70:41: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/RS62ProductBudget.lean:70:37: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62ProductBudget.lean:70:41: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62ProductBudget.lean:121:36: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/RS62ProductBudget.lean:121:32: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62ProductBudget.lean:121:36: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62ProductBudget.lean:144:21: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62ProductBudget.lean:144:21: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62ProductBudget.lean:148:5: warning: Variable name `hL0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hL0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+RSBounds/RS62ProductBudget.lean:175:5: warning: Variable name `hL0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hL0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+RSBounds/RS62ProductBudget.lean:205:32: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62ProductBudget.lean:205:32: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 173ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 153ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 299ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 566ms
+RSBounds/RS62ProductBudget.lean:253:26: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62ProductBudget.lean:253:26: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+'TernaryGoldbach.RSBounds.RS62ProductBudget.log_hundred_thousand_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62ProductBudget.log_div_sqrt_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS62ProductBudget.jModel_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS62ProductBudget.moderate_log_budget' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62ProductBudget.b23_log_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS62ProductBudget.large_log_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 74.8ms
+	attribute application 0.183ms
+	blocked (unaccounted) 14.9s
+	congr simp thm 5.18ms
+	declTypeLinter 11.3ms
+	elaboration 296ms
+	fix level params 4.86ms
+	import 90.7s
+	initialization 33.9ms
+	instantiate metavars 9.88ms
+	interpretation 4.07s
+	let-to-have transformation 0.493ms
+	linting 79.4ms
+	module linting 0.00933ms
+	norm_num 1.68s
+	parsing 21.7ms
+	process pre-definitions 84.6ms
+	ring 215ms
+	share common exprs 88.9ms
+	simp 84.2ms
+	tactic execution 736ms
+	tacticAnalysis 8.88ms
+	type checking 291ms
+	typeclass inference 1.63s

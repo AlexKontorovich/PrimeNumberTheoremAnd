@@ -1,0 +1,5 @@
+import RSBounds.MertensFiniteParts
+
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteParts.absolutelyContinuousOnInterval_of_primitive
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteParts.integral_mul_eq_boundary_add_of_primitive
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteParts.integral_mul_eq_boundary_add_of_contDiffOn

@@ -41,14 +41,19 @@ for `ΣΛ(n)/n` through 10000 with the constant `log(3/√2)`. It is useful
 certificate infrastructure but is not the requested RS62 prime-weighted
 lower bound with `E−1/(2log x)`.
 
-The prepared finite weighted-prime route uses the coarse scalar bound
+The completed finite weighted-prime route uses the coarse scalar bound
 `E<−1.3` and checks the increasing real main term at the right endpoint of
-each block. `MertensFiniteScalars.lean` is the proposed scalar/block module;
-it must receive its own fresh-source check before use. No finite weighted
-range is claimed from a floating-point diagnostic. The exact integer
+each block. `MertensFiniteScalars.lean` has now passed its independent fresh-source
+check and all four standard-axiom audits; see
+`verification/mertens-finite-scalars-run.json`. No finite weighted range
+is claimed from a floating-point diagnostic. The exact integer
 101-block weighted-prime certificate and readable witness data are
-described separately in `MertensFinite100000.md`; their own receipts
-distinguish generation from completed kernel replay.
+described separately in `MertensFinite100000.md`. The numerical replay
+has passed, proving the original exact-constant weighted-prime lower
+bound for every real `1 < x ≤ 100000`; all five transitive axiom audits
+use only the standard three axioms. See
+`verification/mertens-finite-100000-run.json`. Its global handoff still
+requires the analytic inequality on `x ≥ 100000` explicitly.
 
 References: Rosser–Schoenfeld (1962), Theorem 15,
 <https://doi.org/10.1215/ijm/1255631807>; upstream pinned revision

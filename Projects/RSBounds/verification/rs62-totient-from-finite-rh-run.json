@@ -1,0 +1,45 @@
+{
+  "kind": "fresh-rs62-totient-from-finite-rh-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T21:38:36.956024+00:00",
+  "source_sha256": {
+    "RSBounds/RS62TotientFromFiniteRH.lean": "cdfb8f02676c1a8d0bfbf14386db0119b1417ca9d54792db5aac8191fdca9c8d",
+    "RSBounds/RS62FiniteHandoff.lean": "371cdd896153f58cb2cbf3a8256bee19b76b72f36d8f3bf9d5a4947bc09bf2d5",
+    "RSBounds/TotientAnalyticReduction.lean": "86071667af8b4d2a6a0e30e467cec22edd5ff1f79c8362489deb980273db5bac",
+    "RSBounds/SmallTotientProduct.lean": "441e7b4741a27148478caba16cfbafa0d1632ecb01e3d1ebe5f1c72b18769460",
+    "RSBounds/MertensProductBridge.lean": "eeb5bf305c99222533ce25175dc9db3b2956befb189d02f1247824ae14774c41",
+    "RSBounds/RS62ProductBudget.lean": "496540a05625ae247f9687f8c9b74683c5bf2c5e2123fe9150d1dd5353837e70",
+    "RSBounds/PsiThetaElementary.lean": "704af7aa172d2a5c0d7a1d908b6fd51fd0edbc64c3ce539bf8d469497ce67b82",
+    "RSBounds/ModeratePsi.lean": "832dc16238e12d935edf16b9290c788789678f766b2d1c23d3f948f9dd6214b6",
+    "RSBounds/RosserSchoenfeld1975.lean": "78b8e4f89e0648714ac276ed0539045d9eb009725460b108b9a0278b0966ca3b",
+    "RSBounds/WeakPsiTail.lean": "fee0ff2b9b9d2c14fdb64e9feee4c905eafd6f0932b17ed26e7de6fd25fa611f",
+    "RSBounds/MertensLargeBudget.lean": "6ac8957e3935b6d96d3728c412b5430d624f04ac6bbb3a32022691658d0efe0a",
+    "verification/RS62TotientFromFiniteRHAudit.lean": "45be531837f520285943e6544300032e870592996880704a7b278a51c02c8f6e",
+    "verification/run_rs62_totient_from_finite_rh_check.py": "7f2bee6c8fe748b95f49a5feab42c9e7984e9f0ab45752149fadd4a5fb0bcfac"
+  },
+  "stdin_recipe": "Exact source plus 7 fully qualified #print axioms commands.",
+  "stdin_sha256": "a5b8f573c92ba8529fbff557c4ab84ab581b4a933b5de85dc6b2492c0d960a69",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS62TotientFromFiniteRH.olean",
+        "RSBounds/RS62TotientFromFiniteRH.lean"
+      ],
+      "log": "verification/rs62-totient-from-finite-rh-build.log",
+      "exit_code": 0,
+      "seconds": 159.83035331500287
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "92ca367e01b7a888fda4d8a292ea3e78dd2ad583e1816b39b5b5a91438dcf52a",
+  "finished_utc": "2026-11-06T21:41:16.794888+00:00"
+}

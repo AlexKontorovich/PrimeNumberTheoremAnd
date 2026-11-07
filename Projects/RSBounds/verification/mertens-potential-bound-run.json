@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-mertens-potential-bound-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:52:08.842403+00:00",
+  "source_sha256": {
+    "RSBounds/MertensPotentialBound.lean": "6e48ff3157ad7959f6307a9d7fc50c2518125845e7e4e8f63e890a3f08150c90",
+    "RSBounds/MertensZeroPotential.lean": "5bdf231ca3d884aaa0e4d9bc486f3e7010200f60d077748832cb06e98274fa98",
+    "RSBounds/RosserSquareTail.lean": "2e464311aaebb537cd18775190d6261fa68d397667ad32b74d3c648a01e1731c",
+    "RSBounds/RS75DecayingHighZeros.lean": "4d5cb1d69b3a8237324463b67f044e1193eba7815a84b5fe8729e9e227ede213",
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89",
+    "RSBounds/MertensTailScalars.lean": "99340fdf85cfd09bd20931aabab9297094483bf676f9e9c42233aaa1fe3d3fbd",
+    "RSBounds/MertensSignedLimit.lean": "00d70ff96edcca9e0fa937267b81c6c6ee90f40c0ebdcf00c0cd0c2a43aa3cd1",
+    "RSBounds/MertensDLimit.lean": "5ecf362a262c56637b1e5d50fe09afdcd201bd20059861c19a6581d3520764dd",
+    "RSBounds/MertensModerateBudget.lean": "12e4fd73b89e8a35de6a43ad7438bda17391ad9666e5423158193008d6e2f039",
+    "verification/MertensPotentialBoundAudit.lean": "0ee9a76044c736d4c303ad801b46443f7775cb84ef308833fe03263a5dc8c10c",
+    "verification/run_mertens_potential_bound_check.py": "5fcb64fb268c893a2b1ff413a1ef1e68fd95c593d9bf3cf65974c6349c9bdf4f"
+  },
+  "stdin_recipe": "Exact source plus 15 fully qualified #print axioms commands.",
+  "stdin_sha256": "fd929c2b3279fc4719529094efb2b0a3839c3433c977d15110dd6ae56e384983",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensPotentialBound.olean",
+        "RSBounds/MertensPotentialBound.lean"
+      ],
+      "log": "verification/mertens-potential-bound-build.log",
+      "exit_code": 0,
+      "seconds": 265.52407085400046
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 15,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "22c3ce2964af6ccd570cf3dd4fe4561c2e5dd93ddbcc4acb65fedd30dbf79c0c",
+  "finished_utc": "2026-11-06T20:56:34.375903+00:00"
+}

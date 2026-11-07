@@ -1,0 +1,49 @@
+{
+  "kind": "fresh-source-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:43:52.083689+00:00",
+  "lean_version": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+  "source_sha256": {
+    "RSBounds/MertensSecondSigned.lean": "5cf85c8bf0442153fa7d39d87d8615458359bbd4e97f1b05c6cbdca0314b13c2",
+    "verification/MertensSecondSignedAudit.lean": "2330b8dd17398ce267033fc66b117a15f4924497145e3fbb4480b187276ae3fe",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "verification/run_fresh_module_check.py": "fad671602d7fc5babc872e0102e8d9767ccba34700fe74c0228a37df38bc414d"
+  },
+  "stdin_sha256": "30e0d8cc74ceb7410e1091597b2f46aa9b611c0ab89f7bda1dc24f11272ca5dd",
+  "stdin_recipe": "Exact source followed by the listed fully qualified axiom commands.",
+  "audited_declarations": [
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.measurable_J",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.J_bound",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.first_error_eq",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.J_sub_eq_integral",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.intervalIntegrable_centered_psi",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.finite_parts",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_J_mul",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.error_bound",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_error_log_sq",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_centered_log_sq",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.boundary_tendsto_zero",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.integral_parts",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_eq",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_sub_endpoint_le",
+    "TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_abs_le"
+  ],
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensSecondSigned.olean",
+    "RSBounds/MertensSecondSigned.lean"
+  ],
+  "log": "verification/mertens-second-signed-build.log",
+  "exit_code": 0,
+  "seconds": 177.90984661699622,
+  "finished_utc": "2026-11-06T19:46:50.199838+00:00",
+  "axiom_audit": {
+    "declarations": 15,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "00e6154b81d364e4e332a895e60327eb9f6143c83fbd5addde39407003ac53e0"
+}

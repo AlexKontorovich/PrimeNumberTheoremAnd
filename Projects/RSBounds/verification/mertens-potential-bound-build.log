@@ -1,0 +1,80 @@
+interpretation of ProbabilityTheory.term__[_|_In_] took 378ms
+import took 259s
+RSBounds/MertensPotentialBound.lean:89:20: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+RSBounds/MertensPotentialBound.lean:98:28: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+'TernaryGoldbach.RSBounds.MertensPotentialBound.tailMoment_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.tailMoment_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.summable_tailMoment' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.sum_tailMoment_zeroFinset' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.sum_tailMoment_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.tsum_tailMoment_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.norm_coefficient_le_head_add_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.norm_potential_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.squareAllowance_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.norm_potential_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.norm_signedLimit_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.norm_signedLimit_A_lt_uniform' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.abs_J_A_lt_uniform' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.mertens_lower_of_moderate_psi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialBound.mertens_lower_of_b23_psi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 41.9ms
+	attribute application 0.289ms
+	blocked (unaccounted) 3.25s
+	congr simp thm 4.18ms
+	declTypeLinter 12.1ms
+	elaboration 431ms
+	fix level params 1.87ms
+	import 259s
+	initialization 121ms
+	instantiate metavars 2.04ms
+	interpretation 2.67s
+	let-to-have transformation 0.318ms
+	linting 38.3ms
+	module linting 0.0209ms
+	norm_num 786ms
+	parsing 22.1ms
+	process pre-definitions 31.1ms
+	ring 81.4ms
+	share common exprs 29.6ms
+	simp 45.1ms
+	tactic execution 507ms
+	tacticAnalysis 8.61ms
+	type checking 180ms
+	typeclass inference 1.05s

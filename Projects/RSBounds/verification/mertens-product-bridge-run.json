@@ -1,0 +1,65 @@
+{
+  "kind": "fresh-mertens-product-bridge-source-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:59:46.186213+00:00",
+  "source_sha256": {
+    "RSBounds/MertensProductBridge.lean": "eeb5bf305c99222533ce25175dc9db3b2956befb189d02f1247824ae14774c41",
+    "verification/MertensProductBridgeAudit.lean": "b8ed162350ebb4980b50d20cfd5b19e6f5e2967475a19c103f6961a2f09ebd0f",
+    "verification/run_mertens_product_bridge_check.py": "9ade122e45f78a6f98be3919af38adc6b4b3d3eeeed462062b8e4fae8f67d90b",
+    "RSBounds/MertensProductCorrection.lean": "8cc94ccee57dfb2d95207509585eed05ab11a10be58013c23270993330c50080",
+    "RSBounds/MertensSecondSigned.lean": "5cf85c8bf0442153fa7d39d87d8615458359bbd4e97f1b05c6cbdca0314b13c2",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2"
+  },
+  "stdin_recipe": "Exact source plus 3 fully qualified #print axioms commands.",
+  "stdin_sha256": "6806e0f7907783ae3b1fecdc893770997429fbb58caa21b2561d9c6f18f3b715",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensProductBridge.olean",
+        "RSBounds/MertensProductBridge.lean"
+      ],
+      "log": "verification/mertens-product-bridge-build.log",
+      "exit_code": 0,
+      "seconds": 265.5160995190017
+    }
+  ],
+  "exit_code": 0,
+  "build_exit_code": 0,
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true,
+    "per_declaration": [
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductBridge.primeProduct_pos",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductBridge.log_primeProduct_le",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductBridge.primeProduct_lt_of_errors",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      }
+    ]
+  },
+  "object_sha256": "d30b979ef9b97632ba745303cfb2f06ca5c90b6aa3f4a6627d3018e4849201a7",
+  "build_log_sha256": "c26f74dde03188e6834bc118fd7677ce409150e8ae1b6fabda0d7a063de56b94",
+  "finished_utc": "2026-11-06T21:04:11.708664+00:00"
+}

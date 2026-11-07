@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-rs62-mertens-from-finite-rh-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T21:27:47.190405+00:00",
+  "source_sha256": {
+    "RSBounds/RS62MertensFromFiniteRH.lean": "7cab9f56a2e264be53c30ed14e443f2e9c6dc5d7a8021da070c8c23233f2fc9f",
+    "RSBounds/MertensFinite100000.lean": "12dcadb5808237ae8fdcafa7ec277d18ee1669f096847c706dccbe9fb492f911",
+    "RSBounds/ModeratePsi.lean": "832dc16238e12d935edf16b9290c788789678f766b2d1c23d3f948f9dd6214b6",
+    "RSBounds/RosserSchoenfeld1975.lean": "78b8e4f89e0648714ac276ed0539045d9eb009725460b108b9a0278b0966ca3b",
+    "RSBounds/WeakPsiTail.lean": "fee0ff2b9b9d2c14fdb64e9feee4c905eafd6f0932b17ed26e7de6fd25fa611f",
+    "RSBounds/MertensLargeBudget.lean": "6ac8957e3935b6d96d3728c412b5430d624f04ac6bbb3a32022691658d0efe0a",
+    "verification/RS62MertensFromFiniteRHAudit.lean": "467eb8fed3917e9b94e3793482e9061849039c69cf7b5ee153b714b413922f46",
+    "verification/run_rs62_mertens_from_finite_rh_check.py": "afb9baf82133c9a7020b2738f8029a785b6a0f64c0113d3bd4811da841d728b2"
+  },
+  "stdin_recipe": "Exact source plus 1 fully qualified #print axioms commands.",
+  "stdin_sha256": "61240669c839d9149b1fb63a4ae05ad135905bc17781a21c334521a35af34e56",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS62MertensFromFiniteRH.olean",
+        "RSBounds/RS62MertensFromFiniteRH.lean"
+      ],
+      "log": "verification/rs62-mertens-from-finite-rh-build.log",
+      "exit_code": 0,
+      "seconds": 302.0831867289962
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 1,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "964bc6bead911a7d4ce95368b96ef6d7f803d6f20107257898a8aa014141a2e4",
+  "finished_utc": "2026-11-06T21:32:49.279849+00:00"
+}

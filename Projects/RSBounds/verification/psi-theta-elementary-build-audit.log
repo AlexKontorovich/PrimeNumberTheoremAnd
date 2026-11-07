@@ -1,0 +1,71 @@
+import took 81.5s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 213ms
+RSBounds/PsiThetaElementary.lean:122:25: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+RSBounds/PsiThetaElementary.lean:129:26: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+'TernaryGoldbach.RSBounds.PsiThetaElementary.log_four_add_four_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.cube_root_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.fifth_root_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.psi_sub_theta_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.log_hundred_thousand_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.sqrt_exp_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.exp_six_ge' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.exp_ten_ge' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.log_div_sqrt_le_at_exp' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.log_div_sqrt_le_at_hundred_thousand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.moderate_theta_budget' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.b23_theta_budget' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.large_theta_budget_of_log' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiThetaElementary.large_theta_budget' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 53.4ms
+	attribute application 0.176ms
+	blocked (unaccounted) 4.12s
+	congr simp thm 1.98ms
+	declTypeLinter 13.8ms
+	elaboration 165ms
+	fix level params 2.89ms
+	import 81.5s
+	initialization 54.1ms
+	instantiate metavars 2.99ms
+	interpretation 2.76s
+	let-to-have transformation 0.439ms
+	linting 53.9ms
+	module linting 0.0171ms
+	norm_num 666ms
+	parsing 26.2ms
+	process pre-definitions 56ms
+	ring 172ms
+	share common exprs 39.6ms
+	simp 20ms
+	tactic execution 452ms
+	tacticAnalysis 9.86ms
+	type checking 271ms
+	typeclass inference 1.06s

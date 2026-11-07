@@ -1,0 +1,8 @@
+import RSBounds.MertensLargeBudget
+
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.cutoffRoot_ge
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.cutoffRoot_sq
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.actual_envelope_eq
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.norm_signedLimit_lt
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.abs_J_lt
+#print axioms TernaryGoldbach.RSBounds.MertensLargeBudget.mertens_lower_of_weak_psi

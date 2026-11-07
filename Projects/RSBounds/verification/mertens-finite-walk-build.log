@@ -1,0 +1,71 @@
+import took 197s
+elaboration took 186ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 110ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 104ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 192ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 182ms
+RSBounds/MertensFiniteWalk.lean:81:6: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteWalk.lean:81:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteWalk.lean:121:10: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+RSBounds/MertensFiniteWalk.lean:121:27: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+RSBounds/MertensFiniteWalk.lean:130:17: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+RSBounds/MertensFiniteWalk.lean:130:34: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.Sp_eq_primeWeightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.check_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.Inv_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.walk_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.Inv_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_le_two' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_of_Inv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 47.4ms
+	attribute application 1.83ms
+	blocked (unaccounted) 3.38s
+	compilation (IR) 0.322ms
+	compilation (LCNF base) 4.88ms
+	compilation (LCNF impure) 1.58ms
+	compilation (LCNF mono) 2.65ms
+	congr simp thm 7.46ms
+	declTypeLinter 5.81ms
+	dsimp 17.3ms
+	elaboration 358ms
+	fix level params 1.55ms
+	import 197s
+	initialization 86.8ms
+	instantiate metavars 5.87ms
+	interpretation 2.61s
+	let-to-have transformation 0.318ms
+	linting 45.6ms
+	module linting 0.0146ms
+	norm_num 283ms
+	parsing 18.7ms
+	process pre-definitions 46.8ms
+	ring 98.5ms
+	share common exprs 36.8ms
+	simp 105ms
+	tactic execution 429ms
+	tacticAnalysis 7.12ms
+	type checking 155ms
+	typeclass inference 1.07s

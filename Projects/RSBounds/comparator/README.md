@@ -10,6 +10,7 @@ The solution files import the actual proofs.
 | `comparator.json` | `RSTotientChallenge`, `RSTotientSolution` | The two restricted totient results |
 | `comparator-zero-count.json` | `RSZeroCountChallenge`, `RSZeroCountSolution` | Rosser's bound for every `T >= 2`, and the strict error `< 1` for `0 <= T <= 100` |
 | `comparator-psi.json` | `RSPsiChallenge`, `RSPsiSolution` | `abs(psi(x)-x) < 0.00020211*x` for `x >= exp 23`, assuming finite RH through 1894439 |
+| `comparator-rs62-global.json` | `RS62GlobalChallenge`, `RS62GlobalSolution` | Exact weighted Mertens for every real x > 1, and totient for every integer n >= 3, both under finite RH through 1894439 |
 
 The zero-count challenge independently defines the actual positive-ordinate
 zeta zero count, with analytic multiplicities and the inclusive condition
@@ -87,3 +88,18 @@ axiom audits pass with only the standard three axioms. Configuration:
 **No native Comparator replay for these two new targets has run yet.**
 The passed count and psi Comparator records below concern their own targets.
 
+
+## Full-range RS62 comparison
+
+Both final RS62 solution modules have completed their fresh source checks
+and standard-three-axiom audits. The independent Mathlib-only challenge
+specifies finite RH, the exact Mertens constant, and both full-range target
+propositions without definition holes. The prepared Python runner validates
+the exact completed audit records and source/object hashes before exporting
+the proofs and invoking the native Comparator.
+
+**The joint RS62 Comparator workflow is currently running locally. No
+completed native verdict is claimed yet.** This status is separate from
+the successful earlier count and b23 psi replays. The runner is
+`verification/run_rs62_global_comparator.py`; its immutable completed verdict
+record will be published separately after the process returns.

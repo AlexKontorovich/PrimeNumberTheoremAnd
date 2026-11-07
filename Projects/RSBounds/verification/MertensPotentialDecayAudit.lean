@@ -1,0 +1,9 @@
+import RSBounds.MertensPotentialDecay
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_coefficient_le_at_lower
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.zero_power_le_cutoff
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_coefficient_le_cutoff
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_potential_le_cutoff
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_signedLimit_le_cutoff
+
+#print axioms TernaryGoldbach.RSBounds.MertensPotentialDecay.abs_J_le_cutoff

@@ -1,0 +1,17 @@
+import RSBounds.MertensDLimit
+
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.tendsto_D
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.first_error_eq_of_normalization
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.signedLimit_one_re
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.first_error_eq
+
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.E1p_eq_primeWeightedSum
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.primeWeightedSum_lower_signed
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.mertens_lower_of_errors
+
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.signedLimit_re_eq_centered
+
+#print axioms TernaryGoldbach.RSBounds.MertensDLimit.J_eq_signedLimit

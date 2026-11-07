@@ -1,0 +1,29 @@
+import took 299s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 161ms
+'TernaryGoldbach.RSBounds.RS62MertensFromFiniteRH.mertens_lower_of_finiteRH' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 16.6ms
+	attribute application 0.0163ms
+	blocked (unaccounted) 567ms
+	congr simp thm 0.103ms
+	declTypeLinter 15ms
+	elaboration 37.5ms
+	fix level params 0.0994ms
+	import 299s
+	initialization 45.4ms
+	instantiate metavars 0.282ms
+	interpretation 2.34s
+	let-to-have transformation 0.0161ms
+	linting 31.6ms
+	module linting 0.645ms
+	norm_num 19.4ms
+	parsing 13.3ms
+	process pre-definitions 1.61ms
+	ring 30.6ms
+	share common exprs 4.78ms
+	tactic execution 75.3ms
+	tacticAnalysis 5.66ms
+	type checking 19.5ms
+	typeclass inference 115ms

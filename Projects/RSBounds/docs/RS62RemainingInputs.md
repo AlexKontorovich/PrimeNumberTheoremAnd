@@ -1,5 +1,12 @@
 # Remaining analytic inputs for the RS62 Mertens and totient bounds
 
+> Historical dependency audit. The route described here has now been
+> completed under the explicit premise `FiniteRH 1894439`; see
+> [the full-range statements and verification status](RS62Global.md).
+> The finite-RH premise itself has not been discharged, so the unconditional
+> target propositions are not asserted without it. The older outstanding
+> inputs below describe the earlier stage of this development.
+
 This is a mathematical dependency audit, not a new Lean proof. The checked
 moderate-error theorem
 [`RosserSchoenfeld1975.psi_error_b23`](../RSBounds/RosserSchoenfeld1975.lean)

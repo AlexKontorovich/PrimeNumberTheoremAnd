@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-mertens-finite-walk-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:13:48.308314+00:00",
+  "source_sha256": {
+    "RSBounds/MertensFiniteWalk.lean": "a5d401a75cd26f410897cdbdcdff5e18456416b3615dbcd8b301b73a842b42a8",
+    "RSBounds/MertensFiniteScalars.lean": "afd3aee79cfa766babf60c4b3a8d8e254cd58d94adf5d5991169aebbc4c93494",
+    "../ternary-goldbach/TernaryGoldbach/Prelim/SmallMertensProd.lean": "ac74a9aacb156f36bcf71a08db2319733a126fd68a8eec8bbdd11ace6fe4760f",
+    "verification/MertensFiniteWalkAudit.lean": "e909adf32d8bcad2be39f6e8182322749828019c92d123eb2f2740fa84dba560",
+    "verification/run_mertens_finite_walk_check.py": "866e22ca9b8de1daf022bd9a37bd1e45efb4eac8229eebc4b0672bd1126e2700"
+  },
+  "stdin_recipe": "Exact source plus 7 fully qualified #print axioms commands.",
+  "stdin_sha256": "a7aeeaa44fa9ff327a33a25f9b8d5d95a7c099b9f597c8d316b8a9db9bd3216a",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensFiniteWalk.olean",
+        "RSBounds/MertensFiniteWalk.lean"
+      ],
+      "log": "verification/mertens-finite-walk-build.log",
+      "exit_code": 0,
+      "seconds": 203.00871301499865
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "f243d610bf8183e848370629f3667476e78518b5206648b8f725a22da3b110c6",
+  "finished_utc": "2026-11-06T20:17:11.323496+00:00"
+}
