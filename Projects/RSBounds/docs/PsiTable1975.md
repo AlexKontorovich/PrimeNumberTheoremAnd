@@ -250,8 +250,11 @@ Selected component records are:
 | Passage from zero sums to psi | [polynomial-psi-from-zero-sums-run.json](../verification/polynomial-psi-from-zero-sums-run.json) |
 
 This completes the **1975 constant 0.00020211** under the stated finite-RH
-premise. The tighter **1976 constant 0.00020171**, the requested global
-\(x/\log x\) bound for \(\theta\), the RS62 Mertens estimate, the RS62
-totient inequality for all \(n\ge3\), and the separate RS75 quantitative
-zero-free-region theorem remain unproved in this development. Existing
-partial or finite-range results do not discharge those global goals.
+premise. Since this page was written, the RS62 Mertens estimate and the
+RS62 totient inequality for all \(n\ge3\) have been proved under the same
+premise ([RS62Global.md](RS62Global.md)), and so has the separate RS75
+quantitative zero-free region, unconditionally for \(|t|\ge1894439\)
+([RS75ZeroFreeAudit.md](RS75ZeroFreeAudit.md)). The tighter
+**1976 constant 0.00020171** and the requested global \(x/\log x\) bound
+for \(\theta\) remain unproved in this development. Existing partial or
+finite-range results do not discharge those global goals.

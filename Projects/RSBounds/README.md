@@ -72,12 +72,14 @@ The separate **RS75 quantitative zero-free region is now proved**:
 assuming `FiniteRH 1894439`, zeta is nonzero whenever `abs(Im(s)) >= 21` and
 `Re(s) >= 1 - 1/(9.645908801 * log(abs(Im(s))/17))`.
 The high-height theorem for `abs(Im(s)) >= 1894439` is unconditional;
-finite RH is used only for the bounded-height handoff. The closed boundary
-is excluded. The [proof and dependency guide](docs/RS75ZeroFreeAudit.md)
+finite RH is used only for the bounded-height handoff. The region is
+closed: zeros are excluded on the boundary as well. The
+[proof and dependency guide](docs/RS75ZeroFreeAudit.md)
 records the exact statement and all component checks. The final theorem
 freshly compiles and its public transitive audit uses only the standard three
-axioms. A separate full native Comparator replay for this new theorem has
-not yet been run; do not conflate this status with the completed psi replay.
+axioms. An independent native Comparator replay has since passed, run
+sandboxed by Claude on 6 November 2026; see the
+[independent check](verification/RS75ZeroFreeIndependentCheck.md).
 
 **The exact Schoenfeld II targets remain unfinished.** The full RS62
 Mertens/totient conclusions are now checked with finite RH explicit. The active theta targets are Theorem 7*,
@@ -275,16 +277,21 @@ python verification/run_psi_check.py
 `RSBounds.lean` imports completed modules only. `RSBounds/Targets.lean` defines
 propositions, not proofs or axioms. Other source files may be under development.
 
-Three independent Comparator configurations are provided: `comparator.json`
+Five independent Comparator configurations are provided: `comparator.json`
 for the restricted totient statements, `comparator-zero-count.json` for
-the full Rosser count theorem and the strict finite-range error bound, and
-`comparator-psi.json` for the b = 23 psi theorem under finite RH. Use the
-Python driver shown above for the psi check; it compiles the independent
-challenge and solution directly and passes their fresh exports to Comparator.
-All three configurations have passed their independent statement/definition,
-allowed-axiom, and default-kernel checks.
-None asserts the unfinished global theta, full RS62, or zero-free-region
-goals. All completed public theorems have fresh Lean builds and transitive
+the full Rosser count theorem and the strict finite-range error bound,
+`comparator-psi.json` for the b = 23 psi theorem under finite RH,
+`comparator-zero-free.json` for the RS75 zero-free region, and
+`comparator-rs62-global.json` for the full-range RS62 Mertens and totient
+theorems under finite RH. Use the Python driver shown above for the psi check;
+it compiles the independent challenge and solution directly and passes their
+fresh exports to Comparator.
+The first four configurations have passed their independent
+statement/definition, allowed-axiom, and default-kernel checks; the
+zero-free one was run in a bubblewrap sandbox, see
+[its record](verification/RS75ZeroFreeIndependentCheck.md). The RS62
+configuration's verdict is still pending.
+None asserts the unfinished global theta goals. All completed public theorems have fresh Lean builds and transitive
 axiom audits, using only `propext`, `Classical.choice`, and `Quot.sound`.
 Fresh build logs, axiom audits,
 and exact source hashes are in `verification/`. Comparator outcomes and any

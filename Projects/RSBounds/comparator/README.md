@@ -85,8 +85,13 @@ axiom audits pass with only the standard three axioms. Configuration:
 `../comparator-zero-free.json`; preparation receipt:
 `../verification/zero-free-comparator-prep-run.json`.
 
-**No native Comparator replay for these two new targets has run yet.**
-The passed count and psi Comparator records below concern their own targets.
+**The native Comparator replay for these two targets has since passed,**
+on 6 November 2026, run by Claude inside a bubblewrap process sandbox. It
+ended with `Lean default kernel accepts the solution` and
+`Your solution is okay!`. See
+[`../verification/RS75ZeroFreeIndependentCheck.md`](../verification/RS75ZeroFreeIndependentCheck.md)
+for the exports, checksums and commands. This is a local check, not an
+official IEANTN receipt.
 
 
 ## Full-range RS62 comparison

@@ -231,5 +231,8 @@ The estimate $|N(T)-F(T)|<1$ on the larger interval
 $0\le T\le280$ is **not proved here**. A certificate for the first
 1000 zeros is also **not proved here**. The complete table currently
 replayed and connected to the public count stops at height 100 and
-contains 29 zeros. The requested $b=23$ bound for $|\psi(x)-x|$
-and the RS75 zero-free region remain separate unfinished results.
+contains 29 zeros. The $b=23$ bound for $|\psi(x)-x|$
+([PsiTable1975.md](PsiTable1975.md)) and the RS75 zero-free region
+([RS75ZeroFreeAudit.md](RS75ZeroFreeAudit.md)) have since been proved as
+separate results under the finite-RH premise through 1894439; they are not
+part of the zero-count theorems above.

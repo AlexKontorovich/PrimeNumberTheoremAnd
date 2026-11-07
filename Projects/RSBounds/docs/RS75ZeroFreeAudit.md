@@ -12,7 +12,8 @@ The public theorem
 FiniteRH A means that every actual zero of Mathlib's Riemann zeta function
 in the open critical strip with absolute ordinate at most A has real part
 1/2. There is no additional count, low-zero, numerical, or analytic-estimate
-hypothesis. The closed zero-free boundary is excluded.
+hypothesis. The zero-free region is closed: zeros are excluded on the
+boundary itself as well.
 
 The stronger high-height component **zero_free_high is unconditional**
 for absolute ordinate at least 1894439. Its zero form xi_zero_re_lt gives
@@ -21,8 +22,11 @@ assumption. Finite RH is used only on the closed interval from 21 to 1894439.
 
 Primary reference: Rosser–Schoenfeld (1975), Theorem 1 and its proof,
 [DOI 10.1090/S0025-5718-1975-0457373-7](https://doi.org/10.1090/S0025-5718-1975-0457373-7).
-The paper's finite verification height is 1894438.51224...; the integer
-height in the formal statement covers it.
+The paper's finite verification height is A = 1894438.51224.... The
+formal hypothesis uses the integer height 1894439 > A, so it assumes
+slightly more than the verification the paper relied on. This is immaterial
+in practice, since RH has since been verified to far greater heights, but it
+is not literally the paper's input.
 
 ## Verification status
 
@@ -38,9 +42,14 @@ The exact source hashes, commands, and object hash are in the
 [final receipt](../verification/rs75-zero-free-1975-run.json).
 See also the [axiom log](../verification/rs75-zero-free-1975-axioms.log)
 and [reproduction driver](../verification/run_rs75_zero_free_1975_check.py).
-A separate full native Comparator replay for this theorem has not yet been
-run. The completed [psi Comparator](PsiTable1975.md) concerns a different
-theorem and is not evidence of a native replay for this one.
+An independent native Comparator replay for this theorem has since passed,
+on 6 November 2026, run by Claude inside a bubblewrap process sandbox. It
+covered statement and definition matching against
+[`comparator/RSZeroFreeChallenge.lean`](../comparator/RSZeroFreeChallenge.lean),
+the three-axiom check, and full replay with Lean's default kernel, ending
+with `Your solution is okay!`. See the
+[independent check](../verification/RS75ZeroFreeIndependentCheck.md). This is
+a local check, not an official IEANTN receipt.
 
 ## Proof components
 
