@@ -1,4 +1,4 @@
-import took 156s
+import took 16.7s
 RSBounds/RS62TotientFromFiniteRH.lean:63:70: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
 
 Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
@@ -37,27 +37,27 @@ Note: This linter can be disabled with `set_option linter.unusedTactic false`
  Classical.choice,
  Quot.sound]
 cumulative profiling times:
-	.olean serialization 18.2ms
-	attribute application 0.105ms
-	blocked (unaccounted) 1.48s
-	congr simp thm 1.57ms
-	declTypeLinter 9.14ms
-	elaboration 98.8ms
-	fix level params 1ms
-	import 156s
-	initialization 35.5ms
-	instantiate metavars 2.17ms
-	interpretation 1.86s
-	let-to-have transformation 0.107ms
-	linting 27.4ms
-	module linting 0.016ms
-	norm_num 116ms
-	parsing 11.1ms
-	process pre-definitions 16.8ms
-	ring 82.6ms
-	share common exprs 22.6ms
-	simp 19.5ms
-	tactic execution 184ms
-	tacticAnalysis 3.73ms
-	type checking 101ms
-	typeclass inference 457ms
+	.olean serialization 38.9ms
+	attribute application 0.0893ms
+	blocked (unaccounted) 1.14s
+	congr simp thm 1.82ms
+	declTypeLinter 5.34ms
+	elaboration 66.9ms
+	fix level params 1.14ms
+	import 16.7s
+	initialization 66.3ms
+	instantiate metavars 1.81ms
+	interpretation 946ms
+	let-to-have transformation 0.259ms
+	linting 24.3ms
+	module linting 0.093ms
+	norm_num 108ms
+	parsing 6.33ms
+	process pre-definitions 15.7ms
+	ring 68.3ms
+	share common exprs 21.7ms
+	simp 15ms
+	tactic execution 112ms
+	tacticAnalysis 3.43ms
+	type checking 91.2ms
+	typeclass inference 336ms

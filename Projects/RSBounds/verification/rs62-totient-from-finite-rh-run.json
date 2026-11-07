@@ -1,6 +1,6 @@
 {
   "kind": "fresh-rs62-totient-from-finite-rh-build-with-in-process-transitive-axiom-audit",
-  "started_utc": "2026-11-06T21:38:36.956024+00:00",
+  "started_utc": "2026-11-07T04:56:14.922672+00:00",
   "source_sha256": {
     "RSBounds/RS62TotientFromFiniteRH.lean": "cdfb8f02676c1a8d0bfbf14386db0119b1417ca9d54792db5aac8191fdca9c8d",
     "RSBounds/RS62FiniteHandoff.lean": "371cdd896153f58cb2cbf3a8256bee19b76b72f36d8f3bf9d5a4947bc09bf2d5",
@@ -31,7 +31,7 @@
       ],
       "log": "verification/rs62-totient-from-finite-rh-build.log",
       "exit_code": 0,
-      "seconds": 159.83035331500287
+      "seconds": 18.967692493000868
     }
   ],
   "build_exit_code": 0,
@@ -41,5 +41,5 @@
     "only_standard_axioms": true
   },
   "object_sha256": "92ca367e01b7a888fda4d8a292ea3e78dd2ad583e1816b39b5b5a91438dcf52a",
-  "finished_utc": "2026-11-06T21:41:16.794888+00:00"
+  "finished_utc": "2026-11-07T04:56:33.894823+00:00"
 }

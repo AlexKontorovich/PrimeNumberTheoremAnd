@@ -1,6 +1,6 @@
 {
   "kind": "fresh-rs62-mertens-from-finite-rh-build-with-in-process-transitive-axiom-audit",
-  "started_utc": "2026-11-06T21:27:47.190405+00:00",
+  "started_utc": "2026-11-07T04:55:54.606003+00:00",
   "source_sha256": {
     "RSBounds/RS62MertensFromFiniteRH.lean": "7cab9f56a2e264be53c30ed14e443f2e9c6dc5d7a8021da070c8c23233f2fc9f",
     "RSBounds/MertensFinite100000.lean": "12dcadb5808237ae8fdcafa7ec277d18ee1669f096847c706dccbe9fb492f911",
@@ -26,7 +26,7 @@
       ],
       "log": "verification/rs62-mertens-from-finite-rh-build.log",
       "exit_code": 0,
-      "seconds": 302.0831867289962
+      "seconds": 20.249643725999704
     }
   ],
   "build_exit_code": 0,
@@ -36,5 +36,5 @@
     "only_standard_axioms": true
   },
   "object_sha256": "964bc6bead911a7d4ce95368b96ef6d7f803d6f20107257898a8aa014141a2e4",
-  "finished_utc": "2026-11-06T21:32:49.279849+00:00"
+  "finished_utc": "2026-11-07T04:56:14.870554+00:00"
 }

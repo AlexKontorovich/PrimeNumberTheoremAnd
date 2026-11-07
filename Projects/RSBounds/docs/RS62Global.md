@@ -3,8 +3,9 @@
 **Both full-range theorems have passed their fresh source checks and
 transitive axiom audits.** The weighted Mertens theorem and the all-integer
 totient theorem use only `propext`, `Classical.choice`, and `Quot.sound`,
-apart from their displayed finite-RH parameter. The independent Comparator
-workflow is active; no completed native verdict is claimed yet.
+apart from their displayed finite-RH parameter. **The independent native
+Comparator has passed** for both, run inside a bubblewrap sandbox on
+7 November 2026; see [Independent comparison](#independent-comparison).
 
 The statements retain the sole explicit premise `Goals.FiniteRH 1894439`:
 every actual zeta zero in the open critical strip with absolute ordinate at
@@ -124,8 +125,14 @@ specifies finite RH, the exact constant `E`, and both full-range targets.
 `Quot.sound`, with no definition holes. The solution imports the actual
 proof modules, never the challenge.
 
-The prepared runner is `verification/run_rs62_global_comparator.py`.
-**The workflow is running locally; its native verdict is pending.** It
-validated the two successful final audit receipts and their exact source/object hashes before building fresh wrapper
-objects, exporting the targets and invoking the native Comparator. This is
-a standalone Lean 4.35 check, not an official IEANTN verification receipt.
+The runner is `verification/run_rs62_global_comparator.py`.
+**It passed on 7 November 2026**, run by Claude with the process sandbox
+enabled: `Lean default kernel accepts the solution` and
+`Your solution is okay!`, exit code 0. It validated the two fresh final
+audit receipts and their exact source/object hashes before building fresh
+wrapper objects, exporting the targets and invoking the native Comparator,
+and again afterwards. The frozen record is
+[`run.json`](../verification/rs62-global-comparator/20261107T050844.506452Z/run.json);
+the [independent check](../verification/RS62IndependentCheck.md) gives the
+export checksums, the build route and the remaining caveats. This is a
+standalone Lean 4.35 check, not an official IEANTN verification receipt.

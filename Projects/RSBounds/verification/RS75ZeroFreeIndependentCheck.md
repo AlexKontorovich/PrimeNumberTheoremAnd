@@ -43,7 +43,7 @@ recorded in `verification/rs75-zero-free-1975-run.json`.
 | Export (`leanexport`, lean4export 3.1.0) of the dependency closure of `zero_free`, `zero_free_high` and `Goals.FiniteRH` | 717,961,701 bytes, 13,437,946 lines, SHA-256 `293deb8b608b4e5e328e8db6c5ed12d95fb5adbda1a18056166e489513dc3cdc`. It contains the first-29-zero certificates of `vendor/rh100`, so the replays below check them too. |
 | Lean's kernel on that export (`leanchecker --from-export`), from an empty environment | "Lean default kernel accepts the solution", exit code 0, 2271 s. |
 | Independent reproduction of the build and export | Harald Helfgott rebuilt the project on his own Linux laptop from a fresh clone of the branch at `f653ba0` (`lake exe cache get`, `lake build RSBounds.RS75ZeroFree1975`, then the export command in "Reproduction" below). His export has the same SHA-256, `293deb8b…3dc3cdc`: byte-identical. |
-| nanoda 0.4.19 on that export | Not completed. Here, with the default 8 MB stack it overflowed; with an unlimited stack it was killed twice by this machine's memory limit, at about 5–6 GB. On the laptop it was killed by signal 9 (exit code 137) after about 5½ minutes, most likely also for lack of memory. This says nothing about the proof. |
+| nanoda 0.4.19 on that export | Not completed. Here, with the default 8 MB stack it overflowed; with an unlimited stack it was killed twice by this machine's memory limit, at about 5–6 GB. On the laptop it was killed twice by the kernel's out-of-memory killer (exit code 137), with about 27.5 GiB and 23.6 GiB of anonymous memory in use, according to the kernel log. This says nothing about the proof; nanoda needs more than about 28 GiB for this export. |
 | Lean 4.35's native Comparator, sandboxed with bubblewrap 0.9.0: `lake comparator --config comparator-zero-free.json`, with `--challenge-from-export` and `--solution-from-export` | "Lean default kernel accepts the solution", "Your solution is okay!", exit code 0. Its exports were made from the compiled `comparator/RSZeroFreeChallenge.lean` and `comparator/RSZeroFreeSolution.lean`, with the two theorems, the three axioms and the builtin and primitive roots the Comparator requires (the list in `verification/run_rs62_global_comparator.py`). Challenge: 351,182,668 bytes, SHA-256 `b912a126c0b6598609058b60e2334269fb8bfcb9d59ae4dec1f236e905f1ed91`. Solution: 717,861,092 bytes, SHA-256 `17cb324f58685780d25be0e15465d6d64fc40d88630bae5dc378f0278d93cf3a`. Total time including both exports: 3432 s. |
 
 The Comparator run is a local check, not an official IEANTN receipt.
@@ -124,8 +124,8 @@ lake comparator --config comparator-zero-free.json \
 (The challenge wrapper contains `sorry` by design, so compiling it warns.)
 
 To run nanoda, which ships with the Lean 4.35 toolchain as `nanoda_bin`, first
-make the export as above. Then use a machine with more than 6 GB of free memory
-and a stack larger than 8 MB:
+make the export as above. Then use a machine with well over 28 GB of free
+memory and a stack larger than 8 MB:
 
 ```sh
 cat > /tmp/rs/nanoda.json <<'EOF'

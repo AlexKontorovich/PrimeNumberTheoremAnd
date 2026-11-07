@@ -7,9 +7,10 @@ every integer `n >= 3`, with no upper restriction on `n`. See the
 [exact statements, proof route and receipts](docs/RS62Global.md).
 Both final source checks and their transitive axiom audits passed using only
 `propext`, `Classical.choice`, and `Quot.sound`. The independent joint
-Comparator workflow is running locally; no completed native verdict is
-claimed yet. These are standalone Lean 4.35 results, not official IEANTN
-verification receipts.
+native Comparator has since passed, run by Claude inside a bubblewrap
+process sandbox on 7 November 2026; see the
+[independent check](verification/RS62IndependentCheck.md). These are
+standalone Lean 4.35 results, not official IEANTN verification receipts.
 
 This standalone Lean 4.35 project now proves the requested **RS75 b = 23 psi
 entry**:
@@ -150,7 +151,7 @@ quantitative zero-free-region target is a separate problem.
 | Gauss series for digamma and its summability on Re(s) > 0 | Reused from IEANTN GammaAsymptotics.v2; freshly compiled and audited on this toolchain |
 | RS62 analytic inputs and the scalar totient reduction | The scalar implication is proved, and its actual inputs above 100000 are now supplied under finite RH |
 | Moderate-error psi row b = 23 | Proved for every x ≥ exp 23, assuming only finite RH through 1894439 |
-| Full RS62 weighted Mertens and all-n totient inequalities | Proved under only FiniteRH 1894439; independent native Comparator verdict pending |
+| Full RS62 weighted Mertens and all-n totient inequalities | Proved under only FiniteRH 1894439; independent sandboxed native Comparator passed |
 | Exact Schoenfeld II global theta targets | Unfinished; distinct from the completed RS62 estimates |
 
 The unconditional zero-count and finite totient results assume neither RH,
@@ -287,10 +288,10 @@ theorems under finite RH. Use the Python driver shown above for the psi check;
 it compiles the independent challenge and solution directly and passes their
 fresh exports to Comparator.
 The first four configurations have passed their independent
-statement/definition, allowed-axiom, and default-kernel checks; the
-zero-free one was run in a bubblewrap sandbox, see
-[its record](verification/RS75ZeroFreeIndependentCheck.md). The RS62
-configuration's verdict is still pending.
+statement/definition, allowed-axiom, and default-kernel checks, and so has
+the RS62 one. The zero-free and RS62 runs were made in a bubblewrap
+sandbox; see [the zero-free record](verification/RS75ZeroFreeIndependentCheck.md)
+and [the RS62 record](verification/RS62IndependentCheck.md).
 None asserts the unfinished global theta goals. All completed public theorems have fresh Lean builds and transitive
 axiom audits, using only `propext`, `Classical.choice`, and `Quot.sound`.
 Fresh build logs, axiom audits,

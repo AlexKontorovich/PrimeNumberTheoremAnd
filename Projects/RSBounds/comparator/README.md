@@ -103,8 +103,9 @@ propositions without definition holes. The prepared Python runner validates
 the exact completed audit records and source/object hashes before exporting
 the proofs and invoking the native Comparator.
 
-**The joint RS62 Comparator workflow is currently running locally. No
-completed native verdict is claimed yet.** This status is separate from
-the successful earlier count and b23 psi replays. The runner is
-`verification/run_rs62_global_comparator.py`; its immutable completed verdict
-record will be published separately after the process returns.
+**The joint RS62 Comparator has passed,** on 7 November 2026, run by
+Claude inside a bubblewrap process sandbox. The runner is
+`verification/run_rs62_global_comparator.py`; its frozen record is
+[`../verification/rs62-global-comparator/20261107T050844.506452Z/run.json`](../verification/rs62-global-comparator/20261107T050844.506452Z/run.json),
+and [`../verification/RS62IndependentCheck.md`](../verification/RS62IndependentCheck.md)
+summarizes it. This is a local check, not an official IEANTN receipt.

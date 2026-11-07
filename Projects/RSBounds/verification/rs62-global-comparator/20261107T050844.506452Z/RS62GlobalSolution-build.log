@@ -1,0 +1,6 @@
+'TernaryGoldbach.RSBounds.RS62MertensFromFiniteRH.mertens_lower_of_finiteRH' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.totient_bound_of_finiteRH' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
