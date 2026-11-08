@@ -57,7 +57,7 @@ theorem small_four_fifths {x : ℝ} (h1 : 1500 ≤ x) (h2 : x < 10000) :
   have h := gap_bound (by linarith) h2
   have hm : 1500 ≤ ⌊x⌋₊ := Nat.le_floor (by exact_mod_cast h1)
   have hk : ((kNum ⌊x⌋₊ : ℝ) / kDen ⌊x⌋₊) = 4 / 5 := by
-    unfold kNum kDen; rw [if_neg (by omega), if_neg (by omega)]; norm_num
+    unfold kNum kDen; rw [ite_eq_right (by omega), ite_eq_right (by omega)]; norm_num
   rwa [hk] at h
 
 /-- `|ψ x - x| ≤ √x` for `8 ≤ x < 10^4`. -/

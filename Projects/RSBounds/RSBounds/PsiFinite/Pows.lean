@@ -19,8 +19,8 @@ theorem powsUpK_succ (f d q j top : ℕ) (E : List (ℕ × ℕ)) :
       if q ≤ top then (q, j) :: powsUpK f d (q * d) (j + 1) top E else E := by
   show Bool.rec (motive := fun _ => List (ℕ × ℕ)) _ _ (Nat.ble q top) = _
   by_cases h : q ≤ top
-  · rw [if_pos h, show Nat.ble q top = true from Nat.ble_eq_true_of_le h]; rfl
-  · rw [if_neg h, show Nat.ble q top = false from by
+  · rw [ite_eq_left h, show Nat.ble q top = true from Nat.ble_eq_true_of_le h]; rfl
+  · rw [ite_eq_right h, show Nat.ble q top = false from by
       rw [Bool.eq_false_iff]; intro h'; exact h (Nat.le_of_ble_eq_true h')]
 
 theorem powsK_zero (d q j lo top : ℕ) (E : List (ℕ × ℕ)) : powsK 0 d q j lo top E = E := rfl
@@ -30,8 +30,8 @@ theorem powsK_succ (f d q j lo top : ℕ) (E : List (ℕ × ℕ)) :
       if q < lo then powsK f d (q * d) (j + 1) lo top E else powsUpK 64 d q j top E := by
   show Bool.rec (motive := fun _ => List (ℕ × ℕ)) _ _ (Nat.blt q lo) = _
   by_cases h : q < lo
-  · rw [if_pos h, show Nat.blt q lo = true from by simpa using h]; rfl
-  · rw [if_neg h, show Nat.blt q lo = false from by
+  · rw [ite_eq_left h, show Nat.blt q lo = true from by simpa using h]; rfl
+  · rw [ite_eq_right h, show Nat.blt q lo = false from by
       rw [Bool.eq_false_iff]; intro h'
       exact h (Nat.le_of_ble_eq_true h' : q + 1 ≤ lo)]
 
@@ -55,7 +55,7 @@ theorem powsUpK_spec {d top : ℕ} (hd : 2 ≤ d) : ∀ (f j : ℕ) (E : List (�
     intro j E htop
     rw [powsUpK_succ]
     by_cases hq : d ^ j ≤ top
-    · rw [if_pos hq, ← pow_succ]
+    · rw [ite_eq_left hq, ← pow_succ]
       obtain ⟨new, hnew, hspec, hpw⟩ := ih (j + 1) E (by rwa [show j + 1 + f = j + (f + 1) by ring])
       refine ⟨(d ^ j, j) :: new, by rw [hnew]; rfl, ?_, ?_⟩
       · intro e
@@ -72,7 +72,7 @@ theorem powsUpK_spec {d top : ℕ} (hd : 2 ≤ d) : ∀ (f j : ℕ) (E : List (�
         intro b hb
         obtain ⟨i, hi, -, -, rfl⟩ := (hspec b).mp hb
         exact hsmono j i (by omega)
-    · rw [if_neg hq]
+    · rw [ite_eq_right hq]
       refine ⟨[], rfl, ?_, List.Pairwise.nil⟩
       intro e; simp only [List.not_mem_nil, false_iff, not_exists, not_and]
       intro i hi _ hle; have := hmono j i hi; omega
@@ -92,7 +92,7 @@ theorem powsK_spec {d lo top : ℕ} (hd : 2 ≤ d) : ∀ (f j : ℕ) (E : List (
     intro j E hf htop
     rw [powsK_succ]
     by_cases hq : d ^ j < lo
-    · rw [if_pos hq, ← pow_succ]
+    · rw [ite_eq_left hq, ← pow_succ]
       obtain ⟨new, hnew, hspec, hpw⟩ :=
         ih (j + 1) E (by omega) (by rwa [show j + 1 + f = j + (f + 1) by ring])
       refine ⟨new, hnew, ?_, hpw⟩
@@ -103,7 +103,7 @@ theorem powsK_spec {d lo top : ℕ} (hd : 2 ≤ d) : ∀ (f j : ℕ) (E : List (
         rcases eq_or_lt_of_le hi with rfl | hi'
         · omega
         · exact ⟨i, hi', h0, h1, rfl⟩
-    · rw [if_neg hq]
+    · rw [ite_eq_right hq]
       obtain ⟨new, hnew, hspec, hpw⟩ := powsUpK_spec hd 64 j E
         (lt_of_lt_of_le htop (hmono _ _ (by omega)))
       refine ⟨new, hnew, ?_, hpw⟩

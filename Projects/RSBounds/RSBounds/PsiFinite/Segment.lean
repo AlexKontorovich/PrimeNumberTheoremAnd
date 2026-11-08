@@ -32,7 +32,7 @@ theorem BoundOn.trans {num den a b c : ℕ} (h1 : BoundOn num den a b) (h2 : Bou
   intro x hx1 hx2
   by_cases hx : x ≤ b
   · exact h1 x hx1 hx
-  · exact h2 x (by push_neg at hx; exact hx.le) hx2
+  · exact h2 x (by push Not at hx; exact hx.le) hx2
 
 /-! ### Prime-power contributions -/
 
@@ -51,14 +51,14 @@ theorem ppK_eq (A A' llo lhi : ℕ) : ∀ (E : List (ℕ × ℕ)) (a b : ℕ),
         simp [Nat.blt_eq, Nat.ble_eq, h.1, h.2]]
       show ppK A A' llo lhi E _ _ = _
       rw [ih]
-      simp only [List.map_cons, List.sum_cons, if_pos h, show Nat.div llo e.2 = llo / e.2 from rfl,
+      simp only [List.map_cons, List.sum_cons, ite_eq_left h, show Nat.div llo e.2 = llo / e.2 from rfl,
         show Nat.div lhi e.2 = lhi / e.2 from rfl, Nat.succ_eq_add_one, Nat.add_eq]
       ext <;> simp only <;> omega
     · rw [show Bool.and (Nat.blt A e.1) (Nat.ble e.1 A') = false by
         rw [Bool.eq_false_iff]; intro h'
         simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq] at h'; exact h h']
       show ppK A A' llo lhi E _ _ = _
-      rw [ih]; simp [if_neg h]
+      rw [ih]; simp [ite_eq_right h]
 
 /-- The list of proper prime powers of a segment. -/
 structure PPExact (E : List (ℕ × ℕ)) (lo top : ℕ) : Prop where

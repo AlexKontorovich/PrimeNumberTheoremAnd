@@ -55,7 +55,7 @@ theorem fld_add (t : ℕ) : ∀ k a b : ℕ, (∀ j ≤ k, fld t a j + fld t b j
     simp only [fld, mul_zero, Nat.shiftRight_zero] at h0
     have hsplit : (a + b) >>> t = (a >>> t) + (b >>> t) := by
       simp only [Nat.shiftRight_eq_div_pow]
-      rw [Nat.add_div (by positivity), if_neg (show ¬ 2 ^ t ≤ a % 2 ^ t + b % 2 ^ t by omega), add_zero]
+      rw [Nat.add_div (by positivity), ite_eq_right (show ¬ 2 ^ t ≤ a % 2 ^ t + b % 2 ^ t by omega), add_zero]
     rw [← fld_shiftRight, hsplit, ih, fld_shiftRight, fld_shiftRight]
     intro j hj
     rw [fld_shiftRight, fld_shiftRight]

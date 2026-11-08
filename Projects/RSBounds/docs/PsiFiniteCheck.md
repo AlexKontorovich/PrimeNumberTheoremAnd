@@ -271,7 +271,14 @@ all 996 generated files (`*.lean`, `segments.txt`) relative to
 * Comparator (phase G): only on request.
 * Stretch goal 5·10^10: only on request; see the extrapolation above (≈ 70+
   CPU-h with the present sieve, so it would need a faster sieve first).
-* The deprecation warnings (`if_neg`) in `SmallRange.lean` are left as is.
+* The deprecation and unused-tactic warnings in the PsiFinite modules were fixed
+  after the campaign (`if_pos`/`if_neg` → `ite_eq_left`/`ite_eq_right`,
+  `cond_true` → `Bool.cond_true`, `push_neg` → `push Not`). `Kernel.lean`
+  was not touched, so the 955 campaign modules were not rebuilt; the rest
+  rebuilt in a few minutes and the audit output is unchanged. Remaining: three
+  notices that `Bits.lean` imports Mathlib, which uses the module system,
+  without `module`. Switching to the module system would need changes beyond
+  this project's conventions, so I left it.
 
 ## Reproduce
 

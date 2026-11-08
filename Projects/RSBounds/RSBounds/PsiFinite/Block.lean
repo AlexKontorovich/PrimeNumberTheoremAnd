@@ -53,7 +53,7 @@ theorem prime_part_block (A : ℕ) (hA : Even A) (hA2 : 2 ≤ A) : ∀ W : ℕ,
       rcases hp.eq_two_or_odd with h | h
       · omega
       · obtain ⟨k, hk⟩ := hA; omega
-    rw [if_neg hev, add_zero, show A + 2 * W + 1 = A + 1 + 2 * W by ring]
+    rw [ite_eq_right hev, add_zero, show A + 2 * W + 1 = A + 1 + 2 * W by ring]
 
 theorem prime_part_bounds (A W : ℕ) (hA : 1 ≤ A) :
     (∑ j ∈ range W, (if (A + 1 + 2 * j).Prime then (1 : ℝ) else 0)) * Real.log A ≤
@@ -81,9 +81,9 @@ theorem guardUp_safe {num den point up : ℕ} (h : guardUp num den point up = tr
   unfold guardUp at h
   unfold TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.SignedEndpointSafe
   rcases Bool.or_eq_true_iff.mp h with h | h
-  · left; have := Nat.le_of_ble_eq_true h; push_cast at this ⊢; omega
+  · left; have := Nat.le_of_ble_eq_true h; omega
   · by_cases hle : up ≤ point * D
-    · left; push_cast at hle ⊢; omega
+    · left; omega
     · right
       have h' := Nat.le_of_ble_eq_true h
       have habs : ((up : ℤ) - (point : ℤ) * D).natAbs = up - point * D := by omega
@@ -97,9 +97,9 @@ theorem guardLow_safe {num den point low : ℕ} (h : guardLow num den point low 
   unfold guardLow at h
   unfold TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.SignedEndpointSafe
   rcases Bool.or_eq_true_iff.mp h with h | h
-  · left; have := Nat.le_of_ble_eq_true h; push_cast at this ⊢; omega
+  · left; have := Nat.le_of_ble_eq_true h; omega
   · by_cases hle : point * D ≤ low
-    · left; push_cast at hle ⊢; omega
+    · left; omega
     · right
       have h' := Nat.le_of_ble_eq_true h
       have habs : ((point : ℤ) * D - low).natAbs = point * D - low := by omega
@@ -129,7 +129,7 @@ theorem blockStep_sound {num den A W c ppLo ppHi : ℕ} {s s' : St}
   | false => rw [hg] at hstep; simp at hstep
   | true =>
   rw [hg] at hstep
-  simp only [cond_true, Option.some.injEq] at hstep
+  simp only [Bool.cond_true, Option.some.injEq] at hstep
   subst hstep
   obtain ⟨hgu, hgl⟩ := Bool.and_eq_true_iff.mp hg
   obtain ⟨h1, h2, h3, h4⟩ := hs
