@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.NumberTheory.AbelSummation
+public import Mathlib.MeasureTheory.Function.Floor
 
 /-! We prove the 1st order Euler-Maclaurin formula by specialising Abel summation and manipulating integrals. -/
 

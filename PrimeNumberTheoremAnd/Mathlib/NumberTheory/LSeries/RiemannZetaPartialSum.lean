@@ -13,6 +13,7 @@ public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaAbel
 public import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+public import Mathlib.Analysis.PSeriesComplex
 
 /-!
 # Abel-summation partial sums for the Riemann zeta function

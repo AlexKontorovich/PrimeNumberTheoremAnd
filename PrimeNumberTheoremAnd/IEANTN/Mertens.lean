@@ -7,7 +7,7 @@ import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
-import Mathlib.Analysis.SpecialFunctions.Integrability.LogMeromorphic
+import Mathlib.Analysis.SpecialFunctions.Integrability.Log
 import Mathlib.NumberTheory.EulerProduct.DirichletLSeries
 import Mathlib.NumberTheory.EulerProduct.ExpLog
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
@@ -1401,7 +1401,7 @@ theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
         (volume.restrict (Set.Ioi (1:ℝ)))
       ↔ MeasureTheory.IntegrableOn ((Set.Ici (d:ℝ)).indicator fun x => x ^ (-s))
           (Set.Ioi (1:ℝ)) volume from Iff.rfl,
-      MeasureTheory.integrableOn_indicator_iff measurableSet_Ici]
+      MeasureTheory.integrableOn_indicator_iff measurableSet_Ici.nullMeasurableSet]
     apply MeasureTheory.IntegrableOn.mono_set
       (integrableOn_Ioi_rpow_of_lt (by linarith : (-s:ℝ) < -1) (by norm_num : (0:ℝ) < 1/2))
     intro x hx

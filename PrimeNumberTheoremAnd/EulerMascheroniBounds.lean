@@ -1,7 +1,7 @@
 import Mathlib.Algebra.EuclideanDomain.Field
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Data.Int.Star
+import Mathlib.Algebra.Order.Star.Int
 import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Algebra.Order.Star.Real
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
