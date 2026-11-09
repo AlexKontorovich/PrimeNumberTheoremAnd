@@ -2,8 +2,8 @@
 
 Status on 7 November 2026, branch `psi-finite-check` (from
 `rs-bounds-progress-2026-11-06` at `24554b9`). Phases A–F of
-`PsiCert-Claude-Handoff/CLAUDE_HANDOFF.md` are done. Phase G (Comparator) and
-the stretch goal (5·10^10) were not run.
+`PsiCert-Claude-Handoff/CLAUDE_HANDOFF.md` are done. Phase G (Comparator) passed
+on 9 November 2026 (below). The stretch goal (5·10^10) was not attempted.
 
 Proved, kernel-checked, axioms `propext`, `Classical.choice`, `Quot.sound`
 only (`RSBounds/PsiFinite/Final.lean`):
@@ -266,9 +266,62 @@ all 996 generated files (`*.lean`, `segments.txt`) relative to
 `Campaign/T1`; the SHA-256 of that list is
 `0331653addba5ac169a789982058e517bf6b06032b9f034854aec1472848c2ce`.
 
+## Phase G: Comparator
+
+Lean 4.35's native Comparator, sandboxed with bubblewrap (never with
+`--inadvisably-no-sandbox`), at commit `23b8bc9` (PsiFinite sources identical
+to `ca08607`).
+
+* Challenge `comparator/PsiFiniteChallenge.lean`: imports only Mathlib and
+  states both theorems with `sorry`. Solution `comparator/PsiFiniteSolution.lean`:
+  `import RSBounds.PsiFinite.Final`. Config `comparator-psi-finite.json`:
+  the two theorem names; permitted axioms `propext`, `Classical.choice`,
+  `Quot.sound`.
+* Exports (`leanexport`, roots as in `verification/RS75ZeroFreeIndependentCheck.md`):
+
+  | export | bytes | SHA-256 |
+  |---|---|---|
+  | challenge | 68,768,385 | `2a8d33fde025e1defe63198e4afe01a4793bd33dee2790ba6e85f2e8c65f9423` |
+  | solution | 329,500,827 | `29a61d005a43d72b954f58f09f81c4c0fbb064f894f77b8a7b88dfd9dc7598a5` |
+
+* Result (`verification/psi-finite-campaign/comparator.out`): "Lean default
+  kernel accepts the solution", "Your solution is okay!", exit code 0.
+* Time: 20 h 32 min wall, 8 Nov 08:51 to 9 Nov 05:23, on one core at nice 19
+  beside other heavy jobs; this includes a 16-minute suspend and a 70-minute
+  pause (SIGSTOP) while the machine was overloaded. Kernel replay ≈ 18 CPU-h.
+  Peak resident memory of `leanchecker` ≈ 1.4 GB (sampled every 10–15 min).
+* Ubuntu 24.04 restricts unprivileged user namespaces, so bubblewrap needed an
+  AppArmor profile for `/usr/bin/bwrap` (`userns,`); without it the run fails
+  at once with `bwrap: loopback: Failed RTM_NEWADDR`, reported misleadingly as
+  "Lean default kernel rejected the solution". The run could not be started
+  from inside Claude Code's own command sandbox; Harald started it.
+
+Reproduce, from `Projects/RSBounds`, after `lake build RSBounds.PsiFinite.Final`:
+
+```sh
+O=/tmp/psicmp; mkdir -p $O
+for m in PsiFiniteChallenge PsiFiniteSolution; do
+  lake env lean -R comparator -o $O/$m.olean comparator/$m.lean
+done
+ROOTS="Quot Quot.mk Quot.lift Quot.ind PsiFinite.psi_abs_sub_le_four_fifths_sqrt \
+  PsiFinite.psi_abs_sub_le_sqrt propext Classical.choice Quot.sound Nat.add Nat.sub \
+  Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor \
+  Nat.shiftLeft Nat.shiftRight String.ofList Char.ofNat List eagerReduce Nat String \
+  String.mk Char optParam autoParam semiOutParam outParam"
+for m in PsiFiniteChallenge PsiFiniteSolution; do
+  lake env bash -c "LEAN_PATH=$O:\$LEAN_PATH leanexport $m -- $ROOTS" > $O/$m.export
+done
+sha256sum $O/*.export
+ulimit -s unlimited
+lake comparator --config comparator-psi-finite.json \
+  --challenge-from-export $O/PsiFiniteChallenge.export \
+  --solution-from-export $O/PsiFiniteSolution.export
+```
+
 ## Not done
 
-* Comparator (phase G): only on request.
+* Independent kernels (`--paranoid`: nanoda, lean4lean, …) were not run;
+  nanoda needed more than 28 GB on the comparable RS75 export.
 * Stretch goal 5·10^10: only on request; see the extrapolation above (≈ 70+
   CPU-h with the present sieve, so it would need a faster sieve first).
 * The deprecation and unused-tactic warnings in the PsiFinite modules were fixed
