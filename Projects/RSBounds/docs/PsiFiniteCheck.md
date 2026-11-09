@@ -318,11 +318,37 @@ lake comparator --config comparator-psi-finite.json \
   --solution-from-export $O/PsiFiniteSolution.export
 ```
 
+## Büthe (6.2) on [100, 10^10]
+
+`RSBounds/PsiFinite/Buthe.lean`, axioms `propext`, `Classical.choice`,
+`Quot.sound` only:
+
+```lean
+theorem PsiFinite.buthe_eq_6_2_le_1e10 {t : ℝ} (h₁ : 100 ≤ t) (h₂ : t ≤ 10 ^ 10) :
+    -0.8 ≤ (t - Chebyshev.psi t) / Real.sqrt t ∧
+      (t - Chebyshev.psi t) / Real.sqrt t ≤ 0.81
+```
+
+This is Büthe, Math. Comp. 87 (2018), eq. (6.2), i.e. IEANTN
+`ButheNumerics.v1.eq_6_2`, with the range cut from 5·10^10 down to 10^10.
+The audit file restates it in IEANTN's form (`∀ t : ℝ, 100 ≤ t → t ≤ 10 ^ (10 : ℕ) → …`).
+
+* [1500, 10^10]: from T1.
+* [100, 1500): `walkBK`, the small walk of `SmallWalk` (same `pstep`, same
+  `WInv`) with asymmetric guards `ψ(n) − n ≤ (4/5)√n` and
+  `n + 1 − ψ(n) ≤ (81/100)√(n+1)` for 100 ≤ n < 1500; one `decide +kernel`
+  theorem (`walkB_ok`; the whole file takes 25 s of CPU time). `gap_two_sided` is the one-gap lemma with
+  separate upper and lower constants.
+
+The module builds in about 70 s (mostly the Mathlib import). It is not covered by
+the Comparator run of phase G; a Comparator run for it would replay the whole
+campaign again (≈ 18 CPU-h), since it depends on T1.
+
 ## Not done
 
 * Independent kernels (`--paranoid`: nanoda, lean4lean, …) were not run;
   nanoda needed more than 28 GB on the comparable RS75 export.
-* Stretch goal 5·10^10: only on request; see the extrapolation above (≈ 70+
+* (6.2) on (10^10, 5·10^10]: only on request; see the extrapolation above (≈ 70+
   CPU-h with the present sieve, so it would need a faster sieve first).
 * The deprecation and unused-tactic warnings in the PsiFinite modules were fixed
   after the campaign (`if_pos`/`if_neg` → `ite_eq_left`/`ite_eq_right`,
