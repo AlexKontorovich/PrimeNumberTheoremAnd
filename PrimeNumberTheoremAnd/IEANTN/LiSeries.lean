@@ -1,11 +1,16 @@
-import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.IEANTN.PVIdentity
-import Mathlib.NumberTheory.Harmonic.EulerMascheroni
-import Mathlib.NumberTheory.Harmonic.GammaDeriv
-import Mathlib.Analysis.Normed.Algebra.Exponential
-import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+module
+
+public import PrimeNumberTheoremAnd.Defs
+public import PrimeNumberTheoremAnd.IEANTN.PVIdentity
+public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+public import Mathlib.NumberTheory.Harmonic.GammaDeriv
+public import Mathlib.Analysis.Normed.Algebra.Exponential
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+
+
+@[expose] public section
 
 set_option linter.style.setOption false
 set_option linter.style.maxHeartbeats false

@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
+module
+
+public import PrimeNumberTheoremAnd.Defs
+public import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 
 /-!
 # Laplace-strip estimates for Kadiri equation (15)
@@ -9,6 +11,8 @@ strip `-a ≤ σ ≤ 1/2`, and the difference-quotient bounds for the two-sided 
 transform at `0`. The strip-instance integrability and derivative lemmas live in
 `PrimeNumberTheoremAnd.IEANTN.KadiriSupport`.
 -/
+
+public section
 
 namespace Kadiri
 

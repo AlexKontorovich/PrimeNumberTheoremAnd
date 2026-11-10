@@ -1,12 +1,19 @@
-import Architect
-import PrimeNumberTheoremAnd.MellinCalculus
-import PrimeNumberTheoremAnd.ZetaBounds
-import PrimeNumberTheoremAnd.ZetaConj
-import PrimeNumberTheoremAnd.SmoothExistence
-import Mathlib.Algebra.Group.Support
-import Mathlib.Analysis.MellinInversion
-import Mathlib.Analysis.Real.Pi.Bounds
-import Mathlib.NumberTheory.Chebyshev
+module
+
+public import Architect
+public import Mathlib.Algebra.Group.Support
+public import Mathlib.Algebra.Order.Interval.Set.Group
+public import Mathlib.Analysis.MellinInversion
+public import Mathlib.Analysis.Real.Pi.Bounds
+public import Mathlib.NumberTheory.Chebyshev
+public import Mathlib.Order.Interval.Set.UnorderedInterval
+public import PrimeNumberTheoremAnd.MellinCalculus
+public import PrimeNumberTheoremAnd.SmoothExistence
+public import PrimeNumberTheoremAnd.ZetaBounds
+public import PrimeNumberTheoremAnd.ZetaConj
+
+
+@[expose] public section
 
 set_option lang.lemmaCmd true
 
@@ -2293,9 +2300,9 @@ lemma I2GenBound {SmoothingF : ℝ → ℝ}
           SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤
           C' * X / (ε * T) * |1 + (Real.log X)⁻¹ - σ₁| := by
         refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
-        convert this using 3
-        apply uIoc_of_le
-        exact interval_length_nonneg
+        intro σ hσ
+        rw [Set.uIoc_of_le interval_length_nonneg] at hσ
+        exact this σ hσ
       _ ≤ C' * X / (ε * T) * 2 := by
         apply mul_le_mul_of_nonneg_left
         · rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]

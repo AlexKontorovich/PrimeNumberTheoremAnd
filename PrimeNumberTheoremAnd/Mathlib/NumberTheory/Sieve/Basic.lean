@@ -5,10 +5,12 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module sieve
 -/
-import Mathlib.NumberTheory.SelbergSieve
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
+module
 
-noncomputable section
+public import Mathlib.NumberTheory.SelbergSieve
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
+
+@[expose] public noncomputable section
 
 open scoped BigOperators ArithmeticFunction ArithmeticFunction.Moebius
 

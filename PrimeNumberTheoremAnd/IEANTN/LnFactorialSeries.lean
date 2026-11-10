@@ -1,7 +1,9 @@
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.Complex.ExponentialBounds
-import Mathlib.Data.Int.Star
-import Mathlib.Algebra.Order.Star.Real
+module
+
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Data.Int.Star
+public import Mathlib.Algebra.Order.Star.Real
 
 
 /-!
@@ -36,6 +38,9 @@ Upper bound (hs_hi): S ≤ 0.834462
   0.6931471806 (Real.log_two_lt_d9) and powers of log 2.
 
 -/
+
+public section
+
 open Real Finset BigOperators
 
 private lemma summable_series :

@@ -1,6 +1,11 @@
-import Architect
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import Mathlib.NumberTheory.LSeries.Nonvanishing
+module
+
+public import Architect
+public import Mathlib.NumberTheory.LSeries.Dirichlet
+public import Mathlib.NumberTheory.LSeries.Nonvanishing
+
+
+@[expose] public section
 
 open ArithmeticFunction hiding log
 

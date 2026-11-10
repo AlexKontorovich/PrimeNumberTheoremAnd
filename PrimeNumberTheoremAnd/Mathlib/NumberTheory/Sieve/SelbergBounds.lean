@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.NumberTheory.Primorial
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
+module
+
+public import Mathlib.NumberTheory.Primorial
+public import Mathlib.Analysis.Asymptotics.Lemmas
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
 /-!
 # Bounds for the Selberg sieve
 This file proves a number of results to help bound `Sieve.selbergSum`
@@ -24,7 +26,7 @@ open scoped Nat ArithmeticFunction BigOperators Classical ArithmeticFunction.zet
   ArithmeticFunction.omega
 open BoundingSieve SelbergSieve
 
-noncomputable section
+@[expose] public noncomputable section
 namespace Sieve
 
 lemma prodDistinctPrimes_squarefree (s : Finset ℕ) (h : ∀ p ∈ s, p.Prime) :

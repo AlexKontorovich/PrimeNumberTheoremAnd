@@ -1,7 +1,12 @@
-import Lean.Meta.Eval
-import Lean.Parser.Command
-import Mathlib.Data.Nat.Count
-import Mathlib.Algebra.Group.Nat.Even
+module
+
+public import Lean.Meta.Eval
+public import Lean.Parser.Command
+public import Mathlib.Data.Nat.Count
+public import Mathlib.Algebra.Group.Nat.Even
+
+
+@[expose] public section
 
 /-
 This file defines the `count_ofNat` simproc, which simplifies `Nat.count` expressions where the range is a literal.

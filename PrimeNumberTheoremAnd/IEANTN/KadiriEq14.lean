@@ -1,10 +1,15 @@
-import Architect
-import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.LaplaceInversion
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
-import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
-import Mathlib.Analysis.Normed.Group.Tannery
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.Defs
+public import PrimeNumberTheoremAnd.LaplaceInversion
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
+public import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
+public import Mathlib.Analysis.Normed.Group.Tannery
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+
+
+@[expose] public section
 
 namespace Kadiri
 

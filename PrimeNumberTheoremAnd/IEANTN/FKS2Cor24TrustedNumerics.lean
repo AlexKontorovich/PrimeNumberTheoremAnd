@@ -1,7 +1,9 @@
-import Mathlib.NumberTheory.PrimeCounting
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+module
+
+public import Mathlib.NumberTheory.PrimeCounting
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 /-!
 # Trusted numerical boundaries introduced by FKS2 Corollary 24
@@ -56,6 +58,8 @@ main development (`Defs.lean`); the equality is guarded by a `rfl` `example` in
 `FKS2Cor24.lean`, and the row files discharge their goals by `exact` against the lemmas
 below.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 

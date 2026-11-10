@@ -1,10 +1,12 @@
-import Mathlib.Analysis.Fourier.FourierTransformDeriv
-import Mathlib.Analysis.Fourier.Inversion
-import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
-import Mathlib.Analysis.SpecialFunctions.Complex.Log
-import Mathlib.MeasureTheory.Integral.DominatedConvergence
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Cauchy
+module
+
+public import Mathlib.Analysis.Fourier.FourierTransformDeriv
+public import Mathlib.Analysis.Fourier.Inversion
+public import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
+public import Mathlib.Analysis.SpecialFunctions.Complex.Log
+public import Mathlib.MeasureTheory.Integral.DominatedConvergence
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Cauchy
 
 /-!
 # Bilateral Laplace inversion
@@ -16,7 +18,7 @@ explicit-formula contour arguments.
 open Real Complex Set MeasureTheory Filter FourierTransform
 open scoped FourierTransform Topology
 
-noncomputable section
+@[expose] public noncomputable section
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 

@@ -1,13 +1,18 @@
-import Architect
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Analysis.Complex.HasPrimitives
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.RingTheory.SimpleRing.Principal
-import Mathlib.Analysis.Complex.BorelCaratheodory
-import PrimeNumberTheoremAnd.MediumPNT
+module
+
+public import Architect
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+public import Mathlib.Analysis.CStarAlgebra.Classes
+public import Mathlib.Analysis.Complex.HasPrimitives
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.RingTheory.SimpleRing.Principal
+public import Mathlib.Analysis.Complex.BorelCaratheodory
+public import PrimeNumberTheoremAnd.MediumPNT
+
+
+@[expose] public section
 
 open Nat Filter Topology Set Function Complex Real ComplexConjugate MeasureTheory
 

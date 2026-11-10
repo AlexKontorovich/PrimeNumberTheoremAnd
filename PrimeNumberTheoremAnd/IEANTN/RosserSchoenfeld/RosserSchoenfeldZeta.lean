@@ -1,5 +1,10 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+
+
+public section
 
 blueprint_comment /--
 \section{The zeta function bounds of Rosser and Schoenfeld}\label{rs-zeta-sec}

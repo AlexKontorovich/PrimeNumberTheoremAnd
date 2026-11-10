@@ -1,11 +1,16 @@
-import Architect
-import Batteries.Tactic.Lemma
-import Mathlib.Algebra.GroupWithZero.Units.Basic
-import Mathlib.Analysis.MellinTransform
-import Mathlib.MeasureTheory.Integral.IntegrableOn
-import Mathlib.Tactic.Bound
-import Mathlib.Tactic.GCongr
-import PrimeNumberTheoremAnd.Auxiliary
+module
+
+public import Architect
+public import Batteries.Tactic.Lemma
+public import Mathlib.Algebra.GroupWithZero.Units.Basic
+public import Mathlib.Analysis.MellinTransform
+public import Mathlib.MeasureTheory.Integral.IntegrableOn
+public import Mathlib.Tactic.Bound
+public import Mathlib.Tactic.GCongr
+public import PrimeNumberTheoremAnd.Auxiliary
+
+
+@[expose] public section
 
 open scoped ContDiff
 

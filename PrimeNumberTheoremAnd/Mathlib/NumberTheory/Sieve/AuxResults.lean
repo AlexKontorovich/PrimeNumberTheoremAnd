@@ -5,12 +5,14 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module aux_results
 -/
-import Mathlib.Algebra.Order.Antidiag.Nat
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+module
 
-noncomputable section
+public import Mathlib.Algebra.Order.Antidiag.Nat
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.Analysis.SumIntegralComparisons
+public import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+
+public noncomputable section
 
 open scoped BigOperators ArithmeticFunction ArithmeticFunction.Moebius ArithmeticFunction.omega
 

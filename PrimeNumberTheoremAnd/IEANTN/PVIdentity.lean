@@ -1,6 +1,11 @@
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.MeasureTheory.Integral.Gamma
-import Mathlib.NumberTheory.Harmonic.GammaDeriv
+module
+
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.MeasureTheory.Integral.Gamma
+public import Mathlib.NumberTheory.Harmonic.GammaDeriv
+
+
+public section
 
 open Real Set MeasureTheory Filter Topology Finset
 open scoped NNReal ENNReal

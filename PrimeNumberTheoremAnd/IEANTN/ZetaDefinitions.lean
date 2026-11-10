@@ -1,8 +1,13 @@
-import Architect
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.Analysis.Meromorphic.Order
-import PrimeNumberTheoremAnd.Defs
-import Mathlib.NumberTheory.LSeries.Nonvanishing
+module
+
+public import Architect
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+public import Mathlib.Analysis.Meromorphic.Order
+public import PrimeNumberTheoremAnd.Defs
+public import Mathlib.NumberTheory.LSeries.Nonvanishing
+
+
+@[expose] public section
 
 open Real
 

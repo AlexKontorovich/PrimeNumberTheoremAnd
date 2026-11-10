@@ -3,11 +3,13 @@ Copyright (c) 2026 Robby Sneiderman. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robby Sneiderman
 -/
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import PrimeNumberTheoremAnd.ZetaConj
-import PrimeNumberTheoremAnd.ZetaBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
-import Mathlib.Analysis.Real.Pi.Bounds
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import PrimeNumberTheoremAnd.ZetaConj
+public import PrimeNumberTheoremAnd.ZetaBounds
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability
+public import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 # A crude polynomial bound for the zeta zero-counting function
@@ -32,6 +34,8 @@ bound is false there, while `x * log x <= 2 * x ^ (3/2)` keeps every region line
 Any polynomial exponent suffices for the intended consumer, the summability of
 `Re (1 / rho ^ 2)` over the zeta zeros.
 -/
+
+@[expose] public section
 
 open Real Complex Function
 

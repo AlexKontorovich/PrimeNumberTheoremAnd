@@ -5,8 +5,10 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module selberg
 -/
-import Batteries.Tactic.Lemma
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
+module
+
+public import Batteries.Tactic.Lemma
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
 
 /-!
 # The Selberg Sieve
@@ -16,7 +18,7 @@ This file proves `selberg_bound_simple`, the main theorem of the Selberg.
 
 set_option lang.lemmaCmd true
 
-noncomputable section
+@[expose] public noncomputable section
 
 open scoped BigOperators Classical SelbergSieve ArithmeticFunction.Moebius ArithmeticFunction.omega
 

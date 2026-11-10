@@ -1,20 +1,25 @@
-import Architect
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.Complex.AbelLimit
-import Mathlib.Analysis.ConstantSpeed
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Analysis.Real.Pi.Bounds
-import Mathlib.Analysis.SpecialFunctions.Complex.Circle
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Cotangent
-import Mathlib.Data.Int.Star
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.MeasureTheory.Integral.DominatedConvergence
-import Mathlib.NumberTheory.ZetaValues
-import PrimeNumberTheoremAnd.IEANTN.Mertens
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import PrimeNumberTheoremAnd.ZetaBounds
+module
+
+public import Architect
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Analysis.Complex.AbelLimit
+public import Mathlib.Analysis.ConstantSpeed
+public import Mathlib.Analysis.CStarAlgebra.Classes
+public import Mathlib.Analysis.Real.Pi.Bounds
+public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Cotangent
+public import Mathlib.Data.Int.Star
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.MeasureTheory.Integral.DominatedConvergence
+public import Mathlib.NumberTheory.ZetaValues
+public import PrimeNumberTheoremAnd.IEANTN.Mertens
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+public import PrimeNumberTheoremAnd.ZetaBounds
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Approximating the Riemann zeta function}

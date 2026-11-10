@@ -1,7 +1,9 @@
-import Mathlib.Analysis.Calculus.LogDeriv
-import Mathlib.Analysis.Meromorphic.Divisor
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+module
+
+public import Mathlib.Analysis.Calculus.LogDeriv
+public import Mathlib.Analysis.Meromorphic.Divisor
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
 /-!
 # Rectangle argument-principle infrastructure
@@ -14,7 +16,7 @@ open Complex Filter Topology Set BigOperators Asymptotics
 
 open scoped Interval
 
-noncomputable section
+public noncomputable section
 
 private lemma tendsto_mul_self_of_sub_principal_isBigO_one
     {f : ℂ → ℂ} {p c : ℂ}
