@@ -1,9 +1,14 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
-import PrimeNumberTheoremAnd.IEANTN.Buthe
-import PrimeNumberTheoremAnd.IEANTN.MobiusLemma
+module
 
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
+public import PrimeNumberTheoremAnd.IEANTN.Buthe
+public import PrimeNumberTheoremAnd.IEANTN.MobiusLemma
+
+
+
+public section
 
 blueprint_comment /--
 \section{Summary of results}

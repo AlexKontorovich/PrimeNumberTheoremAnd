@@ -1,15 +1,20 @@
-import Architect
-import Mathlib.Topology.Order.Basic
-import Mathlib.NumberTheory.PrimeCounting
-import PrimeNumberTheoremAnd.Consequences
-import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.Li2Bounds
-import PrimeNumberTheoremAnd.IEANTN.LiSeries
-import LeanCert.Tactic.IntervalAuto
-import PrimeNumberTheoremAnd.EulerMascheroniBounds
-import PrimeNumberTheoremAnd.IEANTN.LnFactorialSeries
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
 
+public import Architect
+public import Mathlib.Topology.Order.Basic
+public import Mathlib.NumberTheory.PrimeCounting
+public import PrimeNumberTheoremAnd.Consequences
+public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.Li2Bounds
+public import PrimeNumberTheoremAnd.IEANTN.LiSeries
+public import LeanCert.Tactic.IntervalAuto
+public import PrimeNumberTheoremAnd.EulerMascheroniBounds
+public import PrimeNumberTheoremAnd.IEANTN.LnFactorialSeries
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+
+public section
 
 blueprint_comment /--
 \section{Definitions}

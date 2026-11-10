@@ -1,6 +1,11 @@
-import PrimeNumberTheoremAnd.IEANTN.Dusart
-import PrimeNumberTheoremAnd.IEANTN.PrimeTables
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.Dusart
+public import PrimeNumberTheoremAnd.IEANTN.PrimeTables
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+public section
 
 open Real Chebyshev Nat
 

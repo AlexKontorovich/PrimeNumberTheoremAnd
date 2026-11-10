@@ -1,10 +1,14 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
 
 /-! Generated regime-3 pointwise Table 10 margin certificates.
 
 This shard expects `row_bound_pointwise`
 to be available from `BKLNW_table10_rows_core.lean`.
 -/
+
+public section
 
 namespace BKLNW
 

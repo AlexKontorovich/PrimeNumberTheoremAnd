@@ -1,8 +1,13 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
-import LeanCert.CertifiedBounds.Chebyshev
-import LeanCert.Validity.AffineCover
-import LeanCert.Tactic.IntervalAuto
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
+public import LeanCert.CertifiedBounds.Chebyshev
+public import LeanCert.Validity.AffineCover
+public import LeanCert.Tactic.IntervalAuto
+
+
+@[expose] public section
 
 open LeanCert.CertifiedBounds.Chebyshev
 open Real MeasureTheory Chebyshev LeanCert.Core LeanCert.Validity

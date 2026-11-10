@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
 
 /-!
 # FKS2 Corollary 24 — row 10 (`x^{-1/50}`) mid-range envelope
@@ -22,6 +24,8 @@ is assembled from four segments split at `e^3.5`, `e^10`, `e^1358`:
 * **mid (envelope)** `[e^10, e^1358]` (`mid_row10`, `allCells.take 1348`);
 * **sliver** `[e^1358, e^1358.6]` (`sliver_row10`, trusted `sorry`).
 -/
+
+public section
 
 namespace FKS2
 

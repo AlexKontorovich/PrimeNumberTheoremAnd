@@ -1,10 +1,15 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
-import PrimeNumberTheoremAnd.IEANTN.PrimeInInterval
-import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
-import LeanCert.Tactic.IntervalAuto
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
+public import PrimeNumberTheoremAnd.IEANTN.PrimeInInterval
+public import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
+public import LeanCert.Tactic.IntervalAuto
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}

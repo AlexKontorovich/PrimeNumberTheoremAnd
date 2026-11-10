@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtCore
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtCore
 
 /-!
 # Generalized extended-Table-4 cell transport (FKS2, towards Corollary 23)
@@ -23,6 +25,8 @@ We over-estimate the two transcendental constants by rationals — `ĉ ≥ C/√
 under-estimates the true `A/(eps·R^B)`).  Both push the checked inequality in
 the *stronger* direction, so a passing check implies the true bound.
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

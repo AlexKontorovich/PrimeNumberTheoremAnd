@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Cor14Tail
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Cor14Tail
 
 /-!
 # FKS2 Corollary 23 — row 8 `(A=121.107, B=3/2, C=2, x₀=1)`
@@ -22,6 +24,8 @@ of values than those provided in Table 4"* — this band `[e^5500, e^9500]` is a
 reproduced in this repo.  The two flanks `[e^10, e^5500]` and `[e^9500, e^20000]`
 ARE proven via the envelope (RESTRICTED covers to cells below/above the band).
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

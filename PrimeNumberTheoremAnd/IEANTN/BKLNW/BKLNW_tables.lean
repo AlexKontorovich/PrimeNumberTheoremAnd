@@ -1,9 +1,14 @@
-import Architect
-import Mathlib.Analysis.Complex.ExponentialBounds
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
 
+public import Architect
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Numerical content of BKLNW}

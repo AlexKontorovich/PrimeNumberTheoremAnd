@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
 
 /-!
 # FKS2 Corollary 24 — row 4 (`(log x)²·x^{-1/2}`) and the `x^{-1/2}`-curve floor machinery
@@ -30,6 +32,8 @@ segments:
 
 Row 4 (`c = 1`, `K = 2`, `2K = 4`) is the template.
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

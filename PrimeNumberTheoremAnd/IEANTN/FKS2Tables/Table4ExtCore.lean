@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import LeanCert.ANT
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import LeanCert.ANT
 
 /-!
 # Extended Table 4 cell certificates (FKS2, towards Corollary 22)
@@ -23,6 +25,8 @@ only sees arguments of order one, and the tiny table values `ε` enter only
 through the exact rational constant `A/ε` (constants below the dyadic grid
 resolution must not appear in checked expressions).
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

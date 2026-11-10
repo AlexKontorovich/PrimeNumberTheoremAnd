@@ -1,6 +1,8 @@
-import PrimeNumberTheoremAnd.IEANTN.LeanCertEnclosures
-import LeanCert.Tactic.Enclosure
-import LeanCert.Tactic.IntervalAuto
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.LeanCertEnclosures
+public import LeanCert.Tactic.Enclosure
+public import LeanCert.Tactic.IntervalAuto
 
 /-!
 # Checked small-window numerics for FKS2 Corollary 24
@@ -14,6 +16,8 @@ elementary comparison with the relevant Table-7 curve. As with PNT+'s existing f
 table checks, the large decidable certificates use `native_decide`; the enclosing
 theorems and analytic glue are checked by Lean's kernel.
 -/
+
+public section
 
 namespace FKS2.Cor24Checked
 
