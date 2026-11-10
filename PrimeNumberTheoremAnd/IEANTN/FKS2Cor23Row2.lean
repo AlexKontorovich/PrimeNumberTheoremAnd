@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenQuarterCore
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenQuarterCore
 
 /-!
 # FKS2 Corollary 23 — row 2 `(A=0.826, B=1/4, C=1, x₀=1)`
@@ -17,6 +19,8 @@ row 1 is added.
 Floor split at `e^6` (Buthe clears the small-`A` row-2 curve only above `e^6`);
 `[e^1, e^6]` is the trusted numerical boundary.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

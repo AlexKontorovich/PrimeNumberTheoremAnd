@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 
 /-!
 # FKS2 Corollary 24 — row 2 (`(log x)^{3/2}·x^{-1/2}`)
@@ -15,6 +17,8 @@ power that a bare `(log x)^(3/2)` literal would silently elaborate to via
 (a `Monoid.npow`) to `(log x)^(3/2 : ℝ)` (an `Real.rpow`) goes through
 `Real.sqrt_eq_rpow`, `Real.rpow_natCast` and `Real.rpow_mul`.
 -/
+
+public section
 
 namespace FKS2
 

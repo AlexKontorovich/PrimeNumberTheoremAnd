@@ -1,8 +1,14 @@
-import Architect
-import Mathlib.Analysis.SpecialFunctions.Stirling
-import Mathlib.NumberTheory.Bertrand
-import PrimeNumberTheoremAnd.Consequences
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import Architect
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+public import Mathlib.Analysis.SpecialFunctions.Stirling
+public import Mathlib.NumberTheory.Bertrand
+public import PrimeNumberTheoremAnd.Consequences
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+@[expose] public section
 
 namespace Erdos392
 

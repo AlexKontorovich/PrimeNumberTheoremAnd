@@ -1,6 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
 
 /-! Rows 90 and 95, where `a₁` uses the `if_neg` branch. -/
+
+public section
 
 namespace BKLNW
 

@@ -17,8 +17,8 @@ linter.flexible = true
 
 [[require]]
 name = "LeanArchitect"
-git = "https://github.com/hanwenzhu/LeanArchitect.git"
-rev = "main"
+git = "https://github.com/YaelDillies/lean-architect.git"
+rev = "v4.36.0"
 
 [[require]]
 name = "checkdecls"
@@ -26,8 +26,8 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 
 [[require]]
 name = "leancert"
-git = "https://github.com/alerad/leancert.git"
-rev = "v4.36.0"
+git = "https://github.com/YaelDillies/leancert.git"
+rev = "module_system"
 
 [[require]]
 name = "PrimeCert"

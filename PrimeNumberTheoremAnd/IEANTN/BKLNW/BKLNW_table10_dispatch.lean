@@ -1,6 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows
 
 /-! Generated proof of the Table 10 verification theorem from proved row/k margins. -/
+
+public section
 
 set_option linter.unusedTactic false
 set_option linter.unreachableTactic false

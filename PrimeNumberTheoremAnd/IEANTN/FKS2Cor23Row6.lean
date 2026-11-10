@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 
 /-!
 # FKS2 Corollary 23 — row 6 `(A=12.4, B=3/2, C=1.9, x₀=1)`
@@ -12,6 +14,8 @@ Threshold `x₀ = 1`: the floor runs `[exp 1, e^10]`, split at `e^5` into the Bu
 segment and the **trusted numerical boundary** `[e^1, e^5]` (wider than rows 4/5's
 `[e^3, e^5]`, same accepted class — FKS2 §5.2/5.3 direct `π`/`Li`).
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

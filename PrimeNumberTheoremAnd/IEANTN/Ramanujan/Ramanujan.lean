@@ -1,8 +1,13 @@
-import PrimeNumberTheoremAnd.Defs
-import LeanCert.CertifiedBounds.Chebyshev
-import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
-import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import PrimeNumberTheoremAnd.Defs
+public import LeanCert.CertifiedBounds.Chebyshev
+public import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
+public import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}

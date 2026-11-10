@@ -3,9 +3,11 @@ Copyright (c) 2026 LeanCert Contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LeanCert Contributors
 -/
-import LeanCert.Tactic.IntervalAuto
-import LeanCert.CertifiedBounds.BKLNW
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
+module
+
+public import LeanCert.Tactic.IntervalAuto
+public import LeanCert.CertifiedBounds.BKLNW
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 
 /-!
 # BKLNW a₂ Glue Proofs (Corollary 5.1 Remark)
@@ -18,6 +20,8 @@ Uses:
 - Numerical certificates from `LeanCert.CertifiedBounds.BKLNW`
 - `interval_decide` tactic from LeanCert
 -/
+
+public section
 
 open Real BKLNW
 
