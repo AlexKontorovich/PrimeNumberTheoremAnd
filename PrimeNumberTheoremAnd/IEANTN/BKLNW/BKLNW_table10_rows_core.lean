@@ -1,9 +1,14 @@
-import Mathlib.Analysis.Convex.Deriv
-import Mathlib.Analysis.Convex.Jensen
-import Mathlib.Data.List.Sort
-import LeanCert.Tactic.IntervalAuto
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
+module
+
+public import Mathlib.Analysis.Convex.Deriv
+public import Mathlib.Analysis.Convex.Jensen
+public import Mathlib.Data.List.Sort
+public import LeanCert.Tactic.IntervalAuto
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
+
+
+@[expose] public section
 
 open Real Set Finset
 

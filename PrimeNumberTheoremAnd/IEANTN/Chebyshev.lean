@@ -1,13 +1,18 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.NumberTheory.Chebyshev
-import Mathlib.Tactic.NormNum.BigOperators
-import PrimeNumberTheoremAnd.IEANTN.LogTables
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import LeanCert.CertifiedBounds.Chebyshev
-import LeanCert.Tactic.IntervalAuto
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.NumberTheory.Chebyshev
+public import Mathlib.Tactic.NormNum.BigOperators
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import LeanCert.CertifiedBounds.Chebyshev
+public import LeanCert.Tactic.IntervalAuto
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Chebyshev's estimates}\label{chebyshev-estimates-sec}

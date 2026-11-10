@@ -1,7 +1,9 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
-import PrimeNumberTheoremAnd.IEANTN.Buthe
-import PrimeNumberTheoremAnd.IEANTN.FKS2TrustedNumerics
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
+public import PrimeNumberTheoremAnd.IEANTN.Buthe
+public import PrimeNumberTheoremAnd.IEANTN.FKS2TrustedNumerics
 
 /-!
 # FKS2 Corollary 23 — per-row proofs
@@ -24,6 +26,8 @@ This file lives downstream of `Cor22Floor` (floor θ-engine) and `Table4ExtGenCo
 (transport); `corollary_23` itself cannot be proven inside `FKS2.lean`, which is
 upstream of both — exactly as `corollary_22` lives in `Cor22Floor.lean`.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

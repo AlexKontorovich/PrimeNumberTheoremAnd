@@ -1,6 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_20_43
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_20_43
 
 /-! Generated dense Table 10 margin certificates. -/
+
+public section
 
 namespace BKLNW
 

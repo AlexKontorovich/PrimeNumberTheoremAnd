@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 
 /-!
 # FKS2 Corollary 24 — row 5 (`(log x)³·x^{-1/2}`)
@@ -10,6 +12,8 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 at `e^3`, `e^43` as row 4; only the top of the trusted band moves to `e^80`
 and the bridge exponent moves from `(√L)^4 = L^2` to `(√L)^6 = L^3`.
 -/
+
+public section
 
 namespace FKS2
 
