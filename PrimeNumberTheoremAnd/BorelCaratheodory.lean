@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors : Maksym Radziwill
 -/
 
-import Architect
-import Mathlib.Analysis.Complex.AbsMax
-import Mathlib.Analysis.Complex.RemovableSingularity
-import PrimeNumberTheoremAnd.StrongPNT
+module
 
+public import Architect
+public import Mathlib.Analysis.Complex.AbsMax
+public import Mathlib.Analysis.Complex.RemovableSingularity
+public import PrimeNumberTheoremAnd.StrongPNT
+
+
+
+@[expose] public section
 
 @[blueprint "divRemovable_zero"
   (title := "divRemovable-zero")

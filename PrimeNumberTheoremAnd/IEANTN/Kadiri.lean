@@ -1,19 +1,24 @@
-import Architect
-import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Helpers
-import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq15
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
-import PrimeNumberTheoremAnd.LaplaceInversion
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
-import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
-import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.Defs
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.KadiriZeroCounting
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Helpers
+public import PrimeNumberTheoremAnd.IEANTN.HadamardLogDerivative
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq15
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaHadamard
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
+public import PrimeNumberTheoremAnd.LaplaceInversion
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq13
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Reduction
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq14
+public import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{An explicit zero-free region for \texorpdfstring{$\zeta$}{zeta}}\label{kadiri-sec}

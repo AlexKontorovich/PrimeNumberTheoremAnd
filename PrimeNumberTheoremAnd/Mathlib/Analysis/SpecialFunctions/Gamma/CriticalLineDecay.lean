@@ -1,6 +1,8 @@
-import Mathlib.Analysis.Complex.Trigonometric
-import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
-import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+module
+
+public import Mathlib.Analysis.Complex.Trigonometric
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
 
 /-!
 # Critical-line Gamma decay
@@ -17,6 +19,8 @@ Both follow from Euler's reflection formula `Gamma_mul_Gamma_one_sub`,
 the conjugation symmetry `Gamma_conj`, and the elementary `sin → cosh`
 chain along the line `Re s = 1/2`.
 -/
+
+public section
 
 open Real
 

@@ -1,15 +1,20 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Data.Int.Star
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.MeasureTheory.Function.Floor
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
-import Mathlib.NumberTheory.ArithmeticFunction.Moebius
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.Tactic.NormNum.RealSqrt
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Analysis.CStarAlgebra.Classes
+public import Mathlib.Data.Int.Star
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.MeasureTheory.Function.Floor
+public import Mathlib.NumberTheory.LSeries.Dirichlet
+public import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
+public import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+public import Mathlib.Tactic.NormNum.RealSqrt
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{A Lemma involving the M\"obius Function}

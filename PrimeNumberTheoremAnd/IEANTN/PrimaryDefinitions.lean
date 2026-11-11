@@ -1,7 +1,12 @@
-import Architect
-import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
-import Mathlib.NumberTheory.Chebyshev
-import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
+module
+
+public import Architect
+public import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+public import Mathlib.NumberTheory.Chebyshev
+public import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
+
+
+public section
 
 open Real
 open ArithmeticFunction hiding log

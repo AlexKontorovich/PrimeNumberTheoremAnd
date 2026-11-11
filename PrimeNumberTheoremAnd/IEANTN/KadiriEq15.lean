@@ -1,9 +1,14 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq15GammaFactor
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq15LaplaceStrip
-import PrimeNumberTheoremAnd.Fourier
-import PrimeNumberTheoremAnd.PerronFormula
-import Mathlib.Analysis.Calculus.Deriv.Star
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq15GammaFactor
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq15LaplaceStrip
+public import PrimeNumberTheoremAnd.Fourier
+public import PrimeNumberTheoremAnd.PerronFormula
+public import Mathlib.Analysis.Calculus.Deriv.Star
+
+
+@[expose] public section
 
 namespace Kadiri
 

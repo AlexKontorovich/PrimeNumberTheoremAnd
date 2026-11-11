@@ -1,9 +1,11 @@
-import PrimeNumberTheoremAnd.LaplaceInversion
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Foundations
-import PrimeNumberTheoremAnd.Fourier
-import PrimeNumberTheoremAnd.SincKernelErrorBounds
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+module
+
+public import PrimeNumberTheoremAnd.LaplaceInversion
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq12Foundations
+public import PrimeNumberTheoremAnd.Fourier
+public import PrimeNumberTheoremAnd.SincKernelErrorBounds
+public import Mathlib.NumberTheory.LSeries.Dirichlet
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 /-!
 # Shared support lemmas for the Kadiri equation files
@@ -34,7 +36,7 @@ open ArithmeticFunction hiding log
 open Filter
 open scoped Topology
 
-noncomputable section
+public noncomputable section
 
 /-! ## Exponential-kernel micro-lemmas -/
 

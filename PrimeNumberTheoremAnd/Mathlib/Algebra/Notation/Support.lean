@@ -1,4 +1,9 @@
-import Mathlib.Algebra.Notation.Support
+module
+
+public import Mathlib.Algebra.Notation.Support
+
+
+public section
 
 namespace Function
 

@@ -1,8 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import Mathlib.Analysis.Calculus.LogDeriv
-import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import Mathlib.Analysis.Calculus.LogDeriv
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 /-!
 # Hadamard Log-Derivative Bridges for Kadiri
@@ -11,6 +13,8 @@ This file contains zeta-specific algebraic bridges from the completed zeta
 factor to the logarithmic derivative `-ζ'/ζ` used in Kadiri's zero-free-region
 argument.
 -/
+
+@[expose] public section
 
 namespace Kadiri
 

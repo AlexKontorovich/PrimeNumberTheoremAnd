@@ -1,11 +1,13 @@
-import Architect
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
-import Mathlib.Analysis.Calculus.LogDeriv
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
-import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
-import Mathlib.Analysis.Meromorphic.Order
-import Mathlib.MeasureTheory.Integral.Asymptotics
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+public import Mathlib.Analysis.Calculus.LogDeriv
+public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
+public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+public import Mathlib.Analysis.Meromorphic.Order
+public import Mathlib.MeasureTheory.Integral.Asymptotics
 
 /-!
 # Generic residue, order, and logarithmic-derivative atoms for the Kadiri eq.(12) bridge
@@ -29,7 +31,7 @@ open Complex Filter MeasureTheory
 open Asymptotics
 open scoped Topology Interval
 
-noncomputable section
+public noncomputable section
 
 theorem kadiri_laplace_full_strip_weight_integrable_of_continuous {ψ : ℝ → ℂ}
     (hψ : Continuous ψ) {b σ : ℝ}

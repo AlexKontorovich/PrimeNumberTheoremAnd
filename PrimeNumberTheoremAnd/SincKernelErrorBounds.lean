@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.LaplaceInversion
+module
+
+public import PrimeNumberTheoremAnd.LaplaceInversion
 
 /-!
 # Window error bounds for the sin-div sinc kernel
@@ -12,6 +14,8 @@ is controlled pointwise by `D / π`, uniformly in the height `T`, and consequent
 integral over `[-1, 1]` is bounded by `(D / π) · vol (Ioc (-1) 1)`.  These supply the
 local-window hypothesis of `norm_fourierInvTrunc_le_of_windowed_sin_div_bounds`.
 -/
+
+public section
 
 open MeasureTheory Set
 

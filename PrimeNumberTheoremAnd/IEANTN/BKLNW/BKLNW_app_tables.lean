@@ -1,6 +1,11 @@
-import Architect
-import Mathlib.Tactic
+module
 
+public import Architect
+public import Mathlib.Tactic
+
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Numerical content of BKLNW Appendix A}

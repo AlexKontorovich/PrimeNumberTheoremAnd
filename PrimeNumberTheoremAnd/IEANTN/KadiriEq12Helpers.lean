@@ -1,15 +1,17 @@
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.Analysis.Meromorphic.Order
-import Mathlib.Analysis.Meromorphic.Complex
-import Mathlib.Analysis.Analytic.Order
-import Mathlib.Analysis.Calculus.Deriv.ZPow
-import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.MeasureTheory.Integral.ExpDecay
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+module
+
+public import Mathlib.NumberTheory.LSeries.RiemannZeta
+public import Mathlib.Analysis.Meromorphic.Order
+public import Mathlib.Analysis.Meromorphic.Complex
+public import Mathlib.Analysis.Analytic.Order
+public import Mathlib.Analysis.Calculus.Deriv.ZPow
+public import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
+public import Mathlib.Analysis.Complex.CauchyIntegral
+public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.MeasureTheory.Integral.ExpDecay
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
 /-!
 # Helper lemmas for Kadiri eq. (12) (#1537)
@@ -17,6 +19,8 @@ import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 Reusable order-theory, meromorphy and Laplace-transform-analyticity facts used in the proof of
 `kadiri_thm_3_1_q1_eq_12`.
 -/
+
+public section
 
 open Filter Topology Complex
 

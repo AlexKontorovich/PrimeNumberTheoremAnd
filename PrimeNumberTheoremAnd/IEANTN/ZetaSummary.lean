@@ -1,8 +1,13 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import PrimeNumberTheoremAnd.IEANTN.KLN
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldZeta
-import PrimeNumberTheoremAnd.IEANTN.ZetaAppendix
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.KLN
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldZeta
+public import PrimeNumberTheoremAnd.IEANTN.ZetaAppendix
+
+
+public section
 
 blueprint_comment /--
 \section{Summary of results}

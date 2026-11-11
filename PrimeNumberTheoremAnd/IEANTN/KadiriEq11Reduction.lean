@@ -1,7 +1,9 @@
-import Mathlib.Analysis.Normed.Group.Tannery
-import PrimeNumberTheoremAnd.LaplaceInversion
-import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Base
-import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
+module
+
+public import Mathlib.Analysis.Normed.Group.Tannery
+public import PrimeNumberTheoremAnd.LaplaceInversion
+public import PrimeNumberTheoremAnd.IEANTN.KadiriEq11Base
+public import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 
 namespace Kadiri
 
@@ -10,7 +12,7 @@ open ArithmeticFunction hiding log
 open Filter
 open scoped Topology
 
-noncomputable section
+@[expose] public noncomputable section
 
 private lemma kadiri_laplace_source_integrable_of_decay {φ : ℝ → ℂ} (hφ : ContDiff ℝ 1 φ)
     {b : ℝ} (_hb : 0 < b)

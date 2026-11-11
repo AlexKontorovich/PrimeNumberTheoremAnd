@@ -1,6 +1,11 @@
-import Mathlib.Analysis.Meromorphic.NormalForm
-import PrimeNumberTheoremAnd.IEANTN.CH2.CH2_part1
-import PrimeNumberTheoremAnd.ZetaConj
+module
+
+public import Mathlib.Analysis.Meromorphic.NormalForm
+public import PrimeNumberTheoremAnd.IEANTN.CH2.CH2_part1
+public import PrimeNumberTheoremAnd.ZetaConj
+
+@[expose] public section
+
 open Real MeasureTheory FourierTransform Chebyshev Asymptotics
 open ArithmeticFunction hiding log
 open Complex hiding log

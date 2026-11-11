@@ -1,6 +1,11 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{The estimates of Kadiri, Lumley, and Ng}

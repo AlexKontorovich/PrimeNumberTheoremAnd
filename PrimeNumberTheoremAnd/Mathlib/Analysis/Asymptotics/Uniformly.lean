@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lawrence Wu
 -/
 
-import Mathlib.Analysis.Asymptotics.Theta
-import Mathlib.MeasureTheory.Integral.Asymptotics
-import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
-import Mathlib.MeasureTheory.Integral.Bochner.FundThmCalculus
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
+module
+
+public import Mathlib.Analysis.Asymptotics.Theta
+public import Mathlib.MeasureTheory.Integral.Asymptotics
+public import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+public import Mathlib.MeasureTheory.Integral.Bochner.FundThmCalculus
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 
 /-!
 # Uniform Asymptotics
@@ -20,6 +22,8 @@ For a family of functions `f : ι × α → E` and `g : α → E`, we can think 
 This file provides methods for constructing `=O[𝓟 s ×ˢ l]` relations (similarly `Θ`)
 and deriving their consequences.
 -/
+
+public section
 
 open Filter
 

@@ -1,5 +1,10 @@
-import Architect
-import PrimeNumberTheoremAnd.Defs
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.Defs
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Numerical content of eSHP}

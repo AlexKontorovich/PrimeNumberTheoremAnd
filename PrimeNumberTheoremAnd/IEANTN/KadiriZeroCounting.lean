@@ -1,8 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
-import PrimeNumberTheoremAnd.ZetaConj
-import PrimeNumberTheoremAnd.Backlund.ZeroCountCrude
-import Mathlib.Analysis.PSeries
-import Mathlib.Analysis.SpecificLimits.Normed
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
+public import PrimeNumberTheoremAnd.ZetaConj
+public import PrimeNumberTheoremAnd.Backlund.ZeroCountCrude
+public import Mathlib.Analysis.PSeries
+public import Mathlib.Analysis.SpecificLimits.Normed
 
 /-!
 # Zero counting and square-tail summability for the non-trivial zeta zeros
@@ -26,7 +28,7 @@ form of the same dyadic chain, making the square-tail summability hypothesis-fre
 The explicit RvM-hypothesis route stays as the path to the chapter's numerics.
 -/
 
-noncomputable section
+@[expose] public noncomputable section
 
 namespace Kadiri
 
