@@ -3012,7 +3012,7 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
     _ ≤ ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 +
           (ε * P.n / 10 + ε * P.n / 10) + ε * P.n / 5 := by
         gcongr <;> first | exact hM.2 P rfl | exact hn2 P rfl rfl rfl |
-          exact hn3 P rfl rfl | exact h_large | exact hn5 P rfl rfl rfl
+          exact hn3 P rfl rfl | exact hn5 P rfl rfl rfl
     _ = ε * n := by ring
 
 @[blueprint
