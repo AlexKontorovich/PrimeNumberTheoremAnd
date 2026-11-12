@@ -4145,4 +4145,6 @@ theorem MediumPNT : ∃ c > 0,
   have := GenStrengthPNT LogDerivZetaBoundedAndHolo99 (by linarith) (by linarith); ring_nf at this
   simpa only [gt_iff_lt, one_div, neg_mul] using this
 
+/-- info: 'MediumPNT' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
 #print axioms MediumPNT
