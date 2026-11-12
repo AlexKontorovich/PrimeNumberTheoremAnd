@@ -7,6 +7,7 @@ pp.unicode.fun = true
 pp.proofs.withType = false
 autoImplicit = false
 relaxedAutoImplicit = false
+warn.sorry = false
 linter.mathlibStandardSet = true
 linter.style.header = false
 linter.style.openClassical = false
