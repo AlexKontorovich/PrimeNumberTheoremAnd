@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:37:36.088038+00:00",
+  "source_sha256": {
+    "RSBounds/QuarticMellin.lean": "d57d72d7589d667e7d98c73aa037379046485998a83648506ff0afb23d5fa990",
+    "verification/QuarticMellinAudit.lean": "25e76685a3d27494640b571f70f1cb9a8461710270b1a644ccef3e8a8d81cda2"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.QuarticMellin"
+      ],
+      "log": "quartic-mellin-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/QuarticMellinAudit.lean"
+      ],
+      "log": "quartic-mellin-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:37:44.217900+00:00",
+  "exit_code": 0
+}

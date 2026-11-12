@@ -1,0 +1,24 @@
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.zetaF_eq_riemannZeta₁' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.logDeriv_zetaF_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.xi_factorization' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.logDeriv_xiF_including_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.re_logDeriv_xiF_real' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.endpoint_normalization' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.re_logDeriv_zetaF_real' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.neg_re_logDeriv_zeta_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

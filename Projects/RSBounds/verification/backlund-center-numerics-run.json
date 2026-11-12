@@ -1,0 +1,83 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:16:47.243259+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundCenterNumericsBase.lean": "1d6cbe8721c32210bad319799f6facc82901302d37c9f5e5c777118d331178ef",
+    "RSBounds/BacklundCenterNumericsData.lean": "9443a37fe4087f5c6763ddc313ed2218b390dae43c696145dfe61a04992098b2",
+    "RSBounds/BacklundCenterNumerics.lean": "78bac242688138ddda0804b71af492c8fc2c7870c166a394125d9f565577c623",
+    "verification/BacklundCenterNumericsAudit.lean": "25987c8f690a0c83cdfe4cef8537fb4f3262e9d5280ca8570316367924534921",
+    "scripts/gen_backlund_center_numerics.py": "19b53981771b34b3451a11737f0118ef07364830fc5c68b47944b2d746bd9cdb"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCenterNumericsBase.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCenterNumericsBase.olean"
+      ],
+      "log": "backlund-center-numerics-BacklundCenterNumericsBase-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCenterNumericsData.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCenterNumericsData.olean"
+      ],
+      "log": "backlund-center-numerics-BacklundCenterNumericsData-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCenterNumerics.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCenterNumerics.olean"
+      ],
+      "log": "backlund-center-numerics-BacklundCenterNumerics-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundCenterNumericsAudit.lean"
+      ],
+      "log": "backlund-center-numerics-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:17:02.771089+00:00",
+  "exit_code": 0,
+  "prior_final_source_sha256": "84b7efb8331bc48e655d6599eddc5d0420d066a146f274554c5f8a89784c2143",
+  "followup_updated_utc": "2026-11-06T11:41:59.680972+00:00",
+  "followup_reason": "Expose the already certified coarse upper bound zeta(5/4)<23/5 for the anchor branch proof.",
+  "followup_build_command": [
+    "lake",
+    "env",
+    "lean",
+    "-M6000",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/BacklundCenterNumerics.olean",
+    "RSBounds/BacklundCenterNumerics.lean"
+  ],
+  "followup_build_exit_code": 0,
+  "followup_audit_command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "verification/BacklundCenterNumericsAudit.lean"
+  ],
+  "followup_audit_exit_code": 0
+}

@@ -1,0 +1,9 @@
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_sub_log_eq_signed_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.prime_sum_eq_right_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

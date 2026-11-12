@@ -1,0 +1,74 @@
+import took 89s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 101ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Convert___elabRules_Mathlib_Tactic_convert_1._boxed took 126ms
+RSBounds/MertensLogKernel.lean:37:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensLogKernel.lean:37:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensLogKernel.lean:48:71: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensLogKernel.lean:48:71: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensLogKernel.lean:61:75: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensLogKernel.lean:61:75: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.MertensLogKernel.hasDerivAt_inv_log_sq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.inv_log_sq_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.integrable_log_cube' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.integral_log_cube' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.logKernel_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.integrable_logKernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.integral_logKernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.integrable_mul_logKernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.abs_integral_mul_logKernel_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.logMass_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLogKernel.signed_expression_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 39ms
+	attribute application 0.211ms
+	blocked (unaccounted) 2.19s
+	congr simp thm 2.3ms
+	declTypeLinter 21.7ms
+	dsimp 3.83ms
+	elaboration 591ms
+	fix level params 1.64ms
+	import 89s
+	initialization 39.7ms
+	instantiate metavars 2.11ms
+	interpretation 3.11s
+	let-to-have transformation 0.284ms
+	linting 39.8ms
+	module linting 0.591ms
+	norm_num 12.2ms
+	parsing 27ms
+	process pre-definitions 26.4ms
+	ring 77ms
+	share common exprs 18.2ms
+	simp 144ms
+	tactic execution 344ms
+	tacticAnalysis 11.4ms
+	type checking 223ms
+	typeclass inference 876ms

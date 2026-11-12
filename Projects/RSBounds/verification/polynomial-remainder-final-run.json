@@ -1,0 +1,47 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "source_sha256": {
+    "RSBounds/PolynomialRemainderIntegral.lean": "3e87be73c89de7606dd47fa042e546abd7206ce032792fa619c089bf79ec5632",
+    "RSBounds/PolynomialRemainderBound.lean": "817c5feaa124eb7531a9c6c56cf9c5c9d37b8256ee9b65a7736d7d5a220ab7cf",
+    "verification/PolynomialRemainderIntegralAudit.lean": "4930ab861ea9d1c6db14ed14a03abda9ae1e3ea280e198fcc705bf0f5fe2cc46",
+    "verification/PolynomialRemainderBoundAudit.lean": "6a02b1b9d5de71f3d79118ab3a4daed901949bd134a187fe3a77833780e94846"
+  },
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialRemainderIntegral",
+        "RSBounds.PolynomialRemainderBound"
+      ],
+      "started_utc": "2026-11-06T09:48:54.393261+00:00",
+      "finished_utc": "2026-11-06T09:49:00.544032+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-remainder-final-build.log"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialRemainderIntegralAudit.lean"
+      ],
+      "started_utc": "2026-11-06T09:49:00.544470+00:00",
+      "finished_utc": "2026-11-06T09:49:05.420802+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-remainder-integral-axioms.log"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialRemainderBoundAudit.lean"
+      ],
+      "started_utc": "2026-11-06T09:49:05.421240+00:00",
+      "finished_utc": "2026-11-06T09:49:10.884631+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-remainder-bound-axioms.log"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+import RSBounds.MertensIntervalKernel
+
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.differentiable_numerator
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.differentiable_H
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.H_eq
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.kernel_eq
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.H_zero
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.H_one
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.continuousAt_weight
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.hasMellin_weight
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.mellinConvergent_weight
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.mellin_weight

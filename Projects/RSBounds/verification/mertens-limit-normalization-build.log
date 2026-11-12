@@ -1,0 +1,27 @@
+import took 333s
+interpretation of Mathlib.Meta.FunProp.funPropTac._boxed took 151ms
+'TernaryGoldbach.RSBounds.MertensLimitNormalization.limit_eq_neg_euler' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 18.1ms
+	attribute application 0.0206ms
+	blocked (unaccounted) 618ms
+	declTypeLinter 9.99ms
+	dsimp 5.83ms
+	elaboration 82.5ms
+	fix level params 0.0496ms
+	import 333s
+	initialization 156ms
+	instantiate metavars 0.142ms
+	interpretation 1.41s
+	let-to-have transformation 0.101ms
+	linting 13.3ms
+	module linting 1.36ms
+	parsing 13.9ms
+	process pre-definitions 2.81ms
+	share common exprs 0.757ms
+	tactic execution 112ms
+	tacticAnalysis 4.88ms
+	type checking 22.7ms
+	typeclass inference 156ms

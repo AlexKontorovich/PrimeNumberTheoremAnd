@@ -1,0 +1,45 @@
+import took 3.75s
+'TernaryGoldbach.RSBounds.QuadraticSubOne.HkD_poleB_ge_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.tendsto_HkD_poleB_div_sq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.norm_logDeriv_sub_one_horizontal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.goodHeights_sub_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.integrable_sub_one_contour_left' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.explicit_formula_sub_one_pole_zero_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticSubOne.sub_one_contour_difference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 9.79ms
+	attribute application 0.0903ms
+	blocked (unaccounted) 1.25s
+	congr simp thm 2.73ms
+	declTypeLinter 3.72ms
+	elaboration 83.1ms
+	fix level params 0.883ms
+	import 3.75s
+	initialization 35.4ms
+	instantiate metavars 1.16ms
+	interpretation 613ms
+	let-to-have transformation 0.164ms
+	linting 16.5ms
+	module linting 0.0097ms
+	norm_num 119ms
+	parsing 9.8ms
+	process pre-definitions 10.6ms
+	ring 30.9ms
+	share common exprs 11.3ms
+	simp 72.4ms
+	tactic execution 150ms
+	tacticAnalysis 2.99ms
+	type checking 71.8ms
+	typeclass inference 420ms

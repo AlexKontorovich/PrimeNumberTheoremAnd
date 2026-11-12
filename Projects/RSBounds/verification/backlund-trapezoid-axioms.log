@@ -1,0 +1,10 @@
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.kernel_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.hasDerivAt_kernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.error_eq_integral_kernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.error_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundTrapezoid.sum_error_eq' depends on axioms: [propext, Classical.choice, Quot.sound]

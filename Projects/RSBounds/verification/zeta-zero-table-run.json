@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T13:12:36.480341+00:00",
+  "source_sha256": {
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "RSBounds/BacklundLowZeros.lean": "ab791143c290dd4c60633343d036f16e71c7030d51038701ecf9f429bb09b47b",
+    "RSBounds/BacklundLowCount.lean": "cc675e5ef245f9e2b22667b007846030523973097dcc22712f5eae7b85cb059b",
+    "verification/ZetaZeroTableAudit.lean": "1a65bce05bc5ac60c8b1c844e982dd067fdc94cf508046cf5d028067278fc631"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/ZetaZeroTable.olean",
+        "RSBounds/ZetaZeroTable.lean"
+      ],
+      "log": "zeta-zero-table-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/ZetaZeroTableAudit.lean"
+      ],
+      "log": "zeta-zero-table-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T13:16:13.796822+00:00",
+  "exit_code": 0
+}

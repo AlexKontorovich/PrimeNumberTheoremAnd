@@ -1,0 +1,118 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T13:00:53.207121+00:00",
+  "lean_version": "Lean 4.35.0",
+  "source_sha256": {
+    "RSBounds/BacklundLowMainTerm.lean": "762e69cdae547cd42e6158fa22795d92d0148a506ba49da0918c21e7d694332c",
+    "RSBounds/BacklundLowCountGeneric.lean": "e81aab7ed1c0ba616095019fe5999894121d61d5b03b6b9dfdbea9aae2a5f410",
+    "RSBounds/BacklundLowZeros.lean": "ab791143c290dd4c60633343d036f16e71c7030d51038701ecf9f429bb09b47b",
+    "RSBounds/BacklundLowCount.lean": "cc675e5ef245f9e2b22667b007846030523973097dcc22712f5eae7b85cb059b",
+    "verification/BacklundLowCountAudit.lean": "22d20ba906cb6393621b64730134fe56754492204aefb48397cf7e80d58aba02",
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "RSBounds/BacklundLowScalarData.lean": "e7cae1646aa69088df964e77db148cd7ba89caf548018eb054190a47f45b5a35",
+    "RSBounds/BacklundRH100Bridge.lean": "9dd743abd59125b74fa1900230e8ae2b9220ab6bf8ebd0ce54d51a7e7d6bcbc0",
+    "RSBounds/RosserCountDefinition.lean": "22131d13d140f1d959ec41d069480a2268832b3f1147798373d89f0ec29db1ed"
+  },
+  "builds": [
+    {
+      "module": "BacklundLowMainTerm",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowMainTerm.olean",
+        "RSBounds/BacklundLowMainTerm.lean"
+      ],
+      "log": "verification/backlund-low-count-BacklundLowMainTerm-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 38.616
+    },
+    {
+      "module": "BacklundLowCountGeneric",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowCountGeneric.olean",
+        "RSBounds/BacklundLowCountGeneric.lean"
+      ],
+      "log": "verification/backlund-low-count-BacklundLowCountGeneric-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 4.665
+    },
+    {
+      "module": "BacklundLowZeros",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowZeros.olean",
+        "RSBounds/BacklundLowZeros.lean"
+      ],
+      "log": "verification/backlund-low-count-BacklundLowZeros-build.log",
+      "exit_code": 0
+    },
+    {
+      "module": "BacklundLowCount",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowCount.olean",
+        "RSBounds/BacklundLowCount.lean"
+      ],
+      "log": "verification/backlund-low-count-BacklundLowCount-build.log",
+      "exit_code": 0
+    }
+  ],
+  "status": "passed",
+  "olean_sha256": {
+    ".lake/build/lib/lean/RSBounds/BacklundLowMainTerm.olean": "d708ca927560ff07f70513f032505bac63d2b0e61e5d5f1cba0166739406d520",
+    ".lake/build/lib/lean/RSBounds/BacklundLowCountGeneric.olean": "84841c3f37592d0692dc882e905e8d0f88bdeb415a3a64b5a130acd5b6b829ce",
+    ".lake/build/lib/lean/RSBounds/BacklundLowZeros.olean": "36a619a57c99b57ae39629fac6662705a4a10adbb1af6c4ed30aa6e0f8a40b2b",
+    ".lake/build/lib/lean/RSBounds/BacklundLowCount.olean": "6e6d79672fb0aac302fba414c7f46755616ec64896724300ed3de2fcc7c943dc"
+  },
+  "audit": {
+    "command": [
+      "lake",
+      "env",
+      "lean",
+      "verification/BacklundLowCountAudit.lean"
+    ],
+    "log": "verification/backlund-low-count-axioms.log",
+    "exit_code": 0,
+    "expected_theorems": 12,
+    "audited_theorems": 12,
+    "axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "passed": true
+  },
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_monotone",
+    "TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_lower",
+    "TernaryGoldbach.RSBounds.BacklundLowScalar.one_lt_rosserR",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.le_iff_lt_card",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.finite_count_error_lt_one",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros_with_brackets",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.count_eq_indicesBelow",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.listed_zeros_eq_closedPositiveZeros",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.count_error_lt_one",
+    "TernaryGoldbach.RSBounds.BacklundLowCount.rosser_bound_low",
+    "TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "finished_utc": "2026-11-06T13:15:10.519773+00:00",
+  "result": "Actual inclusive zero-count error is strictly below 1 for 0<=T<=100. The original Rosser envelope follows for 2<=T<=100. RH100 is an imported proved theorem, not a hypothesis. All 29 original brackets are retained by the same witness proof."
+}

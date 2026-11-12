@@ -1,0 +1,41 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "upstream_repository": "https://github.com/teorth/IEANTN",
+  "upstream_commit": "466b41b28ecc224398cf53a99c5fe9618131398b",
+  "started_utc": "2026-11-06T09:51:24.808095+00:00",
+  "source_sha256": {
+    "RSBounds/IEANTNGamma/Analytic.lean": "4033e326dad84e08a6ef903ea792c693ec4515158fa56bb927355cbf01212d38",
+    "RSBounds/IEANTNGamma/ComplexToReal.lean": "2b76291513e7b931bd11a6b13879dac77dba1c5084bcc7713cb6ccb7c86e7b85",
+    "RSBounds/IEANTNGamma/GaussSeries.lean": "6e947437b267b5dbb2c3299b93a8ca477c487579f084817a13d2881ce5f6b7d0",
+    "RSBounds/IEANTNGamma/Oscillation.lean": "05de86112f30519eed5ca9387b9806e7f19ea9a38d97c743908dcf8a56ec69d3",
+    "RSBounds/IEANTNGamma/Periodic.lean": "2242fc4f9284f7d08c2e98df269edb2f211d00090d6315219b037c9cca4f1692",
+    "RSBounds/IEANTNGamma/RealAsymptotic.lean": "289bf36620d96d8d10eec86bac6bcfaa0619f8dfe354e48a9644cdd5aa8b24db",
+    "RSBounds/IEANTNGamma/RealIdentity.lean": "c03c7b7d0d2cd772f5e472c9e52d90e9cbf21ac7eb49744233de26553beb4abe",
+    "RSBounds/IEANTNGamma/Recurrence.lean": "beb41cd5f74097866293bec987620ea42fe0a53c4628d5be7442347f4e3d0826",
+    "RSBounds/IEANTNDigamma.lean": "8c431ad50bc3e114227c9a5f32bcad87f9503c3396f9ae36e9ba2b1f005a458d",
+    "verification/IEANTNDigammaAudit.lean": "157d88dae3fc15bdc1ed0b832a3f7116937777b8edb14f2e6bbc8a15ff38ffd4"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.IEANTNDigamma"
+      ],
+      "log": "ieantn-gamma-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/IEANTNDigammaAudit.lean"
+      ],
+      "log": "ieantn-gamma-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T09:51:31.882908+00:00",
+  "exit_code": 0
+}

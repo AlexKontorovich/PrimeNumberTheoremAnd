@@ -1,0 +1,22 @@
+⚠ [9047/9048] Replayed RSBounds.PolynomialSmoothing
+warning: RSBounds/PolynomialSmoothing.lean: imports `Mathlib` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [9048/9048] Built RSBounds.PolynomialPsi (14s)
+warning: RSBounds/PolynomialPsi.lean: imports `Mathlib.NumberTheory.Chebyshev` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/PolynomialPsi.lean: imports `Mathlib.Tactic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/PolynomialPsi.lean:77:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: RSBounds/PolynomialPsi.lean:81:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: RSBounds/PolynomialPsi.lean:93:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: RSBounds/PolynomialPsi.lean:94:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+Build completed successfully (9048 jobs).

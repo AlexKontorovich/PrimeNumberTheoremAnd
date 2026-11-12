@@ -1,0 +1,9 @@
+import RSBounds.RS75ZeroFreeOptimization
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.one_sub_k0_pos
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.h_pos
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_pos
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.sqrt_gap_pos
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.h_mul_v
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_mul_R1
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.optimal_identity
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.beta_lt_of_optimized_inequality

@@ -1,0 +1,36 @@
+import took 108s
+'TernaryGoldbach.RSBounds.MertensFiniteParts.absolutelyContinuousOnInterval_of_primitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteParts.integral_mul_eq_boundary_add_of_primitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteParts.integral_mul_eq_boundary_add_of_contDiffOn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 11.6ms
+	attribute application 0.0662ms
+	blocked (unaccounted) 1.27s
+	congr simp thm 1.72ms
+	declTypeLinter 29.8ms
+	dsimp 17.2ms
+	elaboration 176ms
+	fix level params 0.375ms
+	import 108s
+	initialization 110ms
+	instantiate metavars 3.36ms
+	interpretation 1.34s
+	let-to-have transformation 0.159ms
+	linting 63.9ms
+	module linting 0.115ms
+	norm_num 4.86ms
+	parsing 42.9ms
+	process pre-definitions 13.5ms
+	ring 72.6ms
+	share common exprs 35.9ms
+	simp 50.2ms
+	tactic execution 320ms
+	tacticAnalysis 10.2ms
+	type checking 152ms
+	typeclass inference 527ms

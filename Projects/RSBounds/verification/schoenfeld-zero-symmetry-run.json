@@ -1,0 +1,42 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:16:45.464125+00:00",
+  "source_sha256": {
+    "RSBounds/SchoenfeldZeroSymmetry.lean": "291b02438482b671045cea21788614655468b72c75accf501867b36093c7e84b",
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "RSBounds/RS75ZeroPowerDecay.lean": "70c56234aedad791bed3663d1fdbce70e85998daf8a3f6bc19a5546d8c1eed4b",
+    "RSBounds/RS75ZeroFree1975.lean": "e09f31b984976d75c0a773b6c41d3d671ee2ac7aebe2c5466212ba1253a768cb",
+    "verification/SchoenfeldZeroSymmetryAudit.lean": "2ce480786aba13e6cc5c364cb25f7abe9ae88f2e659e8fd5d79dc2e9d894aa39",
+    "verification/run_schoenfeld_zero_symmetry_check.py": "45e3b58f1c34795795fd5a71f42fd92307b774536ef34e4c13f01d39996237e6",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldZeroSymmetry.olean",
+        "RSBounds/SchoenfeldZeroSymmetry.lean"
+      ],
+      "log": "schoenfeld-zero-symmetry-build.log",
+      "exit_code": 0,
+      "seconds": 87.28522492800403
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/SchoenfeldZeroSymmetry.lean",
+    "verification/SchoenfeldZeroSymmetryAudit.lean"
+  ],
+  "stdin_sha256": "7a5fc313c6c9a6abfdf59ca0b836ca2292b735e542560a20840e027a2a641502",
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T20:18:12.752030+00:00",
+  "exit_code": 0
+}

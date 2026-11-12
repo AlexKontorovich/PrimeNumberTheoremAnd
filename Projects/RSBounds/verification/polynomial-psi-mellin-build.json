@@ -1,0 +1,15 @@
+{
+  "command": [
+    "lake",
+    "build",
+    "RSBounds.PolynomialPsiMellin"
+  ],
+  "started_utc": "2026-11-06T08:57:39.222172+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPsiMellin.lean": "ab6858a620ce9e47130082b39a2bec747f9328aefa31fd9e47d928df37649c60",
+    "RSBounds/PolynomialPsi.lean": "2b148b5b05748a8f40a44e0d28e2377e85d4eb92aa5e2217879ca151407b136e",
+    "RSBounds/QuarticMellin.lean": "d57d72d7589d667e7d98c73aa037379046485998a83648506ff0afb23d5fa990"
+  },
+  "finished_utc": "2026-11-06T08:57:50.471528+00:00",
+  "exit_code": 0
+}

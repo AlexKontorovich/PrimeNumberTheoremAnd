@@ -1,0 +1,25 @@
+'TernaryGoldbach.RSBounds.BacklundHalfStrip.norm_le_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.correctionExponent_nonpos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.correctionExponent_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.correction_le_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.correction_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.analyticAt_normalizedZeta' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.exponent_re_horizontal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.norm_normalizedZeta_horizontal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStripNormalizer.zeta_norm_le_of_normalized_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

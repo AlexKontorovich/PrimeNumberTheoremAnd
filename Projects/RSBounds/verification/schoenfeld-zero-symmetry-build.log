@@ -1,0 +1,45 @@
+import took 84.5s
+RSBounds/SchoenfeldZeroSymmetry.lean:80:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldZeroSymmetry.lean:80:6: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.sum_reflect' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.sum_le_low_and_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.rpow_pair_le_sqrt_add' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.rpow_boundary_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.zero_pair_power_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 26.3ms
+	attribute application 0.0467ms
+	blocked (unaccounted) 968ms
+	congr simp thm 2.05ms
+	declTypeLinter 6.05ms
+	elaboration 82.9ms
+	fix level params 0.452ms
+	import 84.5s
+	initialization 57.9ms
+	instantiate metavars 0.786ms
+	interpretation 1.4s
+	let-to-have transformation 0.0954ms
+	linting 15.8ms
+	module linting 0.0179ms
+	norm_num 92.4ms
+	parsing 7.51ms
+	process pre-definitions 7.41ms
+	ring 19ms
+	share common exprs 4.03ms
+	simp 110ms
+	tactic execution 139ms
+	tacticAnalysis 2ms
+	type checking 43.1ms
+	typeclass inference 430ms

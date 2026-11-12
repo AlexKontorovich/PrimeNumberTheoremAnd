@@ -1,0 +1,16 @@
+{
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "verification/PolynomialPsiAudit.lean"
+  ],
+  "started_utc": "2026-11-06T08:19:23.615164+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPsi.lean": "2b148b5b05748a8f40a44e0d28e2377e85d4eb92aa5e2217879ca151407b136e",
+    "RSBounds/PolynomialSmoothing.lean": "8d7ae55a74d319f9c967d079a97a3d3018e33f0169a1ad4e10c679d6a62ff299",
+    "verification/PolynomialPsiAudit.lean": "412782163852308268ec75ba7abde5ff21b2dd551ed299af253758502bec8706"
+  },
+  "finished_utc": "2026-11-06T08:19:32.318241+00:00",
+  "exit_code": 0
+}

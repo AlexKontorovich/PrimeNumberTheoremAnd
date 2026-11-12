@@ -1,0 +1,7 @@
+import RSBounds.PolynomialRemainderBound
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderBound.norm_averagedIntegrand_le_majorant
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderBound.norm_leftRemainder_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderBound.norm_leftRemainder_lt
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderBound.norm_upper_leftRemainder_lt
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderBound.norm_lower_leftRemainder_lt

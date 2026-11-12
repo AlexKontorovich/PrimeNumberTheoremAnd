@@ -1,0 +1,13 @@
+RSBounds/BacklundCenterNumericsBase.lean:32:47: warning: This simp argument is unused:
+  Nat.add_assoc
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [rpowSum, Finset.sum_range_succ', ih, add_comm, add_left_comm]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundCenterNumericsBase.lean:91:40: warning: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`

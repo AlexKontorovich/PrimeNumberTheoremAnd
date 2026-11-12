@@ -1,0 +1,21 @@
+'TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.lower_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.log_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.log_gt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.MainCert.sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.certificates_checked' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundLowScalar.certificate_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFinalScalar.log_hundred_gt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFinalScalar.log_four_point_six_gt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFinalScalar.roundedEnvelope_lt_rosser' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

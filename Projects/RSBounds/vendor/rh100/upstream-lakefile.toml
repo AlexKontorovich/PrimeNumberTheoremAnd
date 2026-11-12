@@ -1,0 +1,28 @@
+name = "RHHeight"
+version = "0.1.0"
+defaultTargets = ["RHHeight"]
+
+# Hunt #137's Lean package. The build path is `build.sh` in this directory, which calls
+# `lean` directly with LEAN_PATH set (as hunts #132 and #133 do) and never lake: on the
+# campaign box lake must not run in a copied or shared .lake. This file records the pins and
+# the Lake-visible dependency for tooling; it has not been exercised with `lake build`.
+#
+# Pins: lean-toolchain here is the root package's (Lean v4.35.0-rc2), and Mathlib comes
+# through the vendored zeta23 package at the root package's revision 065356127b1d.
+# The modules the pieces import from the root package (ZetaLean.Rigor, IntervalExp,
+# IntervalCExp, HardyZ) and from hunts #132 and #133 (HardyFirstZero, HardyTenZeros) are not
+# Lake packages, so `lake build` here could not resolve them as this file stands;
+# `build.sh --assembly` and `build.sh --full` compile them from source before the modules of
+# this package that import them.
+[[require]]
+name = "Zeta23"
+path = "../../../lean/vendor/zeta23"
+
+# `autoImplicit` off for the reason the bridge packages give: an unresolved name in a
+# statement must be an error, never a silently bound variable.
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "RHHeight"

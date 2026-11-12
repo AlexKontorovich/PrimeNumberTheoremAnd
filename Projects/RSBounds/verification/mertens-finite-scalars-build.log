@@ -1,0 +1,117 @@
+import took 713s
+RSBounds/MertensFiniteScalars.lean:29:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensFiniteScalars.lean:29:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:29:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:39:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteScalars.lean:39:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:49:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensFiniteScalars.lean:49:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:49:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:59:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteScalars.lean:59:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:69:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensFiniteScalars.lean:69:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:69:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:79:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteScalars.lean:79:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:89:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensFiniteScalars.lean:89:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:89:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:99:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteScalars.lean:99:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:109:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensFiniteScalars.lean:109:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:119:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensFiniteScalars.lean:119:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensFiniteScalars.lean:119:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_NormNum_Core___elabRules_Mathlib_Tactic_normNum_1._boxed took 341ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 252ms
+type checking took 153ms
+'TernaryGoldbach.RSBounds.MertensFiniteScalars.mertensE_lt_neg_thirteen_tenths' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteScalars.primeWeightedSum_mono' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteScalars.lower_main_mono' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteScalars.mertens_lower_of_block' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 81.3ms
+	attribute application 0.237ms
+	blocked (unaccounted) 42.9s
+	congr simp thm 12.7ms
+	declTypeLinter 34.1ms
+	dsimp 2.67ms
+	elaboration 323ms
+	fix level params 2.66ms
+	import 713s
+	initialization 261ms
+	instantiate metavars 3.04ms
+	interpretation 3.83s
+	let-to-have transformation 0.263ms
+	linting 53.2ms
+	module linting 0.971ms
+	norm_num 846ms
+	parsing 19.6ms
+	process pre-definitions 47.7ms
+	ring 120ms
+	share common exprs 41.2ms
+	simp 14.6ms
+	tactic execution 481ms
+	tacticAnalysis 16.5ms
+	type checking 469ms
+	typeclass inference 1.24s

@@ -1,0 +1,45 @@
+'TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_main_term' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_zero_pole' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_Psi4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_lower_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper {x h : ℝ} (hx : 0 < x) (hh : 0 < h) {N : ℕ}
+  (hN : x + 4 * h ≤ ↑N) :
+  ∃ T,
+    (∀ (k : ℕ), T k ∈ Set.Icc (↑k + 1) (↑k + 2)) ∧
+      Filter.Tendsto
+        (fun k =>
+          ∑ ρ ∈ TernaryGoldbach.Explicit.zerosRectD TernaryGoldbach.Explicit.zetaF (T k),
+            ↑(TernaryGoldbach.Explicit.multRectD TernaryGoldbach.Explicit.zetaF (T k) ρ) *
+              TernaryGoldbach.RSBounds.PolynomialAveraged.zeroCoefficient x h ρ)
+        Filter.atTop
+        (nhds
+          (↑(x + 2 * h) - ↑(TernaryGoldbach.RSBounds.PolynomialPsi.psiUpper N x h) -
+              TernaryGoldbach.RSBounds.PolynomialAveraged.leftRemainder x h -
+            Complex.log (2 * ↑Real.pi)))
+TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_lower_at_heights {T : ℕ → ℝ}
+  (hT :
+    TernaryGoldbach.RSBounds.PolynomialExplicit.GoodHeights TernaryGoldbach.Explicit.zetaF TernaryGoldbach.Explicit.Bz
+      T)
+  {x h : ℝ} (hx : 4 * h < x) (hh : 0 < h) {N : ℕ} (hN : x ≤ ↑N) :
+  Filter.Tendsto
+    (fun k =>
+      ∑ ρ ∈ TernaryGoldbach.Explicit.zerosRectD TernaryGoldbach.Explicit.zetaF (T k),
+        ↑(TernaryGoldbach.Explicit.multRectD TernaryGoldbach.Explicit.zetaF (T k) ρ) *
+          TernaryGoldbach.RSBounds.PolynomialAveraged.zeroCoefficient (x - 4 * h) h ρ)
+    Filter.atTop
+    (nhds
+      (↑(x - 2 * h) - ↑(TernaryGoldbach.RSBounds.PolynomialPsi.psiLower N x h) -
+          TernaryGoldbach.RSBounds.PolynomialAveraged.leftRemainder (x - 4 * h) h -
+        Complex.log (2 * ↑Real.pi)))

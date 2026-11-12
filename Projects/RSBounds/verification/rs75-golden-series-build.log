@@ -1,0 +1,49 @@
+import took 11.7s
+RSBounds/RS75GoldenSeries.lean:93:5: warning: Variable name `hc` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hc
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.complexSeries_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_series' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.summable_moment' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_moment' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.zeta_hasDerivAt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.logDerivative_eq_moments' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_logDerivative' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.slope_eq_moments' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.monotoneOn_logDerivative' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenSeries.antitoneOn_slope' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 19.4ms
+	attribute application 0.268ms
+	blocked (unaccounted) 1.07s
+	congr simp thm 5.09ms
+	declTypeLinter 10.6ms
+	dsimp 6.26ms
+	elaboration 122ms
+	fix level params 1.09ms
+	import 11.7s
+	initialization 52.8ms
+	instantiate metavars 1.7ms
+	interpretation 606ms
+	let-to-have transformation 0.335ms
+	linting 33.2ms
+	module linting 0.0118ms
+	norm_num 12.1ms
+	parsing 15.4ms
+	process pre-definitions 12.4ms
+	ring 17.1ms
+	share common exprs 10.8ms
+	simp 82.5ms
+	tactic execution 227ms
+	tacticAnalysis 8.3ms
+	type checking 108ms
+	typeclass inference 362ms

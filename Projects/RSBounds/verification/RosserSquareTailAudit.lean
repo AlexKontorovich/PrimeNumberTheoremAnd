@@ -1,0 +1,9 @@
+import RSBounds.RosserSquareTail
+
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_reciprocal_square
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_neg_squarePrimitive
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.squarePrimitive_nonneg
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.integral_upperDensity_div_square
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.integral_density_div_square_le
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le_head
+#print axioms TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le

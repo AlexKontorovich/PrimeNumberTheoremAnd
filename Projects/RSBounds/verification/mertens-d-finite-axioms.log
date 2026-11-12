@@ -1,0 +1,5 @@
+'TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]

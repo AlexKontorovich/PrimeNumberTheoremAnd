@@ -1,0 +1,28 @@
+{
+  "kind": "independent-comparator-replay-of-validated-fresh-exports",
+  "reason": "Earlier session became inaccessible and left no completion verdict.",
+  "started_utc": "2026-11-06T16:08:45.196200+00:00",
+  "prior_receipt": "verification/psi-run.json",
+  "prior_receipt_sha256": "fceb7ddc89768c8f41bc904c6ceb8aa18c0bfd75e2320b6a6a915907caebe5d7",
+  "prior_unfinished_log": "verification/psi-comparator.log",
+  "source_hashes_validated": 226,
+  "object_hashes_validated": 221,
+  "challenge_export_sha256": "65bd8b84c3146567027ba8145a6e78863bd64b4402eef030462e279dd375d3b2",
+  "solution_export_sha256": "07a07847800d85b352c331a2202a9cde4bb1507c0c71bfe7cc5f64632dc72a13",
+  "sandbox_disabled": true,
+  "command": [
+    "lake",
+    "comparator",
+    "--config",
+    "comparator-psi.json",
+    "--challenge-from-export",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/psi-exports/RSPsiChallenge.export",
+    "--solution-from-export",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/psi-exports/RSPsiSolution.export",
+    "--inadvisably-no-sandbox"
+  ],
+  "log": "verification/psi-comparator-resume.log",
+  "exit_code": 0,
+  "seconds": 3143.8882891719986,
+  "finished_utc": "2026-11-06T17:01:10.018253+00:00"
+}

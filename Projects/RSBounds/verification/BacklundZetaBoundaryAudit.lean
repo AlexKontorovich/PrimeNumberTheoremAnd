@@ -1,0 +1,8 @@
+import RSBounds.BacklundZetaBoundary
+
+#print axioms TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.local_identity
+#print axioms TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.finite_error_le
+#print axioms TernaryGoldbach.RSBounds.BacklundEulerMaclaurin.regularized_infinite_error_le
+#print axioms TernaryGoldbach.RSBounds.BacklundZetaRegularization.regularized_sum_tendsto
+#print axioms TernaryGoldbach.RSBounds.BacklundZetaBoundary.zeta_second_order_remainder_explicit_of_pos
+#print axioms TernaryGoldbach.RSBounds.BacklundZetaBoundary.zeta_norm_le_log_sub

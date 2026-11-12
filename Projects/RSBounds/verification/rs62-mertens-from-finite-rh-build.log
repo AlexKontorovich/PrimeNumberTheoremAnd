@@ -1,0 +1,28 @@
+import took 19s
+'TernaryGoldbach.RSBounds.RS62MertensFromFiniteRH.mertens_lower_of_finiteRH' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 20.5ms
+	attribute application 0.0168ms
+	blocked (unaccounted) 202ms
+	congr simp thm 0.0777ms
+	declTypeLinter 4.11ms
+	elaboration 19.4ms
+	fix level params 0.13ms
+	import 19s
+	initialization 69.8ms
+	instantiate metavars 0.202ms
+	interpretation 694ms
+	let-to-have transformation 0.15ms
+	linting 3.04ms
+	module linting 0.00925ms
+	norm_num 7.33ms
+	parsing 1.4ms
+	process pre-definitions 2.19ms
+	ring 13.5ms
+	share common exprs 2.26ms
+	tactic execution 37.6ms
+	tacticAnalysis 0.844ms
+	type checking 13.3ms
+	typeclass inference 49.8ms

@@ -1,0 +1,21 @@
+'TernaryGoldbach.RSBounds.BacklundAnchor.norm_neg_log_one_sub_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.real_eulerLog' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.norm_eulerLog_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.log_zeta_five_fourths_lt_half_pi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.re_zeta_anchor_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.hasDerivAt_log_anchor' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.continuous_vertical_integrand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.vertical_integral_eq_arg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundAnchor.abs_vertical_integral_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

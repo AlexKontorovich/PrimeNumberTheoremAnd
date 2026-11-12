@@ -1,0 +1,11 @@
+import RSBounds.RS75Polynomial
+
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.factorization
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.P_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.coeff_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.coeff_pos_of_le_four
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.P_eq_sum
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients
+#print axioms TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients_Icc
+#check TernaryGoldbach.RSBounds.RS75Polynomial.factorization
+#check TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients_Icc

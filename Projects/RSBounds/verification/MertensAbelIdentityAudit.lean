@@ -1,0 +1,10 @@
+import RSBounds.MertensAbelIdentity
+
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.sum_Icc_mangoldt_div
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.weighted_sum_isBigO_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.LSeries_mangoldt_div_shift
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_error_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_log_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.integral_log_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.logDeriv_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensAbelIdentity.error_abel_identity

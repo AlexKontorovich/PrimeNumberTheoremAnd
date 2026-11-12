@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:50:27.943458+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundCountEndpoint.lean": "67ac59bbd599804d4f4e582cc7e59d6600676dfbdd7b0979cee08ddb6f02518b",
+    "RSBounds/BacklundCountIdentity.lean": "b701da48b6414739e846c5876ba6f53767215b0cac47f78ba60553a0791c833a",
+    "verification/BacklundCountEndpointAudit.lean": "d3b74ab11addc24b260eeb8ebe3ed6bda0ffbe6a6dc16b555031ec1c2f9f60a1"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountEndpoint.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountEndpoint.olean"
+      ],
+      "log": "backlund-count-endpoint-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundCountEndpointAudit.lean"
+      ],
+      "log": "backlund-count-endpoint-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:50:41.340294+00:00",
+  "exit_code": 0
+}

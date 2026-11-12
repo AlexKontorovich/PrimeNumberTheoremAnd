@@ -1,0 +1,8 @@
+import RSBounds.BacklundCountEndpoint
+
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.mem_closedPositiveZeros_iff
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.exists_right_interval_good_count
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_le_of_good_height_bound
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_lt_of_good_height_bound
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_abs_le_of_good_height_bound
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_abs_lt_of_good_height_bound

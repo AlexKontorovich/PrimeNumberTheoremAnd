@@ -1,0 +1,7 @@
+import RSBounds.MertensProductCorrection
+
+#print axioms TernaryGoldbach.RSBounds.MertensProductCorrection.sum_powerMain_eq
+#print axioms TernaryGoldbach.RSBounds.MertensProductCorrection.correction_le_sum_tail
+#print axioms TernaryGoldbach.RSBounds.MertensProductCorrection.low_tail_le
+#print axioms TernaryGoldbach.RSBounds.MertensProductCorrection.high_tail_le
+#print axioms TernaryGoldbach.RSBounds.MertensProductCorrection.primeProduct_correction_bounds

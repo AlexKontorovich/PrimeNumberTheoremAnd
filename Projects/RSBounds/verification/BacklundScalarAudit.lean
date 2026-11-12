@@ -1,0 +1,12 @@
+import RSBounds.BacklundLowScalarData
+import RSBounds.BacklundFinalScalar
+
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.lower_nonneg
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.log_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.LogCert.log_gt
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.MainCert.sound
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.certificates_checked
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.certificate_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundFinalScalar.log_hundred_gt
+#print axioms TernaryGoldbach.RSBounds.BacklundFinalScalar.log_four_point_six_gt
+#print axioms TernaryGoldbach.RSBounds.BacklundFinalScalar.roundedEnvelope_lt_rosser

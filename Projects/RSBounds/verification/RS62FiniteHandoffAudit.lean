@@ -1,0 +1,5 @@
+import RSBounds.RS62FiniteHandoff
+
+#print axioms TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_le_100000
+#print axioms TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_of_tail
+#print axioms TernaryGoldbach.RSBounds.RS62FiniteHandoff.totient_ratio_lt_of_tail

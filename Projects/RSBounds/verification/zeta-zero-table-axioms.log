@@ -1,0 +1,13 @@
+'TernaryGoldbach.RSBounds.ZetaZeroTable.first29' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.first29_bracket' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.first29_simple' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.zero_iff_exists_index' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.positiveZeroCount_eq_table' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.bracket_count_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.positiveZeroCount_hundred' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

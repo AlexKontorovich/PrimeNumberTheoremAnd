@@ -1,0 +1,28 @@
+RSBounds/BacklundZetaBoundary.lean:178:13: warning: This simp argument is unused:
+  norm_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [a, Complex.norm_natCast_cpow_of_pos hN0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundZetaBoundary.lean:180:13: warning: This simp argument is unused:
+  norm_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [b, Complex.norm_natCast_cpow_of_pos hN0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundZetaBoundary.lean:182:13: warning: This simp argument is unused:
+  norm_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [c, norm_mul, Complex.norm_natCast_cpow_of_pos hN0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundZetaBoundary.lean:182:23: warning: This simp argument is unused:
+  norm_mul
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [c, norm_div, Complex.norm_natCast_cpow_of_pos hN0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

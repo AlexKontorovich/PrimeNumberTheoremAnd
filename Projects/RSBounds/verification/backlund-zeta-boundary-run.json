@@ -1,0 +1,64 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:47:13.998477+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundEulerMaclaurin.lean": "55527effb0ee00109d2d009acd371f5ff5b63c1ca25a3e4abd14002cf1942324",
+    "RSBounds/BacklundZetaRegularization.lean": "d4e1591938ff9d96645e652c827cc5933f3fc4c291d55e5a8e7be69df7c9a31e",
+    "RSBounds/BacklundZetaBoundary.lean": "61c19350d516589800dd81a974a8a9b05d65bea81046c7fdee6624358fba70a6",
+    "verification/BacklundZetaBoundaryAudit.lean": "0cd364242717d3b56fc2318fa44297628df74d15d0075d8f8f62e50bff826c1d"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundEulerMaclaurin.olean",
+        "RSBounds/BacklundEulerMaclaurin.lean"
+      ],
+      "log": "backlund-zeta-BacklundEulerMaclaurin-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundZetaRegularization.olean",
+        "RSBounds/BacklundZetaRegularization.lean"
+      ],
+      "log": "backlund-zeta-BacklundZetaRegularization-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundZetaBoundary.olean",
+        "RSBounds/BacklundZetaBoundary.lean"
+      ],
+      "log": "backlund-zeta-BacklundZetaBoundary-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundZetaBoundaryAudit.lean"
+      ],
+      "log": "backlund-zeta-boundary-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:47:46.125274+00:00",
+  "exit_code": 0
+}

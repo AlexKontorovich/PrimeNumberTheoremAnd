@@ -1,0 +1,10 @@
+import RSBounds.PolynomialRemainderMajorant
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.log_cutoff_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.reciprocal_step_le_cutoff
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.integrableOn_positiveMajorant
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.integral_positiveMajorant_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.majorant_nonneg
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.integrable_majorant
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.integral_majorant_le
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.scaled_majorant_lt
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderMajorant.scaled_integral_majorant_lt

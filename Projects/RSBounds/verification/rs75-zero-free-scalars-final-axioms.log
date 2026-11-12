@@ -1,0 +1,28 @@
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.heightRatio_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.D_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.H_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.gamma_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.chosen_x_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.frequency_tail_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.residual_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.residual_add_frequency_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.rawResidual_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.rawResidual_add_frequency_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.chosen_residual_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

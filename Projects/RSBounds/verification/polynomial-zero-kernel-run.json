@@ -1,0 +1,33 @@
+{
+  "source_sha256": {
+    "RSBounds/PolynomialZeroKernel.lean": "62c44199fe2f4ab1334fbaaed1a84adad2c0f745cfdc1d3ff3640d54af3cbb19",
+    "verification/PolynomialZeroKernelAudit.lean": "fbbd53b817ddbb311c35b6c5e049a745589307a952f05774c1fb2d4024ef3ae8"
+  },
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialZeroKernel"
+      ],
+      "started_utc": "2026-11-06T08:43:25.466852+00:00",
+      "finished_utc": "2026-11-06T08:43:32.027625+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-zero-kernel-build.log"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialZeroKernelAudit.lean"
+      ],
+      "started_utc": "2026-11-06T08:43:32.027782+00:00",
+      "finished_utc": "2026-11-06T08:43:37.252356+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-zero-kernel-axioms.log"
+    }
+  ],
+  "lean_toolchain": "leanprover/lean4:v4.35.0",
+  "no_other_lean_process_started_by_this_agent": true
+}

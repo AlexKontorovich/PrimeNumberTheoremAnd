@@ -1,0 +1,80 @@
+{
+  "kind": "fresh-mertens-product-correction-source-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:57:59.605543+00:00",
+  "source_sha256": {
+    "RSBounds/MertensProductCorrection.lean": "8cc94ccee57dfb2d95207509585eed05ab11a10be58013c23270993330c50080",
+    "verification/MertensProductCorrectionAudit.lean": "cc35b6818902dba0a7eced6ff0490ccd182b733d049d862e86c23962ca360984",
+    "verification/run_mertens_product_correction_check.py": "21d9b7584fa9e0a5ab7899f90a2719eeb40c7cc0c303ece5bb3840986a1d8bb9",
+    "RSBounds/PrimeLogTail.lean": "05a75c2df96480ae03d6a5fc37d821d85e643cbcd06bc0af71f1b84c543c390c",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2"
+  },
+  "stdin_recipe": "Exact source plus 5 fully qualified #print axioms commands.",
+  "stdin_sha256": "870553d877bf5d24245f549b70bb1fd69cde30e0a7bb6a4bdeb8734fe37c4dc2",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensProductCorrection.olean",
+        "RSBounds/MertensProductCorrection.lean"
+      ],
+      "log": "verification/mertens-product-correction-build.log",
+      "exit_code": 0,
+      "seconds": 79.90012287699938
+    }
+  ],
+  "exit_code": 0,
+  "build_exit_code": 0,
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true,
+    "per_declaration": [
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductCorrection.sum_powerMain_eq",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductCorrection.correction_le_sum_tail",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductCorrection.low_tail_le",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductCorrection.high_tail_le",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.MertensProductCorrection.primeProduct_correction_bounds",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      }
+    ]
+  },
+  "object_sha256": "02f589cf8d00075ca27a5b3e76ab2a0532f3ff786a70bb8f84937a3e77e29351",
+  "build_log_sha256": "5593f617472196e42747899a24cf6b79dccd4ee69548b2f78db963f47310cebb",
+  "finished_utc": "2026-11-06T20:59:19.510806+00:00"
+}

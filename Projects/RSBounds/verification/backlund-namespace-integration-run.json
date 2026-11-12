@@ -1,0 +1,222 @@
+{
+  "kind": "fresh-namespace-integration-rebuild-and-axiom-audit",
+  "started_utc": "2026-11-06T13:21:30.626084+00:00",
+  "adaptation_record": "verification/backlund-namespace-adaptation.json",
+  "source_sha256": {
+    "RSBounds/BacklundDigammaSeriesAdapter.lean": "b6edacacec890e91cdf9bd3adaa0abc9369b75422124ef710780e8845fa258bf",
+    "RSBounds/BacklundDigammaStirling.lean": "a192fce9a05290bc874c8f2041a03a9b0c65159e1f0c2837438799ac03491950",
+    "RSBounds/BacklundGammaModulusDigamma.lean": "cdae7548165f04f5ce86407c824bcc85e41a1817b2c01b63cef1069f5a06bb70",
+    "RSBounds/BacklundGammaModulusHorizontal.lean": "60229c9ae786efb5efdbaf6729165a659da31e84d55095f2d62ed32ad8ef9985",
+    "RSBounds/BacklundFunctionalStrip.lean": "10d00089baa867c8c3dfa150ff8be77d1c81c722e8ef1dfb71fd4addf1b2363c",
+    "RSBounds/BacklundLeftZetaBoundary.lean": "b2ec03f8282387134a01f18ad29bf44d1346fc0c943ff306ac675a613df051a7",
+    "RSBounds/BacklundCircleMajorantGeometry.lean": "e6e6a769135fab6f7eea09f39d02add325425d9cf81b087b2ae35b5acea5dc57",
+    "RSBounds/BacklundStrip.lean": "db6bea567f2b44eaf08a7e4b988486d374b26ad3bee35e1905381af1cc8ac592",
+    "RSBounds/BacklundCircleMajorantBounds.lean": "a28dc420ec226ad9ad0d667d06e1d08fbd6c3fc22793d54ab2bc4c8809bb1b56",
+    "RSBounds/BacklundCircleCount.lean": "f2a664b1bfb78799fa77e108b9b4a17a57157fc09dcaea865a9b15ccccad88fb",
+    "RSBounds/BacklundHighCount.lean": "4486c310f866463b5f69d57f3b6d879b8470a1b955e03f01deaca2b38c5f99ba",
+    "RSBounds.lean": "fd216a4c6f773ebd8a3f463f3ec0719a7ca7ed1d66533db0a6d16f89bf210ce6",
+    "verification/BacklundGammaModulusAudit.lean": "22032ae1e8b3695ff8cace2ea14e8c823bd3a843efe537ef250e6abe3384b646",
+    "verification/BacklundHighCountAudit.lean": "dafe4022a600bd2279fe59a1ca6d46a3d0df7f354e340cd0759e5b2350efdcf0",
+    "verification/BacklundNamespaceIntegrationAudit.lean": "d9ee8873e3daef940f5a75cbf48002d7e61d1fc43294c79b00c9345ea12a4449"
+  },
+  "replayed_rh100_numerical_modules": false,
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundDigammaSeriesAdapter.olean",
+        "RSBounds/BacklundDigammaSeriesAdapter.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundDigammaSeriesAdapter-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundDigammaStirling.olean",
+        "RSBounds/BacklundDigammaStirling.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundDigammaStirling-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaModulusDigamma.olean",
+        "RSBounds/BacklundGammaModulusDigamma.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundGammaModulusDigamma-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaModulusHorizontal.olean",
+        "RSBounds/BacklundGammaModulusHorizontal.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundGammaModulusHorizontal-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundFunctionalStrip.olean",
+        "RSBounds/BacklundFunctionalStrip.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundFunctionalStrip-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLeftZetaBoundary.olean",
+        "RSBounds/BacklundLeftZetaBoundary.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundLeftZetaBoundary-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleMajorantGeometry.olean",
+        "RSBounds/BacklundCircleMajorantGeometry.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundCircleMajorantGeometry-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundStrip.olean",
+        "RSBounds/BacklundStrip.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundStrip-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleMajorantBounds.olean",
+        "RSBounds/BacklundCircleMajorantBounds.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundCircleMajorantBounds-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleCount.olean",
+        "RSBounds/BacklundCircleCount.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundCircleCount-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundHighCount.olean",
+        "RSBounds/BacklundHighCount.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-BacklundHighCount-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds.olean",
+        "RSBounds.lean"
+      ],
+      "log": "backlund-namespace-RSBounds-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundGammaModulusAudit.lean"
+      ],
+      "log": "backlund-namespace-BacklundGammaModulusAudit.log",
+      "exit_code": 0,
+      "printed_axiom_sets": 7,
+      "only_standard_axioms": true
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundHighCountAudit.lean"
+      ],
+      "log": "backlund-namespace-BacklundHighCountAudit.log",
+      "exit_code": 0,
+      "printed_axiom_sets": 5,
+      "only_standard_axioms": true
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundNamespaceIntegrationAudit.lean"
+      ],
+      "log": "backlund-namespace-BacklundNamespaceIntegrationAudit.log",
+      "exit_code": 0,
+      "printed_axiom_sets": 9,
+      "only_standard_axioms": true
+    }
+  ],
+  "status": "verified",
+  "finished_utc": "2026-11-06T13:29:26.072426+00:00"
+}

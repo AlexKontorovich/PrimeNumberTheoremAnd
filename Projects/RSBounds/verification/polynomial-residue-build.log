@@ -1,0 +1,26 @@
+⚠ [2949/2952] Replayed TernaryGoldbach.Explicit.Landau
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Complex.JensenFormula` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Complex.BorelCaratheodory` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Complex.HasPrimitives` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Complex.Liouville` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Complex.AbsMax` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/Landau.lean: imports `Mathlib.Analysis.Calculus.LogDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2950/2952] Replayed TernaryGoldbach.Explicit.RectResidue
+warning: TernaryGoldbach/Explicit/RectResidue.lean: imports `Mathlib.Analysis.Complex.CauchyIntegral` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/RectResidue.lean: imports `Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: TernaryGoldbach/Explicit/RectResidue.lean: imports `Mathlib.Analysis.Calculus.DSlope` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [2952/2952] Built RSBounds.PolynomialResidue (2.8s)
+warning: RSBounds/PolynomialResidue.lean: imports `Mathlib.Analysis.Complex.RemovableSingularity` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/PolynomialResidue.lean:81:4: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: RSBounds/PolynomialResidue.lean:121:4: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: RSBounds/PolynomialResidue.lean:81:4: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+warning: RSBounds/PolynomialResidue.lean:121:4: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+Build completed successfully (2952 jobs).

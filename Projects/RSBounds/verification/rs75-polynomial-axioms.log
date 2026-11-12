@@ -1,0 +1,19 @@
+'TernaryGoldbach.RSBounds.RS75Polynomial.factorization' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.P_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.coeff_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.coeff_pos_of_le_four' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.P_eq_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients_Icc' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.RS75Polynomial.factorization (θ : ℝ) :
+  TernaryGoldbach.RSBounds.RS75Polynomial.P θ =
+    8 * (TernaryGoldbach.RSBounds.RS75Polynomial.a + Real.cos θ) ^ 2 *
+      (TernaryGoldbach.RSBounds.RS75Polynomial.b + Real.cos θ) ^ 2
+TernaryGoldbach.RSBounds.RS75Polynomial.sum_positive_coefficients_Icc :
+  ∑ k ∈ Finset.Icc 1 4, TernaryGoldbach.RSBounds.RS75Polynomial.coeff k = 36.506331844352

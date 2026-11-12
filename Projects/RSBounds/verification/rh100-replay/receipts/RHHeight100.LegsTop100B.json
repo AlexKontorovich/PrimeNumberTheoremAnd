@@ -1,0 +1,26 @@
+{
+  "module": "RHHeight100.LegsTop100B",
+  "source_sha256": "3b938f39a9a614da386ed6fe7f2d5e4a9877c5b75830b6c153aa08de17eeece6",
+  "upstream_sha256": "3b938f39a9a614da386ed6fe7f2d5e4a9877c5b75830b6c153aa08de17eeece6",
+  "adapted": false,
+  "signature": "7df27df6e71d61d3f8f6efcd2a9dc11c2e198f5d1068e42be0463aef84b2e9cf",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false",
+    "RHHeight100/LegsTop100B.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RHHeight100/LegsTop100B.olean"
+  ],
+  "started_utc": "2026-11-06T12:12:28.995426+00:00",
+  "finished_utc": "2026-11-06T12:13:51.866902+00:00",
+  "elapsed_seconds": 82.871,
+  "peak_rss_kib": 3921752,
+  "log": "verification/rh100-replay/RHHeight100.LegsTop100B.log",
+  "resources": "verification/rh100-replay/RHHeight100.LegsTop100B.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "eafc0c53505cc0bfa66808c72db09aa68aa8e111d399cf1c8779fcaf07ec46b7",
+  "reused_from_previous_replay": true
+}

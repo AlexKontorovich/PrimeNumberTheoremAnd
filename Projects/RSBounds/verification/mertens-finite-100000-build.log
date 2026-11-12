@@ -1,0 +1,134 @@
+import took 82.1s
+type checking took 2.09s
+type checking took 2.3s
+type checking took 2.47s
+type checking took 2.49s
+type checking took 2.57s
+type checking took 2.55s
+type checking took 2.98s
+type checking took 2.71s
+type checking took 2.89s
+type checking took 3.18s
+type checking took 3.08s
+type checking took 3.58s
+type checking took 3.5s
+type checking took 3.48s
+type checking took 3.35s
+type checking took 3.46s
+type checking took 3.72s
+type checking took 3.82s
+type checking took 4.21s
+type checking took 4.38s
+type checking took 3.92s
+type checking took 4.23s
+type checking took 3.92s
+type checking took 4.25s
+type checking took 4.74s
+type checking took 4.3s
+type checking took 4.22s
+type checking took 4.35s
+type checking took 4.23s
+type checking took 4.38s
+type checking took 4.53s
+type checking took 4.77s
+type checking took 4.75s
+type checking took 4.66s
+type checking took 4.82s
+type checking took 5.02s
+type checking took 5.04s
+type checking took 4.93s
+type checking took 4.55s
+type checking took 4.86s
+type checking took 4.89s
+type checking took 5.47s
+type checking took 5.38s
+type checking took 5.35s
+type checking took 5.34s
+type checking took 5.35s
+type checking took 5.27s
+type checking took 5.45s
+type checking took 5.29s
+type checking took 5.78s
+type checking took 5.49s
+type checking took 5.56s
+type checking took 5.02s
+type checking took 5.59s
+type checking took 5.75s
+type checking took 5.82s
+type checking took 5.85s
+type checking took 5.69s
+type checking took 5.63s
+type checking took 5.56s
+type checking took 5.23s
+type checking took 7.19s
+type checking took 6.53s
+type checking took 6.86s
+type checking took 6.74s
+type checking took 7.55s
+type checking took 6.52s
+type checking took 6.8s
+type checking took 5.79s
+type checking took 5.91s
+type checking took 7.22s
+type checking took 6.23s
+type checking took 6.02s
+type checking took 5.59s
+type checking took 6.17s
+type checking took 6.39s
+type checking took 5.64s
+type checking took 6.42s
+type checking took 6.5s
+type checking took 6.64s
+type checking took 7.48s
+type checking took 6.42s
+type checking took 7.31s
+type checking took 6.49s
+type checking took 6.47s
+type checking took 7.39s
+type checking took 7.24s
+type checking took 6.68s
+type checking took 6.19s
+type checking took 7.35s
+type checking took 6.77s
+type checking took 7.45s
+type checking took 7.6s
+type checking took 6.43s
+type checking took 7.15s
+type checking took 7.72s
+type checking took 6.51s
+type checking took 6.61s
+type checking took 6.79s
+type checking took 6.72s
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.wk_1' depends on axioms: [propext]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.wk_101' depends on axioms: [propext]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.inv_100001' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_le_100000' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensFiniteWalk.mertensLower_of_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 39.4ms
+	attribute application 3.3ms
+	blocked (unaccounted) 2.36e+04s
+	congr simp thm 0.206ms
+	declTypeLinter 1.16s
+	elaboration 686ms
+	fix level params 2.41ms
+	import 82.1s
+	initialization 36.2ms
+	instantiate metavars 2.62ms
+	interpretation 7.34s
+	let-to-have transformation 2.27ms
+	linting 892ms
+	module linting 1.45ms
+	norm_num 45.7ms
+	parsing 72.9ms
+	process pre-definitions 368ms
+	ring 19.3ms
+	share common exprs 9.96ms
+	tactic execution 269ms
+	tacticAnalysis 368ms
+	type checking 530s
+	typeclass inference 369ms

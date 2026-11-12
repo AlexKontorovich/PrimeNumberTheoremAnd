@@ -1,0 +1,48 @@
+import took 124s
+RSBounds/MertensPotentialDecay.lean:79:22: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_coefficient_le_at_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.zero_power_le_cutoff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_coefficient_le_cutoff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_potential_le_cutoff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.norm_signedLimit_le_cutoff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensPotentialDecay.abs_J_le_cutoff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 15.6ms
+	attribute application 0.0934ms
+	blocked (unaccounted) 1.83s
+	congr simp thm 1.77ms
+	declTypeLinter 7.23ms
+	elaboration 194ms
+	fix level params 0.908ms
+	import 124s
+	initialization 48.9ms
+	instantiate metavars 1.91ms
+	interpretation 1.58s
+	let-to-have transformation 0.146ms
+	linting 26.1ms
+	module linting 0.374ms
+	norm_num 419ms
+	parsing 8.51ms
+	process pre-definitions 16.2ms
+	ring 62.9ms
+	share common exprs 16.2ms
+	simp 10.2ms
+	tactic execution 295ms
+	tacticAnalysis 3.67ms
+	type checking 67.2ms
+	typeclass inference 597ms

@@ -1,0 +1,10 @@
+import RSBounds.RS75RealAxisLogDerivative
+
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.zetaF_eq_riemannZeta₁
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.logDeriv_zetaF_one
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.xi_factorization
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.logDeriv_xiF_including_one
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.re_logDeriv_xiF_real
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.endpoint_normalization
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.re_logDeriv_zetaF_real
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisLogDerivative.neg_re_logDeriv_zeta_lt

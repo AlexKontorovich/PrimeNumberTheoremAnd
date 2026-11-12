@@ -1,0 +1,10 @@
+import RSBounds.PolynomialAveragedFormula
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_main_term
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_zero_pole
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.normalized_Psi4
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper_at_heights
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper
+#print axioms TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_lower_at_heights
+#check TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_upper
+#check TernaryGoldbach.RSBounds.PolynomialAveraged.explicit_formula_lower_at_heights

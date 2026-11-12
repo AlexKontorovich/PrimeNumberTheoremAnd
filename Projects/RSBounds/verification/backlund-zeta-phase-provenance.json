@@ -1,0 +1,24 @@
+{
+  "repository": "https://github.com/gersh/ternary-goldbach-lean",
+  "commit": "27df23af6a712895f22204d0d81102baa74f0ebe",
+  "license": "Apache-2.0",
+  "upstream_sources": [
+    {
+      "path": "MathExtras/NumberTheory/LSeries/BacklundArgSweep.lean",
+      "sha256": "b696fcfae01a1acc9e249b312f5e36295d423854269c3de018475fd9e2b1a400"
+    },
+    {
+      "path": "MathExtras/NumberTheory/LSeries/BacklundArgVarAssembly.lean",
+      "sha256": "9483e1ad46e482b581ef4cd6fb81368afb7d4b6cdc9b03549b53fe1dd39d7469"
+    },
+    {
+      "path": "MathExtras/NumberTheory/LSeries/BacklundArgVarVertical.lean",
+      "sha256": "a38564f97771e727c156ecdc64871fa1516e95188c4427438893e8328ac2af32"
+    },
+    {
+      "path": "MathExtras/NumberTheory/LSeries/ZetaInterlacingAssembly.lean",
+      "sha256": "dee6e851722dfa0c8e93b4464b00cb8d1993bd7967e7c14e0dc3a9816be1de33"
+    }
+  ],
+  "adaptation": "Select phase lift and real-power proof, anchor-independent increments, and elementary prerequisites. Use existing local zetaGoodHeight. New quantitative reflection integration and actual-zeta paired Jensen specialization."
+}

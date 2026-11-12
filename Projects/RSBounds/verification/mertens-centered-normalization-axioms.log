@@ -1,0 +1,6 @@
+'TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_average_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_limit_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,37 @@
+import took 82.9s
+'TernaryGoldbach.RSBounds.MertensTailScalars.log_A_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.log_A_div_two_pi_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.coefficient_A_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.error_A_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.square_tail_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 33.5ms
+	attribute application 0.123ms
+	blocked (unaccounted) 2.34s
+	congr simp thm 1.42ms
+	declTypeLinter 11.9ms
+	elaboration 120ms
+	fix level params 1.47ms
+	import 82.9s
+	initialization 108ms
+	instantiate metavars 0.414ms
+	interpretation 1.08s
+	let-to-have transformation 0.157ms
+	linting 21.7ms
+	module linting 0.0513ms
+	norm_num 604ms
+	parsing 13.7ms
+	process pre-definitions 41.1ms
+	ring 85.2ms
+	share common exprs 30.8ms
+	simp 30.6ms
+	tactic execution 350ms
+	tacticAnalysis 3.56ms
+	type checking 148ms
+	typeclass inference 548ms

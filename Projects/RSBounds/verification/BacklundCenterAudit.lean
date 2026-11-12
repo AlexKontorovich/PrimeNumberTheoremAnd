@@ -1,0 +1,4 @@
+import RSBounds.BacklundCenter
+
+#print axioms TernaryGoldbach.RSBounds.zeta_norm_lower_euler_ratio
+#print axioms TernaryGoldbach.RSBounds.zeta_norm_lower_five_fourths_ratio

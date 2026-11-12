@@ -1,0 +1,17 @@
+{
+  "source_repository": "https://github.com/gersh/ternary-goldbach-lean",
+  "source_revision": "27df23af6a712895f22204d0d81102baa74f0ebe",
+  "source_files": {
+    "BacklundXiArcVariation.lean": "f480e2acef5ebcac28aaa47ed690b330b80b8d9cef55c859bb5f4d0e2b9fff75",
+    "BacklundXiHalvingProof.lean": "408edc5ce939163335210574fa132f394a8493bdcf7cfbee3f9cf14880917748",
+    "BacklundXiRectWindingProof.lean": "4a235f338ded843e21b253ae2d781efd8e1a7cfdadcc00e5f8a8655e50084f26",
+    "BacklundZetaRealAxisProof.lean": "7e7764d5e7eedd3805a45ee4bb60d1f9061f35da8ccf3c04f5e7b9b8235e4d74"
+  },
+  "adaptation": "Upper rectangle [-1/4,5/4] x [0,T], using calr xiF and existing rectangle residue theorem. Positive-ordinate multiplicities are counted directly; real-axis nonvanishing follows from calr Euler--Maclaurin. Pole antiderivatives allow arbitrary anchor a>1. Gamma rectangle and continuous phase reuse the separately audited BacklundGammaPhaseBase. No external count result or Hadamard-product development imported.",
+  "calr_revision": "ce82a5b2a4ed5039c4750c0d062f0b0f2b833be0",
+  "calr_imports": [
+    "TernaryGoldbach.Explicit.XiPartial",
+    "TernaryGoldbach.Explicit.RectResidue",
+    "TernaryGoldbach.Explicit.ZetaGrowth"
+  ]
+}

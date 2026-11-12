@@ -1,0 +1,45 @@
+import took 825s
+.olean serialization took 206ms
+simp took 124ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 194ms
+tactic execution of Mathlib.Tactic.linarith took 127ms
+RSBounds/RS75Frequency.lean:91:42: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS75Frequency.lean:91:42: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 222ms
+type checking took 178ms
+'TernaryGoldbach.RSBounds.RS75Frequency.logDeriv_difference_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 206ms
+	attribute application 0.137ms
+	blocked (unaccounted) 5.96s
+	compilation (IR) 0.539ms
+	compilation (LCNF base) 4ms
+	compilation (LCNF impure) 0.671ms
+	compilation (LCNF mono) 1.51ms
+	congr simp thm 4.31ms
+	declTypeLinter 28.8ms
+	elaboration 474ms
+	fix level params 2.2ms
+	import 825s
+	initialization 140ms
+	instantiate metavars 3.39ms
+	interpretation 4.64s
+	let-to-have transformation 0.232ms
+	linting 93.4ms
+	module linting 0.0196ms
+	norm_num 466ms
+	parsing 79.8ms
+	process pre-definitions 57.3ms
+	ring 370ms
+	share common exprs 48.3ms
+	simp 236ms
+	tactic execution 1.1s
+	tacticAnalysis 11.5ms
+	type checking 377ms
+	typeclass inference 1.59s

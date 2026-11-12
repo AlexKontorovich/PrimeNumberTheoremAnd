@@ -1,0 +1,14 @@
+import RSBounds.BacklundLowCount
+
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_monotone
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.rosserF_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundLowScalar.one_lt_rosserR
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.le_iff_lt_card
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.finite_count_error_lt_one
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.exists_certified_zeros_with_brackets
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.count_eq_indicesBelow
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.listed_zeros_eq_closedPositiveZeros
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.count_error_lt_one
+#print axioms TernaryGoldbach.RSBounds.BacklundLowCount.rosser_bound_low
+#print axioms TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100

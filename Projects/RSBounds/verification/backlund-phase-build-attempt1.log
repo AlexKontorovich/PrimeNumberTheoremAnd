@@ -1,0 +1,29 @@
+✖ [2008/2008] Building RSBounds.BacklundPhase (1.8s)
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Analysis.Complex.Circle` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Algebra.Group.SubmonoidClosure` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Bases` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Order.Filter.AtTopBot.Archimedean` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Algebra.Order.Field` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+trace: .> LEAN_PATH=/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean /workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean /workspace/scratch/99a161e7c02e/recovery/RSBounds/BacklundPhase.lean -o /workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RSBounds/BacklundPhase.olean -i /workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RSBounds/BacklundPhase.ilean -c /workspace/scratch/99a161e7c02e/recovery/.lake/build/ir/RSBounds/BacklundPhase.c --setup /workspace/scratch/99a161e7c02e/recovery/.lake/build/ir/RSBounds/BacklundPhase.setup.json --json
+error: RSBounds/BacklundPhase.lean:35:2: Type mismatch: After simplification, term
+  h
+ has type
+  @Tendsto ℕ ℂ (Subtype.val ∘ fun x => u ^ n x) atTop (𝓝 1)
+but is expected to have type
+  @Tendsto ℕ ℂ (fun j => ↑u ^ n j) atTop (𝓝 1)
+error: RSBounds/BacklundPhase.lean:67:34: unsolved goals
+z : ℂ
+hz : z ≠ 0
+n : ℕ → ℕ
+hn : StrictMono n
+hp : Tendsto (fun j => (z / ↑‖z‖) ^ n j) atTop (𝓝 1)
+w : ℂ := z / ↑‖z‖
+hr : 0 < ‖z‖
+hrc : ↑‖z‖ ≠ 0
+hdecomp : z = ↑‖z‖ * w
+m : ℕ
+⊢ (↑‖z‖ ^ m).re * (w ^ m).re - (↑‖z‖ ^ m).im * (w ^ m).im = ‖z‖ ^ m * (w ^ m).re
+Some required targets logged failures:
+- RSBounds.BacklundPhase
+error: build failed

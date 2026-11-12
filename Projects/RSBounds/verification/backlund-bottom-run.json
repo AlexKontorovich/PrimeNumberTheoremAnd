@@ -1,0 +1,64 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T12:23:14.662191+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundBottomCertificates.lean": "9d81ce926061e2ae2f13e275d0deccaab653717a2782fe4cea47445267e565d0",
+    "RSBounds/BacklundBottomData.lean": "bf5c5baf5347c704eee1a635a3565d9cda451610a5fc1480cf4532f42a10a429",
+    "RSBounds/BacklundBottomFiniteSum.lean": "87d55ef9965c7c3135b346953ecd5cf6a5da2efb4efd0e2b9989107915a244ae",
+    "verification/BacklundBottomAudit.lean": "95e4c59172679b2794b1e0135c858523af784ecac90df848d930a77dc00dd2c3"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundBottomCertificates.olean",
+        "RSBounds/BacklundBottomCertificates.lean"
+      ],
+      "log": "backlund-bottom-BacklundBottomCertificates-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundBottomData.olean",
+        "RSBounds/BacklundBottomData.lean"
+      ],
+      "log": "backlund-bottom-BacklundBottomData-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundBottomFiniteSum.olean",
+        "RSBounds/BacklundBottomFiniteSum.lean"
+      ],
+      "log": "backlund-bottom-BacklundBottomFiniteSum-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundBottomAudit.lean"
+      ],
+      "log": "backlund-bottom-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T12:23:51.960054+00:00",
+  "exit_code": 0
+}

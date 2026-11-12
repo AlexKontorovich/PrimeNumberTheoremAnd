@@ -1,0 +1,262 @@
+"""Generate a scalar-only certificate for the eight-band first-29 budget.
+
+All enclosures below are exact Python fractions. Their correctness is not
+trusted: the generated Lean file checks the expression and logarithm data
+with the ordinary kernel and applies QuarticBudgetNumericsBase.Expr.sound.
+No source containing a zero certificate or analytic proof is modified.
+"""
+from fractions import Fraction as Q
+from pathlib import Path
+import json
+
+ROOT = Path(__file__).resolve().parent.parent
+D = 10 ** 30
+ARG_SCALE = 10 ** 12
+nodes = []
+cache = {}
+
+
+def qtext(q):
+    q = Q(q)
+    return str(q.numerator) if q.denominator == 1 else f"{q.numerator}/{q.denominator}"
+
+
+def qbounds(a, b):
+    lo = sum(2 * D * b ** (2*j+1) // ((2*j+1) * (2*a+b) ** (2*j+1))
+             for j in range(12))
+    hi = lo + 12 + 3 * D * b ** 25 // (25 * (2*a+b) ** 25) + 1
+    return Q(lo, D), Q(hi, D)
+
+
+def logcert(q):
+    q = Q(q)
+    assert q > 1
+    k = 0
+    while q > 2:
+        q /= 2
+        k += 1
+    a, b = q.denominator, q.numerator-q.denominator
+    assert 0 < b <= a
+    lo, hi = qbounds(a, b)
+    lo2, hi2 = qbounds(1, 1)
+    return (k, a, b), k * lo2 + lo, k * hi2 + hi
+
+
+def make(op, *args):
+    key = (op, *args)
+    if key in cache:
+        return cache[key]
+    certs = None
+    if op == 'rat':
+        lo = hi = Q(args[0])
+    elif op == 'pi':
+        lo, hi = Q('3.14159265358979323846'), Q('3.14159265358979323847')
+    elif op in ('add', 'sub', 'mul'):
+        a, b = [nodes[i] for i in args]
+        if op == 'add':
+            lo, hi = a['lo'] + b['lo'], a['hi'] + b['hi']
+        elif op == 'sub':
+            lo, hi = a['lo'] - b['hi'], a['hi'] - b['lo']
+        else:
+            products = [x*y for x in [a['lo'], a['hi']] for y in [b['lo'], b['hi']]]
+            lo, hi = min(products), max(products)
+    elif op == 'inv':
+        a = nodes[args[0]]
+        assert a['lo'] > 0
+        lo, hi = 1 / a['hi'], 1 / a['lo']
+    elif op == 'pow':
+        a, n = nodes[args[0]], args[1]
+        lo = hi = Q(1)
+        for _ in range(n):
+            products = [x*y for x in [lo, hi] for y in [a['lo'], a['hi']]]
+            lo, hi = min(products), max(products)
+    elif op == 'log':
+        a = nodes[args[0]]
+        low_arg = Q(a['lo'] * ARG_SCALE // 1, ARG_SCALE)
+        upper_arg = Q(-((-a['hi'] * ARG_SCALE) // 1), ARG_SCALE)
+        cl, lo, _ = logcert(low_arg)
+        cu, _, hi = logcert(upper_arg)
+        certs = cl, cu
+        assert low_arg <= a['lo'] and a['hi'] <= upper_arg
+    else:
+        raise ValueError(op)
+    i = len(nodes)
+    nodes.append(dict(op=op, args=args, lo=lo, hi=hi, certs=certs))
+    cache[key] = i
+    return i
+
+
+def rat(q): return make('rat', Q(q))
+def add(a, b): return make('add', a, b)
+def sub(a, b): return make('sub', a, b)
+def mul(a, b): return make('mul', a, b)
+def div(a, b): return mul(a, make('inv', b))
+def power(a, n): return make('pow', a, n)
+def log(a): return make('log', a)
+
+
+delta = Q(211, 10**7)
+a = 1 + 2*delta
+C = ((1+delta)**5 + 1)**4 / delta**4
+A, Y, S = Q(1894439), 2/delta, Q(592316, 10**6)
+L, U = 4/(3*delta), Y-8
+cutoffs = [L + (U-L)*j/8 for j in range(9)]
+pi = make('pi')
+twopi = mul(rat(2), pi)
+
+
+def F(t):
+    z = div(t, twopi)
+    return add(mul(z, sub(log(z), rat(1))), rat(Q(7, 8)))
+
+
+def R(t):
+    return add(add(mul(rat(Q(137, 1000)), log(t)),
+                   mul(rat(Q(443, 1000)), log(log(t)))), rat(Q(397, 250)))
+
+
+def J(t):
+    first = div(add(div(log(div(t, twopi)), rat(4)), rat(Q(1, 16))),
+                mul(twopi, power(t, 4)))
+    second = div(rat(Q(137, 1000)), mul(rat(5), power(t, 5)))
+    third = div(rat(Q(443, 1000)), mul(mul(rat(5), power(t, 5)), log(t)))
+    return add(add(first, second), third)
+
+
+d, y, h = rat(100), rat(Y), rat(A)
+diff_inv = sub(div(rat(1), d), div(rat(1), y))
+integral = add(add(div(sub(power(log(div(y, twopi)), 2),
+                            power(log(div(d, twopi)), 2)), mul(rat(4), pi)),
+                   mul(rat(Q(137, 1000)), diff_inv)),
+               div(mul(rat(Q(443, 1000)), diff_inv), log(d)))
+W = add(add(mul(rat(a), add(add(rat(S), integral),
+                           div(sub(add(F(d), R(d)), rat(29)), d))),
+            mul(rat(C), J(y))),
+        mul(mul(rat(2), R(y)), sub(div(rat(C), power(y, 5)), div(rat(a), y))))
+K = mul(rat(C), add(J(h), div(mul(rat(2), R(h)), power(h, 5))))
+mass = rat(0)
+for u, v in zip(cutoffs, cutoffs[1:]):
+    u, v = rat(u), rat(v)
+    term = div(sub(sub(sub(F(v), R(v)), F(u)), R(u)), v)
+    mass = add(mass, term)
+coeff = sub(mul(rat(2), W), mul(mul(rat(2), sub(rat(a), rat(Q(931, 1000)))), mass))
+budget = add(add(add(mul(rat(2), rat(delta)), K), div(coeff, rat(98715))),
+             div(add(add(K, log(twopi)), rat(Q(1, 10))), power(rat(98715), 2)))
+assert nodes[coeff]['lo'] > 0
+assert nodes[budget]['hi'] < Q(20211, 100000000)
+
+header = '''import RSBounds.QuarticBudgetNumericsBase
+
+/-!
+# Certified scalar budget for eight first-29 cancellation bands
+
+Generated by scripts/generate_quartic_budget_certificate.py. Only scalar
+arithmetic is certified here. No domination of a zeta zero sum or psi error
+is asserted. Every generated logarithm enclosure and rational comparison
+is checked by Lean's ordinary kernel.
+-/
+
+namespace TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics
+open QuarticBudgetNumerics
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 0
+
+def delta : ℚ := 211 / 10000000
+def a : ℚ := 1 + 2 * delta
+def C : ℚ := ((1 + delta) ^ 5 + 1) ^ 4 / delta ^ 4
+def A : ℚ := 1894439
+def Y : ℚ := 2 / delta
+def cutoff (j : ℕ) : ℚ :=
+  4 / (3 * delta) + ((Y - 8) - 4 / (3 * delta)) * j / 8
+
+noncomputable def F (t : ℝ) : ℝ :=
+  t / (2 * Real.pi) * (Real.log (t / (2 * Real.pi)) - 1) + 7 / 8
+noncomputable def R (t : ℝ) : ℝ :=
+  0.137 * Real.log t + 0.443 * Real.log (Real.log t) + 1.588
+noncomputable def fifthTail (t : ℝ) : ℝ :=
+  (Real.log (t / (2 * Real.pi)) / 4 + 1 / 16) / (2 * Real.pi * t ^ 4) +
+    0.137 / (5 * t ^ 5) + 0.443 / (5 * t ^ 5 * Real.log t)
+noncomputable def lowIntegral : ℝ :=
+  (Real.log ((Y : ℝ) / (2 * Real.pi)) ^ 2 -
+    Real.log ((100 : ℝ) / (2 * Real.pi)) ^ 2) / (4 * Real.pi) +
+    0.137 * (1 / 100 - 1 / (Y : ℝ)) +
+    0.443 * (1 / 100 - 1 / (Y : ℝ)) / Real.log 100
+noncomputable def lineWeight : ℝ :=
+  (a : ℝ) * (0.592316 + lowIntegral + (F 100 + R 100 - 29) / 100) +
+    (C : ℝ) * fifthTail (Y : ℝ) +
+    2 * R (Y : ℝ) * ((C : ℝ) / (Y : ℝ) ^ 5 - (a : ℝ) / (Y : ℝ))
+noncomputable def highWeight : ℝ :=
+  (C : ℝ) * (fifthTail (A : ℝ) + 2 * R (A : ℝ) / (A : ℝ) ^ 5)
+noncomputable def bandMass : ℝ :=
+  ∑ j ∈ Finset.range 8,
+    (F (cutoff (j + 1) : ℝ) - R (cutoff (j + 1) : ℝ) -
+      F (cutoff j : ℝ) - R (cutoff j : ℝ)) / (cutoff (j + 1) : ℝ)
+noncomputable def sqrtCoefficient : ℝ :=
+  2 * lineWeight - 2 * ((a : ℝ) - 0.931) * bandMass
+noncomputable def scalarBudget : ℝ :=
+  2 * (delta : ℝ) + highWeight + sqrtCoefficient / 98715 +
+    (highWeight + Real.log (2 * Real.pi) + 0.1) / (98715 : ℝ) ^ 2
+
+/-! The literal expression certificate. LogCert parameters do not enter eval. -/
+'''
+lines = [header]
+def certtext(c): return '⟨' + ', '.join(map(str, c)) + '⟩'
+for i, n in enumerate(nodes):
+    op, args = n['op'], n['args']
+    if op == 'rat': rhs = f'.rat ({qtext(args[0])})'
+    elif op == 'pi': rhs = '.pi'
+    elif op in ('add', 'sub', 'mul'): rhs = f'.{op} n{args[0]} n{args[1]}'
+    elif op == 'inv': rhs = f'.inv n{args[0]}'
+    elif op == 'pow': rhs = f'.pow n{args[0]} {args[1]}'
+    elif op == 'log': rhs = f'.log {certtext(n["certs"][0])} {certtext(n["certs"][1])} n{args[0]}'
+    lines.append(f'private def n{i} : Expr := {rhs}')
+all_names = ', '.join(f'n{i}' for i in range(len(nodes)))
+public_defs = 'scalarBudget, sqrtCoefficient, bandMass, lineWeight, highWeight, lowIntegral, fifthTail, F, R, cutoff, delta, a, C, A, Y'
+lines.append(f'''
+
+def coefficientCertificate : Expr := n{coeff}
+def budgetCertificate : Expr := n{budget}
+
+theorem coefficientCertificate_checked : coefficientCertificate.check = true := by
+  decide +kernel
+
+theorem budgetCertificate_checked : budgetCertificate.check = true := by
+  decide +kernel
+
+theorem coefficientCertificate_positive : 0 < coefficientCertificate.bounds.lo := by
+  decide +kernel
+
+theorem budgetCertificate_upper : budgetCertificate.bounds.hi < (20211 / 100000000 : ℚ) := by
+  decide +kernel
+
+theorem coefficientCertificate_eval : coefficientCertificate.eval = sqrtCoefficient := by
+  norm_num [coefficientCertificate, Expr.eval, {all_names}, {public_defs},
+    Finset.sum_range_succ, div_eq_mul_inv]
+
+theorem budgetCertificate_eval : budgetCertificate.eval = scalarBudget := by
+  norm_num [budgetCertificate, Expr.eval, {all_names}, {public_defs},
+    Finset.sum_range_succ, div_eq_mul_inv]
+
+/-- Positivity needed when replacing sqrt(x) by its lower bound98715. -/
+theorem sqrtCoefficient_pos : 0 < sqrtCoefficient := by
+  rw [← coefficientCertificate_eval]
+  exact Expr.eval_pos coefficientCertificate_checked coefficientCertificate_positive
+
+/-- Only the closed scalar budget is certified; no psi estimate is assumed or concluded. -/
+theorem scalarBudget_lt : scalarBudget < 0.00020211 := by
+  rw [← budgetCertificate_eval]
+  convert Expr.eval_lt budgetCertificate_checked budgetCertificate_upper using 1 <;> norm_num
+
+end TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics
+''')
+(ROOT / 'RSBounds/QuarticFirst29BudgetNumerics.lean').write_text('\n'.join(lines))
+record = {'status':'generated; Lean kernel verification required', 'nodes':len(nodes),
+          'log_nodes':sum(n['op']=='log' for n in nodes),
+          'sqrt_coefficient_lower':qtext(nodes[coeff]['lo']),
+          'sqrt_coefficient_upper':qtext(nodes[coeff]['hi']),
+          'budget_lower':qtext(nodes[budget]['lo']), 'budget_upper':qtext(nodes[budget]['hi']),
+          'budget_upper_diagnostic':float(nodes[budget]['hi']),
+          'target_minus_upper_diagnostic':float(Q(20211,100000000)-nodes[budget]['hi'])}
+(ROOT / 'verification/quartic-first29-scalar-generated.json').write_text(json.dumps(record,indent=2)+'\n')
+print({k:v for k,v in record.items() if 'diagnostic' in k or k in ['nodes','log_nodes','status']})

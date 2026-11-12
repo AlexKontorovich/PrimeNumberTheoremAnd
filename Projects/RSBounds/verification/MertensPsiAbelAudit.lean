@@ -1,0 +1,12 @@
+import RSBounds.MertensPsiAbel
+
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.sum_Icc_mangoldt
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.sum_mangoldt_isBigO
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.psi_ratio_bound
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.measurable_D
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.D_bound
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.integrableOn_psi_ratio_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.logDeriv_eq_psi_integral
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.psi_abel_identity
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.integrableOn_D_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MertensPsiAbel.D_abel_identity

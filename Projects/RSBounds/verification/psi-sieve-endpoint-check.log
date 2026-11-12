@@ -1,0 +1,72 @@
+RSBounds/PsiSieveEndpointReduction.lean:123:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:123:34: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:123:58: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:123:62: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:123:62: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:123:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/PsiSieveEndpointReduction.lean:123:34: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/PsiSieveEndpointReduction.lean:135:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:135:34: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:135:58: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:135:62: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:135:62: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PsiSieveEndpointReduction.lean:135:20: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/PsiSieveEndpointReduction.lean:135:34: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.signedEndpointSafe_real_generic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.upperEndpointSafe_real_generic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.lowerEndpointSafe_real_generic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.normalized_error_antitone' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.constant_gap_abs_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.psi_eq_of_no_prime_powers' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.psi_gap_abs_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.psi_gap_abs_le_four_fifths_of_guards' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.psi_prejump_state' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveEndpointReduction.psi_interval_abs_le_of_gap_cover' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

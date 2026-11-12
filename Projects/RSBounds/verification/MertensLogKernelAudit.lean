@@ -1,0 +1,13 @@
+import RSBounds.MertensLogKernel
+
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.hasDerivAt_inv_log_sq
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.inv_log_sq_tendsto
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.integrable_log_cube
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.integral_log_cube
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.logKernel_nonneg
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.integrable_logKernel
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.integral_logKernel
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.integrable_mul_logKernel
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.abs_integral_mul_logKernel_le
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.logMass_nonneg
+#print axioms TernaryGoldbach.RSBounds.MertensLogKernel.signed_expression_bound

@@ -1,0 +1,24 @@
+{
+  "kind": "fresh-integrated-root-build",
+  "started_utc": "2026-11-06T13:32:53.538367+00:00",
+  "source_sha256": {
+    "RSBounds.lean": "edac4c6df6137f58b21b54a0d808b4835787c303265c8e01852d45a6c4b33f9b",
+    "RSBounds/Rosser1941.lean": "91110b87d17d996f8e55b6458bd52404482f97780f2f16eabc7c35a545f28ccc",
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds.olean",
+    "RSBounds.lean"
+  ],
+  "exit_code": 0,
+  "seconds": 98.10453011700156,
+  "finished_utc": "2026-11-06T13:34:31.644056+00:00"
+}

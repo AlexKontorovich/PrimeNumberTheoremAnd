@@ -1,0 +1,5 @@
+'TernaryGoldbach.RSBounds.circle_powers_subsequence_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.complex_powers_phase_subsequence' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.real_power_ratio_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.log_real_pow_div_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.exists_backlund_phase_sequence' depends on axioms: [propext, Classical.choice, Quot.sound]

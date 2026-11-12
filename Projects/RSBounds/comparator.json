@@ -1,0 +1,9 @@
+{
+  "challenge_module": "RSTotientChallenge",
+  "solution_module": "RSTotientSolution",
+  "theorem_names": [
+    "TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_card_le_twenty",
+    "TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_self_of_le_1e27"
+  ],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"]
+}

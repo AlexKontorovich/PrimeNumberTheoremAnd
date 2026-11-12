@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-mertens-signed-interval-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:09:05.885642+00:00",
+  "source_sha256": {
+    "RSBounds/MertensSignedInterval.lean": "7782ac59b035f6db7b43fcbae0806c1ff647e74d36e5a91384c76c67a2d2b9df",
+    "RSBounds/MertensIntervalSum.lean": "65d702fb141e34d19d7c27c563a08d594e39eb1d894d819b8a1daca54cf61d9b",
+    "RSBounds/MertensIntervalMellin.lean": "3894521c83790a22bcd81a08ff689be9bac6f824bac941c02936c76aa5bee157",
+    "RSBounds/MertensIntervalDecay.lean": "bde513c3e1d3ff44fbbedc81bf403f9bbba2f987370fdfd63a1be6977388dc6d",
+    "RSBounds/QuadraticSubOne.lean": "639761df8f39d39844792a63955ee012360078211113a2ca01451824e7d68608",
+    "RSBounds/MertensIntervalKernel.lean": "e93cd81fd46ee00291c1932e1a914e68caad985995ce14c3801ff9efa503ab29",
+    "RSBounds/QuadraticContourLimit.lean": "b984412c4b6a6100c5b379a6e458bf5f52e78d365f72472eaceb582afd838f7b",
+    "verification/MertensSignedIntervalAudit.lean": "ae9ede6b5c81fe74aa5c2e425aadf649fb850540c57bcd51caee84ecc1ef1839",
+    "verification/run_mertens_signed_interval_check.py": "fc408b3250773f4c65697ccc21cb79c7e8e575174863856c9f1ba87d35df1200"
+  },
+  "stdin_recipe": "Exact source plus four fully qualified #print axioms commands.",
+  "stdin_sha256": "d056cd7cf0ce8931feb883d3b57948de33223f02bc9b151131c32b6f77e2e250",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensSignedInterval.olean",
+        "RSBounds/MertensSignedInterval.lean"
+      ],
+      "log": "verification/mertens-signed-interval-build.log",
+      "exit_code": 0,
+      "seconds": 8.303334815995186
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "88803be47c2ab9fcad541521cf5f2029847fd713c9e5eba768503077879c96ca",
+  "finished_utc": "2026-11-06T18:09:14.192141+00:00"
+}

@@ -1,0 +1,28 @@
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.divisor_at_zero_ge_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.reflected_distance_product_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_log_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.far_log_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_with_unpaired_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedCrossing.crossing_count_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedCrossing.abs_argument_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedPower.normalized_power_argument_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundPairedPower.argument_bound' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,0 +1,4 @@
+import RSBounds.PolynomialResidue
+
+#print axioms TernaryGoldbach.RSBounds.rectIntegrable_logDeriv_mul
+#print axioms TernaryGoldbach.RSBounds.rectInt_logDeriv_mul_div_zero

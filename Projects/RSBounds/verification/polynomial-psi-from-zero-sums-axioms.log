@@ -1,0 +1,15 @@
+'TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.norm_log_two_pi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.smoothing_error_of_norm_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.upper_error_of_eventually_bounded_zero_sums' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.lower_error_of_eventually_bounded_zero_sums' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.psi_error_of_eventually_bounded_zero_sums' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

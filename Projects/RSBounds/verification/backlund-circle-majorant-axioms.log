@@ -1,0 +1,21 @@
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.zeta_plus_le_exp_majorant' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.zeta_minus_le_exp_majorant' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.circleAverage_re_eq_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_circleIntegrable' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_average_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCircleMajorant.count_le_roundedEnvelope' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

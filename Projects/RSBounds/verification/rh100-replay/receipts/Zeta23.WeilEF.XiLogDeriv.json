@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.WeilEF.XiLogDeriv",
+  "source_sha256": "134316fb4ae4df1759c04dbeff5f90c38203881c7eae05f821ffa478ab69b07f",
+  "upstream_sha256": "134316fb4ae4df1759c04dbeff5f90c38203881c7eae05f821ffa478ab69b07f",
+  "adapted": false,
+  "signature": "3678a3ec35f8bf5fe4b38c29c53f07a1568bfbf0a9f96b8418deba99d8bfccc2",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/WeilEF/XiLogDeriv.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/WeilEF/XiLogDeriv.olean"
+  ],
+  "started_utc": "2026-11-06T12:00:32.138600+00:00",
+  "finished_utc": "2026-11-06T12:00:34.235410+00:00",
+  "elapsed_seconds": 2.097,
+  "peak_rss_kib": 1716604,
+  "log": "verification/rh100-replay/Zeta23.WeilEF.XiLogDeriv.log",
+  "resources": "verification/rh100-replay/Zeta23.WeilEF.XiLogDeriv.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "a1da78fed0e9666b4b5187e9216ad0e4246c36f924cd6b026e18964bbc21fbb6",
+  "reused_from_previous_replay": true
+}

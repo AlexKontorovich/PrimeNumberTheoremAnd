@@ -1,0 +1,9 @@
+import RSBounds.RS62TotientFromFiniteRH
+
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.log_ge_six
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.primeTheta_eq
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.theta_lower_of_errors
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.theta_lower
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.primeProduct_log_upper
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.prime_product_rs62
+#print axioms TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.totient_bound_of_finiteRH

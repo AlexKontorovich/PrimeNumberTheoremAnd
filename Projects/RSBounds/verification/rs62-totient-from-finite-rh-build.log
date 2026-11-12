@@ -1,0 +1,63 @@
+import took 16.7s
+RSBounds/RS62TotientFromFiniteRH.lean:63:70: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62TotientFromFiniteRH.lean:73:62: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62TotientFromFiniteRH.lean:63:70: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62TotientFromFiniteRH.lean:73:62: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RS62TotientFromFiniteRH.lean:102:62: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS62TotientFromFiniteRH.lean:102:62: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.log_ge_six' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.primeTheta_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.theta_lower_of_errors' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.theta_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.primeProduct_log_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.prime_product_rs62' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62TotientFromFiniteRH.totient_bound_of_finiteRH' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 38.9ms
+	attribute application 0.0893ms
+	blocked (unaccounted) 1.14s
+	congr simp thm 1.82ms
+	declTypeLinter 5.34ms
+	elaboration 66.9ms
+	fix level params 1.14ms
+	import 16.7s
+	initialization 66.3ms
+	instantiate metavars 1.81ms
+	interpretation 946ms
+	let-to-have transformation 0.259ms
+	linting 24.3ms
+	module linting 0.093ms
+	norm_num 108ms
+	parsing 6.33ms
+	process pre-definitions 15.7ms
+	ring 68.3ms
+	share common exprs 21.7ms
+	simp 15ms
+	tactic execution 112ms
+	tacticAnalysis 3.43ms
+	type checking 91.2ms
+	typeclass inference 336ms

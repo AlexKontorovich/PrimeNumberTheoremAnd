@@ -1,0 +1,8 @@
+import RSBounds.PolynomialLeftKernel
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_low
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_high
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.abs_im_pow_le_norm_rising_four
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_high_im
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_zeroCoefficient_left_low
+#print axioms TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_zeroCoefficient_left_high

@@ -1,0 +1,32 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:47:39.152204+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundCountJensen.lean": "206fa4c7f034b6ca9569178b0af37a75efcd1fa9c2d77b5105564c9624de01c7",
+    "verification/BacklundCountJensenAudit.lean": "4915d80cc453bafa8a0320c7e64efe18e29b776802eab8e4859e27f9cb1e95d2"
+  },
+  "build_command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/BacklundCountJensen.olean",
+    "RSBounds/BacklundCountJensen.lean"
+  ],
+  "build_exit_code": 0,
+  "audit_command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "verification/BacklundCountJensenAudit.lean"
+  ],
+  "audit_exit_code": 0,
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "remaining_input": "A nonnegative common circle majorant for the two actual zeta translates; this is not the numerical Rosser theorem."
+}

@@ -1,0 +1,76 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:05:06.184881+00:00",
+  "source_sha256": {
+    "RSBounds/RS75ZeroPowerDecay.lean": "70c56234aedad791bed3663d1fdbce70e85998daf8a3f6bc19a5546d8c1eed4b",
+    "RSBounds/RS75DecayingHighZeros.lean": "4d5cb1d69b3a8237324463b67f044e1193eba7815a84b5fe8729e9e227ede213",
+    "RSBounds/RS75ZeroFree1975.lean": "e09f31b984976d75c0a773b6c41d3d671ee2ac7aebe2c5466212ba1253a768cb",
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "RSBounds/RosserCubicTail.lean": "7b59799dd8863873e9bc7cfe7d638ea09e25b21e59239eedefc8269b3785a2aa",
+    "verification/RS75ZeroPowerDecayAudit.lean": "a53caf9f9afd65017e704109d163b2b04340beb009d70d7c9fe9c543c2d62736",
+    "verification/RS75DecayingHighZerosAudit.lean": "2a1b67ff4cb74230d703d0e522df9182c1c7306e228190568c76a7e6f959d0bb",
+    "verification/run_rs75_decaying_high_zeros_check.py": "093384976236fa4edd3e65f327903bc8eb8e138c0412bf233676b36b96e45547",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroPowerDecay.olean",
+        "RSBounds/RS75ZeroPowerDecay.lean"
+      ],
+      "log": "rs75-zero-power-decay-build.log",
+      "exit_code": 0,
+      "seconds": 7.081460125002195
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75DecayingHighZeros.olean",
+        "RSBounds/RS75DecayingHighZeros.lean"
+      ],
+      "log": "rs75-decaying-high-zeros-build.log",
+      "exit_code": 0,
+      "seconds": 7.880759133004176
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75ZeroPowerDecayAudit.lean"
+      ],
+      "log": "rs75-zero-power-decay-axioms.log",
+      "exit_code": 0,
+      "seconds": 6.746217361003801
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75DecayingHighZerosAudit.lean"
+      ],
+      "log": "rs75-decaying-high-zeros-axioms.log",
+      "exit_code": 0,
+      "seconds": 6.166095968997979
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 11,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T18:05:34.062113+00:00",
+  "exit_code": 0
+}

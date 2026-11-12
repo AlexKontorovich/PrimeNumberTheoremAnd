@@ -1,0 +1,76 @@
+import took 94.9s
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 111ms
+RSBounds/SchoenfeldZeroWeights.lean:40:56: warning: This simp argument is unused:
+  Pi.mul_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [PhiDerivative, Phi, id_eq, Pi.pow_apply, Pi.div_apply, Pi.add_apply, Pi.neg_apply, neg_div,
+    Nat.cast_add, Nat.cast_one, Nat.add_sub_cancel, pow_succ]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldZeroWeights.lean:40:84: warning: This simp argument is unused:
+  Pi.add_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [PhiDerivative, Phi, id_eq, Pi.pow_apply, Pi.mul_apply, Pi.div_apply, Pi.neg_apply, neg_div,
+    Nat.cast_add, Nat.cast_one, Nat.add_sub_cancel, pow_succ]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldZeroWeights.lean:40:98: warning: This simp argument is unused:
+  Pi.neg_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [PhiDerivative, Phi, id_eq, Pi.pow_apply, Pi.mul_apply, Pi.div_apply, Pi.add_apply, neg_div,
+    Nat.cast_add, Nat.cast_one, Nat.add_sub_cancel, pow_succ]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/SchoenfeldZeroWeights.lean:35:93: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldZeroWeights.lean:43:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldZeroWeights.lean:35:93: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/SchoenfeldZeroWeights.lean:43:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.Phi_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.hasDerivAt_Phi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.PhiDerivative_zero_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.PhiDerivative_two_nonpos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.q_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.q_antitone' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.density_le_q' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 52.6ms
+	attribute application 0.299ms
+	blocked (unaccounted) 2.61s
+	congr simp thm 2.08ms
+	declTypeLinter 22ms
+	elaboration 336ms
+	fix level params 2.1ms
+	import 94.9s
+	initialization 96.5ms
+	instantiate metavars 4.52ms
+	interpretation 2.39s
+	let-to-have transformation 0.355ms
+	linting 60ms
+	module linting 0.273ms
+	norm_num 152ms
+	parsing 19.9ms
+	process pre-definitions 32.5ms
+	ring 92.4ms
+	share common exprs 37.7ms
+	simp 85.5ms
+	tactic execution 414ms
+	tacticAnalysis 7.26ms
+	type checking 221ms
+	typeclass inference 703ms

@@ -1,0 +1,45 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:32:51.546538+00:00",
+  "lean_version": "Lean 4.35.0",
+  "source_sha256": {
+    "RSBounds/BacklundGammaPhaseBase.lean": "72ec468f2eb9f590d28b3cc565725015de9a8cebe9816690312fc5c4cf43671d",
+    "RSBounds/BacklundGammaPhaseShift.lean": "38a0742776ecd0384710e0d1925c10603bc3d32461634d0e3382798f763fd6bc",
+    "RSBounds/BacklundGammaPhaseArctan.lean": "899d088554648ea746b67b2744314cd6caeb632cb4ae9bfa0e35822d6b18782c",
+    "RSBounds/BacklundGammaPhasePrimitive.lean": "3007ec7f09bad505b07b5b5bc7a1e7aa04fc43c6ad62219796d2568a967beddf",
+    "RSBounds/BacklundGammaPhaseEstimate.lean": "1b9911bfe6e8b7fcd4476414d311ba359c711f85ae37ff021c560f4223f6ef55",
+    "verification/BacklundGammaPhaseAudit.lean": "ad4bb8ad7ef21cc8ef235df4fc2705c5bb5dd79e7e8433bc90612bb2732542f5",
+    "RSBounds/BacklundTrapezoid.lean": "1293c3bb601bd07df72843b3afe312f14ded8140864bfc95f7d74264c680ee8c"
+  },
+  "build_commands": [
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaPhaseBase.olean RSBounds/BacklundGammaPhaseBase.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaPhaseShift.olean RSBounds/BacklundGammaPhaseShift.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaPhaseArctan.olean RSBounds/BacklundGammaPhaseArctan.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaPhasePrimitive.olean RSBounds/BacklundGammaPhasePrimitive.lean",
+    "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundGammaPhaseEstimate.olean RSBounds/BacklundGammaPhaseEstimate.lean"
+  ],
+  "build_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "audit_command": "lake env lean verification/BacklundGammaPhaseAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.digamma_rectangle",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.norm_digamma_sub_le_of_re_ge",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_phaseAt_quarter_shift",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_arctan_gauss_phase",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.tendsto_arctanPrimitive_sub_log",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.gamma_phase_remainder_bound",
+    "TernaryGoldbach.RSBounds.BacklundGammaPhase.backlund_gamma_phase_remainder_bound"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "result": "Both unconditional Gamma phase bounds (1/(4T) and 25/(48T), T>0) and the branch-consistent rectangle identity compile. No RH, unproved Stirling estimate, or custom axiom appears in their closure."
+}

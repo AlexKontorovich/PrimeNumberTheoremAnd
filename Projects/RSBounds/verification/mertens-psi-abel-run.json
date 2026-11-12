@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-mertens-psi-abel-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:52:07.765522+00:00",
+  "source_sha256": {
+    "RSBounds/MertensPsiAbel.lean": "cc8893163358c92be6c8b0ad9786a3d060d36ba78ae96b1c95e01169865be018",
+    "RSBounds/MertensAbelIdentity.lean": "743f7aff4f26e7344e3cbef14fe811c22802b0ee8a56fa3e6f7267bade38df8e",
+    "../ternary-goldbach/TernaryGoldbach/Prelim/PNTMertens.lean": "d1406c91106cf881bf2a5ec0adae8f4a33e938f1cd571759fe2fe5a483c0d2ea",
+    "verification/MertensPsiAbelAudit.lean": "3a52ff72192cdd9cb58dce96d281571df2bacabe4bc400a6a0fa24f244e34938",
+    "verification/run_mertens_psi_abel_check.py": "06d0f71737fe982ac54964666dd76715df1c600f988d139088dd31e105939d56"
+  },
+  "stdin_recipe": "Exact source plus ten fully qualified #print axioms commands.",
+  "stdin_sha256": "21f114eac2223da4a9af64c37d719a09c87722e18db2f88e7389a77f0c1527e5",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensPsiAbel.olean",
+        "RSBounds/MertensPsiAbel.lean"
+      ],
+      "log": "verification/mertens-psi-abel-build.log",
+      "exit_code": 0,
+      "seconds": 190.39860380000027
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "2728185d396b5ec0678d92996a719a256b30b190a867540ead403bec192b59ba",
+  "finished_utc": "2026-11-06T18:55:18.172024+00:00"
+}

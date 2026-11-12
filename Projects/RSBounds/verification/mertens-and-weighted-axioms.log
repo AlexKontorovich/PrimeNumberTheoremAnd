@@ -1,0 +1,28 @@
+'TernaryGoldbach.RSBounds.primeWeightedSum_eq_theta_div_add_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.primeWeightedSum_sub_eq_theta_div_sub_add_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.integral_theta_error_div_sq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.primeWeightedSum_sub_log_eq_anchor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.mangoldtWeightedSum_eq_psi_div_add_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.integral_psi_error_div_sq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.mangoldtWeightedSum_sub_log_eq_anchor' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.weighted_ordinate_sum_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.intervalIntegrable_ordinateCount_mul' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_increasing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_decreasing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.weighted_ordinate_sum_le_unimodal' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.hasDerivAt_rosserF' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.hasDerivAt_rosserR' depends on axioms: [propext, Classical.choice, Quot.sound]

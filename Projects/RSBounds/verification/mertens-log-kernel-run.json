@@ -1,0 +1,45 @@
+{
+  "kind": "fresh-source-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:31:47.399977+00:00",
+  "lean_version": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+  "source_sha256": {
+    "RSBounds/MertensLogKernel.lean": "5bac4a58c8c76c09ebecd3bdf01b17315c65530fd1f76f5f8f6da0c02dfc6aad",
+    "verification/MertensLogKernelAudit.lean": "a098aacf5d0338ef735f6724f40ee450ac05aac86119a864bee57175748076f0",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "verification/run_fresh_module_check.py": "fad671602d7fc5babc872e0102e8d9767ccba34700fe74c0228a37df38bc414d"
+  },
+  "stdin_sha256": "2f75ea20ab8e8a5eda752f130f7dc282099fd1c38b0adae37cf0fca442ee1853",
+  "stdin_recipe": "Exact source followed by the listed fully qualified axiom commands.",
+  "audited_declarations": [
+    "TernaryGoldbach.RSBounds.MertensLogKernel.hasDerivAt_inv_log_sq",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.inv_log_sq_tendsto",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.integrable_log_cube",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.integral_log_cube",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.logKernel_nonneg",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.integrable_logKernel",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.integral_logKernel",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.integrable_mul_logKernel",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.abs_integral_mul_logKernel_le",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.logMass_nonneg",
+    "TernaryGoldbach.RSBounds.MertensLogKernel.signed_expression_bound"
+  ],
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensLogKernel.olean",
+    "RSBounds/MertensLogKernel.lean"
+  ],
+  "log": "verification/mertens-log-kernel-build.log",
+  "exit_code": 0,
+  "seconds": 94.79375776700181,
+  "finished_utc": "2026-11-06T19:33:22.246084+00:00",
+  "axiom_audit": {
+    "declarations": 11,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "f1d16bcd91052e7e5b765f1b1a456118c25c6487e3b5de6f2c64e2827bebaf0c"
+}

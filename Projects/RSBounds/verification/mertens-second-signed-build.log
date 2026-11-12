@@ -1,0 +1,92 @@
+interpretation of _private.Mathlib.Tactic.Basify.Attr.0.Mathlib.Tactic.Basify.initFn._@.Mathlib.Tactic.Basify.Attr.846134935._hygCtx._hyg.2._boxed took 273ms
+import took 168s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 110ms
+RSBounds/MertensSecondSigned.lean:120:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:120:6: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:120:6: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensSecondSigned.lean:152:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:152:10: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:152:10: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensSecondSigned.lean:205:48: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:205:60: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensSecondSigned.lean:205:48: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensSecondSigned.lean:205:60: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.MertensSecondSigned.measurable_J' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.J_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.first_error_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.J_sub_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.intervalIntegrable_centered_psi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.finite_parts' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_J_mul' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.error_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_error_log_sq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_centered_log_sq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.boundary_tendsto_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.integral_parts' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_sub_endpoint_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_abs_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 79.1ms
+	attribute application 0.364ms
+	blocked (unaccounted) 5.3s
+	congr simp thm 40.3ms
+	declTypeLinter 28.5ms
+	dsimp 44.2ms
+	elaboration 920ms
+	fix level params 2.45ms
+	import 168s
+	initialization 102ms
+	instantiate metavars 7.76ms
+	interpretation 4.04s
+	let-to-have transformation 0.788ms
+	linting 115ms
+	module linting 0.775ms
+	norm_num 127ms
+	parsing 36.5ms
+	process pre-definitions 45.7ms
+	ring 234ms
+	share common exprs 54.9ms
+	simp 187ms
+	tactic execution 1.31s
+	tacticAnalysis 17.7ms
+	type checking 473ms
+	typeclass inference 1.58s

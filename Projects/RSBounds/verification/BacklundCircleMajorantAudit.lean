@@ -1,0 +1,9 @@
+import RSBounds.BacklundCircleCount
+
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_nonneg
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.zeta_plus_le_exp_majorant
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.zeta_minus_le_exp_majorant
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.circleAverage_re_eq_upper
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_circleIntegrable
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.majorant_average_le
+#print axioms TernaryGoldbach.RSBounds.BacklundCircleMajorant.count_le_roundedEnvelope

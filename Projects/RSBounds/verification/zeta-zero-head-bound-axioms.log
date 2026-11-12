@@ -1,0 +1,14 @@
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.first29_image_eq_closedPositiveZeros' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_eq_first29' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_subset_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_subset_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

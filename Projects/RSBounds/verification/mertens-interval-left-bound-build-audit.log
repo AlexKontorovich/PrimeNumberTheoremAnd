@@ -1,0 +1,70 @@
+interpretation of Batteries.Tactic.Alias.aliasExt took 524ms
+interpretation of Mathlib.Tactic.ToDual.guessNameExt took 117ms
+import took 632s
+elaboration took 147ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Convert___elabRules_Mathlib_Tactic_convert_1._boxed took 432ms
+type checking took 137ms
+tactic execution of Lean.Parser.Tactic.simpa took 136ms
+tactic execution of Mathlib.Tactic.normNum took 122ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 164ms
+tactic execution of Mathlib.Tactic.FieldSimp.fieldSimp took 115ms
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 161ms
+RSBounds/MertensIntervalLeftBound.lean:103:27: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensIntervalLeftBound.lean:103:27: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 141ms
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 121ms
+tactic execution of Mathlib.Tactic.linarith took 159ms
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 150ms
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integral_Ioi_add_rpow_of_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integral_one_add_abs_neg_three_halves' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integrable_one_add_abs_neg_three_halves' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_numerator_left_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_kernel_left_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_logDeriv_zeta_left_le_sqrt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_left_integrand_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_leftRemainder_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 76.3ms
+	attribute application 0.154ms
+	blocked (unaccounted) 9.67s
+	congr simp thm 8.14ms
+	declTypeLinter 19.7ms
+	elaboration 736ms
+	fix level params 2.15ms
+	import 632s
+	initialization 114ms
+	instantiate metavars 5.3ms
+	interpretation 7.29s
+	let-to-have transformation 0.221ms
+	linting 50.7ms
+	module linting 0.0209ms
+	norm_num 873ms
+	parsing 36.6ms
+	process pre-definitions 66.2ms
+	ring 244ms
+	share common exprs 44.4ms
+	simp 209ms
+	tactic execution 2.1s
+	tacticAnalysis 9.42ms
+	type checking 388ms
+	typeclass inference 3.22s

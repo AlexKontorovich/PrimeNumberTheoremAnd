@@ -1,0 +1,35 @@
+{
+  "kind": "fresh-mertens-tail-scalars-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:41:34.698379+00:00",
+  "source_sha256": {
+    "RSBounds/MertensTailScalars.lean": "99340fdf85cfd09bd20931aabab9297094483bf676f9e9c42233aaa1fe3d3fbd",
+    "verification/MertensTailScalarsAudit.lean": "a2a707dcd58e12f7866fc913094812c3002b09b87e9f57869723805804f66ea7",
+    "verification/run_mertens_tail_scalars_check.py": "e49f9adfa80324bb665722f3764582ed06468589f52659e46b8d5d8e8efc2be4"
+  },
+  "stdin_recipe": "Exact source plus five fully qualified #print axioms commands.",
+  "stdin_sha256": "9f15eceec4149f0459bec06acce904a31872640cb2b17a5f12af8bb9bc516b36",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensTailScalars.olean",
+        "RSBounds/MertensTailScalars.lean"
+      ],
+      "log": "verification/mertens-tail-scalars-build.log",
+      "exit_code": 0,
+      "seconds": 86.34877206099918
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "2a4c8405496c34da9332ac6edec0937ddfc49742a3bb6aa01afc71e634670c1b",
+  "finished_utc": "2026-11-06T18:43:01.051260+00:00"
+}

@@ -1,0 +1,7 @@
+import RSBounds.RS75GoldenTails
+
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenTails.sum_range_eq_momentSum
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenTails.tailPrimitive_eq_tailIntegral
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenTails.center_le_moment_le_upper
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenTails.center_le_moment
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenTails.moment_le_upper

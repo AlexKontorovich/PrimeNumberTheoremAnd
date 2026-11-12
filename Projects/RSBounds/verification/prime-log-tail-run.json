@@ -1,0 +1,62 @@
+{
+  "kind": "fresh-prime-log-tail-source-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:49:14.615410+00:00",
+  "source_sha256": {
+    "RSBounds/PrimeLogTail.lean": "05a75c2df96480ae03d6a5fc37d821d85e643cbcd06bc0af71f1b84c543c390c",
+    "verification/PrimeLogTailAudit.lean": "be7064f0aaf636e7f19575c485fbea87ae801378532223a66b4208d6594a3ecc",
+    "verification/run_mertens_product_correction_check.py": "21d9b7584fa9e0a5ab7899f90a2719eeb40c7cc0c303ece5bb3840986a1d8bb9"
+  },
+  "stdin_recipe": "Exact source plus 3 fully qualified #print axioms commands.",
+  "stdin_sha256": "9108961e8230924a7c3244242477bbff08fb370cc800a5fbe2801afbeefa3e2f",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/PrimeLogTail.olean",
+        "RSBounds/PrimeLogTail.lean"
+      ],
+      "log": "verification/prime-log-tail-build.log",
+      "exit_code": 0,
+      "seconds": 9.131216389003384
+    }
+  ],
+  "exit_code": 0,
+  "build_exit_code": 0,
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true,
+    "per_declaration": [
+      {
+        "declaration": "TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_eq",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_le",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      },
+      {
+        "declaration": "TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_mul_pred_le",
+        "axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ]
+      }
+    ]
+  },
+  "object_sha256": "3dacd7ca9043d3ce3904973f366bef10f44916347181815b5bf2780c742b6b93",
+  "build_log_sha256": "ce1b68228c0630cd20557257c52fc0ca0bc90cecd0deee32904726ba8fdea957",
+  "finished_utc": "2026-11-06T20:49:23.748749+00:00"
+}

@@ -1,0 +1,9 @@
+'TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le_of_guards' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PsiSieveBlockReduction.psi_block_abs_le_four_fifths_of_guards' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

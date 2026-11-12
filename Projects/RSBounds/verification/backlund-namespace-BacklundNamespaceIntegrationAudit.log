@@ -1,0 +1,17 @@
+'TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries.hasSum_digamma_series' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZeta23.StirlingVert.digamma_stirling' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Zeta23.DigammaSeries.hasSum_digamma_series' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.StirlingVert.digamma_stirling' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds_high' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'RHHeight100.rh_height_hundred' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RHHeight100.zero_count_hundred' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_hundred' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

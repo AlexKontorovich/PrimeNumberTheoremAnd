@@ -1,0 +1,21 @@
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.upperPoint_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.lowerPoint_slope_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_gt_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_slope_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_deriv_logDerivative_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.logDerivative_lt_tangent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenRatio.shifted_real_axis_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,44 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T16:40:02.879440+00:00",
+  "source_sha256": {
+    "RSBounds/RS75RealAxisLogDerivative.lean": "f89d82fbbe19f339f2f039a7f36819d0da862dd144cdf536f5a73fafcc81d51e",
+    "RSBounds/RS75RealAxisGamma.lean": "34ebddcd8772c994536c626eff6930e17d0eaeaaedc613c2e209e1b88df1bc67",
+    "RSBounds/RS75XiIncrement.lean": "600d40a40e50b763ab002c6a599b2f6401f4f4959a9b0e34eab3f3424a098bd0",
+    "verification/RS75RealAxisLogDerivativeAudit.lean": "a35895d6aedbf83ba9376eace6c05139053fe1766b26ade70b16565283c66d60"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/RS75RealAxisLogDerivative.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75RealAxisLogDerivative.olean"
+      ],
+      "log": "rs75-real-axis-log-derivative-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1527.5596012210008
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75RealAxisLogDerivativeAudit.lean"
+      ],
+      "log": "rs75-real-axis-log-derivative-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 460.7188096809987
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T17:13:11.162219+00:00",
+  "exit_code": 0
+}

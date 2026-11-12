@@ -1,0 +1,7 @@
+import RSBounds.TotientGlobalReduction
+
+#print axioms TernaryGoldbach.RSBounds.TotientGlobal.finite_prime_product
+#print axioms TernaryGoldbach.RSBounds.TotientGlobal.prime_lt_563_le_557
+#print axioms TernaryGoldbach.RSBounds.TotientGlobal.prime_product_of_rs62_inputs
+#print axioms TernaryGoldbach.RSBounds.TotientGlobal.totient_ratio_lt_of_rs62_inputs
+#check TernaryGoldbach.RSBounds.TotientGlobal.totient_ratio_lt_of_rs62_inputs

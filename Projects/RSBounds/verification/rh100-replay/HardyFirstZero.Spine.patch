@@ -1,0 +1,11 @@
+--- upstream/HardyFirstZero/Spine.lean
++++ adapted/HardyFirstZero/Spine.lean
+@@ -3,6 +3,8 @@
+ public import ZetaLean.HardyZ
+ 
+ @[expose] public section
++
++open RH100HardyZ
+ 
+ /-!
+ # The sign test behind the first zero (hunt `hardy_first_zero`)

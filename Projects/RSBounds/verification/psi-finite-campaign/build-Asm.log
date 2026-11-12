@@ -1,0 +1,47 @@
+20:13:57 Asm batch 0 status 0 52s 171.62 user 6557944 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G0 (44s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G2 (44s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G3 (45s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G4 (45s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G1 (46s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G5 (46s)
+20:14:34 Asm batch 6 status 0 37s 162.19 user 6780276 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G9 (26s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G11 (27s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G10 (29s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G8 (30s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G6 (30s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G7 (32s)
+20:15:15 Asm batch 12 status 0 41s 190.28 user 6847972 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G17 (32s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G15 (32s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G16 (33s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G12 (33s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G13 (34s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G14 (35s)
+20:15:50 Asm batch 18 status 0 35s 165.07 user 6847536 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G19 (27s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G21 (27s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G22 (29s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G23 (29s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G20 (29s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G18 (31s)
+20:16:26 Asm batch 24 status 0 36s 166.54 user 6762032 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G29 (26s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G27 (27s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G25 (29s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G24 (29s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G26 (31s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G28 (31s)
+20:17:02 Asm batch 30 status 0 36s 172.32 user 6857232 KB
+✔ [9212/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G34 (28s)
+✔ [9213/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G33 (29s)
+✔ [9214/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G32 (29s)
+✔ [9215/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G35 (29s)
+✔ [9216/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G30 (31s)
+✔ [9217/9217] Built RSBounds.PsiFinite.Campaign.T1.Asm.G31 (31s)
+20:17:17 Asm batch 36 status 0 15s 41.10 user 6859560 KB
+✔ [9117/9119] Built RSBounds.PsiFinite.Campaign.T1.Asm.G38 (5.6s)
+✔ [9118/9119] Built RSBounds.PsiFinite.Campaign.T1.Asm.G36 (9.9s)
+✔ [9119/9119] Built RSBounds.PsiFinite.Campaign.T1.Asm.G37 (10s)
+END

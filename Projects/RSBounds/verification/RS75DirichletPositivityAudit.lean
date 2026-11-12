@@ -1,0 +1,7 @@
+import RSBounds.RS75DirichletPositivity
+
+#print axioms TernaryGoldbach.RSBounds.RS75DirichletPositivity.differenceWeight_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75DirichletPositivity.hasSum_difference
+#print axioms TernaryGoldbach.RSBounds.RS75DirichletPositivity.hasSum_weighted_polynomial
+#print axioms TernaryGoldbach.RSBounds.RS75DirichletPositivity.weighted_D_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75DirichletPositivity.D_eq_logDeriv

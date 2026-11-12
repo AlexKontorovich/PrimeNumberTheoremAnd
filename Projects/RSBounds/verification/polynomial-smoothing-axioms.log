@@ -1,0 +1,16 @@
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.W_add_reflect' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_zero_of_nonpos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.W_eq_one_of_four_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.W_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.continuous_W' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.fourth_difference_main_term' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialSmoothing.fourth_difference_main_term_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

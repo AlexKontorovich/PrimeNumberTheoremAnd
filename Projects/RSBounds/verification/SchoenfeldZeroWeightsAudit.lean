@@ -1,0 +1,8 @@
+import RSBounds.SchoenfeldZeroWeights
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.Phi_pos
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.hasDerivAt_Phi
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.PhiDerivative_zero_nonneg
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.PhiDerivative_two_nonpos
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.q_nonneg
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.q_antitone
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroWeights.density_le_q

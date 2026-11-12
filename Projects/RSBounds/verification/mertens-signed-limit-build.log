@@ -1,0 +1,46 @@
+import took 431s
+elaboration took 204ms
+typeclass inference of ContinuousSub took 144ms
+tactic execution of Lean.Parser.Tactic.refine took 195ms
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 120ms
+'TernaryGoldbach.RSBounds.MertensSignedLimit.finite_integral_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedLimit.tendsto_signed_integral_complex' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedLimit.tendsto_signed_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedLimit.signedLimit_im_eq_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedLimit.norm_signedLimit_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 22.6ms
+	attribute application 0.0679ms
+	blocked (unaccounted) 2.2s
+	congr simp thm 1.82ms
+	declTypeLinter 13.6ms
+	dsimp 4.75ms
+	elaboration 525ms
+	fix level params 0.688ms
+	import 431s
+	initialization 156ms
+	instantiate metavars 1.24ms
+	interpretation 2.26s
+	let-to-have transformation 0.0981ms
+	linting 21.3ms
+	module linting 0.463ms
+	norm_num 70.7ms
+	parsing 28.6ms
+	process pre-definitions 11.8ms
+	ring 86.3ms
+	share common exprs 6.76ms
+	simp 74.6ms
+	tactic execution 747ms
+	tacticAnalysis 4.26ms
+	type checking 95.8ms
+	typeclass inference 796ms

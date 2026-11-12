@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-source-compilation-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:41:55.741832+00:00",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensIntervalLeftBound.olean",
+    "RSBounds/MertensIntervalLeftBound.lean"
+  ],
+  "source_sha256": {
+    "RSBounds/MertensIntervalLeftBound.lean": "f665f45fd373b2dc49232de804ec6274eb8f93767b852409cf1f8f0ff75255e2",
+    "verification/MertensIntervalLeftBoundAudit.lean": "6ecfc9c7468ec046b323dee299c3b268c3e747adb7b0c30a0936a16ea1e66227",
+    "verification/run_mertens_interval_left_bound_check.py": "8197703785c5b87418e4c52da2db9d14f4f690c786f305f2232d0bedad7f987a"
+  },
+  "key_dependency_sha256": {
+    "RSBounds/MertensSignedInterval.lean": "7782ac59b035f6db7b43fcbae0806c1ff647e74d36e5a91384c76c67a2d2b9df",
+    "RSBounds/MertensIntervalDecay.lean": "bde513c3e1d3ff44fbbedc81bf403f9bbba2f987370fdfd63a1be6977388dc6d",
+    "RSBounds/PolynomialExplicitFormula.lean": "9b4980ca52f9c22ef4dc8964cfbdfd1d1321c8031b8adf852b0948d0df821191",
+    "RSBounds/PolynomialLeftRemainder.lean": "f953776e4a91f6b2fd9f54c7e246423e1803dade49dedc8c1ec6bbac820e64f2",
+    "../ternary-goldbach/TernaryGoldbach/Explicit/XiPartial.lean": "d5c7c512e06b21a1d07d150cd8174138df2cd80bb0de6aaa05a9508a0ebe6207",
+    "../ternary-goldbach/TernaryGoldbach/Explicit/ZetaExplicit.lean": "f9d9c2495e3a72b699cfc38cd848c2a0c7ae1163aeda800038ef557124022ed2"
+  },
+  "stdin_sha256": "3e078424c3ddef2b667ecd73b81ada1d6db7ba71e259c1d0b6085aa57a7f0e73",
+  "stdin_description": "Exact source followed by every #print axioms command from the audit file.",
+  "log": "verification/mertens-interval-left-bound-build-audit.log",
+  "exit_code": 0,
+  "seconds": 647.7999356500004,
+  "finished_utc": "2026-11-06T18:52:43.547896+00:00",
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "9ddd0c881f38ce2af6863439f0ca02217c149c4e24c676aa856253ef8b545c20",
+  "source_unchanged": true
+}

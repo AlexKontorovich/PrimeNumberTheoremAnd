@@ -1,0 +1,16 @@
+import RSBounds.PsiThetaElementary
+
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.log_four_add_four_lt
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.cube_root_le
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.fifth_root_le
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.psi_sub_theta_le
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.log_hundred_thousand_bounds
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.sqrt_exp_eq
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.exp_six_ge
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.exp_ten_ge
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.log_div_sqrt_le_at_exp
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.log_div_sqrt_le_at_hundred_thousand
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.moderate_theta_budget
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.b23_theta_budget
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.large_theta_budget_of_log
+#print axioms TernaryGoldbach.RSBounds.PsiThetaElementary.large_theta_budget

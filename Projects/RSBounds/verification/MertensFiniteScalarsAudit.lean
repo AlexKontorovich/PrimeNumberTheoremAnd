@@ -1,0 +1,6 @@
+import RSBounds.MertensFiniteScalars
+
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteScalars.mertensE_lt_neg_thirteen_tenths
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteScalars.primeWeightedSum_mono
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteScalars.lower_main_mono
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteScalars.mertens_lower_of_block

@@ -1,0 +1,7 @@
+import RSBounds.RS62ProductBudget
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.log_hundred_thousand_bounds
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.log_div_sqrt_le
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.jModel_le
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.moderate_log_budget
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.b23_log_budget
+#print axioms TernaryGoldbach.RSBounds.RS62ProductBudget.large_log_budget

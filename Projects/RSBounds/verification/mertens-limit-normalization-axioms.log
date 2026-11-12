@@ -1,0 +1,3 @@
+'TernaryGoldbach.RSBounds.MertensLimitNormalization.limit_eq_neg_euler' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

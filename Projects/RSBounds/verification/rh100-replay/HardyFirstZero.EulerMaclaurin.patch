@@ -1,0 +1,10 @@
+--- upstream/HardyFirstZero/EulerMaclaurin.lean
++++ adapted/HardyFirstZero/EulerMaclaurin.lean
+@@ -1,6 +1,7 @@
+ module
+ 
+ public import HardyFirstZero.Phase
++public import Mathlib.Analysis.PSeriesComplex
+ public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+ public import Mathlib.Analysis.Complex.LocallyUniformLimit
+ public import Mathlib.Analysis.Complex.CauchyIntegral

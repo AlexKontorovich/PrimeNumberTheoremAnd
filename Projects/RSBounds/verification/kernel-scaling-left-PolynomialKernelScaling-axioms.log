@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.antiderivative_four_mul' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.forwardDiff_four_dilate' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_dilate' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialKernelScaling.norm_zeroCoefficient_dilate' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
