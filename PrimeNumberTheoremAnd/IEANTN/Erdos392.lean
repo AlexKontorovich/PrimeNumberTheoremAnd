@@ -1,6 +1,7 @@
 module
 
 public import Architect
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 public import Mathlib.Analysis.SpecialFunctions.Stirling
 public import Mathlib.NumberTheory.Bertrand
 public import PrimeNumberTheoremAnd.Consequences
