@@ -6,6 +6,8 @@ public import PrimeNumberTheoremAnd.ZeroDensity.GaussMV
 public import PrimeNumberTheoremAnd.ZeroDensity.MeanSquare
 public import PrimeNumberTheoremAnd.ZeroDensity.Tail
 public import PrimeNumberTheoremAnd.ZeroDensity.BohrLandau
+public import PrimeNumberTheoremAnd.ZeroDensity.ApproxZeta
+public import PrimeNumberTheoremAnd.ZeroDensity.Mollifier
 public import PrimeNumberTheoremAnd.ZeroDensity.Uniform
 public import PrimeNumberTheoremAnd.ZeroDensity.Jensen
 public import PrimeNumberTheoremAnd.ZeroDensity.Unconditional
@@ -15,8 +17,8 @@ public import PrimeNumberTheoremAnd.ZeroDensity.Unconditional
 
 Authors: Devon Wright (formalized with Grok Bot).
 
-Contents so far: mean value theorems for Dirichlet polynomials, mean squares of zeta, Jensen disc
-counting and the Bohr-Landau theorem N(sigma,T) = O(T) for sigma > 1/2.
+Contents so far: mean value theorems, mean squares of zeta, Jensen counting, Bohr-Landau, an
+explicit approximate formula for zeta and Moebius mollifier algebra.
 
 `ZeroDensity.Bridge` and `ZeroDensity.ZDB` (identification with `riemannZeta.N'` and a proved
 `zero_density_bound` instance) import `IEANTN.ZetaDefinitions` and are kept out of this aggregator;
