@@ -1,5 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_next
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_values
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_next
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_values
+
+
+public section
 
 open Real Set Finset
 

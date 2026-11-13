@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 
 /-!
 # FKS2 Corollary 23 — row 3 `(A=1.41, B=1/2, C=3/2, x₀=2)`
@@ -13,6 +15,8 @@ from the `B = 3/2` rows:
   `floor_buthe_of_curve_gen` on the slab interval `[√6, √10]`, and `[e^2, e^6]`
   is the trusted numerical boundary.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

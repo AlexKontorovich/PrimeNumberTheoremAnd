@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24TrustedNumerics
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24TrustedNumerics
 
 /-!
 # FKS2 Corollary 24 (#1429) — Table-7 `x^{-1/2}` bounds on `Eπ`
@@ -13,6 +15,8 @@ Blueprint: "Same as in Corollary 23".  Shared building block here:
 in `x^{-1/2}` form.  Each row then splits as Buthe `[e^a, e^10]` + envelope
 `[e^10, e^b]` (no tail — every interval is inside the `allCells` range).
 -/
+
+public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

@@ -1,7 +1,9 @@
-import PrimeNumberTheoremAnd.Defs
-import LeanCert.Tactic.Extension
-import LeanCert.Validity.Integration
-import Mathlib.Data.Rat.Floor
+module
+
+public import PrimeNumberTheoremAnd.Defs
+public import LeanCert.Tactic.Extension
+public import LeanCert.Validity.Integration
+public import Mathlib.Data.Rat.Floor
 
 /-!
 # LeanCert enclosures for prime-counting functions
@@ -15,6 +17,8 @@ The default `Li` enclosure uses `liPanels = 192` checked quadrature panels at ea
 endpoint. Candidates wider than one are deliberately rejected so LeanCert's focused
 enclosure tactic subdivides before composing the endpoint bounds into an `Eπ` enclosure.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 

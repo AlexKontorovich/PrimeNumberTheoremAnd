@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 
 /-!
 # FKS2 Corollary 23 — shared `B=3/2, C=2` tail source for rows 8 and 9
@@ -15,6 +17,8 @@ table-6 rows 8 and 9 (both have `C = 2`): it IS row 8's tail curve, and — beca
 `L^{3/2} ≤ const·L²` for large `L` — it DOMINATES row 9's `B = 2` curve.  This is
 why neither row needs an `Eθ` `B = 2` source bound.
 -/
+
+public section
 
 namespace FKS2
 open Real MeasureTheory Chebyshev

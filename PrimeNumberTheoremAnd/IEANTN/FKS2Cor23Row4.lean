@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 
 /-!
 # FKS2 Corollary 23 — row 4 `(A=1.76, B=1, C=3/2, x₀=3)`
@@ -12,6 +14,8 @@ Kept in its own file so its `native_decide` cell check does not slow row 5's
 build.  Only the mid-range is proven here; the floor `[exp 3, e^10]` (shared
 threshold with row 5: Buthe on `[e^5,e^10]` + the `[e^3,e^5]` trusted boundary)
 and the tail `[e^20000, ∞)` (Corollary 22 domination, B=3/2 vs B=1) remain. -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

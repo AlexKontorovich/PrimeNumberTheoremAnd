@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table11_suffix
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table11_suffix
 
 /-! # Verification of Table 11
 
@@ -68,6 +70,8 @@ entirely from pre-existing upstream stubs it inherits, on both branches: `cor_5_
 `bklnw_cor_8_1a_exact`) above `10^19`, and `Buthe.theorem_2a` / `2c` (via `bklnw_eq_3_17`)
 below it. `bklnw_table_10_verification` already carried the same contingency.
 -/
+
+public section
 
 namespace BKLNW
 

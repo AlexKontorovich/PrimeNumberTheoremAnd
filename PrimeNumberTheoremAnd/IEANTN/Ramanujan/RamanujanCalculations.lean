@@ -1,5 +1,10 @@
-import PrimeNumberTheoremAnd.Defs
-import LeanCert.Tactic.IntervalAuto
+module
+
+public import PrimeNumberTheoremAnd.Defs
+public import LeanCert.Tactic.IntervalAuto
+
+
+@[expose] public section
 
 namespace Ramanujan
 

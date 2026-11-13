@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenCore
 
 /-!
 # Quarter (`B = 1/4`) extended-Table-4 cell transport (FKS2 Corollary 23, rows 1/2)
@@ -15,6 +17,8 @@ check (`checkCellGenQuarter`), identical in shape to the integer `k=1` case.  Th
 square root is taken **outside** the kernel (`Real.sqrt` monotonicity) to recover
 the half-power curve.  Cell geometry/intervals are reused (still in `s`, rational).
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

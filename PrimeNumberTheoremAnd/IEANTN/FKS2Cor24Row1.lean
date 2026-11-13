@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 
 /-!
 # FKS2 Corollary 24 — row 1 (`2·log x·x^{-1/2}`)
@@ -14,6 +16,8 @@ certify here: at `L = 3` the Buthe polynomial (`≈ 6.12`) exceeds `c·L = 2·3 
 Raised to `Lf = 4` (`√4 = 2` exactly, so the slab-cover lower endpoint needs no
 irrational-sqrt bridging lemma), the floor certifies with margin from `L = 4` on.
 -/
+
+public section
 
 namespace FKS2
 

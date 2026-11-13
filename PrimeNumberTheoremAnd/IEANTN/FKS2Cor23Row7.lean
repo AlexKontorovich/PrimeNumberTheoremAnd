@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
 
 /-!
 # FKS2 Corollary 23 — row 7 `(A=38.8, B=3/2, C=1.95, x₀=1)`
@@ -8,6 +10,8 @@ shared `tail_three_halves_of` tail and `FloorButhe.floor_buthe_of_curve` floor,
 with row-7 cell params `P7`, floor curve `rhsE7`, and two `native_decide` checks.
 Trusted floor boundary `[e^1, e^5]` (FKS2 §5.2/5.3), as row 6.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

@@ -1,12 +1,17 @@
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Tactic.NormNum.Prime
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_tables
-import PrimeNumberTheoremAnd.IEANTN.Buthe
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.Tactic.NormNum.Prime
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_tables
+public import PrimeNumberTheoremAnd.IEANTN.Buthe
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Tools from BKLNW}

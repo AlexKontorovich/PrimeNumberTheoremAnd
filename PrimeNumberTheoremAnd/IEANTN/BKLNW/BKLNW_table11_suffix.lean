@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_dispatch
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_dispatch
 
 /-! # Table-11 suffix bound over the Table-10 grid
 
@@ -16,6 +18,8 @@ The chain runs from `19 log 10` (row 24, the `10^19` node) to `24000` (row 286, 
 rows below the `10^19` node never enter an above-`10^19` suffix. `table_11_suffix_dominates`
 then reads off each Table-11 row against the suffix maximum at its own starting node.
 -/
+
+public section
 
 namespace BKLNW
 

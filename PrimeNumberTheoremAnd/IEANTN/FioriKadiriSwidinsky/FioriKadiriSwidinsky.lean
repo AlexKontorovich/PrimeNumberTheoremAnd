@@ -1,6 +1,11 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky_tables
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky_tables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{The estimates of Fiori, Kadiri, and Swidinsky}

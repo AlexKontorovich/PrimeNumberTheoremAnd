@@ -1,5 +1,10 @@
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+module
 
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+
+
+
+public section
 
 blueprint_comment /--
 \section{Converting prime number theorems to prime in short interval theorems}\label{short-sec}

@@ -1,14 +1,16 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row1
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row2
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row3
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row5
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row6
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row7
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row8
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row9
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row10
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row1
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row2
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row3
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row5
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row6
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row7
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row8
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row9
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row10
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
 
 /-!
 # FKS2 Corollary 24 — complete Table-7 dispatch (all 11 rows)
@@ -22,6 +24,8 @@ file `FKS2Cor24Row{1..11}.lean`).
 per-row files, so the assembled dispatch necessarily lives here, downstream.
 Mirrors `FKS2Cor23All.lean`'s Table-6 dispatch for Corollary 23.)
 -/
+
+public section
 
 namespace FKS2
 open Real

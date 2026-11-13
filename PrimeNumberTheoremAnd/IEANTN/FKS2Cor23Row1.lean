@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenQuarterCore
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtGenQuarterCore
 
 /-!
 # FKS2 Corollary 23 — row 1 `(A=0.000120, B=1/4, C=1, x₀=22.955)`
@@ -14,6 +16,8 @@ segment `[e^23.5, e^40]` (margin grows fast, `≥10%`, via `Epi_le_evalLhsE_wide
 fail for tiny `A`, so the cover is RESTRICTED to cells with `b' ≥ 40`); and the
 Cor 22 tail `[e^20000, ∞)`.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

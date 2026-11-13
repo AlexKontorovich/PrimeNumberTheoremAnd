@@ -1,4 +1,9 @@
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
+
+
+public section
 
 open Real Set Finset
 

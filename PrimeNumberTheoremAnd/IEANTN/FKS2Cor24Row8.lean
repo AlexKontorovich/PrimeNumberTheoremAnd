@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row11
 
 /-!
 # FKS2 Corollary 24 — row 8 (`x^{-1/5}`) mid-range envelope
@@ -21,6 +23,8 @@ is assembled from four segments split at `e^5`, `e^10`, `e^134`:
 * **mid (envelope)** `[e^10, e^134]` (`mid_row8`, `allCells.take 124`);
 * **sliver** `[e^134, e^134.8]` (`sliver_row8`, trusted `sorry`).
 -/
+
+public section
 
 namespace FKS2
 

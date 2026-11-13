@@ -1,4 +1,6 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24Row4
 
 /-!
 # FKS2 Corollary 24 — row 3 (`(1/(8π))·(log x)²·x^{-1/2}`)
@@ -23,6 +25,8 @@ squeeze, and — empirically — starting the dyadic cover exactly at `s = 3` av
 interval-width blowup that made a `299/100`-anchored cover spuriously fail just
 below `s = 3` (the mathematical margin there is real, ~13%, but a `0.05`-wide slab
 straddling `L = 9` is too coarse for the certified check to resolve it). -/
+
+public section
 
 namespace FKS2
 

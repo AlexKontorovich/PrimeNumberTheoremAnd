@@ -1,8 +1,13 @@
-import Architect
-import Mathlib.MeasureTheory.Measure.Stieltjes
-import PrimeNumberTheoremAnd.MediumPNT
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
+module
+
+public import Architect
+public import Mathlib.MeasureTheory.Measure.Stieltjes
+public import PrimeNumberTheoremAnd.MediumPNT
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{The prime number bounds of Rosser and Schoenfeld}\label{rs-prime-sec}
