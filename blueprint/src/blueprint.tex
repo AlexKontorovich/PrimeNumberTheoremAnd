@@ -108,6 +108,23 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \section{Strong PNT}
 \inputleanmodule{PrimeNumberTheoremAnd.StrongPNT}
 
+\chapter{Zero-density estimates}\label{zero-density-chapter}
+
+Infrastructure for zero-density estimates (contributed by Devon Wright, formalized with Grok Bot):
+mean value theorems for Dirichlet polynomials, mean squares of $\zeta$, Jensen-type zero counting,
+the Bohr--Landau theorem $N(\sigma,T)=O(T)$ for $\sigma>1/2$, and a Carlson-type estimate
+$N(\sigma,T)\ll T^{1-(\sigma-1/2)^2/16}$ (a deliberately weak exponent).
+
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.MeanValue}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.Dirichlet}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.GaussMV}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.MeanSquare}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.Tail}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.BohrLandau}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.Uniform}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.Jensen}
+\inputleanmodule{PrimeNumberTheoremAnd.ZeroDensity.Unconditional}
+
 \chapter{Elementary Corollaries}\label{corollaries-chapter}
 
 \inputleanmodule{PrimeNumberTheoremAnd.Consequences}
