@@ -1,0 +1,9 @@
+import RSBounds.MertensDecayScalars
+
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.exp_fifteen_lower
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.log_seventeen_bounds
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.cutoff_height
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.twice_squareExpr_le
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.scalarEnvelope_le
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.fifth_power_exp_le
+#print axioms TernaryGoldbach.RSBounds.MertensDecayScalars.scalarEnvelope_lt

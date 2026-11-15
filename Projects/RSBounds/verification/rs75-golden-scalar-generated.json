@@ -1,0 +1,15 @@
+{
+  "status": "generated source; Lean compilation and axiom audit pending",
+  "nodes": 1095,
+  "root_nodes": 126,
+  "log_nodes": 63,
+  "targets": [
+    "upperPoint_zero_upper",
+    "upperPoint_one_lower",
+    "lowerPoint_zero_lower",
+    "lowerPoint_zero_upper",
+    "lowerPoint_one_lower",
+    "lowerPoint_two_upper"
+  ],
+  "generator_sha256": "a7778c2c6dfcb80bcec03a840e34b6ddd66053c4ddd4cf63890197a741597675"
+}

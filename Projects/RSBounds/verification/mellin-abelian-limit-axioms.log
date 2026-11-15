@@ -1,0 +1,11 @@
+'TernaryGoldbach.RSBounds.MertensAbelianNormalization.normalized_logDeriv_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelianNormalization.mellin_average_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.integrable_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.average_const' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.average_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound]

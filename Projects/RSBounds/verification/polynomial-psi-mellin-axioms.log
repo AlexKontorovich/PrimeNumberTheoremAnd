@@ -1,0 +1,12 @@
+'TernaryGoldbach.RSBounds.PolynomialPsiMellin.SsumG_quartic_eq_finite' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiMellin.scaled_weight_eq_quarticPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsiMellin.pow_four_mul_SsumG_quartic_eq_Psi4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.PolynomialPsiMellin.pow_four_mul_SsumG_quartic_eq_Psi4 {x : ℝ} (hx : 0 < x) :
+  ↑x ^ 4 * TernaryGoldbach.Explicit.SsumG 1 TernaryGoldbach.RSBounds.QuarticMellin.weight x =
+    ↑(TernaryGoldbach.RSBounds.PolynomialPsi.Psi4 x)

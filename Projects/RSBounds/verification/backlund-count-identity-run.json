@@ -1,0 +1,134 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T11:40:41.381483+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundCountDefinitions.lean": "80828b1d42e8019742929f461931ce92bf3466b04f20b8fd2f2b550c194a3684",
+    "RSBounds/BacklundCountRealAxis.lean": "7839640d90dd349f01506feb88ee6854eb706f166cdc3f76a84d31276c3ed016",
+    "RSBounds/BacklundCountRectangle.lean": "4489a5fc0fd93a487ce98fb2cd94781b2081611dfb241b38331012bf58b6e5fb",
+    "RSBounds/BacklundCountHalving.lean": "d5c3da10907b838ab6d21b7a69d0c22d36f10b30ffb69c2fee9dbc8b763e625b",
+    "RSBounds/BacklundCountMultiplicity.lean": "97c6da40f1e8a0514023fcd670202ddd983338054c23c67a566027e988ad63cc",
+    "RSBounds/BacklundCountPole.lean": "e56ae01e93a4bc5ab04ce4e33eb43ca5fa52378bd0ebf9eac0d46b67fe9b1102",
+    "RSBounds/BacklundCountIdentity.lean": "b701da48b6414739e846c5876ba6f53767215b0cac47f78ba60553a0791c833a",
+    "RSBounds/BacklundGammaPhaseBase.lean": "72ec468f2eb9f590d28b3cc565725015de9a8cebe9816690312fc5c4cf43671d",
+    "verification/BacklundCountIdentityAudit.lean": "70f7023ee79f2f4240479291fd1b87a6d61b917f989afeb55fe06d2aab04b3a0"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountDefinitions.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountDefinitions.olean"
+      ],
+      "log": "backlund-count-BacklundCountDefinitions-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountRealAxis.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountRealAxis.olean"
+      ],
+      "log": "backlund-count-BacklundCountRealAxis-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountRectangle.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountRectangle.olean"
+      ],
+      "log": "backlund-count-BacklundCountRectangle-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountHalving.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountHalving.olean"
+      ],
+      "log": "backlund-count-BacklundCountHalving-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountMultiplicity.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountMultiplicity.olean"
+      ],
+      "log": "backlund-count-BacklundCountMultiplicity-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountPole.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountPole.olean"
+      ],
+      "log": "backlund-count-BacklundCountPole-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundGammaPhaseBase.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundGammaPhaseBase.olean"
+      ],
+      "log": "backlund-count-BacklundGammaPhaseBase-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundCountIdentity.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCountIdentity.olean"
+      ],
+      "log": "backlund-count-BacklundCountIdentity-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundCountIdentityAudit.lean"
+      ],
+      "log": "backlund-count-identity-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T11:41:43.749165+00:00",
+  "exit_code": 0
+}

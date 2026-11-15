@@ -1,0 +1,10 @@
+import RSBounds.RS75GoldenRatio
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.upperPoint_logDerivative_lt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.lowerPoint_slope_lt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_bounds
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.goldenRatio_gt_one
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_logDerivative_lt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_slope_lt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.golden_deriv_logDerivative_lt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.logDerivative_lt_tangent
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenRatio.shifted_real_axis_bound

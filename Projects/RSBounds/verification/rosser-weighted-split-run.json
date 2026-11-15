@@ -1,0 +1,47 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:36:07.932662+00:00",
+  "source_sha256": {
+    "RSBounds/RosserWeightedSplit.lean": "b29cef0e5c426b2f19eeaba4a37fb8f93d1d2c37f876313bed46102bafcad4a3",
+    "verification/RosserWeightedSplitAudit.lean": "eac7f54ed238e4665de145523cd484b8d7d192f8c5055c5b3a123dab366df1b0",
+    "verification/run_rosser_weighted_split_check.py": "95c125671cd23b9358a453377e5c9e28db55f8ca2616b0b8acdcf721e8e82286",
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "RSBounds/RosserTailIntegrals.lean": "24b5a311c84e4f9bc160e942489a31add2f33d3487d8653d7bd9d5ed3650fef0",
+    "RSBounds/Rosser1941.lean": "91110b87d17d996f8e55b6458bd52404482f97780f2f16eabc7c35a545f28ccc"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserWeightedSplit.olean",
+        "RSBounds/RosserWeightedSplit.lean"
+      ],
+      "log": "rosser-weighted-split-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 32.60799091800072
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RosserWeightedSplitAudit.lean"
+      ],
+      "log": "rosser-weighted-split-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 177.81449258400244
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 6,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T14:39:38.356845+00:00",
+  "exit_code": 0
+}

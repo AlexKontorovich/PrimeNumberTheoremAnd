@@ -1,0 +1,3 @@
+import RSBounds.RS62MertensFromFiniteRH
+
+#print axioms TernaryGoldbach.RSBounds.RS62MertensFromFiniteRH.mertens_lower_of_finiteRH

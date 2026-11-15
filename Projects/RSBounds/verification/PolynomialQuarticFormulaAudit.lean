@@ -1,0 +1,8 @@
+import RSBounds.PolynomialQuarticFormula
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.kernel_eq_numerator_div
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.numerator_zero
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.differentiableAt_numerator
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.decayFive_kernel
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.explicit_formula_quartic
+#print axioms TernaryGoldbach.RSBounds.PolynomialQuartic.explicit_formula_quartic_at_heights

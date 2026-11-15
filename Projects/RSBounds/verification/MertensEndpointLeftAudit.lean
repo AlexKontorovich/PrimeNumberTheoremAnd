@@ -1,0 +1,12 @@
+import RSBounds.MertensEndpointLeft
+
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_endpointKernel_left_le
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_endpointIntegrand_le
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.continuous_endpointIntegrand
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.integrable_endpointIntegrand
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_F_le
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.leftRemainder_eq_sub_F
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_leftRemainder_add_F_le
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.leftRemainder_add
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.tendsto_F_atTop
+#print axioms TernaryGoldbach.RSBounds.MertensEndpointLeft.tendsto_leftRemainder_atTop

@@ -1,0 +1,29 @@
+{
+  "kind": "fresh-general-Mellin-limit-source-and-five-transitive-audits",
+  "started_utc": "2026-11-06T18:44:21.893062+00:00",
+  "source_sha256": {
+    "RSBounds/MertensAbelianNormalization.lean": "69548eae7c8177123aa2da58bd48bc386e1feaa8e314a18b6e4a5bd3006e29da",
+    "RSBounds/MellinAbelianLimit.lean": "c32894fb13e0a9fffd8b0115c84cf6da016ce7e2defe0a5e87974c2c2693eaff",
+    "verification/MellinAbelianLimitAudit.lean": "17cff8f2f3ef2fc4c55952274e4b78be0431891e150e95e2076c5fb8a4aa166a"
+  },
+  "stdin_sha256": "2964d62c705078a91f942331826b3f490af7643a9dff66584476a8142c517155",
+  "base_source_build_log": "verification/mertens-abelian-normalization-build.log",
+  "base_object_sha256": "0ae94a3e17529b6bf8e44b775e30e4b265b886f4b90412d725049c56cdfa8d93",
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T18:47:40.611924+00:00",
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "1483b9c6707888ef5f5de85dc2845079e30215722c5547284ec5ea9a6cb133c9",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MellinAbelianLimit.olean",
+    "RSBounds/MellinAbelianLimit.lean"
+  ],
+  "log": "verification/mellin-abelian-limit-build.log"
+}

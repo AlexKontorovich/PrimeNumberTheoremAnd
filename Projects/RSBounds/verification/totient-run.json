@@ -1,0 +1,22 @@
+{
+  "kind": "local-verification-transcript",
+  "started_utc": "2026-11-06T08:27:19.576864+00:00",
+  "command": [
+    "lake",
+    "comparator",
+    "--inadvisably-no-sandbox"
+  ],
+  "sandbox_disabled": true,
+  "source_sha256": {
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lakefile.lean": "09a1e2e7e024423e4412013e7215cd27d5949bd8fb0a0e9dc9a5e223abd67d06",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "RSBounds/SmallTotientProduct.lean": "441e7b4741a27148478caba16cfbafa0d1632ecb01e3d1ebe5f1c72b18769460",
+    "comparator/RSTotientChallenge.lean": "9ed61ef4bcbaefc47a4d2df57822b41c359e79a78ed35c5ca4a12bfa66353389",
+    "comparator/RSTotientSolution.lean": "6b96ecaa78603262354c987a4dc5098e1be4afab93d5c0c0dfad14892d1e4b8d",
+    "comparator.json": "69308b5413e3ba4e04ffc2a1279e3f01565c9eb373475119fd59ae5979712e8a"
+  },
+  "finished_utc": "2026-11-06T08:32:22.194942+00:00",
+  "exit_code": 0
+}

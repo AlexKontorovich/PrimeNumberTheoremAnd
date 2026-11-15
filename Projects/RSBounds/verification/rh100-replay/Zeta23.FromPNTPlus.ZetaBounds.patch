@@ -1,0 +1,19 @@
+--- upstream/Zeta23/FromPNTPlus/ZetaBounds.lean
++++ adapted/Zeta23/FromPNTPlus/ZetaBounds.lean
+@@ -15,6 +15,7 @@
+ Modified 2026 by Anthropic PBC.
+ -/
+ public import Batteries.Tactic.Lemma
++public import Mathlib.Analysis.PSeriesComplex
+ public import Mathlib.MeasureTheory.Function.Floor
+ public import Mathlib.MeasureTheory.Order.Group.Lattice
+ public import Mathlib.NumberTheory.Harmonic.Bounds
+@@ -29,7 +30,7 @@
+ 
+ set_option lang.lemmaCmd true
+ 
+-open Complex Topology Filter Interval Set Asymptotics
++open Complex Topology Filter Interval Set Asymptotics RH100EulerMaclaurin
+ 
+ lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
+   rw [div_eq_mul_inv, cpow_neg]

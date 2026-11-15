@@ -1,0 +1,39 @@
+{
+  "kind": "fresh-compilation-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:13:14.449050+00:00",
+  "source_sha256": {
+    "RSBounds/RS75GoldenSeries.lean": "b55a03fed2dfb27835c3a6ed076e3c594370253399e71ba9310f061e2dcb3913",
+    "verification/RS75GoldenSeriesAudit.lean": "020d44ace5fd0a58375e44e6c368981ad824091defe69390648bb3bab34ee8eb",
+    "verification/run_rs75_golden_series_check.py": "6b0985e9d2e5c3000f5cf817498521adac5bce21bf24601ecf2de5846ed7f41a"
+  },
+  "stdin_recipe": "Exact proof source, newline, then the ten public audit commands.",
+  "stdin_sha256": "5c56b170f0946aa8447263eb0565daccb6aa5a0a7310492558e6e0ebc83950e1",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75GoldenSeries.olean",
+        "RSBounds/RS75GoldenSeries.lean"
+      ],
+      "log": "rs75-golden-series-build.log",
+      "exit_code": 0,
+      "seconds": 18.590913878004358,
+      "user_cpu_seconds": 4.017163,
+      "system_cpu_seconds": 5.659852
+    }
+  ],
+  "source_hashes_unchanged_at_finish": true,
+  "source_hashes_unchanged": true,
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:13:33.041971+00:00"
+}

@@ -1,0 +1,11 @@
+import RSBounds.BacklundAnchor
+
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.norm_neg_log_one_sub_le
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.real_eulerLog
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.norm_eulerLog_le
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.log_zeta_five_fourths_lt_half_pi
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.re_zeta_anchor_pos
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.hasDerivAt_log_anchor
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.continuous_vertical_integrand
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.vertical_integral_eq_arg
+#print axioms TernaryGoldbach.RSBounds.BacklundAnchor.abs_vertical_integral_le

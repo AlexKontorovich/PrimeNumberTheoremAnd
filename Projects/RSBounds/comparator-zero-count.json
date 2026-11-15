@@ -1,0 +1,9 @@
+{
+  "challenge_module": "RSZeroCountChallenge",
+  "solution_module": "RSZeroCountSolution",
+  "theorem_names": [
+    "TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds",
+    "TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100"
+  ],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"]
+}

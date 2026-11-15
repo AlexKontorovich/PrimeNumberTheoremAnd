@@ -1,0 +1,3 @@
+'TernaryGoldbach.RSBounds.RS75Frequency.logDeriv_difference_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

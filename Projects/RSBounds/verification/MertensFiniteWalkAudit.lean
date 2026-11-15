@@ -1,0 +1,9 @@
+import RSBounds.MertensFiniteWalk
+
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.Sp_eq_primeWeightedSum
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.check_sound
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.Inv_step
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.walk_spec
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.Inv_one
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_le_two
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_of_Inv

@@ -1,0 +1,24 @@
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.log_98715_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.square_lower_lt_exp23' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.x_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.sqrt_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.highWeight_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.constant_term_pos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.relativeBudget_le_scalarBudget' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.relativeBudget_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

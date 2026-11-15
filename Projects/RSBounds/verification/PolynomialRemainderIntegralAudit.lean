@@ -1,0 +1,11 @@
+import RSBounds.PolynomialRemainderIntegral
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftLine_re
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftLine_ne_one
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.zeta_leftLine_ne_zero
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_zeta_contour_left
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.primitiveIntegrand_eq
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_primitiveIntegrand
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.psi4LeftRemainder_eq_integral
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.leftRemainder_eq_integral
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderIntegral.integrable_averagedIntegrand

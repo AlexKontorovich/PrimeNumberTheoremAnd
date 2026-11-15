@@ -1,0 +1,19 @@
+import RSBounds.MertensZeroPotential
+
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.mem_zeroFinset
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.zero_re_strip
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.sum_zeroFinset
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.tendsto_zeroFinset
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.zetaGoodHeight_of_heights
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.moment_nonneg
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.momentAllowance_lt
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.tsum_moment_lt
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.sum_moment_le_allowance
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.tsum_moment_le_allowance
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.summable_moment
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.norm_coefficient_le_power_moment
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.norm_coefficient_le_moment
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.summable_coefficient
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.coefficient_tendsto_zero
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.potential_tendsto_zero
+#print axioms TernaryGoldbach.RSBounds.MertensZeroPotential.sum_tendsto_potential

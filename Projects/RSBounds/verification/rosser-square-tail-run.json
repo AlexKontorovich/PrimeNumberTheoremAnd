@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-square-tail-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:27:14.341525+00:00",
+  "source_sha256": {
+    "RSBounds/RosserSquareTail.lean": "2e464311aaebb537cd18775190d6261fa68d397667ad32b74d3c648a01e1731c",
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "RSBounds/RosserTailIntegrals.lean": "24b5a311c84e4f9bc160e942489a31add2f33d3487d8653d7bd9d5ed3650fef0",
+    "verification/RosserSquareTailAudit.lean": "870b6b8c6a021a7daeebe0d31c52eeeb6cadd3ea8df81c40f5e7e0606c7ba283",
+    "verification/run_rosser_square_tail_check.py": "6844a0c41568e8f268a14e0f556ce3a6cff1e73dd485a4a5235e4de4e68df0dc"
+  },
+  "stdin_recipe": "Exact source plus seven fully qualified #print axioms commands.",
+  "stdin_sha256": "3dafb967da5a3a4253c889d9dce9e4ec9cfd669285895cc7056db93de1d5adbf",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserSquareTail.olean",
+        "RSBounds/RosserSquareTail.lean"
+      ],
+      "log": "verification/rosser-square-tail-build.log",
+      "exit_code": 0,
+      "seconds": 765.7290896689956
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "7819882af90171591def9dd1415fa4befd1a8f040f815255247eca11b380b377",
+  "finished_utc": "2026-11-06T18:40:00.079979+00:00"
+}

@@ -1,0 +1,7 @@
+import RSBounds.RS75ZeroPowerDecay
+
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.amgm_log_exponent
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.zero_re_le_ten
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.exp_over_fifth_le
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.rpow_over_fifth_le
+#print axioms TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.zero_power_weight_le

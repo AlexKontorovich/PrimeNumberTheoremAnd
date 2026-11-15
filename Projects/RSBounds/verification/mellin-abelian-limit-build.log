@@ -1,0 +1,45 @@
+import took 100s
+interpretation of Mathlib.Meta.FunProp.funPropTac._boxed took 208ms
+RSBounds/MellinAbelianLimit.lean:29:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MellinAbelianLimit.lean:29:2: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.MertensAbelianNormalization.normalized_logDeriv_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelianNormalization.mellin_average_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.integrable_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.average_const' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MellinAbelianLimit.average_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 31.4ms
+	attribute application 0.0441ms
+	blocked (unaccounted) 2.1s
+	congr simp thm 1.17ms
+	declTypeLinter 10.8ms
+	dsimp 5.61ms
+	elaboration 163ms
+	fix level params 0.456ms
+	import 100s
+	initialization 137ms
+	instantiate metavars 1.49ms
+	interpretation 1.4s
+	let-to-have transformation 0.131ms
+	linting 40.1ms
+	module linting 0.016ms
+	norm_num 12.8ms
+	parsing 11.6ms
+	process pre-definitions 9.91ms
+	ring 67.7ms
+	share common exprs 12.9ms
+	simp 18.8ms
+	tactic execution 356ms
+	tacticAnalysis 3.19ms
+	type checking 76.6ms
+	typeclass inference 405ms

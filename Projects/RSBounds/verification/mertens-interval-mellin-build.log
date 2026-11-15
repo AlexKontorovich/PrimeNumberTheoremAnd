@@ -1,0 +1,35 @@
+import took 3.89s
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.SsumG_sub_log_eq_signed_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalMellin.prime_sum_eq_right_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 4.04ms
+	attribute application 0.0311ms
+	blocked (unaccounted) 381ms
+	congr simp thm 2.3ms
+	declTypeLinter 1.75ms
+	elaboration 27.4ms
+	fix level params 0.212ms
+	import 3.89s
+	initialization 26.6ms
+	instantiate metavars 0.544ms
+	interpretation 329ms
+	let-to-have transformation 0.0656ms
+	linting 6.91ms
+	module linting 0.0107ms
+	norm_num 10.1ms
+	parsing 4.81ms
+	process pre-definitions 2.45ms
+	ring 6.76ms
+	share common exprs 2.51ms
+	simp 91.7ms
+	tactic execution 80.6ms
+	tacticAnalysis 1.56ms
+	type checking 24.5ms
+	typeclass inference 168ms

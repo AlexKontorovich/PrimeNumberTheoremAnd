@@ -1,0 +1,8 @@
+import RSBounds.PolynomialPrimeSum
+
+#check TernaryGoldbach.RSBounds.PolynomialPrimeSum.SsumG_eq_line
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialPrimeSum.eq_mellinInv
+#print axioms TernaryGoldbach.RSBounds.PolynomialPrimeSum.eq_integral_Fterm
+#print axioms TernaryGoldbach.RSBounds.PolynomialPrimeSum.integrable_Fterm
+#print axioms TernaryGoldbach.RSBounds.PolynomialPrimeSum.SsumG_eq_line

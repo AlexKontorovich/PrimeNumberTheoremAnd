@@ -1,0 +1,27 @@
+RSBounds/BacklundBottomFiniteSum.lean:60:4: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+RSBounds/BacklundBottomFiniteSum.lean:222:15: warning: This simp argument is unused:
+  norm_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [a, hpowNorm, hsr]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundBottomFiniteSum.lean:228:15: warning: This simp argument is unused:
+  norm_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [b, norm_mul, hpowNorm, hsr]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+RSBounds/BacklundBottomFiniteSum.lean:228:25: warning: This simp argument is unused:
+  norm_mul
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [b, norm_div, hpowNorm, hsr]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

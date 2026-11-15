@@ -1,0 +1,5 @@
+import RSBounds.SchoenfeldLaplacePhysical
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integrand_log_mul_inv
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_eq
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_near_le
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_height_far_le

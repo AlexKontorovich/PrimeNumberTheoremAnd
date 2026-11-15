@@ -1,0 +1,11 @@
+'TernaryGoldbach.RSBounds.CenterNumerics.norm_zeta_eq_tsum_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.CenterNumerics.zeta_tail_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.CenterNumerics.zeta_tail_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.CenterNumerics.rootCheck_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.CenterNumerics.roots4_check' depends on axioms: [propext]
+'TernaryGoldbach.RSBounds.CenterNumerics.roots2_check' depends on axioms: [propext]
+'TernaryGoldbach.RSBounds.zeta_five_fourths_ratio_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.zeta_norm_lower_five_fourths_3426' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.zeta_five_fourths_upper' depends on axioms: [propext, Classical.choice, Quot.sound]

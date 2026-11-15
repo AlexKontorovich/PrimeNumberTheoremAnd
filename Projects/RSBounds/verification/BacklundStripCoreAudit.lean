@@ -1,0 +1,12 @@
+import RSBounds.BacklundHalfStrip
+import RSBounds.BacklundStripNormalizer
+
+#print axioms TernaryGoldbach.RSBounds.BacklundHalfStrip.norm_le_one
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.correctionExponent_nonpos
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.correctionExponent_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.correction_le_one
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.correction_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.analyticAt_normalizedZeta
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.exponent_re_horizontal
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.norm_normalizedZeta_horizontal
+#print axioms TernaryGoldbach.RSBounds.BacklundStripNormalizer.zeta_norm_le_of_normalized_le

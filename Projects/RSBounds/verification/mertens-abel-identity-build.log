@@ -1,0 +1,56 @@
+import took 68.8s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 256ms
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.sum_Icc_mangoldt_div' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.weighted_sum_isBigO_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.LSeries_mangoldt_div_shift' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_error_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integrableOn_log_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.integral_log_mul_rpow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.logDeriv_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensAbelIdentity.error_abel_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 34.5ms
+	attribute application 0.116ms
+	blocked (unaccounted) 3.7s
+	compilation (IR) 1.06ms
+	compilation (LCNF base) 0.999ms
+	compilation (LCNF impure) 1.02ms
+	compilation (LCNF mono) 2.51ms
+	congr simp thm 6.84ms
+	declTypeLinter 13.3ms
+	dsimp 3.78ms
+	elaboration 245ms
+	fix level params 1.01ms
+	import 68.8s
+	initialization 98ms
+	instantiate metavars 3.07ms
+	interpretation 1.48s
+	let-to-have transformation 0.207ms
+	linting 48ms
+	module linting 0.016ms
+	norm_num 95ms
+	parsing 16.9ms
+	process pre-definitions 26.8ms
+	ring 56.5ms
+	share common exprs 21ms
+	simp 220ms
+	tactic execution 469ms
+	tacticAnalysis 5.7ms
+	type checking 172ms
+	typeclass inference 573ms

@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.FromPNTPlus.Mathlib.Analysis.SpecialFunctions.Log.Basic",
+  "source_sha256": "a3d0f4f396b28ae0b410be246be645535680360073ef2788c9a16bbbcaf80060",
+  "upstream_sha256": "a3d0f4f396b28ae0b410be246be645535680360073ef2788c9a16bbbcaf80060",
+  "adapted": false,
+  "signature": "3fc8255d13ca27941577fb19f65f120f306733b307a6cd20a078712869823fc9",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/FromPNTPlus/Mathlib/Analysis/SpecialFunctions/Log/Basic.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/FromPNTPlus/Mathlib/Analysis/SpecialFunctions/Log/Basic.olean"
+  ],
+  "started_utc": "2026-11-06T11:55:39.877685+00:00",
+  "finished_utc": "2026-11-06T11:55:41.573221+00:00",
+  "elapsed_seconds": 1.695,
+  "peak_rss_kib": 1369500,
+  "log": "verification/rh100-replay/Zeta23.FromPNTPlus.Mathlib.Analysis.SpecialFunctions.Log.Basic.log",
+  "resources": "verification/rh100-replay/Zeta23.FromPNTPlus.Mathlib.Analysis.SpecialFunctions.Log.Basic.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "062f0f28c94424b298a4006d133958bc12e458071fe35730c8b1dd3a939c7aae",
+  "reused_from_previous_replay": true
+}

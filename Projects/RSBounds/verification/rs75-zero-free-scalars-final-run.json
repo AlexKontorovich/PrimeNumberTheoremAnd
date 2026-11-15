@@ -1,0 +1,44 @@
+{
+  "kind": "fresh-scalar-wrapper-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:15:15.804884+00:00",
+  "source_sha256": {
+    "RSBounds/RS75ZeroFreeScalars.lean": "c12a1e0750a2dd75c5e72d5635dd823392c33dd8aeab4e87a8ea9c6ca09332b1",
+    "RSBounds/RS75ScalarNumericsBase.lean": "e40669ecf99db638daaceecba76780f4dc0a3bd3c83b0b7be36875af98bd04ba",
+    "RSBounds/RS75ZeroFreeNumerics.lean": "442d6148e42581aff6d959f40d50aaf3aef2cb93996f1179c81cb545b3e77d5f",
+    "RSBounds/RS75Parameters.lean": "8646e6c330a39b10f3fadf2591be2a8881a700b90aecf504cc8ce164c8d4b826",
+    "verification/RS75ZeroFreeScalarsAudit.lean": "faf83816fbcac7cf09523b8c202cd3705ddebaba6f6f9026bd78506f26ee369a",
+    "verification/run_rs75_zero_free_scalars_final_check.py": "00c7820bd451b9a760ec8951924c067e8195dfa3ec3e412138064b48153b396c"
+  },
+  "reused_base_numeric_receipt": "verification/rs75-zero-free-scalars-run.json",
+  "reused_receipt_sha256": "9f62dbe7b0641dacbf4b412f730be904eb152edcd48aecfa35346e7c6d45ad78",
+  "reused_object_sha256": {
+    ".lake/build/lib/lean/RSBounds/RS75ScalarNumericsBase.olean": "43fda9c49f1d9df86db4acbfdc70fe55d4f9dc991c556c9f8471a39d121f4f09",
+    ".lake/build/lib/lean/RSBounds/RS75ZeroFreeNumerics.olean": "f3a677064f240a662939e1b482d9597f2aa5ab9c2491c0acadd975d11ce3f9b7"
+  },
+  "stdin_recipe": "Exact wrapper source plus audit open/#print commands.",
+  "stdin_sha256": "7b890af8fbae39a0be507095e93719d2fb47d6fad56bcf060300cde542d907b4",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75ZeroFreeScalars.olean",
+        "RSBounds/RS75ZeroFreeScalars.lean"
+      ],
+      "log": "verification/rs75-zero-free-scalars-final-build.log",
+      "exit_code": 0,
+      "seconds": 17.171716323005967
+    }
+  ],
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:15:32.980734+00:00",
+  "axiom_audit": {
+    "declarations": 16,
+    "only_standard_axioms": true
+  }
+}

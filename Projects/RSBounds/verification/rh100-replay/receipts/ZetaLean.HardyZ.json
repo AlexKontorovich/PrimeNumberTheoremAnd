@@ -1,0 +1,24 @@
+{
+  "module": "ZetaLean.HardyZ",
+  "source_sha256": "9e95b6e9a66e9ad9e459673dc92cfdb23fc2b3228c567b60d350b420146959ef",
+  "upstream_sha256": "21259011d07285653f190ba574140bed167e09f067c72d0bcc90446173dd9a21",
+  "adapted": true,
+  "signature": "bfa3ab7ea36d217f6c920c12659e13a87c9edd2b87526a5df89d636a7f9a2b8f",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "ZetaLean/HardyZ.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/ZetaLean/HardyZ.olean"
+  ],
+  "started_utc": "2026-11-06T12:07:30.634922+00:00",
+  "finished_utc": "2026-11-06T12:07:33.655630+00:00",
+  "elapsed_seconds": 3.021,
+  "peak_rss_kib": 1725976,
+  "log": "verification/rh100-replay/ZetaLean.HardyZ.log",
+  "resources": "verification/rh100-replay/ZetaLean.HardyZ.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "73ba6908dc8a057819150f5268e1f59b54fda43a0e5174873218b1ab47c52291",
+  "reused_from_previous_replay": true
+}

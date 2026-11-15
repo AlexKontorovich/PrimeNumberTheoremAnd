@@ -1,0 +1,24 @@
+{
+  "module": "ZetaLean.IntervalCExp",
+  "source_sha256": "854ed3f83c75b44b4e0b2879eaf901155d5371b51f2a54ad585d0b11042b2db4",
+  "upstream_sha256": "854ed3f83c75b44b4e0b2879eaf901155d5371b51f2a54ad585d0b11042b2db4",
+  "adapted": false,
+  "signature": "db5169bf102d1baef8a32ebc34d8ed2a914c98a940243e3f7f4cd26d953b824e",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "ZetaLean/IntervalCExp.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/ZetaLean/IntervalCExp.olean"
+  ],
+  "started_utc": "2026-11-06T12:06:27.481226+00:00",
+  "finished_utc": "2026-11-06T12:06:37.489801+00:00",
+  "elapsed_seconds": 10.008,
+  "peak_rss_kib": 3667432,
+  "log": "verification/rh100-replay/ZetaLean.IntervalCExp.log",
+  "resources": "verification/rh100-replay/ZetaLean.IntervalCExp.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "e6f909db2d3a2435b325a443d57d5cf150922baf36e5ae3a4d67c8fa1070b6c4",
+  "reused_from_previous_replay": true
+}

@@ -1,0 +1,15 @@
+{
+  "source_repository": "https://github.com/gersh/ternary-goldbach-lean",
+  "source_commit": "27df23af6a712895f22204d0d81102baa74f0ebe",
+  "source_files": {
+    "MathExtras/NumberTheory/LSeries/FirstCrossingLevels.lean": "8391d1aa1ef47ce2c2a0b3585778e222345880fd3803b2c207b03efb77eaae7a",
+    "MathExtras/NumberTheory/LSeries/BacklundEBound.lean": "d2c464b1b098dbe24de0af167ae91d41b49836543b0c5cf7ee587fcd1abfd5aa",
+    "MathExtras/NumberTheory/LSeries/BacklundCompletedZetaConj.lean": "091d8a0414f65c08ed6d5babb31a05ce8158ff2820df2654f8e12b7c9fb38f7b",
+    "MathExtras/NumberTheory/LSeries/ZetaInterlacingAssembly.lean": "dee6e851722dfa0c8e93b4464b00cb8d1993bd7967e7c14e0dc3a9816be1de33",
+    "MathExtras/NumberTheory/LSeries/BacklundEBoundGamma.lean": "b96dfdd4e9b0bc1ebe4c3659125ca6595d7ba11390d238780214e1f818066bcb"
+  },
+  "adaptation": {
+    "RSBounds/BacklundFirstCrossing.lean": "Original proof bodies; renamed namespace and license pointer.",
+    "RSBounds/BacklundReflection.lean": "Selected differentiated functional-equation, pi-factor, gamma-factor decomposition and reflection proofs; use Mathlib completedRiemannZeta_conj and deriv_conj_conj instead of external conjugation closure; local nonvanishing hypotheses; add direct digamma form."
+  }
+}

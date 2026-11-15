@@ -1,0 +1,48 @@
+import took 2.31s
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.differentiable_numerator' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.differentiable_H' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.H_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.kernel_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.H_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.H_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.continuousAt_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.hasMellin_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.mellinConvergent_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.mellin_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 11.1ms
+	attribute application 0.19ms
+	blocked (unaccounted) 1.68s
+	congr simp thm 1.92ms
+	declTypeLinter 6.88ms
+	elaboration 72.1ms
+	fix level params 0.76ms
+	import 2.31s
+	initialization 35.7ms
+	instantiate metavars 1.82ms
+	interpretation 492ms
+	let-to-have transformation 0.188ms
+	linting 30.7ms
+	module linting 0.00779ms
+	norm_num 11.3ms
+	parsing 11.8ms
+	process pre-definitions 15.9ms
+	ring 26.3ms
+	share common exprs 20.7ms
+	simp 125ms
+	tactic execution 260ms
+	tacticAnalysis 6.27ms
+	type checking 94.5ms
+	typeclass inference 293ms

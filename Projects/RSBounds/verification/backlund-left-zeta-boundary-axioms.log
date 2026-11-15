@@ -1,0 +1,3 @@
+'TernaryGoldbach.RSBounds.BacklundLeftZetaBoundary.norm_zeta_left_strip_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

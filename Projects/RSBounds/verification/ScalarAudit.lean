@@ -1,0 +1,3 @@
+import RSBounds.TotientAnalyticReduction
+#print axioms TernaryGoldbach.RSBounds.rs62_totient_scalar
+#print axioms TernaryGoldbach.RSBounds.rs62_primeProduct_bound_of_inputs

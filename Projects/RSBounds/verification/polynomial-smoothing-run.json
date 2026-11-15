@@ -1,0 +1,30 @@
+{
+  "started_utc": "2026-11-06T08:17:10.903654+00:00",
+  "kind": "fresh-local-build-and-axiom-audit",
+  "source_sha256": {
+    "RSBounds/PolynomialSmoothing.lean": "8d7ae55a74d319f9c967d079a97a3d3018e33f0169a1ad4e10c679d6a62ff299",
+    "verification/PolynomialSmoothingAudit.lean": "0fe1e4d4648d54596c51f18f2db7f7dd087ff292abf51f05b60b68d6203ded60"
+  },
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialSmoothing"
+      ],
+      "log": "polynomial-smoothing-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialSmoothingAudit.lean"
+      ],
+      "log": "polynomial-smoothing-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:18:06.175209+00:00"
+}

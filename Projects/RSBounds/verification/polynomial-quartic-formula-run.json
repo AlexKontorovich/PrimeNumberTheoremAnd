@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T09:00:14.646750+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialQuarticFormula.lean": "0a2a5030070705fa2e9834c700b9dc01afa8b542ccba8ce2f109745ce671a018",
+    "verification/PolynomialQuarticFormulaAudit.lean": "d45be2d7a23f3ed20b8e9d1405e9638c02513ef3adbcc619bfec73275f4b038c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialQuarticFormula"
+      ],
+      "log": "polynomial-quartic-formula-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialQuarticFormulaAudit.lean"
+      ],
+      "log": "polynomial-quartic-formula-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T09:00:30.983840+00:00",
+  "exit_code": 0
+}

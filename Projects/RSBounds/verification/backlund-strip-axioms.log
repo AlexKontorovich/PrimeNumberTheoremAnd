@@ -1,0 +1,4 @@
+'TernaryGoldbach.RSBounds.BacklundStrip.norm_normalizedZeta_le_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundStrip.norm_zeta_strip_le' depends on axioms: [propext, Classical.choice, Quot.sound]

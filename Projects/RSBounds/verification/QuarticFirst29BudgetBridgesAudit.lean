@@ -1,0 +1,18 @@
+import RSBounds.QuarticFirst29BudgetBridges
+
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.delta_cast_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.a_cast_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.C_cast_eq_R4
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.Y_cast_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.saving_nonneg
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_range
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_monotone
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.cutoff_eight_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.split_coefficient_le
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.F_eq_rosserF
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.R_eq_rosserR
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.fifthTail_eq_J
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.lowIntegral_eq_I
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.lineWeight_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.highWeight_eq
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetBridges.bandMass_eq

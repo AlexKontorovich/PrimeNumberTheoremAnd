@@ -1,0 +1,7 @@
+import RSBounds.MertensFinite100000
+
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.wk_1
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.wk_101
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.inv_100001
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.mertens_lower_le_100000
+#print axioms TernaryGoldbach.RSBounds.MertensFiniteWalk.mertensLower_of_tail

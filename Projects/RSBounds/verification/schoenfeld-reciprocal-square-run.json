@@ -1,0 +1,57 @@
+{
+  "kind": "fresh-reciprocal-square-builds-with-in-process-transitive-axiom-audits",
+  "started_utc": "2026-11-06T19:04:53.439003+00:00",
+  "source_sha256": {
+    "RSBounds/SchoenfeldReciprocalSquare.lean": "ce2315d8b4fb1a12f52ff2a15ad1bf9c479283dba2f4265d5a86d7cc36d8ec69",
+    "RSBounds/SchoenfeldSquareCutoffs.lean": "52bf68a1021b9bcf28aa3588c91a5ea56895ef3f2ae2ea129e4e1e9a6e034b8e",
+    "RSBounds/RS75XiIncrement.lean": "600d40a40e50b763ab002c6a599b2f6401f4f4959a9b0e34eab3f3424a098bd0",
+    "RSBounds/RS75RealAxisLogDerivative.lean": "f89d82fbbe19f339f2f039a7f36819d0da862dd144cdf536f5a73fafcc81d51e",
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "RSBounds/PolynomialZeroCountBridge.lean": "8647a8b96db15ae931aec691c9801736581163ebfdbb8e20bc35c46f29a84175",
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "verification/SchoenfeldReciprocalSquareAudit.lean": "b38b73f15096d8cb818d619487cbaad98a0b837794b563227e528e4835c08a17",
+    "verification/run_schoenfeld_reciprocal_square_check.py": "e5c7085217f3d6b569b05b6132b36eba30efa660767d09ed22be8cd396a96848"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldReciprocalSquare.olean",
+        "RSBounds/SchoenfeldReciprocalSquare.lean"
+      ],
+      "log": "verification/schoenfeld-reciprocal-square-build-1.log",
+      "stdin_sha256": "b16c156997ef701d81f83826fa3cec4653c19fac9178ceaa3273db6f1ff8c35a",
+      "seconds": 183.81713060200127,
+      "exit_code": 0,
+      "only_standard_axioms": true,
+      "object_sha256": "dfff7bcf70a84ac055f379e9bac575aed285b5f971a0fb9e2c8717076e25cf0c"
+    },
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldSquareCutoffs.olean",
+        "RSBounds/SchoenfeldSquareCutoffs.lean"
+      ],
+      "log": "verification/schoenfeld-reciprocal-square-build-2.log",
+      "stdin_sha256": "d218d62832c2978f395f457f207e691f8718bf642811510d1b5cb6047c0cd173",
+      "seconds": 368.79685746900213,
+      "exit_code": 0,
+      "only_standard_axioms": true,
+      "object_sha256": "5c076e695eb45f98605d568b0b5b05e8ae84a961e10c346702ee1850176af99a"
+    }
+  ],
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T19:14:06.069805+00:00"
+}

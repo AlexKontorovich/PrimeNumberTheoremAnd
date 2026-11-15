@@ -1,0 +1,63 @@
+import took 4.68s
+RSBounds/RosserCubicTail.lean:40:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserCubicTail.lean:40:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RosserCubicTail.lean:59:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserCubicTail.lean:59:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RosserCubicTail.lean:130:23: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserCubicTail.lean:130:23: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_reciprocal_cube' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_neg_cubicPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.integral_upperDensity_div_cube' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.integral_density_div_cube_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le_head' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubicAllowance_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_A_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 46.7ms
+	attribute application 0.141ms
+	blocked (unaccounted) 2.58s
+	congr simp thm 2.9ms
+	declTypeLinter 6.65ms
+	dsimp 3.39ms
+	elaboration 103ms
+	fix level params 2.42ms
+	import 4.68s
+	initialization 37.2ms
+	instantiate metavars 2.32ms
+	interpretation 1.13s
+	let-to-have transformation 0.23ms
+	linting 31.7ms
+	module linting 0.01ms
+	norm_num 327ms
+	parsing 17.3ms
+	process pre-definitions 40ms
+	ring 93.1ms
+	share common exprs 33ms
+	simp 29.1ms
+	tactic execution 393ms
+	tacticAnalysis 5.41ms
+	type checking 265ms
+	typeclass inference 712ms

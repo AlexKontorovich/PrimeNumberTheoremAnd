@@ -1,0 +1,26 @@
+{
+  "module": "RHHeight.GammaIncrement",
+  "source_sha256": "478087e69de83d0ac6fee75e9a035947340ee3771efcb2dbaf8b0f07c607c1c9",
+  "upstream_sha256": "478087e69de83d0ac6fee75e9a035947340ee3771efcb2dbaf8b0f07c607c1c9",
+  "adapted": false,
+  "signature": "ed6923e8e788e0a4cf38b63f8b5270a9e47c79128ee8cbcf9acb0bb27e0c24dc",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false",
+    "RHHeight/GammaIncrement.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RHHeight/GammaIncrement.olean"
+  ],
+  "started_utc": "2026-11-06T12:06:04.969014+00:00",
+  "finished_utc": "2026-11-06T12:06:12.570078+00:00",
+  "elapsed_seconds": 7.601,
+  "peak_rss_kib": 2004148,
+  "log": "verification/rh100-replay/RHHeight.GammaIncrement.log",
+  "resources": "verification/rh100-replay/RHHeight.GammaIncrement.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "b8214722108a86913b8d29976b33723d0d3ee43f3954aa791251140924c3216a",
+  "reused_from_previous_replay": true
+}

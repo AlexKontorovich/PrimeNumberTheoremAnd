@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-small-mertens-prod-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:10:43.648623+00:00",
+  "source_sha256": {
+    "../ternary-goldbach/TernaryGoldbach/Prelim/SmallMertensProd.lean": "ac74a9aacb156f36bcf71a08db2319733a126fd68a8eec8bbdd11ace6fe4760f",
+    "../ternary-goldbach/TernaryGoldbach/Prelim/RamareWalk.lean": "735bda9cd0be131dd517ab98589e95cc990928c57e4b543c7acf54841fb37a2d",
+    "verification/SmallMertensProdAudit.lean": "427ff53d4319aa14210ed7cb6b80a99d6e81c12cbb654b3534c90a2c7084fe67",
+    "verification/run_small_mertens_prod_check.py": "f8c747502ed4e58b64a51b3881896005af62dee872eed4507c1e62c8ea7af5e4"
+  },
+  "stdin_recipe": "Exact source plus four fully qualified #print axioms commands.",
+  "stdin_sha256": "ebb542264501a2aaedd16bff817c324f904f5b666031e66f41898c5fe3b82f0a",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/TernaryGoldbach/Prelim/SmallMertensProd.olean",
+        "TernaryGoldbach/Prelim/SmallMertensProd.lean"
+      ],
+      "log": "verification/small-mertens-prod-build.log",
+      "exit_code": 0,
+      "seconds": 1214.7286933829964
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "541f62f1c59ed1017eb46276a81c43975648b2ab68873a075faba72baee46e68",
+  "finished_utc": "2026-11-06T18:30:58.393530+00:00"
+}

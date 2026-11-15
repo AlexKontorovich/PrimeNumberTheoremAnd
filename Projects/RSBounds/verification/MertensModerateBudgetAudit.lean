@@ -1,0 +1,6 @@
+import RSBounds.MertensModerateBudget
+
+#print axioms TernaryGoldbach.RSBounds.MertensModerateBudget.error_mul_eq
+#print axioms TernaryGoldbach.RSBounds.MertensModerateBudget.budget_lt
+
+#print axioms TernaryGoldbach.RSBounds.MertensModerateBudget.b23_budget_lt

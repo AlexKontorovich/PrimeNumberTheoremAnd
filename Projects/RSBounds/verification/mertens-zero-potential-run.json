@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-mertens-zero-potential-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:05:09.721095+00:00",
+  "source_sha256": {
+    "RSBounds/MertensZeroPotential.lean": "5bdf231ca3d884aaa0e4d9bc486f3e7010200f60d077748832cb06e98274fa98",
+    "RSBounds/SchoenfeldReciprocalSquare.lean": "ce2315d8b4fb1a12f52ff2a15ad1bf9c479283dba2f4265d5a86d7cc36d8ec69",
+    "RSBounds/PolynomialZeroCountBridge.lean": "8647a8b96db15ae931aec691c9801736581163ebfdbb8e20bc35c46f29a84175",
+    "verification/MertensZeroPotentialAudit.lean": "f0b0d6dc58bc90ce167375d2f8e71bcba33a899a876c118f070d44b457d18464",
+    "verification/run_mertens_zero_potential_check.py": "53bd0f5f1ee0a2f63e0923d262f7b5dae2244fd5237a6b3f49f3cd93e79901f3"
+  },
+  "stdin_recipe": "Exact source plus seventeen fully qualified #print axioms commands.",
+  "stdin_sha256": "5325bda1e6058f68ceb78da558763cb8fe605e1216406cf654fdbaec59c6eb5e",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensZeroPotential.olean",
+        "RSBounds/MertensZeroPotential.lean"
+      ],
+      "log": "verification/mertens-zero-potential-build.log",
+      "exit_code": 0,
+      "seconds": 359.281905652002
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 17,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "4085e24f4fba299119d8ea59f95fff159dd72c577bf86699787bf7ce9fa7710f",
+  "finished_utc": "2026-11-06T20:11:09.007285+00:00"
+}

@@ -1,0 +1,44 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T09:44:27.492295+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialKernelScaling.lean": "4b3e25fd0ed8a4cde34276b3a26727b8f99ce92ce019e0fb8179a803457221f5",
+    "RSBounds/PolynomialLeftKernel.lean": "0a86e38765aa7f098c0e3877d65b36c452970dbf4ab756d5fdaf770b464a1c11",
+    "verification/PolynomialKernelScalingAudit.lean": "bc38364c1a3ac0e50efba685cd3a89e9c17454e3a79a2e3c2dab1793fc8f3529",
+    "verification/PolynomialLeftKernelAudit.lean": "0acd73dcd14b40d5a272c5607c59aec0723028d76366ee74ae9dd1395c9d5baa"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialKernelScaling",
+        "RSBounds.PolynomialLeftKernel"
+      ],
+      "log": "kernel-scaling-left-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialKernelScalingAudit.lean"
+      ],
+      "log": "kernel-scaling-left-PolynomialKernelScaling-axioms.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialLeftKernelAudit.lean"
+      ],
+      "log": "kernel-scaling-left-PolynomialLeftKernel-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T09:44:50.924095+00:00",
+  "exit_code": 0
+}

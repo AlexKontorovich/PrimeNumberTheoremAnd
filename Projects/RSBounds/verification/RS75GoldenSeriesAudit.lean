@@ -1,0 +1,11 @@
+import RSBounds.RS75GoldenSeries
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.complexSeries_eq
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_series
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.summable_moment
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_moment
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.zeta_hasDerivAt
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.logDerivative_eq_moments
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.hasDerivAt_logDerivative
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.slope_eq_moments
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.monotoneOn_logDerivative
+#print axioms TernaryGoldbach.RSBounds.RS75GoldenSeries.antitoneOn_slope

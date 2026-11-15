@@ -1,0 +1,10 @@
+import RSBounds.MertensIntervalLeftBound
+
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integral_Ioi_add_rpow_of_lt
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integral_one_add_abs_neg_three_halves
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.integrable_one_add_abs_neg_three_halves
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_numerator_left_le
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_kernel_left_le
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_logDeriv_zeta_left_le_sqrt
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_left_integrand_le
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalLeftBound.norm_leftRemainder_le

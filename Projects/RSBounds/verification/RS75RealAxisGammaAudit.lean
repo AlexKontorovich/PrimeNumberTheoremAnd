@@ -1,0 +1,5 @@
+import RSBounds.RS75RealAxisGamma
+
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisGamma.hasSum_gammaTerm
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisGamma.gammaTerm_succ_le
+#print axioms TernaryGoldbach.RSBounds.RS75RealAxisGamma.gammaAxis_increment_le

@@ -1,0 +1,65 @@
+{
+  "kind": "fresh-finite-scalar-build-and-axiom-audit",
+  "started_utc": "2026-11-06T16:26:08.833542+00:00",
+  "source_sha256": {
+    "RSBounds/RS75GoldenScalarBase.lean": "71ea68f1da210f1cfc1de6fd3a31d4ff7a4d4b48c47c86bae3097dd776cce884",
+    "RSBounds/RS75GoldenNumerics.lean": "368b00d5b7cb94adfa36517973f6d3f457b1eb7a8c53b5c25396bb8dfbc1adb6",
+    "RSBounds/QuarticBudgetNumericsBase.lean": "efd600bdcd54c8eda11dcc6724fa0f78c0bfacd0ff0384c6245cf73293c7a1f1",
+    "RSBounds/BacklundCenterNumericsBase.lean": "1d6cbe8721c32210bad319799f6facc82901302d37c9f5e5c777118d331178ef",
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "scripts/generate_rs75_golden_scalar.py": "a7778c2c6dfcb80bcec03a840e34b6ddd66053c4ddd4cf63890197a741597675",
+    "verification/rs75-golden-moments-diagnostic.py": "e601c72641f14dfb2f6e6427b0575821ec4b9857fe962bbb1021eb477bef2d81",
+    "verification/RS75GoldenNumericsAudit.lean": "3d0ec7673d89aef4ea9b7236f9c4df5e31bf28f81ff03343124a8b3c2bf2abfa",
+    "verification/run_rs75_golden_numerics_check.py": "eb992526c20ab94dda08864c51ddaf14e729df9614227836840b03ad62f758c8"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75GoldenScalarBase.olean",
+        "RSBounds/RS75GoldenScalarBase.lean"
+      ],
+      "log": "verification/rs75-golden-base.log",
+      "exit_code": 0,
+      "seconds": 739.5232466640009
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75GoldenNumerics.olean",
+        "RSBounds/RS75GoldenNumerics.lean"
+      ],
+      "log": "verification/rs75-golden-numerics.log",
+      "exit_code": 0,
+      "seconds": 1487.214110877001
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75GoldenNumericsAudit.lean"
+      ],
+      "log": "verification/rs75-golden-axioms.log",
+      "exit_code": 0,
+      "seconds": 551.3529390719996
+    }
+  ],
+  "scope": "Bounds on actual finite moment centers and their explicit error expressions; no analytic infinite-tail or zeta-derivative binding asserted.",
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:12:26.933653+00:00",
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "source_hashes_unchanged_at_finish": true
+}

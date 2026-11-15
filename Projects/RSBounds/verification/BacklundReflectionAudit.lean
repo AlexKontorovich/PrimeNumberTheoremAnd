@@ -1,0 +1,15 @@
+import RSBounds.BacklundReflection
+import RSBounds.BacklundFirstCrossing
+
+#print axioms TernaryGoldbach.RSBounds.BacklundReflection.logDeriv_completedZeta_one_sub
+#print axioms TernaryGoldbach.RSBounds.BacklundReflection.logDeriv_completedZeta_conj
+#print axioms TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_completedZeta_reflect
+#print axioms TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_zeta_reflect_diff
+#print axioms TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_zeta_reflect_digamma
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_firstCrossing
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_lastCrossing
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_firstCrossing_family
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_lastCrossing_family
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_first_halfturn_level
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_last_halfturn_level
+#print axioms TernaryGoldbach.RSBounds.BacklundFirstCrossing.cos_eq_zero_of_halfturn

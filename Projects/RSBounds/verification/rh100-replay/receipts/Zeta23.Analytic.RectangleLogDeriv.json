@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.Analytic.RectangleLogDeriv",
+  "source_sha256": "72782802ac7efb8941dcac9bf80431e7b9a2d5ad207b4f2798a0c9ee31d4a6b9",
+  "upstream_sha256": "72782802ac7efb8941dcac9bf80431e7b9a2d5ad207b4f2798a0c9ee31d4a6b9",
+  "adapted": false,
+  "signature": "7822e85dd476f2d62806b385d587fbd365ec9d8e1d001e7fbc81c289c7b4fcfb",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/Analytic/RectangleLogDeriv.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/Analytic/RectangleLogDeriv.olean"
+  ],
+  "started_utc": "2026-11-06T12:00:34.236329+00:00",
+  "finished_utc": "2026-11-06T12:00:37.565658+00:00",
+  "elapsed_seconds": 3.329,
+  "peak_rss_kib": 1703900,
+  "log": "verification/rh100-replay/Zeta23.Analytic.RectangleLogDeriv.log",
+  "resources": "verification/rh100-replay/Zeta23.Analytic.RectangleLogDeriv.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "18a4364fe90ad384ce872f6d263763363da20a4d2a166be374666f0b9f3effba",
+  "reused_from_previous_replay": true
+}

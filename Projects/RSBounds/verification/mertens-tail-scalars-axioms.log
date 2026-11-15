@@ -1,0 +1,11 @@
+'TernaryGoldbach.RSBounds.MertensTailScalars.log_A_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.log_A_div_two_pi_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.coefficient_A_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.error_A_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensTailScalars.square_tail_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

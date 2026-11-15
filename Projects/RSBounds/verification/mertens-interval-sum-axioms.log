@@ -1,0 +1,17 @@
+'TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.mangoldt_mul_ramp_eq_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.summable_mangoldt_mul_ramp' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_ramp' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight_sub_log' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

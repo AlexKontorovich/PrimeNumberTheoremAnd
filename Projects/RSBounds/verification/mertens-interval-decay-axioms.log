@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.numeratorBound_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_numerator_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_le_im' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.continuous_kernel_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_line_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.decayTwo_kernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

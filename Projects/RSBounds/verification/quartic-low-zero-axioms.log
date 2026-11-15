@@ -1,0 +1,14 @@
+'TernaryGoldbach.RSBounds.ZeroWindowFiniteSum.weightedSum_lift' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZeroWindowFiniteSum.sum_le_windows' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticLowZeroBounds.low_zero_re' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticLowZeroBounds.bandMass_le_reciprocal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticLowZeroBounds.head_and_tail_le_lineWeight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticLowZeroBounds.positive_low_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

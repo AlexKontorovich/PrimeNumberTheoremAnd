@@ -1,0 +1,62 @@
+{
+  "kind": "aggregate-build-and-new-tail-audit",
+  "source_sha256": {
+    "RSBounds.lean": "1d88ddcd9392055269bd2aa466c48db1a9d3670d612556533a08c2e6fcdccdfa",
+    "lakefile.lean": "09a1e2e7e024423e4412013e7215cd27d5949bd8fb0a0e9dc9a5e223abd67d06",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "verification/MertensTailReductionAudit.lean": "ae117654854eb8f5ab98b5a0de59f991273f25b6b319c66f893162b841d59c82",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "RSBounds/Mertens.lean": "d731c1303f4d86e292220534a804d92d0b534a216a230e1046fb4d54f150e573",
+    "RSBounds/WeightedZeroSums.lean": "081e997e5c9c5c4e9039e33684467a7b5e8b0c6fb04d815d06ae5f3b33329c7f",
+    "RSBounds/BacklundPhase.lean": "fa9d615046e417cef78a903890e1e46b8bc72cff712513d21a5500aa3a5762e0",
+    "RSBounds/TotientAnalyticReduction.lean": "86071667af8b4d2a6a0e30e467cec22edd5ff1f79c8362489deb980273db5bac",
+    "RSBounds/PolynomialSmoothing.lean": "8d7ae55a74d319f9c967d079a97a3d3018e33f0169a1ad4e10c679d6a62ff299",
+    "RSBounds/PolynomialPsi.lean": "2b148b5b05748a8f40a44e0d28e2377e85d4eb92aa5e2217879ca151407b136e",
+    "RSBounds/QuarticMellin.lean": "d57d72d7589d667e7d98c73aa037379046485998a83648506ff0afb23d5fa990",
+    "RSBounds/PolynomialZeroKernel.lean": "62c44199fe2f4ab1334fbaaed1a84adad2c0f745cfdc1d3ff3640d54af3cbb19",
+    "RSBounds/PolynomialResidue.lean": "5de808714eaf50123fb8002afb22316ef4ce32d8fa1892ca4d77e54053640857",
+    "RSBounds/PolynomialPrimeSum.lean": "a6b1a93a70decb1efa319a98d942aec007f50a99649aaaf72ae8119381b8e530",
+    "RSBounds/PolynomialPsiMellin.lean": "ab6858a620ce9e47130082b39a2bec747f9328aefa31fd9e47d928df37649c60",
+    "RSBounds/PolynomialExplicitFormula.lean": "9b4980ca52f9c22ef4dc8964cfbdfd1d1321c8031b8adf852b0948d0df821191",
+    "RSBounds/PolynomialQuarticFormula.lean": "0a2a5030070705fa2e9834c700b9dc01afa8b542ccba8ce2f109745ce671a018",
+    "RSBounds/PolynomialZetaFormula.lean": "52c6ccb12385d82dcdde851907428ebb16f13fb4fadbe64bbb708e236a902ccc",
+    "RSBounds/PolynomialAveragedFormula.lean": "d6fea4b8db2b26721cd665da71ba1c3baf415ce1c27242da7cf64dd487668627",
+    "RSBounds/PolynomialLeftRemainder.lean": "f953776e4a91f6b2fd9f54c7e246423e1803dade49dedc8c1ec6bbac820e64f2",
+    "RSBounds/PolynomialZeroCancellation.lean": "779c2bf9815348f53925b23f9bfcd97694d278df908eefebaf798903b1e3a68f",
+    "RSBounds/PolynomialLowerKernel.lean": "6c0ae133b163564b9f8bc87802bab6b2e4ca1b571f7d01b9fcea2b9d4da8737c",
+    "RSBounds/RS75Polynomial.lean": "1d4ff3aeffcf701b685634b3522cc270663e386dbb38bfbfd810da203de3e1b7",
+    "RSBounds/PolynomialKernelScaling.lean": "4b3e25fd0ed8a4cde34276b3a26727b8f99ce92ce019e0fb8179a803457221f5",
+    "RSBounds/PolynomialLeftKernel.lean": "0a86e38765aa7f098c0e3877d65b36c452970dbf4ab756d5fdaf770b464a1c11",
+    "RSBounds/PolynomialRemainderIntegral.lean": "3e87be73c89de7606dd47fa042e546abd7206ce032792fa619c089bf79ec5632",
+    "RSBounds/PolynomialRemainderMajorant.lean": "c734e1d09c8002b88c041fa68debbedadf600f3a2502d8ad65da3088eab8c62c",
+    "RSBounds/PolynomialRemainderBound.lean": "817c5feaa124eb7531a9c6c56cf9c5c9d37b8256ee9b65a7736d7d5a220ab7cf",
+    "RSBounds/TotientGlobalReduction.lean": "5c8d3dd9462c6a4d7873b836126ca06a725b87a14e1e7ae9d3758f1224192e0c",
+    "RSBounds/IEANTNDigamma.lean": "8c431ad50bc3e114227c9a5f32bcad87f9503c3396f9ae36e9ba2b1f005a458d",
+    "RSBounds/MertensTailReduction.lean": "04fe9520e2f33574b3a46ae7adc7a5851e5ed8fde2e93af0501295b5ba8c04bc"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build"
+      ],
+      "started_utc": "2026-11-06T09:56:07.333077+00:00",
+      "log": "aggregate-complete-remainder-build.log",
+      "exit_code": 0,
+      "finished_utc": "2026-11-06T09:56:29.489787+00:00"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/MertensTailReductionAudit.lean"
+      ],
+      "started_utc": "2026-11-06T09:56:29.490184+00:00",
+      "log": "mertens-tail-axioms.log",
+      "exit_code": 0,
+      "finished_utc": "2026-11-06T09:56:33.175006+00:00"
+    }
+  ]
+}

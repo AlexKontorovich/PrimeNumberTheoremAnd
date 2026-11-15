@@ -1,0 +1,11 @@
+import RSBounds.BacklundPairedPower
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.divisor_at_zero_ge_one
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.reflected_distance_product_le
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_log_weight
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.far_log_weight
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_with_unpaired_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedCrossing.crossing_count_le
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedCrossing.abs_argument_le
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedPower.normalized_power_argument_le
+#print axioms TernaryGoldbach.RSBounds.BacklundPairedPower.argument_bound

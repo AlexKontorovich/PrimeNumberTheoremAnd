@@ -1,0 +1,42 @@
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.sin_le_cubic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.cpow_positive_phase' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_cpow_sub_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.rpow_three_halves_increment' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.phase_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_first_numerator_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.first_integral_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_first_integral_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_iteratedIntegral_le_const_on' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_normalized_difference_le_band' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_upperKernel_le_band' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_lower_difference_le_band' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_upperKernel_le_band_rs75' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCancellation.norm_lower_difference_le_band_rs75' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

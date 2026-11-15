@@ -1,0 +1,16 @@
+⚠ [2930/3025] Replayed RSBounds.BacklundPhase
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Analysis.Complex.Circle` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Algebra.Group.SubmonoidClosure` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Bases` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Order.Filter.AtTopBot.Archimedean` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundPhase.lean: imports `Mathlib.Topology.Algebra.Order.Field` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [3621/3625] Replayed RSBounds.BacklundJensen
+warning: RSBounds/BacklundJensen.lean: imports `Mathlib.Analysis.Complex.JensenFormula` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundJensen.lean: imports `Mathlib.Tactic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [3623/3625] Replayed RSBounds.BacklundFirstCrossing
+warning: RSBounds/BacklundFirstCrossing.lean: imports `Mathlib.Topology.Order.IntermediateValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundFirstCrossing.lean: imports `Mathlib.Topology.Order.Monotone` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundFirstCrossing.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [3625/3625] Built RSBounds.BacklundPairedPower (3.3s)
+Build completed successfully (3625 jobs).

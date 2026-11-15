@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.RvM.Halving",
+  "source_sha256": "a97101d4a2cc91989b4cc2f2712d41c81a200e1dcb6bacb55784761d783d4c29",
+  "upstream_sha256": "a97101d4a2cc91989b4cc2f2712d41c81a200e1dcb6bacb55784761d783d4c29",
+  "adapted": false,
+  "signature": "51093a9352c84033686ba8e8e5ab37cf441c0e3139a1f9219afda7bd43021262",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/RvM/Halving.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/RvM/Halving.olean"
+  ],
+  "started_utc": "2026-11-06T12:00:18.790481+00:00",
+  "finished_utc": "2026-11-06T12:00:20.742558+00:00",
+  "elapsed_seconds": 1.952,
+  "peak_rss_kib": 1676956,
+  "log": "verification/rh100-replay/Zeta23.RvM.Halving.log",
+  "resources": "verification/rh100-replay/Zeta23.RvM.Halving.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "0d550fe1c687b1d1a2ae5a14e2b6221f6a7db213df013fd405d6bad9170db0d5",
+  "reused_from_previous_replay": true
+}

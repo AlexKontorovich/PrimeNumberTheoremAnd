@@ -1,0 +1,8 @@
+import RSBounds.PolynomialKernelScaling
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.antiderivative_four_mul
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.forwardDiff_four_dilate
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_dilate
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_upper
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.zeroCoefficient_lower
+#print axioms TernaryGoldbach.RSBounds.PolynomialKernelScaling.norm_zeroCoefficient_dilate

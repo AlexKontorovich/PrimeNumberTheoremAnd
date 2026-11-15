@@ -1,0 +1,30 @@
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.reciprocal_square_le_pairedKernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.twice_re_logDeriv_xi_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.normalized_allowance_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_pairedKernel_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_xi_reciprocal_square_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_xi_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_zeta_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.rectangle_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.positive_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.weighted_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

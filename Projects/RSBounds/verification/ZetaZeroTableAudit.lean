@@ -1,0 +1,9 @@
+import RSBounds.ZetaZeroTable
+
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.first29
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.first29_bracket
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.first29_simple
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.zero_iff_exists_index
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.positiveZeroCount_eq_table
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.bracket_count_bounds
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTable.positiveZeroCount_hundred

@@ -1,0 +1,6 @@
+import RSBounds.MertensSignedInterval
+
+#print axioms TernaryGoldbach.RSBounds.MertensSignedInterval.integrable_leftRemainder
+#print axioms TernaryGoldbach.RSBounds.MertensSignedInterval.kernel_formula_at_heights
+#print axioms TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula_at_heights
+#print axioms TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula

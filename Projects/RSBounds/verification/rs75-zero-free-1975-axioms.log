@@ -1,0 +1,6 @@
+'TernaryGoldbach.RSBounds.RS75ZeroFree1975.analytic_inequality' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFree1975.xi_zero_re_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFree1975.zero_free_high' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFree1975.zero_free' depends on axioms: [propext, Classical.choice, Quot.sound]

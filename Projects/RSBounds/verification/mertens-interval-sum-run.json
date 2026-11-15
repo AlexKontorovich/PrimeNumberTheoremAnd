@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-mertens-interval-sum-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:02:41.620791+00:00",
+  "source_sha256": {
+    "RSBounds/MertensIntervalSum.lean": "65d702fb141e34d19d7c27c563a08d594e39eb1d894d819b8a1daca54cf61d9b",
+    "RSBounds/Mertens.lean": "d731c1303f4d86e292220534a804d92d0b534a216a230e1046fb4d54f150e573",
+    "verification/MertensIntervalSumAudit.lean": "59ac1c820efa6084e886b4b9440f30def6c01822be3c704f0535c7ef89baf149",
+    "verification/run_mertens_interval_sum_check.py": "8f46f80ebe0f3c61e658480c94f51e223516b38543ddc6449b06ffb67d443ee5"
+  },
+  "stdin_recipe": "Exact source plus seven fully qualified #print axioms commands.",
+  "stdin_sha256": "598bf3af1973775da45e7613d032272ff788131ea241a58e7c701d35473c6fd3",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensIntervalSum.olean",
+        "RSBounds/MertensIntervalSum.lean"
+      ],
+      "log": "verification/mertens-interval-sum-build.log",
+      "exit_code": 0,
+      "seconds": 3.588587195998116
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 7,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "ce2200695cb6d259c783d2a98bc0bee24e26bceb1dc91a521d3f81d1ffbaaf8a",
+  "finished_utc": "2026-11-06T18:02:45.212062+00:00"
+}

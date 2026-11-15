@@ -1,0 +1,79 @@
+import took 315s
+RSBounds/WeakPsiTail.lean:45:72: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:52:72: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:45:72: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/WeakPsiTail.lean:52:72: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+elaboration took 104ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_NormNum_Core___elabRules_Mathlib_Tactic_normNum_1._boxed took 188ms
+RSBounds/WeakPsiTail.lean:181:25: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:181:25: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/WeakPsiTail.lean:206:23: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:206:23: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/WeakPsiTail.lean:231:23: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:244:25: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:244:29: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/WeakPsiTail.lean:244:29: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/WeakPsiTail.lean:231:23: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 106ms
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_coefficient_low' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_low_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_left_integrand_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_leftRemainder_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.sqrt_eq_exp_half_log' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.sqrt_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.left_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.norm_adaptive_left_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeakPsiTail.psi_error_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 73.8ms
+	attribute application 0.179ms
+	blocked (unaccounted) 5.9s
+	congr simp thm 5.74ms
+	declTypeLinter 9.19ms
+	dsimp 3.9ms
+	elaboration 548ms
+	fix level params 3.57ms
+	import 315s
+	initialization 139ms
+	instantiate metavars 8.57ms
+	interpretation 2.87s
+	let-to-have transformation 0.258ms
+	linting 78.9ms
+	module linting 0.0147ms
+	norm_num 753ms
+	parsing 40.4ms
+	process pre-definitions 72.8ms
+	ring 198ms
+	share common exprs 57.1ms
+	simp 71.2ms
+	tactic execution 1.07s
+	tacticAnalysis 8.13ms
+	type checking 298ms
+	typeclass inference 1.7s

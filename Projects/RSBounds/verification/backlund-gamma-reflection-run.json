@@ -1,0 +1,33 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T10:21:19.273265+00:00",
+  "source_sha256": {
+    "RSBounds/IEANTNDigammaDifference.lean": "f82d8bae9ee3edf522112976d59539616115fdd3c4e16fd71ea4bfb33de9aff0",
+    "RSBounds/BacklundGammaReflection.lean": "497375f997e8263f231d47cd9d419606694dd165a6312548eca9e6785ae51124",
+    "verification/BacklundGammaReflectionAudit.lean": "132d8c02988ba87c0336d56eb4467bd11dc5d2702c1dd9ce82611bedab33d839"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.IEANTNDigammaDifference",
+        "RSBounds.BacklundGammaReflection"
+      ],
+      "log": "backlund-gamma-reflection-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundGammaReflectionAudit.lean"
+      ],
+      "log": "backlund-gamma-reflection-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T10:21:28.745228+00:00",
+  "exit_code": 0
+}

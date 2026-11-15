@@ -1,0 +1,15 @@
+Try this:
+  [apply] ring_nf
+  
+  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
+    
+  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
+RSBounds/BacklundHalfStrip.lean:88:12: warning: `mul_le_one₀` has been deprecated: No replacement, use constituent lemmas from proof.
+RSBounds/BacklundHalfStrip.lean:101:12: warning: `mul_le_one₀` has been deprecated: No replacement, use constituent lemmas from proof.
+RSBounds/BacklundHalfStrip.lean:104:12: warning: `mul_le_one₀` has been deprecated: No replacement, use constituent lemmas from proof.
+RSBounds/BacklundHalfStrip.lean:53:83: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/BacklundHalfStrip.lean:53:83: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`

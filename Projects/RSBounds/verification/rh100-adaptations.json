@@ -1,0 +1,55 @@
+{
+  "repository": "https://github.com/teal-sea/zeta-lab",
+  "commit": "b09fa4dd2f2182cf14b248e7ffc64ff03df2c534",
+  "adaptations": [
+    {
+      "module": "HardyFirstZero.EulerMaclaurin",
+      "original_sha256": "dca2a608e66f7e095ecd4a25bee7da90de88cdc77a424ac2e8e562f28f064603",
+      "adapted_sha256": "85cc5968d3ad87b0a215046b76bfcd9f2630bacd22d470a67664b86a424ca375",
+      "changes": "Explicit public Mathlib.Analysis.PSeriesComplex import restores visibility of Complex.summable_one_div_nat_cpow. Mathematical declarations and proof bodies unchanged.",
+      "diff": "verification/rh100-replay/HardyFirstZero.EulerMaclaurin.patch"
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.StrongPNTPrefix",
+      "original_sha256": "fb896b2c07c22ae03cf33de4e3cd619bd4c43861724a7751cd557dd777e4f5bb",
+      "adapted_sha256": "8edf4a423d7cd704700a439db439bce1e3ded1d974df90b16ec7900e02c79ec8",
+      "changes": "Explicit RemovableSingularity import restores visibility of the Cauchy derivative formula. The rational identity proof normalizes two half-differences and supplies R-r != 0 before field_simp. Mathematical declarations unchanged.",
+      "diff": "verification/rh100-replay/Zeta23.FromPNTPlus.StrongPNTPrefix.patch"
+    },
+    {
+      "module": "HardyFirstZero.Spine",
+      "original_sha256": "970ee33563d6158b1a82ff29363de27b368fac1ce02662dbaedb166fbfb31e3d",
+      "adapted_sha256": "3d6c33798fbb87b252912d55b3917105a013f94c52271b9302a38b26a9cc66a2",
+      "changes": "Open RH100HardyZ to use the isolated upstream helper definitions and lemmas. Mathematical statements and proof logic unchanged.",
+      "diff": "verification/rh100-replay/HardyFirstZero.Spine.patch"
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.ZetaBounds",
+      "original_sha256": "1274579451f49f99040983ef8a67eed4425a0e8ebeec29e559b3f8a6543b7121",
+      "adapted_sha256": "b02875641f5652f886f819f5d811c1e40a646c90627cc7eeca5ed2cb41406312",
+      "changes": "Explicit public Mathlib.Analysis.PSeriesComplex import restores visibility of Complex.summable_one_div_nat_cpow. Open the isolated RH100EulerMaclaurin namespace. Mathematical declarations and proof bodies unchanged.",
+      "diff": "verification/rh100-replay/Zeta23.FromPNTPlus.ZetaBounds.patch"
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Tactic.AdditiveCombination",
+      "original_sha256": "0ae798aa30fb31713bd8448f505bb7d1b29fad234ade98aa09e9700c10c216ea",
+      "adapted_sha256": "97f68a51fb8f70762fe81b5b6d7f1c0a680c01ee73ceb36f9124bda89f9fa45d",
+      "changes": "Mathlib removed LinearCombinationPrime. Replace its obsolete metaprogramming implementation with current kernel-proof-producing linear_combination normalized by abel. The sole downstream invocation adds eight equalities. Mathematical declarations in the closure are unchanged.",
+      "diff": "verification/rh100-replay/Zeta23.FromPNTPlus.Tactic.AdditiveCombination.patch"
+    },
+    {
+      "module": "ZetaLean.HardyZ",
+      "original_sha256": "21259011d07285653f190ba574140bed167e09f067c72d0bcc90446173dd9a21",
+      "adapted_sha256": "9e95b6e9a66e9ad9e459673dc92cfdb23fc2b3228c567b60d350b420146959ef",
+      "changes": "Isolate the existing Hardy-Z helper declarations in RH100HardyZ, avoiding the new Mathlib root hardyZ and continuous_hardyZ declarations. Qualify the Gamma-real conjugation helper. Definitions and proof logic unchanged.",
+      "diff": "verification/rh100-replay/ZetaLean.HardyZ.patch"
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.EulerMaclaurin",
+      "original_sha256": "0e2b201e2a99db8650c565f14c2d4c65ff54a59a29f81137a63a00f2d1776ab6",
+      "adapted_sha256": "dff20198b3538c4502943efe3f3b74d3ea8f34877b209f2d7df7030e6a274acd",
+      "changes": "Explicit Mathlib.MeasureTheory.Function.Floor import restores Nat.floor measurability automation. Isolate seven generic declarations in RH100EulerMaclaurin to avoid collisions with the same PNT+ declarations independently ported by calr. Statements unchanged.",
+      "diff": "verification/rh100-replay/Zeta23.FromPNTPlus.EulerMaclaurin.patch"
+    }
+  ]
+}

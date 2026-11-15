@@ -1,0 +1,21 @@
+{
+  "kind": "fresh-aggregate-compilation",
+  "started_utc": "2026-11-06T12:33:18.781317+00:00",
+  "source_sha256": {
+    "RSBounds.lean": "fd216a4c6f773ebd8a3f463f3ec0719a7ca7ed1d66533db0a6d16f89bf210ce6",
+    "RSBounds/BacklundHighCount.lean": "4486c310f866463b5f69d57f3b6d879b8470a1b955e03f01deaca2b38c5f99ba",
+    "RSBounds/RosserCountDefinition.lean": "22131d13d140f1d959ec41d069480a2268832b3f1147798373d89f0ec29db1ed"
+  },
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds.olean",
+    "RSBounds.lean"
+  ],
+  "log": "aggregate-backlund-high-build.log",
+  "finished_utc": "2026-11-06T12:33:24.163034+00:00",
+  "exit_code": 0
+}

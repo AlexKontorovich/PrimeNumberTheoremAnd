@@ -1,0 +1,46 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:32:25.910220+00:00",
+  "source_sha256": {
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "verification/RosserWeightedBoundsAudit.lean": "44e157b42ef11ee2486100647173798425db21ec6161bc473a6e663acd961c46",
+    "verification/run_rosser_weighted_bounds_check.py": "94392b1c9f0b046f23bab2a890d71392171d8affda1e9173fe9dc1b8bf5dc272",
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "RSBounds/RosserTailIntegrals.lean": "24b5a311c84e4f9bc160e942489a31add2f33d3487d8653d7bd9d5ed3650fef0",
+    "RSBounds/Rosser1941.lean": "91110b87d17d996f8e55b6458bd52404482f97780f2f16eabc7c35a545f28ccc"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserWeightedBounds.olean",
+        "RSBounds/RosserWeightedBounds.lean"
+      ],
+      "log": "rosser-weighted-bounds-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 37.21756284999719
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RosserWeightedBoundsAudit.lean"
+      ],
+      "log": "rosser-weighted-bounds-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 141.41965827999957
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 13,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T14:35:24.549118+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,52 @@
+import took 194s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 144ms
+'TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.tendsto_D' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.first_error_eq_of_normalization' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.signedLimit_one_re' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.first_error_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.E1p_eq_primeWeightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.primeWeightedSum_lower_signed' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.mertens_lower_of_errors' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.signedLimit_re_eq_centered' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.J_eq_signedLimit' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 38.2ms
+	attribute application 0.103ms
+	blocked (unaccounted) 1.77s
+	congr simp thm 3.15ms
+	declTypeLinter 17.4ms
+	dsimp 5.87ms
+	elaboration 298ms
+	fix level params 0.999ms
+	import 194s
+	initialization 43.6ms
+	instantiate metavars 3.7ms
+	interpretation 1.85s
+	let-to-have transformation 0.113ms
+	linting 47.2ms
+	module linting 0.02ms
+	norm_num 93.3ms
+	parsing 22.3ms
+	process pre-definitions 25.5ms
+	ring 145ms
+	share common exprs 22.5ms
+	simp 15.5ms
+	tactic execution 232ms
+	tacticAnalysis 7.1ms
+	type checking 111ms
+	typeclass inference 470ms

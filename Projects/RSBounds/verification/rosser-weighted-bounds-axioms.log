@@ -1,0 +1,37 @@
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.hasDerivAt_reciprocal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.hasDerivAt_reciprocal_fifth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_le_endpoints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_le_head' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le_endpoints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le_head' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.head_correction_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.weightedSum_const_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.weightedSum_mono' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_ge_count' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_ge_rosser' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserWeightedBounds.head_correction_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

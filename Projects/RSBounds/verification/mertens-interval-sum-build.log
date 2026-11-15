@@ -1,0 +1,43 @@
+import took 1.69s
+'TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.mangoldt_mul_ramp_eq_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.summable_mangoldt_mul_ramp' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_ramp' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight_sub_log' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 9.01ms
+	attribute application 0.133ms
+	blocked (unaccounted) 480ms
+	congr simp thm 1.89ms
+	declTypeLinter 3.84ms
+	elaboration 36.2ms
+	fix level params 0.429ms
+	import 1.69s
+	initialization 34.8ms
+	instantiate metavars 1.76ms
+	interpretation 372ms
+	let-to-have transformation 0.0844ms
+	linting 17.7ms
+	module linting 0.0113ms
+	norm_num 20.5ms
+	parsing 4.07ms
+	process pre-definitions 7.64ms
+	ring 39ms
+	share common exprs 9.59ms
+	simp 22.8ms
+	tactic execution 80.2ms
+	tacticAnalysis 3.48ms
+	type checking 40.4ms
+	typeclass inference 110ms

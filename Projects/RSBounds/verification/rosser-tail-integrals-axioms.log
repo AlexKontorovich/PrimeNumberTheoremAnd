@@ -1,0 +1,39 @@
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_rosserEnvelope' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.density_le_upperDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.continuousAt_density' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.continuousAt_upperDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_neg_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_lowPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.coefficient_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.tailPrimitive_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.J_eq_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_upperDensity_div_pow_five' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_density_div_pow_five_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_upperDensity_div' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_density_div_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

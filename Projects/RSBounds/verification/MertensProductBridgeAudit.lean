@@ -1,0 +1,5 @@
+import RSBounds.MertensProductBridge
+
+#print axioms TernaryGoldbach.RSBounds.MertensProductBridge.primeProduct_pos
+#print axioms TernaryGoldbach.RSBounds.MertensProductBridge.log_primeProduct_le
+#print axioms TernaryGoldbach.RSBounds.MertensProductBridge.primeProduct_lt_of_errors

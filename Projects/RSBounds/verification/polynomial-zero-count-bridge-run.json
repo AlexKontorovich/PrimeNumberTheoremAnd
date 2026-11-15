@@ -1,0 +1,41 @@
+{
+  "checked_at_utc": "2026-11-06T14:26:15.137070+00:00",
+  "lean_version": "4.35.0",
+  "build_command": "lake build RSBounds.PolynomialZeroCountBridge",
+  "build_exit_code": 0,
+  "audit_command": "lake env lean -j1 verification/PolynomialZeroCountBridgeAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.mem_zerosRectD_zetaF_iff_xi",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.mem_zerosRectD_zetaF_iff",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.analyticOrderAt_zetaF_eq_zeta",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_zetaF_eq_analyticOrder",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positive_filter_eq",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.closed_filter_eq",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positiveZeros_eq_closed_of_goodHeight",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positive_filter_eq_closed_of_goodHeight",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.zetaGoodHeight_of_goodHeights",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.sum_multRectD_closed_filter_eq",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.sum_multRectD_closed_filter",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.conj_mem_zerosRectD",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_conj",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.reflect_mem_zerosRectD",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_reflect",
+    "TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.reflect_mem_closedPositiveZeros"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "source_sha256": {
+    "RSBounds/PolynomialZeroCountBridge.lean": "8647a8b96db15ae931aec691c9801736581163ebfdbb8e20bc35c46f29a84175",
+    "verification/PolynomialZeroCountBridgeAudit.lean": "0a9eae99e0413a41a0092786c9b0891cae3e2c0dd783aa0d2702bc9c5d09534c",
+    "docs/PolynomialZeroCountBridge.md": "5a647b04e44c79e1cd7d40b9f3810b656cb908606235c9ed588e898a64b2f20e",
+    "vendor/rh100/Zeta23/ZetaReflect.lean": "757c8087bf6be6de3212df02f5c2c44f1cdbae8b960bf982c9d4d4022f89d29f"
+  },
+  "olean_sha256": "ed2d28084badfd53d94f4a2545a7f897523f9b01cfe0e116a29b6d06c881eb13",
+  "assumptions": "No RH, simple-zero, numerical-certificate, or zero-count premise. Positive-height/cutoff conditions and explicitly stated good-height conditions only.",
+  "scope": "Finite contour/count/multiplicity conversion and actual conjugation/reflection symmetries. No weighted-zero bound or psi row asserted.",
+  "native_comparator_status": "Not run separately for this new module."
+}

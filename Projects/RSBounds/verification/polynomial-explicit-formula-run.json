@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:59:37.289812+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialExplicitFormula.lean": "9b4980ca52f9c22ef4dc8964cfbdfd1d1321c8031b8adf852b0948d0df821191",
+    "verification/PolynomialExplicitFormulaAudit.lean": "14a7f1d19349709d89eb9b20a7b2604e0c2c1ae15ad2c59249bfe263c02a55f2"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialExplicitFormula"
+      ],
+      "log": "polynomial-explicit-formula-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialExplicitFormulaAudit.lean"
+      ],
+      "log": "polynomial-explicit-formula-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:59:55.291509+00:00",
+  "exit_code": 0
+}

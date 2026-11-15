@@ -1,0 +1,6 @@
+RSBounds/RS75RealAxisLogDerivative.lean:47:34: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp [h] at hs
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`

@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_forwardDiff_le_const_on' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.sixteen_le_R4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_high_common' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_low_common' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

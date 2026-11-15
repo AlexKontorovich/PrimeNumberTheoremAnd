@@ -1,0 +1,5 @@
+import RSBounds.PrimeLogTail
+
+#print axioms TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_eq
+#print axioms TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_le
+#print axioms TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_mul_pred_le

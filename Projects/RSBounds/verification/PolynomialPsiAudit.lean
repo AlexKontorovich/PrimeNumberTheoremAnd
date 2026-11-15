@@ -1,0 +1,10 @@
+import RSBounds.PolynomialPsi
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsi.psi_sandwich
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_psi4Trunc
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4_lower
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsi.psi_error_of_polynomial_errors
+#check TernaryGoldbach.RSBounds.PolynomialPsi.psi_sandwich
+#check TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4
+#check TernaryGoldbach.RSBounds.PolynomialPsi.psi_error_of_polynomial_errors

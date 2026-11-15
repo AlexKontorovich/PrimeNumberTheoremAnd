@@ -1,0 +1,55 @@
+import took 173s
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 480ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 114ms
+tactic execution of Mathlib.Tactic.nlinarith took 191ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 162ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 114ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 123ms
+tactic execution of Mathlib.Tactic.nlinarith took 228ms
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.reciprocal_square_le_pairedKernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.twice_re_logDeriv_xi_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.normalized_allowance_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_pairedKernel_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_xi_reciprocal_square_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_xi_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.finite_zeta_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 68.9ms
+	attribute application 0.399ms
+	blocked (unaccounted) 7.05s
+	congr simp thm 7.39ms
+	declTypeLinter 20.3ms
+	dsimp 9.75ms
+	elaboration 587ms
+	fix level params 4.19ms
+	import 173s
+	initialization 36.7ms
+	instantiate metavars 9.12ms
+	interpretation 4.57s
+	let-to-have transformation 0.278ms
+	linting 78.4ms
+	module linting 0.268ms
+	norm_num 694ms
+	parsing 24.9ms
+	process pre-definitions 68.5ms
+	ring 227ms
+	share common exprs 86.8ms
+	simp 253ms
+	tactic execution 1.38s
+	tacticAnalysis 15.4ms
+	type checking 344ms
+	typeclass inference 1.84s

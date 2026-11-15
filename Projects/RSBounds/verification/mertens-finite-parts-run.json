@@ -1,0 +1,28 @@
+{
+  "kind": "fresh-finite-parts-build-with-in-process-transitive-axiom-audits",
+  "started_utc": "2026-11-06T19:28:37.599631+00:00",
+  "source_sha256": {
+    "RSBounds/MertensFiniteParts.lean": "7625432895ee2cacd3d96c5cdabadc1fa49bb9d7e6d9cda247f0e46631a97c9f",
+    "verification/MertensFinitePartsAudit.lean": "135bdcaeaaadd2dd594213b277974f9c194227090e49639b966f3350498e6368",
+    "verification/run_mertens_finite_parts_check.py": "fd804a30b2ea7d9f00b44c766e7a85633f2baa537ddfbbd7fce92cb9af912574"
+  },
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensFiniteParts.olean",
+    "RSBounds/MertensFiniteParts.lean"
+  ],
+  "stdin_sha256": "268cab2c0f25e2eae7b8f96cd14eebf0718f68c9022a1f8c1eba223d734535a4",
+  "log": "verification/mertens-finite-parts-build.log",
+  "seconds": 111.44696133099933,
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T19:30:29.047303+00:00",
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "c80b23d76a6231c96c8fb681a8fb81ce596ac09cfc42490a24d97a9559b0f812"
+}

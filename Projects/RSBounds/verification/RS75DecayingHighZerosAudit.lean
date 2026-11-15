@@ -1,0 +1,8 @@
+import RSBounds.RS75DecayingHighZeros
+
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.sum_filtered_weight_eq_two
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.norm_high_sum_le_of_cube_bound
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.norm_upper_coefficient_le_decay
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.norm_lower_coefficient_le_decay
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.norm_high_sum_upper_lt
+#print axioms TernaryGoldbach.RSBounds.RS75DecayingHighZeros.norm_high_sum_lower_lt

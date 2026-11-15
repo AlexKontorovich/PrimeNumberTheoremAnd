@@ -1,0 +1,17 @@
+{
+  "kind": "aggregate-import-compilation",
+  "started_utc": "2026-11-06T17:28:15.772628+00:00",
+  "source_sha256": "3e92013d19f82c256726573557cfd9fb9faf752645d2c6102748a4afa551bcde",
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds.olean",
+    "RSBounds.lean"
+  ],
+  "exit_code": 0,
+  "seconds": 5.968053648000932,
+  "finished_utc": "2026-11-06T17:28:21.740894+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "kind": "exact-data-transcription-check",
+  "rows": 29,
+  "exit_code": 0,
+  "checked_at_utc": "2026-11-06T13:20:56.058507+00:00",
+  "source_sha256": {
+    "data/zeta-zeros-to-100.json": "af52ec13f8b3b24eb3e869289311d07ede98880b9005b4f88d859c50c00c99ce",
+    "RSBounds/BacklundLowScalarData.lean": "e7cae1646aa69088df964e77db148cd7ba89caf548018eb054190a47f45b5a35"
+  }
+}

@@ -1,0 +1,8 @@
+'TernaryGoldbach.PNTMertens.E₂Λ.eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.mertensError_eq_neg_centered_tail' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.mertensError_abs_le_of_tail_variation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.mertensError_abs_le_of_tail_variation {x D : ℝ} (hx : 2 ≤ x)
+  (h : ∀ (t : ℝ), x < t → |TernaryGoldbach.PNTMertens.E₁Λ t - TernaryGoldbach.PNTMertens.E₁Λ x| ≤ D) :
+  |TernaryGoldbach.PNTMertens.E₂Λ x| ≤ D / Real.log x

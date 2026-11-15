@@ -1,0 +1,9 @@
+{
+  "challenge_module": "RSZeroFreeChallenge",
+  "solution_module": "RSZeroFreeSolution",
+  "theorem_names": [
+    "TernaryGoldbach.RSBounds.RS75ZeroFree1975.zero_free_high",
+    "TernaryGoldbach.RSBounds.RS75ZeroFree1975.zero_free"
+  ],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"]
+}

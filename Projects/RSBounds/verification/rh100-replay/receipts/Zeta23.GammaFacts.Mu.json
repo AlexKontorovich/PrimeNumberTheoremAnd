@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.GammaFacts.Mu",
+  "source_sha256": "7d971de351bbecac7ea72d73f9f9cd14e881aa9c6efee0a250451e8bf6b476a4",
+  "upstream_sha256": "7d971de351bbecac7ea72d73f9f9cd14e881aa9c6efee0a250451e8bf6b476a4",
+  "adapted": false,
+  "signature": "ba868f33b3bfc9a188d062b8c457bc0eb0d4ae635b3baaa492c6cf527a30e4b5",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/GammaFacts/Mu.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/GammaFacts/Mu.olean"
+  ],
+  "started_utc": "2026-11-06T12:05:44.369802+00:00",
+  "finished_utc": "2026-11-06T12:05:53.578654+00:00",
+  "elapsed_seconds": 9.209,
+  "peak_rss_kib": 1744396,
+  "log": "verification/rh100-replay/Zeta23.GammaFacts.Mu.log",
+  "resources": "verification/rh100-replay/Zeta23.GammaFacts.Mu.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "670df1952b5f43dd5a9515a5e732fe9129702d94c24874f1b80d58226775d8a8",
+  "reused_from_previous_replay": true
+}

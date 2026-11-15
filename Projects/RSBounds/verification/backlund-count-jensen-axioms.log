@@ -1,0 +1,3 @@
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.count_le_circle_majorant' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

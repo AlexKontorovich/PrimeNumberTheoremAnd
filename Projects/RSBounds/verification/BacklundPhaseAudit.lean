@@ -1,0 +1,7 @@
+import RSBounds.BacklundPhase
+
+#print axioms TernaryGoldbach.RSBounds.circle_powers_subsequence_one
+#print axioms TernaryGoldbach.RSBounds.complex_powers_phase_subsequence
+#print axioms TernaryGoldbach.RSBounds.real_power_ratio_tendsto
+#print axioms TernaryGoldbach.RSBounds.log_real_pow_div_tendsto
+#print axioms TernaryGoldbach.RSBounds.exists_backlund_phase_sequence

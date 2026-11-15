@@ -1,0 +1,28 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:54:28.509728+00:00",
+  "lean_version": "Lean 4.35.0",
+  "source_sha256": {
+    "RSBounds/BacklundFunctionalStrip.lean": "10d00089baa867c8c3dfa150ff8be77d1c81c722e8ef1dfb71fd4addf1b2363c",
+    "verification/BacklundFunctionalStripAudit.lean": "16c3fb68b0994d6e61aeff5ee952b939ed21fcb2254d53a9da677799fd3d1e85",
+    "RSBounds/BacklundFunctionalMultiplier.lean": "874344d5ceba67d76fcc0d3faab527ecf276ed29bf30d232150c64bae9bfc951",
+    "RSBounds/BacklundGammaBaseline.lean": "83fd2c65bf52df7404827850049b92636b99fd825f9485ac1f8ad44179814053",
+    "RSBounds/BacklundHyperbolicFactor.lean": "ac5695ee0477102031dfb3197ca3012baffb1faa58f4a94b8440c9acda7f015a",
+    "RSBounds/BacklundGammaModulusHorizontal.lean": "60229c9ae786efb5efdbaf6729165a659da31e84d55095f2d62ed32ad8ef9985"
+  },
+  "build_command": "lake env lean -o .lake/build/lib/lean/RSBounds/BacklundFunctionalStrip.olean RSBounds/BacklundFunctionalStrip.lean",
+  "build_exit_code": 0,
+  "audit_command": "lake env lean verification/BacklundFunctionalStripAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.gamma_cosh_ratio_eq",
+    "TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_multiplier_strip_le",
+    "TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_zeta_reflected_strip_le"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "result": "Unconditional functional-equation multiplier and reflected zeta norm bounds for -1/2<=sigma<=1/2 and t>=50, with factor exp(5/(2*t^2)). All horizontal Gamma estimates are proved imports, not hypotheses."
+}

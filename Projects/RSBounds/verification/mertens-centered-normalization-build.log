@@ -1,0 +1,33 @@
+import took 3.3s
+'TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_average_tendsto' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_limit_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 4.7ms
+	attribute application 0.0253ms
+	blocked (unaccounted) 139ms
+	congr simp thm 0.592ms
+	declTypeLinter 2.1ms
+	dsimp 2.72ms
+	elaboration 14ms
+	fix level params 0.153ms
+	import 3.3s
+	initialization 36.6ms
+	instantiate metavars 0.272ms
+	interpretation 360ms
+	let-to-have transformation 0.0331ms
+	linting 4.8ms
+	module linting 0.011ms
+	norm_num 2.49ms
+	parsing 1.71ms
+	process pre-definitions 1.84ms
+	ring 8.22ms
+	share common exprs 1.52ms
+	simp 2.78ms
+	tactic execution 25.1ms
+	tacticAnalysis 1.67ms
+	type checking 19.7ms
+	typeclass inference 56.1ms

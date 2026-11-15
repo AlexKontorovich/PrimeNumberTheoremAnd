@@ -1,0 +1,7 @@
+import RSBounds.SchoenfeldLaplaceTails
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.hasDerivAt_nearPrimitive
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.hasDerivAt_neg_farPrimitive
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_near_le
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_far_le
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_near_Xv_le
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldLaplaceTails.integral_far_Xv_le

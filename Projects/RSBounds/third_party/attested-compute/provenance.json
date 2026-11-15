@@ -1,0 +1,27 @@
+{
+  "repository": "https://github.com/gersh/attested-compute",
+  "commit": "028462066f8537e3b90fcd83c32194f1cd526e46",
+  "retrieved_via": "mcp__codex_apps__github_fetch_file",
+  "files": [
+    "SparkInterval/TernaryGoldbach/PsiEndpointArithmetic.lean",
+    "SparkInterval/TernaryGoldbach/PsiSourceSemantics.lean",
+    "SparkInterval/TernaryGoldbach/PsiPrimePowerCertificate.lean"
+  ],
+  "license": "MIT; full upstream LICENSE included",
+  "status": "Exact-source inspection copies only; no local compile or axiom audit performed",
+  "notes": "SourceClaim_of_gap_evidence retains GapSourceScaleEvidence as an explicit premise. The registered trusted-compute module is separate and not included.",
+  "sha256": {
+    "PsiEndpointArithmetic.lean": "522e9587be1545dc9037b97666bd7e5b2510d03aac26f6e50f5b05e7a3098963",
+    "PsiPrimePowerCertificate.lean": "d6ec86e6e6181afa1bdeb7c519adcfeab2916b759ca50e6ecc2f56ffc423937d",
+    "PsiSourceSemantics.lean": "2012366e841ca6271960bcf624f6939ee40091e5b036df4b5a21e833bcdc5820",
+    "LICENSE": "f8e2771bf52a626899f7562d01d3d094542d00753a7239e656196d56f4853d96"
+  },
+  "git_blob_sha1_verified": {
+    "PsiEndpointArithmetic.lean": "37bc56e2476ad9e66b52fb9c7a947f03e8bb3ed2",
+    "PsiSourceSemantics.lean": "af7fa44426c26fc6b704dab8c1e9124df45e4a72",
+    "PsiPrimePowerCertificate.lean": "8a1a1ea8bce860b6d2157cd2cb5ac8a0ec85b515",
+    "LICENSE": "79e996f44a8f54fa001278ba95b03cfc91ab2521"
+  },
+  "adapted_into": "RSBounds/PsiSieveEndpointReduction.lean",
+  "reuse": "The generic integer normalization proof is adapted under MIT; local gap lemmas are new. The full upstream files were inspected, not vendored or imported."
+}

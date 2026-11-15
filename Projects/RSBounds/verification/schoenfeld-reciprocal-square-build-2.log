@@ -1,0 +1,42 @@
+import took 365s
+typeclass inference of DecidablePred took 115ms
+type checking took 308ms
+RSBounds/SchoenfeldSquareCutoffs.lean:66:19: warning: `if_true` has been deprecated: Use `ite_true` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵t̵r̵u̵e̵i̲t̲e̲_̲t̲r̲u̲e̲
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.rectangle_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.positive_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldReciprocalSquare.weighted_reciprocal_square_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 75.5ms
+	attribute application 0.172ms
+	blocked (unaccounted) 1.66s
+	congr simp thm 3.07ms
+	declTypeLinter 21.5ms
+	dsimp 9.02ms
+	elaboration 144ms
+	fix level params 0.342ms
+	import 365s
+	initialization 55.3ms
+	instantiate metavars 0.709ms
+	interpretation 2.03s
+	let-to-have transformation 0.0654ms
+	linting 35.4ms
+	module linting 0.409ms
+	norm_num 74.3ms
+	parsing 20ms
+	process pre-definitions 6.44ms
+	ring 46.5ms
+	share common exprs 3.73ms
+	simp 29.1ms
+	tactic execution 275ms
+	tacticAnalysis 4.09ms
+	type checking 319ms
+	typeclass inference 533ms

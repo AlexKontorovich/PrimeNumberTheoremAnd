@@ -1,0 +1,24 @@
+'TernaryGoldbach.RSBounds.PolynomialPsi.psi_sandwich' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_psi4Trunc' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPsi.psi_error_of_polynomial_errors' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.PolynomialPsi.psi_sandwich {x h : ℝ} (hx : 0 ≤ x) (hh : 0 < h) {N : ℕ} (hN : x + 4 * h ≤ ↑N) :
+  TernaryGoldbach.RSBounds.PolynomialPsi.psiLower N x h ≤ Chebyshev.psi x ∧
+    Chebyshev.psi x ≤ TernaryGoldbach.RSBounds.PolynomialPsi.psiUpper N x h
+TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference_Psi4 {x h : ℝ} (hx : 0 ≤ x) (hh : 0 < h) {N : ℕ}
+  (hN : x + 4 * h ≤ ↑N) :
+  TernaryGoldbach.RSBounds.PolynomialPsi.fourthDifference TernaryGoldbach.RSBounds.PolynomialPsi.Psi4 x h / h ^ 4 =
+    TernaryGoldbach.RSBounds.PolynomialPsi.psiUpper N x h
+TernaryGoldbach.RSBounds.PolynomialPsi.psi_error_of_polynomial_errors {x h E : ℝ} (hx : 0 ≤ x) (hh : 0 < h) {N : ℕ}
+  (hN : x + 4 * h ≤ ↑N) (hupper : |TernaryGoldbach.RSBounds.PolynomialPsi.psiUpper N x h - (x + 2 * h)| ≤ E)
+  (hlower : |TernaryGoldbach.RSBounds.PolynomialPsi.psiLower N x h - (x - 2 * h)| ≤ E) :
+  |Chebyshev.psi x - x| ≤ E + 2 * h

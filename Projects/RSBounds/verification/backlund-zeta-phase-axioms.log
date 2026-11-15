@@ -1,0 +1,31 @@
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.hasDerivAt_zetaHArg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.zeta_eq_norm_mul_cis' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.re_zeta_pow_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.zetaHArg_sub_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.zetaHArg_continuous' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.powerAverage_zeta_eq_zero_of_cos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.phase_reflection_eq_integral' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.abs_phase_reflection_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.abs_phase_reflection_le_four_div' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.analyticOnNhd_zeta_translate' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundZetaPhase.horizontal_argument_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

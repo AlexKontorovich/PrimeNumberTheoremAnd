@@ -1,0 +1,39 @@
+import took 4.69s
+'TernaryGoldbach.RSBounds.MertensSignedInterval.integrable_leftRemainder' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.kernel_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 9.08ms
+	attribute application 0.0685ms
+	blocked (unaccounted) 1.21s
+	congr simp thm 4.5ms
+	declTypeLinter 3.8ms
+	dsimp 1.31ms
+	elaboration 122ms
+	fix level params 1.02ms
+	import 4.69s
+	initialization 44.2ms
+	instantiate metavars 2.42ms
+	interpretation 649ms
+	let-to-have transformation 0.261ms
+	linting 28.9ms
+	module linting 0.00834ms
+	norm_num 75.4ms
+	parsing 25.5ms
+	process pre-definitions 18.1ms
+	ring 40.6ms
+	share common exprs 14.9ms
+	simp 122ms
+	tactic execution 345ms
+	tacticAnalysis 4.67ms
+	type checking 81.9ms
+	typeclass inference 386ms

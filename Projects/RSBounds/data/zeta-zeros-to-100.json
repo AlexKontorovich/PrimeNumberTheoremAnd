@@ -1,0 +1,432 @@
+{
+  "format": "ordered-open-rational-brackets",
+  "height": [
+    100,
+    1
+  ],
+  "count": 29,
+  "indexing": "one-based",
+  "count_convention": "0 < Im(rho) <= T, counting multiplicity",
+  "source_repository": "https://github.com/teal-sea/zeta-lab",
+  "source_commit": "b09fa4dd2f2182cf14b248e7ffc64ff03df2c534",
+  "lean_module": "RSBounds.ZetaZeroTable",
+  "lean_table": "TernaryGoldbach.RSBounds.ZetaZeroTable.first29",
+  "status": "kernel-checked",
+  "entries": [
+    {
+      "index": 1,
+      "lower": [
+        1413,
+        100
+      ],
+      "upper": [
+        707,
+        50
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyFirstZero.FirstZero",
+      "source_declaration": "first_zero_on_line"
+    },
+    {
+      "index": 2,
+      "lower": [
+        2102,
+        100
+      ],
+      "upper": [
+        2103,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box2102",
+      "source_declaration": "zero_in_2102"
+    },
+    {
+      "index": 3,
+      "lower": [
+        2501,
+        100
+      ],
+      "upper": [
+        2502,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box2501",
+      "source_declaration": "zero_in_2501"
+    },
+    {
+      "index": 4,
+      "lower": [
+        3042,
+        100
+      ],
+      "upper": [
+        3043,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box3042",
+      "source_declaration": "zero_in_3042"
+    },
+    {
+      "index": 5,
+      "lower": [
+        3293,
+        100
+      ],
+      "upper": [
+        3294,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box3293",
+      "source_declaration": "zero_in_3293"
+    },
+    {
+      "index": 6,
+      "lower": [
+        3758,
+        100
+      ],
+      "upper": [
+        3759,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box3758",
+      "source_declaration": "zero_in_3758"
+    },
+    {
+      "index": 7,
+      "lower": [
+        4091,
+        100
+      ],
+      "upper": [
+        4092,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box4091",
+      "source_declaration": "zero_in_4091"
+    },
+    {
+      "index": 8,
+      "lower": [
+        4332,
+        100
+      ],
+      "upper": [
+        4333,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box4332",
+      "source_declaration": "zero_in_4332"
+    },
+    {
+      "index": 9,
+      "lower": [
+        4800,
+        100
+      ],
+      "upper": [
+        4801,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box4800",
+      "source_declaration": "zero_in_4800"
+    },
+    {
+      "index": 10,
+      "lower": [
+        4977,
+        100
+      ],
+      "upper": [
+        4978,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "HardyTenZeros.Box4977",
+      "source_declaration": "zero_in_4977"
+    },
+    {
+      "index": 11,
+      "lower": [
+        5297,
+        100
+      ],
+      "upper": [
+        5298,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box5297",
+      "source_declaration": "zero_in_5297"
+    },
+    {
+      "index": 12,
+      "lower": [
+        5644,
+        100
+      ],
+      "upper": [
+        5645,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box5644",
+      "source_declaration": "zero_in_5644"
+    },
+    {
+      "index": 13,
+      "lower": [
+        5934,
+        100
+      ],
+      "upper": [
+        5935,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box5934",
+      "source_declaration": "zero_in_5934"
+    },
+    {
+      "index": 14,
+      "lower": [
+        6083,
+        100
+      ],
+      "upper": [
+        6084,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box6083",
+      "source_declaration": "zero_in_6083"
+    },
+    {
+      "index": 15,
+      "lower": [
+        6511,
+        100
+      ],
+      "upper": [
+        6512,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box6511",
+      "source_declaration": "zero_in_6511"
+    },
+    {
+      "index": 16,
+      "lower": [
+        67075,
+        1000
+      ],
+      "upper": [
+        67085,
+        1000
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box67075",
+      "source_declaration": "zero_in_67075"
+    },
+    {
+      "index": 17,
+      "lower": [
+        6954,
+        100
+      ],
+      "upper": [
+        6955,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box6954",
+      "source_declaration": "zero_in_6954"
+    },
+    {
+      "index": 18,
+      "lower": [
+        7206,
+        100
+      ],
+      "upper": [
+        7207,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box7206",
+      "source_declaration": "zero_in_7206"
+    },
+    {
+      "index": 19,
+      "lower": [
+        7570,
+        100
+      ],
+      "upper": [
+        7571,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box7570",
+      "source_declaration": "zero_in_7570"
+    },
+    {
+      "index": 20,
+      "lower": [
+        7714,
+        100
+      ],
+      "upper": [
+        7715,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box7714",
+      "source_declaration": "zero_in_7714"
+    },
+    {
+      "index": 21,
+      "lower": [
+        7933,
+        100
+      ],
+      "upper": [
+        7934,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box7933",
+      "source_declaration": "zero_in_7933"
+    },
+    {
+      "index": 22,
+      "lower": [
+        8291,
+        100
+      ],
+      "upper": [
+        8292,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box8291",
+      "source_declaration": "zero_in_8291"
+    },
+    {
+      "index": 23,
+      "lower": [
+        8473,
+        100
+      ],
+      "upper": [
+        8474,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box8473",
+      "source_declaration": "zero_in_8473"
+    },
+    {
+      "index": 24,
+      "lower": [
+        8742,
+        100
+      ],
+      "upper": [
+        8743,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box8742",
+      "source_declaration": "zero_in_8742"
+    },
+    {
+      "index": 25,
+      "lower": [
+        8880,
+        100
+      ],
+      "upper": [
+        8881,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box8880",
+      "source_declaration": "zero_in_8880"
+    },
+    {
+      "index": 26,
+      "lower": [
+        9249,
+        100
+      ],
+      "upper": [
+        9250,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box9249",
+      "source_declaration": "zero_in_9249"
+    },
+    {
+      "index": 27,
+      "lower": [
+        9465,
+        100
+      ],
+      "upper": [
+        9466,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box9465",
+      "source_declaration": "zero_in_9465"
+    },
+    {
+      "index": 28,
+      "lower": [
+        95865,
+        1000
+      ],
+      "upper": [
+        95875,
+        1000
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box95865",
+      "source_declaration": "zero_in_95865"
+    },
+    {
+      "index": 29,
+      "lower": [
+        9883,
+        100
+      ],
+      "upper": [
+        9884,
+        100
+      ],
+      "multiplicity": 1,
+      "source_module": "RHHeight100.Box9883",
+      "source_declaration": "zero_in_9883"
+    }
+  ],
+  "verification": {
+    "table": "verification/zeta-zero-table-run.json",
+    "certificate_replay": "verification/rh100-replay-run.json",
+    "standard_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  }
+}

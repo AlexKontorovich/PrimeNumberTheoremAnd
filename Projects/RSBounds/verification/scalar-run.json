@@ -1,0 +1,16 @@
+{
+  "command": [
+    "lake build RSBounds.TotientAnalyticReduction",
+    "lake env lean verification/ScalarAudit.lean"
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "RSBounds/TotientAnalyticReduction.lean": "86071667af8b4d2a6a0e30e467cec22edd5ff1f79c8362489deb980273db5bac"
+  },
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "kind": "local-verification-record"
+}

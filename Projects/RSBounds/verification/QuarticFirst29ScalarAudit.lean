@@ -1,0 +1,11 @@
+import RSBounds.QuarticFirst29BudgetNumerics
+
+#print axioms TernaryGoldbach.RSBounds.QuarticBudgetNumerics.Expr.sound
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_checked
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_checked
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_positive
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_upper
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.coefficientCertificate_eval
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.budgetCertificate_eval
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.sqrtCoefficient_pos
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetNumerics.scalarBudget_lt

@@ -1,0 +1,50 @@
+import took 4.67s
+RSBounds/MertensIntervalDecay.lean:111:6: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensIntervalDecay.lean:111:6: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.numeratorBound_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_numerator_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_le_im' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.continuous_kernel_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_line_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensIntervalKernel.decayTwo_kernel' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 16.7ms
+	attribute application 0.129ms
+	blocked (unaccounted) 2.56s
+	congr simp thm 4.48ms
+	declTypeLinter 4.04ms
+	elaboration 58.8ms
+	fix level params 1.24ms
+	import 4.67s
+	initialization 34.6ms
+	instantiate metavars 2.85ms
+	interpretation 1.17s
+	let-to-have transformation 0.251ms
+	linting 26.9ms
+	module linting 0.00832ms
+	norm_num 403ms
+	parsing 7.85ms
+	process pre-definitions 22.7ms
+	ring 70.4ms
+	share common exprs 34ms
+	simp 43.6ms
+	tactic execution 310ms
+	tacticAnalysis 4.29ms
+	type checking 128ms
+	typeclass inference 743ms

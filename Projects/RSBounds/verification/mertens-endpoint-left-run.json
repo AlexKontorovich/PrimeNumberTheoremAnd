@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-source-compilation-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:26:12.009033+00:00",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensEndpointLeft.olean",
+    "RSBounds/MertensEndpointLeft.lean"
+  ],
+  "source_sha256": {
+    "RSBounds/MertensEndpointLeft.lean": "b5213c334c91e93ab32b2705a5b6cdcdd4881e4cff9e7fed5d1a823b65a757a7",
+    "verification/MertensEndpointLeftAudit.lean": "a5fe88d03a5f6ad0d6a873218372399ed5203f6ac284b91fd9a0a99f614710cd",
+    "verification/run_mertens_endpoint_left_check.py": "24d8eba1bfd53d6a8dca5fbf4c344e05ed8ae17ff883daacbeeaa74c150abdf9"
+  },
+  "key_dependency_sha256": {
+    "RSBounds/MertensIntervalLeftBound.lean": "f665f45fd373b2dc49232de804ec6274eb8f93767b852409cf1f8f0ff75255e2",
+    ".lake/build/lib/lean/RSBounds/MertensIntervalLeftBound.olean": "9ddd0c881f38ce2af6863439f0ca02217c149c4e24c676aa856253ef8b545c20",
+    "RSBounds/MertensSignedInterval.lean": "7782ac59b035f6db7b43fcbae0806c1ff647e74d36e5a91384c76c67a2d2b9df",
+    "RSBounds/MertensIntervalDecay.lean": "bde513c3e1d3ff44fbbedc81bf403f9bbba2f987370fdfd63a1be6977388dc6d",
+    "RSBounds/PolynomialExplicitFormula.lean": "9b4980ca52f9c22ef4dc8964cfbdfd1d1321c8031b8adf852b0948d0df821191",
+    "RSBounds/PolynomialLeftRemainder.lean": "f953776e4a91f6b2fd9f54c7e246423e1803dade49dedc8c1ec6bbac820e64f2",
+    "../ternary-goldbach/TernaryGoldbach/Explicit/XiPartial.lean": "d5c7c512e06b21a1d07d150cd8174138df2cd80bb0de6aaa05a9508a0ebe6207",
+    "../ternary-goldbach/TernaryGoldbach/Explicit/ZetaExplicit.lean": "f9d9c2495e3a72b699cfc38cd848c2a0c7ae1163aeda800038ef557124022ed2"
+  },
+  "stdin_sha256": "b4f3cd801f6020ef5eaeefe770bafd32cd7f609d75bbd038f30f72ff1ae5c516",
+  "stdin_description": "Exact source followed by every #print axioms command from the audit file.",
+  "log": "verification/mertens-endpoint-left-build-audit.log",
+  "exit_code": 0,
+  "seconds": 290.34197375399526,
+  "finished_utc": "2026-11-06T19:31:02.358231+00:00",
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "0b78f801b6df1a5624f41e944cd547fa6e639e2129bc1efa08cc6833c1313867",
+  "source_unchanged": true
+}

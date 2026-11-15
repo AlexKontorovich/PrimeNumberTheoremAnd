@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-mertens-abel-identity-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:44:54.429279+00:00",
+  "source_sha256": {
+    "RSBounds/MertensAbelIdentity.lean": "743f7aff4f26e7344e3cbef14fe811c22802b0ee8a56fa3e6f7267bade38df8e",
+    "RSBounds/RS75MomentCalculus.lean": "feabe86c32cae11eacbf26f6f08cbbedb1a89f0a253c747a47dd4ccfb4026069",
+    "../ternary-goldbach/TernaryGoldbach/Prelim/PNTMertens.lean": "d1406c91106cf881bf2a5ec0adae8f4a33e938f1cd571759fe2fe5a483c0d2ea",
+    "verification/MertensAbelIdentityAudit.lean": "4097e78553130ab28db45a3f866649c7b7deee71a8ad024f52c6478033637e55",
+    "verification/run_mertens_abel_identity_check.py": "5ba2cff0a250ebf38dfd8ffc824b3f8dc88d6f11ea03538093b884d9d15d571f"
+  },
+  "stdin_recipe": "Exact source plus eight fully qualified #print axioms commands.",
+  "stdin_sha256": "efd972e70a0d6ad73ec6a2ed6e0460c24c28f2ddfd37284ee6b47070de2fd98e",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensAbelIdentity.olean",
+        "RSBounds/MertensAbelIdentity.lean"
+      ],
+      "log": "verification/mertens-abel-identity-build.log",
+      "exit_code": 0,
+      "seconds": 72.63972705599735
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 8,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "f763e781620df8b42fb7902b3a25f07971b95287132da9227f7a400967baecb1",
+  "finished_utc": "2026-11-06T18:46:07.076490+00:00"
+}

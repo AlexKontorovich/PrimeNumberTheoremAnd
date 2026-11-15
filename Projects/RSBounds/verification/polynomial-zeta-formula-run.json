@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T09:01:48.570004+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialZetaFormula.lean": "52c6ccb12385d82dcdde851907428ebb16f13fb4fadbe64bbb708e236a902ccc",
+    "verification/PolynomialZetaFormulaAudit.lean": "95c1c86be0177139bb31ae1b72d824b9262b366eb98a5781063322f5c10f21f4"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialZetaFormula"
+      ],
+      "log": "polynomial-zeta-formula-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialZetaFormulaAudit.lean"
+      ],
+      "log": "polynomial-zeta-formula-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T09:02:06.288458+00:00",
+  "exit_code": 0
+}

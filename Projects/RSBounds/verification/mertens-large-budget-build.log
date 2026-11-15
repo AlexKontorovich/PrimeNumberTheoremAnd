@@ -1,0 +1,46 @@
+import took 518s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 186ms
+elaboration took 125ms
+RSBounds/MertensLargeBudget.lean:77:25: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensLargeBudget.lean:77:25: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+'TernaryGoldbach.RSBounds.MertensLargeBudget.cutoffRoot_ge' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLargeBudget.cutoffRoot_sq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLargeBudget.actual_envelope_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLargeBudget.norm_signedLimit_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLargeBudget.abs_J_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensLargeBudget.mertens_lower_of_weak_psi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 42.2ms
+	attribute application 0.0817ms
+	blocked (unaccounted) 2.78s
+	congr simp thm 1.56ms
+	declTypeLinter 20.8ms
+	elaboration 423ms
+	fix level params 0.956ms
+	import 518s
+	initialization 38.9ms
+	instantiate metavars 2.56ms
+	interpretation 2.86s
+	let-to-have transformation 0.14ms
+	linting 64.5ms
+	module linting 0.481ms
+	norm_num 246ms
+	parsing 25.2ms
+	process pre-definitions 22ms
+	ring 94ms
+	share common exprs 19.7ms
+	simp 11.7ms
+	tactic execution 507ms
+	tacticAnalysis 13.9ms
+	type checking 220ms
+	typeclass inference 721ms

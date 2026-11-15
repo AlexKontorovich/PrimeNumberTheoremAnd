@@ -1,0 +1,9 @@
+{
+  "kind": "portable-runner-configuration-check",
+  "checked_utc": "2026-11-06T13:07:39.672271+00:00",
+  "external_snapshot_present": false,
+  "vendored_manifest_loaded": true,
+  "all_99_sources_located": true,
+  "scope": "Tests loading and source discovery without the external original snapshot; does not replace the separately recorded 99-module Lean replay.",
+  "runner_sha256": "83844f1434aec571066b4f599550b79580eae5952c8a2adb2bf4545ae5dcfc64"
+}
