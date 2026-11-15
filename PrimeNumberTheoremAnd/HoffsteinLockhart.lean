@@ -19,6 +19,8 @@ open scoped ArithmeticFunction Interval
 
 blueprint_comment /--
 
+THIS SECTION IS NO LONGER NEEDED
+
 In this file, we use the Hoffstein-Lockhart construction to prove a zero-free region for zeta.
 
 Hoffstein-Lockhart + Goldfeld-Hoffstein-Liemann
