@@ -337,11 +337,11 @@ Some results from \cite{Dusart1999}-/
   "thm:dusart1999-pi"
   (title := "Dusart 1999, $\\pi$ inequality")
   (statement := /-- For $x \geq 5393$, we have $\pi(x) > \frac{x}{\log x - 1}$. -/)
+  (proof := /-- Immediate from the strict form of \ref{Dusart_cor_5_3_a}. -/)
+  (proofUses := ["Dusart_cor_5_3_a"])
   (latexEnv := "theorem")]
 theorem pi_inequality (x : ℝ) (hx : x ≥ 5393) :
-    pi x > x / (log x - 1) := by
-  -- Matches `Dusart.corollary_5_3_a` (strict), Art01 / Dusart1999.
-  sorry
+    pi x > x / (log x - 1) := Dusart.corollary_5_3_a hx
 
 private lemma log_ge_22 {x : ℝ} (hx : x ≥ exp 22) : log x ≥ 22 := by
   calc (22 : ℝ) = log (exp 22) := (log_exp 22).symm
@@ -571,6 +571,111 @@ theorem theta_improv_2 (x : ℝ) (hx : x ≥ 89967803) :
   unfold Eθ at hEθ
   rw [div_le_div_iff₀ hx_pos hlog3_pos, one_mul] at hEθ
   rwa [le_div_iff₀' hlog3_pos, mul_comm]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-3"
+  (title := "Dusart 2018, $\\vartheta$ improvement 3")
+  (statement := /-- For $x \geq 122{,}568{,}683$, we have
+  $|\vartheta(x) - x| \leq \frac{0.05\, x}{\log^2 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(2,0.05,122568683)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_3 (x : ℝ) (hx : x ≥ 122568683) :
+    |θ x - x| ≤ 0.05 * x / (log x) ^ 2 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog2_pos : (0 : ℝ) < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hmem : (2, (0.05 : ℝ), (122568683 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog2_pos] at hEθ
+  rwa [le_div_iff₀ hlog2_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-4"
+  (title := "Dusart 2018, $\\vartheta$ improvement 4")
+  (statement := /-- For $x \geq 7{,}713{,}133{,}853$, we have
+  $|\vartheta(x) - x| \leq \frac{0.01\, x}{\log^2 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(2,0.01,7713133853)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_4 (x : ℝ) (hx : x ≥ 7713133853) :
+    |θ x - x| ≤ 0.01 * x / (log x) ^ 2 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog2_pos : (0 : ℝ) < (log x) ^ 2 := pow_pos hlog_pos 2
+  have hmem : (2, (0.01 : ℝ), (7713133853 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog2_pos] at hEθ
+  rwa [le_div_iff₀ hlog2_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-5"
+  (title := "Dusart 2018, $\\vartheta$ improvement 5")
+  (statement := /-- For $x \geq 158{,}822{,}621$, we have
+  $|\vartheta(x) - x| \leq \frac{0.78\, x}{\log^3 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(3,0.78,158822621)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_5 (x : ℝ) (hx : x ≥ 158822621) :
+    |θ x - x| ≤ 0.78 * x / (log x) ^ 3 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos hlog_pos 3
+  have hmem : (3, (0.78 : ℝ), (158822621 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+  rwa [le_div_iff₀ hlog3_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-6"
+  (title := "Dusart 2018, $\\vartheta$ improvement 6")
+  (statement := /-- For $x \geq 767{,}135{,}587$, we have
+  $|\vartheta(x) - x| \leq \frac{0.5\, x}{\log^3 x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(3,0.5,767135587)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_6 (x : ℝ) (hx : x ≥ 767135587) :
+    |θ x - x| ≤ 0.5 * x / (log x) ^ 3 := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hlog3_pos : (0 : ℝ) < (log x) ^ 3 := pow_pos hlog_pos 3
+  have hmem : (3, (0.5 : ℝ), (767135587 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog3_pos] at hEθ
+  rwa [le_div_iff₀ hlog3_pos]
+
+@[blueprint
+  "thm:dusart2018-theta-improv-7"
+  (title := "Dusart 2018, $\\vartheta$ improvement 7")
+  (statement := /-- For $x \geq 908{,}994{,}923$, we have
+  $|\vartheta(x) - x| \leq \frac{0.001\, x}{\log x}$. -/)
+  (proof := /-- Restatement of \ref{Dusart_thm_4_2} at the table row
+    $(k,\eta_k,x_k)=(1,0.001,908994923)$. -/)
+  (proofUses := ["Dusart_thm_4_2"])
+  (latexEnv := "theorem")]
+theorem theta_improv_7 (x : ℝ) (hx : x ≥ 908994923) :
+    |θ x - x| ≤ 0.001 * x / log x := by
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := log_pos (by linarith)
+  have hmem : (1, (0.001 : ℝ), (908994923 : ℝ)) ∈ Dusart.Table_4_2 := by
+    simp [Dusart.Table_4_2]
+  have hEθ := Dusart.theorem_4_2 hmem hx
+  unfold Eθ at hEθ
+  simp only [pow_one] at hEθ
+  rw [div_le_div_iff₀ hx_pos hlog_pos] at hEθ
+  rwa [le_div_iff₀ hlog_pos]
 
 end Dusart
 
