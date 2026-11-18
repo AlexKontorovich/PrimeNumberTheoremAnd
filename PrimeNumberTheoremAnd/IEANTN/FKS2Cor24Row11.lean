@@ -1,6 +1,8 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor24CheckedNumerics
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4Ext
 
 /-!
 # FKS2 Corollary 24 — row 11 (`x^{-1/100}`) mid-range envelope
@@ -36,6 +38,8 @@ is assembled from four segments split at `e^3.5`, `e^10`, `e^3756`:
 The generic helpers `expSplitNegXpow`, `Epi_le_evalLhsE_low`, `floor_xpow_of_check`
 and `mid_xpow_of` are `n`-parameterized for reuse by row 10 (`n = 50`).
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

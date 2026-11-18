@@ -1,5 +1,7 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Cor14Tail
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Cor14Tail
 
 /-!
 # FKS2 Corollary 23 — row 9 `(A=6.60, B=2, C=2, x₀=3)`
@@ -15,6 +17,8 @@ FALSE.  Because `row9` is `B = 2` (a `log²` power) its curve is LOOSER than a
 `s = √(log x) ≥ 43.29` (i.e. `x ≥ e^1875`), hence on the whole tail `[e^20000, ∞)`.
 Mid + floor are the usual envelope (`k = 4`) + Buthe.
 -/
+
+@[expose] public section
 
 namespace FKS2
 open Real Table4Ext LeanCert.Core LeanCert.ANT.Asymp

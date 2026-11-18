@@ -1,12 +1,17 @@
-import Mathlib.Algebra.EuclideanDomain.Field
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Algebra.Order.Star.Int
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.Algebra.Order.Star.Real
-import Mathlib.NumberTheory.Harmonic.EulerMascheroni
-import Mathlib.Topology.Algebra.Module.ModuleTopology
-import PrimeNumberTheoremAnd.IEANTN.LogTables
+module
+
+public import Mathlib.Algebra.EuclideanDomain.Field
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Algebra.Order.Star.Int
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.Algebra.Order.Star.Real
+public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+public import Mathlib.Topology.Algebra.Module.ModuleTopology
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+
+
+@[expose] public section
 
 open Real Finset
 

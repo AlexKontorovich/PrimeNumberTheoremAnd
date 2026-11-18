@@ -1,7 +1,12 @@
-import Architect
-import Mathlib.NumberTheory.Chebyshev
-import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Chebyshev
+module
+
+public import Architect
+public import Mathlib.NumberTheory.Chebyshev
+public import PrimeNumberTheoremAnd.IEANTN.SecondarySummary
+public import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Chebyshev
+
+
+@[expose] public section
 
 namespace Lcm
 

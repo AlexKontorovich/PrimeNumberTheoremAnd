@@ -1,7 +1,9 @@
-import Architect
-import LeanCert.CertifiedBounds.Li2
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.Topology.Order.Basic
+module
+
+public import Architect
+public import LeanCert.CertifiedBounds.Li2
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.Topology.Order.Basic
 
 /-!
 # Bounds on li(2) using LeanCert numerical integration
@@ -16,6 +18,8 @@ verification target is built by LeanCert's CI and is not on PNT+'s build path.
 
 See: https://github.com/alerad/leancert
 -/
+
+@[expose] public section
 
 open Real MeasureTheory Set
 open scoped Interval

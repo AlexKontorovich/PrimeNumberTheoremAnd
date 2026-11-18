@@ -6,7 +6,12 @@ Each bound is proved by LeanCert's `interval_decide` tactic (verified Taylor ser
 
 Reviving a centuries-old practice: Napier (1614), Briggs (1624), now Lean (2026).
 -/
-import LeanCert.Tactic.IntervalAuto
+module
+
+public import LeanCert.Tactic.IntervalAuto
+
+
+public section
 
 namespace LogTables
 

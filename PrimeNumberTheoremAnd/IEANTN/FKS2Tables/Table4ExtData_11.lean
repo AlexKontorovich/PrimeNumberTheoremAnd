@@ -1,8 +1,12 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtCore
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtCore
 
 /-! Generated shard 11: cells [11010, 12050] of the
 extended ancillary Table 4 (see Table4ExtCore for provenance).
 Regenerate with scripts/fks2_gen_table4_cells.py. -/
+
+@[expose] public section
 
 namespace FKS2.Table4Ext
 

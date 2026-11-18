@@ -1,9 +1,14 @@
-import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
-import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
-import PrimeNumberTheoremAnd.IEANTN.LogTables
-import PrimeNumberTheoremAnd.IEANTN.Buthe
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
+public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+public import PrimeNumberTheoremAnd.IEANTN.Buthe
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}

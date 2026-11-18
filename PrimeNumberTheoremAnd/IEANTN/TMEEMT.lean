@@ -1,12 +1,17 @@
-import Architect
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.Buthe
-import PrimeNumberTheoremAnd.IEANTN.Dusart
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RSPrimeLower
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
-import PrimeNumberTheoremAnd.IEANTN.LogTables
-import PrimeNumberTheoremAnd.IEANTN.PrimeTables
+module
+
+public import Architect
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.Buthe
+public import PrimeNumberTheoremAnd.IEANTN.Dusart
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RSPrimeLower
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+public import PrimeNumberTheoremAnd.IEANTN.PrimeTables
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Results from the TME-EMT wiki}

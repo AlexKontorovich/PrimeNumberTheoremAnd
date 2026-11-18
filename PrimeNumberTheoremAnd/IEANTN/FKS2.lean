@@ -1,16 +1,21 @@
-import Mathlib.Algebra.Field.Defs
-import Mathlib.Algebra.Group.Action.Basic
-import Mathlib.Algebra.GroupWithZero.Action.Pi
-import Mathlib.Algebra.GroupWithZero.Action.Prod
-import Mathlib.Algebra.Order.Module.Defs
-import Mathlib.Analysis.SpecialFunctions.Log.Monotone
-import Mathlib.Data.Rat.Cast.OfScientific
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
-import PrimeNumberTheoremAnd.IEANTN.LogTables
-import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
+module
+
+public import Mathlib.Algebra.Field.Defs
+public import Mathlib.Algebra.Group.Action.Basic
+public import Mathlib.Algebra.GroupWithZero.Action.Pi
+public import Mathlib.Algebra.GroupWithZero.Action.Prod
+public import Mathlib.Algebra.Order.Module.Defs
+public import Mathlib.Analysis.SpecialFunctions.Log.Monotone
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
+public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
+public import PrimeNumberTheoremAnd.IEANTN.LogTables
+public import PrimeNumberTheoremAnd.IEANTN.Ramanujan.RamanujanCalculations
+
+
+@[expose] public section
 
 blueprint_comment /--
 \section{The implications of FKS2}\label{fks2-sec}

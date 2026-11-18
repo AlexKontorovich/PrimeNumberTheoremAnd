@@ -1,12 +1,16 @@
-import LeanCert.Tactic.IntervalAuto
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
-import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
+module
+
+public import LeanCert.Tactic.IntervalAuto
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
+public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_core
 
 /-! # Table 10 row theorems: 5-step rows 65-85 (k = 1..5)
 
 Crude cert-free a₂ suffices from b = 44 up (tolerance scan); every literal comes from the
 canonical parsed grid and was float-verified before emission. -/
+
+public section
 
 open Real Set Finset
 
