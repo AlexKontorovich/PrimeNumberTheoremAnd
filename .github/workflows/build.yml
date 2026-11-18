@@ -44,6 +44,15 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
+      - name: Check core import coverage
+        run: |
+          python3 -m unittest discover -s tests -v
+          # IEANTN has moved to its own repository; Unused is deliberately archived.
+          python3 scripts/lean_import_closure.py PrimeNumberTheoremAnd \
+            --check-prefix PrimeNumberTheoremAnd \
+            --exclude-prefix PrimeNumberTheoremAnd.IEANTN \
+            --exclude-prefix PrimeNumberTheoremAnd.Unused
+
       # LeanCert is a source dependency (no cloud olean cache, unlike Mathlib),
       # so cache its package directory keyed on the resolved dependency
       # revisions and toolchain. The git checkout must be cached together with
