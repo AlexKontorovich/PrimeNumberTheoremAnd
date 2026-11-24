@@ -12,7 +12,6 @@ public import PrimeNumberTheoremAnd.SmoothExistence
 public import PrimeNumberTheoremAnd.ZetaBounds
 public import PrimeNumberTheoremAnd.ZetaConj
 
-
 @[expose] public section
 
 set_option lang.lemmaCmd true

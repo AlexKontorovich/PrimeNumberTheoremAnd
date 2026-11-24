@@ -7,7 +7,6 @@ public import LeanCert.Tactic.IntervalAuto
 public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW
 public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_a2_bounds
 
-
 @[expose] public section
 
 open Real Set Finset

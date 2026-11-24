@@ -3,7 +3,6 @@ module
 public import Architect
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 
-
 @[expose] public section
 
 blueprint_comment /--

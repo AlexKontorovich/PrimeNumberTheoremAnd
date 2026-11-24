@@ -12,7 +12,6 @@ public import Mathlib.Analysis.Complex.RemovableSingularity
 public import PrimeNumberTheoremAnd.StrongPNT
 
 
-
 @[expose] public section
 
 @[blueprint "divRemovable_zero"

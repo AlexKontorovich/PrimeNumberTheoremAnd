@@ -8,7 +8,6 @@ public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.Analysis.Meromorphic.NormalForm
 public import PrimeNumberTheoremAnd.Rectangle
 
-
 @[expose] public section
 
 open Complex BigOperators Nat Classical Real Topology Filter

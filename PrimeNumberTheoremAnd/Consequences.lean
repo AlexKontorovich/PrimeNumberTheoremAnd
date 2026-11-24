@@ -8,7 +8,6 @@ public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import PrimeNumberTheoremAnd.Wiener
 
 
-
 @[expose] public section
 
 set_option lang.lemmaCmd true

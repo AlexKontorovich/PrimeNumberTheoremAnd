@@ -11,7 +11,6 @@ public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 public import LeanCert.CertifiedBounds.Chebyshev
 public import LeanCert.Tactic.IntervalAuto
 
-
 @[expose] public section
 
 blueprint_comment /--

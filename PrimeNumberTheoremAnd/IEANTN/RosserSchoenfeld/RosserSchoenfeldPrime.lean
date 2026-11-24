@@ -6,7 +6,6 @@ public import PrimeNumberTheoremAnd.MediumPNT
 public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 public import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime_tables
 
-
 @[expose] public section
 
 blueprint_comment /--

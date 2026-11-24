@@ -17,7 +17,6 @@ public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
 public import PrimeNumberTheoremAnd.Wiener
 public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
-
 @[expose] public section
 
 open Real

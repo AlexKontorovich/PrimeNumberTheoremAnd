@@ -13,7 +13,6 @@ public import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 public import Mathlib.Tactic.NormNum.RealSqrt
 
-
 @[expose] public section
 
 blueprint_comment /--

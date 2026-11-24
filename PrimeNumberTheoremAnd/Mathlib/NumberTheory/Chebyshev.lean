@@ -3,7 +3,6 @@ module
 public import Mathlib.NumberTheory.Chebyshev
 public import Mathlib.Analysis.SpecialFunctions.Log.Base
 
-
 @[expose] public section
 
 namespace Chebyshev

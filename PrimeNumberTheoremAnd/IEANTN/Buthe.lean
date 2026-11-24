@@ -2,7 +2,6 @@ module
 
 public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
 
-
 @[expose] public section
 
 blueprint_comment /--

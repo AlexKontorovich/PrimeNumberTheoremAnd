@@ -4,7 +4,6 @@ public import Architect
 public import PrimeNumberTheoremAnd.IEANTN.PrimaryDefinitions
 public import PrimeNumberTheoremAnd.IEANTN.FioriKadiriSwidinsky.FioriKadiriSwidinsky_tables
 
-
 @[expose] public section
 
 blueprint_comment /--

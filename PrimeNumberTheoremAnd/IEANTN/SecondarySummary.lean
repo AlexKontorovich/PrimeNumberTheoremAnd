@@ -9,7 +9,6 @@ public import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
 public import PrimeNumberTheoremAnd.IEANTN.Dusart
 public import PrimeNumberTheoremAnd.IEANTN.TMEEMT
 
-
 @[expose] public section
 
 blueprint_comment /--
@@ -348,5 +347,3 @@ theorem theorem_1_4 : Eπ.vinogradovBound 0.028 1.801 0.1853 23 := sorry
 blueprint_comment /-- TODO: input other results from JY -/
 
 end JY
-
-

@@ -6,7 +6,6 @@ public import LeanCert.CertifiedBounds.Chebyshev
 public import LeanCert.Validity.AffineCover
 public import LeanCert.Tactic.IntervalAuto
 
-
 @[expose] public section
 
 open LeanCert.CertifiedBounds.Chebyshev

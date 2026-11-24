@@ -10,7 +10,6 @@ public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 public import Mathlib.Topology.Algebra.Module.ModuleTopology
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 
-
 @[expose] public section
 
 open Real Finset

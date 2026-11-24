@@ -17,7 +17,6 @@ public import PrimeNumberTheoremAnd.IEANTN.KadiriSupport
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 
-
 @[expose] public section
 
 blueprint_comment /--

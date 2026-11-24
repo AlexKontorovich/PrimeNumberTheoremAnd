@@ -7,7 +7,6 @@ public import PrimeNumberTheoremAnd.Fourier
 public import PrimeNumberTheoremAnd.PerronFormula
 public import Mathlib.Analysis.Calculus.Deriv.Star
 
-
 @[expose] public section
 
 namespace Kadiri

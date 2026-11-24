@@ -7,7 +7,6 @@ public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_app_tables
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 public import PrimeNumberTheoremAnd.IEANTN.Buthe
 
-
 @[expose] public section
 
 blueprint_comment /--

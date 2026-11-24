@@ -7,7 +7,6 @@ public import Mathlib.NumberTheory.Bertrand
 public import PrimeNumberTheoremAnd.Consequences
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 
-
 @[expose] public section
 
 namespace Erdos392
