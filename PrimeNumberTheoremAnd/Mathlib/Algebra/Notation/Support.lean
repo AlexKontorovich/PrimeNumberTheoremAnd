@@ -1,5 +1,6 @@
 module
 
+public import Architect
 public import Mathlib.Algebra.GroupWithZero.Indicator
 public import Mathlib.Algebra.Notation.Support
 public import Mathlib.Analysis.Complex.Basic
