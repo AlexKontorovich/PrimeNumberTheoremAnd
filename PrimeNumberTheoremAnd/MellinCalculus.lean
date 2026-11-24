@@ -1010,7 +1010,7 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
       nth_rewrite 2 [← rpow_one y]
       exact rpow_le_rpow_of_exponent_ge ypos y1 (by linarith [one_lt_one_div εpos ε1])
     have pos : 0 < y ^ (1 / ε) := rpow_pos_of_pos ypos _
-    rw [ge_iff_le, div_le_iff₀, div_mul_eq_mul_div, le_div_iff₀', mul_comm] <;> try linarith
+    rw [ge_iff_le, div_le_iff₀, div_mul_eq_mul_div, le_div_iff₀', mul_comm] <;> linarith
   · rw [ge_iff_le, le_div_iff₀ <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 
 @[blueprint
@@ -1295,7 +1295,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · apply Integrable.piecewise Smeas.nullMeasurableSet ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
-      · apply MeasureTheory.Measure.restrict_mono' SsubT.eventuallyLE le_rfl
+      · apply MeasureTheory.Measure.restrict_mono SsubT le_rfl
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
       erw [this]; conv => lhs; intro; rw [mul_comm]

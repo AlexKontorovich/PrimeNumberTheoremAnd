@@ -550,10 +550,10 @@ lemma integral_const_div_re_add_self (hx : x ≠ 0) :
     A / I * I * (arctan (y₂ / -x) - arctan (y₁ / -x)) := by
   have l1 {y : ℝ} : A / (x + y * I) = A / I / (y + ↑(-x) * I) := by
     have e1 : x + y * I ≠ 0 := by
-      contrapose! hx
+      contrapose hx
       simpa using congr_arg re hx
     have e2 : y + I * ↑(-x) ≠ 0 := by
-      contrapose! hx
+      contrapose hx
       simpa using congr_arg im hx
     field_simp [*]
     push_cast

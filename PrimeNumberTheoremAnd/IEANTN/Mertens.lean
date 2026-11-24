@@ -1389,7 +1389,7 @@ theorem log_zeta_eq_integ_aux (s : ℝ) (hs : 1 < s) :
     set A : Set ℝ := Set.Ioi (1:ℝ) ∩ Set.Ici (d:ℝ) with hA
     have hae : A =ᵐ[volume] Set.Ioi (d:ℝ) := by
       have h1 : A =ᵐ[volume] (Set.Ici (1:ℝ) ∩ Set.Ici (d:ℝ) : Set ℝ) :=
-        MeasureTheory.ae_eq_set_inter MeasureTheory.Ioi_ae_eq_Ici (ae_eq_refl _)
+        MeasureTheory.ae_eq_set_inter MeasureTheory.Ioi_ae_eq_Ici Filter.EventuallyEqSet.rfl
       rw [Set.Ici_inter_Ici, max_eq_right hdR] at h1
       exact h1.trans MeasureTheory.Ioi_ae_eq_Ici.symm
     rw [MeasureTheory.setIntegral_congr_set hae]
@@ -2220,10 +2220,9 @@ lemma M_eq_f.sum_primes :
 
 lemma tsum_primes_eq_tsum_ite (f : ℕ → ℝ) :
     ∑' (n : Nat.Primes), f n = ∑' (n : ℕ), if n.Prime then f n else 0 := by
-  convert! _root_.tsum_subtype Nat.Prime f using 2
+  convert! _root_.tsum_subtype {p | p.Prime} f using 2
   ext
   simp [Set.indicator]
-  congr
 
 lemma tsum_M_eq_f_eq_tsum :
     -∑' (n : ℕ), M_eq_f n = ∑' p : ℕ, if p.Prime then log (1 - 1 / p) + 1 / p else 0 := by

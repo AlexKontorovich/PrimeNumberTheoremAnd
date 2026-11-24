@@ -238,9 +238,9 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     · apply Continuous.aestronglyMeasurable
       fun_prop (disch := simp[i_eq_zero, x_neq_zero])
   · rw [← lt_top_iff_ne_top]
-    simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal,
+    simp_rw [eNorm_mul, eNorm_eq_nnNorm, nnNorm_div, ← norm_toNNReal,
       Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
-    simp only [nnnorm_real, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    simp only [nnNorm_real, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero]
     simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ σ).toNNReal) (hr := by simp),
       ENNReal.tsum_mul_right]
@@ -260,8 +260,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
         (by simp only [ofReal_re]; linarith)).norm
       rw [LSeries.term_def]
       split_ifs with h <;> simp[h]
-    · simp_rw [← enorm_eq_nnnorm]
-      rw [← MeasureTheory.hasFiniteIntegral_iff_enorm]
+    · simp_rw [← eNorm_eq_nnNorm]
+      rw [← MeasureTheory.hasFiniteIntegral_iff_eNorm]
       exact SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
             mass_one εpos ε_lt_one σ_gt σ_le |>.hasFiniteIntegral
 
@@ -1605,7 +1605,7 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   obtain ⟨C, hC⟩ := this
   use C
   have εpos : ∀ᶠ (ε : ℝ) in nhdsWithin 0 (Ioi 0), ε > 0 :=
-    eventually_mem_of_tendsto_nhdsWithin fun ⦃U⦄ hU ↦ hU
+    self_mem_nhdsWithin
   filter_upwards [hC, εpos] with ε hC εpos
   rw[id_eq, norm_of_nonneg (le_of_lt εpos)] at hC
   intro X Xnne
@@ -2516,7 +2516,7 @@ lemma log_pow_over_xsq_integral_bounded :
       · simp only [mem_Icc, ne_eq, log_eq_zero, not_or, n_pos.le, or_true, implies_true]
       · linarith [hx.1]
     _ ≤ ∫ (x : ℝ) in Ioi 3, g x := by
-      refine setIntegral_mono_set g_integrable ?_ (LE.le.eventuallyLE Ioo_subset_Ioi_self)
+      refine setIntegral_mono_set g_integrable ?_ (LE.le.eventuallySubset Ioo_subset_Ioi_self)
       exact MeasureTheory.ae_restrict_of_forall_mem measurableSet_Ioi (fun x hx ↦ g_nonneg x hx)
   linarith
 
@@ -2982,7 +2982,7 @@ lemma I4GenBound {SmoothingF : ℝ → ℝ}
         rw[pow_two]
       rw[this]
       have : ContinuousOn (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊) (Icc 0 1) := by
-        refine ContinuousOn.nnnorm ?_
+        refine ContinuousOn.nnNorm ?_
         refine ContinuousOn.sub ?_ (by exact continuousOn_const)
         refine ContinuousOn.add (by exact continuousOn_const) ?_
         exact ContinuousOn.mul (by exact Complex.continuous_ofReal.continuousOn) (by exact continuousOn_const)

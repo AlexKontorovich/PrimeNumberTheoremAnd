@@ -308,15 +308,21 @@ lemma exp_neg_34_lt : exp (-(34 : ℝ)) < 1.715e-15 := by interval_decide
 lemma exp_neg_104_3_lt : exp (-(104/3 : ℝ)) < 8.801e-16 := by interval_decide
 lemma exp_neg_106_3_lt : exp (-(106/3 : ℝ)) < 4.519e-16 := by interval_decide
 lemma exp_neg_36_lt : exp (-(36 : ℝ)) < 2.321e-16 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_110_3_lt : exp (-(110/3 : ℝ)) < 1.192e-16 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_112_3_lt : exp (-(112/3 : ℝ)) < 6.116e-17 := by interval_decide
 lemma exp_neg_38_lt : exp (-(38 : ℝ)) < 3.141e-17 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_116_3_lt : exp (-(116/3 : ℝ)) < 1.613e-17 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_118_3_lt : exp (-(118/3 : ℝ)) < 8.276e-18 := by interval_decide
 lemma exp_neg_40_lt : exp (-(40 : ℝ)) < 4.250e-18 := by interval_decide
 lemma exp_neg_50_lt : exp (-(50 : ℝ)) < 1e-20 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_200_3_lt : exp (-(200/3 : ℝ)) < 1e-26 := by interval_decide
 lemma exp_neg_100_lt : exp (-(100 : ℝ)) < 1e-40 := by interval_decide
+set_option maxRecDepth 2000 in
 lemma exp_neg_400_3_lt : exp (-(400/3 : ℝ)) < 1e-53 := by interval_decide
 lemma exp_neg_150_lt : exp (-(150 : ℝ)) < 1e-60 := by interval_decide
 lemma exp_neg_200_lt : exp (-(200 : ℝ)) < 1e-80 := by interval_decide

@@ -1142,7 +1142,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           have a_le_plus: a ≤ n + (a + 3) := by omega
           simp only [a_le_plus, forall_const] at ha
 
-          by_contra!
+          by_contra
           rw [add_eq_zero_iff_eq_neg] at this
           rw [← abs_neg] at ha
           rw [← this] at ha
@@ -1604,7 +1604,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
     (1 : ℚ) = ∑ m ∈ Ioc 0 N, ∑ d ∈ m.divisors, μ d := by
       have (x : ℕ) (hx : x ∈ Ioc 0 N) : ∑ d ∈ divisors x, μ d = if x = 1 then 1 else 0 := by
         rw [mem_Ioc] at hx
-        rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta, one_apply]
+        rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta, ArithmeticFunction.one_apply]
       rw [sum_congr rfl this]
       simp [hN.ne']
     _ = ∑ d ∈ range (N + 1), μ d * (N / d : ℕ) := by
@@ -1630,7 +1630,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
       ArithmeticFunction.map_zero, Int.cast_zero, zero_mul, zero_add,
       Finset.Ico_add_one_right_eq_Icc, zero_add]
     /- Ico 1 (N + 1) → Ico 1 N ∪ {N + 1} that evals to 0 -/
-    rw [← Ico_insert_right hN, sum_insert (by simp), div_self (by simp; grind), Int.fract_one,
+    rw [← Finset.insert_right_Ico hN, sum_insert (by simp), div_self (by simp; grind), Int.fract_one,
       mul_zero, zero_add]
     /- bound sum -/
     have (d : ℕ) : |μ d * Int.fract ((N : ℚ) / d)| ≤ 1 := by
@@ -1662,7 +1662,7 @@ lemma sum_mobius_mul_floor (x : ℝ) (hx : 1 ≤ x) :
     norm_cast
     rw [← floor_div_natCast, Int.natCast_floor_eq_floor]
     positivity
-  · simpa [moebius_mul_coe_zeta, one_apply]
+  · simpa [moebius_mul_coe_zeta, ArithmeticFunction.one_apply]
 
 
 noncomputable def mu_log : ArithmeticFunction ℝ :=
@@ -1688,7 +1688,7 @@ lemma sum_mu_Lambda (x : ℝ) : ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ) * log n =
   simp_rw [← log_apply, ← mu_log_apply, mu_log_eq_mu_mul_neg_lambda]
   rw [sum_Ioc_mul_eq_sum_sum, ← sum_neg_distrib]
   refine sum_congr rfl fun n hn ↦ ?_
-  simp_rw [ArithmeticFunction.neg_apply, sum_neg_distrib]
+  simp_rw [neg_apply, sum_neg_distrib]
   ring_nf
   congr 2
   unfold Psi
@@ -1902,7 +1902,6 @@ lemma M_isLittleO : M =o[atTop] id := by
       ext x; by_cases hx : 1 ≤ x <;> simp_all +decide only [ge_iff_le, mul_sub, sum_sub_distrib, not_le, Pi.sub_apply]
       · simp +decide [sub_sub, mul_sub, Finset.sum_sub_distrib, Psi, R]
       · unfold M R; norm_num [Nat.floor_eq_zero.mpr hx]
-        norm_num [Finset.Iic_eq_Icc]
     rw [h_combined]
     refine Asymptotics.IsLittleO.sub ?_ h_term3
     refine Asymptotics.IsLittleO.sub ?_ ?_
@@ -2536,7 +2535,9 @@ theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) 
       exact this (IsUnit.exists_right_inv (show IsUnit (a : ZMod q) from by
         rwa [ZMod.isUnit_iff_coprime])).choose (IsUnit.exists_right_inv (show IsUnit (a : ZMod q)
           from by rwa [ZMod.isUnit_iff_coprime])).choose_spec
-    exact this.mono fun p hp ↦ ⟨hp.1, by simpa [ModEq, mod_eq_of_lt ha'] using hp.2⟩
+    refine this.mono fun p hp ↦ ?_
+    simp only [Set.mem_ofPred_eq] at hp ⊢
+    exact ⟨hp.1, by simpa [ModEq, mod_eq_of_lt ha'] using hp.2⟩
   exact Set.infinite_coe_iff.mpr this
 
 blueprint_comment /--

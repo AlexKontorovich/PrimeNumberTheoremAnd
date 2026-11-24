@@ -102,7 +102,7 @@ theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
   by
   rw [selbergTerms_apply]
   simp only [one_div, prod_inv_distrib, mul_inv, inv_inv]
-  rw [(s.nu_mult).prodPrimeFactors_one_sub_of_squarefree _ hl]
+  rw [(s.nu_mult).prodPrimeFactors_one_sub _ hl.ne_zero]
   rw [mul_sum]
   apply symm
   rw [← Nat.sum_divisorsAntidiagonal' fun d e : ℕ => ↑(μ d) * (ν e)⁻¹]
@@ -111,7 +111,7 @@ theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
   have hd_dvd : d ∣ l := dvd_of_mem_divisors hd
   rw [←div_mult_of_dvd_squarefree ν s.nu_mult l d (dvd_of_mem_divisors hd) hl, inv_div]
   · ring
-  revert hnu_nonzero; contrapose!
+  revert hnu_nonzero; contrapose
   exact multiplicative_zero_of_zero_dvd ν s.nu_mult hl hd_dvd
 
 theorem nu_eq_conv_one_div_selbergTerms (d : ℕ) (hdP : d ∣ P) :
@@ -120,7 +120,7 @@ theorem nu_eq_conv_one_div_selbergTerms (d : ℕ) (hdP : d ∣ P) :
   rw [←sum_filter, Nat.divisors_filter_dvd_of_dvd prodPrimes_ne_zero hdP]
   have hd_pos : 0 < d := Nat.pos_of_ne_zero <| ne_zero_of_dvd_ne_zero prodPrimes_ne_zero hdP
   revert hdP; revert d
-  apply (ArithmeticFunction.sum_eq_iff_sum_mul_moebius_eq_on _ (fun _ _ => Nat.dvd_trans)).mpr
+  apply (ArithmeticFunction.sum_eq_iff_sum_mul_moebius_eq_on {n | n ∣ P} (fun _ _ => Nat.dvd_trans)).mpr
   intro l _ hlP
   rw [sum_divisorsAntidiagonal' (f:=fun x y => (μ <| x) * (ν y)⁻¹) (n:=l)]
   apply symm
