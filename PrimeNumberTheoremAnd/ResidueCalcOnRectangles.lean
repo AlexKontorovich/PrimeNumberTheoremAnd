@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Meromorphic.NormalForm
 public import Mathlib.MeasureTheory.Integral.Asymptotics
 public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 public import PrimeNumberTheoremAnd.Rectangle
-public import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
 
 
 @[expose] public section
