@@ -18,5 +18,4 @@ public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_regime3_1260
 public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_44_59
 public import PrimeNumberTheoremAnd.IEANTN.BKLNW.BKLNW_table10_rows_misc
 
-
 public section

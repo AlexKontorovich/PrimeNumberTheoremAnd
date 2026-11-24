@@ -10,7 +10,6 @@ module
 
 public import LeanCert.Tactic.IntervalAuto
 
-
 public section
 
 namespace LogTables

@@ -6,7 +6,6 @@ public import Mathlib.Tactic.NormNum.Prime
 public import PrimeNumberTheoremAnd.Defs
 public import PrimeNumberTheoremAnd.IEANTN.eSHP.eSHP_tables
 
-
 public section
 
 open Nat

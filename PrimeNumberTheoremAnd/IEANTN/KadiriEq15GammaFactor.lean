@@ -4,7 +4,6 @@ public import PrimeNumberTheoremAnd.Defs
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 
-
 public section
 
 namespace Kadiri

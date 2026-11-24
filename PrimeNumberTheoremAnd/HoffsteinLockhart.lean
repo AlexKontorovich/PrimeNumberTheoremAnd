@@ -10,7 +10,6 @@ public import Mathlib.NumberTheory.ArithmeticFunction.Zeta
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 public import Mathlib.Analysis.Meromorphic.Basic
 
-
 public section
 
 open Complex BigOperators Finset Nat Classical

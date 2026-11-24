@@ -5,7 +5,6 @@ public import Mathlib.Data.Nat.Prime.Defs
 public import PrimeCert
 public import PrimeNumberTheoremAnd.Tactic.Simprocs
 
-
 public section
 
 set_option linter.style.nativeDecide false

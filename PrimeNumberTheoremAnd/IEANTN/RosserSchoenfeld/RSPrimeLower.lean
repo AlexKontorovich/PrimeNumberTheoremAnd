@@ -4,7 +4,6 @@ public import PrimeNumberTheoremAnd.IEANTN.Dusart
 public import PrimeNumberTheoremAnd.IEANTN.PrimeTables
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 
-
 public section
 
 open Real Chebyshev Nat

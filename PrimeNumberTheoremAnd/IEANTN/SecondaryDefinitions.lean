@@ -13,7 +13,6 @@ public import PrimeNumberTheoremAnd.IEANTN.LnFactorialSeries
 public import PrimeNumberTheoremAnd.IEANTN.LogTables
 
 
-
 public section
 
 blueprint_comment /--

@@ -6,7 +6,6 @@ public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import Mathlib.Tactic.Bound
 public import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
 
-
 public section
 
 set_option lang.lemmaCmd true
