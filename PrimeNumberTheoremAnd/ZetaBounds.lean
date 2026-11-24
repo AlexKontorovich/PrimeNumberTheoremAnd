@@ -785,7 +785,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
   · rw [Nat.floor_natCast, Nat.floor_natCast, ← intervalIntegral.integral_const_mul]
     simp_rw [mul_div, ← mul_div, φ, ZetaSum_aux1₁ s_ne_one ha]
     conv => rhs; rw [sub_eq_add_neg]
-    congr; any_goals norm_cast; simp only [one_div, add_sub_cancel_left]
+    congr; all_goals norm_cast; simp only [one_div, add_sub_cancel_left]
     rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
     simp only [φ, one_div] at φderiv
     intro x hx; simp_rw [φderiv x hx, φ']; ring_nf
@@ -1075,7 +1075,7 @@ lemma ZetaBnd_aux1p (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2)
     (fun (t : ℝ) ↦
       ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
     =O[Filter.principal {t | 2 ≤ |t|}] fun t ↦ |t| * N ^ (-σ) / σ := by
-  rw [Asymptotics.IsBigO_def]
+  rw [Asymptotics.isBigO_iff_isBigOWith]
   use 2
   rw [Asymptotics.isBigOWith_principal]
   intro t ht
@@ -1098,6 +1098,7 @@ lemma ZetaBnd_aux1p (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2)
   linarith [hσ.2]
 
 lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
+  rw [Set.ofPred_and]
   refine IsOpen.inter isOpen_ne ?_
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
@@ -2277,7 +2278,7 @@ lemma ZetaNear1BndExact :
   have cont : ContinuousOn ζ {ofReal z | z ∈ W} := by
     apply HasDerivAt.continuousOn (f' := ζ')
     intro σ hσ
-    exact (differentiableAt_riemannZeta (by contrapose! hσ; simp [W, hσ, εpos])).hasDerivAt
+    exact (differentiableAt_riemannZeta (by contrapose hσ; simp [W, hσ, εpos])).hasDerivAt
   obtain ⟨C, hC⟩ := IsCompact.exists_bound_of_continuousOn W_compact cont
   let C' := max (C + 1) 1
   replace hC : ∀ (σ : ℝ), σ ∈ W → ‖ζ σ‖ < C' := by
@@ -2489,7 +2490,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
         have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
         simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast] at this
         convert this using 3 <;> ring_nf
-      any_goals ring_nf
+      all_goals ring_nf
       any_goals apply norm_nonneg
       any_goals apply Real.rpow_nonneg <| norm_nonneg _
       apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
@@ -2535,7 +2536,7 @@ lemma ZetaInvBound2 :
   have ht' : 3 < |2 * t| := by simp only [abs_mul, Nat.abs_ofNat]; linarith
   have hnezero: ((σ - 1) / c) ^ (-3 / 4 : ℝ) ≠ 0 := by
     have : (σ - 1) / c ≠ 0 := ne_of_gt <| div_pos (by linarith) hc
-    contrapose! this
+    contrapose this
     rwa [Real.rpow_eq_zero (div_nonneg (by linarith) hc.le) (by norm_num)] at this
   calc
     _ ≤ ‖‖ζ σ‖ ^ (3 / 4 : ℝ) * ‖ζ (↑σ + 2 * ↑t * I)‖ ^ (1 / 4 : ℝ)‖ := ?_
@@ -2591,7 +2592,7 @@ lemma ZetaInvBound2 :
         apply Real.log_le_log (mul_pos (by norm_num) (by linarith)) (by nlinarith)
     · apply mul_pos (abs_pos.mpr hnezero) (abs_pos.mpr ?_)
       have : C ≠ 0 := ne_of_gt hC
-      contrapose! this; rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
+      contrapose this; rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
   · have : (-3 : ℝ) / 4 = -((3 : ℝ)/ 4) := by norm_num
     simp only [norm_mul, mul_eq_mul_right_iff, this, ← mul_assoc]; left; left
     conv => lhs; rw [Real.div_rpow (by linarith) hc.le, Real.rpow_neg hc.le, div_inv_eq_mul, norm_mul]
@@ -2633,7 +2634,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
   have diff : ∀ (σ : ℝ), DifferentiableAt ℂ ζ (σ + t * I) := by
     intro σ
     refine differentiableAt_riemannZeta ?_
-    contrapose! t_ne_zero; apply And.right; simpa [Complex.ext_iff] using t_ne_zero
+    contrapose t_ne_zero; apply And.right; simpa [Complex.ext_iff] using t_ne_zero
   apply intervalIntegral.integral_deriv_eq_sub'
   · exact deriv_fun_re diff
   · intro s _
@@ -2645,7 +2646,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
       intro x hx
       apply hasDerivAt_deriv_iff.mpr
       replace hx : x ≠ 1 := by
-        contrapose! hx
+        contrapose hx
         simp only [hx, mem_image, Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
           I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
           not_and]

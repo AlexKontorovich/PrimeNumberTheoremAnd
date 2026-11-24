@@ -347,9 +347,8 @@ theorem card_range_filter_prime_isBigO :
     apply isBigO_of_le
     intro N
     simp only [RCLike.norm_natCast, one_div, Real.norm_eq_abs]
-    rw [abs_of_nonneg]
+    rw [abs_of_nonneg (by positivity)]
     convert tmp N using 4 <;> norm_num
-    positivity
   _ =O[atTop] _ :=
     ((isBigO_refl ..).const_mul_left ..).add (err_isBigO.natCast.const_mul_left _)
 

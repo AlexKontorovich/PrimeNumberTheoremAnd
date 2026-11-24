@@ -43,7 +43,7 @@ theorem analyticOrderAt_finset_prod_weierstrassFactor_divisorZeroIndex₀
         z₀ = ((s.filter (fun p => divisorZeroIndex₀_val p = z₀)).card : ℕ∞) := by
   classical -- needed
   refine Finset.induction_on s ?base ?step
-  · simp [analyticOrderAt_eq_zero]
+  · simp
   · intro p s hp hs
     by_cases hEq : divisorZeroIndex₀_val p = z₀
     · have hp0 : divisorZeroIndex₀_val p ≠ 0 := p.property

@@ -321,7 +321,7 @@ theorem LogOfAnalyticFunction {r R : ℝ} {B : ℂ → ℂ}
       simp only [H, sub_self, Complex.exp_zero, one_div] at hc
       rw [div_eq_iff (Bnonzero z (Metric.ball_subset_closedBall hz)), mul_comm] at hc
       rw [← Complex.norm_exp, ← norm_div, div_eq_mul_inv]
-      exact enorm_eq_iff_norm_eq.mp (congrArg enorm hc)
+      exact eNorm_eq_iff_norm_eq.mp (congrArg eNorm hc)
     intro z hz
     have hBz := Bnonzero z (Metric.ball_subset_closedBall hz)
     have hB0 := Bnonzero 0 (by norm_num; linarith)
@@ -1237,8 +1237,8 @@ variable {α R : Type*} [SeminormedCommRing R] [NormMulClass R] [NormOneClass R]
  {f : α → R} {x : R}
 
 lemma HasProd.nnnorm (hfx : HasProd f x) : HasProd (‖f ·‖₊) ‖x‖₊ := by
-  simp only [HasProd, ← nnnorm_prod, SummationFilter.unconditional_filter] at ⊢ hfx
-  exact hfx.nnnorm
+  simp only [HasProd, ← nnNorm_prod, SummationFilter.unconditional_filter] at ⊢ hfx
+  exact hfx.nnNorm
 
 theorem Multipliable.nnnorm (hf : Multipliable f) : Multipliable (‖f ·‖₊) :=
   let ⟨x, hx⟩ := hf; ⟨‖x‖₊, hx.nnnorm⟩
@@ -1273,16 +1273,16 @@ lemma ZetaFixedLowerBound (t : ℝ) :
   have h₁ : 1 < ((3 : ℂ) / 2).re := by norm_num
   have h₂ : 1 < (3 : ℂ).re := by norm_num
   have h₃ : 1 < (3 / 2 + I * (t : ℂ)).re := by norm_num
-  rw [nnnorm_div, ge_iff_le,
-    div_le_iff₀ (nnnorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
+  rw [nnNorm_div, ge_iff_le,
+    div_le_iff₀ (nnNorm_pos.mpr (riemannZeta_ne_zero_of_one_le_re (by norm_num))),
     ← riemannZeta_eulerProduct_tprod h₁, ← riemannZeta_eulerProduct_tprod h₂,
     ← riemannZeta_eulerProduct_tprod h₃, (mp h₁).nnnorm_tprod, (mp h₂).nnnorm_tprod,
     (mp h₃).nnnorm_tprod, ← (mp h₃).nnnorm.tprod_mul (mp h₁).nnnorm]
   refine (mp h₂).nnnorm.tprod_le_tprod (fun p ↦ ?_) ((mp h₃).nnnorm.mul (mp h₁).nnnorm)
-  simp only [nnnorm_inv, ← mul_inv]
+  simp only [nnNorm_inv, ← mul_inv]
   have hfact : ‖1 - (p : ℂ) ^ (-3 : ℂ)‖₊ =
       ‖1 + (p : ℂ) ^ ((-3 : ℂ) / 2)‖₊ * ‖1 - (p : ℂ) ^ (-((3 : ℂ) / 2))‖₊ := by
-    rw [← nnnorm_mul]; congr 1; ring_nf; rw [← Complex.cpow_nat_mul]; ring_nf
+    rw [← nnNorm_mul]; congr 1; ring_nf; rw [← Complex.cpow_nat_mul]; ring_nf
   have hne : ∀ {s : ℂ}, 1 < s.re → (1 - (p : ℂ) ^ (-s)) ≠ 0 :=
     fun hs ↦ Complex.one_sub_prime_cpow_ne_zero p.2 hs
   rw [inv_le_inv₀, hfact]
@@ -1560,7 +1560,7 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
       analyticOrderNatAt f ρ / (z - ρ)‖ ≤ (16 * r ^ 2 / (r - r') ^ 3 +
       1 / ((R ^ 2 / R' - R') * Real.log (R / R'))) * (C * Real.log |t|) := by
   have one_lt_zeta_div : (1 : ℝ) < ‖ζ ((3 / 2) : ℝ)‖₊ / ‖ζ (3 : ℝ)‖₊ := by
-    rw [coe_nnnorm, coe_nnnorm,
+    rw [coe_nnNorm, coe_nnNorm,
       one_lt_div (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))]
     exact norm_zeta_strict_mono_ofReal (by linarith) (by linarith)
   have hzd : (1 : ℝ) < (‖ζ (3 / 2)‖₊ / ‖ζ 3‖₊ : ℝ) := by
@@ -1611,9 +1611,9 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
       refine mul_le_mul (GlobalBound (le_trans hz' R_lt_one.le) ht) ?_
         (one_div_nonneg.mpr (norm_nonneg _)) (by linarith)
       rw [one_div_le (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num))), one_div,
-        inv_div, ← toReal_coe_nnnorm, ENNReal.coe_toReal, ← NNReal.coe_div, ← nnnorm_div]
+        inv_div, ← toReal_coe_nnNorm, ENNReal.coe_toReal, ← NNReal.coe_div, ← nnNorm_div]
       · exact_mod_cast ZetaFixedLowerBound t
-      · simp only [coe_nnnorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
+      · simp only [coe_nnNorm, ← norm_div, norm_pos_iff, div_ne_zero_iff]
         exact ⟨riemannZeta_ne_zero_of_one_lt_re (by norm_num),
           riemannZeta_ne_zero_of_one_lt_re (by norm_num)⟩
     have ghz : z ∈ Metric.closedBall (0 : ℂ) r' \ SetOfZeros R' g := by
@@ -1632,7 +1632,7 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
         congr 1
         · simp only [g_def', deriv_div_const, div_div_div_cancel_right₀ f0nonzero]
         · refine Finset.sum_congr rfl fun ρ hρ => ?_
-          rw [div_left_inj', Nat.cast_inj, g_def', analyticOrderNatAt_fun_div_const f0nonzero]
+          rw [div_left_inj₀, Nat.cast_inj, g_def', analyticOrderNatAt_fun_div_const f0nonzero]
           · simp only [f]
             refine AnalyticAt.comp (analyticAt_riemannZeta ?_)
               (AnalyticAt.add (AnalyticAt.add analyticAt_id analyticAt_const)
@@ -1659,7 +1659,7 @@ theorem LogDerivZetaFinalBound {r' r R' R : ℝ} (r'_pos : 0 < r') (r'_lt_r : r'
         (log_le_log zero_lt_two (RCLike.ofReal_le_ofReal.mp ht)))))
     rw [← Real.log_mul (by linarith) (by linarith),
       log_le_log_iff (by linarith) (mul_pos (by linarith) (by linarith))]
-    simp only [← mul_assoc, B_def, coe_nnnorm]
+    simp only [← mul_assoc, B_def, coe_nnNorm]
     exact mul_le_mul_of_nonneg_right (by linarith) (div_nonneg (norm_nonneg _) (norm_nonneg _))
 
 
@@ -2689,7 +2689,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (_ : F = E / 3)
     rw [← inv_le_inv₀ (_root_.div_pos (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))
       (norm_pos_iff.mpr (riemannZeta_ne_zero_of_one_lt_re (by norm_num)))) (inv_pos.mpr (norm_pos_iff.mpr zetaThreeHalfNonzero)), inv_div, inv_inv]
     have zetaLowerBound := ZetaFixedLowerBound t
-    simp only [nnnorm_div, ge_iff_le] at zetaLowerBound
+    simp only [nnNorm_div, ge_iff_le] at zetaLowerBound
     exact_mod_cast zetaLowerBound
   have ZerosBound := ZerosBound r_pos r_lt_one r_lt_R R_lt_one fAnalytic f0_1 finiteSetOf0s fz_bound
   rw [hB, one_div_mul_eq_div, cast_sum, R_over_r,

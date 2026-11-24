@@ -244,7 +244,7 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     intro a ha
     rw [Finset.mem_filter, Nat.mem_divisors, ←Nat.factorization_le_iff_dvd hd.ne_zero
       (hi_ne_zero a ha),← Nat.factorization_le_iff_dvd (hi_ne_zero a ha) (pow_ne_zero _ hd.ne_zero)]
-    constructor; constructor
+    refine ⟨⟨?_, ?_⟩, ?_⟩
     · rw [Finsupp.le_iff]; intro p _
       rw [hfact_i a ha]
       by_cases hp : p ∈ d.primeFactors
@@ -399,7 +399,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
     · have hm_ne_zero : m ≠ 0 := by
         exact ne_of_gt <| Nat.succ_le_iff.mp hm.1
       use ∏ p ∈ m.primeFactors, p
-      constructor; constructor; constructor
+      refine ⟨⟨⟨?_, ?_⟩, ?_⟩, ?_⟩
       · apply prod_primes_dvd_of_dvd <;> intro p hp
         · apply hP p <| Nat.prime_of_mem_primeFactors hp
           trans (m:ℝ)
@@ -415,7 +415,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
             exact Nat.prod_primeFactors_dvd m
           exact hm.2
         apply le_of_lt; norm_cast
-      constructor; constructor
+      refine ⟨⟨?_, ?_⟩, ?_⟩
       · rw [←Nat.factorization_le_iff_dvd _ hprod_ne_zero, Nat.factorization_pow]
         · intro p
           have hy_mul_prod_nonneg : 0 ≤ ⌊s.level⌋₊ * (Nat.factorization (∏ p ∈ m.primeFactors, p)) p := by

@@ -1037,7 +1037,7 @@ lemma Params.initial.factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime)
   have h_legendre : (factorial n).factorization p =
       ∑ k ∈ Finset.Ico 1 (log p n + 1), n / p ^ k := by
     rw [factorization_def]
-    · have := Fact.mk hp; rw [padicValNat_factorial]; simp_all
+    · have := Fact.mk hp; rw [multiplicity_factorial]; simp_all
     · exact hp
   have h_floor_zero : ∀ k ≥ 2, n / p ^ k = 0 := fun k hk ↦ by
     rw [div_eq_of_lt]
@@ -1392,7 +1392,7 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
         ∑ k ∈ Ico 1 (log p P.n + 1), (P.n / p ^ k : ℤ) := by
       rw [factorization_def]
       · have := Fact.mk hp_prime
-        rw [padicValNat_factorial] <;> aesop
+        rw [multiplicity_factorial] <;> aesop
       · assumption
     have h_balance_bound : (P.initial.balance p : ℤ) ≤ ∑ k ∈ .Ico 1 (Nat.log p P.n + 1),
         (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card -
@@ -1478,7 +1478,7 @@ lemma Params.initial.sum_valuation_eq_small (P : Params) {p : ℕ} (hp : p.Prime
     rw [h_sum_smooth, sum_filter_of_ne]
     intro m hm hmp
     specialize hmp
-    contrapose! hmp
+    contrapose hmp
     simp_all +decide only [Finset.mem_Ico, factorization_eq_zero_iff, false_or]
     refine Or.inl fun h ↦ hmp <| initial.smooth_of_dvd_small_prime P hp_le (by grind)
       (Finset.mem_Ico.mpr ⟨by grind, by grind⟩) h
@@ -1516,7 +1516,7 @@ lemma Params.initial.balance_ge_neg_M_mul_log (P : Params) {p : ℕ} (hp : p.Pri
     P.initial.balance p ≥ - (P.M * (Nat.log p P.n) : ℤ) := by
   have := Fact.mk hp
   rw [Factorization.balance, Factorization.sum, initial.sum_valuation_eq_small P hp hp_le hp_gt,
-    factorization_def _ hp, padicValNat_factorial]
+    factorization_def _ hp, multiplicity_factorial]
   · simp only [cast_mul, cast_sum, Int.natCast_ediv, cast_pow, ge_iff_le, neg_le_sub_iff_le_add]
     calc
       _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) *
@@ -1631,7 +1631,7 @@ lemma Params.initial_full_balance_ge (P : Params) (p : ℕ) (hp : p.Prime) :
     congr! 2
     · exact (initial_full_sum_valuation_eq P p hp).symm
     · rw [factorization_def]
-      · have := Fact.mk hp; rw [padicValNat_factorial] <;> aesop
+      · have := Fact.mk hp; rw [multiplicity_factorial] <;> aesop
       · assumption
   have h_term : ∀ k ∈ Finset.Ico 1 (log p P.n + 1),
       (P.M : ℤ) * ((filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card : ℤ) -
@@ -2523,7 +2523,8 @@ theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
   have hsqrt_ge_4 : Real.sqrt n ≥ 4 := by
     nlinarith [Real.sq_sqrt hnpos.le, sq_nonneg (Real.sqrt n - 4)]
   have hfloor_gt_1 : (1 : ℝ) < ⌊Real.sqrt n⌋₊ := by
-    exact_mod_cast lt_of_add_left_lt (le_floor (by linarith : (3 : ℝ) ≤ Real.sqrt n))
+    have : 2 ≤ ⌊Real.sqrt n⌋₊ := le_floor (by norm_num; linarith)
+    exact_mod_cast this
   conv_lhs => rw [sum_const, nsmul_eq_mul]
   rw [show (filter Nat.Prime (Finset.Iic ⌊Real.sqrt n⌋₊)).card =
     primeCounting ⌊Real.sqrt n⌋₊ by
@@ -2593,7 +2594,7 @@ lemma prod_one_sub_one_div_prime_tendsto_zero :
     have h_not_summable : ¬Summable (fun p : ℕ ↦ if p.Prime then (1 / p : ℝ) else 0) := by
       have h_primes : ¬Summable (fun p : Nat.Primes ↦ (1 / p : ℝ)) := by
         convert Primes.not_summable_one_div
-      contrapose! h_primes
+      contrapose h_primes
       convert! h_primes.comp_injective (fun a b h ↦ Subtype.ext h) using 1
       ext ⟨p, hp⟩
       simp [hp]
@@ -3006,7 +3007,7 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
     _ ≤ ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 +
           (ε * P.n / 10 + ε * P.n / 10) + ε * P.n / 5 := by
         gcongr <;> first | exact hM.2 P rfl | exact hn2 P rfl rfl rfl |
-          exact hn3 P rfl rfl | exact h_large | exact hn5 P rfl rfl rfl
+          exact hn3 P rfl rfl | exact hn5 P rfl rfl rfl
     _ = ε * n := by ring
 
 @[blueprint
