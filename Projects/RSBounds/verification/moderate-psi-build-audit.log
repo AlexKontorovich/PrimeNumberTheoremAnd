@@ -1,0 +1,115 @@
+import took 303s
+elaboration took 178ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 143ms
+tactic execution of Lean.Parser.Tactic.refine took 181ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 295ms
+interpretation of Lean.Elab.Tactic._aux_Mathlib_Tactic_Widget_Calc___elabRules_Lean_calcTactic_1._boxed took 111ms
+RSBounds/ModeratePsi.lean:218:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:218:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:218:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/ModeratePsi.lean:225:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:225:24: warning: Unused tactic linter: `norm_num` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:225:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 103ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 102ms
+RSBounds/ModeratePsi.lean:400:21: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:400:21: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/ModeratePsi.lean:420:21: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:420:21: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/ModeratePsi.lean:467:21: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/ModeratePsi.lean:467:21: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.PolynomialRemainderFlexibleStep.norm_averagedIntegrand_le_majorant' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialRemainderFlexibleStep.norm_leftRemainder_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.log_hundred_two_pi_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.log_twothousand_two_pi_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.low_integral_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.head_correction_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.middle_fifth_allowance_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsiScalars.log_two_pi_le_three' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.kernel_constant_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.M.olean serialization took 192ms
+oderatePsi.coefficient_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_conj' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_le_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_le_high_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.low_zero_re' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.positive_low_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.high_fifth_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_high_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_low_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.norm_left_remainder_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.remainder_and_log_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ModeratePsi.psi_error_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 192ms
+	attribute application 0.469ms
+	blocked (unaccounted) 96.8s
+	compilation (IR) 0.366ms
+	compilation (LCNF base) 2.98ms
+	compilation (LCNF impure) 0.336ms
+	compilation (LCNF mono) 2.04ms
+	congr simp thm 19.8ms
+	declTypeLinter 34.2ms
+	dsimp 4.87ms
+	elaboration 930ms
+	fix level params 16.7ms
+	import 303s
+	initialization 104ms
+	instantiate metavars 10.3ms
+	interpretation 7s
+	let-to-have transformation 0.733ms
+	linting 146ms
+	module linting 1.08ms
+	norm_num 2.75s
+	parsing 107ms
+	process pre-definitions 186ms
+	ring 454ms
+	share common exprs 163ms
+	simp 778ms
+	tactic execution 2.94s
+	tacticAnalysis 24.9ms
+	type checking 763ms
+	typeclass inference 4.1s

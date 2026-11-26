@@ -1,0 +1,7 @@
+import RSBounds.MellinAbelianLimit
+
+#print axioms TernaryGoldbach.RSBounds.MertensAbelianNormalization.normalized_logDeriv_tendsto
+#print axioms TernaryGoldbach.RSBounds.MertensAbelianNormalization.mellin_average_zero
+#print axioms TernaryGoldbach.RSBounds.MellinAbelianLimit.integrable_mul_rpow
+#print axioms TernaryGoldbach.RSBounds.MellinAbelianLimit.average_const
+#print axioms TernaryGoldbach.RSBounds.MellinAbelianLimit.average_tendsto

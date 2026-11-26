@@ -1,0 +1,8 @@
+import RSBounds.ZetaZeroHeadBound
+
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.first29_image_eq_closedPositiveZeros
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_eq_first29
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_lt
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_head_le
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_subset_sum_lt
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroHeadBound.weighted_subset_sum_le

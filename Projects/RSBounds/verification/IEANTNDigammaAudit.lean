@@ -1,0 +1,7 @@
+import RSBounds.IEANTNDigamma
+
+#print axioms GammaSolution.digamma_eq_gaussSum
+#print axioms GammaSolution.abs_deriv_log_Gamma_sub_log_le
+#print axioms GammaSolution.digamma_ofReal
+#print axioms TernaryGoldbach.RSBounds.IEANTNDigamma.digamma_eq_gauss_series
+#print axioms TernaryGoldbach.RSBounds.IEANTNDigamma.summable_gauss_series

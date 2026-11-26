@@ -1,0 +1,39 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:32:43.086857+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPsiFromZeroSums.lean": "75852c697246a5e4bfbf0d25d1eb2b813d86cbce54b55f58ec16c7d592f1ac36",
+    "RSBounds/PolynomialAveragedFormula.lean": "d6fea4b8db2b26721cd665da71ba1c3baf415ce1c27242da7cf64dd487668627",
+    "RSBounds/PolynomialRemainderBound.lean": "817c5feaa124eb7531a9c6c56cf9c5c9d37b8256ee9b65a7736d7d5a220ab7cf",
+    "RSBounds/PolynomialPsi.lean": "2b148b5b05748a8f40a44e0d28e2377e85d4eb92aa5e2217879ca151407b136e",
+    "verification/PolynomialPsiFromZeroSumsAudit.lean": "42b2a7c155e5ed97b6a14049270dc2fa82345049c8ae1d30f7db67ed258341b3"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/PolynomialPsiFromZeroSums.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/PolynomialPsiFromZeroSums.olean"
+      ],
+      "log": "polynomial-psi-from-zero-sums-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/PolynomialPsiFromZeroSumsAudit.lean"
+      ],
+      "log": "polynomial-psi-from-zero-sums-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T14:35:41.827559+00:00",
+  "exit_code": 0
+}

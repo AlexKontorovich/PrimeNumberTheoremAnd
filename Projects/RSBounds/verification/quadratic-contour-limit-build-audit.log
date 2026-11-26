@@ -1,0 +1,75 @@
+import took 3.59s
+RSBounds/QuadraticContourLimit.lean:39:5: warning: Variable name `hK` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hK
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+RSBounds/QuadraticContourLimit.lean:199:12: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/QuadraticContourLimit.lean:207:17: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/QuadraticContourLimit.lean:207:21: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/QuadraticContourLimit.lean:207:21: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/QuadraticContourLimit.lean:199:12: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.log_weighted_integrable_of_decay_two' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.DecayTwo.log_weighted_integrable' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.DecayTwo.integrable_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.integrable_contour_right' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.integrable_zetaF_contour_left' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.tendsto_HkD_BPz2_div_sq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.contour_limit_of_residue_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.zetaF_contour_limit_of_residue_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuadraticContourLimit.explicit_formula_pole_zero_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 30.7ms
+	attribute application 0.154ms
+	blocked (unaccounted) 7.74s
+	congr simp thm 6.36ms
+	declTypeLinter 11.3ms
+	dsimp 5.22ms
+	elaboration 177ms
+	fix level params 1.83ms
+	import 3.59s
+	initialization 46.9ms
+	instantiate metavars 5.97ms
+	interpretation 1.21s
+	let-to-have transformation 0.285ms
+	linting 61.3ms
+	module linting 0.00916ms
+	norm_num 275ms
+	parsing 26.9ms
+	process pre-definitions 35.2ms
+	ring 73.1ms
+	share common exprs 32.1ms
+	simp 244ms
+	tactic execution 674ms
+	tacticAnalysis 11.5ms
+	type checking 204ms
+	typeclass inference 1.54s

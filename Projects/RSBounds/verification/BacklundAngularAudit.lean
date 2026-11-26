@@ -1,0 +1,25 @@
+import RSBounds.BacklundRightArcNumerics
+import RSBounds.BacklundAngularNumerics
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.logZeta_eq_tsum
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.convexOn_logZeta
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.antitoneOn_logZeta
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.continuousOn_logZeta
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.convexOn_arcFunction
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.integral_unit_le_trapezoid
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.integral_nat_le_trapezoids
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.right_arc_le_samples
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.cosDoubleCheck_sound
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.logZeta_le_of_root_cert
+#print axioms TernaryGoldbach.RSBounds.BacklundRightArc.right_arc_integral_lt
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.first_cos_integral
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.second_cos_integral
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.angular_integrals_eq
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.gamma_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.delta_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.q_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.log_two_pi_lower
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.log_center_upper
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.slopeA_bounds
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.slopeB_le
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.intercept_le_strong
+#print axioms TernaryGoldbach.RSBounds.BacklundAngularCoefficients.intercept_le

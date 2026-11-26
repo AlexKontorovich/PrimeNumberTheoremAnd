@@ -1,0 +1,24 @@
+import RSBounds.ModeratePsi
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderFlexibleStep.norm_averagedIntegrand_le_majorant
+#print axioms TernaryGoldbach.RSBounds.PolynomialRemainderFlexibleStep.norm_leftRemainder_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.log_hundred_two_pi_bounds
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.log_twothousand_two_pi_bounds
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.low_integral_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.head_correction_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.middle_fifth_allowance_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsiScalars.log_two_pi_le_three
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.kernel_constant_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.coefficient_eq
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_conj
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_le_low
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_coefficient_le_high_line
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.low_zero_re
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.positive_low_sum_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.high_fifth_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_high_sum_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_low_sum_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_sum_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.norm_left_remainder_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.remainder_and_log_le
+#print axioms TernaryGoldbach.RSBounds.ModeratePsi.psi_error_le

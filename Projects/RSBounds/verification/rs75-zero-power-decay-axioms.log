@@ -1,0 +1,13 @@
+'TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.amgm_log_exponent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.zero_re_le_ten' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.exp_over_fifth_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.rpow_over_fifth_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroPowerDecay.zero_power_weight_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

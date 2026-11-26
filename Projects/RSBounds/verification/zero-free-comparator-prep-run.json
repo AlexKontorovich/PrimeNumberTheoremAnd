@@ -1,0 +1,72 @@
+{
+  "kind": "independent-comparator-source-preparation-and-solution-axiom-audit",
+  "native_comparator_status": "not run",
+  "started_utc": "2026-11-06T17:26:58.934523+00:00",
+  "source_sha256": {
+    "comparator/RSZeroFreeChallenge.lean": "2ae51a8f5eb4c100edc203a34b36a27822d8cd633d1a97296e84420fe43eeb0a",
+    "comparator/RSZeroFreeSolution.lean": "95e95e49b9bfa9b68b107cc6a0c094f028483f3b161a2ff1925c589389aa260e",
+    "comparator-zero-free.json": "8464602e65af19eb7d5f49e2b177b94a4d41404cb822589ee9371e74e8baa738",
+    "RSBounds/RS75ZeroFree1975.lean": "e09f31b984976d75c0a773b6c41d3d671ee2ac7aebe2c5466212ba1253a768cb",
+    "verification/RSZeroFreeSolutionAudit.lean": "65985e44a265e25e86ce527fa24e1e2d29b38ddb5a86aab5059fc37353ad9d45",
+    "verification/prepare_zero_free_comparator.py": "0d2eeb7adbb823b908521cb4441df6ff5e3fc8acd0d0ffe1f5ed9ec0de9f2cca",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-R",
+        "comparator",
+        "-o",
+        ".lake/build/lib/lean/RSZeroFreeChallenge.olean",
+        "comparator/RSZeroFreeChallenge.lean"
+      ],
+      "log": "zero-free-comparator-challenge-build.log",
+      "exit_code": 0,
+      "seconds": 5.111256206000689
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-R",
+        "comparator",
+        "-o",
+        ".lake/build/lib/lean/RSZeroFreeSolution.olean",
+        "comparator/RSZeroFreeSolution.lean"
+      ],
+      "log": "zero-free-comparator-solution-build.log",
+      "exit_code": 0,
+      "seconds": 5.359711770004651
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RSZeroFreeSolutionAudit.lean"
+      ],
+      "log": "zero-free-comparator-solution-axioms.log",
+      "exit_code": 0,
+      "seconds": 6.623473086001468
+    }
+  ],
+  "solution_axiom_audit": {
+    "declarations": 2,
+    "only_standard_axioms": true
+  },
+  "object_sha256": {
+    ".lake/build/lib/lean/RSZeroFreeChallenge.olean": "f4bb952678ef4b01ad18bf4963cb041430d3ec944216224c5352f0d4a66d389e",
+    ".lake/build/lib/lean/RSZeroFreeSolution.olean": "4518c0c1862edd307faa7896beacc5c20a601bd13d9179143528f4b0820825d9"
+  },
+  "finished_utc": "2026-11-06T17:27:16.031424+00:00",
+  "exit_code": 0
+}

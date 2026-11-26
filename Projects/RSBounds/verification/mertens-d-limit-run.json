@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-mertens-d-limit-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:39:29.160460+00:00",
+  "source_sha256": {
+    "RSBounds/MertensDLimit.lean": "5ecf362a262c56637b1e5d50fe09afdcd201bd20059861c19a6581d3520764dd",
+    "RSBounds/MertensSignedLimit.lean": "00d70ff96edcca9e0fa937267b81c6c6ee90f40c0ebdcf00c0cd0c2a43aa3cd1",
+    "RSBounds/MertensPsiAbel.lean": "cc8893163358c92be6c8b0ad9786a3d060d36ba78ae96b1c95e01169865be018",
+    "RSBounds/MertensDFinite.lean": "f58876dc7981544962ab12f0c347d9d1c24644fda6ac5edccb01f8c85e0e843e",
+    "RSBounds/MertensCenteredNormalization.lean": "c0c0d274d4f86d0ac5ca1347b9e1ccd90bcf78c0ce89f6c87ed0cc8d22bf87d7",
+    "RSBounds/MertensSecondSigned.lean": "5cf85c8bf0442153fa7d39d87d8615458359bbd4e97f1b05c6cbdca0314b13c2",
+    "verification/MertensDLimitAudit.lean": "c3833842ac25f87c54a0010d5e3f6efa48276db9808eb5da64e0d2878003e2c7",
+    "verification/run_mertens_d_limit_check.py": "34398c27f16e0a06c6f7b7d8d98fb51f57504d5be135ff6007f3b18897571ab1"
+  },
+  "stdin_recipe": "Exact source plus 12 fully qualified #print axioms commands.",
+  "stdin_sha256": "f026c57cded6a182a96f5f4b2898bdc2628fdebdc1e2c18455b01b3b15cc1f05",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensDLimit.olean",
+        "RSBounds/MertensDLimit.lean"
+      ],
+      "log": "verification/mertens-d-limit-build.log",
+      "exit_code": 0,
+      "seconds": 197.72416263299965
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 12,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "14d672129ee1affd7b4b1ef571eea8fc48f3a3191c354130eede9fdd29e7ef44",
+  "finished_utc": "2026-11-06T20:42:46.890295+00:00"
+}

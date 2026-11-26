@@ -1,0 +1,36 @@
+'TernaryGoldbach.RSBounds.BacklundReflection.logDeriv_completedZeta_one_sub' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundReflection.logDeriv_completedZeta_conj' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_completedZeta_reflect' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_zeta_reflect_diff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundReflection.im_logDeriv_zeta_reflect_digamma' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_firstCrossing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_lastCrossing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_firstCrossing_family' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_lastCrossing_family' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_first_halfturn_level' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.exists_last_halfturn_level' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundFirstCrossing.cos_eq_zero_of_halfturn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

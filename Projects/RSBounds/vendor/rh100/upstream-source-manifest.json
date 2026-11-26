@@ -1,0 +1,900 @@
+{
+  "repository": "https://github.com/teal-sea/zeta-lab",
+  "commit": "b09fa4dd2f2182cf14b248e7ffc64ff03df2c534",
+  "root_module": "RHHeight100.Main100",
+  "status": "source-audited; not locally compiled or axiom-audited",
+  "files": [
+    {
+      "module": "RHHeight100.Main100",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Main100.lean",
+      "local_path": "RHHeight100/Main100.lean",
+      "git_blob_sha1": "8064fcdc070304f72f9b10bd296b32c433f982c6",
+      "bytes": 3016,
+      "sha256": "898a551afeb1b4d8e1589c0446f1ec4e8e98de375ef3d6e56f93b6339c2426b4",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.ExactArgument",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/ExactArgument.lean",
+      "local_path": "RHHeight/ExactArgument.lean",
+      "git_blob_sha1": "9f68352cc1cc5549e163d2b225f20c991784e2fe",
+      "bytes": 8458,
+      "sha256": "214760e41a4b5de96fb15676cd9f20a0ff758197a79190451a0987798179c595",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LowHeight",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LowHeight.lean",
+      "local_path": "RHHeight/LowHeight.lean",
+      "git_blob_sha1": "a92538087226b1e4616ca7edeffdc2fdf7d6e313",
+      "bytes": 8718,
+      "sha256": "2139d0007f71eb53ffaf8bd1ba2b149bfcc239957208c6ccc95999207e0a6a1a",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Skeleton100",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Skeleton100.lean",
+      "local_path": "RHHeight100/Skeleton100.lean",
+      "git_blob_sha1": "ae32a7b220425c907eba82905b274f92ac11d383",
+      "bytes": 6457,
+      "sha256": "f4acb2ae0da412b8eac84bf9e5cdd577483d4bb0e1c557ee476c6e1a1bacfcdd",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.GammaIncrement100",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/GammaIncrement100.lean",
+      "local_path": "RHHeight100/GammaIncrement100.lean",
+      "git_blob_sha1": "4158b3c756598a501d35cdedced4d1a9fe112749",
+      "bytes": 4355,
+      "sha256": "d4dd19d5120dbb83805ccf5dfc2680ae5cc0a596f83d2a84aefb4c58865121d9",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.HorizontalLegs100",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/HorizontalLegs100.lean",
+      "local_path": "RHHeight100/HorizontalLegs100.lean",
+      "git_blob_sha1": "976cd4003239d4b7e87a78d1b11068393dc0c76a",
+      "bytes": 3507,
+      "sha256": "63c779106074e9960f298c53641d4b4ba04b705eefe72f19d921f4697b0e0636",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.TwentyNineZeros",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/TwentyNineZeros.lean",
+      "local_path": "RHHeight100/TwentyNineZeros.lean",
+      "git_blob_sha1": "d15b5428fd1d609d1131e897aab84a61d1d028ed",
+      "bytes": 7062,
+      "sha256": "8cbef496376d53f79a7b45d7f108ddb02c396e83e3418a0f03292d9b5c3b0923",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.Skeleton",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/Skeleton.lean",
+      "local_path": "RHHeight/Skeleton.lean",
+      "git_blob_sha1": "cf2dae2852e4649c637a235cb03d054e02bb7e22",
+      "bytes": 13628,
+      "sha256": "8600486da0e016231777575f2fa15e8e31d9996bf3238f3c01b3c25ae6fc2ff5",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.MainTerm",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/MainTerm.lean",
+      "local_path": "Zeta23/RvM/MainTerm.lean",
+      "git_blob_sha1": "e0265c0f6803ff6ec0ce11f52018d75a24c82920",
+      "bytes": 26448,
+      "sha256": "8daeb73992c8240c7adb60bc21825b4d0af5ddf2db6060672b4da3fddbc9424f",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.EulerMaclaurin",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/EulerMaclaurin.lean",
+      "local_path": "HardyFirstZero/EulerMaclaurin.lean",
+      "git_blob_sha1": "5124071b9b343832201d476291a4c54fd37b53f7",
+      "bytes": 26277,
+      "sha256": "dca2a608e66f7e095ecd4a25bee7da90de88cdc77a424ac2e8e562f28f064603",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.GammaIncrement",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/GammaIncrement.lean",
+      "local_path": "RHHeight/GammaIncrement.lean",
+      "git_blob_sha1": "8de1b73d4f6cb362277c9a253d4b43359cbc880f",
+      "bytes": 17605,
+      "sha256": "478087e69de83d0ac6fee75e9a035947340ee3771efcb2dbaf8b0f07c607c1c9",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.HorizontalLegs",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/HorizontalLegs.lean",
+      "local_path": "RHHeight/HorizontalLegs.lean",
+      "git_blob_sha1": "f124e86fc563cd904c707bb58d08e7e3675c8c92",
+      "bytes": 5529,
+      "sha256": "06a81f6c3831f4c961af1ba0f88b88d164a5add934bdadb82e1fef481cba17c4",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.LegsTop100A",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/LegsTop100A.lean",
+      "local_path": "RHHeight100/LegsTop100A.lean",
+      "git_blob_sha1": "fbba179adade890fdaea62ddf480fdd0ff587e37",
+      "bytes": 44594,
+      "sha256": "f2e7b2e811d4848333b1d4c46c37c1240a38b2087cb0ae32d167ffa10c1891bf",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.LegsTop100B",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/LegsTop100B.lean",
+      "local_path": "RHHeight100/LegsTop100B.lean",
+      "git_blob_sha1": "4cb0b06e72e44e2da507e4ebc59d98fd84f053a5",
+      "bytes": 45268,
+      "sha256": "3b938f39a9a614da386ed6fe7f2d5e4a9877c5b75830b6c153aa08de17eeece6",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.LegsArg100",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/LegsArg100.lean",
+      "local_path": "RHHeight100/LegsArg100.lean",
+      "git_blob_sha1": "28876a1189845d99805cb401d6eb7e660607f78b",
+      "bytes": 45050,
+      "sha256": "335e6361d9fab61747cf50d1f54722fb017a5564755252c59d88b54dae99f1a3",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.TenZeros",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/TenZeros.lean",
+      "local_path": "HardyTenZeros/TenZeros.lean",
+      "git_blob_sha1": "c893921468f39fa52f7ff899d3b20e26b220e226",
+      "bytes": 2630,
+      "sha256": "5e93d87d37d60bfc8a7245a09a6a780556fa7ed2abea7c7685b5c34b65a1536c",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box5297",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box5297.lean",
+      "local_path": "RHHeight100/Box5297.lean",
+      "git_blob_sha1": "98d0e317c220e9c6cee1dabb551e2889dcd60215",
+      "bytes": 91766,
+      "sha256": "f292f92433b842ff99b250e45195709f1ce81b2a064f26a0a594bbbf8e66d695",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box5644",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box5644.lean",
+      "local_path": "RHHeight100/Box5644.lean",
+      "git_blob_sha1": "a7f0fe830e46655177912895fdd69a58ae76184e",
+      "bytes": 67964,
+      "sha256": "0b15fb07286bf312d9a2b80541bdec9004a5d20b93bb28f024c8e22807f67984",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box5934",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box5934.lean",
+      "local_path": "RHHeight100/Box5934.lean",
+      "git_blob_sha1": "2f2a57b9835c1c723fad6d30099f99e6d055f4b4",
+      "bytes": 84022,
+      "sha256": "3a6283923b04f5089ca55115c871b541d34a0197ae2069175b7522ab50d02588",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box6083",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box6083.lean",
+      "local_path": "RHHeight100/Box6083.lean",
+      "git_blob_sha1": "09ce7f4326db3cb77e9cc16a3cb7e9b0bc2d0a28",
+      "bytes": 86360,
+      "sha256": "42e24d8cdd79e3765a514e024d109a9d54ea145850308c26a8d11e21f6c2e4de",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box6511",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box6511.lean",
+      "local_path": "RHHeight100/Box6511.lean",
+      "git_blob_sha1": "e973bf9ffe0084ca81153cc253f87e57248294c5",
+      "bytes": 77077,
+      "sha256": "0f82c22225fd291cb2ed9e2d372f56ac661f2fd73a833914cf937dbffa8b7e29",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box67075",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box67075.lean",
+      "local_path": "RHHeight100/Box67075.lean",
+      "git_blob_sha1": "0eb3afcd34cafeea5eb6dcaad2736b630d39686b",
+      "bytes": 89209,
+      "sha256": "3e77e610c77da9bc6f265054504127bb85aff0e13cf37e408eba18847bd3d5b0",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box6954",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box6954.lean",
+      "local_path": "RHHeight100/Box6954.lean",
+      "git_blob_sha1": "2fd07cf16309150d1ca034d74458c87cfde03b3e",
+      "bytes": 88281,
+      "sha256": "7380117605d0aa710b3fb36f1ee84247300e783ea9fb98b3d91a4aa71a566940",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box7206",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box7206.lean",
+      "local_path": "RHHeight100/Box7206.lean",
+      "git_blob_sha1": "ca28669495fc0e3da9f2321f7bbb12a6dbcf23a1",
+      "bytes": 85865,
+      "sha256": "18d698d2e08d4a9e712b783f321c9793d89d8342eb9bebb37bbbf8c18b9fde6e",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box7570",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box7570.lean",
+      "local_path": "RHHeight100/Box7570.lean",
+      "git_blob_sha1": "032a76b0b74b5e07aed80eae9b31db539c66bff5",
+      "bytes": 97393,
+      "sha256": "e22677eb4e00aee06a0bcace295914d64352536e4b986e74f0b268ee4db48b10",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box7714",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box7714.lean",
+      "local_path": "RHHeight100/Box7714.lean",
+      "git_blob_sha1": "609f7a56fa0d082a17d3eaee1b7a4665137cf533",
+      "bytes": 107680,
+      "sha256": "e0022ddbef4752f81f32693d8d012a32222492cb9b7219ecef953e2d22603a65",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box7933",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box7933.lean",
+      "local_path": "RHHeight100/Box7933.lean",
+      "git_blob_sha1": "9238187a1b8779e21b57e6fea7ae7324617b5211",
+      "bytes": 93153,
+      "sha256": "6cd53b8484b1ac94eafee7fea855709c98a03b58e6b0a509b7034030e9fa775b",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box8291",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box8291.lean",
+      "local_path": "RHHeight100/Box8291.lean",
+      "git_blob_sha1": "c91a5e2b5c38c2fa53196d03ffbaa88e4d584855",
+      "bytes": 134304,
+      "sha256": "0593136cfabdd54328cabd94011f3f4eeca1691c46631a6f44fc90c40f4852f6",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box8473",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box8473.lean",
+      "local_path": "RHHeight100/Box8473.lean",
+      "git_blob_sha1": "abd89b32b0a3644fea8f19051cc8d706c2a5eb72",
+      "bytes": 108993,
+      "sha256": "c9ca5a61e51dd6c856462b9ec1533560a778aa18720e031f19990d5764278de5",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box8742",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box8742.lean",
+      "local_path": "RHHeight100/Box8742.lean",
+      "git_blob_sha1": "d541a09ff8475a89b7a7a1e3a0adbe3ad48ef206",
+      "bytes": 116795,
+      "sha256": "b7de77698be15d0f8dd1d636668911cf578e7f401661901511dc3c79cd2d61f1",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box8880",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box8880.lean",
+      "local_path": "RHHeight100/Box8880.lean",
+      "git_blob_sha1": "b4b0a83f51527114ebd7b762f2a8177f52ebf66b",
+      "bytes": 135576,
+      "sha256": "8b5e38d763a534480b3eaf8f74c81a9918958203d9f82f747e698b81b582ab7c",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box9249",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box9249.lean",
+      "local_path": "RHHeight100/Box9249.lean",
+      "git_blob_sha1": "f66c13de9f6cdba068630b72c0466da32f37a35c",
+      "bytes": 109601,
+      "sha256": "abc9d730b56d6a8825c3dbe2c3b98a94ec2e2af968290ef846e3ab3ffbc06f49",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box9465",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box9465.lean",
+      "local_path": "RHHeight100/Box9465.lean",
+      "git_blob_sha1": "4b0c32e1f0395686879301dbae0deae6f01b5498",
+      "bytes": 151404,
+      "sha256": "a4abd8025e68520d08b21b2157e2e067b4cfc1a26642f49daaad422821af2475",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box95865",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box95865.lean",
+      "local_path": "RHHeight100/Box95865.lean",
+      "git_blob_sha1": "ab597017e256c39b7bba5cf13014ddb76a84ac1b",
+      "bytes": 127323,
+      "sha256": "8f50ff4bc88df4f2b88f9675830b1f5987488ea8cc2123effc80eb0da1e8ca13",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Box9883",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Box9883.lean",
+      "local_path": "RHHeight100/Box9883.lean",
+      "git_blob_sha1": "abf92b6a959a220fdd870528b9d17c75becfc90e",
+      "bytes": 130531,
+      "sha256": "8bf5f46da5d0730e2366c1dde8b2567fae158363612bf1f92cf4af3cb8e5c438",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.Statement",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/Statement.lean",
+      "local_path": "RHHeight/Statement.lean",
+      "git_blob_sha1": "59530430f10381c09b7d5a71481ca1e3256857d1",
+      "bytes": 4325,
+      "sha256": "796d1c911c28473a24694d3204f2096a6046ac95a878f02e075674089e92708a",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Statement.SeamClosed",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Statement/SeamClosed.lean",
+      "local_path": "Zeta23/Statement/SeamClosed.lean",
+      "git_blob_sha1": "42057eb4d0caec0b68bd838533427731481d3ee9",
+      "bytes": 2528,
+      "sha256": "dd85b8ab36819478de00a80c394859614eb7cf5ea38ab19d91454ebfd0165a4d",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.Defs",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/Defs.lean",
+      "local_path": "Zeta23/RvM/Defs.lean",
+      "git_blob_sha1": "a5cde50d1047acdc52c1dc69460057e18a68f532",
+      "bytes": 2971,
+      "sha256": "89ffd236563bc5259ecee833ee8b477f94aa8b572da29312c50ae3b019114454",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.LocalCount",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/LocalCount.lean",
+      "local_path": "Zeta23/RvM/LocalCount.lean",
+      "git_blob_sha1": "aebf34b7807ccc4902a8d81a514a7d2e3fea0498",
+      "bytes": 15760,
+      "sha256": "21da1ea898779a431dce8976d939b7502ca93c7e2c22aebe6e9f5e5b56949306",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Hypotheses",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Hypotheses.lean",
+      "local_path": "Zeta23/Hypotheses.lean",
+      "git_blob_sha1": "36791553db7eb55886d831f2f754a6edddbfe6f1",
+      "bytes": 10330,
+      "sha256": "cc35b644c3511cf610ea81b0be6cf4a299c4f3093b76b743ddbd9b0786a84a69",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.WeilEF.XiLogDeriv",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/WeilEF/XiLogDeriv.lean",
+      "local_path": "Zeta23/WeilEF/XiLogDeriv.lean",
+      "git_blob_sha1": "32342d73d3044c7e61faa2a25ef3deff749e9fd3",
+      "bytes": 5943,
+      "sha256": "134316fb4ae4df1759c04dbeff5f90c38203881c7eae05f821ffa478ab69b07f",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Analytic.RectangleLogDeriv",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Analytic/RectangleLogDeriv.lean",
+      "local_path": "Zeta23/Analytic/RectangleLogDeriv.lean",
+      "git_blob_sha1": "8e6dfd57843f9ed69b21aa89d3989acad50845cb",
+      "bytes": 22674,
+      "sha256": "72782802ac7efb8941dcac9bf80431e7b9a2d5ad207b4f2798a0c9ee31d4a6b9",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.GammaSide",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/GammaSide.lean",
+      "local_path": "Zeta23/RvM/GammaSide.lean",
+      "git_blob_sha1": "57eb1f7d7d8ac98199026747a808089a31ed9074",
+      "bytes": 9826,
+      "sha256": "ed591e91d998adaef7919949b81d85c0bd92a59399570f1169fbfd9c34d6fdf1",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.Backlund",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/Backlund.lean",
+      "local_path": "Zeta23/RvM/Backlund.lean",
+      "git_blob_sha1": "1be4abed14b17b4704d237c51e9e37a54c8e1ee1",
+      "bytes": 22735,
+      "sha256": "e6fec52b346268bf17b7107f9f8eca235140c7982088cd0c570443ee32ebf481",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.Fold",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/Fold.lean",
+      "local_path": "Zeta23/RvM/Fold.lean",
+      "git_blob_sha1": "bb839ab61b46b3e2169954c81a4c569566eafba2",
+      "bytes": 11207,
+      "sha256": "12a3d62f7c6ad25512ff5278d329927543570ff6c67cc95bafed6b10730b70d2",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.NcountWindow",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/NcountWindow.lean",
+      "local_path": "Zeta23/RvM/NcountWindow.lean",
+      "git_blob_sha1": "21a80044cddedb639391449b93f25f13961919b9",
+      "bytes": 2101,
+      "sha256": "18cf3db903aef8694132f9c353aab830357a2bb970765553e349173fd1b536a4",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.Phase",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/Phase.lean",
+      "local_path": "HardyFirstZero/Phase.lean",
+      "git_blob_sha1": "dd40abc2b1a0d997f3f748c4fecaaf85ab479889",
+      "bytes": 24046,
+      "sha256": "4451c45cff2e7fb019ae851a9936b641842fc89d1de07a09c2c47ad82f4da378",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.GammaFacts",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/GammaFacts.lean",
+      "local_path": "Zeta23/GammaFacts.lean",
+      "git_blob_sha1": "b57fc6e6798b93a5d8f1e83663ecb58e4bec225f",
+      "bytes": 5884,
+      "sha256": "f4aa6b5650beb8262bf15db2d7575ab516436204d57b1a441fedd0b05611602b",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.GammaFacts.StirlingVert",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/GammaFacts/StirlingVert.lean",
+      "local_path": "Zeta23/GammaFacts/StirlingVert.lean",
+      "git_blob_sha1": "57815e8b74aa6bd628a46025041b972af53cab98",
+      "bytes": 33188,
+      "sha256": "a57258c5549aed77bb4d759755649351685a89721b37d49f2f7dbea4cbdfe882",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LegsBottom",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LegsBottom.lean",
+      "local_path": "RHHeight/LegsBottom.lean",
+      "git_blob_sha1": "adb1679e9c31918053045136ba8165a564553cbb",
+      "bytes": 6978,
+      "sha256": "2590dabeea6324077e7e025ccfc2ac428a7bb9ffab30447426cb16287b877e57",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LegsTop1",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LegsTop1.lean",
+      "local_path": "RHHeight/LegsTop1.lean",
+      "git_blob_sha1": "2ea1bc7cdf3384f459c373238363fe034c612702",
+      "bytes": 26401,
+      "sha256": "eb411636d40cdad262886a388c7b406e387189018fe227806d3b76c8bd8137d3",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LegsTop2",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LegsTop2.lean",
+      "local_path": "RHHeight/LegsTop2.lean",
+      "git_blob_sha1": "256440ebaf0b5555ed242225451f7ada48a90637",
+      "bytes": 22382,
+      "sha256": "b0aca5ebbf2bee1f09998801ac8bf3bf7add63a56eaee78d61baae9fb2ae5fdb",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LegsArg",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LegsArg.lean",
+      "local_path": "RHHeight/LegsArg.lean",
+      "git_blob_sha1": "8f2d17537b83ed08d3892deebb27545304d52f97",
+      "bytes": 23587,
+      "sha256": "35939b0d2bb7b67b69c407c5f9fb92ed425fd3952d0fbd28dd241ba32799724b",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight.LegSupport",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight/LegSupport.lean",
+      "local_path": "RHHeight/LegSupport.lean",
+      "git_blob_sha1": "e288a91b77c8e61b3b38c15f74a1d2d833a7e42d",
+      "bytes": 33453,
+      "sha256": "b975d6fe6e528875e3ba132fdd07a746c150ec224e7ddd6accda4bdb45b4e177",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.FirstZero",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/FirstZero.lean",
+      "local_path": "HardyFirstZero/FirstZero.lean",
+      "git_blob_sha1": "fd56d795d6121f9e960b8743de1b37149d6a876a",
+      "bytes": 4643,
+      "sha256": "277985ab298d1a6b9fe1acd74e3fe1b5eee8a4d88140c00088759c209bd9817c",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box2102",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box2102.lean",
+      "local_path": "HardyTenZeros/Box2102.lean",
+      "git_blob_sha1": "956a25891c524cf107cc5ff147d4450be314a20f",
+      "bytes": 31677,
+      "sha256": "42fd42ce783ba3e0b473e96778c6597dbfa1074a1353fe36d3b49c40b9336e6c",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box2501",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box2501.lean",
+      "local_path": "HardyTenZeros/Box2501.lean",
+      "git_blob_sha1": "719328bab63f5d71284eab31e0de006f166d680a",
+      "bytes": 40935,
+      "sha256": "cbf25bfa00ad51e08960a315d59a40f191287272a3228d6e35c2f177c01361be",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box3042",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box3042.lean",
+      "local_path": "HardyTenZeros/Box3042.lean",
+      "git_blob_sha1": "cd4108f74a64b60be3318aa59b0cd4cfd85c53b1",
+      "bytes": 40343,
+      "sha256": "eae9946f08b46598e39479fe4b68b564a0209d8cccc90d471b58c583462dc4ca",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box3293",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box3293.lean",
+      "local_path": "HardyTenZeros/Box3293.lean",
+      "git_blob_sha1": "8d0699be6574f243201917b0677b5e6db3bbbc56",
+      "bytes": 42831,
+      "sha256": "b4a894c3ba1c2ada2ed78af5032c27c938dca82e12f938682892fae325a17e65",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box3758",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box3758.lean",
+      "local_path": "HardyTenZeros/Box3758.lean",
+      "git_blob_sha1": "b044e93837f4710e2c8496c73c65a62524ac40b5",
+      "bytes": 47021,
+      "sha256": "55ea6de6a30f25bcd35ee3bc21e61c7d9c9df4e459020b34bfab4b3739eb7954",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box4091",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box4091.lean",
+      "local_path": "HardyTenZeros/Box4091.lean",
+      "git_blob_sha1": "0feb386b49bc08c392ceb0cf737f3106193326a5",
+      "bytes": 62388,
+      "sha256": "03e8f3349bd4dc89cbdb57b39e24a55d33573d10931c94b012da3adbe1397fa4",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box4332",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box4332.lean",
+      "local_path": "HardyTenZeros/Box4332.lean",
+      "git_blob_sha1": "893402d40a6fac866b5156dd4c73ae7c77e50283",
+      "bytes": 53830,
+      "sha256": "e2444cfe745a2ef604f346f64b5ce37995139a509f3512631c49284b7801ec2c",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box4800",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box4800.lean",
+      "local_path": "HardyTenZeros/Box4800.lean",
+      "git_blob_sha1": "bab26de7d37fa9b3df53b77fe62c8e727ec9085d",
+      "bytes": 59445,
+      "sha256": "b02ec8d6fc9f262955441ac938df760e01c5c5f5016f4d7efb1e962b63ef837a",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.Box4977",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/Box4977.lean",
+      "local_path": "HardyTenZeros/Box4977.lean",
+      "git_blob_sha1": "3d66ef7feb1d955190242225a6a2a5368cab4641",
+      "bytes": 67285,
+      "sha256": "171b6382b036c8353a0b646ec9a2f4c0306ab1afb2c881a4714f2a64ff31725b",
+      "git_blob_match": true
+    },
+    {
+      "module": "RHHeight100.Support",
+      "upstream_path": "hunts/rh_height_lean/lean/RHHeight100/Support.lean",
+      "local_path": "RHHeight100/Support.lean",
+      "git_blob_sha1": "e741fd6b013d47d5a50fdc62e8c9ba95e72ad407",
+      "bytes": 4955,
+      "sha256": "c86e8163ced999690877ddeb3f7dd911a71973743761ac2cda74bb4905fbeb62",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Statement.Seam",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Statement/Seam.lean",
+      "local_path": "Zeta23/Statement/Seam.lean",
+      "git_blob_sha1": "19eac62379d17ae129affea85ce389bcf7ef6109",
+      "bytes": 5660,
+      "sha256": "f0b467ce6fc1ee94e3acb9241403a543aa6b4fb9086ed12fe5d43b598e32340a",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.ZetaReflect",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/ZetaReflect.lean",
+      "local_path": "Zeta23/ZetaReflect.lean",
+      "git_blob_sha1": "2189d68cc869d0def2868a8d7458340ba97fe5f9",
+      "bytes": 14736,
+      "sha256": "757c8087bf6be6de3212df02f5c2c44f1cdbae8b960bf982c9d4d4022f89d29f",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Prelude.InstancePriorities",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Prelude/InstancePriorities.lean",
+      "local_path": "Zeta23/Prelude/InstancePriorities.lean",
+      "git_blob_sha1": "2eb76e582b5f5cf5bdff2b92ee2b1c51aaabee89",
+      "bytes": 2038,
+      "sha256": "c8c41ff6f38212463ebe1ed54a973747528f55d372184b3160b47376277bd625",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Defs.Counting",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Defs/Counting.lean",
+      "local_path": "Zeta23/Defs/Counting.lean",
+      "git_blob_sha1": "2bb4cb7a5ee130e18c33f94f61e6b92057d9f7b8",
+      "bytes": 3017,
+      "sha256": "2b28f1314f2c42b9f676b0f86d1dce931b6cc4d5b93bdf9bada245c8c2068d8b",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.StrongPNTPrefix",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/StrongPNTPrefix.lean",
+      "local_path": "Zeta23/FromPNTPlus/StrongPNTPrefix.lean",
+      "git_blob_sha1": "4380ccebdd16fb53b0fc6ff34f6083910c6757ce",
+      "bytes": 26826,
+      "sha256": "fb896b2c07c22ae03cf33de4e3cd619bd4c43861724a7751cd557dd777e4f5bb",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.ZetaGrowth",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/ZetaGrowth.lean",
+      "local_path": "Zeta23/RvM/ZetaGrowth.lean",
+      "git_blob_sha1": "667e9a2a69e5de923ae1ec048afbb8f990f2327a",
+      "bytes": 11831,
+      "sha256": "3647b1bdfc94dbe8deabeab49f81c9cfd5f6d9b82b47b933ad0a2b7352597ae7",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.Halving",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/Halving.lean",
+      "local_path": "Zeta23/RvM/Halving.lean",
+      "git_blob_sha1": "f16aee7a5279556277a9c1f1311c0766abf3fade",
+      "bytes": 3893,
+      "sha256": "a97101d4a2cc91989b4cc2f2712d41c81a200e1dcb6bacb55784761d783d4c29",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Defs",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Defs.lean",
+      "local_path": "Zeta23/Defs.lean",
+      "git_blob_sha1": "8b61f41b1bf15e85ec5421a91a45c4ae27633b04",
+      "bytes": 16352,
+      "sha256": "9b37b38d87443fdbd19c0d4b715128bb666a102d98f1d94bb76f0191c26a138c",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Statement",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Statement.lean",
+      "local_path": "Zeta23/Statement.lean",
+      "git_blob_sha1": "c63158ace144f4c3e2de69edc76a192a00a98524",
+      "bytes": 10537,
+      "sha256": "ace63b9fc16dbe85007e4f9301a7ece03d2a6b7a106b862fd1560a2040f39a9b",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.ResidueCalcOnRectangles",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/ResidueCalcOnRectangles.lean",
+      "local_path": "Zeta23/FromPNTPlus/ResidueCalcOnRectangles.lean",
+      "git_blob_sha1": "d044646e34fd61434c6fb831c81bf1d659f06b37",
+      "bytes": 61687,
+      "sha256": "43c018e48238ebab163b1c20183929b42c269d525d98d16388a1565550ea4900",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.BacklundDefs",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/BacklundDefs.lean",
+      "local_path": "Zeta23/RvM/BacklundDefs.lean",
+      "git_blob_sha1": "67d6330e5e7ad43412692bf3e5cfb4d884a7b961",
+      "bytes": 1050,
+      "sha256": "2428d829629226ae84d798341409bbd3de96da297e33153856336e424adf88c6",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.ReZeroCount",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/ReZeroCount.lean",
+      "local_path": "Zeta23/RvM/ReZeroCount.lean",
+      "git_blob_sha1": "bc96193b4dbbf047309a6179d9eb25c03be32841",
+      "bytes": 17888,
+      "sha256": "0ed40a210943cce357bf811caaa5e2dacbb399515b64b688976df2188bbb38cc",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.RvM.CountByIntegral",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/RvM/CountByIntegral.lean",
+      "local_path": "Zeta23/RvM/CountByIntegral.lean",
+      "git_blob_sha1": "a75bc8ae0d1d1760d029c3ad150dce6db4a6fc5f",
+      "bytes": 8303,
+      "sha256": "c61759a879be39c8279a62a6a4308a52aa45522c151fc623a48cbc4e116f0da9",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.ZetaConj",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/ZetaConj.lean",
+      "local_path": "Zeta23/FromPNTPlus/ZetaConj.lean",
+      "git_blob_sha1": "9f42d3ff403e1c8caccc3c00caffa7283e0d3ad8",
+      "bytes": 1875,
+      "sha256": "6af1e8c535774b01870a7af304af884b5f21400b64c130d833156ab3fc970578",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.Spine",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/Spine.lean",
+      "local_path": "HardyFirstZero/Spine.lean",
+      "git_blob_sha1": "e6d3257dab9bd79e54cdd32e8088b9b56cdcbf34",
+      "bytes": 5382,
+      "sha256": "970ee33563d6158b1a82ff29363de27b368fac1ce02662dbaedb166fbfb31e3d",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.GammaFacts.Mu",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/GammaFacts/Mu.lean",
+      "local_path": "Zeta23/GammaFacts/Mu.lean",
+      "git_blob_sha1": "cd11d64f89fd8ccda178c0e81bc041b240865d62",
+      "bytes": 20909,
+      "sha256": "7d971de351bbecac7ea72d73f9f9cd14e881aa9c6efee0a250451e8bf6b476a4",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.TenSupport",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/TenSupport.lean",
+      "local_path": "HardyTenZeros/TenSupport.lean",
+      "git_blob_sha1": "e18f2c3958c7e85e8c39781409dbace49a0232de",
+      "bytes": 11307,
+      "sha256": "b1ab68102dd14412518a7b6ae3dc0ae402ee89932bcb88562e92ddc421ad82aa",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.Boxes",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/Boxes.lean",
+      "local_path": "HardyFirstZero/Boxes.lean",
+      "git_blob_sha1": "2c27c5e6c01d6affcc37484b8e67133aeab21382",
+      "bytes": 46285,
+      "sha256": "fe6334f2eaebcf706c519962dfa36919dacbe8abaa256ec4cd84168581ca05bc",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.ZetaBounds",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/ZetaBounds.lean",
+      "local_path": "Zeta23/FromPNTPlus/ZetaBounds.lean",
+      "git_blob_sha1": "2f6c28c1a0703fb0e84ddb512997ee3d971da3ba",
+      "bytes": 151677,
+      "sha256": "1274579451f49f99040983ef8a67eed4425a0e8ebeec29e559b3f8a6543b7121",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Rectangle",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Rectangle.lean",
+      "local_path": "Zeta23/FromPNTPlus/Rectangle.lean",
+      "git_blob_sha1": "92b0a1d522a723a0b5f8191799211b91aa5f2dfa",
+      "bytes": 13977,
+      "sha256": "efd3c3e039c82d3d70889db572218c8a05de25ddb03c254e346b92329a95e6fc",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Tactic.AdditiveCombination",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Tactic/AdditiveCombination.lean",
+      "local_path": "Zeta23/FromPNTPlus/Tactic/AdditiveCombination.lean",
+      "git_blob_sha1": "f0e26150e240bb92cc4edc67ac1250a618809fbd",
+      "bytes": 9007,
+      "sha256": "0ae798aa30fb31713bd8448f505bb7d1b29fad234ade98aa09e9700c10c216ea",
+      "git_blob_match": true
+    },
+    {
+      "module": "ZetaLean.HardyZ",
+      "upstream_path": "lean/ZetaLean/HardyZ.lean",
+      "local_path": "ZetaLean/HardyZ.lean",
+      "git_blob_sha1": "ea7c658064eeb3282826faee00fe85f5b972fda2",
+      "bytes": 10412,
+      "sha256": "21259011d07285653f190ba574140bed167e09f067c72d0bcc90446173dd9a21",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.Analytic.Stirling",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/Analytic/Stirling.lean",
+      "local_path": "Zeta23/Analytic/Stirling.lean",
+      "git_blob_sha1": "ef1fd23e954a7b9c6cfc0077faf75183c0245252",
+      "bytes": 12732,
+      "sha256": "e8928ea1017d822d1d09d13ca41ebf0b98d4a3e9a611d90d8f688c284e75c6ba",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyFirstZero.BoxSupport",
+      "upstream_path": "hunts/hardy_first_zero/lean/HardyFirstZero/BoxSupport.lean",
+      "local_path": "HardyFirstZero/BoxSupport.lean",
+      "git_blob_sha1": "028568ea7f4f0133c38c8fcd9a6e55f5a5fb67a8",
+      "bytes": 6178,
+      "sha256": "b92b761c27449deb2b96d8a845dd6d53d6f1bd22985a480d583a22620701f1dd",
+      "git_blob_match": true
+    },
+    {
+      "module": "HardyTenZeros.PhaseShort",
+      "upstream_path": "hunts/hardy_ten_zeros/lean/HardyTenZeros/PhaseShort.lean",
+      "local_path": "HardyTenZeros/PhaseShort.lean",
+      "git_blob_sha1": "41d904792e04c2caf6fb7d52629b10388de08aaf",
+      "bytes": 14529,
+      "sha256": "93a2c5675da6c10de558ff1086ac3eea9562e9885f425d42c45fb82f504cbd9e",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Auxiliary",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Auxiliary.lean",
+      "local_path": "Zeta23/FromPNTPlus/Auxiliary.lean",
+      "git_blob_sha1": "8ed19404d7c641fa0c853348f166e507c9d1ce18",
+      "bytes": 3913,
+      "sha256": "4870e29ea655fc1d3047686d0c68dab8ba65fcdb525ed83dcb64c7289d78b860",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Fourier",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Fourier.lean",
+      "local_path": "Zeta23/FromPNTPlus/Fourier.lean",
+      "git_blob_sha1": "e6b541224e9e37ecff16eefa0aea1bb5611aad55",
+      "bytes": 9699,
+      "sha256": "50396a0bbfd78d813b3cdcb3a18239ef273f36a46533b891f7aae1f5a043407d",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Mathlib.Analysis.SpecialFunctions.Log.Basic",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Mathlib/Analysis/SpecialFunctions/Log/Basic.lean",
+      "local_path": "Zeta23/FromPNTPlus/Mathlib/Analysis/SpecialFunctions/Log/Basic.lean",
+      "git_blob_sha1": "ab660fe7c6fbd71fee1d74bd157c3aae75a504fe",
+      "bytes": 1326,
+      "sha256": "a3d0f4f396b28ae0b410be246be645535680360073ef2788c9a16bbbcaf80060",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.EulerMaclaurin",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/EulerMaclaurin.lean",
+      "local_path": "Zeta23/FromPNTPlus/EulerMaclaurin.lean",
+      "git_blob_sha1": "f3ca3c690fab42b9c3dacef30669f66259bf826f",
+      "bytes": 4231,
+      "sha256": "0e2b201e2a99db8650c565f14c2d4c65ff54a59a29f81137a63a00f2d1776ab6",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.GammaFacts.Series",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/GammaFacts/Series.lean",
+      "local_path": "Zeta23/GammaFacts/Series.lean",
+      "git_blob_sha1": "4a5518493d5b3e54b6e7f4e648998d9321793673",
+      "bytes": 24264,
+      "sha256": "bd2cfd658e3d241ea062e8a4f2bf05199380f0b8cfeac8cb9f95ba2ac741419a",
+      "git_blob_match": true
+    },
+    {
+      "module": "ZetaLean.IntervalCExp",
+      "upstream_path": "lean/ZetaLean/IntervalCExp.lean",
+      "local_path": "ZetaLean/IntervalCExp.lean",
+      "git_blob_sha1": "af2ef1d636b68af5ffef13367c773fd9b78f8280",
+      "bytes": 27975,
+      "sha256": "854ed3f83c75b44b4e0b2879eaf901155d5371b51f2a54ad585d0b11042b2db4",
+      "git_blob_match": true
+    },
+    {
+      "module": "Zeta23.FromPNTPlus.Sobolev",
+      "upstream_path": "lean/vendor/zeta23/Zeta23/FromPNTPlus/Sobolev.lean",
+      "local_path": "Zeta23/FromPNTPlus/Sobolev.lean",
+      "git_blob_sha1": "04f159a8b6e2258c4e441f95da7ae7399bfeb172",
+      "bytes": 16555,
+      "sha256": "82f6053d4a003291b6db6a3db186b7da96267faca6ffecbb23fe5a214f223be2",
+      "git_blob_match": true
+    },
+    {
+      "module": "ZetaLean.Rigor",
+      "upstream_path": "lean/ZetaLean/Rigor.lean",
+      "local_path": "ZetaLean/Rigor.lean",
+      "git_blob_sha1": "123969e0c9f0ceb01c7ecd0ff5a954a6f4e3f6e5",
+      "bytes": 8088,
+      "sha256": "ed0337e17a0a02d5390ee565850ba6ff2a58cbcbb9fd1355561bf527bf38ced6",
+      "git_blob_match": true
+    },
+    {
+      "module": "ZetaLean.IntervalExp",
+      "upstream_path": "lean/ZetaLean/IntervalExp.lean",
+      "local_path": "ZetaLean/IntervalExp.lean",
+      "git_blob_sha1": "3e941cd3285d14ce8cf5b640302bca2dba328215",
+      "bytes": 13535,
+      "sha256": "63dd29aa3810992ae9f705fdf52f04684d96c89d368aa74981217ae64bf80d83",
+      "git_blob_match": true
+    }
+  ],
+  "all_99_git_blobs_match": true
+}

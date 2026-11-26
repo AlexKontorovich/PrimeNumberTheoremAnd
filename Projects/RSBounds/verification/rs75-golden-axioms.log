@@ -1,0 +1,19 @@
+'TernaryGoldbach.RSBounds.GoldenScalar.Expr.sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.upperPoint_zero_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.upperPoint_one_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_zero_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_zero_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_one_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75GoldenNumerics.lowerPoint_two_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,39 @@
+⚠ [3829/3831] Replayed RSBounds.BacklundCenter
+warning: RSBounds/BacklundCenter.lean: imports `Mathlib.NumberTheory.EulerProduct.DirichletLSeries` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundCenter.lean: imports `Mathlib.Topology.Algebra.InfiniteSum.Field` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundCenter.lean: imports `Mathlib.Topology.Algebra.Order.Field` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundCenter.lean: imports `Mathlib.Tactic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✖ [3831/3831] Building RSBounds.BacklundCenterNumericsBase (2.8s)
+warning: RSBounds/BacklundCenterNumericsBase.lean: imports `Mathlib.Analysis.SumIntegralComparisons` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/BacklundCenterNumericsBase.lean: imports `Mathlib.Analysis.SpecialFunctions.ImproperIntegrals` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+trace: .> LEAN_PATH=/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean /workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean /workspace/scratch/99a161e7c02e/recovery/RSBounds/BacklundCenterNumericsBase.lean -o /workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RSBounds/BacklundCenterNumericsBase.olean -i /workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RSBounds/BacklundCenterNumericsBase.ilean -c /workspace/scratch/99a161e7c02e/recovery/.lake/build/ir/RSBounds/BacklundCenterNumericsBase.c --setup /workspace/scratch/99a161e7c02e/recovery/.lake/build/ir/RSBounds/BacklundCenterNumericsBase.setup.json --json
+warning: RSBounds/BacklundCenterNumericsBase.lean:32:47: This simp argument is unused:
+  Nat.add_assoc
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [rpowSum, Finset.sum_range_succ', ih, add_comm, add_left_comm]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: RSBounds/BacklundCenterNumericsBase.lean:56:2: Type mismatch
+  add_le_add_left htail ?m.415
+has type
+  ∑' (n : ℕ), ↑(n + N + 1) ^ (-σ) + ?m.415 ≤ ↑N ^ (1 - σ) / (σ - 1) + ?m.415
+but is expected to have type
+  ∑ i ∈ range N, ↑(i + 1) ^ (-σ) + ∑' (i : ℕ), ↑(i + N + 1) ^ (-σ) ≤
+    ∑ j ∈ range N, ↑(j + 1) ^ (-σ) + ↑N ^ (1 - σ) / (σ - 1)
+error: RSBounds/BacklundCenterNumericsBase.lean:88:2: Type mismatch: After simplification, term
+  add_le_add_left htail (rpowSum σ 1 N)
+ has type
+  ↑(N + 1) ^ (1 - σ) / (σ - 1) + rpowSum σ 1 N ≤ ∑' (n : ℕ), ↑(n + (N + 1)) ^ (-σ) + rpowSum σ 1 N
+but is expected to have type
+  ∑ j ∈ range N, ↑(j + 1) ^ (-σ) + ↑(N + 1) ^ (1 - σ) / (σ - 1) ≤
+    ∑ j ∈ range N, ↑(j + 1) ^ (-σ) + ∑' (i : ℕ), ↑(i + (N + 1)) ^ (-σ)
+warning: RSBounds/BacklundCenterNumericsBase.lean:90:40: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Some required targets logged failures:
+- RSBounds.BacklundCenterNumericsBase
+error: build failed

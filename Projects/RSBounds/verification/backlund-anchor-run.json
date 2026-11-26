@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "checked_at_utc": "2026-11-06T11:41:59.680972+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundAnchor.lean": "f348306c76352b94134ef90946dc73f2c0c4bb3c56018a05d0e0a31837114d2b",
+    "verification/BacklundAnchorAudit.lean": "4b7e7a3456d76ed65c14e9df3b0cbece136be9e469601569195634de9667b429",
+    "RSBounds/BacklundCenterNumerics.lean": "78bac242688138ddda0804b71af492c8fc2c7870c166a394125d9f565577c623"
+  },
+  "build_command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/BacklundAnchor.olean",
+    "RSBounds/BacklundAnchor.lean"
+  ],
+  "build_exit_code": 0,
+  "audit_command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "verification/BacklundAnchorAudit.lean"
+  ],
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundAnchor.norm_neg_log_one_sub_le",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.real_eulerLog",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.norm_eulerLog_le",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.log_zeta_five_fourths_lt_half_pi",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.re_zeta_anchor_pos",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.hasDerivAt_log_anchor",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.continuous_vertical_integrand",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.vertical_integral_eq_arg",
+    "TernaryGoldbach.RSBounds.BacklundAnchor.abs_vertical_integral_le"
+  ],
+  "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ]
+}

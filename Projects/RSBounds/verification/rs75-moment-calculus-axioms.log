@@ -1,0 +1,33 @@
+'TernaryGoldbach.RSBounds.InfiniteTrapezoid.finite_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.InfiniteTrapezoid.infinite_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentDeriv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.momentSecond_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.continuousOn_momentSecond' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentDeriv' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_neg_tailPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.integrableOn_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.integral_momentFn' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75MomentCalculus.moment_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]

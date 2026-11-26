@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.RvM.Fold",
+  "source_sha256": "12a3d62f7c6ad25512ff5278d329927543570ff6c67cc95bafed6b10730b70d2",
+  "upstream_sha256": "12a3d62f7c6ad25512ff5278d329927543570ff6c67cc95bafed6b10730b70d2",
+  "adapted": false,
+  "signature": "4b61787f6fe705f2b6c9106d3e403c3636c0c76e3b35b3ea4df100f13d8db275",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/RvM/Fold.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/RvM/Fold.olean"
+  ],
+  "started_utc": "2026-11-06T12:01:22.158094+00:00",
+  "finished_utc": "2026-11-06T12:01:25.980900+00:00",
+  "elapsed_seconds": 3.822,
+  "peak_rss_kib": 1954828,
+  "log": "verification/rh100-replay/Zeta23.RvM.Fold.log",
+  "resources": "verification/rh100-replay/Zeta23.RvM.Fold.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "f9853e673f86a47404cba79168de52c5a4be0b21e72f4df16efb5e0f1fa3c771",
+  "reused_from_previous_replay": true
+}

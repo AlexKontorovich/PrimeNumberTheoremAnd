@@ -1,0 +1,24 @@
+{
+  "module": "HardyFirstZero.FirstZero",
+  "source_sha256": "277985ab298d1a6b9fe1acd74e3fe1b5eee8a4d88140c00088759c209bd9817c",
+  "upstream_sha256": "277985ab298d1a6b9fe1acd74e3fe1b5eee8a4d88140c00088759c209bd9817c",
+  "adapted": false,
+  "signature": "0c91122a8bc58f6818b98b053b0e1c050f41f0409e949be08ca0e7dee19d572f",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "HardyFirstZero/FirstZero.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/HardyFirstZero/FirstZero.olean"
+  ],
+  "started_utc": "2026-11-06T12:17:02.933494+00:00",
+  "finished_utc": "2026-11-06T12:17:07.714722+00:00",
+  "elapsed_seconds": 4.781,
+  "peak_rss_kib": 3592164,
+  "log": "verification/rh100-replay/HardyFirstZero.FirstZero.log",
+  "resources": "verification/rh100-replay/HardyFirstZero.FirstZero.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "762a21fae11a8a10b68db1398e36021748f2b37ff2a9ab18ef96624577d63fb5",
+  "reused_from_previous_replay": true
+}

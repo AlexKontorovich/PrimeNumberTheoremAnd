@@ -1,0 +1,91 @@
+import took 6.96s
+RSBounds/PrimeLogTail.lean:33:20: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:33:24: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:33:24: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PrimeLogTail.lean:102:61: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:102:61: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/PrimeLogTail.lean:127:62: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:127:66: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:133:38: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:133:42: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:127:66: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PrimeLogTail.lean:133:42: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PrimeLogTail.lean:161:38: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:161:42: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:172:69: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:172:73: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/PrimeLogTail.lean:161:42: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/PrimeLogTail.lean:172:73: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+'TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_sq_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PrimeLogTail.sum_prime_log_div_mul_pred_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 20.4ms
+	aesop 25.3ms
+	attribute application 0.0945ms
+	blocked (unaccounted) 1.43s
+	compilation (IR) 0.0627ms
+	compilation (LCNF base) 0.557ms
+	compilation (LCNF impure) 1.31ms
+	compilation (LCNF mono) 0.411ms
+	congr simp thm 2.81ms
+	declTypeLinter 4.56ms
+	elaboration 70.2ms
+	fix level params 1.39ms
+	import 6.96s
+	initialization 45.9ms
+	instantiate metavars 2.96ms
+	interpretation 628ms
+	let-to-have transformation 0.181ms
+	linting 31.8ms
+	module linting 0.0105ms
+	norm_num 45.7ms
+	parsing 16.2ms
+	process pre-definitions 17ms
+	ring 54.6ms
+	share common exprs 17.9ms
+	simp 71ms
+	tactic execution 247ms
+	tacticAnalysis 3.67ms
+	type checking 132ms
+	typeclass inference 523ms

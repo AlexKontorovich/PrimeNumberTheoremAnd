@@ -1,0 +1,33 @@
+{
+  "kind": "single-pass-source-compilation-and-appended-axiom-audits",
+  "started_utc": "2026-11-06T17:35:08.816540+00:00",
+  "source_sha256": {
+    "RSBounds/PsiSieveBlockReduction.lean": "28b08dd5135caafa1b2c0d1d81c3359e02c0d5d24718dc847272b2feaa562031",
+    "verification/PsiSieveBlockReductionAudit.lean": "161cdfd70d57ae05e97530f3a9572fbef590bea48e803101b5003ac322379886",
+    "verification/psi-sieve-block-check-input.lean": "39f47264e33c44114e2eea3b44d6e4d9108c858e090ca248477266d4d37e2ae9",
+    "RSBounds/PsiSieveEndpointReduction.lean": "82a4b68b286af10511fdf65362d792f0bd0295ef8dcbaeded70015a499e159bf",
+    "verification/run_psi_sieve_block_check.py": "f1b181ea24e047eea123e195c8ad2d0b05d4dea0c0b3bc95250e31495b19e79b",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7"
+  },
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "--stdin",
+    "RSBounds/PsiSieveBlockReduction.lean",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/PsiSieveBlockReduction.olean"
+  ],
+  "stdin": "verification/psi-sieve-block-check-input.lean",
+  "log": "verification/psi-sieve-block-check.log",
+  "exit_code": 0,
+  "elapsed_seconds": 4.77546214999893,
+  "finished_utc": "2026-11-06T17:35:13.592332+00:00",
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  }
+}

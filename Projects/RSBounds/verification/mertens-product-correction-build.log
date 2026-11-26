@@ -1,0 +1,98 @@
+import took 73.3s
+RSBounds/MertensProductCorrection.lean:198:49: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensProductCorrection.lean:198:45: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:198:49: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:222:40: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensProductCorrection.lean:229:52: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensProductCorrection.lean:222:36: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:222:40: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:229:48: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:229:52: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+tactic execution of Mathlib.Tactic.nlinarith took 175ms
+RSBounds/MertensProductCorrection.lean:319:64: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensProductCorrection.lean:319:60: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:319:64: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:337:41: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/MertensProductCorrection.lean:334:44: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/MertensProductCorrection.lean:334:44: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:337:37: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensProductCorrection.lean:337:41: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+'TernaryGoldbach.RSBounds.MertensProductCorrection.sum_powerMain_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensProductCorrection.correction_le_sum_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensProductCorrection.low_tail_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensProductCorrection.high_tail_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensProductCorrection.primeProduct_correction_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 58.8ms
+	attribute application 0.124ms
+	blocked (unaccounted) 4.39s
+	compilation (IR) 0.0368ms
+	compilation (LCNF base) 0.707ms
+	compilation (LCNF impure) 0.135ms
+	compilation (LCNF mono) 0.192ms
+	congr simp thm 8.64ms
+	declTypeLinter 11.6ms
+	dsimp 17.2ms
+	elaboration 145ms
+	fix level params 2.04ms
+	import 73.3s
+	initialization 44.6ms
+	instantiate metavars 4.98ms
+	interpretation 2.66s
+	let-to-have transformation 0.196ms
+	linting 66.8ms
+	module linting 0.0231ms
+	norm_num 137ms
+	parsing 24.8ms
+	process pre-definitions 40.8ms
+	ring 93.5ms
+	share common exprs 28.2ms
+	simp 104ms
+	tactic execution 878ms
+	tacticAnalysis 12ms
+	type checking 269ms
+	typeclass inference 1.67s

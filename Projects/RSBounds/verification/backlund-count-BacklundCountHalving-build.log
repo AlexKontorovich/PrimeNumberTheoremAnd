@@ -1,0 +1,8 @@
+RSBounds/BacklundCountHalving.lean:114:26: warning: This simp argument is unused:
+  zero_mul
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [mul_im, mul_re, ofReal_re, ofReal_im, natCast_re, natCast_im, I_re, I_im, mul_zero, sub_zero,
+    add_zero, zero_add] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

@@ -1,0 +1,7 @@
+import RSBounds.MertensTailScalars
+
+#print axioms TernaryGoldbach.RSBounds.MertensTailScalars.log_A_bounds
+#print axioms TernaryGoldbach.RSBounds.MertensTailScalars.log_A_div_two_pi_le
+#print axioms TernaryGoldbach.RSBounds.MertensTailScalars.coefficient_A_le
+#print axioms TernaryGoldbach.RSBounds.MertensTailScalars.error_A_le
+#print axioms TernaryGoldbach.RSBounds.MertensTailScalars.square_tail_A_lt

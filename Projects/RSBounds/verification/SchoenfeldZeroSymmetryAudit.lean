@@ -1,0 +1,6 @@
+import RSBounds.SchoenfeldZeroSymmetry
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.sum_reflect
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.sum_le_low_and_high
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.rpow_pair_le_sqrt_add
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.rpow_boundary_eq
+#print axioms TernaryGoldbach.RSBounds.SchoenfeldZeroSymmetry.zero_pair_power_le

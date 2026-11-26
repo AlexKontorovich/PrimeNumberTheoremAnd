@@ -1,0 +1,48 @@
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.mem_zerosRectD_zetaF_iff_xi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.mem_zerosRectD_zetaF_iff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.analyticOrderAt_zetaF_eq_zeta' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_zetaF_eq_analyticOrder' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positive_filter_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.closed_filter_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positiveZeros_eq_closed_of_goodHeight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.positive_filter_eq_closed_of_goodHeight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.zetaGoodHeight_of_goodHeights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.sum_multRectD_closed_filter_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.sum_multRectD_closed_filter' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.conj_mem_zerosRectD' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_conj' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.reflect_mem_zerosRectD' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.multRectD_reflect' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroCountBridge.reflect_mem_closedPositiveZeros' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

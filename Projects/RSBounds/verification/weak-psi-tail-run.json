@@ -1,0 +1,48 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:41:38.019868+00:00",
+  "source_sha256": {
+    "RSBounds/WeakPsiTail.lean": "fee0ff2b9b9d2c14fdb64e9feee4c905eafd6f0932b17ed26e7de6fd25fa611f",
+    "RSBounds/RS75AdaptiveHighBudget.lean": "9f4ec2ed651c16f1aadd406b540a591b9fe85e64fa02382c009a9560e76cde6e",
+    "RSBounds/RS75DecayingHighZeros.lean": "4d5cb1d69b3a8237324463b67f044e1193eba7815a84b5fe8729e9e227ede213",
+    "RSBounds/SchoenfeldSquareCutoffs.lean": "52bf68a1021b9bcf28aa3588c91a5ea56895ef3f2ae2ea129e4e1e9a6e034b8e",
+    "RSBounds/SchoenfeldCoefficientPairing.lean": "9251d6117e987a4a231122deb91e45b171d5940efec3da693c61e15abcf7f038",
+    "RSBounds/PolynomialPsiFromZeroSums.lean": "75852c697246a5e4bfbf0d25d1eb2b813d86cbce54b55f58ec16c7d592f1ac36",
+    "RSBounds/PolynomialLeftKernel.lean": "0a86e38765aa7f098c0e3877d65b36c452970dbf4ab756d5fdaf770b464a1c11",
+    "RSBounds/PolynomialQuarticFormula.lean": "0a2a5030070705fa2e9834c700b9dc01afa8b542ccba8ce2f109745ce671a018",
+    "RSBounds/PolynomialRemainderIntegral.lean": "3e87be73c89de7606dd47fa042e546abd7206ce032792fa619c089bf79ec5632",
+    "RSBounds/MertensIntervalLeftBound.lean": "f665f45fd373b2dc49232de804ec6274eb8f93767b852409cf1f8f0ff75255e2",
+    "verification/WeakPsiTailAudit.lean": "4c2f7fbcf5b55508d5e60f3eef0a39891fafa9b9cef6a62ad75136c526736ec1",
+    "verification/run_weak_psi_tail_check.py": "bad0549275938ad3f5da173a3cc176aa7f3de4cd443ef67348a46dbc498760d3",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/WeakPsiTail.olean",
+        "RSBounds/WeakPsiTail.lean"
+      ],
+      "log": "weak-psi-tail-build.log",
+      "exit_code": 0,
+      "seconds": 322.9775183919992
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/WeakPsiTail.lean",
+    "verification/WeakPsiTailAudit.lean"
+  ],
+  "stdin_sha256": "8405301cab3ad5a1a19b881564111c324f1f66387e65d700a654dbcfd5219fac",
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T20:47:01.003660+00:00",
+  "exit_code": 0
+}

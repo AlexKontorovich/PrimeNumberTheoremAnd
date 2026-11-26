@@ -1,0 +1,39 @@
+{
+  "kind": "fresh-compilation-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T16:53:14.044737+00:00",
+  "source_sha256": {
+    "RSBounds/RS75Frequency.lean": "b7422c8e782c85a801a5f9b80647f705a90bc37eb241bb602de1fca33a6f05d4",
+    "RSBounds/BacklundGammaModulusDigamma.lean": "cdae7548165f04f5ce86407c824bcc85e41a1817b2c01b63cef1069f5a06bb70",
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFreeRegion.lean": "dc3b5c8627bfc8b0cea172eddbae757d2ceb727c1987d4311b05d206cad95497",
+    "verification/RS75FrequencyAudit.lean": "6fec5db0fc9fc00ff8d6af7329eaa10d206475cda1a832392a9e697f9190cb44",
+    "verification/run_rs75_frequency_check.py": "66c4e7e12a7a9a496404d3d5a4a54cdd8894de3cf6315173b1dfab4a09073c42"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75Frequency.olean",
+        "RSBounds/RS75Frequency.lean"
+      ],
+      "log": "rs75-frequency-build.log",
+      "exit_code": 0,
+      "seconds": 890.7620409419978,
+      "stdin_sha256": "74496050cec04b65525ecebf9ef09229fba636d116438c29c016ebfcbbfbfb8e"
+    }
+  ],
+  "stdin_recipe": "Exact proof source, newline, and the public theorem transitive #print axioms command.",
+  "stdin_sha256": "74496050cec04b65525ecebf9ef09229fba636d116438c29c016ebfcbbfbfb8e",
+  "module_name_source": "Explicit filename argument; verified in pinned Lean/Shell.lean lines498-553.",
+  "axiom_audit": {
+    "declarations": 1,
+    "only_standard_axioms": true
+  },
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:08:04.818108+00:00"
+}

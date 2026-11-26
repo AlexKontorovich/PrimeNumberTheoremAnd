@@ -1,0 +1,8 @@
+import RSBounds.BacklundFunctionalMultiplier
+import RSBounds.BacklundHyperbolicFactor
+
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaBaseline.norm_Gamma_one_add_mul_I_sq
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaBaseline.norm_Gamma_one_add_mul_I_sq_exp
+#print axioms TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_multiplier_imaginary_le
+#print axioms TernaryGoldbach.RSBounds.BacklundFunctionalMultiplier.norm_zeta_imaginary_le
+#print axioms TernaryGoldbach.RSBounds.BacklundHyperbolicFactor.sqrt_exp_ratio_le

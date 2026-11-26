@@ -1,0 +1,13 @@
+import RSBounds.PolynomialExplicitFormula
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.weighted_integrable_of_decay_five
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.exists_goodHeights
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.DecayFive.integrable_line
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.rect_identity_pole_zero
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.integrable_contour_right
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.integrable_contour_left
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.tendsto_HkD_div_fifth
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.contour_limit_of_residue_formula
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.contour_limit_of_residue_formula_at_heights
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.explicit_formula_pole_zero_at_heights
+#print axioms TernaryGoldbach.RSBounds.PolynomialExplicit.explicit_formula_pole_zero

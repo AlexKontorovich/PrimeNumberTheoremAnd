@@ -1,0 +1,41 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:09:41.749222+00:00",
+  "source_sha256": {
+    "RSBounds/Mertens.lean": "d731c1303f4d86e292220534a804d92d0b534a216a230e1046fb4d54f150e573",
+    "RSBounds/WeightedZeroSums.lean": "081e997e5c9c5c4e9039e33684467a7b5e8b0c6fb04d815d06ae5f3b33329c7f",
+    "verification/AuditMertens.lean": "8b494569ea243e8261662cc201ecdea1fbb2c3b9ec58472e87c6ff1c7a24638c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.Mertens"
+      ],
+      "log": "mertens-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.WeightedZeroSums"
+      ],
+      "log": "weighted-zero-sums-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/AuditMertens.lean"
+      ],
+      "log": "mertens-and-weighted-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:09:51.831248+00:00",
+  "exit_code": 0
+}

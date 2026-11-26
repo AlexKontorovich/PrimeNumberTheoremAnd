@@ -1,0 +1,9 @@
+RSBounds/BacklundGammaPhaseBase.lean:106:23: warning: This simp argument is unused:
+  sub_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Complex.div_ofNat_re, Complex.one_re, Complex.div_ofNat_im, Complex.one_im, zero_div,
+    Complex.add_re, Complex.ofReal_re, Complex.mul_I_re, Complex.ofReal_im, Complex.add_im, Complex.mul_I_im, zero_add,
+    neg_zero, add_zero] at him
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

@@ -1,0 +1,27 @@
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.coefficient_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.coefficient_conj' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_conj' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_high_line' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_band_pos' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialZeroMajorants.norm_coefficient_le_band' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

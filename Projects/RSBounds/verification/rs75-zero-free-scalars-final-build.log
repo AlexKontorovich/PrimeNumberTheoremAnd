@@ -1,0 +1,76 @@
+import took 11.5s
+RSBounds/RS75ZeroFreeScalars.lean:38:60: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS75ZeroFreeScalars.lean:38:60: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_NormNum_Core___elabRules_Mathlib_Tactic_normNum_1._boxed took 140ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 201ms
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 104ms
+RSBounds/RS75ZeroFreeScalars.lean:100:2: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS75ZeroFreeScalars.lean:100:2: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 127ms
+RSBounds/RS75ZeroFreeScalars.lean:112:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RS75ZeroFreeScalars.lean:112:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.heightRatio_upper' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.D_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.H_upper' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.gamma_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.chosen_x_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.frequency_tail_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.residual_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.residual_add_frequency_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.rawResidual_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.rawResidual_add_frequency_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.chosen_residual_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 51.8ms
+	attribute application 0.169ms
+	blocked (unaccounted) 3.47s
+	congr simp thm 3.8ms
+	declTypeLinter 5.76ms
+	elaboration 125ms
+	fix level params 4.34ms
+	import 11.5s
+	initialization 38.2ms
+	instantiate metavars 3.37ms
+	interpretation 1.74s
+	let-to-have transformation 0.21ms
+	linting 52.6ms
+	module linting 0.0104ms
+	norm_num 581ms
+	parsing 9.07ms
+	process pre-definitions 56.2ms
+	ring 173ms
+	share common exprs 80.1ms
+	simp 10.1ms
+	tactic execution 129ms
+	tacticAnalysis 6.68ms
+	type checking 332ms
+	typeclass inference 832ms

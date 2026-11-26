@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-rs62-finite-handoff-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:05:11.458016+00:00",
+  "source_sha256": {
+    "RSBounds/RS62FiniteHandoff.lean": "371cdd896153f58cb2cbf3a8256bee19b76b72f36d8f3bf9d5a4947bc09bf2d5",
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "../ternary-goldbach/TernaryGoldbach/Prelim/SmallMertensProd.lean": "ac74a9aacb156f36bcf71a08db2319733a126fd68a8eec8bbdd11ace6fe4760f",
+    "verification/RS62FiniteHandoffAudit.lean": "66d35de6dd9b98f5efb54349bc7c82102c018e4f148f2631bebc2b942f4b229f",
+    "verification/run_rs62_finite_handoff_check.py": "aab7091c573ca9b980907e709b27e0d20e32e366123bcad59382d43ba1d761fb"
+  },
+  "stdin_recipe": "Exact source plus three fully qualified #print axioms commands.",
+  "stdin_sha256": "ce12cf50bc65d43add7c67baeef4f7062cfb6b62ad353308a6264b44c0466bd4",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS62FiniteHandoff.olean",
+        "RSBounds/RS62FiniteHandoff.lean"
+      ],
+      "log": "verification/rs62-finite-handoff-build.log",
+      "exit_code": 0,
+      "seconds": 328.17618499299715
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "3086b56f83f20fc3950076f272e136e6e5397af444de8aa0438de8ec9b364bdf",
+  "finished_utc": "2026-11-06T19:10:39.652158+00:00"
+}

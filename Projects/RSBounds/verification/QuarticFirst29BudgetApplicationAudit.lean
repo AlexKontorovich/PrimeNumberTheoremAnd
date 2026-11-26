@@ -1,0 +1,10 @@
+import RSBounds.QuarticFirst29BudgetApplication
+
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.log_98715_lt
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.square_lower_lt_exp23
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.x_lower
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.sqrt_lower
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.highWeight_nonneg
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.constant_term_pos
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.relativeBudget_le_scalarBudget
+#print axioms TernaryGoldbach.RSBounds.QuarticFirst29BudgetApplication.relativeBudget_lt

@@ -1,0 +1,25 @@
+{
+  "module": "RHHeight100.Box6511",
+  "source_sha256": "0f82c22225fd291cb2ed9e2d372f56ac661f2fd73a833914cf937dbffa8b7e29",
+  "upstream_sha256": "0f82c22225fd291cb2ed9e2d372f56ac661f2fd73a833914cf937dbffa8b7e29",
+  "adapted": false,
+  "signature": "acd73cc33abd5ba6259f6f5ae45e65dbf926fba33cefa7a5e078437ef72948dd",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false",
+    "RHHeight100/Box6511.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RHHeight100/Box6511.olean"
+  ],
+  "started_utc": "2026-11-06T12:44:59.143510+00:00",
+  "finished_utc": "2026-11-06T12:48:12.224629+00:00",
+  "elapsed_seconds": 193.081,
+  "peak_rss_kib": 3848540,
+  "log": "verification/rh100-replay/RHHeight100.Box6511.log",
+  "resources": "verification/rh100-replay/RHHeight100.Box6511.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "84a233e9fb91b7f7c5c10fef023353323971ce8c23ab600ccfc1077b9d40b381"
+}

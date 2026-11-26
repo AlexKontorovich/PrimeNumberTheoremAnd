@@ -1,0 +1,86 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T12:29:42.499159+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundCircleMajorantDef.lean": "db8117323a7b72e62db7a13c2750b9189155972b637b4faf9e12d7e8bfe6beb3",
+    "RSBounds/BacklundCircleMajorantGeometry.lean": "e6e6a769135fab6f7eea09f39d02add325425d9cf81b087b2ae35b5acea5dc57",
+    "RSBounds/BacklundCircleSymmetry.lean": "ce9610b7ffd83c6c1aabce58cc8239e47c682030ba5d472dcebc591351bace00",
+    "RSBounds/BacklundCircleMajorantBounds.lean": "a28dc420ec226ad9ad0d667d06e1d08fbd6c3fc22793d54ab2bc4c8809bb1b56",
+    "RSBounds/BacklundCircleCount.lean": "f2a664b1bfb78799fa77e108b9b4a17a57157fc09dcaea865a9b15ccccad88fb",
+    "verification/BacklundCircleMajorantAudit.lean": "bae2b6b426600d63ab37a25f349509e4eb6160a9349c3e32bee411b2428a35da"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCircleMajorantDef.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleMajorantDef.olean"
+      ],
+      "log": "backlund-circle-majorant-BacklundCircleMajorantDef-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCircleMajorantGeometry.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleMajorantGeometry.olean"
+      ],
+      "log": "backlund-circle-majorant-BacklundCircleMajorantGeometry-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCircleSymmetry.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleSymmetry.olean"
+      ],
+      "log": "backlund-circle-majorant-BacklundCircleSymmetry-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCircleMajorantBounds.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleMajorantBounds.olean"
+      ],
+      "log": "backlund-circle-majorant-BacklundCircleMajorantBounds-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "RSBounds/BacklundCircleCount.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundCircleCount.olean"
+      ],
+      "log": "backlund-circle-majorant-BacklundCircleCount-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/BacklundCircleMajorantAudit.lean"
+      ],
+      "log": "backlund-circle-majorant-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T12:30:15.570161+00:00",
+  "exit_code": 0
+}

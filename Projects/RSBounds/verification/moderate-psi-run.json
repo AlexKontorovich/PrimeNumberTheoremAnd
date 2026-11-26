@@ -1,0 +1,60 @@
+{
+  "kind": "fresh-source-compilation-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:40:15.702419+00:00",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/ModeratePsi.olean",
+    "RSBounds/ModeratePsi.lean"
+  ],
+  "source_sha256": {
+    "RSBounds/ModeratePsi.lean": "832dc16238e12d935edf16b9290c788789678f766b2d1c23d3f948f9dd6214b6",
+    "verification/ModeratePsiAudit.lean": "7e1fcfde4cc43e649cc2430d54dcb3834b7f159b208c748a4f88376089ec9bec",
+    "verification/run_moderate_psi_check.py": "81d57def2cff74d144a6e0a3be80f7df8f2ecaf99bce8afa8b875e9a1db3212c"
+  },
+  "key_dependency_sha256": {
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "RSBounds/PolynomialZeroMajorants.lean": "a7937f054295f21f7222edb6b4ee9c3dc49b37f3d3e1cf0320920c261369766c",
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "RSBounds/RosserCubicTail.lean": "7b59799dd8863873e9bc7cfe7d638ea09e25b21e59239eedefc8269b3785a2aa",
+    "RSBounds/ZeroWindowFiniteSum.lean": "504bed963219cbb797cd3d470751bfd8056d6d7f4da4382dfe48407380758806",
+    "RSBounds/ZetaZeroHeadBound.lean": "60d4f4a102dc485d964e463f1a0e3f23ee998966607c2813468a905c83d712b7",
+    "RSBounds/PolynomialPsiFromZeroSums.lean": "75852c697246a5e4bfbf0d25d1eb2b813d86cbce54b55f58ec16c7d592f1ac36",
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89",
+    "RSBounds/PolynomialRemainderIntegral.lean": "3e87be73c89de7606dd47fa042e546abd7206ce032792fa619c089bf79ec5632",
+    "RSBounds/PolynomialRemainderMajorant.lean": "c734e1d09c8002b88c041fa68debbedadf600f3a2502d8ad65da3088eab8c62c",
+    "RSBounds/PolynomialLeftKernel.lean": "0a86e38765aa7f098c0e3877d65b36c452970dbf4ab756d5fdaf770b464a1c11",
+    "RSBounds/PolynomialLeftRemainder.lean": "f953776e4a91f6b2fd9f54c7e246423e1803dade49dedc8c1ec6bbac820e64f2",
+    "RSBounds/PolynomialAveragedFormula.lean": "d6fea4b8db2b26721cd665da71ba1c3baf415ce1c27242da7cf64dd487668627",
+    ".lake/build/lib/lean/RSBounds/PolynomialZeroPairing.olean": "a82f605f89a48e7d307e9958a23080c23c8ffa7213bc95aaf0572c4e0c89971a",
+    ".lake/build/lib/lean/RSBounds/PolynomialZeroMajorants.olean": "a51635a6d90cd07ec428841121371e3e45f7e8fc06f19c9e92d039b98719d014",
+    ".lake/build/lib/lean/RSBounds/RosserWeightedBounds.olean": "a4a3f04e1605fa132760341875fde43f544602c92031151fc0faa73865c9bbc8",
+    ".lake/build/lib/lean/RSBounds/RosserCubicTail.olean": "84cde8cc190af55d8fecac632e4da70844b9832e01fffa95b18aef62ccf05eea",
+    ".lake/build/lib/lean/RSBounds/ZeroWindowFiniteSum.olean": "381da3a84d3bd1a4b8a7a7677ff9dc3d29be7d81b025d3e33e096bbfb9a87b0b",
+    ".lake/build/lib/lean/RSBounds/ZetaZeroHeadBound.olean": "86eb69d952a2db1733519c513ad7f405a7f58618925b461674ee08bd5e370e47",
+    ".lake/build/lib/lean/RSBounds/PolynomialPsiFromZeroSums.olean": "df1860e1c0d8a2e07546aa8050204a02cb39cdf6a4d5bb94451e52baf2c0fd14",
+    ".lake/build/lib/lean/RSBounds/BacklundLowScalarBase.olean": "d000452f7ddf02c3497b195911f3460c3a5af8c40bb9ddc3f08df5bd9ee90fa9",
+    ".lake/build/lib/lean/RSBounds/Targets.olean": "f954c3ade87af3f7230ee9566a27f8f3dbb5954a7d85433fcefbb2d939f315dc",
+    ".lake/build/lib/lean/RSBounds/PolynomialRemainderIntegral.olean": "19e4b8f0f15f24555035b6af0dca6a033f14f9e98c4d48f8807985f1e8c30f39",
+    ".lake/build/lib/lean/RSBounds/PolynomialRemainderMajorant.olean": "ece8b1b559a5e9b29de3e7b6ba5243aff73def57f486331d11425ea70cba32a1",
+    ".lake/build/lib/lean/RSBounds/PolynomialLeftKernel.olean": "4061f4c3eda11759edd55053f557700c3904ed34e34792c89b83dd509fad6805",
+    ".lake/build/lib/lean/RSBounds/PolynomialLeftRemainder.olean": "f320a861fe9e578f7d784d7d2044e139407f079b841f3eee063881753f9006b6",
+    ".lake/build/lib/lean/RSBounds/PolynomialAveragedFormula.olean": "fd9763aff3f5c3ab6a14fbcbc4c933e44305cbfefb6e81ba7ee2ddb98443df98"
+  },
+  "stdin_sha256": "ea3fc3e69df6601c7bb6de1b7cd7ce631dfa8eab83efa99f77178c7842d4b99a",
+  "stdin_description": "Exact source followed by every #print axioms command from the audit file.",
+  "log": "verification/moderate-psi-build-audit.log",
+  "exit_code": 0,
+  "seconds": 323.9125609820039,
+  "finished_utc": "2026-11-06T20:45:39.634991+00:00",
+  "axiom_audit": {
+    "declarations": 22,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "90b8741c6be1222ed02ab9e99b8d82cd11786f2d0bceb5fb77898f3a456c9a29",
+  "source_unchanged": true
+}

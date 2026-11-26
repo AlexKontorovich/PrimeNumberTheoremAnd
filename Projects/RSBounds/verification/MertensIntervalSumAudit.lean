@@ -1,0 +1,9 @@
+import RSBounds.MertensIntervalSum
+
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.ramp_eq_zero
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.mangoldt_mul_ramp_eq_zero
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.summable_mangoldt_mul_ramp
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_ramp
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalSum.tsum_mangoldt_mul_intervalWeight_sub_log

@@ -1,0 +1,4 @@
+⚠ [3137/3137] Built RSBounds.RS75Polynomial (2.8s)
+warning: RSBounds/RS75Polynomial.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: RSBounds/RS75Polynomial.lean: imports `Mathlib.Tactic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+Build completed successfully (3137 jobs).

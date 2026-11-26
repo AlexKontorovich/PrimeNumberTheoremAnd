@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-source-compilation-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:59:56.583592+00:00",
+  "command": [
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/PsiThetaElementary.olean",
+    "RSBounds/PsiThetaElementary.lean"
+  ],
+  "source_sha256": {
+    "RSBounds/PsiThetaElementary.lean": "704af7aa172d2a5c0d7a1d908b6fd51fd0edbc64c3ce539bf8d469497ce67b82",
+    "verification/PsiThetaElementaryAudit.lean": "89a05b903dea2e67b705a82b3e99960165bd24494ca110256be9187c510d0820",
+    "verification/run_psi_theta_elementary_check.py": "2b81623fa899b55c2bd63726da6cdc623da269917ccdace4a6d81751a2f64b55"
+  },
+  "key_dependency_sha256": {
+    ".lake/packages/mathlib/Mathlib/NumberTheory/Chebyshev.lean": "e7263945c0294b31e3bb98c7fca5dfed52c8f48c75ae73200c9e052cf8daa720",
+    ".lake/packages/mathlib/Mathlib/Analysis/Complex/ExponentialBounds.lean": "941de743489acba02c557f6a9b00bdf71c93fa12c0eab92781aa6a291a0e836b",
+    ".lake/packages/mathlib/Mathlib/Analysis/SpecialFunctions/Log/Monotone.lean": "cc86b11ae2a04812ea9e4c80a63d38e3ba0b9d4c3f5962bcf281439f0fc88f7b",
+    ".lake/packages/mathlib/Mathlib/Analysis/SpecialFunctions/Pow/Real.lean": "f8a26d662fb7966fa5b45aef95c8d7cf0383c9921fa3e9ee1cd2c41561e9fbfd",
+    ".lake/packages/mathlib/.lake/build/lib/lean/Mathlib/NumberTheory/Chebyshev.olean": "a5a1624693c8bb5c91475a5faa40a58ec65266d7df34ecd9724454b72f20e2ea",
+    ".lake/packages/mathlib/.lake/build/lib/lean/Mathlib/Analysis/Complex/ExponentialBounds.olean": "643efb6b6d39a1babfbec2d06c353742088a5e057af4cf1d4f3842fd48996bcb",
+    ".lake/packages/mathlib/.lake/build/lib/lean/Mathlib/Analysis/SpecialFunctions/Log/Monotone.olean": "10cc17ad3f397cde387a4c69ff4c85525254e10085ce5568a91ae601a2309bad",
+    ".lake/packages/mathlib/.lake/build/lib/lean/Mathlib/Analysis/SpecialFunctions/Pow/Real.olean": "ed2942a04bd66922a7eac2bd417cff6cb22cab61a57f4d8cff4d37a6a3f98846"
+  },
+  "stdin_sha256": "aedddcd9935f74f0fa8a5d524fddbe75b940e12206588f39c2e95358b854ad08",
+  "stdin_description": "Exact source followed by every #print axioms command from the audit file.",
+  "log": "verification/psi-theta-elementary-build-audit.log",
+  "exit_code": 0,
+  "seconds": 87.55363967000449,
+  "finished_utc": "2026-11-06T21:01:24.147514+00:00",
+  "axiom_audit": {
+    "declarations": 14,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "6a581d879151ab9fbd1a1c41648407d4c3b895827fe901c7090ad684e5b46c0a",
+  "source_unchanged": true
+}

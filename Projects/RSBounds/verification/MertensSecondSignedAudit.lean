@@ -1,0 +1,17 @@
+import RSBounds.MertensSecondSigned
+
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.measurable_J
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.J_bound
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.first_error_eq
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.J_sub_eq_integral
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.intervalIntegrable_centered_psi
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.finite_parts
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_J_mul
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.error_bound
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_error_log_sq
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.integrable_centered_log_sq
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.boundary_tendsto_zero
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.integral_parts
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_eq
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_sub_endpoint_le
+#print axioms TernaryGoldbach.RSBounds.MertensSecondSigned.second_error_abs_le

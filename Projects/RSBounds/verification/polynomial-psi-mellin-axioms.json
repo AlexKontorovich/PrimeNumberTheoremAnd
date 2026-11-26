@@ -1,0 +1,15 @@
+{
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "verification/PolynomialPsiMellinAudit.lean"
+  ],
+  "started_utc": "2026-11-06T08:57:59.942111+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPsiMellin.lean": "ab6858a620ce9e47130082b39a2bec747f9328aefa31fd9e47d928df37649c60",
+    "verification/PolynomialPsiMellinAudit.lean": "07736f048be43186fd8baee00c315bf88bb8cf157914bca4a38de213039e8fa1"
+  },
+  "finished_utc": "2026-11-06T08:58:04.384449+00:00",
+  "exit_code": 0
+}

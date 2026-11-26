@@ -1,0 +1,7 @@
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_bounds_high' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.Rosser1941.zero_count_error_lt_one_to_100' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.first29' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTable.bracket_count_bounds' depends on axioms: [propext, Classical.choice, Quot.sound]

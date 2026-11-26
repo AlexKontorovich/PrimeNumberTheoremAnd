@@ -1,0 +1,66 @@
+import took 760s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Convert___elabRules_Mathlib_Tactic_convert_1._boxed took 156ms
+interpretation of Mathlib.Tactic.FieldSimp._aux_Mathlib_Tactic_FieldSimp___elabRules_Mathlib_Tactic_FieldSimp_fieldSimp_1._boxed took 103ms
+RSBounds/RosserSquareTail.lean:40:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserSquareTail.lean:40:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RosserSquareTail.lean:59:4: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserSquareTail.lean:59:4: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+RSBounds/RosserSquareTail.lean:131:23: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/RosserSquareTail.lean:131:23: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_reciprocal_square' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_neg_squarePrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.squarePrimitive_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.integral_upperDensity_div_square' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.integral_density_div_square_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le_head' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 44.1ms
+	attribute application 0.109ms
+	blocked (unaccounted) 2.66s
+	congr simp thm 3.28ms
+	declTypeLinter 9.54ms
+	dsimp 4.43ms
+	elaboration 411ms
+	fix level params 2.05ms
+	import 760s
+	initialization 129ms
+	instantiate metavars 2.36ms
+	interpretation 2.75s
+	let-to-have transformation 0.254ms
+	linting 38.9ms
+	module linting 0.0159ms
+	norm_num 61.3ms
+	parsing 18.3ms
+	process pre-definitions 52.3ms
+	ring 70.1ms
+	share common exprs 21.7ms
+	simp 44.6ms
+	tactic execution 518ms
+	tacticAnalysis 6.91ms
+	type checking 250ms
+	typeclass inference 973ms

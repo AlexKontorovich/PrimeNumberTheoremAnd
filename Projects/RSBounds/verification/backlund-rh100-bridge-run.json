@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T13:00:37.312206+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundRH100Bridge.lean": "9dd743abd59125b74fa1900230e8ae2b9220ab6bf8ebd0ce54d51a7e7d6bcbc0",
+    "RSBounds/BacklundCountEndpoint.lean": "67ac59bbd599804d4f4e582cc7e59d6600676dfbdd7b0979cee08ddb6f02518b",
+    "vendor/rh100/RHHeight100/Main100.lean": "898a551afeb1b4d8e1589c0446f1ec4e8e98de375ef3d6e56f93b6339c2426b4",
+    "verification/BacklundRH100BridgeAudit.lean": "7102c757d2bcb47689be0c48390e994c0a57a3dc28d66b8147fb694c67f1b3d2"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/BacklundRH100Bridge.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundRH100Bridge.olean"
+      ],
+      "log": "backlund-rh100-bridge-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundRH100BridgeAudit.lean"
+      ],
+      "log": "backlund-rh100-bridge-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T13:01:25.054828+00:00",
+  "exit_code": 0,
+  "printed_axiom_sets": 5,
+  "only_standard_axioms": true
+}

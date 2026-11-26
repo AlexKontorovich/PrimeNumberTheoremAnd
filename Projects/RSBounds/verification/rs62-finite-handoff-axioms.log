@@ -1,0 +1,9 @@
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_le_100000' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_of_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.totient_ratio_lt_of_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

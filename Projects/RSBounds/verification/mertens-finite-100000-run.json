@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-mertens-finite-100000-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:18:15.531227+00:00",
+  "source_sha256": {
+    "RSBounds/MertensFinite100000.lean": "12dcadb5808237ae8fdcafa7ec277d18ee1669f096847c706dccbe9fb492f911",
+    "RSBounds/MertensFiniteWalk.lean": "a5d401a75cd26f410897cdbdcdff5e18456416b3615dbcd8b301b73a842b42a8",
+    "RSBounds/MertensFiniteScalars.lean": "afd3aee79cfa766babf60c4b3a8d8e254cd58d94adf5d5991169aebbc4c93494",
+    "verification/gen_mertens_finite_100000.py": "8abc11cdb8fbfb2ea9d3d429de2dcf508cd7b3039da394f50ce66afac49a197a",
+    "verification/mertens-finite-100000-witnesses.json": "dcfe1a66260ffd1cfb2b1dc2c38c5f844b8b5d5bbacaec8190bcde920d5bd8fe",
+    "verification/mertens-finite-100000-witnesses.csv": "b152455c7549804abd324a644d1a7dab0edc11dd320fb80ca78a3d37dce99e6a",
+    "verification/MertensFinite100000Audit.lean": "c5ea233c94952394de0bae0856822b69249eb1e606384dad3fcc532382de6d1e",
+    "verification/run_mertens_finite_100000_check.py": "d64bf5118fc33fcb84da04b2d8884b542c79c346214285df837a0ad8a8fadef5"
+  },
+  "stdin_recipe": "Exact source plus 5 fully qualified #print axioms commands.",
+  "stdin_sha256": "0d16df0fcaebff8e9e225153dc7b3327c58c3104a38c06e997a8563e4185b8d5",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensFinite100000.olean",
+        "RSBounds/MertensFinite100000.lean"
+      ],
+      "log": "verification/mertens-finite-100000-build.log",
+      "exit_code": 0,
+      "seconds": 622.5395053409957
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "6625219ec9b3cdd7caa7931533ac16a38dfe8b05a2157955cb125f571c106f22",
+  "finished_utc": "2026-11-06T20:28:38.080950+00:00"
+}

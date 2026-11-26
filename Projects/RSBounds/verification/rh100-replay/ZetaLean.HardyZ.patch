@@ -1,0 +1,26 @@
+--- upstream/ZetaLean/HardyZ.lean
++++ adapted/ZetaLean/HardyZ.lean
+@@ -5,6 +5,8 @@
+ public import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+ 
+ @[expose] public section
++
++namespace RH100HardyZ
+ 
+ open Complex
+ open scoped ComplexConjugate
+@@ -68,7 +70,7 @@
+     apply Complex.ext <;> simp
+   rw [← h_conj_s]
+   change conj (completedRiemannZeta s) = completedRiemannZeta (conj s)
+-  rw [H1, H2, map_mul, ← riemannZeta_conj, Gammaℝ_conj]
++  rw [H1, H2, map_mul, ← riemannZeta_conj, RH100HardyZ.Gammaℝ_conj]
+ 
+ /-- `Z t` is strictly real. -/
+ lemma hardyZ_is_real (t : ℝ) : ∃ (r : ℝ), hardyZ t = r := by
+@@ -255,3 +257,5 @@
+ /-- `hardyZReal` is continuous. -/
+ lemma continuous_hardyZReal : Continuous hardyZReal :=
+   Complex.continuous_re.comp continuous_hardyZ
++
++end RH100HardyZ

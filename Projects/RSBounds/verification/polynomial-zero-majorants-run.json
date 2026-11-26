@@ -1,0 +1,45 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:42:08.166350+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialZeroMajorants.lean": "a7937f054295f21f7222edb6b4ee9c3dc49b37f3d3e1cf0320920c261369766c",
+    "RSBounds/PolynomialKernelScaling.lean": "4b3e25fd0ed8a4cde34276b3a26727b8f99ce92ce019e0fb8179a803457221f5",
+    "RSBounds/PolynomialZeroKernel.lean": "62c44199fe2f4ab1334fbaaed1a84adad2c0f745cfdc1d3ff3640d54af3cbb19",
+    "RSBounds/PolynomialLowerKernel.lean": "6c0ae133b163564b9f8bc87802bab6b2e4ca1b571f7d01b9fcea2b9d4da8737c",
+    "RSBounds/PolynomialZeroCancellation.lean": "779c2bf9815348f53925b23f9bfcd97694d278df908eefebaf798903b1e3a68f",
+    "RSBounds/PolynomialLeftKernel.lean": "0a86e38765aa7f098c0e3877d65b36c452970dbf4ab756d5fdaf770b464a1c11",
+    "verification/PolynomialZeroMajorantsAudit.lean": "c4a981da59301c6d6e9d59fb05988619ec481e6cdf3e85fd948ee824f8393607",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/PolynomialZeroMajorants.olean",
+        "RSBounds/PolynomialZeroMajorants.lean"
+      ],
+      "log": "polynomial-zero-majorants-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 52.675026927001454
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/PolynomialZeroMajorantsAudit.lean"
+      ],
+      "log": "polynomial-zero-majorants-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 36.41264098800093
+    }
+  ],
+  "finished_utc": "2026-11-06T14:43:37.255781+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,35 @@
+{
+  "kind": "fresh-mertens-moderate-budget-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T20:43:35.554357+00:00",
+  "source_sha256": {
+    "RSBounds/MertensModerateBudget.lean": "12e4fd73b89e8a35de6a43ad7438bda17391ad9666e5423158193008d6e2f039",
+    "verification/MertensModerateBudgetAudit.lean": "b5c885ee2f3ba8346babb42216f7bfcb1e1d455e7a3b860ed3645509c6723014",
+    "verification/run_mertens_moderate_budget_check.py": "5551eb3f21da03ca3c0b21422a3a7be608aa6e9564851b2cb7879320c38c729e"
+  },
+  "stdin_recipe": "Exact source plus 3 fully qualified #print axioms commands.",
+  "stdin_sha256": "c0fdd3c9a90a960da287668e69290456c98264e59cbef4cda0ff0a61b16476ef",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensModerateBudget.olean",
+        "RSBounds/MertensModerateBudget.lean"
+      ],
+      "log": "verification/mertens-moderate-budget-build.log",
+      "exit_code": 0,
+      "seconds": 90.07042792800348
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 3,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "1a78b000a1b4f0667a8af7e99730dd4e26e6575b1040a07747dd1e5b378e636d",
+  "finished_utc": "2026-11-06T20:45:05.629686+00:00"
+}

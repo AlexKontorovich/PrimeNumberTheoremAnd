@@ -1,0 +1,24 @@
+--- upstream/Zeta23/FromPNTPlus/StrongPNTPrefix.lean
++++ adapted/Zeta23/FromPNTPlus/StrongPNTPrefix.lean
+@@ -23,6 +23,7 @@
+ public import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+ public import Mathlib.Analysis.CStarAlgebra.Classes
+ public import Mathlib.Analysis.Complex.HasPrimitives
++public import Mathlib.Analysis.Complex.RemovableSingularity
+ public import Mathlib.Data.Rat.Cast.OfScientific
+ public import Mathlib.Algebra.Order.Star.Real
+ public import Mathlib.RingTheory.SimpleRing.Principal
+@@ -117,7 +118,12 @@
+     (hyp_z : z ∈ Metric.closedBall 0 r) :
+     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+   have hr' : 2 * M * ((R + r) / 2) ^ 2 / ((R - (R + r) / 2) * ((R + r) / 2 - r) ^ 2) =
+-      4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by field_simp; ring
++      4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
++    have h₁ : R - (R + r) / 2 = (R - r) / 2 := by ring
++    have h₂ : (R + r) / 2 - r = (R - r) / 2 := by ring
++    rw [h₁, h₂]
++    field_simp [sub_ne_zero.mpr (ne_of_gt hyp_r)]
++    <;> ring
+   calc ‖deriv f z‖
+       _ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := hr' ▸
+           DerivativeBound Mpos rpos (by linarith) (by linarith) analytic_f zeroAtZero realPartBounded hyp_z

@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:21:13.906443+00:00",
+  "source_sha256": {
+    "RSBounds/RosserTailIntegrals.lean": "24b5a311c84e4f9bc160e942489a31add2f33d3487d8653d7bd9d5ed3650fef0",
+    "RSBounds/WeightedZeroSums.lean": "081e997e5c9c5c4e9039e33684467a7b5e8b0c6fb04d815d06ae5f3b33329c7f",
+    "verification/RosserTailIntegralsAudit.lean": "94887e5b3ee577aaf03be1b4d3220573a68d6bb9a6368bb2d7b0dc4f2dde40d9"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/RosserTailIntegrals.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserTailIntegrals.olean"
+      ],
+      "log": "rosser-tail-integrals-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RosserTailIntegralsAudit.lean"
+      ],
+      "log": "rosser-tail-integrals-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T14:22:16.462183+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,6 @@
+import RSBounds.Totient
+#print axioms TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_card_le_twenty
+#print axioms TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_le_1e27
+#print axioms TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_self_of_le_1e27
+#check TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_of_card_le_twenty
+#check TernaryGoldbach.RSBounds.Totient.totient_ratio_lt_self_of_le_1e27

@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.FromPNTPlus.Tactic.AdditiveCombination",
+  "source_sha256": "97f68a51fb8f70762fe81b5b6d7f1c0a680c01ee73ceb36f9124bda89f9fa45d",
+  "upstream_sha256": "0ae798aa30fb31713bd8448f505bb7d1b29fad234ade98aa09e9700c10c216ea",
+  "adapted": true,
+  "signature": "a3896b16204fc20954b77d085701f7fcf2c2f2e63270b442e891aebb8696974d",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/FromPNTPlus/Tactic/AdditiveCombination.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/FromPNTPlus/Tactic/AdditiveCombination.olean"
+  ],
+  "started_utc": "2026-11-06T11:57:27.111460+00:00",
+  "finished_utc": "2026-11-06T11:57:28.044360+00:00",
+  "elapsed_seconds": 0.933,
+  "peak_rss_kib": 900336,
+  "log": "verification/rh100-replay/Zeta23.FromPNTPlus.Tactic.AdditiveCombination.log",
+  "resources": "verification/rh100-replay/Zeta23.FromPNTPlus.Tactic.AdditiveCombination.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "153d3ad4820c6fdb5dfcf40ae099c024c2210a023a6b1856aef31f3c5129a8d0",
+  "reused_from_previous_replay": true
+}

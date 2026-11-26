@@ -1,0 +1,30 @@
+{
+  "kind": "fresh-source-compilation-and-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:21:24.256002+00:00",
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/RS75FiniteHandoff.olean",
+    "RSBounds/RS75FiniteHandoff.lean"
+  ],
+  "source_sha256": {
+    "RSBounds/RS75FiniteHandoff.lean": "661b196fc78aafb51803915033c427fb37c660017edb7cc18ae053a264d7377e",
+    "verification/RS75FiniteHandoffAudit.lean": "9b009c501ecdae125da7d0e496b04665b0e506293d48d02f54570bb10dacf150",
+    "verification/run_rs75_finite_handoff_check.py": "f9be642f4ba30e7267fb1ec94adf37a8ce932f834042375a19e254a09fb10809"
+  },
+  "stdin_sha256": "a21470cace8a9f791347c0cc06d379afec6784ea181afb15e2cc1bdf9b9f4044",
+  "stdin_description": "Exact source followed by the four #print axioms commands from the audit file.",
+  "log": "verification/rs75-finite-handoff-build-audit.log",
+  "exit_code": 0,
+  "seconds": 6.338486176005972,
+  "finished_utc": "2026-11-06T17:21:30.594867+00:00",
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  }
+}

@@ -1,0 +1,54 @@
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.re_zetaF_real_ge' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_ne_zero_real' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_zero_im_ne_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.xi_analyticOrderAt_ne_top' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.mem_positiveZeros_iff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.N_eq_sum_analyticOrder' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.rectangle_count_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.im_rectangle_eq_two_xiArcVar' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.pi_mul_N_eq_xiArcVar' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_eq_zero_of_zeta_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.mem_positiveZeros_iff_zeta' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.analyticOrderAt_xi_eq_zeta' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.N_eq_sum_zetaMultiplicity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.pole_arc_eq_pi' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.logDeriv_xi_factorization' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.xiArcVar_eq_pi_add_theta_add_zetaArgVar' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.count_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.count_identity_mainTerm' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

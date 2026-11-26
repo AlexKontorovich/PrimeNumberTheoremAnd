@@ -1,0 +1,7 @@
+import RSBounds.PolynomialPsiFromZeroSums
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.norm_log_two_pi
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.smoothing_error_of_norm_bound
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.upper_error_of_eventually_bounded_zero_sums
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.lower_error_of_eventually_bounded_zero_sums
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiFromZeroSums.psi_error_of_eventually_bounded_zero_sums

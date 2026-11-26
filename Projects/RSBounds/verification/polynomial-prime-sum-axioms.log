@@ -1,0 +1,15 @@
+TernaryGoldbach.RSBounds.PolynomialPrimeSum.SsumG_eq_line {N : ℕ} [NeZero N] (χ : DirichletCharacter ℂ N) {φ : ℝ → ℂ}
+  (hcont : ∀ (y : ℝ), 0 < y → ContinuousAt φ y) (hconv : MellinConvergent φ ↑(3 / 2))
+  (hline : Continuous fun t => mellin φ (↑(3 / 2) + ↑t * Complex.I))
+  (hint : MeasureTheory.Integrable (fun t => mellin φ (↑(3 / 2) + ↑t * Complex.I)) MeasureTheory.volume) {x : ℝ}
+  (hx : 0 < x) :
+  TernaryGoldbach.Explicit.SsumG χ φ x =
+    1 / (2 * ↑Real.pi) * ∫ (t : ℝ), TernaryGoldbach.Explicit.Fline χ φ x (↑(3 / 2) + ↑t * Complex.I)
+'TernaryGoldbach.RSBounds.PolynomialPrimeSum.eq_mellinInv' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPrimeSum.eq_integral_Fterm' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPrimeSum.integrable_Fterm' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialPrimeSum.SsumG_eq_line' depends on axioms: [propext, Classical.choice, Quot.sound]

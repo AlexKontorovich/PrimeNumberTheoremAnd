@@ -1,0 +1,2 @@
+'TernaryGoldbach.RSBounds.rs62_totient_scalar' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.rs62_primeProduct_bound_of_inputs' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,0 +1,32 @@
+{
+  "checked_at_utc": "2026-11-06T11:26:14.847282+00:00",
+  "lean_version": "Lean 4.35.0",
+  "build_command": "lake build RSBounds.BacklundPairedPower",
+  "audit_command": "lake env lean verification/BacklundPairedAudit.lean",
+  "build_exit_code": 0,
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.divisor_at_zero_ge_one",
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.reflected_distance_product_le",
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_log_weight",
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.far_log_weight",
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_lower",
+    "TernaryGoldbach.RSBounds.BacklundPairedJensen.paired_jensen_with_unpaired_lower",
+    "TernaryGoldbach.RSBounds.BacklundPairedCrossing.crossing_count_le",
+    "TernaryGoldbach.RSBounds.BacklundPairedCrossing.abs_argument_le",
+    "TernaryGoldbach.RSBounds.BacklundPairedPower.normalized_power_argument_le",
+    "TernaryGoldbach.RSBounds.BacklundPairedPower.argument_bound"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "sources": {
+    "RSBounds/BacklundPairedJensen.lean": "0ab831f9e7b9914c4e56cd3ea8d1854a1372c28e242f2cfd0391c13c22e3b8f4",
+    "RSBounds/BacklundPairedCrossing.lean": "4997dc4c8717ebc999eed8ceb82df417fba2d698722a2a4ca6391e462bc0eab4",
+    "RSBounds/BacklundPairedPower.lean": "7c85242a2f9641863706dc067494cedeb46d46dcb5a5472a5c960496afc2cb05",
+    "verification/BacklundPairedAudit.lean": "ce069e5290629af09dbd577c667960b78890db7df2e258260ccce354afb86041"
+  },
+  "result": "All three modules compile; all ten exported theorem audits use only the standard three axioms. The reflection loss is E/(2*pi); zero pairings are constructed, not assumed."
+}

@@ -1,0 +1,63 @@
+import took 281s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_linarith_1._boxed took 139ms
+tactic execution of Mathlib.Tactic.FieldSimp.fieldSimp took 129ms
+RSBounds/MertensEndpointLeft.lean:58:27: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/MertensEndpointLeft.lean:58:27: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_endpointKernel_left_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_endpointIntegrand_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.continuous_endpointIntegrand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.integrable_endpointIntegrand' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_F_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.leftRemainder_eq_sub_F' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.norm_leftRemainder_add_F_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.leftRemainder_add' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.tendsto_F_atTop' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensEndpointLeft.tendsto_leftRemainder_atTop' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 35.7ms
+	attribute application 0.209ms
+	blocked (unaccounted) 7.44s
+	congr simp thm 4.5ms
+	declTypeLinter 16.6ms
+	dsimp 6.57ms
+	elaboration 546ms
+	fix level params 2.23ms
+	import 281s
+	initialization 46.6ms
+	instantiate metavars 4.29ms
+	interpretation 3.92s
+	let-to-have transformation 0.227ms
+	linting 60.8ms
+	module linting 0.0203ms
+	norm_num 492ms
+	parsing 21.9ms
+	process pre-definitions 32ms
+	ring 147ms
+	share common exprs 39.7ms
+	simp 269ms
+	tactic execution 1.36s
+	tacticAnalysis 11.5ms
+	type checking 258ms
+	typeclass inference 1.94s

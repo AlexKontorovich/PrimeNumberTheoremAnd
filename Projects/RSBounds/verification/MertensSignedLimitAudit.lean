@@ -1,0 +1,7 @@
+import RSBounds.MertensSignedLimit
+
+#print axioms TernaryGoldbach.RSBounds.MertensSignedLimit.finite_integral_eq
+#print axioms TernaryGoldbach.RSBounds.MertensSignedLimit.tendsto_signed_integral_complex
+#print axioms TernaryGoldbach.RSBounds.MertensSignedLimit.tendsto_signed_integral
+#print axioms TernaryGoldbach.RSBounds.MertensSignedLimit.signedLimit_im_eq_zero
+#print axioms TernaryGoldbach.RSBounds.MertensSignedLimit.norm_signedLimit_le

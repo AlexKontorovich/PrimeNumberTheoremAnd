@@ -1,0 +1,10 @@
+'TernaryGoldbach.RSBounds.ZetaZeroTableHead.bracketLower_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTableHead.sum_reciprocal_lower_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTableHead.first29_reciprocal_norm_sum_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.ZetaZeroTableHead.first29_reciprocal_norm_sum_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

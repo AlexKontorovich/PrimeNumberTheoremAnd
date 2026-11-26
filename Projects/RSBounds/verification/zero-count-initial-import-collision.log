@@ -1,0 +1,1 @@
+RSBounds/Rosser1941.lean:1:0: error: import Zeta23.GammaFacts.Series failed, environment already contains 'Zeta23.DigammaSeries.hasSum_digamma_series' from RSBounds.BacklundDigammaSeriesAdapter

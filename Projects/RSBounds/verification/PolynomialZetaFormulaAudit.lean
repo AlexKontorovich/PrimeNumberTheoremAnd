@@ -1,0 +1,8 @@
+import RSBounds.PolynomialZetaFormula
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.logDeriv_riemannZeta_zero
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.prime_sum_eq_right_line
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_zeta_quartic
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_Psi4
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_zeta_quartic_at_heights
+#print axioms TernaryGoldbach.RSBounds.PolynomialZeta.explicit_formula_Psi4_at_heights

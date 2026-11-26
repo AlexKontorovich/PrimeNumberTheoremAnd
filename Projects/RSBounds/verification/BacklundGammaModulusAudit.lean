@@ -1,0 +1,10 @@
+import RSBounds.BacklundGammaModulusHorizontal
+import RSBounds.BacklundGammaModulusAbsorption
+
+#print axioms TernaryGoldbach.RSBounds.BacklundZeta23.DigammaSeries.hasSum_digamma_series
+#print axioms TernaryGoldbach.RSBounds.BacklundZeta23.StirlingVert.digamma_stirling
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaModulus.abs_digamma_re_sub_log_le
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaModulus.hasDerivAt_log_norm
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaModulus.abs_log_norm_Gamma_sub_le
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaModulus.norm_Gamma_horizontal_le
+#print axioms TernaryGoldbach.RSBounds.BacklundGammaModulus.exp_mul_log_saving_lt

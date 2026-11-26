@@ -1,0 +1,15 @@
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.zeta_zero_re_strip' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.coe_closedPositiveZeros_eq_stripZerosUpTo' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.zero_simple_below_hundred' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_eq_card' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundCountIdentity.closed_count_hundred' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

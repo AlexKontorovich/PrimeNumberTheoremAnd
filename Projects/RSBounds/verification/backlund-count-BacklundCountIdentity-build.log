@@ -1,0 +1,3 @@
+RSBounds/BacklundCountIdentity.lean:66:2: warning: Unused tactic linter: `push_cast` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`

@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T16:36:01.080701+00:00",
+  "source_sha256": {
+    "RSBounds/InfiniteTrapezoid.lean": "cfecce7ce0d1ae443fc3282bf906f3bf2769a32ab84168d591fa8fe56b288c07",
+    "RSBounds/RS75MomentCalculus.lean": "ec3c997647ba03e9bc07119e142452325fac3427d66115b9b0e5a49d940661f4",
+    "RSBounds/BacklundTrapezoid.lean": "1293c3bb601bd07df72843b3afe312f14ded8140864bfc95f7d74264c680ee8c",
+    "verification/RS75MomentCalculusAudit.lean": "ee9774953cdd7aba0cddaff346ddefad26abcd3c5b9d257eb80acb2005cae091",
+    "verification/run_rs75_moment_calculus_check.py": "d7b33c44cb5fe913f6bac839abb8899faf8e26b7f5ad8a248d101d7f028d612b"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/InfiniteTrapezoid.olean",
+        "RSBounds/InfiniteTrapezoid.lean"
+      ],
+      "log": "infinite-trapezoid-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 212.27781486099775
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75MomentCalculus.olean",
+        "RSBounds/RS75MomentCalculus.lean"
+      ],
+      "log": "rs75-moment-calculus-build.log",
+      "exit_code": 1,
+      "elapsed_seconds": 761.3209959320011
+    }
+  ],
+  "exit_code": 1,
+  "finished_utc": "2026-11-06T16:52:14.684522+00:00"
+}

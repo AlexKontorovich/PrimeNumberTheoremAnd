@@ -1,0 +1,31 @@
+import took 131s
+'TernaryGoldbach.RSBounds.MertensDLimit.E1_eq_mangoldtWeightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDLimit.D_sub_eq_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 17.8ms
+	attribute application 0.0551ms
+	blocked (unaccounted) 806ms
+	congr simp thm 2.25ms
+	declTypeLinter 10.4ms
+	elaboration 132ms
+	fix level params 0.42ms
+	import 131s
+	initialization 81.3ms
+	instantiate metavars 1.98ms
+	interpretation 1.4s
+	let-to-have transformation 0.0601ms
+	linting 27.8ms
+	module linting 0.0237ms
+	norm_num 37.9ms
+	parsing 11ms
+	process pre-definitions 6.74ms
+	ring 64.3ms
+	share common exprs 11.2ms
+	simp 37.6ms
+	tactic execution 139ms
+	tacticAnalysis 3.69ms
+	type checking 73.3ms
+	typeclass inference 139ms

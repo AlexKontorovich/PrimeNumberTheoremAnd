@@ -1,0 +1,17 @@
+'TernaryGoldbach.RSBounds.TotientGlobal.finite_prime_product' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.TotientGlobal.prime_lt_563_le_557' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.TotientGlobal.prime_product_of_rs62_inputs' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.TotientGlobal.totient_ratio_lt_of_rs62_inputs' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+TernaryGoldbach.RSBounds.TotientGlobal.totient_ratio_lt_of_rs62_inputs
+  (hθ : ∀ (x : ℕ), 563 ≤ x → ↑x * (1 - 1 / (2 * Real.log ↑x)) ≤ TernaryGoldbach.RSBounds.Totient.primeTheta x)
+  (hP :
+    ∀ (x : ℕ),
+      563 ≤ x →
+        TernaryGoldbach.RSBounds.Totient.primeProduct x <
+          Real.exp Real.eulerMascheroniConstant * (Real.log ↑x + 1 / (2 * Real.log ↑x)))
+  {n : ℕ} (hn : 3 ≤ n) :
+  ↑n / ↑n.totient < Real.exp Real.eulerMascheroniConstant * Real.log (Real.log ↑n) + 2.50637 / Real.log (Real.log ↑n)

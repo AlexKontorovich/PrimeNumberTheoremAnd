@@ -1,0 +1,15 @@
+TernaryGoldbach.RSBounds.QuarticMellin.hasMellin_weight {s : ℂ} (hs : 0 < s.re) :
+  HasMellin TernaryGoldbach.RSBounds.QuarticMellin.weight s (TernaryGoldbach.RSBounds.QuarticMellin.kernel s)
+TernaryGoldbach.RSBounds.QuarticMellin.mellinConvergent_weight {s : ℂ} (hs : 0 < s.re) :
+  MellinConvergent TernaryGoldbach.RSBounds.QuarticMellin.weight s
+TernaryGoldbach.RSBounds.QuarticMellin.mellin_weight {s : ℂ} (hs : 0 < s.re) :
+  mellin TernaryGoldbach.RSBounds.QuarticMellin.weight s = TernaryGoldbach.RSBounds.QuarticMellin.kernel s
+'TernaryGoldbach.RSBounds.QuarticMellin.continuous_weight' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticMellin.weight_eq_zero_of_one_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticMellin.hasMellin_weight' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticMellin.mellinConvergent_weight' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.QuarticMellin.mellin_weight' depends on axioms: [propext, Classical.choice, Quot.sound]

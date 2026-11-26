@@ -1,0 +1,76 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T12:11:29.325790+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "RSBounds/BacklundLowScalarData.lean": "e7cae1646aa69088df964e77db148cd7ba89caf548018eb054190a47f45b5a35",
+    "RSBounds/BacklundFinalScalar.lean": "c7e8bc487e0c91c8a217bc37949fc874b7e61cf654f409ef1160a87b55f62127",
+    "verification/BacklundScalarAudit.lean": "fc43c6c2924aa9c26897c199aea27b7082a5d11464c0012d9f6385a6e2083932",
+    "scripts/generate_low_height_scalar_certificates.py": "390e66934bd5f50f9cca78d56e3f2acabca1409ac426171f285dd4439bf34fdc"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowScalarBase.olean",
+        "RSBounds/BacklundLowScalarBase.lean"
+      ],
+      "log": "backlund-scalar-BacklundLowScalarBase-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundLowScalarData.olean",
+        "RSBounds/BacklundLowScalarData.lean"
+      ],
+      "log": "backlund-scalar-BacklundLowScalarData-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundFinalScalar.olean",
+        "RSBounds/BacklundFinalScalar.lean"
+      ],
+      "log": "backlund-scalar-BacklundFinalScalar-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundScalarAudit.lean"
+      ],
+      "log": "backlund-scalar-axioms.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RH100CombinedImport.lean"
+      ],
+      "log": "rh100-combined-import.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T12:12:03.461689+00:00",
+  "exit_code": 0
+}

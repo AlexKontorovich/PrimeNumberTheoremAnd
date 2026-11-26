@@ -1,0 +1,47 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T16:42:43.727318+00:00",
+  "source_sha256": {
+    "RSBounds/RS75DirichletPositivity.lean": "6559a3c4dc8038a7d1a35af64aaa0e8e2ae698647a1d029effae4fb2ffa641cf",
+    "RSBounds/RS75Polynomial.lean": "1d4ff3aeffcf701b685634b3522cc270663e386dbb38bfbfd810da203de3e1b7",
+    ".lake/packages/TernaryGoldbach/TernaryGoldbach/Explicit/ZeroFreeRegion.lean": "dc3b5c8627bfc8b0cea172eddbae757d2ceb727c1987d4311b05d206cad95497",
+    "verification/RS75DirichletPositivityAudit.lean": "48790f5fc3183d879fcb96d0093f4fc50035967b61431c9b2b092a40fd967448",
+    "verification/run_rs75_dirichlet_positivity_check.py": "89e37959362b4c81000dceb1556436d276d530448c600fedd02c62a31b9d0d91",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75DirichletPositivity.olean",
+        "RSBounds/RS75DirichletPositivity.lean"
+      ],
+      "log": "rs75-dirichlet-positivity-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1404.7808464739937
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RS75DirichletPositivityAudit.lean"
+      ],
+      "log": "rs75-dirichlet-positivity-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 422.64136529599637
+    }
+  ],
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T17:13:11.163653+00:00",
+  "exit_code": 0
+}

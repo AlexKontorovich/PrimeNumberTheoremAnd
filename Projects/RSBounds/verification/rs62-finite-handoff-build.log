@@ -1,0 +1,34 @@
+import took 322s
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_le_100000' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.prime_product_of_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS62FiniteHandoff.totient_ratio_lt_of_tail' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 29.4ms
+	attribute application 0.0739ms
+	blocked (unaccounted) 523ms
+	congr simp thm 0.56ms
+	declTypeLinter 9.87ms
+	elaboration 200ms
+	fix level params 0.0817ms
+	import 322s
+	initialization 48.9ms
+	instantiate metavars 0.11ms
+	interpretation 5.11s
+	let-to-have transformation 0.0744ms
+	linting 15.2ms
+	module linting 0.0354ms
+	norm_num 16.7ms
+	parsing 22.1ms
+	process pre-definitions 4.54ms
+	share common exprs 0.492ms
+	simp 2.82ms
+	tactic execution 94.9ms
+	tacticAnalysis 8.79ms
+	type checking 65.3ms
+	typeclass inference 151ms

@@ -1,0 +1,26 @@
+{
+  "module": "Zeta23.RvM.Backlund",
+  "source_sha256": "e6fec52b346268bf17b7107f9f8eca235140c7982088cd0c570443ee32ebf481",
+  "upstream_sha256": "e6fec52b346268bf17b7107f9f8eca235140c7982088cd0c570443ee32ebf481",
+  "adapted": false,
+  "signature": "6cf79d5e65893c5ed02928193c9c38f3185da1106de672749cc0e25ba8fea0db",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DrelaxedAutoImplicit=false",
+    "-Dpp.unicode.fun=true",
+    "Zeta23/RvM/Backlund.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/Zeta23/RvM/Backlund.olean"
+  ],
+  "started_utc": "2026-11-06T12:03:35.607712+00:00",
+  "finished_utc": "2026-11-06T12:03:42.143503+00:00",
+  "elapsed_seconds": 6.536,
+  "peak_rss_kib": 1995096,
+  "log": "verification/rh100-replay/Zeta23.RvM.Backlund.log",
+  "resources": "verification/rh100-replay/Zeta23.RvM.Backlund.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "01934ca6d35184a77ee17bd842bcc72ec75b9c74ff011ff8e021157b91725b54",
+  "reused_from_previous_replay": true
+}

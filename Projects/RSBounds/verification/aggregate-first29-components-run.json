@@ -1,0 +1,29 @@
+{
+  "kind": "fresh-combined-root-compilation",
+  "started_utc": "2026-11-06T14:35:30.165511+00:00",
+  "source_sha256": {
+    "RSBounds.lean": "a3bbe1955291e1365625d5743056de533a218f2440fda0103b1ccf99afdde519",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "lakefile.lean": "0efb3bf209c026819bcc0e49774658f7600750569239ed4edcd797bbe85a5cd7",
+    "RSBounds/WeightedZetaZeros.lean": "f94896dcf35dcf12c4cae32e92a99ecafa08f53a4012f4ea03250de5a6066ccc",
+    "RSBounds/ZetaZeroTableHead.lean": "f6ea0a146bc09e268865b9c881f1e0fc786fc10265c70774a2a4e4eff0d12d13",
+    "RSBounds/ZetaZeroHeadBound.lean": "60d4f4a102dc485d964e463f1a0e3f23ee998966607c2813468a905c83d712b7",
+    "RSBounds/RosserTailIntegrals.lean": "24b5a311c84e4f9bc160e942489a31add2f33d3487d8653d7bd9d5ed3650fef0",
+    "RSBounds/PolynomialZeroCountBridge.lean": "8647a8b96db15ae931aec691c9801736581163ebfdbb8e20bc35c46f29a84175",
+    "RSBounds/QuarticBudgetNumericsBase.lean": "efd600bdcd54c8eda11dcc6724fa0f78c0bfacd0ff0384c6245cf73293c7a1f1",
+    "RSBounds/QuarticFirst29BudgetNumerics.lean": "948dc49713c143847c32f955e3ca2fcd4adc52d36a29d671f66c94a15b50d6ae"
+  },
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "-j1",
+    "-o",
+    ".lake/build/lib/lean/RSBounds.olean",
+    "RSBounds.lean"
+  ],
+  "exit_code": 0,
+  "seconds": 36.13749278400064,
+  "finished_utc": "2026-11-06T14:36:06.306272+00:00"
+}

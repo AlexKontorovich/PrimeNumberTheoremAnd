@@ -1,0 +1,63 @@
+import took 203s
+elaboration took 141ms
+RSBounds/SchoenfeldCoefficientPairing.lean:96:39: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/SchoenfeldCoefficientPairing.lean:96:39: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+elaboration took 114ms
+RSBounds/SchoenfeldCoefficientPairing.lean:136:15: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+RSBounds/SchoenfeldCoefficientPairing.lean:153:15: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.pair_le_sqrt_add' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.low_re_eq_half' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.sum_positive_high_eq_weightedSum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.weightedSum_split_ite' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.weightedSum_const_mul' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.norm_sum_le_critical_and_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.SchoenfeldCoefficientPairing.norm_sum_le_critical_and_weighted_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 27.4ms
+	attribute application 0.0861ms
+	blocked (unaccounted) 1.96s
+	congr simp thm 3.62ms
+	declTypeLinter 13.2ms
+	elaboration 472ms
+	fix level params 0.945ms
+	import 203s
+	initialization 78.9ms
+	instantiate metavars 3.33ms
+	interpretation 1.74s
+	let-to-have transformation 0.179ms
+	linting 33.4ms
+	module linting 0.372ms
+	norm_num 156ms
+	parsing 17.5ms
+	process pre-definitions 17.2ms
+	ring 43.8ms
+	share common exprs 20.8ms
+	simp 180ms
+	tactic execution 434ms
+	tacticAnalysis 4.26ms
+	type checking 79.7ms
+	typeclass inference 701ms

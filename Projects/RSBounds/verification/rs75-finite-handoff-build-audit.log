@@ -1,0 +1,32 @@
+import took 3.77s
+'TernaryGoldbach.RSBounds.RS75FiniteHandoff.log_twentyone_seventeen_gt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75FiniteHandoff.boundary_gt_half' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75FiniteHandoff.zero_free_low' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75FiniteHandoff.of_high' depends on axioms: [propext, Classical.choice, Quot.sound]
+cumulative profiling times:
+	.olean serialization 19.3ms
+	attribute application 0.0376ms
+	blocked (unaccounted) 1.33s
+	congr simp thm 1.13ms
+	declTypeLinter 1.73ms
+	elaboration 22.2ms
+	fix level params 0.725ms
+	import 3.77s
+	initialization 27.2ms
+	instantiate metavars 0.783ms
+	interpretation 586ms
+	let-to-have transformation 0.0678ms
+	linting 10.5ms
+	module linting 0.00809ms
+	norm_num 275ms
+	parsing 3.72ms
+	process pre-definitions 9.54ms
+	ring 27.1ms
+	share common exprs 8.2ms
+	simp 4.34ms
+	tactic execution 47.5ms
+	tacticAnalysis 1.67ms
+	type checking 38.7ms
+	typeclass inference 164ms

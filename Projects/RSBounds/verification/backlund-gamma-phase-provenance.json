@@ -1,0 +1,23 @@
+{
+  "reused_ieantn_commit": "466b41b28ecc224398cf53a99c5fe9618131398b",
+  "reused_ieantn_modules": [
+    "RSBounds/IEANTNGamma/Analytic.lean",
+    "RSBounds/IEANTNGamma/RealAsymptotic.lean",
+    "RSBounds/IEANTNGamma/ComplexToReal.lean",
+    "RSBounds/IEANTNGamma/Oscillation.lean"
+  ],
+  "adapted_repository": "https://github.com/gersh/ternary-goldbach-lean",
+  "adapted_commit": "27df23af6a712895f22204d0d81102baa74f0ebe",
+  "adapted_files": {
+    "MathExtras/NumberTheory/LSeries/BacklundXiArcVariation.lean": {
+      "local_source_sha256": "f480e2acef5ebcac28aaa47ed690b330b80b8d9cef55c859bb5f4d0e2b9fff75",
+      "use": "Gamma rectangle argument generalized to any anchor a>=1/2; existing IEANTN analyticity replaces external dependency."
+    },
+    "MathExtras/Analysis/SpecialFunctions/ArctanLogIntegrals.lean": {
+      "git_blob_sha": "efe54db818c61c55508cbdb8ca49a29c81efd3d1",
+      "use": "Reciprocal integral and arctan upper bound; source attribution retained."
+    }
+  },
+  "new_argument": "Recurrence plus shifted-phase limit; finite arctan trapezoidal errors; positivity yields stronger1/(4T) bound. Existing Gersh fixed Stirling bound is not assumed.",
+  "license": "Adapted source portions Apache-2.0; complete license at licenses/Gersh-LICENSE."
+}

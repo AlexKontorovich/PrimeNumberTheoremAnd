@@ -1,0 +1,16 @@
+import RSBounds.RosserWeightedBounds
+
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.hasDerivAt_reciprocal
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.hasDerivAt_reciprocal_fifth
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_le_endpoints
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_le_head
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le_endpoints
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le_head
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.head_correction_le
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.fifth_sum_le
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.weightedSum_const_eq
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.weightedSum_mono
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_ge_count
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.reciprocal_sum_ge_rosser
+
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedBounds.head_correction_nonneg

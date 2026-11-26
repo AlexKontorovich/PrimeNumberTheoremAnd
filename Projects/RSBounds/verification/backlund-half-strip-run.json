@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "recorded_utc": "2026-11-06T11:55:06.399027+00:00",
+  "source_sha256": {
+    "RSBounds/BacklundHalfStrip.lean": "001f344f9f7ba459940c631f36053d63c3a2ac124a5a6ddde293345b8f462faf",
+    "verification/BacklundHalfStripAudit.lean": "6c1c85036c8ca124c4ebbfbb54c149b4bea6b3109315d10ea261c850051d5bb9"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/BacklundHalfStrip.olean",
+        "RSBounds/BacklundHalfStrip.lean"
+      ],
+      "log": "backlund-strip-core-BacklundHalfStrip-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/BacklundHalfStripAudit.lean"
+      ],
+      "log": "backlund-half-strip-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "audited_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "exit_code": 0
+}

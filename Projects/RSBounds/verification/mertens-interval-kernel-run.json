@@ -1,0 +1,37 @@
+{
+  "kind": "fresh-mertens-interval-kernel-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T18:05:36.093893+00:00",
+  "source_sha256": {
+    "RSBounds/MertensIntervalKernel.lean": "e93cd81fd46ee00291c1932e1a914e68caad985995ce14c3801ff9efa503ab29",
+    "verification/MertensIntervalKernelAudit.lean": "282bb87c3ab93a598317d69d561eaff7728fd6a36a1301850652622c23127b8d",
+    "verification/run_mertens_interval_kernel_check.py": "e3534a279b07353d781b625cd28de2074d89df9d81a5e6a6a9d3757c19dd6dd8"
+  },
+  "stdin_recipe": "Exact source plus ten fully qualified #print axioms commands.",
+  "stdin_sha256": "174ff07a8fa108711f68eae18ec686e5b56bde34680de365cec9510dc39b400b",
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensIntervalKernel.olean",
+        "RSBounds/MertensIntervalKernel.lean"
+      ],
+      "log": "verification/mertens-interval-kernel-build.log",
+      "exit_code": 0,
+      "seconds": 5.065124738997838
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 10,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "86a25b2ed079df5520ab1dddd4eb6d5a8a47d976c40ff527bce50904ccf7e8a5",
+  "finished_utc": "2026-11-06T18:05:41.161286+00:00"
+}

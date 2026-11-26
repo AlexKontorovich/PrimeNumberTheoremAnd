@@ -1,0 +1,43 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:54:18.170224+00:00",
+  "source_sha256": {
+    "RSBounds/RosserSchoenfeld1975.lean": "78b8e4f89e0648714ac276ed0539045d9eb009725460b108b9a0278b0966ca3b",
+    "RSBounds/PolynomialZeroPairing.lean": "7bc85e88d30612d76f4fea0338411f8c185c255314d2f6acd87f7e0b48e79504",
+    "RSBounds/PolynomialZeroMajorants.lean": "a7937f054295f21f7222edb6b4ee9c3dc49b37f3d3e1cf0320920c261369766c",
+    "RSBounds/QuarticFirst29BudgetBridges.lean": "013a89634f20666d3003fbda7102a501b2b583692402296448942444b57e1a7a",
+    "RSBounds/RosserWeightedBounds.lean": "e7ec52a3cae8029cf0773710eb999fcf2da2b4dfd9d95f2eaa5c5c4849b5c8ce",
+    "RSBounds/QuarticLowZeroBounds.lean": "290276bf0f420a230bf0fc0f0a1534e24ed316ae81e255c99fc1faa8b2bbe385",
+    "RSBounds/QuarticFirst29BudgetApplication.lean": "c154e74fcaa31055fc33782762522b549659ccb8368e9f53696c599a608d284d",
+    "RSBounds/PolynomialPsiFromZeroSums.lean": "75852c697246a5e4bfbf0d25d1eb2b813d86cbce54b55f58ec16c7d592f1ac36",
+    "verification/RosserSchoenfeld1975Audit.lean": "bd4ec69bedf3032b1dbb7532c504251dd20874785340b14e7d6b9d071820dae5"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "RSBounds/RosserSchoenfeld1975.lean",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RosserSchoenfeld1975.olean"
+      ],
+      "log": "rosser-schoenfeld-1975-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/RosserSchoenfeld1975Audit.lean"
+      ],
+      "log": "rosser-schoenfeld-1975-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T14:55:13.939834+00:00",
+  "exit_code": 0
+}

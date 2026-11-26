@@ -1,0 +1,12 @@
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.one_sub_k0_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.h_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.R1_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.sqrt_gap_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.h_mul_v' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.v_mul_R1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.optimal_identity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RS75ZeroFreeScalars.beta_lt_of_optimized_inequality' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

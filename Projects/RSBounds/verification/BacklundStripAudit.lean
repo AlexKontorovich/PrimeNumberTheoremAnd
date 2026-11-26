@@ -1,0 +1,4 @@
+import RSBounds.BacklundStrip
+
+#print axioms TernaryGoldbach.RSBounds.BacklundStrip.norm_normalizedZeta_le_one
+#print axioms TernaryGoldbach.RSBounds.BacklundStrip.norm_zeta_strip_le

@@ -1,0 +1,20 @@
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.sum_zeroCopies' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.filter_closedPositiveZeros' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.ordinateCount_zeroCopies' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.window_sum_zeroCopies' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.intervalIntegrable_count_mul' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_le_decreasing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.WeightedZetaZeros.weightedSum_le_decreasing_head' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,50 @@
+import took 42.2s
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 641ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 827ms
+type checking took 103ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 102ms
+interpretation of Mathlib.Tactic._aux_Mathlib_Tactic_Linarith_Frontend___elabRules_Mathlib_Tactic_nlinarith_1._boxed took 133ms
+'TernaryGoldbach.RSBounds.MertensDecayScalars.exp_fifteen_lower' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.log_seventeen_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.cutoff_height' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.twice_squareExpr_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.scalarEnvelope_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.fifth_power_exp_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensDecayScalars.scalarEnvelope_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+cumulative profiling times:
+	.olean serialization 57.3ms
+	attribute application 0.139ms
+	blocked (unaccounted) 7.61s
+	congr simp thm 3.79ms
+	declTypeLinter 11.9ms
+	elaboration 163ms
+	fix level params 7.09ms
+	import 42.2s
+	initialization 115ms
+	instantiate metavars 8.51ms
+	interpretation 4.13s
+	let-to-have transformation 0.158ms
+	linting 82.2ms
+	module linting 0.624ms
+	norm_num 1.64s
+	parsing 24.2ms
+	process pre-definitions 79.4ms
+	ring 267ms
+	share common exprs 94.1ms
+	simp 31ms
+	tactic execution 650ms
+	tacticAnalysis 7.12ms
+	type checking 250ms
+	typeclass inference 1.45s

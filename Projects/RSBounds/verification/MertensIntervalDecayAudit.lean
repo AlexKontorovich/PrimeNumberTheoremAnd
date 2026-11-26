@@ -1,0 +1,8 @@
+import RSBounds.MertensIntervalDecay
+
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.numeratorBound_nonneg
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_numerator_le
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_le_im
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.continuous_kernel_line
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.norm_kernel_line_le
+#print axioms TernaryGoldbach.RSBounds.MertensIntervalKernel.decayTwo_kernel

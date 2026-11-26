@@ -1,0 +1,9 @@
+{
+  "challenge_module": "PsiFiniteChallenge",
+  "solution_module": "PsiFiniteSolution",
+  "theorem_names": [
+    "PsiFinite.psi_abs_sub_le_four_fifths_sqrt",
+    "PsiFinite.psi_abs_sub_le_sqrt"
+  ],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"]
+}

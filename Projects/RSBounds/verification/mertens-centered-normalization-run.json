@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-source-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:01:38.263107+00:00",
+  "lean_version": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+  "source_sha256": {
+    "RSBounds/MertensCenteredNormalization.lean": "c0c0d274d4f86d0ac5ca1347b9e1ccd90bcf78c0ce89f6c87ed0cc8d22bf87d7",
+    "RSBounds/MertensAbelianNormalization.lean": "69548eae7c8177123aa2da58bd48bc386e1feaa8e314a18b6e4a5bd3006e29da",
+    "RSBounds/MellinAbelianLimit.lean": "c32894fb13e0a9fffd8b0115c84cf6da016ce7e2defe0a5e87974c2c2693eaff",
+    "RSBounds/MertensAbelIdentity.lean": "743f7aff4f26e7344e3cbef14fe811c22802b0ee8a56fa3e6f7267bade38df8e",
+    "RSBounds/MertensPsiAbel.lean": "cc8893163358c92be6c8b0ad9786a3d060d36ba78ae96b1c95e01169865be018",
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504",
+    "verification/run_mertens_normalization_check.py": "3d8de5aca191fb1a28a855523b669a70b7b8aa2ab5b44f442fb507d228f99829"
+  },
+  "stdin_sha256": "30f9ddeb637b6075826114403c9dd06a08bc3c35a6a84a609c634adb8a8d0739",
+  "stdin_recipe": "Exact source followed by the listed fully qualified axiom commands.",
+  "audited_declarations": [
+    "TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_average_tendsto",
+    "TernaryGoldbach.RSBounds.MertensCenteredNormalization.centered_limit_eq"
+  ],
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/bin/lean",
+    "-j1",
+    "-Dprofiler=true",
+    "--stdin",
+    "-o",
+    ".lake/build/lib/lean/RSBounds/MertensCenteredNormalization.olean",
+    "RSBounds/MertensCenteredNormalization.lean"
+  ],
+  "log": "verification/mertens-centered-normalization-build.log",
+  "exit_code": 0,
+  "seconds": 4.11511066499952,
+  "finished_utc": "2026-11-06T19:01:42.378443+00:00",
+  "object_sha256": "13118845fe4630023a976e231da6f5175a512e840334ff98c3b2c1078649d858",
+  "axiom_audit": {
+    "declarations": 2,
+    "only_standard_axioms": true
+  }
+}

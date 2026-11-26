@@ -1,0 +1,22 @@
+'TernaryGoldbach.RSBounds.BacklundJensen.zeroCount_mul_log_le_circleAverage' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.zeroCount_le_of_log_majorant' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.powerAverage_center' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.analyticOnNhd_powerAverage' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.norm_powerAverage_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.log_norm_powerAverage_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.normalized_power_zeroCount_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundJensen.exists_power_sequence_zeroCount_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_reciprocal_cube' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.hasDerivAt_neg_cubicPrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.integral_upperDensity_div_cube' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.integral_density_div_cube_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le_head' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubicAllowance_A_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserCubicTail.cubic_sum_A_lt' depends on axioms: [propext, Classical.choice, Quot.sound]

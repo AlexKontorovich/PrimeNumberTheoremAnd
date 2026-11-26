@@ -1,0 +1,60 @@
+{
+  "checked_at_utc": "2026-11-06T12:03:10.946495+00:00",
+  "lean_version": "4.35.0",
+  "build_commands": [
+    "lake build RSBounds.BacklundRightArcNumerics",
+    "lake build RSBounds.BacklundAngularNumerics"
+  ],
+  "audit_command": "lake env lean verification/BacklundAngularAudit.lean",
+  "build_exit_codes": [
+    0,
+    0
+  ],
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundRightArc.logZeta_eq_tsum",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.convexOn_logZeta",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.antitoneOn_logZeta",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.continuousOn_logZeta",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.convexOn_arcFunction",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.integral_unit_le_trapezoid",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.integral_nat_le_trapezoids",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.right_arc_le_samples",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.cosDoubleCheck_sound",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.logZeta_le_of_root_cert",
+    "TernaryGoldbach.RSBounds.BacklundRightArc.right_arc_integral_lt",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.first_cos_integral",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.second_cos_integral",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.angular_integrals_eq",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.gamma_bounds",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.delta_bounds",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.q_bounds",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.log_two_pi_lower",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.log_center_upper",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.slopeA_bounds",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.slopeB_le",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.intercept_le_strong",
+    "TernaryGoldbach.RSBounds.BacklundAngularCoefficients.intercept_le"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "sources": {
+    "RSBounds/BacklundRightArc.lean": "207e6699ff12ae88ff57208ac5faa44d6f5dd3412eab87a9736a17390229968b",
+    "RSBounds/BacklundRightArcNumericsBase.lean": "c05cd7db2c9e1291e772d6221dd131cd6f9db66366ed44061a129b8db8d68883",
+    "RSBounds/BacklundRightArcNumerics.lean": "4203ae88c1d4c74d428f0c9fe366e9a748ad4f8437223d727426002bb73d087e",
+    "RSBounds/BacklundAngularCoefficients.lean": "f0537ef7d60f9a31e81984c701964ea4e4d2adf8201b92eb32e59ec0098c4f05",
+    "RSBounds/BacklundAngularNumerics.lean": "d1999eeb87b121c705e3221a647b71bdd1f7252aeefeb93b702372da9e7da73a",
+    "scripts/generate_right_arc_certificates.py": "5896bc3695c9a296ee6b1bbe6db8bd087fe002eb1d2404f6a8f16be59a48b46c",
+    "verification/BacklundAngularAudit.lean": "997d8cd707c444d4f09dda3435f93f34a79975be6689bf0d5f8ba80c958c1757"
+  },
+  "proved_bounds": {
+    "right_arc_normalized": "<0.1361",
+    "A": "0.1359\u2264A\u22640.1361",
+    "B": "B\u22640.4423",
+    "K_with_right_arc_01361": "K\u22641.5803"
+  },
+  "quadrature_certificate": "17410189/128000000=0.1360171015625; all roots, cosine recurrence and Taylor exponential bounds checked in Lean kernel"
+}

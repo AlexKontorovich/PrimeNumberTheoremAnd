@@ -1,0 +1,46 @@
+{
+  "kind": "fresh-compilation-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T17:15:35.428126+00:00",
+  "source_sha256": {
+    "RSBounds/RS75GoldenTails.lean": "ca0fb26d0ecc6f33ae38dcd3ec98ce50b750e3dcf1b701f59e78677d43eedb1f",
+    "verification/RS75GoldenTailsAudit.lean": "54d8594d5b6f66c9a21c06c1c77ea6823f04cbbe6411e8f3651b471d70729068",
+    "verification/run_rs75_golden_tails_check.py": "2e581843e866c6c5920d05c9ca927cc15838528e1282e542d364a1e54820ac5b",
+    "RSBounds/RS75MomentCalculus.lean": "feabe86c32cae11eacbf26f6f08cbbedb1a89f0a253c747a47dd4ccfb4026069",
+    "RSBounds/RS75GoldenSeries.lean": "b55a03fed2dfb27835c3a6ed076e3c594370253399e71ba9310f061e2dcb3913",
+    "RSBounds/RS75GoldenNumerics.lean": "368b00d5b7cb94adfa36517973f6d3f457b1eb7a8c53b5c25396bb8dfbc1adb6"
+  },
+  "stdin_recipe": "Exact proof source, newline, then the five public audit commands.",
+  "stdin_sha256": "e000da08f14903fbbe630ea2fee129aa21961a0f1df874925fb9f3e6944cd0cb",
+  "dependency_object_sha256": {
+    "RS75MomentCalculus": "2a5e62b6268dbd6b64b8de6e18f95adf832e701b836a76a404c0a4f9dea8edd9",
+    "RS75GoldenSeries": "1b2d77a9848cf416b5c1e5edd74f07eac144ce28ccd8f266abe688a3c33797ff",
+    "RS75GoldenNumerics": "27354c90b0610e1d94a027a0cd12e03f93757554c2ffdba59360826500605d5c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75GoldenTails.olean",
+        "RSBounds/RS75GoldenTails.lean"
+      ],
+      "log": "rs75-golden-tails-build.log",
+      "exit_code": 0,
+      "seconds": 15.863756689999718,
+      "user_cpu_seconds": 4.061227,
+      "system_cpu_seconds": 4.8019430000000005
+    }
+  ],
+  "source_hashes_unchanged_at_finish": true,
+  "axiom_audit": {
+    "declarations": 5,
+    "only_standard_axioms": true
+  },
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:15:51.304199+00:00"
+}

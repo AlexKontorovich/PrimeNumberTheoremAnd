@@ -1,0 +1,12 @@
+'TernaryGoldbach.RSBounds.MertensSignedInterval.integrable_leftRemainder' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.kernel_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.MertensSignedInterval.explicit_formula' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,32 @@
+{
+  "kind": "fresh-local-build-and-axiom-audit",
+  "source_sha256": {
+    "RSBounds/PolynomialRemainderMajorant.lean": "c734e1d09c8002b88c041fa68debbedadf600f3a2502d8ad65da3088eab8c62c",
+    "verification/PolynomialRemainderMajorantAudit.lean": "6b5b004f1dd93aa26e35d09aa76d3ab68bf0794ae9a56dd39bb43e87671c1f86"
+  },
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialRemainderMajorant"
+      ],
+      "started_utc": "2026-11-06T09:46:57.592037+00:00",
+      "finished_utc": "2026-11-06T09:47:03.216351+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-remainder-majorant-build.log"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialRemainderMajorantAudit.lean"
+      ],
+      "started_utc": "2026-11-06T09:47:03.216421+00:00",
+      "finished_utc": "2026-11-06T09:47:06.399673+00:00",
+      "exit_code": 0,
+      "log": "verification/polynomial-remainder-majorant-axioms.log"
+    }
+  ]
+}

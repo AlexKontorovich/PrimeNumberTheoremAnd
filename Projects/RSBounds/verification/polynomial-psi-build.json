@@ -1,0 +1,14 @@
+{
+  "command": [
+    "lake",
+    "build",
+    "RSBounds.PolynomialPsi"
+  ],
+  "started_utc": "2026-11-06T08:18:41.260445+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPsi.lean": "2b148b5b05748a8f40a44e0d28e2377e85d4eb92aa5e2217879ca151407b136e",
+    "RSBounds/PolynomialSmoothing.lean": "8d7ae55a74d319f9c967d079a97a3d3018e33f0169a1ad4e10c679d6a62ff299"
+  },
+  "finished_utc": "2026-11-06T08:19:12.768717+00:00",
+  "exit_code": 0
+}

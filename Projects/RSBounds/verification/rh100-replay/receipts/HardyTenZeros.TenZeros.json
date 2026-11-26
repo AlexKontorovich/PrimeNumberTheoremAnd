@@ -1,0 +1,23 @@
+{
+  "module": "HardyTenZeros.TenZeros",
+  "source_sha256": "5e93d87d37d60bfc8a7245a09a6a780556fa7ed2abea7c7685b5c34b65a1536c",
+  "upstream_sha256": "5e93d87d37d60bfc8a7245a09a6a780556fa7ed2abea7c7685b5c34b65a1536c",
+  "adapted": false,
+  "signature": "5825446eda656cea6db96267f1730122afa97592ba840678d3ffc65962a65305",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "HardyTenZeros/TenZeros.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/HardyTenZeros/TenZeros.olean"
+  ],
+  "started_utc": "2026-11-06T12:32:09.378411+00:00",
+  "finished_utc": "2026-11-06T12:32:21.325796+00:00",
+  "elapsed_seconds": 11.947,
+  "peak_rss_kib": 3660220,
+  "log": "verification/rh100-replay/HardyTenZeros.TenZeros.log",
+  "resources": "verification/rh100-replay/HardyTenZeros.TenZeros.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "05e73da667f73c3d18166f1fff882940e0c7b1f83bc6138fadda629566f4e0f5"
+}

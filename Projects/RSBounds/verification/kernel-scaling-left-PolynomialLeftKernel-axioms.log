@@ -1,0 +1,18 @@
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.abs_im_pow_le_norm_rising_four' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_difference_left_high_im' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_zeroCoefficient_left_low' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialLeftKernel.norm_zeroCoefficient_left_high' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

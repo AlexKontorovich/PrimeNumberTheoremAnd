@@ -1,0 +1,15 @@
+import RSBounds.RosserTailIntegrals
+
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_rosserEnvelope
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.density_le_upperDensity
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.continuousAt_density
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.continuousAt_upperDensity
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_neg_tailPrimitive
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.hasDerivAt_lowPrimitive
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.coefficient_nonneg
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.tailPrimitive_nonneg
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.J_eq_tailPrimitive
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_upperDensity_div_pow_five
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_density_div_pow_five_le
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_upperDensity_div
+#print axioms TernaryGoldbach.RSBounds.RosserTailIntegrals.integral_density_div_le

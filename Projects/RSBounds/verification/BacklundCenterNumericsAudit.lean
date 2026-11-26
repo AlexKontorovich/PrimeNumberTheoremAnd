@@ -1,0 +1,11 @@
+import RSBounds.BacklundCenterNumerics
+
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.norm_zeta_eq_tsum_rpow
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.zeta_tail_upper
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.zeta_tail_lower
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.rootCheck_sound
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.roots4_check
+#print axioms TernaryGoldbach.RSBounds.CenterNumerics.roots2_check
+#print axioms TernaryGoldbach.RSBounds.zeta_five_fourths_ratio_bounds
+#print axioms TernaryGoldbach.RSBounds.zeta_norm_lower_five_fourths_3426
+#print axioms TernaryGoldbach.RSBounds.zeta_five_fourths_upper

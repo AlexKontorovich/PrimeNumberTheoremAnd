@@ -1,0 +1,25 @@
+{
+  "module": "RHHeight100.TwentyNineZeros",
+  "source_sha256": "8cbef496376d53f79a7b45d7f108ddb02c396e83e3418a0f03292d9b5c3b0923",
+  "upstream_sha256": "8cbef496376d53f79a7b45d7f108ddb02c396e83e3418a0f03292d9b5c3b0923",
+  "adapted": false,
+  "signature": "c764cf71b5d76c3b4783b5799a374984ee017b11ce6018a414c58f65858a1869",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false",
+    "RHHeight100/TwentyNineZeros.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RHHeight100/TwentyNineZeros.olean"
+  ],
+  "started_utc": "2026-11-06T12:59:29.813799+00:00",
+  "finished_utc": "2026-11-06T12:59:55.522026+00:00",
+  "elapsed_seconds": 25.707,
+  "peak_rss_kib": 3324804,
+  "log": "verification/rh100-replay/RHHeight100.TwentyNineZeros.log",
+  "resources": "verification/rh100-replay/RHHeight100.TwentyNineZeros.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "c880bf4466fd7bf4940918f7be53843e0a5ce17bcefd83f0b6ceb763723fee83"
+}

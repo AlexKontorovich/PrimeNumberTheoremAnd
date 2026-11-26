@@ -1,0 +1,41 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:19:42.765457+00:00",
+  "source_sha256": {
+    "RSBounds/ZetaZeroTableHead.lean": "f6ea0a146bc09e268865b9c881f1e0fc786fc10265c70774a2a4e4eff0d12d13",
+    "RSBounds/ZetaZeroTable.lean": "137118d7d016bf126819e8c3709e3cd02c51326b87f047585e6738c9865ffcb5",
+    "verification/ZetaZeroTableHeadAudit.lean": "4e9ee7fd1435846d0a81f69a6a640c405630dbea8c0dfa61b5e431857550a2be",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/ZetaZeroTableHead.olean",
+        "RSBounds/ZetaZeroTableHead.lean"
+      ],
+      "log": "zeta-zero-table-head-build.log",
+      "exit_code": 0,
+      "elapsed_seconds": 33.93695618299898
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/ZetaZeroTableHeadAudit.lean"
+      ],
+      "log": "zeta-zero-table-head-axioms.log",
+      "exit_code": 0,
+      "elapsed_seconds": 32.79510521799966
+    }
+  ],
+  "finished_utc": "2026-11-06T14:20:49.499306+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,24 @@
+{
+  "module": "HardyFirstZero.EulerMaclaurin",
+  "source_sha256": "85cc5968d3ad87b0a215046b76bfcd9f2630bacd22d470a67664b86a424ca375",
+  "upstream_sha256": "dca2a608e66f7e095ecd4a25bee7da90de88cdc77a424ac2e8e562f28f064603",
+  "adapted": true,
+  "signature": "38d8a6cac508ffc03382da4dea8c6954281e68df72cc9c3c8544d2fde3a10a5d",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "HardyFirstZero/EulerMaclaurin.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/HardyFirstZero/EulerMaclaurin.olean"
+  ],
+  "started_utc": "2026-11-06T12:07:43.122279+00:00",
+  "finished_utc": "2026-11-06T12:07:51.597762+00:00",
+  "elapsed_seconds": 8.475,
+  "peak_rss_kib": 1806508,
+  "log": "verification/rh100-replay/HardyFirstZero.EulerMaclaurin.log",
+  "resources": "verification/rh100-replay/HardyFirstZero.EulerMaclaurin.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "368b892f016e64eb32c403bdb459761b6d91fb53b382c4dccce19fae33009c1a",
+  "reused_from_previous_replay": true
+}

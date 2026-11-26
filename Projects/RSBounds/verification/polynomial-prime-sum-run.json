@@ -1,0 +1,31 @@
+{
+  "kind": "fresh-local-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T08:57:02.131726+00:00",
+  "source_sha256": {
+    "RSBounds/PolynomialPrimeSum.lean": "a6b1a93a70decb1efa319a98d942aec007f50a99649aaaf72ae8119381b8e530",
+    "verification/PolynomialPrimeSumAudit.lean": "6ae5fc738d227a586e54a01bbad814115c0fb6128b038bb0d294cf36a74ef0ca"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "build",
+        "RSBounds.PolynomialPrimeSum"
+      ],
+      "log": "polynomial-prime-sum-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "verification/PolynomialPrimeSumAudit.lean"
+      ],
+      "log": "polynomial-prime-sum-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T08:57:20.045365+00:00",
+  "exit_code": 0
+}

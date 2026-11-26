@@ -1,0 +1,25 @@
+{
+  "module": "RHHeight100.Support",
+  "source_sha256": "c86e8163ced999690877ddeb3f7dd911a71973743761ac2cda74bb4905fbeb62",
+  "upstream_sha256": "c86e8163ced999690877ddeb3f7dd911a71973743761ac2cda74bb4905fbeb62",
+  "adapted": false,
+  "signature": "864d65b750db862a6caa8142c09bd6b5f70df24eb122b7c94791252e042c13c2",
+  "command": [
+    "/workspace/scratch/99a161e7c02e/.tools/elan-home/bin/lean",
+    "-j1",
+    "--root=/workspace/scratch/99a161e7c02e/recovery/vendor/rh100",
+    "-DautoImplicit=false",
+    "-DrelaxedAutoImplicit=false",
+    "RHHeight100/Support.lean",
+    "-o",
+    "/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean/RHHeight100/Support.olean"
+  ],
+  "started_utc": "2026-11-06T12:32:21.327703+00:00",
+  "finished_utc": "2026-11-06T12:32:26.689042+00:00",
+  "elapsed_seconds": 5.361,
+  "peak_rss_kib": 3606948,
+  "log": "verification/rh100-replay/RHHeight100.Support.log",
+  "resources": "verification/rh100-replay/RHHeight100.Support.resources.json",
+  "exit_code": 0,
+  "olean_sha256": "e342cf6ffd648b1df3503d0c3e516aab961f83ad9ca1872da97e85eff73d1506"
+}

@@ -1,0 +1,9 @@
+import RSBounds.BacklundJensen
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.zeroCount_mul_log_le_circleAverage
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.zeroCount_le_of_log_majorant
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.powerAverage_center
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.analyticOnNhd_powerAverage
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.norm_powerAverage_le
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.log_norm_powerAverage_le
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.normalized_power_zeroCount_le
+#print axioms TernaryGoldbach.RSBounds.BacklundJensen.exists_power_sequence_zeroCount_bound

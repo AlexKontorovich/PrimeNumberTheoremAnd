@@ -1,0 +1,57 @@
+{
+  "kind": "fresh-actual-golden-ratio-estimates-with-in-process-axiom-audit",
+  "started_utc": "2026-11-06T17:17:11.151536+00:00",
+  "source_sha256": {
+    "RSBounds/RS75GoldenRatio.lean": "289e9dc352c7254339f7349c0aecbe7371c234a699f7bc3ba66d1f4a7579a16d",
+    "RSBounds/RS75GoldenSeries.lean": "b55a03fed2dfb27835c3a6ed076e3c594370253399e71ba9310f061e2dcb3913",
+    "RSBounds/RS75GoldenScalarBase.lean": "71ea68f1da210f1cfc1de6fd3a31d4ff7a4d4b48c47c86bae3097dd776cce884",
+    "RSBounds/RS75GoldenNumerics.lean": "368b00d5b7cb94adfa36517973f6d3f457b1eb7a8c53b5c25396bb8dfbc1adb6",
+    "RSBounds/RS75GoldenTails.lean": "ca0fb26d0ecc6f33ae38dcd3ec98ce50b750e3dcf1b701f59e78677d43eedb1f",
+    "RSBounds/RS75MomentCalculus.lean": "feabe86c32cae11eacbf26f6f08cbbedb1a89f0a253c747a47dd4ccfb4026069",
+    "RSBounds/RS75Parameters.lean": "8646e6c330a39b10f3fadf2591be2a8881a700b90aecf504cc8ce164c8d4b826",
+    "RSBounds/InfiniteTrapezoid.lean": "cfecce7ce0d1ae443fc3282bf906f3bf2769a32ab84168d591fa8fe56b288c07",
+    "RSBounds/BacklundTrapezoid.lean": "1293c3bb601bd07df72843b3afe312f14ded8140864bfc95f7d74264c680ee8c",
+    "verification/RS75GoldenRatioAudit.lean": "dc648615e66aebc43094143192b2b83883c0353328585f1c34ab96b336acaf1b",
+    "verification/run_rs75_golden_ratio_check.py": "10c5ccf34fcf148a5ec2eed69abcba18cc6834cb8872e49574ea5167b1d86897"
+  },
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS75GoldenRatio.olean",
+        "RSBounds/RS75GoldenRatio.lean"
+      ],
+      "log": "verification/rs75-golden-ratio-build.log",
+      "exit_code": 0,
+      "seconds": 13.465834543007077,
+      "user_cpu_seconds": 5.459776,
+      "system_cpu_seconds": 4.015409,
+      "stdin_sha256": "55ce0ba92262dd1da4fd42760326c765c934202d59adb9ed2b8e959dbd046a57"
+    }
+  ],
+  "dependency_object_sha256": {
+    "RS75GoldenSeries": "1b2d77a9848cf416b5c1e5edd74f07eac144ce28ccd8f266abe688a3c33797ff",
+    "RS75GoldenScalarBase": "02041e17d396cfd18eabfc78b1790286275f3a471cf97c5ac0ad5fc72ba1cf3d",
+    "RS75GoldenNumerics": "27354c90b0610e1d94a027a0cd12e03f93757554c2ffdba59360826500605d5c",
+    "RS75GoldenTails": "b8011af69575b59bc9238b9376e6832813e77633c068f28d6f7eaacc24d0b076",
+    "RS75MomentCalculus": "2a5e62b6268dbd6b64b8de6e18f95adf832e701b836a76a404c0a4f9dea8edd9",
+    "RS75Parameters": "fbea7f464bb13564ca6c22da86d5ff0d6204311c8dffb3cb00bc2011c7753822",
+    "InfiniteTrapezoid": "57ceb1298867c7d75baa2a6f7f7f574a59042f0441a91307399d86f27c905d64",
+    "BacklundTrapezoid": "f3ad8a4832e66f6799f9d4ee4eb91a103ace347274a223198d95031750066860"
+  },
+  "stdin_recipe": "Exact proof source followed only by the nine public transitive #print axioms commands.",
+  "stdin_sha256": "55ce0ba92262dd1da4fd42760326c765c934202d59adb9ed2b8e959dbd046a57",
+  "source_hashes_unchanged_at_finish": true,
+  "exit_code": 0,
+  "finished_utc": "2026-11-06T17:17:24.642950+00:00",
+  "axiom_audit": {
+    "declarations": 9,
+    "only_standard_axioms": true
+  }
+}

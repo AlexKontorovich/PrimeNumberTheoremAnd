@@ -1,0 +1,14 @@
+import RSBounds.RS75MomentCalculus
+#print axioms TernaryGoldbach.RSBounds.InfiniteTrapezoid.finite_bounds
+#print axioms TernaryGoldbach.RSBounds.InfiniteTrapezoid.infinite_bounds
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentFn
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_momentDeriv
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.momentSecond_nonneg
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.continuousOn_momentSecond
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentFn
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_momentDeriv
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.tendsto_tailPrimitive
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.hasDerivAt_neg_tailPrimitive
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.integrableOn_momentFn
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.integral_momentFn
+#print axioms TernaryGoldbach.RSBounds.RS75MomentCalculus.moment_bounds

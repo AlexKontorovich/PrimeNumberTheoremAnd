@@ -1,0 +1,16 @@
+{
+  "command": [
+    "lake",
+    "env",
+    "lean",
+    "verification/TotientAudit.lean"
+  ],
+  "started_utc": "2026-11-06T08:07:54.543433+00:00",
+  "source_sha256": {
+    "RSBounds/Totient.lean": "6fcf07d64e32245fccfda894e07d189d70e39abe261d5837bb725da38508d6f2",
+    "RSBounds/SmallTotientProduct.lean": "441e7b4741a27148478caba16cfbafa0d1632ecb01e3d1ebe5f1c72b18769460",
+    "verification/TotientAudit.lean": "d834f6be20dada624931f27b3a9de2e632018d5a2198a338cace610867bd08bc"
+  },
+  "finished_utc": "2026-11-06T08:08:21.145227+00:00",
+  "exit_code": 0
+}

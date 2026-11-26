@@ -1,0 +1,6 @@
+import RSBounds.PolynomialPsiMellin
+
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiMellin.SsumG_quartic_eq_finite
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiMellin.scaled_weight_eq_quarticPrimitive
+#print axioms TernaryGoldbach.RSBounds.PolynomialPsiMellin.pow_four_mul_SsumG_quartic_eq_Psi4
+#check TernaryGoldbach.RSBounds.PolynomialPsiMellin.pow_four_mul_SsumG_quartic_eq_Psi4

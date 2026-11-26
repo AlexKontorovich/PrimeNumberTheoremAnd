@@ -1,0 +1,39 @@
+{
+  "kind": "uniform-scalar-budget-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:32:48.388141+00:00",
+  "source_sha256": {
+    "RSBounds/QuarticFirst29BudgetApplication.lean": "c154e74fcaa31055fc33782762522b549659ccb8368e9f53696c599a608d284d",
+    "verification/QuarticFirst29BudgetApplicationAudit.lean": "f5604b550889987c04c89476a9709e643e59eae3e52d564e1d7bc193074e3cbd"
+  },
+  "full_psi_estimate_proved": false,
+  "runs": [
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/QuarticFirst29BudgetApplication.olean",
+        "RSBounds/QuarticFirst29BudgetApplication.lean"
+      ],
+      "log": "quartic-first29-application-build.log",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/QuarticFirst29BudgetApplicationAudit.lean"
+      ],
+      "log": "quartic-first29-application-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "printed_axiom_sets": 8,
+  "only_standard_axioms": true,
+  "status": "verified",
+  "finished_utc": "2026-11-06T14:35:41.826302+00:00"
+}

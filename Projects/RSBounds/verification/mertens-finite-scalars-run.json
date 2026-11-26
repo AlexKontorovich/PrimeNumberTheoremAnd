@@ -1,0 +1,38 @@
+{
+  "kind": "fresh-mertens-finite-scalars-build-with-in-process-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:15:26.684134+00:00",
+  "source_sha256": {
+    "RSBounds/MertensFiniteScalars.lean": "afd3aee79cfa766babf60c4b3a8d8e254cd58d94adf5d5991169aebbc4c93494",
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "RSBounds/Mertens.lean": "d731c1303f4d86e292220534a804d92d0b534a216a230e1046fb4d54f150e573",
+    "RSBounds/Targets.lean": "3829a60a8b3be68d5a05acc49de6af1f583899f953588876d29afc4501297d89",
+    "verification/MertensFiniteScalarsAudit.lean": "24360880ee51b50819d5a17893dfc438d7063b65d1a5bf20d037d372fd0eb6be",
+    "verification/run_mertens_finite_scalars_check.py": "07064bd4ee457645930ec06d77992e7fb621bec01d39590571c9bfc9e791904e"
+  },
+  "stdin_recipe": "Exact source plus four fully qualified #print axioms commands.",
+  "stdin_sha256": "361e30097dc0cd0e6a7a03a750af0d10c4a546ce50f3162d7b5eb1f7039e7bb0",
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/MertensFiniteScalars.olean",
+        "RSBounds/MertensFiniteScalars.lean"
+      ],
+      "log": "verification/mertens-finite-scalars-build.log",
+      "exit_code": 0,
+      "seconds": 721.5193823260051
+    }
+  ],
+  "build_exit_code": 0,
+  "exit_code": 0,
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  },
+  "object_sha256": "363bcdd375a76487bd2da3544fa35be637d06874af9f1127f0995bd225227271",
+  "finished_utc": "2026-11-06T19:27:28.213712+00:00"
+}

@@ -1,0 +1,14 @@
+'TernaryGoldbach.RSBounds.PolynomialQuartic.kernel_eq_numerator_div' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialQuartic.numerator_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialQuartic.differentiableAt_numerator' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialQuartic.decayFive_kernel' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialQuartic.explicit_formula_quartic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.PolynomialQuartic.explicit_formula_quartic_at_heights' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

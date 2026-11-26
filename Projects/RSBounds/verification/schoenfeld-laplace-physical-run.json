@@ -1,0 +1,40 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T19:04:55.058652+00:00",
+  "source_sha256": {
+    "RSBounds/SchoenfeldLaplacePhysical.lean": "df4a389d998baaafa5d149e649724bf757474107f3e0b6a89a20e498000e2c51",
+    "RSBounds/SchoenfeldLaplaceTails.lean": "3012da5493e4ad782e5c8ed4cf760fa914a1c68777fcff0f5d7ce8444ac80923",
+    "verification/SchoenfeldLaplacePhysicalAudit.lean": "b624570fcf49ad9a04672d34caf74481e9f025322f032a9fbf8863fffe1af320",
+    "verification/run_schoenfeld_laplace_physical_check.py": "990fa42b1b8e121cab67ac64ea10ac214b6bae6f7cd4427a8bd4b82d57ebe4c2",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/SchoenfeldLaplacePhysical.olean",
+        "RSBounds/SchoenfeldLaplacePhysical.lean"
+      ],
+      "log": "schoenfeld-laplace-physical-build.log",
+      "exit_code": 0,
+      "seconds": 4.484138198997243
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/SchoenfeldLaplacePhysical.lean",
+    "verification/SchoenfeldLaplacePhysicalAudit.lean"
+  ],
+  "stdin_sha256": "64e617a321db73d62834507c3b481d0f8ab2edb2df0285fd40741120a489bd38",
+  "axiom_audit": {
+    "declarations": 4,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T19:04:59.545265+00:00",
+  "exit_code": 0
+}

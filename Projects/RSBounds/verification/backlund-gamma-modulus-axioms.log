@@ -1,0 +1,17 @@
+'Zeta23.DigammaSeries.hasSum_digamma_series' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.StirlingVert.digamma_stirling' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundGammaModulus.abs_digamma_re_sub_log_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundGammaModulus.hasDerivAt_log_norm' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundGammaModulus.abs_log_norm_Gamma_sub_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundGammaModulus.norm_Gamma_horizontal_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.BacklundGammaModulus.exp_mul_log_saving_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

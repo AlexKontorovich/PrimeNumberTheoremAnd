@@ -1,0 +1,19 @@
+'TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_reciprocal_square' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.hasDerivAt_neg_squarePrimitive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.squarePrimitive_nonneg' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.integral_upperDensity_div_square' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.integral_density_div_square_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le_head' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TernaryGoldbach.RSBounds.RosserSquareTail.square_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound]

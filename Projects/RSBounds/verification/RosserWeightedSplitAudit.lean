@@ -1,0 +1,8 @@
+import RSBounds.RosserWeightedSplit
+
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.reciprocal_fifth_split_le
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.weightedSum_self
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.weightedSum_adjacent
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.weightedSum_telescope
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.weighted_reciprocal_bands_lower
+#print axioms TernaryGoldbach.RSBounds.RosserWeightedSplit.reciprocal_bands_lower

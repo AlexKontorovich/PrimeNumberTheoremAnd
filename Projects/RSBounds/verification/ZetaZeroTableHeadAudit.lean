@@ -1,0 +1,6 @@
+import RSBounds.ZetaZeroTableHead
+
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTableHead.bracketLower_pos
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTableHead.sum_reciprocal_lower_lt
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTableHead.first29_reciprocal_norm_sum_lt
+#print axioms TernaryGoldbach.RSBounds.ZetaZeroTableHead.first29_reciprocal_norm_sum_le

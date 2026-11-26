@@ -1,0 +1,2 @@
+import RSBounds.BacklundHalfStrip
+#print axioms TernaryGoldbach.RSBounds.BacklundHalfStrip.norm_le_one

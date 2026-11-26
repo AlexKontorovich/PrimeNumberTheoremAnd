@@ -1,0 +1,16 @@
+RSBounds/BacklundCountPole.lean:38:15: warning: Unused tactic linter: `<;>` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/BacklundCountPole.lean:38:19: warning: Unused tactic linter: `ring` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+RSBounds/BacklundCountPole.lean:38:19: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+RSBounds/BacklundCountPole.lean:57:25: warning: This simp argument is unused:
+  add_im
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [poleKernel, add_re, he]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

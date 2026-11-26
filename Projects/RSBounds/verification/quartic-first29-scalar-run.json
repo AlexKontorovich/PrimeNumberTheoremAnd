@@ -1,0 +1,65 @@
+{
+  "kind": "scalar-only-kernel-compilation-and-axiom-audit",
+  "started_utc": "2026-11-06T14:23:06.339879+00:00",
+  "source_sha256": {
+    "RSBounds/QuarticBudgetNumericsBase.lean": "efd600bdcd54c8eda11dcc6724fa0f78c0bfacd0ff0384c6245cf73293c7a1f1",
+    "RSBounds/QuarticFirst29BudgetNumerics.lean": "948dc49713c143847c32f955e3ca2fcd4adc52d36a29d671f66c94a15b50d6ae",
+    "verification/QuarticFirst29ScalarAudit.lean": "613a6cab25824137cc83c9bccb116e0d0c20280c6d79664daea184048118aa8d"
+  },
+  "full_psi_estimate_proved": false,
+  "runs": [
+    {
+      "module": "QuarticBudgetNumericsBase",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/QuarticBudgetNumericsBase.olean",
+        "RSBounds/QuarticBudgetNumericsBase.lean"
+      ],
+      "log": "verification/quartic-first29-QuarticBudgetNumericsBase-build.log",
+      "signature": [
+        "efd600bdcd54c8eda11dcc6724fa0f78c0bfacd0ff0384c6245cf73293c7a1f1"
+      ],
+      "exit_code": 0,
+      "olean_sha256": "5b1ddfd188d6c06982de5ef822d144f0bff7d84a938605bfecb4bcab88617d81",
+      "reused": true
+    },
+    {
+      "module": "QuarticFirst29BudgetNumerics",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/QuarticFirst29BudgetNumerics.olean",
+        "RSBounds/QuarticFirst29BudgetNumerics.lean"
+      ],
+      "log": "verification/quartic-first29-QuarticFirst29BudgetNumerics-build.log",
+      "signature": [
+        "efd600bdcd54c8eda11dcc6724fa0f78c0bfacd0ff0384c6245cf73293c7a1f1",
+        "948dc49713c143847c32f955e3ca2fcd4adc52d36a29d671f66c94a15b50d6ae"
+      ],
+      "exit_code": 0,
+      "olean_sha256": "99a21a0061e6510d2a7585172fdeab497d981484c064154f3fd4fb7498706492"
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "-j1",
+        "verification/QuarticFirst29ScalarAudit.lean"
+      ],
+      "log": "verification/quartic-first29-scalar-axioms.log",
+      "exit_code": 0
+    }
+  ],
+  "status": "verified",
+  "printed_axiom_sets": 9,
+  "only_standard_axioms": true,
+  "finished_utc": "2026-11-06T14:24:35.011602+00:00"
+}

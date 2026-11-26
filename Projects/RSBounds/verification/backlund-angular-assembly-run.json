@@ -1,0 +1,31 @@
+{
+  "checked_at_utc": "2026-11-06T12:26:45.279333+00:00",
+  "lean_version": "4.35.0",
+  "build_command": "lake build RSBounds.BacklundAngularAssembly",
+  "build_exit_code": 0,
+  "audit_command": "lake env lean verification/BacklundAngularAssemblyAudit.lean",
+  "audit_exit_code": 0,
+  "theorems_audited": [
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_one",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_two",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_three",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_four",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.sector_integrable",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.intervalIntegrable_scalar_arc",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_raw",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_eq",
+    "TernaryGoldbach.RSBounds.BacklundAngularAssembly.scalar_arc_integral_le"
+  ],
+  "axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "sources": {
+    "RSBounds/BacklundAngularAssembly.lean": "4a8e82eb517f827493e5dec85811ad69943555e42e0e7079c955fff26f0d0ecd",
+    "RSBounds/BacklundCircleMajorantDef.lean": "db8117323a7b72e62db7a13c2750b9189155972b637b4faf9e12d7e8bfe6beb3",
+    "verification/BacklundAngularAssemblyAudit.lean": "21cdb28393acc415d788f0e0b350f8eca04fb4e85e0564c5dfe515858e7e13b6",
+    "verification/backlund-angular-notes.md": "b208433d70f1fbb5acc649174956dfc6ff52cfc6311aac2e9f4e5406a45a622b"
+  },
+  "result": "Actual piecewise upper-semicircle majorant is interval-integrable; exact angular assembly; numerical right-arc term bounded by 0.1361."
+}

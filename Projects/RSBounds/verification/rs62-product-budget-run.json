@@ -1,0 +1,41 @@
+{
+  "kind": "fresh-local-compilation-and-transitive-axiom-audit",
+  "started_utc": "2026-11-06T21:06:27.804000+00:00",
+  "source_sha256": {
+    "RSBounds/RS62ProductBudget.lean": "496540a05625ae247f9687f8c9b74683c5bf2c5e2123fe9150d1dd5353837e70",
+    "RSBounds/QuarticFirst29BudgetApplication.lean": "c154e74fcaa31055fc33782762522b549659ccb8368e9f53696c599a608d284d",
+    "RSBounds/BacklundLowScalarBase.lean": "a9caa290da0036c104d13af4aaa3abd5fa5f719ef5b9c31c41627e5a17ca4e2d",
+    "verification/RS62ProductBudgetAudit.lean": "1517650302a35de421860384b740330ef3c89be3ab88ec7c20451ae0a2b5d7dc",
+    "verification/run_rs62_product_budget_check.py": "2a924b8332d98adffd82f17cf17175fd4feb163818707ef74342d20e6bb5a1b1",
+    "lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "lake-manifest.json": "ea37fdd426cc976e3f295c9d982d0a2a396df32f0dd6f710a2b949555608e504"
+  },
+  "runs": [
+    {
+      "command": [
+        "lean",
+        "-j1",
+        "-Dprofiler=true",
+        "--stdin",
+        "-o",
+        ".lake/build/lib/lean/RSBounds/RS62ProductBudget.olean",
+        "RSBounds/RS62ProductBudget.lean"
+      ],
+      "log": "rs62-product-budget-build.log",
+      "exit_code": 0,
+      "seconds": 100.42103271499946
+    }
+  ],
+  "LEAN_PATH": "/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/ternary-goldbach/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/recovery/.lake/build/lib/lean:/workspace/scratch/99a161e7c02e/.tools/elan-home/toolchains/leanprover--lean4---v4.35.0/lib/lean",
+  "stdin_sources": [
+    "RSBounds/RS62ProductBudget.lean",
+    "verification/RS62ProductBudgetAudit.lean"
+  ],
+  "stdin_sha256": "168f3440fea71bc9c297eb1fb1fdbd1ff762c84581582987da0c187e76d44b7d",
+  "axiom_audit": {
+    "declarations": 6,
+    "only_standard_axioms": true
+  },
+  "finished_utc": "2026-11-06T21:08:08.230636+00:00",
+  "exit_code": 0
+}

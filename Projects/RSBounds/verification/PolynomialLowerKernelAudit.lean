@@ -1,0 +1,7 @@
+import RSBounds.PolynomialLowerKernel
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_forwardDiff_le_const_on
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_low
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_high
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.sixteen_le_R4
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_high_common
+#print axioms TernaryGoldbach.RSBounds.PolynomialLowerKernel.norm_lower_difference_le_low_common

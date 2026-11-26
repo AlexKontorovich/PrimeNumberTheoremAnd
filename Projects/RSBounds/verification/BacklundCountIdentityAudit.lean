@@ -1,0 +1,20 @@
+import RSBounds.BacklundCountIdentity
+
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.re_zetaF_real_ge
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_ne_zero_real
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_zero_im_ne_zero
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.xi_analyticOrderAt_ne_top
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.mem_positiveZeros_iff
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.N_eq_sum_analyticOrder
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.rectangle_count_identity
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.im_rectangle_eq_two_xiArcVar
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.pi_mul_N_eq_xiArcVar
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.xiF_eq_zero_of_zeta_zero
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.mem_positiveZeros_iff_zeta
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.analyticOrderAt_xi_eq_zeta
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.N_eq_sum_zetaMultiplicity
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.pole_arc_eq_pi
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.logDeriv_xi_factorization
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.xiArcVar_eq_pi_add_theta_add_zetaArgVar
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.count_identity
+#print axioms TernaryGoldbach.RSBounds.BacklundCountIdentity.count_identity_mainTerm
