@@ -1,11 +1,13 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row1
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row2
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row3
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row4
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row6
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row7
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row8
-import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row9
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row1
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row2
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row3
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row4
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row6
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row7
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row8
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row9
 
 /-!
 # FKS2 Corollary 23 — complete Table-6 dispatch (all 9 rows)
@@ -18,6 +20,8 @@ import PrimeNumberTheoremAnd.IEANTN.FKS2Cor23Row9
 (The `FKS2.corollary_23` stub in `FKS2.lean` is declared *upstream* of these
 per-row files, so the assembled dispatch necessarily lives here, downstream.)
 -/
+
+public section
 
 namespace FKS2
 open Real

@@ -7,7 +7,6 @@ public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
 public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 public import PrimeNumberTheoremAnd.Wiener
 
-
 @[expose] public section
 
 set_option lang.lemmaCmd true

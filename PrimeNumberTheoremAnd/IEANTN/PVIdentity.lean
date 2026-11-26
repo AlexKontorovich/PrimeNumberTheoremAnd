@@ -4,7 +4,6 @@ public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.MeasureTheory.Integral.Gamma
 public import Mathlib.NumberTheory.Harmonic.GammaDeriv
 
-
 public section
 
 open Real Set MeasureTheory Filter Topology Finset

@@ -1,7 +1,11 @@
-import Mathlib.Data.Nat.Count
-import Mathlib.Data.Nat.Prime.Defs
-import PrimeCert
-import PrimeNumberTheoremAnd.Tactic.Simprocs
+module
+
+public import Mathlib.Data.Nat.Count
+public import Mathlib.Data.Nat.Prime.Defs
+public import PrimeCert
+public import PrimeNumberTheoremAnd.Tactic.Simprocs
+
+public section
 
 set_option linter.style.nativeDecide false
 

@@ -5,7 +5,6 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 public import Mathlib.NumberTheory.Chebyshev
 public import PrimeNumberTheoremAnd.Fourier
 
-
 @[expose] public section
 
 open ArithmeticFunction hiding log

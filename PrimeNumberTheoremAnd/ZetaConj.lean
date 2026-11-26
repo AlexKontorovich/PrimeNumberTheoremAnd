@@ -5,7 +5,6 @@ public import Mathlib.Analysis.Calculus.Deriv.Star
 public import Mathlib.Analysis.Normed.Module.Connected
 public import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 
-
 public section
 
 open scoped Complex ComplexConjugate

@@ -14,7 +14,6 @@ public import PrimeNumberTheoremAnd.Fourier
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 public import PrimeNumberTheoremAnd.SmoothExistence
 
-
 @[expose] public section
 
 set_option lang.lemmaCmd true

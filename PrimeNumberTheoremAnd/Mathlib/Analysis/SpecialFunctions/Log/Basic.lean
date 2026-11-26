@@ -6,7 +6,6 @@ public import Mathlib.Algebra.Order.Floor.Semiring
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 
-
 public section
 
 open Filter Real

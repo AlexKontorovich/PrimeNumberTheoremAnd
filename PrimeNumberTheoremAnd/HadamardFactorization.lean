@@ -3,7 +3,6 @@ module
 public import Architect
 public import Mathlib.Init
 
-
 public section
 
 blueprint_comment /--

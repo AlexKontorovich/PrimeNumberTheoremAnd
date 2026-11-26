@@ -1,4 +1,8 @@
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+
+@[expose] public section
 
 blueprint_comment /--
 \section{The estimates of Buthe}\label{buthe-sec}

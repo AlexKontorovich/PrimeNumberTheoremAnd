@@ -1,17 +1,19 @@
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_00
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_01
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_02
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_03
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_04
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_05
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_06
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_07
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_08
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_09
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_10
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_11
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_12
-import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_13
+module
+
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_00
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_01
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_02
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_03
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_04
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_05
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_06
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_07
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_08
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_09
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_10
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_11
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_12
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Tables.Table4ExtData_13
 
 /-!
 # Extended Table 4: coverage of the Corollary 22 mid-range
@@ -21,6 +23,8 @@ Assembles the generated shards into the interpolation statement: on
 trusted row data of the extended ancillary table
 (arXiv 2206.12557, anc/PrimeCountingTables.pdf).
 -/
+
+@[expose] public section
 
 namespace FKS2
 namespace Table4Ext

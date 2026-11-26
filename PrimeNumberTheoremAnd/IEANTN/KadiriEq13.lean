@@ -12,7 +12,6 @@ public import Mathlib.Analysis.Normed.Group.Tannery
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 
-
 @[expose] public section
 
 namespace Kadiri
@@ -442,4 +441,3 @@ theorem kadiri_thm_3_1_q1_eq_13_core
   · simp [c, mul_comm]
 
 end Kadiri
-

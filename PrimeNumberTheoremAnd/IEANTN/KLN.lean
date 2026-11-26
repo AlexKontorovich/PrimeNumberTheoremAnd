@@ -4,7 +4,6 @@ public import Architect
 public import PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions
 public import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 
-
 @[expose] public section
 
 blueprint_comment /--

@@ -4,7 +4,6 @@ public import Architect
 public import Mathlib.Tactic
 
 
-
 @[expose] public section
 
 blueprint_comment /--

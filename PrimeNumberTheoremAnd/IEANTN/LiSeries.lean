@@ -9,7 +9,6 @@ public import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 
-
 @[expose] public section
 
 set_option linter.style.setOption false

@@ -1,11 +1,15 @@
-import Architect
-import Mathlib.Data.Rat.Cast.OfScientific
-import Mathlib.NumberTheory.Bertrand
-import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
-import PrimeNumberTheoremAnd.IEANTN.FKS2
-import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
-import PrimeNumberTheoremAnd.IEANTN.Dusart
-import PrimeNumberTheoremAnd.IEANTN.TMEEMT
+module
+
+public import Architect
+public import Mathlib.Data.Rat.Cast.OfScientific
+public import Mathlib.NumberTheory.Bertrand
+public import PrimeNumberTheoremAnd.IEANTN.SecondaryDefinitions
+public import PrimeNumberTheoremAnd.IEANTN.FKS2
+public import PrimeNumberTheoremAnd.IEANTN.FKS2Floor.Cor22Floor
+public import PrimeNumberTheoremAnd.IEANTN.Dusart
+public import PrimeNumberTheoremAnd.IEANTN.TMEEMT
+
+@[expose] public section
 
 blueprint_comment /--
 \section{Summary of results}
@@ -343,5 +347,3 @@ theorem theorem_1_4 : Eπ.vinogradovBound 0.028 1.801 0.1853 23 := sorry
 blueprint_comment /-- TODO: input other results from JY -/
 
 end JY
-
-

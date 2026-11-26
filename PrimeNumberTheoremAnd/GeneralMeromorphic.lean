@@ -4,7 +4,6 @@ public import Architect
 public import Mathlib.Analysis.Meromorphic.Basic
 public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
-
 public section
 
 open Complex BigOperators

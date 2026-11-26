@@ -20,7 +20,6 @@ public import Mathlib.NumberTheory.LSeries.RiemannZeta
 public import PrimeNumberTheoremAnd.EulerMaclaurin
 
 
-
 @[expose] public section
 
 theorem Filter.EventuallyEq.iff_eventually {α : Type _} {β : Type _} {l : Filter α} {f g : α → β} : f =ᶠ[l] g ↔ ∀ᶠ (x : α) in l, f x = g x := by rfl

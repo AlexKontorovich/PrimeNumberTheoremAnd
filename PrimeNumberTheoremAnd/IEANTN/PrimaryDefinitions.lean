@@ -5,7 +5,6 @@ public import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 public import Mathlib.NumberTheory.Chebyshev
 public import PrimeNumberTheoremAnd.IEANTN.ZetaSummary
 
-
 public section
 
 open Real
@@ -19,4 +18,3 @@ blueprint_comment /--
 In this section we define the basic types of primary estimates we will work with in the project.
 
 -/
-

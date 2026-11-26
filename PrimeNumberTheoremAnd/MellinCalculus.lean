@@ -9,7 +9,6 @@ public import Mathlib.Tactic.Bound
 public import Mathlib.Tactic.GCongr
 public import PrimeNumberTheoremAnd.Auxiliary
 
-
 @[expose] public section
 
 open scoped ContDiff

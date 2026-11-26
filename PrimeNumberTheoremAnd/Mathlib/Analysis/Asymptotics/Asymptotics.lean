@@ -5,7 +5,6 @@ public import Mathlib.Analysis.Normed.Group.Bounded
 public import Mathlib.Order.Filter.AtTopBot.Archimedean
 public import Mathlib.Topology.Order.Compact
 
-
 public section
 
 open Filter Topology

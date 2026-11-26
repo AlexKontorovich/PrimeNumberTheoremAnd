@@ -7,7 +7,6 @@ public import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 public import Mathlib.Analysis.Fourier.FourierTransformDeriv
 public import PrimeNumberTheoremAnd.Sobolev
 
-
 @[expose] public section
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction

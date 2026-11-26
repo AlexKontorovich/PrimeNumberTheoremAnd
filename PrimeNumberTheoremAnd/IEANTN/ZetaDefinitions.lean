@@ -6,7 +6,6 @@ public import Mathlib.Analysis.Meromorphic.Order
 public import PrimeNumberTheoremAnd.Defs
 public import Mathlib.NumberTheory.LSeries.Nonvanishing
 
-
 @[expose] public section
 
 open Real

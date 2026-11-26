@@ -13,7 +13,6 @@ public import PrimeNumberTheoremAnd.Fourier
 public import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
-
 @[expose] public section
 
 set_option lang.lemmaCmd true
