@@ -315,6 +315,93 @@ lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa
 theorem prelim_decay (ψ : ℝ → ℂ) (u : ℝ) : ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ :=
   VectorFourier.norm_fourierIntegral_le_integral_norm ..
 
+private lemma tsum_edist_shift_le_eVariationOn (ψ : ℝ → ℂ) {h : ℝ} (hh : 0 < h) (s : ℝ) :
+    ∑' n : ℤ, ‖ψ (s + ((n : ℝ) + 1) * h) - ψ (s + (n : ℝ) * h)‖ₑ ≤
+      eVariationOn ψ Set.univ := by
+  rw [tsum_eq_iSup_sum]
+  refine iSup_le fun F ↦ ?_
+  rcases F.eq_empty_or_nonempty with rfl | hF
+  · simp
+  · set a : ℤ := F.min' hF
+    set b : ℤ := F.max' hF
+    set N : ℕ := (b - a + 1).toNat
+    let u : ℕ → ℝ := fun i ↦ s + ((a : ℝ) + (i : ℝ)) * h
+    have hu_mono : Monotone u := fun i j hij ↦ by dsimp [u]; gcongr
+    let emb : ℕ ↪ ℤ := ⟨fun i ↦ a + i, fun _ _ hij ↦ by dsimp at hij; omega⟩
+    have hemb (i : ℕ) : emb i = a + i := rfl
+    have hsub : F ⊆ (Finset.range N).map emb := fun n hn ↦ by
+      have h1 : a ≤ n := F.min'_le n hn
+      have h2 : n ≤ b := F.le_max' n hn
+      exact Finset.mem_map.mpr
+        ⟨(n - a).toNat, Finset.mem_range.mpr (by omega), by rw [hemb]; omega⟩
+    calc ∑ n ∈ F, ‖ψ (s + ((n : ℝ) + 1) * h) - ψ (s + (n : ℝ) * h)‖ₑ
+        ≤ ∑ n ∈ (Finset.range N).map emb,
+            ‖ψ (s + ((n : ℝ) + 1) * h) - ψ (s + (n : ℝ) * h)‖ₑ :=
+          Finset.sum_le_sum_of_subset hsub
+      _ = ∑ i ∈ Finset.range N, edist (ψ (u (i + 1))) (ψ (u i)) := by
+          rw [Finset.sum_map]
+          refine Finset.sum_congr rfl fun i _ ↦ ?_
+          rw [eDist_eq_eNorm_sub]
+          congr 3 <;> (rw [hemb]; dsimp [u]; push_cast; ring)
+      _ ≤ eVariationOn ψ Set.univ :=
+          eVariationOn.sum_le hu_mono (fun _ ↦ Set.mem_univ _)
+
+private lemma integral_norm_shift_sub_le (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (hvar : BoundedVariationOn ψ Set.univ) {h : ℝ} (hh : 0 < h) :
+    ∫ t : ℝ, ‖ψ (t + h) - ψ t‖ ≤ h * (eVariationOn ψ Set.univ).toReal := by
+  have hdiff : Integrable (fun t : ℝ ↦ ψ (t + h) - ψ t) := (hψ.comp_add_right h).sub hψ
+  have hlint :
+      ∫⁻ t : ℝ, ‖ψ (t + h) - ψ t‖ₑ ≤
+        ENNReal.ofReal h * eVariationOn ψ Set.univ := by
+    have huniv :
+        (Set.univ : Set ℝ) = ⋃ n : ℤ, Set.Ico ((n : ℝ) * h) (((n : ℝ) + 1) * h) := by
+      ext t
+      simp only [Set.mem_univ, Set.mem_iUnion, Set.mem_Ico, true_iff]
+      exact ⟨⌊t / h⌋, (le_div_iff₀ hh).mp (Int.floor_le _),
+        (div_lt_iff₀ hh).mp (Int.lt_floor_add_one _)⟩
+    have hdisj : Pairwise (Function.onFun Disjoint
+        fun n : ℤ ↦ Set.Ico ((n : ℝ) * h) (((n : ℝ) + 1) * h)) := by
+      intro m n hmn
+      wlog hlt : m < n generalizing m n
+      · exact (this hmn.symm (lt_of_le_of_ne (not_lt.mp hlt) hmn.symm)).symm
+      refine Set.disjoint_left.mpr fun t htm htn ↦ ?_
+      have hmn1 : ((m : ℝ) + 1) ≤ (n : ℝ) := by exact_mod_cast Int.add_one_le_iff.mpr hlt
+      linarith [htm.2, htn.1, mul_le_mul_of_nonneg_right hmn1 hh.le]
+    calc ∫⁻ t : ℝ, ‖ψ (t + h) - ψ t‖ₑ
+        = ∫⁻ t in Set.univ, ‖ψ (t + h) - ψ t‖ₑ := by rw [Measure.restrict_univ]
+      _ = ∑' n : ℤ,
+            ∫⁻ t in Set.Ico ((n : ℝ) * h) (((n : ℝ) + 1) * h),
+              ‖ψ (t + h) - ψ t‖ₑ := by
+          rw [huniv, lintegral_iUnion (fun _ ↦ measurableSet_Ico) hdisj]
+      _ = ∑' n : ℤ, ∫⁻ s in Set.Ico 0 h,
+            ‖ψ (s + ((n : ℝ) + 1) * h) - ψ (s + (n : ℝ) * h)‖ₑ := by
+          congr 1; ext n
+          have hmp := (measurePreserving_add_right (volume : Measure ℝ) ((n : ℝ) * h))
+            |>.setLIntegral_comp_preimage_emb (measurableEmbedding_addRight ((n : ℝ) * h))
+              (fun t ↦ ‖ψ (t + h) - ψ t‖ₑ) (Set.Ico ((n : ℝ) * h) (((n : ℝ) + 1) * h))
+          rw [Set.preimage_add_const_Ico, sub_self,
+            show ((n : ℝ) + 1) * h - (n : ℝ) * h = h by ring] at hmp
+          rw [← hmp]
+          congr 1; ext s
+          rw [show s + (n : ℝ) * h + h = s + ((n : ℝ) + 1) * h by ring]
+      _ = ∫⁻ s in Set.Ico 0 h,
+            ∑' n : ℤ, ‖ψ (s + ((n : ℝ) + 1) * h) - ψ (s + (n : ℝ) * h)‖ₑ := by
+          symm
+          refine lintegral_tsum fun n ↦ ?_
+          have h1 : AEMeasurable (fun s : ℝ ↦ ψ (s + ((n : ℝ) + 1) * h)) :=
+            (hψ.comp_add_right (((n : ℝ) + 1) * h)).aemeasurable
+          have h2 : AEMeasurable (fun s : ℝ ↦ ψ (s + (n : ℝ) * h)) :=
+            (hψ.comp_add_right ((n : ℝ) * h)).aemeasurable
+          exact (h1.sub h2).eNorm.mono_measure Measure.restrict_le_self
+      _ ≤ ∫⁻ _ in Set.Ico 0 h, eVariationOn ψ Set.univ :=
+          lintegral_mono (tsum_edist_shift_le_eVariationOn ψ hh)
+      _ = ENNReal.ofReal h * eVariationOn ψ Set.univ := by
+          simp [Real.volume_Ico, mul_comm]
+  have hle := ENNReal.toReal_mono (ENNReal.mul_ne_top ENNReal.ofReal_ne_top hvar)
+    ((ofReal_integral_norm_eq_lintegral_eNorm hdiff).trans_le hlint)
+  rwa [ENNReal.toReal_ofReal (integral_nonneg fun _ ↦ norm_nonneg _),
+    ENNReal.toReal_mul, ENNReal.toReal_ofReal hh.le] at hle
+
 @[blueprint "prelim-decay-2"
   (title := "Preliminary decay bound II")
   (statement := /--
@@ -329,7 +416,55 @@ and the claim then follows from the triangle inequality. -/)
   (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
     (u : ℝ) (hu : u ≠ 0) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by sorry
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
+  have hshift (h : ℝ) :
+      ((𝐞 (h * u) : ℂ) - 1) * 𝓕 ψ u =
+        ∫ t : ℝ, 𝐞 (-(t * u)) • (ψ (t + h) - ψ t) := by
+    have hint1 : Integrable (fun t : ℝ ↦ 𝐞 (-(t * u)) • ψ (t + h)) := by
+      simpa [RCLike.inner_apply', mul_comm] using
+        (Real.fourierIntegral_convergent_iff u).mpr (hψ.comp_add_right h)
+    have hint2 : Integrable (fun t : ℝ ↦ 𝐞 (-(t * u)) • ψ t) := by
+      simpa [RCLike.inner_apply', mul_comm] using
+        (Real.fourierIntegral_convergent_iff u).mpr hψ
+    simp_rw [smul_sub]
+    rw [integral_sub hint1 hint2]
+    have h1 : ∫ t : ℝ, 𝐞 (-(t * u)) • ψ (t + h) = (𝐞 (h * u) : ℂ) * 𝓕 ψ u := by
+      rw [← integral_add_right_eq_self (fun t : ℝ ↦ 𝐞 (-(t * u)) • ψ (t + h)) (-h)]
+      simp_rw [neg_add_cancel_right]
+      have hchar (t : ℝ) :
+          𝐞 (-((t + -h) * u)) • ψ t = (𝐞 (h * u) : ℂ) * (𝐞 (-(t * u)) • ψ t) := by
+        rw [show -((t + -h) * u) = h * u + -(t * u) by ring,
+          AddChar.map_add_eq_mul, mul_smul, Circle.smul_def, smul_eq_mul]
+      simp_rw [hchar, integral_const_mul, Real.fourier_real_eq]
+    rw [h1, ← Real.fourier_real_eq, sub_mul, one_mul]
+  have hstep (h : ℝ) (hh : 0 < h) :
+      (‖(𝐞 (h * u) : ℂ) - 1‖ / h) * ‖𝓕 ψ u‖ ≤
+        (eVariationOn ψ Set.univ).toReal := by
+    rw [div_mul_eq_mul_div, div_le_iff₀ hh, ← norm_mul, hshift h]
+    calc ‖∫ t : ℝ, 𝐞 (-(t * u)) • (ψ (t + h) - ψ t)‖
+        ≤ ∫ t : ℝ, ‖𝐞 (-(t * u)) • (ψ (t + h) - ψ t)‖ :=
+          norm_integral_le_integral_norm _
+      _ = ∫ t : ℝ, ‖ψ (t + h) - ψ t‖ := by simp
+      _ ≤ h * (eVariationOn ψ Set.univ).toReal := integral_norm_shift_sub_le ψ hψ hvar hh
+      _ = (eVariationOn ψ Set.univ).toReal * h := mul_comm _ _
+  have htend : Tendsto (fun h : ℝ ↦ ‖(𝐞 (h * u) : ℂ) - 1‖ / h)
+      (𝓝[>] 0) (𝓝 (2 * π * ‖u‖)) := by
+    let c : ℂ := 2 * π * u * I
+    have hderiv : HasDerivAt (fun h : ℝ ↦ cexp (c * h)) c 0 := by
+      simpa using ((hasDerivAt_id (0 : ℝ)).ofReal_comp.const_mul c).cexp
+    have hnorm := ((hasDerivAt_iff_tendsto_slope_zero.mp hderiv).mono_left
+      (nhdsWithin_mono 0 (show Set.Ioi (0 : ℝ) ⊆ {0}ᶜ from fun _ hh ↦ ne_of_gt hh))).norm
+    rw [show ‖c‖ = 2 * π * ‖u‖ by simp [c, abs_of_pos Real.pi_pos, mul_assoc]] at hnorm
+    refine hnorm.congr' (eventually_nhdsWithin_of_forall fun h (hh : 0 < h) ↦ ?_)
+    have hexp : (𝐞 (h * u) : ℂ) = cexp (c * h) := by
+      rw [Real.fourierChar_apply]
+      congr 1; simp only [c]; push_cast; ring
+    dsimp only
+    rw [hexp, norm_smul, norm_inv, Real.norm_of_nonneg hh.le, div_eq_inv_mul]
+    simp
+  have hlim : (2 * π * ‖u‖) * ‖𝓕 ψ u‖ ≤ (eVariationOn ψ Set.univ).toReal :=
+    le_of_tendsto (htend.mul_const ‖𝓕 ψ u‖) (eventually_nhdsWithin_of_forall hstep)
+  exact (le_div_iff₀' (by positivity)).mpr hlim
 
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
