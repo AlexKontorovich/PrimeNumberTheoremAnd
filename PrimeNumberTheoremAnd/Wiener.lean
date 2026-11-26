@@ -334,6 +334,280 @@ theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedV
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
 
+private lemma norm_deriv_le_of_boundedVariationOn (ψ : ℝ → ℂ)
+    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (x : ℝ) :
+    ‖deriv ψ x‖ ≤ ‖deriv ψ 0‖ + (eVariationOn (deriv ψ) Set.univ).toReal := by
+  have hed : edist (deriv ψ x) (deriv ψ 0) ≤ eVariationOn (deriv ψ) Set.univ :=
+    eVariationOn.edist_le (deriv ψ) (mem_univ x) (mem_univ 0)
+  have hdist : dist (deriv ψ x) (deriv ψ 0) ≤ (eVariationOn (deriv ψ) Set.univ).toReal := by
+    rw [dist_edist]
+    exact ENNReal.toReal_mono hvar hed
+  rw [dist_eq_norm] at hdist
+  linarith [norm_sub_norm_le (deriv ψ x) (deriv ψ 0)]
+
+private lemma intervalIntegrable_deriv_of_boundedVariationOn (ψ : ℝ → ℂ)
+    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (a b : ℝ) :
+    IntervalIntegrable (deriv ψ) volume a b := by
+  rw [intervalIntegrable_iff]
+  have hmeas : AEStronglyMeasurable (deriv ψ) (volume.restrict (uIoc a b)) :=
+    aestronglyMeasurable_deriv ψ _
+  have hlt : volume (uIoc a b) < ⊤ := by
+    rw [uIoc]
+    exact measure_Ioc_lt_top
+  refine IntegrableOn.of_bound hlt hmeas
+    (‖deriv ψ 0‖ + (eVariationOn (deriv ψ) Set.univ).toReal) ?_
+  filter_upwards with x using norm_deriv_le_of_boundedVariationOn ψ hvar x
+
+private lemma norm_deriv_le_on_unit_interval (ψ : ℝ → ℂ) (habscont : AbsolutelyContinuous ψ)
+    (hvar : BoundedVariationOn (deriv ψ) Set.univ) {a x : ℝ} (hx : x ∈ Icc a (a + 1)) :
+    ‖deriv ψ x‖ ≤ ‖ψ (x + 1)‖ + ‖ψ x‖ +
+      (eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2))).toReal := by
+  have hint : IntervalIntegrable (deriv ψ) volume x (x + 1) :=
+    intervalIntegrable_deriv_of_boundedVariationOn ψ hvar x (x + 1)
+  have hconst : ∫ t in x..(x + 1), deriv ψ x = deriv ψ x := by
+    simp [intervalIntegral.integral_const]
+  have hdiff_eq : deriv ψ x = (ψ (x + 1) - ψ x) - ∫ t in x..(x + 1), (deriv ψ t - deriv ψ x) := by
+    rw [habscont.2 x (x + 1), intervalIntegral.integral_sub hint intervalIntegrable_const, hconst]
+    abel
+  have hsub_var : eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2)) ≠ ⊤ :=
+    ne_top_of_le_ne_top hvar (eVariationOn.mono (deriv ψ) (subset_univ _))
+  have hbound : ∀ t ∈ uIoc x (x + 1),
+      ‖deriv ψ t - deriv ψ x‖ ≤ (eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2))).toReal := by
+    intro t ht
+    rw [uIoc_of_le (by linarith)] at ht
+    have hx_mem : x ∈ Set.univ ∩ Icc a (a + 2) := ⟨mem_univ _, hx.1, by linarith [hx.2]⟩
+    have ht_mem : t ∈ Set.univ ∩ Icc a (a + 2) :=
+      ⟨mem_univ _, by linarith [hx.1, ht.1], by linarith [hx.2, ht.2]⟩
+    have hd : dist (deriv ψ t) (deriv ψ x) ≤
+        (eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2))).toReal := by
+      rw [dist_edist]
+      exact ENNReal.toReal_mono hsub_var (eVariationOn.edist_le (deriv ψ) ht_mem hx_mem)
+    rwa [dist_eq_norm] at hd
+  have hint_bound := intervalIntegral.norm_integral_le_of_norm_le_const hbound
+  have h1 : |x + 1 - x| = 1 := by ring_nf; exact abs_one
+  rw [h1, mul_one] at hint_bound
+  calc ‖deriv ψ x‖
+      = ‖(ψ (x + 1) - ψ x) - ∫ t in x..(x + 1), (deriv ψ t - deriv ψ x)‖ := by rw [← hdiff_eq]
+    _ ≤ ‖ψ (x + 1) - ψ x‖ + ‖∫ t in x..(x + 1), (deriv ψ t - deriv ψ x)‖ := norm_sub_le _ _
+    _ ≤ (‖ψ (x + 1)‖ + ‖ψ x‖) + (eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2))).toReal :=
+        add_le_add (norm_sub_le _ _) hint_bound
+    _ = ‖ψ (x + 1)‖ + ‖ψ x‖ + (eVariationOn (deriv ψ) (Set.univ ∩ Icc a (a + 2))).toReal := by ring
+
+private lemma integrable_deriv_of_boundedVariationOn (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (habscont : AbsolutelyContinuous ψ) (hvar : BoundedVariationOn (deriv ψ) Set.univ) :
+    Integrable (deriv ψ) := by
+  have hψ_shift : Integrable (fun x ↦ ψ (x + 1)) := hψ.comp_add_right 1
+  refine integrable_of_intervalIntegral_norm_bounded (l := atTop)
+    (a := fun N : ℕ ↦ -(N : ℝ)) (b := fun N : ℕ ↦ (N : ℝ))
+    (2 * (∫ x, ‖ψ x‖) + 2 * (eVariationOn (deriv ψ) Set.univ).toReal) ?_ ?_ ?_ ?_
+  · intro N
+    have hle : -(N : ℝ) ≤ (N : ℝ) := by linarith [Nat.cast_nonneg (α := ℝ) N]
+    exact (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
+      (intervalIntegrable_deriv_of_boundedVariationOn ψ hvar _ _)
+  · exact Filter.tendsto_neg_atTop_atBot.comp tendsto_natCast_atTop_atTop
+  · exact tendsto_natCast_atTop_atTop
+  · refine Eventually.of_forall fun N ↦ ?_
+    let E : ℕ → ℝ := fun i ↦ -(N : ℝ) + i
+    have hE0 : E 0 = -(N : ℝ) := by simp [E]
+    have hE2N : E (2 * N) = (N : ℝ) := by simp [E]; ring
+    have hE_succ : ∀ i, E (i + 1) = E i + 1 := fun i ↦ by simp [E]; ring
+    have hE_mono : Monotone E := fun i j hij ↦ by
+      dsimp [E]; linarith [ (Nat.cast_le (α := ℝ)).mpr hij ]
+    have hE1_mono : Monotone (fun i ↦ E (i + 1)) := fun i j hij ↦ hE_mono (by omega)
+    have hadj : (∑ i ∈ Finset.range (2 * N), ∫ x in E i..E (i + 1), ‖deriv ψ x‖) =
+        ∫ x in (-(N : ℝ))..(N : ℝ), ‖deriv ψ x‖ := by
+      rw [← hE0, ← hE2N]
+      exact intervalIntegral.sum_integral_adjacent_intervals fun i _ ↦
+        (intervalIntegrable_deriv_of_boundedVariationOn ψ hvar _ _).norm
+    rw [← hadj]
+    have hstep : ∀ i ∈ Finset.range (2 * N),
+        (∫ x in E i..E (i + 1), ‖deriv ψ x‖) ≤
+          (∫ x in E i..E (i + 1), ‖ψ (x + 1)‖) + (∫ x in E i..E (i + 1), ‖ψ x‖) +
+            (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 2)))).toReal := by
+      intro i _
+      have hle : E i ≤ E (i + 1) := by rw [hE_succ]; linarith
+      have hi_deriv := (intervalIntegrable_deriv_of_boundedVariationOn ψ hvar (E i) (E (i + 1))).norm
+      have hi1 : IntervalIntegrable (fun x ↦ ‖ψ (x + 1)‖) volume (E i) (E (i + 1)) :=
+        hψ_shift.norm.intervalIntegrable
+      have hi0 : IntervalIntegrable (fun x ↦ ‖ψ x‖) volume (E i) (E (i + 1)) :=
+        hψ.norm.intervalIntegrable
+      have hrhs : (∫ x in E i..E (i + 1),
+          ‖ψ (x + 1)‖ + ‖ψ x‖ + (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 2)))).toReal) =
+          (∫ x in E i..E (i + 1), ‖ψ (x + 1)‖) + (∫ x in E i..E (i + 1), ‖ψ x‖) +
+            (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 2)))).toReal := by
+        rw [intervalIntegral.integral_add (hi1.add hi0) intervalIntegrable_const,
+          intervalIntegral.integral_add hi1 hi0, intervalIntegral.integral_const, hE_succ]
+        simp
+      rw [← hrhs]
+      refine intervalIntegral.integral_mono_on hle hi_deriv ((hi1.add hi0).add intervalIntegrable_const) ?_
+      intro x hx
+      rw [hE_succ] at hx
+      have hE2 : E (i + 2) = E i + 2 := by simp [E]; ring
+      rw [hE2]
+      exact norm_deriv_le_on_unit_interval ψ habscont hvar hx
+    have hsum_le := Finset.sum_le_sum hstep
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib] at hsum_le
+    have hsum_psi : (∑ i ∈ Finset.range (2 * N), ∫ x in E i..E (i + 1), ‖ψ x‖) ≤ ∫ x, ‖ψ x‖ := by
+      rw [intervalIntegral.sum_integral_adjacent_intervals (fun i _ ↦ hψ.norm.intervalIntegrable),
+        hE0, hE2N, intervalIntegral.integral_of_le (by linarith [Nat.cast_nonneg (α := ℝ) N])]
+      exact setIntegral_le_integral hψ.norm (Eventually.of_forall fun _ ↦ norm_nonneg _)
+    have hsum_shift : (∑ i ∈ Finset.range (2 * N), ∫ x in E i..E (i + 1), ‖ψ (x + 1)‖) ≤ ∫ x, ‖ψ x‖ := by
+      have h1 : (∑ i ∈ Finset.range (2 * N), ∫ x in E i..E (i + 1), ‖ψ (x + 1)‖) ≤ ∫ x, ‖ψ (x + 1)‖ := by
+        rw [intervalIntegral.sum_integral_adjacent_intervals
+          (fun i _ ↦ hψ_shift.norm.intervalIntegrable),
+          hE0, hE2N, intervalIntegral.integral_of_le (by linarith [Nat.cast_nonneg (α := ℝ) N])]
+        exact setIntegral_le_integral hψ_shift.norm (Eventually.of_forall fun _ ↦ norm_nonneg _)
+      rwa [integral_add_right_eq_self (fun x ↦ ‖ψ x‖) 1] at h1
+    have hsum_var : (∑ i ∈ Finset.range (2 * N),
+        (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 2)))).toReal) ≤
+        2 * (eVariationOn (deriv ψ) Set.univ).toReal := by
+      have hsplit : ∀ i, (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 2)))).toReal =
+          (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 1)))).toReal +
+            (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E (i + 1)) (E (i + 2)))).toReal := by
+        intro i
+        have hadd := eVariationOn.Icc_add_Icc (deriv ψ) (s := Set.univ)
+          (hE_mono (Nat.le_succ i)) (hE_mono (Nat.le_succ (i + 1))) (mem_univ _)
+        rw [← hadd, ENNReal.toReal_add
+          (ne_top_of_le_ne_top hvar (eVariationOn.mono _ (subset_univ _)))
+          (ne_top_of_le_ne_top hvar (eVariationOn.mono _ (subset_univ _)))]
+      simp_rw [hsplit, Finset.sum_add_distrib]
+      have hv1 : (∑ i ∈ Finset.range (2 * N),
+          (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E i) (E (i + 1)))).toReal) ≤
+          (eVariationOn (deriv ψ) Set.univ).toReal := by
+        rw [← ENNReal.toReal_sum (fun i _ ↦ ne_top_of_le_ne_top hvar (eVariationOn.mono _ (subset_univ _))),
+          eVariationOn.sum (deriv ψ) hE_mono (fun _ _ _ ↦ mem_univ _)]
+        exact ENNReal.toReal_mono hvar (eVariationOn.mono _ (subset_univ _))
+      have hv2 : (∑ i ∈ Finset.range (2 * N),
+          (eVariationOn (deriv ψ) (Set.univ ∩ Icc (E (i + 1)) (E (i + 2)))).toReal) ≤
+          (eVariationOn (deriv ψ) Set.univ).toReal := by
+        rw [← ENNReal.toReal_sum (fun i _ ↦ ne_top_of_le_ne_top hvar (eVariationOn.mono _ (subset_univ _)))]
+        have hsum2 := eVariationOn.sum (deriv ψ) hE1_mono (n := 2 * N) (fun _ _ _ ↦ mem_univ _)
+        dsimp at hsum2
+        rw [hsum2]
+        exact ENNReal.toReal_mono hvar (eVariationOn.mono _ (subset_univ _))
+      linarith
+    linarith
+
+private lemma tendsto_zero_of_absolutelyContinuous (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (habscont : AbsolutelyContinuous ψ) (hψ' : Integrable (deriv ψ)) :
+    Tendsto ψ atTop (𝓝 0) ∧ Tendsto ψ atBot (𝓝 0) := by
+  constructor
+  · have heq : ∀ x, ψ x = ψ 0 + ∫ t in (0 : ℝ)..x, deriv ψ t :=
+      fun x ↦ by linear_combination habscont.2 0 x
+    have ht : Tendsto ψ atTop (𝓝 (ψ 0 + ∫ t in Ioi (0 : ℝ), deriv ψ t)) :=
+      (tendsto_const_nhds.add
+        (intervalIntegral_tendsto_integral_Ioi 0 hψ'.integrableOn tendsto_id)).congr
+        fun x ↦ (heq x).symm
+    have h0 : ψ 0 + ∫ t in Ioi (0 : ℝ), deriv ψ t = 0 := by
+      refine (hψ.integrableAtFilter atTop).eq_zero_of_tendsto ?_ ht
+      intro s hs
+      rcases mem_atTop_sets.1 hs with ⟨b, hb⟩
+      rw [← top_le_iff, ← Real.volume_Ici (a := b)]
+      exact measure_mono hb
+    rwa [h0] at ht
+  · have heq : ∀ x, ψ x = ψ 0 - ∫ t in x..(0 : ℝ), deriv ψ t :=
+      fun x ↦ by linear_combination -habscont.2 x 0
+    have hb : Tendsto ψ atBot (𝓝 (ψ 0 - ∫ t in Iic (0 : ℝ), deriv ψ t)) :=
+      (tendsto_const_nhds.sub
+        (intervalIntegral_tendsto_integral_Iic 0 hψ'.integrableOn tendsto_id)).congr
+        fun x ↦ (heq x).symm
+    have h0 : ψ 0 - ∫ t in Iic (0 : ℝ), deriv ψ t = 0 := by
+      refine (hψ.integrableAtFilter atBot).eq_zero_of_tendsto ?_ hb
+      intro s hs
+      rcases mem_atBot_sets.1 hs with ⟨b, hb'⟩
+      rw [← top_le_iff, ← Real.volume_Iic (a := b)]
+      exact measure_mono hb'
+    rwa [h0] at hb
+
+private lemma fourier_deriv_of_absolutelyContinuous (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (habscont : AbsolutelyContinuous ψ) (hvar : BoundedVariationOn (deriv ψ) Set.univ)
+    (hψ' : Integrable (deriv ψ)) (u : ℝ) :
+    𝓕 (deriv ψ) u = (2 * ↑π * I * ↑u) * 𝓕 ψ u := by
+  let v' : ℝ → ℂ := Function.rightLim (deriv ψ)
+  have heq_prim : ∀ y, ψ 0 + ∫ t in (0 : ℝ)..y, deriv ψ t = ψ y :=
+    fun y ↦ by linear_combination -habscont.2 0 y
+  have hv_right : ∀ x : ℝ, HasDerivWithinAt ψ (v' x) (Ioi x) x := by
+    intro x
+    have hmeas : StronglyMeasurableAtFilter (deriv ψ) (𝓝[>] x) :=
+      (stronglyMeasurable_deriv ψ).stronglyMeasurableAtFilter
+    have htend : Tendsto (deriv ψ) (𝓝[>] x ⊓ ae volume) (𝓝 (v' x)) :=
+      (hvar.tendsto_rightLim x).mono_left inf_le_left
+    have hd : HasDerivWithinAt (fun y ↦ ∫ t in (0 : ℝ)..y, deriv ψ t) (v' x) (Ici x) x :=
+      intervalIntegral.integral_hasDerivWithinAt_of_tendsto_ae_right
+        hψ'.intervalIntegrable hmeas htend
+    have hd' : HasDerivWithinAt (fun y ↦ ψ 0 + ∫ t in (0 : ℝ)..y, deriv ψ t) (v' x) (Ioi x) x :=
+      by simpa using (hd.const_add (ψ 0)).mono Ioi_subset_Ici_self
+    exact hd'.congr (fun y _ ↦ (heq_prim y).symm) (heq_prim x).symm
+  have hv_ae : v' =ᵐ[volume] deriv ψ := by
+    filter_upwards [habscont.1] with x hx
+    simpa using congr_arg (fun L ↦ L 1)
+      ((uniqueDiffWithinAt_Ioi x).eq (hv_right x) hx.hasDerivAt.hasDerivWithinAt)
+  have hv'_int : Integrable v' := hψ'.congr hv_ae.symm
+  have hcont : Continuous ψ := by
+    have : ψ = fun y ↦ ψ 0 + ∫ t in (0 : ℝ)..y, deriv ψ t := funext fun y ↦ (heq_prim y).symm
+    rw [this]
+    exact continuous_const.add
+      (intervalIntegral.continuous_primitive (fun _ _ ↦ hψ'.intervalIntegrable) 0)
+  obtain ⟨h_top, h_bot⟩ := tendsto_zero_of_absolutelyContinuous ψ hψ habscont hψ'
+  let eu : ℝ → ℂ := fun t ↦ e u t
+  let eu' : ℝ → ℂ := fun t ↦ -2 * ↑π * ↑u * I * e u t
+  have heu_cont : Continuous eu := (e u).continuous
+  have heu'_int : ∀ a b, IntervalIntegrable eu' volume a b :=
+    fun a b ↦ (heu_cont.const_mul _).intervalIntegrable a b
+  have hibp : ∀ T : ℝ, ∫ t in (-T)..T, eu t * deriv ψ t =
+      eu T * ψ T - eu (-T) * ψ (-T) - ∫ t in (-T)..T, eu' t * ψ t := by
+    intro T
+    have hcongr : ∫ t in (-T)..T, eu t * deriv ψ t = ∫ t in (-T)..T, eu t * v' t := by
+      refine intervalIntegral.integral_congr_ae ?_
+      filter_upwards [hv_ae] with t ht _
+      rw [ht]
+    rw [hcongr]
+    have hparts := intervalIntegral.integral_smul_deriv_eq_deriv_smul_of_hasDeriv_right
+      heu_cont.continuousOn hcont.continuousOn
+      (fun x _ ↦ hasDerivAt_e.hasDerivWithinAt)
+      (fun x _ ↦ hv_right x)
+      (heu'_int (-T) T) hv'_int.intervalIntegrable
+    simpa only [smul_eq_mul] using hparts
+  have hint_lhs : Integrable (fun t ↦ eu t * deriv ψ t) := fourierIntegral_deriv_aux2 (e u) hψ'
+  have hint_rhs : Integrable (fun t ↦ eu' t * ψ t) := by
+    have : (fun t ↦ eu' t * ψ t) = fun t ↦ (-2 * ↑π * ↑u * I) * ((e u) t * ψ t) := by
+      ext t; dsimp [eu']; ring
+    rw [this]
+    exact (fourierIntegral_deriv_aux2 (e u) hψ).const_mul _
+  have ht_lhs : Tendsto (fun T : ℝ ↦ ∫ t in (-T)..T, eu t * deriv ψ t) atTop
+      (𝓝 (∫ t, eu t * deriv ψ t)) :=
+    intervalIntegral_tendsto_integral hint_lhs tendsto_neg_atTop_atBot tendsto_id
+  have ht_bdy1 : Tendsto (fun T : ℝ ↦ eu T * ψ T) atTop (𝓝 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    have hnorm : (fun T : ℝ ↦ ‖eu T * ψ T‖) = fun T ↦ ‖ψ T‖ := by
+      ext T; simp [eu, e_apply]
+    rw [hnorm]
+    exact tendsto_zero_iff_norm_tendsto_zero.mp h_top
+  have ht_bdy2 : Tendsto (fun T : ℝ ↦ eu (-T) * ψ (-T)) atTop (𝓝 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    have hnorm : (fun T : ℝ ↦ ‖eu (-T) * ψ (-T)‖) = fun T ↦ ‖ψ (-T)‖ := by
+      ext T; simp [eu, e_apply]
+    rw [hnorm]
+    exact tendsto_zero_iff_norm_tendsto_zero.mp (h_bot.comp tendsto_neg_atTop_atBot)
+  have ht_rhs : Tendsto (fun T : ℝ ↦ eu T * ψ T - eu (-T) * ψ (-T) - ∫ t in (-T)..T, eu' t * ψ t)
+      atTop (𝓝 (0 - 0 - ∫ t, eu' t * ψ t)) :=
+    (ht_bdy1.sub ht_bdy2).sub
+      (intervalIntegral_tendsto_integral hint_rhs tendsto_neg_atTop_atBot tendsto_id)
+  simp_rw [hibp] at ht_lhs
+  have heq_int : (∫ t, eu t * deriv ψ t) = -(∫ t, eu' t * ψ t) := by
+    have := tendsto_nhds_unique ht_lhs ht_rhs
+    simpa using this
+  have hF_eq : ∀ g : ℝ → ℂ, 𝓕 g u = ∫ t, eu t * g t := by
+    intro g
+    rw [Real.fourier_real_eq]
+    congr 1; ext t
+    simp [eu, e_apply, Circle.smul_def, neg_mul]
+  rw [hF_eq (deriv ψ), hF_eq ψ, heq_int]
+  have : (fun t ↦ eu' t * ψ t) = fun t ↦ (-(2 * ↑π * I * ↑u)) * (eu t * ψ t) := by
+    ext t; dsimp [eu', eu]; ring
+  rw [this, integral_const_mul]
+  ring
+
 @[blueprint "prelim-decay-3"
   (title := "Preliminary decay bound III")
   (statement := /--
@@ -349,7 +623,19 @@ for all non-zero $u \in \R$.
 theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (habscont : AbsolutelyContinuous ψ)
     (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) (hu : u ≠ 0) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by sorry
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by
+  have hψ' : Integrable (deriv ψ) := integrable_deriv_of_boundedVariationOn ψ hψ habscont hvar
+  have h2 := prelim_decay_2 (deriv ψ) hψ' hvar u hu
+  have hF := fourier_deriv_of_absolutelyContinuous ψ hψ habscont hvar hψ' u
+  have hpos : 0 < 2 * π * ‖u‖ := by positivity
+  have hnorm : ‖𝓕 (deriv ψ) u‖ = (2 * π * ‖u‖) * ‖𝓕 ψ u‖ := by
+    rw [hF, norm_mul, norm_mul, norm_mul, norm_mul, norm_I, mul_one, Complex.norm_two,
+      Complex.norm_of_nonneg pi_pos.le, Complex.norm_real]
+  rw [hnorm, le_div_iff₀ hpos] at h2
+  rw [le_div_iff₀ (sq_pos_of_pos hpos)]
+  calc ‖𝓕 ψ u‖ * (2 * π * ‖u‖) ^ 2
+      = ((2 * π * ‖u‖) * ‖𝓕 ψ u‖ * (2 * π * ‖u‖)) := by ring
+    _ ≤ (eVariationOn (deriv ψ) Set.univ).toReal := h2
 
 @[blueprint "decay-alt"
   (title := "Decay bound, alternate form")
