@@ -56,7 +56,7 @@ jobs:
           key: leancert-${{ hashFiles('lake-manifest.json', 'lean-toolchain') }}
 
       - name: Build the project
-        uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1.6.0
+        uses: leanprover/lean-action@ba3fdfe5c4476c925da13bf11a005ddb47e47aee # v1.7.1
         with:
           use-github-cache: false
           build-args: :blueprint
